@@ -163,7 +163,7 @@ export function Services() {
   return (
     <section
       id="services"
-      className="border-t border-line bg-surface/40 py-24 dark:bg-surface/20 md:py-32"
+      className="overflow-hidden border-t border-line bg-surface/40 py-24 dark:bg-surface/20 md:py-32"
     >
       <div className="mx-auto max-w-[1280px] px-6 lg:px-10">
         {/* Scroll-reveal statement */}
@@ -174,7 +174,8 @@ export function Services() {
           <ScrollReveal
             tokens={REVEAL_TOKENS}
             className="text-center"
-            textClassName="text-[2rem] leading-[1.2] sm:text-4xl md:text-5xl"
+            baseRotation={0}
+            textClassName="text-[1.7rem] leading-[1.22] sm:text-4xl md:text-5xl xl:text-[3.4rem]"
           />
         </div>
 
@@ -205,7 +206,7 @@ export function Services() {
               <p className="relative mt-2 text-sm leading-relaxed text-white/85">
                 {service.description}
               </p>
-              <span className="relative mt-6 inline-flex items-center gap-2 text-sm font-semibold">
+              <span className="relative mt-auto inline-flex items-center gap-2 pt-6 text-sm font-semibold">
                 Learn more
                 <ArrowIcon />
               </span>

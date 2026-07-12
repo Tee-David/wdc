@@ -72,7 +72,7 @@ export function AnimatedThemeToggler({
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-line bg-surface/60 text-foreground backdrop-blur transition-transform duration-200 hover:scale-110 active:scale-95 ${className}`}
     >
-      {/* Sun */}
+      {/* Sun — shown in dark mode */}
       <svg
         viewBox="0 0 24 24"
         fill="none"
@@ -80,18 +80,18 @@ export function AnimatedThemeToggler({
         strokeWidth="1.8"
         strokeLinecap="round"
         className={`h-5 w-5 transition-all duration-300 ${
-          isDark ? "scale-0 -rotate-90 opacity-0" : "scale-100 rotate-0 opacity-100"
+          isDark ? "scale-100 rotate-0 opacity-100" : "scale-0 -rotate-90 opacity-0"
         } absolute`}
       >
         <circle cx="12" cy="12" r="4.5" />
         <path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8" />
       </svg>
-      {/* Moon */}
+      {/* Moon — shown in light mode */}
       <svg
         viewBox="0 0 24 24"
         fill="currentColor"
         className={`h-5 w-5 transition-all duration-300 ${
-          isDark ? "scale-100 rotate-0 opacity-100" : "scale-0 rotate-90 opacity-0"
+          isDark ? "scale-0 rotate-90 opacity-0" : "scale-100 rotate-0 opacity-100"
         } absolute`}
       >
         <path d="M21 13.2A8.6 8.6 0 0 1 10.8 3 8.6 8.6 0 1 0 21 13.2Z" />
