@@ -1,0 +1,23 @@
+# We Dig Creativity (WDC Solutions)
+
+> Full-service creative and digital marketing agency. Motto: "Brilliant simplicity of thought." We design identities, engineer software, rank brands on search, ship apps, and grow audiences — affordable, premium, and built to scale.
+
+## What we do
+
+- **Branding & Design**: graphic design, motion design, animations and micro-animations, brand guides, company profiles, flyers, posters, banners, printables, and physical brand stands.
+- **Search Engine Optimization**: keyword research and optimization, competitor analysis, technical SEO, Google Business Profile setup, PageSpeed/Lighthouse audits, Search Console management, and AI/LLM visibility optimization.
+- **Full-Stack Web Development**: personal sites, blogs, business and company websites, e-commerce, WordPress/CMS or fully custom builds, plus maintenance and continuous optimization.
+- **Cross-Platform App Development**: web apps and iOS/Android mobile apps (Flutter, React Native, Swift, Kotlin, C#), App Store and Play Store delivery.
+- **Software Engineering**: AI and LLM integration into new or existing software, product builds from zero, scaling existing products, backends, databases, and cloud.
+- **Social Media Marketing & PPC**: organic growth, account management (Facebook, Instagram, X, WhatsApp, TikTok, LinkedIn), automations, paid ads, and content calendars.
+
+## Key facts
+
+- Company: We Dig Creativity Solutions (WDC Solutions)
+- Contact: wedigcreativity@gmail.com
+- Brand colors: deep royal blue #000065, orange #FF6500
+- We manage hundreds of client accounts and work with every budget.
+
+## Pages
+
+- [Home](/): agency overview, services, and the tools we work with.
