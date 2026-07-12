@@ -331,12 +331,12 @@ export default function IntroAnimation() {
             {/* Arc-active statement (fades in once the arc forms) */}
             <motion.div
               style={{ opacity: contentOpacity, y: contentY }}
-              className="pointer-events-none absolute top-[17%] z-10 flex flex-col items-center justify-center px-4 text-center"
+              className="pointer-events-none absolute top-[22%] z-10 flex flex-col items-center justify-center px-4 text-center md:top-[24%] xl:top-[27%]"
             >
-              <h2 className="mb-5 font-heading text-4xl font-bold tracking-tight md:text-6xl">
+              <h2 className="mb-5 font-heading text-4xl font-bold tracking-tight md:text-6xl xl:text-7xl 2xl:text-[5.5rem]">
                 The tools behind the craft
               </h2>
-              <p className="max-w-xl text-base leading-relaxed text-muted md:text-lg">
+              <p className="max-w-xl text-base leading-relaxed text-muted md:text-lg xl:max-w-3xl xl:text-2xl">
                 Design, SEO, web, apps, and AI — one team, every tool that
                 matters. <br className="hidden md:block" />
                 Keep scrolling to meet We Dig Creativity.

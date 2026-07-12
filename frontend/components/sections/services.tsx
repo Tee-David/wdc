@@ -3,7 +3,6 @@
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { WdcMark } from "@/components/brand/logo";
 import { ScrollReveal, type RevealToken } from "@/components/ui/scroll-reveal";
 
 /* ── Inline service icons (stroke, inherit currentColor) ─────────────── */
@@ -77,57 +76,114 @@ function SocialIcon() {
   );
 }
 
+/* ── Inline reveal-statement icons (bobbing) ─────────────────────────── */
+
+function BobbingIcon({
+  children,
+  delay = 0,
+}: {
+  children: ReactNode;
+  delay?: number;
+}) {
+  return (
+    <motion.span
+      className="inline-flex"
+      animate={{ y: [0, -6, 0], rotate: [0, -5, 0] }}
+      transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut", delay }}
+    >
+      {children}
+    </motion.span>
+  );
+}
+
+function SparkleIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+      className="h-[0.82em] w-[0.82em] text-secondary drop-shadow-[0_4px_12px_rgba(255,101,0,0.55)]"
+    >
+      <path d="M12 2l1.7 5.3a3 3 0 0 0 2 2L21 11l-5.3 1.7a3 3 0 0 0-2 2L12 20l-1.7-5.3a3 3 0 0 0-2-2L3 11l5.3-1.7a3 3 0 0 0 2-2L12 2Z" />
+    </svg>
+  );
+}
+
+function PenIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="h-[0.82em] w-[0.82em] text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.35)]"
+    >
+      <path d="M14.5 4 20 9.5 8.5 21H3v-5.5L14.5 4Z" />
+      <path d="M13 5.5 18.5 11" />
+    </svg>
+  );
+}
+
 /* ── Services ────────────────────────────────────────────────────────── */
 
 type Service = {
   title: string;
   description: string;
   icon: ReactNode;
-  gradient: string;
+  image: string;
 };
 
 const SERVICES: Service[] = [
   {
     title: "Branding & Design",
     description:
-      "Identity systems, logos, and visuals that make brands unmistakable.",
+      "Identity systems, logos, motion, and visuals that make brands unmistakable across every surface.",
     icon: <BrandingIcon />,
-    gradient: "from-[#FF6500] to-[#ff9142]",
+    image:
+      "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=1200&q=80",
   },
   {
     title: "SEO",
     description:
-      "Get found — technical, on-page, and content SEO that ranks and converts.",
+      "Get found — technical, on-page, and content SEO that ranks, earns clicks, and converts.",
     icon: <SeoIcon />,
-    gradient: "from-[#000065] to-[#2323a8]",
+    image:
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&q=80",
   },
   {
     title: "Full-Stack Web Development",
     description:
-      "Fast, accessible, scalable websites and web apps built to perform.",
+      "Fast, accessible, scalable websites and web apps engineered to perform and last.",
     icon: <WebIcon />,
-    gradient: "from-[#0b1a8c] to-[#3a5bd4]",
+    image:
+      "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200&q=80",
   },
   {
     title: "Cross-Platform App Development",
     description:
-      "One codebase, every device — native-quality mobile experiences.",
+      "One codebase, every device — native-quality mobile experiences on iOS and Android.",
     icon: <AppIcon />,
-    gradient: "from-[#1a0a55] to-[#5a2ea6]",
+    image:
+      "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=1200&q=80",
   },
   {
     title: "Software Engineering & AI",
     description:
-      "Custom software and AI integrations engineered for real outcomes.",
+      "Custom software and AI integrations engineered around real business outcomes.",
     icon: <EngineeringIcon />,
-    gradient: "from-[#000065] to-[#0a5a5a]",
+    image:
+      "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&q=80",
   },
   {
     title: "Social Media & PPC",
     description:
-      "Turn attention into growth with paid ads and social that moves.",
+      "Turn attention into growth with paid ads and social content that actually moves.",
     icon: <SocialIcon />,
-    gradient: "from-[#ff5a1f] to-[#ff8c00]",
+    image:
+      "https://images.unsplash.com/photo-1611926653458-09294b3142bf?w=1200&q=80",
   },
 ];
 
@@ -135,11 +191,23 @@ const REVEAL_TOKENS: RevealToken[] = [
   "We create striking concepts and",
   { highlight: "branding" },
   {
-    icon: <WdcMark className="h-[0.85em] w-auto" />,
-    label: "We Dig Creativity",
+    icon: (
+      <BobbingIcon>
+        <SparkleIcon />
+      </BobbingIcon>
+    ),
+    label: "spark",
   },
   "that help your business",
   { highlight: "grow fast." },
+  {
+    icon: (
+      <BobbingIcon delay={0.7}>
+        <PenIcon />
+      </BobbingIcon>
+    ),
+    label: "craft",
+  },
 ];
 
 function ArrowIcon() {
@@ -163,7 +231,7 @@ export function Services() {
   return (
     <section
       id="services"
-      className="overflow-hidden border-t border-line bg-surface/40 py-24 dark:bg-surface/20 md:py-32"
+      className="overflow-hidden bg-primary py-24 text-white md:py-32"
     >
       <div className="mx-auto max-w-[1280px] px-6 lg:px-10">
         {/* Scroll-reveal statement */}
@@ -173,13 +241,26 @@ export function Services() {
           </p>
           <ScrollReveal
             tokens={REVEAL_TOKENS}
-            className="text-center"
+            className="text-center text-white"
             baseRotation={0}
-            textClassName="text-[1.7rem] leading-[1.22] sm:text-4xl md:text-5xl xl:text-[3.4rem]"
+            baseOpacity={0.15}
+            textClassName="text-[clamp(1.55rem,6.5vw,4.25rem)] leading-[1.15]"
           />
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6 }}
+            className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-white/70 md:text-lg"
+          >
+            From brand identity and websites to cross-platform apps, SEO, and
+            AI-powered software — we design and engineer the entire experience,
+            so every touchpoint pulls in the same direction.
+          </motion.p>
         </div>
 
-        {/* Service cards */}
+        {/* Service cards — image + navy overlay; hover fills orange and
+            reveals the description + CTA. */}
         <div className="mt-16 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {SERVICES.map((service, i) => (
             <motion.a
@@ -189,27 +270,44 @@ export function Services() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
               transition={{ duration: 0.5, delay: (i % 3) * 0.08 }}
-              whileHover={{ y: -6 }}
-              className={`group relative flex flex-col items-center overflow-hidden rounded-3xl bg-gradient-to-br ${service.gradient} p-7 text-center text-white shadow-[0_18px_40px_-18px_rgba(0,0,101,0.5)] transition-shadow duration-300 hover:shadow-[0_26px_60px_-20px_rgba(0,0,101,0.6)] sm:items-start sm:text-left`}
+              className="group relative flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-3xl border border-white/10 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.7)]"
             >
-              {/* Ambient sheen */}
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/15 blur-2xl transition-transform duration-500 group-hover:scale-125"
+              {/* Background image */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={service.image}
+                alt=""
+                loading="lazy"
+                className="absolute inset-0 h-full w-full object-cover transition-all duration-500 group-hover:scale-105 group-hover:opacity-0"
               />
-              <span className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/25 backdrop-blur-sm">
-                {service.icon}
+              {/* Navy overlay (default) */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#00002e] via-[#000065]/55 to-[#000065]/10 transition-opacity duration-500 group-hover:opacity-0" />
+              {/* Orange fill (hover) */}
+              <div className="absolute inset-0 bg-gradient-to-br from-[#FF6500] to-[#ff8c1f] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+
+              {/* Icon top-left */}
+              <span className="absolute left-6 top-6 z-10 flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-white ring-1 ring-white/25 backdrop-blur-sm">
+                <span className="[&>svg]:h-6 [&>svg]:w-6">{service.icon}</span>
               </span>
-              <h3 className="relative mt-6 font-heading text-xl font-bold tracking-tight">
-                {service.title}
-              </h3>
-              <p className="relative mt-2 text-sm leading-relaxed text-white/85">
-                {service.description}
-              </p>
-              <span className="relative mt-auto inline-flex items-center gap-2 pt-6 text-sm font-semibold">
-                Learn more
-                <ArrowIcon />
-              </span>
+
+              {/* Bottom content */}
+              <div className="relative z-10 p-6">
+                <h3 className="font-heading text-xl font-bold tracking-tight text-white [text-shadow:0_2px_12px_rgba(0,0,0,0.45)]">
+                  {service.title}
+                </h3>
+                {/* Description + CTA reveal on hover (animated height) */}
+                <div className="grid grid-rows-[0fr] opacity-0 transition-all duration-500 ease-out group-hover:grid-rows-[1fr] group-hover:opacity-100">
+                  <div className="overflow-hidden">
+                    <p className="mt-3 text-sm leading-relaxed text-white/90">
+                      {service.description}
+                    </p>
+                    <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-white">
+                      Learn more
+                      <ArrowIcon />
+                    </span>
+                  </div>
+                </div>
+              </div>
             </motion.a>
           ))}
         </div>

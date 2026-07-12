@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import TextType from "@/components/ui/text-type";
 import { LogoGlyph } from "@/components/ui/logo-glyph";
 import LogoLoop from "@/components/ui/logo-loop";
@@ -52,25 +53,63 @@ function LogoMarquee() {
   );
 }
 
+/** Three creative-workspace shots that cross-fade behind the hero. */
+const BG_IMAGES = [
+  "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1600&q=80",
+  "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1600&q=80",
+  "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1600&q=80",
+];
+
+function HeroBackdrop() {
+  const [i, setI] = useState(0);
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    const id = setInterval(() => setI((p) => (p + 1) % BG_IMAGES.length), 5000);
+    return () => clearInterval(id);
+  }, [reduceMotion]);
+
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 overflow-hidden"
+    >
+      <AnimatePresence initial={false}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <motion.img
+          key={BG_IMAGES[i]}
+          src={BG_IMAGES[i]}
+          alt=""
+          initial={{ opacity: 0, scale: 1.08 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{
+            opacity: { duration: 1.4, ease: "easeInOut" },
+            scale: { duration: 6, ease: "linear" },
+          }}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      </AnimatePresence>
+      {/* Theme-aware readability overlay */}
+      <div className="absolute inset-0 bg-background/70 dark:bg-background/72" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-background/90" />
+      <div className="absolute inset-0 bg-primary/10 mix-blend-multiply dark:bg-primary/25" />
+    </div>
+  );
+}
+
 export function Hero() {
   return (
-    <section className="relative flex min-h-svh flex-col overflow-hidden pt-24 md:pt-32">
-      {/* Ambient brand glow */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-40 right-[-10%] h-[520px] w-[520px] rounded-full bg-primary/20 blur-[140px] dark:bg-primary/40"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-10 left-[-8%] h-[380px] w-[380px] rounded-full bg-secondary/10 blur-[120px] dark:bg-secondary/15"
-      />
+    <section className="relative flex min-h-svh flex-col overflow-hidden">
+      <HeroBackdrop />
 
-      <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-6 text-center lg:px-10">
+      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center px-6 pt-28 text-center md:pt-32 lg:px-10">
         <motion.p
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.05 }}
-          className="mb-5 text-xs font-semibold uppercase tracking-[0.25em] text-secondary"
+          className="mb-5 text-xs font-semibold uppercase tracking-[0.25em] text-secondary [text-shadow:0_1px_14px_rgba(0,0,0,0.35)]"
         >
           We don&apos;t just create — we dig deep
         </motion.p>
@@ -79,7 +118,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.15 }}
-          className="text-[2.6rem] font-bold leading-[1.05] tracking-tight sm:text-5xl md:text-6xl xl:text-7xl"
+          className="whitespace-nowrap text-[clamp(1.55rem,6.5vw,4.25rem)] font-bold leading-[1.08] tracking-tight [text-shadow:0_2px_28px_rgba(0,0,0,0.4)]"
         >
           We make your business
           <br />
@@ -99,7 +138,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.28 }}
-          className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-muted md:text-lg"
+          className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-foreground/80 [text-shadow:0_1px_16px_rgba(0,0,0,0.3)] md:text-lg xl:max-w-2xl xl:text-xl"
         >
           WDC Solutions is the creative engine behind brands that get
           noticed, get found, and get results — branding &amp; design, SEO,
@@ -111,11 +150,11 @@ export function Hero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-9 flex flex-wrap items-center justify-center gap-4"
+          className="mt-8 flex flex-wrap items-center justify-center gap-4"
         >
           <Link
             href="#contact"
-            className="group inline-flex items-center gap-2 rounded-full bg-secondary px-7 py-3.5 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_40px_rgba(255,101,0,0.4)] active:translate-y-0"
+            className="group inline-flex items-center gap-2 rounded-full bg-secondary px-7 py-3.5 text-sm font-semibold text-white shadow-[0_12px_34px_rgba(255,101,0,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_44px_rgba(255,101,0,0.55)] active:translate-y-0"
           >
             Book a Strategy Call
             <svg
@@ -132,7 +171,7 @@ export function Hero() {
           </Link>
           <Link
             href="#work"
-            className="inline-flex items-center gap-2 rounded-full border border-line px-7 py-3.5 text-sm font-semibold text-foreground transition-all duration-200 hover:border-secondary hover:text-secondary"
+            className="inline-flex items-center gap-2 rounded-full border border-line bg-background/40 px-7 py-3.5 text-sm font-semibold text-foreground shadow-[0_8px_26px_rgba(0,0,0,0.18)] backdrop-blur-sm transition-all duration-200 hover:border-secondary hover:text-secondary"
           >
             Explore Our Work
           </Link>
@@ -144,7 +183,7 @@ export function Hero() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.5 }}
-        className="mx-auto w-full max-w-[1280px] px-6 pb-10 pt-16 lg:px-10"
+        className="relative z-10 mx-auto w-full max-w-[1280px] px-6 pb-8 pt-6 lg:px-10"
       >
         <LogoMarquee />
       </motion.div>

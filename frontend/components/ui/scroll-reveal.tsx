@@ -61,7 +61,9 @@ export function ScrollReveal({
               <span
                 key={`w-${ti}-${ci}`}
                 className={`sr-word inline-block ${
-                  highlight ? "text-secondary" : ""
+                  highlight
+                    ? "mx-[0.06em] rounded-lg bg-secondary px-[0.3em] py-[0.02em] text-white shadow-[0_6px_18px_-6px_rgba(255,101,0,0.6)]"
+                    : ""
                 }`}
               >
                 {chunk}
