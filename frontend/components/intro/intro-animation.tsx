@@ -328,18 +328,15 @@ export default function IntroAnimation() {
               </motion.p>
             </div>
 
-            {/* Arc-active statement (fades in once the arc forms) */}
             <motion.div
               style={{ opacity: contentOpacity, y: contentY }}
-              className="pointer-events-none absolute top-[22%] z-10 flex flex-col items-center justify-center px-4 text-center md:top-[24%] xl:top-[27%]"
+              className="pointer-events-none absolute top-[20%] z-10 flex flex-col items-center justify-center px-6 text-center md:top-[22%] xl:top-[25%]"
             >
-              <h2 className="mb-5 font-heading text-4xl font-bold tracking-tight md:text-6xl xl:text-7xl 2xl:text-[5.5rem]">
-                The tools behind the craft
+              <h2 className="mb-6 font-heading text-4xl font-bold tracking-tight text-white md:text-6xl xl:text-7xl 2xl:text-[5.5rem]">
+                Most brands are buried.
               </h2>
-              <p className="max-w-xl text-base leading-relaxed text-muted md:text-lg xl:max-w-3xl xl:text-2xl">
-                Design, SEO, web, apps, and AI — one team, every tool that
-                matters. <br className="hidden md:block" />
-                Keep scrolling to meet We Dig Creativity.
+              <p className="max-w-xl text-base leading-relaxed text-muted md:text-lg xl:max-w-4xl xl:text-2xl">
+                Whether you&apos;re underground, fighting for visibility, shaping a new concept, or scaling an established brand; we’ve got you. Through elite <strong className="font-bold text-white">Branding & Design</strong>, full-stack <strong className="font-bold text-white">Web & App Development</strong>, dominant <strong className="font-bold text-white">SEO</strong>, strategic <strong className="font-bold text-white">Social Media</strong>, and results-driven <strong className="font-bold text-white">PPC & Growth Marketing</strong>. Keep scrolling to meet We Dig Creativity
               </p>
             </motion.div>
 
