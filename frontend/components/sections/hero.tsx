@@ -91,10 +91,11 @@ function HeroBackdrop() {
           className="absolute inset-0 h-full w-full object-cover"
         />
       </AnimatePresence>
-      {/* Theme-aware readability overlay */}
-      <div className="absolute inset-0 bg-background/70 dark:bg-background/72" />
-      <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-background/90" />
-      <div className="absolute inset-0 bg-primary/10 mix-blend-multiply dark:bg-primary/25" />
+      {/* Light mode: no overlay at all (full image). Dark mode keeps a
+          readability overlay + brand tint + bottom fade. */}
+      <div className="absolute inset-0 dark:bg-background/72" />
+      <div className="absolute inset-0 dark:bg-gradient-to-b dark:from-transparent dark:via-transparent dark:to-background/85" />
+      <div className="absolute inset-0 dark:bg-primary/25 dark:mix-blend-multiply" />
     </div>
   );
 }
@@ -118,7 +119,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.15 }}
-          className="whitespace-nowrap text-[clamp(1.55rem,6.5vw,4.25rem)] font-bold leading-[1.08] tracking-tight [text-shadow:0_2px_28px_rgba(0,0,0,0.4)]"
+          className="whitespace-nowrap text-[clamp(1.55rem,6.5vw,4.25rem)] font-bold leading-[1.08] tracking-tight !text-white [text-shadow:0_4px_32px_rgba(0,0,0,0.75),0_2px_6px_rgba(0,0,0,0.55),0_0_1px_rgba(0,0,0,0.3)]"
         >
           We make your business
           <br />
@@ -138,7 +139,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.28 }}
-          className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-foreground/80 [text-shadow:0_1px_16px_rgba(0,0,0,0.3)] md:text-lg xl:max-w-2xl xl:text-xl"
+          className="mx-auto mt-6 max-w-xl text-base leading-relaxed !text-white/90 [text-shadow:0_2px_20px_rgba(0,0,0,0.7),0_1px_4px_rgba(0,0,0,0.5)] md:text-lg xl:max-w-2xl xl:text-xl"
         >
           WDC Solutions is the creative engine behind brands that get
           noticed, get found, and get results — branding &amp; design, SEO,
