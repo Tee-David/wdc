@@ -119,7 +119,7 @@ function PenIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
-      className="h-[0.82em] w-[0.82em] text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.35)]"
+      className="h-[0.82em] w-[0.82em] text-primary dark:text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.35)] dark:drop-shadow-[0_4px_12px_rgba(255,255,255,0.15)]"
     >
       <path d="M14.5 4 20 9.5 8.5 21H3v-5.5L14.5 4Z" />
       <path d="M13 5.5 18.5 11" />
@@ -188,11 +188,20 @@ const SERVICES: Service[] = [
 ];
 
 const REVEAL_TOKENS: RevealToken[] = [
-  "We create striking concepts and",
-  { highlight: "branding" },
+  "We create",
   {
     icon: (
       <BobbingIcon>
+        <PenIcon />
+      </BobbingIcon>
+    ),
+    label: "craft",
+  },
+  "striking concepts and",
+  { highlight: "branding" },
+  {
+    icon: (
+      <BobbingIcon delay={0.7}>
         <SparkleIcon />
       </BobbingIcon>
     ),
@@ -200,14 +209,6 @@ const REVEAL_TOKENS: RevealToken[] = [
   },
   "that help your business",
   { highlight: "grow fast." },
-  {
-    icon: (
-      <BobbingIcon delay={0.7}>
-        <PenIcon />
-      </BobbingIcon>
-    ),
-    label: "craft",
-  },
 ];
 
 function ArrowIcon() {
@@ -231,19 +232,20 @@ export function Services() {
   return (
     <section
       id="services"
-      className="overflow-hidden bg-primary py-24 text-white md:py-32"
+      className="overflow-hidden bg-white py-24 text-primary dark:bg-[#171787] dark:text-white md:py-32"
     >
       <div className="mx-auto max-w-[1280px] px-6 lg:px-10">
         {/* Scroll-reveal statement */}
-        <div className="mx-auto max-w-4xl text-center">
+        <div className="mx-auto max-w-5xl text-center">
           <p className="mb-6 text-xs font-semibold uppercase tracking-[0.25em] text-secondary">
             What we do
           </p>
           <ScrollReveal
             tokens={REVEAL_TOKENS}
-            className="text-center text-white"
+            className="text-center text-primary dark:text-white"
             baseRotation={0}
-            baseOpacity={0.15}
+            baseOpacity={0.08}
+            blurStrength={14}
             textClassName="text-[clamp(1.55rem,6.5vw,4.25rem)] leading-[1.15]"
           />
           <motion.p
@@ -251,7 +253,7 @@ export function Services() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
             transition={{ duration: 0.6 }}
-            className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-white/70 md:text-lg"
+            className="mx-auto mt-6 max-w-5xl text-base leading-relaxed text-primary/55 dark:text-[#9d9ec9] md:text-lg"
           >
             From brand identity and websites to cross-platform apps, SEO, and
             AI-powered software — we design and engineer the entire experience,
@@ -282,17 +284,17 @@ export function Services() {
               />
               {/* Navy overlay (default) */}
               <div className="absolute inset-0 bg-gradient-to-t from-[#00002e] via-[#000065]/55 to-[#000065]/10 transition-opacity duration-500 group-hover:opacity-0" />
-              {/* Orange fill (hover) */}
-              <div className="absolute inset-0 bg-gradient-to-br from-[#FF6500] to-[#ff8c1f] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              {/* Blue fill (hover) with micro-animate scale/pop */}
+              <div className="absolute inset-0 bg-[#000065] opacity-0 scale-95 transition-all duration-500 ease-out group-hover:scale-100 group-hover:opacity-100" />
 
               {/* Icon top-left */}
-              <span className="absolute left-6 top-6 z-10 flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-white ring-1 ring-white/25 backdrop-blur-sm">
+              <span className="absolute left-6 top-6 z-10 flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-secondary ring-1 ring-white/25 backdrop-blur-sm dark:text-white transition-all duration-300 group-hover:text-white group-hover:drop-shadow-[0_2px_8px_rgba(255,255,255,0.4)]">
                 <span className="[&>svg]:h-6 [&>svg]:w-6">{service.icon}</span>
               </span>
 
               {/* Bottom content */}
               <div className="relative z-10 p-6">
-                <h3 className="font-heading text-xl font-bold tracking-tight text-white [text-shadow:0_2px_12px_rgba(0,0,0,0.45)]">
+                <h3 className="font-heading text-xl font-bold tracking-tight text-white">
                   {service.title}
                 </h3>
                 {/* Description + CTA reveal on hover (animated height) */}

@@ -22,7 +22,7 @@ export default function Home() {
             rights reserved.
           </p>
           <p className="font-heading font-semibold">
-            Brilliant simplicity <span className="text-secondary">of thought.</span>
+            ...brilliant simplicity <span className="text-secondary">of thought!</span>
           </p>
         </div>
       </footer>

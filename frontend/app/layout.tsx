@@ -7,6 +7,7 @@ import JsonLd, {
   websiteJsonLd,
 } from "@/components/seo/json-ld";
 import { MOTTO, SITE_NAME, SITE_URL } from "@/lib/site";
+import { SmoothScroll } from "@/components/ui/smooth-scroll";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -82,7 +83,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${spaceGrotesk.variable} ${outfit.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body suppressHydrationWarning className="min-h-full flex flex-col">
         {/*
           Runs before first paint: decides whether the full-screen intro
           should play (first visit or away > 30 min, motion allowed) and sets
@@ -96,6 +97,7 @@ export default function RootLayout({
         />
         <JsonLd data={[organizationJsonLd(), websiteJsonLd(), ...servicesJsonLd()]} />
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+          <SmoothScroll />
           {children}
         </ThemeProvider>
       </body>

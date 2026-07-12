@@ -65,7 +65,7 @@ export function Testimonials() {
   return (
     <section
       id="testimonials"
-      className="overflow-hidden border-t border-line py-24 md:py-32"
+      className="overflow-hidden bg-[#000065] py-24 text-white dark:bg-background dark:text-foreground md:py-32"
     >
       <motion.div
         initial={{ opacity: 0, y: 24 }}
@@ -74,14 +74,14 @@ export function Testimonials() {
         transition={{ duration: 0.6 }}
         className="mx-auto mb-14 max-w-2xl px-6 text-center lg:px-10"
       >
-        <p className="mb-5 inline-flex rounded-full border border-line bg-surface/60 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-secondary">
+        <p className="mb-5 inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-secondary dark:border-line dark:bg-surface/60">
           Testimonials
         </p>
-        <h2 className="font-heading text-3xl font-bold tracking-tight md:text-5xl">
+        <h2 className="font-heading text-[clamp(1.55rem,6.5vw,4.25rem)] font-bold leading-[1.15] tracking-tight text-white dark:text-foreground">
           Trusted by brands that{" "}
           <span className="text-secondary">dig deeper</span>
         </h2>
-        <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted">
+        <p className="mx-auto mt-6 max-w-5xl text-base leading-relaxed text-white/65 dark:text-muted md:text-lg">
           Founders and teams who care about speed, clarity, and results — and
           the work that earned their trust.
         </p>

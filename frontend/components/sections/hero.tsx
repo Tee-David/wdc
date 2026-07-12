@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+const MotionLink = motion(Link);
 import TextType from "@/components/ui/text-type";
 import { LogoGlyph } from "@/components/ui/logo-glyph";
 import LogoLoop from "@/components/ui/logo-loop";
@@ -21,11 +22,11 @@ const MARQUEE_LOGOS = LOGOS.map((entry) => ({
   title: entry.name,
   ariaLabel: entry.name,
   node: (
-    <span className="group flex shrink-0 items-center gap-2 text-muted transition-colors duration-300 hover:text-foreground">
+    <span className="group flex shrink-0 items-center gap-2 !text-white [text-shadow:0_1px_8px_rgba(0,0,0,0.45)] transition-colors duration-300 hover:!text-white/80 dark:text-muted dark:hover:text-foreground dark:[text-shadow:none]">
       <LogoGlyph
         entry={entry}
         mono
-        className="h-[1em] w-[1em] opacity-70 transition-opacity duration-300 group-hover:opacity-100"
+        className="h-[1em] w-[1em] opacity-80 transition-opacity duration-300 group-hover:opacity-100"
       />
       <span className="text-sm font-medium leading-none">{entry.name}</span>
     </span>
@@ -35,7 +36,7 @@ const MARQUEE_LOGOS = LOGOS.map((entry) => ({
 function LogoMarquee() {
   return (
     <div id="hero-marquee" className="w-full">
-      <p className="mb-5 text-center text-xs font-semibold uppercase tracking-[0.25em] text-muted">
+      <p className="mb-5 text-center text-xs font-semibold uppercase tracking-[0.25em] !text-white [text-shadow:0_1px_12px_rgba(0,0,0,0.5)] dark:text-muted">
         Powering brands with the world&apos;s best tools
       </p>
       <LogoLoop
@@ -91,9 +92,9 @@ function HeroBackdrop() {
           className="absolute inset-0 h-full w-full object-cover"
         />
       </AnimatePresence>
-      {/* Light mode: no overlay at all (full image). Dark mode keeps a
+      {/* Light mode: 40% black scrim for text legibility. Dark mode keeps a
           readability overlay + brand tint + bottom fade. */}
-      <div className="absolute inset-0 dark:bg-background/72" />
+      <div className="absolute inset-0 bg-black/40 dark:bg-background/72" />
       <div className="absolute inset-0 dark:bg-gradient-to-b dark:from-transparent dark:via-transparent dark:to-background/85" />
       <div className="absolute inset-0 dark:bg-primary/25 dark:mix-blend-multiply" />
     </div>
@@ -112,14 +113,14 @@ export function Hero() {
           transition={{ duration: 0.5, delay: 0.05 }}
           className="mb-5 text-xs font-semibold uppercase tracking-[0.25em] text-secondary [text-shadow:0_1px_14px_rgba(0,0,0,0.35)]"
         >
-          We don&apos;t just create — we dig deep
+          ...brilliant simplicity of thought!
         </motion.p>
 
         <motion.h1
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.15 }}
-          className="whitespace-nowrap text-[clamp(1.55rem,6.5vw,4.25rem)] font-bold leading-[1.08] tracking-tight !text-white [text-shadow:0_4px_32px_rgba(0,0,0,0.75),0_2px_6px_rgba(0,0,0,0.55),0_0_1px_rgba(0,0,0,0.3)]"
+          className="whitespace-nowrap text-[clamp(1.55rem,6.5vw,4.25rem)] font-bold leading-[1.08] tracking-tight !text-white [text-shadow:0_4px_20px_rgba(0,0,0,0.5),0_1px_4px_rgba(0,0,0,0.35)]"
         >
           We make your business
           <br />
@@ -142,7 +143,7 @@ export function Hero() {
           className="mx-auto mt-6 max-w-xl text-base leading-relaxed !text-white/90 [text-shadow:0_2px_20px_rgba(0,0,0,0.7),0_1px_4px_rgba(0,0,0,0.5)] md:text-lg xl:max-w-2xl xl:text-xl"
         >
           WDC Solutions is the creative engine behind brands that get
-          noticed, get found, and get results — branding &amp; design, SEO,
+          noticed, get found, and get results; branding &amp; design, SEO,
           full-stack web development, cross-platform apps, and AI-powered
           software engineering under one roof.
         </motion.p>
@@ -155,9 +156,9 @@ export function Hero() {
         >
           <Link
             href="#contact"
-            className="group inline-flex items-center gap-2 rounded-full bg-secondary px-7 py-3.5 text-sm font-semibold text-white shadow-[0_12px_34px_rgba(255,101,0,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_44px_rgba(255,101,0,0.55)] active:translate-y-0"
+            className="group inline-flex items-center gap-2 rounded-full bg-secondary px-7 py-3.5 text-sm font-semibold text-white shadow-[0_12px_34px_rgba(255,101,0,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-black hover:shadow-none active:translate-y-0"
           >
-            Book a Strategy Call
+            Let&apos;s Talk
             <svg
               viewBox="0 0 16 16"
               fill="none"
@@ -170,12 +171,21 @@ export function Hero() {
               <path d="M2 8h11M9 3.5 13.5 8 9 12.5" />
             </svg>
           </Link>
-          <Link
+          <MotionLink
             href="#work"
-            className="inline-flex items-center gap-2 rounded-full border border-line bg-background/40 px-7 py-3.5 text-sm font-semibold text-foreground shadow-[0_8px_26px_rgba(0,0,0,0.18)] backdrop-blur-sm transition-all duration-200 hover:border-secondary hover:text-secondary"
+            animate={{
+              scale: [1, 1.05, 0.95, 1.03, 0.98, 1],
+            }}
+            transition={{
+              duration: 1.2,
+              repeat: Infinity,
+              repeatDelay: 5,
+              ease: "easeInOut",
+            }}
+            className="inline-flex items-center gap-2 rounded-full border border-line bg-white text-[#000065] px-7 py-3.5 text-sm font-semibold shadow-[0_8px_26px_rgba(0,0,0,0.12)] backdrop-blur-sm transition-colors duration-300 hover:bg-[#000065] hover:text-white hover:border-[#000065] dark:bg-background/40 dark:text-foreground dark:hover:bg-primary dark:hover:text-white"
           >
             Explore Our Work
-          </Link>
+          </MotionLink>
         </motion.div>
       </div>
 

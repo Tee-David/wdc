@@ -90,7 +90,14 @@ export function Header() {
             transition={{ type: "spring", stiffness: 300, damping: 22 }}
             className="inline-flex"
           >
-            <WdcMark className="h-9 w-auto" />
+            {/* Navy favicon/icon when sticky scrolling in light mode; auto-tone logo mark in dark mode */}
+            <span className="dark:hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/icon-navy.svg" alt="We Dig Creativity mark" className="h-9 w-auto" />
+            </span>
+            <span className="hidden dark:inline-flex">
+              <WdcMark className="h-9 w-auto" />
+            </span>
           </motion.span>
         ) : (
           <motion.span
@@ -101,7 +108,14 @@ export function Header() {
             transition={{ duration: 0.25 }}
             className="inline-flex"
           >
-            <Logo markClassName="h-9 w-auto" />
+            {/* White logo over hero in light mode; auto-tone logo in dark mode */}
+            <span className="dark:hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/logo-white.svg" alt="We Dig Creativity" className="h-9 w-auto" />
+            </span>
+            <span className="hidden dark:inline-flex">
+              <Logo markClassName="h-9 w-auto" />
+            </span>
           </motion.span>
         )}
       </AnimatePresence>
@@ -125,7 +139,11 @@ export function Header() {
             <Link
               key={item.label}
               href={item.link}
-              className="group relative rounded-full px-4 py-2 text-sm font-medium text-muted transition-colors hover:text-foreground"
+              className={`group relative rounded-full px-4 py-2 text-base font-semibold font-heading transition-colors ${
+                scrolled
+                  ? "text-muted hover:text-foreground"
+                  : "!text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.5)] hover:!text-white/80 dark:text-muted dark:hover:text-foreground dark:[text-shadow:none]"
+              }`}
             >
               {item.label}
               <span className="absolute inset-x-4 -bottom-px h-px scale-x-0 bg-secondary transition-transform duration-300 group-hover:scale-x-100" />
@@ -138,7 +156,7 @@ export function Header() {
             href="#contact"
             className="group inline-flex items-center gap-2 rounded-full bg-secondary px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(255,101,0,0.35)] active:translate-y-0"
           >
-            Let&apos;s Talk
+            Book a Strategy Call
             <svg
               viewBox="0 0 16 16"
               fill="none"
