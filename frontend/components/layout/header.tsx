@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { siInstagram, siX, siFacebook, siWhatsapp } from "simple-icons";
 import { Logo, WdcMark } from "@/components/brand/logo";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import StaggeredMenu from "@/components/ui/staggered-menu";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 const NAV = [
   { label: "Home", link: "/" },
@@ -15,11 +17,50 @@ const NAV = [
   { label: "Blog", link: "#blog" },
 ];
 
+/** simple-icons brand glyph, tinted by the current text color. */
+function BrandGlyph({ path, title }: { path: string; title: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" role="img" aria-label={title}>
+      <path d={path} />
+    </svg>
+  );
+}
+
+function MailGlyph() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="3" y="5" width="18" height="14" rx="2.5" />
+      <path d="m4 7 8 5.5L20 7" />
+    </svg>
+  );
+}
+
 const SOCIALS = [
-  { label: "Instagram", link: "https://instagram.com" },
-  { label: "X", link: "https://x.com" },
-  { label: "LinkedIn", link: "https://linkedin.com" },
-  { label: "WhatsApp", link: "https://wa.me/" },
+  {
+    label: "Instagram",
+    link: "https://instagram.com",
+    icon: <BrandGlyph path={siInstagram.path} title="Instagram" />,
+  },
+  { label: "X", link: "https://x.com", icon: <BrandGlyph path={siX.path} title="X" /> },
+  {
+    label: "Facebook",
+    link: "https://facebook.com",
+    icon: <BrandGlyph path={siFacebook.path} title="Facebook" />,
+  },
+  { label: "Email", link: `mailto:${CONTACT_EMAIL}`, icon: <MailGlyph /> },
+  {
+    label: "WhatsApp",
+    link: "https://wa.me/",
+    icon: <BrandGlyph path={siWhatsapp.path} title="WhatsApp" />,
+  },
 ];
 
 /**
@@ -114,22 +155,25 @@ export function Header() {
         </div>
       </div>
 
-      {/* Mobile: toggler left, logo center, menu right */}
-      <div className="grid h-16 grid-cols-3 items-center px-4 md:hidden">
-        <div className="justify-self-start">
-          <AnimatedThemeToggler className="h-9 w-9" />
-        </div>
-        <div className="justify-self-center">{logoSwap}</div>
-        <div className="justify-self-end">
-          <StaggeredMenu
-            items={NAV.map((n) => ({
-              label: n.label,
-              link: n.link,
-              ariaLabel: `Go to ${n.label}`,
-            }))}
-            socialItems={SOCIALS}
-          />
-        </div>
+      {/* Mobile: logo left, hamburger right (theme toggler lives in the menu) */}
+      <div className="flex h-16 items-center justify-between px-4 md:hidden">
+        {logoSwap}
+        <StaggeredMenu
+          items={NAV.map((n) => ({
+            label: n.label,
+            link: n.link,
+            ariaLabel: `Go to ${n.label}`,
+          }))}
+          socialItems={SOCIALS}
+          footerSlot={
+            <>
+              <AnimatedThemeToggler />
+              <span className="text-sm font-medium text-muted">
+                Switch theme
+              </span>
+            </>
+          }
+        />
       </div>
     </header>
   );

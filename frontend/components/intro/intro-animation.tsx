@@ -17,7 +17,18 @@ type AnimationPhase = "scatter" | "line" | "circle";
 const TILE = 76;
 const TOTAL = INTRO_LOGOS.length;
 const MAX_SCROLL = 3000;
-const SESSION_KEY = "wdc-intro-done";
+// Timestamp of the last time the intro was seen. The intro only replays
+// after the viewer has been away for INTRO_TTL_MS — a returning visitor
+// within the window goes straight to the page. Kept in sync with the
+// blocking script in app/layout.tsx (same key + TTL).
+const STORAGE_KEY = "wdc-intro-seen-at";
+const INTRO_TTL_MS = 30 * 60 * 1000;
+
+function markIntroSeen() {
+  try {
+    localStorage.setItem(STORAGE_KEY, String(Date.now()));
+  } catch {}
+}
 
 const lerp = (start: number, end: number, t: number) =>
   start * (1 - t) + end * t;
@@ -99,12 +110,29 @@ export default function IntroAnimation() {
   const containerRef = useRef<HTMLDivElement>(null);
   const releasingRef = useRef(false);
 
-  // Decide once, client-side: skip for repeat visits and reduced motion.
+  // Decide once, client-side. The blocking script in <head> already made
+  // this call (and set data-intro) before first paint so the hero never
+  // flashes underneath — mirror its decision; fall back to computing it
+  // if the script didn't run.
   useEffect(() => {
-    const skip =
-      sessionStorage.getItem(SESSION_KEY) === "1" ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setActive(!skip);
+    const decided = document.documentElement.dataset.intro;
+    let play: boolean;
+    if (decided === "play" || decided === "skip") {
+      play = decided === "play";
+    } else {
+      const reduce = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+      let seen = 0;
+      try {
+        seen = parseInt(localStorage.getItem(STORAGE_KEY) || "0", 10) || 0;
+      } catch {}
+      play = !reduce && (!seen || Date.now() - seen > INTRO_TTL_MS);
+      document.documentElement.dataset.intro = play ? "play" : "skip";
+    }
+    // Returning visitor: refresh the timestamp so the away-window slides.
+    if (!play) markIntroSeen();
+    setActive(play);
   }, []);
 
   // Lock page scroll while the overlay owns the viewport.
@@ -147,7 +175,9 @@ export default function IntroAnimation() {
     const release = () => {
       if (releasingRef.current) return;
       releasingRef.current = true;
-      sessionStorage.setItem(SESSION_KEY, "1");
+      markIntroSeen();
+      // Lift the pre-paint cover so the hero is revealed as the intro exits.
+      document.documentElement.dataset.intro = "done";
       setReleasing(true);
     };
 
@@ -301,12 +331,12 @@ export default function IntroAnimation() {
             {/* Arc-active statement (fades in once the arc forms) */}
             <motion.div
               style={{ opacity: contentOpacity, y: contentY }}
-              className="pointer-events-none absolute top-[12%] z-10 flex flex-col items-center justify-center px-4 text-center"
+              className="pointer-events-none absolute top-[17%] z-10 flex flex-col items-center justify-center px-4 text-center"
             >
-              <h2 className="mb-4 font-heading text-3xl font-bold tracking-tight md:text-5xl">
+              <h2 className="mb-5 font-heading text-4xl font-bold tracking-tight md:text-6xl">
                 The tools behind the craft
               </h2>
-              <p className="max-w-lg text-sm leading-relaxed text-muted md:text-base">
+              <p className="max-w-xl text-base leading-relaxed text-muted md:text-lg">
                 Design, SEO, web, apps, and AI — one team, every tool that
                 matters. <br className="hidden md:block" />
                 Keep scrolling to meet We Dig Creativity.
@@ -401,7 +431,8 @@ export default function IntroAnimation() {
               type="button"
               onClick={() => {
                 releasingRef.current = true;
-                sessionStorage.setItem(SESSION_KEY, "1");
+                markIntroSeen();
+                document.documentElement.dataset.intro = "done";
                 setReleasing(true);
               }}
               className="absolute bottom-6 right-6 z-20 rounded-full border border-line px-4 py-2 text-xs font-semibold uppercase tracking-widest text-muted transition-colors hover:border-secondary hover:text-secondary"

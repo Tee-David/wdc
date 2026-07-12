@@ -39,6 +39,18 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Pre-paint cover for the intro: when the blocking script decides the intro
+   should play, this opaque layer hides the hero until the React overlay
+   (z-100) mounts on top — preventing the "old page flash". Cleared once the
+   intro releases (data-intro="done") or when it's skipped. */
+html[data-intro="play"]::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--background);
+  z-index: 99;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

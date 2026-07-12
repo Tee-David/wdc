@@ -19,18 +19,22 @@ export interface MenuItem {
 export interface SocialItem {
   label: string;
   link: string;
+  icon?: React.ReactNode;
 }
 
 /**
  * GSAP staggered slide-in menu (react-bits), reworked so the toggle button
  * renders inline (place it inside any header) while the panel and its
- * colored pre-layers animate in from the right edge of the viewport.
+ * colored pre-layers animate in from the right edge of the viewport. The
+ * toggle is an animated hamburger that morphs to an X; the panel bottom
+ * hosts icon socials and an optional footer slot (e.g. the theme toggler).
  */
 export default function StaggeredMenu({
   items = [],
   socialItems = [],
   displaySocials = true,
   className = "",
+  footerSlot,
   onMenuOpen,
   onMenuClose,
 }: {
@@ -38,6 +42,7 @@ export default function StaggeredMenu({
   socialItems?: SocialItem[];
   displaySocials?: boolean;
   className?: string;
+  footerSlot?: React.ReactNode;
   onMenuOpen?: () => void;
   onMenuClose?: () => void;
 }) {
@@ -45,17 +50,10 @@ export default function StaggeredMenu({
   const openRef = useRef(false);
   const panelRef = useRef<HTMLElement>(null);
   const preLayersRef = useRef<HTMLDivElement>(null);
-  const plusHRef = useRef<HTMLSpanElement>(null);
-  const plusVRef = useRef<HTMLSpanElement>(null);
-  const iconRef = useRef<HTMLSpanElement>(null);
-  const textInnerRef = useRef<HTMLSpanElement>(null);
   const toggleBtnRef = useRef<HTMLButtonElement>(null);
-  const [textLines, setTextLines] = useState(["Menu", "Close"]);
 
   const openTlRef = useRef<gsap.core.Timeline | null>(null);
   const closeTweenRef = useRef<gsap.core.Tween | null>(null);
-  const spinTweenRef = useRef<gsap.core.Tween | null>(null);
-  const textCycleAnimRef = useRef<gsap.core.Tween | null>(null);
   const busyRef = useRef(false);
 
   useLayoutEffect(() => {
@@ -66,13 +64,6 @@ export default function StaggeredMenu({
         : [];
       if (!panel) return;
       gsap.set([panel, ...layers], { xPercent: 100 });
-      if (plusHRef.current)
-        gsap.set(plusHRef.current, { transformOrigin: "50% 50%", rotate: 0 });
-      if (plusVRef.current)
-        gsap.set(plusVRef.current, { transformOrigin: "50% 50%", rotate: 90 });
-      if (iconRef.current)
-        gsap.set(iconRef.current, { rotate: 0, transformOrigin: "50% 50%" });
-      if (textInnerRef.current) gsap.set(textInnerRef.current, { yPercent: 0 });
     });
     return () => ctx.revert();
   }, []);
@@ -92,12 +83,14 @@ export default function StaggeredMenu({
     const numberEls = Array.from(panel.querySelectorAll(".sm-panel-item"));
     const socialTitle = panel.querySelector(".sm-socials-title");
     const socialLinks = Array.from(panel.querySelectorAll(".sm-socials-link"));
+    const footer = panel.querySelector(".sm-footer");
 
     if (itemEls.length) gsap.set(itemEls, { yPercent: 140, rotate: 10 });
     if (numberEls.length)
       gsap.set(numberEls, { ["--sm-num-opacity" as string]: 0 });
     if (socialTitle) gsap.set(socialTitle, { opacity: 0 });
     if (socialLinks.length) gsap.set(socialLinks, { y: 25, opacity: 0 });
+    if (footer) gsap.set(footer, { y: 20, opacity: 0 });
 
     const tl = gsap.timeline({ paused: true });
     layers.forEach((el, i) => {
@@ -145,7 +138,7 @@ export default function StaggeredMenu({
       }
     }
 
-    if (socialTitle || socialLinks.length) {
+    if (socialTitle || socialLinks.length || footer) {
       const socialsStart = panelInsertTime + panelDuration * 0.4;
       if (socialTitle)
         tl.to(
@@ -164,6 +157,12 @@ export default function StaggeredMenu({
             stagger: { each: 0.08, from: "start" },
           },
           socialsStart + 0.04
+        );
+      if (footer)
+        tl.to(
+          footer,
+          { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" },
+          socialsStart + 0.12
         );
     }
 
@@ -205,41 +204,6 @@ export default function StaggeredMenu({
     });
   }, []);
 
-  const animateIcon = useCallback((opening: boolean) => {
-    if (!iconRef.current) return;
-    spinTweenRef.current?.kill();
-    spinTweenRef.current = gsap.to(iconRef.current, {
-      rotate: opening ? 225 : 0,
-      duration: opening ? 0.8 : 0.35,
-      ease: opening ? "power4.out" : "power3.inOut",
-      overwrite: "auto",
-    });
-  }, []);
-
-  const animateText = useCallback((opening: boolean) => {
-    const inner = textInnerRef.current;
-    if (!inner) return;
-    textCycleAnimRef.current?.kill();
-    const current = opening ? "Menu" : "Close";
-    const target = opening ? "Close" : "Menu";
-    const seq = [current];
-    let last = current;
-    for (let i = 0; i < 3; i++) {
-      last = last === "Menu" ? "Close" : "Menu";
-      seq.push(last);
-    }
-    if (last !== target) seq.push(target);
-    seq.push(target);
-    setTextLines(seq);
-    gsap.set(inner, { yPercent: 0 });
-    const finalShift = ((seq.length - 1) / seq.length) * 100;
-    textCycleAnimRef.current = gsap.to(inner, {
-      yPercent: -finalShift,
-      duration: 0.5 + seq.length * 0.07,
-      ease: "power4.out",
-    });
-  }, []);
-
   const toggleMenu = useCallback(() => {
     const target = !openRef.current;
     openRef.current = target;
@@ -251,9 +215,7 @@ export default function StaggeredMenu({
       onMenuClose?.();
       playClose();
     }
-    animateIcon(target);
-    animateText(target);
-  }, [playOpen, playClose, animateIcon, animateText, onMenuOpen, onMenuClose]);
+  }, [playOpen, playClose, onMenuOpen, onMenuClose]);
 
   const closeMenu = useCallback(() => {
     if (!openRef.current) return;
@@ -261,9 +223,7 @@ export default function StaggeredMenu({
     setOpen(false);
     onMenuClose?.();
     playClose();
-    animateIcon(false);
-    animateText(false);
-  }, [playClose, animateIcon, animateText, onMenuClose]);
+  }, [playClose, onMenuClose]);
 
   useEffect(() => {
     if (!open) return;
@@ -292,18 +252,10 @@ export default function StaggeredMenu({
         onClick={toggleMenu}
         type="button"
       >
-        <span className="sm-toggle-textWrap" aria-hidden="true">
-          <span ref={textInnerRef} className="sm-toggle-textInner">
-            {textLines.map((l, i) => (
-              <span className="sm-toggle-line" key={i}>
-                {l}
-              </span>
-            ))}
-          </span>
-        </span>
-        <span ref={iconRef} className="sm-icon" aria-hidden="true">
-          <span ref={plusHRef} className="sm-icon-line" />
-          <span ref={plusVRef} className="sm-icon-line" />
+        <span className="sm-burger" aria-hidden="true">
+          <span className="sm-burger-line sm-burger-line--top" />
+          <span className="sm-burger-line sm-burger-line--mid" />
+          <span className="sm-burger-line sm-burger-line--bot" />
         </span>
       </button>
 
@@ -342,17 +294,24 @@ export default function StaggeredMenu({
                   <li key={s.label + i}>
                     <a
                       href={s.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      target={s.link.startsWith("http") ? "_blank" : undefined}
+                      rel={
+                        s.link.startsWith("http")
+                          ? "noopener noreferrer"
+                          : undefined
+                      }
                       className="sm-socials-link"
+                      aria-label={s.label}
+                      title={s.label}
                     >
-                      {s.label}
+                      {s.icon ?? s.label}
                     </a>
                   </li>
                 ))}
               </ul>
             </div>
           )}
+          {footerSlot && <div className="sm-footer">{footerSlot}</div>}
         </div>
       </aside>
     </div>

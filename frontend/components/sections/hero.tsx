@@ -132,7 +132,7 @@ export function Hero() {
 
       <div className="mx-auto grid w-full max-w-[1280px] flex-1 items-center gap-14 px-6 md:grid-cols-[1.15fr_0.85fr] lg:px-10">
         {/* Left: copy */}
-        <div>
+        <div className="text-center md:text-left">
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -166,7 +166,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.28 }}
-            className="mt-6 max-w-xl text-base leading-relaxed text-muted md:text-lg"
+            className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-muted md:mx-0 md:text-lg"
           >
             WDC Solutions is the creative engine behind brands that get
             noticed, get found, and get results — branding &amp; design, SEO,
@@ -178,7 +178,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="mt-9 flex flex-wrap items-center gap-4"
+            className="mt-9 flex flex-wrap items-center justify-center gap-4 md:justify-start"
           >
             <Link
               href="#contact"

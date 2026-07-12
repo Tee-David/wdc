@@ -1,0 +1,57 @@
+.tm-marquee {
+  overflow: hidden;
+  --tm-edge: clamp(24px, 7%, 120px);
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--tm-edge),
+    #000 calc(100% - var(--tm-edge)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--tm-edge),
+    #000 calc(100% - var(--tm-edge)),
+    transparent 100%
+  );
+}
+
+.tm-track {
+  display: flex;
+  width: max-content;
+  animation: tm-scroll var(--tm-duration, 46s) linear infinite;
+  will-change: transform;
+}
+
+.tm-track--reverse {
+  animation-direction: reverse;
+}
+
+/* Each item carries the inter-card gap as margin so a -50% shift lands
+   exactly on one full set (seamless), unlike flex `gap`. */
+.tm-item {
+  margin-right: 1.25rem;
+}
+
+.tm-marquee:hover .tm-track {
+  animation-play-state: paused;
+}
+
+@keyframes tm-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-marquee {
+    overflow-x: auto;
+  }
+  .tm-track {
+    animation: none;
+  }
+}

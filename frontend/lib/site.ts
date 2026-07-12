@@ -5,7 +5,7 @@
 export const SITE_URL = (() => {
   const env = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
   if (env) return env;
-  return "https://wdc-wdc-solutions.vercel.app";
+  return "https://wdc.vercel.app";
 })();
 
 export const SITE_NAME = "We Dig Creativity";

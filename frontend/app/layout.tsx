@@ -83,6 +83,17 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${outfit.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/*
+          Runs before first paint: decides whether the full-screen intro
+          should play (first visit or away > 30 min, motion allowed) and sets
+          data-intro on <html> so the CSS cover hides the hero until the intro
+          takes over — no "old page flash". Kept in sync with intro-animation.tsx.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var K="wdc-intro-seen-at",T=1800000,r=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches,s=0;try{s=parseInt(localStorage.getItem(K)||"0",10)||0}catch(e){}var p=!r&&(!s||Date.now()-s>T);document.documentElement.dataset.intro=p?"play":"skip"}catch(e){document.documentElement.dataset.intro="skip"}})();`,
+          }}
+        />
         <JsonLd data={[organizationJsonLd(), websiteJsonLd(), ...servicesJsonLd()]} />
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           {children}
