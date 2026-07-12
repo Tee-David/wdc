@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+const MotionLink = motion(Link);
 import { siInstagram, siX, siFacebook, siWhatsapp } from "simple-icons";
 import { Logo, WdcMark } from "@/components/brand/logo";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
@@ -141,7 +142,7 @@ export function Header() {
               href={item.link}
               className={`group relative rounded-full px-4 py-2 text-base font-semibold font-heading transition-colors ${
                 scrolled
-                  ? "text-muted hover:text-foreground"
+                  ? "text-[#000065] hover:text-[#000065]/80 dark:text-muted dark:hover:text-foreground"
                   : "!text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.5)] hover:!text-white/80 dark:text-muted dark:hover:text-foreground dark:[text-shadow:none]"
               }`}
             >
@@ -152,8 +153,18 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link
+          <MotionLink
             href="#contact"
+            animate={{
+              scale: [1, 1.04, 0.96, 1.02, 0.98, 1],
+              rotate: [0, 2, -2, 2, -2, 0]
+            }}
+            transition={{
+              duration: 1.2,
+              repeat: Infinity,
+              repeatDelay: 5,
+              ease: "easeInOut",
+            }}
             className="group inline-flex items-center gap-2 rounded-full bg-secondary px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(255,101,0,0.35)] active:translate-y-0"
           >
             Book a Strategy Call
@@ -168,7 +179,7 @@ export function Header() {
             >
               <path d="M4 12 12 4M6 4h6v6" />
             </svg>
-          </Link>
+          </MotionLink>
           <AnimatedThemeToggler />
         </div>
       </div>

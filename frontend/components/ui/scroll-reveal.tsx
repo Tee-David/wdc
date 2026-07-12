@@ -62,7 +62,7 @@ export function ScrollReveal({
                 key={`w-${ti}-${ci}`}
                 className={`sr-word inline-block ${
                   highlight
-                    ? "mx-[0.06em] rounded-lg bg-secondary px-[0.3em] py-[0.02em] text-white shadow-[0_6px_18px_-6px_rgba(255,101,0,0.6)]"
+                    ? "mx-[0.14em] text-[0.88em] rounded-lg bg-secondary px-[0.22em] py-[0.05em] text-white shadow-[0_4px_12px_-4px_rgba(255,101,0,0.5)]"
                     : ""
                 }`}
               >

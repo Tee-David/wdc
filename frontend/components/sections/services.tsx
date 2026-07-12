@@ -148,7 +148,7 @@ const SERVICES: Service[] = [
   {
     title: "SEO",
     description:
-      "Get found — technical, on-page, and content SEO that ranks, earns clicks, and converts.",
+      "Get found; technical, on-page, and content SEO that ranks, earns clicks, and converts.",
     icon: <SeoIcon />,
     image:
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&q=80",
@@ -164,7 +164,7 @@ const SERVICES: Service[] = [
   {
     title: "Cross-Platform App Development",
     description:
-      "One codebase, every device — native-quality mobile experiences on iOS and Android.",
+      "One codebase, every device; native-quality mobile experiences on iOS and Android.",
     icon: <AppIcon />,
     image:
       "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=1200&q=80",
@@ -255,8 +255,8 @@ export function Services() {
             transition={{ duration: 0.6 }}
             className="mx-auto mt-6 max-w-5xl text-base leading-relaxed text-primary/55 dark:text-[#9d9ec9] md:text-lg"
           >
-            From brand identity and websites to cross-platform apps, SEO, and
-            AI-powered software — we design and engineer the entire experience,
+             From brand identity and websites to cross-platform apps, SEO, and
+            AI-powered software; we design and engineer the entire experience,
             so every touchpoint pulls in the same direction.
           </motion.p>
         </div>

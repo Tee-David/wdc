@@ -25,10 +25,10 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} — Creative & Digital Marketing Agency`,
+    default: `${SITE_NAME}; Creative & Digital Marketing Agency`,
     template: `%s | ${SITE_NAME}`,
   },
-  description: `${MOTTO}. WDC Solutions is the creative engine behind brands that get noticed, get found, and get results — branding & design, SEO, web development, cross-platform apps, and AI-powered software engineering.`,
+  description: `${MOTTO}. WDC Solutions is the creative engine behind brands that get noticed, get found, and get results; branding & design, SEO, web development, cross-platform apps, and AI-powered software engineering.`,
   keywords: [
     "creative agency",
     "digital marketing agency",
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
   authors: [{ name: "We Dig Creativity Solutions" }],
   publisher: "We Dig Creativity Solutions",
   openGraph: {
-    title: `${SITE_NAME} — Creative & Digital Marketing Agency`,
+    title: `${SITE_NAME}; Creative & Digital Marketing Agency`,
     description: `${MOTTO}. Branding & design, SEO, web development, cross-platform apps, and AI-powered software engineering.`,
     type: "website",
     siteName: SITE_NAME,
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} — Creative & Digital Marketing Agency`,
+    title: `${SITE_NAME}; Creative & Digital Marketing Agency`,
     description: `${MOTTO}. Brands that get noticed, get found, and get results.`,
   },
   alternates: {

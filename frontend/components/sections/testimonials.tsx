@@ -13,7 +13,7 @@ import {
 const TESTIMONIALS: Testimonial[] = [
   {
     description:
-      "WDC rebuilt our brand and site from scratch — within two months we were ranking for terms we'd chased for years. The team just gets it.",
+      "WDC rebuilt our brand and site from scratch; within two months we were ranking for terms we'd chased for years. The team just gets it.",
     name: "Amara Okonkwo",
     handle: "Founder, Lumen Studios",
   },
@@ -25,7 +25,7 @@ const TESTIMONIALS: Testimonial[] = [
   },
   {
     description:
-      "Our organic traffic doubled in a quarter. WDC's SEO work is the real thing — technical depth plus content that converts.",
+      "Our organic traffic doubled in a quarter. WDC's SEO work is the real thing; technical depth plus content that converts.",
     name: "Priya Nair",
     handle: "Head of Growth, Northbeam",
   },
@@ -43,7 +43,7 @@ const TESTIMONIALS: Testimonial[] = [
   },
   {
     description:
-      "Every detail was considered — animations, accessibility, performance. Our Lighthouse scores have never been greener.",
+      "Every detail was considered; animations, accessibility, performance. Our Lighthouse scores have never been greener.",
     name: "Tobi Adeyemi",
     handle: "Product Lead, Kite",
   },
@@ -82,7 +82,7 @@ export function Testimonials() {
           <span className="text-secondary">dig deeper</span>
         </h2>
         <p className="mx-auto mt-6 max-w-5xl text-base leading-relaxed text-white/65 dark:text-muted md:text-lg">
-          Founders and teams who care about speed, clarity, and results — and
+          Founders and teams who care about speed, clarity, and results; and
           the work that earned their trust.
         </p>
       </motion.div>
