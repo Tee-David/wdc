@@ -135,16 +135,26 @@ export default function IntroAnimation() {
     setActive(play);
   }, []);
 
-  // Lock page scroll while the overlay owns the viewport.
+  // Lock page scroll while the overlay owns the viewport (including during exit transition).
   useEffect(() => {
-    if (!active || releasing) return;
+    if (!active) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     window.scrollTo(0, 0);
+
+    const preventScroll = () => {
+      if (document.body.style.overflow === "hidden") {
+        window.scrollTo(0, 0);
+      }
+    };
+    window.addEventListener("scroll", preventScroll);
+
     return () => {
       document.body.style.overflow = prev;
+      window.removeEventListener("scroll", preventScroll);
+      window.scrollTo(0, 0);
     };
-  }, [active, releasing]);
+  }, [active]);
 
   // --- Container size ---
   useEffect(() => {
@@ -168,7 +178,7 @@ export default function IntroAnimation() {
   const scrollRef = useRef(0);
 
   useEffect(() => {
-    if (!active || releasing) return;
+    if (!active) return;
     const container = containerRef.current;
     if (!container) return;
 
@@ -182,6 +192,7 @@ export default function IntroAnimation() {
     };
 
     const advance = (delta: number) => {
+      if (releasingRef.current) return;
       const next = Math.min(
         Math.max(scrollRef.current + delta, 0),
         MAX_SCROLL
@@ -216,7 +227,7 @@ export default function IntroAnimation() {
       container.removeEventListener("touchstart", handleTouchStart);
       container.removeEventListener("touchmove", handleTouchMove);
     };
-  }, [active, releasing, virtualScroll]);
+  }, [active, virtualScroll]);
 
   // Morph: circle → bottom arc (scroll 0–600)
   const morphProgress = useTransform(virtualScroll, [0, 600], [0, 1]);
