@@ -17,6 +17,11 @@ const clamp = (v: number, min: number, max: number) =>
 const ITEM_H = 68;
 const VISIBLE = 5; // odd → one true centre slot
 const MIDDLE = Math.floor(VISIBLE / 2);
+// Curvature: rows fan around the centre — tilt + push right as they recede,
+// so the active word bulges leftmost by the arrow (like a rotating drum).
+const ANGLE = 7; // degrees of tilt per row of distance
+const MAX_ANGLE = 26;
+const INDENT = 24; // px pushed right, grows super-linearly with distance
 
 function ArrowGlyph({ className }: { className?: string }) {
   return (
@@ -53,17 +58,31 @@ function ScrollWord({
   active: boolean;
   blur: boolean;
 }) {
-  const dist = useTransform(center, (c) => Math.abs(index - c));
+  const signed = useTransform(center, (c) => index - c);
+  const dist = useTransform(signed, (s) => Math.abs(s));
   const opacity = useTransform(dist, (d) => clamp(1 - d * 0.34, 0.05, 1));
   const scale = useTransform(dist, (d) => clamp(1 - d * 0.06, 0.8, 1));
   const filter = useTransform(dist, (d) =>
     blur ? `blur(${clamp(d * 2.6, 0, 10)}px)` : "none"
   );
+  // Signed tilt (fan) + always-positive rightward push → curved arc.
+  const rotate = useTransform(signed, (s) =>
+    clamp(s * ANGLE, -MAX_ANGLE, MAX_ANGLE)
+  );
+  const x = useTransform(signed, (s) => Math.pow(Math.abs(s), 1.3) * INDENT);
 
   return (
     <motion.li
-      style={{ height: ITEM_H, opacity, scale, filter }}
-      className="flex origin-left items-center"
+      style={{
+        height: ITEM_H,
+        opacity,
+        scale,
+        filter,
+        rotate,
+        x,
+        transformOrigin: "0% 50%",
+      }}
+      className="flex items-center"
     >
       <span
         className={`font-heading leading-none tracking-tight transition-colors duration-300 ${

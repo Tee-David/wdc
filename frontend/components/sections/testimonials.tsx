@@ -65,7 +65,9 @@ export function Testimonials() {
   return (
     <section
       id="testimonials"
-      className="overflow-hidden bg-[#000065] py-24 text-white dark:bg-background dark:text-foreground md:py-32"
+      /* Flat edges — tucks beneath the Services' bottom curve and the
+         footer's top curve, filling both seams with its own colour. */
+      className="relative z-0 -mt-10 flex min-h-svh flex-col justify-center overflow-hidden bg-[#000065] py-24 text-white dark:bg-background dark:text-foreground md:-mt-16 md:py-28 lg:-mt-[5.5rem]"
     >
       <motion.div
         initial={{ opacity: 0, y: 24 }}

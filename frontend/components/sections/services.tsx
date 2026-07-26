@@ -231,7 +231,9 @@ export function Services() {
   return (
     <section
       id="services"
-      className="flex min-h-svh flex-col justify-center overflow-hidden bg-white py-24 text-primary dark:bg-[#171787] dark:text-white md:py-28"
+      /* Curved on both edges — it rides over the About section above and the
+         Testimonials below, so each seam reads as one continuous sweep. */
+      className="relative z-10 -mt-10 flex min-h-svh flex-col justify-center overflow-hidden rounded-[2.5rem] bg-white py-24 text-primary dark:bg-[#171787] dark:text-white md:-mt-16 md:rounded-[4rem] md:py-28 lg:-mt-[5.5rem] lg:rounded-[5.5rem]"
     >
       <div className="mx-auto w-full max-w-[1280px] px-6 lg:px-10">
         {/* Scroll-reveal statement */}
@@ -280,8 +282,9 @@ export function Services() {
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#000065]/45 to-transparent opacity-70 transition-opacity duration-500 group-hover:opacity-40" />
-                {/* Floating arrow, overlapping the bottom-right of the image */}
-                <span className="absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center rounded-full bg-secondary text-white shadow-lg transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:rotate-6">
+                {/* Floating arrow: white pill + orange arrow at rest, inverting
+                    to an orange pill + white arrow on card hover. */}
+                <span className="absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center rounded-full bg-white text-secondary shadow-lg transition-all duration-300 group-hover:-translate-y-0.5 group-hover:rotate-6 group-hover:bg-secondary group-hover:text-white">
                   <ArrowIcon />
                 </span>
               </div>

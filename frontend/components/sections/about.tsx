@@ -30,39 +30,53 @@ export function About() {
     <section
       ref={sectionRef}
       id="about"
-      className="relative flex min-h-svh items-center overflow-hidden bg-[#000065] py-24 text-white dark:bg-background md:py-28"
+      /* Flat edges — it tucks beneath the hero's bottom curve above and the
+         Services' top curve below, so its colour fills both seams. */
+      className="relative z-0 -mt-10 flex min-h-svh items-center overflow-hidden bg-[#000065] py-24 text-white dark:bg-background md:-mt-16 md:py-28 lg:-mt-[5.5rem]"
     >
-      <div className="mx-auto grid w-full max-w-[1280px] grid-cols-1 items-center gap-14 px-6 md:grid-cols-2 md:gap-16 lg:px-10">
-        {/* Left: scroll-linked blur word wheel */}
-        <div className="order-2 md:order-1">
-          <p className="mb-8 text-xs font-semibold uppercase tracking-[0.25em] text-secondary">
-            What you actually want
-          </p>
-          <BlurScroller words={OUTCOMES} targetRef={sectionRef} />
-        </div>
-
-        {/* Right: the copy — no scroller */}
-        <motion.div
+      <div className="mx-auto w-full max-w-[1280px] px-6 lg:px-10">
+        {/* One heading, spanning both columns */}
+        <motion.h2
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="order-1 md:order-2"
+          className="mb-14 max-w-4xl font-heading text-4xl font-bold leading-[1.05] tracking-tight md:mb-16 md:text-5xl xl:text-6xl"
         >
-          <p className="mb-6 text-xs font-semibold uppercase tracking-[0.25em] text-secondary">
-            Who we are
-          </p>
-          <p className="font-heading text-2xl font-semibold leading-relaxed tracking-tight md:text-3xl xl:text-[2.15rem]">
-            WDC Solutions is the creative engine behind brands that get noticed,
-            get found, and get results;{" "}
-            <span className="text-secondary">branding &amp; design</span>,{" "}
-            <span className="text-secondary">SEO</span>,{" "}
-            <span className="text-secondary">full-stack web development</span>,{" "}
-            <span className="text-secondary">cross-platform apps</span>, and{" "}
-            <span className="text-secondary">AI-powered software engineering</span>{" "}
-            under one roof.
-          </p>
-        </motion.div>
+          You want results. We&apos;re the{" "}
+          <span className="text-secondary">engine</span> behind them.
+        </motion.h2>
+
+        <div className="grid grid-cols-1 items-center gap-14 md:grid-cols-2 md:gap-16">
+          {/* Left: scroll-linked blur word wheel */}
+          <div className="order-2 md:order-1">
+            <BlurScroller words={OUTCOMES} targetRef={sectionRef} />
+          </div>
+
+          {/* Right: the copy — no scroller */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+            className="order-1 md:order-2"
+          >
+            {/* All white — the services carry extra font weight instead of
+                colour so they still stand out against the copy. */}
+            <p className="font-heading text-2xl font-normal leading-relaxed tracking-tight text-white md:text-3xl xl:text-[2.15rem]">
+              WDC Solutions is the creative engine behind brands that get
+              noticed, get found, and get results;{" "}
+              <span className="font-extrabold">branding &amp; design</span>,{" "}
+              <span className="font-extrabold">SEO</span>,{" "}
+              <span className="font-extrabold">full-stack web development</span>,{" "}
+              <span className="font-extrabold">cross-platform apps</span>, and{" "}
+              <span className="font-extrabold">
+                AI-powered software engineering
+              </span>{" "}
+              under one roof.
+            </p>
+          </motion.div>
+        </div>
       </div>
     </section>
   );
