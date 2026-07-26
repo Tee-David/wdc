@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { motion } from "motion/react";
 import { BlurScroller } from "@/components/ui/blur-scroller";
+import { LineShadowText } from "@/components/ui/line-shadow-text";
 
 /** Ten outcomes clients actually come to us for — one or two words each. */
 const OUTCOMES = [
@@ -32,19 +33,22 @@ export function About() {
       id="about"
       /* Flat edges — it tucks beneath the hero's bottom curve above and the
          Services' top curve below, so its colour fills both seams. */
-      className="relative z-0 -mt-10 flex min-h-svh items-center overflow-hidden bg-[#000065] py-24 text-white dark:bg-background md:-mt-16 md:py-28 lg:-mt-[5.5rem]"
+      className="relative z-0 -mt-10 flex min-h-svh items-center overflow-hidden bg-[#000065] py-32 text-white dark:bg-background md:-mt-16 md:py-40 lg:-mt-[5.5rem] lg:py-48"
     >
       <div className="mx-auto w-full max-w-[1280px] px-6 lg:px-10">
-        {/* One heading, spanning both columns */}
+        {/* One centred heading, spanning both columns */}
         <motion.h2
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="mb-14 max-w-4xl font-heading text-4xl font-bold leading-[1.05] tracking-tight md:mb-16 md:text-5xl xl:text-6xl"
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="mx-auto mb-20 max-w-4xl text-balance text-center font-heading text-4xl font-bold leading-[1.05] tracking-tight md:mb-24 md:text-5xl xl:text-6xl"
         >
           You want results. We&apos;re the{" "}
-          <span className="text-secondary">engine</span> behind them.
+          <LineShadowText className="text-secondary" shadowColor="#ff6500">
+            engine
+          </LineShadowText>{" "}
+          behind them.
         </motion.h2>
 
         <div className="grid grid-cols-1 items-center gap-14 md:grid-cols-2 md:gap-16">
@@ -58,7 +62,7 @@ export function About() {
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: 0.08 }}
             className="order-1 md:order-2"
           >
             {/* All white — the services carry extra font weight instead of

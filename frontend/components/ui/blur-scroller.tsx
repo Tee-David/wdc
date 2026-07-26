@@ -14,14 +14,16 @@ import {
 const clamp = (v: number, min: number, max: number) =>
   Math.min(Math.max(v, min), max);
 
-const ITEM_H = 68;
-const VISIBLE = 5; // odd → one true centre slot
-const MIDDLE = Math.floor(VISIBLE / 2);
-// Curvature: rows fan around the centre — tilt + push right as they recede,
-// so the active word bulges leftmost by the arrow (like a rotating drum).
-const ANGLE = 7; // degrees of tilt per row of distance
-const MAX_ANGLE = 26;
-const INDENT = 24; // px pushed right, grows super-linearly with distance
+const RAD = Math.PI / 180;
+
+// The wheel is a real circle seen edge-on: every word sits at an angle on a
+// RADIUS-sized arc, so it swings out to the right and tilts as it recedes.
+const RADIUS = 280;
+const STEP = 16; // degrees between consecutive words
+const ROW_H = 64;
+// Five words visible at a time — the active one plus two either side.
+const SPAN = 2;
+const TRACK_H = Math.round(2 * RADIUS * Math.sin(SPAN * STEP * RAD) + ROW_H);
 
 function ArrowGlyph({ className }: { className?: string }) {
   return (
@@ -41,9 +43,8 @@ function ArrowGlyph({ className }: { className?: string }) {
 }
 
 /**
- * A single word row. Blur / fade / scale are all derived from the row's live
- * distance to the scroll-driven centre, so items melt toward the edges while
- * the centred one stays razor-sharp.
+ * One word riding the arc. Its angle from the centred word drives everything:
+ * position along the circle, tilt, blur, fade and scale.
  */
 function ScrollWord({
   word,
@@ -58,37 +59,49 @@ function ScrollWord({
   active: boolean;
   blur: boolean;
 }) {
-  const signed = useTransform(center, (c) => index - c);
-  const dist = useTransform(signed, (s) => Math.abs(s));
-  const opacity = useTransform(dist, (d) => clamp(1 - d * 0.34, 0.05, 1));
-  const scale = useTransform(dist, (d) => clamp(1 - d * 0.06, 0.8, 1));
+  const offset = useTransform(center, (c) => index - c);
+  const dist = useTransform(offset, (o) => Math.abs(o));
+
+  // Circle: y sweeps down the arc, x bulges right as the word rotates away.
+  const y = useTransform(offset, (o) => RADIUS * Math.sin(o * STEP * RAD));
+  const x = useTransform(
+    offset,
+    (o) => RADIUS * (1 - Math.cos(o * STEP * RAD))
+  );
+  const rotate = useTransform(offset, (o) => o * STEP);
+
+  // Beyond the 5-word window the row is fully gone.
+  const opacity = useTransform(dist, (d) =>
+    d > SPAN + 0.5 ? 0 : clamp(1 - d * 0.42, 0, 1)
+  );
+  const scale = useTransform(dist, (d) => clamp(1 - d * 0.08, 0.72, 1));
   const filter = useTransform(dist, (d) =>
-    blur ? `blur(${clamp(d * 2.6, 0, 10)}px)` : "none"
+    blur ? `blur(${clamp(d * 3.5, 0, 12)}px)` : "none"
   );
-  // Signed tilt (fan) + always-positive rightward push → curved arc.
-  const rotate = useTransform(signed, (s) =>
-    clamp(s * ANGLE, -MAX_ANGLE, MAX_ANGLE)
-  );
-  const x = useTransform(signed, (s) => Math.pow(Math.abs(s), 1.3) * INDENT);
 
   return (
     <motion.li
       style={{
-        height: ITEM_H,
+        position: "absolute",
+        left: 0,
+        top: "50%",
+        height: ROW_H,
+        marginTop: -ROW_H / 2, // centre without touching the transform
+        transformOrigin: "0% 50%",
+        x,
+        y,
+        rotate,
         opacity,
         scale,
         filter,
-        rotate,
-        x,
-        transformOrigin: "0% 50%",
       }}
-      className="flex items-center"
+      className="flex items-center whitespace-nowrap"
     >
       <span
-        className={`font-heading leading-none tracking-tight transition-colors duration-300 ${
-          active ? "font-bold text-white" : "font-semibold text-white/45"
+        className={`font-heading leading-none tracking-tight transition-colors duration-200 ${
+          active ? "font-bold text-white" : "font-semibold text-white/40"
         }`}
-        style={{ fontSize: "clamp(1.7rem, 3.4vw, 2.7rem)" }}
+        style={{ fontSize: "clamp(1.6rem, 3.2vw, 2.6rem)" }}
       >
         {word}
       </span>
@@ -98,8 +111,8 @@ function ScrollWord({
 
 /**
  * Vertical "focus flow" word wheel. The active word is chosen by how far the
- * host section has scrolled through the viewport — as you scroll, the list
- * glides, the centred word snaps bold and the orange arrow nudges in.
+ * host section has scrolled through the viewport — as you scroll, the wheel
+ * turns, the centred word snaps bold and the orange arrow nudges in.
  */
 export function BlurScroller({
   words,
@@ -119,10 +132,8 @@ export function BlurScroller({
   const raw = useTransform(scrollYProgress, [0.18, 0.82], [0, N - 1], {
     clamp: true,
   });
-  const smooth = useSpring(raw, { stiffness: 70, damping: 20 });
+  const smooth = useSpring(raw, { stiffness: 120, damping: 22, mass: 0.4 });
   const center = reduce ? raw : smooth;
-
-  const listY = useTransform(center, (c) => (MIDDLE - c) * ITEM_H);
 
   const [active, setActive] = useState(0);
   useMotionValueEvent(center, "change", (c) =>
@@ -131,36 +142,29 @@ export function BlurScroller({
 
   return (
     <div
-      className="relative overflow-hidden"
+      className="relative"
       style={{
-        height: ITEM_H * VISIBLE,
+        height: TRACK_H,
         WebkitMaskImage:
-          "linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent)",
+          "linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent)",
         maskImage:
-          "linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent)",
+          "linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent)",
       }}
     >
-      {/* Arrow pinned to the centre slot; re-keying on `active` nudges it in. */}
-      <div
-        className="pointer-events-none absolute left-0 z-10 flex items-center"
-        style={{ top: ITEM_H * MIDDLE, height: ITEM_H }}
-      >
+      {/* Arrow pinned to the active word; re-keying on `active` nudges it in. */}
+      <div className="pointer-events-none absolute left-0 top-1/2 z-10 flex -translate-y-1/2 items-center">
         <motion.span
           key={active}
           initial={{ x: -10, opacity: 0.3 }}
           animate={{ x: 0, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 420, damping: 22 }}
+          transition={{ type: "spring", stiffness: 500, damping: 24 }}
           className="text-secondary"
         >
           <ArrowGlyph className="h-7 w-7" />
         </motion.span>
       </div>
 
-      <motion.ul
-        role="list"
-        style={{ y: listY }}
-        className="m-0 list-none p-0 pl-12"
-      >
+      <ul role="list" className="relative m-0 h-full list-none p-0 pl-12">
         {words.map((w, i) => (
           <ScrollWord
             key={w + i}
@@ -171,7 +175,7 @@ export function BlurScroller({
             blur={!reduce}
           />
         ))}
-      </motion.ul>
+      </ul>
     </div>
   );
 }

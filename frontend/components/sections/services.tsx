@@ -233,7 +233,7 @@ export function Services() {
       id="services"
       /* Curved on both edges — it rides over the About section above and the
          Testimonials below, so each seam reads as one continuous sweep. */
-      className="relative z-10 -mt-10 flex min-h-svh flex-col justify-center overflow-hidden rounded-[2.5rem] bg-white py-24 text-primary dark:bg-[#171787] dark:text-white md:-mt-16 md:rounded-[4rem] md:py-28 lg:-mt-[5.5rem] lg:rounded-[5.5rem]"
+      className="relative z-10 -mt-10 flex min-h-svh flex-col justify-center overflow-hidden rounded-[2.5rem] bg-white py-32 text-primary dark:bg-[#171787] dark:text-white md:-mt-16 md:rounded-[4rem] md:py-40 lg:-mt-[5.5rem] lg:rounded-[5.5rem] lg:py-48"
     >
       <div className="mx-auto w-full max-w-[1280px] px-6 lg:px-10">
         {/* Scroll-reveal statement */}
@@ -250,7 +250,7 @@ export function Services() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             className="mx-auto mt-6 max-w-5xl text-base leading-relaxed text-primary/55 dark:text-[#9d9ec9] md:text-lg"
           >
              From brand identity and websites to cross-platform apps, SEO, and
@@ -266,14 +266,17 @@ export function Services() {
             <motion.a
               key={service.title}
               href="#contact"
-              initial={{ opacity: 0, y: 28 }}
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.5, delay: (i % 3) * 0.08 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{
+                duration: 0.35,
+                delay: (i % 3) * 0.05,
+                ease: [0.16, 1, 0.3, 1],
+              }}
               className="group flex flex-col"
             >
-              {/* Media — `peer` so the icon below reacts to image hover only */}
-              <div className="peer relative aspect-[5/4] overflow-hidden rounded-3xl shadow-[0_20px_50px_-24px_rgba(0,0,101,0.55)]">
+              <div className="relative aspect-[5/4] overflow-hidden rounded-3xl shadow-[0_20px_50px_-24px_rgba(0,0,101,0.55)]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={service.image}
@@ -289,12 +292,7 @@ export function Services() {
                 </span>
               </div>
 
-              {/* Icon — recolours to orange when the image (peer) is hovered */}
-              <span className="mt-6 inline-flex text-primary transition-colors duration-300 peer-hover:text-secondary dark:text-white dark:peer-hover:text-secondary">
-                {service.icon}
-              </span>
-
-              <h3 className="mt-3 font-heading text-xl font-bold tracking-tight text-primary dark:text-white">
+              <h3 className="mt-6 font-heading text-xl font-bold tracking-tight text-primary dark:text-white">
                 {service.title}
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-primary/60 dark:text-[#b9bade]">
