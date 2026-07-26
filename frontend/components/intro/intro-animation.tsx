@@ -140,6 +140,9 @@ export default function IntroAnimation() {
     if (!active) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    // Halt Lenis so it doesn't accumulate a scroll target from the intro's
+    // wheel/touch input and fling the page to the bottom on hand-off.
+    window.__lenis?.stop();
     window.scrollTo(0, 0);
 
     const preventScroll = () => {
@@ -152,7 +155,10 @@ export default function IntroAnimation() {
     return () => {
       document.body.style.overflow = prev;
       window.removeEventListener("scroll", preventScroll);
+      // Pin both native and Lenis scroll to the top, then resume smooth scroll.
       window.scrollTo(0, 0);
+      window.__lenis?.scrollTo(0, { immediate: true, force: true });
+      window.__lenis?.start();
     };
   }, [active]);
 
@@ -343,11 +349,11 @@ export default function IntroAnimation() {
               style={{ opacity: contentOpacity, y: contentY }}
               className="pointer-events-none absolute top-[20%] z-10 flex flex-col items-center justify-center px-6 text-center md:top-[22%] xl:top-[25%]"
             >
-              <h2 className="mb-6 font-heading text-4xl font-bold tracking-tight text-white md:text-6xl xl:text-7xl 2xl:text-[5.5rem]">
+              <h2 className="mb-6 font-heading text-4xl font-bold tracking-tight text-foreground md:text-6xl xl:text-7xl 2xl:text-[5.5rem]">
                 Most brands are buried.
               </h2>
               <p className="max-w-xl text-base leading-relaxed text-muted md:text-lg xl:max-w-4xl xl:text-2xl">
-                Whether you&apos;re underground, fighting for visibility, shaping a new concept, or scaling an established brand; we’ve got you. Through elite <strong className="font-bold text-white">Branding & Design</strong>, full-stack <strong className="font-bold text-white">Web & App Development</strong>, dominant <strong className="font-bold text-white">SEO</strong>, strategic <strong className="font-bold text-white">Social Media</strong>, and results-driven <strong className="font-bold text-white">PPC & Growth Marketing</strong>. Keep scrolling to meet We Dig Creativity
+                Whether you&apos;re underground, fighting for visibility, shaping a new concept, or scaling an established brand; we’ve got you. Through elite <strong className="font-bold text-secondary">Branding & Design</strong>, full-stack <strong className="font-bold text-secondary">Web & App Development</strong>, dominant <strong className="font-bold text-secondary">SEO</strong>, strategic <strong className="font-bold text-secondary">Social Media</strong>, and results-driven <strong className="font-bold text-secondary">PPC & Growth Marketing</strong>. Keep scrolling to meet We Dig Creativity
               </p>
             </motion.div>
 

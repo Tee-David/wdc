@@ -90,7 +90,11 @@ export default function RootLayout({
           data-intro on <html> so the CSS cover hides the hero until the intro
           takes over — no "old page flash". Kept in sync with intro-animation.tsx.
         */}
+        {/* Native inline script (not next/script) so it ships in the initial
+            server HTML and executes during parse — before the hero paints —
+            without the client-side "script inside a React component" warning. */}
         <script
+          id="intro-init"
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var K="wdc-intro-seen-at",T=1800000,r=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches,s=0;try{s=parseInt(localStorage.getItem(K)||"0",10)||0}catch(e){}var p=!r&&(!s||Date.now()-s>T);document.documentElement.dataset.intro=p?"play":"skip"}catch(e){document.documentElement.dataset.intro="skip"}})();`,
           }}

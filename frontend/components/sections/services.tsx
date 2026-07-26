@@ -2,7 +2,6 @@
 
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { ScrollReveal, type RevealToken } from "@/components/ui/scroll-reveal";
 
 /* ── Inline service icons (stroke, inherit currentColor) ─────────────── */
@@ -232,14 +231,11 @@ export function Services() {
   return (
     <section
       id="services"
-      className="overflow-hidden bg-white py-24 text-primary dark:bg-[#171787] dark:text-white md:py-32"
+      className="flex min-h-svh flex-col justify-center overflow-hidden bg-white py-24 text-primary dark:bg-[#171787] dark:text-white md:py-28"
     >
-      <div className="mx-auto max-w-[1280px] px-6 lg:px-10">
+      <div className="mx-auto w-full max-w-[1280px] px-6 lg:px-10">
         {/* Scroll-reveal statement */}
         <div className="mx-auto max-w-5xl text-center">
-          <p className="mb-6 text-xs font-semibold uppercase tracking-[0.25em] text-secondary">
-            What we do
-          </p>
           <ScrollReveal
             tokens={REVEAL_TOKENS}
             className="text-center text-primary dark:text-white"
@@ -261,9 +257,9 @@ export function Services() {
           </motion.p>
         </div>
 
-        {/* Service cards — image + navy overlay; hover fills orange and
-            reveals the description + CTA. */}
-        <div className="mt-16 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Service cards — image on top with a floating arrow button; icon,
+            title and description below. Hovering the image recolours the icon. */}
+        <div className="mt-16 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
           {SERVICES.map((service, i) => (
             <motion.a
               key={service.title}
@@ -272,44 +268,35 @@ export function Services() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
               transition={{ duration: 0.5, delay: (i % 3) * 0.08 }}
-              className="group relative flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-3xl border border-white/10 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.7)]"
+              className="group flex flex-col"
             >
-              {/* Background image */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={service.image}
-                alt=""
-                loading="lazy"
-                className="absolute inset-0 h-full w-full object-cover transition-all duration-500 group-hover:scale-105 group-hover:opacity-0"
-              />
-              {/* Navy overlay (default) */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#00002e] via-[#000065]/55 to-[#000065]/10 transition-opacity duration-500 group-hover:opacity-0" />
-              {/* Blue fill (hover) with micro-animate scale/pop */}
-              <div className="absolute inset-0 bg-[#000065] opacity-0 scale-95 transition-all duration-500 ease-out group-hover:scale-100 group-hover:opacity-100" />
+              {/* Media — `peer` so the icon below reacts to image hover only */}
+              <div className="peer relative aspect-[5/4] overflow-hidden rounded-3xl shadow-[0_20px_50px_-24px_rgba(0,0,101,0.55)]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={service.image}
+                  alt=""
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#000065]/45 to-transparent opacity-70 transition-opacity duration-500 group-hover:opacity-40" />
+                {/* Floating arrow, overlapping the bottom-right of the image */}
+                <span className="absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center rounded-full bg-secondary text-white shadow-lg transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:rotate-6">
+                  <ArrowIcon />
+                </span>
+              </div>
 
-              {/* Icon top-left */}
-              <span className="absolute left-6 top-6 z-10 flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-secondary ring-1 ring-white/25 backdrop-blur-sm dark:text-white transition-all duration-300 group-hover:text-white group-hover:drop-shadow-[0_2px_8px_rgba(255,255,255,0.4)]">
-                <span className="[&>svg]:h-6 [&>svg]:w-6">{service.icon}</span>
+              {/* Icon — recolours to orange when the image (peer) is hovered */}
+              <span className="mt-6 inline-flex text-primary transition-colors duration-300 peer-hover:text-secondary dark:text-white dark:peer-hover:text-secondary">
+                {service.icon}
               </span>
 
-              {/* Bottom content */}
-              <div className="relative z-10 p-6">
-                <h3 className="font-heading text-xl font-bold tracking-tight text-white">
-                  {service.title}
-                </h3>
-                {/* Description + CTA reveal on hover (animated height) */}
-                <div className="grid grid-rows-[0fr] opacity-0 transition-all duration-500 ease-out group-hover:grid-rows-[1fr] group-hover:opacity-100">
-                  <div className="overflow-hidden">
-                    <p className="mt-3 text-sm leading-relaxed text-white/90">
-                      {service.description}
-                    </p>
-                    <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-white">
-                      Learn more
-                      <ArrowIcon />
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <h3 className="mt-3 font-heading text-xl font-bold tracking-tight text-primary dark:text-white">
+                {service.title}
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-primary/60 dark:text-[#b9bade]">
+                {service.description}
+              </p>
             </motion.a>
           ))}
         </div>

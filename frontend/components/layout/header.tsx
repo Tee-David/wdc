@@ -71,6 +71,7 @@ const SOCIALS = [
  */
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 32);
@@ -131,26 +132,11 @@ export function Header() {
           : "border-b border-transparent bg-transparent"
       }`}
     >
-      {/* Desktop */}
-      <div className="mx-auto hidden h-[72px] max-w-[1280px] items-center justify-between px-6 md:flex lg:px-10">
+      {/* Single bar at every breakpoint: logo left, CTA + hamburger right.
+          Nav lives entirely inside the staggered menu; the theme toggler
+          rides in the menu footer. */}
+      <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-4 md:h-[72px] md:px-6 lg:px-10">
         {logoSwap}
-
-        <nav aria-label="Primary" className="flex items-center gap-1">
-          {NAV.map((item) => (
-            <Link
-              key={item.label}
-              href={item.link}
-              className={`group relative rounded-full px-4 py-2 text-base font-semibold font-heading transition-colors ${
-                scrolled
-                  ? "text-[#000065] hover:text-[#000065]/80 dark:text-muted dark:hover:text-foreground"
-                  : "!text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.5)] hover:!text-white/80 dark:text-muted dark:hover:text-foreground dark:[text-shadow:none]"
-              }`}
-            >
-              {item.label}
-              <span className="absolute inset-x-4 -bottom-px h-px scale-x-0 bg-secondary transition-transform duration-300 group-hover:scale-x-100" />
-            </Link>
-          ))}
-        </nav>
 
         <div className="flex items-center gap-3">
           <MotionLink
@@ -165,7 +151,7 @@ export function Header() {
               repeatDelay: 5,
               ease: "easeInOut",
             }}
-            className="group inline-flex items-center gap-2 rounded-full bg-secondary px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(255,101,0,0.35)] active:translate-y-0"
+            className="group hidden items-center gap-2 rounded-full bg-secondary px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(255,101,0,0.35)] active:translate-y-0 md:inline-flex"
           >
             Book a Strategy Call
             <svg
@@ -180,29 +166,33 @@ export function Header() {
               <path d="M4 12 12 4M6 4h6v6" />
             </svg>
           </MotionLink>
-          <AnimatedThemeToggler />
-        </div>
-      </div>
 
-      {/* Mobile: logo left, hamburger right (theme toggler lives in the menu) */}
-      <div className="flex h-16 items-center justify-between px-4 md:hidden">
-        {logoSwap}
-        <StaggeredMenu
-          items={NAV.map((n) => ({
-            label: n.label,
-            link: n.link,
-            ariaLabel: `Go to ${n.label}`,
-          }))}
-          socialItems={SOCIALS}
-          footerSlot={
-            <>
-              <AnimatedThemeToggler />
-              <span className="text-sm font-medium text-muted">
-                Switch theme
-              </span>
-            </>
-          }
-        />
+          <StaggeredMenu
+            className={
+              menuOpen
+                ? ""
+                : scrolled
+                  ? "[&_.sm-toggle]:text-[#000065] dark:[&_.sm-toggle]:text-foreground"
+                  : "[&_.sm-burger]:drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] [&_.sm-toggle]:!text-white dark:[&_.sm-toggle]:!text-foreground"
+            }
+            items={NAV.map((n) => ({
+              label: n.label,
+              link: n.link,
+              ariaLabel: `Go to ${n.label}`,
+            }))}
+            socialItems={SOCIALS}
+            onMenuOpen={() => setMenuOpen(true)}
+            onMenuClose={() => setMenuOpen(false)}
+            footerSlot={
+              <>
+                <AnimatedThemeToggler />
+                <span className="text-sm font-medium text-muted">
+                  Switch theme
+                </span>
+              </>
+            }
+          />
+        </div>
       </div>
     </header>
   );

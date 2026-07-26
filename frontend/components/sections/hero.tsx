@@ -103,7 +103,7 @@ function HeroBackdrop() {
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-svh flex-col overflow-hidden">
+    <section className="relative flex min-h-svh flex-col overflow-hidden rounded-b-[2.5rem] md:rounded-b-[4rem] lg:rounded-b-[5.5rem]">
       <HeroBackdrop />
 
       <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center px-6 pt-28 text-center md:pt-32 lg:px-10">
@@ -135,18 +135,6 @@ export function Hero() {
             className="font-heading"
           />
         </motion.h1>
-
-        <motion.p
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.28 }}
-          className="mx-auto mt-6 max-w-xl text-base leading-relaxed !text-white/90 [text-shadow:0_2px_20px_rgba(0,0,0,0.7),0_1px_4px_rgba(0,0,0,0.5)] md:text-lg xl:max-w-2xl xl:text-xl"
-        >
-          WDC Solutions is the creative engine behind brands that get
-          noticed, get found, and get results; branding &amp; design, SEO,
-          full-stack web development, cross-platform apps, and AI-powered
-          software engineering under one roof.
-        </motion.p>
 
         <motion.div
           initial={{ opacity: 0, y: 24 }}
