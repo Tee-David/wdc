@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-const MotionLink = motion(Link);
 import TextType from "@/components/ui/text-type";
 import { LogoGlyph } from "@/components/ui/logo-glyph";
 import LogoLoop from "@/components/ui/logo-loop";
@@ -77,7 +76,6 @@ function HeroBackdrop() {
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
       <AnimatePresence initial={false}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <motion.img
           key={BG_IMAGES[i]}
           src={BG_IMAGES[i]}

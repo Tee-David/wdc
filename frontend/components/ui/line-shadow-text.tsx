@@ -1,13 +1,12 @@
 "use client";
 
 import { motion, type MotionProps } from "motion/react";
-import type { CSSProperties, ElementType, HTMLAttributes } from "react";
+import type { CSSProperties, HTMLAttributes } from "react";
 
 interface LineShadowTextProps
   extends Omit<HTMLAttributes<HTMLElement>, keyof MotionProps>,
     MotionProps {
   shadowColor?: string;
-  as?: ElementType;
   children: string;
 }
 
@@ -16,17 +15,19 @@ interface LineShadowTextProps
  * on an ::after layer filled with a repeating diagonal gradient, clipped to the
  * glyphs and offset slightly — producing a hatched shadow that slides forever.
  */
+
+// motion.create must run at module scope — calling it during render would
+// create a new component each time, resetting its state.
+const MotionSpan = motion.create("span");
+
 export function LineShadowText({
   children,
   shadowColor = "black",
   className = "",
-  as: Component = "span",
   ...props
 }: LineShadowTextProps) {
-  const MotionComponent = motion.create(Component);
-
   return (
-    <MotionComponent
+    <MotionSpan
       style={{ "--shadow-color": shadowColor } as CSSProperties}
       className={[
         "relative z-0 inline-flex",
@@ -40,7 +41,7 @@ export function LineShadowText({
       {...props}
     >
       {children}
-    </MotionComponent>
+    </MotionSpan>
   );
 }
 

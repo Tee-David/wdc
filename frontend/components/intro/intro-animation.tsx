@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   AnimatePresence,
   motion,
@@ -102,38 +102,47 @@ function LogoTile({
  * finally releases, handing the viewer to the hero whose marquee carries
  * the same logos. Plays once per browser session.
  */
+// Decide once, client-side. The blocking script in <head> already made
+// this call (and set data-intro) before first paint so the hero never
+// flashes underneath — mirror its decision; fall back to computing it
+// if the script didn't run.
+function getIntroDecision(): boolean {
+  if (typeof document === "undefined") return false;
+  const decided = document.documentElement.dataset.intro;
+  let play: boolean;
+  if (decided === "play" || decided === "skip") {
+    play = decided === "play";
+  } else {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let seen = 0;
+    try {
+      seen = parseInt(localStorage.getItem(STORAGE_KEY) || "0", 10) || 0;
+    } catch {}
+    play = !reduce && (!seen || Date.now() - seen > INTRO_TTL_MS);
+    document.documentElement.dataset.intro = play ? "play" : "skip";
+  }
+  // Returning visitor: refresh the timestamp so the away-window slides.
+  if (!play) markIntroSeen();
+  return play;
+}
+
 export default function IntroAnimation() {
-  const [active, setActive] = useState<boolean | null>(null);
   const [releasing, setReleasing] = useState(false);
+  const [finished, setFinished] = useState(false);
   const [introPhase, setIntroPhase] = useState<AnimationPhase>("scatter");
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const releasingRef = useRef(false);
 
-  // Decide once, client-side. The blocking script in <head> already made
-  // this call (and set data-intro) before first paint so the hero never
-  // flashes underneath — mirror its decision; fall back to computing it
-  // if the script didn't run.
-  useEffect(() => {
-    const decided = document.documentElement.dataset.intro;
-    let play: boolean;
-    if (decided === "play" || decided === "skip") {
-      play = decided === "play";
-    } else {
-      const reduce = window.matchMedia(
-        "(prefers-reduced-motion: reduce)"
-      ).matches;
-      let seen = 0;
-      try {
-        seen = parseInt(localStorage.getItem(STORAGE_KEY) || "0", 10) || 0;
-      } catch {}
-      play = !reduce && (!seen || Date.now() - seen > INTRO_TTL_MS);
-      document.documentElement.dataset.intro = play ? "play" : "skip";
-    }
-    // Returning visitor: refresh the timestamp so the away-window slides.
-    if (!play) markIntroSeen();
-    setActive(play);
-  }, []);
+  // Server renders `active = null` (intro hidden); on the client the
+  // blocking head script has already stamped the decision, so this flips
+  // to a boolean in the same render, avoiding a paint flash. Since the
+  // decision is immutable once made, subscribe is a no-op.
+  const active = useSyncExternalStore(
+    () => () => {},
+    getIntroDecision,
+    () => null
+  );
 
   // Lock page scroll while the overlay owns the viewport (including during exit transition).
   useEffect(() => {
@@ -273,16 +282,16 @@ export default function IntroAnimation() {
     };
   }, [active]);
 
-  const scatterPositions = useMemo(
-    () =>
-      INTRO_LOGOS.map(() => ({
-        x: (Math.random() - 0.5) * 1500,
-        y: (Math.random() - 0.5) * 1000,
-        rotation: (Math.random() - 0.5) * 180,
-        scale: 0.6,
-        opacity: 0,
-      })),
-    []
+  // Scatter targets are generated once (lazily) so they're stable across
+  // re-renders — but not during render, satisfying React purity rules.
+  const [scatterPositions] = useState(() =>
+    INTRO_LOGOS.map(() => ({
+      x: (Math.random() - 0.5) * 1500,
+      y: (Math.random() - 0.5) * 1000,
+      rotation: (Math.random() - 0.5) * 180,
+      scale: 0.6,
+      opacity: 0,
+    }))
   );
 
   // --- Render values ---
@@ -305,10 +314,10 @@ export default function IntroAnimation() {
   const contentOpacity = useTransform(smoothMorph, [0.8, 1], [0, 1]);
   const contentY = useTransform(smoothMorph, [0.8, 1], [20, 0]);
 
-  if (!active) return null;
+  if (!active || finished) return null;
 
   return (
-    <AnimatePresence onExitComplete={() => setActive(false)}>
+    <AnimatePresence onExitComplete={() => setFinished(true)}>
       {!releasing ? (
         <motion.div
           key="intro"
