@@ -1,7 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
+
+const emptySubscribe = () => () => {};
+
+/** True once the client has hydrated (used to defer theme glyph rendering). */
+function useHasMounted() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
+}
 
 /**
  * Theme toggle with a View-Transitions circle reveal expanding from the
@@ -16,10 +27,8 @@ export function AnimatedThemeToggler({
   duration?: number;
 }) {
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHasMounted();
   const buttonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => setMounted(true), []);
 
   const toggle = useCallback(() => {
     const next = resolvedTheme === "dark" ? "light" : "dark";

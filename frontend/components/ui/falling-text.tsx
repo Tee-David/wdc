@@ -34,7 +34,11 @@ export default function FallingText({
   const containerRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
-  const [effectStarted, setEffectStarted] = useState(false);
+  // Auto-trigger is decided during render (not in an effect): the effect
+  // starts immediately for "auto", and after the first scroll/click/hover
+  // interaction otherwise.
+  const [userTriggered, setUserTriggered] = useState(false);
+  const effectStarted = trigger === "auto" || userTriggered;
 
   useEffect(() => {
     if (!textRef.current) return;
@@ -51,23 +55,18 @@ export default function FallingText({
   }, [text, highlightWords, highlightClass]);
 
   useEffect(() => {
-    if (trigger === "auto") {
-      setEffectStarted(true);
-      return;
-    }
-    if (trigger === "scroll" && containerRef.current) {
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            setEffectStarted(true);
-            observer.disconnect();
-          }
-        },
-        { threshold: 0.1 }
-      );
-      observer.observe(containerRef.current);
-      return () => observer.disconnect();
-    }
+    if (trigger !== "scroll" || !containerRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setUserTriggered(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
   }, [trigger]);
 
   useEffect(() => {
@@ -171,7 +170,7 @@ export default function FallingText({
 
   const handleTrigger = () => {
     if (!effectStarted && (trigger === "click" || trigger === "hover")) {
-      setEffectStarted(true);
+      setUserTriggered(true);
     }
   };
 
