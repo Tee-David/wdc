@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { motion } from "motion/react";
-import { BlurScroller } from "@/components/ui/blur-scroller";
+import { OptionWheel } from "@/components/ui/option-wheel";
 import { LineShadowText } from "@/components/ui/line-shadow-text";
 
 /** Ten outcomes clients actually come to us for — one or two words each. */
@@ -52,9 +52,10 @@ export function About() {
         </motion.h2>
 
         <div className="grid grid-cols-1 items-center gap-14 md:grid-cols-2 md:gap-16">
-          {/* Left: scroll-linked blur word wheel */}
+          {/* Left: scroll-linked option wheel. The arrow rides in the wheel's
+              own reserved gutter, so it never overlaps the outcomes. */}
           <div className="order-2 md:order-1">
-            <BlurScroller words={OUTCOMES} targetRef={sectionRef} />
+            <OptionWheel words={OUTCOMES} targetRef={sectionRef} />
           </div>
 
           {/* Right: the copy — no scroller */}

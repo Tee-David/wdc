@@ -1,0 +1,129 @@
+/* OptionWheel — a vertical word wheel whose options ride a circular arc.
+   Layout is a two-column row: a reserved gutter for the pointer arrow, then
+   the wheel track. The arrow lives OUTSIDE the track's overflow box, so an
+   option can never reach it however far the arc bulges. */
+
+/* Registered so colour and weight interpolate off one continuous number
+   rather than flipping on a discrete "is active" boolean. */
+@property --ow-p {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+.option-wheel {
+  --ow-text-color: rgba(255, 255, 255, 0.4);
+  --ow-active-color: #ffffff;
+  --ow-font-size: 2.6rem;
+  --ow-inset: 0px;
+  --ow-gutter: 4rem;
+  --ow-weight: 600;
+  --ow-weight-active: 800;
+
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+
+/* Gutter moves to the far side so the arrow still points inward. */
+.option-wheel--right {
+  flex-direction: row-reverse;
+}
+
+/* Reserved arrow column. Fixed width, never overlapped by the track. */
+.option-wheel__gutter {
+  position: relative;
+  flex: 0 0 var(--ow-gutter);
+  width: var(--ow-gutter);
+  pointer-events: none;
+}
+
+.option-wheel__arrow {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  display: flex;
+  align-items: center;
+  transform: translateY(-50%);
+  will-change: transform, opacity;
+}
+
+/* The track clips the arc and fades it at the top, bottom, and whichever side
+   the options swing toward, so a receding option dissolves rather than
+   hard-clipping mid-word. --ow-swing is the width of that sideways fade. */
+.option-wheel__track {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+.option-wheel__track--fade-right {
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent),
+    linear-gradient(to left, transparent, #000 var(--ow-swing));
+  mask-image: linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent),
+    linear-gradient(to left, transparent, #000 var(--ow-swing));
+}
+
+.option-wheel__track--fade-left {
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent),
+    linear-gradient(to right, transparent, #000 var(--ow-swing));
+  mask-image: linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent),
+    linear-gradient(to right, transparent, #000 var(--ow-swing));
+}
+
+.option-wheel__list {
+  position: relative;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each option is absolutely centred, then pushed along the arc by inline
+   transform/opacity/filter values so everything stays in step. */
+.option-wheel__item {
+  position: absolute;
+  top: 50%;
+  left: var(--ow-inset);
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  transform-origin: 0% 50%;
+  will-change: transform, opacity, filter;
+}
+
+.option-wheel--right .option-wheel__item {
+  left: auto;
+  right: var(--ow-inset);
+  transform-origin: 100% 50%;
+}
+
+.option-wheel--right .option-wheel__arrow {
+  left: auto;
+  right: 0;
+}
+
+/* --ow-p runs 0 -> 1 as an option approaches the centre of the wheel, so the
+   colour interpolates continuously instead of popping on the active swap. */
+.option-wheel__label {
+  font-size: var(--ow-font-size);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  /* Space Grotesk is loaded as static faces (400/500/600/700), so this rounds
+     to the nearer one rather than interpolating — but it crosses over at
+     --ow-p 0.5, which is exactly the detent boundary where the nearest option
+     changes. The weight therefore steps in step with the snap, and the colour
+     above carries the continuous part. */
+  font-weight: calc(
+    var(--ow-weight) + (var(--ow-weight-active) - var(--ow-weight)) * var(--ow-p, 0)
+  );
+  color: color-mix(
+    in srgb,
+    var(--ow-active-color) calc(var(--ow-p, 0) * 100%),
+    var(--ow-text-color)
+  );
+}
