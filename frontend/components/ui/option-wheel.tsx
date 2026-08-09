@@ -226,7 +226,7 @@ export function OptionWheel({
   tilt = 16,
   curve = 1,
   span = 2,
-  fade = 0.42,
+  fade = 0.2,
   minOpacity = 0,
   blur = 3.5,
   gutter = 48,
