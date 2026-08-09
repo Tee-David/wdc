@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { motion, useScroll, useTransform } from "motion/react";
 import type { ReactNode } from "react";
 import { ScrollReveal, type RevealToken } from "@/components/ui/scroll-reveal";
 
@@ -227,9 +228,93 @@ function ArrowIcon() {
   );
 }
 
+function ServiceCard({ service }: { service: Service }) {
+  return (
+    <motion.a
+      href="#contact"
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{
+        duration: 0.35,
+        ease: [0.16, 1, 0.3, 1],
+      }}
+      className="group flex w-full shrink-0 snap-start flex-col"
+    >
+      <div className="relative aspect-[5/4] overflow-hidden rounded-3xl shadow-[0_20px_50px_-24px_rgba(0,0,101,0.55)]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={service.image}
+          alt=""
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#000065]/45 to-transparent opacity-70 transition-opacity duration-500 group-hover:opacity-40" />
+        {/* Floating arrow: white pill + orange arrow at rest, inverting
+            to an orange pill + white arrow on card hover. */}
+        <span className="absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center rounded-full bg-white text-secondary shadow-lg transition-all duration-300 group-hover:-translate-y-0.5 group-hover:rotate-6 group-hover:bg-secondary group-hover:text-white">
+          <ArrowIcon />
+        </span>
+      </div>
+
+      <h3 className="mt-6 font-heading text-xl font-bold tracking-tight text-primary dark:text-white">
+        {service.title}
+      </h3>
+      <p className="mt-2 text-sm leading-relaxed text-primary/60 dark:text-[#b9bade]">
+        {service.description}
+      </p>
+    </motion.a>
+  );
+}
+
+/** Width of one card + its gutter on the mobile carousel, in px. */
+const MOBILE_CARD_PITCH = 320;
+const MOBILE_CARD_WIDTH = 272;
 export function Services() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  // Total horizontal travel so the last card's right edge reaches the
+  // viewport's right edge. Measured in an effect so nothing reads the
+  // window during render (SSR-safe, React-purity-safe).
+  const [travel, setTravel] = useState(0);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    const update = () => {
+      setIsMobile(mq.matches);
+      setTravel(
+        Math.max(
+          SERVICES.length * MOBILE_CARD_PITCH - window.innerWidth,
+          0
+        ) + 32
+      );
+    };
+    update();
+    mq.addEventListener("change", update);
+    window.addEventListener("resize", update);
+    return () => {
+      mq.removeEventListener("change", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
+  // Section scroll (start -> end) drives the horizontal slide. `scrollYProgress`
+  // is 0 at "start" and 1 at "end"; spread over the full section keeps it
+  // scroll-linked, exactly like the intro/About wheels.
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"],
+  });
+  const x = useTransform(
+    scrollYProgress,
+    [0.25, 0.75],
+    [0, -travel],
+    { clamp: true }
+  );
+
   return (
     <section
+      ref={sectionRef}
       id="services"
       /* Curved on both edges — it rides over the About section above and the
          Testimonials below, so each seam reads as one continuous sweep. */
@@ -260,47 +345,65 @@ export function Services() {
         </div>
 
         {/* Service cards — image on top with a floating arrow button; icon,
-            title and description below. Hovering the image recolours the icon. */}
-        <div className="mt-16 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-          {SERVICES.map((service, i) => (
-            <motion.a
-              key={service.title}
-              href="#contact"
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{
-                duration: 0.35,
-                delay: (i % 3) * 0.05,
-                ease: [0.16, 1, 0.3, 1],
-              }}
-              className="group flex flex-col"
-            >
-              <div className="relative aspect-[5/4] overflow-hidden rounded-3xl shadow-[0_20px_50px_-24px_rgba(0,0,101,0.55)]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={service.image}
-                  alt=""
-                  loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#000065]/45 to-transparent opacity-70 transition-opacity duration-500 group-hover:opacity-40" />
-                {/* Floating arrow: white pill + orange arrow at rest, inverting
-                    to an orange pill + white arrow on card hover. */}
-                <span className="absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center rounded-full bg-white text-secondary shadow-lg transition-all duration-300 group-hover:-translate-y-0.5 group-hover:rotate-6 group-hover:bg-secondary group-hover:text-white">
-                  <ArrowIcon />
-                </span>
+            title and description below. Hovering the image recolours the icon.
+            Mobile: scroll-linked horizontal carousel. Desktop: grid. */}
+        {isMobile ? (
+          <motion.div
+            style={{ x }}
+            className="mt-16 flex w-max gap-6 px-6"
+          >
+            {SERVICES.map((service) => (
+              <div
+                key={service.title}
+                style={{ width: MOBILE_CARD_WIDTH }}
+                className="shrink-0"
+              >
+                <ServiceCard service={service} />
               </div>
+            ))}
+          </motion.div>
+        ) : (
+          <div className="mt-16 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+            {SERVICES.map((service, i) => (
+              <motion.a
+                key={service.title}
+                href="#contact"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{
+                  duration: 0.35,
+                  delay: (i % 3) * 0.05,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
+                className="group flex flex-col"
+              >
+                <div className="relative aspect-[5/4] overflow-hidden rounded-3xl shadow-[0_20px_50px_-24px_rgba(0,0,101,0.55)]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={service.image}
+                    alt=""
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#000065]/45 to-transparent opacity-70 transition-opacity duration-500 group-hover:opacity-40" />
+                  {/* Floating arrow: white pill + orange arrow at rest, inverting
+                      to an orange pill + white arrow on card hover. */}
+                  <span className="absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center rounded-full bg-white text-secondary shadow-lg transition-all duration-300 group-hover:-translate-y-0.5 group-hover:rotate-6 group-hover:bg-secondary group-hover:text-white">
+                    <ArrowIcon />
+                  </span>
+                </div>
 
-              <h3 className="mt-6 font-heading text-xl font-bold tracking-tight text-primary dark:text-white">
-                {service.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-primary/60 dark:text-[#b9bade]">
-                {service.description}
-              </p>
-            </motion.a>
-          ))}
-        </div>
+                <h3 className="mt-6 font-heading text-xl font-bold tracking-tight text-primary dark:text-white">
+                  {service.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-primary/60 dark:text-[#b9bade]">
+                  {service.description}
+                </p>
+              </motion.a>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
