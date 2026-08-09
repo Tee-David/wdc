@@ -76,7 +76,7 @@ function ArrowGlyph({ className }: { className?: string }) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={2.6}
+      strokeWidth={3.2}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
@@ -285,7 +285,7 @@ export function OptionWheel({
           className={`option-wheel__arrow ${arrowClassName}`}
           style={{ x: arrowX, opacity: arrowOpacity }}
         >
-          <ArrowGlyph className="h-7 w-7" />
+          <ArrowGlyph className="h-8 w-8 drop-shadow-[0_2px_6px_rgba(255,101,0,0.45)]" />
         </motion.span>
       </div>
 

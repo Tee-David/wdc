@@ -55,7 +55,7 @@ export function About() {
           {/* Left: scroll-linked option wheel. The arrow rides in the wheel's
               own reserved gutter, so it never overlaps the outcomes. */}
           <div className="order-2 md:order-1">
-            <OptionWheel words={OUTCOMES} targetRef={sectionRef} />
+            <OptionWheel words={OUTCOMES} targetRef={sectionRef} gap={40} />
           </div>
 
           {/* Right: the copy — no scroller */}

@@ -17,6 +17,10 @@ type AnimationPhase = "scatter" | "line" | "circle";
 const TILE = 76;
 const TOTAL = INTRO_LOGOS.length;
 const MAX_SCROLL = 3000;
+// Touch screens deliver much smaller deltas per gesture than desktop wheels,
+// so scale touch travel up — otherwise shuffling through the arc takes
+// several long swipes on mobile.
+const TOUCH_MULTIPLIER = 3;
 // Timestamp of the last time the intro was seen. The intro only replays
 // after the viewer has been away for INTRO_TTL_MS — a returning visitor
 // within the window goes straight to the page. Kept in sync with the
@@ -230,7 +234,7 @@ export default function IntroAnimation() {
     const handleTouchMove = (e: TouchEvent) => {
       e.preventDefault();
       const touchY = e.touches[0].clientY;
-      advance(touchStartY - touchY);
+      advance((touchStartY - touchY) * TOUCH_MULTIPLIER);
       touchStartY = touchY;
     };
 
