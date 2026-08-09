@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: wdc-frontend
+    runtime: node
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
