@@ -32,6 +32,12 @@ export const PROJECTS: Project[] = [
     cover: "/work/nomarcprojects.jpg",
   },
   {
+    name: "Exambeta Travels & Tours",
+    sector: "Education and mobility",
+    url: "https://exambeta.com.ng/",
+    cover: "/work/exambeta.jpg",
+  },
+  {
     name: "Jomo Resource Center",
     sector: "Education and training",
     url: "https://jomorc.com/",
