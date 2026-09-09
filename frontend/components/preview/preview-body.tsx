@@ -5,6 +5,8 @@ import { PROJECTS } from "@/lib/projects";
 import { FAQS } from "@/lib/faq";
 import { CONTACT_EMAIL } from "@/lib/site";
 
+import "./preview.css";
+
 /* Copy is WDC's own, taken from the existing homepage, the PRD and llms.txt. */
 
 const SERVICES = [
@@ -337,7 +339,7 @@ export default function PreviewBody() {
       {/* ---------------- contact ---------------- */}
       <section className="pv-sec pv-sec--band" id="pv-contact">
         <div className="pv-wrap">
-          <div className="pv-head pv-head--left pv-reveal">
+          <div className="pv-head pv-reveal">
             <span className="pv-eyebrow">Reach us</span>
             <h2>Let&rsquo;s talk about your brand.</h2>
           </div>

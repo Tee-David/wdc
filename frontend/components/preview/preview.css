@@ -110,7 +110,7 @@
 .pv-btn:active { transform: translateY(1px) scale(.99); }
 /* orange carries navy text, never white: white on orange is 2.9:1 */
 .pv-btn--accent { background: var(--accent); color: #000065; }
-.pv-btn--accent:hover { background: #000065; color: var(--accent); }
+.pv-btn--accent:hover { background: #fff; color: #000065; }
 .pv-btn--dark { background: #000065; color: #fff; }
 .pv-btn--dark:hover { background: var(--accent); color: #000065; }
 .pv-btn--line { background: transparent; color: var(--ink); border-color: var(--ink); }
@@ -160,7 +160,7 @@
   -webkit-overflow-scrolling: touch; padding-bottom: 8px;
   scrollbar-width: thin; scrollbar-color: var(--accent) var(--paper-2);
 }
-.pv-track > .pv-job { scroll-snap-align: start; flex: 0 0 calc(33.333% - 19px); min-width: 0; }
+.pv-track > .pv-job { scroll-snap-align: start; flex: 0 0 calc(31% - 24px); min-width: 0; }
 @media (max-width: 900px) { .pv-track > .pv-job { flex-basis: calc(50% - 14px); } }
 @media (max-width: 620px) { .pv-track > .pv-job { flex-basis: 85%; } }
 .pv-job {
@@ -193,7 +193,7 @@
   -webkit-mask: var(--arrow-ne) center/contain no-repeat;
           mask: var(--arrow-ne) center/contain no-repeat;
 }
-.pv-job:hover .pv-badge { background: var(--accent); color: #000065; transform: translate(2px, -2px); }
+.pv-job:hover .pv-badge { background: var(--accent); color: #fff; transform: translate(2px, -2px); }
 .pv-job__desc { font-size: .9rem; color: var(--muted); }
 
 .pv-nav { display: flex; gap: 10px; }
