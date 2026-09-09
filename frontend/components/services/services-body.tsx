@@ -27,6 +27,12 @@ import "@/components/ui/motion-kit.css";
    decorative and browser-driven; the readable copy around them is server
    rendered, so nothing that matters waits on this JS. LazyStage then holds
    the mount until the frame is near the viewport. */
+/* Which stages render a controls row — the placeholder has to reserve the same
+   height, so mounting one never changes the page's height. */
+const STAGE_HAS_CONTROLS: Record<ServiceSlug, boolean> = {
+  branding: true, seo: false, web: true, apps: true, software: true, social: false,
+};
+
 const STAGES: Record<ServiceSlug, React.ComponentType> = {
   branding: dynamic(() => import("./stages/dome-gallery"), { ssr: false }),
   seo: dynamic(() => import("./stages/serp-climb"), { ssr: false }),
@@ -183,14 +189,29 @@ export default function ServicesBody() {
 
       {/* ---------------- in-page service nav ---------------- */}
       <nav className="sv-jump" aria-label="Services">
-        <div className="pv-wrap sv-jump__inner">
-          {SERVICES.map((s, i) => (
-            <a className="sv-jump__link" href={`#${s.slug}`} key={s.slug}>
-              <span className="sv-jump__n">/ {String(i + 1).padStart(2, "0")}</span>
-              {s.short}
-            </a>
-          ))}
-        </div>
+        {/* A marquee of LINKS, so it has to stop when someone reaches for one:
+            pauseOnHover for pointers, and LogoLoop pauses on focus too for
+            keyboards. Reduced motion holds it still outright. */}
+        <LogoLoop
+          logos={SERVICES.map((sv, i) => ({
+            href: `#${sv.slug}`,
+            ariaLabel: sv.name,
+            node: (
+              <span className="sv-jump__link">
+                <span className="sv-jump__n">/ {String(i + 1).padStart(2, "0")}</span>
+                {sv.short}
+              </span>
+            ),
+          }))}
+          speed={26}
+          direction="left"
+          logoHeight={20}
+          gap={38}
+          pauseOnHover
+          fadeOut
+          className="sv-jump__loop"
+          ariaLabel="Jump to a service"
+        />
       </nav>
 
       {/* ---------------- the six services ---------------- */}
@@ -248,7 +269,9 @@ export default function ServicesBody() {
               const StageFor = STAGES[s.slug];
               return (
                 <ScrollExpand>
-                  <LazyStage><StageFor /></LazyStage>
+                  <LazyStage withControls={STAGE_HAS_CONTROLS[s.slug]}>
+                    <StageFor />
+                  </LazyStage>
                 </ScrollExpand>
               );
             })()}

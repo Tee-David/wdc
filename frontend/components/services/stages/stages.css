@@ -25,8 +25,10 @@
 }
 .pv-sec--alt .sv-stage__frame { background: var(--paper); }
 .sv-stage--tall .sv-stage__frame { aspect-ratio: 16 / 11; }
-.sv-stage--skeleton .sv-stage__frame,
-.sv-stage--skeleton { aspect-ratio: 16 / 10; border-radius: 20px; background: var(--paper-2); }
+/* the placeholder mirrors the real stage's boxes so its height matches to the
+   pixel: a controls row when the stage has one, the frame, and a caption line */
+.sv-stage--skeleton .sv-stage__frame { background: var(--paper-2); }
+.sv-stage--skeleton .sv-stage__controls { min-height: 33px; margin-bottom: 14px; }
 /* the tall variant is a two-class selector, so the narrow override has to match
    its specificity or the feed wall keeps a 16/11 frame on phones while every
    other stage is 4/5 — same frame is the whole point of the shell */
