@@ -384,10 +384,7 @@ export default function PreviewBody() {
                 <label htmlFor="pv-m">What are you looking to build or fix?</label>
                 <textarea id="pv-m" />
               </div>
-              <button className="pv-btn pv-btn--accent" type="submit">Send the details</button>
-              <small style={{ display: "block", marginTop: 12 }}>
-                This preview form does not submit yet.
-              </small>
+              <button className="pv-btn pv-btn--dark" type="submit">Send the details</button>
             </form>
           </div>
         </div>

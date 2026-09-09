@@ -87,39 +87,41 @@ export function Header() {
    * the header sat empty for a noticeable beat, and toggling quickly could
    * leave it empty altogether. Keeping both mounted cannot get stuck.
    */
+  /*
+   * Both logos stay mounted and cross-fade on opacity, which cannot get stuck
+   * the way AnimatePresence mode="wait" could. The full logo is the one left in
+   * flow, because it is the wider of the two: with the mark in flow instead the
+   * link collapsed to the mark's 34px and the full logo overflowed it.
+   */
   const logoSwap = (
     <Link
       href="/"
       aria-label="We Dig Creativity — home"
       className="relative inline-flex h-9 items-center"
     >
+      {/* One component for both themes so the two states match in size. Light
+          mode previously used the flat logo-white.svg while dark used Logo,
+          whose mark is h-9 plus a wordmark, so light rendered visibly smaller. */}
       <span
         className="inline-flex transition-opacity duration-200 ease-out"
+        style={{ opacity: scrolled ? 0 : 1 }}
+        aria-hidden={scrolled}
+      >
+        <Logo tone="white" markClassName="h-9 w-auto" />
+      </span>
+
+      <span
+        className="absolute inset-y-0 left-0 inline-flex items-center transition-opacity duration-200 ease-out"
         style={{ opacity: scrolled ? 1 : 0 }}
         aria-hidden={!scrolled}
       >
-        {/* Navy mark when the header has a surface; auto-tone mark in dark mode */}
+        {/* Navy mark once the header has a surface; auto-tone mark in dark mode */}
         <span className="dark:hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/brand/icon-navy.svg" alt="We Dig Creativity mark" className="h-9 w-auto" />
         </span>
         <span className="hidden dark:inline-flex">
           <WdcMark className="h-9 w-auto" />
-        </span>
-      </span>
-
-      <span
-        className="absolute inset-y-0 left-0 inline-flex items-center transition-opacity duration-200 ease-out"
-        style={{ opacity: scrolled ? 0 : 1 }}
-        aria-hidden={scrolled}
-      >
-        {/* White logo over the hero in light mode; auto-tone logo in dark mode */}
-        <span className="dark:hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/logo-white.svg" alt="We Dig Creativity" className="h-9 w-auto" />
-        </span>
-        <span className="hidden dark:inline-flex">
-          <Logo markClassName="h-9 w-auto" />
         </span>
       </span>
     </Link>
