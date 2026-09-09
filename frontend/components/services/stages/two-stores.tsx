@@ -90,6 +90,8 @@ export default function TwoStores() {
     );
   }
 
+  const screens = active.screens;
+
   return (
     <Stage caption="Illustrative screens. One source, two platforms." controls={controls}>
       <div className="ts">
@@ -103,6 +105,12 @@ export default function TwoStores() {
           <div className="ts__split" aria-hidden="true">
             <span /><span />
           </div>
+          {/* the screens this product kind actually ships with — the column
+              was carrying one block against two full phones */}
+          <ul className="ts__screens">
+            {screens.map((sc) => <li key={sc}>{sc}</li>)}
+          </ul>
+          <p className="ts__ship">Both stores, one release.</p>
         </div>
         <div className="ts__devices">
           <Phone os="iOS" paused={paused} screens={active.screens} />

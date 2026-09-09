@@ -9,7 +9,7 @@ import { LOGOS, type LogoCategory } from "@/lib/logos";
 import { LogoGlyph } from "@/components/ui/logo-glyph";
 import { CONTACT_EMAIL } from "@/lib/site";
 
-import { LazyStage } from "./stages/stage-shell";
+import { AnimIcon, LazyStage } from "./stages/stage-shell";
 import TextLoop from "@/components/ui/text-loop";
 import WarpText from "@/components/ui/warp-text";
 import ScrollExpand from "@/components/ui/scroll-expand";
@@ -239,7 +239,9 @@ export default function ServicesBody() {
             <ol className="sv-steps pv-reveal sv-steps--after">
               {s.steps.map((st, n) => (
                 <li className="sv-step" key={st.t}>
-                  <span className="sv-step__icon"><Svg d={STEP_GLYPHS[n]} /></span>
+                  <span className="sv-step__icon">
+                    <AnimIcon d={STEP_GLYPHS[n]} delay={n * 90} />
+                  </span>
                   <span className="sv-step__n">{String(n + 1).padStart(2, "0")}</span>
                   <h3>{st.t}</h3>
                   <p>{st.d}</p>
