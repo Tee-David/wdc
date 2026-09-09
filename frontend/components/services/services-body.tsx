@@ -7,6 +7,7 @@ import { SERVICES, type ServiceSlug } from "@/lib/services";
 import { PROJECTS } from "@/lib/projects";
 import { LOGOS, type LogoCategory } from "@/lib/logos";
 import { LogoGlyph } from "@/components/ui/logo-glyph";
+import LogoLoop from "@/components/ui/logo-loop";
 import { CONTACT_EMAIL } from "@/lib/site";
 
 import { LazyStage } from "./stages/stage-shell";
@@ -63,8 +64,23 @@ const Glyph = ({ slug, className }: { slug: ServiceSlug; className?: string }) =
 /* The toolbox rows are real: each service names LogoCategory keys and we pull
    the marks already registered under them, rather than showing client logos
    WDC has not claimed. */
-const toolsFor = (cats: LogoCategory[], limit = 7) =>
-  LOGOS.filter((l) => cats.includes(l.category)).slice(0, limit);
+const toolsFor = (cats: LogoCategory[]) =>
+  LOGOS.filter((l) => cats.includes(l.category));
+
+/* Same treatment as the homepage marquee: a mono mark beside the tool's name,
+   so the strip says what we use rather than showing a row of unlabelled marks
+   the reader has to recognise. */
+const marqueeItems = (cats: LogoCategory[]) =>
+  toolsFor(cats).map((entry) => ({
+    title: entry.name,
+    ariaLabel: entry.name,
+    node: (
+      <span className="sv-tool">
+        <LogoGlyph entry={entry} mono className="sv-tool__i" />
+        <span className="sv-tool__n">{entry.name}</span>
+      </span>
+    ),
+  }));
 
 export default function ServicesBody() {
   const [filter, setFilter] = useState<ServiceSlug | "all">("all");
@@ -208,13 +224,21 @@ export default function ServicesBody() {
                 </ul>
                 <div className="sv-tools">
                   <small>Tools we use</small>
-                  <div className="sv-tools__row">
-                    {toolsFor(s.tools).map((t) => (
-                      <span className="sv-tool" key={t.id} title={t.name}>
-                        <LogoGlyph entry={t} mono className="sv-tool__i" />
-                      </span>
-                    ))}
-                  </div>
+                  {/* every tool for this service, not a first-seven slice —
+                      the marquee is what makes showing all of them possible in
+                      a rail this narrow */}
+                  <LogoLoop
+                    logos={marqueeItems(s.tools)}
+                    speed={32}
+                    direction={i % 2 ? "right" : "left"}
+                    logoHeight={17}
+                    gap={26}
+                    pauseOnHover
+                    scaleOnHover
+                    fadeOut
+                    className="sv-tools__loop"
+                    ariaLabel={`Tools we use for ${s.name}`}
+                  />
                 </div>
               </aside>
             </div>
