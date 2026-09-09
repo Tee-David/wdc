@@ -1,0 +1,81 @@
+/* ============================================================================
+   Motion kit — TextLoop, WarpText, ScrollExpand, ParticleText.
+
+   Written against the .pv tokens so light and dark are one definition. Every
+   effect defines its RESTING state first and treats motion as the addition:
+   if the JS never runs, the reduced-motion query matches, or an observer is
+   missing, what stays on screen is the finished state, not a blank box.
+   ========================================================================== */
+
+/* ---------------- TextLoop ---------------- */
+.tl { position: relative; display: inline-grid; vertical-align: bottom; }
+/* the sizer holds the box at the longest phrase so nothing around it moves */
+.tl__sizer { visibility: hidden; white-space: nowrap; }
+.tl__item {
+  position: absolute; inset: 0; white-space: nowrap;
+  display: flex; align-items: center;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .tl__item.is-anim { animation: tl-in .5s cubic-bezier(.16, 1, .3, 1) both; }
+}
+@keyframes tl-in {
+  from { opacity: 0; transform: translateY(.5em); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------------- WarpText ---------------- */
+.wt { display: block; }
+.wt__sr {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.wt__row { display: flex; flex-wrap: wrap; justify-content: inherit; }
+.wt__c {
+  display: inline-block; white-space: pre;
+  transform: translateY(var(--wt-y, 0)) rotate(var(--wt-r, 0deg));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .wt__c { opacity: 0; transform: translateY(1.1em) rotate(0deg); }
+  .wt.is-in .wt__c {
+    animation: wt-in .7s cubic-bezier(.16, 1, .3, 1) both;
+    animation-delay: var(--wt-d, 0ms);
+  }
+}
+@keyframes wt-in {
+  from { opacity: 0; transform: translateY(1.1em) rotate(0deg); }
+  to   { opacity: 1; transform: translateY(var(--wt-y, 0)) rotate(var(--wt-r, 0deg)); }
+}
+/* motion off: no bend at all. An arc with no arrival reads as broken kerning */
+@media (prefers-reduced-motion: reduce) {
+  .wt__c { transform: none; opacity: 1; }
+}
+
+/* ---------------- ScrollExpand ---------------- */
+.se { --se-scale: 1; --se-p: 1; }
+.se.is-live {
+  transform: scale(var(--se-scale));
+  transform-origin: center top;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .se.is-live { transform: none; }
+}
+
+/* ---------------- ParticleText ---------------- */
+.pt { position: relative; display: inline-block; line-height: 1.05; }
+/* width/height are NOT optional here. A canvas is a replaced element with an
+   intrinsic 300x150, and for replaced elements `width:auto` with inset:0 uses
+   that intrinsic size instead of stretching — so before the script sizes it,
+   the canvas is 300px wide inside whatever box it is in, and pushes a
+   horizontal scrollbar onto every narrow screen. */
+.pt__cv {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  pointer-events: none;
+}
+/* the DOM text is what everyone reads until the canvas has something to show */
+.pt.is-on .pt__text { opacity: 0; }
+.pt__text { transition: opacity .25s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .pt.is-on .pt__text { opacity: 1; }
+  .pt__cv { display: none; }
+}

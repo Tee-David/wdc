@@ -10,10 +10,15 @@ import { LogoGlyph } from "@/components/ui/logo-glyph";
 import { CONTACT_EMAIL } from "@/lib/site";
 
 import { LazyStage } from "./stages/stage-shell";
+import TextLoop from "@/components/ui/text-loop";
+import WarpText from "@/components/ui/warp-text";
+import ScrollExpand from "@/components/ui/scroll-expand";
+import ParticleText from "@/components/ui/particle-text";
 
 import "@/components/preview/preview.css";
 import "./services.css";
 import "./stages/stages.css";
+import "@/components/ui/motion-kit.css";
 
 /* One signature stage per service, each code-split so a visitor who never
    scrolls to Social never downloads the feed wall. ssr:false because these are
@@ -150,6 +155,13 @@ export default function ServicesBody() {
             <span aria-current="page">Services</span>
           </nav>
           <div className="sv-hero__copy pv-reveal">
+            <p className="sv-hero__loop">
+              <span>Ask us about</span>{" "}
+              <TextLoop
+                items={SERVICES.map((x) => x.name)}
+                className="sv-hero__loopword"
+              />
+            </p>
             <h1>Everything a brand needs, under one roof</h1>
             <p className="pv-lede">
               Six services, one team. Design, engineering and growth sit together, so
@@ -216,7 +228,11 @@ export default function ServicesBody() {
             {/* the service's signature showcase */}
             {(() => {
               const StageFor = STAGES[s.slug];
-              return <LazyStage><StageFor /></LazyStage>;
+              return (
+                <ScrollExpand>
+                  <LazyStage><StageFor /></LazyStage>
+                </ScrollExpand>
+              );
             })()}
 
             {/* the reference's six-card grid, one per stage of this service */}
@@ -239,7 +255,7 @@ export default function ServicesBody() {
         <div className="pv-wrap">
           <div className="pv-head pv-reveal">
             <span className="sv-pill">Projects</span>
-            <h2>Exceptional work</h2>
+            <WarpText as="h2" text="Exceptional work" curve={14} tilt={6} />
             <p className="pv-lede">
               Every project here is live. Filter by service, then open any of them and
               see it for yourself.
@@ -334,7 +350,10 @@ export default function ServicesBody() {
         <div className="pv-wrap">
           <div className="sv-cta__box pv-reveal">
             <span className="pv-eyebrow">Start here</span>
-            <h2>Tell us what you are trying to achieve.</h2>
+            <h2 className="sv-cta__h">
+              <ParticleText text="Let's talk." />
+            </h2>
+            <p className="sv-cta__sub">Tell us what you are trying to achieve.</p>
             <p className="pv-lede">
               Not a feature list; the outcome. We will tell you honestly which of the six
               services it needs, and which it does not.
