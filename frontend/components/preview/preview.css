@@ -319,6 +319,39 @@
   .pv-more { max-height: none; opacity: 1; padding-top: 12px; overflow: visible; }
 }
 
+/* On phones the six service cards become one horizontal run: the section holds
+   the viewport while you scroll through them, then releases at the end. The
+   script below supplies --pv-pin-h and .is-pinned. Without it this is still a
+   plain swipeable snap track, so no card is ever unreachable. */
+@media (max-width: 768px) {
+  .pv-pinwrap { position: relative; }
+  .pv-pinstage {
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory; scrollbar-width: none;
+  }
+  .pv-pinstage::-webkit-scrollbar { display: none; }
+  .pv-srows.pv-pintrack { display: flex; gap: 14px; }
+  /* flatten the two rows into a single track without changing the markup */
+  .pv-srows.pv-pintrack .pv-srow { display: contents; }
+  .pv-srows.pv-pintrack .pv-scard {
+    flex: 0 0 84vw; height: 100%; min-height: 0; scroll-snap-align: center;
+  }
+  .pv-pinwrap.is-pinned { height: var(--pv-pin-h); }
+  /* 64px of fixed header on phones, plus a 12px gutter above and below it */
+  .pv-pinwrap.is-pinned .pv-pinstage {
+    position: sticky; top: 76px; height: calc(100svh - 92px); padding: 0;
+    overflow: hidden; display: flex; align-items: stretch; scroll-snap-type: none;
+  }
+  .pv-pinwrap.is-pinned .pv-pintrack { will-change: transform; }
+  /* filling the stage means the art stretches rather than staying at 200px */
+  .pv-pinwrap.is-pinned .pv-scard__media { height: auto; min-height: 200px; flex: 1 1 auto; }
+  .pv-pinwrap.is-pinned .pv-scard__body { margin-top: 16px; }
+}
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .pv-pinwrap.is-pinned { height: auto; }
+  .pv-pinwrap.is-pinned .pv-pinstage { position: static; height: auto; overflow-x: auto; }
+}
+
 /* ---------------- why-us, filled cards ---------------- */
 .pv-icards { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(14px, 1.8vw, 20px); }
 @media (max-width: 900px) { .pv-icards { grid-template-columns: repeat(2, 1fr); } }
