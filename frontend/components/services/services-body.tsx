@@ -2,14 +2,32 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { SERVICES, type ServiceSlug } from "@/lib/services";
 import { PROJECTS } from "@/lib/projects";
 import { LOGOS, type LogoCategory } from "@/lib/logos";
 import { LogoGlyph } from "@/components/ui/logo-glyph";
 import { CONTACT_EMAIL } from "@/lib/site";
 
+import { LazyStage } from "./stages/stage-shell";
+
 import "@/components/preview/preview.css";
 import "./services.css";
+import "./stages/stages.css";
+
+/* One signature stage per service, each code-split so a visitor who never
+   scrolls to Social never downloads the feed wall. ssr:false because these are
+   decorative and browser-driven; the readable copy around them is server
+   rendered, so nothing that matters waits on this JS. LazyStage then holds
+   the mount until the frame is near the viewport. */
+const STAGES: Record<ServiceSlug, React.ComponentType> = {
+  branding: dynamic(() => import("./stages/dome-gallery"), { ssr: false }),
+  seo: dynamic(() => import("./stages/serp-climb"), { ssr: false }),
+  web: dynamic(() => import("./stages/viewport-morph"), { ssr: false }),
+  apps: dynamic(() => import("./stages/two-stores"), { ssr: false }),
+  software: dynamic(() => import("./stages/pipeline"), { ssr: false }),
+  social: dynamic(() => import("./stages/feed-wall"), { ssr: false }),
+};
 
 /* One line-art glyph per service, in the order SERVICES is declared. Drawn
    here rather than pulled from an icon package so they inherit currentColor
@@ -195,8 +213,14 @@ export default function ServicesBody() {
               </aside>
             </div>
 
+            {/* the service's signature showcase */}
+            {(() => {
+              const StageFor = STAGES[s.slug];
+              return <LazyStage><StageFor /></LazyStage>;
+            })()}
+
             {/* the reference's six-card grid, one per stage of this service */}
-            <ol className="sv-steps pv-reveal">
+            <ol className="sv-steps pv-reveal sv-steps--after">
               {s.steps.map((st, n) => (
                 <li className="sv-step" key={st.t}>
                   <span className="sv-step__icon"><Svg d={STEP_GLYPHS[n]} /></span>

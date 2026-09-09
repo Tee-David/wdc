@@ -30,14 +30,14 @@ export const PROJECTS: Project[] = [
     sector: "Modelling and data analytics",
     url: "https://litchconsulting.com/",
     cover: "/work/litchconsulting.jpg",
-    services: ["branding", "web"],
+    services: ["branding", "web", "software"],
   },
   {
     name: "Realtors' Practice",
     sector: "Property data and listings",
     url: "https://realtorspractice.ng/",
     cover: "/work/realtorspractice.jpg",
-    services: ["branding", "web"],
+    services: ["branding", "web", "software"],
   },
   {
     name: "Nomarc Projects",
