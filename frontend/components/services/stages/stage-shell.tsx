@@ -103,11 +103,27 @@ export function Stage({
  * placeholder holds the same height, so nothing below it jumps when the real
  * stage arrives.
  */
-export function LazyStage({ children }: { children: ReactNode }) {
+export function LazyStage({
+  children,
+  withControls = false,
+}: {
+  children: ReactNode;
+  /** Does the stage inside render a controls row? The placeholder has to
+      reserve it, or the page GROWS as stages mount — which moves every scroll
+      target below them mid-animation and lands anchor links hundreds of pixels
+      off their section. */
+  withControls?: boolean;
+}) {
   const { ref, near } = useNearViewport<HTMLDivElement>();
   return (
     <div ref={ref} className="sv-lazy">
-      {near ? children : <div className="sv-stage sv-stage--skeleton" aria-hidden="true" />}
+      {near ? children : (
+        <div className="sv-stage sv-stage--skeleton" aria-hidden="true">
+          {withControls ? <div className="sv-stage__controls" /> : null}
+          <div className="sv-stage__frame" />
+          <div className="sv-stage__cap">&nbsp;</div>
+        </div>
+      )}
     </div>
   );
 }

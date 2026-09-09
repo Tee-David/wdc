@@ -209,6 +209,15 @@ export const LogoLoop = memo(function LogoLoop({
   const handleMouseLeave = useCallback(() => {
     if (effectiveHoverSpeed !== undefined) setIsHovered(false);
   }, [effectiveHoverSpeed]);
+  /* Focus pauses too. Tabbing to a link that is still sliding away is the
+     keyboard equivalent of chasing a moving target, and pauseOnHover alone
+     never fires for anyone not using a pointer. */
+  const handleFocus = useCallback(() => {
+    if (effectiveHoverSpeed !== undefined) setIsHovered(true);
+  }, [effectiveHoverSpeed]);
+  const handleBlur = useCallback(() => {
+    if (effectiveHoverSpeed !== undefined) setIsHovered(false);
+  }, [effectiveHoverSpeed]);
 
   const renderLogoItem = useCallback((item: LogoLoopItem, key: string) => {
     const content = (
@@ -221,13 +230,15 @@ export const LogoLoop = memo(function LogoLoop({
       </span>
     );
     const itemAriaLabel = item.ariaLabel ?? item.title;
+    // Only an off-site link should open a new tab: an in-page anchor or an
+    // internal route that does so is a bug, not a convenience.
+    const external = !!item.href && /^https?:\/\//i.test(item.href);
     const itemContent = item.href ? (
       <a
         className="logoloop__link"
         href={item.href}
         aria-label={itemAriaLabel || "logo link"}
-        target="_blank"
-        rel="noreferrer noopener"
+        {...(external ? { target: "_blank", rel: "noreferrer noopener" } : null)}
       >
         {content}
       </a>
@@ -281,6 +292,8 @@ export const LogoLoop = memo(function LogoLoop({
         ref={trackRef}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onFocusCapture={handleFocus}
+        onBlurCapture={handleBlur}
       >
         {logoLists}
       </div>

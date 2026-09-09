@@ -68,25 +68,24 @@
 /* Sticky under the fixed site header. The base rule comes first and the
    narrow-screen override after it, so the override actually wins. */
 .sv-jump {
-  position: sticky; top: 64px; z-index: 20;
+  position: sticky; top: 64px; z-index: 20; overflow: hidden;
   background: var(--paper); border-bottom: 1px solid var(--rule);
 }
 /* matches the header's own h-16 -> md:h-[72px] step; without it the bar
    sticks under the fixed header and its links are unreachable */
 @media (min-width: 768px) { .sv-jump { top: 72px; } }
-.sv-jump__inner {
-  display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
-  padding-block: 10px;
-}
-.sv-jump__inner::-webkit-scrollbar { display: none; }
+/* clips its own track. Without this the max-content track escapes the sticky
+   bar and widens the document — 1737px of horizontal scroll on a phone. */
+.sv-jump__loop { --logoloop-fadeColorAuto: transparent; overflow: hidden; }
+.sv-jump__loop .logoloop__link { text-decoration: none; }
 .sv-jump__link {
-  flex: none; display: inline-flex; align-items: center; gap: 8px;
-  padding: 9px 15px; border-radius: 999px; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-weight: 600; font-size: .88rem; color: var(--ink);
-  transition: background-color .18s ease, color .18s ease;
+  padding-block: 12px;
+  transition: color .18s ease;
 }
-.sv-jump__link:hover { background: var(--paper-2); }
+.sv-jump__loop .logoloop__link:hover .sv-jump__link { color: var(--accent); }
 .sv-jump__n { color: var(--accent); font-weight: 700; font-size: .8rem; }
 @media (max-width: 640px) { .sv-jump { position: static; } }
 
