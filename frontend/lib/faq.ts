@@ -32,4 +32,20 @@ export const FAQS: Faq[] = [
     q: "Where are you based, and who can you work with?",
     a: "We work with brands wherever they are. Everything after the first conversation works well remotely, and our clients run across Nigeria and beyond. You can reach us at info@wedigcreativity.com.ng.",
   },
+  {
+    q: "What do you build with?",
+    a: "On the web, Next.js and React with TypeScript, custom or CMS-driven, WordPress included. On mobile, Flutter, React Native, Swift, Kotlin and C#, delivered to the App Store and Play Store. Behind them, SQL and NoSQL databases, APIs and Rust or Go services on Google Cloud, Azure, Oracle Cloud or AWS. We pick the stack the work needs, not the one we feel like using.",
+  },
+  {
+    q: "What happens after launch?",
+    a: "Launch is the start of the work, not the end of it. We stay on for maintenance, continuous SEO optimisation and performance care, and for apps and products that keep shipping updates. If you would rather take it in-house, we hand it over properly documented.",
+  },
+  {
+    q: "Can you help us get found by ChatGPT and other AI tools?",
+    a: "Yes. AI visibility is part of how we do SEO now, alongside keyword research, technical SEO, competitor analysis, Google Business Profile and Search Console. We optimise brands to be found and cited by LLMs like ChatGPT, Claude and Gemini, not just ranked on a results page.",
+  },
+  {
+    q: "Do you run social accounts and paid ads too?",
+    a: "Yes. Organic growth and follower campaigns, day-to-day account management across Facebook, Instagram, X, WhatsApp, TikTok and LinkedIn, automations and auto-replies, paid ads and content calendars, with reporting that keeps you in the loop rather than in the dark.",
+  },
 ];
