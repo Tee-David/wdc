@@ -150,51 +150,6 @@ export function useCountUp(to: number, active: boolean, ms = 1100) {
 }
 
 /**
- * A line icon that draws itself in.
- *
- * The dash length is MEASURED, not assumed: stroke-dasharray has to match the
- * path's own length or the draw either finishes early and snaps, or never
- * completes. getTotalLength gives the exact figure, so one component handles
- * glyphs of any complexity.
- *
- * It does not own an observer. The animation keys off an ancestor carrying
- * `.is-in`, which the page's existing reveal already sets — adding a second
- * observer per icon would mean dozens of them competing with the one that
- * already works.
- */
-export function AnimIcon({
-  d,
-  className = "",
-  delay = 0,
-}: {
-  d: string;
-  className?: string;
-  /** ms, for staggering a row of icons. */
-  delay?: number;
-}) {
-  const path = useRef<SVGPathElement | null>(null);
-
-  useEffect(() => {
-    const el = path.current;
-    if (!el) return;
-    // getTotalLength throws on a detached or malformed path in some engines,
-    // and a missing var just means the icon renders solid rather than drawn
-    try {
-      const len = el.getTotalLength();
-      if (len > 0) el.style.setProperty("--len", String(Math.ceil(len)));
-    } catch { /* leave the CSS fallback in place */ }
-  }, [d]);
-
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"
-         strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
-         className={`sv-ico ${className}`}>
-      <path ref={path} d={d} style={{ animationDelay: `${delay}ms` }} />
-    </svg>
-  );
-}
-
-/**
  * The one control shared by every stage that filters or switches. A single
  * component keeps the interaction identical across six sections — same hit
  * area, same active treatment, same keyboard behaviour — which is most of what

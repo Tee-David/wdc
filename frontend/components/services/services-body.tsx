@@ -9,7 +9,8 @@ import { LOGOS, type LogoCategory } from "@/lib/logos";
 import { LogoGlyph } from "@/components/ui/logo-glyph";
 import { CONTACT_EMAIL } from "@/lib/site";
 
-import { AnimIcon, LazyStage } from "./stages/stage-shell";
+import { LazyStage } from "./stages/stage-shell";
+import ServiceIcon from "@/components/ui/service-icon";
 import TextLoop from "@/components/ui/text-loop";
 import WarpText from "@/components/ui/warp-text";
 import ScrollExpand from "@/components/ui/scroll-expand";
@@ -45,18 +46,6 @@ const GLYPHS: Record<ServiceSlug, string> = {
   software: "M12 2a4 4 0 0 1 4 4v1h1a3 3 0 0 1 0 6h-1v1a4 4 0 0 1-8 0v-1H7a3 3 0 0 1 0-6h1V6a4 4 0 0 1 4-4z",
   social: "M4 4h16v12H5.2L4 18.4V4zM8 9h8M8 13h5",
 };
-
-/* Six stage glyphs, one per position in a service's run. The reference gives
-   every card in the grid its own icon; repeating the service mark six times
-   reads as a placeholder, so the stage index picks the glyph. */
-const STEP_GLYPHS = [
-  "M11 3a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM21 21l-4.3-4.3",
-  "M4 7l5-2 6 2 5-2v12l-5 2-6-2-5 2V7zM9 5v14M15 7v14",
-  "M3 4h18v16H3zM3 9h18M9 9v11",
-  "M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5",
-  "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
-  "M4 4h16v12H5.2L4 18.4V4zM8 9h8M8 13h5",
-];
 
 function Svg({ d, className }: { d: string; className?: string }) {
   return (
@@ -200,7 +189,12 @@ export default function ServicesBody() {
             <div className="sv-svc__head pv-reveal">
               <div className="sv-svc__intro">
                 <span className="pv-eyebrow">Service / {String(i + 1).padStart(2, "0")}</span>
-                <h2 id={`${s.slug}-h`}>{s.name}</h2>
+                <h2 id={`${s.slug}-h`} className="sv-svc__title">
+                  <span className="sv-svc__icon">
+                    <ServiceIcon name={s.icon} size={22} hover="pop" />
+                  </span>
+                  {s.name}
+                </h2>
                 <p className="pv-lede">{s.lede}</p>
                 <p className="sv-svc__body">{s.body}</p>
                 <a className="pv-btn pv-btn--line sv-svc__cta" href="#sv-contact">
@@ -240,7 +234,7 @@ export default function ServicesBody() {
               {s.steps.map((st, n) => (
                 <li className="sv-step" key={st.t}>
                   <span className="sv-step__icon">
-                    <AnimIcon d={STEP_GLYPHS[n]} delay={n * 90} />
+                    <ServiceIcon name={st.i} delay={n * 90} />
                   </span>
                   <span className="sv-step__n">{String(n + 1).padStart(2, "0")}</span>
                   <h3>{st.t}</h3>
