@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import TextType from "@/components/ui/text-type";
-import { Stage, useNearViewport, useStageMotion } from "./stage-shell";
+import { Stage, useCountUp, useNearViewport, useStageMotion } from "./stage-shell";
+import { SEO_METRICS } from "@/lib/showcase";
 
 /**
  * 02 · SEO — "The Climb".
@@ -35,6 +36,20 @@ const ROW_H = 44;
 const SLOTS = NEIGHBOURS.length + 1;
 const TOP = CLIMB[CLIMB.length - 1];
 const START = CLIMB[0];
+
+/** One metric tile. Split out so each can own its own count-up. */
+function Metric({ m, run }: { m: (typeof SEO_METRICS)[number]; run: boolean }) {
+  const n = useCountUp(m.to, run);
+  // whole numbers stay whole; a "3.2" average position keeps its decimal
+  const shown = Number.isInteger(m.to) ? Math.round(n) : n.toFixed(1);
+  return (
+    <div className="seo-m">
+      <span className="seo-m__n">{shown}{m.suffix}</span>
+      <span className="seo-m__l">{m.label}</span>
+      <span className="seo-m__h">{m.hint}</span>
+    </div>
+  );
+}
 
 export default function SerpClimb() {
   const mode = useStageMotion();
@@ -75,6 +90,11 @@ export default function SerpClimb() {
   return (
     <Stage caption="Search position over an optimisation cycle. Illustrative, not a client's data.">
       <div className="serp" ref={ref}>
+        <div className="seo-metrics">
+          {SEO_METRICS.map((m) => (
+            <Metric key={m.id} m={m} run={mode === "full" && near} />
+          ))}
+        </div>
         <div className="serp__bar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
                strokeLinecap="round" aria-hidden="true">

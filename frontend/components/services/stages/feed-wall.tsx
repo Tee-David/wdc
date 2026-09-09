@@ -1,6 +1,7 @@
 "use client";
 
-import { Stage, useStageMotion } from "./stage-shell";
+import { Stage, useCountUp, useNearViewport, useStageMotion } from "./stage-shell";
+import { CALENDAR, SOCIAL_CHANNELS, SOCIAL_ENGAGEMENT } from "@/lib/showcase";
 
 /**
  * 06 · Social & PPC — "The Feed Wall".
@@ -55,6 +56,50 @@ function Card({ p }: { p: (typeof POSTS)[number] }) {
   );
 }
 
+/* The two halves of this service: what goes out (the calendar) and what comes
+   back (the wall). Showing only the drifting wall sells "posts"; showing the
+   plan beside it sells management, which is the thing being bought. */
+function Stat({ m, run }: { m: (typeof SOCIAL_ENGAGEMENT)[number]; run: boolean }) {
+  const n = useCountUp(m.to, run);
+  return (
+    <div className="fw-stat">
+      <span className="fw-stat__n">
+        {Number.isInteger(m.to) ? Math.round(n) : n.toFixed(1)}{m.suffix}
+      </span>
+      <span className="fw-stat__l">{m.label}</span>
+    </div>
+  );
+}
+
+function Planner({ run }: { run: boolean }) {
+  const { ref, near } = useNearViewport<HTMLDivElement>("100px");
+  return (
+    <div className="fw-plan" ref={ref}>
+      <div className="fw-plan__head">
+        <span className="fw-plan__t">Content calendar</span>
+        <span className="fw-plan__sub">a fortnight</span>
+      </div>
+      <div className="fw-plan__grid" aria-hidden="true">
+        {CALENDAR.map((k, i) => <span className={`fw-plan__c is-${k}`} key={i} />)}
+      </div>
+      <div className="fw-plan__key" aria-hidden="true">
+        {(["organic", "paid", "story"] as const).map((k) => (
+          <span className="fw-plan__ki" key={k}><i className={`is-${k}`} />{k}</span>
+        ))}
+      </div>
+      <div className="fw-chan">
+        {SOCIAL_CHANNELS.map((c) => (
+          <span className="fw-chan__c" key={c.id}>{c.label}</span>
+        ))}
+      </div>
+      {/* what comes back, beside what goes out */}
+      <div className="fw-stats">
+        {SOCIAL_ENGAGEMENT.map((m) => <Stat key={m.id} m={m} run={run && near} />)}
+      </div>
+    </div>
+  );
+}
+
 export default function FeedWall() {
   const mode = useStageMotion();
 
@@ -62,33 +107,42 @@ export default function FeedWall() {
      columns of 3-line cards on a phone are unreadable slivers. */
   if (mode === "still") {
     return (
-      <Stage caption="Illustrative posts, not campaign results.">
-        <div className="fw fw--still">
-          {POSTS.slice(0, 6).map((p) => <Card key={p.t} p={p} />)}
+      <Stage caption="Illustrative posts and plan, not campaign results.">
+        <div className="fw-split fw-split--still">
+          <Planner run={false} />
+          <div className="fw fw--still">
+            {POSTS.slice(0, 4).map((p) => <Card key={p.t} p={p} />)}
+          </div>
         </div>
       </Stage>
     );
   }
 
-  const cols = mode === "compact" ? COLUMNS.slice(0, 1) : COLUMNS;
+  /* Compact drops to a single drifting column: two of three columns on a phone
+     are slivers, and the planner needs the width more than the wall does. */
+  const cols = mode === "compact" ? COLUMNS.slice(0, 1) : COLUMNS.slice(0, 2);
 
   return (
-    <Stage caption="Illustrative posts, not campaign results." tall>
-      <div className={`fw fw--${mode}`} aria-hidden="true">
-        {cols.map((c, i) => (
-          <div className="fw__col" key={i}>
-            <div
-              className={`fw__track${c.up ? " is-up" : " is-down"}`}
-              style={{ animationDuration: `${c.dur}s` }}
-            >
-              {[0, 1].map((dup) => (
-                <div className="fw__half" key={dup}>
-                  {c.items.map((p, n) => <Card key={`${dup}-${n}-${p.t}`} p={p} />)}
-                </div>
-              ))}
+    <Stage caption="Illustrative posts and plan, not campaign results." tall>
+      <div className={`fw-split fw-split--${mode}`}>
+        {/* the still branch already returned above, so motion is on here */}
+        <Planner run />
+        <div className={`fw fw--${mode}`} aria-hidden="true">
+          {cols.map((c, i) => (
+            <div className="fw__col" key={i}>
+              <div
+                className={`fw__track${c.up ? " is-up" : " is-down"}`}
+                style={{ animationDuration: `${c.dur}s` }}
+              >
+                {[0, 1].map((dup) => (
+                  <div className="fw__half" key={dup}>
+                    {c.items.map((p, n) => <Card key={`${dup}-${n}-${p.t}`} p={p} />)}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
       {/* the drifting wall is decorative; this is what a screen reader gets */}
       <p className="sr-only">

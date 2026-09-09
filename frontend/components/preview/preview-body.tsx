@@ -9,33 +9,41 @@ import "./preview.css";
 
 /* Copy is WDC's own, taken from the existing homepage, the PRD and llms.txt. */
 
+/* `slug` matches lib/services.ts, so a card links to its own section on the
+   services page rather than dumping every service into the contact form. */
 const SERVICES = [
   {
+    slug: "branding",
     title: "Branding & Design",
     body: "Identity systems, logos, motion, and visuals that make brands unmistakable across every surface.",
     img: "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=1200&q=80",
   },
   {
+    slug: "seo",
     title: "SEO",
     body: "Get found; technical, on-page, and content SEO that ranks, earns clicks, and converts.",
     img: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&q=80",
   },
   {
+    slug: "web",
     title: "Full-Stack Web Development",
     body: "Fast, accessible, scalable websites and web apps engineered to perform and last.",
     img: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200&q=80",
   },
   {
+    slug: "apps",
     title: "Cross-Platform App Development",
     body: "One codebase, every device; native-quality mobile experiences on iOS and Android.",
     img: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=1200&q=80",
   },
   {
+    slug: "software",
     title: "Software Engineering & AI",
     body: "Custom software and AI integrations engineered around real business outcomes.",
     img: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&q=80",
   },
   {
+    slug: "social",
     title: "Social Media & PPC",
     body: "Turn attention into growth with paid ads and social content that actually moves.",
     img: "https://images.unsplash.com/photo-1611926653458-09294b3142bf?w=1200&q=80",
@@ -54,9 +62,9 @@ const STEPS = [
 const WHY = [
   { t: "One roof", d: "Design, build and growth in one team, so nothing is lost in the hand-off.", label: "See our work", href: "#pv-work" },
   { t: "Every budget", d: "We work with hundreds of accounts, at a premium standard that scales.", label: "How we work", href: "#pv-process" },
-  { t: "Built to last", d: "Fast, accessible, maintainable code, not a template with your logo on it.", label: "Our services", href: "#pv-services" },
+  { t: "Built to last", d: "Fast, accessible, maintainable code, not a template with your logo on it.", label: "Our services", href: "/services" },
   { t: "You are included", d: "You see the work as it happens instead of a reveal at the end.", label: "How we work", href: "#pv-process" },
-  { t: "Found, not just seen", d: "Search and content work that keeps paying after the site ships.", label: "Our services", href: "#pv-services" },
+  { t: "Found, not just seen", d: "Search and content work that keeps paying after the site ships.", label: "Our services", href: "/services#seo" },
   { t: "Real engineering", d: "AI and software built around outcomes, and we say when it is not needed.", label: "Talk to us", href: "#pv-contact" },
 ];
 
@@ -290,7 +298,7 @@ export default function PreviewBody() {
                     <a
                       className={`pv-scard${active === idx ? " is-on" : ""}`}
                       key={s.title}
-                      href="#pv-contact"
+                      href={`/services#${s.slug}`}
                       onMouseEnter={() => setActive(idx)}
                       onFocus={() => setActive(idx)}
                     >
@@ -303,7 +311,7 @@ export default function PreviewBody() {
                       <div className="pv-scard__body">
                         <h3>{s.title}</h3>
                         <p>{s.body}</p>
-                        <span className="pv-more">Talk to us</span>
+                        <span className="pv-more">Learn more</span>
                       </div>
                     </a>
                   );

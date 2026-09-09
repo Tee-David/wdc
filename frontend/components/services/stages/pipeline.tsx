@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Stage, useNearViewport, useStageMotion } from "./stage-shell";
+import { Stage, TabRow, useNearViewport, useStageMotion } from "./stage-shell";
+import { AI_USES } from "@/lib/showcase";
 
 /**
  * 05 · Software & AI — "The Pipeline".
@@ -77,9 +78,19 @@ export default function Pipeline() {
   const { ref, near } = useNearViewport<HTMLDivElement>("120px");
   const animate = mode === "full" && near;
   const { done, partial } = useTranscript(animate);
+  const [use, setUse] = useState<string>(AI_USES[0].id);
+  const activeUse = AI_USES.find((u) => u.id === use) ?? AI_USES[0];
+
+  const controls = (
+    <>
+      <TabRow items={AI_USES} value={use} onChange={setUse} label="Where AI lands" />
+      <p className="sv-stage__note">{activeUse.note}</p>
+    </>
+  );
 
   return (
-    <Stage caption="A request path we would actually build. Illustrative.">
+    <Stage caption="A request path we would actually build. Illustrative."
+           controls={controls}>
       <div className={`pl${animate ? " is-live" : ""}`} ref={ref}>
         <div className="pl__graph">
           {/* Plain elements, not SVG. The graph spans a flexible width, so any
