@@ -149,7 +149,9 @@ export const SERVICES: Service[] = [
       "Play Store delivery",
       "Continuous updates",
     ],
-    tools: ["mobile", "web"],
+    /* mobile only: the "web" category carries WordPress, PHP and Tailwind,
+       which belong to the web service rather than to app development */
+    tools: ["mobile"],
   },
   {
     slug: "software",
