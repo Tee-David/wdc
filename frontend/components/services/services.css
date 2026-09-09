@@ -244,3 +244,24 @@
   .sv-cta__row .pv-btn { width: 100%; word-break: break-word; }
   .sv-hero__cta .pv-btn { width: 100%; }
 }
+
+/* ---------------- hero rotating line ---------------- */
+.sv-hero__loop {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-bottom: 14px;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .9rem; font-weight: 600; color: var(--on-band-dim);
+  padding: 7px 16px; border-radius: 999px;
+  border: 1px solid var(--on-band-rule); background: rgba(255, 255, 255, .05);
+}
+.sv-hero__loopword { color: var(--accent); }
+
+/* ---------------- closing CTA ---------------- */
+/* the particle word is the heading; the sentence under it does the explaining,
+   so the effect never costs the page its actual message */
+.sv-cta__h { margin-bottom: 4px; }
+.sv-cta__sub {
+  color: var(--muted);
+  font-size: clamp(1rem, .95rem + .3vw, 1.18rem);
+  max-width: 46ch;
+}
