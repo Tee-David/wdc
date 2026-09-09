@@ -1,34 +1,70 @@
 import IntroAnimation from "@/components/intro/intro-animation";
 import { Header } from "@/components/layout/header";
-import { About } from "@/components/sections/about";
 import { Hero } from "@/components/sections/hero";
-import { Services } from "@/components/sections/services";
-import { Testimonials } from "@/components/sections/testimonials";
+import PreviewBody from "@/components/preview/preview-body";
+import { FAQS } from "@/lib/faq";
+import { CONTACT_EMAIL } from "@/lib/site";
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQS.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
 
 export default function Home() {
   return (
     <>
+      {/*
+        IntroAnimation must stay the first child. layout.tsx stamps data-intro
+        on <html> before first paint and globals.css paints a cover until the
+        intro sets data-intro="done".
+      */}
       <IntroAnimation />
       <Header />
       <main className="flex-1">
-        <Hero />
-        <About />
-        <Services />
-        <Testimonials />
+        {/* The intro's logos land in #hero-marquee, so this hero is the payoff
+            of the intro animation. The wrapper carries the hero overrides. */}
+        <div className="pv-hero">
+          <Hero />
+        </div>
+        <PreviewBody />
       </main>
 
-      {/* Top curve closes the alternation, riding over the Testimonials */}
-      <footer className="relative z-10 -mt-10 rounded-t-[2.5rem] bg-background py-14 md:-mt-16 md:rounded-t-[4rem] lg:-mt-[5.5rem] lg:rounded-t-[5.5rem]">
-        <div className="mx-auto flex max-w-[1280px] flex-col items-center justify-between gap-4 px-6 text-sm text-muted md:flex-row lg:px-10">
-          <p>
-            © {new Date().getFullYear()} We Dig Creativity Solutions. All
-            rights reserved.
-          </p>
-          <p className="font-heading font-semibold">
-            ...brilliant simplicity <span className="text-secondary">of thought!</span>
-          </p>
+      <footer className="pv">
+        <div
+          className="pv-sec pv-sec--band"
+          style={{ paddingBlock: "clamp(2.4rem,4vw,3.4rem)" }}
+        >
+          <div className="pv-wrap">
+            <p style={{ color: "var(--on-band-dim)", fontSize: ".9rem", textAlign: "center" }}>
+              © {new Date().getFullYear()} We Dig Creativity Solutions. All rights reserved.{" "}
+              <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "var(--accent)" }}>
+                {CONTACT_EMAIL}
+              </a>
+            </p>
+            <p
+              style={{
+                color: "var(--on-band-dim)",
+                fontSize: ".9rem",
+                textAlign: "center",
+                marginTop: 6,
+              }}
+            >
+              ...brilliant simplicity{" "}
+              <strong style={{ color: "var(--accent)" }}>of thought!</strong>
+            </p>
+          </div>
         </div>
       </footer>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
     </>
   );
 }

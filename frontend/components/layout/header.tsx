@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 const MotionLink = motion(Link);
 import { siInstagram, siX, siFacebook, siWhatsapp } from "simple-icons";
 import { Logo, WdcMark } from "@/components/brand/logo";
@@ -80,47 +80,48 @@ export function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  /*
+   * Both logos stay mounted and cross-fade on opacity. This previously used
+   * AnimatePresence with mode="wait", which will not mount the incoming logo
+   * until the outgoing one has finished exiting; with a spring exit that meant
+   * the header sat empty for a noticeable beat, and toggling quickly could
+   * leave it empty altogether. Keeping both mounted cannot get stuck.
+   */
   const logoSwap = (
-    <Link href="/" aria-label="We Dig Creativity — home" className="inline-flex">
-      <AnimatePresence mode="wait" initial={false}>
-        {scrolled ? (
-          <motion.span
-            key="mark"
-            initial={{ opacity: 0, scale: 0.7, rotate: -20 }}
-            animate={{ opacity: 1, scale: 1, rotate: 0 }}
-            exit={{ opacity: 0, scale: 0.7, rotate: 20 }}
-            transition={{ type: "spring", stiffness: 300, damping: 22 }}
-            className="inline-flex"
-          >
-            {/* Navy favicon/icon when sticky scrolling in light mode; auto-tone logo mark in dark mode */}
-            <span className="dark:hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/brand/icon-navy.svg" alt="We Dig Creativity mark" className="h-9 w-auto" />
-            </span>
-            <span className="hidden dark:inline-flex">
-              <WdcMark className="h-9 w-auto" />
-            </span>
-          </motion.span>
-        ) : (
-          <motion.span
-            key="full"
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.25 }}
-            className="inline-flex"
-          >
-            {/* White logo over hero in light mode; auto-tone logo in dark mode */}
-            <span className="dark:hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/brand/logo-white.svg" alt="We Dig Creativity" className="h-9 w-auto" />
-            </span>
-            <span className="hidden dark:inline-flex">
-              <Logo markClassName="h-9 w-auto" />
-            </span>
-          </motion.span>
-        )}
-      </AnimatePresence>
+    <Link
+      href="/"
+      aria-label="We Dig Creativity — home"
+      className="relative inline-flex h-9 items-center"
+    >
+      <span
+        className="inline-flex transition-opacity duration-200 ease-out"
+        style={{ opacity: scrolled ? 1 : 0 }}
+        aria-hidden={!scrolled}
+      >
+        {/* Navy mark when the header has a surface; auto-tone mark in dark mode */}
+        <span className="dark:hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/icon-navy.svg" alt="We Dig Creativity mark" className="h-9 w-auto" />
+        </span>
+        <span className="hidden dark:inline-flex">
+          <WdcMark className="h-9 w-auto" />
+        </span>
+      </span>
+
+      <span
+        className="absolute inset-y-0 left-0 inline-flex items-center transition-opacity duration-200 ease-out"
+        style={{ opacity: scrolled ? 0 : 1 }}
+        aria-hidden={scrolled}
+      >
+        {/* White logo over the hero in light mode; auto-tone logo in dark mode */}
+        <span className="dark:hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/logo-white.svg" alt="We Dig Creativity" className="h-9 w-auto" />
+        </span>
+        <span className="hidden dark:inline-flex">
+          <Logo markClassName="h-9 w-auto" />
+        </span>
+      </span>
     </Link>
   );
 
