@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
 import type { ReactNode } from "react";
 import { ScrollReveal, type RevealToken } from "@/components/ui/scroll-reveal";
@@ -277,6 +277,10 @@ export function Services() {
   // viewport's right edge. Measured in an effect so nothing reads the
   // window during render (SSR-safe, React-purity-safe).
   const [travel, setTravel] = useState(0);
+  // Manual drag offset (px) applied on top of the scroll-linked `x`.
+  const dragOffsetRef = useRef(0);
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
+  const [dragOffset, setDragOffset] = useState(0);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 639px)");
@@ -298,6 +302,37 @@ export function Services() {
     };
   }, []);
 
+  // Grab-drag the mobile track by hand: pointer down records the start,
+  // pointer move applies the delta, pointer up releases. Works alongside the
+  // scroll-linked `x` — the drag offset simply adds to it.
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      dragStartRef.current = { x: e.clientX, y: e.clientY };
+      dragOffsetRef.current = dragOffset;
+    },
+    [dragOffset]
+  );
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      const start = dragStartRef.current;
+      if (!start) return;
+      const dx = e.clientX - start.x;
+      // Only claim the gesture for horizontal drags so vertical page
+      // scrolling still works when the finger mostly moves up/down.
+      if (Math.abs(dx) > 6 && Math.abs(dx) > Math.abs(e.clientY - start.y)) {
+        const next = Math.max(-travel, Math.min(0, dragOffsetRef.current + dx));
+        dragOffsetRef.current = next;
+        setDragOffset(next);
+      }
+    },
+    [travel]
+  );
+
+  const handlePointerEnd = useCallback(() => {
+    dragStartRef.current = null;
+  }, []);
+
   // Section scroll (start -> end) drives the horizontal slide. `scrollYProgress`
   // is 0 at "start" and 1 at "end"; spread over the full section keeps it
   // scroll-linked, exactly like the intro/About wheels.
@@ -311,6 +346,9 @@ export function Services() {
     [0, -travel],
     { clamp: true }
   );
+
+  // Combine the scroll-linked slide with the manual drag offset.
+  const combinedX = useTransform(x, (v) => v + dragOffset);
 
   return (
     <section
@@ -349,8 +387,12 @@ export function Services() {
             Mobile: scroll-linked horizontal carousel. Desktop: grid. */}
         {isMobile ? (
           <motion.div
-            style={{ x }}
-            className="mt-16 flex w-max gap-6 px-6"
+            style={{ x: combinedX }}
+            className="mt-16 flex w-max cursor-grab gap-6 px-6 touch-pan-y active:cursor-grabbing"
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerEnd}
+            onPointerCancel={handlePointerEnd}
           >
             {SERVICES.map((service) => (
               <div

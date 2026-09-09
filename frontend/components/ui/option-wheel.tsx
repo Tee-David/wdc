@@ -1,321 +1,306 @@
 "use client";
 
-import { type CSSProperties, type RefObject } from "react";
-import {
-  motion,
-  useReducedMotion,
-  useScroll,
-  useSpring,
-  useTransform,
-  type MotionStyle,
-  type MotionValue,
-} from "motion/react";
-
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useMotionValueEvent, useScroll } from "motion/react";
+import type { RefObject } from "react";
 import "./option-wheel.css";
 
-const clamp = (v: number, min: number, max: number) =>
-  Math.min(Math.max(v, min), max);
+const DEFAULT_ITEMS = [
+  "Ambient",
+  "House",
+  "Techno",
+  "Jazz",
+  "Lo-Fi",
+  "Synthwave",
+  "Trance",
+  "Funk",
+  "Disco",
+  "Hip-Hop",
+  "Chillwave",
+  "Drum & Bass",
+];
 
-const RAD = Math.PI / 180;
-
-/** Geometry derived once per prop set — see `arc()` for what each value means. */
-type Arc = {
-  radius: number;
-  tiltRad: number;
-  /** +1 when the wheel reads left-to-right, -1 when mirrored. */
-  mirror: 1 | -1;
-  /** +1 swings receding options away from the gutter, -1 swings them toward it. */
-  swingSign: 1 | -1;
-  curve: number;
-  /** Farthest a receding option travels sideways, in px. */
-  maxSwing: number;
-  /** Padding inside the track before the centred option starts. */
-  inset: number;
-  /** Track height that fits the whole visible span. */
-  height: number;
-};
-
-/**
- * Options sit on a circle sized so the arc between two neighbours is exactly
- * one row height — `tilt` then controls how tightly the wheel curls without
- * changing how far apart the words read.
- *
- * `swing` decides which way that circle bulges. "out" (the default) throws
- * receding options away from the arrow gutter, so clearance only ever grows as
- * the wheel turns; "in" reproduces the stock react-bits look, where they curl
- * back toward the gutter and `inset` has to reserve room for the full swing.
- */
-function arc(
-  rowH: number,
-  tilt: number,
-  curve: number,
-  span: number,
-  side: "left" | "right",
-  swing: "in" | "out",
-  gap: number
-): Arc {
-  const tiltRad = tilt * RAD;
-  const radius = rowH / tiltRad;
-  const maxSwing = radius * (1 - Math.cos(span * tiltRad)) * curve;
-  return {
-    radius,
-    tiltRad,
-    mirror: side === "right" ? -1 : 1,
-    swingSign: swing === "out" ? 1 : -1,
-    curve,
-    maxSwing,
-    // Swinging outward needs no reservation — nothing moves toward the gutter.
-    inset: Math.round(swing === "out" ? gap : maxSwing + gap),
-    height: Math.round(2 * radius * Math.sin(span * tiltRad) + rowH),
-  };
-}
-
-function ArrowGlyph({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={3.6}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M4 12h14M12 6l6 6-6 6" />
-    </svg>
-  );
-}
-
-/**
- * One option riding the arc. Its signed distance from the centred option
- * drives everything: position, tilt, fade, blur, scale and colour.
- */
-function WheelOption({
-  word,
-  index,
-  center,
-  geom,
-  rowH,
-  span,
-  fade,
-  minOpacity,
-  blurStrength,
-  detent,
-}: {
-  word: string;
-  index: number;
-  center: MotionValue<number>;
-  geom: Arc;
-  rowH: number;
-  span: number;
-  fade: number;
-  minOpacity: number;
-  blurStrength: number;
-  detent: boolean;
-}) {
-  const offset = useTransform(center, (c) => index - c);
-  const dist = useTransform(offset, (o) => Math.abs(o));
-
-  const angle = useTransform(offset, (o) =>
-    clamp(o * geom.tiltRad, -Math.PI / 2, Math.PI / 2)
-  );
-  const y = useTransform(angle, (a) => geom.radius * Math.sin(a));
-  // Sideways bulge along the circle. `swingSign` decides whether a receding
-  // option pulls away from the arrow gutter or curls back toward it.
-  const x = useTransform(
-    angle,
-    (a) =>
-      geom.swingSign *
-      geom.mirror *
-      geom.radius *
-      (1 - Math.cos(a)) *
-      geom.curve
-  );
-  const rotate = useTransform(angle, (a) => (geom.mirror * a) / RAD);
-
-  // Beyond the visible window the row is gone entirely.
-  const opacity = useTransform(dist, (d) =>
-    d > span + 0.5 ? 0 : clamp(1 - d * fade, minOpacity, 1)
-  );
-  const filter = useTransform(dist, (d) =>
-    blurStrength > 0 ? `blur(${clamp(d * blurStrength, 0, 12).toFixed(2)}px)` : "none"
-  );
-
-  // `p` runs 0 -> 1 as the option reaches the centre. It feeds the colour and
-  // weight ramp in CSS, and a cubic scale pop that lands right on the detent.
-  const p = useTransform(dist, (d) => clamp(1 - Math.min(d, 1), 0, 1));
-  const scale = useTransform(dist, (d) => {
-    const base = clamp(1 - d * 0.08, 0.72, 1);
-    if (!detent) return base;
-    const t = clamp(1 - Math.min(d, 1), 0, 1);
-    return base + 0.035 * t * t * t;
-  });
-
-  return (
-    <motion.li
-      className="option-wheel__item"
-      style={{
-        height: rowH,
-        marginTop: -rowH / 2, // centre without spending the transform
-        x,
-        y,
-        rotate,
-        opacity,
-        scale,
-        filter,
-        "--ow-p": p,
-      } as MotionStyle}
-    >
-      <span className="option-wheel__label font-heading">{word}</span>
-    </motion.li>
-  );
-}
-
-export type OptionWheelProps = {
-  words: string[];
+interface OptionWheelProps {
+  items?: string[];
   /** Section whose scroll progress turns the wheel. */
   targetRef: RefObject<HTMLElement | null>;
-  side?: "left" | "right";
-  /**
-   * Which way receding options bulge. "out" throws them away from the arrow
-   * gutter (clearance only grows); "in" is the stock react-bits curl back
-   * toward it, paid for with a wider `inset`.
-   */
-  swing?: "in" | "out";
-  /** CSS length for the option text; drives nothing in the geometry. */
-  fontSize?: string;
-  /** Vertical pitch between adjacent options, in px. */
-  rowHeight?: number;
-  /** Degrees of arc between adjacent options. Higher = tighter curl. */
-  tilt?: number;
-  /** 0 flattens the sideways swing, 1 is the full circle. */
-  curve?: number;
-  /** Options visible either side of the centred one. */
-  span?: number;
-  /** Opacity lost per option of distance. */
-  fade?: number;
-  minOpacity?: number;
-  /** Blur px per option of distance. */
-  blur?: number;
-  /** Width of the reserved arrow column. */
-  gutter?: number;
-  /** Clearance between the gutter and the nearest an option ever gets to it. */
-  gap?: number;
+  onChange?: (index: number, item: string) => void;
   textColor?: string;
   activeColor?: string;
-  arrowClassName?: string;
+  side?: "left" | "right";
+  fontSize?: number;
+  spacing?: number;
+  curve?: number;
+  tilt?: number;
+  blur?: number;
+  fade?: number;
+  minOpacity?: number;
+  smoothing?: number;
+  inset?: number;
+  loop?: boolean;
   className?: string;
+}
+
+type Cfg = {
+  count: number;
+  items: string[];
+  rowH: number;
+  curve: number;
+  tilt: number;
+  blur: number;
+  fade: number;
+  minOpacity: number;
+  side: "left" | "right";
+  loop: boolean;
+  smoothing: number;
+};
+
+const DEFAULT_CFG: Cfg = {
+  count: DEFAULT_ITEMS.length,
+  items: DEFAULT_ITEMS,
+  rowH: 67,
+  curve: 1,
+  tilt: 6,
+  blur: 2,
+  fade: 0.25,
+  minOpacity: 0.05,
+  side: "left",
+  loop: false,
+  smoothing: 200,
 };
 
 /**
- * Scroll-linked "focus flow" option wheel. As the host section scrolls through
- * the viewport the wheel turns, the centred option warms to `activeColor`, and
- * the arrow nudges in as each option settles.
- *
- * The arrow sits in its own reserved column outside the track's overflow box,
- * so no amount of curve, lag or font growth can make an option collide with it.
+ * Scroll-linked OptionWheel (react-bits geometry): options sit on a circle
+ * whose radius keeps the arc length between two neighbours equal to one row
+ * height, so `tilt` curls the wheel without changing how far apart the words
+ * read — that's the natural bend and flow. As the host section scrolls, the
+ * wheel eases toward the scroll-derived position with exponential smoothing.
  */
-export function OptionWheel({
-  words,
+const OptionWheel = ({
+  items = DEFAULT_ITEMS,
   targetRef,
-  side = "left",
-  swing = "out",
-  fontSize = "clamp(1.6rem, 3.2vw, 2.6rem)",
-  rowHeight = 64,
-  tilt = 16,
-  curve = 1,
-  span = 3,
-  fade = 0.2,
-  minOpacity = 0,
-  blur = 3.5,
-  gutter = 48,
-  gap = 16,
-  textColor = "rgba(255, 255, 255, 0.4)",
+  onChange,
+  textColor = "#a6a6a6",
   activeColor = "#ffffff",
-  arrowClassName = "text-secondary",
+  side = "left",
+  fontSize = 3,
+  spacing = 1.4,
+  curve = 1,
+  tilt = 6,
+  blur = 2,
+  fade = 0.25,
+  minOpacity = 0.05,
+  smoothing = 200,
+  inset = 80,
+  loop = false,
   className = "",
-}: OptionWheelProps) {
-  const reduce = useReducedMotion();
-  const n = words.length;
-  const geom = arc(rowHeight, tilt, curve, span, side, swing, gap);
+}: OptionWheelProps) => {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const posRef = useRef(0);
+  const targetRefInternal = useRef(0);
+  const rafRef = useRef<number | null>(null);
+  const lastRef = useRef(0);
+  const cfgRef = useRef<Cfg>(DEFAULT_CFG);
+  const onChangeRef = useRef(onChange);
+  const selectedRef = useRef(0);
+  const startLoopRef = useRef<(() => void) | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  useEffect(() => {
+    const remPx =
+      typeof window !== "undefined"
+        ? parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+        : 16;
+    cfgRef.current = {
+      count: items.length,
+      items,
+      rowH: Math.max(fontSize * spacing * remPx, 1),
+      curve,
+      tilt,
+      blur,
+      fade,
+      minOpacity,
+      side,
+      loop,
+      smoothing,
+    };
+  }, [
+    items,
+    fontSize,
+    spacing,
+    curve,
+    tilt,
+    blur,
+    fade,
+    minOpacity,
+    side,
+    loop,
+    smoothing,
+  ]);
+
+  // Single rAF loop that eases the wheel position toward its target with
+  // frame-rate independent exponential smoothing, then lays every option out
+  // along the curve based on its distance from the current position.
+  const runFrameRef = useRef<(now: number) => void>(() => {});
+  const runFrame = useCallback((now: number) => {
+    const dt = Math.min((now - lastRef.current) / 1000, 0.05);
+    lastRef.current = now;
+    const cfg = cfgRef.current;
+    const tau = Math.max(cfg.smoothing, 1) / 1000;
+    const k = 1 - Math.exp(-dt / tau);
+
+    const target = targetRefInternal.current;
+    const cur = posRef.current;
+    let next = cur + (target - cur) * k;
+    const settled = Math.abs(target - next) < 0.001;
+    if (settled) next = target;
+    posRef.current = next;
+
+    const els = itemRefs.current;
+    const n = cfg.count;
+    const mirror = cfg.side === "right" ? -1 : 1;
+    // Options sit on a circle whose radius keeps the arc length between two
+    // neighbors equal to one row height, so tilt controls how tightly it curls.
+    const tiltRad = (cfg.tilt * Math.PI) / 180;
+    const R = tiltRad > 0.0005 ? cfg.rowH / tiltRad : 0;
+    for (let i = 0; i < n; i++) {
+      const el = els[i];
+      if (!el) continue;
+      let d = i - next;
+      if (cfg.loop && n > 1) {
+        d = ((d % n) + n) % n;
+        if (d > n / 2) d -= n;
+      }
+      const dist = Math.abs(d);
+      let x = 0;
+      let y = d * cfg.rowH;
+      let rot = 0;
+      if (R > 0) {
+        const ang = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, d * tiltRad));
+        y = R * Math.sin(ang);
+        x = -mirror * R * (1 - Math.cos(ang)) * cfg.curve;
+        rot = (mirror * ang * 180) / Math.PI;
+      }
+      el.style.transform = `translate(${x.toFixed(2)}px, calc(${y.toFixed(
+        2
+      )}px - 50%)) rotate(${rot.toFixed(3)}deg)`;
+      el.style.opacity = String(
+        Math.max(cfg.minOpacity, 1 - dist * cfg.fade)
+      );
+      el.style.filter =
+        cfg.blur > 0 ? `blur(${(dist * cfg.blur).toFixed(2)}px)` : "none";
+      el.style.setProperty(
+        "--ow-p",
+        Math.max(0, 1 - Math.min(dist, 1)).toFixed(4)
+      );
+    }
+
+    // Notify the active option when it changes (rounded, once per index).
+    const idx = ((Math.round(next) % n) + n) % n;
+    if (idx !== selectedRef.current) {
+      selectedRef.current = idx;
+      setSelectedIndex(idx);
+      onChangeRef.current?.(idx, cfg.items[idx]);
+    }
+
+    rafRef.current = settled ? null : requestAnimationFrame(runFrameRef.current);
+  }, []);
+
+  useEffect(() => {
+    runFrameRef.current = runFrame;
+  }, [runFrame]);
+
+  const startLoop = useCallback(() => {
+    if (rafRef.current != null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    lastRef.current = performance.now();
+    rafRef.current = requestAnimationFrame(runFrame);
+  }, [runFrame]);
+
+  useEffect(() => {
+    startLoopRef.current = startLoop;
+  }, [startLoop]);
+
+  // --- Scroll input: turn section scroll progress into a wheel position ---
   const { scrollYProgress } = useScroll({
     target: targetRef,
     offset: ["start end", "end start"],
   });
-  // Hold on the first/last option at the extremes; cycle across the middle band.
-  const raw = useTransform(scrollYProgress, [0.18, 0.82], [0, Math.max(n - 1, 0)], {
-    clamp: true,
+  useMotionValueEvent(scrollYProgress, "change", (p) => {
+    const cfg = cfgRef.current;
+    const next = p * Math.max(cfg.count - 1, 0);
+    if (next !== targetRefInternal.current) {
+      targetRefInternal.current = next;
+      startLoopRef.current?.();
+    }
   });
-  // Slightly under-damped so the wheel settles onto each option with a small
-  // overshoot — the tactile "click" — instead of gliding linearly past it.
-  const smooth = useSpring(raw, { stiffness: 200, damping: 18, mass: 0.4 });
-  const center = reduce ? raw : smooth;
 
-  // Distance to the nearest detent, 0 (settled) -> 1 (mid-travel). The arrow
-  // reads this continuous value rather than a discrete active index, so it can
-  // never fall a frame behind the option it points at.
-  const travel = useTransform(center, (c) =>
-    clamp(Math.abs(c - Math.round(c)) * 2, 0, 1)
+  useEffect(() => {
+    startLoop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    items,
+    fontSize,
+    spacing,
+    curve,
+    tilt,
+    blur,
+    fade,
+    minOpacity,
+    side,
+    loop,
+    smoothing,
+  ]);
+
+  useEffect(
+    () => () => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    },
+    []
   );
-  const arrowX = useTransform(travel, (t) => -8 * t * geom.mirror);
-  const arrowOpacity = useTransform(travel, (t) => 1 - 0.55 * t);
 
   return (
     <div
+      ref={rootRef}
+      role="listbox"
+      aria-label="Option wheel"
       className={`option-wheel${side === "right" ? " option-wheel--right" : ""}${
         className ? ` ${className}` : ""
       }`}
       style={
         {
-          height: geom.height,
           "--ow-text-color": textColor,
           "--ow-active-color": activeColor,
-          "--ow-font-size": fontSize,
-          "--ow-inset": `${geom.inset}px`,
-          "--ow-gutter": `${gutter}px`,
-          "--ow-swing": `${Math.round(geom.maxSwing)}px`,
-        } as CSSProperties
+          "--ow-font-size": `${fontSize}rem`,
+          "--ow-inset": `${inset}px`,
+        } as React.CSSProperties
       }
     >
-      {/* Reserved arrow column — physically outside the track below. */}
-      <div className="option-wheel__gutter" aria-hidden="true">
-        <motion.span
-          className={`option-wheel__arrow ${arrowClassName}`}
-          style={{ x: arrowX, opacity: arrowOpacity }}
+      {items.map((label, index) => (
+        <div
+          key={`${label}-${index}`}
+          ref={(el) => {
+            itemRefs.current[index] = el;
+          }}
+          role="option"
+          aria-selected={selectedIndex === index}
+          className={`option-wheel__item${
+            selectedIndex === index ? " option-wheel__item--selected" : ""
+          }`}
         >
-          <ArrowGlyph className="h-10 w-10 drop-shadow-[0_2px_8px_rgba(255,101,0,0.5)]" />
-        </motion.span>
-      </div>
-
-      {/* Fade the edge the options swing toward, so the outermost ones
-          dissolve at the track boundary instead of clipping mid-word. */}
-      <div
-        className={`option-wheel__track option-wheel__track--fade-${
-          geom.swingSign * geom.mirror > 0 ? "right" : "left"
-        }`}
-      >
-        <ul role="list" className="option-wheel__list">
-          {words.map((word, i) => (
-            <WheelOption
-              key={`${word}-${i}`}
-              word={word}
-              index={i}
-              center={center}
-              geom={geom}
-              rowH={rowHeight}
-              span={span}
-              fade={fade}
-              minOpacity={minOpacity}
-              blurStrength={reduce ? 0 : blur}
-              detent={!reduce}
-            />
-          ))}
-        </ul>
-      </div>
+          {label}
+        </div>
+      ))}
     </div>
   );
-}
+};
 
 export default OptionWheel;
+export { OptionWheel };
