@@ -52,10 +52,44 @@ export function About() {
         </motion.h2>
 
         <div className="grid grid-cols-1 items-center gap-14 md:grid-cols-2 md:gap-16">
-          {/* Left: scroll-linked option wheel. The arrow rides in the wheel's
-              own reserved gutter, so it never overlaps the outcomes. */}
+          {/* Left: interactive option wheel — bends and flows as the rAF loop
+              eases each option along the circle. The arrow rides beside it. */}
           <div className="order-2 md:order-1">
-            <OptionWheel words={OUTCOMES} targetRef={sectionRef} gap={40} />
+            <div className="relative flex h-[380px] w-full items-stretch md:h-[440px]">
+              {/* Arrow */}
+              <div
+                aria-hidden="true"
+                className="absolute left-0 top-1/2 z-10 flex -translate-y-1/2 items-center"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={3.6}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-10 w-10 text-secondary drop-shadow-[0_2px_8px_rgba(255,101,0,0.5)]"
+                >
+                  <path d="M4 12h14M12 6l6 6-6 6" />
+                </svg>
+              </div>
+              <div className="h-full w-full pl-14">
+                <OptionWheel
+                  items={OUTCOMES}
+                  targetRef={sectionRef}
+                  textColor="rgba(255,255,255,0.35)"
+                  activeColor="#ffffff"
+                  fontSize={2.6}
+                  spacing={1.5}
+                  curve={1}
+                  tilt={7}
+                  blur={3}
+                  fade={0.22}
+                  smoothing={200}
+                  inset={80}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Right: the copy — no scroller */}
