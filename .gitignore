@@ -41,3 +41,6 @@ CLAUDE.md
 .claude/
 .agents/
 skills-lock.json
+
+# agent tooling, not project code
+.commandcode/
