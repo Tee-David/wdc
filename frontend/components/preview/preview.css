@@ -495,8 +495,11 @@
 
 /* ---------------- contact ---------------- */
 .pv-reach { display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(24px, 4vw, 56px); align-items: start; }
-@media (max-width: 860px) { .pv-reach { grid-template-columns: 1fr; } .pv-reach__info { position: static; } }
+/* the base sticky has to precede the query: both selectors are one class, so a
+   later unconditional rule beat the narrow override and the column stayed stuck
+   at one column too, riding over the form and swallowing taps on its fields */
 .pv-reach__info { position: sticky; top: 100px; }
+@media (max-width: 860px) { .pv-reach { grid-template-columns: 1fr; } .pv-reach__info { position: static; } }
 .pv-cline { display: flex; justify-content: space-between; gap: 14px; padding: 15px 0; border-bottom: 1px solid var(--on-band-rule); }
 .pv-cline small { font-family: var(--font-space-grotesk), system-ui, sans-serif; color: var(--on-band-dim); font-size: .82rem; }
 .pv-cline b { font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 600; color: #fff; }
