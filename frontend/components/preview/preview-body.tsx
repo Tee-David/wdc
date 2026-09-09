@@ -306,12 +306,6 @@ export default function PreviewBody() {
             </div>
           </div>
         ))}
-        <div className="pv-wrap">
-          <p className="pv-note">
-            Placeholder quotes, shown to set the layout. These are not real client
-            testimonials and are replaced before this page goes live.
-          </p>
-        </div>
       </section>
 
       {/* ---------------- FAQ ---------------- */}

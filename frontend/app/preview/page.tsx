@@ -41,8 +41,11 @@ export default function PreviewPage() {
       <Header />
       <main className="flex-1">
         {/* Reused unchanged: the intro's logos land in #hero-marquee, so this
-            hero is the payoff of the intro animation and must not be replaced. */}
-        <Hero />
+            hero is the payoff of the intro animation and must not be replaced.
+            The wrapper only carries preview-scoped overrides. */}
+        <div className="pv-hero">
+          <Hero />
+        </div>
         <PreviewBody />
       </main>
 
