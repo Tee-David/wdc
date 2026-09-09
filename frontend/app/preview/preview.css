@@ -1,0 +1,507 @@
+/* ============================================================================
+   /preview — the getyoursite design language in WDC's brand.
+
+   Everything is scoped under .pv so the live homepage, which uses several of
+   the same components, is untouched. Tokens are declared for light and re-
+   declared under .dark so every band holds contrast in both themes; getyoursite
+   was single-theme and could not just be copied across.
+
+   Contrast, measured rather than assumed:
+     #FF6500 on #000065 .... 6.0:1   accent on the dark band
+     #000065 on #FF6500 .... 6.0:1   so buttons are orange with NAVY text
+     #ffffff on #FF6500 .... 2.9:1   fails, never used for text
+     #FF6500 on #ffffff .... 2.8:1   fails, hence --accent-ink for text on light
+   ========================================================================== */
+
+.pv {
+  --paper: #ffffff;
+  --paper-2: #f4f5fc;
+  --band: #000065;
+  --band-2: #10104d;
+  --accent: #ff6500;
+  --accent-ink: #b34700;
+  --ink: #0e0e2c;
+  --muted: #565678;
+  --rule: rgba(0, 0, 101, 0.12);
+  --on-band: #eef0ff;
+  --on-band-dim: #a9abd8;
+  --on-band-rule: rgba(255, 255, 255, 0.16);
+  --maxw: 1280px;
+
+  /* thin stroked arrows, masked so they take the current text colour */
+  --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 12h16'/%3E%3Cpath d='M13 5.5l6.5 6.5-6.5 6.5'/%3E%3C/svg%3E");
+  --arrow-ne: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.5 17.5L17.5 6.5'/%3E%3Cpath d='M8.5 6.5h9v9'/%3E%3C/svg%3E");
+  --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
+
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-outfit), "Segoe UI", system-ui, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.dark .pv {
+  --paper: #030318;
+  --paper-2: #0a0a3a;
+  --band: #0a0a3a;
+  --band-2: #10104d;
+  --accent-ink: #ff6500; /* orange on near-black is 6.9:1, no darkening needed */
+  --ink: #f1f2ff;
+  --muted: #9d9ec9;
+  --rule: rgba(255, 255, 255, 0.12);
+}
+
+.pv *,
+.pv *::before,
+.pv *::after { box-sizing: border-box; }
+
+.pv h1, .pv h2, .pv h3, .pv h4 {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  margin: 0;
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+}
+/* the single space around '+' is load-bearing: without it the whole
+   declaration is invalid and silently dropped */
+.pv h1 { font-size: clamp(2.7rem, 1.5rem + 5vw, 5.4rem); }
+.pv h2 { font-size: clamp(2rem, 1.4rem + 2.4vw, 3.3rem); }
+.pv h3 { font-size: clamp(1.2rem, 1.05rem + 0.6vw, 1.45rem); letter-spacing: -0.02em; }
+.pv p { margin: 0; }
+.pv a { color: inherit; text-decoration: none; }
+.pv img { display: block; max-width: 100%; }
+.pv ::selection { background: var(--accent); color: #fff; }
+.pv :where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.pv-wrap {
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: clamp(18px, 5vw, 44px);
+}
+
+/* mixed-weight heading: emphasis by weight, never by colouring one word */
+.pv-mix { color: var(--ink); font-weight: 500; }
+.pv-mix b { color: var(--ink); font-weight: 700; }
+.pv-sec--band .pv-mix,
+.pv-sec--band .pv-mix b { color: #fff; }
+
+/* ---------------- buttons ---------------- */
+.pv-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 600; font-size: 1rem;
+  padding: 15px 28px; border: 1.5px solid transparent; border-radius: 999px;
+  cursor: pointer;
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease,
+              transform .12s ease;
+}
+.pv-btn::after {
+  content: ""; flex: none; width: 1.15em; height: 1.15em;
+  background-color: currentColor;
+  -webkit-mask: var(--arrow) center/contain no-repeat;
+          mask: var(--arrow) center/contain no-repeat;
+  transition: transform .22s cubic-bezier(.16, 1, .3, 1);
+}
+.pv-btn:hover::after { transform: translateX(4px); }
+.pv-btn:active { transform: translateY(1px) scale(.99); }
+/* orange carries navy text, never white: white on orange is 2.9:1 */
+.pv-btn--accent { background: var(--accent); color: #000065; }
+.pv-btn--accent:hover { background: #000065; color: var(--accent); }
+.pv-btn--dark { background: #000065; color: #fff; }
+.pv-btn--dark:hover { background: var(--accent); color: #000065; }
+.pv-btn--line { background: transparent; color: var(--ink); border-color: var(--ink); }
+.pv-btn--line:hover { background: var(--ink); color: var(--paper); }
+.pv-sec--band .pv-btn--line { color: #fff; border-color: var(--on-band-rule); }
+.pv-sec--band .pv-btn--line:hover { background: var(--accent); color: #000065; border-color: var(--accent); }
+
+/* ---------------- bands ---------------- */
+.pv-sec { padding-block: clamp(3.4rem, 6vw, 6rem); background: var(--paper); }
+.pv-sec--alt { background: var(--paper-2); }
+.pv-sec--band { background: var(--band); color: var(--on-band); }
+.pv-sec--band h1, .pv-sec--band h2, .pv-sec--band h3, .pv-sec--band h4 { color: #fff; }
+.pv-sec--band .pv-lede { color: var(--on-band-dim); }
+
+.pv-head {
+  display: grid; gap: 16px; justify-items: center; text-align: center;
+  max-width: none; margin-inline: auto; margin-bottom: clamp(2rem, 4vw, 3rem);
+}
+.pv-head h2 { max-width: none; }
+.pv-head .pv-lede { max-width: 56ch; margin-inline: auto; }
+.pv-head--left { justify-items: start; text-align: left; margin-inline: 0; }
+.pv-head--left .pv-lede { max-width: 52ch; margin-inline: 0; }
+.pv-lede {
+  color: var(--muted);
+  font-size: clamp(1rem, .95rem + .3vw, 1.18rem);
+  line-height: 1.55;
+}
+.pv-eyebrow {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .82rem; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--accent-ink);
+}
+.pv-sec--band .pv-eyebrow { color: var(--accent); }
+
+/* header bar that carries its own carousel arrows */
+.pv-bar { position: relative; margin-bottom: clamp(1.8rem, 3.4vw, 2.6rem); }
+.pv-bar > .pv-head { width: 100%; margin: 0 auto; }
+.pv-bar > .pv-nav { position: absolute; right: 0; bottom: 0; }
+@media (max-width: 1080px) {
+  .pv-bar > .pv-nav { position: static; justify-content: center; margin-top: 20px; }
+}
+
+/* ---------------- work carousel ---------------- */
+.pv-track {
+  display: flex; gap: clamp(18px, 2.6vw, 28px); overflow-x: auto;
+  scroll-snap-type: x mandatory; scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; padding-bottom: 8px;
+  scrollbar-width: thin; scrollbar-color: var(--accent) var(--paper-2);
+}
+.pv-track > .pv-job { scroll-snap-align: start; flex: 0 0 calc(33.333% - 19px); min-width: 0; }
+@media (max-width: 900px) { .pv-track > .pv-job { flex-basis: calc(50% - 14px); } }
+@media (max-width: 620px) { .pv-track > .pv-job { flex-basis: 85%; } }
+.pv-job {
+  display: flex; flex-direction: column; background: var(--paper);
+  border: 1px solid var(--rule); border-radius: 20px; overflow: hidden;
+  transition: transform .32s cubic-bezier(.16, 1, .3, 1),
+              box-shadow .32s cubic-bezier(.16, 1, .3, 1);
+}
+.pv-job:hover { transform: translateY(-4px); box-shadow: 0 22px 44px -16px rgba(0, 0, 101, .28); }
+.pv-shot { aspect-ratio: 4/3; overflow: hidden; background: var(--paper-2); }
+.pv-shot img {
+  width: 100%; height: 100%; object-fit: cover; object-position: top center;
+  transition: transform .5s cubic-bezier(.16, 1, .3, 1);
+}
+.pv-job:hover .pv-shot img { transform: scale(1.05); }
+.pv-job__body { padding: 20px 22px 24px; display: grid; gap: 8px; }
+.pv-job__row { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
+.pv-job__row b {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 600; font-size: 1.1rem; letter-spacing: -.02em; line-height: 1.25;
+}
+.pv-badge {
+  flex: none; width: 34px; height: 34px; border-radius: 50%;
+  background: var(--paper-2); color: var(--ink);
+  display: grid; place-items: center;
+  transition: background-color .2s ease, color .2s ease, transform .2s ease;
+}
+.pv-badge::after {
+  content: ""; width: 15px; height: 15px; background-color: currentColor;
+  -webkit-mask: var(--arrow-ne) center/contain no-repeat;
+          mask: var(--arrow-ne) center/contain no-repeat;
+}
+.pv-job:hover .pv-badge { background: var(--accent); color: #000065; transform: translate(2px, -2px); }
+.pv-job__desc { font-size: .9rem; color: var(--muted); }
+
+.pv-nav { display: flex; gap: 10px; }
+.pv-rbtn {
+  flex: 0 0 52px; width: 52px; height: 52px; padding: 0;
+  border: 1.5px solid var(--ink); background: transparent; color: var(--ink);
+  border-radius: 50%; cursor: pointer; display: grid; place-items: center;
+  transition: background-color .18s, color .18s, transform .12s;
+}
+.pv-rbtn::after {
+  content: ""; width: 20px; height: 20px; background-color: currentColor;
+  -webkit-mask: var(--arrow) center/contain no-repeat;
+          mask: var(--arrow) center/contain no-repeat;
+}
+.pv-rbtn--prev::after { transform: rotate(180deg); }
+.pv-rbtn:hover { background: var(--ink); color: var(--paper); }
+.pv-rbtn:disabled { opacity: .3; cursor: default; }
+.pv-rbtn:disabled:hover { background: transparent; color: var(--ink); }
+@media (max-width: 768px) { .pv-nav { display: none; } }
+
+/* ---------------- process flow ----------------
+   Hangs off a shared rule with a large ghost numeral, so this band reads
+   differently from the card grids either side of it. */
+.pv-steps {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: clamp(22px, 3vw, 40px) clamp(20px, 3vw, 44px);
+}
+@media (max-width: 900px) { .pv-steps { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .pv-steps { grid-template-columns: 1fr; } }
+.pv-step {
+  position: relative; display: grid; gap: 10px; align-content: start;
+  padding-top: 22px; border-top: 1px solid var(--on-band-rule);
+}
+.pv-step__n {
+  position: absolute; right: 0; top: 18px; pointer-events: none;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: 2.6rem; line-height: 1; letter-spacing: -.04em;
+  color: rgba(255, 101, 0, .22);
+}
+.pv-step h3 { font-size: 1.16rem; }
+.pv-step p { color: var(--on-band-dim); font-size: .95rem; max-width: 34ch; }
+.pv-step::after {
+  content: ""; position: absolute; left: 0; top: -1px; height: 1px; width: 0;
+  background: var(--accent); transition: width .45s cubic-bezier(.16, 1, .3, 1);
+}
+.pv-step:hover::after { width: 100%; }
+
+/* ---------------- services, expanding ---------------- */
+.pv-srows { display: grid; gap: clamp(12px, 1.4vw, 18px); }
+.pv-srow { display: flex; gap: clamp(12px, 1.4vw, 18px); align-items: stretch; }
+.pv-scard {
+  position: relative; flex: 1 1 0; min-width: 0;
+  display: flex; flex-direction: column; min-height: 420px;
+  padding: 20px; border-radius: 20px; overflow: hidden; cursor: pointer;
+  background: var(--paper-2); border: 1px solid var(--rule); color: var(--ink);
+  transition: flex-grow .55s cubic-bezier(.16, 1, .3, 1), background-color .4s ease,
+              box-shadow .4s ease, border-color .3s ease;
+}
+.pv-scard__media {
+  position: relative; height: 0; opacity: 0; overflow: hidden;
+  border-radius: 14px; margin-bottom: 16px;
+  transition: height .55s cubic-bezier(.16, 1, .3, 1), opacity .4s ease;
+}
+.pv-scard__media img { width: 100%; height: 100%; object-fit: cover; }
+.pv-scard__media::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 101, 0) 40%, rgba(0, 0, 101, .62) 100%);
+}
+.pv-scard__n {
+  position: absolute; top: 18px; left: 22px; z-index: 3; pointer-events: none;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: 2.7rem; line-height: 1;
+  color: rgba(14, 14, 44, .15);
+  transition: font-size .5s cubic-bezier(.16, 1, .3, 1), color .4s ease,
+              top .5s ease, left .5s ease;
+}
+.dark .pv .pv-scard__n { color: rgba(255, 255, 255, .18); }
+.pv-scard__ic { flex: 1; display: grid; place-items: center; color: var(--ink); transition: opacity .3s ease; }
+.pv-scard__ic svg { width: 42px; height: 42px; }
+.pv-scard__body { margin-top: auto; }
+.pv-scard__body h3 { font-size: 1.08rem; line-height: 1.2; transition: font-size .45s cubic-bezier(.16, 1, .3, 1), margin .4s ease; }
+.pv-scard__body p {
+  max-height: 0; opacity: 0; overflow: hidden; color: var(--muted); font-size: .93rem;
+  transition: max-height .5s cubic-bezier(.16, 1, .3, 1), opacity .35s ease;
+}
+.pv-more {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: .9rem; color: var(--accent-ink);
+  max-height: 0; opacity: 0; overflow: hidden; padding-top: 0;
+  transition: max-height .5s ease, opacity .35s ease, padding .4s ease;
+}
+.pv-more::after {
+  content: ""; width: 14px; height: 14px; background-color: currentColor;
+  -webkit-mask: var(--arrow) center/contain no-repeat;
+          mask: var(--arrow) center/contain no-repeat;
+  transition: transform .22s cubic-bezier(.16, 1, .3, 1);
+}
+.pv-scard:hover .pv-more::after { transform: translateX(4px); }
+.pv-scard.is-on {
+  flex-grow: 2.1; background: var(--paper); border-color: transparent;
+  box-shadow: 0 28px 54px -24px rgba(0, 0, 101, .4);
+}
+/* In dark mode --paper is the page itself, so an active card painted with it
+   reads as a hole. Lift it above the resting surface instead. */
+.dark .pv .pv-scard.is-on { background: var(--band-2); }
+.pv-scard.is-on .pv-scard__media { height: 200px; opacity: 1; }
+.pv-scard.is-on .pv-scard__n { font-size: .82rem; color: #fff; top: 32px; left: 34px; }
+.pv-scard.is-on .pv-scard__ic { flex: 0; opacity: 0; height: 0; }
+.pv-scard.is-on .pv-scard__body h3 { font-size: 1.4rem; margin-bottom: 8px; }
+.pv-scard.is-on .pv-scard__body p { max-height: 10em; opacity: 1; }
+.pv-scard.is-on .pv-more { max-height: 4em; overflow: visible; opacity: 1; padding-top: 12px; }
+@media (max-width: 960px) {
+  .pv-srow { flex-direction: column; }
+  .pv-scard { flex: none; min-height: 0; cursor: default; background: var(--paper); }
+  .pv-scard__media { height: 200px; opacity: 1; }
+  .pv-scard__n { font-size: .82rem; color: #fff; top: 32px; left: 34px; }
+  .pv-scard__ic { display: none; }
+  .pv-scard__body h3 { font-size: 1.3rem; margin-bottom: 8px; }
+  .pv-scard__body p { max-height: none; opacity: 1; }
+  .pv-more { max-height: none; opacity: 1; padding-top: 12px; overflow: visible; }
+}
+
+/* ---------------- why-us, filled cards ---------------- */
+.pv-icards { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(14px, 1.8vw, 20px); }
+@media (max-width: 900px) { .pv-icards { grid-template-columns: repeat(2, 1fr); } }
+/* on phones a rail showing about 1.3 cards, bleeding to the screen edge so the
+   cut-off card advertises that there is more */
+@media (max-width: 768px) {
+  .pv-icards {
+    display: flex; grid-template-columns: none; gap: 14px;
+    overflow-x: auto; scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    scroll-padding-left: clamp(24px, 7vw, 32px);
+    margin-inline: calc(-1 * clamp(18px, 5vw, 44px));
+    padding-left: clamp(24px, 7vw, 32px); padding-right: clamp(18px, 5vw, 44px);
+  }
+  .pv-icards::-webkit-scrollbar { display: none; }
+  .pv-icards > .pv-icard { flex: 0 0 76%; scroll-snap-align: start; }
+}
+.pv-icard {
+  display: flex; flex-direction: column; gap: 10px; min-height: 264px; border: 0;
+  padding: clamp(22px, 2.6vw, 30px); border-radius: 20px;
+  background: var(--accent); color: #000065;
+  transition: transform .3s cubic-bezier(.16, 1, .3, 1), box-shadow .3s cubic-bezier(.16, 1, .3, 1);
+}
+.pv-icard:nth-child(2n) { background: var(--paper); color: var(--ink); }
+.pv-icard h3 {
+  color: inherit; text-transform: uppercase; letter-spacing: -.02em; line-height: 1.03;
+  font-size: clamp(1.35rem, 1.05rem + 1vw, 1.85rem); max-width: 13ch;
+}
+.pv-icard p { color: inherit; opacity: .82; font-size: .95rem; line-height: 1.5; }
+.pv-icard__foot {
+  margin-top: auto; padding-top: 18px; display: flex;
+  align-items: flex-end; justify-content: space-between; gap: 16px;
+}
+.pv-icard__link {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 600; font-size: .9rem; color: inherit;
+  text-decoration: underline; text-underline-offset: 5px;
+}
+.pv-icard__btn {
+  flex: none; width: 54px; height: 54px; border-radius: 15px; background: #000065;
+  display: grid; place-items: center;
+  transition: transform .28s cubic-bezier(.16, 1, .3, 1);
+}
+.pv-icard__btn::after {
+  content: ""; width: 21px; height: 21px; background-color: var(--accent);
+  -webkit-mask: var(--arrow-ne) center/contain no-repeat;
+          mask: var(--arrow-ne) center/contain no-repeat;
+}
+.pv-icard:hover { transform: translateY(-4px); box-shadow: 0 26px 50px -22px rgba(0, 0, 0, .55); }
+.pv-icard:hover .pv-icard__btn { transform: translate(3px, -3px); }
+
+/* ---------------- CTA banner ---------------- */
+.pv-cta {
+  background: var(--band); color: #fff; border-radius: 24px;
+  padding: clamp(34px, 5vw, 64px); text-align: center;
+  display: grid; gap: 18px; justify-items: center;
+}
+.pv-cta h2 { color: #fff; max-width: 20ch; }
+.pv-cta p { color: var(--on-band-dim); max-width: 56ch; }
+
+/* ---------------- testimonials ---------------- */
+.pv-marq {
+  --tgap: 20px; overflow: hidden; padding-block: 6px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+.pv-mtrack { display: flex; width: max-content; gap: var(--tgap); animation: pv-marq 64s linear infinite; }
+.pv-mgroup { display: flex; gap: var(--tgap); }
+.pv-marq:hover .pv-mtrack, .pv-marq:focus-within .pv-mtrack { animation-play-state: paused; }
+/* the second row runs the other way at a different speed so they never sync */
+.pv-marq--rev { margin-top: clamp(14px, 1.6vw, 20px); }
+.pv-marq--rev .pv-mtrack { animation-duration: 76s; animation-direction: reverse; }
+@keyframes pv-marq {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(-50% - var(--tgap) / 2)); }
+}
+.pv-tcard {
+  flex: 0 0 360px; max-width: 360px; display: flex; flex-direction: column; gap: 14px;
+  background: var(--paper); border: 1px solid var(--rule); border-radius: 18px;
+  padding: clamp(22px, 2.2vw, 28px); margin: 0;
+}
+@media (max-width: 600px) { .pv-tcard { flex-basis: 80vw; max-width: 80vw; } }
+.pv-tcard .pv-qm {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 2.4rem; line-height: .6; color: var(--accent); height: 1.1rem;
+}
+.pv-tcard p { font-size: .98rem; line-height: 1.55; color: var(--ink); font-style: normal; }
+.pv-tcard__by { display: flex; align-items: center; gap: 12px; margin-top: auto; padding-top: 8px; border-top: 1px solid var(--rule); }
+.pv-tcard__av {
+  width: 40px; height: 40px; border-radius: 50%; background: #000065; color: var(--accent);
+  display: grid; place-items: center; flex: none;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 700; font-size: .95rem;
+}
+.pv-tcard__by b { font-family: var(--font-space-grotesk), system-ui, sans-serif; display: block; font-size: .98rem; }
+.pv-tcard__by span { font-size: .82rem; color: var(--muted); }
+.pv-note {
+  margin-top: 22px; font-size: .85rem; color: var(--muted);
+  border-left: 2px solid var(--accent); padding-left: 14px; max-width: 80ch;
+}
+
+/* ---------------- FAQ ---------------- */
+.pv-faq { display: grid; grid-template-columns: .85fr 1.15fr; gap: clamp(20px, 3vw, 40px); align-items: start; }
+@media (max-width: 860px) { .pv-faq { grid-template-columns: 1fr; } }
+.pv-faq__aside {
+  background: var(--band); color: #fff; border-radius: 20px;
+  padding: clamp(24px, 3vw, 34px); display: grid; gap: 16px; align-content: start;
+  position: sticky; top: 96px;
+}
+@media (max-width: 860px) { .pv-faq__aside { position: static; } }
+.pv-faq__aside h3 { color: #fff; }
+.pv-faq__aside p { color: var(--on-band-dim); font-size: .95rem; }
+.pv-faq__mark {
+  width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: #000065;
+  display: grid; place-items: center;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 700; font-size: 1.4rem;
+}
+.pv-qa details { border-bottom: 1px solid var(--rule); }
+.pv-qa summary {
+  list-style: none; cursor: pointer; padding: 20px 0;
+  display: grid; grid-template-columns: 2.6rem 1fr auto; gap: 12px; align-items: center;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 600; font-size: 1.08rem;
+}
+.pv-qa summary::-webkit-details-marker { display: none; }
+.pv-qa summary .pv-qn { color: var(--accent-ink); font-size: .92rem; }
+/* driven by a pseudo-element so it actually swaps; the reference hardcoded the
+   glyph per item and never changed it */
+.pv-qa summary .pv-qi { position: relative; width: 16px; height: 16px; }
+.pv-qa summary .pv-qi::before,
+.pv-qa summary .pv-qi::after {
+  content: ""; position: absolute; inset: 0; margin: auto;
+  background: var(--accent-ink); transition: transform .25s ease, opacity .25s ease;
+}
+.pv-qa summary .pv-qi::before { width: 16px; height: 2px; }
+.pv-qa summary .pv-qi::after { width: 2px; height: 16px; }
+.pv-qa details[open] summary .pv-qi::after { transform: rotate(90deg); opacity: 0; }
+.pv-qa p { padding: 0 0 22px 2.6rem; color: var(--muted); max-width: 66ch; }
+@media (max-width: 520px) { .pv-qa p { padding-left: 0; } }
+
+/* ---------------- contact ---------------- */
+.pv-reach { display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(24px, 4vw, 56px); align-items: start; }
+@media (max-width: 860px) { .pv-reach { grid-template-columns: 1fr; } .pv-reach__info { position: static; } }
+.pv-reach__info { position: sticky; top: 100px; }
+.pv-cline { display: flex; justify-content: space-between; gap: 14px; padding: 15px 0; border-bottom: 1px solid var(--on-band-rule); }
+.pv-cline small { font-family: var(--font-space-grotesk), system-ui, sans-serif; color: var(--on-band-dim); font-size: .82rem; }
+.pv-cline b { font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 600; color: #fff; }
+.pv-cwork { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 10px; }
+.pv-cwork li { position: relative; padding-left: 22px; font-size: .95rem; color: var(--on-band-dim); }
+.pv-cwork li::before {
+  content: ""; position: absolute; left: 0; top: .42em; width: 14px; height: 14px;
+  background-color: var(--accent);
+  -webkit-mask: var(--check) center/contain no-repeat;
+          mask: var(--check) center/contain no-repeat;
+}
+/* a light card inside the dark band has to reset the inherited colours, or its
+   heading and labels render white on white */
+.pv-form { background: var(--paper); border: 1px solid var(--rule); border-radius: 20px; padding: clamp(24px, 3vw, 34px); display: flex; flex-direction: column; }
+.pv-sec--band .pv-form,
+.pv-sec--band .pv-form h3,
+.pv-sec--band .pv-form label { color: var(--ink); }
+.pv-sec--band .pv-form small { color: var(--muted); }
+.pv-f { margin-bottom: 16px; }
+.pv-f label { display: block; color: var(--ink); font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 500; font-size: .85rem; margin-bottom: 7px; }
+.pv-f input, .pv-f textarea {
+  width: 100%; padding: 13px 14px; border: 1px solid var(--rule); border-radius: 10px;
+  background: var(--paper); color: var(--ink); font: inherit; font-size: .96rem;
+}
+.pv-f input:focus, .pv-f textarea:focus { outline: none; border-color: var(--accent); }
+.pv-f textarea { min-height: 110px; resize: vertical; }
+.pv-form .pv-btn { width: auto; align-self: flex-start; }
+@media (max-width: 600px) { .pv-form .pv-btn { width: 100%; align-self: stretch; } }
+
+/* ---------------- motion ----------------
+   Opt-in at runtime: the .pv-motion flag is added by script only when it runs
+   and reduced-motion is off, so nothing is ever hidden by CSS alone. */
+.pv-reveal { will-change: opacity, transform; }
+.pv-motion .pv-reveal {
+  opacity: 0; transform: translateY(26px);
+  transition: opacity .7s cubic-bezier(.16, 1, .3, 1), transform .7s cubic-bezier(.16, 1, .3, 1);
+}
+.pv-motion .pv-reveal.is-in { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-motion .pv-reveal { opacity: 1; transform: none; transition: none; }
+  .pv-mtrack { animation: none; }
+  .pv-marq { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
+  .pv-btn::after, .pv-step::after, .pv-scard, .pv-icard, .pv-job,
+  .pv-shot img, .pv-badge, .pv-icard__btn { transition: none; }
+}
