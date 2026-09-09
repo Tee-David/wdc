@@ -381,22 +381,6 @@
 .pv-sec--band .sv-tab:hover { color: #fff; }
 .pv-sec--band .sv-tab.is-on { color: #000065; }
 
-/* ---------------- line icons that draw themselves ---------------- */
-/* Resting state is a finished icon. The draw is added only when an ancestor
-   has been revealed and motion is allowed, so an icon is never invisible
-   waiting for an animation that may not come. */
-.sv-ico path { stroke-dasharray: none; }
-@media (prefers-reduced-motion: no-preference) {
-  .pv-reveal .sv-ico path {
-    stroke-dasharray: var(--len, 120);
-    stroke-dashoffset: var(--len, 120);
-  }
-  .pv-reveal.is-in .sv-ico path {
-    animation: sv-draw .85s cubic-bezier(.16, 1, .3, 1) forwards;
-  }
-}
-@keyframes sv-draw { to { stroke-dashoffset: 0; } }
-
 /* ---------------- brand wall placeholder compositions ---------------- */
 /* Abstract panels in the brand palette. Deliberately not mock logos: an
    invented client mark is a claim, a composition is furniture. */
