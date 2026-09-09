@@ -97,6 +97,7 @@
   margin-bottom: clamp(2rem, 4vw, 3rem);
 }
 @media (max-width: 900px) { .sv-svc__head { grid-template-columns: 1fr; } }
+.sv-svc__intro { min-width: 0; }
 .sv-svc__intro h2 { margin: 10px 0 14px; }
 .sv-svc__body { color: var(--muted); font-size: .97rem; margin-top: 18px; max-width: 62ch; }
 .sv-svc__cta { margin-top: 24px; }
@@ -105,6 +106,12 @@
 .sv-side {
   background: var(--paper-2); border: 1px solid var(--rule);
   border-radius: 20px; padding: clamp(20px, 2.4vw, 28px);
+  /* min-width:0 is load-bearing. A grid item defaults to min-width:auto, which
+     is min-content — and the marquee's track is `width: max-content`. Without
+     this the track widens its own column, LogoLoop measures the wider
+     container, adds more copies to fill it, and the track grows again: a
+     runaway that took the page to 500,000px wide and 200 copies deep. */
+  min-width: 0;
 }
 .pv-sec--alt .sv-side { background: var(--paper); }
 .sv-side h3 { font-size: 1.05rem; margin-bottom: 14px; }
@@ -124,15 +131,27 @@
   font-size: .76rem; letter-spacing: .04em; text-transform: uppercase;
   color: var(--muted);
 }
-.sv-tools__row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.sv-tool {
-  display: grid; place-items: center; width: 34px; height: 34px;
-  border-radius: 9px; background: var(--paper); border: 1px solid var(--rule);
-  color: var(--muted); transition: color .18s ease, border-color .18s ease;
+/* the marquee bleeds to the rail's edges so the fade mask has room to work;
+   the negative inline margin cancels the card's padding rather than adding a
+   second, narrower box inside it */
+.sv-tools__loop {
+  /* and the loop clips its own track, so nothing downstream can be pushed
+     even if a future container forgets the min-width above */
+  overflow: hidden;
+  margin-top: 12px;
+  margin-inline: calc(clamp(20px, 2.4vw, 28px) * -1);
 }
-.pv-sec--alt .sv-tool { background: var(--paper-2); }
-.sv-tool:hover { color: var(--accent); border-color: var(--accent); }
-.sv-tool__i { width: 18px; height: 18px; }
+.sv-tool {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: var(--muted); white-space: nowrap;
+  transition: color .25s ease;
+}
+.sv-tool:hover { color: var(--accent); }
+.sv-tool__i { width: 1em; height: 1em; flex: none; opacity: .85; }
+.sv-tool__n {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .78rem; font-weight: 500; line-height: 1;
+}
 
 /* the six-card stage grid — the reference's signature block */
 .sv-steps {
