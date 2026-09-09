@@ -11,4 +11,4 @@ export const SITE_URL = (() => {
 export const SITE_NAME = "We Dig Creativity";
 export const COMPANY_NAME = "We Dig Creativity Solutions (WDC Solutions)";
 export const MOTTO = "Brilliant simplicity of thought";
-export const CONTACT_EMAIL = "wedigcreativity@gmail.com";
+export const CONTACT_EMAIL = "info@wedigcreativity.com.ng";
