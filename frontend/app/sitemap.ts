@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site";
 
 /**
- * Sitemap. Single surface today; section routes join this list as the
- * site grows (services, work, blog, about, contact).
+ * Sitemap. Section routes join this list as the site grows
+ * (work, blog, about, contact).
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
@@ -11,7 +11,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     path: string;
     priority: number;
     changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"];
-  }> = [{ path: "/", priority: 1.0, changeFrequency: "weekly" }];
+  }> = [
+    { path: "/", priority: 1.0, changeFrequency: "weekly" },
+    { path: "/services", priority: 0.9, changeFrequency: "monthly" },
+  ];
 
   return routes.map((r) => ({
     url: `${SITE_URL}${r.path === "/" ? "" : r.path}`,

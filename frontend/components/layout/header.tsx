@@ -13,7 +13,7 @@ import { CONTACT_EMAIL } from "@/lib/site";
 const NAV = [
   { label: "Home", link: "/" },
   { label: "About Us", link: "#about" },
-  { label: "Services", link: "#services" },
+  { label: "Services", link: "/services" },
   { label: "Our Work", link: "#work" },
   { label: "Blog", link: "#blog" },
 ];
