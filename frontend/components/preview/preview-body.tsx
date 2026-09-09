@@ -93,6 +93,8 @@ function Icon({ i }: { i: number }) {
 export default function PreviewBody() {
   const [active, setActive] = useState(0);
   const track = useRef<HTMLDivElement | null>(null);
+  const pinWrap = useRef<HTMLDivElement | null>(null);
+  const pinTrack = useRef<HTMLDivElement | null>(null);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
 
@@ -116,6 +118,75 @@ export default function PreviewBody() {
     const safety = window.setTimeout(
       () => targets.forEach((t) => t.classList.add("is-in")), 1400);
     return () => { io.disconnect(); window.clearTimeout(safety); };
+  }, []);
+
+  /* Phones: the services run pins and scrolls sideways as you scroll down --
+     the same move as the getyoursite landing page. The wrapper is given the
+     stage's height plus the track's horizontal overflow, so the sticky stage
+     has exactly that much vertical scroll to translate the track across. If
+     the track already fits, or motion is reduced, we leave the plain CSS snap
+     track alone rather than pinning a section with nothing to reveal. */
+  useEffect(() => {
+    const wrap = pinWrap.current;
+    const trk = pinTrack.current;
+    const stage = wrap?.querySelector<HTMLElement>(".pv-pinstage");
+    if (!wrap || !trk || !stage) return;
+
+    const mq = window.matchMedia("(max-width: 768px)");
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let on = false;
+    let extra = 0;
+    let frame = 0;
+    let stick = 0;
+
+    const release = () => {
+      on = false;
+      wrap.classList.remove("is-pinned");
+      wrap.style.removeProperty("--pv-pin-h");
+      trk.style.transform = "";
+    };
+    const update = () => {
+      if (!on) return;
+      // The stage is stuck while the wrapper's top runs from `stick` down to
+      // `stick - span`, so progress is measured against that window. Measuring
+      // from a raw rect.top instead would finish the run `stick` pixels late,
+      // sliding the cards up under the fixed header before releasing.
+      const span = wrap.offsetHeight - stage.clientHeight;
+      const p = span > 0
+        ? Math.min(1, Math.max(0, (stick - wrap.getBoundingClientRect().top) / span))
+        : 0;
+      trk.style.transform = `translate3d(${-p * extra}px,0,0)`;
+    };
+    const measure = () => {
+      release();
+      if (!mq.matches || reduce) return;
+      wrap.classList.add("is-pinned");
+      stick = parseFloat(getComputedStyle(stage).top) || 0;
+      extra = trk.scrollWidth - stage.clientWidth;
+      if (extra <= 0) { release(); return; }
+      wrap.style.setProperty("--pv-pin-h", `${stage.clientHeight + extra}px`);
+      on = true;
+      update();
+    };
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(update);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", measure);
+    mq.addEventListener("change", measure);
+    // let the section's images and the reveal transition settle first
+    const t = window.setTimeout(measure, 350);
+
+    return () => {
+      window.clearTimeout(t);
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", measure);
+      mq.removeEventListener("change", measure);
+      release();
+    };
   }, []);
 
   const sync = useCallback(() => {
@@ -206,7 +277,9 @@ export default function PreviewBody() {
               pulls in the same direction.
             </p>
           </div>
-          <div className="pv-srows pv-reveal">
+          <div className="pv-pinwrap pv-reveal" ref={pinWrap}>
+            <div className="pv-pinstage">
+              <div className="pv-srows pv-pintrack" ref={pinTrack}>
             {[0, 1].map((row) => (
               <div className="pv-srow" key={row}>
                 {SERVICES.slice(row * 3, row * 3 + 3).map((s, i) => {
@@ -233,8 +306,10 @@ export default function PreviewBody() {
                     </a>
                   );
                 })}
+                </div>
+              ))}
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
