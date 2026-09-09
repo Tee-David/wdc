@@ -342,3 +342,201 @@
 .fw__meta span:nth-child(1) { width: 28%; }
 .fw__meta span:nth-child(2) { width: 20%; }
 .fw__meta span:nth-child(3) { width: 14%; }
+
+/* ============================================================================
+   Controls, micro-interactions and the new stage furniture.
+
+   Everything here resolves through the .pv tokens, so light and dark are one
+   definition rather than two. The only literal colours are #000065 on orange —
+   white on #FF6500 is 2.9:1 and fails, so orange fills always take navy text.
+   ========================================================================== */
+
+/* ---------------- shared control row ---------------- */
+.sv-stage__controls {
+  display: flex; flex-wrap: wrap; align-items: baseline;
+  gap: 10px 16px; margin-bottom: 14px;
+}
+.sv-stage__note {
+  color: var(--muted); font-size: .88rem; margin: 0;
+  flex: 1 1 22ch; min-width: 0;
+}
+.pv-sec--band .sv-stage__note { color: var(--on-band-dim); }
+
+.sv-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.sv-tab {
+  padding: 7px 14px; border-radius: 999px; cursor: pointer;
+  background: transparent; border: 1px solid var(--rule); color: var(--muted);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 600; font-size: .82rem; white-space: nowrap;
+  transition: color .18s ease, border-color .18s ease,
+              background-color .18s ease, transform .14s ease;
+}
+.sv-tabs--sm .sv-tab { padding: 5px 11px; font-size: .76rem; }
+.sv-tab:hover { color: var(--ink); border-color: var(--accent); }
+.sv-tab:active { transform: translateY(1px); }
+.sv-tab.is-on {
+  background: var(--accent); border-color: var(--accent); color: #000065;
+}
+.pv-sec--band .sv-tab { border-color: var(--on-band-rule); color: var(--on-band-dim); }
+.pv-sec--band .sv-tab:hover { color: #fff; }
+.pv-sec--band .sv-tab.is-on { color: #000065; }
+
+/* ---------------- line icons that draw themselves ---------------- */
+.sv-ico path {
+  stroke-dasharray: var(--len, 120); stroke-dashoffset: var(--len, 120);
+}
+.sv-ico.is-drawn path { stroke-dashoffset: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .sv-ico.is-drawn path {
+    animation: sv-draw .9s cubic-bezier(.16, 1, .3, 1) both;
+  }
+}
+@keyframes sv-draw { from { stroke-dashoffset: var(--len, 120); } to { stroke-dashoffset: 0; } }
+
+/* ---------------- brand wall placeholder compositions ---------------- */
+/* Abstract panels in the brand palette. Deliberately not mock logos: an
+   invented client mark is a claim, a composition is furniture. */
+/* NB no `position` here. .bw lands after .dome__tile in this file and both are
+   one class, so declaring position:relative would beat the tile's absolute and
+   drop every tile out of the 3D cage into normal flow. The dome tile is its own
+   containing block already; only the flat grid fallback needs one. */
+.bw {
+  overflow: hidden; margin: 0;
+  background: var(--band); border: 1px solid var(--on-band-rule);
+  display: grid; align-content: end; padding: 10px;
+}
+.dome-grid .bw { position: relative; }
+.bw::before, .bw::after { content: ""; position: absolute; }
+.bw--t0::before { inset: 14% 18% auto 12%; height: 34%; background: var(--accent); border-radius: 4px; }
+.bw--t0::after  { inset: auto 42% 26% 12%; height: 8%; background: rgba(255,255,255,.5); border-radius: 3px; }
+.bw--t1::before { width: 46%; aspect-ratio: 1; top: 16%; left: 27%; background: var(--accent); border-radius: 50%; }
+.bw--t1::after  { inset: auto 24% 22% 24%; height: 7%; background: rgba(255,255,255,.42); border-radius: 3px; }
+.bw--t2::before { inset: 18% 12% 40% 12%; background: rgba(255,255,255,.14); border-radius: 5px; }
+.bw--t2::after  { inset: auto 12% 28% 12%; height: 10%; background: var(--accent); border-radius: 3px; }
+.bw--t3::before {
+  inset: 15% 20% 34% 20%; background: var(--accent); border-radius: 50% 50% 6px 6px;
+}
+.bw--t3::after  { inset: auto 30% 24% 30%; height: 6%; background: rgba(255,255,255,.5); border-radius: 3px; }
+.bw--t4::before {
+  inset: 16% 14% 38% 14%;
+  background: repeating-linear-gradient(135deg, var(--accent) 0 8px, transparent 8px 17px);
+  border-radius: 5px;
+}
+.bw--t4::after  { inset: auto 14% 26% 14%; height: 8%; background: rgba(255,255,255,.42); border-radius: 3px; }
+.bw__cap {
+  position: relative; z-index: 1;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .62rem; font-weight: 600; letter-spacing: .01em;
+  color: #fff; opacity: .82;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* tile shape follows the kind of artwork; a poster in a landscape crop stops
+   reading as a poster */
+.dome--portrait .dome__tile  { width: 150px; height: 200px; margin: -100px 0 0 -75px; }
+.dome--square .dome__tile    { width: 172px; height: 172px; margin: -86px 0 0 -86px; }
+.dome--landscape .dome__tile { width: 210px; height: 130px; margin: -65px 0 0 -105px; }
+.dome-grid--portrait  { grid-template-columns: repeat(3, 1fr); }
+.dome-grid--square    { grid-template-columns: repeat(3, 1fr); }
+.dome-grid--landscape { grid-template-columns: repeat(2, 1fr); }
+.dome-grid .bw { border-radius: 10px; aspect-ratio: auto; height: 100%; }
+@media (max-width: 560px) { .dome-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+
+/* ---------------- seo metric strip ---------------- */
+.seo-metrics {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 10px; flex: none; margin-bottom: 14px;
+}
+@media (max-width: 640px) { .seo-metrics { grid-template-columns: repeat(2, 1fr); } }
+.seo-m {
+  display: grid; gap: 2px; padding: 10px 12px;
+  border-radius: 12px; border: 1px solid var(--rule); background: var(--paper);
+}
+.pv-sec--alt .seo-m { background: var(--paper-2); }
+.seo-m__n {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: 1.3rem; color: var(--accent);
+  font-variant-numeric: tabular-nums; line-height: 1.1;
+}
+.seo-m__l { font-size: .78rem; color: var(--ink); font-weight: 500; }
+.seo-m__h { font-size: .68rem; color: var(--muted); }
+
+/* ---------------- web stack chips ---------------- */
+.vp__chips { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+.vp__chip {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .68rem; font-weight: 600; padding: 3px 9px; border-radius: 999px;
+  background: var(--paper-2); border: 1px solid var(--rule); color: var(--muted);
+}
+.pv-sec--alt .vp__chip { background: var(--paper); }
+.vp-chrome__url {
+  margin-left: 8px; font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .64rem; color: var(--muted); letter-spacing: .02em;
+}
+.vp-still__row { display: flex; align-items: flex-end; justify-content: center; gap: 12px; }
+.vp-still { flex-direction: column; gap: 14px; }
+
+/* ---------------- social: plan beside the wall ---------------- */
+.fw-split {
+  position: absolute; inset: 0; padding: clamp(12px, 2vw, 20px);
+  display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr);
+  gap: clamp(12px, 2vw, 20px); overflow: hidden;
+}
+.fw-split--compact, .fw-split--still { grid-template-columns: 1fr; }
+.fw-split .fw { position: relative; inset: auto; padding: 0; }
+.fw-split--compact .fw { grid-template-columns: 1fr; }
+.fw-plan {
+  display: grid; align-content: start; gap: 12px; min-width: 0;
+  padding: 14px; border-radius: 14px;
+  border: 1px solid var(--rule); background: var(--paper);
+}
+.pv-sec--alt .fw-plan { background: var(--paper-2); }
+.fw-plan__head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.fw-plan__t {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: .9rem; color: var(--ink);
+}
+.fw-plan__sub { font-size: .72rem; color: var(--muted); }
+/* capped, or seven columns across a wide panel give tiles the size of buttons */
+.fw-plan__grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;
+  max-width: 268px;
+}
+.fw-plan__c { aspect-ratio: 1; border-radius: 5px; background: var(--rule); }
+.fw-plan__c.is-organic { background: var(--accent); }
+/* --band is #0a0a3a in dark, all but invisible on the dark panel, so paid takes
+   a tint of --ink instead: it separates from both themes' backgrounds */
+.fw-plan__c.is-paid { background: color-mix(in srgb, var(--ink) 58%, transparent); }
+.fw-plan__c.is-story { background: color-mix(in srgb, var(--accent) 45%, transparent); }
+.fw-plan__key { display: flex; flex-wrap: wrap; gap: 10px; }
+.fw-plan__ki {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: .68rem; color: var(--muted); text-transform: capitalize;
+}
+.fw-plan__ki i { width: 9px; height: 9px; border-radius: 3px; background: var(--rule); }
+.fw-plan__ki i.is-organic { background: var(--accent); }
+.fw-plan__ki i.is-paid { background: color-mix(in srgb, var(--ink) 58%, transparent); }
+.fw-plan__ki i.is-story { background: color-mix(in srgb, var(--accent) 45%, transparent); }
+.fw-chan { display: flex; flex-wrap: wrap; gap: 5px; padding-top: 10px; border-top: 1px solid var(--rule); }
+.fw-chan__c {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .66rem; font-weight: 600; padding: 3px 8px; border-radius: 999px;
+  background: var(--paper-2); border: 1px solid var(--rule); color: var(--muted);
+}
+.pv-sec--alt .fw-chan__c { background: var(--paper); }
+@media (max-width: 560px) { .fw-plan__key, .fw-chan { display: none; } }
+
+/* engagement: what comes back, under what goes out */
+.fw-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  margin-top: auto; padding-top: 12px; border-top: 1px solid var(--rule);
+}
+.fw-stat { display: grid; gap: 1px; }
+.fw-stat__n {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: 1.02rem; color: var(--accent);
+  font-variant-numeric: tabular-nums; line-height: 1.15;
+}
+.fw-stat__l { font-size: .68rem; color: var(--muted); }
+.fw-plan { grid-template-rows: auto auto auto auto 1fr; }
+@media (max-width: 560px) { .fw-stats { grid-template-columns: repeat(3, 1fr); } }

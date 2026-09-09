@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Stage, useStageMotion } from "./stage-shell";
+import { Stage, TabRow, useStageMotion } from "./stage-shell";
+import { APP_KINDS } from "@/lib/showcase";
 
 /**
  * 04 · Cross-Platform Apps — "One codebase, two stores".
@@ -12,21 +13,21 @@ import { Stage, useStageMotion } from "./stage-shell";
  * duplicated and translated by exactly half its height, so the seam never
  * shows and no measurement is needed.
  *
- * PLACEHOLDER: the screens are abstract UI blocks, not real app captures.
- * Replace SCREENS with real product shots when they exist; nothing else moves.
+ * PLACEHOLDER: the screens are abstract UI blocks, not real product captures.
+ * Real shots drop in against APP_KINDS[].screens; nothing else moves.
  */
-const SCREENS = [
-  { t: "Dashboard", rows: 4, accent: true },
-  { t: "Search", rows: 3, accent: false },
-  { t: "Profile", rows: 5, accent: false },
-  { t: "Checkout", rows: 3, accent: true },
-];
-
+/* Screen names come from the product kind, because "we build apps" is not a
+   proposition — "we build the ERP your operations run on" is. */
 /* One half of the track has to be taller than the screen or the -50% loop
    scrolls past the end and shows blank space at the bottom. */
-const REEL = [...SCREENS, ...SCREENS, ...SCREENS];
+function reel(screens: readonly string[]) {
+  const cards = screens.map((t, i) => ({ t, rows: 3 + (i % 3), accent: i % 2 === 0 }));
+  return [...cards, ...cards, ...cards];
+}
 
-function Phone({ os, paused }: { os: "iOS" | "Android"; paused: boolean }) {
+function Phone({ os, paused, screens }:
+  { os: "iOS" | "Android"; paused: boolean; screens: readonly string[] }) {
+  const REEL = reel(screens);
   return (
     <div className={`ph ph--${os.toLowerCase()}`}>
       <div className="ph__os">{os}</div>
@@ -53,13 +54,22 @@ function Phone({ os, paused }: { os: "iOS" | "Android"; paused: boolean }) {
 export default function TwoStores() {
   const mode = useStageMotion();
   const [os, setOs] = useState<"iOS" | "Android">("iOS");
+  const [kind, setKind] = useState<string>(APP_KINDS[0].id);
   const paused = mode === "still";
+  const active = APP_KINDS.find((k) => k.id === kind) ?? APP_KINDS[0];
+
+  const controls = (
+    <>
+      <TabRow items={APP_KINDS} value={kind} onChange={setKind} label="Product type" />
+      <p className="sv-stage__note">{active.note}</p>
+    </>
+  );
 
   /* Compact: two phones side by side on a 390px screen are thumbnails, so the
      narrow render shows one and lets you switch platform instead. */
   if (mode === "compact") {
     return (
-      <Stage caption="One codebase, both stores.">
+      <Stage caption="One codebase, both stores." controls={controls}>
         <div className="ts ts--compact">
           <div className="ts__toggle" role="group" aria-label="Platform">
             {(["iOS", "Android"] as const).map((o) => (
@@ -74,14 +84,14 @@ export default function TwoStores() {
               </button>
             ))}
           </div>
-          <Phone os={os} paused={paused} />
+          <Phone os={os} paused={paused} screens={active.screens} />
         </div>
       </Stage>
     );
   }
 
   return (
-    <Stage caption="One source, two platforms, the same screens.">
+    <Stage caption="Illustrative screens. One source, two platforms." controls={controls}>
       <div className="ts">
         <div className="ts__src">
           <span className="ts__srclabel">One codebase</span>
@@ -95,8 +105,8 @@ export default function TwoStores() {
           </div>
         </div>
         <div className="ts__devices">
-          <Phone os="iOS" paused={paused} />
-          <Phone os="Android" paused={paused} />
+          <Phone os="iOS" paused={paused} screens={active.screens} />
+          <Phone os="Android" paused={paused} screens={active.screens} />
         </div>
       </div>
     </Stage>
