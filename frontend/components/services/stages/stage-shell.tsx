@@ -79,14 +79,19 @@ export function useStageMotion(compactUnder = 768): StageMode {
 export function Stage({
   caption,
   children,
+  controls,
   tall = false,
 }: {
   caption: string;
   children: ReactNode;
+  /** Filters or switches for this stage. Rendered above the frame in the same
+      place every time, so the eye learns where the controls live once. */
+  controls?: ReactNode;
   tall?: boolean;
 }) {
   return (
     <figure className={`sv-stage${tall ? " sv-stage--tall" : ""}`}>
+      {controls ? <div className="sv-stage__controls">{controls}</div> : null}
       <div className="sv-stage__frame">{children}</div>
       <figcaption className="sv-stage__cap">{caption}</figcaption>
     </figure>
@@ -103,6 +108,108 @@ export function LazyStage({ children }: { children: ReactNode }) {
   return (
     <div ref={ref} className="sv-lazy">
       {near ? children : <div className="sv-stage sv-stage--skeleton" aria-hidden="true" />}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------------------
+   Micro-interaction kit.
+
+   Shared so the page has one interaction vocabulary rather than six. Each piece
+   is inert until it is asked to run, and every one of them has a defined
+   resting state, because "the animation never fired" has to still look right.
+   --------------------------------------------------------------------------- */
+
+/**
+ * Counts to `to` once `active`. Eased, not linear — a linear count reads
+ * mechanical, and the deceleration is what makes it feel like it settled.
+ * Returns `to` immediately when inactive, so the still state is the end state.
+ */
+export function useCountUp(to: number, active: boolean, ms = 1100) {
+  const [n, setN] = useState(0);
+
+  useEffect(() => {
+    // the inactive value is DERIVED on the way out, not written here: setting
+    // state synchronously in an effect cascades a second render on every mount
+    if (!active) return;
+    let raf = 0;
+    let start = 0;
+    const step = (now: number) => {
+      if (!start) start = now;
+      const t = Math.min(1, (now - start) / ms);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setN(to * eased);
+      if (t < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [to, active, ms]);
+
+  // inactive means still: the end state, immediately
+  return active ? n : to;
+}
+
+/**
+ * A line icon that draws itself in. The path is dashed to its own length and
+ * the offset animates to zero, which is why every glyph here has to be a
+ * single continuous stroke — a filled shape has nothing to draw.
+ */
+export function AnimIcon({
+  d,
+  className = "",
+  delay = 0,
+  drawn = true,
+}: {
+  d: string;
+  className?: string;
+  delay?: number;
+  drawn?: boolean;
+}) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"
+         strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+         className={`sv-ico${drawn ? " is-drawn" : ""} ${className}`}>
+      <path d={d} style={{ animationDelay: `${delay}ms` }} />
+    </svg>
+  );
+}
+
+/**
+ * The one control shared by every stage that filters or switches. A single
+ * component keeps the interaction identical across six sections — same hit
+ * area, same active treatment, same keyboard behaviour — which is most of what
+ * stops "one bespoke thing per service" reading as six different websites.
+ */
+export function TabRow<T extends { id: string; label: string }>({
+  items,
+  value,
+  onChange,
+  label,
+  size = "md",
+}: {
+  items: readonly T[];
+  value: string;
+  onChange: (id: string) => void;
+  label: string;
+  size?: "sm" | "md";
+}) {
+  return (
+    <div className={`sv-tabs sv-tabs--${size}`} role="tablist" aria-label={label}>
+      {items.map((it) => {
+        const on = it.id === value;
+        return (
+          <button
+            key={it.id}
+            type="button"
+            role="tab"
+            aria-selected={on}
+            className={`sv-tab${on ? " is-on" : ""}`}
+            onClick={() => onChange(it.id)}
+          >
+            {it.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
