@@ -1,0 +1,154 @@
+/* ==========================================================================
+   /contact
+
+   Inside `.pv`, so it inherits the site's tokens and type. The COLOUR RULE at
+   the top of preview.css applies: text on --accent and --band is literal #fff
+   in both themes, and any rule colouring text on a brand surface has to reach
+   (0,2,0) to beat `.pv a { color: inherit }`.
+   ========================================================================== */
+
+.ct-cols { display: grid; gap: clamp(28px, 4vw, 56px); align-items: start; }
+@media (min-width: 980px) {
+  .ct-cols { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); }
+}
+
+/* ---------------------------------------------------------------- the ask */
+
+/* The little labelled pill above the heading, as in the reference. */
+.ct-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px; border-radius: 999px;
+  border: 1px solid var(--rule); background: var(--paper-2);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .82rem; font-weight: 600; color: var(--ink);
+}
+.ct-pill svg { width: 15px; height: 15px; color: var(--accent-ink); }
+
+.pv .ct-h { font-size: clamp(2.2rem, 1.4rem + 3.2vw, 3.9rem); margin-top: 18px; max-width: 14ch; }
+.ct-lede { margin-top: 16px; max-width: 42ch; }
+
+/* One row per channel. Rendered from data, so a channel with no value simply
+   does not appear rather than showing a blank line — see lib/contact.ts. */
+.ct-lines { display: grid; gap: 18px; margin-top: clamp(28px, 4vw, 40px); }
+.ct-line { display: flex; align-items: flex-start; gap: 14px; }
+.ct-line__i {
+  flex: none; width: 42px; aspect-ratio: 1; border-radius: 12px;
+  display: grid; place-items: center;
+  background: var(--paper-2); border: 1px solid var(--rule);
+  color: var(--accent-ink);
+}
+.ct-line__i svg { width: 19px; height: 19px; }
+.ct-line__t { display: grid; gap: 2px; min-width: 0; }
+.pv .ct-line__k { font-size: .82rem; color: var(--muted); }
+.pv .ct-line__v {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: 1.02rem; color: var(--ink);
+  overflow-wrap: anywhere;
+}
+/* Underlined, not only recoloured: a link told apart from the text around it
+   by colour alone is invisible to anyone who cannot separate that colour. */
+.pv .ct-line__v a { color: var(--ink); text-decoration: underline; text-underline-offset: .18em; }
+.pv .ct-line__v a:hover { color: var(--accent-ink); }
+
+/* ---------------------------------------------------------------- the form */
+
+.ct-card {
+  background: var(--paper-2); border: 1px solid var(--rule);
+  border-radius: clamp(18px, 2vw, 26px);
+  padding: clamp(20px, 3vw, 36px);
+}
+.pv-sec--alt .ct-card { background: var(--paper); }
+
+.ct-form { display: grid; gap: 16px; }
+.ct-row { display: grid; gap: 16px; }
+@media (min-width: 560px) { .ct-row--2 { grid-template-columns: 1fr 1fr; } }
+
+.ct-f { display: grid; gap: 7px; min-width: 0; }
+.pv .ct-f label {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 500; font-size: .85rem; color: var(--ink);
+}
+.pv .ct-f label i { font-style: normal; color: var(--muted); font-weight: 400; }
+/* The required star is decorative — the input carries `required`, which is
+   what a screen reader actually announces. */
+.ct-f label b { color: var(--accent-ink); font-weight: 700; }
+
+.ct-f input, .ct-f select, .ct-f textarea {
+  width: 100%; min-width: 0;
+  padding: 11px 14px; border-radius: 12px;
+  border: 1px solid var(--rule); background: var(--paper);
+  color: var(--ink); font: inherit; font-size: .95rem;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.pv-sec--alt .ct-f input, .pv-sec--alt .ct-f select, .pv-sec--alt .ct-f textarea {
+  background: var(--paper-2);
+}
+.ct-f input::placeholder, .ct-f textarea::placeholder { color: var(--muted); opacity: .85; }
+.ct-f input:focus, .ct-f select:focus, .ct-f textarea:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.ct-f textarea { min-height: 130px; resize: vertical; }
+/* Flagged only AFTER a submit attempt, never while someone is still typing —
+   `:invalid` alone paints an empty required field red before it has been
+   touched, which reads as an error the visitor has not made yet. */
+.ct-form.is-tried .ct-f input:invalid,
+.ct-form.is-tried .ct-f textarea:invalid { border-color: #d64545; }
+
+.ct-note { color: var(--muted); font-size: .84rem; line-height: 1.5; }
+.ct-form .pv-btn { justify-self: start; }
+@media (max-width: 560px) { .ct-form .pv-btn { justify-self: stretch; text-align: center; } }
+
+/* ------------------------------------------------------------ client strip */
+
+.ct-strip { display: grid; gap: 18px; justify-items: center; text-align: center; }
+.pv .ct-strip__k {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+}
+.ct-strip__row {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: clamp(14px, 3vw, 40px);
+}
+.pv .ct-strip__row a {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: clamp(.95rem, .9rem + .3vw, 1.15rem);
+  color: var(--muted); text-decoration: none;
+  transition: color .25s ease;
+}
+.pv .ct-strip__row a:hover { color: var(--accent-ink); }
+
+/* ------------------------------------------------------------------- faq */
+
+.ct-faq { display: grid; gap: 12px; max-width: 68ch; margin-inline: auto; }
+.ct-faq details {
+  border: 1px solid var(--rule); border-radius: 16px;
+  background: var(--paper); overflow: hidden;
+}
+.pv-sec--alt .ct-faq details { background: var(--paper-2); }
+.ct-faq details[open] { border-color: var(--accent); }
+.ct-faq summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 16px clamp(16px, 2vw, 22px); cursor: pointer;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 600; font-size: 1rem; color: var(--ink);
+  list-style: none;
+}
+.ct-faq summary::-webkit-details-marker { display: none; }
+.ct-faq summary:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+/* The marker is drawn from the current text colour so it flips with the theme
+   without a second rule. */
+.ct-faq summary i {
+  flex: none; width: 20px; height: 20px; position: relative;
+}
+.ct-faq summary i::before, .ct-faq summary i::after {
+  content: ""; position: absolute; inset: 0; margin: auto;
+  background: var(--accent); border-radius: 2px;
+}
+.ct-faq summary i::before { width: 14px; height: 2px; }
+.ct-faq summary i::after { width: 2px; height: 14px; transition: transform .25s ease; }
+.ct-faq details[open] summary i::after { transform: scaleY(0); }
+.ct-faq p {
+  margin: 0; padding: 0 clamp(16px, 2vw, 22px) 18px;
+  color: var(--muted); line-height: 1.6;
+}
