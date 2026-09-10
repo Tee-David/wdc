@@ -23,6 +23,11 @@ export type Project = {
       capture exists, and the card renders a branded panel instead of a broken
       image. Drop the file in and the panel is replaced with no code change. */
   cover?: string;
+  /** A FULL-PAGE capture, used when the site refuses to be framed. The cover is
+      one screenful; this one scrolls, so a blocked preview is still the whole
+      page rather than its header. Optional — the cover is the fallback's
+      fallback. */
+  long?: string;
   services: ServiceSlug[];
 };
 
@@ -37,6 +42,7 @@ export const PROJECTS: Project[] = [
     sector: "Time tracking for teams",
     url: "https://traxstaff.com/",
     cover: "/work/traxstaff.jpg",
+    long: "/work/long/trax-desktop.jpg",
     services: ["web", "apps", "software"],
   },
   {
