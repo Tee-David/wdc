@@ -146,7 +146,12 @@
   /* In a column this narrow the intro and the "what you get" rail stack rather
      than sitting side by side, and the head loses the top margin it needed
      when it was a full-width band under the stage. */
-  .sv-svc__head--after { margin-top: 0; }
+  /* (0,2,0), and it has to be: the base `.sv-svc__head--after { margin-top:
+     clamp(1.8rem,3.5vw,2.6rem) }` is declared LATER in this file at the same
+     (0,1,0) specificity, and a media query adds none — so the single-class
+     version of this rule lost on source order and the right column started
+     41px below the showcase beside it at every desktop width. */
+  .sv-svc__cols .sv-svc__head--after { margin-top: 0; }
   /* Two stages need more height than the words beside them happen to occupy:
      the social wall is a calendar ABOVE three drifting columns, and at the
      height the copy sets, the columns got 260px and showed a card and a half,
