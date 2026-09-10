@@ -32,7 +32,7 @@ const NEIGHBOURS = [
   "aggregator profile page",
 ];
 
-const CLIMB = [47, 31, 18, 9, 5, 3];
+const CLIMB = [47, 31, 18, 9, 5, 2, 1];
 const ROW_H = 44;
 const SLOTS = NEIGHBOURS.length + 1;
 const TOP = CLIMB[CLIMB.length - 1];
@@ -79,8 +79,11 @@ function Climb({ run, still, offset }: { run: boolean; still: boolean; offset: n
   const rank = still ? TOP : CLIMB[step];
 
   /* Where the tracked row sits in the window: near the bottom when it is
-     buried, second slot once it reaches the top few. */
-  const trackedSlot = Math.max(
+     buried, rising as it climbs. At rank 1 it takes the TOP slot outright —
+     otherwise it sits second with a neighbour above it, and that neighbour's
+     rank is floored at 1 too, so the window ends up showing two rows both
+     numbered 1 above and below each other. Nothing outranks first place. */
+  const trackedSlot = rank <= 1 ? 0 : Math.max(
     1,
     Math.round(((rank - TOP) / (START - TOP)) * (SLOTS - 2)) + 1,
   );
@@ -106,7 +109,7 @@ function Climb({ run, still, offset }: { run: boolean; still: boolean; offset: n
                 <span className="serp__n">{rank}</span>
                 <span className="serp__line" />
                 <span className="serp__txt">Your page</span>
-                <span className="serp__badge">{done ? "page 1" : "climbing"}</span>
+                <span className="serp__badge">{done ? "no. 1" : "climbing"}</span>
               </div>
             );
           }
