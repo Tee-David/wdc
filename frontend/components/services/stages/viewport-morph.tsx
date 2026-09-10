@@ -7,13 +7,15 @@ import { WEB_STACKS, type WebStack } from "@/lib/showcase";
 /**
  * 03 · Full-Stack Web — "One build, every viewport".
  *
- * Three device mockups, and the TAB decides what is in them.
+ * One product shot — laptop, tablet and phone stacked and overlapping — and
+ * the TAB decides what is running on all three.
  *
  * An earlier version resized a single frame across three widths on a timer,
  * which showed one thing at a time and proved nothing: a screenshot squashed
  * narrow is not a responsive layout, it is a squashed screenshot. Capturing a
  * page separately at 1440, 768 and 390 means each frame shows the layout that
- * width actually gets, and putting them side by side makes that the argument.
+ * width actually gets, and stacking them into one composition makes that the
+ * argument in a single glance.
  *
  * Two behaviours, chosen per stack rather than globally:
  *
@@ -35,56 +37,72 @@ const DEVICES = [
   { id: "phone", label: "Phone", px: 390, key: "phone" },
 ] as const;
 
-function Device({
+/** The page inside a frame: the capture, twice, translated by exactly -50% so
+    a scrolling loop closes without anyone measuring the image height. */
+function Screen({ src, scroll, alt }: { src?: string; scroll: boolean; alt: string }) {
+  if (!src) return <span className="dv__wait" aria-hidden="true" />;
+  return (
+    <div className={`dv__track${scroll ? "" : " is-still dv__track--fit"}`}>
+      {(scroll ? [0, 1] : [0]).map((dup) => (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          key={dup}
+          src={src}
+          alt={dup === 0 ? alt : ""}
+          aria-hidden={dup === 1}
+          loading="lazy"
+          draggable={false}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Laptop and tablet: a browser window, with the chrome a browser actually has
+    — real traffic lights and the address centred on the bar. */
+function Window({
   device,
   src,
-  stack,
+  url,
   scroll,
   alt,
 }: {
   device: (typeof DEVICES)[number];
   src?: string;
-  stack: string;
+  url: string;
   scroll: boolean;
   alt: string;
 }) {
   return (
     <figure className={`dv dv--${device.id}`}>
       <div className="dv__body">
-        {device.id === "desktop" ? (
-          <div className="dv__bar" aria-hidden="true">
-            <i /><i /><i />
-            <span className="dv__url">{stack}</span>
-          </div>
-        ) : (
-          <span className="dv__notch" aria-hidden="true" />
-        )}
+        <div className="dv__bar" aria-hidden="true">
+          <i /><i /><i />
+          <span className="dv__url">{url}</span>
+        </div>
         <div className="dv__view">
-          {src ? (
-            /* The track holds the capture TWICE and translates by exactly -50%,
-               so a scrolling loop closes without measuring the image height. */
-            <div className={`dv__track${scroll ? "" : " is-still"}${scroll ? "" : " dv__track--fit"}`}>
-              {(scroll ? [0, 1] : [0]).map((dup) => (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  key={dup}
-                  src={src}
-                  alt={dup === 0 ? alt : ""}
-                  aria-hidden={dup === 1}
-                  loading="lazy"
-                  draggable={false}
-                />
-              ))}
-            </div>
-          ) : (
-            <span className="dv__wait" aria-hidden="true" />
-          )}
+          <Screen src={src} scroll={scroll} alt={alt} />
         </div>
       </div>
-      <figcaption className="dv__cap">
-        <span className="dv__label">{device.label}</span>
-        <span className="dv__px">{device.px}px</span>
-      </figcaption>
+    </figure>
+  );
+}
+
+/** The phone, drawn as a phone: bezel, Dynamic Island, status bar. A rounded
+    rectangle with a grey pill on it fools nobody. */
+function Phone({ src, scroll, alt }: { src?: string; scroll: boolean; alt: string }) {
+  return (
+    <figure className="dv dv--phone">
+      <div className="dv__body">
+        <span className="dv__island" aria-hidden="true" />
+        <div className="dv__status" aria-hidden="true">
+          <span>9:41</span>
+          <span className="dv__sig"><i /><i /><i /></span>
+        </div>
+        <div className="dv__view">
+          <Screen src={src} scroll={scroll} alt={alt} />
+        </div>
+      </div>
     </figure>
   );
 }
@@ -113,16 +131,27 @@ export default function ViewportMorph() {
           than dropping the new captures into the old one's mid-flight timing */}
       <div className={`vp3 vp3--${mode}`} key={active.id}>
         <div className="vp3__rack">
-          {DEVICES.map((d) => (
-            <Device
-              key={d.id}
-              device={d}
-              src={active.shots?.[d.key]}
-              stack={active.label.toLowerCase()}
+          <div className="vp3__scene">
+            <Window
+              device={DEVICES[0]}
+              src={active.shots?.desktop}
+              url={`${active.shotOf ?? active.label}`}
               scroll={scroll}
-              alt={`${active.shotOf ?? active.label} at ${d.px}px wide`}
+              alt={`${active.shotOf ?? active.label} at 1440px wide`}
             />
-          ))}
+            <Window
+              device={DEVICES[1]}
+              src={active.shots?.tablet}
+              url={`${active.shotOf ?? active.label}`}
+              scroll={scroll}
+              alt={`${active.shotOf ?? active.label} at 768px wide`}
+            />
+            <Phone
+              src={active.shots?.phone}
+              scroll={scroll}
+              alt={`${active.shotOf ?? active.label} at 390px wide`}
+            />
+          </div>
         </div>
         <div className="vp3__chips">
           {active.chips.map((c, n) => (

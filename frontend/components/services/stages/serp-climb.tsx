@@ -141,7 +141,12 @@ export default function SerpClimb() {
   const [cycle, setCycle] = useState(0);
 
   const still = mode === "still";
-  const animate = mode === "full" && near;
+  /* Compact is a NARROWER stage, not a frozen one. Gating the loop on "full"
+     meant every phone got the end state and nothing else: the typewriter owns
+     the clock, so withholding it below 768px stopped the ranks resetting and
+     the metrics re-counting too, and the whole panel read as a screenshot.
+     Only reduced motion holds still now. */
+  const animate = !still && near;
 
   return (
     <Stage caption="Search position over an optimisation cycle. Illustrative, not a client's data.">
@@ -163,7 +168,7 @@ export default function SerpClimb() {
             <path fill="#34A853" d="M10 18v-2.4a5.6 5.6 0 0 0 4.03-1.72l1.7 1.7A7.98 7.98 0 0 1 10 18z" />
             <path fill="#4285F4" d="M15.73 15.58l1.42-1.42 4.2 4.2a1 1 0 0 1-1.42 1.42l-4.2-4.2z" />
           </svg>
-          {mode === "full" ? (
+          {!still ? (
             <TextType
               text={["modelling consultancy near me", "data analytics partner", "brand and web agency"]}
               typingSpeed={55}

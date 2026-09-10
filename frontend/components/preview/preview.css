@@ -108,21 +108,33 @@
 }
 .pv-btn:hover::after { transform: translateX(4px); }
 .pv-btn:active { transform: translateY(1px) scale(.99); }
-/* orange carries navy text, never white: white on orange is 2.9:1 */
-.pv-btn--accent { background: var(--accent); color: #000065; }
-.pv-btn--accent:hover { background: #fff; color: #000065; }
-.pv-btn--dark { background: #000065; color: #fff; }
-.pv-btn--dark:hover { background: var(--accent); color: #fff; }
-.pv-btn--line { background: transparent; color: var(--ink); border-color: var(--ink); }
-.pv-btn--line:hover { background: var(--ink); color: var(--paper); }
+/* White on #FF6500 measures 2.9:1, under the 4.5:1 WCAG asks of body text: a
+   deliberate brand call, and it only ever applies to a large, bold, short
+   label. The hover keeps the white and drops to the navy, where it measures
+   15:1; the orange ring is what keeps the hover visible when the button is
+   sitting on a navy band and the fill matches the section behind it. */
+/* Every variant is listed TWICE, bare and under `.pv`, and that is not
+   redundancy. `.pv a { color: inherit }` a few rules up scores (0,1,1); a
+   single-class `.pv-btn--accent` scores (0,1,0) and loses to it, so a button
+   written as a link silently ignored its own colour and inherited the
+   section's instead. The `.pv`-prefixed copy scores (0,2,0) and wins, while
+   the bare one keeps working for buttons outside the preview scope. */
+.pv-btn--accent, .pv .pv-btn--accent { background: var(--accent); color: #fff; }
+.pv-btn--accent:hover, .pv .pv-btn--accent:hover {
+  background: var(--band); color: #fff; border-color: var(--accent);
+}
+.pv-btn--dark, .pv .pv-btn--dark { background: #000065; color: #fff; }
+.pv-btn--dark:hover, .pv .pv-btn--dark:hover { background: var(--accent); color: #fff; }
+.pv-btn--line, .pv .pv-btn--line { background: transparent; color: var(--ink); border-color: var(--ink); }
+.pv-btn--line:hover, .pv .pv-btn--line:hover { background: var(--ink); color: var(--paper); }
 /* On the navy band this button is solid white at rest and flips to orange on
    hover. NOTE: white on #FF6500 measures 2.9:1, under the 4.5:1 WCAG wants for
    body-size text — it is a deliberate brand choice, and it is only ever the
    hover state of a large, bold, short label whose resting state is 15:1. */
-.pv-sec--band .pv-btn--line {
+.pv .pv-sec--band .pv-btn--line, .pv-sec--band .pv-btn--line {
   background: #fff; color: #000065; border-color: #fff;
 }
-.pv-sec--band .pv-btn--line:hover {
+.pv .pv-sec--band .pv-btn--line:hover, .pv-sec--band .pv-btn--line:hover {
   background: var(--accent); color: #fff; border-color: var(--accent);
 }
 

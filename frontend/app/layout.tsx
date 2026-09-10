@@ -88,7 +88,14 @@ export default function RootLayout({
           Runs before first paint: decides whether the full-screen intro
           should play (first visit or away > 30 min, motion allowed) and sets
           data-intro on <html> so the CSS cover hides the hero until the intro
-          takes over — no "old page flash". Kept in sync with intro-animation.tsx.
+          takes over, with no "old page flash". Kept in sync with
+          intro-animation.tsx.
+
+          The pathname test is load-bearing. IntroAnimation only mounts on "/",
+          and it is the only thing that ever clears the flag; without the test,
+          anyone landing straight on /services or /about got the pre-paint
+          cover with nothing behind it to lift it, and sat looking at an empty
+          coloured screen until they navigated away.
         */}
         {/* Native inline script (not next/script) so it ships in the initial
             server HTML and executes during parse — before the hero paints —
@@ -96,7 +103,7 @@ export default function RootLayout({
         <script
           id="intro-init"
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var K="wdc-intro-seen-at",T=1800000,r=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches,s=0;try{s=parseInt(localStorage.getItem(K)||"0",10)||0}catch(e){}var p=!r&&(!s||Date.now()-s>T);document.documentElement.dataset.intro=p?"play":"skip"}catch(e){document.documentElement.dataset.intro="skip"}})();`,
+            __html: `(function(){try{var K="wdc-intro-seen-at",T=1800000,r=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches,s=0;try{s=parseInt(localStorage.getItem(K)||"0",10)||0}catch(e){}var p=location.pathname==="/"&&!r&&(!s||Date.now()-s>T);document.documentElement.dataset.intro=p?"play":"skip"}catch(e){document.documentElement.dataset.intro="skip"}})();`,
           }}
         />
         <JsonLd data={[organizationJsonLd(), websiteJsonLd(), ...servicesJsonLd()]} />
