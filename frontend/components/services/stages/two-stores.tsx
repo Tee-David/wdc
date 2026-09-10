@@ -79,6 +79,39 @@ function Blk({ blk }: { blk: Block }) {
 /* One half of the track has to be taller than the screen or the -50% loop
    scrolls past the end and shows blank space at the bottom. Three passes of the
    block list clears it at every phone size on the page. */
+/**
+ * The status-bar cluster: signal, wifi, battery.
+ *
+ * Drawn as one SVG rather than as three divs with borders. At this size — the
+ * whole cluster is about 22px wide — a battery built from a bordered box and a
+ * pseudo-element cap lands on half-pixels and renders as a smudge, and the
+ * previous version simply had no wifi or battery at all: three grey bars, which
+ * is what made the bar read as a placeholder. A single viewBox scales cleanly
+ * to whatever the frame is, and `currentColor` keeps it in step with the
+ * platform's own status colour.
+ */
+function StatusIcons() {
+  return (
+    <svg className="ph__status-i" viewBox="0 0 34 12" fill="currentColor" aria-hidden="true">
+      {/* signal: four bars, each taller than the last */}
+      <rect x="0"   y="8"   width="2" height="4"   rx=".6" />
+      <rect x="3"   y="6"   width="2" height="6"   rx=".6" />
+      <rect x="6"   y="3.5" width="2" height="8.5" rx=".6" />
+      <rect x="9"   y="1"   width="2" height="11"  rx=".6" />
+      {/* wifi: two arcs and a dot, stroked so the bands stay even */}
+      <g transform="translate(14 1)" fill="none" stroke="currentColor" strokeLinecap="round">
+        <path d="M.6 3.4a7 7 0 0 1 8.8 0" strokeWidth="1.5" />
+        <path d="M2.7 6a4 4 0 0 1 4.6 0" strokeWidth="1.5" />
+      </g>
+      <circle cx="19" cy="10.2" r="1.1" />
+      {/* battery: body, terminal, and a fill that stops short of the wall */}
+      <rect x="25" y="2" width="7.4" height="8" rx="1.8" fill="none" stroke="currentColor" strokeWidth="1" opacity=".55" />
+      <rect x="26.1" y="3.1" width="4.4" height="5.8" rx="1.1" />
+      <rect x="33.1" y="4.6" width="0.9" height="2.8" rx=".45" opacity=".55" />
+    </svg>
+  );
+}
+
 function Phone({ os, paused, ui, screens }: {
   os: "iOS" | "Android";
   paused: boolean;
@@ -101,8 +134,8 @@ function Phone({ os, paused, ui, screens }: {
         {/* the platform's own status bar, which is most of what makes a frame
             read as iOS or Android rather than "a phone" */}
         <div className="ph__status" aria-hidden="true">
-          <span>{os === "iOS" ? "9:41" : "09:41"}</span>
-          <span className="ph__sig"><i /><i /><i /></span>
+          <span className="ph__time">{os === "iOS" ? "9:41" : "09:41"}</span>
+          <StatusIcons />
         </div>
         <div className="ph__head" aria-hidden="true">{screens[0]}</div>
         {/* The track is clipped by its OWN viewport, not by the phone frame.
