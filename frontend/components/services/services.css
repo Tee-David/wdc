@@ -281,7 +281,7 @@
 .sv-tag {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .72rem; font-weight: 600; padding: 3px 9px; border-radius: 999px;
-  background: rgba(255, 101, 0, .14); color: var(--accent);
+  background: var(--accent); color: #fff;
 }
 
 .sv-empty {
@@ -335,7 +335,16 @@
 /* ---------------- closing CTA ---------------- */
 /* the particle word is the heading; the sentence under it does the explaining,
    so the effect never costs the page its actual message */
-.sv-cta__h { margin-bottom: 4px; }
+/* The one heading on the page allowed to be loud: it is the ask. Sized off
+   the viewport rather than the h2 scale, and ParticleText reads its particle
+   size straight off this computed font-size, so the effect grows with it. */
+/* `.pv h2` sets the heading scale at (0,1,1); this needs the `.pv` prefix to
+   reach (0,2,0) and actually win, or the size below is simply ignored. */
+.pv .sv-cta__h {
+  margin-bottom: 10px;
+  font-size: clamp(2.6rem, 1.4rem + 5.6vw, 5.5rem);
+  line-height: 1.02; letter-spacing: -.035em;
+}
 .sv-cta__sub {
   color: var(--muted);
   font-size: clamp(1rem, .95rem + .3vw, 1.18rem);
