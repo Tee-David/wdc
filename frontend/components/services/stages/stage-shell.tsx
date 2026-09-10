@@ -96,8 +96,18 @@ export function Stage({
   return (
     <figure className={`sv-stage${tall ? " sv-stage--tall" : ""}`}>
       {controls ? <div className="sv-stage__controls">{controls}</div> : null}
-      <div className="sv-stage__frame">{children}</div>
-      {caption ? <figcaption className="sv-stage__cap">{caption}</figcaption> : null}
+      {/* The caption lives INSIDE the frame, along its bottom edge.
+
+          Under the frame it was a subtitle: a line of grey text that pushed
+          the stage up, added a row of height to every section, and read as
+          something the layout had left over. Several of these carry a
+          disclosure that has to stay — "illustrative, not a client's data" is
+          the sentence that keeps the panel honest — so the answer is to move
+          it onto the artwork it is about, not to delete it. */}
+      <div className="sv-stage__frame">
+        {children}
+        {caption ? <figcaption className="sv-stage__cap">{caption}</figcaption> : null}
+      </div>
     </figure>
   );
 }
@@ -122,10 +132,12 @@ export function LazyStage({
   return (
     <div ref={ref} className="sv-lazy">
       {near ? children : (
+        // The caption sits INSIDE the frame now, so it adds no height and
+        // reserving a row for it would make this placeholder taller than the
+        // stage that replaces it -- the exact jump it exists to prevent.
         <div className="sv-stage sv-stage--skeleton" aria-hidden="true">
           {withControls ? <div className="sv-stage__controls" /> : null}
           <div className="sv-stage__frame" />
-          <div className="sv-stage__cap">&nbsp;</div>
         </div>
       )}
     </div>

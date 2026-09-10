@@ -26,7 +26,7 @@
 .pv-sec--alt .sv-stage__frame { background: var(--paper); }
 .sv-stage--tall .sv-stage__frame { aspect-ratio: 16 / 11; }
 /* the placeholder mirrors the real stage's boxes so its height matches to the
-   pixel: a controls row when the stage has one, the frame, and a caption line */
+   pixel: a controls row when the stage has one, and the frame */
 .sv-stage--skeleton .sv-stage__frame { background: var(--paper-2); }
 .sv-stage--skeleton .sv-stage__controls { min-height: 33px; margin-bottom: 14px; }
 /* the tall variant is a two-class selector, so the narrow override has to match
@@ -37,9 +37,29 @@
   .sv-stage--tall .sv-stage__frame,
   .sv-stage--skeleton { aspect-ratio: 4 / 5; }
 }
+/* Inside the frame now, pinned along its bottom edge over a scrim that fades
+   into the artwork rather than sitting on a bar. `pointer-events: none` so it
+   never eats a click meant for the stage behind it, and it is the last child
+   so it stacks above whatever the stage drew. */
 .sv-stage__cap {
-  margin-top: 10px; font-size: .82rem; color: var(--muted);
+  position: absolute; inset: auto 0 0 0; z-index: 4;
+  padding: 26px clamp(14px, 2vw, 22px) clamp(10px, 1.4vw, 14px);
+  font-size: .78rem; line-height: 1.35;
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  color: var(--muted);
+  pointer-events: none;
+  background: linear-gradient(to top,
+    color-mix(in srgb, var(--paper) 92%, transparent) 42%,
+    transparent);
+}
+/* The two stages that fill their frame with a navy panel need the scrim and
+   the type to belong to THAT surface, not to the page's paper. */
+.sv-stage__frame:has(.pl) .sv-stage__cap,
+.sv-stage__frame:has(.ts) .sv-stage__cap {
+  color: var(--on-band-dim);
+  background: linear-gradient(to top,
+    color-mix(in srgb, var(--paper) 92%, transparent) 42%,
+    transparent);
 }
 
 .sr-only {
