@@ -118,7 +118,13 @@ export default async function WorkDetailPage(
               </p>
 
               {cs.cover ? (
-                <div className="wk-doc__hero">
+                /* Screenshots are landscape and crop happily; a flyer or a
+                   guide page is portrait or square, and cropping one to 16:8
+                   takes the masthead off the top and the details off the
+                   bottom. Design work is contained on a ground instead. */
+                <div className={`wk-doc__hero${
+                  cs.category === "branding" || cs.category === "social" ? " wk-doc__hero--art" : ""
+                }`}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={cs.cover} alt={`${cs.client} — ${cs.title}`} decoding="async" />
                 </div>
@@ -162,8 +168,21 @@ export default async function WorkDetailPage(
 
                 <section>
                   <h2>The approach</h2>
-                  <p>{cs.approach}</p>
+                  {/* Split on blank lines rather than rendered as one block.
+                      The design case studies run to three or four paragraphs
+                      and a wall of prose is not read. */}
+                  {cs.approach.split("\n\n").map((para) => <p key={para.slice(0, 24)}>{para}</p>)}
                 </section>
+
+                {/* The client's own words, off a page they signed off. Not a
+                    testimonial: nobody here has been asked for one, and
+                    inventing praise is the one thing a work page must not do. */}
+                {cs.quote ? (
+                  <figure className="wk-quote">
+                    <blockquote>{cs.quote.text}</blockquote>
+                    <figcaption>{cs.quote.from}</figcaption>
+                  </figure>
+                ) : null}
 
                 <section>
                   <h2>What we did</h2>
@@ -172,8 +191,26 @@ export default async function WorkDetailPage(
                   </ul>
                 </section>
 
+                {/* Swatches, not a sentence. A row of the actual colours says
+                    more about an identity than a paragraph naming them, and the
+                    hex is the thing a reader would want anyway. */}
+                {cs.palette?.length ? (
+                  <section>
+                    <h2>The palette</h2>
+                    <ul className="wk-pal">
+                      {cs.palette.map((c) => (
+                        <li key={c.hex}>
+                          <span className="wk-pal__c" style={{ background: c.hex }} />
+                          <b>{c.name}</b>
+                          <small>{c.hex.toUpperCase()}</small>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ) : null}
+
                 <section>
-                  <h2>Built with</h2>
+                  <h2>{cs.stackLabel ?? "Built with"}</h2>
                   <div className="wk-stack">
                     {cs.stack.map((s) => (
                       <span className="wk-chip wk-chip--quiet" key={s}>{s}</span>
@@ -182,7 +219,7 @@ export default async function WorkDetailPage(
                 </section>
 
                 {rest.length ? (
-                  <div className={`wk-shots${rest.length >= 2 ? " wk-shots--2" : ""}`}>
+                  <div className={`wk-shots${rest.length >= 2 ? " wk-shots--2" : ""} wk-shots--tall`}>
                     {rest.map((src) => (
                       <div className="wk-shot" key={src}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
