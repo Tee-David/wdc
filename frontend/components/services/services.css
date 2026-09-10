@@ -113,10 +113,30 @@
    space the old combined head used to. */
 .sv-svc__top { margin-bottom: clamp(1.2rem, 2.5vw, 1.8rem); }
 .sv-svc__top .sv-svc__title { margin: 10px 0 0; }
+/* The service section's two columns. `minmax(0, …)` on BOTH tracks rather than
+   plain fractions: a grid child defaults to `min-width: auto`, so the showcase
+   — which contains a stage with its own intrinsic width and a marquee whose
+   track is `width: max-content` — would refuse to shrink and push the whole
+   page into horizontal overflow instead of fitting its column. */
+.sv-svc__cols { display: grid; gap: clamp(20px, 3vw, 40px); align-items: start; }
+@media (min-width: 1024px) {
+  .sv-svc__cols { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); }
+  /* In a column this narrow the intro and the "what you get" rail stack rather
+     than sitting side by side, and the head loses the top margin it needed
+     when it was a full-width band under the stage. */
+  .sv-svc__head--after { margin-top: 0; }
+}
+.sv-svc__showcase { min-width: 0; }
+
 .sv-svc__head {
   display: grid; grid-template-columns: 1.25fr .75fr;
   gap: clamp(24px, 4vw, 56px); align-items: start;
   margin-bottom: clamp(2rem, 4vw, 3rem);
+}
+/* Inside the two-column layout the head IS the right column, so its own two
+   tracks collapse to one and the prose, the CTA and the rail read downwards. */
+@media (min-width: 1024px) {
+  .sv-svc__cols .sv-svc__head { grid-template-columns: 1fr; gap: clamp(18px, 2vw, 26px); }
 }
 /* sits BELOW the showcase now, so it needs air above it rather than only below */
 .sv-svc__head--after { margin-top: clamp(1.8rem, 3.5vw, 2.6rem); }
@@ -390,8 +410,23 @@
    by an override here. */
 .svc-ico { display: inline-flex; line-height: 0; color: inherit; }
 .sv-svc__title { display: flex; align-items: center; gap: 14px; }
+/* `place-items: center` centres the GRID ITEM, and the grid item here is the
+   icon library's own wrapper — an inline box that inherits the heading's
+   line-height, so it is far taller than the 22px glyph inside it and the glyph
+   settles at its baseline. Measured: 12px either side but 23px above and 1px
+   below. Centring has to be forced through the wrapper as well as around it,
+   and `line-height: 0` is what stops it being reintroduced.
+
+   Written as a shared rule because every icon tile on the site has the same
+   shape and therefore had the same bug. */
+.sv-svc__icon, .sv-step__icon { line-height: 0; }
+.sv-svc__icon > *, .sv-step__icon > * {
+  display: flex; align-items: center; justify-content: center; line-height: 0;
+}
+.sv-svc__icon svg, .sv-step__icon svg { display: block; }
+
 .sv-svc__icon {
-  flex: none; display: grid; place-items: center;
+  flex: none; display: flex; align-items: center; justify-content: center;
   width: 46px; height: 46px; border-radius: 13px;
   background: var(--band); color: #fff;
 }

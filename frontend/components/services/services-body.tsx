@@ -234,17 +234,24 @@ export default function ServicesBody() {
               </h2>
             </div>
 
-            {/* the service's signature showcase */}
-            {(() => {
-              const StageFor = STAGES[s.slug];
-              return (
-                <ScrollExpand>
-                  <LazyStage withControls={STAGE_HAS_CONTROLS[s.slug]}>
-                    <StageFor />
-                  </LazyStage>
-                </ScrollExpand>
-              );
-            })()}
+            {/* Two columns from 1024px up: the showcase on the left, the words
+                about it on the right, reading across rather than down. Below
+                that width they stack in the same order — see it, then read it —
+                because side by side at 900px gives the stage half a phone. */}
+            <div className="sv-svc__cols">
+              {/* the service's signature showcase */}
+              {(() => {
+                const StageFor = STAGES[s.slug];
+                return (
+                  <div className="sv-svc__showcase">
+                    <ScrollExpand>
+                      <LazyStage withControls={STAGE_HAS_CONTROLS[s.slug]}>
+                        <StageFor />
+                      </LazyStage>
+                    </ScrollExpand>
+                  </div>
+                );
+              })()}
 
             <div className="sv-svc__head sv-svc__head--after pv-reveal">
               <div className="sv-svc__intro">
@@ -278,6 +285,7 @@ export default function ServicesBody() {
                   />
                 </div>
               </aside>
+            </div>
             </div>
 
             {/* the reference's six-card grid — a grid on desktop, and on a

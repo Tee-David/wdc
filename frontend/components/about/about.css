@@ -150,10 +150,15 @@
 }
 .pv-sec--alt .ab-tm { background: var(--paper-2); }
 .ab-tm:hover { transform: translateY(-4px); border-color: var(--accent); }
+/* Same centring correction as the service tiles: the icon wrapper inherits a
+   line-height and pushes the glyph to the bottom of the tile otherwise. */
 .ab-tm__icon {
-  display: grid; place-items: center; width: 42px; height: 42px;
+  display: flex; align-items: center; justify-content: center; line-height: 0;
+  width: 42px; height: 42px;
   border-radius: 12px; background: var(--band); color: #fff; margin-bottom: 6px;
 }
+.ab-tm__icon > * { display: flex; align-items: center; justify-content: center; line-height: 0; }
+.ab-tm__icon svg { display: block; }
 .ab-tm h3 { font-size: 1.06rem; }
 .ab-tm__role {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
