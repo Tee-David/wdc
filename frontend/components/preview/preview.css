@@ -759,6 +759,15 @@
   position: absolute; inset: 0; width: 100%; height: 100%;
   object-fit: cover; object-position: top center;
 }
+/* Blocked: the capture stops being a cropped backdrop and becomes the content.
+   Natural height, scrollable, so a full-page capture can be read end to end.
+   The bottom padding keeps the last of the page clear of the notice bar. */
+.pv-modal__view.is-shot { overflow-y: auto; overscroll-behavior: contain; }
+.pv-modal__view.is-shot .pv-modal__shot {
+  position: relative; inset: auto;
+  width: 100%; height: auto; object-fit: contain;
+  padding-bottom: 92px;
+}
 .pv-modal__frame {
   position: absolute; inset: 0; width: 100%; height: 100%;
   border: 0; background: var(--paper);
