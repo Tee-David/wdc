@@ -6,6 +6,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { SERVICES, type ServiceSlug } from "@/lib/services";
 import { PROJECTS } from "@/lib/projects";
+import { useReveal } from "@/components/preview/use-reveal";
 import { LOGOS, type LogoCategory } from "@/lib/logos";
 import { LogoGlyph } from "@/components/ui/logo-glyph";
 import LogoLoop from "@/components/ui/logo-loop";
@@ -98,24 +99,7 @@ export default function ServicesBody() {
 
   /* Same reveal contract as the homepage: motion is opt-in and a blanket
      timeout guarantees content appears even if the observer never fires. */
-  useEffect(() => {
-    const root = document.querySelector(".pv");
-    if (!root) return;
-    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (reduce || !("IntersectionObserver" in window)) return;
-    root.classList.add("pv-motion");
-    const targets = Array.from(root.querySelectorAll(".pv-reveal"));
-    const io = new IntersectionObserver(
-      (entries) => entries.forEach((e) => {
-        if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); }
-      }),
-      { rootMargin: "0px 0px -10% 0px", threshold: 0.1 },
-    );
-    targets.forEach((t) => io.observe(t));
-    const safety = window.setTimeout(
-      () => targets.forEach((t) => t.classList.add("is-in")), 1400);
-    return () => { io.disconnect(); window.clearTimeout(safety); };
-  }, []);
+  useReveal();
 
   const shown = useMemo(
     () => filter === "all" ? PROJECTS : PROJECTS.filter((p) => p.services.includes(filter)),
