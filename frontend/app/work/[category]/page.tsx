@@ -9,7 +9,7 @@ import {
   casesFor,
   categoryBySlug,
   countFor,
-  galleryFor,
+  wallFor,
 } from "@/lib/work";
 import { COMPANY_NAME, SITE_URL } from "@/lib/site";
 import "@/components/preview/preview.css";
@@ -48,7 +48,9 @@ export default async function WorkCategoryPage(
   if (!c) notFound();
 
   const cases = casesFor(c.slug);
-  const gallery = galleryFor(c.slug);
+  /* The loose artwork that is not already carried inside one of the stories
+     above it, so the page never shows the same image twice. */
+  const wall = wallFor(c.slug);
   const n = countFor(c);
 
   const breadcrumbJsonLd = {
@@ -90,22 +92,14 @@ export default async function WorkCategoryPage(
               }}
             >
               <h2 className="pv-mix" style={{ fontSize: "clamp(1.4rem, 1.2rem + 1vw, 2rem)" }}>
-                {c.shape === "gallery" ? <b>Selected pieces</b> : <b>Case studies</b>}
+                <b>Case studies</b>
               </h2>
               <p style={{ color: "var(--muted)", fontSize: ".92rem" }}>
-                {n} {c.shape === "gallery"
-                  ? n === 1 ? "piece" : "pieces"
-                  : n === 1 ? "case study" : "case studies"}
+                {n} {n === 1 ? "case study" : "case studies"}
               </p>
             </div>
 
-            {c.shape === "gallery" ? (
-              gallery.length ? (
-                <GalleryWall pieces={gallery} />
-              ) : (
-                <Empty label={c.label} />
-              )
-            ) : cases.length ? (
+            {cases.length ? (
               <div className="wk-grid">
                 {cases.map((cs) => (
                   /* Always the piece's CANONICAL category, never the one being
@@ -142,8 +136,35 @@ export default async function WorkCategoryPage(
           </div>
         </section>
 
+        {/* The wall. Not every piece belongs to a written story -- a one-off
+            flyer for a client we did one flyer for is still work, and burying
+            it because it has no case study would be hiding the majority of the
+            output. It sits under the stories, where it reads as the archive
+            rather than as the argument. */}
+        {wall.length ? (
+          <section className="pv-sec pv-sec--alt">
+            <div className="pv-wrap">
+              <div
+                style={{
+                  display: "flex", flexWrap: "wrap", gap: 12,
+                  alignItems: "baseline", justifyContent: "space-between",
+                  marginBottom: "clamp(1.4rem, 2.4vw, 2rem)",
+                }}
+              >
+                <h2 className="pv-mix" style={{ fontSize: "clamp(1.4rem, 1.2rem + 1vw, 2rem)" }}>
+                  More <b>{c.label.toLowerCase()} work</b>
+                </h2>
+                <p style={{ color: "var(--muted)", fontSize: ".92rem" }}>
+                  {wall.length} {wall.length === 1 ? "piece" : "pieces"}
+                </p>
+              </div>
+              <GalleryWall pieces={wall} />
+            </div>
+          </section>
+        ) : null}
+
         {/* Sideways move, so a category with two entries is not a dead end. */}
-        <section className="pv-sec pv-sec--alt">
+        <section className={`pv-sec${wall.length ? "" : " pv-sec--alt"}`}>
           <div className="pv-wrap">
             <h2 className="pv-mix" style={{ fontSize: "clamp(1.2rem, 1.1rem + .6vw, 1.5rem)", marginBottom: "1.2rem" }}>
               Other <b>disciplines</b>
