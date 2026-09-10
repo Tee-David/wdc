@@ -148,10 +148,20 @@ export default function IntroAnimation() {
     () => null
   );
 
-  // Lock page scroll while the overlay owns the viewport (including during exit transition).
+  // Lock page scroll while the overlay owns the viewport (including during exit
+  // transition). `finished` is load-bearing in the dependency list: the intro
+  // stops RENDERING when it finishes but stays MOUNTED, so an effect keyed on
+  // `active` alone never cleans up and the page stays unscrollable for the rest
+  // of the visit. Releasing on `finished` is what hands scrolling back.
   useEffect(() => {
-    if (!active) return;
-    const prev = document.body.style.overflow;
+    if (!active || finished) return;
+    /* Set, do not save-and-restore. Saving the previous value looks careful but
+       is the bug: React invokes an effect, cleans it up and invokes it again,
+       so the second run captures the value the FIRST run wrote ("hidden") and
+       its cleanup faithfully puts it back — leaving the page unscrollable for
+       good once the intro is gone. The intro is the only thing holding this
+       lock while it plays, so clearing it outright is both simpler and the only
+       version that survives being run twice. */
     document.body.style.overflow = "hidden";
     // Halt Lenis so it doesn't accumulate a scroll target from the intro's
     // wheel/touch input and fling the page to the bottom on hand-off.
@@ -166,14 +176,14 @@ export default function IntroAnimation() {
     window.addEventListener("scroll", preventScroll);
 
     return () => {
-      document.body.style.overflow = prev;
+      document.body.style.overflow = "";
       window.removeEventListener("scroll", preventScroll);
       // Pin both native and Lenis scroll to the top, then resume smooth scroll.
       window.scrollTo(0, 0);
       window.__lenis?.scrollTo(0, { immediate: true, force: true });
       window.__lenis?.start();
     };
-  }, [active]);
+  }, [active, finished]);
 
   // --- Container size ---
   useEffect(() => {

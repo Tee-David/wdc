@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { PROJECTS } from "@/lib/projects";
+import { PROJECTS, type Project } from "@/lib/projects";
+import SiteModal from "./site-modal";
 import { FAQS } from "@/lib/faq";
 import { CONTACT_EMAIL } from "@/lib/site";
 
@@ -254,6 +255,11 @@ export default function PreviewBody() {
     el.scrollBy({ left: dir * by, behavior: "smooth" });
   };
 
+  /* Which project is previewing, and the card that opened it — focus goes back
+     there on close, or a keyboard visitor is dumped at the top of the page. */
+  const [preview, setPreview] = useState<Project | null>(null);
+  const opener = useRef<HTMLAnchorElement | null>(null);
+
   return (
     <div className="pv">
       {/* ---------------- work ---------------- */}
@@ -274,7 +280,23 @@ export default function PreviewBody() {
           </div>
           <div className="pv-track pv-reveal" ref={track} onScroll={sync}>
             {PROJECTS.map((p) => (
-              <a className="pv-job" key={p.url} href={p.url} target="_blank" rel="noopener noreferrer">
+              /* Still a real link: crawlable, and middle-click or ctrl-click
+                 opens the site the way a link should. The click handler only
+                 takes over the PLAIN click, which is the one we want to keep
+                 on this page. */
+              <a
+                className="pv-job"
+                key={p.url}
+                href={p.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                  e.preventDefault();
+                  opener.current = e.currentTarget;
+                  setPreview(p);
+                }}
+              >
                 <div className="pv-shot">
                   {p.cover ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
@@ -531,6 +553,15 @@ export default function PreviewBody() {
           </div>
         </div>
       </section>
+      {preview ? (
+        <SiteModal
+          project={preview}
+          onClose={() => {
+            setPreview(null);
+            opener.current?.focus();
+          }}
+        />
+      ) : null}
     </div>
   );
 }
