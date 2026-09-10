@@ -149,7 +149,22 @@
 /* Inside the two-column layout the head IS the right column, so its own two
    tracks collapse to one and the prose, the CTA and the rail read downwards. */
 @media (min-width: 1024px) {
-  .sv-svc__cols .sv-svc__head { grid-template-columns: 1fr; gap: clamp(18px, 2vw, 26px); }
+  /* Inside the two-column layout the head IS the right column, and it has to
+     finish level with the showcase beside it or the section ends on a ragged
+     edge. Three rows -- prose, rail, CTA -- with the rail taking `1fr` so the
+     leftover height goes into the one box that can absorb it. Inside that box
+     the tools marquee is pushed to the bottom, so the card grows from its
+     middle rather than leaving a pool of dead space under the list. */
+  .sv-svc__cols .sv-svc__head {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: clamp(18px, 2vw, 26px);
+    align-items: stretch;
+    margin-bottom: 0;
+  }
+  .sv-svc__cols .sv-side { display: flex; flex-direction: column; }
+  .sv-svc__cols .sv-tools { margin-top: auto; }
+  .sv-svc__cols .sv-svc__cta { margin-top: 0; justify-self: start; }
 }
 /* sits BELOW the showcase now, so it needs air above it rather than only below */
 .sv-svc__head--after { margin-top: clamp(1.8rem, 3.5vw, 2.6rem); }

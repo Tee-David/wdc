@@ -242,9 +242,23 @@
 /* ---------------- 05 pipeline ---------------- */
 .pl {
   position: absolute; inset: 0; padding: clamp(14px, 2.4vw, 26px);
+  /* The graph keeps its own height and the TERMINAL takes everything left
+     over. Centring two auto rows instead left the stage padded top and bottom
+     with dead space once the frame stretched to match the column beside it --
+     a short box floating in the middle of a tall one. */
+  /* Both rows are sized by their content and the pair is centred. Neither one
+     stretches: giving the slack to the terminal left a nine-line trace at the
+     bottom of a box twice its height, and giving it to the graph left a void
+     above a single thin track. What actually closed the gap was the trace
+     itself -- nine lines of it rather than five -- which leaves little enough
+     over that centring is all the balancing needed. */
   display: grid; grid-template-rows: auto auto; align-content: center;
   gap: clamp(12px, 2vw, 22px);
 }
+/* The terminal type scales with the STAGE, not the viewport: this stage sits
+   in a half-width column on desktop and full width on a phone, so a vw-based
+   size would be biggest exactly where the box is narrowest. */
+.sv-stage__frame:has(.pl) { container-type: inline-size; }
 .pl__graph { position: relative; height: clamp(84px, 12vh, 104px); flex: none; }
 /* The run: one track from the first node to the last, and a fill that sweeps
    it. `RUN` is the shared clock — the fill, and every dot's light-up, are the
@@ -319,21 +333,30 @@
 }
 @media (max-width: 560px) { .pl__label { font-size: .62rem; } }
 .pl__term {
-  border-radius: 12px; overflow: hidden; min-height: 11.5rem;
+  border-radius: 12px; overflow: hidden; min-height: 11.5rem; flex: none;
   border: 1px solid var(--on-band-rule); background: var(--band);
   display: flex; flex-direction: column;
 }
-.pl__termbar { flex: none; display: flex; gap: 5px; padding: 8px 10px; border-bottom: 1px solid var(--on-band-rule); }
-.pl__termbar i { width: 7px; height: 7px; border-radius: 50%; background: var(--on-band-rule); }
+.pl__termbar { flex: none; display: flex; gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--on-band-rule); }
+.pl__termbar i { width: 9px; height: 9px; border-radius: 50%; background: var(--on-band-rule); }
 .pl__termbody {
-  flex: 1; padding: 12px 14px; overflow: hidden;
-  display: flex; flex-direction: column; justify-content: flex-start;
+  /* Bottom-anchored, the way a shell is: the trace types in and pushes the
+     earlier lines up, instead of starting at the ceiling and leaving the rest
+     of a now-tall box empty underneath it. */
+  flex: 1; padding: 14px 16px; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: flex-end;
 }
 .pl__line {
   display: block; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: .78rem; line-height: 1.9; color: var(--on-band-dim);
+  /* reads at arm's length now, not just up close */
+  font-size: clamp(.82rem, 1.15cqw, 1rem); line-height: 1.85; color: var(--on-band-dim);
 }
-.pl__termbody .pl__line:nth-child(4) { color: var(--accent); }
+/* Direction, not position. The old rule coloured whichever line happened to
+   be fourth, which stopped meaning anything the moment a trace changed
+   length. Responses are the accent; the opening call is full strength; the
+   outgoing steps stay dim so the eye follows the answers back. */
+.pl__line.is-res { color: var(--accent); }
+.pl__line.is-call { color: var(--on-band); font-weight: 500; }
 .pl__cursor { color: var(--accent); }
 
 /* ---------------- 06 feed wall ---------------- */

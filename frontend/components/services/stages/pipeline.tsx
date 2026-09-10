@@ -58,7 +58,7 @@ function useTranscript(active: boolean, LINES: readonly string[]) {
         timer.current = window.setTimeout(() => {
           setDone([]); setPartial(""); line = 0; char = 0;
           timer.current = window.setTimeout(tick, 400);
-        }, 3200);
+        }, 2600);
         return;
       }
       const text = LINES[line];
@@ -68,10 +68,10 @@ function useTranscript(active: boolean, LINES: readonly string[]) {
         setDone((d) => [...d, text]);
         setPartial("");
         line += 1; char = 0;
-        timer.current = window.setTimeout(tick, 420);
+        timer.current = window.setTimeout(tick, 260);
         return;
       }
-      timer.current = window.setTimeout(tick, 22);
+      timer.current = window.setTimeout(tick, 15);
     };
     timer.current = window.setTimeout(tick, 500);
     return () => window.clearTimeout(timer.current);
@@ -79,6 +79,12 @@ function useTranscript(active: boolean, LINES: readonly string[]) {
 
   return { done, partial };
 }
+
+/* Responses read differently from requests, so they are coloured differently:
+   the direction is carried in the line itself rather than by a positional
+   nth-child rule, which broke the moment a trace changed length. */
+const lineClass = (l: string) =>
+  `pl__line${l.startsWith("from") ? " is-res" : l.startsWith("to") ? " is-req" : " is-call"}`;
 
 function Terminal({ animate, lines }: { animate: boolean; lines: readonly string[] }) {
   const { done, partial } = useTranscript(animate, lines);
@@ -88,16 +94,16 @@ function Terminal({ animate, lines }: { animate: boolean; lines: readonly string
       <div className="pl__termbody">
         {animate ? (
           <>
-            {done.map((l) => <span className="pl__line" key={l}>{l}</span>)}
+            {done.map((l) => <span className={lineClass(l)} key={l}>{l}</span>)}
             {partial && (
-              <span className="pl__line">
+              <span className={lineClass(partial)}>
                 {partial}<span className="pl__cursor">|</span>
               </span>
             )}
           </>
         ) : (
           /* still + compact get the whole trace, already written out */
-          <>{lines.map((l) => <span className="pl__line" key={l}>{l}</span>)}</>
+          <>{lines.map((l) => <span className={lineClass(l)} key={l}>{l}</span>)}</>
         )}
       </div>
     </div>
