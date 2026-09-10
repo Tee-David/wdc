@@ -239,8 +239,13 @@ export default function PreviewBody() {
             {PROJECTS.map((p) => (
               <a className="pv-job" key={p.url} href={p.url} target="_blank" rel="noopener noreferrer">
                 <div className="pv-shot">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={p.cover} alt={`${p.name} website`} loading="lazy" />
+                  {p.cover ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={p.cover} alt={`${p.name} website`} loading="lazy" />
+                  ) : (
+                    /* no capture yet: a branded panel, not a broken image */
+                    <span className="pv-shot__none" aria-hidden="true">{p.name}</span>
+                  )}
                 </div>
                 <div className="pv-job__body">
                   <div className="pv-job__row">
