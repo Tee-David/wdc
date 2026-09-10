@@ -53,11 +53,14 @@ function LogoMarquee() {
   );
 }
 
-/** Three creative-workspace shots that cross-fade behind the hero. */
+/** Three pieces of OUR OWN work that cross-fade behind the hero. They were
+    stock workspace photographs, which is a strange thing to put behind a claim
+    about making brands unmistakable — the backdrop was the one image on the
+    page that had nothing to do with us. */
 const BG_IMAGES = [
-  "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1600&q=80",
-  "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1600&q=80",
-  "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1600&q=80",
+  "/brand-work/bamssa-social-night.jpg",
+  "/brand-work/education-campaign.jpg",
+  "/brand-work/moore-logo-variants.jpg",
 ];
 
 function HeroBackdrop() {

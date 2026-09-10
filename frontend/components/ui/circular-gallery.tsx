@@ -267,6 +267,8 @@ class Wheel {
   private scroll = { current: 0, target: 0, last: 0, ease: 0.06 };
   private raf = 0;
   private ro?: ResizeObserver;
+  private io?: IntersectionObserver;
+  private running = false;
   private span = 1;
 
   constructor(
@@ -300,7 +302,21 @@ class Wheel {
 
     this.ro = new ResizeObserver(() => this.measure());
     this.ro.observe(container);
-    this.tick();
+
+    /* Stop burning GPU once the wheel scrolls out of view. Without this the
+       render loop runs for the whole visit — it is a WebGL context redrawing
+       twelve textured planes sixty times a second for a section nobody is
+       looking at, on a page that already carries six other animated stages.
+       Borrowed from the ring gallery in the photography build, which learned
+       the same lesson. */
+    this.io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) this.start();
+        else this.stop();
+      },
+      { threshold: 0 },
+    );
+    this.io.observe(container);
   }
 
   private build() {
@@ -337,6 +353,19 @@ class Wheel {
     this.medias.forEach((m) => m.onResize({ screen: this.screen, viewport: this.viewport }));
   }
 
+  private start() {
+    if (this.running) return;
+    this.running = true;
+    this.raf = requestAnimationFrame(this.tick);
+  }
+
+  private stop() {
+    if (!this.running) return;
+    this.running = false;
+    cancelAnimationFrame(this.raf);
+    this.raf = 0;
+  }
+
   private tick = () => {
     const slot = this.medias[0]?.width ?? 0;
     /* One unit of progress turns the wheel past every image in the set once.
@@ -348,11 +377,12 @@ class Wheel {
     this.medias.forEach((m) => m.update(this.scroll, direction));
     this.renderer.render({ scene: this.scene, camera: this.camera });
     this.scroll.last = this.scroll.current;
-    this.raf = requestAnimationFrame(this.tick);
+    if (this.running) this.raf = requestAnimationFrame(this.tick);
   };
 
   destroy() {
-    cancelAnimationFrame(this.raf);
+    this.stop();
+    this.io?.disconnect();
     this.ro?.disconnect();
     this.gl.canvas.parentNode?.removeChild(this.gl.canvas);
     /* WebGL contexts are a scarce browser resource — a handful of leaked ones
