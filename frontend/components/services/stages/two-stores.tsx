@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Stage, TabRow, useStageMotion } from "./stage-shell";
 import CodeBrowser from "@/components/ui/code-browser";
+import StatusIcons from "@/components/ui/status-icons";
 import DeviceFrame from "@/components/ui/device-frame";
 import { APP_SOURCE, APP_KINDS } from "@/lib/showcase";
 
@@ -93,32 +94,6 @@ function Blk({ blk }: { blk: Block }) {
  * narrowed to 20 rather than left at 34 with a hole in it, so the two remaining
  * glyphs sit against the right edge where a handset puts them.
  */
-function StatusIcons() {
-  return (
-    <svg className="ph__status-i" viewBox="0 0 27 12" fill="currentColor" aria-hidden="true">
-      {/* wifi: two arcs and a dot, stroked so the bands stay even */}
-      <g transform="translate(0 1)" fill="none" stroke="currentColor" strokeLinecap="round">
-        <path d="M.6 3.4a7 7 0 0 1 8.8 0" strokeWidth="1.5" />
-        <path d="M2.7 6a4 4 0 0 1 4.6 0" strokeWidth="1.5" />
-      </g>
-      <circle cx="5" cy="10.2" r="1.1" />
-      {/* battery: a filled body with the PERCENTAGE INSIDE it, which is what a
-          current iPhone shows, plus the terminal nub. The digits are the bar's
-          own background rather than a colour of their own, so they read as
-          knocked out of the body however the frame is themed. */}
-      <rect x="12" y="1.6" width="13" height="8.8" rx="2.6" />
-      <text
-        x="18.5" y="6.05"
-        textAnchor="middle" dominantBaseline="central"
-        fontSize="6.4" fontWeight="700" fill="var(--band)"
-        style={{ fontFamily: "var(--font-space-grotesk), system-ui, sans-serif" }}
-      >
-        82
-      </text>
-      <rect x="25.7" y="4.3" width="1.3" height="3.4" rx=".6" opacity=".5" />
-    </svg>
-  );
-}
 
 function Phone({ os, paused, ui, screens, shot, shotOf }: {
   os: "iOS" | "Android";
