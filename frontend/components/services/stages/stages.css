@@ -609,7 +609,14 @@
      `vw` did not, so each row stayed ~430px tall inside a ~400px frame and only
      ONE of the five ever showed. `cqw` measures the frame that contains it, so
      the rows scale with the stage however wide the column is. */
-  grid-auto-rows: clamp(120px, 26cqw, 300px);
+  /* Bigger tiles, and the row COUNT looks after itself. Five rows are declared
+     and the grid is centre-aligned, so once the tiles are large enough that
+     five no longer fit, the surplus overflows top and bottom and is clipped by
+     the frame -- which is what this wall wants anyway. At a 634px stage this
+     is a 254px tile and about three rows show; on a phone it is 140px and all
+     five do. Sizing the tile rather than counting the rows is what makes that
+     one rule instead of a breakpoint per width. */
+  grid-auto-rows: clamp(150px, 40cqw, 320px);
   gap: clamp(10px, 1.4vw, 18px);
   transform: rotate(-15deg);
   transform-origin: center;
