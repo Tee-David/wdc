@@ -22,12 +22,20 @@ import { BRAND_KINDS } from "@/lib/showcase";
  * the bottom, which is also why the moving grid is aria-hidden.
  */
 
-/* Each row has to be WIDER than the (deliberately oversized) rotated stage, or
-   the -50% translate scrolls the end of the track into view. Twelve tiles per
-   half clears the widest case several times over and, more to the point, puts
-   more of the catalogue on screen at once. Thinner categories cycle their items
-   to reach the count rather than leaving holes. */
-const PER_ROW = 12;
+/* Tiles per row follows the POOL, it is not a constant.
+   A fixed twelve drew the same piece three times inside a single row on the
+   five-item marks tab, and a repeat you can see without scrolling is the one
+   that reads as padding. Sizing the row to the pool means no image is drawn
+   twice in the same row whenever there are enough of them to go round.
+   The bounds are the two things that would otherwise break:
+     MIN - a row must be wider than the rotated rack or the -50% loop shows its
+           seam. Six tiles clears the widest rack several times over.
+     MAX - past twelve the extra tiles are off-screen anyway, so they would only
+           cost image requests. */
+const MIN_PER_ROW = 6;
+const MAX_PER_ROW = 12;
+const perRowFor = (pool: number) =>
+  Math.min(MAX_PER_ROW, Math.max(MIN_PER_ROW, pool));
 
 /* FIVE rows, not two. A band rotated by 15deg only covers a WxH frame if it is
    about H + W*sin(15deg) tall; two rows of this tile size fell short of that at
@@ -63,15 +71,16 @@ export default function GridMotion() {
      their twelve items, which is why the same artwork kept stacking up. Strides
      were worse again: on a small pool they collapse rows onto each other.
 
-     Rows also step by PER_ROW, which is coprime with most pool sizes, so the
-     same item rarely lands in the same column twice running. */
+     Rows also step by a whole row's worth, so the same item rarely lands in
+     the same column twice running. */
   const rows = useMemo(() => {
     const pool = active.items;
+    const perRow = perRowFor(pool.length);
     return ROWS.map((_, ri) =>
-      Array.from({ length: PER_ROW }, (_, i) => {
+      Array.from({ length: perRow }, (_, i) => {
         /* the running cursor, expressed as arithmetic rather than a mutable
-           counter: position (ri, i) is the (ri * PER_ROW + i)th draw */
-        const it = pool[(ri * PER_ROW + i) % pool.length];
+           counter: position (ri, i) is the (ri * perRow + i)th draw */
+        const it = pool[(ri * perRow + i) % pool.length];
         return { ...it, key: `${active.id}-${ri}-${i}` };
       }),
     );
