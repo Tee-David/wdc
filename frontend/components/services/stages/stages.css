@@ -133,13 +133,19 @@
   font-size: .86rem; color: var(--muted);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+/* SOLID accent, not a 12% tint of it. Orange type on a 12% orange wash over
+   the light theme's near-white paper measured 2.95:1 -- the row that is meant
+   to be the one you read was the least legible thing in the stage. Filled, it
+   carries white type at the same contrast in both themes, and the badge
+   inverts so it is still separable from the row it sits on. */
 .serp__row--you {
-  background: rgba(255, 101, 0, .12);
+  background: var(--accent);
   border: 1px solid var(--accent);
 }
 .serp__row--you .serp__n,
-.serp__row--you .serp__txt { color: var(--accent); font-weight: 600; }
-.serp__row--you .serp__line { background: var(--accent); }
+.serp__row--you .serp__txt { color: #fff; font-weight: 600; }
+.serp__row--you .serp__line { background: rgb(255 255 255 / .75); }
+.serp__row--you .serp__badge { background: #fff; color: var(--accent); }
 .serp__badge {
   margin-left: auto; flex: none;
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
@@ -869,10 +875,13 @@
 .ph__status {
   display: flex; align-items: center; justify-content: space-between;
   font-size: .5rem;
-  /* Full strength, not `--muted`. A handset draws its status row in the
-     screen's foreground colour; at --muted on the navy it read as a greyed-out
-     row, which is what a disabled bar looks like. */
-  color: var(--on-band);
+  /* The SCREEN's foreground, at full strength. `--muted` read as a greyed-out
+     row, which is what a disabled bar looks like -- but `--on-band` was worse:
+     this row sits on the phone screen (`--paper`), not on the navy band, so in
+     light mode it was rgb(238,240,255) on rgb(244,245,252), a contrast ratio
+     of 1.03:1. Invisible. `--ink` is the foreground that goes with `--paper`
+     in both themes, which is the pair that actually applies here. */
+  color: var(--ink);
   font-variant-numeric: tabular-nums; flex: none;
 }
 .ph--ios .ph__status { padding: 7% 8% 3%; }
