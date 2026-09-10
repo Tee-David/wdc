@@ -40,7 +40,7 @@ const jsonLd = {
 export default function AboutPage() {
   return (
     <>
-      <Header />
+      <Header overHero />
       <main className="flex-1">
         <AboutBody />
       </main>

@@ -51,7 +51,7 @@ const breadcrumbJsonLd = {
 export default function ServicesPage() {
   return (
     <>
-      <Header />
+      <Header overHero />
       <main className="flex-1">
         <ServicesBody />
       </main>

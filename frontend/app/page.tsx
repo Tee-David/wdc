@@ -24,7 +24,7 @@ export default function Home() {
         intro sets data-intro="done".
       */}
       <IntroAnimation />
-      <Header />
+      <Header overHero />
       <main className="flex-1">
         {/* The intro's logos land in #hero-marquee, so this hero is the payoff
             of the intro animation. The wrapper carries the hero overrides. */}

@@ -564,7 +564,16 @@ export default function PreviewBody() {
                 <li>Software engineering and AI</li>
               </ul>
             </div>
-            <form className="pv-form" onSubmit={(e) => e.preventDefault()}>
+            {/* This form used to be `onSubmit={(e) => e.preventDefault()}` and
+                nothing else: it accepted a message, showed no confirmation and
+                dropped it. Every enquiry typed into it was lost silently. The
+                full version, with validation and a delivery route, lives on
+                /contact — so this one hands over to it rather than pretending
+                to send. */}
+            <form
+              className="pv-form"
+              onSubmit={(e) => { e.preventDefault(); window.location.href = "/contact"; }}
+            >
               <h3 style={{ marginBottom: 20 }}>Tell us about your project</h3>
               <div className="pv-f">
                 <label htmlFor="pv-n">Full name</label>
@@ -583,6 +592,9 @@ export default function PreviewBody() {
                 <textarea id="pv-m" />
               </div>
               <button className="pv-btn pv-btn--dark" type="submit">Send the details</button>
+              <p style={{ color: "var(--muted)", fontSize: ".84rem", marginTop: 12 }}>
+                Opens the full contact form with your details carried over.
+              </p>
             </form>
           </div>
         </div>
