@@ -208,28 +208,37 @@
   gap: clamp(12px, 2vw, 22px);
 }
 .pl__graph { position: relative; height: clamp(84px, 12vh, 104px); flex: none; }
-.pl__wires { position: absolute; inset: 0; }
-.pl__wire {
-  position: absolute; top: 50%; height: 2px; margin-top: -1px;
-  background: var(--rule); border-radius: 2px; overflow: hidden;
+/* The run: one track from the first node to the last, and a fill that sweeps
+   it. `RUN` is the shared clock — the fill, and every dot's light-up, are the
+   same duration, so the dots cannot drift out of step with the bar however
+   many nodes the selected architecture has. */
+.pl { --pl-run: 5.2s; }
+.pl__track {
+  position: absolute; top: 50%; left: 8%; right: 8%;
+  height: 4px; margin-top: -2px; border-radius: 999px;
+  background: var(--rule); overflow: hidden;
 }
-.pl__spark {
-  position: absolute; top: 50%; left: 0; width: 22px; height: 4px; margin-top: -2px;
-  border-radius: 3px; background: var(--accent);
-  filter: blur(.2px);
+.pl__fill {
+  position: absolute; inset: 0; border-radius: inherit;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--accent) 70%, transparent), var(--accent));
+  /* scaleX, not width: a width animation lays out on every frame, a transform
+     is composited. Origin left so it grows from the first node outward. */
+  transform: scaleX(0); transform-origin: left center;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .pl.is-live .pl__spark { animation: pl-run 2.6s linear infinite; }
+  .pl.is-live .pl__fill { animation: pl-fill var(--pl-run) cubic-bezier(.4, 0, .2, 1) infinite; }
 }
-@media (prefers-reduced-motion: reduce) { .pl__spark { display: none; } }
-/* travels the wire's own width, so every span takes the same time regardless
-   of how long it is on screen */
-@keyframes pl-run {
-  0%   { transform: translateX(-22px); opacity: 0; }
-  10%  { opacity: 1; }
-  90%  { opacity: 1; }
-  100% { transform: translateX(calc(100% + 22px)); opacity: 0; }
+/* Reduced motion gets the ARRIVED state — a served request, held still. */
+@media (prefers-reduced-motion: reduce) { .pl__fill { transform: scaleX(1); } }
+@keyframes pl-fill {
+  0%   { transform: scaleX(0); }
+  72%  { transform: scaleX(1); }
+  /* the tail is the pause at the end of the run, so a completed path is
+     readable for a moment before it starts again */
+  100% { transform: scaleX(1); }
 }
+
 .pl__nodes { list-style: none; margin: 0; padding: 0; position: absolute; inset: 0; }
 .pl__node {
   position: absolute; top: 50%; transform: translate(-50%, -50%);
@@ -240,12 +249,31 @@
   background: var(--paper); border: 2px solid var(--accent);
 }
 .pv-sec--alt .pl__dot { background: var(--paper-2); }
+/* Each dot waits for the fill to reach it. The delay is its own position along
+   the run times the 72% of the cycle the fill is actually moving, so a
+   four-node chain and a six-node chain both light in time with the bar.
+   It then STAYS lit: a dot that blinks and goes out says the step failed. */
 @media (prefers-reduced-motion: no-preference) {
-  .pl.is-live .pl__dot { animation: pl-blip 2.6s ease-in-out infinite; }
+  .pl.is-live .pl__dot {
+    animation: pl-lit var(--pl-run) ease-out infinite;
+    animation-delay: calc(var(--at, 0) * var(--pl-run) * .72);
+  }
 }
-@keyframes pl-blip {
-  0%, 70%, 100% { transform: scale(1); background: var(--paper); }
-  12%           { transform: scale(1.45); background: var(--accent); }
+@media (prefers-reduced-motion: reduce) {
+  .pl__dot { background: var(--accent); }
+}
+@keyframes pl-lit {
+  0%   { transform: scale(1);    background: var(--paper); }
+  5%   { transform: scale(1.55); background: var(--accent); }
+  12%  { transform: scale(1);    background: var(--accent); }
+  100% { transform: scale(1);    background: var(--accent); }
+}
+.pv-sec--alt .pl.is-live .pl__dot { animation-name: pl-lit-alt; }
+@keyframes pl-lit-alt {
+  0%   { transform: scale(1);    background: var(--paper-2); }
+  5%   { transform: scale(1.55); background: var(--accent); }
+  12%  { transform: scale(1);    background: var(--accent); }
+  100% { transform: scale(1);    background: var(--accent); }
 }
 .pl__label {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
