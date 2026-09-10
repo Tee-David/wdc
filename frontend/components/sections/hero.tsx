@@ -162,7 +162,7 @@ export function Hero() {
           </Link>
           <Link
             href="#pv-work"
-            className="inline-flex items-center gap-2 rounded-full border border-line bg-white text-[#000065] px-7 py-3.5 text-sm font-semibold shadow-[0_8px_26px_rgba(0,0,0,0.12)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#000065] hover:text-white hover:border-[#000065] active:translate-y-0 dark:bg-background/40 dark:text-foreground dark:hover:bg-primary dark:hover:text-white dark:hover:border-primary"
+            className="inline-flex items-center gap-2 rounded-full border border-line bg-white text-black px-7 py-3.5 text-sm font-semibold shadow-[0_8px_26px_rgba(0,0,0,0.12)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#000065] hover:text-white hover:border-[#000065] active:translate-y-0 dark:bg-background/40 dark:text-foreground dark:hover:bg-primary dark:hover:text-white dark:hover:border-primary"
           >
             Explore Our Work
           </Link>
