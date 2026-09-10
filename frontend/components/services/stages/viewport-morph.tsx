@@ -24,14 +24,15 @@ import { WEB_STACKS } from "@/lib/showcase";
  * drift them apart within a screen, since the phone capture is 26 times its own
  * width and the desktop one only 5.7.
  *
- * The captures are WDC's own site, which is a real full-stack responsive build
- * and is named as ours in the caption. Client long-scrolls drop into SHOTS
- * without touching anything else here.
+ * The captures are TraxStaff, a client product we built: a Next.js front end on
+ * a Fastify and Prisma API. Real client work beats our own site here, and it is
+ * named in the caption. Other projects drop into SHOTS without touching
+ * anything else.
  */
 const SHOTS = [
-  { id: "desktop", label: "Desktop", px: 1440, src: "/work/long/wdc-desktop.jpg" },
-  { id: "tablet", label: "Tablet", px: 768, src: "/work/long/wdc-tablet.jpg" },
-  { id: "phone", label: "Phone", px: 390, src: "/work/long/wdc-phone.jpg" },
+  { id: "desktop", label: "Desktop", px: 1440, src: "/work/long/trax-desktop.jpg" },
+  { id: "tablet", label: "Tablet", px: 768, src: "/work/long/trax-tablet.jpg" },
+  { id: "phone", label: "Phone", px: 390, src: "/work/long/trax-phone.jpg" },
 ] as const;
 
 /** One device. The track holds the capture TWICE and translates by exactly
@@ -63,7 +64,7 @@ function Device({
               <img
                 key={dup}
                 src={shot.src}
-                alt={dup === 0 ? `The WDC site at ${shot.px}px wide` : ""}
+                alt={dup === 0 ? `The TraxStaff site at ${shot.px}px wide` : ""}
                 aria-hidden={dup === 1}
                 loading="lazy"
                 draggable={false}
@@ -95,7 +96,7 @@ export default function ViewportMorph() {
 
   return (
     <Stage
-      caption="Our own site, captured at three real widths. The frames are scrolling the live page."
+      caption="TraxStaff, captured at three real widths. The frames are scrolling the live page."
       controls={controls}
     >
       <div className={`vp3 vp3--${mode}`}>

@@ -28,11 +28,16 @@ export type Project = {
 
 export const PROJECTS: Project[] = [
   {
-    name: "Traxstaff",
-    // TODO(client): confirm the one-line sector and add public/work/traxstaff.jpg
-    sector: "Software product",
-    url: "https://app.traxstaff.com/",
-    services: ["software"],
+    name: "TraxStaff",
+    /* Tagged across three services from what the repository actually contains:
+       a Next.js dashboard and Fastify/Prisma API (web), a Tauri desktop client
+       and an Expo mobile client (apps), and the product engineering behind all
+       of it (software). It was tagged software-only, which left the Apps filter
+       showing zero projects against a service we sell. */
+    sector: "Time tracking for teams",
+    url: "https://traxstaff.com/",
+    cover: "/work/traxstaff.jpg",
+    services: ["web", "apps", "software"],
   },
   {
     name: "Litch Consulting",
