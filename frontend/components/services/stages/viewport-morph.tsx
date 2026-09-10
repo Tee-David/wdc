@@ -2,54 +2,56 @@
 
 import { useState } from "react";
 import { Stage, TabRow, useStageMotion } from "./stage-shell";
-import { WEB_STACKS } from "@/lib/showcase";
+import { WEB_STACKS, type WebStack } from "@/lib/showcase";
 
 /**
  * 03 · Full-Stack Web — "One build, every viewport".
  *
- * Three device mockups running the SAME page, each from a capture taken at that
- * device's real width, all scrolling at once.
+ * Three device mockups, and the TAB decides what is in them.
  *
- * The old version resized a single frame across three widths on a timer, which
- * showed one thing at a time and proved nothing: a screenshot squashed narrow
- * is not a responsive layout, it is a squashed screenshot. Capturing the page
- * separately at 1440, 768 and 390 means each frame shows the layout that width
- * actually gets — the nav collapses, the columns stack, the type resets — and
- * putting them side by side makes that the whole argument.
+ * An earlier version resized a single frame across three widths on a timer,
+ * which showed one thing at a time and proved nothing: a screenshot squashed
+ * narrow is not a responsive layout, it is a squashed screenshot. Capturing a
+ * page separately at 1440, 768 and 390 means each frame shows the layout that
+ * width actually gets, and putting them side by side makes that the argument.
  *
- * All three tracks share one duration, which is the trick that makes it read.
- * Each track is one capture tall, so equal duration means equal RELATIVE
- * progress: at eight seconds in, all three are showing the same part of the
- * same page in three different layouts. Matching pixel speed instead would
- * drift them apart within a screen, since the phone capture is 26 times its own
- * width and the desktop one only 5.7.
+ * Two behaviours, chosen per stack rather than globally:
  *
- * The captures are TraxStaff, a client product we built: a Next.js front end on
- * a Fastify and Prisma API. Real client work beats our own site here, and it is
- * named in the caption. Other projects drop into SHOTS without touching
- * anything else.
+ *  - A tall page SCROLLS. All three tracks share one duration, which is what
+ *    makes it read: each track is one capture tall, so equal duration means
+ *    equal RELATIVE progress and at eight seconds in all three are showing the
+ *    same part of the same page in three different layouts. Matching pixel
+ *    speed would drift them apart within a screen, since the phone capture is
+ *    26 times its own width and the desktop one only 5.7.
+ *  - A dashboard HOLDS STILL. It is one screen, already fitting its frame;
+ *    scrolling it would just jitter a static image.
+ *
+ * A stack with no captures says so. Borrowing another stack's screens to fill
+ * the WordPress tab would be a lie told in pictures.
  */
-const SHOTS = [
-  { id: "desktop", label: "Desktop", px: 1440, src: "/work/long/trax-desktop.jpg" },
-  { id: "tablet", label: "Tablet", px: 768, src: "/work/long/trax-tablet.jpg" },
-  { id: "phone", label: "Phone", px: 390, src: "/work/long/trax-phone.jpg" },
+const DEVICES = [
+  { id: "desktop", label: "Desktop", px: 1440, key: "desktop" },
+  { id: "tablet", label: "Tablet", px: 768, key: "tablet" },
+  { id: "phone", label: "Phone", px: 390, key: "phone" },
 ] as const;
 
-/** One device. The track holds the capture TWICE and translates by exactly
- *  -50%, so the loop closes without measuring the image height. */
 function Device({
-  shot,
+  device,
+  src,
   stack,
-  still,
+  scroll,
+  alt,
 }: {
-  shot: (typeof SHOTS)[number];
+  device: (typeof DEVICES)[number];
+  src?: string;
   stack: string;
-  still: boolean;
+  scroll: boolean;
+  alt: string;
 }) {
   return (
-    <figure className={`dv dv--${shot.id}`}>
+    <figure className={`dv dv--${device.id}`}>
       <div className="dv__body">
-        {shot.id === "desktop" ? (
+        {device.id === "desktop" ? (
           <div className="dv__bar" aria-hidden="true">
             <i /><i /><i />
             <span className="dv__url">{stack}</span>
@@ -58,24 +60,30 @@ function Device({
           <span className="dv__notch" aria-hidden="true" />
         )}
         <div className="dv__view">
-          <div className={`dv__track${still ? " is-still" : ""}`}>
-            {[0, 1].map((dup) => (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
-                key={dup}
-                src={shot.src}
-                alt={dup === 0 ? `The TraxStaff site at ${shot.px}px wide` : ""}
-                aria-hidden={dup === 1}
-                loading="lazy"
-                draggable={false}
-              />
-            ))}
-          </div>
+          {src ? (
+            /* The track holds the capture TWICE and translates by exactly -50%,
+               so a scrolling loop closes without measuring the image height. */
+            <div className={`dv__track${scroll ? "" : " is-still"}${scroll ? "" : " dv__track--fit"}`}>
+              {(scroll ? [0, 1] : [0]).map((dup) => (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  key={dup}
+                  src={src}
+                  alt={dup === 0 ? alt : ""}
+                  aria-hidden={dup === 1}
+                  loading="lazy"
+                  draggable={false}
+                />
+              ))}
+            </div>
+          ) : (
+            <span className="dv__wait" aria-hidden="true" />
+          )}
         </div>
       </div>
       <figcaption className="dv__cap">
-        <span className="dv__label">{shot.label}</span>
-        <span className="dv__px">{shot.px}px</span>
+        <span className="dv__label">{device.label}</span>
+        <span className="dv__px">{device.px}px</span>
       </figcaption>
     </figure>
   );
@@ -83,9 +91,10 @@ function Device({
 
 export default function ViewportMorph() {
   const mode = useStageMotion();
-  const [stack, setStack] = useState<string>(WEB_STACKS[2].id); // custom build
-  const active = WEB_STACKS.find((s) => s.id === stack) ?? WEB_STACKS[0];
+  const [stack, setStack] = useState<string>(WEB_STACKS[0].id);
+  const active: WebStack = WEB_STACKS.find((s) => s.id === stack) ?? WEB_STACKS[0];
   const still = mode === "still";
+  const scroll = active.scroll && !still;
 
   const controls = (
     <>
@@ -94,15 +103,25 @@ export default function ViewportMorph() {
     </>
   );
 
+  const caption = active.shots
+    ? `${active.shotOf}, captured at three real widths.`
+    : `Screens for ${active.label} builds are being added.`;
+
   return (
-    <Stage
-      caption="TraxStaff, captured at three real widths. The frames are scrolling the live page."
-      controls={controls}
-    >
-      <div className={`vp3 vp3--${mode}`}>
+    <Stage caption={caption} controls={controls}>
+      {/* keyed by stack so switching tab restarts the tracks together rather
+          than dropping the new captures into the old one's mid-flight timing */}
+      <div className={`vp3 vp3--${mode}`} key={active.id}>
         <div className="vp3__rack">
-          {SHOTS.map((s) => (
-            <Device key={s.id} shot={s} stack={active.label.toLowerCase()} still={still} />
+          {DEVICES.map((d) => (
+            <Device
+              key={d.id}
+              device={d}
+              src={active.shots?.[d.key]}
+              stack={active.label.toLowerCase()}
+              scroll={scroll}
+              alt={`${active.shotOf ?? active.label} at ${d.px}px wide`}
+            />
           ))}
         </div>
         <div className="vp3__chips">

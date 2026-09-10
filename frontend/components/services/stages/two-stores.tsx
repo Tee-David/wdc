@@ -95,12 +95,18 @@ function Phone({ os, paused, ui, screens }: {
           <span className="ph__sig"><i /><i /><i /></span>
         </div>
         <div className="ph__head" aria-hidden="true">{screens[0]}</div>
+        {/* The track is clipped by its OWN viewport, not by the phone frame.
+            `ph-scroll` translates it upward by half its height, and a transform
+            paints outside the flow: clipped only at the frame, the rising track
+            slid up over the status bar and header and covered them. */}
+        <div className="ph__vp">
         <div className={`ph__track${paused ? " is-still" : ""}`}>
           {[0, 1].map((dup) => (
             <div className="ph__half" key={dup} aria-hidden={dup === 1}>
               {REEL.map((blk, n) => <Blk blk={blk} key={`${dup}-${n}`} />)}
             </div>
           ))}
+        </div>
         </div>
       </div>
     </div>
