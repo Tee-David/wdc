@@ -134,41 +134,7 @@
 @media (max-width: 560px) { .serp__badge { display: none; } }
 
 /* ---------------- 03 viewport ---------------- */
-.vp { position: absolute; inset: 0; padding: clamp(14px, 2.4vw, 26px); display: flex; flex-direction: column; gap: 12px; }
-.vp__ruler {
-  display: flex; align-items: baseline; gap: 10px; flex: none;
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
-}
-.vp__px { font-weight: 700; color: var(--accent); font-size: 1.05rem; font-variant-numeric: tabular-nums; }
-.vp__label { font-size: .8rem; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
-.vp__stagewrap { flex: 1; display: grid; place-items: center; min-height: 0; }
-.vp-chrome {
-  border-radius: 12px; overflow: hidden;
-  border: 1px solid var(--rule); background: var(--paper);
-  box-shadow: 0 18px 40px -24px rgba(0, 0, 101, .5);
-}
-.vp__frame {
-  height: 100%; display: flex; flex-direction: column;
-  transition: width .7s cubic-bezier(.16, 1, .3, 1);
-}
-.vp-chrome__bar { flex: none; display: flex; gap: 5px; padding: 8px 10px; background: var(--paper-2); }
-.vp-chrome__bar i { width: 7px; height: 7px; border-radius: 50%; background: var(--rule); }
-.vp-chrome__view { flex: 1; min-height: 0; overflow: hidden; }
-.vp-chrome__view img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
-.vp__dots { display: flex; gap: 7px; justify-content: center; flex: none; }
-.vp__dot {
-  width: 7px; height: 7px; padding: 0; border-radius: 50%; cursor: pointer;
-  background: var(--rule); border: 0; transition: background-color .2s ease, transform .2s ease;
-}
-.vp__dot.is-on { background: var(--accent); transform: scale(1.35); }
 /* still + compact */
-.vp-still {
-  position: absolute; inset: 0; padding: clamp(14px, 3vw, 24px);
-  display: flex; align-items: flex-end; justify-content: center; gap: 12px;
-}
-.vp-still__item { display: grid; gap: 6px; justify-items: center; }
-.vp-still__item small { font-size: .72rem; color: var(--muted); }
-.vp-chrome--sm img { width: 100%; aspect-ratio: 3/4; object-fit: cover; object-position: top center; }
 
 /* ---------------- 04 two stores ---------------- */
 .ts {
@@ -190,7 +156,7 @@
 }
 .ts__split { display: flex; gap: 6px; }
 .ts__split span { flex: 1; height: 2px; border-radius: 2px; background: var(--accent); opacity: .55; }
-.ts__devices { display: flex; gap: clamp(10px, 2vw, 22px); justify-content: center; height: 100%; min-height: 0; align-items: stretch; padding-block: 4px; }
+.ts__devices { display: flex; gap: clamp(10px, 2vw, 22px); justify-content: center; height: 100%; min-height: 0; align-items: center; padding-block: 4px; }
 .ts__toggle { display: flex; gap: 6px; }
 .ts__tab {
   padding: 7px 15px; border-radius: 999px; cursor: pointer;
@@ -201,7 +167,7 @@
 
 .ph {
   display: flex; flex-direction: column; align-items: center; gap: 8px;
-  height: 100%; min-height: 0;
+  max-height: 100%; min-height: 0;
 }
 .ts--compact .ph { height: 92%; }
 .ts--compact .ph__screen { width: clamp(120px, 42vw, 190px); }
@@ -210,12 +176,16 @@
   font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
 }
 .ph__os { flex: none; }
-/* an explicit width, not aspect-ratio: the ratio never resolved against a flexed
-   height here, so both frames fell back to content width, came out unequal and
-   closed the gap between them */
+/* Width is explicit and the ratio derives the HEIGHT from it. The earlier note
+   here said aspect-ratio never resolved, which was true in the other direction:
+   height came from `flex: 1 1 0` and there was nothing definite for the ratio
+   to work back from, so both frames fell to content width. Driving it width to
+   height resolves, and it stops the frame stretching into a 1:4 column in a
+   tall stage. `max-height` keeps it inside a short one. */
 .ph__screen {
-  position: relative; flex: 1 1 0; min-height: 0;
-  width: clamp(104px, 11vw, 168px); overflow: hidden;
+  position: relative; flex: 0 1 auto; min-height: 0;
+  width: clamp(104px, 11vw, 168px); aspect-ratio: 9 / 18; max-height: 100%;
+  overflow: hidden;
   border-radius: 18px; border: 2px solid var(--rule); background: var(--paper);
 }
 .pv-sec--alt .ph__screen { background: var(--paper-2); }
@@ -226,14 +196,6 @@
 .ph__track.is-still { animation: none; }
 @keyframes ph-scroll { to { transform: translateY(-50%); } }
 .ph__half { display: flex; flex-direction: column; }
-.ph__card { display: grid; gap: 5px; padding: 10px; border-bottom: 1px solid var(--rule); }
-.ph__pill {
-  justify-self: start; font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-size: .6rem; font-weight: 700; padding: 2px 7px; border-radius: 999px;
-  background: var(--rule); color: var(--muted);
-}
-.ph__pill.is-accent { background: var(--accent); color: #000065; }
-.ph__line { height: 4px; border-radius: 3px; background: var(--rule); }
 
 /* ---------------- 05 pipeline ---------------- */
 .pl {
@@ -430,12 +392,6 @@
   background: var(--paper-2); border: 1px solid var(--rule); color: var(--muted);
 }
 .pv-sec--alt .vp__chip { background: var(--paper); }
-.vp-chrome__url {
-  margin-left: 8px; font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-size: .64rem; color: var(--muted); letter-spacing: .02em;
-}
-.vp-still__row { display: flex; align-items: flex-end; justify-content: center; gap: 12px; }
-.vp-still { flex-direction: column; gap: 14px; }
 
 /* ---------------- social: plan beside the wall ---------------- */
 .fw-split {
@@ -573,3 +529,149 @@
 /* JS resolves "still" too, so a reduced-motion visitor gets a static diagonal
    wall from both directions rather than relying on the media query alone. */
 .gm--still .gm__track { animation: none !important; }
+
+/* ---------------- 03 three-device rack ---------------- */
+/* Three devices at once, not one frame resizing on a timer. Each carries a
+   capture taken at its own real width, so the differences between them are the
+   layout's, not a scale transform's. */
+.vp3 { display: flex; flex-direction: column; height: 100%; gap: 14px; padding: clamp(12px, 2vw, 22px); }
+.vp3__rack {
+  flex: 1; min-height: 0;
+  display: flex; align-items: center; justify-content: center;
+  gap: clamp(10px, 2.2vw, 34px);
+}
+/* captions hang below their own device, so the frames themselves stay centred */
+.dv { justify-content: center; }
+.dv { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
+.dv__body {
+  position: relative; overflow: hidden; background: var(--band);
+  border: 1px solid var(--rule);
+  box-shadow: 0 18px 40px -24px rgb(0 0 101 / .55);
+}
+/* Sized from the frame's HEIGHT, not its width, with the aspect ratio deriving
+   the width. Sizing off width left the rack parked at the bottom of a tall
+   frame with most of the stage empty above it; off height the three fill
+   whatever box the stage gives them. Proportions are the devices' own, so the
+   rack reads as three machines rather than three rectangles. */
+.dv--desktop .dv__body { height: min(62%, 360px); aspect-ratio: 16 / 10; border-radius: 10px; }
+.dv--tablet  .dv__body { height: min(84%, 470px); aspect-ratio: 3 / 4;   border-radius: 14px; padding: 8px; }
+.dv--phone   .dv__body { height: min(80%, 450px); aspect-ratio: 9 / 19;  border-radius: 16px; padding: 6px; }
+/* a floor for narrow screens, where a percentage of a short frame is unreadable */
+@media (max-width: 700px) {
+  .dv--desktop .dv__body { height: auto; width: min(46vw, 190px); }
+  .dv--tablet  .dv__body { height: auto; width: min(22vw, 96px); }
+  .dv--phone   .dv__body { height: auto; width: min(15vw, 64px); }
+}
+
+.dv__bar {
+  display: flex; align-items: center; gap: 5px; height: 22px; padding: 0 9px;
+  background: var(--paper-2); border-bottom: 1px solid var(--rule);
+}
+.dv__bar i { width: 7px; height: 7px; border-radius: 50%; background: var(--rule); flex: none; }
+.dv__url {
+  margin-left: 8px; font-size: .58rem; color: var(--muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.dv__notch {
+  position: absolute; top: 3px; left: 50%; translate: -50% 0; z-index: 2;
+  width: 34%; height: 5px; border-radius: 99px; background: var(--rule);
+}
+/* the window the capture scrolls behind */
+.dv__view { position: relative; overflow: hidden; height: 100%; background: var(--paper); }
+.dv--desktop .dv__view { height: calc(100% - 22px); }
+.dv--tablet .dv__view,
+.dv--phone  .dv__view { border-radius: 8px; }
+.dv__track { display: block; will-change: transform; }
+.dv__track img { display: block; width: 100%; height: auto; }
+
+/* One duration for all three: each track is one capture tall, so equal duration
+   means equal RELATIVE progress and the devices stay on the same part of the
+   page as they scroll. */
+@media (prefers-reduced-motion: no-preference) {
+  .dv__track { animation: dv-scroll 34s linear infinite; }
+  .dv__track.is-still { animation: none; }
+}
+@keyframes dv-scroll {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-50%); }
+}
+
+.vp3__chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; flex: none; }
+
+@media (max-width: 700px) {
+  .vp3__rack { gap: 8px; }
+  .dv__cap { font-size: .62rem; }
+}
+.dv__cap {
+  display: flex; align-items: baseline; gap: 7px; flex: none;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+}
+.dv__label { font-size: .72rem; font-weight: 600; color: var(--ink); }
+.dv__px { font-size: .64rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* ---------------- 04 phone interfaces ---------------- */
+/* Four block types so the four product tabs render four different screens. A
+   dashboard, an order table, a marketplace grid and a work queue do not look
+   alike, and pretending they do is what made the control look decorative. */
+.ph__status {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 9px 3px; font-size: .5rem; color: var(--muted);
+  font-variant-numeric: tabular-nums; flex: none;
+}
+.ph__sig { display: inline-flex; align-items: flex-end; gap: 1.5px; }
+.ph__sig i { width: 2px; background: var(--muted); border-radius: 1px; }
+.ph__sig i:nth-child(1) { height: 3px; }
+.ph__sig i:nth-child(2) { height: 5px; }
+.ph__sig i:nth-child(3) { height: 7px; }
+.ph__head {
+  padding: 0 9px 6px; flex: none;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .62rem; font-weight: 700; color: var(--ink);
+  border-bottom: 1px solid var(--rule);
+}
+.ph__half { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 7px; }
+/* everything is full width except the marketplace tiles, which are the one
+   block that reads as a grid in a real app */
+.ph__half > *:not(.ph__tile) { grid-column: 1 / -1; }
+
+.ph__kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.ph__kpi {
+  display: grid; gap: 3px; padding: 6px;
+  border-radius: 7px; background: var(--paper-2); border: 1px solid var(--rule);
+}
+.ph__kpin { height: 7px; width: 58%; border-radius: 3px; background: var(--accent); opacity: .75; }
+.ph__kpi em { font-style: normal; font-size: .46rem; color: var(--muted); }
+
+.ph__chart {
+  display: flex; align-items: flex-end; gap: 3px; height: 40px;
+  padding: 6px; border-radius: 7px; background: var(--paper-2); border: 1px solid var(--rule);
+}
+.ph__chart i { flex: 1; border-radius: 2px 2px 0 0; background: var(--accent); opacity: .6; }
+.ph__chart i:last-child { opacity: 1; }
+
+.ph__row {
+  display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  padding: 6px 7px; border-radius: 7px;
+  background: var(--paper-2); border: 1px solid var(--rule);
+}
+.ph__ra { font-size: .5rem; color: var(--ink); font-weight: 600; }
+.ph__rb {
+  font-size: .44rem; color: var(--muted); padding: 1px 5px;
+  border-radius: 99px; background: var(--paper); border: 1px solid var(--rule);
+}
+
+.ph__tile {
+  display: grid; gap: 3px; padding: 6px; border-radius: 7px;
+  background: var(--paper-2); border: 1px solid var(--rule);
+}
+.ph__thumb { height: 26px; border-radius: 5px; background: var(--rule); }
+.ph__tt { font-size: .48rem; color: var(--ink); font-weight: 600; }
+.ph__tp { font-size: .46rem; color: var(--accent); font-weight: 700; }
+
+.ph__task { display: flex; align-items: center; gap: 6px; padding: 5px 7px; }
+.ph__task span { font-size: .5rem; color: var(--ink); }
+.ph__check {
+  width: 10px; height: 10px; flex: none; border-radius: 3px;
+  border: 1px solid var(--rule); background: var(--paper-2);
+}
+.ph__check.is-done { background: var(--accent); border-color: var(--accent); }
