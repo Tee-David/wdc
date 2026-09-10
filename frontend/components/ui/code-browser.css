@@ -10,6 +10,8 @@
   display: grid; gap: 0; min-width: 0;
   border: 1px solid var(--on-band-rule); border-radius: 14px;
   background: var(--band); overflow: hidden;
+  /* the demo pointer is absolutely positioned against this box */
+  position: relative;
 }
 
 /* --- narrow: a horizontal strip of files --- */
@@ -109,4 +111,46 @@
   text-transform: uppercase; color: rgb(255 255 255 / .62);
   }
   .cb__file { width: 100%; justify-content: flex-start; }
+}
+
+/* ==========================================================================
+   The demo loop.
+
+   Same idea as the content calendar: a pointer moves to a file, presses it,
+   and the source streams in. Everything here is inert unless `.is-demo` is on
+   the root, which the component only sets while the panel is near the
+   viewport, motion is allowed, and the visitor has not touched it yet.
+   ========================================================================== */
+
+/* A pending line is HIDDEN, not removed: removing it would shrink the pane on
+   every step and grow it back, moving the stage while the demo runs. */
+.cb__line.is-pending { visibility: hidden; }
+.cb__caret {
+  display: inline-block; width: .5em; height: 1em; margin-left: 2px;
+  vertical-align: -.15em; background: var(--accent);
+  animation: cb-caret 1s steps(1) infinite;
+}
+@keyframes cb-caret { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+
+.cb__cursor {
+  position: absolute; left: var(--cx, 50%); top: var(--cy, 50%);
+  width: 14px; height: 16px; pointer-events: none; z-index: 3;
+  filter: drop-shadow(0 2px 3px rgb(0 0 40 / .55));
+  transition: left .6s cubic-bezier(.5, 0, .2, 1),
+              top .6s cubic-bezier(.5, 0, .2, 1),
+              transform .18s ease;
+}
+.cb__cursor.is-press { transform: scale(.82); }
+.cb__cursor svg { width: 100%; height: 100%; fill: #fff; stroke: #0a0a2a; stroke-width: 1.2; }
+
+/* The file the pointer is pressing dips with it, so the press reads as a press
+   rather than as the cursor twitching over an inert row. */
+.cb__file.is-press { transform: translateY(1px) scale(.99); }
+
+/* Nothing above runs for anyone who asked for no motion: the component skips
+   the script, and these make sure no stray frame is left over. */
+@media (prefers-reduced-motion: reduce) {
+  .cb__cursor { display: none; }
+  .cb__caret { animation: none; opacity: 0; }
+  .cb__line.is-pending { visibility: visible; }
 }

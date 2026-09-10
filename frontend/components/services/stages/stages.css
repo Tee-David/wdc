@@ -193,26 +193,31 @@
 .ts__tab.is-on { background: var(--accent); border-color: var(--accent); color: #fff; }
 
 .ph {
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  max-height: 100%; min-height: 0;
+  /* A grid, not a flex column, so the frame row can be a definite `1fr`: the
+     phone is then sized by the height it is GIVEN and derives its width from
+     the hardware ratio. Sizing by width and hoping it fit is what left the
+     phones sheared off halfway down whenever the card above them grew a line. */
+  display: grid; grid-template-rows: auto minmax(0, 1fr);
+  justify-items: center; gap: 8px;
+  height: 100%; min-height: 0;
 }
 .ts--compact .ph { height: 92%; }
-.ts--compact .ph__frame { width: clamp(120px, 42vw, 190px); }
+.ts--compact .ph__frame { max-width: clamp(120px, 42vw, 190px); }
 .ph__os {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
 }
 .ph__os { flex: none; }
-/* Width is explicit and the ratio derives the HEIGHT from it. The earlier note
-   here said aspect-ratio never resolved, which was true in the other direction:
-   height came from `flex: 1 1 0` and there was nothing definite for the ratio
-   to work back from, so both frames fell to content width. Driving it width to
-   height resolves, and it stops the frame stretching into a 1:4 column in a
-   tall stage. `max-height` keeps it inside a short one. */
-/* The screen now sits INSIDE a real device render, so it stops carrying a
-   width, a border and a radius of its own — the frame supplies all three, and
-   a second rounded rectangle inside the first read as a double bezel. */
-.ph__frame { width: clamp(112px, 12vw, 180px); max-height: 100%; }
+/* Height is definite and the ratio derives the WIDTH from it, which is the
+   direction that cannot overflow: the devices row gets whatever the source
+   card leaves, and the phone fits it by construction. `justify-items: center`
+   on the parent grid is what makes this resolve -- a stretched grid item takes
+   its container's inline size and the ratio never gets a say. `max-width`
+   stops a short, wide stage from inflating them.
+   The screen sits INSIDE a real device render, so it carries no width, border
+   or radius of its own — the frame supplies all three, and a second rounded
+   rectangle inside the first read as a double bezel. */
+.ph__frame { height: 100%; width: auto; max-width: min(180px, 12vw); }
 .ph__screen {
   position: absolute; inset: 0; overflow: hidden;
   background: var(--paper);
@@ -559,6 +564,14 @@
   background: var(--paper-2); border: 1px solid var(--rule); color: var(--muted);
 }
 .pv-sec--alt .ts__screens li { background: var(--paper); }
+/* The product-kind note, inside the source card rather than above the frame.
+   It changes with the tabs, so it needs a settled height: two lines at this
+   width, reserved, or the code panel under it jumps a line every time the
+   selected kind changes. */
+.ts__note {
+  font-size: .78rem; color: var(--muted); margin: -4px 0 2px;
+  min-height: 2.6em;
+}
 .ts__ship {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .74rem; letter-spacing: .04em; text-transform: uppercase;
