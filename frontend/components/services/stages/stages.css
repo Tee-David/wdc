@@ -691,6 +691,13 @@
    only its right third: the tablet's left two thirds stay clear. The phone
    keeps 13% of the width, which is what holds its own screen readable. */
 .dv--desktop { left: 6%;  top: 1.5%; width: 88%; aspect-ratio: 942 / 577;  z-index: 1; }
+/* A stack with only a desktop capture has no tablet or phone overlapping the
+   laptop's lower right, so the composition's whole reason for sitting high and
+   narrow is gone: it left the machine floating in the top third of the frame
+   with a third of the stage empty underneath. Alone, it centres and fills. */
+.vp3__scene:not(:has(.dv--tablet)):not(:has(.dv--phone)) .dv--desktop {
+  left: 0; width: 100%; top: 50%; translate: 0 -50%;
+}
 .dv--tablet  { left: 59%; top: 39%;  width: 31%; aspect-ratio: 20 / 21;    z-index: 2; }
 .dv--phone   { left: 79%; top: 45%;  width: 13%; aspect-ratio: 9 / 20.5;   z-index: 3; }
 
@@ -766,10 +773,26 @@
 .dv--phone .dv__view { border-radius: 0 0 11% 11% / 0 0 5.1% 5.1%; }
 .dv__track { display: block; will-change: transform; }
 .dv__track img { display: block; width: 100%; height: auto; }
-/* A dashboard is one screen, not a tall page: it is contained in the frame and
-   centred rather than run top-aligned at full width, which would crop it. */
+/* Held still, and the fit follows from what the asset IS.
+
+   A full-page capture is many times taller than the frame, so it has to be
+   CONTAINED -- covered, you would see one strip of it.
+
+   A single screen is already close to the frame's own shape, and containing it
+   was the bug: the WordPress admin is 1.85:1 against a 1.77:1 window and the
+   Shopify one is 1.66:1, so each sat inside the glass with a band of dead
+   space along one edge -- covering the frame without ever filling it. Filled
+   from the top, the four to six per cent that goes is the bottom of a page or
+   the outer edge of a sidebar, and the screen reads as being ON the machine. */
 .dv__track--fit { height: 100%; display: grid; place-items: center; }
-.dv__track--fit img { width: 100%; height: 100%; object-fit: contain; }
+.dv__track--fit img { width: 100%; height: 100%; }
+.dv__track--page img { object-fit: contain; }
+/* Anchored to the TOP LEFT, not the centre. These are admin screens: the left
+   column is the navigation and the top is the toolbar, and centring the crop
+   sliced the sidebar's labels down their middle, which reads as a broken
+   screenshot rather than as a cropped one. What goes instead is the right
+   margin and the bottom of the page, which is where a screen has nothing. */
+.dv__track--screen img { object-fit: cover; object-position: left top; }
 
 /* A stack we do not have captures for yet says so, rather than borrowing
    another stack's screens. A faint sweep keeps the frame from reading as a

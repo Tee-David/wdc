@@ -176,11 +176,25 @@ export type WebStack = {
   label: string;
   note: string;
   chips: readonly string[];
+  /* True for a FULL-PAGE capture, which is taller than the frame and so runs
+     as a loop; false for a single screen, which is held still and filled to
+     the frame. The flag decides both the motion and the fit, because those two
+     answers always follow from the same fact about the asset. */
   scroll: boolean;
   /* Each width is optional on its own. A stack can have a desktop capture and
      no tablet or phone — the stage renders only the frames it has assets for,
      rather than stretching one screenshot across three device shapes. */
   shots?: { desktop?: string; tablet?: string; phone?: string };
+  /** What goes in the mock address bar. A path, because that is what a browser
+      shows there — the client's name in a URL slot read as a label stuck on a
+      screenshot. */
+  url: string;
+  /** The caption under the frame. It describes what this build TYPE gives you,
+      not whose screen this is: crediting a client under a screenshot is a
+      claim about them, and naming a platform's own admin ("the Shopify admin")
+      captions the vendor's product rather than our work. */
+  cap: string;
+  /** Alt text subject. Not rendered visually. */
   shotOf?: string;
 };
 
@@ -191,7 +205,9 @@ export const WEB_STACKS: WebStack[] = [
     note: "Engineered from zero when a template would cost more than it saves.",
     chips: ["Next.js", "React", "TypeScript", "Tailwind"],
     scroll: true,
-    shotOf: "TraxStaff",
+    url: "/careers",
+    cap: "One build, laid out for the width it is given.",
+    shotOf: "A custom build",
     shots: {
       desktop: "/work/long/trax-desktop.jpg",
       tablet: "/work/long/trax-tablet.jpg",
@@ -209,7 +225,9 @@ export const WEB_STACKS: WebStack[] = [
        fits, and the whole claim of this stage is what the layout does with the
        width it is given. */
     scroll: true,
-    shotOf: "the Litch Consulting dashboard",
+    url: "/dashboard",
+    cap: "A signed-in product, at three real widths.",
+    shotOf: "A web app dashboard",
     shots: {
       desktop: "/work/app/litch-dashboard.jpg",
       tablet: "/work/app/litch-tablet.jpg",
@@ -221,12 +239,17 @@ export const WEB_STACKS: WebStack[] = [
     label: "WordPress",
     note: "CMS-driven, so your team edits it without calling us.",
     chips: ["WordPress", "PHP", "Custom theme", "WooCommerce"],
-    scroll: true,
+    /* A single screen, not a full page: 1400x758 is barely taller than the
+       frame, so looping it drifted the same view past itself. Held still and
+       filled instead. */
+    scroll: false,
     /* Desktop only. These are the PLATFORM's own admin, and the tablet and
        phone captures do not exist yet; the stage renders just the laptop
        rather than stretching this one across all three frames, which would
        present a desktop screenshot as a tablet and a phone layout. */
-    shotOf: "the WordPress admin",
+    url: "/wp-admin",
+    cap: "The editor your team uses, not one they have to learn.",
+    shotOf: "A WordPress editing screen",
     shots: { desktop: "/work/app/wp-admin.jpg" },
   },
   {
@@ -234,12 +257,15 @@ export const WEB_STACKS: WebStack[] = [
     label: "Shopify",
     note: "Commerce on a managed checkout, themed rather than fought.",
     chips: ["Shopify", "Liquid", "Apps", "Payments"],
-    scroll: true,
+    /* A single screen, not a full page — see the WordPress note above. */
+    scroll: false,
     /* Desktop only. These are the PLATFORM's own admin, and the tablet and
        phone captures do not exist yet; the stage renders just the laptop
        rather than stretching this one across all three frames, which would
        present a desktop screenshot as a tablet and a phone layout. */
-    shotOf: "the Shopify admin",
+    url: "/admin/orders",
+    cap: "Products, orders and a checkout you do not maintain.",
+    shotOf: "A store admin screen",
     shots: { desktop: "/work/app/shopify-admin.jpg" },
   },
 ];
