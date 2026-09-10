@@ -81,17 +81,33 @@
 /* The window fades at both edges rather than cutting, so the list reads as a
    slice of a longer results page instead of a box that happens to end. */
 .serp__listwrap {
-  flex: 1; display: grid; align-content: center; margin-top: 12px;
+  flex: 1; min-height: 0; display: grid; align-content: stretch; margin-top: 12px;
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
           mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
 }
-.serp__list { position: relative; }
+/* The list takes the whole window and the rows divide it, rather than eight
+   44px rows sitting in the middle of it with the difference showing above and
+   below. The bounds stop a tall stage spacing results out like a menu and a
+   short one crushing them together. */
+.serp__list {
+  position: relative; height: 100%;
+  min-height: calc(var(--slots, 8) * var(--row-min, 36px));
+  max-height: calc(var(--slots, 8) * var(--row-max, 62px));
+  align-self: center;
+}
 /* Position uses the `translate` PROPERTY, not `transform`. They are separate
    properties, so the row can be positioned and animate its entrance at the same
    time; putting both in `transform` means whichever lands last wins and the
-   entrance throws the row to the top of the list. */
+   entrance throws the row to the top of the list.
+
+   `--y` is a multiple of 100%, and on `translate` a percentage resolves
+   against the element's OWN height -- which is exactly one slot, since each
+   row is `100% / slots` of the list. So slot 3 is `300%` and lands where the
+   fourth row belongs, at whatever pitch the frame has given them. (Reading
+   that percentage as a share of the LIST is the trap: it made every row
+   travel a fraction of its own 40px and the whole set piled up at the top.) */
 .serp__row {
-  position: absolute; inset-inline: 0; height: 40px;
+  position: absolute; inset-inline: 0; height: calc(100% / var(--slots, 8));
   display: flex; align-items: center; gap: 12px;
   padding: 0 12px; border-radius: 10px;
   translate: 0 var(--y, 0px);
