@@ -1,0 +1,326 @@
+/* ==========================================================================
+   /work — the three tiers.
+
+   Everything here lives inside `.pv`, so it inherits the site's tokens rather
+   than declaring its own: --paper, --paper-2, --band, --accent, --ink,
+   --muted, --rule, and Space Grotesk over Outfit. Nothing below hard-codes a
+   colour except on a brand surface, where the COLOUR RULE at the top of
+   preview.css applies — text on --accent and on --band is always literal #fff,
+   in both themes, and the rule has to reach (0,2,0) to beat `.pv a { color:
+   inherit }`.
+   ========================================================================== */
+
+/* --------------------------------------------------------------- the hub */
+
+/* The reference's dark panel: one plate holding the whole set, so the
+   categories read as a group rather than as six cards floating on the page. */
+.wk-plate {
+  background: var(--band);
+  border-radius: clamp(18px, 2vw, 30px);
+  padding: clamp(22px, 3.4vw, 48px);
+  border: 1px solid var(--on-band-rule);
+}
+.wk-plate__head {
+  display: grid; gap: 18px; align-items: end;
+  padding-bottom: clamp(18px, 2.4vw, 28px);
+  border-bottom: 1px solid var(--on-band-rule);
+  margin-bottom: clamp(20px, 3vw, 34px);
+}
+@media (min-width: 860px) {
+  .wk-plate__head { grid-template-columns: 1fr auto; }
+  .wk-plate__note { max-width: 34ch; text-align: right; }
+}
+/* (0,2,0): a single class loses to `.pv h2` and the head would take --ink,
+   which on the navy plate is near-invisible in dark mode. */
+.wk-plate .wk-plate__t { color: #fff; font-size: clamp(1.9rem, 1.2rem + 2.4vw, 3rem); }
+.wk-plate .wk-plate__note { color: var(--on-band-dim); font-size: .98rem; line-height: 1.5; }
+
+.wk-cats {
+  display: grid; gap: clamp(14px, 1.8vw, 22px);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+}
+
+/* One card per category. The whole card is the link — a 44px arrow button
+   inside a card whose art is also clickable gives a pointer two targets for
+   one destination, and a keyboard two stops. */
+.wk-cat {
+  position: relative; display: flex; flex-direction: column;
+  border-radius: clamp(14px, 1.4vw, 20px); overflow: hidden;
+  background: var(--paper);
+  border: 1px solid var(--on-band-rule);
+  text-decoration: none;
+  transition: transform .34s cubic-bezier(.16, 1, .3, 1),
+              box-shadow .34s cubic-bezier(.16, 1, .3, 1);
+}
+.wk-cat:hover { transform: translateY(-6px); box-shadow: 0 22px 44px -20px rgb(0 0 0 / .55); }
+.wk-cat:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+/* The title bar across the top, as in the reference. Neutral by default and
+   accent on hover, so the set has one highlighted card at a time — the thing
+   the reference does with a fixed purple middle card, except here it follows
+   the pointer instead of being decided at design time. */
+.wk-cat__bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: clamp(14px, 1.5vw, 20px) clamp(14px, 1.6vw, 22px);
+  background: var(--paper-2);
+  transition: background .3s ease;
+}
+/* In dark, `--paper-2` and the plate's `--band` are the same #0a0a3a, so the
+   bar dissolved into the plate behind it and the card lost its top edge.
+   `--band-2` is the one step lighter that separates it from both. */
+.dark .pv .wk-cat__bar { background: var(--band-2); }
+.wk-cat:hover .wk-cat__bar,
+.wk-cat:focus-visible .wk-cat__bar { background: var(--accent); }
+
+/* (0,2,0) on both, and #fff literal on the accent bar. `.pv a { color:
+   inherit }` is (0,1,1) and beats any single-class rule here. */
+.pv .wk-cat__t {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; letter-spacing: -.02em; line-height: 1.1;
+  font-size: clamp(1.1rem, 1rem + .5vw, 1.4rem);
+  color: var(--ink);
+  transition: color .3s ease;
+}
+.pv .wk-cat:hover .wk-cat__t,
+.pv .wk-cat:focus-visible .wk-cat__t { color: #fff; }
+
+.pv .wk-cat__n {
+  flex: none;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .76rem; font-weight: 700; letter-spacing: .04em;
+  padding: 3px 9px; border-radius: 999px;
+  background: var(--band); color: #fff;
+  font-variant-numeric: tabular-nums;
+  transition: background .3s ease, color .3s ease;
+}
+.pv .wk-cat:hover .wk-cat__n,
+.pv .wk-cat:focus-visible .wk-cat__n { background: #fff; color: var(--accent); }
+
+.wk-cat__shot {
+  position: relative; aspect-ratio: 4 / 3; overflow: hidden;
+  background: var(--paper-2);
+}
+.wk-cat__shot img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: transform .5s cubic-bezier(.16, 1, .3, 1);
+}
+.wk-cat:hover .wk-cat__shot img { transform: scale(1.05); }
+
+/* The reference's circular arrow, bottom right of the artwork. Decorative:
+   the card is already the link, so this is aria-hidden and not a button. */
+.wk-cat__go {
+  position: absolute; right: 12px; bottom: 12px;
+  width: clamp(38px, 3.4vw, 48px); aspect-ratio: 1; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--band);
+  transition: background .3s ease, transform .3s cubic-bezier(.16, 1, .3, 1);
+}
+.wk-cat__go::before {
+  content: ""; width: 44%; height: 44%;
+  background-color: #fff;
+  -webkit-mask: var(--arrow-ne) center/contain no-repeat;
+          mask: var(--arrow-ne) center/contain no-repeat;
+  transition: background-color .3s ease;
+}
+.wk-cat:hover .wk-cat__go { background: var(--accent); transform: scale(1.08); }
+
+/* ------------------------------------------------------- category listing */
+
+/* The dark hero at the top of a category, matching the reference's banner. */
+.wk-hero { background: var(--band); color: var(--on-band); position: relative; overflow: hidden; }
+.wk-hero__in {
+  padding-block: clamp(6.5rem, 11vw, 9rem) clamp(2.6rem, 5vw, 4rem);
+  display: grid; gap: 18px; max-width: 62ch;
+}
+.pv .wk-hero h1 { color: #fff; font-size: clamp(2.3rem, 1.4rem + 3.6vw, 4.2rem); }
+.pv .wk-hero .pv-lede { color: var(--on-band-dim); }
+
+/* Breadcrumbs. Underlined rather than only recoloured: a link distinguished
+   from the text around it by colour alone is invisible to anyone who cannot
+   separate that colour. */
+.wk-crumbs {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  font-size: .84rem; color: var(--muted);
+}
+.pv .wk-crumbs a { color: var(--muted); text-decoration: underline; text-underline-offset: .18em; }
+.pv .wk-crumbs a:hover { color: var(--accent-ink); }
+.wk-crumbs i { font-style: normal; opacity: .5; }
+.pv .wk-hero .wk-crumbs, .pv .wk-hero .wk-crumbs a { color: var(--on-band-dim); }
+.pv .wk-hero .wk-crumbs a:hover { color: var(--accent); }
+
+/* The grid of pieces. `auto-fit` with a `min()` floor so a single card never
+   stretches the full width on desktop and nothing overflows at 320px. */
+.wk-grid {
+  display: grid; gap: clamp(16px, 2.2vw, 28px);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+}
+
+.wk-card {
+  display: flex; flex-direction: column;
+  border-radius: 20px; overflow: hidden;
+  background: var(--paper); border: 1px solid var(--rule);
+  text-decoration: none;
+  transition: transform .32s cubic-bezier(.16, 1, .3, 1),
+              box-shadow .32s cubic-bezier(.16, 1, .3, 1),
+              border-color .32s ease;
+}
+.pv-sec--alt .wk-card { background: var(--paper-2); }
+.wk-card:hover {
+  transform: translateY(-5px); border-color: var(--accent);
+  box-shadow: 0 20px 40px -22px rgb(0 0 40 / .4);
+}
+.wk-card:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.wk-card__shot { aspect-ratio: 16 / 11; overflow: hidden; background: var(--paper-2); }
+.pv-sec--alt .wk-card__shot { background: var(--paper); }
+.wk-card__shot img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: transform .5s cubic-bezier(.16, 1, .3, 1);
+}
+.wk-card:hover .wk-card__shot img { transform: scale(1.04); }
+/* No capture yet: a branded panel rather than a broken image. */
+.wk-card__none {
+  width: 100%; height: 100%; display: grid; place-items: center;
+  background: var(--band); color: #fff; padding: 16px; text-align: center;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 700;
+}
+.wk-card__body { padding: 16px clamp(16px, 1.6vw, 20px) 20px; display: grid; gap: 8px; }
+.pv .wk-card__t {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 1.02rem; font-weight: 700; line-height: 1.28; color: var(--ink);
+}
+.pv .wk-card__d { color: var(--muted); font-size: .9rem; line-height: 1.45; }
+.wk-card__meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+/* (0,2,0) and literal #fff — the accent chip pairing used across the site. */
+.pv .wk-chip {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .7rem; font-weight: 700; letter-spacing: .03em;
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--accent); color: #fff;
+}
+.pv .wk-chip--quiet { background: var(--paper-2); color: var(--muted); border: 1px solid var(--rule); }
+.pv-sec--alt .pv .wk-chip--quiet, .pv-sec--alt .wk-chip--quiet { background: var(--paper); }
+
+/* A gallery piece is square, like the wall on /services, so a hundred mixed
+   ratios do not break the grid's rhythm. */
+.wk-art { display: flex; flex-direction: column; }
+.wk-art .wk-card__shot { aspect-ratio: 1; }
+
+/* Honest empty state. Borrowing another category's work would imply a case
+   study that does not exist. */
+.wk-empty {
+  display: grid; gap: 12px; justify-items: start;
+  padding: clamp(26px, 4vw, 44px);
+  border: 1px dashed var(--rule); border-radius: 20px; background: var(--paper-2);
+}
+.pv-sec--alt .wk-empty { background: var(--paper); }
+
+/* ---------------------------------------------------------- detail page */
+
+.wk-doc { display: grid; gap: clamp(1.6rem, 3vw, 2.6rem); }
+/* A measure, not the full 1280px. Long-form prose set the width of the page
+   is unreadable — the eye loses the line on the way back. */
+.wk-doc__body { max-width: 74ch; display: grid; gap: clamp(1.6rem, 3vw, 2.4rem); }
+.wk-meta {
+  display: flex; flex-wrap: wrap; gap: 6px 18px;
+  font-size: .84rem; color: var(--muted);
+  padding-bottom: 14px; border-bottom: 1px solid var(--rule);
+}
+.wk-meta b { color: var(--ink); font-weight: 600; }
+.pv .wk-doc h1 { font-size: clamp(2rem, 1.3rem + 3vw, 3.5rem); max-width: 20ch; }
+.pv .wk-doc h2 {
+  font-size: clamp(1.25rem, 1.1rem + .7vw, 1.7rem);
+  margin-bottom: .6rem;
+}
+.pv .wk-doc p { color: var(--muted); line-height: 1.65; }
+.wk-doc__hero {
+  border-radius: clamp(14px, 1.6vw, 22px); overflow: hidden;
+  aspect-ratio: 16 / 8; background: var(--paper-2); border: 1px solid var(--rule);
+}
+.wk-doc__hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* The figure strip under the hero. Rendered ONLY when a case study carries
+   published figures — see the note at the top of lib/work.ts. */
+.wk-figs {
+  display: grid; gap: clamp(14px, 2vw, 24px);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  padding-block: clamp(18px, 2.4vw, 26px);
+  border-block: 1px solid var(--rule);
+}
+.wk-fig { display: grid; gap: 2px; }
+.pv .wk-fig__v {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.1rem);
+  color: var(--accent-ink); line-height: 1.1; font-variant-numeric: tabular-nums;
+}
+.pv .wk-fig__l { color: var(--muted); font-size: .84rem; }
+
+/* Bulleted lists, with the same accent tick the "what you get" rails use. */
+.wk-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.wk-list li { position: relative; padding-left: 26px; color: var(--muted); line-height: 1.55; }
+.wk-list li::before {
+  content: ""; position: absolute; left: 0; top: .42em; width: 14px; height: 14px;
+  background-color: var(--accent);
+  -webkit-mask: var(--check) center/contain no-repeat;
+          mask: var(--check) center/contain no-repeat;
+}
+
+.wk-stack { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Two captures side by side, as in the reference. One column under 620px:
+   two half-width screenshots on a phone are unreadable either way. */
+.wk-shots { display: grid; gap: clamp(12px, 1.6vw, 18px); }
+@media (min-width: 620px) { .wk-shots--2 { grid-template-columns: 1fr 1fr; } }
+.wk-shot {
+  border-radius: 14px; overflow: hidden; border: 1px solid var(--rule);
+  background: var(--paper-2); aspect-ratio: 4 / 3;
+}
+.wk-shot img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+
+/* Previous / next across the category, so a detail page is not a dead end. */
+/* Flex with `space-between`, not two grid columns. A grid reserved the empty
+   half whenever a case study was first or last in its category, which left a
+   lone "Next" card marooned beside a column of nothing. */
+.wk-pager {
+  display: flex; flex-wrap: wrap; gap: 14px;
+  justify-content: space-between; align-items: stretch;
+  margin-top: clamp(1.4rem, 2.6vw, 2.2rem);
+  padding-top: clamp(1.4rem, 2.4vw, 2rem); border-top: 1px solid var(--rule);
+}
+.wk-pager > * { flex: 1 1 260px; min-width: 0; }
+.wk-pager__l {
+  display: grid; gap: 4px; padding: 16px 20px;
+  border: 1px solid var(--rule); border-radius: 16px; text-decoration: none;
+  background: var(--paper); transition: border-color .3s ease, transform .3s cubic-bezier(.16,1,.3,1);
+}
+.pv-sec--alt .wk-pager__l { background: var(--paper-2); }
+.wk-pager__l:hover { border-color: var(--accent); transform: translateY(-3px); }
+.wk-pager__l:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.pv .wk-pager__k { font-size: .76rem; letter-spacing: .06em; text-transform: uppercase; color: var(--accent-ink); }
+.pv .wk-pager__t { font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 700; color: var(--ink); }
+.wk-pager__l--next { text-align: right; }
+
+/* ------------------------------------------------------------ lightbox */
+
+/* Gallery pieces have no case study to open, so a click enlarges the artwork
+   in place instead of navigating to a page that would have nothing on it. */
+.wk-lb {
+  position: fixed; inset: 0; z-index: 90;
+  display: grid; place-items: center; padding: clamp(16px, 4vw, 48px);
+  background: rgb(0 0 20 / .82); backdrop-filter: blur(6px);
+  border: 0;
+}
+.wk-lb__fig { margin: 0; display: grid; gap: 12px; justify-items: center; max-height: 100%; }
+.wk-lb__fig img {
+  max-width: min(92vw, 900px); max-height: 76vh; width: auto; height: auto;
+  border-radius: 14px; display: block; box-shadow: 0 30px 80px -30px rgb(0 0 0 / .8);
+}
+/* On the dark scrim, so literal #fff rather than a token that flips. */
+.pv .wk-lb__cap { color: #fff; font-size: .95rem; text-align: center; }
+.pv .wk-lb__cap span { color: var(--on-band-dim); display: block; font-size: .82rem; margin-top: 2px; }
+.wk-lb__x {
+  position: fixed; top: clamp(12px, 2vw, 22px); right: clamp(12px, 2vw, 22px);
+  width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgb(255 255 255 / .3);
+  background: rgb(255 255 255 / .1); color: #fff; cursor: pointer;
+  display: grid; place-items: center; font-size: 1.4rem; line-height: 1;
+}
+.wk-lb__x:hover { background: var(--accent); border-color: var(--accent); }
