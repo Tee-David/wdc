@@ -257,9 +257,6 @@ export default function ServicesBody() {
               <div className="sv-svc__intro">
                 <p className="pv-lede">{s.lede}</p>
                 <p className="sv-svc__body">{s.body}</p>
-                <a className="pv-btn pv-btn--line sv-svc__cta" href="#sv-contact">
-                  Talk about {s.short.toLowerCase()}
-                </a>
               </div>
               <aside className="sv-side">
                 <h3>What you get</h3>
@@ -285,6 +282,13 @@ export default function ServicesBody() {
                   />
                 </div>
               </aside>
+              {/* The ask goes AFTER the proof, not between the pitch and it.
+                  `s.short` is used as written — "Software & AI", "Social &
+                  PPC" — because lowercasing it turned AI into ai and PPC into
+                  ppc, which reads as a typo rather than as a house style. */}
+              <a className="pv-btn pv-btn--line sv-svc__cta" href="#sv-contact">
+                Talk about {s.short}
+              </a>
             </div>
             </div>
 
