@@ -47,45 +47,6 @@
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
-/* ---------------- 01 dome ---------------- */
-.dome {
-  position: absolute; inset: 0; perspective: 950px;
-  cursor: grab; touch-action: pan-y; overflow: hidden;
-}
-.dome:active { cursor: grabbing; }
-.dome__cage {
-  position: absolute; top: 50%; left: 50%; width: 0; height: 0;
-  transform-style: preserve-3d;
-  transform: translateZ(-430px);
-}
-.dome__tile {
-  position: absolute; width: 210px; height: 130px; margin: -65px 0 0 -105px;
-  border-radius: 12px; overflow: hidden;
-  border: 1px solid var(--on-band-rule);
-  background: var(--band);
-  opacity: 0; transition: opacity .5s ease;
-  backface-visibility: hidden;
-}
-.dome.is-ready .dome__tile { opacity: .9; }
-.dome__tile img { width: 100%; height: 100%; object-fit: cover; user-select: none; }
-.dome__tile:hover { opacity: 1; border-color: var(--accent); }
-.dome__hint {
-  position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-size: .7rem; letter-spacing: .16em; text-transform: uppercase;
-  color: var(--muted); pointer-events: none;
-}
-/* the fallback both compact and reduced-motion get */
-.dome-grid {
-  position: absolute; inset: 0; padding: 14px;
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
-}
-@media (max-width: 768px) { .dome-grid { grid-template-columns: repeat(2, 1fr); } }
-.dome-grid img {
-  width: 100%; height: 100%; object-fit: cover;
-  border-radius: 10px; border: 1px solid var(--rule);
-}
-
 /* ---------------- 02 serp ---------------- */
 .serp { position: absolute; inset: 0; padding: clamp(14px, 2.4vw, 26px); display: flex; flex-direction: column; }
 .serp__bar {
@@ -365,6 +326,24 @@
 .pv-sec--band .sv-stage__note { color: var(--on-band-dim); }
 
 .sv-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+/* Below 720px the tabs become a horizontal rail instead of wrapping: four
+   chips over two ragged rows read as a broken grid, where one scrolling line
+   reads as a control. `min-width: 0` is load-bearing — a flex item defaults to
+   `min-width: auto`, which would size the rail to its content and push the
+   page into horizontal overflow instead of scrolling inside itself. */
+@media (max-width: 720px) {
+  .sv-tabs {
+    flex-wrap: nowrap;
+    min-width: 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .sv-tabs::-webkit-scrollbar { display: none; }
+  .sv-tab { flex: 0 0 auto; scroll-snap-align: start; }
+}
 .sv-tab {
   padding: 7px 14px; border-radius: 999px; cursor: pointer;
   background: transparent; border: 1px solid var(--rule); color: var(--muted);
@@ -377,47 +356,11 @@
 .sv-tab:hover { color: var(--ink); border-color: var(--accent); }
 .sv-tab:active { transform: translateY(1px); }
 .sv-tab.is-on {
-  background: var(--accent); border-color: var(--accent); color: #000065;
+  background: var(--accent); border-color: var(--accent); color: #fff;
 }
 .pv-sec--band .sv-tab { border-color: var(--on-band-rule); color: var(--on-band-dim); }
 .pv-sec--band .sv-tab:hover { color: #fff; }
-.pv-sec--band .sv-tab.is-on { color: #000065; }
-
-/* ---------------- brand wall placeholder compositions ---------------- */
-/* Real artwork fills the tile; the caption sits over a gradient so a light
-   flyer never swallows white type. */
-.bw {
-  overflow: hidden; margin: 0; position: relative;
-  background: var(--band); border: 1px solid var(--on-band-rule);
-  display: block;
-}
-.bw img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.dome__tile img { width: 100%; height: 100%; object-fit: cover; }
-.dome__tile { position: absolute; overflow: hidden; }
-.bw::after {
-  content: ""; position: absolute; inset: auto 0 0 0; height: 46%;
-  background: linear-gradient(to top, rgba(0,0,20,.78), transparent);
-  pointer-events: none;
-}
-.bw__cap {
-  position: absolute; left: 8px; right: 8px; bottom: 6px; z-index: 1;
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-size: .62rem; font-weight: 600; letter-spacing: .01em;
-  color: #fff; opacity: .82;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-
-/* tile shape follows the kind of artwork; a poster in a landscape crop stops
-   reading as a poster */
-.dome--portrait .dome__tile  { width: 150px; height: 200px; margin: -100px 0 0 -75px; }
-.dome__tile img { border-radius: inherit; }
-.dome--square .dome__tile    { width: 172px; height: 172px; margin: -86px 0 0 -86px; }
-.dome--landscape .dome__tile { width: 210px; height: 130px; margin: -65px 0 0 -105px; }
-.dome-grid--portrait  { grid-template-columns: repeat(3, 1fr); }
-.dome-grid--square    { grid-template-columns: repeat(3, 1fr); }
-.dome-grid--landscape { grid-template-columns: repeat(2, 1fr); }
-.dome-grid .bw { border-radius: 10px; aspect-ratio: auto; height: 100%; }
-@media (max-width: 560px) { .dome-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+.pv-sec--band .sv-tab.is-on { color: #fff; }
 
 /* ---------------- seo metric strip ---------------- */
 .seo-metrics {
@@ -542,3 +485,50 @@
 }
 .fw__shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .fw__card { gap: 7px; }
+
+/* ---------------- GridMotion (01 · branding) ---------------- */
+/* A diagonal wall of work: two rows drifting opposite ways inside a box that is
+   rotated as a whole. The stage is deliberately BIGGER than its frame (negative
+   inset) rather than scaled up — rotating a box leaves its corners short of the
+   frame, and `scale()` would fix that by magnifying the tiles with it. Growing
+   the stage instead keeps tiles at their intended size. */
+.gm { position: relative; height: 100%; overflow: hidden; }
+.gm__stage {
+  position: absolute; inset: -40% -30%;
+  display: grid; align-content: center;
+  /* An explicit row height, NOT 1fr: deriving tile size from the frame makes a
+     phone's short frame produce one enormous tile per row.
+     The size is chosen so TWO rows still cross the frame corner to corner. A
+     band rotated by 15deg needs to be about H + W*sin(15deg) tall to cover a
+     WxH frame; with only two rows that means big tiles, which is the trade for
+     two rows instead of the four a rotated grid usually needs. */
+  grid-auto-rows: clamp(150px, 30vw, 430px);
+  gap: clamp(10px, 1.4vw, 18px);
+  transform: rotate(-15deg);
+  transform-origin: center;
+}
+.gm__row { overflow: hidden; min-width: 0; }
+/* `max-content` so the track is as wide as its tiles; the row above clips it */
+.gm__track { display: flex; width: max-content; height: 100%; }
+.gm__half { display: flex; gap: clamp(10px, 1.4vw, 18px); }
+.gm__half + .gm__half { margin-left: clamp(10px, 1.4vw, 18px); }
+.gm__tile {
+  flex: 0 0 auto; height: 100%; aspect-ratio: 1 / 1;
+  border-radius: 14px; overflow: hidden;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  box-shadow: 0 8px 20px rgb(0 0 0 / .16);
+}
+.gm__tile img { width: 100%; height: 100%; object-fit: cover; display: block; user-select: none; }
+
+/* Exactly -50%: each track holds its tiles twice, so half a track is one full
+   sequence and the wrap is invisible. */
+@keyframes gm-l { from { transform: translateX(0); }     to { transform: translateX(-50%); } }
+@keyframes gm-r { from { transform: translateX(-50%); }  to { transform: translateX(0); } }
+@media (prefers-reduced-motion: no-preference) {
+  .gm__track.is-l { animation: gm-l linear infinite; }
+  .gm__track.is-r { animation: gm-r linear infinite; }
+}
+/* JS resolves "still" too, so a reduced-motion visitor gets a static diagonal
+   wall from both directions rather than relying on the media query alone. */
+.gm--still .gm__track { animation: none !important; }

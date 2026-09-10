@@ -15,19 +15,18 @@
 
 /* ---------------------------------------------------------------- branding */
 /**
- * The asset kinds the dome filters by. These are REAL WDC pieces, exported from
- * the studio Drive and resized for the web (originals are 2400px+ camera-sized
- * files; the dome shows tiles a few hundred pixels wide).
+ * The kinds of work the branding wall filters by. These are REAL WDC pieces,
+ * exported from the studio Drive and resized for the web (originals are 2400px+
+ * camera-sized files; the wall shows tiles a few hundred pixels wide).
  *
- * `shape` follows the artwork, not a preference: the flyers are square because
- * they are built square for social, and the tile geometry is derived from it —
- * a square poster forced into a portrait crop loses its own composition.
+ * Every tile is square. The wall is a diagonal grid of equal cells, so a mixed
+ * bag of aspect ratios would break its rhythm; `object-fit: cover` centres the
+ * artwork inside the square.
  */
 export type BrandKind = {
   id: string;
   label: string;
   note: string;
-  shape: "portrait" | "landscape" | "square";
   items: { id: string; title: string; src: string }[];
 };
 
@@ -42,7 +41,6 @@ export const BRAND_KINDS: BrandKind[] = [
     id: "print",
     label: "Flyers & posters",
     note: "Campaign and product artwork, built to hold up in print and on a feed.",
-    shape: "square",
     items: [
       asset("bay-accessories-flyer", "Social media poster"),
       asset("mariamah-flyer", "Product range flyer"),
@@ -59,18 +57,29 @@ export const BRAND_KINDS: BrandKind[] = [
       asset("kempes-flyer", "Tribute poster"),
       asset("sug-awards-banner", "Awards night banner"),
       asset("etf-outreach", "Outreach campaign poster"),
+      asset("food-bank", "Campaign poster"),
+      asset("childrens-day", "Event flyer"),
+      asset("eye-screening", "Health campaign flyer"),
+      asset("teachers-conference", "Conference flyer"),
+      asset("hair-sale", "Sale flyer"),
+      asset("delivery-promo", "Service promo"),
+      asset("five-aside-cup", "Fixture graphic"),
+      asset("span-fest-ticket", "Ticket design"),
+      asset("deuces-illustration", "Illustrated poster"),
+      asset("eid-greeting", "Seasonal greeting"),
+      asset("easter-greeting", "Holiday greeting"),
     ],
   },
   {
     id: "logos",
     label: "Logos & marks",
     note: "Identity systems, lockups and the rules that hold them together.",
-    shape: "square",
     items: [
       asset("krypt-dao-logo", "Wordmark & symbol"),
       asset("marvs-pastries-logo", "Logo lockup"),
       asset("habby-logo", "Brand mark"),
       asset("pc-wordmark", "Wordmark"),
+      asset("mayrols-signage", "Signage mark"),
     ],
   },
   {
@@ -80,21 +89,21 @@ export const BRAND_KINDS: BrandKind[] = [
     id: "merch",
     label: "Mockups & merch",
     note: "The identity off the screen — packaging, print and the things people hold.",
-    shape: "square",
     items: [
       asset("diamond-empire-mockup", "Product mockup"),
       asset("diamond-empire-mockup-2", "Packaging mockup"),
       asset("fash-shopping-bag", "Carrier bag"),
       asset("habby-mockup", "Storefront signage"),
+      asset("business-cards", "Business cards"),
+      asset("stationery-set", "Stationery set"),
+      asset("staff-id-card", "Staff ID card"),
+      asset("merch-range", "Merch range"),
     ],
   },
   {
-    /* Landscape, because guide spreads are drawn landscape — the tile geometry
-       in the dome follows `shape`, so these get wider tiles and a fourth row. */
     id: "guides",
     label: "Brand guides",
     note: "The document a team actually uses: voice, palette, typography, usage.",
-    shape: "landscape",
     items: [
       asset("dhiol-brand-guide-1", "Guide cover"),
       asset("dhiol-brand-guide-2", "Guidelines intro"),
@@ -241,6 +250,12 @@ export const SOCIAL_POSTS = [
   { src: "/brand-work/span-excos-template-1.jpg", tag: "Series", t: "Exec roster series" },
   { src: "/brand-work/party-of-the-year.jpg", tag: "Event", t: "Party flyer" },
   { src: "/brand-work/fash-footies-new-week.jpg", tag: "Post", t: "Footwear promo" },
+  { src: "/brand-work/dhiol-start-again.jpg", tag: "Post", t: "Handset trade-in" },
+  { src: "/brand-work/dhiol-consult.jpg", tag: "Campaign", t: "Business registration" },
+  { src: "/brand-work/nipsa-week-anticipate.jpg", tag: "Teaser", t: "Week teaser" },
+  { src: "/brand-work/express-september.jpg", tag: "Monthly", t: "New month, logistics" },
+  { src: "/brand-work/express-guess-location.jpg", tag: "Post", t: "Engagement post" },
+  { src: "/brand-work/span-fest-artist.jpg", tag: "Event", t: "Guest artist reveal" },
 ] as const;
 
 /** A fortnight of a content calendar. `kind` drives the cell's colour. */
