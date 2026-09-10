@@ -153,12 +153,18 @@ export default function PreviewBody() {
     let stick = 0;
 
     /* True while a finger is on the rail. The page keeps scrolling underneath
-       during a swipe, so without this the pin would fight the drag and win. */
+       during a swipe, so without this the pin would fight the drag and win.
+       `dragFrom` is where the rail sat when the finger landed: a tap or a
+       VERTICAL swipe that happens to start on a card leaves it unchanged, and
+       reconciling those was what yanked the page mid-gesture. */
     let dragging = false;
+    let dragFrom = 0;
+    let settle = 0;
 
     const release = () => {
       on = false;
       dragging = false;
+      window.clearTimeout(settle);
       wrap.classList.remove("is-pinned");
       wrap.style.removeProperty("--pv-pin-h");
       trk.style.transform = "";
@@ -182,15 +188,38 @@ export default function PreviewBody() {
     /* After a swipe, move the PAGE to the position that produces the rail
        offset the finger left it at. Without this the next vertical scroll
        yanks the cards back to wherever the page happened to be, which is the
-       jump that makes hybrid controls feel broken. */
+       jump that makes hybrid controls feel broken.
+
+       Two things this must NOT do. It must not fire when the rail never
+       moved -- a tap on a card, or a vertical swipe that began on one, would
+       otherwise re-drive the page from a rail offset it never changed. And it
+       must not use a native window.scrollTo while Lenis is running: Lenis
+       owns the scroll position, so a native jump moves the document while
+       Lenis's own target stays put, and the next frame drags it back. That
+       tug of war is the hang. */
+    const applyScroll = (top: number) => {
+      const lenis = window.__lenis;
+      if (lenis) lenis.scrollTo(top, { immediate: true, force: true });
+      else window.scrollTo({ top });
+    };
     const reconcile = () => {
-      dragging = false;
-      if (!on || extra <= 0) return;
-      const { span } = progress();
-      if (span <= 0) return;
-      const p = Math.min(1, Math.max(0, stage.scrollLeft / extra));
-      const wrapTop = wrap.getBoundingClientRect().top + window.scrollY;
-      window.scrollTo({ top: wrapTop - stick + p * span });
+      if (!dragging) return;
+      window.clearTimeout(settle);
+      /* `dragging` stays TRUE across this timeout. Momentum keeps the rail
+         gliding for a moment after the finger lifts, and update() is what
+         writes scrollLeft from the page position -- clearing the flag here
+         would let a single scroll frame overwrite the swipe before the line
+         below has read where it landed. */
+      settle = window.setTimeout(() => {
+        dragging = false;
+        if (!on || extra <= 0) return;
+        if (Math.abs(stage.scrollLeft - dragFrom) < 2) return;
+        const { span } = progress();
+        if (span <= 0) return;
+        const p = Math.min(1, Math.max(0, stage.scrollLeft / extra));
+        const wrapTop = wrap.getBoundingClientRect().top + window.scrollY;
+        applyScroll(wrapTop - stick + p * span);
+      }, 180);
     };
     const measure = () => {
       release();
@@ -209,7 +238,12 @@ export default function PreviewBody() {
       frame = requestAnimationFrame(update);
     };
 
-    const onDown = () => { if (on) dragging = true; };
+    const onDown = () => {
+      if (!on) return;
+      window.clearTimeout(settle);
+      dragging = true;
+      dragFrom = stage.scrollLeft;
+    };
 
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", measure);

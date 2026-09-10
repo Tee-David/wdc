@@ -415,6 +415,7 @@
     padding-bottom: 2px;
   }
   .sv-tabs::-webkit-scrollbar { display: none; }
+  @media (pointer: fine) { .sv-tabs { scroll-snap-type: none; } }
   .sv-tab { flex: 0 0 auto; scroll-snap-align: start; }
 }
 .sv-tab {
