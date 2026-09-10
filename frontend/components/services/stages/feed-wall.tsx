@@ -1,7 +1,8 @@
 "use client";
 
+import SocialCalendar from "./social-calendar";
 import { Stage, useCountUp, useNearViewport, useStageMotion } from "./stage-shell";
-import { CALENDAR, SOCIAL_CHANNELS, SOCIAL_ENGAGEMENT, SOCIAL_POSTS } from "@/lib/showcase";
+import { SOCIAL_CHANNELS, SOCIAL_ENGAGEMENT, SOCIAL_POSTS } from "@/lib/showcase";
 
 /**
  * 06 · Social & PPC — "The Feed Wall".
@@ -72,9 +73,10 @@ function Planner({ run }: { run: boolean }) {
         <span className="fw-plan__t">Content calendar</span>
         <span className="fw-plan__sub">a fortnight</span>
       </div>
-      <div className="fw-plan__grid" aria-hidden="true">
-        {CALENDAR.map((k, i) => <span className={`fw-plan__c is-${k}`} key={i} />)}
-      </div>
+      {/* A month that fills itself in, replacing a 7x2 grid of coloured squares.
+          The squares asserted that we plan; a month with named posts landing in
+          it shows what planning looks like. */}
+      <SocialCalendar run={run} />
       <div className="fw-plan__key" aria-hidden="true">
         {(["organic", "paid", "story"] as const).map((k) => (
           <span className="fw-plan__ki" key={k}><i className={`is-${k}`} />{k}</span>
