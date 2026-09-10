@@ -772,8 +772,11 @@
 .ph--android .ph__status { padding: 4% 7% 3%; }
 /* The cluster is sized in em against the status bar's own font-size, so the
    icons and the clock stay in proportion as the frame scales. */
-.ph__status-i { height: 1.05em; width: auto; flex: none; }
-.ph__time { font-weight: 600; letter-spacing: .01em; }
+.ph__status-i { height: 1.15em; width: auto; flex: none; }
+/* The clock on a real handset is noticeably heavier and larger than the glyphs
+   beside it — matching that is most of what stops the row reading as a
+   wireframe. Sized in em so it tracks the bar as the frame scales. */
+.ph__time { font-weight: 700; font-size: 1.2em; letter-spacing: -.01em; }
 .ph__sig { display: inline-flex; align-items: flex-end; gap: 1.5px; }
 .ph__sig i { width: 2px; background: var(--muted); border-radius: 1px; }
 .ph__sig i:nth-child(1) { height: 3px; }

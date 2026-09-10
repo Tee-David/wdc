@@ -95,17 +95,27 @@ function Blk({ blk }: { blk: Block }) {
  */
 function StatusIcons() {
   return (
-    <svg className="ph__status-i" viewBox="0 0 20 12" fill="currentColor" aria-hidden="true">
+    <svg className="ph__status-i" viewBox="0 0 27 12" fill="currentColor" aria-hidden="true">
       {/* wifi: two arcs and a dot, stroked so the bands stay even */}
       <g transform="translate(0 1)" fill="none" stroke="currentColor" strokeLinecap="round">
         <path d="M.6 3.4a7 7 0 0 1 8.8 0" strokeWidth="1.5" />
         <path d="M2.7 6a4 4 0 0 1 4.6 0" strokeWidth="1.5" />
       </g>
       <circle cx="5" cy="10.2" r="1.1" />
-      {/* battery: body, terminal, and a fill that stops short of the wall */}
-      <rect x="11" y="2" width="7.4" height="8" rx="1.8" fill="none" stroke="currentColor" strokeWidth="1" opacity=".55" />
-      <rect x="12.1" y="3.1" width="4.4" height="5.8" rx="1.1" />
-      <rect x="19.1" y="4.6" width="0.9" height="2.8" rx=".45" opacity=".55" />
+      {/* battery: a filled body with the PERCENTAGE INSIDE it, which is what a
+          current iPhone shows, plus the terminal nub. The digits are the bar's
+          own background rather than a colour of their own, so they read as
+          knocked out of the body however the frame is themed. */}
+      <rect x="12" y="1.6" width="13" height="8.8" rx="2.6" />
+      <text
+        x="18.5" y="6.05"
+        textAnchor="middle" dominantBaseline="central"
+        fontSize="6.4" fontWeight="700" fill="var(--band)"
+        style={{ fontFamily: "var(--font-space-grotesk), system-ui, sans-serif" }}
+      >
+        82
+      </text>
+      <rect x="25.7" y="4.3" width="1.3" height="3.4" rx=".6" opacity=".5" />
     </svg>
   );
 }
