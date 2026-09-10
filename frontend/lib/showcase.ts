@@ -261,14 +261,14 @@ export const APP_KINDS: AppKind[] = [
     id: "saas",
     label: "SaaS",
     note: "Multi-tenant products with billing, roles and an onboarding path.",
-    screens: ["Dashboard", "Billing", "Team", "Settings"],
+    screens: ["Dashboard", "Listings", "Agents", "CRM"],
+    shot: "/work/app/realtors-mobile.jpg",
+    shotOf: "the Realtors' Practice dashboard",
     /* A REAL capture of a product we shipped. Where one exists it replaces the
        sketch below — a screenshot of the actual thing beats an illustration of
        it every time. The other kinds keep their sketches until captures exist,
        rather than borrowing this one, which would claim a product we have not
        built for that category. */
-    shot: "/work/app/litch-mobile.jpg",
-    shotOf: "the Litch Consulting dashboard",
     ui: [
       { t: "kpi", a: "MRR", b: "Churn" },
       { t: "chart" },
@@ -281,7 +281,9 @@ export const APP_KINDS: AppKind[] = [
     id: "erp",
     label: "ERP",
     note: "Operations, inventory and finance running off one source of truth.",
-    screens: ["Orders", "Stock", "Invoices", "Reports"],
+    screens: ["Dashboard", "Requests", "Invoices", "Reports"],
+    shot: "/work/app/litch-mobile.jpg",
+    shotOf: "the Litch Consulting dashboard",
     ui: [
       { t: "row", a: "PO-4417", b: "Received" },
       { t: "row", a: "PO-4418", b: "Partial" },
@@ -295,9 +297,9 @@ export const APP_KINDS: AppKind[] = [
     id: "marketplace",
     label: "Marketplace",
     note: "Two sides, payments in the middle, and trust built into both.",
-    screens: ["Browse", "Listing", "Checkout", "Payouts"],
-    shot: "/work/app/realtors-mobile.jpg",
-    shotOf: "the Realtors' Practice dashboard",
+    screens: ["Professionals", "Exhibitors", "Job board", "Verifications"],
+    shot: "/work/app/nomarc-mobile.jpg",
+    shotOf: "the Nomarc Projects console",
     ui: [
       { t: "tile", a: "Headphones", b: "24,500" },
       { t: "tile", a: "Keyboard", b: "18,900" },
@@ -310,7 +312,7 @@ export const APP_KINDS: AppKind[] = [
     id: "internal",
     label: "Internal tools",
     note: "The unglamorous software a team actually runs on all day.",
-    screens: ["Queue", "Records", "Approvals", "Audit"],
+    screens: ["Dashboard", "Sources", "Records", "Categories"],
     shot: "/work/app/rp-mobile.jpg",
     shotOf: "the RP data explorer",
     ui: [
