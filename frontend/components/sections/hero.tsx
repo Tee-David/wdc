@@ -53,14 +53,24 @@ function LogoMarquee() {
   );
 }
 
-/** Three pieces of OUR OWN work that cross-fade behind the hero. They were
-    stock workspace photographs, which is a strange thing to put behind a claim
-    about making brands unmistakable — the backdrop was the one image on the
-    page that had nothing to do with us. */
+/**
+ * The backdrop cycle: one image per discipline, so the thing behind the claim
+ * changes as you watch and covers the whole offer rather than one corner of it.
+ *
+ * Supplied by the studio and processed rather than dropped in raw — the
+ * originals are 2576px camera files and this paints a 16:10 band. Each is
+ * centre-cropped to that shape once, at build time, instead of being letterboxed
+ * or squashed by the browser: a 2.5MB image resized on every load is the single
+ * heaviest thing a hero can do to a phone on mobile data. Six images, 1.1MB
+ * total, and only the first is eager.
+ */
 const BG_IMAGES = [
-  "/brand-work/bamssa-social-night.jpg",
-  "/brand-work/education-campaign.jpg",
-  "/brand-work/moore-logo-variants.jpg",
+  "/hero/web-design.jpg",
+  "/hero/design-desk.jpg",
+  "/hero/mobile-dev.jpg",
+  "/hero/ai-key.jpg",
+  "/hero/search-console.jpg",
+  "/hero/robotics.jpg",
 ];
 
 function HeroBackdrop() {
@@ -73,6 +83,17 @@ function HeroBackdrop() {
     return () => clearInterval(id);
   }, [reduceMotion]);
 
+  /* Warm the NEXT image while the current one is on screen. The crossfade is
+     1.4s and an unfetched 200kb image cannot make that, so without this the
+     first pass through the set fades to blank and then pops. Decoding off the
+     main thread too, so the fetch never lands as a frame drop. */
+  useEffect(() => {
+    const next = BG_IMAGES[(i + 1) % BG_IMAGES.length];
+    const img = new Image();
+    img.decoding = "async";
+    img.src = next;
+  }, [i]);
+
   return (
     <div
       aria-hidden="true"
@@ -83,6 +104,10 @@ function HeroBackdrop() {
           key={BG_IMAGES[i]}
           src={BG_IMAGES[i]}
           alt=""
+          /* The first frame is part of the LCP; the rest are not, and telling
+             the browser so keeps them out of the critical fetch queue. */
+          fetchPriority={i === 0 ? "high" : "low"}
+          decoding="async"
           initial={{ opacity: 0, scale: 1.08 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}
@@ -93,9 +118,18 @@ function HeroBackdrop() {
           className="absolute inset-0 h-full w-full object-cover"
         />
       </AnimatePresence>
-      {/* Light mode: 40% black scrim for text legibility. Dark mode keeps a
-          readability overlay + brand tint + bottom fade. */}
-      <div className="absolute inset-0 bg-black/40 dark:bg-background/72" />
+      {/* The scrim earns its keep now. These backdrops are bright studio
+          photographs — a lit monitor, a white desk, a Search Console panel that
+          is very nearly paper — where the artwork they replaced was mostly
+          dark.
+
+          Measured against the brightest 1% of each image across the band the
+          headline occupies: at the old 40% the worst frame left white type on
+          rgb(148,148,148), which is 3.03:1 and under AA for anything but the
+          headline itself. 58% takes the same ground to rgb(103,103,103) and
+          5.66:1, which carries the lede and the eyebrow too. Going further
+          only greys out the photograph. */}
+      <div className="absolute inset-0 bg-black/58 dark:bg-background/72" />
       <div className="absolute inset-0 dark:bg-gradient-to-b dark:from-transparent dark:via-transparent dark:to-background/85" />
       <div className="absolute inset-0 dark:bg-primary/25 dark:mix-blend-multiply" />
     </div>
@@ -112,9 +146,21 @@ export function Hero() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.05 }}
-          className="mb-5 text-xs font-semibold uppercase tracking-[0.25em] text-secondary [text-shadow:0_1px_14px_rgba(0,0,0,0.35)]"
+          /* WHITE, with the orange carried by the emphasis alone.
+
+             The whole line was `text-secondary`, which was fine over the dark
+             brand artwork this hero used to show. Against the new photographs
+             it is #ff6500 on rgb(103,103,103) — 1.83:1, which is not a colour,
+             it is a smudge. White on the same ground is 5.66:1, and the motto
+             keeps its accent on the two words that carry it, where the weight
+             and the size already do most of the work.
+
+             The pill behind it is the belt to that brace: small caps at 12px
+             over a photograph need a ground of their own, not just a shadow. */
+          className="mb-5 inline-flex rounded-full bg-black/30 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] text-white backdrop-blur-[2px] [text-shadow:0_1px_10px_rgba(0,0,0,0.5)]"
         >
-          ...brilliant simplicity of thought!
+          ...brilliant simplicity{" "}
+          <b className="ml-[0.4em] font-bold text-secondary">of thought!</b>
         </motion.p>
 
         <motion.h1
