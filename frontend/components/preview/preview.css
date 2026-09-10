@@ -257,22 +257,9 @@
   color: rgba(255, 255, 255, .16);
   transition: color .4s ease;
 }
-/* Each digit settles on its own beat rather than the pair fading in together,
-   which is what makes it read as a counter coming to rest instead of a label
-   appearing. Digits are staggered against each other AND the cards against each
-   other, so the six numbers arrive as a run rather than a block.
-   `--si` is the step index, `--di` the digit's position within its number. */
-.pv-step__d { display: inline-block; }
-@media (prefers-reduced-motion: no-preference) {
-  .pv-reveal.is-in .pv-step__d {
-    animation: pv-digit .62s cubic-bezier(.16, 1, .3, 1) both;
-    animation-delay: calc(var(--si, 0) * 95ms + var(--di, 0) * 85ms);
-  }
-}
-@keyframes pv-digit {
-  from { opacity: 0; transform: translateY(.42em) scaleY(.78); filter: blur(3px); }
-  to   { opacity: 1; transform: none; filter: none; }
-}
+/* The per-digit settle that used to live here is gone: the number is drawn as
+   a stroke now (StrokeNumber), so the motion is the pen, not a fade. `--si` is
+   still set on the step and still staggers the card. */
 /* the number lifts with the rule that sweeps across the top on hover */
 .pv-step:hover .pv-step__n { color: rgba(255, 255, 255, .32); }
 .pv-step h3 { font-size: 1.16rem; }
@@ -593,7 +580,6 @@
   .pv-marq { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
   .pv-btn::after, .pv-step::after, .pv-scard, .pv-icard, .pv-job,
   .pv-shot img, .pv-badge, .pv-icard__btn { transition: none; }
-  .pv-step__d { animation: none; }
 }
 
 /* ---------------- hero, scoped to this page ----------------

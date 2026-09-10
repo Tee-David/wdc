@@ -1,0 +1,70 @@
+/* ==========================================================================
+   Stroke drawing
+
+   One animation, shared by the numerals and the icons, so a step's number and
+   its icon draw in the same hand rather than looking like two effects that
+   happened to land in the same card.
+
+   It relies on `pathLength="1"` being set on every shape it touches — by the
+   markup for numerals, by ServiceIcon's effect for icons. That renormalises
+   every path to a length of 1, which is what lets these fixed dash values draw
+   a short line and a long curve at the same speed.
+   ========================================================================== */
+
+/* `:where()` on purpose, so these score ZERO. `.sn` lands on the SAME element
+   as the call site's own class, and at equal specificity the later stylesheet
+   wins — which meant these defaults silently beat `.pv-step__n`'s
+   `position: absolute; right: 0`, and the step number moved from the corner of
+   the card to a full-width block down its left edge. Defaults have no business
+   outranking the site that uses them. */
+:where(.sn) { position: relative; display: inline-block; line-height: 1; }
+/* The SVG defines the box, not the text. Letting the text size it and laying
+   the SVG over it looked right until the boxes disagreed: the viewBox is 1.4
+   wide per unit of height, a text "01" is nearer 1.2, and `preserveAspectRatio`
+   then letterboxed the numeral down to fit the narrower box. Sizing off `em`
+   keeps the digits in proportion and keeps them scaling with font-size, so
+   every call site still controls the size the way it did when this was text.
+   0.84em lands the glyph at roughly the cap height of the type around it. */
+.sn__svg { display: block; height: .84em; width: auto; overflow: visible; }
+/* Kept in the DOM and in the accessibility tree, out of the layout. `opacity`
+   rather than `visibility: hidden`, which would also drop the number out of
+   the accessibility tree — and the drawn version is aria-hidden, so the step
+   would announce as having no number at all. */
+.sn__t {
+  position: absolute; left: 0; top: 0;
+  opacity: 0; pointer-events: none; user-select: none;
+}
+
+/* Resting state is the FINISHED numeral. Anything that stops the animation —
+   reduced motion, a failed stylesheet, an old browser — leaves a readable
+   number rather than a blank space. */
+.sn__p { stroke-dasharray: none; stroke-dashoffset: 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .sn__p {
+    stroke-dasharray: 1;
+    animation: sk-draw 5.2s cubic-bezier(.62, .02, .34, 1) infinite;
+    animation-delay: calc(var(--sn-delay, 0ms) + var(--i, 0) * 180ms);
+  }
+  /* Icons: same stroke, same clock. The shapes are staggered in the order
+     lucide draws them, which is usually outside-in, so the icon assembles
+     rather than flickering on all at once. */
+  .svc-draw svg :is(path, line, polyline, polygon, circle, rect, ellipse) {
+    stroke-dasharray: 1;
+    animation: sk-draw 5.2s cubic-bezier(.62, .02, .34, 1) infinite;
+    animation-delay: calc(var(--sk-delay, 0ms) + var(--i, 0) * 150ms);
+  }
+}
+
+/* Draws in from the start, holds the whole numeral, then runs off the far end
+   rather than fading — the negative offset walks the dash past the end of the
+   path, so the stroke leaves the way it arrived. */
+@keyframes sk-draw {
+  0%   { stroke-dashoffset: 1;  opacity: 0; }
+  6%   { opacity: 1; }
+  26%  { stroke-dashoffset: 0;  opacity: 1; }
+  68%  { stroke-dashoffset: 0;  opacity: 1; }
+  92%  { stroke-dashoffset: -1; opacity: 1; }
+  96%  { opacity: 0; }
+  100% { stroke-dashoffset: -1; opacity: 0; }
+}

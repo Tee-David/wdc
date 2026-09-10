@@ -7,6 +7,7 @@ import { FAQS } from "@/lib/faq";
 import { CONTACT_EMAIL } from "@/lib/site";
 
 import "./preview.css";
+import StrokeNumber from "@/components/ui/stroke-number";
 
 /* Copy is WDC's own, taken from the existing homepage, the PRD and llms.txt. */
 
@@ -307,15 +308,13 @@ export default function PreviewBody() {
           <div className="pv-steps pv-reveal">
             {STEPS.map((s, i) => (
               <div className="pv-step" key={s.t} style={{ "--si": i } as CSSProperties}>
-                {/* split per digit so each settles on its own beat, like a
-                    counter coming to rest; see pv-digit in preview.css */}
-                <span className="pv-step__n" aria-label={String(i + 1)}>
-                  {String(i + 1).padStart(2, "0").split("").map((ch, di) => (
-                    <span className="pv-step__d" key={di} style={{ "--di": di } as CSSProperties} aria-hidden="true">
-                      {ch}
-                    </span>
-                  ))}
-                </span>
+                {/* drawn as a stroke rather than set as text: a glyph is a
+                    filled outline and cannot be animated like a pen. */}
+                <StrokeNumber
+                  className="pv-step__n"
+                  value={String(i + 1).padStart(2, "0")}
+                  delay={i * 160}
+                />
                 <h3>{s.t}</h3>
                 <p>{s.d}</p>
               </div>
@@ -355,7 +354,7 @@ export default function PreviewBody() {
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={s.img} alt="" loading="lazy" />
                       </div>
-                      <span className="pv-scard__n">{String(idx + 1).padStart(2, "0")}</span>
+                      <StrokeNumber className="pv-scard__n" value={String(idx + 1).padStart(2, "0")} delay={idx * 160} />
                       <div className="pv-scard__ic"><Icon i={idx} /></div>
                       <div className="pv-scard__body">
                         <h3>{s.title}</h3>
