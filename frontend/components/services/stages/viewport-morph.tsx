@@ -40,10 +40,20 @@ const DEVICES = [
 
 /** The page inside a frame: the capture, twice, translated by exactly -50% so
     a scrolling loop closes without anyone measuring the image height. */
-function Screen({ src, scroll, alt }: { src?: string; scroll: boolean; alt: string }) {
+function Screen({ src, scroll, alt, page }: {
+  src?: string;
+  scroll: boolean;
+  alt: string;
+  /** Is the asset a full-page capture? A page is taller than the frame, so
+      held still it has to be CONTAINED or you see a sliver of it. A single
+      screen is roughly the frame's own shape and is FILLED, because contained
+      it sat inside the glass with a band of dead space along one edge --
+      covering the frame without ever filling it. */
+  page: boolean;
+}) {
   if (!src) return <span className="dv__wait" aria-hidden="true" />;
   return (
-    <div className={`dv__track${scroll ? "" : " is-still dv__track--fit"}`}>
+    <div className={`dv__track${scroll ? "" : ` is-still dv__track--fit dv__track--${page ? "page" : "screen"}`}`}>
       {(scroll ? [0, 1] : [0]).map((dup) => (
         /* eslint-disable-next-line @next/next/no-img-element */
         <img
@@ -67,10 +77,12 @@ function Window({
   url,
   scroll,
   alt,
+  page,
 }: {
   device: (typeof DEVICES)[number];
   src?: string;
   url: string;
+  page: boolean;
   scroll: boolean;
   alt: string;
 }) {
@@ -82,7 +94,7 @@ function Window({
           <span className="dv__url">{url}</span>
         </div>
         <div className="dv__view">
-          <Screen src={src} scroll={scroll} alt={alt} />
+          <Screen src={src} scroll={scroll} alt={alt} page={page} />
         </div>
       </div>
     </figure>
@@ -91,7 +103,7 @@ function Window({
 
 /** The phone, drawn as a phone: bezel, Dynamic Island, status bar. A rounded
     rectangle with a grey pill on it fools nobody. */
-function Phone({ src, scroll, alt }: { src?: string; scroll: boolean; alt: string }) {
+function Phone({ src, scroll, alt, page }: { src?: string; scroll: boolean; alt: string; page: boolean }) {
   return (
     <figure className="dv dv--phone">
       <div className="dv__body">
@@ -101,7 +113,7 @@ function Phone({ src, scroll, alt }: { src?: string; scroll: boolean; alt: strin
           <StatusIcons />
         </div>
         <div className="dv__view">
-          <Screen src={src} scroll={scroll} alt={alt} />
+          <Screen src={src} scroll={scroll} alt={alt} page={page} />
         </div>
       </div>
     </figure>
@@ -124,14 +136,9 @@ export default function ViewportMorph() {
 
   /* The caption states what is ACTUALLY on screen. Claiming three widths while
      showing one would be the caption contradicting the picture above it. */
-  const widths = active.shots
-    ? [active.shots.desktop && "1440", active.shots.tablet && "768", active.shots.phone && "390"].filter(Boolean)
-    : [];
   const caption = !active.shots
     ? `Screens for ${active.label} builds are being added.`
-    : widths.length > 1
-      ? `${active.shotOf}, captured at ${widths.length} real widths.`
-      : `${active.shotOf}, captured at ${widths[0]}px.`;
+    : active.cap;
 
   return (
     <Stage caption={caption} controls={controls}>
@@ -143,8 +150,9 @@ export default function ViewportMorph() {
             <Window
               device={DEVICES[0]}
               src={active.shots?.desktop}
-              url={`${active.shotOf ?? active.label}`}
+              url={active.url}
               scroll={scroll}
+              page={active.scroll}
               alt={`${active.shotOf ?? active.label} at 1440px wide`}
             />
             {/* The overlays appear only when a capture for that width EXISTS.
@@ -158,8 +166,9 @@ export default function ViewportMorph() {
               <Window
                 device={DEVICES[1]}
                 src={active.shots.tablet}
-                url={`${active.shotOf ?? active.label}`}
+                url={active.url}
                 scroll={scroll}
+                page={active.scroll}
                 alt={`${active.shotOf ?? active.label} at 768px wide`}
               />
             ) : null}
@@ -167,6 +176,7 @@ export default function ViewportMorph() {
               <Phone
                 src={active.shots.phone}
                 scroll={scroll}
+                page={active.scroll}
                 alt={`${active.shotOf ?? active.label} at 390px wide`}
               />
             ) : null}
