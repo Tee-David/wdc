@@ -208,9 +208,6 @@ export default function TwoStores() {
               and a reader can now check it: the same screen component, the same
               client, and a config that names both platforms. */}
           <CodeBrowser files={APP_SOURCE} label="Shared source" />
-          <div className="ts__split" aria-hidden="true">
-            <span /><span />
-          </div>
           {/* the screens this product kind actually ships with — the column
               was carrying one block against two full phones */}
           <ul className="ts__screens">
