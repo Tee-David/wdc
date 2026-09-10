@@ -8,6 +8,7 @@ import JsonLd, {
 } from "@/components/seo/json-ld";
 import { MOTTO, SITE_NAME, SITE_URL } from "@/lib/site";
 import { SmoothScroll } from "@/components/ui/smooth-scroll";
+import { SmoothCursor } from "@/components/ui/smooth-cursor";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -109,6 +110,10 @@ export default function RootLayout({
         <JsonLd data={[organizationJsonLd(), websiteJsonLd(), ...servicesJsonLd()]} />
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <SmoothScroll />
+          {/* Renders nothing on touch or under reduced motion — see the
+              component. Mounted inside the theme provider so it sits above
+              every page without each page having to remember it. */}
+          <SmoothCursor />
           {children}
         </ThemeProvider>
       </body>
