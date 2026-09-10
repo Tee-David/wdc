@@ -6,7 +6,6 @@ import { WorkFooter } from "@/components/work/work-footer";
 import ContactForm from "@/components/contact/contact-form";
 import { CHANNELS } from "@/lib/contact";
 import { FAQS } from "@/lib/faq";
-import { PROJECTS } from "@/lib/projects";
 import { COMPANY_NAME, CONTACT_EMAIL, SITE_URL } from "@/lib/site";
 import "@/components/preview/preview.css";
 import "@/components/contact/contact.css";
@@ -108,25 +107,6 @@ export default function ContactPage() {
               {/* the form */}
               <div className="ct-card">
                 <ContactForm />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* The reference puts a row of household logos here under "trusted by".
-            Ours are the sites we actually built, linked and live, because a
-            strip of brands we have never worked with would be the one claim
-            this page cannot afford to make. */}
-        <section className="pv-sec pv-sec--alt" style={{ paddingBlock: "clamp(2.4rem, 4vw, 3.4rem)" }}>
-          <div className="pv-wrap">
-            <div className="ct-strip">
-              <p className="ct-strip__k">Recent clients — every one of these is live</p>
-              <div className="ct-strip__row">
-                {PROJECTS.map((p) => (
-                  <a key={p.url} href={p.url} target="_blank" rel="noopener noreferrer">
-                    {p.name}
-                  </a>
-                ))}
               </div>
             </div>
           </div>

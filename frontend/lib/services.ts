@@ -132,7 +132,7 @@ export const SERVICES: Service[] = [
     short: "Apps",
     lede: "One codebase, every device, native-quality on both stores.",
     body:
-      "Web apps and mobile apps for iOS and Android from a single codebase, using Flutter, React Native, Swift, Kotlin or C# depending on what the product needs. We handle the engineering and the delivery, including the parts teams underestimate, like store review and the update cadence after launch.",
+      "Web apps and mobile apps for iOS and Android from a single codebase, using Flutter, React Native, Swift, Kotlin or C# depending on what the product needs. One codebase is a means, not the goal: where a platform genuinely differs — a permission prompt, a payment sheet, a share target — we write to that platform rather than flattening it into a lowest common denominator. We handle the engineering and the delivery, including the parts teams underestimate, like store review, the metadata and screenshots each store demands, and the update cadence after launch.",
     steps: [
       { t: "Product definition", d: "What the app is for, and what it does not need to do in version one.", i: "Target" },
       { t: "UX flows", d: "The paths a user takes, mapped before any screen is designed.", i: "GitBranch" },
@@ -145,8 +145,14 @@ export const SERVICES: Service[] = [
       "iOS and Android apps",
       "Web apps",
       "Single cross-platform codebase",
+      "Offline handling and sync",
+      "Push notifications",
+      "In-app purchases and payments",
+      "Accounts, roles and permissions",
       "App Store delivery",
       "Play Store delivery",
+      "Store listings and screenshots",
+      "Crash reporting and analytics",
       "Continuous updates",
     ],
     /* mobile only: the "web" category carries WordPress, PHP and Tailwind,

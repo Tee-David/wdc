@@ -348,8 +348,15 @@ class Wheel {
   }
 
   private tick = () => {
-    /* One unit of progress turns the ring past every image in the set. */
-    const target = this.getProgress() * ((2 * Math.PI * this.opts.items.length) / this.slots);
+    /* One unit of progress turns the ring past every image in the set.
+
+       NEGATIVE, and that is the whole point: the ring has to travel AGAINST
+       the scroll. Turning it with the scroll makes the artwork chase the page
+       away from the reader — the eye follows a piece down, the ring carries it
+       down too, and nothing new ever arrives. Against it, each turn brings the
+       next piece up into the space the scroll just opened, which is the motion
+       that reads as browsing rather than as fleeing. */
+    const target = -this.getProgress() * ((2 * Math.PI * this.opts.items.length) / this.slots);
     this.angle = lerp(this.angle, target, this.opts.ease);
     this.medias.forEach((m) => m.update(this.angle, this.radius, this.centreY));
     this.renderer.render({ scene: this.scene, camera: this.camera });
