@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 const MotionLink = motion(Link);
@@ -24,9 +25,10 @@ import { CONTACT_EMAIL } from "@/lib/site";
  */
 const NAV = [
   { label: "Home", link: "/" },
-  { label: "About Us", link: "/about" },
+  { label: "Our Works", link: "/work" },
   { label: "Services", link: "/services" },
-  { label: "Our Work", link: "/work" },
+  { label: "About Us", link: "/about" },
+  { label: "Contact Us", link: "/contact" },
 ];
 
 /** simple-icons brand glyph, tinted by the current text color. */
@@ -80,9 +82,32 @@ const SOCIALS = [
  * theme surface + border and the full logo swaps to the mark only.
  * Desktop: logo / nav / CTA + theme toggle. Mobile: toggle / logo / menu.
  */
-export function Header() {
+/**
+ * `overHero` says whether the page starts with a DARK full-bleed hero behind
+ * the bar. Only the homepage and the work category pages do.
+ *
+ * It defaults to false on purpose. The transparent-white treatment is only
+ * legible over something dark, and defaulting to it meant /contact — which
+ * opens on white paper — rendered white links on a white ground: a nav that
+ * was there, tabbable, and invisible. Getting the flag wrong the other way
+ * costs a surface nobody minded; getting it wrong this way costs the nav.
+ */
+export function Header({ overHero = false }: { overHero?: boolean } = {}) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  /* An in-page anchor ("/#pv-contact") is never the current page, and "/" would
+     otherwise match every route as a prefix. Everything else matches its own
+     section, so /work/branding/moore-designs still lights "Our Works". */
+  /* Solid whenever the bar is not floating over a dark hero, so a page with
+     light paper at the top gets its surface from the first pixel. */
+  const solid = scrolled || !overHero;
+
+  const isCurrent = (link: string) =>
+    link.includes("#") ? false
+      : link === "/" ? pathname === "/"
+      : pathname === link || pathname.startsWith(`${link}/`);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 32);
@@ -115,16 +140,16 @@ export function Header() {
           whose mark is h-9 plus a wordmark, so light rendered visibly smaller. */}
       <span
         className="inline-flex transition-opacity duration-200 ease-out"
-        style={{ opacity: scrolled ? 0 : 1 }}
-        aria-hidden={scrolled}
+        style={{ opacity: solid ? 0 : 1 }}
+        aria-hidden={solid}
       >
         <Logo tone="white" markClassName="h-9 w-auto" />
       </span>
 
       <span
         className="absolute inset-y-0 left-0 inline-flex items-center transition-opacity duration-200 ease-out"
-        style={{ opacity: scrolled ? 1 : 0 }}
-        aria-hidden={!scrolled}
+        style={{ opacity: solid ? 1 : 0 }}
+        aria-hidden={!solid}
       >
         {/* Navy mark once the header has a surface; auto-tone mark in dark mode */}
         <span className="dark:hidden">
@@ -141,7 +166,7 @@ export function Header() {
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        scrolled
+        solid
           ? "border-b border-line bg-background/85 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,101,0.06)]"
           : "border-b border-transparent bg-transparent"
       }`}
@@ -152,7 +177,50 @@ export function Header() {
       <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-4 md:h-[72px] md:px-6 lg:px-10">
         {logoSwap}
 
+        {/* Desktop nav. The hamburger is a PHONE control now — a menu that
+            hides five links behind a button on a 1440px screen makes the
+            visitor work for something there is room to just show them. Both
+            states have to hold: white over the hero, which is dark in both
+            themes, and the theme's own foreground once the bar has a surface
+            under it. */}
+        <nav className="hidden lg:flex items-center gap-1" aria-label="Primary">
+          {NAV.map((n) => {
+            const on = isCurrent(n.link);
+            return (
+              <Link
+                key={n.link}
+                href={n.link}
+                aria-current={on ? "page" : undefined}
+                className={`group relative rounded-full px-4 py-2 text-[0.94rem] font-medium transition-colors duration-200 ${
+                  solid
+                    ? "text-[#000065] hover:text-secondary dark:text-foreground dark:hover:text-secondary"
+                    : "text-white/85 hover:text-white [text-shadow:0_1px_6px_rgba(0,0,0,0.45)]"
+                } ${on ? "!text-secondary" : ""}`}
+              >
+                {n.label}
+                {/* The current-page rule is drawn, not just coloured: colour
+                    alone is not a state anyone can rely on. */}
+                <span
+                  aria-hidden="true"
+                  className={`pointer-events-none absolute inset-x-4 -bottom-0.5 h-[2px] rounded-full bg-secondary transition-transform duration-300 ease-out ${
+                    on ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+                  }`}
+                />
+              </Link>
+            );
+          })}
+        </nav>
+
         <div className="flex items-center gap-3">
+          {/* Rides in the bar on desktop; on a phone it lives in the menu
+              footer, where there is room for its label. */}
+          <span
+            className={`hidden lg:inline-flex ${
+              solid ? "" : "[&_button]:!text-white [&_svg]:drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)]"
+            }`}
+          >
+            <AnimatedThemeToggler />
+          </span>
           <MotionLink
             href="/#pv-contact"
             animate={{
@@ -182,13 +250,13 @@ export function Header() {
           </MotionLink>
 
           <StaggeredMenu
-            className={
+            className={"lg:hidden " + (
               menuOpen
                 ? ""
-                : scrolled
+                : solid
                   ? "[&_.sm-toggle]:text-[#000065] dark:[&_.sm-toggle]:text-foreground"
                   : "[&_.sm-burger]:drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] [&_.sm-toggle]:!text-white dark:[&_.sm-toggle]:!text-foreground"
-            }
+            )}
             items={NAV.map((n) => ({
               label: n.label,
               link: n.link,

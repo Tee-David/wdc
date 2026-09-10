@@ -55,6 +55,20 @@
   bottom: 0;
 }
 
+/* Open, the toggle belongs to the PANEL, not to the header.
+
+   The header caps its content at 1280px and centres it, while the panel is
+   flush to the viewport's right edge — so on anything wider than that the X
+   sat well inside the panel, floating in the middle of nowhere. Fixed to the
+   panel's own right padding, it lands in the panel's top right corner at every
+   width. */
+.sm-toggle[aria-expanded="true"] {
+  position: fixed;
+  top: clamp(16px, 2.4vh, 26px);
+  right: 2.25em;
+  z-index: 60;
+}
+
 .sm-toggle[aria-expanded="true"] .sm-burger-line--top {
   top: 50%;
   transform: translateY(-50%) rotate(45deg);
