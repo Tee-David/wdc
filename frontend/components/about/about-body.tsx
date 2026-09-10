@@ -257,7 +257,7 @@ export default function AboutBody() {
         <div className="ab-wheelsec__pin">
           <ScrollExpand className="ab-wheelsec__zoom">
             <div className="ab-wheelsec__stage">
-              <CircularGallery items={WHEEL} progress={wheelRun} bend={4} perView={6} />
+              <CircularGallery items={WHEEL} progress={wheelRun} perView={6} slots={24} />
               {/* The canvas is decorative to assistive tech, so the artwork
                   itself lives here as real images: this is what a screen
                   reader, a crawler and a browser without WebGL all get. */}

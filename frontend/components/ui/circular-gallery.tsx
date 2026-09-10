@@ -59,11 +59,8 @@ type Viewport = { width: number; height: number };
 class Media {
   plane!: Mesh;
   program!: Program;
-  extra = 0;
-  x = 0;
-  width = 0;
-  widthTotal = 0;
-  padding = 0;
+  /** Where this card sits on the ring, in radians clockwise from the top. */
+  baseAngle: number;
 
   constructor(
     private o: {
@@ -71,23 +68,20 @@ class Media {
       gl: GLContext;
       image: string;
       index: number;
-      length: number;
+      slots: number;
+      gap: number;
       scene: Transform;
-      screen: Screen;
-      viewport: Viewport;
-      bend: number;
       borderRadius: number;
-      perView: number;
       text?: string;
       textColor: string;
       font: string;
     },
   ) {
+    this.baseAngle = (o.index / o.slots) * Math.PI * 2;
     this.createShader();
     this.plane = new Mesh(o.gl, { geometry: o.geometry, program: this.program });
     this.plane.setParent(o.scene);
     if (o.text) this.createTitle();
-    this.onResize({});
   }
 
   private createShader() {
@@ -102,16 +96,15 @@ class Media {
         attribute vec2 uv;
         uniform mat4 modelViewMatrix;
         uniform mat4 projectionMatrix;
-        uniform float uTime;
-        uniform float uSpeed;
         varying vec2 vUv;
         void main() {
+          /* Flat. The upstream component displaces z by a travelling sine so
+             the tiles ripple, and at any amplitude that reads as the artwork
+             wobbling rather than as motion — these are printed pieces, and
+             paper does not undulate. The plane geometry is 1x1 segments now
+             because nothing needs vertices to displace. */
           vUv = uv;
-          vec3 p = position;
-          /* the ripple as a tile picks up speed; tiny at rest, so a parked
-             wheel is flat rather than permanently wobbling */
-          p.z = (sin(p.x * 4.0 + uTime) * 1.5 + cos(p.y * 2.0 + uTime) * 1.5) * (0.1 + uSpeed * 0.5);
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
       fragment: `
@@ -147,8 +140,6 @@ class Media {
         tMap: { value: texture },
         uPlaneSizes: { value: [0, 0] },
         uImageSizes: { value: [0, 0] },
-        uSpeed: { value: 0 },
-        uTime: { value: 100 * Math.random() },
         uBorderRadius: { value: borderRadius },
       },
       transparent: true,
@@ -187,71 +178,32 @@ class Media {
     mesh.setParent(this.plane);
   }
 
-  update(scroll: { current: number; last: number }, direction: "left" | "right") {
-    this.plane.position.x = this.x - scroll.current - this.extra;
-
-    const x = this.plane.position.x;
-    const H = this.o.viewport.width / 2;
-    const bend = this.o.bend;
-
-    if (bend === 0) {
-      this.plane.position.y = 0;
-      this.plane.rotation.z = 0;
-    } else {
-      /* The arc: a circle of radius R through the viewport's half-width, so the
-         tiles sit ON a curve and tilt to match its tangent rather than being
-         merely nudged downwards. `effectiveX` is clamped to H so tiles beyond
-         the edge stop diving and the ends of the wheel stay level. */
-      const B = Math.abs(bend);
-      const R = (H * H + B * B) / (2 * B);
-      const ex = Math.min(Math.abs(x), H);
-      const arc = R - Math.sqrt(R * R - ex * ex);
-      /* Centre the BAND, not the apex. Without this the arc hangs off a fixed
-         top edge, so the deeper the bend the further the whole wheel sits below
-         the middle of its frame with dead space above it. Lifting by half the
-         maximum drop puts the apex as far above centre as the ends fall below,
-         which is what makes it read as a wheel sitting in the box. */
-      const drop = R - Math.sqrt(Math.max(0, R * R - H * H));
-      this.plane.position.y = (bend > 0 ? -arc : arc) + (bend > 0 ? drop / 2 : -drop / 2);
-      this.plane.rotation.z = (bend > 0 ? -1 : 1) * Math.sign(x) * Math.asin(ex / R);
-    }
-
-    this.program.uniforms.uTime.value += 0.04;
-    this.program.uniforms.uSpeed.value = scroll.current - scroll.last;
-
-    /* Wrap: a tile that has left one side is moved a whole track-width round to
-       the other, so the arc is never half empty however far it has turned. */
-    const half = this.plane.scale.x / 2;
-    const edge = this.o.viewport.width / 2;
-    if (direction === "right" && this.plane.position.x + half < -edge) this.extra -= this.widthTotal;
-    if (direction === "left" && this.plane.position.x - half > edge) this.extra += this.widthTotal;
+  update(ringAngle: number, radius: number, centreY: number) {
+    /* A real circle, not a bent strip. theta is measured clockwise from the top
+       of the ring, so slot 0 sits at the apex and the rest fan away either
+       side. The centre is BELOW the container and the radius is larger than the
+       container's half-height, so the bottom of the ring falls outside the box
+       and is clipped — which is what leaves a semicircle across the top with
+       the rest hidden, the framing from the photography build. */
+    const theta = this.baseAngle + ringAngle;
+    this.plane.position.x = Math.sin(theta) * radius;
+    this.plane.position.y = centreY + Math.cos(theta) * radius;
+    /* Counter-rotate so each card stays tangential to the ring. Without this
+       they stay upright and the arc reads as tiles scattered along a curve
+       rather than as one wheel. */
+    this.plane.rotation.z = -theta;
   }
 
-  onResize({ screen, viewport }: { screen?: Screen; viewport?: Viewport }) {
-    if (screen) this.o.screen = screen;
-    if (viewport) this.o.viewport = viewport;
-
-    /* Sized from HOW MANY SHOULD BE VISIBLE, not from a fixed pixel guess. One
-       slot is the viewport divided by `perView`, the tile fills the slot less
-       its gutter, and it stays square because the artwork is square — the
-       original's 700x900 portrait planes cropped these to a letterbox. */
-    /* `perView` is the DESKTOP count. Holding six across a 390px phone would
-       make every tile 65px wide, which is a texture, not an image — so narrow
-       screens show fewer and larger. Fractional counts are deliberate: ending
-       on a half tile is what signals the wheel continues past the edge. */
-    const w = this.o.screen.width;
-    const per = w < 640 ? Math.min(this.o.perView, 2.5)
-              : w < 1024 ? Math.min(this.o.perView, 4)
-              : this.o.perView;
-    const slot = this.o.viewport.width / per;
-    this.padding = slot * 0.12;
-    this.plane.scale.x = slot - this.padding;
-    this.plane.scale.y = this.plane.scale.x;
-    this.program.uniforms.uPlaneSizes.value = [this.plane.scale.x, this.plane.scale.y];
-
-    this.width = slot;
-    this.widthTotal = slot * this.o.length;
-    this.x = slot * this.o.index;
+  /** Card size derives from the RING, so proportions hold at any viewport. */
+  resize(radius: number, slots: number) {
+    /* One slot's arc pitch is the space a card has to live in; `gap` is how
+       much of that pitch is left empty. Sizing from the pitch rather than from
+       the viewport is what keeps the spacing even as the ring resizes. */
+    const pitch = (2 * Math.PI) / slots;
+    const w = radius * pitch * (1 - this.o.gap);
+    this.plane.scale.x = w;
+    this.plane.scale.y = w;
+    this.program.uniforms.uPlaneSizes.value = [w, w];
   }
 }
 
@@ -264,20 +216,28 @@ class Wheel {
   private medias: Media[] = [];
   private screen: Screen = { width: 0, height: 0 };
   private viewport: Viewport = { width: 0, height: 0 };
-  private scroll = { current: 0, target: 0, last: 0, ease: 0.06 };
+  private angle = 0;
+  private radius = 1;
+  private centreY = 0;
+  private slots = 1;
   private raf = 0;
   private ro?: ResizeObserver;
   private io?: IntersectionObserver;
   private running = false;
-  private span = 1;
 
   constructor(
     private container: HTMLElement,
     private opts: {
       items: GalleryItem[];
-      bend: number;
       borderRadius: number;
+      /** How many cards span the container's width across the top arc. */
       perView: number;
+      /** Total positions on the ring; more than `items`, which cycle. */
+      slots: number;
+      /** Share of each slot's arc left empty between cards, 0-1. */
+      gap: number;
+      /** Apex inset from the top edge, as a share of container height. */
+      topInset: number;
       textColor: string;
       font: string;
       labels: boolean;
@@ -294,10 +254,9 @@ class Wheel {
     this.camera.fov = 45;
     this.camera.position.z = 20;
     this.scene = new Transform();
-    this.scroll.ease = opts.ease;
 
     this.measure();
-    this.geometry = new Plane(this.gl, { heightSegments: 40, widthSegments: 80 });
+    this.geometry = new Plane(this.gl);
     this.build();
 
     this.ro = new ResizeObserver(() => this.measure());
@@ -320,27 +279,28 @@ class Wheel {
   }
 
   private build() {
-    const { items, bend, borderRadius, perView, textColor, font, labels } = this.opts;
-    /* Doubled, so a full turn through the real set still has tiles queued to
-       wrap in behind it and the arc never shows a gap. */
-    const list = items.concat(items);
-    this.span = items.length;
-    this.medias = list.map((it, index) => new Media({
-      geometry: this.geometry,
-      gl: this.gl,
-      image: it.image,
-      index,
-      length: list.length,
-      scene: this.scene,
-      screen: this.screen,
-      viewport: this.viewport,
-      bend,
-      borderRadius,
-      perView,
-      text: labels ? it.text : undefined,
-      textColor,
-      font,
-    }));
+    const { items, borderRadius, slots, gap, textColor, font, labels } = this.opts;
+    /* The ring has more SLOTS than there are images, because only the top arc
+       is on screen: at twelve slots a twelve-image ring would need the whole
+       circle visible to show them all. Images cycle through the slots, so a
+       full turn still passes every one of them. */
+    this.slots = slots;
+    this.medias = Array.from({ length: slots }, (_, index) => {
+      const it = items[index % items.length];
+      return new Media({
+        geometry: this.geometry,
+        gl: this.gl,
+        image: it.image,
+        index,
+        slots,
+        gap,
+        scene: this.scene,
+        borderRadius,
+        text: labels ? it.text : undefined,
+        textColor,
+        font,
+      });
+    });
   }
 
   private measure() {
@@ -350,7 +310,28 @@ class Wheel {
     this.camera.perspective({ aspect: this.screen.width / this.screen.height });
     const h = 2 * Math.tan((this.camera.fov * Math.PI) / 180 / 2) * this.camera.position.z;
     this.viewport = { width: h * this.camera.aspect, height: h };
-    this.medias.forEach((m) => m.onResize({ screen: this.screen, viewport: this.viewport }));
+
+    /* Solve the ring from HOW MANY SHOULD BE VISIBLE across the top.
+       A card at angle theta sits at x = sin(theta) * R, so the outermost
+       visible card is at half the container width:
+           sin(visibleArc / 2) * R = viewport.width / 2
+       and visibleArc is just the arc those cards occupy, (perView/slots) * 2pi.
+       Deriving R this way means changing `perView` changes what you see rather
+       than needing the radius retuned by hand. */
+    const arc = (this.opts.perView / this.slots) * Math.PI * 2;
+    this.radius = (this.viewport.width / 2) / Math.max(0.2, Math.sin(arc / 2));
+
+    /* Then drop the centre so the apex CARD sits inside the top edge — the
+       apex POINT is not enough, because a card is centred on it and half its
+       height reaches above. Half a card is derived here rather than guessed:
+       it falls out of the same pitch the cards are sized from, so changing
+       `slots` or `gap` cannot silently push the top row off the frame. */
+    const pitch = (2 * Math.PI) / this.slots;
+    const halfCard = (this.radius * pitch * (1 - this.opts.gap)) / 2;
+    const apex = this.viewport.height / 2 - halfCard - this.opts.topInset * this.viewport.height;
+    this.centreY = apex - this.radius;
+
+    this.medias.forEach((m) => m.resize(this.radius, this.slots));
   }
 
   private start() {
@@ -367,16 +348,11 @@ class Wheel {
   }
 
   private tick = () => {
-    const slot = this.medias[0]?.width ?? 0;
-    /* One unit of progress turns the wheel past every image in the set once.
-       Starting half a viewport in means the arc is already full at progress 0,
-       instead of the first tile sitting alone in the middle. */
-    this.scroll.target = this.getProgress() * slot * this.span;
-    this.scroll.current = lerp(this.scroll.current, this.scroll.target, this.scroll.ease);
-    const direction = this.scroll.current > this.scroll.last ? "right" : "left";
-    this.medias.forEach((m) => m.update(this.scroll, direction));
+    /* One unit of progress turns the ring past every image in the set. */
+    const target = this.getProgress() * ((2 * Math.PI * this.opts.items.length) / this.slots);
+    this.angle = lerp(this.angle, target, this.opts.ease);
+    this.medias.forEach((m) => m.update(this.angle, this.radius, this.centreY));
     this.renderer.render({ scene: this.scene, camera: this.camera });
-    this.scroll.last = this.scroll.current;
     if (this.running) this.raf = requestAnimationFrame(this.tick);
   };
 
@@ -394,22 +370,31 @@ class Wheel {
 export default function CircularGallery({
   items,
   progress,
-  bend = 3,
   borderRadius = 0.06,
   perView = 6,
+  slots = 24,
+  gap = 0.16,
+  topInset = 0.02,
   labels = false,
   textColor = "#ffffff",
   font = "600 26px 'Space Grotesk', system-ui, sans-serif",
-  ease = 0.06,
+  ease = 0.07,
   className = "",
 }: {
   items: GalleryItem[];
   /** Ref holding 0-1. A ref, not a prop: this changes every frame. */
   progress: { current: number };
-  bend?: number;
   borderRadius?: number;
-  /** How many tiles span the container's width. */
+  /** How many cards span the container's width across the top of the ring. */
   perView?: number;
+  /** Positions on the ring. More than `items`, which cycle through them —
+      only the top arc is visible, so a ring with one slot per image would have
+      to show its whole circle to show them all. */
+  slots?: number;
+  /** Share of each slot's arc left empty between cards, 0-1. */
+  gap?: number;
+  /** How far the ring's apex sits below the top edge, as a share of height. */
+  topInset?: number;
   labels?: boolean;
   textColor?: string;
   font?: string;
@@ -425,7 +410,7 @@ export default function CircularGallery({
     try {
       wheel = new Wheel(
         el,
-        { items, bend, borderRadius, perView, textColor, font, labels, ease },
+        { items, borderRadius, perView, slots, gap, topInset, textColor, font, labels, ease },
         () => progress.current,
       );
     } catch {
@@ -435,7 +420,7 @@ export default function CircularGallery({
       el.dataset.failed = "true";
     }
     return () => wheel?.destroy();
-  }, [items, progress, bend, borderRadius, perView, textColor, font, labels, ease]);
+  }, [items, progress, borderRadius, perView, slots, gap, topInset, textColor, font, labels, ease]);
 
   return <div className={`cgal ${className}`.trim()} ref={host} aria-hidden="true" />;
 }
