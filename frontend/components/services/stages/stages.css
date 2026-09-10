@@ -129,7 +129,7 @@
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .68rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
   padding: 3px 8px; border-radius: 999px;
-  background: var(--accent); color: #000065;
+  background: var(--accent); color: #fff;
 }
 @media (max-width: 560px) { .serp__badge { display: none; } }
 
@@ -919,7 +919,7 @@
    to read as ours, and a red/blue/green key would be somebody else's product. */
 .cal__chip.is-organic { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); }
 .cal__chip.is-paid    { background: var(--band); color: #fff; }
-.cal__chip.is-story   { background: color-mix(in srgb, var(--accent) 42%, transparent); color: var(--ink); }
+.cal__chip.is-story   { background: color-mix(in srgb, var(--accent) 78%, var(--band)); color: #fff; }
 @media (prefers-reduced-motion: no-preference) {
   .cal__chip.is-new { animation: cal-drop .3s cubic-bezier(.34, 1.4, .5, 1) both; }
 }

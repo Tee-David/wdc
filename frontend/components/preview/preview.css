@@ -1,3 +1,25 @@
+/* ==========================================================================
+   COLOUR RULE — read before adding any brand-coloured surface.
+
+   1. Text on --accent (#ff6500) is ALWAYS #fff. Never navy, never --ink.
+   2. Text on --band (#000065) is ALWAYS #fff. Never --accent, never --muted.
+   3. Both are LITERAL #fff, not a token, and identical in light and dark. A
+      brand surface is the same colour in both themes, so its type must be too;
+      reading it from a theme token is how the same badge ends up dark-on-orange
+      in one mode and fine in the other.
+   4. Navy on WHITE is fine and is the correct inversion (15:1 both ways).
+   5. Everything else — cards, panels, page copy — uses the neutral tokens
+      (--ink, --muted, --paper, --paper-2, --rule) which flip with the theme.
+
+   SPECIFICITY. This file already carries `.pv a { color: inherit }` (0,1,1) and
+   `.pv-tcard__by span { color: var(--muted) }` (0,1,1). A new single-class rule
+   scores (0,1,0) and LOSES to both, silently — the element keeps its inherited
+   colour and you get dark type on orange with nothing obviously wrong in the
+   source. Three separate bugs in this codebase came from exactly that. Any new
+   rule colouring text on a brand surface must reach (0,2,0) or better: add the
+   `.pv` prefix, or scope it to its parent block.
+   ========================================================================== */
+
 /* ============================================================================
    /preview — the getyoursite design language in WDC's brand.
 
@@ -416,13 +438,16 @@
   .pv-icards::-webkit-scrollbar { display: none; }
   .pv-icards > .pv-icard { flex: 0 0 76%; scroll-snap-align: start; }
 }
-.pv-icard {
+/* `.pv a { color: inherit }` again — this card is an ANCHOR, so at (0,1,0) it
+   lost and took the band's pale text onto orange. Both variants are raised to
+   (0,2,0)+ so the alternating neutral card still wins over the accent one. */
+.pv-icard, .pv .pv-icard {
   display: flex; flex-direction: column; gap: 10px; min-height: 264px; border: 0;
   padding: clamp(22px, 2.6vw, 30px); border-radius: 20px;
-  background: var(--accent); color: #000065;
+  background: var(--accent); color: #fff;
   transition: transform .3s cubic-bezier(.16, 1, .3, 1), box-shadow .3s cubic-bezier(.16, 1, .3, 1);
 }
-.pv-icard:nth-child(2n) { background: var(--paper); color: var(--ink); }
+.pv-icard:nth-child(2n), .pv .pv-icard:nth-child(2n) { background: var(--paper); color: var(--ink); }
 .pv-icard h3 {
   color: inherit; text-transform: uppercase; letter-spacing: -.02em; line-height: 1.03;
   font-size: clamp(1.35rem, 1.05rem + 1vw, 1.85rem); max-width: 13ch;
@@ -487,8 +512,15 @@
 }
 .pv-tcard p { font-size: .98rem; line-height: 1.55; color: var(--ink); font-style: normal; }
 .pv-tcard__by { display: flex; align-items: center; gap: 12px; margin-top: auto; padding-top: 8px; border-top: 1px solid var(--rule); }
-.pv-tcard__av {
-  width: 40px; height: 40px; border-radius: 50%; background: #000065; color: var(--accent);
+/* Scoped to its parent on purpose. `.pv-tcard__by span` a line above scores
+   (0,1,1) and this avatar IS a span inside it, so a single-class rule at
+   (0,1,0) lost and the initials took the muted body colour: 2.52:1 on navy in
+   light mode, and a different colour again in dark. `.pv-tcard__by` + class
+   scores (0,2,0) and wins. White on navy is 15:1 and identical in both themes,
+   which is the point — a brand surface must not change its type colour with
+   the theme. */
+.pv-tcard__by .pv-tcard__av {
+  width: 40px; height: 40px; border-radius: 50%; background: #000065; color: #fff;
   display: grid; place-items: center; flex: none;
   font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 700; font-size: .95rem;
 }
@@ -511,7 +543,7 @@
 .pv-faq__aside h3 { color: #fff; }
 .pv-faq__aside p { color: var(--on-band-dim); font-size: .95rem; }
 .pv-faq__mark {
-  width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: #000065;
+  width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: #fff;
   display: grid; place-items: center;
   font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 700; font-size: 1.4rem;
 }
@@ -685,7 +717,13 @@
 .pv-modal__host { font-size: .74rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 560px) { .pv-modal__host { display: none; } }
 
-.pv-modal__open {
+/* Listed TWICE, bare and under `.pv`, for the reason documented at `.pv-btn`
+   above: `.pv a { color: inherit }` scores (0,1,1) and a single-class rule here
+   scores (0,1,0), so this button — an anchor inside `.pv` — silently ignored
+   its own white and inherited the panel's dark ink instead. That is how it
+   ended up as dark type on orange, which is the one pairing this palette must
+   never produce. */
+.pv-modal__open, .pv .pv-modal__open {
   flex: none; display: inline-flex; align-items: center; gap: 6px;
   padding: 7px 14px; border-radius: 999px;
   background: var(--accent); color: #fff;
@@ -697,7 +735,7 @@
   width: 13px; height: 13px; fill: none; stroke: currentColor;
   stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
 }
-.pv-modal__open:hover { background: var(--band); color: #fff; transform: translateY(-1px); }
+.pv-modal__open:hover, .pv .pv-modal__open:hover { background: var(--band); color: #fff; transform: translateY(-1px); }
 @media (max-width: 460px) { .pv-modal__open { padding: 7px 10px; font-size: 0; gap: 0; } }
 
 .pv-modal__x {

@@ -327,7 +327,7 @@
 .sv-track .pv-shot { background: var(--band-2); }
 /* the band's arrows sit on navy, so they need the inverted resting state */
 .sv-work .pv-rbtn { color: #fff; border-color: var(--on-band-rule); }
-.sv-work .pv-rbtn:hover { background: var(--accent); color: #000065; border-color: var(--accent); }
+.sv-work .pv-rbtn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 .sv-work .pv-rbtn:disabled:hover { background: transparent; color: #fff; }
 
 .sv-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
