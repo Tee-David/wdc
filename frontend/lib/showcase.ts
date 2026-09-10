@@ -444,3 +444,86 @@ export const CALENDAR: SlotKind[] = [
   "organic", "none", "paid", "organic", "story", "none", "none",
   "organic", "paid", "none", "organic", "organic", "story", "paid",
 ];
+
+/* -------------------------------------------------- cross-platform source */
+/**
+ * The files behind the "one codebase, two stores" claim.
+ *
+ * Written to be READ, not to compile: short enough to take in at a glance and
+ * shaped like the real thing, with the cross-platform argument visible in the
+ * code itself rather than only in the caption — one screen component, one
+ * shared client, one config that names both platforms.
+ */
+export const APP_SOURCE = [
+  {
+    id: "screen",
+    dir: ["app", "(tabs)"],
+    name: "index.tsx",
+    code: `import { View, FlatList } from 'react-native';
+import { useEntries } from '@/lib/api';
+import { EntryCard } from '@/components/EntryCard';
+
+export default function Today() {
+  const { data = [] } = useEntries();
+  return (
+    <View style={{ flex: 1 }}>
+      <FlatList
+        data={data}
+        keyExtractor={(e) => e.id}
+        renderItem={({ item }) => <EntryCard entry={item} />}
+      />
+    </View>
+  );
+}`,
+  },
+  {
+    id: "card",
+    dir: ["components"],
+    name: "EntryCard.tsx",
+    code: `import { Pressable, Text } from 'react-native';
+import type { Entry } from '@/lib/api';
+
+// One component. iOS and Android both render this.
+export function EntryCard({ entry }: { entry: Entry }) {
+  return (
+    <Pressable style={styles.card} onPress={entry.open}>
+      <Text style={styles.title}>{entry.project}</Text>
+      <Text style={styles.time}>{entry.elapsed}</Text>
+    </Pressable>
+  );
+}`,
+  },
+  {
+    id: "api",
+    dir: ["lib"],
+    name: "api.ts",
+    code: `import useSWR from 'swr';
+
+export type Entry = {
+  id: string;
+  project: string;
+  elapsed: string;
+  open: () => void;
+};
+
+export function useEntries() {
+  return useSWR<Entry[]>('/v1/entries', (url) =>
+    fetch(url).then((r) => r.json()),
+  );
+}`,
+  },
+  {
+    id: "config",
+    dir: [],
+    name: "app.json",
+    code: `{
+  "expo": {
+    "name": "TraxStaff",
+    "slug": "traxstaff",
+    "platforms": ["ios", "android"],
+    "ios": { "bundleIdentifier": "com.wdc.traxstaff" },
+    "android": { "package": "com.wdc.traxstaff" }
+  }
+}`,
+  },
+];

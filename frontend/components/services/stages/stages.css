@@ -143,17 +143,46 @@
   align-items: center;
 }
 .ts--compact { grid-template-columns: 1fr; justify-items: center; align-content: center; gap: 14px; }
+
+/* The apps stage carries two panels that both want width: the shared source
+   and the two handsets. Since the section went to two columns the stage is
+   634px across, and split 40/60 that left the code pane at 169px — a
+   column of code too narrow to read, next to phones too small to see.
+
+   So below 780px of STAGE width (not viewport — the stage is one column of a
+   two-column section, so the viewport says nothing useful here) the two stack:
+   source across the full width on top, both handsets under it. `:has()` gives
+   the frame the taller aspect that makes room for the stack; browsers without
+   it keep the default frame and the stack simply scrolls. */
+/* The container-type goes on the FRAME, not on `.ts`. An element cannot answer
+   its own container query — the query applies to a container's descendants —
+   so declaring it on `.ts` and then styling `.ts` inside the block matched
+   nothing at all. Scoped with `:has()` so only this stage gets a containment
+   context and the other five are untouched. */
+.sv-stage__frame:has(.ts) { container-type: inline-size; }
+@container (max-width: 780px) {
+  .ts {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    align-items: stretch; gap: 12px;
+  }
+  .ts__devices { padding-block: 0; }
+}
+.sv-stage__frame:has(.ts) { aspect-ratio: 4 / 4.6; }
+@media (min-width: 1024px) {
+  .sv-stage__frame:has(.ts) { aspect-ratio: 4 / 4.2; }
+}
 .ts__src { display: grid; gap: 12px; }
 .ts__srclabel {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; color: var(--accent);
 }
-.ts__code {
-  display: grid; gap: 6px; padding: 14px; border-radius: 12px;
-  background: var(--band); border: 1px solid var(--on-band-rule);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: .78rem; color: var(--on-band-dim);
-}
+/* The code browser replaced the three-line mock that used to live here. It is
+   capped so it cannot push the phones out of the stage: this column shares a
+   fixed-aspect frame with them, and an un-capped code pane grows with its
+   longest file. */
+.ts__src .cb { max-height: min(42vh, 280px); }
+.ts__src .cb__pre { max-height: 100%; }
 .ts__split { display: flex; gap: 6px; }
 .ts__split span { flex: 1; height: 2px; border-radius: 2px; background: var(--accent); opacity: .55; }
 .ts__devices { display: flex; gap: clamp(10px, 2vw, 22px); justify-content: center; height: 100%; min-height: 0; align-items: center; padding-block: 4px; }
