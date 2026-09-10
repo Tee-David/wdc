@@ -366,10 +366,18 @@
   }
   .pv-pinwrap.is-pinned { height: var(--pv-pin-h); }
   /* 64px of fixed header on phones, plus a 12px gutter above and below it */
+  /* `overflow-x: auto`, NOT hidden. The pin drives this rail by writing
+     scrollLeft, so leaving it scrollable means a finger can drive it too:
+     scroll the page and the cards advance, or swipe the cards directly and
+     the page catches up. Hiding the overflow (and moving the track with a
+     transform) made the pin the only way through, so a swipe did nothing. */
   .pv-pinwrap.is-pinned .pv-pinstage {
     position: sticky; top: 76px; height: calc(100svh - 92px); padding: 0;
-    overflow: hidden; display: flex; align-items: stretch; scroll-snap-type: none;
+    overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; overscroll-behavior-x: contain;
+    display: flex; align-items: stretch; scroll-snap-type: none;
   }
+  .pv-pinwrap.is-pinned .pv-pinstage::-webkit-scrollbar { display: none; }
   .pv-pinwrap.is-pinned .pv-pintrack { will-change: transform; }
   /* filling the stage means the art stretches rather than staying at 200px */
   .pv-pinwrap.is-pinned .pv-scard__media { height: auto; min-height: 200px; flex: 1 1 auto; }

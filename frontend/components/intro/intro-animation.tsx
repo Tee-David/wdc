@@ -398,7 +398,10 @@ export default function IntroAnimation() {
               <h2 className="mb-6 font-heading text-4xl font-bold tracking-tight text-foreground md:text-6xl xl:text-7xl 2xl:text-[5.5rem]">
                 Most brands are buried.
               </h2>
-              <p className="max-w-xl text-base leading-relaxed text-muted md:text-lg xl:max-w-4xl xl:text-2xl">
+              {/* foreground, not muted: this paragraph is the intro's one piece of real
+                  copy, and it reads at full contrast in both themes (near-black on
+                  light, near-white on dark). The orange service names stay accent. */}
+              <p className="max-w-xl text-base leading-relaxed text-foreground md:text-lg xl:max-w-4xl xl:text-2xl">
                 Whether you&apos;re underground, fighting for visibility, shaping a new concept, or scaling an established brand; we’ve got you. Through elite <strong className="font-bold text-secondary">Branding & Design</strong>, full-stack <strong className="font-bold text-secondary">Web & App Development</strong>, dominant <strong className="font-bold text-secondary">SEO</strong>, strategic <strong className="font-bold text-secondary">Social Media</strong>, and results-driven <strong className="font-bold text-secondary">PPC & Growth Marketing</strong>. Keep scrolling to meet We Dig Creativity
               </p>
             </motion.div>

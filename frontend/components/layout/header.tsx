@@ -16,14 +16,17 @@ import { CONTACT_EMAIL } from "@/lib/site";
  * `#about`, `#work` and `#blog` were all dead: the homepage sections are
  * `#pv-work`, `#pv-process` and `#pv-contact`, and there is no blog. A nav
  * item that scrolls nowhere is worse than one that is not there, so Blog is
- * gone until there is a blog to link to, and About points at "How we work"
- * until the /about route ships.
+ * gone until there is a blog to link to.
+ *
+ * "Our Work" is an in-page anchor, so it needs the leading `/` to work from
+ * /services and /about too — a bare `#pv-work` would look for that section on
+ * whatever page you are already on and find nothing.
  */
 const NAV = [
   { label: "Home", link: "/" },
-  { label: "About Us", link: "#pv-process" },
+  { label: "About Us", link: "/about" },
   { label: "Services", link: "/services" },
-  { label: "Our Work", link: "#pv-work" },
+  { label: "Our Work", link: "/#pv-work" },
 ];
 
 /** simple-icons brand glyph, tinted by the current text color. */
@@ -151,7 +154,7 @@ export function Header() {
 
         <div className="flex items-center gap-3">
           <MotionLink
-            href="#pv-contact"
+            href="/#pv-contact"
             animate={{
               scale: [1, 1.04, 0.96, 1.02, 0.98, 1],
               rotate: [0, 2, -2, 2, -2, 0]
