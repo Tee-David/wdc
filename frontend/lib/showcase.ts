@@ -235,12 +235,35 @@ export const WEB_STACKS: WebStack[] = [
  * `tile`, `task`) so the phone stays a sketch of an interface rather than a
  * pixel claim about a product we have not shipped.
  */
-export const APP_KINDS = [
+/** A block in a sketched phone screen. Few types on purpose — see above. */
+export type AppBlock = { t: string; a?: string; b?: string };
+
+export type AppKind = {
+  id: string;
+  label: string;
+  note: string;
+  screens: readonly string[];
+  ui: readonly AppBlock[];
+  /** A real capture of the shipped product, which replaces `ui` when present. */
+  shot?: string;
+  shotOf?: string;
+};
+
+/* Annotated rather than inferred: without the type, `shot` exists only on the
+   member that has it and reading it off the union fails to compile. */
+export const APP_KINDS: AppKind[] = [
   {
     id: "saas",
     label: "SaaS",
     note: "Multi-tenant products with billing, roles and an onboarding path.",
     screens: ["Dashboard", "Billing", "Team", "Settings"],
+    /* A REAL capture of a product we shipped. Where one exists it replaces the
+       sketch below — a screenshot of the actual thing beats an illustration of
+       it every time. The other kinds keep their sketches until captures exist,
+       rather than borrowing this one, which would claim a product we have not
+       built for that category. */
+    shot: "/work/app/litch-mobile.jpg",
+    shotOf: "the Litch Consulting dashboard",
     ui: [
       { t: "kpi", a: "MRR", b: "Churn" },
       { t: "chart" },

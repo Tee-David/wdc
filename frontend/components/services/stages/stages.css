@@ -223,6 +223,15 @@
 .ph__vp { flex: 1 1 auto; min-height: 0; overflow: hidden; position: relative; }
 .pv-sec--alt .ph__screen { background: var(--paper-2); }
 .ph__track { display: flex; flex-direction: column; }
+/* A real capture, scrolled by the same duplicate-and-translate trick as the
+   sketch reel. `width: 100%` on the images and `height: auto` means a capture
+   of any height rides the phone's width and scrolls the rest. */
+.ph__shot { display: flex; flex-direction: column; will-change: transform; }
+.ph__shot img { display: block; width: 100%; height: auto; }
+@media (prefers-reduced-motion: no-preference) {
+  .ph__shot { animation: ph-scroll 26s linear infinite; }
+}
+.ph__shot.is-still { animation: none; }
 @media (prefers-reduced-motion: no-preference) {
   .ph__track { animation: ph-scroll 18s linear infinite; }
 }

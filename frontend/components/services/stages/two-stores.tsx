@@ -120,11 +120,14 @@ function StatusIcons() {
   );
 }
 
-function Phone({ os, paused, ui, screens }: {
+function Phone({ os, paused, ui, screens, shot, shotOf }: {
   os: "iOS" | "Android";
   paused: boolean;
   ui: readonly Block[];
   screens: readonly string[];
+  /** A real capture of the product. Wins over the sketch when present. */
+  shot?: string;
+  shotOf?: string;
 }) {
   const REEL = [...ui, ...ui, ...ui];
   return (
@@ -136,7 +139,7 @@ function Phone({ os, paused, ui, screens }: {
       <DeviceFrame
         device={os === "iOS" ? "iphone" : "android"}
         className="ph__frame"
-        alt={`A ${screens[0]} screen`}
+        alt={shotOf ? `${shotOf} on a phone` : `A ${screens[0]} screen`}
       >
       <div className="ph__screen">
         {/* the platform's own status bar, which is most of what makes a frame
@@ -145,19 +148,34 @@ function Phone({ os, paused, ui, screens }: {
           <span className="ph__time">{os === "iOS" ? "9:41" : "09:41"}</span>
           <StatusIcons />
         </div>
-        <div className="ph__head" aria-hidden="true">{screens[0]}</div>
+        {/* The synthetic header is only for the SKETCH. A real capture brings
+            the product's own top bar with it, and drawing a second one above
+            that gives the phone two headers. */}
+        {shot ? null : <div className="ph__head" aria-hidden="true">{screens[0]}</div>}
         {/* The track is clipped by its OWN viewport, not by the phone frame.
             `ph-scroll` translates it upward by half its height, and a transform
             paints outside the flow: clipped only at the frame, the rising track
             slid up over the status bar and header and covered them. */}
         <div className="ph__vp">
-        <div className={`ph__track${paused ? " is-still" : ""}`}>
-          {[0, 1].map((dup) => (
-            <div className="ph__half" key={dup} aria-hidden={dup === 1}>
-              {REEL.map((blk, n) => <Blk blk={blk} key={`${dup}-${n}`} />)}
-            </div>
-          ))}
-        </div>
+        {shot ? (
+          /* The capture, twice, translated by -50%: the same seamless-loop
+             trick the web stage uses, so a tall screen scrolls and closes
+             without anyone measuring the image. */
+          <div className={`ph__shot${paused ? " is-still" : ""}`}>
+            {[0, 1].map((dup) => (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img key={dup} src={shot} alt="" aria-hidden="true" loading="lazy" draggable={false} />
+            ))}
+          </div>
+        ) : (
+          <div className={`ph__track${paused ? " is-still" : ""}`}>
+            {[0, 1].map((dup) => (
+              <div className="ph__half" key={dup} aria-hidden={dup === 1}>
+                {REEL.map((blk, n) => <Blk blk={blk} key={`${dup}-${n}`} />)}
+              </div>
+            ))}
+          </div>
+        )}
         </div>
       </div>
       </DeviceFrame>
@@ -224,8 +242,10 @@ export default function TwoStores() {
           <p className="ts__ship">Both stores, one release.</p>
         </div>
         <div className="ts__devices">
-          <Phone os="iOS" paused={paused} ui={active.ui} screens={active.screens} />
-          <Phone os="Android" paused={paused} ui={active.ui} screens={active.screens} />
+          <Phone os="iOS" paused={paused} ui={active.ui} screens={active.screens}
+                 shot={active.shot} shotOf={active.shotOf} />
+          <Phone os="Android" paused={paused} ui={active.ui} screens={active.screens}
+                 shot={active.shot} shotOf={active.shotOf} />
         </div>
       </div>
     </Stage>
