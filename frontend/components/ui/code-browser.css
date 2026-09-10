@@ -1,0 +1,109 @@
+/* ==========================================================================
+   Code browser
+
+   `container-type` is what makes this work in a narrow column: the panel asks
+   how wide IT is, not how wide the screen is, so the same component gives a
+   file rail inside a wide stage and a scrolling tab strip inside a 230px one.
+   ========================================================================== */
+.cb {
+  container-type: inline-size;
+  display: grid; gap: 0; min-width: 0;
+  border: 1px solid var(--on-band-rule); border-radius: 14px;
+  background: var(--band); overflow: hidden;
+}
+
+/* --- narrow: a horizontal strip of files --- */
+.cb__rail {
+  display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none;
+  padding: 8px; border-bottom: 1px solid var(--on-band-rule);
+  background: color-mix(in srgb, #fff 4%, var(--band));
+}
+.cb__rail::-webkit-scrollbar { display: none; }
+.cb__group { display: contents; }
+.cb__dir { display: none; }
+
+.cb__file {
+  display: inline-flex; align-items: center; gap: 7px; flex: none;
+  padding: 6px 11px; border-radius: 8px; cursor: pointer;
+  border: 1px solid transparent; background: transparent;
+  color: var(--on-band-dim);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .76rem; font-weight: 600; white-space: nowrap;
+  transition: background-color .16s ease, color .16s ease, border-color .16s ease;
+}
+/* The affordance. A code panel that happens to be clickable looks like a
+   picture of a code panel, so the rows carry a hover and the open one carries
+   the accent — the two states together are what say "these are controls". */
+.cb__file:hover { background: rgb(255 255 255 / .07); color: #fff; }
+.cb__file:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.cb__file.is-on { background: rgb(255 101 0 / .16); border-color: var(--accent); color: #fff; }
+
+.cb__ext {
+  display: inline-grid; place-items: center; flex: none;
+  min-width: 22px; padding: 1px 4px; border-radius: 4px;
+  font-size: .55rem; font-weight: 700; letter-spacing: .02em;
+  text-transform: uppercase; color: #fff;
+}
+.cb__ext--ts { background: #2f6fd0; }
+.cb__ext--json { background: #b8860b; }
+.cb__ext--other { background: rgb(255 255 255 / .22); }
+
+/* --- pane --- */
+.cb__pane { min-width: 0; display: flex; flex-direction: column; }
+.cb__bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 8px 12px; border-bottom: 1px solid var(--on-band-rule);
+}
+.cb__path {
+  color: var(--on-band-dim); font-size: .7rem; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.cb__path b { color: #fff; font-weight: 600; }
+.cb__copy {
+  flex: none; cursor: pointer; padding: 4px 10px; border-radius: 999px;
+  border: 1px solid var(--on-band-rule); background: transparent; color: var(--on-band-dim);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .66rem; font-weight: 700;
+  transition: background-color .16s ease, color .16s ease, border-color .16s ease;
+}
+.cb__copy:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+.cb__copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.cb__pre {
+  margin: 0; padding: 10px 12px; overflow: auto; flex: 1; min-height: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .72rem; line-height: 1.75; tab-size: 2;
+}
+.cb__line { display: flex; gap: 10px; }
+.cb__ln {
+  flex: none; width: 1.6em; text-align: right;
+  color: rgb(255 255 255 / .28); -webkit-user-select: none; user-select: none;
+}
+.cb__code { white-space: pre; color: var(--on-band-dim); }
+/* Tuned against the navy, not lifted from a light-background theme: these all
+   sit above 4.5:1 on #000065. */
+.cb__t--key { color: #ff8a3d; font-weight: 600; }
+.cb__t--str { color: #8fd0ff; }
+.cb__t--com { color: rgb(255 255 255 / .38); font-style: italic; }
+.cb__t--typ { color: #b9a6ff; }
+.cb__t--num { color: #7fe0b0; }
+
+/* --- wide enough for a rail down the side --- */
+@container (min-width: 520px) {
+  .cb { grid-template-columns: minmax(0, 178px) minmax(0, 1fr); }
+  .cb__rail {
+    flex-direction: column; align-items: stretch; gap: 2px;
+    overflow-x: hidden; overflow-y: auto;
+    border-bottom: 0; border-right: 1px solid var(--on-band-rule);
+    padding: 10px;
+  }
+  .cb__group { display: block; }
+  .cb__dir {
+    display: block; padding: 8px 8px 4px;
+    font-family: var(--font-space-grotesk), system-ui, sans-serif;
+    font-size: .62rem; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: rgb(255 255 255 / .35);
+  }
+  .cb__file { width: 100%; justify-content: flex-start; }
+}
