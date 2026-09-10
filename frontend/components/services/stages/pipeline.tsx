@@ -8,9 +8,14 @@ import { AI_USES } from "@/lib/showcase";
  * 05 · Software & AI — "The Pipeline".
  *
  * The request path drawn as a graph with a pulse running the edges, beside a
- * terminal that types the trace out. This is the differentiator claim —
- * engineering built around an outcome — so the stage shows an architecture
- * rather than a generic "AI" shimmer.
+ * terminal that types the trace out. This is the differentiator claim, so the
+ * stage shows an architecture rather than a generic "AI" shimmer.
+ *
+ * The tabs drive the WHOLE stage, not a caption. Each use has a different shape
+ * in real life (extraction is parse-and-validate; an assistant is retrieve-then-
+ * generate), so switching tab rebuilds the chain and retypes a matching trace.
+ * A control that only swaps a sentence while the diagram underneath stays put
+ * is the thing that makes a page feel templated.
  *
  * Two details that matter:
  *  - The wires are positioned elements, not SVG strokes. The graph is fluid, so
@@ -19,24 +24,25 @@ import { AI_USES } from "@/lib/showcase";
  *    holding a single sentence, which reads as an empty panel; a transcript
  *    that builds and then resets reads as a request being served.
  */
-const NODES = [
-  { id: "req", label: "Request", x: 8 },
-  { id: "api", label: "API", x: 29 },
-  { id: "svc", label: "Service", x: 50 },
-  { id: "db", label: "Data", x: 71 },
-  { id: "llm", label: "LLM", x: 92 },
-];
+/* Nodes are spread evenly across the width for whatever chain the selected use
+   carries, so a four-step path and a five-step path both fill the graph. */
+const spread = (labels: readonly string[]) =>
+  labels.map((label, i) => ({
+    id: `${label}-${i}`,
+    label,
+    x: labels.length === 1 ? 50 : 8 + (i * 84) / (labels.length - 1),
+  }));
 
-const LINES = [
-  "POST /v1/enquiry",
-  "→ validate · route · enrich",
-  "→ model: summarise + classify",
-  '← { "intent": "quote", "confidence": 0.94 }',
-  "← queued for a human · 120ms",
-];
-
-/** Types the trace out line by line, holds it, then starts over. */
-function useTranscript(active: boolean) {
+/**
+ * The terminal, split out so it can be REMOUNTED on a tab change.
+ *
+ * The accumulated lines belong to whichever trace produced them, so switching
+ * architecture has to clear them. Resetting inside the effect would mean
+ * setting state during an effect on every dependency change; keying this
+ * component by the selected use gets the same reset from React's own
+ * mount/unmount, with no extra render.
+ */
+function useTranscript(active: boolean, LINES: readonly string[]) {
   const [done, setDone] = useState<string[]>([]);
   const [partial, setPartial] = useState("");
   const timer = useRef<number>(0);
@@ -68,18 +74,45 @@ function useTranscript(active: boolean) {
     };
     timer.current = window.setTimeout(tick, 500);
     return () => window.clearTimeout(timer.current);
-  }, [active]);
+  }, [active, LINES]);
 
   return { done, partial };
+}
+
+function Terminal({ animate, lines }: { animate: boolean; lines: readonly string[] }) {
+  const { done, partial } = useTranscript(animate, lines);
+  return (
+    <div className="pl__term">
+      <div className="pl__termbar" aria-hidden="true"><i /><i /><i /></div>
+      <div className="pl__termbody">
+        {animate ? (
+          <>
+            {done.map((l) => <span className="pl__line" key={l}>{l}</span>)}
+            {partial && (
+              <span className="pl__line">
+                {partial}<span className="pl__cursor">|</span>
+              </span>
+            )}
+          </>
+        ) : (
+          /* still + compact get the whole trace, already written out */
+          <>{lines.map((l) => <span className="pl__line" key={l}>{l}</span>)}</>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function Pipeline() {
   const mode = useStageMotion();
   const { ref, near } = useNearViewport<HTMLDivElement>("120px");
   const animate = mode === "full" && near;
-  const { done, partial } = useTranscript(animate);
   const [use, setUse] = useState<string>(AI_USES[0].id);
   const activeUse = AI_USES.find((u) => u.id === use) ?? AI_USES[0];
+  /* The whole stage keys off the tab: the chain, the trace and the reset. The
+     `key` on the graph below restarts the node/spark animations on a switch,
+     otherwise the new chain inherits the old one's mid-flight timing. */
+  const NODES = spread(activeUse.nodes);
 
   const controls = (
     <>
@@ -92,7 +125,7 @@ export default function Pipeline() {
     <Stage caption="A request path we would actually build. Illustrative."
            controls={controls}>
       <div className={`pl${animate ? " is-live" : ""}`} ref={ref}>
-        <div className="pl__graph">
+        <div className="pl__graph" key={`graph-${activeUse.id}`}>
           {/* Plain elements, not SVG. The graph spans a flexible width, so any
               stretched viewBox distorts the dash pattern: non-scaling-stroke
               puts dashes in screen units and pathLength in user units, and the
@@ -119,24 +152,10 @@ export default function Pipeline() {
           </ol>
         </div>
 
-        <div className="pl__term">
-          <div className="pl__termbar" aria-hidden="true"><i /><i /><i /></div>
-          <div className="pl__termbody">
-            {animate ? (
-              <>
-                {done.map((l) => <span className="pl__line" key={l}>{l}</span>)}
-                {partial && (
-                  <span className="pl__line">
-                    {partial}<span className="pl__cursor">|</span>
-                  </span>
-                )}
-              </>
-            ) : (
-              /* still + compact get the whole trace, already written out */
-              <>{LINES.map((l) => <span className="pl__line" key={l}>{l}</span>)}</>
-            )}
-          </div>
-        </div>
+        {/* Distinct key prefixes: these are SIBLINGS, and giving both the bare
+            use id made React see two children with the same key, which
+            duplicated the graph on every tab switch instead of replacing it. */}
+        <Terminal key={`term-${activeUse.id}`} animate={animate} lines={activeUse.trace} />
       </div>
     </Stage>
   );

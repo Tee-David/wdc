@@ -77,6 +77,12 @@ export const BRAND_KINDS: BrandKind[] = [
       asset("service-flyer", "Service flyer"),
       asset("eye-screening-2", "Health screening flyer"),
       asset("kappos-jotter", "Convocation flyer"),
+      asset("staycation-flyer", "Travel package flyer"),
+      asset("medical-checkup", "Medical outreach flyer"),
+      asset("celebration-post", "Celebration post"),
+      asset("womens-day", "Awareness day post"),
+      asset("classroom-post", "Back-to-school post"),
+      asset("fragrance-promo", "Fragrance promo"),
     ],
   },
   {
@@ -156,41 +162,140 @@ export const WEB_STACKS = [
 ] as const;
 
 /* -------------------------------------------------------------------- apps */
-/** Product shapes we build, rather than "we make apps". */
+/**
+ * Product shapes we build, rather than "we make apps".
+ *
+ * `ui` is what the phone actually renders for that kind. A SaaS dashboard, an
+ * ERP table, a marketplace grid and an internal queue do not look alike, and
+ * showing the same grey card stack under all four tabs is what made this stage
+ * read as a template. Block types are deliberately few (`kpi`, `chart`, `row`,
+ * `tile`, `task`) so the phone stays a sketch of an interface rather than a
+ * pixel claim about a product we have not shipped.
+ */
 export const APP_KINDS = [
   {
     id: "saas",
     label: "SaaS",
     note: "Multi-tenant products with billing, roles and an onboarding path.",
     screens: ["Dashboard", "Billing", "Team", "Settings"],
+    ui: [
+      { t: "kpi", a: "MRR", b: "Churn" },
+      { t: "chart" },
+      { t: "row", a: "Acme Ltd", b: "Active" },
+      { t: "row", a: "Northwind", b: "Trial" },
+      { t: "row", a: "Vantage Co", b: "Active" },
+    ],
   },
   {
     id: "erp",
     label: "ERP",
     note: "Operations, inventory and finance running off one source of truth.",
     screens: ["Orders", "Stock", "Invoices", "Reports"],
+    ui: [
+      { t: "row", a: "PO-4417", b: "Received" },
+      { t: "row", a: "PO-4418", b: "Partial" },
+      { t: "row", a: "PO-4419", b: "Pending" },
+      { t: "row", a: "PO-4420", b: "Received" },
+      { t: "row", a: "PO-4421", b: "Pending" },
+      { t: "kpi", a: "On hand", b: "Backorder" },
+    ],
   },
   {
     id: "marketplace",
     label: "Marketplace",
     note: "Two sides, payments in the middle, and trust built into both.",
     screens: ["Browse", "Listing", "Checkout", "Payouts"],
+    ui: [
+      { t: "tile", a: "Headphones", b: "24,500" },
+      { t: "tile", a: "Keyboard", b: "18,900" },
+      { t: "tile", a: "Monitor", b: "96,000" },
+      { t: "tile", a: "Webcam", b: "31,200" },
+      { t: "row", a: "Seller payout", b: "Weekly" },
+    ],
   },
   {
     id: "internal",
     label: "Internal tools",
     note: "The unglamorous software a team actually runs on all day.",
     screens: ["Queue", "Records", "Approvals", "Audit"],
+    ui: [
+      { t: "task", a: "Approve refund", b: "done" },
+      { t: "task", a: "Verify KYC", b: "done" },
+      { t: "task", a: "Escalate ticket", b: "open" },
+      { t: "task", a: "Close period", b: "open" },
+      { t: "task", a: "Reconcile", b: "open" },
+      { t: "kpi", a: "In queue", b: "Cleared" },
+    ],
   },
 ] as const;
 
 /* ---------------------------------------------------------------- software */
-/** Where AI actually lands in the products we build. */
+/**
+ * Where AI actually lands in the products we build.
+ *
+ * Each use carries its OWN request path and its own trace, because the four are
+ * genuinely different architectures: extraction is a parse-and-validate
+ * pipeline, an assistant is retrieval-then-generate. A tab that only swaps a
+ * sentence while the diagram underneath stays put is a tab that is lying about
+ * what changes.
+ *
+ * `nodes` is the chain drawn across the graph; `trace` is what the terminal
+ * types. Both are illustrative of a build we would do, not a capture of a
+ * client's system, which is what the stage caption says.
+ */
 export const AI_USES = [
-  { id: "extract", label: "Extraction", note: "Documents and forms into structured data." },
-  { id: "classify", label: "Classification", note: "Routing enquiries to the right queue." },
-  { id: "assist", label: "Assistants", note: "Answering from your own content, not the open web." },
-  { id: "summarise", label: "Summarising", note: "Long threads and records into a usable brief." },
+  {
+    id: "extract",
+    label: "Extraction",
+    note: "Documents and forms into structured data.",
+    nodes: ["Upload", "OCR", "Extract", "Validate", "Store"],
+    trace: [
+      "POST /v1/documents  invoice-4417.pdf",
+      "to OCR: 3 pages, 1 table detected",
+      "to model: extract line items + totals",
+      'from { "total": 184200, "currency": "NGN", "lines": 12 }',
+      "from schema valid, written to ledger, 1.4s",
+    ],
+  },
+  {
+    id: "classify",
+    label: "Classification",
+    note: "Routing enquiries to the right queue.",
+    nodes: ["Request", "API", "Classify", "Route", "Queue"],
+    trace: [
+      "POST /v1/enquiry",
+      "to validate, dedupe, enrich",
+      "to model: intent + urgency",
+      'from { "intent": "quote", "confidence": 0.94 }',
+      "from routed to sales, queued for a human, 120ms",
+    ],
+  },
+  {
+    id: "assist",
+    label: "Assistants",
+    note: "Answering from your own content, not the open web.",
+    nodes: ["Question", "Search", "Retrieve", "Ground", "Answer"],
+    trace: [
+      'POST /v1/ask  "what is our refund window?"',
+      "to embed, search index over 2,140 docs",
+      "to retrieve: 4 passages, policy handbook",
+      "to model: answer FROM passages only",
+      "from answered with 2 citations, 0 hallucinated, 840ms",
+    ],
+  },
+  {
+    id: "summarise",
+    label: "Summarising",
+    note: "Long threads and records into a usable brief.",
+    nodes: ["Thread", "Chunk", "Summarise", "Merge", "Brief"],
+    trace: [
+      "GET /v1/threads/8821  61 messages",
+      "to chunk: 9 windows, overlap 200 tokens",
+      "to model: summarise each window",
+      "to merge: dedupe, order by decision",
+      "from brief: 5 decisions, 3 open questions, 2.1s",
+    ],
+  },
 ] as const;
 
 /* --------------------------------------------------------------------- seo */

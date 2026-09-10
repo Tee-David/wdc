@@ -1,41 +1,90 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Stage, TabRow, useNearViewport, useStageMotion } from "./stage-shell";
-import { PROJECTS } from "@/lib/projects";
+import { useState } from "react";
+import { Stage, TabRow, useStageMotion } from "./stage-shell";
 import { WEB_STACKS } from "@/lib/showcase";
 
 /**
  * 03 · Full-Stack Web — "One build, every viewport".
  *
- * Two things a client actually decides between: what it is built ON, and
- * whether it holds up on a phone. So the stage does both — the tabs pick the
- * stack (WordPress, Shopify, custom, web app) and the frame really resizes
- * across three widths with the pixel count ticking down.
+ * Three device mockups running the SAME page, each from a capture taken at that
+ * device's real width, all scrolling at once.
  *
- * The screenshot is a real live project, so this is the one stage on the page
- * that needs no placeholder at all.
+ * The old version resized a single frame across three widths on a timer, which
+ * showed one thing at a time and proved nothing: a screenshot squashed narrow
+ * is not a responsive layout, it is a squashed screenshot. Capturing the page
+ * separately at 1440, 768 and 390 means each frame shows the layout that width
+ * actually gets — the nav collapses, the columns stack, the type resets — and
+ * putting them side by side makes that the whole argument.
+ *
+ * All three tracks share one duration, which is the trick that makes it read.
+ * Each track is one capture tall, so equal duration means equal RELATIVE
+ * progress: at eight seconds in, all three are showing the same part of the
+ * same page in three different layouts. Matching pixel speed instead would
+ * drift them apart within a screen, since the phone capture is 26 times its own
+ * width and the desktop one only 5.7.
+ *
+ * The captures are WDC's own site, which is a real full-stack responsive build
+ * and is named as ours in the caption. Client long-scrolls drop into SHOTS
+ * without touching anything else here.
  */
-const SHOT = PROJECTS[1] ?? PROJECTS[0];
-
-const SIZES = [
-  { label: "Desktop", px: 1440, w: 100 },
-  { label: "Tablet", px: 768, w: 62 },
-  { label: "Phone", px: 390, w: 34 },
+const SHOTS = [
+  { id: "desktop", label: "Desktop", px: 1440, src: "/work/long/wdc-desktop.jpg" },
+  { id: "tablet", label: "Tablet", px: 768, src: "/work/long/wdc-tablet.jpg" },
+  { id: "phone", label: "Phone", px: 390, src: "/work/long/wdc-phone.jpg" },
 ] as const;
+
+/** One device. The track holds the capture TWICE and translates by exactly
+ *  -50%, so the loop closes without measuring the image height. */
+function Device({
+  shot,
+  stack,
+  still,
+}: {
+  shot: (typeof SHOTS)[number];
+  stack: string;
+  still: boolean;
+}) {
+  return (
+    <figure className={`dv dv--${shot.id}`}>
+      <div className="dv__body">
+        {shot.id === "desktop" ? (
+          <div className="dv__bar" aria-hidden="true">
+            <i /><i /><i />
+            <span className="dv__url">{stack}</span>
+          </div>
+        ) : (
+          <span className="dv__notch" aria-hidden="true" />
+        )}
+        <div className="dv__view">
+          <div className={`dv__track${still ? " is-still" : ""}`}>
+            {[0, 1].map((dup) => (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                key={dup}
+                src={shot.src}
+                alt={dup === 0 ? `The WDC site at ${shot.px}px wide` : ""}
+                aria-hidden={dup === 1}
+                loading="lazy"
+                draggable={false}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+      <figcaption className="dv__cap">
+        <span className="dv__label">{shot.label}</span>
+        <span className="dv__px">{shot.px}px</span>
+      </figcaption>
+    </figure>
+  );
+}
 
 export default function ViewportMorph() {
   const mode = useStageMotion();
-  const { ref, near } = useNearViewport<HTMLDivElement>("120px");
-  const [i, setI] = useState(0);
   const [stack, setStack] = useState<string>(WEB_STACKS[2].id); // custom build
   const active = WEB_STACKS.find((s) => s.id === stack) ?? WEB_STACKS[0];
-
-  useEffect(() => {
-    if (mode !== "full" || !near) return;
-    const t = window.setInterval(() => setI((n) => (n + 1) % SIZES.length), 2600);
-    return () => window.clearInterval(t);
-  }, [mode, near]);
+  const still = mode === "still";
 
   const controls = (
     <>
@@ -44,69 +93,22 @@ export default function ViewportMorph() {
     </>
   );
 
-  const chips = (
-    <div className="vp__chips">
-      {active.chips.map((c, n) => (
-        <span className="vp__chip" key={c} style={{ transitionDelay: `${n * 45}ms` }}>{c}</span>
-      ))}
-    </div>
-  );
-
-  /* Still and compact show the three widths at once: the same claim as a
-     comparison rather than an animation. */
-  if (mode !== "full") {
-    return (
-      <Stage caption={`${SHOT.name}: one build, three viewports.`} controls={controls}>
-        <div className="vp-still">
-          <div className="vp-still__row">
-            {SIZES.map((s) => (
-              <div className="vp-still__item" key={s.label} style={{ width: `${s.w}%` }}>
-                <div className="vp-chrome vp-chrome--sm">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={SHOT.cover} alt={`${SHOT.name} at ${s.label.toLowerCase()} width`} loading="lazy" />
-                </div>
-                <small>{s.label}</small>
-              </div>
-            ))}
-          </div>
-          {chips}
-        </div>
-      </Stage>
-    );
-  }
-
-  const cur = SIZES[i];
   return (
-    <Stage caption={`${SHOT.name}, live. The frame is really resizing.`} controls={controls}>
-      <div className="vp" ref={ref}>
-        <div className="vp__ruler">
-          <span className="vp__px">{cur.px}px</span>
-          <span className="vp__label">{cur.label}</span>
-          {chips}
+    <Stage
+      caption="Our own site, captured at three real widths. The frames are scrolling the live page."
+      controls={controls}
+    >
+      <div className={`vp3 vp3--${mode}`}>
+        <div className="vp3__rack">
+          {SHOTS.map((s) => (
+            <Device key={s.id} shot={s} stack={active.label.toLowerCase()} still={still} />
+          ))}
         </div>
-        <div className="vp__stagewrap">
-          <div className="vp-chrome vp__frame" style={{ width: `${cur.w}%` }}>
-            <div className="vp-chrome__bar" aria-hidden="true">
-              <i /><i /><i />
-              <span className="vp-chrome__url">{active.label.toLowerCase()}</span>
-            </div>
-            <div className="vp-chrome__view">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={SHOT.cover} alt={`${SHOT.name} website`} loading="lazy" />
-            </div>
-          </div>
-        </div>
-        <div className="vp__dots" role="tablist" aria-label="Viewport width">
-          {SIZES.map((s, n) => (
-            <button
-              key={s.label}
-              type="button"
-              role="tab"
-              aria-selected={n === i}
-              aria-label={s.label}
-              className={`vp__dot${n === i ? " is-on" : ""}`}
-              onClick={() => setI(n)}
-            />
+        <div className="vp3__chips">
+          {active.chips.map((c, n) => (
+            <span className="vp__chip" key={c} style={{ transitionDelay: `${n * 45}ms` }}>
+              {c}
+            </span>
           ))}
         </div>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { PROJECTS } from "@/lib/projects";
 import { FAQS } from "@/lib/faq";
 import { CONTACT_EMAIL } from "@/lib/site";
@@ -270,8 +271,16 @@ export default function PreviewBody() {
           </div>
           <div className="pv-steps pv-reveal">
             {STEPS.map((s, i) => (
-              <div className="pv-step" key={s.t}>
-                <span className="pv-step__n">{String(i + 1).padStart(2, "0")}</span>
+              <div className="pv-step" key={s.t} style={{ "--si": i } as CSSProperties}>
+                {/* split per digit so each settles on its own beat, like a
+                    counter coming to rest; see pv-digit in preview.css */}
+                <span className="pv-step__n" aria-label={String(i + 1)}>
+                  {String(i + 1).padStart(2, "0").split("").map((ch, di) => (
+                    <span className="pv-step__d" key={di} style={{ "--di": di } as CSSProperties} aria-hidden="true">
+                      {ch}
+                    </span>
+                  ))}
+                </span>
                 <h3>{s.t}</h3>
                 <p>{s.d}</p>
               </div>
