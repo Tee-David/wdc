@@ -395,7 +395,7 @@ export default function ServicesBody() {
           <div className="sv-cta__box pv-reveal">
             <span className="pv-eyebrow">Start here</span>
             <h2 className="sv-cta__h">
-              <ParticleText text="Let's talk." />
+              <ParticleText text="Let's talk." loop />
             </h2>
             <p className="sv-cta__sub">Tell us what you are trying to achieve.</p>
             <p className="pv-lede">
