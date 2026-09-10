@@ -68,6 +68,15 @@ export const BRAND_KINDS: BrandKind[] = [
       asset("deuces-illustration", "Illustrated poster"),
       asset("eid-greeting", "Seasonal greeting"),
       asset("easter-greeting", "Holiday greeting"),
+      asset("christmas-greeting", "Christmas greeting"),
+      asset("ramadan-greeting", "Ramadan greeting"),
+      asset("tailoring-promo", "Tailoring promo"),
+      asset("fashion-catalogue", "Fashion catalogue"),
+      asset("gadget-poster", "Gadget store poster"),
+      asset("education-campaign", "Education campaign"),
+      asset("service-flyer", "Service flyer"),
+      asset("eye-screening-2", "Health screening flyer"),
+      asset("kappos-jotter", "Convocation flyer"),
     ],
   },
   {
@@ -79,7 +88,7 @@ export const BRAND_KINDS: BrandKind[] = [
       asset("marvs-pastries-logo", "Logo lockup"),
       asset("habby-logo", "Brand mark"),
       asset("pc-wordmark", "Wordmark"),
-      asset("mayrols-signage", "Signage mark"),
+      asset("thinkers-diary-logo", "Logo colourways"),
     ],
   },
   {
@@ -98,20 +107,21 @@ export const BRAND_KINDS: BrandKind[] = [
       asset("stationery-set", "Stationery set"),
       asset("staff-id-card", "Staff ID card"),
       asset("merch-range", "Merch range"),
+      asset("mayrols-signage", "Signage mockup"),
     ],
   },
   {
     id: "guides",
     label: "Brand guides",
-    note: "The document a team actually uses: voice, palette, typography, usage.",
+    note: "A few pages from the documents themselves — voice, palette, logo rules.",
     items: [
-      asset("dhiol-brand-guide-1", "Guide cover"),
-      asset("dhiol-brand-guide-2", "Guidelines intro"),
-      asset("dhiol-brand-guide-3", "Table of contents"),
-      asset("dhiol-brand-guide-4", "Section divider"),
+      asset("dhiol-brand-guide-1", "Tech brand cover"),
       asset("dhiol-brand-guide-5", "Positioning statement"),
       asset("dhiol-brand-guide-6", "Brand voice"),
-      asset("kappos-jotter", "Stationery template"),
+      asset("tab-guide-1", "Fashion brand cover"),
+      asset("tab-guide-4", "Brand personality"),
+      asset("tab-guide-6", "Primary logo"),
+      asset("tab-guide-7", "Logo variations"),
     ],
   },
 ];
@@ -256,6 +266,8 @@ export const SOCIAL_POSTS = [
   { src: "/brand-work/express-september.jpg", tag: "Monthly", t: "New month, logistics" },
   { src: "/brand-work/express-guess-location.jpg", tag: "Post", t: "Engagement post" },
   { src: "/brand-work/span-fest-artist.jpg", tag: "Event", t: "Guest artist reveal" },
+  { src: "/brand-work/dhiol-august.jpg", tag: "Monthly", t: "August refresh" },
+  { src: "/brand-work/dhiol-november.jpg", tag: "Monthly", t: "November refresh" },
 ] as const;
 
 /** A fortnight of a content calendar. `kind` drives the cell's colour. */
