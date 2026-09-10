@@ -56,7 +56,7 @@ export default function ViewportMorph() {
      comparison rather than an animation. */
   if (mode !== "full") {
     return (
-      <Stage caption={`${SHOT.name} — one build, three viewports.`} controls={controls}>
+      <Stage caption={`${SHOT.name}: one build, three viewports.`} controls={controls}>
         <div className="vp-still">
           <div className="vp-still__row">
             {SIZES.map((s) => (

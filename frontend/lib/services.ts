@@ -50,7 +50,7 @@ export const SERVICES: Service[] = [
     short: "Branding",
     lede: "One consistent identity across everything a customer touches.",
     body:
-      "Everything visual a company needs, built as a system rather than a set of one-off files. We work out what the brand has to say before we draw anything, then design the identity, the motion and the assets that carry it — so the logo, the deck, the storefront banner and the app icon all read as the same company.",
+      "Everything visual a company needs, built as a system rather than a set of one-off files. We work out what the brand has to say before we draw anything, then design the identity, the motion and the assets that carry it, so the logo, the deck, the storefront banner and the app icon all read as the same company.",
     steps: [
       { t: "Discovery", d: "We learn the business, the customer and the market before a single mark is drawn.", i: "Search" },
       { t: "Brand strategy", d: "Positioning and message, agreed in writing, so the design has something to serve.", i: "Compass" },
@@ -75,9 +75,9 @@ export const SERVICES: Service[] = [
     icon: "Search",
     name: "Search Engine Optimization",
     short: "SEO",
-    lede: "Visibility end to end — including being found by the AI tools people now ask.",
+    lede: "Visibility end to end, including being found by the AI tools people now ask.",
     body:
-      "Getting found is a technical problem and an editorial one, so we treat it as both. We fix what stops search engines reading the site, then build the keyword and content work that earns the rankings — and we extend the same thinking to AI visibility, optimising brands to be found and cited by LLMs, not only listed on a results page.",
+      "Getting found is a technical problem and an editorial one, so we treat it as both. We fix what stops search engines reading the site, then build the keyword and content work that earns the rankings. We extend the same thinking to AI visibility, optimising brands to be found and cited by LLMs, not only listed on a results page.",
     steps: [
       { t: "Audit", d: "PageSpeed and Lighthouse performance audits, plus a full technical crawl.", i: "Gauge" },
       { t: "Keyword research", d: "The terms your customers actually search, mapped to pages that can win them.", i: "SearchCheck" },
@@ -105,7 +105,7 @@ export const SERVICES: Service[] = [
     short: "Web",
     lede: "Every kind of website, engineered to perform and to last.",
     body:
-      "Personal sites and blogs, business and company sites, complex builds like e-commerce, and CMS-driven WordPress — custom or CMS, whichever actually fits the job. We build for speed, accessibility and maintainability, then stay on afterwards, because a site that is never touched again quietly stops earning.",
+      "Personal sites and blogs, business and company sites, complex builds like e-commerce, and CMS-driven WordPress. Custom or CMS, whichever actually fits the job. We build for speed, accessibility and maintainability, then stay on afterwards, because a site that is never touched again quietly stops earning.",
     steps: [
       { t: "Scope", d: "What the site has to achieve, agreed before anyone opens an editor.", i: "ClipboardList" },
       { t: "Architecture", d: "Custom or CMS, decided on the work in front of us rather than habit.", i: "Layers" },
@@ -132,11 +132,11 @@ export const SERVICES: Service[] = [
     short: "Apps",
     lede: "One codebase, every device, native-quality on both stores.",
     body:
-      "Web apps and mobile apps for iOS and Android from a single codebase, using Flutter, React Native, Swift, Kotlin or C# depending on what the product needs. We handle the engineering and the delivery — including the parts teams underestimate, like store review and the update cadence after launch.",
+      "Web apps and mobile apps for iOS and Android from a single codebase, using Flutter, React Native, Swift, Kotlin or C# depending on what the product needs. We handle the engineering and the delivery, including the parts teams underestimate, like store review and the update cadence after launch.",
     steps: [
       { t: "Product definition", d: "What the app is for, and what it does not need to do in version one.", i: "Target" },
       { t: "UX flows", d: "The paths a user takes, mapped before any screen is designed.", i: "GitBranch" },
-      { t: "One codebase", d: "Flutter, React Native, Swift, Kotlin or C# — chosen for the product.", i: "Boxes" },
+      { t: "One codebase", d: "Flutter, React Native, Swift, Kotlin or C#, chosen for the product.", i: "Boxes" },
       { t: "Engineered systems", d: "The backend, data and integrations the app leans on.", i: "Server" },
       { t: "Store delivery", d: "App Store and Play Store submission, handled properly.", i: "Store" },
       { t: "Continuous updates", d: "Shipping improvements after launch, not walking away at 1.0.", i: "RefreshCcw" },
@@ -160,7 +160,7 @@ export const SERVICES: Service[] = [
     short: "Software & AI",
     lede: "Custom software and AI built around the outcome, not around the technology.",
     body:
-      "Product builds from zero, scaling systems that have outgrown themselves, and AI or LLM features integrated into software that already exists. We are candid about where AI earns its place and where it does not — the engineering is built around a real business problem, and we say so plainly when a model is not the answer.",
+      "Product builds from zero, scaling systems that have outgrown themselves, and AI or LLM features integrated into software that already exists. We are candid about where AI earns its place and where it does not. The engineering is built around a real business problem, and we say so plainly when a model is not the answer.",
     steps: [
       { t: "Problem framing", d: "The business problem first; the technology choice comes after it.", i: "Target" },
       { t: "Architecture", d: "Backends, APIs and services designed to be scaled and maintained.", i: "Network" },
@@ -187,7 +187,7 @@ export const SERVICES: Service[] = [
     short: "Social & PPC",
     lede: "Turn attention into growth, with reporting that keeps you in the loop.",
     body:
-      "Organic growth and paid campaigns run together, because they feed each other. We manage the day-to-day accounts, build the content calendar, set up the automations that catch enquiries out of hours, and report on what it did — so you are looking at outcomes rather than a screenshot of a follower count.",
+      "Organic growth and paid campaigns run together, because they feed each other. We manage the day-to-day accounts, build the content calendar, set up the automations that catch enquiries out of hours, and report on what it did, so you are looking at outcomes rather than a screenshot of a follower count.",
     steps: [
       { t: "Channel audit", d: "Which platforms are worth your time, and which are quietly costing you.", i: "Activity" },
       { t: "Content calendar", d: "Planned properly, so posting is a schedule rather than a scramble.", i: "Calendar" },

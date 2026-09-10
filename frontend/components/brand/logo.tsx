@@ -66,7 +66,7 @@ export function Logo({
         <br />
         Creativity
       </span>
-      <span className="sr-only">We Dig Creativity — WDC Solutions</span>
+      <span className="sr-only">We Dig Creativity, WDC Solutions</span>
     </span>
   );
 }

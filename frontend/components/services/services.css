@@ -103,11 +103,17 @@
 @media (max-width: 640px) { .sv-jump { position: static; } }
 
 /* ---------------- one service ---------------- */
+/* The title block now stands alone above the showcase, so it carries the
+   space the old combined head used to. */
+.sv-svc__top { margin-bottom: clamp(1.2rem, 2.5vw, 1.8rem); }
+.sv-svc__top .sv-svc__title { margin: 10px 0 0; }
 .sv-svc__head {
   display: grid; grid-template-columns: 1.25fr .75fr;
   gap: clamp(24px, 4vw, 56px); align-items: start;
   margin-bottom: clamp(2rem, 4vw, 3rem);
 }
+/* sits BELOW the showcase now, so it needs air above it rather than only below */
+.sv-svc__head--after { margin-top: clamp(1.8rem, 3.5vw, 2.6rem); }
 @media (max-width: 900px) { .sv-svc__head { grid-template-columns: 1fr; } }
 .sv-svc__intro { min-width: 0; }
 .sv-svc__intro h2 { margin: 10px 0 14px; }
@@ -190,6 +196,27 @@
   margin-bottom: 14px;
 }
 .sv-step__icon svg { width: 19px; height: 19px; }
+/* The icons bob on their own so the row reads as alive rather than a static
+   grid of six boxes. The tile carries the motion, not the glyph, so the
+   library's own draw animation inside is left untouched.
+
+   `--bob` is set per card from the step index, which staggers the six against
+   each other; without it they rise and fall in lockstep and the row pulses
+   like one object. Amplitude is 3px and the cycle is slow on purpose: at this
+   size anything more reads as a bug, not a flourish. Paused on hover because
+   the card already lifts, and two movements at once fight. */
+@media (prefers-reduced-motion: no-preference) {
+  .sv-step__icon {
+    animation: sv-bob 3.6s ease-in-out infinite;
+    animation-delay: var(--bob, 0s);
+    will-change: transform;
+  }
+  .sv-step:hover .sv-step__icon { animation-play-state: paused; }
+}
+@keyframes sv-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-3px) rotate(-2.5deg); }
+}
 .sv-step__n {
   position: absolute; top: clamp(18px, 2vw, 24px); right: clamp(18px, 2vw, 24px);
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
@@ -218,13 +245,12 @@
   transition: background-color .18s ease, color .18s ease, border-color .18s ease;
 }
 .sv-chip:hover { border-color: var(--accent); }
-/* orange fill takes navy text: white on orange is 2.9:1 and fails */
-.sv-chip.is-on { background: var(--accent); border-color: var(--accent); color: #000065; }
+.sv-chip.is-on { background: var(--accent); border-color: var(--accent); color: #fff; }
 .sv-chip__c {
   font-size: .76rem; padding: 1px 7px; border-radius: 999px;
   background: rgba(255, 255, 255, .14); color: inherit;
 }
-.sv-chip.is-on .sv-chip__c { background: rgba(0, 0, 101, .18); }
+.sv-chip.is-on .sv-chip__c { background: rgba(0, 0, 101, .22); }
 
 .sv-work__bar {
   display: flex; align-items: center; justify-content: space-between;

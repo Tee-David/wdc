@@ -96,7 +96,7 @@ export function Header() {
   const logoSwap = (
     <Link
       href="/"
-      aria-label="We Dig Creativity — home"
+      aria-label="We Dig Creativity, home"
       className="relative inline-flex h-9 items-center"
     >
       {/* One component for both themes so the two states match in size. Light
