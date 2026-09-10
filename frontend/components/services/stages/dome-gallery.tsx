@@ -13,9 +13,9 @@ import { BRAND_KINDS } from "@/lib/showcase";
  * marks, portrait for print, landscape for guides and motion), because a poster
  * in a landscape crop stops reading as a poster.
  *
- * PLACEHOLDER: tiles are generated compositions in the brand palette,
- * deliberately abstract. A fabricated "client logo" is a claim; an abstract
- * panel is furniture. Real artwork drops into BRAND_KINDS[].items.
+ * The tiles are REAL WDC artwork, exported from the studio Drive and resized
+ * for the web. Geometry follows the artwork's own shape, which is why the
+ * flyers are square: they are designed square for social.
  *
  * Density is the whole trick: tiles sit 360/PER_ROW apart, so the arc between
  * centres is RADIUS x angle — at 12 per row that is ~225px against a ~210px
@@ -35,7 +35,9 @@ const GEO = {
 
 export default function DomeGallery() {
   const mode = useStageMotion();
-  const [kind, setKind] = useState(BRAND_KINDS[1].id); // print reads best first
+  /* opens on the largest set: a dome of 48 tiles drawn from four logos repeats
+     each one a dozen times, where ten flyers read as a wall of work */
+  const [kind, setKind] = useState(BRAND_KINDS[0].id);
   const cage = useRef<HTMLDivElement | null>(null);
   const drag = useRef({ on: false, x: 0, y: 0, lastX: 0, vx: 0 });
   const rot = useRef({ x: -6, y: 0 });
@@ -115,7 +117,7 @@ export default function DomeGallery() {
     </>
   );
 
-  const caption = "Placeholder compositions — real artwork drops into this stage.";
+  const caption = "Selected WDC brand work.";
 
   /* Compact and still share one readable fallback: a plain grid in the same
      shape. A 3D cage on a 390px screen is unreadable, and spinning it is worse. */
@@ -124,7 +126,9 @@ export default function DomeGallery() {
       <Stage caption={caption} controls={controls}>
         <div className={`dome-grid dome-grid--${active.shape}`}>
           {active.items.slice(0, 6).map((it) => (
-            <figure className={`bw bw--t${it.tone}`} key={it.id}>
+            <figure className="bw" key={it.id}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={it.src} alt={it.title} loading="lazy" />
               <figcaption className="bw__cap">{it.title}</figcaption>
             </figure>
           ))}
@@ -150,10 +154,12 @@ export default function DomeGallery() {
             const lon = (360 / geo.perRow) * (i % geo.perRow);
             return (
               <div
-                className={`dome__tile bw bw--t${t.tone}`}
+                className="dome__tile"
                 key={t.key}
                 style={{ transform: `rotateY(${lon}deg) rotateX(${lat}deg) translateZ(${RADIUS}px)` }}
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={t.src} alt="" loading="lazy" draggable={false} />
                 <span className="bw__cap">{t.title}</span>
               </div>
             );

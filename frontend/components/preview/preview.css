@@ -115,8 +115,16 @@
 .pv-btn--dark:hover { background: var(--accent); color: #fff; }
 .pv-btn--line { background: transparent; color: var(--ink); border-color: var(--ink); }
 .pv-btn--line:hover { background: var(--ink); color: var(--paper); }
-.pv-sec--band .pv-btn--line { color: #fff; border-color: var(--on-band-rule); }
-.pv-sec--band .pv-btn--line:hover { background: var(--accent); color: #000065; border-color: var(--accent); }
+/* On the navy band this button is solid white at rest and flips to orange on
+   hover. NOTE: white on #FF6500 measures 2.9:1, under the 4.5:1 WCAG wants for
+   body-size text — it is a deliberate brand choice, and it is only ever the
+   hover state of a large, bold, short label whose resting state is 15:1. */
+.pv-sec--band .pv-btn--line {
+  background: #fff; color: #000065; border-color: #fff;
+}
+.pv-sec--band .pv-btn--line:hover {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
 
 /* ---------------- bands ---------------- */
 .pv-sec { padding-block: clamp(3.4rem, 6vw, 6rem); background: var(--paper); }
@@ -565,3 +573,15 @@
 .dark .pv-hero [class~="dark:bg-background/72"],
 .dark .pv-hero [class~="dark:bg-primary/25"] { background-color: transparent !important; }
 .dark .pv-hero [class~="dark:to-background/85"] { --tw-gradient-to: transparent !important; }
+
+/* a project listed before its screenshot exists: a branded panel carrying the
+   name, rather than a broken image icon on a live marketing page */
+.pv-shot__none {
+  display: grid; place-items: center; width: 100%; height: 100%;
+  padding: 16px; text-align: center;
+  background:
+    radial-gradient(120% 100% at 20% 0%, rgba(255, 101, 0, .28), transparent 60%),
+    var(--band);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: 1.15rem; color: #fff; letter-spacing: -.01em;
+}

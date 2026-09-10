@@ -14,60 +14,59 @@
  */
 
 /* ---------------------------------------------------------------- branding */
-/** The asset kinds the dome filters by. Real artwork slots into `items`. */
+/**
+ * The asset kinds the dome filters by. These are REAL WDC pieces, exported from
+ * the studio Drive and resized for the web (originals are 2400px+ camera-sized
+ * files; the dome shows tiles a few hundred pixels wide).
+ *
+ * `shape` follows the artwork, not a preference: the flyers are square because
+ * they are built square for social, and the tile geometry is derived from it —
+ * a square poster forced into a portrait crop loses its own composition.
+ */
 export type BrandKind = {
   id: string;
   label: string;
   note: string;
-  /** Portrait for print, landscape for screen — drives the tile shape. */
   shape: "portrait" | "landscape" | "square";
-  /** PLACEHOLDER: abstract compositions until real artwork lands. */
-  items: { id: string; title: string; tone: number }[];
+  items: { id: string; title: string; src: string }[];
 };
 
-const composition = (prefix: string, titles: string[]) =>
-  titles.map((title, i) => ({ id: `${prefix}-${i}`, title, tone: i % 5 }));
+const asset = (slug: string, title: string) => ({
+  id: slug,
+  title,
+  src: `/brand-work/${slug}.jpg`,
+});
 
 export const BRAND_KINDS: BrandKind[] = [
+  {
+    id: "print",
+    label: "Flyers & posters",
+    note: "Campaign and product artwork, built to hold up in print and on a feed.",
+    shape: "square",
+    items: [
+      asset("bay-accessories-flyer", "BAY Accessories"),
+      asset("mariamah-flyer", "Mariamah"),
+      asset("abebi-treats-flyer", "Abebi Treats"),
+      asset("samrich-flyer", "Samrich"),
+      asset("tife-luxe-flyer", "Tife Sensual Luxe"),
+      asset("teefeh-val-flyer", "Teefeh"),
+      asset("orisun-flyer", "Orisun"),
+      asset("dhiol-stores", "Dhiol Stores"),
+      asset("diamond-empire-mockup", "Diamond Empire"),
+      asset("fash-shopping-bag", "Fash"),
+    ],
+  },
   {
     id: "logos",
     label: "Logos & marks",
     note: "Identity systems, lockups and the rules that hold them together.",
     shape: "square",
-    items: composition("logo", [
-      "Primary lockup", "Monogram", "Responsive mark", "Wordmark",
-      "Stacked variant", "Reversed", "Favicon grid", "Icon set",
-    ]),
-  },
-  {
-    id: "print",
-    label: "Flyers & posters",
-    note: "Print and social artwork, laid out to survive being resized.",
-    shape: "portrait",
-    items: composition("print", [
-      "Launch flyer", "Event poster", "Roll-up banner", "Product one-pager",
-      "Social carousel", "Price list", "Programme", "Menu card",
-    ]),
-  },
-  {
-    id: "guides",
-    label: "Brand guides",
-    note: "The system written down, so anyone can apply it without guessing.",
-    shape: "landscape",
-    items: composition("guide", [
-      "Colour system", "Type scale", "Logo clear space", "Photography",
-      "Tone of voice", "Component rules", "Do and do not", "Applications",
-    ]),
-  },
-  {
-    id: "motion",
-    label: "Motion",
-    note: "How the brand moves: transitions, micro-animation, motion design.",
-    shape: "landscape",
-    items: composition("motion", [
-      "Logo sting", "Loading state", "Scroll transition", "Micro-interaction",
-      "Explainer frame", "Lower third", "Social cut", "Product loop",
-    ]),
+    items: [
+      asset("krypt-dao-logo", "Krypt DAO"),
+      asset("marvs-pastries-logo", "Marv's Pastries"),
+      asset("habby-logo", "Habby"),
+      asset("pc-wordmark", "PC wordmark"),
+    ],
   },
 ];
 
@@ -172,6 +171,21 @@ export const SOCIAL_ENGAGEMENT = [
   { id: "reach", label: "Reach", to: 428, suffix: "k" },
   { id: "eng", label: "Engagements", to: 36.2, suffix: "k" },
   { id: "followers", label: "New followers", to: 9.4, suffix: "k" },
+] as const;
+
+/**
+ * Real campaign artwork for the social wall — the same studio Drive, the sets
+ * we actually ran. `tag` is the format, kept short so a card stays a card.
+ */
+export const SOCIAL_POSTS = [
+  { src: "/brand-work/bamssa-social-night.jpg", tag: "Event", t: "BAMSSA Social Night" },
+  { src: "/brand-work/bamssa-business-summit.jpg", tag: "Campaign", t: "BAMSSA Business Summit" },
+  { src: "/brand-work/bamssa-debate.jpg", tag: "Post", t: "BAMSSA Debate" },
+  { src: "/brand-work/nipsa-social-night.jpg", tag: "Event", t: "NIPSA Social Night" },
+  { src: "/brand-work/nipsa-efootball.jpg", tag: "Campaign", t: "NIPSA E-Football" },
+  { src: "/brand-work/nipsa-movie-night.jpg", tag: "Post", t: "NIPSA Movie Night" },
+  { src: "/brand-work/dhiol-world-may.jpg", tag: "Monthly", t: "Dhiol World" },
+  { src: "/brand-work/dhiol-stores-new-week.jpg", tag: "Post", t: "Dhiol Stores" },
 ] as const;
 
 /** A fortnight of a content calendar. `kind` drives the cell's colour. */

@@ -12,6 +12,7 @@ import { CONTACT_EMAIL } from "@/lib/site";
 
 import { LazyStage } from "./stages/stage-shell";
 import ServiceIcon from "@/components/ui/service-icon";
+import PinnedRow from "@/components/ui/pinned-row";
 import TextLoop from "@/components/ui/text-loop";
 import WarpText from "@/components/ui/warp-text";
 import ScrollExpand from "@/components/ui/scroll-expand";
@@ -276,8 +277,10 @@ export default function ServicesBody() {
               );
             })()}
 
-            {/* the reference's six-card grid, one per stage of this service */}
-            <ol className="sv-steps pv-reveal sv-steps--after">
+            {/* the reference's six-card grid — a grid on desktop, and on a
+                phone the same pinned horizontal run the homepage services use */}
+            <PinnedRow className="sv-steps__pin pv-reveal sv-steps--after">
+            <ol className="sv-steps">
               {s.steps.map((st, n) => (
                 <li className="sv-step" key={st.t}>
                   <span className="sv-step__icon">
@@ -289,6 +292,7 @@ export default function ServicesBody() {
                 </li>
               ))}
             </ol>
+            </PinnedRow>
           </div>
         </section>
       ))}
@@ -349,8 +353,13 @@ export default function ServicesBody() {
                   <a className="pv-job" key={p.url} href={p.url}
                      target="_blank" rel="noopener noreferrer">
                     <div className="pv-shot">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={p.cover} alt={`${p.name} website`} loading="lazy" />
+                      {p.cover ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={p.cover} alt={`${p.name} website`} loading="lazy" />
+                      ) : (
+                        /* no capture yet: a branded panel, not a broken image */
+                        <span className="pv-shot__none" aria-hidden="true">{p.name}</span>
+                      )}
                     </div>
                     <div className="pv-job__body">
                       <div className="pv-job__row">
@@ -402,8 +411,10 @@ export default function ServicesBody() {
               services it needs, and which it does not.
             </p>
             <div className="sv-cta__row">
+              {/* the label says the action; the address itself is long enough
+                  to wrap a button onto two lines on a phone */}
               <a className="pv-btn pv-btn--accent" href={`mailto:${CONTACT_EMAIL}`}>
-                {CONTACT_EMAIL}
+                Send us a mail
               </a>
               <Link className="pv-btn pv-btn--line" href="/#contact">Use the contact form</Link>
             </div>

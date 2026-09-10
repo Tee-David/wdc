@@ -384,37 +384,23 @@
 .pv-sec--band .sv-tab.is-on { color: #000065; }
 
 /* ---------------- brand wall placeholder compositions ---------------- */
-/* Abstract panels in the brand palette. Deliberately not mock logos: an
-   invented client mark is a claim, a composition is furniture. */
-/* NB no `position` here. .bw lands after .dome__tile in this file and both are
-   one class, so declaring position:relative would beat the tile's absolute and
-   drop every tile out of the 3D cage into normal flow. The dome tile is its own
-   containing block already; only the flat grid fallback needs one. */
+/* Real artwork fills the tile; the caption sits over a gradient so a light
+   flyer never swallows white type. */
 .bw {
-  overflow: hidden; margin: 0;
+  overflow: hidden; margin: 0; position: relative;
   background: var(--band); border: 1px solid var(--on-band-rule);
-  display: grid; align-content: end; padding: 10px;
+  display: block;
 }
-.dome-grid .bw { position: relative; }
-.bw::before, .bw::after { content: ""; position: absolute; }
-.bw--t0::before { inset: 14% 18% auto 12%; height: 34%; background: var(--accent); border-radius: 4px; }
-.bw--t0::after  { inset: auto 42% 26% 12%; height: 8%; background: rgba(255,255,255,.5); border-radius: 3px; }
-.bw--t1::before { width: 46%; aspect-ratio: 1; top: 16%; left: 27%; background: var(--accent); border-radius: 50%; }
-.bw--t1::after  { inset: auto 24% 22% 24%; height: 7%; background: rgba(255,255,255,.42); border-radius: 3px; }
-.bw--t2::before { inset: 18% 12% 40% 12%; background: rgba(255,255,255,.14); border-radius: 5px; }
-.bw--t2::after  { inset: auto 12% 28% 12%; height: 10%; background: var(--accent); border-radius: 3px; }
-.bw--t3::before {
-  inset: 15% 20% 34% 20%; background: var(--accent); border-radius: 50% 50% 6px 6px;
+.bw img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dome__tile img { width: 100%; height: 100%; object-fit: cover; }
+.dome__tile { position: absolute; overflow: hidden; }
+.bw::after {
+  content: ""; position: absolute; inset: auto 0 0 0; height: 46%;
+  background: linear-gradient(to top, rgba(0,0,20,.78), transparent);
+  pointer-events: none;
 }
-.bw--t3::after  { inset: auto 30% 24% 30%; height: 6%; background: rgba(255,255,255,.5); border-radius: 3px; }
-.bw--t4::before {
-  inset: 16% 14% 38% 14%;
-  background: repeating-linear-gradient(135deg, var(--accent) 0 8px, transparent 8px 17px);
-  border-radius: 5px;
-}
-.bw--t4::after  { inset: auto 14% 26% 14%; height: 8%; background: rgba(255,255,255,.42); border-radius: 3px; }
 .bw__cap {
-  position: relative; z-index: 1;
+  position: absolute; left: 8px; right: 8px; bottom: 6px; z-index: 1;
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .62rem; font-weight: 600; letter-spacing: .01em;
   color: #fff; opacity: .82;
@@ -424,6 +410,7 @@
 /* tile shape follows the kind of artwork; a poster in a landscape crop stops
    reading as a poster */
 .dome--portrait .dome__tile  { width: 150px; height: 200px; margin: -100px 0 0 -75px; }
+.dome__tile img { border-radius: inherit; }
 .dome--square .dome__tile    { width: 172px; height: 172px; margin: -86px 0 0 -86px; }
 .dome--landscape .dome__tile { width: 210px; height: 130px; margin: -65px 0 0 -105px; }
 .dome-grid--portrait  { grid-template-columns: repeat(3, 1fr); }
@@ -547,3 +534,11 @@
   font-size: .74rem; letter-spacing: .04em; text-transform: uppercase;
   color: var(--accent);
 }
+
+/* the social card leads with the artwork */
+.fw__shot {
+  border-radius: 9px; overflow: hidden; background: var(--band);
+  aspect-ratio: 1; margin-bottom: 2px;
+}
+.fw__shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fw__card { gap: 7px; }

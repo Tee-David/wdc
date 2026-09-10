@@ -19,11 +19,21 @@ export type Project = {
   name: string;
   sector: string;
   url: string;
-  cover: string;
+  /** Screenshot of the live site. Optional: a project can be listed before its
+      capture exists, and the card renders a branded panel instead of a broken
+      image. Drop the file in and the panel is replaced with no code change. */
+  cover?: string;
   services: ServiceSlug[];
 };
 
 export const PROJECTS: Project[] = [
+  {
+    name: "Traxstaff",
+    // TODO(client): confirm the one-line sector and add public/work/traxstaff.jpg
+    sector: "Software product",
+    url: "https://app.traxstaff.com/",
+    services: ["software"],
+  },
   {
     name: "Litch Consulting",
     sector: "Modelling and data analytics",
