@@ -5,7 +5,8 @@ import type { CSSProperties } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { SERVICES, type ServiceSlug } from "@/lib/services";
-import { PROJECTS } from "@/lib/projects";
+import { PROJECTS, type Project } from "@/lib/projects";
+import SiteModal from "@/components/preview/site-modal";
 import { useReveal } from "@/components/preview/use-reveal";
 import { LOGOS, type LogoCategory } from "@/lib/logos";
 import { LogoGlyph } from "@/components/ui/logo-glyph";
@@ -132,6 +133,10 @@ export default function ServicesBody() {
     const by = first ? first.getBoundingClientRect().width + gap : 320;
     el.scrollBy({ left: dir * by, behavior: "smooth" });
   };
+
+  /* Live previews open in place rather than sending a visitor away mid-browse. */
+  const [preview, setPreview] = useState<Project | null>(null);
+  const opener = useRef<HTMLAnchorElement | null>(null);
 
   return (
     <div className="pv sv">
@@ -343,8 +348,16 @@ export default function ServicesBody() {
               </div>
               <div className="pv-track sv-track" ref={track} onScroll={sync}>
                 {shown.map((p) => (
+                  /* Same behaviour as the homepage rail: a plain click previews
+                     the live site here, modified clicks still open it. */
                   <a className="pv-job" key={p.url} href={p.url}
-                     target="_blank" rel="noopener noreferrer">
+                     target="_blank" rel="noopener noreferrer"
+                     onClick={(e) => {
+                       if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                       e.preventDefault();
+                       opener.current = e.currentTarget;
+                       setPreview(p);
+                     }}>
                     <div className="pv-shot">
                       {p.cover ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
@@ -414,6 +427,15 @@ export default function ServicesBody() {
           </div>
         </div>
       </section>
+      {preview ? (
+        <SiteModal
+          project={preview}
+          onClose={() => {
+            setPreview(null);
+            opener.current?.focus();
+          }}
+        />
+      ) : null}
     </div>
   );
 }
