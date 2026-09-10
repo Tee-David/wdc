@@ -1,0 +1,3 @@
+/* The WebGL canvas fills its host; the host is sized by the section around it. */
+.cgal { position: absolute; inset: 0; overflow: hidden; }
+.cgal canvas { display: block; width: 100%; height: 100%; }

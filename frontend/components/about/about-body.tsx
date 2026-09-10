@@ -1,15 +1,12 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { useReveal } from "@/components/preview/use-reveal";
-import { useCountUp, useNearViewport } from "@/components/services/stages/stage-shell";
 import ServiceIcon from "@/components/ui/service-icon";
 import ScrollExpand from "@/components/ui/scroll-expand";
-import { SERVICES } from "@/lib/services";
-import { PROJECTS } from "@/lib/projects";
-import { LOGOS } from "@/lib/logos";
+import CircularGallery from "@/components/ui/circular-gallery";
 import { BRAND_KINDS } from "@/lib/showcase";
 import { MOTTO } from "@/lib/site";
 
@@ -38,14 +35,6 @@ import StrokeNumber from "@/components/ui/stroke-number";
  *     exist to put in it.
  */
 
-/* Counters, derived. `to` is a function of the real data so these numbers can
-   never disagree with the pages they describe. */
-const FIGURES = [
-  { id: "services", to: SERVICES.length, label: "Services", hint: "design, build and growth" },
-  { id: "projects", to: PROJECTS.length, label: "Live projects", hint: "every one of them open to visit" },
-  { id: "tools", to: LOGOS.length, label: "Tools in the stack", hint: "chosen per job, not per habit" },
-];
-
 /* What the studio actually argues, in the same voice as the homepage. */
 const BELIEFS = [
   { t: "One roof", d: "Design, build and growth sit in one team, so nothing is lost in the hand-off between the people who draw a thing and the people who build it.", i: "Layers" },
@@ -67,19 +56,53 @@ const TEAM = [
   { id: "social", name: "Social", role: "Calendars, community", i: "MessageCircle", note: "Runs the accounts day to day, not just the launch post." },
 ];
 
-/* Real artwork, straight from the branding library. */
-const MONTAGE = BRAND_KINDS[0].items.slice(0, 3);
+/* Twelve pieces of real artwork for the wheel, taken three at a time from each
+   of the four kinds rather than twelve in a row from one. A dozen flyers turning
+   past looks like one job repeated; a flyer, a logo, a mockup and a guide page
+   in rotation looks like a studio. */
+const WHEEL = BRAND_KINDS.flatMap((k) => k.items.slice(0, 3)).map((m) => ({
+  image: m.src,
+  text: m.title,
+  id: m.id,
+}));
 
-function Figure({ f }: { f: (typeof FIGURES)[number] }) {
-  const { ref, near } = useNearViewport<HTMLDivElement>("120px");
-  const n = useCountUp(f.to, near);
-  return (
-    <div className="ab-fig" ref={ref}>
-      <span className="ab-fig__n">{Math.round(n)}</span>
-      <span className="ab-fig__l">{f.label}</span>
-      <span className="ab-fig__h">{f.hint}</span>
-    </div>
-  );
+/**
+ * How far the pinned wheel section has travelled, 0 to 1.
+ *
+ * Kept in a REF and never in state: this updates on every scroll frame, and a
+ * setState here would re-render the page sixty times a second to hand a number
+ * to a canvas that is not part of React's tree anyway.
+ */
+function useScrollRun<T extends HTMLElement>() {
+  const ref = useRef<T | null>(null);
+  const run = useRef(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let raf = 0;
+    const apply = () => {
+      const r = el.getBoundingClientRect();
+      /* The travel available is the section's height MINUS one screen, because
+         the last screenful is spent with the pin resting at the bottom. Using
+         the full height would leave the wheel short of its last image by
+         exactly one viewport. */
+      const travel = r.height - (window.innerHeight || 1);
+      run.current = travel <= 0 ? 0 : Math.min(1, Math.max(0, -r.top / travel));
+    };
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(apply);
+    };
+    apply();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+  return { ref, run };
 }
 
 function TeamRail() {
@@ -163,6 +186,7 @@ function Arrow({ dir }: { dir: "left" | "right" }) {
 
 export default function AboutBody() {
   useReveal();
+  const { ref: wheelRef, run: wheelRun } = useScrollRun<HTMLDivElement>();
 
   return (
     <div className="pv ab">
@@ -222,27 +246,32 @@ export default function AboutBody() {
             </p>
           </div>
 
-          {/* real pieces from the library, not stock */}
-          <ScrollExpand>
-            <div className="ab-montage pv-reveal">
-              {MONTAGE.map((m, n) => (
-                <figure className="ab-montage__i" key={m.id} style={{ "--d": `${n * 90}ms` } as CSSProperties}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={m.src} alt={m.title} loading="lazy" />
-                </figure>
-              ))}
-            </div>
-          </ScrollExpand>
-          <p className="ab-cap">Work from the studio. More of it on the services page.</p>
         </div>
       </section>
 
-      {/* ---------------- figures ---------------- */}
-      <section className="pv-sec pv-sec--alt">
-        <div className="pv-wrap">
-          <div className="ab-figs pv-reveal">
-            {FIGURES.map((f) => <Figure key={f.id} f={f} />)}
-          </div>
+      {/* ---------------- the wheel ---------------- */}
+      {/* Tall on purpose: the extra height IS the control. The pin holds the
+          wheel on screen while that height scrolls past, and the same travel
+          turns it through all twelve pieces. */}
+      <section className="ab-wheelsec" ref={wheelRef}>
+        <div className="ab-wheelsec__pin">
+          <ScrollExpand className="ab-wheelsec__zoom">
+            <div className="ab-wheelsec__stage">
+              <CircularGallery items={WHEEL} progress={wheelRun} bend={4} perView={6} />
+              {/* The canvas is decorative to assistive tech, so the artwork
+                  itself lives here as real images: this is what a screen
+                  reader, a crawler and a browser without WebGL all get. */}
+              <ul className="ab-wheelsec__flat">
+                {WHEEL.map((m, n) => (
+                  <li key={m.id} style={{ "--d": `${n * 40}ms` } as CSSProperties}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={m.image} alt={m.text} loading="lazy" />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </ScrollExpand>
+          <p className="ab-cap">Work from the studio. More of it on the services page.</p>
         </div>
       </section>
 

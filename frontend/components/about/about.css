@@ -49,60 +49,65 @@
 .ab-say h2 em { font-style: italic; color: var(--accent); }
 .ab-say .pv-lede { margin-inline: auto; max-width: 46ch; }
 
-/* ---------------- montage ---------------- */
-.ab-montage {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: clamp(10px, 1.6vw, 20px);
-  margin-top: clamp(1.8rem, 3.5vw, 2.8rem);
+/* ---------------- the wheel ---------------- */
+/* The section is TALL and the wheel inside it is PINNED. That height is not
+   padding: it is the scroll budget the wheel spends turning through its twelve
+   images, so lengthening the section slows the turn and shortening it speeds
+   the turn up. Nothing needs to intercept the wheel event to make this work,
+   which is why the page still scrolls normally over the top of it. */
+.ab-wheelsec { position: relative; height: 300vh; }
+@media (max-width: 768px) { .ab-wheelsec { height: 220vh; } }
+
+.ab-wheelsec__pin {
+  position: sticky; top: 0;
+  height: 100svh;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  gap: 14px; padding-block: clamp(1.5rem, 4vw, 3rem);
+  overflow: hidden;
 }
-/* Two across on a phone with the third full-width under them, rather than
-   three slivers: at 390px a third of the row is 110px and the artwork stops
-   being readable. */
-@media (max-width: 620px) {
-  .ab-montage { grid-template-columns: repeat(2, 1fr); }
-  .ab-montage__i:last-child { grid-column: 1 / -1; }
+/* ScrollExpand writes `--se-scale`; the zoom is the same move the three-up
+   montage had, kept because it is what makes the wheel ARRIVE rather than
+   simply be there. */
+/* Height is the ARC's, not the screen's. The band needs room for one tile plus
+   the rise from the ends to the apex and no more; giving it the whole pin left
+   the wheel floating in a screenful of empty ground. */
+.ab-wheelsec__zoom {
+  width: 100%; flex: none;
+  height: min(68svh, 620px);
+  transform: scale(var(--se-scale, 1));
+  transition: transform .1s linear;
 }
-.ab-montage__i {
-  margin: 0; overflow: hidden; border-radius: 16px;
+@media (max-width: 768px) { .ab-wheelsec__zoom { height: min(58svh, 460px); } }
+.ab-wheelsec__stage { position: relative; width: 100%; height: 100%; }
+
+/* The real images. Visible only when the canvas is not: a browser with no
+   WebGL, or a visitor who asked for no motion. Both get a plain grid of the
+   same artwork rather than an empty rectangle. */
+.ab-wheelsec__flat {
+  display: none; margin: 0; padding: 0; list-style: none;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(96px, 14vw, 170px), 1fr));
+  gap: clamp(8px, 1.2vw, 16px);
+  align-content: center; height: 100%; overflow: hidden;
+}
+.ab-wheelsec__flat li {
+  aspect-ratio: 1 / 1; overflow: hidden; border-radius: 14px;
   border: 1px solid var(--rule); background: var(--paper-2);
-  aspect-ratio: 1 / 1;
-  transition: transform .35s cubic-bezier(.16, 1, .3, 1), border-color .3s ease;
 }
-.ab-montage__i img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.ab-montage__i:hover { transform: translateY(-4px); border-color: var(--accent); }
-@media (prefers-reduced-motion: no-preference) {
-  .pv-motion .ab-montage__i {
-    animation: ab-rise .6s cubic-bezier(.16, 1, .3, 1) both;
-    animation-delay: var(--d, 0ms);
-  }
-}
-@keyframes ab-rise {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: none; }
-}
-.ab-cap {
-  margin-top: 12px; text-align: center;
-  font-size: .82rem; color: var(--muted);
+.ab-wheelsec__flat img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cgal[data-failed] + .ab-wheelsec__flat { display: grid; }
+@media (prefers-reduced-motion: reduce) {
+  .cgal { display: none; }
+  .ab-wheelsec__flat { display: grid; }
+  /* No pin either: a section that is three screens tall and holds still is a
+     worse experience than the grid it is hiding. */
+  .ab-wheelsec { height: auto; }
+  .ab-wheelsec__pin { position: static; height: auto; }
 }
 
-/* ---------------- figures ---------------- */
-.ab-figs {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: clamp(18px, 3vw, 44px);
+.ab-cap {
+  margin-top: 12px; text-align: center; flex: none;
+  font-size: .82rem; color: var(--muted);
 }
-@media (max-width: 700px) { .ab-figs { grid-template-columns: 1fr; gap: 22px; } }
-/* A rule between rather than a card each: the reference's stat band reads as
-   one statement split three ways, not three boxes. */
-.ab-fig { display: grid; gap: 4px; padding-left: clamp(14px, 2vw, 26px); border-left: 1px solid var(--rule); }
-@media (max-width: 700px) { .ab-fig { padding-left: 0; padding-top: 16px; border-left: 0; border-top: 1px solid var(--rule); } }
-.ab-fig__n {
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-weight: 700; font-size: clamp(2.4rem, 1.6rem + 3vw, 4rem);
-  line-height: 1; letter-spacing: -.04em; color: var(--accent);
-  font-variant-numeric: tabular-nums;
-}
-.ab-fig__l { font-size: 1rem; font-weight: 600; color: var(--ink); margin-top: 6px; }
-.ab-fig__h { font-size: .84rem; color: var(--muted); }
 
 /* ---------------- team rail ---------------- */
 .ab-team__head {
