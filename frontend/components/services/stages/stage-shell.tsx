@@ -82,7 +82,11 @@ export function Stage({
   controls,
   tall = false,
 }: {
-  caption: string;
+  /* Optional. A caption that only restates what the frame already shows --
+     "illustrative screens", "real campaign artwork" -- is a line of grey text
+     buying nothing, and it costs the stage a row of height. Stages keep one
+     only where it says something the picture cannot. */
+  caption?: string;
   children: ReactNode;
   /** Filters or switches for this stage. Rendered above the frame in the same
       place every time, so the eye learns where the controls live once. */
@@ -93,7 +97,7 @@ export function Stage({
     <figure className={`sv-stage${tall ? " sv-stage--tall" : ""}`}>
       {controls ? <div className="sv-stage__controls">{controls}</div> : null}
       <div className="sv-stage__frame">{children}</div>
-      <figcaption className="sv-stage__cap">{caption}</figcaption>
+      {caption ? <figcaption className="sv-stage__cap">{caption}</figcaption> : null}
     </figure>
   );
 }
