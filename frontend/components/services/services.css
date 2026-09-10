@@ -264,15 +264,26 @@
 }
 
 /* ---------------- hero rotating line ---------------- */
-.sv-hero__loop {
-  display: inline-flex; align-items: center; gap: 8px;
-  margin-bottom: 14px;
+/* No pill: the chrome around this line competed with the headline right under
+   it for the same bit of attention, and the line reads as a label on its own.
+   The letter-spacing does the work the border used to. */
+/* Two classes deep on purpose: `.pv p { margin: 0 }` in preview.css is (0,1,1)
+   and beats a lone `.sv-hero__loop`, which is why the old pill had to buy its
+   separation with padding. `flex` rather than `inline-flex` for the same
+   reason the margin matters — vertical margins do nothing on an inline box. */
+.pv .sv-hero__loop {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px;
+  margin-bottom: 22px;
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .9rem; font-weight: 600; color: var(--on-band-dim);
-  padding: 7px 16px; border-radius: 999px;
-  border: 1px solid var(--on-band-rule); background: rgba(255, 255, 255, .05);
+  letter-spacing: .04em;
 }
 .sv-hero__loopword { color: var(--accent); }
+/* The loop box is held at the width of the LONGEST service name so nothing
+   around it shifts, which leaves the shorter words floating left inside it.
+   TextLoop's flush-left default is right for a left-aligned layout; this hero
+   is centred, so the words centre in the box they sit in. */
+.sv-hero__loopword .tl__item { justify-content: center; }
 
 /* ---------------- closing CTA ---------------- */
 /* the particle word is the heading; the sentence under it does the explaining,
