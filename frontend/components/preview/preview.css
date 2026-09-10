@@ -452,7 +452,11 @@
   color: inherit; text-transform: uppercase; letter-spacing: -.02em; line-height: 1.03;
   font-size: clamp(1.35rem, 1.05rem + 1vw, 1.85rem); max-width: 13ch;
 }
-.pv-icard p { color: inherit; opacity: .82; font-size: .95rem; line-height: 1.5; }
+/* No opacity. At .82 the white dropped to #ffe3d1 and the contrast on orange
+   with it — 2.41:1, worse than the 2.95:1 the brand pairing already sits at.
+   Full white costs nothing here: the heading above it is a different size and
+   weight, which is what separates them. */
+.pv-icard p { color: inherit; font-size: .95rem; line-height: 1.5; }
 .pv-icard__foot {
   margin-top: auto; padding-top: 18px; display: flex;
   align-items: flex-end; justify-content: space-between; gap: 16px;
