@@ -132,12 +132,28 @@
   .sv-svc__showcase .sv-lazy { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   .sv-svc__showcase .sv-stage { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   /* `aspect-ratio: auto` is load-bearing: the frame carries a 16/10 and some
-     stages override it with their own, and any of those beats a flex height. */
-  .sv-svc__showcase .sv-stage__frame { flex: 1; min-height: 0; aspect-ratio: auto; }
+     stages override it with their own, and any of those beats a flex height.
+     The `--tall` and `:has()` variants have to be named too -- they sit at
+     (0,3,0) and quietly outrank a two-class reset, which left the social
+     frame deriving its WIDTH from 4/4.5 of its height and spilling 148px out
+     of its own column and over the copy beside it. */
+  .sv-svc__showcase .sv-stage__frame,
+  .sv-svc__showcase .sv-stage--tall .sv-stage__frame,
+  .sv-svc__showcase .sv-stage--tall .sv-stage__frame:has(.fw-split) {
+    flex: 1; min-height: 0; aspect-ratio: auto;
+  }
   /* In a column this narrow the intro and the "what you get" rail stack rather
      than sitting side by side, and the head loses the top margin it needed
      when it was a full-width band under the stage. */
   .sv-svc__head--after { margin-top: 0; }
+  /* Two stages need more height than the words beside them happen to occupy:
+     the social wall is a calendar ABOVE three drifting columns, and at the
+     height the copy sets, the columns got 260px and showed a card and a half,
+     which reads as cut off rather than as a feed. A min-height on the frame
+     grows the grid row, and `align-items: stretch` takes the other column up
+     with it, so the two still finish level. */
+  .sv-svc__showcase .sv-stage--tall .sv-stage__frame:has(.fw-split),
+  .sv-svc__showcase .sv-stage__frame:has(.fw-split) { min-height: 800px; }
 }
 .sv-svc__showcase { min-width: 0; }
 
@@ -162,8 +178,12 @@
     align-items: stretch;
     margin-bottom: 0;
   }
-  .sv-svc__cols .sv-side { display: flex; flex-direction: column; }
-  .sv-svc__cols .sv-tools { margin-top: auto; }
+  /* The card keeps its own height and the surplus falls BETWEEN the card and
+     the CTA below it. Stretching the card instead had to put that surplus
+     somewhere inside it -- a hundred pixels between consecutive ticks, or one
+     dead pool above the tools rail -- and both read as a mistake. Outside the
+     card the same space reads as layout. */
+  .sv-svc__cols .sv-side { align-self: start; }
   .sv-svc__cols .sv-svc__cta { margin-top: 0; justify-self: start; }
 }
 /* sits BELOW the showcase now, so it needs air above it rather than only below */

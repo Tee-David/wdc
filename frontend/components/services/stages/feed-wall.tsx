@@ -97,7 +97,7 @@ export default function FeedWall() {
      columns of 3-line cards on a phone are unreadable slivers. */
   if (mode === "still") {
     return (
-      <Stage caption="Real campaign artwork. The calendar and figures are illustrative.">
+      <Stage>
         <div className="fw-split fw-split--still">
           <Planner run={false} />
           <div className="fw fw--still">
@@ -108,12 +108,14 @@ export default function FeedWall() {
     );
   }
 
-  /* Compact drops to a single drifting column: two of three columns on a phone
-     are slivers, and the planner needs the width more than the wall does. */
-  const cols = mode === "compact" ? COLUMNS.slice(0, 1) : COLUMNS.slice(0, 2);
+  /* Compact drops to a single drifting column: three columns on a phone are
+     slivers, and the planner needs the width more than the wall does. On
+     anything wider the wall runs all three, which is what makes it read as a
+     feed rather than as two lists side by side. */
+  const cols = mode === "compact" ? COLUMNS.slice(0, 1) : COLUMNS;
 
   return (
-    <Stage caption="Real campaign artwork. The calendar and figures are illustrative." tall>
+    <Stage tall>
       <div className={`fw-split fw-split--${mode}`}>
         {/* the still branch already returned above, so motion is on here */}
         <Planner run />
