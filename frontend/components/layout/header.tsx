@@ -26,7 +26,7 @@ const NAV = [
   { label: "Home", link: "/" },
   { label: "About Us", link: "/about" },
   { label: "Services", link: "/services" },
-  { label: "Our Work", link: "/#pv-work" },
+  { label: "Our Work", link: "/work" },
 ];
 
 /** simple-icons brand glyph, tinted by the current text color. */

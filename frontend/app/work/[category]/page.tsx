@@ -1,0 +1,197 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Header } from "@/components/layout/header";
+import { WorkFooter } from "@/components/work/work-footer";
+import GalleryWall from "@/components/work/gallery-wall";
+import {
+  WORK_CATEGORIES,
+  casesFor,
+  categoryBySlug,
+  countFor,
+  galleryFor,
+} from "@/lib/work";
+import { COMPANY_NAME, SITE_URL } from "@/lib/site";
+import "@/components/preview/preview.css";
+import "@/components/work/work.css";
+
+/* Every category is known at build time, so all six prerender rather than
+   being generated on first request. */
+export function generateStaticParams() {
+  return WORK_CATEGORIES.map((c) => ({ category: c.slug }));
+}
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ category: string }> },
+): Promise<Metadata> {
+  const { category } = await params;
+  const c = categoryBySlug(category);
+  if (!c) return {};
+  return {
+    title: `${c.name} work`,
+    description: c.lede,
+    alternates: { canonical: `${SITE_URL}/work/${c.slug}` },
+    openGraph: {
+      title: `${c.name} work | ${COMPANY_NAME}`,
+      description: c.lede,
+      type: "website",
+      url: `${SITE_URL}/work/${c.slug}`,
+    },
+  };
+}
+
+export default async function WorkCategoryPage(
+  { params }: { params: Promise<{ category: string }> },
+) {
+  const { category } = await params;
+  const c = categoryBySlug(category);
+  if (!c) notFound();
+
+  const cases = casesFor(c.slug);
+  const gallery = galleryFor(c.slug);
+  const n = countFor(c);
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Our Work", item: `${SITE_URL}/work` },
+      { "@type": "ListItem", position: 3, name: c.name, item: `${SITE_URL}/work/${c.slug}` },
+    ],
+  };
+
+  return (
+    <>
+      <Header />
+      <main className="flex-1 pv">
+        <section className="wk-hero">
+          <div className="pv-wrap wk-hero__in">
+            <nav className="wk-crumbs" aria-label="Breadcrumb">
+              <Link href="/work">Our Work</Link>
+              <i aria-hidden="true">/</i>
+              <span>{c.label}</span>
+            </nav>
+            <h1>{c.name}</h1>
+            <p className="pv-lede">{c.lede}</p>
+          </div>
+        </section>
+
+        <section className="pv-sec">
+          <div className="pv-wrap">
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 12,
+                alignItems: "baseline",
+                justifyContent: "space-between",
+                marginBottom: "clamp(1.4rem, 2.4vw, 2rem)",
+              }}
+            >
+              <h2 className="pv-mix" style={{ fontSize: "clamp(1.4rem, 1.2rem + 1vw, 2rem)" }}>
+                {c.shape === "gallery" ? <b>Selected pieces</b> : <b>Case studies</b>}
+              </h2>
+              <p style={{ color: "var(--muted)", fontSize: ".92rem" }}>
+                {n} {c.shape === "gallery"
+                  ? n === 1 ? "piece" : "pieces"
+                  : n === 1 ? "case study" : "case studies"}
+              </p>
+            </div>
+
+            {c.shape === "gallery" ? (
+              gallery.length ? (
+                <GalleryWall pieces={gallery} />
+              ) : (
+                <Empty label={c.label} />
+              )
+            ) : cases.length ? (
+              <div className="wk-grid">
+                {cases.map((cs) => (
+                  /* Always the piece's CANONICAL category, never the one being
+                     browsed: TraxStaff is listed under web, apps and software,
+                     and linking each listing to its own path would serve the
+                     same case study from three addresses. */
+                  <Link
+                    className="wk-card"
+                    key={cs.slug}
+                    href={`/work/${cs.category}/${cs.slug}`}
+                  >
+                    <span className="wk-card__shot">
+                      {cs.cover ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={cs.cover} alt={`${cs.client} — ${cs.title}`} loading="lazy" decoding="async" />
+                      ) : (
+                        <span className="wk-card__none" aria-hidden="true">{cs.client}</span>
+                      )}
+                    </span>
+                    <span className="wk-card__body">
+                      <span className="wk-card__t">{cs.title}</span>
+                      <span className="wk-card__d">{cs.summary}</span>
+                      <span className="wk-card__meta">
+                        <span className="wk-chip">{cs.client}</span>
+                        <span className="wk-chip wk-chip--quiet">{cs.sector}</span>
+                      </span>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <Empty label={c.label} />
+            )}
+          </div>
+        </section>
+
+        {/* Sideways move, so a category with two entries is not a dead end. */}
+        <section className="pv-sec pv-sec--alt">
+          <div className="pv-wrap">
+            <h2 className="pv-mix" style={{ fontSize: "clamp(1.2rem, 1.1rem + .6vw, 1.5rem)", marginBottom: "1.2rem" }}>
+              Other <b>disciplines</b>
+            </h2>
+            <div className="wk-cats">
+              {WORK_CATEGORIES.filter((x) => x.slug !== c.slug).map((x) => (
+                <Link className="wk-cat" href={`/work/${x.slug}`} key={x.slug}>
+                  <span className="wk-cat__bar">
+                    <span className="wk-cat__t">{x.label}</span>
+                    <span className="wk-cat__n">{countFor(x)}</span>
+                  </span>
+                  <span className="wk-cat__shot">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={x.cover} alt={`${x.name} work`} loading="lazy" decoding="async" />
+                    <span className="wk-cat__go" aria-hidden="true" />
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <WorkFooter />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+    </>
+  );
+}
+
+/* Honest empty state. Borrowing another category's work to fill this grid
+   would imply a case study that does not exist. */
+function Empty({ label }: { label: string }) {
+  return (
+    <div className="wk-empty">
+      <h3 style={{ fontSize: "1.1rem" }}>
+        The {label} write-ups are still being published.
+      </h3>
+      <p style={{ color: "var(--muted)", maxWidth: "56ch" }}>
+        We have done the work; it is the case study that is outstanding. Ask us and we
+        will send relevant examples directly.
+      </p>
+      <Link className="pv-btn pv-btn--accent" href="/#pv-contact">
+        Ask for examples
+      </Link>
+    </div>
+  );
+}
