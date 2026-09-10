@@ -185,12 +185,18 @@ export default function ServicesBody() {
             pauseOnHover for pointers, and LogoLoop pauses on focus too for
             keyboards. Reduced motion holds it still outright. */}
         <LogoLoop
-          logos={SERVICES.map((sv, i) => ({
+          logos={SERVICES.map((sv) => ({
             href: `#${sv.slug}`,
             ariaLabel: sv.name,
             node: (
               <span className="sv-jump__link">
-                <span className="sv-jump__n">/ {String(i + 1).padStart(2, "0")}</span>
+                {/* The service's own icon rather than a running number. "/ 03"
+                    told a reader nothing except that there was an 02 somewhere
+                    behind it; the glyph says what the link is before the word
+                    is read, which is the whole job of a ticker going past. */}
+                <span className="sv-jump__i" aria-hidden="true">
+                  <ServiceIcon name={sv.icon} size={17} />
+                </span>
                 {sv.short}
               </span>
             ),

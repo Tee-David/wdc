@@ -99,7 +99,13 @@
   transition: color .18s ease;
 }
 .sv-jump__loop .logoloop__link:hover .sv-jump__link { color: var(--accent); }
-.sv-jump__n { color: var(--accent); font-weight: 700; font-size: .8rem; }
+/* The icon takes the accent the number used to carry, so the ticker keeps the
+   same two-tone rhythm — a coloured mark, then the name in the section's ink. */
+.sv-jump__i {
+  display: inline-flex; align-items: center; color: var(--accent);
+  flex: none; line-height: 0;
+}
+.sv-jump__loop .logoloop__link:hover .sv-jump__i { color: currentColor; }
 @media (max-width: 640px) { .sv-jump { position: static; } }
 
 /* ---------------- one service ---------------- */
@@ -186,9 +192,36 @@
               border-color .28s ease, box-shadow .28s ease;
 }
 .pv-sec--alt .sv-step { background: var(--paper); }
+/* The hover is an orange fill that RISES from the bottom edge, not a ring.
+   A ring only outlines the card; the fill commits to it, and rising is what
+   makes it feel like a deliberate answer to the pointer rather than a colour
+   swap. `overflow: hidden` is what keeps it inside the 16px corners. */
+.sv-step { overflow: hidden; }
+.sv-step::before {
+  content: ""; position: absolute; inset: 0; z-index: 0;
+  background: var(--accent);
+  transform: scaleY(0); transform-origin: bottom center;
+  transition: transform .34s cubic-bezier(.16, 1, .3, 1);
+}
+.sv-step:hover::before { transform: scaleY(1); }
+/* Content has to be lifted above the fill or it is painted over. Every child,
+   not a hand-picked list, so anything added to a card later is covered too. */
+.sv-step > * { position: relative; z-index: 1; }
 .sv-step:hover {
   transform: translateY(-3px); border-color: var(--accent);
   box-shadow: 0 18px 36px -20px rgba(0, 0, 101, .35);
+}
+/* One set of hover colours for both themes: the fill is the same orange in
+   light and dark, so what sits on it must be too. Reading these off the theme
+   tokens instead would put dark ink on orange in light mode. */
+.sv-step:hover h3,
+.sv-step:hover .sv-step__n { color: #fff; }
+.sv-step:hover p { color: rgb(255 255 255 / .88); }
+/* The navy tile is left alone deliberately: it is the one element that should
+   still read as a distinct object once the card fills, and navy on orange
+   holds up where a white-on-orange tile would dissolve into it. */
+@media (prefers-reduced-motion: reduce) {
+  .sv-step::before { transition: none; }
 }
 .sv-step__icon {
   display: grid; place-items: center; width: 38px; height: 38px;
@@ -342,7 +375,7 @@
    reach (0,2,0) and actually win, or the size below is simply ignored. */
 .pv .sv-cta__h {
   margin-bottom: 10px;
-  font-size: clamp(2.6rem, 1.4rem + 5.6vw, 5.5rem);
+  font-size: clamp(3.2rem, 1.7rem + 6.4vw, 6.5rem);
   line-height: 1.02; letter-spacing: -.035em;
 }
 .sv-cta__sub {
