@@ -17,12 +17,22 @@
 .sv-steps--after { margin-top: clamp(1.6rem, 3vw, 2.4rem) !important; }
 
 .sv-stage { margin: 0; }
+/* A COLUMN, not a positioning context with things floated in it. The frame
+   owns two rows: the artwork, which takes the height, and the caption, which
+   takes the line it needs. Everything a stage draws is confined to `__area`,
+   so no stage can put something where the caption is going to land. */
 .sv-stage__frame {
   position: relative; overflow: hidden;
+  display: flex; flex-direction: column;
   border-radius: 20px; border: 1px solid var(--rule);
   background: var(--paper-2);
   aspect-ratio: 16 / 10;
 }
+/* The stages' own `position: absolute; inset: 0` roots resolve against THIS,
+   which is the row the caption is not in. `min-height: 0` because a flex item
+   defaults to `min-height: auto` and would otherwise refuse to shrink below
+   its content, pushing the caption out of the frame it is meant to sit in. */
+.sv-stage__area { position: relative; flex: 1 1 auto; min-height: 0; }
 .pv-sec--alt .sv-stage__frame { background: var(--paper); }
 .sv-stage--tall .sv-stage__frame { aspect-ratio: 16 / 11; }
 /* the placeholder mirrors the real stage's boxes so its height matches to the
@@ -37,30 +47,28 @@
   .sv-stage--tall .sv-stage__frame,
   .sv-stage--skeleton { aspect-ratio: 4 / 5; }
 }
-/* Inside the frame now, pinned along its bottom edge over a scrim that fades
-   into the artwork rather than sitting on a bar. `pointer-events: none` so it
-   never eats a click meant for the stage behind it, and it is the last child
-   so it stacks above whatever the stage drew. */
+/* Its own row along the bottom of the frame, with a rule above it.
+
+   It used to be an overlay: absolutely positioned on a gradient scrim that
+   faded into the artwork. That reads well over a photograph and badly over an
+   interface, which is what these frames contain — measured on a 390px screen
+   it was sitting on the web stage's technology chips, the last two lines of
+   the AI terminal, and the handset's platform label. A scrim over live content
+   is not spacing. This is. */
 .sv-stage__cap {
-  position: absolute; inset: auto 0 0 0; z-index: 4;
-  padding: 26px clamp(14px, 2vw, 22px) clamp(10px, 1.4vw, 14px);
+  flex: none;
+  padding: clamp(9px, 1.4vw, 13px) clamp(14px, 2vw, 22px) clamp(10px, 1.5vw, 14px);
+  border-top: 1px solid var(--rule);
   font-size: .78rem; line-height: 1.35;
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   color: var(--muted);
-  pointer-events: none;
-  background: linear-gradient(to top,
-    color-mix(in srgb, var(--paper) 92%, transparent) 42%,
-    transparent);
 }
-/* The two stages that fill their frame with a navy panel need the scrim and
-   the type to belong to THAT surface, not to the page's paper. */
-.sv-stage__frame:has(.pl) .sv-stage__cap,
-.sv-stage__frame:has(.ts) .sv-stage__cap {
-  color: var(--on-band-dim);
-  background: linear-gradient(to top,
-    color-mix(in srgb, var(--paper) 92%, transparent) 42%,
-    transparent);
-}
+/* NO per-stage caption colour. There used to be one: the apps and AI stages
+   fill their frame with a navy panel, and while the caption was an overlay ON
+   that panel it had to be light. It is a row on the FRAME now, and the frame
+   is paper — so the light colour became light-on-white and measured 2.03:1
+   and 2.21:1 in the light theme, well under the 4.5:1 this size of text needs.
+   One colour, --muted, which is 6.4:1 on paper and correct in both themes. */
 
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
@@ -751,6 +759,11 @@
 .vp3__scene:not(:has(.dv--tablet)):not(:has(.dv--phone)) .dv--desktop {
   left: 0; width: 100%; top: 50%; translate: 0 -50%;
 }
+/* And the plate takes the LAPTOP's ratio when the laptop is all there is.
+   The 1071/604 above is the ratio of the three-up composition; holding it for
+   a single machine leaves the plate 16px shorter than the thing sitting on it,
+   so the white surface reads as a misprinted border rather than a surface. */
+.vp3__scene:not(:has(.dv--tablet)):not(:has(.dv--phone)) { aspect-ratio: 942 / 577; }
 .dv--tablet  { left: 59%; top: 39%;  width: 31%; aspect-ratio: 20 / 21;    z-index: 2; }
 .dv--phone   { left: 79%; top: 45%;  width: 13%; aspect-ratio: 9 / 20.5;   z-index: 3; }
 
@@ -877,14 +890,11 @@
 
 .vp3__chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; flex: none; }
 
-/* On a phone the composition is right but the pieces are too small to read at
-   a share of 350px, so the scene is scaled about a point near the overlap and
-   the laptop is allowed to run off the left edge. Cropping into the picture
-   keeps the stacking intact; shrinking it to fit would keep the layout and
-   throw away the thing it is showing. */
-@media (max-width: 700px) {
-  .vp3__scene { transform: scale(1.75); transform-origin: 86% 52%; }
-}
+/* No crop on a phone. This used to scale the plate 1.75x about the overlap so
+   the pieces stayed readable, which pushed 210px of laptop off the left edge
+   and 34px off the right — measured, not estimated. The stage renders the
+   laptop alone at this width instead (see viewport-morph.tsx), which is both
+   legible and whole. */
 
 /* ---------------- 04 phone interfaces ---------------- */
 /* Four block types so the four product tabs render four different screens. A
@@ -1099,3 +1109,122 @@
 }
 .cal__cursor svg { width: 100%; height: 100%; fill: #fff; stroke: #0a0a2a; stroke-width: 1.2; }
 @media (prefers-reduced-motion: reduce) { .cal__cursor { display: none; } }
+
+/* ============================================================================
+   Phones: the frames take their content's height.
+
+   Every stage above is built for a landscape frame with a fixed proportion,
+   and on a phone that proportion is 4/5 of about 320px — roughly 400px of box
+   for content that wants 500. With `overflow: hidden` on the frame and
+   `position: absolute; inset: 0` on the stage roots, the surplus was not
+   scrolled or scaled, it was CUT: measured at 390px the SEO result list ran
+   111px past the bottom edge, the social wall's figures lost their labels, and
+   the AI terminal lost its last lines. Nothing said so — the frame simply drew
+   a clean rounded corner across the middle of the content.
+
+   So below 768px the stages that hold READING MATTER stop being windows and
+   become boxes: no aspect ratio, roots in normal flow, height from the content.
+   The two that hold MOVING artwork keep their proportion, because their
+   overflow is the effect — the branding marquee (.gm) is an infinite wall that
+   is supposed to run past the edges, and the web stage (.vp3) is a rack of
+   devices whose whole point is their relative size.
+
+   This has to sit at the end of the file. The per-stage aspect ratios above
+   (`:has(.ts)`, `:has(.fw-split)`) are the same specificity as these
+   selectors, so source order is what decides it.
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* `.sv-stage--tall .sv-stage__frame:has(.fw-split)` up the file is THREE
+     classes; a two-class selector here loses to it however late it is
+     declared, which left the social stage on a 4/4.5 frame and its engagement
+     figures 59px below the bottom edge. Matched, so source order decides. */
+  .sv-stage .sv-stage__frame:has(.serp),
+  .sv-stage .sv-stage__frame:has(.pl),
+  .sv-stage .sv-stage__frame:has(.fw),
+  .sv-stage .sv-stage__frame:has(.fw-split),
+  .sv-stage .sv-stage__frame:has(.ts),
+  /* The web stage joins them now that it shows one machine rather than a
+     cropped three-up: a fixed 4/5 frame around a 16/10 laptop is 150px of
+     empty plate under it. */
+  .sv-stage .sv-stage__frame:has(.vp3) { aspect-ratio: auto; }
+  .sv-stage__frame .vp3 { height: auto; }
+  .sv-stage__frame .vp3__rack { flex: none; }
+
+  /* Out of the positioned layer and into the flow, or the frame they now size
+     themselves against has nothing to measure. */
+  .sv-stage__frame .serp,
+  .sv-stage__frame .pl,
+  .sv-stage__frame .fw,
+  .sv-stage__frame .fw-split,
+  .sv-stage__frame .ts {
+    position: relative; inset: auto; height: auto; min-height: 0;
+  }
+
+  /* These two centre their rows against a height they no longer have; left as
+     they were, the content sits in the middle of a box it defines, which is a
+     no-op that only costs a reflow to work out. */
+  .sv-stage__frame .ts,
+  .sv-stage__frame .fw-split { align-items: start; align-content: start; }
+
+  /* The SEO list is the tallest thing on the page at this width and it is a
+     list of text: it gets whatever it needs. */
+  .sv-stage__frame .serp__list { overflow: visible; }
+
+  /* `minmax(0, 1fr)` lets a track shrink to nothing, and a track sized to
+     nothing does not consult its item's `min-height` — so the terminal, which
+     asks for 11.5rem, was laid out at 169px and quietly overflowed the row it
+     was in. With the frame taking its content's height there is no fixed
+     budget left to divide anyway: both rows are simply `auto`, and the
+     terminal keeps the height it asks for. */
+  .sv-stage__frame .pl { grid-template-rows: auto auto; }
+  /* Sized to the trace, not to the screen. The body is bottom-anchored, so a
+     box much taller than the finished transcript spends the first half of
+     every loop as an empty navy rectangle; ten lines at this size come to
+     about 300px, and the loop fills it. */
+  .sv-stage__frame .pl__term { min-height: min(46svh, 330px); }
+
+  /* Same shape: the wall no longer competes with the plan card for a fixed
+     height, so neither is squeezed and the figures under the calendar stay
+     inside the frame. */
+  .sv-stage__frame .fw-split { grid-template-rows: auto auto; }
+
+  /* The wall is the one thing here that must NOT take its content's height.
+     It is an infinite drift: three columns of cards duplicated so the loop
+     closes, so "as tall as its content" is twice a very tall column — letting
+     it flow took the social frame to 6,766px, a single stage six phone
+     screens long. It is a window, and windows have a size. */
+  .sv-stage__frame .fw-split .fw,
+  .sv-stage__frame .fw { height: min(54svh, 430px); overflow: hidden; }
+}
+
+/* ---------------------------------------------------------------------------
+   Apps, on a phone: the handset was rendering at nothing.
+
+   The compact stage has THREE children — the platform toggle, the note, and
+   the handset — but the container query above hands `.ts` a two-row template,
+   `auto minmax(0, 1fr)`. Grid gave row 2 to the NOTE, which stretched it to
+   fill the frame, and put the phone in an implicit `auto` row after it. The
+   phone's `height: 100%` then resolved against an indefinite height, which is
+   `auto`, which for `.ph__frame` was nothing at all: measured on a 390px
+   screen the frame came back with zero height, and the stage rendered a
+   toggle, a sentence, 300px of white, and the word "iOS" at the bottom.
+
+   So the compact stage names its own rows, and — now that the frame takes its
+   content's height rather than the other way round — the handset is sized by
+   WIDTH, with DeviceFrame's own aspect ratio deriving the height. Deriving
+   height from a box that is itself derived from the content is the circular
+   version, and it resolves to zero.
+   --------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .sv-stage__frame .ts--compact {
+    grid-template-rows: auto auto auto;
+    justify-items: center;
+    padding-block: clamp(14px, 4vw, 20px);
+  }
+  .sv-stage__frame .ts--compact .ph {
+    height: auto; grid-template-rows: auto auto; gap: 10px;
+  }
+  .sv-stage__frame .ts--compact .ph__frame {
+    height: auto; width: min(60vw, 210px); max-width: none;
+  }
+}

@@ -78,6 +78,32 @@
   transition: transform .1s linear;
 }
 @media (max-width: 768px) { .ab-wheelsec__zoom { height: min(46svh, 360px); } }
+
+/* Phones: the pin was a full 100svh holding a 360px wheel, so two thirds of a
+   screen height was blank paper above and below the arc — measured on a 390px
+   phone it came to roughly 480px of nothing. The pin only needs to be as tall
+   as what it is pinning, plus the caption. It still sticks, the wheel still
+   turns with the scroll; there is simply no dead margin around it. */
+@media (max-width: 768px) {
+  /* The pin still fills what is left of the screen under the header — a
+     pinned block that stops halfway leaves the bottom of the viewport looking
+     like the section ran out — but the WHEEL now takes most of it instead of
+     floating in the middle of it. Between this and the card-size cap in
+     circular-gallery.tsx (three cards across a phone, not six) the arc reads
+     as artwork rather than as a row of stamps on a large empty page. */
+  .ab-wheelsec { height: 170vh; }
+  /* The pin is as tall as the wheel and no taller. A 100svh pin holding a
+     320px band was two thirds empty paper — the original complaint — and
+     making the BAND 470px instead did not help, because only the top arc of
+     the ring is ever on screen: the extra height was empty canvas under the
+     cards rather than bigger cards. The cards got bigger from the card-size
+     cap in circular-gallery.tsx; this just stops reserving room around them. */
+  .ab-wheelsec__pin {
+    top: 76px; height: auto; min-height: 0;
+    padding-block: clamp(.75rem, 3vw, 1.25rem);
+  }
+  .ab-wheelsec__zoom { height: min(40svh, 310px); }
+}
 .ab-wheelsec__stage { position: relative; width: 100%; height: 100%; }
 
 /* The real images. Visible only when the canvas is not: a browser with no

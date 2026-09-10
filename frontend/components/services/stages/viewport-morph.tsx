@@ -126,6 +126,21 @@ export default function ViewportMorph() {
   const active: WebStack = WEB_STACKS.find((s) => s.id === stack) ?? WEB_STACKS[0];
   const still = mode === "still";
   const scroll = active.scroll && !still;
+  /* On a phone the laptop stands ALONE.
+
+     The three-up stack is 1071 units wide against a 604-tall plate, and a
+     phone gives it about 325px: the laptop's screen lands at roughly 110px
+     across, which is a picture of a website rather than a website. The old
+     answer was to scale the plate 1.75x about a point near the overlap and let
+     the laptop run off the left edge — readable, but you were seeing the
+     middle of one browser window with no sign that the composition had three
+     machines in it at all.
+
+     So the crop is gone and the overlays go with it. One machine at full
+     width is legible AND complete, which the crop could not be at the same
+     time; the tablet and the phone are still there from 700px up, where there
+     is room for all three. */
+  const lone = mode === "compact";
 
   const controls = (
     <>
@@ -162,7 +177,7 @@ export default function ViewportMorph() {
                 one screenshot as three different layouts. A stack with no
                 captures at all still gets the desktop frame, which carries the
                 awaiting state so the tab is never blank. */}
-            {active.shots?.tablet ? (
+            {active.shots?.tablet && !lone ? (
               <Window
                 device={DEVICES[1]}
                 src={active.shots.tablet}
@@ -172,7 +187,7 @@ export default function ViewportMorph() {
                 alt={`${active.shotOf ?? active.label} at 768px wide`}
               />
             ) : null}
-            {active.shots?.phone ? (
+            {active.shots?.phone && !lone ? (
               <Phone
                 src={active.shots.phone}
                 scroll={scroll}

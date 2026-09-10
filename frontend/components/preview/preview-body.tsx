@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 import { PROJECTS, type Project } from "@/lib/projects";
 import SiteModal from "./site-modal";
 import { FAQS } from "@/lib/faq";
+import FaqAccordion from "@/components/ui/faq-accordion";
 import { CONTACT_EMAIL } from "@/lib/site";
 
 import "./preview.css";
@@ -108,8 +109,6 @@ export default function PreviewBody() {
   const pinTrack = useRef<HTMLDivElement | null>(null);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
-  /* Only one FAQ is open at a time; -1 means all closed. */
-  const [openFaq, setOpenFaq] = useState(0);
 
   /* Motion is opt-in: the flag goes on only when this runs and reduced-motion
      is off, so content is never hidden by CSS alone. A blanket timeout makes
@@ -509,26 +508,12 @@ export default function PreviewBody() {
               <p>If yours is not here, send it over and we will answer it straight.</p>
               <a className="pv-btn pv-btn--accent" href="#pv-contact">Ask a question</a>
             </div>
+            {/* Extracted, because /contact needs the same list and a second
+                copy of an accordion is a second set of bugs. The animation
+                lives in there too: `<details>` cannot be transitioned, so both
+                lists used to snap. */}
             <div className="pv-qa pv-reveal">
-              {FAQS.map((f, i) => (
-                <details key={f.q} open={openFaq === i}>
-                  {/* React owns `open`, so the native toggle is suppressed and the
-                      click sets which single item is open — opening one closes
-                      whichever was open before. Enter/Space on a summary fires a
-                      click too, so the keyboard path goes through here as well. */}
-                  <summary
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setOpenFaq((cur) => (cur === i ? -1 : i));
-                    }}
-                  >
-                    <span className="pv-qn">/ {String(i + 1).padStart(2, "0")}</span>
-                    <span>{f.q}</span>
-                    <span className="pv-qi" aria-hidden="true" />
-                  </summary>
-                  <p>{f.a}</p>
-                </details>
-              ))}
+              <FaqAccordion items={FAQS} idPrefix="pvfaq" />
             </div>
           </div>
         </div>
