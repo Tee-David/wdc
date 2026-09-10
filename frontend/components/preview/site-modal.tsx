@@ -99,8 +99,18 @@ export default function SiteModal({
     return () => window.clearTimeout(t);
   }, [state]);
 
-  /* See (1) above: a throw is the success signal here, not the failure one. */
-  const frameLoaded = useCallback((e: React.SyntheticEvent<HTMLIFrameElement>) => {
+  /* See (1) above: a throw is the success signal here, not the failure one.
+     But a throw alone is not ENOUGH. A frame whose load simply failed — the
+     site is down, DNS is gone, the visitor is offline — holds the browser's own
+     error page, which is also cross-origin and therefore also throws. Trusting
+     the throw there paints a grey "this page can't be reached" over the capture
+     and calls it a live preview.
+     So reachability is checked separately, with a no-cors fetch: the response
+     is opaque and tells us nothing about its status, which does not matter —
+     what matters is that it RESOLVES for a host that answered and REJECTS for
+     one that did not. Frame refused (still about:blank) or host unreachable
+     both land on the capture, which is the honest thing to show for either. */
+  const frameLoaded = useCallback(async (e: React.SyntheticEvent<HTMLIFrameElement>) => {
     let embedded = false;
     try {
       const href = e.currentTarget.contentWindow?.location?.href;
@@ -108,8 +118,15 @@ export default function SiteModal({
     } catch {
       embedded = true;
     }
+    if (embedded) {
+      try {
+        await fetch(project.url, { mode: "no-cors", cache: "no-store" });
+      } catch {
+        embedded = false;
+      }
+    }
     setState(embedded ? "live" : "blocked");
-  }, []);
+  }, [project.url]);
 
   return (
     <div className="pv-modal" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
@@ -146,12 +163,20 @@ export default function SiteModal({
           </button>
         </header>
 
-        <div className="pv-modal__view">
+        <div className={`pv-modal__view${state === "blocked" ? " is-shot" : ""}`}>
           {/* the real capture, underneath: the modal is never blank, and it is
               what remains if the site refuses to be framed */}
-          {project.cover ? (
+          {/* Once the frame is refused this becomes a SCROLLABLE full-page
+              capture rather than a cropped header. A blocked preview is then
+              still the whole page, which is most of what the visitor came for.
+              Falls back to the cover where no long capture exists yet. */}
+          {project.cover || project.long ? (
             /* eslint-disable-next-line @next/next/no-img-element */
-            <img className="pv-modal__shot" src={project.cover} alt={`${project.name} website`} />
+            <img
+              className="pv-modal__shot"
+              src={(state === "blocked" && project.long) || project.cover}
+              alt={`${project.name} website`}
+            />
           ) : null}
 
           <iframe
