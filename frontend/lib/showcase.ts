@@ -177,7 +177,10 @@ export type WebStack = {
   note: string;
   chips: readonly string[];
   scroll: boolean;
-  shots?: { desktop: string; tablet: string; phone: string };
+  /* Each width is optional on its own. A stack can have a desktop capture and
+     no tablet or phone — the stage renders only the frames it has assets for,
+     rather than stretching one screenshot across three device shapes. */
+  shots?: { desktop?: string; tablet?: string; phone?: string };
   shotOf?: string;
 };
 
@@ -219,6 +222,12 @@ export const WEB_STACKS: WebStack[] = [
     note: "CMS-driven, so your team edits it without calling us.",
     chips: ["WordPress", "PHP", "Custom theme", "WooCommerce"],
     scroll: true,
+    /* Desktop only. These are the PLATFORM's own admin, and the tablet and
+       phone captures do not exist yet; the stage renders just the laptop
+       rather than stretching this one across all three frames, which would
+       present a desktop screenshot as a tablet and a phone layout. */
+    shotOf: "the WordPress admin",
+    shots: { desktop: "/work/app/wp-admin.jpg" },
   },
   {
     id: "shopify",
@@ -226,6 +235,12 @@ export const WEB_STACKS: WebStack[] = [
     note: "Commerce on a managed checkout, themed rather than fought.",
     chips: ["Shopify", "Liquid", "Apps", "Payments"],
     scroll: true,
+    /* Desktop only. These are the PLATFORM's own admin, and the tablet and
+       phone captures do not exist yet; the stage renders just the laptop
+       rather than stretching this one across all three frames, which would
+       present a desktop screenshot as a tablet and a phone layout. */
+    shotOf: "the Shopify admin",
+    shots: { desktop: "/work/app/shopify-admin.jpg" },
   },
 ];
 
