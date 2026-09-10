@@ -232,11 +232,23 @@
   margin-bottom: .6rem;
 }
 .pv .wk-doc p { color: var(--muted); line-height: 1.65; }
+/* The multi-paragraph approach sections need air BETWEEN the paragraphs. The
+   body's `gap` only separates sections, so consecutive paragraphs inside one
+   ran together into a single block with a stray line break in it. */
+.pv .wk-doc p + p { margin-top: .95em; }
 .wk-doc__hero {
   border-radius: clamp(14px, 1.6vw, 22px); overflow: hidden;
   aspect-ratio: 16 / 8; background: var(--paper-2); border: 1px solid var(--rule);
 }
 .wk-doc__hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Artwork, not a screenshot: shown whole on a ground, at a ratio that suits a
+   portrait piece rather than a letterbox that would behead it. */
+.wk-doc__hero--art {
+  aspect-ratio: 16 / 10; background: var(--paper-2);
+  display: grid; place-items: center; padding: clamp(12px, 2vw, 26px);
+}
+@media (max-width: 720px) { .wk-doc__hero--art { aspect-ratio: 4 / 4.4; } }
+.wk-doc__hero--art img { width: auto; height: 100%; max-width: 100%; object-fit: contain; }
 
 /* The figure strip under the hero. Rendered ONLY when a case study carries
    published figures — see the note at the top of lib/work.ts. */
@@ -324,3 +336,51 @@
   display: grid; place-items: center; font-size: 1.4rem; line-height: 1;
 }
 .wk-lb__x:hover { background: var(--accent); border-color: var(--accent); }
+
+/* ---------------------------------------------------------- design work */
+
+/* The client's own words, off a page they signed off — a positioning
+   statement, a tagline. Set as a pull quote rather than a testimonial card,
+   because it is not praise and must not be dressed as any. */
+.wk-quote {
+  margin: 0; display: grid; gap: 10px;
+  padding: clamp(18px, 2.4vw, 28px) clamp(20px, 2.6vw, 32px);
+  border-left: 3px solid var(--accent);
+  background: var(--paper-2); border-radius: 0 16px 16px 0;
+}
+.pv-sec--alt .wk-quote { background: var(--paper); }
+.pv .wk-quote blockquote {
+  margin: 0;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: clamp(1.05rem, 1rem + .5vw, 1.35rem);
+  font-weight: 500; line-height: 1.4; letter-spacing: -.01em;
+  color: var(--ink);
+}
+.pv .wk-quote figcaption { color: var(--muted); font-size: .84rem; }
+
+/* Swatches. A row of the actual colours says more about an identity than a
+   paragraph naming them, and the hex is what a reader would want anyway. */
+.wk-pal {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: clamp(10px, 1.4vw, 16px);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 128px), 1fr));
+}
+.wk-pal li { display: grid; gap: 4px; }
+.wk-pal__c {
+  height: clamp(56px, 6vw, 76px); border-radius: 12px;
+  /* An inset hairline rather than an outer border: the palette contains both
+     #FFFFFF and #000000, and each disappears into one of the two themes
+     without an edge that is drawn from the swatch's own side. */
+  box-shadow: inset 0 0 0 1px rgb(128 128 160 / .35);
+}
+.pv .wk-pal b {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .86rem; font-weight: 700; color: var(--ink);
+}
+.pv .wk-pal small { color: var(--muted); font-size: .76rem; font-variant-numeric: tabular-nums; }
+
+/* Brand-guide pages are portrait or square, not 4:3 screenshots, so the
+   design galleries let the artwork set its own height instead of cropping a
+   guide spread down to a letterbox. */
+.wk-shots--tall .wk-shot { aspect-ratio: auto; }
+.wk-shots--tall .wk-shot img { height: auto; object-fit: contain; }
