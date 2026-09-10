@@ -125,6 +125,18 @@
 }
 .pv-btn--dark, .pv .pv-btn--dark { background: #000065; color: #fff; }
 .pv-btn--dark:hover, .pv .pv-btn--dark:hover { background: var(--accent); color: #fff; }
+/* The secondary button ON a navy band. This variant was being used on /about
+   with no definition anywhere, so both buttons rendered with a transparent
+   border and the section's dim inherited text — an invisible control. It rests
+   as an orange ring on the band and inverts to a white fill with navy type,
+   which is the one pairing on this palette that stays legible either way
+   (white on navy 15:1, navy on white 15:1). */
+.pv-btn--light, .pv .pv-btn--light {
+  background: transparent; color: #fff; border-color: var(--accent);
+}
+.pv-btn--light:hover, .pv .pv-btn--light:hover {
+  background: #fff; color: #000065; border-color: #fff;
+}
 .pv-btn--line, .pv .pv-btn--line { background: transparent; color: var(--ink); border-color: var(--ink); }
 .pv-btn--line:hover, .pv .pv-btn--line:hover { background: var(--ink); color: var(--paper); }
 /* On the navy band this button is solid white at rest and flips to orange on
