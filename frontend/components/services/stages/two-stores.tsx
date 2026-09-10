@@ -225,7 +225,7 @@ export default function TwoStores() {
   const screens = active.screens;
 
   return (
-    <Stage caption="Illustrative screens. One source, two platforms." controls={controls}>
+    <Stage controls={controls}>
       <div className="ts">
         <div className="ts__src">
           <span className="ts__srclabel">One codebase</span>
