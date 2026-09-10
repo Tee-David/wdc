@@ -806,9 +806,22 @@
 .pv-modal__frame {
   position: absolute; inset: 0; width: 100%; height: 100%;
   border: 0; background: var(--paper);
-  opacity: 0; transition: opacity .35s ease;
+  opacity: 0;
+  /* The site's own easing rather than a linear `ease`, and long enough to read
+     as the live page ARRIVING over the capture instead of one image being
+     swapped for another. */
+  transition: opacity .5s cubic-bezier(.16, 1, .3, 1);
 }
 .pv-modal__frame.is-live { opacity: 1; }
+/* The capture softens as the real thing lands on top of it, so the moment the
+   frame goes live reads as a resolve rather than a cut. */
+.pv-modal__shot {
+  transition: filter .5s cubic-bezier(.16, 1, .3, 1),
+              transform .5s cubic-bezier(.16, 1, .3, 1);
+}
+.pv-modal__view:has(.pv-modal__frame.is-live) .pv-modal__shot {
+  filter: blur(6px); transform: scale(1.02);
+}
 
 .pv-modal__wait {
   position: absolute; left: 50%; bottom: 22px; translate: -50% 0;

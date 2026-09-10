@@ -32,8 +32,18 @@ import type { Project } from "@/lib/projects";
  *     behind it does not scroll, and it is announced as a modal.
  */
 
-/** How long the frame gets to paint before we stop waiting for it. */
-const GRACE = 4000;
+/**
+ * How long the frame gets before we stop waiting for it.
+ *
+ * Was 4000. That is a long time to look at a placeholder, and it was being
+ * spent twice: the reachability probe below used to run AFTER `load` fired, so
+ * a site that framed fine still paid a second full round trip to the same host
+ * before the modal would admit it had worked. The probe now starts the moment
+ * the modal opens, in parallel with the frame, so by the time `load` arrives
+ * the answer is usually already in hand — and a probe that REJECTS early drops
+ * straight to the capture without waiting out the timer at all.
+ */
+const GRACE = 2600;
 
 export default function SiteModal({
   project,
@@ -91,12 +101,72 @@ export default function SiteModal({
     };
   }, [onKey]);
 
-  /* The race described above. Cleared on load, so a site that frames fine never
-     shows the fallback even if it is slow. */
+  /* THE POLICY CHECK, started immediately and in parallel with the frame.
+     `/api/embeddable` reads the target's `X-Frame-Options` and CSP
+     `frame-ancestors` server-side, which is the only place they are readable —
+     see the note in that route about why no client-side signal can tell a
+     refused frame from a working one.
+
+     Three answers: true (frame it), false (go straight to the capture and never
+     flash the browser's grey refusal), or null (our own check could not reach
+     the host, so fall back to the frame's own behaviour rather than declare a
+     site unframeable because our network had a moment). */
+  const policy = useRef<Promise<boolean | null> | null>(null);
+  if (policy.current === null) {
+    policy.current = fetch(`/api/embeddable?url=${encodeURIComponent(project.url)}`)
+      .then((r) => r.json())
+      .then((d: { embeddable?: boolean | null }) => d.embeddable ?? null)
+      .catch(() => null);
+  }
+
+  /* AND a reachability probe, because the two catch different failures and
+     neither covers the other. The policy check answers "would this site let us
+     frame it"; it says nothing about whether the host is up right now. A dead
+     host still fires `load` on the browser's error page, which throws on the
+     location read exactly like a real cross-origin frame — so without this,
+     an unreachable site reports itself as a live preview. Opaque by design:
+     the response tells us nothing except that something answered. */
+  const reachable = useRef<Promise<boolean> | null>(null);
+  if (reachable.current === null) {
+    reachable.current = fetch(project.url, { mode: "no-cors", cache: "no-store" })
+      .then(() => true)
+      .catch(() => false);
+  }
+
+  /* Warm the connection before the frame asks for it. DNS, TCP and TLS to
+     somebody else's origin is most of the wait on a slow link, and doing it
+     here overlaps it with the modal's own open animation instead of putting it
+     in front of the first byte. */
+  useEffect(() => {
+    const origin = new URL(project.url).origin;
+    const links = (["preconnect", "dns-prefetch"] as const).map((rel) => {
+      const l = document.createElement("link");
+      l.rel = rel;
+      l.href = origin;
+      l.crossOrigin = "anonymous";
+      document.head.appendChild(l);
+      return l;
+    });
+    return () => links.forEach((l) => l.remove());
+  }, [project.url]);
+
+  /* The race. Cleared on load, so a site that frames fine never shows the
+     fallback even if it is slow — and short-circuited the moment the probe
+     says the host is not answering, because nothing is going to paint. */
   useEffect(() => {
     if (state !== "loading") return;
-    const t = window.setTimeout(() => setState("blocked"), GRACE);
-    return () => window.clearTimeout(t);
+    let live = true;
+    const t = window.setTimeout(() => { if (live) setState("blocked"); }, GRACE);
+    /* A definite NO settles it before the frame has finished failing, which is
+       the difference between a preview that resolves and one that flashes an
+       error page on its way to the capture. */
+    policy.current?.then((ok) => {
+      if (live && ok === false) setState("blocked");
+    });
+    reachable.current?.then((up) => {
+      if (live && !up) setState("blocked");
+    });
+    return () => { live = false; window.clearTimeout(t); };
   }, [state]);
 
   /* See (1) above: a throw is the success signal here, not the failure one.
@@ -118,15 +188,18 @@ export default function SiteModal({
     } catch {
       embedded = true;
     }
-    if (embedded) {
-      try {
-        await fetch(project.url, { mode: "no-cors", cache: "no-store" });
-      } catch {
-        embedded = false;
-      }
-    }
+    /* The server's answer wins where it has one, because the frame's own
+       signals cannot tell "framed successfully" from "refused and showing an
+       error page". Where it has none (null — host unreachable from our server)
+       we keep the frame's reading, which is all there is. */
+    const [allowed, up] = await Promise.all([policy.current, reachable.current]);
+    /* A host that is not answering cannot be a live preview whatever its
+       framing policy says, so reachability is the first veto. */
+    if (!up) embedded = false;
+    else if (allowed === false) embedded = false;
+    else if (allowed === true) embedded = true;
     setState(embedded ? "live" : "blocked");
-  }, [project.url]);
+  }, []);
 
   return (
     <div className="pv-modal" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
