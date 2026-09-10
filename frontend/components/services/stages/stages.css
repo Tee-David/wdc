@@ -565,6 +565,8 @@
    frame, and `scale()` would fix that by magnifying the tiles with it. Growing
    the stage instead keeps tiles at their intended size. */
 .gm { position: relative; height: 100%; overflow: hidden; }
+/* Gives `cqw` above something to measure. */
+.sv-stage__frame:has(.gm) { container-type: inline-size; }
 .gm__stage {
   position: absolute; inset: -40% -30%;
   display: grid; align-content: center;
@@ -574,7 +576,12 @@
      band rotated by 15deg needs to be about H + W*sin(15deg) tall to cover a
      WxH frame; with only two rows that means big tiles, which is the trade for
      two rows instead of the four a rotated grid usually needs. */
-  grid-auto-rows: clamp(150px, 30vw, 430px);
+  /* Sized from the STAGE, not the viewport. `30vw` was written when the stage
+     spanned the page; once the section went to two columns the stage halved but
+     `vw` did not, so each row stayed ~430px tall inside a ~400px frame and only
+     ONE of the five ever showed. `cqw` measures the frame that contains it, so
+     the rows scale with the stage however wide the column is. */
+  grid-auto-rows: clamp(120px, 26cqw, 300px);
   gap: clamp(10px, 1.4vw, 18px);
   transform: rotate(-15deg);
   transform-origin: center;

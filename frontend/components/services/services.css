@@ -120,7 +120,20 @@
    page into horizontal overflow instead of fitting its column. */
 .sv-svc__cols { display: grid; gap: clamp(20px, 3vw, 40px); align-items: start; }
 @media (min-width: 1024px) {
-  .sv-svc__cols { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); }
+  .sv-svc__cols { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); align-items: stretch; }
+  /* The showcase MATCHES THE COLUMN BESIDE IT rather than keeping its own
+     aspect ratio. The stage is naturally about 400px tall while the copy, the
+     CTA and the "what you get" rail run to twice that, which left the left half
+     of every section stopping short with a gap under it. Stretching it also
+     gives the stages back the height they were designed against — the brand
+     wall shows all five of its rows again instead of one. */
+  .sv-svc__showcase { display: flex; }
+  .sv-svc__showcase > .se { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .sv-svc__showcase .sv-lazy { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .sv-svc__showcase .sv-stage { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  /* `aspect-ratio: auto` is load-bearing: the frame carries a 16/10 and some
+     stages override it with their own, and any of those beats a flex height. */
+  .sv-svc__showcase .sv-stage__frame { flex: 1; min-height: 0; aspect-ratio: auto; }
   /* In a column this narrow the intro and the "what you get" rail stack rather
      than sitting side by side, and the head loses the top margin it needed
      when it was a full-width band under the stage. */
