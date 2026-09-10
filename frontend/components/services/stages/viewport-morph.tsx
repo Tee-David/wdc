@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Stage, TabRow, useStageMotion } from "./stage-shell";
 import { WEB_STACKS, type WebStack } from "@/lib/showcase";
+import StatusIcons from "@/components/ui/status-icons";
 
 /**
  * 03 · Full-Stack Web — "One build, every viewport".
@@ -96,8 +97,8 @@ function Phone({ src, scroll, alt }: { src?: string; scroll: boolean; alt: strin
       <div className="dv__body">
         <span className="dv__island" aria-hidden="true" />
         <div className="dv__status" aria-hidden="true">
-          <span>9:41</span>
-          <span className="dv__sig"><i /><i /><i /></span>
+          <span className="dv__time">9:41</span>
+          <StatusIcons />
         </div>
         <div className="dv__view">
           <Screen src={src} scroll={scroll} alt={alt} />
