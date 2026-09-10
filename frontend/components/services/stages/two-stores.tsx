@@ -190,11 +190,12 @@ export default function TwoStores() {
   const paused = mode === "still";
   const active = APP_KINDS.find((k) => k.id === kind) ?? APP_KINDS[0];
 
+  /* The tabs are the only thing above the frame now. The note that used to sit
+     beside them -- "multi-tenant, role-based" and the rest -- has moved INSIDE
+     the source card, where it describes the thing it is about instead of
+     giving this one stage a second row of controls nobody else has. */
   const controls = (
-    <>
-      <TabRow items={APP_KINDS} value={kind} onChange={setKind} label="Product type" />
-      <p className="sv-stage__note">{active.note}</p>
-    </>
+    <TabRow items={APP_KINDS} value={kind} onChange={setKind} label="Product type" />
   );
 
   /* Compact: two phones side by side on a 390px screen are thumbnails, so the
@@ -216,6 +217,7 @@ export default function TwoStores() {
               </button>
             ))}
           </div>
+          <p className="ts__note">{active.note}</p>
           <Phone os={os} paused={paused} ui={active.ui} screens={active.screens} />
         </div>
       </Stage>
@@ -229,11 +231,12 @@ export default function TwoStores() {
       <div className="ts">
         <div className="ts__src">
           <span className="ts__srclabel">One codebase</span>
+          <p className="ts__note">{active.note}</p>
           {/* Real, switchable files rather than three words dressed as code.
               The claim of this stage is that one source ships to both stores,
               and a reader can now check it: the same screen component, the same
               client, and a config that names both platforms. */}
-          <CodeBrowser files={APP_SOURCE} label="Shared source" />
+          <CodeBrowser files={APP_SOURCE} label="Shared source" demo />
           {/* the screens this product kind actually ships with — the column
               was carrying one block against two full phones */}
           <ul className="ts__screens">

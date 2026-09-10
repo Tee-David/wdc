@@ -139,6 +139,7 @@
      of its own column and over the copy beside it. */
   .sv-svc__showcase .sv-stage__frame,
   .sv-svc__showcase .sv-stage--tall .sv-stage__frame,
+  .sv-svc__showcase .sv-stage__frame:has(.ts),
   .sv-svc__showcase .sv-stage--tall .sv-stage__frame:has(.fw-split) {
     flex: 1; min-height: 0; aspect-ratio: auto;
   }
@@ -154,6 +155,10 @@
      with it, so the two still finish level. */
   .sv-svc__showcase .sv-stage--tall .sv-stage__frame:has(.fw-split),
   .sv-svc__showcase .sv-stage__frame:has(.fw-split) { min-height: 800px; }
+  /* The apps stage is a source card ABOVE two phones, and the phones take
+     whatever the card leaves. At the height the copy sets they came out 250px
+     tall, small enough that the UI inside them stopped being readable. */
+  .sv-svc__showcase .sv-stage__frame:has(.ts) { min-height: 780px; }
 }
 .sv-svc__showcase { min-width: 0; }
 
