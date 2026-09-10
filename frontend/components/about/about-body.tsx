@@ -17,6 +17,7 @@ import "@/components/preview/preview.css";
 import "@/components/services/services.css";
 import "@/components/ui/motion-kit.css";
 import "./about.css";
+import StrokeNumber from "@/components/ui/stroke-number";
 
 /**
  * /about — the studio behind the work.
@@ -258,7 +259,7 @@ export default function AboutBody() {
                 <span className="sv-step__icon" style={{ "--bob": `${n * 260}ms` } as CSSProperties}>
                   <ServiceIcon name={b.i} delay={n * 90} />
                 </span>
-                <span className="sv-step__n">{String(n + 1).padStart(2, "0")}</span>
+                <StrokeNumber className="sv-step__n" value={String(n + 1).padStart(2, "0")} delay={n * 160} />
                 <h3>{b.t}</h3>
                 <p>{b.d}</p>
               </li>
