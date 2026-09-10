@@ -150,30 +150,53 @@ export default function PreviewBody() {
     let frame = 0;
     let stick = 0;
 
+    /* True while a finger is on the rail. The page keeps scrolling underneath
+       during a swipe, so without this the pin would fight the drag and win. */
+    let dragging = false;
+
     const release = () => {
       on = false;
+      dragging = false;
       wrap.classList.remove("is-pinned");
       wrap.style.removeProperty("--pv-pin-h");
       trk.style.transform = "";
     };
-    const update = () => {
-      if (!on) return;
+    const progress = () => {
       // The stage is stuck while the wrapper's top runs from `stick` down to
       // `stick - span`, so progress is measured against that window. Measuring
       // from a raw rect.top instead would finish the run `stick` pixels late,
       // sliding the cards up under the fixed header before releasing.
       const span = wrap.offsetHeight - stage.clientHeight;
-      const p = span > 0
-        ? Math.min(1, Math.max(0, (stick - wrap.getBoundingClientRect().top) / span))
-        : 0;
-      trk.style.transform = `translate3d(${-p * extra}px,0,0)`;
+      if (span <= 0) return { p: 0, span: 0 };
+      const p = Math.min(1, Math.max(0, (stick - wrap.getBoundingClientRect().top) / span));
+      return { p, span };
+    };
+    const update = () => {
+      if (!on || dragging) return;
+      // scrollLeft, not a transform: the rail stays a real scroll container, so
+      // the same position can be reached by scrolling the page OR by swiping.
+      stage.scrollLeft = progress().p * extra;
+    };
+    /* After a swipe, move the PAGE to the position that produces the rail
+       offset the finger left it at. Without this the next vertical scroll
+       yanks the cards back to wherever the page happened to be, which is the
+       jump that makes hybrid controls feel broken. */
+    const reconcile = () => {
+      dragging = false;
+      if (!on || extra <= 0) return;
+      const { span } = progress();
+      if (span <= 0) return;
+      const p = Math.min(1, Math.max(0, stage.scrollLeft / extra));
+      const wrapTop = wrap.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top: wrapTop - stick + p * span });
     };
     const measure = () => {
       release();
       if (!mq.matches || reduce) return;
       wrap.classList.add("is-pinned");
       stick = parseFloat(getComputedStyle(stage).top) || 0;
-      extra = trk.scrollWidth - stage.clientWidth;
+      // measured on the stage, which is the scroll container now
+      extra = stage.scrollWidth - stage.clientWidth;
       if (extra <= 0) { release(); return; }
       wrap.style.setProperty("--pv-pin-h", `${stage.clientHeight + extra}px`);
       on = true;
@@ -184,9 +207,16 @@ export default function PreviewBody() {
       frame = requestAnimationFrame(update);
     };
 
+    const onDown = () => { if (on) dragging = true; };
+
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", measure);
     mq.addEventListener("change", measure);
+    stage.addEventListener("pointerdown", onDown, { passive: true });
+    stage.addEventListener("touchstart", onDown, { passive: true });
+    window.addEventListener("pointerup", reconcile, { passive: true });
+    window.addEventListener("pointercancel", reconcile, { passive: true });
+    window.addEventListener("touchend", reconcile, { passive: true });
     // let the section's images and the reveal transition settle first
     const t = window.setTimeout(measure, 350);
 
@@ -196,6 +226,11 @@ export default function PreviewBody() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", measure);
       mq.removeEventListener("change", measure);
+      stage.removeEventListener("pointerdown", onDown);
+      stage.removeEventListener("touchstart", onDown);
+      window.removeEventListener("pointerup", reconcile);
+      window.removeEventListener("pointercancel", reconcile);
+      window.removeEventListener("touchend", reconcile);
       release();
     };
   }, []);
