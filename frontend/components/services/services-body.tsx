@@ -24,6 +24,7 @@ import "@/components/preview/preview.css";
 import "./services.css";
 import "./stages/stages.css";
 import "@/components/ui/motion-kit.css";
+import StrokeNumber from "@/components/ui/stroke-number";
 
 /* One signature stage per service, each code-split so a visitor who never
    scrolls to Social never downloads the feed wall. ssr:false because these are
@@ -278,7 +279,7 @@ export default function ServicesBody() {
                   <span className="sv-step__icon" style={{ "--bob": `${n * 260}ms` } as CSSProperties}>
                     <ServiceIcon name={st.i} delay={n * 90} />
                   </span>
-                  <span className="sv-step__n">{String(n + 1).padStart(2, "0")}</span>
+                  <StrokeNumber className="sv-step__n" value={String(n + 1).padStart(2, "0")} delay={n * 160} />
                   <h3>{st.t}</h3>
                   <p>{st.d}</p>
                 </li>
