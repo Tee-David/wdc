@@ -461,6 +461,18 @@
   gap: clamp(12px, 2vw, 20px); overflow: hidden;
 }
 .fw-split--compact, .fw-split--still { grid-template-columns: 1fr; }
+
+/* Same width problem the apps stage had, same answer. Beside the drifting wall
+   the calendar measured 260px, which truncated every post title to a single
+   letter — a month of "N…", "W…", "B…". Below 780px of STAGE width (the stage
+   is one column of a two-column section, so the viewport is no guide) the
+   calendar takes the full width above the wall instead, which gives its cells
+   room for a readable title. */
+.sv-stage__frame:has(.fw-split) { container-type: inline-size; }
+@container (max-width: 780px) {
+  .fw-split { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+}
+.sv-stage--tall .sv-stage__frame:has(.fw-split) { aspect-ratio: 4 / 4.5; }
 .fw-split .fw { position: relative; inset: auto; padding: 0; }
 .fw-split--compact .fw { grid-template-columns: 1fr; }
 .fw-plan {
@@ -816,3 +828,111 @@
   border: 1px solid var(--rule); background: var(--paper-2);
 }
 .ph__check.is-done { background: var(--accent); border-color: var(--accent); }
+
+/* ==========================================================================
+   06 · content calendar
+
+   A month that schedules itself. Sits where a grid of coloured squares used to:
+   the squares said "we plan"; a month with named posts landing in it says what
+   planning actually looks like.
+   ========================================================================== */
+.cal {
+  position: relative; display: flex; flex-direction: column; min-width: 0;
+  gap: 10px; padding: 14px;
+  border: 1px solid var(--rule); border-radius: 16px; background: var(--paper);
+}
+.pv-sec--alt .cal { background: var(--paper-2); }
+
+.cal__bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.cal__month {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: .95rem; color: var(--ink);
+}
+.cal__new {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 11px; border-radius: 999px;
+  background: var(--accent); color: #fff;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .68rem; font-weight: 700; white-space: nowrap;
+  transition: transform .16s cubic-bezier(.34, 1.4, .5, 1), box-shadow .16s ease;
+}
+/* the press. Scale plus a ring, because at this size scale alone is invisible */
+.cal__new.is-press {
+  transform: scale(.93);
+  box-shadow: 0 0 0 4px rgb(255 101 0 / .28);
+}
+.cal__new i {
+  width: 8px; height: 8px; flex: none; position: relative;
+  background: currentColor;
+  -webkit-mask: linear-gradient(#000 0 0) center/100% 2px no-repeat,
+                linear-gradient(#000 0 0) center/2px 100% no-repeat;
+          mask: linear-gradient(#000 0 0) center/100% 2px no-repeat,
+                linear-gradient(#000 0 0) center/2px 100% no-repeat;
+}
+
+.cal__grid {
+  flex: 1; min-height: 0;
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  gap: 3px;
+}
+.cal__dow {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .58rem; font-weight: 700; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--muted);
+  text-align: center; padding-bottom: 2px;
+}
+/* `minmax(0, 1fr)` rows and `overflow: hidden` on the cell together are what
+   stop a day with three posts stretching its whole row and shunting the rest of
+   the month out of the panel. */
+.cal__cell {
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; gap: 2px;
+  min-width: 0; padding: 3px;
+  border: 1px solid var(--rule); border-radius: 6px;
+  background: color-mix(in srgb, var(--ink) 3%, transparent);
+}
+.cal__cell.is-out { background: transparent; border-color: transparent; }
+.cal__cell.is-target { border-color: var(--accent); }
+.cal__n {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .55rem; font-weight: 700; color: var(--muted); line-height: 1;
+}
+
+.cal__chip {
+  display: block; min-width: 0;
+  padding: 2px 5px; border-radius: 4px;
+  font-size: .56rem; line-height: 1.3; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* Three tints of the brand rather than three unrelated hues: the calendar has
+   to read as ours, and a red/blue/green key would be somebody else's product. */
+.cal__chip.is-organic { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); }
+.cal__chip.is-paid    { background: var(--band); color: #fff; }
+.cal__chip.is-story   { background: color-mix(in srgb, var(--accent) 42%, transparent); color: var(--ink); }
+@media (prefers-reduced-motion: no-preference) {
+  .cal__chip.is-new { animation: cal-drop .3s cubic-bezier(.34, 1.4, .5, 1) both; }
+}
+@keyframes cal-drop {
+  from { opacity: 0; transform: translateY(-5px) scale(.9); }
+  to   { opacity: 1; transform: none; }
+}
+.cal__caret {
+  display: inline-block; width: 1px; height: .8em; margin-left: 1px;
+  background: currentColor; vertical-align: -1px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cal__caret { animation: cal-blink .9s steps(1) infinite; }
+}
+@keyframes cal-blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+
+/* The pointer. One transition on `left`/`top` covers every hop, so adding a
+   step to the script needs no new animation. */
+.cal__cursor {
+  position: absolute; left: var(--cx, 50%); top: var(--cy, 50%);
+  width: 14px; height: 16px; pointer-events: none; z-index: 3;
+  filter: drop-shadow(0 2px 3px rgb(0 0 40 / .45));
+  transition: left .55s cubic-bezier(.5, 0, .2, 1), top .55s cubic-bezier(.5, 0, .2, 1);
+}
+.cal__cursor svg { width: 100%; height: 100%; fill: #fff; stroke: #0a0a2a; stroke-width: 1.2; }
+@media (prefers-reduced-motion: reduce) { .cal__cursor { display: none; } }
