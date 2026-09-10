@@ -80,34 +80,32 @@ function Blk({ blk }: { blk: Block }) {
    scrolls past the end and shows blank space at the bottom. Three passes of the
    block list clears it at every phone size on the page. */
 /**
- * The status-bar cluster: signal, wifi, battery.
+ * The status-bar cluster: wifi and battery.
  *
  * Drawn as one SVG rather than as three divs with borders. At this size — the
- * whole cluster is about 22px wide — a battery built from a bordered box and a
- * pseudo-element cap lands on half-pixels and renders as a smudge, and the
- * previous version simply had no wifi or battery at all: three grey bars, which
- * is what made the bar read as a placeholder. A single viewBox scales cleanly
- * to whatever the frame is, and `currentColor` keeps it in step with the
- * platform's own status colour.
+ * cluster is only about 14px wide — a battery built from a bordered box and a
+ * pseudo-element cap lands on half-pixels and renders as a smudge. A single
+ * viewBox scales cleanly to whatever the frame is, and `currentColor` keeps it
+ * in step with the platform's own status colour.
+ *
+ * No cellular bars: these frames are showing an app being used, and the signal
+ * meter is the one glyph in the row that says nothing about it. The viewBox is
+ * narrowed to 20 rather than left at 34 with a hole in it, so the two remaining
+ * glyphs sit against the right edge where a handset puts them.
  */
 function StatusIcons() {
   return (
-    <svg className="ph__status-i" viewBox="0 0 34 12" fill="currentColor" aria-hidden="true">
-      {/* signal: four bars, each taller than the last */}
-      <rect x="0"   y="8"   width="2" height="4"   rx=".6" />
-      <rect x="3"   y="6"   width="2" height="6"   rx=".6" />
-      <rect x="6"   y="3.5" width="2" height="8.5" rx=".6" />
-      <rect x="9"   y="1"   width="2" height="11"  rx=".6" />
+    <svg className="ph__status-i" viewBox="0 0 20 12" fill="currentColor" aria-hidden="true">
       {/* wifi: two arcs and a dot, stroked so the bands stay even */}
-      <g transform="translate(14 1)" fill="none" stroke="currentColor" strokeLinecap="round">
+      <g transform="translate(0 1)" fill="none" stroke="currentColor" strokeLinecap="round">
         <path d="M.6 3.4a7 7 0 0 1 8.8 0" strokeWidth="1.5" />
         <path d="M2.7 6a4 4 0 0 1 4.6 0" strokeWidth="1.5" />
       </g>
-      <circle cx="19" cy="10.2" r="1.1" />
+      <circle cx="5" cy="10.2" r="1.1" />
       {/* battery: body, terminal, and a fill that stops short of the wall */}
-      <rect x="25" y="2" width="7.4" height="8" rx="1.8" fill="none" stroke="currentColor" strokeWidth="1" opacity=".55" />
-      <rect x="26.1" y="3.1" width="4.4" height="5.8" rx="1.1" />
-      <rect x="33.1" y="4.6" width="0.9" height="2.8" rx=".45" opacity=".55" />
+      <rect x="11" y="2" width="7.4" height="8" rx="1.8" fill="none" stroke="currentColor" strokeWidth="1" opacity=".55" />
+      <rect x="12.1" y="3.1" width="4.4" height="5.8" rx="1.1" />
+      <rect x="19.1" y="4.6" width="0.9" height="2.8" rx=".45" opacity=".55" />
     </svg>
   );
 }
