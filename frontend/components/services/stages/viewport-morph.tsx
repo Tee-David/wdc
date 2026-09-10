@@ -121,9 +121,16 @@ export default function ViewportMorph() {
     </>
   );
 
-  const caption = active.shots
-    ? `${active.shotOf}, captured at three real widths.`
-    : `Screens for ${active.label} builds are being added.`;
+  /* The caption states what is ACTUALLY on screen. Claiming three widths while
+     showing one would be the caption contradicting the picture above it. */
+  const widths = active.shots
+    ? [active.shots.desktop && "1440", active.shots.tablet && "768", active.shots.phone && "390"].filter(Boolean)
+    : [];
+  const caption = !active.shots
+    ? `Screens for ${active.label} builds are being added.`
+    : widths.length > 1
+      ? `${active.shotOf}, captured at ${widths.length} real widths.`
+      : `${active.shotOf}, captured at ${widths[0]}px.`;
 
   return (
     <Stage caption={caption} controls={controls}>
@@ -139,18 +146,29 @@ export default function ViewportMorph() {
               scroll={scroll}
               alt={`${active.shotOf ?? active.label} at 1440px wide`}
             />
-            <Window
-              device={DEVICES[1]}
-              src={active.shots?.tablet}
-              url={`${active.shotOf ?? active.label}`}
-              scroll={scroll}
-              alt={`${active.shotOf ?? active.label} at 768px wide`}
-            />
-            <Phone
-              src={active.shots?.phone}
-              scroll={scroll}
-              alt={`${active.shotOf ?? active.label} at 390px wide`}
-            />
+            {/* The overlays appear only when a capture for that width EXISTS.
+                A stack with a desktop capture and nothing else shows the laptop
+                alone: rendering empty tablet and phone frames beside it reads
+                as broken, and filling them with the desktop shot would present
+                one screenshot as three different layouts. A stack with no
+                captures at all still gets the desktop frame, which carries the
+                awaiting state so the tab is never blank. */}
+            {active.shots?.tablet ? (
+              <Window
+                device={DEVICES[1]}
+                src={active.shots.tablet}
+                url={`${active.shotOf ?? active.label}`}
+                scroll={scroll}
+                alt={`${active.shotOf ?? active.label} at 768px wide`}
+              />
+            ) : null}
+            {active.shots?.phone ? (
+              <Phone
+                src={active.shots.phone}
+                scroll={scroll}
+                alt={`${active.shotOf ?? active.label} at 390px wide`}
+              />
+            ) : null}
           </div>
         </div>
         <div className="vp3__chips">
