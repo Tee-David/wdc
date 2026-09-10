@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { Stage, TabRow, useNearViewport, useStageMotion } from "./stage-shell";
 import { AI_USES } from "@/lib/showcase";
 
@@ -126,25 +127,28 @@ export default function Pipeline() {
            controls={controls}>
       <div className={`pl${animate ? " is-live" : ""}`} ref={ref}>
         <div className="pl__graph" key={`graph-${activeUse.id}`}>
-          {/* Plain elements, not SVG. The graph spans a flexible width, so any
-              stretched viewBox distorts the dash pattern: non-scaling-stroke
-              puts dashes in screen units and pathLength in user units, and the
-              two cannot both be satisfied. A positioned wire with a dot
-              translating along it has neither problem. */}
-          <div className="pl__wires" aria-hidden="true">
-            {NODES.slice(0, -1).map((nd, i) => (
-              <span className="pl__wire" key={`w-${nd.id}`}
-                    style={{ left: `${nd.x}%`, width: `${NODES[i + 1].x - nd.x}%` }}>
-                {animate && (
-                  <span className="pl__spark" style={{ animationDelay: `${i * 0.4}s` }} />
-                )}
-              </span>
-            ))}
+          {/* ONE track that fills, rather than a sparkle per segment. Segment
+              sparks read as unrelated blinking dashes at this scale; a single
+              bar sweeping the whole path reads as one request being served,
+              which is what the diagram is claiming. Plain elements, not SVG:
+              the graph spans a flexible width, and a stretched viewBox cannot
+              satisfy dash units in screen space and path length in user space
+              at the same time. */}
+          <div className="pl__track" aria-hidden="true">
+            <span className="pl__fill" />
           </div>
           <ol className="pl__nodes">
             {NODES.map((nd, i) => (
+              /* `--at` is the node's own position along the run, 0 to 1, so its
+                 dot lights at the moment the fill actually reaches it instead
+                 of on a fixed per-index beat that drifts as the chain changes
+                 length. The chain is rebuilt per tab, so this has to be derived
+                 rather than hardcoded. */
               <li className="pl__node" key={nd.id}
-                  style={{ left: `${nd.x}%`, animationDelay: `${i * 0.4}s` }}>
+                  style={{
+                    left: `${nd.x}%`,
+                    "--at": NODES.length > 1 ? i / (NODES.length - 1) : 0,
+                  } as CSSProperties}>
                 <span className="pl__dot" />
                 <span className="pl__label">{nd.label}</span>
               </li>
