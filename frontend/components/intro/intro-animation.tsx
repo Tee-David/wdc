@@ -20,7 +20,15 @@ const MAX_SCROLL = 3000;
 // Touch screens deliver much smaller deltas per gesture than desktop wheels,
 // so scale touch travel up — otherwise shuffling through the arc takes
 // several long swipes on mobile.
-const TOUCH_MULTIPLIER = 3;
+//
+// Derived from the screen rather than fixed. At a flat multiplier of 3 the arc
+// needed 1000px of finger travel to clear, which is about three full swipes on
+// a 844px phone and MORE on a small one — the shorter the screen, the longer
+// the intro, which is exactly backwards. Expressing the budget as a fraction of
+// screen height instead means it costs the same gesture or so on every device.
+const TOUCH_SCREENS = 0.75;
+const touchMultiplier = () =>
+  MAX_SCROLL / Math.max(280, (window.innerHeight || 800) * TOUCH_SCREENS);
 // Timestamp of the last time the intro was seen. The intro only replays
 // after the viewer has been away for INTRO_TTL_MS — a returning visitor
 // within the window goes straight to the page. Kept in sync with the
@@ -244,7 +252,7 @@ export default function IntroAnimation() {
     const handleTouchMove = (e: TouchEvent) => {
       e.preventDefault();
       const touchY = e.touches[0].clientY;
-      advance((touchStartY - touchY) * TOUCH_MULTIPLIER);
+      advance((touchStartY - touchY) * touchMultiplier());
       touchStartY = touchY;
     };
 
