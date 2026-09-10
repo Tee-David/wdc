@@ -70,7 +70,10 @@ function tokenise(code: string) {
 function Code({ code }: { code: string }) {
   const lines = useMemo(() => code.split("\n").map(tokenise), [code]);
   return (
-    <pre className="cb__pre"><code>
+    /* Focusable and labelled: the pane scrolls in both directions, and a scroll
+       container only a mouse can reach is unreachable for anyone navigating by
+       keyboard. */
+    <pre className="cb__pre" tabIndex={0} role="region" aria-label="File contents"><code>
       {lines.map((toks, n) => (
         <span className="cb__line" key={n}>
           <span className="cb__ln" aria-hidden="true">{n + 1}</span>

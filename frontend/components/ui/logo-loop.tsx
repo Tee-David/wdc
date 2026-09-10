@@ -260,6 +260,16 @@ export const LogoLoop = memo(function LogoLoop({
           key={`copy-${copyIndex}`}
           role="list"
           aria-hidden={copyIndex > 0}
+          /* `copy > 0` are the duplicated tracks that make the loop seamless.
+             They are aria-hidden, but hiding an element from assistive tech does
+             NOT take it out of the tab order: without this, tabbing through the
+             marquee walked every link two or three times over, into copies a
+             screen reader had been told do not exist. `inert` removes the whole
+             subtree from focus in one attribute. */
+          /* React 19 takes `inert` as a real boolean. Passing the empty string
+             instead — the raw HTML form — is FALSY to React, so the attribute
+             was silently dropped and the duplicates stayed focusable. */
+          inert={copyIndex > 0}
           ref={copyIndex === 0 ? seqRef : undefined}
         >
           {logos.map((item, itemIndex) =>

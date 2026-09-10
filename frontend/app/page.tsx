@@ -42,7 +42,13 @@ export default function Home() {
           <div className="pv-wrap">
             <p style={{ color: "var(--on-band-dim)", fontSize: ".9rem", textAlign: "center" }}>
               © {new Date().getFullYear()} We Dig Creativity Solutions. All rights reserved.{" "}
-              <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "var(--accent)" }}>
+              {/* Underlined, not just recoloured. A link inside a run of body text that
+                  is only distinguished by colour is invisible to anyone who
+                  cannot separate that colour from the text around it. */}
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                style={{ color: "var(--accent)", textDecoration: "underline", textUnderlineOffset: "0.18em" }}
+              >
                 {CONTACT_EMAIL}
               </a>
             </p>

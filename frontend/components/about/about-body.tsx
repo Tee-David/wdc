@@ -157,7 +157,18 @@ function TeamRail() {
           </button>
         </div>
       </div>
-      <div className="ab-team__rail" ref={rail} onScroll={sync}>
+      {/* Focusable and labelled for the same reason as the code pane: the rail
+          is a real scroll container, and arrow keys can only reach it if it can
+          take focus. The buttons above drive the same scroll, so this is a
+          second route to it rather than the only one. */}
+      <div
+        className="ab-team__rail"
+        ref={rail}
+        onScroll={sync}
+        tabIndex={0}
+        role="region"
+        aria-label="Disciplines in the studio"
+      >
         {TEAM.map((m, n) => (
           <article className="ab-tm" key={m.id} style={{ "--d": `${n * 70}ms` } as CSSProperties}>
             <span className="ab-tm__icon">
