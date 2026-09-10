@@ -34,6 +34,15 @@ export function SmoothScroll() {
       duration: 1.1,
       smoothWheel: true,
       anchors: { offset: -88 },
+      /* Every horizontal rail on this site (the work track, the pinned
+         services stage, the insight cards, the stage tab rows) is a nested
+         scroll container. `smoothWheel` calls preventDefault on EVERY wheel
+         event, so without this a sideways trackpad gesture over one of those
+         rails was cancelled and neither axis moved -- the rails read as
+         frozen. `allowNestedScroll` makes Lenis check the composed path for a
+         nested scroller that can actually take the delta on that axis, and
+         step aside when it finds one. */
+      allowNestedScroll: true,
     });
     // Expose the instance so the intro overlay can stop/reset it while it owns
     // the viewport — otherwise Lenis keeps accumulating a scroll target from

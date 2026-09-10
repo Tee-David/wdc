@@ -133,13 +133,14 @@
 /* A real scroll container, so a phone can flick it and a trackpad can swipe
    it; the arrows drive the same scroll rather than a separate index. */
 .ab-team__rail {
-  display: flex; gap: 18px; overflow-x: auto; scroll-snap-type: x mandatory;
+  display: flex; gap: 18px; overflow-x: auto; scroll-snap-type: x proximity;
   scrollbar-width: none; padding-bottom: 4px;
   /* `min-width: 0` is load-bearing on a flex/grid child: the default
      `min-width: auto` would size the rail to its content and push the page
      into horizontal overflow instead of scrolling inside itself. */
   min-width: 0;
 }
+@media (pointer: fine) { .ab-team__rail { scroll-snap-type: none; } }
 .ab-team__rail::-webkit-scrollbar { display: none; }
 .ab-tm {
   flex: 0 0 clamp(230px, 26vw, 300px); scroll-snap-align: start;

@@ -210,11 +210,40 @@
 /* ---------------- work carousel ---------------- */
 .pv-track {
   display: flex; gap: clamp(18px, 2.6vw, 28px); overflow-x: auto;
-  scroll-snap-type: x mandatory; scroll-behavior: smooth;
+  /* proximity, not mandatory: mandatory has to REST on a snap point, so a
+     short sideways nudge is thrown straight back where it came from -- which
+     is what made this rail feel like it was fighting the finger. And no
+     `scroll-behavior: smooth` here either: Chrome applies it to wheel deltas
+     as well as programmatic ones, so every tick queued its own animation and
+     the rail lagged behind the gesture. The arrow buttons ask for smooth
+     behaviour themselves in scrollBy(), which is the only place that wants it. */
+  scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch; padding-bottom: 8px;
   scrollbar-width: thin; scrollbar-color: var(--accent) var(--paper-2);
 }
 .pv-track > .pv-job { scroll-snap-align: start; flex: 0 0 calc(31% - 24px); min-width: 0; }
+/* ---------------------------------------------------------------------------
+   Scroll snapping and pointing devices.
+
+   Snapping is right for a finger and wrong for a trackpad. A touch fling
+   resolves its snap once, at the end of a throw that has already travelled
+   most of a card, so it lands where you meant. A trackpad swipe instead
+   arrives as a stream of small wheel deltas, and the snap resolves after
+   EVERY one of them -- so while the gesture is still nearer the point it just
+   left than the next one, the rail is pulled back to where it started. Push,
+   spring back, push, spring back: the rail reads as frozen even though the
+   events are landing. `mandatory` guarantees this; `proximity` does it too
+   whenever the deltas are smaller than half the card pitch, which for a
+   trackpad is always.
+
+   So the snap points stay declared for coarse pointers and are switched off
+   for fine ones. These overrides sit immediately after the rules they
+   correct, because they match at the same specificity and win on order.
+   --------------------------------------------------------------------------- */
+@media (pointer: fine) {
+  .pv-track { scroll-snap-type: none; }
+}
+
 @media (max-width: 900px) { .pv-track > .pv-job { flex-basis: calc(50% - 14px); } }
 @media (max-width: 620px) { .pv-track > .pv-job { flex-basis: 85%; } }
 .pv-job {
@@ -388,9 +417,10 @@
   .pv-pinwrap { position: relative; }
   .pv-pinstage {
     overflow-x: auto; -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x mandatory; scrollbar-width: none;
+    scroll-snap-type: x proximity; scrollbar-width: none;
   }
   .pv-pinstage::-webkit-scrollbar { display: none; }
+  @media (pointer: fine) { .pv-pinstage { scroll-snap-type: none; } }
   .pv-srows.pv-pintrack { display: flex; gap: 14px; }
   /* flatten the two rows into a single track without changing the markup */
   .pv-srows.pv-pintrack .pv-srow { display: contents; }
@@ -429,13 +459,14 @@
 @media (max-width: 768px) {
   .pv-icards {
     display: flex; grid-template-columns: none; gap: 14px;
-    overflow-x: auto; scroll-snap-type: x mandatory;
+    overflow-x: auto; scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch; scrollbar-width: none;
     scroll-padding-left: clamp(24px, 7vw, 32px);
     margin-inline: calc(-1 * clamp(18px, 5vw, 44px));
     padding-left: clamp(24px, 7vw, 32px); padding-right: clamp(18px, 5vw, 44px);
   }
   .pv-icards::-webkit-scrollbar { display: none; }
+  @media (pointer: fine) { .pv-icards { scroll-snap-type: none; } }
   .pv-icards > .pv-icard { flex: 0 0 76%; scroll-snap-align: start; }
 }
 /* `.pv a { color: inherit }` again — this card is an ANCHOR, so at (0,1,0) it
