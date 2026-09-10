@@ -200,12 +200,17 @@ export const WEB_STACKS: WebStack[] = [
     label: "Web app",
     note: "A product with accounts, data and state, not a brochure.",
     chips: ["Node", "Postgres", "Redis", "Cloud"],
-    scroll: false,
-    shotOf: "the TraxStaff dashboard",
+    /* These are FULL-PAGE captures of the same dashboard taken at three real
+       widths, so they scroll rather than being contained. The earlier set was
+       one screen per device and held still; a full page has more to show than
+       fits, and the whole claim of this stage is what the layout does with the
+       width it is given. */
+    scroll: true,
+    shotOf: "the Litch Consulting dashboard",
     shots: {
-      desktop: "/work/app/trax-app-desktop.jpg",
-      tablet: "/work/app/trax-app-tablet.jpg",
-      phone: "/work/app/trax-app-phone.jpg",
+      desktop: "/work/app/litch-dashboard.jpg",
+      tablet: "/work/app/litch-tablet.jpg",
+      phone: "/work/app/litch-mobile.jpg",
     },
   },
   {
@@ -291,6 +296,8 @@ export const APP_KINDS: AppKind[] = [
     label: "Marketplace",
     note: "Two sides, payments in the middle, and trust built into both.",
     screens: ["Browse", "Listing", "Checkout", "Payouts"],
+    shot: "/work/app/realtors-mobile.jpg",
+    shotOf: "the Realtors' Practice dashboard",
     ui: [
       { t: "tile", a: "Headphones", b: "24,500" },
       { t: "tile", a: "Keyboard", b: "18,900" },
@@ -304,6 +311,8 @@ export const APP_KINDS: AppKind[] = [
     label: "Internal tools",
     note: "The unglamorous software a team actually runs on all day.",
     screens: ["Queue", "Records", "Approvals", "Audit"],
+    shot: "/work/app/rp-mobile.jpg",
+    shotOf: "the RP data explorer",
     ui: [
       { t: "task", a: "Approve refund", b: "done" },
       { t: "task", a: "Verify KYC", b: "done" },
