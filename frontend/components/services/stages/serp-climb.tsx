@@ -52,16 +52,20 @@ function Metric({ m, run }: { m: (typeof SEO_METRICS)[number]; run: boolean }) {
   );
 }
 
-export default function SerpClimb() {
-  const mode = useStageMotion();
-  const { ref, near } = useNearViewport<HTMLDivElement>("120px");
+/**
+ * One run of the climb, from buried to page one.
+ *
+ * Split out so the parent can REMOUNT it with a `key` on each cycle. The step
+ * has to go back to zero for a re-run, and resetting it from inside an effect
+ * would mean setting state on every dependency change; a remount gets the same
+ * reset from React's own lifecycle for free.
+ */
+function Climb({ run, still, offset }: { run: boolean; still: boolean; offset: number }) {
   const [step, setStep] = useState(0);
   const timer = useRef<number>(0);
 
-  /* Runs once, on entry. Looping it would turn a proof into a screensaver, and
-     the end state is the point being made. */
   useEffect(() => {
-    if (mode !== "full" || !near) return;
+    if (!run) return;
     timer.current = window.setInterval(() => {
       setStep((s) => {
         if (s >= CLIMB.length - 1) { window.clearInterval(timer.current); return s; }
@@ -69,9 +73,8 @@ export default function SerpClimb() {
       });
     }, 700);
     return () => window.clearInterval(timer.current);
-  }, [mode, near]);
+  }, [run]);
 
-  const still = mode === "still";
   const done = still || step === CLIMB.length - 1;
   const rank = still ? TOP : CLIMB[step];
 
@@ -89,11 +92,63 @@ export default function SerpClimb() {
   let n = 0;
 
   return (
+    <div className="serp__listwrap">
+      <div className="serp__list" style={{ height: SLOTS * ROW_H }}>
+        {slots.map((slot) => {
+          if (slot === trackedSlot) {
+            return (
+              <div
+                className="serp__row serp__row--you"
+                key="you"
+                style={{ "--y": `${slot * ROW_H}px`, "--d": `${slot * 70}ms` } as CSSProperties}
+                aria-live="polite"
+              >
+                <span className="serp__n">{rank}</span>
+                <span className="serp__line" />
+                <span className="serp__txt">Your page</span>
+                <span className="serp__badge">{done ? "page 1" : "climbing"}</span>
+              </div>
+            );
+          }
+          /* Neighbours rotate with the cycle, so a second run through is not a
+             pixel-for-pixel repeat of the first. */
+          const label = NEIGHBOURS[(offset + n++) % NEIGHBOURS.length];
+          return (
+            <div
+              className="serp__row"
+              key={label}
+              style={{ "--y": `${slot * ROW_H}px`, "--d": `${slot * 70}ms` } as CSSProperties}
+            >
+              <span className="serp__n">{rankAt(slot)}</span>
+              <span className="serp__line" />
+              <span className="serp__txt">{label}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export default function SerpClimb() {
+  const mode = useStageMotion();
+  const { ref, near } = useNearViewport<HTMLDivElement>("120px");
+  /* One clock for the whole panel. The typewriter owns it: every time a query
+     finishes and clears, that is a new search, so the ranks reset and climb
+     again and the metrics re-count against it. Driving the climb on its own
+     timer instead would let the two drift apart within a minute, and the panel
+     would read as three unrelated animations sharing a box. */
+  const [cycle, setCycle] = useState(0);
+
+  const still = mode === "still";
+  const animate = mode === "full" && near;
+
+  return (
     <Stage caption="Search position over an optimisation cycle. Illustrative, not a client's data.">
       <div className="serp" ref={ref}>
         <div className="seo-metrics">
           {SEO_METRICS.map((m) => (
-            <Metric key={m.id} m={m} run={mode === "full" && near} />
+            <Metric key={`${m.id}-${cycle}`} m={m} run={animate} />
           ))}
         </div>
         <div className="serp__bar">
@@ -116,6 +171,7 @@ export default function SerpClimb() {
               className="serp__q"
               cursorClassName="serp__cursor"
               startOnVisible
+              onSentenceComplete={() => setCycle((c) => c + 1)}
             />
           ) : (
             <span className="serp__q">brand and web agency</span>
@@ -130,39 +186,8 @@ export default function SerpClimb() {
           </span>
         </div>
 
-        <div className="serp__listwrap">
-          <div className="serp__list" style={{ height: SLOTS * ROW_H }}>
-            {slots.map((slot) => {
-              if (slot === trackedSlot) {
-                return (
-                  <div
-                    className="serp__row serp__row--you"
-                    key="you"
-                    style={{ "--y": `${slot * ROW_H}px`, "--d": `${slot * 70}ms` } as CSSProperties}
-                    aria-live="polite"
-                  >
-                    <span className="serp__n">{rank}</span>
-                    <span className="serp__line" />
-                    <span className="serp__txt">Your page</span>
-                    <span className="serp__badge">{done ? "page 1" : "climbing"}</span>
-                  </div>
-                );
-              }
-              const label = NEIGHBOURS[n++];
-              return (
-                <div
-                  className="serp__row"
-                  key={label}
-                  style={{ "--y": `${slot * ROW_H}px`, "--d": `${slot * 70}ms` } as CSSProperties}
-                >
-                  <span className="serp__n">{rankAt(slot)}</span>
-                  <span className="serp__line" />
-                  <span className="serp__txt">{label}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        {/* keyed by cycle: a new query means a new run, from 47 again */}
+        <Climb key={cycle} run={animate} still={still} offset={cycle} />
       </div>
     </Stage>
   );
