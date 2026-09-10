@@ -141,7 +141,7 @@ export function LazyStage({
  * mechanical, and the deceleration is what makes it feel like it settled.
  * Returns `to` immediately when inactive, so the still state is the end state.
  */
-export function useCountUp(to: number, active: boolean, ms = 1100) {
+export function useCountUp(to: number, active: boolean, ms = 1600) {
   const [n, setN] = useState(0);
 
   useEffect(() => {
@@ -153,7 +153,10 @@ export function useCountUp(to: number, active: boolean, ms = 1100) {
     const step = (now: number) => {
       if (!start) start = now;
       const t = Math.min(1, (now - start) / ms);
-      const eased = 1 - Math.pow(1 - t, 3);
+      /* easeOutExpo: most of the distance goes early, then it settles. A
+         counter on a cubic curve reads as sliding to a stop; this one reads as
+         landing on the figure. */
+      const eased = t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
       setN(to * eased);
       if (t < 1) raf = requestAnimationFrame(step);
     };

@@ -51,20 +51,31 @@ export default function GridMotion() {
 
   const active = BRAND_KINDS.find((k) => k.id === kind) ?? BRAND_KINDS[0];
 
-  /* Each row starts five items further in. Five rather than a neater number
-     because it stays distinct against every pool size here — 6 marks, 8
-     mockups, 8 guides, 34 flyers all give five different starts, where a step
-     of 2 or 3 makes rows repeat each other on the smaller sets. */
-  const rows = useMemo(
-    () =>
-      ROWS.map((_, ri) =>
-        Array.from({ length: PER_ROW }, (_, i) => {
-          const it = active.items[(i + ri * 5) % active.items.length];
-          return { ...it, key: `${active.id}-${ri}-${i}` };
-        }),
-      ),
-    [active],
-  );
+  /* The wall makes 5 x 12 = 60 draws from a pool that is 35 pieces at its
+     biggest and 5 at its smallest, so SOME repetition is arithmetic, not a
+     choice. What is a choice is how far apart the repeats fall.
+
+     Dealing from one running cursor across all rows is what keeps them apart:
+     every item is used once before any is used twice, so with 35 flyers the
+     first three rows are completely disjoint and a repeat cannot appear until
+     the pool is spent. Per-row offsets (the previous approach) failed here —
+     with 12 tiles a row and a step of five, neighbouring rows shared seven of
+     their twelve items, which is why the same artwork kept stacking up. Strides
+     were worse again: on a small pool they collapse rows onto each other.
+
+     Rows also step by PER_ROW, which is coprime with most pool sizes, so the
+     same item rarely lands in the same column twice running. */
+  const rows = useMemo(() => {
+    const pool = active.items;
+    return ROWS.map((_, ri) =>
+      Array.from({ length: PER_ROW }, (_, i) => {
+        /* the running cursor, expressed as arithmetic rather than a mutable
+           counter: position (ri, i) is the (ri * PER_ROW + i)th draw */
+        const it = pool[(ri * PER_ROW + i) % pool.length];
+        return { ...it, key: `${active.id}-${ri}-${i}` };
+      }),
+    );
+  }, [active]);
 
   const controls = (
     <>

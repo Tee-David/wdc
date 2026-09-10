@@ -7,7 +7,7 @@ import { COMPANY_NAME, CONTACT_EMAIL, SITE_URL } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Services",
   description:
-    "Branding and design, SEO, full-stack web development, cross-platform apps, software engineering with AI, and social media and PPC — the six WDC services in detail, with the work behind them.",
+    "Branding and design, SEO, full-stack web development, cross-platform apps, software engineering with AI, and social media and PPC. The six WDC services in detail, with the work behind them.",
   alternates: { canonical: `${SITE_URL}/services` },
   openGraph: {
     title: "Services | We Dig Creativity",
