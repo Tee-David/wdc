@@ -202,20 +202,28 @@
 
    `--bob` is set per card from the step index, which staggers the six against
    each other; without it they rise and fall in lockstep and the row pulses
-   like one object. Amplitude is 3px and the cycle is slow on purpose: at this
-   size anything more reads as a bug, not a flourish. Paused on hover because
-   the card already lifts, and two movements at once fight. */
+   like one object. Paused on hover because the card already lifts, and two
+   movements at once fight.
+
+   The motion is a bob with a COUNTER-SWING rather than a sine: it lifts and
+   tilts one way, settles, then kicks a little the other way. A plain up-down
+   at this size reads as a rendering glitch however far it travels, where the
+   asymmetric return reads as something with weight. */
 @media (prefers-reduced-motion: no-preference) {
   .sv-step__icon {
-    animation: sv-bob 3.6s ease-in-out infinite;
+    animation: sv-bob 2.6s cubic-bezier(.34, 1.4, .5, 1) infinite;
     animation-delay: var(--bob, 0s);
     will-change: transform;
   }
   .sv-step:hover .sv-step__icon { animation-play-state: paused; }
 }
 @keyframes sv-bob {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50%      { transform: translateY(-3px) rotate(-2.5deg); }
+  0%   { transform: translateY(0) rotate(0deg) scale(1); }
+  22%  { transform: translateY(-8px) rotate(-8deg) scale(1.08); }
+  45%  { transform: translateY(0) rotate(0deg) scale(1); }
+  62%  { transform: translateY(-4px) rotate(6deg) scale(1.04); }
+  80%  { transform: translateY(0) rotate(-2deg) scale(1); }
+  100% { transform: translateY(0) rotate(0deg) scale(1); }
 }
 .sv-step__n {
   position: absolute; top: clamp(18px, 2vw, 24px); right: clamp(18px, 2vw, 24px);
