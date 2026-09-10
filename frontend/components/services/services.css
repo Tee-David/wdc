@@ -13,7 +13,20 @@
    ========================================================================== */
 
 /* ---------------- hero ---------------- */
-.sv-hero { position: relative; overflow: hidden; padding-block: clamp(3rem, 8vw, 6.5rem); }
+/* The hero owns the first screen. `svh` rather than `vh` because mobile
+   browsers measure `vh` against the LARGEST viewport — the one with the URL bar
+   already scrolled away — so a 100vh hero starts taller than the screen and
+   pushes its own CTAs under the fold on first paint, which is exactly where
+   they must not be. The fixed header sits over the top of it, so its height
+   comes off the minimum — same h-16 -> md:h-[72px] step the jump nav tracks
+   below. `justify-content: center` then centres what is left. */
+.sv-hero {
+  position: relative; overflow: hidden;
+  min-height: calc(100svh - 64px);
+  display: flex; flex-direction: column; justify-content: center;
+  padding-block: clamp(2.5rem, 6vw, 5rem);
+}
+@media (min-width: 768px) { .sv-hero { min-height: calc(100svh - 72px); } }
 .sv-hero .pv-wrap { position: relative; z-index: 1; }
 
 .sv-crumb {
@@ -272,7 +285,7 @@
    separation with padding. `flex` rather than `inline-flex` for the same
    reason the margin matters — vertical margins do nothing on an inline box. */
 .pv .sv-hero__loop {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
   margin-bottom: 22px;
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .9rem; font-weight: 600; color: var(--on-band-dim);

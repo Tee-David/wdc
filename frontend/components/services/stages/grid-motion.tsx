@@ -23,15 +23,26 @@ import { BRAND_KINDS } from "@/lib/showcase";
  */
 
 /* Each row has to be WIDER than the (deliberately oversized) rotated stage, or
-   the -50% translate scrolls the end of the track into view. Ten tiles per half
-   clears it at every width: the widest case is ~1820px of stage against 200px
-   tiles. Thinner categories cycle their items to reach the count rather than
-   leaving holes. */
-const PER_ROW = 10;
+   the -50% translate scrolls the end of the track into view. Twelve tiles per
+   half clears the widest case several times over and, more to the point, puts
+   more of the catalogue on screen at once. Thinner categories cycle their items
+   to reach the count rather than leaving holes. */
+const PER_ROW = 12;
 
+/* FIVE rows, not two. A band rotated by 15deg only covers a WxH frame if it is
+   about H + W*sin(15deg) tall; two rows of this tile size fell short of that at
+   every width, which left the frame's top-left and bottom-right corners empty.
+   Five rows overflow the frame instead, so the corners fill and the wall is
+   clipped rather than fenced. Row height is unchanged — the fix is more rows,
+   not bigger tiles. Four still left the 768px frame short — it is the tallest
+   frame of the three — so the count is set by the worst case, not the average.
+   Durations are all different so the rows never re-sync. */
 const ROWS = [
   { dir: "l", dur: 46 },
-  { dir: "r", dur: 58 }, // different durations so the rows never re-sync
+  { dir: "r", dur: 58 },
+  { dir: "l", dur: 52 },
+  { dir: "r", dur: 64 },
+  { dir: "l", dur: 55 },
 ] as const;
 
 export default function GridMotion() {
@@ -40,13 +51,15 @@ export default function GridMotion() {
 
   const active = BRAND_KINDS.find((k) => k.id === kind) ?? BRAND_KINDS[0];
 
-  /* The second row starts three items in. Without the offset both rows show
-     the same sequence and the wall reads as one list printed twice. */
+  /* Each row starts five items further in. Five rather than a neater number
+     because it stays distinct against every pool size here — 6 marks, 8
+     mockups, 8 guides, 34 flyers all give five different starts, where a step
+     of 2 or 3 makes rows repeat each other on the smaller sets. */
   const rows = useMemo(
     () =>
       ROWS.map((_, ri) =>
         Array.from({ length: PER_ROW }, (_, i) => {
-          const it = active.items[(i + ri * 3) % active.items.length];
+          const it = active.items[(i + ri * 5) % active.items.length];
           return { ...it, key: `${active.id}-${ri}-${i}` };
         }),
       ),
