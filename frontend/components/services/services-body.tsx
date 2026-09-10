@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { SERVICES, type ServiceSlug } from "@/lib/services";
@@ -224,15 +225,33 @@ export default function ServicesBody() {
           aria-labelledby={`${s.slug}-h`}
         >
           <div className="pv-wrap">
-            <div className="sv-svc__head pv-reveal">
+            {/* Name it, SHOW it, then explain it. The work is the argument, so
+                it goes above the prose rather than under it: a visitor who
+                scrolls past the copy still sees what we actually make. */}
+            <div className="sv-svc__top pv-reveal">
+              <span className="pv-eyebrow">Service / {String(i + 1).padStart(2, "0")}</span>
+              <h2 id={`${s.slug}-h`} className="sv-svc__title">
+                <span className="sv-svc__icon">
+                  <ServiceIcon name={s.icon} size={22} hover="pop" />
+                </span>
+                {s.name}
+              </h2>
+            </div>
+
+            {/* the service's signature showcase */}
+            {(() => {
+              const StageFor = STAGES[s.slug];
+              return (
+                <ScrollExpand>
+                  <LazyStage withControls={STAGE_HAS_CONTROLS[s.slug]}>
+                    <StageFor />
+                  </LazyStage>
+                </ScrollExpand>
+              );
+            })()}
+
+            <div className="sv-svc__head sv-svc__head--after pv-reveal">
               <div className="sv-svc__intro">
-                <span className="pv-eyebrow">Service / {String(i + 1).padStart(2, "0")}</span>
-                <h2 id={`${s.slug}-h`} className="sv-svc__title">
-                  <span className="sv-svc__icon">
-                    <ServiceIcon name={s.icon} size={22} hover="pop" />
-                  </span>
-                  {s.name}
-                </h2>
                 <p className="pv-lede">{s.lede}</p>
                 <p className="sv-svc__body">{s.body}</p>
                 <a className="pv-btn pv-btn--line sv-svc__cta" href="#sv-contact">
@@ -265,25 +284,14 @@ export default function ServicesBody() {
               </aside>
             </div>
 
-            {/* the service's signature showcase */}
-            {(() => {
-              const StageFor = STAGES[s.slug];
-              return (
-                <ScrollExpand>
-                  <LazyStage withControls={STAGE_HAS_CONTROLS[s.slug]}>
-                    <StageFor />
-                  </LazyStage>
-                </ScrollExpand>
-              );
-            })()}
-
             {/* the reference's six-card grid — a grid on desktop, and on a
                 phone the same pinned horizontal run the homepage services use */}
             <PinnedRow className="sv-steps__pin pv-reveal sv-steps--after">
             <ol className="sv-steps">
               {s.steps.map((st, n) => (
                 <li className="sv-step" key={st.t}>
-                  <span className="sv-step__icon">
+                  {/* the stagger for the idle bob; see sv-bob in services.css */}
+                  <span className="sv-step__icon" style={{ "--bob": `${n * 260}ms` } as CSSProperties}>
                     <ServiceIcon name={st.i} delay={n * 90} />
                   </span>
                   <span className="sv-step__n">{String(n + 1).padStart(2, "0")}</span>

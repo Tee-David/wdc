@@ -49,22 +49,63 @@
 
 /* ---------------- 02 serp ---------------- */
 .serp { position: absolute; inset: 0; padding: clamp(14px, 2.4vw, 26px); display: flex; flex-direction: column; }
+/* Shaped like Google's search box on purpose: this stage is about being found
+   IN Google, and a generic pill does not carry that. The resting state is flat
+   with a hairline; the shadow only appears on hover, which is Google's own
+   behaviour and doubles as the micro-interaction. */
 .serp__bar {
-  display: flex; align-items: center; gap: 10px; flex: none;
+  display: flex; align-items: center; gap: 12px; flex: none;
   padding: 11px 16px; border-radius: 999px;
   background: var(--paper); border: 1px solid var(--rule); color: var(--muted);
+  transition: box-shadow .22s ease, border-color .22s ease;
 }
 .pv-sec--alt .serp__bar { background: var(--paper-2); }
+.serp__bar:hover {
+  border-color: transparent;
+  box-shadow: 0 1px 6px rgb(32 33 36 / .28);
+}
 .serp__bar svg { width: 16px; height: 16px; flex: none; }
+/* the mark keeps its own four colours, so no currentColor inheritance here */
+.serp__g { width: 18px; height: 18px; }
 .serp__q { font-size: .92rem; color: var(--ink); }
-.serp__cursor { color: var(--accent); }
-.serp__listwrap { flex: 1; display: grid; align-content: center; margin-top: 12px; }
+/* a caret, not a block: it sits in a search field, where a fat bar reads as a
+   selection rather than a cursor */
+.serp__cursor { color: var(--accent); font-weight: 400; }
+.serp__tools { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; }
+.serp__mic { width: 17px; height: 17px; opacity: .9; }
+
+/* Metric tiles lift very slightly under the pointer. 2px and a 1px shadow:
+   enough to feel responsive, not enough to look like a button. */
+.seo-m { transition: transform .2s cubic-bezier(.16, 1, .3, 1), border-color .2s ease; }
+.seo-m:hover { transform: translateY(-2px); border-color: var(--accent); }
+/* The window fades at both edges rather than cutting, so the list reads as a
+   slice of a longer results page instead of a box that happens to end. */
+.serp__listwrap {
+  flex: 1; display: grid; align-content: center; margin-top: 12px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
+          mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
+}
 .serp__list { position: relative; }
+/* Position uses the `translate` PROPERTY, not `transform`. They are separate
+   properties, so the row can be positioned and animate its entrance at the same
+   time; putting both in `transform` means whichever lands last wins and the
+   entrance throws the row to the top of the list. */
 .serp__row {
   position: absolute; inset-inline: 0; height: 40px;
   display: flex; align-items: center; gap: 12px;
   padding: 0 12px; border-radius: 10px;
-  transition: transform .5s cubic-bezier(.16, 1, .3, 1);
+  translate: 0 var(--y, 0px);
+  transition: translate .5s cubic-bezier(.16, 1, .3, 1);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .serp__row {
+    animation: serp-in .45s cubic-bezier(.16, 1, .3, 1) both;
+    animation-delay: var(--d, 0ms);
+  }
+}
+@keyframes serp-in {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: none; }
 }
 .serp__n {
   width: 2ch; text-align: right; flex: none;

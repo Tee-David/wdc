@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import TextType from "@/components/ui/text-type";
 import { Stage, useCountUp, useNearViewport, useStageMotion } from "./stage-shell";
 import { SEO_METRICS } from "@/lib/showcase";
@@ -96,9 +97,16 @@ export default function SerpClimb() {
           ))}
         </div>
         <div className="serp__bar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-               strokeLinecap="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
+          {/* Google's own four-colour magnifier, drawn rather than fetched: the
+              stage is about being found IN Google, and a generic grey glass
+              does not say that. Four paths, one per colour, because the mark is
+              a single glyph in four segments. */}
+          <svg className="serp__g" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#4285F4" d="M10 2a8 8 0 0 1 8 8h-2.4A5.6 5.6 0 0 0 10 4.4V2z" />
+            <path fill="#EA4335" d="M10 2v2.4A5.6 5.6 0 0 0 4.4 10H2a8 8 0 0 1 8-8z" />
+            <path fill="#FBBC05" d="M2 10h2.4A5.6 5.6 0 0 0 10 15.6V18a8 8 0 0 1-8-8z" />
+            <path fill="#34A853" d="M10 18v-2.4a5.6 5.6 0 0 0 4.03-1.72l1.7 1.7A7.98 7.98 0 0 1 10 18z" />
+            <path fill="#4285F4" d="M15.73 15.58l1.42-1.42 4.2 4.2a1 1 0 0 1-1.42 1.42l-4.2-4.2z" />
           </svg>
           {mode === "full" ? (
             <TextType
@@ -112,6 +120,14 @@ export default function SerpClimb() {
           ) : (
             <span className="serp__q">brand and web agency</span>
           )}
+          {/* the right-hand furniture a Google box always carries; decorative,
+              so it is hidden from assistive tech rather than announced */}
+          <span className="serp__tools" aria-hidden="true">
+            <svg className="serp__mic" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z" />
+              <path fill="#34A853" d="M6 11a6 6 0 0 0 12 0h1.6a7.6 7.6 0 0 1-6.8 7.55V21h-1.6v-2.45A7.6 7.6 0 0 1 4.4 11H6z" />
+            </svg>
+          </span>
         </div>
 
         <div className="serp__listwrap">
@@ -122,7 +138,7 @@ export default function SerpClimb() {
                   <div
                     className="serp__row serp__row--you"
                     key="you"
-                    style={{ transform: `translateY(${slot * ROW_H}px)` }}
+                    style={{ "--y": `${slot * ROW_H}px`, "--d": `${slot * 70}ms` } as CSSProperties}
                     aria-live="polite"
                   >
                     <span className="serp__n">{rank}</span>
@@ -137,7 +153,7 @@ export default function SerpClimb() {
                 <div
                   className="serp__row"
                   key={label}
-                  style={{ transform: `translateY(${slot * ROW_H}px)` }}
+                  style={{ "--y": `${slot * ROW_H}px`, "--d": `${slot * 70}ms` } as CSSProperties}
                 >
                   <span className="serp__n">{rankAt(slot)}</span>
                   <span className="serp__line" />

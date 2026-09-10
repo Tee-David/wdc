@@ -97,7 +97,7 @@ export const BRAND_KINDS: BrandKind[] = [
        to sell than a poster. */
     id: "merch",
     label: "Mockups & merch",
-    note: "The identity off the screen — packaging, print and the things people hold.",
+    note: "The identity off the screen: packaging, print and the things people hold.",
     items: [
       asset("diamond-empire-mockup", "Product mockup"),
       asset("diamond-empire-mockup-2", "Packaging mockup"),
@@ -113,7 +113,7 @@ export const BRAND_KINDS: BrandKind[] = [
   {
     id: "guides",
     label: "Brand guides",
-    note: "A few pages from the documents themselves — voice, palette, logo rules.",
+    note: "A few pages from the documents themselves: voice, palette, logo rules.",
     items: [
       asset("dhiol-brand-guide-1", "Tech brand cover"),
       asset("dhiol-brand-guide-5", "Positioning statement"),
@@ -150,7 +150,7 @@ export const WEB_STACKS = [
   {
     id: "webapp",
     label: "Web app",
-    note: "A product with accounts, data and state — not a brochure.",
+    note: "A product with accounts, data and state, not a brochure.",
     chips: ["Node", "Postgres", "Redis", "Cloud"],
   },
 ] as const;
