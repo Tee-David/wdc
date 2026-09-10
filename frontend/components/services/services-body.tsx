@@ -6,6 +6,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { SERVICES, type ServiceSlug } from "@/lib/services";
 import { PROJECTS, type Project } from "@/lib/projects";
+import { BRAND_RAIL } from "@/lib/showcase";
 import SiteModal from "@/components/preview/site-modal";
 import { useReveal } from "@/components/preview/use-reveal";
 import { LOGOS, type LogoCategory } from "@/lib/logos";
@@ -319,9 +320,13 @@ export default function ServicesBody() {
           <div className="pv-head pv-reveal">
             <span className="sv-pill">Projects</span>
             <WarpText as="h2" text="Exceptional work" curve={14} tilt={6} />
+            {/* The lede has to match the rail under it. Branding shows pieces
+                rather than live sites, and "open any of them and see it for
+                yourself" promised something that filter cannot do. */}
             <p className="pv-lede">
-              Every project here is live. Filter by service, then open any of them and
-              see it for yourself.
+              {filter === "branding"
+                ? "Design work we have actually made, from campaign artwork to marks, merch and brand guides."
+                : "Every project here is live. Filter by service, then open any of them and see it for yourself."}
             </p>
           </div>
 
@@ -335,7 +340,12 @@ export default function ServicesBody() {
               All work <span className="sv-chip__c">{PROJECTS.length}</span>
             </button>
             {SERVICES.map((s) => {
-              const n = PROJECTS.filter((p) => p.services.includes(s.slug)).length;
+              /* Branding counts PIECES, because that is what its filter shows.
+                 Counting the projects that had branding done would put a 5 on
+                 a chip that opens a rail of sixteen. */
+              const n = s.slug === "branding"
+                ? BRAND_RAIL.length
+                : PROJECTS.filter((p) => p.services.includes(s.slug)).length;
               return (
                 <button
                   type="button"
@@ -350,7 +360,40 @@ export default function ServicesBody() {
             })}
           </div>
 
-          {shown.length > 0 ? (
+          {/* Branding answers with BRANDING, not with the websites that happen
+              to carry it. A logo, a flyer and a guide spread have no client
+              URL to preview and no sector line to sit under, so this filter
+              gets its own rail: the artwork itself, labelled by what kind of
+              piece it is. */}
+          {filter === "branding" ? (
+            <>
+              <div className="sv-work__bar">
+                <p className="sv-count" aria-live="polite">
+                  {BRAND_RAIL.length} pieces in Branding
+                </p>
+                <div className="pv-nav">
+                  <button className="pv-rbtn pv-rbtn--prev" onClick={() => step(-1)}
+                          disabled={atStart} aria-label="Previous piece" />
+                  <button className="pv-rbtn" onClick={() => step(1)}
+                          disabled={atEnd} aria-label="Next piece" />
+                </div>
+              </div>
+              <div className="pv-track sv-track sv-track--art" ref={track} onScroll={sync}>
+                {BRAND_RAIL.map((piece) => (
+                  <figure className="sv-art" key={piece.id}>
+                    <div className="sv-art__shot">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={piece.src} alt={piece.title} loading="lazy" />
+                    </div>
+                    <figcaption className="sv-art__body">
+                      <b>{piece.title}</b>
+                      <span className="sv-tag">{piece.kind}</span>
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+            </>
+          ) : shown.length > 0 ? (
             <>
               <div className="sv-work__bar">
                 <p className="sv-count" aria-live="polite">

@@ -270,6 +270,24 @@ export const WEB_STACKS: WebStack[] = [
   },
 ];
 
+/**
+ * What the work rail shows when the Branding filter is on.
+ *
+ * The rail's other filters list PROJECTS -- a client, a sector, a live URL --
+ * and branding work has none of those shapes. A logo is not a website, so
+ * answering "show me the branding" with seven websites that happen to have had
+ * branding done was the wrong list, not a short one.
+ *
+ * Built from BRAND_KINDS rather than duplicated from it, so a piece added to
+ * the wall is a piece the rail can show. Four from each kind, in the order the
+ * tabs run, which is what keeps the rail from being forty flyers and one logo.
+ */
+export type BrandPiece = { id: string; title: string; src: string; kind: string };
+
+export const BRAND_RAIL: BrandPiece[] = BRAND_KINDS.flatMap((k) =>
+  k.items.slice(0, 4).map((it) => ({ ...it, kind: k.label })),
+);
+
 /* -------------------------------------------------------------------- apps */
 /**
  * Product shapes we build, rather than "we make apps".
