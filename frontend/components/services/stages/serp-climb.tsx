@@ -33,7 +33,9 @@ const NEIGHBOURS = [
 ];
 
 const CLIMB = [47, 31, 18, 9, 5, 2, 1];
-const ROW_H = 44;
+/* Bounds for the stretched row pitch; see .serp__list in stages.css. */
+const ROW_MIN = 36;
+const ROW_MAX = 62;
 const SLOTS = NEIGHBOURS.length + 1;
 const TOP = CLIMB[CLIMB.length - 1];
 const START = CLIMB[0];
@@ -96,14 +98,27 @@ function Climb({ run, still, offset }: { run: boolean; still: boolean; offset: n
 
   return (
     <div className="serp__listwrap">
-      <div className="serp__list" style={{ height: SLOTS * ROW_H }}>
+      {/* Height in PERCENTAGES of whatever the frame leaves, not a fixed 44px
+          a row. Eight fixed rows filled 352px of a 515px window, so the list
+          floated in the middle with eighty pixels of nothing above it and
+          eighty below -- the irregular whitespace. The pitch stretches now,
+          bounded so a tall stage does not space the results out like a menu
+          and a short one does not crush them. */}
+      <div
+        className="serp__list"
+        style={{
+          "--slots": SLOTS,
+          "--row-min": `${ROW_MIN}px`,
+          "--row-max": `${ROW_MAX}px`,
+        } as CSSProperties}
+      >
         {slots.map((slot) => {
           if (slot === trackedSlot) {
             return (
               <div
                 className="serp__row serp__row--you"
                 key="you"
-                style={{ "--y": `${slot * ROW_H}px`, "--d": `${slot * 70}ms` } as CSSProperties}
+                style={{ "--y": `calc(${slot} * 100%)`, "--d": `${slot * 70}ms` } as CSSProperties}
                 aria-live="polite"
               >
                 <span className="serp__n">{rank}</span>
@@ -120,7 +135,7 @@ function Climb({ run, still, offset }: { run: boolean; still: boolean; offset: n
             <div
               className="serp__row"
               key={label}
-              style={{ "--y": `${slot * ROW_H}px`, "--d": `${slot * 70}ms` } as CSSProperties}
+              style={{ "--y": `calc(${slot} * 100%)`, "--d": `${slot * 70}ms` } as CSSProperties}
             >
               <span className="serp__n">{rankAt(slot)}</span>
               <span className="serp__line" />
