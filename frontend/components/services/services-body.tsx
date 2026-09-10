@@ -35,7 +35,7 @@ const STAGE_HAS_CONTROLS: Record<ServiceSlug, boolean> = {
 };
 
 const STAGES: Record<ServiceSlug, React.ComponentType> = {
-  branding: dynamic(() => import("./stages/dome-gallery"), { ssr: false }),
+  branding: dynamic(() => import("./stages/grid-motion"), { ssr: false }),
   seo: dynamic(() => import("./stages/serp-climb"), { ssr: false }),
   web: dynamic(() => import("./stages/viewport-morph"), { ssr: false }),
   apps: dynamic(() => import("./stages/two-stores"), { ssr: false }),
