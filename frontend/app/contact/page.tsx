@@ -4,6 +4,7 @@ import { Clock, Globe, Mail, MessageSquare, Phone } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { WorkFooter } from "@/components/work/work-footer";
 import ContactForm from "@/components/contact/contact-form";
+import FaqAccordion from "@/components/ui/faq-accordion";
 import { CHANNELS } from "@/lib/contact";
 import { FAQS } from "@/lib/faq";
 import { COMPANY_NAME, CONTACT_EMAIL, SITE_URL } from "@/lib/site";
@@ -118,19 +119,12 @@ export default function ContactPage() {
               <span className="pv-eyebrow">Before you write</span>
               <h2 className="pv-mix">Frequently <b>asked</b></h2>
             </div>
-            {/* Native details/summary: it is keyboard-operable, findable by the
-                browser's own in-page search even while collapsed, and needs no
-                JavaScript to open. */}
+            {/* The same accordion the homepage runs, so an answer opens the
+                same way on both pages. Unnumbered here: this column is centred
+                and narrow, and a counter down its left edge only takes width
+                from the questions. */}
             <div className="ct-faq">
-              {FAQS.map((f) => (
-                <details key={f.q}>
-                  <summary>
-                    {f.q}
-                    <i aria-hidden="true" />
-                  </summary>
-                  <p>{f.a}</p>
-                </details>
-              ))}
+              <FaqAccordion items={FAQS} numbered={false} idPrefix="ctfaq" initial={-1} />
             </div>
             <p style={{ textAlign: "center", marginTop: "clamp(1.6rem, 3vw, 2.4rem)" }}>
               <Link className="pv-btn pv-btn--line" href="/work">See the work first</Link>

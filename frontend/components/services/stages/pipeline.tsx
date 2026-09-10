@@ -102,7 +102,8 @@ function Terminal({ animate, lines }: { animate: boolean; lines: readonly string
             )}
           </>
         ) : (
-          /* still + compact get the whole trace, already written out */
+          /* Reduced motion gets the whole trace, already written out: the end
+             state, which is the point of the still mode. */
           <>{lines.map((l) => <span className={lineClass(l)} key={l}>{l}</span>)}</>
         )}
       </div>
@@ -113,7 +114,14 @@ function Terminal({ animate, lines }: { animate: boolean; lines: readonly string
 export default function Pipeline() {
   const mode = useStageMotion();
   const { ref, near } = useNearViewport<HTMLDivElement>("120px");
-  const animate = mode === "full" && near;
+  /* Everything except reduced motion animates, PHONES INCLUDED. This used to
+     read `mode === "full"`, which is desktop only, so on a phone the graph sat
+     dark and the terminal rendered its trace already written out — a stage
+     whose entire claim is "watch a request being served" showing a static
+     block of text. Nothing about a small screen makes a typing effect
+     inappropriate; the reason to skip it is a stated preference for less
+     motion, and `still` is that preference. */
+  const animate = mode !== "still" && near;
   const [use, setUse] = useState<string>(AI_USES[0].id);
   const activeUse = AI_USES.find((u) => u.id === use) ?? AI_USES[0];
   /* The whole stage keys off the tab: the chain, the trace and the reset. The

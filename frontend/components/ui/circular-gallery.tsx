@@ -5,6 +5,11 @@ import { Camera, Mesh, Plane, Program, Renderer, Texture, Transform } from "ogl"
 
 import "./circular-gallery.css";
 
+/* The narrowest a wheel card may be rendered, in CSS pixels. Below this the
+   artwork stops being legible and the ring's radius grows past what the frame
+   can show. */
+const MIN_CARD_PX = 104;
+
 /**
  * A wheel of images bent into a semicircle, rendered in WebGL.
  *
@@ -318,7 +323,19 @@ class Wheel {
        and visibleArc is just the arc those cards occupy, (perView/slots) * 2pi.
        Deriving R this way means changing `perView` changes what you see rather
        than needing the radius retuned by hand. */
-    const arc = (this.opts.perView / this.slots) * Math.PI * 2;
+    /* `perView` is the intent for a WIDE container, and it cannot be taken
+       literally on a phone. Six across 323px is a 54px thumbnail on a ring so
+       large that its arc leaves the frame two cards either side of the apex —
+       which is exactly what it looked like: a shallow curve of stamps with the
+       ends falling off the screen and most of the box empty. So the count is
+       capped by a card that is still worth looking at. Deriving it here rather
+       than at the call site means every caller gets it, and it re-derives on
+       resize with everything else. */
+    const across = Math.min(
+      this.opts.perView,
+      Math.max(2, Math.floor(this.screen.width / MIN_CARD_PX)),
+    );
+    const arc = (across / this.slots) * Math.PI * 2;
     this.radius = (this.viewport.width / 2) / Math.max(0.2, Math.sin(arc / 2));
 
     /* Then drop the centre so the apex CARD sits inside the top edge — the

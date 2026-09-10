@@ -1,0 +1,84 @@
+/* ============================================================================
+   FAQ accordion.
+
+   One list, two homes: the homepage (numbered, against the navy aside) and
+   /contact (unnumbered, centred). Nothing here paints a border in the accent
+   colour — an open row is told apart by the minus and by the answer under it,
+   which is the difference the reader is actually looking for. An orange box
+   drawn around whatever happens to be open reads as a validation error.
+   ========================================================================== */
+
+.qa { display: grid; }
+.qa__item { border-bottom: 1px solid var(--rule); }
+.qa__item:first-child { border-top: 1px solid var(--rule); }
+
+/* The heading exists for the document outline; the button inside it is what is
+   pressed, so the heading itself carries none of the type. */
+.qa__h { margin: 0; font: inherit; font-weight: inherit; }
+
+.qa__q {
+  width: 100%; border: 0; background: none; cursor: pointer;
+  text-align: left; color: var(--ink);
+  padding: 20px 2px;
+  display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 600; font-size: 1.06rem; line-height: 1.35;
+}
+.qa--numbered .qa__q { grid-template-columns: 2.6rem 1fr auto; gap: 12px; }
+@media (max-width: 520px) { .qa--numbered .qa__q { grid-template-columns: 1fr auto; } }
+@media (max-width: 520px) { .qa--numbered .qa__n { display: none; } }
+
+/* the counter is the brand orange itself rather than the darkened --accent-ink
+   used for body-sized text on light; #FF6500 on white is 2.8:1, so it is set
+   bold and stays a label beside the question, never the question itself */
+.qa__n { color: var(--accent); font-size: .92rem; font-weight: 700; }
+.qa__t { min-width: 0; }
+
+/* A ring on the row, not an outline hugging the glyphs: the button is a full
+   -width grid, so the default outline traces the whole strip and reads as the
+   box the user asked not to see. This only ever appears for the keyboard. */
+.qa__q:focus { outline: none; }
+.qa__q:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: -4px; border-radius: 10px;
+}
+.qa__q:hover .qa__t { color: var(--accent-ink); }
+
+.qa__i { position: relative; width: 16px; height: 16px; flex: none; }
+.qa__i::before, .qa__i::after {
+  content: ""; position: absolute; inset: 0; margin: auto;
+  background: var(--accent);
+  transition: transform .3s cubic-bezier(.4, 0, .2, 1), opacity .3s ease;
+}
+.qa__i::before { width: 16px; height: 2px; }
+.qa__i::after  { width: 2px; height: 16px; }
+/* rotate as it fades, so it reads as the stroke turning into the minus rather
+   than simply blinking out */
+.qa__item.is-open .qa__i::after { transform: rotate(90deg); opacity: 0; }
+
+/* The animation. `grid-template-rows: 0fr -> 1fr` interpolates to the panel's
+   OWN height, so every answer opens at the same speed regardless of length —
+   which a shared `max-height` cannot do. The child must carry the
+   `overflow: hidden`, not this element: a grid item's default `min-height:
+   auto` refuses to shrink below its content and the row never closes. */
+.qa__panel {
+  display: grid; grid-template-rows: 0fr;
+  transition: grid-template-rows .38s cubic-bezier(.4, 0, .2, 1);
+}
+.qa__item.is-open .qa__panel { grid-template-rows: 1fr; }
+.qa__inner { overflow: hidden; min-height: 0; }
+.qa__inner p {
+  margin: 0; padding: 0 0 22px;
+  color: var(--muted); line-height: 1.65; max-width: 66ch;
+  /* the text fades in slightly behind the height, so a long answer does not
+     appear to be pushed down the page by its own first line */
+  opacity: 0; transition: opacity .28s ease .06s;
+}
+.qa--numbered .qa__inner p { padding-left: 2.6rem; }
+@media (max-width: 520px) { .qa--numbered .qa__inner p { padding-left: 0; } }
+.qa__item.is-open .qa__inner p { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .qa__panel { transition: none; }
+  .qa__inner p { transition: none; }
+  .qa__i::before, .qa__i::after { transition: none; }
+}

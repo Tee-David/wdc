@@ -582,30 +582,9 @@
   display: grid; place-items: center;
   font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 700; font-size: 1.4rem;
 }
-.pv-qa details { border-bottom: 1px solid var(--rule); }
-.pv-qa summary {
-  list-style: none; cursor: pointer; padding: 20px 0;
-  display: grid; grid-template-columns: 2.6rem 1fr auto; gap: 12px; align-items: center;
-  font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 600; font-size: 1.08rem;
-}
-.pv-qa summary::-webkit-details-marker { display: none; }
-/* the counter is the brand orange itself rather than the darkened --accent-ink
-   used for body-sized text on light; #FF6500 on white is 2.8:1, so it is set
-   bold and stays a label beside the question, never the question itself */
-.pv-qa summary .pv-qn { color: var(--accent); font-size: .92rem; font-weight: 700; }
-/* driven by a pseudo-element so it actually swaps; the reference hardcoded the
-   glyph per item and never changed it */
-.pv-qa summary .pv-qi { position: relative; width: 16px; height: 16px; }
-.pv-qa summary .pv-qi::before,
-.pv-qa summary .pv-qi::after {
-  content: ""; position: absolute; inset: 0; margin: auto;
-  background: var(--accent-ink); transition: transform .25s ease, opacity .25s ease;
-}
-.pv-qa summary .pv-qi::before { width: 16px; height: 2px; }
-.pv-qa summary .pv-qi::after { width: 2px; height: 16px; }
-.pv-qa details[open] summary .pv-qi::after { transform: rotate(90deg); opacity: 0; }
-.pv-qa p { padding: 0 0 22px 2.6rem; color: var(--muted); max-width: 66ch; }
-@media (max-width: 520px) { .pv-qa p { padding-left: 0; } }
+/* The list itself is components/ui/faq-accordion.css now — shared with
+   /contact. All this holds is the column it sits in. */
+.pv-qa { min-width: 0; }
 
 /* ---------------- contact ---------------- */
 .pv-reach { display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(24px, 4vw, 56px); align-items: start; }

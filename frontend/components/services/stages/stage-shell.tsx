@@ -96,16 +96,23 @@ export function Stage({
   return (
     <figure className={`sv-stage${tall ? " sv-stage--tall" : ""}`}>
       {controls ? <div className="sv-stage__controls">{controls}</div> : null}
-      {/* The caption lives INSIDE the frame, along its bottom edge.
+      {/* The caption lives INSIDE the frame, on its own row along the bottom.
 
           Under the frame it was a subtitle: a line of grey text that pushed
           the stage up, added a row of height to every section, and read as
           something the layout had left over. Several of these carry a
           disclosure that has to stay — "illustrative, not a client's data" is
           the sentence that keeps the panel honest — so the answer is to move
-          it onto the artwork it is about, not to delete it. */}
+          it onto the artwork it is about, not to delete it.
+
+          It is a ROW, not an overlay. Floated over the artwork on a scrim it
+          landed on whatever the stage had put at its own bottom edge — the
+          web stage's chips, the terminal's last two lines, the handset's
+          platform label — and a gradient over live content is not spacing, it
+          is a smudge. So the frame is a column: `__area` takes the height,
+          the caption takes what it needs, and nothing can overlap anything. */}
       <div className="sv-stage__frame">
-        {children}
+        <div className="sv-stage__area">{children}</div>
         {caption ? <figcaption className="sv-stage__cap">{caption}</figcaption> : null}
       </div>
     </figure>
@@ -137,7 +144,7 @@ export function LazyStage({
         // stage that replaces it -- the exact jump it exists to prevent.
         <div className="sv-stage sv-stage--skeleton" aria-hidden="true">
           {withControls ? <div className="sv-stage__controls" /> : null}
-          <div className="sv-stage__frame" />
+          <div className="sv-stage__frame"><div className="sv-stage__area" /></div>
         </div>
       )}
     </div>
