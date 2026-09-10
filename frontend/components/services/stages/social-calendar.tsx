@@ -20,24 +20,49 @@ import { useNearViewport } from "./stage-shell";
  * with six stages is not paying for an animation nobody is looking at.
  */
 
-type Slot = { day: number; label: string; kind: "organic" | "paid" | "story"; at: string };
+/**
+ * The tag palette.
+ *
+ * Five SOLID colours, each carrying white type. Two rules behind the choice:
+ * a tint of the brand orange at 20% opacity is not a category colour, it is the
+ * same colour looking faded, and it drags the type down with it — "Studio reel"
+ * was accent-on-accent-tint, which is barely legible. And a real content
+ * calendar distinguishes what a post IS, so five kinds do more work than three
+ * shades of one.
+ *
+ * They stay on-brand by anchoring on the accent and the band and picking the
+ * other three at the same weight rather than at random saturations, and every
+ * one is a literal colour rather than a token: a chip is the same colour in
+ * light and dark, so its type must be too.
+ */
+const KINDS = {
+  organic:   { label: "Organic",   bg: "#ff6500" },
+  paid:      { label: "Paid",      bg: "#2f6fd0" },
+  story:     { label: "Story",     bg: "#7c5cd6" },
+  reel:      { label: "Reel",      bg: "#177a5c" },
+  community: { label: "Community", bg: "#5b6178" },
+} as const;
+
+export type Kind = keyof typeof KINDS;
+
+type Slot = { day: number; label: string; kind: Kind; at: string };
 
 /* The posts the script schedules, in order. Day numbers are positions in the
    rendered month grid, so the pointer target and the chip cannot disagree. */
 const SCRIPT: Slot[] = [
-  { day: 9,  label: "Behind the build", kind: "organic", at: "9:41" },
-  { day: 12, label: "Client story",     kind: "paid",    at: "14:00" },
-  { day: 17, label: "Studio reel",      kind: "story",   at: "18:30" },
-  { day: 23, label: "Launch teaser",    kind: "organic", at: "11:15" },
+  { day: 9,  label: "Behind the build", kind: "organic",   at: "9:41" },
+  { day: 12, label: "Client story",     kind: "community", at: "14:00" },
+  { day: 17, label: "Studio reel",      kind: "reel",      at: "18:30" },
+  { day: 23, label: "Launch teaser",    kind: "paid",      at: "11:15" },
 ];
 
 /* Posts already on the calendar before the script runs, so it never starts from
    an empty month — an empty grid reads as a broken component. */
 const SEEDED: Slot[] = [
-  { day: 2,  label: "New episode",   kind: "organic", at: "8:00" },
+  { day: 2,  label: "New episode",   kind: "reel",    at: "8:00" },
   { day: 5,  label: "Weekend sound", kind: "story",   at: "12:30" },
-  { day: 14, label: "Cup of tea",    kind: "paid",    at: "14:00" },
-  { day: 20, label: "Sneak peek",    kind: "organic", at: "17:00" },
+  { day: 14, label: "Cup of tea",    kind: "organic", at: "14:00" },
+  { day: 20, label: "Sneak peek",    kind: "story",   at: "17:00" },
 ];
 
 const DAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
@@ -126,11 +151,12 @@ export default function SocialCalendar({ run }: { run: boolean }) {
             <span className={`cal__cell${c.inMonth ? "" : " is-out"}${isTarget ? " is-target" : ""}`} key={c.key}>
               <b className="cal__n">{c.inMonth ? c.n : ""}</b>
               {posts.map((p) => (
-                <span className={`cal__chip is-${p.kind}`} key={p.label}>{p.label}</span>
+                <span className="cal__chip" key={p.label}
+                      style={{ background: KINDS[p.kind].bg }}>{p.label}</span>
               ))}
               {/* the one being written right now */}
               {isTarget && typed > 0 ? (
-                <span className={`cal__chip is-${current.kind} is-new`}>
+                <span className="cal__chip is-new" style={{ background: KINDS[current.kind].bg }}>
                   {current.label.slice(0, typed)}
                   <i className="cal__caret" />
                 </span>
@@ -154,6 +180,14 @@ export default function SocialCalendar({ run }: { run: boolean }) {
           <svg viewBox="0 0 16 18"><path d="M1 1l12 9-5.2.8L11 17l-2.6 1-3-6L1 15z" /></svg>
         </span>
       ) : null}
+
+      {/* The key is built from KINDS, so a colour cannot be changed in one place
+          and left stale in the other. */}
+      <ul className="cal__key" aria-hidden="true">
+        {(Object.keys(KINDS) as Kind[]).map((k) => (
+          <li key={k}><i style={{ background: KINDS[k].bg }} />{KINDS[k].label}</li>
+        ))}
+      </ul>
 
       <p className="sr-only">
         An illustrative content calendar: {all.length} posts scheduled across the month,
