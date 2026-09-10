@@ -146,33 +146,76 @@ export const BRAND_KINDS: BrandKind[] = [
 ];
 
 /* --------------------------------------------------------------------- web */
-/** Build variants. The frame's tabs; `chips` is the stack behind each. */
-export const WEB_STACKS = [
-  {
-    id: "wordpress",
-    label: "WordPress",
-    note: "CMS-driven, so your team edits it without calling us.",
-    chips: ["WordPress", "PHP", "Custom theme", "WooCommerce"],
-  },
-  {
-    id: "shopify",
-    label: "Shopify",
-    note: "Commerce on a managed checkout, themed rather than fought.",
-    chips: ["Shopify", "Liquid", "Apps", "Payments"],
-  },
+/**
+ * Build variants: the frame's tabs, the stack behind each, and the SCREENS
+ * each one shows.
+ *
+ * Custom build leads because it is the work we most want seen and the one with
+ * a full set of real captures behind it.
+ *
+ * `shots` is per stack, because "we build on four different stacks" is only a
+ * claim until each tab shows that stack. `scroll` says whether those captures
+ * are long enough to move: a marketing site is a tall page and scrolls, a
+ * dashboard is one screen and holds still. Scrolling a screenshot that already
+ * fits just jitters it.
+ *
+ * A stack with no `shots` renders an explicit awaiting state rather than
+ * borrowing another stack's screens. Showing a Next.js build under the
+ * WordPress tab would be a lie told in pictures, which is worse than an empty
+ * frame that says what it is waiting for.
+ */
+export type WebStack = {
+  id: string;
+  label: string;
+  note: string;
+  chips: readonly string[];
+  scroll: boolean;
+  shots?: { desktop: string; tablet: string; phone: string };
+  shotOf?: string;
+};
+
+export const WEB_STACKS: WebStack[] = [
   {
     id: "custom",
     label: "Custom build",
     note: "Engineered from zero when a template would cost more than it saves.",
     chips: ["Next.js", "React", "TypeScript", "Tailwind"],
+    scroll: true,
+    shotOf: "TraxStaff",
+    shots: {
+      desktop: "/work/long/trax-desktop.jpg",
+      tablet: "/work/long/trax-tablet.jpg",
+      phone: "/work/long/trax-phone.jpg",
+    },
   },
   {
     id: "webapp",
     label: "Web app",
     note: "A product with accounts, data and state, not a brochure.",
     chips: ["Node", "Postgres", "Redis", "Cloud"],
+    scroll: false,
+    shotOf: "the TraxStaff dashboard",
+    shots: {
+      desktop: "/work/app/trax-app-desktop.jpg",
+      tablet: "/work/app/trax-app-tablet.jpg",
+      phone: "/work/app/trax-app-phone.jpg",
+    },
   },
-] as const;
+  {
+    id: "wordpress",
+    label: "WordPress",
+    note: "CMS-driven, so your team edits it without calling us.",
+    chips: ["WordPress", "PHP", "Custom theme", "WooCommerce"],
+    scroll: true,
+  },
+  {
+    id: "shopify",
+    label: "Shopify",
+    note: "Commerce on a managed checkout, themed rather than fought.",
+    chips: ["Shopify", "Liquid", "Apps", "Payments"],
+    scroll: true,
+  },
+];
 
 /* -------------------------------------------------------------------- apps */
 /**
