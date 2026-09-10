@@ -195,7 +195,7 @@
   border: 1px solid var(--rule); background: transparent; color: var(--muted);
   font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 600; font-size: .8rem;
 }
-.ts__tab.is-on { background: var(--accent); border-color: var(--accent); color: #000065; }
+.ts__tab.is-on { background: var(--accent); border-color: var(--accent); color: #fff; }
 
 .ph {
   display: flex; flex-direction: column; align-items: center; gap: 8px;
