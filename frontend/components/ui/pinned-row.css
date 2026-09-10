@@ -10,9 +10,10 @@
   .pin { position: relative; }
   .pin__stage {
     overflow-x: auto; scrollbar-width: none;
-    scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch;
   }
   .pin__stage::-webkit-scrollbar { display: none; }
+  @media (pointer: fine) { .pin__stage { scroll-snap-type: none; } }
   .pin__track { display: flex; gap: 14px; }
   /* Two classes deep on purpose. The section this wraps sets its own
      `display: grid` on the same element from its own stylesheet, and a
@@ -36,6 +37,6 @@
 @media (max-width: 768px) and (prefers-reduced-motion: reduce) {
   .pin.is-pinned { height: auto; }
   .pin.is-pinned .pin__stage {
-    position: static; height: auto; overflow-x: auto; scroll-snap-type: x mandatory;
+    position: static; height: auto; overflow-x: auto; scroll-snap-type: x proximity;
   }
 }
