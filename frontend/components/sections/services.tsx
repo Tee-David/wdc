@@ -129,6 +129,10 @@ function PenIcon() {
 
 /* ── Services ────────────────────────────────────────────────────────── */
 
+/* Images are OUR WORK, not stock. An agency that sells branding illustrating
+   itself with stock photographs of open-plan offices is arguing against its own
+   pitch, and there are 116 real assets in the library to draw from. Each
+   service shows something it actually produced. */
 type Service = {
   title: string;
   description: string;
@@ -143,7 +147,7 @@ const SERVICES: Service[] = [
       "Identity systems, logos, motion, and visuals that make brands unmistakable across every surface.",
     icon: <BrandingIcon />,
     image:
-      "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=1200&q=80",
+      "/brand-work/marfaa-logo-variants.jpg",
   },
   {
     title: "SEO",
@@ -151,7 +155,7 @@ const SERVICES: Service[] = [
       "Get found; technical, on-page, and content SEO that ranks, earns clicks, and converts.",
     icon: <SeoIcon />,
     image:
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&q=80",
+      "/work/litchconsulting.jpg",
   },
   {
     title: "Full-Stack Web Development",
@@ -159,7 +163,7 @@ const SERVICES: Service[] = [
       "Fast, accessible, scalable websites and web apps engineered to perform and last.",
     icon: <WebIcon />,
     image:
-      "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200&q=80",
+      "/work/traxstaff.jpg",
   },
   {
     title: "Cross-Platform App Development",
@@ -167,7 +171,7 @@ const SERVICES: Service[] = [
       "One codebase, every device; native-quality mobile experiences on iOS and Android.",
     icon: <AppIcon />,
     image:
-      "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=1200&q=80",
+      "/work/app/trax-app-phone.jpg",
   },
   {
     title: "Software Engineering & AI",
@@ -175,7 +179,7 @@ const SERVICES: Service[] = [
       "Custom software and AI integrations engineered around real business outcomes.",
     icon: <EngineeringIcon />,
     image:
-      "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&q=80",
+      "/work/app/trax-app-desktop.jpg",
   },
   {
     title: "Social Media & PPC",
@@ -183,7 +187,7 @@ const SERVICES: Service[] = [
       "Turn attention into growth with paid ads and social content that actually moves.",
     icon: <SocialIcon />,
     image:
-      "https://images.unsplash.com/photo-1611926653458-09294b3142bf?w=1200&q=80",
+      "/brand-work/bamssa-social-night.jpg",
   },
 ];
 

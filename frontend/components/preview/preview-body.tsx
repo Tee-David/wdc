@@ -19,37 +19,37 @@ const SERVICES = [
     slug: "branding",
     title: "Branding & Design",
     body: "Identity systems, logos, motion, and visuals that make brands unmistakable across every surface.",
-    img: "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=1200&q=80",
+    img: "/brand-work/marfaa-logo-variants.jpg",
   },
   {
     slug: "seo",
     title: "SEO",
     body: "Get found; technical, on-page, and content SEO that ranks, earns clicks, and converts.",
-    img: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&q=80",
+    img: "/work/litchconsulting.jpg",
   },
   {
     slug: "web",
     title: "Full-Stack Web Development",
     body: "Fast, accessible, scalable websites and web apps engineered to perform and last.",
-    img: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200&q=80",
+    img: "/work/traxstaff.jpg",
   },
   {
     slug: "apps",
     title: "Cross-Platform App Development",
     body: "One codebase, every device; native-quality mobile experiences on iOS and Android.",
-    img: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=1200&q=80",
+    img: "/work/app/trax-app-phone.jpg",
   },
   {
     slug: "software",
     title: "Software Engineering & AI",
     body: "Custom software and AI integrations engineered around real business outcomes.",
-    img: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&q=80",
+    img: "/work/app/trax-app-desktop.jpg",
   },
   {
     slug: "social",
     title: "Social Media & PPC",
     body: "Turn attention into growth with paid ads and social content that actually moves.",
-    img: "https://images.unsplash.com/photo-1611926653458-09294b3142bf?w=1200&q=80",
+    img: "/brand-work/bamssa-social-night.jpg",
   },
 ];
 
