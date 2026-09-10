@@ -141,7 +141,7 @@ export function Hero() {
           className="mt-8 flex flex-wrap items-center justify-center gap-4"
         >
           <Link
-            href="#contact"
+            href="#pv-contact"
             className="group inline-flex items-center gap-2 rounded-full bg-secondary px-7 py-3.5 text-sm font-semibold text-white shadow-[0_12px_34px_rgba(255,101,0,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-[#000065] hover:shadow-none active:translate-y-0"
           >
             Let&apos;s Talk
@@ -158,7 +158,7 @@ export function Hero() {
             </svg>
           </Link>
           <Link
-            href="#work"
+            href="#pv-work"
             className="inline-flex items-center gap-2 rounded-full border border-line bg-white text-[#000065] px-7 py-3.5 text-sm font-semibold shadow-[0_8px_26px_rgba(0,0,0,0.12)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#000065] hover:text-white hover:border-[#000065] active:translate-y-0 dark:bg-background/40 dark:text-foreground dark:hover:bg-primary dark:hover:text-white dark:hover:border-primary"
           >
             Explore Our Work
