@@ -199,7 +199,7 @@
   max-height: 100%; min-height: 0;
 }
 .ts--compact .ph { height: 92%; }
-.ts--compact .ph__screen { width: clamp(120px, 42vw, 190px); }
+.ts--compact .ph__frame { width: clamp(120px, 42vw, 190px); }
 .ph__os {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
@@ -211,11 +211,13 @@
    to work back from, so both frames fell to content width. Driving it width to
    height resolves, and it stops the frame stretching into a 1:4 column in a
    tall stage. `max-height` keeps it inside a short one. */
+/* The screen now sits INSIDE a real device render, so it stops carrying a
+   width, a border and a radius of its own — the frame supplies all three, and
+   a second rounded rectangle inside the first read as a double bezel. */
+.ph__frame { width: clamp(112px, 12vw, 180px); max-height: 100%; }
 .ph__screen {
-  position: relative; flex: 0 1 auto; min-height: 0;
-  width: clamp(104px, 11vw, 168px); aspect-ratio: 9 / 18; max-height: 100%;
-  overflow: hidden;
-  border-radius: 18px; border: 2px solid var(--rule); background: var(--paper);
+  position: absolute; inset: 0; overflow: hidden;
+  background: var(--paper);
   /* a column, so the status bar and header take their space and the scrolling
      viewport gets whatever is left rather than sliding over them */
   display: flex; flex-direction: column;
@@ -766,11 +768,19 @@
 /* Four block types so the four product tabs render four different screens. A
    dashboard, an order table, a marketplace grid and a work queue do not look
    alike, and pretending they do is what made the control look decorative. */
+/* The status row has to clear the frame's own camera hardware, which is drawn
+   into the render and therefore sits ON TOP of anything behind it. Padding is
+   in PERCENTAGES so it scales with the frame instead of drifting as the phone
+   resizes: the time and the signal bars sit either side of the cutout, which is
+   where a real handset puts them. The iPhone's Dynamic Island is wider and
+   lower than the Galaxy's punch-hole, so the two get different insets. */
 .ph__status {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 5px 9px 3px; font-size: .5rem; color: var(--muted);
+  font-size: .5rem; color: var(--muted);
   font-variant-numeric: tabular-nums; flex: none;
 }
+.ph--ios .ph__status { padding: 7% 8% 3%; }
+.ph--android .ph__status { padding: 4% 7% 3%; }
 .ph__sig { display: inline-flex; align-items: flex-end; gap: 1.5px; }
 .ph__sig i { width: 2px; background: var(--muted); border-radius: 1px; }
 .ph__sig i:nth-child(1) { height: 3px; }

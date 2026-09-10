@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Stage, TabRow, useStageMotion } from "./stage-shell";
 import CodeBrowser from "@/components/ui/code-browser";
+import DeviceFrame from "@/components/ui/device-frame";
 import { APP_SOURCE, APP_KINDS } from "@/lib/showcase";
 
 /**
@@ -88,6 +89,14 @@ function Phone({ os, paused, ui, screens }: {
   return (
     <div className={`ph ph--${os.toLowerCase()}`}>
       <div className="ph__os">{os}</div>
+      {/* A real device render rather than a rounded rectangle with a pill on
+          it. The frame carries the bezel, the camera and the corner radius the
+          hardware actually has, which is what makes iOS read as iOS. */}
+      <DeviceFrame
+        device={os === "iOS" ? "iphone" : "android"}
+        className="ph__frame"
+        alt={`A ${screens[0]} screen`}
+      >
       <div className="ph__screen">
         {/* the platform's own status bar, which is most of what makes a frame
             read as iOS or Android rather than "a phone" */}
@@ -110,6 +119,7 @@ function Phone({ os, paused, ui, screens }: {
         </div>
         </div>
       </div>
+      </DeviceFrame>
     </div>
   );
 }
