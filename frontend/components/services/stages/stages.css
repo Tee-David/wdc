@@ -646,9 +646,16 @@
 /* Placement, as shares of the scene, measured off the reference: the laptop
    takes the plate, and the other two sit ON it, bottom right, in the order a
    hand would stack them. */
-.dv--desktop { left: 6%;    top: 1.5%; width: 88%; aspect-ratio: 942 / 577;  z-index: 1; }
-.dv--tablet  { left: 66%;   top: 47%;  width: 26%; aspect-ratio: 20 / 21;    z-index: 2; }
-.dv--phone   { left: 78.5%; top: 37%;  width: 14%; aspect-ratio: 9 / 20.5;   z-index: 3; }
+/* The two overlays are sized against EACH OTHER, not each against the scene.
+   The phone used to be the taller of the pair — 57% of the scene's height
+   against the tablet's 46% — and started higher up, so it covered most of the
+   thing it was meant to be sitting in front of. The tablet is bigger now and
+   the phone is shorter than it and sits within its vertical span, overlapping
+   only its right third: the tablet's left two thirds stay clear. The phone
+   keeps 13% of the width, which is what holds its own screen readable. */
+.dv--desktop { left: 6%;  top: 1.5%; width: 88%; aspect-ratio: 942 / 577;  z-index: 1; }
+.dv--tablet  { left: 59%; top: 39%;  width: 31%; aspect-ratio: 20 / 21;    z-index: 2; }
+.dv--phone   { left: 79%; top: 45%;  width: 13%; aspect-ratio: 9 / 20.5;   z-index: 3; }
 
 /* No outline on the windows, only shadow. An outline flattens a photograph;
    the separation between the layers has to come from the light. */
