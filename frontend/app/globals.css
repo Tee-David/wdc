@@ -110,3 +110,15 @@ h4 {
 .text-type__cursor--hidden {
   display: none;
 }
+
+/* The native cursor is hidden ONLY while the smooth cursor is actually running.
+   The class is added by the component, which mounts on a fine pointer with
+   hover and no reduced-motion preference — so a phone, a stylus, or anyone who
+   asked for less motion keeps the pointer their device gives them, rather than
+   losing it to a cursor that was never drawn. */
+@media (any-hover: hover) and (any-pointer: fine) {
+  body.smooth-cursor,
+  body.smooth-cursor * {
+    cursor: none;
+  }
+}
