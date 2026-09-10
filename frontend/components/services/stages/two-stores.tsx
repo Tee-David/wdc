@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Stage, TabRow, useStageMotion } from "./stage-shell";
-import { APP_KINDS } from "@/lib/showcase";
+import CodeBrowser from "@/components/ui/code-browser";
+import { APP_SOURCE, APP_KINDS } from "@/lib/showcase";
 
 /**
  * 04 · Cross-Platform Apps — "One codebase, two stores".
@@ -159,11 +160,11 @@ export default function TwoStores() {
       <div className="ts">
         <div className="ts__src">
           <span className="ts__srclabel">One codebase</span>
-          <div className="ts__code" aria-hidden="true">
-            {["<App />", "screens/", "shared logic"].map((l) => (
-              <span key={l}>{l}</span>
-            ))}
-          </div>
+          {/* Real, switchable files rather than three words dressed as code.
+              The claim of this stage is that one source ships to both stores,
+              and a reader can now check it: the same screen component, the same
+              client, and a config that names both platforms. */}
+          <CodeBrowser files={APP_SOURCE} label="Shared source" />
           <div className="ts__split" aria-hidden="true">
             <span /><span />
           </div>
