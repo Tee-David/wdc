@@ -318,6 +318,34 @@ export default function IntroAnimation() {
   const contentOpacity = useTransform(smoothMorph, [0.8, 1], [0, 1]);
   const contentY = useTransform(smoothMorph, [0.8, 1], [20, 0]);
 
+  /* The opening line sits in the HOLE of the logo ring, so its width cap has to
+     come from the ring itself. The tiles below are placed at `circleRadius`
+     with a TILE-wide face, which leaves a clear diameter of
+     2 * (circleRadius - TILE / 2); 0.82 of that keeps the copy off the curve,
+     since text lays out in a rectangle and the hole is a circle. On a phone
+     that is ~175px, so the heading wraps to two lines instead of running out
+     under the tiles. Undefined until the container is measured, so the first
+     paint is uncapped rather than zero-width. */
+  const ringRadius = Math.min(
+    Math.min(containerSize.width, containerSize.height) * 0.35,
+    350
+  );
+  const ringHole = containerSize.width
+    ? Math.max(0, (ringRadius - TILE / 2) * 2 * 0.82)
+    : 0;
+  const ringHoleWidth = ringHole || undefined;
+  /* Type scales WITH the hole rather than at breakpoints. A 320px phone leaves
+     ~121px of clear width and a desktop ~454px, and no set of breakpoints gets
+     both right for long — sizing off the same measurement that draws the ring
+     does, at every width in between. The divisors are the ratios that keep the
+     heading to two lines and the caption to one. */
+  const headingSize = ringHole
+    ? `${Math.min(48, Math.max(14, ringHole / 8))}px`
+    : undefined;
+  const captionSize = ringHole
+    ? `${Math.min(12, Math.max(8, ringHole / 16))}px`
+    : undefined;
+
   if (!active || finished) return null;
 
   return (
@@ -331,7 +359,10 @@ export default function IntroAnimation() {
         >
           <div className="flex h-full w-full flex-col items-center justify-center">
             {/* Opening statement (fades as the circle morphs) */}
-            <div className="pointer-events-none absolute top-1/2 z-0 flex -translate-y-1/2 flex-col items-center justify-center text-center">
+            <div
+              className="pointer-events-none absolute top-1/2 z-0 flex -translate-y-1/2 flex-col items-center justify-center text-center"
+              style={{ maxWidth: ringHoleWidth }}
+            >
               <motion.h1
                 initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
                 animate={
@@ -340,7 +371,8 @@ export default function IntroAnimation() {
                     : { opacity: 0, filter: "blur(10px)" }
                 }
                 transition={{ duration: 1 }}
-                className="font-heading text-3xl font-bold tracking-tight md:text-5xl"
+                style={{ fontSize: headingSize }}
+                className="font-heading text-xl font-bold tracking-tight md:text-5xl"
               >
                 We Dig <span className="text-secondary">Creativity</span>.
               </motion.h1>
@@ -352,7 +384,8 @@ export default function IntroAnimation() {
                     : { opacity: 0 }
                 }
                 transition={{ duration: 1, delay: 0.2 }}
-                className="mt-4 text-xs font-bold tracking-[0.25em] text-muted"
+                style={{ fontSize: captionSize }}
+                className="mt-3 text-[10px] font-bold tracking-[0.14em] text-muted md:mt-4 md:text-xs md:tracking-[0.25em]"
               >
                 SCROLL TO EXPLORE
               </motion.p>
