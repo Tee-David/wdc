@@ -77,11 +77,6 @@ function Planner({ run }: { run: boolean }) {
           The squares asserted that we plan; a month with named posts landing in
           it shows what planning looks like. */}
       <SocialCalendar run={run} />
-      <div className="fw-plan__key" aria-hidden="true">
-        {(["organic", "paid", "story"] as const).map((k) => (
-          <span className="fw-plan__ki" key={k}><i className={`is-${k}`} />{k}</span>
-        ))}
-      </div>
       <div className="fw-chan">
         {SOCIAL_CHANNELS.map((c) => (
           <span className="fw-chan__c" key={c.id}>{c.label}</span>
