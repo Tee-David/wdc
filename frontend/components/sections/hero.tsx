@@ -124,12 +124,13 @@ function HeroBackdrop() {
           dark.
 
           Measured against the brightest 1% of each image across the band the
-          headline occupies: at the old 40% the worst frame left white type on
-          rgb(148,148,148), which is 3.03:1 and under AA for anything but the
-          headline itself. 58% takes the same ground to rgb(103,103,103) and
-          5.66:1, which carries the lede and the eyebrow too. Going further
-          only greys out the photograph. */}
-      <div className="absolute inset-0 bg-black/58 dark:bg-background/72" />
+          headline occupies: at the original 40% the worst frame left white type
+          on rgb(148,148,148), which is 3.03:1 and under AA for anything but the
+          headline itself. 58% cleared AA at 5.66:1 but still read as a bright
+          photograph with type over it rather than as a hero. 72% takes the same
+          ground to rgb(69,69,69) and 9.59:1: the picture is still legible as a
+          workspace, and the words on it are unambiguous. */}
+      <div className="absolute inset-0 bg-black/72 dark:bg-background/80" />
       <div className="absolute inset-0 dark:bg-gradient-to-b dark:from-transparent dark:via-transparent dark:to-background/85" />
       <div className="absolute inset-0 dark:bg-primary/25 dark:mix-blend-multiply" />
     </div>
