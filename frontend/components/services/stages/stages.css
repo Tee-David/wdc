@@ -751,11 +751,15 @@
   background: #000065; color: #fff;
   font-size: clamp(3px, .4vw, 8px); font-variant-numeric: tabular-nums;
 }
-.dv__sig { display: inline-flex; align-items: flex-end; gap: 1px; }
-.dv__sig i { width: 1.5px; border-radius: 1px; background: currentColor; }
-.dv__sig i:nth-child(1) { height: 3px; }
-.dv__sig i:nth-child(2) { height: 5px; }
-.dv__sig i:nth-child(3) { height: 7px; }
+/* The same drawn cluster the apps phones use -- Wi-Fi and battery, no
+   cellular bars. The three stepped rectangles that used to sit here were a
+   different status bar on the same site, at a size where they resolved into a
+   grey smear anyway. */
+.dv__status .ph__status-i { height: 1.25em; width: auto; flex: none; }
+.dv__time {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-weight: 600; letter-spacing: -.01em;
+}
 
 /* the window the capture scrolls behind */
 .dv__view { position: relative; overflow: hidden; flex: 1; min-height: 0; background: #fff; }
@@ -818,7 +822,11 @@
    lower than the Galaxy's punch-hole, so the two get different insets. */
 .ph__status {
   display: flex; align-items: center; justify-content: space-between;
-  font-size: .5rem; color: var(--muted);
+  font-size: .5rem;
+  /* Full strength, not `--muted`. A handset draws its status row in the
+     screen's foreground colour; at --muted on the navy it read as a greyed-out
+     row, which is what a disabled bar looks like. */
+  color: var(--on-band);
   font-variant-numeric: tabular-nums; flex: none;
 }
 .ph--ios .ph__status { padding: 7% 8% 3%; }
@@ -826,10 +834,15 @@
 /* The cluster is sized in em against the status bar's own font-size, so the
    icons and the clock stay in proportion as the frame scales. */
 .ph__status-i { height: 1.15em; width: auto; flex: none; }
-/* The clock on a real handset is noticeably heavier and larger than the glyphs
-   beside it — matching that is most of what stops the row reading as a
-   wireframe. Sized in em so it tracks the bar as the frame scales. */
-.ph__time { font-weight: 700; font-size: 1.2em; letter-spacing: -.01em; }
+/* SYSTEM font, not the brand's. A phone's clock is set in the platform UI face
+   and nothing else, and Space Grotesk's geometric 9 and single-storey 4 are
+   recognisable enough that the row read as a graphic of a phone rather than as
+   a phone. The weight comes down with it: the clock on a handset is a touch
+   heavier than the glyphs beside it, not twice their size. */
+.ph__time {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-weight: 600; font-size: 1.05em; letter-spacing: -.01em;
+}
 .ph__sig { display: inline-flex; align-items: flex-end; gap: 1.5px; }
 .ph__sig i { width: 2px; background: var(--muted); border-radius: 1px; }
 .ph__sig i:nth-child(1) { height: 3px; }
