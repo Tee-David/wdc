@@ -7,7 +7,14 @@
    object whichever way the site is set.
    ========================================================================== */
 
-.ft { padding-inline: clamp(10px, 1.2vw, 16px); }
+/* Space above it, so the card reads as a separate object rising out of the
+   page rather than as the next thing welded to the last section. The gap shows
+   the page's own ground, which is what makes the two curves opposite each
+   other read as a seam. */
+.ft {
+  padding-inline: clamp(10px, 1.2vw, 16px);
+  margin-top: clamp(3rem, 7vw, 5.5rem);
+}
 
 .ft__card {
   position: relative; overflow: hidden; isolation: isolate;

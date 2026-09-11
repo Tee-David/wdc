@@ -56,6 +56,15 @@
   --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
 
   background: var(--paper);
+}
+
+/* The content block ends on a curve that mirrors the footer's, with a soft
+   edge under it. The shadow is doing real work: in the light theme `--paper`
+   and the page ground are both white, so without it the radius is a shape cut
+   out of nothing and the curve simply does not read. */
+main.pv {
+  border-radius: 0 0 clamp(22px, 3vw, 40px) clamp(22px, 3vw, 40px);
+  box-shadow: 0 14px 30px -22px rgb(16 16 46 / .45);
   color: var(--ink);
   font-family: var(--font-outfit), "Segoe UI", system-ui, sans-serif;
   font-size: 1.0625rem;

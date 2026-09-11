@@ -1,4 +1,11 @@
-import { COMPANY_NAME, CONTACT_EMAIL, SITE_URL } from "@/lib/site";
+import {
+  COMPANY_NAME,
+  CONTACT_EMAIL,
+  REGISTERED_NAME,
+  REGISTRATION_NO,
+  REGISTRAR,
+  SITE_URL,
+} from "@/lib/site";
 
 /**
  * The legal documents.
@@ -13,13 +20,18 @@ import { COMPANY_NAME, CONTACT_EMAIL, SITE_URL } from "@/lib/site";
  * about WDC that nobody has checked are true. Everything below describes how
  * this site and this studio actually operate.
  *
- * WHAT IS DELIBERATELY NOT HERE. No company registration number, no registered
- * office address, no named Data Protection Officer, no supervisory-authority
- * registration number. Those are facts about the legal entity that we do not
- * have, and a legal page is the last place to guess at one: an invented RC
- * number is a false statement in a published document. Where such a detail
- * belongs, the text points at the contact address instead, which is real.
- * `OPEN_ITEMS` at the bottom lists what a lawyer or director should fill in.
+ * FACTS ABOUT THE ENTITY ARE SUPPLIED, NEVER GUESSED. The CAC registration is
+ * now published in both the privacy policy and the terms, from the constants
+ * in lib/site.ts. It is cited as a BUSINESS NAME registration (BN), because
+ * that is what was given: the Corporate Affairs Commission issues an RC number
+ * to an incorporated company and a BN number to a registered business name,
+ * and they are different legal forms. Writing "RC" over a BN would be
+ * asserting a company that does not exist.
+ *
+ * What is still absent is absent for the same reason: no registered office
+ * address, no named Data Protection Officer. Where such a detail belongs, the
+ * text points at the contact address instead, which is real. `OPEN_ITEMS` at
+ * the bottom lists what a director or practitioner still has to supply.
  *
  * JURISDICTION. WDC operates from Nigeria, so the data sections are written
  * against the Nigeria Data Protection Act 2023 and the rights it actually
@@ -62,6 +74,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
         heading: "Who we are",
         body: [
           `${COMPANY_NAME} is a creative and digital agency operating from Nigeria. We design brands, build websites, applications and software, and run search, social and paid campaigns for our clients.`,
+          `We are registered with the ${REGISTRAR} as ${REGISTERED_NAME}, ${REGISTRATION_NO}.`,
           `For the information described in this policy we are the data controller, which means we decide why it is held and what happens to it. You can reach us about anything in this document at ${CONTACT_EMAIL}.`,
         ],
       },
@@ -178,7 +191,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
       {
         heading: "Our intellectual property",
         body: [
-          `The design, code, text, layout and original graphics of this site belong to ${COMPANY_NAME} and are protected by copyright. The name We Dig Creativity, the WDC mark and our logo are ours.`,
+          `The design, code, text, layout and original graphics of this site belong to ${COMPANY_NAME}, registered as ${REGISTERED_NAME} (${REGISTRATION_NO}), and are protected by copyright. The name We Dig Creativity, the WDC mark and our logo are ours.`,
           "You may quote short extracts with attribution and a link. You may not reproduce the site's design or substantial parts of its content as your own, and you may not use our name or marks in a way that suggests a relationship or endorsement that does not exist.",
         ],
       },
@@ -396,7 +409,6 @@ export const LEGAL_DOCS: LegalDoc[] = [
  * one. Nothing here blocks the pages from being useful today.
  */
 export const OPEN_ITEMS = [
-  "Registered company name and RC number, for the Privacy Policy's 'Who we are' and the Terms' ownership section.",
   "Registered office address, which most privacy regimes expect a controller to publish.",
   "A telephone number, if one should be given as a contact route alongside email.",
   "Whether a named Data Protection Officer or contact has been appointed under the NDPA.",
