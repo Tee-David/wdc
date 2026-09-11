@@ -330,6 +330,11 @@
     will-change: transform;
   }
   .sv-step:hover .sv-step__icon { animation-play-state: paused; }
+  /* And paused off screen, by components/ui/draw-gate.tsx. `will-change:
+     transform` above promotes each of these to its own compositor layer, so
+     leaving 36 of them live for content nobody is looking at costs memory for
+     nothing. */
+  .sv-step.is-off .sv-step__icon { animation-play-state: paused; }
 }
 @keyframes sv-bob {
   0%   { transform: translateY(0) rotate(0deg) scale(1); }

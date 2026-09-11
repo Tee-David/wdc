@@ -27,13 +27,30 @@ export type BrandKind = {
   id: string;
   label: string;
   note: string;
-  items: { id: string; title: string; src: string }[];
+  items: { id: string; title: string; src: string; thumb: string }[];
 };
 
+/**
+ * One piece of artwork, in two sizes.
+ *
+ * `src` is the full-resolution file, for a lightbox or a case study where the
+ * work is the subject. `thumb` is a 560px derivative for the walls and grids.
+ *
+ * WHY BOTH. Measured on /services: the branding wall renders its tiles at
+ * 282px and was being handed 900px originals, which is roughly ten times the
+ * pixels it can show, 102 times over. The page pulled 3.7MB of images before
+ * it had drawn anything. 560px is twice the rendered size, so it stays sharp
+ * on a retina screen and nowhere near the original's weight.
+ *
+ * Generated with Pillow at quality 78, progressive, into public/brand-work/sm.
+ * To regenerate after adding artwork, resize the long edge to 560 and write it
+ * to that folder under the same filename.
+ */
 const asset = (slug: string, title: string) => ({
   id: slug,
   title,
   src: `/brand-work/${slug}.jpg`,
+  thumb: `/brand-work/sm/${slug}.jpg`,
 });
 
 export const BRAND_KINDS: BrandKind[] = [

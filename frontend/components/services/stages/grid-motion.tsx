@@ -108,7 +108,17 @@ export default function GridMotion() {
                     {items.map((it) => (
                       <div className="gm__tile" key={`${dup}-${it.key}`}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={it.src} alt="" loading="lazy" draggable={false} />
+                        <img
+                          /* The 560px derivative, not the 900px original. The
+                             wall renders these at 282px; handing it the full
+                             file 102 times is 3.7MB of images before the page
+                             has drawn. */
+                          src={it.thumb}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          draggable={false}
+                        />
                       </div>
                     ))}
                   </div>

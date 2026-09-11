@@ -68,3 +68,23 @@
   96%  { opacity: 0; }
   100% { stroke-dashoffset: -1; opacity: 0; }
 }
+
+/* ---------------------------------------------------------------------------
+   Off-screen strokes do not animate.
+
+   `sk-draw` moves `stroke-dashoffset`, which repaints its SVG every frame
+   rather than running on the compositor. Measured on /services: 377 of these
+   were running at once and 268 of them were outside the viewport, repainting
+   continuously for nobody. components/ui/draw-gate.tsx adds `is-off` to a
+   container once it leaves the viewport.
+
+   `paused` rather than `none`: a paused animation holds its current frame, so
+   a numeral that scrolls away mid-stroke is still mid-stroke when it comes
+   back, instead of snapping to its end state.
+   --------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  .sn.is-off .sn__p,
+  .svc-draw.is-off svg :is(path, line, polyline, polygon, circle, rect, ellipse) {
+    animation-play-state: paused;
+  }
+}
