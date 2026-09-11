@@ -3,7 +3,6 @@
 import Link from "next/link";
 import NextImage from "next/image";
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import TextType from "@/components/ui/text-type";
 import { LogoGlyph } from "@/components/ui/logo-glyph";
 import LogoLoop from "@/components/ui/logo-loop";
@@ -76,13 +75,12 @@ const BG_IMAGES = [
 
 function HeroBackdrop() {
   const [i, setI] = useState(0);
-  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
-    if (reduceMotion) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const id = setInterval(() => setI((p) => (p + 1) % BG_IMAGES.length), 5000);
     return () => clearInterval(id);
-  }, [reduceMotion]);
+  }, []);
 
   const next = BG_IMAGES[(i + 1) % BG_IMAGES.length];
 
@@ -97,17 +95,9 @@ function HeroBackdrop() {
           per device and served as AVIF or WebP instead of as the raw 1.1MB set
           of JPEGs. This is the homepage's LCP element, and it was measuring
           5.4s on emulated mobile against a 2.5s target. */}
-      <AnimatePresence initial={false}>
-        <motion.div
+      <div
           key={BG_IMAGES[i]}
-          initial={{ opacity: 0, scale: 1.08 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{
-            opacity: { duration: 1.4, ease: "easeInOut" },
-            scale: { duration: 6, ease: "linear" },
-          }}
-          className="absolute inset-0"
+          className="hero-backdrop absolute inset-0"
         >
           <NextImage
             src={BG_IMAGES[i]}
@@ -125,8 +115,7 @@ function HeroBackdrop() {
             quality={70}
             className="object-cover"
           />
-        </motion.div>
-      </AnimatePresence>
+        </div>
 
       {/* WARMING THE NEXT FRAME. The crossfade is 1.4s and an unfetched image
           cannot make that, so without this the first pass through the set fades
@@ -288,14 +277,12 @@ export function Hero() {
       </div>
 
       {/* Bottom: tool logo carousel the intro logos land into */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.5 }}
-        className="relative z-10 mx-auto w-full max-w-[1280px] px-6 pb-8 pt-6 lg:px-10"
+      <div
+        style={{ animationDelay: "500ms" }}
+        className="hero-rise relative z-10 mx-auto w-full max-w-[1280px] px-6 pb-8 pt-6 lg:px-10"
       >
         <LogoMarquee />
-      </motion.div>
+      </div>
     </section>
   );
 }

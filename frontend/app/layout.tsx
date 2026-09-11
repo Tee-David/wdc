@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Outfit } from "next/font/google";
+import localFont from "next/font/local";
 import { ThemeProvider } from "next-themes";
 import JsonLd, {
   organizationJsonLd,
@@ -15,16 +15,18 @@ import Connectivity from "@/components/offline/connectivity";
 import JotformAgent from "@/components/agent/jotform-agent";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
+/* Keep both families on the same locally bundled face. This removes two
+   render-blocking Google Fonts requests (and makes production builds work in
+   regions where Google Fonts is unavailable) without introducing a new asset:
+   these are the exact Space Grotesk files the project already shipped. */
+const spaceGrotesk = localFont({
+  src: [
+    { path: "../assets/fonts/SpaceGrotesk-Medium.ttf", weight: "300 600" },
+    { path: "../assets/fonts/SpaceGrotesk-Bold.ttf", weight: "700 900" },
+  ],
   variable: "--font-space-grotesk",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-
-const outfit = Outfit({
-  variable: "--font-outfit",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+  fallback: ["system-ui", "sans-serif"],
 });
 
 export const metadata: Metadata = {
@@ -92,7 +94,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${spaceGrotesk.variable} ${outfit.variable} h-full antialiased`}
+      className={`${spaceGrotesk.variable} h-full antialiased`}
     >
       <body suppressHydrationWarning className="min-h-full flex flex-col">
         {/*
@@ -128,9 +130,8 @@ export default function RootLayout({
           {/* Registers the service worker and owns the offline/online state.
               Renders nothing while the connection is fine. */}
           <Connectivity />
-          {/* The AI assistant. Its third-party script is not fetched until the
-              reader reaches for it or the browser goes idle, so it cannot cost
-              anything the performance work just bought. */}
+          {/* The official embed owns its native bottom-right launcher; there is
+              intentionally no replacement FAB or styling shim around it. */}
           <JotformAgent />
           {/* Renders nothing on touch or under reduced motion — see the
               component. Mounted inside the theme provider so it sits above
