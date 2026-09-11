@@ -1,6 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Code2,
+  Cpu,
+  Megaphone,
+  PenTool,
+  Search,
+  Smartphone,
+  Sparkles,
+  type LucideIcon,
+} from "lucide-react";
 import type { CSSProperties } from "react";
 import { PROJECTS, type Project } from "@/lib/projects";
 import SiteModal from "./site-modal";
@@ -110,21 +120,37 @@ const initials = (name: string) => {
   return (words[0][0] + words[1][0]).toUpperCase();
 };
 
-function Icon({ i }: { i: number }) {
-  const paths = [
-    "M3 3v18h18M7 14l4-4 3 3 5-6",
-    "M11 3a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM21 21l-4.3-4.3",
-    "M16 18l6-6-6-6M8 6l-6 6 6 6",
-    "M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 19h2",
-    "M12 2a5 5 0 0 1 5 5v3a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5zM5 21h14",
-    "M4 4h16v12H5.2L4 18.4V4zM8 9h8M8 13h5",
-  ];
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"
-         strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d={paths[i % paths.length]} />
-    </svg>
-  );
+/**
+ * The service icons.
+ *
+ * KEYED BY SERVICE, NOT BY POSITION. This used to be an array of hand-drawn
+ * SVG paths indexed by the card's position in the list, which meant the icon
+ * had no relationship to the service at all -- it just happened to be the nth
+ * path. Branding & Design was getting a line chart, and Software & AI was
+ * getting something that read as a microphone. Reorder the SERVICES array and
+ * every icon would have silently moved to the wrong card.
+ *
+ * They are lucide now, the same set the services page and the contact page
+ * already use, looked up by slug. An unknown slug falls back rather than
+ * rendering nothing.
+ *
+ * The choices are literal on purpose: a pen nib for the studio that draws
+ * things (and which is WDC's own mark), a magnifier for search, brackets for
+ * the web, a handset for apps, a processor for software and AI, a megaphone
+ * for the work whose whole job is being heard.
+ */
+const SERVICE_ICON: Record<string, LucideIcon> = {
+  branding: PenTool,
+  seo: Search,
+  web: Code2,
+  apps: Smartphone,
+  software: Cpu,
+  social: Megaphone,
+};
+
+function Icon({ slug }: { slug: string }) {
+  const Glyph = SERVICE_ICON[slug] ?? Sparkles;
+  return <Glyph aria-hidden="true" strokeWidth={1.7} />;
 }
 
 export default function PreviewBody() {
@@ -456,7 +482,7 @@ export default function PreviewBody() {
                         <img src={s.img} alt="" loading="lazy" />
                       </div>
                       <StrokeNumber className="pv-scard__n" value={String(idx + 1).padStart(2, "0")} delay={idx * 160} />
-                      <div className="pv-scard__ic"><Icon i={idx} /></div>
+                      <div className="pv-scard__ic"><Icon slug={s.slug} /></div>
                       <div className="pv-scard__body">
                         <h3>{s.title}</h3>
                         <p>{s.body}</p>
