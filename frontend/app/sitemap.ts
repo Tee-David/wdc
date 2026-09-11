@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site";
 import { CASE_STUDIES, WORK_CATEGORIES } from "@/lib/work";
+import { LEGAL_DOCS } from "@/lib/legal";
 
 /**
  * Sitemap.
@@ -32,6 +33,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...CASE_STUDIES.map((c) => ({
       path: `/work/${c.category}/${c.slug}`,
       priority: 0.7,
+      changeFrequency: "yearly" as const,
+    })),
+    /* Derived like the rest: a document added to lib/legal.ts is in the
+       sitemap the same day, and cannot ship as a page search engines have
+       never been told about. Low priority and yearly because that is what
+       these are -- findable, not promoted. */
+    { path: "/legal", priority: 0.4, changeFrequency: "yearly" as const },
+    ...LEGAL_DOCS.map((d) => ({
+      path: `/legal/${d.slug}`,
+      priority: 0.3,
       changeFrequency: "yearly" as const,
     })),
   ];

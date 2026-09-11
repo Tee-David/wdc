@@ -112,7 +112,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     about:
       "TraxStaff is a time-tracking product for teams. Time is recorded against a project and a task as the work happens, and the record is organised by day, week and project rather than dropped into one long list.",
     brief:
-      "Build the product on every surface a team actually works on — a browser, a desktop machine and a phone — without three separate codebases drifting apart, and with roles and permissions that hold the same in all three.",
+      "Build the product on every surface a team actually works on (a browser, a desktop machine and a phone) without three separate codebases drifting apart, and with roles and permissions that hold the same in all three.",
     approach:
       "One API behind three clients. The dashboard is a Next.js application, the desktop client is Tauri so it ships as a native binary rather than a bundled browser, and the mobile client is Expo. The server is Fastify over Prisma and Postgres, so every client reads the same data through the same rules.",
     did: [
@@ -173,7 +173,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     about:
       "Litch Consulting works in modelling and data analytics. The engagement covered both the public site and the console the team runs on internally.",
     brief:
-      "Replace work tracked across separate documents with one console — requests raised, invoices against them, and reporting drawn from the same records rather than re-keyed.",
+      "Replace work tracked across separate documents with one console: requests raised, invoices against them, and reporting drawn from the same records rather than re-keyed.",
     approach:
       "A single data model underneath the whole console, so a request, the invoice raised against it and the figure that appears in a report are the same record read three ways. The interface is laid out around that rather than around a set of unrelated screens.",
     did: [
@@ -236,7 +236,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     brief:
       "Build the site and the search groundwork together: structure, metadata and performance handled during the build instead of retrofitted afterwards.",
     approach:
-      "Pages are structured around what people actually search for, with the technical layer — crawlable markup, metadata, structured data and page speed — treated as part of the build rather than a later pass.",
+      "Pages are structured around what people actually search for, with the technical layer (crawlable markup, metadata, structured data and page speed) treated as part of the build rather than a later pass.",
     did: [
       "Site build with a page per programme",
       "Technical SEO groundwork during the build",
@@ -283,7 +283,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     cover: "/work/exambeta.jpg",
     summary: "A services site for a business people are trusting with a big decision.",
     about:
-      "Exambeta Travels & Tours works across education and mobility — the kind of service someone commits to well before they can see a result, which puts the burden on the site to be clear about what is actually offered.",
+      "Exambeta Travels & Tours works across education and mobility, the kind of service someone commits to well before they can see a result, which puts the burden on the site to be clear about what is actually offered.",
     brief:
       "Set out the services plainly, make the enquiry route obvious from any page, and carry the brand consistently across the whole site.",
     approach:
@@ -314,9 +314,9 @@ export const CASE_STUDIES: CaseStudy[] = [
     about:
       "Moore Designs is a bespoke tailoring and menswear house. The work a tailor sells is measured, cut and finished by hand for one person, and the brand had to carry that idea before anyone reads a word of copy.",
     brief:
-      "One identity, built as a system rather than a logo file. It had to survive a 12mm embroidery on a cap, a five-metre illuminated sign over a shopfront, a woven label inside a collar, and a business card — four wildly different sizes with nothing in common but the mark.",
+      "One identity, built as a system rather than a logo file. It had to survive a 12mm embroidery on a cap, a five-metre illuminated sign over a shopfront, a woven label inside a collar, and a business card: four wildly different sizes with nothing in common but the mark.",
     approach:
-      "The mark is two triangles set nose to nose. Read one way it is a play arrow pointing forward; read the other it is a bowtie, which is the object a menswear house is most identified by. Neither reading is decorative — the shape is a single geometric form with no fine detail, which is exactly what survives being stitched into a cap at thumbnail size and blown up onto a shopfront.\n\nColour does the separating. Navy carries the garments, the packaging and the storefront; gold picks out the second triangle and nothing else, so the mark keeps one accent instead of two competing ones. A triangle pattern derived from the same form gives the system a fill for linings, tissue and backgrounds without introducing a new element to learn.",
+      "The mark is two triangles set nose to nose. Read one way it is a play arrow pointing forward; read the other it is a bowtie, which is the object a menswear house is most identified by. Neither reading is decorative. The shape is a single geometric form with no fine detail, which is exactly what survives being stitched into a cap at thumbnail size and blown up onto a shopfront.\n\nColour does the separating. Navy carries the garments, the packaging and the storefront; gold picks out the second triangle and nothing else, so the mark keeps one accent instead of two competing ones. A triangle pattern derived from the same form gives the system a fill for linings, tissue and backgrounds without introducing a new element to learn.",
     did: [
       "Primary lockup, horizontal lockup and standalone symbol",
       "Black and reversed white versions for single-colour printing",
@@ -366,11 +366,11 @@ export const CASE_STUDIES: CaseStudy[] = [
     cover: "/brand-work/marfaa-cover.jpg",
     summary: "An apparel identity built to read on black fabric first.",
     about:
-      "MARFAA Authentic is an apparel label. Its tagline — Freedom from Limits — is the whole brief in three words, and the identity had to earn it rather than sit above it in small type.",
+      "MARFAA Authentic is an apparel label. Its tagline, Freedom from Limits, is the whole brief in three words, and the identity had to earn it rather than sit above it in small type.",
     brief:
       "Build an identity for a clothing brand whose product is mostly dark. Most of what the mark would ever appear on is black or charcoal fabric, so the system had to be designed from the reversed state outward instead of being designed on white and checked against black afterwards.",
     approach:
-      "The symbol is a winged figure held inside a globe. It carries the tagline literally — wings against a boundary — and it is drawn as one weight of line with no gradients and no fills that depend on a light ground, so the same artwork embroiders, prints and etches without a second version being drawn for each.\n\nDeep saffron is the only chromatic colour in the system. Against black it clears contrast comfortably; against platinum it still holds. Everything else is neutral, which means the orange is never competing with a second brand colour for attention on a garment that already has its own texture and drape. The wordmark pairs a high-contrast display serif with a script for Authentic, so the two words are told apart by shape rather than by size.",
+      "The symbol is a winged figure held inside a globe. It carries the tagline literally, wings against a boundary, and it is drawn as one weight of line with no gradients and no fills that depend on a light ground, so the same artwork embroiders, prints and etches without a second version being drawn for each.\n\nDeep saffron is the only chromatic colour in the system. Against black it clears contrast comfortably; against platinum it still holds. Everything else is neutral, which means the orange is never competing with a second brand colour for attention on a garment that already has its own texture and drape. The wordmark pairs a high-contrast display serif with a script for Authentic, so the two words are told apart by shape rather than by size.",
     did: [
       "Symbol, full lockup and wordmark-only variants",
       "Black and reversed white versions",
@@ -415,7 +415,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     brief:
       "Give the group one identity without flattening the divisions into each other. A customer bringing a cracked screen to Tech Hub and a founder registering a company with Consult should recognise the same company, and should still be able to tell instantly which desk they are at.",
     approach:
-      "The architecture does the work. Every division keeps the identical monogram and the identical lockup geometry, and changes exactly two things: the division word beneath the name, and the colour it is set in. Tech Hub and Stores hold the blues; Consult takes green because compliance work sits beside government marks and needs to read as its own discipline. Nothing else moves — the mark is never redrawn per division, so five lockups cost one drawing.\n\nThe guide is not only visual. It fixes a written voice in five words — reliable, connected, premium yet accessible, innovative, comfortable — and a positioning statement the divisions all write from, so a caption produced by whoever is at the desk that morning still sounds like the same company.\n\nThe part that proves it is the run of campaign artwork underneath. February, April, May, August, November; new week, weekend, website launch, registration drive. Every one is a different photograph, a different product and a different headline treatment, and every one is unmistakably Dhiol: the same monogram, the same contact strip locked to the base of the frame, the same QR placement. That is what a system is for — not the guide, the eleven months of posts that came after it.",
+      "The architecture does the work. Every division keeps the identical monogram and the identical lockup geometry, and changes exactly two things: the division word beneath the name, and the colour it is set in. Tech Hub and Stores hold the blues; Consult takes green because compliance work sits beside government marks and needs to read as its own discipline. Nothing else moves. The mark is never redrawn per division, so five lockups cost one drawing.\n\nThe guide is not only visual. It fixes a written voice in five words (reliable, connected, premium yet accessible, innovative, comfortable) and a positioning statement the divisions all write from, so a caption produced by whoever is at the desk that morning still sounds like the same company.\n\nThe part that proves it is the run of campaign artwork underneath. February, April, May, August, November; new week, weekend, website launch, registration drive. Every one is a different photograph, a different product and a different headline treatment, and every one is unmistakably Dhiol: the same monogram, the same contact strip locked to the base of the frame, the same QR placement. That is what a system is for: not the guide, the eleven months of posts that came after it.",
     did: [
       "Parent brand identity and 2024 brand guideline",
       "Positioning statement and a five-word written voice",
@@ -459,17 +459,17 @@ export const CASE_STUDIES: CaseStudy[] = [
     category: "branding",
     categories: ["branding"],
     title: "A needle and thread, written as a signature",
-    client: "TAB — The Ajoks Brand",
+    client: "TAB The Ajoks Brand",
     sector: "Womenswear and bespoke tailoring",
     location: "Nigeria",
     cover: "/brand-work/tab-guide-1.jpg",
     summary: "An identity for a womenswear label, with three lockups and a rule for each.",
     about:
-      "The Ajoks Brand is a womenswear house working in bespoke tailoring. Its stated promise is effortless sophistication in every tailored piece — a claim about finish, which is a difficult thing for a logo to carry.",
+      "The Ajoks Brand is a womenswear house working in bespoke tailoring. Its stated promise is effortless sophistication in every tailored piece. That is a claim about finish, and finish is a difficult thing for a logo to carry.",
     brief:
       "Draw an identity that reads as couture rather than as retail, and give it enough variants that it can sit on a garment label, a storefront and a social avatar without being redrawn or cropped badly each time.",
     approach:
-      "The mark is the name written as a signature, with the ascender of the b drawn out into a needle trailing thread. It is one continuous gesture, which is the point: a signature is what a maker puts on finished work, and the tailoring reference is carried inside the letterform instead of parked next to it as a separate icon.\n\nBecause a script that fine falls apart at small sizes, the system ships three lockups with written rules for when each applies — the primary for maximum recognition, the symbol alone for avatars and small placements, and a wordmark-only version for layouts where the flourish would be too detailed to survive. The brand personality is fixed in four written cards, so the tone that goes with the mark is documented rather than left to whoever writes the next caption.",
+      "The mark is the name written as a signature, with the ascender of the b drawn out into a needle trailing thread. It is one continuous gesture, which is the point: a signature is what a maker puts on finished work, and the tailoring reference is carried inside the letterform instead of parked next to it as a separate icon.\n\nBecause a script that fine falls apart at small sizes, the system ships three lockups with written rules for when each applies: the primary for maximum recognition, the symbol alone for avatars and small placements, and a wordmark-only version for layouts where the flourish would be too detailed to survive. The brand personality is fixed in four written cards, so the tone that goes with the mark is documented rather than left to whoever writes the next caption.",
     did: [
       "Signature mark with integrated needle-and-thread flourish",
       "Three lockups: primary, symbol only, wordmark only",
@@ -507,7 +507,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     cover: "/brand-work/millcon-cover.jpg",
     summary: "A multi-page profile document for a consultancy that bids for work.",
     about:
-      "Millcon & Millcon Consult Limited is a management consultancy working across project management, business consultancy, executive training, trade facilitation and ICT. Its clients and affiliates include organisations that procure formally, which means the profile document is not marketing collateral — it is part of a bid.",
+      "Millcon & Millcon Consult Limited is a management consultancy working across project management, business consultancy, executive training, trade facilitation and ICT. Its clients and affiliates include organisations that procure formally, which means the profile document is not marketing collateral. It is part of a bid.",
     brief:
       "Design a corporate profile that works as a screen PDF and as a document someone prints on an office machine, reads in a meeting, and photocopies. It had to hold up in greyscale, at low resolution, and stapled.",
     approach:
@@ -554,7 +554,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     about:
       "The Basic Medical Science Students' Association at Olabisi Onabanjo University runs a full programme across an administration's term: an entrepreneurship summit, an inter-faculty games and trade fair, health seminars, a live audio series and recurring community posts.",
     brief:
-      "Design a term's worth of events for an association whose audience is a single campus, whose channel is Instagram and X, and whose brief arrives event by event rather than all at once. Every piece has to be readable at thumbnail size in a feed, and carry dense logistics — dates, venues, entry fees, account numbers, QR codes — without becoming a poster nobody reads.",
+      "Design a term's worth of events for an association whose audience is a single campus, whose channel is Instagram and X, and whose brief arrives event by event rather than all at once. Every piece has to be readable at thumbnail size in a feed, and carry dense logistics (dates, venues, entry fees, account numbers, QR codes) without becoming a poster nobody reads.",
     approach:
       "The events are genuinely different in tone, so the system holds them together with structure rather than with a template. Every piece keeps the association crest and administration line in the same place at the top, and a fixed information strip at the base carrying handle, phone and QR. Between those two anchors, each event is free to look like itself: the business summit is corporate and grid-led with speaker portraits in colour blocks, the games fair is a sports poster with the athletes shot on campus, the health seminar is clinical and blue with the guest clinicians framed like a lecture bill.\n\nThe logistics are the hard part and they get treated as content, not as small print. Field events, track events and indoor events are set as three labelled columns rather than one run-on list, so a student can find the one they want to enter without reading the whole thing. Entry tiers, account details and the QR sit together in a single block at the base, which is the part someone screenshots.",
     did: [
@@ -591,11 +591,11 @@ export const CASE_STUDIES: CaseStudy[] = [
     cover: "/brand-work/nipsa-efootball.jpg",
     summary: "Esports and social events for a pharmacology association, split by directorate.",
     about:
-      "The Nigerian Pharmacology Students' Association at Olabisi Onabanjo University publishes through two separate offices — a Sports Director and a Social Director — each running its own programme under the same administration.",
+      "The Nigerian Pharmacology Students' Association at Olabisi Onabanjo University publishes through two separate offices, a Sports Director and a Social Director, each running its own programme under the same administration.",
     brief:
       "Give both directorates artwork that reads as the same association while making it obvious at a glance which office is speaking, because the two audiences overlap but the events do not.",
     approach:
-      "The offices are separated by genre, not by badge. Sports gets the visual language of a tournament: the esports pieces are built like game key art, dark and high-contrast with the title set heavy across the middle and the entry fee and date pinned into corner tabs the way a fixture card does it. Social gets the language of a night out — the movie night is a lit cinema interior with the price on a ticket stub, the hangout is neon-lit portraiture with the door time and cover charge on chips.\n\nWhat holds them together is a shared frame: the association crest and the originating office line sit in the same position on every piece, and the administration credit runs along the base in the same weight. So the set reads as one association with two very different jobs, rather than as two associations.",
+      "The offices are separated by genre, not by badge. Sports gets the visual language of a tournament: the esports pieces are built like game key art, dark and high-contrast with the title set heavy across the middle and the entry fee and date pinned into corner tabs the way a fixture card does it. Social gets the language of a night out: the movie night is a lit cinema interior with the price on a ticket stub, the hangout is neon-lit portraiture with the door time and cover charge on chips.\n\nWhat holds them together is a shared frame: the association crest and the originating office line sit in the same position on every piece, and the administration credit runs along the base in the same weight. So the set reads as one association with two very different jobs, rather than as two associations.",
     did: [
       "Esports tournament artwork for two competitions",
       "Movie night campaign with ticketing detail",
@@ -627,11 +627,11 @@ export const CASE_STUDIES: CaseStudy[] = [
     cover: "/brand-work/span-fest-artist.jpg",
     summary: "Campaign artwork spanning a festival, a health week and a community outreach.",
     about:
-      "The Students' Physiological Association of Nigeria, Olabisi Onabanjo University chapter, runs a programme that swings from a ticketed campus festival with a booked artist to a medical outreach in the surrounding community — and the work spans two successive administrations.",
+      "The Students' Physiological Association of Nigeria, Olabisi Onabanjo University chapter, runs a programme that swings from a ticketed campus festival with a booked artist to a medical outreach in the surrounding community, and the work spans two successive administrations.",
     brief:
       "Cover a range that runs from entertainment to public health without the association appearing to be two different bodies, and produce the pieces a ticketed event actually needs rather than a single announcement graphic.",
     approach:
-      "SPAN FEST is treated as a festival brand in its own right, sitting inside the association rather than replacing it: hazard-tape diagonals, a booked artist shot as the headline act, and the full activity list — charades, bottle flip, raffle, arm-wrestling, pageants, trade fair, table tennis, VR, PS4, dance, pick-up line battle — set as three tight columns at the base so a fourteen-item programme still fits above the fold in a feed. The ticket piece is a separate artwork with its own job: price, what it admits, and three named sellers with numbers, because a ticket graphic that does not tell you who to call has failed.\n\nThe health work turns the volume down deliberately. The outreach piece leads with a photograph of the screening itself and states the community and the date plainly; Health Week takes a single verb, RE-ACTIVATE, and lets last year's photographs carry the rest. Same crest, same administration credit, completely different register — which is the honest way to move between a party and a blood pressure check.",
+      "SPAN FEST is treated as a festival brand in its own right, sitting inside the association rather than replacing it: hazard-tape diagonals, a booked artist shot as the headline act, and the full activity list (charades, bottle flip, raffle, arm-wrestling, pageants, trade fair, table tennis, VR, PS4, dance, pick-up line battle) set as three tight columns at the base so a fourteen-item programme still fits above the fold in a feed. The ticket piece is a separate artwork with its own job: price, what it admits, and three named sellers with numbers, because a ticket graphic that does not tell you who to call has failed.\n\nThe health work turns the volume down deliberately. The outreach piece leads with a photograph of the screening itself and states the community and the date plainly; Health Week takes a single verb, RE-ACTIVATE, and lets last year's photographs carry the rest. Same crest, same administration credit, completely different register, which is the honest way to move between a party and a blood pressure check.",
     did: [
       "SPAN FEST key art with headline artist treatment",
       "Festival ticket artwork with pricing and named sellers",

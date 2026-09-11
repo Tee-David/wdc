@@ -235,7 +235,12 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
             }}
             className="group hidden items-center gap-2 rounded-full bg-secondary px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-[#000065] hover:shadow-[0_10px_30px_rgba(255,101,0,0.35)] active:translate-y-0 md:inline-flex"
           >
-            Book a Strategy Call
+            {/* Not "Book a Strategy Call". That was carried over wholesale
+                when this header was rebuilt to match litchconsulting's, and it
+                is a finance consultancy's product: WDC does not sell a
+                strategy call, it takes a brief. The link has always gone to
+                the contact form, so the label now says what the click does. */}
+            Start a project
             <svg
               viewBox="0 0 16 16"
               fill="none"
