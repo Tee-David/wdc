@@ -185,17 +185,21 @@
    From 720px the grid becomes a centred row. A button stretched across a
    desktop page is a bar, not a button, and the three read as a set at their
    natural widths. */
+/* ONE COLUMN ON A PHONE, three equal rows.
+
+   The bottom two used to share a row. It fit, and it cost both of them:
+   "Tell us what broke" wrapped to two lines inside a half-width cell, so one
+   button stood 57px tall against the other's 43px and the row read as two
+   different kinds of thing. Full width gives three equal targets, each sized
+   for a thumb, each label on one line. */
 .nf__acts {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 10px;
   width: 100%;
-  /* Wide enough for the longest pair to sit side by side on a 360px screen,
-     narrow enough that the buttons never outrun the copy above them. */
   max-width: 27rem;
   margin-top: clamp(2.4rem, 5vw, 3.4rem);
 }
-.nf__btn--home { grid-column: 1 / -1; }
 
 @media (min-width: 720px) {
   .nf__acts {
@@ -204,19 +208,10 @@
   }
 }
 
-/* TIGHTER TYPE AND PADDING IN THE TWO-UP ROW, so the labels fit on one line.
-   At the desktop .92rem, "Tell us what broke" wraps inside a half-width cell
-   on a 390px screen, and a wrapped label puts its icon off to the side of a
-   two-line block where it reads as detached rather than attached. Measured:
-   the cell gives 172px, which leaves 145px of text room at this padding, and
-   the longest label needs about 138px. */
-/* Tighter in the two-up row: the cell is about 172px on a 390px screen, and
-   at the desktop .92rem with 1.5em of side padding there is barely room for
-   two words. */
-@media (max-width: 719px) {
-  .pv .nf__btn, .nf__btn { font-size: .86rem; padding: .9em 1em; }
-  .nf__btnIc { margin-right: .42em; }
-}
+/* The type shrink that used to live here is gone with the two-up row. It
+   existed only to squeeze "Tell us what broke" into a half-width cell; at full
+   width every label fits on one line at the normal size, so there is nothing
+   left to make room for. */
 
 /* The brand navy, pinned rather than taken from `--band`: that token flattens
    to #0a0a3a in dark mode to sit as a *background band*, which is the right

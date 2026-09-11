@@ -1,0 +1,85 @@
+/* ============================================================================
+   Back to top.
+
+   Sits above the AI agent's launcher in the bottom-right stack, and the two
+   share one set of variables so neither has to know the other's size -- change
+   the gap here and everything below moves with it.
+   ========================================================================== */
+
+:root {
+  /* The corner's gutter, and the safe area on a notched phone. */
+  --fab-gap: clamp(14px, 3vw, 26px);
+  --fab-bottom: calc(var(--fab-gap) + env(safe-area-inset-bottom, 0px));
+  /* The agent launcher's footprint plus breathing room. This is what the
+     agent's own bottom offset is derived from, so the stack cannot overlap. */
+  --fab-stack: 4.6rem;
+}
+
+.st {
+  position: fixed;
+  right: var(--fab-gap);
+  /* ABOVE the agent launcher, which keeps the corner's bottom slot -- the
+     thing people reach for most often should be closest to the thumb, and
+     that is the assistant, not the scroll. */
+  bottom: calc(var(--fab-bottom) + var(--fab-stack));
+  /* Under the connectivity bar (120) and the preloader (200), over the page,
+     and just above the agent launcher (110) so the two never fight. */
+  z-index: 112;
+
+  display: grid; place-items: center;
+  width: 2.9rem; height: 2.9rem;
+  padding: 0; border: 0; border-radius: 50%;
+  background: var(--paper, #fff);
+  color: var(--accent, #ff6500);
+  cursor: pointer;
+  box-shadow: 0 10px 26px -10px rgb(0 0 26 / .45);
+
+  /* HIDDEN, NOT ABSENT. Animating opacity and transform lets it arrive and
+     leave; `display: none` would make it pop. `visibility` is what actually
+     takes it out of reach once it has faded, since a transparent button is
+     still clickable. */
+  opacity: 0; visibility: hidden;
+  transform: translateY(10px) scale(.9);
+  transition: opacity .24s ease, transform .24s cubic-bezier(.16, 1, .3, 1),
+              visibility 0s linear .24s;
+}
+.st.is-on {
+  opacity: 1; visibility: visible;
+  transform: none;
+  transition: opacity .24s ease, transform .24s cubic-bezier(.16, 1, .3, 1),
+              visibility 0s;
+}
+.st:hover { color: #fff; background: var(--accent, #ff6500); }
+.st:focus-visible { outline: 2px solid var(--accent, #ff6500); outline-offset: 3px; }
+
+/* The ring. Rotated so it starts at twelve o'clock rather than at three. */
+.st__ring {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  transform: rotate(-90deg);
+  overflow: visible;
+}
+.st__track {
+  fill: none; stroke: var(--rule, rgba(0, 0, 101, .14)); stroke-width: 2.5;
+}
+.st__fill {
+  fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round;
+  /* Bound to the custom property the scroll handler writes. One style write a
+     frame, and `stroke-dashoffset` on a 44px box is a trivial repaint -- the
+     opposite of the 535-path case that cost /services its frame rate. */
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - var(--st-p, 0));
+}
+.st:hover .st__track { stroke: rgb(255 255 255 / .3); }
+
+.st__arrow { position: relative; width: 1.05rem; height: 1.05rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .st__arrow { transition: transform .2s cubic-bezier(.16, 1, .3, 1); }
+  .st:hover .st__arrow { transform: translateY(-2px); }
+}
+
+/* While the connectivity bar is up, the whole stack steps aside. */
+body:has(.cx) .st { bottom: calc(var(--fab-bottom) + var(--fab-stack) + 4.4rem); }
+
+/* The dark page needs the disc to separate from it. */
+.dark .st { background: var(--paper-2, #0a0a3a); box-shadow: 0 10px 26px -10px rgb(0 0 0 / .7); }

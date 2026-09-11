@@ -8,6 +8,8 @@ const MotionLink = motion(Link);
 import { siInstagram, siX, siFacebook, siWhatsapp } from "simple-icons";
 import { Logo, WdcMark } from "@/components/brand/logo";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import ThemeSwitchButton from "@/components/ui/theme-switch-button";
+import UserWay from "@/components/ui/userway";
 import StaggeredMenu from "@/components/ui/staggered-menu";
 import { CONTACT_EMAIL } from "@/lib/site";
 
@@ -277,12 +279,18 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
             socialItems={SOCIALS}
             onMenuOpen={() => setMenuOpen(true)}
             onMenuClose={() => setMenuOpen(false)}
+            /* TWO REAL BUTTONS, not a disc with a caption floating beside it.
+               The label used to be a bare <span> that did nothing when tapped,
+               so the hit area was the 40px disc and the words next to it were
+               decoration -- which on a phone is exactly the part a thumb aims
+               at. Both are now filled buttons with their own background, and
+               the accessibility menu sits beside the theme switch because the
+               two belong together: they are the only controls here that change
+               how the site looks rather than where you are in it. */
             footerSlot={
               <>
-                <AnimatedThemeToggler />
-                <span className="text-sm font-medium text-muted">
-                  Switch theme
-                </span>
+                <ThemeSwitchButton />
+                <UserWay />
               </>
             }
           />
