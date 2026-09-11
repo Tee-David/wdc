@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 import Link from "next/link";
 import { useReveal } from "@/components/preview/use-reveal";
 import ServiceIcon from "@/components/ui/service-icon";
+import { SERVICES } from "@/lib/services";
 import ScrollExpand from "@/components/ui/scroll-expand";
 import CircularGallery from "@/components/ui/circular-gallery";
 import { BRAND_KINDS } from "@/lib/showcase";
@@ -203,16 +204,18 @@ export default function AboutBody() {
     <div className="pv ab">
       {/* ---------------- hero ---------------- */}
       <section className="pv-sec pv-sec--band ab-hero">
-        {/* The reference's line art, redrawn in our own hand: one continuous
-            stroke that draws itself in. Decorative, so it is hidden from
-            assistive tech and skipped entirely under reduced motion. */}
-        <svg className="ab-swirl" viewBox="0 0 1200 400" aria-hidden="true" preserveAspectRatio="none">
-          <path
-            className="ab-swirl__p"
-            d="M-40 300 C 180 300 150 90 320 90 S 470 300 620 300 S 800 60 950 120 S 1120 320 1260 240"
-            fill="none"
-          />
-        </svg>
+        {/* The same four floating badges the services hero carries, so the two
+            openings read as one site rather than two designs. They replace a
+            single hairline swirl that spanned the whole panel: at 18% opacity
+            it was too faint to be a shape and too long to be a texture, and it
+            said nothing about what we do. These say the four things we do. */}
+        <div className="sv-orbit" aria-hidden="true">
+          {SERVICES.slice(0, 4).map((s, i) => (
+            <span className={`sv-bub sv-bub--${i + 1}`} key={s.slug}>
+              <ServiceIcon name={s.icon} delay={300 + i * 220} />
+            </span>
+          ))}
+        </div>
         <div className="pv-wrap">
           <nav className="sv-crumb pv-reveal" aria-label="Breadcrumb">
             <Link href="/">Home</Link>

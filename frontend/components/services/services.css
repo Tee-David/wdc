@@ -52,20 +52,39 @@
 /* floating badges. Absolutely positioned in a decorative layer so they can
    never displace the copy; below 900px they would crowd the h1, so they go. */
 .sv-orbit { position: absolute; inset: 0; pointer-events: none; }
+/* The four floating badges, shared by the /services and /about heroes.
+
+   THE GROUND FLIPS WITH THE SITE THEME, not with the panel behind them: both
+   heroes are the navy band in both themes, so these could have kept one look.
+   They do not, because the badge is the same object as the service icons
+   further down the page and those DO flip, and an icon that means the same
+   thing should not be two different objects on one screen.
+
+     light .... white disc, orange glyph
+     dark ..... orange disc, white glyph
+
+   Both sit on navy and both hold: white on #000065 is 15.0:1, #FF6500 on
+   #000065 is 6.0:1, and the glyph inside each disc is 15.0:1 and 2.9:1
+   respectively -- the second being the same deliberate brand pairing the
+   buttons use, on a mark rather than on text. */
 .sv-bub {
   position: absolute; display: grid; place-items: center;
   width: clamp(46px, 5vw, 62px); aspect-ratio: 1; border-radius: 50%;
-  background: rgba(255, 255, 255, .07);
-  border: 1px solid var(--on-band-rule);
+  background: #fff;
+  border: 1px solid transparent;
   color: var(--accent);
-  /* NO `backdrop-filter`. These four sit over the hero band and float
-     continuously, and a backdrop blur has to re-blur what is behind it on
-     every frame of that float and on every frame the page scrolls underneath.
-     It is among the most expensive things a browser can be asked to do, iOS
-     Safari especially, and at 2px over a flat navy panel it was buying a
-     difference nobody could see. The translucent fill does the whole job. */
+  /* NO `backdrop-filter`. These four float continuously over the hero band,
+     and a backdrop blur has to re-blur what is behind it on every frame of
+     that float and on every frame the page scrolls underneath. It is among the
+     most expensive things a browser can be asked to do, iOS Safari especially,
+     and at 2px over a flat navy panel it was buying a difference nobody could
+     see. */
 }
-.sv-bub svg { width: 45%; height: 45%; }
+.dark .sv-bub { background: var(--accent); color: #fff; }
+/* `ServiceIcon` puts a `.svc-draw` span between the badge and its svg, so the
+   size has to travel through it or the icon falls back to its own 24px. */
+.sv-bub .svc-draw { display: grid; place-items: center; width: 48%; height: 48%; }
+.sv-bub svg { width: 100%; height: 100%; }
 .sv-bub--1 { top: 22%; left: 8%; }
 .sv-bub--2 { top: 16%; right: 9%; }
 .sv-bub--3 { bottom: 20%; left: 14%; }
@@ -536,4 +555,83 @@
 .sv-art__body b {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .92rem; line-height: 1.3; color: var(--ink);
+}
+
+/* ---------------------------------------------------------------------------
+   Hero buttons, services and about.
+
+   Both heroes sit on the navy band, so both buttons are defined here rather
+   than twice. The pair inverts in opposite directions on hover, which is what
+   keeps them telling apart at a glance: the primary goes from filled orange to
+   white, the secondary from white to filled orange. Whichever one you are
+   pointing at is the orange one.
+
+   Specificity: `.pv .pv-btn--accent:hover` in preview.css scores (0,2,0), so a
+   bare `.sv-hero__cta .pv-btn--accent:hover` at (0,2,0) would only tie and
+   then lose or win on emit order. Every rule here carries the `.pv` as well,
+   for (0,3,0), and settles it outright.
+
+   Contrast, measured: navy #000065 on white 15.0:1. White on #FF6500 is 2.9:1,
+   which is under what WCAG asks of body text -- a deliberate brand call, and
+   it only ever applies to a large, bold, short label whose other state is
+   15:1.
+   --------------------------------------------------------------------------- */
+.pv .sv-hero__cta .pv-btn--accent,
+.sv-hero__cta .pv-btn--accent {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
+.pv .sv-hero__cta .pv-btn--accent:hover,
+.sv-hero__cta .pv-btn--accent:hover {
+  background: #fff; color: var(--accent); border-color: #fff;
+}
+
+/* `--light` on /about and `--line` on /services were two different resting
+   looks for the same button in the same place. One rule now, on both. */
+.pv .sv-hero__cta .pv-btn--light,
+.pv .sv-hero__cta .pv-btn--line,
+.sv-hero__cta .pv-btn--light,
+.sv-hero__cta .pv-btn--line {
+  background: #fff; color: #000065; border-color: #fff;
+}
+.pv .sv-hero__cta .pv-btn--light:hover,
+.pv .sv-hero__cta .pv-btn--line:hover,
+.sv-hero__cta .pv-btn--light:hover,
+.sv-hero__cta .pv-btn--line:hover {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
+
+/* ---------------------------------------------------------------------------
+   Hero and ticker are ONE viewport, split 85/15.
+
+   On /services the two read as a single opening: the navy panel and the strip
+   of service names under it. Sized independently they came to more than one
+   screen, so the strip sat half below the fold and the opening had no bottom
+   edge. Together they now come to exactly 100svh, with the ticker taking the
+   bottom 15% as a proper band rather than a hairline.
+
+   `:has(+ .sv-jump)` rather than a page class: this is the hero that is
+   FOLLOWED BY the ticker, which is the actual condition. /about uses the same
+   `.sv-hero` with nothing under it and keeps the full screen to itself.
+
+   `svh` throughout, not `vh`: mobile browsers measure `vh` against the largest
+   viewport, the one with the URL bar already gone, so a `vh` hero starts
+   taller than the screen and pushes its own buttons under the fold on first
+   paint.
+   --------------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+  .sv-hero:has(+ .sv-jump) { min-height: 85svh; }
+
+  .sv-jump {
+    min-height: 15svh;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  /* Bigger, because the band is bigger. At the old .88rem the names read as a
+     footnote inside a band this tall instead of as the second half of the
+     hero. */
+  .sv-jump__link {
+    font-size: 1.05rem;
+    gap: 12px;
+    padding-block: 0;
+  }
+  .sv-jump__i svg { width: 1.35em; height: 1.35em; }
 }

@@ -145,10 +145,15 @@ export default function ServicesBody() {
       <section className="pv-sec pv-sec--band sv-hero">
         {/* Decorative only: the bubbles echo the reference's floating badges.
             They sit behind the copy and are hidden from assistive tech. */}
+        {/* `ServiceIcon` rather than the flat `Glyph` these used to carry: it
+            normalises every shape to `pathLength` and hands them to the same
+            stroke-draw the step numbers and section icons use, so the badges
+            assemble in the same hand as the rest of the page instead of
+            appearing fully formed. */}
         <div className="sv-orbit" aria-hidden="true">
           {SERVICES.slice(0, 4).map((s, i) => (
             <span className={`sv-bub sv-bub--${i + 1}`} key={s.slug}>
-              <Glyph slug={s.slug} />
+              <ServiceIcon name={s.icon} delay={300 + i * 220} />
             </span>
           ))}
         </div>
