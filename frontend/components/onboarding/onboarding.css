@@ -446,10 +446,14 @@
   transition: width .5s cubic-bezier(.16, 1, .3, 1);
 }
 .pv .ob__ph.is-done .ob__phBar i { background: #35c281; }
+/* TRACKING CUT FROM .08em TO .05em. Wide tracking is a device for setting a
+   LINE of small caps apart from body text; on an eleven-pixel two-word label
+   that already sits alone under a rule, it just pulls the words apart and the
+   pair stops reading as one phrase. */
 .pv .ob__phName {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .72rem; font-weight: 700;
-  letter-spacing: .08em; text-transform: uppercase;
+  letter-spacing: .05em; text-transform: uppercase;
   color: var(--muted);
 }
 .pv .ob__ph.is-on .ob__phName { color: var(--ink); }
@@ -596,11 +600,14 @@
    --------------------------------------------------------------------------- */
 .pv .ob__railGrp { margin-bottom: 1.5rem; }
 .pv .ob__railGrp:last-child { margin-bottom: 0; }
+/* Same cut, and further: .14em measured out to 1.5px of air between every
+   letter of a 10.9px word, which is where "ABOUT YOU" stops being two words
+   and becomes nine letters. */
 .pv .ob__railGrp > h2 {
   margin: 0 0 .6rem;
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-size: .68rem; font-weight: 700;
-  letter-spacing: .14em; text-transform: uppercase;
+  font-size: .7rem; font-weight: 700;
+  letter-spacing: .05em; text-transform: uppercase;
   color: var(--muted);
   display: flex; align-items: center; gap: .5rem;
 }
@@ -613,3 +620,97 @@
 .pv .ob__railGrp.is-done > h2 { color: #35c281; }
 .pv .ob__railGrp.is-done > h2::after { background: color-mix(in srgb, #35c281 30%, transparent); }
 .pv .ob__railGrp > ol { margin: 0; padding: 0; list-style: none; }
+
+/* The review screen's action row. `--end` puts Send at the end of the line
+   where the eye finishes, with Back before it, and lets Start over drop to its
+   own line rather than sitting between them. On a phone every action takes the
+   full width: two half-width buttons at 360px is two truncated labels. */
+.pv .ob__acts--end { flex-wrap: wrap; align-items: center; }
+.pv .ob__acts--end > .ob__btn--go { margin-right: auto; order: 2; }
+.pv .ob__acts--end > .ob__btn--ghost:first-child { order: 1; }
+@media (max-width: 560px) {
+  .pv .ob__acts, .pv .ob__acts--end { flex-direction: column; align-items: stretch; }
+  .pv .ob__acts .ob__btn { width: 100%; justify-content: center; }
+  .pv .ob__acts--end > .ob__btn--go { margin-right: 0; }
+}
+
+/* The one destructive action on the form, and it looks like one. */
+.pv .ob__btn--danger {
+  background: #d63333; border-color: #d63333; color: #fff;
+}
+.pv .ob__btn--danger:hover { background: #b62a2a; border-color: #b62a2a; color: #fff; }
+
+/* ============================================================================
+   THE SERVICE PICKER — the first thing the client sees.
+
+   Six cards, one tap. The old first screen was a panel labelled "Demo only,
+   pick what a client bought", which framed the whole form as something WDC
+   fills in ABOUT a client; it is the opposite. The client opens this link on
+   their own, with nobody beside them, so the first screen asks them what they
+   are here for in their own words.
+
+   A row of an icon, a name and one line, with the arrow on the right: the same
+   shape as a list item people already know how to read, sized as a card so it
+   is obviously a choice rather than a link.
+   ========================================================================== */
+
+.pv .ob__pickH {
+  margin: clamp(1.8rem, 4vw, 2.6rem) 0 .2rem;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: clamp(1.15rem, 1rem + .6vw, 1.4rem); font-weight: 700;
+  letter-spacing: -.02em; color: var(--ink);
+}
+.pv .ob__pickSub { margin: 0 0 1rem; color: var(--muted); font-size: .95rem; }
+
+.pv .ob__svc { display: grid; gap: .6rem; margin: 0 0 1.6rem; padding: 0; list-style: none; }
+/* Two up once there is room for two lines of copy side by side. Below that one
+   column, because a squeezed card truncates the one line that explains it. */
+@media (min-width: 760px) { .pv .ob__svc { grid-template-columns: 1fr 1fr; } }
+
+.pv .ob__svcCard {
+  display: flex; align-items: center; gap: .85rem;
+  width: 100%; padding: .95rem 1rem;
+  border: 1px solid var(--rule); border-radius: 14px;
+  background: var(--paper);
+  color: var(--ink); font: inherit; text-align: left; cursor: pointer;
+  transition: border-color .18s ease, background .18s ease, transform .18s cubic-bezier(.16,1,.3,1);
+}
+.pv .ob__svcCard:hover { border-color: var(--accent); }
+@media (prefers-reduced-motion: no-preference) {
+  .pv .ob__svcCard:hover { transform: translateY(-2px); }
+}
+.pv .ob__svcCard:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* The chosen one is unmistakable without being loud: a tinted ground, an
+   accent edge, and the arrow lit. */
+.pv .ob__svcCard.is-on {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--paper));
+}
+
+.pv .ob__svcIc {
+  flex: none; display: grid; place-items: center;
+  width: 2.6rem; height: 2.6rem; border-radius: 11px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent-ink);
+}
+.pv .ob__svcCard.is-on .ob__svcIc { background: var(--accent); color: #fff; }
+.pv .ob__svcIc svg { width: 1.3rem; height: 1.3rem; }
+
+.pv .ob__svcT { flex: 1; min-width: 0; }
+.pv .ob__svcT b {
+  display: block;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 1rem; font-weight: 700; color: var(--ink);
+}
+.pv .ob__svcT em {
+  display: block; font-style: normal; margin-top: .1rem;
+  color: var(--muted); font-size: .88rem; line-height: 1.45;
+}
+.pv .ob__svcGo { flex: none; width: 1.1rem; height: 1.1rem; color: var(--muted); }
+.pv .ob__svcCard.is-on .ob__svcGo { color: var(--accent); }
+
+.pv .ob__reassure {
+  margin: 1.4rem 0 1.8rem; padding: .9rem 1.1rem;
+  border-left: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--muted); font-size: .92rem; line-height: 1.65;
+}
