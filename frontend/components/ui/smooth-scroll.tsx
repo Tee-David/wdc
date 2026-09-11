@@ -20,6 +20,30 @@ export function SmoothScroll() {
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
+    /* NOT ON TOUCH DEVICES. THIS IS THE MOBILE SCROLL HANG.
+       The comment below used to claim touch was "left to the platform" because
+       this build of Lenis does not smooth touch input. That is true of its
+       INPUT handling and irrelevant to the problem: Lenis still runs its own
+       rAF loop and still drives `window.scrollTo` towards its own target on
+       every frame, whatever moved the page. On a phone the browser is already
+       scrolling natively at the same time, so two things are writing the
+       scroll position each frame and fighting each other.
+
+       Profiled with real touch events on a phone profile at 4x CPU throttling:
+       19% of a drag went to Lenis, `get actualScroll` alone taking 7.5%, with
+       individual frames of 817ms. That is the hang -- not slow rendering, a
+       tug of war over the scroll position.
+
+       A phone's native scrolling is already inertial, hardware-accelerated and
+       running off the main thread. There is nothing for Lenis to add there and
+       a great deal for it to break, so it does not load at all: the effect is
+       a desktop refinement, and on touch the platform simply does it better.
+
+       `(hover: none) and (pointer: coarse)` rather than a width query -- a
+       narrow desktop window is still a mouse, and a large tablet is still a
+       finger. */
+    if (window.matchMedia("(hover: none) and (pointer: coarse)").matches) return;
+
     gsap.registerPlugin(ScrollTrigger);
     /* `anchors` is not optional here. Lenis owns the scroll position, so a
        native hash jump moves the document while Lenis's own target stays put,
@@ -38,11 +62,7 @@ export function SmoothScroll() {
          like the machine is behind you rather than with you. 0.75 keeps the
          glide and loses the drag. */
       duration: 0.75,
-      /* Wheel only. Touch is left to the platform: a phone's own scrolling is
-         already inertial and hardware-accelerated, and layering a JS easing on
-         top is how a site ends up feeling worse on a phone than a plain
-         document. This build of Lenis leaves touch alone by default, so there
-         is nothing to switch off. */
+      /* Wheel only, and only on pointer devices -- see the bail-out above. */
       smoothWheel: true,
       anchors: { offset: -88 },
       /* Every horizontal rail on this site (the work track, the pinned
