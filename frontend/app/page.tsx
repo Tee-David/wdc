@@ -1,4 +1,4 @@
-import IntroAnimation from "@/components/intro/intro-animation";
+import IntroMount from "@/components/intro/intro-mount";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { Header } from "@/components/layout/header";
 import { Hero } from "@/components/sections/hero";
@@ -19,11 +19,15 @@ export default function Home() {
   return (
     <>
       {/*
-        IntroAnimation must stay the first child. layout.tsx stamps data-intro
-        on <html> before first paint and globals.css paints a cover until the
+        The intro must stay the first child. layout.tsx stamps data-intro on
+        <html> before first paint and globals.css paints a cover until the
         intro sets data-intro="done".
+
+        IntroMount loads the animation itself only on the visits that play it
+        -- it is the heaviest client component on this page and most visits
+        never see it.
       */}
-      <IntroAnimation />
+      <IntroMount />
       <Header overHero />
       <main className="flex-1">
         {/* The intro's logos land in #hero-marquee, so this hero is the payoff

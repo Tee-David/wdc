@@ -28,6 +28,26 @@ interface TextTypeProps {
   variableSpeed?: { min: number; max: number };
   onSentenceComplete?: (sentence: string, index: number) => void;
   startOnVisible?: boolean;
+  /**
+   * Render the FIRST phrase already complete, then carry on cycling from
+   * there.
+   *
+   * WHY IT EXISTS. Used inside a heading, this component types from an empty
+   * string, so the heading's painted width grows for several seconds after the
+   * page is ready. Largest Contentful Paint takes the last of those growths:
+   * measured on the homepage, the hero H1 was reporting an LCP of 4.4s on
+   * emulated mobile, with the page otherwise complete at 1.1s. Nothing was
+   * slow -- the headline simply had not finished saying itself.
+   *
+   * It is also better to read. The first thing a visitor sees is the sentence,
+   * not a cursor working towards it.
+   */
+  startFull?: boolean;
+  /**
+   * Hold the width of the longest phrase from the first frame, so the line
+   * does not reflow on every character and the text beside it stays put.
+   */
+  reserveWidth?: boolean;
 }
 
 export default function TextType({
@@ -48,9 +68,17 @@ export default function TextType({
   variableSpeed,
   onSentenceComplete,
   startOnVisible = false,
+  startFull = false,
+  reserveWidth = false,
 }: TextTypeProps) {
-  const [displayedText, setDisplayedText] = useState("");
-  const [currentCharIndex, setCurrentCharIndex] = useState(0);
+  const first = Array.isArray(text) ? (text[0] ?? "") : text;
+  /* Lazy initialisers, so the complete phrase is in the very first render
+     rather than arriving in an effect a frame later -- which would put the
+     paint back where it started. */
+  const [displayedText, setDisplayedText] = useState(() => (startFull ? first : ""));
+  const [currentCharIndex, setCurrentCharIndex] = useState(() =>
+    startFull ? first.length : 0,
+  );
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(!startOnVisible);
@@ -166,11 +194,46 @@ export default function TextType({
     <Component
       ref={containerRef}
       className={`text-type ${className}`}
+      style={reserveWidth ? { display: "inline-grid" } : undefined}
     >
-      <span className="text-type__content" style={{ color: currentColor }}>
-        {displayedText}
-      </span>
-      {showCursor && (
+      {/* The sizer. Laid out, never painted, never announced: it holds the
+          width of the longest phrase so the line does not reflow on every
+          character. It shares one grid cell with the live text, so the wider of
+          the two decides the width -- which is always this one. */}
+      {reserveWidth && (
+        <span
+          aria-hidden="true"
+          style={{ gridArea: "1 / 1", visibility: "hidden", whiteSpace: "pre" }}
+        >
+          {textArray.reduce((a, b) => (b.length > a.length ? b : a), "")}
+        </span>
+      )}
+      {/* `justify-self: center` IS LOAD-BEARING, and the reason is Largest
+          Contentful Paint rather than typography.
+
+          A grid item stretches to its cell by default. With the cell as wide as
+          the longest phrase, the live text and the cursor were each getting a
+          box that wide however few characters were in them -- and LCP measures
+          the BOX. Measured on the homepage: the cursor reported 6,298px2 and
+          the typing text 20,580px2, which made a blinking caret and a
+          half-typed word the largest things on the page, re-firing LCP on
+          every character. The heading they sit in had painted at 296ms; LCP
+          was reporting 5.4s.
+
+          Shrink-wrapping them and centring them in the reserved cell keeps the
+          line from reflowing -- the whole point of `reserveWidth` -- while the
+          boxes stay the size of the words actually in them. */}
+      <span
+        style={
+          reserveWidth
+            ? { gridArea: "1 / 1", justifySelf: "center", whiteSpace: "pre" }
+            : undefined
+        }
+      >
+        <span className="text-type__content" style={{ color: currentColor }}>
+          {displayedText}
+        </span>
+        {showCursor && (
         <span
           ref={cursorRef}
           className={`text-type__cursor ${cursorClassName} ${
@@ -179,7 +242,8 @@ export default function TextType({
         >
           {cursorCharacter}
         </span>
-      )}
+        )}
+      </span>
     </Component>
   );
 }
