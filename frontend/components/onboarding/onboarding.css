@@ -657,70 +657,123 @@
 }
 .pv .ob__pickSub { margin: 0 0 1rem; color: var(--muted); font-size: .95rem; }
 
-.pv .ob__svc { display: grid; gap: .6rem; margin: 0 0 1.6rem; padding: 0; list-style: none; }
-/* Two up once there is room for two lines of copy side by side. Below that one
-   column, because a squeezed card truncates the one line that explains it. */
-@media (min-width: 760px) { .pv .ob__svc { grid-template-columns: 1fr 1fr; } }
+/* ---------------------------------------------------------------------------
+   THE CARDS.
+
+   Each one is a filled block of brand colour with its own mark cropped by the
+   right edge, not a white card wearing a small badge. The mark is the card's
+   artwork: large enough to be a shape rather than an icon, in the card's own
+   ink at low alpha so it reads as texture and never competes with the name.
+
+   The colours alternate navy and orange by index, which at two columns reads
+   as a navy column beside an orange one and at one column as a strict
+   alternation. A true checker was the other option and it is worse on a
+   phone: staggering the rows to break up the desktop columns puts two cards
+   of the same colour next to each other in the single-column stack, where
+   they are read one after another and the repeat is obvious.
+   --------------------------------------------------------------------------- */
+
+.pv .ob__svc {
+  display: grid; gap: clamp(.6rem, 1.4vw, .85rem);
+  margin: 0 0 1.6rem; padding: 0; list-style: none;
+}
+/* Two up from 620px. Below that one column, because a filled card needs room
+   for its name at a size worth setting and its mark beside it. */
+@media (min-width: 620px) { .pv .ob__svc { grid-template-columns: 1fr 1fr; } }
 
 .pv .ob__svcCard {
-  display: flex; align-items: center; gap: .85rem;
-  width: 100%; padding: .95rem 1rem;
-  border: 1px solid var(--rule); border-radius: 14px;
-  background: var(--paper);
-  color: var(--ink); font: inherit; text-align: left; cursor: pointer;
-  transition: border-color .18s ease, background .18s ease, transform .18s cubic-bezier(.16,1,.3,1);
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: center;
+  width: 100%;
+  /* A block, not a row. The minimum keeps every card the same height whether
+     its line of copy wraps or not, and `clamp` lets it grow with the page
+     rather than sitting stranded at a phone size on a desktop. */
+  min-height: clamp(7rem, 6rem + 5vw, 9rem);
+  padding: clamp(1.1rem, 2.4vw, 1.5rem);
+  border: 0; border-radius: clamp(14px, 1.6vw, 20px);
+  color: #fff; font: inherit; text-align: left; cursor: pointer;
+  transition: transform .22s cubic-bezier(.16, 1, .3, 1), box-shadow .22s ease;
 }
-.pv .ob__svcCard:hover { border-color: var(--accent); }
+.pv .ob__svcCard--navy { background: #000065; }
+.pv .ob__svcCard--orange { background: var(--accent); }
+/* Lifted on the dark page for the same reason the 404's blue button was:
+   #000065 against a near-black ground is a shape you can barely find. */
+.dark .pv .ob__svcCard--navy { background: #1b1b8f; }
+
 @media (prefers-reduced-motion: no-preference) {
-  .pv .ob__svcCard:hover { transform: translateY(-2px); }
+  .pv .ob__svcCard:hover { transform: translateY(-3px); }
 }
-.pv .ob__svcCard:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-/* The chosen one is unmistakable without being loud: a tinted ground, an
-   accent edge, and the arrow lit. */
-.pv .ob__svcCard.is-on {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 8%, var(--paper));
+.pv .ob__svcCard:hover { box-shadow: 0 18px 36px -18px rgb(0 0 26 / .5); }
+.pv .ob__svcCard:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+/* ---- the mark ---- */
+.pv .ob__svcArt {
+  position: absolute; z-index: 0;
+  /* IT KISSES THE EDGE, IT IS NOT SLICED BY IT. At -.6em only a sliver
+     survived, so a palette read as a curve and a phone read as a rectangle:
+     cropped past the point where the shape is still the shape, a mark becomes
+     texture with no meaning. A shallow overhang keeps it recognisable and
+     still says the card could not contain it. */
+  right: -.14em; top: 50%;
+  display: block;
+  font-size: clamp(4.6rem, 3.4rem + 5.5vw, 7rem);
+  line-height: 0;
+  transform: translateY(-50%);
+  color: #fff; opacity: .18;
+  pointer-events: none;
+}
+.pv .ob__svcArt svg { width: 1em; height: 1em; display: block; }
+@media (prefers-reduced-motion: no-preference) {
+  .pv .ob__svcArt { transition: transform .3s cubic-bezier(.16, 1, .3, 1), opacity .3s ease; }
+  .pv .ob__svcCard:hover .ob__svcArt { transform: translateY(-50%) scale(1.06); opacity: .22; }
 }
 
-/* FILLED TILES, in the brand's own two colours.
-
-   These went through a tint and then through an opaque tint, and both were
-   wrong for the same reason: a 15% wash is a colour you have to look for. A
-   tile is a block, so it is a block -- solid navy with a white glyph, which is
-   the pairing the header button and the footer band already use.
-
-   THE SELECTED ONE FLIPS TO ORANGE. With every tile filled, the chosen card
-   needs more than a border to stand out, and swapping navy for accent is the
-   loudest signal available without adding a fourth colour to the screen. It is
-   also the same move the 404's two buttons make when you hover them: the pair
-   trade places.
-   --------------------------------------------------------------------------- */
-.pv .ob__svcIc {
-  flex: none; display: grid; place-items: center;
-  width: 2.6rem; height: 2.6rem; border-radius: 11px;
-  background: #000065;
-  color: #fff;
-  transition: background .18s ease;
-}
-/* Lifted on the dark page. #000065 against a near-black card is a block you
-   can barely find, which is the same complaint that took `--band` off the 404
-   buttons; #23239b is the value that fixed it there. */
-.dark .pv .ob__svcIc { background: #23239b; }
-.pv .ob__svcCard.is-on .ob__svcIc { background: var(--accent); color: #fff; }
-.pv .ob__svcIc svg { width: 1.3rem; height: 1.3rem; }
-
-.pv .ob__svcT { flex: 1; min-width: 0; }
+/* ---- the name ---- */
+.pv .ob__svcT { position: relative; z-index: 1; display: block; }
 .pv .ob__svcT b {
   display: block;
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-size: 1rem; font-weight: 700; color: var(--ink);
+  font-size: clamp(1.15rem, 1rem + .8vw, 1.5rem); font-weight: 700;
+  letter-spacing: -.02em; line-height: 1.1; color: #fff;
+}
+/* The rule under the name, from the reference. It is doing real work: it
+   separates the name from the line below it without a colour change, which on
+   a filled card is the only separation available that does not weaken either. */
+.pv .ob__svcT i {
+  display: block; width: 1.6rem; height: 2px; border-radius: 2px;
+  margin: .5rem 0 .55rem; background: rgb(255 255 255 / .55);
 }
 .pv .ob__svcT em {
-  display: block; font-style: normal; margin-top: .1rem;
-  color: var(--muted); font-size: .88rem; line-height: 1.45;
+  display: block; font-style: normal;
+  /* Held off the mark so a long line never runs under it. */
+  max-width: 22ch;
+  color: rgb(255 255 255 / .82);
+  font-size: .88rem; line-height: 1.45;
 }
-.pv .ob__svcGo { flex: none; width: 1.1rem; height: 1.1rem; color: var(--muted); }
-.pv .ob__svcCard.is-on .ob__svcGo { color: var(--accent); }
+
+/* ---- chosen ---- */
+/* Every card is already a filled colour, so selection cannot be carried by one
+   -- it needs a shape the others do not have. A white ring plus a filled tick
+   is unmistakable at a glance and costs the card nothing. */
+.pv .ob__svcCard.is-on {
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 6px var(--ink), 0 18px 36px -18px rgb(0 0 26 / .5);
+}
+.pv .ob__svcMark {
+  position: absolute; z-index: 2; top: .8rem; right: .8rem;
+  display: grid; place-items: center;
+  width: 1.6rem; height: 1.6rem; border-radius: 50%;
+  /* THE BADGE IS ALWAYS WHITE, so the tick cannot take `--ink`: that token is
+     near-white in dark mode, which drew a white tick on a white disc and the
+     selected card lost its only unambiguous mark. It takes the CARD's colour
+     instead, which is legible on white in either theme and ties the badge to
+     the thing it belongs to. */
+  background: #fff; color: #000065;
+  opacity: 0; transform: scale(.6);
+  transition: opacity .18s ease, transform .18s cubic-bezier(.16, 1, .3, 1);
+}
+.pv .ob__svcCard--orange .ob__svcMark { color: #c24d00; }
+.pv .ob__svcCard.is-on .ob__svcMark { opacity: 1; transform: none; }
+.pv .ob__svcMark svg { width: .95rem; height: .95rem; stroke-width: 3; }
 
 .pv .ob__reassure {
   margin: 1.4rem 0 1.8rem; padding: .9rem 1.1rem;
