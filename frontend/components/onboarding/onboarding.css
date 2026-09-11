@@ -1,0 +1,386 @@
+/* ============================================================================
+   Client onboarding form.
+
+   The form is the first piece of work a client sees after paying, so it is
+   held to the same standard as the site: brand type, brand colour, real
+   hierarchy. But it is a working surface rather than a marketing page, so the
+   decoration stops at what helps someone answer eleven screens of questions
+   without losing their place.
+
+   SPECIFICITY. This file is loaded on a page carrying `.pv`, whose reset sets
+   `.pv p { margin: 0 }` and `.pv h1 { font-size: clamp(2.7rem, …, 5.4rem) }`,
+   both at (0,1,1) and (0,1,1). A bare `.ob__lede` at (0,1,0) loses to the
+   first and a bare `.ob h1` at (0,1,1) merely ties with the second. So every
+   rule that touches a `p` or an `h1` here is written `.pv .ob …`, which is
+   (0,2,1) and wins outright regardless of which file is emitted last.
+   ========================================================================== */
+
+/* The header is fixed and 72px tall, and `.pv-sec`'s own top padding tops out
+   at 86px, which left 14px between the bar and the first word. This is the
+   same opening clearance the work and legal heroes use. */
+/* `.pv` scoped, so (0,2,0): a bare `.ob-sec` ties with `.pv-sec` at (0,1,0)
+   and lost on emit order, leaving the measured 13px of clearance this rule
+   exists to fix. */
+.pv .ob-sec { padding-block: clamp(6.5rem, 11vw, 9rem) clamp(3.4rem, 6vw, 6rem); }
+
+.ob {
+  display: grid;
+  grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: start;
+}
+
+/* The intro and the read-back have no rail, so they are a single measured
+   column rather than a grid with one empty track. The gap has to be zeroed
+   with it: a 4.5rem row gap was designed to separate two columns and instead
+   landed between every stacked block here, opening 72px voids that made one
+   short page read as five disconnected ones. Spacing in this column comes
+   from each block's own top margin. */
+.ob--intro {
+  grid-template-columns: minmax(0, 72ch);
+  justify-content: center;
+  gap: 0;
+}
+
+.pv .ob__k {
+  margin: 0 0 .8rem;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .78rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--accent-ink);
+}
+
+.pv .ob h1 {
+  font-size: clamp(1.9rem, 1.4rem + 1.9vw, 2.9rem);
+  text-wrap: balance;
+}
+
+.pv .ob__lede {
+  margin: 1rem 0 0;
+  max-width: 58ch;
+  font-size: 1.05rem; line-height: 1.65;
+  color: var(--muted);
+}
+
+.pv .ob__blurb {
+  margin: .7rem 0 0;
+  max-width: 56ch;
+  color: var(--muted);
+}
+
+/* ---------------- welcome ---------------- */
+
+/* Three facts, stated before anyone commits: how long, how many screens, and
+   that leaving is safe. Abandonment on a long form is mostly a fear of the
+   unknown length. */
+.ob__facts {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px; margin-top: 2rem;
+  border: 1px solid var(--rule); border-radius: 16px;
+  background: var(--rule); overflow: hidden;
+}
+.ob__facts > div { padding: 1rem 1.15rem; background: var(--paper); }
+.ob__facts dt {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .72rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted);
+}
+.ob__facts dd {
+  margin: .35rem 0 0;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: clamp(1.15rem, 1rem + .5vw, 1.45rem); font-weight: 700;
+  color: var(--ink); letter-spacing: -.02em;
+}
+@media (max-width: 560px) {
+  .ob__facts { grid-template-columns: 1fr; }
+}
+
+.ob__note {
+  margin-top: 1.6rem; padding: clamp(1.1rem, 2.4vw, 1.6rem);
+  border: 1px solid var(--rule); border-radius: 16px;
+  background: var(--paper-2);
+}
+.pv .ob__note h2 {
+  font-size: 1rem; letter-spacing: normal;
+  color: var(--ink);
+}
+.ob__note ul {
+  margin: .9rem 0 0; padding: 0; list-style: none;
+  display: grid; gap: .6rem;
+}
+.ob__note li {
+  position: relative; padding-left: 1.5rem;
+  color: var(--muted); line-height: 1.6;
+}
+.ob__note li::before {
+  content: ""; position: absolute; left: 0; top: .52em;
+  width: .62rem; height: .62rem; border-radius: 50%;
+  border: 2px solid var(--accent);
+}
+
+/* The demo service picker. Marked as scaffolding rather than dressed up: in
+   production these come from the paid project record behind the link. */
+.ob__demo {
+  margin-top: 1.6rem; padding: clamp(1rem, 2.2vw, 1.4rem);
+  border: 1px dashed var(--rule); border-radius: 16px;
+}
+.pv .ob__demo p { color: var(--muted); }
+.ob__demo--end { margin-top: 2rem; }
+
+.ob__picks { display: flex; flex-wrap: wrap; gap: .5rem; }
+.ob__pick {
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .5rem .85rem;
+  border: 1px solid var(--rule); border-radius: 999px;
+  font-size: .9rem; color: var(--ink); cursor: pointer;
+  transition: border-color .2s ease, background .2s ease;
+}
+.ob__pick:hover { border-color: var(--accent); }
+.ob__pick input { accent-color: var(--accent); width: 1rem; height: 1rem; }
+.ob__pick:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+
+/* ---------------- the rail ---------------- */
+
+.ob__rail { position: sticky; top: 96px; align-self: start; }
+
+.ob__bar {
+  height: 4px; border-radius: 999px;
+  background: var(--rule); overflow: hidden;
+}
+.ob__bar i {
+  display: block; height: 100%; border-radius: 999px;
+  background: var(--accent);
+  transition: width .35s cubic-bezier(.4, 0, .2, 1);
+}
+.pv .ob__count {
+  margin: .7rem 0 1.2rem;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .78rem; font-weight: 700; letter-spacing: .06em;
+  color: var(--muted);
+}
+
+.ob__rail ol { margin: 0; padding: 0; list-style: none; display: grid; gap: .15rem; }
+.ob__rail button {
+  display: grid; grid-template-columns: auto minmax(0, 1fr);
+  gap: .7rem; width: 100%; padding: .6rem .7rem;
+  border: 0; border-radius: 12px; background: transparent;
+  text-align: left; cursor: pointer; color: inherit;
+  font: inherit;
+  transition: background .2s ease;
+}
+.ob__rail button:disabled { cursor: default; opacity: .55; }
+.ob__rail button:not(:disabled):hover { background: var(--paper-2); }
+.ob__rail b {
+  display: block;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .92rem; font-weight: 600; color: var(--ink);
+  letter-spacing: -.01em;
+}
+/* The blurb repeats in the rail on purpose: it is the only place a reader can
+   see what is still ahead of them, and a bare list of nine titles does not
+   answer "what else will you ask me". */
+.ob__rail em {
+  display: block; margin-top: .12rem;
+  font-style: normal; font-size: .78rem; line-height: 1.4;
+  color: var(--muted);
+}
+
+.ob__n {
+  display: grid; place-items: center;
+  width: 1.55rem; height: 1.55rem; border-radius: 50%;
+  border: 1px solid var(--rule);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .7rem; font-weight: 700; color: var(--muted);
+}
+.ob__n svg { width: .85rem; height: .85rem; stroke-width: 3; }
+
+.ob__rail .is-on b { color: var(--accent-ink); }
+.ob__rail .is-on .ob__n {
+  border-color: var(--accent); background: var(--accent); color: #fff;
+}
+.ob__rail .is-done .ob__n {
+  border-color: var(--accent); color: var(--accent-ink); background: transparent;
+}
+
+/* On a phone the rail is the bar and the count, nothing else: nine step
+   descriptions stacked above the question would push the question itself off
+   the first screen, which is the one thing that must always be visible. */
+@media (max-width: 900px) {
+  .ob { grid-template-columns: minmax(0, 1fr); gap: 1.6rem; }
+  .ob__rail { position: static; }
+  .ob__rail ol { display: none; }
+  .pv .ob__count { margin-bottom: 0; }
+  /* With the rail collapsed to a bar, its counter lands directly above the
+     step's own eyebrow and the screen opens by saying "Step 1 of 7" twice. */
+  .ob__main > .ob__k { display: none; }
+}
+
+/* ---------------- fields ---------------- */
+
+.ob__main { min-width: 0; }
+.ob__fields { display: grid; gap: clamp(1.4rem, 2.6vw, 1.9rem); margin-top: 2.2rem; }
+
+.ob__f { display: grid; gap: .5rem; max-width: 46rem; }
+
+.ob__label {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .98rem; font-weight: 600; color: var(--ink);
+  letter-spacing: -.01em;
+}
+.ob__label b { color: var(--accent-ink); }
+.ob__label i {
+  font-style: normal; font-weight: 400; font-size: .85rem; color: var(--muted);
+}
+
+.pv .ob__hint {
+  margin: -.15rem 0 .15rem;
+  max-width: 56ch;
+  font-size: .88rem; line-height: 1.5; color: var(--muted);
+}
+
+.ob__f input,
+.ob__f textarea,
+.ob__f select {
+  width: 100%; padding: .8rem .95rem;
+  border: 1px solid var(--rule); border-radius: 12px;
+  background: var(--paper); color: var(--ink);
+  font-family: inherit; font-size: 1rem; line-height: 1.5;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.ob__f textarea { resize: vertical; min-height: 7rem; }
+.ob__f input::placeholder,
+.ob__f textarea::placeholder { color: var(--muted); opacity: .75; }
+.ob__f input:focus-visible,
+.ob__f textarea:focus-visible,
+.ob__f select:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.ob__f.is-bad input,
+.ob__f.is-bad textarea,
+.ob__f.is-bad select,
+.ob__f.is-bad .ob__card { border-color: #d13b2f; }
+
+/* The select keeps the native popup — a custom listbox is a lot of keyboard
+   and screen-reader work to own — but loses the native chrome, which is the
+   part that looks out of place. */
+.ob__sel { position: relative; }
+.ob__sel select { appearance: none; padding-right: 2.6rem; cursor: pointer; }
+.ob__sel::after {
+  content: ""; position: absolute; right: 1rem; top: 50%;
+  width: .62rem; height: .62rem; margin-top: -.4rem;
+  border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg); pointer-events: none;
+}
+
+/* Choices are buttons rather than radios so a whole option is a target, not
+   just a 16px circle. The roles are on the elements, so this stays a
+   radiogroup to anything that is not looking at it. */
+.ob__cards { display: flex; flex-wrap: wrap; gap: .55rem; }
+.ob__card {
+  display: inline-flex; align-items: center; gap: .55rem;
+  padding: .7rem 1rem;
+  border: 1px solid var(--rule); border-radius: 12px;
+  background: var(--paper); color: var(--ink);
+  font-family: inherit; font-size: .96rem; text-align: left;
+  cursor: pointer;
+  transition: border-color .2s ease, background .2s ease, color .2s ease;
+}
+.ob__card:hover { border-color: var(--accent); }
+.ob__card.is-on {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--ink);
+}
+.ob__dot {
+  width: 1rem; height: 1rem; border-radius: 50%;
+  border: 2px solid var(--rule); flex: none;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.ob__card.is-on .ob__dot {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 3px var(--paper), inset 0 0 0 1rem var(--accent);
+}
+.ob__tick {
+  display: grid; place-items: center; flex: none;
+  width: 1rem; height: 1rem; border-radius: 4px;
+  border: 2px solid var(--rule);
+}
+.ob__card.is-on .ob__tick { border-color: var(--accent); background: var(--accent); color: #fff; }
+.ob__tick svg { width: .7rem; height: .7rem; stroke-width: 3.5; }
+
+.ob__upload {
+  display: flex; align-items: center; gap: .7rem;
+  padding: 1rem 1.1rem;
+  border: 1px dashed var(--rule); border-radius: 12px;
+  color: var(--muted); font-size: .92rem; line-height: 1.5;
+}
+.ob__upload svg { width: 1.15rem; height: 1.15rem; flex: none; color: var(--accent); }
+
+/* ---------------- actions ---------------- */
+
+.ob__acts { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 2.4rem; }
+
+.ob__btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .85rem 1.5rem;
+  border: 1px solid transparent; border-radius: 999px;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .95rem; font-weight: 600; letter-spacing: -.01em;
+  cursor: pointer;
+  transition: background .22s ease, color .22s ease, border-color .22s ease;
+}
+.ob__btn svg { width: 1.05em; height: 1.05em; }
+.ob__btn--go { background: var(--accent); color: #fff; }
+.ob__btn--go:hover { background: var(--band); color: #fff; border-color: var(--accent); }
+.ob__btn--ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
+.ob__btn--ghost:hover { border-color: var(--accent); color: var(--accent-ink); }
+/* Grid children fill their track, which stretched this pill across the whole
+   72ch column and made it read as a banner rather than a button. */
+.ob--intro .ob__btn--go { margin-top: 2rem; justify-self: start; }
+
+.ob__btn:disabled { opacity: .45; cursor: not-allowed; }
+.ob__btn--go:disabled:hover { background: var(--accent); border-color: transparent; }
+
+.pv .ob__err {
+  margin: 1rem 0 0;
+  font-size: .92rem; color: #d13b2f;
+}
+
+/* ---------------- read-back ---------------- */
+
+.ob__review { display: grid; gap: 1.3rem; margin-top: 2rem; }
+.ob__review section {
+  padding: clamp(1rem, 2.2vw, 1.4rem);
+  border: 1px solid var(--rule); border-radius: 16px;
+  background: var(--paper-2);
+}
+.pv .ob__review h2 {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+  font-size: 1.02rem; letter-spacing: normal; color: var(--ink);
+}
+.ob__review h2 button {
+  border: 0; background: transparent; cursor: pointer;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .82rem; font-weight: 600; color: var(--accent-ink);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.ob__review dl { margin: .9rem 0 0; display: grid; gap: .6rem; }
+.ob__review dl > div {
+  display: grid; grid-template-columns: minmax(0, 12rem) minmax(0, 1fr); gap: 1rem;
+  padding-top: .6rem; border-top: 1px solid var(--rule);
+}
+.ob__review dl > div:first-child { padding-top: 0; border-top: 0; }
+.ob__review dt { font-size: .88rem; color: var(--muted); }
+.ob__review dd { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
+.ob__review dd em { font-style: normal; color: var(--muted); opacity: .8; }
+@media (max-width: 620px) {
+  .ob__review dl > div { grid-template-columns: 1fr; gap: .15rem; }
+}
+
+/* Holds the page's height while the form's JS arrives, so the footer does not
+   sit under the header for a moment and then drop. */
+.ob__wait { min-height: 70vh; }

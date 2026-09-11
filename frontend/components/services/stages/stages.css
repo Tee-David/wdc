@@ -1228,3 +1228,10 @@
     height: auto; width: min(60vw, 210px); max-width: none;
   }
 }
+
+
+/* The branding wall stops drifting when it is off screen. Its two marquees
+   translate a grid holding around a hundred images, which is a large composite
+   every frame for a section nobody is looking at. Gated by the same observer
+   as the strokes. */
+.gm.is-off .gm__track { animation-play-state: paused; }
