@@ -40,13 +40,21 @@ export default function ScrollExpand({
 
     let raf = 0;
     let inView = false;
+    /* Cached, not read per frame. `rect.top` is only `docTop - scrollY`, and
+       `docTop` cannot move without a resize -- so reading the rect on every
+       scroll frame forces a synchronous layout flush for a number that is
+       arithmetic on `window.scrollY`. On a page carrying several of these plus
+       the pinned rows, those flushes compound into the stutter you feel while
+       dragging. */
+    let docTop = 0;
+    const measure = () => { docTop = el.getBoundingClientRect().top + window.scrollY; };
 
     const apply = () => {
-      const r = el.getBoundingClientRect();
+      const top = docTop - window.scrollY;
       const vh = window.innerHeight || 1;
       // 0 when the element's top is a screen below the fold, 1 once it has
       // travelled `span` of the way up
-      const travelled = (vh - r.top) / (vh * span);
+      const travelled = (vh - top) / (vh * span);
       const p = Math.min(1, Math.max(0, travelled));
       const scale = from + (1 - from) * p;
       el.style.setProperty("--se-scale", String(scale));
@@ -70,16 +78,20 @@ export default function ScrollExpand({
     // one frame later, for the same reason: the resting state already reads
     // correctly, so nothing is lost by not flipping this synchronously
     const liveId = requestAnimationFrame(() => setLive(true));
+    measure();
     apply();
 
+    /* A resize is the only thing that can move the element in the document, so
+       it is the only time the cached offset has to be taken again. */
+    const onResize = () => { measure(); onScroll(); };
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    window.addEventListener("resize", onResize);
     return () => {
       io.disconnect();
       cancelAnimationFrame(raf);
       cancelAnimationFrame(liveId);
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("resize", onResize);
     };
   }, [from, span]);
 
