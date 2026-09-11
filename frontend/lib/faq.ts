@@ -22,7 +22,7 @@ export const FAQS: Faq[] = [
   },
   {
     q: "Can you take on just one part of a project?",
-    a: "Yes. Plenty of clients come to us for one discipline, most often design or SEO, and add the rest once it is working. We would rather do one part properly than take the whole thing and stretch it thin.",
+    a: "Yes, and we can take all of it. Plenty of clients come to us for one discipline, most often design or SEO, and add the rest once it is working; plenty of others hand us the brand, the site, the app and the campaigns together. That is the point of keeping all six services under one roof, and it is when the work is at its best, because nothing is lost between the people who design a thing and the people who build it.",
   },
   {
     q: "Do you build with AI?",

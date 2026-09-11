@@ -222,11 +222,6 @@ export default function AboutBody() {
           ))}
         </div>
         <div className="pv-wrap">
-          <nav className="sv-crumb pv-reveal" aria-label="Breadcrumb">
-            <Link href="/">Home</Link>
-            <span aria-hidden="true">/</span>
-            <span aria-current="page">About</span>
-          </nav>
           <div className="sv-hero__copy pv-reveal">
             <p className="sv-hero__loop">
               <span>We Dig Creativity Solutions</span>

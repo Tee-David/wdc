@@ -43,7 +43,15 @@ import type { Project } from "@/lib/projects";
  * the answer is usually already in hand — and a probe that REJECTS early drops
  * straight to the capture without waiting out the timer at all.
  */
-const GRACE = 2600;
+/* TEN SECONDS, not the 2,600ms this was.
+   The timeout is a BACKSTOP for a frame that never reports either way, and at
+   2.6s it was firing on sites that simply had not finished loading yet --
+   third-party origins on a cold connection routinely take longer than that.
+   The result was a modal telling the reader a site refuses to be embedded when
+   the site was about to embed perfectly well. Ten seconds is long enough that
+   reaching it means something is genuinely wrong, and the frame keeps loading
+   behind the message either way, so a late success still wins. */
+const GRACE = 10000;
 
 export default function SiteModal({
   project,
@@ -52,7 +60,13 @@ export default function SiteModal({
   project: Project;
   onClose: () => void;
 }) {
-  const [state, setState] = useState<"loading" | "live" | "blocked">("loading");
+  /* Four states, because "we could not show it" and "it refuses to be shown"
+   are different claims and only one of them is ever proven.
+     loading  the frame has not reported yet
+     live     it framed
+     blocked  ESTABLISHED refusal: the server-side header check said no
+     slow     the backstop timer ran out, which proves nothing about policy */
+  const [state, setState] = useState<"loading" | "live" | "blocked" | "slow">("loading");
   const panel = useRef<HTMLDivElement | null>(null);
   const closeBtn = useRef<HTMLButtonElement | null>(null);
 
@@ -154,9 +168,15 @@ export default function SiteModal({
      fallback even if it is slow — and short-circuited the moment the probe
      says the host is not answering, because nothing is going to paint. */
   useEffect(() => {
-    if (state !== "loading") return;
+    /* `slow` is not settled: the frame is still loading behind the note and a
+       late `load` event can still promote it to `live`. Only `live` and
+       `blocked` are final. */
+    if (state === "live" || state === "blocked") return;
     let live = true;
-    const t = window.setTimeout(() => { if (live) setState("blocked"); }, GRACE);
+    /* `slow`, not `blocked`. Running out of patience is not evidence of a
+       framing policy, and saying otherwise puts a false statement about
+       somebody else's site in front of the reader. */
+    const t = window.setTimeout(() => { if (live) setState("slow"); }, GRACE);
     /* A definite NO settles it before the frame has finished failing, which is
        the difference between a preview that resolves and one that flashes an
        error page on its way to the capture. */
@@ -268,11 +288,12 @@ export default function SiteModal({
             <span className="pv-modal__wait" aria-hidden="true"><i /><i /><i /></span>
           ) : null}
 
-          {state === "blocked" ? (
+          {state === "blocked" || state === "slow" ? (
             <div className="pv-modal__note">
               <p>
-                {project.name} does not allow itself to be embedded, so this is
-                the capture. The live site is one click away.
+                {state === "blocked"
+                  ? `${project.name} does not allow itself to be embedded, so this is the capture. The live site is one click away.`
+                  : `${project.name} is taking a while to load in here. This is the capture meanwhile, and the live site is one click away.`}
               </p>
               <a className="pv-btn pv-btn--accent" href={project.url} target="_blank" rel="noopener noreferrer">
                 Open {host}
