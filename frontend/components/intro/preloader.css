@@ -1,0 +1,88 @@
+/* ============================================================================
+   Preloader.
+
+   Covers the page while the logo assembles, then fades. Everything here is
+   non-blocking on purpose: `pointer-events: none` so the overlay cannot
+   swallow a click, and no scroll lock anywhere, so someone who already knows
+   the site can scroll straight through it.
+   ========================================================================== */
+
+/* HIDDEN BY DEFAULT, shown only when the pre-paint script in app/layout.tsx
+   says so. Doing it this way round means the server and the client render the
+   same markup -- there is nothing for hydration to disagree about -- and the
+   overlay is either there on the very first frame or never there at all,
+   rather than appearing a beat after the page has painted. */
+.pl { display: none; }
+
+[data-preload="play"] .pl {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: var(--background);
+  pointer-events: none;
+  /* ONE number, and everything else derived from it. The mark's height is the
+     input; its width comes from the 904x944 viewBox and the box it opens into
+     is that width plus the 14px gap before the rule. Setting the two by hand
+     is what clipped the left of the mark: `width: auto` on the svg did not
+     resolve to the aspect-derived width inside this flex box, so the mark came
+     out wider than the box that was supposed to contain it and `overflow:
+     hidden` sliced it. Deriving both from `--pl-h` means they cannot disagree
+     -- too small and the mark is cut, too large and the finished lockup has a
+     gap down the middle of it. */
+  --pl-h: 64px;
+  --pl-mark: calc(var(--pl-h) * 904 / 944 + 14px);
+}
+@media (min-width: 768px) { .pl { --pl-h: 104px; } }
+
+.pl__lockup { display: flex; align-items: center; }
+
+/* `overflow: hidden` is load-bearing. The mark starts 140px to the left of
+   here, and without the clip it would be visible sliding in across the empty
+   half of the screen rather than appearing out of the growing box. */
+.pl__markbox {
+  display: flex; justify-content: flex-end;
+  overflow: hidden;
+}
+.pl__mark { display: inline-flex; padding-right: 14px; }
+.pl__mark svg { height: var(--pl-h); width: calc(var(--pl-h) * 904 / 944); }
+
+/* The wordmark sits at the site's own lockup proportions, so the shape the
+   preloader lands on is the shape in the header. */
+.pl__word {
+  border-left: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  padding-left: 14px;
+  line-height: 1;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  color: var(--foreground);
+}
+.pl__w1, .pl__w2 { display: block; font-weight: 700; letter-spacing: -.02em; }
+.pl__w1 { font-size: clamp(1.5rem, 3.4vw, 2.4rem); }
+.pl__w2 { font-size: clamp(1.5rem, 3.4vw, 2.4rem); }
+/* "Creativity" takes the accent, the same split the wordmark uses everywhere
+   else on the site. */
+.pl__w2 { color: #ff6500; }
+
+/* The hold indicator. Thin, low-contrast and at the foot of the screen: it is
+   there to say the pause is finite, not to be looked at. Its clock matches the
+   overlay's 2.2s hold, so it arrives at full width exactly as the fade
+   starts. */
+.pl__bar {
+  position: absolute; left: 50%; bottom: clamp(38px, 7vh, 64px);
+  transform: translateX(-50%);
+  width: min(180px, 42vw); height: 2px; border-radius: 999px;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  overflow: hidden;
+}
+.pl__bar i {
+  display: block; height: 100%; width: 0; border-radius: inherit;
+  background: #ff6500;
+  animation: pl-fill 2.2s cubic-bezier(.3, .7, .3, 1) forwards;
+}
+@keyframes pl-fill { to { width: 100%; } }
+
+/* Belt and braces. The pre-paint script already refuses to set `play` when
+   reduced motion is on, so this only matters if the preference is changed
+   mid-session. */
+@media (prefers-reduced-motion: reduce) {
+  [data-preload="play"] .pl { display: none; }
+}
