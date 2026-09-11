@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/header";
 import { WorkFooter } from "@/components/work/work-footer";
 import { CASE_STUDIES, caseBySlug, casesFor, categoryBySlug } from "@/lib/work";
 import { COMPANY_NAME, SITE_URL } from "@/lib/site";
+import { testimonialFor } from "@/lib/testimonials";
 import "@/components/preview/preview.css";
 import "@/components/work/work.css";
 
@@ -45,6 +46,9 @@ export default async function WorkDetailPage(
   if (!cs || cs.category !== category) notFound();
 
   const cat = categoryBySlug(cs.category);
+  /* Undefined for a client who has not given one, and the block simply does
+     not render — the page has never needed a testimonial to be complete. */
+  const said = testimonialFor(cs.slug);
   const siblings = casesFor(cs.category).filter((x) => x.category === cs.category);
   const i = siblings.findIndex((x) => x.slug === cs.slug);
   const prev = i > 0 ? siblings[i - 1] : null;
@@ -174,13 +178,26 @@ export default async function WorkDetailPage(
                   {cs.approach.split("\n\n").map((para) => <p key={para.slice(0, 24)}>{para}</p>)}
                 </section>
 
-                {/* The client's own words, off a page they signed off. Not a
-                    testimonial: nobody here has been asked for one, and
-                    inventing praise is the one thing a work page must not do. */}
+                {/* Brand copy: a line off a guide page the client signed off —
+                    a positioning statement, a tagline. It is what the brand
+                    SAYS, not what the client thinks of the work, which is why
+                    it is captioned with where it came from. */}
                 {cs.quote ? (
                   <figure className="wk-quote">
                     <blockquote>{cs.quote.text}</blockquote>
                     <figcaption>{cs.quote.from}</figcaption>
+                  </figure>
+                ) : null}
+
+                {/* And the testimonial, which is a different thing: the client
+                    on the work itself. This block used to carry a note saying
+                    none had been asked for. They have been, and these are what
+                    came back — attributed to the organisation, because that is
+                    how they were given. No invented name, no invented role. */}
+                {said ? (
+                  <figure className="wk-quote wk-quote--said">
+                    <blockquote>{said.text}</blockquote>
+                    <figcaption>{said.client}</figcaption>
                   </figure>
                 ) : null}
 

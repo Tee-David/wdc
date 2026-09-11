@@ -5,6 +5,8 @@ import type { CSSProperties } from "react";
 import { PROJECTS, type Project } from "@/lib/projects";
 import SiteModal from "./site-modal";
 import { FAQS } from "@/lib/faq";
+import { TESTIMONIALS } from "@/lib/testimonials";
+import { caseBySlug } from "@/lib/work";
 import FaqAccordion from "@/components/ui/faq-accordion";
 import { CONTACT_EMAIL } from "@/lib/site";
 
@@ -78,18 +80,35 @@ const WHY = [
   { t: "Real engineering", d: "AI and software built around outcomes, and we say when it is not needed.", label: "Talk to us", href: "#pv-contact" },
 ];
 
-/* Placeholder quotes, kept for layout and clearly marked. */
-const QUOTES = [
-  { q: "WDC rebuilt our brand and site from scratch; within two months we were ranking for terms we'd chased for years.", n: "Amara Okonkwo", r: "Founder, Lumen Studios" },
-  { q: "The cross-platform app they shipped feels native on every device. Clean code, on time, and they actually explained the trade-offs.", n: "Daniel Reyes", r: "CTO, Fielded" },
-  { q: "Our organic traffic doubled in a quarter. WDC's SEO work is the real thing; technical depth plus content that converts.", n: "Priya Nair", r: "Head of Growth, Northbeam" },
-  { q: "Branding, design, and dev under one roof meant no hand-off gaps. The final product looked exactly like the vision.", n: "Marcus Bell", r: "CEO, Cadence Labs" },
-  { q: "They wired AI into our support flow and cut response times in half. Genuinely thoughtful engineering, not hype.", n: "Sofia Almeida", r: "COO, Brightloop" },
-  { q: "Every detail was considered; animations, accessibility, performance. Our Lighthouse scores have never been greener.", n: "Tobi Adeyemi", r: "Product Lead, Kite" },
-];
+/* Real client testimonials, from lib/testimonials.ts. Six invented quotes
+   used to sit here — invented people, invented companies, invented results
+   ("organic traffic doubled in a quarter"). The comment above them called
+   them placeholders, which is not what they were once they were rendering on
+   a live page: they were fabricated endorsements. Gone.
 
-const initials = (name: string) =>
-  name.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+   The sector and city come from the case study, so there is nothing here that
+   is not already recorded somewhere else on the site. No job titles: none were
+   given, and making one up is the same lie in a smaller font. */
+const QUOTES = TESTIMONIALS.map((t) => {
+  const cs = caseBySlug(t.slug);
+  return { q: t.text, n: t.client, r: cs ? `${cs.sector} · ${cs.location}` : "" };
+});
+
+/* Two letters, from words that actually start with one. Real client names
+   carry punctuation as separate tokens -- "TAB — The Ajoks Brand", "Millcon &
+   Millcon Consult Limited" -- and taking the first character of the first two
+   space-separated tokens produced badges reading "T—" and "M&". Filtering to
+   tokens that begin with a letter or digit gives "TT" and "MM".
+
+   A one-word name takes its own first two characters rather than a single
+   letter, so "TraxStaff" is "TR" and every badge in the row is the same
+   width. */
+const initials = (name: string) => {
+  const words = name.split(/\s+/).filter((w) => /^[\p{L}\p{N}]/u.test(w));
+  if (words.length === 0) return "?";
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+};
 
 function Icon({ i }: { i: number }) {
   const paths = [
