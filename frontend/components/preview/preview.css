@@ -633,12 +633,19 @@ main.pv {
 /* ---------------- motion ----------------
    Opt-in at runtime: the .pv-motion flag is added by script only when it runs
    and reduced-motion is off, so nothing is ever hidden by CSS alone. */
-.pv-reveal { will-change: opacity, transform; }
+/* `will-change` ONLY WHILE IT IS STILL WAITING TO PLAY. This was declared on
+   every `.pv-reveal` unconditionally, which promotes each one to its own
+   compositor layer and then keeps that layer for the life of the page, long
+   after a once-only entrance has finished. Measured on /services: 83 elements
+   holding a layer at rest. `will-change` is a hint about what is ABOUT to
+   change; once `.is-in` has landed, nothing about this element will change
+   again, and holding the layer is pure cost. */
 .pv-motion .pv-reveal {
   opacity: 0; transform: translateY(26px);
+  will-change: opacity, transform;
   transition: opacity .7s cubic-bezier(.16, 1, .3, 1), transform .7s cubic-bezier(.16, 1, .3, 1);
 }
-.pv-motion .pv-reveal.is-in { opacity: 1; transform: none; }
+.pv-motion .pv-reveal.is-in { opacity: 1; transform: none; will-change: auto; }
 
 @media (prefers-reduced-motion: reduce) {
   .pv-motion .pv-reveal { opacity: 1; transform: none; transition: none; }

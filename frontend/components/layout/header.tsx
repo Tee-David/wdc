@@ -163,11 +163,19 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
     </Link>
   );
 
+  /* NO BACKDROP BLUR ON THE BAR. This was `bg-background/85 backdrop-blur-md`,
+     and a blurred backdrop on a FIXED element is the single most expensive
+     thing a scrolling page can carry: the browser has to re-blur whatever has
+     just moved underneath it on every frame, across the full width of the
+     viewport, for the whole length of the document. iOS Safari is worst
+     affected, which is where the "catch" was most obvious, but it costs on
+     desktop too. At 94% opacity the bar reads as the same frosted surface and
+     the page scrolls under it for free. */
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
         solid
-          ? "border-b border-line bg-background/85 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,101,0.06)]"
+          ? "border-b border-line bg-background/95 shadow-[0_8px_30px_rgba(0,0,101,0.06)]"
           : "border-b border-transparent bg-transparent"
       }`}
     >

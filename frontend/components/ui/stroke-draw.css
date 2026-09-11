@@ -36,52 +36,62 @@
 }
 
 /* Resting state is the FINISHED numeral. Anything that stops the animation —
-   reduced motion, a failed stylesheet, an old browser — leaves a readable
-   number rather than a blank space. */
+   reduced motion, a failed stylesheet, JavaScript off, an old browser — leaves
+   a readable number rather than a blank space. This is also the state every
+   stroke on the page sits in once it has drawn, which is the point of the
+   rewrite below. */
 .sn__p { stroke-dasharray: none; stroke-dashoffset: 0; }
 
+/* ---------------------------------------------------------------------------
+   IT DRAWS ONCE, ON ARRIVAL. IT DOES NOT LOOP.
+
+   This ran `infinite`, and that was the single most expensive thing on the
+   site. `stroke-dashoffset` is not a compositor property: every frame of it
+   repaints the whole SVG on the main thread. Measured on /services at 4x CPU
+   throttling, SITTING STILL — not scrolling — the page held an average frame
+   of 96ms, about ten frames a second, with 38 of these looping at once over
+   535 paths. Scrolling then had to compete with that for the main thread,
+   which is exactly the "catch" you feel: the scroll is fine, the thread it
+   needs is busy redrawing numerals nobody asked to see again.
+
+   A draw-on is a reveal. A reveal that repeats every 5.2 seconds forever is
+   not a reveal, it is a loop, and it was costing the whole site its frame
+   rate to say the same thing over and over. So: `.is-in` is added by
+   components/ui/draw-gate.tsx the first time an element reaches the viewport,
+   the stroke draws in, and the animation ends on the finished glyph and stops
+   ticking. Nothing repaints after that.
+   --------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: no-preference) {
-  .sn__p {
+  .sn.is-in .sn__p {
     stroke-dasharray: 1;
-    animation: sk-draw 5.2s cubic-bezier(.62, .02, .34, 1) infinite;
+    animation: sk-draw 1.5s cubic-bezier(.62, .02, .34, 1) both;
     animation-delay: calc(var(--sn-delay, 0ms) + var(--i, 0) * 180ms);
   }
   /* Icons: same stroke, same clock. The shapes are staggered in the order
      lucide draws them, which is usually outside-in, so the icon assembles
      rather than flickering on all at once. */
-  .svc-draw svg :is(path, line, polyline, polygon, circle, rect, ellipse) {
+  .svc-draw.is-in svg :is(path, line, polyline, polygon, circle, rect, ellipse) {
     stroke-dasharray: 1;
-    animation: sk-draw 5.2s cubic-bezier(.62, .02, .34, 1) infinite;
+    animation: sk-draw 1.5s cubic-bezier(.62, .02, .34, 1) both;
     animation-delay: calc(var(--sk-delay, 0ms) + var(--i, 0) * 150ms);
   }
 }
 
-/* Draws in from the start, holds the whole numeral, then runs off the far end
-   rather than fading — the negative offset walks the dash past the end of the
-   path, so the stroke leaves the way it arrived. */
+/* Draws in from the start and STAYS. It used to walk the dash off the far end
+   and fade out, which only made sense as the handover into the next loop;
+   with no next loop, ending on the drawn glyph is both the honest resting
+   state and the one that matches `.sn__p` above. */
 @keyframes sk-draw {
-  0%   { stroke-dashoffset: 1;  opacity: 0; }
-  6%   { opacity: 1; }
-  26%  { stroke-dashoffset: 0;  opacity: 1; }
-  68%  { stroke-dashoffset: 0;  opacity: 1; }
-  92%  { stroke-dashoffset: -1; opacity: 1; }
-  96%  { opacity: 0; }
-  100% { stroke-dashoffset: -1; opacity: 0; }
+  0%   { stroke-dashoffset: 1; opacity: 0; }
+  8%   { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
 }
 
-/* ---------------------------------------------------------------------------
-   Off-screen strokes do not animate.
-
-   `sk-draw` moves `stroke-dashoffset`, which repaints its SVG every frame
-   rather than running on the compositor. Measured on /services: 377 of these
-   were running at once and 268 of them were outside the viewport, repainting
-   continuously for nobody. components/ui/draw-gate.tsx adds `is-off` to a
-   container once it leaves the viewport.
-
-   `paused` rather than `none`: a paused animation holds its current frame, so
-   a numeral that scrolls away mid-stroke is still mid-stroke when it comes
-   back, instead of snapping to its end state.
-   --------------------------------------------------------------------------- */
+/* A stroke that leaves mid-draw is paused rather than left running, so the
+   handful that are still animating at any moment cost nothing once they are
+   off screen. Pausing holds the current frame, so it resumes mid-stroke
+   instead of snapping to the end. Once a stroke has finished it is inert
+   either way and this rule has nothing left to do. */
 @media (prefers-reduced-motion: no-preference) {
   .sn.is-off .sn__p,
   .svc-draw.is-off svg :is(path, line, polyline, polygon, circle, rect, ellipse) {

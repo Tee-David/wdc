@@ -58,7 +58,12 @@
   background: rgba(255, 255, 255, .07);
   border: 1px solid var(--on-band-rule);
   color: var(--accent);
-  backdrop-filter: blur(2px);
+  /* NO `backdrop-filter`. These four sit over the hero band and float
+     continuously, and a backdrop blur has to re-blur what is behind it on
+     every frame of that float and on every frame the page scrolls underneath.
+     It is among the most expensive things a browser can be asked to do, iOS
+     Safari especially, and at 2px over a flat navy panel it was buying a
+     difference nobody could see. The translucent fill does the whole job. */
 }
 .sv-bub svg { width: 45%; height: 45%; }
 .sv-bub--1 { top: 22%; left: 8%; }
@@ -327,13 +332,15 @@
   .sv-step__icon {
     animation: sv-bob 2.6s cubic-bezier(.34, 1.4, .5, 1) infinite;
     animation-delay: var(--bob, 0s);
-    will-change: transform;
   }
   .sv-step:hover .sv-step__icon { animation-play-state: paused; }
-  /* And paused off screen, by components/ui/draw-gate.tsx. `will-change:
-     transform` above promotes each of these to its own compositor layer, so
-     leaving 36 of them live for content nobody is looking at costs memory for
-     nothing. */
+  /* Paused off screen by components/ui/draw-gate.tsx, which adds `is-off`.
+     The layer hint goes with it: `will-change: transform` promotes each icon
+     to its own compositor layer, and there are 36 of them on /services, nearly
+     all of them off screen at any moment. Declaring it on `:not(.is-off)`
+     means the page holds layers for the handful actually bobbing in view
+     instead of for all 36 at once. */
+  .sv-step:not(.is-off) .sv-step__icon { will-change: transform; }
   .sv-step.is-off .sv-step__icon { animation-play-state: paused; }
 }
 @keyframes sv-bob {
