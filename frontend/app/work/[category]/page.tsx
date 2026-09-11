@@ -69,11 +69,6 @@ export default async function WorkCategoryPage(
       <main className="flex-1 pv">
         <section className="wk-hero">
           <div className="pv-wrap wk-hero__in">
-            <nav className="wk-crumbs" aria-label="Breadcrumb">
-              <Link href="/work">Our Work</Link>
-              <i aria-hidden="true">/</i>
-              <span>{c.label}</span>
-            </nav>
             <h1>{c.name}</h1>
             <p className="pv-lede">{c.lede}</p>
           </div>

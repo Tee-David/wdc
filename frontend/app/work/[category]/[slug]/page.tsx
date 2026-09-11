@@ -87,13 +87,6 @@ export default async function WorkDetailPage(
         <section className="pv-sec" style={{ paddingTop: "clamp(6.5rem, 11vw, 9rem)" }}>
           <div className="pv-wrap">
             <article className="wk-doc">
-              <nav className="wk-crumbs" aria-label="Breadcrumb">
-                <Link href="/work">Our Work</Link>
-                <i aria-hidden="true">/</i>
-                <Link href={`/work/${cs.category}`}>{cat?.label ?? cs.category}</Link>
-                <i aria-hidden="true">/</i>
-                <span>{cs.client}</span>
-              </nav>
 
               <h1>{cs.title}</h1>
 
