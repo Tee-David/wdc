@@ -1,0 +1,246 @@
+/* ============================================================================
+   THE ADMIN.
+
+   Same brand, different idiom. The public site is editorial: big type, motion,
+   air. This is a tool somebody uses for an hour at a time, so it is dense,
+   quiet and fast to scan. What carries over is the palette, Space Grotesk on
+   headings and Outfit on everything else, the 14px hairline vocabulary, and
+   the orange reserved for the one thing that matters on a screen.
+
+   What deliberately does NOT carry over: the smooth scroll, the cursor, the
+   preloader, the draw-on animations and the reveal-on-scroll. A row that fades
+   in when you scroll to it is charming once and infuriating on the four
+   hundredth read. See app/admin/layout.tsx for how they are kept out.
+
+   TABULAR NUMERALS ON EVERY FIGURE. Money in a column that does not line up is
+   money you cannot scan, and proportional digits are the single most common
+   reason an admin feels amateur.
+   ========================================================================== */
+
+.ad {
+  --ad-bg: #f6f7fb;
+  --ad-panel: #ffffff;
+  --ad-ink: #0e0e2c;
+  --ad-dim: #5c5c7a;
+  --ad-line: #e4e6f0;
+  --ad-accent: #ff6500;
+  --ad-navy: #000065;
+  --ad-good: #1d9a63;
+  --ad-warn: #b8860b;
+  --ad-bad: #d63333;
+  --ad-r: 14px;
+
+  min-height: 100dvh;
+  background: var(--ad-bg);
+  color: var(--ad-ink);
+  font-family: var(--font-outfit), system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.dark .ad {
+  --ad-bg: #06061c;
+  --ad-panel: #0e0e2e;
+  --ad-ink: #eef0fb;
+  --ad-dim: #9b9dc4;
+  --ad-line: #1e2046;
+}
+
+.ad *, .ad *::before, .ad *::after { box-sizing: border-box; }
+.ad h1, .ad h2, .ad h3 {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; letter-spacing: -.02em; margin: 0;
+}
+.ad a { color: inherit; text-decoration: none; }
+.ad :is(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--ad-accent); outline-offset: 2px; border-radius: 4px;
+}
+
+/* ------------------------------------------------------------------ shell */
+
+.ad__wrap { display: grid; grid-template-columns: 244px minmax(0, 1fr); }
+@media (max-width: 900px) { .ad__wrap { grid-template-columns: minmax(0, 1fr); } }
+
+.ad__side {
+  position: sticky; top: 0; align-self: start;
+  height: 100dvh; display: flex; flex-direction: column;
+  padding: 1.1rem .8rem;
+  background: var(--ad-panel);
+  border-right: 1px solid var(--ad-line);
+}
+@media (max-width: 900px) {
+  /* On a phone the sidebar becomes a scrolling row of pills under the header.
+     Six items is short enough that a drawer would be more taps than it saves. */
+  .ad__side {
+    position: static; height: auto; flex-direction: row; align-items: center;
+    gap: .4rem; overflow-x: auto; padding: .6rem .8rem;
+    border-right: 0; border-bottom: 1px solid var(--ad-line);
+    scrollbar-width: none;
+  }
+  .ad__side::-webkit-scrollbar { display: none; }
+  .ad__brand, .ad__sideFoot { display: none; }
+}
+
+.ad__brand {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .4rem .6rem 1rem;
+}
+.ad__brand b {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .95rem; font-weight: 700; letter-spacing: -.01em;
+}
+.ad__brand span { font-size: .72rem; color: var(--ad-dim); display: block; }
+
+.ad__nav { display: flex; flex-direction: column; gap: 2px; }
+@media (max-width: 900px) { .ad__nav { flex-direction: row; gap: .4rem; } }
+
+.ad__link {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .55rem .65rem; border-radius: 9px;
+  color: var(--ad-dim); font-weight: 500; white-space: nowrap;
+  transition: background .14s ease, color .14s ease;
+}
+.ad__link svg { width: 1.05rem; height: 1.05rem; flex: none; }
+.ad__link:hover { background: var(--ad-bg); color: var(--ad-ink); }
+/* The current page is filled, not underlined. In a tool you should be able to
+   tell where you are from the corner of your eye. */
+.ad__link.is-on { background: var(--ad-navy); color: #fff; }
+.dark .ad__link.is-on { background: #23239b; }
+.ad__link .ad__count {
+  margin-left: auto; padding: .05em .45em; border-radius: 999px;
+  background: var(--ad-accent); color: #fff;
+  font-size: .68rem; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+@media (max-width: 900px) { .ad__link .ad__count { margin-left: .2rem; } }
+
+.ad__sideFoot { margin-top: auto; padding: .6rem; color: var(--ad-dim); font-size: .76rem; }
+
+.ad__main { min-width: 0; padding: clamp(1rem, 2.4vw, 1.8rem); }
+
+/* ------------------------------------------------------------------ page */
+
+.ad__head {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+  gap: .8rem; margin-bottom: 1.1rem;
+}
+.ad__head h1 { font-size: clamp(1.35rem, 1.1rem + 1vw, 1.75rem); }
+.ad__head p { margin: .25rem 0 0; color: var(--ad-dim); }
+
+.ad__panel {
+  background: var(--ad-panel); border: 1px solid var(--ad-line);
+  border-radius: var(--ad-r); overflow: hidden;
+}
+.ad__panelH {
+  display: flex; align-items: center; justify-content: space-between; gap: .6rem;
+  padding: .8rem 1rem; border-bottom: 1px solid var(--ad-line);
+}
+.ad__panelH h2 { font-size: .95rem; }
+.ad__panelH a { color: var(--ad-accent); font-weight: 600; font-size: .82rem; }
+
+/* ----------------------------------------------------------------- tiles */
+
+.ad__tiles {
+  display: grid; gap: .7rem; margin-bottom: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+}
+.ad__tile {
+  padding: .9rem 1rem; border-radius: var(--ad-r);
+  background: var(--ad-panel); border: 1px solid var(--ad-line);
+}
+.ad__tile dt {
+  font-size: .72rem; font-weight: 600; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--ad-dim);
+}
+.ad__tile dd {
+  margin: .35rem 0 0;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: clamp(1.25rem, 1.05rem + .9vw, 1.6rem); font-weight: 700;
+  font-variant-numeric: tabular-nums; letter-spacing: -.02em;
+}
+.ad__tile small { display: block; margin-top: .2rem; color: var(--ad-dim); font-size: .76rem; }
+.ad__tile--good dd { color: var(--ad-good); }
+.ad__tile--bad dd { color: var(--ad-bad); }
+.ad__tile--accent dd { color: var(--ad-accent); }
+
+/* ---------------------------------------------------------------- tables */
+
+/* WRAPPED, ALWAYS. A table is the one thing allowed to be wider than the page,
+   and only inside its own scroller: the body itself must never scroll
+   sideways. */
+.ad__scroll { overflow-x: auto; }
+.ad__t { width: 100%; border-collapse: collapse; font-size: .875rem; }
+.ad__t th {
+  text-align: left; padding: .6rem 1rem;
+  font-size: .7rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--ad-dim); background: var(--ad-bg);
+  border-bottom: 1px solid var(--ad-line); white-space: nowrap;
+}
+.ad__t td { padding: .7rem 1rem; border-bottom: 1px solid var(--ad-line); vertical-align: middle; }
+.ad__t tbody tr:last-child td { border-bottom: 0; }
+.ad__t tbody tr:hover { background: var(--ad-bg); }
+.ad__t .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ad__t b { font-weight: 600; }
+.ad__t small { display: block; color: var(--ad-dim); font-size: .78rem; }
+
+/* ----------------------------------------------------------------- chips */
+
+.ad__pill {
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .16em .6em; border-radius: 999px;
+  font-size: .72rem; font-weight: 600; white-space: nowrap;
+  border: 1px solid var(--ad-line); background: var(--ad-bg); color: var(--ad-dim);
+}
+/* STATE IS A SHAPE AND A COLOUR, not a colour alone: a dot before the word
+   means the row still reads correctly in greyscale and to anyone who cannot
+   separate the hues. */
+.ad__pill::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor;
+}
+.ad__pill--good { color: var(--ad-good); border-color: color-mix(in srgb, var(--ad-good) 35%, var(--ad-line)); }
+.ad__pill--warn { color: var(--ad-warn); border-color: color-mix(in srgb, var(--ad-warn) 35%, var(--ad-line)); }
+.ad__pill--bad { color: var(--ad-bad); border-color: color-mix(in srgb, var(--ad-bad) 35%, var(--ad-line)); }
+.ad__pill--live { color: var(--ad-accent); border-color: color-mix(in srgb, var(--ad-accent) 35%, var(--ad-line)); }
+.ad__pill--flat::before { display: none; }
+
+/* --------------------------------------------------------------- buttons */
+
+.ad__btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .5rem .85rem; border-radius: 9px;
+  border: 1px solid var(--ad-line); background: var(--ad-panel);
+  color: var(--ad-ink); font: inherit; font-weight: 600; font-size: .84rem;
+  cursor: pointer; white-space: nowrap;
+  transition: background .14s ease, border-color .14s ease, color .14s ease;
+}
+.ad__btn:hover { border-color: var(--ad-accent); color: var(--ad-accent); }
+.ad__btn svg { width: 1rem; height: 1rem; }
+.ad__btn--primary { background: var(--ad-accent); border-color: var(--ad-accent); color: #fff; }
+.ad__btn--primary:hover { background: var(--ad-navy); border-color: var(--ad-navy); color: #fff; }
+.ad__btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ----------------------------------------------------------------- empty */
+
+.ad__empty { padding: 2.2rem 1rem; text-align: center; color: var(--ad-dim); }
+.ad__empty b { display: block; color: var(--ad-ink); margin-bottom: .2rem; }
+
+/* -------------------------------------------------------------- the note */
+
+/* Said once, at the top of every screen that shows invented data. An admin
+   that looks real and is not is worse than one that says so. */
+.ad__demo {
+  display: flex; gap: .6rem; align-items: flex-start;
+  margin-bottom: 1rem; padding: .7rem .9rem; border-radius: 10px;
+  background: color-mix(in srgb, var(--ad-accent) 8%, var(--ad-panel));
+  border: 1px solid color-mix(in srgb, var(--ad-accent) 30%, var(--ad-line));
+  color: var(--ad-ink); font-size: .82rem; line-height: 1.5;
+}
+.ad__demo svg { width: 1rem; height: 1rem; color: var(--ad-accent); flex: none; margin-top: .1rem; }
+
+/* ------------------------------------------------------------------ misc */
+
+.ad__grid2 { display: grid; gap: .9rem; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 1000px) { .ad__grid2 { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); } }
+.ad__stack { display: grid; gap: .9rem; }
+.ad__row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.ad__dim { color: var(--ad-dim); }
+.ad__num { font-variant-numeric: tabular-nums; }
