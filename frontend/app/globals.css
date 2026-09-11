@@ -171,3 +171,20 @@ h4 {
   .hero-rise,
   .hero-rise--solid { animation: none; opacity: 1; transform: none; }
 }
+
+
+/* ---------------------------------------------------------------------------
+   Anchor landings, without JavaScript.
+
+   Lenis was handling this on every device with an `anchors: { offset: -88 }`,
+   and it no longer runs on touch -- so a tap on an in-page link there would
+   have put the target under the fixed header. `scroll-padding-top` is the
+   platform's own version of the same idea and costs nothing: the browser keeps
+   this much clear above whatever it scrolls to, including for keyboard focus
+   and for `scrollIntoView`, which Lenis never covered anyway.
+
+   88px is the header (64px, 72px from md) plus room to breathe, matching the
+   offset Lenis uses on pointer devices so a link lands in the same place
+   whichever is driving.
+   --------------------------------------------------------------------------- */
+html { scroll-padding-top: 88px; }

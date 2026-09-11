@@ -41,6 +41,9 @@ export default function PinnedRow({
     let extra = 0;
     let frame = 0;
     let stick = 0;
+    /* Cached at measure time and only there. See the note in `update`. */
+    let docTop = 0;
+    let span = 0;
 
     const release = () => {
       on = false;
@@ -51,9 +54,25 @@ export default function PinnedRow({
     };
     const update = () => {
       if (!on) return;
-      const span = w.offsetHeight - stage.clientHeight;
+      /* NO LAYOUT READ IN HERE. This used to call `getBoundingClientRect()`
+         every frame, which forces the browser to flush pending layout
+         synchronously before it can answer. One of those is cheap; /services
+         carries SIX pinned rows, and with a scroll-expanding showcase and a
+         GSAP reveal all reading rects in their own frame callbacks the result
+         was layout thrashing. Measured with real touch events on a phone
+         profile at 4x CPU: an average frame of 63ms and individual frames of
+         833ms -- which is precisely the "hanging" you feel when you drag.
+
+         `rect.top` is only `docTop - scrollY`, and `docTop` cannot change
+         without a resize. So it is measured ONCE in `measure()` below and the
+         per-frame maths becomes arithmetic on `window.scrollY`, which is a
+         cached value the browser hands over without touching layout.
+
+         `span` moves the same way: both heights are fixed until a resize, so
+         they are cached too rather than read from `offsetHeight` and
+         `clientHeight` on every frame. */
       const p = span > 0
-        ? Math.min(1, Math.max(0, (stick - w.getBoundingClientRect().top) / span))
+        ? Math.min(1, Math.max(0, (stick - docTop + window.scrollY) / span))
         : 0;
       trk.style.transform = `translate3d(${-p * extra}px,0,0)`;
       /* Published for the cue underneath, which is the only thing that can
@@ -69,6 +88,11 @@ export default function PinnedRow({
       extra = trk.scrollWidth - stage.clientWidth;
       if (extra <= 0) { release(); return; }   // nothing to reveal
       w.style.setProperty("--pin-h", `${stage.clientHeight + extra}px`);
+      /* Everything the scroll loop needs, read once, after the height above has
+         been applied. `getBoundingClientRect().top + scrollY` is the wrapper's
+         position in the document, which is fixed until the next resize. */
+      docTop = w.getBoundingClientRect().top + window.scrollY;
+      span = w.offsetHeight - stage.clientHeight;
       on = true;
       update();
     };

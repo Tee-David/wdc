@@ -82,14 +82,25 @@ function useScrollRun<T extends HTMLElement>() {
     const el = ref.current;
     if (!el) return;
     let raf = 0;
-    const apply = () => {
+    /* Measured once per resize rather than once per frame: a rect read in a
+       scroll callback forces the browser to flush layout before it can answer,
+       and `rect.top` is only `docTop - scrollY` anyway. */
+    let docTop = 0;
+    let height = 0;
+    const measure = () => {
       const r = el.getBoundingClientRect();
+      docTop = r.top + window.scrollY;
+      height = r.height;
+    };
+
+    const apply = () => {
+      const top = docTop - window.scrollY;
       /* The travel available is the section's height MINUS one screen, because
          the last screenful is spent with the pin resting at the bottom. Using
          the full height would leave the wheel short of its last image by
          exactly one viewport. */
-      const travel = r.height - (window.innerHeight || 1);
-      run.current = travel <= 0 ? 0 : Math.min(1, Math.max(0, -r.top / travel));
+      const travel = height - (window.innerHeight || 1);
+      run.current = travel <= 0 ? 0 : Math.min(1, Math.max(0, -top / travel));
       /* Published for the scroll cue, which is the only thing that can tell a
          reader this 300vh section has not ended. Same custom property the
          pinned rows write, so the cue does not care what is driving it. */
@@ -99,13 +110,17 @@ function useScrollRun<T extends HTMLElement>() {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(apply);
     };
+    measure();
     apply();
+    /* Only a resize can move the section in the document, so that is the only
+       time the cached offset needs taking again. */
+    const onResize = () => { measure(); onScroll(); };
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    window.addEventListener("resize", onResize);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("resize", onResize);
     };
   }, []);
   return { ref, run };
