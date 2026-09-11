@@ -50,7 +50,7 @@
 .ft__cta {
   display: inline-flex; align-items: center; gap: .4em;
   margin-top: 1.3rem; padding: .7em 1.25em; border-radius: 999px;
-  background: var(--accent); color: #fff; text-decoration: none;
+  background: var(--accent); color: #000065; text-decoration: none;
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-weight: 600; font-size: .92rem;
   transition: transform .25s ease, box-shadow .25s ease;
@@ -79,6 +79,9 @@
   background-position: 0 100%;
   transition: color .2s ease, background-size .3s ease;
 }
+/* The brand CTA is also an anchor inside `.ft__col`; keep its high-contrast
+   navy label from being overwritten by the dim footer-link rule above. */
+.ft .ft__cta { color: #000065; }
 .ft__col a:hover { color: var(--on-band); background-size: 100% 1px; }
 .ft__col a:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px;

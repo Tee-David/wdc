@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { motion } from "motion/react";
-const MotionLink = motion(Link);
 import { siInstagram, siX, siFacebook, siWhatsapp } from "simple-icons";
 import { Logo, WdcMark } from "@/components/brand/logo";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
@@ -230,19 +228,9 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
           <span className="hidden lg:inline-flex">
             <AnimatedThemeToggler />
           </span>
-          <MotionLink
+          <Link
             href="/#pv-contact"
-            animate={{
-              scale: [1, 1.04, 0.96, 1.02, 0.98, 1],
-              rotate: [0, 2, -2, 2, -2, 0]
-            }}
-            transition={{
-              duration: 1.2,
-              repeat: Infinity,
-              repeatDelay: 5,
-              ease: "easeInOut",
-            }}
-            className="group hidden items-center gap-2 rounded-full bg-secondary px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-[#000065] hover:shadow-[0_10px_30px_rgba(255,101,0,0.35)] active:translate-y-0 md:inline-flex"
+            className="header-cta-pulse group hidden items-center gap-2 rounded-full bg-secondary px-5 py-2.5 text-sm font-semibold text-[#000065] transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-[#000065] hover:shadow-[0_10px_30px_rgba(255,101,0,0.35)] active:translate-y-0 md:inline-flex"
           >
             {/* Not "Book a Strategy Call". That was carried over wholesale
                 when this header was rebuilt to match litchconsulting's, and it
@@ -261,7 +249,7 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
             >
               <path d="M4 12 12 4M6 4h6v6" />
             </svg>
-          </MotionLink>
+          </Link>
 
           <StaggeredMenu
             className={"lg:hidden " + (

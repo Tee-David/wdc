@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { WdcMark } from "@/components/brand/logo";
 import "./preloader.css";
 
@@ -42,56 +41,37 @@ import "./preloader.css";
  * left with one job: take the overlay away when the hold is over.
  */
 export default function Preloader() {
-  const [visible, setVisible] = useState(true);
+  const [phase, setPhase] = useState<"holding" | "leaving" | "done">("holding");
 
   useEffect(() => {
     /* The hold, and nothing else. If the script above decided against playing,
        the overlay is already `display: none` and this timer simply unmounts
        something nobody saw. */
-    const t = window.setTimeout(() => setVisible(false), 2200);
-    return () => window.clearTimeout(t);
+    const leave = window.setTimeout(() => setPhase("leaving"), 1750);
+    const done = window.setTimeout(() => setPhase("done"), 2200);
+    return () => {
+      window.clearTimeout(leave);
+      window.clearTimeout(done);
+    };
   }, []);
 
-  return (
-    <AnimatePresence>
-      {visible ? <Overlay key="wdc-preloader" /> : null}
-    </AnimatePresence>
-  );
+  return phase === "done" ? null : <Overlay leaving={phase === "leaving"} />;
 }
 
-function Overlay() {
-  /* A spring, not an ease. The mark arrives with weight and overshoots by a
-     hair before settling, which is what makes the wordmark look pushed rather
-     than scheduled. */
-  const spring = { type: "spring" as const, stiffness: 420, damping: 17, mass: 0.9 };
-
+function Overlay({ leaving }: { leaving: boolean }) {
   return (
-    <motion.div
-      className="pl"
+    <div
+      className={`pl${leaving ? " is-leaving" : ""}`}
       aria-hidden="true"
-      initial={{ opacity: 1 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.45, ease: "easeInOut" }}
     >
       <div className="pl__lockup">
         {/* The mark's BOX opens from zero width; the mark itself rushes in
             from the left inside it. The box is what displaces the wordmark. */}
-        <motion.div
-          className="pl__markbox"
-          initial={{ width: 0 }}
-          animate={{ width: "var(--pl-mark)" }}
-          transition={{ ...spring, delay: 0.05 }}
-        >
-          <motion.span
-            className="pl__mark"
-            initial={{ x: -140, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ ...spring, delay: 0.12 }}
-          >
+        <div className="pl__markbox">
+          <span className="pl__mark">
             <WdcMark tone="auto" />
-          </motion.span>
-        </motion.div>
+          </span>
+        </div>
 
         <span className="pl__word">
           <span className="pl__w1">We Dig</span>
@@ -103,6 +83,6 @@ function Overlay() {
           the hold. It is the only thing on the overlay that reports progress,
           and it is what stops the pause reading as a stall. */}
       <span className="pl__bar"><i /></span>
-    </motion.div>
+    </div>
   );
 }

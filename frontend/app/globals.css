@@ -49,6 +49,16 @@
   }
 }
 
+@keyframes header-cta-pulse {
+  0%, 19.35%, 100% { transform: scale(1) rotate(0); }
+  3.23% { transform: scale(1.04) rotate(2deg); }
+  6.45% { transform: scale(.96) rotate(-2deg); }
+  9.68% { transform: scale(1.02) rotate(2deg); }
+  12.9% { transform: scale(.98) rotate(-2deg); }
+}
+
+.header-cta-pulse { animation: header-cta-pulse 6.2s ease-in-out infinite; }
+
 html {
   scroll-behavior: smooth;
 }
@@ -95,6 +105,7 @@ h4 {
   html {
     scroll-behavior: auto;
   }
+  .header-cta-pulse { animation: none; }
 }
 
 /* --- TextType --- */

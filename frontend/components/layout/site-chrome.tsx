@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { SmoothScroll } from "@/components/ui/smooth-scroll";
-import { SmoothCursor } from "@/components/ui/smooth-cursor";
+import SmoothCursorLoader from "@/components/ui/smooth-cursor-loader";
 import JotformAgent from "@/components/agent/jotform-agent";
 import UserWay from "@/components/ui/userway";
 
@@ -31,7 +31,7 @@ export default function SiteChrome() {
       <SmoothScroll />
       {/* Renders nothing on touch or under reduced motion -- see the
           component. */}
-      <SmoothCursor />
+      <SmoothCursorLoader />
       {/* The official embed owns its native bottom-right launcher; there is
           intentionally no replacement FAB or styling shim around it. */}
       <JotformAgent />

@@ -1,11 +1,12 @@
 /**
- * Canonical apex. `NEXT_PUBLIC_SITE_URL` switches between the Vercel
- * preview and the live domain per environment without touching code.
+ * Canonical apex. `NEXT_PUBLIC_SITE_URL` can override this for an isolated
+ * preview environment, while production and local builds use the public
+ * custom domain by default.
  */
 export const SITE_URL = (() => {
   const env = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
   if (env) return env;
-  return "https://wedigcreativity.vercel.app";
+  return "https://wedigcreativity.com.ng";
 })();
 
 export const SITE_NAME = "We Dig Creativity";
