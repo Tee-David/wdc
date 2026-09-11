@@ -13,6 +13,8 @@ import DrawGate from "@/components/ui/draw-gate";
 import Preloader from "@/components/intro/preloader";
 import Connectivity from "@/components/offline/connectivity";
 import JotformAgent from "@/components/agent/jotform-agent";
+import ScrollTop from "@/components/ui/scroll-top";
+import UserWay from "@/components/ui/userway";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -132,6 +134,14 @@ export default function RootLayout({
               reader reaches for it or the browser goes idle, so it cannot cost
               anything the performance work just bought. */}
           <JotformAgent />
+          {/* THE BOTTOM CORNERS, and they share one set of variables so no one
+              of them has to know another's size -- see :root in
+              components/ui/scroll-top.css. Right: the agent at the bottom,
+              back-to-top above it, because the thing reached for most often
+              belongs closest to the thumb. Left: the accessibility menu, on
+              the same baseline as back-to-top, desktop only. */}
+          <ScrollTop />
+          <UserWay className="uw--corner" />
           {/* Renders nothing on touch or under reduced motion — see the
               component. Mounted inside the theme provider so it sits above
               every page without each page having to remember it. */}

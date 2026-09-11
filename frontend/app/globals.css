@@ -188,3 +188,25 @@ h4 {
    whichever is driving.
    --------------------------------------------------------------------------- */
 html { scroll-padding-top: 88px; }
+
+
+/* ---------------------------------------------------------------------------
+   THE THEME TOGGLE'S TWO GLYPHS.
+
+   Chosen by the `dark` class next-themes stamps on <html> from a blocking
+   inline script, which runs before the first paint. That is what makes this
+   correct with no JavaScript of our own, no hydration, and no flash of the
+   wrong icon.
+
+   It used to be decided by React state that started as "not mounted", so the
+   moon was the server-rendered answer on every page in every theme. Offline,
+   where the chunk that would have corrected it never arrives, a white moon sat
+   on a dark page for as long as the tab stayed open. That was the bug.
+   --------------------------------------------------------------------------- */
+.tt__g { transition: opacity .3s ease, transform .3s ease; }
+/* Light is the bare state, so the moon shows and the sun is tucked away. */
+.tt__sun { opacity: 0; transform: scale(0) rotate(-90deg); }
+.tt__moon { opacity: 1; transform: scale(1) rotate(0deg); }
+.dark .tt__sun { opacity: 1; transform: scale(1) rotate(0deg); }
+.dark .tt__moon { opacity: 0; transform: scale(0) rotate(90deg); }
+@media (prefers-reduced-motion: reduce) { .tt__g { transition: none; } }
