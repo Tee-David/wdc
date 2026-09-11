@@ -167,9 +167,15 @@
 
 .sm-panel-itemLabel {
   display: inline-block;
-  will-change: transform;
   transform-origin: 50% 100%;
 }
+/* THE LAYER HINT ONLY WHILE THE PANEL IS OPEN. These labels are animated by
+   GSAP when the menu opens, and `will-change: transform` on them was
+   unconditional -- so five compositor layers were held, on every page, for a
+   menu that is closed and off screen the overwhelming majority of the time.
+   `data-open` is already on the panel for the open transition, so the hint can
+   simply ride along with it. */
+.sm-panel[data-open="true"] .sm-panel-itemLabel { will-change: transform; }
 
 .sm-panel-item::after {
   counter-increment: smItem;

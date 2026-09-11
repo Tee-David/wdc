@@ -16,7 +16,19 @@ import {
 } from "react";
 import "./logo-loop.css";
 
-const ANIMATION_CONFIG = { SMOOTH_TAU: 0.25, MIN_COPIES: 2, COPY_HEADROOM: 2 };
+/* COPY_HEADROOM WAS 2 AND ONLY EVER NEEDED TO BE 1.
+
+   The track holds `copies` back-to-back sequences and is translated left by an
+   offset that wraps at one sequence width, so the visible window is
+   [offset, offset + container] with offset < seqWidth. Covering the worst case
+   needs copies x seq >= seq + container, which is exactly
+   ceil(container / seq) + 1. The second unit of headroom was a whole extra
+   copy of every logo in every marquee, rendered and painted and never seen.
+
+   On /services that is seven marquees, six of them the narrow tool rails where
+   the sequence is wider than its rail -- so the count was three copies where
+   two do the job, a third of the marquee DOM on the page for nothing. */
+const ANIMATION_CONFIG = { SMOOTH_TAU: 0.25, MIN_COPIES: 2, COPY_HEADROOM: 1 };
 
 export interface LogoLoopItem {
   node: ReactNode;
@@ -68,6 +80,23 @@ function useAnimationLoop(
       return;
     }
 
+    /* THE LAYER HINT LIVES WITH THE LOOP, not in the stylesheet.
+
+       It used to be an unconditional `will-change: transform` on
+       `.logoloop__track`, which meant the layer was promoted for the life of
+       the page even though this loop already stops itself off screen. Seven
+       marquees on /services is seven permanent compositor layers for rows that
+       are almost all stopped and invisible. Traced during a touch scroll at 4x
+       CPU throttling, Layerize was the largest rendering cost on the page at
+       1266ms, ahead of Commit and Paint.
+
+       Starting and stopping the animation and promoting and dropping the layer
+       are the same decision, so they are made in the same place. */
+    const hint = (on: boolean) => {
+      track.style.willChange = on ? "transform" : "";
+    };
+    hint(true);
+
     if (seqWidth > 0) {
       offsetRef.current = ((offsetRef.current % seqWidth) + seqWidth) % seqWidth;
       track.style.transform = `translate3d(${-offsetRef.current}px, 0, 0)`;
@@ -100,11 +129,24 @@ function useAnimationLoop(
                 if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
                 rafRef.current = null;
                 lastTimestampRef.current = null;
-              } else if (rafRef.current === null) {
-                rafRef.current = requestAnimationFrame(animate);
+                hint(false);
+              } else {
+                hint(true);
+                if (rafRef.current === null) {
+                  rafRef.current = requestAnimationFrame(animate);
+                }
               }
             },
-            { rootMargin: "200px 0px" },
+            /* NO MARGIN. 200px of it meant a marquee started running while it
+               was still most of a thumb-scroll below the fold, and on a page
+               carrying seven of them that is several running at once through
+               every scroll. Measured on /services at 4x CPU throttling with an
+               in-page scroll driver: taking the marquees out entirely moved
+               the average frame from 29.2ms to 23.4ms, the largest single
+               saving available on that page, so how many run at once is worth
+               being strict about. They start instantly on arrival either way
+               -- there is nothing to catch up on, the offset is preserved. */
+            { rootMargin: "0px" },
           );
 
     const animate = (timestamp: number) => {
@@ -143,6 +185,7 @@ function useAnimationLoop(
         rafRef.current = null;
       }
       lastTimestampRef.current = null;
+      hint(false);
     };
   }, [targetVelocity, seqWidth, isHovered, hoverSpeed, trackRef]);
 }
