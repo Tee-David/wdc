@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { WifiOff, RefreshCw } from "lucide-react";
 import "./connectivity.css";
 
 /**
- * Registers the service worker, and tells the reader the truth about their
- * connection.
+ * Registers the service worker, keeps the pages the reader has seen, and tells
+ * them the truth about their connection.
  *
  * THE PART THE REFERENCE GETS WRONG. litchconsulting ships the same service
  * worker and the same offline page, and then handles coming back online not at
@@ -41,12 +41,26 @@ import "./connectivity.css";
  *    than the outage. The page cache is cleared first, so the refresh cannot
  *    be answered with the half-dead copy stored on the way down.
  *
+ * 5. IT TELLS THE WORKER WHAT TO KEEP. See the long note at the top of
+ *    public/sw.js: a service worker cannot see an App Router navigation,
+ *    because a client-side route change is an RSC `fetch` and not a navigation
+ *    at all. Left to itself the worker cached nothing, which made the offline
+ *    bar's "pages you have already seen still work" untrue of every page on
+ *    the site. This component names each page as the reader reaches it.
+ *
  * The bar is `role="status"` and polite: it reports a state, it is not an
  * alert demanding action.
  */
 
 const PROBE_MIN = 2000;
 const PROBE_MAX = 30000;
+
+/* How long the "back online" state is held before the bar leaves. Long enough
+   to be read, short enough not to outstay a message whose whole content is
+   that everything is fine again. It is also the duration of the progress
+   sweep in connectivity.css, and the two have to agree or the sweep either
+   finishes early or gets cut off. */
+const BACK_MS = 2600;
 
 async function reachable(signal: AbortSignal) {
   try {
@@ -61,8 +75,27 @@ async function reachable(signal: AbortSignal) {
   }
 }
 
+/**
+ * A path as a person would say it: "/work/branding/dhiol-world" becomes
+ * "Work / Branding / Dhiol World".
+ *
+ * Shared, in spirit, with the same function in public/offline.html -- which
+ * cannot import it, because that file deliberately depends on nothing. The two
+ * are kept deliberately short so that duplication stays cheap to read.
+ */
+function pretty(path: string) {
+  const parts = path.split("?")[0].split("/").filter(Boolean);
+  if (!parts.length) return "the home page";
+  return parts
+    .map((p) =>
+      p.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+    )
+    .join(" / ");
+}
+
 export default function Connectivity() {
   const router = useRouter();
+  const pathname = usePathname();
   const [offline, setOffline] = useState(false);
   /* Held on screen for a beat after recovery, so the reader sees that it came
      back rather than just seeing the warning vanish. */
@@ -84,10 +117,51 @@ export default function Connectivity() {
     }
   }, []);
 
+  /* ------------------------------------------------- keep this page ---- */
+  /* THE FIX FOR THE CACHE THAT WAS ALWAYS EMPTY.
+
+     Runs on every route change, including the client-side ones the worker is
+     blind to. `serviceWorker.ready` rather than `.controller`, because on the
+     very first load the worker has registered but not yet claimed the page, so
+     `controller` is null exactly when the first and most important page wants
+     saving.
+
+     Deferred to idle: this costs one extra HTML request, and it must not
+     compete with the page the reader is actually looking at. It is also
+     skipped entirely while offline, where it could only fail. */
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    if (navigator.onLine === false) return;
+
+    /* `location.search` rather than `useSearchParams()`. That hook opts every
+       route that renders it out of static generation unless it sits inside a
+       Suspense boundary, and this component is mounted in the root layout --
+       so using it would deopt the entire site to make a query string that
+       almost no page here has. `pathname` is what actually changes. */
+    const url = pathname + window.location.search;
+    const send = () => {
+      navigator.serviceWorker.ready
+        .then((reg) => {
+          const sw = reg.active ?? navigator.serviceWorker.controller;
+          sw?.postMessage({ type: "wdc:cache-page", url });
+        })
+        .catch(() => {});
+    };
+
+    const hasIdle = typeof window.requestIdleCallback === "function";
+    const id = hasIdle
+      ? window.requestIdleCallback(send, { timeout: 4000 })
+      : window.setTimeout(send, 2500);
+    return () => {
+      if (hasIdle) window.cancelIdleCallback(id);
+      else window.clearTimeout(id);
+    };
+  }, [pathname]);
+
   const recover = useCallback(() => {
     setOffline(false);
     setRestored(true);
-    window.setTimeout(() => setRestored(false), 2600);
+    window.setTimeout(() => setRestored(false), BACK_MS);
     /* Drop cached pages before refetching, so the refresh cannot be served the
        copy that was cached while the connection was failing. */
     navigator.serviceWorker?.controller?.postMessage("wdc:clear-pages");
@@ -159,7 +233,14 @@ export default function Connectivity() {
       ) : (
         <>
           <RefreshCw aria-hidden="true" />
-          <span><b>Back online.</b> Bringing the page up to date.</span>
+          <span>
+            <b>Back online.</b> Bringing {pretty(pathname)} up to date.
+          </span>
+          {/* Determinate, unlike the dots above: the dots mean "still trying,
+              no idea how long", this means "this will be over in 2.6 seconds",
+              and a progress bar that does not know either would be the kind of
+              lie the rest of this component exists to avoid. */}
+          <span className="cx__bar" aria-hidden="true"><i /></span>
         </>
       )}
     </div>
