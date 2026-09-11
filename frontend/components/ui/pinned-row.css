@@ -40,3 +40,21 @@
     position: static; height: auto; overflow-x: auto; scroll-snap-type: x proximity;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   The scroll cue.
+
+   Only while pinned. Unpinned, the stage IS the horizontal scroller and a
+   flow sibling inside it would ride sideways with the cards; and with nothing
+   pinned there is no sideways run to hint at in the first place.
+
+   It sits in normal flow under the track rather than absolutely over it, so
+   it adds its own height to `stage.clientHeight` — which is exactly right,
+   because that height is what the script uses to work out how far the section
+   has to travel. An overlay would have sat on the last card instead.
+   --------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .pin .cue { display: none; }
+  .pin.is-pinned .cue { display: flex; }
+}
+@media (min-width: 769px) { .pin .cue { display: none; } }

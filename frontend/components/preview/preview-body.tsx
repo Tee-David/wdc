@@ -10,6 +10,7 @@ import { CONTACT_EMAIL } from "@/lib/site";
 
 import "./preview.css";
 import StrokeNumber from "@/components/ui/stroke-number";
+import ScrollCue from "@/components/ui/scroll-cue";
 
 /* Copy is WDC's own, taken from the existing homepage, the PRD and llms.txt. */
 
@@ -20,7 +21,12 @@ const SERVICES = [
     slug: "branding",
     title: "Branding & Design",
     body: "Identity systems, logos, motion, and visuals that make brands unmistakable across every surface.",
-    img: "/brand-work/marfaa-logo-variants.jpg",
+    /* Moore Designs, not the Marfaa guideline page. That page is a spread of
+       body copy and small mono marks: at card size it cropped into the middle
+       of a sentence and the reader saw a paragraph, not a brand. This is a
+       centred lockup on its own ground, so it survives any crop the card
+       gives it and reads as identity work at a glance. */
+    img: "/brand-work/moore-cover.jpg",
   },
   {
     slug: "seo",
@@ -166,6 +172,7 @@ export default function PreviewBody() {
       window.clearTimeout(settle);
       wrap.classList.remove("is-pinned");
       wrap.style.removeProperty("--pv-pin-h");
+      wrap.style.removeProperty("--pin-p");
       trk.style.transform = "";
     };
     const progress = () => {
@@ -237,6 +244,16 @@ export default function PreviewBody() {
       frame = requestAnimationFrame(update);
     };
 
+    /* One source of truth for the cue. The rail reaches a position two ways --
+       the page scrolling drives scrollLeft through update(), and a finger sets
+       it directly -- and both end in a scroll event here, so reading it here
+       keeps the cue honest during a swipe as well. */
+    const publish = () => {
+      if (!on || extra <= 0) return;
+      const p = Math.min(1, Math.max(0, stage.scrollLeft / extra));
+      wrap.style.setProperty("--pin-p", p.toFixed(4));
+    };
+
     const onDown = () => {
       if (!on) return;
       window.clearTimeout(settle);
@@ -247,6 +264,7 @@ export default function PreviewBody() {
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", measure);
     mq.addEventListener("change", measure);
+    stage.addEventListener("scroll", publish, { passive: true });
     stage.addEventListener("pointerdown", onDown, { passive: true });
     stage.addEventListener("touchstart", onDown, { passive: true });
     window.addEventListener("pointerup", reconcile, { passive: true });
@@ -258,6 +276,7 @@ export default function PreviewBody() {
     return () => {
       window.clearTimeout(t);
       cancelAnimationFrame(frame);
+      stage.removeEventListener("scroll", publish);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", measure);
       mq.removeEventListener("change", measure);
@@ -391,6 +410,14 @@ export default function PreviewBody() {
             </p>
           </div>
           <div className="pv-pinwrap pv-reveal" ref={pinWrap}>
+            {/* OUTSIDE the stage, and first. The stage here is `display: flex`
+                and is the horizontal scroller, so a child of it becomes a
+                column beside the cards rather than a line under them — which
+                is exactly what happened: the cue laid out full-height to the
+                right of the track and was never on screen. As a sticky child
+                of the WRAPPER it holds near the bottom of the viewport for the
+                whole run instead, over the cards rather than in the row. */}
+            <div className="pv-pincue"><ScrollCue /></div>
             <div className="pv-pinstage">
               <div className="pv-srows pv-pintrack" ref={pinTrack}>
             {[0, 1].map((row) => (

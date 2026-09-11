@@ -1,0 +1,61 @@
+/* ============================================================================
+   Scroll cue — the quiet "there is more below" for a pinned sideways run.
+
+   Everything here reads `--pin-p` (0 to 1), which the pin writes on the
+   wrapper every scroll frame. Nothing is animated off a timer, so the cue
+   cannot get out of step with the rail it describes.
+   ========================================================================== */
+
+.cue {
+  /* `clamp` rather than a media query: this is one expression of "visible for
+     the first half, gone by roughly three quarters", and it holds whatever the
+     run's length is. The 0.45 and 0.33 are the fade's start and its width. */
+  --cue-o: clamp(0, (0.78 - var(--pin-p, 0)) / 0.33, 1);
+
+  display: flex; flex-direction: column; align-items: center; gap: 7px;
+  padding: 14px 0 2px;
+  opacity: var(--cue-o);
+  /* A tiny lift as it goes, so it reads as leaving rather than as a light
+     being switched off. */
+  transform: translateY(calc((1 - var(--cue-o)) * -5px));
+  pointer-events: none;
+  transition: opacity .18s linear;
+}
+
+/* The track. It is the honest part of the cue: the fill IS the run's
+   progress, so a reader can see that scrolling moves something even before
+   they have understood what. */
+.cue__bar {
+  display: block; position: relative;
+  width: min(120px, 34vw); height: 2px; border-radius: 999px;
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  overflow: hidden;
+}
+.cue__bar i {
+  position: absolute; inset: 0 auto 0 0;
+  width: calc(var(--pin-p, 0) * 100%);
+  min-width: 10px;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.cue__t {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .68rem; font-weight: 600;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted);
+}
+.cue__t svg { width: 12px; height: 12px; flex: none; }
+
+/* The chevron drifts down and back. Two pixels, four seconds — enough to
+   catch the eye at the edge of vision, not enough to be a thing happening on
+   the page. It stops as the cue fades, because a bobbing arrow at 10% opacity
+   is a flicker. */
+@media (prefers-reduced-motion: no-preference) {
+  .cue__t svg { animation: cue-bob 2.6s cubic-bezier(.45, 0, .55, 1) infinite; }
+}
+@keyframes cue-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(2px); }
+}
