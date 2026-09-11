@@ -76,9 +76,15 @@
 
 /* ---------------- the drawing ---------------- */
 
+/* SIZED BY THE NUMERAL, not by a fixed 520px. That width was here to give the
+   trailing stroke something to be positioned against; the stroke is gone, and
+   the box it left behind was still 520px wide with a 376px numeral pinned to
+   its left edge -- so the 404 sat 72px left of the page's centre line while
+   the heading, the copy, the buttons and the chips all centred on it.
+   Measured, not guessed: everything else reported a mid-point of 590 and the
+   numeral reported 518. */
 .nf__board {
   position: relative;
-  width: min(100%, 520px);
   margin-top: clamp(2rem, 5vw, 3.2rem);
   color: var(--accent);
 }
@@ -86,8 +92,14 @@
 /* StrokeNumber sizes itself from font-size, so this is what makes the numeral
    large. `.84em` of this is the glyph height, which is why the figure is set
    well above the heading size to land at a similar optical weight. */
+/* `flex` rather than `block`: the numeral inside is an SVG set to
+   `display: block`, which parks itself at the left edge of whatever box it is
+   given and ignores `text-align`. Centring the box is not enough -- the
+   contents have to be centred too, and this is belt and braces with the board
+   above now shrinking to fit. */
 .nf__num {
-  display: block;
+  display: flex;
+  justify-content: center;
   font-size: clamp(5rem, 3rem + 16vw, 11rem);
   color: var(--accent);
 }
