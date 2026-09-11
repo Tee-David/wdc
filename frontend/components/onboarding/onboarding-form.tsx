@@ -304,7 +304,6 @@ export default function OnboardingForm() {
                 <PickIcon name={sv.icon} />
                 <span className="ob__svcT">
                   <b>{sv.short}</b>
-                  <i aria-hidden="true" />
                   <em>{PICKER_LINE[sv.slug]}</em>
                 </span>
                 <span className="ob__svcMark" aria-hidden="true">

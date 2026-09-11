@@ -40,7 +40,114 @@ const nextConfig: NextConfig = {
      re-export thousands of icons from one entry point, and without this a
      single named import can pull the whole module graph into the bundle. */
   experimental: {
-    optimizePackageImports: ["lucide-react", "simple-icons", "motion-icons-react"],
+    optimizePackageImports: [
+      "lucide-react", "simple-icons", "motion-icons-react",
+      /* Added with the admin: its tables and figures import a handful of
+         helpers from each of these, and both are barrels. */
+      "date-fns", "recharts",
+    ],
+  },
+
+  /* The stack trace in a production error page names our own file paths.
+     Nobody outside needs them and they are a small gift to anyone probing. */
+  productionBrowserSourceMaps: false,
+  poweredByHeader: false,
+
+  /* ==========================================================================
+     HEADERS
+
+     There were none. Every one of these is a header a browser will enforce for
+     us if we send it and will not if we do not, so the cost of omitting them
+     is paid entirely by the reader.
+
+     THE CSP IS THE ONE THAT NEEDS CARE, because a wrong one breaks the site
+     silently: a blocked script does not error where anyone looks, it simply
+     never runs. Two third parties have to be allowed by name or they fail
+     exactly that way -- Jotform, whose agent is the whole chat widget, and
+     UserWay, whose widget is the accessibility menu. Both were checked against
+     what the pages actually request rather than guessed.
+
+     `unsafe-inline` and `unsafe-eval` are in `script-src` and it is worth
+     saying why rather than pretending otherwise: Next inlines its bootstrap
+     and its flight data as inline scripts, next-themes writes its
+     theme-before-paint script inline, and both third-party widgets evaluate
+     code they fetch. A nonce-based policy is the right end state and it
+     requires moving these routes off static generation, which would cost more
+     than it buys today. This is written down so the trade is visible rather
+     than accidental.
+     ========================================================================== */
+  async headers() {
+    const csp = [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      "frame-ancestors 'none'",
+      "form-action 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jotfor.ms https://*.jotform.com https://cdn.userway.org https://*.userway.org",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.jotform.com https://*.userway.org",
+      "font-src 'self' data: https://fonts.gstatic.com https://*.userway.org",
+      "img-src 'self' data: blob: https:",
+      "media-src 'self' https://*.jotform.com",
+      "connect-src 'self' https://*.jotform.com https://cdn.jotfor.ms https://*.userway.org https://api.userway.org",
+      /* The chat renders in an iframe from Jotform's own origin, and the
+         preview modal embeds client sites. */
+      "frame-src 'self' https://*.jotform.com https://*.jotfor.ms https:",
+      "worker-src 'self' blob:",
+      "manifest-src 'self'",
+      "upgrade-insecure-requests",
+    ].join("; ");
+
+    const base = [
+      { key: "Content-Security-Policy", value: csp },
+      /* Two years and preloadable. Only safe because every route is https
+         already; a site still serving anything over http would lock itself
+         out of it for the duration. */
+      { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      /* Nothing here uses any of them, so nothing here should be able to ask.
+         This is also what stops an embedded third party asking on our behalf. */
+      { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()" },
+      { key: "X-Frame-Options", value: "DENY" },
+      { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+    ];
+
+    return [
+      { source: "/:path*", headers: base },
+      {
+        /* Content-addressed by the build, so a change is a new URL and a year
+           is safe. Without this Next sends its own shorter default and every
+           repeat visit revalidates files that cannot have changed. */
+        source: "/_next/static/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      {
+        source: "/fonts/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      {
+        /* NOT immutable, and this one matters. The worker is how every client
+           finds out a new version exists; cached for a year it would pin
+           people to whatever build they first met, offline page included. */
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+          { key: "Service-Worker-Allowed", value: "/" },
+        ],
+      },
+      {
+        source: "/offline.html",
+        headers: [{ key: "Cache-Control", value: "public, max-age=0, must-revalidate" }],
+      },
+      {
+        /* The admin is never cached and never indexed. */
+        source: "/admin/:path*",
+        headers: [
+          { key: "Cache-Control", value: "no-store, must-revalidate" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+    ];
   },
 };
 

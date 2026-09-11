@@ -736,15 +736,11 @@
   font-size: clamp(1.15rem, 1rem + .8vw, 1.5rem); font-weight: 700;
   letter-spacing: -.02em; line-height: 1.1; color: #fff;
 }
-/* The rule under the name, from the reference. It is doing real work: it
-   separates the name from the line below it without a colour change, which on
-   a filled card is the only separation available that does not weaken either. */
-.pv .ob__svcT i {
-  display: block; width: 1.6rem; height: 2px; border-radius: 2px;
-  margin: .5rem 0 .55rem; background: rgb(255 255 255 / .55);
-}
+/* The rule that used to sit under the name is gone. The gap does the same
+   separating on its own once it is given room, and one less mark on a filled
+   card is one less thing competing with the mark that is already there. */
 .pv .ob__svcT em {
-  display: block; font-style: normal;
+  display: block; font-style: normal; margin-top: .45rem;
   /* Held off the mark so a long line never runs under it. */
   max-width: 22ch;
   color: rgb(255 255 255 / .82);

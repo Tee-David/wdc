@@ -7,14 +7,11 @@ import JsonLd, {
   websiteJsonLd,
 } from "@/components/seo/json-ld";
 import { MOTTO, SITE_NAME, SITE_URL } from "@/lib/site";
-import { SmoothScroll } from "@/components/ui/smooth-scroll";
-import { SmoothCursor } from "@/components/ui/smooth-cursor";
+import SiteChrome from "@/components/layout/site-chrome";
 import DrawGate from "@/components/ui/draw-gate";
 import Preloader from "@/components/intro/preloader";
 import Connectivity from "@/components/offline/connectivity";
-import JotformAgent from "@/components/agent/jotform-agent";
 import ScrollTop from "@/components/ui/scroll-top";
-import UserWay from "@/components/ui/userway";
 import "./globals.css";
 
 /* Keep both families on the same locally bundled face. This removes two
@@ -118,23 +115,32 @@ export default function RootLayout({
         <script
           id="intro-init"
           dangerouslySetInnerHTML={{
-            __html: `(function(){var d=document.documentElement;try{var K="wdc-intro-seen-at",T=1800000,r=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches,s=0;try{s=parseInt(localStorage.getItem(K)||"0",10)||0}catch(e){}var p=location.pathname==="/"&&!r&&(!s||Date.now()-s>T);d.dataset.intro=p?"play":"skip";var P="wdc:preloaded",q=false;try{q=sessionStorage.getItem(P)==="1"}catch(e){}var w=!p&&!r&&!q;if(w){try{sessionStorage.setItem(P,"1")}catch(e){}}d.dataset.preload=w?"play":"skip"}catch(e){d.dataset.intro="skip";d.dataset.preload="skip"}})();`,
+            __html: `(function(){var d=document.documentElement;try{var a=location.pathname.indexOf("/admin")===0;d.dataset.admin=a?"1":"";var K="wdc-intro-seen-at",T=1800000,r=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches,s=0;try{s=parseInt(localStorage.getItem(K)||"0",10)||0}catch(e){}var p=!a&&location.pathname==="/"&&!r&&(!s||Date.now()-s>T);d.dataset.intro=p?"play":"skip";var P="wdc:preloaded",q=false;try{q=sessionStorage.getItem(P)==="1"}catch(e){}var w=!a&&!p&&!r&&!q;if(w){try{sessionStorage.setItem(P,"1")}catch(e){}}d.dataset.preload=w?"play":"skip"}catch(e){d.dataset.intro="skip";d.dataset.preload="skip"}})();`,
           }}
         />
         <JsonLd data={[organizationJsonLd(), websiteJsonLd(), ...servicesJsonLd()]} />
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-          <SmoothScroll />
+          {/* THE SITE'S FURNITURE, AND NONE OF IT ON THE ADMIN.
+
+              A dashboard opened forty times a day does not want a preloader in
+              front of it, a cursor that lags a table, a smooth-scroll easing
+              between rows, or a chat widget for talking to ourselves. The
+              admin layout cannot unmount these because it nests INSIDE this
+              provider, so the decision is made here, by path.
+
+              The preloader and the intro are decided earlier still, in the
+              pre-paint script above: by the time a component could check a
+              path, the cover is already on screen. That is why `data-admin` is
+              stamped there rather than read from the router. */}
+          <SiteChrome />
           <DrawGate />
           {/* Once per browser session, never under reduced motion, and never
               on a visit where the homepage ring intro is playing -- it reads
               `data-intro`, which the inline script above has already set. */}
           <Preloader />
-          {/* Registers the service worker and owns the offline/online state.
-              Renders nothing while the connection is fine. */}
+          {/* KEPT ON THE ADMIN. Losing the network mid-invoice matters more
+              there than anywhere else on the site. */}
           <Connectivity />
-          {/* The official embed owns its native bottom-right launcher; there is
-              intentionally no replacement FAB or styling shim around it. */}
-          <JotformAgent />
           {/* THE BOTTOM CORNERS, and they share one set of variables so no one
               of them has to know another's size -- see :root in
               components/ui/scroll-top.css. Right: the agent at the bottom,
@@ -142,11 +148,7 @@ export default function RootLayout({
               belongs closest to the thumb. Left: the accessibility menu, on
               the same baseline as back-to-top, desktop only. */}
           <ScrollTop />
-          <UserWay className="uw--corner" />
-          {/* Renders nothing on touch or under reduced motion — see the
-              component. Mounted inside the theme provider so it sits above
-              every page without each page having to remember it. */}
-          <SmoothCursor />
+
           {children}
         </ThemeProvider>
       </body>
