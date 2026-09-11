@@ -1,12 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getClient, getInvoice, getInvoices, getPaymentsFor, getProject } from "@/lib/admin/store";
+import {
+  getClient, getInvoice, getPaymentsFor, getProject, getProjectsFor,
+} from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, lineTotal, naira } from "@/lib/admin/types";
 import { Empty, InvoicePill, Panel, Tile, when } from "@/components/admin/bits";
+import {
+  DeleteDraft, InvoiceBuilder, IssueInvoice, RecordPayment, ReversePayment,
+} from "@/components/admin/money-forms";
 
-export function generateStaticParams() {
-  return getInvoices().map((i) => ({ id: i.id }));
-}
+/* NO generateStaticParams: invoices are raised at runtime, and a prerendered
+   list would 404 on the one just created. */
 
 /**
  * One invoice, as the client will see it and as the studio needs it.
@@ -40,8 +44,27 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
         </div>
         <div className="ad__row">
           <InvoicePill status={status} />
-          <button className="ad__btn" type="button" disabled>Download PDF</button>
-          <button className="ad__btn ad__btn--primary" type="button" disabled>Send pay link</button>
+          {/* A DRAFT AND AN ISSUED INVOICE OFFER DIFFERENT THINGS, because
+              they are different objects: a draft is still being written, and
+              an issued one is a document somebody outside the studio is
+              holding. Editing or deleting it after that is how the two copies
+              stop matching, so neither is offered. */}
+          {inv.status === "Draft" ? (
+            <>
+              {client ? (
+                <InvoiceBuilder
+                  clients={[client]}
+                  projects={getProjectsFor(inv.clientId)}
+                  invoice={inv}
+                  trigger="Edit the draft"
+                />
+              ) : null}
+              <IssueInvoice invoice={inv} />
+              <DeleteDraft invoice={inv} />
+            </>
+          ) : (
+            <RecordPayment invoice={inv} owed={t.due} />
+          )}
         </div>
       </div>
 
@@ -93,7 +116,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
           {payments.length ? (
             <div className="ad__scroll">
               <table className="ad__t">
-                <thead><tr><th>When</th><th>Method</th><th>Reference</th><th className="num">Amount</th></tr></thead>
+                <thead><tr><th>When</th><th>Method</th><th>Reference</th><th className="num">Amount</th><th /></tr></thead>
                 <tbody>
                   {payments.map((p) => (
                     <tr key={p.id}>
@@ -105,6 +128,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                           callback and a manual entry cannot double-count. */}
                       <td className="ad__dim ad__num">{p.reference}</td>
                       <td className="num">{naira(p.amount)}</td>
+                      <td className="num"><ReversePayment id={p.id} invoiceId={inv.id} /></td>
                     </tr>
                   ))}
                 </tbody>
@@ -116,6 +140,19 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
             </Empty>
           )}
         </Panel>
+
+        {/* Said where it is true rather than at the top of the screen: an
+            overpaid invoice is a thing somebody has to decide about, and it is
+            invisible from the totals alone. */}
+        {inv.paid > t.total ? (
+          <p className="ad__msg is-bad" role="status">
+            <span>
+              This invoice has taken {naira(inv.paid - t.total)} more than it is
+              for. Nothing was rejected, because the money did arrive. Reverse
+              the payment that is wrong, or credit the difference.
+            </span>
+          </p>
+        ) : null}
       </div>
     </>
   );

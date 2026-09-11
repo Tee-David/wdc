@@ -1,9 +1,11 @@
 import Link from "next/link";
 import {
-  getClient, getExpenses, getInvoices, getMonthly, getPayments, getSummary,
+  getClient, getClients, getExpenses, getInvoices, getMonthly, getPayments,
+  getProjects, getSummary,
 } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, naira, nairaShort } from "@/lib/admin/types";
 import { DemoNote, Empty, InvoicePill, Panel, Tile, when } from "@/components/admin/bits";
+import { AddExpense, InvoiceBuilder, RemoveExpense } from "@/components/admin/money-forms";
 
 export const metadata = { title: "Money" };
 
@@ -41,16 +43,18 @@ export default function MoneyPage() {
           <p>In, out, and what is still owed.</p>
         </div>
         <div className="ad__row">
-          <button className="ad__btn" type="button" disabled>Add expense</button>
-          <button className="ad__btn ad__btn--primary" type="button" disabled>New invoice</button>
+          <AddExpense />
+          <InvoiceBuilder clients={getClients()} projects={getProjects()} />
         </div>
       </div>
 
       <DemoNote>
-        Paystack, PDFs and the pay link arrive with the back end. The one part
-        that matters most is already designed for: every payment carries a
-        unique <code>reference</code>, so the webhook, the browser callback and
-        a manual mark-paid can all fire and the money is still counted once.
+        Raising an invoice, issuing it, recording a payment and logging an
+        expense all work. Paystack, the PDF and the pay link arrive with the
+        back end, and the part that matters most is already built for them:
+        every payment goes through one function keyed on its{" "}
+        <code>reference</code>, so the webhook, the browser callback and a
+        manual entry can all fire and the money is counted once.
       </DemoNote>
 
       <dl className="ad__tiles">
@@ -172,7 +176,7 @@ export default function MoneyPage() {
           {expenses.length ? (
             <div className="ad__scroll">
               <table className="ad__t">
-                <thead><tr><th>When</th><th>What</th><th>Category</th><th className="num">Amount</th></tr></thead>
+                <thead><tr><th>When</th><th>What</th><th>Category</th><th className="num">Amount</th><th /></tr></thead>
                 <tbody>
                   {expenses.map((e) => (
                     <tr key={e.id}>
@@ -180,6 +184,7 @@ export default function MoneyPage() {
                       <td><b>{e.description}</b></td>
                       <td><span className="ad__pill ad__pill--flat">{e.category}</span></td>
                       <td className="num">{naira(e.amount)}</td>
+                      <td className="num"><RemoveExpense id={e.id} /></td>
                     </tr>
                   ))}
                 </tbody>

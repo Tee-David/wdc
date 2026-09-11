@@ -2,14 +2,18 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
 import {
-  getClient, getClients, getInvoicesFor, getProjectsFor, getSubmissions,
+  getClient, getInvoicesFor, getProjects, getProjectsFor, getSubmissions,
 } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, naira } from "@/lib/admin/types";
 import { Empty, InvoicePill, Panel, StagePill, Tile, when } from "@/components/admin/bits";
+import { EditClient } from "@/components/admin/client-form";
+import { AddProject } from "@/components/admin/project-forms";
+import { InvoiceBuilder } from "@/components/admin/money-forms";
+import { ArchiveClient } from "@/components/admin/client-archive";
 
-export function generateStaticParams() {
-  return getClients().map((c) => ({ id: c.id }));
-}
+/* NO generateStaticParams. The client list is written to now, and a route
+   prerendered from the list as it stood at build time would 404 on the client
+   added a minute ago. The admin layout is force-dynamic for the same reason. */
 
 export default async function ClientPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -35,8 +39,14 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
           </p>
         </div>
         <div className="ad__row">
-          <button className="ad__btn" type="button" disabled>Edit</button>
-          <button className="ad__btn ad__btn--primary" type="button" disabled>New invoice</button>
+          <ArchiveClient client={c} />
+          <EditClient client={c} />
+          <AddProject clients={[c]} clientId={c.id} />
+          <InvoiceBuilder
+            clients={[c]}
+            projects={getProjects().filter((p) => p.clientId === c.id)}
+            clientId={c.id}
+          />
         </div>
       </div>
 

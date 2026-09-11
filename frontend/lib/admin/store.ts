@@ -312,3 +312,288 @@ export function getMonthly(months = 6) {
     out: getExpenses().filter((e) => key(e.at) === k).reduce((n, e) => n + e.amount, 0),
   }));
 }
+
+/* ------------------------------------------------------------- the writes */
+
+/**
+ * EVERYTHING THAT CHANGES A ROW GOES THROUGH HERE.
+ *
+ * Said plainly, because a screen that looks like it saves and does not is
+ * worse than one that never offered: these write to the arrays above, which
+ * live in a module. That means the change is real for this server process and
+ * survives navigation, and it does NOT survive a redeploy, a cold start, or a
+ * second instance picking up the next request. It is the shape of the write
+ * path, with the storage still to be plugged in underneath. When the database
+ * is provisioned, each body below becomes the Drizzle statement that already
+ * has a table waiting for it in lib/db/schema.ts, and no caller changes.
+ *
+ * The rules the storage swap must preserve are the ones enforced here rather
+ * than in the screens:
+ *
+ *   - an id is minted here, never accepted from a caller
+ *   - an invoice number is issued in sequence and never reused
+ *   - `paid` is a SUM OF PAYMENTS, recomputed, never adjusted in place
+ *   - a payment lands at most once per reference
+ */
+
+/* Monotonic within the process, prefixed so an id says what it is. Real rows
+   get a UUID from the database default; this only has to be unique here. */
+let seq = 1000;
+const mint = (p: string) => `${p}${++seq}`;
+const now = () => new Date().toISOString();
+
+/* --------------------------------------------------------------- clients */
+
+export type ClientDraft = Omit<Client, "id" | "since" | "archived">;
+
+export function addClient(d: ClientDraft): Client {
+  const c: Client = { ...d, id: mint("c"), since: now() };
+  CLIENTS.push(c);
+  return c;
+}
+
+export function patchClient(id: Id, d: Partial<ClientDraft>): Client | null {
+  const c = getClient(id);
+  if (!c) return null;
+  Object.assign(c, d);
+  return c;
+}
+
+/**
+ * Archive, not delete.
+ *
+ * A client is referenced by projects, invoices and payments, and those are the
+ * financial record. Removing the row would orphan them and quietly break the
+ * year's reporting, so the row stays and drops out of the lists.
+ */
+export function archiveClient(id: Id, archived = true): Client | null {
+  const c = getClient(id);
+  if (!c) return null;
+  c.archived = archived;
+  return c;
+}
+
+/* -------------------------------------------------------------- projects */
+
+export function addProject(d: {
+  clientId: Id; title: string; service: Project["service"];
+  stage: Stage; due: string | null;
+}): Project {
+  const p: Project = {
+    ...d, id: mint("p"),
+    events: [{ at: now(), text: `Project opened at ${d.stage}` }],
+  };
+  PROJECTS.push(p);
+  return p;
+}
+
+/**
+ * Moving a stage is an EVENT, not a field assignment.
+ *
+ * The stage on the row is only ever the latest entry in a history that is
+ * appended to and never rewritten, which is what makes "how long did this sit
+ * in Review" answerable later. Moving to the stage it is already on is a
+ * no-op rather than a duplicate line in the history.
+ */
+export function setStage(id: Id, stage: Stage, note?: string): Project | null {
+  const p = getProject(id);
+  if (!p || p.stage === stage) return p;
+  p.stage = stage;
+  p.events.push({ at: now(), text: note ? `Moved to ${stage}. ${note}` : `Moved to ${stage}` });
+  return p;
+}
+
+export function addProjectNote(id: Id, text: string): Project | null {
+  const p = getProject(id);
+  if (!p) return null;
+  p.events.push({ at: now(), text });
+  return p;
+}
+
+export function setProjectDue(id: Id, due: string | null): Project | null {
+  const p = getProject(id);
+  if (!p) return null;
+  p.due = due;
+  p.events.push({ at: now(), text: due ? `Due date set to ${due.slice(0, 10)}` : "Due date cleared" });
+  return p;
+}
+
+/* --------------------------------------------------------------- invoices */
+
+/**
+ * The next number in the year's run.
+ *
+ * INV-YYYY-NNN, taken from the highest number already issued in that year
+ * rather than from a count, because a count reuses a number the moment
+ * anything is ever removed, and two invoices sharing a number is the kind of
+ * thing an auditor asks about.
+ */
+export function nextInvoiceNumber(year = new Date().getFullYear()): string {
+  const prefix = `INV-${year}-`;
+  const highest = INVOICES
+    .filter((i) => i.number.startsWith(prefix))
+    .reduce((n, i) => Math.max(n, Number(i.number.slice(prefix.length)) || 0), 0);
+  return `${prefix}${String(highest + 1).padStart(3, "0")}`;
+}
+
+export function addInvoice(d: {
+  clientId: Id; projectId: Id | null; issued: string; due: string;
+  vatRate: number; lines: Invoice["lines"]; status: "Draft" | "Sent";
+}): Invoice {
+  const inv: Invoice = { ...d, id: mint("i"), number: nextInvoiceNumber(), paid: 0 };
+  INVOICES.push(inv);
+  return inv;
+}
+
+export function patchInvoice(
+  id: Id,
+  d: Partial<Pick<Invoice, "clientId" | "projectId" | "issued" | "due" | "vatRate" | "lines">>,
+): Invoice | null {
+  const inv = getInvoice(id);
+  if (!inv) return null;
+  Object.assign(inv, d);
+  return inv;
+}
+
+/**
+ * A draft becomes an invoice once, and cannot go back.
+ *
+ * Issuing is the moment the number is committed to somebody outside the
+ * studio. Letting a sent invoice return to draft so its lines can be edited is
+ * how the copy the client is holding stops matching the copy in the system.
+ */
+export function sendInvoice(id: Id): Invoice | null {
+  const inv = getInvoice(id);
+  if (!inv || inv.status !== "Draft") return inv;
+  inv.status = "Sent";
+  inv.issued = now();
+  return inv;
+}
+
+/** Drafts only, for the same reason. Anything issued is deleted by crediting it. */
+export function deleteDraftInvoice(id: Id): boolean {
+  const at = INVOICES.findIndex((i) => i.id === id && i.status === "Draft");
+  if (at < 0) return false;
+  INVOICES.splice(at, 1);
+  return true;
+}
+
+/* --------------------------------------------------------------- payments */
+
+export type ApplyResult =
+  | { ok: true; payment: Payment; invoice: Invoice; overpaid: boolean }
+  | { ok: false; reason: "no-invoice" | "duplicate" | "not-positive" | "draft" };
+
+/**
+ * THE ONE PLACE A PAYMENT BECOMES MONEY.
+ *
+ * The Paystack webhook, the browser returning from the checkout, and a person
+ * ticking "mark as paid" are three routes to the same event, and they race:
+ * the webhook and the redirect routinely arrive within the same second for the
+ * same transaction. If each one added a row, the client would be shown as
+ * having paid twice, and a refund would follow.
+ *
+ * So the reference is the idempotency key. It is the Paystack transaction
+ * reference where there is one, and a typed bank reference where there is not,
+ * and the same reference presented twice is accepted quietly the second time
+ * without adding anything. lib/db/schema.ts carries a unique index on it, so
+ * the database refuses the duplicate even if two instances check at once and
+ * both decide it is new.
+ *
+ * `paid` is then RECOMPUTED from the payments rather than incremented. An
+ * increment is a read and a write with a gap in between, and two of them
+ * overlapping loses one. A sum cannot drift from the rows it sums.
+ *
+ * Overpayment is flagged, not rejected. The money has genuinely arrived; the
+ * studio needs to see it and decide, and silently swallowing the excess is the
+ * one outcome that is certainly wrong.
+ */
+export function applyPayment(d: {
+  invoiceId: Id; amount: number; method: Payment["method"];
+  reference: string; at?: string;
+}): ApplyResult {
+  const inv = getInvoice(d.invoiceId);
+  if (!inv) return { ok: false, reason: "no-invoice" };
+  if (inv.status === "Draft") return { ok: false, reason: "draft" };
+  if (!Number.isFinite(d.amount) || d.amount <= 0) return { ok: false, reason: "not-positive" };
+
+  const ref = d.reference.trim();
+  const seen = PAYMENTS.find((p) => p.reference === ref);
+  if (seen) return { ok: false, reason: "duplicate" };
+
+  const payment: Payment = {
+    id: mint("y"), invoiceId: inv.id, at: d.at ?? now(),
+    amount: Math.round(d.amount), method: d.method, reference: ref,
+  };
+  PAYMENTS.push(payment);
+
+  inv.paid = PAYMENTS
+    .filter((p) => p.invoiceId === inv.id)
+    .reduce((n, p) => n + p.amount, 0);
+
+  return { ok: true, payment, invoice: inv, overpaid: inv.paid > invoiceTotals(inv).total };
+}
+
+/** Reverses one payment and re-sums, for a bounced transfer or a typo. */
+export function reversePayment(id: Id): boolean {
+  const at = PAYMENTS.findIndex((p) => p.id === id);
+  if (at < 0) return false;
+  const [gone] = PAYMENTS.splice(at, 1);
+  const inv = getInvoice(gone.invoiceId);
+  if (inv) {
+    inv.paid = PAYMENTS.filter((p) => p.invoiceId === inv.id).reduce((n, p) => n + p.amount, 0);
+  }
+  return true;
+}
+
+/* --------------------------------------------------------------- expenses */
+
+export function addExpense(d: Omit<Expense, "id">): Expense {
+  const e: Expense = { ...d, id: mint("e") };
+  EXPENSES.push(e);
+  return e;
+}
+
+export function deleteExpense(id: Id): boolean {
+  const at = EXPENSES.findIndex((e) => e.id === id);
+  if (at < 0) return false;
+  EXPENSES.splice(at, 1);
+  return true;
+}
+
+/* ------------------------------------------------------------ submissions */
+
+/**
+ * Attach an onboarding form to a client, or make the client it describes.
+ *
+ * A form arrives from somebody who may not be on the books yet, so the useful
+ * action on an unattached submission is "this is a new client", and the answers
+ * already carry the name, company, email and phone it needs.
+ */
+export function linkSubmission(id: Id, clientId: Id): Submission | null {
+  const s = getSubmission(id);
+  if (!s) return null;
+  s.clientId = clientId;
+  return s;
+}
+
+export function clientFromSubmission(id: Id): Client | null {
+  const s = getSubmission(id);
+  if (!s || s.clientId) return null;
+  const one = (k: string) => {
+    const v = s.answers[k];
+    return (Array.isArray(v) ? v[0] : v) ?? "";
+  };
+  const name = [one("first_name"), one("last_name")].filter(Boolean).join(" ").trim();
+  const c = addClient({
+    name: name || one("company") || "Unnamed",
+    company: one("company") || name || "Unnamed",
+    email: one("email"),
+    phone: one("phone"),
+    services: [s.service],
+    sector: one("industry"),
+    notes: `Created from the ${s.service} onboarding form.`,
+  });
+  s.clientId = c.id;
+  return c;
+}

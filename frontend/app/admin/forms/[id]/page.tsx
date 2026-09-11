@@ -2,12 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
 import { stepsFor } from "@/lib/onboarding";
-import { getClient, getSubmission, getSubmissions } from "@/lib/admin/store";
+import { getClient, getClients, getSubmission } from "@/lib/admin/store";
 import { Empty, Panel, when } from "@/components/admin/bits";
+import { AttachSubmission } from "@/components/admin/submission-forms";
 
-export function generateStaticParams() {
-  return getSubmissions().map((s) => ({ id: s.id }));
-}
+/* NO generateStaticParams: a form that arrives after the build still has to
+   open. */
 
 /**
  * One brief, read back in the order it was asked.
@@ -44,9 +44,12 @@ export default async function SubmissionPage({ params }: { params: Promise<{ id:
             {client ? <> · <Link href={`/admin/clients/${client.id}`}>{client.company}</Link></> : null}
           </p>
         </div>
-        <span className={`ad__pill ${sub.status === "Submitted" ? "ad__pill--good" : "ad__pill--warn"}`}>
-          {sub.status}
-        </span>
+        <div className="ad__row">
+          <span className={`ad__pill ${sub.status === "Submitted" ? "ad__pill--good" : "ad__pill--warn"}`}>
+            {sub.status}
+          </span>
+          {client ? null : <AttachSubmission submissionId={sub.id} clients={getClients()} />}
+        </div>
       </div>
 
       <Panel title={`${answered} of ${total} questions answered`}>
