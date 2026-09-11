@@ -127,11 +127,12 @@ function getIntroDecision(): boolean {
     play = decided === "play";
   } else {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const compact = window.matchMedia("(max-width: 767px)").matches;
     let seen = 0;
     try {
       seen = parseInt(localStorage.getItem(STORAGE_KEY) || "0", 10) || 0;
     } catch {}
-    play = !reduce && (!seen || Date.now() - seen > INTRO_TTL_MS);
+    play = !compact && !reduce && (!seen || Date.now() - seen > INTRO_TTL_MS);
     document.documentElement.dataset.intro = play ? "play" : "skip";
   }
   // Returning visitor: refresh the timestamp so the away-window slides.
