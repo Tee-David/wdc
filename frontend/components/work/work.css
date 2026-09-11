@@ -238,7 +238,14 @@
    body's `gap` only separates sections, so consecutive paragraphs inside one
    ran together into a single block with a stray line break in it. */
 .pv .wk-doc p + p { margin-top: .95em; }
+/* `position: relative` is REQUIRED by `next/image`'s `fill`, which positions
+   itself absolutely against the nearest positioned ancestor. Without it the
+   image escaped this box entirely and stretched to the viewport -- measured on
+   a phone at /work/branding/dhiol-world, every image on the page was rendering
+   390x844 from a 390x300 source. That was a regression from converting these
+   to `next/image`, and it is why the page looked broken. */
 .wk-doc__hero {
+  position: relative;
   border-radius: clamp(14px, 1.6vw, 22px); overflow: hidden;
   aspect-ratio: 16 / 8; background: var(--paper-2); border: 1px solid var(--rule);
 }
@@ -247,10 +254,15 @@
    portrait piece rather than a letterbox that would behead it. */
 .wk-doc__hero--art {
   aspect-ratio: 16 / 10; background: var(--paper-2);
-  display: grid; place-items: center; padding: clamp(12px, 2vw, 26px);
+  padding: clamp(12px, 2vw, 26px);
 }
 @media (max-width: 720px) { .wk-doc__hero--art { aspect-ratio: 4 / 4.4; } }
-.wk-doc__hero--art img { width: auto; height: 100%; max-width: 100%; object-fit: contain; }
+/* `contain`, and nothing else. A `fill` image is already absolutely positioned
+   at 100% of the box, so the old `width: auto; height: 100%` could not apply
+   and the artwork was being stretched to the frame instead of shown whole.
+   `object-fit: contain` does the whole job now, and the padding above keeps
+   the piece off the edges. */
+.wk-doc__hero--art img { object-fit: contain; }
 
 /* The figure strip under the hero. Rendered ONLY when a case study carries
    published figures — see the note at the top of lib/work.ts. */
@@ -285,6 +297,7 @@
 .wk-shots { display: grid; gap: clamp(12px, 1.6vw, 18px); }
 @media (min-width: 620px) { .wk-shots--2 { grid-template-columns: 1fr 1fr; } }
 .wk-shot {
+  position: relative;
   border-radius: 14px; overflow: hidden; border: 1px solid var(--rule);
   background: var(--paper-2); aspect-ratio: 4 / 3;
 }
