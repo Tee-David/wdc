@@ -31,7 +31,18 @@ export function SmoothScroll() {
        services page's sticky sub-nav, so a section never arrives underneath
        either of them. */
     const lenis = new Lenis({
-      duration: 1.1,
+      /* TIGHTER THAN IT WAS. This ran at 1.1, meaning every wheel tick glided
+         for over a second before settling. That is a lot of inertia, and past
+         roughly 0.9 it stops reading as smooth and starts reading as lag: the
+         page keeps moving after you have stopped asking it to, which feels
+         like the machine is behind you rather than with you. 0.75 keeps the
+         glide and loses the drag. */
+      duration: 0.75,
+      /* Wheel only. Touch is left to the platform: a phone's own scrolling is
+         already inertial and hardware-accelerated, and layering a JS easing on
+         top is how a site ends up feeling worse on a phone than a plain
+         document. This build of Lenis leaves touch alone by default, so there
+         is nothing to switch off. */
       smoothWheel: true,
       anchors: { offset: -88 },
       /* Every horizontal rail on this site (the work track, the pinned

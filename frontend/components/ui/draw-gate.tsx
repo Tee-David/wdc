@@ -28,7 +28,7 @@ import { useEffect } from "react";
 /* `.sv-step` joins the stroke elements because its icon runs an infinite
    bob with `will-change: transform`: 36 of those means 36 permanent
    compositor layers held for elements that are usually off screen. */
-const SELECTOR = ".sn, .svc-draw, .sv-step";
+const SELECTOR = ".sn, .svc-draw, .sv-step, .gm";
 
 export default function DrawGate() {
   useEffect(() => {
