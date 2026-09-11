@@ -1,0 +1,164 @@
+/* ============================================================================
+   404 — an artboard with one unfinished drawing on it.
+
+   Everything is drawn with the same stroke language as the rest of the site,
+   so a visitor who has just got lost still recognises where they are.
+   ========================================================================== */
+
+.nf {
+  position: relative; isolation: isolate;
+  min-height: 100svh;
+  display: flex; flex-direction: column;
+  padding: clamp(1rem, 3vw, 2rem) clamp(1.1rem, 4vw, 3rem);
+  background: var(--paper);
+  color: var(--ink);
+  overflow: hidden;
+}
+
+/* The artboard. Two gradients rather than an image, and set very low: this has
+   to read as the paper the drawing sits on, not as a pattern on top of it. */
+.nf__grid {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(var(--ink) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ink) 1px, transparent 1px);
+  background-size: 46px 46px;
+  opacity: .04;
+  /* Faded at the edges so the grid does not stop with a hard line against the
+     page margin. */
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 40%, #000 45%, transparent 100%);
+  mask-image: radial-gradient(120% 90% at 50% 40%, #000 45%, transparent 100%);
+}
+
+.nf__bar {
+  position: relative; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+.nf__logoMark { height: 2.4rem; width: auto; }
+.nf__meta {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .78rem; font-weight: 600;
+  letter-spacing: .16em; text-transform: uppercase;
+  color: var(--muted);
+}
+
+.nf__main {
+  position: relative; z-index: 2;
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center;
+  padding-block: clamp(2rem, 6vw, 4rem);
+  max-width: 62ch; margin-inline: auto; width: 100%;
+}
+
+.nf__eyebrow {
+  margin: 0;
+  display: inline-flex; align-items: center; gap: .5em;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .76rem; font-weight: 700;
+  letter-spacing: .2em; text-transform: uppercase;
+  color: var(--accent);
+}
+.nf__eyebrow i { font-style: normal; opacity: .5; }
+
+.pv .nf__h, .nf__h {
+  margin: 1rem 0 0;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; letter-spacing: -.02em; line-height: 1.08;
+  font-size: clamp(1.9rem, 1.2rem + 3.6vw, 3.9rem);
+  color: var(--ink);
+  text-wrap: balance;
+}
+.nf__h span { color: var(--accent); }
+
+.nf__p {
+  margin: 1.1rem 0 0; max-width: 46ch;
+  color: var(--muted); font-size: clamp(.96rem, .92rem + .3vw, 1.06rem);
+  line-height: 1.65;
+}
+
+/* ---------------- the drawing ---------------- */
+
+.nf__board {
+  position: relative;
+  width: min(100%, 520px);
+  margin-top: clamp(2rem, 5vw, 3.2rem);
+  color: var(--accent);
+}
+
+/* StrokeNumber sizes itself from font-size, so this is what makes the numeral
+   large. `.84em` of this is the glyph height, which is why the figure is set
+   well above the heading size to land at a similar optical weight. */
+.nf__num {
+  display: block;
+  font-size: clamp(5rem, 3rem + 16vw, 11rem);
+  color: var(--accent);
+}
+/* A little heavier than the inline numerals elsewhere: at this size the
+   default 0.5 hairline disappears against the grid behind it. */
+.nf__num .sn__svg { overflow: visible; }
+.nf__num .sn__p { stroke-width: .42; }
+
+/* The pen carrying on past the last numeral. It runs to the right edge of the
+   board and is clipped by nothing, which is the point: the line leaves. */
+/* It leaves FROM the last numeral rather than crossing all three. Starting it
+   at 8% ran the line straight through the 0's counter and the second 4, which
+   read as a stray mark rather than as the pen carrying on. From just under the
+   final stroke it reads as one gesture continuing off the board. */
+.nf__trail {
+  position: absolute; left: 58%; right: -14%; bottom: -9%;
+  width: auto; height: clamp(26px, 6vw, 48px);
+  color: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .nf__trail path {
+    stroke-dasharray: 1;
+    /* Same clock and same easing as `sk-draw`, offset so the trail leaves
+       after the numerals have arrived rather than alongside them. */
+    animation: nf-trail 5.2s cubic-bezier(.62, .02, .34, 1) infinite;
+    animation-delay: 620ms;
+  }
+}
+.nf__trail path { stroke-dasharray: none; stroke-dashoffset: 0; }
+@keyframes nf-trail {
+  0%   { stroke-dashoffset: 1;  opacity: 0; }
+  10%  { opacity: 1; }
+  34%  { stroke-dashoffset: 0;  opacity: 1; }
+  68%  { stroke-dashoffset: 0;  opacity: 1; }
+  92%  { stroke-dashoffset: -1; opacity: 1; }
+  96%  { opacity: 0; }
+  100% { stroke-dashoffset: -1; opacity: 0; }
+}
+
+/* No separate nib marker. There was one: a pulsing dot pinned to the right
+   edge of the board. It sat where the stroke ENDS, but the stroke spends most
+   of its loop not having got there yet, so for most of every cycle the page
+   showed a dot floating in space with a line reaching toward it. The end of
+   the stroke is its own marker. */
+
+/* ---------------- the ways out ---------------- */
+
+.nf__acts {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+  margin-top: clamp(2.4rem, 5vw, 3.4rem);
+}
+.nf__btn {
+  padding: .8em 1.5em; border-radius: 999px;
+  border: 1px solid var(--rule);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 600; font-size: .92rem;
+  color: var(--ink); text-decoration: none;
+  transition: border-color .25s ease, color .25s ease, transform .25s ease, background .25s ease;
+}
+.nf__btn:hover { border-color: var(--accent); color: var(--accent-ink); transform: translateY(-2px); }
+.nf__btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.nf__btn--solid {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+.nf__btn--solid:hover { background: var(--accent); color: #fff; }
+
+.nf__foot {
+  position: relative; z-index: 2;
+  margin: 0; text-align: center;
+  font-size: .84rem; color: var(--muted);
+}
+.nf__foot b { color: var(--accent); }
