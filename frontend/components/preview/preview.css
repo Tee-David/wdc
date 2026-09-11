@@ -261,7 +261,8 @@ main.pv {
    every frame of the transition. The border doing the work is both cleaner
    and free. */
 .pv-job:hover { transform: translateY(-4px); border-color: var(--accent); }
-.pv-shot { aspect-ratio: 4/3; overflow: hidden; background: var(--paper-2); }
+/* `position: relative` for `next/image`'s `fill`. */
+.pv-shot { position: relative; aspect-ratio: 4/3; overflow: hidden; background: var(--paper-2); }
 .pv-shot img {
   width: 100%; height: 100%; object-fit: cover; object-position: top center;
   transition: transform .5s cubic-bezier(.16, 1, .3, 1);

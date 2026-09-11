@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/header";
@@ -108,8 +109,14 @@ export default async function WorkCategoryPage(
                   >
                     <span className="wk-card__shot">
                       {cs.cover ? (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={cs.cover} alt={`${cs.client} — ${cs.title}`} loading="lazy" decoding="async" />
+                         
+                        <Image
+                          src={cs.cover}
+                          alt={`${cs.client} — ${cs.title}`}
+                          fill
+                          sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw"
+                          quality={78}
+                        />
                       ) : (
                         <span className="wk-card__none" aria-hidden="true">{cs.client}</span>
                       )}
@@ -172,8 +179,14 @@ export default async function WorkCategoryPage(
                     <span className="wk-cat__n">{countFor(x)}</span>
                   </span>
                   <span className="wk-cat__shot">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={x.cover} alt={`${x.name} work`} loading="lazy" decoding="async" />
+                    { }
+                    <Image
+                      src={x.cover}
+                      alt={`${x.name} work`}
+                      fill
+                      sizes="(max-width: 720px) 50vw, 25vw"
+                      quality={78}
+                    />
                     <span className="wk-cat__go" aria-hidden="true" />
                   </span>
                 </Link>
