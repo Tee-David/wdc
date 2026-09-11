@@ -39,10 +39,81 @@ import "./jotform-agent.css";
 const SRC =
   "https://cdn.jotfor.ms/agent/embedjs/01a0907b3dd870008f3afa7ebca3bb7b4c1b/embed.js";
 
+/* Anything shorter than this is the launcher; anything taller is the open
+   conversation. Their avatar plus its greeting bubble comes in around 120px
+   tall and the chat window is several hundred, so the gap is wide and the
+   threshold does not need to be clever. */
+const LAUNCHER_MAX_H = 260;
+
+/**
+ * Bring Jotform's own launcher into line with the rest of the page.
+ *
+ * WHY BY MEASUREMENT RATHER THAN BY SELECTOR. Their widget is injected by a
+ * script we do not control, into markup whose class names and ids are theirs
+ * to change on any deploy, and it renders inside an iframe so nothing about
+ * its contents is reachable from here. A stylesheet written against
+ * `.jfBubble` or `#JotformAgent-...` is a stylesheet that silently stops
+ * applying the week they rename something, and the failure is invisible --
+ * the avatar just drifts back to the edge of the screen.
+ *
+ * So this identifies their elements structurally: everything the script adds
+ * to `<body>` after it runs, which it cannot rename. It then classifies by
+ * SIZE rather than by state, because "is the chat open" is their private
+ * business but "is this box 120px tall or 600px tall" is simply true.
+ *
+ * That distinction is the whole point. The two adjustments -- pull it clear of
+ * the right edge, make it smaller -- are right for a launcher and wrong for an
+ * open conversation, which should be exactly as large as they built it. So the
+ * attribute flips to "open" and the CSS stands down.
+ */
+function watchAgentUi(before: Set<Element>) {
+  const seen = new Set<Element>();
+
+  const sizes = new ResizeObserver((entries) => {
+    for (const e of entries) {
+      const h = e.contentRect.height;
+      /* A zero box is hidden or mid-transition, not a state. Leaving the last
+         answer in place stops the launcher flickering between the two
+         treatments while it opens. */
+      if (h <= 0) continue;
+      (e.target as HTMLElement).dataset.wdcAgent =
+        h <= LAUNCHER_MAX_H ? "mini" : "open";
+    }
+  });
+
+  const take = (el: Element) => {
+    if (seen.has(el) || before.has(el)) return;
+    if (el === document.currentScript) return;
+    /* Scripts, styles and link tags have no box to move. */
+    if (!(el instanceof HTMLElement)) return;
+    if (/^(SCRIPT|STYLE|LINK|TEMPLATE)$/.test(el.tagName)) return;
+    seen.add(el);
+    el.dataset.wdcAgent = "mini";
+    sizes.observe(el);
+  };
+
+  Array.from(document.body.children).forEach(take);
+
+  /* Their widget does not necessarily arrive with the script -- it fetches its
+     own configuration first -- so the body is watched for a while afterwards.
+     `childList` only, not `subtree`: a subtree observer on <body> fires on
+     every keystroke the reader types into the chat. */
+  const added = new MutationObserver((records) => {
+    for (const r of records) r.addedNodes.forEach((n) => take(n as Element));
+  });
+  added.observe(document.body, { childList: true });
+
+  return () => {
+    added.disconnect();
+    sizes.disconnect();
+  };
+}
+
 export default function JotformAgent() {
   const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const asked = useRef(false);
+  const stopWatching = useRef<(() => void) | null>(null);
 
   /* One loader, however it is triggered. The guard is a ref rather than state
      so a second trigger arriving in the same tick cannot start a second
@@ -51,10 +122,18 @@ export default function JotformAgent() {
     if (asked.current) return;
     asked.current = true;
     setLoading(true);
+    /* Taken BEFORE the script exists, so everything it adds is new by
+       definition and nothing already on the page is mistaken for theirs. */
+    const before = new Set(document.body.children);
+
     const s = document.createElement("script");
     s.src = SRC;
     s.async = true;
-    s.onload = () => { setLoaded(true); setLoading(false); };
+    s.onload = () => {
+      setLoaded(true);
+      setLoading(false);
+      stopWatching.current = watchAgentUi(before);
+    };
     /* ON FAILURE, PUT THE BUTTON BACK. A third-party CDN can be unreachable
        for a moment, blocked by an extension, or down; hiding the button on the
        first error would mean a reader who arrives thirty seconds later finds no
@@ -82,6 +161,8 @@ export default function JotformAgent() {
     return () => {
       if (hasIdle) window.cancelIdleCallback(id);
       else window.clearTimeout(id);
+      stopWatching.current?.();
+      stopWatching.current = null;
     };
   }, [load]);
 
