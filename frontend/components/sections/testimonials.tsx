@@ -5,61 +5,26 @@ import {
   AnimatedTestimonials,
   type Testimonial,
 } from "@/components/ui/animated-testimonials";
+import { TESTIMONIALS } from "@/lib/testimonials";
+import { caseBySlug } from "@/lib/work";
 
 /**
- * Placeholder testimonials — swap for real client quotes (and add `image`
- * URLs) as they come in. Avatars fall back to initials badges until then.
+ * The wall reads from lib/testimonials.ts, which holds what clients actually
+ * said. What used to be here was eight invented quotes from eight invented
+ * people at eight invented companies — see the note in that file.
+ *
+ * The sector and city under each name come from the case study, so the two
+ * cannot disagree: a client renamed in one place is renamed in both. No role
+ * line, because none was given and we are not going to make one up.
  */
-const TESTIMONIALS: Testimonial[] = [
-  {
-    description:
-      "WDC rebuilt our brand and site from scratch; within two months we were ranking for terms we'd chased for years. The team just gets it.",
-    name: "Amara Okonkwo",
-    handle: "Founder, Lumen Studios",
-  },
-  {
-    description:
-      "The cross-platform app they shipped feels native on every device. Clean code, on time, and they actually explained the trade-offs.",
-    name: "Daniel Reyes",
-    handle: "CTO, Fielded",
-  },
-  {
-    description:
-      "Our organic traffic doubled in a quarter. WDC's SEO work is the real thing; technical depth plus content that converts.",
-    name: "Priya Nair",
-    handle: "Head of Growth, Northbeam",
-  },
-  {
-    description:
-      "Branding, design, and dev under one roof meant no hand-off gaps. The final product looked exactly like the vision.",
-    name: "Marcus Bell",
-    handle: "CEO, Cadence Labs",
-  },
-  {
-    description:
-      "They wired AI into our support flow and cut response times in half. Genuinely thoughtful engineering, not hype.",
-    name: "Sofia Almeida",
-    handle: "COO, Brightloop",
-  },
-  {
-    description:
-      "Every detail was considered; animations, accessibility, performance. Our Lighthouse scores have never been greener.",
-    name: "Tobi Adeyemi",
-    handle: "Product Lead, Kite",
-  },
-  {
-    description:
-      "The paid social campaigns paid for themselves in the first month. Sharp creative and even sharper targeting.",
-    name: "Hannah Cole",
-    handle: "Marketing Director, Verano",
-  },
-  {
-    description:
-      "Working with WDC felt like adding a senior team overnight. Responsive, honest, and relentlessly detail-obsessed.",
-    name: "Wei Zhang",
-    handle: "Founder, Parcel",
-  },
-];
+const DATA: Testimonial[] = TESTIMONIALS.map((t) => {
+  const cs = caseBySlug(t.slug);
+  return {
+    description: t.text,
+    name: t.client,
+    handle: cs ? `${cs.sector} · ${cs.location}` : "",
+  };
+});
 
 export function Testimonials() {
   return (
@@ -89,7 +54,7 @@ export function Testimonials() {
         </p>
       </motion.div>
 
-      <AnimatedTestimonials data={TESTIMONIALS} />
+      <AnimatedTestimonials data={DATA} />
     </section>
   );
 }

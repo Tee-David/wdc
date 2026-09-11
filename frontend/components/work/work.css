@@ -345,7 +345,9 @@
 .wk-quote {
   margin: 0; display: grid; gap: 10px;
   padding: clamp(18px, 2.4vw, 28px) clamp(20px, 2.6vw, 32px);
-  border-left: 3px solid var(--accent);
+  /* Neutral. The accent rule is reserved for the testimonial below it, and a
+     colour that marks everything marks nothing. */
+  border-left: 3px solid var(--rule);
   background: var(--paper-2); border-radius: 0 16px 16px 0;
 }
 .pv-sec--alt .wk-quote { background: var(--paper); }
@@ -384,3 +386,22 @@
    guide spread down to a letterbox. */
 .wk-shots--tall .wk-shot { aspect-ratio: auto; }
 .wk-shots--tall .wk-shot img { height: auto; object-fit: contain; }
+
+/* The testimonial, told apart from the brand-copy quote above it.
+
+   Both are set as pull quotes, and two in a row reading identically would
+   suggest they are the same kind of thing. They are not: one is a line off the
+   client's own brand guide, the other is the client on the work. So the
+   testimonial takes the accent rule, quotation marks, and a name set as a
+   name — the marks are what say "somebody said this".
+
+   Caption selectors carry `.pv` to match `.pv .wk-quote figcaption` above,
+   which is (0,2,1): a two-class selector here would lose to it however late
+   it is declared. */
+.wk-quote--said { border-left-color: var(--accent); }
+.pv .wk-quote--said blockquote::before { content: "\201C"; }
+.pv .wk-quote--said blockquote::after { content: "\201D"; }
+.pv .wk-quote--said figcaption { font-weight: 700; color: var(--ink); }
+.pv .wk-quote--said figcaption::before {
+  content: "— "; color: var(--muted); font-weight: 400;
+}

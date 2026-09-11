@@ -8,14 +8,20 @@ export interface Testimonial {
   image?: string;
 }
 
+/* Two letters, from words that actually start with one. Real client names
+   carry punctuation as separate tokens -- "TAB — The Ajoks Brand", "Millcon &
+   Millcon Consult Limited" -- and taking the first character of the first two
+   space-separated tokens produced badges reading "T—" and "M&". Filtering to
+   tokens that begin with a letter or digit gives "TT" and "MM".
+
+   A one-word name takes its own first two characters rather than a single
+   letter, so "TraxStaff" is "TR" and every badge in the row is the same
+   width. */
 function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase();
+  const words = name.split(/\s+/).filter((w) => /^[\p{L}\p{N}]/u.test(w));
+  if (words.length === 0) return "?";
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
 }
 
 /** Deterministic brand-tinted avatar backing from the name. */
