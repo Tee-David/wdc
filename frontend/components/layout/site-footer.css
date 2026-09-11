@@ -110,17 +110,20 @@
 .ft__mark span {
   display: block; text-align: center;
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  /* Three letters, so a share that suits a longer word makes this one span the
-     card edge to edge and crowd the columns. 30cqw fills the foot of the card
-     without reaching the type above it. */
-  font-weight: 700; font-size: 30cqw; line-height: .78;
+  /* Sized so "WDC" spans roughly the width the columns occupy, and then cropped
+     to its top half by the card's own bottom edge. Showing the whole wordmark
+     at this size would need a third of the footer's height reserved under the
+     links; showing only the top of the letterforms gives the same presence for
+     a fraction of the room, and a cropped mark reads as deliberate where a
+     shrunk one reads as timid. */
+  font-weight: 700; font-size: 42cqw; line-height: .78;
   letter-spacing: -.04em;
   /* Low enough to sit behind the columns and read as a watermark rather than
      as a second headline competing with them. */
   color: color-mix(in srgb, var(--on-band) 9%, transparent);
-  /* Cropped by the card's bottom edge, which is what makes it read as set
-     INTO the footer rather than placed on it. */
-  margin-bottom: -.18em;
+  /* Half the cap height pulled below the card's edge, so only the top half of
+     each letter survives the crop. */
+  margin-bottom: -.34em;
 }
 
 .ft__base {

@@ -61,11 +61,6 @@ export default async function LegalDocPage(
       <main className="flex-1 pv">
         <section className="wk-hero">
           <div className="pv-wrap wk-hero__in">
-            <nav className="wk-crumbs" aria-label="Breadcrumb">
-              <Link href="/legal">Legal</Link>
-              <i aria-hidden="true">/</i>
-              <span>{doc.title}</span>
-            </nav>
             <h1>{doc.title}</h1>
             <p className="pv-lede">{doc.blurb}</p>
             <p className="lg-updated">Last updated {doc.updated}</p>
