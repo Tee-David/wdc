@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Header } from "@/components/layout/header";
+import { SiteFooter } from "@/components/layout/site-footer";
 import AboutBody from "@/components/about/about-body";
 import { COMPANY_NAME, CONTACT_EMAIL, MOTTO, SITE_NAME, SITE_URL } from "@/lib/site";
 
@@ -44,6 +45,10 @@ export default function AboutPage() {
       <main className="flex-1">
         <AboutBody />
       </main>
+      {/* /about had no footer at all. Not a regression from the rebuild: this
+          page never rendered one, so it was the only route on the site that
+          ended with nothing under it. */}
+      <SiteFooter />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
