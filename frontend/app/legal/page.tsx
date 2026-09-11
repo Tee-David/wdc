@@ -74,14 +74,17 @@ export default function LegalIndexPage() {
             {/* The honest note. These are a careful draft by the team that
                 built the site, not a solicitor's work product, and saying so
                 is worth more than the reassurance it costs. */}
-            <p className="lg-note">
-              These documents describe how this studio actually operates, and
-              they are written for it rather than adapted from someone else&rsquo;s.
-              They are not legal advice, and a few details about the registered
-              entity are still to be filled in. If something here matters to a
-              decision you are making,{" "}
-              <Link href="/contact">ask us</Link> and we will answer plainly.
-            </p>
+            <aside className="lg-note">
+              <p className="lg-note__k">Before you rely on these</p>
+              <p>
+                These documents describe how this studio actually operates, and
+                they are written for it rather than adapted from someone else&rsquo;s.
+                They are not legal advice, and a few details about the registered
+                entity are still to be filled in. If something here matters to a
+                decision you are making, <Link href="/contact">ask us</Link> and
+                we will answer plainly.
+              </p>
+            </aside>
           </div>
         </section>
       </main>
