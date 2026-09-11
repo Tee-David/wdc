@@ -144,21 +144,11 @@
 
 .ob__rail { position: sticky; top: 96px; align-self: start; }
 
-.ob__bar {
-  height: 4px; border-radius: 999px;
-  background: var(--rule); overflow: hidden;
-}
-.ob__bar i {
-  display: block; height: 100%; border-radius: 999px;
-  background: var(--accent);
-  transition: width .35s cubic-bezier(.4, 0, .2, 1);
-}
-.pv .ob__count {
-  margin: .7rem 0 1.2rem;
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-size: .78rem; font-weight: 700; letter-spacing: .06em;
-  color: var(--muted);
-}
+/* `.ob__bar` and `.ob__count` LIVED HERE AND ARE GONE. The single crawling
+   progress bar and the "Step 1 of 7" counter above it were replaced by the
+   three-part bar at the top of the step -- see the note on PHASES in
+   lib/onboarding.ts. Their rules are removed rather than left behind, because
+   dead CSS for a deliberately deleted idea is how the idea comes back. */
 
 .ob__rail ol { margin: 0; padding: 0; list-style: none; display: grid; gap: .15rem; }
 .ob__rail button {
@@ -208,12 +198,15 @@
    the first screen, which is the one thing that must always be visible. */
 @media (max-width: 900px) {
   .ob { grid-template-columns: minmax(0, 1fr); gap: 1.6rem; }
-  .ob__rail { position: static; }
-  .ob__rail ol { display: none; }
-  .pv .ob__count { margin-bottom: 0; }
-  /* With the rail collapsed to a bar, its counter lands directly above the
-     step's own eyebrow and the screen opens by saying "Step 1 of 7" twice. */
-  .ob__main > .ob__k { display: none; }
+  /* THE RAIL GOES ENTIRELY ON A PHONE, rather than collapsing to a stub.
+
+     It used to hide its list and keep its bar, which with the grouped rail
+     would leave the three part headings stranded above the three-part bar --
+     the screen naming "About you / The work / Finishing up" twice in a row
+     before asking a single question. The top bar carries the part, the
+     position and the minutes; there is nothing left for a rail to add on a
+     390px screen, and Back covers going back. */
+  .ob__rail { display: none; }
 }
 
 /* ---------------- fields ---------------- */
@@ -416,3 +409,207 @@
   margin: 0;
   font-size: .84rem; line-height: 1.5; color: var(--accent-ink);
 }
+
+/* ============================================================================
+   THE TOP BAR — three parts, not eleven steps.
+
+   The long note in lib/onboarding.ts explains why the unit changed. What that
+   means here: three short bars side by side, each filling with its own steps,
+   so the reader watches small things complete instead of one long thing crawl.
+   The part they are in is named and lit; the ones behind are done; the ones
+   ahead are visible but quiet, so the whole shape of the task is legible at a
+   glance and none of it is a surprise.
+   ========================================================================== */
+
+.pv .ob__top {
+  display: grid; gap: .75rem;
+  margin-bottom: clamp(1.6rem, 3vw, 2.4rem);
+  padding-bottom: clamp(1rem, 2vw, 1.4rem);
+  border-bottom: 1px solid var(--rule);
+}
+
+.pv .ob__phases {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem;
+  margin: 0; padding: 0; list-style: none;
+}
+.pv .ob__ph { display: grid; gap: .45rem; }
+.pv .ob__phBar {
+  display: block; height: 4px; border-radius: 3px;
+  background: var(--rule); overflow: hidden;
+}
+.pv .ob__phBar i {
+  display: block; height: 100%; border-radius: 3px;
+  background: var(--accent);
+  /* Eased and slow enough to be seen. A bar that teleports to its new width
+     has not told anyone they made progress; being able to watch it move is the
+     entire reward this control offers. */
+  transition: width .5s cubic-bezier(.16, 1, .3, 1);
+}
+.pv .ob__ph.is-done .ob__phBar i { background: #35c281; }
+.pv .ob__phName {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .72rem; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted);
+}
+.pv .ob__ph.is-on .ob__phName { color: var(--ink); }
+
+.pv .ob__topMeta {
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .6rem 1rem;
+}
+.pv .ob__topMeta p { margin: 0; color: var(--muted); font-size: .9rem; }
+.pv .ob__topMeta b { color: var(--ink); font-weight: 600; }
+/* The estimate that actually moves. It counts only questions still visible
+   given the answers so far, so a branch that closes makes it drop. */
+.pv .ob__mins { color: var(--accent-ink); }
+
+.pv .ob__save {
+  display: inline-flex; align-items: center; gap: .45rem;
+  padding: .5em .9em; border-radius: 999px;
+  border: 1px solid var(--rule); background: transparent;
+  color: var(--ink); font: inherit; font-size: .86rem; font-weight: 600;
+  cursor: pointer;
+  transition: border-color .2s ease, background .2s ease, color .2s ease;
+}
+.pv .ob__save:hover { border-color: var(--accent); background: var(--accent); color: #fff; }
+.pv .ob__save:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pv .ob__save svg { width: 1rem; height: 1rem; }
+
+.pv .ob__saved {
+  display: flex; align-items: flex-start; gap: .5rem;
+  margin: 0; padding: .7rem .9rem; border-radius: 10px;
+  background: color-mix(in srgb, #35c281 12%, transparent);
+  border: 1px solid color-mix(in srgb, #35c281 32%, transparent);
+  color: var(--ink); font-size: .88rem; line-height: 1.5;
+}
+.pv .ob__saved svg { width: 1rem; height: 1rem; color: #35c281; flex: none; margin-top: .15rem; }
+
+/* ---------------------------------------------------------------------------
+   THE THREE PARTS, ON THE WELCOME SCREEN.
+
+   This replaced a figure that read "Steps: 11". Naming the parts and saying
+   what each is for costs four lines and removes the only number on that screen
+   that made people close the tab.
+   --------------------------------------------------------------------------- */
+.pv .ob__parts {
+  display: grid; gap: .7rem; margin: 0 0 1.6rem; padding: 0; list-style: none;
+}
+.pv .ob__parts li {
+  display: flex; gap: .9rem; align-items: flex-start;
+  padding: .9rem 1rem; border: 1px solid var(--rule); border-radius: 12px;
+  background: var(--paper-2);
+}
+.pv .ob__partN {
+  flex: none;
+  display: grid; place-items: center;
+  width: 1.7rem; height: 1.7rem; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .8rem; font-weight: 700;
+}
+.pv .ob__parts b {
+  display: block;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 1rem; font-weight: 700; color: var(--ink);
+}
+.pv .ob__parts em { display: block; font-style: normal; color: var(--muted); font-size: .92rem; line-height: 1.5; }
+.pv .ob__parts small { display: block; margin-top: .3rem; color: var(--accent-ink); font-size: .8rem; font-weight: 600; }
+
+/* ============================================================================
+   VALIDATION
+
+   Errors say what is wrong and where, and never before the reader has had a
+   chance to finish. See the `touched` note in onboarding-form.tsx.
+   ========================================================================== */
+
+.pv .ob__fErr {
+  display: flex; align-items: flex-start; gap: .45rem;
+  margin: .55rem 0 0; color: #d63333;
+  font-size: .88rem; line-height: 1.5;
+}
+.pv .ob__fErr svg { width: 1rem; height: 1rem; flex: none; margin-top: .12rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .pv .ob__fErr { animation: ob-err .2s ease both; }
+}
+@keyframes ob-err { from { opacity: 0; transform: translateY(-3px); } }
+
+/* The summary at the foot of a step. EVERY LINE IS A BUTTON that jumps to and
+   focuses its own question: "3 questions need attention" tells someone they
+   have failed without telling them where, which on a twelve-question step
+   means hunting for it. */
+.pv .ob__err {
+  margin-top: 1.1rem; padding: .9rem 1.1rem;
+  border: 1px solid color-mix(in srgb, #d63333 40%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, #d63333 8%, transparent);
+}
+.pv .ob__err > p {
+  display: flex; align-items: center; gap: .45rem;
+  margin: 0; color: #d63333; font-weight: 600; font-size: .92rem;
+}
+.pv .ob__err > p svg { width: 1.05rem; height: 1.05rem; flex: none; }
+.pv .ob__err ul { margin: .55rem 0 0; padding: 0 0 0 1.5rem; list-style: disc; }
+.pv .ob__err li { color: var(--ink); font-size: .89rem; line-height: 1.6; }
+.pv .ob__err li::marker { color: #d63333; }
+.pv .ob__err button {
+  padding: 0; border: 0; background: none; color: inherit;
+  font: inherit; text-align: left; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, #d63333 45%, transparent);
+}
+.pv .ob__err button:hover { color: #d63333; }
+
+/* ============================================================================
+   A QUESTION THAT APPEARED BECAUSE OF AN ANSWER.
+
+   Conditional fields used to pop into existence with nothing to connect them
+   to what caused them, which is startling and, worse, unexplained. The rule
+   down the left and the indent say "this follows from the question above"; the
+   reveal gives the eye something to track instead of a jump cut.
+   ========================================================================== */
+.pv .ob__f--sub {
+  margin-left: clamp(0px, 1.2vw, 14px);
+  padding-left: clamp(12px, 1.6vw, 18px);
+  border-left: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pv .ob__f--sub { animation: ob-reveal .28s cubic-bezier(.16, 1, .3, 1) both; }
+}
+@keyframes ob-reveal {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (max-width: 620px) {
+  .pv .ob__phName { font-size: .62rem; letter-spacing: .06em; }
+  .pv .ob__topMeta { flex-direction: column; align-items: stretch; }
+  .pv .ob__save { justify-content: center; }
+}
+
+/* ---------------------------------------------------------------------------
+   THE RAIL, GROUPED BY PART.
+
+   Same eleven steps, shaped. An undifferentiated list of eleven reads as a
+   mountain; three named groups of two or three reads as a plan, and the group
+   you are in is the only one lit.
+   --------------------------------------------------------------------------- */
+.pv .ob__railGrp { margin-bottom: 1.5rem; }
+.pv .ob__railGrp:last-child { margin-bottom: 0; }
+.pv .ob__railGrp > h2 {
+  margin: 0 0 .6rem;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .68rem; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted);
+  display: flex; align-items: center; gap: .5rem;
+}
+/* A hairline running off to the right of each heading, so the groups read as
+   bands rather than as three lists that happen to be stacked. */
+.pv .ob__railGrp > h2::after {
+  content: ""; flex: 1; height: 1px; background: var(--rule);
+}
+.pv .ob__railGrp.is-on > h2 { color: var(--accent-ink); }
+.pv .ob__railGrp.is-done > h2 { color: #35c281; }
+.pv .ob__railGrp.is-done > h2::after { background: color-mix(in srgb, #35c281 30%, transparent); }
+.pv .ob__railGrp > ol { margin: 0; padding: 0; list-style: none; }
