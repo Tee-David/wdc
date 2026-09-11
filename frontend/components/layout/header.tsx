@@ -214,11 +214,10 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
         <div className="flex items-center gap-3">
           {/* Rides in the bar on desktop; on a phone it lives in the menu
               footer, where there is room for its label. */}
-          <span
-            className={`hidden lg:inline-flex ${
-              solid ? "" : "[&_button]:!text-white [&_svg]:drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)]"
-            }`}
-          >
+          {/* No over-hero override any more. The toggle carries its own navy
+              ground and white glyph in every theme, so it no longer needs the
+              header to force a colour onto it when it sits over the photo. */}
+          <span className="hidden lg:inline-flex">
             <AnimatedThemeToggler />
           </span>
           <MotionLink
