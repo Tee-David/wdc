@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>You are offline · We Dig Creativity</title>
+<!--
+  THE OFFLINE FALLBACK IS A PLAIN HTML FILE, NOT A NEXT ROUTE.
+
+  It was a route first, and that does not work. The service worker has to
+  answer a navigation to some address it has never cached -- say
+  /legal/cookie-policy -- and if it answers with a Next page's markup, the
+  browser hands that markup to Next at the address in the bar. Next hydrates
+  it against the route it sees, finds a tree that does not match, cannot fetch
+  the real one because there is no network, and leaves a blank page. Redirecting
+  to /offline instead runs into the same class of problem from the other side.
+  Measured, both ways, in a browser with the network actually cut.
+
+  A fallback that needs the framework to boot is not a fallback. This file has
+  no JavaScript, no router, no hydration and no dependency on any chunk being
+  cached. It renders from its own bytes or not at all -- and since the service
+  worker precaches it at install, it is always there.
+
+  Everything is inline for the same reason: an external stylesheet is one more
+  request that can fail at exactly the moment this page is needed.
+-->
+<style>
+  /* THE BRAND FACE, SERVED FROM A STABLE PATH. `next/font` self-hosts under a
+     content-hashed filename that changes every build, so this page cannot name
+     it -- and without a face of its own it fell back to the system sans, which
+     made the one screen a reader sees when something has gone wrong also the
+     one screen that does not look like WDC. 31KB, precached by the service
+     worker alongside this file, so it is there when the network is not.
+     `swap` so the text is readable immediately either way. */
+  @font-face {
+    font-family: "WDC Grotesk";
+    src: url("/fonts/space-grotesk-700.woff2") format("woff2");
+    font-weight: 700; font-style: normal; font-display: swap;
+  }
+  :root {
+    color-scheme: light dark;
+    --paper: #ffffff; --ink: #0e0e2c; --muted: #565678;
+    --rule: rgba(0, 0, 101, .12); --accent: #ff6500;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --paper: #030318; --ink: #f1f2ff; --muted: #9d9ec9; --rule: rgba(255, 255, 255, .12); }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100svh;
+    display: flex; align-items: center; justify-content: center;
+    padding: clamp(1.5rem, 6vw, 3rem);
+    background: var(--paper); color: var(--ink);
+    font-family: "Outfit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* The artboard grid the 404 uses, so the two "we cannot show you this" pages
+     are recognisably the same surface. Two gradients rather than an image,
+     because an image is a request. */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      linear-gradient(var(--ink) 1px, transparent 1px),
+      linear-gradient(90deg, var(--ink) 1px, transparent 1px);
+    background-size: 46px 46px; opacity: .04;
+    -webkit-mask-image: radial-gradient(120% 90% at 50% 40%, #000 45%, transparent 100%);
+    mask-image: radial-gradient(120% 90% at 50% 40%, #000 45%, transparent 100%);
+  }
+  main { position: relative; z-index: 1; max-width: 54ch; text-align: center; }
+  .k {
+    margin: 0 0 .9rem; font-family: "WDC Grotesk", ui-sans-serif, system-ui, sans-serif;
+    font-size: .76rem; font-weight: 700;
+    letter-spacing: .2em; text-transform: uppercase; color: var(--muted);
+  }
+  h1 {
+    margin: 0; font-family: "WDC Grotesk", ui-sans-serif, system-ui, sans-serif;
+    font-weight: 700; letter-spacing: -.02em; line-height: 1.08;
+    font-size: clamp(1.9rem, 1.2rem + 3.6vw, 3.4rem);
+    text-wrap: balance;
+  }
+  h1 span { color: var(--accent); }
+  p { margin: 1.1rem 0 0; color: var(--muted); line-height: 1.65; font-size: 1rem; }
+  ul { margin: 2rem 0 0; padding: 0; list-style: none;
+       display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
+  a {
+    display: inline-flex; padding: .5em 1em; border-radius: 999px;
+    border: 1px solid var(--rule); color: var(--ink);
+    text-decoration: none; font-size: .92rem;
+  }
+  a:hover { border-color: var(--accent); background: var(--accent); color: #fff; }
+  .note { font-size: .84rem; margin-top: 1.1rem; }
+  /* Three dots, matching the bar the live site shows. They are honest here:
+     the page reloads itself the moment the connection returns, below. */
+  .dots { display: inline-flex; gap: 5px; margin-top: 2rem; }
+  .dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: .35;
+            animation: pulse 1.4s ease-in-out infinite; }
+  .dots i:nth-child(2) { animation-delay: .18s; }
+  .dots i:nth-child(3) { animation-delay: .36s; }
+  @keyframes pulse { 0%, 100% { opacity: .3 } 50% { opacity: 1 } }
+  @media (prefers-reduced-motion: reduce) { .dots i { animation: none } }
+</style>
+</head>
+<body>
+  <main>
+    <p class="k">Offline</p>
+    <h1>The line went <span>quiet</span>.</h1>
+    <p>
+      You are not connected, and this page was not one of the ones already saved
+      to your device. Nothing is lost. This screen is watching for the
+      connection and will take you back the moment it returns.
+    </p>
+
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/work">Our work</a></li>
+      <li><a href="/services">Services</a></li>
+      <li><a href="/about">About</a></li>
+      <li><a href="/contact">Contact</a></li>
+    </ul>
+    <p class="note">Only pages you have opened before are stored. The rest will load when you are back.</p>
+
+    <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+  </main>
+
+<script>
+/* The one piece of script on the page, and the only reason it earns its place:
+   without it this screen is a dead end until somebody thinks to reload.
+
+   `navigator.onLine` is not trusted on its own -- it reports whether there is a
+   network interface, not whether anything is reachable, so a captive portal or
+   a dead router both report true. The `online` event only shortens the wait
+   until the next real check; the check itself is a HEAD for the manifest with
+   cache busting, which cannot be answered by the service worker or the HTTP
+   cache. It backs off from 2s to 30s so a phone in a tunnel is not kept awake.
+
+   On success it goes back to the page that was actually wanted, which is
+   simply the address in the bar: the service worker serves these bytes in
+   place, without a redirect, so the browser is still showing the URL the
+   reader asked for. Nothing has to be remembered anywhere. */
+(function () {
+  var delay = 2000, timer = null;
+  /* The address in the bar is normally the page the reader asked for, because
+     the service worker serves these bytes in place without a redirect. The one
+     exception is landing on /offline.html itself -- directly, or from a stale
+     bookmark -- where sending them "back" to the address in the bar would
+     reload this same screen for ever. */
+  var here = location.pathname + location.search;
+  var want = here.indexOf('/offline.html') === 0 ? '/' : here;
+  function probe() {
+    fetch('/manifest.webmanifest?ping=' + Date.now(), { method: 'HEAD', cache: 'no-store' })
+      .then(function (r) {
+        if (r && r.ok) { location.replace(want); return; }
+        again();
+      })
+      .catch(again);
+  }
+  function again() { delay = Math.min(delay * 2, 30000); timer = setTimeout(probe, delay); }
+  addEventListener('online', function () { clearTimeout(timer); delay = 2000; timer = setTimeout(probe, 250); });
+  timer = setTimeout(probe, delay);
+})();
+</script>
+</body>
+</html>

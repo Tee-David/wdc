@@ -1,0 +1,62 @@
+/* ============================================================================
+   The connectivity bar.
+
+   Pinned to the bottom rather than the top: the top is where the header lives,
+   and shoving a page down to announce a network state is a bigger intervention
+   than the news deserves. It sits over the content, clear of it, and leaves on
+   its own.
+   ========================================================================== */
+
+.cx {
+  position: fixed;
+  left: 50%; bottom: clamp(14px, 3vw, 24px);
+  transform: translateX(-50%);
+  z-index: 120;
+  display: flex; align-items: center; gap: .7rem;
+  width: min(560px, calc(100vw - 2 * clamp(14px, 4vw, 28px)));
+  padding: .8rem 1.05rem;
+  border-radius: 14px;
+  border: 1px solid var(--rule, rgba(255, 255, 255, .14));
+  background: var(--paper-2, #0a0a3a);
+  color: var(--ink, #f1f2ff);
+  font-family: var(--font-outfit), system-ui, sans-serif;
+  font-size: .9rem; line-height: 1.45;
+  /* The one shadow on the site, and it earns it: this floats over arbitrary
+     content and needs to separate from whatever happens to be behind it. */
+  box-shadow: 0 18px 40px -18px rgb(0 0 0 / .55);
+}
+.cx b { font-weight: 600; }
+.cx svg { width: 1.15rem; height: 1.15rem; flex: none; }
+.cx.is-off svg { color: var(--accent, #ff6500); }
+.cx.is-back svg { color: #35c281; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .cx { animation: cx-in .32s cubic-bezier(.16, 1, .3, 1) both; }
+}
+@keyframes cx-in {
+  from { opacity: 0; transform: translate(-50%, 14px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* Three dots that actually mean something: the component is probing on a
+   backing-off timer while they run. In the reference this animation plays over
+   nothing at all. */
+.cx__dots { display: inline-flex; gap: 4px; margin-left: auto; flex: none; }
+.cx__dots i {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--accent, #ff6500); opacity: .35;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cx__dots i { animation: cx-pulse 1.4s ease-in-out infinite; }
+  .cx__dots i:nth-child(2) { animation-delay: .18s; }
+  .cx__dots i:nth-child(3) { animation-delay: .36s; }
+}
+@keyframes cx-pulse {
+  0%, 100% { opacity: .3; }
+  50%      { opacity: 1; }
+}
+
+@media (max-width: 520px) {
+  .cx { font-size: .84rem; gap: .55rem; padding: .7rem .85rem; }
+  .cx__dots { display: none; }
+}
