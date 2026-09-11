@@ -43,8 +43,15 @@ import { useEffect } from "react";
 const ONCE = ".sn, .svc-draw";
 /* Genuine loops. `.sv-step` is here because its icon runs an infinite bob with
    `will-change: transform`: 36 of those means 36 permanent compositor layers
-   held for elements that are usually off screen. */
-const LOOP = ".sv-step, .gm";
+   held for elements that are usually off screen.
+
+   `.nf__num` is the 404's numeral, and it is the one `.sn` on the site that
+   repeats -- three paths on a page with nothing else moving, which is a very
+   different bill from the 535 that forced the site-wide draw off `infinite`.
+   It appears in BOTH lists on purpose: `ONCE` matches it as a `.sn` and starts
+   it on arrival, and this list is what lets it be paused again once it scrolls
+   away. See the note in components/not-found/lost-sketch.css. */
+const LOOP = ".sv-step, .gm, .nf__num";
 
 export default function DrawGate() {
   useEffect(() => {
