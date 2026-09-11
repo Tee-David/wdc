@@ -63,7 +63,7 @@
   padding: .55rem .7rem; border: 1px solid var(--rule); border-radius: 10px;
   background: var(--paper);
 }
-.pv .dz__list li.is-bad { border-color: #d63333; background: color-mix(in srgb, #d63333 7%, transparent); }
+.pv .dz__list li.is-bad { border-color: #d63333; background: color-mix(in srgb, #d63333 9%, var(--paper)); }
 .pv .dz__thumb {
   flex: none; display: grid; place-items: center; overflow: hidden;
   width: 2.2rem; height: 2.2rem; border-radius: 7px;

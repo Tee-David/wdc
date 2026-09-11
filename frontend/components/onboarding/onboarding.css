@@ -138,7 +138,7 @@
 }
 .ob__pick:hover { border-color: var(--accent); }
 .ob__pick input { accent-color: var(--accent); width: 1rem; height: 1rem; }
-.ob__pick:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.ob__pick:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--paper)); }
 
 /* ---------------- the rail ---------------- */
 
@@ -279,9 +279,10 @@
 .ob__card:hover { border-color: var(--accent); }
 .ob__card.is-on {
   border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--paper));
   color: var(--ink);
 }
+.dark .ob__card.is-on { background: color-mix(in srgb, var(--accent) 20%, var(--paper-2)); }
 .ob__dot {
   width: 1rem; height: 1rem; border-radius: 50%;
   border: 2px solid var(--rule); flex: none;
@@ -393,7 +394,7 @@
 .ob__unsure.is-on {
   color: var(--accent-ink);
   border-color: color-mix(in srgb, var(--accent) 40%, transparent);
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--paper));
 }
 
 /* The control is dimmed rather than removed, so nothing reflows when the
@@ -477,7 +478,7 @@
 .pv .ob__saved {
   display: flex; align-items: flex-start; gap: .5rem;
   margin: 0; padding: .7rem .9rem; border-radius: 10px;
-  background: color-mix(in srgb, #35c281 12%, transparent);
+  background: color-mix(in srgb, #35c281 14%, var(--paper));
   border: 1px solid color-mix(in srgb, #35c281 32%, transparent);
   color: var(--ink); font-size: .88rem; line-height: 1.5;
 }
@@ -540,7 +541,7 @@
   margin-top: 1.1rem; padding: .9rem 1.1rem;
   border: 1px solid color-mix(in srgb, #d63333 40%, transparent);
   border-radius: 12px;
-  background: color-mix(in srgb, #d63333 8%, transparent);
+  background: color-mix(in srgb, #d63333 10%, var(--paper));
 }
 .pv .ob__err > p {
   display: flex; align-items: center; gap: .45rem;
@@ -612,7 +613,7 @@
 }
 .pv .ob__railGrp.is-on > h2 { color: var(--accent-ink); }
 .pv .ob__railGrp.is-done > h2 { color: #35c281; }
-.pv .ob__railGrp.is-done > h2::after { background: color-mix(in srgb, #35c281 30%, transparent); }
+.pv .ob__railGrp.is-done > h2::after { background: color-mix(in srgb, #35c281 34%, var(--paper)); }
 .pv .ob__railGrp > ol { margin: 0; padding: 0; list-style: none; }
 
 /* The review screen's action row. `--end` puts Send at the end of the line
@@ -681,12 +682,26 @@
   background: color-mix(in srgb, var(--accent) 8%, var(--paper));
 }
 
+/* A SOLID TILE, not a tint of the page showing through.
+
+   This was `color-mix(..., transparent)`, which is a translucent wash: it
+   takes its colour from whatever happens to be behind it, so it shifted as the
+   card behind it changed state and it was never quite a colour of its own.
+   Mixing against `--paper` instead produces an actual opaque value, and
+   because `--paper` flips with the theme the same two lines cover both. */
 .pv .ob__svcIc {
   flex: none; display: grid; place-items: center;
   width: 2.6rem; height: 2.6rem; border-radius: 11px;
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  background: color-mix(in srgb, var(--accent) 15%, var(--paper));
   color: var(--accent-ink);
 }
+/* AN EXPLICIT WARM DARK, not a mix, and the reason is the surface it would be
+   mixing into. `--paper-2` is navy in dark mode, so orange blended into it
+   lands on plum -- measured at rgb(69, 32, 44), which is a colour neither the
+   brand nor the icon wants to sit on. Named outright, it is the accent taken
+   down to a tile rather than the accent averaged with a blue. */
+.dark .pv .ob__svcIc { background: #3d1c05; }
+/* The chosen card's tile is already solid: full accent, white glyph. */
 .pv .ob__svcCard.is-on .ob__svcIc { background: var(--accent); color: #fff; }
 .pv .ob__svcIc svg { width: 1.3rem; height: 1.3rem; }
 
