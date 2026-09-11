@@ -170,7 +170,9 @@
   box-shadow: 0 20px 40px -22px rgb(0 0 40 / .4);
 }
 .wk-card:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
-.wk-card__shot { aspect-ratio: 16 / 11; overflow: hidden; background: var(--paper-2); }
+/* `position: relative` for `next/image`'s `fill`, which absolutely
+   positions itself against the nearest positioned ancestor. */
+.wk-card__shot { position: relative; aspect-ratio: 16 / 11; overflow: hidden; background: var(--paper-2); }
 .pv-sec--alt .wk-card__shot { background: var(--paper); }
 .wk-card__shot img {
   width: 100%; height: 100%; object-fit: cover; display: block;

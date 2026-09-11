@@ -122,3 +122,52 @@ h4 {
     cursor: none;
   }
 }
+
+
+/* ---------------------------------------------------------------------------
+   The hero's entrance.
+
+   A CSS keyframe rather than a JavaScript one, because these elements are the
+   first thing on the page and the largest thing on the page. Driving them from
+   framer-motion means shipping them as `opacity: 0` in the server HTML and
+   waiting for hydration to reveal them -- which, measured on emulated mobile,
+   put the homepage's Largest Contentful Paint at 4.9s while everything it
+   needed had painted by 1.1s. The bundle, not the design, was holding the
+   headline invisible.
+
+   `both` so the element holds the `from` state during its delay rather than
+   flashing at full opacity and then starting.
+   --------------------------------------------------------------------------- */
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: none; }
+}
+.hero-rise { animation: hero-rise .6s cubic-bezier(.16, 1, .3, 1) both; }
+
+/* THE HEADLINE RISES WITHOUT FADING, and that is a Largest Contentful Paint
+   decision rather than a taste one.
+
+   An element at `opacity: 0` is not eligible to be the largest contentful
+   paint -- the browser does not count what cannot be seen. So any entrance
+   that fades the biggest text on the page in, whether framer-motion does it or
+   CSS does, pushes LCP out by the whole delay plus the whole duration. Moving
+   from JavaScript to CSS shortened that; it did not remove it.
+
+   Transform alone is enough to read as an entrance, costs nothing on the
+   compositor, and leaves the headline visible -- and countable -- from the
+   first frame. The elements around it keep the fade: none of them is ever the
+   largest thing on the page. */
+@keyframes hero-rise-solid {
+  from { transform: translateY(22px); }
+  to   { transform: none; }
+}
+.hero-rise--solid {
+  animation: hero-rise-solid .6s cubic-bezier(.16, 1, .3, 1) both;
+  opacity: 1;
+}
+
+/* No animation, and no hidden starting state to be stuck in. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise,
+  .hero-rise--solid { animation: none; opacity: 1; transform: none; }
+}

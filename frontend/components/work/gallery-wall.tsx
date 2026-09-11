@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import type { GalleryPiece } from "@/lib/work";
 
 /**
@@ -57,8 +58,14 @@ export function GalleryWall({ pieces }: { pieces: GalleryPiece[] }) {
             aria-haspopup="dialog"
           >
             <span className="wk-card__shot">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.src} alt={p.title} loading="lazy" decoding="async" />
+              { }
+              <Image
+                src={p.src}
+                alt={p.title}
+                fill
+                sizes="(max-width: 560px) 50vw, (max-width: 1000px) 33vw, 25vw"
+                quality={78}
+              />
             </span>
             <span className="wk-card__body">
               <span className="wk-card__t">{p.title}</span>

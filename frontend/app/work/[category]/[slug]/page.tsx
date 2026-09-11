@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/header";
@@ -122,8 +123,19 @@ export default async function WorkDetailPage(
                 <div className={`wk-doc__hero${
                   cs.category === "branding" || cs.category === "social" ? " wk-doc__hero--art" : ""
                 }`}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={cs.cover} alt={`${cs.client} — ${cs.title}`} decoding="async" />
+                  { }
+                  <Image
+                    src={cs.cover}
+                    alt={`${cs.client} — ${cs.title}`}
+                    fill
+                    sizes="(max-width: 900px) 100vw, 860px"
+                    quality={78}
+                    /* The cover is the largest thing above the fold on a case
+                       study, so it is this page's LCP element and the one image
+                       on the site besides the homepage hero that earns
+                       `priority`. */
+                    priority
+                  />
                 </div>
               ) : null}
 
@@ -156,8 +168,14 @@ export default async function WorkDetailPage(
                   <div className={`wk-shots${lead.length === 2 ? " wk-shots--2" : ""}`}>
                     {lead.map((src) => (
                       <div className="wk-shot" key={src}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={src} alt={`${cs.client} interface`} loading="lazy" decoding="async" />
+                        { }
+                        <Image
+                          src={src}
+                          alt={`${cs.client} interface`}
+                          fill
+                          sizes="(max-width: 720px) 100vw, 45vw"
+                          quality={78}
+                        />
                       </div>
                     ))}
                   </div>
@@ -232,8 +250,14 @@ export default async function WorkDetailPage(
                   <div className={`wk-shots${rest.length >= 2 ? " wk-shots--2" : ""} wk-shots--tall`}>
                     {rest.map((src) => (
                       <div className="wk-shot" key={src}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={src} alt={`${cs.client} interface`} loading="lazy" decoding="async" />
+                        { }
+                        <Image
+                          src={src}
+                          alt={`${cs.client} interface`}
+                          fill
+                          sizes="(max-width: 720px) 100vw, 45vw"
+                          quality={78}
+                        />
                       </div>
                     ))}
                   </div>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Header } from "@/components/layout/header";
 import { WorkFooter } from "@/components/work/work-footer";
@@ -79,12 +80,13 @@ export default function WorkHubPage() {
                         <span className="wk-cat__n">{n}</span>
                       </span>
                       <span className="wk-cat__shot">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        { }
+                        <Image
                           src={c.cover}
                           alt={`${c.name} work`}
-                          loading="lazy"
-                          decoding="async"
+                          fill
+                          sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw"
+                          quality={78}
                         />
                         <span className="wk-cat__go" aria-hidden="true" />
                       </span>

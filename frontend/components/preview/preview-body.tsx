@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import {
   Code2,
   Cpu,
@@ -396,8 +397,14 @@ export default function PreviewBody() {
               >
                 <div className="pv-shot">
                   {p.cover ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={p.cover} alt={`${p.name} website`} loading="lazy" />
+                     
+                    <Image
+                      src={p.cover}
+                      alt={`${p.name} website`}
+                      fill
+                      sizes="(max-width: 720px) 86vw, (max-width: 1100px) 46vw, 30vw"
+                      quality={78}
+                    />
                   ) : (
                     /* no capture yet: a branded panel, not a broken image */
                     <span className="pv-shot__none" aria-hidden="true">{p.name}</span>
@@ -478,8 +485,14 @@ export default function PreviewBody() {
                       onFocus={() => setActive(idx)}
                     >
                       <div className="pv-scard__media">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={s.img} alt="" loading="lazy" />
+                        { }
+                        <Image
+                          src={s.img}
+                          alt=""
+                          fill
+                          sizes="(max-width: 720px) 90vw, 40vw"
+                          quality={78}
+                        />
                       </div>
                       <StrokeNumber className="pv-scard__n" value={String(idx + 1).padStart(2, "0")} delay={idx * 160} />
                       <div className="pv-scard__ic"><Icon slug={s.slug} /></div>
