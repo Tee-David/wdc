@@ -10,6 +10,7 @@ import { MOTTO, SITE_NAME, SITE_URL } from "@/lib/site";
 import { SmoothScroll } from "@/components/ui/smooth-scroll";
 import { SmoothCursor } from "@/components/ui/smooth-cursor";
 import DrawGate from "@/components/ui/draw-gate";
+import Preloader from "@/components/intro/preloader";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -111,13 +112,17 @@ export default function RootLayout({
         <script
           id="intro-init"
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var K="wdc-intro-seen-at",T=1800000,r=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches,s=0;try{s=parseInt(localStorage.getItem(K)||"0",10)||0}catch(e){}var p=location.pathname==="/"&&!r&&(!s||Date.now()-s>T);document.documentElement.dataset.intro=p?"play":"skip"}catch(e){document.documentElement.dataset.intro="skip"}})();`,
+            __html: `(function(){var d=document.documentElement;try{var K="wdc-intro-seen-at",T=1800000,r=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches,s=0;try{s=parseInt(localStorage.getItem(K)||"0",10)||0}catch(e){}var p=location.pathname==="/"&&!r&&(!s||Date.now()-s>T);d.dataset.intro=p?"play":"skip";var P="wdc:preloaded",q=false;try{q=sessionStorage.getItem(P)==="1"}catch(e){}var w=!p&&!r&&!q;if(w){try{sessionStorage.setItem(P,"1")}catch(e){}}d.dataset.preload=w?"play":"skip"}catch(e){d.dataset.intro="skip";d.dataset.preload="skip"}})();`,
           }}
         />
         <JsonLd data={[organizationJsonLd(), websiteJsonLd(), ...servicesJsonLd()]} />
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <SmoothScroll />
           <DrawGate />
+          {/* Once per browser session, never under reduced motion, and never
+              on a visit where the homepage ring intro is playing -- it reads
+              `data-intro`, which the inline script above has already set. */}
+          <Preloader />
           {/* Renders nothing on touch or under reduced motion — see the
               component. Mounted inside the theme provider so it sits above
               every page without each page having to remember it. */}
