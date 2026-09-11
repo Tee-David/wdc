@@ -72,7 +72,9 @@
     margin: 0 0 .9rem; font-family: "WDC Grotesk", ui-sans-serif, system-ui, sans-serif;
     font-size: .76rem; font-weight: 700;
     letter-spacing: .2em; text-transform: uppercase; color: var(--muted);
+    display: inline-flex; align-items: center; gap: .5em;
   }
+  .k i { font-style: normal; }
   h1 {
     margin: 0; font-family: "WDC Grotesk", ui-sans-serif, system-ui, sans-serif;
     font-weight: 700; letter-spacing: -.02em; line-height: 1.08;
@@ -81,6 +83,34 @@
   }
   h1 span { color: var(--accent); }
   p { margin: 1.1rem 0 0; color: var(--muted); line-height: 1.65; font-size: 1rem; }
+  /* THE DRAWN NUMERAL, which is what makes this page a WDC page rather than a
+     generic apology. The 404 does the same thing with "404": real Space
+     Grotesk outlines, extracted from the font itself, stroked rather than
+     filled and drawn on as though somebody were writing them.
+
+     Three zeros, because that is what the connection is currently worth.
+
+     It is a one-shot draw with `both`, not a loop: this screen may sit open
+     for a long time on a phone in a tunnel, and an animation running forever
+     on a page nobody can leave is a battery cost with nothing to show for it.
+     The strokes hold their finished state afterwards. */
+  .mark {
+    display: block; width: min(300px, 62vw); height: auto;
+    margin: 2.4rem auto 0; color: var(--accent);
+    overflow: visible;
+  }
+  .mark path { stroke-dasharray: 1; stroke-dashoffset: 0; }
+  @media (prefers-reduced-motion: no-preference) {
+    .mark path { animation: draw 1.6s cubic-bezier(.62,.02,.34,1) both; }
+    .mark path:nth-child(2) { animation-delay: .16s; }
+    .mark path:nth-child(3) { animation-delay: .32s; }
+  }
+  @keyframes draw {
+    from { stroke-dashoffset: 1; opacity: 0; }
+    8%   { opacity: 1; }
+    to   { stroke-dashoffset: 0; opacity: 1; }
+  }
+
   ul { margin: 2rem 0 0; padding: 0; list-style: none;
        display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
   a {
@@ -103,13 +133,22 @@
 </head>
 <body>
   <main>
-    <p class="k">Offline</p>
+    <p class="k">Offline <i aria-hidden="true">·</i> Nothing to draw with</p>
     <h1>The line went <span>quiet</span>.</h1>
     <p>
       You are not connected, and this page was not one of the ones already saved
       to your device. Nothing is lost. This screen is watching for the
       connection and will take you back the moment it returns.
     </p>
+
+    <svg class="mark" viewBox="0 0 1935 1276" aria-hidden="true" fill="none"
+         stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+      <g transform="translate(0,984.0) scale(1,-1)">
+      <path pathLength="1" d="M322.3 -14Q200.3 -14 127.6 55.5Q54.9 125.1 54.9 264.8V435.2Q54.9 572.3 127.6 643.2Q200.3 714 322.3 714Q444.8 714 517.2 643.2Q589.6 572.3 589.6 435.2V264.8Q589.6 125.1 517.2 55.5Q444.8 -14 322.3 -14ZM322.3 79.7Q404.6 79.7 444.6 127.2Q484.7 174.7 484.7 260.8V440.5Q484.7 527.3 442.0 573.8Q399.4 620.3 322.3 620.3Q243.8 620.3 201.8 572.8Q159.8 525.3 159.8 440.5V260.8Q159.8 172.7 200.5 126.2Q241.2 79.7 322.3 79.7Z" transform="translate(0,0)"/>
+      <path pathLength="1" d="M322.3 -14Q200.3 -14 127.6 55.5Q54.9 125.1 54.9 264.8V435.2Q54.9 572.3 127.6 643.2Q200.3 714 322.3 714Q444.8 714 517.2 643.2Q589.6 572.3 589.6 435.2V264.8Q589.6 125.1 517.2 55.5Q444.8 -14 322.3 -14ZM322.3 79.7Q404.6 79.7 444.6 127.2Q484.7 174.7 484.7 260.8V440.5Q484.7 527.3 442.0 573.8Q399.4 620.3 322.3 620.3Q243.8 620.3 201.8 572.8Q159.8 525.3 159.8 440.5V260.8Q159.8 172.7 200.5 126.2Q241.2 79.7 322.3 79.7Z" transform="translate(645,0)"/>
+      <path pathLength="1" d="M322.3 -14Q200.3 -14 127.6 55.5Q54.9 125.1 54.9 264.8V435.2Q54.9 572.3 127.6 643.2Q200.3 714 322.3 714Q444.8 714 517.2 643.2Q589.6 572.3 589.6 435.2V264.8Q589.6 125.1 517.2 55.5Q444.8 -14 322.3 -14ZM322.3 79.7Q404.6 79.7 444.6 127.2Q484.7 174.7 484.7 260.8V440.5Q484.7 527.3 442.0 573.8Q399.4 620.3 322.3 620.3Q243.8 620.3 201.8 572.8Q159.8 525.3 159.8 440.5V260.8Q159.8 172.7 200.5 126.2Q241.2 79.7 322.3 79.7Z" transform="translate(1290,0)"/>
+      </g>
+    </svg>
 
     <ul>
       <li><a href="/">Home</a></li>
