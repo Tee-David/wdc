@@ -384,3 +384,35 @@
 /* Holds the page's height while the form's JS arrives, so the footer does not
    sit under the header for a moment and then drop. */
 .ob__wait { min-height: 70vh; }
+
+/* ---------------------------------------------------------------------------
+   "Not sure — you advise us".
+
+   Quiet by default: it is an escape, not an invitation. Someone who knows the
+   answer should not be nudged towards not giving it, and someone who does not
+   should find it the moment they start looking for a way past.
+   --------------------------------------------------------------------------- */
+.ob__unsure {
+  justify-self: start;
+  display: inline-flex; align-items: center; gap: .4rem;
+  margin-top: .1rem; padding: .32em .7em;
+  border: 1px solid transparent; border-radius: 999px;
+  background: transparent; color: var(--muted);
+  font-family: inherit; font-size: .82rem; cursor: pointer;
+  transition: color .2s ease, border-color .2s ease, background .2s ease;
+}
+.ob__unsure svg { width: .95em; height: .95em; }
+.ob__unsure:hover { color: var(--accent-ink); border-color: var(--rule); }
+.ob__unsure.is-on {
+  color: var(--accent-ink);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+/* The control is dimmed rather than removed, so nothing reflows when the
+   escape is toggled and anything already typed survives a change of mind. */
+.ob__f.is-deferred .ob__ctl { opacity: .4; }
+.pv .ob__unsureNote {
+  margin: 0;
+  font-size: .84rem; line-height: 1.5; color: var(--accent-ink);
+}
