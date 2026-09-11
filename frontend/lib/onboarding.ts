@@ -23,10 +23,37 @@ export type FieldKind =
   | "text" | "email" | "tel" | "url" | "textarea"
   | "cards" | "multi" | "select" | "yesno" | "upload";
 
+/**
+ * What a client says when they do not know, and it is recorded as the answer.
+ *
+ * The welcome screen promises that "not sure yet" is a real answer and will
+ * not hold anything up. That promise was only kept on the six `cards` fields
+ * that happened to carry a "Not sure" option; every required text field broke
+ * it, and a client who did not know was simply stuck. This is the general
+ * version of it.
+ *
+ * It is stored as a sentence rather than a sentinel because it is REAL
+ * INFORMATION, not a gap: "the client wants our recommendation on their search
+ * terms" is a finding that shapes the work and the first call. A blank field
+ * says nothing; this says something.
+ */
+export const UNSURE = "Not sure yet — would like WDC's recommendation";
+
 export type Field = {
   key: string;
   label: string;
   kind: FieldKind;
+  /**
+   * Offer the "not sure" escape on this question.
+   *
+   * Set on questions of JUDGEMENT -- the ones a client is often paying us to
+   * answer -- and not on questions of FACT, where the client is the only
+   * possible source and an escape would just lose us the answer. Nobody but
+   * the client knows their phone number; plenty of clients have no idea what
+   * their customers type into Google, and pretending otherwise produces a
+   * made-up answer that is worse than an honest blank.
+   */
+  assist?: boolean;
   /** Shown under the label, always visible. Never a tooltip. */
   hint?: string;
   placeholder?: string;
@@ -65,7 +92,7 @@ export const CORE_STEPS: Step[] = [
       { key: "email", label: "Email", kind: "email", placeholder: "you@business.com", required: true },
       { key: "company", label: "Business name", kind: "text", placeholder: "e.g. Moore Designs", required: true },
       {
-        key: "address", label: "Business address", kind: "textarea", required: true,
+        key: "address", label: "Business address", kind: "textarea",
         hint: "We need this for invoicing.",
         placeholder: "Street, city, state",
       },
@@ -89,8 +116,8 @@ export const CORE_STEPS: Step[] = [
         ],
       },
       {
-        key: "usp", label: "What makes you the one they should pick?", kind: "textarea",
-        required: true, hint: "The honest answer, not the polished one. It is what the work has to carry.",
+        key: "usp", assist: true, label: "What makes you the one they should pick?", kind: "textarea",
+        hint: "The honest answer, not the polished one. It is what the work has to carry.",
       },
     ],
   },
@@ -99,8 +126,8 @@ export const CORE_STEPS: Step[] = [
     title: "Your audience",
     blurb: "Who the work has to reach.",
     fields: [
-      { key: "audience", label: "Who is your primary audience?", kind: "multi", options: AUDIENCE, required: true },
-      { key: "age_range", label: "Age range", kind: "multi", options: AGES },
+      { key: "audience", assist: true, label: "Who is your primary audience?", kind: "multi", options: AUDIENCE, required: true },
+      { key: "age_range", assist: true, label: "Age range", kind: "multi", options: AGES },
     ],
   },
 ];
@@ -115,16 +142,24 @@ export const SERVICE_STEPS: Step[] = [
         options: ["Nothing yet", "A logo only", "A full identity needing a refresh"],
       },
       {
-        key: "deliverables", label: "What are we making?", kind: "multi", required: true,
+        key: "deliverables", assist: true, label: "What are we making?", kind: "multi",
         options: ["Logo", "Full identity system", "Brand guidelines", "Packaging", "Signage", "Social templates", "Pitch deck"],
       },
       {
-        key: "surfaces", label: "Where does the mark have to work?", kind: "multi", required: true,
+        key: "surfaces", assist: true, label: "Where does the mark have to work?", kind: "multi",
         hint: "This one matters more than it looks. A mark that survives 12mm of embroidery is drawn differently from one that only ever appears on a screen.",
         options: ["Embroidery", "Signage", "Print", "Screen", "Packaging", "Vehicle", "Stamp or seal"],
       },
-      { key: "untouchable", label: "Anything that must not change?", kind: "textarea", hint: "A name, a colour, a mark people already know you by." },
-      { key: "avoid", label: "Anything we should steer well clear of?", kind: "textarea" },
+      {
+        key: "untouchable", assist: true, label: "Anything that must not change?", kind: "textarea",
+        hint: "A name, a colour, a mark people already know you by.",
+        /* Asked only when something exists to preserve. Putting this to a
+           client who has just said "nothing yet" reads as a form that is not
+           listening, and a form that is not listening is one people stop
+           filling in. */
+        showIf: { key: "brand_state", equals: ["A logo only", "A full identity needing a refresh"] },
+      },
+      { key: "avoid", assist: true, label: "Anything we should steer well clear of?", kind: "textarea" },
     ],
   },
   {
@@ -132,9 +167,9 @@ export const SERVICE_STEPS: Step[] = [
     blurb: "What you want to be found for, and what we need access to.",
     fields: [
       { key: "site_url", label: "Your website", kind: "url", placeholder: "https://", required: true },
-      { key: "target_terms", label: "What should someone be typing into Google when they find you?", kind: "textarea", required: true },
-      { key: "geo", label: "Where are your customers?", kind: "text", placeholder: "e.g. Lagos, or nationwide", required: true },
-      { key: "competitors", label: "Three competitors who currently outrank you", kind: "textarea" },
+      { key: "target_terms", assist: true, label: "What should someone be typing into Google when they find you?", kind: "textarea", required: true },
+      { key: "geo", assist: true, label: "Where are your customers?", kind: "text", placeholder: "e.g. Lagos, or nationwide", required: true },
+      { key: "competitors", assist: true, label: "Three competitors who currently outrank you", kind: "textarea" },
       {
         key: "tools_access", label: "Do you have these, and can you share access?", kind: "multi", required: true,
         options: ["Search Console", "Analytics", "Google Business Profile", "CMS admin", "None of these"],
@@ -149,9 +184,9 @@ export const SERVICE_STEPS: Step[] = [
       { key: "site_new_or_existing", label: "Is this a new website, or improving one you have?", kind: "cards", required: true, options: ["Brand new", "Improving an existing site"] },
       { key: "current_url", label: "Your current site", kind: "url", placeholder: "https://", showIf: { key: "site_new_or_existing", equals: ["Improving an existing site"] } },
       { key: "current_problem", label: "What is wrong with it?", kind: "textarea", showIf: { key: "site_new_or_existing", equals: ["Improving an existing site"] } },
-      { key: "site_goal", label: "What is the site's main job?", kind: "textarea", required: true, placeholder: "e.g. take bookings, sell online, show the portfolio" },
-      { key: "features", label: "Features you have in mind", kind: "multi", options: ["Online store", "Bookings", "Blog", "Gallery", "Members area", "Multi-language", "None yet"] },
-      { key: "page_count", label: "Roughly how many pages?", kind: "cards", required: true, options: ["1–5", "6–15", "16–40", "More than 40"] },
+      { key: "site_goal", assist: true, label: "What is the site's main job?", kind: "textarea", placeholder: "e.g. take bookings, sell online, show the portfolio" },
+      { key: "features", assist: true, label: "Features you have in mind", kind: "multi", options: ["Online store", "Bookings", "Blog", "Gallery", "Members area", "Multi-language", "None yet"] },
+      { key: "page_count", assist: true, label: "Roughly how many pages?", kind: "cards", options: ["1–5", "6–15", "16–40", "More than 40"] },
       { key: "content_ready", label: "Do you have the words and pictures?", kind: "cards", required: true, options: ["Ready to go", "Partly", "We need you to produce them"] },
       { key: "wants_seo", label: "Should we optimise it for search?", kind: "yesno", required: true, hint: "Search optimisation is the work that makes a site findable on Google: the right words, a clean technical build, and pages that load fast." },
       { key: "has_hosting", label: "Do you already have hosting and a domain?", kind: "cards", required: true, options: ["Both", "Domain only", "Neither", "Not sure"] },
@@ -163,24 +198,28 @@ export const SERVICE_STEPS: Step[] = [
     blurb: "What the app does, and what it has to talk to.",
     fields: [
       { key: "platforms", label: "iOS, Android, or both?", kind: "multi", required: true, options: ["iOS", "Android"] },
-      { key: "one_job", label: "In one sentence, what does the app do for the person holding the phone?", kind: "text", required: true },
-      { key: "accounts", label: "Do users log in? Are there different roles?", kind: "textarea", required: true },
-      { key: "offline", label: "Must it work without a connection?", kind: "cards", required: true, options: ["Yes", "No", "Not sure"] },
-      { key: "payments", label: "Does money change hands in the app?", kind: "cards", required: true, options: ["No", "One-off payments", "Subscriptions"] },
-      { key: "store_accounts", label: "Do you have Apple and Google developer accounts?", kind: "cards", required: true, options: ["Both", "One of them", "Neither"] },
-      { key: "backend", label: "Is there a backend already, or are we building it?", kind: "cards", required: true, options: ["One exists", "Build it", "Not sure"] },
+      { key: "one_job", assist: true, label: "In one sentence, what does the app do for the person holding the phone?", kind: "text", required: true },
+      { key: "accounts", assist: true, label: "Do users log in? Are there different roles?", kind: "textarea", required: true },
+      { key: "offline", assist: true, label: "Must it work without a connection?", kind: "cards", options: ["Yes", "No", "Not sure"] },
+      { key: "payments", assist: true, label: "Does money change hands in the app?", kind: "cards", options: ["No", "One-off payments", "Subscriptions"] },
+      {
+        key: "store_accounts", label: "Do you have developer accounts for the stores?", kind: "cards",
+        required: true, options: ["Both", "One of them", "Neither", "Not sure"],
+        hint: "Apple and Google both require a paid developer account in YOUR name to publish. If you have neither, we will walk you through it -- it is not a blocker.",
+      },
+      { key: "backend", assist: true, label: "Is there a backend already, or are we building it?", kind: "cards", options: ["One exists", "Build it", "Not sure"] },
     ],
   },
   {
     id: "software", service: "software", title: "Software & AI",
     blurb: "What it replaces, and how we will know it worked.",
     fields: [
-      { key: "process", label: "What are people doing by hand today that this should take over?", kind: "textarea", required: true },
-      { key: "users_count", label: "How many people will use it, and who are they?", kind: "text", required: true },
-      { key: "data_home", label: "Where does that information live now?", kind: "cards", required: true, options: ["Spreadsheets", "WhatsApp", "Paper", "An existing system", "Nowhere yet"] },
-      { key: "systems", label: "What must it talk to?", kind: "textarea", hint: "Accounting software, a payment provider, an existing database." },
-      { key: "compliance", label: "Any regulation or data rule we must design around?", kind: "textarea" },
-      { key: "success_metric", label: "What number tells us this worked?", kind: "text", required: true, placeholder: "e.g. hours saved a week, orders processed a day" },
+      { key: "process", assist: true, label: "What are people doing by hand today that this should take over?", kind: "textarea", required: true },
+      { key: "users_count", assist: true, label: "How many people will use it, and who are they?", kind: "text", required: true },
+      { key: "data_home", assist: true, label: "Where does that information live now?", kind: "cards", options: ["Spreadsheets", "WhatsApp", "Paper", "An existing system", "Nowhere yet"] },
+      { key: "systems", assist: true, label: "What must it talk to?", kind: "textarea", hint: "Accounting software, a payment provider, an existing database." },
+      { key: "compliance", assist: true, label: "Any regulation or data rule we must design around?", kind: "textarea" },
+      { key: "success_metric", assist: true, label: "What number tells us this worked?", kind: "text", placeholder: "e.g. hours saved a week, orders processed a day" },
     ],
   },
   {
@@ -189,13 +228,13 @@ export const SERVICE_STEPS: Step[] = [
     fields: [
       { key: "channels", label: "Which platforms are you on?", kind: "multi", required: true, options: ["Instagram", "Facebook", "X", "TikTok", "LinkedIn", "WhatsApp", "None yet"] },
       { key: "handles", label: "Your handles", kind: "textarea", placeholder: "@yourbusiness on each", showIf: { key: "channels", equals: ["Instagram", "Facebook", "X", "TikTok", "LinkedIn", "WhatsApp"] } },
-      { key: "social_goal", label: "What is social for, for you?", kind: "cards", required: true, options: ["Awareness", "Sales", "Bookings", "Community", "Recruitment"] },
+      { key: "social_goal", assist: true, label: "What is social for, for you?", kind: "cards", options: ["Awareness", "Sales", "Bookings", "Community", "Recruitment"] },
       { key: "content_source", label: "Who shoots and writes today?", kind: "cards", required: true, options: ["Nobody", "In-house", "A freelancer", "We would like you to"] },
       { key: "access_ok", label: "Can you give us access, or should we work through you?", kind: "cards", required: true, options: ["We will give access", "Work through us"] },
-      { key: "competitors_admired", label: "Any competitor accounts you admire?", kind: "textarea", hint: "Handles are enough." },
+      { key: "competitors_admired", assist: true, label: "Any competitor accounts you admire?", kind: "textarea", hint: "Handles are enough." },
       { key: "upcoming", label: "Any launches, promotions or events coming up we should plan around?", kind: "textarea" },
       {
-        key: "ad_spend", label: "Monthly advertising budget", kind: "cards", required: true,
+        key: "ad_spend", assist: true, label: "Monthly advertising budget", kind: "cards",
         hint: "This is media spend, paid to Meta or Google. It is separate from our fee.",
         options: ["Under ₦100k", "₦100k–₦500k", "₦500k–₦2m", "Over ₦2m", "Not sure yet"],
       },
@@ -214,7 +253,7 @@ export const CLOSING_STEPS: Step[] = [
       { key: "has_brandbook", label: "Do you have a brand book or guide?", kind: "cards", required: true, options: ["Yes", "No", "Not sure what that is"] },
       { key: "brandbook_file", label: "Upload it", kind: "upload", showIf: { key: "has_brandbook", equals: ["Yes"] } },
       { key: "brand_colours", label: "Your brand colours", kind: "text", placeholder: "e.g. Navy #000065, Orange #FF6500", hint: "Hex codes if you have them, names if you do not.", showIf: { key: "has_brandbook", equals: ["No", "Not sure what that is"] } },
-      { key: "inspiration", label: "Two or three examples you like, and what you like about them", kind: "textarea" },
+      { key: "inspiration", assist: true, label: "Two or three examples you like, and what you like about them", kind: "textarea" },
       { key: "assets", label: "Anything else we should have", kind: "upload" },
     ],
   },

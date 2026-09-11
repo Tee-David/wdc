@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Paperclip } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, HelpCircle, Paperclip, Undo2 } from "lucide-react";
 import { SERVICES, type ServiceSlug } from "@/lib/services";
-import { stepsFor, type Field, type Step } from "@/lib/onboarding";
+import { stepsFor, UNSURE, type Field, type Step } from "@/lib/onboarding";
 import "./onboarding.css";
 
 /**
@@ -326,11 +326,45 @@ function FieldView({
      a hover. */
   const hint = f.hint ? <p className="ob__hint">{f.hint}</p> : null;
 
+  /* THE "NOT SURE" ESCAPE.
+     The welcome screen promises that not knowing something will not hold
+     anyone up. That was only true of the handful of multiple-choice questions
+     that happened to carry a "Not sure" option; every required text field
+     blocked, and a client who did not know was stuck on it. Questions of
+     judgement now carry this, and the answer is RECORDED rather than left
+     blank -- "the client would like our recommendation on their search terms"
+     is a real finding and the first thing to raise on the call. */
+  const deferred = v === UNSURE;
+  const escape = f.assist ? (
+    <button
+      type="button"
+      className={`ob__unsure${deferred ? " is-on" : ""}`}
+      onClick={() => onChange(deferred ? "" : UNSURE)}
+      aria-pressed={deferred}
+    >
+      {deferred ? <Undo2 aria-hidden="true" /> : <HelpCircle aria-hidden="true" />}
+      {deferred ? "Actually, let me answer this" : "Not sure — you advise us"}
+    </button>
+  ) : null;
+
   const wrap = (inner: React.ReactNode) => (
-    <div className={`ob__f${invalid ? " is-bad" : ""}`} data-field={f.key}>
+    <div
+      className={`ob__f${invalid ? " is-bad" : ""}${deferred ? " is-deferred" : ""}`}
+      data-field={f.key}
+    >
       {label}
       {hint}
-      {inner}
+      {/* The control stays in the DOM while deferred rather than being
+          replaced, so nothing jumps when it is toggled and anything already
+          typed is still there if they change their mind. `inert` keeps it out
+          of the tab order and out of reach while it does not apply. */}
+      <div className="ob__ctl" {...(deferred ? { inert: true } : {})}>{inner}</div>
+      {deferred ? (
+        <p className="ob__unsureNote">
+          Noted. We will come to this with a recommendation rather than a blank.
+        </p>
+      ) : null}
+      {escape}
     </div>
   );
 
