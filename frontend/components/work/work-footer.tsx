@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { CONTACT_EMAIL } from "@/lib/site";
+import { SiteFooter } from "@/components/layout/site-footer";
 
 /**
  * The closing band shared by all three work tiers.
  *
- * One component rather than the same block pasted into three route files:
- * this is the last thing on every work page, and three copies is three
- * chances for the contact address or the sign-off to drift.
+ * The closing CTA, plus the shared SiteFooter. The footer used to be written
+ * out here as well, and identically in app/page.tsx and app/services/page.tsx
+ * -- three copies of one band, and three chances for the contact address to
+ * drift. It lives in components/layout/site-footer now; this keeps only the
+ * call to action, which the work pages want and the homepage does not.
  */
 export function WorkFooter({ cta = true }: { cta?: boolean }) {
   return (
@@ -36,42 +38,7 @@ export function WorkFooter({ cta = true }: { cta?: boolean }) {
         </section>
       ) : null}
 
-      <footer className="pv">
-        <div
-          className="pv-sec pv-sec--band"
-          style={{ paddingBlock: "clamp(2.4rem,4vw,3.4rem)" }}
-        >
-          <div className="pv-wrap">
-            <p style={{ color: "var(--on-band-dim)", fontSize: ".9rem", textAlign: "center" }}>
-              © {new Date().getFullYear()} We Dig Creativity Solutions. All rights reserved.{" "}
-              {/* Underlined, not only recoloured: a link inside body text that is
-                  distinguished by colour alone is invisible to anyone who cannot
-                  separate that colour from the text around it. */}
-              <a
-                href={`mailto:${CONTACT_EMAIL}`}
-                style={{
-                  color: "var(--accent)",
-                  textDecoration: "underline",
-                  textUnderlineOffset: "0.18em",
-                }}
-              >
-                {CONTACT_EMAIL}
-              </a>
-            </p>
-            <p
-              style={{
-                color: "var(--on-band-dim)",
-                fontSize: ".9rem",
-                textAlign: "center",
-                marginTop: 6,
-              }}
-            >
-              ...brilliant simplicity{" "}
-              <strong style={{ color: "var(--accent)" }}>of thought!</strong>
-            </p>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </>
   );
 }

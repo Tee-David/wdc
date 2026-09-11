@@ -1,0 +1,143 @@
+/* ============================================================================
+   Legal pages.
+
+   Long-form reading, so the type does the work rather than the decoration: a
+   measure that stops around 68 characters, generous leading, and a contents
+   rail that stays put. Nothing here has a card, a shadow or a gradient, because
+   nothing on these pages is being sold.
+   ========================================================================== */
+
+.lg-updated {
+  margin-top: .9rem;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .82rem; letter-spacing: .04em;
+  color: var(--muted);
+}
+
+/* ---------------- index ---------------- */
+
+.lg-grid {
+  display: grid; gap: clamp(14px, 1.8vw, 20px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (max-width: 720px) { .lg-grid { grid-template-columns: 1fr; } }
+
+.lg-card {
+  display: grid; align-content: start; gap: 8px;
+  padding: clamp(20px, 2.6vw, 30px);
+  border: 1px solid var(--rule); border-radius: 18px;
+  background: var(--paper-2); text-decoration: none;
+  transition: border-color .25s ease, transform .25s ease, background .25s ease;
+}
+.pv-sec--alt .lg-card { background: var(--paper); }
+.lg-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+.lg-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.lg-card__n {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: .8rem; color: var(--accent);
+}
+.pv .lg-card__t {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: clamp(1.1rem, 1rem + .5vw, 1.35rem);
+  color: var(--ink); letter-spacing: -.01em;
+}
+.pv .lg-card__d { color: var(--muted); font-size: .94rem; line-height: 1.6; max-width: 46ch; }
+.lg-card__go {
+  display: inline-flex; align-items: center; gap: .3em; margin-top: .5rem;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 600; font-size: .88rem; color: var(--accent-ink);
+}
+.lg-card__go svg { width: 1em; height: 1em; }
+
+.lg-note {
+  margin: clamp(1.8rem, 3vw, 2.6rem) auto 0; max-width: 66ch;
+  text-align: center; color: var(--muted); font-size: .92rem; line-height: 1.65;
+}
+.pv .lg-note a,
+.pv .lg-foot a {
+  color: var(--accent-ink); text-decoration: underline; text-underline-offset: .18em;
+}
+
+/* ---------------- document ---------------- */
+
+/* The rail first in the source AND first in the grid: it is navigation for the
+   article beside it, so reaching it before the body is the right order for a
+   keyboard and a screen reader as well as for the eye. */
+.lg-cols {
+  display: grid; gap: clamp(2rem, 4vw, 3.5rem);
+  grid-template-columns: minmax(0, .8fr) minmax(0, 2fr);
+  align-items: start;
+}
+@media (max-width: 900px) { .lg-cols { grid-template-columns: 1fr; } }
+
+.lg-toc { position: sticky; top: 96px; align-self: start; }
+/* Sticky is pointless once the rail is a block above the article, and worse
+   than pointless: it would pin a list of nine links over the text. */
+@media (max-width: 900px) { .lg-toc { position: static; } }
+
+/* `.pv` scoped, all through this block. The page carries the `.pv` class and
+   preview.css resets `.pv p { margin: 0 }` at (0,1,1), which beats a bare
+   `.lg-toc__k--2` at (0,1,0) however late it is declared: the second label sat
+   flush against the last link of the list with a zero-pixel gap. */
+.pv .lg-toc__k {
+  margin: 0 0 .9rem;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .72rem; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--accent);
+}
+.pv .lg-toc__k--2 { margin-top: 2.2rem; }
+
+.lg-toc__list { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
+.lg-toc__list a {
+  display: block; font-size: .9rem; line-height: 1.4;
+  color: var(--muted); text-decoration: none;
+  /* The marker is a left border that fills in, not a background: a highlighted
+     block in a narrow column reads as a button. */
+  padding-left: .85rem;
+  border-left: 2px solid transparent;
+  transition: color .2s ease, border-color .2s ease;
+}
+.lg-toc__list a:hover { color: var(--ink); }
+.lg-toc__list a.is-on {
+  color: var(--ink); font-weight: 600; border-left-color: var(--accent);
+}
+.lg-toc__list a:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px;
+}
+
+.lg-toc__others { display: flex; flex-wrap: wrap; gap: 7px; }
+.lg-toc__others a {
+  padding: .4em .85em; border-radius: 999px;
+  border: 1px solid var(--rule);
+  font-size: .78rem; color: var(--muted); text-decoration: none;
+  transition: border-color .2s ease, color .2s ease;
+}
+.lg-toc__others a:hover { border-color: var(--accent); color: var(--accent-ink); }
+
+.lg-body { max-width: 68ch; }
+.pv .lg-intro {
+  margin: 0; font-size: clamp(1.02rem, .98rem + .35vw, 1.18rem);
+  line-height: 1.65; color: var(--ink);
+}
+
+/* `scroll-margin-top` on the SECTION, so a jump from the contents puts the
+   heading below the fixed header rather than underneath it. */
+.lg-sec { margin-top: clamp(2rem, 3.4vw, 2.8rem); scroll-margin-top: 100px; }
+.pv .lg-sec h2 {
+  margin: 0 0 .7rem;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: clamp(1.12rem, 1rem + .6vw, 1.4rem);
+  letter-spacing: -.01em; color: var(--ink);
+}
+.pv .lg-sec p {
+  margin: 0 0 .85rem; color: var(--muted);
+  font-size: .98rem; line-height: 1.72;
+}
+.pv .lg-sec p:last-child { margin-bottom: 0; }
+
+.lg-foot {
+  margin-top: clamp(2.4rem, 4vw, 3.4rem); padding-top: 1.4rem;
+  border-top: 1px solid var(--rule);
+  color: var(--muted); font-size: .92rem; line-height: 1.65;
+}

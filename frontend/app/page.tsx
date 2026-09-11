@@ -1,9 +1,9 @@
 import IntroAnimation from "@/components/intro/intro-animation";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { Header } from "@/components/layout/header";
 import { Hero } from "@/components/sections/hero";
 import PreviewBody from "@/components/preview/preview-body";
 import { FAQS } from "@/lib/faq";
-import { CONTACT_EMAIL } from "@/lib/site";
 
 const faqJsonLd = {
   "@context": "https://schema.org",
@@ -34,38 +34,7 @@ export default function Home() {
         <PreviewBody />
       </main>
 
-      <footer className="pv">
-        <div
-          className="pv-sec pv-sec--band"
-          style={{ paddingBlock: "clamp(2.4rem,4vw,3.4rem)" }}
-        >
-          <div className="pv-wrap">
-            <p style={{ color: "var(--on-band-dim)", fontSize: ".9rem", textAlign: "center" }}>
-              © {new Date().getFullYear()} We Dig Creativity Solutions. All rights reserved.{" "}
-              {/* Underlined, not just recoloured. A link inside a run of body text that
-                  is only distinguished by colour is invisible to anyone who
-                  cannot separate that colour from the text around it. */}
-              <a
-                href={`mailto:${CONTACT_EMAIL}`}
-                style={{ color: "var(--accent)", textDecoration: "underline", textUnderlineOffset: "0.18em" }}
-              >
-                {CONTACT_EMAIL}
-              </a>
-            </p>
-            <p
-              style={{
-                color: "var(--on-band-dim)",
-                fontSize: ".9rem",
-                textAlign: "center",
-                marginTop: 6,
-              }}
-            >
-              ...brilliant simplicity{" "}
-              <strong style={{ color: "var(--accent)" }}>of thought!</strong>
-            </p>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
 
       <script
         type="application/ld+json"

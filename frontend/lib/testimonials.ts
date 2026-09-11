@@ -55,7 +55,7 @@ export const TESTIMONIALS: Testimonial[] = [
   },
   {
     slug: "the-ajoks-brand",
-    client: "TAB — The Ajoks Brand",
+    client: "TAB The Ajoks Brand",
     text:
       "Too many designers give you a logo that only looks good on a phone screen. These lockups still work on fabric labels, receipts and the small stamps we use daily.",
   },
