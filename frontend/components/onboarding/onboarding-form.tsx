@@ -1,10 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, HelpCircle, Paperclip, Undo2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  AlertCircle, ArrowLeft, ArrowRight, Check, HelpCircle, Paperclip, Save, Undo2,
+} from "lucide-react";
 import { SERVICES, type ServiceSlug } from "@/lib/services";
-import { stepsFor, UNSURE, type Field, type Step } from "@/lib/onboarding";
+import {
+  isFilled, minutesLeft, PHASES, problemWith, stepsFor, UNSURE,
+  type Field, type PhaseId, type Step,
+} from "@/lib/onboarding";
+import PhoneField from "./phone-field";
 import "./onboarding.css";
+import "./phone-field.css";
 
 /**
  * The onboarding form.
@@ -26,10 +33,6 @@ import "./onboarding.css";
 type Answers = Record<string, string | string[]>;
 
 const KEY = "wdc-onboarding-draft";
-
-function isFilled(v: string | string[] | undefined) {
-  return Array.isArray(v) ? v.length > 0 : Boolean(v && v.trim());
-}
 
 /** A field is asked only when its condition is met. Hidden means not asked. */
 function visible(f: Field, a: Answers) {
@@ -78,6 +81,18 @@ export default function OnboardingForm() {
   const [i, setI] = useState(() => (typeof draft.step === "number" ? draft.step : 0));
   const [a, setA] = useState<Answers>(() => draft.answers ?? {});
   const [tried, setTried] = useState(false);
+  /* WHICH FIELDS HAVE BEEN LEFT, not which have been typed in. A form that
+     turns red while you are still halfway through typing your email address is
+     scolding you for not having finished yet, so nothing is judged until the
+     caret has moved on -- or until Next is pressed, which is the other moment
+     a person has declared they are done. */
+  const [touched, setTouched] = useState<Record<string, true>>({});
+  /* The phone field's own verdict, which the schema cannot reach: whether the
+     digits are a real number FOR THE COUNTRY CHOSEN is libphonenumber's
+     judgement, not a regular expression's. */
+  const [phoneOk, setPhoneOk] = useState<Record<string, boolean>>({});
+  /* "Saved" confirmation, shown for a beat after the explicit save. */
+  const [savedAt, setSavedAt] = useState(0);
   /* Whether there is a draft to return to, so the opening button can say
      "pick up where you left off" rather than "start". Cleared by "start over",
      which wipes the draft: the button must not keep offering one. */
@@ -95,28 +110,98 @@ export default function OnboardingForm() {
 
   const set = (k: string, v: string | string[]) => setA((p) => ({ ...p, [k]: v }));
 
-  const shown = step ? step.fields.filter((f) => visible(f, a)) : [];
-  const missing = shown.filter((f) => f.required && !isFilled(a[f.key]));
+  /* Memoised because `problems` below depends on it: a fresh array every
+     render would make that useMemo recompute every render, which is the same
+     as not having it. */
+  const shown = useMemo(
+    () => (step ? step.fields.filter((f) => visible(f, a)) : []),
+    [step, a],
+  );
+
+  /* Every problem on this step, in the order the questions are asked, so the
+     summary reads down the page rather than in whatever order the checks
+     happened to run. */
+  const problems = useMemo(
+    () =>
+      shown
+        .map((f) => ({ f, msg: problemWith(f, a[f.key], { phoneOk: phoneOk[f.key] }) }))
+        .filter((x): x is { f: Field; msg: string } => x.msg !== null),
+    [shown, a, phoneOk],
+  );
+
+  /* Shown against a field only once that field has been left, or once Next has
+     been pressed. See the note on `touched`. */
+  const showProblem = (k: string) => tried || touched[k] === true;
+
+  const goTo = (key: string) => {
+    const el = document.querySelector<HTMLElement>(`[data-field="${key}"]`);
+    el?.scrollIntoView({ block: "center", behavior: "smooth" });
+    /* Focus, not just scroll: a keyboard or screen-reader user who presses
+       Next and is only scrolled has been told nothing. */
+    el?.querySelector<HTMLElement>("input, textarea, select, button")?.focus();
+  };
 
   const next = () => {
     setTried(true);
-    if (missing.length) {
-      document.querySelector(`[data-field="${missing[0].key}"]`)
-        ?.scrollIntoView({ block: "center", behavior: "smooth" });
-      return;
-    }
+    if (problems.length) { goTo(problems[0].f.key); return; }
     setTried(false);
+    setTouched({});
     setI((n) => Math.min(n + 1, steps.length));
+    /* Back to the top of the new step. Landing halfway down a fresh set of
+       questions because the last one was long is disorienting. */
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
   };
-  const back = () => { setTried(false); setI((n) => Math.max(0, n - 1)); };
+  const back = () => {
+    setTried(false);
+    setI((n) => Math.max(0, n - 1));
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
+  };
 
   const done = i >= steps.length;
-  const pct = Math.round((Math.min(i, steps.length) / steps.length) * 100);
+
+  /* --------------------------------------------------------- the progress */
+  /* Progress is measured in PARTS, not in steps -- see the long note on PHASES
+     in lib/onboarding.ts. Each part fills as its own steps are finished, so
+     the reader is watching three short bars complete rather than one long one
+     crawl. */
+  const phase: PhaseId = step?.phase ?? "final";
+  const inPhase = useMemo(() => steps.filter((s) => s.phase === phase), [steps, phase]);
+  const posInPhase = inPhase.findIndex((s) => s.id === step?.id) + 1;
+
+  const phaseFill = (id: PhaseId) => {
+    const all = steps.filter((s) => s.phase === id);
+    if (!all.length) return 0;
+    const doneHere = all.filter((s) => steps.indexOf(s) < i).length;
+    return Math.round((doneHere / all.length) * 100);
+  };
+
+  const mins = useMemo(
+    () => minutesLeft(steps, i, a, (f) => visible(f, a)),
+    [steps, i, a],
+  );
+
+  /* An explicit save, even though it also saves on every keystroke.
+     The automatic draft is invisible, and invisible reassurance reassures
+     nobody -- a client who has to leave halfway wants to be TOLD it is safe
+     before they close the tab, not to hope. In production this is also where
+     the resume link gets emailed. */
+  const saveNow = useCallback(() => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ answers: a, services, step: i, started: true }));
+    } catch { /* a blocked store is reported below, not thrown */ }
+    setSavedAt(Date.now());
+  }, [a, services, i]);
+
+  useEffect(() => {
+    if (!savedAt) return;
+    const t = window.setTimeout(() => setSavedAt(0), 5000);
+    return () => window.clearTimeout(t);
+  }, [savedAt]);
 
   /* ------------------------------------------------ welcome */
   if (!started) {
     const preview = stepsFor(services);
-    const mins = Math.max(4, Math.round(preview.length * 1.8));
+    const previewMins = minutesLeft(preview, 0, {}, (f) => !f.showIf);
     return (
       <div className="ob ob--intro">
         <p className="ob__k">Client onboarding</p>
@@ -127,10 +212,31 @@ export default function OnboardingForm() {
           file nobody opens.
         </p>
 
+        {/* NOT "11 STEPS". That number is the first thing a reader takes in and
+            the only one they remember, and at eleven it reads as a warning.
+            The form is not too long -- the counter was counting the wrong
+            thing. Three named parts is a shape somebody can picture, and
+            saying what each one is for beats hiding how long it is. */}
+        <ol className="ob__parts">
+          {PHASES.map((ph, n) => {
+            const count = preview.filter((s) => s.phase === ph.id).length;
+            return (
+              <li key={ph.id}>
+                <span className="ob__partN" aria-hidden="true">{n + 1}</span>
+                <div>
+                  <b>{ph.title}</b>
+                  <em>{ph.blurb}</em>
+                  <small>{count === 1 ? "1 short section" : `${count} short sections`}</small>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+
         <div className="ob__facts">
-          <div><dt>Steps</dt><dd>{preview.length}</dd></div>
-          <div><dt>About</dt><dd>{mins} min</dd></div>
+          <div><dt>About</dt><dd>{previewMins} min</dd></div>
           <div><dt>Saves</dt><dd>As you go</dd></div>
+          <div><dt>Leave anytime</dt><dd>This link returns you</dd></div>
         </div>
 
         <div className="ob__note">
@@ -241,29 +347,107 @@ export default function OnboardingForm() {
   return (
     <div className="ob">
       {/* the rail */}
+      {/* THE RAIL IS THE MAP, AND IT IS GROUPED BY PART.
+
+          It used to open with "Step 1 of 7" in bold, which is the one line
+          this whole redesign exists to get rid of -- moving it out of the main
+          column and leaving it at the top of the rail would have been moving
+          the problem rather than fixing it.
+
+          Grouping the same steps under the three part headings does the
+          opposite job. Seeing the whole map is reassuring, not alarming, as
+          long as it is shaped: three named groups of two or three, rather than
+          an undifferentiated list of eleven. The numbers are still on every
+          row for anyone who wants them, at the size a number deserves. */}
       <nav className="ob__rail" aria-label="Progress">
-        <div className="ob__bar" aria-hidden="true"><i style={{ width: `${pct}%` }} /></div>
-        <p className="ob__count">Step {i + 1} of {steps.length}</p>
-        <ol>
-          {steps.map((s, n) => (
-            <li key={s.id} className={n === i ? "is-on" : n < i ? "is-done" : undefined}>
-              <button type="button" onClick={() => { setTried(false); setI(n); }} disabled={n > i}>
-                <span className="ob__n" aria-hidden="true">
-                  {n < i ? <Check /> : String(n + 1).padStart(2, "0")}
-                </span>
-                <span>
-                  <b>{s.title}</b>
-                  <em>{s.blurb}</em>
-                </span>
-              </button>
-            </li>
-          ))}
-        </ol>
+        {PHASES.map((ph) => {
+          const mine = steps
+            .map((s, n) => ({ s, n }))
+            .filter(({ s }) => s.phase === ph.id);
+          if (!mine.length) return null;
+          const allDone = mine.every(({ n }) => n < i);
+          return (
+            <section key={ph.id} className={`ob__railGrp${ph.id === phase ? " is-on" : ""}${allDone ? " is-done" : ""}`}>
+              <h2>{ph.title}</h2>
+              <ol>
+                {mine.map(({ s, n }) => (
+                  <li key={s.id} className={n === i ? "is-on" : n < i ? "is-done" : undefined}>
+                    <button type="button" onClick={() => { setTried(false); setI(n); }} disabled={n > i}>
+                      <span className="ob__n" aria-hidden="true">
+                        {n < i ? <Check /> : String(n + 1).padStart(2, "0")}
+                      </span>
+                      <span>
+                        <b>{s.title}</b>
+                        <em>{s.blurb}</em>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          );
+        })}
       </nav>
 
       {/* the step */}
       <div className="ob__main">
-        <p className="ob__k">Step {i + 1} of {steps.length}</p>
+        {/* ------------------------------------------------ the top bar.
+
+            THIS IS THE ANSWER TO "STEP 1 OF 7 IS DAUNTING". Three short bars,
+            one per part, each filling with its own steps -- so what a client
+            watches is a small thing completing rather than a long thing
+            crawling. The part they are in is named; the exact step number has
+            moved to the rail beside it, where it is available without being
+            the first thing anyone reads.
+
+            The minutes are the other half of it, and they are honest: they
+            count only questions still visible given the answers so far, so
+            answering "no" to a branching question makes the estimate actually
+            drop. A number that never moves is worse than no number. */}
+        <div className="ob__top">
+          <ol className="ob__phases">
+            {PHASES.map((ph) => {
+              const fill = phaseFill(ph.id);
+              const on = ph.id === phase;
+              return (
+                <li
+                  key={ph.id}
+                  className={`ob__ph${on ? " is-on" : ""}${fill === 100 ? " is-done" : ""}`}
+                  aria-current={on ? "step" : undefined}
+                >
+                  <span className="ob__phBar" aria-hidden="true">
+                    <i style={{ width: `${on ? Math.max(fill, 6) : fill}%` }} />
+                  </span>
+                  <span className="ob__phName">{ph.title}</span>
+                </li>
+              );
+            })}
+          </ol>
+
+          <div className="ob__topMeta">
+            <p>
+              <b>{PHASES.find((p) => p.id === phase)?.title}</b>
+              <span aria-hidden="true"> · </span>
+              {posInPhase} of {inPhase.length}
+              <span aria-hidden="true"> · </span>
+              <span className="ob__mins">about {mins} min left</span>
+            </p>
+            <button type="button" className="ob__save" onClick={saveNow}>
+              <Save aria-hidden="true" /> Save &amp; continue later
+            </button>
+          </div>
+
+          {/* `role="status"` rather than an alert: this is good news, and it
+              should not interrupt anyone. */}
+          {savedAt > 0 && (
+            <p className="ob__saved" role="status">
+              <Check aria-hidden="true" />
+              Saved. Close the tab whenever you like — this same link brings you
+              back to this question.
+            </p>
+          )}
+        </div>
+
         <h1>{step.title}</h1>
         <p className="ob__blurb">{step.blurb}</p>
 
@@ -274,7 +458,13 @@ export default function OnboardingForm() {
               f={f}
               value={a[f.key]}
               onChange={(v) => set(f.key, v)}
-              invalid={tried && f.required === true && !isFilled(a[f.key])}
+              onBlur={() => setTouched((t) => ({ ...t, [f.key]: true }))}
+              onPhoneValidity={(ok) => setPhoneOk((p) => ({ ...p, [f.key]: ok }))}
+              problem={
+                showProblem(f.key)
+                  ? problemWith(f, a[f.key], { phoneOk: phoneOk[f.key] })
+                  : null
+              }
             />
           ))}
         </div>
@@ -290,12 +480,26 @@ export default function OnboardingForm() {
           </button>
         </div>
 
-        {tried && missing.length > 0 && (
-          <p className="ob__err" role="alert">
-            {missing.length === 1
-              ? `${missing[0].label} still needs an answer.`
-              : `${missing.length} questions still need an answer.`}
-          </p>
+        {/* THE SUMMARY LISTS THEM AND LINKS TO THEM. "3 questions still need an
+            answer" tells someone they have failed without telling them where,
+            which on a step of twelve questions means hunting. Each line here
+            jumps to and focuses its own field. */}
+        {tried && problems.length > 0 && (
+          <div className="ob__err" role="alert">
+            <p>
+              <AlertCircle aria-hidden="true" />
+              {problems.length === 1
+                ? "One question needs attention before you go on."
+                : `${problems.length} questions need attention before you go on.`}
+            </p>
+            <ul>
+              {problems.map(({ f, msg }) => (
+                <li key={f.key}>
+                  <button type="button" onClick={() => goTo(f.key)}>{msg}</button>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </div>
     </div>
@@ -305,14 +509,20 @@ export default function OnboardingForm() {
 /* ------------------------------------------------------------------ field */
 
 function FieldView({
-  f, value, onChange, invalid,
+  f, value, onChange, onBlur, onPhoneValidity, problem,
 }: {
   f: Field;
   value: string | string[] | undefined;
   onChange: (v: string | string[]) => void;
-  invalid: boolean;
+  onBlur: () => void;
+  onPhoneValidity: (ok: boolean) => void;
+  /** The message to show, or null. Null also means "not judged yet". */
+  problem: string | null;
 }) {
   const id = `ob-${f.key}`;
+  const errId = `${id}-err`;
+  const hintId = `${id}-hint`;
+  const invalid = problem !== null;
   const v = value ?? (f.kind === "multi" ? [] : "");
 
   const label = (
@@ -324,7 +534,10 @@ function FieldView({
   /* Always visible, under the label. A hint the form cannot be completed
      without is not a hint, it is a label, so none of these are hidden behind
      a hover. */
-  const hint = f.hint ? <p className="ob__hint">{f.hint}</p> : null;
+  const hint = f.hint ? <p className="ob__hint" id={hintId}>{f.hint}</p> : null;
+  /* The hint and the error are both read out, in that order: what the question
+     wants, then what is wrong with the answer. */
+  const describedBy = [f.hint ? hintId : "", problem ? errId : ""].filter(Boolean).join(" ") || undefined;
 
   /* THE "NOT SURE" ESCAPE.
      The welcome screen promises that not knowing something will not hold
@@ -349,8 +562,24 @@ function FieldView({
 
   const wrap = (inner: React.ReactNode) => (
     <div
-      className={`ob__f${invalid ? " is-bad" : ""}${deferred ? " is-deferred" : ""}`}
+      /* `ob__f--sub` MARKS A QUESTION THAT APPEARED BECAUSE OF AN ANSWER.
+         A field that materialises out of nowhere when you tap "Yes" is
+         startling, and worse, it is not obviously connected to what caused it.
+         The indent and the rule down its left say "this follows from the one
+         above", and the reveal animation gives the eye something to follow
+         rather than a jump cut. */
+      className={[
+        "ob__f",
+        f.showIf ? "ob__f--sub" : "",
+        invalid ? "is-bad" : "",
+        deferred ? "is-deferred" : "",
+      ].filter(Boolean).join(" ")}
       data-field={f.key}
+      /* One listener for the whole group rather than one per control, which
+         also means the card and multi-select groups report being left --
+         they have no single input to hang a blur on. `onBlur` bubbles in
+         React, unlike the DOM event. */
+      onBlur={onBlur}
     >
       {label}
       {hint}
@@ -364,19 +593,34 @@ function FieldView({
           Noted. We will come to this with a recommendation rather than a blank.
         </p>
       ) : null}
+      {problem && (
+        <p className="ob__fErr" id={errId}>
+          <AlertCircle aria-hidden="true" />
+          {problem}
+        </p>
+      )}
       {escape}
     </div>
   );
 
   if (f.kind === "textarea") {
-    return wrap(<textarea id={id} value={v as string} placeholder={f.placeholder}
-                          onChange={(e) => onChange(e.target.value)} rows={4} />);
+    return wrap(
+      <textarea
+        id={id} value={v as string} placeholder={f.placeholder} rows={4}
+        aria-invalid={invalid || undefined} aria-describedby={describedBy}
+        onChange={(e) => onChange(e.target.value)}
+      />,
+    );
   }
 
   if (f.kind === "select") {
     return wrap(
       <div className="ob__sel">
-        <select id={id} value={v as string} onChange={(e) => onChange(e.target.value)}>
+        <select
+          id={id} value={v as string}
+          aria-invalid={invalid || undefined} aria-describedby={describedBy}
+          onChange={(e) => onChange(e.target.value)}
+        >
           <option value="">Choose one</option>
           {f.options?.map((o) => <option key={o} value={o}>{o}</option>)}
         </select>
@@ -442,12 +686,38 @@ function FieldView({
     );
   }
 
+  if (f.kind === "tel") {
+    return wrap(
+      <PhoneField
+        id={id}
+        value={v as string}
+        onChange={onChange}
+        onValidity={onPhoneValidity}
+        invalid={invalid}
+        describedBy={describedBy}
+      />,
+    );
+  }
+
   return wrap(
     <input
       id={id}
-      type={f.kind === "email" ? "email" : f.kind === "tel" ? "tel" : f.kind === "url" ? "url" : "text"}
+      type={f.kind === "email" ? "email" : f.kind === "url" ? "url" : "text"}
+      /* `inputMode` changes the KEYBOARD a phone shows. An email field that
+         offers an @ key without the reader hunting for it is the cheapest
+         improvement available on a form filled in mostly on phones. */
+      inputMode={f.kind === "email" ? "email" : f.kind === "url" ? "url" : undefined}
+      autoComplete={
+        f.key === "first_name" ? "given-name"
+        : f.key === "last_name" ? "family-name"
+        : f.key === "email" ? "email"
+        : f.key === "company" ? "organization"
+        : undefined
+      }
       value={v as string}
       placeholder={f.placeholder}
+      aria-invalid={invalid || undefined}
+      aria-describedby={describedBy}
       onChange={(e) => onChange(e.target.value)}
     />,
   );

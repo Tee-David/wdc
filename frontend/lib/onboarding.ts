@@ -63,11 +63,41 @@ export type Field = {
   showIf?: { key: string; equals: string[] };
 };
 
+/**
+ * THE THREE PARTS OF THE FORM, and the reason they exist.
+ *
+ * A client who bought three services used to be met with "Step 1 of 11". That
+ * number is the first thing they read and the only thing they remember, and it
+ * reads as a warning rather than as information -- the honest reaction to it
+ * is "not now". The form was not too long; the COUNTER was too loud, and it
+ * was counting the wrong unit.
+ *
+ * So the unit changed. Eleven steps is daunting, three parts is not, and "the
+ * second of three questions about your business" is a shape a person can hold
+ * in their head. The exact position is still available to anyone who wants it,
+ * in the rail; it is simply no longer the headline.
+ *
+ * The parts are also honest about what they hold: the first is quick and
+ * mostly confirmation, the middle is the real brief and varies with what was
+ * bought, and the last is short. Saying that is worth more than hiding the
+ * length, because a client who knows the shape of a task does not have to
+ * fear it.
+ */
+export type PhaseId = "you" | "work" | "final";
+
+export const PHASES: { id: PhaseId; title: string; blurb: string }[] = [
+  { id: "you", title: "About you", blurb: "Quick ones. Mostly confirming what we already have." },
+  { id: "work", title: "The work", blurb: "The brief itself. This is the part that shapes what we build." },
+  { id: "final", title: "Finishing up", blurb: "Assets, approvals, and anything we have not thought to ask." },
+];
+
 export type Step = {
   id: string;
   title: string;
   /** One line under the step title, and the same line in the rail. */
   blurb: string;
+  /** Which of the three parts above this step belongs to. */
+  phase: PhaseId;
   /** Absent means the step is part of the common core. */
   service?: ServiceSlug;
   fields: Field[];
@@ -78,7 +108,7 @@ const AGES = ["Under 18", "18–24", "25–34", "35–44", "45–54", "55–64",
 
 export const CORE_STEPS: Step[] = [
   {
-    id: "you",
+    phase: "you", id: "you",
     title: "Your details",
     blurb: "Confirm what we already have, and add the bits billing will need.",
     fields: [
@@ -99,7 +129,7 @@ export const CORE_STEPS: Step[] = [
     ],
   },
   {
-    id: "business",
+    phase: "you", id: "business",
     title: "Your business",
     blurb: "So the work is built around what you actually sell.",
     fields: [
@@ -122,7 +152,7 @@ export const CORE_STEPS: Step[] = [
     ],
   },
   {
-    id: "audience",
+    phase: "you", id: "audience",
     title: "Your audience",
     blurb: "Who the work has to reach.",
     fields: [
@@ -134,7 +164,7 @@ export const CORE_STEPS: Step[] = [
 
 export const SERVICE_STEPS: Step[] = [
   {
-    id: "branding", service: "branding", title: "Branding & Design",
+    phase: "work", id: "branding", service: "branding", title: "Branding & Design",
     blurb: "What we are making, and everywhere it has to survive.",
     fields: [
       {
@@ -163,7 +193,7 @@ export const SERVICE_STEPS: Step[] = [
     ],
   },
   {
-    id: "seo", service: "seo", title: "SEO",
+    phase: "work", id: "seo", service: "seo", title: "SEO",
     blurb: "What you want to be found for, and what we need access to.",
     fields: [
       { key: "site_url", label: "Your website", kind: "url", placeholder: "https://", required: true },
@@ -178,7 +208,7 @@ export const SERVICE_STEPS: Step[] = [
     ],
   },
   {
-    id: "web", service: "web", title: "Web development",
+    phase: "work", id: "web", service: "web", title: "Web development",
     blurb: "What the site has to do, and who looks after it after launch.",
     fields: [
       { key: "site_new_or_existing", label: "Is this a new website, or improving one you have?", kind: "cards", required: true, options: ["Brand new", "Improving an existing site"] },
@@ -190,11 +220,29 @@ export const SERVICE_STEPS: Step[] = [
       { key: "content_ready", label: "Do you have the words and pictures?", kind: "cards", required: true, options: ["Ready to go", "Partly", "We need you to produce them"] },
       { key: "wants_seo", label: "Should we optimise it for search?", kind: "yesno", required: true, hint: "Search optimisation is the work that makes a site findable on Google: the right words, a clean technical build, and pages that load fast." },
       { key: "has_hosting", label: "Do you already have hosting and a domain?", kind: "cards", required: true, options: ["Both", "Domain only", "Neither", "Not sure"] },
-      { key: "hosting_details", label: "Where, and who controls the account?", kind: "textarea", showIf: { key: "has_hosting", equals: ["Both", "Domain only", "Not sure"] } },
+      {
+        key: "hosting_details",
+        label: "Who is it with, and whose name is the account in?",
+        kind: "textarea",
+        placeholder: "e.g. domain with Namecheap, hosting with Whogohost, both in Tobi's name",
+        /* WE DO NOT ASK FOR THE LOGIN. It is the obvious next question and it
+           is the wrong one: a password typed into a web form is a password
+           sitting in a database, in a draft in someone's browser, and in
+           whatever inbox a notification lands in -- and it would be OUR fault
+           when it leaked, not the client's. Naming the provider is all we need
+           to know what we are dealing with; the access itself is handed over
+           later through the provider's own delegated access, or through a
+           one-time secret link, at the point it is actually needed. Saying so
+           here is also reassuring: a form that asks for a hosting password
+           tells a client something about how the rest of their data will be
+           treated. */
+        hint: "Just the provider and the account holder. Please do not put passwords in this form — we will set access up properly with you when we get there.",
+        showIf: { key: "has_hosting", equals: ["Both", "Domain only", "Not sure"] },
+      },
     ],
   },
   {
-    id: "apps", service: "apps", title: "Apps",
+    phase: "work", id: "apps", service: "apps", title: "Apps",
     blurb: "What the app does, and what it has to talk to.",
     fields: [
       { key: "platforms", label: "iOS, Android, or both?", kind: "multi", required: true, options: ["iOS", "Android"] },
@@ -211,7 +259,7 @@ export const SERVICE_STEPS: Step[] = [
     ],
   },
   {
-    id: "software", service: "software", title: "Software & AI",
+    phase: "work", id: "software", service: "software", title: "Software & AI",
     blurb: "What it replaces, and how we will know it worked.",
     fields: [
       { key: "process", assist: true, label: "What are people doing by hand today that this should take over?", kind: "textarea", required: true },
@@ -223,7 +271,7 @@ export const SERVICE_STEPS: Step[] = [
     ],
   },
   {
-    id: "social", service: "social", title: "Social & PPC",
+    phase: "work", id: "social", service: "social", title: "Social & PPC",
     blurb: "Where you post, who runs it, and what you are spending with the platforms.",
     fields: [
       { key: "channels", label: "Which platforms are you on?", kind: "multi", required: true, options: ["Instagram", "Facebook", "X", "TikTok", "LinkedIn", "WhatsApp", "None yet"] },
@@ -244,7 +292,7 @@ export const SERVICE_STEPS: Step[] = [
 
 export const CLOSING_STEPS: Step[] = [
   {
-    id: "brand",
+    phase: "final", id: "brand",
     title: "Brand and assets",
     blurb: "Anything you already have. Nothing here blocks you from finishing.",
     fields: [
@@ -258,7 +306,7 @@ export const CLOSING_STEPS: Step[] = [
     ],
   },
   {
-    id: "working",
+    phase: "final", id: "working",
     title: "How we will work",
     blurb: "Who decides, and what we must not miss.",
     fields: [
@@ -278,4 +326,129 @@ export function stepsFor(services: ServiceSlug[]): Step[] {
     ...SERVICE_STEPS.filter((s) => s.service && services.includes(s.service)),
     ...CLOSING_STEPS,
   ];
+}
+
+/* ==========================================================================
+   VALIDATION
+
+   Kept here beside the questions rather than inside the form component, for
+   the same reason the questions are: the rules are data about a field, and a
+   field is defined in one place.
+
+   THE STANCE: BE STRICT ABOUT WHAT WE CANNOT RECOVER, AND RELAXED ABOUT THE
+   REST. A misspelled email address means the brief goes nowhere and nobody
+   finds out for a week, so it is checked. A business address typed in an
+   unusual shape is still a business address, so it is not. Every rule below
+   exists because getting that field wrong actually costs somebody something;
+   rules that exist only to make a form feel rigorous are how you get clients
+   fighting a validator over a perfectly good answer.
+   ========================================================================== */
+
+/** Filled in, in the sense the form cares about. */
+export function isFilled(v: string | string[] | undefined) {
+  return Array.isArray(v) ? v.length > 0 : Boolean(v && v.trim());
+}
+
+/**
+ * DELIBERATELY NOT THE RFC 5322 PATTERN. That expression is a page long,
+ * accepts things no mail server will, and rejects nothing anyone actually
+ * types. What goes wrong in practice is a missing @, a missing dot, a trailing
+ * comma, or a space in the middle -- so that is what this catches. The real
+ * test of an address is whether mail arrives at it, which is a job for the
+ * confirmation email, not for a regular expression.
+ */
+const EMAIL = /^[^\s@,]+@[^\s@,]+\.[^\s@,.]{2,}$/;
+
+export type Problem = { key: string; message: string };
+
+/**
+ * What is wrong with this answer, said the way a person would say it.
+ *
+ * Returns null when the answer is fine. `extra` carries verdicts the form
+ * knows and the schema cannot -- today that is the phone field, which is
+ * judged by libphonenumber against the chosen country rather than by anything
+ * expressible here.
+ */
+export function problemWith(
+  f: Field,
+  value: string | string[] | undefined,
+  extra?: { phoneOk?: boolean },
+): string | null {
+  const filled = isFilled(value);
+
+  if (!filled) {
+    /* The message names the FIELD, because the summary at the bottom of a step
+       lists several of these out of context and "This is required" repeated
+       four times tells nobody which four. */
+    return f.required ? `${f.label} still needs an answer.` : null;
+  }
+
+  /* An answer of "I don't know" is an answer. It cannot fail a format check,
+     because it is not trying to be an email address. */
+  if (value === UNSURE) return null;
+
+  const v = typeof value === "string" ? value.trim() : "";
+
+  if (f.kind === "email" && !EMAIL.test(v)) {
+    return "That does not look like an email address. Check for a missing @ or a typo in the domain.";
+  }
+
+  if (f.kind === "url") {
+    /* People type "mysite.com". Treating that as an error is pedantry; the
+       form adds the scheme itself on the way out. What is worth catching is
+       something that is not an address at all. */
+    const withScheme = /^https?:\/\//i.test(v) ? v : `https://${v}`;
+    try {
+      const u = new URL(withScheme);
+      if (!u.hostname.includes(".")) return "That does not look like a web address.";
+    } catch {
+      return "That does not look like a web address.";
+    }
+    return null;
+  }
+
+  if (f.kind === "tel" && extra?.phoneOk === false) {
+    return "That number is not quite right for the country selected. Check the digits, or change the country.";
+  }
+
+  return null;
+}
+
+/**
+ * Roughly how long the questions still ahead will take, in minutes.
+ *
+ * WHY TIME AND NOT STEPS. "Six steps left" means nothing -- a step can be one
+ * yes/no or twelve boxes. "About four minutes left" is the thing the client
+ * actually wants to know, and it is the number that decides whether they
+ * finish now or close the tab.
+ *
+ * It counts only questions that are VISIBLE given the answers so far, so
+ * answering "no" to a branching question makes the estimate genuinely drop
+ * rather than staying put while hidden fields wait in the wings.
+ *
+ * The weights are seconds, and they are estimates, which is why the label says
+ * "about". A card or yes/no is a tap; a text box is a sentence; a textarea is
+ * a thought.
+ */
+const SECONDS: Record<FieldKind, number> = {
+  yesno: 4, cards: 6, select: 7, multi: 10,
+  text: 12, email: 12, tel: 14, url: 12,
+  textarea: 32, upload: 10,
+};
+
+export function minutesLeft(
+  steps: Step[],
+  from: number,
+  answers: Record<string, string | string[]>,
+  visibleNow: (f: Field) => boolean,
+): number {
+  let s = 0;
+  for (let n = Math.max(0, from); n < steps.length; n++) {
+    for (const f of steps[n].fields) {
+      if (!visibleNow(f)) continue;
+      if (isFilled(answers[f.key])) continue;   // already done costs nothing
+      s += SECONDS[f.kind] ?? 10;
+    }
+  }
+  return Math.max(1, Math.round(s / 60));
 }
