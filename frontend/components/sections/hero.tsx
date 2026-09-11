@@ -124,13 +124,26 @@ function HeroBackdrop() {
           dark.
 
           Measured against the brightest 1% of each image across the band the
-          headline occupies: at the original 40% the worst frame left white type
-          on rgb(148,148,148), which is 3.03:1 and under AA for anything but the
-          headline itself. 58% cleared AA at 5.66:1 but still read as a bright
-          photograph with type over it rather than as a hero. 72% takes the same
-          ground to rgb(69,69,69) and 9.59:1: the picture is still legible as a
-          workspace, and the words on it are unambiguous. */}
-      <div className="absolute inset-0 bg-black/72 dark:bg-background/80" />
+          headline occupies, compositing in sRGB rather than in linear
+          luminance — the blend happens on the channel values, and doing it on
+          the luminances instead understates every one of these by about 3x:
+
+            40%  3.03:1   under AA for anything but the headline
+            58%  5.58:1   clears AA, but reads as a photograph with type on it
+            64%  7.00:1   the picture is present and the words are unambiguous
+            72%  9.59:1   safe, and heavy enough to lose the photograph
+
+          65 is the setting: it holds AA with margin for the body copy as well
+          as the headline, and the worst frame is search-console.jpg, which is
+          very nearly a sheet of white paper — every other backdrop sits well
+          above it.
+
+          MULTIPLES OF FIVE ONLY. The previous value here was `bg-black/72`,
+          and 72 is not a step this build generates — the utility produced
+          nothing at all, so in the light theme there was no black scrim, and
+          in dark the whole effect was the `dark:` layer beside it. Any opacity
+          written here has to be checked in the browser rather than assumed. */}
+      <div className="absolute inset-0 bg-black/65 dark:bg-background/70" />
       <div className="absolute inset-0 dark:bg-gradient-to-b dark:from-transparent dark:via-transparent dark:to-background/85" />
       <div className="absolute inset-0 dark:bg-primary/25 dark:mix-blend-multiply" />
     </div>
