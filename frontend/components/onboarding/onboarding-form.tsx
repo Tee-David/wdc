@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  AlertCircle, ArrowLeft, ArrowRight, Check, HelpCircle, Save, Undo2,
+  AlertCircle, ArrowLeft, ArrowRight, BrainCircuit, Check, Code2, HelpCircle,
+  Megaphone, Palette, Save, Search, Smartphone, Undo2,
 } from "lucide-react";
 import { SERVICES, type ServiceSlug } from "@/lib/services";
 import {
@@ -17,7 +18,6 @@ import PhoneField from "./phone-field";
    drift apart. */
 import SelectField from "./select-field";
 import Dropzone from "./dropzone";
-import ServiceIcon from "@/components/ui/service-icon";
 import Tip from "./tip";
 import Dialog from "./dialog";
 import "./onboarding.css";
@@ -280,23 +280,36 @@ export default function OnboardingForm() {
         <h2 className="ob__pickH">What are we working on for you?</h2>
         <p className="ob__pickSub">Choose the one this form is for.</p>
 
+        {/* FILLED CARDS, and the icon is the card's own artwork rather than a
+            badge sitting on it. The colour alternates navy and orange by
+            index: a navy column beside an orange one at two columns, a strict
+            alternation at one. See the note in onboarding.css for why not a
+            staggered checker. */}
         <ul className="ob__svc">
-          {SERVICES.map((sv) => (
+          {SERVICES.map((sv, n) => (
             <li key={sv.slug}>
               <button
                 type="button"
-                className={`ob__svcCard${service === sv.slug ? " is-on" : ""}`}
+                className={`ob__svcCard ob__svcCard--${n % 2 ? "orange" : "navy"}${
+                  service === sv.slug ? " is-on" : ""
+                }`}
                 aria-pressed={service === sv.slug}
                 onClick={() => setService(sv.slug)}
               >
-                <span className="ob__svcIc" aria-hidden="true">
-                  <ServiceIcon name={sv.icon} />
-                </span>
+                {/* The watermark. Cropped by the card, drawn in the card's own
+                    ink at low alpha, and deliberately NOT `ServiceIcon`: that
+                    one stamps `pathLength` on every shape and hands it to the
+                    draw-gate, which at this size would be six large SVGs
+                    repainting their strokes. This is a static mark. */}
+                <PickIcon name={sv.icon} />
                 <span className="ob__svcT">
                   <b>{sv.short}</b>
+                  <i aria-hidden="true" />
                   <em>{PICKER_LINE[sv.slug]}</em>
                 </span>
-                <ArrowRight className="ob__svcGo" aria-hidden="true" />
+                <span className="ob__svcMark" aria-hidden="true">
+                  <Check />
+                </span>
               </button>
             </li>
           ))}
@@ -579,6 +592,31 @@ export default function OnboardingForm() {
           }}
         />
     </div>
+  );
+}
+
+/**
+ * The oversized mark on a picker card.
+ *
+ * SIX ICONS, NAMED, rather than a dynamic lookup across lucide: a computed
+ * import pulls the whole package into this route's bundle for the sake of
+ * six shapes. `lib/services.ts` stores the export name, and this is the one
+ * place that has to agree with it.
+ */
+function PickIcon({ name }: { name: string }) {
+  const Ico =
+    name === "Palette" ? Palette
+    : name === "Search" ? Search
+    : name === "Code2" ? Code2
+    : name === "Smartphone" ? Smartphone
+    : name === "BrainCircuit" ? BrainCircuit
+    : name === "Megaphone" ? Megaphone
+    : null;
+  if (!Ico) return null;
+  return (
+    <span className="ob__svcArt" aria-hidden="true">
+      <Ico strokeWidth={1.4} />
+    </span>
   );
 }
 
