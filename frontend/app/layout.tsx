@@ -48,6 +48,9 @@ export const metadata: Metadata = {
   authors: [{ name: "We Dig Creativity Solutions" }],
   publisher: "We Dig Creativity Solutions",
   openGraph: {
+    /* Stated rather than inferred. Without it a crawler has to guess the
+       language of the card from the page, and some simply omit it. */
+    locale: "en_NG",
     title: `${SITE_NAME}; Creative & Digital Marketing Agency`,
     description: `${MOTTO}. Branding & design, SEO, web development, cross-platform apps, and AI-powered software engineering.`,
     type: "website",
@@ -62,6 +65,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: SITE_URL,
   },
+  /* The brand navy, so the browser chrome on Android and the tab strip on
+     desktop Chrome take the site's colour instead of the default grey. */
+  other: { "theme-color": "#000065" },
   robots: {
     index: true,
     follow: true,
