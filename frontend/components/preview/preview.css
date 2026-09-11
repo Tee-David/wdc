@@ -824,3 +824,50 @@
   background: linear-gradient(to top, rgb(0 0 40 / .92), rgb(0 0 40 / .78));
 }
 .pv-modal__note p { margin: 0; color: #fff; font-size: .88rem; max-width: 46ch; text-align: center; }
+
+/* ---------------------------------------------------------------------------
+   Scroll cue on the pinned services rail.
+
+   `position: sticky; left: 0` because the stage this sits in is the HORIZONTAL
+   scroller: without it the cue would ride sideways with the cards and be off
+   the left edge within one card. A block child of a scroll container takes the
+   container's CLIENT width, not its scroll width, so this stays exactly one
+   screen wide and adds nothing to the horizontal overflow the pin measures.
+
+   Only while pinned, and only on phones — there is no sideways run otherwise,
+   and a cue for a thing that is not happening is noise.
+   --------------------------------------------------------------------------- */
+.pv-pincue { display: none; }
+@media (max-width: 768px) {
+  .pv-pinwrap.is-pinned .pv-pincue {
+    display: block; z-index: 3; pointer-events: none;
+    /* Sticky against the WRAPPER, which is several screens tall, so it holds
+       at this line for the whole pinned run. The stage is stuck at 76px and
+       is `100svh - 92px` tall, so its bottom edge is 16px off the foot of the
+       screen: this sits just inside that, over the cards. */
+    position: sticky; top: calc(100svh - 76px);
+    /* Its own height, given back. The script computes the wrapper's height
+       from the STAGE, so a flow sibling above the stage would push everything
+       down by exactly this much and the run would finish 44px early. */
+    height: 44px; margin-bottom: -44px;
+  }
+  /* The cards go right to the bottom of a filled stage, so unlike the services
+     rail — where the cue sits in real empty space — this one is over artwork
+     and needs its own ground to stay readable. */
+  .pv-pinwrap.is-pinned .pv-pincue .cue {
+    padding: 10px 0 12px;
+    /* A full-strength ground under it, fading up. The cards here run to the
+       foot of the stage, so this is over live copy — at 94% over half the
+       height the body text behind it stayed legible and the two read as a
+       collision rather than as a strip. Opaque where the cue is, gone by the
+       top edge. */
+    background: linear-gradient(to top,
+      var(--paper) 0%,
+      color-mix(in srgb, var(--paper) 92%, transparent) 62%,
+      transparent 100%);
+  }
+}
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  /* nothing is pinned under reduced motion, so there is nothing to hint at */
+  .pv-pinwrap.is-pinned .pv-pincue { display: none; }
+}

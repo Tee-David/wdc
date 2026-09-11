@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import ScrollCue from "./scroll-cue";
 import "./pinned-row.css";
 
 /**
@@ -45,6 +46,7 @@ export default function PinnedRow({
       on = false;
       w.classList.remove("is-pinned");
       w.style.removeProperty("--pin-h");
+      w.style.removeProperty("--pin-p");
       trk.style.transform = "";
     };
     const update = () => {
@@ -54,6 +56,10 @@ export default function PinnedRow({
         ? Math.min(1, Math.max(0, (stick - w.getBoundingClientRect().top) / span))
         : 0;
       trk.style.transform = `translate3d(${-p * extra}px,0,0)`;
+      /* Published for the cue underneath, which is the only thing that can
+         tell a reader this section has not ended. Written on the wrapper so
+         one custom property reaches both the track and the cue. */
+      w.style.setProperty("--pin-p", p.toFixed(4));
     };
     const measure = () => {
       release();
@@ -89,8 +95,14 @@ export default function PinnedRow({
 
   return (
     <div className={`pin ${className}`} ref={wrap}>
+      {/* The cue lives INSIDE the sticky stage so it travels with the cards
+          rather than sitting somewhere in the wrapper's tall scroll area,
+          where it would be off screen for most of the run. It is display:none
+          until `is-pinned`, which also keeps it out of the horizontal scroller
+          the stage is when nothing is pinned. */}
       <div className="pin__stage">
         <div className="pin__track" ref={track}>{children}</div>
+        <ScrollCue />
       </div>
     </div>
   );

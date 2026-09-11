@@ -146,8 +146,9 @@ const SERVICES: Service[] = [
     description:
       "Identity systems, logos, motion, and visuals that make brands unmistakable across every surface.",
     icon: <BrandingIcon />,
-    image:
-      "/brand-work/marfaa-logo-variants.jpg",
+    /* Moore Designs: a centred lockup that survives a card crop, where the
+       Marfaa guideline page cropped into a paragraph of usage notes. */
+    image: "/brand-work/moore-cover.jpg",
   },
   {
     title: "SEO",
