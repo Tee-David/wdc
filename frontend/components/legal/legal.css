@@ -49,9 +49,35 @@
 }
 .lg-card__go svg { width: 1em; height: 1em; }
 
-.lg-note {
-  margin: clamp(1.8rem, 3vw, 2.6rem) auto 0; max-width: 66ch;
-  text-align: center; color: var(--muted); font-size: .92rem; line-height: 1.65;
+/* Full width, left aligned, and set as a note rather than as a stray
+   paragraph.
+
+   Two things were wrong. It was a 66ch column centred under a two-column grid,
+   so it floated in the middle of the page with a ragged edge and broke "ask
+   us" across two lines. And its `margin-top` never applied at all: it was a
+   `<p>` carrying `margin` at (0,1,0), and preview.css resets `.pv p { margin:
+   0 }` at (0,1,1), which wins — the third time that same reset has caught a
+   rule in this file. It is an `<aside>` now, which is what it actually is, and
+   the spacing is scoped to `.pv` either way. */
+.pv .lg-note {
+  margin-top: clamp(1.6rem, 2.8vw, 2.4rem);
+  padding: clamp(16px, 2.2vw, 22px) clamp(18px, 2.4vw, 26px);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 14px 14px 0;
+  background: var(--paper-2);
+}
+.pv-sec--alt .lg-note { background: var(--paper); }
+.pv .lg-note p {
+  max-width: 78ch;
+  color: var(--muted); font-size: .95rem; line-height: 1.7;
+}
+.pv .lg-note__k {
+  margin-bottom: .4rem;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: .72rem;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--accent-ink);
 }
 .pv .lg-note a,
 .pv .lg-foot a {
