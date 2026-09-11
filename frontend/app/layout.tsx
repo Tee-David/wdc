@@ -11,6 +11,7 @@ import { SmoothScroll } from "@/components/ui/smooth-scroll";
 import { SmoothCursor } from "@/components/ui/smooth-cursor";
 import DrawGate from "@/components/ui/draw-gate";
 import Preloader from "@/components/intro/preloader";
+import Connectivity from "@/components/offline/connectivity";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -123,6 +124,9 @@ export default function RootLayout({
               on a visit where the homepage ring intro is playing -- it reads
               `data-intro`, which the inline script above has already set. */}
           <Preloader />
+          {/* Registers the service worker and owns the offline/online state.
+              Renders nothing while the connection is fine. */}
+          <Connectivity />
           {/* Renders nothing on touch or under reduced motion — see the
               component. Mounted inside the theme provider so it sits above
               every page without each page having to remember it. */}

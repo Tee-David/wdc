@@ -73,6 +73,40 @@ function useAnimationLoop(
       track.style.transform = `translate3d(${-offsetRef.current}px, 0, 0)`;
     }
 
+    /* OFF SCREEN, IT STOPS COMPLETELY.
+       This loop writes `track.style.transform` on every frame, and the
+       services page carries SEVEN marquees -- the jump ticker plus one row of
+       tool marks per service -- of which at most one is ever in view. Six rAF
+       callbacks per frame, each producing compositor work on an element that
+       already holds a `will-change: transform` layer, all for rows nobody can
+       see. Measured on that page, 80% of scroll time was going to style,
+       layout and paint; this is a straight subtraction from it.
+
+       Cancelling the frame rather than skipping the work inside it: a
+       scheduled callback that returns early still costs a wake-up per frame
+       per marquee. `lastTimestampRef` is cleared on the way out so the first
+       frame after it returns does not integrate the whole time it spent
+       paused into one enormous jump. */
+    let visible = true;
+    const io =
+      typeof IntersectionObserver === "undefined"
+        ? null
+        : new IntersectionObserver(
+            ([entry]) => {
+              const next = entry.isIntersecting;
+              if (next === visible) return;
+              visible = next;
+              if (!visible) {
+                if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+                rafRef.current = null;
+                lastTimestampRef.current = null;
+              } else if (rafRef.current === null) {
+                rafRef.current = requestAnimationFrame(animate);
+              }
+            },
+            { rootMargin: "200px 0px" },
+          );
+
     const animate = (timestamp: number) => {
       if (lastTimestampRef.current === null)
         lastTimestampRef.current = timestamp;
@@ -97,7 +131,13 @@ function useAnimationLoop(
     };
 
     rafRef.current = requestAnimationFrame(animate);
+    /* The track's parent is the clipping container, which is what is actually
+       on or off screen; the track itself is `width: max-content` and can be
+       far wider than the viewport. */
+    if (io && track.parentElement) io.observe(track.parentElement);
+
     return () => {
+      io?.disconnect();
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
         rafRef.current = null;
