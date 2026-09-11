@@ -5,6 +5,7 @@ import {
 } from "react";
 import { ChevronDown, Search } from "lucide-react";
 import { DIAL_CODES, DIAL_BY_ISO } from "@/lib/dial-codes";
+import { Mark, usePickerOpen } from "./picker";
 
 /**
  * A phone number field: country picker, dial code, and the number.
@@ -322,21 +323,14 @@ export default function PhoneField({
     return [...starts, ...has, ...byCode];
   }, [countries, q]);
 
-  /* Keep the highlighted row in view while arrowing through 245 of them. */
-  useEffect(() => {
-    if (!open) return;
-    listRef.current?.children[active]?.scrollIntoView({ block: "nearest" });
-  }, [active, open]);
-
-  useEffect(() => {
-    if (!open) return;
-    requestAnimationFrame(() => searchRef.current?.focus());
-    const away = (e: PointerEvent) => {
-      if (!root.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("pointerdown", away);
-    return () => document.removeEventListener("pointerdown", away);
-  }, [open]);
+  /* Focus into the search box, keep the highlighted row in view while arrowing
+     through 245 of them, and close on a click outside -- all shared with the
+     select, so the two panels behave identically. */
+  const close = useCallback(() => {
+    setOpen(false);
+    root.current?.querySelector("button")?.focus();
+  }, []);
+  usePickerOpen({ open, active, root, searchRef, listRef, onClose: close });
 
   const onListKey = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") { e.preventDefault(); setActive((n) => Math.min(n + 1, results.length - 1)); }
@@ -344,11 +338,11 @@ export default function PhoneField({
     else if (e.key === "Home") { e.preventDefault(); setActive(0); }
     else if (e.key === "End") { e.preventDefault(); setActive(results.length - 1); }
     else if (e.key === "Enter") { e.preventDefault(); if (results[active]) pick(results[active].iso); }
-    else if (e.key === "Escape") { e.preventDefault(); setOpen(false); root.current?.querySelector("button")?.focus(); }
+    else if (e.key === "Escape") { e.preventDefault(); close(); }
   };
 
   return (
-    <div className={`ph${invalid ? " is-bad" : ""}${open ? " is-open" : ""}`} ref={root}>
+    <div className={`pk ph${invalid ? " is-bad" : ""}${open ? " is-open" : ""}`} ref={root}>
       <div className="ph__bar">
         <button
           type="button"
@@ -389,8 +383,8 @@ export default function PhoneField({
       </div>
 
       {open && (
-        <div className="ph__pop">
-          <div className="ph__search">
+        <div className="pk__pop">
+          <div className="pk__search">
             <Search aria-hidden="true" />
             <input
               ref={searchRef}
@@ -408,24 +402,24 @@ export default function PhoneField({
               onKeyDown={onListKey}
             />
           </div>
-          <ul className="ph__list" id={listId} role="listbox" ref={listRef} aria-label="Countries">
+          <ul className="pk__list" id={listId} role="listbox" ref={listRef} aria-label="Countries">
             {results.map((c, n) => (
               <li
                 key={c.iso}
                 id={`${listId}-${c.iso}`}
                 role="option"
                 aria-selected={c.iso === iso}
-                className={`ph__opt${n === active ? " is-active" : ""}${c.iso === iso ? " is-on" : ""}`}
+                className={`pk__opt${n === active ? " is-active" : ""}${c.iso === iso ? " is-on" : ""}`}
                 onPointerEnter={() => setActive(n)}
                 onPointerDown={(e) => { e.preventDefault(); pick(c.iso); }}
               >
                 <Flag c={c} flags={flags} />
-                <span className="ph__name"><Mark name={c.name} q={q} /></span>
-                <span className="ph__code">+{c.code}</span>
+                <span className="pk__label"><Mark name={c.name} q={q} /></span>
+                <span className="pk__meta">+{c.code}</span>
               </li>
             ))}
             {!results.length && (
-              <li className="ph__none">No country matches &ldquo;{q}&rdquo;.</li>
+              <li className="pk__none">No country matches &ldquo;{q}&rdquo;.</li>
             )}
           </ul>
         </div>
@@ -445,19 +439,4 @@ function Flag({ c, flags }: { c: Country; flags: boolean }) {
   return flags
     ? <span className="ph__flag" aria-hidden="true">{flagOf(c.iso)}</span>
     : <span className="ph__iso" aria-hidden="true">{c.iso}</span>;
-}
-
-/** Bolds the part of the name the search actually matched. */
-function Mark({ name, q }: { name: string; q: string }) {
-  const s = q.trim();
-  if (!s) return <>{name}</>;
-  const at = name.toLowerCase().indexOf(s.toLowerCase());
-  if (at < 0) return <>{name}</>;
-  return (
-    <>
-      {name.slice(0, at)}
-      <b>{name.slice(at, at + s.length)}</b>
-      {name.slice(at + s.length)}
-    </>
-  );
 }

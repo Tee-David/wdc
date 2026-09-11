@@ -10,8 +10,10 @@ import {
   type Field, type PhaseId, type Step,
 } from "@/lib/onboarding";
 import PhoneField from "./phone-field";
+import SelectField from "./select-field";
 import "./onboarding.css";
 import "./phone-field.css";
+import "./picker.css";
 
 /**
  * The onboarding form.
@@ -615,16 +617,14 @@ function FieldView({
 
   if (f.kind === "select") {
     return wrap(
-      <div className="ob__sel">
-        <select
-          id={id} value={v as string}
-          aria-invalid={invalid || undefined} aria-describedby={describedBy}
-          onChange={(e) => onChange(e.target.value)}
-        >
-          <option value="">Choose one</option>
-          {f.options?.map((o) => <option key={o} value={o}>{o}</option>)}
-        </select>
-      </div>,
+      <SelectField
+        id={id}
+        options={f.options ?? []}
+        value={v as string}
+        invalid={invalid}
+        describedBy={describedBy}
+        onChange={onChange}
+      />,
     );
   }
 

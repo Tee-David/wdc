@@ -1,0 +1,139 @@
+/* ============================================================================
+   The picker shell — the popup shared by every searchable control.
+
+   WHY THIS FILE EXISTS. The country picker in the phone field and the
+   searchable select are the same object wearing different labels: a button
+   that opens a panel with a search box over a scrolling list of options. They
+   were going to be built twice, and two copies of a dropdown drift -- one
+   gains a rounded corner or a tighter row and the form quietly stops looking
+   like one form. Everything visual about the panel lives here and both
+   controls wear it, so parity is structural rather than a thing to remember.
+
+   WHAT STAYS OUT. Only the panel is shared. The closed state of each control
+   is its own -- the phone field is a split bar with a dial code, the select is
+   a single button -- and those live in their own files.
+
+   `.pv` scoped and drawn from the page tokens, so it holds in both themes
+   without a second palette.
+   ========================================================================== */
+
+.pv .pk { position: relative; }
+
+.pv .pk__pop {
+  position: absolute; z-index: 30; top: calc(100% + 6px); left: 0;
+  width: min(26rem, 100%);
+  border: 1px solid var(--rule); border-radius: 12px;
+  background: var(--paper);
+  box-shadow: 0 22px 48px -24px rgb(0 0 0 / .45);
+  overflow: hidden;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pv .pk__pop { animation: pk-in .16s cubic-bezier(.16, 1, .3, 1) both; }
+}
+@keyframes pk-in { from { opacity: 0; transform: translateY(-6px); } }
+
+.pv .pk__search {
+  display: flex; align-items: center; gap: .55rem;
+  padding: .7rem .9rem;
+  border-bottom: 1px solid var(--rule);
+}
+.pv .pk__search svg { width: 1rem; height: 1rem; color: var(--muted); flex: none; }
+.pv .pk__search input {
+  flex: 1; min-width: 0;
+  border: 0; background: transparent; color: var(--ink); font: inherit;
+}
+.pv .pk__search input:focus { outline: none; }
+
+.pv .pk__list {
+  margin: 0; padding: .3rem; list-style: none;
+  /* Tall enough to show that the list is long and scrollable, short enough to
+     leave the field it belongs to visible above it. */
+  max-height: 17rem; overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.pv .pk__opt {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .5rem .6rem; border-radius: 8px;
+  cursor: pointer;
+}
+/* ONE highlight, driven by the keyboard. Hover sets the same `is-active` index
+   rather than painting its own colour, so the mouse and the arrow keys can
+   never disagree about which row is the one Enter will choose. */
+.pv .pk__opt.is-active { background: var(--paper-2); }
+.pv .pk__opt.is-on .pk__label { font-weight: 600; }
+.pv .pk__opt.is-on::after {
+  content: ""; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); flex: none;
+}
+.pv .pk__label { flex: 1; min-width: 0; }
+/* The search match, bolded. The list is long and the eye needs to see WHY a
+   row is in it. */
+.pv .pk__label b { font-weight: 700; color: var(--ink); }
+.pv .pk__meta {
+  color: var(--muted); font-variant-numeric: tabular-nums; flex: none;
+}
+.pv .pk__none { padding: 1rem .8rem; color: var(--muted); }
+
+/* On a phone the popup is the screen, not a dropdown: a 17rem list hanging off
+   a field near the bottom of a 390px viewport is mostly off screen, and the
+   keyboard takes what is left. */
+@media (max-width: 560px) {
+  .pv .pk__pop {
+    position: fixed; inset: auto 0 0 0; top: auto;
+    width: 100%; max-height: 72svh; border-radius: 16px 16px 0 0;
+    box-shadow: 0 -22px 48px -24px rgb(0 0 0 / .45);
+  }
+  .pv .pk__list { max-height: 52svh; }
+  @media (prefers-reduced-motion: no-preference) {
+    .pv .pk__pop { animation: pk-up .2s cubic-bezier(.16, 1, .3, 1) both; }
+  }
+  @keyframes pk-up { from { transform: translateY(14px); opacity: 0; } }
+}
+
+/* ============================================================================
+   The searchable select — the closed state.
+
+   The panel above is shared with the phone field; this is the part that is
+   only ever a select: one full-width button that has to be indistinguishable
+   from the text inputs above and below it, because a form where one control
+   sits a pixel proud of the others reads as broken before it reads as
+   different.
+   ========================================================================== */
+
+.pv .sf { position: relative; }
+/* The list is as wide as the field. The phone field's panel is capped at 26rem
+   because it hangs off a small country button; this one hangs off the whole
+   field, and industry names are long enough to want the room. */
+.pv .sf .pk__pop { width: 100%; }
+
+.pv .sf__btn {
+  display: flex; align-items: center; gap: .6rem;
+  /* Matches `.ob__f input` exactly -- see onboarding.css. */
+  width: 100%; padding: .8rem .95rem;
+  border: 1px solid var(--rule); border-radius: 12px;
+  background: var(--paper); color: var(--ink);
+  font-family: inherit; font-size: 1rem; line-height: 1.5;
+  text-align: left; cursor: pointer;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.pv .sf__btn:hover { border-color: var(--accent); }
+.pv .sf__btn:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+/* The unanswered state reads as placeholder text, not as an answer called
+   "Choose one" -- the same weight the inputs give their own placeholders. */
+.pv .sf__btn.is-empty .sf__val { color: var(--muted); opacity: .75; }
+.pv .sf__val {
+  flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pv .sf__btn svg {
+  width: 1rem; height: 1rem; flex: none; color: var(--muted);
+  transition: transform .18s ease;
+}
+.pv .sf.is-open .sf__btn svg { transform: rotate(180deg); }
+
+/* The invalid ring is driven by the field wrapper, the way it is for inputs. */
+.pv .ob__f.is-bad .sf__btn { border-color: #d13b2f; }
