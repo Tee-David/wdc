@@ -6,11 +6,15 @@
 
 .jf {
   position: fixed;
-  right: clamp(14px, 3vw, 26px);
+  /* THE SHARED CORNER VARIABLES, declared in components/ui/scroll-top.css.
+     The agent keeps the bottom slot of the right-hand stack; back-to-top sits
+     one `--fab-stack` above it. Putting the offsets in one place is what stops
+     the two drifting apart the next time either one is touched. */
+  right: var(--fab-gap, 22px);
   /* Raised clear of the bottom edge. On a phone the browser's own bar takes the
      last few millimetres, and `env(safe-area-inset-bottom)` covers the notch
      devices where that is larger. */
-  bottom: calc(clamp(14px, 3vw, 26px) + env(safe-area-inset-bottom, 0px));
+  bottom: var(--fab-bottom, 22px);
   /* UNDER the connectivity bar (120) and the preloader (200), over the page.
      A network warning matters more than a chat button, and neither should ever
      sit on top of the other. */
@@ -57,47 +61,4 @@ body:has(.cx) .jf:hover { transform: translateY(-4.9rem); }
   .jf { transition: background .22s ease; }
   .jf:hover { transform: none; }
   body:has(.cx) .jf:hover { transform: translateY(-4.6rem); }
-}
-
-/* ============================================================================
-   JOTFORM'S OWN LAUNCHER, once it has taken over from ours.
-
-   The `data-wdc-agent` attribute is put there by components/agent/
-   jotform-agent.tsx, which finds their elements structurally rather than by
-   class name (their markup is theirs to rename) and classifies them by height:
-   "mini" is the avatar and its greeting bubble, "open" is the conversation.
-
-   ONLY THE MINI STATE IS TOUCHED. The open chat should be exactly the size
-   they built it; shrinking a window someone is typing into to match a
-   launcher's proportions would be a worse bug than the one being fixed.
-
-   `zoom` rather than `transform: scale()`, deliberately. Their widget animates
-   itself in and out with a transform of its own, so taking that property would
-   mean either fighting them with `!important` or having our scale wiped the
-   first time they animate. `zoom` is a separate channel, it affects layout
-   rather than paint (so the bubble's own shadow and hit area scale with it),
-   and it is supported everywhere now.
-
-   The margins carry `!important` because their container is positioned from an
-   inline style, and an inline style is the one thing a stylesheet cannot
-   otherwise outrank. They are also what stops the greeting bubble running off
-   the right edge of a phone, which is what it was doing.
-   ========================================================================== */
-body > [data-wdc-agent="mini"] {
-  /* A touch smaller. The avatar was competing with the page's own buttons for
-     attention on a 390px screen, where it took up most of a corner. */
-  zoom: .84;
-  /* Clear of the edge, and of the safe area on a notched phone. `zoom` scales
-     the element's own offsets down with everything else, so this has to put
-     back a little more than it looks like it should. */
-  margin-right: clamp(10px, 2.2vw, 18px) !important;
-  margin-bottom: calc(clamp(10px, 2.2vw, 18px) + env(safe-area-inset-bottom, 0px)) !important;
-}
-
-/* WHILE THE CONNECTIVITY BAR IS SHOWING, their launcher moves too. Ours
-   already does this a few rules up; theirs sits in the same corner and would
-   otherwise be the one thing on the page overlapping the network warning. */
-body:has(.cx) > [data-wdc-agent="mini"] {
-  margin-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)) !important;
-  transition: margin-bottom .28s cubic-bezier(.16, 1, .3, 1);
 }
