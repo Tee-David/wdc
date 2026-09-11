@@ -31,7 +31,10 @@
      gap down the middle of it. */
   --pl-h: 64px;
   --pl-mark: calc(var(--pl-h) * 904 / 944 + 14px);
+  opacity: 1;
+  transition: opacity .45s ease-in-out;
 }
+.pl.is-leaving { opacity: 0; }
 @media (min-width: 768px) { .pl { --pl-h: 104px; } }
 
 .pl__lockup { display: flex; align-items: center; }
@@ -42,9 +45,18 @@
 .pl__markbox {
   display: flex; justify-content: flex-end;
   overflow: hidden;
+  width: 0;
+  animation: pl-open .65s cubic-bezier(.34, 1.56, .64, 1) .05s forwards;
 }
-.pl__mark { display: inline-flex; padding-right: 14px; }
+.pl__mark {
+  display: inline-flex; padding-right: 14px;
+  opacity: 0; transform: translateX(-140px);
+  animation: pl-mark-in .65s cubic-bezier(.34, 1.56, .64, 1) .12s forwards;
+}
 .pl__mark svg { height: var(--pl-h); width: calc(var(--pl-h) * 904 / 944); }
+
+@keyframes pl-open { to { width: var(--pl-mark); } }
+@keyframes pl-mark-in { to { opacity: 1; transform: translateX(0); } }
 
 /* The wordmark sits at the site's own lockup proportions, so the shape the
    preloader lands on is the shape in the header. */
@@ -84,5 +96,11 @@
    reduced motion is on, so this only matters if the preference is changed
    mid-session. */
 @media (prefers-reduced-motion: reduce) {
+  [data-preload="play"] .pl { display: none; }
+}
+
+/* A phone should reveal the useful page immediately. The pre-paint decision
+   already skips this path below 768px; this is a fail-safe for a live resize. */
+@media (max-width: 767px) {
   [data-preload="play"] .pl { display: none; }
 }

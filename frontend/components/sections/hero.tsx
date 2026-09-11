@@ -75,11 +75,20 @@ const BG_IMAGES = [
 
 function HeroBackdrop() {
   const [i, setI] = useState(0);
+  const [warmNext, setWarmNext] = useState(false);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const id = setInterval(() => setI((p) => (p + 1) % BG_IMAGES.length), 5000);
     return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    // Keep the second frame out of the initial network queue. It only becomes
+    // visible after five seconds, so fetching it during the LCP window makes
+    // the first frame slower for no user-visible benefit.
+    const id = window.setTimeout(() => setWarmNext(true), 3500);
+    return () => window.clearTimeout(id);
   }, []);
 
   const next = BG_IMAGES[(i + 1) % BG_IMAGES.length];
@@ -125,15 +134,17 @@ function HeroBackdrop() {
           the next frame as a real `next/image` at zero opacity fetches exactly
           the variant the visible one will ask for, so when it comes round it is
           already in the cache. */}
-      <NextImage
-        key={`warm-${next}`}
-        src={next}
-        alt=""
-        fill
-        sizes="100vw"
-        quality={70}
-        className="object-cover opacity-0"
-      />
+      {warmNext ? (
+        <NextImage
+          key={`warm-${next}`}
+          src={next}
+          alt=""
+          fill
+          sizes="100vw"
+          quality={70}
+          className="object-cover opacity-0"
+        />
+      ) : null}
       {/* The scrim earns its keep now. These backdrops are bright studio
           photographs — a lit monitor, a white desk, a Search Console panel that
           is very nearly paper — where the artwork they replaced was mostly
@@ -252,7 +263,7 @@ export function Hero() {
         >
           <Link
             href="#pv-contact"
-            className="group inline-flex items-center gap-2 rounded-full bg-secondary px-7 py-3.5 text-sm font-semibold text-white shadow-[0_12px_34px_rgba(255,101,0,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-[#000065] hover:shadow-none active:translate-y-0"
+            className="group inline-flex items-center gap-2 rounded-full bg-secondary px-7 py-3.5 text-sm font-semibold text-[#000065] shadow-[0_12px_34px_rgba(255,101,0,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-[#000065] hover:shadow-none active:translate-y-0"
           >
             Let&apos;s Talk
             <svg

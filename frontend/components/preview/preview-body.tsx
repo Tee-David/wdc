@@ -402,7 +402,7 @@ export default function PreviewBody() {
                       src={p.cover}
                       alt={`${p.name} website`}
                       fill
-                      sizes="(max-width: 720px) 86vw, (max-width: 1100px) 46vw, 30vw"
+                      sizes="(max-width: 620px) 85vw, (max-width: 900px) 48vw, 385px"
                       quality={78}
                     />
                   ) : (
@@ -490,7 +490,7 @@ export default function PreviewBody() {
                           src={s.img}
                           alt=""
                           fill
-                          sizes="(max-width: 720px) 90vw, 40vw"
+                          sizes="(max-width: 768px) 84vw, (max-width: 960px) 92vw, 520px"
                           quality={78}
                         />
                       </div>

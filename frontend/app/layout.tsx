@@ -115,7 +115,7 @@ export default function RootLayout({
         <script
           id="intro-init"
           dangerouslySetInnerHTML={{
-            __html: `(function(){var d=document.documentElement;try{var a=location.pathname.indexOf("/admin")===0;d.dataset.admin=a?"1":"";var K="wdc-intro-seen-at",T=1800000,r=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches,s=0;try{s=parseInt(localStorage.getItem(K)||"0",10)||0}catch(e){}var p=!a&&location.pathname==="/"&&!r&&(!s||Date.now()-s>T);d.dataset.intro=p?"play":"skip";var P="wdc:preloaded",q=false;try{q=sessionStorage.getItem(P)==="1"}catch(e){}var w=!a&&!p&&!r&&!q;if(w){try{sessionStorage.setItem(P,"1")}catch(e){}}d.dataset.preload=w?"play":"skip"}catch(e){d.dataset.intro="skip";d.dataset.preload="skip"}})();`,
+            __html: `(function(){var d=document.documentElement;try{var a=location.pathname.indexOf("/admin")===0;d.dataset.admin=a?"1":"";var K="wdc-intro-seen-at",T=1800000,r=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches,m=window.matchMedia&&window.matchMedia("(max-width: 767px)").matches,s=0;try{s=parseInt(localStorage.getItem(K)||"0",10)||0}catch(e){}var p=!a&&location.pathname==="/"&&!m&&!r&&(!s||Date.now()-s>T);d.dataset.intro=p?"play":"skip";var P="wdc:preloaded",q=false;try{q=sessionStorage.getItem(P)==="1"}catch(e){}var w=!a&&!m&&!p&&!r&&!q;if(w){try{sessionStorage.setItem(P,"1")}catch(e){}}d.dataset.preload=w?"play":"skip"}catch(e){d.dataset.intro="skip";d.dataset.preload="skip"}})();`,
           }}
         />
         <JsonLd data={[organizationJsonLd(), websiteJsonLd(), ...servicesJsonLd()]} />
@@ -148,7 +148,6 @@ export default function RootLayout({
               belongs closest to the thumb. Left: the accessibility menu, on
               the same baseline as back-to-top, desktop only. */}
           <ScrollTop />
-
           {children}
         </ThemeProvider>
       </body>
