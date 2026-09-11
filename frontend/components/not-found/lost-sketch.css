@@ -108,26 +108,202 @@
 .nf__num .sn__svg { overflow: visible; }
 .nf__num .sn__p { stroke-width: .42; }
 
+/* ---------------------------------------------------------------------------
+   THIS ONE LOOPS, AND IT IS THE ONLY ONE ON THE SITE THAT DOES.
+
+   stroke-draw.css carries a long note about why the site-wide draw was taken
+   off `infinite`, and it stands: `stroke-dashoffset` is not a compositor
+   property, so every frame of it repaints its SVG on the main thread, and
+   /services had 38 of them looping at once over 535 paths for an average
+   frame of 96ms while sitting still.
+
+   The arithmetic here is different, which is the whole reason this is an
+   exception rather than a reversal. THREE paths, on a page with no scroll
+   contention, no marquees and nothing else animating. The cost is a rounding
+   error, and the 404's entire joke is a drawing that never got finished --
+   told once and then frozen, it is a still image of a joke.
+
+   Two guardrails keep it honest:
+     - `.nf__num` was added to draw-gate.tsx's LOOP list, so `.is-off` is
+       toggled on it and the repaints stop dead the moment it scrolls away.
+       Without that entry a `.sn` only ever gets `is-in` and would keep
+       redrawing off screen for as long as the tab stayed open;
+     - it is scoped to `.nf__num`, so nothing else can pick it up by accident.
+
+   Specificity: (0,4,0), because `.sn.is-in .sn__p` in stroke-draw.css is
+   (0,3,0) and load order between two component stylesheets is not something
+   to bet on.
+   --------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  .sn.nf__num.is-in .sn__p {
+    stroke-dasharray: 1;
+    animation: nf-redraw 5.4s cubic-bezier(.62, .02, .34, 1) infinite;
+    /* Staggered by digit so the 4, the 0 and the 4 are written in order, the
+       way a hand would. */
+    animation-delay: calc(var(--i, 0) * 220ms);
+  }
+
+  /* AND THIS IS WHAT ACTUALLY STOPS IT OFF SCREEN.
+
+     stroke-draw.css already pauses a `.sn.is-off` at (0,3,0), and that was not
+     enough: the `animation` SHORTHAND above resets every longhand it does not
+     mention, `animation-play-state` included, back to `running` -- and it does
+     it from (0,4,0), which outranks the pause. Measured: `is-off` was on the
+     element, the numeral was four thousand pixels up the page, and the paths
+     were still repainting every frame.
+
+     Matching (0,4,0) and declaring it after settles it. */
+  .sn.nf__num.is-off .sn__p { animation-play-state: paused; }
+}
+
+/* Draw on, HOLD, then lift the pen and start again. The hold is more than half
+   the cycle on purpose: the number has to be readable as a number far longer
+   than it is in motion, or the page reads as a busy animation rather than as a
+   drawing that keeps being attempted. */
+@keyframes nf-redraw {
+  0%   { stroke-dashoffset: 1; opacity: 0; }
+  4%   { opacity: 1; }
+  26%  { stroke-dashoffset: 0; opacity: 1; }
+  74%  { stroke-dashoffset: 0; opacity: 1; }
+  /* The pen carries on past the end of the outline rather than the ink being
+     switched off: the dash walks out the far side, which is what makes it read
+     as un-drawing rather than as a fade. */
+  96%  { stroke-dashoffset: -1; opacity: 0; }
+  100% { stroke-dashoffset: -1; opacity: 0; }
+}
+
 /* ---------------- the ways out ---------------- */
 
+/* THE LAYOUT IS THE RANKING.
+
+   On a phone these are a two-column grid and "Go Home" spans both, so the
+   answer that is right most often is also the biggest target and sits alone
+   on its own line. The other two share the row beneath: they are alternatives
+   to each other, not to home, and giving them equal width says so without a
+   word of copy.
+
+   From 720px the grid becomes a centred row. A button stretched across a
+   desktop page is a bar, not a button, and the three read as a set at their
+   natural widths. */
 .nf__acts {
-  display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  /* Wide enough for the longest pair to sit side by side on a 360px screen,
+     narrow enough that the buttons never outrun the copy above them. */
+  max-width: 27rem;
   margin-top: clamp(2.4rem, 5vw, 3.4rem);
 }
-.nf__btn {
-  padding: .8em 1.5em; border-radius: 999px;
+.nf__btn--home { grid-column: 1 / -1; }
+
+@media (min-width: 720px) {
+  .nf__acts {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    max-width: none; width: auto;
+  }
+}
+
+/* TIGHTER TYPE AND PADDING IN THE TWO-UP ROW, so the labels fit on one line.
+   At the desktop .92rem, "Tell us what broke" wraps inside a half-width cell
+   on a 390px screen, and a wrapped label puts its icon off to the side of a
+   two-line block where it reads as detached rather than attached. Measured:
+   the cell gives 172px, which leaves 145px of text room at this padding, and
+   the longest label needs about 138px. */
+/* Tighter in the two-up row: the cell is about 172px on a 390px screen, and
+   at the desktop .92rem with 1.5em of side padding there is barely room for
+   two words. */
+@media (max-width: 719px) {
+  .pv .nf__btn, .nf__btn { font-size: .86rem; padding: .9em 1em; }
+  .nf__btnIc { margin-right: .42em; }
+}
+
+/* The brand navy, pinned rather than taken from `--band`: that token flattens
+   to #0a0a3a in dark mode to sit as a *background band*, which is the right
+   call there and the wrong one for a pill that has to read as a blue BUTTON
+   against a near-black page. Lifted a little in dark mode for the same reason
+   -- #000065 on #030318 is a shape you can barely find. */
+.nf { --nf-blue: #000065; --nf-blue-hi: #12128f; }
+.dark .nf { --nf-blue: #23239b; --nf-blue-hi: #3535bd; }
+
+/* EVERY COLOUR RULE BELOW IS `.pv` SCOPED, and it is not decoration.
+
+   preview.css carries `.pv a { color: inherit }` at (0,1,1). These buttons are
+   `<Link>`s, so they are anchors, so a bare `.nf__btn--home { color: #fff }` at
+   (0,1,0) LOSES to it -- silently, with the text simply inheriting the page's
+   ink instead. Measured before this was fixed: white-on-orange was rendering
+   as rgb(14,14,44) navy-on-orange in light mode and rgb(241,242,255) in dark,
+   which is to say the colour rules were doing nothing at all.
+
+   `.pv` in front makes them (0,2,0). Same trap as `.nf__h` and `.nf__p` above,
+   and the same fix; it is the fifth time it has caught someone in this
+   codebase. */
+.pv .nf__btn, .nf__btn {
+  /* INLINE FLOW, NOT FLEX, and the reason is what happens when a label wraps.
+
+     As a flex row the icon is one item and the whole label is another, so on a
+     390px screen -- where "Tell us what broke" does not fit a half-width cell
+     on one line at any size worth reading -- the icon ended up parked beside a
+     two-line block, vertically centred against nothing. Measured: 56px tall
+     against Go Home's 42px, with the icon floating at the left edge.
+
+     Set inline, the icon is simply the first thing on the first line and the
+     text flows around it exactly as a sentence would. One line or two, it
+     stays attached to the words. */
+  display: block; text-align: center;
+  padding: .85em 1.5em; border-radius: 999px;
   border: 1px solid var(--rule);
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-weight: 600; font-size: .92rem;
+  font-weight: 600; font-size: .92rem; line-height: 1;
   color: var(--ink); text-decoration: none;
-  transition: border-color .25s ease, color .25s ease, transform .25s ease, background .25s ease;
+  /* `text-wrap: balance` rather than nowrap: "Tell us what broke" has to fit a
+     half-width cell at 360px, and breaking it over two tidy lines is better
+     than either overflowing or shrinking the type. */
+  text-align: center; text-wrap: balance;
+  transition: background .25s ease, border-color .25s ease, color .25s ease,
+              transform .25s ease;
 }
-.nf__btn:hover { border-color: var(--accent); color: var(--accent-ink); transform: translateY(-2px); }
-.nf__btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.nf__btn--solid {
+.pv .nf__btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.nf__btnIc {
+  display: inline-block; vertical-align: -.17em;
+  width: 1.05em; height: 1.05em; margin-right: .5em;
+  transition: transform .25s ease;
+}
+/* The icon rides with the label rather than sitting beside it, at half the
+   lift, so the two read as one object rather than a button with a sticker. */
+@media (prefers-reduced-motion: no-preference) {
+  .nf__btn:hover .nf__btnIc { transform: translateY(-1px); }
+}
+
+/* Home: orange, going navy. */
+.pv .nf__btn--home {
   background: var(--accent); border-color: var(--accent); color: #fff;
 }
-.nf__btn--solid:hover { background: var(--accent); color: #fff; }
+.pv .nf__btn--home:hover {
+  background: var(--nf-blue); border-color: var(--nf-blue); color: #fff;
+}
+
+/* Work: navy, going orange. The reverse of home, so hovering either one lands
+   on the colour the other started in -- the pair trade places. */
+.pv .nf__btn--work {
+  background: var(--nf-blue); border-color: var(--nf-blue); color: #fff;
+}
+.pv .nf__btn--work:hover {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+
+/* Broke: the quiet one, because "something is wrong here" should be offered
+   and not pushed. It goes black on hover, which is the only one of the three
+   that is not a brand colour -- deliberately, since it is the only one that
+   leads somewhere other than the work. */
+.pv .nf__btn--broke:hover {
+  background: #000; border-color: #000; color: #fff;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nf__btn:hover { transform: translateY(-2px); }
+}
 
 .nf__foot b { color: var(--accent); }
 

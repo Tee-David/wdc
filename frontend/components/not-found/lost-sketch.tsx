@@ -41,6 +41,22 @@ import "./lost-sketch.css";
  * land here is a stale link to a case study, and the category it lived in is
  * the nearest thing to what was being looked for.
  */
+/* One stroke icon for the three buttons, drawn in the same hairline language as
+   everything else on this page rather than pulled from an icon package: three
+   glyphs do not justify a dependency, and these have to inherit the button's
+   colour through every one of its states. `currentColor` does that for free. */
+function Icon({ d }: { d: string }) {
+  return (
+    <svg
+      className="nf__btnIc" viewBox="0 0 24 24" aria-hidden="true"
+      fill="none" stroke="currentColor" strokeWidth="1.7"
+      strokeLinecap="round" strokeLinejoin="round"
+    >
+      <path d={d} />
+    </svg>
+  );
+}
+
 export default function LostSketch() {
   return (
     <section className="nf">
@@ -71,10 +87,26 @@ export default function LostSketch() {
           <StrokeNumber className="nf__num" value="404" />
         </div>
 
+        {/* THE WAYS OUT, in the order someone lost actually wants them.
+            Home is the widest and the loudest because it is the answer that is
+            right most often; the other two are the same size as each other
+            because neither is the obvious second choice. On a phone that
+            ordering is the layout itself -- home takes the full width, the
+            pair share the row under it -- and on a desktop the three sit on
+            one line, where a full-width button would just be a long bar. */}
         <div className="nf__acts">
-          <Link className="nf__btn nf__btn--solid" href="/">Back to the start</Link>
-          <Link className="nf__btn" href="/work">See the work</Link>
-          <Link className="nf__btn" href="/contact">Tell us what broke</Link>
+          <Link className="nf__btn nf__btn--home" href="/">
+            <Icon d="M3 10.7 12 3.5l9 7.2M5.4 9.3V20a.8.8 0 0 0 .8.8h11.6a.8.8 0 0 0 .8-.8V9.3M9.7 20.8v-6.1h4.6v6.1" />
+            Go Home
+          </Link>
+          <Link className="nf__btn nf__btn--work" href="/work">
+            <Icon d="M3.5 5.6h7v5.6h-7zM13.5 5.6h7v9.1h-7zM3.5 14.1h7v4.3h-7zM13.5 17.6h7v.8h-7z" />
+            See our works
+          </Link>
+          <Link className="nf__btn nf__btn--broke" href="/contact">
+            <Icon d="M20.5 13.4a2.2 2.2 0 0 1-2.2 2.2H7.9L3.5 20V5.6a2.2 2.2 0 0 1 2.2-2.2h12.6a2.2 2.2 0 0 1 2.2 2.2zM12 6.9v3.6M12 13.1h.01" />
+            Tell us what broke
+          </Link>
         </div>
 
         {/* Built from WORK_CATEGORIES rather than typed out, so a service added
