@@ -36,7 +36,9 @@
   width: calc(var(--pin-p, 0) * 100%);
   min-width: 10px;
   border-radius: inherit;
-  background: var(--accent);
+  /* Fallback spelled out: `--accent` is declared on `.pv`, and the
+     intro overlay that also uses this cue sits outside that scope. */
+  background: var(--accent, #ff6500);
 }
 
 .cue__t {
@@ -44,7 +46,7 @@
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .68rem; font-weight: 600;
   letter-spacing: .08em; text-transform: uppercase;
-  color: var(--muted);
+  color: var(--muted, #9d9ec9);
 }
 .cue__t svg { width: 12px; height: 12px; flex: none; }
 

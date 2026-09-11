@@ -9,6 +9,7 @@ import {
   useTransform,
 } from "motion/react";
 import { LogoGlyph } from "@/components/ui/logo-glyph";
+import ScrollCue from "@/components/ui/scroll-cue";
 import { INTRO_LOGOS } from "@/lib/logos";
 import type { LogoEntry } from "@/lib/logos";
 
@@ -360,9 +361,8 @@ export default function IntroAnimation() {
   const headingSize = ringHole
     ? `${Math.min(48, Math.max(14, ringHole / 8))}px`
     : undefined;
-  const captionSize = ringHole
-    ? `${Math.min(12, Math.max(8, ringHole / 16))}px`
-    : undefined;
+  /* The caption used to be a line of tracked-out text sized against the ring
+     hole. It is the shared scroll cue now, which sizes itself. */
 
   if (!active || finished) return null;
 
@@ -394,19 +394,27 @@ export default function IntroAnimation() {
               >
                 We Dig <span className="text-secondary">Creativity</span>.
               </motion.h1>
-              <motion.p
+              {/* The same cue the pinned sections use, rather than a second
+                  way of saying the same thing. This screen has exactly the
+                  problem the cue was built for: nothing on it moves until you
+                  scroll, so a reader who does not know to scroll sees a still
+                  image and waits. The bar is real progress -- `--pin-p` is the
+                  morph, so it fills as the ring opens -- which tells them the
+                  scrolling is doing something before they have worked out
+                  what. */}
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={
                   introPhase === "circle" && morphValue < 0.5
-                    ? { opacity: 0.6 - morphValue }
+                    ? { opacity: 1 - morphValue * 1.6 }
                     : { opacity: 0 }
                 }
                 transition={{ duration: 1, delay: 0.2 }}
-                style={{ fontSize: captionSize }}
-                className="mt-3 text-[10px] font-bold tracking-[0.14em] text-muted md:mt-4 md:text-xs md:tracking-[0.25em]"
+                style={{ "--pin-p": morphValue } as React.CSSProperties}
+                className="mt-3 md:mt-4"
               >
-                SCROLL TO EXPLORE
-              </motion.p>
+                <ScrollCue />
+              </motion.div>
             </div>
 
             <motion.div

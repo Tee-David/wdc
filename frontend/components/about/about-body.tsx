@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 import Link from "next/link";
 import { useReveal } from "@/components/preview/use-reveal";
 import ServiceIcon from "@/components/ui/service-icon";
+import ScrollCue from "@/components/ui/scroll-cue";
 import { SERVICES } from "@/lib/services";
 import ScrollExpand from "@/components/ui/scroll-expand";
 import CircularGallery from "@/components/ui/circular-gallery";
@@ -89,6 +90,10 @@ function useScrollRun<T extends HTMLElement>() {
          exactly one viewport. */
       const travel = r.height - (window.innerHeight || 1);
       run.current = travel <= 0 ? 0 : Math.min(1, Math.max(0, -r.top / travel));
+      /* Published for the scroll cue, which is the only thing that can tell a
+         reader this 300vh section has not ended. Same custom property the
+         pinned rows write, so the cue does not care what is driving it. */
+      el.style.setProperty("--pin-p", run.current.toFixed(4));
     };
     const onScroll = () => {
       cancelAnimationFrame(raf);
@@ -286,6 +291,13 @@ export default function AboutBody() {
             </div>
           </ScrollExpand>
           <p className="ab-cap">Work from the studio. More of it on the services page.</p>
+          {/* This section is 300vh tall with the wheel pinned in the middle of
+              it, so for three screens of scrolling nothing moves vertically and
+              the page reads as having ended. It has not: the wheel is turning
+              through twelve images and there are four sections below. The cue
+              shows how far through the turn you are and fades out once you are
+              past the halfway point and can see for yourself. */}
+          <ScrollCue />
         </div>
       </section>
 
