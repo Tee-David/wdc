@@ -14,7 +14,21 @@
 .logoloop__track {
   display: flex;
   width: max-content;
-  will-change: transform;
+  /* `will-change: transform` USED TO BE HERE, UNCONDITIONALLY, AND IT IS NOW
+     SET FROM JAVASCRIPT INSTEAD -- see components/ui/logo-loop.tsx.
+
+     The frame loop already stops itself when a marquee scrolls out of view,
+     but the layer it asked for stayed promoted for the life of the page. The
+     services page carries seven of these, so seven compositor layers were held
+     permanently for rows that are almost all stopped and off screen. Measured
+     on that page during a touch scroll at 4x CPU throttling: 1266ms in
+     Layerize, the single largest rendering cost on the page, ahead of Commit
+     at 974ms and Paint at 874ms.
+
+     `will-change` is a promise that something is ABOUT to move. Left on a row
+     that is not moving it is not a hint, it is a standing claim on memory and
+     on the compositor's layer assignment. The observer that starts and stops
+     the loop now sets and clears it, because that is the same decision. */
   user-select: none;
   position: relative;
   z-index: 0;
