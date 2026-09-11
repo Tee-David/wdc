@@ -12,6 +12,7 @@ import { SmoothCursor } from "@/components/ui/smooth-cursor";
 import DrawGate from "@/components/ui/draw-gate";
 import Preloader from "@/components/intro/preloader";
 import Connectivity from "@/components/offline/connectivity";
+import JotformAgent from "@/components/agent/jotform-agent";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -127,6 +128,10 @@ export default function RootLayout({
           {/* Registers the service worker and owns the offline/online state.
               Renders nothing while the connection is fine. */}
           <Connectivity />
+          {/* The AI assistant. Its third-party script is not fetched until the
+              reader reaches for it or the browser goes idle, so it cannot cost
+              anything the performance work just bought. */}
+          <JotformAgent />
           {/* Renders nothing on touch or under reduced motion — see the
               component. Mounted inside the theme provider so it sits above
               every page without each page having to remember it. */}
