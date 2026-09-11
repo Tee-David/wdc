@@ -31,6 +31,9 @@
   --color-line: var(--line);
   --color-primary: #000065;
   --color-secondary: #ff6500;
+  /* One local face, one @font-face set and one preload. Keeping the old token
+     as an alias avoids touching the visual system's component styles. */
+  --font-outfit: var(--font-space-grotesk);
   --font-sans: var(--font-outfit);
   --font-heading: var(--font-space-grotesk);
   --animate-line-shadow: line-shadow 15s linear infinite;
@@ -144,6 +147,20 @@ h4 {
 }
 .hero-rise { animation: hero-rise .6s cubic-bezier(.16, 1, .3, 1) both; }
 
+/* The same crossfade/slow zoom formerly driven by the motion runtime. Keeping
+   it in CSS makes the LCP image animate on the compositor and removes that
+   library from the critical homepage bundle. */
+@keyframes hero-backdrop-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes hero-backdrop-zoom {
+  from { transform: scale(1.08); }
+  to { transform: scale(1); }
+}
+.hero-backdrop {
+  animation:
+    hero-backdrop-fade 1.4s ease-in-out both,
+    hero-backdrop-zoom 6s linear both;
+}
+
 /* THE HEADLINE RISES WITHOUT FADING, and that is a Largest Contentful Paint
    decision rather than a taste one.
 
@@ -169,7 +186,8 @@ h4 {
 /* No animation, and no hidden starting state to be stuck in. */
 @media (prefers-reduced-motion: reduce) {
   .hero-rise,
-  .hero-rise--solid { animation: none; opacity: 1; transform: none; }
+  .hero-rise--solid,
+  .hero-backdrop { animation: none; opacity: 1; transform: none; }
 }
 
 

@@ -199,10 +199,6 @@ export default function CodeBrowser({
 
   /* Whatever stops the loop -- a click, a keypress, scrolling away -- leaves
      the file whole. A half-streamed pane is a broken panel, not a paused one. */
-  useEffect(() => {
-    if (!live) { setReveal(Infinity); setPtr(null); setPress(false); }
-  }, [live]);
-
   /* Grouped by folder for the rail. Built from the files themselves so adding
      one to the array is the only edit needed to make it appear. */
   const groups = useMemo(() => {
