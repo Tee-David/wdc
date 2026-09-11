@@ -2,10 +2,14 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { SERVICES } from "@/lib/services";
 import {
-  getBoard, getClient, getInvoices, getProjects, getSubmissions, getSummary,
+  getBoard, getClient, getClients, getInvoices, getProjects, getSubmissions,
+  getSummary,
 } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, naira, nairaShort, STAGES } from "@/lib/admin/types";
 import { DemoNote, Empty, InvoicePill, Panel, StagePill, Tile, when } from "@/components/admin/bits";
+import { AddClient } from "@/components/admin/client-form";
+import { AddProject } from "@/components/admin/project-forms";
+import { InvoiceBuilder } from "@/components/admin/money-forms";
 
 export const metadata = { title: "Dashboard" };
 
@@ -39,13 +43,20 @@ export default function AdminHome() {
           <h1>Today</h1>
           <p>What has landed, what is owed, and what is waiting on you.</p>
         </div>
+        <div className="ad__row">
+          <AddClient />
+          <AddProject clients={getClients()} />
+          <InvoiceBuilder clients={getClients()} projects={getProjects()} />
+        </div>
       </div>
 
       <DemoNote>
-        The figures below are seed data, not real trading. Everything is summed
-        from <code>lib/admin/store.ts</code>; swapping that one module for the
-        CockroachDB queries in <code>lib/db/schema.ts</code> makes every screen
-        live without a change to any of them.
+        The figures below are seed data, not real trading, and the writes go to
+        an in-memory store, so a change holds until the server restarts.
+        Everything is summed from <code>lib/admin/store.ts</code>; swapping
+        that one module for the CockroachDB queries in{" "}
+        <code>lib/db/schema.ts</code> makes every screen live and durable
+        without a change to any of them.
       </DemoNote>
 
       <dl className="ad__tiles">

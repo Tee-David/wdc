@@ -3,6 +3,7 @@ import { SERVICES } from "@/lib/services";
 import { getClients, getClientsByService, getInvoicesFor, getProjectsFor } from "@/lib/admin/store";
 import { invoiceTotals, naira } from "@/lib/admin/types";
 import { DemoNote, Empty, Panel, when } from "@/components/admin/bits";
+import { AddClient } from "@/components/admin/client-form";
 
 export const metadata = { title: "Clients" };
 
@@ -25,12 +26,14 @@ export default function ClientsPage() {
           <h1>Clients</h1>
           <p>{clients.length} on the books, grouped by what they buy.</p>
         </div>
-        <button className="ad__btn ad__btn--primary" type="button" disabled>Add a client</button>
+        <AddClient />
       </div>
 
       <DemoNote>
-        Adding and editing arrive with the database. Everything shown is read
-        through <code>lib/admin/store.ts</code>.
+        Adding, editing and archiving are live and go through{" "}
+        <code>lib/admin/actions.ts</code>. What they write to is still the
+        in-memory store, so a change holds until the server restarts and is
+        then gone. Wiring CockroachDB underneath it changes one file.
       </DemoNote>
 
       <div className="ad__stack">
