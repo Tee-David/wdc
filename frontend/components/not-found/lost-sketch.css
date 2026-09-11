@@ -5,15 +5,20 @@
    so a visitor who has just got lost still recognises where they are.
    ========================================================================== */
 
+/* `svh`, not `vh`: mobile browsers measure `vh` against the largest viewport,
+   the one with the URL bar already scrolled away, so a `vh` block starts taller
+   than the screen. The top padding clears the fixed header (64px, 72px from
+   md) with room to breathe; the height comes off the minimum to match. */
 .nf {
   position: relative; isolation: isolate;
-  min-height: 100svh;
+  min-height: calc(100svh - 64px);
   display: flex; flex-direction: column;
-  padding: clamp(1rem, 3vw, 2rem) clamp(1.1rem, 4vw, 3rem);
+  padding: clamp(5.5rem, 12vw, 8rem) clamp(1.1rem, 4vw, 3rem) clamp(2rem, 5vw, 3.5rem);
   background: var(--paper);
   color: var(--ink);
   overflow: hidden;
 }
+@media (min-width: 768px) { .nf { min-height: calc(100svh - 72px); } }
 
 /* The artboard. Two gradients rather than an image, and set very low: this has
    to read as the paper the drawing sits on, not as a pattern on top of it. */
@@ -28,18 +33,6 @@
      page margin. */
   -webkit-mask-image: radial-gradient(120% 90% at 50% 40%, #000 45%, transparent 100%);
   mask-image: radial-gradient(120% 90% at 50% 40%, #000 45%, transparent 100%);
-}
-
-.nf__bar {
-  position: relative; z-index: 2;
-  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-}
-.nf__logoMark { height: 2.4rem; width: auto; }
-.nf__meta {
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-size: .78rem; font-weight: 600;
-  letter-spacing: .16em; text-transform: uppercase;
-  color: var(--muted);
 }
 
 .nf__main {
@@ -70,7 +63,12 @@
 }
 .nf__h span { color: var(--accent); }
 
-.nf__p {
+/* `.pv` scoped, so (0,2,0). preview.css resets `.pv p { margin: 0 }` at
+   (0,1,1), which beats a bare `.nf__p` at (0,1,0) however late it is declared
+   -- the paragraph was sitting flush against the heading's descenders with a
+   zero-pixel gap. `.nf__h` above already carries the same fix, from the last
+   time this caught someone. */
+.pv .nf__p, .nf__p {
   margin: 1.1rem 0 0; max-width: 46ch;
   color: var(--muted); font-size: clamp(.96rem, .92rem + .3vw, 1.06rem);
   line-height: 1.65;
@@ -98,43 +96,6 @@
 .nf__num .sn__svg { overflow: visible; }
 .nf__num .sn__p { stroke-width: .42; }
 
-/* The pen carrying on past the last numeral. It runs to the right edge of the
-   board and is clipped by nothing, which is the point: the line leaves. */
-/* It leaves FROM the last numeral rather than crossing all three. Starting it
-   at 8% ran the line straight through the 0's counter and the second 4, which
-   read as a stray mark rather than as the pen carrying on. From just under the
-   final stroke it reads as one gesture continuing off the board. */
-.nf__trail {
-  position: absolute; left: 58%; right: -14%; bottom: -9%;
-  width: auto; height: clamp(26px, 6vw, 48px);
-  color: color-mix(in srgb, var(--accent) 55%, transparent);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .nf__trail path {
-    stroke-dasharray: 1;
-    /* Same clock and same easing as `sk-draw`, offset so the trail leaves
-       after the numerals have arrived rather than alongside them. */
-    animation: nf-trail 5.2s cubic-bezier(.62, .02, .34, 1) infinite;
-    animation-delay: 620ms;
-  }
-}
-.nf__trail path { stroke-dasharray: none; stroke-dashoffset: 0; }
-@keyframes nf-trail {
-  0%   { stroke-dashoffset: 1;  opacity: 0; }
-  10%  { opacity: 1; }
-  34%  { stroke-dashoffset: 0;  opacity: 1; }
-  68%  { stroke-dashoffset: 0;  opacity: 1; }
-  92%  { stroke-dashoffset: -1; opacity: 1; }
-  96%  { opacity: 0; }
-  100% { stroke-dashoffset: -1; opacity: 0; }
-}
-
-/* No separate nib marker. There was one: a pulsing dot pinned to the right
-   edge of the board. It sat where the stroke ENDS, but the stroke spends most
-   of its loop not having got there yet, so for most of every cycle the page
-   showed a dot floating in space with a line reaching toward it. The end of
-   the stroke is its own marker. */
-
 /* ---------------- the ways out ---------------- */
 
 .nf__acts {
@@ -156,9 +117,38 @@
 }
 .nf__btn--solid:hover { background: var(--accent); color: #fff; }
 
-.nf__foot {
-  position: relative; z-index: 2;
-  margin: 0; text-align: center;
-  font-size: .84rem; color: var(--muted);
-}
 .nf__foot b { color: var(--accent); }
+
+/* ---------------------------------------------------------------------------
+   The six kinds of work.
+
+   The commonest way to land on a 404 here is a stale link to a case study, and
+   the category that piece lived in is the closest thing to what the reader was
+   actually after -- closer than the homepage, and closer than a search box
+   they would have to think of words for. Built from WORK_CATEGORIES so it
+   cannot fall out of step with the services.
+
+   Quieter than the three buttons above on purpose: this is the second offer,
+   for someone the first one did not help.
+   --------------------------------------------------------------------------- */
+.nf__cats { margin-top: clamp(2.2rem, 5vw, 3rem); }
+.pv .nf__catsK {
+  margin: 0 0 .8rem;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .74rem; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase;
+  color: var(--muted);
+}
+.nf__cats ul {
+  margin: 0; padding: 0; list-style: none;
+  display: flex; flex-wrap: wrap; justify-content: center; gap: .45rem .5rem;
+}
+.nf__cats a {
+  display: inline-flex; padding: .42em .9em;
+  border: 1px solid var(--rule); border-radius: 999px;
+  font-size: .88rem; color: var(--muted);
+  transition: border-color .2s ease, color .2s ease, background .2s ease;
+}
+.nf__cats a:hover {
+  border-color: var(--accent); color: #fff; background: var(--accent);
+}
