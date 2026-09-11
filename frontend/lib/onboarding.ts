@@ -37,7 +37,7 @@ export type FieldKind =
  * terms" is a finding that shapes the work and the first call. A blank field
  * says nothing; this says something.
  */
-export const UNSURE = "Not sure yet — would like WDC's recommendation";
+export const UNSURE = "Not sure yet, I would like WDC to advise";
 
 export type Field = {
   key: string;
@@ -54,8 +54,25 @@ export type Field = {
    * made-up answer that is worse than an honest blank.
    */
   assist?: boolean;
-  /** Shown under the label, always visible. Never a tooltip. */
+  /**
+   * Shown under the label, always visible.
+   *
+   * ONLY WHERE THE QUESTION CANNOT BE ANSWERED WITHOUT IT. A question that
+   * needs an explanation to be understood is not a question with a hint, it is
+   * a badly worded question, and the explanation is part of it. Everything
+   * else that used to live here is background, and background belongs in
+   * `tip`.
+   */
   hint?: string;
+  /**
+   * Background, behind a question mark in a circle.
+   *
+   * Useful to the client who wants it and invisible to the client who does
+   * not. Every hint used to be always-on, which on a phone turned a
+   * six-question step into a page of prose the reader had to scroll past
+   * whether or not they cared.
+   */
+  tip?: string;
   placeholder?: string;
   options?: string[];
   required?: boolean;
@@ -116,7 +133,7 @@ export const CORE_STEPS: Step[] = [
       { key: "last_name", label: "Last name", kind: "text", placeholder: "e.g. Adeyemi", required: true },
       {
         key: "phone", label: "Mobile number", kind: "tel", required: true,
-        hint: "WhatsApp preferred, since that is usually the fastest way to reach you.",
+        tip: "WhatsApp preferred, since that is usually the fastest way to reach you.",
         placeholder: "+234 802 123 4567",
       },
       { key: "email", label: "Email", kind: "email", placeholder: "you@business.com", required: true },
@@ -146,8 +163,13 @@ export const CORE_STEPS: Step[] = [
         ],
       },
       {
+        key: "industry_other", label: "Which industry?", kind: "text",
+        placeholder: "Tell us in a few words",
+        showIf: { key: "industry", equals: ["Other"] },
+      },
+      {
         key: "usp", assist: true, label: "What makes you the one they should pick?", kind: "textarea",
-        hint: "The honest answer, not the polished one. It is what the work has to carry.",
+        tip: "The honest answer, not the polished one. It is what the work has to carry.",
       },
     ],
   },
@@ -177,12 +199,12 @@ export const SERVICE_STEPS: Step[] = [
       },
       {
         key: "surfaces", assist: true, label: "Where does the mark have to work?", kind: "multi",
-        hint: "This one matters more than it looks. A mark that survives 12mm of embroidery is drawn differently from one that only ever appears on a screen.",
+        tip: "This one matters more than it looks. A mark that survives 12mm of embroidery is drawn differently from one that only ever appears on a screen.",
         options: ["Embroidery", "Signage", "Print", "Screen", "Packaging", "Vehicle", "Stamp or seal"],
       },
       {
         key: "untouchable", assist: true, label: "Anything that must not change?", kind: "textarea",
-        hint: "A name, a colour, a mark people already know you by.",
+        tip: "A name, a colour, a mark people already know you by.",
         /* Asked only when something exists to preserve. Putting this to a
            client who has just said "nothing yet" reads as a form that is not
            listening, and a form that is not listening is one people stop
@@ -208,36 +230,68 @@ export const SERVICE_STEPS: Step[] = [
     ],
   },
   {
-    phase: "work", id: "web", service: "web", title: "Web development",
-    blurb: "What the site has to do, and who looks after it after launch.",
+    /* SPLIT INTO THREE, and the sections are the client's own. The Fluent
+       Forms website export divides this exact ground into "Website Goals and
+       Features", "Design and Branding", "Content and Maintenance" and
+       "Technical Information" -- so the shape was already there in how the
+       studio thinks about a website job, and eleven questions on one screen
+       was the thing that did not match it.
+
+       Shorter screens are also what makes the progress bar honest: a step that
+       holds eleven questions takes four minutes and moves the bar once. */
+    phase: "work", id: "web", service: "web", title: "What the site is for",
+    blurb: "The job it has to do, before we talk about how it looks.",
     fields: [
       { key: "site_new_or_existing", label: "Is this a new website, or improving one you have?", kind: "cards", required: true, options: ["Brand new", "Improving an existing site"] },
       { key: "current_url", label: "Your current site", kind: "url", placeholder: "https://", showIf: { key: "site_new_or_existing", equals: ["Improving an existing site"] } },
-      { key: "current_problem", label: "What is wrong with it?", kind: "textarea", showIf: { key: "site_new_or_existing", equals: ["Improving an existing site"] } },
+      { key: "current_problem", label: "What do you like and dislike about it?", kind: "textarea", showIf: { key: "site_new_or_existing", equals: ["Improving an existing site"] } },
       { key: "site_goal", assist: true, label: "What is the site's main job?", kind: "textarea", placeholder: "e.g. take bookings, sell online, show the portfolio" },
       { key: "features", assist: true, label: "Features you have in mind", kind: "multi", options: ["Online store", "Bookings", "Blog", "Gallery", "Members area", "Multi-language", "None yet"] },
       { key: "page_count", assist: true, label: "Roughly how many pages?", kind: "cards", options: ["1–5", "6–15", "16–40", "More than 40"] },
+    ],
+  },
+  {
+    phase: "work", id: "web_content", service: "web", title: "Content and care",
+    blurb: "Who writes it, and who looks after it after launch.",
+    fields: [
       { key: "content_ready", label: "Do you have the words and pictures?", kind: "cards", required: true, options: ["Ready to go", "Partly", "We need you to produce them"] },
-      { key: "wants_seo", label: "Should we optimise it for search?", kind: "yesno", required: true, hint: "Search optimisation is the work that makes a site findable on Google: the right words, a clean technical build, and pages that load fast." },
+      { key: "wants_seo", label: "Should we optimise it for search?", kind: "yesno", required: true, tip: "Search optimisation is the work that makes a site findable on Google: the right words, a clean technical build, and pages that load fast." },
+      /* From the client's own website form, which asks both and is right to:
+         a site nobody maintains is a site that rots, and it is far cheaper to
+         agree that now than to discover it in month four. */
+      { key: "wants_maintenance", label: "Will you want ongoing updates and maintenance?", kind: "cards", required: true, options: ["Yes", "No", "Tell us what it involves"] },
+      { key: "wants_blogging", label: "Will you want help with blogging or content marketing?", kind: "cards", options: ["Yes", "No", "Not sure yet"] },
+    ],
+  },
+  {
+    phase: "work", id: "web_tech", service: "web", title: "Domain and hosting",
+    blurb: "Where the site will live. Nothing technical is expected of you here.",
+    fields: [
       { key: "has_hosting", label: "Do you already have hosting and a domain?", kind: "cards", required: true, options: ["Both", "Domain only", "Neither", "Not sure"] },
       {
         key: "hosting_details",
         label: "Who is it with, and whose name is the account in?",
         kind: "textarea",
         placeholder: "e.g. domain with Namecheap, hosting with Whogohost, both in Tobi's name",
-        /* WE DO NOT ASK FOR THE LOGIN. It is the obvious next question and it
-           is the wrong one: a password typed into a web form is a password
-           sitting in a database, in a draft in someone's browser, and in
-           whatever inbox a notification lands in -- and it would be OUR fault
-           when it leaked, not the client's. Naming the provider is all we need
-           to know what we are dealing with; the access itself is handed over
-           later through the provider's own delegated access, or through a
-           one-time secret link, at the point it is actually needed. Saying so
-           here is also reassuring: a form that asks for a hosting password
-           tells a client something about how the rest of their data will be
-           treated. */
-        hint: "Just the provider and the account holder. Please do not put passwords in this form — we will set access up properly with you when we get there.",
+        /* WE DO NOT ASK FOR THE LOGIN, and the client's own form does -- three
+           times, for the website, the domain and the hosting. It is the
+           obvious next question and it is the wrong one: a password typed into
+           a web form is a password sitting in a database, in a draft in
+           someone's browser, and in whatever inbox a notification lands in --
+           and it would be OUR fault when it leaked, not the client's. Naming
+           the provider is all we need to know what we are dealing with; the
+           access itself is handed over later through the provider's own
+           delegated access, or a one-time secret link, at the point it is
+           actually needed. Saying so here is also reassuring: a form that asks
+           for a hosting password tells a client something about how the rest
+           of their data will be treated. */
+        hint: "Just the provider and the account holder. Please do not put passwords in this form. We will set access up properly with you when we get there.",
         showIf: { key: "has_hosting", equals: ["Both", "Domain only", "Not sure"] },
+      },
+      {
+        key: "domain_ideas", assist: true, label: "Three domain names you would like, best first", kind: "textarea",
+        tip: "Include the ending you want, like .com or .com.ng. We will check what is free.",
+        showIf: { key: "has_hosting", equals: ["Neither"] },
       },
     ],
   },
@@ -253,7 +307,7 @@ export const SERVICE_STEPS: Step[] = [
       {
         key: "store_accounts", label: "Do you have developer accounts for the stores?", kind: "cards",
         required: true, options: ["Both", "One of them", "Neither", "Not sure"],
-        hint: "Apple and Google both require a paid developer account in YOUR name to publish. If you have neither, we will walk you through it -- it is not a blocker.",
+        tip: "Apple and Google both require a paid developer account in YOUR name to publish. If you have neither, we will walk you through it. It is not a blocker.",
       },
       { key: "backend", assist: true, label: "Is there a backend already, or are we building it?", kind: "cards", options: ["One exists", "Build it", "Not sure"] },
     ],
@@ -265,25 +319,51 @@ export const SERVICE_STEPS: Step[] = [
       { key: "process", assist: true, label: "What are people doing by hand today that this should take over?", kind: "textarea", required: true },
       { key: "users_count", assist: true, label: "How many people will use it, and who are they?", kind: "text", required: true },
       { key: "data_home", assist: true, label: "Where does that information live now?", kind: "cards", options: ["Spreadsheets", "WhatsApp", "Paper", "An existing system", "Nowhere yet"] },
-      { key: "systems", assist: true, label: "What must it talk to?", kind: "textarea", hint: "Accounting software, a payment provider, an existing database." },
+      { key: "systems", assist: true, label: "What must it talk to?", kind: "textarea", tip: "Accounting software, a payment provider, an existing database." },
       { key: "compliance", assist: true, label: "Any regulation or data rule we must design around?", kind: "textarea" },
       { key: "success_metric", assist: true, label: "What number tells us this worked?", kind: "text", placeholder: "e.g. hours saved a week, orders processed a day" },
     ],
   },
   {
-    phase: "work", id: "social", service: "social", title: "Social & PPC",
-    blurb: "Where you post, who runs it, and what you are spending with the platforms.",
+    /* SPLIT IN TWO, and the handles are now one field per platform.
+
+       A single "your handles" box was asking the client to invent a format,
+       and what comes back is a paragraph somebody then has to read and unpick.
+       The client's own social form does this properly -- nine separate handle
+       fields, each revealed only by ticking its platform -- so a client on two
+       platforms answers two questions and never sees the other seven. Copied
+       because it is right, not because it was there. */
+    phase: "work", id: "social", service: "social", title: "Where you are",
+    blurb: "The accounts we would be running, and who runs them today.",
     fields: [
-      { key: "channels", label: "Which platforms are you on?", kind: "multi", required: true, options: ["Instagram", "Facebook", "X", "TikTok", "LinkedIn", "WhatsApp", "None yet"] },
-      { key: "handles", label: "Your handles", kind: "textarea", placeholder: "@yourbusiness on each", showIf: { key: "channels", equals: ["Instagram", "Facebook", "X", "TikTok", "LinkedIn", "WhatsApp"] } },
-      { key: "social_goal", assist: true, label: "What is social for, for you?", kind: "cards", options: ["Awareness", "Sales", "Bookings", "Community", "Recruitment"] },
+      { key: "channels", label: "Which platforms are you on?", kind: "multi", required: true, options: ["Instagram", "Facebook", "X", "TikTok", "LinkedIn", "YouTube", "Pinterest", "Snapchat", "WhatsApp", "Somewhere else", "None yet"] },
+      { key: "handle_instagram", label: "Your Instagram handle", kind: "text", placeholder: "@yourbusiness", showIf: { key: "channels", equals: ["Instagram"] } },
+      { key: "handle_facebook", label: "Your Facebook handle", kind: "text", placeholder: "@yourbusiness", showIf: { key: "channels", equals: ["Facebook"] } },
+      { key: "handle_x", label: "Your X handle", kind: "text", placeholder: "@yourbusiness", showIf: { key: "channels", equals: ["X"] } },
+      { key: "handle_tiktok", label: "Your TikTok handle", kind: "text", placeholder: "@yourbusiness", showIf: { key: "channels", equals: ["TikTok"] } },
+      { key: "handle_linkedin", label: "Your LinkedIn handle", kind: "text", placeholder: "@yourbusiness", showIf: { key: "channels", equals: ["LinkedIn"] } },
+      { key: "handle_youtube", label: "Your YouTube handle", kind: "text", placeholder: "@yourbusiness", showIf: { key: "channels", equals: ["YouTube"] } },
+      { key: "handle_pinterest", label: "Your Pinterest handle", kind: "text", placeholder: "@yourbusiness", showIf: { key: "channels", equals: ["Pinterest"] } },
+      { key: "handle_snapchat", label: "Your Snapchat handle", kind: "text", placeholder: "@yourbusiness", showIf: { key: "channels", equals: ["Snapchat"] } },
+      { key: "handle_whatsapp", label: "Your WhatsApp handle", kind: "text", placeholder: "@yourbusiness", showIf: { key: "channels", equals: ["WhatsApp"] } },
+      { key: "handle_other", label: "Anywhere else? Give us the handle", kind: "text", showIf: { key: "channels", equals: ["Somewhere else"] } },
       { key: "content_source", label: "Who shoots and writes today?", kind: "cards", required: true, options: ["Nobody", "In-house", "A freelancer", "We would like you to"] },
       { key: "access_ok", label: "Can you give us access, or should we work through you?", kind: "cards", required: true, options: ["We will give access", "Work through us"] },
-      { key: "competitors_admired", assist: true, label: "Any competitor accounts you admire?", kind: "textarea", hint: "Handles are enough." },
+    ],
+  },
+  {
+    phase: "work", id: "social_content", service: "social", title: "What we post",
+    blurb: "What it is for, what works, and what to stay away from.",
+    fields: [
+      { key: "social_goal", assist: true, label: "What is social for, for you?", kind: "cards", options: ["Awareness", "Sales", "Bookings", "Community", "Recruitment"] },
+      { key: "content_types", assist: true, label: "What kind of content lands with your audience?", kind: "multi", options: ["Short video", "Photos", "Carousels", "Stories", "Live", "Written posts", "Memes and humour", "Behind the scenes", "Not sure yet"] },
+      { key: "themes_yes", assist: true, label: "Anything you want us to keep coming back to?", kind: "textarea" },
+      { key: "themes_no", assist: true, label: "Anything we should stay away from?", kind: "textarea", tip: "Topics, competitors, a tone that is not you." },
+      { key: "competitors_admired", assist: true, label: "Any competitor accounts you admire?", kind: "textarea", tip: "Handles are enough." },
       { key: "upcoming", label: "Any launches, promotions or events coming up we should plan around?", kind: "textarea" },
       {
         key: "ad_spend", assist: true, label: "Monthly advertising budget", kind: "cards",
-        hint: "This is media spend, paid to Meta or Google. It is separate from our fee.",
+        tip: "This is media spend, paid to Meta or Google. It is separate from our fee.",
         options: ["Under ₦100k", "₦100k–₦500k", "₦500k–₦2m", "Over ₦2m", "Not sure yet"],
       },
     ],
@@ -298,9 +378,13 @@ export const CLOSING_STEPS: Step[] = [
     fields: [
       { key: "has_logo", label: "Do you have a logo ready?", kind: "yesno", required: true },
       { key: "logo_files", label: "Upload your logo files", kind: "upload", showIf: { key: "has_logo", equals: ["Yes"] } },
-      { key: "has_brandbook", label: "Do you have a brand book or guide?", kind: "cards", required: true, options: ["Yes", "No", "Not sure what that is"] },
+      {
+        key: "has_brandbook", label: "Do you have a brand book or guide?", kind: "cards", required: true,
+        options: ["Yes", "No", "Not sure what that is"],
+        tip: "A brand book is a document setting out your colours, fonts, logo rules and tone of voice, so everything a business makes looks like it came from the same place. Plenty of businesses do not have one, and that is a normal answer.",
+      },
       { key: "brandbook_file", label: "Upload it", kind: "upload", showIf: { key: "has_brandbook", equals: ["Yes"] } },
-      { key: "brand_colours", label: "Your brand colours", kind: "text", placeholder: "e.g. Navy #000065, Orange #FF6500", hint: "Hex codes if you have them, names if you do not.", showIf: { key: "has_brandbook", equals: ["No", "Not sure what that is"] } },
+      { key: "brand_colours", label: "Your brand colours", kind: "text", placeholder: "e.g. Navy #000065, Orange #FF6500", tip: "Hex codes if you have them, names if you do not.", showIf: { key: "has_brandbook", equals: ["No", "Not sure what that is"] } },
       { key: "inspiration", assist: true, label: "Two or three examples you like, and what you like about them", kind: "textarea" },
       { key: "assets", label: "Anything else we should have", kind: "upload" },
     ],
@@ -310,20 +394,58 @@ export const CLOSING_STEPS: Step[] = [
     title: "How we will work",
     blurb: "Who decides, and what we must not miss.",
     fields: [
-      { key: "approver", label: "Who signs work off?", kind: "text", required: true, hint: "One person. Projects slow down most when feedback arrives from several directions and disagrees with itself." },
+      { key: "approver", label: "Who signs work off?", kind: "text", required: true, tip: "One person. Projects slow down most when feedback arrives from several directions and disagrees with itself." },
       { key: "others", label: "Anyone else who needs to see things?", kind: "textarea" },
       { key: "fixed_dates", label: "Any fixed dates we have to hit?", kind: "textarea", placeholder: "A launch, an event, a print deadline." },
       { key: "channel", label: "How would you like us to reach you?", kind: "cards", required: true, options: ["Email", "WhatsApp", "Phone call"] },
-      { key: "anything_else", label: "Anything we haven't asked that we should know?", kind: "textarea", hint: "This is the most useful box on the form. It is where the thing that would otherwise surface in week three usually comes out." },
+      { key: "anything_else", label: "Anything we haven't asked that we should know?", kind: "textarea", tip: "This is the most useful box on the form. It is where the thing that would otherwise surface in week three usually comes out." },
     ],
   },
 ];
 
-/** The steps a client actually sees, given what they bought. */
-export function stepsFor(services: ServiceSlug[]): Step[] {
+/**
+ * The one-line answer to "which of the six is this form about", shown on the
+ * picker card the client chooses from.
+ *
+ * SEPARATE FROM `SERVICES[].blurb`, which is marketing copy written to sell the
+ * service to somebody who has not bought it. This reader HAS bought it, and
+ * they are looking for their own purchase in a list of six. What they need is
+ * recognition, in as few words as will do it, not persuasion.
+ */
+export const PICKER_LINE: Record<ServiceSlug, string> = {
+  branding: "Logo, identity, and the pieces that carry it.",
+  seo: "Getting found on Google for what you actually sell.",
+  web: "A website, new or rebuilt.",
+  apps: "An app for iOS, Android, or both.",
+  software: "Custom software, and AI where it earns its place.",
+  social: "Social accounts, content, and paid ads.",
+};
+
+/**
+ * The steps for ONE service.
+ *
+ * ONE FORM, ONE SERVICE, and that is the whole reason this signature takes a
+ * slug rather than an array. It used to take a list and stitch every purchased
+ * service into a single run, which is how a client who bought three ended up
+ * facing eleven steps -- the thing that made the form feel like a tax return.
+ *
+ * A client buying three services fills this three times, which sounds worse
+ * and is not. Each run is short, each is about one thing, and each finishes.
+ * Three six-step forms completed beats one fifteen-step form abandoned on step
+ * nine, and it matches how the studio already works: the two Fluent Forms
+ * exports this was checked against are a website form and a social form, each
+ * standalone, each repeating its own basic-information section.
+ *
+ * The repetition across runs is a real cost and it is a SERVER problem, not a
+ * form problem: the second link a client opens should arrive with their name,
+ * number, email, company and audience already filled in from the first, so
+ * "About you" is a page of confirming rather than typing. That is a note for
+ * the backend, and nothing here has to change for it.
+ */
+export function stepsFor(service: ServiceSlug): Step[] {
   return [
     ...CORE_STEPS,
-    ...SERVICE_STEPS.filter((s) => s.service && services.includes(s.service)),
+    ...SERVICE_STEPS.filter((s) => s.service === service),
     ...CLOSING_STEPS,
   ];
 }

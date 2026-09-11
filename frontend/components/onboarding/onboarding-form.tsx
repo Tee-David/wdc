@@ -2,16 +2,22 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  AlertCircle, ArrowLeft, ArrowRight, Check, HelpCircle, Paperclip, Save, Undo2,
+  AlertCircle, ArrowLeft, ArrowRight, Check, HelpCircle, Save, Undo2,
 } from "lucide-react";
 import { SERVICES, type ServiceSlug } from "@/lib/services";
 import {
-  isFilled, minutesLeft, PHASES, problemWith, stepsFor, UNSURE,
+  isFilled, minutesLeft, PHASES, PICKER_LINE, problemWith, stepsFor, UNSURE,
   type Field, type PhaseId, type Step,
 } from "@/lib/onboarding";
 import PhoneField from "./phone-field";
+import SearchableSelect from "./searchable-select";
+import Dropzone from "./dropzone";
+import ServiceIcon from "@/components/ui/service-icon";
+import Tip from "./tip";
+import Dialog from "./dialog";
 import "./onboarding.css";
 import "./phone-field.css";
+import "./form-kit.css";
 
 /**
  * The onboarding form.
@@ -42,7 +48,7 @@ function visible(f: Field, a: Answers) {
   return typeof v === "string" && f.showIf.equals.includes(v);
 }
 
-type Draft = { answers: Answers; services: ServiceSlug[]; step: number; started: boolean };
+type Draft = { answers: Answers; service: ServiceSlug; step: number; started: boolean };
 
 /**
  * Draft, layer one: local, from the first keystroke, no infrastructure. The
@@ -71,11 +77,15 @@ function readDraft(): Partial<Draft> {
 export default function OnboardingForm() {
   const [draft] = useState(readDraft);
 
-  /* Which services this client bought. In production this comes from the
-     token's project record; in the demo it is pickable so the whole form can
-     be seen without six separate links. */
-  const [services, setServices] = useState<ServiceSlug[]>(() =>
-    Array.isArray(draft.services) && draft.services.length ? draft.services : ["branding", "web"],
+  /* WHICH SERVICE THIS FORM IS FOR -- one, not a list.
+     A client who bought three fills this three times, each run short and about
+     one thing. See the note on `stepsFor` in lib/onboarding.ts for why that
+     beats stitching them into a single fifteen-step run.
+
+     In production it comes from the project record behind the link; in the
+     demo it is pickable so every version is reachable. */
+  const [service, setService] = useState<ServiceSlug>(() =>
+    typeof draft.service === "string" ? draft.service : "web",
   );
   const [started, setStarted] = useState(() => draft.started === true);
   const [i, setI] = useState(() => (typeof draft.step === "number" ? draft.step : 0));
@@ -93,20 +103,25 @@ export default function OnboardingForm() {
   const [phoneOk, setPhoneOk] = useState<Record<string, boolean>>({});
   /* "Saved" confirmation, shown for a beat after the explicit save. */
   const [savedAt, setSavedAt] = useState(0);
+  /* The two dialogs: saving for later, and confirming a wipe. */
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [wipeOpen, setWipeOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [resumeEmail, setResumeEmail] = useState("");
   /* Whether there is a draft to return to, so the opening button can say
      "pick up where you left off" rather than "start". Cleared by "start over",
      which wipes the draft: the button must not keep offering one. */
   const [restored, setRestored] = useState(() => draft.started === true);
 
-  const steps = useMemo(() => stepsFor(services), [services]);
+  const steps = useMemo(() => stepsFor(service), [service]);
   const step: Step | undefined = steps[i];
 
   useEffect(() => {
     if (!started) return;
     try {
-      localStorage.setItem(KEY, JSON.stringify({ answers: a, services, step: i, started }));
+      localStorage.setItem(KEY, JSON.stringify({ answers: a, service, step: i, started }));
     } catch { /* ignore */ }
-  }, [a, services, i, started]);
+  }, [a, service, i, started]);
 
   const set = (k: string, v: string | string[]) => setA((p) => ({ ...p, [k]: v }));
 
@@ -187,10 +202,45 @@ export default function OnboardingForm() {
      the resume link gets emailed. */
   const saveNow = useCallback(() => {
     try {
-      localStorage.setItem(KEY, JSON.stringify({ answers: a, services, step: i, started: true }));
-    } catch { /* a blocked store is reported below, not thrown */ }
+      localStorage.setItem(KEY, JSON.stringify({ answers: a, service, step: i, started: true }));
+    } catch { /* a blocked store is what the dialog below exists to survive */ }
     setSavedAt(Date.now());
-  }, [a, services, i]);
+    setCopied(false);
+    setSaveOpen(true);
+  }, [a, service, i]);
+
+  /* WHY THIS DIALOG EXISTS, and why the draft in this browser is not enough.
+
+     Local storage is a good first layer and a bad only layer. It is tied to
+     one browser on one device: a client who starts on their laptop at work and
+     wants to finish on their phone in the evening has nothing to come back to,
+     and a cleared cache takes the lot with no warning and no way to recover.
+     Neither of those is an unusual thing for a person to do.
+
+     So there are three layers, and the reader chooses:
+       1. this browser, automatic, already happening;
+       2. a link they can copy and keep, or send themselves;
+       3. the same link emailed to them, which is the one that survives a
+          different device AND a cleared cache.
+
+     The link carries a token today only in the sense that the address is
+     recorded; the token that makes it work on another device is issued by the
+     server, which is the next piece of work. The dialog is written so that
+     wiring it changes one function and no copy. */
+  const resumeUrl =
+    typeof window === "undefined" ? "" : `${window.location.origin}/onboarding`;
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(resumeUrl);
+      setCopied(true);
+    } catch {
+      /* A denied clipboard is not a failure worth an error: the field beside
+         the button is selectable, which is how this worked before the API
+         existed. */
+      setCopied(false);
+    }
+  };
 
   useEffect(() => {
     if (!savedAt) return;
@@ -199,77 +249,64 @@ export default function OnboardingForm() {
   }, [savedAt]);
 
   /* ------------------------------------------------ welcome */
+  /* THE FIRST SCREEN ASKS WHICH SERVICE THIS IS FOR.
+
+     It used to be a panel labelled "Demo only, pick what a client bought",
+     which framed the whole form as something WDC fills in about a client. It
+     is the opposite: the client opens this link on their own time, with nobody
+     beside them, and fills it themselves. Every word here is written to them.
+
+     Six cards, one tap, and the form that follows is only about the one they
+     chose. A client who bought two services gets two links and fills two short
+     forms; nobody is ever handed a fifteen-step run. */
   if (!started) {
-    const preview = stepsFor(services);
+    const preview = stepsFor(service);
     const previewMins = minutesLeft(preview, 0, {}, (f) => !f.showIf);
     return (
       <div className="ob ob--intro">
-        <p className="ob__k">Client onboarding</p>
-        <h1>Tell us about the work.</h1>
+        <p className="ob__k">Welcome</p>
+        <h1>Let&rsquo;s get started.</h1>
         <p className="ob__lede">
-          This is the brief. It is the last time we will ask you for most of
-          this, and the answers go straight into the work rather than into a
-          file nobody opens.
+          A few questions so we can begin. Your answers go straight into the
+          work, and this is the last time we will ask you for most of it.
         </p>
 
-        {/* NOT "11 STEPS". That number is the first thing a reader takes in and
-            the only one they remember, and at eleven it reads as a warning.
-            The form is not too long -- the counter was counting the wrong
-            thing. Three named parts is a shape somebody can picture, and
-            saying what each one is for beats hiding how long it is. */}
-        <ol className="ob__parts">
-          {PHASES.map((ph, n) => {
-            const count = preview.filter((s) => s.phase === ph.id).length;
-            return (
-              <li key={ph.id}>
-                <span className="ob__partN" aria-hidden="true">{n + 1}</span>
-                <div>
-                  <b>{ph.title}</b>
-                  <em>{ph.blurb}</em>
-                  <small>{count === 1 ? "1 short section" : `${count} short sections`}</small>
-                </div>
-              </li>
-            );
-          })}
-        </ol>
+        <h2 className="ob__pickH">What are we working on for you?</h2>
+        <p className="ob__pickSub">Choose the one this form is for.</p>
+
+        <ul className="ob__svc">
+          {SERVICES.map((sv) => (
+            <li key={sv.slug}>
+              <button
+                type="button"
+                className={`ob__svcCard${service === sv.slug ? " is-on" : ""}`}
+                aria-pressed={service === sv.slug}
+                onClick={() => setService(sv.slug)}
+              >
+                <span className="ob__svcIc" aria-hidden="true">
+                  <ServiceIcon name={sv.icon} />
+                </span>
+                <span className="ob__svcT">
+                  <b>{sv.short}</b>
+                  <em>{PICKER_LINE[sv.slug]}</em>
+                </span>
+                <ArrowRight className="ob__svcGo" aria-hidden="true" />
+              </button>
+            </li>
+          ))}
+        </ul>
 
         <div className="ob__facts">
           <div><dt>About</dt><dd>{previewMins} min</dd></div>
           <div><dt>Saves</dt><dd>As you go</dd></div>
-          <div><dt>Leave anytime</dt><dd>This link returns you</dd></div>
+          <div><dt>Leave anytime</dt><dd>Pick up where you stopped</dd></div>
         </div>
 
-        <div className="ob__note">
-          <h2>Before you start</h2>
-          <ul>
-            <li>Have your logo files and brand colours to hand if you have them.</li>
-            <li>If you are not sure about something, say so. &ldquo;Not sure yet&rdquo; is a real answer here and it will not hold anything up.</li>
-            <li>It saves itself. Close the tab and come back to this link.</li>
-            <li>What you write stays between us and the people working on your project.</li>
-          </ul>
-        </div>
-
-        {/* In production the services come from the project record behind the
-            token. Here they are pickable so the whole form is reachable. */}
-        <div className="ob__demo">
-          <p className="ob__k">Demo only · pick what a client bought</p>
-          <div className="ob__picks">
-            {SERVICES.map((s) => (
-              <label className="ob__pick" key={s.slug}>
-                <input
-                  type="checkbox"
-                  checked={services.includes(s.slug)}
-                  onChange={(e) =>
-                    setServices((p) =>
-                      e.target.checked ? [...p, s.slug] : p.filter((x) => x !== s.slug),
-                    )
-                  }
-                />
-                <span>{s.short}</span>
-              </label>
-            ))}
-          </div>
-        </div>
+        <p className="ob__reassure">
+          Not sure about something? Say so. &ldquo;Not sure yet&rdquo; is a real
+          answer here and it will not hold anything up. What you write stays
+          between us and the people working on your project.
+        </p>
 
         <button className="ob__btn ob__btn--go" type="button" onClick={() => setStarted(true)}>
           {restored ? "Pick up where you left off" : "Start"} <ArrowRight aria-hidden="true" />
@@ -321,24 +358,42 @@ export default function OnboardingForm() {
           </p>
         </div>
 
-        <div className="ob__acts">
-          <button className="ob__btn ob__btn--go" type="button" disabled>
-            Send the brief <ArrowRight aria-hidden="true" />
-          </button>
+        {/* BACK FIRST, THEN SEND, and Start over on its own line.
+
+            The row used to read Send / Back / Start over left to right, which
+            put the irreversible action between the two safe ones and left
+            "Back" floating at a different height on a narrow screen because
+            the row wrapped mid-group. Back is a step, Send is the finish, and
+            wiping everything is not a peer of either. */}
+        <div className="ob__acts ob__acts--end">
           <button className="ob__btn ob__btn--ghost" type="button" onClick={back}>
             <ArrowLeft aria-hidden="true" /> Back
           </button>
+          <button className="ob__btn ob__btn--go" type="button" disabled>
+            Send the brief <ArrowRight aria-hidden="true" />
+          </button>
+          {/* ASKS FIRST. This throws away everything the client has typed,
+              it is next to the button that submits, and it cannot be undone. */}
           <button
             className="ob__btn ob__btn--ghost"
             type="button"
-            onClick={() => {
-              try { localStorage.removeItem(KEY); } catch { /* nothing to clear */ }
-              setA({}); setI(0); setStarted(false); setRestored(false);
-            }}
+            onClick={() => setWipeOpen(true)}
           >
             Start over
           </button>
         </div>
+
+        <Dialogs
+          saveOpen={saveOpen} onSaveClose={() => setSaveOpen(false)}
+          resumeUrl={resumeUrl} copied={copied} onCopy={copyLink}
+          email={resumeEmail} onEmail={setResumeEmail}
+          wipeOpen={wipeOpen} onWipeClose={() => setWipeOpen(false)}
+          onWipe={() => {
+            try { localStorage.removeItem(KEY); } catch { /* nothing to clear */ }
+            setA({}); setI(0); setStarted(false); setRestored(false);
+            setWipeOpen(false);
+          }}
+        />
       </div>
     );
   }
@@ -425,10 +480,13 @@ export default function OnboardingForm() {
           </ol>
 
           <div className="ob__topMeta">
+            {/* THE PART IS NOT NAMED AGAIN HERE. It was, and between this
+                line, the lit bar above it and the rail beside it, one screen
+                said "About you" three separate times before asking a single
+                question. The bar names the part; this line carries only what
+                the bar cannot say. */}
             <p>
-              <b>{PHASES.find((p) => p.id === phase)?.title}</b>
-              <span aria-hidden="true"> · </span>
-              {posInPhase} of {inPhase.length}
+              {posInPhase} of {inPhase.length} in this part
               <span aria-hidden="true"> · </span>
               <span className="ob__mins">about {mins} min left</span>
             </p>
@@ -502,7 +560,92 @@ export default function OnboardingForm() {
           </div>
         )}
       </div>
+
+        <Dialogs
+          saveOpen={saveOpen} onSaveClose={() => setSaveOpen(false)}
+          resumeUrl={resumeUrl} copied={copied} onCopy={copyLink}
+          email={resumeEmail} onEmail={setResumeEmail}
+          wipeOpen={wipeOpen} onWipeClose={() => setWipeOpen(false)}
+          onWipe={() => {
+            try { localStorage.removeItem(KEY); } catch { /* nothing to clear */ }
+            setA({}); setI(0); setStarted(false); setRestored(false);
+            setWipeOpen(false);
+          }}
+        />
     </div>
+  );
+}
+
+/**
+ * The two dialogs, rendered from wherever they are needed rather than written
+ * out twice. Both are the platform's `<dialog>` -- see dialog.tsx.
+ */
+function Dialogs({
+  saveOpen, onSaveClose, resumeUrl, copied, onCopy, email, onEmail,
+  wipeOpen, onWipeClose, onWipe,
+}: {
+  saveOpen: boolean; onSaveClose: () => void;
+  resumeUrl: string; copied: boolean; onCopy: () => void;
+  email: string; onEmail: (v: string) => void;
+  wipeOpen: boolean; onWipeClose: () => void; onWipe: () => void;
+}) {
+  return (
+    <>
+      <Dialog open={saveOpen} onClose={onSaveClose} title="Saved. Come back whenever." labelledBy="ob-save-h">
+        <p>
+          Your answers are kept in this browser, so closing the tab on this
+          device is safe. For anything else, take the link.
+        </p>
+        <div className="rs__link">
+          {/* `readOnly`, not `disabled`: a disabled input cannot be selected,
+              which removes the fallback for anyone whose browser refuses the
+              clipboard API. */}
+          <input type="text" value={resumeUrl} readOnly aria-label="Your link back to this form"
+                 onFocus={(e) => e.currentTarget.select()} />
+          <button type="button" onClick={onCopy}>{copied ? "Copied" : "Copy"}</button>
+        </div>
+        <p className="rs__or">
+          Changing device, or worried about clearing your browser? Email it to
+          yourself and it will be waiting.
+        </p>
+        <div className="rs__link">
+          <input
+            type="email" inputMode="email" autoComplete="email"
+            placeholder="you@business.com" aria-label="Where to email your link"
+            value={email} onChange={(e) => onEmail(e.target.value)}
+          />
+          {/* Deliberately inert, and it says so below rather than pretending.
+              Sending mail needs the server that is not built yet; a button that
+              looked like it worked and quietly did nothing would be worse than
+              one that is honest. */}
+          <button type="button" disabled>Send</button>
+        </div>
+        <p className="ob__hint" style={{ marginTop: ".5rem" }}>
+          Emailing the link switches on with the rest of the back end. Until
+          then, copy it above.
+        </p>
+        <div className="dlg__acts">
+          <button className="ob__btn ob__btn--go" type="button" onClick={onSaveClose}>
+            Back to the form
+          </button>
+        </div>
+      </Dialog>
+
+      <Dialog open={wipeOpen} onClose={onWipeClose} title="Start over?" labelledBy="ob-wipe-h">
+        <p>
+          This clears every answer you have given and takes you back to the
+          first question. It cannot be undone.
+        </p>
+        <div className="dlg__acts">
+          <button className="ob__btn ob__btn--ghost" type="button" onClick={onWipeClose}>
+            Keep my answers
+          </button>
+          <button className="ob__btn ob__btn--danger" type="button" onClick={onWipe}>
+            Yes, start over
+          </button>
+        </div>
+      </Dialog>
+    </>
   );
 }
 
@@ -529,6 +672,11 @@ function FieldView({
     <label className="ob__label" htmlFor={id}>
       {f.label}
       {f.required ? <b aria-hidden="true"> *</b> : <i> (optional)</i>}
+      {/* Background lives behind the question mark, so the form stays a list
+          of questions rather than a page of prose. Only explanations the
+          question genuinely cannot be answered without stay inline, as
+          `hint`. */}
+      {f.tip ? <Tip text={f.tip} /> : null}
     </label>
   );
   /* Always visible, under the label. A hint the form cannot be completed
@@ -615,16 +763,14 @@ function FieldView({
 
   if (f.kind === "select") {
     return wrap(
-      <div className="ob__sel">
-        <select
-          id={id} value={v as string}
-          aria-invalid={invalid || undefined} aria-describedby={describedBy}
-          onChange={(e) => onChange(e.target.value)}
-        >
-          <option value="">Choose one</option>
-          {f.options?.map((o) => <option key={o} value={o}>{o}</option>)}
-        </select>
-      </div>,
+      <SearchableSelect
+        id={id}
+        options={f.options ?? []}
+        value={v as string}
+        onChange={onChange}
+        invalid={invalid}
+        describedBy={describedBy}
+      />,
     );
   }
 
@@ -651,6 +797,25 @@ function FieldView({
 
   if (f.kind === "multi") {
     const arr = v as string[];
+    /* A LONG MULTI-SELECT BECOMES A DROPDOWN. Nine or more options as cards is
+       a wall that pushes everything below it off the screen, and on a phone it
+       is most of a scroll to get past a question somebody may not even be
+       answering. Below that, cards win: they are one tap, nothing is hidden,
+       and the whole set is readable at a glance. */
+    if ((f.options?.length ?? 0) >= 9) {
+      return wrap(
+        <SearchableSelect
+          id={id}
+          options={f.options ?? []}
+          value={arr}
+          onChange={onChange}
+          multiple
+          placeholder="Choose any that apply"
+          invalid={invalid}
+          describedBy={describedBy}
+        />,
+      );
+    }
     return wrap(
       <div className="ob__cards">
         {f.options?.map((o) => {
@@ -674,15 +839,13 @@ function FieldView({
   }
 
   if (f.kind === "upload") {
-    /* Deliberately inert. Uploads go browser-to-R2 through a presigned URL,
-       which needs the endpoint that does not exist yet; a file picker that
-       accepts a file and silently drops it would be worse than one that says
-       what it is. */
     return wrap(
-      <div className="ob__upload">
-        <Paperclip aria-hidden="true" />
-        <span>File upload arrives with the backend. Send anything you have by email for now.</span>
-      </div>,
+      <Dropzone
+        id={id}
+        value={Array.isArray(v) ? v : []}
+        onChange={onChange}
+        describedBy={describedBy}
+      />,
     );
   }
 
