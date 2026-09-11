@@ -139,3 +139,35 @@
 @media (max-width: 560px) {
   .ft__base { justify-content: center; text-align: center; }
 }
+
+/* ---------------------------------------------------------------------------
+   Full-bleed from 1024px.
+
+   The card was capped at 1400px and centred, which on a wide screen left a
+   strip of page ground down each side and made the footer read as a panel
+   sitting on the page rather than as the page's own base. Edge to edge, the
+   navy is the floor.
+
+   The curve stays. It is the seam the last section's rounded bottom answers,
+   and it still reads at full width -- more clearly, in fact, with nothing
+   beside it to distract from it.
+
+   The CONTENT does not go full width with the card. The columns, the rule
+   above the copyright and the wordmark all take the same 1280px measure and
+   the same side padding as `.pv-wrap`, so the footer's first column starts on
+   the same vertical as every heading up the page. Constraining `.ft__mark` too
+   is what keeps the wordmark the size it was: it is sized in `cqw` against its
+   own box, so letting that box grow to the full screen would have scaled the
+   letters with it.
+   --------------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+  .ft { padding-inline: 0; }
+  .ft__card { max-width: none; padding-inline: 0; }
+  .ft__cols,
+  .ft__base,
+  .ft__mark {
+    max-width: 1280px;
+    margin-inline: auto;
+    padding-inline: clamp(18px, 5vw, 44px);
+  }
+}
