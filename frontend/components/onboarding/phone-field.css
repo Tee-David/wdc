@@ -1,0 +1,149 @@
+/* ============================================================================
+   The phone field.
+
+   One control that reads as one object: a country button, the dial code, and
+   the number, sharing a single border. The two parts are divided by a hairline
+   rather than by a gap, so it never looks like two fields that happen to be
+   next to each other.
+
+   Everything is `.pv` scoped and drawn from the page's own tokens, so it holds
+   up in both themes without a second palette.
+   ========================================================================== */
+
+.pv .ph { position: relative; }
+
+.pv .ph__bar {
+  display: flex; align-items: stretch;
+  border: 1px solid var(--rule); border-radius: 12px;
+  background: var(--paper);
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+/* FOCUS IS ON THE WHOLE CONTROL, not on whichever half has the caret.
+   `:focus-within` is what makes a split control read as one field; without it
+   the ring lands on the number input alone and the country button looks like
+   it belongs to something else. */
+.pv .ph__bar:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.pv .ph.is-bad .ph__bar { border-color: #d63333; }
+.pv .ph.is-bad .ph__bar:focus-within {
+  box-shadow: 0 0 0 3px rgb(214 51 51 / .18);
+}
+
+/* ---------------- the country button ---------------- */
+.pv .ph__cc {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: 0 .7rem 0 .85rem;
+  border: 0; border-right: 1px solid var(--rule);
+  border-radius: 12px 0 0 12px;
+  background: transparent; color: var(--ink);
+  cursor: pointer;
+  transition: background .18s ease;
+}
+.pv .ph__cc:hover { background: var(--paper-2); }
+.pv .ph__cc:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.pv .ph__cc svg { width: 1rem; height: 1rem; color: var(--muted); }
+.pv .ph.is-open .ph__cc svg { transform: rotate(180deg); }
+.pv .ph__cc svg { transition: transform .18s ease; }
+
+.ph__flag { font-size: 1.25rem; line-height: 1; }
+/* The Windows fallback -- see supportsFlagEmoji() in phone-field.tsx. A code
+   set as a chip reads as deliberate; the same two letters bare read as a flag
+   that failed to load. */
+.pv .ph__iso {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .68rem; font-weight: 700; letter-spacing: .04em;
+  padding: .18em .4em; border-radius: 5px;
+  background: var(--paper-2); color: var(--muted);
+  border: 1px solid var(--rule);
+}
+
+/* ---------------- the number ---------------- */
+/* The dial code is text, not an input: it is the picker's output, and putting
+   it inside the field means one backspace can turn +234 into +23. */
+.pv .ph__dial {
+  display: inline-flex; align-items: center;
+  padding: .85rem 0 .85rem .8rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.pv .ph__num {
+  flex: 1; min-width: 0;
+  padding: .85rem .9rem .85rem .45rem;
+  border: 0; background: transparent; color: var(--ink);
+  font: inherit; font-variant-numeric: tabular-nums;
+}
+.pv .ph__num:focus { outline: none; }
+
+/* ---------------- the picker ---------------- */
+.pv .ph__pop {
+  position: absolute; z-index: 30; top: calc(100% + 6px); left: 0;
+  width: min(26rem, 100%);
+  border: 1px solid var(--rule); border-radius: 12px;
+  background: var(--paper);
+  box-shadow: 0 22px 48px -24px rgb(0 0 0 / .45);
+  overflow: hidden;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pv .ph__pop { animation: ph-in .16s cubic-bezier(.16, 1, .3, 1) both; }
+}
+@keyframes ph-in { from { opacity: 0; transform: translateY(-6px); } }
+
+.pv .ph__search {
+  display: flex; align-items: center; gap: .55rem;
+  padding: .7rem .9rem;
+  border-bottom: 1px solid var(--rule);
+}
+.pv .ph__search svg { width: 1rem; height: 1rem; color: var(--muted); flex: none; }
+.pv .ph__search input {
+  flex: 1; min-width: 0;
+  border: 0; background: transparent; color: var(--ink); font: inherit;
+}
+.pv .ph__search input:focus { outline: none; }
+
+.pv .ph__list {
+  margin: 0; padding: .3rem; list-style: none;
+  /* Tall enough to show that the list is long and scrollable, short enough to
+     leave the field it belongs to visible above it. */
+  max-height: 17rem; overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.pv .ph__opt {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .5rem .6rem; border-radius: 8px;
+  cursor: pointer;
+}
+/* ONE highlight, driven by the keyboard. Hover sets the same `is-active` index
+   rather than painting its own colour, so the mouse and the arrow keys can
+   never disagree about which row is the one Enter will choose. */
+.pv .ph__opt.is-active { background: var(--paper-2); }
+.pv .ph__opt.is-on .ph__name { font-weight: 600; }
+.pv .ph__opt.is-on::after {
+  content: ""; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); flex: none;
+}
+.pv .ph__name { flex: 1; min-width: 0; }
+/* The search match, bolded. The list is long and the eye needs to see WHY a
+   row is in it. */
+.pv .ph__name b { font-weight: 700; color: var(--ink); }
+.pv .ph__code {
+  color: var(--muted); font-variant-numeric: tabular-nums; flex: none;
+}
+.pv .ph__none { padding: 1rem .8rem; color: var(--muted); }
+
+/* On a phone the popup is the screen, not a dropdown: a 17rem list hanging off
+   a field near the bottom of a 390px viewport is mostly off screen, and the
+   keyboard takes what is left. */
+@media (max-width: 560px) {
+  .pv .ph__pop {
+    position: fixed; inset: auto 0 0 0; top: auto;
+    width: 100%; max-height: 72svh; border-radius: 16px 16px 0 0;
+    box-shadow: 0 -22px 48px -24px rgb(0 0 0 / .45);
+  }
+  .pv .ph__list { max-height: 52svh; }
+  @media (prefers-reduced-motion: no-preference) {
+    .pv .ph__pop { animation: ph-up .2s cubic-bezier(.16, 1, .3, 1) both; }
+  }
+  @keyframes ph-up { from { transform: translateY(14px); opacity: 0; } }
+}
