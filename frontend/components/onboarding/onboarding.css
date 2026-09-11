@@ -257,17 +257,11 @@
 .ob__f.is-bad select,
 .ob__f.is-bad .ob__card { border-color: #d13b2f; }
 
-/* The select keeps the native popup — a custom listbox is a lot of keyboard
-   and screen-reader work to own — but loses the native chrome, which is the
-   part that looks out of place. */
-.ob__sel { position: relative; }
-.ob__sel select { appearance: none; padding-right: 2.6rem; cursor: pointer; }
-.ob__sel::after {
-  content: ""; position: absolute; right: 1rem; top: 50%;
-  width: .62rem; height: .62rem; margin-top: -.4rem;
-  border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
-  transform: rotate(45deg); pointer-events: none;
-}
+/* The select is a custom searchable listbox -- see select-field.tsx for why
+   the native popup went, and picker.css for what replaced it. The `select`
+   rules above stay because the base rule is shared with the inputs and costs
+   nothing; nothing renders a bare `<select>` any more.
+*/
 
 /* Choices are buttons rather than radios so a whole option is a target, not
    just a 16px circle. The roles are on the elements, so this stays a
