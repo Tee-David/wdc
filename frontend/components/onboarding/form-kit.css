@@ -136,6 +136,10 @@
 /* Built on `<dialog>`: the top layer, a real backdrop, focus trapped, Escape
    handled, and the page behind it inert. See dialog.tsx. */
 .dlg {
+  /* Centred by the browser's own `dialog { margin: auto }`, which the reset
+     zeroes along with every other margin. Put back, or the sheet opens pinned
+     to the top left corner. */
+  margin: auto;
   width: min(30rem, calc(100vw - 2rem));
   padding: 0; border: 0; border-radius: 16px;
   background: transparent;

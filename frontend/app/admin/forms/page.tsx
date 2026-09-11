@@ -35,10 +35,12 @@ export default function FormsPage() {
       </div>
 
       <DemoNote>
-        The visual builder edits the schema in <code>lib/onboarding.ts</code>,
-        which is already typed fields, steps and conditions with a
-        schema-driven renderer. It needs somewhere to save to before it is more
-        than a canvas, so what is here is every question the live form asks.
+        A form that arrives from somebody not yet on the books can be turned
+        into a client in one press, from the form itself. The visual builder
+        edits the schema in <code>lib/onboarding.ts</code>, which is already
+        typed fields, steps and conditions with a schema-driven renderer; it
+        needs somewhere to save to before it is more than a canvas, so what is
+        here is every question the live form asks.
       </DemoNote>
 
       <div className="ad__stack">

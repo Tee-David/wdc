@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
-import { getClient, getInvoicesFor, getProject, getProjects } from "@/lib/admin/store";
+import { getClient, getInvoicesFor, getProject } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, naira, STAGES } from "@/lib/admin/types";
 import { Empty, InvoicePill, Panel, StagePill, when } from "@/components/admin/bits";
+import { AddNote, SetDue, StageMover } from "@/components/admin/project-forms";
+import { InvoiceBuilder } from "@/components/admin/money-forms";
 
-export function generateStaticParams() {
-  return getProjects().map((p) => ({ id: p.id }));
-}
+/* NO generateStaticParams: projects are created at runtime now, and a route
+   list frozen at build time would 404 on anything opened since. */
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -29,7 +30,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             {" · "}due {when(p.due)}
           </p>
         </div>
-        <button className="ad__btn ad__btn--primary" type="button" disabled>Move stage</button>
+        {client ? (
+          <InvoiceBuilder clients={[client]} projects={[p]} clientId={client.id} />
+        ) : null}
       </div>
 
       {/* THE STAGE TRACK. Six named steps, the current one lit, everything
@@ -52,6 +55,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             </li>
           ))}
         </ol>
+        <div style={{ padding: "0 1rem 1rem" }}>
+          <StageMover project={p} />
+        </div>
       </section>
 
       <div className="ad__grid2">
@@ -68,6 +74,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
               ))}
             </ol>
           ) : <Empty title="Nothing recorded yet" />}
+          <div style={{ padding: ".2rem 1rem 1rem", borderTop: "1px solid var(--ad-line)" }}>
+            <AddNote project={p} />
+          </div>
         </Panel>
 
         <Panel title="Invoices">
@@ -87,6 +96,14 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
               </table>
             </div>
           ) : <Empty title="Nothing invoiced against this" />}
+        </Panel>
+      </div>
+
+      <div style={{ marginTop: ".9rem" }}>
+        <Panel title="Due date">
+          <div style={{ padding: ".9rem 1rem" }}>
+            <SetDue project={p} />
+          </div>
         </Panel>
       </div>
     </>

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { SERVICES } from "@/lib/services";
-import { getBoard, getClient, getProjects } from "@/lib/admin/store";
+import { getBoard, getClient, getClients, getProjects } from "@/lib/admin/store";
 import { STAGES } from "@/lib/admin/types";
 import { DemoNote, Empty, Panel, StagePill, when } from "@/components/admin/bits";
+import { AddProject } from "@/components/admin/project-forms";
 
 export const metadata = { title: "Projects" };
 
@@ -26,12 +27,13 @@ export default function ProjectsPage() {
           <h1>Projects</h1>
           <p>{all.filter((p) => p.stage !== "Delivered").length} live, {all.length} in total.</p>
         </div>
-        <button className="ad__btn ad__btn--primary" type="button" disabled>New project</button>
+        <AddProject clients={getClients()} />
       </div>
 
       <DemoNote>
-        Moving a stage writes an event and emails the client, so it arrives with
-        the mail layer rather than as a button that does half of it.
+        Opening a project and moving its stage are live. A stage change writes
+        an event onto the project&apos;s history now, and will email the client
+        from the same line in <code>moveStage()</code> once SMTP is in.
       </DemoNote>
 
       <div className="ad__scroll" style={{ marginBottom: ".9rem" }}>
