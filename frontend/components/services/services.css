@@ -78,15 +78,19 @@
 }
 
 /* ---------------- in-page jump nav ---------------- */
-/* Sticky under the fixed site header. The base rule comes first and the
-   narrow-screen override after it, so the override actually wins. */
+/* NOT STICKY, AT ANY WIDTH. It used to pin under the fixed header, which on a
+   large screen means two navigations stacked permanently: a strip of white
+   following you down a page whose header already carries the whole menu.
+
+   It is static everywhere rather than static-on-desktop, because it was
+   already static under 640px from a rule further down this file. Keeping the
+   sticky behaviour would have left it pinned only between 640 and 767px,
+   which is a band nobody designs for and nobody would have noticed was
+   inconsistent. One behaviour is better than two. */
 .sv-jump {
-  position: sticky; top: 64px; z-index: 20; overflow: hidden;
+  position: static; z-index: 20; overflow: hidden;
   background: var(--paper); border-bottom: 1px solid var(--rule);
 }
-/* matches the header's own h-16 -> md:h-[72px] step; without it the bar
-   sticks under the fixed header and its links are unreachable */
-@media (min-width: 768px) { .sv-jump { top: 72px; } }
 /* clips its own track. Without this the max-content track escapes the sticky
    bar and widens the document — 1737px of horizontal scroll on a phone. */
 .sv-jump__loop { --logoloop-fadeColorAuto: transparent; overflow: hidden; }
@@ -106,7 +110,6 @@
   flex: none; line-height: 0;
 }
 .sv-jump__loop .logoloop__link:hover .sv-jump__i { color: currentColor; }
-@media (max-width: 640px) { .sv-jump { position: static; } }
 
 /* ---------------- one service ---------------- */
 /* The title block now stands alone above the showcase, so it carries the

@@ -38,11 +38,6 @@ export default function LegalIndexPage() {
       <main className="flex-1 pv">
         <section className="wk-hero">
           <div className="pv-wrap wk-hero__in">
-            <nav className="wk-crumbs" aria-label="Breadcrumb">
-              <Link href="/">Home</Link>
-              <i aria-hidden="true">/</i>
-              <span>Legal</span>
-            </nav>
             <h1>Legal</h1>
             <p className="pv-lede">
               Four documents covering what we do with your information, what this

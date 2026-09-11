@@ -73,8 +73,11 @@
 .pv .lg-toc__k {
   margin: 0 0 .9rem;
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-size: .72rem; font-weight: 700;
-  letter-spacing: .14em; text-transform: uppercase;
+  font-size: .78rem; font-weight: 700;
+  /* Normal tracking. This was set at .14em, which is the convention for a
+     small uppercase label but reads as stretched at this size next to the
+     untracked links under it. */
+  letter-spacing: normal;
   color: var(--accent);
 }
 .pv .lg-toc__k--2 { margin-top: 2.2rem; }
@@ -104,12 +107,29 @@
   font-size: .78rem; color: var(--muted); text-decoration: none;
   transition: border-color .2s ease, color .2s ease;
 }
-.lg-toc__others a:hover { border-color: var(--accent); color: var(--accent-ink); }
+/* Solid on hover, not a recoloured outline. An outline that changes colour is
+   a weak signal at this size; a filled pill is unmistakably the thing under
+   the cursor. */
+.lg-toc__others a:hover {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+.lg-toc__others a:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
 
-.lg-body { max-width: 68ch; }
+/* TWO SIZES ON THE PAGE, NOT THREE. The opening paragraph used to be set
+   larger than the body that follows it, so a reader met a lede, then a
+   heading, then a third size for everything after: three scales doing the job
+   of two. The intro is the same size as the body it introduces now, and the
+   only other size is the heading.
+
+   And the body is INK, not --muted. Muted is a blue-grey, which on a page of
+   solid running text reads as greyed-out rather than as secondary, and these
+   are the terms somebody is actually trying to read. */
+.lg-body { max-width: 68ch; --lg-body-size: 1rem; }
 .pv .lg-intro {
-  margin: 0; font-size: clamp(1.02rem, .98rem + .35vw, 1.18rem);
-  line-height: 1.65; color: var(--ink);
+  margin: 0; font-size: var(--lg-body-size);
+  line-height: 1.72; color: var(--ink);
 }
 
 /* `scroll-margin-top` on the SECTION, so a jump from the contents puts the
@@ -122,8 +142,8 @@
   letter-spacing: -.01em; color: var(--ink);
 }
 .pv .lg-sec p {
-  margin: 0 0 .85rem; color: var(--muted);
-  font-size: .98rem; line-height: 1.72;
+  margin: 0 0 .9rem; color: var(--ink);
+  font-size: var(--lg-body-size); line-height: 1.72;
 }
 .pv .lg-sec p:last-child { margin-bottom: 0; }
 

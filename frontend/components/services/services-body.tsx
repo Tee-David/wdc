@@ -153,11 +153,6 @@ export default function ServicesBody() {
           ))}
         </div>
         <div className="pv-wrap">
-          <nav className="sv-crumb pv-reveal" aria-label="Breadcrumb">
-            <Link href="/">Home</Link>
-            <span aria-hidden="true">/</span>
-            <span aria-current="page">Services</span>
-          </nav>
           <div className="sv-hero__copy pv-reveal">
             <p className="sv-hero__loop">
               <span>Ask us about</span>{" "}

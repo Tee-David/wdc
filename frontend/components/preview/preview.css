@@ -58,13 +58,7 @@
   background: var(--paper);
 }
 
-/* The content block ends on a curve that mirrors the footer's, with a soft
-   edge under it. The shadow is doing real work: in the light theme `--paper`
-   and the page ground are both white, so without it the radius is a shape cut
-   out of nothing and the curve simply does not read. */
 main.pv {
-  border-radius: 0 0 clamp(22px, 3vw, 40px) clamp(22px, 3vw, 40px);
-  box-shadow: 0 14px 30px -22px rgb(16 16 46 / .45);
   color: var(--ink);
   font-family: var(--font-outfit), "Segoe UI", system-ui, sans-serif;
   font-size: 1.0625rem;
@@ -879,4 +873,37 @@ main.pv {
 @media (max-width: 768px) and (prefers-reduced-motion: reduce) {
   /* nothing is pinned under reduced motion, so there is nothing to hint at */
   .pv-pinwrap.is-pinned .pv-pincue { display: none; }
+}
+
+
+/* ============================================================================
+   The seam: the page's last section ends on a curve that mirrors the footer
+   card's, with the page ground showing between them.
+
+   THE RADIUS GOES ON THE SECTION, not on `main`. Two reasons, both found by
+   measuring rather than by looking.
+
+   Half the pages do not have `.pv` on `main` at all -- the homepage, services
+   and about put it on a wrapper DIV inside main -- so a `main.pv` rule
+   silently applied to three pages and not the other three.
+
+   And rounding a container only works if the container clips, which would mean
+   `overflow: hidden` on an element containing `position: sticky` children: the
+   services pinned rows and the legal contents rail both stop working inside a
+   clipping ancestor. The section is the element actually painting the
+   background, so rounding IT needs no clipping at all.
+
+   NO SHADOW UNDER IT. There was one, to make the curve read on a page whose
+   last section is paper: `--paper` and the page ground are both #ffffff in the
+   light theme, so the radius cuts a shape out of nothing there. But a soft
+   shadow across the full width of a white page does not read as an edge, it
+   reads as a grey smudge above the footer, which is worse than the curve being
+   invisible. Where the last section carries colour, as on the homepage and
+   about, the curve shows on its own; where it does not, the gap and the
+   footer's own curve already do the work.
+   ========================================================================== */
+main > section:last-child,
+main > .pv:last-child > section:last-child {
+  border-end-start-radius: clamp(22px, 3vw, 40px);
+  border-end-end-radius: clamp(22px, 3vw, 40px);
 }
