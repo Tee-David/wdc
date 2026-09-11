@@ -10,20 +10,25 @@
   /* The corner's gutter, and the safe area on a notched phone. */
   --fab-gap: clamp(14px, 3vw, 26px);
   --fab-bottom: calc(var(--fab-gap) + env(safe-area-inset-bottom, 0px));
-  /* The agent launcher's footprint plus breathing room. This is what the
-     agent's own bottom offset is derived from, so the stack cannot overlap. */
-  --fab-stack: 4.6rem;
+  /* THE ROOM JOTFORM'S OWN LAUNCHER TAKES, and nothing of ours reaches into
+     it. The embed places and sizes its native launcher itself, bottom right,
+     and components/agent/jotform-agent.tsx is explicit that nothing should
+     wrap, resize, reposition or observe it -- so this is the clearance our
+     buttons keep, not a box we put it in. Their launcher runs about 60px with
+     its own margin; 5.4rem leaves a gap you can see. */
+  --fab-stack: 5.4rem;
 }
 
 .st {
   position: fixed;
   right: var(--fab-gap);
-  /* ABOVE the agent launcher, which keeps the corner's bottom slot -- the
-     thing people reach for most often should be closest to the thumb, and
-     that is the assistant, not the scroll. */
+  /* ABOVE Jotform's launcher, which keeps the corner's bottom slot. The thing
+     people reach for most often belongs closest to the thumb, and that is the
+     assistant rather than the scroll. Clearance only: their element is theirs. */
   bottom: calc(var(--fab-bottom) + var(--fab-stack));
-  /* Under the connectivity bar (120) and the preloader (200), over the page,
-     and just above the agent launcher (110) so the two never fight. */
+  /* Under the connectivity bar (120) and the preloader (200), and over the
+     page. Jotform sets its own stacking; ours stays below the bar that carries
+     more urgent news than either. */
   z-index: 112;
 
   display: grid; place-items: center;

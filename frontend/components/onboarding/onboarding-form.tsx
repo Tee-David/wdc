@@ -10,13 +10,19 @@ import {
   type Field, type PhaseId, type Step,
 } from "@/lib/onboarding";
 import PhoneField from "./phone-field";
-import SearchableSelect from "./searchable-select";
+/* THEIR SelectField, not the one this branch grew in parallel. It shares its
+   open, filter and keyboard behaviour with the phone field's country picker
+   through picker.tsx, where mine was a second copy of the same logic under a
+   different class name. One searchable control used twice beats two that
+   drift apart. */
+import SelectField from "./select-field";
 import Dropzone from "./dropzone";
 import ServiceIcon from "@/components/ui/service-icon";
 import Tip from "./tip";
 import Dialog from "./dialog";
 import "./onboarding.css";
 import "./phone-field.css";
+import "./picker.css";
 import "./form-kit.css";
 
 /**
@@ -763,13 +769,13 @@ function FieldView({
 
   if (f.kind === "select") {
     return wrap(
-      <SearchableSelect
+      <SelectField
         id={id}
         options={f.options ?? []}
         value={v as string}
-        onChange={onChange}
         invalid={invalid}
         describedBy={describedBy}
+        onChange={onChange}
       />,
     );
   }
@@ -797,25 +803,13 @@ function FieldView({
 
   if (f.kind === "multi") {
     const arr = v as string[];
-    /* A LONG MULTI-SELECT BECOMES A DROPDOWN. Nine or more options as cards is
-       a wall that pushes everything below it off the screen, and on a phone it
-       is most of a scroll to get past a question somebody may not even be
-       answering. Below that, cards win: they are one tap, nothing is hidden,
-       and the whole set is readable at a glance. */
-    if ((f.options?.length ?? 0) >= 9) {
-      return wrap(
-        <SearchableSelect
-          id={id}
-          options={f.options ?? []}
-          value={arr}
-          onChange={onChange}
-          multiple
-          placeholder="Choose any that apply"
-          invalid={invalid}
-          describedBy={describedBy}
-        />,
-      );
-    }
+    /* CARDS, AT EVERY LENGTH. A long list briefly became a multi-select
+       dropdown here; that needed a second searchable control, because the one
+       this form already has is single-choice by design. Two controls doing
+       almost the same job is how a form stops feeling like one thing, and the
+       wall of cards it was avoiding is a scroll rather than a confusion:
+       everything is visible, everything is one tap, and nothing is hidden
+       behind a panel a reader has to know to open. */
     return wrap(
       <div className="ob__cards">
         {f.options?.map((o) => {

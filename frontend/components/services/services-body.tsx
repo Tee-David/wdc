@@ -48,31 +48,6 @@ const STAGES: Record<ServiceSlug, React.ComponentType> = {
   social: dynamic(() => import("./stages/feed-wall"), { ssr: false }),
 };
 
-/* One line-art glyph per service, in the order SERVICES is declared. Drawn
-   here rather than pulled from an icon package so they inherit currentColor
-   and match the stroke weight the rest of the page already uses. */
-const GLYPHS: Record<ServiceSlug, string> = {
-  branding: "M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z",
-  seo: "M11 3a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM21 21l-4.3-4.3",
-  web: "M16 18l6-6-6-6M8 6l-6 6 6 6",
-  apps: "M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 19h2",
-  software: "M12 2a4 4 0 0 1 4 4v1h1a3 3 0 0 1 0 6h-1v1a4 4 0 0 1-8 0v-1H7a3 3 0 0 1 0-6h1V6a4 4 0 0 1 4-4z",
-  social: "M4 4h16v12H5.2L4 18.4V4zM8 9h8M8 13h5",
-};
-
-function Svg({ d, className }: { d: string; className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"
-         strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
-         className={className}>
-      <path d={d} />
-    </svg>
-  );
-}
-
-const Glyph = ({ slug, className }: { slug: ServiceSlug; className?: string }) =>
-  <Svg d={GLYPHS[slug]} className={className} />;
-
 /* The toolbox rows are real: each service names LogoCategory keys and we pull
    the marks already registered under them, rather than showing client logos
    WDC has not claimed. */
