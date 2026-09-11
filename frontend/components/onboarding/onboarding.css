@@ -682,26 +682,30 @@
   background: color-mix(in srgb, var(--accent) 8%, var(--paper));
 }
 
-/* A SOLID TILE, not a tint of the page showing through.
+/* FILLED TILES, in the brand's own two colours.
 
-   This was `color-mix(..., transparent)`, which is a translucent wash: it
-   takes its colour from whatever happens to be behind it, so it shifted as the
-   card behind it changed state and it was never quite a colour of its own.
-   Mixing against `--paper` instead produces an actual opaque value, and
-   because `--paper` flips with the theme the same two lines cover both. */
+   These went through a tint and then through an opaque tint, and both were
+   wrong for the same reason: a 15% wash is a colour you have to look for. A
+   tile is a block, so it is a block -- solid navy with a white glyph, which is
+   the pairing the header button and the footer band already use.
+
+   THE SELECTED ONE FLIPS TO ORANGE. With every tile filled, the chosen card
+   needs more than a border to stand out, and swapping navy for accent is the
+   loudest signal available without adding a fourth colour to the screen. It is
+   also the same move the 404's two buttons make when you hover them: the pair
+   trade places.
+   --------------------------------------------------------------------------- */
 .pv .ob__svcIc {
   flex: none; display: grid; place-items: center;
   width: 2.6rem; height: 2.6rem; border-radius: 11px;
-  background: color-mix(in srgb, var(--accent) 15%, var(--paper));
-  color: var(--accent-ink);
+  background: #000065;
+  color: #fff;
+  transition: background .18s ease;
 }
-/* AN EXPLICIT WARM DARK, not a mix, and the reason is the surface it would be
-   mixing into. `--paper-2` is navy in dark mode, so orange blended into it
-   lands on plum -- measured at rgb(69, 32, 44), which is a colour neither the
-   brand nor the icon wants to sit on. Named outright, it is the accent taken
-   down to a tile rather than the accent averaged with a blue. */
-.dark .pv .ob__svcIc { background: #3d1c05; }
-/* The chosen card's tile is already solid: full accent, white glyph. */
+/* Lifted on the dark page. #000065 against a near-black card is a block you
+   can barely find, which is the same complaint that took `--band` off the 404
+   buttons; #23239b is the value that fixed it there. */
+.dark .pv .ob__svcIc { background: #23239b; }
 .pv .ob__svcCard.is-on .ob__svcIc { background: var(--accent); color: #fff; }
 .pv .ob__svcIc svg { width: 1.3rem; height: 1.3rem; }
 
