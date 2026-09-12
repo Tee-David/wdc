@@ -240,17 +240,23 @@
 }
 
 /* Footer slot (theme toggler) pinned below the socials */
-/* Two pill buttons now, the theme switch and the accessibility menu. They
-   wrap rather than shrink: a control squeezed until its label truncates is
-   worse than one on its own line. */
+/* Theme and accessibility are one balanced row, including narrow phones. */
 .sm-footer {
   margin-top: 1.75rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--line);
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 0.6rem;
+}
+
+.sm-footer > * { flex: 1 1 0; min-width: 0; justify-content: center; }
+
+@media (max-width: 380px) {
+  .sm-footer { gap: .4rem; }
+  .sm-footer .tsb,
+  .sm-footer .uw { padding-inline: .7rem; font-size: .78rem; }
 }
 
 @media (max-width: 640px) {

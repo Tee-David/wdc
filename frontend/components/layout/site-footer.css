@@ -50,13 +50,14 @@
 .ft__cta {
   display: inline-flex; align-items: center; gap: .4em;
   margin-top: 1.3rem; padding: .7em 1.25em; border-radius: 999px;
-  background: var(--accent); color: #000065; text-decoration: none;
+  background: var(--accent); color: var(--on-accent); text-decoration: none;
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-weight: 600; font-size: .92rem;
-  transition: transform .25s ease, box-shadow .25s ease;
+  transition: transform .25s ease, box-shadow .25s ease,
+              background-color .25s ease, color .25s ease;
 }
 .ft__cta svg { width: 1em; height: 1em; }
-.ft__cta:hover { transform: translateY(-2px); box-shadow: 0 10px 26px -10px rgb(255 101 0 / .55); }
+.ft__cta:hover { transform: translateY(-2px); background: #fff; color: #000; box-shadow: none; }
 
 /* `.ft` scoped to reach (0,2,1). preview.css sets `.pv h2` to a display size
    at (0,1,1); a bare `.ft__col h2` ties on specificity and then loses or wins
@@ -79,9 +80,10 @@
   background-position: 0 100%;
   transition: color .2s ease, background-size .3s ease;
 }
-/* The brand CTA is also an anchor inside `.ft__col`; keep its high-contrast
-   navy label from being overwritten by the dim footer-link rule above. */
-.ft .ft__cta { color: #000065; }
+/* Beat the dim footer-link rule above without changing shape. The label is
+   black at rest (on orange, 7.11:1) and stays black on the white hover. */
+.ft .ft__cta { color: var(--on-accent); }
+.ft .ft__cta:hover { color: #000; }
 .ft__col a:hover { color: var(--on-band); background-size: 100% 1px; }
 .ft__col a:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px;

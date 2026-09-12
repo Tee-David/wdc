@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
         to: requestedEmail,
         subject: "Continue your WDC onboarding form",
         text: `Your onboarding answers are saved. Continue within three days: ${resumeUrl}\n\nIf you did not request this link, you can ignore this email.`,
-        html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a;max-width:560px"><p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#ff6500">WE DIG CREATIVITY</p><h1 style="font-size:28px;margin:12px 0">Your answers are saved.</h1><p>Use the button below to continue on any device within three days.</p><p><a href="${escapeHtml(resumeUrl)}" style="display:inline-block;background:#ff6500;color:#000065;padding:13px 20px;border-radius:999px;font-weight:700;text-decoration:none">Continue onboarding</a></p><p style="color:#666680;font-size:13px">If you did not request this link, you can ignore this email.</p></div>`,
+        html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a;max-width:560px"><p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#ff6500">WE DIG CREATIVITY</p><h1 style="font-size:28px;margin:12px 0">Your answers are saved.</h1><p>Use the button below to continue on any device within three days.</p><p><a href="${escapeHtml(resumeUrl)}" style="display:inline-block;background:#ff6500;color:#ffffff;padding:13px 20px;border-radius:999px;font-weight:700;text-decoration:none">Continue onboarding</a></p><p style="color:#666680;font-size:13px">If you did not request this link, you can ignore this email.</p></div>`,
       });
       emailSent = true;
     } catch (error) {

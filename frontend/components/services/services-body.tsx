@@ -460,7 +460,7 @@ export default function ServicesBody() {
               <a className="pv-btn pv-btn--accent" href={`mailto:${CONTACT_EMAIL}`}>
                 Send us a mail
               </a>
-              <Link className="pv-btn pv-btn--line" href="/#contact">Use the contact form</Link>
+              <Link className="pv-btn pv-btn--line" href="/contact">Use the contact form</Link>
             </div>
           </div>
         </div>

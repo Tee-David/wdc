@@ -16,7 +16,71 @@
 
 /* Jotform places its avatar flush against the viewport by default. Match the
    responsive gutter used by our right-side controls. */
-.ai-agent-chat-avatar-container { left: var(--fab-gap) !important; }
+.embedded-agent-container {
+  margin-bottom: var(--fab-bottom) !important;
+  z-index: 110 !important;
+}
+.ai-agent-chat-avatar-container {
+  left: var(--fab-gap) !important;
+  bottom: 0 !important;
+  z-index: 110 !important;
+}
+
+/* Lightweight chat launcher. It occupies the native widget's final position,
+   so loading the official chat does not move the page or swap corners. */
+.jf-facade {
+  position: fixed;
+  left: var(--fab-gap);
+  bottom: var(--fab-bottom);
+  z-index: 110;
+  width: 3.65rem;
+  height: 3.65rem;
+  padding: 3px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #fff;
+  color: #000;
+  box-shadow: 0 10px 28px -10px rgb(0 0 26 / .45);
+  cursor: pointer;
+}
+.jf-facade img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  object-fit: cover;
+}
+.jf-facade__bubble {
+  position: absolute;
+  left: calc(100% - 5px);
+  bottom: calc(100% - 8px);
+  width: max-content;
+  max-width: min(9rem, calc(100vw - 6rem));
+  padding: .5rem .7rem;
+  border-radius: 12px 12px 12px 2px;
+  background: #fff;
+  color: #000;
+  font: 500 .78rem/1.15 var(--font-hausfit, var(--font-outfit)), system-ui, sans-serif;
+  box-shadow: 0 8px 24px -12px rgb(0 0 26 / .45);
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity .2s ease, transform .2s ease;
+}
+.jf-facade:hover .jf-facade__bubble,
+.jf-facade:focus-visible .jf-facade__bubble {
+  opacity: 1;
+  transform: none;
+}
+.jf-facade:focus-visible {
+  outline: 2px solid var(--accent, #ff6500);
+  outline-offset: 3px;
+}
+.jf-facade.is-loading { animation: jf-pulse .8s ease-in-out infinite alternate; }
+@keyframes jf-pulse { to { opacity: .62; } }
+@media (prefers-reduced-motion: reduce) {
+  .jf-facade.is-loading { animation: none; }
+}
 
 .st {
   position: fixed;
@@ -92,8 +156,6 @@ body:has(.cx) .st { bottom: calc(var(--fab-bottom) + var(--fab-stack) + 4.4rem);
   /* Jotform injects a small vertical lift inside its own launcher. Normalise
      that inner offset and reuse our safe-area inset so the left avatar and
      right back-to-top control share the same bottom baseline. */
-  .embedded-agent-container { margin-bottom: var(--fab-bottom) !important; }
-  .ai-agent-chat-avatar-container { bottom: 0 !important; }
 }
 
 /* The dark page needs the disc to separate from it. */

@@ -11,6 +11,7 @@ import SiteChrome from "@/components/layout/site-chrome";
 import DrawGate from "@/components/ui/draw-gate";
 import Preloader from "@/components/intro/preloader";
 import Connectivity from "@/components/offline/connectivity";
+import ScrollReset from "@/components/ui/scroll-reset";
 import ScrollTop from "@/components/ui/scroll-top";
 import "./globals.css";
 
@@ -141,6 +142,10 @@ export default function RootLayout({
           {/* KEPT ON THE ADMIN. Losing the network mid-invoice matters more
               there than anywhere else on the site. */}
           <Connectivity />
+          {/* Also kept on the admin: a link that leaves you halfway down the
+              next page is wrong everywhere. See the component for the two
+              separate causes it handles. */}
+          <ScrollReset />
           {/* THE BOTTOM CORNERS, and they share one set of variables so no one
               of them has to know another's size -- see :root in
               components/ui/scroll-top.css. Right: the agent at the bottom,

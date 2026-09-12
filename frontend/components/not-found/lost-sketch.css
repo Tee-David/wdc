@@ -298,7 +298,7 @@
 
 /* Home: orange, going navy. */
 .pv .nf__btn--home {
-  background: var(--accent); border-color: var(--accent); color: #fff;
+  background: var(--accent); border-color: var(--accent); color: var(--on-accent);
 }
 .pv .nf__btn--home:hover {
   background: var(--nf-blue); border-color: var(--nf-blue); color: #fff;
@@ -310,7 +310,7 @@
   background: var(--nf-blue); border-color: var(--nf-blue); color: #fff;
 }
 .pv .nf__btn--work:hover {
-  background: var(--accent); border-color: var(--accent); color: #fff;
+  background: var(--accent); border-color: var(--accent); color: var(--on-accent);
 }
 
 /* Broke: the quiet one, because "something is wrong here" should be offered
@@ -358,5 +358,5 @@
   transition: border-color .2s ease, color .2s ease, background .2s ease;
 }
 .nf__cats a:hover {
-  border-color: var(--accent); color: #fff; background: var(--accent);
+  border-color: var(--accent); color: var(--on-accent); background: var(--accent);
 }
