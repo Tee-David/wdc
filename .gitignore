@@ -44,3 +44,10 @@ skills-lock.json
 
 # agent tooling, not project code
 .commandcode/
+
+# playwright
+frontend/test-results/
+frontend/playwright-report/
+
+# local lighthouse runs
+frontend/.lighthouse-mobile.json

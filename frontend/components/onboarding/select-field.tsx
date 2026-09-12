@@ -45,6 +45,7 @@ export default function SelectField({
   placeholder?: string;
 }) {
   const listId = useId();
+  const searchable = options.length > 10;
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
@@ -55,7 +56,7 @@ export default function SelectField({
   const listRef = useRef<HTMLUListElement>(null);
 
   const results = useMemo(() => {
-    const s = q.trim().toLowerCase();
+    const s = searchable ? q.trim().toLowerCase() : "";
     if (!s) return options;
     const starts: string[] = [];
     const has: string[] = [];
@@ -68,7 +69,7 @@ export default function SelectField({
        someone typing "fa" wants "Fashion and apparel" at the top, not
        "Professional services" because it happens to contain the letters. */
     return [...starts, ...has];
-  }, [options, q]);
+  }, [options, q, searchable]);
 
   const close = () => {
     setOpen(false);
@@ -126,7 +127,7 @@ export default function SelectField({
 
       {open && (
         <div className="pk__pop">
-          <div className="pk__search">
+          {searchable ? <div className="pk__search">
             <Search aria-hidden="true" />
             <input
               ref={searchRef}
@@ -144,8 +145,16 @@ export default function SelectField({
               onChange={(e) => { setQ(e.target.value); setActive(0); }}
               onKeyDown={onListKey}
             />
-          </div>
-          <ul className="pk__list" id={listId} role="listbox" ref={listRef}>
+          </div> : null}
+          <ul
+            className="pk__list"
+            id={listId}
+            role="listbox"
+            ref={listRef}
+            tabIndex={-1}
+            aria-activedescendant={results[active] ? `${listId}-${slug(results[active])}` : undefined}
+            onKeyDown={onListKey}
+          >
             {results.map((o, n) => (
               <li
                 key={o}

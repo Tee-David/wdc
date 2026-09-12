@@ -56,11 +56,11 @@ export function usePickerOpen({
 
   useEffect(() => {
     if (!open) return;
-    requestAnimationFrame(() => searchRef.current?.focus());
+    requestAnimationFrame(() => (searchRef.current ?? listRef.current)?.focus());
     const away = (e: PointerEvent) => {
       if (!root.current?.contains(e.target as Node)) onClose();
     };
     document.addEventListener("pointerdown", away);
     return () => document.removeEventListener("pointerdown", away);
-  }, [open, root, searchRef, onClose]);
+  }, [open, root, searchRef, listRef, onClose]);
 }

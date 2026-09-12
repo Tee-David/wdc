@@ -30,3 +30,9 @@
 
 - Never expose secrets or copy them into source, logs, fixtures, screenshots, or chat. Validate all browser input on the server. Protect auth, payments, uploads, webhooks, and email flows with least privilege, origin/signature checks, idempotency, rate limits, and auditable state changes.
 - Preserve unrelated user changes. Use the root checklist as the delivery ledger and update it when requirements or verification state change.
+
+## Coding discipline
+
+- State material assumptions and tradeoffs before coding; ask only when ambiguity would change the result. Prefer the simplest implementation that satisfies the request.
+- Keep changes surgical. Match existing style, avoid speculative flexibility and unrelated cleanup, and remove only the orphaned code your change creates.
+- Define observable success criteria for each change, reproduce bugs with a focused test where practical, and loop until the same check passes after implementation.

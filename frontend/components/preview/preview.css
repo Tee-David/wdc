@@ -1,7 +1,10 @@
 /* ==========================================================================
    COLOUR RULE — read before adding any brand-coloured surface.
 
-   1. Text on --accent (#ff6500) is ALWAYS navy. White fails at 2.95:1.
+   1. Text on --accent (#ff6500) is ALWAYS --on-accent (#000), measured at
+      7.11:1. White is 2.95:1 and navy 5.99:1, so black is both the neutral
+      label the design system asks for AND the highest contrast available.
+      Use the token, never a literal, so this stays one decision in one place.
    2. Text on --band (#000065) is ALWAYS #fff. Never --accent, never --muted.
    3. Both are LITERAL #fff, not a token, and identical in light and dark. A
       brand surface is the same colour in both themes, so its type must be too;
@@ -30,7 +33,8 @@
 
    Contrast, measured rather than assumed:
      #FF6500 on #000065 .... 6.0:1   accent on the dark band
-     #000065 on #FF6500 .... 6.0:1   so buttons are orange with NAVY text
+     #000000 on #FF6500 .... 7.1:1   so buttons are orange with BLACK text
+     #000065 on #FF6500 .... 6.0:1   passes, but black is neutral and higher
      #ffffff on #FF6500 .... 2.9:1   fails, never used for text
      #FF6500 on #ffffff .... 2.8:1   fails, hence --accent-ink for text on light
    ========================================================================== */
@@ -41,6 +45,10 @@
   --band: #000065;
   --band-2: #10104d;
   --accent: #ff6500;
+  /* The one label colour for any --accent fill. Literal #000, not a theme
+     token: a brand surface is the same colour in both themes, so its type
+     must be too. Deliberately NOT re-declared under `.dark .pv`. */
+  --on-accent: #000;
   --accent-ink: #b34700;
   --ink: #0e0e2c;
   --muted: #565678;
@@ -133,46 +141,92 @@ main.pv {
 }
 .pv-btn:hover::after { transform: translateX(4px); }
 .pv-btn:active { transform: translateY(1px) scale(.99); }
-/* White on #FF6500 measures 2.9:1, under the 4.5:1 WCAG asks of body text: a
-   deliberate brand call, and it only ever applies to a large, bold, short
-   label. The hover keeps the white and drops to the navy, where it measures
-   15:1; the orange ring is what keeps the hover visible when the button is
-   sitting on a navy band and the fill matches the section behind it. */
 /* Every variant is listed TWICE, bare and under `.pv`, and that is not
    redundancy. `.pv a { color: inherit }` a few rules up scores (0,1,1); a
    single-class `.pv-btn--accent` scores (0,1,0) and loses to it, so a button
    written as a link silently ignored its own colour and inherited the
    section's instead. The `.pv`-prefixed copy scores (0,2,0) and wins, while
    the bare one keeps working for buttons outside the preview scope. */
-.pv-btn--accent, .pv .pv-btn--accent { background: var(--accent); color: #000065; }
+.pv-btn--accent, .pv .pv-btn--accent { background: var(--accent); color: var(--on-accent); }
 .pv-btn--accent:hover, .pv .pv-btn--accent:hover {
-  background: var(--band); color: #fff; border-color: var(--accent);
+  background: #fff; color: #000; border-color: #fff;
 }
 .pv-btn--dark, .pv .pv-btn--dark { background: #000065; color: #fff; }
-.pv-btn--dark:hover, .pv .pv-btn--dark:hover { background: var(--accent); color: #000065; }
+.pv-btn--dark:hover, .pv .pv-btn--dark:hover { background: #000; color: #fff; }
 /* The secondary button ON a navy band. This variant was being used on /about
    with no definition anywhere, so both buttons rendered with a transparent
    border and the section's dim inherited text — an invisible control. It rests
    as an orange ring on the band and inverts to a white fill with navy type,
-   which is the one pairing on this palette that stays legible either way
-   (white on navy 15:1, navy on white 15:1). */
+   which is the one pairing on this palette that stays legible either way.
+   The hover label is BLACK, not navy: navy on white is perfectly legible at
+   15:1, but it is still a brand colour on a button label, and the rule for
+   this site is that labels are neutral and the FILL carries the brand. */
 .pv-btn--light, .pv .pv-btn--light {
   background: transparent; color: #fff; border-color: var(--accent);
 }
 .pv-btn--light:hover, .pv .pv-btn--light:hover {
-  background: #fff; color: #000065; border-color: #fff;
+  background: #fff; color: #000; border-color: #fff;
 }
 .pv-btn--line, .pv .pv-btn--line { background: transparent; color: var(--ink); border-color: var(--ink); }
+/* ---- FULL WIDTH ON A PHONE ----------------------------------------------
+   Every CTA row on the site is a wrapping flex row of one or two buttons
+   (.sv-hero__cta, the work footer, the contact aside). At 390px two of them
+   side by side leave each about 150px wide with the label wrapping inside it,
+   and the pair is harder to hit than one wide target.
+
+   `flex: 0 0 100%` as well as `width`, because these ARE flex items: width
+   alone still lets them shrink and sit two-up. Basis 100% forces one per line,
+   so a two-button row simply becomes two full-width rows.
+
+   EXCLUDED, deliberately: the site-preview modal's chrome, whose buttons sit
+   in a title bar beside a close button and have nothing to fill; and the
+   staggered mobile menu, which the brief calls out by name. */
+@media (max-width: 640px) {
+  .pv-btn, .pv .pv-btn { width: 100%; flex: 0 0 100%; }
+  .pv-modal .pv-btn, .pv .pv-modal .pv-btn,
+  .sm-panel .pv-btn, .pv .sm-panel .pv-btn { width: auto; flex: 0 1 auto; }
+}
+
+/* ---- FOCUS, DISABLED, REDUCED MOTION ------------------------------------
+   The shared ring further up is `2px solid var(--accent)`, and it is invisible
+   the moment the control it rings is itself orange -- which the primary CTA on
+   every page is. The ring sits 3px OUTSIDE the button, so what it actually has
+   to contrast with is the SECTION behind it, not the fill: on a normal section
+   that is --ink (near-black on light, near-white on dark), and on a navy band
+   it is white. */
+.pv .pv-btn--accent:focus-visible,
+.pv .pv-btn--dark:focus-visible { outline-color: var(--ink); }
+.pv .pv-sec--band .pv-btn:focus-visible,
+.pv-sec--band .pv-btn:focus-visible,
+.pv .pv-cta .pv-btn:focus-visible { outline-color: #fff; }
+
+/* The contact form disables its submit while sending and nothing styled that,
+   so a button mid-send was indistinguishable from one waiting to be pressed
+   again. `pointer-events: none` is what keeps the hover state from firing on
+   a control that cannot be used. */
+.pv-btn:disabled, .pv .pv-btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none;
+}
+
+/* The colour transitions are information (they answer "is this thing live?"),
+   so they stay. The MOVEMENT goes. */
+@media (prefers-reduced-motion: reduce) {
+  .pv-btn, .pv .pv-btn { transition: background-color .18s ease, color .18s ease, border-color .18s ease; }
+  .pv-btn:active, .pv .pv-btn:active { transform: none; }
+}
+
 .pv-btn--line:hover, .pv .pv-btn--line:hover { background: var(--ink); color: var(--paper); }
-/* On the navy band this button is solid white at rest and flips to orange on
-   hover. NOTE: white on #FF6500 measures 2.9:1, under the 4.5:1 WCAG wants for
-   body-size text — it is a deliberate brand choice, and it is only ever the
-   hover state of a large, bold, short label whose resting state is 15:1. */
+/* On the navy band this button is solid white at rest and flips to an orange
+   fill on hover. The label is black in both states: 21:1 on the white rest,
+   7.11:1 on the orange hover. */
 .pv .pv-sec--band .pv-btn--line, .pv-sec--band .pv-btn--line {
-  background: #fff; color: #000065; border-color: #fff;
+  background: #fff; color: #000; border-color: #fff;
 }
 .pv .pv-sec--band .pv-btn--line:hover, .pv-sec--band .pv-btn--line:hover {
-  background: var(--accent); color: #fff; border-color: var(--accent);
+  background: var(--accent); color: var(--on-accent); border-color: var(--accent);
 }
 
 /* ---------------- bands ---------------- */
@@ -221,7 +275,7 @@ main.pv {
      the rail lagged behind the gesture. The arrow buttons ask for smooth
      behaviour themselves in scrollBy(), which is the only place that wants it. */
   scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch; padding-bottom: 8px;
+  -webkit-overflow-scrolling: touch; padding-block: 6px 8px;
   scrollbar-width: thin; scrollbar-color: var(--accent) var(--paper-2);
 }
 .pv-track > .pv-job { scroll-snap-align: start; flex: 0 0 calc(31% - 24px); min-width: 0; }
@@ -285,7 +339,7 @@ main.pv {
   -webkit-mask: var(--arrow-ne) center/contain no-repeat;
           mask: var(--arrow-ne) center/contain no-repeat;
 }
-.pv-job:hover .pv-badge { background: var(--accent); color: #fff; transform: translate(2px, -2px); }
+.pv-job:hover .pv-badge { background: var(--accent); color: var(--on-accent); transform: translate(2px, -2px); }
 .pv-job__desc { font-size: .9rem; color: var(--muted); }
 
 .pv-nav { display: flex; gap: 10px; }
@@ -472,7 +526,7 @@ main.pv {
     -webkit-overflow-scrolling: touch; scrollbar-width: none;
     scroll-padding-left: clamp(24px, 7vw, 32px);
     margin-inline: calc(-1 * clamp(18px, 5vw, 44px));
-    padding-left: clamp(24px, 7vw, 32px); padding-right: clamp(18px, 5vw, 44px);
+    padding: 6px clamp(18px, 5vw, 44px) 8px clamp(24px, 7vw, 32px);
   }
   .pv-icards::-webkit-scrollbar { display: none; }
   @media (pointer: fine) { .pv-icards { scroll-snap-type: none; } }
@@ -482,7 +536,8 @@ main.pv {
    lost and took the band's pale text onto orange. Both variants are raised to
    (0,2,0)+ so the alternating neutral card still wins over the accent one. */
 .pv-icard, .pv .pv-icard {
-  display: flex; flex-direction: column; gap: 10px; min-height: 264px; border: 0;
+  display: flex; flex-direction: column; gap: 10px; min-height: 264px;
+  border: 1px solid var(--rule);
   padding: clamp(22px, 2.6vw, 30px); border-radius: 20px;
   background: var(--band); color: #fff; border-top: 4px solid var(--accent);
   transition: transform .3s cubic-bezier(.16, 1, .3, 1), box-shadow .3s cubic-bezier(.16, 1, .3, 1);
@@ -587,7 +642,7 @@ main.pv {
 .pv-faq__aside h3 { color: #fff; }
 .pv-faq__aside p { color: var(--on-band-dim); font-size: .95rem; }
 .pv-faq__mark {
-  width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: #fff;
+  width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: var(--on-accent);
   display: grid; place-items: center;
   font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 700; font-size: 1.4rem;
 }
@@ -750,13 +805,13 @@ main.pv {
 /* Listed TWICE, bare and under `.pv`, for the reason documented at `.pv-btn`
    above: `.pv a { color: inherit }` scores (0,1,1) and a single-class rule here
    scores (0,1,0), so this button — an anchor inside `.pv` — silently ignored
-   its own white and inherited the panel's dark ink instead. That is how it
-   ended up as dark type on orange, which is the one pairing this palette must
-   never produce. */
+   its own colour and inherited the panel's instead. The fix is the raised
+   specificity below, not the colour: dark type on orange is the CORRECT
+   pairing here (7.11:1). What must never happen is white on orange, 2.95:1. */
 .pv-modal__open, .pv .pv-modal__open {
   flex: none; display: inline-flex; align-items: center; gap: 6px;
   padding: 7px 14px; border-radius: 999px;
-  background: var(--accent); color: #fff;
+  background: var(--accent); color: var(--on-accent);
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .78rem; font-weight: 700; white-space: nowrap;
   transition: background-color .2s ease, color .2s ease, transform .16s cubic-bezier(.16, 1, .3, 1);
@@ -778,7 +833,7 @@ main.pv {
   width: 15px; height: 15px; fill: none; stroke: currentColor;
   stroke-width: 2.2; stroke-linecap: round;
 }
-.pv-modal__x:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+.pv-modal__x:hover { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
 /* ---- the view ---- */
 .pv-modal__view { position: relative; flex: 1; min-height: 0; background: var(--paper-2); overflow: hidden; }

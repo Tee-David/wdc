@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import { Stage, TabRow, useStageMotion } from "./stage-shell";
 import { BRAND_KINDS } from "@/lib/showcase";
 
@@ -107,16 +108,13 @@ export default function GridMotion() {
                   <div className="gm__half" key={dup}>
                     {items.map((it) => (
                       <div className="gm__tile" key={`${dup}-${it.key}`}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          /* The 560px derivative, not the 900px original. The
-                             wall renders these at 282px; handing it the full
-                             file 102 times is 3.7MB of images before the page
-                             has drawn. */
+                        <Image
                           src={it.thumb}
                           alt=""
+                          fill
+                          sizes="(max-width: 768px) 160px, 320px"
+                          quality={70}
                           loading="lazy"
-                          decoding="async"
                           draggable={false}
                         />
                       </div>

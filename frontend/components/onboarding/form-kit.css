@@ -202,5 +202,5 @@
   color: var(--ink); font: inherit; font-size: .82rem; font-weight: 600;
   cursor: pointer;
 }
-.rs__link button:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+.rs__link button:hover { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .rs__or { margin: 1rem 0 .5rem; font-size: .85rem; color: var(--muted); }

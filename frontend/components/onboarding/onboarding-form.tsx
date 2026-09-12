@@ -739,12 +739,14 @@ function FieldView({
      judgement now carry this, and the answer is RECORDED rather than left
      blank -- "the client would like our recommendation on their search terms"
      is a real finding and the first thing to raise on the call. */
-  const deferred = v === UNSURE;
+  const deferred = v === UNSURE || (Array.isArray(v) && v.includes(UNSURE));
   const escape = f.assist ? (
     <button
       type="button"
       className={`ob__unsure${deferred ? " is-on" : ""}`}
-      onClick={() => onChange(deferred ? "" : UNSURE)}
+      onClick={() => onChange(
+        f.kind === "multi" ? (deferred ? [] : [UNSURE]) : (deferred ? "" : UNSURE),
+      )}
       aria-pressed={deferred}
     >
       {deferred ? <Undo2 aria-hidden="true" /> : <HelpCircle aria-hidden="true" />}
@@ -840,7 +842,7 @@ function FieldView({
   }
 
   if (f.kind === "multi") {
-    const arr = v as string[];
+    const arr = Array.isArray(v) ? v : v === UNSURE ? [UNSURE] : [];
     /* CARDS, AT EVERY LENGTH. A long list briefly became a multi-select
        dropdown here; that needed a second searchable control, because the one
        this form already has is single-choice by design. Two controls doing

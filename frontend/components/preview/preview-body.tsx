@@ -402,7 +402,15 @@ export default function PreviewBody() {
                       src={p.cover}
                       alt={`${p.name} website`}
                       fill
-                      sizes="(max-width: 620px) 85vw, (max-width: 900px) 48vw, 385px"
+                      /* MEASURED, not guessed. Rendered width of .pv-shot:
+                         360->273, 412->313, 620->472, 768->330, 900->390,
+                         1280+->344. Each clause is set just above the widest
+                         real width in its range, so nothing is under-served
+                         (blurry) and nothing pays for pixels it cannot show.
+                         The old 85vw/48vw/385px overshot every one of them and
+                         pushed Lighthouse mobile onto the 640w variant for a
+                         313px slot. */
+                      sizes="(max-width: 620px) 77vw, (max-width: 900px) 44vw, 350px"
                       quality={78}
                     />
                   ) : (
@@ -490,7 +498,11 @@ export default function PreviewBody() {
                           src={s.img}
                           alt=""
                           fill
-                          sizes="(max-width: 768px) 84vw, (max-width: 960px) 92vw, 520px"
+                          /* Measured as above: 360->260, 412->304, 620->479,
+                             900->770, 1280+->528. Note the old third clause
+                             (520px) was UNDER the real 528px and was quietly
+                             upscaling on wide screens. */
+                          sizes="(max-width: 768px) 78vw, (max-width: 960px) 86vw, 540px"
                           quality={78}
                         />
                       </div>
@@ -662,9 +674,6 @@ export default function PreviewBody() {
                 <textarea id="pv-m" />
               </div>
               <button className="pv-btn pv-btn--dark" type="submit">Send the details</button>
-              <p style={{ color: "var(--muted)", fontSize: ".84rem", marginTop: 12 }}>
-                Opens the full contact form with your details carried over.
-              </p>
             </form>
           </div>
         </div>

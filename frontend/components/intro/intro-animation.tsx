@@ -97,7 +97,7 @@ function LogoTile({
 
         {/* Back: the tool name */}
         <div
-          className="absolute inset-0 flex h-full w-full items-center justify-center overflow-hidden rounded-2xl border border-secondary/40 bg-primary p-2 shadow-lg"
+          className="absolute inset-0 flex h-full w-full items-center justify-center overflow-hidden rounded-2xl border border-white/25 bg-primary p-2 shadow-lg"
           style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
         >
           <p className="text-center font-heading text-[10px] font-semibold leading-tight text-white">
@@ -146,6 +146,14 @@ export default function IntroAnimation() {
   const [introPhase, setIntroPhase] = useState<AnimationPhase>("scatter");
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
+  /* The statement block's laid-out bottom edge, in px from the container's top.
+     MEASURED rather than assumed: the arc used to be parked at a fixed fraction
+     of the viewport height, and a fraction cannot know how tall the paragraph
+     is. The paragraph rewraps with width -- five lines on a wide desktop, three
+     on a laptop -- so any fixed apex is wrong at some width, and it was the
+     gallery landing on "Keep scrolling to meet We Dig Creativity". */
+  const statementRef = useRef<HTMLDivElement>(null);
+  const [statementBottom, setStatementBottom] = useState(0);
   const releasingRef = useRef(false);
 
   // Server renders `active = null` (intro hidden); on the client the
@@ -211,6 +219,22 @@ export default function IntroAnimation() {
     setContainerSize({ width: el.offsetWidth, height: el.offsetHeight });
     return () => observer.disconnect();
   }, [active]);
+
+  /* Re-measured whenever the block reflows (a width change rewraps it) or the
+     fonts finish loading, which is the other thing that changes its height. */
+  useEffect(() => {
+    if (!active) return;
+    const el = statementRef.current;
+    if (!el) return;
+    /* offsetTop/offsetHeight, NOT getBoundingClientRect: the block carries a
+       motion `y` transform, and a rect would measure the animation rather than
+       the layout. */
+    const measure = () => setStatementBottom(el.offsetTop + el.offsetHeight);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [active, containerSize.width, containerSize.height]);
 
   // --- Virtual scroll ---
   const virtualScroll = useMotionValue(0);
@@ -382,12 +406,20 @@ export default function IntroAnimation() {
               className="pointer-events-none absolute top-1/2 z-0 flex -translate-y-1/2 flex-col items-center justify-center text-center"
               style={{ maxWidth: ringHoleWidth }}
             >
+              {/* OPACITY AND TRANSFORM ONLY. This used to animate
+                  `filter: blur(10px -> 0)` alongside them, and a filter is not
+                  a compositor-only property: every frame of it re-rasterises
+                  the element on the main thread, which is why Lighthouse
+                  reported this h1 under "avoid non-composited animations"
+                  ("filter-related property may move pixels"). The reveal is
+                  the same shape without it -- a fade and a 20px rise -- and
+                  both of those the compositor can run on its own thread. */}
               <motion.h1
-                initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={
                   introPhase === "circle" && morphValue < 0.5
-                    ? { opacity: 1 - morphValue * 2, y: 0, filter: "blur(0px)" }
-                    : { opacity: 0, filter: "blur(10px)" }
+                    ? { opacity: 1 - morphValue * 2, y: 0 }
+                    : { opacity: 0 }
                 }
                 transition={{ duration: 1 }}
                 style={{ fontSize: headingSize }}
@@ -419,6 +451,7 @@ export default function IntroAnimation() {
             </div>
 
             <motion.div
+              ref={statementRef}
               style={{ opacity: contentOpacity, y: contentY }}
               className="pointer-events-none absolute top-[20%] z-10 flex flex-col items-center justify-center px-6 text-center md:top-[22%] xl:top-[25%]"
             >
@@ -479,7 +512,18 @@ export default function IntroAnimation() {
                     containerSize.height * 1.5
                   );
                   const arcRadius = baseRadius * (isMobile ? 1.4 : 1.1);
-                  const arcApexY = containerSize.height * (isMobile ? 0.35 : 0.25);
+                  /* Keep a clear band below the closing copy. The fraction is
+                     only a FLOOR now -- it keeps the arc from riding too high
+                     on a tall empty viewport -- and the measured bottom of the
+                     statement wins whenever the paragraph is taller than the
+                     fraction assumed. `statementBottom` is measured from the
+                     container's top; the arc's y is an offset from its CENTRE,
+                     hence the half-height subtraction. */
+                  const apexFloor = containerSize.height * (isMobile ? 0.38 : 0.31);
+                  const clearOfText = statementBottom
+                    ? statementBottom - containerSize.height / 2 + TILE / 2 + (isMobile ? 20 : 34)
+                    : 0;
+                  const arcApexY = Math.max(apexFloor, clearOfText);
                   const arcCenterY = arcApexY + arcRadius;
                   const spreadAngle = isMobile ? 100 : 130;
                   const startAngle = -90 - spreadAngle / 2;

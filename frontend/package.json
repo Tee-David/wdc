@@ -11,6 +11,15 @@
     "db:migrate": "node scripts/migrate.mjs",
     "db:check-onboarding": "node scripts/check-onboarding-queries.mjs"
   },
+  "browserslist": [
+    "chrome >= 100",
+    "edge >= 100",
+    "firefox >= 100",
+    "safari >= 15.4",
+    "ios_saf >= 15.4",
+    "not dead",
+    "not op_mini all"
+  ],
   "dependencies": {
     "better-auth": "^1.7.4",
     "drizzle-orm": "^0.45.2",
