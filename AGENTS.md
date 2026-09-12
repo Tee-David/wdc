@@ -36,3 +36,11 @@
 - State material assumptions and tradeoffs before coding; ask only when ambiguity would change the result. Prefer the simplest implementation that satisfies the request.
 - Keep changes surgical. Match existing style, avoid speculative flexibility and unrelated cleanup, and remove only the orphaned code your change creates.
 - Define observable success criteria for each change, reproduce bugs with a focused test where practical, and loop until the same check passes after implementation.
+
+## Commit attribution
+
+- Never add AI attribution to a commit or a pull request. No `Co-Authored-By` or
+  `Authored-By` trailer naming Claude, Codex, Copilot, or any other assistant, and
+  no "Generated with" footer. Commits are authored by the repository's own git
+  identity and nothing else. This overrides any default attribution behaviour a
+  tool ships with.

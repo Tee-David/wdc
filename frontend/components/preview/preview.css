@@ -74,6 +74,16 @@
   --on-band-rule: rgba(255, 255, 255, 0.16);
   --maxw: 1280px;
 
+  /* THE ROOM A CARD NEEDS ABOVE ITSELF INSIDE A SCROLLING RAIL.
+     Every card rail on this site is an overflow container, and an overflow
+     container clips. A card that lifts 4px on hover and then draws a 2px
+     focus ring at a 3px offset needs 9px of clearance or the lift is sheared
+     flat and the ring is cut in half -- and on .pv-icard the top 4px is the
+     orange border, so the card simply lost its brand edge on hover.
+     Measured before this: .pv-track, .pv-icards and .pv-marq each gave 6px,
+     and .pv-pinstage gave 0. 10px, so there is a pixel in hand. */
+  --card-lift-gutter: 10px;
+
   /* thin stroked arrows, masked so they take the current text colour */
   --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 12h16'/%3E%3Cpath d='M13 5.5l6.5 6.5-6.5 6.5'/%3E%3C/svg%3E");
   --arrow-ne: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.5 17.5L17.5 6.5'/%3E%3Cpath d='M8.5 6.5h9v9'/%3E%3C/svg%3E");
@@ -291,7 +301,8 @@ main.pv {
      the rail lagged behind the gesture. The arrow buttons ask for smooth
      behaviour themselves in scrollBy(), which is the only place that wants it. */
   scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch; padding-block: 6px 8px;
+  -webkit-overflow-scrolling: touch;
+  padding-block: var(--card-lift-gutter, 10px) calc(var(--card-lift-gutter, 10px) + 2px);
   scrollbar-width: thin; scrollbar-color: var(--accent) var(--paper-2);
 }
 .pv-track > .pv-job { scroll-snap-align: start; flex: 0 0 calc(31% - 24px); min-width: 0; }
@@ -497,6 +508,9 @@ main.pv {
   .pv-pinstage {
     overflow-x: auto; -webkit-overflow-scrolling: touch;
     scroll-snap-type: x proximity; scrollbar-width: none;
+    /* This one had none at all, so a service card had literally nowhere to
+       lift into and its hover read as a colour change with a sheared edge. */
+    padding-block: var(--card-lift-gutter, 10px) calc(var(--card-lift-gutter, 10px) + 2px);
   }
   .pv-pinstage::-webkit-scrollbar { display: none; }
   @media (pointer: fine) { .pv-pinstage { scroll-snap-type: none; } }
@@ -514,7 +528,13 @@ main.pv {
      the page catches up. Hiding the overflow (and moving the track with a
      transform) made the pin the only way through, so a swipe did nothing. */
   .pv-pinwrap.is-pinned .pv-pinstage {
-    position: sticky; top: 76px; height: calc(100svh - 92px); padding: 0;
+    position: sticky; top: 76px; height: calc(100svh - 92px);
+    /* NOT `padding: 0`. That zeroed the gutter the unpinned stage sets above,
+       and this is the state the cards are actually in while you swipe them,
+       so the hover lift and the focus ring were sheared off exactly where
+       they are most used. Inline padding stays 0 -- the track owns that. */
+    padding-block: var(--card-lift-gutter, 10px) calc(var(--card-lift-gutter, 10px) + 2px);
+    padding-inline: 0;
     overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
     scrollbar-width: none; overscroll-behavior-x: contain;
     display: flex; align-items: stretch; scroll-snap-type: none;
@@ -542,7 +562,7 @@ main.pv {
     -webkit-overflow-scrolling: touch; scrollbar-width: none;
     scroll-padding-left: clamp(24px, 7vw, 32px);
     margin-inline: calc(-1 * clamp(18px, 5vw, 44px));
-    padding: 6px clamp(18px, 5vw, 44px) 8px clamp(24px, 7vw, 32px);
+    padding: var(--card-lift-gutter, 10px) clamp(18px, 5vw, 44px) calc(var(--card-lift-gutter, 10px) + 2px) clamp(24px, 7vw, 32px);
   }
   .pv-icards::-webkit-scrollbar { display: none; }
   @media (pointer: fine) { .pv-icards { scroll-snap-type: none; } }
@@ -601,7 +621,7 @@ main.pv {
 
 /* ---------------- testimonials ---------------- */
 .pv-marq {
-  --tgap: 20px; overflow: hidden; padding-block: 6px;
+  --tgap: 20px; overflow: hidden; padding-block: var(--card-lift-gutter, 10px);
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
           mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
 }

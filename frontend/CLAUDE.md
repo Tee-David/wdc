@@ -9,3 +9,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Commit attribution
+
+- Never add AI attribution to a commit or a pull request. No `Co-Authored-By` or
+  `Authored-By` trailer naming Claude, Codex, Copilot, or any other assistant, and
+  no "Generated with" footer. Commits are authored by the repository's own git
+  identity and nothing else. This overrides any default attribution behaviour a
+  tool ships with.
