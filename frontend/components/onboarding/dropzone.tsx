@@ -170,9 +170,9 @@ export default function Dropzone({
           are not wired up" to somebody who has not chosen a file is noise. */}
       {value.length > 0 && (
         <p className="dz__note">
-          Noted on your brief. The transfer itself switches on with the backend
-          — if you need us to have these today, reply to your onboarding email
-          and attach them.
+          Noted on your brief. The transfer itself switches on with the backend.
+          If you need us to have these today, reply to your onboarding email and
+          attach them.
         </p>
       )}
     </div>

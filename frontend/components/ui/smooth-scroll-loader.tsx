@@ -19,14 +19,19 @@ export default function SmoothScrollLoader() {
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const touch = window.matchMedia("(hover: none) and (pointer: coarse)");
-    const update = () => setEnabled(!reduced.matches && !touch.matches);
+    const compact = window.matchMedia("(max-width: 1023px)");
+    const update = () => setEnabled(
+      !reduced.matches && !touch.matches && !compact.matches && navigator.maxTouchPoints === 0,
+    );
 
     update();
     reduced.addEventListener("change", update);
     touch.addEventListener("change", update);
+    compact.addEventListener("change", update);
     return () => {
       reduced.removeEventListener("change", update);
       touch.removeEventListener("change", update);
+      compact.removeEventListener("change", update);
     };
   }, []);
 

@@ -246,7 +246,14 @@ export default function ParticleText({
         const b = out ? p.x : p.tx;
         const ay = out ? p.ty : p.y;
         const by = out ? p.y : p.ty;
-        ctx.fillRect(a + (b - a) * e, ay + (by - ay) * e, size, size);
+        const px = a + (b - a) * e;
+        const py = ay + (by - ay) * e;
+        /* Do not paint a partly clipped particle. Hundreds of off-canvas
+           particles crossing the same right edge produced a dashed vertical
+           hairline beside the full stop before they entered the word. */
+        if (px >= 0 && py >= 0 && px + size <= w && py + size <= h) {
+          ctx.fillRect(px, py, size, size);
+        }
       }
       ctx.globalAlpha = 1;
 

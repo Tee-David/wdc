@@ -25,8 +25,8 @@
 
 .ob {
   display: grid;
-  grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
-  gap: clamp(2rem, 5vw, 4.5rem);
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
   align-items: start;
 }
 
@@ -211,7 +211,7 @@
 
 /* ---------------- fields ---------------- */
 
-.ob__main { min-width: 0; }
+.ob__main { min-width: 0; width: min(100%, 58rem); margin-inline: auto; }
 .ob__fields { display: grid; gap: clamp(1.4rem, 2.6vw, 1.9rem); margin-top: 2.2rem; }
 
 .ob__f { display: grid; gap: .5rem; max-width: 46rem; }
@@ -405,16 +405,8 @@
   font-size: .84rem; line-height: 1.5; color: var(--accent-ink);
 }
 
-/* ============================================================================
-   THE TOP BAR — three parts, not eleven steps.
-
-   The long note in lib/onboarding.ts explains why the unit changed. What that
-   means here: three short bars side by side, each filling with its own steps,
-   so the reader watches small things complete instead of one long thing crawl.
-   The part they are in is named and lit; the ones behind are done; the ones
-   ahead are visible but quiet, so the whole shape of the task is legible at a
-   glance and none of it is a surprise.
-   ========================================================================== */
+/* One progress bar for the complete journey. It is tall enough to carry its
+   percentage without turning the number into a separate, competing status. */
 
 .pv .ob__top {
   display: grid; gap: .75rem;
@@ -423,35 +415,28 @@
   border-bottom: 1px solid var(--rule);
 }
 
-.pv .ob__phases {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem;
-  margin: 0; padding: 0; list-style: none;
+.pv .ob__progress {
+  position: relative;
+  height: 2rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--rule));
+  border-radius: 999px;
+  background: var(--paper-2);
 }
-.pv .ob__ph { display: grid; gap: .45rem; }
-.pv .ob__phBar {
-  display: block; height: 4px; border-radius: 3px;
-  background: var(--rule); overflow: hidden;
+.pv .ob__progress > span {
+  position: absolute; inset: 0 auto 0 0;
+  min-width: 2rem;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ff6500, #ff8533);
+  transition: width .55s cubic-bezier(.16, 1, .3, 1);
 }
-.pv .ob__phBar i {
-  display: block; height: 100%; border-radius: 3px;
-  background: var(--accent);
-  /* Eased and slow enough to be seen. A bar that teleports to its new width
-     has not told anyone they made progress; being able to watch it move is the
-     entire reward this control offers. */
-  transition: width .5s cubic-bezier(.16, 1, .3, 1);
+.pv .ob__progress > b {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  color: var(--ink); font-size: .78rem; font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 8px var(--paper);
 }
-.pv .ob__ph.is-done .ob__phBar i { background: #35c281; }
-/* TRACKING CUT FROM .08em TO .05em. Wide tracking is a device for setting a
-   LINE of small caps apart from body text; on an eleven-pixel two-word label
-   that already sits alone under a rule, it just pulls the words apart and the
-   pair stops reading as one phrase. */
-.pv .ob__phName {
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-size: .72rem; font-weight: 700;
-  letter-spacing: .05em; text-transform: uppercase;
-  color: var(--muted);
-}
-.pv .ob__ph.is-on .ob__phName { color: var(--ink); }
 
 .pv .ob__topMeta {
   display: flex; flex-wrap: wrap; align-items: center;
@@ -462,6 +447,10 @@
 /* The estimate that actually moves. It counts only questions still visible
    given the answers so far, so a branch that closes makes it drop. */
 .pv .ob__mins { color: var(--accent-ink); }
+.pv .ob__encourage {
+  margin: 0;
+  color: var(--muted); font-size: .84rem; line-height: 1.45;
+}
 
 .pv .ob__save {
   display: inline-flex; align-items: center; gap: .45rem;

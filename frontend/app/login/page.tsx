@@ -36,7 +36,7 @@ export default async function LoginPage() {
           <Link href="/" className="au__back">
             <ArrowLeft aria-hidden="true" /> Back to site
           </Link>
-          <LoginForm />
+          <LoginForm googleEnabled={Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)} />
         </div>
       </section>
     </main>
