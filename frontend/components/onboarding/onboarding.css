@@ -331,6 +331,12 @@
 .ob--intro .ob__btn--go { margin-top: 2rem; justify-self: start; }
 
 .ob__btn:disabled { opacity: .45; cursor: not-allowed; }
+/* Said out loud under the disabled Start, so the button's state has a reason
+   attached to it rather than just being unresponsive. */
+.pv .ob__pickHint {
+  margin-top: .6rem; font-size: .85rem; font-weight: 600;
+  color: var(--accent-ink);
+}
 .ob__btn--go:disabled:hover { background: var(--accent); border-color: transparent; }
 
 .pv .ob__err {

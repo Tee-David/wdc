@@ -1,11 +1,21 @@
 /* ==========================================================================
    COLOUR RULE — read before adding any brand-coloured surface.
 
-   1. Text on --accent (#ff6500) is ALWAYS --on-accent (#000), measured at
-      7.11:1. White is 2.95:1 and navy 5.99:1, so black is both the neutral
-      label the design system asks for AND the highest contrast available.
+   1. Text on --accent (#ff6500) is ALWAYS --on-accent (#000), 7.11:1. The
+      other two candidates were measured and rejected: white is 2.95:1, which
+      fails even the 3:1 WCAG allows large text, and navy is a COLOURED label
+      on a brand fill, which is the thing this rule exists to stop. Black is
+      the only option that is both neutral and legible.
       Use the token, never a literal, so this stays one decision in one place.
-   2. Text on --band (#000065) is ALWAYS #fff. Never --accent, never --muted.
+   2. Text on --band (#000065) is ALWAYS #fff, 17.68:1.
+   2b. Text on a WHITE fill is ALWAYS black, 21:1.
+   2c. ORANGE AS TEXT on a light ground is --accent-ink, not --accent. The
+      brand orange is 2.95:1 on white and cannot be used for type there. The
+      token is the LIGHTEST orange that still passes AA for small text --
+      #c95000 at 4.53:1 -- so it reads as the brand rather than as a
+      different, muddier orange. It was #b34700, which measured 5.50:1: far
+      darker than it needed to be, and that is why it looked wrong. In dark
+      mode no darkening is needed and the token is the brand orange itself.
    3. Both are LITERAL #fff, not a token, and identical in light and dark. A
       brand surface is the same colour in both themes, so its type must be too;
       reading it from a theme token is how the same badge ends up dark-on-orange
@@ -33,10 +43,11 @@
 
    Contrast, measured rather than assumed:
      #FF6500 on #000065 .... 6.0:1   accent on the dark band
-     #000000 on #FF6500 .... 7.1:1   so buttons are orange with BLACK text
-     #000065 on #FF6500 .... 6.0:1   passes, but black is neutral and higher
+     #000000 on #FF6500 .... 7.1:1   so buttons are orange with BLACK type
      #ffffff on #FF6500 .... 2.9:1   fails, never used for text
+     #000065 on #FF6500 .... 6.0:1   passes, but a coloured label
      #FF6500 on #ffffff .... 2.8:1   fails, hence --accent-ink for text on light
+     #C95000 on #ffffff .... 4.5:1   --accent-ink: the lightest passing orange
    ========================================================================== */
 
 .pv {
@@ -49,7 +60,12 @@
      token: a brand surface is the same colour in both themes, so its type
      must be too. Deliberately NOT re-declared under `.dark .pv`. */
   --on-accent: #000;
-  --accent-ink: #b34700;
+  /* Orange AS TEXT on a light ground. Not #ff6500, which is 2.8:1 on white,
+     and no longer #b34700, which was 5.50:1 -- a whole stop darker than it
+     needed to be, which is why it read as a different, muddier orange beside
+     the real thing. #c95000 is the lightest orange on this hue that still
+     clears 4.5:1, so it is as close to the brand as legibility allows. */
+  --accent-ink: #c95000;
   --ink: #0e0e2c;
   --muted: #565678;
   --rule: rgba(0, 0, 101, 0.12);
@@ -805,9 +821,9 @@ main.pv {
 /* Listed TWICE, bare and under `.pv`, for the reason documented at `.pv-btn`
    above: `.pv a { color: inherit }` scores (0,1,1) and a single-class rule here
    scores (0,1,0), so this button — an anchor inside `.pv` — silently ignored
-   its own colour and inherited the panel's instead. The fix is the raised
-   specificity below, not the colour: dark type on orange is the CORRECT
-   pairing here (7.11:1). What must never happen is white on orange, 2.95:1. */
+   its own colour and inherited the panel's dark ink instead. The fix is the
+   raised specificity below: the label has to come from --on-accent, not from
+   whatever the surrounding panel happens to set. */
 .pv-modal__open, .pv .pv-modal__open {
   flex: none; display: inline-flex; align-items: center; gap: 6px;
   padding: 7px 14px; border-radius: 999px;

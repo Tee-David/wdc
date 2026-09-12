@@ -55,7 +55,7 @@ function visible(f: Field, a: Answers) {
   return typeof v === "string" && f.showIf.equals.includes(v);
 }
 
-type Draft = { answers: Answers; service: ServiceSlug; step: number; started: boolean };
+type Draft = { answers: Answers; service: ServiceSlug | null; step: number; started: boolean };
 
 /**
  * Draft, layer one: local, from the first keystroke, so a temporary network
@@ -92,8 +92,12 @@ export default function OnboardingForm() {
 
      In production it comes from the project record behind the link; in the
      demo it is pickable so every version is reachable. */
-  const [service, setService] = useState<ServiceSlug>(() =>
-    typeof draft.service === "string" ? draft.service : "web",
+  /* NOTHING IS PRESELECTED. This defaulted to "web", which put a tick on a
+     card the client had not chosen and quietly decided the whole form for
+     anyone who pressed Start without noticing. A picker with a default is not
+     a question, it is an assumption. `null` until they choose. */
+  const [service, setService] = useState<ServiceSlug | null>(() =>
+    typeof draft.service === "string" ? (draft.service as ServiceSlug) : null,
   );
   const [started, setStarted] = useState(() => draft.started === true);
   const [i, setI] = useState(() => (typeof draft.step === "number" ? draft.step : 0));
@@ -132,15 +136,20 @@ export default function OnboardingForm() {
     setRestored(true);
   }, []);
 
+  /* Past the picker `service` is always set -- `started` cannot become true
+     without a choice -- but the hooks below run before that is known, so the
+     non-null form is named once here rather than asserted at each call. */
+  const chosen: ServiceSlug = service ?? "web";
+
   const serverDraft = useServerDraft({
     started,
-    service,
+    service: chosen,
     currentStep: i,
     answers: a,
     onRestore: restoreServerDraft,
   });
 
-  const steps = useMemo(() => stepsFor(service), [service]);
+  const steps = useMemo(() => stepsFor(chosen), [chosen]);
   const step: Step | undefined = steps[i];
 
   useEffect(() => {
@@ -298,8 +307,12 @@ export default function OnboardingForm() {
      chose. A client who bought two services gets two links and fills two short
      forms; nobody is ever handed a fifteen-step run. */
   if (!started) {
-    const preview = stepsFor(service);
-    const previewMins = minutesLeft(preview, 0, {}, (f) => !f.showIf);
+    /* Before a choice there is no form to measure, so the estimate is the
+       shortest of the six rather than a number invented from a default. */
+    const preview = service ? stepsFor(service) : null;
+    const previewMins = preview
+      ? minutesLeft(preview, 0, {}, (f) => !f.showIf)
+      : null;
     return (
       <div className="ob ob--intro">
         <p className="ob__k">Welcome</p>
@@ -347,7 +360,7 @@ export default function OnboardingForm() {
         </ul>
 
         <div className="ob__facts">
-          <div><dt>About</dt><dd>{previewMins} min</dd></div>
+          <div><dt>About</dt><dd>{previewMins === null ? "5-10 min" : `${previewMins} min`}</dd></div>
           <div><dt>Saves</dt><dd>As you go</dd></div>
           <div><dt>Leave anytime</dt><dd>Pick up where you stopped</dd></div>
         </div>
@@ -358,9 +371,22 @@ export default function OnboardingForm() {
           between us and the people working on your project.
         </p>
 
-        <button className="ob__btn ob__btn--go" type="button" onClick={() => setStarted(true)}>
+        {/* Disabled until a card is chosen, with the reason said out loud
+            rather than left to be inferred from a button that does nothing. */}
+        <button
+          className="ob__btn ob__btn--go"
+          type="button"
+          onClick={() => service && setStarted(true)}
+          disabled={!service}
+          aria-describedby={!service ? "ob-pick-first" : undefined}
+        >
           {restored ? "Pick up where you left off" : "Start"} <ArrowRight aria-hidden="true" />
         </button>
+        {!service && (
+          <p className="ob__pickHint" id="ob-pick-first">
+            Choose what we are working on to begin.
+          </p>
+        )}
       </div>
     );
   }
