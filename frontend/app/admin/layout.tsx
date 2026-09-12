@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import AdminNav from "@/components/admin/shell";
 import { getSubmissions } from "@/lib/admin/store";
+import { auth } from "@/lib/auth";
 import "@/components/admin/admin.css";
 
 /**
@@ -28,7 +31,11 @@ export const metadata: Metadata = {
 /* Never cached, never prerendered: the numbers are the point. */
 export const dynamic = "force-dynamic";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user || (session.user as typeof session.user & { role?: string }).role !== "owner") {
+    redirect("/login?redirect=/admin");
+  }
   /* Counts that belong on the nav rather than on a screen: an admin should
      say what is waiting before you go looking for it. */
   const open = getSubmissions().filter((s) => s.status === "In progress").length;
