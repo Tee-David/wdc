@@ -1,0 +1,67 @@
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db/pool";
+import { problemWith, stepsFor, type Field } from "@/lib/onboarding";
+import {
+  cleanAnswers, cleanService, clearOnboardingCookie, cookieToken, draftFromToken,
+  normalizeEmail, requestOriginIsAllowed,
+} from "@/lib/onboarding-server";
+
+type Answers = Record<string, string | string[]>;
+
+function isVisible(field: Field, answers: Answers) {
+  if (!field.showIf) return true;
+  const value = answers[field.showIf.key];
+  return Array.isArray(value)
+    ? value.some((item) => field.showIf!.equals.includes(item))
+    : typeof value === "string" && field.showIf.equals.includes(value);
+}
+
+export async function POST(request: NextRequest) {
+  if (!requestOriginIsAllowed(request)) {
+    return NextResponse.json({ error: "This request could not be verified." }, { status: 403 });
+  }
+  let body: Record<string, unknown>;
+  try { body = await request.json(); }
+  catch { return NextResponse.json({ error: "The submission could not be read." }, { status: 400 }); }
+
+  const service = cleanService(body.service);
+  const answers = cleanAnswers(body.answers);
+  if (!service || !answers) {
+    return NextResponse.json({ error: "Please check the form details and try again." }, { status: 422 });
+  }
+
+  const problems = stepsFor(service).flatMap((step) =>
+    step.fields
+      .filter((field) => isVisible(field, answers))
+      .map((field) => ({ key: field.key, message: problemWith(field, answers[field.key]) }))
+      .filter((problem): problem is { key: string; message: string } => problem.message !== null),
+  );
+  if (problems.length) {
+    return NextResponse.json({ error: "Some questions still need attention.", problems }, { status: 422 });
+  }
+
+  const token = cookieToken(request);
+  const draft = token ? await draftFromToken(token) : null;
+  if (!draft) {
+    return NextResponse.json({ error: "Save this form before submitting it." }, { status: 401 });
+  }
+  if (draft.status === "submitted") {
+    return NextResponse.json({ ok: true, submissionId: draft.id, alreadySubmitted: true });
+  }
+
+  const email = normalizeEmail(answers.email) ?? draft.email;
+  const result = await db.query<{ id: string }>(`
+    UPDATE onboarding_submissions
+    SET service = $2, status = 'submitted', current_step = 4,
+        answers = $3::JSONB, email = COALESCE($4, email), updated_at = now(), submitted_at = now()
+    WHERE id = $1 AND status = 'in_progress'
+    RETURNING id
+  `, [draft.id, service, JSON.stringify(answers), email]);
+  if (!result.rows[0]) {
+    return NextResponse.json({ error: "This form could not be submitted again." }, { status: 409 });
+  }
+
+  const response = NextResponse.json({ ok: true, submissionId: result.rows[0].id });
+  clearOnboardingCookie(response);
+  return response;
+}
