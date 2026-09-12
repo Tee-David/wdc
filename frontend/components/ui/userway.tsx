@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 import "./userway.css";
 
 /**
@@ -14,10 +14,9 @@ import "./userway.css";
  *
  * IT IS NOT LOADED WITH THE PAGE. Same reasoning as the AI agent beside it:
  * the widget pulls its own runtime and styles, and putting that in front of
- * every first paint would hand back the work spent getting the homepage from a
- * mobile Lighthouse of 69 to 81. It arrives on the first of two signals --
- * somebody presses the button, or the browser goes idle well after first
- * paint. Until then this is one button and no network.
+ * every first paint would hand back the work spent getting the homepage fast.
+ * It arrives only when somebody reaches the accessibility button. Until then
+ * this is one button and no third-party network, script, stylesheet or cookie.
  *
  * WHY OUR OWN BUTTON. Theirs ships with the script, so a deferred script means
  * no trigger at all until something triggers it, which is a chicken and egg.
@@ -50,17 +49,6 @@ export default function UserWay({ className = "" }: { className?: string }) {
     s.onerror = () => { asked.current = false; s.remove(); };
     document.body.appendChild(s);
   }, []);
-
-  useEffect(() => {
-    const hasIdle = typeof window.requestIdleCallback === "function";
-    const id = hasIdle
-      ? window.requestIdleCallback(load, { timeout: 7000 })
-      : window.setTimeout(load, 6000);
-    return () => {
-      if (hasIdle) window.cancelIdleCallback(id);
-      else window.clearTimeout(id);
-    };
-  }, [load]);
 
   return (
     <button

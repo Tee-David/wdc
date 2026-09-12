@@ -68,6 +68,30 @@
     mask-image: radial-gradient(120% 90% at 50% 40%, #000 45%, transparent 100%);
   }
   main { position: relative; z-index: 1; max-width: 54ch; text-align: center; }
+  @media (min-width: 769px) {
+    body {
+      height: 100svh; min-height: 0; overflow: hidden;
+      padding: clamp(.75rem, 2.5vh, 2rem);
+    }
+    main { max-height: 100%; }
+    .k { margin-bottom: clamp(.35rem, 1vh, .7rem); }
+    h1 { font-size: clamp(1.9rem, 6vh, 3.4rem); }
+    p { margin-top: clamp(.45rem, 1.2vh, .8rem); line-height: 1.5; }
+    .mark { width: min(260px, 36vh); margin-top: clamp(.65rem, 1.8vh, 1.25rem); }
+    .count { margin-top: clamp(.35rem, 1vh, .65rem); }
+    ul { margin-top: clamp(.65rem, 1.8vh, 1.25rem); }
+    ul li:nth-child(n + 6) { display: none; }
+    .note { margin-top: clamp(.4rem, 1vh, .7rem); }
+    .dots { margin-top: clamp(.65rem, 1.8vh, 1.25rem); }
+    .bar { margin-top: clamp(.65rem, 1.8vh, 1.25rem); }
+  }
+  #reconnect-art {
+    position: fixed; inset: 0; z-index: 4; width: 100%; height: 100%;
+    pointer-events: none; opacity: 0; transition: opacity .28s ease;
+  }
+  .reconnecting #reconnect-art { opacity: 1; }
+  .reconnecting main { opacity: .18; transform: scale(.985); transition: opacity .35s ease, transform .5s ease; }
+  .back main { opacity: 1; transform: none; }
   .k {
     margin: 0 0 .9rem; font-family: "WDC Grotesk", ui-sans-serif, system-ui, sans-serif;
     font-size: .76rem; font-weight: 700;
@@ -230,6 +254,7 @@
 </style>
 </head>
 <body>
+  <canvas id="reconnect-art" aria-hidden="true"></canvas>
   <main>
     <p class="k">
       <!-- The second clause is rewritten by the script when this device has
@@ -449,7 +474,8 @@
     }
     if (savedEl) {
       savedEl.innerHTML = "";
-      pages.slice(0, 8).forEach(function (path) {
+      var visibleLimit = window.matchMedia('(min-width: 769px)').matches ? 5 : 8;
+      pages.slice(0, visibleLimit).forEach(function (path) {
         var li = document.createElement("li");
         var a = document.createElement("a");
         a.href = path;
@@ -459,8 +485,8 @@
       });
     }
     if (noteEl) {
-      noteEl.textContent = n > 8
-        ? "Showing eight of them. The rest are there too, and everything else loads when you are back."
+      noteEl.textContent = n > visibleLimit
+        ? "Showing " + visibleLimit + " of them. The rest are there too, and everything else loads when you are back."
         : "Everything else will load when you are back.";
     }
   }
@@ -499,7 +525,45 @@
      animation in the stylesheet above. Long enough to read one short sentence
      and see where you are being sent; short enough that it never feels like
      the page is making you wait for a page it already has. */
-  var GO_MS = 1200;
+  var PARTICLE_MS = 760, GO_MS = 1200;
+
+  /* A dependency-free version of the services particle lettering. The offline
+     document must work with no React chunk, so it samples its own headline and
+     lets the dots assemble before the recovered layout takes over. */
+  function particleReveal(onSettled) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { onSettled(); return; }
+    var canvas = document.getElementById('reconnect-art');
+    var ctx = canvas && canvas.getContext('2d');
+    if (!ctx) { onSettled(); return; }
+    var ratio = Math.min(devicePixelRatio || 1, 2), w = innerWidth, h = innerHeight;
+    canvas.width = w * ratio; canvas.height = h * ratio; ctx.scale(ratio, ratio);
+    var sample = document.createElement('canvas'), sw = Math.min(760, w - 30), sh = 120;
+    sample.width = sw; sample.height = sh;
+    var sx = sample.getContext('2d');
+    sx.fillStyle = '#fff'; sx.textAlign = 'center'; sx.textBaseline = 'middle';
+    sx.font = '700 ' + Math.max(24, Math.min(54, w / 15)) + 'px "WDC Grotesk", sans-serif';
+    sx.fillText('And the line is back.', sw / 2, sh / 2);
+    var pixels = sx.getImageData(0, 0, sw, sh).data, points = [], gap = w < 520 ? 5 : 6;
+    for (var y = 0; y < sh; y += gap) for (var x = 0; x < sw; x += gap) {
+      if (pixels[(y * sw + x) * 4 + 3] > 100) points.push({
+        x: w / 2 + (Math.random() - .5) * Math.min(w, 520),
+        y: h / 2 + (Math.random() - .5) * Math.min(h, 360),
+        tx: (w - sw) / 2 + x, ty: h / 2 - sh / 2 + y
+      });
+    }
+    document.body.classList.add('reconnecting');
+    var start = performance.now(), duration = PARTICLE_MS;
+    function frame(now) {
+      var p = Math.min(1, (now - start) / duration), ease = 1 - Math.pow(1 - p, 3);
+      ctx.clearRect(0, 0, w, h); ctx.fillStyle = '#35c281';
+      points.forEach(function (dot) {
+        var x = dot.x + (dot.tx - dot.x) * ease, y = dot.y + (dot.ty - dot.y) * ease;
+        ctx.beginPath(); ctx.arc(x, y, p < .5 ? 1.25 : 1.6, 0, Math.PI * 2); ctx.fill();
+      });
+      if (p < 1) requestAnimationFrame(frame); else onSettled();
+    }
+    requestAnimationFrame(frame);
+  }
 
   /* The address in the bar is normally the page the reader asked for, because
      the service worker serves these bytes in place without a redirect. The one
@@ -537,7 +601,10 @@
     /* ADDED, NOT ASSIGNED. Overwriting the class list drops `bare`, which is
        what tells the page there is nothing to count, and the numerals would
        come back to run a countdown from a figure that was never there. */
-    document.body.classList.add('back');
+    particleReveal(function () {
+      document.body.classList.add('back');
+      setTimeout(function () { document.body.classList.remove('reconnecting'); }, 320);
+    });
 
     var counter = window.__wdcCount;
     if (counter) {
@@ -556,7 +623,7 @@
       }
     }
 
-    setTimeout(function () { location.replace(want); }, GO_MS);
+    setTimeout(function () { location.replace(want); }, PARTICLE_MS + GO_MS);
   }
 
   function probe() {

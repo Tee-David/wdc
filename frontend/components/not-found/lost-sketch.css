@@ -20,6 +20,31 @@
 }
 @media (min-width: 768px) { .nf { min-height: calc(100svh - 72px); } }
 
+/* The desktop 404 is one complete recovery screen, not a short page followed
+   by a scroll. The site header is fixed, so the artboard owns the viewport and
+   reserves its first 72px for that header. Vertical measurements key off the
+   available height, keeping every exit visible on shorter laptop displays. */
+@media (min-width: 900px) {
+  .nf {
+    height: 100svh;
+    min-height: 0;
+    padding: 72px clamp(1.5rem, 4vw, 3rem) 0;
+  }
+  .nf__main { padding-block: clamp(.45rem, 1.4vh, 1rem); }
+  .pv .nf__h, .nf__h {
+    margin-top: clamp(.45rem, 1.2vh, .8rem);
+    font-size: clamp(1.9rem, 4.8vh, 3.35rem);
+  }
+  .pv .nf__p, .nf__p {
+    margin-top: clamp(.45rem, 1.2vh, .8rem);
+    line-height: 1.45;
+  }
+  .nf__board { margin-top: clamp(.55rem, 1.6vh, 1.15rem); }
+  .nf__num { font-size: clamp(4.5rem, 14vh, 8rem); }
+  .nf__acts { margin-top: clamp(.65rem, 1.8vh, 1.25rem); }
+  .nf__cats { margin-top: clamp(.65rem, 1.7vh, 1.15rem); }
+}
+
 /* The artboard. Two gradients rather than an image, and set very low: this has
    to read as the paper the drawing sits on, not as a pattern on top of it. */
 .nf__grid {

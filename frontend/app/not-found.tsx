@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Header } from "@/components/layout/header";
-import { SiteFooter } from "@/components/layout/site-footer";
 import LostSketch from "@/components/not-found/lost-sketch";
 import "@/components/preview/preview.css";
 import "@/components/work/work.css";
@@ -30,7 +29,6 @@ export default function NotFound() {
       <main className="flex-1 pv">
         <LostSketch />
       </main>
-      <SiteFooter />
     </>
   );
 }

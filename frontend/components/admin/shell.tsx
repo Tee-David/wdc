@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Banknote, ClipboardList, FolderKanban, LayoutDashboard, Settings, Users,
+  Banknote, ClipboardList, FolderKanban, LayoutDashboard, LogOut, Settings, Users,
 } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 /**
  * The admin's navigation. SIX ITEMS, because you asked for few menus.
@@ -67,6 +68,12 @@ export default function AdminNav({ counts }: { counts?: Record<string, number> }
 
       <div className="ad__sideFoot">
         <Link href="/">Back to the website</Link>
+        <button type="button" onClick={async () => {
+          await authClient.signOut();
+          window.location.assign("/login");
+        }}>
+          <LogOut aria-hidden="true" /> Sign out
+        </button>
       </div>
     </aside>
   );

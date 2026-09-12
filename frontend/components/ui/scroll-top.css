@@ -1,30 +1,23 @@
 /* ============================================================================
    Back to top.
 
-   Sits above the AI agent's launcher in the bottom-right stack, and the two
-   share one set of variables so neither has to know the other's size -- change
-   the gap here and everything below moves with it.
+   Sits above UserWay in the bottom-right desktop stack, while Jotform keeps
+   the bottom-left corner. On mobile UserWay returns to the menu and this
+   button takes the bottom-right slot.
    ========================================================================== */
 
 :root {
   /* The corner's gutter, and the safe area on a notched phone. */
   --fab-gap: clamp(14px, 3vw, 26px);
   --fab-bottom: calc(var(--fab-gap) + env(safe-area-inset-bottom, 0px));
-  /* THE ROOM JOTFORM'S OWN LAUNCHER TAKES, and nothing of ours reaches into
-     it. The embed places and sizes its native launcher itself, bottom right,
-     and components/agent/jotform-agent.tsx is explicit that nothing should
-     wrap, resize, reposition or observe it -- so this is the clearance our
-     buttons keep, not a box we put it in. Their launcher runs about 60px with
-     its own margin; 5.4rem leaves a gap you can see. */
-  --fab-stack: 5.4rem;
+  /* One 46px control plus a visible 14px gap. */
+  --fab-stack: 3.75rem;
 }
 
 .st {
   position: fixed;
   right: var(--fab-gap);
-  /* ABOVE Jotform's launcher, which keeps the corner's bottom slot. The thing
-     people reach for most often belongs closest to the thumb, and that is the
-     assistant rather than the scroll. Clearance only: their element is theirs. */
+  /* Above UserWay on desktop. */
   bottom: calc(var(--fab-bottom) + var(--fab-stack));
   /* Under the connectivity bar (120) and the preloader (200), and over the
      page. Jotform sets its own stacking; ours stays below the bar that carries
@@ -85,6 +78,13 @@
 
 /* While the connectivity bar is up, the whole stack steps aside. */
 body:has(.cx) .st { bottom: calc(var(--fab-bottom) + var(--fab-stack) + 4.4rem); }
+
+/* UserWay lives in the mobile menu, so back-to-top owns the lower-right slot
+   and mirrors Jotform's launcher at the lower-left. */
+@media (max-width: 900px) {
+  .st { bottom: var(--fab-bottom); }
+  body:has(.cx) .st { bottom: calc(var(--fab-bottom) + 4.4rem); }
+}
 
 /* The dark page needs the disc to separate from it. */
 .dark .st { background: var(--paper-2, #0a0a3a); box-shadow: 0 10px 26px -10px rgb(0 0 0 / .7); }

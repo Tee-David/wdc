@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { SmoothScroll } from "@/components/ui/smooth-scroll";
+import SmoothScrollLoader from "@/components/ui/smooth-scroll-loader";
 import SmoothCursorLoader from "@/components/ui/smooth-cursor-loader";
 import JotformAgent from "@/components/agent/jotform-agent";
 import UserWay from "@/components/ui/userway";
@@ -24,11 +24,11 @@ import UserWay from "@/components/ui/userway";
  */
 export default function SiteChrome() {
   const path = usePathname();
-  if (path.startsWith("/admin")) return null;
+  if (path.startsWith("/admin") || ["/login", "/forgot-password", "/reset-password"].includes(path)) return null;
 
   return (
     <>
-      <SmoothScroll />
+      <SmoothScrollLoader />
       {/* Renders nothing on touch or under reduced motion -- see the
           component. */}
       <SmoothCursorLoader />

@@ -376,6 +376,33 @@
 .sv-step h3 { font-size: 1.06rem; margin-bottom: 7px; }
 .sv-step p { color: var(--muted); font-size: .92rem; }
 
+/* One dark-mode card language across every discipline. The surface stays navy
+   against the ink canvas; icons are glyphs rather than a second card inside
+   the card, and numbers keep the full-strength brand orange. */
+.dark .sv-step,
+.dark .pv-sec--alt .sv-step {
+  background: #0b0b50;
+  border-color: rgba(112, 112, 196, .34);
+  box-shadow: none;
+}
+.dark .sv-step__icon {
+  display: flex; place-items: initial; justify-content: flex-start;
+  width: auto; height: auto; border-radius: 0;
+  background: transparent; color: #f4f2ff;
+}
+.dark .sv-step__n { color: #ff6500; }
+.dark .sv-step h3 { color: #f7f5ff; }
+.dark .sv-step p { color: #a9a7cd; }
+.dark .sv-step::before { display: none; }
+.dark .sv-step:hover {
+  background: #10105b;
+  border-color: #ff6500;
+  box-shadow: 0 16px 34px -24px rgba(0, 0, 0, .9);
+}
+.dark .sv-step:hover h3 { color: #fff; }
+.dark .sv-step:hover .sv-step__n { color: #ff6500; }
+.dark .sv-step:hover p { color: #c5c3e2; }
+
 /* ---------------- work ---------------- */
 .sv-pill {
   display: inline-block; padding: 6px 16px; border-radius: 999px;

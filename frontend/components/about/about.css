@@ -140,7 +140,7 @@
    it; the arrows drive the same scroll rather than a separate index. */
 .ab-team__rail {
   display: flex; gap: 18px; overflow-x: auto; scroll-snap-type: x proximity;
-  scrollbar-width: none; padding-bottom: 4px;
+  scrollbar-width: none; padding: 6px 2px 10px; margin: -6px -2px -10px;
   /* `min-width: 0` is load-bearing on a flex/grid child: the default
      `min-width: auto` would size the rail to its content and push the page
      into horizontal overflow instead of scrolling inside itself. */
