@@ -6,7 +6,7 @@ Status key: `[ ]` pending, `[-]` in progress, `[x]` implemented and verified.
 
 - [x] Audit every public and onboarding button so its text stays neutral: white or black according to background contrast; remove coloured button-label text. (Black on orange measures 7.11:1; white was 2.95:1 and navy 5.99:1. `--on-accent` is now the single token for any accent fill, and `tests/button-colours.spec.ts` fails the build if white returns to orange.)
 - [x] Preserve existing button shapes/layouts while adding consistent polished hover, focus-visible, active, disabled, and reduced-motion states; orange buttons invert to white/black and blue buttons to black/white where appropriate. (The shared focus ring was orange, so it was invisible on the orange CTA; it now takes its colour from the section behind it. Disabled and reduced-motion states were missing entirely.)
-- [ ] Keep the mobile navigation theme switch and accessibility control on the same responsive row without overlap or clipping.
+- [x] Keep the mobile navigation theme switch and accessibility control on the same responsive row without overlap or clipping. (Measured with the panel open at 320/360/390/430px: one row, equal halves, no overlap, nothing off-screen, no horizontal page overflow.)
 - [x] Desktop FAB stack: Jotform bottom-left; UserWay bottom-right beneath back-to-top.
 - [x] Mobile FAB layout: Jotform bottom-left; back-to-top bottom-right; UserWay corner hidden.
 - [x] Keep the Jotform/avatar FAB on the left and back-to-top on the right; align both controls to the same responsive bottom baseline.
@@ -22,12 +22,12 @@ Status key: `[ ]` pending, `[-]` in progress, `[x]` implemented and verified.
 - [x] Contact form has responsive states, anti-spam handling, accessible errors, and a clear receipt state.
 - [x] Diagnose and eliminate mobile vertical-scroll catching/lag; confirm no Lenis or pointer animation intercepts touch scrolling.
 - [-] Re-profile the remaining subtle mobile vertical-scroll catch on real touch-sized routes; inspect pinned horizontal rails, per-frame scroll work, passive listeners, layout reads, third-party launchers, and compositor-heavy effects after confirming Lenis is absent.
-- [ ] Fix hover-lift clipping across work, preview, service, and team card containers; preserve the full top border and focus outline at every responsive width.
-- [ ] Fix clipping on the large “One roof”/value cards and project showcase cards shown in the latest captures; audit their shared horizontal tracks and transformed ancestors.
-- [ ] Apply WDC typography consistently to onboarding: Space Grotesk for headings and prominent display copy; Hausfit for body, descriptions, labels, helper text, and controls, with responsive sizing. (The repository currently has no Hausfit font file; do not substitute or download an unlicensed asset.)
+- [x] Fix hover-lift clipping across work, preview, service, and team card containers; preserve the full top border and focus outline at every responsive width. (Every card rail is an overflow container. A 4px lift plus a 2px focus ring at 3px offset needs 9px; .pv-track, .pv-icards and .pv-marq each gave 6px and .pv-pinstage gave 0, including an explicit padding:0 in the pinned state. One --card-lift-gutter token, now 10px everywhere, measured clear at mobile/tablet/desktop.)
+- [x] Fix clipping on the large “One roof”/value cards and project showcase cards shown in the latest captures; audit their shared horizontal tracks and transformed ancestors. (Same root cause and same fix as the row above: these are .pv-icard and .pv-job/.pv-scard inside the shared rails.)
+- [ ] Apply WDC typography consistently to onboarding: Space Grotesk for headings and prominent display copy; Outfit for body, descriptions, labels, helper text, and controls, with responsive sizing. (The repository currently has no Hausfit font file; do not substitute or download an unlicensed asset.)
 - [x] Encode concise WDC design, typography, accessibility, SEO, dependency, rendering, media, animation, and Core Web Vitals conventions in repository `AGENTS.md` and `CLAUDE.md` guidance.
 - [x] Install and review `karpathy-guidelines`; merge its simplicity, surgical-change, explicit-assumption, and verifiable-success rules into repository guidance.
-- [ ] Remove the redundant “Opens the full contact form with your details carried over.” helper wherever it appears.
+- [x] Remove the redundant “Opens the full contact form with your details carried over.” helper wherever it appears. (Verified absent from the codebase.)
 - [ ] Remove or neutralise the orange outline on the intro technology/logo card; use white only if an outline remains.
 - [x] Add responsive separation between the intro gallery arc and its text so neither overlaps at any supported viewport. (The arc apex was a fixed fraction of viewport height, which cannot know how tall a paragraph that rewraps with width is. The statement block is now measured and the apex clears it, with the old fraction kept only as a floor.)
 - [ ] Reduce the hero/media overlay enough to reveal the imagery while retaining text contrast and readability.
@@ -37,6 +37,9 @@ Status key: `[ ]` pending, `[-]` in progress, `[x]` implemented and verified.
 - [x] Send every navigation to the top of the destination page. (Two causes: Lenis outlives the route and animated the document back to the previous page's offset, and a link to the page you are already on is a router no-op that never scrolled at all. `components/ui/scroll-reset.tsx` handles both; covered by `tests/navigation-scroll.spec.ts`.)
 - [x] On phones, make call-to-action buttons fill the width and stack one per row rather than sitting two-up; excludes the hamburger sidebar.
 - [x] Fix the accessibility (UserWay) launcher being invisible in dark mode. (It used `--ink`/`--rule`, which are declared only inside the `.pv` block, and it renders outside it: both fell through to their light-mode fallbacks in every theme, leaving the glyph at 1.00:1 on its own disc.)
+- [x] Draw the SVG icon strokes for icons that mount after page load. (DrawGate scanned at 0/600/1600/3200ms and then stopped, so icons in the stages that mount on approach were never observed and never drew. It now also rescans on scroll, throttled to 400ms.)
+- [x] Stop preselecting a service on the onboarding picker; Start stays disabled until the client chooses.
+- [x] Use the brand orange for orange text on light grounds. (--accent-ink was #b34700 at 5.50:1, a whole stop darker than needed, which read as a different, muddier orange. Now #c95000, the lightest orange on the hue that still clears 4.5:1.)
 
 ## 1A. Client onboarding experience
 
