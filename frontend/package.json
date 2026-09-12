@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:e2e": "playwright test",
+    "db:migrate": "node scripts/migrate.mjs",
+    "db:check-onboarding": "node scripts/check-onboarding-queries.mjs"
   },
   "dependencies": {
     "better-auth": "^1.7.4",
@@ -37,7 +40,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.10",
+    "eslint-config-next": "^16.3.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
