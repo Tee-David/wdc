@@ -25,9 +25,11 @@ import { CONTACT_EMAIL } from "@/lib/site";
 export function ContactForm() {
   const [tried, setTried] = useState(false);
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
   const form = useRef<HTMLFormElement | null>(null);
 
-  const send = (e: React.FormEvent<HTMLFormElement>) => {
+  const send = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const el = e.currentTarget;
     // Let the browser do the validating; `is-tried` only turns the styling on
@@ -37,24 +39,24 @@ export function ContactForm() {
     if (!el.reportValidity()) return;
 
     const d = new FormData(el);
-    const g = (k: string) => String(d.get(k) ?? "").trim();
-    const name = [g("first"), g("last")].filter(Boolean).join(" ");
-
-    const body = [
-      `Name: ${name}`,
-      `Email: ${g("email")}`,
-      g("phone") ? `Phone: ${g("phone")}` : null,
-      `About: ${g("topic")}`,
-      "",
-      g("message"),
-    ].filter((l) => l !== null).join("\n");
-
-    window.location.href =
-      `mailto:${CONTACT_EMAIL}` +
-      `?subject=${encodeURIComponent(`Enquiry — ${g("topic")}`)}` +
-      `&body=${encodeURIComponent(body)}`;
-
-    setSent(true);
+    setSending(true);
+    setError("");
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(Object.fromEntries(d.entries())),
+      });
+      const result = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(result.error || "Unable to send your message.");
+      setSent(true);
+      el.reset();
+      setTried(false);
+    } catch (problem) {
+      setError(problem instanceof Error ? problem.message : "Unable to send your message.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -64,6 +66,10 @@ export function ContactForm() {
       onSubmit={send}
       noValidate
     >
+      <label className="ct-trap" aria-hidden="true">
+        Company website
+        <input name="company" type="text" tabIndex={-1} autoComplete="off" />
+      </label>
       <div className="ct-row ct-row--2">
         <div className="ct-f">
           <label htmlFor="ct-first">First name <b aria-hidden="true">*</b></label>
@@ -105,8 +111,10 @@ export function ContactForm() {
                   placeholder="What are you trying to achieve? Tell us the outcome you want rather than the features you think you need." />
       </div>
 
-      <button className="pv-btn pv-btn--accent" type="submit">
-        {sent ? "Opened in your mail app" : "Send the details"}
+      {error ? <p className="ct-error" role="alert">{error}</p> : null}
+
+      <button className="pv-btn pv-btn--accent" type="submit" disabled={sending}>
+        {sending ? "Sending…" : sent ? "Message sent" : "Send the details"}
       </button>
 
       {/* Says what the button does BEFORE it does it. A submit that quietly
@@ -114,16 +122,14 @@ export function ContactForm() {
       <p className="ct-note" aria-live="polite">
         {sent ? (
           <>
-            Your mail app should have opened with everything filled in. If nothing
-            happened, write to{" "}
+            Your message is safely with our team and a receipt is on its way. You can also write to{" "}
             <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "var(--accent-ink)", textDecoration: "underline", textUnderlineOffset: ".18em" }}>
               {CONTACT_EMAIL}
             </a>{" "}
             directly.
           </>
         ) : (
-          <>This opens your mail app with the message ready to send, so nothing is
-          lost on the way to us.</>
+          <>Sent securely to our team. We normally reply within the same working day.</>
         )}
       </p>
     </form>

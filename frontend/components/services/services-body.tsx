@@ -445,15 +445,9 @@ export default function ServicesBody() {
           <div className="sv-cta__box pv-reveal">
             <span className="pv-eyebrow">Start here</span>
             <h2 className="sv-cta__h">
-              {/* NOT LOOPING ANY MORE. The assembly is the effect; repeating it
-                  every four seconds costs a `fillRect` and a `globalAlpha`
-                  change per particle per frame for as long as this card is on
-                  screen, and this card sits at the foot of the longest page on
-                  the site. Measured at 4x CPU throttling: 20.0ms a frame with
-                  the loop running against 16.9ms without the canvas at all.
-                  It still assembles when you reach it; it just stops when it
-                  has finished saying it. Add `loop` back to undo. */}
-              <ParticleText text="Let's talk." />
+              {/* The closing invitation intentionally repeats rather than
+                  settling after its first particle assembly. */}
+              <ParticleText text="Let's talk." loop />
             </h2>
             <p className="sv-cta__sub">Tell us what you are trying to achieve.</p>
             <p className="pv-lede">
