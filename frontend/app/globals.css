@@ -19,6 +19,16 @@
      --on-accent is the only label colour allowed on an --accent fill: black
      measures 7.11:1 there, white 2.95:1. See the colour rule in preview.css,
      where every measurement behind it is written down. */
+  /* THE BODY FACE. Today this resolves to Space Grotesk, because Space
+     Grotesk is the only family in the repository -- see --font-outfit below.
+     It exists as its own token so the split the design system asks for is
+     EXPRESSED in the stylesheets rather than waiting on a font file: headings
+     and prominent figures ask for --font-space-grotesk, and body copy,
+     descriptions, labels, helper text and controls ask for --font-body. The
+     day a licensed body face is added it is one line here, not a sweep
+     through forty selectors guessing which were which. */
+  --font-body: var(--font-outfit), system-ui, sans-serif;
+
   --accent: #ff6500;
   --on-accent: #000;
 }
@@ -186,6 +196,35 @@ h4 {
   from { transform: scale(1.08); }
   to { transform: scale(1); }
 }
+/* THE HERO SCRIM.
+
+   The overlay used to be one flat 55% black veil across the whole picture,
+   which is the worst of both: it greys out the photography everywhere AND it
+   is still not enough where it matters. Measured off the actual image pixels
+   behind the headline, the photograph sits at a luminance of 0.75 there (it
+   is a bright, blown-out screen shot), and white type needs the composited
+   background at 0.183 or below to clear 4.5:1 -- which takes a 0.76 black
+   overlay. At 0.55 the headline was under even the 3:1 allowed for large
+   text, and was leaning on its text-shadow to look acceptable.
+
+   So the veil is not reduced evenly, it is RESHAPED: a light 30% base so the
+   image reads across the whole frame, plus an elliptical scrim centred on the
+   copy. Behind the headline the two compose to 1-(0.70x0.34) = 0.762, which
+   clears AA; out at the edges the picture is left at 30% instead of 55% and
+   is visibly more of a photograph than it was.
+
+   Percentages here are deliberate and measured. Changing one means
+   re-measuring the composite behind the h1, not guessing. */
+.hero-scrim {
+  background: radial-gradient(
+    ellipse 78% 54% at 50% 46%,
+    rgba(0, 0, 0, .66) 0%,
+    rgba(0, 0, 0, .6) 34%,
+    rgba(0, 0, 0, .34) 62%,
+    rgba(0, 0, 0, 0) 82%
+  );
+}
+
 .hero-backdrop {
   animation:
     hero-backdrop-fade 1.4s ease-in-out both,

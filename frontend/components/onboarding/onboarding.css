@@ -81,7 +81,7 @@
 }
 .ob__facts > div { padding: 1rem 1.15rem; background: var(--paper); }
 .ob__facts dt {
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-family: var(--font-body);
   font-size: .72rem; font-weight: 700;
   letter-spacing: .1em; text-transform: uppercase;
   color: var(--muted);
@@ -217,7 +217,7 @@
 .ob__f { display: grid; gap: .5rem; max-width: 46rem; }
 
 .ob__label {
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-family: var(--font-body);
   font-size: .98rem; font-weight: 600; color: var(--ink);
   letter-spacing: -.01em;
 }
@@ -316,7 +316,7 @@
   display: inline-flex; align-items: center; gap: .5rem;
   padding: .85rem 1.5rem;
   border: 1px solid transparent; border-radius: 999px;
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-family: var(--font-body);
   font-size: .95rem; font-weight: 600; letter-spacing: -.01em;
   cursor: pointer;
   transition: background .22s ease, color .22s ease, border-color .22s ease;
@@ -358,7 +358,7 @@
 }
 .ob__review h2 button {
   border: 0; background: transparent; cursor: pointer;
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-family: var(--font-body);
   font-size: .82rem; font-weight: 600; color: var(--accent-ink);
   text-decoration: underline; text-underline-offset: 3px;
 }

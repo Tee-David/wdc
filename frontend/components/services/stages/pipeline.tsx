@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { Stage, TabRow, useNearViewport, useStageMotion } from "./stage-shell";
+import { Stage, TabRow, useNearViewport, useStageMotion, useStageLive } from "./stage-shell";
 import { AI_USES } from "@/lib/showcase";
 
 /**
@@ -47,9 +47,10 @@ function useTranscript(active: boolean, LINES: readonly string[]) {
   const [done, setDone] = useState<string[]>([]);
   const [partial, setPartial] = useState("");
   const timer = useRef<number>(0);
+  const stageLive = useStageLive();
 
   useEffect(() => {
-    if (!active) return;
+    if (!active || !stageLive) return;
     let line = 0;
     let char = 0;
     const tick = () => {
@@ -75,7 +76,7 @@ function useTranscript(active: boolean, LINES: readonly string[]) {
     };
     timer.current = window.setTimeout(tick, 500);
     return () => window.clearTimeout(timer.current);
-  }, [active, LINES]);
+  }, [active, LINES, stageLive]);
 
   return { done, partial };
 }
