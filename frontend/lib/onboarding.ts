@@ -13,10 +13,10 @@ import type { ServiceSlug } from "@/lib/services";
  * media spend paid to a platform rather than a fee paid to us, which is why
  * its label says so.
  *
- * DEMO STATE. There is no submit endpoint yet. The form validates, branches,
- * remembers itself and reads every answer back, and the final step says
- * plainly that nothing is being sent. Wiring it to CockroachDB and R2 is the
- * next piece of work, and none of the below has to change for it.
+ * Answers are validated in the browser for immediate feedback and again by
+ * the server before CockroachDB accepts a completed submission. Drafts use the
+ * same field inventory so the saved state, review screen, and submitted record
+ * cannot drift apart.
  */
 
 export type FieldKind =
@@ -37,7 +37,7 @@ export type FieldKind =
  * terms" is a finding that shapes the work and the first call. A blank field
  * says nothing; this says something.
  */
-export const UNSURE = "Not sure yet, I would like WDC to advise";
+export const UNSURE = "I'm not sure; please advise me";
 
 export type Field = {
   key: string;
@@ -120,7 +120,7 @@ export type Step = {
   fields: Field[];
 };
 
-const AUDIENCE = ["Children", "Teenagers", "Men", "Women", "Businesses"];
+const AUDIENCE = ["Children", "Teenagers", "Men", "Women", "Businesses", "Other"];
 const AGES = ["Under 18", "18–24", "25–34", "35–44", "45–54", "55–64", "65 or above", "Prefer not to say"];
 
 export const CORE_STEPS: Step[] = [
@@ -179,6 +179,7 @@ export const CORE_STEPS: Step[] = [
     blurb: "Who the work has to reach.",
     fields: [
       { key: "audience", assist: true, label: "Who is your primary audience?", kind: "multi", options: AUDIENCE, required: true },
+      { key: "audience_other", label: "Tell us who else you need to reach", kind: "text", showIf: { key: "audience", equals: ["Other"] } },
       { key: "age_range", assist: true, label: "Age range", kind: "multi", options: AGES },
     ],
   },
@@ -195,13 +196,15 @@ export const SERVICE_STEPS: Step[] = [
       },
       {
         key: "deliverables", assist: true, label: "What are we making?", kind: "multi",
-        options: ["Logo", "Full identity system", "Brand guidelines", "Packaging", "Signage", "Social templates", "Pitch deck"],
+        options: ["Logo", "Full identity system", "Brand guidelines", "Packaging", "Signage", "Social templates", "Pitch deck", "Other"],
       },
+      { key: "deliverables_other", label: "What else would you like us to create?", kind: "text", showIf: { key: "deliverables", equals: ["Other"] } },
       {
         key: "surfaces", assist: true, label: "Where does the mark have to work?", kind: "multi",
         tip: "This one matters more than it looks. A mark that survives 12mm of embroidery is drawn differently from one that only ever appears on a screen.",
-        options: ["Embroidery", "Signage", "Print", "Screen", "Packaging", "Vehicle", "Stamp or seal"],
+        options: ["Embroidery", "Signage", "Print", "Screen", "Packaging", "Vehicle", "Stamp or seal", "Other"],
       },
+      { key: "surfaces_other", label: "Where else must the brand work?", kind: "text", showIf: { key: "surfaces", equals: ["Other"] } },
       {
         key: "untouchable", assist: true, label: "Anything that must not change?", kind: "textarea",
         tip: "A name, a colour, a mark people already know you by.",
@@ -226,7 +229,7 @@ export const SERVICE_STEPS: Step[] = [
         key: "tools_access", label: "Do you have these, and can you share access?", kind: "multi", required: true,
         options: ["Search Console", "Analytics", "Google Business Profile", "CMS admin", "None of these"],
       },
-      { key: "content_owner", label: "Who writes your content?", kind: "cards", required: true, options: ["Nobody yet", "In-house", "An agency", "We would like you to"] },
+      { key: "content_owner", label: "Who writes your content?", kind: "cards", required: true, options: ["Nobody yet", "My team", "An agency", "I would like WDC to"] },
     ],
   },
   {
@@ -246,28 +249,29 @@ export const SERVICE_STEPS: Step[] = [
       { key: "current_url", label: "Your current site", kind: "url", placeholder: "https://", showIf: { key: "site_new_or_existing", equals: ["Improving an existing site"] } },
       { key: "current_problem", label: "What do you like and dislike about it?", kind: "textarea", showIf: { key: "site_new_or_existing", equals: ["Improving an existing site"] } },
       { key: "site_goal", assist: true, label: "What is the site's main job?", kind: "textarea", placeholder: "e.g. take bookings, sell online, show the portfolio" },
-      { key: "features", assist: true, label: "Features you have in mind", kind: "multi", options: ["Online store", "Bookings", "Blog", "Gallery", "Members area", "Multi-language", "None yet"] },
-      { key: "page_count", assist: true, label: "Roughly how many pages?", kind: "cards", options: ["1–5", "6–15", "16–40", "More than 40"] },
+      { key: "features", assist: true, label: "Which features would you like on the website?", kind: "multi", options: ["Online store", "Bookings", "Blog", "Gallery", "Members area", "Multi-language", "Other", "None yet"] },
+      { key: "features_other", label: "What other feature do you need?", kind: "text", showIf: { key: "features", equals: ["Other"] } },
+      { key: "page_count", assist: true, label: "About how many pages do you expect?", kind: "select", options: ["1–5", "6–15", "16–40", "More than 40"] },
     ],
   },
   {
     phase: "work", id: "web_content", service: "web", title: "Content and care",
     blurb: "Who writes it, and who looks after it after launch.",
     fields: [
-      { key: "content_ready", label: "Do you have the words and pictures?", kind: "cards", required: true, options: ["Ready to go", "Partly", "We need you to produce them"] },
+      { key: "content_ready", label: "Do you have the words and pictures?", kind: "cards", required: true, options: ["They are ready", "I have some of them", "I need WDC to produce them"] },
       { key: "wants_seo", label: "Should we optimise it for search?", kind: "yesno", required: true, tip: "Search optimisation is the work that makes a site findable on Google: the right words, a clean technical build, and pages that load fast." },
       /* From the client's own website form, which asks both and is right to:
          a site nobody maintains is a site that rots, and it is far cheaper to
          agree that now than to discover it in month four. */
-      { key: "wants_maintenance", label: "Will you want ongoing updates and maintenance?", kind: "cards", required: true, options: ["Yes", "No", "Tell us what it involves"] },
-      { key: "wants_blogging", label: "Will you want help with blogging or content marketing?", kind: "cards", options: ["Yes", "No", "Not sure yet"] },
+      { key: "wants_maintenance", label: "Will you want ongoing updates and maintenance?", kind: "cards", required: true, options: ["Yes", "No", "Please explain what this includes"] },
+      { key: "wants_blogging", label: "Will you want help with blogging or content marketing?", kind: "cards", options: ["Yes", "No", UNSURE] },
     ],
   },
   {
     phase: "work", id: "web_tech", service: "web", title: "Domain and hosting",
     blurb: "Where the site will live. Nothing technical is expected of you here.",
     fields: [
-      { key: "has_hosting", label: "Do you already have hosting and a domain?", kind: "cards", required: true, options: ["Both", "Domain only", "Neither", "Not sure"] },
+      { key: "has_hosting", label: "Do you already have hosting and a domain?", kind: "cards", required: true, options: ["Both", "Domain only", "Neither", UNSURE] },
       {
         key: "hosting_details",
         label: "Who is it with, and whose name is the account in?",
@@ -286,7 +290,7 @@ export const SERVICE_STEPS: Step[] = [
            for a hosting password tells a client something about how the rest
            of their data will be treated. */
         hint: "Just the provider and the account holder. Please do not put passwords in this form. We will set access up properly with you when we get there.",
-        showIf: { key: "has_hosting", equals: ["Both", "Domain only", "Not sure"] },
+        showIf: { key: "has_hosting", equals: ["Both", "Domain only", UNSURE] },
       },
       {
         key: "domain_ideas", assist: true, label: "Three domain names you would like, best first", kind: "textarea",
@@ -302,14 +306,15 @@ export const SERVICE_STEPS: Step[] = [
       { key: "platforms", label: "iOS, Android, or both?", kind: "multi", required: true, options: ["iOS", "Android"] },
       { key: "one_job", assist: true, label: "In one sentence, what does the app do for the person holding the phone?", kind: "text", required: true },
       { key: "accounts", assist: true, label: "Do users log in? Are there different roles?", kind: "textarea", required: true },
-      { key: "offline", assist: true, label: "Must it work without a connection?", kind: "cards", options: ["Yes", "No", "Not sure"] },
-      { key: "payments", assist: true, label: "Does money change hands in the app?", kind: "cards", options: ["No", "One-off payments", "Subscriptions"] },
+      { key: "offline", assist: true, label: "Must it work without a connection?", kind: "cards", options: ["Yes", "No", UNSURE] },
+      { key: "payments", assist: true, label: "Will customers pay through the app?", kind: "cards", options: ["No", "One-off payments", "Subscriptions", "Other"] },
+      { key: "payments_other", label: "How else should payments work?", kind: "text", showIf: { key: "payments", equals: ["Other"] } },
       {
         key: "store_accounts", label: "Do you have developer accounts for the stores?", kind: "cards",
-        required: true, options: ["Both", "One of them", "Neither", "Not sure"],
+        required: true, options: ["Both", "One of them", "Neither", UNSURE],
         tip: "Apple and Google both require a paid developer account in YOUR name to publish. If you have neither, we will walk you through it. It is not a blocker.",
       },
-      { key: "backend", assist: true, label: "Is there a backend already, or are we building it?", kind: "cards", options: ["One exists", "Build it", "Not sure"] },
+      { key: "backend", assist: true, label: "Is there a backend already, or are we building it?", kind: "cards", options: ["One exists", "Build it", UNSURE] },
     ],
   },
   {
@@ -318,7 +323,8 @@ export const SERVICE_STEPS: Step[] = [
     fields: [
       { key: "process", assist: true, label: "What are people doing by hand today that this should take over?", kind: "textarea", required: true },
       { key: "users_count", assist: true, label: "How many people will use it, and who are they?", kind: "text", required: true },
-      { key: "data_home", assist: true, label: "Where does that information live now?", kind: "cards", options: ["Spreadsheets", "WhatsApp", "Paper", "An existing system", "Nowhere yet"] },
+      { key: "data_home", assist: true, label: "Where does that information live now?", kind: "cards", options: ["Spreadsheets", "WhatsApp", "Paper", "An existing system", "Nowhere yet", "Other"] },
+      { key: "data_home_other", label: "Where else is the information kept?", kind: "text", showIf: { key: "data_home", equals: ["Other"] } },
       { key: "systems", assist: true, label: "What must it talk to?", kind: "textarea", tip: "Accounting software, a payment provider, an existing database." },
       { key: "compliance", assist: true, label: "Any regulation or data rule we must design around?", kind: "textarea" },
       { key: "success_metric", assist: true, label: "What number tells us this worked?", kind: "text", placeholder: "e.g. hours saved a week, orders processed a day" },
@@ -347,24 +353,26 @@ export const SERVICE_STEPS: Step[] = [
       { key: "handle_snapchat", label: "Your Snapchat handle", kind: "text", placeholder: "@yourbusiness", showIf: { key: "channels", equals: ["Snapchat"] } },
       { key: "handle_whatsapp", label: "Your WhatsApp handle", kind: "text", placeholder: "@yourbusiness", showIf: { key: "channels", equals: ["WhatsApp"] } },
       { key: "handle_other", label: "Anywhere else? Give us the handle", kind: "text", showIf: { key: "channels", equals: ["Somewhere else"] } },
-      { key: "content_source", label: "Who shoots and writes today?", kind: "cards", required: true, options: ["Nobody", "In-house", "A freelancer", "We would like you to"] },
-      { key: "access_ok", label: "Can you give us access, or should we work through you?", kind: "cards", required: true, options: ["We will give access", "Work through us"] },
+      { key: "content_source", label: "Who creates your content today?", kind: "cards", required: true, options: ["Nobody yet", "My team", "A freelancer", "I would like WDC to"] },
+      { key: "access_ok", label: "How should we handle account access?", kind: "cards", required: true, options: ["I can give WDC access", "Please work through me"] },
     ],
   },
   {
     phase: "work", id: "social_content", service: "social", title: "What we post",
     blurb: "What it is for, what works, and what to stay away from.",
     fields: [
-      { key: "social_goal", assist: true, label: "What is social for, for you?", kind: "cards", options: ["Awareness", "Sales", "Bookings", "Community", "Recruitment"] },
-      { key: "content_types", assist: true, label: "What kind of content lands with your audience?", kind: "multi", options: ["Short video", "Photos", "Carousels", "Stories", "Live", "Written posts", "Memes and humour", "Behind the scenes", "Not sure yet"] },
+      { key: "social_goal", assist: true, label: "What do you most want social media to achieve?", kind: "cards", options: ["Awareness", "Sales", "Bookings", "Community", "Recruitment", "Other"] },
+      { key: "social_goal_other", label: "What other result matters to you?", kind: "text", showIf: { key: "social_goal", equals: ["Other"] } },
+      { key: "content_types", assist: true, label: "Which kinds of content tend to connect with your audience?", kind: "multi", options: ["Short video", "Photos", "Carousels", "Stories", "Live", "Written posts", "Memes and humour", "Behind the scenes", "Other", UNSURE] },
+      { key: "content_types_other", label: "What other kind of content should we consider?", kind: "text", showIf: { key: "content_types", equals: ["Other"] } },
       { key: "themes_yes", assist: true, label: "Anything you want us to keep coming back to?", kind: "textarea" },
       { key: "themes_no", assist: true, label: "Anything we should stay away from?", kind: "textarea", tip: "Topics, competitors, a tone that is not you." },
       { key: "competitors_admired", assist: true, label: "Any competitor accounts you admire?", kind: "textarea", tip: "Handles are enough." },
       { key: "upcoming", label: "Any launches, promotions or events coming up we should plan around?", kind: "textarea" },
       {
-        key: "ad_spend", assist: true, label: "Monthly advertising budget", kind: "cards",
+        key: "ad_spend", assist: true, label: "What monthly media budget have you set aside?", kind: "select",
         tip: "This is media spend, paid to Meta or Google. It is separate from our fee.",
-        options: ["Under ₦100k", "₦100k–₦500k", "₦500k–₦2m", "Over ₦2m", "Not sure yet"],
+        options: ["Under ₦100k", "₦100k–₦500k", "₦500k–₦2m", "Over ₦2m", UNSURE],
       },
     ],
   },
@@ -380,11 +388,11 @@ export const CLOSING_STEPS: Step[] = [
       { key: "logo_files", label: "Upload your logo files", kind: "upload", showIf: { key: "has_logo", equals: ["Yes"] } },
       {
         key: "has_brandbook", label: "Do you have a brand book or guide?", kind: "cards", required: true,
-        options: ["Yes", "No", "Not sure what that is"],
+        options: ["Yes", "No", "I'm not sure what that is"],
         tip: "A brand book is a document setting out your colours, fonts, logo rules and tone of voice, so everything a business makes looks like it came from the same place. Plenty of businesses do not have one, and that is a normal answer.",
       },
       { key: "brandbook_file", label: "Upload it", kind: "upload", showIf: { key: "has_brandbook", equals: ["Yes"] } },
-      { key: "brand_colours", label: "Your brand colours", kind: "text", placeholder: "e.g. Navy #000065, Orange #FF6500", tip: "Hex codes if you have them, names if you do not.", showIf: { key: "has_brandbook", equals: ["No", "Not sure what that is"] } },
+      { key: "brand_colours", label: "Your brand colours", kind: "text", placeholder: "e.g. Navy #000065, Orange #FF6500", tip: "Hex codes if you have them, names if you do not.", showIf: { key: "has_brandbook", equals: ["No", "I'm not sure what that is"] } },
       { key: "inspiration", assist: true, label: "Two or three examples you like, and what you like about them", kind: "textarea" },
       { key: "assets", label: "Anything else we should have", kind: "upload" },
     ],
@@ -397,7 +405,8 @@ export const CLOSING_STEPS: Step[] = [
       { key: "approver", label: "Who signs work off?", kind: "text", required: true, tip: "One person. Projects slow down most when feedback arrives from several directions and disagrees with itself." },
       { key: "others", label: "Anyone else who needs to see things?", kind: "textarea" },
       { key: "fixed_dates", label: "Any fixed dates we have to hit?", kind: "textarea", placeholder: "A launch, an event, a print deadline." },
-      { key: "channel", label: "How would you like us to reach you?", kind: "cards", required: true, options: ["Email", "WhatsApp", "Phone call"] },
+      { key: "channel", label: "Which channel works best for project updates?", kind: "cards", required: true, options: ["Client dashboard", "Email", "WhatsApp", "Phone call", "Other"] },
+      { key: "channel_other", label: "Which other channel would you prefer?", kind: "text", showIf: { key: "channel", equals: ["Other"] } },
       { key: "anything_else", label: "Anything we haven't asked that we should know?", kind: "textarea", tip: "This is the most useful box on the form. It is where the thing that would otherwise surface in week three usually comes out." },
     ],
   },

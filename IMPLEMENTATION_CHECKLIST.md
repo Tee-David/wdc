@@ -4,8 +4,13 @@ Status key: `[ ]` pending, `[-]` in progress, `[x]` implemented and verified.
 
 ## 1. Public frontend
 
+- [ ] Audit every public and onboarding button so its text stays neutral: white or black according to background contrast; remove coloured button-label text.
+- [ ] Preserve existing button shapes/layouts while adding consistent polished hover, focus-visible, active, disabled, and reduced-motion states; orange buttons invert to white/black and blue buttons to black/white where appropriate.
+- [ ] Keep the mobile navigation theme switch and accessibility control on the same responsive row without overlap or clipping.
 - [x] Desktop FAB stack: Jotform bottom-left; UserWay bottom-right beneath back-to-top.
 - [x] Mobile FAB layout: Jotform bottom-left; back-to-top bottom-right; UserWay corner hidden.
+- [x] Keep the Jotform/avatar FAB on the left and back-to-top on the right; align both controls to the same responsive bottom baseline.
+- [x] Give the Jotform/avatar launcher the same responsive left gutter that the back-to-top control has on the right.
 - [x] Services "Let's talk" particle text loops.
 - [x] Remove the stray thin vertical line after the services "Let's talk" particle text and verify repeated looping in the rendered page.
 - [x] Team cards do not clip while hovered at desktop or mobile widths.
@@ -16,6 +21,10 @@ Status key: `[ ]` pending, `[-]` in progress, `[x]` implemented and verified.
 - [x] Public contact form sends through the site endpoint instead of opening the visitor's mail app.
 - [x] Contact form has responsive states, anti-spam handling, accessible errors, and a clear receipt state.
 - [x] Diagnose and eliminate mobile vertical-scroll catching/lag; confirm no Lenis or pointer animation intercepts touch scrolling.
+- [-] Re-profile the remaining subtle mobile vertical-scroll catch on real touch-sized routes; inspect pinned horizontal rails, per-frame scroll work, passive listeners, layout reads, third-party launchers, and compositor-heavy effects after confirming Lenis is absent.
+- [ ] Fix hover-lift clipping across work, preview, service, and team card containers; preserve the full top border and focus outline at every responsive width.
+- [ ] Apply WDC typography consistently to onboarding: Space Grotesk for headings and prominent display copy; Hausfit for body, descriptions, labels, helper text, and controls, with responsive sizing.
+- [x] Encode concise WDC design, typography, accessibility, SEO, dependency, rendering, media, animation, and Core Web Vitals conventions in repository `AGENTS.md` and `CLAUDE.md` guidance.
 
 ## 1A. Client onboarding experience
 
@@ -24,20 +33,24 @@ Status key: `[ ]` pending, `[-]` in progress, `[x]` implemented and verified.
 - [ ] Design equivalent, concise onboarding question sets for branding, SEO, apps, software/AI, and paid advertising while preserving the same conversational voice.
 - [x] Reduce every service onboarding journey to 3 or 4 parts total; the client presses Next no more than 3 times before review/completion.
 - [x] Replace the three-section progress treatment with one taller progress bar containing the percentage.
+- [x] Add a subtle pulse to the onboarding progress fill; respect reduced-motion preferences.
 - [x] Add subtle, encouraging progress hints without adding visual noise.
 - [x] Make every tooltip aligned, viewport-aware, touch-accessible, dismissible, and fully visible on mobile and desktop.
 - [ ] Audit and implement conditional display rules so clients see only questions relevant to their prior answers.
+- [x] Add clear `Other` choices where fixed options may not fit; reveal a concise follow-up field only when `Other` is selected.
+- [x] Audit every prompt, option, helper, and uncertainty escape for the client's first-person perspective; use “I'm not sure; please advise me” and equivalent natural wording.
 - [x] Remove em dashes from all onboarding form copy; use semicolons or natural sentence breaks instead.
 - [x] Fix long searchable selectors and their internal scrolling on touch devices; prevent global FABs from obscuring options.
-- [ ] Persist drafts server-side in CockroachDB rather than relying on local storage as the source of truth.
-- [ ] Make Save and continue later create a securely hashed, single-purpose resume token and email the link through Truehost SMTP.
-- [ ] Set resume links to expire after 3 days; clearly handle expired, reused, and invalid links and allow a new link to be requested.
+- [ ] Re-audit every onboarding dropdown for a bounded, touch-scrollable option panel; use search automatically for long lists such as countries and any list with more than ten options.
+- [x] Persist drafts server-side in CockroachDB rather than relying on local storage as the source of truth.
+- [-] Make Save and continue later create a securely hashed, single-purpose resume token and email the link through Truehost SMTP. (Token flow is complete; Truehost currently rejects SMTP authentication with `535`.)
+- [-] Set resume links to expire after 3 days; clearly handle expired, reused, and invalid links and allow a new link to be requested. (Expiry, replay rejection, invalid-link handling, and secure link rotation are complete; self-service reissue remains.)
 - [ ] After successful onboarding, send the client a personalized next-steps email; explain that project communication may use the client dashboard, direct chat, a WhatsApp project group where appropriate, or another agreed channel.
 - [ ] Keep client account creation optional in that email; bind its expiring, single-purpose invitation to the onboarded recipient so a forwarded link cannot register a different email address.
 - [ ] Let authenticated clients link or unlink Google in account settings; require another usable sign-in method before unlinking their last identity.
 - [ ] Bind each client invitation to the intended normalized email and project/client record; store only a token hash, set an expiry, enforce one-time redemption, and reject email substitution or replay.
 - [ ] Let an invited client create credentials or continue with an approved Google identity without granting admin access; keep the project relationship attached to the same client account.
-- [ ] Allow cross-device resume with server answers restored accurately; local storage may only be a fail-safe draft cache.
+- [x] Allow cross-device resume with server answers restored accurately; local storage may only be a fail-safe draft cache.
 - [ ] Keep collected detail sufficient for delivery while minimising client fatigue; validate completion time and question count per service.
 - [ ] Audit the supplied Fluent Forms exports for where dropdowns, radios, checkboxes, multi-selects, and free text are intentionally used; choose the lowest-effort control for each WDC question.
 - [ ] Research a free or self-hostable, production-safe domain-availability source (prefer authoritative RDAP/registry data; do not infer availability from DNS alone).
@@ -47,7 +60,7 @@ Status key: `[ ]` pending, `[-]` in progress, `[x]` implemented and verified.
 ## 2. Authentication and email
 
 - [x] Replace temporary environment-password auth with Better Auth backed by CockroachDB.
-- [ ] Protect every `/admin` route with a server-verified session and owner role.
+- [x] Protect every `/admin` route with a server-verified session and owner role.
 - [ ] Complete login, logout, forgot-password, and reset-password flows.
 - [ ] Wire password-reset emails through Truehost SMTP.
 - [x] Generate/apply Better Auth database schema.
@@ -55,8 +68,8 @@ Status key: `[ ]` pending, `[-]` in progress, `[x]` implemented and verified.
 - [ ] Verify successful login, protected-route redirect, logout, and password reset locally.
 - [ ] Add the required auth/mail variables to the root environment template.
 - [x] Sync non-empty environment values to Doppler dev/stg/prd without overwriting the unresolved GitHub PAT.
-- [-] Sync production environment values to Vercel and redeploy. (Values synced; deployment pending.)
-- [ ] Verify a real SMTP connection and delivery after `SMTP_PASSWORD` is present.
+- [x] Sync production environment values to Vercel, deploy the verified commit, and confirm canonical routes respond successfully.
+- [ ] Verify a real SMTP delivery. (Production reached the mail server on 2026-09-12, but authentication was rejected with SMTP `535`; mailbox credentials or the accepted login identity still need correction.)
 - [ ] Enable Google sign-in through Better Auth using the configured Google client credentials.
 - [ ] Keep Google auth owner-only; a valid Google account must not automatically gain admin access unless its email maps to an approved owner/staff row.
 - [ ] Verify Google origin/callback configuration for apex, `www`, Vercel, and localhost without exposing credentials.

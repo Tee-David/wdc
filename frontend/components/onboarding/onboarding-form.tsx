@@ -20,6 +20,7 @@ import SelectField from "./select-field";
 import Dropzone from "./dropzone";
 import Tip from "./tip";
 import Dialog from "./dialog";
+import { useServerDraft } from "./use-server-draft";
 import "./onboarding.css";
 import "./phone-field.css";
 import "./picker.css";
@@ -28,10 +29,9 @@ import "./form-kit.css";
 /**
  * The onboarding form.
  *
- * DEMO. There is no endpoint yet: the last step says so, and nothing leaves
- * the browser. Everything else is real — branching, validation, the draft that
- * survives a closed tab, the read-back. Wiring it to CockroachDB and R2 does
- * not require any of this to change.
+ * Drafts are persisted server-side for cross-device resume, with local storage
+ * retained only as a fail-safe cache. The final submission is validated again
+ * by the server before it is stored.
  *
  * THE SHAPE, from the two references: a step rail carrying a title AND a line
  * of explanation for each step, one decision per screen, and a panel beside
@@ -45,6 +45,7 @@ import "./form-kit.css";
 type Answers = Record<string, string | string[]>;
 
 const KEY = "wdc-onboarding-draft";
+const EXCLUSIVE_MULTI_OPTIONS = new Set(["None yet", "None of these", UNSURE]);
 
 /** A field is asked only when its condition is met. Hidden means not asked. */
 function visible(f: Field, a: Answers) {
@@ -57,8 +58,9 @@ function visible(f: Field, a: Answers) {
 type Draft = { answers: Answers; service: ServiceSlug; step: number; started: boolean };
 
 /**
- * Draft, layer one: local, from the first keystroke, no infrastructure. The
- * server draft and the emailed resume link are the next piece of work.
+ * Draft, layer one: local, from the first keystroke, so a temporary network
+ * failure cannot erase work. The server copy remains authoritative for a
+ * cross-device resume.
  *
  * READ ONCE, IN A LAZY INITIALISER, NOT IN AN EFFECT. Restoring in an effect
  * means the form paints empty and then jumps to the saved state a frame
@@ -114,10 +116,29 @@ export default function OnboardingForm() {
   const [wipeOpen, setWipeOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [resumeEmail, setResumeEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
   /* Whether there is a draft to return to, so the opening button can say
      "pick up where you left off" rather than "start". Cleared by "start over",
      which wipes the draft: the button must not keep offering one. */
   const [restored, setRestored] = useState(() => draft.started === true);
+
+  const restoreServerDraft = useCallback((saved: {
+    service: ServiceSlug; currentStep: number; answers: Answers;
+  }) => {
+    setService(saved.service);
+    setI(saved.currentStep);
+    setA(saved.answers);
+    setStarted(true);
+    setRestored(true);
+  }, []);
+
+  const serverDraft = useServerDraft({
+    started,
+    service,
+    currentStep: i,
+    answers: a,
+    onRestore: restoreServerDraft,
+  });
 
   const steps = useMemo(() => stepsFor(service), [service]);
   const step: Step | undefined = steps[i];
@@ -201,16 +222,19 @@ export default function OnboardingForm() {
   /* An explicit save, even though it also saves on every keystroke.
      The automatic draft is invisible, and invisible reassurance reassures
      nobody -- a client who has to leave halfway wants to be TOLD it is safe
-     before they close the tab, not to hope. In production this is also where
-     the resume link gets emailed. */
-  const saveNow = useCallback(() => {
+     before they close the tab, not to hope. This is also where a fresh,
+     single-use resume link is issued. */
+  const saveNow = useCallback(async () => {
     try {
       localStorage.setItem(KEY, JSON.stringify({ answers: a, service, step: i, started: true }));
     } catch { /* a blocked store is what the dialog below exists to survive */ }
-    setSavedAt(Date.now());
     setCopied(false);
     setSaveOpen(true);
-  }, [a, service, i]);
+    try {
+      await serverDraft.save({ rotateLink: true });
+      setSavedAt(Date.now());
+    } catch { /* The dialog keeps the local fallback and shows the server message. */ }
+  }, [a, service, i, serverDraft]);
 
   /* WHY THIS DIALOG EXISTS, and why the draft in this browser is not enough.
 
@@ -226,16 +250,13 @@ export default function OnboardingForm() {
        3. the same link emailed to them, which is the one that survives a
           different device AND a cleared cache.
 
-     The link carries a token today only in the sense that the address is
-     recorded; the token that makes it work on another device is issued by the
-     server, which is the next piece of work. The dialog is written so that
-     wiring it changes one function and no copy. */
-  const resumeUrl =
-    typeof window === "undefined" ? "" : `${window.location.origin}/onboarding`;
-
+     The server stores only a hash of the single-use token. A fresh link
+     invalidates any previous unused link for the same draft and expires after
+     three days. */
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(resumeUrl);
+      const link = (await serverDraft.save({ rotateLink: true })).resumeUrl;
+      await navigator.clipboard.writeText(link);
       setCopied(true);
     } catch {
       /* A denied clipboard is not a failure worth an error: the field beside
@@ -243,6 +264,20 @@ export default function OnboardingForm() {
          existed. */
       setCopied(false);
     }
+  };
+
+  const emailResumeLink = async () => {
+    const email = resumeEmail.trim();
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      serverDraft.setMessage("Enter the email address where you want the link sent.");
+      return;
+    }
+    try {
+      const result = await serverDraft.save({ email, emailLink: true });
+      serverDraft.setMessage(result.emailSent
+        ? "Your secure link has been sent. It expires in three days."
+        : "Your answers are saved, but the email could not be delivered. Copy the link instead.");
+    } catch { /* The hook exposes a useful message. */ }
   };
 
   useEffect(() => {
@@ -330,6 +365,20 @@ export default function OnboardingForm() {
     );
   }
 
+  if (submitted) {
+    return (
+      <div className="ob ob--intro">
+        <p className="ob__k">Received</p>
+        <h1>Thank you. We have your brief.</h1>
+        <p className="ob__lede">
+          We will review it and confirm the next project step with you. Updates may come through
+          your client dashboard, direct chat, a WhatsApp project group where appropriate, or the
+          communication channel agreed for your project.
+        </p>
+      </div>
+    );
+  }
+
   /* ------------------------------------------------ review */
   if (done) {
     return (
@@ -364,14 +413,7 @@ export default function OnboardingForm() {
           ))}
         </div>
 
-        <div className="ob__demo ob__demo--end">
-          <p className="ob__k">Demo</p>
-          <p>
-            There is no submit endpoint yet, so nothing is sent and nothing
-            leaves this browser. Your answers are held in this device&rsquo;s local
-            storage only.
-          </p>
-        </div>
+        {serverDraft.message ? <p className="ob__saved" role="status">{serverDraft.message}</p> : null}
 
         {/* BACK FIRST, THEN SEND, and Start over on its own line.
 
@@ -384,8 +426,19 @@ export default function OnboardingForm() {
           <button className="ob__btn ob__btn--ghost" type="button" onClick={back}>
             <ArrowLeft aria-hidden="true" /> Back
           </button>
-          <button className="ob__btn ob__btn--go" type="button" disabled>
-            Send the brief <ArrowRight aria-hidden="true" />
+          <button
+            className="ob__btn ob__btn--go"
+            type="button"
+            disabled={serverDraft.submitting}
+            onClick={async () => {
+              try {
+                await serverDraft.submit();
+                try { localStorage.removeItem(KEY); } catch { /* local fallback only */ }
+                setSubmitted(true);
+              } catch { /* The hook presents the server message. */ }
+            }}
+          >
+            {serverDraft.submitting ? "Sending..." : "Send the brief"} <ArrowRight aria-hidden="true" />
           </button>
           {/* ASKS FIRST. This throws away everything the client has typed,
               it is next to the button that submits, and it cannot be undone. */}
@@ -400,8 +453,9 @@ export default function OnboardingForm() {
 
         <Dialogs
           saveOpen={saveOpen} onSaveClose={() => setSaveOpen(false)}
-          resumeUrl={resumeUrl} copied={copied} onCopy={copyLink}
+          resumeUrl={serverDraft.resumeUrl} copied={copied} onCopy={copyLink}
           email={resumeEmail} onEmail={setResumeEmail}
+          onEmailSend={emailResumeLink} busy={serverDraft.saving} message={serverDraft.message}
           wipeOpen={wipeOpen} onWipeClose={() => setWipeOpen(false)}
           onWipe={() => {
             try { localStorage.removeItem(KEY); } catch { /* nothing to clear */ }
@@ -529,8 +583,9 @@ export default function OnboardingForm() {
 
         <Dialogs
           saveOpen={saveOpen} onSaveClose={() => setSaveOpen(false)}
-          resumeUrl={resumeUrl} copied={copied} onCopy={copyLink}
+          resumeUrl={serverDraft.resumeUrl} copied={copied} onCopy={copyLink}
           email={resumeEmail} onEmail={setResumeEmail}
+          onEmailSend={emailResumeLink} busy={serverDraft.saving} message={serverDraft.message}
           wipeOpen={wipeOpen} onWipeClose={() => setWipeOpen(false)}
           onWipe={() => {
             try { localStorage.removeItem(KEY); } catch { /* nothing to clear */ }
@@ -573,11 +628,13 @@ function PickIcon({ name }: { name: string }) {
  */
 function Dialogs({
   saveOpen, onSaveClose, resumeUrl, copied, onCopy, email, onEmail,
+  onEmailSend, busy, message,
   wipeOpen, onWipeClose, onWipe,
 }: {
   saveOpen: boolean; onSaveClose: () => void;
   resumeUrl: string; copied: boolean; onCopy: () => void;
   email: string; onEmail: (v: string) => void;
+  onEmailSend: () => void; busy: boolean; message: string;
   wipeOpen: boolean; onWipeClose: () => void; onWipe: () => void;
 }) {
   return (
@@ -593,7 +650,7 @@ function Dialogs({
               clipboard API. */}
           <input type="text" value={resumeUrl} readOnly aria-label="Your link back to this form"
                  onFocus={(e) => e.currentTarget.select()} />
-          <button type="button" onClick={onCopy}>{copied ? "Copied" : "Copy"}</button>
+          <button type="button" onClick={onCopy} disabled={busy}>{copied ? "Copied" : busy ? "Saving..." : "Copy"}</button>
         </div>
         <p className="rs__or">
           Changing device, or worried about clearing your browser? Email it to
@@ -605,16 +662,12 @@ function Dialogs({
             placeholder="you@business.com" aria-label="Where to email your link"
             value={email} onChange={(e) => onEmail(e.target.value)}
           />
-          {/* Deliberately inert, and it says so below rather than pretending.
-              Sending mail needs the server that is not built yet; a button that
-              looked like it worked and quietly did nothing would be worse than
-              one that is honest. */}
-          <button type="button" disabled>Send</button>
+          <button type="button" onClick={onEmailSend} disabled={busy}>{busy ? "Saving..." : "Send"}</button>
         </div>
         <p className="ob__hint" style={{ marginTop: ".5rem" }}>
-          Emailing the link switches on with the rest of the back end. Until
-          then, copy it above.
+          The link works on another device, expires in three days, and can be opened once.
         </p>
+        {message ? <p className="ob__saved" role="status">{message}</p> : null}
         <div className="dlg__acts">
           <button className="ob__btn ob__btn--go" type="button" onClick={onSaveClose}>
             Back to the form
@@ -695,7 +748,7 @@ function FieldView({
       aria-pressed={deferred}
     >
       {deferred ? <Undo2 aria-hidden="true" /> : <HelpCircle aria-hidden="true" />}
-      {deferred ? "Actually, let me answer this" : "Not sure; you advise us"}
+      {deferred ? "Actually, let me answer this" : "I'm not sure; please advise me"}
     </button>
   ) : null;
 
@@ -806,7 +859,11 @@ function FieldView({
               role="checkbox"
               aria-checked={on}
               className={`ob__card${on ? " is-on" : ""}`}
-              onClick={() => onChange(on ? arr.filter((x) => x !== o) : [...arr, o])}
+              onClick={() => {
+                if (on) return onChange(arr.filter((x) => x !== o));
+                if (EXCLUSIVE_MULTI_OPTIONS.has(o)) return onChange([o]);
+                onChange([...arr.filter((x) => !EXCLUSIVE_MULTI_OPTIONS.has(x)), o]);
+              }}
             >
               <span className="ob__tick" aria-hidden="true">{on ? <Check /> : null}</span>
               {o}

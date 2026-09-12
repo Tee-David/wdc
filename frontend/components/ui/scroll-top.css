@@ -14,6 +14,10 @@
   --fab-stack: 3.75rem;
 }
 
+/* Jotform places its avatar flush against the viewport by default. Match the
+   responsive gutter used by our right-side controls. */
+.ai-agent-chat-avatar-container { left: var(--fab-gap) !important; }
+
 .st {
   position: fixed;
   right: var(--fab-gap);
@@ -84,6 +88,12 @@ body:has(.cx) .st { bottom: calc(var(--fab-bottom) + var(--fab-stack) + 4.4rem);
 @media (max-width: 900px) {
   .st { bottom: var(--fab-bottom); }
   body:has(.cx) .st { bottom: calc(var(--fab-bottom) + 4.4rem); }
+
+  /* Jotform injects a small vertical lift inside its own launcher. Normalise
+     that inner offset and reuse our safe-area inset so the left avatar and
+     right back-to-top control share the same bottom baseline. */
+  .embedded-agent-container { margin-bottom: var(--fab-bottom) !important; }
+  .ai-agent-chat-avatar-container { bottom: 0 !important; }
 }
 
 /* The dark page needs the disc to separate from it. */
