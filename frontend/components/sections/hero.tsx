@@ -146,9 +146,12 @@ function HeroBackdrop() {
         />
       ) : null}
       {/* Keep the photography visible while the white hero copy remains clear.
-          Use generated opacity steps and verify the result in both themes. */}
-      <div className="absolute inset-0 bg-black/55 dark:bg-background/50" />
-      <div className="absolute inset-0 dark:bg-gradient-to-b dark:from-transparent dark:via-transparent dark:to-background/65" />
+          A light base plus a scrim shaped to the copy, NOT one flat veil --
+          see .hero-scrim in globals.css for the measurements behind the
+          numbers, and re-measure if you change them. */}
+      <div className="absolute inset-0 bg-black/30 dark:bg-background/28" />
+      <div className="hero-scrim absolute inset-0" />
+      <div className="absolute inset-0 dark:bg-gradient-to-b dark:from-transparent dark:via-transparent dark:to-background/60" />
       <div className="absolute inset-0 dark:bg-primary/10 dark:mix-blend-multiply" />
     </div>
   );
