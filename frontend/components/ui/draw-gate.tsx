@@ -94,10 +94,44 @@ export default function DrawGate() {
        no-op, so repeating the scan is cheap. */
     const timers = [600, 1600, 3200].map((ms) => window.setTimeout(scan, ms));
 
+    /* AND THEN KEEP LOOKING, because three fixed timers do not describe when
+       these elements actually appear. The stages on /services mount as you
+       approach them, which on a 11,000px page is minutes after the last timer
+       has fired -- and an icon that mounts after the final scan is never
+       observed, never gets `is-in`, and so never draws at all. Measured on
+       /services before this: 7 of 64 icons laid out and permanently blank.
+
+       Approach means scrolling, so scroll is the signal, throttled to at most
+       one rescan every 400ms and run off a rAF so it never lands mid-frame.
+       The scan is a querySelectorAll over ~100 elements and a no-op observe
+       on almost all of them; this is the cheap half of the MutationObserver
+       the note above rejected, without the subtree churn from the terminal. */
+    let queued = false;
+    let last = 0;
+    let frame = 0;
+    let timer = 0;
+    const rescan = () => {
+      queued = false;
+      last = performance.now();
+      scan();
+    };
+    const onScroll = () => {
+      if (queued) return;
+      queued = true;
+      const wait = Math.max(0, 400 - (performance.now() - last));
+      timer = window.setTimeout(() => {
+        frame = requestAnimationFrame(rescan);
+      }, wait);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+
     return () => {
       arrive.disconnect();
       loop.disconnect();
       timers.forEach((t) => window.clearTimeout(t));
+      window.removeEventListener("scroll", onScroll);
+      window.clearTimeout(timer);
+      cancelAnimationFrame(frame);
     };
   }, []);
 
