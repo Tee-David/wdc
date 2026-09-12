@@ -443,10 +443,52 @@ export const PICKER_LINE: Record<ServiceSlug, string> = {
  * the backend, and nothing here has to change for it.
  */
 export function stepsFor(service: ServiceSlug): Step[] {
+  const serviceParts = SERVICE_STEPS.filter((step) => step.service === service);
+  const serviceFields = serviceParts.flatMap((step) => step.fields);
+  const cut = serviceParts.length > 1
+    ? serviceParts[0].fields.length
+    : Math.ceil(serviceFields.length / 2);
+  const names: Record<ServiceSlug, [string, string]> = {
+    branding: ["Brand direction", "Brand deliverables"],
+    seo: ["Search goals", "Search setup"],
+    web: ["Website goals", "Website setup"],
+    apps: ["App goals", "App setup"],
+    software: ["Software goals", "Software requirements"],
+    social: ["Social goals", "Content and campaigns"],
+  };
+  const [goalsTitle, detailsTitle] = names[service];
+
   return [
-    ...CORE_STEPS,
-    ...SERVICE_STEPS.filter((s) => s.service === service),
-    ...CLOSING_STEPS,
+    {
+      phase: "you",
+      id: "about-you",
+      title: "About you",
+      blurb: "Your details, your business, and who the work needs to reach.",
+      fields: CORE_STEPS.flatMap((step) => step.fields),
+    },
+    {
+      phase: "work",
+      id: `${service}-goals`,
+      service,
+      title: goalsTitle,
+      blurb: "What the project needs to achieve for you.",
+      fields: serviceFields.slice(0, cut),
+    },
+    {
+      phase: "work",
+      id: `${service}-details`,
+      service,
+      title: detailsTitle,
+      blurb: "The practical choices and context that help us begin well.",
+      fields: serviceFields.slice(cut),
+    },
+    {
+      phase: "final",
+      id: "finishing-up",
+      title: "Finishing up",
+      blurb: "Assets, approvals, communication, and anything we should not miss.",
+      fields: CLOSING_STEPS.flatMap((step) => step.fields),
+    },
   ];
 }
 
