@@ -8,7 +8,7 @@ import ServiceIcon from "@/components/ui/service-icon";
 import ScrollCue from "@/components/ui/scroll-cue";
 import { SERVICES } from "@/lib/services";
 import ScrollExpand from "@/components/ui/scroll-expand";
-import CircularGallery from "@/components/ui/circular-gallery";
+import dynamic from "next/dynamic";
 import { BRAND_KINDS } from "@/lib/showcase";
 import { MOTTO } from "@/lib/site";
 
@@ -17,6 +17,20 @@ import "@/components/services/services.css";
 import "@/components/ui/motion-kit.css";
 import "./about.css";
 import StrokeNumber from "@/components/ui/stroke-number";
+
+/* 156 KB of WebGL (`ogl`), for one decorative wheel most of the way down ONE
+   page -- and it was not even /about paying for it. The homepage links to
+   /about, so Next prefetches that route's JavaScript, and the whole of `ogl`
+   came down on the homepage having never been executed there: it was the
+   largest single entry in Lighthouse's "reduce unused JavaScript".
+
+   `ssr: false` costs nothing here. The canvas is `aria-hidden` decoration and
+   the same twelve pieces are ALREADY in the DOM below it as real <img>s -- the
+   fallback a screen reader, a crawler and a browser without WebGL all get. So
+   there is nothing to server-render and nothing to wait for. */
+const CircularGallery = dynamic(() => import("@/components/ui/circular-gallery"), {
+  ssr: false,
+});
 
 /**
  * /about — the studio behind the work.

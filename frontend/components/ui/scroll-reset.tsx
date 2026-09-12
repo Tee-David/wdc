@@ -22,6 +22,21 @@ import { useEffect, useRef } from "react";
  * so you stay wherever you were. Clicking the logo from the FAQ left you at the
  * FAQ, which reads as "the logo took me to the bottom of the homepage".
  *
+ * THREE: THE BROWSER RESTORES THE OLD OFFSET ON A FULL PAGE LOAD. The
+ * hamburger menu's links are plain `<a href>`, not `<Link>`, so choosing
+ * "Services" there is a document navigation rather than a client one -- and
+ * `history.scrollRestoration` defaults to "auto", so the browser puts you back
+ * wherever you last were on /services. On a page whose pinned GSAP sections
+ * make it several screens tall, "wherever you last were" is the bottom. This
+ * is the one the router never had a chance to fix, because there was no route
+ * change for it to react to.
+ *
+ * Restoration is therefore set to "manual". The trade is real and worth
+ * stating: the browser will no longer restore your place when you press Back.
+ * On a site with pinned, scroll-driven sections it was not restoring it
+ * correctly anyway -- the page's height depends on JavaScript that has not run
+ * yet at restore time, which is exactly why it overshot to the bottom.
+ *
  * The capture-phase listener handles the second case for every same-page link
  * at once rather than one `onClick` at a time, and deliberately steps aside for
  * anchors (`#section`), cross-origin links, new-tab intents and modified
@@ -40,8 +55,31 @@ export default function ScrollReset() {
   const path = usePathname();
   const first = useRef(true);
 
-  /* On route change. Skipped for the very first render: the initial load
-     belongs to the browser's own restoration and to any deep link in the URL. */
+  /* Take scroll restoration away from the browser, once, before it can act.
+     A deep link (`/services#seo`) is left alone -- that URL asks for a
+     position and the browser is right to honour it. */
+  useEffect(() => {
+    if (!("scrollRestoration" in window.history)) return;
+    window.history.scrollRestoration = "manual";
+    if (window.location.hash) return;
+    /* Two passes. The first covers a normal load; the second runs after
+       `load`, by which point the pinned sections have measured themselves and
+       the document has its real height -- which is when a restored offset
+       would otherwise reappear. */
+    toTop(true);
+    const onLoad = () => {
+      if (!window.location.hash) toTop(true);
+    };
+    if (document.readyState === "complete") {
+      requestAnimationFrame(onLoad);
+    } else {
+      window.addEventListener("load", onLoad, { once: true });
+    }
+    return () => window.removeEventListener("load", onLoad);
+  }, []);
+
+  /* On route change. Skipped for the very first render, which the effect
+     above owns. */
   useEffect(() => {
     if (first.current) {
       first.current = false;

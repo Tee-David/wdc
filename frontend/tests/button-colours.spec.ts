@@ -1,20 +1,17 @@
 import { expect, test } from "@playwright/test";
 
 /**
- * Filled controls carry a NEUTRAL label, chosen for contrast, and the fill
- * carries the brand.
+ * THE RULE. A filled control carries a NEUTRAL label chosen for contrast; the
+ * FILL carries the brand.
  *
- * The numbers behind the rule, measured rather than assumed:
+ *   orange fill (#ff6500) -> BLACK label  (7.11:1)
+ *   navy fill   (#000065) -> WHITE label  (17.68:1)
+ *   white fill  (#ffffff) -> BLACK label  (21:1)
  *
- *   #000000 on #ff6500 .... 7.11:1   PASS  <- the rule for orange
- *   #000065 on #ff6500 .... 5.99:1   passes, but navy is not a neutral label
- *   #ffffff on #ff6500 .... 2.95:1   FAIL
- *   #ffffff on #000065 ... 17.68:1   PASS  <- the rule for navy
- *   #000000 on #ffffff ... 21.00:1   PASS  <- the rule for white
- *
- * An earlier pass at "make the labels neutral" moved every orange fill from
- * navy to WHITE, which is neutral and also the one option that fails WCAG AA.
- * This spec exists so that cannot happen again quietly.
+ * Both alternatives for the orange fill were measured and rejected: white is
+ * 2.95:1, which fails even the 3:1 WCAG allows large text, and navy is 5.99:1
+ * but is a coloured label on a brand fill. This spec pins the choice so it
+ * cannot drift back to either by accident.
  */
 
 const publicPages = ["/", "/services", "/about", "/work", "/contact", "/onboarding", "/login"];
@@ -64,8 +61,8 @@ test("filled public controls use neutral label colours", async ({ page }) => {
     for (const control of controls) {
       const expected =
         control.background === NAVY
-          ? [WHITE]
-          : BLACKS; // orange and white fills both take a black label
+          ? [WHITE]         // only a navy fill takes a white label
+          : BLACKS;         // orange and white fills take a black label
       if (!expected.includes(control.colour)) {
         failures.push(
           `${path}: "${control.label}" is ${control.colour} on ${control.background}`,
@@ -110,5 +107,5 @@ test("no orange fill anywhere carries a white label", async ({ page }) => {
     bad.forEach((t) => failures.push(`${path}: white on orange (2.95:1) -- "${t}"`));
   }
 
-  expect(failures, failures.join("\n")).toEqual([]);
+  expect(failures, failures.join(String.fromCharCode(10))).toEqual([]);
 });
