@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { useNearViewport } from "./stage-shell";
+import { useNearViewport, useStageLive } from "./stage-shell";
 
 /**
  * The content calendar, scheduling itself.
@@ -81,9 +81,10 @@ export default function SocialCalendar({ run }: { run: boolean }) {
   const [typed, setTyped] = useState(0);
   const [pressing, setPressing] = useState(false);
   const timers = useRef<number[]>([]);
+  const stageLive = useStageLive();
 
   useEffect(() => {
-    if (!live) return;
+    if (!live || !stageLive) return;
     /* Every state change below is deferred by at least a frame. Setting state
        synchronously in an effect body cascades a second render on mount, which
        for a stage that mounts as it scrolls into view is a jank you can see. */
@@ -122,7 +123,7 @@ export default function SocialCalendar({ run }: { run: boolean }) {
       t.forEach(clearTimeout);
       t.length = 0;
     };
-  }, [live]);
+  }, [live, stageLive]);
 
   const placed = SCRIPT.slice(0, step);
   const current = step < SCRIPT.length ? SCRIPT[step] : null;

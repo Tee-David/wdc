@@ -151,7 +151,7 @@
   border: 1px solid var(--rule); border-radius: 16px;
   background: var(--paper);
   box-shadow: 0 30px 70px -30px rgb(0 0 0 / .6);
-  font-family: var(--font-outfit), system-ui, sans-serif;
+  font-family: var(--font-body);
 }
 .pv .dlg__in h2 {
   margin: 0 2rem .5rem 0;

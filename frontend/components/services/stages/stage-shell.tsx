@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 
 /**
  * The contract every service stage inherits.
@@ -16,6 +16,31 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
  * `useStageMotion` returns which of those a stage should render, so the
  * decision is made in one place instead of six.
  */
+
+/**
+ * IS THIS STAGE ACTUALLY ON SCREEN RIGHT NOW?
+ *
+ * `useNearViewport` below LATCHES: it exists to mount a stage once and then
+ * get out of the way. That is right for mounting and wrong for running. Six
+ * stages mount as you scroll down /services and then every one of them keeps
+ * its timers going for the rest of the visit, off screen, forever -- on top of
+ * seven marquees doing the same. Measured on that page at 4x CPU throttling
+ * against an identical scroll of the homepage: 1,356 style recalculations and
+ * 293 layouts versus 1,608 and 129, and a CPU profile that was 81.6%
+ * `(program)` -- style, layout and paint, not script. The stages were paying
+ * rendering cost for demos nobody could see.
+ *
+ * This context carries the live/not-live signal down to the stages that run
+ * timers, so they can stand down when they scroll away and pick up when they
+ * come back. Default `true`: a stage rendered outside a LazyStage (a test, a
+ * story, a future page) must animate, not sit frozen.
+ */
+const StageLiveContext = createContext(true);
+
+/** True while this stage is on screen. Pause timers when it is false. */
+export function useStageLive() {
+  return useContext(StageLiveContext);
+}
 
 /** True once the element is within `margin` of the viewport. Latches on. */
 export function useNearViewport<T extends HTMLElement>(margin = "300px") {
@@ -136,9 +161,26 @@ export function LazyStage({
   withControls?: boolean;
 }) {
   const { ref, near } = useNearViewport<HTMLDivElement>();
+  const [live, setLive] = useState(false);
+
+  /* Deliberately NOT latching, and deliberately a separate observer from the
+     mounting one above: that one disconnects itself the moment it fires. A
+     margin of 200px so a stage is already running by the time it is properly
+     in view rather than visibly starting under the reader. */
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !("IntersectionObserver" in window)) { setLive(true); return; }
+    const io = new IntersectionObserver(
+      ([entry]) => setLive(entry.isIntersecting),
+      { rootMargin: "200px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref]);
+
   return (
     <div ref={ref} className="sv-lazy">
-      {near ? children : (
+      {near ? <StageLiveContext.Provider value={live}>{children}</StageLiveContext.Provider> : (
         // The caption sits INSIDE the frame now, so it adds no height and
         // reserving a row for it would make this placeholder taller than the
         // stage that replaces it -- the exact jump it exists to prevent.

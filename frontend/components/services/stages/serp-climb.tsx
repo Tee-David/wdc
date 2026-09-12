@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import TextType from "@/components/ui/text-type";
-import { Stage, useCountUp, useNearViewport, useStageMotion } from "./stage-shell";
+import { Stage, useCountUp, useNearViewport, useStageMotion, useStageLive } from "./stage-shell";
 import { SEO_METRICS } from "@/lib/showcase";
 
 /**
@@ -65,9 +65,10 @@ function Metric({ m, run }: { m: (typeof SEO_METRICS)[number]; run: boolean }) {
 function Climb({ run, still, offset }: { run: boolean; still: boolean; offset: number }) {
   const [step, setStep] = useState(0);
   const timer = useRef<number>(0);
+  const stageLive = useStageLive();
 
   useEffect(() => {
-    if (!run) return;
+    if (!run || !stageLive) return;
     timer.current = window.setInterval(() => {
       setStep((s) => {
         if (s >= CLIMB.length - 1) { window.clearInterval(timer.current); return s; }
@@ -75,7 +76,7 @@ function Climb({ run, still, offset }: { run: boolean; still: boolean; offset: n
       });
     }, 700);
     return () => window.clearInterval(timer.current);
-  }, [run]);
+  }, [run, stageLive]);
 
   const done = still || step === CLIMB.length - 1;
   const rank = still ? TOP : CLIMB[step];
