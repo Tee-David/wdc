@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { siInstagram, siX, siFacebook, siWhatsapp } from "simple-icons";
 import { Logo, WdcMark } from "@/components/brand/logo";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import ThemeSwitchButton from "@/components/ui/theme-switch-button";
@@ -31,15 +30,6 @@ const NAV = [
   { label: "Contact Us", link: "/contact" },
 ];
 
-/** simple-icons brand glyph, tinted by the current text color. */
-function BrandGlyph({ path, title }: { path: string; title: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" role="img" aria-label={title}>
-      <path d={path} />
-    </svg>
-  );
-}
-
 function MailGlyph() {
   return (
     <svg
@@ -58,23 +48,7 @@ function MailGlyph() {
 }
 
 const SOCIALS = [
-  {
-    label: "Instagram",
-    link: "https://instagram.com",
-    icon: <BrandGlyph path={siInstagram.path} title="Instagram" />,
-  },
-  { label: "X", link: "https://x.com", icon: <BrandGlyph path={siX.path} title="X" /> },
-  {
-    label: "Facebook",
-    link: "https://facebook.com",
-    icon: <BrandGlyph path={siFacebook.path} title="Facebook" />,
-  },
   { label: "Email", link: `mailto:${CONTACT_EMAIL}`, icon: <MailGlyph /> },
-  {
-    label: "WhatsApp",
-    link: "https://wa.me/",
-    icon: <BrandGlyph path={siWhatsapp.path} title="WhatsApp" />,
-  },
 ];
 
 /**
@@ -201,13 +175,23 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
                 aria-current={on ? "page" : undefined}
                 className={`group relative rounded-full px-4 py-2 text-[0.94rem] font-medium transition-colors duration-200 ${
                   solid
-                    ? "text-[#000065] hover:text-secondary dark:text-foreground dark:hover:text-secondary"
+                    ? "text-[#000065]/75 hover:text-[#000065] dark:text-foreground/75 dark:hover:text-foreground"
                     : "text-white/85 hover:text-white [text-shadow:0_1px_6px_rgba(0,0,0,0.45)]"
-                } ${on ? "!text-secondary" : ""}`}
+                } ${
+                  on
+                    ? solid
+                      ? "!text-[#000065] dark:!text-foreground"
+                      : "!text-white"
+                    : ""
+                }`}
               >
                 {n.label}
                 {/* The current-page rule is drawn, not just coloured: colour
-                    alone is not a state anyone can rely on. */}
+                    alone is not a state anyone can rely on — and the orange it
+                    used to be measured 2.95:1 on this bar, so it was failing
+                    the people who rely on it most. The state is now the drawn
+                    rule plus aria-current, and the label simply comes up to
+                    full strength from the 75% its siblings sit at. */}
                 <span
                   aria-hidden="true"
                   className={`pointer-events-none absolute inset-x-4 -bottom-0.5 h-[2px] rounded-full bg-secondary transition-transform duration-300 ease-out ${
@@ -230,7 +214,7 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
           </span>
           <Link
             href="/#pv-contact"
-            className="header-cta-pulse group hidden items-center gap-2 rounded-full bg-secondary px-5 py-2.5 text-sm font-semibold text-[#000065] transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-[#000065] hover:shadow-[0_10px_30px_rgba(255,101,0,0.35)] active:translate-y-0 md:inline-flex"
+            className="header-cta-pulse group hidden items-center gap-2 rounded-full bg-secondary px-5 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-black hover:shadow-[0_10px_30px_rgba(255,101,0,0.35)] active:translate-y-0 md:inline-flex"
           >
             {/* Not "Book a Strategy Call". That was carried over wholesale
                 when this header was rebuilt to match litchconsulting's, and it

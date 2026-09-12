@@ -10,6 +10,16 @@
   --surface-2: #e9ebf8;
   --line: rgba(0, 0, 101, 0.12);
   --logo-ink: #000065;
+  /* THE TWO BRAND CONSTANTS, declared here rather than only in preview.css's
+     `.pv` block. The footer and the header render OUTSIDE `main.pv`, so every
+     `var(--accent)` in site-footer.css resolved to nothing: the "Start a
+     conversation" pill lost its orange fill, the footer focus ring lost its
+     colour, and the motto's highlight lost its. They are the same colour in
+     both themes, so they belong at :root and are NOT re-declared under .dark.
+     --on-accent is the only label colour allowed on an --accent fill: black
+     measures 7.11:1 there, white 2.95:1. See the colour rule in preview.css. */
+  --accent: #ff6500;
+  --on-accent: #000;
 }
 
 .dark {
@@ -119,10 +129,19 @@ h4 {
   display: inline-block;
   opacity: 1;
   color: #ff6500;
+  animation: text-cursor-blink 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes text-cursor-blink {
+  to { opacity: 0; }
 }
 
 .text-type__cursor--hidden {
   display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .text-type__cursor { animation: none; }
 }
 
 /* The native cursor is hidden ONLY while the smooth cursor is actually running.

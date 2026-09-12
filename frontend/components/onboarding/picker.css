@@ -20,7 +20,7 @@
 .pv .pk { position: relative; }
 
 .pv .pk__pop {
-  position: absolute; z-index: 300; top: calc(100% + 6px); left: 0;
+  position: absolute; z-index: 1000; top: calc(100% + 6px); left: 0;
   width: min(26rem, 100%);
   border: 1px solid var(--rule); border-radius: 12px;
   background: var(--paper);

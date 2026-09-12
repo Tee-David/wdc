@@ -61,7 +61,7 @@ export async function sendPasswordResetEmail(to: string, url: string) {
     to,
     subject: "Reset your WDC admin password",
     text: `A password reset was requested for your WDC admin account. Open this link within one hour: ${url}\n\nIf you did not request this, ignore this email.`,
-    html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a;max-width:560px"><p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#ff6500">WDC STUDIO ADMIN</p><h1 style="font-size:28px;margin:12px 0">Reset your password</h1><p>A password reset was requested for your admin account.</p><p><a href="${safeUrl}" style="display:inline-block;background:#ff6500;color:#000065;padding:13px 20px;border-radius:10px;font-weight:700;text-decoration:none">Choose a new password</a></p><p style="color:#666680;font-size:13px">This link expires in one hour. If you did not request it, you can ignore this message.</p></div>`,
+    html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a;max-width:560px"><p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#ff6500">WDC STUDIO ADMIN</p><h1 style="font-size:28px;margin:12px 0">Reset your password</h1><p>A password reset was requested for your admin account.</p><p><a href="${safeUrl}" style="display:inline-block;background:#ff6500;color:#ffffff;padding:13px 20px;border-radius:10px;font-weight:700;text-decoration:none">Choose a new password</a></p><p style="color:#666680;font-size:13px">This link expires in one hour. If you did not request it, you can ignore this message.</p></div>`,
   });
 }
 

@@ -145,34 +145,11 @@ function HeroBackdrop() {
           className="object-cover opacity-0"
         />
       ) : null}
-      {/* The scrim earns its keep now. These backdrops are bright studio
-          photographs — a lit monitor, a white desk, a Search Console panel that
-          is very nearly paper — where the artwork they replaced was mostly
-          dark.
-
-          Measured against the brightest 1% of each image across the band the
-          headline occupies, compositing in sRGB rather than in linear
-          luminance — the blend happens on the channel values, and doing it on
-          the luminances instead understates every one of these by about 3x:
-
-            40%  3.03:1   under AA for anything but the headline
-            58%  5.58:1   clears AA, but reads as a photograph with type on it
-            64%  7.00:1   the picture is present and the words are unambiguous
-            72%  9.59:1   safe, and heavy enough to lose the photograph
-
-          65 is the setting: it holds AA with margin for the body copy as well
-          as the headline, and the worst frame is search-console.jpg, which is
-          very nearly a sheet of white paper — every other backdrop sits well
-          above it.
-
-          MULTIPLES OF FIVE ONLY. The previous value here was `bg-black/72`,
-          and 72 is not a step this build generates — the utility produced
-          nothing at all, so in the light theme there was no black scrim, and
-          in dark the whole effect was the `dark:` layer beside it. Any opacity
-          written here has to be checked in the browser rather than assumed. */}
-      <div className="absolute inset-0 bg-black/65 dark:bg-background/70" />
-      <div className="absolute inset-0 dark:bg-gradient-to-b dark:from-transparent dark:via-transparent dark:to-background/85" />
-      <div className="absolute inset-0 dark:bg-primary/25 dark:mix-blend-multiply" />
+      {/* Keep the photography visible while the white hero copy remains clear.
+          Use generated opacity steps and verify the result in both themes. */}
+      <div className="absolute inset-0 bg-black/55 dark:bg-background/50" />
+      <div className="absolute inset-0 dark:bg-gradient-to-b dark:from-transparent dark:via-transparent dark:to-background/65" />
+      <div className="absolute inset-0 dark:bg-primary/10 dark:mix-blend-multiply" />
     </div>
   );
 }
@@ -258,12 +235,12 @@ export function Hero() {
         </h1>
 
         <div
-          className="hero-rise mt-8 flex flex-wrap items-center justify-center gap-4"
+          className="hero-rise mt-8 flex w-full flex-col items-stretch justify-center gap-4 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center"
           style={{ animationDelay: "400ms" }}
         >
           <Link
             href="#pv-contact"
-            className="group inline-flex items-center gap-2 rounded-full bg-secondary px-7 py-3.5 text-sm font-semibold text-[#000065] shadow-[0_12px_34px_rgba(255,101,0,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-[#000065] hover:shadow-none active:translate-y-0"
+            className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-secondary px-7 py-3.5 sm:w-auto text-sm font-semibold text-black shadow-[0_12px_34px_rgba(255,101,0,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-black hover:shadow-none active:translate-y-0"
           >
             Let&apos;s Talk
             <svg
@@ -280,7 +257,7 @@ export function Hero() {
           </Link>
           <Link
             href="#pv-work"
-            className="inline-flex items-center gap-2 rounded-full border border-line bg-white text-black px-7 py-3.5 text-sm font-semibold shadow-[0_8px_26px_rgba(0,0,0,0.12)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#000065] hover:text-white hover:border-[#000065] active:translate-y-0 dark:bg-background/40 dark:text-foreground dark:hover:bg-primary dark:hover:text-white dark:hover:border-primary"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-line bg-white text-black px-7 py-3.5 sm:w-auto text-sm font-semibold shadow-[0_8px_26px_rgba(0,0,0,0.12)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#000065] hover:text-white hover:border-[#000065] active:translate-y-0 dark:bg-background/40 dark:text-foreground dark:hover:bg-primary dark:hover:text-white dark:hover:border-primary"
           >
             Explore Our Work
           </Link>

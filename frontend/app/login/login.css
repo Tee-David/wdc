@@ -50,7 +50,7 @@
 .au__formMeta > a:hover { text-decoration: underline; text-underline-offset: .2em; }
 .au__error { margin: 0; padding: .65rem .75rem; border-radius: .6rem; background: rgb(190 28 28 / .1); color: #c02626; font-size: .82rem; }
 .dark .au__error { color: #fca5a5; }
-.au__submit { min-height: 3.1rem; border: 0; border-radius: .8rem; background: var(--au-orange); color: #000065; font: 700 .9rem var(--font-space-grotesk), system-ui, sans-serif; cursor: pointer; transition: transform .18s, background .18s; }
+.au__submit { min-height: 3.1rem; border: 0; border-radius: .8rem; background: var(--au-orange); color: var(--on-accent, #000); font: 700 .9rem var(--font-space-grotesk), system-ui, sans-serif; cursor: pointer; transition: transform .18s, background .18s; }
 .au__submit:hover { transform: translateY(-1px); background: #ff7b24; }
 .au__submit:disabled { opacity: .65; cursor: wait; transform: none; }
 .au__help { margin: 1.6rem 0 0; color: var(--muted); font-size: .78rem; line-height: 1.55; text-align: center; }
