@@ -7,8 +7,8 @@ import {
 } from "lucide-react";
 import { SERVICES, type ServiceSlug } from "@/lib/services";
 import {
-  isFilled, minutesLeft, PHASES, PICKER_LINE, problemWith, stepsFor, UNSURE,
-  type Field, type PhaseId, type Step,
+  isFilled, minutesLeft, PICKER_LINE, problemWith, stepsFor, UNSURE,
+  type Field, type Step,
 } from "@/lib/onboarding";
 import PhoneField from "./phone-field";
 /* THEIR SelectField, not the one this branch grew in parallel. It shares its
@@ -180,21 +180,18 @@ export default function OnboardingForm() {
 
   const done = i >= steps.length;
 
-  /* --------------------------------------------------------- the progress */
-  /* Progress is measured in PARTS, not in steps -- see the long note on PHASES
-     in lib/onboarding.ts. Each part fills as its own steps are finished, so
-     the reader is watching three short bars complete rather than one long one
-     crawl. */
-  const phase: PhaseId = step?.phase ?? "final";
-  const inPhase = useMemo(() => steps.filter((s) => s.phase === phase), [steps, phase]);
-  const posInPhase = inPhase.findIndex((s) => s.id === step?.id) + 1;
-
-  const phaseFill = (id: PhaseId) => {
-    const all = steps.filter((s) => s.phase === id);
-    if (!all.length) return 0;
-    const doneHere = all.filter((s) => steps.indexOf(s) < i).length;
-    return Math.round((doneHere / all.length) * 100);
-  };
+  /* One progress signal for one journey. The first screen starts visibly at
+     8% so it feels begun, then each of the three parts advances the same bar.
+     Review is 100%. */
+  const progress = done ? 100 : Math.max(8, Math.round((i / steps.length) * 100));
+  const encouragement =
+    i === 0
+      ? "You are off to a good start."
+      : i === 1
+        ? "This detail helps us begin with fewer follow-up questions."
+        : i === 2
+          ? "We have the shape of the project now."
+          : "Nearly there; review comes next.";
 
   const mins = useMemo(
     () => minutesLeft(steps, i, a, (f) => visible(f, a)),
@@ -419,49 +416,6 @@ export default function OnboardingForm() {
   /* ------------------------------------------------ a step */
   return (
     <div className="ob">
-      {/* the rail */}
-      {/* THE RAIL IS THE MAP, AND IT IS GROUPED BY PART.
-
-          It used to open with "Step 1 of 7" in bold, which is the one line
-          this whole redesign exists to get rid of -- moving it out of the main
-          column and leaving it at the top of the rail would have been moving
-          the problem rather than fixing it.
-
-          Grouping the same steps under the three part headings does the
-          opposite job. Seeing the whole map is reassuring, not alarming, as
-          long as it is shaped: three named groups of two or three, rather than
-          an undifferentiated list of eleven. The numbers are still on every
-          row for anyone who wants them, at the size a number deserves. */}
-      <nav className="ob__rail" aria-label="Progress">
-        {PHASES.map((ph) => {
-          const mine = steps
-            .map((s, n) => ({ s, n }))
-            .filter(({ s }) => s.phase === ph.id);
-          if (!mine.length) return null;
-          const allDone = mine.every(({ n }) => n < i);
-          return (
-            <section key={ph.id} className={`ob__railGrp${ph.id === phase ? " is-on" : ""}${allDone ? " is-done" : ""}`}>
-              <h2>{ph.title}</h2>
-              <ol>
-                {mine.map(({ s, n }) => (
-                  <li key={s.id} className={n === i ? "is-on" : n < i ? "is-done" : undefined}>
-                    <button type="button" onClick={() => { setTried(false); setI(n); }} disabled={n > i}>
-                      <span className="ob__n" aria-hidden="true">
-                        {n < i ? <Check /> : String(n + 1).padStart(2, "0")}
-                      </span>
-                      <span>
-                        <b>{s.title}</b>
-                        <em>{s.blurb}</em>
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ol>
-            </section>
-          );
-        })}
-      </nav>
-
       {/* the step */}
       <div className="ob__main">
         {/* ------------------------------------------------ the top bar.
@@ -478,24 +432,17 @@ export default function OnboardingForm() {
             answering "no" to a branching question makes the estimate actually
             drop. A number that never moves is worse than no number. */}
         <div className="ob__top">
-          <ol className="ob__phases">
-            {PHASES.map((ph) => {
-              const fill = phaseFill(ph.id);
-              const on = ph.id === phase;
-              return (
-                <li
-                  key={ph.id}
-                  className={`ob__ph${on ? " is-on" : ""}${fill === 100 ? " is-done" : ""}`}
-                  aria-current={on ? "step" : undefined}
-                >
-                  <span className="ob__phBar" aria-hidden="true">
-                    <i style={{ width: `${on ? Math.max(fill, 6) : fill}%` }} />
-                  </span>
-                  <span className="ob__phName">{ph.title}</span>
-                </li>
-              );
-            })}
-          </ol>
+          <div
+            className="ob__progress"
+            role="progressbar"
+            aria-label="Onboarding progress"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progress}
+          >
+            <span style={{ width: `${progress}%` }} />
+            <b>{progress}%</b>
+          </div>
 
           <div className="ob__topMeta">
             {/* THE PART IS NOT NAMED AGAIN HERE. It was, and between this
@@ -504,7 +451,7 @@ export default function OnboardingForm() {
                 question. The bar names the part; this line carries only what
                 the bar cannot say. */}
             <p>
-              {posInPhase} of {inPhase.length} in this part
+              Part {i + 1} of {steps.length}
               <span aria-hidden="true"> · </span>
               <span className="ob__mins">about {mins} min left</span>
             </p>
@@ -512,13 +459,14 @@ export default function OnboardingForm() {
               <Save aria-hidden="true" /> Save &amp; continue later
             </button>
           </div>
+          <p className="ob__encourage">{encouragement}</p>
 
           {/* `role="status"` rather than an alert: this is good news, and it
               should not interrupt anyone. */}
           {savedAt > 0 && (
             <p className="ob__saved" role="status">
               <Check aria-hidden="true" />
-              Saved. Close the tab whenever you like — this same link brings you
+              Saved. Close the tab whenever you like; this same link brings you
               back to this question.
             </p>
           )}
@@ -747,7 +695,7 @@ function FieldView({
       aria-pressed={deferred}
     >
       {deferred ? <Undo2 aria-hidden="true" /> : <HelpCircle aria-hidden="true" />}
-      {deferred ? "Actually, let me answer this" : "Not sure — you advise us"}
+      {deferred ? "Actually, let me answer this" : "Not sure; you advise us"}
     </button>
   ) : null;
 

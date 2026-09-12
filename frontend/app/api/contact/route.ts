@@ -37,11 +37,18 @@ export async function POST(request: NextRequest) {
       subject: `Website enquiry: ${topic}`, text: detailText,
       html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a;max-width:620px"><p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#ff6500">NEW WEBSITE ENQUIRY</p><h1 style="font-size:26px;margin:12px 0">${escapeHtml(topic)}</h1><p><b>From:</b> ${escapeHtml(name)} &lt;${escapeHtml(email)}&gt;</p>${phone ? `<p><b>Phone:</b> ${escapeHtml(phone)}</p>` : ""}<hr style="border:0;border-top:1px solid #e7e7ef"><p>${escapeHtml(message).replace(/\n/g, "<br>")}</p></div>`,
     });
-    await sendMail({
-      to: email, subject: "We received your message — We Dig Creativity",
-      text: `Hi ${first},\n\nWe received your message about ${topic}. Our team will reply within the same working day.\n\nWe Dig Creativity\n${CONTACT_EMAIL}`,
-      html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a;max-width:560px"><p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#ff6500">WE DIG CREATIVITY</p><h1 style="font-size:27px;margin:12px 0">Your message is with us.</h1><p>Hi ${escapeHtml(first)},</p><p>We received your message about <b>${escapeHtml(topic)}</b>. Our team will reply within the same working day.</p><p style="color:#666680;font-size:13px">A copy was sent automatically so you know the form worked.</p></div>`,
-    });
+    // The enquiry reaching the studio is the authoritative success. A receipt
+    // is helpful, but its failure must not tell the visitor to resubmit and
+    // create a duplicate enquiry.
+    try {
+      await sendMail({
+        to: email, subject: "We received your message — We Dig Creativity",
+        text: `Hi ${first},\n\nWe received your message about ${topic}. Our team will reply within the same working day.\n\nWe Dig Creativity\n${CONTACT_EMAIL}`,
+        html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a;max-width:560px"><p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#ff6500">WE DIG CREATIVITY</p><h1 style="font-size:27px;margin:12px 0">Your message is with us.</h1><p>Hi ${escapeHtml(first)},</p><p>We received your message about <b>${escapeHtml(topic)}</b>. Our team will reply within the same working day.</p><p style="color:#666680;font-size:13px">A copy was sent automatically so you know the form worked.</p></div>`,
+      });
+    } catch (receiptError) {
+      console.error("Contact receipt failed", receiptError instanceof Error ? receiptError.message : "unknown error");
+    }
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Contact email failed", error instanceof Error ? error.message : "unknown error");

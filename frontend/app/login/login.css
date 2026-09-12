@@ -23,6 +23,13 @@
 .au__formWrap h1 { margin: 0; font: 700 clamp(1.8rem, 4vw, 2.25rem)/1.1 var(--font-space-grotesk), system-ui, sans-serif; }
 .au__lede { margin: .55rem 0 0; color: var(--muted); font-size: .94rem; }
 .au__form { display: grid; gap: .85rem; margin-top: 1.8rem; }
+.au__google { width: 100%; min-height: 3.2rem; margin-top: 1.6rem; display: inline-flex; align-items: center; justify-content: center; gap: .7rem; border: 1px solid var(--line); border-radius: .8rem; background: var(--surface); color: var(--foreground); font: 700 .86rem var(--font-space-grotesk), system-ui, sans-serif; cursor: pointer; }
+.au__google:hover { border-color: var(--au-orange); }
+.au__google:disabled { opacity: .65; cursor: wait; }
+.au__google svg { width: 1.15rem; height: 1.15rem; }
+.au__or { display: flex; align-items: center; gap: .7rem; margin-top: 1rem; color: var(--muted); font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; }
+.au__or::before, .au__or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.au__google + .au__or + .au__form { margin-top: 1rem; }
 .au__field { position: relative; display: block; }
 .au__field input {
   width: 100%; min-height: 3.65rem; padding: 1.35rem 3rem .45rem .9rem;

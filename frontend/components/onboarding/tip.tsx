@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 /**
@@ -27,12 +28,15 @@ import { X } from "lucide-react";
 export default function Tip({ text }: { text: string }) {
   const id = useId();
   const [open, setOpen] = useState(false);
+  const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
   const root = useRef<HTMLSpanElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
     const away = (e: PointerEvent) => {
-      if (!root.current?.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (!root.current?.contains(target) && !panel.current?.contains(target)) setOpen(false);
     };
     const key = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
     document.addEventListener("pointerdown", away);
@@ -43,6 +47,33 @@ export default function Tip({ text }: { text: string }) {
     };
   }, [open]);
 
+  useLayoutEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const anchor = root.current?.getBoundingClientRect();
+      const popover = panel.current?.getBoundingClientRect();
+      if (!anchor || !popover) return;
+      const gutter = 16;
+      const gap = 10;
+      const left = Math.min(
+        window.innerWidth - popover.width - gutter,
+        Math.max(gutter, anchor.left + anchor.width / 2 - popover.width / 2),
+      );
+      const below = anchor.bottom + gap;
+      const top = below + popover.height <= window.innerHeight - gutter
+        ? below
+        : Math.max(gutter, anchor.top - popover.height - gap);
+      setPosition({ left, top });
+    };
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true);
+    return () => {
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place, true);
+    };
+  }, [open, text]);
+
   return (
     <span className="tip" ref={root}>
       <button
@@ -51,7 +82,10 @@ export default function Tip({ text }: { text: string }) {
         aria-expanded={open}
         aria-controls={open ? id : undefined}
         aria-label="What does this mean?"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          setPosition(null);
+          setOpen((o) => !o);
+        }}
       >
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -60,13 +94,22 @@ export default function Tip({ text }: { text: string }) {
           <path d="M12 16.9h.01" />
         </svg>
       </button>
-      {open && (
-        <span className="tip__p" id={id} role="note">
-          {text}
-          <button type="button" onClick={() => setOpen(false)} aria-label="Close">
-            <X aria-hidden="true" />
-          </button>
-        </span>
+      {open && createPortal(
+        <div className="pv tip__portal">
+          <div
+            ref={panel}
+            className="tip__p"
+            id={id}
+            role="note"
+            style={position ? position : { left: 0, top: 0, visibility: "hidden" }}
+          >
+            {text}
+            <button type="button" onClick={() => setOpen(false)} aria-label="Close">
+              <X aria-hidden="true" />
+            </button>
+          </div>
+        </div>,
+        document.body,
       )}
     </span>
   );
