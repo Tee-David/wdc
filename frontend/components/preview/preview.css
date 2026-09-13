@@ -47,12 +47,34 @@
      #ffffff on #FF6500 .... 2.9:1   fails, never used for text
      #000065 on #FF6500 .... 6.0:1   passes, but a coloured label
      #FF6500 on #ffffff .... 2.8:1   fails, hence --accent-ink for text on light
-     #C95000 on #ffffff .... 4.5:1   --accent-ink: the lightest passing orange
+     #C95000 on #ffffff .... 4.5:1   passes on WHITE and nowhere else
+     #B64800 on #ffffff .... 5.4:1   --accent-ink: passes on every ground we
+     #B64800 on #f4f5fc .... 4.9:1   actually put it on, which #c95000 did not
    ========================================================================== */
 
 .pv {
   --paper: #ffffff;
-  --paper-2: #f4f5fc;
+  /* WARM OFF-WHITE, NOT A COOL ONE, AND THE REASON IS MEASURABLE.
+
+     This was #f4f5fc. In OKLCH that sits at hue 279.7 while the brand navy
+     #000065 sits at 264.1 -- almost sixteen degrees violet of the only blue
+     the brand owns, so it was not a tint of anything we own. Its chroma
+     (0.0094) was also twice the admin dashboard's own off-white: not a
+     deliberate colour and not a neutral either, which is the no-man's-land
+     that reads as stock.
+
+     The sharpest evidence was what it did to the ORANGE. form-kit.css fills a
+     focused field with `color-mix(in srgb, var(--accent) 8%, var(--paper-2))`.
+     On the old surface that computed to #ebe0e4 -- hue 353, a PINK. The brand
+     orange, diluted onto its own background, stopped being orange. On this one
+     it computes to #f2e1d2, hue 64, which is still orange.
+
+     #f9f7f4 is warmer AND lower chroma than what it replaces (0.0045 against
+     0.0094), so it reads as paper rather than as a colour, and the warm/cool
+     opposition makes the navy bands sit forward without shouting. Every
+     contrast ratio in the system improved slightly because it is lighter:
+     ink 17.57, muted 6.55, accent-ink 5.02, navy 16.53. */
+  --paper-2: #f9f7f4;
   --band: #000065;
   --band-2: #10104d;
   --accent: #ff6500;
@@ -65,7 +87,19 @@
      needed to be, which is why it read as a different, muddier orange beside
      the real thing. #c95000 is the lightest orange on this hue that still
      clears 4.5:1, so it is as close to the brand as legibility allows. */
-  --accent-ink: #c95000;
+  /* MEASURED AGAINST THE GROUNDS IT IS ACTUALLY USED ON, not just white.
+     #c95000 was chosen as "the lightest passing orange" against #ffffff at
+     4.53:1 -- true, and beside the point, because half its call sites sit on
+     --paper-2 (#f4f5fc) and --paper-2 inside an alt band, where it measured
+     4.17:1 and 3.82:1. Both below AA. The contents summary on a blog post, the
+     edit button on the onboarding review panel and every eyebrow inside a
+     `.pv-sec--alt` were failing.
+
+     #b64800 is 5.36:1 on white, 4.93:1 on --paper-2 and 4.52:1 on the darker
+     -2 ground, so ONE token passes everywhere. A second token for the darker
+     grounds was the other option and was rejected: a choice at the call site
+     is a choice somebody gets wrong. */
+  --accent-ink: #b64800;
   --ink: #0e0e2c;
   --muted: #565678;
   --rule: rgba(0, 0, 101, 0.12);
