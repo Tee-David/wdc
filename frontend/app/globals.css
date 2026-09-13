@@ -216,9 +216,12 @@ h4 {
   font-size: .95rem;
   font-weight: 600;
   text-decoration: none;
-  box-shadow: 0 10px 30px -10px rgb(0 0 26 / .5);
+  /* NO SHADOW WHILE PARKED. The link is translated off the top of the screen,
+     but a 30px blur is not: it spilled back down as a soft grey smudge at the
+     top of every page in light mode. The shadow belongs to the visible state. */
 }
 .skip-link:focus-visible {
+  box-shadow: 0 10px 30px -10px rgb(0 0 26 / .5);
   transform: translate(-50%, 0);
   outline: 3px solid var(--accent);
   outline-offset: 2px;
@@ -322,6 +325,29 @@ main:focus { outline: none; }
   .hero-slats,
   .hero-slat { animation: none; }
   .hero-slat { opacity: 1; transform: none; }
+}
+
+/* THE SCROLL-REVEAL HEADING ON TOUCH DEVICES.
+
+   The pointer-device version is scrubbed by GSAP and animates a blur per word.
+   That is a repaint of every visible word on every scroll frame, which iOS
+   Safari cannot absorb -- see components/ui/scroll-reveal.tsx for the full
+   reason. Here the same reveal is one CSS transition per word, opacity only,
+   fired once when the heading is first seen.
+
+   No rule paints anything until the component sets `data-sr-mode`, so the
+   server-rendered heading is fully legible with JavaScript disabled or still
+   loading. Nothing is hidden behind hydration. */
+[data-sr-mode="wait"] .sr-word { opacity: .12; }
+[data-sr-mode="in"] .sr-word {
+  opacity: 1;
+  transition: opacity .5s ease-out;
+  /* Each word's own index, so the stagger needs no timeline and no script. */
+  transition-delay: calc(var(--i, 0) * 45ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-sr-mode="wait"] .sr-word,
+  [data-sr-mode="in"] .sr-word { opacity: 1; transition: none; }
 }
 
 /* THE HEADLINE RISES WITHOUT FADING, and that is a Largest Contentful Paint
