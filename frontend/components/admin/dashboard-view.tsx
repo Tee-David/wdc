@@ -1,8 +1,17 @@
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, CalendarClock, CircleDollarSign, ClipboardList, FolderClock } from "lucide-react";
 import { SERVICES } from "@/lib/services";
-import { getBoard, getClient, getClients, getInvoices, getMonthly, getPayments, getProjects, getSubmissions, getSummary } from "@/lib/admin/store";
-import { invoiceStatus, invoiceTotals, naira, nairaShort, STAGES } from "@/lib/admin/types";
+import { getBoard, getClient, getClients, getInvoices, getMonthly, getPayments, getProjects, getSubmissions, getSummary, getTasks } from "@/lib/admin/store";
+import { invoiceStatus, invoiceTotals, naira, nairaShort, projectAttention, STAGES } from "@/lib/admin/types";
+
+/* Worst first. The attention queue is read top-down in the morning, so the
+   order has to be the order somebody should act in rather than the order the
+   projects happen to be stored in. */
+const TONE_RANK = { bad: 0, warn: 1, info: 2 } as const;
+/* The combined queue mixes invoices, projects and unfinished onboarding, and
+   each carries one of these three tones. Anything unexpected sorts last rather
+   than first, so a new kind of row added later cannot silently take the top. */
+const ROW_RANK: Record<string, number> = { bad: 0, warn: 1, neutral: 2 };
 import { AddClient } from "./client-form";
 import { AddExpense, InvoiceBuilder } from "./money-forms";
 import { AddProject } from "./project-forms";
@@ -26,6 +35,7 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
   const maxMonthly = Math.max(1, ...monthly.flatMap((month) => [month.in, month.out]));
   const collectionRate = summary.invoiced ? Math.round((summary.collected / summary.invoiced) * 100) : 0;
 
+  const tasks = getTasks();
   const attention = [
     ...invoices
       .filter((invoice) => invoiceStatus(invoice) === "Overdue")
@@ -38,15 +48,31 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
         tone: "bad",
         menu: <InvoiceMenu invoice={invoice} />,
       })),
+    /* PROJECTS THAT ARE ACTUALLY ASKING FOR SOMEBODY, not projects that happen
+       to sit in a particular stage.
+
+       This used to list everything in Onboarding or Revisions, which is a
+       proxy and a poor one: a project can sit in Onboarding for a fortnight
+       while the client fills the form, which is fine, and one can rot in "In
+       progress" for a month with nobody chasing it, which is not. Both were
+       the wrong way round on the only screen anybody reads in the morning.
+
+       `projectAttention` derives the real reasons -- overdue, blocked, waiting
+       on a client, in revision, a task that has slipped -- from the project,
+       its tasks and today's date. A project with none of them does not appear,
+       which is what makes an empty queue mean something. */
     ...projects
-      .filter((project) => project.stage === "Onboarding" || project.stage === "Revisions")
-      .map((project) => ({
+      .map((project) => ({ project, why: projectAttention(project, tasks) }))
+      .filter((x) => x.why.length)
+      /* Worst first, so the top of the list is the thing to do first. */
+      .sort((a, b) => TONE_RANK[a.why[0].tone] - TONE_RANK[b.why[0].tone])
+      .map(({ project, why }) => ({
         href: `/admin/projects/${project.id}`,
         title: project.title,
-        detail: `${getClient(project.clientId)?.company ?? "Unknown client"} · ${project.stage}`,
+        detail: `${getClient(project.clientId)?.company ?? "Unknown client"} · ${why.map((w) => w.label).join(" · ")}`,
         meta: project.due ? `Due ${when(project.due)}` : "Date not set",
         icon: FolderClock,
-        tone: project.stage === "Revisions" ? "warn" : "neutral",
+        tone: why[0].tone === "bad" ? "bad" : why[0].tone === "warn" ? "warn" : "neutral",
         menu: <ProjectMenu project={project} clientName={getClient(project.clientId)?.company} />,
       })),
     ...getSubmissions()
@@ -60,7 +86,17 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
         tone: "neutral",
         menu: <SubmissionMenu submission={submission} clients={clients} />,
       })),
-  ];
+  ]
+    /* SORTED ACROSS THE WHOLE QUEUE, not within each kind.
+       This list is built by concatenating invoices, then projects, then
+       onboarding, and it is cut to six for the panel. Without this sort the
+       order is the order of concatenation, so three overdue invoices push
+       every blocked project off a panel titled "Attention needed" — the two
+       loudest things on the screen never appearing together because of how the
+       array happened to be assembled. Severity decides, whatever kind the row
+       is. `sort` on the array literal is fine here: it is built fresh on every
+       render and nothing else holds a reference to it. */
+    .sort((a, b) => (ROW_RANK[a.tone] ?? 9) - (ROW_RANK[b.tone] ?? 9));
 
   const upcoming = projects
     .filter((project) => project.stage !== "Delivered" && project.due)

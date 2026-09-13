@@ -1,5 +1,5 @@
 import { Inbox, Info, type LucideIcon } from "lucide-react";
-import type { InvoiceStatus, Stage } from "@/lib/admin/types";
+import type { Approval, Attention, Health, InvoiceStatus, Stage } from "@/lib/admin/types";
 
 /**
  * The small pieces every admin screen uses, in one file so that a status pill
@@ -92,6 +92,72 @@ const INV_TONE: Record<InvoiceStatus, string> = {
 
 export function InvoicePill({ status }: { status: InvoiceStatus }) {
   return <span className={`ad__pill ${INV_TONE[status]}`}>{status}</span>;
+}
+
+/**
+ * HOW IT IS GOING, as a pill.
+ *
+ * Two of the four are bad news and they are told apart deliberately: "blocked"
+ * is something WE cannot get past, "waiting on client" is something somebody
+ * else owes us. They need different actions from whoever reads the board, so
+ * they get different colours.
+ */
+const HEALTH_TONE: Record<Health, string> = {
+  "On track": "ad__pill--good",
+  "At risk": "ad__pill--warn",
+  "Waiting on client": "ad__pill--warn",
+  Blocked: "ad__pill--bad",
+};
+
+export function HealthPill({ health }: { health: Health }) {
+  return <span className={`ad__pill ${HEALTH_TONE[health]}`}>{health}</span>;
+}
+
+const APPROVAL_TONE: Record<Approval, string> = {
+  "Not sent": "ad__pill--flat",
+  "Awaiting client": "",
+  Approved: "ad__pill--good",
+  "Revision requested": "ad__pill--warn",
+};
+
+export function ApprovalPill({ approval }: { approval: Approval }) {
+  return <span className={`ad__pill ${APPROVAL_TONE[approval]}`}>{approval}</span>;
+}
+
+const TONE_CLASS = { bad: "ad__pill--bad", warn: "ad__pill--warn", info: "ad__pill--flat" } as const;
+
+/**
+ * WHY THIS ROW IS ASKING FOR SOMEBODY.
+ *
+ * Derived by `projectAttention`, never stored -- see the note there. Renders
+ * nothing at all when there is nothing to say, so a healthy project does not
+ * carry an empty slot on every list.
+ */
+export function AttentionPills({
+  items, except,
+}: {
+  items: Attention[];
+  /**
+   * A label already shown beside these, so it is not said twice.
+   *
+   * `projectAttention` deliberately includes the health reasons, because the
+   * dashboard queue has no health pill and needs the complete answer to "why
+   * is this here". The project page and the list DO draw a HealthPill, and
+   * without this they rendered "Waiting on client" twice in a row. The
+   * derivation stays complete; the duplicate is dropped at the one place that
+   * knows it is a duplicate.
+   */
+  except?: string;
+}) {
+  const shown = except ? items.filter((a) => a.label !== except) : items;
+  if (!shown.length) return null;
+  return (
+    <span className="ad__attn">
+      {shown.map((a) => (
+        <span key={a.label} className={`ad__pill ${TONE_CLASS[a.tone]}`}>{a.label}</span>
+      ))}
+    </span>
+  );
 }
 
 /** A date a person would say, not an ISO string. */

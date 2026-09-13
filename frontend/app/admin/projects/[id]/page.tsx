@@ -1,11 +1,20 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
-import { getClient, getInvoicesFor, getProject } from "@/lib/admin/store";
-import { invoiceStatus, invoiceTotals, naira, STAGES } from "@/lib/admin/types";
-import { Empty, InvoicePill, Panel, StagePill, when } from "@/components/admin/bits";
+import {
+  getClient, getDeliverablesFor, getInvoicesFor, getProject, getTasksFor, getUpdatesFor,
+} from "@/lib/admin/store";
+import {
+  invoiceStatus, invoiceTotals, naira, projectAttention, STAGES,
+} from "@/lib/admin/types";
+import {
+  AttentionPills, Empty, HealthPill, InvoicePill, Panel, StagePill, when,
+} from "@/components/admin/bits";
 import { InvoiceMenu } from "@/components/admin/row-actions";
 import { AddNote, SetDue, StageMover } from "@/components/admin/project-forms";
+import {
+  Deliverables, ProjectDetails, Tasks, Updates,
+} from "@/components/admin/delivery";
 import { InvoiceBuilder } from "@/components/admin/money-forms";
 
 /* NO generateStaticParams: projects are created at runtime now, and a route
@@ -18,6 +27,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const client = getClient(p.clientId);
   const invoices = client ? getInvoicesFor(client.id).filter((i) => i.projectId === p.id) : [];
   const at = STAGES.indexOf(p.stage);
+  const tasks = getTasksFor(p.id);
+  const updates = getUpdatesFor(p.id);
+  const deliverables = getDeliverablesFor(p.id);
+  const attention = projectAttention(p, tasks);
 
   return (
     <>
@@ -29,12 +42,47 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             {client ? <Link href={`/admin/clients/${client.id}`}>{client.company}</Link> : "Unknown client"}
             {" · "}{SERVICES.find((x) => x.slug === p.service)?.short}
             {" · "}due {when(p.due)}
+            {p.owner ? <>{" · "}{p.owner}</> : null}
+          </p>
+          {/* WHAT IS WRONG WITH IT, said at the top rather than left for
+              somebody to work out from four panels further down. Derived, so
+              it cannot be stale -- see projectAttention(). */}
+          <p className="ad__row" style={{ marginTop: ".45rem" }}>
+            <HealthPill health={p.health} />
+            <AttentionPills items={attention} except={p.health} />
           </p>
         </div>
-        {client ? (
-          <InvoiceBuilder clients={[client]} projects={[p]} clientId={client.id} />
-        ) : null}
+        <div className="ad__row">
+          <ProjectDetails project={p} />
+          {client ? (
+            <InvoiceBuilder clients={[client]} projects={[p]} clientId={client.id} />
+          ) : null}
+        </div>
       </div>
+
+      {/* WHAT WAS AGREED, which is the thing an argument gets settled against
+          and the thing nobody can ever find. Three facts, above the work. */}
+      <section className="ad__panel" style={{ marginBottom: ".9rem" }}>
+        <div className="ad__panelH"><h2>What was agreed</h2></div>
+        <dl className="ad__facts">
+          <div>
+            <dt>Scope</dt>
+            <dd>{p.scope || <span className="ad__dim">Not written down yet</span>}</dd>
+          </div>
+          <div>
+            <dt>Budget</dt>
+            <dd className="ad__num">
+              {p.budget === null
+                ? <span className="ad__dim">No figure agreed</span>
+                : naira(p.budget)}
+            </dd>
+          </div>
+          <div>
+            <dt>Updates go through</dt>
+            <dd>{p.channel}</dd>
+          </div>
+        </dl>
+      </section>
 
       {/* THE STAGE TRACK. Six named steps, the current one lit, everything
           behind it filled. A client asking "where are we" is asking this
@@ -60,6 +108,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           <StageMover project={p} />
         </div>
       </section>
+
+      <div style={{ display: "grid", gap: ".9rem", marginBottom: ".9rem" }}>
+        <Tasks project={p} tasks={tasks} />
+        <Updates project={p} updates={updates} />
+        <Deliverables project={p} items={deliverables} />
+      </div>
 
       <div className="ad__grid2">
         <Panel title="History">

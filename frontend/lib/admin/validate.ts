@@ -1,5 +1,8 @@
 import { SERVICES, type ServiceSlug } from "@/lib/services";
-import { STAGES, type Stage } from "./types";
+import {
+  APPROVALS, CHANNELS, HEALTH, PRIORITIES, STAGES,
+  type Stage,
+} from "./types";
 
 /**
  * Reading a form, safely.
@@ -103,6 +106,28 @@ export function stage(fd: FormData, k = "stage"): Stage | null {
   const v = str(fd, k);
   return (STAGES as readonly string[]).includes(v) ? (v as Stage) : null;
 }
+
+/**
+ * ONE READER FOR EVERY CLOSED SET, so that adding a value to a union in
+ * types.ts cannot leave a validator behind that still accepts the old list.
+ * Each of these returns null for anything not in the set, and null is always
+ * treated as "not supplied" by the caller rather than as a default -- a form
+ * that posts `health=deleted-everything` gets an error, not a silent fallback.
+ */
+const oneOf = <T extends string>(list: readonly T[]) =>
+  (fd: FormData, k: string): T | null => {
+    const v = str(fd, k);
+    return (list as readonly string[]).includes(v) ? (v as T) : null;
+  };
+
+export const health = oneOf(HEALTH);
+export const channel = oneOf(CHANNELS);
+export const priority = oneOf(PRIORITIES);
+export const approval = oneOf(APPROVALS);
+
+/** An HTML checkbox posts its value when ticked and nothing at all when not,
+    so presence is the answer and the value never needs reading. */
+export const checked = (fd: FormData, k: string) => fd.get(k) !== null;
 
 /**
  * Is this an email address.

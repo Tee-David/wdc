@@ -732,3 +732,141 @@
   display: flex; align-items: flex-start; justify-content: space-between; gap: .4rem;
 }
 .ad__cardTop > :first-child { min-width: 0; }
+
+/* ---------------------------------------------------------- attention ----
+   The pills that say why a project wants somebody. They sit inline after a
+   title, so they wrap with it rather than pushing the row wider -- a project
+   carrying four of them at 320px must not be what makes the table scroll. */
+.ad__attn {
+  display: inline-flex; flex-wrap: wrap; gap: .3rem;
+  margin-left: .45rem; vertical-align: middle;
+}
+
+/* ---------------------------------------------------------------- tasks --
+   A checklist, not a table. The tick is a real submit button so it works
+   without JavaScript and announces itself; everything else on the row is
+   text. */
+.ad__tasks { list-style: none; margin: 0; padding: .35rem .5rem; display: grid; gap: .15rem; }
+.ad__task {
+  display: flex; align-items: flex-start; gap: .6rem;
+  padding: .5rem .55rem; border-radius: 9px;
+}
+.ad__task:hover { background: var(--ad-raise, rgba(127, 127, 160, .07)); }
+.ad__task > form { flex: none; display: flex; }
+/* 44px of target around a 18px box, the same technique the marketing site
+   uses on its inline links: the hit area is the button's padding, so the tick
+   stays small while a thumb still lands on it. */
+.ad__tick {
+  display: grid; place-items: center;
+  width: 1.6rem; height: 1.6rem; padding: 0; margin: -.2rem 0 0;
+  border: 1.5px solid var(--ad-line); border-radius: 6px;
+  background: transparent; color: transparent; cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+  position: relative;
+}
+.ad__tick::after {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: 44px; height: 44px; transform: translate(-50%, -50%);
+}
+.ad__tick:hover { border-color: var(--ad-accent); }
+.ad__tick:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.ad__tick svg { width: .95rem; height: .95rem; }
+.ad__tick.is-on {
+  background: var(--ad-accent); border-color: var(--ad-accent); color: var(--ad-on-accent, #000);
+}
+.ad__taskT { min-width: 0; flex: 1; }
+.ad__taskT b { display: block; font-weight: 600; }
+.ad__task.is-done .ad__taskT b { text-decoration: line-through; color: var(--ad-dim); }
+.ad__taskT small { display: block; margin-top: .1rem; color: var(--ad-dim); font-size: .78rem; }
+.ad__taskT small > * + *::before { content: " · "; }
+
+/* ------------------------------------------------------------- updates --
+   Each one is a small record with four labelled parts, so it reads the same
+   every week and the parts that are empty simply are not drawn. */
+.ad__ups { list-style: none; margin: 0; padding: .5rem 1rem 1rem; display: grid; gap: .9rem; }
+.ad__up { border: 1px solid var(--ad-line); border-radius: 12px; padding: .75rem .9rem; }
+.ad__upH {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .45rem;
+  margin-bottom: .5rem;
+}
+.ad__upH time { color: var(--ad-dim); font-size: .8rem; }
+.ad__upB { display: grid; gap: .5rem; }
+.ad__upB > div > b {
+  display: block; font-size: .7rem; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ad-dim); margin-bottom: .1rem;
+}
+.ad__upB > div > span { display: block; }
+
+/* -------------------------------------------------------- deliverables --
+   Versions are a numbered list under the name, newest last, because the
+   sequence is the point -- see the note on the type. */
+.ad__dels { list-style: none; margin: 0; padding: .5rem 1rem 1rem; display: grid; gap: .9rem; }
+.ad__del { border: 1px solid var(--ad-line); border-radius: 12px; padding: .75rem .9rem; }
+.ad__delH { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-bottom: .5rem; }
+.ad__delH b { font-weight: 700; }
+.ad__vers { list-style: none; margin: 0 0 .6rem; padding: 0; display: grid; gap: .3rem; }
+.ad__ver { display: flex; gap: .6rem; align-items: baseline; font-size: .86rem; }
+.ad__ver > b { flex: none; color: var(--ad-dim); font-variant-numeric: tabular-nums; }
+.ad__ver > span { min-width: 0; }
+
+/* ------------------------------------------------------- the view switch --
+   Two links that look like one control. Server-rendered from the URL rather
+   than client state, so the choice survives a reload and can be linked to. */
+.ad__switch {
+  display: inline-flex; padding: 2px; gap: 2px;
+  border: 1px solid var(--ad-line); border-radius: 999px;
+}
+.ad__switch a {
+  padding: .4rem .85rem; border-radius: 999px;
+  font-size: .84rem; font-weight: 600; color: var(--ad-dim);
+  text-decoration: none; white-space: nowrap;
+}
+.ad__switch a[aria-current="true"] { background: var(--ad-accent); color: var(--ad-on-accent, #000); }
+.ad__switch a:hover:not([aria-current="true"]) { color: var(--ad-ink); }
+.ad__switch a:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+
+/* ----------------------------------------------------------- the filters --
+   A row of selects in a GET form. No JavaScript: submitting navigates, which
+   means every filtered view has its own URL and the back button works. */
+.ad__filters { display: flex; flex-wrap: wrap; gap: .5rem; align-items: flex-end; }
+.ad__filters label { display: grid; gap: .25rem; font-size: .74rem; color: var(--ad-dim); }
+.ad__filters select {
+  min-height: 2.4rem; padding: .35rem .6rem;
+  border: 1px solid var(--ad-line); border-radius: 8px;
+  background: var(--ad-paper); color: var(--ad-ink); font: inherit; font-size: .86rem;
+}
+@media (max-width: 560px) {
+  .ad__filters { display: grid; grid-template-columns: 1fr 1fr; }
+  .ad__filters > *:last-child { grid-column: 1 / -1; }
+}
+
+/* The pill form of `.ad__check` is built for a two-word label. This one
+   carries a consequence under it -- "leave it unticked for a note that stays
+   between us" -- which a 999px pill cannot hold. Same control, given room. */
+.ad__check--long {
+  display: flex; align-items: flex-start; gap: .6rem;
+  width: 100%; padding: .7rem .85rem; border-radius: 12px;
+  font-size: .92rem; font-weight: 500; text-align: left;
+}
+.ad__check--long input { margin-top: .2rem; flex: none; }
+.ad__check--long > span { min-width: 0; }
+.ad__check--long small {
+  display: block; margin-top: .15rem;
+  font-size: .8rem; font-weight: 400; color: var(--ad-dim); line-height: 1.5;
+}
+
+/* ------------------------------------------------------- what was agreed --
+   Three facts in a row, stacking to one column on a phone. A definition list
+   because that is what it is: each label names its value. */
+.ad__facts {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px; margin: 0; padding: 0; background: var(--ad-line);
+  border-top: 1px solid var(--ad-line);
+}
+.ad__facts > div { padding: .85rem 1rem; background: var(--ad-panel); min-width: 0; }
+.ad__facts dt {
+  font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ad-dim); margin-bottom: .25rem;
+}
+.ad__facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 700px) { .ad__facts { grid-template-columns: 1fr; } }
