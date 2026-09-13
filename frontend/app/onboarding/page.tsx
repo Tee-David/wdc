@@ -38,6 +38,20 @@ export default function OnboardingPage() {
       <main id="main" tabIndex={-1} className="flex-1 pv">
         <section className="pv-sec ob-sec">
           <div className="pv-wrap">
+            {/* THE PAGE'S ONE HEADING, RENDERED ON THE SERVER.
+
+                The form is mounted client-side, so until it hydrated this
+                document had no h1 at all -- its outline began with the
+                footer's "Company". A screen-reader user landing here was told
+                nothing about where they were.
+
+                Visually hidden rather than drawn, because the form supplies
+                its own visible heading a moment later and two stacked titles
+                would be worse design for everyone. Nothing is hidden BEHIND
+                client rendering: this is in the server HTML, which is the
+                whole point of it. The step titles below are h2 so the outline
+                has exactly one h1 and no gaps. */}
+            <h1 className="sr-only">Client onboarding</h1>
             <OnboardingMount />
           </div>
         </section>
