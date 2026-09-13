@@ -9,6 +9,7 @@ import { COMPANY_NAME, SITE_URL } from "@/lib/site";
 import { testimonialFor } from "@/lib/testimonials";
 import "@/components/preview/preview.css";
 import "@/components/work/work.css";
+import { NewTab } from "@/components/ui/new-tab";
 
 /* One path per case study, at its CANONICAL category only. Generating every
    category a piece is tagged to would prerender the same page at three URLs,
@@ -110,6 +111,7 @@ export default async function WorkDetailPage(
                       }}
                     >
                       {new URL(cs.url).hostname.replace(/^www\./, "")}
+                      <NewTab />
                     </a>
                   </span>
                 ) : null}
@@ -272,6 +274,7 @@ export default async function WorkDetailPage(
                       rel="noopener noreferrer"
                     >
                       Visit {cs.client}
+                      <NewTab />
                     </a>
                   </div>
                 ) : null}

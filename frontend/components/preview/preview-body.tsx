@@ -84,7 +84,10 @@ const STEPS = [
 
 const WHY = [
   { t: "One roof", d: "Design, build and growth in one team, so nothing is lost in the hand-off.", label: "See our work", href: "#pv-work" },
-  { t: "Every budget", d: "We work with hundreds of accounts, at a premium standard that scales.", label: "How we work", href: "#pv-process" },
+  /* The claim here was "hundreds of accounts", which we cannot show. The
+     promise a reader actually wants at this point is that the standard does
+     not drop when the budget does. */
+  { t: "Every budget", d: "A first logo or a full platform, held to the same standard either way.", label: "How we work", href: "#pv-process" },
   { t: "Built to last", d: "Fast, accessible, maintainable code, not a template with your logo on it.", label: "Our services", href: "/services" },
   { t: "You are included", d: "You see the work as it happens instead of a reveal at the end.", label: "How we work", href: "#pv-process" },
   { t: "Found, not just seen", d: "Search and content work that keeps paying after the site ships.", label: "Our services", href: "/services#seo" },

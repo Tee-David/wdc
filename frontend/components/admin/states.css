@@ -1,0 +1,10 @@
+.adState { min-height: 12rem; padding: clamp(1.5rem, 5vw, 2.75rem) 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--ad-dim); text-align: center; }
+.adState__visual { width: 3.25rem; height: 3.25rem; margin-bottom: .8rem; display: grid; place-items: center; border-radius: 16px; background: color-mix(in srgb, var(--ad-navy) 9%, var(--ad-panel)); color: var(--ad-navy); }
+.dark .adState__visual { background: color-mix(in srgb, #7377ff 15%, var(--ad-panel)); color: #aeb1ff; }
+.adState__visual svg { width: 1.35rem; height: 1.35rem; }
+.adState--cleared .adState__visual { background: color-mix(in srgb, var(--ad-good) 11%, var(--ad-panel)); color: var(--ad-good); }
+.adState--error .adState__visual { background: color-mix(in srgb, var(--ad-bad) 10%, var(--ad-panel)); color: var(--ad-bad); }
+.adState--forbidden .adState__visual { background: color-mix(in srgb, var(--ad-warn) 12%, var(--ad-panel)); color: var(--ad-warn); }
+.adState strong { color: var(--ad-ink); font: 700 1rem var(--font-space-grotesk), system-ui, sans-serif; }
+.adState p { max-width: 32rem; margin: .35rem 0 0; font-size: .8rem; }
+.adState__actions { margin-top: 1rem; display: flex; flex-wrap: wrap; justify-content: center; gap: .55rem; }

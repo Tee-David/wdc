@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Project } from "@/lib/projects";
 import { caseHref } from "@/lib/work";
+import { NewTab } from "@/components/ui/new-tab";
 
 /**
  * Live preview of a client site, in a modal, without leaving this one.
@@ -256,6 +257,7 @@ export default function SiteModal({
             rel="noopener noreferrer"
           >
             Open live
+            <NewTab />
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" /></svg>
           </a>
           <button
@@ -310,6 +312,7 @@ export default function SiteModal({
               </p>
               <a className="pv-btn pv-btn--accent" href={project.url} target="_blank" rel="noopener noreferrer">
                 Open {host}
+                <NewTab />
               </a>
             </div>
           ) : null}
