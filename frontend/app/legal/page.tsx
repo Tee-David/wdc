@@ -6,7 +6,6 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { LEGAL_DOCS, LEGAL_UPDATED } from "@/lib/legal";
 import { COMPANY_NAME, SITE_URL } from "@/lib/site";
 import "@/components/preview/preview.css";
-import "@/components/work/work.css";
 import "@/components/legal/legal.css";
 
 export const metadata: Metadata = {
