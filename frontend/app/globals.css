@@ -6,8 +6,12 @@
   --background: #ffffff;
   --foreground: #0e0e2c;
   --muted: #565678;
-  --surface: #f4f5fc;
-  --surface-2: #e9ebf8;
+  /* The same value as `--paper-2` in preview.css, because the header, footer
+     and /login render outside `main.pv` and would otherwise be a different
+     off-white from the page they sit on. See the note there for why it is warm
+     rather than the violet-drifted #f4f5fc it replaces. */
+  --surface: #f9f7f4;
+  --surface-2: #f1ece4;
   --line: rgba(0, 0, 101, 0.12);
   --logo-ink: #000065;
   /* THE TWO BRAND CONSTANTS, declared here rather than only in preview.css's
@@ -31,6 +35,13 @@
 
   --accent: #ff6500;
   --on-accent: #000;
+  /* ORANGE AS TEXT, at :root for the same reason --accent is here: the header,
+     the footer and /login render OUTSIDE `main.pv`, so the copy declared in
+     preview.css's `.pv` block is invisible to them and every call site was
+     leaning on a `var(--accent-ink, #b64800)` fallback -- which meant the
+     fallback was the real value, and darkening the token in one file would
+     have fixed the marketing pages and left the chrome behind. */
+  --accent-ink: #b64800;
 }
 
 .dark {
@@ -41,6 +52,8 @@
   --surface-2: #10104d;
   --line: rgba(255, 255, 255, 0.12);
   --logo-ink: #ffffff;
+  /* On near-black, #ff6500 is 6.9:1 and needs no darkening. */
+  --accent-ink: #ff6500;
 }
 
 @theme inline {
@@ -492,11 +505,11 @@ html { scroll-padding-top: 88px; }
   flex: none;
   border-radius: 8px;
   background: var(--surface, #f4f5fc);
-  color: var(--accent-ink, #c95000);
+  color: var(--accent-ink, #b64800);
 }
 .hd-sub__a:hover { background: var(--surface, #f4f5fc); }
 .hd-sub__a:hover .hd-sub__i { background: var(--accent, #ff6500); color: var(--on-accent, #000); }
-.hd-sub__a[aria-current="page"] { color: var(--accent-ink, #c95000); }
+.hd-sub__a[aria-current="page"] { color: var(--accent-ink, #b64800); }
 .hd-sub__a[aria-current="page"] .hd-sub__i { background: var(--accent, #ff6500); color: var(--on-accent, #000); }
 .hd-sub__a:focus-visible { outline: 2px solid var(--accent, #ff6500); outline-offset: -2px; }
 
