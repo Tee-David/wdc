@@ -38,6 +38,7 @@ next-env.d.ts
 /plans/
 /temp/
 CLAUDE.md
+AGENTS.md
 .claude/
 .agents/
 skills-lock.json
@@ -51,3 +52,7 @@ frontend/playwright-report/
 
 # local lighthouse runs
 frontend/.lighthouse-mobile.json
+
+# Planning and audit documents. Local reference only, never committed.
+plans/
+*.docx
