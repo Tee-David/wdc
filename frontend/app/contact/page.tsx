@@ -12,12 +12,13 @@ import "@/components/preview/preview.css";
 import "@/components/contact/contact.css";
 
 export const metadata: Metadata = {
-  title: "Contact",
+  /* `absolute`: the brand is already in the first half of this title. */
+  title: { absolute: "Contact We Dig Creativity | Start Your Project" },
   description:
-    "Tell us what you are trying to achieve and we will come back the same working day. Branding, SEO, web, apps, software and AI, social and PPC.",
+    "Tell We Dig Creativity what you want to build, fix or grow. Talk to our team about branding, websites, apps, SEO, software, AI or digital marketing.",
   alternates: { canonical: `${SITE_URL}/contact` },
   openGraph: {
-    title: "Contact | We Dig Creativity",
+    title: "Contact We Dig Creativity | Start Your Project",
     description: "Tell us what you are trying to achieve. We reply the same working day.",
     type: "website",
     url: `${SITE_URL}/contact`,

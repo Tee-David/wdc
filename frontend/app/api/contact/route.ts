@@ -1,22 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { escapeHtml, mailIsConfigured, sendMail } from "@/lib/email";
+import { callerKey, rateLimit } from "@/lib/rate-limit";
 
-const attempts = new Map<string, number[]>();
 const WINDOW_MS = 10 * 60 * 1000;
 const LIMIT = 5;
-
-function limited(key: string) {
-  const now = Date.now();
-  const recent = (attempts.get(key) || []).filter((time) => now - time < WINDOW_MS);
-  recent.push(now); attempts.set(key, recent);
-  return recent.length > LIMIT;
-}
 function clean(value: unknown, max: number) { return typeof value === "string" ? value.trim().slice(0, max) : ""; }
 
 export async function POST(request: NextRequest) {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  if (limited(ip)) return NextResponse.json({ error: "Please wait a few minutes before trying again." }, { status: 429 });
+  /* Moved onto the shared limiter, which sweeps. The old local Map never
+     removed anything, so a long-lived instance kept one array per distinct
+     address for its entire life. */
+  const limit = rateLimit(callerKey(request, "contact"), LIMIT, WINDOW_MS);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "Please wait a few minutes before trying again." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+    );
+  }
   let body: Record<string, unknown>;
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid request." }, { status: 400 }); }
   if (clean(body.company, 200)) return NextResponse.json({ ok: true });

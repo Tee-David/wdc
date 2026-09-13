@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { callerKey, rateLimit } from "@/lib/rate-limit";
 import { db } from "@/lib/db/pool";
 import { problemWith, stepsFor, type Field } from "@/lib/onboarding";
 import {
@@ -20,6 +21,18 @@ export async function POST(request: NextRequest) {
   if (!requestOriginIsAllowed(request)) {
     return NextResponse.json({ error: "This request could not be verified." }, { status: 403 });
   }
+
+  /* Finishing an onboarding form is a once-per-project event. Five in ten
+     minutes leaves room for a client who hits a validation error and resubmits
+     a few times, and nothing like enough for a script. */
+  const limit = rateLimit(callerKey(request, "onboarding-submit"), 5, 10 * 60 * 1000);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "That form has been submitted several times already. Give it a minute." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+    );
+  }
+
   let body: Record<string, unknown>;
   try { body = await request.json(); }
   catch { return NextResponse.json({ error: "The submission could not be read." }, { status: 400 }); }

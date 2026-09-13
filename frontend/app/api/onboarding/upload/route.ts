@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookieToken, draftFromToken, requestOriginIsAllowed } from "@/lib/onboarding-server";
+import { callerKey, rateLimit } from "@/lib/rate-limit";
 import { presignPut, r2Config, uploadKey } from "@/lib/r2";
 
 /**
@@ -42,6 +43,17 @@ const ALLOWED: Record<string, string> = {
 export async function POST(request: NextRequest) {
   if (!requestOriginIsAllowed(request)) {
     return NextResponse.json({ error: "This request could not be verified." }, { status: 403 });
+  }
+
+  /* Eight files is the ceiling the dropzone enforces, so twenty signings in
+     ten minutes covers retries and a change of mind without leaving the
+     signing endpoint open to being called in a loop. */
+  const limit = rateLimit(callerKey(request, "onboarding-upload"), 20, 10 * 60 * 1000);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "Too many uploads at once. Give it a minute and try again." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+    );
   }
 
   const token = cookieToken(request);
