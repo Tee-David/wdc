@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import AdminNav from "@/components/admin/shell";
+import AdminShell from "@/components/admin/shell";
 import { getSubmissions } from "@/lib/admin/store";
 import { auth } from "@/lib/auth";
 import "@/components/admin/admin.css";
@@ -42,10 +42,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="ad">
-      <div className="ad__wrap">
-        <AdminNav counts={{ Forms: open }} />
-        <main className="ad__main">{children}</main>
-      </div>
+      <AdminShell
+        counts={{ Forms: open }}
+        user={{ name: session.user.name, email: session.user.email, image: session.user.image }}
+      >
+        {children}
+      </AdminShell>
     </div>
   );
 }

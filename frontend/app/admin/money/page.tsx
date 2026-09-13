@@ -124,7 +124,11 @@ export default function MoneyPage() {
                 </tbody>
               </table>
             </div>
-          ) : <Empty title="Nothing invoiced yet" />}
+          ) : (
+            <Empty title="No invoices yet" action={<InvoiceBuilder clients={getClients()} projects={getProjects()} />}>
+              Create the first invoice to track what is billed, paid, and still outstanding.
+            </Empty>
+          )}
         </Panel>
 
         <div className="ad__grid2">
@@ -149,7 +153,11 @@ export default function MoneyPage() {
                   </tbody>
                 </table>
               </div>
-            ) : <Empty title="Nothing received yet" />}
+            ) : (
+              <Empty title="No payments received yet">
+                Payments will appear here after they are recorded against an invoice.
+              </Empty>
+            )}
           </Panel>
 
           <Panel title="Where the spend goes">
@@ -167,7 +175,11 @@ export default function MoneyPage() {
                   }} />
                 </div>
               ))}
-              {!categories.length && <Empty title="Nothing spent yet" />}
+              {!categories.length && (
+                <Empty title="No expenses yet" action={<AddExpense />}>
+                  Record business spending to keep the net view accurate.
+                </Empty>
+              )}
             </div>
           </Panel>
         </div>
@@ -190,7 +202,11 @@ export default function MoneyPage() {
                 </tbody>
               </table>
             </div>
-          ) : <Empty title="Nothing recorded yet" />}
+          ) : (
+            <Empty title="No expenses recorded" action={<AddExpense />}>
+              Add the first expense with its date, category, and amount.
+            </Empty>
+          )}
         </Panel>
       </div>
     </>

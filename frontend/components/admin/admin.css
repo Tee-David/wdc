@@ -58,67 +58,161 @@
 
 /* ------------------------------------------------------------------ shell */
 
-.ad__wrap { display: grid; grid-template-columns: 244px minmax(0, 1fr); }
-@media (max-width: 900px) { .ad__wrap { grid-template-columns: minmax(0, 1fr); } }
+.ad__wrap {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 16rem minmax(0, 1fr);
+  transition: grid-template-columns .2s ease;
+}
+.ad__wrap.is-collapsed { grid-template-columns: 4rem minmax(0, 1fr); }
+.ad__column { min-width: 0; display: flex; min-height: 100dvh; flex-direction: column; }
 
 .ad__side {
-  position: sticky; top: 0; align-self: start;
-  height: 100dvh; display: flex; flex-direction: column;
-  padding: 1.1rem .8rem;
-  background: var(--ad-panel);
-  border-right: 1px solid var(--ad-line);
+  position: sticky; top: 0; z-index: 40; align-self: start;
+  width: 16rem; height: 100dvh;
+  background: var(--ad-panel); border-right: 1px solid var(--ad-line);
+  transition: width .2s ease, box-shadow .2s ease;
 }
-@media (max-width: 900px) {
-  /* On a phone the sidebar becomes a scrolling row of pills under the header.
-     Six items is short enough that a drawer would be more taps than it saves. */
-  .ad__side {
-    position: static; height: auto; flex-direction: row; align-items: center;
-    gap: .4rem; overflow-x: auto; padding: .6rem .8rem;
-    border-right: 0; border-bottom: 1px solid var(--ad-line);
-    scrollbar-width: none;
-  }
-  .ad__side::-webkit-scrollbar { display: none; }
-  .ad__brand, .ad__sideFoot { display: none; }
+.ad__wrap.is-collapsed .ad__side { width: 4rem; }
+.ad__wrap.is-collapsed .ad__side.is-hoverExpanded {
+  width: 16rem;
+  box-shadow: 0 22px 48px rgb(14 14 44 / .16);
 }
+.ad__sideInner { display: flex; height: 100%; min-width: 0; flex-direction: column; overflow: hidden; }
 
-.ad__brand {
-  display: flex; align-items: center; gap: .6rem;
-  padding: .4rem .6rem 1rem;
+.ad__brand { height: 4rem; padding: 0 .9rem; display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.ad__brand > a { min-width: 0; display: flex; align-items: center; gap: .65rem; }
+.ad__brand img { width: 2rem; height: 2rem; flex: none; }
+.ad__brand span { min-width: 0; display: grid; line-height: 1.05; }
+.ad__brand b { font-family: var(--font-space-grotesk), system-ui, sans-serif; font-size: .95rem; }
+.ad__brand small { color: var(--ad-dim); font-size: .68rem; white-space: nowrap; }
+.ad__iconButton, .ad__topIcon, .ad__mobileClose, .ad__commandInput button {
+  border: 0; background: transparent; color: var(--ad-dim); cursor: pointer;
 }
-.ad__brand b {
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-size: .95rem; font-weight: 700; letter-spacing: -.01em;
-}
-.ad__brand span { font-size: .72rem; color: var(--ad-dim); display: block; }
+.ad__iconButton { width: 2rem; height: 2rem; flex: none; display: grid; place-items: center; border-radius: 8px; }
+.ad__iconButton:hover, .ad__topIcon:hover, .ad__mobileClose:hover { background: var(--ad-bg); color: var(--ad-ink); }
+.ad__iconButton svg { width: 1rem; height: 1rem; }
 
-.ad__nav { display: flex; flex-direction: column; gap: 2px; }
-@media (max-width: 900px) { .ad__nav { flex-direction: row; gap: .4rem; } }
-
+.ad__nav { display: flex; min-height: 0; flex: 1; flex-direction: column; padding: .35rem .75rem .7rem; }
+.ad__navGroup { display: grid; gap: .2rem; }
+.ad__navGroup--general { margin-top: auto; padding-top: 1rem; }
+.ad__navGroup--general p { margin: 0; padding: 0 .75rem .3rem; color: var(--ad-dim); font-size: .68rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
+.ad__navRule { display: block; height: 1px; margin: 0 .45rem .7rem; background: var(--ad-line); }
 .ad__link {
-  display: flex; align-items: center; gap: .6rem;
-  padding: .55rem .65rem; border-radius: 9px;
-  color: var(--ad-dim); font-weight: 500; white-space: nowrap;
-  transition: background .14s ease, color .14s ease;
+  position: relative; min-height: 2.6rem; width: 100%; padding: .6rem .75rem;
+  display: flex; align-items: center; gap: .7rem; border: 0; border-radius: 12px;
+  background: transparent; color: var(--ad-dim); font: 600 .84rem/1 var(--font-body);
+  cursor: pointer; text-align: left; white-space: nowrap;
+  transition: background .14s ease, color .14s ease, box-shadow .14s ease;
 }
-.ad__link svg { width: 1.05rem; height: 1.05rem; flex: none; }
+.ad__link svg { width: 1.12rem; height: 1.12rem; flex: none; }
 .ad__link:hover { background: var(--ad-bg); color: var(--ad-ink); }
-/* The current page is filled, not underlined. In a tool you should be able to
-   tell where you are from the corner of your eye. */
-.ad__link.is-on { background: var(--ad-navy); color: #fff; }
+.ad__link.is-on { background: var(--ad-navy); color: #fff; box-shadow: 0 4px 12px rgb(0 0 101 / .16); }
 .dark .ad__link.is-on { background: #23239b; }
-.ad__link .ad__count {
-  margin-left: auto; padding: .05em .45em; border-radius: 999px;
-  background: var(--ad-accent); color: #fff;
-  font-size: .68rem; font-weight: 700; font-variant-numeric: tabular-nums;
+.ad__count {
+  margin-left: auto; min-width: 1.25rem; padding: .12rem .35rem; border-radius: 999px;
+  background: var(--ad-accent); color: #000; text-align: center;
+  font-size: .63rem; font-weight: 800; font-variant-numeric: tabular-nums;
 }
-@media (max-width: 900px) { .ad__link .ad__count { margin-left: .2rem; } }
+.ad__wrap.is-collapsed .ad__side:not(.is-hoverExpanded) :is(.ad__link, .ad__brand > a) { justify-content: center; }
+.ad__wrap.is-collapsed .ad__side:not(.is-hoverExpanded) .ad__count { position: absolute; right: -.2rem; top: -.15rem; margin: 0; }
+.ad__sideFoot { padding: .75rem; border-top: 1px solid var(--ad-line); }
+.ad__logout:hover { background: rgb(214 51 51 / .09); color: var(--ad-bad); }
+.ad__srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
-.ad__sideFoot { margin-top: auto; padding: .6rem; display: grid; gap: .65rem; color: var(--ad-dim); font-size: .76rem; }
-.ad__sideFoot button { display: inline-flex; align-items: center; gap: .45rem; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; text-align: left; }
-.ad__sideFoot button:hover, .ad__sideFoot a:hover { color: var(--ad-accent); }
-.ad__sideFoot button svg { width: .9rem; height: .9rem; }
+.ad__topbar {
+  position: sticky; top: 0; z-index: 30; height: 4rem; padding: 0 clamp(1rem, 2.2vw, 1.5rem);
+  display: flex; align-items: center; gap: .75rem;
+  border-bottom: 1px solid var(--ad-line); background: color-mix(in srgb, var(--ad-panel) 88%, transparent);
+  backdrop-filter: blur(12px);
+}
+.ad__topbar h1 { flex: none; font-size: clamp(1rem, 1.4vw, 1.12rem); }
+.ad__mobileMenu { display: none !important; }
+.ad__search {
+  height: 2.25rem; width: min(17rem, 24vw); margin-left: auto; padding: 0 .7rem;
+  display: flex; align-items: center; gap: .5rem; border: 1px solid var(--ad-line); border-radius: 999px;
+  background: var(--ad-bg); color: var(--ad-dim); cursor: pointer; font: 500 .8rem var(--font-body);
+  transition: border-color .14s ease, background .14s ease;
+}
+.ad__search:hover { border-color: color-mix(in srgb, var(--ad-navy) 35%, var(--ad-line)); background: var(--ad-panel); }
+.ad__search svg { width: 1rem; height: 1rem; }
+.ad__search kbd { margin-left: auto; padding: .08rem .35rem; border: 1px solid var(--ad-line); border-radius: 5px; background: var(--ad-panel); font: 600 .63rem var(--font-body); }
+.ad__topActions { display: flex; align-items: center; gap: .45rem; }
+.ad__topIcon, .ad__avatar { position: relative; width: 2.25rem; height: 2.25rem; display: grid; place-items: center; border-radius: 999px; }
+.ad__topIcon { border: 1px solid var(--ad-line); }
+.ad__topIcon svg { width: 1rem; height: 1rem; }
+.ad__avatar { overflow: hidden; border: 2px solid var(--ad-line); background: var(--ad-navy); color: #fff; cursor: pointer; font: 700 .7rem var(--font-space-grotesk); }
+.ad__avatar img { width: 100%; height: 100%; object-fit: cover; }
+.ad__notificationDot { position: absolute; right: -.2rem; top: -.25rem; min-width: 1rem; height: 1rem; padding: 0 .2rem; display: grid; place-items: center; border-radius: 999px; background: var(--ad-bad); color: #fff; font-size: .56rem; font-weight: 800; }
 
-.ad__main { min-width: 0; padding: clamp(1rem, 2.4vw, 1.8rem); }
+.ad__menuWrap { position: relative; }
+.ad__popover {
+  position: absolute; right: 0; top: calc(100% + .55rem); z-index: 80;
+  overflow: hidden; border: 1px solid var(--ad-line); border-radius: 15px;
+  background: var(--ad-panel); box-shadow: 0 18px 48px rgb(14 14 44 / .15);
+}
+.ad__account { width: min(14rem, calc(100vw - 2rem)); padding: .4rem; }
+.ad__accountMeta { padding: .65rem .7rem .8rem; border-bottom: 1px solid var(--ad-line); display: grid; }
+.ad__accountMeta b { font-size: .84rem; }
+.ad__accountMeta span { overflow: hidden; color: var(--ad-dim); font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
+.ad__account :is(a, button) { width: 100%; min-height: 2.35rem; padding: .55rem .65rem; display: flex; align-items: center; gap: .55rem; border: 0; border-radius: 10px; background: transparent; color: var(--ad-ink); cursor: pointer; font: 600 .8rem var(--font-body); }
+.ad__account :is(a, button):hover { background: var(--ad-bg); }
+.ad__account button:hover { color: var(--ad-bad); }
+.ad__account svg { width: 1rem; height: 1rem; color: var(--ad-dim); }
+.ad__notifications { width: min(20rem, calc(100vw - 2rem)); }
+.ad__popoverHead { padding: .75rem 1rem; border-bottom: 1px solid var(--ad-line); }
+.ad__notifications > a { padding: .8rem 1rem; display: flex; align-items: flex-start; gap: .7rem; }
+.ad__notifications > a:hover { background: var(--ad-bg); }
+.ad__notifications > a > span:last-child { min-width: 0; display: grid; }
+.ad__notifications > a b { font-size: .78rem; }
+.ad__notifications > a small { color: var(--ad-dim); font-size: .7rem; }
+.ad__noticeIcon { width: 2rem; height: 2rem; flex: none; display: grid; place-items: center; border-radius: 999px; background: color-mix(in srgb, var(--ad-accent) 13%, transparent); color: var(--ad-accent); }
+.ad__noticeIcon svg { width: 1rem; height: 1rem; }
+.ad__popoverEmpty { padding: 2rem 1rem; display: grid; gap: .15rem; text-align: center; }
+.ad__popoverEmpty b { font-size: .8rem; }
+.ad__popoverEmpty span { color: var(--ad-dim); font-size: .72rem; }
+
+.ad__overlay, .ad__mobileLayer { position: fixed; inset: 0; z-index: 100; background: rgb(6 6 28 / .5); backdrop-filter: blur(3px); }
+.ad__overlay { padding: min(16vh, 8rem) 1rem 1rem; display: flex; align-items: flex-start; justify-content: center; }
+.ad__command { width: min(35rem, 100%); overflow: hidden; border: 1px solid var(--ad-line); border-radius: 17px; background: var(--ad-panel); box-shadow: 0 26px 70px rgb(6 6 28 / .28); }
+.ad__commandInput { min-height: 3.4rem; padding: 0 .85rem; display: flex; align-items: center; gap: .65rem; border-bottom: 1px solid var(--ad-line); }
+.ad__commandInput > svg { width: 1.15rem; height: 1.15rem; color: var(--ad-dim); }
+.ad__commandInput input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: var(--ad-ink); font: 500 .9rem var(--font-body); }
+.ad__commandInput button { width: 2rem; height: 2rem; display: grid; place-items: center; border-radius: 8px; }
+.ad__commandInput button:hover { background: var(--ad-bg); color: var(--ad-ink); }
+.ad__commandInput button svg { width: 1rem; height: 1rem; }
+.ad__commandResults { max-height: min(55vh, 24rem); padding: .45rem; overflow-y: auto; overscroll-behavior: contain; }
+.ad__commandResults a { min-height: 2.65rem; padding: .65rem .75rem; display: flex; align-items: center; gap: .65rem; border-radius: 11px; font-weight: 600; }
+.ad__commandResults a:hover { background: var(--ad-bg); }
+.ad__commandResults a svg { width: 1rem; height: 1rem; color: var(--ad-dim); }
+.ad__commandResults a svg:last-child { margin-left: auto; }
+.ad__commandResults p { margin: 0; padding: 1.6rem; color: var(--ad-dim); text-align: center; }
+
+.ad__mobileLayer, .ad__mobileDrawer { display: none; }
+.ad__main { min-width: 0; flex: 1; padding: clamp(1rem, 2.4vw, 1.8rem); }
+
+@media (max-width: 900px) {
+  .ad__wrap, .ad__wrap.is-collapsed { grid-template-columns: minmax(0, 1fr); }
+  .ad__side { display: none; }
+  .ad__mobileMenu { display: grid !important; }
+  .ad__topbar { padding-inline: .8rem; }
+  .ad__topbar h1 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ad__search { width: 2.25rem; margin-left: auto; padding: 0; justify-content: center; border-radius: 999px; }
+  .ad__search span, .ad__search kbd { display: none; }
+  .ad__mobileLayer { display: block; }
+  .ad__mobileDrawer { position: absolute; inset: 0 auto 0 0; display: block; width: min(18rem, 86vw); background: var(--ad-panel); box-shadow: 18px 0 60px rgb(6 6 28 / .25); animation: ad-drawer-in .22s ease-out both; }
+  .ad__mobileClose { position: absolute; right: .8rem; top: .9rem; z-index: 2; width: 2.2rem; height: 2.2rem; display: grid; place-items: center; border-radius: 9px; }
+  .ad__mobileClose svg { width: 1.2rem; height: 1.2rem; }
+  .ad__mobileDrawer .ad__brand { padding-right: 3.5rem; }
+}
+@media (max-width: 420px) {
+  .ad__topActions { gap: .25rem; }
+  .ad__topIcon, .ad__avatar, .ad__search { width: 2.1rem; height: 2.1rem; }
+}
+@keyframes ad-drawer-in { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .ad__wrap, .ad__side, .ad__mobileDrawer { transition: none; animation: none; }
+}
 
 /* ------------------------------------------------------------------ page */
 
@@ -224,8 +318,13 @@
 
 /* ----------------------------------------------------------------- empty */
 
-.ad__empty { padding: 2.2rem 1rem; text-align: center; color: var(--ad-dim); }
-.ad__empty b { display: block; color: var(--ad-ink); margin-bottom: .2rem; }
+.ad__empty { padding: clamp(2rem, 6vw, 3.5rem) 1rem; display: flex; flex-direction: column; align-items: center; color: var(--ad-dim); text-align: center; }
+.ad__emptyIcon { width: 3rem; height: 3rem; margin-bottom: .8rem; display: grid; place-items: center; border-radius: 15px; background: color-mix(in srgb, var(--ad-navy) 9%, var(--ad-panel)); color: var(--ad-navy); }
+.dark .ad__emptyIcon { background: color-mix(in srgb, #5f65ff 16%, var(--ad-panel)); color: #aeb1ff; }
+.ad__emptyIcon svg { width: 1.3rem; height: 1.3rem; }
+.ad__empty > b { display: block; color: var(--ad-ink); font: 700 .95rem var(--font-space-grotesk), system-ui, sans-serif; }
+.ad__empty p { max-width: 30rem; margin: .35rem auto 0; color: var(--ad-dim); font-size: .8rem; }
+.ad__emptyAction { margin-top: 1rem; }
 
 /* -------------------------------------------------------------- the note */
 
