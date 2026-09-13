@@ -3,6 +3,7 @@ import { SITE_URL } from "@/lib/site";
 import { CASE_STUDIES, WORK_CATEGORIES } from "@/lib/work";
 import { LEGAL_DOCS } from "@/lib/legal";
 import { BLOG_POSTS } from "@/lib/blog";
+import { SERVICES } from "@/lib/services";
 
 /**
  * Sitemap.
@@ -20,9 +21,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
     path: string;
     priority: number;
     changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"];
+    /** When this page's CONTENT last changed, where we actually know. */
+    lastModified?: Date;
   }> = [
     { path: "/", priority: 1.0, changeFrequency: "weekly" },
     { path: "/services", priority: 0.9, changeFrequency: "monthly" },
+    /* DERIVED, like everything else here. Services were the one set listed by
+       hand, so when /services became a hub with six pages under it, the six
+       new URLs were not in the sitemap at all -- which is the exact failure
+       the note above says this file exists to prevent. */
+    ...SERVICES.map((s) => ({
+      path: `/services/${s.slug}`,
+      priority: 0.85,
+      changeFrequency: "monthly" as const,
+    })),
     { path: "/about", priority: 0.7, changeFrequency: "yearly" },
     { path: "/contact", priority: 0.8, changeFrequency: "yearly" },
     { path: "/work", priority: 0.9, changeFrequency: "monthly" },
@@ -35,6 +47,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       path: `/blog/${p.slug}`,
       priority: 0.6,
       changeFrequency: "monthly" as const,
+      /* The post's own date, not the deploy's. See the note on lastModified
+         below -- for these we actually know the answer. */
+      lastModified: new Date(p.updated ?? p.date),
     })),
     ...WORK_CATEGORIES.map((c) => ({
       path: `/work/${c.slug}`,
@@ -58,9 +73,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   ];
 
+  /* `lastModified` FALLS BACK TO THE BUILD, AND THAT IS A COMPROMISE WORTH
+     NAMING. Stamping every URL with the deploy time tells a crawler that all
+     forty pages changed whenever any one of them did, which is how the field
+     stops being believed. Where the content carries its own date -- blog posts
+     do -- that date is used instead. The rest are marketing pages edited in
+     source, where the build is the closest honest answer we have. */
   return routes.map((r) => ({
     url: `${SITE_URL}${r.path === "/" ? "" : r.path}`,
-    lastModified: now,
+    lastModified: r.lastModified ?? now,
     changeFrequency: r.changeFrequency,
     priority: r.priority,
   }));

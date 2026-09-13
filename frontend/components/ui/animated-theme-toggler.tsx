@@ -84,7 +84,7 @@ export function AnimatedThemeToggler({
          three places: white over the hero photograph, navy on the solid header
          in light mode, and near-white on the solid header in dark. The header
          sets the colour; this button does not decide it. */
-      className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-current bg-transparent transition-transform duration-200 hover:scale-110 active:scale-95 ${className}`}
+      className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full hover:scale-110 active:scale-95 ${className}`}
     >
       {/* WHICH GLYPH SHOWS IS DECIDED BY CSS, NOT BY REACT, and that is the
           whole fix for the moon that appeared with the wifi off.

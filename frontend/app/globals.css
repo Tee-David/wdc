@@ -476,3 +476,43 @@ html { scroll-padding-top: 88px; }
 @media (prefers-reduced-motion: reduce) {
   .hd-sub { transition: none; }
 }
+
+/* THE HEADER'S TWO ROUND CONTROLS: theme and log in.
+
+   Declared here at :root rather than in preview.css, because the header renders
+   OUTSIDE `main.pv` and a token declared there is invisible to it.
+
+   AT REST IT IS AN OUTLINE, NEVER A FILL. Both the ring and the glyph take
+   `currentColor`, and the header sets that: white over the hero photograph,
+   navy on the solid bar in light mode, near-white on the solid bar in dark. One
+   button, three correct answers, and it can never end up as a white icon on a
+   white ground because the ring and the glyph cannot disagree.
+
+   ON HOVER THE FILL ARRIVES AND THE OUTLINE LEAVES. Navy with a white glyph,
+   17.68:1, which holds over the photograph and on the bar in both themes -- so
+   the hover state is one colour rather than three, and none of them needs
+   checking against a background we do not control. */
+.hd-round {
+  border: 1px solid currentColor;
+  background-color: transparent;
+  transition:
+    background-color .2s ease,
+    border-color .2s ease,
+    color .2s ease,
+    transform .2s ease;
+}
+.hd-round:hover,
+/* The keyboard gets the same state as the pointer. A fill that only a mouse
+   can summon is a hover-only affordance, which our conventions forbid. */
+.hd-round:focus-visible {
+  background-color: #000065;
+  border-color: transparent;
+  color: #fff;
+  /* The glyph carries a shadow over the hero; on a solid navy disc that reads
+     as a smudge. */
+  text-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hd-round { transition: background-color .2s ease, border-color .2s ease, color .2s ease; }
+}
