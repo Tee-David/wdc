@@ -13,6 +13,16 @@ At last update: **189 open** (7 of them in progress), **86 done**.
 
 # Open
 
+### Front-end marketing pass, 2026-09-13
+
+- [x] Mobile menu reworked to the reference: the `01`-`07` counters are gone, the items are sized against the PANEL rather than the viewport (`13cqw`, about 45px on a 390px phone against the old 27px), and the LIST is now the scroll region instead of the whole panel, so the socials and the theme/accessibility row stay pinned to the bottom when a short screen has to scroll. Items take `flex: none`, without which the flex column shrank them and `overflow: hidden` cropped the letters. Verified at 320x568, 360x640, 390x560, 390x844 and 1000x700: the list scrolls, the footer row does not move, and nothing overflows sideways.
+- [x] Hero headline: both halves now share one size, `clamp(1.5rem, 7.8vw, 4.3rem)`, so the rotating line is no longer a caption under the fixed one. The numbers are measured, not chosen -- the longest phrase takes 14.53x the font size in measure and its wider half 9.55x, and the copy column moved to `max-w-7xl` because a 5xl column could not hold that phrase on one line at any size worth having. Note for anyone re-measuring: `.pv-hero [class*="tracking-"]` in preview.css overrides the h1's `tracking-tight` to +0.02em on the live homepage, which is worth about 4% of the width.
+- [x] The rotating line reserves a BOX, not just a width. `TextType`'s sizer wraps exactly as the live text does (`pre-wrap` on both, and a `max-width` cap on the live span, which `justify-self: center` would otherwise let overflow the page), so the block is as tall as the longest phrase needs from the first frame and never changes. Measured over a full rotation at 390, 768 and 1280px: the button row's top stayed on a single value at every width. Line counts checked at 320/360/390/430/640/768/900/1024/1152/1280/1440/1920 -- the fixed line is always one line, the reserved line never exceeds two, and the document never scrolls sideways.
+- [x] Blog post headline stepped down from the shared `.pv h1` scale to `clamp(2.15rem, 1.25rem + 3.9vw, 4.2rem)`; a post title is a sentence, and at 5.4rem it was taking four lines and most of a phone screen before the lede.
+- [x] Share and the QR code moved out of the sticky rail and under the article, after the tags. In the rail they rendered ABOVE the article on every screen below 1000px, so a reader was offered the share buttons before they had read a word. The rail now carries only the contents, and a post with no headings gets no empty column.
+- [x] Article lists show markers again. Tailwind's preflight resets every `ul` on the site to `list-style: none`, so prose lists were rendering as unindented paragraphs with a gap; `.bl-body ul` asks for `disc` back.
+- [x] Removed the drop shadow from `.bl-card:hover`. The lift and the warmed border already say the card is live, and in the "read next" rail the shadow read as a second edge beside the next card.
+
 ## 0. Raised in conversation, not yet done
 
 Kept at the top because these came from someone looking at the live site, and

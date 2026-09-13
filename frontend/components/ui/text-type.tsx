@@ -43,8 +43,14 @@ interface TextTypeProps {
    */
   startFull?: boolean;
   /**
-   * Hold the width of the longest phrase from the first frame, so the line
-   * does not reflow on every character and the text beside it stays put.
+   * Hold the BOX of the longest phrase from the first frame -- its width, and
+   * its height once that width no longer fits on one line.
+   *
+   * Without it the line reflows on every character and, on a narrow screen
+   * where some phrases wrap and others do not, the block changes height as the
+   * set cycles and shoves everything below it up and down. The sizer wraps
+   * exactly as the live text would, so the reserved box is the tallest the set
+   * can ever be at this width and nothing under it moves again.
    */
   reserveWidth?: boolean;
 }
@@ -179,7 +185,10 @@ export default function TextType({
     <Component
       ref={containerRef}
       className={`text-type ${className}`}
-      style={reserveWidth ? { display: "inline-grid" } : undefined}
+      /* `max-width: 100%` so the reserved width can never push the line wider
+         than the column it sits in: past that point the sizer wraps instead,
+         which is what turns the reservation from a width into a box. */
+      style={reserveWidth ? { display: "inline-grid", maxWidth: "100%" } : undefined}
     >
       {/* The sizer. Laid out, never painted, never announced: it holds the
           width of the longest phrase so the line does not reflow on every
@@ -188,7 +197,7 @@ export default function TextType({
       {reserveWidth && (
         <span
           aria-hidden="true"
-          style={{ gridArea: "1 / 1", visibility: "hidden", whiteSpace: "pre" }}
+          style={{ gridArea: "1 / 1", visibility: "hidden", whiteSpace: "pre-wrap" }}
         >
           {textArray.reduce((a, b) => (b.length > a.length ? b : a), "")}
         </span>
@@ -211,7 +220,24 @@ export default function TextType({
       <span
         style={
           reserveWidth
-            ? { gridArea: "1 / 1", justifySelf: "center", whiteSpace: "pre" }
+            ? {
+                gridArea: "1 / 1",
+                justifySelf: "center",
+                /* `pre-wrap`, not `pre`: spaces still count while the phrase
+                   types itself, but a phrase longer than the column wraps
+                   rather than running off the side of it. */
+                whiteSpace: "pre-wrap",
+                /* `justify-self: center` shrink-wraps this to its own content,
+                   which means it will happily grow PAST the reserved cell and
+                   out of the page. The cap is what makes it break instead --
+                   at exactly the width the sizer beside it broke at, so the
+                   live line and the reserved box always agree. */
+                maxWidth: "100%",
+                /* Top of the reserved box, so a one-line phrase sits directly
+                   under the line above it rather than floating in the middle
+                   of the space the longest phrase needs. */
+                alignSelf: "start",
+              }
             : undefined
         }
       >
