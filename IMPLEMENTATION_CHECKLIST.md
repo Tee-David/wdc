@@ -18,13 +18,16 @@ At last update: **189 open** (7 of them in progress), **86 done**.
 Kept at the top because these came from someone looking at the live site, and
 that is the shortest feedback loop there is.
 
-- [ ] Run the installed SEO skill over the site and act on what it finds.
-- [ ] **Set a CORS policy on the R2 bucket.** Blocked on the founder: it needs an account-scoped Cloudflare token, and the key in `.env` may write objects but not bucket settings. Without it every browser upload is cancelled before it is sent. Measured: an OPTIONS preflight from every origin returns 403 with no access-control headers, while a signed HEAD on the bucket returns 200. The rule to paste is in `plans/r2-cors.json`.
+- [x] SEO skill run over the built site as a crawl of all 44 sitemap URLs, and what it found is fixed. THE SIX SERVICE PAGES WERE NOT IN THE SITEMAP -- everything else there is derived from its data and services were the one set listed by hand, so the new URLs were invisible to crawlers. `/services/<slug>` and `/work/<slug>` were shipping IDENTICAL meta descriptions, because both used the service lede; the service pages now carry their own sentence. The six service pages and six work categories had no `og:image`; both sets now draw one. Blog posts carry their own date in the sitemap instead of the deploy time. Re-crawled after: no missing og:image, no duplicate titles or descriptions, one h1 per page, no skipped heading levels, valid JSON-LD on all 44.
+- [x] R2 CORS policy set by the founder and verified end to end: an OPTIONS preflight from each origin returns 204 with a matching `access-control-allow-origin` (it was 403 with no headers at all), a real presigned PUT carrying a browser `Origin` returns 200, and the object reads back publicly as `image/png`. Onboarding uploads work.
 - [ ] Re-measure the hero slit wipe against the old crossfade on a quiet machine. The numbers recorded above were taken while two research agents were running and the interleaved re-run was polluted by server restarts, so they are not trustworthy enough to quote.
 - [ ] Sync the environment to Doppler as well as Vercel. The CLI is installed (v3.76.1) but has no project configured in this working copy.
 - [ ] Truehost SMTP takes about 23 seconds just to authenticate, measured from two networks. The contact form now answers in half that by sending the receipt after the response, but the real fix is a transactional provider, which would also give proper SPF and DKIM.
 
 ## 1. Public frontend
+
+- [ ] Sixteen case-study titles run 82-115 characters once the brand suffix is appended, so Google will rewrite or truncate every one of them. Give the long ones an explicit `title.absolute` without the suffix, or shorten the descriptive half. Copy decision, not a mechanical one.
+- [ ] Meta descriptions on the six work category pages (57-76 chars) and the five legal pages (75-114) are short enough that Google will usually write its own snippet instead. Not a failure -- the skill is explicit that the 120-160 range is a linting proxy, not a rule -- but these are cheap to improve and two of them are landing pages.
 
 - [ ] `components/services/services-body.tsx` is now unreferenced: `/services` is a hub and each service renders through `service-detail.tsx`. Delete it once the new pages have been live long enough to be sure nothing is missed, and move anything worth keeping (the filter chips, the in-page nav, the brand rail) onto the hub first.
 - [ ] The six service pages want a FAQ block each, fed from `lib/faq.ts` filtered by service. The hub inherits the general questions; the detail pages should answer the ones a buyer of THAT service asks, and it is the cheapest structured-data win left on the site.
