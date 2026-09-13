@@ -66,7 +66,12 @@ export async function POST(request: NextRequest) {
     after(async () => {
       try {
         await sendMail({
-          to: email, subject: "We received your message — We Dig Creativity",
+          to: email,
+          subject: "We received your message — We Dig Creativity",
+          /* The visitor asked us a question; they did not ask for this copy.
+             Offering a way out is what separates accountable automatic mail
+             from the other kind, and Gmail scores it that way. */
+          unsubscribe: true,
           text: `Hi ${first},\n\nWe received your message about ${topic}. Our team will reply within the same working day.\n\nWe Dig Creativity\n${CONTACT_EMAIL}`,
           html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a;max-width:560px"><p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#ff6500">WE DIG CREATIVITY</p><h1 style="font-size:27px;margin:12px 0">Your message is with us.</h1><p>Hi ${escapeHtml(first)},</p><p>We received your message about <b>${escapeHtml(topic)}</b>. Our team will reply within the same working day.</p><p style="color:#666680;font-size:13px">A copy was sent automatically so you know the form worked.</p></div>`,
         });
