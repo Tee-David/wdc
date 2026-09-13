@@ -14,7 +14,6 @@ import QrCode from "@/components/ui/qr-code";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 import "@/components/preview/preview.css";
-import "@/components/work/work.css";
 import "@/components/blog/blog.css";
 
 /* Every post is known at build time, so every post is a static page. */
