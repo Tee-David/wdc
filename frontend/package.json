@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:e2e": "playwright test",
+    "skeletons:build": "node scripts/build-admin-skeletons.mjs",
     "db:migrate": "node scripts/migrate.mjs",
     "db:check-onboarding": "node scripts/check-onboarding-queries.mjs"
   },

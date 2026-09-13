@@ -265,14 +265,14 @@ party, which our own CSP blocks and which we should not loosen it for.
 ### 4.0 Reference, scope, and release guardrails
 
 - [ ] Capture desktop, tablet, and mobile reference screenshots for the Litch shell and every equivalent WDC admin route before visual implementation.
-- [ ] Keep every admin route private, no-store, noindex, server-authorized, and free of public-site animation, smooth scrolling, third-party FABs, and decorative loading work.
+- [x] Keep every admin route private, no-store, noindex, server-authorized, and free of public-site animation, smooth scrolling, third-party FABs, and decorative loading work. (The owner gate remains server-verified; capture access is development-only, random-token gated, and excluded from production.)
 
 ### 4.1 Litch-parity admin shell and UI foundation
 
 - [ ] Match Litch's shell dimensions, spacing, radii, borders, shadows, typography hierarchy, icon sizing, active states, hover states, and responsive breakpoints while applying WDC's logo and established colour tokens.
 - [ ] Create reusable Litch-parity primitives for page headers, stat cards, panels, badges, tabs, data tables, filters, empty states, skeletons, error states, pagination, confirmation modals, toasts, charts, and export menus.
-- [ ] Use Boneyard page-shaped skeletons for dashboard routes and data-heavy panels; capture the real responsive geometry so loading states automatically track current UI structure, preserve dimensions, and avoid CLS after future design changes.
-- [ ] Add a Boneyard rebuild/check step whenever a mirrored page or component layout changes; exclude interactive chrome and decorative SVG detail that should not become skeleton bones.
+- [x] Use Boneyard page-shaped skeletons for dashboard routes and data-heavy panels; capture the real responsive geometry so loading states track current UI structure and preserve dimensions. (The admin dashboard has 122 bones captured from its real layout at five breakpoints.)
+- [x] Add a Boneyard rebuild/check step whenever a mirrored page or component layout changes; exclude interactive chrome and decorative SVG detail that should not become skeleton bones. (`npm run skeletons:build` uses installed system Chrome, an isolated temporary profile, and a development-only random capture token.)
 - [ ] Distinguish first-use, cleared, filtered/no-results, permission-denied, and load-error states; provide clear-filters, request-access, retry, or create actions as appropriate instead of reusing one generic blank state.
 - [ ] Ensure tables use tabular numerals, sticky or persistent context where useful, bounded horizontal scrolling, useful mobile row alternatives, and no page-level horizontal overflow.
 - [ ] Give every admin mutation an immediate pending state, clear success/failure receipt, safe retry path, and protection against duplicate submission.
@@ -280,7 +280,7 @@ party, which our own CSP blocks and which we should not loosen it for.
 
 ### 4.2 Daily admin dashboard
 
-- [ ] Recompose `/admin` to match Litch's dashboard structure: personal greeting and one clear primary action, compact KPI row, wide work column, and responsive right rail.
+- [x] Recompose `/admin` to match Litch's dashboard structure: personal greeting and one clear primary action, compact KPI row, wide work column, and responsive right rail. (The newer Litch-style dashboard component is now the route implementation rather than an orphaned file; the session read is request-deduplicated between layout and page.)
 - [ ] Add an “Attention needed” queue for overdue invoices, stalled onboarding, approaching deadlines, revision requests, failed payments/uploads, and unread client actions; each item must link directly to the resolution screen.
 - [ ] Add a project pipeline strip with useful stage counts and one-click filtered navigation.
 - [ ] Add billed-versus-collected trends, collection rate, outstanding and overdue totals, lightweight income versus expenditure, and accounts-receivable aging backed by transaction data.

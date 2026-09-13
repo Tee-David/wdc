@@ -6,6 +6,7 @@ import { invoiceStatus, invoiceTotals, naira, nairaShort, STAGES } from "@/lib/a
 import { AddClient } from "./client-form";
 import { AddExpense, InvoiceBuilder } from "./money-forms";
 import { AddProject } from "./project-forms";
+import { InvoiceMenu, ProjectMenu, SubmissionMenu } from "./row-actions";
 import { DemoNote, Empty, Panel, StagePill, Tile, when } from "./bits";
 import "./dashboard.css";
 
@@ -35,6 +36,7 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
         meta: `Due ${when(invoice.due)}`,
         icon: AlertTriangle,
         tone: "bad",
+        menu: <InvoiceMenu invoice={invoice} />,
       })),
     ...projects
       .filter((project) => project.stage === "Onboarding" || project.stage === "Revisions")
@@ -45,6 +47,7 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
         meta: project.due ? `Due ${when(project.due)}` : "Date not set",
         icon: FolderClock,
         tone: project.stage === "Revisions" ? "warn" : "neutral",
+        menu: <ProjectMenu project={project} clientName={getClient(project.clientId)?.company} />,
       })),
     ...getSubmissions()
       .filter((submission) => submission.status === "In progress")
@@ -55,6 +58,7 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
         meta: `Started ${when(submission.startedAt)}`,
         icon: ClipboardList,
         tone: "neutral",
+        menu: <SubmissionMenu submission={submission} clients={clients} />,
       })),
   ];
 
@@ -93,12 +97,12 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
                 {attention.slice(0, 6).map((item) => {
                   const Icon = item.icon;
                   return (
-                    <Link className="adDash__attentionItem" href={item.href} key={`${item.href}-${item.title}`}>
+                    <div className="adDash__attentionItem" key={`${item.href}-${item.title}`}>
                       <span className={`adDash__attentionIcon adDash__attentionIcon--${item.tone}`}><Icon aria-hidden="true" /></span>
-                      <span className="adDash__attentionCopy"><b>{item.title}</b><small>{item.detail}</small></span>
+                      <span className="adDash__attentionCopy"><Link href={item.href}><b>{item.title}</b></Link><small>{item.detail}</small></span>
                       <span className="adDash__attentionMeta">{item.meta}</span>
-                      <ArrowRight className="adDash__attentionArrow" aria-hidden="true" />
-                    </Link>
+                      <span className="adDash__attentionActions">{item.menu}</span>
+                    </div>
                   );
                 })}
               </div>
