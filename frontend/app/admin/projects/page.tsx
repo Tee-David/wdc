@@ -17,18 +17,29 @@ export const metadata = { title: "Projects" };
  * event and email the client. A stage is changed on the project itself, where
  * the note that goes with it can be written at the same time.
  */
-export default function ProjectsPage() {
+export default async function ProjectsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ stage?: string }>;
+}) {
+  const requestedStage = (await searchParams).stage;
+  const activeStage = STAGES.find((stage) => stage === requestedStage);
   const board = getBoard();
-  const all = getProjects();
+  const projects = getProjects();
+  const all = activeStage ? projects.filter((project) => project.stage === activeStage) : projects;
+  const visibleStages = activeStage ? [activeStage] : STAGES;
 
   return (
     <>
       <div className="ad__head">
         <div>
           <h1>Projects</h1>
-          <p>{all.filter((p) => p.stage !== "Delivered").length} live, {all.length} in total.</p>
+          <p>{activeStage ? `${all.length} in ${activeStage}.` : `${all.filter((p) => p.stage !== "Delivered").length} live, ${all.length} in total.`}</p>
         </div>
-        <AddProject clients={getClients()} />
+        <div className="ad__row">
+          {activeStage ? <Link className="ad__btn" href="/admin/projects#project-list">Clear stage filter</Link> : null}
+          <AddProject clients={getClients()} />
+        </div>
       </div>
 
       <DemoNote>
@@ -39,7 +50,7 @@ export default function ProjectsPage() {
 
       <div className="ad__scroll" style={{ marginBottom: ".9rem" }}>
         <div style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "minmax(210px, 1fr)", gap: ".7rem" }}>
-          {STAGES.map((st) => {
+          {visibleStages.map((st) => {
             const list = board.get(st) ?? [];
             return (
               <section key={st} className="ad__panel">
@@ -75,7 +86,8 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      <Panel title="All projects">
+      <div id="project-list">
+        <Panel title={activeStage ? `${activeStage} projects` : "All projects"}>
         {all.length ? (
           <div className="ad__scroll">
             <table className="ad__t">
@@ -100,12 +112,20 @@ export default function ProjectsPage() {
               </tbody>
             </table>
           </div>
+        ) : activeStage ? (
+          <Empty
+            title={`No projects in ${activeStage}`}
+            action={<Link className="ad__btn" href="/admin/projects#project-list">Clear stage filter</Link>}
+          >
+            Try another stage or clear the filter to see every project.
+          </Empty>
         ) : (
           <Empty title="No projects yet" action={<AddProject clients={getClients()} />}>
             Projects keep delivery, deadlines, files, and client updates together.
           </Empty>
         )}
-      </Panel>
+        </Panel>
+      </div>
     </>
   );
 }

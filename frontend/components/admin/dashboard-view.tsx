@@ -144,7 +144,12 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
 
           <Panel title="Project pipeline" action={<Link href="/admin/projects">View all <ArrowRight aria-hidden="true" /></Link>}>
             <div className="adDash__pipeline">
-              {STAGES.map((stage) => <div key={stage}><StagePill stage={stage} /><b>{board.get(stage)?.length ?? 0}</b></div>)}
+              {STAGES.map((stage) => (
+                <Link href={`/admin/projects?stage=${encodeURIComponent(stage)}#project-list`} key={stage}>
+                  <StagePill stage={stage} />
+                  <b>{board.get(stage)?.length ?? 0}</b>
+                </Link>
+              ))}
             </div>
           </Panel>
 
