@@ -3,6 +3,7 @@
 import SocialCalendar from "./social-calendar";
 import { Stage, useCountUp, useNearViewport, useStageMotion } from "./stage-shell";
 import { SOCIAL_CHANNELS, SOCIAL_ENGAGEMENT, SOCIAL_POSTS } from "@/lib/showcase";
+import Image from "next/image";
 
 /**
  * 06 · Social & PPC — "The Feed Wall".
@@ -40,7 +41,7 @@ function Card({ p }: { p: (typeof POSTS)[number] }) {
     <article className="fw__card">
       <div className="fw__shot">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={p.src} alt={p.t} loading="lazy" />
+        <Image src={p.src} alt={p.t} fill sizes="(max-width: 560px) 46vw, 190px" quality={68} />
       </div>
       <div className="fw__top">
         <span className="fw__tag">{p.tag}</span>

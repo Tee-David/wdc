@@ -27,6 +27,7 @@ import "./services.css";
 import "./stages/stages.css";
 import "@/components/ui/motion-kit.css";
 import StrokeNumber from "@/components/ui/stroke-number";
+import Image from "next/image";
 
 /* One signature stage per service, each code-split so a visitor who never
    scrolls to Social never downloads the feed wall. ssr:false because these are
@@ -357,8 +358,13 @@ export default function ServicesBody() {
                 {BRAND_RAIL.map((piece) => (
                   <figure className="sv-art" key={piece.id}>
                     <div className="sv-art__shot">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={piece.src} alt={piece.title} loading="lazy" />
+                      <Image
+                        src={piece.src}
+                        alt={piece.title}
+                        fill
+                        sizes="(max-width: 620px) 74vw, 320px"
+                        quality={74}
+                      />
                     </div>
                     <figcaption className="sv-art__body">
                       <b>{piece.title}</b>
@@ -396,8 +402,13 @@ export default function ServicesBody() {
                      }}>
                     <div className="pv-shot">
                       {p.cover ? (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={p.cover} alt={`${p.name} website`} loading="lazy" />
+                        <Image
+                          src={p.cover}
+                          alt={`${p.name} website`}
+                          fill
+                          sizes="(max-width: 620px) 86vw, 33vw"
+                          quality={74}
+                        />
                       ) : (
                         /* no capture yet: a branded panel, not a broken image */
                         <span className="pv-shot__none" aria-hidden="true">{p.name}</span>
