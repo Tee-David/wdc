@@ -153,7 +153,11 @@
      gives the stages back the height they were designed against — the brand
      wall shows all five of its rows again instead of one. */
   .sv-svc__showcase { display: flex; }
+  /* `.se` is no longer in this chain -- see the note in service-detail.tsx --
+     but the combined page still wraps its showcase in one, so the rule stays
+     for that case and the lazy wrapper is now also a direct child here. */
   .sv-svc__showcase > .se { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .sv-svc__showcase > .sv-lazy,
   .sv-svc__showcase .sv-lazy { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   .sv-svc__showcase .sv-stage { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   /* `aspect-ratio: auto` is load-bearing: the frame carries a 16/10 and some
@@ -675,3 +679,16 @@
    page it sits directly under the breadcrumb and needs its own. */
 .sv-svc__top { margin-top: clamp(1rem, 2.4vw, 1.6rem); }
 .sv-svc__top .pv-lede { margin-top: .85rem; max-width: 58ch; }
+
+
+/* THE SERVICE TITLE INSIDE THE HERO BAND. `sv-svc__title` was written for a
+   section on a light page; in the band it needs the band's ink, and the icon
+   chip needs to read against navy rather than on it. (0,2,0) to beat the
+   single-class rules above. */
+.pv .wk-hero .sv-svc__title { color: #fff; }
+.pv .wk-hero .sv-svc__icon {
+  background: rgb(255 255 255 / .12);
+  border-color: rgb(255 255 255 / .22);
+  color: #fff;
+}
+.pv .wk-hero .sv-svc__top { margin-top: 0; }

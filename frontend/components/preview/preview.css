@@ -290,6 +290,36 @@ main.pv {
   .pv-bar > .pv-nav { position: static; justify-content: center; margin-top: 20px; }
 }
 
+/* A BAR WHOSE ACTION IS A BUTTON, NOT THE ARROW PAIR.
+
+   `.pv-bar` positions `.pv-nav` absolutely, which is right for two round arrow
+   controls and wrong for anything else: a `.pv-btn` in that slot is not
+   positioned at all, so it fell into the flow underneath a centred heading and
+   sat on its own line, half off the left edge.
+
+   Here the heading takes the space it needs on the left and the action sits to
+   its right, with the eyebrow staying above the heading where it was. Below
+   620px the action goes full width under the heading rather than being
+   squeezed beside it. */
+.pv-bar--split {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: clamp(1rem, 2.4vw, 2rem);
+}
+.pv-bar--split > .pv-head {
+  /* min-width: 0 so a long heading wraps instead of pushing the action off. */
+  flex: 1 1 20rem; min-width: 0;
+  width: auto; margin: 0;
+  justify-items: start; text-align: left;
+}
+.pv-bar--split > .pv-head .pv-lede { margin-inline: 0; }
+.pv-bar--split > .pv-btn { flex: 0 0 auto; }
+@media (max-width: 620px) {
+  .pv-bar--split > .pv-btn { width: 100%; justify-content: center; }
+}
+
 /* ---------------- work carousel ---------------- */
 .pv-track {
   display: flex; gap: clamp(18px, 2.6vw, 28px); overflow-x: auto;
