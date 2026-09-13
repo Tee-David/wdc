@@ -67,14 +67,33 @@ export async function sendMail(input: {
   text: string;
   html?: string;
   replyTo?: string;
+  /**
+   * Set on anything a person did not individually ask us to send them -- a
+   * receipt, a reminder, a digest. Gmail weighs a one-click unsubscribe
+   * heavily: a message that offers one is treated as accountable bulk mail,
+   * and one that does not looks like mail that does not expect to be refused.
+   * A reply to a human conversation should leave this off.
+   */
+  unsubscribe?: boolean;
 }) {
+  const { unsubscribe, ...message } = input;
+  const contact = process.env.SMTP_REPLY_TO || process.env.SMTP_FROM_EMAIL;
+
   return transport().sendMail({
     from: {
       name: process.env.SMTP_FROM_NAME?.trim() || "WDC Solutions",
       address: required("SMTP_FROM_EMAIL"),
     },
     replyTo: input.replyTo || process.env.SMTP_REPLY_TO || undefined,
-    ...input,
+    ...message,
+    headers: unsubscribe && contact
+      ? {
+          /* A mailto rather than a URL, because there is no unsubscribe
+             endpoint yet and a link to one that does not exist is worse than
+             no link. Swap it for a URL the day there is one. */
+          "List-Unsubscribe": `<mailto:${contact}?subject=unsubscribe>`,
+        }
+      : undefined,
   });
 }
 
