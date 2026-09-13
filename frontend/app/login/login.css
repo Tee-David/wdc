@@ -214,7 +214,7 @@
 .au__reveal:hover { color: var(--foreground); }
 .au__reveal svg { width: 1.05rem; height: 1.05rem; }
 
-.au__hint { margin: 0; color: var(--accent-ink, #c95000); font-size: .78rem; font-weight: 600; }
+.au__hint { margin: 0; color: var(--accent-ink, #b64800); font-size: .78rem; font-weight: 600; }
 
 .au__remember {
   display: flex;
@@ -233,7 +233,7 @@
   gap: 1rem;
   flex-wrap: wrap;
 }
-.au__formMeta > a { color: var(--accent-ink, #c95000); font-size: .78rem; font-weight: 700; text-decoration: none; }
+.au__formMeta > a { color: var(--accent-ink, #b64800); font-size: .78rem; font-weight: 700; text-decoration: none; }
 .au__formMeta > a:hover { text-decoration: underline; text-underline-offset: .2em; }
 
 .au__error {
@@ -287,12 +287,12 @@
 @keyframes au-spin { to { transform: rotate(360deg); } }
 
 .au__help { margin: 1.6rem 0 0; color: var(--muted); font-size: .78rem; line-height: 1.6; text-align: center; }
-.au__help a { color: var(--accent-ink, #c95000); font-weight: 700; text-decoration: none; }
+.au__help a { color: var(--accent-ink, #b64800); font-weight: 700; text-decoration: none; }
 .au__help a:hover { text-decoration: underline; text-underline-offset: .2em; }
 
 .au :focus-visible { outline: 2px solid var(--au-orange); outline-offset: 3px; }
 
-.au__textLink { justify-self: center; color: var(--accent-ink, #c95000); font-size: .8rem; font-weight: 700; text-decoration: none; }
+.au__textLink { justify-self: center; color: var(--accent-ink, #b64800); font-size: .8rem; font-weight: 700; text-decoration: none; }
 .au__textLink:hover { text-decoration: underline; text-underline-offset: .2em; }
 
 .au__notice {
@@ -306,7 +306,7 @@
 }
 .au__notice b { font-family: var(--font-space-grotesk), system-ui, sans-serif; }
 .au__notice span { color: var(--muted); font-size: .88rem; line-height: 1.55; }
-.au__notice a { width: fit-content; color: var(--accent-ink, #c95000); font-size: .82rem; font-weight: 700; text-decoration: none; }
+.au__notice a { width: fit-content; color: var(--accent-ink, #b64800); font-size: .82rem; font-weight: 700; text-decoration: none; }
 
 /* ---- /signed-in, which has no brand column ------------------------------- */
 
