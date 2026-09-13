@@ -49,6 +49,19 @@
   color: #000065;
   border-color: transparent;
 }
+/* AND IN LIGHT MODE IT NEEDS AN EDGE. The panel behind it is
+   `var(--background)`, which is white in light mode, so a white pill on a
+   white panel has no visible boundary at all: the control reads as a line of
+   text somebody forgot to style, which is what the screenshot showed. Navy at
+   full strength gives it one, in the same blue the label and the hover fill
+   already use.
+
+   Light only. In dark mode the panel is navy and the white pill is the
+   lightest thing on it, so a border would only outline what is already
+   obvious. The theme switch beside it does not need this either -- it carries
+   a tinted `--surface` fill, so it has an edge without one. */
+html:not(.dark) .sm-footer .uw { border-color: #000065; }
+
 .sm-footer .uw:hover {
   background: #000065; color: #fff; border-color: #000065;
 }
