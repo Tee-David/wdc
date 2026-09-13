@@ -27,7 +27,8 @@ export interface SocialItem {
  * renders inline (place it inside any header) while the panel and its
  * colored pre-layers animate in from the right edge of the viewport. The
  * toggle is an animated hamburger that morphs to an X; the panel bottom
- * hosts icon socials and an optional footer slot (e.g. the theme toggler).
+ * hosts icon socials and an optional footer slot (e.g. the theme toggler),
+ * both of which stay put while the list scrolls behind them.
  */
 export default function StaggeredMenu({
   items = [],
@@ -80,14 +81,11 @@ export default function StaggeredMenu({
     closeTweenRef.current = null;
 
     const itemEls = Array.from(panel.querySelectorAll(".sm-panel-itemLabel"));
-    const numberEls = Array.from(panel.querySelectorAll(".sm-panel-item"));
     const socialTitle = panel.querySelector(".sm-socials-title");
     const socialLinks = Array.from(panel.querySelectorAll(".sm-socials-link"));
     const footer = panel.querySelector(".sm-footer");
 
     if (itemEls.length) gsap.set(itemEls, { yPercent: 140, rotate: 10 });
-    if (numberEls.length)
-      gsap.set(numberEls, { ["--sm-num-opacity" as string]: 0 });
     if (socialTitle) gsap.set(socialTitle, { opacity: 0 });
     if (socialLinks.length) gsap.set(socialLinks, { y: 25, opacity: 0 });
     if (footer) gsap.set(footer, { y: 20, opacity: 0 });
@@ -124,18 +122,6 @@ export default function StaggeredMenu({
         },
         itemsStart
       );
-      if (numberEls.length) {
-        tl.to(
-          numberEls,
-          {
-            duration: 0.6,
-            ease: "power2.out",
-            ["--sm-num-opacity" as string]: 1,
-            stagger: { each: 0.08, from: "start" },
-          },
-          itemsStart + 0.1
-        );
-      }
     }
 
     if (socialTitle || socialLinks.length || footer) {
@@ -272,7 +258,9 @@ export default function StaggeredMenu({
         aria-hidden={!open}
       >
         <div className="sm-panel-inner">
-          <ul className="sm-panel-list" role="list">
+          {/* The list, not the panel, is the nested scroller now, so this is
+              where Lenis has to stand aside. */}
+          <ul className="sm-panel-list" role="list" data-lenis-prevent>
             {items.map((it, idx) => (
               <li className="sm-panel-itemWrap" key={it.label + idx}>
                 <a

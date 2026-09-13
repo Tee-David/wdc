@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import "./scroll-top.css";
 
 /**
@@ -20,8 +20,25 @@ import "./scroll-top.css";
  * EVERY FRAME IS CHEAP. The scroll handler is passive and writes ONE custom
  * property; the ring is an SVG whose dash offset is bound to that property, so
  * the work per frame is a single style write and a composited repaint of a
- * 48px box. No React state changes while scrolling -- `shown` flips twice in a
- * whole page, at the threshold, and nothing else re-renders.
+ * 48px box.
+ *
+ * AND NOTHING HERE RE-RENDERS AT ALL, which is a correctness rule and not an
+ * optimisation. Showing and hiding used to be React state, and that is why the
+ * button never reached the top.
+ *
+ * The sequence: you tap it at the foot of the page, the tap gives the button
+ * DOM focus, the smooth scroll starts, and on the way up it crosses the
+ * threshold below which the button hides. That flipped the state, React
+ * committed the new `class`, `tabindex` and `aria-hidden` onto the element
+ * that had focus, and restoring the selection around that commit called
+ * `.focus()` on it -- which counts as a scroll request and cancels the glide
+ * that is still in flight. Measured on the homepage: from the foot it stopped
+ * at 189px, from 800px it stopped at 358px, every single time, always just
+ * after passing the threshold. A scripted click, which never focuses anything,
+ * landed on 0 every time.
+ *
+ * So visibility is written straight to the element instead. No commit, no
+ * selection to restore, no cancelled scroll.
  */
 
 /* Far enough down that the button never appears during the small bounce at the
@@ -29,7 +46,6 @@ import "./scroll-top.css";
 const SHOW_AT = 420;
 
 export default function ScrollTop() {
-  const [shown, setShown] = useState(false);
   const ref = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -56,10 +72,19 @@ export default function ScrollTop() {
       max = el.scrollHeight - el.clientHeight;
     };
 
-    /* setState per frame is cheap when the value has not changed, but it is
-       not free: it schedules a render that React then has to throw away. The
-       button crosses the threshold twice in a whole page. */
+    /* Written to the element, never to state -- see the note above the
+       component for the bug that cost. `visibility: hidden` in the stylesheet
+       is what takes it out of the accessibility tree and out of reach of a
+       pointer; the tabindex keeps it out of the tab order as well. */
     let visible = false;
+    const show = (on: boolean) => {
+      const el = ref.current;
+      if (!el) return;
+      el.classList.toggle("is-on", on);
+      el.tabIndex = on ? 0 : -1;
+      if (on) el.removeAttribute("aria-hidden");
+      else el.setAttribute("aria-hidden", "true");
+    };
 
     const read = () => {
       frame = 0;
@@ -69,7 +94,7 @@ export default function ScrollTop() {
       const next = y > SHOW_AT;
       if (next !== visible) {
         visible = next;
-        setShown(next);
+        show(next);
       }
     };
     /* Coalesced to one read a frame: a scroll event can fire far more often
@@ -101,27 +126,86 @@ export default function ScrollTop() {
   }, []);
 
   const up = () => {
-    window.scrollTo({
-      top: 0,
-      /* Honour the setting rather than assume. Someone who has asked their
-         system for less motion did not ask for a two-second glide. */
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? "auto"
-        : "smooth",
-    });
+    /* Honour the setting rather than assume. Someone who has asked their
+       system for less motion did not ask for a two-second glide. */
+    const instant = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    /* LENIS FIRST WHERE IT IS RUNNING. It owns the scroll position on a
+       desktop pointer and keeps its own target; scrolling the window behind
+       its back leaves that target stale, and it animates the page back towards
+       it. The same reasoning, and the same call, as scroll-reset.tsx. */
+    if (window.__lenis) {
+      window.__lenis.scrollTo(0, { immediate: instant, force: true });
+    } else {
+      window.scrollTo({ top: 0, behavior: instant ? "auto" : "smooth" });
+    }
+
+    if (!instant) landAtTheTop();
+  };
+
+  /**
+   * MAKE SURE IT ACTUALLY ARRIVES.
+   *
+   * The cause found on this site is fixed above, but a smooth scroll is
+   * cancellable by design and there is more than one way to cancel one: an
+   * image settling, a section measuring itself, a browser's own scroll
+   * anchoring. A button labelled "back to the top" that stops short of the top
+   * has failed, and it fails silently.
+   *
+   * So the glide is watched until it stops moving, and if it has stopped
+   * anywhere but the top, it is finished off. It stands down the moment the
+   * reader does anything themselves -- a touch, a wheel, a key, a pointer --
+   * because a reader who has started scrolling has withdrawn the request, and
+   * fighting them is worse than stopping short.
+   */
+  const landAtTheTop = () => {
+    let last = window.scrollY;
+    let still = 0;
+    let frame = 0;
+    const started = performance.now();
+    const intents = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
+
+    const stop = () => {
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+      for (const t of intents) window.removeEventListener(t, stop, true);
+    };
+    for (const t of intents) window.addEventListener(t, stop, { capture: true, passive: true });
+
+    const watch = () => {
+      frame = 0;
+      const y = window.scrollY;
+      /* Six still frames is about a tenth of a second: long enough that a
+         glide pausing between frames is not mistaken for a glide that has
+         ended, short enough that nobody sees the correction as a second hop. */
+      still = Math.abs(y - last) < 1 ? still + 1 : 0;
+      last = y;
+      if (still >= 6 || performance.now() - started > 3000) {
+        stop();
+        if (window.scrollY > 0) {
+          window.__lenis?.scrollTo(0, { immediate: true, force: true });
+          window.scrollTo({ top: 0, behavior: "instant" });
+        }
+        return;
+      }
+      frame = requestAnimationFrame(watch);
+    };
+    frame = requestAnimationFrame(watch);
   };
 
   return (
     <button
       ref={ref}
       type="button"
-      className={`st${shown ? " is-on" : ""}`}
+      className="st"
       onClick={up}
       aria-label="Back to the top"
-      /* Out of the tab order while it is not offered, so a keyboard user does
-         not land on an invisible control at the top of a page. */
-      tabIndex={shown ? 0 : -1}
-      aria-hidden={!shown}
+      /* The starting state, at the top of a page where the button is not
+         offered. Everything after this is written to the element by the scroll
+         handler rather than re-rendered. Out of the tab order while it is
+         hidden, so a keyboard user does not land on an invisible control. */
+      tabIndex={-1}
+      aria-hidden="true"
     >
       <svg className="st__ring" viewBox="0 0 44 44" aria-hidden="true">
         <circle className="st__track" cx="22" cy="22" r="20" />

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  AlertCircle, ArrowLeft, ArrowRight, BrainCircuit, Check, Code2, HelpCircle,
+  AlertCircle, ArrowLeft, ArrowRight, BadgeInfo, BrainCircuit, Check, Code2, HelpCircle,
   Megaphone, Palette, Save, Search, Smartphone, Undo2,
 } from "lucide-react";
 import { SERVICES, type ServiceSlug } from "@/lib/services";
@@ -737,6 +737,7 @@ function FieldView({
   const id = `ob-${f.key}`;
   const errId = `${id}-err`;
   const hintId = `${id}-hint`;
+  const scopeId = `${id}-scope`;
   const invalid = problem !== null;
   const v = value ?? (f.kind === "multi" ? [] : "");
 
@@ -755,9 +756,28 @@ function FieldView({
      without is not a hint, it is a label, so none of these are hidden behind
      a hover. */
   const hint = f.hint ? <p className="ob__hint" id={hintId}>{f.hint}</p> : null;
-  /* The hint and the error are both read out, in that order: what the question
-     wants, then what is wrong with the answer. */
-  const describedBy = [f.hint ? hintId : "", problem ? errId : ""].filter(Boolean).join(" ") || undefined;
+
+  /* WHAT IT COSTS TO SAY YES, SAID BEFORE THEY SAY IT.
+
+     These sit on the questions that offer something outside what the client
+     bought -- design us a logo, buy us a domain, write our pages. It is marked
+     rather than set as a quiet grey hint on purpose: a client answering "yes"
+     here is asking for work they have not paid for, and burying that would be
+     the kind of upsell nobody should have to go looking for. It carries no
+     number, because nothing is charged from this form; what it promises is a
+     quote before anything starts. */
+  const scope = f.scope ? (
+    <p className="ob__scope" id={scopeId}>
+      <BadgeInfo aria-hidden="true" />
+      <span>{f.scope}</span>
+    </p>
+  ) : null;
+
+  /* The hint, the cost note and the error are all read out, in that order:
+     what the question wants, what saying yes commits to, then what is wrong
+     with the answer. */
+  const describedBy = [f.hint ? hintId : "", f.scope ? scopeId : "", problem ? errId : ""]
+    .filter(Boolean).join(" ") || undefined;
 
   /* THE "NOT SURE" ESCAPE.
      The welcome screen promises that not knowing something will not hold
@@ -810,6 +830,7 @@ function FieldView({
     >
       {label}
       {hint}
+      {scope}
       {/* The control stays in the DOM while deferred rather than being
           replaced, so nothing jumps when it is toggled and anything already
           typed is still there if they change their mind.
@@ -872,7 +893,23 @@ function FieldView({
             role="radio"
             aria-checked={v === o}
             className={`ob__card${v === o ? " is-on" : ""}`}
-            onClick={() => onChange(o)}
+            /* PRESSING THE CHOSEN ONE AGAIN UNCHOOSES IT.
+
+               A radio group cannot normally be emptied once it has been
+               answered, and on paper that is correct. On this form it was a
+               trap: pick "I'm not sure; please advise me", change your mind,
+               press it again, and nothing happens -- the form looks broken at
+               the exact moment somebody is trying to correct themselves. The
+               only way back was a small text button underneath that nobody
+               looks for, because the thing they want to undo is the thing
+               they just pressed.
+
+               So the answer toggles. Choosing a different option still simply
+               replaces this one; this only adds the case where the option
+               pressed is the one already on. A required question that is
+               emptied this way goes back to being unanswered, which is
+               honest -- it IS unanswered. */
+            onClick={() => onChange(v === o ? "" : o)}
           >
             <span className="ob__dot" aria-hidden="true" />
             {o}

@@ -5,8 +5,7 @@ import { Banknote, FileText, Plus, Save, Send, Trash2, Undo2 } from "lucide-reac
 import type { Client, Invoice, Project } from "@/lib/admin/types";
 import { naira } from "@/lib/admin/types";
 import {
-  createExpense, createInvoice, deleteInvoice, issueInvoice, recordPayment,
-  removeExpense, reversePayment, updateInvoice,
+  createExpense, createInvoice, deleteInvoice, issueInvoice, recordPayment, reversePayment, updateInvoice,
 } from "@/lib/admin/actions";
 import { Actions, Field, Fields, Form, Hidden, Select, Submit } from "./form";
 import { DialogButton } from "./dialog";
@@ -355,11 +354,7 @@ export function ReversePayment({ id, invoiceId }: { id: string; invoiceId: strin
   );
 }
 
-export function RemoveExpense({ id }: { id: string }) {
-  return (
-    <Form action={removeExpense} confirm="Remove this expense?">
-      <Hidden name="id" value={id} />
-      <Submit tone="danger" icon={Trash2}>Remove</Submit>
-    </Form>
-  );
-}
+/* `RemoveExpense` used to live here and is gone with the bare button it drew.
+   Removing an expense is in the row's own menu now, behind a sentence that
+   names the expense and says what it comes out of -- see ExpenseMenu in
+   row-actions.tsx. */

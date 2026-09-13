@@ -8,7 +8,6 @@ import { BLOG_POSTS, formatDate, postsNewestFirst, readingMinutes } from "@/lib/
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 import "@/components/preview/preview.css";
-import "@/components/work/work.css";
 import "@/components/blog/blog.css";
 
 export const metadata: Metadata = {

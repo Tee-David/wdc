@@ -80,10 +80,30 @@ export type QrResult = {
  * against 30% is deliberately enormous rather than merely sufficient: this is
  * the one thing here that fails silently, on somebody else's phone, weeks
  * later. 9 modules scanned just as well and was too small to read as our mark;
- * 11 is the point where it is recognisable and the budget is still barely
- * touched.
+ * 11 was where it became recognisable.
+ *
+ * 13 IS WHERE IT STOPS. It was asked for larger, and 13 is the last step that
+ * keeps every real code on this site under the 12% the component warns at --
+ * 169 of a 49-module article code's 2,401, or 7.0%. Every blog URL was
+ * rendered at 88, 104, 136 and 200px and decoded again afterwards; all passed.
+ * Re-run that check before going to 15, and do not go there on a hunch.
  */
-const WELL_MODULES = 11;
+const WELL_MODULES = 13;
+
+/**
+ * The corner radius of the well, in modules.
+ *
+ * ROUNDED IN INK, NOT BY LEAVING MODULES OUT. The obvious way to round a hole
+ * cut in a QR code is to keep the modules at its corners, and it does not
+ * work: whether a corner module is dark is decided by the data, so the same
+ * well would look rounded on one article and square on the next. The corners
+ * are PAINTED instead -- four nubs filled in the module colour, in the region
+ * the well already damaged -- so every code rounds identically.
+ *
+ * It costs the code nothing. The damaged area is the well either way; this
+ * only changes what is drawn inside it.
+ */
+const WELL_RADIUS = 2.5;
 
 export async function qrSvg(text: string, options: QrOptions = {}): Promise<string> {
   return (await qrCode(text, options)).svg;
@@ -122,8 +142,30 @@ export async function qrCode(text: string, options: QrOptions = {}): Promise<QrR
     }
   }
 
+  /* The four corner nubs: the well's square minus a rounded rectangle inside
+     it, drawn as one compound path so `evenodd` leaves exactly the corners.
+     Nothing is drawn when there is no well. */
+  const wx = wellStart + margin;
+  const r = Math.min(WELL_RADIUS, well / 2);
+  const corners = well > 0
+    /* The grid is drawn `crispEdges` on the root, which is right for squares on
+       a module boundary and wrong for an arc -- without this the rounding
+       comes back as a staircase. */
+    ? `<path fill="${dark}" fill-rule="evenodd" shape-rendering="geometricPrecision" d="` +
+      `M${wx} ${wx}h${well}v${well}h-${well}z` +
+      `M${wx + r} ${wx}h${well - 2 * r}a${r} ${r} 0 0 1 ${r} ${r}` +
+      `v${well - 2 * r}a${r} ${r} 0 0 1 ${-r} ${r}` +
+      `h${-(well - 2 * r)}a${r} ${r} 0 0 1 ${-r} ${-r}` +
+      `v${-(well - 2 * r)}a${r} ${r} 0 0 1 ${r} ${-r}z"/>`
+    : "";
+
+  /* THE INSET IS THE MARK'S QUIET ZONE. It keeps the logo clear of the rounded
+     corners as well as of the code: a corner of radius r reaches 0.29r inward
+     along the diagonal, which at these numbers is 0.73 of a module against the
+     1.41 the inset buys. */
+  const inset = 1;
   const logo = options.logo
-    ? `<image href="${options.logo}" x="${wellStart + margin + 0.9}" y="${wellStart + margin + 0.9}" width="${well - 1.8}" height="${well - 1.8}" preserveAspectRatio="xMidYMid meet" />`
+    ? `<image href="${options.logo}" x="${wx + inset}" y="${wx + inset}" width="${well - inset * 2}" height="${well - inset * 2}" preserveAspectRatio="xMidYMid meet" />`
     : "";
 
   const svg =
@@ -131,6 +173,7 @@ export async function qrCode(text: string, options: QrOptions = {}): Promise<QrR
     `shape-rendering="crispEdges" aria-hidden="true" focusable="false">` +
     (light === "#0000" ? "" : `<rect width="${total}" height="${total}" fill="${light}"/>`) +
     `<path fill="${dark}" d="${d}"/>` +
+    corners +
     logo +
     `</svg>`;
 

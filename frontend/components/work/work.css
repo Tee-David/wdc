@@ -141,14 +141,10 @@
 
 /* ------------------------------------------------------- category listing */
 
-/* The dark hero at the top of a category, matching the reference's banner. */
-.wk-hero { background: var(--band); color: var(--on-band); position: relative; overflow: hidden; }
-.wk-hero__in {
-  padding-block: clamp(6.5rem, 11vw, 9rem) clamp(2.6rem, 5vw, 4rem);
-  display: grid; gap: 18px; max-width: 62ch;
-}
-.pv .wk-hero h1 { color: #fff; font-size: clamp(2.3rem, 1.4rem + 3.6vw, 4.2rem); }
-.pv .wk-hero .pv-lede { color: var(--on-band-dim); }
+/* `.wk-hero` ITSELF NOW LIVES IN preview.css, with the rest of the chrome
+   every landing page shares. It kept the `wk-` name because seven route
+   families already write it into their markup; only its address changed. What
+   stays here is the part that is genuinely about /work -- the breadcrumbs. */
 
 /* Breadcrumbs. Underlined rather than only recoloured: a link distinguished
    from the text around it by colour alone is invisible to anyone who cannot

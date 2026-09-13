@@ -164,14 +164,32 @@ export default function Dropzone({
          likelier cause for whoever reads the logs. */
       patch(k, {
         status: "failed",
-        failure: "We could not reach the file store. Try again, and tell us if it keeps happening.",
+        failure: "We could not reach the file store. Finding out why…",
       });
+      /* A REPORT, NOT A NEW GRANT -- AND IT COMES BACK WITH THE REASON.
+
+         The browser will not say why it refused a cross-origin request, so
+         the server sends the same preflight from outside CORS and reads the
+         answer. Until it replies the message above is the honest one: we know
+         it failed and we do not yet know why. When it replies, the message
+         becomes the actual cause. */
       void fetch("/api/onboarding/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        /* A report, not a new grant. The route answers 204 and logs it. */
         body: JSON.stringify({ report: "transport-failed", filename: item.file.name }),
-      }).catch(() => {});
+      })
+        .then((r) => r.json().catch(() => null))
+        .then((d: { reason?: string } | null) => {
+          patch(k, {
+            failure: d?.reason
+              ?? "We could not reach the file store. Try again, and tell us if it keeps happening.",
+          });
+        })
+        .catch(() => {
+          patch(k, {
+            failure: "We could not reach the file store. Try again, and tell us if it keeps happening.",
+          });
+        });
     };
     xhr.onabort = () => inFlight.current.delete(k);
     xhr.send(item.file);
