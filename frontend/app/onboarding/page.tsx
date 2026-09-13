@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SITE_URL } from "@/lib/site";
 import { Header } from "@/components/layout/header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import OnboardingMount from "@/components/onboarding/onboarding-mount";
@@ -15,17 +16,19 @@ import "@/components/work/work.css";
  * binds — a disallow only asks a crawler not to look, and a URL it never
  * looked at can still be listed if someone links to it.
  *
- * NO CANONICAL. A canonical URL is a request to index this address, which is
- * the opposite of what the rest of this block is for.
- *
- * DEMO. The form does not submit anywhere yet. It is here so the questions,
- * the branching and the flow can be seen and argued with before the endpoint,
- * the R2 uploads and the resume links are built behind it.
+ * A SELF-CANONICAL, WHICH IS NOT THE SAME AS ASKING TO BE INDEXED. This block
+ * used to say a canonical is a request to index and therefore omitted one --
+ * but omitting it does not mean there is none. The root layout sets
+ * `alternates.canonical` to the site root, and metadata is INHERITED, so this
+ * page was quietly telling every crawler that it is a duplicate of the
+ * homepage. That is a far worse signal than the one the omission was avoiding,
+ * and `noindex` decides indexing regardless.
  */
 export const metadata: Metadata = {
   title: "Client onboarding",
   description: "The brief. For clients who have already started a project with us.",
   robots: { index: false, follow: false, nocache: true },
+  alternates: { canonical: `${SITE_URL}/onboarding` },
 };
 
 export default function OnboardingPage() {

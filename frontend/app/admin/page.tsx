@@ -10,6 +10,7 @@ import { DemoNote, Empty, InvoicePill, Panel, StagePill, Tile, when } from "@/co
 import { AddClient } from "@/components/admin/client-form";
 import { AddProject } from "@/components/admin/project-forms";
 import { InvoiceBuilder } from "@/components/admin/money-forms";
+import { AdminPageSkeleton } from "@/components/admin/page-skeleton";
 
 export const metadata = { title: "Dashboard" };
 
@@ -37,7 +38,7 @@ export default function AdminHome() {
   const openForms = getSubmissions().filter((x) => x.status === "In progress");
 
   return (
-    <>
+    <AdminPageSkeleton>
       <div className="ad__head">
         <div>
           <h1>Today</h1>
@@ -179,6 +180,6 @@ export default function AdminHome() {
           </Panel>
         </div>
       </div>
-    </>
+    </AdminPageSkeleton>
   );
 }

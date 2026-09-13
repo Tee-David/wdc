@@ -36,7 +36,14 @@ export const auth = betterAuth({
   } : {},
   user: {
     additionalFields: {
-      role: { type: "string", required: false, defaultValue: "staff", input: false },
+      /* "client", to match `roleEnum`'s own default in lib/db/schema.ts.
+         It said "staff" here and "client" there, which meant a row created
+         through better-auth and a row created through the schema disagreed
+         about what a new person is allowed to see. The safe default is the
+         one with the least access, and it is now the same in both places.
+         `input: false` keeps the field off the wire: a role is granted, never
+         requested. */
+      role: { type: "string", required: false, defaultValue: "client", input: false },
     },
   },
   session: { expiresIn: 60 * 60 * 24 * 7, updateAge: 60 * 60 * 24 },

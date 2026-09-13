@@ -4,6 +4,7 @@ import { Logo } from "@/components/brand/logo";
 import { LEGAL_DOCS } from "@/lib/legal";
 import { COMPANY_NAME, CONTACT_EMAIL } from "@/lib/site";
 import "./site-footer.css";
+import { NewTab } from "@/components/ui/new-tab";
 
 /**
  * The site footer.
@@ -104,6 +105,7 @@ export function SiteFooter() {
                 {SOCIALS.map((s) => (
                   <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer">
                     {s.label}
+                    <NewTab />
                   </a>
                 ))}
               </div>

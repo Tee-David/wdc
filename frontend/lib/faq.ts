@@ -14,7 +14,13 @@ export const FAQS: Faq[] = [
   },
   {
     q: "Do you work with smaller budgets?",
-    a: "Yes. We manage hundreds of client accounts and work with every budget. Tell us what you are working with and we will tell you honestly what it does and does not cover, rather than quoting for something you do not need yet.",
+    /* NO HEADCOUNT FIGURE HERE. This said "we manage hundreds of client
+       accounts", which nothing on the site evidences and which sits a scroll
+       away from a portfolio naming fifteen projects. A reader who notices that
+       gap discounts everything else on the page, and the sentence was not
+       carrying the answer anyway -- the answer is the offer to be told the
+       truth about what a budget buys. */
+    a: "Yes, and we would rather you asked than assumed. Tell us what you are working with and we will tell you honestly what it does and does not cover, rather than quoting for something you do not need yet.",
   },
   {
     q: "How does a project start?",

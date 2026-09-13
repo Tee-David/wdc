@@ -152,3 +152,12 @@
   border-top: 1px solid var(--rule);
   color: var(--muted); font-size: .92rem; line-height: 1.65;
 }
+
+/* 44px targets on touch, for the same reason as the footer: the contents links
+   are about 20px tall, the spacing exempts them from WCAG, and the standard
+   that says 44 is our own. On a phone the contents are a collapsed block, so
+   the extra height is paid once and only where a thumb is doing the aiming. */
+@media (pointer: coarse) {
+  .lg-toc__list { gap: 0; }
+  .lg-toc__list a { display: flex; align-items: center; min-height: 44px; }
+}

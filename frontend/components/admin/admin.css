@@ -190,6 +190,7 @@
 
 .ad__mobileLayer, .ad__mobileDrawer { display: none; }
 .ad__main { min-width: 0; flex: 1; padding: clamp(1rem, 2.4vw, 1.8rem); }
+.ad__pageSkeleton { min-width: 0; }
 
 @media (max-width: 900px) {
   .ad__wrap, .ad__wrap.is-collapsed { grid-template-columns: minmax(0, 1fr); }
@@ -312,7 +313,7 @@
 }
 .ad__btn:hover { border-color: var(--ad-accent); color: var(--ad-accent); }
 .ad__btn svg { width: 1rem; height: 1rem; }
-.ad__btn--primary { background: var(--ad-accent); border-color: var(--ad-accent); color: #fff; }
+.ad__btn--primary { background: var(--ad-accent); border-color: var(--ad-accent); color: #000; }
 .ad__btn--primary:hover { background: var(--ad-navy); border-color: var(--ad-navy); color: #fff; }
 .ad__btn:disabled { opacity: .5; cursor: not-allowed; }
 
@@ -325,6 +326,41 @@
 .ad__empty > b { display: block; color: var(--ad-ink); font: 700 .95rem var(--font-space-grotesk), system-ui, sans-serif; }
 .ad__empty p { max-width: 30rem; margin: .35rem auto 0; color: var(--ad-dim); font-size: .8rem; }
 .ad__emptyAction { margin-top: 1rem; }
+
+/* -------------------------------------------------------------- loading */
+
+.ad__loading { display: grid; gap: 1rem; min-height: 34rem; }
+.ad__loadingHead { display: grid; gap: .45rem; padding-block: .15rem .3rem; }
+.ad__loadingLine,
+.ad__loadingTile,
+.ad__loadingPanel {
+  display: block;
+  background: var(--ad-line);
+  animation: ad-skeleton-pulse 1.8s ease-in-out infinite;
+}
+.ad__loadingLine { height: .8rem; border-radius: 999px; }
+.ad__loadingLine--title { width: min(9rem, 42%); height: 1.65rem; border-radius: 8px; }
+.ad__loadingLine--copy { width: min(25rem, 72%); }
+.ad__loadingTiles {
+  display: grid; gap: .7rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+}
+.ad__loadingTile { min-height: 6.4rem; border-radius: var(--ad-r); }
+.ad__loadingGrid { display: grid; gap: .9rem; grid-template-columns: minmax(0, 1fr); }
+.ad__loadingPanel { min-height: 13rem; border-radius: var(--ad-r); }
+.ad__bone { will-change: background-color; }
+@media (min-width: 1000px) {
+  .ad__loadingGrid { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+}
+@keyframes ad-skeleton-pulse {
+  0%, 100% { opacity: .62; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ad__loadingLine, .ad__loadingTile, .ad__loadingPanel, .ad__bone {
+    animation: none !important;
+  }
+}
 
 /* -------------------------------------------------------------- the note */
 

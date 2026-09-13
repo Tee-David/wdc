@@ -20,6 +20,12 @@ import "@/components/work/work.css";
 export const metadata: Metadata = {
   title: "Page not found",
   robots: { index: false, follow: true },
+  /* NULL, NOT A URL. Metadata is inherited, and the root layout canonicalises
+     to the site root -- so every 404 was declaring itself a duplicate of the
+     homepage, which is an invitation to fold missing URLs into it. A 404 has
+     no stable address of its own to point at either, since it is served for
+     whatever was asked for, so the honest answer is no canonical at all. */
+  alternates: { canonical: null },
 };
 
 export default function NotFound() {
