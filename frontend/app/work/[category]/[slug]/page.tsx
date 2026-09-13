@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { WorkFooter } from "@/components/work/work-footer";
 import { CASE_STUDIES, caseBySlug, casesFor, categoryBySlug } from "@/lib/work";
-import { COMPANY_NAME, SITE_URL } from "@/lib/site";
+import { COMPANY_NAME, SITE_NAME, SITE_URL } from "@/lib/site";
 import { testimonialFor } from "@/lib/testimonials";
 import "@/components/preview/preview.css";
 import "@/components/work/work.css";
@@ -36,7 +36,23 @@ export async function generateMetadata(
      already recorded against every case study and is exactly what a searcher
      is scanning for; the brand is dropped only if even that will not fit,
      since the client's name is doing the identifying by then. */
-  const brand = ` | ${COMPANY_NAME}`;
+  /* SITE_NAME, NOT COMPANY_NAME, AND THE DIFFERENCE IS 25 CHARACTERS.
+
+     Two things above are not quite right. This returns `title.absolute`, which
+     BYPASSES the root template, so the brand is only ever what is appended
+     here -- the template is not "appending" anything. And what was appended
+     was `COMPANY_NAME`, "We Dig Creativity Solutions (WDC Solutions)": a 45
+     character suffix against a 60 character budget, leaving 15 for a client
+     and a sector.
+
+     Measured across all fifteen case studies, that meant the two branches that
+     carry the brand NEVER ran: thirteen fell through to sector-without-brand
+     and two to the client alone. The fitting worked -- every title lands
+     between 11 and 56 characters -- but it was fitting by dropping the brand
+     every single time, while every other page on the site carries the short
+     name. `SITE_NAME` is the 20 character suffix the rest of the site uses,
+     which the longest titles still cannot take, but the shortest now can. */
+  const brand = ` | ${SITE_NAME}`;
   const withTitle = `${cs.client} — ${cs.title}`;
   const withSector = `${cs.client} — ${cs.sector}`;
   const title =
