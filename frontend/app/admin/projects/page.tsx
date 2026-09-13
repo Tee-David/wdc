@@ -89,7 +89,11 @@ export default function ProjectsPage() {
               </tbody>
             </table>
           </div>
-        ) : <Empty title="No projects yet" />}
+        ) : (
+          <Empty title="No projects yet" action={<AddProject clients={getClients()} />}>
+            Projects keep delivery, deadlines, files, and client updates together.
+          </Empty>
+        )}
       </Panel>
     </>
   );

@@ -75,7 +75,14 @@ export default function FormsPage() {
                 </tbody>
               </table>
             </div>
-          ) : <Empty title="Nothing sent yet" />}
+          ) : (
+            <Empty
+              title="No submissions yet"
+              action={<Link className="ad__btn" href="/onboarding" target="_blank">Open onboarding form</Link>}
+            >
+              Client onboarding responses and saved drafts will appear here.
+            </Empty>
+          )}
         </Panel>
 
         <Panel title={`The form asks ${questions} questions across ${allSteps.length} steps`}>

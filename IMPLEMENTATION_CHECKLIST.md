@@ -42,6 +42,22 @@ Status key: `[ ]` pending, `[-]` in progress, `[x]` implemented and verified.
 - [x] Stop preselecting a service on the onboarding picker; Start stays disabled until the client chooses.
 - [x] Use the brand orange for orange text on light grounds. (--accent-ink was #b34700 at 5.50:1, a whole stop darker than needed, which read as a different, muddier orange. Now #c95000, the lightest orange on the hue that still clears 4.5:1.)
 
+
+### Raised by the independent audit, 2026-09-13 (see `plans/WDC_Site_Audit_And_SEO_Plan.docx`)
+
+- [ ] Point the seven homepage project cards, and the `/work` cards, at our own case studies instead of opening the client's site in a new tab; move the outbound link inside the case study. (Finding C1. Fifteen case studies exist with their own URLs and currently receive no internal links at all, so a visitor who gets interested lands on somebody else's website. The audit calls this the cheapest commercial win available.)
+- [ ] Resolve or remove the "hundreds of client accounts" claim, which appears on the homepage and in the Contact FAQ. (Finding C2. Unverifiable, and it sits next to a portfolio naming fifteen projects; a sceptical reader who notices the gap discounts everything else. The repo's own rule against publishing unevidenced figures is followed everywhere except here.)
+- [ ] Stop `wedigcreativity.vercel.app` being indexed: redirect it to the canonical domain, or send `X-Robots-Tag: noindex` for any host that is not the canonical one. (Finding S1. It serves the complete site and allows indexing. It does declare a canonical, but a canonical is advisory where a redirect is binding. Both prior audits saw a second copy of the site in results and this is the likely reason. Highest-value SEO item; about an hour.)
+- [ ] Replace the five page titles and meta descriptions with the measured set in the plans document. (The homepage title currently omits web, branding, SEO and software; `Services |` and `About |` spend the most-weighted words on a generic one.)
+- [ ] Give `/work`, the legal index and each legal page a social preview image. (Finding S2. They unfurl as a bare link in WhatsApp, LinkedIn and Slack. `/work` is the page a prospect is most likely to forward.)
+- [ ] Point the onboarding and 404 canonicals at themselves rather than at the homepage. (Finding S3. Harmless while both are noindex; a real problem the day that is removed.)
+- [ ] Add a skip-to-main-content link. (Finding A3. There is none anywhere. Tabbing the homepage reaches the Jotform button and the accessibility widget before the logo, then the whole nav, on every page.)
+- [ ] Mark the typewriter cursor character in the homepage h1 as decorative. (Finding A4. It is part of the heading text, so a screen reader announces the heading and then the cursor symbol.)
+- [ ] Raise footer navigation and legal-page contents links to the 44px tap target our own conventions require. (Finding A4. They measure about 17-21px. Not a WCAG failure, because spacing exempts them; it is a gap against our own stated standard.)
+- [ ] Announce links that open in a new tab with hidden text. (Finding A4. They are safe and correct, but silent.)
+- [ ] Route the six remaining raw `<img>` tags through `next/image`. (Finding P3. In the About gallery, the Services gallery and project covers, the social feed, the app-store display and the Our Work viewer. About alone: 13 images with no declared dimensions and ~269KB recoverable. This also contradicts the note in this repo claiming images are already optimised everywhere.)
+- [ ] Decide on six dedicated service URLs, `/services/<slug>`. (Findings S4 and C3. One page competing for six sets of terms, nowhere to land a paid click, and the longest and heaviest page on the site at 27.4 phone screens. Do them one at a time and only where there is enough to say: six thin pages rank worse than one strong one. Fifteen case studies are already there to link from.)
+
 ## 1A. Client onboarding experience
 
 - [x] Treat onboarding as a client-facing, normally post-payment intake link sent by WDC; rewrite every prompt and helper from the client's perspective.
@@ -79,18 +95,14 @@ Status key: `[ ]` pending, `[-]` in progress, `[x]` implemented and verified.
 - [x] Stop a completed upload from breaking mobile layout; the page narrows once a file is attached and must not. (The file rows are grid items and a grid item defaults to `min-width: auto`, so it refuses to shrink below its content. One long filename took the page to a scrollWidth of 558 in a 360px viewport. Measured after the fix: no overflow at 320/360/390 and the name truncates.)
 
 
-### From the independent audit (2026-09-13)
 
-- [x] Stop the chat avatar costing every page 2.35MB. (Jotform's `avatar-icon` 302s to a 1254x1254 PNG of 2,459,310 bytes served at ~15KB/s — measured at 156 SECONDS for an image drawn at 56x56, on every page, which is why `window.load` never fired anywhere and why Lighthouse runs kept failing outright. The same artwork, sized to what it is drawn at, is 3,552 bytes and is now served from `public/brand/`. After: `window.load` fires on every page and no Jotform bytes are fetched until the reader opens the chat.)
-- [x] Fix the onboarding service cards rendering white on orange. (`.ob__svcT b` hard-coded `color: #fff` at (0,2,1), which beat the card variant; an earlier correction aimed at `h3, p` and silently missed because the markup is `b`/`em`. The label now inherits from the card, so the navy variant stays white and the orange one takes `--on-accent`.)
-- [x] Wrap the onboarding facts list in a `<dl>`. (Six `dt`/`dd` pairs sat in plain `div`s, which is invalid and leaves the pairing unannounced to a screen reader.)
-- [ ] Stop `wedigcreativity.vercel.app` being indexed. It serves the whole site with `index, follow`, which is a second complete copy competing with the canonical domain. Either `X-Robots-Tag: noindex` for that host or a permanent redirect. Highest-value SEO item and about an hour.
-- [ ] Point the homepage and `/work` cards at the case-study pages that already exist, and put the outbound client link inside the case study. Fifteen of them are live and are currently getting no internal links.
-- [ ] Replace the five page titles and meta descriptions with the measured set in `plans/WDC_Site_Audit_And_SEO_Plan.docx`. The homepage title currently omits web, branding, SEO and software.
-- [ ] Add a skip-to-content link. There is none on any page.
-- [ ] Move the six remaining raw `<img>` tags onto `next/image`.
-- [ ] Decide on the six dedicated service URLs (`/services/<slug>`). Worth doing, but only one at a time and only where there is enough to say — six thin pages rank worse than one strong one. See the plans document.
-- [ ] Re-check the two live claims about client numbers; the audit could not verify them and they read as overstated.
+### Raised by the independent audit, 2026-09-13
+
+- [x] Fix the service-picker cards rendering white on orange. (Finding A2, and it was a repeat of a rule this project had already written down. `.ob__svcT b` hard-coded `color: #fff` at (0,2,1) and beat the card variant; the correction written to fix it targeted `h3, p` while the markup uses `b`/`em`, so it never matched a single element. The label now inherits from the card.)
+- [x] Wrap the onboarding facts list in a `<dl>`. (Finding A2. Three `dt`/`dd` pairs sat in plain `div`s, so the pairing was not conveyed. The same page does it correctly further down.)
+- [ ] Give the onboarding page a main heading. (Finding A4. It has none. It is noindex so this costs nothing in ranking, but it is the element screen-reader users navigate by.)
+- [ ] Rate-limit the onboarding draft and submit routes, and require an origin header rather than accepting its absence. (Finding R1. The contact form allows five per address per ten minutes; these have no limit at all, and the origin check passes any request that simply omits the header — which a script does and a browser cannot. Today a script could create unlimited draft rows and submit unlimited forms.)
+
 ## 2. Authentication and email
 
 - [x] Replace temporary environment-password auth with Better Auth backed by CockroachDB.
@@ -135,6 +147,12 @@ Status key: `[ ]` pending, `[-]` in progress, `[x]` implemented and verified.
 - [ ] Add unit/integration/E2E tests for initialization, callback, valid and invalid webhook signatures, duplicates, retries, partial payment, and reconciliation.
 - [ ] Publish the exact Paystack webhook and callback URLs after routes are implemented and deployed.
 
+
+### Abuse and upload safety, raised by the independent audit 2026-09-13
+
+- [ ] Move the contact form's rate limit out of per-instance memory. (Finding R2. It counts in the memory of one serverless instance; Vercel spreads requests across instances that start and stop constantly, so the count resets often and is never shared. The list it keeps also never evicts, so it grows without bound on a long-lived instance. It stops a careless script, not a determined one.)
+- [ ] Record, in the upload route and wherever admin will render client files, that SVG uploads must only ever be served from the storage domain and never inline from ours. (Finding R3. SVG is a document format that can carry script. Safe today because nothing renders it on our origin; it becomes a live vulnerability the day the admin dashboard displays a client's uploaded SVG inline.)
+
 ## 3. Performance and release verification
 
 - [x] Skip the intro/preloader on mobile.
@@ -147,6 +165,14 @@ Status key: `[ ]` pending, `[-]` in progress, `[x]` implemented and verified.
 - [ ] Rerun mobile Lighthouse on the canonical domain and target 90+.
 - [-] Raise canonical-home mobile Lighthouse from the supplied 82 toward 90+ without regressing the supplied desktop 98; prioritise the 2.99s hero-text render delay, 3.8s LCP, 6.7s Speed Index, render-blocking CSS, forced reflow, and unused first-party JavaScript shown in the evidence.
 - [ ] Record any remaining field/lab boundary honestly.
+
+
+### Raised by the independent audit, 2026-09-13
+
+- [x] Host the chat avatar ourselves. (Finding P1, severity high. Jotform's avatar URL redirected twice and then delivered a PNG still downloading after 180 seconds at ~12KB/s, for an image drawn at 56x56, on every page. `window.load` fired on NO page as a result, live or local, which broke Lighthouse runs and made every readiness measurement on this project unreliable. Local copy is 3,552 bytes; `load` now fires everywhere and no Jotform bytes are fetched until the chat is opened.)
+- [ ] Profile and fix the Services page's blocked main thread. (Finding P2. 8,320ms against the homepage's 1,360ms and Our Work's 780ms in the same run: six times worse. The off-screen stage animations are fixed; the remaining suspect is the visible marquee, which rewrites its transform every frame.)
+- [ ] Bring the three main pages' weight down. (Finding P4. Homepage 3,215KB, Services 3,707KB, Our Work 3,099KB against the privacy page's 1,608KB. Fixing the avatar and the six raw images takes a bite out of this without any redesign. Visitors on Nigerian mobile data pay for every kilobyte.)
+- [x] Protect the layout stability result. (Cumulative layout shift measured 0.009 on the homepage and zero or near-zero everywhere else. Worth keeping rather than achieving.)
 
 ## 4. Admin product after frontend/auth milestone
 
@@ -162,18 +188,18 @@ Status key: `[ ]` pending, `[-]` in progress, `[x]` implemented and verified.
 
 ### 4.1 Litch-parity admin shell and UI foundation
 
-- [ ] Rebuild the WDC admin shell to match Litch 1:1: collapsible and pinnable desktop sidebar, temporary hover expansion, persistent preference, sticky topbar, and animated mobile drawer with backdrop and close-on-navigation.
+- [x] Rebuild the WDC admin shell to match Litch 1:1: collapsible and pinnable desktop sidebar, temporary hover expansion, persistent preference, sticky topbar, and animated mobile drawer with backdrop and close-on-navigation. (Implemented from the local Litch shell; responsive interaction checks passed at 320, 390, 1024, and 1440px.)
 - [ ] Match Litch's shell dimensions, spacing, radii, borders, shadows, typography hierarchy, icon sizing, active states, hover states, and responsive breakpoints while applying WDC's logo and established colour tokens.
-- [ ] Add the Litch-style topbar with the active page title, responsive search/command trigger, theme control, notification bell, and account menu.
-- [ ] Add accessible keyboard and dismissal behaviour for the mobile drawer, notification panel, account menu, command palette, and all modal/popover surfaces; restore focus after close.
-- [ ] Keep primary navigation concise; group secondary tools under their parent section and place low-frequency items in the lower “General” group.
-- [ ] Keep each admin/client sidebar to five or six primary destinations at most; Settings stays in the lower “General” group and sub-features live inside their parent page.
+- [x] Add the Litch-style topbar with the active page title, responsive search/command trigger, theme control, notification bell, and account menu. (The command palette filters only real destinations; placeholder actions were deliberately excluded.)
+- [x] Add accessible keyboard and dismissal behaviour for the mobile drawer, notification panel, account menu, command palette, and all modal/popover surfaces; restore focus after close. (Escape, outside click, focus containment, and focus restoration are wired; the shell hydration mismatch discovered in browser QA was fixed.)
+- [x] Keep primary navigation concise; group secondary tools under their parent section and place low-frequency items in the lower “General” group.
+- [x] Keep each admin/client sidebar to five or six primary destinations at most; Settings stays in the lower “General” group and sub-features live inside their parent page. (Admin has five daily destinations plus Settings.)
 - [ ] Create reusable Litch-parity primitives for page headers, stat cards, panels, badges, tabs, data tables, filters, empty states, skeletons, error states, pagination, confirmation modals, toasts, charts, and export menus.
 - [ ] Use Boneyard page-shaped skeletons for dashboard routes and data-heavy panels; capture the real responsive geometry so loading states automatically track current UI structure, preserve dimensions, and avoid CLS after future design changes.
 - [ ] Add a Boneyard rebuild/check step whenever a mirrored page or component layout changes; exclude interactive chrome and decorative SVG detail that should not become skeleton bones.
-- [ ] Give every first-use empty state a friendly icon or simple visual, a plain explanation of what belongs there and why it matters, and one clear next-step CTA such as “Add your first client”.
+- [x] Give every first-use empty state a friendly icon or simple visual, a plain explanation of what belongs there and why it matters, and one clear next-step CTA such as “Add your first client”. (Clients, projects, forms, invoices, and expenses now use the shared visual/action pattern.)
 - [ ] Distinguish first-use, cleared, filtered/no-results, permission-denied, and load-error states; provide clear-filters, request-access, retry, or create actions as appropriate instead of reusing one generic blank state.
-- [ ] Keep empty-state copy specific to the current admin/client task, concise, and action-oriented; never leave an empty table frame or dead blank panel.
+- [x] Keep empty-state copy specific to the current admin/client task, concise, and action-oriented; never leave an empty table frame or dead blank panel.
 - [ ] Ensure tables use tabular numerals, sticky or persistent context where useful, bounded horizontal scrolling, useful mobile row alternatives, and no page-level horizontal overflow.
 - [ ] Give every admin mutation an immediate pending state, clear success/failure receipt, safe retry path, and protection against duplicate submission.
 - [ ] Verify the shell and primitives visually against Litch at all target widths before building deeper routes.

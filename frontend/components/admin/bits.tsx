@@ -1,4 +1,4 @@
-import { Info } from "lucide-react";
+import { Inbox, Info, type LucideIcon } from "lucide-react";
 import type { InvoiceStatus, Stage } from "@/lib/admin/types";
 
 /**
@@ -46,11 +46,23 @@ export function Tile({
   );
 }
 
-export function Empty({ title, children }: { title: string; children?: React.ReactNode }) {
+export function Empty({
+  title,
+  children,
+  action,
+  icon: Icon = Inbox,
+}: {
+  title: string;
+  children?: React.ReactNode;
+  action?: React.ReactNode;
+  icon?: LucideIcon;
+}) {
   return (
     <div className="ad__empty">
+      <span className="ad__emptyIcon"><Icon aria-hidden="true" /></span>
       <b>{title}</b>
-      {children}
+      {children ? <p>{children}</p> : null}
+      {action ? <div className="ad__emptyAction">{action}</div> : null}
     </div>
   );
 }
