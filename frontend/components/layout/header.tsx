@@ -248,7 +248,7 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
               surface. Both take `currentColor` for their ring and their glyph,
               so they can never end up as a white icon on a white ground. */}
           <span className={`hidden lg:inline-flex ${roundControl}`}>
-            <AnimatedThemeToggler />
+            <AnimatedThemeToggler className="hd-round" />
           </span>
           {/* LOG IN. Icon only, because the bar already carries five nav items
               and a CTA, and a seventh piece of text is the one that tips it
@@ -266,7 +266,7 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
             href="/login"
             aria-label="Log in"
             title="Log in"
-            className={`hidden h-10 w-10 items-center justify-center rounded-full border border-current bg-transparent transition-transform duration-200 hover:scale-110 active:scale-95 lg:inline-flex ${roundControl}`}
+            className={`hd-round hidden h-10 w-10 items-center justify-center rounded-full hover:scale-110 active:scale-95 lg:inline-flex ${roundControl}`}
           >
             <LogIn className="h-[1.05rem] w-[1.05rem]" aria-hidden="true" />
           </Link>

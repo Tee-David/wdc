@@ -27,13 +27,22 @@ export async function generateMetadata(
   if (!service) return { title: "Not found" };
 
   const url = `${SITE_URL}/services/${service.slug}`;
+  /* NOT `service.lede` ON ITS OWN. The Work category page for the same slug
+     already uses that line, so the two pages were shipping identical meta
+     descriptions -- a duplicate-content signal between our own pages, and at
+     57-76 characters too short to earn a snippet either. Carrying the first
+     sentence of the body makes it this page's own sentence: what the service
+     IS rather than what the portfolio shows. */
+  const firstSentence = service.body.split(/(?<=\.)\s/)[0] ?? "";
+  const description = `${service.lede} ${firstSentence}`.trim().slice(0, 158);
+
   return {
     title: service.name,
-    description: service.lede,
+    description,
     alternates: { canonical: url },
     openGraph: {
       title: `${service.name} | ${COMPANY_NAME}`,
-      description: service.lede,
+      description,
       type: "website",
       url,
     },
