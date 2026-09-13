@@ -102,7 +102,11 @@ export default function ClientsPage() {
               </tbody>
             </table>
           </div>
-          {!clients.length && <Empty title="No clients yet" />}
+          {!clients.length && (
+            <Empty title="No clients yet" action={<AddClient />}>
+              Add the first person or business you work with, then connect their projects, forms, and invoices.
+            </Empty>
+          )}
         </Panel>
       </div>
     </>
