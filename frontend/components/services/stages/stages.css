@@ -634,6 +634,7 @@
 
 /* the social card leads with the artwork */
 .fw__shot {
+  position: relative; /* the containing block for next/image's `fill` */
   border-radius: 9px; overflow: hidden; background: var(--band);
   aspect-ratio: 1; margin-bottom: 2px;
 }

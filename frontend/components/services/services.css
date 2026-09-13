@@ -568,6 +568,7 @@
 }
 .pv-sec--alt .sv-art { background: var(--paper-2); }
 .sv-art__shot {
+  position: relative; /* the containing block for next/image's `fill` */
   /* square, the same crop the wall above uses, so a piece looks the same in
      both places rather than being letterboxed in one of them */
   aspect-ratio: 1; background: var(--band); overflow: hidden;

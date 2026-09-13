@@ -17,6 +17,7 @@ import "@/components/services/services.css";
 import "@/components/ui/motion-kit.css";
 import "./about.css";
 import StrokeNumber from "@/components/ui/stroke-number";
+import Image from "next/image";
 
 /* 156 KB of WebGL (`ogl`), for one decorative wheel most of the way down ONE
    page -- and it was not even /about paying for it. The homepage links to
@@ -307,8 +308,16 @@ export default function AboutBody() {
               <ul className="ab-wheelsec__flat">
                 {WHEEL.map((m, n) => (
                   <li key={m.id} style={{ "--d": `${n * 40}ms` } as CSSProperties}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={m.image} alt={m.text} loading="lazy" />
+                    <Image
+                      src={m.image}
+                      alt={m.text}
+                      fill
+                      /* The tile is a square in an auto-fill grid whose track
+                         floor is clamp(96px, 14vw, 170px), so 170px is the
+                         widest it ever draws. */
+                      sizes="(max-width: 700px) 33vw, 170px"
+                      quality={70}
+                    />
                   </li>
                 ))}
               </ul>
