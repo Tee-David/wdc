@@ -118,14 +118,24 @@
 .bl-hero__shot img { object-fit: cover; }
 .bl-hero__veil {
   position: absolute; inset: 0; z-index: -1;
-  /* A LITTLE MORE WEIGHT THROUGHOUT, and most of it at the top.
+  /* SOLID AT THE FOOT, CLEAR AT THE HEAD.
 
-     The scrim is still bottom-weighted, because that is where the type sits,
-     but the top of a photograph now carries enough to keep the fixed header's
-     white nav legible over a bright frame -- a hero whose top edge happens to
-     be a white desk was leaving the nav to fend for itself. */
+     The type sits at the bottom, so that is where the weight belongs -- near
+     opaque, though never actually opaque, because a scrim that reaches 1 has
+     stopped being a photograph and become a panel. Going up it releases fast,
+     so the picture is a picture at the top of the frame rather than a darkened
+     rectangle.
+
+     The nav still reads over the clear end: the header carries its own text
+     shadow in `overHero` mode for exactly this case, which is why the top can
+     afford to let go. */
   background:
-    linear-gradient(to top, rgb(0 0 20 / .92) 0%, rgb(0 0 20 / .80) 38%, rgb(0 0 20 / .60) 70%, rgb(0 0 20 / .52) 100%);
+    linear-gradient(to top,
+      rgb(0 0 20 / .95) 0%,
+      rgb(0 0 20 / .88) 26%,
+      rgb(0 0 20 / .62) 55%,
+      rgb(0 0 20 / .34) 78%,
+      rgb(0 0 20 / .18) 100%);
 }
 .bl-hero__in { position: relative; }
 /* White on that scrim, in BOTH themes: the photograph underneath does not

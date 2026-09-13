@@ -1,0 +1,107 @@
+/* The QR block: the code, our mark in the middle of it, and a caption. */
+
+.qr { margin: 0; display: grid; gap: .6rem; justify-items: start; }
+
+.qr__code {
+  position: relative;
+  overflow: hidden;
+  width: clamp(104px, 30vw, 136px);
+  padding: 10px;
+  border: 1px solid var(--rule, rgb(0 0 26 / .12));
+  border-radius: 12px;
+  /* THE CODE NEEDS A LIGHT GROUND IN BOTH THEMES. A dark-on-dark QR is not a
+     styling problem, it is an unreadable code: a camera is looking for high
+     contrast between the modules and the paper. So this panel is white even in
+     dark mode, and the modules stay navy. */
+  background: #fff;
+  line-height: 0;
+
+  /* OFF SCREEN, IT COSTS NOTHING. A looping animation runs whether or not
+     anyone can see it, and this one sits in a sticky rail that is below the
+     fold for most of an article. `content-visibility` lets the browser skip
+     rendering the subtree entirely while it is out of view -- which skips the
+     animation with it -- and the intrinsic size keeps the rail's layout from
+     moving when it does. This is the pure-CSS version of the rule the stage
+     demos follow with an observer. */
+  content-visibility: auto;
+  contain-intrinsic-size: 136px 136px;
+}
+.qr__svg { position: relative; z-index: 1; }
+.qr__svg svg { width: 100%; height: auto; display: block; }
+
+/* No visible caption: see the note in qr-code.tsx. */
+
+/* ---- the loop ------------------------------------------------------------
+
+   WHAT THE MARK DOES IS WHAT THE ANIMATION DOES. The logo is a C drawn as a
+   ring with a hand and a pen nib held inside it -- something being made, held
+   in something round. So the loop is a scan: a band of light travels across
+   the code the way a reader's beam would, and as it crosses the centre the
+   mark presses in and springs back, like a nib touching paper.
+
+   Five seconds, and roughly one of them is moving: the rest of the timeline is
+   deliberately flat so the thing reads as an occasional glint rather than a
+   nervous tic. Everything animated is transform or opacity, so none of it
+   touches the main thread.
+
+   The <image> holding the mark is animated as a whole rather than in its
+   parts, because it references the logo by URL -- the browser caches one file
+   across every page instead of inlining 9KB into each -- and an externally
+   referenced SVG's insides cannot be reached from this document. The trade is
+   deliberate: bytes, for one fewer axis of animation.
+   -------------------------------------------------------------------------- */
+
+@keyframes qr-sweep {
+  0%   { transform: translate3d(-160%, 0, 0); opacity: 0; }
+  6%   { opacity: 1; }
+  22%  { opacity: 1; }
+  28%  { transform: translate3d(160%, 0, 0); opacity: 0; }
+  100% { transform: translate3d(160%, 0, 0); opacity: 0; }
+}
+
+@keyframes qr-mark-press {
+  0%, 11%   { transform: scale(1) rotate(0deg); }
+  /* The nib touching down, as the sweep reaches the middle. */
+  15%       { transform: scale(.9) rotate(-4deg); }
+  20%       { transform: scale(1.07) rotate(3deg); }
+  25%       { transform: scale(1) rotate(0deg); }
+  100%      { transform: scale(1) rotate(0deg); }
+}
+
+/* The band itself: a soft diagonal of the brand orange, wide enough to feel
+   like light rather than a line. */
+.qr__sweep {
+  position: absolute;
+  inset: -20%;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 38%,
+    rgb(255 101 0 / .38) 48%,
+    rgb(255 255 255 / .55) 52%,
+    rgb(255 101 0 / .38) 56%,
+    transparent 66%
+  );
+  /* `plus-lighter` keeps the modules readable underneath: it adds light rather
+     than replacing what is there, so the code is never obscured by its own
+     decoration -- which for a QR is the difference between an effect and a
+     bug. */
+  mix-blend-mode: plus-lighter;
+  opacity: 0;
+  animation: qr-sweep 5s linear infinite;
+}
+
+.qr--live .qr__svg svg image {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: qr-mark-press 5s cubic-bezier(.16, 1, .3, 1) infinite;
+}
+
+/* A code is a thing people point a camera at. If someone has asked for less
+   motion, a pattern that will not hold still is the last thing they want --
+   and the sweep goes entirely, rather than merely slowing down. */
+@media (prefers-reduced-motion: reduce) {
+  .qr--live .qr__svg svg image { animation: none; }
+  .qr__sweep { display: none; }
+}

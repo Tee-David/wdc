@@ -65,7 +65,7 @@ export default async function ServicePage(
     /* A cover is optional in the catalogue, and a card with a hole where the
        picture goes is worse than one card fewer. */
     .filter((c) => c.category === service.slug && c.cover)
-    .slice(0, 3);
+    .slice(0, 6);
   const category = WORK_CATEGORIES.find((c) => c.slug === service.slug);
   const url = `${SITE_URL}/services/${service.slug}`;
   const faqs = faqsFor(service.slug);
@@ -158,7 +158,7 @@ export default async function ServicePage(
                 ) : null}
               </div>
 
-              <div className="wk-grid">
+              <div className="pv-rail">
                 {work.map((c) => (
                   <Link className="wk-card" key={c.slug} href={`/work/${c.category}/${c.slug}`}>
                     <span className="wk-card__shot">
