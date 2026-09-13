@@ -212,14 +212,14 @@ party, which our own CSP blocks and which we should not loosen it for.
 
 - [-] Raise canonical-home mobile Lighthouse from the supplied 82 toward 90+ without regressing the supplied desktop 98; prioritise the 2.99s hero-text render delay, 3.8s LCP, 6.7s Speed Index, render-blocking CSS, forced reflow, and unused first-party JavaScript shown in the evidence.
 - [ ] Run responsive visual QA: home, services, contact, login, 404, offline.
-- [ ] Deploy the exact tested commit to Vercel.
-- [ ] Rerun mobile Lighthouse on the canonical domain and target 90+.
+- [x] Deployed to production through the Vercel API, which is the working route on this plan (a git push does not deploy here). NOTE FOR EVERY FUTURE SESSION: a push to main is NOT a release. Everything built today sat on main and invisible until this deploy, which is why the blog redesign "had not been done".
+- [ ] Rerun mobile Lighthouse on the canonical domain and target 90+. BLOCKED: the PageSpeed Insights API returns 429 without a key, and local Lighthouse reports TBT about 10x worse than PSI, so it cannot give an honest absolute score. Needs a free PSI API key in the environment (25,000 queries a day). Field numbers measured directly meanwhile, live at 390px and 4x throttle: homepage LCP 1,708ms CLS 0.010, Services 1,944ms CLS 0, a service page 888ms CLS 0.002 (was 0.423 before the stage floor), Our Work 2,264ms CLS 0, Blog 1,492ms CLS 0.
 - [ ] Record any remaining field/lab boundary honestly.
 
 ### Raised by the independent audit, 2026-09-13
 
-- [ ] Profile and fix the Services page's blocked main thread. (Finding P2. 8,320ms against the homepage's 1,360ms and Our Work's 780ms in the same run: six times worse. The off-screen stage animations are fixed; the remaining suspect is the visible marquee, which rewrites its transform every frame.)
-- [ ] Bring the three main pages' weight down. (Finding P4. Homepage 3,215KB, Services 3,707KB, Our Work 3,099KB against the privacy page's 1,608KB. Fixing the avatar and the six raw images takes a bite out of this without any redesign. Visitors on Nigerian mobile data pay for every kilobyte.)
+- [x] Services main thread fixed by splitting the page. Measured on the LIVE domain at 390px and 4x CPU throttling: main-thread task time 1,426ms against the audit's 8,320ms, and 1,323KB against 3,707KB. The cause was six code-split stage demos sharing one route; each now lives on its own service page. (Finding P2.)
+- [x] Page weight measured on the LIVE domain at 390px: homepage 916KB (audit 3,215KB), Services 1,323KB (3,707KB), Our Work 447KB (3,099KB). The savings come from the image optimiser, the services split and the stage gating rather than from deleting anything. (Finding P4.)
 
 ## 4. Admin product after frontend/auth milestone
 
