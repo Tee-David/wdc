@@ -68,9 +68,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "This onboarding form has already been submitted." }, { status: 409 });
   }
 
-  let body: { filename?: unknown; size?: unknown };
+  let body: { filename?: unknown; size?: unknown; report?: unknown };
   try { body = await request.json(); }
   catch { return NextResponse.json({ error: "The request could not be read." }, { status: 400 }); }
+
+  /* A FAILURE REPORT, NOT A REQUEST FOR A GRANT.
+     The browser cannot see why it refused a cross-origin PUT, so the page
+     cannot tell a blocked request from a dropped one and neither could we.
+     This tells us which one it was from the only place that knows anything:
+     the presign succeeded, so the credentials and the draft are fine, and a
+     transport failure after that is almost always the bucket's CORS policy
+     not naming this origin. Cheap, authenticated (the draft cookie was
+     already checked above) and it never issues a URL. */
+  if (body.report === "transport-failed") {
+    console.error(
+      "[r2] presigned PUT never reached the bucket. Check the R2 bucket's CORS policy allows PUT from",
+      request.headers.get("origin") ?? "(no origin header)",
+      "- file:",
+      typeof body.filename === "string" ? body.filename.slice(0, 120) : "(unnamed)",
+    );
+    return new NextResponse(null, { status: 204 });
+  }
 
   const filename = typeof body.filename === "string" ? body.filename.slice(0, 200) : "";
   const size = typeof body.size === "number" && Number.isFinite(body.size) ? body.size : -1;
