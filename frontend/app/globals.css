@@ -445,7 +445,6 @@ html { scroll-padding-top: 88px; }
   position: absolute;
   top: calc(100% + 10px);
   left: 50%;
-  translate: -50% 0;
   z-index: 60;
   display: grid;
   gap: 1px;
@@ -459,7 +458,14 @@ html { scroll-padding-top: 88px; }
   box-shadow: 0 24px 56px -28px rgb(0 0 26 / .55), 0 2px 6px -2px rgb(0 0 26 / .18);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-6px);
+  /* THE CENTRING LIVES IN `transform`, NOT IN `translate`.
+
+     It was a standalone `translate: -50% 0` beside a `transform: translateY()`,
+     and the computed value came back as `none` -- something in the cascade was
+     resetting the separate property. The card then sat exactly half its own
+     width to the right of the item that opened it. Both jobs now happen in one
+     declaration, where they cannot be reset independently. */
+  transform: translate(-50%, -6px);
   transition: opacity .18s ease, transform .18s ease, visibility .18s;
 }
 /* A LITTLE TONGUE OF HIT AREA above the card. Without it the pointer crosses a
@@ -477,7 +483,7 @@ html { scroll-padding-top: 88px; }
 .hd-navitem:focus-within > .hd-sub {
   opacity: 1;
   visibility: visible;
-  transform: none;
+  transform: translate(-50%, 0);
 }
 .hd-sub__a {
   display: flex;
@@ -493,24 +499,30 @@ html { scroll-padding-top: 88px; }
   text-decoration: none;
   transition: background .16s ease, color .16s ease;
 }
-/* The icon sits in its own square so the labels line up whatever the glyph's
-   own width is -- a list whose text starts in six different places reads as an
-   accident. */
+/* The icon still sits in a fixed square so the labels line up whatever the
+   glyph's own width is -- a list whose text starts in six different places
+   reads as an accident -- but the square is no longer drawn. Two chips per row
+   made the menu look like a settings screen. */
 .hd-sub__i {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.65rem;
-  height: 1.65rem;
+  width: 1.4rem;
+  height: 1.4rem;
   flex: none;
-  border-radius: 8px;
-  background: var(--surface, #f4f5fc);
   color: var(--accent-ink, #b64800);
+  transition: color .16s ease;
 }
-.hd-sub__a:hover { background: var(--surface, #f4f5fc); }
-.hd-sub__a:hover .hd-sub__i { background: var(--accent, #ff6500); color: var(--on-accent, #000); }
-.hd-sub__a[aria-current="page"] { color: var(--accent-ink, #b64800); }
-.hd-sub__a[aria-current="page"] .hd-sub__i { background: var(--accent, #ff6500); color: var(--on-accent, #000); }
+/* THE WHOLE ROW TAKES THE COLOUR, and the glyph goes with it. Black on
+   #ff6500 is 7.11:1; white would be 2.95:1 and is never used on an accent
+   fill anywhere on this site. */
+.hd-sub__a:hover,
+.hd-sub__a[aria-current="page"] {
+  background: var(--accent, #ff6500);
+  color: var(--on-accent, #000);
+}
+.hd-sub__a:hover .hd-sub__i,
+.hd-sub__a[aria-current="page"] .hd-sub__i { color: var(--on-accent, #000); }
 .hd-sub__a:focus-visible { outline: 2px solid var(--accent, #ff6500); outline-offset: -2px; }
 
 .hd-sub__rule {
@@ -573,4 +585,26 @@ html { scroll-padding-top: 88px; }
 
 @media (prefers-reduced-motion: reduce) {
   .hd-round { transition: background-color .2s ease, border-color .2s ease, color .2s ease; }
+}
+
+
+/* The caret beside a nav item that opens a menu. Without it the only clue that
+   Services has children is discovering it by accident with a pointer -- which
+   is not a clue a keyboard or a touch device ever gets. */
+.hd-caret {
+  display: inline-block;
+  width: .55em;
+  height: .55em;
+  margin-left: .38em;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-.14em) rotate(45deg);
+  transition: transform .18s ease;
+}
+.hd-navitem:hover .hd-caret,
+.hd-navitem:focus-within .hd-caret {
+  transform: translateY(.04em) rotate(-135deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hd-caret { transition: none; }
 }
