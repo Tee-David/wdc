@@ -105,6 +105,13 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
    * flow, because it is the wider of the two: with the mark in flow instead the
    * link collapsed to the mark's 34px and the full logo overflowed it.
    */
+  /* Over the hero the bar sits on a photograph, so both round controls are
+     white. Once it has its own surface they take the page's ink, which is navy
+     in light and near-white in dark. */
+  const roundControl = solid
+    ? "text-[#000065] dark:text-foreground"
+    : "text-white [text-shadow:0_1px_6px_rgba(0,0,0,0.45)]";
+
   const logoSwap = (
     <Link
       href="/"
@@ -211,7 +218,11 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
           {/* No over-hero override any more. The toggle carries its own navy
               ground and white glyph in every theme, so it no longer needs the
               header to force a colour onto it when it sits over the photo. */}
-          <span className="hidden lg:inline-flex">
+          {/* ONE COLOUR RULE FOR BOTH ROUND CONTROLS, set here because only the
+              header knows whether it is sitting on a photograph or on its own
+              surface. Both take `currentColor` for their ring and their glyph,
+              so they can never end up as a white icon on a white ground. */}
+          <span className={`hidden lg:inline-flex ${roundControl}`}>
             <AnimatedThemeToggler />
           </span>
           {/* LOG IN. Icon only, because the bar already carries five nav items
@@ -230,7 +241,7 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
             href="/login"
             aria-label="Log in"
             title="Log in"
-            className="hidden h-10 w-10 items-center justify-center rounded-full bg-[#000065] text-white shadow-[0_2px_10px_-2px_rgba(0,0,26,0.5)] ring-1 ring-white/15 transition-transform duration-200 hover:scale-110 active:scale-95 lg:inline-flex"
+            className={`hidden h-10 w-10 items-center justify-center rounded-full border border-current bg-transparent transition-transform duration-200 hover:scale-110 active:scale-95 lg:inline-flex ${roundControl}`}
           >
             <LogIn className="h-[1.05rem] w-[1.05rem]" aria-hidden="true" />
           </Link>
