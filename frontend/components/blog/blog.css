@@ -220,10 +220,32 @@
    either. */
 .bl-layout--solo { grid-template-columns: minmax(0, 1fr); }
 
+/* EXPLICIT ROWS, BECAUSE THAT IS WHAT ENDS THE STICKINESS. A sticky element
+   releases at the edge of its containing block, and a grid item's containing
+   block is its GRID AREA. Pinning the rail and the article to row 1, and the
+   share row, QR and "Read next" to row 2, makes the rail's area end with the
+   prose -- so the contents list lets go exactly where the article does instead
+   of travelling beside end matter it cannot point at. */
+.bl-layout > .bl-rail { grid-row: 1; grid-column: 1; }
+.bl-layout > .bl-post { grid-row: 1; grid-column: 2; }
+/* The same measure `.bl-post` keeps, so moving this out of the article does not
+   move it on the page: the share row and "Read next" stay in the prose column
+   rather than widening to the full grid track. */
+.bl-layout > .bl-after { grid-row: 2; grid-column: 2; min-width: 0; max-width: 74ch; }
+.bl-layout--solo > .bl-post,
+.bl-layout--solo > .bl-after { grid-column: 1; }
+
 /* Sticky on desktop, a plain block above the article on narrow screens --
    the same pattern the legal pages already use. */
 .bl-rail { position: sticky; top: 96px; align-self: start; display: grid; gap: 2rem; }
-@media (max-width: 1000px) { .bl-rail { position: static; } }
+@media (max-width: 1000px) {
+  .bl-rail { position: static; }
+  /* One column below 1000px, so the explicit placement above would strand the
+     end matter in a second column that no longer exists. */
+  .bl-layout > .bl-rail,
+  .bl-layout > .bl-post,
+  .bl-layout > .bl-after { grid-column: 1; grid-row: auto; }
+}
 
 .bl-rail__k {
   margin: 0 0 .7rem;

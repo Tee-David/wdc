@@ -493,8 +493,12 @@
   border-radius: 24px; padding: clamp(28px, 5vw, 56px);
   text-align: center; display: grid; gap: 14px; justify-items: center;
 }
-.sv-cta__box h2 { max-width: 20ch; }
-.sv-cta__box .pv-lede { max-width: 52ch; }
+/* Same correction as `.pv-cta` in preview.css, and for the same reason: the
+   box is wide and the 20ch heading cap was what made the block look indented.
+   Kept in step with it deliberately -- these are the same component wearing
+   two names. */
+.sv-cta__box h2 { max-width: none; text-wrap: balance; }
+.sv-cta__box .pv-lede { max-width: 60ch; }
 .sv-cta__row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 12px; }
 
 /* the mailto button carries a long address; let it wrap on small screens
