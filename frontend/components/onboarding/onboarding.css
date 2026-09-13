@@ -835,3 +835,27 @@
   border-left: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
   color: var(--muted); font-size: .92rem; line-height: 1.65;
 }
+
+/* WHAT SAYING YES COMMITS TO.
+
+   Sits under the question, always visible, and marked rather than muted. A
+   client answering "yes" to "would you like us to design a logo" is asking for
+   work they have not bought, and a quiet grey line is how that ends up being
+   noticed for the first time on an invoice. It is the accent rather than the
+   error red because it is not a problem -- it is an offer with its terms
+   attached, which is a different thing and should not look like a warning.
+
+   `--accent-ink` rather than `--accent`: orange as TEXT on a light surface is
+   the darkened variant, per the colour rule at the top of preview.css. */
+.pv .ob__scope {
+  display: flex; align-items: flex-start; gap: .5rem;
+  margin: .55rem 0 0;
+  padding: .6rem .75rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  font-size: .88rem; line-height: 1.5;
+  color: var(--accent-ink);
+}
+.pv .ob__scope svg { width: 1rem; height: 1rem; flex: none; margin-top: .15rem; }
+.pv .ob__scope span { min-width: 0; }
