@@ -11,6 +11,7 @@ import UserWay from "@/components/ui/userway";
 import StaggeredMenu from "@/components/ui/staggered-menu";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { SERVICES } from "@/lib/services";
+import ServiceIcon from "@/components/ui/service-icon";
 
 /**
  * Every entry points at something that exists.
@@ -30,7 +31,11 @@ const NAV = [
   /* Services carries its six pages with it. The hub is still the link -- a
      parent that only opens a menu is a dead end for anyone who wanted the
      overview -- and the six hang off it. */
-  { label: "Services", link: "/services", sub: SERVICES.map((s) => ({ label: s.short, link: `/services/${s.slug}` })) },
+  {
+    label: "Services",
+    link: "/services",
+    sub: SERVICES.map((s) => ({ label: s.short, link: `/services/${s.slug}`, icon: s.icon })),
+  },
   { label: "Blog", link: "/blog" },
   { label: "About Us", link: "/about" },
   { label: "Contact Us", link: "/contact" },
@@ -227,9 +232,24 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
                       className="hd-sub__a"
                       aria-current={isCurrent(child.link) ? "page" : undefined}
                     >
+                      {/* The service's own icon, the same one its page and its
+                          card carry, so the menu is recognisably a list of
+                          those six things rather than six words. */}
+                      <span className="hd-sub__i" aria-hidden="true">
+                        <ServiceIcon name={child.icon} size={17} />
+                      </span>
                       {child.label}
                     </Link>
                   ))}
+                  {/* The parent link again, below a rule. A dropdown that only
+                      offers the children strands anyone who wanted the
+                      overview, and the top-level link is easy to miss once a
+                      menu has opened under the cursor. */}
+                  <span className="hd-sub__rule" aria-hidden="true" />
+                  <Link href={n.link} className="hd-sub__a hd-sub__a--all">
+                    All services
+                    <span className="hd-sub__go" aria-hidden="true">&rarr;</span>
+                  </Link>
                 </div>
               ) : null}
               </div>

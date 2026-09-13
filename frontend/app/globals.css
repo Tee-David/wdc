@@ -430,25 +430,35 @@ html { scroll-padding-top: 88px; }
 .hd-navitem { position: relative; }
 .hd-sub {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 10px);
   left: 50%;
   translate: -50% 0;
   z-index: 60;
   display: grid;
-  gap: 2px;
-  min-width: 13rem;
-  padding: .45rem;
+  gap: 1px;
+  min-width: 15.5rem;
+  padding: .5rem;
   border: 1px solid var(--line, rgb(0 0 26 / .1));
-  border-radius: 14px;
+  border-radius: 16px;
   background: var(--background, #fff);
-  box-shadow: 0 22px 48px -24px rgb(0 0 26 / .55);
-  /* Hidden from the pointer AND from the reader until it opens; `visibility`
-     rather than `display` so the fade has something to animate and so a tab
-     stop does not appear and disappear without warning. */
+  /* A card that sits above the page rather than a box drawn on it: a soft
+     wide shadow plus a tight one, which is what stops it looking pasted. */
+  box-shadow: 0 24px 56px -28px rgb(0 0 26 / .55), 0 2px 6px -2px rgb(0 0 26 / .18);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-4px);
+  transform: translateY(-6px);
   transition: opacity .18s ease, transform .18s ease, visibility .18s;
+}
+/* A LITTLE TONGUE OF HIT AREA above the card. Without it the pointer crosses a
+   10px gap of nothing between the nav item and the menu, the hover drops, and
+   the menu closes under the cursor on its way down. */
+.hd-sub::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -12px;
+  height: 12px;
 }
 .hd-navitem:hover > .hd-sub,
 .hd-navitem:focus-within > .hd-sub {
@@ -459,22 +469,57 @@ html { scroll-padding-top: 88px; }
 .hd-sub__a {
   display: flex;
   align-items: center;
-  /* 44px, the same target the footer and the legal contents now keep. */
+  gap: .7rem;
+  /* 44px, the same target the footer and the legal contents keep. */
   min-height: 44px;
-  padding: 0 .8rem;
-  border-radius: 9px;
+  padding: 0 .7rem;
+  border-radius: 10px;
   color: var(--foreground, #11113a);
-  font-size: .9rem;
+  font-size: .92rem;
   font-weight: 600;
   text-decoration: none;
-  transition: background .18s ease, color .18s ease;
+  transition: background .16s ease, color .16s ease;
 }
-.hd-sub__a:hover { background: var(--surface, #f4f4f8); color: var(--accent-ink, #c95000); }
+/* The icon sits in its own square so the labels line up whatever the glyph's
+   own width is -- a list whose text starts in six different places reads as an
+   accident. */
+.hd-sub__i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  flex: none;
+  border-radius: 8px;
+  background: var(--surface, #f4f5fc);
+  color: var(--accent-ink, #c95000);
+}
+.hd-sub__a:hover { background: var(--surface, #f4f5fc); }
+.hd-sub__a:hover .hd-sub__i { background: var(--accent, #ff6500); color: var(--on-accent, #000); }
 .hd-sub__a[aria-current="page"] { color: var(--accent-ink, #c95000); }
+.hd-sub__a[aria-current="page"] .hd-sub__i { background: var(--accent, #ff6500); color: var(--on-accent, #000); }
 .hd-sub__a:focus-visible { outline: 2px solid var(--accent, #ff6500); outline-offset: -2px; }
 
+.hd-sub__rule {
+  height: 1px;
+  margin: .4rem .7rem;
+  background: var(--line, rgb(0 0 26 / .1));
+}
+/* The hub row is a different KIND of thing from the six above it, so it reads
+   differently: lighter, smaller, with the arrow doing the pointing. */
+.hd-sub__a--all {
+  min-height: 38px;
+  color: var(--muted, #565678);
+  font-size: .84rem;
+  justify-content: space-between;
+}
+.hd-sub__go { transition: transform .16s ease; }
+.hd-sub__a--all:hover { color: var(--foreground, #11113a); }
+.hd-sub__a--all:hover .hd-sub__go { transform: translateX(3px); }
+
 @media (prefers-reduced-motion: reduce) {
-  .hd-sub { transition: none; }
+  .hd-sub, .hd-sub__a, .hd-sub__i, .hd-sub__go { transition: none; }
+  .hd-sub__a--all:hover .hd-sub__go { transform: none; }
 }
 
 /* THE HEADER'S TWO ROUND CONTROLS: theme and log in.
