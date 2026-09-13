@@ -256,7 +256,7 @@ export default function SiteModal({
           </button>
         </header>
 
-        <div className={`pv-modal__view${state === "blocked" ? " is-shot" : ""}`}>
+        <div data-lenis-prevent className={`pv-modal__view${state === "blocked" ? " is-shot" : ""}`}>
           {/* the real capture, underneath: the modal is never blank, and it is
               what remains if the site refuses to be framed */}
           {/* Once the frame is refused this becomes a SCROLLABLE full-page

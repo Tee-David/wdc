@@ -766,6 +766,11 @@ function FieldView({
      blank -- "the client would like our recommendation on their search terms"
      is a real finding and the first thing to raise on the call. */
   const deferred = v === UNSURE || (Array.isArray(v) && v.includes(UNSURE));
+  /* A deferred text field shows EMPTY rather than the literal sentence
+     "I am not sure; please advise me" sitting in the box as if the client had
+     typed it. The deferral is recorded in the answer either way; this is only
+     what the control displays, and it means the first keystroke replaces it. */
+  const shown = deferred && typeof v === "string" ? "" : v;
   const escape = f.assist ? (
     <button
       type="button"
@@ -805,9 +810,17 @@ function FieldView({
       {hint}
       {/* The control stays in the DOM while deferred rather than being
           replaced, so nothing jumps when it is toggled and anything already
-          typed is still there if they change their mind. `inert` keeps it out
-          of the tab order and out of reach while it does not apply. */}
-      <div className="ob__ctl" {...(deferred ? { inert: true } : {})}>{inner}</div>
+          typed is still there if they change their mind.
+
+          IT IS NOT `inert`. It used to be, and that made the escape a trap:
+          once a client picked "I am not sure", every option in the question
+          was unreachable, so changing their mind meant first finding the
+          small "Actually, let me answer this" button underneath. Nobody
+          reads a form that way -- they tap the option they want, nothing
+          happens, and the form looks broken. Choosing a real answer now
+          simply REPLACES the deferral, which is what the reader already
+          expects to happen. */}
+      <div className="ob__ctl">{inner}</div>
       {deferred ? (
         <p className="ob__unsureNote">
           Noted. We will come to this with a recommendation rather than a blank.
@@ -826,7 +839,7 @@ function FieldView({
   if (f.kind === "textarea") {
     return wrap(
       <textarea
-        id={id} value={v as string} placeholder={f.placeholder} rows={4}
+        id={id} value={shown as string} placeholder={f.placeholder} rows={4}
         aria-invalid={invalid || undefined} aria-describedby={describedBy}
         onChange={(e) => onChange(e.target.value)}
       />,
@@ -838,7 +851,7 @@ function FieldView({
       <SelectField
         id={id}
         options={f.options ?? []}
-        value={v as string}
+        value={shown as string}
         invalid={invalid}
         describedBy={describedBy}
         onChange={onChange}
@@ -906,7 +919,6 @@ function FieldView({
     return wrap(
       <Dropzone
         id={id}
-        value={Array.isArray(v) ? v : []}
         onChange={onChange}
         describedBy={describedBy}
       />,
@@ -917,7 +929,7 @@ function FieldView({
     return wrap(
       <PhoneField
         id={id}
-        value={v as string}
+        value={shown as string}
         onChange={onChange}
         onValidity={onPhoneValidity}
         invalid={invalid}
@@ -941,7 +953,7 @@ function FieldView({
         : f.key === "company" ? "organization"
         : undefined
       }
-      value={v as string}
+      value={shown as string}
       placeholder={f.placeholder}
       aria-invalid={invalid || undefined}
       aria-describedby={describedBy}
