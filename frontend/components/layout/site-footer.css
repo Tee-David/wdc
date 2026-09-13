@@ -176,3 +176,24 @@
     padding-inline: clamp(18px, 5vw, 44px);
   }
 }
+
+/* 44PX TARGETS WHERE A FINGER IS USED.
+
+   The footer links measure about 19-21px tall, which our own conventions say
+   is too small. It is not a WCAG failure -- the spacing between them earns the
+   exemption -- but "not technically a failure" is a poor answer when the rule
+   is ours.
+
+   Enforced under `pointer: coarse` only. A mouse hits a 20px link without
+   thinking about it, and growing every footer row by half again on desktop
+   would cost real layout to solve a problem nobody has there. A thumb is the
+   case the number was written for, so it is the case that gets it. */
+@media (pointer: coarse) {
+  .ft__col ul { gap: 0; }
+  .ft__col ul a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .ft__social a { min-height: 44px; display: inline-flex; align-items: center; }
+}
