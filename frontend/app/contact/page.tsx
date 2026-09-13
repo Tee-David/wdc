@@ -87,7 +87,7 @@ export default function ContactPage() {
           <div className="pv-wrap">
             <div className="ct-cols">
               {/* the ask */}
-              <div>
+              <div className="ct-aside">
 
                 {/* Rendered from data, so a channel with nothing published
                     simply is not here — see the note at the top of

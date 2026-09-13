@@ -337,7 +337,7 @@ export default function AboutBody() {
       {/* ---------------- beliefs ---------------- */}
       <section className="pv-sec">
         <div className="pv-wrap">
-          <div className="pv-head pv-head--left pv-reveal">
+          <div className="pv-head pv-reveal">
             <span className="pv-eyebrow">How we think</span>
             <h2>Six things we will not trade away</h2>
           </div>
