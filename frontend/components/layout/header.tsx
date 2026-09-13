@@ -204,6 +204,7 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
                 }`}
               >
                 {n.label}
+                {n.sub ? <span className="hd-caret" aria-hidden="true" /> : null}
                 {/* The current-page rule is drawn, not just coloured: colour
                     alone is not a state anyone can rely on — and the orange it
                     used to be measured 2.95:1 on this bar, so it was failing
