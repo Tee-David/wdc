@@ -340,7 +340,7 @@ export function Hero() {
           {/* `text-balance` rather than `whitespace-nowrap`: at this size the
               line breaks on a phone, and left to itself it breaks with one
               word stranded on the second line. Balanced, it splits evenly. */}
-          <span className="block text-balance">What if we made it&hellip;</span>
+          <span className="block text-balance">What if we made it</span>
           {/* A FLEX ROW, SO THE CHEVRON KEEPS ITS PLACE WHEN THE PHRASE WRAPS.
 
               At the shared size the longest phrase takes two lines on a phone.

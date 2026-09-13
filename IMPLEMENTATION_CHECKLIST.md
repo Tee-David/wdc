@@ -11,7 +11,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **183 open** (5 of them in progress), **155 done**.
+At last update: **184 open** (5 of them in progress), **167 done**.
 
 ---
 
@@ -22,6 +22,12 @@ At last update: **183 open** (5 of them in progress), **155 done**.
 Kept at the top because these came from someone looking at the live site, and
 that is the shortest feedback loop there is.
 
+- [ ] The contents rail on a blog post should stop being sticky where the ARTICLE ends, rather than travelling beside the tags, the share row and "Read next". `.bl-rail` is `position: sticky` inside `.bl-layout`, and a sticky item releases at the edge of its CONTAINING BLOCK, which for a grid item is its grid area -- currently the whole grid. The fix is to confine the rail to the row the body occupies, which needs the end matter split into its own row; it is not a CSS-only tweak.
+- [ ] Contact page: make the left information column sticky beside the form, the same way the blog and legal rails already are.
+- [ ] Contact page: the phone field should use the dial-code dropdown rather than a bare `+234 ...` placeholder. `scripts/gen-dial-codes.mjs` already generates the data and the onboarding form-kit already has the control; reuse it rather than building a second one.
+- [ ] The band CTA blocks (`.pv-cta`, `.sv-cta__box`) are capped narrower than the page content width and read as indented. Same family of defect as the `wk-hero` cap already closed; check them as a set rather than one at a time.
+- [ ] Reduce the testimonial type size in the left panel of `/login`; at the current size a three-line quote fills the panel.
+- [ ] Seed the six blog posts into CockroachDB, em-dash free, behind the existing accessors (`postBySlug`, `postsNewestFirst`, `relatedPosts`) so the pages do not change. MUST be shaped for the admin blog editor codex will build -- see the blog editor items in section 1C -- so they are real editable rows rather than a second static source. The plan is to be reviewed before anything writes to the database.
 - [ ] Truehost SMTP takes about 23 seconds just to authenticate, measured from two networks. The contact form now answers in half that by sending the receipt after the response, but the real fix is a transactional provider, which would also give proper SPF and DKIM.
 
 ## 1. Public frontend
@@ -369,6 +375,22 @@ party, which our own CSP blocks and which we should not loosen it for.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-14, from live-site review
+
+- [x] `3ad31d9` deployed to production. It was never an unpushed commit: it was already on GitHub, had been auto-deployed by the git integration, and came back `BLOCKED` by the Hobby-plan private-repo rule (the gate is on the commit author's GitHub LOGIN, not the email, which is why changing the commit email never helped). Recreated through `POST /v13/deployments` as the account owner, which bypasses that gate, and it reached READY.
+- [x] The dark band at the top of every landing page was INDENTED, not merely narrow. `.wk-hero__in` carried `max-width: 62ch` inside a `.pv-wrap` that centres what it holds, so the cap did not shorten the band's content, it CENTRED it: the breadcrumb and title started several hundred pixels right of where every other section begins. Now `max-width: none`, with the lede keeping a 62ch measure because a line of prose at full desktop width is genuinely harder to read. One rule, eight route families: blog, contact, legal, legal/<slug>, services, services/<slug>, work, work/<category>. Note the rule had MOVED into `preview.css` in `3ad31d9`, so an earlier local fix was editing an address that no longer existed.
+- [x] The homepage chevron travels with the rotating phrase again. `reserveWidth` holds the box of the LONGEST phrase and centres the live one inside it, so a chevron rendered as a SIBLING stayed pinned to the box edge while the words floated to the middle: the gap was half the difference between the longest and current phrase, and it resized on every cycle. `TextType` takes a `prefix` now, rendered inside the centred cell and measured into the hidden sizer, so it shrink-wraps with the text and the line still never reflows. The `justify-self: center` that stops the cursor and typing text becoming LCP candidates is untouched.
+- [x] **Images on three live routes were returning 400, not loading slowly.** `next.config.ts` declares `images.qualities: [70, 78, 85]` and Next 16 rejects any quality the config does not list -- verified by reading `next/dist/server/image-optimizer.js`, which answers `"q" parameter (quality) of 74 is not allowed` and serves nothing. Four call sites asked for undeclared values. The worst was the blog post hero at 72: it is marked `priority` and IS the page's largest contentful paint, so the one image each post is built around was the one failing. Also the service-page case-study rail at 74 (while `/work/<category>` passes 78 for the very same `.wk-card`) and the feed-wall thumbnails at 68. All moved to the nearest declared value. `services-body.tsx` has two more at 74 and was deliberately left alone: it is the unreferenced file already queued for deletion above.
+- [x] The blog contents rail says which section is being read. It had no active state at all -- eight links and no answer to the one question a contents rail exists to answer -- while the LEGAL rail has had one since it shipped. `components/blog/toc.tsx` reuses `legal-toc.tsx`'s mechanism exactly, including the `-30% 0px -55% 0px` band, rather than inventing a second one, and keeps the `<details>` collapse on phones. An observer rather than a scroll handler, because position alone cannot tell you the current heading without measuring every section per frame. `aria-current` carries the same information as the marker.
+- [x] Removed the drop shadow from `.wk-card:hover`. The lift and the accent border already say the card is live, and `.bl-card` never had one, so the two rails now agree. The orphaned `box-shadow` transition went with it.
+- [x] Blog cards are shorter without becoming fixed-height: the cover goes from 16/10 to 16/9 and the excerpt clamps to two lines rather than three. Both stay fluid, so a card still shortens as its column narrows.
+- [x] Section heads are centred everywhere. `.pv-head` is centred by default and exactly two places opted out with `.pv-head--left` -- the homepage services block and About's "how we think" -- so both sat left-aligned among centred siblings. The modifier is deleted rather than left for someone to reach for again.
+- [x] The fixed half of the homepage headline no longer ends in an ellipsis.
+- [x] Chat returned to the real Jotform embed, by the owner's explicit decision taken with the measurements in front of them. Both cheaper versions were faster: the vendor loader pulls `for-embedded-agent.js`, 6,295,207 bytes served UNCOMPRESSED (requested twice, once with `Accept-Encoding: gzip, br` and once with `--compressed`, neither response carrying a `content-encoding` header), and Lighthouse attributed 10,096ms of blocking to `jotform.com` against 0ms for `jotfor.ms`, the agent's own iframe -- so all of the cost is the parent-side bundle and none of it is the conversation. What the alternatives cost is that neither is the vendor widget 1:1: framing means WE own the launcher and panel shell, losing Jotform's auto-open, the greeting-bubble animation and the picture-in-picture voice handoff. Asked directly whether a restyled launcher would be identical, the answer was no, and the owner chose 1:1. `993063d` reverted, CSP again allows Jotform's origins, orphaned facade CSS deleted, `chat-facade.spec.ts` removed because its first assertion is now false by design, and the measurements written into the component so this is not quietly optimised back.
+- [x] The `--accent` step number on a service card was orange on a pale ground at about 2.8:1, a decoration rather than a number. Navy is 16.5:1 there, and black on the orange hover card is 7.11:1, which is the rule every accent fill on this site already follows.
+- [x] The SERP demo's mask faded its bottom edge to fully transparent over the last 9%, which is exactly where the highlighted "your page" row arrives: the one row the whole animation exists to show was the row being erased. It eases to 55% now. The top keeps the harder fade because nothing important arrives there.
+
 
 ## 1. Public frontend
 
