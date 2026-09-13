@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Project } from "@/lib/projects";
+import { caseHref } from "@/lib/work";
 
 /**
  * Live preview of a client site, in a modal, without leaving this one.
@@ -70,6 +72,7 @@ export default function SiteModal({
   const panel = useRef<HTMLDivElement | null>(null);
   const closeBtn = useRef<HTMLButtonElement | null>(null);
 
+  const study = caseHref(project.caseSlug);
   const host = (() => {
     try { return new URL(project.url).host.replace(/^www\./, ""); }
     catch { return project.url; }
@@ -236,8 +239,18 @@ export default function SiteModal({
             <span className="pv-modal__name">{project.name}</span>
             <span className="pv-modal__host">{host}</span>
           </span>
+          {/* OUR PAGE FIRST, the client's second. Someone who has opened this
+              preview is interested; the next thing they should be able to
+              reach is our account of the work, with a call to action at the
+              end of it, rather than only the client's front page. */}
+          {study ? (
+            <Link className="pv-modal__open" href={study}>
+              Case study
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </Link>
+          ) : null}
           <a
-            className="pv-modal__open"
+            className="pv-modal__open pv-modal__open--ghost"
             href={project.url}
             target="_blank"
             rel="noopener noreferrer"

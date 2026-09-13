@@ -24,7 +24,9 @@
   background: var(--paper, #fff);
   color: var(--foreground, #0e0e2c);
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-size: .9rem; font-weight: 600; line-height: 1;
+  /* Matched to the theme switch beside it; see that file. */
+  font-size: clamp(.78rem, .62rem + .5vw, .9rem);
+  font-weight: 600; line-height: 1; white-space: nowrap;
   cursor: pointer;
   transition: background .2s ease, color .2s ease, border-color .2s ease,
               transform .2s cubic-bezier(.16, 1, .3, 1);
@@ -34,8 +36,21 @@
 .uw:focus-visible { outline: 2px solid var(--accent, #ff6500); outline-offset: 3px; }
 
 /* ---- in the mobile menu, beside the theme switch ---- */
+/* IN THE MENU IT IS A WHITE PILL WITH NAVY TYPE, stated rather than
+   inherited. The base rule takes its colour from --foreground so the
+   corner disc can flip with the theme; in the menu the pill stays white in
+   both themes to pair with the navy theme switch beside it, and a
+   theme-following label on a fixed white ground meant white on white in
+   dark mode -- the button was there and completely unreadable.
+   Navy on white measures 15:1. */
 .sm-footer .uw {
   padding: .7rem 1.1rem; border-radius: 999px;
+  background: #fff;
+  color: #000065;
+  border-color: transparent;
+}
+.sm-footer .uw:hover {
+  background: #000065; color: #fff; border-color: #000065;
 }
 
 /* ---- pinned in the corner, on desktop ---- */

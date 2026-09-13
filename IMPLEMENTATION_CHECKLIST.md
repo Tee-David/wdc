@@ -103,6 +103,27 @@ Status key: `[ ]` pending, `[-]` in progress, `[x]` implemented and verified.
 - [ ] Give the onboarding page a main heading. (Finding A4. It has none. It is noindex so this costs nothing in ranking, but it is the element screen-reader users navigate by.)
 - [x] Rate-limit the onboarding draft and submit routes, and require an origin header rather than accepting its absence. (Finding R1. The contact form allows five per address per ten minutes; these have no limit at all, and the origin check passes any request that simply omits the header — which a script does and a browser cannot. Today a script could create unlimited draft rows and submit unlimited forms.) (`lib/rate-limit.ts`, shared, and it sweeps — the contact form's old private Map never evicted anything. The draft route needed TWO limits, not one: with a cookie it UPDATES one row and the form autosaves 1.2s after every answer, so a single tight limit would have locked a client out of their own form halfway through. Creating a row without a cookie is the only abusable path and takes the tight number. Verified: 80 autosaves accepted, a script creating rows blocked at 6, a request with no Origin refused outright.)
 
+## 1C. Blog
+
+- [x] Build `/blog` and `/blog/[slug]` in the site's own design language, using the existing `.pv` tokens rather than a second visual system. (Index, post, related posts, tags, reading time and a CTA band. Verified: one h1 per page, canonical per page, Blog + BlogPosting + BreadcrumbList structured data, no horizontal overflow at 320px.)
+- [x] Derive the sitemap entries from the post data, so a post cannot ship as a page the sitemap has never heard of. (Same rule the work catalogue already follows.)
+- [x] Seed the blog with real posts written in the site's voice, each with its own search-result title and description rather than a generated one. (Six, covering pricing, AI search, brand guidelines, performance, app-or-website and project handover.)
+- [x] Add Blog to the main navigation, between Services and About Us.
+- [ ] Give each post an social preview image, or a generated one, so a shared post does not unfurl bare.
+- [ ] Add an RSS or JSON feed once there are enough posts to be worth subscribing to.
+- [ ] Revisit the reading-time estimate against real posts; it is derived at 200 words a minute and has not been checked against anything longer than these six.
+
+### Admin side, for whoever builds section 4
+
+- [ ] Blog editor: create, edit, schedule and unpublish posts, writing the same block shape `lib/blog.ts` already defines (`p`, `h2`, `h3`, `list`, `quote`, `callout`). The renderer guarantees one h1 and a correct heading outline; an editor that emits raw HTML would give that away.
+- [ ] Per-post SEO fields as first-class inputs, not afterthoughts: search-result title, meta description with a live character count, canonical override, and a social image.
+- [ ] Draft, scheduled and published states, with the published date separate from the created date and a visible `updated` date when a post is revised.
+- [ ] Move the posts from `lib/blog.ts` into CockroachDB behind the same accessors (`postBySlug`, `postsNewestFirst`, `relatedPosts`), so the pages do not change when the source does.
+- [ ] Author and category records, once there is more than one person writing.
+- [ ] Editable site content beyond the blog: the FAQ list, testimonials, the services copy and the work catalogue all currently live in `lib/` and need the same treatment.
+- [ ] Media library backed by R2, reusing `r2Config()` and `presignPut()` from `lib/r2.ts` rather than a second uploader. Note the SVG caveat recorded under upload safety.
+- [ ] Preview a draft as it will actually render, on the real page, before publishing.
+
 ## 2. Authentication and email
 
 - [x] Replace temporary environment-password auth with Better Auth backed by CockroachDB.

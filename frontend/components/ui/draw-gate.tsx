@@ -81,9 +81,17 @@ export default function DrawGate() {
       { rootMargin: "150px 0px" },
     );
 
+    /* NOT INSIDE A MARQUEE. The jump ticker and the logo loops duplicate their
+       items and scroll them forever, so "draws once on arrival" has no meaning
+       there: the same handful of icons keep arriving, and observing every clone
+       is work spent on a reveal nobody can follow. They rest as finished
+       glyphs, which is where every stroke on this site ends up anyway. */
+    const inMarquee = (el: Element) => el.closest(".sv-jump, .logoloop") !== null;
+
     const scan = () => {
       document.querySelectorAll(ONCE).forEach((el) => {
-        if (!el.classList.contains("is-in")) arrive.observe(el);
+        if (el.classList.contains("is-in") || inMarquee(el)) return;
+        arrive.observe(el);
       });
       document.querySelectorAll(LOOP).forEach((el) => loop.observe(el));
     };
