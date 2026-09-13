@@ -42,10 +42,19 @@ export type R2Config = {
  *
  * Returning the reason rather than throwing a generic error: "R2 is not
  * configured" in a log at three in the morning is a worse message than
- * "R2_ACCOUNT_ID is not set".
+ * "CLOUDFLARE_ACCOUNT_ID is not set".
  */
 export function r2Config(): { ok: true; config: R2Config } | { ok: false; missing: string[] } {
-  const accountId = process.env.R2_ACCOUNT_ID;
+  /* The account id can come either as itself or as the S3 API endpoint
+     Cloudflare shows on the bucket page, which has it as the subdomain. Taking
+     both means whichever one is to hand in the dashboard is the right answer.
+     R2_ACCOUNT_ID stays accepted so the name matches the other R2_* docs. */
+  const accountId =
+    process.env.CLOUDFLARE_ACCOUNT_ID ||
+    process.env.R2_ACCOUNT_ID ||
+    process.env.CLOUDFLARE_S3_API?.match(
+      /^https?:\/\/([^.]+)\.r2\.cloudflarestorage\.com/i,
+    )?.[1];
   /* BUCKET_NAME is what the project's .env already calls it; R2_BUCKET is
      accepted too so the name matches the other R2_* variables if it is ever
      tidied up. */
@@ -54,7 +63,7 @@ export function r2Config(): { ok: true; config: R2Config } | { ok: false; missin
   const secretAccessKey = process.env.SECRET_ACCESS_KEY;
 
   const missing = [
-    ["R2_ACCOUNT_ID", accountId],
+    ["CLOUDFLARE_ACCOUNT_ID", accountId],
     ["BUCKET_NAME", bucket],
     ["ACCESS_KEY_ID", accessKeyId],
     ["SECRET_ACCESS_KEY", secretAccessKey],

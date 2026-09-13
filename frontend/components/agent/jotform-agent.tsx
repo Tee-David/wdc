@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Script from "next/script";
 
 /**
@@ -11,8 +12,17 @@ import Script from "next/script";
  */
 const SRC =
   "https://cdn.jotfor.ms/agent/embedjs/01a0907b3dd870008f3afa7ebca3bb7b4c1b/embed.js";
-const AVATAR =
-  "https://www.jotform.com/agent/01a0907b3dd870008f3afa7ebca3bb7b4c1b/avatar-icon";
+/* THE AVATAR IS SERVED FROM HERE, NOT FROM JOTFORM, AND THIS IS NOT A
+   MICRO-OPTIMISATION. Jotform's own avatar-icon URL 302s to a file that is
+   2,459,310 bytes -- a 1254x1254 PNG -- for something drawn at 56x56, and it
+   comes down their CDN at about 15 KB/s. Measured from here: 156 SECONDS for
+   one decorative image, on every page, because this button is site chrome.
+   Long enough that `window.load` never fired at all, which broke Lighthouse
+   runs outright and made every "is the page ready" measurement unreliable.
+
+   The same artwork, resized to what it is actually drawn at and re-encoded,
+   is 3,552 bytes. That is the whole change: 2.35MB and 156s becomes 3.5KB. */
+const AVATAR = "/brand/agent-avatar.webp";
 
 export default function JotformAgent() {
   const [wanted, setWanted] = useState(false);
@@ -48,8 +58,7 @@ export default function JotformAgent() {
           aria-label={wanted ? "Opening project chat" : "Open project chat"}
           aria-busy={wanted || undefined}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={AVATAR} alt="" width="56" height="56" />
+          <Image src={AVATAR} alt="" width={56} height={56} priority={false} unoptimized />
           <span className="jf-facade__bubble" aria-hidden="true">Hiiii 👋</span>
         </button>
       ) : null}

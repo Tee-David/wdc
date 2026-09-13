@@ -359,11 +359,13 @@ export default function OnboardingForm() {
           ))}
         </ul>
 
-        <div className="ob__facts">
+        {/* A <dl>, because it holds dt/dd pairs. They were in plain divs,
+            which is invalid and leaves the pairing unannounced. */}
+        <dl className="ob__facts">
           <div><dt>About</dt><dd>{previewMins === null ? "5-10 min" : `${previewMins} min`}</dd></div>
           <div><dt>Saves</dt><dd>As you go</dd></div>
           <div><dt>Leave anytime</dt><dd>Pick up where you stopped</dd></div>
-        </div>
+        </dl>
 
         <p className="ob__reassure">
           Not sure about something? Say so. &ldquo;Not sure yet&rdquo; is a real
