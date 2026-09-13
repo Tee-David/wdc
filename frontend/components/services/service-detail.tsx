@@ -10,7 +10,6 @@ import LogoLoop from "@/components/ui/logo-loop";
 import ServiceIcon from "@/components/ui/service-icon";
 import PinnedRow from "@/components/ui/pinned-row";
 import StrokeNumber from "@/components/ui/stroke-number";
-import ScrollExpand from "@/components/ui/scroll-expand";
 import { LazyStage } from "./stages/stage-shell";
 
 import "./services.css";
@@ -81,12 +80,19 @@ export default function ServiceDetail({ service }: { service: Service }) {
       <section className="pv-sec sv-svc" aria-labelledby="svc-h">
         <div className="pv-wrap">
           <div className="sv-svc__cols">
+            {/* NO ScrollExpand HERE, and that is an alignment decision.
+
+                It scales `.se` as you scroll, which is a nice reveal on the
+                long combined page where each service arrives in turn. On a
+                service's own page the showcase is half of a two-column row,
+                and a scaled box does not sit where its layout box says it
+                does -- the panel rendered 39px below the prose beside it,
+                while the two columns themselves measured perfectly level. A
+                reveal is not worth a row that does not line up. */}
             <div className="sv-svc__showcase">
-              <ScrollExpand>
-                <LazyStage withControls={STAGE_HAS_CONTROLS[service.slug]}>
-                  <Stage />
-                </LazyStage>
-              </ScrollExpand>
+              <LazyStage withControls={STAGE_HAS_CONTROLS[service.slug]}>
+                <Stage />
+              </LazyStage>
             </div>
 
             <div className="sv-svc__head sv-svc__head--after pv-reveal">

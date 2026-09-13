@@ -116,28 +116,31 @@ export default async function ServicePage(
       <JsonLd data={jsonLd} />
       <Header overHero />
       <main id="main" tabIndex={-1} className="flex-1 pv">
-        {/* The same plate the Work category pages open with, so moving between
-            the two hubs does not feel like moving between two sites. */}
-        <section className="pv-sec" style={{ paddingTop: "clamp(7rem, 12vw, 10rem)" }}>
-          <div className="pv-wrap">
+        {/* THE SAME BAND EVERY OTHER PAGE OPENS WITH. The breadcrumb and the
+            title live inside it, as on a Work category page, so moving between
+            a service and the work that proves it does not feel like moving
+            between two sites.
+
+            It is also load-bearing rather than decorative: the header runs
+            `overHero` here, which is white type on no background. Without a
+            dark band under it the nav washed out to almost nothing in light
+            mode -- the same fault the /services hub had. */}
+        <section className="wk-hero">
+          <div className="pv-wrap wk-hero__in">
             <nav className="wk-crumbs" aria-label="Breadcrumb">
               <Link href="/">Home</Link>
-              <span aria-hidden="true">/</span>
+              <i aria-hidden="true">/</i>
               <Link href="/services">Services</Link>
-              <span aria-hidden="true">/</span>
+              <i aria-hidden="true">/</i>
               <span aria-current="page">{service.short}</span>
             </nav>
-
-            <div className="sv-svc__top pv-reveal">
-              <span className="pv-eyebrow">Services</span>
-              <h1 id="svc-h" className="sv-svc__title">
-                <span className="sv-svc__icon">
-                  <ServiceIcon name={service.icon} size={22} hover="pop" />
-                </span>
-                {service.name}
-              </h1>
-              <p className="pv-lede">{service.lede}</p>
-            </div>
+            <h1 id="svc-h" className="sv-svc__title">
+              <span className="sv-svc__icon">
+                <ServiceIcon name={service.icon} size={22} hover="pop" />
+              </span>
+              {service.name}
+            </h1>
+            <p className="pv-lede">{service.lede}</p>
           </div>
         </section>
 
@@ -146,7 +149,7 @@ export default async function ServicePage(
         {work.length > 0 ? (
           <section className="pv-sec">
             <div className="pv-wrap">
-              <div className="pv-bar pv-reveal">
+              <div className="pv-bar pv-bar--split pv-reveal">
                 <div className="pv-head">
                   <span className="pv-eyebrow">Proof</span>
                   <h2>{service.short} we have already shipped</h2>
