@@ -1,5 +1,6 @@
 import type {
-  Client, Expense, Id, Invoice, Payment, Project, Stage, Submission,
+  Approval, Channel, Client, Deliverable, Expense, Health, Id, Invoice,
+  Payment, Priority, Project, Stage, Submission, Task, Update,
 } from "./types";
 import { invoiceTotals } from "./types";
 
@@ -68,6 +69,8 @@ const PROJECTS: Project[] = [
   {
     id: "p1", clientId: "c1", title: "Identity system", service: "branding",
     stage: "Review", due: iso("2026-09-26"),
+    owner: "Babatope", health: "Waiting on client", channel: "WhatsApp group",
+    budget: N(630_000), scope: "Logo, palette, type scale and a short guideline set.",
     events: [
       { at: iso("2026-08-02"), text: "Moved to Discovery" },
       { at: iso("2026-08-19"), text: "Moved to In progress" },
@@ -77,11 +80,15 @@ const PROJECTS: Project[] = [
   {
     id: "p2", clientId: "c1", title: "Shop rebuild", service: "web",
     stage: "Onboarding", due: null,
+    owner: "Babatope", health: "On track", channel: "Client dashboard",
+    budget: null, scope: "Shopify storefront rebuild on the new identity.",
     events: [{ at: iso("2026-09-09"), text: "Project opened" }],
   },
   {
     id: "p3", clientId: "c2", title: "Always-on social", service: "social",
     stage: "In progress", due: iso("2026-12-19"),
+    owner: "Ada", health: "On track", channel: "WhatsApp group",
+    budget: N(3_000_000), scope: "Twelve posts and four reels a month, plus community replies.",
     events: [
       { at: iso("2026-04-08"), text: "Moved to Discovery" },
       { at: iso("2026-04-30"), text: "Moved to In progress" },
@@ -90,6 +97,8 @@ const PROJECTS: Project[] = [
   {
     id: "p4", clientId: "c3", title: "Listings site", service: "web",
     stage: "Delivered", due: iso("2026-07-31"),
+    owner: "Ada", health: "On track", channel: "Email",
+    budget: N(1_620_000), scope: "Listings site with search, agent profiles and enquiry routing.",
     events: [
       { at: iso("2026-03-01"), text: "Moved to In progress" },
       { at: iso("2026-07-24"), text: "Moved to Delivered" },
@@ -98,6 +107,8 @@ const PROJECTS: Project[] = [
   {
     id: "p5", clientId: "c5", title: "Dispatch platform", service: "software",
     stage: "Revisions", due: iso("2026-10-10"),
+    owner: "Femi", health: "At risk", channel: "Direct chat",
+    budget: N(4_800_000), scope: "Driver dispatch, live tracking and a back office.",
     events: [
       { at: iso("2026-06-02"), text: "Moved to In progress" },
       { at: iso("2026-09-01"), text: "Moved to Revisions" },
@@ -106,6 +117,8 @@ const PROJECTS: Project[] = [
   {
     id: "p6", clientId: "c4", title: "Charity mark", service: "branding",
     stage: "Discovery", due: iso("2026-10-31"),
+    owner: "Babatope", health: "Blocked", channel: "Email",
+    budget: N(420_000), scope: "Wordmark and a one-page usage sheet.",
     events: [{ at: iso("2026-09-02"), text: "Moved to Discovery" }],
   },
 ];
@@ -201,11 +214,19 @@ export function getClients() {
 export function getClient(id: Id) {
   return CLIENTS.find((c) => c.id === id) ?? null;
 }
-export function getProjects() {
-  return PROJECTS.slice();
+/**
+ * Every project that is still being worked on.
+ *
+ * Archived ones are excluded here, the same way archived clients are excluded
+ * above, so no list screen has to remember to filter. `includeArchived` is
+ * what the archive view asks for; `getProject` by id still returns an archived
+ * one, because a link to it has to keep working.
+ */
+export function getProjects(includeArchived = false) {
+  return includeArchived ? PROJECTS.slice() : PROJECTS.filter((p) => !p.archived);
 }
-export function getProjectsFor(clientId: Id) {
-  return PROJECTS.filter((p) => p.clientId === clientId);
+export function getProjectsFor(clientId: Id, includeArchived = false) {
+  return PROJECTS.filter((p) => p.clientId === clientId && (includeArchived || !p.archived));
 }
 export function getProject(id: Id) {
   return PROJECTS.find((p) => p.id === id) ?? null;
@@ -378,9 +399,20 @@ export function archiveClient(id: Id, archived = true): Client | null {
 export function addProject(d: {
   clientId: Id; title: string; service: Project["service"];
   stage: Stage; due: string | null;
+  owner?: string; health?: Health; channel?: Channel;
+  budget?: number | null; scope?: string;
 }): Project {
+  /* DEFAULTS THAT ARE HONEST. A new project is on track because nothing has
+     gone wrong yet, and its channel is the dashboard because that is the one
+     route we can be sure exists before anybody has agreed anything else. An
+     owner and a budget are left as the caller gave them: inventing either
+     would put a name and a figure on a record that nobody agreed to. */
   const p: Project = {
     ...d, id: mint("p"),
+    owner: d.owner ?? "",
+    health: d.health ?? "On track",
+    channel: d.channel ?? "Client dashboard",
+    budget: d.budget ?? null,
     events: [{ at: now(), text: `Project opened at ${d.stage}` }],
   };
   PROJECTS.push(p);
@@ -638,4 +670,224 @@ export function setSetting(key: string, value: string): boolean {
 /** Clearing the row is how an edit is undone; there is no "restore" copy. */
 export function clearSetting(key: string): boolean {
   return SETTINGS.delete(key);
+}
+
+/* ============================================================ delivery ====
+   Tasks, updates and deliverables.
+
+   THREE FLAT MAPS KEYED BY PROJECT rather than arrays nested inside the
+   project record. A project is read on every list screen and the board; the
+   tasks under it are read on one. Nesting them means every board render
+   carries every task of every project for nothing, and it makes "all tasks due
+   this week across every project" -- which is the dashboard's question -- a
+   walk over projects instead of one filter.
+
+   Same in-memory caveat as everything else here: this survives until the
+   server restarts. The shapes are what the CockroachDB tables will return, so
+   swapping the storage is this module changing and nothing above it.
+   ========================================================================= */
+
+const TASKS: Task[] = [
+  { id: "t1", projectId: "p1", title: "Send the three routes with rationale", assignee: "Babatope",
+    due: iso("2026-09-08"), priority: "High", done: true, doneAt: iso("2026-09-08"), blockedBy: null },
+  { id: "t2", projectId: "p1", title: "Chase Tobi for a pick", assignee: "Babatope",
+    due: iso("2026-09-15"), priority: "High", done: false, doneAt: null, blockedBy: null },
+  { id: "t3", projectId: "p1", title: "Build the guideline set on the chosen route", assignee: "Ada",
+    due: iso("2026-09-24"), priority: "Normal", done: false, doneAt: null, blockedBy: "t2" },
+  { id: "t4", projectId: "p5", title: "Rework the driver assignment screen", assignee: "Femi",
+    due: iso("2026-09-19"), priority: "High", done: false, doneAt: null, blockedBy: null },
+  { id: "t5", projectId: "p5", title: "Re-run the load test after the rework", assignee: "Femi",
+    due: iso("2026-10-02"), priority: "Normal", done: false, doneAt: null, blockedBy: "t4" },
+  { id: "t6", projectId: "p3", title: "September content calendar", assignee: "Ada",
+    due: iso("2026-09-01"), priority: "Normal", done: true, doneAt: iso("2026-08-29"), blockedBy: null },
+  { id: "t7", projectId: "p6", title: "Get the registration certificate for the mark", assignee: "Babatope",
+    due: iso("2026-09-05"), priority: "High", done: false, doneAt: null, blockedBy: null },
+];
+
+const UPDATES: Update[] = [
+  { id: "u1", projectId: "p1", at: iso("2026-09-08"), author: "Babatope", health: "Waiting on client",
+    progress: "Three identity routes sent, each with the reasoning and a mock in situ.",
+    blockers: "We need a pick before the guideline work can start.",
+    next: "Tobi picks a route. We build it out the same week.", clientVisible: true },
+  { id: "u2", projectId: "p1", at: iso("2026-09-11"), author: "Babatope", health: "Waiting on client",
+    progress: "No reply on the routes yet.",
+    blockers: "Three days of silence on WhatsApp.",
+    next: "Call rather than message. If nothing by Monday, flag the date risk.", clientVisible: false },
+  { id: "u3", projectId: "p5", at: iso("2026-09-05"), author: "Femi", health: "At risk",
+    progress: "Revisions on dispatch are underway; the assignment screen is the big one.",
+    blockers: "The rework pushes the load test into October.",
+    next: "Assignment screen this week, load test straight after.", clientVisible: true },
+];
+
+const DELIVERABLES: Deliverable[] = [
+  { id: "d1", projectId: "p1", name: "Identity routes",
+    versions: [
+      { v: 1, at: iso("2026-09-08"), note: "Three routes, each with rationale." },
+    ],
+    approval: "Awaiting client" },
+  { id: "d2", projectId: "p4", name: "Listings site",
+    versions: [
+      { v: 1, at: iso("2026-07-10"), note: "Staging build for review." },
+      { v: 2, at: iso("2026-07-22"), note: "Enquiry routing and agent profiles added." },
+      { v: 3, at: iso("2026-07-24"), note: "Live." },
+    ],
+    approval: "Approved" },
+  { id: "d3", projectId: "p5", name: "Dispatch platform, beta",
+    versions: [{ v: 1, at: iso("2026-08-28"), note: "Beta for internal testing." }],
+    approval: "Revision requested",
+    approvalNote: "Assignment screen is confusing when two drivers are equidistant." },
+];
+
+/* ------------------------------------------------------------------ reads */
+
+export function getTasksFor(projectId: Id) {
+  /* Open work first, then what is finished, each by date. Somebody opening a
+     project is asking what is left, not what is done. */
+  return TASKS.filter((t) => t.projectId === projectId).sort((a, b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    return (a.due ?? "9999").localeCompare(b.due ?? "9999");
+  });
+}
+export function getTasks() {
+  return TASKS.slice();
+}
+export function getUpdatesFor(projectId: Id) {
+  return UPDATES.filter((u) => u.projectId === projectId).sort((a, b) => b.at.localeCompare(a.at));
+}
+export function getDeliverablesFor(projectId: Id) {
+  return DELIVERABLES.filter((d) => d.projectId === projectId);
+}
+export function getDeliverable(id: Id) {
+  return DELIVERABLES.find((d) => d.id === id) ?? null;
+}
+
+/* ----------------------------------------------------------------- writes */
+
+export function addTask(d: {
+  projectId: Id; title: string; assignee: string;
+  due: string | null; priority: Priority; blockedBy: Id | null;
+}): Task | null {
+  if (!PROJECTS.some((p) => p.id === d.projectId)) return null;
+  /* A dependency has to be a real task ON THE SAME PROJECT. Accepting any id
+     would let a form point one project's task at another's, which is not a
+     relationship this screen can draw or anybody can reason about. */
+  const dep = d.blockedBy && TASKS.find((t) => t.id === d.blockedBy && t.projectId === d.projectId)
+    ? d.blockedBy : null;
+  const t: Task = { ...d, blockedBy: dep, id: mint("t"), done: false, doneAt: null };
+  TASKS.push(t);
+  return t;
+}
+
+/**
+ * Tick or untick, and say so on the project's history.
+ *
+ * The history line is the point: a task quietly going green tells the person
+ * who ticked it and nobody else. `addProjectNote` is what makes it visible to
+ * whoever opens the project next week.
+ */
+export function setTaskDone(id: Id, done: boolean): Task | null {
+  const t = TASKS.find((x) => x.id === id);
+  if (!t) return null;
+  t.done = done;
+  t.doneAt = done ? now() : null;
+  addProjectNote(t.projectId, done ? `Done: ${t.title}` : `Reopened: ${t.title}`);
+  return t;
+}
+
+/** Removing a task also clears anything that was waiting on it, or the
+    dependency would point at an id that no longer exists and the task would
+    look permanently stuck. */
+export function deleteTask(id: Id): boolean {
+  const i = TASKS.findIndex((t) => t.id === id);
+  if (i < 0) return false;
+  TASKS.splice(i, 1);
+  for (const t of TASKS) if (t.blockedBy === id) t.blockedBy = null;
+  return true;
+}
+
+/**
+ * Post an update, and move the project's health with it.
+ *
+ * ONE ACTION, NOT TWO. Health that is set on a separate control drifts: the
+ * update says "blocked, three days of silence" and the badge still says on
+ * track because nobody remembered the second step. Writing the update IS how
+ * health changes, so the two cannot disagree.
+ */
+export function addUpdate(d: {
+  projectId: Id; author: string; health: Health;
+  progress: string; blockers: string; next: string; clientVisible: boolean;
+}): Update | null {
+  const p = PROJECTS.find((x) => x.id === d.projectId);
+  if (!p) return null;
+  const u: Update = { ...d, id: mint("u"), at: now() };
+  UPDATES.push(u);
+  if (p.health !== d.health) {
+    addProjectNote(p.id, `Health moved to ${d.health}`);
+    p.health = d.health;
+  }
+  addProjectNote(p.id, d.clientVisible ? "Update posted, visible to the client" : "Internal note added");
+  return u;
+}
+
+export function addDeliverable(d: { projectId: Id; name: string; note: string; url?: string }): Deliverable | null {
+  if (!PROJECTS.some((p) => p.id === d.projectId)) return null;
+  const item: Deliverable = {
+    id: mint("d"), projectId: d.projectId, name: d.name,
+    versions: [{ v: 1, at: now(), note: d.note, url: d.url }],
+    approval: "Not sent",
+  };
+  DELIVERABLES.push(item);
+  addProjectNote(d.projectId, `Deliverable added: ${d.name}`);
+  return item;
+}
+
+/** A new version is appended and numbered from the last one. Nothing is
+    overwritten -- see the note on the type for why that matters. */
+export function addVersion(id: Id, note: string, url?: string): Deliverable | null {
+  const d = DELIVERABLES.find((x) => x.id === id);
+  if (!d) return null;
+  const v = (d.versions[d.versions.length - 1]?.v ?? 0) + 1;
+  d.versions.push({ v, at: now(), note, url });
+  /* A new version supersedes whatever the last one was told: an approval given
+     for v2 is not an approval of v3. */
+  d.approval = "Not sent";
+  d.approvalNote = undefined;
+  addProjectNote(d.projectId, `${d.name} v${v} added`);
+  return d;
+}
+
+export function setApproval(id: Id, approval: Approval, note?: string): Deliverable | null {
+  const d = DELIVERABLES.find((x) => x.id === id);
+  if (!d) return null;
+  d.approval = approval;
+  d.approvalNote = approval === "Revision requested" ? (note || undefined) : undefined;
+  addProjectNote(d.projectId, `${d.name}: ${approval.toLowerCase()}`);
+  return d;
+}
+
+export function patchProject(id: Id, d: Partial<Pick<Project,
+  "owner" | "health" | "channel" | "budget" | "scope" | "title">>): Project | null {
+  const p = PROJECTS.find((x) => x.id === id);
+  if (!p) return null;
+  if (d.health && d.health !== p.health) addProjectNote(id, `Health moved to ${d.health}`);
+  if (d.owner && d.owner !== p.owner) addProjectNote(id, `Owner is now ${d.owner}`);
+  if (d.channel && d.channel !== p.channel) addProjectNote(id, `Updates now go through ${d.channel}`);
+  Object.assign(p, d);
+  return p;
+}
+
+/**
+ * Filed away, with everything it owns left exactly where it is.
+ *
+ * Same contract as archiving a client: the invoices, payments, updates,
+ * approvals and file versions are the record of what happened and what was
+ * agreed, so archiving hides the project from the working lists and touches
+ * nothing else. There is no delete.
+ */
+export function archiveProject(id: Id, archived = true): Project | null {
+  const p = PROJECTS.find((x) => x.id === id);
+  if (!p) return null;
+  p.archived = archived;
+  addProjectNote(id, archived ? "Archived" : "Taken out of the archive");
+  return p;
 }

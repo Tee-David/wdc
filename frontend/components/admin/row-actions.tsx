@@ -13,7 +13,7 @@ import {
 import {
   addNote, archiveClient, attachSubmission, createProject, deleteInvoice,
   issueInvoice, moveStage, recordPayment, removeExpense, reversePayment,
-  resetSetting, saveSetting, setDue, updateClient,
+  resetSetting, saveSetting, setDue, setProjectArchived, updateClient,
 } from "@/lib/admin/actions";
 import { Actions, Area, Field, Fields, Form, Hidden, Select, Submit } from "./form";
 import { RowMenu, type RowMenuItem } from "./row-menu";
@@ -79,7 +79,7 @@ function Sure({
 export function ProjectMenu({
   project, clientName,
 }: {
-  project: Pick<Project, "id" | "title" | "stage" | "due" | "clientId">;
+  project: Pick<Project, "id" | "title" | "stage" | "due" | "clientId" | "archived">;
   clientName?: string;
 }) {
   const items: RowMenuItem[] = [
@@ -141,6 +141,32 @@ export function ProjectMenu({
     {
       kind: "link", label: clientName ? `Open ${clientName}` : "Open the client",
       href: `/admin/clients/${project.clientId}`, icon: Users,
+    },
+    {
+      /* ARCHIVE, AND THERE IS NO DELETE. A project owns invoices, payments,
+         updates and approvals, and those are the financial and evidential
+         record of what was agreed. Archiving takes it out of the lists and
+         leaves every one of them exactly where it is. */
+      kind: "dialog",
+      label: project.archived ? "Take it out of the archive" : "Archive it",
+      icon: Archive,
+      title: project.archived ? `Restore ${project.title}` : `Archive ${project.title}`,
+      render: (close) => (
+        <Sure
+          action={setProjectArchived as never}
+          fields={{ id: project.id, archived: project.archived ? "false" : "true" }}
+          verb={project.archived ? "Put it back" : "Archive it"}
+          icon={Archive}
+          tone={project.archived ? "primary" : "danger"}
+          close={close}
+        >
+          {project.archived
+            ? `${project.title} goes back into the project lists exactly as it was.`
+            : `${project.title} drops out of the lists and the board. Its invoices,
+               payments, updates, approvals and file versions stay exactly as they
+               are, because those are the record — this is why there is no delete.`}
+        </Sure>
+      ),
     },
   ];
 

@@ -55,6 +55,40 @@ export const STAGES = [
 ] as const;
 export type Stage = (typeof STAGES)[number];
 
+/**
+ * How the work is going, which is a different question from where it is.
+ *
+ * STAGE AND HEALTH ARE NOT THE SAME AXIS, and collapsing them is the mistake
+ * most project tools make. A project can sit in "In progress" for six weeks
+ * either because it is going fine or because nobody has answered an email
+ * since July, and a board coloured by stage cannot tell those apart. Stage is
+ * where the work has got to; health is whether it is moving.
+ *
+ * "Waiting on client" is a health and not a stage for the same reason: the
+ * work has not gone backwards, it has stopped, and the thing to do about it is
+ * chase somebody rather than move a card.
+ */
+export const HEALTH = ["On track", "At risk", "Waiting on client", "Blocked"] as const;
+export type Health = (typeof HEALTH)[number];
+
+/**
+ * Where this project's conversation actually happens.
+ *
+ * Recorded rather than assumed, because it differs per client and the cost of
+ * getting it wrong is a message nobody reads. Some clients live in a WhatsApp
+ * group, some will only use email, some use the portal. This is the answer to
+ * "where do I put this update", and it is on the project because it is agreed
+ * per project rather than per company.
+ */
+export const CHANNELS = [
+  "Client dashboard",
+  "Direct chat",
+  "WhatsApp group",
+  "Email",
+  "Another agreed channel",
+] as const;
+export type Channel = (typeof CHANNELS)[number];
+
 export type Project = {
   id: Id;
   clientId: Id;
@@ -65,6 +99,108 @@ export type Project = {
   due: string | null;
   /** Appended to, never rewritten: it is the project's history. */
   events: { at: string; text: string }[];
+  /** Who is answerable for it. One name, not a committee. */
+  owner: string;
+  health: Health;
+  channel: Channel;
+  /** Kobo, or null when no figure has been agreed. Never a float; see above. */
+  budget: number | null;
+  /** What was actually bought, in the words the client would recognise. */
+  scope?: string;
+  /**
+   * Finished and filed away, NOT deleted.
+   *
+   * A delivered project still owns invoices, payments, updates and approvals,
+   * and those are the financial and evidential record. Archiving takes it out
+   * of the lists; there is deliberately no way to destroy it.
+   */
+  archived?: boolean;
+};
+
+/* --------------------------------------------------------- the work itself */
+
+export const PRIORITIES = ["Low", "Normal", "High"] as const;
+export type Priority = (typeof PRIORITIES)[number];
+
+/**
+ * One piece of work inside a project.
+ *
+ * DELIBERATELY NOT A PROJECT-MANAGEMENT SUITE. There are no sub-tasks, no
+ * story points, no swimlanes and no burndown, because the checklist this was
+ * built from says in as many words not to turn the default screen into one.
+ * What is here is what somebody actually needs to answer "what is left and who
+ * has it": a title, an owner, a date, a priority, and whether another task has
+ * to finish first.
+ *
+ * `blockedBy` is one id rather than a list. A task waiting on two other things
+ * is waiting on whichever finishes last, and modelling that properly means a
+ * graph, a cycle check and a topological sort for a screen that shows six
+ * rows. One dependency covers the real case -- "this cannot start until that
+ * is done" -- and stays readable.
+ */
+export type Task = {
+  id: Id;
+  projectId: Id;
+  title: string;
+  /** Free text: the team is small and a user table would be fiction today. */
+  assignee: string;
+  due: string | null;
+  priority: Priority;
+  done: boolean;
+  doneAt: string | null;
+  blockedBy: Id | null;
+};
+
+/**
+ * A written update, and who is allowed to read it.
+ *
+ * `clientVisible` is the whole reason this is a record rather than a note in
+ * the history. The same week produces two different sentences: one for the
+ * client ("the three routes are with you, we need a pick by Friday") and one
+ * for us ("Femi has gone quiet, chase before we schedule the build"). Storing
+ * them as one field with a flag means the client portal can render exactly the
+ * ones marked for it and nothing can leak by accident.
+ */
+export type Update = {
+  id: Id;
+  projectId: Id;
+  at: string;
+  author: string;
+  health: Health;
+  /** What moved. */
+  progress: string;
+  /** What is in the way. Empty is a real and common answer. */
+  blockers: string;
+  /** What happens next, and who does it. */
+  next: string;
+  clientVisible: boolean;
+};
+
+export const APPROVALS = [
+  "Not sent",
+  "Awaiting client",
+  "Approved",
+  "Revision requested",
+] as const;
+export type Approval = (typeof APPROVALS)[number];
+
+/**
+ * Something we hand over, and every version of it.
+ *
+ * VERSIONS ARE APPENDED, NEVER REPLACED. "Which logo did they approve" is a
+ * question that gets asked months later, usually when somebody disagrees about
+ * it, and a field that only holds the latest file cannot answer it. Each entry
+ * keeps its own number, date and note, so the approval can point at the exact
+ * version it was given for.
+ */
+export type Deliverable = {
+  id: Id;
+  projectId: Id;
+  name: string;
+  versions: { v: number; at: string; note: string; url?: string }[];
+  approval: Approval;
+  /** What the client said when they asked for changes. Their words. */
+  approvalNote?: string;
 };
 
 /* ------------------------------------------------------------------- money */
@@ -178,4 +314,71 @@ export function invoiceStatus(inv: Invoice, today = new Date()): InvoiceStatus {
   if (due > 0 && new Date(inv.due) < today) return "Overdue";
   if (inv.paid > 0) return "Part paid";
   return "Sent";
+}
+
+/* ------------------------------------------------- what needs attention */
+
+/**
+ * WHY A PROJECT IS ASKING FOR SOMEBODY, DERIVED RATHER THAN STORED.
+ *
+ * "Overdue" is not a state anybody sets, for exactly the reason `invoiceStatus`
+ * gives above: it is a state time creates while nobody is looking. The same is
+ * true of "due this week" and of "blocked by a task that is still open". Every
+ * one of these is a function of the project, its tasks and today's date, so
+ * deriving them means the attention queue cannot be stale and cannot be wrong
+ * because a nightly job did not run.
+ *
+ * The order is the order somebody should deal with them: things that have
+ * already slipped, then things that have stopped, then things about to slip.
+ */
+export type Attention = {
+  /** Short enough for a pill. */
+  label: string;
+  /** How loudly to say it. */
+  tone: "bad" | "warn" | "info";
+};
+
+export function projectAttention(
+  p: Project,
+  tasks: Task[] = [],
+  today = new Date(),
+): Attention[] {
+  const out: Attention[] = [];
+  if (p.archived || p.stage === "Delivered") return out;
+
+  const open = tasks.filter((t) => t.projectId === p.id && !t.done);
+
+  if (p.due && new Date(p.due) < today) {
+    out.push({ label: "Overdue", tone: "bad" });
+  }
+  if (p.health === "Blocked") out.push({ label: "Blocked", tone: "bad" });
+  if (p.health === "Waiting on client") out.push({ label: "Waiting on client", tone: "warn" });
+  if (p.stage === "Revisions") out.push({ label: "In revision", tone: "warn" });
+  if (p.health === "At risk") out.push({ label: "At risk", tone: "warn" });
+
+  /* Only worth saying when nothing louder is already true: a project that is
+     overdue does not also need telling that it is due soon. */
+  if (!out.length && p.due) {
+    const days = Math.ceil((new Date(p.due).getTime() - today.getTime()) / 86_400_000);
+    if (days >= 0 && days <= 7) {
+      out.push({ label: days === 0 ? "Due today" : `Due in ${days}d`, tone: "info" });
+    }
+  }
+
+  const stuck = open.filter((t) => t.blockedBy && open.some((o) => o.id === t.blockedBy));
+  if (stuck.length) {
+    out.push({ label: `${stuck.length} task${stuck.length > 1 ? "s" : ""} waiting`, tone: "info" });
+  }
+
+  const late = open.filter((t) => t.due && new Date(t.due) < today);
+  if (late.length) out.push({ label: `${late.length} task${late.length > 1 ? "s" : ""} overdue`, tone: "bad" });
+
+  return out;
+}
+
+/** True when a task cannot be started because the one it waits on is open. */
+export function taskIsWaiting(t: Task, all: Task[]) {
+  if (!t.blockedBy || t.done) return false;
+  const on = all.find((x) => x.id === t.blockedBy);
+  return !!on && !on.done;
 }

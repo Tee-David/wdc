@@ -6,7 +6,8 @@ import * as db from "./store";
 import { invoiceTotals, naira, type InvoiceLine } from "./types";
 import {
   FAIL, OK, type ActionState,
-  isoDate, kobo, looksEmail, num, required, services, stage, str,
+  approval, channel, checked, health, isoDate, kobo, looksEmail, num, priority,
+  required, services, stage, str,
 } from "./validate";
 
 /**
@@ -376,4 +377,157 @@ export async function resetSetting(_prev: ActionState, fd: FormData): Promise<Ac
 
   refresh("/admin/settings", "/");
   return OK("Back to what shipped.");
+}
+
+/* ------------------------------------------------------- delivery: tasks */
+
+/**
+ * Everything below refreshes the project it belongs to AND the projects list,
+ * because both draw from the same attention derivation: a task going overdue
+ * changes a pill on the list as surely as it changes the workspace.
+ */
+function refreshProject(id: string) {
+  refresh("/admin/projects", `/admin/projects/${id}`);
+}
+
+export async function createTask(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const errors: Record<string, string> = {};
+  const projectId = str(fd, "projectId");
+  const title = required(errors, "title", str(fd, "title"), "A task name");
+  const p = projectId ? db.getProject(projectId) : null;
+  if (!p) errors.projectId = "Pick a project.";
+
+  const pri = priority(fd, "priority");
+  if (!pri) errors.priority = "Pick a priority.";
+
+  if (Object.keys(errors).length) return FAIL(errors);
+
+  const t = db.addTask({
+    projectId, title, assignee: str(fd, "assignee"),
+    due: isoDate(fd, "due"), priority: pri!,
+    /* An empty select posts "", which is not a dependency. */
+    blockedBy: str(fd, "blockedBy") || null,
+  });
+  if (!t) return FAIL({}, "That project is no longer there.");
+  refreshProject(projectId);
+  return OK(`Added "${t.title}".`);
+}
+
+export async function toggleTask(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, "id");
+  /* The CURRENT state is read from the store rather than taken from the form.
+     A hidden field saying "this is currently open" is a field the browser can
+     change, and two people ticking the same task a second apart would
+     otherwise fight each other. */
+  const before = db.getTasks().find((t) => t.id === id);
+  if (!before) return FAIL({}, "That task is no longer there.");
+  const t = db.setTaskDone(id, !before.done);
+  if (!t) return FAIL({}, "That task is no longer there.");
+  refreshProject(t.projectId);
+  return OK(t.done ? `Ticked off "${t.title}".` : `"${t.title}" is open again.`);
+}
+
+export async function removeTask(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, "id");
+  const t = db.getTasks().find((x) => x.id === id);
+  if (!t) return FAIL({}, "That task is no longer there.");
+  db.deleteTask(id);
+  refreshProject(t.projectId);
+  return OK(`Removed "${t.title}".`);
+}
+
+/* ----------------------------------------------------- delivery: updates */
+
+export async function postUpdate(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const errors: Record<string, string> = {};
+  const projectId = str(fd, "projectId");
+  const progress = required(errors, "progress", str(fd, "progress"), "What moved");
+  const h = health(fd, "health");
+  if (!h) errors.health = "Say how it is going.";
+  if (Object.keys(errors).length) return FAIL(errors);
+
+  const u = db.addUpdate({
+    projectId, author: str(fd, "author") || "Studio", health: h!,
+    progress, blockers: str(fd, "blockers"), next: str(fd, "next"),
+    clientVisible: checked(fd, "clientVisible"),
+  });
+  if (!u) return FAIL({}, "That project is no longer there.");
+  refreshProject(projectId);
+  return OK(u.clientVisible
+    ? "Posted. The client will see this one."
+    : "Saved as an internal note. The client will not see it.");
+}
+
+/* ------------------------------------------------ delivery: deliverables */
+
+export async function createDeliverable(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const errors: Record<string, string> = {};
+  const projectId = str(fd, "projectId");
+  const name = required(errors, "name", str(fd, "name"), "A name");
+  const note = required(errors, "note", str(fd, "note"), "A note saying what this version is");
+  if (Object.keys(errors).length) return FAIL(errors);
+
+  const d = db.addDeliverable({ projectId, name, note, url: str(fd, "url") || undefined });
+  if (!d) return FAIL({}, "That project is no longer there.");
+  refreshProject(projectId);
+  return OK(`${d.name} v1 is on the project.`);
+}
+
+export async function addDeliverableVersion(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const errors: Record<string, string> = {};
+  const note = required(errors, "note", str(fd, "note"), "A note saying what changed");
+  if (Object.keys(errors).length) return FAIL(errors);
+
+  const d = db.addVersion(str(fd, "id"), note, str(fd, "url") || undefined);
+  if (!d) return FAIL({}, "That deliverable is no longer there.");
+  refreshProject(d.projectId);
+  const v = d.versions[d.versions.length - 1].v;
+  return OK(`${d.name} v${v} added. It needs sending again before it can be approved.`);
+}
+
+export async function moveApproval(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const a = approval(fd, "approval");
+  if (!a) return FAIL({ approval: "Pick what happened." });
+  const note = str(fd, "note");
+  if (a === "Revision requested" && !note) {
+    return FAIL({ note: "Say what they asked for. A revision with no reason is not actionable." });
+  }
+  const d = db.setApproval(str(fd, "id"), a, note);
+  if (!d) return FAIL({}, "That deliverable is no longer there.");
+  refreshProject(d.projectId);
+  return OK(`${d.name} is now "${a.toLowerCase()}".`);
+}
+
+/* ------------------------------------------------- delivery: the project */
+
+export async function saveProjectDetails(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, "id");
+  const h = health(fd, "health");
+  const ch = channel(fd, "channel");
+  const errors: Record<string, string> = {};
+  if (!h) errors.health = "Pick how it is going.";
+  if (!ch) errors.channel = "Pick where updates go.";
+  if (Object.keys(errors).length) return FAIL(errors);
+
+  const p = db.patchProject(id, {
+    owner: str(fd, "owner"), health: h!, channel: ch!,
+    /* kobo() returns null for an empty box, which is the honest answer when no
+       figure has been agreed -- not zero, which would read as "free". */
+    budget: kobo(fd, "budget"),
+    scope: str(fd, "scope"),
+  });
+  if (!p) return FAIL({}, "That project is no longer there.");
+  refreshProject(id);
+  return OK("Saved.");
+}
+
+export async function setProjectArchived(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, "id");
+  const back = str(fd, "archived") === "false";
+  const p = db.archiveProject(id, !back);
+  if (!p) return FAIL({}, "That project is no longer there.");
+  refreshProject(id);
+  return OK(back
+    ? `${p.title} is back in the list.`
+    : `${p.title} is archived. Its invoices, updates and approvals are untouched.`);
 }
