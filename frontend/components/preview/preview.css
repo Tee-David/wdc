@@ -338,8 +338,17 @@ main.pv {
 .wk-hero { background: var(--band); color: var(--on-band); position: relative; overflow: hidden; }
 .wk-hero__in {
   padding-block: clamp(6.5rem, 11vw, 9rem) clamp(2.6rem, 5vw, 4rem);
-  display: grid; gap: 18px; max-width: 62ch;
+  /* FULL WIDTH OF THE PAGE'S OWN WRAP. This was capped at 62ch, and because
+     `.pv-wrap` centres what it holds, that cap did not merely shorten the
+     band's content -- it CENTRED it. The breadcrumb and the title started
+     several hundred pixels in from where every other section on the page
+     begins, so the band read as indented against the rest of the page.
+     The LEDE keeps a measure, because a line of prose running the full width
+     of a desktop is genuinely harder to read; a heading and a breadcrumb do
+     not need one. */
+  display: grid; gap: 18px; max-width: none;
 }
+.pv .wk-hero__in .pv-lede { max-width: 62ch; }
 .pv .wk-hero h1 { color: #fff; font-size: clamp(2.3rem, 1.4rem + 3.6vw, 4.2rem); }
 .pv .wk-hero .pv-lede { color: var(--on-band-dim); }
 /* ORANGE ON NAVY IS `--accent`, NOT `--accent-ink`. The ink variant is the
