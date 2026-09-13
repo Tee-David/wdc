@@ -316,6 +316,41 @@ main.pv {
 }
 .pv-sec--band .pv-eyebrow { color: var(--accent); }
 
+/* ---------------- the band every landing page opens with ----------------- */
+
+/* `/`, `/work`, `/services`, `/services/<slug>`, `/work/<category>`, `/blog`
+   and `/contact` all start the same way: this navy band carrying the eyebrow,
+   the h1 and the lede, then the page's own ground underneath.
+ *
+   IT LIVES HERE BECAUSE EVERY ONE OF THOSE PAGES USES IT. It used to live in
+   work.css, which /work, /services and /blog happen to import and /contact
+   does not -- so on /contact the band had no background, no padding and no
+   colours at all. The page rendered as white, the eyebrow sat underneath the
+   fixed header, and `<Header overHero />` painted white navigation onto white:
+   the logo was invisible and the hamburger was three white bars on nothing.
+   The rule this repo already wrote down after the last two times is that a
+   page which loses its dark hero and keeps `overHero` has invisible
+   navigation; this was the same fault arriving from the other direction, and
+   a stylesheet in the shared layer is what stops it happening a fourth time.
+
+   THE TOP PADDING IS CLEARING THE HEADER, which is why it is so much bigger
+   than the bottom. The header is fixed and transparent over this band. */
+.wk-hero { background: var(--band); color: var(--on-band); position: relative; overflow: hidden; }
+.wk-hero__in {
+  padding-block: clamp(6.5rem, 11vw, 9rem) clamp(2.6rem, 5vw, 4rem);
+  display: grid; gap: 18px; max-width: 62ch;
+}
+.pv .wk-hero h1 { color: #fff; font-size: clamp(2.3rem, 1.4rem + 3.6vw, 4.2rem); }
+.pv .wk-hero .pv-lede { color: var(--on-band-dim); }
+/* ORANGE ON NAVY IS `--accent`, NOT `--accent-ink`. The ink variant is the
+   darkened #c95000 that orange has to become on a LIGHT surface; on the band
+   it measures 3.93:1, under the 4.5:1 this 13px label needs. #ff6500 on
+   #000065 is 6.00:1. `.pv-sec--band` already made this swap for the dark
+   sections further down the page; the band at the top was simply never given
+   the same rule, so /services and /work/<category> have been rendering a dim
+   eyebrow in light mode too. */
+.pv .wk-hero .pv-eyebrow { color: var(--accent); }
+
 /* header bar that carries its own carousel arrows */
 .pv-bar { position: relative; margin-bottom: clamp(1.8rem, 3.4vw, 2.6rem); }
 .pv-bar > .pv-head { width: 100%; margin: 0 auto; }

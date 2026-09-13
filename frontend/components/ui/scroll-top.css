@@ -14,20 +14,14 @@
   --fab-stack: 3.75rem;
 }
 
-/* Jotform places its avatar flush against the viewport by default. Match the
-   responsive gutter used by our right-side controls. */
-.embedded-agent-container {
-  margin-bottom: var(--fab-bottom) !important;
-  z-index: 110 !important;
-}
-.ai-agent-chat-avatar-container {
-  left: var(--fab-gap) !important;
-  bottom: 0 !important;
-  z-index: 110 !important;
-}
+/* THE `!important` OVERRIDES THAT USED TO SIT HERE ARE GONE WITH THE WIDGET
+   THEY FOUGHT. Jotform's runtime drew its own launcher flush to the viewport
+   and we pushed it back into our gutter from the outside. There is no vendor
+   launcher any more -- the agent runs in a frame inside a panel we own -- so
+   the position is simply the position. See components/agent/jotform-agent.tsx
+   for why the runtime went. */
 
-/* Lightweight chat launcher. It occupies the native widget's final position,
-   so loading the official chat does not move the page or swap corners. */
+/* The chat launcher. */
 .jf-facade {
   position: fixed;
   left: var(--fab-gap);
@@ -68,21 +62,141 @@
   transition: opacity .2s ease, transform .2s ease;
 }
 .jf-facade:hover .jf-facade__bubble,
-.jf-facade:focus-visible .jf-facade__bubble,
-/* While the runtime is coming the bubble carries the news, so it stays up
-   whether or not the pointer is still on the button. */
-.jf-facade.is-loading .jf-facade__bubble {
+.jf-facade:focus-visible .jf-facade__bubble {
   opacity: 1;
   transform: none;
 }
+/* Nothing to greet while the conversation is already on screen. */
+.jf-facade.is-open .jf-facade__bubble { opacity: 0; }
 .jf-facade:focus-visible {
   outline: 2px solid var(--accent, #ff6500);
   outline-offset: 3px;
 }
-.jf-facade.is-loading { animation: jf-pulse .8s ease-in-out infinite alternate; }
-@keyframes jf-pulse { to { opacity: .62; } }
+
+/* ---- the panel ----------------------------------------------------------
+
+   The frame is Jotform's; everything around it is ours. It is in the DOM from
+   the moment the button is reached for and hidden with `visibility`, not
+   `display: none`, because a frame with no box is a frame the browser is
+   entitled to deprioritise -- and the whole point of arming early is that the
+   document is already there when the click lands.
+   ------------------------------------------------------------------------- */
+.jf-panel {
+  position: fixed;
+  left: var(--fab-gap);
+  /* Clear of the launcher, which stays put and doubles as the close toggle on
+     a desktop. */
+  bottom: calc(var(--fab-bottom) + var(--fab-stack));
+  z-index: 111;
+  display: flex;
+  flex-direction: column;
+  width: min(23.5rem, calc(100vw - var(--fab-gap) * 2));
+  height: min(34rem, calc(100dvh - var(--fab-bottom) - var(--fab-stack) - var(--fab-gap)));
+  overflow: hidden;
+  border: 1px solid var(--line, rgb(0 0 26 / .12));
+  border-radius: 18px;
+  background: var(--background, #fff);
+  box-shadow: 0 24px 60px -24px rgb(0 0 26 / .5);
+  /* Hidden, but laid out: see the note above. */
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(10px) scale(.98);
+  transform-origin: 0 100%;
+  pointer-events: none;
+  transition: opacity .22s ease, transform .22s cubic-bezier(.16, 1, .3, 1),
+              visibility 0s linear .22s;
+}
+.jf-panel.is-open {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  transition: opacity .22s ease, transform .22s cubic-bezier(.16, 1, .3, 1),
+              visibility 0s;
+}
 @media (prefers-reduced-motion: reduce) {
-  .jf-facade.is-loading { animation: none; }
+  .jf-panel { transition: opacity .01s linear, visibility 0s linear .01s; transform: none; }
+  .jf-panel.is-open { transition: opacity .01s linear, visibility 0s; }
+}
+
+/* A PHONE GETS THE WHOLE SCREEN. A 23rem panel floating over a 390px viewport
+   is a conversation in a letterbox, and the launcher it is trying to clear is
+   underneath it anyway -- which is why the bar below carries a close button
+   rather than relying on the launcher to toggle. */
+@media (max-width: 34rem) {
+  .jf-panel {
+    left: var(--fab-gap);
+    right: var(--fab-gap);
+    top: calc(var(--fab-gap) + env(safe-area-inset-top, 0px));
+    bottom: var(--fab-bottom);
+    width: auto;
+    height: auto;
+  }
+}
+
+.jf-panel__bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: .75rem; flex: none;
+  padding: .6rem .7rem .6rem 1rem;
+  border-bottom: 1px solid var(--line, rgb(0 0 26 / .12));
+  background: var(--background, #fff);
+}
+.jf-panel__title {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .82rem; font-weight: 700; letter-spacing: .02em;
+  text-transform: uppercase; color: var(--foreground, #000065);
+}
+.jf-panel__close {
+  display: grid; place-items: center;
+  /* 44px of target, drawn at 36. */
+  width: 44px; height: 44px; margin: -4px;
+  border: 0; border-radius: 50%;
+  background: transparent; color: var(--foreground, #000065);
+  cursor: pointer;
+  transition: background .18s ease;
+}
+.jf-panel__close svg { width: 18px; height: 18px; }
+.jf-panel__close:hover { background: var(--surface-2, rgb(0 0 26 / .06)); }
+.jf-panel__close:focus-visible {
+  outline: 2px solid var(--accent, #ff6500); outline-offset: -2px;
+}
+
+.jf-panel__body { position: relative; flex: 1; min-height: 0; }
+.jf-panel__frame {
+  width: 100%; height: 100%;
+  border: 0; display: block;
+  /* White under the frame in both themes: the agent renders its own light
+     chat surface, and a dark seam around it while it paints reads as a
+     rendering fault rather than as loading. */
+  background: #fff;
+}
+
+/* What the panel says while the frame is not there yet -- and, after the
+   timeout, instead of pretending. */
+.jf-panel__state {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .75rem; padding: 1.5rem;
+  text-align: center;
+  background: var(--background, #fff);
+}
+.jf-panel__said {
+  margin: 0; max-width: 26ch;
+  font-size: .92rem; line-height: 1.5; color: var(--muted, #5b5b7a);
+}
+.jf-panel__alt {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: .6rem 1.1rem;
+  border-radius: 999px;
+  background: var(--accent, #ff6500);
+  /* Black on orange is 7.11:1; white on it is 2.95:1 and fails. */
+  color: #000;
+  font-size: .88rem; font-weight: 600; text-decoration: none;
+}
+.jf-panel__alt:hover { background: #000065; color: #fff; }
+.jf-panel__mail {
+  font-size: .85rem; color: var(--accent-ink, #c95000);
+  text-decoration: underline; text-underline-offset: .18em;
 }
 
 .st {
@@ -176,8 +290,7 @@ body:has(.cx) .st { bottom: calc(var(--fab-bottom) + var(--fab-stack) + 4.4rem);
    Opacity and pointer-events rather than `display: none`, so nothing
    reflows and they fade rather than blink. */
 body:has(.sm-panel[data-open="true"]) .jf-facade,
-body:has(.sm-panel[data-open="true"]) .ai-agent-chat-avatar-container,
-body:has(.sm-panel[data-open="true"]) .embedded-agent-container,
+body:has(.sm-panel[data-open="true"]) .jf-panel,
 body:has(.sm-panel[data-open="true"]) .uw--corner,
 body:has(.sm-panel[data-open="true"]) .st {
   opacity: 0 !important;

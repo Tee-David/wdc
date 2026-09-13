@@ -353,3 +353,27 @@ export async function attachSubmission(_prev: ActionState, fd: FormData): Promis
   refresh("/admin/forms", `/admin/forms/${id}`, `/admin/clients/${clientId}`);
   redirect(`/admin/clients/${clientId}`);
 }
+
+/* ---------------------------------------------------------------- settings */
+
+export async function saveSetting(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const key = str(fd, "key");
+  const value = str(fd, "value");
+  if (!key) return FAIL({}, "That setting is no longer there.");
+  if (!value) return FAIL({ value: "Write the new value first." });
+
+  if (!db.setSetting(key, value)) return FAIL({ value: "That is not something this field can hold." });
+
+  /* The public pages read these, so they are what has to be re-rendered --
+     not the screen the edit was made on. */
+  refresh("/admin/settings", "/");
+  return OK("Saved. The site shows it now.");
+}
+
+export async function resetSetting(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const key = str(fd, "key");
+  if (!db.clearSetting(key)) return FAIL({}, "That one was already back to what shipped.");
+
+  refresh("/admin/settings", "/");
+  return OK("Back to what shipped.");
+}

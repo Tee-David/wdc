@@ -651,3 +651,84 @@
   font-weight: 700; font-size: .98rem;
 }
 .ad__totals .is-total dt { color: var(--ad-ink); }
+
+/* ==========================================================================
+   The row menu.
+
+   A `⋯` in the last column of a row, and the list of verbs it opens. See
+   components/admin/row-menu.tsx for why the list is rendered into the body at
+   viewport coordinates rather than positioned inside the row: every table here
+   sits in an `overflow: auto` scroller that would otherwise clip it to a few
+   pixels of itself.
+   ========================================================================== */
+
+.ad__rm {
+  display: inline-grid; place-items: center;
+  /* 36px drawn, 44 of target with the cell's own padding around it. */
+  width: 36px; height: 36px;
+  padding: 0; border: 1px solid transparent; border-radius: 9px;
+  background: transparent; color: var(--ad-dim);
+  cursor: pointer;
+  transition: background .16s ease, color .16s ease, border-color .16s ease;
+}
+.ad__rm svg { width: 18px; height: 18px; }
+.ad__rm:hover { background: var(--ad-bg); color: var(--ad-ink); border-color: var(--ad-line); }
+.ad__rm.is-on { background: var(--ad-bg); color: var(--ad-ink); border-color: var(--ad-line); }
+.ad__rm:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+
+/* The cell it sits in. Narrow, and it never wraps or grows with the row. */
+.ad__t th.ad__rmH, .ad__t td.ad__rmC {
+  width: 1%; padding-left: .25rem; padding-right: .5rem;
+  text-align: right;
+}
+
+/* A DIALOG OPENED FROM A ROW IS STILL A CHILD OF THAT ROW. It renders in the
+   top layer, so it looks independent, but it inherits from the `<td>` it is
+   declared in -- and a table cell's `white-space` is not a dialog's. Measured
+   before this rule: the archive confirmation was one unwrapped line running
+   off the side of a 560px dialog. */
+.addlg { white-space: normal; text-align: left; }
+
+.ad__rmList {
+  position: fixed;
+  z-index: 60;
+  padding: .3rem;
+  border: 1px solid var(--ad-line);
+  border-radius: 12px;
+  background: var(--ad-panel);
+  box-shadow: 0 18px 44px -18px rgb(0 0 26 / .38), 0 2px 6px -2px rgb(0 0 26 / .2);
+  display: grid; gap: 1px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ad__rmList { animation: ad-rm-in .12s ease-out both; }
+}
+@keyframes ad-rm-in { from { opacity: 0; transform: translateY(-3px); } }
+
+.ad__rmItem {
+  display: flex; align-items: center; gap: .55rem;
+  width: 100%; min-height: 38px;
+  padding: .45rem .55rem;
+  border: 0; border-radius: 8px;
+  background: transparent; color: var(--ad-ink);
+  font: inherit; font-size: .86rem; text-align: left; text-decoration: none;
+  cursor: pointer;
+}
+.ad__rmItem svg { width: 16px; height: 16px; flex: none; color: var(--ad-dim); }
+.ad__rmGap { width: 16px; flex: none; }
+.ad__rmItem:hover, .ad__rmItem:focus-visible { background: var(--ad-bg); outline: none; }
+.ad__rmItem:focus-visible { box-shadow: inset 0 0 0 2px var(--ad-accent); }
+.ad__rmItem.is-danger { color: var(--ad-bad); }
+.ad__rmItem.is-danger svg { color: var(--ad-bad); }
+
+/* The sentence in front of a one-press action. */
+.ad__sure { padding: .2rem 0 .4rem; }
+.ad__sure p {
+  margin: 0; max-width: 46ch;
+  font-size: .92rem; line-height: 1.55; color: var(--ad-dim);
+}
+
+/* A menu tucked against a card's corner rather than sitting in a table cell. */
+.ad__cardTop {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: .4rem;
+}
+.ad__cardTop > :first-child { min-width: 0; }

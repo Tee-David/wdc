@@ -335,6 +335,41 @@
    72ch column and made it read as a banner rather than a button. */
 .ob--intro .ob__btn--go { margin-top: 2rem; justify-self: start; }
 
+/* ON A PHONE IT IS THE FULL WIDTH OF THE COLUMN. The reasoning above holds on
+   a desktop, where a 72ch column makes a full-width pill a banner. At 390px
+   the column IS the screen, the button is the only thing being asked for, and
+   a pill floating at the left edge with 200px of nothing beside it reads as
+   less important than it is. It is also the thumb target that starts the whole
+   form. */
+@media (max-width: 640px) {
+  .ob--intro .ob__btn--go {
+    justify-self: stretch;
+    width: 100%;
+    justify-content: center;
+    padding-block: 1rem;
+  }
+}
+
+/* The arrow leans forward on hover, and nudges on its own until it is touched.
+
+   A button that is the only thing on the screen worth pressing can afford to
+   say so, and a 3px loop on one glyph is the smallest way to say it -- no
+   layout is animated, only a transform, so it costs a compositor frame and
+   nothing on the main thread. It stops the moment a pointer arrives, because
+   the hint has done its job by then, and it never starts at all under reduced
+   motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .ob--intro .ob__btn--go:not(:disabled) svg { animation: ob-nudge 2.4s ease-in-out infinite; }
+  .ob--intro .ob__btn--go:hover svg,
+  .ob--intro .ob__btn--go:focus-visible svg { animation: none; transform: translateX(3px); }
+  .ob__btn svg { transition: transform .22s cubic-bezier(.16, 1, .3, 1); }
+}
+@keyframes ob-nudge {
+  0%, 62%, 100% { transform: translateX(0); }
+  72% { transform: translateX(3px); }
+  82% { transform: translateX(0); }
+}
+
 .ob__btn:disabled { opacity: .45; cursor: not-allowed; }
 /* Said out loud under the disabled Start, so the button's state has a reason
    attached to it rather than just being unresponsive. */
@@ -800,3 +835,27 @@
   border-left: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
   color: var(--muted); font-size: .92rem; line-height: 1.65;
 }
+
+/* WHAT SAYING YES COMMITS TO.
+
+   Sits under the question, always visible, and marked rather than muted. A
+   client answering "yes" to "would you like us to design a logo" is asking for
+   work they have not bought, and a quiet grey line is how that ends up being
+   noticed for the first time on an invoice. It is the accent rather than the
+   error red because it is not a problem -- it is an offer with its terms
+   attached, which is a different thing and should not look like a warning.
+
+   `--accent-ink` rather than `--accent`: orange as TEXT on a light surface is
+   the darkened variant, per the colour rule at the top of preview.css. */
+.pv .ob__scope {
+  display: flex; align-items: flex-start; gap: .5rem;
+  margin: .55rem 0 0;
+  padding: .6rem .75rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  font-size: .88rem; line-height: 1.5;
+  color: var(--accent-ink);
+}
+.pv .ob__scope svg { width: 1rem; height: 1rem; flex: none; margin-top: .15rem; }
+.pv .ob__scope span { min-width: 0; }

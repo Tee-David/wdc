@@ -7,7 +7,6 @@ import LegalToc from "@/components/legal/legal-toc";
 import { LEGAL_DOCS, legalBySlug } from "@/lib/legal";
 import { COMPANY_NAME, SITE_URL } from "@/lib/site";
 import "@/components/preview/preview.css";
-import "@/components/work/work.css";
 import "@/components/legal/legal.css";
 
 /* All four are known at build time, so all four prerender. */
