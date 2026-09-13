@@ -42,7 +42,10 @@ export async function generateMetadata(
       description: post.description,
       type: "article",
       url,
-      images: [{ url: post.cover }],
+      /* NO `images` HERE ON PURPOSE. Setting it explicitly suppresses the
+         `opengraph-image` file convention, and the drawn card beside this file
+         carries the post's headline -- which the cover photograph does not.
+         Next serves the same generated image as `twitter:image` too. */
       publishedTime: post.date,
       modifiedTime: post.updated ?? post.date,
     },
@@ -50,7 +53,6 @@ export async function generateMetadata(
       card: "summary_large_image",
       title: post.seoTitle,
       description: post.description,
-      images: [post.cover],
     },
   };
 }

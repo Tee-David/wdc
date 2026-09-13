@@ -1,0 +1,182 @@
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Header } from "@/components/layout/header";
+import { SiteFooter } from "@/components/layout/site-footer";
+import JsonLd from "@/components/seo/json-ld";
+import ServiceIcon from "@/components/ui/service-icon";
+import ServiceDetail from "@/components/services/service-detail";
+import { SERVICES, SERVICE_BY_SLUG } from "@/lib/services";
+import { CASE_STUDIES, WORK_CATEGORIES } from "@/lib/work";
+import { COMPANY_NAME, SITE_URL } from "@/lib/site";
+
+import "@/components/preview/preview.css";
+import "@/components/work/work.css";
+
+/* Six services, six pages, all known at build time. */
+export function generateStaticParams() {
+  return SERVICES.map((s) => ({ slug: s.slug }));
+}
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ slug: string }> },
+): Promise<Metadata> {
+  const { slug } = await params;
+  const service = SERVICE_BY_SLUG.get(slug as never);
+  if (!service) return { title: "Not found" };
+
+  const url = `${SITE_URL}/services/${service.slug}`;
+  return {
+    title: service.name,
+    description: service.lede,
+    alternates: { canonical: url },
+    openGraph: {
+      title: `${service.name} | ${COMPANY_NAME}`,
+      description: service.lede,
+      type: "website",
+      url,
+    },
+  };
+}
+
+export default async function ServicePage(
+  { params }: { params: Promise<{ slug: string }> },
+) {
+  const { slug } = await params;
+  const service = SERVICE_BY_SLUG.get(slug as never);
+  if (!service) notFound();
+
+  /* The work that belongs to this service, so the page argues with evidence
+     rather than with adjectives. Case studies are already filed by the same
+     slug, so nothing here has to be curated by hand. */
+  const work = CASE_STUDIES
+    /* A cover is optional in the catalogue, and a card with a hole where the
+       picture goes is worse than one card fewer. */
+    .filter((c) => c.category === service.slug && c.cover)
+    .slice(0, 3);
+  const category = WORK_CATEGORIES.find((c) => c.slug === service.slug);
+  const url = `${SITE_URL}/services/${service.slug}`;
+
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      name: service.name,
+      description: service.lede,
+      url,
+      provider: { "@type": "Organization", name: COMPANY_NAME, url: SITE_URL },
+      areaServed: "Worldwide",
+      hasOfferCatalog: {
+        "@type": "OfferCatalog",
+        name: `${service.name} deliverables`,
+        itemListElement: service.deliverables.map((d) => ({
+          "@type": "Offer",
+          itemOffered: { "@type": "Service", name: d },
+        })),
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: "Services", item: `${SITE_URL}/services` },
+        { "@type": "ListItem", position: 3, name: service.name, item: url },
+      ],
+    },
+  ];
+
+  return (
+    <>
+      <JsonLd data={jsonLd} />
+      <Header overHero />
+      <main id="main" tabIndex={-1} className="flex-1 pv">
+        {/* The same plate the Work category pages open with, so moving between
+            the two hubs does not feel like moving between two sites. */}
+        <section className="pv-sec" style={{ paddingTop: "clamp(7rem, 12vw, 10rem)" }}>
+          <div className="pv-wrap">
+            <nav className="wk-crumbs" aria-label="Breadcrumb">
+              <Link href="/">Home</Link>
+              <span aria-hidden="true">/</span>
+              <Link href="/services">Services</Link>
+              <span aria-hidden="true">/</span>
+              <span aria-current="page">{service.short}</span>
+            </nav>
+
+            <div className="sv-svc__top pv-reveal">
+              <span className="pv-eyebrow">Services</span>
+              <h1 id="svc-h" className="sv-svc__title">
+                <span className="sv-svc__icon">
+                  <ServiceIcon name={service.icon} size={22} hover="pop" />
+                </span>
+                {service.name}
+              </h1>
+              <p className="pv-lede">{service.lede}</p>
+            </div>
+          </div>
+        </section>
+
+        <ServiceDetail service={service} />
+
+        {work.length > 0 ? (
+          <section className="pv-sec">
+            <div className="pv-wrap">
+              <div className="pv-bar pv-reveal">
+                <div className="pv-head">
+                  <span className="pv-eyebrow">Proof</span>
+                  <h2>{service.short} we have already shipped</h2>
+                </div>
+                {category ? (
+                  <Link className="pv-btn pv-btn--line" href={`/work/${category.slug}`}>
+                    All {category.label.toLowerCase()} work
+                  </Link>
+                ) : null}
+              </div>
+
+              <div className="wk-grid">
+                {work.map((c) => (
+                  <Link className="wk-card" key={c.slug} href={`/work/${c.category}/${c.slug}`}>
+                    <span className="wk-card__shot">
+                      <Image
+                        src={c.cover as string}
+                        alt={`${c.client} — ${c.title}`}
+                        fill
+                        sizes="(max-width: 560px) 92vw, (max-width: 1000px) 46vw, 31vw"
+                        quality={74}
+                      />
+                    </span>
+                    <span className="wk-card__body">
+                      <span className="wk-card__t">{c.client}</span>
+                      <span className="wk-card__meta">
+                        <span className="wk-chip">{c.sector}</span>
+                      </span>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        <section className="pv-sec pv-sec--band">
+          <div className="pv-wrap">
+            <div className="pv-cta pv-reveal">
+              <span className="pv-eyebrow">Next step</span>
+              <h2>Tell us what you need {service.short.toLowerCase()} to do.</h2>
+              <p>
+                Describe the problem rather than the deliverable and we will tell you
+                what it actually takes, including when the answer is less than you
+                expected.
+              </p>
+              <Link className="pv-btn pv-btn--accent" href="/contact">
+                Start a conversation
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
+      <SiteFooter />
+    </>
+  );
+}

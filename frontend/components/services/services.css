@@ -241,6 +241,12 @@
   min-width: 0;
 }
 .pv-sec--alt .sv-side { background: var(--paper); }
+/* h3 on the combined page, h2 on a service's own page -- where the service
+   name is the h1, so "What you get" is a top-level section and skipping to h3
+   would leave a hole in the outline. Same size either way; the heading level is
+   a structure decision and the size is a design one, and they are allowed to
+   disagree. */
+.sv-side h2,
 .sv-side h3 { font-size: 1.05rem; margin-bottom: 14px; }
 .sv-deliv { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .sv-deliv li {
@@ -662,3 +668,10 @@
   }
   .sv-jump__i svg { width: 1.35em; height: 1.35em; }
 }
+
+
+/* THE SERVICE DETAIL PAGE'S HEADER. `sv-svc__top` was written for a section
+   inside the combined page, where a band above it supplied the air. On its own
+   page it sits directly under the breadcrumb and needs its own. */
+.sv-svc__top { margin-top: clamp(1rem, 2.4vw, 1.6rem); }
+.sv-svc__top .pv-lede { margin-top: .85rem; max-width: 58ch; }

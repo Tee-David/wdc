@@ -15,7 +15,10 @@ export const metadata: Metadata = {
   title: { absolute: "Blog | Web, Branding, SEO & Software Advice | WDC" },
   description:
     "Plain, practical writing on websites, branding, SEO, apps and software, from the team that builds them. No jargon, no invented numbers.",
-  alternates: { canonical: `${SITE_URL}/blog` },
+  alternates: {
+    canonical: `${SITE_URL}/blog`,
+    types: { "application/rss+xml": `${SITE_URL}/blog/rss.xml` },
+  },
   openGraph: {
     title: "Blog | Web, Branding, SEO & Software Advice | WDC",
     description:
