@@ -35,11 +35,26 @@ function connectionString() {
   return url.toString();
 }
 
-export const db =
-  globalThis.__wdcPgPool ??
-  new Pool({
+/**
+ * The pool is built on first use, not on first import.
+ *
+ * WHY THE PROXY. `next build` imports every route module to collect its page
+ * data, so a pool constructed at module scope is constructed during the build
+ * -- and `connectionString()` throws when the variable is absent. That turned a
+ * missing environment variable into "Failed to collect page data", a build that
+ * cannot run at all on any machine or CI runner without database credentials,
+ * for pages that never touch the database. Behind this proxy the same missing
+ * variable throws inside the request that actually needs a connection, which is
+ * where it can be reported and where it is true.
+ *
+ * Every call site keeps writing `db.query(...)`; the proxy forwards property
+ * access to the real pool and binds methods to it.
+ */
+function createPool() {
+  const ca = certificate();
+  return new Pool({
     connectionString: connectionString(),
-    ssl: { rejectUnauthorized: true, ...(certificate() ? { ca: certificate() } : {}) },
+    ssl: { rejectUnauthorized: true, ...(ca ? { ca } : {}) },
     max: 8,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 10_000,
@@ -47,5 +62,25 @@ export const db =
     statement_timeout: 20_000,
     query_timeout: 20_000,
   });
+}
 
-if (process.env.NODE_ENV !== "production") globalThis.__wdcPgPool = db;
+function pool(): Pool {
+  if (!globalThis.__wdcPgPool) {
+    const created = createPool();
+    /* In development the module graph is re-evaluated on every edit, so without
+       this a long session leaks a pool per save. In production the module is
+       evaluated once per instance and the global adds nothing, but it is also
+       harmless and keeps one code path. */
+    globalThis.__wdcPgPool = created;
+  }
+  return globalThis.__wdcPgPool;
+}
+
+export const db = new Proxy({} as Pool, {
+  get(_t, prop, receiver) {
+    const real = pool();
+    const value = Reflect.get(real, prop, real);
+    return typeof value === "function" ? value.bind(real) : value;
+  },
+  has: (_t, prop) => prop in pool(),
+});
