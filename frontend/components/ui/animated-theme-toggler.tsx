@@ -77,9 +77,14 @@ export function AnimatedThemeToggler({
       /* Brand navy with a white glyph, in BOTH themes. It used to take
          `bg-surface/60` and `text-foreground`, which follow the theme: in dark
          mode that was a near-white disc holding a near-white moon, so the icon
-         disappeared into its own button. Only the glyph should change when you
-         toggle; the button is a fixed object. */
-      className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#000065] text-white shadow-[0_2px_10px_-2px_rgba(0,0,26,0.5)] ring-1 ring-white/15 transition-transform duration-200 hover:scale-110 active:scale-95 ${className}`}
+         disappeared into its own button.
+
+         IT IS NOW AN OUTLINE, not a fill, and it takes `currentColor` for both
+         the ring and the glyph. That is what lets one button be correct in
+         three places: white over the hero photograph, navy on the solid header
+         in light mode, and near-white on the solid header in dark. The header
+         sets the colour; this button does not decide it. */
+      className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-current bg-transparent transition-transform duration-200 hover:scale-110 active:scale-95 ${className}`}
     >
       {/* WHICH GLYPH SHOWS IS DECIDED BY CSS, NOT BY REACT, and that is the
           whole fix for the moon that appeared with the wifi off.

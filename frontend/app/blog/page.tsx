@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Header } from "@/components/layout/header";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -77,23 +78,40 @@ export default function BlogIndex() {
         <section className="pv-sec">
           <div className="pv-wrap">
             <div className="bl-grid">
-              {posts.map((post) => (
+              {posts.map((post, n) => (
                 <Link className="bl-card" key={post.slug} href={`/blog/${post.slug}`}>
-                  <p className="bl-card__meta">
-                    {post.tags[0]}
-                    <span>
+                  <span className="bl-card__shot">
+                    <Image
+                      src={post.cover}
+                      alt=""
+                      fill
+                      /* Measured against the rendered card: one column below
+                         620px, then two, then three. */
+                      sizes="(max-width: 620px) 92vw, (max-width: 1100px) 46vw, 30vw"
+                      quality={70}
+                      /* Only the first row is worth fetching eagerly; the rest
+                         are below the fold on every viewport. */
+                      priority={n < 3}
+                    />
+                  </span>
+
+                  <span className="bl-card__body">
+                    <span className="bl-card__kind">{post.tags[0]}</span>
+                    <h2>{post.title}</h2>
+                    <p>{post.excerpt}</p>
+                    <span className="bl-card__foot">
                       <time dateTime={post.date}>{formatDate(post.date)}</time>
                       {" · "}
                       {readingMinutes(post)} min read
                     </span>
-                  </p>
-                  <h2>{post.title}</h2>
-                  <p>{post.excerpt}</p>
-                  <span className="bl-card__more" aria-hidden="true">
-                    Read it
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                      <path d="M5 12h14M13 6l6 6-6 6" />
-                    </svg>
+
+                    {/* Decorative: the whole card is the link, so this must not
+                        be announced as a second destination. */}
+                    <span className="bl-card__go" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M7 17 17 7M9 7h8v8" />
+                      </svg>
+                    </span>
                   </span>
                 </Link>
               ))}

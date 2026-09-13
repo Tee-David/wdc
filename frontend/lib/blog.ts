@@ -47,7 +47,9 @@ export type BlogPost = {
   topic: ServiceSlug;
   /** Plain words a reader would use, for the on-page tag row. */
   tags: string[];
-  /** Reading time in minutes, computed at build from the body. */
+  /** Card and article cover. One of the site's own hero photographs, so the
+      blog introduces no new licensing and no new visual vocabulary. */
+  cover: string;
   body: BlogBlock[];
 };
 
@@ -65,6 +67,7 @@ export const BLOG_POSTS: BlogPost[] = [
     date: "2026-07-14",
     topic: "web",
     tags: ["pricing", "websites", "planning"],
+    cover: "/hero/web-design.jpg",
     body: [
       { kind: "p", text: "Every agency answers this with \"it depends\", which is true and useless. What follows is what it depends ON, so you can work out roughly where your own project sits before you talk to anyone." },
       { kind: "h2", text: "The four things that move the price" },
@@ -95,6 +98,7 @@ export const BLOG_POSTS: BlogPost[] = [
     updated: "2026-09-01",
     topic: "seo",
     tags: ["SEO", "AI search", "content"],
+    cover: "/hero/search-console.jpg",
     body: [
       { kind: "p", text: "A growing share of the questions that used to start on Google now start in an assistant, and the answer arrives as a paragraph rather than ten blue links. That changes what visibility means, but far less of the work than most people selling \"AI SEO\" would like you to believe." },
       { kind: "h2", text: "What genuinely changes" },
@@ -123,6 +127,7 @@ export const BLOG_POSTS: BlogPost[] = [
     date: "2026-08-21",
     topic: "branding",
     tags: ["branding", "identity", "design"],
+    cover: "/hero/design-desk.jpg",
     body: [
       { kind: "p", text: "Brand guidelines exist so that the tenth thing you publish still looks like the first. That is the whole purpose. Judged against it, most guideline documents fail, because they are written to be admired rather than used." },
       { kind: "h2", text: "What earns its place" },
@@ -151,6 +156,7 @@ export const BLOG_POSTS: BlogPost[] = [
     date: "2026-09-05",
     topic: "web",
     tags: ["performance", "Core Web Vitals", "mobile"],
+    cover: "/hero/robotics.jpg",
     body: [
       { kind: "p", text: "A slow site is rarely slow everywhere. It is usually slow because of a small number of specific, findable things, and a redesign is the most expensive possible way to discover that." },
       { kind: "h2", text: "Measure first, and measure the right thing" },
@@ -178,6 +184,7 @@ export const BLOG_POSTS: BlogPost[] = [
     date: "2026-09-10",
     topic: "apps",
     tags: ["apps", "planning", "product"],
+    cover: "/hero/mobile-dev.jpg",
     body: [
       { kind: "p", text: "This question is usually asked the wrong way round. The useful version is not \"app or website\", it is \"what does this need to do that a website cannot?\"" },
       { kind: "h2", text: "Reasons that genuinely need an app" },
@@ -205,6 +212,7 @@ export const BLOG_POSTS: BlogPost[] = [
     date: "2026-09-12",
     topic: "branding",
     tags: ["process", "working together", "planning"],
+    cover: "/hero/ai-key.jpg",
     body: [
       { kind: "p", text: "Design projects rarely run late because the design is hard. They run late waiting for something only the client has. This is that list, so you can gather it before the clock starts." },
       { kind: "h2", text: "The list" },

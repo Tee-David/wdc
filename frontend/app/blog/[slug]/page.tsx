@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import JsonLd from "@/components/seo/json-ld";
+import ShareRow from "@/components/blog/share";
 import {
   BLOG_POSTS, formatDate, postBySlug, readingMinutes, relatedPosts,
-  type BlogBlock,
+  type BlogBlock, type BlogPost,
 } from "@/lib/blog";
+import { qrSvg } from "@/lib/qr";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 import "@/components/preview/preview.css";
@@ -29,8 +32,8 @@ export async function generateMetadata(
   const url = `${SITE_URL}/blog/${post.slug}`;
   return {
     /* `absolute`, because each post writes its own search-result title and the
-       root template would otherwise append the brand to a title that has
-       already been sized to fit without it. */
+       root template would otherwise append the brand to a title already sized
+       to fit without it. */
     title: { absolute: post.seoTitle },
     description: post.description,
     alternates: { canonical: url },
@@ -39,24 +42,43 @@ export async function generateMetadata(
       description: post.description,
       type: "article",
       url,
+      images: [{ url: post.cover }],
       publishedTime: post.date,
       modifiedTime: post.updated ?? post.date,
     },
-    twitter: { card: "summary_large_image", title: post.seoTitle, description: post.description },
+    twitter: {
+      card: "summary_large_image",
+      title: post.seoTitle,
+      description: post.description,
+      images: [post.cover],
+    },
   };
 }
+
+/**
+ * A heading's anchor, derived from its text rather than stored.
+ *
+ * Derived on purpose: an id typed into the data would drift from the heading
+ * the first time somebody edits the wording, and a contents link pointing at a
+ * heading that no longer exists is worse than no contents at all. The same
+ * function builds the link and the target, so they cannot disagree.
+ */
+const headingId = (text: string) =>
+  text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
+
+/** Only h2 and h3 are navigable landmarks; nothing else gets an id. */
+const outlineOf = (post: BlogPost) =>
+  post.body
+    .filter((b): b is Extract<BlogBlock, { kind: "h2" | "h3" }> => b.kind === "h2" || b.kind === "h3")
+    .map((b) => ({ id: headingId(b.text), text: b.text, sub: b.kind === "h3" }));
 
 /** One block, one element. Headings stay h2/h3 so the outline never breaks. */
 function Block({ block }: { block: BlogBlock }) {
   switch (block.kind) {
-    case "h2": return <h2>{block.text}</h2>;
-    case "h3": return <h3>{block.text}</h3>;
+    case "h2": return <h2 id={headingId(block.text)}>{block.text}</h2>;
+    case "h3": return <h3 id={headingId(block.text)}>{block.text}</h3>;
     case "list":
-      return (
-        <ul>
-          {block.items.map((item) => <li key={item}>{item}</li>)}
-        </ul>
-      );
+      return <ul>{block.items.map((item) => <li key={item}>{item}</li>)}</ul>;
     case "quote":
       return (
         <blockquote>
@@ -84,6 +106,10 @@ export default async function BlogPostPage(
 
   const url = `${SITE_URL}/blog/${post.slug}`;
   const more = relatedPosts(post);
+  const outline = outlineOf(post);
+  /* Generated on the server, so the reader downloads a picture rather than an
+     encoder. See lib/qr.ts for why this one earns a library. */
+  const qr = await qrSvg(url, { dark: "#000065", light: "#0000" });
 
   const jsonLd = [
     {
@@ -91,6 +117,7 @@ export default async function BlogPostPage(
       "@type": "BlogPosting",
       headline: post.title,
       description: post.description,
+      image: `${SITE_URL}${post.cover}`,
       datePublished: post.date,
       dateModified: post.updated ?? post.date,
       mainEntityOfPage: { "@type": "WebPage", "@id": url },
@@ -98,10 +125,6 @@ export default async function BlogPostPage(
       author: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
       publisher: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
       keywords: post.tags.join(", "),
-      wordCount: post.body.reduce(
-        (n, b) => n + (b.kind === "list" ? b.items.join(" ") : b.kind === "callout" ? b.title + " " + b.text : b.text).split(/\s+/).length,
-        0,
-      ),
     },
     {
       "@context": "https://schema.org",
@@ -119,10 +142,25 @@ export default async function BlogPostPage(
       <JsonLd data={jsonLd} />
       <Header overHero />
       <main id="main" tabIndex={-1} className="flex-1 pv">
-        <section className="wk-hero">
-          <div className="pv-wrap wk-hero__in">
-            <p className="bl-post__meta">
-              <Link href="/blog" style={{ color: "inherit" }}>Blog</Link>
+        {/* The cover IS the hero. The scrim is weighted to the bottom, where the
+            type sits, rather than spread evenly over the whole photograph --
+            the same reasoning as the homepage hero. */}
+        <section className="bl-hero">
+          <span className="bl-hero__shot">
+            <Image
+              src={post.cover}
+              alt=""
+              fill
+              sizes="100vw"
+              quality={72}
+              /* This is the page's largest contentful paint. */
+              priority
+            />
+          </span>
+          <span className="bl-hero__veil" aria-hidden="true" />
+          <div className="pv-wrap bl-hero__in">
+            <p className="bl-hero__meta">
+              <Link href="/blog">Blog</Link>
               <span>
                 <time dateTime={post.date}>{formatDate(post.date)}</time>
                 {" · "}
@@ -131,41 +169,85 @@ export default async function BlogPostPage(
               </span>
             </p>
             <h1>{post.title}</h1>
-            <p className="pv-lede">{post.excerpt}</p>
+            <p className="bl-hero__lede">{post.excerpt}</p>
           </div>
         </section>
 
         <section className="pv-sec">
           <div className="pv-wrap">
-            <article className="bl-post">
-              <div className="bl-body">
-                {post.body.map((block, i) => (
-                  <Block key={`${block.kind}-${i}`} block={block} />
-                ))}
-              </div>
-
-              <ul className="bl-tags" aria-label="Topics">
-                {post.tags.map((t) => <li className="bl-tag" key={t}>{t}</li>)}
-              </ul>
-
-              {more.length > 0 && (
-                <div className="bl-next">
-                  <h2>Read next</h2>
-                  <div className="bl-grid">
-                    {more.map((p) => (
-                      <Link className="bl-card" key={p.slug} href={`/blog/${p.slug}`}>
-                        <p className="bl-card__meta">
-                          {p.tags[0]}
-                          <span>{readingMinutes(p)} min read</span>
-                        </p>
-                        <h2>{p.title}</h2>
-                        <p>{p.excerpt}</p>
-                      </Link>
-                    ))}
+            <div className="bl-layout">
+              {/* Sticky beside the article on desktop; a collapsed block above
+                  it on a phone, because eight links is a wall between the
+                  reader and what they came for. */}
+              <aside className="bl-rail">
+                {outline.length > 0 && (
+                  <div>
+                    <p className="bl-rail__k bl-rail__k--toc">On this page</p>
+                    <details className="bl-toc" open>
+                      <summary>On this page</summary>
+                      <ul className="bl-toc__list">
+                        {outline.map((h) => (
+                          <li key={h.id} className={h.sub ? "is-sub" : undefined}>
+                            <a href={`#${h.id}`}>{h.text}</a>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
                   </div>
+                )}
+
+                <ShareRow url={url} title={post.title} />
+
+                <div className="bl-qr">
+                  <p className="bl-rail__k">Take it with you</p>
+                  <div
+                    className="bl-qr__box"
+                    /* Server-generated SVG from a URL we built ourselves; no
+                       user input reaches this string. */
+                    dangerouslySetInnerHTML={{ __html: qr }}
+                  />
+                  <p>Scan to open this article on your phone.</p>
                 </div>
-              )}
-            </article>
+              </aside>
+
+              <article className="bl-post">
+                <div className="bl-body">
+                  {post.body.map((block, i) => (
+                    <Block key={`${block.kind}-${i}`} block={block} />
+                  ))}
+                </div>
+
+                <ul className="bl-tags" aria-label="Topics">
+                  {post.tags.map((t) => <li className="bl-tag" key={t}>{t}</li>)}
+                </ul>
+
+                {more.length > 0 && (
+                  <div className="bl-next">
+                    <h2>Read next</h2>
+                    <div className="bl-grid">
+                      {more.map((p) => (
+                        <Link className="bl-card" key={p.slug} href={`/blog/${p.slug}`}>
+                          <span className="bl-card__shot">
+                            <Image src={p.cover} alt="" fill sizes="(max-width: 620px) 92vw, 40vw" quality={70} />
+                          </span>
+                          <span className="bl-card__body">
+                            <span className="bl-card__kind">{p.tags[0]}</span>
+                            <h2>{p.title}</h2>
+                            <p>{p.excerpt}</p>
+                            <span className="bl-card__foot">{readingMinutes(p)} min read</span>
+                            <span className="bl-card__go" aria-hidden="true">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M7 17 17 7M9 7h8v8" />
+                              </svg>
+                            </span>
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </article>
+            </div>
           </div>
         </section>
 
