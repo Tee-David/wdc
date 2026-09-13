@@ -39,6 +39,19 @@ const INK = "#ffffff";
 const BAND = "#000065";
 const ACCENT = "#ff6500";
 
+/* THE REAL MARK, READ OFF DISK AT BUILD TIME.
+   The card used to draw an orange disc with a letter C in it, which is not our
+   logo -- it is a placeholder that had been standing in long enough to start
+   looking deliberate. `logo-white.svg` is the actual lockup, and Satori will
+   render an SVG given to it as a data URI. Read once per build, not per card. */
+let logoCache: string | null = null;
+const logoDataUri = () => {
+  if (logoCache) return logoCache;
+  const svg = fs.readFileSync(path.join(process.cwd(), "public", "brand", "logo-white.svg"));
+  logoCache = `data:image/svg+xml;base64,${svg.toString("base64")}`;
+  return logoCache;
+};
+
 export async function ogCard({
   eyebrow,
   title,
@@ -59,49 +72,36 @@ export async function ogCard({
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "space-between",
+          /* NOT `space-between`. That pushed the lockup to the top edge and the
+             words to the bottom, leaving a dead band through the middle -- and
+             chat apps crop to the middle, so the crop was mostly empty navy.
+             Everything now sits in one block, centred, which is what survives
+             being cut down to a thumbnail. */
+          justifyContent: "center",
           background: BAND,
-          padding: "72px 80px",
+          padding: "0 84px",
           fontFamily: "Space Grotesk",
-          /* The one piece of decoration: a soft orange bloom off the top
-             right, the same gesture the hero band carries, so the card and the
-             page it points at are recognisably one thing. */
-          backgroundImage: `radial-gradient(900px 520px at 88% -12%, rgba(255,101,0,0.42), transparent 62%)`,
+          /* One gesture of decoration, dialled back from a 900px bloom that
+             read as a gradient for its own sake. */
+          backgroundImage:
+            "radial-gradient(620px 380px at 92% -8%, rgba(255,101,0,0.30), transparent 60%)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-          <div
-            style={{
-              width: 54,
-              height: 54,
-              borderRadius: 999,
-              background: ACCENT,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#fff",
-              fontSize: 30,
-              fontWeight: 700,
-            }}
-          >
-            C
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.1 }}>
-            <span style={{ color: INK, fontSize: 25, fontWeight: 700 }}>We Dig</span>
-            <span style={{ color: INK, fontSize: 25, fontWeight: 700 }}>Creativity</span>
-          </div>
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logoDataUri()} alt="" width={300} height={96} style={{ marginBottom: 40 }} />
 
         <div style={{ display: "flex", flexDirection: "column" }}>
           {eyebrow ? (
             <span
               style={{
                 color: ACCENT,
-                fontSize: 24,
+                fontSize: 21,
                 fontWeight: 700,
-                letterSpacing: 3,
+                /* 3 was wide enough to read as a gap between letters rather
+                   than a tracked label. */
+                letterSpacing: 1.6,
                 textTransform: "uppercase",
-                marginBottom: 20,
+                marginBottom: 14,
               }}
             >
               {eyebrow}
@@ -110,14 +110,14 @@ export async function ogCard({
           <span
             style={{
               color: INK,
-              /* Two sizes rather than a formula: a long case-study name and a
-                 one-word section title both have to fill the card without
-                 either wrapping to four lines or floating in space. */
-              fontSize: title.length > 42 ? 66 : 86,
+              /* Smaller than it was at both ends. 86px filled the card so
+                 completely that a chat-app crop landed mid-word; at 72 the
+                 line still dominates and the crop still contains a phrase. */
+              fontSize: title.length > 42 ? 54 : 72,
               fontWeight: 700,
-              letterSpacing: -2,
-              lineHeight: 1.04,
-              maxWidth: 940,
+              letterSpacing: -1.5,
+              lineHeight: 1.06,
+              maxWidth: 900,
             }}
           >
             {title}
@@ -125,15 +125,20 @@ export async function ogCard({
           <span
             style={{
               color: "#a9abd8",
-              fontSize: 28,
+              fontSize: 25,
               fontWeight: 500,
-              marginTop: 24,
-              maxWidth: 900,
+              marginTop: 18,
+              maxWidth: 820,
+              lineHeight: 1.4,
             }}
           >
             {note ?? `${MOTTO}. ${SITE_NAME}.`}
           </span>
         </div>
+
+        {/* A short accent rule instead of a second block of text: it closes the
+            composition and is unmistakably ours at any crop. */}
+        <div style={{ display: "flex", width: 96, height: 6, borderRadius: 999, background: ACCENT, marginTop: 40 }} />
       </div>
     ),
     {
