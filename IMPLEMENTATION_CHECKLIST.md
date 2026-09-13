@@ -11,7 +11,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **174 open** (5 of them in progress), **180 done**.
+At last update: **161 open** (6 of them in progress), **192 done**.
 
 ---
 
@@ -34,9 +34,6 @@ that is the shortest feedback loop there is.
 
 - [-] Make Save and continue later create a securely hashed, single-purpose resume token and email the link through Truehost SMTP. (Token flow is complete; Truehost currently rejects SMTP authentication with `535`.)
 - [-] Set resume links to expire after 3 days; clearly handle expired, reused, and invalid links and allow a new link to be requested. (Expiry, replay rejection, invalid-link handling, and secure link rotation are complete; self-service reissue remains.)
-- [ ] Design equivalent, concise onboarding question sets for branding, SEO, apps, software/AI, and paid advertising while preserving the same conversational voice.
-- [ ] Audit and implement conditional display rules so clients see only questions relevant to their prior answers.
-- [ ] Use a simple non-searchable dropdown for lists of ten or fewer options; keep search for longer lists, and ensure every open dropdown/popover renders above Jotform, UserWay, and back-to-top controls.
 - [ ] After successful onboarding, send the client a personalized next-steps email; explain that project communication may use the client dashboard, direct chat, a WhatsApp project group where appropriate, or another agreed channel.
 - [ ] Keep client account creation optional in that email; bind its expiring, single-purpose invitation to the onboarded recipient so a forwarded link cannot register a different email address.
 - [ ] Let authenticated clients link or unlink Google in account settings; require another usable sign-in method before unlinking their last identity.
@@ -50,7 +47,6 @@ that is the shortest feedback loop there is.
 
 ### Raised by the independent audit, 2026-09-13
 
-- [ ] Give the onboarding page a main heading. (Finding A4. It has none. It is noindex so this costs nothing in ranking, but it is the element screen-reader users navigate by.)
 
 ## 1B. Free tools on the service pages
 
@@ -372,6 +368,11 @@ Archived, with the evidence that closed each one. Search here before
 reopening anything.
 
 ## Closed 2026-09-14, from live-site review
+
+- [x] All six services have their own onboarding question set, and the burden is genuinely equivalent. Counted from `lib/onboarding.ts`: branding 7 fields (4 always shown), seo 7 (6), apps 9 (7), software 7 (6), web 17 across three steps (9 always shown), social 23 across two steps (10 always shown). The always-shown number is the one that matters for fatigue, and it lands between 4 and 10 for every service. Social and web carry more TOTAL fields only because most of theirs are conditional: a client on two platforms answers two handle questions and never sees the other seven.
+- [x] Conditional display is implemented throughout, not bolted on: 36 `showIf` rules across the form, 13 of them in the social steps and 8 in the web steps. A field declares `showIf: { key, equals }` and is revealed by the answer above it, so nobody is shown a question their previous answer made irrelevant.
+- [x] The single-choice control already applies the ten-option rule: `select-field.tsx` sets `searchable = options.length > 10`, and the search box is rendered only when that is true, so a short list is a plain list and a long one can be typed into. Stacking checked rather than assumed: the popover is `z-index: 1000` in picker.css against 112 for the UserWay and back-to-top controls and a forced 110 for Jotform's container, and no ancestor of the picker opens a stacking context that would trap it (the only `z-index: 1` in form-kit.css is on a button inside the dropzone).
+- [x] The onboarding page has a main heading: an `sr-only` h1, "Client onboarding", at `app/onboarding/page.tsx:54`. Visually hidden rather than displayed because the page opens on its own progress UI, but it is present for the screen-reader users who navigate by it. (Finding A4.)
 
 - [x] Every service page answers questions a buyer of THAT service asks, and emits FAQPage structured data describing exactly the questions rendered. The block, the accordion and the JSON-LD were already wired; what was missing was the content. Counted before writing any: branding had ZERO questions tagged to it, so its page showed five general ones and answered nothing specific to branding, while seo, web and social had one each. Six new questions take the set from 10 to 16, and every service now leads with one of its own -- branding 3, web 3, and 2 each for seo, apps, software and social. Verified by parsing the FAQPage JSON-LD out of all six built pages: 5 questions each, specific ones first. Every answer is drawn from what lib/services.ts already says the studio does; no price, no turnaround, no capability invented for the tag.
 
