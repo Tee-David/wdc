@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { callerKey, rateLimit } from "@/lib/rate-limit";
 import { db } from "@/lib/db/pool";
 import { escapeHtml, sendMail } from "@/lib/email";
 import {
@@ -12,9 +13,49 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ draft });
 }
 
+/* A draft saves on a timer as the client types, so the allowance has to be
+   generous enough for a real person filling in a long form and still small
+   enough that a script cannot sit here writing rows. */
+/* TWO LIMITS, BECAUSE ONLY ONE OF THE TWO THINGS THIS ROUTE DOES IS ABUSABLE.
+ *
+ * With a valid draft cookie this UPDATES one existing row. The form autosaves
+ * 1.2 seconds after every answer, so a client working through forty questions
+ * makes forty calls in the ordinary course of filling it in, and a careful one
+ * who revises their answers makes considerably more. A tight limit here does
+ * not stop an attacker -- it locks a paying client out of a form they are in
+ * the middle of. (I set this to 40 first, which is roughly the number of calls
+ * a normal completion makes. The test suite found it by tripping over it.)
+ *
+ * WITHOUT a cookie it INSERTS a new row, and that is the one worth guarding:
+ * it is the only path that can grow the table, so it gets the tight number.
+ */
+const UPDATE_LIMIT = 300;
+const CREATE_LIMIT = 6;
+const DRAFT_WINDOW_MS = 10 * 60 * 1000;
+
 export async function POST(request: NextRequest) {
   if (!requestOriginIsAllowed(request)) {
     return NextResponse.json({ error: "This request could not be verified." }, { status: 403 });
+  }
+
+  /* Read the cookie before limiting, so the limit can tell the two cases
+     apart. An invalid or expired token counts as creating. */
+  const existingToken = cookieToken(request);
+  const existingDraft = existingToken ? await draftFromToken(existingToken) : null;
+  const creating = !existingDraft;
+
+  const limit = creating
+    ? rateLimit(callerKey(request, "onboarding-draft-new"), CREATE_LIMIT, DRAFT_WINDOW_MS)
+    : rateLimit(callerKey(request, "onboarding-draft-save"), UPDATE_LIMIT, DRAFT_WINDOW_MS);
+  if (!limit.ok) {
+    return NextResponse.json(
+      {
+        error: creating
+          ? "Too many forms started from here. Give it a few minutes."
+          : "That is a lot of saving at once. Your answers are safe; give it a minute and carry on.",
+      },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+    );
   }
   const size = Number(request.headers.get("content-length") || 0);
   if (size > 130_000) return NextResponse.json({ error: "This draft is too large." }, { status: 413 });
@@ -31,8 +72,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Please check the draft details and try again." }, { status: 422 });
   }
 
-  let token = cookieToken(request);
-  let draft = token ? await draftFromToken(token) : null;
+  let token = existingToken;
+  let draft = existingDraft;
   if (draft?.status === "submitted") {
     return NextResponse.json({ error: "This onboarding form has already been submitted." }, { status: 409 });
   }

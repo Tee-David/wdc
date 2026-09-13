@@ -5,12 +5,13 @@ import AboutBody from "@/components/about/about-body";
 import { COMPANY_NAME, CONTACT_EMAIL, MOTTO, SITE_NAME, SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "About",
+  /* `absolute`: the brand is already in the first half of this title. */
+  title: { absolute: "About We Dig Creativity | Creative & Digital Agency" },
   description:
-    "We Dig Creativity Solutions is a creative and digital studio. Design, engineering and growth in one team, so the brand, the product and the traffic arrive as one piece of work.",
+    "Meet We Dig Creativity, a creative and digital agency bringing branding, engineering, SEO and growth together under one team.",
   alternates: { canonical: `${SITE_URL}/about` },
   openGraph: {
-    title: "About | We Dig Creativity",
+    title: "About We Dig Creativity | Creative & Digital Agency",
     description:
       "The studio behind the work: design, engineering and growth under one roof.",
     type: "website",
