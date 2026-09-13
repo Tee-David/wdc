@@ -32,10 +32,17 @@ const spaceGrotesk = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME}; Creative & Digital Marketing Agency`,
+    /* Says what the company DOES. The previous default -- "Creative &
+       Digital Marketing Agency" -- contained none of web, branding, SEO or
+       software, which are both the services sold and the words people search
+       for. 56 characters, inside the ~60 Google will show. */
+    default: `${SITE_NAME} | Web, Branding, SEO & Software Agency`,
     template: `%s | ${SITE_NAME}`,
   },
-  description: `${MOTTO}. WDC Solutions is the creative engine behind brands that get noticed, get found, and get results; branding & design, SEO, web development, cross-platform apps, and AI-powered software engineering.`,
+  /* 140 characters. The previous one ran past 230, so search results cut it
+     mid-sentence and the half that mattered was the half that got cut. */
+  description:
+    "We Dig Creativity helps businesses stand out and grow through branding, web development, SEO, mobile apps, AI software and digital marketing.",
   keywords: [
     "creative agency",
     "digital marketing agency",
@@ -56,15 +63,15 @@ export const metadata: Metadata = {
     /* Stated rather than inferred. Without it a crawler has to guess the
        language of the card from the page, and some simply omit it. */
     locale: "en_NG",
-    title: `${SITE_NAME}; Creative & Digital Marketing Agency`,
-    description: `${MOTTO}. Branding & design, SEO, web development, cross-platform apps, and AI-powered software engineering.`,
+    title: `${SITE_NAME} | Web, Branding, SEO & Software Agency`,
+    description: `${MOTTO}. Branding, web development, SEO, mobile apps, AI software and digital marketing.`,
     type: "website",
     siteName: SITE_NAME,
     url: SITE_URL,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME}; Creative & Digital Marketing Agency`,
+    title: `${SITE_NAME} | Web, Branding, SEO & Software Agency`,
     description: `${MOTTO}. Brands that get noticed, get found, and get results.`,
   },
   alternates: {

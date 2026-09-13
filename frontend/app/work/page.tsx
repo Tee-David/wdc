@@ -9,12 +9,14 @@ import "@/components/preview/preview.css";
 import "@/components/work/work.css";
 
 export const metadata: Metadata = {
-  title: "Our Work",
+  /* `absolute`, because this title ends in "| WDC" and the root template
+     would otherwise append the full brand name a second time. */
+  title: { absolute: "Our Work | Branding, Web, Apps & Software Projects | WDC" },
   description:
-    "Websites, products, brand systems and campaigns we have shipped. Browse by service: branding and design, SEO, web, apps, software and AI, social and PPC.",
+    "Explore branding, websites, mobile apps, software, SEO and digital campaigns designed and built by We Dig Creativity for growing businesses.",
   alternates: { canonical: `${SITE_URL}/work` },
   openGraph: {
-    title: "Our Work | We Dig Creativity",
+    title: "Our Work | Branding, Web, Apps & Software Projects | WDC",
     description: "The digital journeys we have designed and built with our clients.",
     type: "website",
     url: `${SITE_URL}/work`,

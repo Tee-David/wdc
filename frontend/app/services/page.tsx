@@ -6,12 +6,15 @@ import { SERVICES } from "@/lib/services";
 import { COMPANY_NAME, SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Services",
+  /* Not "Services". The template appends the brand, so the first and most
+     heavily weighted words were being spent on a word that describes every
+     website there has ever been. */
+  title: "Creative, Web, SEO & Software Services",
   description:
-    "Branding and design, SEO, full-stack web development, cross-platform apps, software engineering with AI, and social media and PPC. The six WDC services in detail, with the work behind them.",
+    "Explore branding, SEO, web development, mobile apps, software and AI, social media and PPC services from one creative and engineering team.",
   alternates: { canonical: `${SITE_URL}/services` },
   openGraph: {
-    title: "Services | We Dig Creativity",
+    title: "Creative, Web, SEO & Software Services | We Dig Creativity",
     description:
       "Six services, one team. Design, engineering and growth under one roof, with no hand-off gaps.",
     type: "website",

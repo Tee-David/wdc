@@ -71,9 +71,19 @@ export function cleanAnswers(value: unknown): OnboardingAnswers | null {
   return clean;
 }
 
+/**
+ * FAILS CLOSED ON A MISSING ORIGIN, which it did not used to.
+ *
+ * `if (!origin) return true` looks harmless and is the whole hole: a browser
+ * on another site always sends the header, so the check did stop the ordinary
+ * cross-site case, but a script is under no obligation to send one at all and
+ * was therefore waved straight through. Since every caller of these routes is
+ * our own `fetch`, and browsers send `Origin` on cross-origin and same-origin
+ * POSTs alike, requiring it costs a real client nothing.
+ */
 export function requestOriginIsAllowed(request: NextRequest) {
   const origin = request.headers.get("origin");
-  if (!origin) return true;
+  if (!origin) return false;
   const allowed = new Set([
     request.nextUrl.origin,
     process.env.BETTER_AUTH_URL,
