@@ -10,7 +10,7 @@ import {
   BLOG_POSTS, formatDate, postBySlug, readingMinutes, relatedPosts,
   type BlogBlock, type BlogPost,
 } from "@/lib/blog";
-import { qrSvg } from "@/lib/qr";
+import QrCode from "@/components/ui/qr-code";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 import "@/components/preview/preview.css";
@@ -107,11 +107,11 @@ export default async function BlogPostPage(
   if (!post) notFound();
 
   const url = `${SITE_URL}/blog/${post.slug}`;
-  const more = relatedPosts(post);
+  /* MORE THAN TWO, because this is a rail now. Two cards in a scroller is a grid
+   with extra steps: nothing to scroll to, and a third of the track empty on a
+   wide screen. */
+  const more = relatedPosts(post, 5);
   const outline = outlineOf(post);
-  /* Generated on the server, so the reader downloads a picture rather than an
-     encoder. See lib/qr.ts for why this one earns a library. */
-  const qr = await qrSvg(url, { dark: "#000065", light: "#0000" });
 
   const jsonLd = [
     {
@@ -202,13 +202,7 @@ export default async function BlogPostPage(
 
                 <div className="bl-qr">
                   <p className="bl-rail__k">Take it with you</p>
-                  <div
-                    className="bl-qr__box"
-                    /* Server-generated SVG from a URL we built ourselves; no
-                       user input reaches this string. */
-                    dangerouslySetInnerHTML={{ __html: qr }}
-                  />
-                  <p>Scan to open this article on your phone.</p>
+                  <QrCode url={url} label="Scan to open this article on your phone." />
                 </div>
               </aside>
 
@@ -226,7 +220,7 @@ export default async function BlogPostPage(
                 {more.length > 0 && (
                   <div className="bl-next">
                     <h2>Read next</h2>
-                    <div className="bl-grid">
+                    <div className="pv-rail">
                       {more.map((p) => (
                         <Link className="bl-card" key={p.slug} href={`/blog/${p.slug}`}>
                           <span className="bl-card__shot">

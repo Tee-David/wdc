@@ -1022,3 +1022,60 @@ main > .pv:last-child > section:last-child {
   border-end-start-radius: clamp(22px, 3vw, 40px);
   border-end-end-radius: clamp(22px, 3vw, 40px);
 }
+
+/* ==========================================================================
+   THE RELATED RAIL.
+
+   WHEN A GRID, WHEN A RAIL. A grid is right when the set IS the destination:
+   the blog index, the work hub, a category's case studies. You came to see all
+   of them, and a grid lets you.
+
+   A rail is right when the set is a sideways offer beside something else --
+   "read next" under an article, the work shown on a service page. You did not
+   come for these; you are being shown them on the way past. A grid there makes
+   a secondary thing take a primary amount of the page, and on a phone it turns
+   two suggestions into two more screens of scrolling before the footer.
+
+   A partial card is always visible at the end, which is the only honest way to
+   say "there is more this way" without a caption saying it.
+   ========================================================================== */
+.pv-rail {
+  --rail-gap: clamp(16px, 2.2vw, 26px);
+  display: flex;
+  gap: var(--rail-gap);
+  overflow-x: auto;
+  /* Proximity, never mandatory: mandatory has to come to REST on a snap point,
+     so a short nudge is thrown back and the rail reads as fighting the finger.
+     The same lesson .pv-track and .wk-rail__track already record. */
+  scroll-snap-type: x proximity;
+  /* A sideways rail must not swallow a vertical swipe, and must not hand a
+     horizontal overscroll to the browser as a back gesture. */
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  /* Clearance for the hover lift and the focus ring, or the rail's own
+     overflow clips both. */
+  padding-block: var(--card-lift-gutter, 10px) calc(var(--card-lift-gutter, 10px) + 2px);
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) var(--paper-2);
+}
+.pv-rail > * {
+  scroll-snap-align: start;
+  min-width: 0;
+  /* 1.2 cards on a phone: a blog card carries a picture and three lines of
+     type, and at 2.2 of a 390px screen it is 160px wide and neither is
+     legible. The peek is what matters, not the count. */
+  flex: 0 0 min(82%, 22rem);
+}
+@media (min-width: 700px) {
+  /* 2.2 across, computed rather than guessed, so the partial card is a real
+     fifth of a card at every width rather than whatever the arithmetic
+     happened to leave. */
+  .pv-rail > * { flex-basis: calc((100% - 1.2 * var(--rail-gap)) / 2.2); }
+}
+/* NO THIRD STEP. A 3.2 rule at 1200px took the cards down to 236px and left a
+   third of the rail empty, because these sets are short -- a rail is a promise
+   that there is more sideways, and shrinking the cards to fit more of nothing
+   breaks it. 2.2 holds at every width above 700. */
+@media (prefers-reduced-motion: reduce) {
+  .pv-rail { scroll-behavior: auto; }
+}
