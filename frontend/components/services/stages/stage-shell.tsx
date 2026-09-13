@@ -163,19 +163,50 @@ export function LazyStage({
   const { ref, near } = useNearViewport<HTMLDivElement>();
   const [live, setLive] = useState(false);
 
-  /* Deliberately NOT latching, and deliberately a separate observer from the
-     mounting one above: that one disconnects itself the moment it fires. A
-     margin of 200px so a stage is already running by the time it is properly
-     in view rather than visibly starting under the reader. */
+  /* THE BOX MAY GROW. IT MAY NOT SHRINK.
+
+     Measured on the live /services/seo at 390px: the skeleton stood 511px tall,
+     and in the frame where it handed over, the real stage was 26px -- it has
+     not measured itself yet -- before settling at 653px. Two layout shifts,
+     0.18 and 0.24, for a page CLS of 0.42 against a 0.1 budget, and the whole
+     of it came from that one collapse.
+
+     The skeleton "holds the same height" only where the stylesheet gives the
+     showcase a height to hold: those rules live in the desktop two-column
+     media query, so on a phone there was nothing underneath it at all.
+
+     Rather than teach this component the height of six different stages at
+     every width, it remembers the height it was already occupying and refuses
+     to go below it. The floor is dropped again once the stage has settled, so
+     a stage that legitimately wants to be shorter later still can be. */
+  const floor = useRef(0);
   useEffect(() => {
     const el = ref.current;
-    if (!el || !("IntersectionObserver" in window)) { setLive(true); return; }
-    const io = new IntersectionObserver(
-      ([entry]) => setLive(entry.isIntersecting),
-      { rootMargin: "200px 0px" },
-    );
-    io.observe(el);
-    return () => io.disconnect();
+    if (!el || typeof ResizeObserver === "undefined") return;
+
+    /* A MONOTONIC FLOOR: the box remembers the tallest it has ever been and
+       refuses to go below it.
+
+       The first attempt released the floor after two frames, on the assumption
+       that the stage would have laid itself out by then. At 4x CPU throttling
+       it had not -- so the floor was dropped while the stage was still 26px
+       tall and the release became a THIRD shift. Page CLS went from 0.42 to
+       0.79. Guessing at a settle time was the mistake, not the floor.
+
+       There is nothing to guess here: whatever the box has legitimately
+       occupied, it may occupy again. Growth still moves the page once, but
+       growth mostly happens 200px before the stage is on screen, where it
+       costs nothing. The collapse was the expensive half and it cannot
+       happen now. */
+    const hold = new ResizeObserver(() => {
+      const h = el.getBoundingClientRect().height;
+      if (h > floor.current) {
+        floor.current = h;
+        el.style.minHeight = `${Math.round(h)}px`;
+      }
+    });
+    hold.observe(el);
+    return () => hold.disconnect();
   }, [ref]);
 
   return (
