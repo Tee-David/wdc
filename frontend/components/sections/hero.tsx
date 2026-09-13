@@ -9,13 +9,21 @@ import { LogoGlyph } from "@/components/ui/logo-glyph";
 import LogoLoop from "@/components/ui/logo-loop";
 import { LOGOS } from "@/lib/logos";
 
-/** One word per service: branding, SEO, web, apps, software/AI. */
+/* The rotating half of the headline. Each line finishes the fixed line above
+   it, so every one has to read as a whole sentence with "What if we made it"
+   in front of it -- which is why these are phrases and questions rather than
+   the single adjectives they replaced. */
 const ROTATING_WORDS = [
-  "unforgettable.",
-  "unmissable.",
-  "pixel-perfect.",
-  "everywhere.",
-  "intelligent.",
+  "your best decision?",
+  "impossible to ignore?",
+  "unfairly good?",
+  "your competition's problem?",
+  "ridiculously effective?",
+  "the one they copy?",
+  "convert like crazy?",
+  "sell itself?",
+  "the obvious choice?",
+  "yours?",
 ];
 
 const MARQUEE_LOGOS = LOGOS.map((entry) => ({
@@ -303,10 +311,23 @@ export function Hero() {
               and one whose text never changes -- and it settles once. The
               second line goes on animating; it is simply no longer the largest
               thing on the page. */}
-          <span className="block">We make your business</span>
-          <span className="block">
+          <span className="block">What if we made it&hellip;</span>
+          {/* THE SECOND LINE CARRIES ITS OWN SIZE, and that is what keeps the
+              promise of one line each.
+
+              The two lines share an h1, so they used to share a font size.
+              That was fine when the rotating half was "pixel-perfect." at
+              fourteen characters; the longest of these is "your competition's
+              problem?" at twenty-seven, nearly double. At the shared size it
+              wrapped to two lines on a phone.
+
+              `reserveWidth` already holds the width of the LONGEST phrase, so
+              the line never reflows as the text types; the size here is chosen
+              so that longest phrase, plus the chevron, fits the narrowest
+              viewport we support. */}
+          <span className="block text-[clamp(1.05rem,4.35vw,2.85rem)]">
           {/* Decorative. Without aria-hidden a screen reader reads the h1 as
-              "We make your business greater than unmissable". */}
+              "What if we made it greater than your best decision". */}
           <span aria-hidden="true" className="text-secondary">&gt;</span>{" "}
           {/* `startFull` so the phrase is complete in the first render rather
               than typing itself in from empty; `reserveWidth` so the line does
