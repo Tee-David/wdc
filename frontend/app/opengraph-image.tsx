@@ -13,5 +13,9 @@ export default async function Image() {
     eyebrow: "Creative & digital agency",
     title: "Everything a brand needs, under one roof",
     note: "Branding, search, websites, apps, software and campaigns, from one team.",
+    /* The hero's own first frame. Not a screenshot of the homepage: the
+       photograph carries the life, and the words are drawn at a size that
+       still reads when a chat app shrinks the card to a thumbnail. */
+    shot: "hero/web-design.jpg",
   });
 }
