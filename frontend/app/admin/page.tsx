@@ -7,6 +7,7 @@ import {
 } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, naira, nairaShort, STAGES } from "@/lib/admin/types";
 import { DemoNote, Empty, InvoicePill, Panel, StagePill, Tile, when } from "@/components/admin/bits";
+import { InvoiceMenu, ProjectMenu } from "@/components/admin/row-actions";
 import { AddClient } from "@/components/admin/client-form";
 import { AddProject } from "@/components/admin/project-forms";
 import { InvoiceBuilder } from "@/components/admin/money-forms";
@@ -84,7 +85,7 @@ export default function AdminHome() {
               <div className="ad__scroll">
                 <table className="ad__t">
                   <thead>
-                    <tr><th>Project</th><th>Client</th><th>Stage</th><th>Due</th></tr>
+                    <tr><th>Project</th><th>Client</th><th>Stage</th><th>Due</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr>
                   </thead>
                   <tbody>
                     {attention.map((p) => (
@@ -96,6 +97,9 @@ export default function AdminHome() {
                         <td>{getClient(p.clientId)?.company ?? "Unknown"}</td>
                         <td><StagePill stage={p.stage} /></td>
                         <td className="num">{when(p.due)}</td>
+                        <td className="ad__rmC">
+                          <ProjectMenu project={p} clientName={getClient(p.clientId)?.company} />
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -116,7 +120,7 @@ export default function AdminHome() {
               <div className="ad__scroll">
                 <table className="ad__t">
                   <thead>
-                    <tr><th>Invoice</th><th>Client</th><th>Was due</th><th className="num">Owed</th></tr>
+                    <tr><th>Invoice</th><th>Client</th><th>Was due</th><th className="num">Owed</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr>
                   </thead>
                   <tbody>
                     {late.map((i) => (
@@ -128,6 +132,7 @@ export default function AdminHome() {
                         <td>{getClient(i.clientId)?.company ?? "Unknown"}</td>
                         <td className="num">{when(i.due)}</td>
                         <td className="num">{naira(invoiceTotals(i).due)}</td>
+                        <td className="ad__rmC"><InvoiceMenu invoice={i} /></td>
                       </tr>
                     ))}
                   </tbody>

@@ -4,6 +4,7 @@ import { getClients, getClientsByService, getInvoicesFor, getProjectsFor } from 
 import { invoiceTotals, naira } from "@/lib/admin/types";
 import { DemoNote, Empty, Panel, when } from "@/components/admin/bits";
 import { AddClient } from "@/components/admin/client-form";
+import { ClientMenu } from "@/components/admin/row-actions";
 
 export const metadata = { title: "Clients" };
 
@@ -69,6 +70,7 @@ export default function ClientsPage() {
                 <tr>
                   <th>Client</th><th>Sector</th><th>Buys</th>
                   <th className="num">Projects</th><th className="num">Owed</th><th>Since</th>
+                  <th className="ad__rmH"><span className="ad__sr">Actions</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -96,6 +98,7 @@ export default function ClientsPage() {
                       <td className="num">{live}</td>
                       <td className="num">{owed ? naira(owed) : <span className="ad__dim">Nil</span>}</td>
                       <td className="num">{when(c.since)}</td>
+                      <td className="ad__rmC"><ClientMenu client={c} /></td>
                     </tr>
                   );
                 })}

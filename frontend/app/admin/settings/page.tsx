@@ -1,7 +1,9 @@
 import { CONTACT_EMAIL } from "@/lib/site";
 import { SERVICES } from "@/lib/services";
 import { CASE_STUDIES } from "@/lib/work";
+import { getSettings } from "@/lib/admin/store";
 import { DemoNote, Panel } from "@/components/admin/bits";
+import { SettingMenu } from "@/components/admin/row-actions";
 
 export const metadata = { title: "Settings" };
 
@@ -21,6 +23,8 @@ export const metadata = { title: "Settings" };
  * why this screen shows what is editable before anything is editable.
  */
 export default function SettingsPage() {
+  const overrides = getSettings();
+
   const rows: { key: string; label: string; value: string; note?: string }[] = [
     { key: "contact.email", label: "Contact email", value: CONTACT_EMAIL },
     /* The social links are a literal inside components/layout/header.tsx
@@ -46,29 +50,55 @@ export default function SettingsPage() {
       </div>
 
       <DemoNote>
-        Editing writes an override row keyed by field and merges it over what
-        shipped in git, so a bad edit can only change one value and deleting
-        the row restores the original. The merge is built; the rows need the
-        database.
+        Editing is live. It writes an override row keyed by field and merges it
+        over what shipped in git, so a bad edit can only ever change one value
+        and putting it back deletes the row rather than restoring a copy. The
+        rows live in the same in-memory store as everything else here, so an
+        edit holds until the server restarts.
       </DemoNote>
 
       <div className="ad__stack">
         <Panel title="Editable content">
           <div className="ad__scroll">
             <table className="ad__t">
-              <thead><tr><th>What</th><th>Now</th><th>Key</th><th /></tr></thead>
+              <thead>
+                <tr>
+                  <th>What</th><th>Now</th><th>Key</th>
+                  <th className="ad__rmH"><span className="ad__sr">Actions</span></th>
+                </tr>
+              </thead>
               <tbody>
-                {rows.map((r) => (
-                  <tr key={r.key}>
-                    <td>
-                      <b>{r.label}</b>
-                      {r.note ? <small>{r.note}</small> : null}
-                    </td>
-                    <td>{r.value}</td>
-                    <td className="ad__dim ad__num">{r.key}</td>
-                    <td className="num"><button className="ad__btn" type="button" disabled>Edit</button></td>
-                  </tr>
-                ))}
+                {rows.map((r) => {
+                  const override = overrides[r.key] ?? null;
+                  return (
+                    <tr key={r.key}>
+                      <td>
+                        <b>{r.label}</b>
+                        {r.note ? <small>{r.note}</small> : null}
+                      </td>
+                      <td>
+                        {/* WHAT THE SITE IS SHOWING, AND WHAT IT SHIPPED AS.
+                            A settings screen that shows only the current value
+                            cannot answer the question people actually bring to
+                            it, which is "did somebody change this". */}
+                        {override ?? r.value}
+                        {override ? (
+                          <small>
+                            <span className="ad__pill ad__pill--warn">Edited</span>
+                            {" "}shipped as {r.value}
+                          </small>
+                        ) : null}
+                      </td>
+                      <td className="ad__dim ad__num">{r.key}</td>
+                      <td className="ad__rmC">
+                        <SettingMenu
+                          settingKey={r.key} label={r.label}
+                          shipped={r.value} override={override}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

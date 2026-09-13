@@ -6,6 +6,7 @@ import {
 } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, naira } from "@/lib/admin/types";
 import { Empty, InvoicePill, Panel, StagePill, Tile, when } from "@/components/admin/bits";
+import { InvoiceMenu, ProjectMenu } from "@/components/admin/row-actions";
 import { EditClient } from "@/components/admin/client-form";
 import { AddProject } from "@/components/admin/project-forms";
 import { InvoiceBuilder } from "@/components/admin/money-forms";
@@ -64,7 +65,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
             {projects.length ? (
               <div className="ad__scroll">
                 <table className="ad__t">
-                  <thead><tr><th>Project</th><th>Service</th><th>Stage</th><th>Due</th></tr></thead>
+                  <thead><tr><th>Project</th><th>Service</th><th>Stage</th><th>Due</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
                   <tbody>
                     {projects.map((p) => (
                       <tr key={p.id}>
@@ -72,6 +73,9 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
                         <td>{SERVICES.find((x) => x.slug === p.service)?.short}</td>
                         <td><StagePill stage={p.stage} /></td>
                         <td className="num">{when(p.due)}</td>
+                        <td className="ad__rmC">
+                          <ProjectMenu project={p} clientName={c.company} />
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -84,7 +88,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
             {invoices.length ? (
               <div className="ad__scroll">
                 <table className="ad__t">
-                  <thead><tr><th>Number</th><th>Status</th><th>Due</th><th className="num">Total</th><th className="num">Owed</th></tr></thead>
+                  <thead><tr><th>Number</th><th>Status</th><th>Due</th><th className="num">Total</th><th className="num">Owed</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
                   <tbody>
                     {invoices.map((i) => {
                       const t = invoiceTotals(i);
@@ -95,6 +99,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
                           <td className="num">{when(i.due)}</td>
                           <td className="num">{naira(t.total)}</td>
                           <td className="num">{t.due ? naira(t.due) : <span className="ad__dim">Nil</span>}</td>
+                          <td className="ad__rmC"><InvoiceMenu invoice={i} /></td>
                         </tr>
                       );
                     })}
