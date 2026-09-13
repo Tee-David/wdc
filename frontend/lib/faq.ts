@@ -5,7 +5,16 @@
  * the page metadata — rather than inventing new claims. Nothing here promises a
  * price or a turnaround that WDC has not already published.
  */
-export type Faq = { q: string; a: string };
+import type { ServiceSlug } from "@/lib/services";
+
+export type Faq = {
+  q: string;
+  a: string;
+  /** Which services this question belongs to. OMITTED MEANS EVERY SERVICE:
+      "how does a project start" is the same answer whichever one you came
+      for, and duplicating it six times would be six places to forget. */
+  services?: ServiceSlug[];
+};
 
 export const FAQS: Faq[] = [
   {
@@ -33,6 +42,7 @@ export const FAQS: Faq[] = [
   {
     q: "Do you build with AI?",
     a: "Where it earns its place. We integrate AI and LLM features into products when they solve a real business problem, and we say so plainly when they would not. The engineering is built around the outcome, not around the technology.",
+    services: ["software", "apps"],
   },
   {
     q: "Where are you based, and who can you work with?",
@@ -41,6 +51,7 @@ export const FAQS: Faq[] = [
   {
     q: "What do you build with?",
     a: "On the web, Next.js and React with TypeScript, custom or CMS-driven, WordPress included. On mobile, Flutter, React Native, Swift, Kotlin and C#, delivered to the App Store and Play Store. Behind them, SQL and NoSQL databases, APIs and Rust or Go services on Google Cloud, Azure, Oracle Cloud or AWS. We pick the stack the work needs, not the one we feel like using.",
+    services: ["web", "software", "apps"],
   },
   {
     q: "What happens after launch?",
@@ -49,9 +60,26 @@ export const FAQS: Faq[] = [
   {
     q: "Can you help us get found by ChatGPT and other AI tools?",
     a: "Yes. AI visibility is part of how we do SEO now, alongside keyword research, technical SEO, competitor analysis, Google Business Profile and Search Console. We optimise brands to be found and cited by LLMs like ChatGPT, Claude and Gemini, not just ranked on a results page.",
+    services: ["seo"],
   },
   {
     q: "Do you run social accounts and paid ads too?",
     a: "Yes. Organic growth and follower campaigns, day-to-day account management across Facebook, Instagram, X, WhatsApp, TikTok and LinkedIn, automations and auto-replies, paid ads and content calendars, with reporting that keeps you in the loop rather than in the dark.",
+    services: ["social"],
   },
 ];
+
+/**
+ * The questions to show on one service's page: the ones tagged to it, plus
+ * every untagged one, which applies to all six.
+ *
+ * Capped, because a service page is not the FAQ page. The general questions
+ * are already on /contact in full; here they are the two or three a buyer of
+ * THIS service is most likely to be holding, and the specific ones come first
+ * because they are why this list is on this page at all.
+ */
+export function faqsFor(slug: ServiceSlug, limit = 5): Faq[] {
+  const mine = FAQS.filter((f) => f.services?.includes(slug));
+  const general = FAQS.filter((f) => !f.services);
+  return [...mine, ...general].slice(0, limit);
+}

@@ -316,7 +316,7 @@ export default function OnboardingForm() {
     return (
       <div className="ob ob--intro">
         <p className="ob__k">Welcome</p>
-        <h1>Let&rsquo;s get started.</h1>
+        <h2>Let&rsquo;s get started.</h2>
         <p className="ob__lede">
           A few questions so we can begin. Your answers go straight into the
           work, and this is the last time we will ask you for most of it.
@@ -397,7 +397,7 @@ export default function OnboardingForm() {
     return (
       <div className="ob ob--intro">
         <p className="ob__k">Received</p>
-        <h1>Thank you. We have your brief.</h1>
+        <h2>Thank you. We have your brief.</h2>
         <p className="ob__lede">
           We will review it and confirm the next project step with you. Updates may come through
           your client dashboard, direct chat, a WhatsApp project group where appropriate, or the
@@ -412,7 +412,7 @@ export default function OnboardingForm() {
     return (
       <div className="ob ob--intro">
         <p className="ob__k">Review</p>
-        <h1>Read it back.</h1>
+        <h2>Read it back.</h2>
         <p className="ob__lede">
           Everything you have told us. Change anything that is not right before
           you send it.
@@ -554,7 +554,7 @@ export default function OnboardingForm() {
           )}
         </div>
 
-        <h1>{step.title}</h1>
+        <h2>{step.title}</h2>
         <p className="ob__blurb">{step.blurb}</p>
 
         <div className="ob__fields">

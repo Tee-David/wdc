@@ -8,6 +8,8 @@ import JsonLd from "@/components/seo/json-ld";
 import ServiceIcon from "@/components/ui/service-icon";
 import ServiceDetail from "@/components/services/service-detail";
 import { SERVICES, SERVICE_BY_SLUG } from "@/lib/services";
+import { faqsFor } from "@/lib/faq";
+import FaqAccordion from "@/components/ui/faq-accordion";
 import { CASE_STUDIES, WORK_CATEGORIES } from "@/lib/work";
 import { COMPANY_NAME, SITE_URL } from "@/lib/site";
 
@@ -66,6 +68,7 @@ export default async function ServicePage(
     .slice(0, 3);
   const category = WORK_CATEGORIES.find((c) => c.slug === service.slug);
   const url = `${SITE_URL}/services/${service.slug}`;
+  const faqs = faqsFor(service.slug);
 
   const jsonLd = [
     {
@@ -84,6 +87,18 @@ export default async function ServicePage(
           itemOffered: { "@type": "Service", name: d },
         })),
       },
+    },
+    /* FAQPage describes exactly the questions rendered below and no others.
+       Structured data that claims content the page does not show is the kind
+       of thing that gets rich results withdrawn, and it would be a lie. */
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqs.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
     },
     {
       "@context": "https://schema.org",
@@ -164,6 +179,18 @@ export default async function ServicePage(
                   </Link>
                 ))}
               </div>
+            </div>
+          </section>
+        ) : null}
+
+        {faqs.length > 0 ? (
+          <section className="pv-sec pv-sec--alt">
+            <div className="pv-wrap">
+              <div className="pv-head pv-reveal">
+                <span className="pv-eyebrow">Before you ask</span>
+                <h2>Questions we get about {service.short.toLowerCase()}</h2>
+              </div>
+              <FaqAccordion items={faqs} idPrefix={`svcfaq-${service.slug}`} />
             </div>
           </section>
         ) : null}
