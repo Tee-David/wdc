@@ -219,7 +219,12 @@ export default function TextType({
           {displayedText}
         </span>
         {showCursor && (
+        /* aria-hidden, because the cursor is a drawing and not a word. This
+           sits inside the homepage h1, so without it a screen reader announces
+           the heading and then reads the cursor glyph out as part of it --
+           "We make your business unmissable. Left half block". */
         <span
+          aria-hidden="true"
           className={`text-type__cursor ${cursorClassName} ${
             shouldHideCursor ? "text-type__cursor--hidden" : ""
           }`}

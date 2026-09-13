@@ -15,6 +15,7 @@
 - Horizontal rails must not trap vertical gestures. Tooltips, popovers, menus, modals, FABs, hover lifts, and focus rings must remain visible inside the viewport and clear safe-area insets.
 - Give text-bearing flex/grid children `min-width: 0`, and test long real-world content at 320px so truncation cannot widen the viewport.
 - Mark genuine nested scroll regions with `data-lenis-prevent` on devices where Lenis is active; preserve native page scrolling everywhere else.
+- One owner for scroll position. Lenis, the router and `history.scrollRestoration` will each move the page and none of them knows about the others; a second writer is how a link lands you at the bottom of the next page. Route new scroll behaviour through `components/ui/scroll-reset.tsx`, and never fight a reader who has already scrolled.
 - Respect `prefers-reduced-motion`. Animation must communicate state, remain interruptible, and never block navigation or content.
 
 ## Performance and dependencies

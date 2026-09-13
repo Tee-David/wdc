@@ -38,8 +38,14 @@ test("filled public controls use neutral label colours", async ({ page }) => {
   });
 
   for (const path of publicPages) {
-    await page.goto(path, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1200);
+    /* `load`, not a fixed pause. Reading computed styles off a page that has
+       not settled is how this spec used to fail under load while passing on
+       its own -- it was measuring half-painted controls. The chat avatar used
+       to stop `load` firing at all, which is why the pause was here; now that
+       it is hosted locally, `load` is a real signal again. */
+    await page.goto(path, { waitUntil: "load" });
+    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.locator("a, button").first().waitFor({ state: "visible" });
 
     const controls = await page.locator("a, button").evaluateAll((elements) =>
       elements.flatMap((element) => {
@@ -86,8 +92,14 @@ test("no orange fill anywhere carries a white label", async ({ page }) => {
   });
 
   for (const path of publicPages) {
-    await page.goto(path, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1200);
+    /* `load`, not a fixed pause. Reading computed styles off a page that has
+       not settled is how this spec used to fail under load while passing on
+       its own -- it was measuring half-painted controls. The chat avatar used
+       to stop `load` firing at all, which is why the pause was here; now that
+       it is hosted locally, `load` is a real signal again. */
+    await page.goto(path, { waitUntil: "load" });
+    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.locator("a, button").first().waitFor({ state: "visible" });
 
     const bad = await page.evaluate(({ orange, white }) => {
       const out: string[] = [];

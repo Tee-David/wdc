@@ -84,7 +84,7 @@ export default async function WorkDetailPage(
   return (
     <>
       <Header />
-      <main className="flex-1 pv">
+      <main id="main" tabIndex={-1} className="flex-1 pv">
         <section className="pv-sec" style={{ paddingTop: "clamp(6.5rem, 11vw, 9rem)" }}>
           <div className="pv-wrap">
             <article className="wk-doc">

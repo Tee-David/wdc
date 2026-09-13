@@ -115,6 +115,24 @@ const nextConfig: NextConfig = {
     return [
       { source: "/:path*", headers: base },
       {
+        /* ONLY THE CANONICAL DOMAIN IS INDEXABLE.
+           wedigcreativity.vercel.app serves the complete site and returned a
+           normal, indexable response, so search engines had a second full copy
+           of every page and had to guess which was canonical. The pages do
+           declare a canonical URL, which is probably why the damage has been
+           limited, but a canonical tag is ADVISORY and a robots header is
+           binding -- and both earlier audits reported seeing a second version
+           of the site in results.
+
+           A header rather than a redirect, deliberately: Vercel preview
+           deployments live on this domain too, and redirecting them to
+           production would make every preview untestable. This keeps them
+           reachable and keeps them out of the index. */
+        source: "/:path*",
+        has: [{ type: "host", value: "(?<preview>.*\\.vercel\\.app)" }],
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+      {
         /* Content-addressed by the build, so a change is a new URL and a year
            is safe. Without this Next sends its own shorter default and every
            repeat visit revalidates files that cannot have changed. */
