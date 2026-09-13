@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { SERVICES } from "@/lib/services";
 import { CORE_STEPS, SERVICE_STEPS, CLOSING_STEPS } from "@/lib/onboarding";
-import { getClient, getSubmissions } from "@/lib/admin/store";
+import { getClient, getClients, getSubmissions } from "@/lib/admin/store";
 import { DemoNote, Empty, Panel, when } from "@/components/admin/bits";
+import { SubmissionMenu } from "@/components/admin/row-actions";
 
 export const metadata = { title: "Forms" };
 
@@ -23,6 +24,9 @@ export default function FormsPage() {
   const done = subs.filter((s) => s.status === "Submitted");
   const allSteps = [...CORE_STEPS, ...SERVICE_STEPS, ...CLOSING_STEPS];
   const questions = allSteps.reduce((n, s) => n + s.fields.length, 0);
+  /* Only what the attach dialog needs: a submission's menu offers the list of
+     people it could belong to. */
+  const clientList = getClients().map((c) => ({ id: c.id, company: c.company }));
 
   return (
     <>
@@ -48,7 +52,7 @@ export default function FormsPage() {
           {subs.length ? (
             <div className="ad__scroll">
               <table className="ad__t">
-                <thead><tr><th>Who</th><th>Service</th><th>Status</th><th>Started</th><th>Sent</th></tr></thead>
+                <thead><tr><th>Who</th><th>Service</th><th>Status</th><th>Started</th><th>Sent</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
                 <tbody>
                   {subs.map((s) => (
                     <tr key={s.id}>
@@ -70,6 +74,7 @@ export default function FormsPage() {
                       </td>
                       <td className="num">{when(s.startedAt)}</td>
                       <td className="num">{s.submittedAt ? when(s.submittedAt) : <span className="ad__dim">Not yet</span>}</td>
+                      <td className="ad__rmC"><SubmissionMenu submission={s} clients={clientList} /></td>
                     </tr>
                   ))}
                 </tbody>
