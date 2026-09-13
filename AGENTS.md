@@ -7,11 +7,14 @@
 - Button labels must be neutral white or black, chosen for contrast. Orange and blue fills use white text. White fills use black text. Preserve existing geometry; add clear hover, active, focus-visible, disabled, and reduced-motion states consistently across similar controls.
 - Meet WCAG AA contrast, use semantic controls, visible keyboard focus, useful labels, 44px touch targets, and no hover-only information. Long menus must be bounded and scrollable; searchable lists are preferred above ten options.
 - Treat a screenshot correction as a pattern audit. Check sibling components for the same defect and fix the shared rule when safe.
+- CSS custom properties must be declared at a scope shared by every consumer; use root tokens for site-wide chrome and local tokens only within their owning component.
 
 ## Responsive interaction
 
 - Mobile scrolling is native. Do not load Lenis, smooth-wheel interception, custom cursors, or scroll-position writers on touch/coarse-pointer devices. Keep listeners passive and coalesce scroll work in `requestAnimationFrame`; avoid layout reads and React state updates per scroll frame.
 - Horizontal rails must not trap vertical gestures. Tooltips, popovers, menus, modals, FABs, hover lifts, and focus rings must remain visible inside the viewport and clear safe-area insets.
+- Give text-bearing flex/grid children `min-width: 0`, and test long real-world content at 320px so truncation cannot widen the viewport.
+- Mark genuine nested scroll regions with `data-lenis-prevent` on devices where Lenis is active; preserve native page scrolling everywhere else.
 - Respect `prefers-reduced-motion`. Animation must communicate state, remain interruptible, and never block navigation or content.
 
 ## Performance and dependencies
@@ -19,6 +22,8 @@
 - Protect LCP, INP, CLS, and bundle size with each change. Prefer server components and CSS; isolate the smallest client boundary. Lazy-load below-fold, optional, and third-party code after genuine user intent.
 - Do not add a package for a small UI effect or icon. Reuse existing libraries and browser/platform features. Keep static marketing media in `public/` with `next/image`; reserve R2 for user/admin uploads.
 - Avoid request waterfalls, duplicate listeners, render-time database/network calls, oversized JSON, and unbounded lists. Cache safe public data and explicitly invalidate it after writes.
+- Measure third-party assets before placing them on the critical path; self-host and right-size stable assets when permitted.
+- Pause timers, `requestAnimationFrame` loops, and decorative animations when off-screen or hidden; mounting and runtime visibility are separate concerns.
 - Run lint, TypeScript, production build, targeted tests, and responsive visual checks before release. Verify the exact deployed commit and canonical domain; do not equate a source change with a live fix.
 
 ## SEO and content
@@ -29,6 +34,8 @@
 ## Safety
 
 - Never expose secrets or copy them into source, logs, fixtures, screenshots, or chat. Validate all browser input on the server. Protect auth, payments, uploads, webhooks, and email flows with least privilege, origin/signature checks, idempotency, rate limits, and auditable state changes.
+- Form deferral choices such as “I’m not sure, please advise me” must be reversible; selecting a real answer replaces the deferral without disabling the field.
+- Security checks must fail closed: missing origin, signature, authorization, or required identity is not valid input.
 - Preserve unrelated user changes. Use the root checklist as the delivery ledger and update it when requirements or verification state change.
 
 ## Coding discipline
@@ -36,6 +43,16 @@
 - State material assumptions and tradeoffs before coding; ask only when ambiguity would change the result. Prefer the simplest implementation that satisfies the request.
 - Keep changes surgical. Match existing style, avoid speculative flexibility and unrelated cleanup, and remove only the orphaned code your change creates.
 - Define observable success criteria for each change, reproduce bugs with a focused test where practical, and loop until the same check passes after implementation.
+- Verify that changed selectors and handlers match the rendered element and reproduce the intended interaction; source-only fixes are not evidence.
+- Report only measurements taken from the build and environment being described; re-measure contradictory results.
+
+## Authenticated product UX
+
+- Keep admin and client navigation task-based and compact: no more than six primary pages, with infrequent controls under Settings. Preserve the established Litch-style shell while adapting content to WDC workflows.
+- Loading states must resemble the final page geometry, reserve layout space, support light/dark and reduced-motion modes, and never show invented data. When Boneyard is used, rebuild its snapshots whenever captured UI geometry changes.
+- Every true first-use empty state needs a concise explanation, a friendly existing icon or lightweight visual, and one clear next action. Distinguish empty, filtered-no-results, loading, error, and no-permission states.
+- React Joyride tours are optional, short, keyboard-accessible, role-aware, and lazy-loaded only inside authenticated dashboards. Support a full walkthrough and page-only tours using stable `data-tour` targets; persist completion per user and tour version, and always allow skip, close, and replay.
+- Financial, project, client, and communication UI must reflect persisted truth. Never fabricate totals, activity, payment status, or delivery progress; preserve auditable histories for manual and automated changes.
 
 ## Commit attribution
 
