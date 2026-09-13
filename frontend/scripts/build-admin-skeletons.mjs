@@ -117,7 +117,8 @@ async function stopProcessTree(child) {
 }
 
 async function waitFor(url, headers) {
-  const deadline = Date.now() + 30_000;
+  // A cold Turbopack compile can exceed 30 seconds on the Windows workstation.
+  const deadline = Date.now() + 90_000;
   while (Date.now() < deadline) {
     try {
       const response = await fetch(url, { headers, redirect: "manual" });

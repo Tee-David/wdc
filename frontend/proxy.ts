@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
+import { isAdminCapture } from "@/lib/admin/capture";
 
 export function proxy(request: NextRequest) {
+  if (isAdminCapture(request.headers)) {
+    return NextResponse.next();
+  }
   if (getSessionCookie(request, { cookiePrefix: "wdc" })) {
     return NextResponse.next();
   }
