@@ -86,48 +86,53 @@ export default function ServicesPage() {
             audit measured it at 8,320ms of blocked main thread against the
             homepage's 1,360ms, 3,707KB, and 27.4 phone screens long. It is a
             hub now, and each service carries its own weight on its own page. */}
-        <section className="pv-sec" style={{ paddingTop: "clamp(7rem, 12vw, 10rem)" }}>
-          <div className="pv-wrap">
-            <div className="wk-plate">
-              <div className="wk-plate__head">
-                <div style={{ display: "grid", gap: 10 }}>
-                  <span className="pv-eyebrow">Services</span>
-                  <h1 className="wk-plate__t">Six services, one team</h1>
-                </div>
-                <p className="wk-plate__note">
-                  Design, engineering and growth under one roof, so nothing is lost
-                  in the hand-off. Pick the one you came for.
-                </p>
-              </div>
+        {/* THE SAME SHAPE /blog USES: a navy band carrying the title, then
+            the cards on the page's own ground. The plate that used to hold
+            them was a dark slab inside a light page, which made this the only
+            hub on the site that did not look like the others -- and, because
+            the header runs `overHero` here, the band is also what the header's
+            white type is sitting on. Without it the nav washed out to almost
+            nothing in light mode. */}
+        <section className="wk-hero">
+          <div className="pv-wrap wk-hero__in">
+            <span className="pv-eyebrow">Services</span>
+            <h1>Six services, one team</h1>
+            <p className="pv-lede">
+              Design, engineering and growth under one roof, so nothing is lost in
+              the hand-off. Pick the one you came for.
+            </p>
+          </div>
+        </section>
 
-              <div className="wk-cats">
-                {SERVICES.map((s) => {
-                  const category = WORK_CATEGORIES.find((c) => c.slug === s.slug);
-                  return (
-                    <Link className="wk-cat" href={`/services/${s.slug}`} key={s.slug}>
-                      <span className="wk-cat__bar">
-                        <span className="wk-cat__t">{s.short}</span>
-                        {/* Counted from the catalogue, never typed by hand. A
-                            service with no work filed under it shows nothing
-                            rather than a confident zero. */}
-                        {category ? <span className="wk-cat__n">{countFor(category)}</span> : null}
-                      </span>
-                      <span className="wk-cat__shot">
-                        {category ? (
-                          <Image
-                            src={category.cover}
-                            alt=""
-                            fill
-                            sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw"
-                            quality={78}
-                          />
-                        ) : null}
-                        <span className="wk-cat__go" aria-hidden="true" />
-                      </span>
-                    </Link>
-                  );
-                })}
-              </div>
+        <section className="pv-sec">
+          <div className="pv-wrap">
+            <div className="wk-cats">
+              {SERVICES.map((s) => {
+                const category = WORK_CATEGORIES.find((c) => c.slug === s.slug);
+                return (
+                  <Link className="wk-cat" href={`/services/${s.slug}`} key={s.slug}>
+                    <span className="wk-cat__bar">
+                      <span className="wk-cat__t">{s.short}</span>
+                      {/* Counted from the catalogue, never typed by hand. A
+                          service with no work filed under it shows nothing
+                          rather than a confident zero. */}
+                      {category ? <span className="wk-cat__n">{countFor(category)}</span> : null}
+                    </span>
+                    <span className="wk-cat__shot">
+                      {category ? (
+                        <Image
+                          src={category.cover}
+                          alt=""
+                          fill
+                          sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw"
+                          quality={78}
+                        />
+                      ) : null}
+                      <span className="wk-cat__go" aria-hidden="true" />
+                    </span>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </section>
