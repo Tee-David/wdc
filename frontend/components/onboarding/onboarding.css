@@ -50,6 +50,11 @@
   color: var(--accent-ink);
 }
 
+/* h2 as well as h1: the page's single h1 is now the server-rendered one in
+   app/onboarding/page.tsx, and these step titles are h2 beneath it. The size
+   is unchanged -- heading level is a structure decision, size is a design one,
+   and they are allowed to disagree. */
+.pv .ob h2,
 .pv .ob h1 {
   font-size: clamp(1.9rem, 1.4rem + 1.9vw, 2.9rem);
   text-wrap: balance;
