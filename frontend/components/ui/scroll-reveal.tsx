@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, type ReactNode } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from "react";
 
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
+/* GSAP IS NOT IMPORTED AT THE TOP OF THIS FILE, and that is deliberate.
+   A static import puts ScrollTrigger in the bundle of every device that
+   renders this heading, including the phones that never run the scrubbed
+   version below. It is loaded inside the effect, on the branch that uses it.
+   (GSAP's core still reaches phones through components/ui/staggered-menu.tsx,
+   which genuinely animates the mobile menu. The plugin is what this saves.) */
 
 /**
  * A reveal token: a plain string (split into words), a highlighted phrase
@@ -45,6 +46,9 @@ export function ScrollReveal({
 
   const content = useMemo(() => {
     const nodes: ReactNode[] = [];
+    /* Counts words, not tokens, so the CSS stagger on touch devices can lean on
+       the word's own position rather than on a timeline. */
+    let word = 0;
     tokens.forEach((token, ti) => {
       if (typeof token === "string" || "highlight" in token) {
         const text = typeof token === "string" ? token : token.highlight;
@@ -60,9 +64,14 @@ export function ScrollReveal({
             nodes.push(
               <span
                 key={`w-${ti}-${ci}`}
+                style={{ "--i": word++ } as CSSProperties}
                 className={`sr-word inline-block ${
                   highlight
-                    ? "mx-[0.14em] text-[0.88em] rounded-lg bg-secondary px-[0.22em] py-[0.05em] text-white shadow-[0_4px_12px_-4px_rgba(255,101,0,0.5)]"
+                    /* BLACK ON THE ORANGE PILL, not white. White on #ff6500 is
+                       2.95:1 and fails even the 3:1 allowed for large text;
+                       black is 7.11:1. Same rule as every other accent fill on
+                       the site -- see --on-accent. */
+                    ? "mx-[0.14em] text-[0.88em] rounded-lg bg-secondary px-[0.22em] py-[0.05em] text-[var(--on-accent,#000)] shadow-[0_4px_12px_-4px_rgba(255,101,0,0.5)]"
                     : ""
                 }`}
               >
@@ -74,6 +83,7 @@ export function ScrollReveal({
         nodes.push(
           <span
             key={`i-${ti}`}
+            style={{ "--i": word++ } as CSSProperties}
             className="sr-word mx-2 inline-flex translate-y-[0.12em] items-center align-middle"
             aria-label={token.label}
             role={token.label ? "img" : undefined}
@@ -93,17 +103,63 @@ export function ScrollReveal({
     const reduce = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
-    const words = el.querySelectorAll<HTMLElement>(".sr-word");
 
     // Reduced motion: show everything, no scrub.
     if (reduce) {
-      gsap.set(el, { rotate: 0 });
-      gsap.set(words, { opacity: 1, filter: "blur(0px)" });
+      el.dataset.srMode = "static";
       return;
     }
 
-    const ns = `sr-${srKey++}`;
-    const ctx = gsap.context(() => {
+    /* TOUCH DEVICES DO NOT GET THE SCRUB, AND THIS IS THE iOS SCROLL FIX.
+
+       The desktop version below ties three ScrollTriggers to the scroll
+       position with `scrub: true`, and one of them animates `filter: blur()`
+       on every word. Blur is a paint-time filter, not a compositor one: each
+       scroll frame gives every visible word a new blur radius, and each word
+       then has to be rasterised again -- with `will-change` having already
+       given each of them its own layer, so a paragraph is dozens of layers
+       being repainted in step with the finger.
+
+       Chrome on Android hides this, because there the scroll itself runs off
+       the main thread and keeps moving whatever the page is doing. Safari on
+       iOS does not, and the result is the page briefly refusing to keep up
+       with the finger -- catching, rather than being slow.
+
+       So on a touch device the reveal is a one-shot CSS transition instead:
+       opacity only, no blur, no rotation, staggered by each word's own index,
+       latched the first time the heading is seen and then finished with. It
+       reads as the same effect and costs nothing per frame. The scrubbed
+       version is a pointer-device refinement, which is where it was designed
+       and where it is affordable. */
+    if (window.matchMedia("(hover: none) and (pointer: coarse)").matches) {
+      const seen = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          el.dataset.srMode = "in";
+          /* Mount-once. Nothing here should survive the reveal: an observer
+             left connected is work done for the rest of the visit. */
+          seen.disconnect();
+        }
+      }, { rootMargin: "0px 0px -12% 0px" });
+      el.dataset.srMode = "wait";
+      seen.observe(el);
+      return () => seen.disconnect();
+    }
+
+    let ctx: { revert: () => void } | undefined;
+    let cancelled = false;
+
+    void (async () => {
+      const [{ gsap }, { ScrollTrigger }] = await Promise.all([
+        import("gsap"),
+        import("gsap/ScrollTrigger"),
+      ]);
+      if (cancelled) return;
+      gsap.registerPlugin(ScrollTrigger);
+
+      const words = el.querySelectorAll<HTMLElement>(".sr-word");
+      const ns = `sr-${srKey++}`;
+      ctx = gsap.context(() => {
       gsap.fromTo(
         el,
         { transformOrigin: "0% 50%", rotate: baseRotation },
@@ -155,9 +211,16 @@ export function ScrollReveal({
           }
         );
       }
-    }, el);
+      }, el);
+      /* GSAP now owns the inline styles on these words, so the CSS fallback
+         must stop competing for them. */
+      el.dataset.srMode = "gsap";
+    })();
 
-    return () => ctx.revert();
+    return () => {
+      cancelled = true;
+      ctx?.revert();
+    };
   }, [tokens, baseOpacity, enableBlur, blurStrength, baseRotation]);
 
   return (

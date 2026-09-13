@@ -4,7 +4,7 @@
 
 - Reuse the site's tokens and established patterns before adding a new visual language. Bright orange is `#ff6500`; navy is the primary dark brand surface.
 - Use Space Grotesk for headings, display copy, and prominent figures. Use Outfit for body copy, descriptions, labels, helper text, and controls. Keep type fluid and readable from 320px upward.
-- Button labels must be neutral white or black, chosen for contrast. Orange and blue fills use white text. White fills use black text. Preserve existing geometry; add clear hover, active, focus-visible, disabled, and reduced-motion states consistently across similar controls.
+- Button labels must be neutral white or black, chosen for contrast, and the choice is measured rather than assumed. An `--accent` (orange) fill takes `--on-accent`, which is BLACK at 7.11:1 — white on `#ff6500` is 2.95:1 and fails even the 3:1 allowed for large text. A navy fill takes white at 17.68:1. A white fill takes black. Orange as TEXT on a light surface is `--accent-ink` (`#c95000`), never `#ff6500`. Pinned by `frontend/tests/button-colours.spec.ts`. Preserve existing geometry; add clear hover, active, focus-visible, disabled, and reduced-motion states consistently across similar controls.
 - Meet WCAG AA contrast, use semantic controls, visible keyboard focus, useful labels, 44px touch targets, and no hover-only information. Long menus must be bounded and scrollable; searchable lists are preferred above ten options.
 - Treat a screenshot correction as a pattern audit. Check sibling components for the same defect and fix the shared rule when safe.
 - CSS custom properties must be declared at a scope shared by every consumer; use root tokens for site-wide chrome and local tokens only within their owning component.
