@@ -14,7 +14,6 @@ import QrCode from "@/components/ui/qr-code";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 import "@/components/preview/preview.css";
-import "@/components/work/work.css";
 import "@/components/blog/blog.css";
 
 /* Every post is known at build time, so every post is a static page. */
@@ -177,12 +176,18 @@ export default async function BlogPostPage(
 
         <section className="pv-sec">
           <div className="pv-wrap">
-            <div className="bl-layout">
-              {/* Sticky beside the article on desktop; a collapsed block above
+            <div className={outline.length > 0 ? "bl-layout" : "bl-layout bl-layout--solo"}>
+              {/* CONTENTS ONLY. Sharing and the code used to sit here too, which
+                  put both of them ABOVE the article on every phone -- a reader
+                  was offered the share buttons before they had read a word. They
+                  now close the article instead, where they are something you do
+                  after finishing rather than an obstacle in front of the start.
+
+                  Sticky beside the article on desktop; a collapsed block above
                   it on a phone, because eight links is a wall between the
                   reader and what they came for. */}
-              <aside className="bl-rail">
-                {outline.length > 0 && (
+              {outline.length > 0 && (
+                <aside className="bl-rail">
                   <div>
                     <p className="bl-rail__k bl-rail__k--toc">On this page</p>
                     <details className="bl-toc" open>
@@ -196,15 +201,8 @@ export default async function BlogPostPage(
                       </ul>
                     </details>
                   </div>
-                )}
-
-                <ShareRow url={url} title={post.title} />
-
-                <div className="bl-qr">
-                  <p className="bl-rail__k">Take it with you</p>
-                  <QrCode url={url} label="Scan to open this article on your phone." />
-                </div>
-              </aside>
+                </aside>
+              )}
 
               <article className="bl-post">
                 <div className="bl-body">
@@ -216,6 +214,15 @@ export default async function BlogPostPage(
                 <ul className="bl-tags" aria-label="Topics">
                   {post.tags.map((t) => <li className="bl-tag" key={t}>{t}</li>)}
                 </ul>
+
+                {/* The two things you do once you have finished reading. */}
+                <div className="bl-end">
+                  <ShareRow url={url} title={post.title} />
+                  <div className="bl-qr">
+                    <p className="bl-rail__k">Take it with you</p>
+                    <QrCode url={url} label="Scan to open this article on your phone." />
+                  </div>
+                </div>
 
                 {more.length > 0 && (
                   <div className="bl-next">

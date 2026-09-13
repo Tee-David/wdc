@@ -256,7 +256,14 @@ export function Hero() {
     <section className="relative z-10 flex min-h-svh flex-col overflow-hidden rounded-b-[2.5rem] md:rounded-b-[4rem] lg:rounded-b-[5.5rem]">
       <HeroBackdrop />
 
-      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center px-6 pt-28 text-center md:pt-32 lg:px-10">
+      {/* WIDER THAN IT WAS, and measured rather than picked. The two headline
+          lines now share one size, and the longest rotating phrase -- "your
+          competition's problem?" -- needs about 15.5x the font size in measure
+          before it breaks. At a 5xl column that was 944px against the 1064px
+          it wants, so the phrase took two lines on every desktop. The column
+          is the thing that grew; the type did not shrink. It is the same
+          1280px cap the header already uses. */}
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 flex-col items-center justify-center px-6 pt-28 text-center md:pt-32 lg:px-10">
         <p
           /* CSS, NOT JAVASCRIPT -- see the note on the h1 below. */
           style={{ animationDelay: "50ms" }}
@@ -292,8 +299,27 @@ export function Hero() {
             JavaScript involved at all. The animation is identical to look at.
             Under reduced motion the rule is dropped and the copy is simply
             there. */}
+        {/* ONE SIZE FOR BOTH LINES. The rotating half used to be set nearly
+            40% smaller than the fixed half so it could be promised a single
+            line; they read as a caption under a headline rather than as one
+            sentence. The size lives on the h1 now and both lines inherit it --
+            the wrapping problem that the smaller size was solving is solved
+            below instead, by reserving the box the longest phrase needs. */}
         <h1
-          className="hero-rise--solid whitespace-nowrap text-[clamp(1.55rem,6.5vw,4.25rem)] font-bold leading-[1.08] tracking-tight !text-white [text-shadow:0_4px_20px_rgba(0,0,0,0.5),0_1px_4px_rgba(0,0,0,0.35)]"
+          /* THE SIZE IS SET BY THE LONGEST PHRASE, NOT BY TASTE. Measured on
+             the built page: at font size F, "your competition's problem?"
+             takes 14.53F of measure and its wider half takes 9.55F, and the
+             chevron and its gap take another 0.94F. So the rule is 10.49F <=
+             the column, or the phrase needs a THIRD line and the reserved box
+             below grows with it. 7.8vw clears that from 320px up; 4.3rem is
+             where it stops, which is the largest size whose longest phrase
+             still fits one line on a normal laptop.
+
+             Re-measure before changing either number, and remember the
+             tracking here is NOT what the class says: `.pv-hero
+             [class*="tracking-"]` in preview.css overrides it to +0.02em on
+             this page, which is worth about 4% of the width. */
+          className="hero-rise--solid text-[clamp(1.5rem,7.8vw,4.3rem)] font-bold leading-[1.08] tracking-tight !text-white [text-shadow:0_4px_20px_rgba(0,0,0,0.5),0_1px_4px_rgba(0,0,0,0.35)]"
         >
           {/* TWO BLOCKS, NOT ONE LINE AND A `<br>`, and the reason is
               measurable rather than typographic -- it looks identical.
@@ -311,27 +337,30 @@ export function Hero() {
               and one whose text never changes -- and it settles once. The
               second line goes on animating; it is simply no longer the largest
               thing on the page. */}
-          <span className="block">What if we made it&hellip;</span>
-          {/* THE SECOND LINE CARRIES ITS OWN SIZE, and that is what keeps the
-              promise of one line each.
+          {/* `text-balance` rather than `whitespace-nowrap`: at this size the
+              line breaks on a phone, and left to itself it breaks with one
+              word stranded on the second line. Balanced, it splits evenly. */}
+          <span className="block text-balance">What if we made it&hellip;</span>
+          {/* A FLEX ROW, SO THE CHEVRON KEEPS ITS PLACE WHEN THE PHRASE WRAPS.
 
-              The two lines share an h1, so they used to share a font size.
-              That was fine when the rotating half was "pixel-perfect." at
-              fourteen characters; the longest of these is "your competition's
-              problem?" at twenty-seven, nearly double. At the shared size it
-              wrapped to two lines on a phone.
+              At the shared size the longest phrase takes two lines on a phone.
+              As inline text the chevron would sit against the first of them and
+              the second would tuck under it; as a flex row the chevron is a
+              column of its own, aligned to the first line, and the phrase keeps
+              one edge however many lines it takes.
 
-              `reserveWidth` already holds the width of the LONGEST phrase, so
-              the line never reflows as the text types; the size here is chosen
-              so that longest phrase, plus the chevron, fits the narrowest
-              viewport we support. */}
-          <span className="block text-[clamp(1.05rem,4.35vw,2.85rem)]">
+              `min-w-0` is what lets the phrase wrap at all: without it the
+              reserved width of the longest phrase is a floor, and the row
+              overflows the hero sideways instead of breaking. */}
+          <span className="flex items-start justify-center gap-[0.3em]">
           {/* Decorative. Without aria-hidden a screen reader reads the h1 as
               "What if we made it greater than your best decision". */}
-          <span aria-hidden="true" className="text-secondary">&gt;</span>{" "}
+          <span aria-hidden="true" className="text-secondary">&gt;</span>
           {/* `startFull` so the phrase is complete in the first render rather
-              than typing itself in from empty; `reserveWidth` so the line does
-              not reflow on every character. */}
+              than typing itself in from empty; `reserveWidth` so neither the
+              width nor the HEIGHT of this line changes as the set cycles --
+              which is what keeps the buttons and the logo rail below from
+              stepping up and down every time a phrase needs a second line. */}
           <TextType
             text={ROTATING_WORDS}
             typingSpeed={70}
@@ -341,7 +370,7 @@ export function Hero() {
             startFull
             reserveWidth
             cursorCharacter="▎"
-            className="font-heading"
+            className="min-w-0 font-heading"
           />
           </span>
         </h1>

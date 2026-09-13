@@ -5,9 +5,9 @@ import {
 } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, lineTotal, naira } from "@/lib/admin/types";
 import { Empty, InvoicePill, Panel, Tile, when } from "@/components/admin/bits";
+import { PaymentMenu } from "@/components/admin/row-actions";
 import {
-  DeleteDraft, InvoiceBuilder, IssueInvoice, RecordPayment, ReversePayment,
-} from "@/components/admin/money-forms";
+  DeleteDraft, InvoiceBuilder, IssueInvoice, RecordPayment, } from "@/components/admin/money-forms";
 
 /* NO generateStaticParams: invoices are raised at runtime, and a prerendered
    list would 404 on the one just created. */
@@ -116,7 +116,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
           {payments.length ? (
             <div className="ad__scroll">
               <table className="ad__t">
-                <thead><tr><th>When</th><th>Method</th><th>Reference</th><th className="num">Amount</th><th /></tr></thead>
+                <thead><tr><th>When</th><th>Method</th><th>Reference</th><th className="num">Amount</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
                 <tbody>
                   {payments.map((p) => (
                     <tr key={p.id}>
@@ -128,7 +128,9 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                           callback and a manual entry cannot double-count. */}
                       <td className="ad__dim ad__num">{p.reference}</td>
                       <td className="num">{naira(p.amount)}</td>
-                      <td className="num"><ReversePayment id={p.id} invoiceId={inv.id} /></td>
+                      <td className="ad__rmC">
+                        <PaymentMenu payment={p} invoiceNumber={inv.number} />
+                      </td>
                     </tr>
                   ))}
                 </tbody>

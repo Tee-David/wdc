@@ -7,11 +7,20 @@ import type { ServiceSlug } from "@/lib/services";
  * finds, so adding a field is one entry rather than a component change, and
  * the inventory in the plan and the thing on screen cannot drift apart.
  *
- * WHAT IS DELIBERATELY NOT ASKED. Nothing commercial. Onboarding opens after
- * payment, so budget and fees were agreed by a person before this link was
- * ever sent; the one money question that remains is `ad_spend`, and that is
- * media spend paid to a platform rather than a fee paid to us, which is why
- * its label says so.
+ * WHAT IS DELIBERATELY NOT ASKED. No prices, and no request for money.
+ * Onboarding opens after payment, so fees were agreed by a person before this
+ * link was ever sent. The one money question that remains is `ad_spend`, and
+ * that is media spend paid to a platform rather than a fee paid to us, which is
+ * why its label says so.
+ *
+ * WHAT IS SAID, THOUGH, IS WHEN AN ANSWER TAKES THE WORK OUTSIDE WHAT WAS
+ * BOUGHT. A client buying a website who answers "no" to "do you have a logo"
+ * has just told us there is no identity to build the site out of, and the form
+ * used to simply move on -- which leaves them stuck and leaves us discovering
+ * it in week two. Those answers now carry an offer, and every offer carries a
+ * `scope` line saying plainly that it is extra and will be quoted first. That
+ * is not a price and it is not a charge; it is the difference between a form
+ * that collects answers and one that tells you where you stand.
  *
  * Answers are validated in the browser for immediate feedback and again by
  * the server before CockroachDB accepts a completed submission. Drafts use the
@@ -78,6 +87,30 @@ export type Field = {
   required?: boolean;
   /** Only shown when another field holds one of these values. */
   showIf?: { key: string; equals: string[] };
+  /**
+   * Says that answering this way takes the work outside what was paid for.
+   *
+   * ALWAYS VISIBLE, never behind the question mark, and that is the whole
+   * point of it being its own property rather than a `tip`. A `tip` is
+   * background for the client who wants it; this is a commercial fact the
+   * client has to see BEFORE they answer, because answering yes is them asking
+   * for something they have not bought. Hiding it would be the kind of quiet
+   * upsell this studio does not do.
+   *
+   * It never carries a number. Nothing is charged from this form; the sentence
+   * a `scope` line makes is always some version of "this is extra, and we will
+   * quote it before anything starts".
+   */
+  scope?: string;
+  /**
+   * Services this question is NOT asked of.
+   *
+   * The closing steps are shared by all six, which is right for "who signs
+   * work off" and wrong for "would you like us to design a logo" -- offering a
+   * branding client the thing they have just bought reads as not having read
+   * their own order.
+   */
+  notFor?: ServiceSlug[];
 };
 
 /**
@@ -230,6 +263,14 @@ export const SERVICE_STEPS: Step[] = [
         options: ["Search Console", "Analytics", "Google Business Profile", "CMS admin", "None of these"],
       },
       { key: "content_owner", label: "Who writes your content?", kind: "cards", required: true, options: ["Nobody yet", "My team", "An agency", "I would like WDC to"] },
+      /* "Nobody yet" is the answer that quietly decides whether the search work
+         can do anything at all: pages have to exist before they can rank. */
+      {
+        key: "content_writer_wanted", label: "Would you like us to write it?", kind: "yesno",
+        showIf: { key: "content_owner", equals: ["Nobody yet"] },
+        scope: "Extra to what you have already paid for. Say yes and we will send you a quote first — nothing is charged from this form.",
+        tip: "Search work needs pages to work on. If nobody is writing them, we can — or we can give your team the outlines and the search terms to write from, which costs less.",
+      },
     ],
   },
   {
@@ -259,11 +300,29 @@ export const SERVICE_STEPS: Step[] = [
     blurb: "Who writes it, and who looks after it after launch.",
     fields: [
       { key: "content_ready", label: "Do you have the words and pictures?", kind: "cards", required: true, options: ["They are ready", "I have some of them", "I need WDC to produce them"] },
+      {
+        key: "content_needed", label: "Which of them do you need from us?", kind: "multi",
+        options: ["Words", "Photography", "Both"],
+        showIf: { key: "content_ready", equals: ["I have some of them", "I need WDC to produce them"] },
+        scope: "Writing and photography are extra to building the site, and quoted separately once we know how many pages there are.",
+        tip: "A site cannot launch with placeholder text in it, so this is the thing that most often holds a launch date. Saying it now is what keeps the date.",
+      },
       { key: "wants_seo", label: "Should we optimise it for search?", kind: "yesno", required: true, tip: "Search optimisation is the work that makes a site findable on Google: the right words, a clean technical build, and pages that load fast." },
       /* From the client's own website form, which asks both and is right to:
          a site nobody maintains is a site that rots, and it is far cheaper to
          agree that now than to discover it in month four. */
       { key: "wants_maintenance", label: "Will you want ongoing updates and maintenance?", kind: "cards", required: true, options: ["Yes", "No", "Please explain what this includes"] },
+      /* THE CLIENT ASKED US SOMETHING AND THE FORM SAID NOTHING BACK. Picking
+         "please explain what this includes" is a question, and it led nowhere
+         at all -- the one answer on the step that was guaranteed to leave
+         somebody waiting. It is answered where it is asked now, and the answer
+         ends with the question it was standing in for. */
+      {
+        key: "maintenance_after_reading", label: "Now you know what it covers — would you like it?", kind: "yesno",
+        showIf: { key: "wants_maintenance", equals: ["Please explain what this includes"] },
+        hint: "Software and plugin updates, security patches, backups you can actually restore from, uptime monitoring, and somebody who answers when something breaks.",
+        scope: "It is a monthly arrangement, separate from building the site, and quoted once we know the size of what we would be looking after. Saying no changes nothing about the build.",
+      },
       { key: "wants_blogging", label: "Will you want help with blogging or content marketing?", kind: "cards", options: ["Yes", "No", UNSURE] },
     ],
   },
@@ -297,6 +356,12 @@ export const SERVICE_STEPS: Step[] = [
         tip: "Include the ending you want, like .com or .com.ng. We will check what is free.",
         showIf: { key: "has_hosting", equals: ["Neither"] },
       },
+      {
+        key: "hosting_wanted", label: "Would you like us to buy and set them up for you?", kind: "yesno",
+        showIf: { key: "has_hosting", equals: ["Neither"] },
+        scope: "The domain and the hosting are paid to the registrar and the host, not to us. Our time to set them up is extra to the build, and you will see both figures before anything is bought.",
+        tip: "Whatever is bought is registered in YOUR name, not ours. Losing control of a domain is the single most expensive thing that happens to a small business online, and it is entirely preventable at the start.",
+      },
     ],
   },
   {
@@ -313,6 +378,11 @@ export const SERVICE_STEPS: Step[] = [
         key: "store_accounts", label: "Do you have developer accounts for the stores?", kind: "cards",
         required: true, options: ["Both", "One of them", "Neither", UNSURE],
         tip: "Apple and Google both require a paid developer account in YOUR name to publish. If you have neither, we will walk you through it. It is not a blocker.",
+      },
+      {
+        key: "store_accounts_wanted", label: "Would you like us to set up the ones you are missing?", kind: "yesno",
+        showIf: { key: "store_accounts", equals: ["One of them", "Neither", UNSURE] },
+        scope: "Apple and Google charge their own developer fees, paid to them and in your name. Our time to open the accounts and get the app through review is extra to the build, and quoted before we start.",
       },
       { key: "backend", assist: true, label: "Is there a backend already, or are we building it?", kind: "cards", options: ["One exists", "Build it", UNSURE] },
     ],
@@ -354,6 +424,12 @@ export const SERVICE_STEPS: Step[] = [
       { key: "handle_whatsapp", label: "Your WhatsApp handle", kind: "text", placeholder: "@yourbusiness", showIf: { key: "channels", equals: ["WhatsApp"] } },
       { key: "handle_other", label: "Anywhere else? Give us the handle", kind: "text", showIf: { key: "channels", equals: ["Somewhere else"] } },
       { key: "content_source", label: "Who creates your content today?", kind: "cards", required: true, options: ["Nobody yet", "My team", "A freelancer", "I would like WDC to"] },
+      {
+        key: "content_creator_wanted", label: "Would you like us to create it?", kind: "yesno",
+        showIf: { key: "content_source", equals: ["Nobody yet"] },
+        scope: "Extra to what you have already paid for. Say yes and we will send you a quote first — nothing is charged from this form.",
+        tip: "Accounts without a supply of content go quiet within a month. If making it yourself is not realistic, it is better to say so now than to find out in week three.",
+      },
       { key: "access_ok", label: "How should we handle account access?", kind: "cards", required: true, options: ["I can give WDC access", "Please work through me"] },
     ],
   },
@@ -386,6 +462,18 @@ export const CLOSING_STEPS: Step[] = [
     fields: [
       { key: "has_logo", label: "Do you have a logo ready?", kind: "yesno", required: true },
       { key: "logo_files", label: "Upload your logo files", kind: "upload", showIf: { key: "has_logo", equals: ["Yes"] } },
+      /* "No" WAS A DEAD END, AND IT IS THE MOST CONSEQUENTIAL ANSWER HERE. A
+         client with no logo has no identity for the work to be built out of,
+         and everything downstream -- a site, an app, a month of posts -- has to
+         either invent one or wait for one. The form used to move straight past
+         that, which left the client stuck and left us finding out in week two. */
+      {
+        key: "logo_wanted", label: "Would you like us to design one?", kind: "yesno",
+        notFor: ["branding"],
+        showIf: { key: "has_logo", equals: ["No"] },
+        scope: "Extra to what you have already paid for. Say yes and we will send you a quote first — nothing is charged from this form.",
+        tip: "Saying no stops nothing. We will work with what you have and keep the design plain enough that a logo drops into it later without a rebuild.",
+      },
       {
         key: "has_brandbook", label: "Do you have a brand book or guide?", kind: "cards", required: true,
         options: ["Yes", "No", "I'm not sure what that is"],
@@ -393,6 +481,13 @@ export const CLOSING_STEPS: Step[] = [
       },
       { key: "brandbook_file", label: "Upload it", kind: "upload", showIf: { key: "has_brandbook", equals: ["Yes"] } },
       { key: "brand_colours", label: "Your brand colours", kind: "text", placeholder: "e.g. Navy #000065, Orange #FF6500", tip: "Hex codes if you have them, names if you do not.", showIf: { key: "has_brandbook", equals: ["No", "I'm not sure what that is"] } },
+      {
+        key: "brandbook_wanted", label: "Would you like us to put one together?", kind: "yesno",
+        notFor: ["branding"],
+        showIf: { key: "has_brandbook", equals: ["No", "I'm not sure what that is"] },
+        scope: "Extra to what you have already paid for. Say yes and we will send you a quote first — nothing is charged from this form.",
+        tip: "It is what stops everything made afterwards looking like it came from somewhere else: colours, fonts, logo rules and tone of voice, written down once so the next person does not have to guess.",
+      },
       { key: "inspiration", assist: true, label: "Two or three examples you like, and what you like about them", kind: "textarea" },
       { key: "assets", label: "Anything else we should have", kind: "upload" },
     ],
@@ -496,7 +591,15 @@ export function stepsFor(service: ServiceSlug): Step[] {
       id: "finishing-up",
       title: "Finishing up",
       blurb: "Assets, approvals, communication, and anything we should not miss.",
-      fields: CLOSING_STEPS.flatMap((step) => step.fields),
+      /* `notFor` IS APPLIED HERE, not in the renderer, because the question
+         should not exist for this form rather than be hidden in it: a field
+         that is filtered out cannot be required, cannot be validated, and
+         cannot turn up in the review screen or the submitted record. Offering
+         a branding client a logo they have just bought is the case it exists
+         for. */
+      fields: CLOSING_STEPS
+        .flatMap((step) => step.fields)
+        .filter((f) => !f.notFor?.includes(service)),
     },
   ];
 }

@@ -597,3 +597,45 @@ export function clientFromSubmission(id: Id): Client | null {
   s.clientId = c.id;
   return c;
 }
+
+/* --------------------------------------------------------------- settings */
+
+/**
+ * Content overrides, keyed by field.
+ *
+ * THE SAFE SHAPE IS AN OVERRIDE, NOT A REPLACEMENT, and the reason is in the
+ * derivation chains: WORK_CATEGORIES is computed from SERVICES, the sitemap
+ * from WORK_CATEGORIES and CASE_STUDIES, and the embed allowlist from
+ * PROJECTS. Editing those wholesale means one bad save can empty a page and
+ * nobody finds out until a client does.
+ *
+ * So an edit writes one row. The worst it can do is change one value, and
+ * clearing the row restores exactly what shipped in git -- which is why
+ * `clearSetting` exists and why the screen can always say which rows are
+ * carrying an override.
+ *
+ * Same lifetime as everything else in this file: in memory, gone on restart.
+ * Moving it to CockroachDB is this map becoming a table with the same two
+ * columns.
+ */
+const SETTINGS = new Map<string, string>();
+
+export function getSettings(): Record<string, string> {
+  return Object.fromEntries(SETTINGS);
+}
+
+export function getSetting(key: string): string | null {
+  return SETTINGS.get(key) ?? null;
+}
+
+export function setSetting(key: string, value: string): boolean {
+  const trimmed = value.trim();
+  if (!key || !trimmed) return false;
+  SETTINGS.set(key, trimmed);
+  return true;
+}
+
+/** Clearing the row is how an edit is undone; there is no "restore" copy. */
+export function clearSetting(key: string): boolean {
+  return SETTINGS.delete(key);
+}

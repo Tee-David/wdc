@@ -5,7 +5,8 @@ import {
 } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, naira, nairaShort } from "@/lib/admin/types";
 import { DemoNote, Empty, InvoicePill, Panel, Tile, when } from "@/components/admin/bits";
-import { AddExpense, InvoiceBuilder, RemoveExpense } from "@/components/admin/money-forms";
+import { AddExpense, InvoiceBuilder } from "@/components/admin/money-forms";
+import { ExpenseMenu, InvoiceMenu, PaymentMenu } from "@/components/admin/row-actions";
 
 export const metadata = { title: "Money" };
 
@@ -104,6 +105,7 @@ export default function MoneyPage() {
                   <tr>
                     <th>Number</th><th>Client</th><th>Status</th><th>Due</th>
                     <th className="num">Total</th><th className="num">Paid</th><th className="num">Owed</th>
+                    <th className="ad__rmH"><span className="ad__sr">Actions</span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -118,6 +120,7 @@ export default function MoneyPage() {
                         <td className="num">{naira(t.total)}</td>
                         <td className="num">{naira(i.paid)}</td>
                         <td className="num">{t.due ? naira(t.due) : <span className="ad__dim">Nil</span>}</td>
+                        <td className="ad__rmC"><InvoiceMenu invoice={i} /></td>
                       </tr>
                     );
                   })}
@@ -136,7 +139,7 @@ export default function MoneyPage() {
             {payments.length ? (
               <div className="ad__scroll">
                 <table className="ad__t">
-                  <thead><tr><th>When</th><th>Invoice</th><th>Method</th><th>Reference</th><th className="num">Amount</th></tr></thead>
+                  <thead><tr><th>When</th><th>Invoice</th><th>Method</th><th>Reference</th><th className="num">Amount</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
                   <tbody>
                     {payments.map((p) => {
                       const inv = invoices.find((i) => i.id === p.invoiceId);
@@ -147,6 +150,9 @@ export default function MoneyPage() {
                           <td>{p.method}</td>
                           <td className="ad__dim ad__num">{p.reference}</td>
                           <td className="num">{naira(p.amount)}</td>
+                          <td className="ad__rmC">
+                            <PaymentMenu payment={p} invoiceNumber={inv?.number} />
+                          </td>
                         </tr>
                       );
                     })}
@@ -188,7 +194,7 @@ export default function MoneyPage() {
           {expenses.length ? (
             <div className="ad__scroll">
               <table className="ad__t">
-                <thead><tr><th>When</th><th>What</th><th>Category</th><th className="num">Amount</th><th /></tr></thead>
+                <thead><tr><th>When</th><th>What</th><th>Category</th><th className="num">Amount</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
                 <tbody>
                   {expenses.map((e) => (
                     <tr key={e.id}>
@@ -196,7 +202,7 @@ export default function MoneyPage() {
                       <td><b>{e.description}</b></td>
                       <td><span className="ad__pill ad__pill--flat">{e.category}</span></td>
                       <td className="num">{naira(e.amount)}</td>
-                      <td className="num"><RemoveExpense id={e.id} /></td>
+                      <td className="ad__rmC"><ExpenseMenu expense={e} /></td>
                     </tr>
                   ))}
                 </tbody>

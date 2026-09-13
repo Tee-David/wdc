@@ -4,6 +4,7 @@ import { SERVICES } from "@/lib/services";
 import { getClient, getInvoicesFor, getProject } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, naira, STAGES } from "@/lib/admin/types";
 import { Empty, InvoicePill, Panel, StagePill, when } from "@/components/admin/bits";
+import { InvoiceMenu } from "@/components/admin/row-actions";
 import { AddNote, SetDue, StageMover } from "@/components/admin/project-forms";
 import { InvoiceBuilder } from "@/components/admin/money-forms";
 
@@ -83,13 +84,14 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           {invoices.length ? (
             <div className="ad__scroll">
               <table className="ad__t">
-                <thead><tr><th>Number</th><th>Status</th><th className="num">Owed</th></tr></thead>
+                <thead><tr><th>Number</th><th>Status</th><th className="num">Owed</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
                 <tbody>
                   {invoices.map((i) => (
                     <tr key={i.id}>
                       <td><Link href={`/admin/money/${i.id}`}><b>{i.number}</b></Link></td>
                       <td><InvoicePill status={invoiceStatus(i)} /></td>
                       <td className="num">{naira(invoiceTotals(i).due)}</td>
+                      <td className="ad__rmC"><InvoiceMenu invoice={i} /></td>
                     </tr>
                   ))}
                 </tbody>

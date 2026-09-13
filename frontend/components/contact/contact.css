@@ -24,8 +24,11 @@
 }
 .ct-pill svg { width: 15px; height: 15px; color: var(--accent-ink); }
 
-.pv .ct-h { font-size: clamp(2.2rem, 1.4rem + 3.2vw, 3.9rem); margin-top: 18px; max-width: 14ch; }
-.ct-lede { margin-top: 16px; max-width: 42ch; }
+/* NO LOCAL SIZE OR SPACING FOR THE HEADING AND LEDE. They sit in `.wk-hero`
+   now, which sets both -- and the sizes here were losing to it on specificity
+   anyway, while the margins were adding to a grid gap that already spaced the
+   band. /contact opens exactly as /blog and /services do, which is the point
+   of the band. */
 
 /* One row per channel. Rendered from data, so a channel with no value simply
    does not appear rather than showing a blank line — see lib/contact.ts. */

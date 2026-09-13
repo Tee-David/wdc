@@ -17,7 +17,7 @@ const SERVICE_OPTIONS = SERVICES.map((s) => ({ value: s.slug, label: s.short }))
  * components would mean two copies of a nine-field form, and the day somebody
  * adds a field to one of them is the day the other stops matching.
  */
-function ClientFields({ client }: { client?: Client }) {
+export function ClientFields({ client }: { client?: Client }) {
   return (
     <Fields>
       {client ? <Hidden name="id" value={client.id} /> : null}

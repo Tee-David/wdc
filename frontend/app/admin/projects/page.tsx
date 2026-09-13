@@ -4,6 +4,7 @@ import { getBoard, getClient, getClients, getProjects } from "@/lib/admin/store"
 import { STAGES } from "@/lib/admin/types";
 import { DemoNote, Empty, Panel, StagePill, when } from "@/components/admin/bits";
 import { AddProject } from "@/components/admin/project-forms";
+import { ProjectMenu } from "@/components/admin/row-actions";
 
 export const metadata = { title: "Projects" };
 
@@ -48,17 +49,24 @@ export default function ProjectsPage() {
                 </div>
                 <div style={{ padding: ".5rem" }}>
                   {list.length ? list.map((p) => (
-                    <Link
+                    /* The card is a link and the menu is a button, so they
+                       cannot be nested -- a button inside an anchor is invalid
+                       and behaves differently in every browser. They are
+                       siblings in one bordered row instead. */
+                    <div
                       key={p.id}
-                      href={`/admin/projects/${p.id}`}
+                      className="ad__cardTop"
                       style={{
-                        display: "block", padding: ".55rem .6rem", borderRadius: "9px",
+                        padding: ".5rem .35rem .5rem .6rem", borderRadius: "9px",
                         border: "1px solid var(--ad-line)", marginBottom: ".4rem",
                       }}
                     >
-                      <b>{p.title}</b>
-                      <small className="ad__dim">{getClient(p.clientId)?.company}</small>
-                    </Link>
+                      <Link href={`/admin/projects/${p.id}`} style={{ display: "block" }}>
+                        <b>{p.title}</b>
+                        <small className="ad__dim">{getClient(p.clientId)?.company}</small>
+                      </Link>
+                      <ProjectMenu project={p} clientName={getClient(p.clientId)?.company} />
+                    </div>
                   )) : <p className="ad__dim" style={{ padding: ".4rem .6rem", margin: 0 }}>Empty</p>}
                 </div>
               </section>
@@ -71,7 +79,7 @@ export default function ProjectsPage() {
         {all.length ? (
           <div className="ad__scroll">
             <table className="ad__t">
-              <thead><tr><th>Project</th><th>Client</th><th>Service</th><th>Stage</th><th>Due</th><th>Last moved</th></tr></thead>
+              <thead><tr><th>Project</th><th>Client</th><th>Service</th><th>Stage</th><th>Due</th><th>Last moved</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
               <tbody>
                 {all.map((p) => {
                   const last = p.events[p.events.length - 1];
@@ -83,6 +91,9 @@ export default function ProjectsPage() {
                       <td><StagePill stage={p.stage} /></td>
                       <td className="num">{when(p.due)}</td>
                       <td className="num">{last ? when(last.at) : <span className="ad__dim">Never</span>}</td>
+                      <td className="ad__rmC">
+                        <ProjectMenu project={p} clientName={getClient(p.clientId)?.company} />
+                      </td>
                     </tr>
                   );
                 })}
