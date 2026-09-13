@@ -96,6 +96,9 @@
   align-content: center; height: 100%; overflow: hidden;
 }
 .ab-wheelsec__flat li {
+  /* `next/image` with `fill` positions itself absolutely, so the tile has to be
+     the thing it is absolute to. */
+  position: relative;
   aspect-ratio: 1 / 1; overflow: hidden; border-radius: 14px;
   border: 1px solid var(--rule); background: var(--paper-2);
 }
