@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  Archive, ArchiveRestore, ArrowRight, Banknote, CalendarDays, FilePlus2,
+  Archive, ArchiveRestore, ArrowRight, Banknote, CalendarDays, FilePlus2, FolderPlus,
   MessageSquarePlus, Move, Pencil, RotateCcw, Send, Trash2, Undo2, UserPlus, Users,
   type LucideIcon,
 } from "lucide-react";
@@ -370,7 +370,7 @@ export function ExpenseMenu({ expense }: { expense: Expense }) {
 export function SubmissionMenu({
   submission, clients,
 }: {
-  submission: Pick<Submission, "id" | "clientId" | "answers">;
+  submission: Pick<Submission, "id" | "clientId" | "answers" | "service">;
   clients: Pick<Client, "id" | "company">[];
 }) {
   const who = String(submission.answers.company ?? submission.answers.first_name ?? "this form");
@@ -379,10 +379,48 @@ export function SubmissionMenu({
     { kind: "link", label: "Read the answers", href: `/admin/forms/${submission.id}`, icon: ArrowRight },
   ];
 
-  if (submission.clientId) {
+  /* Narrowed into a local so the closures below can see it. A property access
+     on the parameter narrows in this block but not inside the render callback,
+     which runs later and could in principle see a different value. */
+  const attachedTo = submission.clientId;
+  if (attachedTo) {
     items.push({
       kind: "link", label: "Open the client",
-      href: `/admin/clients/${submission.clientId}`, icon: Users,
+      href: `/admin/clients/${attachedTo}`, icon: Users,
+    });
+    items.push({
+      /* THE BRIEF BECOMES THE PROJECT, rather than being read once and retyped.
+         The client and the service are already settled by the form, so both
+         are fixed here instead of asked again; what is left is the handful of
+         things the form does not know -- who owns it, when it is due and what
+         was agreed for it. The answers are NOT copied into the scope
+         automatically: what a client wrote in an onboarding form is their
+         description of what they want, and the scope is what we agreed to do,
+         which is a different sentence and sometimes a shorter one. */
+      kind: "dialog", label: "Open a project from this", icon: FolderPlus,
+      title: `A project for ${who}`,
+      render: () => (
+        <Form action={createProject}>
+          <Fields>
+            <Hidden name="clientId" value={attachedTo} />
+            <Hidden name="service" value={submission.service} />
+            <Field name="title" label="What it is" required
+                   placeholder={`${SERVICES.find((x) => x.slug === submission.service)?.short ?? "Project"} for ${who}`} />
+            <Select name="stage" label="Starting at" half defaultValue="Discovery"
+                    options={STAGES.map((x) => ({ value: x, label: x }))}
+                    hint="Discovery rather than Onboarding: the form is already in." />
+            <Field name="due" label="Due" type="date" half />
+            <Field name="owner" label="Who is answerable" half placeholder="Babatope" />
+            <Field name="budget" label="Agreed budget" half inputMode="decimal"
+                   hint="Naira. Empty is not zero." />
+            <Area name="scope" label="What was agreed" rows={2}
+                  hint="Their answers are on the form itself; this is what we have committed to." />
+          </Fields>
+          <Actions>
+            <Submit icon={FolderPlus}>Open the project</Submit>
+          </Actions>
+        </Form>
+      ),
     });
   } else {
     items.push({
