@@ -155,6 +155,61 @@
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
 }
 
+/* THE GALLERY RAIL. The artwork wall scrolls sideways instead of stacking:
+   see components/work/gallery-wall.tsx for why. */
+.wk-rail { position: relative; }
+.wk-rail__track {
+  display: flex;
+  gap: clamp(16px, 2.2vw, 28px);
+  overflow-x: auto;
+  /* PROXIMITY, NOT MANDATORY -- the same lesson .pv-track records. Mandatory
+     snapping has to come to rest on a snap point, so a short sideways nudge is
+     thrown back where it came from and the rail reads as fighting the finger.
+     And no `scroll-behavior: smooth` here: Chrome applies it to wheel deltas as
+     well as programmatic ones, so every tick queues its own animation. The
+     arrows ask for smooth in scrollBy(), which is the only caller that wants
+     it. */
+  scroll-snap-type: x proximity;
+  /* A sideways rail must not swallow a vertical swipe, and must not hand a
+     horizontal overscroll to the browser as a back gesture. */
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  /* Clearance for the 4px hover lift and the focus ring at 3px offset. Without
+     it the rail's own overflow clips both. */
+  padding-block: var(--card-lift-gutter, 10px) calc(var(--card-lift-gutter, 10px) + 2px);
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) var(--paper-2);
+}
+.wk-rail__track > .wk-card {
+  scroll-snap-align: start;
+  /* Never full width: the next card's edge peeking in is the only thing that
+     tells a reader there IS a next card. */
+  flex: 0 0 clamp(210px, 62vw, 300px);
+  min-width: 0;
+}
+
+.wk-rail__btn {
+  position: absolute;
+  top: calc(50% - 1.4rem);
+  z-index: 2;
+  /* The rail scrolls under these, so they need a ground of their own. */
+  background: var(--paper);
+  box-shadow: 0 10px 26px -12px rgb(0 0 26 / .45);
+}
+.wk-rail__btn--prev { left: -.6rem; }
+.wk-rail__btn--next { right: -.6rem; }
+.wk-rail__btn:disabled { opacity: 0; pointer-events: none; }
+
+/* A finger has a better gesture than a 44px target at the edge of the artwork,
+   and on a phone these would sit on top of the cards rather than beside them. */
+@media (hover: none), (pointer: coarse) {
+  .wk-rail__btn { display: none; }
+}
+
+@media (min-width: 1001px) {
+  .wk-rail__track > .wk-card { flex-basis: clamp(240px, 22vw, 300px); }
+}
+
 .wk-card {
   display: flex; flex-direction: column;
   border-radius: 20px; overflow: hidden;

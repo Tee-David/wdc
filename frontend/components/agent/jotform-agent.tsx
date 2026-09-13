@@ -25,8 +25,40 @@ const SRC =
 const AVATAR = "/brand/agent-avatar.webp";
 
 export default function JotformAgent() {
+  /* TWO FLAGS, BECAUSE FETCHING AND OPENING ARE DIFFERENT DECISIONS.
+
+     `loading` means the runtime has been asked for. `wanted` means a person
+     has actually asked to talk to someone, and is the only thing that opens
+     the conversation. Separating them is the whole fix for "it takes an awful
+     amount of time before it opens": the download used to start on the click,
+     so the entire wait sat between the tap and anything happening. Now it
+     starts when someone reaches for the button -- hover, focus, or the moment
+     a finger lands on it -- and the click usually finds it already there.
+
+     It is still never speculative. Nobody who does not go for the button pays
+     for it, which matters more here than usual: this runtime is about 15MB,
+     and on a phone on mobile data that is not a thing to spend on a guess. */
+  const [loading, setLoading] = useState(false);
   const [wanted, setWanted] = useState(false);
   const [handedOff, setHandedOff] = useState(false);
+
+  /* DNS and TLS to their CDN, at idle, costing no bytes. On a high-latency
+     connection the handshake alone is a few hundred milliseconds that would
+     otherwise be spent after the tap. */
+  useEffect(() => {
+    const warm = () => {
+      for (const href of ["https://cdn.jotfor.ms", "https://www.jotform.com"]) {
+        const link = document.createElement("link");
+        link.rel = "preconnect";
+        link.href = href;
+        link.crossOrigin = "";
+        document.head.appendChild(link);
+      }
+    };
+    const idle = window.requestIdleCallback;
+    const id = idle ? idle(warm, { timeout: 4000 }) : window.setTimeout(warm, 2500);
+    return () => { if (idle) window.cancelIdleCallback?.(id as number); else clearTimeout(id); };
+  }, []);
 
   useEffect(() => {
     if (!wanted || handedOff) return;
@@ -54,20 +86,36 @@ export default function JotformAgent() {
         <button
           type="button"
           className={`jf-facade${wanted ? " is-loading" : ""}`}
-          onClick={() => setWanted(true)}
+          /* Reaching for the button is enough to start fetching. `pointerenter`
+             covers a mouse and a trackpad; `touchstart` fires before the click
+             a tap produces, so a finger gets a head start too; `focus` covers
+             the keyboard. All three only ever set the same flag once. */
+          onPointerEnter={() => setLoading(true)}
+          onTouchStart={() => setLoading(true)}
+          onFocus={() => setLoading(true)}
+          onClick={() => { setLoading(true); setWanted(true); }}
           aria-label={wanted ? "Opening project chat" : "Open project chat"}
           aria-busy={wanted || undefined}
         >
           <Image src={AVATAR} alt="" width={56} height={56} priority={false} unoptimized />
-          <span className="jf-facade__bubble" aria-hidden="true">Hiiii 👋</span>
+          {/* SAY WHAT IS HAPPENING. A pulsing avatar and nothing else is what
+              made the wait feel broken rather than slow. The bubble is already
+              here; while the runtime is coming it carries the news instead of
+              a greeting. */}
+          <span className="jf-facade__bubble" aria-hidden="true">
+            {wanted ? "Starting the chat…" : "Hiiii 👋"}
+          </span>
         </button>
       ) : null}
-      {wanted ? (
+      {/* Rendered once either flag is set, so an intent that never became a
+          click still leaves the runtime cached for the one that does. */}
+      {loading ? (
         <Script
           id="jotform-agent"
           src={SRC}
           strategy="afterInteractive"
           onError={() => {
+            setLoading(false);
             setWanted(false);
             setHandedOff(false);
           }}

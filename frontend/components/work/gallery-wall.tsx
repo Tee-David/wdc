@@ -20,6 +20,33 @@ export function GalleryWall({ pieces }: { pieces: GalleryPiece[] }) {
   const opener = useRef<HTMLButtonElement | null>(null);
   const closeBtn = useRef<HTMLButtonElement | null>(null);
 
+  const rail = useRef<HTMLDivElement | null>(null);
+  const [atStart, setAtStart] = useState(true);
+  const [atEnd, setAtEnd] = useState(false);
+
+  /* Read from the scroll event rather than watched per frame. An 8px slack on
+     each end, because a rail that has been flung rarely lands on an exact
+     integer and an arrow that stays enabled at the very end is a dead control. */
+  const sync = useCallback(() => {
+    const el = rail.current;
+    if (!el) return;
+    setAtStart(el.scrollLeft < 8);
+    setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 8);
+  }, []);
+
+  useEffect(() => { sync(); }, [sync, pieces]);
+
+  const step = (dir: number) => {
+    const el = rail.current;
+    if (!el) return;
+    const first = el.children[0] as HTMLElement | undefined;
+    const gap = parseFloat(getComputedStyle(el).gap || "20");
+    /* One card at a time. Paging by the viewport would jump past pieces at
+       every width where the cards do not divide into it evenly. */
+    const by = first ? first.getBoundingClientRect().width + gap : 300;
+    el.scrollBy({ left: dir * by, behavior: "smooth" });
+  };
+
   const close = useCallback(() => {
     setOpen(null);
     // back to the tile that opened it, or a keyboard visitor is dumped at the
@@ -48,33 +75,69 @@ export function GalleryWall({ pieces }: { pieces: GalleryPiece[] }) {
 
   return (
     <>
-      <div className="wk-grid">
-        {pieces.map((p) => (
-          <button
-            type="button"
-            className="wk-card wk-art"
-            key={p.id}
-            onClick={(e) => { opener.current = e.currentTarget; setOpen(p); }}
-            aria-haspopup="dialog"
-          >
-            <span className="wk-card__shot">
-              { }
-              <Image
-                src={p.src}
-                alt={p.title}
-                fill
-                sizes="(max-width: 560px) 50vw, (max-width: 1000px) 33vw, 25vw"
-                quality={78}
-              />
-            </span>
-            <span className="wk-card__body">
-              <span className="wk-card__t">{p.title}</span>
-              <span className="wk-card__meta">
-                <span className="wk-chip">{p.kind}</span>
+      {/* A RAIL, NOT A GRID.
+
+          Fifty-six pieces in a four-column grid is fourteen rows of artwork
+          between the reader and whatever comes next, and the only way past it
+          is to scroll through all of it. Sideways, the wall is one row deep:
+          it can be browsed as far as someone is interested and stepped over
+          when they are not.
+
+          The arrows float at the edges rather than sitting in the heading
+          above, so the section's existing header is untouched and the control
+          is next to the thing it controls. They are for pointing devices; a
+          finger already has a better gesture and gets the rail on its own. */}
+      <div className="wk-rail">
+        <div
+          className="wk-rail__track"
+          ref={rail}
+          onScroll={sync}
+          /* Lenis eats the wheel over nested scrollers unless told otherwise,
+             and this one is nested inside a Lenis-driven page on desktop. */
+          data-lenis-prevent
+        >
+          {pieces.map((p) => (
+            <button
+              type="button"
+              className="wk-card wk-art"
+              key={p.id}
+              onClick={(e) => { opener.current = e.currentTarget; setOpen(p); }}
+              aria-haspopup="dialog"
+            >
+              <span className="wk-card__shot">
+                { }
+                <Image
+                  src={p.src}
+                  alt={p.title}
+                  fill
+                  sizes="(max-width: 560px) 62vw, (max-width: 1000px) 33vw, 22vw"
+                  quality={78}
+                />
               </span>
-            </span>
-          </button>
-        ))}
+              <span className="wk-card__body">
+                <span className="wk-card__t">{p.title}</span>
+                <span className="wk-card__meta">
+                  <span className="wk-chip">{p.kind}</span>
+                </span>
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          className="pv-rbtn pv-rbtn--prev wk-rail__btn wk-rail__btn--prev"
+          onClick={() => step(-1)}
+          disabled={atStart}
+          aria-label="Previous pieces"
+        />
+        <button
+          type="button"
+          className="pv-rbtn wk-rail__btn wk-rail__btn--next"
+          onClick={() => step(1)}
+          disabled={atEnd}
+          aria-label="More pieces"
+        />
       </div>
 
       {open ? (
