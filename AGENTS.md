@@ -47,6 +47,33 @@
 - Earn infrastructure with an estimate. Queues, caches, workers and background runners each add a failure mode; add one when a written-down number says the simple version will not hold, not because the shape looks more serious.
 - Anything we send to a person must be something they can switch off, and the setting lives with the person, not the template.
 
+## Page shape and consistency
+
+- Every landing page opens the same way: the `wk-hero` navy band carrying the eyebrow, the `h1` and the lede, then content on the page's own ground. `/`, `/work`, `/services`, `/services/<slug>`, `/work/<category>`, `/blog` and `/contact` all follow it. A page that invents its own opening is the one that looks like a different site.
+- `<Header overHero />` is white type on no background. It is only correct when a dark band sits under it. A page that loses its dark hero and keeps `overHero` has invisible navigation in light mode — this has happened twice.
+- Grid when the set IS the destination: an index, a hub, a category listing. Rail (`.pv-rail`) when it is a sideways offer beside something else: "read next", "more work", related anything. A rail needs at least four items or it is a grid with extra steps, and it must always show a partial card so the reader can see there is more.
+- Cards share one track across the site (`minmax(min(100%, 20rem), 1fr)`). Cards a quarter narrower than the ones on the next page read as inconsistency without anyone being able to say why.
+
+## Layout traps this repo has already paid for
+
+- A transform is not layout. `ScrollExpand` scales its box, so inside a two-column row the visible panel does not sit where its layout box says it does. Do not wrap one column of a row in something that transforms it.
+- A margin written for a vertical stack becomes a misalignment in a two-column row. Zero it in the two-column case rather than removing it from the stack.
+- Metadata is INHERITED. A canonical, a robots directive or an `openGraph.images` set on the root layout applies to every page that does not override it, including 404s and noindex pages. Setting `openGraph.images` explicitly also suppresses the `opengraph-image` file convention.
+- Turbopack will serve a stale CSS chunk after an edit to a stylesheet that is imported rather than changed in place. If a rule is in the source and `display` computes as though the file does not exist, `rm -rf .next` before believing anything else.
+
+## Media and assets
+
+- Reach for `next/image` where it buys something. Measure first: several of this site's assets are already narrower than any variant the optimiser would generate, and two stages loop by translating an image -50%, which reads its natural height — the one thing `fill` removes.
+- A QR code carrying our mark forces error-correction level H, snaps the well to whole modules, and keeps coverage far below the 30% budget. It is measured, because this is the failure that shows up silently on somebody else's phone weeks later.
+- Decorative animation is transform and opacity, or it does not ship. `content-visibility: auto` is the pure-CSS way to stop a loop that is off screen; an observer is the way when the component already has one.
+- A screenshot used as an asset must be reproducible by a committed script, or it becomes a picture of a site that no longer exists.
+
+## Secrets and environment
+
+- The repo-root `.env` is loaded by `frontend/next.config.ts`, because Next only reads the project directory. A variable already set always wins, so Vercel and a real shell export are never overridden.
+- One naming scheme per service, settled before anything reads it. Paystack is `PAYSTACK_MODE` plus `PAYSTACK_TEST_*` and `PAYSTACK_LIVE_*`; `lib/paystack.ts` resolves the active pair so no route reads a raw name and no `NEXT_PUBLIC_` copy can drift out of step with the mode.
+- Never rewrite `.env` with a regex. Read it, edit the parsed keys, write it back, and verify the key count before and after.
+
 ## Coding discipline
 
 - State material assumptions and tradeoffs before coding; ask only when ambiguity would change the result. Prefer the simplest implementation that satisfies the request.
