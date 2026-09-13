@@ -36,7 +36,12 @@
    landed between every stacked block here, opening 72px voids that made one
    short page read as five disconnected ones. Spacing in this column comes
    from each block's own top margin. */
-.ob--intro {
+/* The sent screen shares the column and NOTHING ELSE. It deliberately does not
+   carry `ob--intro` as well: that class also owns the Start button's placement
+   and its forever-looping arrow nudge, both of which are right for the one
+   button that begins the form and wrong for the pair of links that end it. */
+.ob--intro,
+.ob--sent {
   grid-template-columns: minmax(0, 72ch);
   justify-content: center;
   gap: 0;
@@ -859,3 +864,125 @@
 }
 .pv .ob__scope svg { width: 1rem; height: 1rem; flex: none; margin-top: .15rem; }
 .pv .ob__scope span { min-width: 0; }
+
+/* ============================================================================
+   The screen after Send.
+
+   Warm rather than decorated. The tick, the heading and the lede do the
+   feeling; the numbered list does the work, because what a client wants here
+   is not congratulation, it is "and what happens now". See the note above the
+   `submitted` branch in onboarding-form.tsx.
+   ========================================================================== */
+
+/* Centred, because this screen is a moment rather than a working surface. The
+   rest of the form is left-aligned for reading down a column of questions; there
+   are no questions left. */
+.ob--sent { text-align: center; justify-items: center; }
+.pv .ob--sent .ob__lede { margin-inline: auto; }
+
+/* ---------------- the tick ---------------- */
+.pv .ob__seal {
+  display: grid; place-items: center;
+  width: clamp(3.6rem, 3rem + 2.4vw, 4.8rem);
+  aspect-ratio: 1;
+  margin: 0 auto 1.4rem;
+  border-radius: 50%;
+  /* Orange fill takes BLACK, per the colour rule: white on #ff6500 is 2.95:1
+     and fails even the 3:1 allowed for large shapes. Black on it is 7.11:1. */
+  background: var(--accent); color: var(--on-accent, #000);
+  /* A soft ring in the accent so the disc has a halo rather than a hard edge
+     against the page. */
+  box-shadow: 0 0 0 .55rem color-mix(in srgb, var(--accent) 14%, transparent);
+  /* Arrives once. Transform and opacity only; `forwards` so it holds where it
+     lands rather than snapping back. */
+  animation: ob-seal .55s cubic-bezier(.2, 1.4, .4, 1) both;
+}
+.pv .ob__seal svg {
+  width: 52%; height: 52%;
+  stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round;
+}
+@keyframes ob-seal {
+  from { opacity: 0; transform: scale(.5); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ---------------- what happens next ---------------- */
+.ob__next {
+  width: 100%;
+  margin-top: 2.2rem; padding: clamp(1.2rem, 2.6vw, 1.8rem);
+  border: 1px solid var(--rule); border-radius: 18px;
+  background: var(--paper-2);
+  /* The steps are read, so they go back to being left-aligned inside the
+     centred column. Centred body copy is fine for two lines and hard work for
+     nine. */
+  text-align: left;
+}
+.pv .ob__next h2 {
+  margin: 0 0 1.1rem;
+  font-size: .78rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted);
+}
+.ob__next ol {
+  /* Counter rather than `list-style`, because the marker is a filled disc that
+     has to sit on the same baseline as the step's title. Tailwind's preflight
+     strips list styling anyway, so a list here is drawn or it is nothing. */
+  counter-reset: obstep;
+  display: grid; gap: 1.05rem;
+  margin: 0; padding: 0; list-style: none;
+}
+.ob__next li {
+  position: relative;
+  counter-increment: obstep;
+  padding-left: 2.6rem;
+}
+.ob__next li::before {
+  content: counter(obstep);
+  position: absolute; left: 0; top: -.1rem;
+  display: grid; place-items: center;
+  width: 1.8rem; height: 1.8rem; border-radius: 50%;
+  background: #000065; color: #fff;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .82rem; font-weight: 700; line-height: 1;
+}
+.ob__next li b {
+  display: block;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 1rem; color: var(--ink); letter-spacing: -.01em;
+}
+.ob__next li span {
+  display: block; margin-top: .28rem;
+  color: var(--muted); font-size: .93rem; line-height: 1.6;
+}
+
+/* ---------------- the afterthought line ---------------- */
+/* The single most common thing a client does after sending a brief is remember
+   one more thing and then worry that it is too late. Saying it is not, before
+   they have to ask, is most of the warmth on this screen. */
+.pv .ob__warm {
+  max-width: 54ch; margin: 1.6rem auto 0;
+  color: var(--muted); font-size: .95rem; line-height: 1.65;
+}
+.pv .ob__warm a {
+  color: var(--accent-ink); text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---------------- the way out ---------------- */
+.ob__acts--sent {
+  justify-content: center;
+  margin-top: 2rem;
+}
+/* `.ob--sent` centres its grid children, which shrink-wraps this row to the
+   width of the two pills. That is right on a wide screen and wrong on a phone,
+   where the rest of the form gives its buttons the full column. */
+@media (max-width: 560px) {
+  .ob--sent .ob__acts--sent { justify-self: stretch; width: 100%; }
+}
+
+/* NO CELEBRATION FOR SOMEBODY WHO ASKED FOR LESS MOTION. The confetti refuses
+   to render at all (see confetti.tsx); the tick is the other moving thing on
+   this screen, and it is simply already there. */
+@media (prefers-reduced-motion: reduce) {
+  .pv .ob__seal { animation: none; }
+}
