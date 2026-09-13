@@ -118,24 +118,14 @@ const nextConfig: NextConfig = {
       "object-src 'none'",
       "frame-ancestors 'none'",
       "form-action 'self'",
-      /* NO JOTFORM ORIGIN RUNS SCRIPT HERE ANY MORE. The chat used to load a
-         6.3MB runtime into this document; it now runs inside an iframe on
-         Jotform's own origin, which has its own policy and its own main
-         thread. The only permission it still needs from us is to be framed,
-         below. See components/agent/jotform-agent.tsx. */
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.userway.org https://*.userway.org",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.userway.org",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jotfor.ms https://*.jotform.com https://cdn.userway.org https://*.userway.org",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.jotform.com https://*.userway.org",
       "font-src 'self' data: https://fonts.gstatic.com https://*.userway.org",
       "img-src 'self' data: blob: https:",
-      "media-src 'self'",
-      /* One host, for one `no-cors` HEAD: the chat panel asks whether
-         Jotform is reachable from this browser before it believes its own
-         iframe. Narrower than what was here before (`*.jotform.com` plus
-         `cdn.jotfor.ms`), and `script-src` no longer names either. */
-      "connect-src 'self' https://www.jotform.com https://*.userway.org https://api.userway.org",
-      /* The chat IS the iframe now, and this is the one Jotform permission
-         that survives. The preview modal embeds client sites, which is why
-         `https:` is still here. */
+      "media-src 'self' https://*.jotform.com",
+      "connect-src 'self' https://*.jotform.com https://cdn.jotfor.ms https://*.userway.org https://api.userway.org",
+      /* The chat renders in an iframe from Jotform's own origin, and the
+         preview modal embeds client sites. */
       "frame-src 'self' https://*.jotform.com https://*.jotfor.ms https:",
       "worker-src 'self' blob:",
       "manifest-src 'self'",
