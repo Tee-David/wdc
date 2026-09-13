@@ -55,9 +55,17 @@ export default function JotformAgent() {
         document.head.appendChild(link);
       }
     };
-    const idle = window.requestIdleCallback;
-    const id = idle ? idle(warm, { timeout: 4000 }) : window.setTimeout(warm, 2500);
-    return () => { if (idle) window.cancelIdleCallback?.(id as number); else clearTimeout(id); };
+    /* TypeScript's lib says this always exists. Safari only shipped it in
+       16.4, and this site's audience is mostly phones, so the check stays --
+       written as a typeof so the compiler can see why. */
+    const hasIdle = typeof window.requestIdleCallback === "function";
+    const id = hasIdle
+      ? window.requestIdleCallback(warm, { timeout: 4000 })
+      : window.setTimeout(warm, 2500);
+    return () => {
+      if (hasIdle) window.cancelIdleCallback?.(id);
+      else window.clearTimeout(id);
+    };
   }, []);
 
   useEffect(() => {
