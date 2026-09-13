@@ -104,16 +104,28 @@
 .bl-hero {
   position: relative; isolation: isolate;
   display: flex; align-items: flex-end;
-  min-height: clamp(360px, 52vh, 560px);
-  padding-block: clamp(2.4rem, 6vw, 4.5rem);
+  /* Taller on a desktop, where it was landing the eyebrow almost against the
+     header bar. The floor is unchanged so a phone is not handed half a screen
+     of photograph before the words start. */
+  min-height: clamp(360px, 62vh, 680px);
+  /* THE TOP PADDING CLEARS THE HEADER, and that is why it is so much larger
+     than the bottom. The header is fixed and transparent over this band, so
+     without it the meta line sits underneath the nav rather than below it. */
+  padding-block: clamp(7rem, 13vw, 10rem) clamp(2.4rem, 6vw, 4.5rem);
   overflow: hidden;
 }
 .bl-hero__shot { position: absolute; inset: 0; z-index: -2; }
 .bl-hero__shot img { object-fit: cover; }
 .bl-hero__veil {
   position: absolute; inset: 0; z-index: -1;
+  /* A LITTLE MORE WEIGHT THROUGHOUT, and most of it at the top.
+
+     The scrim is still bottom-weighted, because that is where the type sits,
+     but the top of a photograph now carries enough to keep the fixed header's
+     white nav legible over a bright frame -- a hero whose top edge happens to
+     be a white desk was leaving the nav to fend for itself. */
   background:
-    linear-gradient(to top, rgb(0 0 20 / .88) 0%, rgb(0 0 20 / .72) 38%, rgb(0 0 20 / .45) 70%, rgb(0 0 20 / .3) 100%);
+    linear-gradient(to top, rgb(0 0 20 / .92) 0%, rgb(0 0 20 / .80) 38%, rgb(0 0 20 / .60) 70%, rgb(0 0 20 / .52) 100%);
 }
 .bl-hero__in { position: relative; }
 /* White on that scrim, in BOTH themes: the photograph underneath does not

@@ -50,26 +50,26 @@ const collectionJsonLd = {
 export default function WorkHubPage() {
   return (
     <>
-      <Header />
+      <Header overHero />
       <main id="main" tabIndex={-1} className="flex-1 pv">
-        {/* The hub is one dark plate holding the whole set, as in the
-            reference: six categories read as a group rather than as six cards
-            adrift on the page. */}
-        <section className="pv-sec" style={{ paddingTop: "clamp(7rem, 12vw, 10rem)" }}>
-          <div className="pv-wrap">
-            <div className="wk-plate">
-              <div className="wk-plate__head">
-                <div style={{ display: "grid", gap: 10 }}>
-                  <span className="pv-eyebrow">Our Work</span>
-                  <h1 className="wk-plate__t">Work, by what it took to make</h1>
-                </div>
-                <p className="wk-plate__note">
-                  Explore the digital journeys we have designed and built in partnership
-                  with our clients. Pick the discipline you came for.
-                </p>
-              </div>
+        {/* THE SAME SHAPE /blog USES: a navy band carrying the title, then the
+            cards on the page's own ground. This was a dark plate holding the
+            whole set; the plate made a slab inside a light page and made the
+            three hubs look like three different sites. */}
+        <section className="wk-hero">
+          <div className="pv-wrap wk-hero__in">
+            <span className="pv-eyebrow">Our Work</span>
+            <h1>Work, by what it took to make</h1>
+            <p className="pv-lede">
+              Explore the digital journeys we have designed and built in partnership
+              with our clients. Pick the discipline you came for.
+            </p>
+          </div>
+        </section>
 
-              <div className="wk-cats">
+        <section className="pv-sec">
+          <div className="pv-wrap">
+            <div className="wk-cats">
                 {WORK_CATEGORIES.map((c) => {
                   const n = countFor(c);
                   return (
@@ -95,7 +95,6 @@ export default function WorkHubPage() {
                     </Link>
                   );
                 })}
-              </div>
             </div>
           </div>
         </section>

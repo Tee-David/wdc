@@ -67,23 +67,27 @@ export default function ContactPage() {
 
   return (
     <>
-      <Header />
+      <Header overHero />
       <main id="main" tabIndex={-1} className="flex-1 pv">
-        <section className="pv-sec" style={{ paddingTop: "clamp(7rem, 12vw, 10rem)" }}>
+        {/* The same band /blog, /work and /services open with. The heading and
+            the lede move into it; everything below stays where it was. */}
+        <section className="wk-hero">
+          <div className="pv-wrap wk-hero__in">
+            <span className="pv-eyebrow">Contact</span>
+            <h1 className="ct-h">How can we help you today?</h1>
+            <p className="pv-lede ct-lede">
+              Tell us what you are trying to achieve rather than what you think you
+              need built. We will come back the same working day, and we will say
+              plainly if it is not something we should be doing for you.
+            </p>
+          </div>
+        </section>
+
+        <section className="pv-sec">
           <div className="pv-wrap">
             <div className="ct-cols">
               {/* the ask */}
               <div>
-                <span className="ct-pill">
-                  <MessageSquare aria-hidden="true" />
-                  Contact
-                </span>
-                <h1 className="ct-h">How can we help you today?</h1>
-                <p className="pv-lede ct-lede">
-                  Tell us what you are trying to achieve rather than what you think you
-                  need built. We will come back the same working day, and we will say
-                  plainly if it is not something we should be doing for you.
-                </p>
 
                 {/* Rendered from data, so a channel with nothing published
                     simply is not here — see the note at the top of
