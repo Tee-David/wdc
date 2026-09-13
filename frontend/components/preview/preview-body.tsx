@@ -469,7 +469,7 @@ export default function PreviewBody() {
       {/* ---------------- services ---------------- */}
       <section className="pv-sec" id="pv-services">
         <div className="pv-wrap">
-          <div className="pv-head pv-head--left pv-reveal">
+          <div className="pv-head pv-reveal">
             <span className="pv-eyebrow">Services</span>
             <h2 className="pv-mix"><b>Everything a brand needs</b> to show up <b>and be taken seriously</b></h2>
             <p className="pv-lede">

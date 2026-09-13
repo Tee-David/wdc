@@ -3,13 +3,35 @@
 import "./bones/registry";
 import { Skeleton } from "boneyard-js/react";
 
+const snapshotConfig = {
+  excludeSelectors: ["button", "svg", ".ad__demo", ".ad__emptyIcon"],
+  excludeTags: ["nav"],
+};
+
 export function AdminPageSkeleton({
   children,
   loading = false,
+  capture = false,
 }: {
   children?: React.ReactNode;
   loading?: boolean;
+  capture?: boolean;
 }) {
+  // The CLI sets its build flag only in the browser. Rendering this same
+  // capture shape on the server prevents React IDs from shifting at hydration.
+  if (capture) {
+    return (
+      <div
+        className="ad__pageSkeleton"
+        data-boneyard="admin-dashboard"
+        data-boneyard-config={JSON.stringify(snapshotConfig)}
+        style={{ position: "relative" }}
+      >
+        <div>{children}</div>
+      </div>
+    );
+  }
+
   return (
     <Skeleton
       name="admin-dashboard"
@@ -20,10 +42,7 @@ export function AdminPageSkeleton({
       className="ad__pageSkeleton"
       boneClass="ad__bone"
       fallback={loading ? <DashboardLoadingFallback /> : undefined}
-      snapshotConfig={{
-        excludeSelectors: ["button", "svg", ".ad__demo", ".ad__emptyIcon"],
-        excludeTags: ["nav"],
-      }}
+      snapshotConfig={snapshotConfig}
     >
       {children}
     </Skeleton>

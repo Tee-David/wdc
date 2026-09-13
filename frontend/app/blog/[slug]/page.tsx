@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import JsonLd from "@/components/seo/json-ld";
 import ShareRow from "@/components/blog/share";
+import BlogToc from "@/components/blog/toc";
 import {
   BLOG_POSTS, formatDate, postBySlug, readingMinutes, relatedPosts,
   type BlogBlock, type BlogPost,
@@ -153,7 +154,15 @@ export default async function BlogPostPage(
               alt=""
               fill
               sizes="100vw"
-              quality={72}
+              /* 70, NOT 72, AND THIS ONE WAS NOT COSMETIC. `images.qualities`
+                 in next.config.ts is [70, 78, 85], and Next 16 rejects any
+                 quality the config does not declare -- the optimiser answers
+                 400 `"q" parameter (quality) of 72 is not allowed` and serves
+                 no image at all. This is the post's LCP element, marked
+                 `priority`, so the one image the page is built around was the
+                 one failing. 70 is the declared value nearest it and the
+                 cheapest of the three, which is what an LCP image wants. */
+              quality={70}
               /* This is the page's largest contentful paint. */
               priority
             />
@@ -189,17 +198,7 @@ export default async function BlogPostPage(
               {outline.length > 0 && (
                 <aside className="bl-rail">
                   <div>
-                    <p className="bl-rail__k bl-rail__k--toc">On this page</p>
-                    <details className="bl-toc" open>
-                      <summary>On this page</summary>
-                      <ul className="bl-toc__list">
-                        {outline.map((h) => (
-                          <li key={h.id} className={h.sub ? "is-sub" : undefined}>
-                            <a href={`#${h.id}`}>{h.text}</a>
-                          </li>
-                        ))}
-                      </ul>
-                    </details>
+                    <BlogToc outline={outline} />
                   </div>
                 </aside>
               )}
@@ -214,7 +213,24 @@ export default async function BlogPostPage(
                 <ul className="bl-tags" aria-label="Topics">
                   {post.tags.map((t) => <li className="bl-tag" key={t}>{t}</li>)}
                 </ul>
+              </article>
 
+              {/* WHAT COMES AFTER THE ARTICLE, IN ITS OWN GRID ROW, AND THAT IS
+                  WHAT STOPS THE RAIL.
+
+                  A sticky element releases at the edge of its CONTAINING BLOCK,
+                  which for a grid item is its grid area. While the rail and the
+                  whole of this end matter shared one row, the rail's area ran to
+                  the bottom of the longest column, so the contents list went on
+                  travelling beside the share row, the QR code and "Read next" --
+                  long after there was any heading left to point at.
+
+                  Splitting these into row 2 leaves the rail's area ending with
+                  the prose, so it lets go exactly where the article does. It is
+                  also the honest grouping: sharing, the QR and the next post are
+                  things you do AFTER reading, not part of what you read. The
+                  tags stay inside `<article>` because they describe it. */}
+              <div className="bl-after">
                 {/* The two things you do once you have finished reading. */}
                 <div className="bl-end">
                   <ShareRow url={url} title={post.title} />
@@ -249,7 +265,7 @@ export default async function BlogPostPage(
                     </div>
                   </div>
                 )}
-              </article>
+              </div>
             </div>
           </div>
         </section>

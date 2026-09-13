@@ -40,9 +40,14 @@
 
 /* The cover. A fixed ratio so a row of cards lines up regardless of the
    photograph behind it, and `overflow: hidden` on the card does the rounding. */
+/* 16/9 RATHER THAN 16/10. The cover is the tallest single element in the card
+   and it was buying height that the photograph did not need: at three cards to
+   a row the old ratio made a card taller than the viewport band it sits in, so
+   the rail scrolled vertically on a laptop. A ratio rather than a pixel height
+   keeps it fluid -- the card still gets shorter as the column narrows. */
 .bl-card__shot {
   position: relative; display: block;
-  aspect-ratio: 16 / 10; background: var(--paper-2);
+  aspect-ratio: 16 / 9; background: var(--paper-2);
 }
 .bl-card__shot img { object-fit: cover; }
 @media (prefers-reduced-motion: no-preference) {
@@ -72,16 +77,22 @@
   line-height: 1.3; letter-spacing: 0;
   color: var(--ink);
 }
-/* Clamped for the same reason, and to the same three lines: without it a card
-   whose excerpt ran to four lines stood taller than the one beside it, and a
-   row of cards that do not line up reads as a mistake nobody can name. */
+/* Clamped so that a card whose excerpt runs long does not stand taller than the
+   one beside it -- a row of cards that do not line up reads as a mistake nobody
+   can name.
+
+   TWO LINES, NOT THREE. The excerpt is the least-read thing on the card: the
+   title is what gets clicked and the reading time is what qualifies it. The
+   third line was costing roughly 1.45rem of height on every card in every rail
+   to finish a sentence the reader has already decided about. Two still carries
+   the sense of the post. */
 .bl-card p {
   margin: 0; color: var(--muted);
   font-size: .93rem; line-height: 1.55;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
 }
 
@@ -209,10 +220,32 @@
    either. */
 .bl-layout--solo { grid-template-columns: minmax(0, 1fr); }
 
+/* EXPLICIT ROWS, BECAUSE THAT IS WHAT ENDS THE STICKINESS. A sticky element
+   releases at the edge of its containing block, and a grid item's containing
+   block is its GRID AREA. Pinning the rail and the article to row 1, and the
+   share row, QR and "Read next" to row 2, makes the rail's area end with the
+   prose -- so the contents list lets go exactly where the article does instead
+   of travelling beside end matter it cannot point at. */
+.bl-layout > .bl-rail { grid-row: 1; grid-column: 1; }
+.bl-layout > .bl-post { grid-row: 1; grid-column: 2; }
+/* The same measure `.bl-post` keeps, so moving this out of the article does not
+   move it on the page: the share row and "Read next" stay in the prose column
+   rather than widening to the full grid track. */
+.bl-layout > .bl-after { grid-row: 2; grid-column: 2; min-width: 0; max-width: 74ch; }
+.bl-layout--solo > .bl-post,
+.bl-layout--solo > .bl-after { grid-column: 1; }
+
 /* Sticky on desktop, a plain block above the article on narrow screens --
    the same pattern the legal pages already use. */
 .bl-rail { position: sticky; top: 96px; align-self: start; display: grid; gap: 2rem; }
-@media (max-width: 1000px) { .bl-rail { position: static; } }
+@media (max-width: 1000px) {
+  .bl-rail { position: static; }
+  /* One column below 1000px, so the explicit placement above would strand the
+     end matter in a second column that no longer exists. */
+  .bl-layout > .bl-rail,
+  .bl-layout > .bl-post,
+  .bl-layout > .bl-after { grid-column: 1; grid-row: auto; }
+}
 
 .bl-rail__k {
   margin: 0 0 .7rem;
@@ -230,6 +263,13 @@
   transition: color .18s ease, border-color .18s ease;
 }
 .bl-toc__list a:hover { color: var(--ink); border-left-color: var(--accent); }
+/* WHERE THE READER IS, not merely what the page contains. Same treatment as
+   `.lg-toc__list a.is-on` on the legal pages, because it is the same rail doing
+   the same job -- the marker is a left border that fills in rather than a
+   background, since a highlighted block in a narrow column reads as a button. */
+.bl-toc__list a.is-on {
+  color: var(--ink); font-weight: 600; border-left-color: var(--accent);
+}
 .bl-toc__list li.is-sub a { padding-left: 1.6rem; font-size: .87rem; }
 
 /* On a phone the contents collapse, because eight links above every article is

@@ -170,7 +170,14 @@ export default async function ServicePage(
                         alt={`${c.client} — ${c.title}`}
                         fill
                         sizes="(max-width: 560px) 92vw, (max-width: 1000px) 46vw, 31vw"
-                        quality={74}
+                        /* 78, NOT 74. `images.qualities` in next.config.ts is
+                           [70, 78, 85], and Next 16 only allows a quality the
+                           config declares -- 74 was not one of them, so this
+                           rail was the one set of case-study covers not being
+                           served at the quality it asked for. 78 is also what
+                           `/work/<category>` passes for the very same
+                           `.wk-card`, so the two rails now match. */
+                        quality={78}
                       />
                     </span>
                     <span className="wk-card__body">

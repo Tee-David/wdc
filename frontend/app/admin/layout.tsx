@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import AdminShell from "@/components/admin/shell";
 import { getSubmissions } from "@/lib/admin/store";
-import { auth } from "@/lib/auth";
+import { getAdminRequest } from "@/lib/admin/session";
 import "@/components/admin/admin.css";
 
 /**
@@ -32,14 +31,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const requestHeaders = await headers();
-  const captureMode =
-    process.env.NODE_ENV !== "production" &&
-    Boolean(process.env.BONEYARD_CAPTURE_TOKEN) &&
-    requestHeaders.get("x-boneyard-capture") === process.env.BONEYARD_CAPTURE_TOKEN;
-  const session = captureMode
-    ? { user: { name: "WDC Admin", email: "admin@localhost", image: null, role: "owner" } }
-    : await auth.api.getSession({ headers: requestHeaders });
+  const { session } = await getAdminRequest();
   if (!session?.user || (session.user as typeof session.user & { role?: string }).role !== "owner") {
     redirect("/login?redirect=/admin");
   }

@@ -10,7 +10,26 @@
 .ct-cols { display: grid; gap: clamp(28px, 4vw, 56px); align-items: start; }
 @media (min-width: 980px) {
   .ct-cols { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); }
+  /* The address, the reply time and where we work stay beside the form while
+     it is being filled in, the same way the blog and legal rails stay beside
+     what they belong to. `align-self: start` because a stretched grid item has
+     no room left to move in, and `top` clears the fixed header.
+
+     ONLY at this breakpoint. Below it the two columns stack, and a sticky
+     block in a single column pins the contact details over the form the
+     visitor is trying to type into. */
+  .ct-aside { position: sticky; top: 96px; align-self: start; }
 }
+
+/* The picker is mounted client-side, so this holds its place for the frame
+   before it arrives: the same height an input in this form ends up, from the
+   11px padding and .95rem line above. */
+.ct-phone-ph {
+  height: calc(.95rem * 1.5 + 22px + 2px);
+  border: 1px solid var(--rule); border-radius: 12px;
+  background: var(--paper);
+}
+.pv-sec--alt .ct-phone-ph { background: var(--paper-2); }
 
 /* ---------------------------------------------------------------- the ask */
 

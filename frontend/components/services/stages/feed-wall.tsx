@@ -41,7 +41,10 @@ function Card({ p }: { p: (typeof POSTS)[number] }) {
     <article className="fw__card">
       <div className="fw__shot">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <Image src={p.src} alt={p.t} fill sizes="(max-width: 560px) 46vw, 190px" quality={68} />
+        {/* 70, not 68: `images.qualities` is [70, 78, 85] and Next 16 serves a
+            400 for anything it does not declare, so these thumbnails were not
+            rendering at all. */}
+        <Image src={p.src} alt={p.t} fill sizes="(max-width: 560px) 46vw, 190px" quality={70} />
       </div>
       <div className="fw__top">
         <span className="fw__tag">{p.tag}</span>
