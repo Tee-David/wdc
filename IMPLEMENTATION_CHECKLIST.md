@@ -11,7 +11,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **184 open** (5 of them in progress), **167 done**.
+At last update: **179 open** (5 of them in progress), **172 done**.
 
 ---
 
@@ -22,11 +22,6 @@ At last update: **184 open** (5 of them in progress), **167 done**.
 Kept at the top because these came from someone looking at the live site, and
 that is the shortest feedback loop there is.
 
-- [ ] The contents rail on a blog post should stop being sticky where the ARTICLE ends, rather than travelling beside the tags, the share row and "Read next". `.bl-rail` is `position: sticky` inside `.bl-layout`, and a sticky item releases at the edge of its CONTAINING BLOCK, which for a grid item is its grid area -- currently the whole grid. The fix is to confine the rail to the row the body occupies, which needs the end matter split into its own row; it is not a CSS-only tweak.
-- [ ] Contact page: make the left information column sticky beside the form, the same way the blog and legal rails already are.
-- [ ] Contact page: the phone field should use the dial-code dropdown rather than a bare `+234 ...` placeholder. `scripts/gen-dial-codes.mjs` already generates the data and the onboarding form-kit already has the control; reuse it rather than building a second one.
-- [ ] The band CTA blocks (`.pv-cta`, `.sv-cta__box`) are capped narrower than the page content width and read as indented. Same family of defect as the `wk-hero` cap already closed; check them as a set rather than one at a time.
-- [ ] Reduce the testimonial type size in the left panel of `/login`; at the current size a three-line quote fills the panel.
 - [ ] Seed the six blog posts into CockroachDB, em-dash free, behind the existing accessors (`postBySlug`, `postsNewestFirst`, `relatedPosts`) so the pages do not change. MUST be shaped for the admin blog editor codex will build -- see the blog editor items in section 1C -- so they are real editable rows rather than a second static source. The plan is to be reviewed before anything writes to the database.
 - [ ] Truehost SMTP takes about 23 seconds just to authenticate, measured from two networks. The contact form now answers in half that by sending the receipt after the response, but the real fix is a transactional provider, which would also give proper SPF and DKIM.
 
@@ -377,6 +372,12 @@ Archived, with the evidence that closed each one. Search here before
 reopening anything.
 
 ## Closed 2026-09-14, from live-site review
+
+- [x] The blog contents rail stops where the article does. A sticky element releases at the edge of its CONTAINING BLOCK, and a grid item's containing block is its GRID AREA -- while the rail and the whole of the end matter shared one row, the rail's area ran to the bottom of the longest column, so the contents list went on travelling beside the share row, the QR code and "Read next", long after there was any heading left to point at. The share row, QR and "Read next" now sit in row 2 as `.bl-after`, leaving the rail's area ending with the prose. That is also the honest grouping: those are things you do AFTER reading. The tags stay inside `<article>` because they describe it, and `.bl-after` keeps `.bl-post`'s 74ch measure so nothing moved on the page. Single-column below 1000px resets the explicit placement, or the end matter would be stranded in a column that no longer exists.
+- [x] The contact page's left column is sticky beside the form at 980px and up, the same pattern the blog and legal rails use. `align-self: start`, because a stretched grid item has no room left to move in. Deliberately NOT sticky below that breakpoint: the columns stack there, and a sticky block in a single column would pin the contact details over the form someone is trying to type into.
+- [x] The contact form's phone field uses the real dial-code picker instead of a `+234 …` placeholder, which asked a visitor to know their own dial code and quietly assumed Nigeria for everyone who did not. It reuses `components/onboarding/phone-field.tsx` rather than growing a second control: mounted with `ssr: false`, because that component reads a detached canvas during its first render to decide whether the platform can draw flag emoji, which has no meaning on a server -- and which also keeps the phone-number library off the page until the field is reached. The value rides to `FormData` in a hidden input, and a placeholder box of the same height holds the row still until the picker arrives.
+- [x] The band CTA blocks were never narrow; their HEADINGS were. A 20ch cap inside a centred grid broke "Describe the problem and we will tell you which of these it is." onto three short lines in the middle of a box several times that wide, so the whole block read as indented. `text-wrap: balance` now gives the tidy ragging the cap was there for without deciding the width in advance. Fixed in `.pv-cta` and `.sv-cta__box` together, because they are the same component wearing two names; the ledes keep a measure, since prose is what actually suffers when a centred line runs long.
+- [x] The `/login` testimonial is smaller (from clamp 1.3-1.85rem to 1.12-1.45rem). At the old size the longest of the three quotes ran to five lines and filled the panel, making a supporting detail compete with the form beside it -- and because the tallest quote sets the height for all three, that cost was paid on every one.
 
 - [x] `3ad31d9` deployed to production. It was never an unpushed commit: it was already on GitHub, had been auto-deployed by the git integration, and came back `BLOCKED` by the Hobby-plan private-repo rule (the gate is on the commit author's GitHub LOGIN, not the email, which is why changing the commit email never helped). Recreated through `POST /v13/deployments` as the account owner, which bypasses that gate, and it reached READY.
 - [x] The dark band at the top of every landing page was INDENTED, not merely narrow. `.wk-hero__in` carried `max-width: 62ch` inside a `.pv-wrap` that centres what it holds, so the cap did not shorten the band's content, it CENTRED it: the breadcrumb and title started several hundred pixels right of where every other section begins. Now `max-width: none`, with the lede keeping a 62ch measure because a line of prose at full desktop width is genuinely harder to read. One rule, eight route families: blog, contact, legal, legal/<slug>, services, services/<slug>, work, work/<category>. Note the rule had MOVED into `preview.css` in `3ad31d9`, so an earlier local fix was editing an address that no longer existed.
