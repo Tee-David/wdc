@@ -26,7 +26,7 @@ export default function NotFound() {
   return (
     <>
       <Header />
-      <main className="flex-1 pv">
+      <main id="main" tabIndex={-1} className="flex-1 pv">
         <LostSketch />
       </main>
     </>

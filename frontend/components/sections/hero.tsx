@@ -219,7 +219,9 @@ export function Hero() {
               thing on the page. */}
           <span className="block">We make your business</span>
           <span className="block">
-          <span className="text-secondary">&gt;</span>{" "}
+          {/* Decorative. Without aria-hidden a screen reader reads the h1 as
+              "We make your business greater than unmissable". */}
+          <span aria-hidden="true" className="text-secondary">&gt;</span>{" "}
           {/* `startFull` so the phrase is complete in the first render rather
               than typing itself in from empty; `reserveWidth` so the line does
               not reflow on every character. */}

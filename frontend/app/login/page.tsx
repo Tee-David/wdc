@@ -18,7 +18,7 @@ export default async function LoginPage() {
   if (session?.user && (session.user as typeof session.user & { role?: string }).role === "owner") redirect("/admin");
 
   return (
-    <main className="au">
+    <main id="main" tabIndex={-1} className="au">
       <section className="au__brand" aria-label="We Dig Creativity">
         <div className="au__photo" aria-hidden="true" />
         <div className="au__wash" aria-hidden="true" />

@@ -32,7 +32,7 @@ export default function OnboardingPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 pv">
+      <main id="main" tabIndex={-1} className="flex-1 pv">
         <section className="pv-sec ob-sec">
           <div className="pv-wrap">
             <OnboardingMount />

@@ -67,7 +67,7 @@ export default function ContactPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 pv">
+      <main id="main" tabIndex={-1} className="flex-1 pv">
         <section className="pv-sec" style={{ paddingTop: "clamp(7rem, 12vw, 10rem)" }}>
           <div className="pv-wrap">
             <div className="ct-cols">

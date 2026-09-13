@@ -49,7 +49,7 @@ export default function WorkHubPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 pv">
+      <main id="main" tabIndex={-1} className="flex-1 pv">
         {/* The hub is one dark plate holding the whole set, as in the
             reference: six categories read as a group rather than as six cards
             adrift on the page. */}
