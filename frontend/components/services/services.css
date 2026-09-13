@@ -337,7 +337,7 @@
    light and dark, so what sits on it must be too. Reading these off the theme
    tokens instead would put dark ink on orange in light mode. */
 .sv-step:hover h3,
-.sv-step:hover .sv-step__n { color: #fff; }
+.sv-step:hover .sv-step__n { color: var(--on-accent); }
 .sv-step:hover p { color: rgb(255 255 255 / .88); }
 /* The navy tile is left alone deliberately: it is the one element that should
    still read as a distinct object once the card fills, and navy on orange
@@ -390,7 +390,12 @@
 .sv-step__n {
   position: absolute; top: clamp(18px, 2vw, 24px); right: clamp(18px, 2vw, 24px);
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-weight: 700; font-size: .8rem; color: var(--accent);
+  font-weight: 700; font-size: .8rem;
+  /* NAVY AT REST, BLACK ON HOVER. It was `--accent`: orange on the card's pale
+     ground at roughly 2.8:1, which is a decoration rather than a number anyone
+     can read. Navy is 16.5:1 here, and on the orange card black is 7.11:1 --
+     the same rule every accent fill on this site follows. */
+  color: var(--band);
 }
 .sv-step h3 { font-size: 1.06rem; margin-bottom: 7px; }
 .sv-step p { color: var(--muted); font-size: .92rem; }

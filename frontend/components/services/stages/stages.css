@@ -110,8 +110,14 @@
    slice of a longer results page instead of a box that happens to end. */
 .serp__listwrap {
   flex: 1; min-height: 0; display: grid; align-content: stretch; margin-top: 12px;
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
-          mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
+  /* THE BOTTOM EDGE NO LONGER FADES TO NOTHING. It went to fully transparent
+     over the last 9%, which is where the highlighted "your page" row arrives --
+     so the one row the whole animation exists to show was the row being erased.
+     It now eases to 55% rather than to 0, which still reads as a slice of a
+     longer results page without deleting the payoff. The top can afford the
+     harder fade: nothing important arrives there. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 7%, #000 93%, rgb(0 0 0 / .55) 100%);
+          mask-image: linear-gradient(to bottom, transparent, #000 7%, #000 93%, rgb(0 0 0 / .55) 100%);
 }
 /* The list takes the whole window and the rows divide it, rather than eight
    44px rows sitting in the middle of it with the difference showing above and
