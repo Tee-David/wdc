@@ -872,7 +872,23 @@ function FieldView({
             role="radio"
             aria-checked={v === o}
             className={`ob__card${v === o ? " is-on" : ""}`}
-            onClick={() => onChange(o)}
+            /* PRESSING THE CHOSEN ONE AGAIN UNCHOOSES IT.
+
+               A radio group cannot normally be emptied once it has been
+               answered, and on paper that is correct. On this form it was a
+               trap: pick "I'm not sure; please advise me", change your mind,
+               press it again, and nothing happens -- the form looks broken at
+               the exact moment somebody is trying to correct themselves. The
+               only way back was a small text button underneath that nobody
+               looks for, because the thing they want to undo is the thing
+               they just pressed.
+
+               So the answer toggles. Choosing a different option still simply
+               replaces this one; this only adds the case where the option
+               pressed is the one already on. A required question that is
+               emptied this way goes back to being unanswered, which is
+               honest -- it IS unanswered. */
+            onClick={() => onChange(v === o ? "" : o)}
           >
             <span className="ob__dot" aria-hidden="true" />
             {o}

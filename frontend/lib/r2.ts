@@ -193,3 +193,118 @@ export function presignPut({
 
   return { url, publicUrl, key, expiresIn };
 }
+
+/**
+ * ASK THE BUCKET WHY, BECAUSE THE BROWSER WILL NOT SAY.
+ *
+ * A cross-origin PUT that CORS refuses is cancelled before it is sent: the
+ * status stays 0, `xhr.onerror` fires, and the page cannot tell a blocked
+ * request from a dropped connection. That is deliberate in the platform and
+ * it is not going to change, so the page will always be guessing.
+ *
+ * The SERVER is not guessing. It can send the same preflight the browser would
+ * have sent, from somewhere CORS does not apply, and read what R2 answers. The
+ * result is the difference between "we could not reach the file store" -- which
+ * sends somebody to check their wifi over a bucket setting -- and "the bucket
+ * does not allow PUT from https://wedigcreativity.com.ng", which names the
+ * thing to change and where.
+ *
+ * A preflight is never signed: browsers strip credentials from it, so R2
+ * answers it from the bucket's CORS policy alone and this needs no signature
+ * either. It creates nothing; the key is never written.
+ */
+export type CorsVerdict = {
+  /** True when a browser's PUT would be allowed through. */
+  ok: boolean;
+  /** One line for the person filling the form. */
+  reason: string;
+  /** Everything worth having in the log. */
+  detail: string;
+};
+
+export async function probeCors({
+  config, origin, timeoutMs = 5000,
+}: {
+  config: R2Config;
+  origin: string;
+  timeoutMs?: number;
+}): Promise<CorsVerdict> {
+  const url =
+    `https://${config.accountId}.r2.cloudflarestorage.com` +
+    `/${uriEncode(config.bucket, false)}/cors-preflight-probe`;
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "OPTIONS",
+      headers: {
+        origin,
+        "access-control-request-method": "PUT",
+        "access-control-request-headers": "content-type",
+      },
+      signal: AbortSignal.timeout(timeoutMs),
+      cache: "no-store",
+    });
+  } catch (e) {
+    /* The bucket did not answer us either, so this is not about the browser. */
+    return {
+      ok: false,
+      reason: "The file store is not answering. This is on us, not on your connection.",
+      detail: `preflight to ${url} failed outright: ${e instanceof Error ? e.message : String(e)}`,
+    };
+  }
+
+  const allowOrigin = res.headers.get("access-control-allow-origin");
+  const allowMethods = res.headers.get("access-control-allow-methods") ?? "";
+  const allowHeaders = res.headers.get("access-control-allow-headers") ?? "";
+  const has = (list: string, want: string) =>
+    list.trim() === "*" ||
+    list.toLowerCase().split(",").map((x) => x.trim()).includes(want);
+
+  const detail =
+    `origin=${origin} status=${res.status} ` +
+    `allow-origin=${allowOrigin ?? "(none)"} ` +
+    `allow-methods=${allowMethods || "(none)"} ` +
+    `allow-headers=${allowHeaders || "(none)"}`;
+
+  if (!allowOrigin) {
+    return {
+      ok: false,
+      reason: "The file store is not accepting uploads from this site yet.",
+      detail:
+        `the bucket returned no Access-Control-Allow-Origin, so its CORS policy does not cover ${origin}. ` +
+        `Add it to the bucket's CORS policy as an AllowedOrigin. ${detail}`,
+    };
+  }
+  if (allowOrigin !== "*" && allowOrigin !== origin) {
+    return {
+      ok: false,
+      reason: "The file store is not accepting uploads from this site yet.",
+      detail:
+        `the bucket allows ${allowOrigin} but this request came from ${origin} — ` +
+        `these have to match exactly, including the scheme and any www. ${detail}`,
+    };
+  }
+  if (!has(allowMethods, "put")) {
+    return {
+      ok: false,
+      reason: "The file store is not accepting uploads from this site yet.",
+      detail: `the bucket's CORS policy does not list PUT in AllowedMethods. ${detail}`,
+    };
+  }
+  if (!has(allowHeaders, "content-type")) {
+    return {
+      ok: false,
+      reason: "The file store is not accepting uploads from this site yet.",
+      detail:
+        `the bucket's CORS policy does not allow the content-type header, and the upload has to send it ` +
+        `because the presigned URL signs it. Add content-type to AllowedHeaders. ${detail}`,
+    };
+  }
+
+  return {
+    ok: true,
+    reason: "The upload did not finish. It is worth trying again.",
+    detail: `CORS is correct for this origin, so the upload failed in transit. ${detail}`,
+  };
+}
