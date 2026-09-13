@@ -65,6 +65,92 @@ that is the shortest feedback loop there is.
 
 - [ ] Give the onboarding page a main heading. (Finding A4. It has none. It is noindex so this costs nothing in ranking, but it is the element screen-reader users navigate by.)
 
+## 1B. Free tools on the service pages
+
+Small tools that give a visitor something real in under thirty seconds. They
+are the difference between saying we can do the work and showing it, and each
+one ends with a lead we did not have to ask a stranger for.
+
+Two findings shape all of them. There are no per-service routes -- `/services`
+is one client page with six anchors -- so each tool is its own server-rendered
+route at `/tools/<name>`, indexable in its own right and linked from the
+matching `#slug` section. And `connect-src 'self'` in `next.config.ts` means a
+browser cannot call a third-party API at all: every one of these goes through
+our own route handler, which is the rule anyway. Client cost below is what a
+reader downloads; the work is server-side, as in `lib/qr.ts`.
+
+Order is conversion divided by effort, lowest risk first.
+
+- [ ] **Domain availability checker** (`web`). Type a name, see `.com .ng
+  .com.ng .africa .app .co` as taken, free, or unknown. `/api/tools/domain`
+  queries each registry's RDAP service directly, resolved from IANA's bootstrap
+  file (`data.iana.org/rdap/dns.json`, cached 24h, longest-label match per RFC
+  9224): 404 means available, 200 means taken, anything else says so honestly.
+  Zero dependencies, about 1KB of client code. Measured: a `.com` lookup
+  answers in 3.7s. **`.ng` is unreliable** -- `rdap.nic.net.ng` returned 502
+  twice and timed out once -- so that row must degrade to "NiRA's lookup is
+  down, we will confirm by hand", which is itself the lead. Never use an NS
+  lookup as the primary signal: our own registered domain reads as available
+  that way. `maxDuration = 15`, 4s per registry, `Promise.allSettled`.
+- [ ] **Email deliverability check** (`web`, linked from `social`). A domain in,
+  and out comes SPF, the DMARC policy in plain English, the MX provider, and a
+  probe of about fifteen common DKIM selectors. `node:dns/promises` only: zero
+  dependencies, zero cost, no ceiling, and verified working. "Your domain says
+  `p=none`, which means anyone can send an invoice as you" is the highest-intent
+  sentence on this site for a Nigerian SME. Keep the resolver behind one
+  function so it can become DNS-over-HTTPS if the runtime ever blocks UDP/53.
+- [ ] **Scope and budget estimator** (`software`, `apps`). Six to eight
+  questions, then a range in naira and dollars with a phased breakdown. Pure
+  arithmetic, no network until the visitor asks for it. The estimate appears
+  *before* any email ask; the ask is "send me this as a PDF". Label it an
+  indicative range, not a quote -- section 4 forbids fabricated totals and this
+  is the same rule facing outward.
+- [ ] **Link preview checker** (`social`). Paste a URL, see how it unfurls on
+  WhatsApp, X, LinkedIn and Facebook, with the image dimensions checked and the
+  description shown truncated where each one truncates it. Mock cards are CSS
+  using existing tokens. WhatsApp is the channel that matters in this market,
+  and this is the most shareable thing on the list.
+- [ ] **On-page SEO snapshot, with the Lighthouse report emailed**
+  (`seo`). Instantly: title and description lengths, one-H1 check, canonical,
+  robots, viewport, `og:*`, images missing `alt`, structured data found, HTTPS,
+  page weight. Then the ask -- "the full Lighthouse report takes about thirty
+  seconds, where should we send it?" -- and PageSpeed Insights runs in `after()`
+  exactly as the contact receipt does. The slow part becomes the magnet instead
+  of a spinner, and nothing already shown is taken away. PSI needs an API key
+  (keyless returned 429 in testing); 25,000/day, 400 per 100s. Extract the five
+  scores and top opportunities server-side -- never return that JSON to a
+  browser.
+- [ ] **What your site costs a Nigerian visitor**, bolted onto the SEO result.
+  Page weight times an editable naira-per-gigabyte figure, plus the wait on 3G,
+  next to our own number. Pure arithmetic once the fetcher exists.
+- [ ] **One shared `lib/fetch-page.ts` before either fetching tool.** The URL is
+  attacker-supplied, so: http/https only, resolve the host and reject private,
+  loopback, link-local and CGNAT ranges *before* fetching, `redirect: "manual"`
+  with at most two hops each re-validated, a 6s timeout, a 2MB body cap, and a
+  truthful user agent. One page, one fetch, never a crawl. `app/api/embeddable`
+  already states the doctrine; this is the harder case because here the URL is
+  genuinely arbitrary.
+- [ ] **A shared rate-limit counter in Postgres for anything gating a metered
+  key.** `lib/rate-limit.ts` lives in one instance's memory and cannot protect a
+  25,000/day quota. Per-IP in memory is fine for the free tools.
+
+Later, in rough order: a CrUX field-data card beside the audit (free, 150
+queries a minute, sub-second); a brand asset pack from an uploaded logo using
+`sharp`, which is already installed, giving a palette, a WCAG contrast grid and
+a favicon set; a standalone contrast checker as the cheap subset of that; a
+single-page broken-link check; a Flesch readability score; an AI running-cost
+calculator with a dated price table; an ad budget and CPM calculator.
+
+Deliberately not building: anything needing headless Chrome (Unlighthouse,
+Puppeteer, axe-core run by us) -- PageSpeed Insights already runs Lighthouse
+and axe for free, and a browser binary does not fit a serverless function; the
+`psi` package, which wraps one URL; Domainr, whose standalone API is deprecated
+and which answers a question RDAP answers free; WHOIS on port 43, which is
+free-text parsing per registry over an unreliable outbound port; competitor
+keyword or backlink data, where no free tier permits a public tool and
+everything claiming otherwise is scraping; and any client-side call to a third
+party, which our own CSP blocks and which we should not loosen it for.
+
 ## 1C. Blog
 
 - [ ] Give each post an social preview image, or a generated one, so a shared post does not unfurl bare.
