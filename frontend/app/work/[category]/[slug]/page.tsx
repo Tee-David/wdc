@@ -24,13 +24,40 @@ export async function generateMetadata(
   const { slug } = await params;
   const cs = caseBySlug(slug);
   if (!cs) return {};
+  /* A TITLE BUILT TO FIT, RATHER THAN ONE TRUNCATED BY GOOGLE.
+
+     `${client} — ${title}` plus the brand the root template appends ran 82 to
+     115 characters across these sixteen pages, so every one of them was going
+     to be cut or rewritten in the result -- and a rewritten title is chosen by
+     Google out of the page, not by us.
+
+     Nothing is truncated here, because a sentence cut mid-word is worse than a
+     shorter true one. The descriptive half is swapped for the sector, which is
+     already recorded against every case study and is exactly what a searcher
+     is scanning for; the brand is dropped only if even that will not fit,
+     since the client's name is doing the identifying by then. */
+  const brand = ` | ${COMPANY_NAME}`;
+  const withTitle = `${cs.client} — ${cs.title}`;
+  const withSector = `${cs.client} — ${cs.sector}`;
+  const title =
+    withTitle.length + brand.length <= 60 ? withTitle + brand
+    : withSector.length + brand.length <= 60 ? withSector + brand
+    : withSector.length <= 60 ? withSector
+    : cs.client;
+
+  /* The summary alone ran 54-85 characters, short enough that Google will
+     usually write its own snippet instead. The brief's opening sentence is
+     already on the page and says what the work had to solve, which is the half
+     a searcher is missing. Nothing is written for the meta tag. */
+  const description = `${cs.summary} ${cs.brief.split(/(?<=\.)\s/)[0] ?? ""}`.trim().slice(0, 158);
+
   return {
-    title: `${cs.client} — ${cs.title}`,
-    description: cs.summary,
+    title: { absolute: title },
+    description,
     alternates: { canonical: `${SITE_URL}/work/${cs.category}/${cs.slug}` },
     openGraph: {
       title: `${cs.client} | ${COMPANY_NAME}`,
-      description: cs.summary,
+      description,
       type: "article",
       url: `${SITE_URL}/work/${cs.category}/${cs.slug}`,
       images: cs.cover ? [{ url: `${SITE_URL}${cs.cover}` }] : undefined,

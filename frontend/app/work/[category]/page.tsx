@@ -28,13 +28,21 @@ export async function generateMetadata(
   const { category } = await params;
   const c = categoryBySlug(category);
   if (!c) return {};
+  /* The lede alone ran 57-76 characters. What it is missing is the thing a
+     searcher wants from a portfolio page -- how much of it there is, and what
+     kind of work. Counted, never typed. */
+  const n = countFor(c);
+  const description =
+    `${c.lede} ${n} ${n === 1 ? "project" : "projects"} in ${c.label.toLowerCase()}, every one of them live.`
+      .slice(0, 158);
+
   return {
     title: `${c.name} work`,
-    description: c.lede,
+    description,
     alternates: { canonical: `${SITE_URL}/work/${c.slug}` },
     openGraph: {
       title: `${c.name} work | ${COMPANY_NAME}`,
-      description: c.lede,
+      description,
       type: "website",
       url: `${SITE_URL}/work/${c.slug}`,
     },
