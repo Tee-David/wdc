@@ -37,14 +37,40 @@ export default function ScrollTop() {
     if (document.documentElement.dataset.intro === "on") return;
 
     let frame = 0;
+    /* THE PAGE HEIGHT IS MEASURED WHEN IT CHANGES, NOT WHEN YOU SCROLL.
+
+       `scrollHeight` and `clientHeight` are layout reads. Asking for them
+       forces the browser to make layout current before it can answer, and this
+       ran on every scroll frame -- so on any frame where something had dirtied
+       layout, scrolling paid for a full synchronous layout before it could
+       move. `window.scrollY` does not do that; it is the only thing here that
+       needs to be read per frame.
+
+       This is the likeliest reason the catching showed up on Edge for iOS and
+       not on Safari: Edge animates its own toolbar far more eagerly while you
+       scroll, and every step of that invalidates layout, so the forced
+       relayout above fired on frame after frame instead of occasionally. */
+    let max = 0;
+    const measure = () => {
+      const el = document.documentElement;
+      max = el.scrollHeight - el.clientHeight;
+    };
+
+    /* setState per frame is cheap when the value has not changed, but it is
+       not free: it schedules a render that React then has to throw away. The
+       button crosses the threshold twice in a whole page. */
+    let visible = false;
+
     const read = () => {
       frame = 0;
-      const el = document.documentElement;
-      const max = el.scrollHeight - el.clientHeight;
       const y = window.scrollY;
       const pct = max > 0 ? Math.min(1, y / max) : 0;
       ref.current?.style.setProperty("--st-p", String(pct));
-      setShown(y > SHOW_AT);
+      const next = y > SHOW_AT;
+      if (next !== visible) {
+        visible = next;
+        setShown(next);
+      }
     };
     /* Coalesced to one read a frame: a scroll event can fire far more often
        than the screen refreshes, and every extra read here is main-thread time
@@ -52,14 +78,25 @@ export default function ScrollTop() {
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(read);
     };
+    const onResize = () => {
+      measure();
+      onScroll();
+    };
 
+    measure();
     read();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
+    window.addEventListener("resize", onResize, { passive: true });
+    /* The document grows and shrinks without a resize event -- images settling,
+       a section expanding, a route change. Watching the element is how the
+       height stays right without measuring it per frame. */
+    const grew = new ResizeObserver(onResize);
+    grew.observe(document.documentElement);
     return () => {
       if (frame) cancelAnimationFrame(frame);
+      grew.disconnect();
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("resize", onResize);
     };
   }, []);
 

@@ -65,7 +65,9 @@
 .sm-toggle[aria-expanded="true"] {
   position: fixed;
   top: clamp(16px, 2.4vh, 26px);
-  right: 2.25em;
+  /* Matches the panel's own right padding at every width, so the X keeps
+     sitting in the panel's corner rather than drifting inside it. */
+  right: clamp(1.35rem, 6vw, 2.25em);
   z-index: 60;
 }
 
@@ -92,8 +94,16 @@
   background: var(--background);
   display: flex;
   flex-direction: column;
-  padding: 7em 2.25em 2.25em 2.25em;
+  /* THE MENU IS SIZED BY THE SHORTER SIDE OF THE SCREEN, NOT JUST THE WIDER
+     ONE. Every measurement here used to scale with width alone, so a narrow
+     phone got the same 7em of head room and the same big type as a tall one
+     and the list ran off the bottom -- the whole menu could not be taken in at
+     a glance, which is the one thing a menu has to do. The `vh` half of each
+     clamp is what makes a short screen give some of that back. */
+  padding: clamp(4.2rem, 9vh, 7em) clamp(1.35rem, 6vw, 2.25em) clamp(1.25rem, 3vh, 2.25em);
   overflow-y: auto;
+  /* The panel is a nested scroller inside a Lenis-driven page on desktop. */
+  overscroll-behavior: contain;
   z-index: 45;
   pointer-events: auto;
   visibility: hidden;
@@ -126,7 +136,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: clamp(.6rem, 2vh, 1.25rem);
 }
 
 .sm-panel-list {
@@ -135,7 +145,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 1.15rem;
+  gap: clamp(.45rem, 1.7vh, 1.15rem);
   counter-reset: smItem;
 }
 
@@ -150,7 +160,9 @@
   color: var(--foreground);
   font-family: var(--font-space-grotesk), sans-serif;
   font-weight: 700;
-  font-size: clamp(2.4rem, 7vw, 3.4rem);
+  /* `min(7vw, 4.6vh)` so the seven items fit a short screen without the
+     type collapsing on a tall one. */
+  font-size: clamp(1.55rem, min(7vw, 4.6vh), 3.4rem);
   cursor: pointer;
   line-height: 1;
   letter-spacing: -0.03em;
@@ -194,7 +206,7 @@
 
 .sm-socials {
   margin-top: auto;
-  padding-top: 2rem;
+  padding-top: clamp(.9rem, 3vh, 2rem);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -242,8 +254,8 @@
 /* Footer slot (theme toggler) pinned below the socials */
 /* Theme and accessibility are one balanced row, including narrow phones. */
 .sm-footer {
-  margin-top: 1.75rem;
-  padding-top: 1.5rem;
+  margin-top: clamp(.9rem, 2.4vh, 1.75rem);
+  padding-top: clamp(.85rem, 2vh, 1.5rem);
   border-top: 1px solid var(--line);
   display: flex;
   flex-wrap: nowrap;
