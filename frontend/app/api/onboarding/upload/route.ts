@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookieToken, draftFromToken, requestOriginIsAllowed } from "@/lib/onboarding-server";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
-import { presignPut, r2Config, uploadKey } from "@/lib/r2";
+import { presignPut, probeCors, r2Config, uploadKey } from "@/lib/r2";
 
 /**
  * Authorises ONE upload, to a key of our choosing, for five minutes.
@@ -81,13 +81,26 @@ export async function POST(request: NextRequest) {
      not naming this origin. Cheap, authenticated (the draft cookie was
      already checked above) and it never issues a URL. */
   if (body.report === "transport-failed") {
-    console.error(
-      "[r2] presigned PUT never reached the bucket. Check the R2 bucket's CORS policy allows PUT from",
-      request.headers.get("origin") ?? "(no origin header)",
-      "- file:",
-      typeof body.filename === "string" ? body.filename.slice(0, 120) : "(unnamed)",
-    );
-    return new NextResponse(null, { status: 204 });
+    const file = typeof body.filename === "string" ? body.filename.slice(0, 120) : "(unnamed)";
+    const origin = request.headers.get("origin") ?? new URL(request.url).origin;
+    const config = r2Config();
+
+    if (!config.ok) {
+      console.error("[r2] upload failed and R2 is not configured; missing:", config.missing.join(", "));
+      return NextResponse.json(
+        { reason: "Uploads are not switched on yet. That is on us — send the file over email instead." },
+        { status: 200 },
+      );
+    }
+
+    /* THE PREFLIGHT THE BROWSER SENT, SENT AGAIN FROM HERE. CORS does not
+       apply to a server, so this one comes back with its answer readable --
+       and that answer is the difference between telling somebody their
+       connection dropped and telling them, correctly, that the bucket does
+       not allow this origin yet. */
+    const verdict = await probeCors({ config: config.config, origin });
+    console.error(`[r2] upload transport failed for ${file}: ${verdict.detail}`);
+    return NextResponse.json({ reason: verdict.reason, corsOk: verdict.ok }, { status: 200 });
   }
 
   const filename = typeof body.filename === "string" ? body.filename.slice(0, 200) : "";

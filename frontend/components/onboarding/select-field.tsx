@@ -170,7 +170,21 @@ export default function SelectField({
                 aria-selected={o === value}
                 className={`pk__opt${n === active ? " is-active" : ""}${o === value ? " is-on" : ""}`}
                 onPointerEnter={() => setActive(n)}
-                onPointerDown={(e) => { e.preventDefault(); pick(o); }}
+                /* MOUSE ONLY, AND THAT IS THE WHOLE BUG THIS FIXES.
+
+                   `preventDefault` on pointerdown stops the press moving
+                   focus out of the search box before the choice lands, which
+                   is what it is here for. On a touch screen the same call
+                   cancels the browser's pan gesture for that pointer -- so a
+                   finger put down on a row to scroll the list could not scroll
+                   it, and the page underneath took the swipe instead. That is
+                   the "the dropdown will not scroll" fault exactly.
+
+                   Touch does not need it: a tap does not steal focus the way a
+                   mouse press does. The choice moved to `onClick`, which fires
+                   for both and which a scroll gesture correctly cancels. */
+                onPointerDown={(e) => { if (e.pointerType === "mouse") e.preventDefault(); }}
+                onClick={() => pick(o)}
               >
                 <span className="pk__label"><Mark name={o} q={q} /></span>
               </li>

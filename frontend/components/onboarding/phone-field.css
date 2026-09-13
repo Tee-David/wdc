@@ -76,6 +76,34 @@
 }
 .pv .ph__num:focus { outline: none; }
 
+/* THE SECOND BORDER INSIDE THE FIRST ONE, and why it needed three classes to
+   remove.
+
+   `.ob__f input` in onboarding.css gives every input in a field wrapper its
+   own border, radius and orange focus ring, which is right for the nine plain
+   text fields on this form and wrong for the one input that is a PART of a
+   larger control. The phone bar draws the border; the number inside it was
+   drawing a second one, so focusing the number put a rounded orange box inside
+   the rounded orange box -- which is the curve on the left of the number that
+   looked like a rendering fault.
+
+   Both rules were (0,2,0), so this was decided by which stylesheet loaded
+   last. Naming the wrapper as well settles it on specificity instead, which is
+   not something to leave to import order. */
+.pv .ob__f .ph__num,
+.pv .ob__f.is-bad .ph__num {
+  width: auto;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.pv .ob__f .ph__num:focus,
+.pv .ob__f .ph__num:focus-visible {
+  outline: none;
+  border: 0;
+  box-shadow: none;
+}
+
 /* The picker panel itself lives in picker.css, shared with the searchable
    select -- see the note at the top of that file for why. What is left here is
    only the closed state: the bar, the country button, and the number. */
