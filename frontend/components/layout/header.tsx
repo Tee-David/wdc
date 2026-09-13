@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LogIn } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Logo, WdcMark } from "@/components/brand/logo";
@@ -26,6 +27,7 @@ const NAV = [
   { label: "Home", link: "/" },
   { label: "Our Works", link: "/work" },
   { label: "Services", link: "/services" },
+  { label: "Blog", link: "/blog" },
   { label: "About Us", link: "/about" },
   { label: "Contact Us", link: "/contact" },
 ];
@@ -212,6 +214,26 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
           <span className="hidden lg:inline-flex">
             <AnimatedThemeToggler />
           </span>
+          {/* LOG IN. Icon only, because the bar already carries five nav items
+              and a CTA, and a seventh piece of text is the one that tips it
+              into clutter. The label is still there for anyone who cannot see
+              the icon -- `aria-label` names it and `title` shows it on hover
+              -- and the target is 40px with the header's own padding around
+              it, so it is comfortably thumb-sized.
+
+              It takes the same navy disc and white glyph as the theme toggle
+              beside it, for two reasons: the pair then reads as one set of
+              controls rather than two unrelated buttons, and navy-on-white
+              (17.68:1) holds in both themes and over the hero photograph,
+              which a theme-following colour would not. */}
+          <Link
+            href="/login"
+            aria-label="Log in"
+            title="Log in"
+            className="hidden h-10 w-10 items-center justify-center rounded-full bg-[#000065] text-white shadow-[0_2px_10px_-2px_rgba(0,0,26,0.5)] ring-1 ring-white/15 transition-transform duration-200 hover:scale-110 active:scale-95 lg:inline-flex"
+          >
+            <LogIn className="h-[1.05rem] w-[1.05rem]" aria-hidden="true" />
+          </Link>
           <Link
             href="/#pv-contact"
             className="header-cta-pulse group hidden items-center gap-2 rounded-full bg-secondary px-5 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-black hover:shadow-[0_10px_30px_rgba(255,101,0,0.35)] active:translate-y-0 md:inline-flex"
@@ -243,11 +265,19 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
                   ? "[&_.sm-toggle]:text-[#000065] dark:[&_.sm-toggle]:text-foreground"
                   : "[&_.sm-burger]:drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] [&_.sm-toggle]:!text-white dark:[&_.sm-toggle]:!text-foreground"
             )}
-            items={NAV.map((n) => ({
-              label: n.label,
-              link: n.link,
-              ariaLabel: `Go to ${n.label}`,
-            }))}
+            /* Log in joins the LIST rather than the footer row. The footer
+               holds the two controls that change how the site looks; this is a
+               destination, so it belongs with the other destinations -- and the
+               footer row is already balanced two-up at 320px, where a third
+               pill would not fit. */
+            items={[
+              ...NAV.map((n) => ({
+                label: n.label,
+                link: n.link,
+                ariaLabel: `Go to ${n.label}`,
+              })),
+              { label: "Log in", link: "/login", ariaLabel: "Log in to your account" },
+            ]}
             socialItems={SOCIALS}
             onMenuOpen={() => setMenuOpen(true)}
             onMenuClose={() => setMenuOpen(false)}

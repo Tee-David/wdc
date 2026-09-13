@@ -733,6 +733,17 @@ export const caseBySlug = (slug: string): CaseStudy | undefined =>
   CASE_STUDIES.find((c) => c.slug === slug);
 
 /**
+ * Where a case study lives. A piece can be LISTED under several categories but
+ * it is owned by exactly one, and that ownership is the address, so this is the
+ * single place that decides it. Returns undefined for a slug with no case
+ * study, so a caller has to decide rather than link to a 404.
+ */
+export const caseHref = (slug: string): string | undefined => {
+  const study = caseBySlug(slug);
+  return study ? `/work/${study.category}/${study.slug}` : undefined;
+};
+
+/**
  * Every case study listed under a category, with the ones this category OWNS
  * first.
  *

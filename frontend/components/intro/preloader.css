@@ -35,6 +35,20 @@
   transition: opacity .45s ease-in-out;
 }
 .pl.is-leaving { opacity: 0; }
+/* THE BAR GOES FIRST, and faster than the overlay it sits on.
+
+   The overlay fades for 450ms, and for most of that the page underneath is
+   already legible while the bar is still being painted on top of it -- a
+   2px rule lying across whatever happens to be at that height. On /services
+   that is the jump ticker, which is where this was reported from: a faint
+   line through the middle of the marquee on a freshly loaded page, gone a
+   moment later, and nothing in the ticker's own styles to explain it.
+
+   120ms, so it is out of the way before the page shows through at all. */
+.pl.is-leaving .pl__bar {
+  opacity: 0;
+  transition: opacity .12s linear;
+}
 @media (min-width: 768px) { .pl { --pl-h: 104px; } }
 
 .pl__lockup { display: flex; align-items: center; }

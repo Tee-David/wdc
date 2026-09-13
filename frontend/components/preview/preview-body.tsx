@@ -17,7 +17,7 @@ import { PROJECTS, type Project } from "@/lib/projects";
 import SiteModal from "./site-modal";
 import { FAQS } from "@/lib/faq";
 import { TESTIMONIALS } from "@/lib/testimonials";
-import { caseBySlug } from "@/lib/work";
+import { caseBySlug, caseHref } from "@/lib/work";
 import FaqAccordion from "@/components/ui/faq-accordion";
 import { CONTACT_EMAIL } from "@/lib/site";
 
@@ -378,16 +378,22 @@ export default function PreviewBody() {
           </div>
           <div className="pv-track pv-reveal" ref={track} onScroll={sync}>
             {PROJECTS.map((p) => (
-              /* Still a real link: crawlable, and middle-click or ctrl-click
-                 opens the site the way a link should. The click handler only
-                 takes over the PLAIN click, which is the one we want to keep
-                 on this page. */
+              /* THE HREF IS OUR CASE STUDY, not the client's website.
+
+                 It used to be the client's, which meant the seven strongest
+                 cards on the homepage spent their link equity pointing away
+                 from the site, and anyone who ctrl-clicked -- or a crawler,
+                 which only ever follows the href and never fires a click --
+                 left for somebody else's page. Fifteen case studies sat on
+                 our own site with no internal links pointing at them at all.
+
+                 The plain click still opens the live preview, which is the
+                 nicer thing to do for someone browsing; the case study is one
+                 click away from inside it. */
               <a
                 className="pv-job"
                 key={p.url}
-                href={p.url}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={caseHref(p.caseSlug) ?? p.url}
                 onClick={(e) => {
                   if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
                   e.preventDefault();

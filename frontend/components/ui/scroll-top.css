@@ -160,3 +160,26 @@ body:has(.cx) .st { bottom: calc(var(--fab-bottom) + var(--fab-stack) + 4.4rem);
 
 /* The dark page needs the disc to separate from it. */
 .dark .st { background: var(--paper-2, #0a0a3a); box-shadow: 0 10px 26px -10px rgb(0 0 0 / .7); }
+
+/* ---- OUT OF THE WAY OF THE MENU ---------------------------------------
+   The mobile menu is a side sheet at z-index 60; these corner controls sit
+   at 110 and 112, so the chat avatar and the accessibility disc floated on
+   top of the open panel and over its own buttons. Raising the panel above
+   them would not help: it is a sheet, not a full cover, so the discs would
+   still be sitting in the corner beside it competing for the same thumb.
+
+   While the menu is open there is nothing they can usefully do -- the menu
+   carries its own theme and accessibility controls -- so they step aside.
+   Opacity and pointer-events rather than `display: none`, so nothing
+   reflows and they fade rather than blink. */
+body:has(.sm-panel[data-open="true"]) .jf-facade,
+body:has(.sm-panel[data-open="true"]) .ai-agent-chat-avatar-container,
+body:has(.sm-panel[data-open="true"]) .embedded-agent-container,
+body:has(.sm-panel[data-open="true"]) .uw--corner,
+body:has(.sm-panel[data-open="true"]) .st {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .jf-facade, .uw--corner, .st { transition: opacity .2s ease; }
+}
