@@ -11,7 +11,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **177 open** (5 of them in progress), **174 done**.
+At last update: **174 open** (5 of them in progress), **180 done**.
 
 ---
 
@@ -29,7 +29,6 @@ that is the shortest feedback loop there is.
 
 
 - [ ] `components/services/services-body.tsx` is now unreferenced: `/services` is a hub and each service renders through `service-detail.tsx`. Delete it once the new pages have been live long enough to be sure nothing is missed, and move anything worth keeping (the filter chips, the in-page nav, the brand rail) onto the hub first.
-- [ ] The six service pages want a FAQ block each, fed from `lib/faq.ts` filtered by service. The hub inherits the general questions; the detail pages should answer the ones a buyer of THAT service asks, and it is the cheapest structured-data win left on the site.
 
 ## 1A. Client onboarding experience
 
@@ -373,6 +372,8 @@ Archived, with the evidence that closed each one. Search here before
 reopening anything.
 
 ## Closed 2026-09-14, from live-site review
+
+- [x] Every service page answers questions a buyer of THAT service asks, and emits FAQPage structured data describing exactly the questions rendered. The block, the accordion and the JSON-LD were already wired; what was missing was the content. Counted before writing any: branding had ZERO questions tagged to it, so its page showed five general ones and answered nothing specific to branding, while seo, web and social had one each. Six new questions take the set from 10 to 16, and every service now leads with one of its own -- branding 3, web 3, and 2 each for seo, apps, software and social. Verified by parsing the FAQPage JSON-LD out of all six built pages: 5 questions each, specific ones first. Every answer is drawn from what lib/services.ts already says the studio does; no price, no turnaround, no capability invented for the tag.
 
 - [x] Case-study titles fit, and the brand suffix is no longer dead code. The fitting logic was already in place, but it appended `COMPANY_NAME` -- "We Dig Creativity Solutions (WDC Solutions)", a 45-character suffix against a 60-character budget. Measured across all fifteen case studies, the two branches that carry the brand NEVER ran: thirteen fell through to sector-without-brand and two to the client alone. The comment also claimed the brand came from "the root template", but the page returns `title.absolute`, which bypasses the template entirely. Now appends `SITE_NAME` (20 characters), the same short name every other page carries. Titles measure 11-56 characters, all inside 60.
 - [x] Meta descriptions on the work category and legal pages now land in the 120-160 range, verified by reading `<meta name="description">` out of the built HTML rather than by estimating. Legal was 75-114: whole sentences from the document's own `intro` are appended while they fit, which only helped the cookie policy, so the "Last updated" date is added when there is still room. It is what someone checks on a policy, it is already on the page, and it fits where a sentence does not. All four now 135-146. Work categories were 100-118: real client names are appended one at a time and dropped whole when the next will not fit, so the sentence never ends on half a client. All six now 142-155. Two grammar faults surfaced while doing it and are fixed: `c.label.toLowerCase()` was rendering "1 project in seo" (and would have done the same to AI and PPC), and the plural tail did not agree with its own count -- "1 project in seo, every one of them live".
