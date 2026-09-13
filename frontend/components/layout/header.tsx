@@ -125,7 +125,10 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
     <Link
       href="/"
       aria-label="We Dig Creativity, home"
-      className="relative inline-flex h-9 items-center"
+      /* h-11 is 44px: the LINK is the tap target, the mark inside it stays h-9,
+         so the logo is the same size it was and a thumb now has the full
+         44px. It still clears the h-16 bar around it. */
+      className="relative inline-flex h-11 items-center"
     >
       {/* One component for both themes so the two states match in size. Light
           mode previously used the flat logo-white.svg while dark used Logo,

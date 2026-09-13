@@ -795,6 +795,23 @@ main.pv {
 .pv-cline { display: flex; justify-content: space-between; gap: 14px; padding: 15px 0; border-bottom: 1px solid var(--on-band-rule); }
 .pv-cline small { font-family: var(--font-space-grotesk), system-ui, sans-serif; color: var(--on-band-dim); font-size: .82rem; }
 .pv-cline b { font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 600; color: #fff; }
+
+/* A 44px TAP TARGET WITHOUT A 44px BOX.
+
+   These are inline links inside running text, so growing the element itself
+   would open a gap in the line it sits in and push everything under it down.
+   An absolutely positioned pseudo-element gives the link a 44px hit area
+   centred on the glyphs and occupies no layout at all, which is the whole
+   point: the text stays where the design put it and a thumb still lands.
+
+   Rows here are at least 50px apart, so neighbouring targets do not overlap;
+   that was measured rather than assumed. */
+.pv-cline a { position: relative; }
+.pv-cline a::after {
+  content: ""; position: absolute;
+  left: 0; right: 0; top: 50%;
+  height: 44px; transform: translateY(-50%);
+}
 .pv-cwork { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 10px; }
 .pv-cwork li { position: relative; padding-left: 22px; font-size: .95rem; color: var(--on-band-dim); }
 .pv-cwork li::before {
