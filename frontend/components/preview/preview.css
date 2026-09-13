@@ -302,8 +302,11 @@ main.pv {
 }
 .pv-head h2 { max-width: none; }
 .pv-head .pv-lede { max-width: 56ch; margin-inline: auto; }
-.pv-head--left { justify-items: start; text-align: left; margin-inline: 0; }
-.pv-head--left .pv-lede { max-width: 52ch; margin-inline: 0; }
+/* `.pv-head--left` IS GONE. Two sections used it -- the homepage services
+   block and About's "how we think" -- and both sat left-aligned in the middle
+   of a page whose every other section head is centred. One section head that
+   does not line up with the rest reads as a mistake, so the modifier went
+   rather than the two call sites keeping it. */
 .pv-lede {
   color: var(--muted);
   font-size: clamp(1rem, .95rem + .3vw, 1.18rem);
