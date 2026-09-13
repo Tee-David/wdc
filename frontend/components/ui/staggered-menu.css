@@ -101,9 +101,20 @@
      a glance, which is the one thing a menu has to do. The `vh` half of each
      clamp is what makes a short screen give some of that back. */
   padding: clamp(4.2rem, 9vh, 7em) clamp(1.35rem, 6vw, 2.25em) clamp(1.25rem, 3vh, 2.25em);
-  overflow-y: auto;
-  /* The panel is a nested scroller inside a Lenis-driven page on desktop. */
-  overscroll-behavior: contain;
+  /* THE PANEL NO LONGER SCROLLS. The LIST does.
+
+     When the whole panel was the scroller, a long menu on a short phone took
+     the socials and the theme/accessibility row down with it -- the two
+     controls people reach for most ended up below the fold of a menu. The
+     panel is now a fixed frame: the list takes whatever height is left and
+     scrolls inside it, and everything below the list stays put. */
+  overflow: hidden;
+  /* THE ITEMS ARE SIZED BY THE PANEL, NOT BY THE VIEWPORT. Above 640px the
+     panel is a 42vw column, so a `vw` type scale sized the words against a
+     screen four times wider than the box holding them. `cqw` measures the
+     panel itself, so one rule holds from a 320px phone to the 1023px edge
+     where this menu hands over to the desktop bar. */
+  container-type: inline-size;
   z-index: 45;
   pointer-events: auto;
   visibility: hidden;
@@ -137,6 +148,10 @@
   display: flex;
   flex-direction: column;
   gap: clamp(.6rem, 2vh, 1.25rem);
+  /* Without this a flex child refuses to shrink below its content, so the
+     list would push the socials and footer off the bottom instead of
+     scrolling. */
+  min-height: 0;
 }
 
 .sm-panel-list {
@@ -145,14 +160,31 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: clamp(.45rem, 1.7vh, 1.15rem);
-  counter-reset: smItem;
+  gap: clamp(.55rem, 2.6vh, 1.4rem);
+  /* Takes the height the panel has left, and scrolls when the words need
+     more than that. `min-height: 0` is what makes the overflow land here
+     rather than on the panel. */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sm-accent) transparent;
 }
 
 .sm-panel-itemWrap {
   position: relative;
   overflow: hidden;
   line-height: 1;
+  /* `flex: none` OR THE WORDS GET CROPPED. These are flex children of the
+     list, so they shrink by default -- and with `overflow: hidden` above them
+     (which the open animation needs, to slide each label up from nothing) a
+     shrunk row does not compress, it cuts the tops and bottoms off the
+     letters. Measured on a 390x560 screen: every item lost about a third of
+     its height and the list reported that it had nothing to scroll. */
+  flex: none;
 }
 
 .sm-panel-item {
@@ -160,9 +192,11 @@
   color: var(--foreground);
   font-family: var(--font-space-grotesk), sans-serif;
   font-weight: 700;
-  /* `min(7vw, 4.6vh)` so the seven items fit a short screen without the
-     type collapsing on a tall one. */
-  font-size: clamp(1.55rem, min(7vw, 4.6vh), 3.4rem);
+  /* Fallback first, for anything without container queries. */
+  font-size: clamp(1.75rem, 11vw, 2.9rem);
+  /* The real rule: 13% of the panel's own width. The list scrolls, so the
+     type no longer has to shrink to fit a short screen. */
+  font-size: clamp(1.85rem, 13cqw, 3.4rem);
   cursor: pointer;
   line-height: 1;
   letter-spacing: -0.03em;
@@ -170,7 +204,6 @@
   transition: color 0.25s;
   display: inline-block;
   text-decoration: none;
-  padding-right: 1.4em;
 }
 
 .sm-panel-item:hover {
@@ -188,21 +221,6 @@
    `data-open` is already on the panel for the open transition, so the hint can
    simply ride along with it. */
 .sm-panel[data-open="true"] .sm-panel-itemLabel { will-change: transform; }
-
-.sm-panel-item::after {
-  counter-increment: smItem;
-  content: counter(smItem, decimal-leading-zero);
-  position: absolute;
-  top: 0.12em;
-  right: 1.6em;
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--sm-accent);
-  letter-spacing: 0;
-  pointer-events: none;
-  user-select: none;
-  opacity: var(--sm-num-opacity, 0);
-}
 
 .sm-socials {
   margin-top: auto;
