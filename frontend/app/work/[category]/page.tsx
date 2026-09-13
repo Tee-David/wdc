@@ -32,9 +32,35 @@ export async function generateMetadata(
      searcher wants from a portfolio page -- how much of it there is, and what
      kind of work. Counted, never typed. */
   const n = countFor(c);
-  const description =
-    `${c.lede} ${n} ${n === 1 ? "project" : "projects"} in ${c.label.toLowerCase()}, every one of them live.`
-      .slice(0, 158);
+  /* AND THEN THE CLIENTS, WHILE THERE IS ROOM. Built and measured: the
+     sentence above alone landed four of the six categories between 100 and 118
+     characters, short enough that Google usually writes its own snippet out of
+     the page rather than using the tag.
+
+     The client names are the specific, true thing a searcher scanning a
+     portfolio is actually looking for, and they are already on the page. Names
+     are added one at a time and dropped whole when the next will not fit, so
+     the sentence never ends on half a client. */
+  /* `c.label` UNCHANGED, AND A SINGULAR THAT AGREES. Lowercasing the label to
+     make it sit mid-sentence also lowercased the acronyms, so /work/seo read
+     "1 project in seo" -- and the plural tail did not agree with its own
+     count either: "1 project in seo, every one of them live". */
+  const base = n === 1
+    ? `${c.lede} One project in ${c.label}, and it is live.`
+    : `${c.lede} ${n} projects in ${c.label}, every one of them live.`;
+  const description = (() => {
+    const clients = casesFor(c.slug).map((cs) => cs.client);
+    let out = base;
+    const named: string[] = [];
+    for (const client of clients) {
+      const next = [...named, client];
+      const tail = ` Work for ${next.join(", ")}.`;
+      if ((base + tail).length > 158) break;
+      named.push(client);
+      out = base + tail;
+    }
+    return out.slice(0, 158);
+  })();
 
   return {
     title: `${c.name} work`,
