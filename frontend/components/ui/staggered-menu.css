@@ -246,7 +246,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 1.35rem;
+  gap: 1.6rem;
   flex-wrap: wrap;
 }
 
@@ -256,6 +256,18 @@
   display: inline-flex;
   align-items: center;
   transition: color 0.3s ease, transform 0.2s ease;
+  /* A 22px glyph is a 22px target, which is half of what a thumb needs and
+     these sit in the menu -- a surface built for thumbs. The hit area is
+     extended by a pseudo-element rather than by padding, so the icons stay
+     aligned with the left edge of the menu items above them instead of being
+     indented by 11px. See the same technique in contact.css. */
+  position: relative;
+}
+.sm-socials-link::after {
+  content: ""; position: absolute;
+  top: 50%; left: 50%;
+  width: 44px; height: 44px;
+  transform: translate(-50%, -50%);
 }
 
 .sm-socials-link svg {
