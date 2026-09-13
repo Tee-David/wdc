@@ -44,6 +44,40 @@ const ACCENT = "#ff6500";
    logo -- it is a placeholder that had been standing in long enough to start
    looking deliberate. `logo-white.svg` is the actual lockup, and Satori will
    render an SVG given to it as a data URI. Read once per build, not per card. */
+/* A PHOTOGRAPH BEHIND THE CARD, RESIZED AT BUILD TIME.
+
+   The suggestion that started this was to use a screenshot of the homepage.
+   The instinct was right -- the flat navy card was lifeless next to the site
+   it points at -- but a screenshot is the wrong artefact three times over: at
+   the ~120px a chat app actually renders, the headline and nav become mush;
+   it freezes one of six rotating hero backdrops, so it is wrong the next time
+   the design moves; and it shows the reader exactly what they get after
+   clicking, which is not a reason to click.
+
+   So the photograph, not the screenshot, and the words drawn over it at a size
+   that survives being shrunk. `sharp` covers the source to 1200x630 once per
+   build; the base64 of a full-size JPEG would otherwise be several megabytes
+   of string handed to the renderer for an image it is about to downscale. */
+const shotCache = new Map<string, string>();
+async function shotDataUri(publicPath: string) {
+  const hit = shotCache.get(publicPath);
+  if (hit) return hit;
+  const { default: sharp } = await import("sharp");
+  const buf = await sharp(path.join(process.cwd(), "public", publicPath))
+    .resize(OG_SIZE.width, OG_SIZE.height, { fit: "cover", position: "attention" })
+    /* A GENTLE BLUR, EARNING ITS PLACE TWICE. It lifts the type off the
+       photograph so the headline never has to fight a detail behind it, and
+       because a PNG's weight is driven by detail it takes the rendered card
+       from 640KB to something a chat app will actually fetch -- WhatsApp gives
+       up on previews around 600KB, which the sharp original sat right on. */
+    .blur(3)
+    .jpeg({ quality: 58, mozjpeg: true })
+    .toBuffer();
+  const uri = `data:image/jpeg;base64,${buf.toString("base64")}`;
+  shotCache.set(publicPath, uri);
+  return uri;
+}
+
 let logoCache: string | null = null;
 const logoDataUri = () => {
   if (logoCache) return logoCache;
@@ -56,6 +90,7 @@ export async function ogCard({
   eyebrow,
   title,
   note,
+  shot,
 }: {
   /** The small tracked line above the title -- the section, or the service. */
   eyebrow?: string;
@@ -63,11 +98,16 @@ export async function ogCard({
   title: string;
   /** One short line under it. Falls back to the motto. */
   note?: string;
+  /** A path under `public/` -- one of the site's own photographs -- to sit
+      behind the card. Omit for the flat brand ground. */
+  shot?: string;
 }) {
-  return new ImageResponse(
+  const photo = shot ? await shotDataUri(shot) : null;
+  const rendered = new ImageResponse(
     (
       <div
         style={{
+          position: "relative",
           width: "100%",
           height: "100%",
           display: "flex",
@@ -79,14 +119,46 @@ export async function ogCard({
              being cut down to a thumbnail. */
           justifyContent: "center",
           background: BAND,
-          padding: "0 84px",
           fontFamily: "Space Grotesk",
           /* One gesture of decoration, dialled back from a 900px bloom that
              read as a gradient for its own sake. */
-          backgroundImage:
+          /* THE PHOTOGRAPH IS A BACKGROUND LAYER, NOT AN <img>.
+
+             As an absolutely positioned element it was laid out as a flex item
+             -- Satori's support for `position: absolute` is partial -- so the
+             card wore a navy band along the top and bottom where the image had
+             been pushed by `justify-content: center`. A background cannot be
+             laid out by the flex algorithm at all, so it fills the card by
+             construction.
+
+             Layer order is CSS's: the first gradient paints on top. The scrim
+             is weighted left, where the type sits, rather than spread evenly --
+             the same reasoning the hero and the blog covers use -- and it is
+             navy rather than black so the card still reads as ours and not as
+             a darkened stock photo. */
+          backgroundImage: [
             "radial-gradient(620px 380px at 92% -8%, rgba(255,101,0,0.30), transparent 60%)",
+            photo
+              ? "linear-gradient(100deg, rgba(0,0,60,0.95) 0%, rgba(0,0,60,0.90) 44%, rgba(0,0,60,0.58) 80%, rgba(0,0,60,0.40) 100%)"
+              : null,
+            photo ? `url(${photo})` : null,
+          ].filter(Boolean).join(", "),
+          backgroundSize: "cover",
         }}
       >
+        {/* THE PADDING LIVES HERE, NOT ON THE CARD. An absolutely positioned
+            child is laid out inside its parent's PADDING box, so with the
+            inset on the container the photograph stopped 84px short of the
+            left edge and the card wore a navy margin. */}
+        <div
+          style={{
+            position: "relative",
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
+            padding: "0 84px",
+          }}
+        >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={logoDataUri()} alt="" width={300} height={96} style={{ marginBottom: 40 }} />
 
@@ -139,6 +211,7 @@ export async function ogCard({
         {/* A short accent rule instead of a second block of text: it closes the
             composition and is unmistakably ours at any crop. */}
         <div style={{ display: "flex", width: 96, height: 6, borderRadius: 999, background: ACCENT, marginTop: 40 }} />
+        </div>
       </div>
     ),
     {
@@ -149,4 +222,31 @@ export async function ogCard({
       ],
     },
   );
+
+  /* THE CARD IS RE-ENCODED WHEN IT CARRIES A PHOTOGRAPH.
+
+     `ImageResponse` emits a full-colour PNG, and a PNG of a photograph is
+     large however gently it is blurred: the version with the hero behind it
+     came out at 677KB. WhatsApp gives up on a preview at roughly 600KB, so the
+     card that was supposed to make links look better would simply not appear.
+
+     Quantising to a 128-colour palette is the right trade here and nowhere
+     else: the photograph is already blurred, so there is no fine detail for a
+     palette to destroy, while the type and the logo are flat white on flat
+     navy -- the two things a palette reproduces exactly. Cards without a
+     photograph are flat colour already and are returned untouched. */
+  if (!photo) return rendered;
+
+  const { default: sharp } = await import("sharp");
+  const png = await sharp(Buffer.from(await rendered.arrayBuffer()))
+    .png({ palette: true, colours: 128, effort: 7 })
+    .toBuffer();
+
+  return new Response(new Uint8Array(png), {
+    headers: {
+      "Content-Type": OG_CONTENT_TYPE,
+      /* Content-addressed by the build, so it can be cached hard. */
+      "Cache-Control": "public, immutable, no-transform, max-age=31536000",
+    },
+  });
 }
