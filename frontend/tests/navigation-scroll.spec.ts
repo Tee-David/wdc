@@ -111,3 +111,40 @@ test("an in-page anchor still goes to its section, not to the top", async ({ pag
 
   expect(await scrollY(page)).toBeGreaterThan(100);
 });
+
+/**
+ * "Back to the top doesn't go all the way to the top."
+ *
+ * The button reached about 200-350px and stopped, leaving the header in its
+ * scrolled state at what was supposed to be the top of the page.
+ *
+ * THE CLICK HAS TO BE A REAL ONE. The cause was the tap focusing the button:
+ * crossing the show/hide threshold on the way up re-rendered it, React
+ * restored focus onto the element it had just mutated, and that `.focus()`
+ * cancelled the smooth scroll still in flight. A scripted `element.click()`
+ * focuses nothing, so it lands on 0 even with the bug present and proves
+ * nothing. `page.click` is load-bearing here.
+ */
+for (const [name, size] of [
+  ["a phone", { width: 390, height: 844 }],
+  ["a desktop", { width: 1280, height: 900 }],
+] as const) {
+  test.describe(name, () => {
+    test.use({ viewport: size });
+
+    test(`back to the top reaches the top on ${name}`, async ({ page }) => {
+      await open(page, "/");
+      await toBottom(page);
+
+      await page.click(".st");
+      await page.waitForTimeout(3000);
+
+      expect(await scrollY(page)).toBe(0);
+      /* Lenis keeps its own target on desktop; if it still holds the old one
+         it will animate the page back down on some later frame. */
+      expect(
+        await page.evaluate(() => (window.__lenis ? Math.round(window.__lenis.scroll) : 0)),
+      ).toBe(0);
+    });
+  });
+}
