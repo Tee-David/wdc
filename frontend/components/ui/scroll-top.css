@@ -68,7 +68,10 @@
   transition: opacity .2s ease, transform .2s ease;
 }
 .jf-facade:hover .jf-facade__bubble,
-.jf-facade:focus-visible .jf-facade__bubble {
+.jf-facade:focus-visible .jf-facade__bubble,
+/* While the runtime is coming the bubble carries the news, so it stays up
+   whether or not the pointer is still on the button. */
+.jf-facade.is-loading .jf-facade__bubble {
   opacity: 1;
   transform: none;
 }

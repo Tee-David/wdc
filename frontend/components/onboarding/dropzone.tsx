@@ -198,7 +198,7 @@ export default function Dropzone({
      upload. */
   useEffect(() => {
     const names = items.filter((x) => x.status === "done").map((x) => x.file.name);
-    const signature = names.join(" ");
+    const signature = names.join("\u0000");
     if (signature === publishedRef.current) return;
     publishedRef.current = signature;
     const id = requestAnimationFrame(() => onChange(names));
