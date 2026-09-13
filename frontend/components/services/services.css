@@ -157,8 +157,17 @@
      but the combined page still wraps its showcase in one, so the rule stays
      for that case and the lazy wrapper is now also a direct child here. */
   .sv-svc__showcase > .se { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  /* `.sv-lazy` carries `margin-top: clamp(1.6rem, 3vw, 2.4rem)` from
+     stages.css, which is right where a stage follows a heading down the page
+     and wrong where it is one half of a two-column row: it pushed the panel
+     38px below the prose beside it, and the flex stretch then took 38px off
+     the bottom to compensate, so the column was short at both ends. Measured
+     before: showcase top 550, panel top 589. */
   .sv-svc__showcase > .sv-lazy,
-  .sv-svc__showcase .sv-lazy { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .sv-svc__showcase .sv-lazy {
+    flex: 1; display: flex; flex-direction: column; min-height: 0;
+    margin-top: 0;
+  }
   .sv-svc__showcase .sv-stage { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   /* `aspect-ratio: auto` is load-bearing: the frame carries a 16/10 and some
      stages override it with their own, and any of those beats a flex height.
