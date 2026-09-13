@@ -75,11 +75,19 @@ const BG_IMAGES = [
 
 function HeroBackdrop() {
   const [i, setI] = useState(0);
+  /* THE FRAME WE CAME FROM, and the whole reason the transition used to look
+     grey. Only one backdrop was ever mounted: `key` remounted it on every
+     change, so the incoming image animated from opacity 0 with NOTHING behind
+     it, and for the length of the fade the hero was the page's own dark ground
+     seen through the scrim. That is not a crossfade, it is a dip to grey and
+     back. Holding the previous frame underneath at full opacity means the new
+     one fades over a picture instead of over a hole. */
+  const [prev, setPrev] = useState<number | null>(null);
   const [warmNext, setWarmNext] = useState(false);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const id = setInterval(() => setI((p) => (p + 1) % BG_IMAGES.length), 5000);
+    const id = setInterval(() => setI((p) => { setPrev(p); return (p + 1) % BG_IMAGES.length; }), 5000);
     return () => clearInterval(id);
   }, []);
 
@@ -104,6 +112,22 @@ function HeroBackdrop() {
           per device and served as AVIF or WebP instead of as the raw 1.1MB set
           of JPEGs. This is the homepage's LCP element, and it was measuring
           5.4s on emulated mobile against a 2.5s target. */}
+      {/* The outgoing frame, held still and fully opaque until the incoming one
+          has covered it. No animation of its own: it is a floor, not a layer
+          anyone is meant to notice. */}
+      {prev !== null && prev !== i ? (
+        <div className="absolute inset-0">
+          <NextImage
+            src={BG_IMAGES[prev]}
+            alt=""
+            fill
+            sizes="100vw"
+            quality={70}
+            className="object-cover"
+          />
+        </div>
+      ) : null}
+
       <div
           key={BG_IMAGES[i]}
           className="hero-backdrop absolute inset-0"

@@ -29,11 +29,15 @@ export type Project = {
       fallback. */
   long?: string;
   services: ServiceSlug[];
+  /** The case study for this project on our own site. Every project has one;
+      resolve it to a URL with `caseHref` from lib/work. */
+  caseSlug: string;
 };
 
 export const PROJECTS: Project[] = [
   {
     name: "TraxStaff",
+    caseSlug: "traxstaff",
     /* Tagged across three services from what the repository actually contains:
        a Next.js dashboard and Fastify/Prisma API (web), a Tauri desktop client
        and an Expo mobile client (apps), and the product engineering behind all
@@ -47,6 +51,7 @@ export const PROJECTS: Project[] = [
   },
   {
     name: "Litch Consulting",
+    caseSlug: "litch-consulting",
     sector: "Modelling and data analytics",
     url: "https://litchconsulting.com/",
     cover: "/work/litchconsulting.jpg",
@@ -54,6 +59,7 @@ export const PROJECTS: Project[] = [
   },
   {
     name: "Realtors' Practice",
+    caseSlug: "realtors-practice",
     sector: "Property data and listings",
     url: "https://realtorspractice.ng/",
     cover: "/work/realtorspractice.jpg",
@@ -61,6 +67,7 @@ export const PROJECTS: Project[] = [
   },
   {
     name: "Nomarc Projects",
+    caseSlug: "nomarc-projects",
     sector: "Construction hiring platform",
     url: "https://nomarcprojects.com/",
     cover: "/work/nomarcprojects.jpg",
@@ -68,6 +75,7 @@ export const PROJECTS: Project[] = [
   },
   {
     name: "Exambeta Travels & Tours",
+    caseSlug: "exambeta-travels",
     sector: "Education and mobility",
     url: "https://exambeta.com.ng/",
     cover: "/work/exambeta.jpg",
@@ -75,6 +83,7 @@ export const PROJECTS: Project[] = [
   },
   {
     name: "Jomo Resource Center",
+    caseSlug: "jomo-resource-center",
     sector: "Education and training",
     url: "https://jomorc.com/",
     cover: "/work/jomorc.jpg",
@@ -82,6 +91,7 @@ export const PROJECTS: Project[] = [
   },
   {
     name: "Speak Up For A Change",
+    caseSlug: "speak-up-for-a-change",
     sector: "Non-profit",
     url: "https://speakupforachange.org/",
     cover: "/work/speakupforachange.jpg",

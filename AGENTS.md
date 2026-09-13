@@ -3,7 +3,7 @@
 ## Product language
 
 - Reuse the site's tokens and established patterns before adding a new visual language. Bright orange is `#ff6500`; navy is the primary dark brand surface.
-- Use Space Grotesk for headings, display copy, and prominent figures. Use Hausfit for body copy, descriptions, labels, helper text, and controls. Keep type fluid and readable from 320px upward.
+- Use Space Grotesk for headings, display copy, and prominent figures. Use Outfit for body copy, descriptions, labels, helper text, and controls. Keep type fluid and readable from 320px upward.
 - Button labels must be neutral white or black, chosen for contrast. Orange and blue fills use white text. White fills use black text. Preserve existing geometry; add clear hover, active, focus-visible, disabled, and reduced-motion states consistently across similar controls.
 - Meet WCAG AA contrast, use semantic controls, visible keyboard focus, useful labels, 44px touch targets, and no hover-only information. Long menus must be bounded and scrollable; searchable lists are preferred above ten options.
 - Treat a screenshot correction as a pattern audit. Check sibling components for the same defect and fix the shared rule when safe.

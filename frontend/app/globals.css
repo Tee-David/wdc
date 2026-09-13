@@ -191,6 +191,9 @@ h4 {
 /* The same crossfade/slow zoom formerly driven by the motion runtime. Keeping
    it in CSS makes the LCP image animate on the compositor and removes that
    library from the critical homepage bundle. */
+/* Slower and gentler than it was, now that it fades over the previous frame
+   rather than over the page. A crossfade with something underneath it can
+   afford to take its time; one with a hole underneath had to hurry. */
 @keyframes hero-backdrop-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes hero-backdrop-zoom {
   from { transform: scale(1.08); }
@@ -258,7 +261,7 @@ main:focus { outline: none; }
 
 .hero-backdrop {
   animation:
-    hero-backdrop-fade 1.4s ease-in-out both,
+    hero-backdrop-fade 2s cubic-bezier(.4, 0, .2, 1) both,
     hero-backdrop-zoom 6s linear both;
 }
 
