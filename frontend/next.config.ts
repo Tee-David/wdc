@@ -1,4 +1,39 @@
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { NextConfig } from "next";
+
+/**
+ * THE ENVIRONMENT LIVES ONE DIRECTORY UP.
+ *
+ * `.env` is at the repository root and the app is in `frontend/`, so Next
+ * never loads it: it only looks in the project directory. Nothing said so.
+ * `next build` simply failed with "Failed to collect page data" because a
+ * module read `COCKROACHDB_URL` and found nothing, and every R2, SMTP and
+ * Paystack value was equally invisible to `next dev` on a fresh clone.
+ *
+ * Read it here instead. Three rules make this safe:
+ *  - a variable already set always wins, so Vercel's dashboard and a real
+ *    shell export are never overridden by a stale file;
+ *  - the file is optional, so a deployment that has no repo checkout (which
+ *    is every deployment) behaves exactly as it does today;
+ *  - the BOM is stripped, because this file has one and it would otherwise
+ *    become part of the first variable's NAME, which is invisible and
+ *    maddening.
+ */
+function loadRepoRootEnv() {
+  const file = join(process.cwd(), "..", ".env");
+  if (!existsSync(file)) return;
+  for (const line of readFileSync(file, "utf8").replace(/^﻿/, "").split(/\r?\n/)) {
+    const text = line.trim();
+    if (!text || text.startsWith("#")) continue;
+    const at = text.indexOf("=");
+    if (at < 1) continue;
+    const key = text.slice(0, at).trim();
+    if (process.env[key] !== undefined) continue;
+    process.env[key] = text.slice(at + 1).trim().replace(/^(['"])(.*)\1$/, "$2");
+  }
+}
+loadRepoRootEnv();
 
 /**
  * The config was empty. Everything here is measured, not speculative.
