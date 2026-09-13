@@ -26,9 +26,12 @@ that is the shortest feedback loop there is.
 
 ## 1. Public frontend
 
+- [ ] `components/services/services-body.tsx` is now unreferenced: `/services` is a hub and each service renders through `service-detail.tsx`. Delete it once the new pages have been live long enough to be sure nothing is missed, and move anything worth keeping (the filter chips, the in-page nav, the brand rail) onto the hub first.
+- [ ] The six service pages want a FAQ block each, fed from `lib/faq.ts` filtered by service. The hub inherits the general questions; the detail pages should answer the ones a buyer of THAT service asks, and it is the cheapest structured-data win left on the site.
+
 ### Raised by the independent audit, 2026-09-13 (see `plans/WDC_Site_Audit_And_SEO_Plan.docx`)
 
-- [ ] Decide on six dedicated service URLs, `/services/<slug>`. (Findings S4 and C3. One page competing for six sets of terms, nowhere to land a paid click, and the longest and heaviest page on the site at 27.4 phone screens. Do them one at a time and only where there is enough to say: six thin pages rank worse than one strong one. Fifteen case studies are already there to link from.)
+- [x] Six dedicated service URLs built, one per service, plus a hub. The founder chose six over the three I recommended: listing six services and building three pages advertises a gap. `/services` is now the same one-plate hub `/work` uses; each `/services/<slug>` carries that service's demo, prose, deliverables, tool marquee, the six steps, the case studies already filed under its slug, and the ask. Every class is one the design system already had. Six Service nodes point at six real URLs instead of six anchors, and the hub emits a CollectionPage. This also lands finding P2: the six stage demos no longer share one route. (Findings S4 and C3.)
 
 ## 1A. Client onboarding experience
 
@@ -140,8 +143,8 @@ party, which our own CSP blocks and which we should not loosen it for.
 
 ## 1C. Blog
 
-- [ ] Give each post an social preview image, or a generated one, so a shared post does not unfurl bare.
-- [ ] Add an RSS or JSON feed once there are enough posts to be worth subscribing to.
+- [x] Blog posts and the index get drawn preview cards rather than the cover photograph. The covers are hero images cropped for a 16:10 band; handed to a network as a 1200x630 preview they are cropped again by someone else, and the headline -- the only thing that makes anyone click -- is not in the picture. The explicit `images` in the post metadata had to go, because setting it suppresses the file convention.
+- [x] RSS at `/blog/rss.xml`, derived from the same array the pages render so it cannot go stale, linked from the index through `alternates.types`. RSS rather than JSON Feed: it is what readers, newsletters and aggregators all accept without being told. The channel timestamp is the newest post's, not "now" -- a lastBuildDate that moves on every fetch tells every reader the feed changed when it did not.
 - [ ] Revisit the reading-time estimate against real posts; it is derived at 200 words a minute and has not been checked against anything longer than these six.
 
 ### Admin side, for whoever builds section 4
