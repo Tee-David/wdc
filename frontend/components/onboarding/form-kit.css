@@ -58,11 +58,47 @@
 .pv .dz__meta { margin: 0; color: var(--muted); font-size: .84rem; }
 
 .pv .dz__list { margin: .7rem 0 0; padding: 0; list-style: none; display: grid; gap: .45rem; }
+/* `min-width: 0` IS LOAD-BEARING, and it was missing. These rows are grid
+   items, and a grid item defaults to `min-width: auto`, which means it refuses
+   to shrink below its own content. One attached file with a real filename
+   therefore pushed the row wider than the phone: measured at 360px, a single
+   row of "brand-identity-final-master-artwork-v3-approved-2026.pdf" took the
+   page to a scrollWidth of 558. The ellipsis on .dz__name b never got a
+   chance to apply, because nothing above it would give up any width. That is
+   the whole of "uploading a file breaks the layout on mobile". */
+.pv .dz, .pv .dz__list { min-width: 0; }
 .pv .dz__list li {
+  min-width: 0;
   display: flex; align-items: center; gap: .7rem;
   padding: .55rem .7rem; border: 1px solid var(--rule); border-radius: 10px;
   background: var(--paper);
 }
+
+/* ---- the read, and the finished state -------------------------------------
+   The progress bar measures something real: the browser reading the file off
+   disk, reported by FileReader. It is not a fake timer standing in for a
+   transfer that does not happen yet -- see the note in dropzone.tsx. */
+.pv .dz__bar {
+  position: relative; display: block;
+  height: 3px; margin-top: .34rem; border-radius: 999px;
+  background: var(--rule); overflow: hidden;
+}
+.pv .dz__bar i {
+  position: absolute; inset: 0 auto 0 0; display: block;
+  border-radius: inherit; background: var(--accent);
+  transition: width .18s ease-out;
+}
+.pv .dz__list li.is-ready { border-color: color-mix(in srgb, var(--accent) 45%, var(--rule)); }
+.pv .dz__ok {
+  flex: none; display: grid; place-items: center;
+  width: 1.15rem; height: 1.15rem; border-radius: 50%;
+  background: var(--accent); color: var(--on-accent);
+}
+.pv .dz__ok svg { width: .7rem; height: .7rem; stroke-width: 3.2; }
+@media (prefers-reduced-motion: no-preference) {
+  .pv .dz__ok { animation: dz-pop .22s cubic-bezier(.16, 1, .3, 1) both; }
+}
+@keyframes dz-pop { from { transform: scale(.4); opacity: 0; } }
 .pv .dz__list li.is-bad { border-color: #d63333; background: color-mix(in srgb, #d63333 9%, var(--paper)); }
 .pv .dz__thumb {
   flex: none; display: grid; place-items: center; overflow: hidden;

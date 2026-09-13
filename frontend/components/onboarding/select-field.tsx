@@ -146,7 +146,14 @@ export default function SelectField({
               onKeyDown={onListKey}
             />
           </div> : null}
+          {/* data-lenis-prevent: Lenis calls preventDefault on EVERY wheel
+              event while it owns the page, so a wheel over a nested panel like
+              this one is cancelled and the panel never moves. The attribute is
+              how Lenis is told to keep its hands off a subtree. It is inert
+              when Lenis is not running (touch, reduced motion, narrow
+              windows), so it costs nothing to leave in. */}
           <ul
+            data-lenis-prevent
             className="pk__list"
             id={listId}
             role="listbox"

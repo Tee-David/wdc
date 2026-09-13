@@ -402,7 +402,7 @@ export default function PhoneField({
               onKeyDown={onListKey}
             />
           </div>
-          <ul className="pk__list" id={listId} role="listbox" ref={listRef} aria-label="Countries">
+          <ul data-lenis-prevent className="pk__list" id={listId} role="listbox" ref={listRef} aria-label="Countries">
             {results.map((c, n) => (
               <li
                 key={c.iso}
