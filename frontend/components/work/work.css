@@ -227,13 +227,16 @@
   background: var(--paper); border: 1px solid var(--rule);
   text-decoration: none;
   transition: transform .32s cubic-bezier(.16, 1, .3, 1),
-              box-shadow .32s cubic-bezier(.16, 1, .3, 1),
               border-color .32s ease;
 }
 .pv-sec--alt .wk-card { background: var(--paper-2); }
+/* NO DROP SHADOW. The lift and the accent border already say the card is
+   live, and the rail says it is a rail when there is somewhere to scroll to --
+   the shadow was a third voice repeating both of them, and on the pale ground
+   it read as a heavier object than the cards beside it. `.bl-card` has never
+   had one, so this is the two rails finally agreeing. */
 .wk-card:hover {
   transform: translateY(-5px); border-color: var(--accent);
-  box-shadow: 0 20px 40px -22px rgb(0 0 40 / .4);
 }
 .wk-card:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 /* `position: relative` for `next/image`'s `fill`, which absolutely
