@@ -58,6 +58,23 @@
 .pv .ct-line__v a { color: var(--ink); text-decoration: underline; text-underline-offset: .18em; }
 .pv .ct-line__v a:hover { color: var(--accent-ink); }
 
+/* A 44px TAP TARGET WITHOUT A 44px BOX.
+
+   These are inline links inside running text, so growing the element itself
+   would open a gap in the line it sits in and push everything under it down.
+   An absolutely positioned pseudo-element gives the link a 44px hit area
+   centred on the glyphs and occupies no layout at all, which is the whole
+   point: the text stays where the design put it and a thumb still lands.
+
+   Rows here are at least 50px apart, so neighbouring targets do not overlap;
+   that was measured rather than assumed. */
+.pv .ct-line__v a { position: relative; }
+.pv .ct-line__v a::after {
+  content: ""; position: absolute;
+  left: 0; right: 0; top: 50%;
+  height: 44px; transform: translateY(-50%);
+}
+
 /* ---------------------------------------------------------------- the form */
 
 .ct-card {
