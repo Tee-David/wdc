@@ -705,10 +705,6 @@
 }
 .pv .ob__svcCard--navy { background: #000065; }
 .pv .ob__svcCard--orange { background: var(--accent); color: var(--on-accent); }
-/* The base rule sets a white label for the navy variant; the orange one has to
-   take it back, or the whole card sits at 2.95:1. */
-.pv .ob__svcCard--orange h3,
-.pv .ob__svcCard--orange p { color: var(--on-accent); }
 /* Lifted on the dark page for the same reason the 404's blue button was:
    #000065 against a near-black ground is a shape you can barely find. */
 .dark .pv .ob__svcCard--navy { background: #1b1b8f; }
@@ -747,7 +743,14 @@
   display: block;
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: clamp(1.15rem, 1rem + .8vw, 1.5rem); font-weight: 700;
-  letter-spacing: -.02em; line-height: 1.1; color: #fff;
+  letter-spacing: -.02em; line-height: 1.1;
+  /* INHERIT, NEVER #fff. This was hard-coded white at (0,2,1), which beat the
+     variant rule below it, so the ORANGE card rendered white on #ff6500 --
+     2.95:1, the one pairing the colour rule forbids. An earlier correction
+     aimed at `h3, p` and silently missed, because the markup is b/em. Taking
+     the card's own colour means the navy variant stays white and the orange
+     one takes --on-accent, from one place, whatever the markup is called. */
+  color: inherit;
 }
 /* The rule that used to sit under the name is gone. The gap does the same
    separating on its own once it is given room, and one less mark on a filled
@@ -756,7 +759,10 @@
   display: block; font-style: normal; margin-top: .45rem;
   /* Held off the mark so a long line never runs under it. */
   max-width: 22ch;
-  color: rgb(255 255 255 / .82);
+  /* Same reasoning as the name above: the card decides the colour, and the
+     step down in emphasis is alpha rather than a second hard-coded value.
+     On navy that is white at 85%; on orange it is black at 85%, 6.18:1. */
+  color: inherit; opacity: .85;
   font-size: .88rem; line-height: 1.45;
 }
 

@@ -65,17 +65,34 @@ export default function ScrollReset() {
     /* Two passes. The first covers a normal load; the second runs after
        `load`, by which point the pinned sections have measured themselves and
        the document has its real height -- which is when a restored offset
-       would otherwise reappear. */
+       would otherwise reappear.
+
+       THE SECOND PASS MUST NEVER FIGHT THE READER. Between mount and `load`
+       the page is already interactive, so someone can scroll, or click an
+       in-page link, before `load` fires. Checking the hash is not enough to
+       catch that: Lenis handles anchor clicks itself and does not always write
+       one, so a correction here would silently undo a jump the reader had just
+       asked for. Any sign of intent -- a wheel, a touch, a key, a click --
+       stands the second pass down. */
     toTop(true);
+    let intent = false;
+    const noteIntent = () => { intent = true; };
+    const intents = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
+    for (const type of intents) window.addEventListener(type, noteIntent, { passive: true, once: true });
+
     const onLoad = () => {
-      if (!window.location.hash) toTop(true);
+      if (intent || window.location.hash || window.scrollY > 4) return;
+      toTop(true);
     };
     if (document.readyState === "complete") {
       requestAnimationFrame(onLoad);
     } else {
       window.addEventListener("load", onLoad, { once: true });
     }
-    return () => window.removeEventListener("load", onLoad);
+    return () => {
+      window.removeEventListener("load", onLoad);
+      for (const type of intents) window.removeEventListener(type, noteIntent);
+    };
   }, []);
 
   /* On route change. Skipped for the very first render, which the effect
