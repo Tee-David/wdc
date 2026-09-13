@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import NextImage from "next/image";
+import type React from "react";
 import { useEffect, useState } from "react";
 import TextType from "@/components/ui/text-type";
 import { LogoGlyph } from "@/components/ui/logo-glyph";
@@ -73,6 +74,11 @@ const BG_IMAGES = [
   "/hero/robotics.jpg",
 ];
 
+/* Five is the number of bands. Enough that the wipe reads as a wipe rather
+   than a two-piece split, few enough that a 390px phone still gets 78px
+   slices and the compositor still gets one viewport of texture in total. */
+const SLATS = 5;
+
 function HeroBackdrop() {
   const [i, setI] = useState(0);
   /* THE FRAME WE CAME FROM, and the whole reason the transition used to look
@@ -128,10 +134,16 @@ function HeroBackdrop() {
         </div>
       ) : null}
 
-      <div
-          key={BG_IMAGES[i]}
-          className="hero-backdrop absolute inset-0"
-        >
+      {/* FIRST FRAME: one plain image, no slats.
+
+          The first backdrop is the page's Largest Contentful Paint, and the
+          wipe below exists to move BETWEEN pictures. Running it on arrival
+          would start the LCP element at opacity 0 in five pieces, which is the
+          exact mistake the headline comment further down describes. So the
+          entrance stays the plain fade it was, and the wipe only ever runs from
+          the second slide onward -- by which time `prev` is set. */}
+      {prev === null ? (
+        <div className="hero-backdrop absolute inset-0">
           <NextImage
             src={BG_IMAGES[i]}
             alt=""
@@ -139,16 +151,66 @@ function HeroBackdrop() {
             /* Full-bleed at every width, so the browser should pick the
                variant that matches the viewport and nothing smaller. */
             sizes="100vw"
-            /* The FIRST frame only. It is the LCP element, so it is preloaded
-               and fetched at high priority; every later frame appears at least
-               five seconds in and has no business competing for that queue.
-               Marking more than one image `priority` is the commonest way to
-               make LCP worse rather than better. */
-            priority={i === 0}
+            /* It is the LCP element, so it is preloaded and fetched at high
+               priority; every later frame appears at least five seconds in and
+               has no business competing for that queue. Marking more than one
+               image `priority` is the commonest way to make LCP worse rather
+               than better. */
+            priority
             quality={70}
             className="object-cover"
           />
         </div>
+      ) : (
+        /* THE SLIT WIPE.
+
+           Five vertical bands of the incoming photograph slide into place in
+           sequence over the frame we came from. It reads as one picture being
+           drawn across the other rather than as a dissolve, and it is the
+           reason `@vfx-js/core` was turned down: that would have cost a live
+           WebGL context and a permanent requestAnimationFrame loop on the
+           page's LCP element. This costs neither.
+
+           WHY IT IS CHEAP. Each band is a `overflow: hidden` window holding
+           the same image, shifted left by its own index so the picture lines
+           up across all five -- so the five layers add up to exactly one
+           viewport of texture, the same as the single layer it replaces, and
+           the browser makes one network request because every band asks for
+           the same URL. Only `transform` and `opacity` are animated, both of
+           which the compositor handles without the main thread, so the wipe
+           cannot collide with hydration, scrolling, or the typing headline.
+
+           WHY THE ZOOM IS ON THE CONTAINER. A transform on a band moves that
+           band's slice of the picture relative to its neighbours; that is the
+           effect, and it resolves to zero. A SCALE per band would do the same
+           thing permanently at the seams, because each band would scale about
+           its own centre. Scaling the container scales all five together, so
+           the slow push-in survives with the picture intact. */
+        <div
+          key={BG_IMAGES[i]}
+          className="hero-slats"
+          style={{ "--n": SLATS } as React.CSSProperties}
+        >
+          {Array.from({ length: SLATS }, (_, k) => (
+            <span
+              className="hero-slat"
+              key={k}
+              style={{ "--k": k } as React.CSSProperties}
+            >
+              <span className="hero-slat__in">
+                <NextImage
+                  src={BG_IMAGES[i]}
+                  alt=""
+                  fill
+                  sizes="100vw"
+                  quality={70}
+                  className="object-cover"
+                />
+              </span>
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* WARMING THE NEXT FRAME. The crossfade is 1.4s and an unfetched image
           cannot make that, so without this the first pass through the set fades
