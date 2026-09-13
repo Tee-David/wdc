@@ -67,12 +67,15 @@
 .wk-cat__bar {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: clamp(14px, 1.5vw, 20px) clamp(14px, 1.6vw, 22px);
-  background: var(--paper-2);
+  /* THE BAR IS BRAND NAVY, not the page's own surface. On a light page a pale
+     bar made the card's head look unfinished, and the set read as six pictures
+     with captions rather than six things. Navy gives each card a head, and it
+     is the one colour the artwork underneath never competes with. */
+  background: var(--band);
   transition: background .3s ease;
 }
-/* In dark, `--paper-2` and the plate's `--band` are the same #0a0a3a, so the
-   bar dissolved into the plate behind it and the card lost its top edge.
-   `--band-2` is the one step lighter that separates it from both. */
+/* In dark mode `--band` is the page surface, so the bar would dissolve into
+   the card behind it. `--band-2` is the one step lighter that keeps the edge. */
 .dark .pv .wk-cat__bar { background: var(--band-2); }
 .wk-cat:hover .wk-cat__bar,
 .wk-cat:focus-visible .wk-cat__bar { background: var(--accent); }
@@ -83,23 +86,30 @@
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-weight: 700; letter-spacing: -.02em; line-height: 1.1;
   font-size: clamp(1.1rem, 1rem + .5vw, 1.4rem);
-  color: var(--ink);
+  /* White on navy: 17.68:1. */
+  color: #fff;
   transition: color .3s ease;
 }
+/* BLACK ON THE ORANGE HOVER, not white. White on #ff6500 is 2.95:1 and fails
+   even the 3:1 allowed for large text; `--on-accent` is 7.11:1 and is the only
+   label colour an accent fill takes anywhere on this site. */
 .pv .wk-cat:hover .wk-cat__t,
-.pv .wk-cat:focus-visible .wk-cat__t { color: #fff; }
+.pv .wk-cat:focus-visible .wk-cat__t { color: var(--on-accent); }
 
 .pv .wk-cat__n {
   flex: none;
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .76rem; font-weight: 700; letter-spacing: .04em;
   padding: 3px 9px; border-radius: 999px;
-  background: var(--band); color: #fff;
+  /* Inverted against the navy bar it now sits on. */
+  background: #fff; color: var(--band);
   font-variant-numeric: tabular-nums;
   transition: background .3s ease, color .3s ease;
 }
+/* On the orange bar the pill goes navy with white type -- 17.68:1 -- rather
+   than white with orange type, which would be 3.3:1 on a small tabular figure. */
 .pv .wk-cat:hover .wk-cat__n,
-.pv .wk-cat:focus-visible .wk-cat__n { background: #fff; color: var(--accent); }
+.pv .wk-cat:focus-visible .wk-cat__n { background: var(--band); color: #fff; }
 
 .wk-cat__shot {
   position: relative; aspect-ratio: 4 / 3; overflow: hidden;
