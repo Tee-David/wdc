@@ -30,11 +30,34 @@ function transport() {
     port,
     secure: process.env.SMTP_SECURE === "true" || port === 465,
     auth: { user: required("SMTP_USER"), pass: required("SMTP_PASSWORD") },
-    connectionTimeout: 12_000,
-    greetingTimeout: 12_000,
-    socketTimeout: 20_000,
+    /* THESE NUMBERS KILLED THE CONTACT FORM, so they are measured now.
+
+       They were 12s/12s/20s, and the live form answered 502. Timed against
+       this server from here: a COLD connection failed at 12.18s with
+       ETIMEDOUT, and the very next attempt -- with DNS and the route warm --
+       verified in 6.87s and sent in 11.70s. So the server was never the
+       problem and neither were the credentials. The first connection of an
+       instance's life is simply slower than the ceiling we had set on it, and
+       `sendMail` throwing is what the route turns into a 502.
+
+       Set well clear of the slowest cold connect observed rather than close to
+       it. A visitor never waits on this anyway: the studio notification is the
+       only inline send and the receipt goes out behind the response. */
+    connectionTimeout: 30_000,
+    greetingTimeout: 30_000,
+    socketTimeout: 45_000,
+    /* ONE CONNECTION, REUSED. Without a pool every `sendMail` opens its own
+       connection, so the enquiry and the receipt each paid that cold handshake
+       separately -- the second one for no reason, microseconds after the first
+       had finished proving the route was warm. */
+    pool: true,
+    maxConnections: 1,
   });
-  if (process.env.NODE_ENV !== "production") globalMail.__wdcTransport = client;
+  /* CACHED IN PRODUCTION TOO, and that was the other half of it. The cache was
+     skipped in production, so every request on a warm instance built a new
+     transport and paid a cold handshake that the instance had already paid.
+     Holding it is what makes the pool above mean anything. */
+  globalMail.__wdcTransport = client;
   return client;
 }
 

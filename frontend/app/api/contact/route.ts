@@ -3,6 +3,14 @@ import { CONTACT_EMAIL } from "@/lib/site";
 import { escapeHtml, mailIsConfigured, sendMail } from "@/lib/email";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 
+/* THE PLATFORM MUST NOT CUT THE SEND OFF BEFORE OUR OWN TIMEOUTS DO.
+
+   This mail server's first connection of an instance's life is slow, and the
+   transport now waits up to 30 seconds for it. Without a stated ceiling here
+   the function's default could expire first, which fails the enquiry AND
+   leaves nothing in the log to say why. */
+export const maxDuration = 60;
+
 const WINDOW_MS = 10 * 60 * 1000;
 const LIMIT = 5;
 function clean(value: unknown, max: number) { return typeof value === "string" ? value.trim().slice(0, max) : ""; }
