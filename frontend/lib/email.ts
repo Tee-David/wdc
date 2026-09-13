@@ -70,7 +70,7 @@ export async function sendMail(input: {
 }) {
   return transport().sendMail({
     from: {
-      name: process.env.SMTP_FROM_NAME?.trim() || "We Dig Creativity",
+      name: process.env.SMTP_FROM_NAME?.trim() || "WDC Solutions",
       address: required("SMTP_FROM_EMAIL"),
     },
     replyTo: input.replyTo || process.env.SMTP_REPLY_TO || undefined,

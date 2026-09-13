@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { Header } from "@/components/layout/header";
-import ServicesBody from "@/components/services/services-body";
+import Image from "next/image";
+import Link from "next/link";
 import { SERVICES } from "@/lib/services";
+import { WORK_CATEGORIES, countFor } from "@/lib/work";
 import { COMPANY_NAME, SITE_URL } from "@/lib/site";
+
+import "@/components/preview/preview.css";
+import "@/components/work/work.css";
 
 export const metadata: Metadata = {
   /* Not "Services". The template appends the brand, so the first and most
@@ -30,7 +35,7 @@ const jsonLd = SERVICES.map((s) => ({
   "@type": "Service",
   name: s.name,
   description: s.lede,
-  url: `${SITE_URL}/services#${s.slug}`,
+  url: `${SITE_URL}/services/${s.slug}`,
   provider: { "@type": "Organization", name: COMPANY_NAME, url: SITE_URL },
   areaServed: "Worldwide",
   hasOfferCatalog: {
@@ -42,6 +47,22 @@ const jsonLd = SERVICES.map((s) => ({
     })),
   },
 }));
+
+/* A CollectionPage listing the six service pages, so a result for "WDC
+   services" can surface the one a searcher actually wants rather than only the
+   hub. Same shape as the Work hub's. */
+const collectionJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: `Services | ${COMPANY_NAME}`,
+  url: `${SITE_URL}/services`,
+  hasPart: SERVICES.map((s) => ({
+    "@type": "Service",
+    name: s.name,
+    description: s.lede,
+    url: `${SITE_URL}/services/${s.slug}`,
+  })),
+};
 
 const breadcrumbJsonLd = {
   "@context": "https://schema.org",
@@ -56,15 +77,84 @@ export default function ServicesPage() {
   return (
     <>
       <Header overHero />
-      <main id="main" tabIndex={-1} className="flex-1">
-        <ServicesBody />
-      </main>
+      <main id="main" tabIndex={-1} className="flex-1 pv">
+        {/* ONE PLATE HOLDING THE WHOLE SET, exactly as the Work hub does: six
+            services read as a group rather than as six cards adrift on a page.
 
+            This route used to render all six services in full -- six code-split
+            stage demos, six tool marquees and a pinned rail on one URL. The
+            audit measured it at 8,320ms of blocked main thread against the
+            homepage's 1,360ms, 3,707KB, and 27.4 phone screens long. It is a
+            hub now, and each service carries its own weight on its own page. */}
+        <section className="pv-sec" style={{ paddingTop: "clamp(7rem, 12vw, 10rem)" }}>
+          <div className="pv-wrap">
+            <div className="wk-plate">
+              <div className="wk-plate__head">
+                <div style={{ display: "grid", gap: 10 }}>
+                  <span className="pv-eyebrow">Services</span>
+                  <h1 className="wk-plate__t">Six services, one team</h1>
+                </div>
+                <p className="wk-plate__note">
+                  Design, engineering and growth under one roof, so nothing is lost
+                  in the hand-off. Pick the one you came for.
+                </p>
+              </div>
+
+              <div className="wk-cats">
+                {SERVICES.map((s) => {
+                  const category = WORK_CATEGORIES.find((c) => c.slug === s.slug);
+                  return (
+                    <Link className="wk-cat" href={`/services/${s.slug}`} key={s.slug}>
+                      <span className="wk-cat__bar">
+                        <span className="wk-cat__t">{s.short}</span>
+                        {/* Counted from the catalogue, never typed by hand. A
+                            service with no work filed under it shows nothing
+                            rather than a confident zero. */}
+                        {category ? <span className="wk-cat__n">{countFor(category)}</span> : null}
+                      </span>
+                      <span className="wk-cat__shot">
+                        {category ? (
+                          <Image
+                            src={category.cover}
+                            alt=""
+                            fill
+                            sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw"
+                            quality={78}
+                          />
+                        ) : null}
+                        <span className="wk-cat__go" aria-hidden="true" />
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="pv-sec pv-sec--band">
+          <div className="pv-wrap">
+            <div className="pv-cta pv-reveal">
+              <span className="pv-eyebrow">Not sure which</span>
+              <h2>Describe the problem and we will tell you which of these it is.</h2>
+              <p>
+                Most projects need two or three of the six, and knowing which is
+                our job rather than yours.
+              </p>
+              <Link className="pv-btn pv-btn--accent" href="/contact">
+                Start a conversation
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
       <SiteFooter />
 
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify([...jsonLd, breadcrumbJsonLd]) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([...jsonLd, breadcrumbJsonLd, collectionJsonLd]),
+        }}
       />
     </>
   );

@@ -10,6 +10,7 @@ import ThemeSwitchButton from "@/components/ui/theme-switch-button";
 import UserWay from "@/components/ui/userway";
 import StaggeredMenu from "@/components/ui/staggered-menu";
 import { CONTACT_EMAIL } from "@/lib/site";
+import { SERVICES } from "@/lib/services";
 
 /**
  * Every entry points at something that exists.
@@ -26,7 +27,10 @@ import { CONTACT_EMAIL } from "@/lib/site";
 const NAV = [
   { label: "Home", link: "/" },
   { label: "Our Works", link: "/work" },
-  { label: "Services", link: "/services" },
+  /* Services carries its six pages with it. The hub is still the link -- a
+     parent that only opens a menu is a dead end for anyone who wanted the
+     overview -- and the six hang off it. */
+  { label: "Services", link: "/services", sub: SERVICES.map((s) => ({ label: s.short, link: `/services/${s.slug}` })) },
   { label: "Blog", link: "/blog" },
   { label: "About Us", link: "/about" },
   { label: "Contact Us", link: "/contact" },
@@ -178,8 +182,8 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
           {NAV.map((n) => {
             const on = isCurrent(n.link);
             return (
+              <div className="hd-navitem" key={n.link}>
               <Link
-                key={n.link}
                 href={n.link}
                 aria-current={on ? "page" : undefined}
                 className={`group relative rounded-full px-4 py-2 text-[0.94rem] font-medium transition-colors duration-200 ${
@@ -208,6 +212,27 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
                   }`}
                 />
               </Link>
+
+              {/* THE SUBMENU OPENS ON HOVER AND ON FOCUS, not on hover alone.
+                  `:focus-within` is what makes it reachable by keyboard: a
+                  reader tabs into Services and the six pages are simply the
+                  next six stops. Nothing here is information that only a
+                  pointer can get at, which is the rule in AGENTS.md. */}
+              {n.sub ? (
+                <div className="hd-sub" role="group" aria-label={`${n.label} pages`}>
+                  {n.sub.map((child) => (
+                    <Link
+                      key={child.link}
+                      href={child.link}
+                      className="hd-sub__a"
+                      aria-current={isCurrent(child.link) ? "page" : undefined}
+                    >
+                      {child.label}
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
+              </div>
             );
           })}
         </nav>
