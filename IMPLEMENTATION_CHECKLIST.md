@@ -11,7 +11,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **179 open** (5 of them in progress), **172 done**.
+At last update: **177 open** (5 of them in progress), **174 done**.
 
 ---
 
@@ -27,8 +27,6 @@ that is the shortest feedback loop there is.
 
 ## 1. Public frontend
 
-- [ ] Sixteen case-study titles run 82-115 characters once the brand suffix is appended, so Google will rewrite or truncate every one of them. Give the long ones an explicit `title.absolute` without the suffix, or shorten the descriptive half. Copy decision, not a mechanical one.
-- [ ] Meta descriptions on the six work category pages (57-76 chars) and the five legal pages (75-114) are short enough that Google will usually write its own snippet instead. Not a failure -- the skill is explicit that the 120-160 range is a linting proxy, not a rule -- but these are cheap to improve and two of them are landing pages.
 
 - [ ] `components/services/services-body.tsx` is now unreferenced: `/services` is a hub and each service renders through `service-detail.tsx`. Delete it once the new pages have been live long enough to be sure nothing is missed, and move anything worth keeping (the filter chips, the in-page nav, the brand rail) onto the hub first.
 - [ ] The six service pages want a FAQ block each, fed from `lib/faq.ts` filtered by service. The hub inherits the general questions; the detail pages should answer the ones a buyer of THAT service asks, and it is the cheapest structured-data win left on the site.
@@ -375,6 +373,9 @@ Archived, with the evidence that closed each one. Search here before
 reopening anything.
 
 ## Closed 2026-09-14, from live-site review
+
+- [x] Case-study titles fit, and the brand suffix is no longer dead code. The fitting logic was already in place, but it appended `COMPANY_NAME` -- "We Dig Creativity Solutions (WDC Solutions)", a 45-character suffix against a 60-character budget. Measured across all fifteen case studies, the two branches that carry the brand NEVER ran: thirteen fell through to sector-without-brand and two to the client alone. The comment also claimed the brand came from "the root template", but the page returns `title.absolute`, which bypasses the template entirely. Now appends `SITE_NAME` (20 characters), the same short name every other page carries. Titles measure 11-56 characters, all inside 60.
+- [x] Meta descriptions on the work category and legal pages now land in the 120-160 range, verified by reading `<meta name="description">` out of the built HTML rather than by estimating. Legal was 75-114: whole sentences from the document's own `intro` are appended while they fit, which only helped the cookie policy, so the "Last updated" date is added when there is still room. It is what someone checks on a policy, it is already on the page, and it fits where a sentence does not. All four now 135-146. Work categories were 100-118: real client names are appended one at a time and dropped whole when the next will not fit, so the sentence never ends on half a client. All six now 142-155. Two grammar faults surfaced while doing it and are fixed: `c.label.toLowerCase()` was rendering "1 project in seo" (and would have done the same to AI and PPC), and the plural tail did not agree with its own count -- "1 project in seo, every one of them live".
 
 - [x] The blog contents rail stops where the article does. A sticky element releases at the edge of its CONTAINING BLOCK, and a grid item's containing block is its GRID AREA -- while the rail and the whole of the end matter shared one row, the rail's area ran to the bottom of the longest column, so the contents list went on travelling beside the share row, the QR code and "Read next", long after there was any heading left to point at. The share row, QR and "Read next" now sit in row 2 as `.bl-after`, leaving the rail's area ending with the prose. That is also the honest grouping: those are things you do AFTER reading. The tags stay inside `<article>` because they describe it, and `.bl-after` keeps `.bl-post`'s 74ch measure so nothing moved on the page. Single-column below 1000px resets the explicit placement, or the end matter would be stranded in a column that no longer exists.
 - [x] The contact page's left column is sticky beside the form at 980px and up, the same pattern the blog and legal rails use. `align-self: start`, because a stretched grid item has no room left to move in. Deliberately NOT sticky below that breakpoint: the columns stack there, and a sticky block in a single column would pin the contact details over the form someone is trying to type into.

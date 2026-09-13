@@ -20,13 +20,46 @@ export async function generateMetadata(
   const { slug } = await params;
   const doc = legalBySlug(slug);
   if (!doc) return {};
+
+  /* THE BLURB ALONE IS TOO SHORT TO SURVIVE AS A SNIPPET. The four run 75 to
+     114 characters, and below roughly 120 Google usually writes its own
+     snippet out of the page instead of using the tag. The document's own
+     `intro` already says, in its first sentence, what the policy covers, which
+     is the half a searcher is missing -- so nothing here is written for the
+     meta tag, exactly as the case-study pages do it.
+
+     WHOLE SENTENCES ONLY. A `.slice(0, 158)` is what the case-study page does,
+     and on this content it cuts mid-word: the engagement policy landed on
+     "...how we work with clients: how an". Sentences are added while they fit
+     and dropped whole when they do not, so the description always ends where a
+     sentence ends. */
+  const description = (() => {
+    let out = doc.blurb.trim();
+    for (const s of doc.intro.split(/(?<=\.)\s+/)) {
+      const next = `${out} ${s.trim()}`.trim();
+      if (next.length > 158) break;
+      out = next;
+    }
+    /* AND THE DATE, WHEN THERE IS STILL ROOM. Built and measured: adding whole
+       intro sentences only helped the cookie policy, whose first sentence is
+       short. The other three open with a sentence long enough to blow the
+       budget on its own, so they stayed at 103-114 and would still have been
+       rewritten by Google.
+
+       The currency of a policy is exactly what someone checks when they land
+       on one, it is already on the page under the heading, and it is short
+       enough to fit where a sentence is not. */
+    const dated = `${out} Last updated ${doc.updated}.`;
+    return dated.length <= 158 ? dated : out;
+  })();
+
   return {
     title: doc.title,
-    description: doc.blurb,
+    description,
     alternates: { canonical: `${SITE_URL}/legal/${doc.slug}` },
     openGraph: {
       title: `${doc.title} | ${COMPANY_NAME}`,
-      description: doc.blurb,
+      description,
       type: "article",
       url: `${SITE_URL}/legal/${doc.slug}`,
     },

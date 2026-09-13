@@ -118,7 +118,7 @@ export const BLOG_POSTS: BlogPost[] = [
         "What happens after launch, for how long, and at what price?",
         "How many rounds of changes are included, and what counts as a round?",
       ] },
-      { kind: "p", text: "If one quote is dramatically lower, it is usually not the same job. Often it is a template with your logo placed on it, which is a legitimate product at a legitimate price — but you should know that is what you are buying, because it is a different thing from a site designed around what your business actually has to say." },
+      { kind: "p", text: "If one quote is dramatically lower, it is usually not the same job. Often it is a template with your logo placed on it, which is a legitimate product at a legitimate price. But you should know that is what you are buying, because it is a different thing from a site designed around what your business actually has to say." },
 
       { kind: "h2", text: "How to spend less without getting less" },
       { kind: "p", text: "There are real ways to reduce the number, and they are all about scope rather than about quality." },
@@ -132,7 +132,7 @@ export const BLOG_POSTS: BlogPost[] = [
 
       { kind: "h2", text: "The honest version" },
       { kind: "p", text: "A serious quote should be boring to read: a list of what is being made, what is not, who does what, when, and what it costs to keep. If you cannot tell from a proposal what you will actually have on launch day, that is the problem to solve before the price is." },
-      { kind: "p", text: "Tell us what the site has to achieve rather than how many pages you think it needs, and we will tell you what that takes — including when the answer is less than you expected." },
+      { kind: "p", text: "Tell us what the site has to achieve rather than how many pages you think it needs, and we will tell you what that takes, including when the answer is less than you expected." },
     ],
   },
   {
@@ -156,7 +156,7 @@ export const BLOG_POSTS: BlogPost[] = [
       { kind: "p", text: "Assistants that answer with current information are reading the live web, either through a search index or by fetching pages directly. So the foundations are the same foundations, and a site that fails them fails both audiences at once:" },
       { kind: "list", items: [
         "The page must be reachable. Not blocked in robots.txt, not behind a login, not noindexed by accident.",
-        "The content must be in the HTML. Text that only appears after JavaScript runs is a gamble — some crawlers execute it, many fetchers do not.",
+        "The content must be in the HTML. Text that only appears after JavaScript runs is a gamble: some crawlers execute it, many fetchers do not.",
         "The page must be fast and must not fail. A fetcher that times out simply moves on to the next source.",
         "It must be clear what the page is about, from the title, the headings and the first paragraph.",
       ] },
@@ -173,7 +173,7 @@ export const BLOG_POSTS: BlogPost[] = [
       { kind: "p", text: "\"We build fast, beautiful websites\" is present on ten thousand pages. \"On a prepaid mobile bundle in Lagos, a four megabyte homepage costs the visitor money before they have read a word\" is present on one, and it is the kind of sentence that ends up inside an answer." },
 
       { kind: "h3", text: "Entities matter more than keywords" },
-      { kind: "p", text: "These systems reason about things — a company, a place, a service, a person — and about how confident they are that those things are real and consistent. Which means the boring consistency work pays off more than it used to: the same business name, address and phone number everywhere; structured data that truthfully describes what is visible on the page; an About page that states plainly who you are, where you are and what you do." },
+      { kind: "p", text: "These systems reason about things (a company, a place, a service, a person) and about how confident they are that those things are real and consistent. Which means the boring consistency work pays off more than it used to: the same business name, address and phone number everywhere; structured data that truthfully describes what is visible on the page; an About page that states plainly who you are, where you are and what you do." },
 
       { kind: "h2", text: "Things that do not work" },
       { kind: "list", items: [
@@ -194,7 +194,7 @@ export const BLOG_POSTS: BlogPost[] = [
         "A dated page, updated when it stops being true.",
       ] },
 
-      { kind: "callout", title: "You can decide who fetches you", text: "Search crawlers, AI training crawlers and user-directed fetchers are different agents with different names, and they can be allowed or blocked separately in robots.txt. Blocking one does not block the others. Look up the current names in each vendor's own documentation rather than copying a blocklist from a blog post — they change, and a stale rule can quietly remove you from somewhere you wanted to be." },
+      { kind: "callout", title: "You can decide who fetches you", text: "Search crawlers, AI training crawlers and user-directed fetchers are different agents with different names, and they can be allowed or blocked separately in robots.txt. Blocking one does not block the others. Look up the current names in each vendor's own documentation rather than copying a blocklist from a blog post. They change, and a stale rule can quietly remove you from somewhere you wanted to be." },
 
       { kind: "h2", text: "How to tell whether any of it is working" },
       { kind: "p", text: "Assistants do not send a referrer the way a search engine does, so traffic from them is harder to attribute and often lands in your analytics as direct. Two things are more reliable than guessing." },
@@ -202,7 +202,7 @@ export const BLOG_POSTS: BlogPost[] = [
         "Ask the assistants your customers use the questions your customers ask, on a schedule, and record whether you appear and what is said about you. It is manual, and it is the only direct measurement available.",
         "Watch for the shift in what people say when they arrive. Enquiries that open with a fact about you that was not on the page they landed on usually came through an answer somewhere else.",
       ] },
-      { kind: "p", text: "The strategic point is simpler than the tactics. Being quotable and being useful have become the same project. A page written so a person gets their answer quickly is also the page a machine can lift from — and if the machines change again next year, you are still left with a page that serves the reader." },
+      { kind: "p", text: "The strategic point is simpler than the tactics. Being quotable and being useful have become the same project. A page written so a person gets their answer quickly is also the page a machine can lift from. And if the machines change again next year, you are still left with a page that serves the reader." },
     ],
   },
   {
@@ -224,11 +224,11 @@ export const BLOG_POSTS: BlogPost[] = [
       { kind: "h2", text: "What has to be in it" },
 
       { kind: "h3", text: "The logo, and the three things people get wrong" },
-      { kind: "p", text: "Not a gallery of variations. The one primary mark, plus whichever alternates genuinely exist — usually a horizontal version, a stacked version, and an icon-only version for a profile picture. Then, explicitly:" },
+      { kind: "p", text: "Not a gallery of variations. The one primary mark, plus whichever alternates genuinely exist: usually a horizontal version, a stacked version, and an icon-only version for a profile picture. Then, explicitly:" },
       { kind: "list", items: [
         "How small it may go before it stops reading. Give a number in millimetres for print and pixels for screen.",
         "How much clear space must be around it, expressed as a proportion of the mark itself so it scales.",
-        "Which versions to use on which backgrounds — light, dark, and busy photography.",
+        "Which versions to use on which backgrounds: light, dark, and busy photography.",
       ] },
       { kind: "p", text: "Then a short list of what not to do, with pictures: do not stretch it, do not recolour it, do not add a drop shadow, do not put the full-colour version on a photograph. People need to see the wrong version to recognise it." },
 
@@ -238,11 +238,11 @@ export const BLOG_POSTS: BlogPost[] = [
       { kind: "callout", title: "The line most guidelines miss", text: "Say which colour the text goes on each background, and check it. Bright colours are the trap: white type on a bright orange fill is a common default and usually fails accessibility outright, while black on the same orange passes comfortably. Decide it once, write it down, and nobody has to guess." },
 
       { kind: "h3", text: "Type, and what to do when it is not available" },
-      { kind: "p", text: "Name the fonts, name the weights that are actually used, and say what each is for — headings, body, labels. Two families is usually plenty; three is a system somebody will break." },
+      { kind: "p", text: "Name the fonts, name the weights that are actually used, and say what each is for: headings, body, labels. Two families is usually plenty; three is a system somebody will break." },
       { kind: "p", text: "Then answer the question that always comes up: what do we use in Word, in Google Docs, in an email signature, on a phone, when the licensed font is not installed? A named fallback prevents a document going out in whatever the software defaulted to." },
 
       { kind: "h3", text: "How you sound" },
-      { kind: "p", text: "Three or four lines is enough, and examples beat adjectives. \"Direct, warm, never salesy\" tells a person almost nothing. A short before-and-after — the sentence as somebody would naturally write it, and the same sentence in your voice — teaches it in one read." },
+      { kind: "p", text: "Three or four lines is enough, and examples beat adjectives. \"Direct, warm, never salesy\" tells a person almost nothing. A short before-and-after (the sentence as somebody would naturally write it, and the same sentence in your voice) teaches it in one read." },
       { kind: "p", text: "Add the small mechanical decisions that otherwise get argued about repeatedly: how the company name is written, whether you use an ampersand, whether headings take a full stop, how prices and dates are formatted." },
 
       { kind: "h3", text: "What it looks like applied" },
@@ -257,7 +257,7 @@ export const BLOG_POSTS: BlogPost[] = [
       ] },
 
       { kind: "h2", text: "The format matters as much as the contents" },
-      { kind: "p", text: "A PDF is fine as a reference, but on its own it fails the moment somebody needs a file. What actually keeps a brand consistent is a shared folder that anyone who makes anything can reach, containing the logo in every format they will need — vector for print and scaling, PNG with transparency for screens, a square version for profile pictures — plus the fonts, plus editable templates for the two or three things your team makes most often." },
+      { kind: "p", text: "A PDF is fine as a reference, but on its own it fails the moment somebody needs a file. What actually keeps a brand consistent is a shared folder that anyone who makes anything can reach, containing the logo in every format they will need (vector for print and scaling, PNG with transparency for screens, a square version for profile pictures), plus the fonts, plus editable templates for the two or three things your team makes most often." },
       { kind: "p", text: "If somebody can get the right logo and the right template in under a minute, they will. If they have to ask, they will improvise. Almost every inconsistency traces back to that minute." },
 
       { kind: "h2", text: "How long should it be?" },
@@ -292,7 +292,7 @@ export const BLOG_POSTS: BlogPost[] = [
       { kind: "p", text: "The trap is that all of this is invisible on a fast connection. The page looks identical. Only the bill and the waiting change." },
 
       { kind: "h2", text: "What that weight costs a Nigerian visitor" },
-      { kind: "p", text: "This is the part that rarely gets said out loud: on prepaid mobile data, page weight is money. A visitor on a metered bundle pays, in cash, for every megabyte a page decides to send them. A heavy homepage is not just slow — it is a page that charges people to look at it." },
+      { kind: "p", text: "This is the part that rarely gets said out loud: on prepaid mobile data, page weight is money. A visitor on a metered bundle pays, in cash, for every megabyte a page decides to send them. A heavy homepage is not just slow. It is a page that charges people to look at it." },
       { kind: "p", text: "It is worth working out your own number once. Take your homepage's total weight, multiply by what a gigabyte costs on a common local bundle, and you have the price of a single visit. Most people are surprised, and most people fix their images that afternoon." },
 
       { kind: "h2", text: "Fonts" },
@@ -305,11 +305,11 @@ export const BLOG_POSTS: BlogPost[] = [
 
       { kind: "h2", text: "Third-party scripts" },
       { kind: "p", text: "Chat widgets, analytics, heat maps, cookie banners, ad pixels, review badges. Each one is a request to a server you do not control, running code you did not write, on the same thread that is trying to draw your page. They are also the part of a site that grows quietly: nobody ever removes one." },
-      { kind: "p", text: "Two habits help. Audit them once a year and delete what nobody reads. And where something is genuinely wanted but not urgent — a chat widget, for instance — load it when the visitor reaches for it rather than on arrival, so the people who never use it never pay for it." },
+      { kind: "p", text: "Two habits help. Audit them once a year and delete what nobody reads. And where something is genuinely wanted but not urgent (a chat widget, for instance), load it when the visitor reaches for it rather than on arrival, so the people who never use it never pay for it." },
 
       { kind: "h2", text: "The thing that annoys people most is not slowness" },
       { kind: "p", text: "It is movement. You go to tap a link, an image finishes loading above it, the page jumps, and you tap an advert instead. That is a layout shift, and it happens whenever something arrives without its space being reserved in advance." },
-      { kind: "p", text: "The fix is unglamorous: every image gets its dimensions declared so the gap exists before the picture does; anything that loads late — a banner, an embed, a font swap — is given its final height up front. It costs nothing and it is the single most noticeable improvement a slow site can make." },
+      { kind: "p", text: "The fix is unglamorous: every image gets its dimensions declared so the gap exists before the picture does; anything that loads late (a banner, an embed, a font swap) is given its final height up front. It costs nothing and it is the single most noticeable improvement a slow site can make." },
 
       { kind: "h2", text: "How to measure it honestly" },
       { kind: "p", text: "Testing on your own laptop on office wifi tells you almost nothing about the visitor you are worried about. Three ways to get a real answer:" },
@@ -328,7 +328,7 @@ export const BLOG_POSTS: BlogPost[] = [
         "Cut the third-party scripts nobody looks at, and defer the ones that can wait.",
         "Trim the fonts to what is used.",
       ] },
-      { kind: "p", text: "That sequence costs very little and usually accounts for most of the difference. If the site is still slow afterwards, the problem is architectural, and that is a genuinely different conversation — but it is worth being certain you are having it for the right reason." },
+      { kind: "p", text: "That sequence costs very little and usually accounts for most of the difference. If the site is still slow afterwards, the problem is architectural, and that is a genuinely different conversation. But it is worth being certain you are having it for the right reason." },
     ],
   },
   {
@@ -344,7 +344,7 @@ export const BLOG_POSTS: BlogPost[] = [
     tags: ["apps", "planning", "product"],
     cover: "/hero/mobile-dev.jpg",
     body: [
-      { kind: "p", text: "The honest answer is usually a website first, and we say so often enough that it is worth writing down why — along with the cases where it is genuinely wrong." },
+      { kind: "p", text: "The honest answer is usually a website first, and we say so often enough that it is worth writing down why, along with the cases where it is genuinely wrong." },
       { kind: "p", text: "The question is rarely about technology. It is about whether you have earned a place on somebody's home screen, because that is what an app is asking for." },
 
       { kind: "h2", text: "The thing people underestimate: getting it installed" },
@@ -355,7 +355,7 @@ export const BLOG_POSTS: BlogPost[] = [
       { kind: "p", text: "There are real capabilities here, and if you need them, nothing else will do." },
       { kind: "list", items: [
         "Notifications people actually receive. Web push exists and works on Android, but on iPhones it requires the site to be added to the home screen first, which most people never do. If your model depends on reaching someone who is not currently thinking about you, that is an app argument.",
-        "Working offline, properly. A website can cache a great deal, but an app that must function with no signal for an hour — a field survey, a delivery route, a stock count — is on firmer ground.",
+        "Working offline, properly. A website can cache a great deal, but an app that must function with no signal for an hour (a field survey, a delivery route, a stock count) is on firmer ground.",
         "Deep access to the device. Continuous background location, Bluetooth peripherals, sustained camera work, biometric storage.",
         "Being on the home screen. If someone opens you several times a week, an icon is worth real money. If they open you twice a year, it is an icon they will delete.",
       ] },
@@ -371,8 +371,8 @@ export const BLOG_POSTS: BlogPost[] = [
       { kind: "p", text: "The build is the smaller half. Everything above is permanent." },
 
       { kind: "h2", text: "The middle option most people have not considered" },
-      { kind: "p", text: "A website can be installable. It can sit on the home screen with its own icon, open without browser chrome, work offline for what it has already seen, and on Android send push notifications. It is one codebase, one deployment, no store review, and it is a link — so it can still be shared." },
-      { kind: "p", text: "It is not a complete substitute. iOS restricts it in ways that matter, notably around notifications and background work, and the install prompt is far less obvious. But for a large class of products — a portal, a dashboard, a booking tool, an internal system — it delivers most of what people wanted an app for, at a fraction of the cost and none of the release friction." },
+      { kind: "p", text: "A website can be installable. It can sit on the home screen with its own icon, open without browser chrome, work offline for what it has already seen, and on Android send push notifications. It is one codebase, one deployment, no store review, and it is a link, so it can still be shared." },
+      { kind: "p", text: "It is not a complete substitute. iOS restricts it in ways that matter, notably around notifications and background work, and the install prompt is far less obvious. But for a large class of products (a portal, a dashboard, a booking tool, an internal system), it delivers most of what people wanted an app for, at a fraction of the cost and none of the release friction." },
 
       { kind: "h2", text: "Four questions that usually settle it" },
       { kind: "list", items: [
@@ -386,9 +386,9 @@ export const BLOG_POSTS: BlogPost[] = [
       { kind: "callout", title: "The sequence that usually works", text: "Build the web version, get it in front of real users, and find out which parts they use constantly. Those parts are the app, and by then you will know what it should do instead of guessing. Starting with the app means designing for a usage pattern nobody has demonstrated yet." },
 
       { kind: "h2", text: "When we say build the app" },
-      { kind: "p", text: "When the product is used daily and notifications are the product — logistics, dispatch, field teams, anything where somebody is told to do something and must act. When the hardware is the point. When offline is a requirement rather than a nice-to-have. And when there is already a web product with usage data proving people come back." },
+      { kind: "p", text: "When the product is used daily and notifications are the product: logistics, dispatch, field teams, anything where somebody is told to do something and must act. When the hardware is the point. When offline is a requirement rather than a nice-to-have. And when there is already a web product with usage data proving people come back." },
       { kind: "p", text: "What we push back on is an app commissioned to look serious. That is an expensive way to look serious, and the version of it that gets built without a real usage case tends to launch to an empty store page." },
-      { kind: "p", text: "Tell us what has to happen and how often, and we will tell you which of the three this is — including when the answer is the cheapest one." },
+      { kind: "p", text: "Tell us what has to happen and how often, and we will tell you which of the three this is, including when the answer is the cheapest one." },
     ],
   },
   {
@@ -404,19 +404,19 @@ export const BLOG_POSTS: BlogPost[] = [
     tags: ["process", "working together", "planning"],
     cover: "/hero/ai-key.jpg",
     body: [
-      { kind: "p", text: "Design projects rarely run late because the design is hard. They run late waiting for something only the client has. Nobody is being difficult — the things are scattered across a phone, an old laptop, a former employee's email and a printer who still has the file from 2019." },
+      { kind: "p", text: "Design projects rarely run late because the design is hard. They run late waiting for something only the client has. Nobody is being difficult. The things are scattered across a phone, an old laptop, a former employee's email and a printer who still has the file from 2019." },
       { kind: "p", text: "This is that list, so it can be gathered before the clock starts rather than during it." },
 
       { kind: "h2", text: "The five things" },
 
       { kind: "h3", text: "1. Your logo, in the file it was made in" },
-      { kind: "p", text: "What is needed is the vector original — an .ai, .eps, .svg or a layered .pdf. That is the version that can be scaled to a building or shrunk to a favicon without softening, recoloured for a dark background, and separated for print." },
-      { kind: "p", text: "A PNG, a JPEG or a screenshot from your own website is not that. It can be traced, and tracing is a real job that adds days and never comes back quite the same. If the original is genuinely gone, say so at the start — it changes the plan, and it is far better handled in week one than discovered in week four when something has to go to print." },
+      { kind: "p", text: "What is needed is the vector original: an .ai, .eps, .svg or a layered .pdf. That is the version that can be scaled to a building or shrunk to a favicon without softening, recoloured for a dark background, and separated for print." },
+      { kind: "p", text: "A PNG, a JPEG or a screenshot from your own website is not that. It can be traced, and tracing is a real job that adds days and never comes back quite the same. If the original is genuinely gone, say so at the start. It changes the plan, and it is far better handled in week one than discovered in week four when something has to go to print." },
       { kind: "p", text: "While you are looking: the font files, if the logo uses type, and anyone's old brand guideline even if you think it is out of date." },
 
       { kind: "h3", text: "2. The real words" },
       { kind: "p", text: "Placeholder copy hides every layout problem until the worst possible moment. A heading that is three words in the mock-up and eleven in reality breaks the design it was approved in, and it always surfaces at the point where changing it is most expensive." },
-      { kind: "p", text: "It does not have to be polished. A rough, honest paragraph of the actual message is far more useful than lorem ipsum or a beautifully written sentence that says nothing. If writing it is the bottleneck — and it usually is — say so, because buying the writing is a normal part of the work and a completely different project plan from one where the words already exist." },
+      { kind: "p", text: "It does not have to be polished. A rough, honest paragraph of the actual message is far more useful than lorem ipsum or a beautifully written sentence that says nothing. If writing it is the bottleneck (and it usually is), say so, because buying the writing is a normal part of the work and a completely different project plan from one where the words already exist." },
 
       { kind: "h3", text: "3. Photographs, at full size" },
       { kind: "p", text: "Originals, not the copies that came back through WhatsApp. Messaging apps compress images heavily, and a picture that looks fine on a phone falls apart across a page." },
@@ -425,7 +425,7 @@ export const BLOG_POSTS: BlogPost[] = [
 
       { kind: "h3", text: "4. One name who signs it off" },
       { kind: "p", text: "One. Two is a negotiation; three is a delay. Other people can and should have opinions, but somebody has to be the person who collects them and says yes." },
-      { kind: "p", text: "This is the one that catches everyone. A project with an unclear approver does not get slower gradually — it stops at the first real decision and waits. Deciding it in the first week costs nothing and saves the most." },
+      { kind: "p", text: "This is the one that catches everyone. A project with an unclear approver does not get slower gradually. It stops at the first real decision and waits. Deciding it in the first week costs nothing and saves the most." },
 
       { kind: "h3", text: "5. The things that cannot change" },
       { kind: "p", text: "Every business has a few, and they are invisible to anyone outside it until they are violated. A legal disclaimer that must appear. A tagline a director is attached to. A colour a parent company insists on. A regulator's mark with its own placement rules. A name that must never be abbreviated." },
@@ -436,13 +436,13 @@ export const BLOG_POSTS: BlogPost[] = [
         "Access, rather than a promise of access: the domain registrar, the hosting, the social accounts, the analytics. Chasing a login from a former employee is a common and entirely avoidable delay.",
         "Two or three competitors or brands you admire, with one line each on WHY. The reason is the useful part.",
         "Anything you have already tried that did not work, so it is not proposed again.",
-        "Your real deadline and what it is attached to — an event, a season, a launch. A date with a reason behind it gets planned around properly.",
+        "Your real deadline and what it is attached to: an event, a season, a launch. A date with a reason behind it gets planned around properly.",
       ] },
 
       { kind: "callout", title: "If you do not have all of it", text: "Send what you have and name what is missing. A project that starts with a known gap can be sequenced around it. A project that starts with an assumed asset stops dead the week that assumption fails, which is always later and always more expensive." },
 
       { kind: "h2", text: "Why this list is short" },
-      { kind: "p", text: "These five are not the only inputs to good work, but they are the ones that, when absent, stop everything else. Most of what makes a project run well is decided before any design exists — and this is the part of it that is entirely in your hands." },
+      { kind: "p", text: "These five are not the only inputs to good work, but they are the ones that, when absent, stop everything else. Most of what makes a project run well is decided before any design exists, and this is the part of it that is entirely in your hands." },
     ],
   },
 ];
