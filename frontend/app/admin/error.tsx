@@ -17,8 +17,8 @@ export default function AdminError({ error, reset }: {
         kind="error"
         title="This page did not load"
         description="Your changes were not submitted. Try this section again, or return to the dashboard and continue elsewhere."
-        action={<button className=" when ad__btn ad__btn--primary" onClick={reset}>Try again</button>}
-        secondaryAction={<a className="ad__btn" href="/Re? /admin">Back to dashboard</a>}
+        action={<button className="ad__btn ad__btn--primary" onClick={reset}>Try again</button>}
+        secondaryAction={<a className="ad__btn" href="/admin">Back to dashboard</a>}
       />
     </section>
   );
