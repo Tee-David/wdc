@@ -13,6 +13,19 @@ At last update: **189 open** (7 of them in progress), **86 done**.
 
 # Open
 
+## 0. Raised in conversation, not yet done
+
+Kept at the top because these came from someone looking at the live site, and
+that is the shortest feedback loop there is.
+
+- [ ] Some tool logos render as empty grey boxes instead of their mark, in both themes. Confirmed on OpenAI and LinkedIn; the strip needs auditing name by name rather than spot-fixed, because a wrong `simple-icons` slug fails silently and looks like a styling bug.
+- [ ] Blog post page: use the post's cover as the hero background behind an overlay, widen the article column, and add a left rail carrying On this page, share links and a QR code, following the legal pages' sticky pattern. Responsive: the rail becomes a collapsible block above the article on mobile.
+- [ ] Hero image transition: build the compositor-only slit-scan wipe offered in place of vfx-js, so it can be judged against the plain crossfade. `@vfx-js/core` was declined because the hero is the LCP element and a live WebGL context plus a permanent rAF loop is the one cost this page cannot absorb.
+- [ ] Install the SEO skill (`npx skills add https://github.com/addyosmani/web-quality-skills --skill seo`) and run it over the site.
+- [x] Read liquidslr/system-design-notes and folded five points into AGENTS.md as a Systems design section: slow third parties never run before the response, persist-then-send with a dedupe key, rate limits belong to the action and ours is per-instance so it is abuse control not a quota, earn infrastructure with an estimate, and every message a person receives must be switchable off.
+- [ ] Sync the environment to Doppler as well as Vercel. The CLI is installed (v3.76.1) but has no project configured in this working copy.
+- [ ] Truehost SMTP takes about 23 seconds just to authenticate, measured from two networks. The contact form now answers in half that by sending the receipt after the response, but the real fix is a transactional provider, which would also give proper SPF and DKIM.
+
 ## 1. Public frontend
 
 - [-] Re-profile the remaining subtle mobile vertical-scroll catch on real touch-sized routes; inspect pinned horizontal rails, per-frame scroll work, passive listeners, layout reads, third-party launchers, and compositor-heavy effects after confirming Lenis is absent.
@@ -179,6 +192,8 @@ At last update: **189 open** (7 of them in progress), **86 done**.
 - [ ] Make project completion archive-safe; preserve invoices, payments, files, updates, approvals, and client access history.
 
 ### 4.5 Money, invoices, payments, and expenditure
+
+- [ ] Put a QR code on invoices and receipts, reusing `qrSvg()` from `lib/qr.ts` rather than a second encoder. It renders server-side as inline SVG, takes its colours as arguments, and defaults to error-correction level M so a printed invoice survives being folded.
 
 - [ ] Rebuild Money to Litch parity with overview, invoices, payments, receipts, expenses/accounting, exports, and useful filters while retaining WDC's concise primary navigation.
 - [ ] Add estimates/quotes and invoices with immutable numbering, line items, discounts, tax, currency, issue/due dates, project linkage, notes, terms, preview, PDF, send, duplicate, void, and reminder actions.

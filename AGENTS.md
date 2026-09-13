@@ -39,6 +39,14 @@
 - Security checks must fail closed: missing origin, signature, authorization, or required identity is not valid input.
 - Preserve unrelated user changes. Use the root checklist as the delivery ledger and update it when requirements or verification state change.
 
+## Systems design
+
+- Nothing whose latency we do not own runs before the response. Truehost SMTP needs about 23 seconds just to authenticate, which is why the contact receipt sends from `after()`. Any third party added later inherits that rule: answer the user first, do the slow work behind the response.
+- Work moved behind the response has no one left to tell when it fails, so persist the intent first and make the retry safe to run twice. Every outbound message gets a row and a dedupe key before the provider is called.
+- Rate limits belong to the action, not the route. The expensive or abusable path gets the tight limit; a chatty path the same handler serves gets a loose one. `lib/rate-limit.ts` is a sliding window in one instance's memory, so on Vercel the real ceiling is the limit times the number of warm instances and a cold start forgives everything: it is abuse control, not a quota. Say so at the call site rather than trusting the number.
+- Earn infrastructure with an estimate. Queues, caches, workers and background runners each add a failure mode; add one when a written-down number says the simple version will not hold, not because the shape looks more serious.
+- Anything we send to a person must be something they can switch off, and the setting lives with the person, not the template.
+
 ## Coding discipline
 
 - State material assumptions and tradeoffs before coding; ask only when ambiguity would change the result. Prefer the simplest implementation that satisfies the request.
