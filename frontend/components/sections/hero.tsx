@@ -352,15 +352,21 @@ export function Hero() {
               `min-w-0` is what lets the phrase wrap at all: without it the
               reserved width of the longest phrase is a floor, and the row
               overflows the hero sideways instead of breaking. */}
-          <span className="flex items-start justify-center gap-[0.3em]">
-          {/* Decorative. Without aria-hidden a screen reader reads the h1 as
-              "What if we made it greater than your best decision". */}
-          <span aria-hidden="true" className="text-secondary">&gt;</span>
+          <span className="flex items-start justify-center">
           {/* `startFull` so the phrase is complete in the first render rather
               than typing itself in from empty; `reserveWidth` so neither the
               width nor the HEIGHT of this line changes as the set cycles --
               which is what keeps the buttons and the logo rail below from
-              stepping up and down every time a phrase needs a second line. */}
+              stepping up and down every time a phrase needs a second line.
+
+              THE CHEVRON IS A `prefix`, NOT A SIBLING. `reserveWidth` holds the
+              box of the LONGEST phrase and centres the live one inside it, so a
+              chevron rendered beside that box stayed pinned to the box's edge
+              while the words drifted to the middle -- it sat a couple of hundred
+              pixels clear of the phrase it points at, and the gap resized on
+              every cycle. Passed in, it shrink-wraps with the text and travels
+              with it. It is measured into the reserved sizer too, so the line
+              still does not reflow. */}
           <TextType
             text={ROTATING_WORDS}
             typingSpeed={70}
@@ -371,6 +377,13 @@ export function Hero() {
             reserveWidth
             cursorCharacter="▎"
             className="min-w-0 font-heading"
+            /* Decorative. Without aria-hidden a screen reader reads the h1 as
+               "What if we made it greater than your best decision". */
+            prefix={
+              <span aria-hidden="true" className="text-secondary mr-[0.3em]">
+                &gt;
+              </span>
+            }
           />
           </span>
         </h1>

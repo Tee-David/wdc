@@ -28,6 +28,21 @@ interface TextTypeProps {
   onSentenceComplete?: (sentence: string, index: number) => void;
   startOnVisible?: boolean;
   /**
+   * A decoration that travels WITH the phrase instead of beside it.
+   *
+   * WHY IT IS A PROP RATHER THAN A SIBLING. `reserveWidth` holds the box of the
+   * longest phrase and centres the live one inside it, so anything rendered as
+   * a sibling stays pinned to the edge of the reserved box while the text it
+   * belongs to floats in the middle -- the homepage chevron sat a couple of
+   * hundred pixels clear of the words it was pointing at, and the gap changed
+   * size on every phrase. Rendered here it shrink-wraps with the text, so it
+   * keeps its place at the front of the line.
+   *
+   * It is also measured into the sizer below, so reserving the width still
+   * reserves the whole line and nothing reflows.
+   */
+  prefix?: React.ReactNode;
+  /**
    * Render the FIRST phrase already complete, then carry on cycling from
    * there.
    *
@@ -75,6 +90,7 @@ export default function TextType({
   startOnVisible = false,
   startFull = false,
   reserveWidth = false,
+  prefix,
 }: TextTypeProps) {
   const first = Array.isArray(text) ? (text[0] ?? "") : text;
   /* Lazy initialisers, so the complete phrase is in the very first render
@@ -199,6 +215,7 @@ export default function TextType({
           aria-hidden="true"
           style={{ gridArea: "1 / 1", visibility: "hidden", whiteSpace: "pre-wrap" }}
         >
+          {prefix}
           {textArray.reduce((a, b) => (b.length > a.length ? b : a), "")}
         </span>
       )}
@@ -241,6 +258,7 @@ export default function TextType({
             : undefined
         }
       >
+        {prefix}
         <span className="text-type__content" style={{ color: currentColor }}>
           {displayedText}
         </span>
