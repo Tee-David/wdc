@@ -43,7 +43,16 @@ import { useEffect, useRef } from "react";
  * clicks, none of which want to be sent to the top.
  */
 
-function toTop(immediate: boolean) {
+/**
+ * THE ONE WAY ANYTHING IN THIS APP GOES BACK TO THE TOP.
+ *
+ * Exported rather than private, because a second copy of this is how the bug
+ * at the head of this file gets reintroduced. Anywhere that wants the top --
+ * a route change, a step in a long form, a button -- calls this, so there is
+ * one place that knows Lenis has to be told and one place to change if that
+ * ever stops being true.
+ */
+export function toTop(immediate: boolean) {
   /* Lenis first, and only if it is running -- it is desktop-only. Resetting
      its internal target is the part that sticks; window.scrollTo alone gets
      animated away again on the next frame. */

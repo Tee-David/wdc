@@ -5,7 +5,9 @@ import {
   AlertCircle, ArrowLeft, ArrowRight, BadgeInfo, BrainCircuit, Check, Code2, HelpCircle,
   Megaphone, Palette, Save, Search, Smartphone, Undo2,
 } from "lucide-react";
+import Link from "next/link";
 import { SERVICES, type ServiceSlug } from "@/lib/services";
+import { CONTACT_EMAIL } from "@/lib/site";
 import {
   isFilled, minutesLeft, PICKER_LINE, problemWith, stepsFor, UNSURE,
   type Field, type Step,
@@ -20,7 +22,12 @@ import SelectField from "./select-field";
 import Dropzone from "./dropzone";
 import Tip from "./tip";
 import Dialog from "./dialog";
+import Confetti from "./confetti";
 import { useServerDraft } from "./use-server-draft";
+/* THE ONE OWNER OF SCROLL POSITION. See the note at the top of that file:
+   a bare window.scrollTo is animated straight back down by Lenis on a desktop
+   pointer, because Lenis keeps its own target and nothing here told it. */
+import { toTop } from "@/components/ui/scroll-reset";
 import "./onboarding.css";
 import "./phone-field.css";
 import "./picker.css";
@@ -200,12 +207,12 @@ export default function OnboardingForm() {
     setI((n) => Math.min(n + 1, steps.length));
     /* Back to the top of the new step. Landing halfway down a fresh set of
        questions because the last one was long is disorienting. */
-    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
+    requestAnimationFrame(() => toTop(false));
   };
   const back = () => {
     setTried(false);
     setI((n) => Math.max(0, n - 1));
-    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
+    requestAnimationFrame(() => toTop(false));
   };
 
   const done = i >= steps.length;
@@ -294,6 +301,27 @@ export default function OnboardingForm() {
     const t = window.setTimeout(() => setSavedAt(0), 5000);
     return () => window.clearTimeout(t);
   }, [savedAt]);
+
+  /* SEND, THEN SHOW WHAT SENDING DID.
+
+     Send sits at the foot of the read-back, which on a full brief is several
+     screens tall. Pressing it swapped the page for a short thank-you note and
+     left the scroll exactly where it was -- which, on the now much shorter
+     document, is still below everything there is to see. The reported
+     symptom was that the button did nothing.
+
+     IN AN EFFECT, NOT IN THE CLICK HANDLER. The handler runs before React has
+     committed the new screen, so a scroll there is measured against the old,
+     taller document and clamped back the moment the short one replaces it. The
+     frame gives the browser time to lay the new screen out first.
+
+     INSTANT, NOT SMOOTH. The confetti starts on the same frame, and a
+     two-second glide would spend it looking at the wrong part of the page. */
+  useEffect(() => {
+    if (!submitted) return;
+    const f = requestAnimationFrame(() => toTop(true));
+    return () => cancelAnimationFrame(f);
+  }, [submitted]);
 
   /* ------------------------------------------------ welcome */
   /* THE FIRST SCREEN ASKS WHICH SERVICE THIS IS FOR.
@@ -393,16 +421,87 @@ export default function OnboardingForm() {
     );
   }
 
+  /* ------------------------------------------------ sent */
+  /* THE ONE SCREEN NOBODY PLANS AND EVERYBODY SEES.
+
+     A client has just spent ten minutes answering questions about work they
+     have already paid for, and the old version of this met them with four
+     lines of grey text. It also left them halfway down the page, because
+     nothing moved the scroll: they pressed Send at the foot of a long review
+     and the thank-you note rendered above the fold they were looking at, so
+     the form appeared to do nothing at all. Both are fixed here.
+
+     What it says now is the thing a client actually wants at this point, which
+     is not "thank you" -- it is "and what happens now". Three steps with real
+     timings, said plainly, so nobody has to write and ask. */
   if (submitted) {
     return (
-      <div className="ob ob--intro">
-        <p className="ob__k">Received</p>
-        <h2>Thank you. We have your brief.</h2>
+      <div className="ob ob--sent">
+        <Confetti />
+
+        {/* The mark, drawn rather than imported so it can take the page's own
+            accent and scale with the type. It grows and settles once on
+            arrival: transform and opacity, one run, and skipped entirely
+            under reduced motion by the rule in the stylesheet. */}
+        <span className="ob__seal" aria-hidden="true">
+          <Check />
+        </span>
+
+        <p className="ob__k">Sent</p>
+        <h2>Thank you. That is everything we need.</h2>
         <p className="ob__lede">
-          We will review it and confirm the next project step with you. Updates may come through
-          your client dashboard, direct chat, a WhatsApp project group where appropriate, or the
-          communication channel agreed for your project.
+          Your brief is with us, and it goes straight to the people who will do
+          the work. You have just saved yourself a fortnight of back-and-forth,
+          and us a pile of guessing.
         </p>
+
+        <div className="ob__next">
+          <h2>What happens next</h2>
+          <ol>
+            <li>
+              <b>We read it properly</b>
+              <span>
+                Not a skim. Someone goes through every answer and lists what is
+                clear and what still needs a conversation.
+              </span>
+            </li>
+            <li>
+              <b>You hear from us within two working days</b>
+              <span>
+                With the plan, the dates and anything we need from you to
+                start. If something you asked about carries a cost, the number
+                comes with it.
+              </span>
+            </li>
+            <li>
+              <b>Then the work begins</b>
+              <span>
+                Updates reach you through your client dashboard, direct chat, a
+                WhatsApp project group where that suits, or whichever channel
+                we agree for your project.
+              </span>
+            </li>
+          </ol>
+        </div>
+
+        <p className="ob__warm">
+          Remembered something after sending? That happens on almost every
+          project and it is never a problem. Write to{" "}
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> and we will
+          add it to your brief.
+        </p>
+
+        {/* `Link`, not `<a>`: a full document load here would throw away the
+            router's cache and reload the whole app to leave a screen the
+            client is finished with. */}
+        <div className="ob__acts ob__acts--sent">
+          <Link className="ob__btn ob__btn--go" href="/">
+            Back to the site <ArrowRight aria-hidden="true" />
+          </Link>
+          <Link className="ob__btn ob__btn--ghost" href="/work">
+            See what we have made
+          </Link>
+        </div>
       </div>
     );
   }
