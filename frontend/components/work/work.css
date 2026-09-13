@@ -35,9 +35,14 @@
 .wk-plate .wk-plate__t { color: #fff; font-size: clamp(1.9rem, 1.2rem + 2.4vw, 3rem); }
 .wk-plate .wk-plate__note { color: var(--on-band-dim); font-size: .98rem; line-height: 1.5; }
 
+/* THE SAME TRACK THE BLOG GRID USES, so the three hubs and the blog lay their
+   cards out identically rather than nearly. A 260px floor gave four columns at
+   1440 where .bl-grid gives three, and cards a quarter narrower than the ones
+   on the next page over is exactly the kind of near-miss that reads as
+   inconsistency without anyone being able to say why. */
 .wk-cats {
-  display: grid; gap: clamp(14px, 1.8vw, 22px);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  display: grid; gap: clamp(16px, 2.2vw, 26px);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
 }
 
 /* One card per category. The whole card is the link — a 44px arrow button
