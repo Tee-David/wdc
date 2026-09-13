@@ -97,6 +97,14 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} h-full antialiased`}
     >
       <body suppressHydrationWarning className="min-h-full flex flex-col">
+        {/* FIRST TAB STOP ON EVERY PAGE, and it has to be first in the DOM to
+            be that. Before this, tabbing into the site reached the Jotform
+            chat button and the accessibility widget -- two third-party
+            controls -- then the logo, then all five navigation links, before
+            any content. Someone navigating by keyboard paid that toll on
+            every page. Visible only on focus: it is there for the people who
+            need it and invisible to everyone else. */}
+        <a href="#main" className="skip-link">Skip to main content</a>
         {/*
           Runs before first paint: decides whether the full-screen intro
           should play (first visit or away > 30 min, motion allowed) and sets

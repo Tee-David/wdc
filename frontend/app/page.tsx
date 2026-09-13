@@ -29,7 +29,7 @@ export default function Home() {
       */}
       <IntroMount />
       <Header overHero />
-      <main className="flex-1">
+      <main id="main" tabIndex={-1} className="flex-1">
         {/* The intro's logos land in #hero-marquee, so this hero is the payoff
             of the intro animation. The wrapper carries the hero overrides. */}
         <div className="pv-hero">

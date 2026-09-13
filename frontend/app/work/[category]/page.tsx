@@ -67,7 +67,7 @@ export default async function WorkCategoryPage(
   return (
     <>
       <Header overHero />
-      <main className="flex-1 pv">
+      <main id="main" tabIndex={-1} className="flex-1 pv">
         <section className="wk-hero">
           <div className="pv-wrap wk-hero__in">
             <h1>{c.name}</h1>

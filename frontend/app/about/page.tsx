@@ -42,7 +42,7 @@ export default function AboutPage() {
   return (
     <>
       <Header overHero />
-      <main className="flex-1">
+      <main id="main" tabIndex={-1} className="flex-1">
         <AboutBody />
       </main>
       {/* /about had no footer at all. Not a regression from the rebuild: this
