@@ -113,7 +113,17 @@ export async function createProject(_prev: ActionState, fd: FormData): Promise<A
 
   if (Object.keys(errors).length) return FAIL(errors);
 
-  const p = db.addProject({ clientId, title, service: service!, stage: at, due: isoDate(fd, "due") });
+  const p = db.addProject({
+    clientId, title, service: service!, stage: at, due: isoDate(fd, "due"),
+    /* All four are optional on the form, so each falls back rather than
+       failing. `channel(...) ?? undefined` hands the decision to addProject,
+       which documents why the default is the dashboard; repeating the default
+       here would be two places to change it. */
+    owner: str(fd, "owner"),
+    channel: channel(fd, "channel") ?? undefined,
+    budget: kobo(fd, "budget"),
+    scope: str(fd, "scope") || undefined,
+  });
   refresh("/admin/projects", `/admin/clients/${clientId}`);
   redirect(`/admin/projects/${p.id}`);
 }
