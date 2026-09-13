@@ -265,6 +265,65 @@ main:focus { outline: none; }
     hero-backdrop-zoom 6s linear both;
 }
 
+/* THE SLIT WIPE between hero backdrops. See components/sections/hero.tsx for
+   why it is built this way; this is what the numbers are.
+
+   Every declaration here is either static layout or a compositor property.
+   Nothing animates width, height, position, filter or clip-path, so no frame
+   of this costs a layout or a paint. */
+.hero-slats {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  /* Grid tiles the tracks itself, so the bands abut exactly and there is no
+     hairline of the previous photograph showing between them -- which is what
+     hand-computed percentage widths give you at most viewport sizes. */
+  grid-template-columns: repeat(var(--n), 1fr);
+  /* The same slow push-in the single frame had, applied to all five bands at
+     once so the picture stays continuous across the seams. */
+  animation: hero-backdrop-zoom 6s linear both;
+}
+
+.hero-slat {
+  position: relative;
+  overflow: hidden;
+  /* Bands alternate: odd ones arrive from below, even ones from above. The
+     travel is small on purpose. This is meant to look like the picture is
+     being drawn across the frame, not like the frame is being shuffled. */
+  --slat-from: -7%;
+  animation: hero-slat-in 900ms cubic-bezier(.22, .61, .36, 1) both;
+  /* Right to left, 90ms apart: five bands means the last one starts 360ms in
+     and everything is settled by 1.26s, close to the 1.4s the crossfade took
+     and comfortably inside the five-second dwell. */
+  animation-delay: calc((var(--n) - 1 - var(--k)) * 90ms);
+}
+.hero-slat:nth-child(odd) { --slat-from: 7%; }
+
+/* The picture inside a band is viewport-wide and pushed left by the band's own
+   index, so all five windows look onto the same image at the same place. */
+.hero-slat__in {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--k) * -100%);
+  width: calc(var(--n) * 100%);
+}
+
+@keyframes hero-slat-in {
+  from { opacity: 0; transform: translate3d(0, var(--slat-from), 0); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* The cycle is already switched off for reduced motion in HeroBackdrop, so
+   these rules only matter if someone changes their setting mid-visit: whatever
+   is on screen stops moving and stays put rather than freezing mid-slide. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-slats,
+  .hero-slat { animation: none; }
+  .hero-slat { opacity: 1; transform: none; }
+}
+
 /* THE HEADLINE RISES WITHOUT FADING, and that is a Largest Contentful Paint
    decision rather than a taste one.
 
