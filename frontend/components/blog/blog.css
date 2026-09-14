@@ -56,11 +56,18 @@
 }
 
 .bl-card__body {
-  position: relative; display: flex; flex-direction: column; gap: .55rem;
+  /* `flex: 1` so the body fills what the cover leaves, which is what gives the
+     foot's `margin-top: auto` something to push against -- without it the
+     action floats up under a short excerpt and the row of cards stops lining
+     up along the bottom. */
+  position: relative; flex: 1; display: flex; flex-direction: column; gap: .55rem;
   padding: clamp(18px, 2.1vw, 24px);
-  /* Room for the round action in the corner, so a long title never runs under
-     it. The action is 44px plus its gutter. */
-  padding-right: clamp(64px, 7vw, 76px);
+  /* THE FULL WIDTH, because the action moved out of the corner. It used to sit
+     top-right, which cost every card 64-76px of measure down its whole height
+     to keep one line clear of one button -- so the title wrapped to three lines
+     where it would have taken two, and every card in the rail was taller for
+     it. The action is now on the foot line, beside the date, where there is
+     already empty space and nothing has to be reserved. */
 }
 
 .bl-card__kind {
@@ -96,17 +103,27 @@
   overflow: hidden;
 }
 
+/* The foot carries the action now, so it is a row rather than a line of text.
+   `margin-top: auto` pushes it to the bottom of the body, which keeps the
+   action on one line across a row of cards whose titles wrap differently. */
 .bl-card__foot {
-  margin-top: .35rem;
+  margin-top: auto; padding-top: .35rem;
+  display: flex; align-items: center; justify-content: space-between; gap: .75rem;
   font-size: .82rem; color: var(--muted);
 }
 
 /* The round action. Decorative -- the whole card is the link -- so it is
-   aria-hidden and simply mirrors the card's own hover. */
+   aria-hidden and simply mirrors the card's own hover.
+
+   ON THE FOOT LINE, NOT IN THE CORNER. Absolutely positioned top-right it
+   reserved 64-76px of measure down the card's whole height to keep one line
+   clear of one button, which pushed titles to a third line and made every card
+   in the rail taller. Here it costs nothing: the foot had empty space to the
+   right of the date already. */
 .bl-card__go {
-  position: absolute; top: clamp(18px, 2.1vw, 24px); right: clamp(18px, 2.1vw, 24px);
+  flex: none;
   display: grid; place-items: center;
-  width: 42px; height: 42px; border-radius: 50%;
+  width: 38px; height: 38px; border-radius: 50%;
   border: 1px solid var(--rule);
   color: var(--ink); background: transparent;
   transition: background .22s ease, color .22s ease, border-color .22s ease;
@@ -382,4 +399,20 @@
 @media (prefers-reduced-motion: reduce) {
   .bl-card { transition: none; }
   .bl-card:hover { transform: none; }
+}
+
+/* 3.2 CARDS IN THE READ NEXT RAIL, and only there.
+
+   preview.css deliberately has no global third step, and its note is right for
+   the rails it was written about: those sets are short, and shrinking the cards
+   to fit more of nothing breaks the promise a rail makes. This one is not short
+   -- `relatedPosts(post, 5)` returns up to five -- so there genuinely is more
+   sideways, and a third card plus a peek says so where 2.2 just looked roomy.
+
+   Computed rather than guessed, like the 2.2 rule it overrides: three gaps
+   between 3.2 cards, so the partial card is a real fifth of a card. */
+@media (min-width: 1100px) {
+  .bl-next .pv-rail > * {
+    flex-basis: calc((100% - 2.2 * var(--rail-gap)) / 3.2);
+  }
 }

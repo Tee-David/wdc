@@ -259,11 +259,13 @@ export default async function BlogPostPage(
                             <span className="bl-card__kind">{p.tags[0]}</span>
                             <h2>{p.title}</h2>
                             <p>{p.excerpt}</p>
-                            <span className="bl-card__foot">{readingMinutes(p)} min read</span>
-                            <span className="bl-card__go" aria-hidden="true">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M7 17 17 7M9 7h8v8" />
-                              </svg>
+                            <span className="bl-card__foot">
+                              {readingMinutes(p)} min read
+                              <span className="bl-card__go" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M7 17 17 7M9 7h8v8" />
+                                </svg>
+                              </span>
                             </span>
                           </span>
                         </Link>
