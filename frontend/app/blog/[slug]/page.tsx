@@ -281,7 +281,7 @@ export default async function BlogPostPage(
           <div className="pv-wrap">
             <div className="pv-cta pv-reveal">
               <span className="pv-eyebrow">Your turn</span>
-              <h2>Tell us what you are trying to work out.</h2>
+              <h2 className="pv-mix">Tell us <b>what you are trying to work out.</b></h2>
               <p>
                 If this raised a question about your own project, ask it. We answer
                 the same working day and we will tell you straight whether it is

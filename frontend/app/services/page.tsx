@@ -141,7 +141,7 @@ export default function ServicesPage() {
           <div className="pv-wrap">
             <div className="pv-cta pv-reveal">
               <span className="pv-eyebrow">Not sure which</span>
-              <h2>Describe the problem and we will tell you which of these it is.</h2>
+              <h2 className="pv-mix"><b>Describe the problem</b> and we will tell you which of these it is.</h2>
               <p>
                 Most projects need two or three of the six, and knowing which is
                 our job rather than yours.

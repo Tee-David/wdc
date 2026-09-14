@@ -568,7 +568,7 @@ export default function PreviewBody() {
         <div className="pv-wrap">
           <div className="pv-cta pv-reveal">
             <span className="pv-eyebrow">Let&rsquo;s talk</span>
-            <h2>Tell us what is not working yet.</h2>
+            <h2 className="pv-mix">Tell us <b>what is not working</b> yet.</h2>
             <p>
               Bring the part of your brand that is stuck. We will tell you straight whether
               design, search or engineering fixes it, and what we would do first.
@@ -638,7 +638,7 @@ export default function PreviewBody() {
         <div className="pv-wrap">
           <div className="pv-head pv-reveal">
             <span className="pv-eyebrow">Reach us</span>
-            <h2>Let&rsquo;s talk about your brand.</h2>
+            <h2 className="pv-mix"><b>Let&rsquo;s talk</b> about your brand.</h2>
           </div>
           <div className="pv-reach pv-reveal">
             <div className="pv-reach__info">

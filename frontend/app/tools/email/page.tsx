@@ -80,7 +80,7 @@ export default function EmailToolPage() {
           <div className="pv-wrap">
             <div className="pv-head">
               <span className="pv-eyebrow">Why it matters</span>
-              <h2>Delivered is not the same as trusted</h2>
+              <h2 className="pv-mix">Delivered is <b>not the same as trusted</b></h2>
             </div>
             <div className="tl__prose">
               <p>
@@ -110,7 +110,7 @@ export default function EmailToolPage() {
           <div className="pv-wrap">
             <div className="pv-cta">
               <span className="pv-eyebrow">Next step</span>
-              <h2>We can fix these, usually in a day.</h2>
+              <h2 className="pv-mix"><b>We can fix these</b>, usually in a day.</h2>
               <p>
                 They are DNS changes rather than a rebuild, and they come as part of any
                 web or SEO work we do. If that is all you need, it is all you pay for.
