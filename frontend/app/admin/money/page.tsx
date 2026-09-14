@@ -1,13 +1,17 @@
 import Link from "next/link";
 import {
   failedMessageCount, getAging, getClient, getClients, getCollectionRate,
-  getExpenses, getInvoices, getMonthly, getPayments, getProjects,
-  getSummary, providerAttentionCount,
+  getEstimates, getExpenses, getInvoice, getInvoices, getMonthly, getPayments,
+  getPipeline, getProjects, getSummary, providerAttentionCount,
 } from "@/lib/admin/store";
-import { invoiceStatus, invoiceTotals, naira, nairaShort } from "@/lib/admin/types";
+import {
+  estimateState, estimateTotals, invoiceStatus, invoiceTotals, naira, nairaShort,
+} from "@/lib/admin/types";
 import { DemoNote, Empty, InvoicePill, Panel, Tile, when } from "@/components/admin/bits";
-import { AddExpense, InvoiceBuilder } from "@/components/admin/money-forms";
-import { ExpenseMenu, InvoiceMenu, PaymentMenu } from "@/components/admin/row-actions";
+import { AddExpense, EstimateBuilder, InvoiceBuilder } from "@/components/admin/money-forms";
+import {
+  EstimateMenu, ExpenseMenu, InvoiceMenu, PaymentMenu,
+} from "@/components/admin/row-actions";
 
 export const metadata = { title: "Money" };
 
@@ -34,6 +38,8 @@ export default function MoneyPage() {
   const payments = getPayments().slice().sort((a, b) => b.at.localeCompare(a.at));
   const expenses = getExpenses();
   const projects = getProjects();
+  const estimates = getEstimates();
+  const pipeline = getPipeline();
   const projectById = new Map(projects.map((p) => [p.id, p]));
   const months = getMonthly(6);
   const peak = Math.max(1, ...months.flatMap((m) => [m.in, m.out]));
@@ -53,6 +59,7 @@ export default function MoneyPage() {
         </div>
         <div className="ad__row">
           <AddExpense projects={projects} />
+          <EstimateBuilder clients={getClients()} projects={projects} />
           <InvoiceBuilder clients={getClients()} projects={projects} />
         </div>
       </div>
@@ -98,6 +105,14 @@ export default function MoneyPage() {
         <Tile label="Spend" value={nairaShort(s.spend)} />
         <Tile label="Net" value={nairaShort(s.profit)} tone={s.profit >= 0 ? "good" : "bad"}
               note="Collected less spend" />
+        {/* WHAT IS QUOTED AND STILL LIVE, which is the only forward-looking
+            figure on this screen and is deliberately not added to anything
+            else. A quote is not money; putting it in the same sum as
+            collected income is how a studio talks itself into spending it. */}
+        <Tile label="Out for quote" value={nairaShort(pipeline.open)}
+              note={pipeline.winRate === null
+                ? "Nothing answered yet"
+                : `${Math.round(pipeline.winRate * 100)}% of answered quotes won`} />
         {/* HOW MUCH OF WHAT WE BILLED ACTUALLY ARRIVED, which is the one
             figure the five beside it cannot say. Null rather than 0% when
             nothing has been invoiced: a red 0% for a studio that has simply
@@ -191,6 +206,83 @@ export default function MoneyPage() {
               <span className="ad__dim">Peak month {nairaShort(peak)}</span>
             </div>
           </div>
+        </Panel>
+
+        {/* QUOTES BEFORE INVOICES, because that is the order the work happens
+            in and the panel above it is the one somebody opens this screen
+            for. A quote is not money and is not added to any total on the
+            page; the tile above says what is out and what share of answered
+            ones the studio wins. */}
+        <Panel
+          title="Estimates"
+          action={<EstimateBuilder clients={getClients()} projects={projects} trigger="New estimate" />}
+        >
+          {estimates.length ? (
+            <div className="ad__scroll">
+              <table className="ad__t">
+                <thead>
+                  <tr>
+                    <th>Number</th><th>Client</th><th>State</th><th>Holds until</th>
+                    <th className="num">Total</th>
+                    <th className="ad__rmH"><span className="ad__sr">Actions</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {estimates.map((e) => {
+                    const st = estimateState(e);
+                    const c = getClient(e.clientId);
+                    return (
+                      <tr key={e.id}>
+                        <td>
+                          {e.state === "Draft"
+                            ? <b>{e.number}</b>
+                            : <a href={`/q/${e.token}`} target="_blank" rel="noopener noreferrer"><b>{e.number}</b></a>}
+                          {/* NAMED, NOT "that invoice". The number is the
+                              thing somebody is looking for, and a link whose
+                              text is a pronoun is one they have to open to
+                              find out whether it is the right one. */}
+                          {e.invoiceId ? (
+                            <p className="ad__dim" style={{ margin: ".15rem 0 0", fontSize: ".78rem" }}>
+                              Billed as{" "}
+                              <Link href={`/admin/money/${e.invoiceId}`}>
+                                {getInvoice(e.invoiceId)?.number ?? "an invoice"}
+                              </Link>
+                            </p>
+                          ) : null}
+                        </td>
+                        <td>{c ? <Link href={`/admin/clients/${c.id}`}>{c.company}</Link> : "—"}</td>
+                        <td>
+                          <span className={`ad__pill ${
+                            st === "Accepted" ? "ad__pill--good"
+                              : st === "Declined" ? "ad__pill--bad"
+                                : st === "Expired" ? "ad__pill--warn"
+                                  : st === "Draft" ? "ad__pill--flat" : ""
+                          }`}>{st}</span>
+                          {e.answered ? (
+                            <p className="ad__dim" style={{ margin: ".2rem 0 0", fontSize: ".78rem" }}>
+                              {e.answered.by}, {when(e.answered.at)}
+                            </p>
+                          ) : null}
+                        </td>
+                        <td className="ad__num ad__dim">{when(e.expires)}</td>
+                        <td className="num">{naira(estimateTotals(e).total)}</td>
+                        <td className="ad__rmC"><EstimateMenu estimate={e} /></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <Empty
+              title="Nothing out for quote"
+              action={<EstimateBuilder clients={getClients()} projects={projects} />}
+            >
+              An estimate is its own document with its own number, not a draft
+              invoice. Accepting one raises the invoice and keeps the quote as
+              the record of what was agreed.
+            </Empty>
+          )}
         </Panel>
 
         <Panel title="Invoices">
