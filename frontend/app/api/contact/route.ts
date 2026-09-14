@@ -1,6 +1,7 @@
 import { after, NextRequest, NextResponse } from "next/server";
 import { CONTACT_EMAIL } from "@/lib/site";
-import { escapeHtml, mailIsConfigured, sendMail } from "@/lib/email";
+import { escapeHtml, mailIsConfigured, sendMail, sendTemplate } from "@/lib/email";
+import { enquiryReceiptEmail } from "@/lib/email-templates";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 
 /* THE PLATFORM MUST NOT CUT THE SEND OFF BEFORE OUR OWN TIMEOUTS DO.
@@ -65,16 +66,11 @@ export async function POST(request: NextRequest) {
        interim, and it is written down so the interim is visible. */
     after(async () => {
       try {
-        await sendMail({
-          to: email,
-          subject: "We Dig Creativity: we received your message",
-          /* The visitor asked us a question; they did not ask for this copy.
-             Offering a way out is what separates accountable automatic mail
-             from the other kind, and Gmail scores it that way. */
-          unsubscribe: true,
-          text: `Hi ${first},\n\nWe received your message about ${topic}. Our team will reply within the same working day.\n\nWe Dig Creativity\n${CONTACT_EMAIL}`,
-          html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a;max-width:560px"><p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#ff6500">WE DIG CREATIVITY</p><h1 style="font-size:27px;margin:12px 0">Your message is with us.</h1><p>Hi ${escapeHtml(first)},</p><p>We received your message about <b>${escapeHtml(topic)}</b>. Our team will reply within the same working day.</p><p style="color:#666680;font-size:13px">A copy was sent automatically so you know the form worked.</p></div>`,
-        });
+        /* The receipt is now one of the shared templates rather than a `<div>`
+           written here: full document, real plain-text alternative, and the
+           unsubscribe line in the footer matching the header `sendMail` sets.
+           See lib/email-templates.ts for why each of those is not decoration. */
+        await sendTemplate(email, enquiryReceiptEmail({ firstName: first, topic }));
       } catch (receiptError) {
         console.error("Contact receipt failed", receiptError instanceof Error ? receiptError.message : "unknown error");
       }

@@ -1,17 +1,12 @@
 import "server-only";
 
 import nodemailer from "nodemailer";
+import { escapeHtml, passwordResetEmail, type Email } from "@/lib/email-templates";
 
 function required(name: string) {
   const value = process.env[name]?.trim();
   if (!value) throw new Error(`${name} is not configured.`);
   return value;
-}
-
-function escapeHtml(value: string) {
-  return value.replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;",
-  })[char]!);
 }
 
 const globalMail = globalThis as typeof globalThis & {
@@ -68,6 +63,12 @@ export async function sendMail(input: {
   html?: string;
   replyTo?: string;
   /**
+   * Inline parts, referenced from the HTML as `cid:<id>`. Only the document QR
+   * on the invoice and receipt uses this today; see `documentQr()` in
+   * lib/email-templates.ts for why it is an attachment rather than a URL.
+   */
+  attachments?: { filename: string; content: string; contentType: string; cid: string }[];
+  /**
    * Set on anything a person did not individually ask us to send them -- a
    * receipt, a reminder, a digest. Gmail weighs a one-click unsubscribe
    * heavily: a message that offers one is treated as accountable bulk mail,
@@ -90,26 +91,39 @@ export async function sendMail(input: {
       ? {
           /* A mailto rather than a URL, because there is no unsubscribe
              endpoint yet and a link to one that does not exist is worse than
-             no link. Swap it for a URL the day there is one. */
+             no link. Swap it for a URL the day there is one. The footer of
+             every template that sets `unsubscribe` points at the same address,
+             because a header that offers a way out and a body that does not is
+             two different promises. */
           "List-Unsubscribe": `<mailto:${contact}?subject=unsubscribe>`,
         }
       : undefined,
   });
 }
 
-/* BLACK ON THE ORANGE, NOT WHITE. White on #ff6500 measures 2.95:1 and fails
-   even the 3:1 large text is allowed; black is 7.11:1. The site's buttons have
-   followed that rule for a while and this one had not -- an email client is no
-   more forgiving than a browser, and this is the button somebody locked out of
-   their account has to find. */
-export async function sendPasswordResetEmail(to: string, url: string) {
-  const safeUrl = escapeHtml(url);
-  await sendMail({
-    to,
-    subject: "Reset your WDC admin password",
-    text: `A password reset was requested for your WDC admin account. Open this link within one hour: ${url}\n\nIf you did not request this, ignore this email.`,
-    html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a;max-width:560px"><p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#ff6500">WDC STUDIO ADMIN</p><h1 style="font-size:28px;margin:12px 0">Reset your password</h1><p>A password reset was requested for your admin account.</p><p><a href="${safeUrl}" style="display:inline-block;background:#ff6500;color:#000000;padding:13px 20px;border-radius:10px;font-weight:700;text-decoration:none">Choose a new password</a></p><p style="color:#666680;font-size:13px">This link expires in one hour. If you did not request it, you can ignore this message.</p></div>`,
-  });
+/** Sends one of the composed messages in lib/email-templates.ts. */
+export async function sendTemplate(to: string, email: Email, options: { replyTo?: string } = {}) {
+  return sendMail({ to, replyTo: options.replyTo, ...email });
+}
+
+/**
+ * The reset link, as mail.
+ *
+ * CALLED FROM BEHIND THE RESPONSE. Better Auth runs this through its
+ * `advanced.backgroundTasks` handler, which lib/auth.ts wires to Next's
+ * `after()`: this mail server needs about 23 seconds just to authenticate, and
+ * nobody should watch a spinner for that after asking for a reset link. The
+ * consequence is that a failure here has no one left to tell, so it is logged
+ * rather than thrown -- and the reset token is already in the database either
+ * way, so a retry is one more request rather than a lost account.
+ */
+export async function sendPasswordResetEmail(
+  to: string,
+  url: string,
+  name?: string,
+  expiresInMinutes = 60,
+) {
+  await sendTemplate(to, passwordResetEmail({ name, url, expiresInMinutes }));
 }
 
 export { escapeHtml };
