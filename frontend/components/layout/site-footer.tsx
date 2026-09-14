@@ -63,10 +63,6 @@ export function SiteFooter() {
               software and campaigns, built by one team so nothing is lost in the
               hand-off.
             </p>
-            <Link className="ft__cta" href="/contact">
-              Start a conversation
-              <ArrowUpRight aria-hidden="true" />
-            </Link>
           </div>
 
           <nav className="ft__col" aria-label="Site">
@@ -101,6 +97,14 @@ export function SiteFooter() {
               <li className="ft__plain">Nigeria, working remote-first</li>
               <li className="ft__plain">Replies the same working day</li>
             </ul>
+            {/* The ask lives with the contact details rather than under the
+                pitch. It is the same action the three lines above it describe,
+                and it was previously the only thing in the brand column that
+                wanted a click. */}
+            <Link className="ft__cta" href="/contact">
+              Start a conversation
+              <ArrowUpRight aria-hidden="true" />
+            </Link>
             {SOCIALS.length ? (
               <div className="ft__social">
                 {SOCIALS.map((s) => (
@@ -112,12 +116,16 @@ export function SiteFooter() {
               </div>
             ) : null}
           </div>
-        </div>
 
-        {/* The subscribe box gets its own band rather than a fifth column: the
-            curved bar needs width to read as a curve, and it belongs after
-            what the studio does rather than beside it. */}
-        <Newsletter />
+          {/* IN THE GRID, NOT IN A BAND OF ITS OWN, and placed by CSS rather
+              than rendered twice. It reads differently at the two sizes: on a
+              desktop it belongs under Get in touch, with the other ways of
+              reaching us; on a phone the columns stack and it belongs directly
+              under the sentence that says what the studio is, before the three
+              lists of links. Explicit grid placement does both from one
+              element -- see `.ft__nl` in site-footer.css. */}
+          <Newsletter />
+        </div>
 
         {/* The wordmark, set at a share of the CARD's width rather than the
             viewport's, so it fills the same proportion of the footer at every

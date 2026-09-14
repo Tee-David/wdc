@@ -497,7 +497,15 @@ export default function PreviewBody() {
                     <a
                       className={`pv-scard${active === idx ? " is-on" : ""}`}
                       key={s.title}
-                      href={`/services#${s.slug}`}
+                      /* THE SERVICE'S OWN PAGE, not an anchor on the hub.
+                         These pointed at `/services#<slug>` from when /services
+                         was one long page with six sections in it. Each service
+                         has had its own route since the hub was split, so every
+                         one of these six cards was sending a reader to a hub
+                         that then had to be scrolled, instead of to the page
+                         built to answer them -- and passing no internal link to
+                         the six URLs that most need one. */
+                      href={`/services/${s.slug}`}
                       onMouseEnter={() => setActive(idx)}
                       onFocus={() => setActive(idx)}
                     >

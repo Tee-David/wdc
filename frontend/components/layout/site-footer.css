@@ -184,8 +184,10 @@
 @media (min-width: 1024px) {
   .ft { padding-inline: 0; }
   .ft__card { max-width: none; padding-inline: 0; }
+  /* `.nl` is no longer in this list: it sits INSIDE `.ft__cols` now, so it
+     already has the wrap's width and padding from its parent. Leaving it here
+     gave it a second 1280px cap and a second gutter inside the first. */
   .ft__cols,
-  .nl,
   .ft__base,
   .ft__mark {
     max-width: 1280px;

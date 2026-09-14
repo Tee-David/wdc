@@ -1,36 +1,40 @@
 /* ============================================================================
    The footer subscribe box.
 
-   Its own band across the card rather than a fifth column: the curved bar
-   needs room to be a curve, and at a quarter of the footer's width the arc
-   collapses into a wobble. Above the closing rule, below the columns, which is
-   where a reader arrives having just read what the studio does.
+   IT USED TO BE A BAND OF ITS OWN across the card, with a display-sized
+   heading and a paragraph beside it. That made the footer read as two footers:
+   four column titles, a horizontal rule, and then a second headline larger
+   than any of them, for a mailing list. It is a field now, and it lives in the
+   footer's own columns with everything else.
+
+   WHERE IT SITS IS DIFFERENT AT THE TWO SIZES, and both are placement rather
+   than a second copy of the markup. On a desktop it belongs under Get in
+   touch, beside the other ways of reaching us. On a phone the four columns
+   stack, and it belongs directly under the sentence that says what the studio
+   is, rather than at the very bottom behind three lists of links.
    ========================================================================== */
 
-.nl {
-  position: relative; z-index: 2;
-  display: grid; gap: clamp(1.2rem, 3vw, 2.5rem);
-  align-items: center;
-  margin-top: clamp(2.4rem, 5vw, 3.6rem);
-  padding-top: clamp(1.8rem, 3.5vw, 2.6rem);
-  border-top: 1px solid rgb(255 255 255 / .14);
-}
-/* Side by side only once the bar has room to bend. Below that the words go
-   above it, which is the order they are read in anyway. */
-@media (min-width: 900px) {
-  .nl { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); }
+.nl { position: relative; z-index: 2; min-width: 0; }
+
+/* Under "Get in touch": same column, next row. `align-self: start` so it sits
+   directly under that column's content instead of being stretched down the
+   full height of the tallest column beside it. */
+@media (min-width: 1001px) {
+  .ft__nl { grid-column: 4; grid-row: 2; align-self: start; margin-top: 1.6rem; }
 }
 
-.nl__say h2 {
-  margin: 0 0 .5rem;
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-size: clamp(1.35rem, 1.1rem + 1vw, 1.9rem);
-  line-height: 1.15; color: #fff;
+/* Two columns at the middle size: the brand block spans both, so the subscribe
+   box takes the second cell of the next row rather than sitting under Legal. */
+@media (min-width: 561px) and (max-width: 1000px) {
+  .ft__nl { grid-column: 1 / -1; margin-top: .4rem; }
 }
-.nl__say p {
-  margin: 0; max-width: 44ch;
-  font-size: clamp(.92rem, .89rem + .15vw, 1rem); line-height: 1.6;
-  color: rgb(238 240 255 / .72);
+
+/* One column: straight after the brand block, before the three link lists.
+   `order` rather than moving the markup, because the DESKTOP order is the one
+   the markup reads correctly in. */
+@media (max-width: 560px) {
+  .ft__brand { order: 1; }
+  .ft__nl { order: 2; }
 }
 
 .nl__box { min-width: 0; }
@@ -74,6 +78,3 @@
   opacity: 0; pointer-events: none;
 }
 
-@media (max-width: 560px) {
-  .nl { gap: 1.1rem; }
-}

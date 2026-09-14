@@ -108,15 +108,12 @@ export function Newsletter() {
   }
 
   return (
-    <div className="nl">
-      <div className="nl__say">
-        <h2>Worth your inbox.</h2>
-        <p>
-          Work we have shipped, what it cost, and what we learned. Sent when
-          there is something to say, which is not every week.
-        </p>
-      </div>
-
+    <div className="nl ft__nl">
+      {/* NO HEADING AND NO PITCH. The box now sits inside the footer's own
+          columns rather than in a band of its own, where a display-sized
+          "Worth your inbox." was a second headline competing with the four
+          column titles beside it. The field's placeholder and the line under
+          it already say what this is and how often it sends. */}
       <div className="nl__box" ref={box}>
         {state.kind === "done" ? (
           /* THE ANSWER TAKES THE BAR'S PLACE rather than appearing under it.
