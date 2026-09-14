@@ -50,15 +50,18 @@
 }
 @media (max-width: 1000px) { .ft__cols { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 560px)  {
-  .ft__cols { grid-template-columns: 1fr; }
-  /* One column, so the brand block and the subscribe box that follows it lead
-     the mobile footer, ahead of the Company and Useful links lists. Those two
-     nav columns have no `order` of their own, which defaults to 0 -- lower
-     than `.ft__brand`'s 1, so without setting it here they float above the
-     brand block instead of below it. The whole subscribe column moves as one
+  /* Two tracks, so Company and Useful links sit side by side instead of
+     stacking into one long scroll. Brand and the subscribe box still span
+     both tracks -- they stay full width, single column. */
+  .ft__cols { grid-template-columns: 1fr 1fr; }
+  /* The brand block and the subscribe box that follows it lead the mobile
+     footer, ahead of the Company and Useful links lists. Those two nav
+     columns have no `order` of their own, which defaults to 0 -- lower than
+     `.ft__brand`'s 1, so without setting it here they float above the brand
+     block instead of below it. The whole subscribe column moves as one
      piece, heading and all. */
-  .ft__brand { order: 1; }
-  .ft__col--sub { order: 2; }
+  .ft__brand { order: 1; grid-column: 1 / -1; }
+  .ft__col--sub { order: 2; grid-column: 1 / -1; }
   .ft__cols > nav.ft__col { order: 3; }
 }
 @media (max-width: 1000px) { .ft__brand { grid-column: 1 / -1; } }
