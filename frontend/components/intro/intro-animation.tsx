@@ -414,7 +414,15 @@ export default function IntroAnimation() {
                   ("filter-related property may move pixels"). The reveal is
                   the same shape without it -- a fade and a 20px rise -- and
                   both of those the compositor can run on its own thread. */}
-              <motion.h1
+              {/* A `p`, NOT AN `h1`, and the reason is that the page already
+                  has one. The hero's "What if we made it ..." is the page's
+                  heading; this is the studio's name on a splash that fades out
+                  before anybody reads anything else. Two `h1`s on one document
+                  is the thing the site's own rule forbids, and it only showed
+                  on a desktop -- the intro does not run on a phone, so every
+                  mobile check said one. Nothing visible changes: the size,
+                  weight and tracking are on the classes, not on the tag. */}
+              <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={
                   introPhase === "circle" && morphValue < 0.5
@@ -426,7 +434,7 @@ export default function IntroAnimation() {
                 className="font-heading text-xl font-bold tracking-tight md:text-5xl"
               >
                 We Dig <span className="text-secondary">Creativity</span>.
-              </motion.h1>
+              </motion.p>
               {/* The same cue the pinned sections use, rather than a second
                   way of saying the same thing. This screen has exactly the
                   problem the cue was built for: nothing on it moves until you
