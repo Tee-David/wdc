@@ -179,11 +179,11 @@
    even the 3:1 large text is allowed; black is 7.11:1. Same rule as every
    other accent fill on the site, pinned by tests/button-colours.spec.ts. */
 .doc__actions {
-  display: flex; flex-wrap: wrap; align-items: center;
-  gap: .5rem .9rem; margin: 0 0 .8rem;
+  display: grid; gap: .5rem; justify-items: start;
+  margin: 0 0 .9rem;
 }
 .doc__btn {
-  display: inline-flex; align-items: center; justify-content: center;
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
   min-height: 44px; padding: .7rem 1.25rem;
   border: 0; border-radius: 12px;
   background: #ff6500; color: #000;
@@ -194,11 +194,45 @@
 .doc__btn:hover { background: #e85c00; box-shadow: 0 6px 18px rgb(255 101 0 / .3); }
 .doc__btn:active { transform: translateY(1px); }
 .doc__btn:focus-visible { outline: 3px solid #0e0e2c; outline-offset: 3px; }
-.doc__actions small { color: #5a5a72; font-size: .8rem; }
+.doc__actions small { color: #5a5a72; font-size: .82rem; }
+
+/* THE ONE THING THIS DOCUMENT EXISTS TO GET DONE.
+
+   It was a 44px pill sitting in a row with its own caption beside it, which
+   made it read as one of the options on the page rather than as the page's
+   purpose. It is the only action on an invoice, so it takes the width of the
+   panel and the height of a control somebody is meant to press on a phone
+   without aiming.
+
+   FULL WIDTH IS THE HONEST EMPHASIS HERE, not a flourish. Every checkout worth
+   copying does the same thing for the same reason: the amount and the verb in
+   one block, nothing beside it to weigh it against.
+
+   STILL BLACK ON ORANGE. Bigger type does not change the measurement: white on
+   #ff6500 is 2.95:1 and fails even the 3:1 large text is allowed, black is
+   7.11:1. Pinned by tests/button-colours.spec.ts. */
+.doc__btn--pay {
+  width: 100%;
+  min-height: 3.75rem;
+  padding: 1rem 1.5rem;
+  border-radius: 14px;
+  font-size: clamp(1.05rem, .98rem + .35vw, 1.22rem);
+  letter-spacing: -.01em;
+  box-shadow: 0 12px 26px -12px rgb(255 101 0 / .65);
+}
+.doc__btn--pay:hover {
+  box-shadow: 0 16px 32px -12px rgb(255 101 0 / .7);
+  transform: translateY(-1px);
+}
+.doc__btn--pay:active { transform: translateY(1px); }
+/* The arrow leans out on hover, which is the whole of the motion: a payment
+   button that bounces is a payment button people distrust. */
+.doc__btn--pay svg { width: 1.1em; height: 1.1em; flex: none; transition: transform .16s ease; }
+.doc__btn--pay:hover svg { transform: translateX(3px); }
 
 @media (prefers-reduced-motion: reduce) {
-  .doc__btn { transition: none; }
-  .doc__btn:active { transform: none; }
+  .doc__btn, .doc__btn--pay svg { transition: none; }
+  .doc__btn:active, .doc__btn--pay:hover, .doc__btn--pay:active { transform: none; }
 }
 
 /* Something went wrong on the way to the checkout, said before the button
