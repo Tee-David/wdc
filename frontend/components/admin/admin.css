@@ -281,6 +281,10 @@
   color: var(--ad-dim); background: var(--ad-bg);
   border-bottom: 1px solid var(--ad-line); white-space: nowrap;
 }
+.ad__t th > a { display: inline-flex; align-items: center; gap: .25rem; text-decoration: underline; text-decoration-color: transparent; text-underline-offset: .2rem; }
+.ad__t th > a:hover { color: var(--ad-ink); text-decoration-color: currentColor; }
+.ad__t th[aria-sort] > a::after { content: "↓"; font-size: .75rem; }
+.ad__t th[aria-sort="ascending"] > a::after { content: "↑"; }
 .ad__t td { padding: .7rem 1rem; border-bottom: 1px solid var(--ad-line); vertical-align: middle; }
 .ad__t tbody tr:last-child td { border-bottom: 0; }
 .ad__t tbody tr:hover { background: var(--ad-bg); }

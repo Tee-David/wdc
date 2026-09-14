@@ -11,7 +11,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **150 open** (12 of them in progress), **220 done**.
+At last update: **149 open** (11 of them in progress), **221 done**.
 
 ---
 
@@ -228,7 +228,6 @@ party, which our own CSP blocks and which we should not loosen it for.
 
 ### 4.3 Clients and client workspace
 
-- [-] Rebuild the client list to Litch parity with responsive search, service/status filters, sortable columns, useful counts, accessible pagination, export, and a focused new-client action. (Native search, service/status filters, archived visibility, useful result counts, sort choices, reversible filtered-empty state, focused add-client action, and accessible pagination are implemented; direct column sorting and export remain.)
 - [ ] Support create, edit, archive, restore, merge/duplicate review, notes, tags, multiple contacts, communication preferences, and client-level access status without crowding the default view.
 - [ ] Build a unified client detail workspace with overview, projects, invoices/payments, forms/submissions, files, communications, notes, and an append-only activity timeline.
 - [ ] Add client quick actions for a project, invoice, payment, onboarding request, portal invitation, message/WhatsApp handoff, note, and file upload.
@@ -800,3 +799,8 @@ the count at the top wrong again.
 - [x] The public invoice offers ONE way to pay, and it is the checkout. It used to put "prefer a bank transfer?" under the button, which read as a second, equal option and was not one: the studio collects through Paystack, and Paystack's own page already offers a transfer to a one-time account beside the card. The offer sent people out to email for something the button in front of them does better and records automatically, and an untracked transfer is then the studio's afternoon, not the client's. Transfer, cash and POS stay in the books as the STUDIO'S methods, for money that genuinely arrived some other way and for a charge that went wrong somewhere Paystack cannot tell us about, so the books never get stuck on a payment everybody knows happened. The record-a-payment dialog says so in as many words. Same change in the invoice email, and the redirect-back messages no longer send anybody off to make a transfer either. Pinned by `tests/payments.spec.ts`.
 - [x] Em dashes are out of every string a visitor or an admin reads: case study and service copy, onboarding questions and helper text, page titles, alt text, the contact and upload replies, the receipt, the admin row menus and the credit picker. Twenty-eight replacements, each rewritten rather than swapped for a hyphen, so the sentence still reads. What is deliberately left: the lone dash in a table cell that means "no value", which is a glyph rather than punctuation, and en dashes inside numeric ranges like "18-24" and "₦100k-₦500k", which are ranges rather than sentence punctuation.
 - [x] Case studies have an "on this page" rail, the same one the blog and legal pages use. It is on the RIGHT rather than the left, because that is where the space already was: `.wk-doc__body` is capped at 74ch so long-form prose is readable, and on a wide screen that cap was leaving a column of nothing beside every case study. On an article the rail leads, because it is furniture you glance at before starting; on a case study the work has to lead, so the rail fills the gap instead of taking width off the reading column.
+
+
+## Completed Section 4 milestones
+
+- [x] Rebuild the client list to Litch parity with responsive search, service/status filters, sortable columns, useful counts, accessible pagination, export, and a focused new-client action. (Native search, service/status filters, archived visibility, result counts, clickable sortable columns, reversible filtered-empty state, focused add-client action, accessible pagination, and a filter-aware owner-gated CSV export are implemented. Browser checks pin filtering, recovery, CSV scope, sorting, 44px controls, bounded table scrolling, and no page-level horizontal scroll at 320px.)
