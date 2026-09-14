@@ -332,10 +332,21 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
 export async function reversePayment(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const id = str(fd, "id");
   const invoiceId = str(fd, "invoiceId");
-  if (!db.reversePayment(id)) return FAIL({}, "That payment is no longer there.");
+  /* A REASON IS REQUIRED, and this is the one place in the admin where a free
+     text field is not optional. Money coming back off the books is the entry
+     somebody will question, and "reversed" with nothing beside it cannot be
+     answered six months later by the person who did it, let alone by anybody
+     else. */
+  const reason = str(fd, "reason");
+  if (!reason) {
+    return FAIL({ reason: "Say why. A reversal with no reason cannot be explained later." });
+  }
+  if (!db.reversePayment(id, reason, str(fd, "by") || "Studio")) {
+    return FAIL({}, "That payment is already reversed, or is no longer there.");
+  }
 
   refresh("/admin/money", `/admin/money/${invoiceId}`);
-  return OK("Reversed, and the invoice re-totalled.");
+  return OK("Reversed. The row stays on the books marked reversed, and its receipt now says so.");
 }
 
 /* -------------------------------------------------------------- expenses */

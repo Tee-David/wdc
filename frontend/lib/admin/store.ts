@@ -265,6 +265,21 @@ export function getPaymentByToken(t: string) {
   return PAYMENTS.find((p) => p.token === t) ?? null;
 }
 
+/**
+ * What an invoice has actually kept.
+ *
+ * ONE FUNCTION, USED EVERYWHERE A TOTAL IS TAKEN. Reversed payments stay on
+ * the books as rows -- see the note on `Payment.reversed` -- so every sum has
+ * to skip them, and a second place that forgot to is a set of books that says
+ * money arrived when it went back. There is no version of this that filters
+ * inline at the call site.
+ */
+function collected(invoiceId: Id) {
+  return PAYMENTS
+    .filter((p) => p.invoiceId === invoiceId && !p.reversed)
+    .reduce((n, p) => n + p.amount, 0);
+}
+
 export function getPaymentsFor(invoiceId: Id) {
   return PAYMENTS.filter((p) => p.invoiceId === invoiceId);
 }
@@ -429,7 +444,11 @@ export function getMonthly(months = 6) {
   return keys.map((k) => ({
     month: k,
     label: new Date(`${k}-01`).toLocaleString("en-GB", { month: "short" }),
-    in: getPayments().filter((p) => key(p.at) === k).reduce((n, p) => n + p.amount, 0),
+    /* `!p.reversed`: a bounced transfer is not income in the month it bounced,
+       and it was never income in the month it arrived either. A cashflow chart
+       that counts it is a chart that disagrees with the invoice totals beside
+       it, which is the sort of thing somebody spots in a board meeting. */
+    in: getPayments().filter((p) => key(p.at) === k && !p.reversed).reduce((n, p) => n + p.amount, 0),
     out: getExpenses().filter((e) => key(e.at) === k).reduce((n, e) => n + e.amount, 0),
   }));
 }
@@ -748,29 +767,35 @@ export function applyPayment(d: {
           action: "recorded", to: naira(payment.amount),
           note: `${payment.method} · ${payment.reference} · against ${inv.number}` });
 
-  inv.paid = PAYMENTS
-    .filter((p) => p.invoiceId === inv.id)
-    .reduce((n, p) => n + p.amount, 0);
+  inv.paid = collected(inv.id);
 
   return { ok: true, payment, invoice: inv, overpaid: inv.paid > invoiceTotals(inv).total };
 }
 
 /** Reverses one payment and re-sums, for a bounced transfer or a typo. */
-export function reversePayment(id: Id, actor = "Studio"): boolean {
-  const at = PAYMENTS.findIndex((p) => p.id === id);
-  if (at < 0) return false;
-  const [gone] = PAYMENTS.splice(at, 1);
-  const inv = getInvoice(gone.invoiceId);
-  if (inv) {
-    inv.paid = PAYMENTS.filter((p) => p.invoiceId === inv.id).reduce((n, p) => n + p.amount, 0);
-  }
-  /* Money leaving the books is the single most important thing in this log.
-     The receipt number and the reference are kept on the entry, because the
-     row that carried them has gone and those are what tie the reversal to the
-     bank's record of the original. */
-  audit({ actor, kind: "payment", subjectId: gone.id, subject: gone.receiptNo,
-          action: "reversed", from: naira(gone.amount), to: naira(0),
-          note: `${gone.method} · ${gone.reference} · against ${inv?.number ?? "an invoice that has gone"}` });
+/**
+ * Take a payment back off the books WITHOUT taking it off the record.
+ *
+ * The row stays, annotated. A receipt has its own public URL and has usually
+ * been sent to the client, so removing the row would turn a document somebody
+ * is holding into a 404 with no explanation -- and books that correct
+ * themselves by deleting rows cannot answer "there was a payment here last
+ * month". The receipt still resolves; it now says REVERSED and why.
+ *
+ * Reversing twice is a no-op rather than an error. The button can be pressed
+ * again on a stale page, and the honest answer to "reverse this already
+ * reversed payment" is that it is already done.
+ */
+export function reversePayment(id: Id, reason = "", actor = "Studio"): boolean {
+  const p = PAYMENTS.find((x) => x.id === id);
+  if (!p || p.reversed) return false;
+  p.reversed = { at: now(), by: actor, reason: reason.trim() };
+  const inv = getInvoice(p.invoiceId);
+  if (inv) inv.paid = collected(inv.id);
+  audit({ actor, kind: "payment", subjectId: p.id, subject: p.receiptNo,
+          action: "reversed", from: naira(p.amount), to: naira(0),
+          note: [`${p.method} · ${p.reference}`, inv ? `against ${inv.number}` : null, reason.trim() || null]
+            .filter(Boolean).join(" · ") });
   return true;
 }
 
