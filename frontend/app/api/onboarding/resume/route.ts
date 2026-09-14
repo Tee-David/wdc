@@ -30,10 +30,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "This resume link is invalid." }, { status: 404 });
   }
   if (state.expires_at.getTime() <= Date.now()) {
-    return NextResponse.json({ error: "This resume link has expired. Request a new link from WDC." }, { status: 410 });
+    /* `canReissue` is what turns these from a dead end into a button. The
+       client asks for a fresh link themselves at /api/onboarding/reissue
+       rather than emailing somebody who then does it by hand. */
+    return NextResponse.json(
+      { error: "This resume link has expired. We can send you a fresh one.", canReissue: true },
+      { status: 410 },
+    );
   }
   if (state.used_at) {
-    return NextResponse.json({ error: "This resume link has already been used. Continue on the device where you opened it, or request a new link." }, { status: 409 });
+    return NextResponse.json(
+      { error: "This resume link has already been used. Continue on the device where you opened it, or we can send you a fresh one.", canReissue: true },
+      { status: 409 },
+    );
   }
 
   const claimed = await db.query(`
