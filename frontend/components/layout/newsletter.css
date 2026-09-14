@@ -1,0 +1,79 @@
+/* ============================================================================
+   The footer subscribe box.
+
+   Its own band across the card rather than a fifth column: the curved bar
+   needs room to be a curve, and at a quarter of the footer's width the arc
+   collapses into a wobble. Above the closing rule, below the columns, which is
+   where a reader arrives having just read what the studio does.
+   ========================================================================== */
+
+.nl {
+  position: relative; z-index: 2;
+  display: grid; gap: clamp(1.2rem, 3vw, 2.5rem);
+  align-items: center;
+  margin-top: clamp(2.4rem, 5vw, 3.6rem);
+  padding-top: clamp(1.8rem, 3.5vw, 2.6rem);
+  border-top: 1px solid rgb(255 255 255 / .14);
+}
+/* Side by side only once the bar has room to bend. Below that the words go
+   above it, which is the order they are read in anyway. */
+@media (min-width: 900px) {
+  .nl { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); }
+}
+
+.nl__say h2 {
+  margin: 0 0 .5rem;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: clamp(1.35rem, 1.1rem + 1vw, 1.9rem);
+  line-height: 1.15; color: #fff;
+}
+.nl__say p {
+  margin: 0; max-width: 44ch;
+  font-size: clamp(.92rem, .89rem + .15vw, 1rem); line-height: 1.6;
+  color: rgb(238 240 255 / .72);
+}
+
+.nl__box { min-width: 0; }
+
+/* The helper line under the bar. It holds its height whether or not there is
+   an error in it, so a message appearing cannot shove the closing rule and the
+   copyright down the page while somebody is reading them. */
+.nl__note {
+  margin: .7rem 0 0; min-height: 1.25rem;
+  font-size: .82rem; line-height: 1.4;
+  color: rgb(238 240 255 / .58);
+}
+/* #ff8a4d on the footer navy measures 6.1:1. The site's `--accent-ink` is
+   tuned for a light ground and is too dark to read here, which is why this one
+   value is written out rather than taken from a token. */
+.nl__bad { color: #ff8a4d; font-weight: 500; }
+
+.nl__done {
+  display: flex; align-items: flex-start; gap: .65rem;
+  margin: 0; padding: .2rem 0;
+  /* Roughly the bar's own height, so the answer replacing it does not collapse
+     the row and jerk the footer upward. */
+  min-height: 64px; align-content: center;
+  font-size: clamp(.95rem, .92rem + .2vw, 1.05rem); line-height: 1.55;
+  color: #fff;
+}
+.nl__tick {
+  flex: none; margin-top: .45rem;
+  width: .42rem; height: .78rem;
+  border: solid #ff8a4d; border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+}
+
+/* THE HONEYPOT IS OFF SCREEN, NOT HIDDEN. `display: none` and
+   `visibility: hidden` are both trivially detectable, and a field a bot skips
+   is a field that catches nothing. This one is in the layout, reachable in the
+   DOM, and nowhere a person can land: no tab stop, no pointer, no space taken. */
+.nl__trap {
+  position: absolute; left: -9999px; top: auto;
+  width: 1px; height: 1px; overflow: hidden;
+  opacity: 0; pointer-events: none;
+}
+
+@media (max-width: 560px) {
+  .nl { gap: 1.1rem; }
+}
