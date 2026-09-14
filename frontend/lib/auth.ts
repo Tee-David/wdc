@@ -2,6 +2,7 @@ import "server-only";
 
 import { after } from "next/server";
 import { betterAuth } from "better-auth";
+import { googleAdmission } from "@/lib/auth-google";
 import { db } from "@/lib/db/pool";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { SITE_URL } from "@/lib/site";
@@ -9,19 +10,6 @@ import { SITE_URL } from "@/lib/site";
 /** One hour, in the token and in the sentence the email says out loud. */
 const RESET_TOKEN_TTL_SECONDS = 60 * 60;
 
-/**
- * WHICH ROLES GOOGLE IS ALLOWED TO LET IN.
- *
- * Google sign-in exists for the people who run the studio, and for nobody
- * else. `disableSignUp` already stops a stranger's Google account creating a
- * row, but on its own that only means the identity has to match an existing
- * one -- and the day a client has an account, a client's Google account would
- * work too. This is the list that makes it owner-and-staff only.
- *
- * Clients sign in with a password. If that ever changes, this set changes with
- * it, in one place, deliberately.
- */
-const GOOGLE_ALLOWED_ROLES = new Set(["owner", "staff"]);
 
 /**
  * The role on the row with this email, or null if there is no such row.
@@ -127,53 +115,25 @@ export const auth = betterAuth({
       role: { type: "string", required: false, defaultValue: "client", input: false },
     },
     /**
-     * THE GOOGLE DOOR, AND IT FAILS CLOSED.
+     * THE GOOGLE DOOR. The rule itself, and the reasoning for it, live in
+     * lib/auth-google.ts so they can be tested without standing up this
+     * instance; what is worth knowing HERE is when Better Auth asks.
      *
-     * Called before a user is created, before a provider account is linked to
-     * an existing user, and again on every subsequent OAuth sign-in -- so this
-     * is not a one-time check at setup, it is re-asked each time somebody
-     * presses "Continue with Google".
-     *
-     * The rule is the one the checklist asks for: a valid Google account gets
-     * in only if its address already maps to an approved owner or staff row.
-     * Not "gets in and is then limited"; does not get in. Three ways to be
-     * refused, and the third is the one that matters:
-     *
-     *   no row for that address              -> refused
-     *   a row, but the role is not approved  -> refused
-     *   the lookup itself failed             -> REFUSED
-     *
-     * A database we cannot reach is not a reason to admit somebody. It is the
-     * reason we cannot tell whether we should.
-     *
-     * Password sign-in is deliberately untouched here: it is governed by the
-     * credential itself, and by the row the credential hangs off.
+     * It asks before a user is created, before a provider account is linked to
+     * an existing user, and again on every subsequent OAuth sign-in. So this
+     * is not a one-time check at setup: it is re-asked each time somebody
+     * presses "Continue with Google", and revoking somebody's access is
+     * therefore a matter of changing their row rather than of hunting for a
+     * session to kill.
      */
     validateUserInfo: async ({ user, source }) => {
+      /* Password sign-in is deliberately untouched: it is governed by the
+         credential itself, and by the row the credential hangs off. */
       if (source.method !== "oauth") return;
 
-      if (source.oauth?.providerId !== "google") {
-        return { error: "provider_not_allowed", errorDescription: "That sign-in method is not available." };
-      }
-
-      const email = typeof user.email === "string" ? user.email.trim().toLowerCase() : "";
-      if (!email) {
-        return { error: "email_required", errorDescription: "Google did not share an email address." };
-      }
-
-      let role: string | null;
-      try {
-        role = await storedRoleFor(email);
-      } catch {
-        return { error: "verification_unavailable", errorDescription: "We could not verify this account. Please sign in with your password." };
-      }
-
-      if (!role || !GOOGLE_ALLOWED_ROLES.has(role)) {
-        /* One message for "no account" and for "an account, but not one of
-           ours", for the same reason the login form has one message for a bad
-           password and an unknown address: two would turn this button into a
-           way to find out who works here. */
-        return { error: "not_approved", errorDescription: "This Google account is not connected to a We Dig Creativity account." };
+      const decision = await googleAdmission(source.oauth?.providerId, user.email, storedRoleFor);
+      if (!decision.allowed) {
+        return { error: decision.error, errorDescription: decision.errorDescription };
       }
     },
   },
