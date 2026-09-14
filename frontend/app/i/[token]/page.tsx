@@ -271,10 +271,30 @@ export default async function PublicInvoice({
                   used to carry "by card or transfer" as well, which is a
                   sentence about method inside a control whose job is the
                   figure. The method moved to the line under it, where it
-                  reassures without competing. */}
+                  reassures without competing.
+
+                  A CARD ON THE LEFT AND AN ARROW ON THE RIGHT, and the two do
+                  different jobs. The card says what kind of thing this is
+                  before the label is read, which is most of what an icon on a
+                  button is for. The arrow says the press LEAVES the page,
+                  which on a payment button is worth saying: the payer lands on
+                  Paystack's domain, and a person who was not expecting that is
+                  a person who abandons a checkout.
+
+                  Drawn inline rather than pulled from lucide, because these
+                  are two paths on a document that otherwise ships no icon set,
+                  and an icon package for eight lines of SVG is a dependency
+                  for a small effect. Both are `aria-hidden`: the label already
+                  says "Pay ₦377,250.00", and a screen reader announcing "credit
+                  card, arrow right" around it adds nothing. */}
               <button className="doc__btn doc__btn--pay" type="submit">
+                <svg className="doc__btn__ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="2" y="5" width="20" height="14" rx="2.5" />
+                  <path d="M2 10h20" />
+                  <path d="M6 15h3" />
+                </svg>
                 Pay {naira(t.due)}
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <svg className="doc__btn__go" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M5 12h14M13 6l6 6-6 6" />
                 </svg>
               </button>
