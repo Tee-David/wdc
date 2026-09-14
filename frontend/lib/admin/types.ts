@@ -804,3 +804,86 @@ export function notifyAllows(prefs: Partial<Record<NotifyKind, boolean>> | undef
   if (typeof set === "boolean") return set;
   return kind !== "marketing";
 }
+
+/* ==========================================================================
+   ESTIMATES.
+
+   A QUOTE IS NOT A DRAFT INVOICE, and building it as one would have been the
+   easy mistake. A draft invoice is a document the studio has not finished
+   writing. An estimate is a document the studio HAS finished writing and sent,
+   which the client is being asked to agree to -- it has its own number series,
+   its own expiry, and a state that only the client can move. Filing it as a
+   draft would mean the one thing nobody could answer is "what have we quoted
+   and not heard back about", which is the question a studio's pipeline is
+   made of.
+
+   IT BECOMES AN INVOICE, IT DOES NOT TURN INTO ONE. Accepting an estimate
+   raises a NEW document with its own number, and the estimate stays as the
+   record of what was agreed and when. A document that mutates into another
+   kind of document leaves nothing to point at when somebody asks what the
+   price was before the scope changed.
+
+   NUMBERING IS ITS OWN SERIES. EST-YYYY-NNN, taken from the highest already
+   issued, never reused, and unaffected by invoices. An estimate that shared
+   the invoice series would burn invoice numbers on work that never happened.
+   ========================================================================== */
+
+export const ESTIMATE_STATES = ["Draft", "Sent", "Accepted", "Declined", "Expired"] as const;
+export type EstimateState = (typeof ESTIMATE_STATES)[number];
+
+export type Estimate = {
+  id: Id;
+  /** EST-YYYY-NNN, issued in order and never reused. */
+  number: string;
+  /** Its own public address, minted and never changed. Same rule as an
+      invoice's: the number is sequential and cannot be the key. */
+  token: string;
+  clientId: Id;
+  projectId: Id | null;
+  state: Exclude<EstimateState, "Expired">;
+  issued: string;
+  /** The day the price stops standing. Nothing enforces it silently: the
+      state is derived from it, the way an invoice's "Overdue" is. */
+  expires: string;
+  lines: InvoiceLine[];
+  vatRate: number;
+  /** A percentage off the subtotal, as a whole number. Kept as a rate rather
+      than an amount so it survives a line being edited. */
+  discount?: number;
+  /** What is included, said in the studio's words. */
+  notes?: string;
+  /** Payment terms, deposit, what happens to the price after the expiry. */
+  terms?: string;
+  /** Set when the client answers. The date is theirs, not ours. */
+  answered?: { at: string; by: string; note?: string };
+  /** The invoice raised from it, once accepted. */
+  invoiceId?: Id;
+};
+
+export function estimateTotals(e: Estimate) {
+  const subtotal = e.lines.reduce((n, l) => n + lineTotal(l), 0);
+  /* ROUNDED ONCE, HERE. A discount applied per line and then summed drifts
+     from a discount applied to the sum by a kobo or two, and the two figures
+     appear on the same page. */
+  const discount = e.discount ? Math.round((subtotal * e.discount) / 100) : 0;
+  const net = subtotal - discount;
+  const vat = Math.round((net * e.vatRate) / 100);
+  return { subtotal, discount, net, vat, total: net + vat };
+}
+
+/**
+ * WHAT STATE AN ESTIMATE IS REALLY IN.
+ *
+ * "Expired" is derived and never stored, for the same reason an invoice's
+ * "Overdue" is: it is a state time creates while nobody is looking, and a
+ * stored one is wrong the morning after a nightly job did not run.
+ *
+ * An answered estimate does not expire. Accepting on the last day and raising
+ * the invoice a week later is normal, and a document that flipped to "Expired"
+ * after the client had already said yes would be telling a lie about something
+ * the studio has a signed agreement on.
+ */
+export function estimateState(e: Estimate, today = new Date()): EstimateState {
+  if (e.state !== "Sent") return e.state;
+  return new Date(e.expires) < today ? "Expired" : "Sent";
+}

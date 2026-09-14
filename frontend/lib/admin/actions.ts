@@ -830,3 +830,92 @@ export async function applyCredit(_prev: ActionState, fd: FormData): Promise<Act
     ? `Applied to ${res.invoice.number}. ${naira(res.leftOver)} stays on their balance.`
     : `Applied to ${res.invoice.number}, and their balance is clear.`);
 }
+
+/* ---------------------------------------------------------- estimates -- */
+
+export async function createEstimate(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const errors: Record<string, string> = {};
+  const clientId = str(fd, "clientId");
+  if (!db.getClient(clientId)) errors.clientId = "Say who it is for.";
+
+  const { lines, bad } = readLines(fd);
+  if (bad) errors.lines = bad;
+
+  const issued = isoDate(fd, "issued") ?? new Date().toISOString();
+  const expires = isoDate(fd, "expires");
+  if (!expires) errors.expires = "Say how long the price holds.";
+  else if (expires < issued) errors.expires = "It expires before it is issued.";
+
+  const vatRate = num(fd, "vatRate") ?? 7.5;
+  if (vatRate < 0 || vatRate > 100) errors.vatRate = "VAT has to be between 0 and 100.";
+
+  /* A DISCOUNT IS A RATE, NOT AN AMOUNT, so it survives a line being edited.
+     Bounded at both ends: a negative one is a surcharge wearing a discount's
+     name, and anything over 100 is money flowing the wrong way. */
+  const discount = num(fd, "discount") ?? 0;
+  if (discount < 0 || discount > 100) errors.discount = "A discount has to be between 0 and 100.";
+
+  if (Object.keys(errors).length) return FAIL(errors);
+
+  const est = db.addEstimate({
+    clientId, projectId: str(fd, "projectId") || null,
+    issued, expires: expires!, vatRate, lines,
+    discount: discount > 0 ? discount : undefined,
+    notes: str(fd, "notes") || undefined,
+    terms: str(fd, "terms") || undefined,
+    state: str(fd, "send") === "1" ? "Sent" : "Draft",
+  }, str(fd, "by") || "Studio");
+
+  refresh("/admin/money", `/admin/clients/${clientId}`);
+  return OK(est.state === "Sent"
+    ? `${est.number} is out. Its page is live at /q/${est.token}.`
+    : `${est.number} saved as a draft. Nothing is public until you send it.`);
+}
+
+export async function sendEstimate(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const est = db.sendEstimate(str(fd, "id"), str(fd, "by") || "Studio");
+  if (!est) return FAIL({}, "That one is no longer a draft, or is no longer there.");
+  refresh("/admin/money", `/admin/clients/${est.clientId}`);
+  return OK(`${est.number} is out. Send the client the link and the price holds until it expires.`);
+}
+
+/**
+ * The client's answer, recorded by whoever took it.
+ *
+ * THE NAME IS REQUIRED AND IT IS THEIRS, not the studio's. "Accepted by
+ * Studio" is a row nobody can defend, and an acceptance is the one record a
+ * disagreement about scope gets settled against.
+ */
+export async function answerEstimate(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const accepted = str(fd, "answer") === "accepted";
+  const by = str(fd, "by");
+  if (!by) return FAIL({ by: "Who said so? An acceptance with no name against it cannot be relied on." });
+
+  const res = db.answerEstimate({
+    id: str(fd, "id"), accepted, by,
+    note: str(fd, "note"),
+    dueInDays: num(fd, "dueInDays") ?? 30,
+    actor: str(fd, "actor") || "Studio",
+  });
+
+  if (!res.ok) {
+    return FAIL({}, {
+      missing: "That estimate is no longer there.",
+      "not-sent": "Only an estimate that has been sent can be answered. A draft has not left the studio.",
+      "no-name": "Who said so?",
+    }[res.reason]);
+  }
+
+  refresh("/admin/money", `/admin/clients/${res.estimate.clientId}`);
+  return OK(res.invoice
+    ? `Accepted, and raised as ${res.invoice.number}. The estimate keeps its own number and its own page.`
+    : "Recorded as declined. It stays on the books, because a quote nobody took is worth knowing about later.");
+}
+
+/** Quote the same thing again, as a fresh draft at today's date. */
+export async function duplicateEstimate(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const copy = db.duplicateEstimate(str(fd, "id"), str(fd, "by") || "Studio");
+  if (!copy) return FAIL({}, "That estimate is no longer there.");
+  refresh("/admin/money", `/admin/clients/${copy.clientId}`);
+  return OK(`Copied to ${copy.number} as a draft. Change what needs changing, then send it.`);
+}

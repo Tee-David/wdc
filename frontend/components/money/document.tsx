@@ -110,3 +110,4 @@ export function Headline({
 /** Where these documents live, so the QR and any emailed link agree. */
 export const invoiceUrl = (token: string) => `${SITE_URL}/i/${token}`;
 export const receiptUrl = (token: string) => `${SITE_URL}/r/${token}`;
+export const estimateUrl = (token: string) => `${SITE_URL}/q/${token}`;

@@ -1,22 +1,24 @@
 "use client";
 
 import {
-  Archive, ArchiveRestore, ArrowRight, Ban, Banknote, CalendarDays, CornerUpLeft,
-  FilePlus2, FolderPlus, MessageSquarePlus, Move, Pencil, RotateCcw, Send, Trash2,
-  Undo2, UserPlus, Users, Wallet,
+  Archive, ArchiveRestore, ArrowRight, Ban, Banknote, CalendarDays, Copy,
+  CornerUpLeft, FilePlus2, FolderPlus, MessageSquarePlus, Move, Pencil,
+  RotateCcw, Send, Trash2, Undo2, UserPlus, Users, Wallet,
   type LucideIcon,
 } from "lucide-react";
 import { SERVICES } from "@/lib/services";
 import {
-  ENTERABLE_METHODS, STAGES, invoiceStatus, invoiceTotals, naira, paymentNet,
-  refundedTotal,
-  type Client, type Expense, type Invoice, type Payment, type Project, type Submission,
+  ENTERABLE_METHODS, STAGES, estimateState, estimateTotals, invoiceStatus,
+  invoiceTotals, naira, paymentNet, refundedTotal,
+  type Client, type Estimate, type Expense, type Invoice, type Payment,
+  type Project, type Submission,
 } from "@/lib/admin/types";
 import {
-  addNote, archiveClient, attachSubmission, createProject, deleteInvoice,
-  issueInvoice, moveStage, overpaymentToCredit, recordPayment, refundPayment,
-  removeExpense, reversePayment, resetSetting, saveSetting, setDue,
-  setProjectArchived, updateClient, voidInvoice,
+  addNote, answerEstimate, archiveClient, attachSubmission, createProject,
+  deleteInvoice, duplicateEstimate, issueInvoice, moveStage, overpaymentToCredit,
+  recordPayment, refundPayment, removeExpense, reversePayment, resetSetting,
+  saveSetting, sendEstimate, setDue, setProjectArchived, updateClient,
+  voidInvoice,
 } from "@/lib/admin/actions";
 import { Actions, Area, Field, Fields, Form, Hidden, Radios, Select, Submit } from "./form";
 import { RowMenu, type RowMenuItem } from "./row-menu";
@@ -631,4 +633,96 @@ export function SettingMenu({
   }
 
   return <RowMenu items={items} label={label} />;
+}
+
+/* -------------------------------------------------------------- estimates */
+
+/**
+ * What can be done to a quote, and it depends entirely on where it is.
+ *
+ * A DRAFT CAN BE SENT. A sent one can be answered, and answering YES is the
+ * only thing on these screens that raises an invoice on its own -- which is
+ * why the dialog says so before it does it. An answered or expired one can be
+ * quoted again, because a declined quote is the commonest starting point for
+ * the next one and re-typing eleven lines is how a price changes by accident.
+ *
+ * NOTHING DELETES AN ESTIMATE. A quote nobody took is the most useful row in a
+ * pipeline six months later, and removing it is how a studio forgets what its
+ * prices have been doing.
+ */
+export function EstimateMenu({ estimate }: { estimate: Estimate }) {
+  const state = estimateState(estimate);
+  const total = estimateTotals(estimate).total;
+
+  const items: RowMenuItem[] = [];
+
+  if (estimate.state !== "Draft") {
+    items.push({
+      kind: "link", label: "Open the client's copy", href: `/q/${estimate.token}`, icon: ArrowRight,
+    });
+  }
+
+  if (estimate.state === "Draft") {
+    items.push({
+      kind: "dialog", label: "Send it", icon: Send,
+      title: `Send ${estimate.number}`,
+      render: (close) => (
+        <Sure action={sendEstimate as never} fields={{ id: estimate.id }}
+              verb="Send it" icon={Send} close={close}>
+          Its page goes live at a private address, and the price holds until it
+          expires. Nothing is owed by anybody until an invoice follows.
+        </Sure>
+      ),
+    });
+  }
+
+  if (state === "Sent") {
+    items.push({
+      kind: "dialog", label: "Record their answer", icon: MessageSquarePlus,
+      title: `What did they say about ${estimate.number}?`,
+      render: (close) => (
+        <Form action={answerEstimate} onDone={() => close()}>
+          <Hidden name="id" value={estimate.id} />
+          <Radios
+            name="answer" label="Their answer" defaultValue="accepted"
+            options={[
+              { value: "accepted", label: "They accepted it",
+                note: `Raises an invoice for ${naira(total)} straight away. The estimate keeps its own number and its own page.` },
+              { value: "declined", label: "They declined it",
+                note: "Nothing is raised. It stays on the books, because a quote nobody took is worth knowing about later." },
+            ]}
+          />
+          <Fields>
+            <Field name="by" label="Who said so" required placeholder="Tobi Moore"
+                   hint="Theirs, not ours. An acceptance with the studio's own name on it is a row nobody can defend." />
+            <Field name="dueInDays" label="Invoice due in (days)" half inputMode="numeric"
+                   defaultValue="30" hint="Only read on an acceptance." />
+            <Area name="note" label="Anything they said" rows={2}
+                  placeholder="Happy with the second route. Go ahead." />
+          </Fields>
+          <Actions>
+            <Submit icon={MessageSquarePlus}>Record it</Submit>
+          </Actions>
+        </Form>
+      ),
+    });
+  }
+
+  items.push({
+    kind: "dialog", label: "Quote it again", icon: Copy,
+    title: `Copy ${estimate.number}`,
+    render: (close) => (
+      <Sure action={duplicateEstimate as never} fields={{ id: estimate.id }}
+            verb="Copy it" icon={Copy} close={close}>
+        The same lines and the same terms, as a fresh draft at today&apos;s date
+        with its own number. The original stays exactly as it is.
+      </Sure>
+    ),
+  });
+
+  items.push({
+    kind: "link", label: "Open the client", href: `/admin/clients/${estimate.clientId}`, icon: Users,
+  });
+
+  return <RowMenu items={items} label={estimate.number} />;
 }
