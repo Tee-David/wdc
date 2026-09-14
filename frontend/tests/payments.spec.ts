@@ -160,4 +160,35 @@ test.describe("coming back from the checkout", () => {
     await page.goto("/pay/done");
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   });
+
+  test("the printer only runs once money has actually arrived", async ({ page }) => {
+    /* THE WHOLE POINT OF THE THING. A receipt printing itself is a statement
+       that the studio has the money, and it must never appear on a page that
+       has not confirmed that. The reference this was copied from fires on
+       arrival at a success URL, which is a query string anybody can type.
+
+       No reference, a made-up one, and one dressed up to look successful: none
+       of them prints. */
+    for (const url of ["/pay/done", "/pay/done?reference=MADE-UP-0001",
+                       "/pay/done?reference=MADE-UP-0002&status=success"]) {
+      await page.goto(url);
+      await expect(page.locator(".rp"), `a slip printed on ${url}`).toHaveCount(0);
+      await expect(page.locator(".rp__slip")).toHaveCount(0);
+    }
+  });
+
+  test("and it costs the page no JavaScript", async ({ page }) => {
+    /* The slip is one CSS animation on a server-rendered element. This page is
+       reached on a phone on mobile data immediately after somebody has parted
+       with money, so a celebration that ships a bundle is the wrong trade.
+       Pinned by counting the scripts the page asks for: a client component
+       added here would show up as another chunk. */
+    const scripts: string[] = [];
+    page.on("request", (r) => {
+      if (r.resourceType() === "script") scripts.push(new URL(r.url()).pathname);
+    });
+    await page.goto("/pay/done", { waitUntil: "networkidle" });
+    const own = scripts.filter((s) => s.includes("receipt-printer"));
+    expect(own, `the printer pulled in ${own.join(", ")}`).toEqual([]);
+  });
 });

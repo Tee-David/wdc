@@ -7,6 +7,7 @@ import {
 import { invoiceTotals, naira } from "@/lib/admin/types";
 import { fromKobo, verifyTransaction } from "@/lib/paystack";
 import { sendPaymentReceiptEmail } from "@/lib/money-mail";
+import ReceiptPrinter from "@/components/money/receipt-printer";
 import "@/components/money/document.css";
 
 /**
@@ -36,7 +37,14 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 type Outcome =
-  | { kind: "paid"; receiptUrl: string; amount: number; number: string; outstanding: number }
+  | {
+      kind: "paid"; receiptUrl: string; amount: number; number: string;
+      outstanding: number;
+      /* Carried so the slip can print the particulars rather than a figure on
+         its own. All of it comes off the payment we just banked, never off
+         the query string. */
+      receiptNo: string; method: string; at: string;
+    }
   | { kind: "pending"; message: string }
   | { kind: "failed"; message: string };
 
@@ -106,6 +114,7 @@ async function settle(reference: string): Promise<Outcome> {
       return {
         kind: "paid", receiptUrl: `/r/${existing.token}`, amount: existing.amount,
         number: invoice.number, outstanding: invoiceTotals(fresh).due,
+        receiptNo: existing.receiptNo, method: existing.method, at: existing.at,
       };
     }
     recordProviderEvent({
@@ -135,6 +144,8 @@ async function settle(reference: string): Promise<Outcome> {
   return {
     kind: "paid", receiptUrl: `/r/${applied.payment.token}`, amount: applied.payment.amount,
     number: invoice.number, outstanding: invoiceTotals(fresh).due,
+    receiptNo: applied.payment.receiptNo, method: applied.payment.method,
+    at: applied.payment.at,
   };
 }
 
@@ -152,7 +163,7 @@ export default async function PaymentDone({
     : { kind: "failed", message: "This page needs a payment reference, and there is not one on it. If you were paying an invoice, open the invoice again and use the button on it." };
 
   return (
-    <main className="doc">
+    <main className="doc doc--return">
       <article className="doc__sheet">
         <header className="doc__top">
           <div className="doc__who">
@@ -164,18 +175,23 @@ export default async function PaymentDone({
 
         {outcome.kind === "paid" ? (
           <>
-            <div className="doc__owed is-clear">
-              <span className="doc__k">Paid</span>
-              <b>{naira(outcome.amount)}</b>
-              <span className="doc__pill doc__pill--good">
-                {outcome.outstanding > 0
-                  ? `${naira(outcome.outstanding)} still outstanding on ${outcome.number}`
-                  : `${outcome.number} is settled in full`}
-              </span>
-            </div>
-            <p>
-              Thank you. Your receipt is below, and a copy is on its way to the
-              email address we have for you.
+            {/* THE SLIP REPLACES THE PANEL RATHER THAN SITTING ABOVE IT. Two
+                statements of the same amount, one animated and one not, would
+                make the page look like it could not decide which was the
+                answer. The printer IS the answer; everything under it is what
+                to do next. */}
+            <ReceiptPrinter
+              amount={outcome.amount}
+              receiptNo={outcome.receiptNo}
+              number={outcome.number}
+              method={outcome.method}
+              at={outcome.at}
+              outstanding={outcome.outstanding}
+            />
+            <p className="doc__said">
+              Thank you. A copy is on its way to the email address we have for
+              you, and the receipt below is the live one: it will still be
+              right if anything about this payment changes later.
             </p>
             <p className="doc__actions">
               <Link className="doc__btn" href={outcome.receiptUrl}>Open your receipt</Link>

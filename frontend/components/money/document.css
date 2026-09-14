@@ -130,6 +130,12 @@
 }
 
 .doc__note { margin: 0 0 1rem; color: #5a5a72; line-height: 1.6; }
+/* The line under the printer. Centred, because the slip above it is, and a
+   left-aligned paragraph under a centred object reads as a different page. */
+.doc__said {
+  margin: 1.5rem auto 0; max-width: 34rem;
+  text-align: center; color: #5a5a72; line-height: 1.65;
+}
 
 /* The running head: the document's number and client, repeated at the top of
    every printed sheet of line items. Off on screen, where there is only ever
@@ -182,6 +188,11 @@
   display: grid; gap: .5rem; justify-items: start;
   margin: 0 0 .9rem;
 }
+/* On the payment return page the one control sits under a centred slip, so it
+   is centred too. Scoped to that page's own wrapper rather than changed on the
+   shared class, because on an invoice the button is the full width of its
+   panel and must stay left. */
+.doc--return .doc__actions { justify-items: center; margin: 1.1rem 0 0; }
 .doc__btn {
   display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
   min-height: 44px; padding: .7rem 1.25rem;
