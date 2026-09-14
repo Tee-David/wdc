@@ -1,21 +1,24 @@
 "use client";
 
 import {
-  Archive, ArchiveRestore, ArrowRight, Banknote, CalendarDays, FilePlus2, FolderPlus,
-  MessageSquarePlus, Move, Pencil, RotateCcw, Send, Trash2, Undo2, UserPlus, Users,
+  Archive, ArchiveRestore, ArrowRight, Ban, Banknote, CalendarDays, CornerUpLeft,
+  FilePlus2, FolderPlus, MessageSquarePlus, Move, Pencil, RotateCcw, Send, Trash2,
+  Undo2, UserPlus, Users, Wallet,
   type LucideIcon,
 } from "lucide-react";
 import { SERVICES } from "@/lib/services";
 import {
-  STAGES, invoiceStatus, invoiceTotals, naira,
+  ENTERABLE_METHODS, STAGES, invoiceStatus, invoiceTotals, naira, paymentNet,
+  refundedTotal,
   type Client, type Expense, type Invoice, type Payment, type Project, type Submission,
 } from "@/lib/admin/types";
 import {
   addNote, archiveClient, attachSubmission, createProject, deleteInvoice,
-  issueInvoice, moveStage, recordPayment, removeExpense, reversePayment,
-  resetSetting, saveSetting, setDue, setProjectArchived, updateClient,
+  issueInvoice, moveStage, overpaymentToCredit, recordPayment, refundPayment,
+  removeExpense, reversePayment, resetSetting, saveSetting, setDue,
+  setProjectArchived, updateClient, voidInvoice,
 } from "@/lib/admin/actions";
-import { Actions, Area, Field, Fields, Form, Hidden, Select, Submit } from "./form";
+import { Actions, Area, Field, Fields, Form, Hidden, Radios, Select, Submit } from "./form";
 import { RowMenu, type RowMenuItem } from "./row-menu";
 import { ClientFields } from "./client-form";
 
@@ -264,7 +267,7 @@ export function InvoiceMenu({ invoice }: { invoice: Invoice }) {
         </Sure>
       ),
     });
-  } else if (owed > 0) {
+  } else if (owed > 0 && !invoice.voided) {
     items.push({
       kind: "dialog", label: "Record a payment", icon: Banknote,
       title: `Money in against ${invoice.number}`,
@@ -275,12 +278,16 @@ export function InvoiceMenu({ invoice }: { invoice: Invoice }) {
             <Field name="amount" label="Amount (₦)" required half inputMode="decimal"
                    defaultValue={String(owed / 100)}
                    hint="Starts at what is owed. Change it for a part payment." />
+            {/* BUILT FROM THE SHARED LIST, minus the one a person may not
+                choose. It used to be three hard-coded options, which meant
+                POS and Other were in the union, accepted by the validator and
+                impossible to pick. Credit is excluded because money coming
+                off a client's balance is applied from the balance, not typed
+                in here -- see the note on METHODS. */}
             <Select name="method" label="How" half defaultValue="Transfer"
-                    options={[
-                      { value: "Transfer", label: "Bank transfer" },
-                      { value: "Paystack", label: "Paystack" },
-                      { value: "Cash", label: "Cash" },
-                    ]} />
+                    options={ENTERABLE_METHODS.map((m) => ({
+                      value: m, label: m === "Transfer" ? "Bank transfer" : m,
+                    }))} />
             <Field name="reference" label="Reference" required placeholder="TRF_0092"
                    hint="The bank reference or the Paystack transaction id. This is what stops the same payment being recorded twice." />
             <Field name="at" label="When" type="date" half
@@ -297,6 +304,57 @@ export function InvoiceMenu({ invoice }: { invoice: Invoice }) {
   items.push({
     kind: "link", label: "Open the client", href: `/admin/clients/${invoice.clientId}`, icon: Users,
   });
+
+  /* STRIKING IS OFFERED ONLY WHERE IT IS TRUE. Not on a draft -- that gets
+     deleted, because nobody has seen the number -- not on one already struck,
+     and not on one with money against it, where the honest correction names
+     where the money went. Offering a button that would be refused teaches
+     people to distrust the menu. */
+  if (!draft && !invoice.voided && invoice.paid <= 0) {
+    items.push({
+      kind: "dialog", label: "Void it", icon: Ban, tone: "danger",
+      title: `Void ${invoice.number}`,
+      render: (close) => (
+        <Form action={voidInvoice} onDone={() => close()}>
+          <Fields>
+            <Hidden name="id" value={invoice.id} />
+            <Area name="reason" label="Why" rows={2} required
+                  placeholder="Raised against the wrong client. Re-issued as INV-2026-006."
+                  hint="Required. A client may be holding this document, and this is what answers them." />
+            <Field name="by" label="Struck by" placeholder="Babatope" />
+          </Fields>
+          <p className="ad__dim" style={{ fontSize: ".88rem", lineHeight: 1.6 }}>
+            {invoice.number} keeps its number and its page keeps working, saying
+            nothing is owed. It comes out of what is outstanding, out of the
+            aging and out of the collection rate. The number is not reused,
+            because unbroken numbering is most of what makes the books
+            auditable.
+          </p>
+          <Actions>
+            <Submit icon={Ban} tone="danger">Void it</Submit>
+          </Actions>
+        </Form>
+      ),
+    });
+  }
+
+  /* The overpayment is real money and the studio has to decide about it. This
+     is one of the two answers; the other is a refund on the payment. */
+  if (!draft && !invoice.voided && invoice.paid > invoiceTotals(invoice).total) {
+    items.push({
+      kind: "dialog", label: "Move the excess to credit", icon: Wallet,
+      title: `${naira(invoice.paid - invoiceTotals(invoice).total)} over`,
+      render: (close) => (
+        <Sure action={overpaymentToCredit as never} fields={{ id: invoice.id }}
+              verb="Put it on their balance" icon={Wallet} close={close}>
+          {invoice.number} has taken {naira(invoice.paid - invoiceTotals(invoice).total)}{" "}
+          more than it is for. This moves the excess onto the client&apos;s
+          balance, so this invoice lands exactly on its total and the money
+          comes off their next one. To send it back instead, refund the payment.
+        </Sure>
+      ),
+    });
+  }
 
   if (draft) {
     items.push({
@@ -326,6 +384,53 @@ export function PaymentMenu({
   const items: RowMenuItem[] = [
     { kind: "link", label: "Open the invoice", href: `/admin/money/${payment.invoiceId}`, icon: ArrowRight },
   ];
+
+  /* REFUNDING AND REVERSING ARE DIFFERENT VERBS AND BOTH ARE HERE.
+
+     A reversal says the money never really came: the transfer bounced, or the
+     row should not exist. A refund says it came, we had it, and it went back.
+     A client reconciling against their bank statement sees two movements for a
+     refund and none for a reversal, so a menu that offered only one of them
+     would force somebody to record the wrong event. */
+  const left = paymentNet(payment);
+  if (!payment.reversed && left > 0) {
+    items.push({
+      kind: "dialog", label: "Refund it", icon: CornerUpLeft,
+      title: `Give back some of ${naira(payment.amount)}`,
+      render: (close) => (
+        <Form action={refundPayment} onDone={() => close()}>
+          <Fields>
+            <Hidden name="id" value={payment.id} />
+            <Field
+              name="amount" label="How much goes back (₦)" required half inputMode="decimal"
+              defaultValue={String(left / 100)}
+              hint={refundedTotal(payment)
+                ? `${naira(left)} of this payment is left. ${naira(refundedTotal(payment))} has already gone back.`
+                : "Starts at the whole payment. Change it for a part refund."}
+            />
+            <Field name="reference" label="Reference" half placeholder="RFND_0031"
+                   hint="The provider's refund id or the transfer narration, if there is one." />
+            <Area name="reason" label="Why" rows={2} required
+                  placeholder="Project stopped after discovery. Returning the unused half of the deposit."
+                  hint="Required. This is money leaving, and it is the entry somebody will question." />
+            <Field name="by" label="Refunded by" placeholder="Babatope" />
+          </Fields>
+          <Radios
+            name="where" label="Where it goes" defaultValue="bank"
+            options={[
+              { value: "bank", label: "Back to their bank",
+                note: "The money leaves the studio. It comes off the month's income and off this invoice." },
+              { value: "credit", label: "Held on their balance",
+                note: "The money stays with us as credit for this client, and comes off their next invoice." },
+            ]}
+          />
+          <Actions>
+            <Submit icon={CornerUpLeft}>Record the refund</Submit>
+          </Actions>
+        </Form>
+      ),
+    });
+  }
 
   /* ALREADY REVERSED OFFERS NOTHING, rather than offering a button that fails.
      The same rule the invoice menus follow: what is offered is what is true. */

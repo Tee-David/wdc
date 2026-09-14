@@ -66,6 +66,11 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
               <IssueInvoice invoice={inv} />
               <DeleteDraft invoice={inv} />
             </>
+          ) : inv.voided ? (
+            /* A STRUCK INVOICE OFFERS NOTHING, because there is nothing left
+               to do to it. Not emailing it, not chasing it, not taking money
+               against it. What is offered is what is true. */
+            null
           ) : (
             <>
               {/* SENDING IT IS AN ACTION ON THE INVOICE, not a step buried in
@@ -79,6 +84,15 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
           )}
         </div>
       </div>
+
+      {inv.voided ? (
+        <p className="ad__banner" role="status">
+          <b>Struck on {when(inv.voided.at)} by {inv.voided.by}.</b>{" "}
+          {inv.voided.reason} The number stays taken and the client&apos;s copy
+          still opens, saying nothing is owed. It is out of the outstanding
+          total, out of the aging and out of the collection rate.
+        </p>
+      ) : null}
 
       <dl className="ad__tiles">
         <Tile label="Total" value={naira(t.total)} />

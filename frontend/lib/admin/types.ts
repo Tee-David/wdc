@@ -209,7 +209,12 @@ export type Deliverable = {
 
 /* ------------------------------------------------------------------- money */
 
-export type InvoiceStatus = "Draft" | "Sent" | "Part paid" | "Paid" | "Overdue";
+/* "Void" is here and "Cancelled" is not, and the difference is the point: a
+   voided invoice keeps its number. Numbering has to be unbroken to be
+   auditable, so an invoice raised in error is struck rather than removed --
+   the number stays taken, the document still resolves, and it says on its face
+   that nothing is owed. */
+export type InvoiceStatus = "Draft" | "Sent" | "Part paid" | "Paid" | "Overdue" | "Void";
 
 export type InvoiceLine = {
   description: string;
@@ -247,6 +252,21 @@ export type Invoice = {
   vatRate: number;
   /** Kobo actually received, summed from payments. */
   paid: number;
+  /**
+   * STRUCK, NOT DELETED.
+   *
+   * An invoice raised in error, or for work that never happened, has to stop
+   * being owed without leaving a hole in the numbering -- unbroken numbering
+   * is most of what makes a set of books auditable. So the row stays, the
+   * number stays taken, the public page still resolves, and everything that
+   * sums receivables skips it.
+   *
+   * An invoice with money against it CANNOT be voided. That is not a
+   * limitation, it is the rule: money arrived, and the honest correction is a
+   * refund or a reversal against the payment, both of which say where the
+   * money went. Voiding it would make a payment belong to nothing.
+   */
+  voided?: { at: string; by: string; reason: string };
 };
 
 /**
@@ -259,7 +279,14 @@ export type Invoice = {
  * the list gave them nowhere else to put it. The second is worse: it puts
  * wrong data in the books to keep a dropdown tidy.
  */
-export const METHODS = ["Paystack", "Transfer", "Cash", "POS", "Other"] as const;
+/* "Credit" is a real method and is deliberately NOT offered on the manual
+   payment form. Money moving off a client's balance and onto an invoice is an
+   application of credit the studio already holds, not a payment somebody
+   types in -- it comes from `applyCredit`, which knows where the credit came
+   from and marks it spent. `recordPayment` refuses it for that reason. */
+export const METHODS = ["Paystack", "Transfer", "Cash", "POS", "Credit", "Other"] as const;
+/** What a person may choose when entering a payment by hand. */
+export const ENTERABLE_METHODS = METHODS.filter((m) => m !== "Credit");
 export type Method = (typeof METHODS)[number];
 
 export type Payment = {
@@ -295,6 +322,85 @@ export type Payment = {
    * what happened to it, when, and who decided. The totals stop counting it.
    */
   reversed?: { at: string; by: string; reason: string };
+  /**
+   * MONEY THAT REALLY ARRIVED AND WAS THEN GIVEN BACK.
+   *
+   * A REFUND IS NOT A REVERSAL, and conflating them loses the only fact worth
+   * keeping. A reversal says the money never really came: the transfer
+   * bounced, or somebody typed a row that should not exist. A refund says it
+   * came, we had it, and we sent it back. One is a correction to the record;
+   * the other is a transaction, and a client reconciling against their bank
+   * statement will see two movements for it.
+   *
+   * A LIST, BECAUSE REFUNDS COME IN PARTS. Half a deposit returned when a
+   * project is cut short is the ordinary case, not the exception.
+   */
+  refunds?: Refund[];
+};
+
+export type Refund = {
+  id: Id;
+  at: string;
+  by: string;
+  /** Kobo. Never more than what is left unrefunded on the payment. */
+  amount: number;
+  reason: string;
+  /** The provider's refund id or the transfer narration, where there is one. */
+  reference?: string;
+  /**
+   * WHERE IT WENT. Back to the client's bank, or onto their balance with us.
+   *
+   * These are different events and the books have to tell them apart: money
+   * returned has left the studio, money held as credit has not. Credit is the
+   * commoner answer in practice -- a client who has overpaid usually has
+   * another invoice coming -- and it is what makes a balance carry forward.
+   */
+  toCredit: boolean;
+};
+
+/**
+ * WHAT A PAYMENT IS STILL WORTH.
+ *
+ * A reversal takes the whole thing off; a refund takes off what was returned.
+ * Every total in the books goes through this rather than reading `amount`,
+ * because `amount` is what arrived and is deliberately never edited.
+ */
+export function paymentNet(p: Payment) {
+  if (p.reversed) return 0;
+  return Math.max(0, p.amount - refundedTotal(p));
+}
+
+export function refundedTotal(p: Payment) {
+  return (p.refunds ?? []).reduce((n, r) => n + r.amount, 0);
+}
+
+/* ---------------------------------------------------------------- credit ---
+
+   WHAT THE STUDIO OWES A CLIENT, which is the other direction from everything
+   else on this screen.
+
+   It arrives two ways: an invoice that took more than it was for, and a refund
+   the client asked to be held rather than sent back. It leaves one way -- it
+   is applied to an invoice, which creates an ordinary payment on that invoice
+   with method "Credit", so it gets a receipt number and an audit line like
+   every other payment does.
+
+   APPLIED ONCE, AND THE ROW SAYS SO. A credit that could be applied twice is
+   money invented, and the day it happens the books are wrong in the client's
+   favour by an amount nobody can trace. */
+export type Credit = {
+  id: Id;
+  clientId: Id;
+  at: string;
+  /** Kobo. */
+  amount: number;
+  by: string;
+  reason: string;
+  /** Where it came from, so a balance can always be explained. */
+  fromInvoiceId?: Id;
+  fromPaymentId?: Id;
+  /** Set the moment it is spent. Never cleared. */
+  applied?: { at: string; by: string; invoiceId: Id; paymentId: Id };
 };
 
 export const EXPENSE_CATEGORIES = [
@@ -374,6 +480,13 @@ export function invoiceTotals(inv: Invoice) {
   const subtotal = inv.lines.reduce((n, l) => n + lineTotal(l), 0);
   const vat = Math.round((subtotal * inv.vatRate) / 100);
   const total = subtotal + vat;
+  /* A STRUCK INVOICE IS OWED NOTHING, AND THAT BELONGS HERE rather than at
+     each of the dozen places that read `due`. `total` stays real, because the
+     document still has to say what it was for; `due` is the answer to "how
+     much does this client owe on it", and for a voided invoice that answer is
+     nothing. Putting it here is what stops one table remembering and another
+     forgetting. */
+  if (inv.voided) return { subtotal, vat, total, due: 0 };
   return { subtotal, vat, total, due: Math.max(0, total - inv.paid) };
 }
 
@@ -404,6 +517,9 @@ export function nairaShort(kobo: number) {
 export function invoiceStatus(inv: Invoice, today = new Date()): InvoiceStatus {
   const { total, due } = invoiceTotals(inv);
   if (inv.status === "Draft") return "Draft";
+  /* Before anything else, including "Paid": a struck invoice is not owed, not
+     overdue and not settled. It is struck. */
+  if (inv.voided) return "Void";
   if (inv.paid >= total && total > 0) return "Paid";
   if (due > 0 && new Date(inv.due) < today) return "Overdue";
   if (inv.paid > 0) return "Part paid";

@@ -88,6 +88,11 @@ const INV_TONE: Record<InvoiceStatus, string> = {
   "Part paid": "ad__pill--warn",
   Paid: "ad__pill--good",
   Overdue: "ad__pill--bad",
+  /* Flat, like a draft: a struck invoice is not a failure and it is not a
+     warning, it is a document that has been taken out of play. Red would put
+     it in the same visual bucket as "overdue", which is the one state that
+     genuinely wants somebody to do something. */
+  Void: "ad__pill--flat",
 };
 
 export function InvoicePill({ status }: { status: InvoiceStatus }) {

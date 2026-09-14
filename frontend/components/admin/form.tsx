@@ -222,6 +222,52 @@ export function Select({
   );
 }
 
+/**
+ * A choice between mutually exclusive answers, as radios rather than a select.
+ *
+ * A SELECT HIDES THE OTHER OPTION, and there are places where that is the
+ * whole problem. "Back to their bank" and "held on their balance" are
+ * different events with different consequences for the books, and one of them
+ * has to be read and chosen rather than accepted as whatever the box happened
+ * to say. Two options, both visible, each with its consequence under it.
+ *
+ * Reach for `Select` when the list is long or the choice is routine; reach for
+ * this when there are two or three answers and picking the wrong one costs
+ * something.
+ */
+export function Radios({
+  name, label, hint, options, defaultValue,
+}: {
+  name: string; label: string; hint?: string;
+  options: { value: string; label: string; note?: string }[];
+  defaultValue?: string;
+}) {
+  const { errors, values, gen } = useContext(Ctx);
+  const err = errors[name];
+  const id = useId();
+  const raw = values[name];
+  const kept = (Array.isArray(raw) ? raw[0] : raw) ?? defaultValue;
+
+  return (
+    <div className="ad__f" role="radiogroup" aria-labelledby={`${id}-l`} aria-describedby={err ? `${id}-e` : undefined}>
+      <span className="ad__fl" id={`${id}-l`}>{label}</span>
+      {hint ? <small className="ad__fh">{hint}</small> : null}
+      <div className="ad__checks ad__checks--long">
+        {options.map((o) => (
+          <label key={`${o.value}-${gen}`} className="ad__check ad__check--long">
+            <input type="radio" name={name} value={o.value} defaultChecked={kept === o.value} />
+            <span>
+              {o.label}
+              {o.note ? <small>{o.note}</small> : null}
+            </span>
+          </label>
+        ))}
+      </div>
+      {err ? <small className="ad__fe" id={`${id}-e`}>{err}</small> : null}
+    </div>
+  );
+}
+
 /** A set of checkboxes sharing one name, which FormData returns as a list. */
 export function Checks({
   name, label, hint, options, defaultValue = [], long = false,

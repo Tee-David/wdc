@@ -43,6 +43,7 @@ export const metadata: Metadata = {
 const PAY_PROBLEMS: Record<string, string> = {
   busy: "That has been tried a few times in the last few minutes. Give it a moment, or pay by transfer using the details below.",
   settled: "This invoice has already been paid in full, so there is nothing to charge.",
+  voided: "This invoice has been cancelled, so there is nothing to pay on it.",
   "no-email": "We do not have an email address on file for you, and the card checkout needs one to send your Paystack receipt to. Write to us and we will sort it out, or pay by transfer.",
   unavailable: "The card checkout would not open just now. Nothing has been charged. Try again in a minute, or pay by transfer using the details below.",
 };
@@ -73,7 +74,7 @@ export default async function PublicInvoice({
      email address for the payer, and a checkout that opens and then refuses is
      worse than a page that never offered one. The transfer route below is
      always there, so nobody is left without a way to pay. */
-  const canCheckout = !settled && Boolean(client?.email?.trim());
+  const canCheckout = !settled && !inv.voided && Boolean(client?.email?.trim());
 
   return (
     <DocumentShell
@@ -86,18 +87,38 @@ export default async function PublicInvoice({
          due" is the default state of every invoice and stamping it would make
          the mark mean nothing. The empty corner is the right answer there. */
       stamp={
-        settled ? "paid"
-          : status === "Overdue" ? "overdue"
-            : status === "Part paid" ? "part"
-              : undefined
+        inv.voided ? "void"
+          : settled ? "paid"
+            : status === "Overdue" ? "overdue"
+              : status === "Part paid" ? "part"
+                : undefined
       }
     >
+      {/* A STRUCK INVOICE STILL OPENS, AND SAYS SO ON ITS FACE.
+
+          The alternative was a 404, and a 404 on a document somebody is
+          holding reads as the studio having made it disappear. The number
+          stays taken, the page stays live, and it says plainly that nothing is
+          owed -- which is the one thing the person holding it needs to know.
+          The reason is shown too, because "why does this say void" is the
+          question they will ask next. */}
+      {inv.voided ? (
+        <p className="doc__void" role="status">
+          <b>This invoice has been cancelled.</b> Nothing is owed on it and no
+          payment should be made against it
+          {inv.voided.reason ? `: ${inv.voided.reason}` : "."} If you were
+          expecting a bill for this work, one will follow under a new number.
+        </p>
+      ) : null}
+
       <Headline
-        label={settled ? "Paid in full" : "Amount due"}
-        amount={settled ? t.total : t.due}
-        clear={settled}
+        label={inv.voided ? "Cancelled, nothing owed" : settled ? "Paid in full" : "Amount due"}
+        amount={inv.voided ? 0 : settled ? t.total : t.due}
+        clear={settled && !inv.voided}
         pill={
-          settled
+          inv.voided
+            ? { text: "Cancelled", tone: "bad" }
+            : settled
             ? { text: "Settled", tone: "good" }
             /* ORANGE, NOT RED. Red is where something has gone wrong -- a
                reversed payment, a failed charge. An invoice past its date is
@@ -217,7 +238,10 @@ export default async function PublicInvoice({
         </>
       ) : null}
 
-      {!settled ? (
+      {/* NOTHING ABOUT PAYING A CANCELLED INVOICE. A "how to pay" panel under a
+          document that says nothing is owed is an invitation to send money
+          that will then have to be sent back. */}
+      {!settled && !inv.voided ? (
         <section className="doc__pay">
           <h2>How to pay</h2>
 
