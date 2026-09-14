@@ -297,12 +297,48 @@ export type Payment = {
   reversed?: { at: string; by: string; reason: string };
 };
 
+export const EXPENSE_CATEGORIES = [
+  "Software", "Hosting", "Assets", "Contractors", "Marketing", "Travel",
+  "Equipment", "Fees and charges", "Other",
+] as const;
+export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
+
 export type Expense = {
   id: Id;
   at: string;
   description: string;
   category: string;
   amount: number;
+  /** Who was paid. Kept separate from the description because "Adobe" is the
+      answer to "who do we pay for this" and "Creative Cloud, the team plan" is
+      the answer to "what is it" -- and only the first one adds up across a
+      year of rows. */
+  vendor?: string;
+  /** How it left, from the same list a payment coming IN uses. One list, so a
+      method added on one side cannot be missing on the other. */
+  method?: Method;
+  /**
+   * WHOSE COST IT IS. An unallocated expense is overhead and that is a real
+   * answer; an expense against a project is what makes a project's margin
+   * something the studio can actually read rather than guess. The client is
+   * derived from the project where there is one, so the two cannot disagree.
+   */
+  projectId?: Id;
+  clientId?: Id;
+  /** Whether it can be billed back to the client. Separate from having a
+      project: plenty of project costs are ours to absorb. */
+  rebillable?: boolean;
+  /**
+   * A LINK TO THE RECEIPT, NOT AN UPLOAD. Same decision as deliverable files
+   * and for the same reason: R2 upload from the admin is not wired, and a file
+   * field that silently does nothing is worse than a field that asks for the
+   * link to where the receipt already lives.
+   */
+  receiptUrl?: string;
+  note?: string;
+  /** The admin who entered it. An expense with no name against it is the one
+      nobody can question later. */
+  by?: string;
 };
 
 /* ------------------------------------------------------------------- forms */

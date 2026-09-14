@@ -211,11 +211,22 @@ const PAYMENTS: Payment[] = [
 ];
 
 const EXPENSES: Expense[] = [
-  { id: "e1", at: iso("2026-08-01"), description: "Adobe Creative Cloud", category: "Software", amount: N(38_000) },
-  { id: "e2", at: iso("2026-08-03"), description: "Vercel Pro", category: "Hosting", amount: N(31_000) },
-  { id: "e3", at: iso("2026-08-12"), description: "Stock photography", category: "Assets", amount: N(24_500) },
-  { id: "e4", at: iso("2026-09-01"), description: "Contract illustrator", category: "Contractors", amount: N(180_000) },
-  { id: "e5", at: iso("2026-09-04"), description: "Meta ads, agency test", category: "Marketing", amount: N(60_000) },
+  /* Overhead: no project, so it is the studio's cost and nobody's margin. */
+  { id: "e1", at: iso("2026-08-01"), description: "Adobe Creative Cloud, team plan",
+    category: "Software", amount: N(38_000), vendor: "Adobe", method: "Paystack", by: "Babatope" },
+  { id: "e2", at: iso("2026-08-03"), description: "Vercel Pro",
+    category: "Hosting", amount: N(31_000), vendor: "Vercel", method: "Paystack", by: "Babatope" },
+  /* Against a project, which is what makes that project's margin readable. */
+  { id: "e3", at: iso("2026-08-12"), description: "Stock photography for the guideline set",
+    category: "Assets", amount: N(24_500), vendor: "Envato", method: "Paystack",
+    projectId: "p1", clientId: "c1", by: "Ada",
+    receiptUrl: "https://drive.google.com/file/d/seed-envato-receipt/view" },
+  { id: "e4", at: iso("2026-09-01"), description: "Contract illustrator, four spot drawings",
+    category: "Contractors", amount: N(180_000), vendor: "Kelechi Umeh", method: "Transfer",
+    projectId: "p1", clientId: "c1", rebillable: true, by: "Babatope",
+    note: "Agreed as a pass-through cost in the scope. Bill it on the next invoice." },
+  { id: "e5", at: iso("2026-09-04"), description: "Meta ads, agency test",
+    category: "Marketing", amount: N(60_000), vendor: "Meta", method: "Paystack", by: "Babatope" },
 ];
 
 const SUBMISSIONS: Submission[] = [
@@ -845,11 +856,47 @@ export function reversePayment(id: Id, reason = "", actor = "Studio"): boolean {
 /* --------------------------------------------------------------- expenses */
 
 export function addExpense(d: Omit<Expense, "id">, actor = "Studio"): Expense {
-  const e: Expense = { ...d, id: mint("e") };
-  audit({ actor, kind: "expense", subjectId: e.id, subject: e.description,
-          action: "recorded", note: `${naira(e.amount)} · ${e.category}` });
+  /* THE CLIENT IS DERIVED FROM THE PROJECT, NEVER TAKEN ALONGSIDE IT. Two
+     fields that have to agree will eventually disagree: a project moved to a
+     different client, or a form that let somebody pick both. One of them is
+     the source. */
+  const project = d.projectId ? getProject(d.projectId) : null;
+  const e: Expense = {
+    ...d,
+    id: mint("e"),
+    projectId: project?.id,
+    clientId: project?.clientId,
+    by: d.by?.trim() || actor,
+  };
+  audit({ actor: e.by ?? actor, kind: "expense", subjectId: e.id, subject: e.description,
+          action: "recorded",
+          note: [naira(e.amount), e.category, e.vendor, project?.title]
+            .filter(Boolean).join(" · ") });
   EXPENSES.push(e);
   return e;
+}
+
+/** Everything spent against one project, for its margin. */
+export function getExpensesFor(projectId: Id) {
+  return EXPENSES.filter((e) => e.projectId === projectId)
+    .sort((a, b) => b.at.localeCompare(a.at));
+}
+
+/**
+ * WHAT A PROJECT ACTUALLY MADE.
+ *
+ * Invoiced, collected, spent against it, and what is left. Collected rather
+ * than invoiced is the honest margin: an invoice nobody has paid is not
+ * income, and a project that looks profitable on billings and is not on
+ * receipts is the one worth knowing about.
+ */
+export function projectMargin(projectId: Id) {
+  const p = getProject(projectId);
+  const invoices = p ? INVOICES.filter((i) => i.projectId === p.id && i.status !== "Draft") : [];
+  const invoiced = invoices.reduce((n, i) => n + invoiceTotals(i).total, 0);
+  const collected = invoices.reduce((n, i) => n + i.paid, 0);
+  const spend = getExpensesFor(projectId).reduce((n, e) => n + e.amount, 0);
+  return { invoiced, collected, spend, net: collected - spend, outstanding: invoiced - collected };
 }
 
 export function deleteExpense(id: Id, actor = "Studio"): boolean {

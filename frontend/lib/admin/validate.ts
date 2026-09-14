@@ -140,6 +140,26 @@ export const checked = (fd: FormData, k: string) => fd.get(k) !== null;
  */
 export const looksEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
 
+/**
+ * A link somebody typed, or nothing.
+ *
+ * HTTP AND HTTPS ONLY, AND THAT IS THE WHOLE POINT OF CHECKING. A URL field
+ * that accepts whatever is typed will one day hold `javascript:...`, and the
+ * page that renders it as an href is where that becomes an attack. Anything
+ * that is not a parseable http(s) URL comes back null, and null is "not
+ * supplied" rather than a default.
+ */
+export function url(fd: FormData, k: string): string | null {
+  const v = str(fd, k);
+  if (!v) return null;
+  try {
+    const u = new URL(v);
+    return u.protocol === "http:" || u.protocol === "https:" ? u.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 export function required(errors: Errors, key: string, value: string, label: string) {
   if (!value) errors[key] = `${label} is needed.`;
   return value;
