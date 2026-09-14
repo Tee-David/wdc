@@ -19,6 +19,24 @@ At last update: **140 open** (11 of them in progress), **212 done**.
 
 ## 0. Raised in conversation, not yet done
 
+- [x] The country picker is a proper dropdown on every form that has one, not only on the one it was written for. Two faults, one cause: a rule written for ONE form in a component used by TWO.
+
+  THE PANEL HAD NO STYLESHEET ON THE CONTACT PAGE. `picker.css` was imported by `onboarding-form.tsx` and by nothing else, so the contact form rendered the closed control correctly and then opened an unstyled, in-flow list of 245 rows -- no border, no ground, no elevation, no row padding, and a search icon rendered at three rows tall because a lucide glyph has no intrinsic size. It pushed the page down, so scrolling it meant scrolling the whole site. Both stylesheets are now imported by the components themselves; a control whose appearance depends on an import somewhere else will eventually be dropped somewhere else.
+
+  THE BOX INSIDE THE BOX CAME BACK, in the other form. The reset that stops the number input drawing its own border inside the bar's border named `.ob__f`, the onboarding wrapper. On the contact page the ring came from `.ct-f input:focus`'s BOX-SHADOW, which a rule about borders never touched. Rewritten against the control's own ancestry -- `.pv .ph .ph__num:focus` outranks any `.wrapper input:focus` a form can write, including one nobody has written yet.
+
+  AND THE COUNTRY BUTTON'S OWN OUTLINE WENT WITH IT: `:focus-within` already rings the whole bar, so a second orange rectangle inside it was the same fault in a different place. A tint marks which half has focus without drawing another edge.
+
+  THE PANEL NOW FLIPS. A dropdown that only ever drops downward is off screen when the field is near the foot of the window, which no amount of styling fixes. `usePickerOpen` measures the room below against the room above on open and on resize, and only flips when there genuinely is not room AND up is roomier -- a panel that flips for eight pixels is worse than one slightly clipped, because the reader cannot predict where it appears. Measured at 1280x900 with the field 150px off the bottom: panel top 392, bottom 740.
+
+  ROWS READ AS ROWS: flag, name, and the dial code in parentheses beside it, with a tick on the chosen one rather than a dot -- a dot says something is true about the row, a tick says which one is selected. 44px minimum, 48px on a phone. On a phone the panel is a bottom sheet with a grab handle and a scrim, and the scrim is the open control's own pseudo-element so no consumer renders an extra node and none can forget to.
+
+  NOT VERIFIED, AND SAID RATHER THAN CLAIMED: the scrollbar's appearance. `::-webkit-scrollbar` painted nothing in this headless engine -- a thumb forced to solid red did not appear in a screenshot, though the gutter reserved its 10px -- so the list uses `scrollbar-width`/`scrollbar-color`, which is what `work.css` and `preview.css` already use for this site's rails.
+
+  STILL A PLAIN TEXT FIELD: the admin client form's Phone. It never had the picker, so it never had the fault; giving it one means porting `--paper`, `--rule` and `--ink` into the admin scope, which is a deliberate change rather than part of this fix.
+
+  Pinned by `tests/phone-field.spec.ts`, seven cases that walk BOTH forms: the panel is positioned, has a ground and has elevation; the list scrolls itself with `overscroll-behavior: contain` and `data-lenis-prevent`; the number input draws no border, radius, shadow or outline while the bar does; the panel stays inside the window when the field is low; and the sheet is full width at the bottom edge with a scrim and does not widen the page.
+
 - [x] Share and "take it with you" now end a case study and a discipline page, not only an article. One component and one stylesheet rather than a second copy: the block was `bl-share`/`bl-qr` inside `blog.css`, which was the right place while an article was the only page that offered it, and became the wrong one the moment a second page wanted the same thing. Moved to `components/ui/share-row.tsx`, `components/ui/page-end.tsx` and `components/ui/share.css`; the blog's markup now renders the same component, so the two cannot drift.
 
   THE NOUN IS A PROP, because the accessible names say what is being shared and seven buttons reading "this post" on a case study would simply be wrong. Nothing visible changes with it.

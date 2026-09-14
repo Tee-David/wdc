@@ -19,80 +19,188 @@
 
 .pv .pk { position: relative; }
 
+/* ---------------------------------------------------------------- the panel */
+
 .pv .pk__pop {
-  position: absolute; z-index: 1000; top: calc(100% + 6px); left: 0;
-  width: min(26rem, 100%);
-  border: 1px solid var(--rule); border-radius: 12px;
+  position: absolute; z-index: 1000; top: calc(100% + 8px); left: 0;
+  width: min(27rem, max(100%, 20rem));
+  border: 1px solid var(--rule); border-radius: 14px;
   background: var(--paper);
-  box-shadow: 0 22px 48px -24px rgb(0 0 0 / .45);
+  /* TWO SHADOWS, NOT ONE. A single soft shadow reads as a blur; the tight one
+     gives the panel an edge so it sits ON the page rather than in it, and the
+     wide one gives it the height. This is the whole of the "material" look
+     people mean -- elevation done with light, not with a library. */
+  box-shadow:
+    0 2px 6px -2px rgb(10 10 40 / .16),
+    0 24px 48px -20px rgb(10 10 40 / .38);
   overflow: hidden;
 }
 @media (prefers-reduced-motion: no-preference) {
   .pv .pk__pop { animation: pk-in .16s cubic-bezier(.16, 1, .3, 1) both; }
 }
-@keyframes pk-in { from { opacity: 0; transform: translateY(-6px); } }
+@keyframes pk-in { from { opacity: 0; transform: translateY(-6px) scale(.985); } }
+
+/* UPWARD, when the field is near the foot of the window. The class is set by
+   `usePickerOpen` from a measurement -- see the note there for why it is a
+   measurement and not a guess. The animation flips with it, because a panel
+   that rises into place while sliding down from above reads as a glitch. */
+.pv .pk.is-up .pk__pop { top: auto; bottom: calc(100% + 8px); }
+@media (prefers-reduced-motion: no-preference) {
+  .pv .pk.is-up .pk__pop { animation: pk-in-up .16s cubic-bezier(.16, 1, .3, 1) both; }
+}
+@keyframes pk-in-up { from { opacity: 0; transform: translateY(6px) scale(.985); } }
+
+/* -------------------------------------------------------------- the search */
 
 .pv .pk__search {
-  display: flex; align-items: center; gap: .55rem;
-  padding: .7rem .9rem;
+  display: flex; align-items: center; gap: .6rem;
+  padding: .78rem .95rem;
   border-bottom: 1px solid var(--rule);
 }
-.pv .pk__search svg { width: 1rem; height: 1rem; color: var(--muted); flex: none; }
+/* SIZED IN PX, NOT EM. A lucide glyph has no intrinsic size, so an unstyled
+   one renders at whatever the inherited font-size makes of a 24-unit viewBox
+   -- which on the contact form was a magnifier the height of three rows. It is
+   pinned here so that cannot happen again if this file loads late. */
+.pv .pk__search svg {
+  width: 18px; height: 18px; flex: none; color: var(--muted);
+  stroke-width: 2.2;
+}
 .pv .pk__search input {
   flex: 1; min-width: 0;
-  border: 0; background: transparent; color: var(--ink); font: inherit;
+  border: 0; background: transparent; color: var(--ink);
+  font: inherit; font-size: .95rem;
+  padding: 0;
 }
-.pv .pk__search input:focus { outline: none; }
+.pv .pk__search input:focus { outline: none; box-shadow: none; }
+.pv .pk__search input::placeholder { color: var(--muted); opacity: .8; }
+
+/* ---------------------------------------------------------------- the list */
 
 .pv .pk__list {
-  margin: 0; padding: .3rem; list-style: none;
+  margin: 0; padding: .35rem; list-style: none;
   /* Tall enough to show that the list is long and scrollable, short enough to
-     leave the field it belongs to visible above it. */
-  max-height: 17rem; overflow-y: auto;
+     leave the field it belongs to visible above it. Ending on a part-row is
+     deliberate: a list that ends flush with a row edge looks finished. */
+  max-height: 18.5rem; overflow-y: auto;
+  /* The gesture belongs to the list. `contain` stops the page taking over at
+     the ends, and `pan-y` tells the browser this is a vertical scroller before
+     any handler runs. `data-lenis-prevent` in the markup keeps the site's
+     smooth-scroll library off it. */
   overscroll-behavior: contain;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
+  /* A THIN, VISIBLE SCROLLBAR, because an invisible one on a list of 245 rows
+     leaves nothing saying the list continues, and `stable` keeps the rows from
+     shifting a few pixels when a filtered list stops needing one.
+
+     THE STANDARD PROPERTIES, NOT `::-webkit-scrollbar`. The webkit rules were
+     tried first and painted nothing: this engine reserves the gutter but draws
+     an overlay bar, so `offsetWidth - clientWidth` read 10px while a thumb
+     forced to solid red did not appear in a screenshot at all. These two lines
+     are also what `work.css` and `preview.css` already use for the rails on
+     this site, so the scrollbars match rather than being this control's own. */
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ink) 30%, transparent) transparent;
   scrollbar-gutter: stable;
 }
+
 .pv .pk__opt {
-  display: flex; align-items: center; gap: .6rem;
-  padding: .5rem .6rem; border-radius: 8px;
+  display: flex; align-items: center; gap: .65rem;
+  /* 44px on a touch screen, which is the floor for a target somebody taps
+     while scrolling past it. */
+  min-height: 44px;
+  padding: .45rem .6rem; border-radius: 10px;
+  font-size: .95rem; line-height: 1.35;
   cursor: pointer;
+  transition: background .12s ease;
 }
 /* ONE highlight, driven by the keyboard. Hover sets the same `is-active` index
    rather than painting its own colour, so the mouse and the arrow keys can
    never disagree about which row is the one Enter will choose. */
-.pv .pk__opt.is-active { background: var(--paper-2); }
-.pv .pk__opt.is-on .pk__label { font-weight: 600; }
+.pv .pk__opt.is-active { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+.pv .pk__opt.is-on { font-weight: 600; }
+/* A TICK ON THE CHOSEN ROW, not a dot. A dot says "something is true about
+   this row"; a tick says which one is currently selected, which is the only
+   thing the marker is for. Drawn with two borders rather than an icon, so it
+   costs nothing and inherits the accent colour. */
 .pv .pk__opt.is-on::after {
-  content: ""; width: 6px; height: 6px; border-radius: 50%;
-  background: var(--accent); flex: none;
+  content: ""; flex: none;
+  width: .36rem; height: .66rem; margin: 0 .18rem 0 .25rem;
+  border: solid var(--accent-ink);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translate(-1px, -2px);
 }
-.pv .pk__label { flex: 1; min-width: 0; }
+/* The name takes the room it needs and no more, so the dial code sits beside
+   it the way a reader expects to see it written -- "Germany (+49)" -- and the
+   tick keeps the far edge to itself. */
+.pv .pk__label {
+  flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pv .ph .pk__label { flex: 0 1 auto; }
 /* The search match, bolded. The list is long and the eye needs to see WHY a
    row is in it. */
 .pv .pk__label b { font-weight: 700; color: var(--ink); }
 .pv .pk__meta {
   color: var(--muted); font-variant-numeric: tabular-nums; flex: none;
+  font-size: .9rem;
 }
+.pv .ph .pk__meta { margin-right: auto; }
 .pv .pk__none { padding: 1rem .8rem; color: var(--muted); }
 
-/* On a phone the popup is the screen, not a dropdown: a 17rem list hanging off
-   a field near the bottom of a 390px viewport is mostly off screen, and the
-   keyboard takes what is left. */
+/* ------------------------------------------------------ the phone flag chip */
+
+/* Flags in the list are sized here rather than by the phone field, because the
+   row is this file's geometry: an emoji left at the row's own font-size sits a
+   little small beside the name and makes the column look ragged. */
+.pv .pk__opt .ph__flag { font-size: 1.2rem; flex: none; }
+.pv .pk__opt .ph__iso { flex: none; }
+
+/* ------------------------------------------------------------ on a phone */
+
+/* The popup is the screen, not a dropdown: an 18rem list hanging off a field
+   near the bottom of a 390px viewport is mostly off screen, and the keyboard
+   takes what is left. */
 @media (max-width: 560px) {
-  .pv .pk__pop {
-    position: fixed; inset: auto 0 0 0; top: auto;
-    display: flex; flex-direction: column;
-    width: 100%; max-height: 78svh; border-radius: 16px 16px 0 0;
-    padding-bottom: env(safe-area-inset-bottom);
-    box-shadow: 0 -22px 48px -24px rgb(0 0 0 / .45);
+  /* THE SCRIM IS THE OPEN CONTROL'S OWN PSEUDO-ELEMENT, so no consumer has to
+     render an extra element and no consumer can forget to. It cannot live on
+     the panel: the panel clips its own overflow to keep the rounded corners. */
+  .pv .pk.is-open::before {
+    content: ""; position: fixed; inset: 0; z-index: 999;
+    background: rgb(6 6 26 / .42);
   }
-  .pv .pk__list { flex: 1; min-height: 0; max-height: none; }
   @media (prefers-reduced-motion: no-preference) {
-    .pv .pk__pop { animation: pk-up .2s cubic-bezier(.16, 1, .3, 1) both; }
+    .pv .pk.is-open::before { animation: pk-veil .2s ease both; }
   }
-  @keyframes pk-up { from { transform: translateY(14px); opacity: 0; } }
+  @keyframes pk-veil { from { opacity: 0; } }
+
+  /* The sheet wins over the flip: below this width there is no "above the
+     field", there is only the bottom of the screen. */
+  .pv .pk__pop,
+  .pv .pk.is-up .pk__pop {
+    position: fixed; inset: auto 0 0 0; top: auto; bottom: 0;
+    display: flex; flex-direction: column;
+    width: 100%; max-height: 78svh;
+    border: 0; border-radius: 18px 18px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 -18px 40px -18px rgb(6 6 26 / .5);
+  }
+  /* The grab handle. It is the one piece of chrome that says "this sheet came
+     up from the bottom and goes back down", which a dropdown floating in the
+     middle of a form does not need to say. */
+  .pv .pk__pop::before {
+    content: ""; flex: none;
+    width: 2.25rem; height: 4px; margin: .6rem auto .1rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--ink) 18%, transparent);
+  }
+  .pv .pk__search { padding: .85rem 1rem; }
+  .pv .pk__list { flex: 1; min-height: 0; max-height: none; padding: .4rem .6rem 1rem; }
+  .pv .pk__opt { min-height: 48px; padding: .55rem .65rem; font-size: 1rem; }
+  @media (prefers-reduced-motion: no-preference) {
+    .pv .pk__pop { animation: pk-up .22s cubic-bezier(.16, 1, .3, 1) both; }
+  }
+  @keyframes pk-up { from { transform: translateY(16px); opacity: 0; } }
 }
 
 /* ============================================================================

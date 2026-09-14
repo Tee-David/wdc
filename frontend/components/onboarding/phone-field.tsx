@@ -7,6 +7,17 @@ import { ChevronDown, Search } from "lucide-react";
 import { DIAL_CODES, DIAL_BY_ISO } from "@/lib/dial-codes";
 import { Mark, usePickerOpen } from "./picker";
 
+/* THE CONTROL CARRIES ITS OWN LOOK, rather than trusting the page to remember.
+   These were imported by the onboarding form and by nothing else, so the
+   contact form rendered this field with its closed state styled and its panel
+   completely unstyled: an in-flow list of 245 rows with no border, no
+   background and no row padding, which pushed the page down and scrolled the
+   whole site instead of the list. A component whose appearance depends on an
+   import somewhere else will eventually be dropped somewhere else. Next
+   deduplicates these, so importing them here costs nothing. */
+import "./phone-field.css";
+import "./picker.css";
+
 /**
  * A phone number field: country picker, dial code, and the number.
  *
@@ -429,7 +440,7 @@ export default function PhoneField({
               >
                 <Flag c={c} flags={flags} />
                 <span className="pk__label"><Mark name={c.name} q={q} /></span>
-                <span className="pk__meta">+{c.code}</span>
+                <span className="pk__meta">(+{c.code})</span>
               </li>
             ))}
             {!results.length && (

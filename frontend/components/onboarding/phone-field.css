@@ -42,7 +42,14 @@
   transition: background .18s ease;
 }
 .pv .ph__cc:hover { background: var(--paper-2); }
-.pv .ph__cc:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* NOT AN OUTLINE. `:focus-within` on the bar already draws an orange ring
+   around the whole control, so a second orange rectangle inside it is the
+   "box inside a box" fault again, in a different place. A tint marks which
+   half has focus without drawing another edge. */
+.pv .ph__cc:focus-visible {
+  outline: none;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
 .pv .ph__cc svg { width: 1rem; height: 1rem; color: var(--muted); }
 .pv .ph.is-open .ph__cc svg { transform: rotate(180deg); }
 .pv .ph__cc svg { transition: transform .18s ease; }
@@ -76,31 +83,35 @@
 }
 .pv .ph__num:focus { outline: none; }
 
-/* THE SECOND BORDER INSIDE THE FIRST ONE, and why it needed three classes to
-   remove.
+/* THE SECOND BORDER INSIDE THE FIRST ONE, and why naming the wrapper was the
+   wrong fix.
 
-   `.ob__f input` in onboarding.css gives every input in a field wrapper its
-   own border, radius and orange focus ring, which is right for the nine plain
-   text fields on this form and wrong for the one input that is a PART of a
-   larger control. The phone bar draws the border; the number inside it was
-   drawing a second one, so focusing the number put a rounded orange box inside
-   the rounded orange box -- which is the curve on the left of the number that
-   looked like a rendering fault.
+   Every form on this site gives the inputs inside its field wrapper a border,
+   a radius and an orange focus ring: `.ob__f input` on the onboarding form,
+   `.ct-f input` on the contact form, and whatever the next one calls it. That
+   is right for a plain text field and wrong for the one input that is PART of
+   a larger control -- the phone bar already draws the border, so the number
+   inside it drew a second one and focusing it put a rounded orange box inside
+   the rounded orange box.
 
-   Both rules were (0,2,0), so this was decided by which stylesheet loaded
-   last. Naming the wrapper as well settles it on specificity instead, which is
-   not something to leave to import order. */
-.pv .ob__f .ph__num,
-.pv .ob__f.is-bad .ph__num {
+   The first fix named `.ob__f`, which fixed the onboarding form and left the
+   contact form with the same fault; the ring there came from `.ct-f
+   input:focus`'s box-shadow, which a rule about borders never touched. So the
+   reset is written against the control's own ancestry instead. `.pv .ph
+   .ph__num:focus` is three classes and a pseudo-class, which outranks any
+   `.wrapper input:focus` a form can write, and it keeps working in a wrapper
+   nobody has written yet. */
+.pv .ph .ph__num,
+.pv .ph .ph__num:hover,
+.pv .ph .ph__num:focus,
+.pv .ph .ph__num:focus-visible,
+.pv .ph.is-bad .ph__num {
   width: auto;
   border: 0;
   border-radius: 0;
+  padding: .85rem .9rem .85rem .45rem;
   background: transparent;
-}
-.pv .ob__f .ph__num:focus,
-.pv .ob__f .ph__num:focus-visible {
   outline: none;
-  border: 0;
   box-shadow: none;
 }
 
