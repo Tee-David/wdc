@@ -24,7 +24,17 @@ export default defineConfig({
   reporter: "line",
   use: {
     baseURL: process.env.WDC_E2E_BASE_URL || "http://localhost:3100",
-    channel: "chrome",
+    /* REAL CHROME WHERE THERE IS ONE, AND A NAMED BINARY WHERE THERE IS NOT.
+       The suite is written against Chrome because that is what most of this
+       audience browses with, and `channel` asks for the installed one rather
+       than Playwright's bundled build. A container that has a Chromium but no
+       Chrome cannot satisfy that, and the failure is a launch error on every
+       test at once, which reads like the suite is broken. Pointing
+       WDC_E2E_CHROME at a binary swaps to it; nothing set keeps the old
+       behaviour exactly. */
+    ...(process.env.WDC_E2E_CHROME
+      ? { launchOptions: { executablePath: process.env.WDC_E2E_CHROME } }
+      : { channel: "chrome" as const }),
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },

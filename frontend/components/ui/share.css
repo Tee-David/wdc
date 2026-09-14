@@ -1,0 +1,59 @@
+/* Share this page, and take it away with you.
+ *
+ * ONE STYLESHEET FOR EVERY PAGE THAT ENDS THIS WAY. These rules began inside
+ * `blog.css` under `bl-` names, which was fine while an article was the only
+ * page that offered them. A case study wants the same two things, and copying
+ * the block would have given the site two share rows that drift apart the
+ * first time either is touched. Moved wholesale rather than duplicated: the
+ * declarations below are the ones the blog was already using.
+ */
+
+.sh-end {
+  margin-top: clamp(2.2rem, 4vw, 3rem);
+  padding-top: clamp(1.4rem, 2.4vw, 2rem);
+  border-top: 1px solid var(--rule);
+  display: grid;
+  gap: clamp(1.5rem, 3vw, 2.4rem);
+  grid-template-columns: minmax(0, 1fr);
+}
+/* Side by side once there is room for the code beside the row, stacked before
+   that -- seven 42px buttons and a 136px code do not share 320px. */
+@media (min-width: 620px) {
+  .sh-end { grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
+}
+
+.sh-k {
+  margin: 0 0 .7rem;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .75rem; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--accent-ink);
+}
+
+.sh-row { display: flex; flex-wrap: wrap; gap: .5rem; }
+.sh-btn {
+  display: grid; place-items: center;
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 1px solid var(--rule); background: transparent;
+  color: var(--ink); cursor: pointer;
+  transition: background .18s ease, color .18s ease, border-color .18s ease;
+}
+.sh-btn svg { width: 17px; height: 17px; fill: currentColor; }
+/* The two lucide glyphs are stroked, not filled. */
+.sh-btn > svg[stroke] { fill: none; stroke: currentColor; }
+.sh-btn:hover, .sh-btn.is-done {
+  background: #000065; border-color: #000065; color: #fff;
+}
+.sh-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.sh-said {
+  display: block; margin-top: .5rem;
+  font-size: .8rem; color: var(--muted); min-height: 1em;
+}
+
+.sh-keep { display: grid; gap: .6rem; justify-items: start; }
+
+/* Neither of these belongs on paper: a row of buttons prints as seven empty
+   circles, and a code pointing at the page somebody is already holding a
+   printout of is not worth the ink. */
+@media print {
+  .sh-end { display: none; }
+}

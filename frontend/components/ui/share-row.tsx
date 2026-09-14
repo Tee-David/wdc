@@ -4,7 +4,7 @@ import { useState, useSyncExternalStore } from "react";
 import { Check, Link2, Mail, Share2 } from "lucide-react";
 
 /**
- * Share a post, and take its link away with you.
+ * Share this page, wherever the page happens to be.
  *
  * EVERY ONE IS A PLAIN LINK TO THE NETWORK'S OWN INTENT URL. Nothing is
  * embedded, nothing is loaded from a third party, and there is no tracking
@@ -25,7 +25,21 @@ import { Check, Link2, Mail, Share2 } from "lucide-react";
  * rendered only after mounting because `navigator.share` cannot be read on the
  * server, and hiding it in CSS would leave a hole in the row on a desktop.
  */
-export default function ShareRow({ url, title }: { url: string; title: string }) {
+export default function ShareRow({
+  url,
+  title,
+  what = "page",
+}: {
+  url: string;
+  title: string;
+  /**
+   * What the thing being shared IS, in the accessible names: "post", "case
+   * study", "page". A button reading "Share on X" tells a screen reader the
+   * network and not the subject, and a rail of them on a case study that all
+   * said "this post" would simply be wrong. Nothing visible changes.
+   */
+  what?: string;
+}) {
   const [copied, setCopied] = useState(false);
   /* `useSyncExternalStore` RATHER THAN AN EFFECT, because this is exactly what
      it is for: a value the server cannot know, read on the client without the
@@ -75,15 +89,15 @@ export default function ShareRow({ url, title }: { url: string; title: string })
   };
 
   return (
-    <div className="bl-share">
-      <p className="bl-rail__k">Share</p>
-      <div className="bl-share__row">
+    <div className="sh-share">
+      <p className="sh-k">Share</p>
+      <div className="sh-row">
         {native ? (
           <button
             type="button"
-            className="bl-share__btn bl-share__btn--native"
+            className="sh-btn sh-btn--native"
             onClick={shareNative}
-            aria-label="Share this post"
+            aria-label={`Share this ${what}`}
           >
             <Share2 aria-hidden="true" />
           </button>
@@ -91,7 +105,7 @@ export default function ShareRow({ url, title }: { url: string; title: string })
         {links.map((l) => (
           <a
             key={l.name}
-            className="bl-share__btn"
+            className="sh-btn"
             href={l.href}
             target="_blank"
             rel="noopener noreferrer"
@@ -101,24 +115,24 @@ export default function ShareRow({ url, title }: { url: string; title: string })
           </a>
         ))}
         <a
-          className="bl-share__btn"
+          className="sh-btn"
           href={`mailto:?subject=${enc(title)}&body=${enc(url)}`}
-          aria-label="Share this post by email"
+          aria-label={`Share this ${what} by email`}
         >
           <Mail aria-hidden="true" />
         </a>
         <button
           type="button"
-          className={`bl-share__btn${copied ? " is-done" : ""}`}
+          className={`sh-btn${copied ? " is-done" : ""}`}
           onClick={copy}
-          aria-label={copied ? "Link copied" : "Copy link to this post"}
+          aria-label={copied ? "Link copied" : `Copy link to this ${what}`}
         >
           {copied ? <Check aria-hidden="true" /> : <Link2 aria-hidden="true" />}
         </button>
       </div>
       {/* Announced, not just coloured: the tick alone tells a screen reader
           nothing. */}
-      <span className="bl-share__said" role="status">{copied ? "Link copied" : ""}</span>
+      <span className="sh-said" role="status">{copied ? "Link copied" : ""}</span>
     </div>
   );
 }

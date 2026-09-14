@@ -5,13 +5,12 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import JsonLd from "@/components/seo/json-ld";
-import ShareRow from "@/components/blog/share";
+import PageEnd from "@/components/ui/page-end";
 import BlogToc from "@/components/blog/toc";
 import {
   BLOG_POSTS, formatDate, postBySlug, readingMinutes, relatedPosts,
   type BlogBlock, type BlogPost,
 } from "@/lib/blog";
-import QrCode from "@/components/ui/qr-code";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 import "@/components/preview/preview.css";
@@ -232,13 +231,12 @@ export default async function BlogPostPage(
                   tags stay inside `<article>` because they describe it. */}
               <div className="bl-after">
                 {/* The two things you do once you have finished reading. */}
-                <div className="bl-end">
-                  <ShareRow url={url} title={post.title} />
-                  <div className="bl-qr">
-                    <p className="bl-rail__k">Take it with you</p>
-                    <QrCode url={url} label="Scan to open this article on your phone." />
-                  </div>
-                </div>
+                <PageEnd
+                  url={url}
+                  title={post.title}
+                  what="post"
+                  scanLabel="Scan to open this article on your phone."
+                />
 
                 {more.length > 0 && (
                   <div className="bl-next">

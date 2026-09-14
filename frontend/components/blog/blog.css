@@ -300,40 +300,9 @@
   .bl-toc > summary { display: none; }
 }
 
-/* Share */
-.bl-share__row { display: flex; flex-wrap: wrap; gap: .5rem; }
-.bl-share__btn {
-  display: grid; place-items: center;
-  width: 42px; height: 42px; border-radius: 50%;
-  border: 1px solid var(--rule); background: transparent;
-  color: var(--ink); cursor: pointer;
-  transition: background .18s ease, color .18s ease, border-color .18s ease;
-}
-.bl-share__btn svg { width: 17px; height: 17px; fill: currentColor; }
-/* The two lucide glyphs are stroked, not filled. */
-.bl-share__btn > svg[stroke] { fill: none; stroke: currentColor; }
-.bl-share__btn:hover, .bl-share__btn.is-done {
-  background: #000065; border-color: #000065; color: #fff;
-}
-.bl-share__btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.bl-share__said {
-  display: block; margin-top: .5rem;
-  font-size: .8rem; color: var(--muted); min-height: 1em;
-}
-
-/* The code */
-.bl-qr { display: grid; gap: .6rem; justify-items: start; }
-.bl-qr__box {
-  width: 8.5rem; height: 8.5rem; padding: .6rem;
-  border: 1px solid var(--rule); border-radius: 12px;
-  background: #fff;
-}
-.bl-qr__box svg { width: 100%; height: 100%; display: block; }
-.bl-qr p { margin: 0; font-size: .8rem; line-height: 1.45; color: var(--muted); max-width: 15rem; }
-/* The caption under the code is muted; its heading is not. `.bl-qr p` is the
-   more specific selector, so without this the key line went grey here while
-   the identical "Share" heading beside it stayed orange. */
-.bl-qr p.bl-rail__k { color: var(--accent-ink); }
+/* The share row and the QR code that used to live here are now
+   `components/ui/share.css`, because a case study ends the same way and two
+   copies of the same block drift the first time either is edited. */
 
 /* ---------------- the article ---------------- */
 
@@ -389,21 +358,6 @@
 /* ---------------- tags and what to read next ---------------- */
 
 /* ---------------- the end of the article ---------------- */
-
-/* Share and the code, after the last word rather than before the first one.
-   Side by side once there is room; stacked on a phone, where the share row is
-   already four 42px targets wide. */
-.bl-end {
-  margin-top: clamp(2.2rem, 4vw, 3rem);
-  padding-top: clamp(1.4rem, 2.4vw, 2rem);
-  border-top: 1px solid var(--rule);
-  display: grid;
-  gap: clamp(1.5rem, 3vw, 2.4rem);
-  grid-template-columns: minmax(0, 1fr);
-}
-@media (min-width: 620px) {
-  .bl-end { grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
-}
 
 .bl-tags { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: 2.4rem; padding: 0; list-style: none; }
 .bl-tag {

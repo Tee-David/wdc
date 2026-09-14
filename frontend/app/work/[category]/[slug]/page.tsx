@@ -12,6 +12,7 @@ import "@/components/work/work.css";
 import { NewTab } from "@/components/ui/new-tab";
 import { publicImageSize } from "@/lib/image-size";
 import WorkToc from "@/components/work/toc";
+import PageEnd from "@/components/ui/page-end";
 
 /* One path per case study, at its CANONICAL category only. Generating every
    category a piece is tagged to would prerender the same page at three URLs,
@@ -135,6 +136,12 @@ export default async function WorkDetailPage(
     { id: "the-system", text: cs.stackLabel ?? "Built with" },
   ];
 
+  /* The canonical address, written once. The page carries it four times -- two
+     pieces of structured data, the share row and the QR code -- and four hand
+     typed copies of the same template literal is three chances for one of them
+     to point somewhere else after a route changes. */
+  const url = `${SITE_URL}/work/${cs.category}/${cs.slug}`;
+
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -142,7 +149,7 @@ export default async function WorkDetailPage(
       { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
       { "@type": "ListItem", position: 2, name: "Our Work", item: `${SITE_URL}/work` },
       { "@type": "ListItem", position: 3, name: cat?.name ?? cs.category, item: `${SITE_URL}/work/${cs.category}` },
-      { "@type": "ListItem", position: 4, name: cs.client, item: `${SITE_URL}/work/${cs.category}/${cs.slug}` },
+      { "@type": "ListItem", position: 4, name: cs.client, item: url },
     ],
   };
 
@@ -151,7 +158,7 @@ export default async function WorkDetailPage(
     "@type": "CreativeWork",
     name: `${cs.client}: ${cs.title}`,
     abstract: cs.summary,
-    url: `${SITE_URL}/work/${cs.category}/${cs.slug}`,
+    url,
     creator: { "@type": "Organization", name: COMPANY_NAME, url: SITE_URL },
     about: cs.sector,
     ...(cs.cover ? { image: `${SITE_URL}${cs.cover}` } : {}),
@@ -369,6 +376,17 @@ export default async function WorkDetailPage(
                   ) : null}
                 </div>
               </div>
+
+              {/* The two things you do once you have read it, in the same shape
+                  and the same order an article ends in. Below `wk-split` rather
+                  than inside it, so the sticky contents rail lets go where the
+                  case study does instead of travelling beside a share row. */}
+              <PageEnd
+                url={url}
+                title={`${cs.client}: ${cs.title}`}
+                what="case study"
+                scanLabel="Scan to open this case study on your phone."
+              />
 
               {prev || next ? (
                 <nav className="wk-pager" aria-label={`More ${cat?.label ?? ""} work`}>
