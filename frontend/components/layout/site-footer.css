@@ -51,11 +51,15 @@
 @media (max-width: 1000px) { .ft__cols { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 560px)  {
   .ft__cols { grid-template-columns: 1fr; }
-  /* One column, so the subscribe box comes straight after the sentence that
-     says what the studio is, rather than at the very bottom behind three lists
-     of links. The whole column moves, heading and all. */
+  /* One column, so the brand block and the subscribe box that follows it lead
+     the mobile footer, ahead of the Company and Useful links lists. Those two
+     nav columns have no `order` of their own, which defaults to 0 -- lower
+     than `.ft__brand`'s 1, so without setting it here they float above the
+     brand block instead of below it. The whole subscribe column moves as one
+     piece, heading and all. */
   .ft__brand { order: 1; }
   .ft__col--sub { order: 2; }
+  .ft__cols > nav.ft__col { order: 3; }
 }
 @media (max-width: 1000px) { .ft__brand { grid-column: 1 / -1; } }
 
