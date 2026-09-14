@@ -30,7 +30,11 @@ import type { ServiceSlug } from "@/lib/services";
 
 export type FieldKind =
   | "text" | "email" | "tel" | "url" | "textarea"
-  | "cards" | "multi" | "select" | "yesno" | "upload";
+  | "cards" | "multi" | "select" | "yesno" | "upload"
+  /* Up to three names with an explicit availability check against the
+     registry. Stored newline separated, so the answer is a plain string like
+     every other field and no draft or submission needed migrating. */
+  | "domains";
 
 /**
  * What a client says when they do not know, and it is recorded as the answer.
@@ -352,8 +356,15 @@ export const SERVICE_STEPS: Step[] = [
         showIf: { key: "has_hosting", equals: ["Both", "Domain only", UNSURE] },
       },
       {
-        key: "domain_ideas", assist: true, label: "Three domain names you would like, best first", kind: "textarea",
-        tip: "Include the ending you want, like .com or .com.ng. We will check what is free.",
+        /* A TEXTAREA HERE PROMISED SOMETHING IT COULD NOT DO. It said "we will
+           check what is free" and then took a paragraph somebody had to read,
+           unpick and check by hand days later. The client can check now, and
+           the honest three-state answer is the whole reason this is a control
+           rather than a box: `.ng` has an RDAP service that does not respond,
+           and `.io` and `.co` publish none at all, so "we will check this one
+           by hand" is a real outcome and is said plainly. See lib/rdap.ts. */
+        key: "domain_ideas", assist: true, label: "Domain names you would like, best first", kind: "domains",
+        tip: "Include the ending you want, like .com or .com.ng. Checking is optional and nothing here is bought.",
         showIf: { key: "has_hosting", equals: ["Neither"] },
       },
       {
@@ -710,6 +721,11 @@ const SECONDS: Record<FieldKind, number> = {
   yesno: 4, cards: 6, select: 7, multi: 10,
   text: 12, email: 12, tel: 14, url: 12,
   textarea: 32, upload: 10,
+  /* Three names to think of, not three boxes to fill: naming a business is the
+     slowest question in the form, and the check afterwards is a wait the
+     client chooses to take. Deliberately higher than `textarea`, which is what
+     this field replaced and which under-estimated it. */
+  domains: 45,
 };
 
 export function minutesLeft(
