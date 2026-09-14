@@ -144,6 +144,63 @@ test("the panel opens upward when the field is near the foot of the window", asy
   expect(fits.top, "the panel runs off the top of the window").toBeGreaterThanOrEqual(0);
 });
 
+/* FLIPPING IS NOT ENOUGH ON A SHORT WINDOW, which is the fault this pins.
+
+   A laptop at 1280x430, a browser carrying three toolbars, a phone held
+   sideways: NEITHER side of the field has room for a 296px list, so the panel
+   opened past the fold whichever way it went and the last rows could only be
+   reached by scrolling the page behind it. Measured before the fix: the
+   245-country list ran 59px past the bottom at 900x600 and 143px at 1280x430.
+
+   Two things make it fit, and both are checked here because either one alone
+   leaves a gap. The panel is capped to the room that side actually has, so the
+   list inside it shrinks and scrolls; and focus into the search box is taken
+   with `preventScroll`, because a browser scrolling that box into view moves
+   the page under a panel that was just measured against where the field was.
+
+   Every size on the list is a real one, and the country picker is used rather
+   than the subject select because 245 rows is the list that cannot fit. */
+for (const [w, h] of [[1280, 430], [1366, 640], [1024, 560], [900, 600]] as const) {
+  test(`the panel fits inside a ${w}x${h} window, and the list scrolls`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: h });
+    await page.goto("/contact");
+
+    const cc = page.locator(".ph__cc").first();
+    await cc.scrollIntoViewIfNeeded();
+    await cc.click();
+
+    const pop = page.locator(".pk__pop").first();
+    await expect(pop).toBeVisible();
+
+    const fit = await pop.evaluate((el) => {
+      const list = el.querySelector<HTMLElement>(".pk__list")!;
+      const r = el.getBoundingClientRect();
+      return {
+        top: r.top, bottom: r.bottom, left: r.left, right: r.right,
+        vh: window.innerHeight, vw: window.innerWidth,
+        scrolls: list.scrollHeight > list.clientHeight + 1,
+      };
+    });
+    expect(fit.bottom, "the panel runs off the bottom").toBeLessThanOrEqual(fit.vh + 1);
+    expect(fit.top, "the panel runs off the top").toBeGreaterThanOrEqual(-1);
+    expect(fit.right, "the panel runs off the right").toBeLessThanOrEqual(fit.vw + 1);
+    expect(fit.left, "the panel runs off the left").toBeGreaterThanOrEqual(-1);
+    expect(fit.scrolls, "the list is not scrollable, so rows are unreachable").toBe(true);
+
+    /* And the far end of the list is genuinely reachable: scroll it home and
+       the last row has to land inside the list's own box, not under it. */
+    const lastVisible = await pop.evaluate((el) => {
+      const list = el.querySelector<HTMLElement>(".pk__list")!;
+      list.scrollTop = list.scrollHeight;
+      const rows = list.querySelectorAll<HTMLElement>(".pk__opt");
+      const last = rows[rows.length - 1].getBoundingClientRect();
+      return last.bottom <= list.getBoundingClientRect().bottom + 1
+        && last.bottom <= window.innerHeight + 1;
+    });
+    expect(lastVisible, "the last row cannot be scrolled into view").toBe(true);
+  });
+}
+
 test("on a phone it is a sheet with a scrim, and the page does not widen", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 780 });
   await page.goto("/contact");
