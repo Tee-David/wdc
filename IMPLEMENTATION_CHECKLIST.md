@@ -11,7 +11,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **157 open** (5 of them in progress), **197 done**.
+At last update: **143 open** (10 of them in progress), **210 done**.
 
 ---
 
@@ -24,9 +24,6 @@ that is the shortest feedback loop there is.
 
 - [ ] Seed the six blog posts into CockroachDB, em-dash free, behind the existing accessors (`postBySlug`, `postsNewestFirst`, `relatedPosts`) so the pages do not change. MUST be shaped for the admin blog editor codex will build -- see the blog editor items in section 1C -- so they are real editable rows rather than a second static source. The plan is to be reviewed before anything writes to the database.
 - [ ] Truehost SMTP takes about 23 seconds just to authenticate, measured from two networks. The contact form now answers in half that by sending the receipt after the response, but the real fix is a transactional provider, which would also give proper SPF and DKIM.
-- [x] The client work sent through chat is on the site: 29 new assets at both sizes. Thirteen flyers, logo boards and a conference backdrop (Artdoor, Timi's Jewels, Moore, Sparkle Foundation, Fash Footies, OGreen, Everything Men, Dhiol Tech Hub, Benedict Ogbogu, Vickygold, Direct Link, Teaching With Purpose), plus sixteen pages lifted from the Skinish and Thinkers Diary brand guides and the Moore letterhead. The guide pages were pulled from the PDFs themselves rather than remade — Thinkers embeds its pages as JPEGs so those were copied out byte-for-byte, and Skinish and the letterhead are vector so they were rendered with pdf.js at 2x. Both documents credit WDC by name inside them.
-- [x] Skinish and Thinkers Diary added as full branding case studies, written only from what the guides actually say: Skinish's positioning line and its real HEX values off the colour system page, Thinkers Diary's own "what makes us different" paragraph and its core and secondary palettes. Nothing claims a result neither client has published.
-- [x] FOUND WHILE DOING THAT: every branding case study was hiding five gallery images. `.wk-shots--tall` set `aspect-ratio: auto` and the `next/image` inside it uses `fill`, which is absolutely positioned and so contributes no height — the boxes collapsed to TWO PIXELS. Moore Designs had been hiding its usage rules, stationery, apparel, signage and storefront pages; Marfaa four more. Each figure now gets its real ratio, read from the file's own header at build time by `lib/image-size.ts`, so the artwork sets its own shape, nothing is cropped, and the space is reserved before the picture loads.
 
 ## 1. Public frontend
 
@@ -58,17 +55,6 @@ reader downloads; the work is server-side, as in `lib/qr.ts`.
 
 Order is conversion divided by effort, lowest risk first.
 
-- [ ] **Domain availability checker** (`web`). Type a name, see `.com .ng
-  .com.ng .africa .app .co` as taken, free, or unknown. `/api/tools/domain`
-  queries each registry's RDAP service directly, resolved from IANA's bootstrap
-  file (`data.iana.org/rdap/dns.json`, cached 24h, longest-label match per RFC
-  9224): 404 means available, 200 means taken, anything else says so honestly.
-  Zero dependencies, about 1KB of client code. Measured: a `.com` lookup
-  answers in 3.7s. **`.ng` is unreliable** -- `rdap.nic.net.ng` returned 502
-  twice and timed out once -- so that row must degrade to "NiRA's lookup is
-  down, we will confirm by hand", which is itself the lead. Never use an NS
-  lookup as the primary signal: our own registered domain reads as available
-  that way. `maxDuration = 15`, 4s per registry, `Promise.allSettled`.
 - [ ] **Email deliverability check** (`web`, linked from `social`). A domain in,
   and out comes SPF, the DMARC policy in plain English, the MX provider, and a
   probe of about fifteen common DKIM selectors. `node:dns/promises` only: zero
@@ -233,16 +219,12 @@ party, which our own CSP blocks and which we should not loosen it for.
 
 ### 4.5 Money, invoices, payments, and expenditure
 
-- [x] Done, and it needed more than pointing the existing helper at a new string. The code has to resolve to something a client can open without an account, so there are now public invoice and receipt documents at `/i/<token>` and `/r/<token>`.
-
   ADDRESSED BY A RANDOM TOKEN, NEVER BY THE NUMBER. Invoice numbers are sequential by design -- that is what makes them auditable -- so a page at `/i/INV-2026-004` would hand anyone holding one invoice every other invoice the studio has raised, by subtracting one. The token is 128 bits from `crypto.getRandomValues`, it is the entire authorisation, and a wrong one gets a plain 404 rather than a message confirming the format was right. A draft has no public page at all. Pinned by `tests/money-documents.spec.ts`: the number 404s, a near-miss token 404s, a draft's token 404s.
 
   THE CODE WAS DECODED, NOT LOOKED AT, and the first attempt failed. These URLs carry a full absolute address plus a token, and the mark in the middle forces error-correction level H, so they need far more modules than a blog slug: at the 136px the blog rail uses, jsQR found NO code at all at 1x, 2x and 3x. Two fixes, both measured. The token moved from 32 hex characters to 22 base64url ones -- the same 128 bits, ten fewer characters of data. And `.qr__code`'s hard 136px cap became a variable, with the documents asking for 160px. All 36 decodes then passed. `content-visibility: auto` was also turned off for still codes: it exists to stop a looping animation below the fold, a still code has no loop, and it was leaving the code unrendered in a screenshot or print taken before it scrolled into view.
 
 - [ ] Rebuild Money to Litch parity with overview, invoices, payments, receipts, expenses/accounting, exports, and useful filters while retaining WDC's concise primary navigation.
 - [ ] Add estimates/quotes and invoices with immutable numbering, line items, discounts, tax, currency, issue/due dates, project linkage, notes, terms, preview, PDF, send, duplicate, void, and reminder actions.
-- [x] All five, and the list lives in one place now. The action used to re-type `["Paystack", "Transfer", "Cash"]`, so adding POS and Other to the union in types.ts would have silently kept rejecting both and filed them as "Transfer" -- there is one reader and one list. "Other" is labelled rather than left as a gap, and picking it REQUIRES saying what it actually was: recording money against an unnamed catch-all is how a set of books stops being auditable.
-- [x] All seven, and the point of the work was keeping them APART rather than adding seven buttons.
 
   A VOID, A REVERSAL AND A REFUND ARE THREE DIFFERENT EVENTS. A void says the invoice should never have existed. A reversal says the money never really arrived: the transfer bounced, or somebody typed a row that should not be there. A refund says it arrived, we had it, and it went back. A client reconciling against their own bank statement sees TWO movements for a refund and none for the other two, so a system that collapses any pair of them forces somebody to record the wrong thing.
 
@@ -259,7 +241,6 @@ party, which our own CSP blocks and which we should not loosen it for.
   DERIVED, NOT STORED, ALL OF IT. `invoiceStatus` returns Void before anything else; `invoiceTotals` returns nothing due on a struck invoice, which is what stops one table remembering and another forgetting; `collected` sums `paymentNet`; the client's balance is the sum of unapplied credits. Reconciled against the seeded books after the change: outstanding ₦3,003,150.00 on the tiles and in the aging footer, the struck ₦548,250.00 in neither, collected ₦2.1m net of the refund, and the collection rate 41% of what is still billed.
 
   Pinned by `tests/money-corrections.spec.ts`, fourteen cases across the documents and the arithmetic.
-- [x] It already created a transaction rather than flipping a status; what was missing was the attribution. A payment now records who entered it and an optional note, both shown on the invoice's payment table and on the receipt. A manual entry with no name against it is the entry nobody can question three months later, which is the entry most worth questioning. Free text for now, and it becomes the signed-in admin the moment there is one -- said here rather than pretended.
 - [ ] Keep payment and invoice event histories append-only; correct mistakes through attributed reversals/voids and retain original evidence.
 - [-] Receipts are generated for every successful payment whatever the method, numbered `RCT-YYYY-NNN` in order and never reused, and each links to its invoice, client and project. The number is assigned when the payment is recorded rather than when the receipt is opened, so reprinting cannot change it, and it is derived from the highest number already taken rather than from a count -- reversing a payment removes a row, and a count would then reissue a number already printed and posted. Each receipt has its own public page and its own QR.
 
@@ -288,7 +269,6 @@ party, which our own CSP blocks and which we should not loosen it for.
   THEY DRILL AND THEY RECONCILE, and both were checked rather than assumed. Every bucket lists the invoices behind it as links, so no total has to be taken on trust, and the panel's footer is summed from the same buckets the rows draw. Measured against the seeded books: the aging footer reads ₦646,500.00 and the Outstanding tile reads ₦647k, which is the same figure through `nairaShort`; collection rate reads 76% against ₦2.0m collected of ₦2.65m billed. The rate is capped at 100% and returns nothing rather than 0% when nothing has been invoiced — a red 0% for a studio that has simply not billed yet is a different thing and not a problem.
 
   NOT DONE: a cashflow FORECAST, and per-bucket export. The six-month chart is history, not projection, and is not labelled as one.
-- [x] All four, on a screen at `/admin/money/reconciliation` that is deliberately NOT a seventh nav item: the admin holds to six primary pages, so this is a room inside Money, reached from a banner that appears only when there is something in it.
 
   WHAT IS IN IT IS EVERYTHING THAT DID NOT LAND CLEANLY. A charge whose reference matched no invoice. A transfer where somebody typed their company name into the narration instead of the invoice number. A webhook that arrived twice. One whose signature did not verify. A checkout that would not open. None of these appear anywhere else, because on every other screen they are an absence: an invoice that quietly stayed unpaid.
 
@@ -297,7 +277,6 @@ party, which our own CSP blocks and which we should not loosen it for.
   TWO ACTIONS, KEPT APART. "Match it to an invoice" banks real money through the same `applyPayment` everything else uses, with the same idempotency, the same receipt number and the same audit line, then closes the event with a note naming who decided. "Write it off" records what was done and moves no money. One button with a dropdown would make the consequential one something somebody reaches by accident. Both require a note, for the same reason a reversal requires a reason: "resolved" on its own is a tick somebody put there.
 
   MATCHING BY HAND IS THE LAST RESORT, NOT THE FIRST. `matchInvoice` tries the charge's metadata, then the invoice number inside the reference -- our own references carry it as a prefix, and "INV-2026-004" typed into a bank narration is the commonest reference a Nigerian transfer carries. It returns null rather than guessing, because a wrong match is a payment on somebody else's invoice.
-- [x] All six, and the shape of it is worth stating because it is where payment integrations go wrong.
 
   HOSTED CHECKOUT, NOT THE INLINE POPUP. Paystack offers both. The popup needs their script running on the page that shows a client what they owe; the redirect hands the card details to Paystack on Paystack's own origin, keeps our document free of third-party JavaScript, and works with JavaScript off. The cost is losing the client's context for the length of the payment, which for an invoice paid once is the cheaper side of the trade.
 
@@ -333,13 +312,11 @@ party, which our own CSP blocks and which we should not loosen it for.
 - [-] Three of the eight are built and sending: the invoice with its pay link, the payment receipt, and the invoice reminder. They share one shell, one delivery path and one set of rules, and the buttons that send them are on the invoice screen rather than buried in a menu. The orange call-to-action in them carries BLACK type, not white: white on #ff6500 measures 2.95:1 and fails even the 3:1 allowed for large text, and an email client is no more forgiving than a browser. The password-reset mail had that bug and it is fixed here too.
 
   NOT DONE: onboarding receipt, account invitation, project update, approval request and completion messages. And they are TEMPLATES IN CODE, not editable by the studio -- the checklist asks for editable, and a template editor is a real piece of work rather than a field. Said plainly rather than ticked.
-- [x] Every field, on the client record and on the invoice, and it is a communication log rather than an email log: WhatsApp, phone and in-person rows have the same shape and are typed by a person. What the site CANNOT do is read WhatsApp, so a WhatsApp row means somebody wrote one down, and the empty state says so rather than implying a sync that does not exist.
 
   THE ROW IS WRITTEN BEFORE THE MAIL SERVER IS CALLED, NEVER AFTER. A receipt goes out behind the response -- this SMTP server takes about 23 seconds just to authenticate -- which means by the time it fails there is nobody left to tell. The row IS the telling: Queued first, then Sent or Failed. A row still reading Queued long after the fact is a send that disappeared inside the provider, which is exactly the thing a log written after a successful send can never show.
 
   FOUR STATES, NOT TWO. Skipped is separate from Failed and says why: "they have reminders switched off" is a different fact from "the mail server refused it", and a log that collapses them teaches people to distrust the log.
 - [ ] Provide explicit WhatsApp handoff actions without pretending the website can read or sync WhatsApp messages unless a real approved integration is added.
-- [x] Preferences live on the CLIENT, not on the template -- a client who has asked not to be chased must not be chased by a reminder written next month by somebody who never read that conversation, which is what happens when the switch lives on the message. Three kinds: project updates, invoice reminders, and studio news, opted in by default for the two that are part of doing the work and out of the one that is not.
 
   WHAT CANNOT BE SWITCHED OFF, AND WHY. A receipt for money a client has actually paid is a record they are entitled to. It is not a notification, and it is not in the list.
 
@@ -433,6 +410,9 @@ Archived, with the evidence that closed each one. Search here before
 reopening anything.
 
 ## Closed 2026-09-14, from live-site review
+
+- [x] **Domain availability checker** shipped at `/tools/domain`, server-rendered and indexable in its own right with its own title, description, canonical, breadcrumb and WebApplication JSON-LD, and in the sitemap. One name in, six endings out (`.com .ng .com.ng .africa .app .co`), through the SAME `/api/domain` the onboarding form uses, because it is the same question of the same registries and two routes would be two things to keep in step. Resolved from IANA's bootstrap with longest-suffix matching: 404 available, 200 taken, anything else honestly unknown. Verified live: `.com`, `.africa` and `.app` answered; `.ng`, `.com.ng` and `.co` came back unknown, `.co` because it publishes no RDAP service at all. The trap the item warned about is avoided -- `wedigcreativity.com.ng` is REGISTERED and reports unknown, which is exactly what an NS lookup would have got wrong by calling it available. No dependency added, about 1KB of client code, work server-side because `connect-src 'self'` forbids the browser reaching a registry.
+- [x] `jsqr` and `pngjs` added as devDependencies. Both were imported by `tests/money-documents.spec.ts` and `tests/money-print.spec.ts` and declared nowhere, so `npm run build` ended in "Failed to type check" and EVERY production deployment after those tests landed came back ERROR -- including `916ed44`, which failed for this and not for anything in that commit. Build green again.
 
 - [x] Resume links expire after 3 days, and a client who misses that window can now get another one WITHOUT emailing a human. The expiry, replay rejection, invalid-link handling and rotation were already done; the missing half was self-service reissue, and the resume route's answer to an expired link was literally "Request a new link from WDC". `POST /api/onboarding/reissue` closes it, and both dead ends (expired, and already-used) now return `canReissue: true`. It is deliberately a NON-ENUMERATING oracle: unauthenticated and taking an email address, a truthful answer would let anyone learn whether a given person has an unfinished WDC onboarding, so the response is identical whether the address has a draft, has none, or was never seen -- including when the database or the mail send fails, because a different status or timing is still a signal. The link goes to the address ON THE DRAFT and there is no field to nominate another, which is what stops it forwarding somebody else's answers. Issuing revokes every outstanding unused token for that draft in the same transaction, so an old link is not a second key. Only `status = 'in_progress'` drafts qualify: handing an editable link to an already-submitted form would let answers we have acted on be changed. Origin-checked, rate-limited to 4 per 15 minutes, and the send is not awaited because this mail server takes ~23s just to authenticate.
 - [x] Completion time and question count validated per service, computed from `lib/onboarding.ts` and its own `SECONDS` weights rather than estimated. Shortest path (no conditional revealed) to longest (every conditional revealed): branding 7-9 min over 24-35 questions, seo 8-9 over 26-35, apps 7-9 over 27-37, software 8-9 over 26-35, web 7-11 over 29-45, social 9-12 over 30-51. Every service sits inside a three-minute spread at the short end, which is the number a client actually experiences, and 20 always-shown questions are the shared core and closing steps rather than anything a service adds. The new `domains` field is weighted 45s, deliberately above `textarea`, because naming a business is the slowest question in the form.
@@ -727,3 +707,26 @@ the count at the top wrong again.
 - [x] All five are derived by `projectAttention` from the project, its tasks and today's date — never stored, for the same reason `invoiceStatus` derives "overdue": it is a state time creates while nobody is looking. The dashboard queue used to list everything in Onboarding or Revisions, which is a proxy and a poor one; it now lists projects actually asking for somebody and sorts ACROSS the whole queue, so three overdue invoices can no longer push every blocked project off a panel titled "Attention needed".
 - [x] Recorded on the project, because it is agreed per project rather than per company, and shown in the "what was agreed" row. Changing it writes a line on the history.
 - [x] Archiving takes a project out of the lists and the board and touches nothing else: invoices, payments, updates, approvals and file versions stay exactly as they are. There is deliberately no delete, and the confirmation says so.
+
+
+## Moved out of Open, 2026-09-14
+
+## 0. Raised in conversation, not yet done
+
+- [x] The client work sent through chat is on the site: 29 new assets at both sizes. Thirteen flyers, logo boards and a conference backdrop (Artdoor, Timi's Jewels, Moore, Sparkle Foundation, Fash Footies, OGreen, Everything Men, Dhiol Tech Hub, Benedict Ogbogu, Vickygold, Direct Link, Teaching With Purpose), plus sixteen pages lifted from the Skinish and Thinkers Diary brand guides and the Moore letterhead. The guide pages were pulled from the PDFs themselves rather than remade — Thinkers embeds its pages as JPEGs so those were copied out byte-for-byte, and Skinish and the letterhead are vector so they were rendered with pdf.js at 2x. Both documents credit WDC by name inside them.
+- [x] Skinish and Thinkers Diary added as full branding case studies, written only from what the guides actually say: Skinish's positioning line and its real HEX values off the colour system page, Thinkers Diary's own "what makes us different" paragraph and its core and secondary palettes. Nothing claims a result neither client has published.
+- [x] FOUND WHILE DOING THAT: every branding case study was hiding five gallery images. `.wk-shots--tall` set `aspect-ratio: auto` and the `next/image` inside it uses `fill`, which is absolutely positioned and so contributes no height — the boxes collapsed to TWO PIXELS. Moore Designs had been hiding its usage rules, stationery, apparel, signage and storefront pages; Marfaa four more. Each figure now gets its real ratio, read from the file's own header at build time by `lib/image-size.ts`, so the artwork sets its own shape, nothing is cropped, and the space is reserved before the picture loads.
+
+### 4.5 Money, invoices, payments, and expenditure
+
+- [x] Done, and it needed more than pointing the existing helper at a new string. The code has to resolve to something a client can open without an account, so there are now public invoice and receipt documents at `/i/<token>` and `/r/<token>`.
+- [x] All five, and the list lives in one place now. The action used to re-type `["Paystack", "Transfer", "Cash"]`, so adding POS and Other to the union in types.ts would have silently kept rejecting both and filed them as "Transfer" -- there is one reader and one list. "Other" is labelled rather than left as a gap, and picking it REQUIRES saying what it actually was: recording money against an unnamed catch-all is how a set of books stops being auditable.
+- [x] All seven, and the point of the work was keeping them APART rather than adding seven buttons.
+- [x] It already created a transaction rather than flipping a status; what was missing was the attribution. A payment now records who entered it and an optional note, both shown on the invoice's payment table and on the receipt. A manual entry with no name against it is the entry nobody can question three months later, which is the entry most worth questioning. Free text for now, and it becomes the signed-in admin the moment there is one -- said here rather than pretended.
+- [x] All four, on a screen at `/admin/money/reconciliation` that is deliberately NOT a seventh nav item: the admin holds to six primary pages, so this is a room inside Money, reached from a banner that appears only when there is something in it.
+- [x] All six, and the shape of it is worth stating because it is where payment integrations go wrong.
+
+### 4.7 Communications and client portal handoff
+
+- [x] Every field, on the client record and on the invoice, and it is a communication log rather than an email log: WhatsApp, phone and in-person rows have the same shape and are typed by a person. What the site CANNOT do is read WhatsApp, so a WhatsApp row means somebody wrote one down, and the empty state says so rather than implying a sync that does not exist.
+- [x] Preferences live on the CLIENT, not on the template -- a client who has asked not to be chased must not be chased by a reminder written next month by somebody who never read that conversation, which is what happens when the switch lives on the message. Three kinds: project updates, invoice reminders, and studio news, opted in by default for the two that are part of doing the work and out of the one that is not.

@@ -1,0 +1,101 @@
+/* ==========================================================================
+   /tools — the free tools on the service pages.
+
+   Inside `.pv`, so tokens, type and the COLOUR RULE at the top of preview.css
+   all apply: a label on an --accent fill is --on-accent, never white.
+   ========================================================================== */
+
+.pv .tl { display: grid; gap: 1.4rem; max-width: 46rem; }
+
+.pv .tl__form { display: grid; gap: .5rem; }
+.pv .tl__label {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 600; font-size: .9rem; color: var(--ink);
+}
+
+/* Wraps rather than squeezing: at 320px a button beside an input leaves about
+   nine characters for the name somebody is typing. */
+.pv .tl__row { display: flex; flex-wrap: wrap; gap: .6rem; }
+
+.pv .tl__input {
+  flex: 1 1 14rem; min-width: 0;
+  padding: .85rem 1rem;
+  border: 1px solid var(--rule); border-radius: 12px;
+  background: var(--paper); color: var(--ink);
+  font: inherit; font-size: 1.02rem;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.pv .tl__input::placeholder { color: var(--muted); opacity: .75; }
+.pv .tl__input:focus-visible {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.pv .tl__go {
+  display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
+  min-height: 44px; padding: .7rem 1.4rem;
+  border-radius: 999px; border: 1.5px solid var(--accent);
+  background: var(--accent); color: var(--on-accent);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 600; font-size: 1rem; cursor: pointer;
+  transition: filter .2s ease;
+}
+.pv .tl__go:hover:not(:disabled) { filter: brightness(.94); }
+.pv .tl__go:disabled { opacity: .55; cursor: not-allowed; }
+.pv .tl__go svg { width: 1.05rem; height: 1.05rem; }
+.pv .tl__go:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .pv .tl__spin { animation: tl-spin 1s linear infinite; }
+}
+@keyframes tl-spin { to { transform: rotate(360deg); } }
+
+.pv .tl__hint { margin: 0; font-size: .86rem; color: var(--muted); }
+.pv .tl__err { margin: 0; font-size: .9rem; color: #b3261e; }
+.dark .pv .tl__err { color: #fca5a5; }
+
+.pv .tl__list { margin: 0; padding: 0; list-style: none; display: grid; gap: .5rem; }
+
+.pv .tl__item {
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: .5rem 1rem;
+  padding: .8rem 1rem;
+  border: 1px solid var(--rule); border-radius: 12px;
+  background: var(--paper);
+}
+/* The left edge carries the state as well as the words, so the row is
+   distinguishable at a glance without depending on the icon's colour. */
+.pv .tl__item--available { border-left: 3px solid #16794a; }
+.pv .tl__item--taken { border-left: 3px solid #b3261e; }
+.pv .tl__item--unknown { border-left: 3px solid var(--muted); }
+
+.pv .tl__name {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: 1.02rem; color: var(--ink);
+  overflow-wrap: anywhere; min-width: 0;
+}
+.pv .tl__state {
+  display: inline-flex; align-items: center; gap: .35rem;
+  font-size: .9rem; white-space: nowrap;
+}
+.pv .tl__state svg { width: 1rem; height: 1rem; flex: none; }
+.pv .tl__item--available .tl__state { color: #16794a; }
+.pv .tl__item--taken .tl__state { color: #b3261e; }
+.pv .tl__item--unknown .tl__state { color: var(--muted); white-space: normal; }
+.dark .pv .tl__item--available .tl__state { color: #6ee7a8; }
+.dark .pv .tl__item--taken .tl__state { color: #fca5a5; }
+
+.pv .tl__note { margin: 0; font-size: .9rem; line-height: 1.55; color: var(--muted); }
+
+.pv .tl__cta {
+  display: grid; gap: .8rem; justify-items: start;
+  padding-top: .4rem;
+}
+.pv .tl__cta p { margin: 0; font-size: .92rem; color: var(--muted); }
+
+.pv .tl__prose { display: grid; gap: 1rem; max-width: 62ch; }
+.pv .tl__prose p { margin: 0; color: var(--ink); line-height: 1.7; }
+.pv .tl__prose code {
+  font-size: .92em; padding: .1em .35em; border-radius: 5px;
+  background: var(--paper-2); border: 1px solid var(--rule);
+}
