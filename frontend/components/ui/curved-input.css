@@ -1,0 +1,106 @@
+/* The curved input. Vendored from React Bits; see the note at the top of
+   curved-input.tsx for what was changed and why. */
+
+.curved-input {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+.curved-input__svg {
+  display: block;
+  overflow: visible;
+  width: 100%;
+  height: auto;
+  cursor: text;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.curved-input__svg text {
+  font-family: inherit;
+}
+
+.curved-input__ring {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.curved-input--focused .curved-input__ring {
+  opacity: 0.28;
+}
+
+.curved-input__button {
+  cursor: pointer;
+  outline: none;
+}
+
+.curved-input__button-bg {
+  transition:
+    filter 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.curved-input__button:hover .curved-input__button-bg {
+  filter: brightness(1.12);
+}
+
+.curved-input__button:active .curved-input__button-bg {
+  filter: brightness(0.94);
+}
+
+.curved-input__button:focus {
+  outline: none;
+}
+
+/* A REAL FOCUS RING. The original brightens the button's fill by 18%, which is
+   not an indicator -- it is weaker than the hover state sitting right beside
+   it. The ring is drawn inside the button in the label's own colour, so it
+   reads against the fill whatever the fill is. */
+.curved-input__button-ring {
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+.curved-input__button:focus-visible .curved-input__button-ring {
+  opacity: 1;
+}
+
+/* WHILE A SUBMISSION IS IN FLIGHT. The bar keeps its shape and dims, which is
+   what a disabled control should do -- hiding it or swapping it for a spinner
+   moves the page under the reader's thumb at the exact moment they are waiting
+   to be told something. */
+.curved-input--busy .curved-input__svg {
+  opacity: 0.62;
+  cursor: progress;
+}
+.curved-input--busy .curved-input__button {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .curved-input__ring,
+  .curved-input__button-bg,
+  .curved-input__button-ring {
+    transition: none;
+  }
+}
+
+.curved-input__field {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  color: transparent;
+  caret-color: transparent;
+  font-size: 16px;
+  pointer-events: none;
+  outline: none;
+}
