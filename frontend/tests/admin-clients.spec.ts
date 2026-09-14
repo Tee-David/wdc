@@ -20,6 +20,13 @@ test("client filters are useful, reversible, and keep their context", async ({ p
   await expect(rows.first()).toContainText("Marfaa Foods");
   await expect(page.locator(".ad__listMeta")).toContainText("1 client");
 
+  const exportResponse = await page.request.get("/admin/clients/export?q=marfaa");
+  expect(exportResponse.status()).toBe(200);
+  expect(exportResponse.headers()["content-type"]).toContain("text/csv");
+  const exportBody = await exportResponse.text();
+  expect(exportBody).toContain("Marfaa Foods");
+  expect(exportBody).not.toContain("Moore Designs");
+
   await page.locator('input[name="q"]').fill("nobody matches this");
   await page.locator('.ad__filterBar button[type="submit"]').click();
   await expect(page).toHaveURL(/q=nobody(?:\+|%20)matches(?:\+|%20)this/);
@@ -28,6 +35,12 @@ test("client filters are useful, reversible, and keep their context", async ({ p
   await page.getByRole("link", { name: "Clear filters" }).click();
   await expect(page).toHaveURL(/\/admin\/clients(?:#client-list)?$/);
   await expect(page.locator("#client-list + .ad__scroll tbody tr")).toHaveCount(5);
+
+  const companySort = page.locator("th").getByRole("link", { name: "Client", exact: true });
+  await expect(companySort).toHaveAttribute("href", /sort=company/);
+  await page.goto((await companySort.getAttribute("href"))!);
+  await expect(page).toHaveURL(/sort=company/);
+  await expect(page.locator("th[aria-sort=ascending]")).toContainText("Client");
 });
 
 test("client filters remain usable on a narrow screen", async ({ page }) => {
