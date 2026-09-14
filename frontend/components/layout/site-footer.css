@@ -211,6 +211,19 @@
     display: flex;
     align-items: center;
     min-height: 44px;
+    /* THE TARGET GROWS; THE UNDERLINE DOES NOT.
+
+       `display: flex` here is block-level, so the link's box became the whole
+       column -- and the hover underline is painted with `background-size:
+       100%` of that box. On the address, 229px of text was getting a 353px
+       rule that ran a third of the way past the end of it and looked like a
+       divider somebody had left in.
+
+       `fit-content` keeps the box on its own words. The 44px is still there:
+       height is untouched, and a thumb aiming at a link aims at the words, not
+       at the empty column beside them. */
+    width: fit-content;
+    max-width: 100%;
   }
   .ft__social a { min-height: 44px; display: inline-flex; align-items: center; }
 }
