@@ -92,7 +92,7 @@ export default function DomainToolPage() {
           <div className="pv-wrap">
             <div className="pv-head">
               <span className="pv-eyebrow">How it works</span>
-              <h2>Asked of the registry, not guessed</h2>
+              <h2 className="pv-mix">Asked of the registry, <b>not guessed</b></h2>
             </div>
             <div className="tl__prose">
               <p>
@@ -123,7 +123,7 @@ export default function DomainToolPage() {
           <div className="pv-wrap">
             <div className="pv-cta">
               <span className="pv-eyebrow">Next step</span>
-              <h2>Found one? We will build what sits on it.</h2>
+              <h2 className="pv-mix">Found one? <b>We will build what sits on it.</b></h2>
               <p>
                 Websites, stores and booking systems, engineered to load fast on a
                 Nigerian connection and to be found once they are live.

@@ -130,7 +130,7 @@ export default function BlogIndex() {
           <div className="pv-wrap">
             <div className="pv-cta pv-reveal">
               <span className="pv-eyebrow">Something you want answered</span>
-              <h2>Ask us the question directly.</h2>
+              <h2 className="pv-mix"><b>Ask us the question</b> directly.</h2>
               <p>
                 If the thing you are trying to work out is not here, tell us what it
                 is. We will answer it straight, and if it is a good question we will
