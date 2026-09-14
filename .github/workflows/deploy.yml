@@ -1,0 +1,117 @@
+# Deploy main to Vercel production, from any client.
+#
+# WHY THIS EXISTS. Vercel's own git integration cannot deploy this repo. The
+# project is on the Hobby plan and `Tee-David/wdc` is private, and Hobby does
+# not allow collaborators on a private repo -- so every push produces a
+# deployment whose `githubCommitAuthorLogin` is `Tee-David` and whose state is
+# BLOCKED. Measured on 2026-09-14: of the last twenty deployments, ALL EIGHTEEN
+# created by the git integration were BLOCKED, and the only two that reached
+# READY were created through the REST API instead.
+#
+# THIS IS NOT ABOUT THE COMMIT AUTHOR, which is worth stating because it looks
+# like it is: the block message names the author, and the obvious conclusion is
+# that some clients commit as the wrong person. They do not. All twenty-five
+# recent commits carry the identical author and committer
+# (`Tee-David <teedavid30@gmail.com>`), whether they were made from the
+# desktop, from mobile, or by another agent. Changing `user.email` does nothing
+# -- both addresses map to the same GitHub login, and the login is what is
+# gated.
+#
+# What actually differed is that somebody was calling the REST API by hand
+# after pushing from a desktop, and nobody was doing that after pushing from a
+# phone. This job does it for every push instead, so where the push came from
+# stops mattering.
+#
+# THE ONE-TIME SETUP: add a repository secret named VERCEL_TOKEN
+# (Settings -> Secrets and variables -> Actions -> New repository secret) with
+# a Vercel token that can deploy the `wdc-solutions` team. Until it exists this
+# job fails loudly on its first step rather than appearing to succeed.
+#
+# THE REAL FIX is Vercel Pro, or making the repo public; either removes the
+# gate and lets the native integration work. This is the free version.
+
+name: Deploy to Vercel
+
+on:
+  push:
+    branches: [main]
+  # So a failed deploy can be retried without an empty commit.
+  workflow_dispatch:
+
+# One deploy at a time. Two pushes a minute apart would otherwise race, and the
+# older build could finish last and become production.
+concurrency:
+  group: vercel-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check the token is present
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::VERCEL_TOKEN repository secret is not set, so this push cannot deploy."
+            echo "Add it under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+      - name: Create the production deployment
+        id: create
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          TEAM_ID: team_PD5oXspJXbmnw6BZuI1B6xIi
+          PROJECT_ID: prj_1MobqeBbGWI2nvSfHc85SG7iIpAt
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          # `forceNew=1` because a deployment already exists for this SHA: the
+          # git integration made one and it is BLOCKED. Without this, Vercel
+          # would hand back that blocked one instead of building.
+          response=$(curl -sS -X POST \
+            "https://api.vercel.com/v13/deployments?teamId=${TEAM_ID}&forceNew=1" \
+            -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"name\":\"wdc\",\"project\":\"${PROJECT_ID}\",\"target\":\"production\",\"gitSource\":{\"type\":\"github\",\"org\":\"Tee-David\",\"repo\":\"wdc\",\"ref\":\"main\",\"sha\":\"${SHA}\"}}")
+
+          id=$(printf '%s' "$response" | jq -r '.id // empty')
+          if [ -z "$id" ]; then
+            # The token is in the request, never in the response, so printing
+            # the body here is safe and is the only way to see what went wrong.
+            echo "::error::Vercel refused to create the deployment."
+            printf '%s\n' "$response" | jq -r '.error // .' || printf '%s\n' "$response"
+            exit 1
+          fi
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+          echo "Created $id for ${SHA}"
+
+      - name: Wait for it to finish
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          TEAM_ID: team_PD5oXspJXbmnw6BZuI1B6xIi
+          ID: ${{ steps.create.outputs.id }}
+        run: |
+          set -euo pipefail
+          # Polled rather than fire-and-forget, so a red tick in the Actions tab
+          # means the site did not update. A deploy that silently fails is how
+          # this repo ended up with hours of BLOCKED builds nobody noticed.
+          for _ in $(seq 1 60); do
+            state=$(curl -sS \
+              "https://api.vercel.com/v13/deployments/${ID}?teamId=${TEAM_ID}" \
+              -H "Authorization: Bearer ${VERCEL_TOKEN}" | jq -r '.status // .readyState')
+            echo "$(date -u +%H:%M:%S) $state"
+            case "$state" in
+              READY)
+                echo "Deployed."
+                exit 0 ;;
+              ERROR|CANCELED|BLOCKED)
+                echo "::error::Deployment finished as $state."
+                exit 1 ;;
+            esac
+            sleep 20
+          done
+          echo "::error::Deployment did not finish within 20 minutes."
+          exit 1

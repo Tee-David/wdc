@@ -60,6 +60,72 @@ export function toTop(immediate: boolean) {
   window.scrollTo({ top: 0, left: 0, behavior: immediate ? "instant" : "smooth" });
 }
 
+/* Same rule as `toTop`, to an arbitrary offset: Lenis has to be told or it
+   animates the document back on the next frame. */
+function toY(y: number) {
+  window.__lenis?.scrollTo(y, { immediate: true, force: true });
+  window.scrollTo({ top: y, left: 0, behavior: "instant" });
+}
+
+const KEY = "wdc:scroll";
+
+/**
+ * Where the reader was, saved ONCE as the page goes away.
+ *
+ * NOT ON SCROLL. A listener that writes the offset as you move is a
+ * scroll-position writer, which this project's conventions forbid on touch
+ * devices and which costs a write per frame everywhere else. `pagehide` fires
+ * on reload, on navigation and on tab close, and it fires once, which is all
+ * this needs.
+ */
+function remember() {
+  try {
+    const y = window.scrollY;
+    if (y <= 0) { sessionStorage.removeItem(KEY); return; }
+    sessionStorage.setItem(KEY, JSON.stringify({ path: window.location.pathname, y }));
+  } catch {
+    /* Private mode, or storage refused. Losing the position is the acceptable
+       failure here; throwing on the way out of a page is not. */
+  }
+}
+
+/** The saved offset for this exact path, or null. Read once, then cleared. */
+function recall(): number | null {
+  try {
+    const raw = sessionStorage.getItem(KEY);
+    if (!raw) return null;
+    sessionStorage.removeItem(KEY);
+    const saved = JSON.parse(raw) as { path?: string; y?: number };
+    if (saved?.path !== window.location.pathname) return null;
+    return typeof saved.y === "number" && saved.y > 0 ? saved.y : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Was this document RELOADED, rather than navigated to?
+ *
+ * This is the distinction the old code could not make, and the whole of the
+ * bug: it set `scrollRestoration = "manual"` and jumped to the top on every
+ * first load, which is right for a navigation and wrong for a refresh. A
+ * reader who refreshes expects to be where they were, the way every other site
+ * behaves; a reader who clicks a link expects the top.
+ *
+ * `back_forward` is included because a full-document Back has the same
+ * expectation as a refresh. `prerender` and `navigate` do not.
+ */
+function isReload(): boolean {
+  try {
+    const entry = performance.getEntriesByType("navigation")[0] as
+      | PerformanceNavigationTiming
+      | undefined;
+    return entry?.type === "reload" || entry?.type === "back_forward";
+  } catch {
+    return false;
+  }
+}
+
 export default function ScrollReset() {
   const path = usePathname();
   const first = useRef(true);
@@ -69,12 +135,30 @@ export default function ScrollReset() {
      position and the browser is right to honour it. */
   useEffect(() => {
     if (!("scrollRestoration" in window.history)) return;
+    /* Still "manual", and still for the reason below: the browser's own
+       restore overshoots on pages whose height depends on JavaScript that has
+       not run yet. We do the restoring instead, after `load`, when the pinned
+       sections have measured themselves and the document is its real height.
+       That is the same moment the second pass below exists for. */
     window.history.scrollRestoration = "manual";
-    if (window.location.hash) return;
+
+    /* The position is saved as the page leaves, whatever takes it away. */
+    window.addEventListener("pagehide", remember);
+
+    if (window.location.hash) return () => window.removeEventListener("pagehide", remember);
+
+    /* A REFRESH IS NOT A NAVIGATION, and treating them alike was the bug: the
+       reader was thrown to the top of a page they had just refreshed halfway
+       down. The saved offset is read (and cleared) either way, so a position
+       left behind by one visit cannot reappear on a later link click. */
+    const saved = recall();
+    const restoreTo = isReload() ? saved : null;
+
     /* Two passes. The first covers a normal load; the second runs after
        `load`, by which point the pinned sections have measured themselves and
        the document has its real height -- which is when a restored offset
-       would otherwise reappear.
+       would otherwise reappear, and equally when a restore of OUR own can
+       first be trusted to land on the right pixel.
 
        THE SECOND PASS MUST NEVER FIGHT THE READER. Between mount and `load`
        the page is already interactive, so someone can scroll, or click an
@@ -83,14 +167,24 @@ export default function ScrollReset() {
        one, so a correction here would silently undo a jump the reader had just
        asked for. Any sign of intent -- a wheel, a touch, a key, a click --
        stands the second pass down. */
-    toTop(true);
+    if (restoreTo === null) toTop(true);
+
     let intent = false;
     const noteIntent = () => { intent = true; };
     const intents = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
     for (const type of intents) window.addEventListener(type, noteIntent, { passive: true, once: true });
 
     const onLoad = () => {
-      if (intent || window.location.hash || window.scrollY > 4) return;
+      if (intent || window.location.hash) return;
+      if (restoreTo !== null) {
+        /* Never past the end: the page can be shorter than it was, and a
+           refresh that lands on blank space below the footer is worse than
+           one that lands at the top. */
+        const limit = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        toY(Math.min(restoreTo, limit));
+        return;
+      }
+      if (window.scrollY > 4) return;
       toTop(true);
     };
     if (document.readyState === "complete") {
@@ -100,6 +194,7 @@ export default function ScrollReset() {
     }
     return () => {
       window.removeEventListener("load", onLoad);
+      window.removeEventListener("pagehide", remember);
       for (const type of intents) window.removeEventListener(type, noteIntent);
     };
   }, []);
