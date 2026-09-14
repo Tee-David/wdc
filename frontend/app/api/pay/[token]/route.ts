@@ -51,6 +51,11 @@ export async function POST(request: NextRequest, ctx: { params: Promise<{ token:
      answer here would confirm that a token is nearly right. */
   if (!inv || inv.status === "Draft") return new NextResponse("Not found", { status: 404 });
 
+  /* A struck invoice is not owed. Refusing here rather than letting the
+     checkout open means nobody pays money that would immediately have to be
+     sent back. */
+  if (inv.voided) return back(token, "voided");
+
   const totals = invoiceTotals(inv);
   if (totals.due <= 0) return back(token, "settled");
 

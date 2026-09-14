@@ -1,10 +1,13 @@
 import type {
   Approval, AuditEntry, AuditKind, Channel, Client, Deliverable, Expense,
-  Health, Id, Invoice, Message, MessageChannel, MessageState, Payment,
-  Priority, Project, ProviderEvent, ProviderOutcome, Stage, Submission, Task,
-  Update,
+  Credit, Health, Id, Invoice, Message, MessageChannel, MessageState, Payment,
+  Priority, Project, ProviderEvent, ProviderOutcome, Refund, Stage, Submission,
+  Task, Update,
 } from "./types";
-import { invoiceTotals, naira, providerNeedsAttention } from "./types";
+import {
+  invoiceStatus, invoiceTotals, naira, paymentNet, providerNeedsAttention,
+  refundedTotal,
+} from "./types";
 
 /**
  * THE ONE PLACE THE ADMIN GETS ITS DATA, and the only file that has to change
@@ -175,7 +178,10 @@ const INVOICES: Invoice[] = [
     id: "i2", token: "seedInv2AAAAAAAAAAAAAAA", number: "INV-2026-002", clientId: "c2", projectId: "p3",
     status: "Sent", issued: iso("2026-07-05"), due: iso("2026-08-04"), vatRate: 7.5,
     lines: [{ description: "Social management, July", qty: 1, unit: N(250_000) }],
-    paid: 0,
+    /* NET OF THE REFUND: ₦150,000 arrived and ₦75,000 went back. `collected()`
+       recomputes this on every write, so the seed states what that sum
+       produces rather than a figure of its own. */
+    paid: N(75_000),
   },
   {
     id: "i3", token: "seedInv3AAAAAAAAAAAAAAA", number: "INV-2026-003", clientId: "c3", projectId: "p4",
@@ -198,6 +204,21 @@ const INVOICES: Invoice[] = [
     lines: RETAINER_LINES,
     paid: 0,
   },
+  /* STRUCK, AND SEEDED BECAUSE THE STATE IS INVISIBLE UNTIL IT EXISTS. The
+     number is taken and stays taken -- INV-2026-007 follows it -- the public
+     page still opens and says nothing is owed, and every receivables figure
+     skips it. Nothing was ever received against it, which is the only
+     condition under which an invoice may be struck at all. */
+  {
+    id: "i6", token: "seedInv6AAAAAAAAAAAAAAA", number: "INV-2026-006", clientId: "c1", projectId: "p1",
+    status: "Sent", issued: iso("2026-09-03"), due: iso("2026-10-03"), vatRate: 7.5,
+    lines: [{ description: "Packaging artwork, six SKUs", qty: 6, unit: N(85_000) }],
+    paid: 0,
+    voided: {
+      at: iso("2026-09-05"), by: "Babatope",
+      reason: "Raised against the wrong project. The packaging work sits under the retainer, not the identity job.",
+    },
+  },
 ];
 
 const PAYMENTS: Payment[] = [
@@ -208,6 +229,20 @@ const PAYMENTS: Payment[] = [
     note: "Paid into the Zenith account." },
   { id: "y3", invoiceId: "i3", at: iso("2026-08-14"), amount: N(741_000), method: "Paystack",
     reference: "PSK_11ba7c", receiptNo: "RCT-2026-003", token: "seedRct3AAAAAAAAAAAAAAA", by: "Paystack webhook" },
+  /* PART REFUNDED, WHICH IS THE ORDINARY CASE and the one a single "refunded"
+     flag cannot describe. The client paid a deposit, the work was cut short
+     after discovery, and half of it went back -- onto their balance rather
+     than to their bank, which is what makes the credit below exist. The
+     receipt keeps its number and still opens; it now says what was returned
+     and what is still held. */
+  { id: "y4", invoiceId: "i2", at: iso("2026-07-08"), amount: N(150_000), method: "Transfer",
+    reference: "TRF_0104", receiptNo: "RCT-2026-004", token: "seedRct4AAAAAAAAAAAAAAA", by: "Babatope",
+    note: "Deposit on the July retainer.",
+    refunds: [
+      { id: "rf1", at: iso("2026-07-21"), by: "Babatope", amount: N(75_000),
+        reason: "July stopped halfway through. Returning the unused half of the deposit.",
+        toCredit: true },
+    ] },
 ];
 
 const EXPENSES: Expense[] = [
@@ -328,11 +363,20 @@ export function getPaymentByToken(t: string) {
  * money arrived when it went back. There is no version of this that filters
  * inline at the call site.
  */
+/* NET, NOT GROSS. `paymentNet` takes off a reversal in full and a refund in
+   part, so every figure that reaches a screen goes through it. `amount` is
+   what arrived and is deliberately never edited: the receipt a client is
+   holding says that number, and a books entry that rewrites itself cannot be
+   reconciled against a document somebody printed. */
 function collected(invoiceId: Id) {
   return PAYMENTS
-    .filter((p) => p.invoiceId === invoiceId && !p.reversed)
-    .reduce((n, p) => n + p.amount, 0);
+    .filter((p) => p.invoiceId === invoiceId)
+    .reduce((n, p) => n + paymentNet(p), 0);
 }
+
+/* ONE PREDICATE FOR "COUNTS TOWARDS THE BOOKS", so a void added here cannot be
+   honoured by the summary and missed by the aging. */
+const onTheBooks = (inv: Invoice) => inv.status !== "Draft" && !inv.voided;
 
 export function getPaymentsFor(invoiceId: Id) {
   return PAYMENTS.filter((p) => p.invoiceId === invoiceId);
@@ -365,7 +409,7 @@ export function getSummary(today = new Date()) {
   const invoices = getInvoices();
   let invoiced = 0, collected = 0, outstanding = 0, overdue = 0;
   for (const inv of invoices) {
-    if (inv.status === "Draft") continue;
+    if (!onTheBooks(inv)) continue;
     const t = invoiceTotals(inv);
     invoiced += t.total;
     collected += inv.paid;
@@ -433,7 +477,7 @@ export function getAging(today = new Date()) {
   ];
 
   for (const inv of INVOICES) {
-    if (inv.status === "Draft") continue;
+    if (!onTheBooks(inv)) continue;
     const { due } = invoiceTotals(inv);
     if (due <= 0) continue;
     const days = Math.floor((today.getTime() - new Date(inv.due).getTime()) / 86_400_000);
@@ -462,7 +506,7 @@ export function getAging(today = new Date()) {
 export function getCollectionRate(): number | null {
   let invoiced = 0, collected = 0;
   for (const inv of INVOICES) {
-    if (inv.status === "Draft") continue;
+    if (!onTheBooks(inv)) continue;
     invoiced += invoiceTotals(inv).total;
     collected += inv.paid;
   }
@@ -498,11 +542,17 @@ export function getMonthly(months = 6) {
   return keys.map((k) => ({
     month: k,
     label: new Date(`${k}-01`).toLocaleString("en-GB", { month: "short" }),
-    /* `!p.reversed`: a bounced transfer is not income in the month it bounced,
-       and it was never income in the month it arrived either. A cashflow chart
-       that counts it is a chart that disagrees with the invoice totals beside
-       it, which is the sort of thing somebody spots in a board meeting. */
-    in: getPayments().filter((p) => key(p.at) === k && !p.reversed).reduce((n, p) => n + p.amount, 0),
+    /* `paymentNet`: a bounced transfer is not income in the month it bounced,
+       and it was never income in the month it arrived either. Neither is the
+       half of a deposit that was handed back. A cashflow chart that counts
+       either is a chart that disagrees with the invoice totals beside it,
+       which is the sort of thing somebody spots in a board meeting.
+
+       THE REFUND IS TAKEN OFF THE MONTH THE PAYMENT LANDED IN, not the month
+       it was returned. That is the honest reading for a chart of what each
+       month earned; a chart of what moved through the bank would say the
+       opposite, and this is the first. Said here so the choice is visible. */
+    in: getPayments().filter((p) => key(p.at) === k).reduce((n, p) => n + paymentNet(p), 0),
     out: getExpenses().filter((e) => key(e.at) === k).reduce((n, e) => n + e.amount, 0),
   }));
 }
@@ -761,7 +811,7 @@ export function deleteDraftInvoice(id: Id, actor = "Studio"): boolean {
 
 export type ApplyResult =
   | { ok: true; payment: Payment; invoice: Invoice; overpaid: boolean }
-  | { ok: false; reason: "no-invoice" | "duplicate" | "not-positive" | "draft" };
+  | { ok: false; reason: "no-invoice" | "duplicate" | "not-positive" | "draft" | "void" };
 
 /**
  * THE ONE PLACE A PAYMENT BECOMES MONEY.
@@ -798,6 +848,12 @@ export function applyPayment(d: {
   const inv = getInvoice(d.invoiceId);
   if (!inv) return { ok: false, reason: "no-invoice" };
   if (inv.status === "Draft") return { ok: false, reason: "draft" };
+  /* A struck invoice is not owed, so there is nothing here to pay. Money that
+     arrives against one anyway is a real event and belongs on the
+     reconciliation screen as unmatched, where a person decides which invoice
+     it was meant for -- not banked against a document that says nothing is
+     due. */
+  if (inv.voided) return { ok: false, reason: "void" };
   if (!Number.isFinite(d.amount) || d.amount <= 0) return { ok: false, reason: "not-positive" };
 
   const ref = d.reference.trim();
@@ -851,6 +907,238 @@ export function reversePayment(id: Id, reason = "", actor = "Studio"): boolean {
           note: [`${p.method} · ${p.reference}`, inv ? `against ${inv.number}` : null, reason.trim() || null]
             .filter(Boolean).join(" · ") });
   return true;
+}
+
+/**
+ * Strike an invoice that should never have been raised.
+ *
+ * THE NUMBER STAYS TAKEN. Unbroken numbering is most of what makes a set of
+ * books auditable, so there is no delete here for anything that has been
+ * issued -- only a strike. The row stays, the public page still resolves, and
+ * everything that sums receivables skips it.
+ *
+ * MONEY AGAINST IT BLOCKS THE VOID, and that is the rule rather than a
+ * limitation. If a payment has landed, the money is real; the honest
+ * correction names where it went, which is a refund or a reversal on the
+ * payment. Voiding it would leave a payment belonging to nothing.
+ */
+export function voidInvoice(id: Id, reason: string, actor = "Studio"):
+  | { ok: true; invoice: Invoice }
+  | { ok: false; reason: "missing" | "draft" | "has-payments" | "already" | "no-reason" } {
+  const inv = getInvoice(id);
+  if (!inv) return { ok: false, reason: "missing" };
+  if (inv.voided) return { ok: false, reason: "already" };
+  /* A draft has no number anybody has seen. Deleting it is the right verb and
+     `deleteDraftInvoice` already does it. */
+  if (inv.status === "Draft") return { ok: false, reason: "draft" };
+  if (getPaymentsFor(inv.id).some((p) => paymentNet(p) > 0)) {
+    return { ok: false, reason: "has-payments" };
+  }
+  const text = reason.trim();
+  if (!text) return { ok: false, reason: "no-reason" };
+
+  inv.voided = { at: now(), by: actor, reason: text };
+  audit({ actor, kind: "invoice", subjectId: inv.id, subject: inv.number,
+          action: "voided", from: invoiceStatus(inv), to: "Void", note: text });
+  return { ok: true, invoice: inv };
+}
+
+/**
+ * Give money back that really did arrive.
+ *
+ * NOT A REVERSAL, and the two are kept apart because they answer different
+ * questions. A reversal says the money never came. This says it came, we had
+ * it, and it went back -- which a client reconciling against their bank
+ * statement will see as two movements, not none.
+ *
+ * PART OF A PAYMENT AT A TIME. Half a deposit returned when a project is cut
+ * short is the ordinary case. The running total can never exceed what
+ * arrived, and a refund on a reversed payment is refused: there is nothing
+ * there to give back.
+ *
+ * `toCredit` DECIDES WHETHER THE MONEY LEFT. Back to their bank, or held on
+ * their balance with us. Credit is the commoner answer -- a client who has
+ * overpaid usually has another invoice coming -- and it is what makes a
+ * balance carry forward at all.
+ */
+export function refundPayment(d: {
+  paymentId: Id; amount: number; reason: string; toCredit: boolean;
+  reference?: string; actor?: string;
+}):
+  | { ok: true; refund: Refund; payment: Payment; credit: Credit | null }
+  | { ok: false; reason: "missing" | "reversed" | "not-positive" | "too-much" | "no-reason" } {
+  const p = PAYMENTS.find((x) => x.id === d.paymentId);
+  if (!p) return { ok: false, reason: "missing" };
+  if (p.reversed) return { ok: false, reason: "reversed" };
+
+  const amount = Math.round(d.amount);
+  if (!Number.isFinite(amount) || amount <= 0) return { ok: false, reason: "not-positive" };
+  if (amount > p.amount - refundedTotal(p)) return { ok: false, reason: "too-much" };
+
+  const text = d.reason.trim();
+  if (!text) return { ok: false, reason: "no-reason" };
+
+  const actor = d.actor?.trim() || "Studio";
+  const refund: Refund = {
+    id: mint("rf"), at: now(), by: actor, amount, reason: text,
+    reference: d.reference?.trim() || undefined, toCredit: d.toCredit,
+  };
+  p.refunds = [...(p.refunds ?? []), refund];
+
+  const inv = getInvoice(p.invoiceId);
+  if (inv) inv.paid = collected(inv.id);
+
+  /* HELD RATHER THAN RETURNED MAKES A CREDIT, and it is minted here rather
+     than by the caller so the two cannot get out of step. */
+  let credit: Credit | null = null;
+  if (d.toCredit && inv) {
+    credit = addCredit({
+      clientId: inv.clientId, amount, by: actor,
+      reason: `Held from ${p.receiptNo} rather than returned. ${text}`,
+      fromInvoiceId: inv.id, fromPaymentId: p.id,
+    });
+  }
+
+  audit({ actor, kind: "payment", subjectId: p.id, subject: p.receiptNo,
+          action: d.toCredit ? "refunded to credit" : "refunded",
+          from: naira(p.amount), to: naira(paymentNet(p)),
+          note: [naira(amount), inv ? `against ${inv.number}` : null, text]
+            .filter(Boolean).join(" · ") });
+
+  return { ok: true, refund, payment: p, credit };
+}
+
+/* ------------------------------------------------------------------ credit */
+
+const CREDITS: Credit[] = [
+  /* The other half of rf1. Held rather than returned, so it is money the
+     studio still has and the client has a claim on. It comes off their next
+     invoice, which is what "balance carry-forward" means in practice. */
+  { id: "cr1", clientId: "c2", at: iso("2026-07-21"), amount: N(75_000), by: "Babatope",
+    reason: "Held from RCT-2026-004 rather than returned. July stopped halfway through.",
+    fromInvoiceId: "i2", fromPaymentId: "y4" },
+];
+
+function addCredit(d: Omit<Credit, "id" | "at">): Credit {
+  const c: Credit = { ...d, id: mint("cr"), at: now() };
+  CREDITS.push(c);
+  audit({ actor: c.by, kind: "invoice", subjectId: c.id, subject: "Credit",
+          action: "put on account", to: naira(c.amount), note: c.reason });
+  return c;
+}
+
+export function getCreditsFor(clientId: Id) {
+  return CREDITS.filter((c) => c.clientId === clientId)
+    .slice().sort((a, b) => b.at.localeCompare(a.at));
+}
+
+/** What the studio owes this client. Derived from the rows, never stored. */
+export function creditBalance(clientId: Id) {
+  return CREDITS
+    .filter((c) => c.clientId === clientId && !c.applied)
+    .reduce((n, c) => n + c.amount, 0);
+}
+
+export function getCredit(id: Id) {
+  return CREDITS.find((c) => c.id === id) ?? null;
+}
+
+/**
+ * An invoice that took more than it was for, moved onto the client's balance.
+ *
+ * THE EXCESS IS REAL MONEY and silently swallowing it is the one outcome that
+ * is certainly wrong. Until now an overpaid invoice said so on its own screen
+ * and left somebody to decide; this is one of the two decisions, and the other
+ * is `refundPayment` with `toCredit: false`.
+ *
+ * It is recorded as a refund-to-credit against the LAST payment on the
+ * invoice, which is the one that took it over, so the invoice lands exactly on
+ * its total and the receipt for that payment tells the whole story.
+ */
+export function overpaymentToCredit(invoiceId: Id, actor = "Studio"):
+  | { ok: true; credit: Credit }
+  | { ok: false; reason: "missing" | "not-overpaid" | "no-payment" } {
+  const inv = getInvoice(invoiceId);
+  if (!inv) return { ok: false, reason: "missing" };
+  const over = inv.paid - invoiceTotals(inv).total;
+  if (over <= 0) return { ok: false, reason: "not-overpaid" };
+
+  const last = getPaymentsFor(inv.id)
+    .filter((p) => paymentNet(p) > 0)
+    .sort((a, b) => a.at.localeCompare(b.at))
+    .at(-1);
+  if (!last) return { ok: false, reason: "no-payment" };
+
+  const done = refundPayment({
+    paymentId: last.id, amount: Math.min(over, paymentNet(last)),
+    reason: `${inv.number} took ${naira(over)} more than it was for.`,
+    toCredit: true, actor,
+  });
+  if (!done.ok || !done.credit) return { ok: false, reason: "no-payment" };
+  return { ok: true, credit: done.credit };
+}
+
+/**
+ * Spend a credit on an invoice. This is the balance carrying forward.
+ *
+ * IT BECOMES AN ORDINARY PAYMENT, which is the whole design. Rather than a
+ * parallel set of rules for money that came off a balance, `applyPayment` does
+ * the work: the invoice's `paid` is recomputed the same way, a receipt number
+ * is issued in the same sequence, the audit line reads like every other
+ * payment, and the client's receipt is a document at the same kind of URL. The
+ * only thing that marks it out is the method.
+ *
+ * NEVER MORE THAN THE INVOICE OWES. A credit bigger than the bill is split:
+ * what fits is applied and the rest stays on the balance as a new row, so an
+ * application cannot overpay an invoice and create a second overpayment to
+ * deal with.
+ */
+export function applyCredit(creditId: Id, invoiceId: Id, actor = "Studio"):
+  | { ok: true; payment: Payment; invoice: Invoice; leftOver: number }
+  | { ok: false; reason: "missing" | "spent" | "no-invoice" | "draft" | "wrong-client" | "nothing-due" } {
+  const credit = CREDITS.find((c) => c.id === creditId);
+  if (!credit) return { ok: false, reason: "missing" };
+  if (credit.applied) return { ok: false, reason: "spent" };
+
+  const inv = getInvoice(invoiceId);
+  if (!inv) return { ok: false, reason: "no-invoice" };
+  if (inv.status === "Draft") return { ok: false, reason: "draft" };
+  /* A client's credit is theirs. Applying it to somebody else's invoice would
+     be moving money between two people's accounts. */
+  if (inv.clientId !== credit.clientId) return { ok: false, reason: "wrong-client" };
+
+  const owed = invoiceTotals(inv).due;
+  if (owed <= 0) return { ok: false, reason: "nothing-due" };
+
+  const use = Math.min(credit.amount, owed);
+  const applied = applyPayment({
+    invoiceId: inv.id, amount: use, method: "Credit",
+    reference: `CREDIT-${credit.id}`,
+    by: `${actor} (from credit)`,
+    note: credit.reason,
+  });
+  if (!applied.ok) return { ok: false, reason: "nothing-due" };
+
+  const leftOver = credit.amount - use;
+  credit.amount = use;
+  credit.applied = { at: now(), by: actor, invoiceId: inv.id, paymentId: applied.payment.id };
+
+  /* WHAT DID NOT FIT STAYS ON THE BALANCE, as its own row rather than as a
+     remainder hidden inside a spent one. A balance you cannot list line by
+     line is a balance nobody trusts. */
+  if (leftOver > 0) {
+    addCredit({
+      clientId: credit.clientId, amount: leftOver, by: actor,
+      reason: `What was left after ${naira(use)} went to ${inv.number}.`,
+      fromInvoiceId: credit.fromInvoiceId, fromPaymentId: credit.fromPaymentId,
+    });
+  }
+
+  audit({ actor, kind: "invoice", subjectId: inv.id, subject: inv.number,
+          action: "took credit", to: naira(use),
+          note: leftOver > 0 ? `${naira(leftOver)} stays on the client's balance.` : undefined });
+
+  return { ok: true, payment: applied.payment, invoice: inv, leftOver };
 }
 
 /* --------------------------------------------------------------- expenses */

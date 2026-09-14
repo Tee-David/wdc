@@ -1,1 +1,4 @@
 .vercel
+
+# A throwaway Playwright config pointing at a container-local browser.
+pw.local.config.ts

@@ -136,6 +136,14 @@
    one sheet and the number is already in the corner above it. */
 .doc__run { display: none; }
 
+/* A provider's reference under the line it belongs to. Small and quiet: it is
+   there to be quoted when something has to be traced, not to be read. */
+.doc__ref {
+  display: block; margin-top: .15rem;
+  font-size: .74rem; color: #5a5a72;
+  font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+}
+
 .doc__scroll { overflow-x: auto; }
 .doc__lines { width: 100%; border-collapse: collapse; margin: 1.2rem 0; font-size: .92rem; }
 .doc__lines th {

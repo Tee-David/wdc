@@ -11,6 +11,7 @@ import { EditClient } from "@/components/admin/client-form";
 import { AddProject } from "@/components/admin/project-forms";
 import { InvoiceBuilder } from "@/components/admin/money-forms";
 import CommsLog from "@/components/admin/comms-log";
+import CreditPanel from "@/components/admin/credit-panel";
 import { ArchiveClient } from "@/components/admin/client-archive";
 
 /* NO generateStaticParams. The client list is written to now, and a route
@@ -145,6 +146,13 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
             </Panel>
           ) : null}
         </div>
+      </div>
+
+      {/* WHAT WE OWE THEM, which is the other direction from everything above.
+          Renders nothing at all for a client who has never had a balance,
+          which is almost all of them. */}
+      <div style={{ marginTop: ".9rem" }}>
+        <CreditPanel clientId={c.id} />
       </div>
 
       {/* WHAT HAS BEEN SAID TO THEM, in one place and across every channel.
