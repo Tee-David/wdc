@@ -10,6 +10,7 @@ import { testimonialFor } from "@/lib/testimonials";
 import "@/components/preview/preview.css";
 import "@/components/work/work.css";
 import { NewTab } from "@/components/ui/new-tab";
+import { publicImageSize } from "@/lib/image-size";
 
 /* One path per case study, at its CANONICAL category only. Generating every
    category a piece is tagged to would prerender the same page at three URLs,
@@ -102,6 +103,21 @@ export default async function WorkDetailPage(
   const shots = cs.gallery ?? [];
   const lead = shots.slice(0, 2);
   const rest = shots.slice(2);
+  /* THE REAL SHAPE OF EACH GALLERY PAGE, read at build time.
+
+     The lead pair is cropped to a fixed 4:3 by design -- two tiles side by
+     side want to match. The rest must not be: a brand guide's pages are
+     portrait, landscape and square in the same row, and cropping a guide
+     spread into a letterbox loses the layout that IS the work.
+
+     `aspect-ratio: auto` was the previous answer and it was worse than the
+     problem. `next/image` with `fill` is absolutely positioned, so inside a
+     box with no declared ratio it contributes no height and the box collapses:
+     measured on the live build, EVERY branding case study was rendering its
+     last five gallery images at two pixels tall. Reading each file's real
+     dimensions gives each figure its own ratio, which reserves the right space
+     before the picture arrives and crops nothing. */
+  const restSizes = await Promise.all(rest.map(publicImageSize));
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -293,12 +309,15 @@ export default async function WorkDetailPage(
 
                 {rest.length ? (
                   <div className={`wk-shots${rest.length >= 2 ? " wk-shots--2" : ""} wk-shots--tall`}>
-                    {rest.map((src) => (
-                      <div className="wk-shot" key={src}>
-                        { }
+                    {rest.map((src, n) => (
+                      <div
+                        className="wk-shot"
+                        key={src}
+                        style={{ aspectRatio: `${restSizes[n].width} / ${restSizes[n].height}` }}
+                      >
                         <Image
                           src={src}
-                          alt={`${cs.client} interface`}
+                          alt={`${cs.client}: a page from the delivered work`}
                           fill
                           sizes="(max-width: 720px) 100vw, 45vw"
                           quality={78}

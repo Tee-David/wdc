@@ -356,6 +356,115 @@ export const CASE_STUDIES: CaseStudy[] = [
     ],
   },
   {
+    slug: "skinish",
+    category: "branding",
+    categories: ["branding"],
+    title: "Softness without noise, written down so it survives the tenth post",
+    client: "Skinish",
+    sector: "Skincare and haircare",
+    location: "Nigeria",
+    cover: "/brand-work/skinish-cover.jpg",
+    summary:
+      "A full identity and brand guideline system for a personal-care brand, from purpose and voice to packaging.",
+    about:
+      "Skinish is a personal-care brand selling skincare and haircare. It is registered with the Corporate Affairs Commission of Nigeria under the business name Skinish Ventures. We built the identity and wrote the guideline document that governs it.",
+    brief:
+      "A brand that has to read as calm in a category that shouts. Personal care is sold with superlatives, neon and retouching, and Skinish sells the opposite — so the system had to make restraint repeatable by somebody who was not in the room when it was decided.",
+    approach:
+      "The mark carries three things at once: a hibiscus flower for natural elegance, a regal motif for sophistication, and a droplet for purity. One shape, three readings, and none of them needs explaining before it works.\n\nMost of the effort went into the document rather than the mark, because the mark was never going to be the thing that broke. A brand like this fails one caption at a time — a buzzword here, an exaggerated promise there — so the guide states the voice as three pairs a writer can actually check against: warmth not flair, clarity not cleverness, care not control. The photography rules do the same job in pictures: natural light, no over-retouching, diverse skin tones and textures, props kept organic. They are written as instructions to a photographer, not as adjectives.",
+    did: [
+      "Logo system with horizontal and vertical lockups, icon-only and wordmark-only variants",
+      "Clear space and minimum size rules, specified for print and for screen",
+      "Approved background set, with the four grounds the mark is allowed on",
+      "A don'ts page showing the specific misuses to refuse",
+      "Colour system: a primary, two secondaries and two supporting neutrals, with HEX and RGB",
+      "Typography: Bricolage Grotesque for headlines, Outfit for everything else",
+      "Brand voice, personality traits, audience profile and positioning statement",
+      "Photography direction covering light, retouching, casting and props",
+      "Packaging guidance: recyclable or refillable containers, matte or paper-based labels",
+      "Social, email, website and retail display guidance",
+    ],
+    stackLabel: "The system includes",
+    stack: [
+      "Logo suite", "Clear space rules", "Colour system", "Typography",
+      "Brand voice", "Photography direction", "Packaging", "Retail display",
+    ],
+    /* Straight off the colour system page, not sampled from a screenshot. */
+    palette: [
+      { hex: "#663333", name: "Skinish Brown" },
+      { hex: "#FFE1F0", name: "Petal Pink" },
+      { hex: "#FF99CC", name: "Soft Pink" },
+      { hex: "#454ADE", name: "Vibrant Violet" },
+      { hex: "#CCCCFF", name: "Lavender Blue" },
+    ],
+    quote: {
+      text: "Skinish is the feel-good brand for modern personal care. We offer clean, minimalist skincare and haircare that delivers softness without noise and quality without pressure.",
+      from: "Skinish, positioning statement from the brand guide",
+    },
+    gallery: [
+      "/brand-work/skinish-logo-system.jpg",
+      "/brand-work/skinish-logo-variations.jpg",
+      "/brand-work/skinish-colour-system.jpg",
+      "/brand-work/skinish-typography.jpg",
+      "/brand-work/skinish-voice.jpg",
+      "/brand-work/skinish-donts.jpg",
+      "/brand-work/skinish-mockups.jpg",
+    ],
+  },
+  {
+    slug: "thinkers-diary",
+    category: "branding",
+    categories: ["branding"],
+    title: "An identity for a podcast, where the mark spends its life on a dark photograph",
+    client: "Thinkers Diary",
+    sector: "Podcast and media",
+    location: "Nigeria",
+    cover: "/brand-work/thinkers-cover.jpg",
+    summary:
+      "Identity and brand guidelines for a conversation podcast, built around a mark that has to hold on studio photography.",
+    about:
+      "Thinkers Diary is a podcast about deep conversations, honest reflection and perspective-driven dialogue. We designed the identity and wrote the guide that keeps it consistent across episode art, social, merchandise and the studio itself.",
+    brief:
+      "A podcast identity lives almost entirely on photographs of a dark studio: a condenser mic, low light, a lot of black. A mark that only works on white is useless here, and most of the places it appears are not designed by us — an episode tile, a guest's repost, a cap.",
+    approach:
+      "The mark is a microphone drawn as a diary — a capsule mic whose body reads as a bound notebook — so the two things the show is about are one object rather than a symbol beside a word.\n\nBecause it lives on dark photography, the guide leads with the reversed version rather than treating it as an afterthought. There is a black version for single-colour work, a white version for dark grounds, and a page of correct placements over images beside a page of incorrect ones, because on a podcast the person laying out an episode tile at midnight is usually not a designer.\n\nThe palette is deliberately narrow: a near-black, a muted brown and a platinum, which is the range a studio photograph already contains. A secondary set of purple, silver and goldenrod exists for promotional material, where the core three would be too quiet.",
+    did: [
+      "Primary logo, alternative lockups and a standalone symbol",
+      "Black and reversed white versions for single-colour and dark-ground use",
+      "Correct and incorrect usage pages, worked over real photography",
+      "Core palette and a secondary palette, with CMYK, RGB and HEX for every swatch",
+      "Typography: Bigbesty as the primary face, Poppins as the secondary",
+      "Brand voice, positioning and personality",
+      "Episode artwork, social and merchandise application",
+      "Studio backdrop and set signage",
+    ],
+    stackLabel: "The system includes",
+    stack: [
+      "Logo suite", "Reversed versions", "Usage rules", "Core palette",
+      "Secondary palette", "Typography", "Episode artwork", "Merch", "Set signage",
+    ],
+    palette: [
+      { hex: "#2D2D2D", name: "Dark Gray" },
+      { hex: "#8A5B3A", name: "Muted Brown" },
+      { hex: "#E6E6E6", name: "Platinum" },
+      { hex: "#663399", name: "Rebecca Purple" },
+      { hex: "#CC9933", name: "Goldenrod" },
+    ],
+    quote: {
+      text: "It is not just about talking, it is about thinking out loud, questioning perspectives, and turning discussions into insight.",
+      from: "Thinkers Diary, on what makes the show different, from the brand guide",
+    },
+    gallery: [
+      "/brand-work/thinkers-logo-dark.jpg",
+      "/brand-work/thinkers-logo-variants.jpg",
+      "/brand-work/thinkers-palette.jpg",
+      "/brand-work/thinkers-typeface.jpg",
+      "/brand-work/thinkers-applied.jpg",
+      "/brand-work/thinkers-studio-wall.jpg",
+      "/brand-work/thinkers-mockups.jpg",
+    ],
+  },
+  {
     slug: "marfaa-authentic",
     category: "branding",
     categories: ["branding"],
