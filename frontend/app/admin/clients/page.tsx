@@ -21,6 +21,7 @@ type ClientQuery = {
   service?: string;
   status?: string;
   sort?: string;
+  dir?: string;
   page?: string;
 };
 
@@ -48,6 +49,9 @@ export default async function ClientsPage({
   const service = SERVICES.find((item) => item.slug === query.service)?.slug;
   const status = query.status === "archived" || query.status === "all" ? query.status : "active";
   const sort: ClientSort = SORTS.includes(query.sort as ClientSort) ? query.sort as ClientSort : "since";
+  const direction = query.dir === "asc" || query.dir === "desc"
+    ? query.dir
+    : sort === "company" ? "asc" : "desc";
   const source = getClients({ includeArchived: status !== "active" });
   const grouped = getClientsByService();
   const rows = source
@@ -63,16 +67,27 @@ export default async function ClientsPage({
       live: getProjectsFor(client.id).filter((project) => project.stage !== "Delivered").length,
     }))
     .sort((a, b) => {
-      if (sort === "company") return a.client.company.localeCompare(b.client.company);
-      if (sort === "projects") return b.live - a.live || a.client.company.localeCompare(b.client.company);
-      if (sort === "owed") return b.owed - a.owed || a.client.company.localeCompare(b.client.company);
-      return b.client.since.localeCompare(a.client.since);
+      const order = direction === "asc" ? 1 : -1;
+      if (sort === "company") return order * a.client.company.localeCompare(b.client.company);
+      if (sort === "projects") return order * (a.live - b.live) || a.client.company.localeCompare(b.client.company);
+      if (sort === "owed") return order * (a.owed - b.owed) || a.client.company.localeCompare(b.client.company);
+      return order * a.client.since.localeCompare(b.client.since);
     });
   const requestedPage = Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1);
   const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   const page = Math.min(requestedPage, pageCount);
   const clients = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const hasFilters = Boolean(search || service || status !== "active");
+  const sortHref = (column: ClientSort) => queryHref(query, {
+    sort: column,
+    dir: sort === column ? direction === "asc" ? "desc" : "asc" : column === "company" ? "asc" : "desc",
+    page: undefined,
+  });
+  const exportParams = new URLSearchParams();
+  for (const key of ["q", "service", "status", "sort", "dir"] as const) {
+    if (query[key]) exportParams.set(key, query[key]);
+  }
+  const exportHref = `/admin/clients/export${exportParams.size ? `?${exportParams}` : ""}`;
 
   return (
     <>
@@ -138,17 +153,9 @@ export default async function ClientsPage({
                 <option value="all">All statuses</option>
               </select>
             </label>
-            <label>
-              <span className="ad__sr">Sort clients</span>
-              <select name="sort" defaultValue={sort}>
-                <option value="since">Newest first</option>
-                <option value="company">Company A–Z</option>
-                <option value="projects">Most live projects</option>
-                <option value="owed">Highest balance</option>
-              </select>
-            </label>
             <button className="ad__btn ad__btn--primary" type="submit">Apply</button>
             {hasFilters ? <Link className="ad__btn" href="/admin/clients#client-list">Clear</Link> : null}
+            <a className="ad__btn" href={exportHref}>Export CSV</a>
           </form>
           <div className="ad__listMeta" id="client-list" aria-live="polite">
             <span>{rows.length} {rows.length === 1 ? "client" : "clients"}</span>
@@ -158,8 +165,18 @@ export default async function ClientsPage({
             <table className="ad__t">
               <thead>
                 <tr>
-                  <th>Client</th><th>Sector</th><th>Buys</th>
-                  <th className="num">Projects</th><th className="num">Owed</th><th>Since</th>
+                  <th aria-sort={sort === "company" ? direction === "asc" ? "ascending" : "descending" : undefined}>
+                    <Link href={sortHref("company")}>Client</Link>
+                  </th><th>Sector</th><th>Buys</th>
+                  <th className="num" aria-sort={sort === "projects" ? direction === "asc" ? "ascending" : "descending" : undefined}>
+                    <Link href={sortHref("projects")}>Projects</Link>
+                  </th>
+                  <th className="num" aria-sort={sort === "owed" ? direction === "asc" ? "ascending" : "descending" : undefined}>
+                    <Link href={sortHref("owed")}>Owed</Link>
+                  </th>
+                  <th aria-sort={sort === "since" ? direction === "asc" ? "ascending" : "descending" : undefined}>
+                    <Link href={sortHref("since")}>Since</Link>
+                  </th>
                   <th className="ad__rmH"><span className="ad__sr">Actions</span></th>
                 </tr>
               </thead>
