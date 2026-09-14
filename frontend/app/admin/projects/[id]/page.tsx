@@ -2,20 +2,21 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
 import {
-  getClient, getDeliverablesFor, getInvoicesFor, getProject, getTasksFor, getUpdatesFor,
+  getClient, getDeliverablesFor, getExpensesFor, getInvoicesFor, getProject,
+  getTasksFor, getUpdatesFor, projectMargin,
 } from "@/lib/admin/store";
 import {
   invoiceStatus, invoiceTotals, naira, projectAttention, STAGES,
 } from "@/lib/admin/types";
 import {
-  AttentionPills, Empty, HealthPill, InvoicePill, Panel, StagePill, when,
+  AttentionPills, Empty, HealthPill, InvoicePill, Panel, StagePill, Tile, when,
 } from "@/components/admin/bits";
 import { InvoiceMenu } from "@/components/admin/row-actions";
 import { AddNote, SetDue, StageMover } from "@/components/admin/project-forms";
 import {
   Deliverables, ProjectDetails, Tasks, Updates,
 } from "@/components/admin/delivery";
-import { InvoiceBuilder } from "@/components/admin/money-forms";
+import { AddExpense, InvoiceBuilder } from "@/components/admin/money-forms";
 import AuditLog from "@/components/admin/audit-log";
 
 /* NO generateStaticParams: projects are created at runtime now, and a route
@@ -32,6 +33,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const updates = getUpdatesFor(p.id);
   const deliverables = getDeliverablesFor(p.id);
   const attention = projectAttention(p, tasks);
+  const margin = projectMargin(p.id);
+  const costs = getExpensesFor(p.id);
 
   return (
     <>
@@ -115,6 +118,60 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         <Updates project={p} updates={updates} />
         <Deliverables project={p} items={deliverables} />
       </div>
+
+      {/* WHAT THIS JOB ACTUALLY MADE.
+
+          Collected rather than invoiced, because an invoice nobody has paid is
+          not income -- and a project that looks profitable on billings and is
+          not on receipts is precisely the one worth knowing about. Every
+          figure is derived from the invoices and the expenses filed against
+          this project; nothing is stored, so nothing can go stale. */}
+      <section className="ad__panel" style={{ marginBottom: ".9rem" }}>
+        <div className="ad__panelH">
+          <h2>What it has made</h2>
+          <AddExpense projects={[p]} />
+        </div>
+        <dl className="ad__tiles" style={{ padding: ".9rem 1rem" }}>
+          <Tile label="Invoiced" value={naira(margin.invoiced)} />
+          <Tile label="Collected" value={naira(margin.collected)}
+                tone={margin.collected ? "good" : undefined} />
+          <Tile label="Spent on it" value={naira(margin.spend)}
+                note={costs.length ? `${costs.length} expense${costs.length === 1 ? "" : "s"}` : "Nothing allocated"} />
+          <Tile label="Net so far" value={naira(margin.net)}
+                tone={margin.net >= 0 ? "good" : "bad"}
+                note="Collected less what was spent" />
+        </dl>
+        {costs.length ? (
+          <div className="ad__scroll">
+            <table className="ad__t">
+              <thead><tr><th>When</th><th>What</th><th>Who was paid</th><th className="num">Amount</th></tr></thead>
+              <tbody>
+                {costs.map((e) => (
+                  <tr key={e.id}>
+                    <td className="ad__dim ad__num">{when(e.at)}</td>
+                    <td>
+                      {e.description}
+                      {e.rebillable ? (
+                        <span className="ad__pill ad__pill--warn" style={{ marginLeft: ".35rem" }}>Rebillable</span>
+                      ) : null}
+                    </td>
+                    <td className="ad__dim">{e.vendor ?? "—"}</td>
+                    <td className="num">{naira(e.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div style={{ padding: "0 1rem 1rem" }}>
+            <p className="ad__dim" style={{ margin: 0 }}>
+              Nothing has been booked against this project, so &ldquo;spent on
+              it&rdquo; is zero rather than unknown. Studio overheads are
+              deliberately not spread across jobs.
+            </p>
+          </div>
+        )}
+      </section>
 
       <div className="ad__grid2">
         <Panel title="History">

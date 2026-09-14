@@ -224,11 +224,22 @@ export function Select({
 
 /** A set of checkboxes sharing one name, which FormData returns as a list. */
 export function Checks({
-  name, label, hint, options, defaultValue = [],
+  name, label, hint, options, defaultValue = [], long = false,
 }: {
   name: string; label: string; hint?: string;
   options: { value: string; label: string }[];
   defaultValue?: string[];
+  /**
+   * Give each box a full-width row instead of a pill.
+   *
+   * The pill is right for a set of short tags picked from a list -- five
+   * services, four channels -- where the shape helps you scan them. It is
+   * wrong for one box carrying a sentence: a 999px capsule wraps "We can bill
+   * this back to the client" onto three lines inside a shape built for two
+   * words. Same control, given room. delivery.tsx had already hand-rolled this
+   * label for the same reason; now there is one of it.
+   */
+  long?: boolean;
 }) {
   const { errors, values, gen } = useContext(Ctx);
   const err = errors[name];
@@ -242,9 +253,9 @@ export function Checks({
     <div className="ad__f" role="group" aria-labelledby={`${id}-l`} aria-describedby={err ? `${id}-e` : undefined}>
       <span className="ad__fl" id={`${id}-l`}>{label}</span>
       {hint ? <small className="ad__fh">{hint}</small> : null}
-      <div className="ad__checks">
+      <div className={`ad__checks${long ? " ad__checks--long" : ""}`}>
         {options.map((o) => (
-          <label key={`${o.value}-${gen}`} className="ad__check">
+          <label key={`${o.value}-${gen}`} className={`ad__check${long ? " ad__check--long" : ""}`}>
             <input type="checkbox" name={name} value={o.value} defaultChecked={kept.includes(o.value)} />
             <span>{o.label}</span>
           </label>
