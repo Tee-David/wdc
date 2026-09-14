@@ -34,6 +34,7 @@
   --ad-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 
   min-height: 100dvh;
+  max-width: 100%; overflow-x: clip;
   background: var(--ad-bg);
   color: var(--ad-ink);
   font-family: var(--font-outfit), system-ui, sans-serif;
@@ -192,7 +193,7 @@
 .ad__commandResults p { margin: 0; padding: 1.6rem; color: var(--ad-dim); text-align: center; }
 
 .ad__mobileLayer, .ad__mobileDrawer { display: none; }
-.ad__main { min-width: 0; flex: 1; padding: clamp(1rem, 2.4vw, 1.8rem); }
+.ad__main { min-width: 0; flex: 1; padding: clamp(1rem, 2.4vw, 1.8rem); overflow-x: clip; }
 .ad__pageSkeleton { min-width: 0; }
 
 @media (max-width: 900px) {
@@ -269,7 +270,10 @@
 /* WRAPPED, ALWAYS. A table is the one thing allowed to be wider than the page,
    and only inside its own scroller: the body itself must never scroll
    sideways. */
-.ad__scroll { overflow-x: auto; }
+.ad__scroll {
+  width: 100%; max-width: 100%; min-width: 0; overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
 .ad__t { width: 100%; border-collapse: collapse; font-size: .875rem; }
 .ad__t th {
   text-align: left; padding: .6rem 1rem;
@@ -283,6 +287,32 @@
 .ad__t .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ad__t b { font-weight: 600; }
 .ad__t small { display: block; color: var(--ad-dim); font-size: .78rem; }
+
+.ad__filterBar {
+  padding: .75rem 1rem; display: flex; flex-wrap: wrap; align-items: center; gap: .55rem;
+  border-bottom: 1px solid var(--ad-line); background: var(--ad-panel);
+}
+.ad__filterBar label { min-width: 0; }
+.ad__filterBar input, .ad__filterBar select {
+  min-height: 2.75rem; max-width: 100%; padding: .45rem .65rem;
+  border: 1px solid var(--ad-line); border-radius: 9px; background: var(--ad-panel); color: var(--ad-ink);
+  font: 500 .82rem var(--font-body), system-ui, sans-serif;
+}
+.ad__filterBar input:focus-visible, .ad__filterBar select:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.ad__filterSearch { flex: 1 1 15rem; }
+.ad__filterSearch input { width: 100%; }
+.ad__listMeta, .ad__pagination {
+  padding: .55rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+  color: var(--ad-dim); font-size: .76rem;
+}
+.ad__listMeta { border-bottom: 1px solid var(--ad-line); }
+.ad__pagination { border-top: 1px solid var(--ad-line); }
+
+@media (max-width: 560px) {
+  .ad__filterBar label, .ad__filterBar .ad__btn { flex: 1 1 100%; width: 100%; }
+  .ad__filterBar input, .ad__filterBar select { width: 100%; }
+  .ad__filterBar .ad__btn { justify-content: center; min-height: 2.75rem; }
+}
 
 /* ----------------------------------------------------------------- chips */
 
