@@ -148,3 +148,49 @@ test.describe("the footer", () => {
     }
   });
 });
+
+
+/* ITS OWN CONTEXT, BECAUSE THE RULE UNDER TEST IS `@media (pointer: coarse)`.
+   Setting a 393px viewport does not make a browser report a coarse pointer --
+   `hasTouch` does. Without it this test passes against a stylesheet it never
+   reached, which is worse than not having it. */
+test.describe("the footer on a touch screen", () => {
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 393, height: 900 } });
+
+  test("the hover underline stops at the end of the words", async ({ page }) => {
+    /* THE 44PX TOUCH TARGET AND THE UNDERLINE WERE FIGHTING.
+
+       Under `pointer: coarse` the footer links become `display: flex` with a
+       44px minimum height, which is right. What came with it is that a flex
+       box there is BLOCK level, so the link's box grew to the whole column --
+       and the hover underline is painted as `background-size: 100%` of that
+       box. The address got 229px of text under a 353px rule, which read as a
+       divider left in by mistake rather than as a hover state.
+
+       Asserted as an overshoot rather than as a width, because the number that
+       matters is the gap between the line and the last character. */
+    await page.goto("/contact");
+
+    const mail = page.locator(".ft__mail");
+    await mail.scrollIntoViewIfNeeded();
+    await mail.hover();
+    await page.waitForTimeout(400);
+
+    const m = await mail.evaluate((el) => {
+      const box = el.getBoundingClientRect();
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      return {
+        overshoot: Math.round(box.width - range.getBoundingClientRect().width),
+        height: Math.round(box.height),
+        painted: getComputedStyle(el).backgroundSize,
+      };
+    });
+
+    expect(m.overshoot, "the underline runs past the address").toBeLessThanOrEqual(2);
+    expect(m.painted, "the underline did not grow on hover").toContain("100%");
+    /* And the target it was widened for is still 44px tall. */
+    expect(m.height).toBeGreaterThanOrEqual(44);
+  });
+
+});
