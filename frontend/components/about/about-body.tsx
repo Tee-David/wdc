@@ -170,7 +170,7 @@ function TeamRail() {
       <div className="ab-team__head">
         <div>
           <span className="pv-eyebrow">The team</span>
-          <h2>The disciplines in the room</h2>
+          <h2 className="pv-mix"><b>The disciplines</b> in the room</h2>
         </div>
         <div className="ab-team__nav">
           <button
@@ -339,7 +339,7 @@ export default function AboutBody() {
         <div className="pv-wrap">
           <div className="pv-head pv-reveal">
             <span className="pv-eyebrow">How we think</span>
-            <h2>Six things we will not trade away</h2>
+            <h2 className="pv-mix">Six things we will <b>not trade away</b></h2>
           </div>
           <ol className="sv-steps pv-reveal">
             {BELIEFS.map((b, n) => (
@@ -367,7 +367,7 @@ export default function AboutBody() {
       <section className="pv-sec pv-sec--band ab-cta">
         <div className="pv-wrap">
           <div className="ab-cta__in pv-reveal">
-            <h2>Tell us what you are trying to get done.</h2>
+            <h2 className="pv-mix">Tell us <b>what you are trying to get done.</b></h2>
             <p className="pv-lede">
               Not a brief, not a budget. The outcome. We will tell you what it
               actually takes, and say so if it is not us.
