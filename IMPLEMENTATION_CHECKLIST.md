@@ -19,6 +19,14 @@ At last update: **143 open** (10 of them in progress), **210 done**.
 
 ## 0. Raised in conversation, not yet done
 
+- [x] Case studies have an "on this page" rail, the same one the blog and legal pages use. It is on the RIGHT rather than the left, because that is where the space already was: `.wk-doc__body` is capped at 74ch so long-form prose is readable, and on a wide screen that cap was leaving a column of nothing beside every case study. On an article the rail leads, because it is furniture you glance at before starting; on a case study the work has to lead, so the rail fills the gap instead of taking width off the reading column.
+
+  THE OBSERVER IS NOW SHARED. There were about to be three copies of the same IntersectionObserver with the same band and the same comment -- legal wrote it, the blog copied it, and this would have copied it again. `components/ui/use-active-heading.ts` is the one copy; all three rails call it. The band is unchanged: `-30% 0px -55% 0px`, a strip across the upper middle, so the heading that lights up is the one being READ rather than the one that has just appeared at the bottom.
+
+  THE RAIL IS FIRST IN THE DOM AND SECOND ON THE PAGE. Below 1001px there is no second column and it stacks, and a contents list under the thing it lists is a list nobody uses; the grid places it right on a wide screen without changing the order a screen reader or a narrow viewport sees. It collapses to a `<details>` on a phone, like the blog's.
+
+  Pinned by `tests/work-toc.spec.ts`, which walks EVERY case study on the site and asserts every rail link resolves to exactly one element. The rail's ids and the section ids are declared in two places and two entries are conditional, so nothing in TypeScript can catch a dead anchor -- it is a valid string either way, and the reader just clicks and the page does not move.
+
 Kept at the top because these came from someone looking at the live site, and
 that is the shortest feedback loop there is.
 

@@ -291,6 +291,85 @@
 /* A measure, not the full 1280px. Long-form prose set the width of the page
    is unreadable — the eye loses the line on the way back. */
 .wk-doc__body { max-width: 74ch; display: grid; gap: clamp(1.6rem, 3vw, 2.4rem); }
+
+/* ---- the contents rail ---------------------------------------------------
+
+   THE MEASURE WAS ALREADY LEAVING THE SPACE. `.wk-doc__body` is capped at 74ch
+   because long-form prose set the full width of the page is unreadable -- the
+   eye loses the line on the way back -- and on a wide screen that cap leaves a
+   column of nothing to the right of every case study. This puts the contents
+   there rather than adding width the prose should not have.
+
+   ONE COLUMN BELOW 1001px and the rail stacks ABOVE the work, which is why it
+   is first in the DOM and placed second by the grid: a contents list under the
+   thing it lists is a list nobody uses. Same breakpoint as the blog rail,
+   because it is the same decision about the same measure. */
+.wk-split { display: grid; gap: clamp(1.4rem, 3vw, 2.2rem); align-items: start; }
+@media (min-width: 1001px) {
+  .wk-split {
+    grid-template-columns: minmax(0, 74ch) minmax(14rem, 1fr);
+    column-gap: clamp(2rem, 4vw, 4rem);
+  }
+  .wk-split > .wk-doc__body { grid-column: 1; grid-row: 1; }
+  .wk-split > .wk-rail { grid-column: 2; grid-row: 1; }
+  /* Sticky beside the work, and it releases at the edge of its grid area --
+     which is the body's row and therefore ends with the body. That is what
+     stops it travelling past the last heading it can point at. */
+  .wk-rail { position: sticky; top: 96px; }
+}
+
+.wk-rail__k {
+  margin: 0 0 .7rem;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .75rem; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--accent-ink);
+}
+
+.wk-toc__list { list-style: none; margin: 0; padding: 0; display: grid; gap: .55rem; }
+.wk-toc__list a {
+  display: block; padding-left: .8rem;
+  border-left: 2px solid var(--rule);
+  font-size: .92rem; line-height: 1.4; color: var(--muted);
+  text-decoration: none;
+  transition: color .18s ease, border-color .18s ease;
+}
+.wk-toc__list a:hover { color: var(--ink); border-left-color: var(--accent); }
+.wk-toc__list a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* WHERE THE READER IS, not merely what the page contains. A left border that
+   fills in rather than a background, because a highlighted block in a narrow
+   column reads as a button. Same treatment as the blog and legal rails. */
+.wk-toc__list a.is-on { color: var(--ink); font-weight: 600; border-left-color: var(--accent); }
+
+/* On a phone the contents collapse, for the reason the blog's do: six links
+   between somebody and the first sentence of the work is a wall. */
+@media (max-width: 1000px) {
+  .wk-toc { border: 1px solid var(--rule); border-radius: 14px; background: var(--paper-2); }
+  .wk-toc > summary {
+    cursor: pointer; padding: .85rem 1rem; list-style: none;
+    font-family: var(--font-space-grotesk), system-ui, sans-serif;
+    font-size: .8rem; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--accent-ink);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .wk-toc > summary::-webkit-details-marker { display: none; }
+  .wk-toc > summary::after {
+    content: ""; width: .55rem; height: .55rem; flex: none;
+    border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+    transform: rotate(45deg) translate(-2px, -2px);
+    transition: transform .2s ease;
+  }
+  .wk-toc[open] > summary::after { transform: rotate(-135deg) translate(-2px, -2px); }
+  .wk-toc__list { padding: 0 1rem 1rem; }
+  .wk-rail__k { display: none; }
+}
+@media (min-width: 1001px) {
+  /* A <details> that cannot close, so the desktop rail is always open without
+     a second markup path. */
+  .wk-toc > summary { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wk-toc__list a, .wk-toc > summary::after { transition: none; }
+}
 .wk-meta {
   display: flex; flex-wrap: wrap; gap: 6px 18px;
   font-size: .84rem; color: var(--muted);

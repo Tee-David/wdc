@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useActiveHeading } from "@/components/ui/use-active-heading";
 
 /**
  * The contents rail beside an article.
@@ -13,16 +13,9 @@ import { useEffect, useState } from "react";
  * shipped -- `components/legal/legal-toc.tsx` -- and this is deliberately the
  * same mechanism rather than a second one invented for the blog.
  *
- * WHY AN OBSERVER AND NOT A SCROLL HANDLER. Scroll position alone cannot tell
- * you which heading is current without measuring every section on every frame,
- * which is exactly the per-frame layout read the project's conventions forbid.
- * IntersectionObserver is told once where the headings are and reports back
- * only when one crosses the band.
- *
- * The band is the same one the legal rail uses: `-30% 0px -55% 0px` leaves a
- * strip across the upper middle of the viewport, so the heading that lights up
- * is the one being READ rather than the one that has just appeared at the
- * bottom of the screen.
+ * HOW IT KNOWS is `useActiveHeading`, which the legal rail and the case study
+ * rail share -- one observer with one band rather than three copies of it. See
+ * the note there for why it is an observer and not a scroll handler.
  *
  * The `<details>` wrapper is kept exactly as it was. On a phone eight links are
  * a wall between the reader and the first sentence, so the rail collapses
@@ -34,29 +27,7 @@ export default function BlogToc({
 }: {
   outline: { id: string; text: string; sub?: boolean }[];
 }) {
-  const [active, setActive] = useState("");
-
-  useEffect(() => {
-    const els = outline
-      .map((h) => document.getElementById(h.id))
-      .filter((el): el is HTMLElement => Boolean(el));
-    if (!els.length) return;
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        /* The topmost heading currently inside the band. Taking the first
-           intersecting entry in DOM order rather than the last event keeps the
-           highlight stable when two short sections are both in view. */
-        const inBand = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
-        if (inBand) setActive(inBand.target.id);
-      },
-      { rootMargin: "-30% 0px -55% 0px", threshold: [0, 1] },
-    );
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, [outline]);
+  const active = useActiveHeading(outline.map((h) => h.id));
 
   return (
     <>
