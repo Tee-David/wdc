@@ -91,3 +91,60 @@ for (const width of [390, 1280]) {
   expect(heading.text).toContain("What if we made it");
   });
 }
+
+/**
+ * The footer's width, and the newsletter's alignment inside it.
+ *
+ * TWO THINGS THAT BOTH LOOK LIKE NOTHING IN A DIFF. The card carried a 10px
+ * inset at every width below 1024, which on a phone left the footer visibly
+ * narrower than the full-bleed section above it -- too little to read as a
+ * margin, enough to read as a mistake. And the subscribe box was left out of
+ * the rule that pulls the footer's content back to a 1280px measure on a wide
+ * screen, so it ran the full width of the window while the columns and the
+ * copyright line beside it sat 80px in.
+ *
+ * Neither is visible in a component; both are one selector list away from
+ * coming back.
+ */
+test.describe("the footer", () => {
+  test("runs the full width of a phone, like the section above it", async ({ page }) => {
+    await page.setViewportSize({ width: 393, height: 852 });
+    await page.goto("/contact");
+
+    const card = await page.locator(".ft__card").evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return { left: r.left, right: r.right, vw: window.innerWidth };
+    });
+    expect(card.left).toBeCloseTo(0, 0);
+    expect(card.right).toBeCloseTo(card.vw, 0);
+
+    /* Full bleed is not an excuse to run the words into the screen edge: the
+       card's own padding still has to hold them off it. */
+    const cols = await page.locator(".ft__cols").evaluate((el) => el.getBoundingClientRect().left);
+    expect(cols).toBeGreaterThanOrEqual(16);
+
+    const wide = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+    expect(wide, "the footer widened the page").toBe(false);
+  });
+
+  test("the subscribe box lines up with the columns at every width", async ({ page }) => {
+    for (const width of [320, 393, 768, 1280, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/contact");
+
+      const edges = await page.evaluate(() => {
+        const box = (s: string) => {
+          const el = document.querySelector(s);
+          if (!el) return null;
+          const r = el.getBoundingClientRect();
+          return [Math.round(r.left), Math.round(r.right)];
+        };
+        return { cols: box(".ft__cols"), nl: box(".nl"), base: box(".ft__base") };
+      });
+
+      expect(edges.nl, `no subscribe box at ${width}px`).not.toBeNull();
+      expect(edges.nl, `the subscribe box is off the columns' measure at ${width}px`).toEqual(edges.cols);
+      expect(edges.base, `the copyright line is off the measure at ${width}px`).toEqual(edges.cols);
+    }
+  });
+});
