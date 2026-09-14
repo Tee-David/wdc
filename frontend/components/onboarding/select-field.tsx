@@ -4,6 +4,9 @@ import { useId, useMemo, useRef, useState } from "react";
 import { ChevronDown, Search } from "lucide-react";
 import { Mark, usePickerOpen } from "./picker";
 
+/* Its own look, not the page's to remember -- see the note in phone-field.tsx. */
+import "./picker.css";
+
 /**
  * A single-choice field: a button that opens a searchable list.
  *
