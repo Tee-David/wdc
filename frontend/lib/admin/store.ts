@@ -1,12 +1,12 @@
 import type {
   Approval, AuditEntry, AuditKind, Channel, Client, Deliverable, Expense,
-  Credit, Health, Id, Invoice, Message, MessageChannel, MessageState, Payment,
-  Priority, Project, ProviderEvent, ProviderOutcome, Refund, Stage, Submission,
-  Task, Update,
+  Credit, Estimate, Health, Id, Invoice, InvoiceLine, Message, MessageChannel,
+  MessageState, Payment, Priority, Project, ProviderEvent, ProviderOutcome,
+  Refund, Stage, Submission, Task, Update,
 } from "./types";
 import {
-  invoiceStatus, invoiceTotals, naira, paymentNet, providerNeedsAttention,
-  refundedTotal,
+  estimateState, estimateTotals, invoiceStatus, invoiceTotals, naira, paymentNet,
+  providerNeedsAttention, refundedTotal,
 } from "./types";
 
 /**
@@ -1812,4 +1812,218 @@ export function retryMessage(id: Id, actor = "Studio"): Message | null {
   audit({ actor, kind: "client", subjectId: m.clientId ?? m.id, subject: m.to,
           action: "queued a resend", note: m.subject });
   return m;
+}
+
+/* ================================================= estimates ==============
+   What was quoted, and whether anybody said yes.
+
+   ITS OWN SERIES AND ITS OWN LIFE. An estimate is not a draft invoice: a draft
+   is a document the studio has not finished writing, and an estimate is one it
+   HAS finished and sent, waiting on somebody else. Filing quotes as drafts
+   would leave "what have we quoted and not heard back about" unanswerable,
+   which is the question a pipeline is made of.
+
+   ACCEPTING RAISES A NEW DOCUMENT rather than transforming this one. The
+   estimate stays as the record of what was agreed and when, which is the thing
+   to point at when the scope changes and the price does too.
+   ========================================================================= */
+
+const ESTIMATES: Estimate[] = [
+  /* Sent and still live: the pipeline row. */
+  {
+    id: "q1", number: "EST-2026-001", token: "seedEst1AAAAAAAAAAAAAAA",
+    clientId: "c5", projectId: "p5", state: "Sent",
+    issued: iso("2026-09-08"), expires: iso("2026-10-08"), vatRate: 7.5,
+    lines: [
+      { description: "Dispatch platform, milestone three", qty: 1, unit: N(1_200_000) },
+      { description: "Driver app, Android build", qty: 1, unit: N(750_000) },
+      { description: "Two weeks of hypercare after launch", qty: 1, unit: N(180_000) },
+    ],
+    discount: 5,
+    notes: "Milestone three covers the routing rework and the driver app. Hypercare is two weeks from the day it goes live, not from sign-off.",
+    terms: "Half on acceptance, half on delivery. The price holds for thirty days from the date above.",
+  },
+  /* Accepted, and the invoice it became. This is what proves the two documents
+     stay separate: the estimate is still readable at its own number. */
+  {
+    id: "q2", number: "EST-2026-002", token: "seedEst2AAAAAAAAAAAAAAA",
+    clientId: "c1", projectId: "p1", state: "Accepted",
+    issued: iso("2026-07-20"), expires: iso("2026-08-20"), vatRate: 7.5,
+    lines: [
+      { description: "Identity system, first stage", qty: 1, unit: N(450_000) },
+      { description: "Brand guidelines", qty: 1, unit: N(180_000) },
+    ],
+    notes: "Three routes, one taken through to a full guideline set.",
+    terms: "Half on acceptance, half on handover.",
+    answered: { at: iso("2026-07-29"), by: "Tobi Moore", note: "Happy with the second route. Go ahead." },
+    invoiceId: "i1",
+  },
+  /* Declined, kept. A quote nobody took is the most useful row in a pipeline
+     six months later, and deleting it is how a studio forgets what its prices
+     have been doing. */
+  {
+    id: "q3", number: "EST-2026-003", token: "seedEst3AAAAAAAAAAAAAAA",
+    clientId: "c3", projectId: null, state: "Declined",
+    issued: iso("2026-08-30"), expires: iso("2026-09-29"), vatRate: 7.5,
+    lines: [{ description: "Quarterly SEO retainer", qty: 3, unit: N(320_000) }],
+    terms: "Monthly in advance.",
+    answered: { at: iso("2026-09-04"), by: "Ifeanyi Nwosu", note: "Going in-house for now. Ask again in the new year." },
+  },
+];
+
+export function getEstimates() {
+  return ESTIMATES.slice().sort((a, b) => b.issued.localeCompare(a.issued));
+}
+
+export function getEstimate(id: Id) {
+  return ESTIMATES.find((e) => e.id === id) ?? null;
+}
+
+export function getEstimatesFor(clientId: Id) {
+  return getEstimates().filter((e) => e.clientId === clientId);
+}
+
+/** Full-token compare, like the invoice and receipt readers. */
+export function getEstimateByToken(t: string) {
+  const want = t.trim();
+  if (want.length < 20) return null;
+  return ESTIMATES.find((e) => e.token === want) ?? null;
+}
+
+/** Its own series, so a quote nobody takes cannot burn an invoice number. */
+export function nextEstimateNumber(year = new Date().getFullYear()): string {
+  const prefix = `EST-${year}-`;
+  const highest = ESTIMATES
+    .filter((e) => e.number.startsWith(prefix))
+    .reduce((n, e) => Math.max(n, Number(e.number.slice(prefix.length)) || 0), 0);
+  return `${prefix}${String(highest + 1).padStart(3, "0")}`;
+}
+
+export function addEstimate(d: {
+  clientId: Id; projectId: Id | null; issued: string; expires: string;
+  vatRate: number; lines: InvoiceLine[]; state: "Draft" | "Sent";
+  discount?: number; notes?: string; terms?: string;
+}, actor = "Studio"): Estimate {
+  const e: Estimate = {
+    ...d, id: mint("q"), number: nextEstimateNumber(), token: token(),
+  };
+  ESTIMATES.push(e);
+  audit({ actor, kind: "invoice", subjectId: e.id, subject: e.number,
+          action: d.state === "Draft" ? "drafted" : "quoted",
+          note: naira(estimateTotals(e).total) });
+  return e;
+}
+
+/** Draft to sent. Nothing else moves an estimate on our side. */
+export function sendEstimate(id: Id, actor = "Studio"): Estimate | null {
+  const e = getEstimate(id);
+  if (!e || e.state !== "Draft") return null;
+  e.state = "Sent";
+  e.issued = now();
+  audit({ actor, kind: "invoice", subjectId: e.id, subject: e.number,
+          action: "sent", from: "Draft", to: "Sent" });
+  return e;
+}
+
+/**
+ * The client's answer, and the invoice that follows a yes.
+ *
+ * THE DATE AND THE NAME ARE THEIRS. "Accepted by Studio" is a row nobody can
+ * defend, so the person who agreed is recorded, and it is a required field.
+ *
+ * A NEW INVOICE, NOT A CONVERSION. The estimate keeps its number and its lines
+ * exactly as quoted; the invoice gets its own number, its own token and its
+ * own due date. When the scope changes next month, there is still a document
+ * saying what the price was when it was agreed.
+ *
+ * THE DISCOUNT IS BAKED IN ON THE WAY ACROSS, as a line rather than as an
+ * invoice-level rate. An invoice's total has to be the sum of its lines --
+ * that is what `invoiceTotals` guarantees and what every other screen relies
+ * on -- so the reduction is carried as a negative line that says what it is.
+ */
+export function answerEstimate(d: {
+  id: Id; accepted: boolean; by: string; note?: string;
+  /** Days from today. Only read on an acceptance. */
+  dueInDays?: number;
+  actor?: string;
+}):
+  | { ok: true; estimate: Estimate; invoice: Invoice | null }
+  | { ok: false; reason: "missing" | "not-sent" | "no-name" } {
+  const e = getEstimate(d.id);
+  if (!e) return { ok: false, reason: "missing" };
+  if (e.state !== "Sent") return { ok: false, reason: "not-sent" };
+  const who = d.by.trim();
+  if (!who) return { ok: false, reason: "no-name" };
+
+  const actor = d.actor?.trim() || "Studio";
+  e.state = d.accepted ? "Accepted" : "Declined";
+  e.answered = { at: now(), by: who, note: d.note?.trim() || undefined };
+
+  let invoice: Invoice | null = null;
+  if (d.accepted) {
+    const t = estimateTotals(e);
+    const lines: InvoiceLine[] = [...e.lines];
+    if (t.discount > 0) {
+      lines.push({
+        description: `Agreed discount, ${e.discount}%`,
+        qty: 1,
+        unit: -t.discount,
+      });
+    }
+    const days = Number.isFinite(d.dueInDays) ? Math.max(0, Math.trunc(d.dueInDays!)) : 30;
+    invoice = addInvoice({
+      clientId: e.clientId, projectId: e.projectId,
+      issued: now(),
+      due: new Date(Date.now() + days * 86_400_000).toISOString(),
+      vatRate: e.vatRate, lines, status: "Sent",
+    });
+    e.invoiceId = invoice.id;
+    audit({ actor, kind: "invoice", subjectId: invoice.id, subject: invoice.number,
+            action: "raised from an accepted estimate", note: e.number });
+  }
+
+  audit({ actor, kind: "invoice", subjectId: e.id, subject: e.number,
+          action: d.accepted ? "accepted" : "declined",
+          to: who, note: d.note?.trim() || undefined });
+
+  return { ok: true, estimate: e, invoice };
+}
+
+/**
+ * Quote the same thing again, at today's date.
+ *
+ * A DECLINED OR EXPIRED QUOTE IS THE COMMONEST STARTING POINT for the next
+ * one, and re-typing eleven lines is how a price changes by accident. The copy
+ * is a DRAFT with a new number: nothing is sent until somebody sends it, and
+ * the original stays exactly as it was.
+ */
+export function duplicateEstimate(id: Id, actor = "Studio"): Estimate | null {
+  const e = getEstimate(id);
+  if (!e) return null;
+  const copy = addEstimate({
+    clientId: e.clientId, projectId: e.projectId,
+    issued: now(),
+    expires: new Date(Date.now() + 30 * 86_400_000).toISOString(),
+    vatRate: e.vatRate, lines: e.lines.map((l) => ({ ...l })),
+    state: "Draft", discount: e.discount, notes: e.notes, terms: e.terms,
+  }, actor);
+  audit({ actor, kind: "invoice", subjectId: copy.id, subject: copy.number,
+          action: "copied from", note: e.number });
+  return copy;
+}
+
+/** The pipeline figure: quoted, still live, and waiting on an answer. */
+export function getPipeline(today = new Date()) {
+  const live = ESTIMATES.filter((e) => estimateState(e, today) === "Sent");
+  const won = ESTIMATES.filter((e) => e.state === "Accepted");
+  const answered = ESTIMATES.filter((e) => e.state === "Accepted" || e.state === "Declined");
+  return {
+    live,
+    open: live.reduce((n, e) => n + estimateTotals(e).total, 0),
+    /* Of the ones somebody actually answered. Quotes still sitting unanswered
+       are not losses and counting them as such makes the number useless. */
+    winRate: answered.length ? won.length / answered.length : null,
+    won: won.length,
+    answered: answered.length,
+  };
 }

@@ -224,7 +224,25 @@ party, which our own CSP blocks and which we should not loosen it for.
   THE CODE WAS DECODED, NOT LOOKED AT, and the first attempt failed. These URLs carry a full absolute address plus a token, and the mark in the middle forces error-correction level H, so they need far more modules than a blog slug: at the 136px the blog rail uses, jsQR found NO code at all at 1x, 2x and 3x. Two fixes, both measured. The token moved from 32 hex characters to 22 base64url ones -- the same 128 bits, ten fewer characters of data. And `.qr__code`'s hard 136px cap became a variable, with the documents asking for 160px. All 36 decodes then passed. `content-visibility: auto` was also turned off for still codes: it exists to stop a looping animation below the fold, a still code has no loop, and it was leaving the code unrendered in a screenshot or print taken before it scrolled into view.
 
 - [ ] Rebuild Money to Litch parity with overview, invoices, payments, receipts, expenses/accounting, exports, and useful filters while retaining WDC's concise primary navigation.
-- [ ] Add estimates/quotes and invoices with immutable numbering, line items, discounts, tax, currency, issue/due dates, project linkage, notes, terms, preview, PDF, send, duplicate, void, and reminder actions.
+- [-] Estimates are built, with their own number series, their own public document and their own life.
+
+  AN ESTIMATE IS NOT A DRAFT INVOICE, and building it as one would have been the easy mistake. A draft is a document the studio has not finished writing. An estimate is one it HAS finished and sent, waiting on somebody else -- so it has EST-YYYY-NNN of its own, an expiry rather than a due date, and a state only the client can move. Filed as drafts, the one thing nobody could answer is "what have we quoted and not heard back about", which is the question a pipeline is made of. A quote nobody takes must also not burn an invoice number.
+
+  ACCEPTING RAISES A NEW INVOICE rather than converting the quote. The estimate keeps its number and its lines exactly as quoted; the invoice gets its own number, token and due date. When the scope changes next month there is still a document saying what the price was when it was agreed. Recording the answer requires the CLIENT'S name, not the studio's: "accepted by Studio" is a row nobody can defend, and an acceptance is what a disagreement about scope gets settled against.
+
+  NO ACCEPT BUTTON ON THE PUBLIC PAGE, and the page says why. A click on a page addressed by a token is not a signature, and treating it as one would let anybody the link was forwarded to commit the client to a price. There is no pay button either: nobody should be able to pay a quote.
+
+  DISCOUNT IS A RATE, ROUNDED ONCE ON THE SUM. Kept as a percentage so it survives a line being edited, and applied to the subtotal rather than per line, because a per-line discount summed drifts from one taken on the sum by a kobo or two -- and both figures sit on the same page. Carried onto the invoice as a negative LINE rather than an invoice-level rate, because an invoice's total has to be the sum of its lines and every other screen relies on that.
+
+  NOTES AND TERMS ARE ON THE DOCUMENT, not in the covering email. The email is the thing nobody can find in December.
+
+  NOTHING DELETES AN ESTIMATE. Declined and expired ones are kept, because a quote nobody took is the most useful row in a pipeline six months later and removing it is how a studio forgets what its prices have been doing. "Quote it again" copies the lines and terms to a fresh draft at today's date, which is what stops a price changing by accident during a re-type.
+
+  EXPIRED IS DERIVED AND NEVER STORED, like an invoice's overdue -- a state time creates while nobody is looking. An ANSWERED estimate does not expire: accepting on the last day and invoicing a week later is normal, and a document that flipped to Expired after the client had said yes would be lying about something the studio has an agreement on.
+
+  Pinned by `tests/estimates.spec.ts`, thirteen cases.
+
+  ALSO DONE on invoices, from the same line: immutable numbering was already there, and void now is (see the entry above). NOT DONE: currency is naira only and the code says so rather than pretending to a currency field; PDF is still "print the public page" rather than a generated file; and an invoice cannot yet be duplicated, only an estimate.
 
   A VOID, A REVERSAL AND A REFUND ARE THREE DIFFERENT EVENTS. A void says the invoice should never have existed. A reversal says the money never really arrived: the transfer bounced, or somebody typed a row that should not be there. A refund says it arrived, we had it, and it went back. A client reconciling against their own bank statement sees TWO movements for a refund and none for the other two, so a system that collapses any pair of them forces somebody to record the wrong thing.
 

@@ -27,7 +27,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/onboarding", "/offline.html", "/i/", "/r/", "/pay/", "/api/"],
+        disallow: ["/onboarding", "/offline.html", "/i/", "/r/", "/q/", "/pay/", "/api/"],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,

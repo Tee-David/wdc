@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { creditBalance, getCreditsFor, getInvoicesFor } from "@/lib/admin/store";
+import {
+  creditBalance, getCreditsFor, getInvoice, getInvoicesFor,
+} from "@/lib/admin/store";
 import { invoiceTotals, naira } from "@/lib/admin/types";
 import { Empty, Panel, when } from "@/components/admin/bits";
 import { ApplyCredit } from "./credit-forms";
@@ -75,7 +77,10 @@ export default function CreditPanel({ clientId }: { clientId: string }) {
                       <>
                         <span className="ad__pill ad__pill--flat">Applied</span>
                         <p className="ad__dim" style={{ margin: ".25rem 0 0", fontSize: ".78rem" }}>
-                          to <Link href={`/admin/money/${c.applied.invoiceId}`}>that invoice</Link>{" "}
+                          to{" "}
+                          <Link href={`/admin/money/${c.applied.invoiceId}`}>
+                            {getInvoice(c.applied.invoiceId)?.number ?? "an invoice"}
+                          </Link>{" "}
                           on {when(c.applied.at)}
                         </p>
                       </>

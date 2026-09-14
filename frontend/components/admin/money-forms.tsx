@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Banknote, FileText, Plus, Save, Send, Trash2, Undo2 } from "lucide-react";
+import {
+  Banknote, FileSignature, FileText, Plus, Save, Send, Trash2, Undo2,
+} from "lucide-react";
 import type { Client, Invoice, Project } from "@/lib/admin/types";
 import { EXPENSE_CATEGORIES, METHODS, naira } from "@/lib/admin/types";
 import {
-  createExpense, createInvoice, deleteInvoice, issueInvoice, recordPayment, reversePayment, updateInvoice,
+  createEstimate, createExpense, createInvoice, deleteInvoice, issueInvoice,
+  recordPayment, reversePayment, updateInvoice,
 } from "@/lib/admin/actions";
 import { Actions, Area, Checks, Field, Fields, Form, Hidden, Select, Submit } from "./form";
 import { DialogButton } from "./dialog";
@@ -59,14 +62,42 @@ export function InvoiceBuilder({
   );
 }
 
+/**
+ * The estimate builder.
+ *
+ * THE SAME LINE EDITOR, because an estimate and an invoice are the same list
+ * of work at two moments and two editors would drift. What differs is what
+ * surrounds it: an estimate has an expiry rather than a due date, a discount
+ * rate, and the two pieces of prose -- what is covered, and on what terms --
+ * that decide arguments later and otherwise live only in a covering email.
+ */
+export function EstimateBuilder({
+  clients, projects, clientId, trigger = "New estimate",
+}: {
+  clients: Pick<Client, "id" | "company">[];
+  projects: Pick<Project, "id" | "title" | "clientId">[];
+  clientId?: string;
+  trigger?: string;
+}) {
+  return (
+    <DialogButton label={trigger} title="Quote for a piece of work" icon={FileSignature} tone="plain" wide>
+      {(close) => (
+        <Builder clients={clients} projects={projects} clientId={clientId} close={close} estimate />
+      )}
+    </DialogButton>
+  );
+}
+
 function Builder({
-  clients, projects, invoice, clientId, close,
+  clients, projects, invoice, clientId, close, estimate = false,
 }: {
   clients: Pick<Client, "id" | "company">[];
   projects: Pick<Project, "id" | "title" | "clientId">[];
   invoice?: Invoice;
   clientId?: string;
   close: () => void;
+  /** Build an estimate rather than an invoice. */
+  estimate?: boolean;
 }) {
   const [rows, setRows] = useState<Row[]>(() =>
     invoice?.lines.length
@@ -84,15 +115,21 @@ function Builder({
     const u = Math.round((Number(r.unit.replace(/[₦,\s]/g, "")) || 0) * 100);
     return n + Math.round(q * u);
   }, 0);
+  const [off, setOff] = useState("0");
   const rate = Number(vat) || 0;
-  const tax = Math.round((subtotal * rate) / 100);
+  /* ROUNDED ONCE, ON THE SUM. A discount taken per line and then summed drifts
+     from one taken on the sum, and both figures would be on this dialog at the
+     same time. The server does it the same way, in `estimateTotals`. */
+  const cut = estimate ? Math.round((subtotal * (Number(off) || 0)) / 100) : 0;
+  const net = subtotal - cut;
+  const tax = Math.round((net * rate) / 100);
 
   const forClient = projects.filter((p) => p.clientId === who);
   const set = (key: number, k: keyof Row, v: string) =>
     setRows((rs) => rs.map((r) => (r.key === key ? { ...r, [k]: v } : r)));
 
   return (
-    <Form action={invoice ? updateInvoice : createInvoice} onDone={() => close()}>
+    <Form action={estimate ? createEstimate : invoice ? updateInvoice : createInvoice} onDone={() => close()}>
       {invoice ? <Hidden name="id" value={invoice.id} /> : null}
       <Fields>
         {clientId && !invoice ? (
@@ -112,9 +149,29 @@ function Builder({
         />
         <Field name="issued" label="Issued" type="date" half
                defaultValue={(invoice?.issued ?? new Date().toISOString()).slice(0, 10)} />
-        <Field name="due" label="Due" type="date" required half
-               defaultValue={(invoice?.due ?? plusDays(30)).slice(0, 10)} />
+        {estimate ? (
+          <Field name="expires" label="Holds until" type="date" required half
+                 defaultValue={plusDays(30).slice(0, 10)}
+                 hint="After this the price is no longer held. The state says so on its own; nothing expires silently." />
+        ) : (
+          <Field name="due" label="Due" type="date" required half
+                 defaultValue={(invoice?.due ?? plusDays(30)).slice(0, 10)} />
+        )}
       </Fields>
+
+      {estimate ? (
+        <Fields>
+          <Area
+            name="notes" label="What this covers" rows={3}
+            placeholder="Milestone three covers the routing rework and the driver app. Hypercare is two weeks from the day it goes live, not from sign-off."
+            hint="On the document rather than in the covering email, because the email is the thing nobody can find in December."
+          />
+          <Area
+            name="terms" label="Terms" rows={2}
+            placeholder="Half on acceptance, half on delivery. The price holds for thirty days from the date above."
+          />
+        </Fields>
+      ) : null}
 
       {/* A hidden mirror of the select, so changing it can filter the projects
           without the select itself becoming controlled and losing its
@@ -178,6 +235,15 @@ function Builder({
 
       <div className="ad__totals">
         <div className="ad__vat">
+          {estimate ? (
+            <>
+              <label htmlFor="discount">Discount %</label>
+              <input
+                id="discount" name="discount" value={off} inputMode="decimal"
+                onChange={(e) => setOff(e.target.value)}
+              />
+            </>
+          ) : null}
           <label htmlFor="vatRate">VAT %</label>
           <input
             id="vatRate" name="vatRate" value={vat} inputMode="decimal"
@@ -186,16 +252,17 @@ function Builder({
         </div>
         <dl>
           <div><dt>Subtotal</dt><dd>{naira(subtotal)}</dd></div>
+          {cut > 0 ? <div><dt>Discount at {Number(off)}%</dt><dd>−{naira(cut)}</dd></div> : null}
           <div><dt>VAT at {rate}%</dt><dd>{naira(tax)}</dd></div>
-          <div className="is-total"><dt>Total</dt><dd>{naira(subtotal + tax)}</dd></div>
+          <div className="is-total"><dt>Total</dt><dd>{naira(net + tax)}</dd></div>
         </dl>
       </div>
 
       <Actions>
         <Submit icon={invoice ? Save : FileText}>{invoice ? "Save the draft" : "Save as a draft"}</Submit>
         {invoice ? null : (
-          <button type="submit" name="issue" value="1" className="ad__btn">
-            <Send aria-hidden="true" /> Save and issue
+          <button type="submit" name={estimate ? "send" : "issue"} value="1" className="ad__btn">
+            <Send aria-hidden="true" /> {estimate ? "Save and send" : "Save and issue"}
           </button>
         )}
       </Actions>
