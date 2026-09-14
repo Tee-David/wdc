@@ -20,7 +20,9 @@
    directly under that column's content instead of being stretched down the
    full height of the tallest column beside it. */
 @media (min-width: 1001px) {
-  .ft__nl { grid-column: 4; grid-row: 2; align-self: start; margin-top: 1.6rem; }
+  /* Under its own heading in the fourth column, which now says "Worth your
+     inbox" and belongs to this box rather than to a contact list. */
+  .ft__nl { grid-column: 4; grid-row: 2; align-self: start; margin-top: 1.1rem; }
 }
 
 /* Two columns at the middle size: the brand block spans both, so the subscribe

@@ -104,7 +104,6 @@
 .ft__col a:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px;
 }
-.ft__plain { color: var(--on-band-dim); font-size: .92rem; }
 .ft__mail {
   display: inline-flex; align-items: center; gap: .3em;
   overflow-wrap: anywhere;

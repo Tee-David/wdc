@@ -74,33 +74,34 @@ export function SiteFooter() {
             </ul>
           </nav>
 
-          <nav className="ft__col" aria-label="Legal">
-            <h2>Legal</h2>
+          {/* "Useful links" rather than "Legal", and the address sits at the
+              bottom of it. Four policies under a heading that says Legal reads
+              as the small print nobody clicks; the same four plus the way to
+              reach a person reads as the column you check when you want
+              something. */}
+          <nav className="ft__col" aria-label="Useful links">
+            <h2>Useful links</h2>
             <ul>
               {LEGAL_DOCS.map((d) => (
                 <li key={d.slug}>
                   <Link href={`/legal/${d.slug}`}>{d.title}</Link>
                 </li>
               ))}
-            </ul>
-          </nav>
-
-          <div className="ft__col">
-            <h2>Get in touch</h2>
-            <ul>
               <li>
                 <a href={`mailto:${CONTACT_EMAIL}`} className="ft__mail">
                   {CONTACT_EMAIL}
                   <ArrowUpRight aria-hidden="true" />
                 </a>
               </li>
-              <li className="ft__plain">Nigeria, working remote-first</li>
-              <li className="ft__plain">Replies the same working day</li>
             </ul>
-            {/* The ask lives with the contact details rather than under the
-                pitch. It is the same action the three lines above it describe,
-                and it was previously the only thing in the brand column that
-                wanted a click. */}
+          </nav>
+
+          <div className="ft__col ft__col--sub">
+            {/* The subscribe box's own heading, now that it has a column to
+                itself. The two lines that used to sit here -- where we are and
+                how fast we reply -- are on /contact, which is where somebody
+                deciding whether to write is already headed. */}
+            <h2>Worth your inbox</h2>
             <Link className="ft__cta" href="/contact">
               Start a conversation
               <ArrowUpRight aria-hidden="true" />
