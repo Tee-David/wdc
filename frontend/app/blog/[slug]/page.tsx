@@ -237,8 +237,16 @@ export default async function BlogPostPage(
                   what="post"
                   scanLabel="Scan to open this article on your phone."
                 />
+              </div>
 
-                {more.length > 0 && (
+              {/* READ NEXT STARTS AT THE LEFT EDGE, in a row of its own.
+                  By the time a reader reaches it the contents rail has ended,
+                  so the first column is empty space -- and a carousel that
+                  begins where the prose begins leaves a 15rem hole beside its
+                  own heading. It spans both columns instead. The share row
+                  above it does NOT: that still lines up with the article it
+                  belongs to. */}
+              {more.length > 0 && (
                   <div className="bl-next">
                     <h2>Read next</h2>
                     <div className="pv-rail">
@@ -263,7 +271,6 @@ export default async function BlogPostPage(
                     </div>
                   </div>
                 )}
-              </div>
             </div>
           </div>
         </section>

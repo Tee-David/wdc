@@ -232,6 +232,12 @@
    move it on the page: the share row and "Read next" stay in the prose column
    rather than widening to the full grid track. */
 .bl-layout > .bl-after { grid-row: 2; grid-column: 2; min-width: 0; max-width: 74ch; }
+/* READ NEXT TAKES BOTH COLUMNS, in a row of its own under the end matter.
+   The rail has finished by the time anyone reaches this, so the first column
+   is empty -- and a carousel that starts where the prose starts leaves a 15rem
+   hole beside its own heading. The share row above deliberately does NOT do
+   this: it still lines up with the article it belongs to. */
+.bl-layout > .bl-next { grid-row: 3; grid-column: 1 / -1; min-width: 0; }
 .bl-layout--solo > .bl-post,
 .bl-layout--solo > .bl-after { grid-column: 1; }
 
@@ -244,7 +250,8 @@
      end matter in a second column that no longer exists. */
   .bl-layout > .bl-rail,
   .bl-layout > .bl-post,
-  .bl-layout > .bl-after { grid-column: 1; grid-row: auto; }
+  .bl-layout > .bl-after,
+  .bl-layout > .bl-next { grid-column: 1; grid-row: auto; }
 }
 
 .bl-rail__k {

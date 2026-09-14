@@ -102,6 +102,12 @@ export function SiteFooter() {
                 how fast we reply -- are on /contact, which is where somebody
                 deciding whether to write is already headed. */}
             <h2>Worth your inbox</h2>
+            {/* IN THE COLUMN, under its own heading. It was briefly a direct
+                child of `.ft__cols` placed into row 2, which put it below the
+                TALLEST column rather than below its own heading -- a row's
+                start is set by the whole row, so the box sat in open space
+                with the heading stranded far above it. */}
+            <Newsletter />
             {/* NO "START A CONVERSATION" BUTTON. Contact Us is already in the
                 Company list two columns over, the address is in Useful links
                 beside it, and every page above this one ends in its own ask.
@@ -120,14 +126,6 @@ export function SiteFooter() {
             ) : null}
           </div>
 
-          {/* IN THE GRID, NOT IN A BAND OF ITS OWN, and placed by CSS rather
-              than rendered twice. It reads differently at the two sizes: on a
-              desktop it belongs under Get in touch, with the other ways of
-              reaching us; on a phone the columns stack and it belongs directly
-              under the sentence that says what the studio is, before the three
-              lists of links. Explicit grid placement does both from one
-              element -- see `.ft__nl` in site-footer.css. */}
-          <Newsletter />
         </div>
 
         {/* The wordmark, set at a share of the CARD's width rather than the
