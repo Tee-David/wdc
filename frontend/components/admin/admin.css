@@ -878,3 +878,40 @@
    components/money/document.css for the sizes that were tried and what
    happened below this one. */
 .ad__qr { width: 160px; flex: none; }
+
+/* --------------------------------------------------------------- the log --
+   One row per change, dense enough to read a week of them at a glance. The
+   before/after pair is the point, so it gets its own column rather than being
+   folded into a sentence. */
+.ad__log { list-style: none; margin: 0; padding: .3rem .5rem; display: grid; gap: .1rem; }
+.ad__logRow {
+  display: grid; gap: .15rem .9rem;
+  grid-template-columns: 8.5rem minmax(0, 1fr);
+  padding: .55rem .6rem; border-radius: 9px;
+}
+.ad__logRow:hover { background: var(--ad-raise, rgba(127, 127, 160, .07)); }
+.ad__logWhen {
+  color: var(--ad-dim); font-size: .78rem;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.ad__logWhat { min-width: 0; }
+.ad__logWhat b { font-weight: 600; }
+.ad__logWhat .ad__kind {
+  display: inline-block; margin-right: .4rem;
+  font-size: .66rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--ad-dim);
+}
+.ad__logMove {
+  display: block; margin-top: .15rem;
+  font-size: .82rem; color: var(--ad-dim); overflow-wrap: anywhere;
+}
+.ad__logMove ins, .ad__logMove del { text-decoration: none; }
+.ad__logMove del { opacity: .75; }
+.ad__logMove ins { color: var(--ad-ink); font-weight: 600; }
+.ad__logWho { color: var(--ad-dim); font-size: .78rem; }
+
+@media (max-width: 620px) {
+  /* The timestamp stops being a column and becomes the first line of the row,
+     which is the only way both stay readable at 320px. */
+  .ad__logRow { grid-template-columns: minmax(0, 1fr); }
+}

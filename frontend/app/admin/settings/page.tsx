@@ -4,6 +4,7 @@ import { CASE_STUDIES } from "@/lib/work";
 import { getSettings } from "@/lib/admin/store";
 import { DemoNote, Panel } from "@/components/admin/bits";
 import { SettingMenu } from "@/components/admin/row-actions";
+import AuditLog from "@/components/admin/audit-log";
 
 export const metadata = { title: "Settings" };
 
@@ -114,6 +115,17 @@ export default function SettingsPage() {
             </p>
           </div>
         </Panel>
+
+        {/* WHAT CHANGED, WHO CHANGED IT, AND WHAT IT WAS BEFORE.
+
+            It lives under Settings because that is where somebody goes when
+            they are asking a question about the system rather than about a
+            client, and because the settings above it are exactly the kind of
+            edit that needs a record: one row changes what the public site
+            says. The log is append-only by construction -- the array is
+            module-private and the only export that touches it pushes -- so
+            this screen has no controls at all. */}
+        <AuditLog />
 
         <Panel title="Access">
           <div style={{ padding: ".9rem 1rem" }}>

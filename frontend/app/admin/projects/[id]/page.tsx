@@ -16,6 +16,7 @@ import {
   Deliverables, ProjectDetails, Tasks, Updates,
 } from "@/components/admin/delivery";
 import { InvoiceBuilder } from "@/components/admin/money-forms";
+import AuditLog from "@/components/admin/audit-log";
 
 /* NO generateStaticParams: projects are created at runtime now, and a route
    list frozen at build time would 404 on anything opened since. */
@@ -153,6 +154,16 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             </div>
           ) : <Empty title="Nothing invoiced against this" />}
         </Panel>
+      </div>
+
+      <div style={{ marginTop: ".9rem" }}>
+        {/* THE SYSTEMS RECORD, which the History panel above deliberately is
+            not. History is a narrative for whoever opens this next week --
+            "moved to Review, three routes sent". This is every write with its
+            before and after, which is what gets read when somebody asks why a
+            date says what it says. */}
+        <AuditLog kind="project" subjectId={p.id} limit={20}
+                  title="Changes to this project" />
       </div>
 
       <div style={{ marginTop: ".9rem" }}>
