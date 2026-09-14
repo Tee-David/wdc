@@ -53,7 +53,11 @@ export const CHANNELS: Channel[] = [
     id: "where",
     icon: "Globe",
     label: "Working with",
-    value: "Brands anywhere, remote-first",
+    /* "Remote-first" is how a studio describes itself to other studios. A
+       client reading this row wants to know whether we can take their work,
+       not what our internal setup is called -- and the published FAQ answer is
+       already the plainer version of it: clients across Nigeria and beyond. */
+    value: "Clients across Nigeria and beyond",
   },
 ];
 
