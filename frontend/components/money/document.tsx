@@ -85,7 +85,7 @@ export function Headline({
   label: string;
   amount: number;
   clear?: boolean;
-  pill?: { text: string; tone: "good" | "bad" | "warn" };
+  pill?: { text: string; tone: "good" | "bad" | "warn" | "due" };
 }) {
   return (
     <div className={`doc__owed${clear ? " is-clear" : ""}`}>
