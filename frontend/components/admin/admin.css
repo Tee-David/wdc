@@ -29,6 +29,9 @@
   --ad-warn: #b8860b;
   --ad-bad: #d63333;
   --ad-r: 14px;
+  /* One stroked chevron, masked wherever a caret is needed, so the select and
+     anything else that grows one cannot drift apart. */
+  --ad-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 
   min-height: 100dvh;
   background: var(--ad-bg);
@@ -443,14 +446,64 @@
 .ad__fl b { color: var(--ad-accent); }
 .ad__fh { font-size: .75rem; color: var(--ad-dim); line-height: 1.4; }
 .ad__fe { font-size: .75rem; font-weight: 600; color: var(--ad-bad); }
-
-.ad__f :is(input, select, textarea) {
-  width: 100%; padding: .5rem .65rem;
-  border: 1px solid var(--ad-line); border-radius: 9px;
-  background: var(--ad-bg); color: var(--ad-ink);
-  font: inherit; font-size: .875rem;
+/* The date in words, under the field. See the note on `inWords` in form.tsx:
+   a native date input renders in the BROWSER's language, so 09/14 and 14/09
+   are the same field on two different laptops, and for any day under thirteen
+   there is no telling them apart by looking. */
+.ad__fd {
+  font-size: .75rem; color: var(--ad-dim);
+  font-variant-numeric: tabular-nums;
 }
-.ad__f textarea { resize: vertical; min-height: 4.5rem; }
+
+/* ---- the controls -------------------------------------------------------
+
+   NATIVE ELEMENTS, DRESSED. Not a component library, and that is a decision
+   rather than a shortcut. A `<select>` opens the platform's own list: it is
+   keyboard-complete, it is searchable by typing, it works with a screen reader
+   the user already has configured, and on a phone it opens the wheel they know
+   instead of a div pretending to be one. Everything below is the part we CAN
+   own -- the box, the type, the caret, the focus ring -- with the part the
+   platform does better left alone.
+
+   The height is 44px because that is the floor for a control anywhere on this
+   site, admin included. It was 39px, which is a mouse target rather than a
+   thumb one. */
+.ad__f :is(input, select, textarea) {
+  width: 100%;
+  min-height: 44px;
+  padding: .6rem .8rem;
+  border: 1px solid var(--ad-line); border-radius: 10px;
+  background: var(--ad-bg); color: var(--ad-ink);
+  font: inherit; font-size: .9rem; line-height: 1.4;
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+.ad__f :is(input, select):hover:not(:disabled),
+.ad__f textarea:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--ad-accent) 45%, var(--ad-line));
+}
+.ad__f ::placeholder { color: var(--ad-dim); opacity: .75; }
+.ad__f textarea { resize: vertical; min-height: 5.25rem; padding-top: .65rem; }
+
+/* NUMBERS LINE UP, EVERYWHERE. The same rule the tables follow: an amount
+   typed into a field with proportional digits is the small thing that makes a
+   tool feel amateur. */
+.ad__f input[inputmode="decimal"],
+.ad__f input[inputmode="numeric"],
+.ad__f input[type="date"] { font-variant-numeric: tabular-nums; }
+
+/* The native calendar button is drawn by the browser from `color-scheme`, so
+   it is already the right colour in both themes. What it is not is the right
+   SIZE or obviously pressable, which is what this fixes. */
+.ad__f input[type="date"]::-webkit-calendar-picker-indicator {
+  width: 1.05rem; height: 1.05rem;
+  padding: .2rem; margin-right: -.2rem;
+  border-radius: 6px; cursor: pointer;
+  opacity: .55; transition: opacity .15s ease, background-color .15s ease;
+}
+.ad__f input[type="date"]:hover::-webkit-calendar-picker-indicator,
+.ad__f input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1; background: color-mix(in srgb, var(--ad-accent) 18%, transparent);
+}
 
 /* A TICK BOX IS NOT A TEXT FIELD, and the rule above had been treating it as
    one: a checkbox inside `.ad__f` was picking up `width: 100%`, a 9px radius,
@@ -461,24 +514,69 @@
    Measured, not guessed -- the input reported a width of 654px against a
    label of 683px. */
 .ad__f :is(input[type="checkbox"], input[type="radio"]) {
-  width: auto; flex: none;
+  /* `min-height` has to be reset too, and this is the second time this rule
+     has had to grow: the moment the text fields were given a 44px floor, the
+     tick boxes inherited it and their rows went 60px tall with the box
+     stranded at the bottom. A tick box is 1rem and its ROW is what carries the
+     touch target. */
+  width: auto; height: auto; min-height: 0; flex: none;
   padding: 0; border: 0; border-radius: 0; background: none;
+  accent-color: var(--ad-accent);
 }
-.ad__f :is(input, select, textarea):focus-visible {
-  outline: 2px solid var(--ad-accent); outline-offset: 1px; border-color: transparent;
+/* Big enough to hit and to see. The browser draws the tick itself, in
+   `accent-color`, which is both the least code and the most familiar mark. */
+.ad__check input { width: 1.05rem; height: 1.05rem; }
+/* A RING, NOT AN OUTLINE. `outline` sits outside the box and gets clipped by
+   the dialog's own overflow on the fields nearest its edge; a box-shadow ring
+   follows the border radius and never does. The border takes the accent at the
+   same time, so the field reads as focused rather than merely haloed. */
+.ad__f :is(input, select, textarea):focus {
+  outline: none;
+  border-color: var(--ad-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ad-accent) 22%, transparent);
 }
 .ad__f.is-bad :is(input, select, textarea) { border-color: var(--ad-bad); }
+.ad__f.is-bad :is(input, select, textarea):focus {
+  border-color: var(--ad-bad);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ad-bad) 22%, transparent);
+}
 
-/* The native arrow disappears on a custom background in some browsers, so the
-   caret is drawn and the padding makes room for it. */
+/* THE CARET IS A CHEVRON, NOT A SOLID TRIANGLE.
+
+   It was two 45-degree linear-gradients meeting in a corner, which is the old
+   CSS trick for drawing an arrowhead and looks like one: a filled wedge with
+   hard edges, at odds with every other stroked glyph in the admin. This is a
+   real chevron, masked from an inline SVG so it takes `currentColor` and turns
+   accent on focus like the border does.
+
+   The native arrow is still replaced rather than restyled, because a `<select>`
+   with a custom background loses its own arrow in several browsers. What is
+   NOT replaced is the list the select opens, which is the platform's and
+   better than anything we would draw: type-to-search, arrow keys, the phone
+   wheel, and whatever screen reader the person already has set up. */
 .ad__f select {
   appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
-                    linear-gradient(135deg, currentColor 50%, transparent 50%);
-  background-position: calc(100% - 15px) 52%, calc(100% - 10px) 52%;
-  background-size: 5px 5px, 5px 5px;
-  background-repeat: no-repeat;
-  padding-right: 2rem;
+  padding-right: 2.4rem;
+  cursor: pointer;
+  background-image: none;
+}
+.ad__f--sel { position: relative; }
+.ad__f--sel::after {
+  content: "";
+  position: absolute; right: .9rem; bottom: .95rem;
+  width: .7rem; height: .7rem;
+  pointer-events: none;
+  background-color: var(--ad-dim);
+  transition: background-color .15s ease, transform .15s ease;
+  -webkit-mask: var(--ad-chevron) center / contain no-repeat;
+  mask: var(--ad-chevron) center / contain no-repeat;
+}
+.ad__f--sel:hover::after { background-color: var(--ad-ink); }
+.ad__f--sel:focus-within::after { background-color: var(--ad-accent); }
+@media (prefers-reduced-motion: reduce) {
+  .ad__f :is(input, select, textarea),
+  .ad__f--sel::after,
+  .ad__f input[type="date"]::-webkit-calendar-picker-indicator { transition: none; }
 }
 
 .ad__checks { display: flex; flex-wrap: wrap; gap: .4rem; }
@@ -882,7 +980,8 @@
   width: 100%; padding: .7rem .85rem; border-radius: 12px;
   font-size: .92rem; font-weight: 500; text-align: left;
 }
-.ad__check--long input { margin-top: .2rem; flex: none; }
+.ad__check--long { min-height: 44px; }
+.ad__check--long input { margin-top: .1rem; flex: none; }
 .ad__check--long > span { flex: 1 1 auto; min-width: 0; }
 .ad__check--long small {
   display: block; margin-top: .15rem;
