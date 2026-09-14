@@ -2,16 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import {
-  Code2,
-  Cpu,
-  Megaphone,
-  PenTool,
-  Search,
-  Smartphone,
-  Sparkles,
-  type LucideIcon,
-} from "lucide-react";
 import type { CSSProperties } from "react";
 import { PROJECTS, type Project } from "@/lib/projects";
 import SiteModal from "./site-modal";
@@ -23,6 +13,7 @@ import { CONTACT_EMAIL } from "@/lib/site";
 
 import "./preview.css";
 import StrokeNumber from "@/components/ui/stroke-number";
+import ServiceIcon from "@/components/ui/service-icon";
 import ScrollCue from "@/components/ui/scroll-cue";
 
 /* Copy is WDC's own, taken from the existing homepage, the PRD and llms.txt. */
@@ -143,18 +134,35 @@ const initials = (name: string) => {
  * the web, a handset for apps, a processor for software and AI, a megaphone
  * for the work whose whole job is being heard.
  */
-const SERVICE_ICON: Record<string, LucideIcon> = {
-  branding: PenTool,
-  seo: Search,
-  web: Code2,
-  apps: Smartphone,
-  software: Cpu,
-  social: Megaphone,
+const SERVICE_ICON: Record<string, string> = {
+  branding: "PenTool",
+  seo: "Search",
+  web: "Code2",
+  apps: "Smartphone",
+  software: "Cpu",
+  social: "Megaphone",
 };
 
-function Icon({ slug }: { slug: string }) {
-  const Glyph = SERVICE_ICON[slug] ?? Sparkles;
-  return <Glyph aria-hidden="true" strokeWidth={1.7} />;
+/* ANIMATED, LIKE EVERY OTHER ICON ON THE SITE. These were flat lucide glyphs
+   imported straight into this file, so the one row of icons a first-time
+   visitor sees on the homepage was the only row on the site that sat still --
+   /services, /about and the header menu all draw theirs on arrival and react
+   to a pointer. `ServiceIcon` is that behaviour: it stamps `pathLength` on
+   every shape so a short line and a long curve draw at the same speed, it is
+   gated by components/ui/draw-gate.tsx so nothing animates off screen, and it
+   drops to a still glyph under `prefers-reduced-motion`.
+
+   The names are lucide exports as STRINGS now, because that is what the
+   wrapper takes. Same six glyphs, same meanings. */
+function Icon({ slug, delay }: { slug: string; delay: number }) {
+  return (
+    <ServiceIcon
+      name={SERVICE_ICON[slug] ?? "Sparkles"}
+      size={42}
+      delay={delay}
+      hover="pop"
+    />
+  );
 }
 
 export default function PreviewBody() {
@@ -524,7 +532,7 @@ export default function PreviewBody() {
                         />
                       </div>
                       <StrokeNumber className="pv-scard__n" value={String(idx + 1).padStart(2, "0")} delay={idx * 160} />
-                      <div className="pv-scard__ic"><Icon slug={s.slug} /></div>
+                      <div className="pv-scard__ic"><Icon slug={s.slug} delay={idx * 120} /></div>
                       <div className="pv-scard__body">
                         <h3>{s.title}</h3>
                         <p>{s.body}</p>
