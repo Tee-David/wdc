@@ -80,7 +80,7 @@ export default async function PublicReceipt({
           <b>This receipt has been reversed.</b> The payment it records did not
           stay with us{gone.reason ? `: ${gone.reason}` : "."} It no longer
           counts towards {inv.number}. Nothing here has been altered or
-          removed — this is the original receipt, marked.
+          removed. This is the original receipt, marked.
         </p>
       ) : null}
 

@@ -281,7 +281,7 @@ export async function probeCors({
       ok: false,
       reason: "The file store is not accepting uploads from this site yet.",
       detail:
-        `the bucket allows ${allowOrigin} but this request came from ${origin} — ` +
+        `the bucket allows ${allowOrigin} but this request came from ${origin}. ` +
         `these have to match exactly, including the scheme and any www. ${detail}`,
     };
   }

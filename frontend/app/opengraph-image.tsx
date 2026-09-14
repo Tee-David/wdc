@@ -20,7 +20,7 @@ import { OG_SIZE } from "@/lib/og";
  * reproducible: `node scripts/shoot-og-card.mjs` re-shoots it against a local
  * production build. Re-run it whenever the hero changes.
  */
-export const alt = `${SITE_NAME} — creative and digital agency`;
+export const alt = `${SITE_NAME}: creative and digital agency`;
 export const size = OG_SIZE;
 export const contentType = "image/jpeg";
 

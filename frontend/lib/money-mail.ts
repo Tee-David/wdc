@@ -139,6 +139,13 @@ ${button(url, "Open your receipt")}
  * what is owed, what has already been paid against it, and carries the button
  * that starts a checkout -- so there is one URL to send, one to quote in a
  * WhatsApp message, and one printed as a QR on the paper copy.
+ *
+ * AND IT DOES NOT OFFER A BANK TRANSFER AS AN ALTERNATIVE. It used to. The
+ * studio collects through Paystack, whose own page already offers a transfer
+ * to a one-time account beside the card, so the offer sent people out to email
+ * for something the link does better and records automatically. The other
+ * methods in the books are the STUDIO'S, for entering money that arrived some
+ * other way or sorting out a payment that went wrong.
  */
 export async function sendInvoiceEmail(input: { invoice: Invoice; by?: string }) {
   const { invoice } = input;
@@ -173,13 +180,13 @@ export async function sendInvoiceEmail(input: { invoice: Invoice; by?: string })
       "",
       `Open it, and pay by card or transfer, here: ${url}`,
       "",
-      "You can also pay by bank transfer. Reply to this email and we will send the account details.",
+      "Card or bank transfer, both on the same page. Anything that goes wrong, reply to this email and we will sort it out.",
     ].join("\n"),
     html: shell(`Invoice ${invoice.number}`, `
 <p><b>${naira(totals.due)}</b> is due on <b>${escapeHtml(due)}</b>.</p>
 <p>The link below opens the invoice. It shows everything billed and anything already paid against it, and it carries a button to pay by card.</p>
 ${button(url, "Open and pay the invoice")}
-<p style="color:#5a5a72;font-size:13px">Prefer a bank transfer? Reply to this email and we will send the account details. Quote ${escapeHtml(invoice.number)} on the transfer.</p>`),
+<p style="color:#5a5a72;font-size:13px">Card or bank transfer, both on the same page. Anything that goes wrong, reply to this email quoting ${escapeHtml(invoice.number)} and we will sort it out.</p>`),
   });
 }
 

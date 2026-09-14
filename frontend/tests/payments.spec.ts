@@ -88,10 +88,22 @@ test.describe("starting a checkout", () => {
     expect(box!.height).toBeGreaterThanOrEqual(44);
   });
 
-  test("the transfer route is offered whether or not the card one is", async ({ page }) => {
+  test("there is ONE way to pay, and it is not a bank transfer", async ({ page }) => {
     await page.goto(`/i/${INVOICE}`);
-    await expect(page.locator(".doc__pay")).toContainText("Quote");
-    await expect(page.locator(".doc__pay")).toContainText("INV-2026-001");
+    const pay = page.locator(".doc__pay");
+    /* The studio collects through Paystack, and Paystack's own page offers a
+       transfer to a one-time account beside the card. Offering "prefer a bank
+       transfer?" underneath sent people out to email for something the button
+       in front of them does better and records automatically -- and produced
+       the untracked transfer somebody then reconciles by hand. The other
+       methods in the books are the STUDIO'S, for entering money that arrived
+       some other way; they are not a menu a client picks from. */
+    await expect(pay).not.toContainText(/prefer a bank transfer/i);
+    await expect(pay).not.toContainText(/account details/i);
+    /* What is there instead: the checkout, and one line naming the invoice so
+       anything that goes wrong reaches the right piece of work. */
+    await expect(pay.locator("form[action^='/api/pay/']")).toHaveCount(1);
+    await expect(pay).toContainText("INV-2026-001");
   });
 });
 

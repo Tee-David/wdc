@@ -55,8 +55,8 @@ export async function generateMetadata(
      name. `SITE_NAME` is the 20 character suffix the rest of the site uses,
      which the longest titles still cannot take, but the shortest now can. */
   const brand = ` | ${SITE_NAME}`;
-  const withTitle = `${cs.client} — ${cs.title}`;
-  const withSector = `${cs.client} — ${cs.sector}`;
+  const withTitle = `${cs.client}: ${cs.title}`;
+  const withSector = `${cs.client}: ${cs.sector}`;
   const title =
     withTitle.length + brand.length <= 60 ? withTitle + brand
     : withSector.length + brand.length <= 60 ? withSector + brand
@@ -149,7 +149,7 @@ export default async function WorkDetailPage(
   const caseJsonLd = {
     "@context": "https://schema.org",
     "@type": "CreativeWork",
-    name: `${cs.client} — ${cs.title}`,
+    name: `${cs.client}: ${cs.title}`,
     abstract: cs.summary,
     url: `${SITE_URL}/work/${cs.category}/${cs.slug}`,
     creator: { "@type": "Organization", name: COMPANY_NAME, url: SITE_URL },
@@ -203,7 +203,7 @@ export default async function WorkDetailPage(
                   { }
                   <Image
                     src={cs.cover}
-                    alt={`${cs.client} — ${cs.title}`}
+                    alt={`${cs.client}: ${cs.title}`}
                     fill
                     sizes="(max-width: 900px) 100vw, 860px"
                     quality={78}

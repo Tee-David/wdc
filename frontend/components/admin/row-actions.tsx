@@ -169,7 +169,7 @@ export function ProjectMenu({
             ? `${project.title} goes back into the project lists exactly as it was.`
             : `${project.title} drops out of the lists and the board. Its invoices,
                payments, updates, approvals and file versions stay exactly as they
-               are, because those are the record — this is why there is no delete.`}
+               are, because those are the record. That is why there is no delete.`}
         </Sure>
       ),
     },
@@ -237,7 +237,7 @@ export function ClientMenu({ client }: { client: Client }) {
         >
           {back
             ? `${client.company} goes back into the lists exactly as they were.`
-            : `${client.company} drops out of the lists. Their projects, invoices and payments stay exactly as they are, because those are the financial record — this is why there is no delete.`}
+            : `${client.company} drops out of the lists. Their projects, invoices and payments stay exactly as they are, because those are the financial record. That is why there is no delete.`}
         </Sure>
       ),
     },
@@ -457,7 +457,7 @@ export function PaymentMenu({
             {naira(payment.amount)} comes off {invoiceNumber ?? "the invoice"} and it
             re-totals. The row stays on the books marked reversed and keeps its
             receipt number, because {payment.receiptNo} has its own link and the
-            client may be holding it — it will say REVERSED rather than stop
+            client may be holding it, and it will say REVERSED rather than stop
             working. Use this for a payment entered twice or against the wrong
             invoice, not for a refund: a refund is money going out.
           </p>

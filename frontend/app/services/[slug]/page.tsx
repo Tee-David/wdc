@@ -167,7 +167,7 @@ export default async function ServicePage(
                     <span className="wk-card__shot">
                       <Image
                         src={c.cover as string}
-                        alt={`${c.client} — ${c.title}`}
+                        alt={`${c.client}: ${c.title}`}
                         fill
                         sizes="(max-width: 560px) 92vw, (max-width: 1000px) 46vw, 31vw"
                         /* 78, NOT 74. `images.qualities` in next.config.ts is

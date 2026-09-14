@@ -308,6 +308,21 @@ const plusDays = (n: number) =>
  * whether the second time is a person pressing again or the Paystack webhook
  * arriving a moment after the browser came back from checkout.
  */
+/**
+ * Money in, entered by hand.
+ *
+ * THIS IS THE STUDIO'S FORM, NOT A MENU THE CLIENT SEES. Clients pay through
+ * the checkout on the invoice, and that is the only route the public document
+ * offers. Transfer, cash and POS live here for the two cases a payments
+ * integration cannot cover on its own: money that genuinely arrived some other
+ * way, and a charge that went wrong somewhere Paystack cannot tell us about.
+ * Without them the books get stuck on a payment everybody knows happened.
+ *
+ * `Credit` is deliberately absent. Money coming off a client's balance is
+ * applied FROM the balance, which is what marks the credit spent; typed in
+ * here it would be money no balance ever gave up. The action refuses it too,
+ * because every export in that module is a public endpoint.
+ */
 export function RecordPayment({ invoice, owed }: { invoice: Invoice; owed: number }) {
   return (
     <DialogButton label="Record a payment" title={`Money in against ${invoice.number}`} icon={Banknote}>
@@ -329,7 +344,7 @@ export function RecordPayment({ invoice, owed }: { invoice: Invoice; owed: numbe
                 { value: "POS", label: "POS terminal" },
                 { value: "Other", label: "Something else" },
               ]}
-              hint="Pick &ldquo;something else&rdquo; rather than forcing a real payment into the nearest wrong box."
+              hint="For money that arrived outside the checkout, or a charge that went wrong. Pick &ldquo;something else&rdquo; rather than forcing a real payment into the nearest wrong box."
             />
             <Field
               name="reference" label="Reference" required

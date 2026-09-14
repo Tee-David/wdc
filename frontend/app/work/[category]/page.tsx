@@ -146,7 +146,7 @@ export default async function WorkCategoryPage(
                          
                         <Image
                           src={cs.cover}
-                          alt={`${cs.client} — ${cs.title}`}
+                          alt={`${cs.client}: ${cs.title}`}
                           fill
                           sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw"
                           quality={78}
