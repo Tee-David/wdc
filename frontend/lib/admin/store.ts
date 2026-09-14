@@ -1534,10 +1534,15 @@ export function audit(d: Omit<AuditEntry, "id" | "at"> & { at?: string }): Audit
   return entry;
 }
 
-export function getAudit(opts: { kind?: AuditKind; subjectId?: Id; limit?: number } = {}) {
-  const { kind, subjectId, limit = 100 } = opts;
+export function getAudit(opts: { kind?: AuditKind; subjectId?: Id; subjectIds?: Id[]; limit?: number } = {}) {
+  const { kind, subjectId, subjectIds, limit = 100 } = opts;
+  const related = subjectIds?.length ? new Set(subjectIds) : null;
   return AUDIT
-    .filter((e) => (!kind || e.kind === kind) && (!subjectId || e.subjectId === subjectId))
+    .filter((e) => (
+      (!kind || e.kind === kind)
+      && (!subjectId || e.subjectId === subjectId)
+      && (!related || related.has(e.subjectId))
+    ))
     .slice()
     .reverse()
     .slice(0, limit);
@@ -1545,9 +1550,14 @@ export function getAudit(opts: { kind?: AuditKind; subjectId?: Id; limit?: numbe
 
 /** How many entries there are in total, so a bounded list can say what it is
     bounded out of rather than implying it is everything. */
-export function auditCount(opts: { kind?: AuditKind; subjectId?: Id } = {}) {
-  const { kind, subjectId } = opts;
-  return AUDIT.filter((e) => (!kind || e.kind === kind) && (!subjectId || e.subjectId === subjectId)).length;
+export function auditCount(opts: { kind?: AuditKind; subjectId?: Id; subjectIds?: Id[] } = {}) {
+  const { kind, subjectId, subjectIds } = opts;
+  const related = subjectIds?.length ? new Set(subjectIds) : null;
+  return AUDIT.filter((e) => (
+    (!kind || e.kind === kind)
+    && (!subjectId || e.subjectId === subjectId)
+    && (!related || related.has(e.subjectId))
+  )).length;
 }
 
 /* ================================================ provider events ==========
