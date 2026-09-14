@@ -6,7 +6,10 @@ CREATE TABLE IF NOT EXISTS "user" (
   "image" STRING NULL,
   "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now(),
   "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT now(),
-  "role" STRING NOT NULL DEFAULT 'staff'
+  -- 'client', the least access, matching lib/auth.ts and lib/db/schema.ts.
+  -- It said 'staff' here; 0003_role_default_client.sql fixes the databases
+  -- that were created before this line was corrected.
+  "role" STRING NOT NULL DEFAULT 'client'
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "user_email_uidx" ON "user" ("email");
 

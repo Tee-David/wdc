@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { defineConfig } from "@playwright/test";
 
 /**
@@ -16,6 +18,38 @@ import { defineConfig } from "@playwright/test";
  * interleave logically, and the worker count is what comes off the day the
  * store is a database and each run can have its own rows.
  */
+
+/**
+ * THE ENVIRONMENT LIVES ONE DIRECTORY UP, and the test runner has to read it
+ * too.
+ *
+ * next.config.ts already does this for the app -- the repository root holds
+ * `.env` and the project is in `frontend/`, so Next never finds it on its own.
+ * The specs need the same file for a different reason: auth-flow.spec.ts talks
+ * to the database directly to seed and then delete its own throwaway account,
+ * and without the connection string it would skip on a machine where the app
+ * beside it is working perfectly.
+ *
+ * The same three rules apply, and for the same reasons: an already-set
+ * variable wins so a real shell export is never overridden, a missing file is
+ * not an error, and the BOM is stripped because this file has one and it would
+ * otherwise become part of the first variable's name.
+ */
+function loadRepoRootEnv() {
+  const file = join(process.cwd(), "..", ".env");
+  if (!existsSync(file)) return;
+  for (const line of readFileSync(file, "utf8").replace(/^\ufeff/, "").split(/\r?\n/)) {
+    const text = line.trim();
+    if (!text || text.startsWith("#")) continue;
+    const at = text.indexOf("=");
+    if (at < 1) continue;
+    const key = text.slice(0, at).trim();
+    if (process.env[key] !== undefined) continue;
+    process.env[key] = text.slice(at + 1).trim().replace(/^(['"])(.*)\1$/, "$2");
+  }
+}
+loadRepoRootEnv();
+
 export default defineConfig({
   testDir: "./tests",
   timeout: 30_000,

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { Logo } from "@/components/brand/logo";
 import SignOutButton from "@/components/auth/sign-out-button";
 import { auth } from "@/lib/auth";
-import { doorFor } from "@/lib/roles";
+import { doorFor, safeDestination } from "@/lib/roles";
 import "../login/login.css";
 
 export const metadata: Metadata = {
@@ -25,14 +25,29 @@ export const metadata: Metadata = {
  * redirected before anything renders. It is visible only to a role whose area
  * is still being built, and it says that plainly instead of dropping them on a
  * 404 or on somebody else's dashboard.
+ *
+ * IT ALSO FINISHES THE INTERRUPTED JOURNEY. The middleware sends somebody who
+ * asked for /admin/projects to /login?redirect=/admin/projects, and landing
+ * them on /admin afterwards makes them find the page again by hand. The
+ * requested path is carried through to here and run past
+ * `safeDestination()` -- relative paths only, and only inside an area this
+ * role is allowed into -- so an edited query string cannot turn this page into
+ * an open redirect.
  */
-export default async function SignedInPage() {
+export default async function SignedInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirect?: string | string[] }>;
+}) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) redirect("/login");
 
   const role = (session.user as typeof session.user & { role?: string }).role;
   const door = doorFor(role);
-  if (door.ready) redirect(door.home);
+  if (door.ready) {
+    const requested = (await searchParams).redirect;
+    redirect(safeDestination(Array.isArray(requested) ? requested[0] : requested, role));
+  }
 
   const name = session.user.name?.split(" ")[0] || session.user.email;
 

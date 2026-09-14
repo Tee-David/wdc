@@ -1,10 +1,10 @@
 "use client";
 
 import { useId, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
+import { useHydrated } from "@/components/auth/use-hydrated";
 
 /**
  * LABELS SIT ABOVE THE FIELDS, they do not float inside them.
@@ -15,11 +15,47 @@ import { authClient } from "@/lib/auth-client";
  * cannot do that, survives autofill, zoom and translation, and is the thing a
  * screen reader announces either way.
  */
-export default function LoginForm({ googleEnabled = false }: { googleEnabled?: boolean }) {
-  const search = useSearchParams();
-  /* Passed through to the server, which decides whether it is allowed. This
-     component never picks a destination: see lib/roles.ts and /signed-in. */
-  const requested = search.get("redirect");
+
+/**
+ * WHY GOOGLE CAN REFUSE, SAID IN ENGLISH.
+ *
+ * A refused Google sign-in comes back as a redirect to this page carrying
+ * `?error=<code>`; without this map the person is returned to a login form
+ * that looks exactly as it did before they pressed the button, which reads as
+ * the button being broken. The codes are Better Auth's, plus the ones
+ * `validateUserInfo` in lib/auth.ts returns.
+ *
+ * ONE SENTENCE FOR "no account" AND FOR "not one of ours". Distinguishing them
+ * would turn this button into a way of finding out who works here, which is
+ * the same reason the password error below does not say which half was wrong.
+ */
+const GOOGLE_ERRORS: Record<string, string> = {
+  not_approved: "That Google account is not connected to a We Dig Creativity account. Sign in with your email and password, or ask your WDC contact.",
+  signup_disabled: "That Google account is not connected to a We Dig Creativity account. Sign in with your email and password, or ask your WDC contact.",
+  account_not_linked: "That Google account is not connected to a We Dig Creativity account. Sign in with your email and password, or ask your WDC contact.",
+  email_required: "Google did not share an email address with us, so there was nothing to match against an account.",
+  email_not_found: "Google did not share an email address with us, so there was nothing to match against an account.",
+  verification_unavailable: "We could not check that account just now. Please sign in with your email and password.",
+  validation_failed: "We could not check that account just now. Please sign in with your email and password.",
+};
+
+const GOOGLE_ERROR_FALLBACK = "Google sign-in did not complete. Please sign in with your email and password.";
+
+export default function LoginForm({
+  googleEnabled = false,
+  /* Read from the query BY THE PAGE, not by this component. A client hook
+     would make the form dynamic and push it behind a Suspense boundary, and
+     a boundary on this route is what left /forgot-password with no form in
+     its server response at all. */
+  requested = "",
+  refused = "",
+}: {
+  googleEnabled?: boolean;
+  /** The path the visitor was asking for when they were sent here. */
+  requested?: string;
+  /** A Better Auth error code, when Google turned somebody away. */
+  refused?: string;
+}) {
   const next = requested ? `/signed-in?redirect=${encodeURIComponent(requested)}` : "/signed-in";
 
   const emailId = useId();
@@ -31,23 +67,41 @@ export default function LoginForm({ googleEnabled = false }: { googleEnabled?: b
   const [show, setShow] = useState(false);
   const [caps, setCaps] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const hydrated = useHydrated();
+  const [error, setError] = useState(
+    refused ? GOOGLE_ERRORS[refused] ?? GOOGLE_ERROR_FALLBACK : "",
+  );
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError("");
     try {
+      /* NO `callbackURL` HERE, and it is not an omission. Better Auth answers a
+         request that carries one with `redirect: true`, and its client then
+         navigates for us -- so the assign below became a SECOND navigation
+         racing the first. The visible symptom was an aborted load: the browser
+         arrived at /signed-in and the request was cancelled underneath it.
+         `callbackURL` is for the flows that leave the page, which is the social
+         sign-in below; this one stays here and navigates once, deliberately. */
       const result = await authClient.signIn.email({
         email: email.trim().toLowerCase(),
         password,
         rememberMe: remember,
-        callbackURL: next,
       });
       if (result.error) {
-        /* One message for a wrong password and for an address with no account.
-           Two messages would turn this form into a way to find out who has one. */
-        setError("That email and password combination was not recognised.");
+        /* A 429 IS NOT A WRONG PASSWORD, and saying it is was the worst of the
+           two lies available. Before this, somebody who mistyped their password
+           a few times was rate-limited and then told, with the correct password
+           in the box, that it was not recognised -- so they "fixed" a password
+           that was never broken. The limiter is per-IP, so this also fires for
+           a colleague on the same office connection. */
+        setError(result.error.status === 429
+          ? "Too many sign-in attempts from this connection. Wait a minute and try again — your password has not changed."
+          /* Otherwise, ONE message for a wrong password and for an address with
+             no account. Two would turn this form into a way to find out who
+             has one. */
+          : "That email and password combination was not recognised.");
         return;
       }
       window.location.assign(next);
@@ -64,7 +118,10 @@ export default function LoginForm({ googleEnabled = false }: { googleEnabled?: b
     const result = await authClient.signIn.social({
       provider: "google",
       callbackURL: next,
-      errorCallbackURL: "/login?error=google",
+      /* No query of our own on this one. Better Auth appends `?error=<code>`
+         to whatever it is given, and a URL that already carried an `error`
+         would come back with two of them. */
+      errorCallbackURL: "/login",
     });
     if (result?.error) {
       setError("Google sign-in could not be started. Please use your password.");
@@ -87,7 +144,11 @@ export default function LoginForm({ googleEnabled = false }: { googleEnabled?: b
       </p>
 
 
-      <form onSubmit={submit} className="au__form" noValidate>
+      {/* `method="post"` even though this handler never lets the browser do
+          the submitting: before hydration there IS no handler, and a form
+          with no method GETs its own fields into the URL. See
+          components/auth/use-hydrated.ts. */}
+      <form onSubmit={submit} className="au__form" method="post" noValidate>
         <div className="au__field">
           <label htmlFor={emailId}>Email address</label>
           <input
@@ -150,7 +211,7 @@ export default function LoginForm({ googleEnabled = false }: { googleEnabled?: b
 
         {error ? <p className="au__error" role="alert">{error}</p> : null}
 
-        <button className="au__submit" type="submit" disabled={loading} aria-busy={loading}>
+        <button className="au__submit" type="submit" disabled={loading || !hydrated} aria-busy={loading}>
           {loading ? <><span className="au__spin" aria-hidden="true" />Signing in…</> : "Log in"}
         </button>
       </form>
