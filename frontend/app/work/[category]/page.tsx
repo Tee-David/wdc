@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import PageEnd from "@/components/ui/page-end";
 import { Header } from "@/components/layout/header";
 import { WorkFooter } from "@/components/work/work-footer";
 import GalleryWall from "@/components/work/gallery-wall";
@@ -88,13 +89,15 @@ export default async function WorkCategoryPage(
   const wall = wallFor(c.slug);
   const n = countFor(c);
 
+  const url = `${SITE_URL}/work/${c.slug}`;
+
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
       { "@type": "ListItem", position: 2, name: "Our Work", item: `${SITE_URL}/work` },
-      { "@type": "ListItem", position: 3, name: c.name, item: `${SITE_URL}/work/${c.slug}` },
+      { "@type": "ListItem", position: 3, name: c.name, item: url },
     ],
   };
 
@@ -226,6 +229,16 @@ export default async function WorkCategoryPage(
                 </Link>
               ))}
             </div>
+
+            {/* A discipline page is the thing a prospect forwards -- "here is
+                their branding work" -- far more often than any single study, so
+                it ends the same way one does. */}
+            <PageEnd
+              url={url}
+              title={`${c.name} by ${COMPANY_NAME}`}
+              what="page"
+              scanLabel={`Scan to open our ${c.label.toLowerCase()} work on your phone.`}
+            />
           </div>
         </section>
       </main>
