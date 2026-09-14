@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
-  getClient, getClients, getExpenses, getInvoices, getMonthly, getPayments,
-  getProjects, getSummary,
+  getAging, getClient, getClients, getCollectionRate, getExpenses, getInvoices,
+  getMonthly, getPayments, getProjects, getSummary,
 } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, naira, nairaShort } from "@/lib/admin/types";
 import { DemoNote, Empty, InvoicePill, Panel, Tile, when } from "@/components/admin/bits";
@@ -24,6 +24,9 @@ export const metadata = { title: "Money" };
  */
 export default function MoneyPage() {
   const s = getSummary();
+  const aging = getAging();
+  const rate = getCollectionRate();
+  const owed = aging.reduce((n, b) => n + b.amount, 0);
   const invoices = getInvoices();
   const payments = getPayments().slice().sort((a, b) => b.at.localeCompare(a.at));
   const expenses = getExpenses();
@@ -65,9 +68,72 @@ export default function MoneyPage() {
         <Tile label="Spend" value={nairaShort(s.spend)} />
         <Tile label="Net" value={nairaShort(s.profit)} tone={s.profit >= 0 ? "good" : "bad"}
               note="Collected less spend" />
+        {/* HOW MUCH OF WHAT WE BILLED ACTUALLY ARRIVED, which is the one
+            figure the five beside it cannot say. Null rather than 0% when
+            nothing has been invoiced: a red 0% for a studio that has simply
+            not billed yet is a different thing and not a problem. */}
+        <Tile
+          label="Collected of billed"
+          value={rate === null ? "—" : `${Math.round(rate * 100)}%`}
+          tone={rate === null ? undefined : rate >= 0.9 ? "good" : rate >= 0.7 ? undefined : "bad"}
+          note={rate === null ? "Nothing invoiced yet" : undefined}
+        />
       </dl>
 
       <div className="ad__stack">
+        {/* HOW OLD THE MONEY IS, which "outstanding" cannot say.
+
+            One outstanding figure treats an invoice sent last Tuesday and one
+            sent in March as the same thing. They are not: the first is a
+            cashflow line, the second is a conversation somebody has to have.
+            The buckets are the conventional 30-day steps so they mean to an
+            accountant what they mean here, and every row drills into the
+            invoices behind it rather than asking anybody to trust a total. */}
+        <Panel title="Who owes what, and for how long">
+          {owed ? (
+            <div className="ad__scroll">
+              <table className="ad__t">
+                <thead>
+                  <tr><th>Age</th><th className="num">Owed</th><th>Invoices</th></tr>
+                </thead>
+                <tbody>
+                  {aging.map((b) => (
+                    <tr key={b.label}>
+                      <td><b>{b.label}</b></td>
+                      <td className="num">
+                        {b.amount ? naira(b.amount) : <span className="ad__dim">—</span>}
+                      </td>
+                      <td>
+                        {b.invoices.length ? (
+                          <span className="ad__row" style={{ flexWrap: "wrap", gap: ".35rem" }}>
+                            {b.invoices.map((i) => (
+                              <Link key={i.id} href={`/admin/money/${i.id}`} className="ad__pill">
+                                {i.number} · {getClient(i.clientId)?.company ?? "Unknown"}
+                              </Link>
+                            ))}
+                          </span>
+                        ) : <span className="ad__dim">Nothing</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td><b>Total outstanding</b></td>
+                    {/* Summed from the same buckets the rows draw, so the
+                        footer cannot disagree with what is above it. */}
+                    <td className="num"><b>{naira(owed)}</b></td>
+                    <td />
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          ) : (
+            <Empty title="Nothing outstanding">
+              Every invoice that has been sent is paid.
+            </Empty>
+          )}
+        </Panel>
         <Panel title="Last six months">
           <div style={{ padding: "1rem" }}>
             <div style={{ display: "flex", alignItems: "flex-end", gap: ".8rem", height: "150px" }}>
