@@ -12,17 +12,31 @@ import { LOGOS } from "@/lib/logos";
 /* The rotating half of the headline. Each line finishes the fixed line above
    it, so every one has to read as a whole sentence with "What if we made it"
    in front of it -- which is why these are phrases and questions rather than
-   the single adjectives they replaced. */
+   the single adjectives they replaced.
+
+   EVERY ONE OF THESE FITS ON ONE LINE ON A PHONE, and that is now the rule
+   this list is kept to rather than a happy accident. Four were removed for
+   failing it: "your competition's problem?", "ridiculously effective?" and
+   "impossible to ignore?" wrapped at every mobile width, and "the obvious
+   choice?" wrapped at 320. A headline that is two lines for three phrases and
+   three lines for the others makes the whole hero jump, and `reserveWidth`
+   below holds the box of the TALLEST phrase -- so one wrapping phrase cost
+   every other phrase a line of empty space underneath it.
+
+   MEASURED OFF THE LIVE RENDER, not off arithmetic, and the difference
+   mattered: computing the column as "the h1 less the chevron" and comparing
+   intrinsic widths said all six of the first cut fitted, and three of them
+   still wrapped on screen. The reserved sizer sits in the same grid cell as
+   the phrase and carries the chevron with it, so the room the words actually
+   get is narrower than that sum -- 239px at 320, not 249. What settles it is
+   `.text-type__content`'s own count of line boxes while the set cycles, which
+   is what `tests/hero.spec.ts` asserts at 320, 360, 390 and 430. Re-measure
+   there before adding a phrase; do not reason about character counts. */
 const ROTATING_WORDS = [
-  "your best decision?",
-  "impossible to ignore?",
-  "unfairly good?",
-  "your competition's problem?",
-  "ridiculously effective?",
   "the one they copy?",
   "convert like crazy?",
+  "unfairly good?",
   "sell itself?",
-  "the obvious choice?",
   "yours?",
 ];
 
