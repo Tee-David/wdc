@@ -299,6 +299,15 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
   }
   if (Object.keys(errors).length) return FAIL(errors);
 
+  /* CREDIT IS NOT SOMETHING A PERSON TYPES IN. Money moving off a client's
+     balance onto an invoice comes from `applyCredit`, which knows which credit
+     it spent and marks it so. A hand-entered "Credit" payment would create
+     money that no balance ever gave up. The form does not offer it; this
+     refuses it, because every export in this module is a public endpoint. */
+  if (how === "Credit") {
+    return FAIL({ method: "Apply credit from the client's balance instead. It cannot be entered as a payment." });
+  }
+
   const res = db.applyPayment({
     invoiceId, amount: amount!, method: how!, reference,
     at: isoDate(fd, "at") ?? undefined,
@@ -311,13 +320,15 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
   });
 
   if (!res.ok) {
-    const said = {
+    const said: Record<typeof res.reason, string> = {
       "no-invoice": "That invoice is no longer there.",
       duplicate: "That reference is already recorded, so nothing was added. This is the guard working.",
       "not-positive": "The amount has to be more than nothing.",
       draft: "This invoice is still a draft. Issue it first.",
-    }[res.reason];
-    return FAIL({ reference: res.reason === "duplicate" ? said : "" }, said);
+      void: "This invoice has been voided, so nothing is owed on it. If the money is real, record it against the invoice it was meant for.",
+    };
+    const message = said[res.reason];
+    return FAIL({ reference: res.reason === "duplicate" ? message : "" }, message);
   }
 
   refresh("/admin/money", `/admin/money/${invoiceId}`, `/admin/clients/${res.invoice.clientId}`);
@@ -667,6 +678,7 @@ export async function emailInvoice(_prev: ActionState, fd: FormData): Promise<Ac
   const inv = db.getInvoice(id);
   if (!inv) return FAIL({}, "That invoice is no longer there.");
   if (inv.status === "Draft") return FAIL({}, "Issue it first. A draft has no public page to link to.");
+  if (inv.voided) return FAIL({}, "This invoice has been struck, so there is nothing to send. Raise a new one.");
 
   const { sendInvoiceEmail } = await import("@/lib/money-mail");
   const sent = await sendInvoiceEmail({ invoice: inv, by: str(fd, "by") || "Studio" });
@@ -684,6 +696,7 @@ export async function emailReminder(_prev: ActionState, fd: FormData): Promise<A
   const id = str(fd, "id");
   const inv = db.getInvoice(id);
   if (!inv) return FAIL({}, "That invoice is no longer there.");
+  if (inv.voided) return FAIL({}, "This invoice has been struck, so nobody owes anything on it.");
   if (invoiceTotals(inv).due <= 0) return FAIL({}, "There is nothing outstanding on it.");
 
   const { sendInvoiceReminderEmail } = await import("@/lib/money-mail");
@@ -705,4 +718,115 @@ export async function resendMessage(_prev: ActionState, fd: FormData): Promise<A
   if (!m) return FAIL({}, "That one did not fail, or is no longer there.");
   refresh("/admin/money", "/admin/clients");
   return OK("Cleared for another attempt. The failed row stays as the record that the first try did not go.");
+}
+
+/* ------------------------------------------- voids, refunds and credit -- */
+
+/**
+ * Strike an invoice that should never have been raised.
+ *
+ * A REASON IS REQUIRED, like a reversal's. A struck invoice is a document a
+ * client may be holding, and "why does this say void" is a question somebody
+ * will be asked.
+ */
+export async function voidInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, "id");
+  const reason = str(fd, "reason");
+  if (!reason) return FAIL({ reason: "Say why. A struck invoice with no reason cannot be explained later." });
+
+  const res = db.voidInvoice(id, reason, str(fd, "by") || "Studio");
+  if (!res.ok) {
+    return FAIL({}, {
+      missing: "That invoice is no longer there.",
+      already: "It is already voided.",
+      draft: "It is still a draft, so delete it rather than voiding it. Nobody has seen the number.",
+      "has-payments": "Money has been received against this one, so it cannot be struck. Refund or reverse the payment first, which is what says where the money went.",
+      "no-reason": "Say why.",
+    }[res.reason]);
+  }
+  refresh("/admin/money", `/admin/money/${id}`, `/admin/clients/${res.invoice.clientId}`);
+  return OK("Struck. The number stays taken and the document still opens, saying nothing is owed.");
+}
+
+/**
+ * Give money back.
+ *
+ * TWO DESTINATIONS, AND THE DIFFERENCE IS NOT COSMETIC. Back to their bank
+ * means the money has left the studio. Held on account means it has not, and
+ * the client now has a balance that will come off their next invoice. The form
+ * asks, and the books record which.
+ */
+export async function refundPayment(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const errors: Record<string, string> = {};
+  const paymentId = str(fd, "id");
+  const amount = kobo(fd, "amount");
+  if (!amount) errors.amount = "How much is going back?";
+  const reason = str(fd, "reason");
+  if (!reason) errors.reason = "Say why. This is money leaving, and it is the entry somebody will question.";
+  if (Object.keys(errors).length) return FAIL(errors);
+
+  const toCredit = str(fd, "where") === "credit";
+  const res = db.refundPayment({
+    paymentId, amount: amount!, reason, toCredit,
+    reference: str(fd, "reference"),
+    actor: str(fd, "by") || "Studio",
+  });
+
+  if (!res.ok) {
+    const said: Record<typeof res.reason, string> = {
+      missing: "That payment is no longer there.",
+      reversed: "That payment is already reversed, so there is nothing there to give back.",
+      "not-positive": "The amount has to be more than nothing.",
+      "too-much": "That is more than is left on this payment. Part of it has already gone back.",
+      "no-reason": "Say why.",
+    };
+    return FAIL(res.reason === "too-much" ? { amount: said[res.reason] } : {}, said[res.reason]);
+  }
+
+  const inv = db.getInvoice(res.payment.invoiceId);
+  refresh("/admin/money", `/admin/money/${res.payment.invoiceId}`,
+          inv ? `/admin/clients/${inv.clientId}` : "/admin/clients");
+  return OK(toCredit
+    ? `${naira(res.refund.amount)} moved onto the client's balance. It will come off their next invoice.`
+    : `${naira(res.refund.amount)} recorded as returned. The receipt says so and the totals no longer count it.`);
+}
+
+/** Move an overpayment onto the client's balance rather than sending it back. */
+export async function overpaymentToCredit(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, "id");
+  const res = db.overpaymentToCredit(id, str(fd, "by") || "Studio");
+  if (!res.ok) {
+    return FAIL({}, {
+      missing: "That invoice is no longer there.",
+      "not-overpaid": "Nothing has been taken over the total on this one.",
+      "no-payment": "There is no payment here to take it off.",
+    }[res.reason]);
+  }
+  const inv = db.getInvoice(id);
+  refresh("/admin/money", `/admin/money/${id}`, inv ? `/admin/clients/${inv.clientId}` : "/admin/clients");
+  return OK(`${naira(res.credit.amount)} is on the client's balance now, and this invoice lands exactly on its total.`);
+}
+
+/** Spend a credit on an invoice. This is the balance carrying forward. */
+export async function applyCredit(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const creditId = str(fd, "id");
+  const invoiceId = str(fd, "invoiceId");
+  if (!invoiceId) return FAIL({ invoiceId: "Pick the invoice it should come off." });
+
+  const res = db.applyCredit(creditId, invoiceId, str(fd, "by") || "Studio");
+  if (!res.ok) {
+    return FAIL({}, {
+      missing: "That credit is no longer there.",
+      spent: "That credit has already been used.",
+      "no-invoice": "That invoice is no longer there.",
+      draft: "That invoice is still a draft. Issue it first.",
+      "wrong-client": "That invoice belongs to a different client, and one client's credit is not another's.",
+      "nothing-due": "There is nothing outstanding on that invoice.",
+    }[res.reason]);
+  }
+
+  refresh("/admin/money", `/admin/money/${invoiceId}`, `/admin/clients/${res.invoice.clientId}`);
+  return OK(res.leftOver > 0
+    ? `Applied to ${res.invoice.number}. ${naira(res.leftOver)} stays on their balance.`
+    : `Applied to ${res.invoice.number}, and their balance is clear.`);
 }

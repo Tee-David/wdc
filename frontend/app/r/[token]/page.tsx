@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getClient, getInvoice, getPaymentByToken, getProject } from "@/lib/admin/store";
-import { invoiceTotals, naira } from "@/lib/admin/types";
+import { invoiceTotals, naira, paymentNet, refundedTotal } from "@/lib/admin/types";
 import { DocumentShell, Headline, invoiceUrl, receiptUrl } from "@/components/money/document";
 
 /**
@@ -47,6 +47,13 @@ export default async function PublicReceipt({
   const t = invoiceTotals(inv);
   const remaining = t.due;
   const gone = pay.reversed;
+  const refunds = pay.refunds ?? [];
+  const refunded = refundedTotal(pay);
+  const net = paymentNet(pay);
+  /* Refunded to nothing is its own state and reads differently from a partial
+     one: "we gave it all back" and "we gave some of it back" are answers to
+     different questions, and a client holding this is asking one of them. */
+  const fullyRefunded = !gone && refunded > 0 && net <= 0;
 
   return (
     <DocumentShell
@@ -62,7 +69,11 @@ export default async function PublicReceipt({
          balance is PART PAID, because telling somebody "paid" while they still
          owe money is the kind of mistake that gets found at the worst
          possible moment. */
-      stamp={gone ? "reversed" : remaining > 0 ? "part" : "paid"}
+      stamp={
+        gone ? "reversed"
+          : fullyRefunded ? "refunded"
+            : remaining > 0 ? "part" : "paid"
+      }
     >
       {gone ? (
         <p className="doc__void" role="status">
@@ -73,16 +84,48 @@ export default async function PublicReceipt({
         </p>
       ) : null}
 
+      {/* A REFUND IS NOT A REVERSAL AND THE DOCUMENT SAYS WHICH. A reversal
+          means the money never really came; a refund means it came, we had it,
+          and we sent it back. A client reconciling this against their bank
+          statement will see two movements for a refund, so a receipt that
+          called it a reversal would leave them looking for a credit that is
+          not there. */}
+      {refunds.length ? (
+        <p className="doc__void" role="status">
+          <b>
+            {fullyRefunded
+              ? `This payment was refunded in full.`
+              : `${naira(refunded)} of this payment has been refunded.`}
+          </b>{" "}
+          The money did arrive and was then returned
+          {refunds.some((r) => r.toCredit) && refunds.some((r) => !r.toCredit)
+            ? ", partly to your account with us and partly to your bank."
+            : refunds.every((r) => r.toCredit)
+              ? " onto your balance with us, where it will come off your next invoice."
+              : " to your bank."}
+          {" "}Nothing here has been altered or removed, and this is still the
+          original receipt for what was received.
+        </p>
+      ) : null}
+
       <Headline
-        label={gone ? "Reversed, originally received" : "Received with thanks"}
+        label={
+          gone ? "Reversed, originally received"
+            : fullyRefunded ? "Refunded, originally received"
+              : "Received with thanks"
+        }
         amount={pay.amount}
-        clear={!gone}
+        clear={!gone && !refunded}
         pill={
           gone
             ? { text: `Reversed ${new Date(gone.at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`, tone: "bad" }
-            : remaining > 0
-              ? { text: `${naira(remaining)} still outstanding`, tone: "warn" }
-              : { text: "Invoice settled in full", tone: "good" }
+            : fullyRefunded
+              ? { text: "Returned in full", tone: "bad" }
+              : refunded > 0
+                ? { text: `${naira(refunded)} refunded · ${naira(net)} still held`, tone: "warn" }
+                : remaining > 0
+                  ? { text: `${naira(remaining)} still outstanding`, tone: "warn" }
+                  : { text: "Invoice settled in full", tone: "good" }
         }
       />
 
@@ -122,6 +165,41 @@ export default async function PublicReceipt({
 
       {pay.note ? (
         <p className="doc__note">{pay.note}</p>
+      ) : null}
+
+      {/* ITEMISED, BECAUSE A PART REFUND HAS TO BE CHECKABLE. A single "less
+          refunds" figure is a number the client has to take on trust; the rows
+          are what they reconcile against their own statement. */}
+      {refunds.length ? (
+        <>
+          <h2 className="doc__sub">Refunded</h2>
+          <div className="doc__scroll">
+            <table className="doc__lines">
+              <thead>
+                <tr><th>When</th><th>Why</th><th>Where it went</th><th className="n">Amount</th></tr>
+              </thead>
+              <tbody>
+                {refunds.map((r) => (
+                  <tr key={r.id}>
+                    <td className="n">{new Date(r.at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</td>
+                    <td>{r.reason}</td>
+                    <td>
+                      {r.toCredit ? "Held on your balance" : "Returned to your bank"}
+                      {r.reference ? <small className="doc__ref">{r.reference}</small> : null}
+                    </td>
+                    <td className="n">−{naira(r.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colSpan={3} className="n">Still held against {inv.number}</td>
+                  <td className="n">{naira(net)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </>
       ) : null}
 
       <div className="doc__scroll">
