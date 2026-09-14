@@ -302,8 +302,8 @@ const SUBMISSIONS: Submission[] = [
 const byNewest = <T extends { since?: string; startedAt?: string; issued?: string }>(a: T, b: T) =>
   String(b.since ?? b.startedAt ?? b.issued ?? "").localeCompare(String(a.since ?? a.startedAt ?? a.issued ?? ""));
 
-export function getClients() {
-  return CLIENTS.filter((c) => !c.archived).slice().sort(byNewest);
+export function getClients({ includeArchived = false }: { includeArchived?: boolean } = {}) {
+  return CLIENTS.filter((c) => includeArchived || !c.archived).slice().sort(byNewest);
 }
 export function getClient(id: Id) {
   return CLIENTS.find((c) => c.id === id) ?? null;

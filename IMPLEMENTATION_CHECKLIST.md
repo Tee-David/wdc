@@ -11,7 +11,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **139 open** (11 of them in progress), **220 done**.
+At last update: **150 open** (12 of them in progress), **220 done**.
 
 ---
 
@@ -228,7 +228,7 @@ party, which our own CSP blocks and which we should not loosen it for.
 
 ### 4.3 Clients and client workspace
 
-- [ ] Rebuild the client list to Litch parity with responsive search, service/status filters, sortable columns, useful counts, accessible pagination, export, and a focused new-client action.
+- [-] Rebuild the client list to Litch parity with responsive search, service/status filters, sortable columns, useful counts, accessible pagination, export, and a focused new-client action. (Native search, service/status filters, archived visibility, useful result counts, sort choices, reversible filtered-empty state, focused add-client action, and accessible pagination are implemented; direct column sorting and export remain.)
 - [ ] Support create, edit, archive, restore, merge/duplicate review, notes, tags, multiple contacts, communication preferences, and client-level access status without crowding the default view.
 - [ ] Build a unified client detail workspace with overview, projects, invoices/payments, forms/submissions, files, communications, notes, and an append-only activity timeline.
 - [ ] Add client quick actions for a project, invoice, payment, onboarding request, portal invitation, message/WhatsApp handoff, note, and file upload.

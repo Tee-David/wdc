@@ -16,16 +16,70 @@ export const metadata = { title: "Clients" };
  * at branding work. The flat list underneath is the same people once each,
  * with what they are worth and what is open.
  */
-export default function ClientsPage() {
-  const clients = getClients();
+type ClientQuery = {
+  q?: string;
+  service?: string;
+  status?: string;
+  sort?: string;
+  page?: string;
+};
+
+const PAGE_SIZE = 10;
+const SORTS = ["company", "projects", "owed", "since"] as const;
+type ClientSort = (typeof SORTS)[number];
+
+function queryHref(query: ClientQuery, changes: Partial<ClientQuery>) {
+  const params = new URLSearchParams();
+  const next = { ...query, ...changes };
+  for (const [key, value] of Object.entries(next)) {
+    if (value) params.set(key, value);
+  }
+  const suffix = params.toString();
+  return `/admin/clients${suffix ? `?${suffix}` : ""}#client-list`;
+}
+
+export default async function ClientsPage({
+  searchParams,
+}: {
+  searchParams: Promise<ClientQuery>;
+}) {
+  const query = await searchParams;
+  const search = query.q?.trim().toLocaleLowerCase() ?? "";
+  const service = SERVICES.find((item) => item.slug === query.service)?.slug;
+  const status = query.status === "archived" || query.status === "all" ? query.status : "active";
+  const sort: ClientSort = SORTS.includes(query.sort as ClientSort) ? query.sort as ClientSort : "since";
+  const source = getClients({ includeArchived: status !== "active" });
   const grouped = getClientsByService();
+  const rows = source
+    .filter((client) => status !== "archived" || client.archived)
+    .filter((client) => !service || client.services.includes(service))
+    .filter((client) => !search || [client.company, client.name, client.email, client.sector]
+      .some((value) => value.toLocaleLowerCase().includes(search)))
+    .map((client) => ({
+      client,
+      owed: getInvoicesFor(client.id)
+        .filter((invoice) => invoice.status !== "Draft")
+        .reduce((sum, invoice) => sum + invoiceTotals(invoice).due, 0),
+      live: getProjectsFor(client.id).filter((project) => project.stage !== "Delivered").length,
+    }))
+    .sort((a, b) => {
+      if (sort === "company") return a.client.company.localeCompare(b.client.company);
+      if (sort === "projects") return b.live - a.live || a.client.company.localeCompare(b.client.company);
+      if (sort === "owed") return b.owed - a.owed || a.client.company.localeCompare(b.client.company);
+      return b.client.since.localeCompare(a.client.since);
+    });
+  const requestedPage = Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1);
+  const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const page = Math.min(requestedPage, pageCount);
+  const clients = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const hasFilters = Boolean(search || service || status !== "active");
 
   return (
     <>
       <div className="ad__head">
         <div>
           <h1>Clients</h1>
-          <p>{clients.length} on the books, grouped by what they buy.</p>
+          <p>{getClients().length} active clients, grouped by what they buy.</p>
         </div>
         <AddClient />
       </div>
@@ -64,6 +118,42 @@ export default function ClientsPage() {
         </Panel>
 
         <Panel title="Everyone">
+          <form className="ad__filterBar" method="get" action="/admin/clients#client-list" aria-label="Filter clients">
+            <label className="ad__filterSearch">
+              <span className="ad__sr">Search clients</span>
+              <input name="q" type="search" defaultValue={query.q} placeholder="Search name, company, email or sector" />
+            </label>
+            <label>
+              <span className="ad__sr">Service</span>
+              <select name="service" defaultValue={service ?? ""}>
+                <option value="">All services</option>
+                {SERVICES.map((item) => <option key={item.slug} value={item.slug}>{item.short}</option>)}
+              </select>
+            </label>
+            <label>
+              <span className="ad__sr">Status</span>
+              <select name="status" defaultValue={status}>
+                <option value="active">Active</option>
+                <option value="archived">Archived</option>
+                <option value="all">All statuses</option>
+              </select>
+            </label>
+            <label>
+              <span className="ad__sr">Sort clients</span>
+              <select name="sort" defaultValue={sort}>
+                <option value="since">Newest first</option>
+                <option value="company">Company A–Z</option>
+                <option value="projects">Most live projects</option>
+                <option value="owed">Highest balance</option>
+              </select>
+            </label>
+            <button className="ad__btn ad__btn--primary" type="submit">Apply</button>
+            {hasFilters ? <Link className="ad__btn" href="/admin/clients#client-list">Clear</Link> : null}
+          </form>
+          <div className="ad__listMeta" id="client-list" aria-live="polite">
+            <span>{rows.length} {rows.length === 1 ? "client" : "clients"}</span>
+            {pageCount > 1 ? <span>Page {page} of {pageCount}</span> : null}
+          </div>
           <div className="ad__scroll">
             <table className="ad__t">
               <thead>
@@ -74,16 +164,12 @@ export default function ClientsPage() {
                 </tr>
               </thead>
               <tbody>
-                {clients.map((c) => {
-                  const owed = getInvoicesFor(c.id)
-                    .filter((i) => i.status !== "Draft")
-                    .reduce((n, i) => n + invoiceTotals(i).due, 0);
-                  const live = getProjectsFor(c.id).filter((p) => p.stage !== "Delivered").length;
+                {clients.map(({ client: c, owed, live }) => {
                   return (
                     <tr key={c.id}>
                       <td>
                         <Link href={`/admin/clients/${c.id}`}><b>{c.company}</b></Link>
-                        <small>{c.name}</small>
+                        <small>{c.name}{c.archived ? " · Archived" : ""}</small>
                       </td>
                       <td>{c.sector || <span className="ad__dim">Not set</span>}</td>
                       <td>
@@ -105,11 +191,20 @@ export default function ClientsPage() {
               </tbody>
             </table>
           </div>
-          {!clients.length && (
-            <Empty title="No clients yet" action={<AddClient />}>
-              Add the first person or business you work with, then connect their projects, forms, and invoices.
+          {!rows.length && (
+            <Empty title={hasFilters ? "No clients match these filters" : "No clients yet"} action={hasFilters ? <Link className="ad__btn" href="/admin/clients#client-list">Clear filters</Link> : <AddClient />}>
+              {hasFilters
+                ? "Try a broader search or clear the filters to see every active client."
+                : "Add the first person or business you work with, then connect their projects, forms, and invoices."}
             </Empty>
           )}
+          {pageCount > 1 ? (
+            <nav className="ad__pagination" aria-label="Client pages">
+              {page > 1 ? <Link className="ad__btn" href={queryHref(query, { page: String(page - 1) })}>Previous</Link> : <span />}
+              <span>Page {page} of {pageCount}</span>
+              {page < pageCount ? <Link className="ad__btn" href={queryHref(query, { page: String(page + 1) })}>Next</Link> : <span />}
+            </nav>
+          ) : null}
         </Panel>
       </div>
     </>
