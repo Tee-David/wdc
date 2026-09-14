@@ -328,6 +328,81 @@ export function getBoard() {
   return board;
 }
 
+/**
+ * WHO OWES WHAT, AND FOR HOW LONG.
+ *
+ * Accounts-receivable aging, which is the one report that answers "is this
+ * money coming" rather than "how much is outstanding". A single outstanding
+ * figure treats an invoice sent last Tuesday and one sent in March as the same
+ * thing, and they are not: the first is a cashflow line and the second is a
+ * conversation somebody has to have.
+ *
+ * The buckets are the conventional ones -- current, then 30-day steps -- so
+ * the numbers mean the same thing they mean to an accountant looking at them.
+ * Everything is DERIVED from the invoices and today's date, never stored, for
+ * the same reason `invoiceStatus` derives "overdue": a stored bucket is stale
+ * the morning after it is written.
+ *
+ * Drafts are excluded throughout. A draft has not been sent to anybody, so
+ * nobody owes it.
+ */
+export type AgingBucket = {
+  label: string;
+  /** Kobo still owed in this bucket. */
+  amount: number;
+  invoices: Invoice[];
+};
+
+export function getAging(today = new Date()) {
+  const buckets: AgingBucket[] = [
+    { label: "Not due yet", amount: 0, invoices: [] },
+    { label: "1-30 days late", amount: 0, invoices: [] },
+    { label: "31-60 days late", amount: 0, invoices: [] },
+    { label: "61-90 days late", amount: 0, invoices: [] },
+    { label: "Over 90 days late", amount: 0, invoices: [] },
+  ];
+
+  for (const inv of INVOICES) {
+    if (inv.status === "Draft") continue;
+    const { due } = invoiceTotals(inv);
+    if (due <= 0) continue;
+    const days = Math.floor((today.getTime() - new Date(inv.due).getTime()) / 86_400_000);
+    const at = days <= 0 ? 0 : days <= 30 ? 1 : days <= 60 ? 2 : days <= 90 ? 3 : 4;
+    buckets[at].amount += due;
+    buckets[at].invoices.push(inv);
+  }
+
+  /* Oldest first inside each bucket: within "over 90 days" the one from March
+     is the call to make before the one from June. */
+  for (const b of buckets) b.invoices.sort((a, c) => a.due.localeCompare(c.due));
+  return buckets;
+}
+
+/**
+ * HOW MUCH OF WHAT WE BILLED HAS ACTUALLY ARRIVED.
+ *
+ * Collection rate, as a fraction. Deliberately measured against what was
+ * INVOICED rather than against what is overdue: a studio that bills a million
+ * and collects nine hundred thousand is at 90%, whatever the age of the rest.
+ *
+ * Returns null rather than 0 when nothing has been invoiced. Zero would draw a
+ * red 0% on a screen for a studio that has simply not billed anything yet,
+ * which is a different thing and not a problem.
+ */
+export function getCollectionRate(): number | null {
+  let invoiced = 0, collected = 0;
+  for (const inv of INVOICES) {
+    if (inv.status === "Draft") continue;
+    invoiced += invoiceTotals(inv).total;
+    collected += inv.paid;
+  }
+  if (invoiced <= 0) return null;
+  /* Capped at 1. An overpaid invoice is real and is flagged where it happens,
+     but a headline saying the studio collects 104% of what it bills is a
+     number that makes somebody distrust the whole screen. */
+  return Math.min(1, collected / invoiced);
+}
+
 /** Clients grouped by service, which is how you asked to see them. */
 export function getClientsByService() {
   const out = new Map<string, Client[]>();
