@@ -281,8 +281,30 @@ party, which our own CSP blocks and which we should not loosen it for.
   THEY DRILL AND THEY RECONCILE, and both were checked rather than assumed. Every bucket lists the invoices behind it as links, so no total has to be taken on trust, and the panel's footer is summed from the same buckets the rows draw. Measured against the seeded books: the aging footer reads ₦646,500.00 and the Outstanding tile reads ₦647k, which is the same figure through `nairaShort`; collection rate reads 76% against ₦2.0m collected of ₦2.65m billed. The rate is capped at 100% and returns nothing rather than 0% when nothing has been invoiced — a red 0% for a studio that has simply not billed yet is a different thing and not a problem.
 
   NOT DONE: a cashflow FORECAST, and per-bucket export. The six-month chart is history, not projection, and is not labelled as one.
-- [ ] Add payment reconciliation for unmatched or duplicate provider events, transfers without invoices, failed verification, and administrator resolution notes.
-- [ ] Implement Paystack initialization, callback display, server-to-server verification, signed idempotent webhook handling, mode safety, and append-only provider events.
+- [x] All four, on a screen at `/admin/money/reconciliation` that is deliberately NOT a seventh nav item: the admin holds to six primary pages, so this is a room inside Money, reached from a banner that appears only when there is something in it.
+
+  WHAT IS IN IT IS EVERYTHING THAT DID NOT LAND CLEANLY. A charge whose reference matched no invoice. A transfer where somebody typed their company name into the narration instead of the invoice number. A webhook that arrived twice. One whose signature did not verify. A checkout that would not open. None of these appear anywhere else, because on every other screen they are an absence: an invoice that quietly stayed unpaid.
+
+  THE BANNER IS ABOVE THE FIGURES, not beside them, because the figures are wrong while it is there -- an unmatched charge is money in the bank that the Collected tile does not know about.
+
+  TWO ACTIONS, KEPT APART. "Match it to an invoice" banks real money through the same `applyPayment` everything else uses, with the same idempotency, the same receipt number and the same audit line, then closes the event with a note naming who decided. "Write it off" records what was done and moves no money. One button with a dropdown would make the consequential one something somebody reaches by accident. Both require a note, for the same reason a reversal requires a reason: "resolved" on its own is a tick somebody put there.
+
+  MATCHING BY HAND IS THE LAST RESORT, NOT THE FIRST. `matchInvoice` tries the charge's metadata, then the invoice number inside the reference -- our own references carry it as a prefix, and "INV-2026-004" typed into a bank narration is the commonest reference a Nigerian transfer carries. It returns null rather than guessing, because a wrong match is a payment on somebody else's invoice.
+- [x] All six, and the shape of it is worth stating because it is where payment integrations go wrong.
+
+  HOSTED CHECKOUT, NOT THE INLINE POPUP. Paystack offers both. The popup needs their script running on the page that shows a client what they owe; the redirect hands the card details to Paystack on Paystack's own origin, keeps our document free of third-party JavaScript, and works with JavaScript off. The cost is losing the client's context for the length of the payment, which for an invoice paid once is the cheaper side of the trade.
+
+  THE BUTTON IS A REAL FORM POSTING TO A REAL ROUTE. Not a link -- a link that spends money can be followed by a prefetcher or a mail scanner -- and not a fetch. The route reads NOTHING from the request body: the amount, the invoice and the payer's email all come off the record the public token resolves to, because a form field is a number the payer can edit. A wrong token and a draft both get the same plain 404 the document itself gets.
+
+  TWO PATHS IN, ONE FUNCTION AT THE END. The webhook is the reliable path and the browser's return is the fast one, and they race each other within the same second on almost every payment. Both verify with Paystack before anything is written, and both end at `applyPayment`, which is idempotent on the reference -- so whichever arrives second banks nothing and the client is not shown as having paid twice. The return page is the one people get wrong: it takes the reference out of the query string and nothing else, then asks Paystack what happened. A page that read `?status=success` would thank anybody who typed it.
+
+  THE WEBHOOK FAILS CLOSED, in order. No signature header or one that does not verify is a 401 with nothing written and a Rejected row so the attempt is visible. An unparseable body is a 400. An event we do not act on is a 200 -- because a non-200 makes Paystack retry something that will never succeed -- with an Ignored row. The signature is an HMAC-SHA512 keyed on ONE account's secret, compared in constant time, which is also where MODE SAFETY comes from for free: a test-mode event cannot validate against a live key or the reverse, so there is no separate mode check to forget.
+
+  PROVIDER EVENTS ARE APPEND-ONLY AND SEPARATE FROM THE AUDIT LOG. The audit log answers "who changed this"; this answers "what did Paystack say and what did we do about it", and most of its entries are things that happened TO us. Every event is written whatever its outcome, including the duplicates and the ones that were ignored, because a log of successful charges tells nobody anything they could not read off the invoice. The single mutation allowed is a resolution note, written once onto an event that has none.
+
+  Pinned by `tests/payments.spec.ts`, which tests the closed door rather than the happy path: an unsigned webhook, a wrongly signed one, an empty signature header, a forged charge that must not appear on the invoice, a wrong token, a draft, a GET on the POST-only route, and a made-up reference that must never be treated as paid.
+
+  NOT DONE: the keys are not set on this deployment, so no real card has been through it.
 - [ ] Ensure financial writes are transactional, integer-minor-unit based, server-validated, role-authorized, idempotent, and audited.
 
 ### 4.6 Forms, builder, onboarding, and submissions
@@ -301,10 +323,22 @@ party, which our own CSP blocks and which we should not loosen it for.
 
 - [ ] Send a personalized next-steps/thank-you email after successful onboarding, including the agreed next steps and the optional account invitation.
 - [ ] State that project communication may use the client dashboard, direct chat, a WhatsApp project group where appropriate, or another agreed channel.
-- [ ] Add reusable, editable templates for onboarding receipt, invitation, invoice, payment receipt, reminder, project update, approval request, and completion messages.
-- [ ] Keep a concise communication log on the client and project records with channel, direction, subject/summary, delivery state, timestamp, sender, and related entity.
+- [-] Three of the eight are built and sending: the invoice with its pay link, the payment receipt, and the invoice reminder. They share one shell, one delivery path and one set of rules, and the buttons that send them are on the invoice screen rather than buried in a menu. The orange call-to-action in them carries BLACK type, not white: white on #ff6500 measures 2.95:1 and fails even the 3:1 allowed for large text, and an email client is no more forgiving than a browser. The password-reset mail had that bug and it is fixed here too.
+
+  NOT DONE: onboarding receipt, account invitation, project update, approval request and completion messages. And they are TEMPLATES IN CODE, not editable by the studio -- the checklist asks for editable, and a template editor is a real piece of work rather than a field. Said plainly rather than ticked.
+- [x] Every field, on the client record and on the invoice, and it is a communication log rather than an email log: WhatsApp, phone and in-person rows have the same shape and are typed by a person. What the site CANNOT do is read WhatsApp, so a WhatsApp row means somebody wrote one down, and the empty state says so rather than implying a sync that does not exist.
+
+  THE ROW IS WRITTEN BEFORE THE MAIL SERVER IS CALLED, NEVER AFTER. A receipt goes out behind the response -- this SMTP server takes about 23 seconds just to authenticate -- which means by the time it fails there is nobody left to tell. The row IS the telling: Queued first, then Sent or Failed. A row still reading Queued long after the fact is a send that disappeared inside the provider, which is exactly the thing a log written after a successful send can never show.
+
+  FOUR STATES, NOT TWO. Skipped is separate from Failed and says why: "they have reminders switched off" is a different fact from "the mail server refused it", and a log that collapses them teaches people to distrust the log.
 - [ ] Provide explicit WhatsApp handoff actions without pretending the website can read or sync WhatsApp messages unless a real approved integration is added.
-- [ ] Add notification preferences, quiet/failure handling, resend controls, and delivery audit data without storing full provider payloads or credentials.
+- [x] Preferences live on the CLIENT, not on the template -- a client who has asked not to be chased must not be chased by a reminder written next month by somebody who never read that conversation, which is what happens when the switch lives on the message. Three kinds: project updates, invoice reminders, and studio news, opted in by default for the two that are part of doing the work and out of the one that is not.
+
+  WHAT CANNOT BE SWITCHED OFF, AND WHY. A receipt for money a client has actually paid is a record they are entitled to. It is not a notification, and it is not in the list.
+
+  THE DEDUPE KEY IS THE EVENT, NOT THE ATTEMPT. `receipt:y7` is the receipt for payment y7 however many times Paystack retries the webhook and however many times the payer reloads the return page. A reminder's key carries the day, so the same nudge cannot go twice in one day however many times a job runs, and tomorrow's is allowed through. Resend clears the key onto a superseded name so the failed row STAYS as the record that the first try did not go.
+
+  NO PAYLOADS, ANYWHERE. Paystack's webhook body carries a customer record, an authorization object and on some events a card's last four and its bank. What is stored is the reference, the amount, the channel and our own verdict. A log that copies the rest is a second place for it to leak from.
 - [ ] Give clients a simple portal view of their projects, updates, invoices/payments, files, approvals, forms, and agreed communication route; keep internal notes and admin-only money data private.
 - [ ] Build the client dashboard with the same Litch-parity shell quality but a simpler client-first information architecture: Overview, Projects, Billing, Forms & files, Messages/support, and Settings at most.
 - [ ] Add the client-use-case areas Litch currently lacks: project progress/health, milestones and next steps, update history, deliverable versions, approvals/revision requests, onboarding status, agreed communication channel, and a single “what do I need to do?” queue.

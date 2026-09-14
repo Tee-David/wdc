@@ -32,6 +32,10 @@ export type Client = {
   since: string;
   notes?: string;
   archived?: boolean;
+  /** What they have agreed to hear from us about. See NOTIFY_KINDS: absent
+      means the default, which is yes to the two that are part of the work and
+      no to the one that is not. */
+  notify?: Partial<Record<NotifyKind, boolean>>;
 };
 
 /* ---------------------------------------------------------------- projects */
@@ -492,3 +496,159 @@ export type AuditEntry = {
   /** Anything the fields above cannot carry. */
   note?: string;
 };
+
+/* ==========================================================================
+   WHAT THE PAYMENT PROVIDER TOLD US.
+
+   A SEPARATE LOG FROM THE AUDIT, on purpose. The audit log answers "who
+   changed this and when", and every entry in it is something a person or this
+   application did. This one answers a different question -- "what did Paystack
+   say, and what did we do about it" -- and most of its entries are things that
+   happened to us. Mixing them would bury a webhook nobody could match under a
+   hundred rows of ordinary edits.
+
+   IT IS THE RECONCILIATION SCREEN'S ONLY SOURCE. Every event is written
+   whatever its outcome: the ones that became payments, the duplicates that
+   were quietly ignored, the ones naming an invoice we do not have, and the
+   ones that failed their signature. An event log that only records successes
+   cannot be reconciled against anything.
+
+   NO PAYLOADS. Paystack's body carries a customer record, an authorization
+   object and, on some events, a card's last four digits and its bank. None of
+   that is ours to keep, and a log that copies it is a second place for it to
+   leak from. What is stored is what reconciliation actually needs: the
+   reference, the amount, the channel, and our own verdict.
+   ========================================================================== */
+
+export const PROVIDER_OUTCOMES = [
+  /** Became a payment on an invoice. */
+  "Applied",
+  /** A reference we had already banked. Paystack retries webhooks, and the
+      browser's return race with them; both are normal and neither is an
+      error. */
+  "Duplicate",
+  /** Real money, no invoice we can attach it to: a transfer with a typed
+      reference, or a charge whose metadata went missing. Somebody has to
+      look. */
+  "Unmatched",
+  /** Paystack told us the charge did not succeed. Recorded, not banked. */
+  "Failed",
+  /** An event type we do not act on. Kept so the log is complete. */
+  "Ignored",
+  /** The signature did not verify, or verification could not be completed.
+      Nothing was written to the books. */
+  "Rejected",
+] as const;
+export type ProviderOutcome = (typeof PROVIDER_OUTCOMES)[number];
+
+/** The outcomes a person still has to do something about. */
+export const NEEDS_ATTENTION: readonly ProviderOutcome[] = ["Unmatched", "Failed", "Rejected"];
+
+export type ProviderEvent = {
+  id: Id;
+  /** When WE received it, not when Paystack says it happened. Those differ,
+      and for reconciliation the receiving time is the one that explains a
+      gap. */
+  at: string;
+  provider: "Paystack";
+  /** Paystack's event name: "charge.success", "refund.processed". */
+  event: string;
+  reference: string;
+  /** Naira, or null when the event carries no amount. */
+  amount: number | null;
+  outcome: ProviderOutcome;
+  /** Card, bank transfer, USSD -- whatever Paystack said. */
+  channel?: string;
+  invoiceId?: Id;
+  paymentId?: Id;
+  /** Why the outcome is what it is, in a sentence a person can act on. */
+  note?: string;
+  /** How the studio dealt with it. Append-once: a resolution is a statement
+      somebody signed, not a field to keep editing. */
+  resolution?: { at: string; by: string; note: string };
+};
+
+export function providerNeedsAttention(e: ProviderEvent) {
+  return NEEDS_ATTENTION.includes(e.outcome) && !e.resolution;
+}
+
+/* ==========================================================================
+   WHAT WE SENT SOMEBODY, AND WHETHER IT ARRIVED.
+
+   ONE ROW BEFORE THE PROVIDER IS CALLED, NEVER AFTER. A receipt goes out
+   behind the response -- the SMTP server takes about 23 seconds just to
+   authenticate -- which means by the time it fails there is nobody left to
+   tell. So the intent is written first, in the Queued state, and the send
+   moves it to Sent or Failed. A message that vanished between the two is
+   visible as a row still saying Queued, which is exactly the thing a log
+   written afterwards can never show.
+
+   THE DEDUPE KEY MAKES A RETRY SAFE. Paystack retries a webhook it thinks
+   failed, and the payer's return from checkout races it; both would send the
+   same receipt. The key is the event, not the attempt -- `receipt:y7` -- so
+   the second attempt finds the first row and sends nothing.
+
+   IT IS A COMMUNICATION LOG, NOT AN EMAIL LOG. WhatsApp and phone calls are
+   recorded here by hand, with the same shape and the same fields, because the
+   question "what have we said to this client" does not care which channel
+   carried it. What the site CANNOT do is read WhatsApp: a WhatsApp row is
+   something a person wrote down, and the UI says so rather than implying a
+   sync that does not exist.
+   ========================================================================== */
+
+export const MESSAGE_CHANNELS = ["Email", "WhatsApp", "Phone", "In person"] as const;
+export type MessageChannel = (typeof MESSAGE_CHANNELS)[number];
+
+export const MESSAGE_STATES = ["Queued", "Sent", "Failed", "Skipped"] as const;
+export type MessageState = (typeof MESSAGE_STATES)[number];
+
+export type Message = {
+  id: Id;
+  at: string;
+  channel: MessageChannel;
+  direction: "Outbound" | "Inbound";
+  /** An address, a number, or a description of where it went. Never a
+      credential, and never a provider's message id. */
+  to: string;
+  subject: string;
+  /** One line of what it said. Not the body: a log that keeps every word of
+      every message is a copy of the mailbox, and it is the copy that leaks. */
+  summary: string;
+  state: MessageState;
+  /** Why it did not go. Short, and safe to show a person. */
+  error?: string;
+  /** Who or what sent it. "Studio", "Paystack webhook", a person's name. */
+  by: string;
+  about?: { kind: "invoice" | "payment" | "project" | "client" | "submission"; id: Id; label: string };
+  clientId?: Id;
+  /** One row per key. See the note above. */
+  dedupeKey: string;
+};
+
+/* --------------------------------------------------------- what to send ---
+
+   THE SETTING LIVES WITH THE PERSON, NOT THE TEMPLATE. A client who has asked
+   not to be chased about a late invoice must not be chased by a new reminder
+   written next month by somebody who never read that conversation -- which is
+   what happens when the switch lives on the message rather than on them.
+
+   Silence is not one of the options. A receipt for money a client has actually
+   paid is a record they are entitled to, so it is not in this list; what is
+   here is everything the studio sends because the studio decided to. */
+export const NOTIFY_KINDS = ["updates", "reminders", "marketing"] as const;
+export type NotifyKind = (typeof NOTIFY_KINDS)[number];
+
+export const NOTIFY_LABELS: Record<NotifyKind, string> = {
+  updates: "Project updates",
+  reminders: "Invoice reminders",
+  marketing: "Occasional studio news",
+};
+
+/** Opted IN by default for the two that are part of doing the work, and out of
+    the one that is not. A client who never answers the question still gets
+    told their project moved; they do not get a newsletter. */
+export function notifyAllows(prefs: Partial<Record<NotifyKind, boolean>> | undefined, kind: NotifyKind) {
+  const set = prefs?.[kind];
+  if (typeof set === "boolean") return set;
+  return kind !== "marketing";
+}

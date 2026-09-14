@@ -10,6 +10,7 @@ import { InvoiceMenu, ProjectMenu } from "@/components/admin/row-actions";
 import { EditClient } from "@/components/admin/client-form";
 import { AddProject } from "@/components/admin/project-forms";
 import { InvoiceBuilder } from "@/components/admin/money-forms";
+import CommsLog from "@/components/admin/comms-log";
 import { ArchiveClient } from "@/components/admin/client-archive";
 
 /* NO generateStaticParams. The client list is written to now, and a route
@@ -144,6 +145,14 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
             </Panel>
           ) : null}
         </div>
+      </div>
+
+      {/* WHAT HAS BEEN SAID TO THEM, in one place and across every channel.
+          The question "did anybody actually chase this" is asked about a
+          client rather than about an invoice, and until now the only answer
+          was somebody's memory. */}
+      <div style={{ marginTop: ".9rem" }}>
+        <CommsLog clientId={c.id} title="What we have sent them" />
       </div>
     </>
   );

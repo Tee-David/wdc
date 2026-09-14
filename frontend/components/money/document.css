@@ -160,6 +160,50 @@
 .doc__pay p { margin: 0 0 .5rem; line-height: 1.6; }
 .doc__pay a { color: #c95000; font-weight: 600; }
 
+/* ---- paying it ------------------------------------------------------------
+
+   THE ONE CONTROL ON A DOCUMENT THAT IS OTHERWISE ALL TYPE. Which is exactly
+   why it reads as a control: filled, large, unmistakably pressable, with a
+   44px floor so it is a comfortable target on the phone most of these are
+   opened on.
+
+   BLACK ON ORANGE. Measured, not chosen: white on #ff6500 is 2.95:1 and fails
+   even the 3:1 large text is allowed; black is 7.11:1. Same rule as every
+   other accent fill on the site, pinned by tests/button-colours.spec.ts. */
+.doc__actions {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: .5rem .9rem; margin: 0 0 .8rem;
+}
+.doc__btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: .7rem 1.25rem;
+  border: 0; border-radius: 12px;
+  background: #ff6500; color: #000;
+  font: inherit; font-weight: 700; font-size: 1rem;
+  text-decoration: none; cursor: pointer;
+  transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease;
+}
+.doc__btn:hover { background: #e85c00; box-shadow: 0 6px 18px rgb(255 101 0 / .3); }
+.doc__btn:active { transform: translateY(1px); }
+.doc__btn:focus-visible { outline: 3px solid #0e0e2c; outline-offset: 3px; }
+.doc__actions small { color: #5a5a72; font-size: .8rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .doc__btn { transition: none; }
+  .doc__btn:active { transform: none; }
+}
+
+/* Something went wrong on the way to the checkout, said before the button
+   rather than after it. Amber rather than red: nothing has been charged and
+   nothing is broken, there is simply another way to pay. #8a5200 is 5.90:1 on
+   this panel. */
+.doc__warn {
+  margin: 0 0 .7rem; padding: .6rem .8rem;
+  border-left: 3px solid #8a5200; border-radius: 0 8px 8px 0;
+  background: rgb(138 82 0 / .07);
+  color: #6d4100; line-height: 1.55;
+}
+
 .doc__foot {
   margin-top: 1.6rem; padding-top: 1.2rem;
   border-top: 1px solid rgba(0, 0, 101, .12);
@@ -232,16 +276,19 @@
   .doc__sheet { border: 0; border-radius: 0; max-width: none; padding: 0; }
   .doc__owed, .doc__pay { background: transparent; }
 
-  /* The skip link is keyboard furniture for the site shell. It is visually
-     hidden on screen by position, not by `display`, so a print picks it up and
-     puts a navy "Skip to main content" button at the top of sheet one. */
-  .skip-link { display: none !important; }
+  /* The site's own furniture. The floating corner controls are useful on
+     screen and are ink on paper; the skip link is keyboard furniture that is
+     hidden on screen by POSITION rather than by `display`, so a print picks it
+     up and puts a navy "Skip to main content" button at the top of sheet one.
+     Targeted by their own classes rather than by `position: fixed` so that
+     nothing legitimate is caught by accident. */
+  .skip-link, .uw, .uw--corner, .st, .cx { display: none !important; }
 
-  /* The floating corner controls belong to the site, not to the document.
-     They are useful on screen and they are ink on paper, so they go. Targeted
-     by their own classes rather than by `position: fixed` so that nothing
-     legitimate is caught by accident. */
-  .uw, .uw--corner, .st, .cx { display: none !important; }
+  /* A BUTTON ON PAPER IS A LIE. It cannot be pressed, and it costs a block of
+     solid orange. The transfer instructions beside it say the same thing in
+     words that survive printing, and the QR reopens the live page where the
+     button does work. */
+  .doc__actions { display: none; }
 
   /* THE COLUMN HEADINGS REPEAT ON EVERY SHEET. `table-header-group` is what
      makes a browser reprint a thead after a page break; without it, page two

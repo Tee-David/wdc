@@ -33,10 +33,25 @@ export const metadata: Metadata = {
   alternates: { canonical: undefined },
 };
 
+/* WHY A CHECKOUT DID NOT START, IN THE PAYER'S WORDS.
+
+   The route bounces back here with one of these rather than rendering its own
+   error page, because the thing the payer wants next is the invoice and the
+   other ways to pay it -- not a dead end with a Back button. Each case is a
+   different sentence: "we are not sure it worked" and "we have no address for
+   you" need different actions from them. */
+const PAY_PROBLEMS: Record<string, string> = {
+  busy: "That has been tried a few times in the last few minutes. Give it a moment, or pay by transfer using the details below.",
+  settled: "This invoice has already been paid in full, so there is nothing to charge.",
+  "no-email": "We do not have an email address on file for you, and the card checkout needs one to send your Paystack receipt to. Write to us and we will sort it out, or pay by transfer.",
+  unavailable: "The card checkout would not open just now. Nothing has been charged. Try again in a minute, or pay by transfer using the details below.",
+};
+
 export default async function PublicInvoice({
-  params,
+  params, searchParams,
 }: {
   params: Promise<{ token: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { token } = await params;
   const inv = getInvoiceByToken(token);
@@ -49,6 +64,16 @@ export default async function PublicInvoice({
   const status = invoiceStatus(inv);
   const payments = getPaymentsFor(inv.id);
   const settled = t.due <= 0;
+
+  const q = await searchParams;
+  const flag = Array.isArray(q.pay) ? q.pay[0] : q.pay;
+  const problem = flag ? PAY_PROBLEMS[flag] : undefined;
+
+  /* THE BUTTON IS ONLY OFFERED WHEN IT CAN ACTUALLY WORK. Paystack needs an
+     email address for the payer, and a checkout that opens and then refuses is
+     worse than a page that never offered one. The transfer route below is
+     always there, so nobody is left without a way to pay. */
+  const canCheckout = !settled && Boolean(client?.email?.trim());
 
   return (
     <DocumentShell
@@ -195,15 +220,32 @@ export default async function PublicInvoice({
       {!settled ? (
         <section className="doc__pay">
           <h2>How to pay</h2>
-          {/* NO PAY BUTTON UNTIL THERE IS A PAY BACKEND. Paystack
-              initialisation, verification and webhook handling are not built,
-              and a button that looks like it takes card payments and does not
-              is worse than no button: it costs the client their time and the
-              studio its credibility. When that route exists it goes here. */}
+
+          {/* SAID BEFORE THE BUTTON, NOT AFTER IT. Something went wrong on the
+              last attempt and the payer is standing here wondering whether
+              they have been charged. Each of these is a different answer and
+              none of them is "an error occurred". */}
+          {problem ? <p className="doc__warn">{problem}</p> : null}
+
+          {/* A REAL FORM, A REAL POST. Not a fetch and not a link: a link that
+              spends money can be followed by a prefetcher or a mail scanner,
+              and a fetch would put this behind JavaScript for no gain. The
+              route reads nothing from the body -- the amount and the invoice
+              come off the token in the URL, because a form field is a number
+              the payer can edit. */}
+          {canCheckout ? (
+            <form method="post" action={`/api/pay/${inv.token}`} className="doc__actions">
+              <button className="doc__btn" type="submit">
+                Pay {naira(t.due)} by card or transfer
+              </button>
+              <small>You will finish on Paystack&rsquo;s own secure page.</small>
+            </form>
+          ) : null}
+
           <p>
-            Reply to the email this came with, or write to{" "}
+            {canCheckout ? "Prefer a bank transfer? Reply" : "Reply"} to the email this came with, or write to{" "}
             <a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(inv.number)}`}>{CONTACT_EMAIL}</a>,
-            and we will send the account details or a card link, whichever suits you.
+            and we will send the account details.
           </p>
           <p>
             Quote <b>{inv.number}</b> on the transfer so it reaches the right
