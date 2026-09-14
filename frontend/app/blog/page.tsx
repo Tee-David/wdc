@@ -101,18 +101,23 @@ export default function BlogIndex() {
                     <span className="bl-card__kind">{post.tags[0]}</span>
                     <h2>{post.title}</h2>
                     <p>{post.excerpt}</p>
+                    {/* The action sits ON the foot line rather than in the
+                        corner. In the corner it reserved 64-76px of measure
+                        down the whole card to keep one line clear of one
+                        button, which cost every title a wrap. */}
                     <span className="bl-card__foot">
-                      <time dateTime={post.date}>{formatDate(post.date)}</time>
-                      {" · "}
-                      {readingMinutes(post)} min read
-                    </span>
-
-                    {/* Decorative: the whole card is the link, so this must not
-                        be announced as a second destination. */}
-                    <span className="bl-card__go" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M7 17 17 7M9 7h8v8" />
-                      </svg>
+                      <span>
+                        <time dateTime={post.date}>{formatDate(post.date)}</time>
+                        {" · "}
+                        {readingMinutes(post)} min read
+                      </span>
+                      {/* Decorative: the whole card is the link, so this must
+                          not be announced as a second destination. */}
+                      <span className="bl-card__go" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M7 17 17 7M9 7h8v8" />
+                        </svg>
+                      </span>
                     </span>
                   </span>
                 </Link>
