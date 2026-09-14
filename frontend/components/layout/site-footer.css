@@ -69,7 +69,7 @@
 .ft__card { --logo-ink: #ffffff; }
 .ft__logo { display: inline-flex; text-decoration: none; }
 .ft__logo span { color: #fff; }
-.ft__logoMark { height: 2.6rem; width: auto; }
+.ft__logoMark { height: 3.2rem; width: auto; }
 .ft__pitch {
   margin: 1.15rem 0 0; max-width: 34ch;
   color: var(--on-band-dim); font-size: .94rem; line-height: 1.6;
