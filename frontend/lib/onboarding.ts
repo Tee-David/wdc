@@ -272,8 +272,8 @@ export const SERVICE_STEPS: Step[] = [
       {
         key: "content_writer_wanted", label: "Would you like us to write it?", kind: "yesno",
         showIf: { key: "content_owner", equals: ["Nobody yet"] },
-        scope: "Extra to what you have already paid for. Say yes and we will send you a quote first — nothing is charged from this form.",
-        tip: "Search work needs pages to work on. If nobody is writing them, we can — or we can give your team the outlines and the search terms to write from, which costs less.",
+        scope: "Extra to what you have already paid for. Say yes and we will send you a quote first. Nothing is charged from this form.",
+        tip: "Search work needs pages to work on. If nobody is writing them, we can. Or we can give your team the outlines and the search terms to write from, which costs less.",
       },
     ],
   },
@@ -322,7 +322,7 @@ export const SERVICE_STEPS: Step[] = [
          somebody waiting. It is answered where it is asked now, and the answer
          ends with the question it was standing in for. */
       {
-        key: "maintenance_after_reading", label: "Now you know what it covers — would you like it?", kind: "yesno",
+        key: "maintenance_after_reading", label: "Now you know what it covers, would you like it?", kind: "yesno",
         showIf: { key: "wants_maintenance", equals: ["Please explain what this includes"] },
         hint: "Software and plugin updates, security patches, backups you can actually restore from, uptime monitoring, and somebody who answers when something breaks.",
         scope: "It is a monthly arrangement, separate from building the site, and quoted once we know the size of what we would be looking after. Saying no changes nothing about the build.",
@@ -438,7 +438,7 @@ export const SERVICE_STEPS: Step[] = [
       {
         key: "content_creator_wanted", label: "Would you like us to create it?", kind: "yesno",
         showIf: { key: "content_source", equals: ["Nobody yet"] },
-        scope: "Extra to what you have already paid for. Say yes and we will send you a quote first — nothing is charged from this form.",
+        scope: "Extra to what you have already paid for. Say yes and we will send you a quote first. Nothing is charged from this form.",
         tip: "Accounts without a supply of content go quiet within a month. If making it yourself is not realistic, it is better to say so now than to find out in week three.",
       },
       { key: "access_ok", label: "How should we handle account access?", kind: "cards", required: true, options: ["I can give WDC access", "Please work through me"] },
@@ -482,7 +482,7 @@ export const CLOSING_STEPS: Step[] = [
         key: "logo_wanted", label: "Would you like us to design one?", kind: "yesno",
         notFor: ["branding"],
         showIf: { key: "has_logo", equals: ["No"] },
-        scope: "Extra to what you have already paid for. Say yes and we will send you a quote first — nothing is charged from this form.",
+        scope: "Extra to what you have already paid for. Say yes and we will send you a quote first. Nothing is charged from this form.",
         tip: "Saying no stops nothing. We will work with what you have and keep the design plain enough that a logo drops into it later without a rebuild.",
       },
       {
@@ -496,7 +496,7 @@ export const CLOSING_STEPS: Step[] = [
         key: "brandbook_wanted", label: "Would you like us to put one together?", kind: "yesno",
         notFor: ["branding"],
         showIf: { key: "has_brandbook", equals: ["No", "I'm not sure what that is"] },
-        scope: "Extra to what you have already paid for. Say yes and we will send you a quote first — nothing is charged from this form.",
+        scope: "Extra to what you have already paid for. Say yes and we will send you a quote first. Nothing is charged from this form.",
         tip: "It is what stops everything made afterwards looking like it came from somewhere else: colours, fonts, logo rules and tone of voice, written down once so the next person does not have to guess.",
       },
       { key: "inspiration", assist: true, label: "Two or three examples you like, and what you like about them", kind: "textarea" },

@@ -231,7 +231,7 @@ export default function SiteModal({
         className="pv-modal__panel"
         role="dialog"
         aria-modal="true"
-        aria-label={`${project.name} — live preview`}
+        aria-label={`${project.name}, live preview`}
         ref={panel}
       >
         <header className="pv-modal__bar">
