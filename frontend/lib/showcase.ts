@@ -100,6 +100,19 @@ export const BRAND_KINDS: BrandKind[] = [
       asset("womens-day", "Awareness day post"),
       asset("classroom-post", "Back-to-school post"),
       asset("fragrance-promo", "Fragrance promo"),
+      asset("artdoor-staycation", "Event package flyer"),
+      asset("timis-jewels-milestone", "Jewellery sale campaign"),
+      asset("moore-dress-like-you-mean-it", "Apparel campaign post"),
+      asset("sparkle-childrens-day", "Charity appeal flyer"),
+      asset("fash-footies-caps", "Product launch post"),
+      asset("ogreen-new-week", "Solar energy promo"),
+      asset("everything-men-catalogue", "Menswear catalogue"),
+      asset("dhiol-tech-new-year", "Seasonal retail post"),
+      /* A step-and-repeat backdrop is a print piece rather than a post: it is
+         the identity at two metres, which is a different job to the same mark
+         at 400px, and it is the one asset here that has to survive being stood
+         in front of. */
+      asset("teaching-with-purpose-backdrop", "Conference backdrop"),
     ],
   },
   {
@@ -118,6 +131,9 @@ export const BRAND_KINDS: BrandKind[] = [
       asset("marfaa-divider", "Mark on product"),
       asset("marfaa-logo-variants", "Mono variants"),
       asset("marfaa-logo-usage", "Correct usage"),
+      asset("benedict-ogbogu-logo", "Personal brand colourways"),
+      asset("vickygold-logo", "Fashion mark, four grounds"),
+      asset("direct-link-logo", "Logistics mark & lockups"),
     ],
   },
   {
@@ -140,6 +156,12 @@ export const BRAND_KINDS: BrandKind[] = [
       asset("moore-storefront", "Storefront"),
       asset("moore-signage", "Signage and cap"),
       asset("marfaa-apparel", "Apparel"),
+      /* An identity applied to the things a person actually touches: an app
+         icon on a home screen, a browser tab, a sign-in screen. It sits here
+         rather than under Brand guides because it is the mark in use, not the
+         rules about it. */
+      asset("benedict-ogbogu-applied", "Identity on screen"),
+      asset("moore-letterhead", "Letterhead and stamp"),
     ],
   },
   {
@@ -165,6 +187,23 @@ export const BRAND_KINDS: BrandKind[] = [
       asset("millcon-cover", "Corporate profile cover"),
       asset("millcon-services", "Services spread"),
       asset("millcon-partners", "Partners page"),
+      /* Skinish: a personal-care guide that runs from purpose and voice to
+         the logo system, the don'ts and the packaging. Pages taken from the
+         document itself rather than remade, so what is shown is what the
+         client was handed. */
+      asset("skinish-cover", "Personal-care guide cover"),
+      asset("skinish-voice", "Brand voice"),
+      asset("skinish-logo-variations", "Logo system"),
+      asset("skinish-donts", "What not to do with the mark"),
+      asset("skinish-typography", "Typography"),
+      asset("skinish-mockups", "Applied to merch"),
+      /* Thinkers Diary: a podcast identity, where most of the work is how the
+         mark behaves on a dark studio photograph. */
+      asset("thinkers-cover", "Podcast guide cover"),
+      asset("thinkers-logo-dark", "Mark on dark"),
+      asset("thinkers-logo-variants", "Alternative lockups"),
+      asset("thinkers-palette", "Core palette"),
+      asset("thinkers-mockups", "Applied to merch"),
     ],
   },
 ];
