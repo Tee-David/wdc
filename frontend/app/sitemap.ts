@@ -35,6 +35,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.85,
       changeFrequency: "monthly" as const,
     })),
+    /* A tool is its own destination, not a section of a marketing page:
+       somebody searching "is my business name available .com.ng" should land
+       on the tool. Monthly because the page changes when the tool does, not
+       when a registry answers differently. */
+    { path: "/tools/domain", priority: 0.75, changeFrequency: "monthly" },
     { path: "/about", priority: 0.7, changeFrequency: "yearly" },
     { path: "/contact", priority: 0.8, changeFrequency: "yearly" },
     { path: "/work", priority: 0.9, changeFrequency: "monthly" },

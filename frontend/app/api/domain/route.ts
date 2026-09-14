@@ -14,7 +14,12 @@ import { checkDomain, normaliseDomain, type DomainResult } from "@/lib/rdap";
  * why the ceilings are low and why the answer is cached.
  */
 
-const MAX_NAMES = 3;
+/* SIX, NOT THREE, AND ONE ENDPOINT RATHER THAN TWO. The onboarding form asks
+   about three names the client has thought of; the public checker at
+   /tools/domain asks about ONE name across six endings. Same question, same
+   registries, same limiter, so it would be two routes to keep in step for no
+   reason. The form still sends three. */
+const MAX_NAMES = 6;
 const LIMIT = 12;            // calls per window per caller
 const WINDOW_MS = 60_000;
 
