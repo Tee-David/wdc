@@ -73,17 +73,41 @@
 }
 .doc__owed.is-clear b { color: #1c7a4a; }
 
-/* Contrast checked rather than picked: #b3261e on #fff is 6.0:1, #1c7a4a is
-   4.8:1 and #8a5200 is 5.6:1, all clear of the 4.5:1 these need as text. */
+/* THE STATUS IS A LINE OF TYPE, NOT A CHIP.
+
+   It used to carry a 999px outline, and on a document that reads as a button:
+   a rounded box with a border is the shape of something you press, so putting
+   an unpressable one directly under the amount invites a tap and then does
+   nothing. On a printed copy it is worse -- an empty capsule that costs ink
+   and says nothing the words inside it did not.
+
+   So the weight, the caps and the colour carry it instead. It sits under the
+   figure it qualifies, in the figure's own colour family, which is how a
+   statement of account has always done this.
+
+   COLOUR ALONE IS NOT THE MESSAGE. Every one of these still reads correctly in
+   greyscale, because the words say the whole thing: "Past its due date" is not
+   relying on being orange to mean what it means.
+
+   CONTRAST IS MEASURED ON THE PANEL, NOT ON THE SHEET. These sit inside
+   `.doc__owed`, which is #f6f6f4, and that is the darker of the two grounds --
+   so it decides. At this size the threshold is 4.5:1; the large-text 3:1 does
+   not apply until 18.66px bold. Measured: green 4.94:1, amber 5.90:1, red
+   6.04:1, orange 5.08:1.
+
+   The orange is #b34700 and NOT the site's `--accent-ink` (#c95000). That
+   token is correct on white and only just -- 4.53:1 -- and on this panel it
+   drops to 4.19:1 and fails. A darker orange is the same decision the token
+   itself represents, taken again for a darker ground. */
 .doc__pill {
-  display: inline-block; margin-top: .5rem;
-  padding: .25em .7em; border-radius: 999px;
-  font-size: .76rem; font-weight: 700; letter-spacing: .02em;
-  border: 1px solid currentColor;
+  display: block; margin-top: .55rem;
+  font-size: .82rem; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase;
 }
 .doc__pill--good { color: #1c7a4a; }
-.doc__pill--bad { color: #b3261e; }
+.doc__pill--bad  { color: #b3261e; }
 .doc__pill--warn { color: #8a5200; }
+.doc__pill--due  { color: #b34700; }
 
 .doc__meta {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));

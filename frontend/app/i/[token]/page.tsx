@@ -74,8 +74,12 @@ export default async function PublicInvoice({
         pill={
           settled
             ? { text: "Settled", tone: "good" }
+            /* ORANGE, NOT RED. Red is where something has gone wrong -- a
+               reversed payment, a failed charge. An invoice past its date is
+               not a failure, it is a nudge, and the studio has to send these
+               to people it wants to keep working with. */
             : status === "Overdue"
-              ? { text: "Past its due date", tone: "bad" }
+              ? { text: "Past its due date", tone: "due" }
               : status === "Part paid"
                 ? { text: `${naira(inv.paid)} received so far`, tone: "warn" }
                 : undefined
