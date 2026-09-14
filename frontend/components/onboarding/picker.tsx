@@ -71,7 +71,16 @@ export function usePickerOpen({
     const pop = el?.querySelector<HTMLElement>(".pk__pop");
     if (!el || !pop) return;
 
-    const place = () => {
+    /* The 8px the stylesheet sets between the control and the panel, and the
+       margin the panel keeps off the edge of the window. */
+    const GAP = 8;
+    const EDGE = 12;
+    /* Below this a panel is too short to be a list. If the window is genuinely
+       this small the panel keeps this height and the page scrolls to it, which
+       is better than a control that opens onto two rows. */
+    const FLOOR = 168;
+
+    const measure = (mayFlip: boolean) => {
       const bar = el.getBoundingClientRect();
       /* The panel's own height, capped the way the stylesheet caps it, so the
          decision is made against what will actually be drawn rather than
@@ -83,14 +92,66 @@ export function usePickerOpen({
          that flips for the sake of eight pixels is worse than one that is
          slightly clipped, because the reader cannot predict where it will
          appear. */
-      el.classList.toggle("is-up", below < wanted + 12 && above > below);
+      if (mayFlip) el.classList.toggle("is-up", below < wanted + 12 && above > below);
+      const up = el.classList.contains("is-up");
+
+      /* AND THEN IT IS CUT TO THE ROOM THAT SIDE ACTUALLY HAS.
+
+         Flipping alone is not responsive: on a short window -- a laptop at
+         1280x620, a browser with three toolbars, a phone in landscape --
+         NEITHER side has room for a 296px list, so the panel opened past the
+         bottom of the window and the last rows could only be reached by
+         scrolling the page behind it. Measured before this: the 245-country
+         list ran 59px past the fold at 900x600 and 143px at 1280x430.
+
+         So the height is the smaller of what the stylesheet wants and what is
+         there. `--pk-room` caps the PANEL; the list inside it is a flex child
+         with `min-height: 0`, so the search box keeps its size and the list
+         gives up the difference and scrolls. Recomputed on resize for the same
+         reason the side is. */
+      const room = Math.max(FLOOR, (up ? above : below) - GAP - EDGE);
+      el.style.setProperty("--pk-room", `${Math.round(room)}px`);
     };
 
+    const place = () => measure(true);
+    /* The cap only, never the side. A panel that changes which way it hangs
+       while the reader is scrolling is exactly the jump the note above refuses
+       to ship; a panel that quietly keeps its last row inside the window is
+       not. */
+    const recap = () => measure(false);
+
     place();
+
+    /* AND AGAIN ON THE NEXT FRAMES, because opening this control moves the
+       page under it. Focus goes into the search box, which the browser then
+       scrolls into view, so the measurement taken at open can be describing a
+       position the field no longer has -- measured on /contact at 900x600: the
+       country panel was placed against 320px of room and then the page scrolled
+       390px, leaving the panel 11px past the fold with the numbers still
+       reading as correct. Two frames covers an instant scroll; the listener
+       below covers a smooth one. */
+    const frames = [
+      requestAnimationFrame(() => frames.push(requestAnimationFrame(place))),
+    ];
+
     window.addEventListener("resize", place);
+    let queued = 0;
+    const onScroll = () => {
+      if (queued) return;
+      queued = requestAnimationFrame(() => { queued = 0; recap(); });
+    };
+    /* Capture, because the scroll that moves this control is often a scrolling
+       ANCESTOR rather than the window -- and passive, because this only ever
+       reads. */
+    window.addEventListener("scroll", onScroll, { passive: true, capture: true });
+
     return () => {
+      frames.forEach(cancelAnimationFrame);
+      if (queued) cancelAnimationFrame(queued);
       window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", onScroll, { capture: true } as EventListenerOptions);
       el.classList.remove("is-up");
+      el.style.removeProperty("--pk-room");
     };
   }, [open, root]);
 
@@ -101,7 +162,19 @@ export function usePickerOpen({
 
   useEffect(() => {
     if (!open) return;
-    requestAnimationFrame(() => (searchRef.current ?? listRef.current)?.focus());
+    /* `preventScroll`, and it is the difference between a panel that fits and
+       one that does not. Focus lands inside the panel, and a browser scrolls a
+       newly focused element into view -- which moves the page UNDER a panel
+       that was just measured and placed against where the control was. On a
+       short window with the panel opening upward, that scroll pushed the
+       control, and with it the panel's anchored bottom edge, past the fold:
+       measured on /contact at 1366x640, the country panel ended 9px below the
+       window with the control entirely off screen.
+
+       Nothing needs that scroll. The control was just clicked, so it is in
+       view by definition, and the panel is placed against it. */
+    requestAnimationFrame(() =>
+      (searchRef.current ?? listRef.current)?.focus({ preventScroll: true }));
     const away = (e: PointerEvent) => {
       if (!root.current?.contains(e.target as Node)) onClose();
     };

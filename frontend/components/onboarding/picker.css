@@ -23,7 +23,17 @@
 
 .pv .pk__pop {
   position: absolute; z-index: 1000; top: calc(100% + 8px); left: 0;
-  width: min(27rem, max(100%, 20rem));
+  /* Never wider than the window it opens in. The 20rem floor is what keeps a
+     country name and its dial code on one line; `100vw - 24px` is what stops
+     that floor pushing the panel off the side of a narrow window that is still
+     too wide to get the phone sheet. */
+  width: min(27rem, max(100%, 20rem), calc(100vw - 24px));
+  /* A COLUMN, so the panel can be cut to the room it has and the LIST is what
+     gives up the height. `--pk-room` is measured by `usePickerOpen` on open
+     and on resize -- see the note there. Without the cap the panel keeps its
+     full height on a short window and opens straight past the bottom of it. */
+  display: flex; flex-direction: column;
+  max-height: var(--pk-room, none);
   border: 1px solid var(--rule); border-radius: 14px;
   background: var(--paper);
   /* TWO SHADOWS, NOT ONE. A single soft shadow reads as a blur; the tight one
@@ -82,6 +92,11 @@
      leave the field it belongs to visible above it. Ending on a part-row is
      deliberate: a list that ends flush with a row edge looks finished. */
   max-height: 18.5rem; overflow-y: auto;
+  /* The flex child that absorbs the cap above: the search row keeps its
+     height, the list takes what is left and scrolls inside it. `min-height: 0`
+     because a flex item will not shrink below its content without it, which is
+     the whole trick. */
+  flex: 1 1 auto; min-height: 0;
   /* The gesture belongs to the list. `contain` stops the page taking over at
      the ends, and `pan-y` tells the browser this is a vertical scroller before
      any handler runs. `data-lenis-prevent` in the markup keeps the site's
@@ -194,6 +209,8 @@
     border-radius: 999px;
     background: color-mix(in srgb, var(--ink) 18%, transparent);
   }
+  /* The sheet sets its own height off the screen rather than off the room
+     around the field -- there is no "around the field" here. */
   .pv .pk__search { padding: .85rem 1rem; }
   .pv .pk__list { flex: 1; min-height: 0; max-height: none; padding: .4rem .6rem 1rem; }
   .pv .pk__opt { min-height: 48px; padding: .55rem .65rem; font-size: 1rem; }
