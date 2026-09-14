@@ -375,6 +375,25 @@
 }
 .ad__demo svg { width: 1rem; height: 1rem; color: var(--ad-accent); flex: none; margin-top: .1rem; }
 
+/* SOMETHING IS WRONG AND IT IS ABOVE THE FIGURES.
+
+   Not a tile and not a pill: a tile is a number you read past, and this is a
+   sentence with a link in it that has to be clicked. Amber rather than red --
+   an unmatched payment is money that arrived, not money that was lost, and
+   colouring every unusual thing red teaches people to ignore red.
+
+   It renders only when there is something in it. A permanent green "all
+   reconciled" band is a row of pixels nobody reads after the first week. */
+.ad__banner {
+  margin: 0 0 .9rem; padding: .75rem .95rem; border-radius: 10px;
+  background: color-mix(in srgb, var(--ad-warn) 10%, var(--ad-panel));
+  border: 1px solid color-mix(in srgb, var(--ad-warn) 35%, var(--ad-line));
+  font-size: .86rem; line-height: 1.55;
+}
+.ad__banner a { color: inherit; text-decoration: none; }
+.ad__banner a:hover, .ad__banner a:focus-visible { text-decoration: underline; }
+.ad__banner b { font-weight: 700; }
+
 /* ------------------------------------------------------------------ misc */
 
 .ad__grid2 { display: grid; gap: .9rem; grid-template-columns: minmax(0, 1fr); }

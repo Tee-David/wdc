@@ -1,7 +1,8 @@
 import Link from "next/link";
 import {
-  getAging, getClient, getClients, getCollectionRate, getExpenses, getInvoices,
-  getMonthly, getPayments, getProjects, getSummary,
+  failedMessageCount, getAging, getClient, getClients, getCollectionRate,
+  getExpenses, getInvoices, getMonthly, getPayments, getProjects,
+  getSummary, providerAttentionCount,
 } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, naira, nairaShort } from "@/lib/admin/types";
 import { DemoNote, Empty, InvoicePill, Panel, Tile, when } from "@/components/admin/bits";
@@ -24,6 +25,8 @@ export const metadata = { title: "Money" };
  */
 export default function MoneyPage() {
   const s = getSummary();
+  const unreconciled = providerAttentionCount();
+  const failedMail = failedMessageCount();
   const aging = getAging();
   const rate = getCollectionRate();
   const owed = aging.reduce((n, b) => n + b.amount, 0);
@@ -54,12 +57,37 @@ export default function MoneyPage() {
 
       <DemoNote>
         Raising an invoice, issuing it, recording a payment and logging an
-        expense all work. Paystack, the PDF and the pay link arrive with the
-        back end, and the part that matters most is already built for them:
-        every payment goes through one function keyed on its{" "}
-        <code>reference</code>, so the webhook, the browser callback and a
-        manual entry can all fire and the money is counted once.
+        expense all work, and so does the pay link: an issued invoice has a
+        public page with a card checkout on it, the webhook and the browser
+        callback both verify with Paystack before anything is banked, and every
+        payment goes through one function keyed on its <code>reference</code>,
+        so all three routes can fire and the money is counted once. What is
+        still missing is a generated PDF; printing the public page produces a
+        correct document today. Paystack needs its keys set on the deployment
+        before a real card will go through.
       </DemoNote>
+
+      {/* THE ONE THING ON THIS SCREEN THAT IS ASKING FOR SOMEBODY, and it is
+          above the figures because the figures are wrong while it is here: an
+          unmatched charge is money in the bank that the Collected tile does
+          not know about. Rendered only when there is something in it, so a
+          good week shows no banner at all rather than a green all-clear
+          nobody reads. */}
+      {unreconciled || failedMail ? (
+        <p className="ad__banner">
+          <Link href="/admin/money/reconciliation">
+            <b>
+              {unreconciled
+                ? `${unreconciled} payment event${unreconciled === 1 ? "" : "s"} the books and the bank do not agree on`
+                : `${failedMail} message${failedMail === 1 ? "" : "s"} did not go`}
+            </b>
+            {unreconciled && failedMail
+              ? `, and ${failedMail} message${failedMail === 1 ? "" : "s"} did not go.`
+              : "."}{" "}
+            Open reconciliation
+          </Link>
+        </p>
+      ) : null}
 
       <dl className="ad__tiles">
         <Tile label="Collected" value={nairaShort(s.collected)} tone="good" />
