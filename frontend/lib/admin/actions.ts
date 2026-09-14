@@ -571,3 +571,117 @@ export async function setProjectArchived(_prev: ActionState, fd: FormData): Prom
     ? `${p.title} is back in the list.`
     : `${p.title} is archived. Its invoices, updates and approvals are untouched.`);
 }
+
+/* ------------------------------------------------------- reconciliation */
+
+/**
+ * Write down what was done about a provider event that did not land cleanly.
+ *
+ * A NOTE IS REQUIRED, for the same reason a reversal's reason is. "Resolved"
+ * on its own is a tick somebody put there; what the next person needs is
+ * "matched by hand to INV-2026-003, client had typed the wrong reference".
+ *
+ * IT CANNOT BE EDITED AFTERWARDS. `resolveProviderEvent` refuses an event that
+ * already carries a resolution, so a stale page re-submitted cannot overwrite
+ * the first person's account of what happened.
+ */
+export async function resolveEvent(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, "id");
+  const note = str(fd, "note");
+  if (!note) return FAIL({ note: "Say what was done. A tick with nothing beside it explains nothing later." });
+  if (!db.resolveProviderEvent(id, note, str(fd, "by") || "Studio")) {
+    return FAIL({}, "That one has already been dealt with, or is no longer there.");
+  }
+  refresh("/admin/money", "/admin/money/reconciliation");
+  return OK("Written down.");
+}
+
+/**
+ * Attach an unmatched payment to an invoice by hand.
+ *
+ * THE MONEY IS ALREADY REAL. Paystack has taken it; the only question is which
+ * invoice it belongs against, and that is a judgement a person makes. This
+ * banks it through the same `applyPayment` everything else uses -- same
+ * idempotency on the reference, same receipt number, same audit line -- and
+ * then closes the event with a note naming who decided.
+ */
+export async function matchEventToInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, "id");
+  const invoiceId = str(fd, "invoiceId");
+  const by = str(fd, "by") || "Studio";
+
+  const event = db.getProviderEvent(id);
+  if (!event) return FAIL({}, "That event is no longer there.");
+  if (event.resolution) return FAIL({}, "That one has already been dealt with.");
+  if (!invoiceId) return FAIL({ invoiceId: "Pick the invoice it belongs against." });
+  if (event.amount === null || event.amount <= 0) {
+    return FAIL({}, "That event carries no amount, so there is nothing to bank. Resolve it with a note instead.");
+  }
+
+  const applied = db.applyPayment({
+    invoiceId, amount: event.amount, method: "Paystack",
+    reference: event.reference, by: `${by} (matched by hand)`,
+    note: "Matched to this invoice by hand from the reconciliation screen.",
+  });
+  if (!applied.ok) {
+    return FAIL({}, applied.reason === "duplicate"
+      ? "That reference is already banked against an invoice. Resolve this one with a note instead."
+      : `It would not apply: ${applied.reason}.`);
+  }
+
+  db.resolveProviderEvent(
+    id,
+    `Matched by hand to ${applied.invoice.number}. Receipt ${applied.payment.receiptNo}.`,
+    by,
+  );
+  refresh("/admin/money", "/admin/money/reconciliation", `/admin/money/${invoiceId}`);
+  return OK(`Banked against ${applied.invoice.number} as ${applied.payment.receiptNo}.`);
+}
+
+/* ---------------------------------------------------------------- mail */
+
+/** Send the invoice, with the link that pays it. */
+export async function emailInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, "id");
+  const inv = db.getInvoice(id);
+  if (!inv) return FAIL({}, "That invoice is no longer there.");
+  if (inv.status === "Draft") return FAIL({}, "Issue it first. A draft has no public page to link to.");
+
+  const { sendInvoiceEmail } = await import("@/lib/money-mail");
+  const sent = await sendInvoiceEmail({ invoice: inv, by: str(fd, "by") || "Studio" });
+  refresh("/admin/money", `/admin/money/${id}`);
+  if (sent.sent) return OK("Sent, with the pay link on it.");
+  return FAIL({}, sent.reason === "already sent"
+    ? "It has already been emailed. The communication log below has the record."
+    : sent.reason === "no address"
+      ? "There is no email address on file for that client."
+      : "The mail server would not take it. The communication log below says why.");
+}
+
+/** The nudge on an overdue invoice. */
+export async function emailReminder(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, "id");
+  const inv = db.getInvoice(id);
+  if (!inv) return FAIL({}, "That invoice is no longer there.");
+  if (invoiceTotals(inv).due <= 0) return FAIL({}, "There is nothing outstanding on it.");
+
+  const { sendInvoiceReminderEmail } = await import("@/lib/money-mail");
+  const sent = await sendInvoiceReminderEmail({ invoice: inv, by: str(fd, "by") || "Studio" });
+  refresh("/admin/money", `/admin/money/${id}`);
+  if (sent.sent) return OK("Reminder sent.");
+  return FAIL({}, sent.reason === "opted out"
+    ? "That client has invoice reminders switched off. It is recorded as skipped rather than sent."
+    : sent.reason === "already sent"
+      ? "One has already gone today. Tomorrow's is allowed."
+      : sent.reason === "no address"
+        ? "There is no email address on file for that client."
+        : "The mail server would not take it.");
+}
+
+/** A message that failed, queued to be tried again. */
+export async function resendMessage(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const m = db.retryMessage(str(fd, "id"), str(fd, "by") || "Studio");
+  if (!m) return FAIL({}, "That one did not fail, or is no longer there.");
+  refresh("/admin/money", "/admin/clients");
+  return OK("Cleared for another attempt. The failed row stays as the record that the first try did not go.");
+}

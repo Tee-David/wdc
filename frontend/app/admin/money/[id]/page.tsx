@@ -10,6 +10,8 @@ import { invoiceUrl } from "@/components/money/document";
 import { PaymentMenu } from "@/components/admin/row-actions";
 import {
   DeleteDraft, InvoiceBuilder, IssueInvoice, RecordPayment, } from "@/components/admin/money-forms";
+import { EmailInvoice, EmailReminder } from "@/components/admin/reconcile-forms";
+import CommsLog from "@/components/admin/comms-log";
 
 /* NO generateStaticParams: invoices are raised at runtime, and a prerendered
    list would 404 on the one just created. */
@@ -65,7 +67,15 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
               <DeleteDraft invoice={inv} />
             </>
           ) : (
-            <RecordPayment invoice={inv} owed={t.due} />
+            <>
+              {/* SENDING IT IS AN ACTION ON THE INVOICE, not a step buried in
+                  a menu. Both are safe to press twice -- the message log's
+                  dedupe key means the second press sends nothing and says so
+                  -- so neither asks for a confirmation. */}
+              <EmailInvoice id={inv.id} />
+              {t.due > 0 && status === "Overdue" ? <EmailReminder id={inv.id} /> : null}
+              <RecordPayment invoice={inv} owed={t.due} />
+            </>
           )}
         </div>
       </div>
@@ -199,6 +209,13 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
               the payment that is wrong, or credit the difference.
             </span>
           </p>
+        ) : null}
+
+        {inv.status !== "Draft" ? (
+          <CommsLog
+            aboutIds={[inv.id, ...payments.map((p) => p.id)]}
+            title={`What we have sent about ${inv.number}`}
+          />
         ) : null}
       </div>
     </>

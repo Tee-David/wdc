@@ -101,7 +101,13 @@ test("a menu item opens a dialog that names the record", async ({ page, baseURL 
 
 test("an invoice is only offered what its status allows", async ({ page, baseURL }) => {
   await open(page, "/admin/money", baseURL);
-  const rows = page.locator("table.ad__t").first().locator("tbody tr");
+  /* NAMED, NOT COUNTED. This used to take the first table on the page, which
+     was the invoices one until the receivables aging panel was added above it
+     -- and then the test waited two minutes for a row menu on a panel that has
+     never had one. A panel's position is not part of what this is testing. */
+  const rows = page
+    .locator(".ad__panel", { has: page.getByRole("heading", { name: "Invoices", exact: true }) })
+    .locator("tbody tr");
 
   for (let i = 0; i < await rows.count(); i++) {
     const status = (await rows.nth(i).locator(".ad__pill").first().textContent())!.trim();

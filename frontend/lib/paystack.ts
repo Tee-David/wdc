@@ -82,3 +82,192 @@ export function paystackPublicKey(): string | null {
   const result = paystackConfig();
   return result.ok ? result.config.publicKey : null;
 }
+
+/* ==========================================================================
+   TALKING TO PAYSTACK.
+
+   Three calls and one check, and every one of them exists because the browser
+   cannot be trusted with any of it.
+
+   HOSTED CHECKOUT, NOT THE INLINE POPUP. Paystack offers both; this uses the
+   redirect. The popup needs the public key in the page and a script from
+   Paystack's domain on a page that is otherwise ours, which means a third
+   party's JavaScript running on the document that shows somebody what they
+   owe. The redirect hands the card details to Paystack on Paystack's own
+   origin, keeps our page free of their script, and degrades to a plain link
+   if JavaScript is off. The cost is losing the client's context for the
+   length of the payment, which for an invoice paid once is the cheaper side
+   of the trade.
+
+   NOTHING HERE DECIDES THAT MONEY ARRIVED. `initialize` starts a checkout and
+   `verify` asks Paystack what happened; the only thing that writes a payment
+   is `applyPayment`, and it is called from the verify result or the webhook,
+   never from a query string.
+   ========================================================================== */
+
+const API = "https://api.paystack.co";
+
+/** Paystack counts in kobo. Our books count in naira, as integers. */
+export const toKobo = (naira: number) => Math.round(naira * 100);
+export const fromKobo = (kobo: number) => Math.round(kobo) / 100;
+
+export type PaystackError = { ok: false; error: string };
+
+async function call<T>(
+  path: string,
+  init: RequestInit & { secretKey: string },
+): Promise<{ ok: true; data: T } | PaystackError> {
+  const { secretKey, ...rest } = init;
+  let res: Response;
+  try {
+    res = await fetch(API + path, {
+      ...rest,
+      headers: {
+        ...rest.headers,
+        Authorization: `Bearer ${secretKey}`,
+        "Content-Type": "application/json",
+      },
+      /* A payment call is never cached, and never prerendered into a page. */
+      cache: "no-store",
+      /* Paystack is not on our side of the response: a checkout that hangs
+         must fail, not hold a request open until the platform kills it. */
+      signal: AbortSignal.timeout(15_000),
+    });
+  } catch (e) {
+    return { ok: false, error: e instanceof Error && e.name === "TimeoutError"
+      ? "Paystack did not answer in time."
+      : "Could not reach Paystack." };
+  }
+
+  let body: { status?: boolean; message?: string; data?: T };
+  try { body = await res.json(); } catch { return { ok: false, error: "Paystack sent something we could not read." }; }
+
+  /* THE MESSAGE IS PAYSTACK'S, NOT OURS, and it is worth passing through: the
+     difference between "Invalid key" and "Amount below minimum" is the whole
+     of the fix. It never carries the key -- only what we sent. */
+  if (!res.ok || body.status !== true || !body.data) {
+    return { ok: false, error: body.message?.slice(0, 300) || `Paystack refused the request (${res.status}).` };
+  }
+  return { ok: true, data: body.data };
+}
+
+export type InitializedTransaction = {
+  authorization_url: string;
+  access_code: string;
+  reference: string;
+};
+
+/**
+ * Start a hosted checkout and get back the URL to send the payer to.
+ *
+ * THE REFERENCE IS OURS, NOT PAYSTACK'S. Letting Paystack mint it means the
+ * only record of the attempt lives on their side until they tell us about it,
+ * and a redirect that never comes back leaves nothing to reconcile against.
+ * Ours is generated before the call, so an attempt exists in our own event log
+ * from the moment it is made.
+ */
+export async function initializeTransaction(input: {
+  email: string;
+  /** Naira. Converted here so no caller has to remember kobo. */
+  amount: number;
+  reference: string;
+  callbackUrl: string;
+  metadata?: Record<string, string>;
+}) {
+  const cfg = paystackConfig();
+  if (!cfg.ok) return { ok: false as const, error: `Paystack is not configured: ${cfg.missing.join(", ")} not set.` };
+
+  return call<InitializedTransaction>("/transaction/initialize", {
+    method: "POST",
+    secretKey: cfg.config.secretKey,
+    body: JSON.stringify({
+      email: input.email,
+      amount: toKobo(input.amount),
+      reference: input.reference,
+      callback_url: input.callbackUrl,
+      currency: "NGN",
+      metadata: {
+        ...input.metadata,
+        /* Stamped so a webhook arriving months later can say which
+           environment raised the charge, without us inferring it. */
+        mode: cfg.config.mode,
+      },
+    }),
+  });
+}
+
+export type VerifiedTransaction = {
+  status: string;
+  reference: string;
+  amount: number;
+  currency: string;
+  paid_at: string | null;
+  channel: string | null;
+  gateway_response: string | null;
+  customer: { email: string | null } | null;
+  metadata: Record<string, unknown> | null;
+};
+
+/**
+ * Ask Paystack what actually happened to a reference.
+ *
+ * THE ONLY ANSWER THAT COUNTS. A browser coming back from checkout carries a
+ * reference in a query string and nothing else -- no proof, no amount, nothing
+ * that could not be typed by hand. This is the server asking the source.
+ */
+export async function verifyTransaction(reference: string) {
+  const cfg = paystackConfig();
+  if (!cfg.ok) return { ok: false as const, error: `Paystack is not configured: ${cfg.missing.join(", ")} not set.` };
+  return call<VerifiedTransaction>(`/transaction/verify/${encodeURIComponent(reference)}`, {
+    method: "GET",
+    secretKey: cfg.config.secretKey,
+  });
+}
+
+/**
+ * Is this webhook body really from Paystack?
+ *
+ * FAILS CLOSED, and it has to: the handler behind it writes money. A missing
+ * header, an unconfigured key or a body that has been re-serialised on the way
+ * in all return false. The comparison is timing-safe, which matters more than
+ * it looks -- a byte-at-a-time comparison leaks the expected digest to anybody
+ * willing to send a few million requests.
+ *
+ * MODE SAFETY COMES FREE HERE. The signature is an HMAC keyed on the secret of
+ * ONE Paystack account, so an event raised in test cannot validate against a
+ * live key or the other way round. There is no separate check to forget.
+ */
+export async function paystackSignatureValid(rawBody: string, header: string | null) {
+  if (!header) return false;
+  const cfg = paystackConfig();
+  if (!cfg.ok) return false;
+
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw", enc.encode(cfg.config.secretKey),
+    { name: "HMAC", hash: "SHA-512" }, false, ["sign"],
+  );
+  const mac = new Uint8Array(await crypto.subtle.sign("HMAC", key, enc.encode(rawBody)));
+  const expected = Array.from(mac).map((b) => b.toString(16).padStart(2, "0")).join("");
+
+  const given = header.trim().toLowerCase();
+  if (given.length !== expected.length) return false;
+  let diff = 0;
+  for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ given.charCodeAt(i);
+  return diff === 0;
+}
+
+/**
+ * A reference we mint, readable enough to find in Paystack's dashboard.
+ *
+ * The invoice number is in it on purpose: reconciling a bank statement against
+ * a list of opaque references is somebody's whole afternoon. The random tail is
+ * what makes a second attempt on the same invoice a different transaction --
+ * a payer who abandons a checkout and comes back must not collide with their
+ * own earlier attempt.
+ */
+export function paymentReference(invoiceNumber: string) {
+  const bytes = crypto.getRandomValues(new Uint8Array(6));
+  const tail = Array.from(bytes).map((b) => b.toString(36).padStart(2, "0")).join("").slice(0, 10);
+  return `${invoiceNumber.replace(/[^A-Za-z0-9]/g, "")}-${tail}`.toUpperCase();
+}

@@ -1,9 +1,10 @@
 import type {
   Approval, AuditEntry, AuditKind, Channel, Client, Deliverable, Expense,
-  Health, Id, Invoice, Payment, Priority, Project, Stage, Submission, Task,
+  Health, Id, Invoice, Message, MessageChannel, MessageState, Payment,
+  Priority, Project, ProviderEvent, ProviderOutcome, Stage, Submission, Task,
   Update,
 } from "./types";
-import { invoiceTotals, naira } from "./types";
+import { invoiceTotals, naira, providerNeedsAttention } from "./types";
 
 /**
  * THE ONE PLACE THE ADMIN GETS ITS DATA, and the only file that has to change
@@ -1212,4 +1213,268 @@ export function getAudit(opts: { kind?: AuditKind; subjectId?: Id; limit?: numbe
 export function auditCount(opts: { kind?: AuditKind; subjectId?: Id } = {}) {
   const { kind, subjectId } = opts;
   return AUDIT.filter((e) => (!kind || e.kind === kind) && (!subjectId || e.subjectId === subjectId)).length;
+}
+
+/* ================================================ provider events ==========
+   What Paystack told us, and what we did about it.
+
+   APPEND-ONLY, LIKE THE AUDIT LOG AND FOR THE SAME REASON. The array is
+   module-private and `recordProviderEvent` is the only thing that pushes to
+   it. The single exception is `resolveProviderEvent`, which writes a
+   resolution ONCE onto an event that has none -- a note saying how a studio
+   dealt with an unmatched transfer is evidence too, and evidence that can be
+   rewritten is not evidence.
+
+   THE EVENTS THAT WENT WRONG ARE THE POINT. A log of successful charges tells
+   nobody anything they could not read off the invoice. What has to be here is
+   the webhook whose reference matched no invoice, the one that arrived twice,
+   and the one whose signature did not verify -- because those are the ones
+   where money and books disagree, and the disagreement is invisible until
+   somebody goes looking.
+   ========================================================================= */
+
+/* SEEDED WITH THE AWKWARD CASES, not the tidy ones.
+
+   Two of these correspond to payments already on the books, so the screen can
+   be read against something real; the other three are the shapes that cost
+   somebody an afternoon, and they are here so the reconciliation screen is
+   reviewable before the first live charge rather than after it. Same rule as
+   the rest of this seed: fiction, shaped like real work. */
+const PROVIDER_EVENTS: ProviderEvent[] = [
+  { id: "pe1", at: iso("2026-08-06T09:14:00"), provider: "Paystack", event: "charge.success",
+    reference: "PSK_8fj2k1", amount: N(300_000), outcome: "Applied", channel: "card",
+    invoiceId: "i1", paymentId: "y1" },
+  /* The retry. Paystack resends anything it did not get a prompt 200 for, and
+     the payer's return from checkout races it -- so one payment routinely
+     produces two events. Listed, and not a problem. */
+  { id: "pe2", at: iso("2026-08-06T09:14:07"), provider: "Paystack", event: "charge.success",
+    reference: "PSK_8fj2k1", amount: N(300_000), outcome: "Duplicate", channel: "card",
+    invoiceId: "i1", paymentId: "y1",
+    note: "Already banked, so nothing was added. Paystack retries, and the payer's return races this." },
+  { id: "pe3", at: iso("2026-08-14T11:02:00"), provider: "Paystack", event: "charge.success",
+    reference: "PSK_11ba7c", amount: N(741_000), outcome: "Applied", channel: "bank_transfer",
+    invoiceId: "i3", paymentId: "y3" },
+  /* THE ONE THAT COSTS MONEY IF NOBODY LOOKS. Real money, arrived, and nothing
+     in the books claims it: somebody paid by transfer and typed their own
+     company name into the narration instead of the invoice number. */
+  { id: "pe4", at: iso("2026-09-02T16:41:00"), provider: "Paystack", event: "charge.success",
+    reference: "MARFAA-SEPT", amount: N(250_000), outcome: "Unmatched", channel: "bank_transfer",
+    note: "Money arrived and no invoice in the books matches the reference." },
+  { id: "pe5", at: iso("2026-09-09T03:22:00"), provider: "Paystack", event: "signature.invalid",
+    reference: "(unreadable)", amount: null, outcome: "Rejected",
+    note: "A webhook arrived whose signature did not verify. Nothing was written to the books." },
+];
+
+export function recordProviderEvent(d: Omit<ProviderEvent, "id" | "at" | "provider"> & {
+  at?: string;
+}): ProviderEvent {
+  const e: ProviderEvent = {
+    ...d,
+    id: mint("pe"),
+    at: d.at ?? now(),
+    provider: "Paystack",
+    /* Trimmed here rather than at each of the four call sites. A note is read
+       by a person in a narrow table cell. */
+    note: d.note?.trim() || undefined,
+  };
+  PROVIDER_EVENTS.push(e);
+  return e;
+}
+
+export function getProviderEvents(opts: {
+  outcome?: ProviderOutcome; attention?: boolean; limit?: number;
+} = {}) {
+  const { outcome, attention, limit = 100 } = opts;
+  return PROVIDER_EVENTS
+    .filter((e) => (!outcome || e.outcome === outcome) && (!attention || providerNeedsAttention(e)))
+    .slice()
+    .reverse()
+    .slice(0, limit);
+}
+
+export function getProviderEvent(id: Id) {
+  return PROVIDER_EVENTS.find((e) => e.id === id) ?? null;
+}
+
+/** Every event carrying this reference, newest first. The whole story of one
+    attempt: the charge, the retry, the duplicate the retry produced. */
+export function getProviderEventsByReference(reference: string) {
+  const r = reference.trim();
+  return PROVIDER_EVENTS.filter((e) => e.reference === r).slice().reverse();
+}
+
+/** How many still need somebody. Drives the badge on the Money nav. */
+export function providerAttentionCount() {
+  return PROVIDER_EVENTS.filter(providerNeedsAttention).length;
+}
+
+/**
+ * Write down how the studio dealt with an event.
+ *
+ * ONCE, AND ONLY ONTO SOMETHING UNRESOLVED. Re-resolving would let the account
+ * of what happened be replaced after the fact, which is exactly what a
+ * reconciliation record exists to prevent. A second attempt is a no-op that
+ * returns false, so a double-submitted form cannot quietly overwrite the first
+ * person's note.
+ */
+export function resolveProviderEvent(id: Id, note: string, actor = "Studio"): boolean {
+  const e = PROVIDER_EVENTS.find((x) => x.id === id);
+  if (!e || e.resolution) return false;
+  const text = note.trim();
+  if (!text) return false;
+  e.resolution = { at: now(), by: actor, note: text };
+  audit({ actor, kind: "payment", subjectId: e.id, subject: e.reference,
+          action: "reconciled", from: e.outcome, note: text });
+  return true;
+}
+
+/**
+ * The invoice a provider reference belongs to.
+ *
+ * METADATA FIRST, THEN THE NUMBER IN THE REFERENCE. Our own references carry
+ * the invoice number as their prefix (see `paymentReference`), so a charge we
+ * started is matchable even if the metadata is lost. A transfer somebody typed
+ * by hand into their banking app is matched the same way, which is worth more
+ * than it sounds: "INV-2026-004" typed into a narration is the commonest
+ * reference a Nigerian bank transfer carries.
+ *
+ * Returns null rather than guessing. An unmatched event is a question for a
+ * person, and a wrong match is a payment on somebody else's invoice.
+ */
+export function matchInvoice(input: { reference?: string; invoiceId?: string }): Invoice | null {
+  if (input.invoiceId) {
+    const byId = getInvoice(input.invoiceId);
+    if (byId) return byId;
+  }
+  const ref = (input.reference ?? "").toUpperCase();
+  if (!ref) return null;
+  /* Longest number first, so INV-2026-0012 is not matched by INV-2026-001. */
+  const candidates = INVOICES
+    .filter((i) => i.status !== "Draft")
+    .slice()
+    .sort((a, b) => b.number.length - a.number.length);
+  return candidates.find((i) => ref.includes(i.number.replace(/[^A-Za-z0-9]/g, "").toUpperCase())
+                             || ref.includes(i.number.toUpperCase())) ?? null;
+}
+
+/* ================================================ the communication log ====
+   Every message the studio sent, and whether it arrived.
+
+   THE ROW COMES FIRST. `queueMessage` is called BEFORE the provider, and it is
+   what makes a retry safe: the dedupe key is the event rather than the
+   attempt, so a webhook Paystack sends twice produces one receipt. The send
+   then moves the row to Sent or Failed. A row still reading Queued long after
+   the fact is a message that disappeared inside the provider -- the one thing
+   a log written after a successful send can never tell you.
+
+   INBOUND AND NON-EMAIL ROWS ARE TYPED BY A PERSON, and that is not a
+   shortcoming to hide. The site cannot read WhatsApp or a phone call. A
+   WhatsApp row here means somebody wrote down that they sent one.
+   ========================================================================= */
+
+const MESSAGES: Message[] = [
+  { id: "m1", at: iso("2026-08-01T10:12:00"), channel: "Email", direction: "Outbound",
+    to: "tobi@mooredesigns.ng", subject: "Invoice INV-2026-001: ₦677,250.00 due 31 August 2026",
+    summary: "Link sent with the invoice and the pay button on it.", state: "Sent",
+    by: "Babatope", clientId: "c1", dedupeKey: "invoice:i1",
+    about: { kind: "invoice", id: "i1", label: "INV-2026-001" } },
+  { id: "m2", at: iso("2026-08-06T09:14:09"), channel: "Email", direction: "Outbound",
+    to: "tobi@mooredesigns.ng", subject: "Receipt RCT-2026-001: ₦300,000.00 received",
+    summary: "₦300,000.00 against INV-2026-001. ₦377,250.00 is still outstanding.",
+    state: "Sent", by: "Paystack webhook", clientId: "c1", dedupeKey: "receipt:y1",
+    about: { kind: "payment", id: "y1", label: "RCT-2026-001" } },
+  /* THE ROW THAT MATTERS. A reminder the mail server refused, which nothing
+     else on any screen would ever show: the invoice simply stays unpaid and
+     nobody knows the chase never went. */
+  { id: "m3", at: iso("2026-09-05T08:30:00"), channel: "Email", direction: "Outbound",
+    to: "tobi@mooredesigns.ng", subject: "A reminder about invoice INV-2026-001",
+    summary: "₦377,250.00 outstanding, due 31 August 2026.", state: "Failed",
+    error: "Connection timed out after 30000ms", by: "Studio", clientId: "c1",
+    dedupeKey: "reminder:i1:2026-09-05",
+    about: { kind: "invoice", id: "i1", label: "INV-2026-001" } },
+  { id: "m4", at: iso("2026-09-08T14:05:00"), channel: "WhatsApp", direction: "Outbound",
+    to: "Moore Designs project group", subject: "Three identity routes sent",
+    summary: "Told Tobi the routes were in the email and asked for a pick by Friday.",
+    state: "Sent", by: "Babatope", clientId: "c1", dedupeKey: "manual:m4" },
+];
+
+export type QueueResult =
+  | { ok: true; message: Message }
+  /* Not an error. The second attempt at the same event is the system working:
+     it means the retry did not double-send. */
+  | { ok: false; reason: "duplicate"; message: Message };
+
+export function queueMessage(d: {
+  channel: MessageChannel;
+  direction?: Message["direction"];
+  to: string;
+  subject: string;
+  summary: string;
+  dedupeKey: string;
+  by?: string;
+  clientId?: Id;
+  about?: Message["about"];
+  state?: MessageState;
+  error?: string;
+}): QueueResult {
+  const key = d.dedupeKey.trim();
+  const seen = MESSAGES.find((m) => m.dedupeKey === key);
+  if (seen) return { ok: false, reason: "duplicate", message: seen };
+
+  const m: Message = {
+    id: mint("m"), at: now(),
+    channel: d.channel, direction: d.direction ?? "Outbound",
+    to: d.to.trim(), subject: d.subject.trim(), summary: d.summary.trim(),
+    state: d.state ?? "Queued", error: d.error?.trim() || undefined,
+    by: d.by?.trim() || "Studio",
+    clientId: d.clientId, about: d.about, dedupeKey: key,
+  };
+  MESSAGES.push(m);
+  return { ok: true, message: m };
+}
+
+/** Queued -> Sent or Failed. The only field that changes after the row
+    exists, because everything else about it was true when it was written. */
+export function settleMessage(id: Id, state: Extract<MessageState, "Sent" | "Failed" | "Skipped">, error?: string) {
+  const m = MESSAGES.find((x) => x.id === id);
+  if (!m) return false;
+  m.state = state;
+  m.error = error?.trim().slice(0, 300) || undefined;
+  return true;
+}
+
+export function getMessages(opts: {
+  clientId?: Id;
+  /* A LIST, BECAUSE THE SUBJECT IS RARELY ONE RECORD. "What have we sent
+     about this invoice" has to include the receipts for its payments, and
+     those are filed against the payment -- which is right, because a receipt
+     is about the payment. The caller says which ids it means. */
+  aboutIds?: readonly Id[];
+  state?: MessageState;
+  limit?: number;
+} = {}) {
+  const { clientId, aboutIds, state, limit = 100 } = opts;
+  return MESSAGES
+    .filter((m) => (!clientId || m.clientId === clientId)
+                && (!aboutIds || (m.about ? aboutIds.includes(m.about.id) : false))
+                && (!state || m.state === state))
+    .slice().reverse().slice(0, limit);
+}
+
+/** Messages that did not go. The number worth a badge, because a failed
+    receipt is a client who thinks they were not thanked. */
+export function failedMessageCount() {
+  return MESSAGES.filter((m) => m.state === "Failed").length;
+}
+
+/** Send it again, by hand, after a failure. Clears the dedupe key so the next
+    attempt is allowed to write a fresh row -- the original stays as the record
+    that the first try failed. */
+export function retryMessage(id: Id, actor = "Studio"): Message | null {
+  const m = MESSAGES.find((x) => x.id === id);
+  if (!m || m.state !== "Failed") return null;
+  m.dedupeKey = `${m.dedupeKey}:superseded:${m.id}`;
+  audit({ actor, kind: "client", subjectId: m.clientId ?? m.id, subject: m.to,
+          action: "queued a resend", note: m.subject });
+  return m;
 }

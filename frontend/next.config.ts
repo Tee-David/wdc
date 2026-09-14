@@ -117,7 +117,16 @@ const nextConfig: NextConfig = {
       "base-uri 'self'",
       "object-src 'none'",
       "frame-ancestors 'none'",
-      "form-action 'self'",
+      /* PAYSTACK IS HERE BECAUSE `form-action` FOLLOWS REDIRECTS.
+
+         The pay button is a form posting to our own route, which answers with
+         a 303 to Paystack's hosted checkout. Browsers apply `form-action` to
+         every hop of that redirect chain, not only to the URL in the `action`
+         attribute -- so with `'self'` alone the checkout is blocked silently,
+         after the transaction has already been created on Paystack's side.
+         Named hosts rather than a wildcard: this is the one directive that
+         decides where a payment form may send somebody. */
+      "form-action 'self' https://checkout.paystack.com https://*.paystack.com",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jotfor.ms https://*.jotform.com https://cdn.userway.org https://*.userway.org",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.jotform.com https://*.userway.org",
       "font-src 'self' data: https://fonts.gstatic.com https://*.userway.org",
