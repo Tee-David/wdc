@@ -2,7 +2,7 @@
 
 import {
   createContext, Fragment, useActionState, useCallback, useContext, useEffect,
-  useId, useRef,
+  useId, useRef, useState,
 } from "react";
 import { useFormStatus } from "react-dom";
 import { AlertCircle, Check, Loader2 } from "lucide-react";
@@ -158,6 +158,32 @@ type Common = {
   half?: boolean;
 };
 
+/**
+ * 09/14/2026 OR 14/09/2026, AND THE FIELD CANNOT TELL YOU WHICH.
+ *
+ * A native date input renders in the BROWSER's language, not the page's, and
+ * nothing on our side changes that. So the same due date reads 09/14 on one
+ * laptop and 14/09 on the next, and for any day of the month under thirteen
+ * there is no way to tell them apart by looking. On an invoice date that is
+ * not a nicety.
+ *
+ * The picker stays native, because the platform's calendar is keyboard
+ * complete, localised, and on a phone it is the wheel the person already
+ * knows. What is added is an echo in words, fixed to en-GB so it says the same
+ * thing to everybody: "Monday, 14 September 2026". No dependency, no second
+ * calendar to maintain, and the ambiguity is gone.
+ */
+function inWords(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return "";
+  /* Midday UTC, so reading it back in Lagos or in London names the same day --
+     the same reason `isoDate` in validate.ts stores it that way. */
+  const d = new Date(`${value}T12:00:00.000Z`);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("en-GB", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric",
+  });
+}
+
 export function Field({
   name, label, hint, required, half, type = "text", defaultValue, placeholder,
   step, min, inputMode,
@@ -170,14 +196,25 @@ export function Field({
   inputMode?: "text" | "numeric" | "decimal" | "tel" | "email";
 }) {
   const kept = useKept(name, defaultValue);
+  const [day, setDay] = useState(() => (type === "date" ? String(kept ?? "") : ""));
+
   return (
     <Wrap name={name} label={label} hint={hint} required={required} half={half}>
       {(id, invalid, describedBy) => (
-        <input
-          id={id} name={name} type={type} defaultValue={kept}
-          placeholder={placeholder} step={step} min={min} inputMode={inputMode}
-          aria-invalid={invalid || undefined} aria-describedby={describedBy}
-        />
+        <>
+          <input
+            id={id} name={name} type={type} defaultValue={kept}
+            placeholder={placeholder} step={step} min={min} inputMode={inputMode}
+            aria-invalid={invalid || undefined} aria-describedby={describedBy}
+            onChange={type === "date" ? (e) => setDay(e.target.value) : undefined}
+          />
+          {type === "date" && inWords(day) ? (
+            /* `aria-hidden`, because the input already announces its own date
+               to a screen reader and hearing it twice is noise. This is for
+               the eye, which is where the ambiguity lives. */
+            <small className="ad__fd" aria-hidden="true">{inWords(day)}</small>
+          ) : null}
+        </>
       )}
     </Wrap>
   );
@@ -208,7 +245,7 @@ export function Select({
 }) {
   const kept = useKept(name, defaultValue);
   return (
-    <Wrap name={name} label={label} hint={hint} required={required} half={half}>
+    <Wrap name={name} label={label} hint={hint} required={required} half={half} kind="select">
       {(id, invalid, describedBy) => (
         <select
           id={id} name={name} defaultValue={kept ?? ""}
@@ -314,8 +351,15 @@ export function Checks({
 
 /** The label, hint and error around whatever control the caller renders. */
 function Wrap({
-  name, label, hint, required, half, children,
+  name, label, hint, required, half, kind, children,
 }: Common & {
+  /* What is inside, so the wrapper can carry the caret a `<select>` needs.
+     Drawn on the WRAPPER rather than as a background on the control itself,
+     because a background-image on a select is what makes several browsers
+     drop their own arrow and leave nothing -- and because a pseudo-element can
+     take `currentColor`, change on focus-within and be masked from one shared
+     chevron. */
+  kind?: "select";
   children: (id: string, invalid: boolean, describedBy?: string) => React.ReactNode;
 }) {
   const { errors, gen } = useContext(Ctx);
@@ -324,7 +368,7 @@ function Wrap({
   const describedBy = [err ? `${id}-e` : "", hint ? `${id}-h` : ""].filter(Boolean).join(" ") || undefined;
 
   return (
-    <div className={`ad__f${half ? " ad__f--half" : ""}${err ? " is-bad" : ""}`}>
+    <div className={`ad__f${half ? " ad__f--half" : ""}${kind === "select" ? " ad__f--sel" : ""}${err ? " is-bad" : ""}`}>
       <label className="ad__fl" htmlFor={id}>
         {label}
         {required ? <b aria-hidden="true"> *</b> : null}
