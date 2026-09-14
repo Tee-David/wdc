@@ -7,7 +7,7 @@ import { invoiceTotals, naira, type InvoiceLine } from "./types";
 import {
   FAIL, OK, type ActionState,
   approval, channel, checked, health, isoDate, kobo, looksEmail, method, num, priority,
-  required, services, stage, str,
+  required, services, stage, str, url,
 } from "./validate";
 
 /**
@@ -356,15 +356,36 @@ export async function createExpense(_prev: ActionState, fd: FormData): Promise<A
   const description = required(errors, "description", str(fd, "description"), "What it was for");
   const amount = kobo(fd, "amount");
   if (!amount) errors.amount = "How much was it?";
+
+  /* A RECEIPT LINK THAT IS NOT A LINK IS A FIELD THAT SILENTLY LOSES WHAT WAS
+     TYPED. `url()` returns null for anything that is not http or https, and
+     the difference between "nothing was typed" and "something unusable was
+     typed" matters here -- the second one deserves a message. */
+  const receiptRaw = str(fd, "receiptUrl");
+  const receiptUrl = url(fd, "receiptUrl");
+  if (receiptRaw && !receiptUrl) {
+    errors.receiptUrl = "That is not a link. Paste the full address, starting with https://";
+  }
+
+  const projectId = str(fd, "projectId");
+  if (projectId && !db.getProject(projectId)) errors.projectId = "That project is no longer there.";
+
   if (Object.keys(errors).length) return FAIL(errors);
 
   db.addExpense({
     description, amount: amount!,
     category: str(fd, "category") || "Other",
     at: isoDate(fd, "at") ?? new Date().toISOString(),
+    vendor: str(fd, "vendor") || undefined,
+    method: method(fd, "method") ?? undefined,
+    projectId: projectId || undefined,
+    rebillable: checked(fd, "rebillable"),
+    receiptUrl: receiptUrl ?? undefined,
+    note: str(fd, "note") || undefined,
+    by: str(fd, "by") || undefined,
   });
 
-  refresh("/admin/money");
+  refresh("/admin/money", projectId ? `/admin/projects/${projectId}` : "/admin/money");
   return OK("Added.");
 }
 

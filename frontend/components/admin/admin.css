@@ -451,6 +451,19 @@
   font: inherit; font-size: .875rem;
 }
 .ad__f textarea { resize: vertical; min-height: 4.5rem; }
+
+/* A TICK BOX IS NOT A TEXT FIELD, and the rule above had been treating it as
+   one: a checkbox inside `.ad__f` was picking up `width: 100%`, a 9px radius,
+   a border and a text field's padding. It never showed, because every
+   checkbox in the admin lived inside a `.ad__check` pill that shrink-wraps to
+   its content. The moment one box was given a full-width row, the input
+   stretched to 654px and pushed its own label off the edge of the dialog.
+   Measured, not guessed -- the input reported a width of 654px against a
+   label of 683px. */
+.ad__f :is(input[type="checkbox"], input[type="radio"]) {
+  width: auto; flex: none;
+  padding: 0; border: 0; border-radius: 0; background: none;
+}
 .ad__f :is(input, select, textarea):focus-visible {
   outline: 2px solid var(--ad-accent); outline-offset: 1px; border-color: transparent;
 }
@@ -469,6 +482,8 @@
 }
 
 .ad__checks { display: flex; flex-wrap: wrap; gap: .4rem; }
+/* One box per row, for boxes whose labels are sentences. */
+.ad__checks--long { display: grid; gap: .4rem; }
 .ad__check {
   display: inline-flex; align-items: center; gap: .4rem;
   padding: .35rem .7rem; border-radius: 999px;
@@ -868,7 +883,7 @@
   font-size: .92rem; font-weight: 500; text-align: left;
 }
 .ad__check--long input { margin-top: .2rem; flex: none; }
-.ad__check--long > span { min-width: 0; }
+.ad__check--long > span { flex: 1 1 auto; min-width: 0; }
 .ad__check--long small {
   display: block; margin-top: .15rem;
   font-size: .8rem; font-weight: 400; color: var(--ad-dim); line-height: 1.5;

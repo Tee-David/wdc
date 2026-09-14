@@ -33,6 +33,8 @@ export default function MoneyPage() {
   const invoices = getInvoices();
   const payments = getPayments().slice().sort((a, b) => b.at.localeCompare(a.at));
   const expenses = getExpenses();
+  const projects = getProjects();
+  const projectById = new Map(projects.map((p) => [p.id, p]));
   const months = getMonthly(6);
   const peak = Math.max(1, ...months.flatMap((m) => [m.in, m.out]));
 
@@ -50,8 +52,8 @@ export default function MoneyPage() {
           <p>In, out, and what is still owed.</p>
         </div>
         <div className="ad__row">
-          <AddExpense />
-          <InvoiceBuilder clients={getClients()} projects={getProjects()} />
+          <AddExpense projects={projects} />
+          <InvoiceBuilder clients={getClients()} projects={projects} />
         </div>
       </div>
 
@@ -222,7 +224,7 @@ export default function MoneyPage() {
               </table>
             </div>
           ) : (
-            <Empty title="No invoices yet" action={<InvoiceBuilder clients={getClients()} projects={getProjects()} />}>
+            <Empty title="No invoices yet" action={<InvoiceBuilder clients={getClients()} projects={projects} />}>
               Create the first invoice to track what is billed, paid, and still outstanding.
             </Empty>
           )}
@@ -288,23 +290,48 @@ export default function MoneyPage() {
           {expenses.length ? (
             <div className="ad__scroll">
               <table className="ad__t">
-                <thead><tr><th>When</th><th>What</th><th>Category</th><th className="num">Amount</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
+                <thead><tr><th>When</th><th>What</th><th>Who was paid</th><th>Against</th><th className="num">Amount</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
                 <tbody>
-                  {expenses.map((e) => (
-                    <tr key={e.id}>
-                      <td className="num">{when(e.at)}</td>
-                      <td><b>{e.description}</b></td>
-                      <td><span className="ad__pill ad__pill--flat">{e.category}</span></td>
-                      <td className="num">{naira(e.amount)}</td>
-                      <td className="ad__rmC"><ExpenseMenu expense={e} /></td>
-                    </tr>
-                  ))}
+                  {expenses.map((e) => {
+                    const on = e.projectId ? projectById.get(e.projectId) : null;
+                    return (
+                      <tr key={e.id}>
+                        <td className="num">{when(e.at)}</td>
+                        <td>
+                          <b>{e.description}</b>
+                          <p className="ad__dim" style={{ margin: ".15rem 0 0", fontSize: ".78rem" }}>
+                            <span className="ad__pill ad__pill--flat">{e.category}</span>
+                            {e.method ? <> · {e.method}</> : null}
+                            {e.by ? <> · {e.by}</> : null}
+                            {/* THE LINK IS OFFERED WHERE THE ROW IS, because
+                                "do we have a receipt for this" is asked of the
+                                row and not of a detail screen. */}
+                            {e.receiptUrl ? (
+                              <> · <a href={e.receiptUrl} target="_blank" rel="noopener noreferrer">Receipt</a></>
+                            ) : null}
+                          </p>
+                        </td>
+                        <td>{e.vendor ?? <span className="ad__dim">—</span>}</td>
+                        <td>
+                          {on
+                            ? <Link href={`/admin/projects/${on.id}`}>{on.title}</Link>
+                            : <span className="ad__dim">Overhead</span>}
+                          {e.rebillable ? (
+                            <span className="ad__pill ad__pill--warn" style={{ marginLeft: ".35rem" }}>Rebillable</span>
+                          ) : null}
+                        </td>
+                        <td className="num">{naira(e.amount)}</td>
+                        <td className="ad__rmC"><ExpenseMenu expense={e} /></td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           ) : (
-            <Empty title="No expenses recorded" action={<AddExpense />}>
-              Add the first expense with its date, category, and amount.
+            <Empty title="No expenses recorded" action={<AddExpense projects={projects} />}>
+              Add the first one with who was paid, what it was for, and the
+              project it belongs against if it belongs to one.
             </Empty>
           )}
         </Panel>

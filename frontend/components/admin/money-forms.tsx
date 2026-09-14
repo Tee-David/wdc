@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { Banknote, FileText, Plus, Save, Send, Trash2, Undo2 } from "lucide-react";
 import type { Client, Invoice, Project } from "@/lib/admin/types";
-import { naira } from "@/lib/admin/types";
+import { EXPENSE_CATEGORIES, METHODS, naira } from "@/lib/admin/types";
 import {
   createExpense, createInvoice, deleteInvoice, issueInvoice, recordPayment, reversePayment, updateInvoice,
 } from "@/lib/admin/actions";
-import { Actions, Area, Field, Fields, Form, Hidden, Select, Submit } from "./form";
+import { Actions, Area, Checks, Field, Fields, Form, Hidden, Select, Submit } from "./form";
 import { DialogButton } from "./dialog";
 
 /* ------------------------------------------------------------- invoices */
@@ -291,23 +291,66 @@ export function RecordPayment({ invoice, owed }: { invoice: Invoice; owed: numbe
 
 /* -------------------------------------------------------------- expenses */
 
-export function AddExpense() {
+/**
+ * Money out.
+ *
+ * WHAT IT WAS FOR AND WHO WAS PAID ARE TWO FIELDS, not one. "Adobe" is the
+ * answer to "who do we pay for this" and "Creative Cloud, the team plan" is
+ * the answer to "what is it", and only the first adds up across a year of
+ * rows. They were one field, and the expense report could not be grouped.
+ *
+ * THE PROJECT IS OPTIONAL AND THE CLIENT IS NOT ASKED AT ALL. An unallocated
+ * expense is overhead, which is a real answer; where there IS a project, the
+ * client comes off it on the server, because two fields that have to agree
+ * will eventually disagree.
+ *
+ * THE RECEIPT IS A LINK. R2 upload from the admin is not wired, and a file
+ * field that quietly does nothing is worse than one that asks for the address
+ * of where the receipt already lives. The helper says so rather than leaving
+ * somebody to find out.
+ */
+export function AddExpense({ projects = [] }: { projects?: Pick<Project, "id" | "title">[] }) {
   return (
-    <DialogButton label="Add an expense" title="Money out" icon={Plus}>
+    <DialogButton label="Add an expense" title="Money out" icon={Plus} wide>
       {(close) => (
         <Form action={createExpense} onDone={() => close()} resetOnDone>
           <Fields>
             <Field name="description" label="What it was for" required
-                   placeholder="Adobe Creative Cloud" />
+                   placeholder="Creative Cloud, the team plan" />
+            <Field name="vendor" label="Who was paid" half placeholder="Adobe" />
             <Field name="amount" label="Amount (₦)" required half inputMode="decimal" />
             <Select
               name="category" label="Category" half defaultValue="Software"
-              options={["Software", "Hosting", "Assets", "Contractors", "Marketing", "Travel", "Other"]
-                .map((v) => ({ value: v, label: v }))}
+              options={EXPENSE_CATEGORIES.map((v) => ({ value: v, label: v }))}
+            />
+            <Select
+              name="method" label="How it left" half defaultValue="Paystack"
+              options={METHODS.map((v) => ({ value: v, label: v }))}
             />
             <Field name="at" label="When" type="date" half
                    defaultValue={new Date().toISOString().slice(0, 10)} />
+            <Field name="by" label="Who entered it" half placeholder="Babatope" />
+            {projects.length ? (
+              <Select
+                name="projectId" label="Against a project"
+                placeholder="Studio overhead, no project"
+                hint="Leave it on overhead unless the cost belongs to one job. This is what makes a project's margin readable."
+                options={projects.map((p) => ({ value: p.id, label: p.title }))}
+              />
+            ) : null}
+            <Field
+              name="receiptUrl" label="Link to the receipt"
+              placeholder="https://drive.google.com/..."
+              hint="A link, not an upload: paste where the receipt already lives."
+            />
+            <Area name="note" label="Anything worth saying" rows={2}
+                  placeholder="Agreed as a pass-through cost in the scope." />
           </Fields>
+          <Checks
+            name="rebillable" label="Billing" long
+            hint="Plenty of project costs are ours to absorb, so having a project does not make a cost rebillable."
+            options={[{ value: "yes", label: "We can bill this back to the client" }]}
+          />
           <Actions>
             <Submit icon={Plus}>Add it</Submit>
           </Actions>
