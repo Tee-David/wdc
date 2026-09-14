@@ -5,6 +5,7 @@ import { LEGAL_DOCS } from "@/lib/legal";
 import { COMPANY_NAME, CONTACT_EMAIL } from "@/lib/site";
 import "./site-footer.css";
 import { NewTab } from "@/components/ui/new-tab";
+import { Newsletter } from "./newsletter";
 
 /**
  * The site footer.
@@ -112,6 +113,11 @@ export function SiteFooter() {
             ) : null}
           </div>
         </div>
+
+        {/* The subscribe box gets its own band rather than a fifth column: the
+            curved bar needs width to read as a curve, and it belongs after
+            what the studio does rather than beside it. */}
+        <Newsletter />
 
         {/* The wordmark, set at a share of the CARD's width rather than the
             viewport's, so it fills the same proportion of the footer at every
