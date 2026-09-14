@@ -11,7 +11,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **161 open** (6 of them in progress), **192 done**.
+At last update: **158 open** (6 of them in progress), **195 done**.
 
 ---
 
@@ -41,9 +41,6 @@ that is the shortest feedback loop there is.
 - [ ] Let an invited client create credentials or continue with an approved Google identity without granting admin access; keep the project relationship attached to the same client account.
 - [ ] Keep collected detail sufficient for delivery while minimising client fatigue; validate completion time and question count per service.
 - [ ] Audit the supplied Fluent Forms exports for where dropdowns, radios, checkboxes, multi-selects, and free text are intentionally used; choose the lowest-effort control for each WDC question.
-- [ ] Research a free or self-hostable, production-safe domain-availability source (prefer authoritative RDAP/registry data; do not infer availability from DNS alone).
-- [ ] For clients without a domain, provide up to three add/remove domain suggestions, an explicit Check availability action, per-domain available/taken/unknown feedback, and a Use selected action.
-- [ ] Keep domain checks optional and conditional; rate-limit and cache checks, state that availability is informational until registration, and never show registrar pricing.
 
 ### Raised by the independent audit, 2026-09-13
 
@@ -368,6 +365,10 @@ Archived, with the evidence that closed each one. Search here before
 reopening anything.
 
 ## Closed 2026-09-14, from live-site review
+
+- [x] Domain availability comes from RDAP, the registries' own records, via the IANA bootstrap at `data.iana.org/rdap/dns.json` (590 services). Free, no account, no key, and authoritative -- DNS was rejected outright because a parked domain has no zone, so NXDOMAIN would tell a client a name is theirs to buy when somebody owns it. **Measured 2026-09-14, and it changed the design: `.ng` is listed in the bootstrap and does not work.** rdap.nic.net.ng returned 502 or timed out on every attempt including its own root, and `.io` and `.co` publish no RDAP service at all. For a Nigerian studio "unknown" is therefore a normal answer, not an edge case, so it is a designed first-class state that says we will check that one by hand. `lib/rdap.ts`.
+- [x] `components/onboarding/domain-field.tsx` replaces the free-text box on "three domain names you would like". Up to three names with add and remove, an explicit Check availability button (never check-as-you-type: every keystroke would be a request to somebody else's registry), and a per-name available/taken/unknown result carrying its own icon and words so it does not depend on telling green from red. Replaces a textarea that promised "we will check what is free" and then produced a paragraph somebody unpicked by hand days later.
+- [x] The check is optional, conditional and bounded, verified against a running build rather than by reading the code. Shown only when the client answers "Neither" to having hosting and a domain. `POST /api/domain` validates and deduplicates server-side, caps at three names per call, rate-limits 12 calls a minute per caller through the existing `lib/rate-limit.ts`, and caches for 60s including the unknowns, because a registry that is down stays down. Tested live: google.com -> taken, a nonsense name -> available, wedigcreativity.com.ng -> unknown with its note, junk input -> 400, the 13th call in a minute -> 429, and five names submitted -> three returned. The response carries "Availability is informational until a name is actually registered" on the wire as well as in the UI, and no registrar pricing appears anywhere.
 
 - [x] All six services have their own onboarding question set, and the burden is genuinely equivalent. Counted from `lib/onboarding.ts`: branding 7 fields (4 always shown), seo 7 (6), apps 9 (7), software 7 (6), web 17 across three steps (9 always shown), social 23 across two steps (10 always shown). The always-shown number is the one that matters for fatigue, and it lands between 4 and 10 for every service. Social and web carry more TOTAL fields only because most of theirs are conditional: a client on two platforms answers two handle questions and never sees the other seven.
 - [x] Conditional display is implemented throughout, not bolted on: 36 `showIf` rules across the form, 13 of them in the social steps and 8 in the web steps. A field declares `showIf: { key, equals }` and is revealed by the answer above it, so nobody is shown a question their previous answer made irrelevant.
