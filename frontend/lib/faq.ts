@@ -67,6 +67,46 @@ export const FAQS: Faq[] = [
     a: "Yes. Organic growth and follower campaigns, day-to-day account management across Facebook, Instagram, X, WhatsApp, TikTok and LinkedIn, automations and auto-replies, paid ads and content calendars, with reporting that keeps you in the loop rather than in the dark.",
     services: ["social"],
   },
+
+  /* ONE PER SERVICE THAT HAD NONE OF ITS OWN, AND A SECOND WHERE THE BUYER
+     ASKS TWO THINGS. Counted before writing these: branding had ZERO questions
+     tagged to it, so its page was showing five general ones and answering
+     nothing a buyer of branding specifically walks in holding. seo, web and
+     social had one each.
+
+     Every answer below is drawn from what `lib/services.ts` already says this
+     studio does, the same rule the file opened with. No price, no turnaround
+     and no capability that is not already published elsewhere on the site. */
+  {
+    q: "Do we get the original logo files, or just images?",
+    a: "The originals, in the formats that keep working. A brand built here is handed over as a system rather than a single lockup: the vector artwork that can be scaled to a building or shrunk to a favicon, the versions for light, dark and busy backgrounds, and the type and colour that go with them. If you later work with someone else, you are not starting again.",
+    services: ["branding"],
+  },
+  {
+    q: "We already have a logo. Can you work with it?",
+    a: "Usually, and the first thing we will tell you is which it should be. Sometimes the mark is fine and what is missing is the system around it, the type, the colour, the layouts and the rules for using them. Sometimes the mark itself is the problem. We work out what the brand has to say before drawing anything, which is the step that answers this honestly rather than by selling you a redesign.",
+    services: ["branding"],
+  },
+  {
+    q: "How long before SEO actually shows results?",
+    a: "Honestly, longer than anyone selling it usually admits, and it depends on what is wrong. Technical faults that stop a site being read can be fixed quickly and often move things within weeks. Earning rankings on competitive terms is content and authority work measured in months. We start with an audit and a crawl so you are told which of the two you are looking at before committing.",
+    services: ["seo"],
+  },
+  {
+    q: "Will we be able to update the site ourselves?",
+    a: "If you need to, yes, and we will ask that question before deciding the architecture rather than after. If someone in your office has to add a post, a product or a price without calling anyone, that is a CMS and it gets planned for. If the site genuinely changes twice a year, a CMS can be an expensive answer to a problem you do not have. Both are fine; deciding after launch is what costs.",
+    services: ["web"],
+  },
+  {
+    q: "Do you handle the writing and the photography?",
+    a: "The writing, yes, and it is worth budgeting for rather than assuming. Copy is the most commonly under-budgeted part of a website, and a project waiting on words nobody has time to write is the most common reason one stalls. For images we will tell you plainly whether a shoot, stock or what you already have is the right call, and what each one means for the result.",
+    services: ["web", "branding"],
+  },
+  {
+    q: "Do you keep running the accounts, or set them up and leave?",
+    a: "Either, and we would rather you chose deliberately. We run day-to-day management, the content calendar, the automations that catch enquiries out of hours and the paid campaigns, with reporting on what it actually did. If you would rather your own team ran it, we set it up and hand it over properly instead of leaving you with a login and a guess.",
+    services: ["social"],
+  },
 ];
 
 /**

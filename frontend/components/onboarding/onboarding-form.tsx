@@ -19,6 +19,7 @@ import PhoneField from "./phone-field";
    different class name. One searchable control used twice beats two that
    drift apart. */
 import SelectField from "./select-field";
+import DomainField from "./domain-field";
 import Dropzone from "./dropzone";
 import Tip from "./tip";
 import Dialog from "./dialog";
@@ -31,6 +32,7 @@ import { toTop } from "@/components/ui/scroll-reset";
 import "./onboarding.css";
 import "./phone-field.css";
 import "./picker.css";
+import "./domain-field.css";
 import "./form-kit.css";
 
 /**
@@ -1057,6 +1059,17 @@ function FieldView({
     return wrap(
       <Dropzone
         id={id}
+        onChange={onChange}
+        describedBy={describedBy}
+      />,
+    );
+  }
+
+  if (f.kind === "domains") {
+    return wrap(
+      <DomainField
+        id={id}
+        value={shown as string}
         onChange={onChange}
         describedBy={describedBy}
       />,
