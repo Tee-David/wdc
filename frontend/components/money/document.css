@@ -225,14 +225,24 @@
   transform: translateY(-1px);
 }
 .doc__btn--pay:active { transform: translateY(1px); }
+/* TWO GLYPHS, TWO JOBS. The card says what kind of thing this is before the
+   label is read; the arrow says the press leaves the page, which on a payment
+   button is worth saying, because the payer lands on Paystack's own domain and
+   somebody who was not expecting that abandons the checkout.
+
+   The card is set slightly smaller than the arrow and pushed off the left edge
+   with a margin, so the label still reads as centred rather than shunted. */
+.doc__btn--pay svg { flex: none; }
+.doc__btn__ic { width: 1.15em; height: 1.15em; margin-right: .15rem; opacity: .85; }
 /* The arrow leans out on hover, which is the whole of the motion: a payment
    button that bounces is a payment button people distrust. */
-.doc__btn--pay svg { width: 1.1em; height: 1.1em; flex: none; transition: transform .16s ease; }
-.doc__btn--pay:hover svg { transform: translateX(3px); }
+.doc__btn__go { width: 1.1em; height: 1.1em; transition: transform .16s ease; }
+.doc__btn--pay:hover .doc__btn__go { transform: translateX(3px); }
 
 @media (prefers-reduced-motion: reduce) {
-  .doc__btn, .doc__btn--pay svg { transition: none; }
+  .doc__btn, .doc__btn__go { transition: none; }
   .doc__btn:active, .doc__btn--pay:hover, .doc__btn--pay:active { transform: none; }
+  .doc__btn--pay:hover .doc__btn__go { transform: none; }
 }
 
 /* Something went wrong on the way to the checkout, said before the button
