@@ -104,6 +104,18 @@ export default async function PublicInvoice({
       <div className="doc__scroll">
         <table className="doc__lines">
           <thead>
+            {/* A RUNNING HEAD, PRINT ONLY.
+
+                `table-header-group` reprints a thead after every page break,
+                so anything in here comes back on each sheet. Sheet two of a
+                long invoice was otherwise anonymous: columns of money with no
+                number and no client on it, which is a real problem the moment
+                a stapled copy comes apart on somebody's desk. */}
+            <tr className="doc__run">
+              <th colSpan={4}>
+                {inv.number}{client ? ` · ${client.company}` : ""}
+              </th>
+            </tr>
             <tr>
               <th>What for</th>
               <th className="n">Qty</th>
@@ -149,7 +161,7 @@ export default async function PublicInvoice({
 
       {payments.length ? (
         <>
-          <h2 style={{ fontSize: ".8rem", letterSpacing: ".08em", textTransform: "uppercase", color: "#5a5a72", margin: "1.4rem 0 .5rem" }}>
+          <h2 className="doc__sub">
             Payments received
           </h2>
           <div className="doc__scroll">
