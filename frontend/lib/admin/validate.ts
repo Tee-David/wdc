@@ -1,6 +1,6 @@
 import { SERVICES, type ServiceSlug } from "@/lib/services";
 import {
-  APPROVALS, CHANNELS, HEALTH, PRIORITIES, STAGES,
+  APPROVALS, CHANNELS, HEALTH, METHODS, PRIORITIES, STAGES,
   type Stage,
 } from "./types";
 
@@ -124,6 +124,7 @@ export const health = oneOf(HEALTH);
 export const channel = oneOf(CHANNELS);
 export const priority = oneOf(PRIORITIES);
 export const approval = oneOf(APPROVALS);
+export const method = oneOf(METHODS);
 
 /** An HTML checkbox posts its value when ticked and nothing at all when not,
     so presence is the answer and the value never needs reading. */

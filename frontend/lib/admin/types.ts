@@ -218,6 +218,21 @@ export type Invoice = {
   id: Id;
   /** INV-YYYY-NNN, issued in order and never reused. */
   number: string;
+  /**
+   * THE PUBLIC ADDRESS OF THIS INVOICE, and why it is not the number.
+   *
+   * The QR printed on an invoice has to resolve to something a client can open
+   * without an account, which means a public page. `INV-2026-001` cannot
+   * address it: the numbers are sequential by design, so anyone holding one
+   * invoice could read every other invoice the studio has ever raised by
+   * counting. That is not a theoretical attack, it is subtracting one.
+   *
+   * This is random and unguessable, and it is the ONLY thing that grants
+   * access. It is minted once and never changes, so a printed invoice keeps
+   * working, and it is not shown anywhere a client could mistake it for a
+   * reference to quote.
+   */
+  token: string;
   clientId: Id;
   projectId: Id | null;
   status: InvoiceStatus;
@@ -230,13 +245,37 @@ export type Invoice = {
   paid: number;
 };
 
+/**
+ * How money actually arrived.
+ *
+ * "Other" is here on purpose and it is labelled rather than left as a gap. A
+ * client who pays a director in cash at an event, or by a means nobody
+ * anticipated, produces a real payment; the choice is between recording it
+ * honestly against a named catch-all and somebody filing it as "Cash" because
+ * the list gave them nowhere else to put it. The second is worse: it puts
+ * wrong data in the books to keep a dropdown tidy.
+ */
+export const METHODS = ["Paystack", "Transfer", "Cash", "POS", "Other"] as const;
+export type Method = (typeof METHODS)[number];
+
 export type Payment = {
   id: Id;
   invoiceId: Id;
   at: string;
   amount: number;
-  method: "Paystack" | "Transfer" | "Cash";
+  method: Method;
+  /** The provider's id, the transfer narration, or whatever ties this row to
+      the money. Unique, so a webhook, a callback and a manual entry cannot
+      double-count the same payment. */
   reference: string;
+  /** RCT-YYYY-NNN. Every successful payment gets one, whatever the method. */
+  receiptNo: string;
+  /** Its own public address, for the same reason the invoice has one. */
+  token: string;
+  /** Who recorded it. A payment with no name against it is not auditable. */
+  by: string;
+  /** Anything worth knowing later: "paid at the office", "part of a bundle". */
+  note?: string;
 };
 
 export type Expense = {

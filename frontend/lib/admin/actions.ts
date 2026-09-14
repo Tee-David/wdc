@@ -6,7 +6,7 @@ import * as db from "./store";
 import { invoiceTotals, naira, type InvoiceLine } from "./types";
 import {
   FAIL, OK, type ActionState,
-  approval, channel, checked, health, isoDate, kobo, looksEmail, num, priority,
+  approval, channel, checked, health, isoDate, kobo, looksEmail, method, num, priority,
   required, services, stage, str,
 } from "./validate";
 
@@ -281,15 +281,34 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
   const invoiceId = str(fd, "invoiceId");
   const amount = kobo(fd, "amount");
   const reference = str(fd, "reference");
-  const methodRaw = str(fd, "method");
-  const method = (["Paystack", "Transfer", "Cash"] as const).find((m) => m === methodRaw) ?? "Transfer";
+  /* The list used to be re-typed here, so adding POS and Other to the union in
+     types.ts would silently have kept rejecting them and filed both as
+     "Transfer". One reader, one list. */
+  const how = method(fd, "method");
 
   const errors: Record<string, string> = {};
   if (!amount) errors.amount = "How much came in?";
   if (!reference) errors.reference = "A reference is what stops this being recorded twice.";
+  if (!how) errors.method = "Say how the money arrived.";
+  /* "Other" is allowed and is exactly why it has to say what it actually was.
+     Recording money against an unnamed catch-all is how a set of books stops
+     being auditable. */
+  const note = str(fd, "note");
+  if (how === "Other" && !note) {
+    errors.note = "Say how it actually arrived. \u201cOther\u201d with nothing beside it cannot be reconciled later.";
+  }
   if (Object.keys(errors).length) return FAIL(errors);
 
-  const res = db.applyPayment({ invoiceId, amount: amount!, method, reference, at: isoDate(fd, "at") ?? undefined });
+  const res = db.applyPayment({
+    invoiceId, amount: amount!, method: how!, reference,
+    at: isoDate(fd, "at") ?? undefined,
+    /* WHO TOOK THE MONEY. A manual "mark paid" with no name against it is the
+       entry nobody can question three months later, which is the entry most
+       worth questioning. Free text for now; it becomes the signed-in admin the
+       moment there is one. */
+    by: str(fd, "by"),
+    note,
+  });
 
   if (!res.ok) {
     const said = {

@@ -1,0 +1,149 @@
+/* ============================================================================
+   The public invoice and receipt.
+
+   A DOCUMENT, NOT A DASHBOARD. This is the page a client opens from the QR on
+   a printed invoice, usually on a phone, usually to answer one question: how
+   much do I owe and how do I pay it. So it is one column, the figure is the
+   biggest thing on it, and nothing here is interactive except the links that
+   help them pay.
+
+   It draws its own colours rather than the site's tokens: a document reads as
+   a document, and a printed one is on white whatever the phone was set to.
+   ========================================================================== */
+
+.doc {
+  min-height: 100dvh;
+  background: #f6f6f4;
+  color: #0e0e2c;
+  padding: clamp(1rem, 4vw, 3rem) clamp(1rem, 4vw, 2rem);
+}
+.doc__sheet {
+  max-width: 46rem; margin: 0 auto;
+  background: #fff; border: 1px solid rgba(0, 0, 101, .12); border-radius: 18px;
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+}
+
+.doc__top {
+  display: flex; flex-wrap: wrap; gap: 1rem;
+  align-items: flex-start; justify-content: space-between;
+  padding-bottom: 1.2rem; border-bottom: 1px solid rgba(0, 0, 101, .12);
+}
+.doc__who { display: flex; align-items: center; gap: .6rem; min-width: 0; }
+.doc__who img { width: 2.5rem; height: 2.5rem; flex: none; }
+.doc__who b {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 1.05rem; line-height: 1.15; display: block;
+}
+.doc__who small { color: #5a5a72; font-size: .8rem; }
+
+.doc__id { text-align: right; min-width: 0; }
+.doc__kind {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  color: #c95000;
+}
+.doc__no {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: clamp(1.2rem, 1rem + 1vw, 1.6rem); font-weight: 700;
+  letter-spacing: -.01em; font-variant-numeric: tabular-nums;
+}
+
+/* The headline figure. On a phone this is the whole reason the page exists. */
+.doc__owed {
+  margin: 1.4rem 0; padding: 1.1rem 1.25rem;
+  border-radius: 14px; background: #f6f6f4;
+  border: 1px solid rgba(0, 0, 101, .1);
+}
+/* `.doc__k`, NOT `.doc__owed > span`. The status pill is also a span in this
+   box, so the descendant rule was making it `display: block` and stretching a
+   999px pill across the full width of the panel. Naming the label settles it
+   on the element that is actually the label. */
+.doc__k {
+  display: block; font-size: .78rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; color: #5a5a72;
+}
+.doc__owed b {
+  display: block; margin-top: .2rem;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: clamp(1.8rem, 1.2rem + 3vw, 2.8rem); font-weight: 700;
+  letter-spacing: -.02em; font-variant-numeric: tabular-nums;
+}
+.doc__owed.is-clear b { color: #1c7a4a; }
+
+/* Contrast checked rather than picked: #b3261e on #fff is 6.0:1, #1c7a4a is
+   4.8:1 and #8a5200 is 5.6:1, all clear of the 4.5:1 these need as text. */
+.doc__pill {
+  display: inline-block; margin-top: .5rem;
+  padding: .25em .7em; border-radius: 999px;
+  font-size: .76rem; font-weight: 700; letter-spacing: .02em;
+  border: 1px solid currentColor;
+}
+.doc__pill--good { color: #1c7a4a; }
+.doc__pill--bad { color: #b3261e; }
+.doc__pill--warn { color: #8a5200; }
+
+.doc__meta {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: .9rem; margin: 1.2rem 0;
+}
+.doc__meta dt {
+  font-size: .72rem; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: #5a5a72; margin-bottom: .15rem;
+}
+.doc__meta dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+
+.doc__scroll { overflow-x: auto; }
+.doc__lines { width: 100%; border-collapse: collapse; margin: 1.2rem 0; font-size: .92rem; }
+.doc__lines th {
+  text-align: left; padding: .5rem .6rem;
+  font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: #5a5a72; border-bottom: 1px solid rgba(0, 0, 101, .12);
+}
+.doc__lines td { padding: .6rem; border-bottom: 1px solid rgba(0, 0, 101, .07); }
+.doc__lines .n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.doc__lines tfoot td { border-bottom: 0; padding-top: .5rem; }
+.doc__lines tfoot tr:last-child td { font-weight: 700; font-size: 1.02rem; }
+
+.doc__pay {
+  margin-top: 1.4rem; padding: 1.1rem 1.25rem;
+  border-radius: 14px; border: 1px solid rgba(255, 101, 0, .3);
+  background: rgba(255, 101, 0, .06);
+}
+.doc__pay h2 {
+  margin: 0 0 .5rem; font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 1rem; font-weight: 700;
+}
+.doc__pay p { margin: 0 0 .5rem; line-height: 1.6; }
+.doc__pay a { color: #c95000; font-weight: 600; }
+
+.doc__foot {
+  margin-top: 1.6rem; padding-top: 1.2rem;
+  border-top: 1px solid rgba(0, 0, 101, .12);
+  display: flex; flex-wrap: wrap; gap: 1.2rem;
+  align-items: center; justify-content: space-between;
+}
+.doc__foot small { color: #5a5a72; font-size: .8rem; line-height: 1.6; max-width: 30rem; }
+/* 160px IS A MEASURED FLOOR, NOT A LOOK.
+
+   These codes carry a full absolute URL with a 22-character token, which is a
+   lot more data than a blog slug and, because the mark in the middle forces
+   error-correction level H, a lot more modules. Decoded with jsQR at 1x, 2x
+   and 3x device pixel ratios: 88px and 116px found NO code at all, 160px and
+   240px read perfectly at every ratio. Do not shrink this without re-running
+   that check -- a QR that does not scan fails silently, on somebody else's
+   phone, after the invoice has already been posted. */
+.doc__qr { flex: none; width: 160px; }
+
+/* Printing is the point of half of this. The sheet loses its frame, the
+   panels lose their fills, and nothing carries a background a printer has to
+   flood. */
+@media print {
+  .doc { background: #fff; padding: 0; }
+  .doc__sheet { border: 0; border-radius: 0; max-width: none; padding: 0; }
+  .doc__owed, .doc__pay { background: transparent; }
+  /* The floating corner controls belong to the site, not to the document.
+     They are useful on screen and they are ink on paper, so they go. Targeted
+     by their own classes rather than by `position: fixed` so that nothing
+     legitimate is caught by accident. */
+  .uw, .uw--corner, .st, .cx { display: none !important; }
+}

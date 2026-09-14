@@ -41,8 +41,16 @@ for (const path of LISTS) {
   });
 }
 
+/* `?view=list`, because Projects now opens on the BOARD.
+
+   The page used to render the board and the table together; it has a switch
+   now, and the board is the default because "what is in flight" is the
+   question somebody opens the screen with. These two cases are about the row
+   MENU rather than about which view is default, so they ask for the view that
+   has rows. The board's cards carry the same menu and the sweep above already
+   covers it. */
 test("a row menu opens in the admin's own scope and walks with the keyboard", async ({ page, baseURL }) => {
-  await open(page, "/admin/projects", baseURL);
+  await open(page, "/admin/projects?view=list", baseURL);
   await page.locator("table.ad__t .ad__rm").first().click();
 
   const list = page.locator(".ad__rmList");
@@ -77,7 +85,7 @@ test("a row menu opens in the admin's own scope and walks with the keyboard", as
 });
 
 test("a menu item opens a dialog that names the record", async ({ page, baseURL }) => {
-  await open(page, "/admin/projects", baseURL);
+  await open(page, "/admin/projects?view=list", baseURL);
   const title = (await page.locator("table.ad__t tbody tr").first().locator("b").first().textContent())!.trim();
 
   await page.locator("table.ad__t .ad__rm").first().click();
