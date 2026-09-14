@@ -125,7 +125,7 @@ const PROJECTS: Project[] = [
 
 const INVOICES: Invoice[] = [
   {
-    id: "i1", number: "INV-2026-001", clientId: "c1", projectId: "p1",
+    id: "i1", token: "seedInv1AAAAAAAAAAAAAAA", number: "INV-2026-001", clientId: "c1", projectId: "p1",
     status: "Sent", issued: iso("2026-08-01"), due: iso("2026-08-31"), vatRate: 7.5,
     lines: [
       { description: "Identity system, first stage", qty: 1, unit: N(450_000) },
@@ -134,13 +134,13 @@ const INVOICES: Invoice[] = [
     paid: N(300_000),
   },
   {
-    id: "i2", number: "INV-2026-002", clientId: "c2", projectId: "p3",
+    id: "i2", token: "seedInv2AAAAAAAAAAAAAAA", number: "INV-2026-002", clientId: "c2", projectId: "p3",
     status: "Sent", issued: iso("2026-07-05"), due: iso("2026-08-04"), vatRate: 7.5,
     lines: [{ description: "Social management, July", qty: 1, unit: N(250_000) }],
     paid: 0,
   },
   {
-    id: "i3", number: "INV-2026-003", clientId: "c3", projectId: "p4",
+    id: "i3", token: "seedInv3AAAAAAAAAAAAAAA", number: "INV-2026-003", clientId: "c3", projectId: "p4",
     status: "Sent", issued: iso("2026-07-25"), due: iso("2026-08-24"), vatRate: 7.5,
     lines: [
       { description: "Listings site build", qty: 1, unit: N(1_400_000) },
@@ -149,7 +149,7 @@ const INVOICES: Invoice[] = [
     paid: N(1_741_000),
   },
   {
-    id: "i4", number: "INV-2026-004", clientId: "c5", projectId: "p5",
+    id: "i4", token: "seedInv4AAAAAAAAAAAAAAA", number: "INV-2026-004", clientId: "c5", projectId: "p5",
     status: "Draft", issued: iso("2026-09-09"), due: iso("2026-10-09"), vatRate: 7.5,
     lines: [{ description: "Dispatch platform, milestone two", qty: 1, unit: N(900_000) }],
     paid: 0,
@@ -157,9 +157,13 @@ const INVOICES: Invoice[] = [
 ];
 
 const PAYMENTS: Payment[] = [
-  { id: "y1", invoiceId: "i1", at: iso("2026-08-06"), amount: N(300_000), method: "Paystack", reference: "PSK_8fj2k1" },
-  { id: "y2", invoiceId: "i3", at: iso("2026-07-30"), amount: N(1_000_000), method: "Transfer", reference: "TRF_0091" },
-  { id: "y3", invoiceId: "i3", at: iso("2026-08-14"), amount: N(741_000), method: "Paystack", reference: "PSK_11ba7c" },
+  { id: "y1", invoiceId: "i1", at: iso("2026-08-06"), amount: N(300_000), method: "Paystack",
+    reference: "PSK_8fj2k1", receiptNo: "RCT-2026-001", token: "seedRct1AAAAAAAAAAAAAAA", by: "Paystack webhook" },
+  { id: "y2", invoiceId: "i3", at: iso("2026-07-30"), amount: N(1_000_000), method: "Transfer",
+    reference: "TRF_0091", receiptNo: "RCT-2026-002", token: "seedRct2AAAAAAAAAAAAAAA", by: "Babatope",
+    note: "Paid into the Zenith account." },
+  { id: "y3", invoiceId: "i3", at: iso("2026-08-14"), amount: N(741_000), method: "Paystack",
+    reference: "PSK_11ba7c", receiptNo: "RCT-2026-003", token: "seedRct3AAAAAAAAAAAAAAA", by: "Paystack webhook" },
 ];
 
 const EXPENSES: Expense[] = [
@@ -240,6 +244,26 @@ export function getInvoice(id: Id) {
 export function getInvoicesFor(clientId: Id) {
   return INVOICES.filter((i) => i.clientId === clientId).sort(byNewest);
 }
+/**
+ * THE PUBLIC LOOKUPS, and the rule they follow.
+ *
+ * A token is the whole of the authorisation, so these compare the FULL token
+ * and nothing else: no prefix match, no "starts with", no fallback to the
+ * invoice number if the token misses. A near miss is a miss.
+ *
+ * They return the record or null, and the pages above them render a plain 404
+ * for null rather than "no invoice with that token" -- which would confirm to
+ * somebody guessing that the format was right.
+ */
+export function getInvoiceByToken(t: string) {
+  if (!t || t.length < 20) return null;
+  return INVOICES.find((i) => i.token === t) ?? null;
+}
+export function getPaymentByToken(t: string) {
+  if (!t || t.length < 20) return null;
+  return PAYMENTS.find((p) => p.token === t) ?? null;
+}
+
 export function getPaymentsFor(invoiceId: Id) {
   return PAYMENTS.filter((p) => p.invoiceId === invoiceId);
 }
@@ -363,6 +387,29 @@ let seq = 1000;
 const mint = (p: string) => `${p}${++seq}`;
 const now = () => new Date().toISOString();
 
+/**
+ * The unguessable half of a public document URL.
+ *
+ * FROM A CRYPTOGRAPHIC SOURCE, NOT Math.random. This is the ONLY thing
+ * standing between a printed invoice's QR code and every other invoice the
+ * studio has raised, so its randomness is the whole security property.
+ *
+ * BASE64URL, NOT HEX, AND THE REASON IS THE QR CODE. 16 bytes is 128 bits
+ * either way -- guessing one is not a thing that happens -- but hex spends 32
+ * characters saying it and base64url spends 22. Those ten characters are not
+ * cosmetic: the token goes in a URL that goes in a QR code, a longer string
+ * needs more modules, and more modules at the same printed size is a code a
+ * camera cannot read. Measured: the hex version would not decode below 160px.
+ *
+ * `+` and `/` are replaced because this ends up in a path, and `=` padding is
+ * dropped because it carries no information.
+ */
+const token = () => {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+};
+
 /* --------------------------------------------------------------- clients */
 
 export type ClientDraft = Omit<Client, "id" | "since" | "archived">;
@@ -468,11 +515,29 @@ export function nextInvoiceNumber(year = new Date().getFullYear()): string {
   return `${prefix}${String(highest + 1).padStart(3, "0")}`;
 }
 
+/**
+ * The next receipt number for the year.
+ *
+ * Same shape and same contract as `nextInvoiceNumber`: issued in order, never
+ * reused, and derived from the highest one already taken rather than from a
+ * count -- reversing a payment removes a row, and a count would then hand the
+ * next receipt a number that has already been printed and posted.
+ */
+export function nextReceiptNumber(year = new Date().getFullYear()): string {
+  const prefix = `RCT-${year}-`;
+  const highest = PAYMENTS
+    .filter((p) => p.receiptNo.startsWith(prefix))
+    .reduce((n, p) => Math.max(n, Number(p.receiptNo.slice(prefix.length)) || 0), 0);
+  return `${prefix}${String(highest + 1).padStart(3, "0")}`;
+}
+
 export function addInvoice(d: {
   clientId: Id; projectId: Id | null; issued: string; due: string;
   vatRate: number; lines: Invoice["lines"]; status: "Draft" | "Sent";
 }): Invoice {
-  const inv: Invoice = { ...d, id: mint("i"), number: nextInvoiceNumber(), paid: 0 };
+  const inv: Invoice = {
+    ...d, id: mint("i"), number: nextInvoiceNumber(), token: token(), paid: 0,
+  };
   INVOICES.push(inv);
   return inv;
 }
@@ -543,6 +608,10 @@ export type ApplyResult =
 export function applyPayment(d: {
   invoiceId: Id; amount: number; method: Payment["method"];
   reference: string; at?: string;
+  /** Who is recording it. A payment with no name against it is not auditable,
+      so this falls back to a label rather than to an empty string. */
+  by?: string;
+  note?: string;
 }): ApplyResult {
   const inv = getInvoice(d.invoiceId);
   if (!inv) return { ok: false, reason: "no-invoice" };
@@ -553,9 +622,17 @@ export function applyPayment(d: {
   const seen = PAYMENTS.find((p) => p.reference === ref);
   if (seen) return { ok: false, reason: "duplicate" };
 
+  /* EVERY SUCCESSFUL PAYMENT GETS A RECEIPT, whatever the method. A Paystack
+     payment and a hundred naira handed over in cash are the same event as far
+     as the client is concerned -- they paid, and they are owed a document
+     saying so. Numbering it here rather than on demand means the number is
+     assigned once, in order, and cannot change if the receipt is reprinted. */
   const payment: Payment = {
     id: mint("y"), invoiceId: inv.id, at: d.at ?? now(),
     amount: Math.round(d.amount), method: d.method, reference: ref,
+    receiptNo: nextReceiptNumber(), token: token(),
+    by: d.by?.trim() || "Studio",
+    note: d.note?.trim() || undefined,
   };
   PAYMENTS.push(payment);
 
