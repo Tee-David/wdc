@@ -56,6 +56,16 @@ export default async function PublicInvoice({
       number={inv.number}
       url={invoiceUrl(inv.token)}
       qrLabel={`Reopen invoice ${inv.number}`}
+      /* NO STAMP ON AN INVOICE THAT IS SIMPLY WAITING. Settled, part paid and
+         overdue are all facts worth pressing into the corner; "sent, not yet
+         due" is the default state of every invoice and stamping it would make
+         the mark mean nothing. The empty corner is the right answer there. */
+      stamp={
+        settled ? "paid"
+          : status === "Overdue" ? "overdue"
+            : status === "Part paid" ? "part"
+              : undefined
+      }
     >
       <Headline
         label={settled ? "Paid in full" : "Amount due"}
@@ -144,13 +154,19 @@ export default async function PublicInvoice({
                 <tr><th>Receipt</th><th>When</th><th>How</th><th className="n">Amount</th></tr>
               </thead>
               <tbody>
+                {/* REVERSED ROWS STAY, STRUCK THROUGH. A client comparing this
+                    against their own bank statement needs to see that the
+                    payment was received and then went back; a list it silently
+                    disappears from is a list they cannot reconcile, and the
+                    first thing they will do is email to ask. */}
                 {payments.map((p) => (
-                  <tr key={p.id}>
-                    {/* Linked, because a client chasing their own records wants
-                        the receipt itself and not a number to quote at us. */}
+                  <tr key={p.id} className={p.reversed ? "is-void" : undefined}>
                     <td><a href={`/r/${p.token}`}>{p.receiptNo}</a></td>
                     <td>{new Date(p.at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</td>
-                    <td>{p.method}</td>
+                    <td>
+                      {p.method}
+                      {p.reversed ? <><br /><small>Reversed, not counted</small></> : null}
+                    </td>
                     <td className="n">{naira(p.amount)}</td>
                   </tr>
                 ))}

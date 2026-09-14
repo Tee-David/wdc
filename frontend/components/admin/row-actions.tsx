@@ -325,22 +325,42 @@ export function PaymentMenu({
 }) {
   const items: RowMenuItem[] = [
     { kind: "link", label: "Open the invoice", href: `/admin/money/${payment.invoiceId}`, icon: ArrowRight },
-    {
+  ];
+
+  /* ALREADY REVERSED OFFERS NOTHING, rather than offering a button that fails.
+     The same rule the invoice menus follow: what is offered is what is true. */
+  if (!payment.reversed) {
+    items.push({
       kind: "dialog", label: "Reverse it", icon: Undo2, tone: "danger",
       title: `Reverse ${naira(payment.amount)}`,
       render: (close) => (
-        <Sure
-          action={reversePayment as never}
-          fields={{ id: payment.id, invoiceId: payment.invoiceId }}
-          verb="Reverse it" icon={Undo2} tone="danger" close={close}
-        >
-          {naira(payment.amount)} comes off {invoiceNumber ?? "the invoice"} and
-          it re-totals. Use this for a payment entered twice or against the
-          wrong invoice, not for a refund — a refund is money going out.
-        </Sure>
+        <Form action={reversePayment} onDone={() => close()}>
+          <Fields>
+            <Hidden name="id" value={payment.id} />
+            <Hidden name="invoiceId" value={payment.invoiceId} />
+            <Area
+              name="reason" label="Why" rows={2} required
+              placeholder="Transfer bounced. Bank returned it on the 14th."
+              hint="Required. This is the entry somebody will question later, and it is the only thing that can answer them."
+            />
+            <Field name="by" label="Reversed by" placeholder="Babatope"
+                   hint="Goes on the audit trail and on the receipt." />
+          </Fields>
+          <p className="ad__dim" style={{ fontSize: ".88rem", lineHeight: 1.6 }}>
+            {naira(payment.amount)} comes off {invoiceNumber ?? "the invoice"} and it
+            re-totals. The row stays on the books marked reversed and keeps its
+            receipt number, because {payment.receiptNo} has its own link and the
+            client may be holding it — it will say REVERSED rather than stop
+            working. Use this for a payment entered twice or against the wrong
+            invoice, not for a refund: a refund is money going out.
+          </p>
+          <Actions>
+            <Submit icon={Undo2} tone="danger">Reverse it</Submit>
+          </Actions>
+        </Form>
       ),
-    },
-  ];
+    });
+  }
 
   return <RowMenu items={items} label={`${naira(payment.amount)} on ${payment.reference}`} />;
 }

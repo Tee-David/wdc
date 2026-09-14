@@ -46,6 +46,7 @@ export default async function PublicReceipt({
   const project = inv.projectId ? getProject(inv.projectId) : null;
   const t = invoiceTotals(inv);
   const remaining = t.due;
+  const gone = pay.reversed;
 
   return (
     <DocumentShell
@@ -53,15 +54,35 @@ export default async function PublicReceipt({
       number={pay.receiptNo}
       url={receiptUrl(pay.token)}
       qrLabel={`Reopen receipt ${pay.receiptNo}`}
+      /* THE STAMP TELLS THE TRUTH ABOUT THIS RECEIPT, not about the studio's
+         hopes for it. A reversed payment keeps its receipt and its number --
+         the client may be holding a printout -- so the document stays live and
+         says REVERSED rather than turning into a 404 with no explanation. An
+         intact payment that settles the invoice is PAID; one that leaves a
+         balance is PART PAID, because telling somebody "paid" while they still
+         owe money is the kind of mistake that gets found at the worst
+         possible moment. */
+      stamp={gone ? "reversed" : remaining > 0 ? "part" : "paid"}
     >
+      {gone ? (
+        <p className="doc__void" role="status">
+          <b>This receipt has been reversed.</b> The payment it records did not
+          stay with us{gone.reason ? `: ${gone.reason}` : "."} It no longer
+          counts towards {inv.number}. Nothing here has been altered or
+          removed — this is the original receipt, marked.
+        </p>
+      ) : null}
+
       <Headline
-        label="Received with thanks"
+        label={gone ? "Reversed, originally received" : "Received with thanks"}
         amount={pay.amount}
-        clear
+        clear={!gone}
         pill={
-          remaining > 0
-            ? { text: `${naira(remaining)} still outstanding`, tone: "warn" }
-            : { text: "Invoice settled in full", tone: "good" }
+          gone
+            ? { text: `Reversed ${new Date(gone.at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`, tone: "bad" }
+            : remaining > 0
+              ? { text: `${naira(remaining)} still outstanding`, tone: "warn" }
+              : { text: "Invoice settled in full", tone: "good" }
         }
       />
 

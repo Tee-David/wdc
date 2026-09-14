@@ -276,6 +276,21 @@ export type Payment = {
   by: string;
   /** Anything worth knowing later: "paid at the office", "part of a bundle". */
   note?: string;
+  /**
+   * SET WHEN THE MONEY DID NOT STAY, and the row is kept either way.
+   *
+   * Reversing used to delete the payment, which is wrong twice over. The
+   * receipt for it has its own public URL and has usually been sent to the
+   * client already, so deleting the row turns a document somebody is holding
+   * into a 404 -- with no explanation, which reads as the studio hiding
+   * something. And a set of books that corrects mistakes by removing rows
+   * cannot be audited: "there was a payment here last month" has no answer.
+   *
+   * So a reversal is an ANNOTATION. The payment, its amount, its method, its
+   * reference and its receipt number all stay exactly as they were; this says
+   * what happened to it, when, and who decided. The totals stop counting it.
+   */
+  reversed?: { at: string; by: string; reason: string };
 };
 
 export type Expense = {

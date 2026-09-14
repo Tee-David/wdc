@@ -1,0 +1,78 @@
+/* ============================================================================
+   The rubber stamp.
+
+   COLOUR IS THE FASTEST HALF OF THE MESSAGE, so each state gets its own and
+   the word says the same thing for anybody who cannot separate them. The
+   values are the document's own status colours rather than a second set: a
+   green stamp and a green "Settled" pill that disagreed by a shade would look
+   like a mistake nobody could name.
+
+   Contrast is measured, not guessed. These are large marks and the rule for a
+   non-text graphic is 3:1, but the word inside one is read as a word, so each
+   is taken to the 4.5:1 that text needs against the #fff sheet: green
+   #1c7a4a is 4.83:1, amber #8a5200 is 5.62:1, red #b3261e is 5.98:1, blue
+   #2a4b8d is 8.03:1 and grey #5a5a72 is 6.55:1. The opacity below is applied
+   to the ink as a whole, which lowers those -- see the note on it.
+   ========================================================================== */
+
+.stamp {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* A stamp is pressed by hand and never lands square. */
+  transform: rotate(-11deg);
+  /* INK, NOT PAINT. A real stamp lets the paper through, and the wear mask
+     alone reads as a printed graphic with holes in it. 0.82 is as light as it
+     goes before the word stops clearing 4.5:1 against the sheet: at 0.82 the
+     green measures 4.51:1 on #fff, which is the floor rather than a
+     preference. Do not take it lower without re-measuring. */
+  opacity: .82;
+}
+
+.stamp__arc {
+  font-family: var(--font-space-grotesk), "Arial Black", system-ui, sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 2.2px;
+}
+
+.stamp__word {
+  font-family: var(--font-space-grotesk), "Arial Black", system-ui, sans-serif;
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.stamp--good { color: #1c7a4a; }
+.stamp--warn { color: #8a5200; }
+.stamp--bad  { color: #b3261e; }
+.stamp--info { color: #2a4b8d; }
+.stamp--mute { color: #5a5a72; }
+
+/* ---- where it sits on a document ----------------------------------------
+   Bottom right, over the footer rule, tilted. Absolute so it can overlap the
+   way a stamp does; `pointer-events: none` so it never swallows a tap meant
+   for the link underneath it. `.doc__sheet` takes its `position: relative` in
+   document.css, where the rest of that element is declared. */
+.doc__stamp {
+  position: absolute;
+  right: clamp(1rem, 5vw, 3rem);
+  bottom: clamp(1rem, 4vw, 2.5rem);
+  width: clamp(104px, 26vw, 168px);
+  pointer-events: none;
+}
+
+/* On a phone the footer is already tight and the stamp would land on the
+   small print. It moves up and shrinks rather than being hidden: the whole
+   point of it is to be seen at a glance, and a phone is where most of these
+   are opened. */
+@media (max-width: 620px) {
+  .doc__stamp { width: 108px; right: .75rem; bottom: auto; top: 0; }
+  .doc__foot { padding-top: 2.5rem; }
+}
+
+/* It prints. A stamp that vanishes from the printed copy would be missing
+   from the version most likely to be filed. */
+@media print {
+  .stamp { opacity: .9; }
+}

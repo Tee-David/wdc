@@ -2,6 +2,7 @@ import Image from "next/image";
 import { COMPANY_NAME, CONTACT_EMAIL, REGISTRATION_NO, SITE_URL } from "@/lib/site";
 import { naira } from "@/lib/admin/types";
 import QrCode from "@/components/ui/qr-code";
+import Stamp, { type StampStatus } from "./stamp";
 import "./document.css";
 
 /**
@@ -19,17 +20,27 @@ import "./document.css";
  * that knows whether the money has since arrived.
  */
 export function DocumentShell({
-  kind, number, url, children, qrLabel,
+  kind, number, url, children, qrLabel, stamp,
 }: {
   kind: string;
   number: string;
   url: string;
   qrLabel: string;
   children: React.ReactNode;
+  /**
+   * The rubber stamp in the bottom right.
+   *
+   * Optional, and it should stay optional: a document with nothing worth
+   * stamping is better with an empty corner than with a mark that means
+   * "no particular state". The page decides, because the page is what knows
+   * whether the money arrived.
+   */
+  stamp?: StampStatus;
 }) {
   return (
     <main className="doc">
       <article className="doc__sheet">
+        {stamp ? <Stamp status={stamp} seed={number} className="doc__stamp" /> : null}
         <header className="doc__top">
           <div className="doc__who">
             {/* A fixed width and height, so the sheet does not reflow when the

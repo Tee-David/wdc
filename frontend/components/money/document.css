@@ -18,6 +18,9 @@
   padding: clamp(1rem, 4vw, 3rem) clamp(1rem, 4vw, 2rem);
 }
 .doc__sheet {
+  /* The containing block for the rubber stamp, which is absolutely positioned
+     into this corner -- see stamp.css. */
+  position: relative;
   max-width: 46rem; margin: 0 auto;
   background: #fff; border: 1px solid rgba(0, 0, 101, .12); border-radius: 18px;
   padding: clamp(1.25rem, 4vw, 2.5rem);
@@ -147,3 +150,27 @@
      legitimate is caught by accident. */
   .uw, .uw--corner, .st, .cx { display: none !important; }
 }
+
+/* A reversed receipt, said in words as well as in the corner stamp. Red is
+   #b3261e on a 6% tint of itself, which stays clear of the surrounding copy
+   without becoming a warning box for something that is simply a fact. */
+.doc__void {
+  margin: 0 0 1.2rem; padding: .85rem 1rem;
+  border: 1px solid rgba(179, 38, 30, .3);
+  border-radius: 12px; background: rgba(179, 38, 30, .06);
+  color: #8f1e18; line-height: 1.6;
+}
+.doc__void b { color: #b3261e; }
+
+/* A payment that came back. Struck through and dimmed, never removed: a
+   client reconciling against their bank statement has to see that it arrived
+   and then went, and a row that silently disappears is one they will email
+   about. */
+.doc__lines tr.is-void td { color: #7a7a8c; text-decoration: line-through; }
+.doc__lines tr.is-void td small {
+  display: inline-block; text-decoration: none;
+  font-size: .74rem; font-weight: 600; color: #b3261e; letter-spacing: .02em;
+}
+/* The receipt link stays readable and clickable — striking it through would
+   suggest the document itself has gone, and it has not. */
+.doc__lines tr.is-void td a { text-decoration: underline; color: #7a7a8c; }
