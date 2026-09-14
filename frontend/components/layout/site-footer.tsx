@@ -102,10 +102,12 @@ export function SiteFooter() {
                 how fast we reply -- are on /contact, which is where somebody
                 deciding whether to write is already headed. */}
             <h2>Worth your inbox</h2>
-            <Link className="ft__cta" href="/contact">
-              Start a conversation
-              <ArrowUpRight aria-hidden="true" />
-            </Link>
+            {/* NO "START A CONVERSATION" BUTTON. Contact Us is already in the
+                Company list two columns over, the address is in Useful links
+                beside it, and every page above this one ends in its own ask.
+                A fourth route to the same place, styled as the loudest thing
+                in the footer, was competing with the subscribe box for the one
+                decision this part of the page is actually for. */}
             {SOCIALS.length ? (
               <div className="ft__social">
                 {SOCIALS.map((s) => (
