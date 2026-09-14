@@ -11,7 +11,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **177 open** (5 of them in progress), **174 done**.
+At last update: **158 open** (6 of them in progress), **195 done**.
 
 ---
 
@@ -29,15 +29,11 @@ that is the shortest feedback loop there is.
 
 
 - [ ] `components/services/services-body.tsx` is now unreferenced: `/services` is a hub and each service renders through `service-detail.tsx`. Delete it once the new pages have been live long enough to be sure nothing is missed, and move anything worth keeping (the filter chips, the in-page nav, the brand rail) onto the hub first.
-- [ ] The six service pages want a FAQ block each, fed from `lib/faq.ts` filtered by service. The hub inherits the general questions; the detail pages should answer the ones a buyer of THAT service asks, and it is the cheapest structured-data win left on the site.
 
 ## 1A. Client onboarding experience
 
 - [-] Make Save and continue later create a securely hashed, single-purpose resume token and email the link through Truehost SMTP. (Token flow is complete; Truehost currently rejects SMTP authentication with `535`.)
 - [-] Set resume links to expire after 3 days; clearly handle expired, reused, and invalid links and allow a new link to be requested. (Expiry, replay rejection, invalid-link handling, and secure link rotation are complete; self-service reissue remains.)
-- [ ] Design equivalent, concise onboarding question sets for branding, SEO, apps, software/AI, and paid advertising while preserving the same conversational voice.
-- [ ] Audit and implement conditional display rules so clients see only questions relevant to their prior answers.
-- [ ] Use a simple non-searchable dropdown for lists of ten or fewer options; keep search for longer lists, and ensure every open dropdown/popover renders above Jotform, UserWay, and back-to-top controls.
 - [ ] After successful onboarding, send the client a personalized next-steps email; explain that project communication may use the client dashboard, direct chat, a WhatsApp project group where appropriate, or another agreed channel.
 - [ ] Keep client account creation optional in that email; bind its expiring, single-purpose invitation to the onboarded recipient so a forwarded link cannot register a different email address.
 - [ ] Let authenticated clients link or unlink Google in account settings; require another usable sign-in method before unlinking their last identity.
@@ -45,13 +41,9 @@ that is the shortest feedback loop there is.
 - [ ] Let an invited client create credentials or continue with an approved Google identity without granting admin access; keep the project relationship attached to the same client account.
 - [ ] Keep collected detail sufficient for delivery while minimising client fatigue; validate completion time and question count per service.
 - [ ] Audit the supplied Fluent Forms exports for where dropdowns, radios, checkboxes, multi-selects, and free text are intentionally used; choose the lowest-effort control for each WDC question.
-- [ ] Research a free or self-hostable, production-safe domain-availability source (prefer authoritative RDAP/registry data; do not infer availability from DNS alone).
-- [ ] For clients without a domain, provide up to three add/remove domain suggestions, an explicit Check availability action, per-domain available/taken/unknown feedback, and a Use selected action.
-- [ ] Keep domain checks optional and conditional; rate-limit and cache checks, state that availability is informational until registration, and never show registrar pricing.
 
 ### Raised by the independent audit, 2026-09-13
 
-- [ ] Give the onboarding page a main heading. (Finding A4. It has none. It is noindex so this costs nothing in ranking, but it is the element screen-reader users navigate by.)
 
 ## 1B. Free tools on the service pages
 
@@ -377,6 +369,17 @@ Archived, with the evidence that closed each one. Search here before
 reopening anything.
 
 ## Closed 2026-09-14, from live-site review
+
+- [x] Domain availability comes from RDAP, the registries' own records, via the IANA bootstrap at `data.iana.org/rdap/dns.json` (590 services). Free, no account, no key, and authoritative -- DNS was rejected outright because a parked domain has no zone, so NXDOMAIN would tell a client a name is theirs to buy when somebody owns it. **Measured 2026-09-14, and it changed the design: `.ng` is listed in the bootstrap and does not work.** rdap.nic.net.ng returned 502 or timed out on every attempt including its own root, and `.io` and `.co` publish no RDAP service at all. For a Nigerian studio "unknown" is therefore a normal answer, not an edge case, so it is a designed first-class state that says we will check that one by hand. `lib/rdap.ts`.
+- [x] `components/onboarding/domain-field.tsx` replaces the free-text box on "three domain names you would like". Up to three names with add and remove, an explicit Check availability button (never check-as-you-type: every keystroke would be a request to somebody else's registry), and a per-name available/taken/unknown result carrying its own icon and words so it does not depend on telling green from red. Replaces a textarea that promised "we will check what is free" and then produced a paragraph somebody unpicked by hand days later.
+- [x] The check is optional, conditional and bounded, verified against a running build rather than by reading the code. Shown only when the client answers "Neither" to having hosting and a domain. `POST /api/domain` validates and deduplicates server-side, caps at three names per call, rate-limits 12 calls a minute per caller through the existing `lib/rate-limit.ts`, and caches for 60s including the unknowns, because a registry that is down stays down. Tested live: google.com -> taken, a nonsense name -> available, wedigcreativity.com.ng -> unknown with its note, junk input -> 400, the 13th call in a minute -> 429, and five names submitted -> three returned. The response carries "Availability is informational until a name is actually registered" on the wire as well as in the UI, and no registrar pricing appears anywhere.
+
+- [x] All six services have their own onboarding question set, and the burden is genuinely equivalent. Counted from `lib/onboarding.ts`: branding 7 fields (4 always shown), seo 7 (6), apps 9 (7), software 7 (6), web 17 across three steps (9 always shown), social 23 across two steps (10 always shown). The always-shown number is the one that matters for fatigue, and it lands between 4 and 10 for every service. Social and web carry more TOTAL fields only because most of theirs are conditional: a client on two platforms answers two handle questions and never sees the other seven.
+- [x] Conditional display is implemented throughout, not bolted on: 36 `showIf` rules across the form, 13 of them in the social steps and 8 in the web steps. A field declares `showIf: { key, equals }` and is revealed by the answer above it, so nobody is shown a question their previous answer made irrelevant.
+- [x] The single-choice control already applies the ten-option rule: `select-field.tsx` sets `searchable = options.length > 10`, and the search box is rendered only when that is true, so a short list is a plain list and a long one can be typed into. Stacking checked rather than assumed: the popover is `z-index: 1000` in picker.css against 112 for the UserWay and back-to-top controls and a forced 110 for Jotform's container, and no ancestor of the picker opens a stacking context that would trap it (the only `z-index: 1` in form-kit.css is on a button inside the dropzone).
+- [x] The onboarding page has a main heading: an `sr-only` h1, "Client onboarding", at `app/onboarding/page.tsx:54`. Visually hidden rather than displayed because the page opens on its own progress UI, but it is present for the screen-reader users who navigate by it. (Finding A4.)
+
+- [x] Every service page answers questions a buyer of THAT service asks, and emits FAQPage structured data describing exactly the questions rendered. The block, the accordion and the JSON-LD were already wired; what was missing was the content. Counted before writing any: branding had ZERO questions tagged to it, so its page showed five general ones and answered nothing specific to branding, while seo, web and social had one each. Six new questions take the set from 10 to 16, and every service now leads with one of its own -- branding 3, web 3, and 2 each for seo, apps, software and social. Verified by parsing the FAQPage JSON-LD out of all six built pages: 5 questions each, specific ones first. Every answer is drawn from what lib/services.ts already says the studio does; no price, no turnaround, no capability invented for the tag.
 
 - [x] Case-study titles fit, and the brand suffix is no longer dead code. The fitting logic was already in place, but it appended `COMPANY_NAME` -- "We Dig Creativity Solutions (WDC Solutions)", a 45-character suffix against a 60-character budget. Measured across all fifteen case studies, the two branches that carry the brand NEVER ran: thirteen fell through to sector-without-brand and two to the client alone. The comment also claimed the brand came from "the root template", but the page returns `title.absolute`, which bypasses the template entirely. Now appends `SITE_NAME` (20 characters), the same short name every other page carries. Titles measure 11-56 characters, all inside 60.
 - [x] Meta descriptions on the work category and legal pages now land in the 120-160 range, verified by reading `<meta name="description">` out of the built HTML rather than by estimating. Legal was 75-114: whole sentences from the document's own `intro` are appended while they fit, which only helped the cookie policy, so the "Last updated" date is added when there is still room. It is what someone checks on a policy, it is already on the page, and it fits where a sentence does not. All four now 135-146. Work categories were 100-118: real client names are appended one at a time and dropped whole when the next will not fit, so the sentence never ends on half a client. All six now 142-155. Two grammar faults surfaced while doing it and are fixed: `c.label.toLowerCase()` was rendering "1 project in seo" (and would have done the same to AI and PPC), and the plural tail did not agree with its own count -- "1 project in seo, every one of them live".

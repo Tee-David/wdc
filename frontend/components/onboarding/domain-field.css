@@ -1,0 +1,99 @@
+/* ==========================================================================
+   The domain suggestions field.
+
+   `.pv` scoped and drawn from the page tokens, like picker.css, so it holds in
+   both themes without a second palette. The input deliberately inherits the
+   shape of `.ob__f input` rather than redefining it: this is another field in
+   the same form, not a widget visiting from somewhere else.
+   ========================================================================== */
+
+.pv .dm { display: grid; gap: .7rem; }
+
+.pv .dm__list { margin: 0; padding: 0; list-style: none; display: grid; gap: .6rem; }
+
+/* The row is a grid rather than a flex line so the status can sit UNDER the
+   input at every width instead of being squeezed beside it: "Already
+   registered" next to a 320px input would leave about nine characters for the
+   name the client just typed. */
+.pv .dm__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .5rem .6rem;
+}
+
+.pv .dm__input {
+  width: 100%; min-width: 0; padding: .8rem .95rem;
+  border: 1px solid var(--rule); border-radius: 12px;
+  background: var(--paper); color: var(--ink);
+  font-family: inherit; font-size: 1rem; line-height: 1.5;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.pv .dm__input::placeholder { color: var(--muted); opacity: .75; }
+.pv .dm__input:focus-visible {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+/* 44px, because it is a real target and a thumb has to land on it. */
+.pv .dm__drop {
+  display: grid; place-items: center;
+  width: 44px; height: 44px; padding: 0;
+  border: 1px solid var(--rule); border-radius: 12px;
+  background: var(--paper); color: var(--muted); cursor: pointer;
+  transition: border-color .2s ease, color .2s ease;
+}
+.pv .dm__drop:hover { border-color: var(--accent); color: var(--ink); }
+.pv .dm__drop svg { width: 1.05rem; height: 1.05rem; }
+
+/* Spans both columns so it always starts under the input. */
+.pv .dm__state {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; gap: .4rem;
+  margin: 0; font-size: .88rem; line-height: 1.45;
+}
+.pv .dm__state svg { width: 1rem; height: 1rem; flex: none; }
+/* NOT COLOUR ALONE. Each state carries its own icon and its own words, so the
+   answer survives being unable to tell green from red. */
+.pv .dm__state--available { color: #16794a; }
+.pv .dm__state--taken { color: #b3261e; }
+.pv .dm__state--unknown { color: var(--muted); }
+.dark .pv .dm__state--available, .pv .dark .dm__state--available { color: #6ee7a8; }
+.dark .pv .dm__state--taken, .pv .dark .dm__state--taken { color: #fca5a5; }
+
+.pv .dm__acts { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+
+.pv .dm__add,
+.pv .dm__check {
+  display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+  min-height: 44px; padding: .55rem 1rem;
+  border-radius: 999px; border: 1px solid var(--rule);
+  background: var(--paper); color: var(--ink);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .9rem; font-weight: 600; cursor: pointer;
+  transition: border-color .2s ease, background-color .2s ease, color .2s ease;
+}
+.pv .dm__add svg, .pv .dm__check svg { width: 1rem; height: 1rem; }
+.pv .dm__add:hover, .pv .dm__check:hover:not(:disabled) { border-color: var(--accent); }
+
+/* The accent fill takes --on-accent, the one label colour for a brand fill. */
+.pv .dm__check {
+  background: var(--accent); border-color: var(--accent); color: var(--on-accent);
+}
+.pv .dm__check:disabled { opacity: .55; cursor: not-allowed; }
+
+.pv .dm__add:focus-visible,
+.pv .dm__check:focus-visible,
+.pv .dm__drop:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pv .dm__spin { animation: dm-spin 1s linear infinite; }
+}
+@keyframes dm-spin { to { transform: rotate(360deg); } }
+
+.pv .dm__err { margin: 0; font-size: .88rem; color: #b3261e; }
+.dark .pv .dm__err, .pv .dark .dm__err { color: #fca5a5; }
+
+.pv .dm__note { margin: 0; font-size: .84rem; line-height: 1.5; color: var(--muted); }
