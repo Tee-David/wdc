@@ -27,6 +27,7 @@ export default async function QrCode({
   url,
   label,
   className = "",
+  boxPx,
   animate = true,
   ...options
 }: {
@@ -35,6 +36,15 @@ export default async function QrCode({
   label: string;
   className?: string;
   animate?: boolean;
+  /**
+   * How wide the code is allowed to get, in px.
+   *
+   * A SIZE IS A SCANNABILITY DECISION, not a layout one. Longer data means
+   * more and finer modules in the same box, and past a point a camera cannot
+   * resolve them. The default suits a short article URL; the money documents
+   * pass 160 because their codes measurably do not decode below it.
+   */
+  boxPx?: number;
 } & QrOptions) {
   const { svg, size, coverage } = await qrCode(url, {
     logo: "/brand/icon-navy.svg",
@@ -58,6 +68,7 @@ export default async function QrCode({
       className={`qr ${animate ? "qr--live" : ""} ${className}`.trim()}
       role="img"
       aria-label={label}
+      style={boxPx ? ({ "--qr-size": `${boxPx}px` } as React.CSSProperties) : undefined}
     >
       <div className="qr__code">
         <div

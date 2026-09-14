@@ -5,6 +5,8 @@ import {
 } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, lineTotal, naira } from "@/lib/admin/types";
 import { Empty, InvoicePill, Panel, Tile, when } from "@/components/admin/bits";
+import QrCode from "@/components/ui/qr-code";
+import { invoiceUrl } from "@/components/money/document";
 import { PaymentMenu } from "@/components/admin/row-actions";
 import {
   DeleteDraft, InvoiceBuilder, IssueInvoice, RecordPayment, } from "@/components/admin/money-forms";
@@ -116,17 +118,25 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
           {payments.length ? (
             <div className="ad__scroll">
               <table className="ad__t">
-                <thead><tr><th>When</th><th>Method</th><th>Reference</th><th className="num">Amount</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
+                <thead><tr><th>Receipt</th><th>When</th><th>Method</th><th>Reference</th><th>Taken by</th><th className="num">Amount</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
                 <tbody>
                   {payments.map((p) => (
                     <tr key={p.id}>
+                      {/* Opens the client's own copy, which is the document to
+                          send when somebody asks for "the receipt". */}
+                      <td>
+                        <a href={`/r/${p.token}`} target="_blank" rel="noopener noreferrer">
+                          <b>{p.receiptNo}</b>
+                        </a>
+                      </td>
                       <td className="num">{when(p.at)}</td>
-                      <td>{p.method}</td>
+                      <td>{p.method}{p.note ? <small className="ad__dim">{p.note}</small> : null}</td>
                       {/* THE IDEMPOTENCY KEY, shown on purpose. When a payment
                           is queried, this is the one field that ties our row to
                           the provider's, and it is unique so the webhook, the
                           callback and a manual entry cannot double-count. */}
                       <td className="ad__dim ad__num">{p.reference}</td>
+                      <td className="ad__dim">{p.by}</td>
                       <td className="num">{naira(p.amount)}</td>
                       <td className="ad__rmC">
                         <PaymentMenu payment={p} invoiceNumber={inv.number} />
@@ -142,6 +152,41 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
             </Empty>
           )}
         </Panel>
+
+        {/* THE CLIENT'S COPY, and the code that gets them back to it.
+
+            An invoice is printed, attached to an email, or photographed and
+            sent on WhatsApp, and at that point it is a dead piece of paper
+            that does not know whether the money has since arrived. The code
+            reopens the live version, which does.
+
+            It is addressed by a random token and NOT by the invoice number:
+            the numbers are sequential by design, so a public page at
+            /i/INV-2026-004 would hand anyone holding one invoice every other
+            one the studio has raised, by subtracting one. A draft has no
+            public page at all, because a draft has not been sent to anybody. */}
+        {inv.status !== "Draft" ? (
+          <Panel title="The client's copy">
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "1.2rem", alignItems: "center", padding: ".9rem 1rem" }}>
+              <div className="ad__qr">
+                <QrCode url={invoiceUrl(inv.token)} label={`Open invoice ${inv.number}`} animate={false} boxPx={160} />
+              </div>
+              <div style={{ minWidth: 0, flex: "1 1 16rem" }}>
+                <p style={{ margin: "0 0 .4rem" }}>
+                  Print this code on the invoice, or send the link. It opens a
+                  one-page version of {inv.number} showing what is owed now,
+                  every payment received against it, and a receipt for each.
+                </p>
+                <p className="ad__dim ad__num" style={{ margin: "0 0 .6rem", overflowWrap: "anywhere", fontSize: ".82rem" }}>
+                  /i/{inv.token}
+                </p>
+                <a className="ad__btn" href={`/i/${inv.token}`} target="_blank" rel="noopener noreferrer">
+                  Open it as the client sees it
+                </a>
+              </div>
+            </div>
+          </Panel>
+        ) : null}
 
         {/* Said where it is true rather than at the top of the screen: an
             overpaid invoice is a thing somebody has to decide about, and it is

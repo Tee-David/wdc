@@ -7,7 +7,7 @@ import { naira } from "@/lib/admin/types";
 import {
   createExpense, createInvoice, deleteInvoice, issueInvoice, recordPayment, reversePayment, updateInvoice,
 } from "@/lib/admin/actions";
-import { Actions, Field, Fields, Form, Hidden, Select, Submit } from "./form";
+import { Actions, Area, Field, Fields, Form, Hidden, Select, Submit } from "./form";
 import { DialogButton } from "./dialog";
 
 /* ------------------------------------------------------------- invoices */
@@ -254,12 +254,15 @@ export function RecordPayment({ invoice, owed }: { invoice: Invoice; owed: numbe
               hint="Starts at what is owed. Change it for a part payment."
             />
             <Select
-              name="method" label="How" half defaultValue="Transfer"
+              name="method" label="How" half required defaultValue="Transfer"
               options={[
                 { value: "Transfer", label: "Bank transfer" },
                 { value: "Paystack", label: "Paystack" },
                 { value: "Cash", label: "Cash" },
+                { value: "POS", label: "POS terminal" },
+                { value: "Other", label: "Something else" },
               ]}
+              hint="Pick &ldquo;something else&rdquo; rather than forcing a real payment into the nearest wrong box."
             />
             <Field
               name="reference" label="Reference" required
@@ -268,6 +271,14 @@ export function RecordPayment({ invoice, owed }: { invoice: Invoice; owed: numbe
             />
             <Field name="at" label="When" type="date" half
                    defaultValue={new Date().toISOString().slice(0, 10)} />
+            {/* WHO IS RECORDING IT. A manual payment with no name against it is
+                the entry nobody can question later. It becomes the signed-in
+                admin once there is one; until then it is asked for. */}
+            <Field name="by" label="Recorded by" half placeholder="Babatope"
+                   hint="Who is entering this. It goes on the audit trail." />
+            <Area name="note" label="Anything worth knowing" rows={2}
+                  placeholder="Paid into the Zenith account at the office."
+                  hint="Required if you picked &ldquo;something else&rdquo; above." />
           </Fields>
           <Actions>
             <Submit icon={Banknote}>Record it</Submit>

@@ -5,7 +5,19 @@
 .qr__code {
   position: relative;
   overflow: hidden;
-  width: clamp(104px, 30vw, 136px);
+  /* THE CAP IS A REAL CONSTRAINT AND IT IS NOW SETTABLE.
+
+     136px suits the blog rail, where the code carries a short article URL.
+     It is far too small for the money documents: those encode a full absolute
+     URL plus a 22-character token, and the mark in the middle forces error
+     correction level H, so the same box holds many more and much finer
+     modules. Decoded with jsQR at 1x, 2x and 3x: the invoice code found
+     NOTHING at 136px and read cleanly at 160px.
+
+     So the size is a variable with the old value as its default -- nothing
+     that was working changes -- and a caller that needs a denser code asks
+     for a bigger box. */
+  width: clamp(104px, 30vw, var(--qr-size, 136px));
   padding: 10px;
   border: 1px solid var(--rule, rgb(0 0 26 / .12));
   border-radius: 12px;
@@ -24,7 +36,23 @@
      moving when it does. This is the pure-CSS version of the rule the stage
      demos follow with an observer. */
   content-visibility: auto;
-  contain-intrinsic-size: 136px 136px;
+  contain-intrinsic-size: var(--qr-size, 136px) var(--qr-size, 136px);
+}
+
+/* ...EXCEPT ON A DOCUMENT, WHERE IT IS THE WRONG TRADE.
+
+   `content-visibility: auto` exists here to stop a looping animation running
+   below the fold. A still code has no loop to skip, so the optimisation buys
+   nothing -- and it costs something real: the browser does not render the
+   subtree until it scrolls into view, which means a code near the foot of an
+   invoice can be absent from a print, a PDF or a screenshot taken before it
+   was ever on screen. That was measured: the same code failed to decode until
+   three seconds after load, and passed immediately once this was off.
+
+   A code nobody can scan is not an optimisation. */
+.qr:not(.qr--live) .qr__code {
+  content-visibility: visible;
+  contain-intrinsic-size: auto;
 }
 .qr__svg { position: relative; z-index: 1; }
 .qr__svg svg { width: 100%; height: auto; display: block; }
