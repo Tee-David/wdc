@@ -208,9 +208,18 @@ main.pv {
    section's instead. The `.pv`-prefixed copy scores (0,2,0) and wins, while
    the bare one keeps working for buttons outside the preview scope. */
 .pv-btn--accent, .pv .pv-btn--accent { background: var(--accent); color: var(--on-accent); }
+/* HOVER IS BLACK WITH A WHITE LABEL, everywhere this button appears. It used
+   to invert to white-on-white-ish surfaces, which on a light page turned the
+   loudest control on the screen into an outline you had to hunt for. Black
+   holds against the paper, the navy band and the CTA card alike, and the label
+   is 21:1 on it. */
 .pv-btn--accent:hover, .pv .pv-btn--accent:hover {
-  background: #fff; color: #000; border-color: #fff;
+  background: #000; color: #fff; border-color: #000;
 }
+/* On navy, a black fill needs an edge or it sinks into the band. */
+.pv .pv-sec--band .pv-btn--accent:hover,
+.pv-sec--band .pv-btn--accent:hover,
+.pv .pv-cta .pv-btn--accent:hover { border-color: #fff; }
 .pv-btn--dark, .pv .pv-btn--dark { background: #000065; color: #fff; }
 .pv-btn--dark:hover, .pv .pv-btn--dark:hover { background: #000; color: #fff; }
 /* The secondary button ON a navy band. This variant was being used on /about
@@ -756,8 +765,25 @@ main.pv {
    ragging the cap was there for, without deciding the width in advance. The
    lede keeps a measure, because prose is what actually gets harder to read
    when a centred line runs long. */
+/* ONE COLOUR FOR THE WHOLE BLOCK.
+
+   This box is the navy band, but it is not a `.pv-sec--band`, so none of the
+   band's colour rules reached inside it and three different things happened to
+   the same three lines of copy. The eyebrow took `--accent-ink`, the darkened
+   orange meant for small text on WHITE, which on navy reads as dried blood.
+   The heading's own `<b>` kept `.pv-mix b { color: var(--ink) }` -- an
+   element's own colour beats a colour inherited from its parent, so "what is
+   not working" rendered in body ink INSIDE a white heading, black on navy in
+   light mode. And the lede was dimmed while the rest was not.
+
+   All of it is white now, which is the rule the band already follows: #fff on
+   #000065 is 17.68:1, and the emphasis in the heading is carried by WEIGHT,
+   which is what `.pv-mix` was always for. */
 .pv-cta h2 { color: #fff; max-width: none; text-wrap: balance; }
-.pv-cta p { color: var(--on-band-dim); max-width: 64ch; }
+.pv-cta .pv-mix, .pv-cta .pv-mix b,
+.pv .pv-cta .pv-mix, .pv .pv-cta .pv-mix b { color: #fff; }
+.pv-cta .pv-eyebrow, .pv .pv-cta .pv-eyebrow { color: #fff; }
+.pv-cta p, .pv .pv-cta p { color: #fff; max-width: 64ch; }
 
 /* ---------------- testimonials ---------------- */
 .pv-marq {

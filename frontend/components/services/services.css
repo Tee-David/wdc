@@ -615,10 +615,9 @@
    Hero buttons, services and about.
 
    Both heroes sit on the navy band, so both buttons are defined here rather
-   than twice. The pair inverts in opposite directions on hover, which is what
-   keeps them telling apart at a glance: the primary goes from filled orange to
-   white, the secondary from white to filled orange. Whichever one you are
-   pointing at is the orange one.
+   than twice. The pair still inverts in opposite directions on hover, which is
+   what keeps them telling apart at a glance: the primary goes from filled
+   orange to black, the secondary from white to filled orange.
 
    Specificity: `.pv .pv-btn--accent:hover` in preview.css scores (0,2,0), so a
    bare `.sv-hero__cta .pv-btn--accent:hover` at (0,2,0) would only tie and
@@ -634,9 +633,12 @@
 .sv-hero__cta .pv-btn--accent {
   background: var(--accent); color: var(--on-accent); border-color: var(--accent);
 }
+/* Black fill, white label, white edge -- the same hover the accent button has
+   everywhere else now (see the note in preview.css). The edge is what keeps it
+   from sinking into the navy band these heroes sit on. */
 .pv .sv-hero__cta .pv-btn--accent:hover,
 .sv-hero__cta .pv-btn--accent:hover {
-  background: #fff; color: #000; border-color: #fff;
+  background: #000; color: #fff; border-color: #fff;
 }
 
 /* `--light` on /about and `--line` on /services were two different resting
