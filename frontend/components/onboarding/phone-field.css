@@ -10,7 +10,18 @@
    up in both themes without a second palette.
    ========================================================================== */
 
-.pv .ph { position: relative; }
+/* `min-width: 0` IS WHAT STOPS IT OVERFLOWING ITS COLUMN.
+
+   As a grid item this box takes an automatic minimum size, which is the
+   min-content width of the bar inside it -- and a text input's min-content
+   width is its own default 20-character size, not zero. So in a half-width
+   column the control refused to shrink below about 364px and simply drew over
+   whatever sat beside it. Measured on /contact at 1440px: a 267px cell
+   carrying a 364px control, laid over the topic select. The number inside the
+   bar is already `flex: 1; min-width: 0`, so once the box itself is allowed to
+   shrink, the number gives up the width and the control fits any column it is
+   put in. */
+.pv .ph { position: relative; min-width: 0; }
 
 .pv .ph__bar {
   display: flex; align-items: stretch;
@@ -69,10 +80,15 @@
 /* ---------------- the number ---------------- */
 /* The dial code is text, not an input: it is the picker's output, and putting
    it inside the field means one backspace can turn +234 into +23. */
+/* THE SAME INK AS THE NUMBER BESIDE IT. The dial code and the national part
+   are one number read left to right, and setting the first half in the muted
+   grey used for placeholders made it read as a hint rather than as part of the
+   value -- while the digits typed next to it were full-strength ink. Same
+   colour, so "+234 802 …" reads as one string. */
 .pv .ph__dial {
   display: inline-flex; align-items: center;
   padding: .85rem 0 .85rem .8rem;
-  color: var(--muted);
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
 .pv .ph__num {
