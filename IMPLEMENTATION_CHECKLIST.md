@@ -19,6 +19,18 @@ At last update: **140 open** (11 of them in progress), **212 done**.
 
 ## 0. Raised in conversation, not yet done
 
+- [x] Share and "take it with you" now end a case study and a discipline page, not only an article. One component and one stylesheet rather than a second copy: the block was `bl-share`/`bl-qr` inside `blog.css`, which was the right place while an article was the only page that offered it, and became the wrong one the moment a second page wanted the same thing. Moved to `components/ui/share-row.tsx`, `components/ui/page-end.tsx` and `components/ui/share.css`; the blog's markup now renders the same component, so the two cannot drift.
+
+  THE NOUN IS A PROP, because the accessible names say what is being shared and seven buttons reading "this post" on a case study would simply be wrong. Nothing visible changes with it.
+
+  IT SITS BELOW THE ARTICLE, IN ITS OWN ROW, on every page that has a contents rail. A sticky element releases at the edge of its grid area, so a share row inside the same row as the rail leaves the rail travelling beside a QR code long after there is any heading left to point at.
+
+  THE CANONICAL ADDRESS IS BUILT ONCE PER PAGE and passed to the structured data, the share links and the code together. The case study was carrying four hand-typed copies of the same template literal, which is three chances for one to point elsewhere after a route moves.
+
+  CODES DECODED, NOT EYEBALLED: jsQR at 1x, 2x and 3x on a case study, a discipline page and a second case study, nine reads, all clean at the default 136px box. Checked at 320, 390 and 1280 with no horizontal overflow, and the row wraps to two lines at 320 rather than pushing the page wide. Pinned by `tests/share.spec.ts`: every link on both work pages must carry the page's own canonical URL, the code must have modules in it, copy must announce itself, and the article must still end the way it did.
+
+  Found on the way: `playwright.config.ts` asked for `channel: "chrome"`, and a container with a Chromium but no Chrome fails to launch on every test at once, which reads like a broken suite rather than a missing binary. `WDC_E2E_CHROME` now points it at a named binary; unset, nothing changes.
+
 - [x] A receipt prints itself on the payment return page, after the money has arrived. WHEN it runs is the whole of it: this renders only on the `paid` branch of `/pay/done`, which is reached only after `verifyTransaction` has asked Paystack what happened and `applyPayment` has banked it. The reference this was asked for fires on arrival at a success URL, which is a query string anybody can type; ours cannot, and `tests/payments.spec.ts` proves it against three URLs including one dressed up with `status=success`.
 
   NO JAVASCRIPT AT ALL. Not "a small amount": none. One CSS animation on a server-rendered element, so it costs no bundle, no hydration and no main-thread work beyond compositing. That matters more here than anywhere else on the site, because this page is reached on a phone on Nigerian mobile data immediately after somebody has parted with money. A test counts the scripts the page requests so a client component cannot creep in later.
