@@ -237,6 +237,33 @@ for (const path of ["/login", "/forgot-password", "/reset-password"]) {
   });
 }
 
+/**
+ * A REFUSED GOOGLE SIGN-IN HAS TO SAY SO.
+ *
+ * lib/auth-google.ts decides who gets in and tests/google-admission.spec.ts
+ * proves the decision; this is the other half, and it is the half the person
+ * experiences. Better Auth returns a refusal by redirecting to the error URL
+ * with `?error=<code>`, which lands them back on a login form that looks
+ * EXACTLY as it did before they pressed the button. Without the map in
+ * login-form.tsx that reads as the button being broken, and the honest answer
+ * -- "that account is not one of ours" -- is never said out loud.
+ */
+for (const [code, expected] of [
+  ["not_approved", /not connected to a We Dig Creativity account/i],
+  ["signup_disabled", /not connected to a We Dig Creativity account/i],
+  ["account_not_linked", /not connected to a We Dig Creativity account/i],
+  ["verification_unavailable", /could not check that account/i],
+  ["email_required", /did not share an email address/i],
+  /* An unknown code still has to produce a sentence rather than silence. */
+  ["something_new_from_better_auth", /did not complete/i],
+] as const) {
+  test(`a Google refusal of "${code}" is explained on the login form`, async ({ page }) => {
+    await page.goto(`/login?error=${code}`, { waitUntil: "domcontentloaded" });
+    await expect(errorLine(page)).toContainText(expected, { timeout: 30_000 });
+    await expect(errorLine(page)).toHaveAttribute("role", "alert");
+  });
+}
+
 test("a wrong password and an unknown address give the same answer", async ({ page }) => {
   await page.goto("/login", { waitUntil: "domcontentloaded" });
   await signIn(page, EMAIL, "not-the-password-at-all");
@@ -278,6 +305,30 @@ test("a valid session that is not an owner still cannot reach the admin", async 
      so they end up on their own page, not on somebody else's. */
   expect(new URL(page.url()).pathname).toMatch(/^\/(login|signed-in)$/);
   await expect(page.locator(".ad")).toHaveCount(0);
+
+  /* AND THE SAME REFUSAL WHEN THE PATH IS HANDED IN RATHER THAN WALKED TO.
+     /signed-in is the only page allowed to spend a ?redirect=, and it runs it
+     past `safeDestination` first. A client asking to be forwarded into the
+     admin is not forwarded: the open redirect and the privilege escalation are
+     the same bug, and this is the assertion that catches either.
+
+     Reusing the session established above on purpose. Every sign-in in this
+     file counts against the real twenty-per-five-minutes limiter in
+     lib/auth.ts, and a suite that trips its own rate limit fails for a reason
+     that has nothing to do with the code -- which is exactly what happened
+     when this started life as a test with a sign-in of its own. */
+  const site = new URL(page.url()).origin;
+
+  await page.goto("/signed-in?redirect=%2Fadmin%2Fprojects", { waitUntil: "domcontentloaded" });
+  expect(new URL(page.url()).pathname).toBe("/signed-in");
+  await expect(page.getByRole("heading", { name: /You are signed in/i })).toBeVisible();
+
+  /* A protocol-relative path is the other half of the same question: it starts
+     with a slash, so a careless check calls it relative, and the browser calls
+     it somebody else's website. */
+  await page.goto("/signed-in?redirect=%2F%2Fexample.com%2Fowned", { waitUntil: "domcontentloaded" });
+  expect(new URL(page.url()).origin, "the redirect left our own site").toBe(site);
+  expect(new URL(page.url()).pathname).toBe("/signed-in");
 });
 
 test("signing out removes the session, not just the screen", async ({ page }) => {
