@@ -57,7 +57,13 @@ export default async function ProjectsPage({
   const stage = STAGES.find((s) => s === q.stage);
   const service = SERVICES.find((s) => s.slug === q.service);
   const health = HEALTH.find((h) => h === q.health);
-  const board = q.view !== "list";
+  /* LIST IS THE DEFAULT, and `?view=board` is the one that has to be asked
+     for. A board is the better picture of a pipeline and the worse way to find
+     a project, and finding one is what somebody opening this page is nearly
+     always doing -- especially on a phone, where six columns of cards are six
+     screens of sideways scrolling. The parameter is inverted rather than
+     renamed so an existing `?view=list` link still lands on the list. */
+  const board = q.view === "board";
 
   const projects = getProjects();
   const tasks = getTasks();
@@ -93,8 +99,10 @@ export default async function ProjectsPage({
           {/* Two links styled as one control. Server-rendered from the URL, so
               the choice survives a reload and can be linked to. */}
           <span className="ad__switch">
-            <Link href={withQuery(q, { view: "" })} aria-current={board}>Board</Link>
-            <Link href={withQuery(q, { view: "list" })} aria-current={!board}>List</Link>
+            {/* The default sits on the left, which is the order somebody
+                reads them in and the order they are in the URL. */}
+            <Link href={withQuery(q, { view: "" })} aria-current={!board}>List</Link>
+            <Link href={withQuery(q, { view: "board" })} aria-current={board}>Board</Link>
           </span>
           <AddProject clients={getClients()} />
         </div>
@@ -111,7 +119,10 @@ export default async function ProjectsPage({
             along as a hidden field or changing a filter would throw the board
             or list choice away. */}
         <form method="get" action="/admin/projects" className="ad__filters" style={{ padding: ".9rem 1rem" }}>
-          {q.view === "list" ? <input type="hidden" name="view" value="list" /> : null}
+          {/* The filter form is a GET, so anything not carried here is dropped
+              when it submits -- which would bounce a reader off the board and
+              back to the list every time they narrowed something down. */}
+          {board ? <input type="hidden" name="view" value="board" /> : null}
           <label>
             Stage
             <select name="stage" defaultValue={stage ?? ""}>
