@@ -421,3 +421,59 @@ export function taskIsWaiting(t: Task, all: Task[]) {
   const on = all.find((x) => x.id === t.blockedBy);
   return !!on && !on.done;
 }
+
+/* ------------------------------------------------------------- the record */
+
+/**
+ * WHAT CHANGED, WHO CHANGED IT, AND WHAT IT WAS BEFORE.
+ *
+ * Append-only, and that is the entire design. There is no update and no
+ * delete: an audit log you can edit is a log that answers "what happened"
+ * with "whatever somebody last wanted it to say", which is worse than having
+ * none, because it looks like evidence.
+ *
+ * A PROJECT'S HISTORY IS NOT THIS. `Project.events` is a narrative for whoever
+ * opens the project next week -- "moved to Review, three routes sent" -- and
+ * it is deliberately readable and deliberately partial. This is the systems
+ * record: every write across clients, projects, money, forms and settings,
+ * with the before and after values, in one stream that can be read end to end
+ * when somebody asks why an invoice says what it says.
+ *
+ * WHAT IS DELIBERATELY NOT STORED. No full request bodies, no provider
+ * payloads, no credentials, and no field whose old value is a secret. A log
+ * that copies everything is a second place for a leak to come from, and the
+ * question it exists to answer never needs the whole object -- it needs which
+ * field moved and what it moved from.
+ */
+export const AUDIT_KINDS = [
+  "client", "project", "task", "update", "deliverable",
+  "invoice", "payment", "expense", "submission", "setting",
+] as const;
+export type AuditKind = (typeof AUDIT_KINDS)[number];
+
+export type AuditEntry = {
+  id: Id;
+  at: string;
+  /** Who did it. "Studio" until there is a signed-in admin to name. */
+  actor: string;
+  kind: AuditKind;
+  /** The record it happened to, so the entry can be linked back. */
+  subjectId: Id;
+  /** How the record is known to a person: "INV-2026-001", "Moore Designs". */
+  subject: string;
+  /** The verb, in the past tense a person would use: "issued", "archived". */
+  action: string;
+  /**
+   * One field's before and after, when the change is a field change.
+   *
+   * Kept as strings already formatted for reading rather than as raw values:
+   * the log is read by people, an amount means nothing as `37725000`, and
+   * storing the rendered form means the entry still makes sense in a year when
+   * the formatting code has moved on.
+   */
+  field?: string;
+  from?: string;
+  to?: string;
+  /** Anything the fields above cannot carry. */
+  note?: string;
+};

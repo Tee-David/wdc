@@ -306,7 +306,17 @@ party, which our own CSP blocks and which we should not loosen it for.
 - [ ] Add service catalogue and onboarding-template management without exposing implementation-only configuration to day-to-day users.
 - [ ] Add owner/staff roles and least-privilege permissions for clients, projects, money, forms, content, settings, exports, and destructive actions.
 - [ ] Preserve last-owner/self-change guards, session revocation, invitation expiry, and a clear staff access/activity view.
-- [ ] Add an append-only audit log for authentication, role, client, project, form, file, invoice, payment, expense, integration, and settings changes with safe before/after summaries.
+- [-] Append-only audit log built and wired into the writes that exist. APPEND-ONLY BY CONSTRUCTION, not by promise: the array is module-private and the only export that touches it pushes, so there is no update, no delete, and nowhere to write from. A log you can edit answers "what happened" with "whatever somebody last wanted it to say", which is worse than none because it looks like evidence — so the screen has no controls at all.
+
+  Covered now: client added/edited/archived (one entry per field that actually moved, never a single "edited"), project opened/stage moved/archived, invoice drafted/raised/issued/deleted-as-draft, payment recorded and reversed, expense recorded and removed, setting overridden and put back. Before/after is stored already formatted for reading rather than as raw values: an amount means nothing as `37725000`, and the rendered form still makes sense in a year when the formatting code has moved on.
+
+  Reversing a payment keeps the receipt number and the bank reference ON THE ENTRY, because the row that carried them is gone and those are what tie the reversal to the bank's record of the original.
+
+  Deliberately NOT stored: request bodies, provider payloads, credentials, or any field whose old value is a secret. A log that copies everything is a second place for a leak to come from.
+
+  Verified in a browser: empty before any change, then a stage move and a settings override both landed with their before/after and actor, and the project workspace showed only its own entries.
+
+  NOT DONE, because the subsystems do not exist yet: authentication and role changes (no auth), form and file changes (no form builder, no admin uploads), integration changes (no integrations wired). The actor reads "Studio" everywhere until there is a signed-in admin to name — the parameter is threaded through every write and just has nothing better to fill it with yet.
 - [ ] Add content-management entry points only for public content that genuinely needs editing; avoid rebuilding a general-purpose CMS.
 - [ ] Show honest integration health and “coming soon” states; never display a control as working before its backend is verified.
 
