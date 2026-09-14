@@ -1,0 +1,16 @@
+-- The `user.role` column defaulted to 'staff'. It now defaults to 'client'.
+--
+-- WHY THIS IS A REAL HOLE AND NOT TIDYING. Three places declare what a brand
+-- new person is: better-auth's `role` additionalField in lib/auth.ts,
+-- `roleEnum` in lib/db/schema.ts, and this column. The first two were made to
+-- agree on 'client' -- the least access -- and this one was left saying
+-- 'staff'. Any row written without an explicit role therefore arrived with
+-- more access than the application believes it grants: a seed script, an
+-- import, a hand-written INSERT during a migration. Nothing takes that path
+-- today, which is exactly why it would have gone unnoticed.
+--
+-- 0001_better_auth.sql carries the corrected default too, so a database
+-- created from scratch is right from the first statement. This migration is
+-- for the databases that already exist, where `CREATE TABLE IF NOT EXISTS`
+-- changes nothing.
+ALTER TABLE "user" ALTER COLUMN "role" SET DEFAULT 'client';

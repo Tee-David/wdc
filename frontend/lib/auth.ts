@@ -1,9 +1,43 @@
 import "server-only";
 
+import { after } from "next/server";
 import { betterAuth } from "better-auth";
 import { db } from "@/lib/db/pool";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { SITE_URL } from "@/lib/site";
+
+/** One hour, in the token and in the sentence the email says out loud. */
+const RESET_TOKEN_TTL_SECONDS = 60 * 60;
+
+/**
+ * WHICH ROLES GOOGLE IS ALLOWED TO LET IN.
+ *
+ * Google sign-in exists for the people who run the studio, and for nobody
+ * else. `disableSignUp` already stops a stranger's Google account creating a
+ * row, but on its own that only means the identity has to match an existing
+ * one -- and the day a client has an account, a client's Google account would
+ * work too. This is the list that makes it owner-and-staff only.
+ *
+ * Clients sign in with a password. If that ever changes, this set changes with
+ * it, in one place, deliberately.
+ */
+const GOOGLE_ALLOWED_ROLES = new Set(["owner", "staff"]);
+
+/**
+ * The role on the row with this email, or null if there is no such row.
+ *
+ * Read straight from the table rather than through Better Auth's adapter
+ * because this is the check that decides whether somebody gets in: it should
+ * read the database, in one statement, with nothing in between that could be
+ * reconfigured.
+ */
+async function storedRoleFor(email: string): Promise<string | null> {
+  const result = await db.query<{ role: string | null }>(
+    'SELECT "role" FROM "user" WHERE lower("email") = $1 LIMIT 1',
+    [email.trim().toLowerCase()],
+  );
+  return result.rows[0]?.role ?? null;
+}
 
 export const auth = betterAuth({
   database: db,
@@ -19,21 +53,68 @@ export const auth = betterAuth({
   ],
   emailAndPassword: {
     enabled: true,
-    disableSignUp: process.env.WDC_ALLOW_ADMIN_SEED !== "1",
+    /**
+     * ALWAYS. There is no self-service account on this site and there is not
+     * going to be one: the login page says so, and accounts are made by the
+     * studio. It used to be `process.env.WDC_ALLOW_ADMIN_SEED !== "1"`, which
+     * meant one environment variable set in one dashboard, once, would have
+     * opened public sign-up on the production domain -- and nothing would have
+     * looked wrong. Seeding does not need it either: scripts/seed-admin.mjs
+     * writes the row and the credential hash directly.
+     */
+    disableSignUp: true,
     requireEmailVerification: false,
     minPasswordLength: 10,
-    resetPasswordTokenExpiresIn: 60 * 60,
+    resetPasswordTokenExpiresIn: RESET_TOKEN_TTL_SECONDS,
+    /**
+     * A RESET ENDS EVERY SESSION, including the one that should not exist.
+     *
+     * Better Auth leaves this off by default, which means the commonest reason
+     * anybody resets a password -- "somebody else is in my account" -- does not
+     * actually put them out. They keep a valid cookie for up to a week. The
+     * cost of turning it on is that the person resetting has to sign in again
+     * on their other devices, which is what they expect to happen anyway.
+     */
+    revokeSessionsOnPasswordReset: true,
     sendResetPassword: async ({ user, url }) => {
-      await sendPasswordResetEmail(user.email, url);
+      /* `user.name` is a full name; the email wants something to say hello
+         with, and the first word of it is the honest answer. */
+      await sendPasswordResetEmail(
+        user.email,
+        url,
+        user.name?.trim().split(/\s+/)[0] || undefined,
+        RESET_TOKEN_TTL_SECONDS / 60,
+      );
     },
   },
   socialProviders: process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      /* No row, no entry. A Google account that matches nobody here cannot
+         create itself one -- it is turned away at the callback. */
       disableSignUp: true,
     },
   } : {},
+  account: {
+    /**
+     * HOW A GOOGLE ACCOUNT IS ALLOWED TO MEET AN EXISTING ONE.
+     *
+     * Both of these are Better Auth's defaults today, and they are written out
+     * because they are load-bearing and a default can change under us:
+     *
+     *   `trustedProviders: []` -- Google is NOT trusted by name, so a link is
+     *   only allowed when Google itself says the address is verified.
+     *
+     *   `requireLocalEmailVerified: true` -- and the row here has to be
+     *   verified too, so an unverified address somebody typed into a form can
+     *   never be claimed by whoever registers that mailbox next.
+     *
+     * Together they mean the only way a Google identity reaches an account is
+     * by proving the same, verified, address at both ends.
+     */
+    accountLinking: { enabled: true, trustedProviders: [], requireLocalEmailVerified: true },
+  },
   user: {
     additionalFields: {
       /* "client", to match `roleEnum`'s own default in lib/db/schema.ts.
@@ -45,9 +126,141 @@ export const auth = betterAuth({
          requested. */
       role: { type: "string", required: false, defaultValue: "client", input: false },
     },
+    /**
+     * THE GOOGLE DOOR, AND IT FAILS CLOSED.
+     *
+     * Called before a user is created, before a provider account is linked to
+     * an existing user, and again on every subsequent OAuth sign-in -- so this
+     * is not a one-time check at setup, it is re-asked each time somebody
+     * presses "Continue with Google".
+     *
+     * The rule is the one the checklist asks for: a valid Google account gets
+     * in only if its address already maps to an approved owner or staff row.
+     * Not "gets in and is then limited"; does not get in. Three ways to be
+     * refused, and the third is the one that matters:
+     *
+     *   no row for that address              -> refused
+     *   a row, but the role is not approved  -> refused
+     *   the lookup itself failed             -> REFUSED
+     *
+     * A database we cannot reach is not a reason to admit somebody. It is the
+     * reason we cannot tell whether we should.
+     *
+     * Password sign-in is deliberately untouched here: it is governed by the
+     * credential itself, and by the row the credential hangs off.
+     */
+    validateUserInfo: async ({ user, source }) => {
+      if (source.method !== "oauth") return;
+
+      if (source.oauth?.providerId !== "google") {
+        return { error: "provider_not_allowed", errorDescription: "That sign-in method is not available." };
+      }
+
+      const email = typeof user.email === "string" ? user.email.trim().toLowerCase() : "";
+      if (!email) {
+        return { error: "email_required", errorDescription: "Google did not share an email address." };
+      }
+
+      let role: string | null;
+      try {
+        role = await storedRoleFor(email);
+      } catch {
+        return { error: "verification_unavailable", errorDescription: "We could not verify this account. Please sign in with your password." };
+      }
+
+      if (!role || !GOOGLE_ALLOWED_ROLES.has(role)) {
+        /* One message for "no account" and for "an account, but not one of
+           ours", for the same reason the login form has one message for a bad
+           password and an unknown address: two would turn this button into a
+           way to find out who works here. */
+        return { error: "not_approved", errorDescription: "This Google account is not connected to a We Dig Creativity account." };
+      }
+    },
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        /**
+         * NOTHING CREATES AN ADMIN. The `role` field is already `input: false`
+         * with a least-access default, so nothing on the wire and nothing in a
+         * provider profile can set it -- but this is the seam where a row is
+         * actually written, and it costs one line to make the guarantee
+         * unconditional rather than a consequence of two other settings being
+         * right. An owner is made by scripts/seed-admin.mjs or by an admin who
+         * is already one; never by signing in.
+         */
+        before: async (user) => ({ data: { ...user, role: "client" } }),
+      },
+    },
+  },
+  /**
+   * RATE LIMITS BELONG TO THE ACTION.
+   *
+   * The tight numbers are on the three paths that are worth attacking: guessing
+   * a password, mining the reset endpoint for valid addresses, and burning
+   * through reset tokens. The default stays loose because the same handler
+   * serves `/get-session`, which a signed-in page asks for constantly.
+   *
+   * Counted in ONE INSTANCE'S MEMORY, exactly like lib/rate-limit.ts, and with
+   * the same honest caveat: on Vercel the real ceiling is this number times the
+   * count of warm instances, and a cold start forgives everything. It is abuse
+   * control, not a quota. Moving it to `storage: "database"` needs a
+   * `rateLimit` table that db/migrations does not create yet.
+   */
+  rateLimit: {
+    enabled: true,
+    window: 60,
+    max: 100,
+    customRules: {
+      /* Twenty attempts in five minutes, not ten. THE KEY IS THE IP, and an
+         office, a school or a household behind one NAT is a single key: ten was
+         reachable by two people mistyping on the same connection on the same
+         morning, and the form then told both of them their password was wrong.
+         Twenty is still a hard ceiling against a script and leaves room for
+         people being people. */
+      "/sign-in/email": { window: 300, max: 20 },
+      /* Tighter, because each of these puts a message in somebody's inbox. */
+      "/request-password-reset": { window: 900, max: 5 },
+      "/reset-password": { window: 900, max: 10 },
+    },
   },
   session: { expiresIn: 60 * 60 * 24 * 7, updateAge: 60 * 60 * 24 },
-  advanced: { cookiePrefix: "wdc" },
+  advanced: {
+    cookiePrefix: "wdc",
+    /**
+     * THE SLOW MAIL SERVER NEVER HOLDS UP A RESPONSE.
+     *
+     * Truehost's SMTP needs about 23 seconds just to finish TLS and
+     * authenticate, measured from two networks. Without this, "email me a reset
+     * link" sits on a spinner for that long and then risks the function's own
+     * timeout expiring first -- which is exactly the failure the contact form
+     * already paid for and fixed by sending its receipt from `after()`.
+     *
+     * Better Auth hands every deferrable job to this handler, so the reset mail
+     * goes out once the response has already gone. The token is written to the
+     * database BEFORE the send is queued, so the work behind the response is
+     * safe to lose: the link exists, and asking again just sends another.
+     *
+     * `after()` throws outside a request scope. The promise has already started
+     * by then, so it still runs; there is simply nothing to attach it to, and
+     * that is not worth failing a sign-in over.
+     */
+    backgroundTasks: {
+      handler: (promise) => {
+        /* Settled first, so the job is reported once and can never surface as
+           an unhandled rejection if there is no request to attach it to. */
+        const settled = promise.catch((error) => {
+          console.error("Auth background task failed", error instanceof Error ? error.message : "unknown error");
+        });
+        try {
+          after(settled);
+        } catch {
+          /* No request scope. It is already running; there is simply nothing
+             holding the response open to wait on it. */
+        }
+      },
+    },
+  },
 });
 
 export type AuthSession = typeof auth.$Infer.Session;
