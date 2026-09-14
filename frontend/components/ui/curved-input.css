@@ -40,12 +40,32 @@
 
 .curved-input__button-bg {
   transition:
+    fill 0.2s ease,
     filter 0.2s ease,
     opacity 0.2s ease;
 }
+.curved-input__button text {
+  transition: fill 0.2s ease;
+}
 
+/* WHITE FILL, BLACK LABEL, the same hover the footer's own `.ft__cta` uses.
+   `brightness(1.12)` on orange is barely a state change on a dark card -- it
+   reads as the same button slightly warmer -- and it also cannot be relied on
+   to keep the label legible, because brightening the fill without touching the
+   text walks the contrast ratio downwards. Swapping to white with black type
+   is 21:1 and unmistakably a hover.
+
+   NO `!important` NEEDED, which is worth writing down because it looks like it
+   should be. Both fills are set as SVG PRESENTATION ATTRIBUTES (`fill={...}`
+   in the markup), and a presentation attribute sits below every author style
+   sheet rule in the cascade -- lower than a single class selector. It is an
+   inline ATTRIBUTE, not an inline `style`. */
 .curved-input__button:hover .curved-input__button-bg {
-  filter: brightness(1.12);
+  fill: #fff;
+  filter: none;
+}
+.curved-input__button:hover text {
+  fill: #000;
 }
 
 .curved-input__button:active .curved-input__button-bg {
