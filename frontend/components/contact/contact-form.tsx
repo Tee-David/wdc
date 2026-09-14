@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import { ENQUIRY_TOPICS } from "@/lib/contact";
 import { CONTACT_EMAIL } from "@/lib/site";
 
-import "@/components/onboarding/phone-field.css";
 
 const PhoneField = dynamic(() => import("@/components/onboarding/phone-field"), {
   ssr: false,
