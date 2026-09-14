@@ -16,15 +16,16 @@ import { Empty, Panel } from "./bits";
  * as the whole history.
  */
 export default function AuditLog({
-  kind, subjectId, limit = 60, title = "Everything that changed",
+  kind, subjectId, subjectIds, limit = 60, title = "Everything that changed",
 }: {
   kind?: AuditKind;
   subjectId?: Id;
+  subjectIds?: Id[];
   limit?: number;
   title?: string;
 }) {
-  const entries = getAudit({ kind, subjectId, limit });
-  const total = auditCount({ kind, subjectId });
+  const entries = getAudit({ kind, subjectId, subjectIds, limit });
+  const total = auditCount({ kind, subjectId, subjectIds });
 
   return (
     <Panel title={title}>

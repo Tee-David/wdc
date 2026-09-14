@@ -11,7 +11,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **149 open** (11 of them in progress), **221 done**.
+At last update: **148 open** (11 of them in progress), **222 done**.
 
 ---
 
@@ -229,7 +229,6 @@ party, which our own CSP blocks and which we should not loosen it for.
 ### 4.3 Clients and client workspace
 
 - [ ] Support create, edit, archive, restore, merge/duplicate review, notes, tags, multiple contacts, communication preferences, and client-level access status without crowding the default view.
-- [ ] Build a unified client detail workspace with overview, projects, invoices/payments, forms/submissions, files, communications, notes, and an append-only activity timeline.
 - [ ] Add client quick actions for a project, invoice, payment, onboarding request, portal invitation, message/WhatsApp handoff, note, and file upload.
 - [ ] Keep personal and company identity distinct; normalize email and phone data, prevent accidental duplicate clients, and preserve archived records referenced by money or projects.
 - [ ] Show invitation state, last portal activity, agreed communication channel, and whether Google or password sign-in is linked without exposing authentication secrets.
@@ -804,3 +803,4 @@ the count at the top wrong again.
 ## Completed Section 4 milestones
 
 - [x] Rebuild the client list to Litch parity with responsive search, service/status filters, sortable columns, useful counts, accessible pagination, export, and a focused new-client action. (Native search, service/status filters, archived visibility, result counts, clickable sortable columns, reversible filtered-empty state, focused add-client action, accessible pagination, and a filter-aware owner-gated CSV export are implemented. Browser checks pin filtering, recovery, CSV scope, sorting, 44px controls, bounded table scrolling, and no page-level horizontal scroll at 320px.)
+- [x] Build a unified client detail workspace with overview, projects, invoices/payments, forms/submissions, files, communications, notes, and an append-only activity timeline. (The existing client overview now also collects every retained payment with its receipt, gross and net amount, reversal/refund state; every project deliverable version with its approval and optional file link; and a bounded append-only audit view across the client, projects, invoices, payments, submissions, and deliverables. Empty states explain what will appear without inventing records.)

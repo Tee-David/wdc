@@ -60,3 +60,19 @@ test("client filters remain usable on a narrow screen", async ({ page }) => {
   const tableScroller = page.locator("#client-list + .ad__scroll");
   expect(await tableScroller.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
 });
+
+test("client workspace keeps money, files, and related history together", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto("/admin/clients/c1", { waitUntil: "domcontentloaded" });
+
+  await expect(page.getByRole("heading", { name: "Payment history" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Files and deliverables" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Changes across this client" })).toBeVisible();
+
+  const pageOverflow = await page.evaluate(async () => {
+    window.scrollTo({ left: 500, top: 0 });
+    await new Promise(requestAnimationFrame);
+    return { bodyWidth: document.body.scrollWidth, scrollX: window.scrollX };
+  });
+  expect(pageOverflow).toEqual({ bodyWidth: 320, scrollX: 0 });
+});

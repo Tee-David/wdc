@@ -2,10 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
 import {
-  getClient, getInvoicesFor, getProjects, getProjectsFor, getSubmissions,
+  getClient, getDeliverablesFor, getInvoicesFor, getPaymentsFor,
+  getProjects, getProjectsFor, getSubmissions,
 } from "@/lib/admin/store";
-import { invoiceStatus, invoiceTotals, naira } from "@/lib/admin/types";
-import { Empty, InvoicePill, Panel, StagePill, Tile, when } from "@/components/admin/bits";
+import { invoiceStatus, invoiceTotals, naira, paymentNet, refundedTotal } from "@/lib/admin/types";
+import { ApprovalPill, Empty, InvoicePill, Panel, StagePill, Tile, when } from "@/components/admin/bits";
 import { InvoiceMenu, ProjectMenu } from "@/components/admin/row-actions";
 import { EditClient } from "@/components/admin/client-form";
 import { AddProject } from "@/components/admin/project-forms";
@@ -13,6 +14,7 @@ import { InvoiceBuilder } from "@/components/admin/money-forms";
 import CommsLog from "@/components/admin/comms-log";
 import CreditPanel from "@/components/admin/credit-panel";
 import { ArchiveClient } from "@/components/admin/client-archive";
+import AuditLog from "@/components/admin/audit-log";
 
 /* NO generateStaticParams. The client list is written to now, and a route
    prerendered from the list as it stood at build time would 404 on the client
@@ -26,6 +28,20 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   const projects = getProjectsFor(c.id);
   const invoices = getInvoicesFor(c.id);
   const forms = getSubmissions().filter((s) => s.clientId === c.id);
+  const payments = invoices
+    .flatMap((invoice) => getPaymentsFor(invoice.id).map((payment) => ({ invoice, payment })))
+    .sort((a, b) => b.payment.at.localeCompare(a.payment.at));
+  const deliverables = projects.flatMap((project) => (
+    getDeliverablesFor(project.id).map((deliverable) => ({ deliverable, project }))
+  ));
+  const relatedAuditIds = [
+    c.id,
+    ...projects.map((project) => project.id),
+    ...invoices.map((invoice) => invoice.id),
+    ...payments.map(({ payment }) => payment.id),
+    ...deliverables.map(({ deliverable }) => deliverable.id),
+    ...forms.map((form) => form.id),
+  ];
   const billed = invoices.filter((i) => i.status !== "Draft");
   const owed = billed.reduce((n, i) => n + invoiceTotals(i).due, 0);
   const paid = billed.reduce((n, i) => n + i.paid, 0);
@@ -148,6 +164,80 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
+      <div className="ad__grid2" style={{ marginTop: ".9rem" }}>
+        <Panel title="Payment history">
+          {payments.length ? (
+            <div className="ad__scroll">
+              <table className="ad__t">
+                <thead>
+                  <tr><th>Receipt</th><th>Invoice</th><th>Method</th><th>Status</th><th>Date</th><th className="num">Received</th><th className="num">Kept</th></tr>
+                </thead>
+                <tbody>
+                  {payments.map(({ invoice, payment }) => {
+                    const refunded = refundedTotal(payment);
+                    const kept = paymentNet(payment);
+                    const state = payment.reversed
+                      ? "Reversed"
+                      : refunded >= payment.amount
+                        ? "Refunded"
+                        : refunded > 0 ? "Part refunded" : "Received";
+                    return (
+                      <tr key={payment.id}>
+                        <td><Link href={`/r/${payment.token}`}><b>{payment.receiptNo}</b></Link></td>
+                        <td><Link href={`/admin/money/${invoice.id}`}>{invoice.number}</Link></td>
+                        <td>{payment.method}</td>
+                        <td><span className={`ad__pill ${state === "Received" ? "ad__pill--good" : "ad__pill--flat"}`}>{state}</span></td>
+                        <td className="num">{when(payment.at)}</td>
+                        <td className="num">{naira(payment.amount)}</td>
+                        <td className="num">{naira(kept)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <Empty title="No payments recorded">
+              Payments appear here with their receipt, method, reversals and refunds kept intact.
+            </Empty>
+          )}
+        </Panel>
+
+        <Panel title="Files and deliverables">
+          {deliverables.length ? (
+            <div className="ad__scroll">
+              <table className="ad__t">
+                <thead><tr><th>Deliverable</th><th>Project</th><th>Version</th><th>Added</th><th>File</th></tr></thead>
+                <tbody>
+                  {deliverables.flatMap(({ deliverable, project }) => (
+                    deliverable.versions.map((version, index) => (
+                      <tr key={`${deliverable.id}-${version.v}`}>
+                        <td>
+                          <Link href={`/admin/projects/${project.id}`}><b>{deliverable.name}</b></Link>{" "}
+                          {index === 0 ? <ApprovalPill approval={deliverable.approval} /> : null}
+                        </td>
+                        <td>{project.title}</td>
+                        <td>v{version.v}</td>
+                        <td className="num">{when(version.at)}</td>
+                        <td>
+                          {version.url ? (
+                            <a href={version.url} target="_blank" rel="noopener noreferrer">Open file</a>
+                          ) : <span className="ad__dim">Not linked</span>}
+                        </td>
+                      </tr>
+                    ))
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <Empty title="No deliverables yet">
+              Versioned project files will appear here without replacing earlier work or approvals.
+            </Empty>
+          )}
+        </Panel>
+      </div>
+
       {/* WHAT WE OWE THEM, which is the other direction from everything above.
           Renders nothing at all for a client who has never had a balance,
           which is almost all of them. */}
@@ -161,6 +251,14 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
           was somebody's memory. */}
       <div style={{ marginTop: ".9rem" }}>
         <CommsLog clientId={c.id} title="What we have sent them" />
+      </div>
+
+      <div style={{ marginTop: ".9rem" }}>
+        <AuditLog
+          subjectIds={relatedAuditIds}
+          limit={30}
+          title="Changes across this client"
+        />
       </div>
     </>
   );
