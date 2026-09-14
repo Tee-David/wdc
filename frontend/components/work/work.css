@@ -465,11 +465,21 @@
 }
 .pv .wk-pal small { color: var(--muted); font-size: .76rem; font-variant-numeric: tabular-nums; }
 
-/* Brand-guide pages are portrait or square, not 4:3 screenshots, so the
-   design galleries let the artwork set its own height instead of cropping a
-   guide spread down to a letterbox. */
-.wk-shots--tall .wk-shot { aspect-ratio: auto; }
-.wk-shots--tall .wk-shot img { height: auto; object-fit: contain; }
+/* Brand-guide pages are portrait, landscape and square in the same row, not
+   4:3 screenshots, so these galleries let the artwork set its own shape rather
+   than cropping a guide spread down to a letterbox.
+
+   THE RATIO COMES FROM THE FILE, PER FIGURE, and is set inline by the page --
+   see the note in app/work/[category]/[slug]/page.tsx. `aspect-ratio: auto`
+   was the previous answer and it silently broke the gallery: `next/image`
+   with `fill` is absolutely positioned, so a box with no ratio has nothing to
+   give it height and collapsed to two pixels. Every branding case study was
+   hiding five images that way.
+
+   `contain` rather than `cover`, because with the right ratio there is nothing
+   to crop and the guard costs nothing if a file is ever swapped for one of a
+   different shape. */
+.wk-shots--tall .wk-shot img { object-fit: contain; }
 
 /* The testimonial, told apart from the brand-copy quote above it.
 
