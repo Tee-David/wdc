@@ -408,7 +408,7 @@ export function Hero() {
         >
           <Link
             href="#pv-contact"
-            className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-secondary px-7 py-3.5 sm:w-auto text-sm font-semibold text-black shadow-[0_12px_34px_rgba(255,101,0,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-black hover:shadow-none active:translate-y-0"
+            className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-secondary px-7 py-3.5 sm:w-auto text-sm font-semibold text-black shadow-[0_12px_34px_rgba(255,101,0,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-black hover:text-white hover:shadow-none active:translate-y-0"
           >
             Let&apos;s Talk
             <svg

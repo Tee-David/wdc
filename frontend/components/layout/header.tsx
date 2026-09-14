@@ -296,7 +296,7 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
           </Link>
           <Link
             href="/#pv-contact"
-            className="header-cta-pulse group hidden items-center gap-2 rounded-full bg-secondary px-5 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-black hover:shadow-[0_10px_30px_rgba(255,101,0,0.35)] active:translate-y-0 md:inline-flex"
+            className="header-cta-pulse group hidden items-center gap-2 rounded-full bg-secondary px-5 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:-translate-y-0.5 hover:bg-black hover:text-white hover:shadow-[0_10px_30px_rgba(255,101,0,0.35)] active:translate-y-0 md:inline-flex"
           >
             {/* Not "Book a Strategy Call". That was carried over wholesale
                 when this header was rebuilt to match litchconsulting's, and it
