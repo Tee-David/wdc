@@ -89,7 +89,21 @@ export default function ScrollTop() {
     const read = () => {
       frame = 0;
       const y = window.scrollY;
-      const pct = max > 0 ? Math.min(1, y / max) : 0;
+      /* THE RING HAS TO CLOSE AT THE BOTTOM, and it was not closing.
+
+         `max` is measured when the document's box changes, which is right for
+         the frame budget and is deliberately not done per scroll frame. But it
+         can still be a little stale at the moment it matters most: anything
+         that settles late -- a font swapping, an image arriving, a section
+         that measures itself -- moves the real end of the page after we last
+         looked. A `max` even slightly larger than the reachable scroll means
+         `y / max` never gets to 1, so the reader arrives at the footer looking
+         at a ring with a gap in it.
+
+         Two pixels of tolerance, because "as far as this page goes" is the
+         thing being drawn, not a ratio to four decimal places. Sub-pixel
+         layout and browser zoom both leave a fraction behind at the end. */
+      const pct = max > 0 ? (max - y <= 2 ? 1 : Math.min(1, y / max)) : 0;
       ref.current?.style.setProperty("--st-p", String(pct));
       const next = y > SHOW_AT;
       if (next !== visible) {
@@ -100,8 +114,20 @@ export default function ScrollTop() {
     /* Coalesced to one read a frame: a scroll event can fire far more often
        than the screen refreshes, and every extra read here is main-thread time
        taken from the scroll itself. */
+    /* AND RE-MEASURE ONCE SCROLLING STOPS. The tolerance above covers a
+       fraction of a pixel; this covers the case where the page genuinely got
+       taller or shorter while somebody was moving through it. Debounced to the
+       end of the gesture, so it costs one layout read per scroll rather than
+       one per frame -- which is the whole property the comment above `measure`
+       exists to protect. */
+    let settle = 0;
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(read);
+      clearTimeout(settle);
+      settle = window.setTimeout(() => {
+        measure();
+        if (!frame) frame = requestAnimationFrame(read);
+      }, 120);
     };
     const onResize = () => {
       measure();
@@ -119,6 +145,7 @@ export default function ScrollTop() {
     grew.observe(document.documentElement);
     return () => {
       if (frame) cancelAnimationFrame(frame);
+      clearTimeout(settle);
       grew.disconnect();
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);

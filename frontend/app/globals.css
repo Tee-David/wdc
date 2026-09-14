@@ -523,6 +523,28 @@ html { scroll-padding-top: 88px; }
 }
 .hd-sub__a:hover .hd-sub__i,
 .hd-sub__a[aria-current="page"] .hd-sub__i { color: var(--on-accent, #000); }
+
+/* BLACK ROW, WHITE TYPE, IN LIGHT MODE ONLY, and this is a deliberate
+   exception rather than a drift away from the colour rule above.
+
+   The panel is white in light mode and an orange row on it is the loudest
+   thing on the screen: the menu stops reading as navigation and starts
+   reading as an advertisement inside the header. Black is the same amount of
+   contrast against a white panel without the shout, and white on black is
+   21:1 against orange's 7.11:1.
+
+   It stays orange in DARK mode, where the panel is already dark and a black
+   row would disappear into it. The rule is scoped to `:not(.dark)` rather
+   than being overridden back under `.dark`, so the dark path keeps exactly
+   the declarations it had and nothing has to be kept in step. */
+:root:not(.dark) .hd-sub__a:hover,
+:root:not(.dark) .hd-sub__a[aria-current="page"] {
+  background: #000;
+  color: #fff;
+}
+:root:not(.dark) .hd-sub__a:hover .hd-sub__i,
+:root:not(.dark) .hd-sub__a[aria-current="page"] .hd-sub__i { color: #fff; }
+
 .hd-sub__a:focus-visible { outline: 2px solid var(--accent, #ff6500); outline-offset: -2px; }
 
 .hd-sub__rule {
