@@ -42,11 +42,18 @@
 }
 
 /* 1.5fr on the brand column because it carries a paragraph and the other three
-   carry link lists; equal columns left the pitch in a 200px gutter. */
+   carry link lists; equal columns left the pitch in a 200px gutter.
+
+   THE THIRD COLUMN IS WIDER THAN THE SECOND because of what is in it. Company
+   is five one-word links; Useful links ends on the studio's address, and
+   `info@wedigcreativity.com.ng` is 27 characters that mean nothing broken in
+   half -- at 1fr it was landing the "g" of ".ng" alone on a second line. The
+   width is set from the longest thing in the column rather than from tidiness
+   about equal fractions. */
 .ft__cols {
   position: relative; z-index: 2;
   display: grid; gap: clamp(2rem, 4vw, 3rem);
-  grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
+  grid-template-columns: 1.4fr .9fr 1.5fr 1.15fr;
 }
 @media (max-width: 1000px) { .ft__cols { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 560px)  {
@@ -105,6 +112,15 @@
 .ft__mail {
   display: inline-flex; align-items: center; gap: .3em;
   overflow-wrap: anywhere;
+}
+/* ONE LINE ON A DESKTOP. An address is read as a single token -- you copy it,
+   you type it, you check it character by character -- and a break before the
+   ".ng" reads as a typo rather than as wrapping. `overflow-wrap: anywhere`
+   above stays for the narrow layouts, where breaking is better than
+   overflowing; from the width the four-column footer appears at, the column is
+   wide enough to hold the whole address and it is held together. */
+@media (min-width: 1200px) {
+  .ft__mail { white-space: nowrap; overflow-wrap: normal; }
 }
 .ft__mail svg { width: .9em; height: .9em; flex: none; }
 
