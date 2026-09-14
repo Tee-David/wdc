@@ -16,6 +16,22 @@
   margin-top: clamp(3rem, 7vw, 5.5rem);
 }
 
+/* FULL BLEED ON A PHONE, like the section above it.
+
+   The 10px either side is what makes the card read as an object on the page at
+   a size where you can see page around it. On a 393px screen you cannot: it is
+   2.5% of the width, too little to read as a margin and enough to leave the
+   footer visibly narrower than the full-bleed section it answers, which looks
+   like a mistake rather than a choice. The gap ABOVE it is what carries the
+   seam, and that stays.
+
+   The card's own inner padding is `clamp(1.25rem, 4vw, 3.5rem)`, whose floor
+   is 20px, so nothing inside it touches the screen edge. Above 640px the inset
+   stays: there the page ground beside it is wide enough to be seen. */
+@media (max-width: 640px) {
+  .ft { padding-inline: 0; }
+}
+
 .ft__card {
   position: relative; overflow: hidden; isolation: isolate;
   max-width: 1400px; margin-inline: auto;
@@ -169,6 +185,7 @@
   .ft { padding-inline: 0; }
   .ft__card { max-width: none; padding-inline: 0; }
   .ft__cols,
+  .nl,
   .ft__base,
   .ft__mark {
     max-width: 1280px;
