@@ -55,7 +55,10 @@ export default function CommsLog({
                 <tr key={m.id}>
                   <td className="ad__dim ad__num">{when(m.at)}</td>
                   <td>{m.channel}</td>
-                  <td style={{ overflowWrap: "anywhere" }}>{m.to}</td>
+                  {/* No `overflow-wrap: anywhere` here any more -- see the note in
+                      admin.css. It let this column collapse to one character
+                      wide, which is the fault it was meant to prevent. */}
+                  <td>{m.to}</td>
                   <td>
                     <b>{m.subject}</b>
                     <p className="ad__dim" style={{ margin: ".2rem 0 0", fontSize: ".8rem" }}>{m.summary}</p>
