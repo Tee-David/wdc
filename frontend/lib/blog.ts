@@ -460,11 +460,42 @@ export const postsNewestFirst = (): BlogPost[] =>
  * Reading time, derived rather than typed in, so it cannot fall out of date
  * when a post is edited. 200 words a minute, rounded up, floor of one.
  */
+/* Words in a string, counted the way a person would.
+
+   `"".split(/\s+/)` is `[""]`, which is ONE word, and a string with a leading
+   space gets a phantom empty element at the front. Neither mattered while the
+   posts were 113-205 word excerpts; both are trivially avoidable. */
+const countWords = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
+
+/**
+ * REVISITED AGAINST THE REAL POSTS, 2026-09-14, which is the first time there
+ * have been real posts to revisit it against.
+ *
+ * When this was written the six posts ran 113 to 205 words, so the estimate
+ * said "1 minute" for every one of them and the rate behind it was never
+ * tested. Rewritten, they run 800 to 1,148 words (mean 924), which at 200
+ * words a minute gives 4 to 6 minutes. Spot-checked against the rendered
+ * pages: the figures are plausible and they order the posts correctly, with
+ * the Nigeria costs piece longest and the designer handover piece shortest.
+ *
+ * WHY 200 STAYS, rather than the measured figure. The best available number
+ * for adult silent reading of English non-fiction is about 238 words a minute
+ * (Brysbaert's 2019 meta-analysis of 190 studies); Medium famously uses 265.
+ * At 238 these posts would read 4 to 5 minutes rather than 4 to 6.
+ *
+ * 200 is therefore a deliberate ~19% cushion, and the asymmetry is the reason
+ * to keep it: this number exists so somebody can decide whether they have time
+ * right now. Promising six minutes and taking five is a pleasant surprise.
+ * Promising four and taking six is the reader feeling misled, on the one
+ * signal we gave them. The error is cheap in one direction and not the other.
+ *
+ * `ceil` with a floor of one, so nothing ever reads "0 min".
+ */
 export function readingMinutes(post: BlogPost): number {
   const words = post.body.reduce((n, block) => {
-    if (block.kind === "list") return n + block.items.join(" ").split(/\s+/).length;
-    if (block.kind === "callout") return n + (block.title + " " + block.text).split(/\s+/).length;
-    return n + block.text.split(/\s+/).length;
+    if (block.kind === "list") return n + countWords(block.items.join(" "));
+    if (block.kind === "callout") return n + countWords(`${block.title} ${block.text}`);
+    return n + countWords(block.text);
   }, 0);
   return Math.max(1, Math.ceil(words / 200));
 }

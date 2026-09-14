@@ -11,7 +11,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **143 open** (10 of them in progress), **210 done**.
+At last update: **140 open** (11 of them in progress), **212 done**.
 
 ---
 
@@ -121,23 +121,6 @@ free-text parsing per registry over an unreliable outbound port; competitor
 keyword or backlink data, where no free tier permits a public tool and
 everything claiming otherwise is scraping; and any client-side call to a third
 party, which our own CSP blocks and which we should not loosen it for.
-
-## 1C. Blog
-
-- [ ] Make the blog articles substantially longer, more useful and less generic. Measured today: the six posts run 113 to 205 words each, which is a long excerpt rather than an article. They should be the piece a prospect actually finishes, written from what this studio has really done rather than from what is generally true, and with no invented figures.
-
-- [ ] Revisit the reading-time estimate against real posts; it is derived at 200 words a minute and has not been checked against anything longer than these six.
-
-### Admin side, for whoever builds section 4
-
-- [ ] Blog editor: create, edit, schedule and unpublish posts, writing the same block shape `lib/blog.ts` already defines (`p`, `h2`, `h3`, `list`, `quote`, `callout`). The renderer guarantees one h1 and a correct heading outline; an editor that emits raw HTML would give that away.
-- [ ] Per-post SEO fields as first-class inputs, not afterthoughts: search-result title, meta description with a live character count, canonical override, and a social image.
-- [ ] Draft, scheduled and published states, with the published date separate from the created date and a visible `updated` date when a post is revised.
-- [ ] Move the posts from `lib/blog.ts` into CockroachDB behind the same accessors (`postBySlug`, `postsNewestFirst`, `relatedPosts`), so the pages do not change when the source does.
-- [ ] Author and category records, once there is more than one person writing.
-- [ ] Editable site content beyond the blog: the FAQ list, testimonials, the services copy and the work catalogue all currently live in `lib/` and need the same treatment.
-- [ ] Media library backed by R2, reusing `r2Config()` and `presignPut()` from `lib/r2.ts` rather than a second uploader. Note the SVG caveat recorded under upload safety.
-- [ ] Preview a draft as it will actually render, on the real page, before publishing.
 
 ## 2. Authentication and email
 
@@ -375,6 +358,19 @@ party, which our own CSP blocks and which we should not loosen it for.
 - [ ] Add content-management entry points only for public content that genuinely needs editing; avoid rebuilding a general-purpose CMS.
 - [ ] Show honest integration health and “coming soon” states; never display a control as working before its backend is verified.
 
+Moved here from section 1C on 2026-09-14. They were filed under the blog
+because that is what they edit, but every one of them is admin UI and belongs
+with the rest of section 4's content and settings work.
+
+- [ ] Blog editor: create, edit, schedule and unpublish posts, writing the same block shape `lib/blog.ts` already defines (`p`, `h2`, `h3`, `list`, `quote`, `callout`). The renderer guarantees one h1 and a correct heading outline; an editor that emits raw HTML would give that away.
+- [ ] Per-post SEO fields as first-class inputs, not afterthoughts: search-result title, meta description with a live character count, canonical override, and a social image.
+- [ ] Draft, scheduled and published states, with the published date separate from the created date and a visible `updated` date when a post is revised.
+- [ ] Move the posts from `lib/blog.ts` into CockroachDB behind the same accessors (`postBySlug`, `postsNewestFirst`, `relatedPosts`), so the pages do not change when the source does.
+- [ ] Author and category records, once there is more than one person writing.
+- [ ] Editable site content beyond the blog: the FAQ list, testimonials, the services copy and the work catalogue all currently live in `lib/` and need the same treatment.
+- [ ] Media library backed by R2, reusing `r2Config()` and `presignPut()` from `lib/r2.ts` rather than a second uploader. Note the SVG caveat recorded under upload safety.
+- [ ] Preview a draft as it will actually render, on the real page, before publishing.
+
 ### 4.9 CockroachDB, R2, and backend integrity
 
 - [-] Connect document/upload workflows to Cloudflare R2. (`lib/r2.ts` signs presigned PUTs with SigV4 and no new dependency; `POST /api/onboarding/upload` authorises one file against the caller's draft, choosing the key, content type and 25MB ceiling server-side, and fails closed naming the missing variable. Files land under `onboarding/<draftId>/`. BLOCKED on one value: `R2_ACCOUNT_ID`, the subdomain of the bucket's S3 API endpoint.)
@@ -437,6 +433,9 @@ reopening anything.
 
 ## Closed 2026-09-14, from live-site review
 
+- [x] The six blog posts are real articles now, rewritten by the founder. Measured before and after: they ran 113 to 205 words, which is a long excerpt rather than a piece anybody finishes; they now run 800 to 1,148 words, mean 924, 5,544 across the six. Longest is the Nigeria website-costs piece at 1,148; shortest is the designer-handover piece at 800.
+- [x] Reading-time estimate revisited against those real posts, which is the first time there was anything real to revisit it against. At 200 words a minute the six now read 4 to 6 minutes, and the figures order the posts correctly. **200 stays, deliberately.** The best available figure for adult silent reading of English non-fiction is about 238 words a minute (Brysbaert's 2019 meta-analysis of 190 studies) and Medium uses 265, so 200 is a ~19% cushion rather than an accident. The asymmetry is the argument: this number exists so somebody can decide whether they have time right now, and promising six minutes while taking five is a pleasant surprise, where promising four and taking six is the reader feeling misled on the one signal we gave them. Two real counting faults fixed while there: `"".split(/\s+/)` is `[""]`, so an empty string counted as ONE word, and a string with a leading space gained a phantom word at the front. Both now go through one `countWords` helper that trims and filters.
+
 - [x] **Domain availability checker** shipped at `/tools/domain`, server-rendered and indexable in its own right with its own title, description, canonical, breadcrumb and WebApplication JSON-LD, and in the sitemap. One name in, six endings out (`.com .ng .com.ng .africa .app .co`), through the SAME `/api/domain` the onboarding form uses, because it is the same question of the same registries and two routes would be two things to keep in step. Resolved from IANA's bootstrap with longest-suffix matching: 404 available, 200 taken, anything else honestly unknown. Verified live: `.com`, `.africa` and `.app` answered; `.ng`, `.com.ng` and `.co` came back unknown, `.co` because it publishes no RDAP service at all. The trap the item warned about is avoided -- `wedigcreativity.com.ng` is REGISTERED and reports unknown, which is exactly what an NS lookup would have got wrong by calling it available. No dependency added, about 1KB of client code, work server-side because `connect-src 'self'` forbids the browser reaching a registry.
 - [x] `jsqr` and `pngjs` added as devDependencies. Both were imported by `tests/money-documents.spec.ts` and `tests/money-print.spec.ts` and declared nowhere, so `npm run build` ended in "Failed to type check" and EVERY production deployment after those tests landed came back ERROR -- including `916ed44`, which failed for this and not for anything in that commit. Build green again.
 
@@ -475,7 +474,6 @@ reopening anything.
 - [x] Chat returned to the real Jotform embed, by the owner's explicit decision taken with the measurements in front of them. Both cheaper versions were faster: the vendor loader pulls `for-embedded-agent.js`, 6,295,207 bytes served UNCOMPRESSED (requested twice, once with `Accept-Encoding: gzip, br` and once with `--compressed`, neither response carrying a `content-encoding` header), and Lighthouse attributed 10,096ms of blocking to `jotform.com` against 0ms for `jotfor.ms`, the agent's own iframe -- so all of the cost is the parent-side bundle and none of it is the conversation. What the alternatives cost is that neither is the vendor widget 1:1: framing means WE own the launcher and panel shell, losing Jotform's auto-open, the greeting-bubble animation and the picture-in-picture voice handoff. Asked directly whether a restyled launcher would be identical, the answer was no, and the owner chose 1:1. `993063d` reverted, CSP again allows Jotform's origins, orphaned facade CSS deleted, `chat-facade.spec.ts` removed because its first assertion is now false by design, and the measurements written into the component so this is not quietly optimised back.
 - [x] The `--accent` step number on a service card was orange on a pale ground at about 2.8:1, a decoration rather than a number. Navy is 16.5:1 there, and black on the orange hover card is 7.11:1, which is the rule every accent fill on this site already follows.
 - [x] The SERP demo's mask faded its bottom edge to fully transparent over the last 9%, which is exactly where the highlighted "your page" row arrives: the one row the whole animation exists to show was the row being erased. It eases to 55% now. The top keeps the harder fade because nothing important arrives there.
-
 
 ## 1. Public frontend
 
@@ -709,7 +707,6 @@ that is the shortest feedback loop there is.
 - [x] Recompose `/admin` to match Litch's dashboard structure: personal greeting and one clear primary action, compact KPI row, wide work column, and responsive right rail. (The newer Litch-style dashboard component is now the route implementation rather than an orphaned file; the session read is request-deduplicated between layout and page.)
 - [x] Add a project pipeline strip with useful stage counts and one-click filtered navigation. (Each stage opens Projects filtered to that stage, with a visible clear-filter action and matching board/list results.)
 
-
 ## Moved out of Open, 2026-09-14 (second pass)
 
 Marked done by another agent but left in the open half, which is what made
@@ -733,7 +730,6 @@ the count at the top wrong again.
 - [x] All five are derived by `projectAttention` from the project, its tasks and today's date — never stored, for the same reason `invoiceStatus` derives "overdue": it is a state time creates while nobody is looking. The dashboard queue used to list everything in Onboarding or Revisions, which is a proxy and a poor one; it now lists projects actually asking for somebody and sorts ACROSS the whole queue, so three overdue invoices can no longer push every blocked project off a panel titled "Attention needed".
 - [x] Recorded on the project, because it is agreed per project rather than per company, and shown in the "what was agreed" row. Changing it writes a line on the history.
 - [x] Archiving takes a project out of the lists and the board and touches nothing else: invoices, payments, updates, approvals and file versions stay exactly as they are. There is deliberately no delete, and the confirmation says so.
-
 
 ## Moved out of Open, 2026-09-14
 
