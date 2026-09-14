@@ -88,6 +88,39 @@ test.describe("starting a checkout", () => {
     expect(box!.height).toBeGreaterThanOrEqual(44);
   });
 
+  test("and the button is the biggest thing in the panel", async ({ page }) => {
+    /* THIS IS THE PAGE'S PURPOSE, not one of its options. It used to be a
+       44px pill in a row beside its own caption, which made it read as a
+       choice among several. Pinned because "tidy that up" is exactly the sort
+       of change that quietly shrinks it back. */
+    await page.setViewportSize({ width: 1100, height: 1000 });
+    await page.goto(`/i/${INVOICE}`);
+    const btn = page.locator(".doc__btn--pay");
+    const box = await btn.boundingBox();
+    const panel = await page.locator(".doc__pay").boundingBox();
+    /* Taller than a minimum touch target, and the full width of the panel it
+       sits in rather than shrink-wrapped to its label. */
+    expect(box!.height).toBeGreaterThanOrEqual(56);
+    expect(box!.width).toBeGreaterThan(panel!.width * 0.9);
+    /* Still black on orange. Bigger type does not change the measurement:
+       white on #ff6500 is 2.95:1 and fails even the 3:1 large text gets. */
+    const paint = await btn.evaluate((el) => {
+      const s = getComputedStyle(el);
+      return { color: s.color, bg: s.backgroundColor, size: parseFloat(s.fontSize) };
+    });
+    expect(paint.color).toBe("rgb(0, 0, 0)");
+    expect(paint.bg).toBe("rgb(255, 101, 0)");
+    expect(paint.size).toBeGreaterThan(16);
+  });
+
+  test("it is a control on screen and nothing on paper", async ({ page }) => {
+    /* A button on a printed invoice cannot be pressed and costs a block of
+       solid orange. The QR reopens the live page, where it works. */
+    await page.goto(`/i/${INVOICE}`);
+    await page.emulateMedia({ media: "print" });
+    await expect(page.locator(".doc__actions")).toBeHidden();
+  });
+
   test("there is ONE way to pay, and it is not a bank transfer", async ({ page }) => {
     await page.goto(`/i/${INVOICE}`);
     const pay = page.locator(".doc__pay");

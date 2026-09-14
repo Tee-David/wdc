@@ -267,10 +267,20 @@ export default async function PublicInvoice({
               the payer can edit. */}
           {canCheckout ? (
             <form method="post" action={`/api/pay/${inv.token}`} className="doc__actions">
-              <button className="doc__btn" type="submit">
-                Pay {naira(t.due)} by card or transfer
+              {/* THE AMOUNT AND THE VERB, AND NOTHING ELSE IN THE LABEL. It
+                  used to carry "by card or transfer" as well, which is a
+                  sentence about method inside a control whose job is the
+                  figure. The method moved to the line under it, where it
+                  reassures without competing. */}
+              <button className="doc__btn doc__btn--pay" type="submit">
+                Pay {naira(t.due)}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
               </button>
-              <small>You will finish on Paystack&rsquo;s own secure page.</small>
+              <small>
+                Card or bank transfer, on Paystack&rsquo;s own secure page.
+              </small>
             </form>
           ) : null}
 
@@ -291,9 +301,11 @@ export default async function PublicInvoice({
               produces the untracked transfer somebody then has to reconcile by
               hand. */}
           {canCheckout ? (
+            /* The method is already said under the button. This is the other
+               half: what to do when the button does not work, which is the
+               only thing left for this panel to answer. */
             <p>
-              Card or bank transfer, both on the same page. Anything that goes
-              wrong, write to{" "}
+              Anything that goes wrong, write to{" "}
               <a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(inv.number)}`}>{CONTACT_EMAIL}</a>{" "}
               quoting <b>{inv.number}</b> and we will sort it out.
             </p>
