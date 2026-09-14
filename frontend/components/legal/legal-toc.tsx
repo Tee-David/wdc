@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useActiveHeading } from "@/components/ui/use-active-heading";
 
 /**
  * The contents rail beside a legal document.
@@ -11,16 +11,9 @@ import Link from "next/link";
  * reading nine sections to get there, and the highlight tells them where they
  * are once they have jumped.
  *
- * WHY AN OBSERVER AND NOT A SCROLL HANDLER. Scroll position alone cannot tell
- * you which heading is current without measuring every section on every frame.
- * IntersectionObserver is told once where the sections are and reports back
- * only when one crosses the band, which is both cheaper and correct while the
- * page is still settling.
- *
- * The band is deliberately narrow and set high: `-30% 0px -55% 0px` leaves a
- * strip across the upper middle of the viewport, so the heading that lights up
- * is the one being READ rather than the one that has just appeared at the very
- * bottom of the screen.
+ * HOW IT KNOWS is `useActiveHeading`, which this rail wrote first and the blog
+ * and case study rails now share -- one observer with one band rather than
+ * three copies of it. See the note there.
  */
 export default function LegalToc({
   sections,
@@ -29,29 +22,7 @@ export default function LegalToc({
   sections: { id: string; heading: string }[];
   others: { slug: string; title: string }[];
 }) {
-  const [active, setActive] = useState("");
-
-  useEffect(() => {
-    const els = sections
-      .map((s) => document.getElementById(s.id))
-      .filter((el): el is HTMLElement => Boolean(el));
-    if (!els.length) return;
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        /* The topmost section currently inside the band. Taking the first
-           intersecting entry in DOM order rather than the last event keeps the
-           highlight stable when two short sections are both in view. */
-        const inBand = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
-        if (inBand) setActive(inBand.target.id);
-      },
-      { rootMargin: "-30% 0px -55% 0px", threshold: [0, 1] },
-    );
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, [sections]);
+  const active = useActiveHeading(sections.map((s) => s.id));
 
   return (
     <nav className="lg-toc" aria-label="On this page">

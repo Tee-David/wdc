@@ -11,6 +11,7 @@ import "@/components/preview/preview.css";
 import "@/components/work/work.css";
 import { NewTab } from "@/components/ui/new-tab";
 import { publicImageSize } from "@/lib/image-size";
+import WorkToc from "@/components/work/toc";
 
 /* One path per case study, at its CANONICAL category only. Generating every
    category a piece is tagged to would prerender the same page at three URLs,
@@ -119,6 +120,21 @@ export default async function WorkDetailPage(
      before the picture arrives and crops nothing. */
   const restSizes = await Promise.all(rest.map(publicImageSize));
 
+  /* THE RAIL AND THE SECTIONS HAVE TO AGREE, and this is the only thing that
+     makes them: the ids below are the ids on the `<section>` elements, and the
+     two conditional entries carry the same condition the sections do. A rail
+     link pointing at nothing is a dead anchor that no type checker can catch,
+     so `tests/work-toc.spec.ts` walks every case study and asserts every link
+     resolves to an element that exists. */
+  const outline = [
+    { id: "about-the-client", text: "About the client" },
+    { id: "the-brief", text: "The brief" },
+    { id: "the-approach", text: "The approach" },
+    { id: "what-we-did", text: "What we did" },
+    ...(cs.palette?.length ? [{ id: "the-palette", text: "The palette" }] : []),
+    { id: "the-system", text: cs.stackLabel ?? "Built with" },
+  ];
+
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -214,132 +230,144 @@ export default async function WorkDetailPage(
                 </div>
               ) : null}
 
-              <div className="wk-doc__body">
-                <section>
-                  <h2>About the client</h2>
-                  <p>{cs.about}</p>
-                </section>
+              {/* THE RAIL IS FIRST IN THE DOM AND SECOND ON THE PAGE.
 
-                <section>
-                  <h2>The brief</h2>
-                  <p>{cs.brief}</p>
-                </section>
+                  On a phone there is no second column and the rail stacks, and
+                  a contents list is only useful ABOVE the thing it lists. The
+                  grid places it on the right on a wide screen without changing
+                  the order a screen reader or a narrow viewport sees. */}
+              <div className="wk-split">
+                <aside className="wk-rail">
+                  <div><WorkToc outline={outline} /></div>
+                </aside>
 
-                {lead.length ? (
-                  <div className={`wk-shots${lead.length === 2 ? " wk-shots--2" : ""}`}>
-                    {lead.map((src) => (
-                      <div className="wk-shot" key={src}>
-                        { }
-                        <Image
-                          src={src}
-                          alt={`${cs.client} interface`}
-                          fill
-                          sizes="(max-width: 720px) 100vw, 45vw"
-                          quality={78}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
+                <div className="wk-doc__body">
+                  <section id="about-the-client">
+                    <h2>About the client</h2>
+                    <p>{cs.about}</p>
+                  </section>
 
-                <section>
-                  <h2>The approach</h2>
-                  {/* Split on blank lines rather than rendered as one block.
-                      The design case studies run to three or four paragraphs
-                      and a wall of prose is not read. */}
-                  {cs.approach.split("\n\n").map((para) => <p key={para.slice(0, 24)}>{para}</p>)}
-                </section>
+                  <section id="the-brief">
+                    <h2>The brief</h2>
+                    <p>{cs.brief}</p>
+                  </section>
 
-                {/* Brand copy: a line off a guide page the client signed off —
-                    a positioning statement, a tagline. It is what the brand
-                    SAYS, not what the client thinks of the work, which is why
-                    it is captioned with where it came from. */}
-                {cs.quote ? (
-                  <figure className="wk-quote">
-                    <blockquote>{cs.quote.text}</blockquote>
-                    <figcaption>{cs.quote.from}</figcaption>
-                  </figure>
-                ) : null}
-
-                {/* And the testimonial, which is a different thing: the client
-                    on the work itself. This block used to carry a note saying
-                    none had been asked for. They have been, and these are what
-                    came back — attributed to the organisation, because that is
-                    how they were given. No invented name, no invented role. */}
-                {said ? (
-                  <figure className="wk-quote wk-quote--said">
-                    <blockquote>{said.text}</blockquote>
-                    <figcaption>{said.client}</figcaption>
-                  </figure>
-                ) : null}
-
-                <section>
-                  <h2>What we did</h2>
-                  <ul className="wk-list">
-                    {cs.did.map((d) => <li key={d}>{d}</li>)}
-                  </ul>
-                </section>
-
-                {/* Swatches, not a sentence. A row of the actual colours says
-                    more about an identity than a paragraph naming them, and the
-                    hex is the thing a reader would want anyway. */}
-                {cs.palette?.length ? (
-                  <section>
-                    <h2>The palette</h2>
-                    <ul className="wk-pal">
-                      {cs.palette.map((c) => (
-                        <li key={c.hex}>
-                          <span className="wk-pal__c" style={{ background: c.hex }} />
-                          <b>{c.name}</b>
-                          <small>{c.hex.toUpperCase()}</small>
-                        </li>
+                  {lead.length ? (
+                    <div className={`wk-shots${lead.length === 2 ? " wk-shots--2" : ""}`}>
+                      {lead.map((src) => (
+                        <div className="wk-shot" key={src}>
+                          { }
+                          <Image
+                            src={src}
+                            alt={`${cs.client} interface`}
+                            fill
+                            sizes="(max-width: 720px) 100vw, 45vw"
+                            quality={78}
+                          />
+                        </div>
                       ))}
+                    </div>
+                  ) : null}
+
+                  <section id="the-approach">
+                    <h2>The approach</h2>
+                    {/* Split on blank lines rather than rendered as one block.
+                        The design case studies run to three or four paragraphs
+                        and a wall of prose is not read. */}
+                    {cs.approach.split("\n\n").map((para) => <p key={para.slice(0, 24)}>{para}</p>)}
+                  </section>
+
+                  {/* Brand copy: a line off a guide page the client signed off —
+                      a positioning statement, a tagline. It is what the brand
+                      SAYS, not what the client thinks of the work, which is why
+                      it is captioned with where it came from. */}
+                  {cs.quote ? (
+                    <figure className="wk-quote">
+                      <blockquote>{cs.quote.text}</blockquote>
+                      <figcaption>{cs.quote.from}</figcaption>
+                    </figure>
+                  ) : null}
+
+                  {/* And the testimonial, which is a different thing: the client
+                      on the work itself. This block used to carry a note saying
+                      none had been asked for. They have been, and these are what
+                      came back — attributed to the organisation, because that is
+                      how they were given. No invented name, no invented role. */}
+                  {said ? (
+                    <figure className="wk-quote wk-quote--said">
+                      <blockquote>{said.text}</blockquote>
+                      <figcaption>{said.client}</figcaption>
+                    </figure>
+                  ) : null}
+
+                  <section id="what-we-did">
+                    <h2>What we did</h2>
+                    <ul className="wk-list">
+                      {cs.did.map((d) => <li key={d}>{d}</li>)}
                     </ul>
                   </section>
-                ) : null}
 
-                <section>
-                  <h2>{cs.stackLabel ?? "Built with"}</h2>
-                  <div className="wk-stack">
-                    {cs.stack.map((s) => (
-                      <span className="wk-chip wk-chip--quiet" key={s}>{s}</span>
-                    ))}
-                  </div>
-                </section>
+                  {/* Swatches, not a sentence. A row of the actual colours says
+                      more about an identity than a paragraph naming them, and the
+                      hex is the thing a reader would want anyway. */}
+                  {cs.palette?.length ? (
+                    <section id="the-palette">
+                      <h2>The palette</h2>
+                      <ul className="wk-pal">
+                        {cs.palette.map((c) => (
+                          <li key={c.hex}>
+                            <span className="wk-pal__c" style={{ background: c.hex }} />
+                            <b>{c.name}</b>
+                            <small>{c.hex.toUpperCase()}</small>
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  ) : null}
 
-                {rest.length ? (
-                  <div className={`wk-shots${rest.length >= 2 ? " wk-shots--2" : ""} wk-shots--tall`}>
-                    {rest.map((src, n) => (
-                      <div
-                        className="wk-shot"
-                        key={src}
-                        style={{ aspectRatio: `${restSizes[n].width} / ${restSizes[n].height}` }}
+                  <section id="the-system">
+                    <h2>{cs.stackLabel ?? "Built with"}</h2>
+                    <div className="wk-stack">
+                      {cs.stack.map((s) => (
+                        <span className="wk-chip wk-chip--quiet" key={s}>{s}</span>
+                      ))}
+                    </div>
+                  </section>
+
+                  {rest.length ? (
+                    <div className={`wk-shots${rest.length >= 2 ? " wk-shots--2" : ""} wk-shots--tall`}>
+                      {rest.map((src, n) => (
+                        <div
+                          className="wk-shot"
+                          key={src}
+                          style={{ aspectRatio: `${restSizes[n].width} / ${restSizes[n].height}` }}
+                        >
+                          <Image
+                            src={src}
+                            alt={`${cs.client}: a page from the delivered work`}
+                            fill
+                            sizes="(max-width: 720px) 100vw, 45vw"
+                            quality={78}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {cs.url ? (
+                    <div>
+                      <a
+                        className="pv-btn pv-btn--accent"
+                        href={cs.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
-                        <Image
-                          src={src}
-                          alt={`${cs.client}: a page from the delivered work`}
-                          fill
-                          sizes="(max-width: 720px) 100vw, 45vw"
-                          quality={78}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-
-                {cs.url ? (
-                  <div>
-                    <a
-                      className="pv-btn pv-btn--accent"
-                      href={cs.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Visit {cs.client}
-                      <NewTab />
-                    </a>
-                  </div>
-                ) : null}
+                        Visit {cs.client}
+                        <NewTab />
+                      </a>
+                    </div>
+                  ) : null}
+                </div>
               </div>
 
               {prev || next ? (
