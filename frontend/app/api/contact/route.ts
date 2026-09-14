@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       try {
         await sendMail({
           to: email,
-          subject: "We received your message — We Dig Creativity",
+          subject: "We Dig Creativity: we received your message",
           /* The visitor asked us a question; they did not ask for this copy.
              Offering a way out is what separates accountable automatic mail
              from the other kind, and Gmail scores it that way. */

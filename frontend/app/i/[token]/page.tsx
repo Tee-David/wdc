@@ -36,16 +36,22 @@ export const metadata: Metadata = {
 /* WHY A CHECKOUT DID NOT START, IN THE PAYER'S WORDS.
 
    The route bounces back here with one of these rather than rendering its own
-   error page, because the thing the payer wants next is the invoice and the
-   other ways to pay it -- not a dead end with a Back button. Each case is a
-   different sentence: "we are not sure it worked" and "we have no address for
-   you" need different actions from them. */
+   error page, because the thing the payer wants next is the invoice itself,
+   not a dead end with a Back button. Each case is a different sentence: "we
+   are not sure it worked" and "we have no address for you" need different
+   actions from them.
+
+   NONE OF THEM SENDS SOMEBODY OFF TO MAKE A TRANSFER. They used to. That is
+   how an invoice ends up paid by an untracked transfer nobody can match, and
+   it is the studio, not the client, who then spends the afternoon on it. When
+   the checkout will not open the honest instruction is to try again or write
+   to us, because we can send a fresh link. */
 const PAY_PROBLEMS: Record<string, string> = {
-  busy: "That has been tried a few times in the last few minutes. Give it a moment, or pay by transfer using the details below.",
+  busy: "That has been tried a few times in the last few minutes. Give it a moment and try again.",
   settled: "This invoice has already been paid in full, so there is nothing to charge.",
   voided: "This invoice has been cancelled, so there is nothing to pay on it.",
-  "no-email": "We do not have an email address on file for you, and the card checkout needs one to send your Paystack receipt to. Write to us and we will sort it out, or pay by transfer.",
-  unavailable: "The card checkout would not open just now. Nothing has been charged. Try again in a minute, or pay by transfer using the details below.",
+  "no-email": "We do not have an email address on file for you, and the checkout needs one to send your receipt to. Write to us and we will sort it out.",
+  unavailable: "The checkout would not open just now, and nothing has been charged. Try again in a minute, or write to us and we will send you a fresh link.",
 };
 
 export default async function PublicInvoice({
@@ -72,8 +78,10 @@ export default async function PublicInvoice({
 
   /* THE BUTTON IS ONLY OFFERED WHEN IT CAN ACTUALLY WORK. Paystack needs an
      email address for the payer, and a checkout that opens and then refuses is
-     worse than a page that never offered one. The transfer route below is
-     always there, so nobody is left without a way to pay. */
+     worse than a page that never offered one. Where there is no address the
+     panel below says to write to us instead, and we send a link -- which is a
+     real answer rather than a dead end, and keeps the money on the one route
+     the books can follow. */
   const canCheckout = !settled && !inv.voided && Boolean(client?.email?.trim());
 
   return (
@@ -266,15 +274,39 @@ export default async function PublicInvoice({
             </form>
           ) : null}
 
-          <p>
-            {canCheckout ? "Prefer a bank transfer? Reply" : "Reply"} to the email this came with, or write to{" "}
-            <a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(inv.number)}`}>{CONTACT_EMAIL}</a>,
-            and we will send the account details.
-          </p>
-          <p>
-            Quote <b>{inv.number}</b> on the transfer so it reaches the right
-            project without anybody having to ask.
-          </p>
+          {/* ONE WAY TO PAY, AND IT IS THE ONE THAT WORKS.
+
+              This used to offer bank transfer as an alternative under the
+              button, which read as a second, equal option. It is not one. The
+              studio collects through Paystack, and Paystack's own page already
+              offers a transfer to a one-time account alongside the card, so
+              "prefer a bank transfer?" was sending people out to email for
+              something the button in front of them does better and records
+              automatically.
+
+              The other methods in the books -- transfer, cash, POS -- are the
+              studio's, for entering money that arrived some other way or
+              sorting out a payment that went wrong. They are not a menu a
+              client picks from, and a document that showed them as one is what
+              produces the untracked transfer somebody then has to reconcile by
+              hand. */}
+          {canCheckout ? (
+            <p>
+              Card or bank transfer, both on the same page. Anything that goes
+              wrong, write to{" "}
+              <a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(inv.number)}`}>{CONTACT_EMAIL}</a>{" "}
+              quoting <b>{inv.number}</b> and we will sort it out.
+            </p>
+          ) : (
+            /* No checkout, so this is the only route left and it has to carry
+               the whole answer rather than read as a fallback. */
+            <p>
+              Write to{" "}
+              <a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(inv.number)}`}>{CONTACT_EMAIL}</a>{" "}
+              quoting <b>{inv.number}</b> and we will send you a payment link
+              for this invoice.
+            </p>
+          )}
         </section>
       ) : null}
     </DocumentShell>

@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     if (!config.ok) {
       console.error("[r2] upload failed and R2 is not configured; missing:", config.missing.join(", "));
       return NextResponse.json(
-        { reason: "Uploads are not switched on yet. That is on us — send the file over email instead." },
+        { reason: "Uploads are not switched on yet. That is on us, so send the file over email instead." },
         { status: 200 },
       );
     }

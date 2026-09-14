@@ -34,7 +34,7 @@ export function ApplyCredit({
               name="invoiceId" label="Which invoice" required
               placeholder="Pick one"
               options={invoices.map((i) => ({
-                value: i.id, label: `${i.number} — ${naira(i.due)} owing`,
+                value: i.id, label: `${i.number}, ${naira(i.due)} owing`,
               }))}
             />
             <Field name="by" label="Applied by" placeholder="Babatope" />
