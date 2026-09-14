@@ -1,8 +1,9 @@
 import type {
-  Approval, Channel, Client, Deliverable, Expense, Health, Id, Invoice,
-  Payment, Priority, Project, Stage, Submission, Task, Update,
+  Approval, AuditEntry, AuditKind, Channel, Client, Deliverable, Expense,
+  Health, Id, Invoice, Payment, Priority, Project, Stage, Submission, Task,
+  Update,
 } from "./types";
-import { invoiceTotals } from "./types";
+import { invoiceTotals, naira } from "./types";
 
 /**
  * THE ONE PLACE THE ADMIN GETS ITS DATA, and the only file that has to change
@@ -489,15 +490,27 @@ const token = () => {
 
 export type ClientDraft = Omit<Client, "id" | "since" | "archived">;
 
-export function addClient(d: ClientDraft): Client {
+export function addClient(d: ClientDraft, actor = "Studio"): Client {
   const c: Client = { ...d, id: mint("c"), since: now() };
+  audit({ actor, kind: "client", subjectId: c.id, subject: c.company, action: "added" });
   CLIENTS.push(c);
   return c;
 }
 
-export function patchClient(id: Id, d: Partial<ClientDraft>): Client | null {
+export function patchClient(id: Id, d: Partial<ClientDraft>, actor = "Studio"): Client | null {
   const c = getClient(id);
   if (!c) return null;
+  /* ONE ENTRY PER FIELD THAT ACTUALLY MOVED. A single "edited" entry cannot
+     answer the question the log exists for, which is always about one field;
+     and writing an entry for a field somebody opened and left alone fills the
+     record with noise that hides the changes that matter. */
+  for (const [k, v] of Object.entries(d) as [keyof ClientDraft, unknown][]) {
+    const before = c[k];
+    const from = Array.isArray(before) ? before.join(", ") : String(before ?? "");
+    const to = Array.isArray(v) ? v.join(", ") : String(v ?? "");
+    if (from === to) continue;
+    audit({ actor, kind: "client", subjectId: c.id, subject: c.company, action: "edited", field: k, from, to });
+  }
   Object.assign(c, d);
   return c;
 }
@@ -509,10 +522,12 @@ export function patchClient(id: Id, d: Partial<ClientDraft>): Client | null {
  * financial record. Removing the row would orphan them and quietly break the
  * year's reporting, so the row stays and drops out of the lists.
  */
-export function archiveClient(id: Id, archived = true): Client | null {
+export function archiveClient(id: Id, archived = true, actor = "Studio"): Client | null {
   const c = getClient(id);
   if (!c) return null;
   c.archived = archived;
+  audit({ actor, kind: "client", subjectId: c.id, subject: c.company,
+          action: archived ? "archived" : "taken out of the archive" });
   return c;
 }
 
@@ -538,6 +553,8 @@ export function addProject(d: {
     events: [{ at: now(), text: `Project opened at ${d.stage}` }],
   };
   PROJECTS.push(p);
+  audit({ actor: p.owner || "Studio", kind: "project", subjectId: p.id, subject: p.title,
+          action: "opened", note: `at ${d.stage}` });
   return p;
 }
 
@@ -549,11 +566,14 @@ export function addProject(d: {
  * in Review" answerable later. Moving to the stage it is already on is a
  * no-op rather than a duplicate line in the history.
  */
-export function setStage(id: Id, stage: Stage, note?: string): Project | null {
+export function setStage(id: Id, stage: Stage, note?: string, actor = "Studio"): Project | null {
   const p = getProject(id);
   if (!p || p.stage === stage) return p;
+  const was = p.stage;
   p.stage = stage;
   p.events.push({ at: now(), text: note ? `Moved to ${stage}. ${note}` : `Moved to ${stage}` });
+  audit({ actor, kind: "project", subjectId: p.id, subject: p.title,
+          action: "moved", field: "stage", from: was, to: stage, note });
   return p;
 }
 
@@ -614,6 +634,9 @@ export function addInvoice(d: {
     ...d, id: mint("i"), number: nextInvoiceNumber(), token: token(), paid: 0,
   };
   INVOICES.push(inv);
+  audit({ actor: "Studio", kind: "invoice", subjectId: inv.id, subject: inv.number,
+          action: d.status === "Draft" ? "drafted" : "raised",
+          note: naira(invoiceTotals(inv).total) });
   return inv;
 }
 
@@ -634,19 +657,30 @@ export function patchInvoice(
  * studio. Letting a sent invoice return to draft so its lines can be edited is
  * how the copy the client is holding stops matching the copy in the system.
  */
-export function sendInvoice(id: Id): Invoice | null {
+export function sendInvoice(id: Id, actor = "Studio"): Invoice | null {
   const inv = getInvoice(id);
   if (!inv || inv.status !== "Draft") return inv;
   inv.status = "Sent";
   inv.issued = now();
+  audit({ actor, kind: "invoice", subjectId: inv.id, subject: inv.number,
+          action: "issued", field: "status", from: "Draft", to: "Sent",
+          note: naira(invoiceTotals(inv).total) });
   return inv;
 }
 
 /** Drafts only, for the same reason. Anything issued is deleted by crediting it. */
-export function deleteDraftInvoice(id: Id): boolean {
+export function deleteDraftInvoice(id: Id, actor = "Studio"): boolean {
   const at = INVOICES.findIndex((i) => i.id === id && i.status === "Draft");
   if (at < 0) return false;
-  INVOICES.splice(at, 1);
+  const [gone] = INVOICES.splice(at, 1);
+  /* The row goes and the ENTRY STAYS. This is the only destructive operation
+     in the money module -- drafts only, because an issued invoice is a
+     document somebody outside the studio is holding -- and "an invoice that
+     existed yesterday is not in the list today" is exactly the question an
+     audit log is for. */
+  audit({ actor, kind: "invoice", subjectId: gone.id, subject: gone.number,
+          action: "deleted while still a draft",
+          note: naira(invoiceTotals(gone).total) });
   return true;
 }
 
@@ -710,6 +744,9 @@ export function applyPayment(d: {
     note: d.note?.trim() || undefined,
   };
   PAYMENTS.push(payment);
+  audit({ actor: payment.by, kind: "payment", subjectId: payment.id, subject: payment.receiptNo,
+          action: "recorded", to: naira(payment.amount),
+          note: `${payment.method} · ${payment.reference} · against ${inv.number}` });
 
   inv.paid = PAYMENTS
     .filter((p) => p.invoiceId === inv.id)
@@ -719,7 +756,7 @@ export function applyPayment(d: {
 }
 
 /** Reverses one payment and re-sums, for a bounced transfer or a typo. */
-export function reversePayment(id: Id): boolean {
+export function reversePayment(id: Id, actor = "Studio"): boolean {
   const at = PAYMENTS.findIndex((p) => p.id === id);
   if (at < 0) return false;
   const [gone] = PAYMENTS.splice(at, 1);
@@ -727,21 +764,32 @@ export function reversePayment(id: Id): boolean {
   if (inv) {
     inv.paid = PAYMENTS.filter((p) => p.invoiceId === inv.id).reduce((n, p) => n + p.amount, 0);
   }
+  /* Money leaving the books is the single most important thing in this log.
+     The receipt number and the reference are kept on the entry, because the
+     row that carried them has gone and those are what tie the reversal to the
+     bank's record of the original. */
+  audit({ actor, kind: "payment", subjectId: gone.id, subject: gone.receiptNo,
+          action: "reversed", from: naira(gone.amount), to: naira(0),
+          note: `${gone.method} · ${gone.reference} · against ${inv?.number ?? "an invoice that has gone"}` });
   return true;
 }
 
 /* --------------------------------------------------------------- expenses */
 
-export function addExpense(d: Omit<Expense, "id">): Expense {
+export function addExpense(d: Omit<Expense, "id">, actor = "Studio"): Expense {
   const e: Expense = { ...d, id: mint("e") };
+  audit({ actor, kind: "expense", subjectId: e.id, subject: e.description,
+          action: "recorded", note: `${naira(e.amount)} · ${e.category}` });
   EXPENSES.push(e);
   return e;
 }
 
-export function deleteExpense(id: Id): boolean {
+export function deleteExpense(id: Id, actor = "Studio"): boolean {
   const at = EXPENSES.findIndex((e) => e.id === id);
   if (at < 0) return false;
-  EXPENSES.splice(at, 1);
+  const [gone] = EXPENSES.splice(at, 1);
+  audit({ actor, kind: "expense", subjectId: gone.id, subject: gone.description,
+          action: "removed", note: `${naira(gone.amount)} · ${gone.category}` });
   return true;
 }
 
@@ -812,16 +860,31 @@ export function getSetting(key: string): string | null {
   return SETTINGS.get(key) ?? null;
 }
 
-export function setSetting(key: string, value: string): boolean {
+export function setSetting(key: string, value: string, actor = "Studio"): boolean {
   const trimmed = value.trim();
   if (!key || !trimmed) return false;
+  const was = SETTINGS.get(key);
   SETTINGS.set(key, trimmed);
+  /* `from` is what the site was SHOWING, which is the override if there was
+     one and "what shipped in git" if there was not. Saying "(shipped value)"
+     rather than copying the literal keeps the log honest about the difference
+     between "somebody changed it back" and "nobody had touched it". */
+  audit({ actor, kind: "setting", subjectId: key, subject: key,
+          action: was === undefined ? "overridden" : "changed",
+          field: key, from: was ?? "(what shipped)", to: trimmed });
   return true;
 }
 
 /** Clearing the row is how an edit is undone; there is no "restore" copy. */
-export function clearSetting(key: string): boolean {
-  return SETTINGS.delete(key);
+export function clearSetting(key: string, actor = "Studio"): boolean {
+  const was = SETTINGS.get(key);
+  const had = SETTINGS.delete(key);
+  if (had) {
+    audit({ actor, kind: "setting", subjectId: key, subject: key,
+            action: "put back to what shipped", field: key,
+            from: was ?? "", to: "(what shipped)" });
+  }
+  return had;
 }
 
 /* ============================================================ delivery ====
@@ -1036,10 +1099,50 @@ export function patchProject(id: Id, d: Partial<Pick<Project,
  * agreed, so archiving hides the project from the working lists and touches
  * nothing else. There is no delete.
  */
-export function archiveProject(id: Id, archived = true): Project | null {
+export function archiveProject(id: Id, archived = true, actor = "Studio"): Project | null {
   const p = PROJECTS.find((x) => x.id === id);
   if (!p) return null;
   p.archived = archived;
   addProjectNote(id, archived ? "Archived" : "Taken out of the archive");
+  audit({ actor, kind: "project", subjectId: p.id, subject: p.title,
+          action: archived ? "archived" : "taken out of the archive" });
   return p;
+}
+
+/* ============================================================== the record
+   The audit log.
+
+   APPEND-ONLY, ENFORCED BY THERE BEING NOWHERE TO WRITE FROM. The array is
+   module-private and the only export that touches it is `audit()`, which
+   pushes. There is no update, no delete and no way to reach the array from
+   outside this file, so "append-only" is a property of the code rather than a
+   promise in a comment.
+
+   Reads are newest first, because the question is almost always "what just
+   happened", and bounded, because an unbounded list on a screen is a page that
+   gets slower every week it is used.
+   ========================================================================= */
+
+const AUDIT: AuditEntry[] = [];
+
+export function audit(d: Omit<AuditEntry, "id" | "at"> & { at?: string }): AuditEntry {
+  const entry: AuditEntry = { ...d, id: mint("a"), at: d.at ?? now() };
+  AUDIT.push(entry);
+  return entry;
+}
+
+export function getAudit(opts: { kind?: AuditKind; subjectId?: Id; limit?: number } = {}) {
+  const { kind, subjectId, limit = 100 } = opts;
+  return AUDIT
+    .filter((e) => (!kind || e.kind === kind) && (!subjectId || e.subjectId === subjectId))
+    .slice()
+    .reverse()
+    .slice(0, limit);
+}
+
+/** How many entries there are in total, so a bounded list can say what it is
+    bounded out of rather than implying it is everything. */
+export function auditCount(opts: { kind?: AuditKind; subjectId?: Id } = {}) {
+  const { kind, subjectId } = opts;
+  return AUDIT.filter((e) => (!kind || e.kind === kind) && (!subjectId || e.subjectId === subjectId)).length;
 }
