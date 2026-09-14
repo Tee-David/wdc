@@ -124,6 +124,42 @@ const PROJECTS: Project[] = [
   },
 ];
 
+/* A LONG ONE, ON PURPOSE.
+
+   Every other invoice here is two or three lines, which is the shape that
+   never finds a pagination bug. A retainer with two dozen items is the shape
+   that does: it runs past one printed page, so it is what proves the table
+   header repeats, that no row is split across the fold, and that the footer
+   and the stamp land once rather than on every sheet. Keeping it in the seed
+   means the next person to touch the print rules has something to test them
+   against without inventing it. */
+const RETAINER_LINES: Invoice["lines"] = [
+  { description: "Social management retainer, September", qty: 1, unit: N(250_000) },
+  { description: "Feed posts, designed and scheduled", qty: 12, unit: N(18_000) },
+  { description: "Reels, scripted, shot and cut", qty: 4, unit: N(45_000) },
+  { description: "Story sets", qty: 8, unit: N(9_000) },
+  { description: "Community management, weekdays", qty: 21, unit: N(6_500) },
+  { description: "Monthly content calendar and sign-off", qty: 1, unit: N(40_000) },
+  { description: "Copywriting, long captions", qty: 12, unit: N(7_500) },
+  { description: "Product photography, half day", qty: 2, unit: N(85_000) },
+  { description: "Photo retouching", qty: 24, unit: N(3_500) },
+  { description: "Motion graphics, short form", qty: 3, unit: N(38_000) },
+  { description: "Paid social setup, Meta", qty: 1, unit: N(60_000) },
+  { description: "Paid social setup, TikTok", qty: 1, unit: N(55_000) },
+  { description: "Ad creative variants", qty: 9, unit: N(12_000) },
+  { description: "Audience research and segment build", qty: 1, unit: N(75_000) },
+  { description: "Landing page for the September offer", qty: 1, unit: N(180_000) },
+  { description: "Email campaign, design and build", qty: 2, unit: N(48_000) },
+  { description: "WhatsApp broadcast templates", qty: 4, unit: N(11_000) },
+  { description: "Influencer brief and shortlist", qty: 1, unit: N(65_000) },
+  { description: "Reporting dashboard, monthly refresh", qty: 1, unit: N(35_000) },
+  { description: "Performance review call and written summary", qty: 1, unit: N(30_000) },
+  { description: "Asset library tidy and handover", qty: 1, unit: N(25_000) },
+  { description: "Caption translation, Yoruba", qty: 12, unit: N(4_000) },
+  { description: "Hashtag and keyword research", qty: 1, unit: N(22_000) },
+  { description: "Out-of-hours community cover, launch week", qty: 7, unit: N(9_500) },
+];
+
 const INVOICES: Invoice[] = [
   {
     id: "i1", token: "seedInv1AAAAAAAAAAAAAAA", number: "INV-2026-001", clientId: "c1", projectId: "p1",
@@ -153,6 +189,12 @@ const INVOICES: Invoice[] = [
     id: "i4", token: "seedInv4AAAAAAAAAAAAAAA", number: "INV-2026-004", clientId: "c5", projectId: "p5",
     status: "Draft", issued: iso("2026-09-09"), due: iso("2026-10-09"), vatRate: 7.5,
     lines: [{ description: "Dispatch platform, milestone two", qty: 1, unit: N(900_000) }],
+    paid: 0,
+  },
+  {
+    id: "i5", token: "seedInv5AAAAAAAAAAAAAAA", number: "INV-2026-005", clientId: "c2", projectId: "p3",
+    status: "Sent", issued: iso("2026-09-01"), due: iso("2026-10-01"), vatRate: 7.5,
+    lines: RETAINER_LINES,
     paid: 0,
   },
 ];

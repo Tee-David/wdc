@@ -40,7 +40,6 @@ export function DocumentShell({
   return (
     <main className="doc">
       <article className="doc__sheet">
-        {stamp ? <Stamp status={stamp} seed={number} className="doc__stamp" /> : null}
         <header className="doc__top">
           <div className="doc__who">
             {/* A fixed width and height, so the sheet does not reflow when the
@@ -58,6 +57,18 @@ export function DocumentShell({
         </header>
 
         {children}
+
+        {/* THE STAMP SITS HERE IN THE DOM, NOT AT THE TOP.
+
+            On screen it is absolutely positioned into the sheet's bottom right
+            and its place in the markup does not matter. On PAPER it does: an
+            absolutely positioned box in paged media lands on whichever page
+            its containing block starts on, so a stamp declared first printed
+            on page one of a three-page invoice -- over the line items, nowhere
+            near the total it is describing. Declared here it can simply go
+            static when printing and fall where it belongs, beside the footer
+            on the last sheet. */}
+        {stamp ? <Stamp status={stamp} seed={number} className="doc__stamp" /> : null}
 
         <footer className="doc__foot">
           <small>

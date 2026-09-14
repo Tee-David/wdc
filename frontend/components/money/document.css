@@ -119,6 +119,23 @@
 }
 .doc__meta dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
 
+/* A section label inside the sheet. It was an inline style, which meant the
+   print block could not reach it -- an inline declaration outranks any
+   stylesheet rule that is not `!important`, so the one heading on the page
+   kept its screen spacing while everything around it tightened. */
+.doc__sub {
+  margin: 1.4rem 0 .5rem;
+  font-size: .8rem; letter-spacing: .08em; text-transform: uppercase;
+  color: #5a5a72;
+}
+
+.doc__note { margin: 0 0 1rem; color: #5a5a72; line-height: 1.6; }
+
+/* The running head: the document's number and client, repeated at the top of
+   every printed sheet of line items. Off on screen, where there is only ever
+   one sheet and the number is already in the corner above it. */
+.doc__run { display: none; }
+
 .doc__scroll { overflow-x: auto; }
 .doc__lines { width: 100%; border-collapse: collapse; margin: 1.2rem 0; font-size: .92rem; }
 .doc__lines th {
@@ -164,15 +181,189 @@
 /* Printing is the point of half of this. The sheet loses its frame, the
    panels lose their fills, and nothing carries a background a printer has to
    flood. */
+/* ============================================================================
+   PRINTING, AND PRINTING ONTO MORE THAN ONE SHEET.
+
+   A two-line receipt never finds a pagination bug. A retainer invoice with two
+   dozen items does, and these documents are printed, attached to emails and
+   filed -- so the second page has to be as readable as the first rather than
+   being whatever the browser happened to do.
+
+   Everything below was checked against a real rendered PDF, not by eye in a
+   print preview. See tests/money-print.spec.ts.
+   ========================================================================== */
+
+@page {
+  size: A4;
+  /* Room for the browser's own header and footer, which is where the page
+     numbers come from. Chromium does not support CSS margin boxes, so there is
+     no honest way to print "Page 2 of 3" from the stylesheet -- claiming to
+     and silently printing nothing would be worse than letting the browser do
+     the job it already does. */
+  margin: 12mm;
+}
+
 @media print {
-  .doc { background: #fff; padding: 0; }
+  /* THE PAPER IS WHITE, WHATEVER THE PHONE WAS SET TO. The document draws its
+     own colours, but the html and body underneath it belong to the site and
+     the site remembers a theme. Printed from a dark session with backgrounds
+     on, every sheet the document does not itself cover comes out black -- and
+     a second sheet that exists only to hold the footer comes out entirely
+     black. Measured in a generated PDF before this rule existed. */
+  /* `color-scheme: dark` is what actually darkens the page canvas in a
+     Chromium print, and it is set on <html> by the theme script before the
+     first paint. A white background on the element is not enough on its own:
+     the canvas outside the page's margin box is painted from the scheme, so a
+     document printed from a dark session came out with a black border on every
+     sheet. A printed document is a light document. */
+  html { color-scheme: light !important; }
+  html, body { background: #fff !important; }
+
+  .doc {
+    background: #fff;
+    padding: 0;
+    /* `min-height: 100dvh` is right on screen: a short receipt should still
+       fill the window rather than float in a strip at the top. On paper it
+       means the document is at least one viewport tall no matter how little
+       is on it, and a one-page invoice with a few lines spilled a nearly
+       empty second sheet because of it. */
+    min-height: auto;
+  }
   .doc__sheet { border: 0; border-radius: 0; max-width: none; padding: 0; }
   .doc__owed, .doc__pay { background: transparent; }
+
+  /* The skip link is keyboard furniture for the site shell. It is visually
+     hidden on screen by position, not by `display`, so a print picks it up and
+     puts a navy "Skip to main content" button at the top of sheet one. */
+  .skip-link { display: none !important; }
+
   /* The floating corner controls belong to the site, not to the document.
      They are useful on screen and they are ink on paper, so they go. Targeted
      by their own classes rather than by `position: fixed` so that nothing
      legitimate is caught by accident. */
   .uw, .uw--corner, .st, .cx { display: none !important; }
+
+  /* THE COLUMN HEADINGS REPEAT ON EVERY SHEET. `table-header-group` is what
+     makes a browser reprint a thead after a page break; without it, page two
+     of the line items is a column of numbers with nothing saying which is the
+     quantity and which is the price. This is the single most important rule
+     in this block. */
+  .doc__lines thead { display: table-header-group; }
+  .doc__run { display: table-row; }
+  .doc__run th {
+    padding: 0 .6rem .25rem;
+    border-bottom: 0; font-size: .66rem; letter-spacing: .08em;
+  }
+  .doc__lines tfoot { display: table-row-group; }
+
+  /* NOTHING IS CUT IN HALF. A row split across the fold puts a description on
+     one sheet and its amount on the next, which is the one thing a printed
+     invoice must never do. */
+  .doc__lines tr,
+  .doc__owed,
+  .doc__pay,
+  .doc__void,
+  .doc__meta > div,
+  .doc__foot { break-inside: avoid; }
+
+  /* A heading alone at the foot of a page is a heading on the wrong page. */
+  .doc__sheet h2 { break-after: avoid; }
+
+  /* Two lines is the least that may be left behind or carried over. The
+     default is one, which strands a single word on its own sheet. */
+  .doc, .doc__sheet, .doc__pay p, .doc__foot small { orphans: 2; widows: 2; }
+
+  /* The totals belong with the items they total. Keeping the last rows and the
+     foot together is worth more than filling the first page. */
+  .doc__lines tfoot { break-before: avoid; }
+
+  /* THE STAMP GOES BACK INTO THE FLOW. Absolute positioning in paged media
+     resolves against the page the containing block starts on, so the stamp
+     would print on sheet one of a three-sheet invoice -- over the line items,
+     nowhere near the total. Static and floated, it lands beside the footer on
+     the last sheet, which is where a stamp goes. */
+  .doc__stamp {
+    position: static;
+    float: right;
+    /* 34mm is about the size of a real rubber stamp, and it is also what keeps
+       the float from hanging below the footer it sits beside: `.doc` contains
+       its floats, so a stamp taller than the footer pushes the page height
+       past the sheet on its own and spills a sheet carrying nothing. */
+    width: 32mm;
+    margin: 0 0 0 5mm;
+  }
+
+  /* THE CODE IS SIZED IN MILLIMETRES, BECAUSE ON PAPER THAT IS WHAT A CAMERA
+     SEES. The 160px floor was measured on a screen, where a CSS pixel is the
+     only unit that means anything; printed, the same code at 34mm gives a
+     module about 0.7mm across, which is comfortably above what a phone needs.
+
+     Narrowing `.doc__qr` alone did nothing: the code inside carries its own
+     `clamp(104px, 30vw, var(--qr-size))`, and a printed viewport is wide
+     enough that it sat at the full 160px and simply overflowed the box it had
+     been given. Nor could the variable be set from here -- `boxPx` writes it
+     as an inline style on the figure itself, and an inline custom property on
+     the descendant outranks one inherited from its parent. So the width is set
+     on the box directly, which is the one declaration in this file that beats
+     the clamp without an `!important`. */
+  .doc__qr { break-inside: avoid; width: 34mm; }
+  /* The box is 34mm; the padding inside it is quiet zone the code does not
+     need twice, since the sheet around it is already white. Pulling it in from
+     10px to 6px gives the modules 30mm of the 34mm instead of 28mm, which at
+     this data length is about 0.57mm per module -- comfortably inside what a
+     phone reads at arm's length. */
+  .doc__qr .qr__code { width: 34mm; padding: 6px; }
+
+  /* THE COLOPHON IS ONE BAND, NOT THREE.
+
+     On screen the footer wraps happily: there is width to spare and the code
+     drops under the small print. On A4 it was the single most expensive block
+     on the sheet -- 218px of a 1032px page, a fifth of the paper, because the
+     small print holds its 30rem and the code cannot fit beside it in what the
+     stamp leaves. Told not to wrap, and told the text may shrink, the three
+     sit in one row the height of the code and the sheet gains 80px. */
+  .doc__foot { flex-wrap: nowrap; align-items: center; }
+  .doc__foot small { max-width: none; flex: 1 1 auto; min-width: 0; }
+
+  /* ---- PAPER IS TIGHTER THAN A SCREEN -------------------------------------
+
+     The on-screen rhythm is built for a phone, where generous space between
+     blocks is what makes a long column readable with a thumb. On A4 that same
+     rhythm is the difference between one sheet and two: measured, a two-line
+     invoice came to 1185px of content against 1016px of printable height, and
+     spilled a second sheet carrying nothing but the footer, the code and the
+     stamp. Nobody wants that sheet and it costs a page of paper per invoice.
+
+     So the gaps close on paper. Nothing is removed and nothing shrinks below
+     legibility -- the figures, the rules and the type sizes are the same. It
+     is the air between them that goes. */
+  .doc__top { padding-bottom: .7rem; }
+  .doc__owed { margin: .7rem 0; padding: .6rem 1rem; }
+  .doc__meta { margin: .7rem 0; gap: .7rem; }
+  .doc__lines { margin: .7rem 0; }
+  .doc__note { margin-bottom: .7rem; }
+  .doc__sub { margin: .8rem 0 .3rem; }
+  .doc__pay { margin-top: .7rem; padding: .6rem 1rem; }
+  .doc__pay p { margin-bottom: .3rem; }
+  .doc__foot { margin-top: .8rem; padding-top: .7rem; gap: .9rem; }
+
+  /* The headline figure sizes off the viewport, and a printed viewport is
+     nearly 190mm wide, so it lands on its largest value. It does not need to
+     be 45px tall on a sheet somebody is holding. */
+  .doc__owed b { font-size: 1.95rem; }
+
+  /* A printed table is a denser thing than a tapped one: the row padding here
+     exists so a thumb can tell one line from the next, and on paper the rules
+     already do that job. This is the single biggest saving in the block --
+     roughly 75px across the two tables of a typical invoice. */
+  .doc__lines th { padding: .3rem .6rem; }
+  .doc__lines td { padding: .35rem .6rem; }
+  .doc__lines tfoot td { padding-top: .35rem; }
+
+  /* Ink the printer would otherwise drop. Chromium strips backgrounds by
+     default; the stamp and the status words are foreground, so they survive,
+     but the rules and tints that make the table readable do not. */
+  .doc__lines th, .doc__lines td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 
 /* A reversed receipt, said in words as well as in the corner stamp. Red is

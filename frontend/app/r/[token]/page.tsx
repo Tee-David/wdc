@@ -121,7 +121,7 @@ export default async function PublicReceipt({
       </dl>
 
       {pay.note ? (
-        <p style={{ margin: "0 0 1rem", color: "#5a5a72", lineHeight: 1.6 }}>{pay.note}</p>
+        <p className="doc__note">{pay.note}</p>
       ) : null}
 
       <div className="doc__scroll">
