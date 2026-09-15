@@ -455,3 +455,229 @@
 .pv .tl__facts {
   --tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
 }
+
+/* ==========================================================================
+   THE SCOPE AND BUDGET ESTIMATOR
+
+   Eight questions on the left, the range on the right once the eighth is
+   answered. It borrows `.tl--split` from the checkers above rather than
+   inventing a second two-column layout, so a visitor who meets both tools
+   meets one page shape.
+   ========================================================================== */
+
+.pv .es__form { gap: 1.5rem; }
+
+.pv .es__q { display: grid; gap: .1rem; }
+.pv .es__qhint { margin: .15rem 0 .1rem; }
+
+/* TWO ACROSS WHERE THERE IS ROOM, one where there is not. `auto-fit` with a
+   14rem floor rather than a breakpoint: the tool renders in a 27rem column
+   once the estimate exists and in a 46rem one before that, so the number of
+   columns has to follow the container it is actually in. */
+.pv .es__opts {
+  display: grid; gap: .5rem; margin-top: .55rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+}
+
+/* The same card as the name checker's entity pair, one step denser: there are
+   eight of these on the page rather than two, and 1.15rem of padding each way
+   would make the form twice as long as the questions in it. */
+.pv .es__opt {
+  display: grid; gap: .2rem; align-content: start;
+  min-height: 44px; padding: .8rem .9rem; text-align: left;
+  border: 1px solid var(--rule); border-radius: 12px;
+  background: var(--paper); color: var(--ink);
+  font-family: inherit; cursor: pointer;
+  transition: border-color .2s ease, background-color .2s ease;
+}
+.pv .es__opt:hover { border-color: var(--accent); }
+.pv .es__opt.is-on {
+  border-color: var(--btn-fill);
+  background: var(--paper-2);
+  box-shadow: inset 0 0 0 1px var(--btn-fill);
+}
+.pv .es__opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.pv .es__optT {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .95rem; font-weight: 600; line-height: 1.3;
+}
+.pv .es__optN { font-size: .8rem; line-height: 1.45; color: var(--muted); }
+
+.pv .es__count { font-weight: 500; }
+
+/* ---------------------------------------------------------------- the range */
+
+/* THE ONE THING ON THE PAGE THAT IS ALLOWED TO SHOUT. It is the answer the
+   whole form exists to produce, and a reader who has answered eight questions
+   has earned a figure they can read from across the desk. */
+.pv .es__range {
+  display: grid; gap: .35rem;
+  padding: 1.4rem 1.5rem;
+  border: 1px solid var(--rule); border-radius: 18px;
+  background: var(--paper-2);
+}
+.pv .es__ngn {
+  margin: 0;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: clamp(1.9rem, 6vw, 2.8rem); font-weight: 700;
+  line-height: 1.1; letter-spacing: -.02em; color: var(--ink);
+}
+/* "to" is a joining word, not part of either figure, so it is set down rather
+   than read as a third number. */
+.pv .es__ngn i {
+  font-style: normal; font-weight: 500;
+  font-size: .45em; color: var(--muted);
+  padding: 0 .1em;
+}
+.pv .es__usd { margin: 0; font-size: .92rem; color: var(--muted); }
+.pv .es__caveat {
+  margin: .5rem 0 0; padding-top: .7rem;
+  border-top: 1px solid var(--rule);
+  font-size: .9rem; line-height: 1.6; color: var(--ink);
+}
+
+.pv .es__h {
+  margin: 0 0 .1rem;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 1.05rem; font-weight: 700; color: var(--ink);
+}
+
+/* --------------------------------------------------------------- the phases */
+
+.pv .es__phases, .pv .es__assume { display: grid; gap: .6rem; }
+
+/* A NAME, A FIGURE AND A LINE OF PROSE, in that reading order. The figure is
+   pulled to the right on its own column so four phases can be compared down
+   the page rather than hunted for inside four sentences. */
+.pv .es__list { margin: 0; padding: 0; list-style: none; display: grid; gap: .5rem; }
+.pv .es__list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: .15rem .9rem;
+  padding: .85rem 1rem;
+  border: 1px solid var(--rule); border-radius: 12px;
+  background: var(--paper);
+}
+.pv .es__pT {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 600; font-size: .96rem; color: var(--ink);
+}
+.pv .es__pM {
+  justify-self: end; white-space: nowrap;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: .96rem; color: var(--accent-ink);
+}
+.pv .es__pB { grid-column: 1 / -1; font-size: .87rem; line-height: 1.55; color: var(--muted); }
+
+.pv .es__bullets {
+  margin: 0; padding-left: 1.1rem;
+  display: grid; gap: .35rem;
+  font-size: .9rem; line-height: 1.6; color: var(--muted);
+}
+.pv .es__bullets li::marker { color: var(--accent); }
+
+/* ------------------------------------------------------------- keeping it */
+
+.pv .es__keep { gap: .55rem; }
+.pv .es__mail { display: grid; gap: .5rem; margin-top: .3rem; }
+.pv .es__sent {
+  display: flex; align-items: center; gap: .45rem;
+  margin: .3rem 0 0; font-size: .95rem; font-weight: 600; color: #16794a;
+}
+.dark .pv .es__sent { color: #6ee7a8; }
+.pv .es__sent svg { width: 1.05rem; height: 1.05rem; }
+
+/* ----------------------------------------------------------------- on paper */
+
+/* "SEND ME THIS AS A PDF" IS A PRINT STYLESHEET HERE, and that is a decision
+   rather than a shortcut. This project has no PDF renderer and the checklist
+   rules out putting a headless browser in a serverless function -- which is
+   also how the invoices and receipts already work: `components/money/
+   document.css` prints them and `tests/money-print.spec.ts` proves it. The
+   browser's own "Save as PDF" is one keystroke, costs us nothing and produces
+   a file the reader owns.
+
+   WHAT PRINTS IS THE ESTIMATE, NOT THE PAGE. The eight questions are how the
+   figure was reached and the reader has just answered them; on paper they are
+   three sheets of radio buttons in front of the one thing worth keeping.
+
+   EVERY RULE IS SCOPED TO THE PAGE THAT HAS AN ESTIMATOR ON IT, with
+   `:has(.es__form)`. This stylesheet is imported by all six tool pages, so the
+   first version of this block -- which hid `header`, the hero and every
+   section that was not the tool -- would have gutted a printed domain check or
+   name check as well. `tests/scope-estimator.spec.ts` prints both, in print
+   emulation, so the scoping cannot quietly come off again. */
+@media print {
+  /* The same two rules the money documents need, for the same measured
+     reasons: a dark session paints the page canvas, and the skip link is
+     hidden by position rather than by display so it prints as a button. */
+  html:has(.es__form) { color-scheme: light !important; }
+  html:has(.es__form), body:has(.es__form) { background: #fff !important; }
+  body:has(.es__form) :is(.skip-link, .uw, .uw--corner, .st, .cx) { display: none !important; }
+
+  /* Everything but the tool. The hero, the explanatory sections, the footer
+     and the site header are all page furniture next to a figure somebody is
+     about to put in front of their co-founder. `header` by element rather than
+     by class: the site header is a Tailwind component with no stable hook of
+     its own, and this page has no other header in it. The footer does have
+     one, and uses it. */
+  body:has(.es__form) :is(header, .ft) { display: none !important; }
+  body:has(.es__form) .pv > .wk-hero,
+  body:has(.es__form) .pv > .pv-sec:not(:has(.es__form)) { display: none !important; }
+
+  .es__form, .es__keep, .tl__again, .tl__stepActs { display: none !important; }
+
+  body:has(.es__form) .tl--split { display: block; max-width: none; }
+  body:has(.es__form) .tl__out { margin: 0; }
+  .es__range, .es__list li { background: #fff !important; break-inside: avoid; }
+  /* A phase split across the fold puts a name on one sheet and its figure on
+     the next, which is the one thing a printed estimate must not do. */
+  .es__phases, .es__assume { break-inside: avoid; }
+}
+
+/* ==========================================================================
+   THE SEO SNAPSHOT'S COST PANEL
+
+   Page weight said in naira and seconds. It reuses the findings list, the step
+   panel and the split layout from the checkers above; what it needs of its own
+   is one large figure and the input that drives it.
+   ========================================================================== */
+
+.pv .sn__cost {
+  display: grid; gap: .35rem;
+  padding: 1.2rem 1.3rem;
+  border: 1px solid var(--rule); border-radius: 16px;
+  background: var(--paper-2);
+}
+
+/* Sized like the estimator's range, because it is doing the same job: it is
+   the sentence somebody repeats afterwards, and a figure nobody can read
+   across a desk does not get repeated. */
+.pv .sn__big {
+  margin: 0;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: clamp(1.5rem, 4.4vw, 2.1rem); font-weight: 700;
+  line-height: 1.15; letter-spacing: -.01em; color: var(--ink);
+}
+.pv .sn__big i {
+  font-style: normal; font-weight: 500;
+  font-size: .5em; color: var(--muted); padding: 0 .15em;
+}
+.pv .sn__sub { margin: 0; font-size: .92rem; line-height: 1.55; color: var(--ink); }
+
+/* OUR OWN NUMBER, SET QUIETLY. It is a comparison, not a boast, and a
+   comparison that shouts invites the reader to check it rather than believe
+   it. Same measurement, same day, one line. */
+.pv .sn__ours {
+  margin: .2rem 0 0; padding-top: .6rem;
+  border-top: 1px solid var(--rule);
+  font-size: .9rem; line-height: 1.55; color: var(--muted);
+}
+
+.pv .sn__price {
+  display: grid; gap: .3rem; margin-top: .7rem;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 600; font-size: .88rem; color: var(--ink);
+}
+/* Narrow, because it holds three digits and a wide box invites a paragraph. */
+.pv .sn__priceIn { flex: none; width: 9rem; max-width: 100%; font-size: .95rem; padding: .6rem .8rem; }

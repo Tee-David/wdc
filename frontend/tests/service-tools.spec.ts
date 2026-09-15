@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import { FREE_TOOLS, toolsFor } from "../lib/tools";
+import { SERVICES } from "../lib/services";
 
 /**
  * The free tools are reachable from the page they were built for.
@@ -14,12 +16,15 @@ import { expect, test } from "@playwright/test";
  * service page can get to the tool", walked as a click.
  */
 
+/* READ FROM THE REGISTRY, NOT COPIED OUT OF IT.
+   These lists were three literals, and section 1B added four tools to
+   `lib/tools.ts` -- at which point a spec asserting "the web page offers
+   exactly these two" is asserting a fact about a file nobody edited. Worse,
+   the resolve test would have kept passing while four new routes went
+   unchecked. The registry is the data both the site and this file read. */
 const SERVICE_WITH_TOOLS = "/services/web";
-const EXPECTED = ["/tools/domain", "/tools/email"];
-/* EVERY tool in the registry, not just the web ones. The resolve test below
-   walks this, because a card pointing at a 404 is worse than no card and a
-   tool filed under a different service is exactly the one nobody rechecks. */
-const ALL_TOOLS = ["/tools/domain", "/tools/email", "/tools/business-name"];
+const EXPECTED = toolsFor("web").map((t) => t.href);
+const ALL_TOOLS = FREE_TOOLS.map((t) => t.href);
 
 test("the web service page offers its free tools", async ({ page }) => {
   await page.goto(SERVICE_WITH_TOOLS);
@@ -67,18 +72,36 @@ test("the card is the link, all of it", async ({ page }) => {
   expect(shape.nested, "a nested link inside the card would steal the tap").toBe(0);
 });
 
-test("a service with no tools of its own grows no empty section", async ({ page }) => {
-  /* The section must render nothing rather than an empty heading, or the
-     service pages with no tool of their own gain a "Try one before you talk to
-     us" with nothing under it.
+test("every service page shows exactly the tools the registry gives it", async ({ page }) => {
+  /* THIS TEST USED TO NAME ONE EMPTY SERVICE, and it had already had to move
+     once, from `branding` to `seo`, as each gained a tool. Section 1B gave the
+     last two -- `seo`, `social`, `software` and `apps` -- a tool of their own,
+     so there is no empty service left to name and the test that named one
+     would now be untestable rather than merely wrong.
 
-     NOT `branding` ANY MORE. It has the business name checker now, which is
-     the whole point of the registry being data: a service gains a tool by
-     gaining a row, and a test naming a specific empty service has to move with
-     it. `seo` is the one furthest from having a tool of its own. */
-  await page.goto("/services/seo");
-  await expect(page.locator(".svc-tools")).toHaveCount(0);
-  await expect(page.getByText("Try one before you talk to us")).toHaveCount(0);
+     What it was really asserting survives as a rule over all six: a service
+     shows its own tools and nothing else, and a service with none grows no
+     empty heading. The day a seventh service is added with no tool, this
+     covers it without anybody remembering to come back here. */
+  for (const service of SERVICES) {
+    const expected = toolsFor(service.slug).map((t) => t.href);
+    await page.goto(`/services/${service.slug}`);
+
+    const cards = page.locator(".svc-tool");
+    await expect(cards, `${service.slug} shows the wrong number of tools`).toHaveCount(expected.length);
+
+    if (expected.length === 0) {
+      /* No cards AND no heading: an empty "Try one before you talk to us" is
+         worse than no section at all. */
+      await expect(page.locator(".svc-tools")).toHaveCount(0);
+      await expect(page.getByText("Try one before you talk to us")).toHaveCount(0);
+      continue;
+    }
+
+    const hrefs = await cards.evaluateAll((els) =>
+      els.map((e) => new URL((e as HTMLAnchorElement).href).pathname));
+    expect(hrefs.sort(), `${service.slug} offers the wrong tools`).toEqual([...expected].sort());
+  }
 });
 
 test("every tool the registry names actually resolves", async ({ page }) => {
