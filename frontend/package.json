@@ -12,7 +12,8 @@
     "db:migrate": "node scripts/migrate.mjs",
     "db:check-onboarding": "node scripts/check-onboarding-queries.mjs",
     "db:check-quota": "node scripts/check-quota.mjs",
-    "check:cac-name": "node --experimental-strip-types scripts/check-cac-name.mjs"
+    "check:cac-name": "node --experimental-strip-types scripts/check-cac-name.mjs",
+    "check:fetch-page": "node --experimental-strip-types scripts/check-fetch-page.mjs"
   },
   "dependencies": {
     "better-auth": "^1.7.4",
