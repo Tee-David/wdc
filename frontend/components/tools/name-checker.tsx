@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle, Check, Copy, Info, Search, ShieldQuestion } from "lucide-react";
+import { AlertCircle, Check, Copy, Info, Landmark, Search, ShieldQuestion, Store } from "lucide-react";
 import Link from "next/link";
 import { NewTab } from "@/components/ui/new-tab";
 import { readName, looksLikeName, type EntityKind, type NameReading } from "@/lib/cac-name";
@@ -37,16 +37,23 @@ import { readName, looksLikeName, type EntityKind, type NameReading } from "@/li
     we send the visitor to it rather than reading it with a program. */
 const CAC_SEARCH = "https://icrp.cac.gov.ng/public-search/";
 
-const ENTITIES: { key: EntityKind; label: string; hint: string }[] = [
+/* AN ICON EACH, because the two choices are a fork the whole tool hangs on and
+   they were two paragraphs of grey text telling them apart. A shopfront for the
+   thing one person trades under, a bank for the thing that exists separately
+   from whoever owns it -- which is precisely the distinction the hint spends a
+   sentence making. */
+const ENTITIES: { key: EntityKind; label: string; hint: string; Icon: typeof Store }[] = [
   {
     key: "business",
     label: "A business name",
     hint: "An enterprise or ventures. Simpler and cheaper to register, and not a separate legal person from you.",
+    Icon: Store,
   },
   {
     key: "company",
     label: "A company",
     hint: "Limited by shares. A separate legal person, and usually what a bank or a larger client will ask for.",
+    Icon: Landmark,
   },
 ];
 
@@ -100,7 +107,7 @@ export default function NameChecker() {
   };
 
   return (
-    <div className="tl">
+    <div className={`tl${reading ? " tl--split" : ""}`}>
       <form className="tl__form" onSubmit={submit}>
         {/* THE ENTITY FIRST, because it changes the answer. "Ltd" on the end of
             a business name is a rejection; on a company it is required. Asking
@@ -117,6 +124,7 @@ export default function NameChecker() {
                 className={`tl__kind${entity === o.key ? " is-on" : ""}`}
                 onClick={() => { setEntity(o.key); reset(); }}
               >
+                <span className="tl__kindIc" aria-hidden="true"><o.Icon /></span>
                 <span className="tl__kindT">{o.label}</span>
                 <span className="tl__kindH">{o.hint}</span>
               </button>
