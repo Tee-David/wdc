@@ -107,7 +107,7 @@ function supportsFlagEmoji() {
  * complete number.
  */
 function formatNational(
-  m: typeof import("libphonenumber-js"),
+  m: typeof import("libphonenumber-js/max"),
   dial: string,
   digits: string,
 ) {
@@ -159,7 +159,7 @@ export default function PhoneField({
   const listRef = useRef<HTMLUListElement>(null);
   /* The library, once it has arrived. A ref rather than state: it is a tool,
      not something the view renders, and swapping it should not re-render. */
-  const lib = useRef<typeof import("libphonenumber-js") | null>(null);
+  const lib = useRef<typeof import("libphonenumber-js/max") | null>(null);
 
   /* Names are resolved once, not per render: building 245 of them on every
      keystroke in the search box is work for nothing. */
@@ -194,7 +194,23 @@ export default function PhoneField({
   const loadLib = useCallback(async () => {
     if (lib.current) return lib.current;
     try {
-      const m = await import("libphonenumber-js");
+      /* `/max`, NOT THE DEFAULT ENTRY POINT, AND THE DIFFERENCE IS A REAL
+         BUG RATHER THAN A PREFERENCE.
+
+         The default export ships the "min" metadata, which carries length
+         ranges but not the per-country national number PATTERNS. It therefore
+         accepts a number that is simply too long: measured on this machine,
+         `parsePhoneNumber("70870412611", "NG").isValid()` returns TRUE on min
+         and produces +23470870412611 -- fourteen digits, where a Nigerian
+         number is thirteen. Somebody typing one digit too many was told their
+         number was fine and we stored a number that cannot be called.
+
+         `/mobile` also catches it and is only 24KB gzipped against max's 39,
+         but it rejects LANDLINES -- a London 020 number fails it -- and this
+         field is labelled "Phone", not "Mobile". 20KB more than min, paid only
+         by somebody who has actually reached this field, is the right trade
+         for not lying to them about their own number. */
+      const m = await import("libphonenumber-js/max");
       lib.current = m;
       /* REFORMAT WHAT IS ALREADY IN THE BOX. The library arrives a moment
          after the field does, and a fast typist -- or anything that fills the
