@@ -314,13 +314,17 @@
 }
 .pv .tl__kind:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
-/* Solid navy with a white glyph, the same chip every other card on the site
-   uses. `line-height: 0` on the wrapper because the glyph is an inline element
-   and would otherwise sit low in its own box. */
+/* BLACK, NOT NAVY, and for the same reason the buttons are: the brand blue was
+   being used as a fill on a light card, which is the job the site now gives to
+   --btn-fill. That token is black on paper and white on any dark ground, so the
+   chip is black on the card a visitor actually sees it on and flips with the
+   theme instead of holding a navy that reads as a third colour beside the black
+   controls around it. `line-height: 0` on the wrapper because the glyph is an
+   inline element and would otherwise sit low in its own box. */
 .pv .tl__kindIc {
   display: grid; place-items: center; line-height: 0;
   width: 38px; height: 38px; border-radius: 11px;
-  background: var(--band); color: #fff;
+  background: var(--btn-fill); color: var(--btn-ink);
   margin-bottom: .45rem;
   transition: background-color .2s ease, color .2s ease;
 }

@@ -217,6 +217,25 @@ export default function TextType({
         >
           {prefix}
           {textArray.reduce((a, b) => (b.length > a.length ? b : a), "")}
+          {/* THE CURSOR IS PART OF THE LINE, so it is part of what the line
+              reserves. Left out, the reserved cell was exactly as wide as the
+              longest phrase and the caret had nowhere to sit: measured on the
+              homepage at 320, 360, 390 and 430, the two longest phrases pushed
+              it onto a line of its own under the headline. The sizer is the
+              only thing that knows how wide the whole line wants to be, so it
+              has to carry the caret too.
+
+              THE MODIFIER IS NOT COSMETIC. It stops the blink an invisible
+              element has no business running, and it is how anything measuring
+              this page tells the two carets apart: the sizer's copy comes
+              FIRST in the DOM, so a plain `.text-type__cursor` lookup finds a
+              caret that is laid out but never seen. A check written that way
+              passes on a page where the real caret has fallen off the line. */}
+          {showCursor && (
+            <span className={`text-type__cursor text-type__cursor--sizer ${cursorClassName}`}>
+              {cursorCharacter}
+            </span>
+          )}
         </span>
       )}
       {/* `justify-self: center` IS LOAD-BEARING, and the reason is Largest
@@ -274,6 +293,13 @@ export default function TextType({
           }`}
           style={{ animationDuration: `${cursorBlinkDuration}s` }}
         >
+          {/* A WORD JOINER WAS TRIED HERE AND DOES NOT WORK, which is worth a
+              line so nobody spends the afternoon on it twice. The caret is an
+              inline-block, and Chrome takes the break opportunity beside an
+              atomic inline whatever U+2060 says about it: with the joiner in
+              and the headline a size too large, the bar still dropped onto its
+              own line at 320px. The room has to be there, and reserving it is
+              the sizer's job -- see the note on the sizer above. */}
           {cursorCharacter}
         </span>
         )}
