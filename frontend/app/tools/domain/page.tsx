@@ -94,31 +94,35 @@ export default function DomainToolPage() {
               <span className="pv-eyebrow">How it works</span>
               <h2 className="pv-mix">How we know, <b>and what we cannot know</b></h2>
             </div>
-            <div className="tl__prose">
-              <p>
-                Most free checkers just ask whether a name has any web records.
-                That misses a lot. Plenty of addresses somebody already owns sit
-                empty with no records at all, so they look free when they are
-                not. We ask the registries who actually keep the list.
-              </p>
-              <p>
-                When a registry does not answer, we say so rather than guess.
-                Nigeria&rsquo;s is unreliable right now, so <code>.ng</code> and{" "}
-                <code>.com.ng</code> are usually the two a person checks for you
-                by hand. That is a real check, not a brush-off.
-              </p>
-              <p>
-                A name is only yours once it is registered. Somebody else can
-                take it tomorrow, so if you have found the one you want, it is
+            {/* CARDS, NOT FOUR PARAGRAPHS. The same treatment as the business
+                name checker: a lead sentence that can be scanned, the detail
+                under it, and a tick so the eye has somewhere to land. Four
+                paragraphs of grey prose is the shape of a section nobody
+                finishes. */}
+            <ul className="tl__facts">
+              <li>
+                <b>We ask the registries, not the web.</b> Most free checkers only
+                look for web records, and plenty of addresses somebody already
+                owns sit empty with none. Those look free when they are not.
+              </li>
+              <li>
+                <b>When a registry will not answer, we say so.</b> Nigeria&rsquo;s
+                is unreliable right now, so <code>.ng</code> and{" "}
+                <code>.com.ng</code> are usually checked by a person for you. That
+                is a real check, not a brush-off.
+              </li>
+              <li>
+                <b>A name is only yours once it is registered.</b> Somebody else
+                can take it tomorrow, so if you have found the one you want, it is
                 worth moving.
-              </p>
-              <p>
-                Anything we buy for you is registered in <strong>your</strong>{" "}
-                name, with your email as the owner. Losing control of a web
-                address is the most expensive thing that happens to a small
-                business online, and it is entirely avoidable at the start.
-              </p>
-            </div>
+              </li>
+              <li>
+                <b>Whatever we buy is registered in your name.</b> With your email
+                as the owner. Losing control of a web address is the most expensive
+                thing that happens to a small business online, and it is entirely
+                avoidable at the start.
+              </li>
+            </ul>
           </div>
         </section>
 

@@ -137,7 +137,7 @@ export default function DomainChecker() {
   const unknowns = rows?.filter((r) => r.status === "unknown").length ?? 0;
 
   return (
-    <div className="tl">
+    <div className={`tl${rows ? " tl--split" : ""}`}>
       <form className="tl__form" onSubmit={submit}>
         <label className="tl__label" htmlFor="tl-name">The name you want</label>
         <div className="tl__row">
@@ -181,7 +181,9 @@ export default function DomainChecker() {
 
       {/* `aria-live` so the answer is announced rather than silently appearing
           under a button somebody just pressed. */}
-      <div aria-live="polite">
+      {/* THE ANSWER SITS BESIDE THE FORM once there is one -- see `.tl--split`
+          in tools.css. `tl__out` is what puts it in the second column. */}
+      <div className="tl__out" aria-live="polite">
         {rows && (
           <>
             <ul className="tl__list">
