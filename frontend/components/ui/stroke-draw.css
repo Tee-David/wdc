@@ -67,12 +67,29 @@
     animation: sk-draw 1.5s cubic-bezier(.62, .02, .34, 1) both;
     animation-delay: calc(var(--sn-delay, 0ms) + var(--i, 0) * 180ms);
   }
-  /* Icons: same stroke, same clock. The shapes are staggered in the order
-     lucide draws them, which is usually outside-in, so the icon assembles
-     rather than flickering on all at once. */
+  /* ICONS LOOP. NUMERALS DO NOT, AND THE DIFFERENCE IS THE POINT.
+
+     The note above is why `infinite` was taken off everything, and none of it
+     has stopped being true: `stroke-dashoffset` repaints the SVG on the main
+     thread every frame. What made it cost the site its frame rate was not the
+     looping, it was 38 elements over 535 paths looping CONTINUOUSLY, with no
+     gap, all at once.
+
+     So the loop comes back for the icons only, and it is mostly holding
+     still. `sk-draw-loop` spends its first 25% drawing and the remaining 75%
+     resting on the finished glyph, so a nine-second cycle repaints for about
+     two seconds of it and is inert for seven. A card icon is one shape of
+     perhaps a dozen paths, not a 535-path numeral wall.
+
+     Two things keep it honest, and both already existed. `.is-in` is only
+     added once an element has actually reached the viewport, and `.is-off`
+     below pauses anything that leaves it -- so the count that matters is not
+     how many icons the page has but how many are on screen, which is a
+     handful. Re-measure on /services at 4x CPU throttle before widening this
+     to the numerals; the numerals are where the cost was. */
   .svc-draw.is-in svg :is(path, line, polyline, polygon, circle, rect, ellipse) {
     stroke-dasharray: 1;
-    animation: sk-draw 1.5s cubic-bezier(.62, .02, .34, 1) both;
+    animation: sk-draw-loop 9s cubic-bezier(.62, .02, .34, 1) infinite both;
     animation-delay: calc(var(--sk-delay, 0ms) + var(--i, 0) * 150ms);
   }
 }
@@ -85,6 +102,18 @@
   0%   { stroke-dashoffset: 1; opacity: 0; }
   8%   { opacity: 1; }
   100% { stroke-dashoffset: 0; opacity: 1; }
+}
+
+/* The looping version: the same draw, then a long rest on the finished glyph.
+   17% of nine seconds is the 1.5s the one-shot takes, and everything after
+   25% is a held frame that costs nothing to keep showing. Ending where it
+   started means the repeat has no visible seam. */
+@keyframes sk-draw-loop {
+  0%   { stroke-dashoffset: 1; opacity: 0; }
+  2%   { opacity: 1; }
+  17%  { stroke-dashoffset: 0; opacity: 1; }
+  92%  { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 1; opacity: 0; }
 }
 
 /* A stroke that leaves mid-draw is paused rather than left running, so the
