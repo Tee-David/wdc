@@ -160,6 +160,26 @@ h4 {
   to { opacity: 0; }
 }
 
+/* THE CARET'S BOX, CUT DOWN TO THE BAR IT ACTUALLY PAINTS.
+
+   The homepage caret is ▎ (U+258E, LEFT ONE QUARTER BLOCK): the ink fills the
+   left quarter of the character cell and the rest of the advance is empty. Its
+   advance measured 0.79em, so a bar about 0.25em wide was charging the line
+   nearly nine tenths of an em -- and at 320px the headline had 2px of room to
+   spare. That empty half is why the caret would not fit beside the two longest
+   phrases, and it also made the bar look detached from the words it follows.
+
+   The width is set on the box, not on the glyph, and overflow stays visible:
+   the bar paints exactly as before and the box is the size of the bar. Nothing
+   is clipped, so the caret keeps its baseline. Scoped to the hero rather than
+   set on `.text-type__cursor`, because the other caret on the site is a plain
+   `|` in the SERP mock whose advance is already its own width. */
+.hero-caret { width: 0.34em; }
+
+/* The copy inside the reserved sizer: laid out so the line reserves room for a
+   caret, never painted, so never blinking. */
+.text-type__cursor--sizer { animation: none; }
+
 .text-type__cursor--hidden {
   display: none;
 }
