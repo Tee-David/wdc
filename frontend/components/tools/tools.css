@@ -1,5 +1,5 @@
 /* ==========================================================================
-   /tools — the free tools on the service pages.
+   /tools: the free tools on the service pages.
 
    Inside `.pv`, so tokens, type and the COLOUR RULE at the top of preview.css
    all apply: a label on an --accent fill is --on-accent, never white.
@@ -396,9 +396,15 @@
 .pv .tl__stepActs .pv-btn svg { width: 1rem; height: 1rem; }
 
 .pv .tl__stepAlt { font-size: .88rem; }
-.pv .tl__stepAlt a {
+/* An in-page action (reopen the answers) reads the same as a link to another
+   page, because to the reader both are "go somewhere else from here". */
+.pv .tl__stepAlt a, .pv .tl__stepAlt button {
   color: var(--ink); font-weight: 600;
   text-decoration: underline; text-underline-offset: 3px;
+}
+.pv .tl__stepAlt button {
+  background: none; border: 0; padding: 0; margin: 0;
+  font: inherit; cursor: pointer;
 }
 
 /* THE CHIP STOPS FLOATING RIGHT ONCE THE HEAD HAS WRAPPED. `margin-left: auto`
@@ -462,10 +468,11 @@
 /* ==========================================================================
    THE SCOPE AND BUDGET ESTIMATOR
 
-   Eight questions on the left, the range on the right once the eighth is
-   answered. It borrows `.tl--split` from the checkers above rather than
-   inventing a second two-column layout, so a visitor who meets both tools
-   meets one page shape.
+   One question at a time, full width, then the range in its place once the
+   eighth is answered. No split column here any more: there is no form left on
+   screen once the range appears, so there is nothing left to put it beside.
+   `.es__opts` (the two-across grid) stays for the AI cost calculator below,
+   which still shows one live question rather than a set of eight.
    ========================================================================== */
 
 .pv .es__form { gap: 1.5rem; }
@@ -473,18 +480,51 @@
 .pv .es__q { display: grid; gap: .1rem; }
 .pv .es__qhint { margin: .15rem 0 .1rem; }
 
+/* THE WIZARD. A progress bar and a count above the question, the question
+   itself, then Back once there is somewhere to go back to. */
+.pv .es__wiz { display: grid; gap: 1.1rem; }
+.pv .es__wizTop { display: grid; gap: .5rem; }
+
+.pv .es__prog {
+  position: relative; height: .55rem; overflow: hidden;
+  border: 1px solid var(--rule); border-radius: 999px;
+  background: var(--paper-2);
+}
+.pv .es__prog > span {
+  position: absolute; inset: 0 auto 0 0;
+  min-width: .55rem; border-radius: inherit;
+  background: var(--accent);
+  transition: width .4s cubic-bezier(.16, 1, .3, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pv .es__prog > span { transition: none; }
+}
+
+.pv .es__stepLabel { font-size: 1.15rem; }
+
+/* ONE ACROSS, ALWAYS. This is the one question on the screen, so it gets the
+   whole width and room to breathe -- the opposite of `.es__opts` below, which
+   is packed because it shares the screen with seven others. */
+.pv .es__stepOpts { display: grid; gap: .7rem; margin-top: .7rem; }
+.pv .es__stepOpts .es__opt { padding: 1.05rem 1.2rem; min-height: 56px; }
+
+.pv .es__advanceHint { margin-top: .5rem; }
+.pv .es__back { margin-top: .2rem; }
+
 /* TWO ACROSS WHERE THERE IS ROOM, one where there is not. `auto-fit` with a
-   14rem floor rather than a breakpoint: the tool renders in a 27rem column
-   once the estimate exists and in a 46rem one before that, so the number of
-   columns has to follow the container it is actually in. */
+   14rem floor rather than a breakpoint: the AI cost calculator renders this
+   beside its own result column, so the number of columns has to follow the
+   width it actually has. */
 .pv .es__opts {
   display: grid; gap: .5rem; margin-top: .55rem;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
 }
 
-/* The same card as the name checker's entity pair, one step denser: there are
-   eight of these on the page rather than two, and 1.15rem of padding each way
-   would make the form twice as long as the questions in it. */
+/* The same card as the name checker's entity pair, shared by the AI cost
+   calculator's job picker and the estimator's own steps above. The base card
+   stays dense, because the calculator shows four of these beside a live
+   result column; `.es__stepOpts` widens it back out for the estimator, which
+   has the whole screen to itself one question at a time. */
 .pv .es__opt {
   display: grid; gap: .2rem; align-content: start;
   min-height: 44px; padding: .8rem .9rem; text-align: left;
@@ -629,8 +669,9 @@
   body:has(.es__form) .pv > .pv-sec:not(:has(.es__form)) { display: none !important; }
 
   .es__form, .es__keep, .tl__again, .tl__stepActs { display: none !important; }
+  /* "Change an answer" has nothing to do once the page is on paper. */
+  .es__range .tl__stepAlt { display: none !important; }
 
-  body:has(.es__form) .tl--split { display: block; max-width: none; }
   body:has(.es__form) .tl__out { margin: 0; }
   .es__range, .es__list li { background: #fff !important; break-inside: avoid; }
   /* A phase split across the fold puts a name on one sheet and its figure on

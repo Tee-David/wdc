@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **122 open** (11 of them in progress), **262 done**.
+At last update: **122 open** (11 of them in progress), **263 done**.
 
 ---
 
@@ -427,6 +427,41 @@ with the rest of section 4's content and settings work.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-15, the estimator becomes a conversational form
+
+- [x] **`/tools/estimate` asks its eight questions one at a time now**, not as
+  eight cards in a column. The earlier version tried a wizard and put it back
+  on the theory that hiding how much is left is how people abandon a form;
+  what it was missing was the wizard's own answer to that objection, so this
+  version carries the one the onboarding form already proved: a progress bar
+  and a running "Question 3 of 8" say exactly how much remains. PICKING A
+  CARD IS THE ONLY ACTION. There is no separate Next to press: choosing an
+  option answers the question and turns the page after a short pause long
+  enough to see what was picked, skipped entirely under reduced motion. A
+  keyboard visitor gets the same thing for free, because Enter and Space
+  already activate a focused button; nothing had to be built to fake a
+  keyboard shortcut for it. Every step keeps a Back arrow, and the result
+  screen keeps a "Change an answer" link that reopens the last question
+  without losing what was already answered, so the one-way door a
+  conversational form usually is never actually is one here. THE PRINT PATH
+  WAS THE ONE REAL HAZARD: `tools.css` scopes its print rules to the page with
+  `body:has(.es__form)`, and that selector needs the form element to still
+  exist in the DOM once the wizard is done, so the finished questions are
+  hidden with conditional rendering of the form's CONTENTS rather than the
+  form itself disappearing. `tests/scope-estimator.spec.ts` was rewritten for
+  the new interaction (12 cases, up from 8) and a fresh dev server run proved
+  the whole path by screenshot: one question on screen at a time, the
+  progress bar and count advancing with each answer, Back reopening a
+  question with its answer still on it, and the print output unchanged.
+  `lib/estimate.ts` was not touched, so `npm run check:estimate`'s 37
+  assertions did not need to change and still pass.
+- [x] **No em dashes anywhere in the six free tools**, the same rule the
+  onboarding form and the blog already carry, extended to `app/tools/*`,
+  `components/tools/*`, `lib/tools.ts`, `lib/ai-cost.ts` and `lib/psi.ts`.
+  Nineteen of them, replaced with a comma, a semicolon or a colon depending on
+  which the sentence actually needed, never with a rewrite that changed what
+  was said.
 
 ## Closed 2026-09-15, from conversation
 

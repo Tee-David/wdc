@@ -154,7 +154,7 @@ export async function runPsi(url: string): Promise<PsiResult> {
     .slice(0, 3)
     .map((a) => {
       const saving = Math.round((a.details?.overallSavingsMs ?? 0) / 100) / 10;
-      return `${a.title ?? "An improvement"}${saving ? ` — about ${saving}s faster` : ""}`;
+      return `${a.title ?? "An improvement"}${saving ? `, about ${saving}s faster` : ""}`;
     });
 
   return { ok: true, scores, opportunities };
