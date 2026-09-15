@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **122 open** (11 of them in progress), **281 done**.
+At last update: **122 open** (11 of them in progress), **283 done**.
 
 ---
 
@@ -427,6 +427,52 @@ with the rest of section 4's content and settings work.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-15, the estimator borrows the onboarding form's "not sure" and its tips
+
+- [x] **Asked for the estimator to be as forgiving as the onboarding form:
+  an "I'm not sure" escape hatch on questions a reader might not have an
+  answer for, and the same hidden "background" affordance (`tip`) the
+  onboarding form uses for a question that needs more than its one-line
+  `hint`.** Five of the eight questions -- screens/journeys, accounts,
+  payments, integrations and the AI feature -- now carry a "Not sure yet"
+  option at the end of their list, added by a new `withUnsure()` helper in
+  `lib/estimate.ts` rather than typed out by hand five times. THE NUMBER
+  STILL HAS TO EXIST: unlike the onboarding form's `UNSURE`, which defers
+  the question to a human and adds nothing to any total, this tool never
+  stops being a calculator, so "not sure yet" prices at the ROUNDED AVERAGE
+  of that question's real answers -- neither the cheapest nor the dearest
+  guess, so picking it never quietly pushes the range toward either end on
+  its own. Pinned in `scripts/check-estimate.mjs`, which now asserts that
+  figure for every question that offers it, not just eyeballed once.
+- [x] **Not every question got one.** What are we building, what exists
+  today, and the deadline are things a reader always knows on arrival, or --
+  the deadline -- already has "No fixed date" doing the same job a second
+  "not sure" would only duplicate. Checked the site's other option-driven
+  pickers for the same fit: the AI cost calculator's job picker stays
+  without one, because its shape (word counts) is already a starting point
+  the reader freely overwrites afterward rather than a commitment the way
+  a wizard step is; the business-name checker's "business or company"
+  choice stays without one too, since that is always something the person
+  filling it in already knows. No question anywhere in these tools is
+  genuinely a pick-more-than-one, so there was nothing to turn into
+  checkboxes either -- the "roles and permissions" style questions are
+  each one tier of a single scale, not an unrelated set of options.
+- [x] **The hidden "?" tip is `components/onboarding/tip.tsx` reused
+  outright**, not a second version: "Do people sign in?" and "Does it have
+  to talk to anything else?" each carry one now, explaining the jargon
+  ("roles", "integration") a client might not already have a word for,
+  exactly the same press-to-open panel the contact form uses, pulling in
+  `form-kit.css` for its `.tip` rules the same way `option-select.tsx`
+  pulled in `picker.css` last time.
+- [x] **Verified with the full suite.** `npm run check:estimate` (new
+  "not sure yet" pricing assertions included) and
+  `tests/scope-estimator.spec.ts` (14/14, two new cases: the escape hatch
+  reaching a real figure, and the tip opening and closing on Escape without
+  moving the wizard) both pass; `tests/onboarding.spec.ts`,
+  `tests/onboarding-domain.spec.ts` and `tests/email-templates.spec.ts`
+  confirm the reused `Tip` component and `form-kit.css` are unaffected on
+  the contact form and in outbound email. `npm run build` completes clean.
 
 ## Closed 2026-09-15, the estimator's wizard steps are a dropdown, not a stack of cards
 

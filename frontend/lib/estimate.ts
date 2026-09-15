@@ -88,10 +88,48 @@ export type Question = {
   key: string;
   /** The question in the words a client would use. */
   label: string;
-  /** One line under it, where the question needs a boundary drawn. */
+  /** One line under it, where the question needs a boundary drawn. Always
+   *  visible, because a question the form cannot be completed without is a
+   *  label, not a hint. */
   hint?: string;
+  /** Background behind a "?", for the question that could use more than a
+   *  hint's one sentence without turning into one for every OTHER question
+   *  on the same screen. See components/onboarding/tip.tsx, which this
+   *  reuses rather than a second version of the same idea. */
+  tip?: string;
   options: Option[];
 };
+
+/**
+ * "NOT SURE YET", the estimator's own version of the onboarding form's
+ * UNSURE (lib/onboarding.ts): a real answer rather than a field a reader is
+ * stuck on, for whichever of these eight questions they cannot put a number
+ * to without more thought than a calculator is worth.
+ *
+ * IT STILL HAS TO COST SOMETHING, unlike the onboarding form's version, which
+ * defers the question to a human instead. There is no human here until the
+ * figure has already been shown, so its `days` is the rounded average of the
+ * question's real options -- neither the cheapest nor the dearest guess,
+ * which means answering "not sure" never quietly pushes the total to either
+ * end of the range on its own.
+ *
+ * NOT EVERY QUESTION GETS ONE. What are we building, what exists today and
+ * the deadline are things a reader always knows, or -- the deadline -- already
+ * has its own "no fixed date" for exactly this. Adding "not sure" there would
+ * be a second answer meaning the same as the first.
+ */
+function withUnsure(options: Option[]): Option[] {
+  const avg = Math.round(options.reduce((sum, o) => sum + (o.days ?? 0), 0) / options.length);
+  return [
+    ...options,
+    {
+      key: "unsure",
+      label: "Not sure yet",
+      days: avg,
+      note: "We'll use a typical answer for now and pin down the real one on a call.",
+    },
+  ];
+}
 
 /**
  * EIGHT QUESTIONS, WHICH IS THE CEILING RATHER THAN A TARGET.
@@ -132,49 +170,51 @@ export const QUESTIONS: Question[] = [
     key: "screens",
     label: "Roughly how many screens or journeys?",
     hint: "A journey is one thing a person comes to do: sign up, place an order, file a report.",
-    options: [
+    options: withUnsure([
       { key: "xs", label: "Under five", days: 0 },
       { key: "s", label: "Five to twelve", days: 8 },
       { key: "m", label: "Thirteen to twenty-five", days: 20 },
       { key: "l", label: "More than twenty-five", days: 36 },
-    ],
+    ]),
   },
   {
     key: "accounts",
     label: "Do people sign in?",
-    options: [
+    tip: "\"Roles\" means different people see different things once they are in -- a customer, a staff member and an admin, for instance. If everyone who signs in sees the same thing, that is one kind of user.",
+    options: withUnsure([
       { key: "none", label: "No accounts at all", days: 0 },
       { key: "simple", label: "Yes, one kind of user", days: 5 },
       { key: "roles", label: "Yes, with roles and permissions", days: 12, note: "An admin, a staff member and a client see different things." },
-    ],
+    ]),
   },
   {
     key: "payments",
     label: "Does it take money?",
-    options: [
+    options: withUnsure([
       { key: "none", label: "No", days: 0 },
       { key: "once", label: "One-off payments", days: 6, note: "Paystack or Flutterwave, receipts, a webhook that has to be idempotent." },
       { key: "recurring", label: "Subscriptions or a wallet", days: 14, note: "Renewals, failures and refunds are most of the work here." },
-    ],
+    ]),
   },
   {
     key: "integrations",
     label: "Does it have to talk to anything else?",
-    options: [
+    tip: "An integration is anywhere the software has to send or fetch data from something outside itself: an email provider, a bank, a government portal, another piece of software you already run. If it only ever talks to its own database, the answer is nothing.",
+    options: withUnsure([
       { key: "none", label: "Nothing", days: 0 },
       { key: "few", label: "One or two services", days: 4, note: "Email, maps, analytics, a calendar." },
       { key: "many", label: "Several, or a system we do not control", days: 14, note: "A bank, an ERP, a government portal. The unknowns live here." },
-    ],
+    ]),
   },
   {
     key: "ai",
     label: "Is there an AI feature?",
     hint: "We will say plainly if the answer is no when you expected yes.",
-    options: [
+    options: withUnsure([
       { key: "none", label: "No", days: 0 },
       { key: "one", label: "One job: search, summaries, support", days: 8 },
       { key: "core", label: "It is the product", days: 22, note: "Evaluation, guardrails and a running cost to model." },
-    ],
+    ]),
   },
   {
     key: "timeline",
