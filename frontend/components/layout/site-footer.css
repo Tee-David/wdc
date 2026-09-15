@@ -104,8 +104,11 @@
 .ft__logo span { color: #fff; }
 .ft__logoMark { height: 3.2rem; width: auto; }
 .ft__pitch {
+  /* White: this is the one sentence saying what the agency is, not a
+     caption under the logo. The nav links below stay `--on-band-dim`,
+     which is the label/value distinction this footer is built on. */
   margin: 1.15rem 0 0; max-width: 34ch;
-  color: var(--on-band-dim); font-size: .94rem; line-height: 1.6;
+  color: #fff; font-size: .94rem; line-height: 1.6;
 }
 
 /* `.ft` scoped to reach (0,2,1). preview.css sets `.pv h2` to a display size
