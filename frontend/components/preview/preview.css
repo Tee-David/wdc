@@ -631,7 +631,11 @@ html:not(.dark) .pv .pv-card {
 /* the number lifts with the rule that sweeps across the top on hover */
 .pv-step:hover .pv-step__n { color: rgba(255, 255, 255, .32); }
 .pv-step h3 { font-size: 1.16rem; }
-.pv-step p { color: var(--on-band-dim); font-size: .95rem; max-width: 34ch; }
+/* White, not dimmed: this is the step's own description, read right under a
+   lede in the same band that is already white (see the note on `.pv-lede`
+   in the band rules above). A reader scanning down four steps should not
+   watch the text go dimmer partway through the section. */
+.pv-step p { color: #fff; font-size: .95rem; max-width: 34ch; }
 .pv-step::after {
   content: ""; position: absolute; left: 0; top: -1px; height: 1px; width: 0;
   background: var(--accent); transition: width .45s cubic-bezier(.16, 1, .3, 1);
@@ -960,7 +964,12 @@ html:not(.dark) .pv .pv-card {
 }
 @media (max-width: 860px) { .pv-faq__aside { position: static; } }
 .pv-faq__aside h3 { color: #fff; }
-.pv-faq__aside p { color: var(--on-band-dim); font-size: .95rem; }
+/* White, like the lede it sits beside elsewhere on this page: this is the
+   sentence introducing the FAQ list, not a caption, and the site's own rule
+   for description-length prose on a dark ground is now white throughout
+   rather than the dimmer `--on-band-dim`, which stays for genuine labels
+   (a caption, a footer link, a "field: value" pair). */
+.pv-faq__aside p { color: #fff; font-size: .95rem; }
 .pv-faq__mark {
   width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: var(--on-accent);
   display: grid; place-items: center;
@@ -998,7 +1007,9 @@ html:not(.dark) .pv .pv-card {
   height: 44px; transform: translateY(-50%);
 }
 .pv-cwork { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 10px; }
-.pv-cwork li { position: relative; padding-left: 22px; font-size: .95rem; color: var(--on-band-dim); }
+/* White, matching the lede above it in the same reach-us band. These are the
+   agency's own capabilities, not a caption under something else. */
+.pv-cwork li { position: relative; padding-left: 22px; font-size: .95rem; color: #fff; }
 .pv-cwork li::before {
   content: ""; position: absolute; left: 0; top: .42em; width: 14px; height: 14px;
   background-color: var(--accent);

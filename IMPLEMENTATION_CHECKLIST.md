@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **122 open** (11 of them in progress), **274 done**.
+At last update: **122 open** (11 of them in progress), **278 done**.
 
 ---
 
@@ -427,6 +427,40 @@ with the rest of section 4's content and settings work.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-15, the last of the faint blue description text goes white in dark mode
+
+- [x] **A screenshot of the homepage FAQ ("What does WDC actually do?")
+  showed the open answer in a dim lavender-blue-grey against the navy
+  background, not white.** Traced to `.qa__inner p`, which carries
+  `color: var(--muted)` unconditionally. `--muted` is a plain grey against a
+  light page but reads as a faint, blue-tinted grey against the dark
+  theme's own near-black ground, a bigger jump in dimness than the same
+  token makes on light. An answer someone has just opened to read is body
+  copy, not a caption, so `.dark .qa__inner p` now takes the dark theme's
+  own near-white `--ink` instead; light theme is untouched, since `--muted`
+  there has none of the tint this was about. Confirmed with a direct
+  `getComputedStyle` read on an opened panel: `rgb(241, 242, 255)`, `--ink`
+  in dark theme, not the previous `--muted` value.
+- [x] **The same audit swept every other place still painting description
+  text with `var(--on-band-dim)`** on the always-dark band grounds (hero,
+  hero-shaped step art, CTA, footer), the token this session had already
+  moved the hero/CTA ledes off of for the same reason. Turned to `#fff`:
+  the "How we work" step paragraphs (`.pv-step p`), the FAQ panel's aside
+  intro sentence (`.pv-faq__aside p`), the "Reach us" capability list
+  (`.pv-cwork li`), and the footer's own "what we do" blurb (`.ft__pitch`).
+  Left alone, deliberately: the footer's nav links (`.ft__col a`), field
+  labels, breadcrumbs, card metadata, tab labels and legal fine print,
+  none of which are prose a reader is meant to read at length, and light
+  theme's `--muted`/`--on-band-dim`, which was never the faint-blue
+  complaint.
+- [x] **Verified with the full suite, not just a source read.**
+  `tests/button-colours.spec.ts` (5/5, both contrast checks and the
+  "exactly one of the two" check, across both themes) and
+  `tests/page-opening.spec.ts` (20/20, both themes, phone and desktop)
+  pass against a live dev server; `npm run build` completes clean.
+  Working tree left with only the three touched stylesheets modified,
+  no stray scratch files.
 
 ## Closed 2026-09-15, the CTA card's headline gets more room on a phone
 
