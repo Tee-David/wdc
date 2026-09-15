@@ -232,6 +232,16 @@ h4 {
   .header-cta-pulse { animation: none; }
 }
 
+/* VISUALLY HIDDEN, STILL ANNOUNCED. Moved here from
+   `components/services/stages/stages.css`, which is loaded by the service
+   stage pages and nowhere else -- so any other component reaching for
+   `.sr-only` got a class that existed on four pages out of forty. It is site
+   chrome, so it lives in the stylesheet every page already loads. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
 /* --- TextType --- */
 .text-type {
   display: inline-block;
