@@ -414,7 +414,14 @@
 }
 .ob__review dl > div:first-child { padding-top: 0; border-top: 0; }
 .ob__review dt { font-size: .88rem; color: var(--muted); }
-.ob__review dd { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
+/* `pre-line`, BECAUSE SOME ANSWERS ARE SEVERAL LINES. Three domain ideas and
+   any long textarea are stored newline separated, and the review screen ran
+   them together into one unreadable string: "yourbusiness.comanother.ng".
+   `pre-line` keeps the line breaks the client typed and still collapses runs
+   of spaces, so nothing else on this screen changes. */
+.ob__review dd {
+  margin: 0; color: var(--ink); overflow-wrap: anywhere; white-space: pre-line;
+}
 .ob__review dd em { font-style: normal; color: var(--muted); opacity: .8; }
 @media (max-width: 620px) {
   .ob__review dl > div { grid-template-columns: 1fr; gap: .15rem; }
