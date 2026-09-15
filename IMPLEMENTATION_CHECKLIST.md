@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **122 open** (11 of them in progress), **271 done**.
+At last update: **122 open** (11 of them in progress), **272 done**.
 
 ---
 
@@ -427,6 +427,18 @@ with the rest of section 4's content and settings work.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-15, the proof band's lede stops explaining itself
+
+- [x] **"10+ years in business, 200+ clients on record, nothing invented"
+  is gone from the proof band's lede**, at the agency's own read that
+  "nothing invented" sounded defensive rather than confident, and that
+  restating the same three numbers the tiles two lines below already show
+  was saying it twice. The lede is one sentence now: "A creative and digital
+  agency spanning brand, web, apps, software, SEO and social, delivered by
+  one team." `proofLine()` in `lib/proof.ts`, which only ever existed to
+  build that recap sentence, went with it rather than being kept around
+  unused.
 
 ## Closed 2026-09-15, the proof band's headline, its "2K+", and white ledes on every band
 

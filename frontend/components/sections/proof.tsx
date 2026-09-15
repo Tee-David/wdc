@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { proofLine, proofStats, shortCount, type Stat } from "@/lib/proof";
+import { proofStats, shortCount, type Stat } from "@/lib/proof";
 
 import "./proof.css";
 
@@ -126,8 +126,8 @@ export default function Proof() {
                 <b>Ten years in</b>, and the numbers <b>to prove it</b>
               </h2>
               <p className="pv-lede">
-                {proofLine()} A creative and digital agency spanning brand, web,
-                apps, software, SEO and social, delivered by one team.
+                A creative and digital agency spanning brand, web, apps, software,
+                SEO and social, delivered by one team.
               </p>
             </div>
           </div>
