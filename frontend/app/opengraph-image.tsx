@@ -1,35 +1,61 @@
 import fs from "node:fs";
 import path from "node:path";
+import { ImageResponse } from "next/og";
 import { SITE_NAME } from "@/lib/site";
-import { OG_SIZE } from "@/lib/og";
+import { OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og";
 
 /**
- * The site-wide link preview card: a photograph of the hero itself.
+ * The homepage's own link-preview card: the brand mark, not a screenshot.
  *
- * WHY A SCREENSHOT HERE, WHEN A DRAWN CARD IS USUALLY BETTER. A drawn card
- * wins when it can say something the page cannot show at thumbnail size, which
- * is why every other route still draws one. The homepage is the exception: its
- * hero IS the pitch, the headline is already set at a size that survives being
- * shrunk, and the logo, the promise and the call to action are in one frame.
- * Rebuilding that in Satori would be a worse copy of something we already have.
+ * This used to be a photograph of the live hero, re-shot by a Playwright
+ * script whenever the hero changed. A photo only earns its place over a
+ * drawn card when it shows something the drawing can't, and at the size a
+ * chat app actually renders a preview -- well under 200px wide -- a hero
+ * screenshot reduces to a smear of colour with none of its own words
+ * legible anyway. The mark alone still reads at that size, and it doesn't
+ * go stale the next time the hero's copy or backdrop changes.
  *
- * It is captured at exactly 1200x630, so the hero composes itself for the card
- * rather than being cropped into it.
- *
- * IT GOES STALE. That is the cost, and the mitigation is that it is
- * reproducible: `node scripts/shoot-og-card.mjs` re-shoots it against a local
- * production build. Re-run it whenever the hero changes.
+ * `icon-color.svg` is the one mark that carries both brand colours, navy
+ * and orange, so it goes on white here rather than repeating the navy
+ * ground the mark already sits on everywhere else on the site.
  */
 export const alt = `${SITE_NAME}: creative and digital agency`;
 export const size = OG_SIZE;
-export const contentType = "image/jpeg";
+export const contentType = OG_CONTENT_TYPE;
+
+let markCache: string | null = null;
+const markDataUri = () => {
+  if (markCache) return markCache;
+  const svg = fs.readFileSync(path.join(process.cwd(), "public", "brand", "icon-color.svg"));
+  markCache = `data:image/svg+xml;base64,${svg.toString("base64")}`;
+  return markCache;
+};
+
+/* The mark's own viewBox is 904x944, close to square but not quite -- the
+   height drives the size and the width follows that ratio so the mark is
+   never stretched. Held to 440px tall against a 630px-tall canvas so a
+   square crop taken from the centre (what several chat apps do) still
+   shows the whole mark with room around it. */
+const MARK_HEIGHT = 440;
+const MARK_WIDTH = Math.round((904 / 944) * MARK_HEIGHT);
 
 export default async function Image() {
-  const file = fs.readFileSync(path.join(process.cwd(), "public", "og", "home-card.jpg"));
-  return new Response(new Uint8Array(file), {
-    headers: {
-      "Content-Type": "image/jpeg",
-      "Cache-Control": "public, immutable, no-transform, max-age=31536000",
-    },
-  });
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#ffffff",
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={markDataUri()} alt="" width={MARK_WIDTH} height={MARK_HEIGHT} />
+      </div>
+    ),
+    OG_SIZE,
+  );
 }
