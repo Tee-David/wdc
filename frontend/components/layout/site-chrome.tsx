@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import ReactDOM from "react-dom";
 import SmoothScrollLoader from "@/components/ui/smooth-scroll-loader";
 import SmoothCursorLoader from "@/components/ui/smooth-cursor-loader";
 import JotformAgent from "@/components/agent/jotform-agent";
@@ -24,7 +25,26 @@ import UserWay from "@/components/ui/userway";
  */
 export default function SiteChrome() {
   const path = usePathname();
+
   if (path.startsWith("/admin") || ["/login", "/forgot-password", "/reset-password"].includes(path)) return null;
+
+  /* OPEN THE SOCKETS THE CHAT IS ABOUT TO NEED, WITHOUT TOUCHING THE CHAT.
+     Lighthouse reported no preconnected origins at all, so the embed pays
+     DNS, TCP and TLS in series on three separate hosts after the document has
+     already parsed: `cdn.jotfor.ms` for the loader, `www.jotform.com` for the
+     runtime it appends, and `files.jotform.com` for the avatar. Warming them
+     changes nothing about how or when the widget loads; it only removes the
+     handshake from the critical path.
+
+     NO `crossOrigin` ON PURPOSE. A preconnect is keyed on the connection's
+     credentials mode, so hinting an anonymous connection for a script that is
+     fetched WITHOUT `crossorigin` opens a second socket nobody uses and
+     leaves the real one cold. None of these three requests are CORS
+     requests. Done here rather than in `jotform-agent.tsx` because that file
+     is the owner's to decide about; this is our own chrome. */
+  ReactDOM.preconnect("https://cdn.jotfor.ms");
+  ReactDOM.preconnect("https://www.jotform.com");
+  ReactDOM.preconnect("https://files.jotform.com");
 
   return (
     <>
