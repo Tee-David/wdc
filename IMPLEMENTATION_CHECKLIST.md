@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **122 open** (11 of them in progress), **278 done**.
+At last update: **122 open** (11 of them in progress), **279 done**.
 
 ---
 
@@ -427,6 +427,37 @@ with the rest of section 4's content and settings work.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-15, the homepage link-preview card is the mark, not a screenshot
+
+- [x] **The homepage's `og:image` was a photograph of the live hero,
+  re-shot by `scripts/shoot-og-card.mjs` whenever the hero changed.**
+  Asked to swap it for the two-colour brand mark (navy and orange) on a
+  white ground instead: at the size a chat app actually renders a link
+  preview, well under 200px wide, a hero screenshot reduces to a smear of
+  colour with none of its own words legible, while the mark itself still
+  reads at that size, and stops going stale every time the hero's copy or
+  backdrop changes. `app/opengraph-image.tsx` now draws
+  `public/brand/icon-color.svg` centred on white with `next/og`'s
+  `ImageResponse`, the same renderer every other route's card already uses
+  through `lib/og.tsx`, rather than serving a static JPEG off disk.
+- [x] **Sized so it reads at any crop a preview surface takes.** The
+  mark's own viewBox (904x944) sets the width from a fixed 440px height
+  rather than a fixed width, so it is never stretched off its true ratio;
+  440 of the canvas's 630px height leaves 95px of white above and below,
+  comfortably inside the square crop several chat apps take from the
+  centre of a 1200x630 image, and the same margin holds on the sides of
+  that crop too.
+- [x] **The screenshot approach's own supporting files went with it**:
+  `scripts/shoot-og-card.mjs` (the Playwright re-shoot script) and
+  `public/og/home-card.jpg` (the JPEG it produced) are both deleted rather
+  than left as dead code now that nothing reads either. Every other
+  route's card, drawn from `lib/og.tsx`'s shared `ogCard()`, is untouched.
+- [x] **Verified against a live dev server**: `GET /opengraph-image`
+  returns a 200 PNG with the mark centred on white as designed (checked by
+  eye against the rendered file), and `/about`, `/services`, `/work`,
+  `/contact`, `/blog` and `/legal`'s own `opengraph-image` routes still
+  return 200, unaffected. `npm run build` completes with exit 0.
 
 ## Closed 2026-09-15, the last of the faint blue description text goes white in dark mode
 
