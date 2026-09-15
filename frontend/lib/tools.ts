@@ -76,7 +76,7 @@ export const FREE_TOOLS: FreeTool[] = [
     href: "/tools/ai-cost",
     title: "What will an AI feature cost to run?",
     blurb:
-      "Volume in, naira a month out. The same feature priced across eight models from Anthropic, OpenAI and Google, with what moves the bill — and a plain word about when ordinary code is the better answer.",
+      "Volume in, naira a month out. The same feature priced across eight models from Anthropic, OpenAI and Google, with what moves the bill, and a plain word about when ordinary code is the better answer.",
     action: "Price a feature",
     short: "AI cost calculator",
     icon: "Sparkles",
@@ -87,7 +87,7 @@ export const FREE_TOOLS: FreeTool[] = [
     href: "/tools/seo",
     title: "Why can't anyone find your website?",
     blurb:
-      "Ten things Google reads off a page — title, description, headings, indexing, canonical, sharing tags, alt text — checked in about a second, with what the page costs a Nigerian visitor in naira beside them. The full Lighthouse report follows by email.",
+      "Ten things Google reads off a page: title, description, headings, indexing, canonical, sharing tags, alt text, checked in about a second, with what the page costs a Nigerian visitor in naira beside them. The full Lighthouse report follows by email.",
     action: "Check a page",
     short: "SEO snapshot",
     icon: "Gauge",

@@ -65,7 +65,7 @@ export default function SeoToolPage() {
             </nav>
             <h1>Why can&rsquo;t anyone find your website?</h1>
             <p className="pv-lede">
-              Ten things Google reads off a page, checked in about a second — and what
+              Ten things Google reads off a page, checked in about a second, and what
               that page costs the person loading it, in naira. The full Lighthouse
               report follows by email if you want it.
             </p>
@@ -88,13 +88,13 @@ export default function SeoToolPage() {
               <li>
                 <b>It reads one page, not a site.</b> One fetch of the address you give
                 us, exactly as a crawler would take it. It knows nothing about your
-                other pages, your links or whether Google has indexed anything — and
+                other pages, your links or whether Google has indexed anything, and
                 anything claiming otherwise from a single URL is guessing at you.
               </li>
               <li>
                 <b>Page weight is money here.</b> Everywhere else it is argued about in
                 kilobytes. In Nigeria the person loading your site is paying for every
-                byte of it on a bundle, so the same number is naira — and a heavy page
+                byte of it on a bundle, so the same number is naira, and a heavy page
                 is a page that charges people to look at it.
               </li>
               <li>

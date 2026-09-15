@@ -120,7 +120,7 @@ export const JOBS: Job[] = [
     label: "Summarising documents",
     inWords: 2_000,
     outWords: 200,
-    hint: "Reads a lot, writes a little — which is the cheap shape.",
+    hint: "Reads a lot, writes a little, which is the cheap shape.",
   },
   {
     key: "classify",
@@ -134,7 +134,7 @@ export const JOBS: Job[] = [
     label: "Drafting copy",
     inWords: 300,
     outWords: 700,
-    hint: "Writes more than it reads — which is the dear shape, because output costs several times input.",
+    hint: "Writes more than it reads, which is the dear shape, because output costs several times input.",
   },
 ];
 
@@ -201,7 +201,7 @@ export function reading(usage: Usage, lines: Line[]) {
   if (usage.runs === 0) return "Put a volume in and the monthly figures appear.";
 
   if (dearest.naira < 5_000) {
-    return `Even on the dearest model this is ${Math.round(dearest.naira).toLocaleString("en-NG")} naira a month. At this volume the model bill is not the thing to think about — the build is.`;
+    return `Even on the dearest model this is ${Math.round(dearest.naira).toLocaleString("en-NG")} naira a month. At this volume the model bill is not the thing to think about: the build is.`;
   }
 
   /* THE RATIO, NOT THE RANGE AGAIN. The two figures are already the largest
