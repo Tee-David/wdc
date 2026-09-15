@@ -42,8 +42,39 @@
      fallback was the real value, and darkening the token in one file would
      have fixed the marketing pages and left the chrome behind. */
   --accent-ink: #b64800;
+
+  /* ==========================================================================
+     THE TWO BUTTONS, AT THE ROOT, so every control on the site can reach them.
+
+     THE PAIR IS THE HOMEPAGE HERO'S PAIR. "Let's Talk" is the primary: the
+     ground's strong tone filled, with the ground's weak tone as its label.
+     "Explore our work" is the secondary: the same two colours the other way
+     round. Each one hovers into what the other one is, so a row of them always
+     shows both halves and neither hover state can be mistaken for the button
+     beside it.
+
+     NAVY AND ORANGE ARE STILL THE BRAND, and nothing here changes that. They
+     carry the bands, the heroes, the icon chips, the rules, the eyebrows and
+     the accents in type. What they are not is a button FILL, and the reason is
+     measured rather than stylistic: a filled control has to clear 3:1 against
+     what it sits on (1.4.11), and orange on paper is 2.8:1 while navy on the
+     dark theme's own page is 1.15:1. Both are buttons you cannot see the edge
+     of. Black and white against each other is 21:1 on every ground we own.
+
+     WHY AT `:root` AND NOT ON `.pv`. They lived on `.pv`, which is the
+     marketing scope, so the header, the hero, the footer and the 404 page --
+     every one of them a place with buttons -- could not see them and each
+     wrote its own colours by hand. That is how the site ended up with an
+     orange onboarding button, a navy-and-orange pair on the 404 and a hero
+     that agreed with neither. One declaration here, flipped for dark, and
+     `preview.css` still overrides the pair for the dark surfaces INSIDE a
+     light page (the navy band, the CTA card, the heroes, the footer). */
+  --btn-fill: #000;
+  --btn-ink: #fff;
 }
 
+/* THE WHOLE DARK THEME IS A DARK GROUND, so the pair inverts with it. Stated
+   here rather than in each component, which is the entire point of a token. */
 .dark {
   --background: #030318;
   --foreground: #f1f2ff;
@@ -54,6 +85,65 @@
   --logo-ink: #ffffff;
   /* On near-black, #ff6500 is 6.9:1 and needs no darkening. */
   --accent-ink: #ff6500;
+  --btn-fill: #fff;
+  --btn-ink: #000;
+}
+
+/* --------------------------------------------------------------------------
+   THE PAIR AS TWO CLASSES, colour only.
+
+   Geometry stays where it is. The hero's buttons are pill-shaped with a shadow
+   and a lift; the header's is smaller and pulses; the 404's wraps its label
+   over two lines. None of that belongs in a shared rule, and forcing it there
+   is how a design system starts fighting the pages that use it. What DOES have
+   to be shared is which of the two colours a button takes and what it does on
+   hover -- so that is all these two carry.
+
+   USED BY THE HAND-ROLLED ONES: the hero, the header CTA, and anything else
+   written in Tailwind or in its own stylesheet. `.pv-btn--accent` and
+   `.pv-btn--light` in preview.css say exactly the same thing for the marketing
+   components, and `tests/button-colours.spec.ts` audits every one of them
+   together in both themes.
+
+   A CALL SITE MUST NOT ALSO SET `bg-*` OR `text-*`. Tailwind's utilities and
+   these classes are both one class deep, so which one wins comes down to
+   stylesheet order rather than intent. Remove the utility, keep the class. */
+.btn-primary {
+  background: var(--btn-fill);
+  color: var(--btn-ink);
+  border-color: var(--btn-fill);
+}
+.btn-primary:hover {
+  background: var(--btn-ink);
+  color: var(--btn-fill);
+  border-color: var(--btn-fill);
+}
+
+/* The secondary is SOLID, not an outline, and that is the change the homepage
+   hero made law. An outline is a third thing on a page that already has two;
+   filled in the opposite tone it is unmistakably the same family as the
+   primary, it reads at a glance on a photograph, and -- the part that matters
+   on paper -- its border is the primary's fill, so the edge is 21:1 against
+   any ground this site puts it on even where the fill matches the page. */
+.btn-secondary {
+  background: var(--btn-ink);
+  color: var(--btn-fill);
+  border-color: var(--btn-fill);
+}
+.btn-secondary:hover {
+  background: var(--btn-fill);
+  color: var(--btn-ink);
+  border-color: var(--btn-fill);
+}
+
+/* THE HERO IS A DARK GROUND IN BOTH THEMES, because it is a photograph rather
+   than a theme surface: the backdrop cycles through six pictures under a scrim
+   whichever theme the reader has chosen. So its two buttons take the dark
+   ground's pair in both, and say so here rather than in six Tailwind classes
+   that have to agree with each other by hand. */
+.hero-cta {
+  --btn-fill: #fff;
+  --btn-ink: #000;
 }
 
 @theme inline {

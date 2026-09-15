@@ -213,9 +213,17 @@ main.pv {
 
    On paper the primary is a black fill with a white label. On the navy band,
    the navy CTA card, the navy hero and the whole of the dark theme it is a
-   white fill with a black label. The secondary is the outline of whichever
-   the primary is not, and fills in on hover. Orange is not a button fill
-   anywhere any more; it goes back to being an accent.
+   white fill with a black label. The secondary is the same two colours the
+   other way round -- SOLID, not an outline -- and the two trade places on
+   hover. Orange is not a button fill anywhere any more; it goes back to being
+   an accent, which is what it is everywhere else on the site.
+
+   THE PAIR IS THE HOMEPAGE HERO'S PAIR, and that is now the whole definition:
+   "Let's Talk" filled in the ground's strong tone, "Explore our work" filled
+   in its weak one, each hovering into what the other is. The tokens themselves
+   moved to `:root` in globals.css so the header, the hero, the footer and the
+   404 can reach them too; what stays here is the marketing set's variants and
+   the list of dark surfaces that flip the pair.
 
    WHY IT IS A TOKEN AND NOT A VARIANT PER SECTION. A filled control has to
    clear 3:1 against what it sits ON (1.4.11), and the old scheme kept losing
@@ -230,10 +238,8 @@ main.pv {
    the same 21:1 as the label, on every ground, with no extra chrome. A dark
    surface sets two custom properties and every button on it follows.
    ========================================================================== */
-.pv {
-  --btn-fill: #000;
-  --btn-ink: #fff;
-}
+/* The light-ground pair is declared at `:root` and inverted under `.dark`; see
+   globals.css. Nothing needs restating here. */
 /* Every dark ground on the site, in one place. A surface added later gets
    correct buttons by joining this list rather than by writing its own. */
 .pv .pv-sec--band,
@@ -282,14 +288,21 @@ html:not(.dark) .pv .pv-card {
   border-color: var(--btn-fill);
 }
 
-/* SECONDARY: the outline of the same pair, in both the names the site uses for
-   it. `--light` was an orange ring on a band and `--line` an ink outline on
-   paper; they were two answers to one question and now give the same one. The
-   stroke is the primary's fill, so it is the same 21:1 against the ground and
-   needs no measured alpha to stay visible. */
+/* SECONDARY: the primary inverted, in both the names the site uses for it.
+   `--light` was an orange ring on a band and `--line` an ink outline on paper;
+   they were two answers to one question and now give the same one.
+
+   IT IS FILLED NOW, WHERE IT USED TO BE TRANSPARENT. On white paper that is
+   the same picture -- a white fill on white paper is invisible and the black
+   edge does the work either way -- and on everything else it is the
+   difference between a button and a ring: on the navy band, on the hero
+   photograph and on the CTA card, a solid black pill beside a solid white one
+   reads as a pair, where an outline reads as a third kind of thing. The border
+   is still the primary's fill, so the edge is 21:1 against any ground here
+   even in the cases where the fill matches the page exactly. */
 .pv-btn--light, .pv .pv-btn--light,
 .pv-btn--line, .pv .pv-btn--line {
-  background: transparent; color: var(--btn-fill);
+  background: var(--btn-ink); color: var(--btn-fill);
   border-color: var(--btn-fill);
 }
 .pv-btn--light:hover, .pv .pv-btn--light:hover,
@@ -1125,30 +1138,43 @@ html:not(.dark) .pv .pv-card {
    its own colour and inherited the panel's dark ink instead. The fix is the
    raised specificity below: the label has to come from --on-accent, not from
    whatever the surrounding panel happens to set. */
+/* THE SITE'S PAIR, AT THE SIZE OF A CHIP. These two were the last labelled
+   buttons on the marketing pages still filled with a brand colour: orange
+   going navy on hover, with an outline beside it. Small is not a licence --
+   they are a primary and a secondary sitting on a work card, and a reader who
+   meets them after the hero should meet the same two colours. */
 .pv-modal__open, .pv .pv-modal__open {
   flex: none; display: inline-flex; align-items: center; gap: 6px;
   padding: 7px 14px; border-radius: 999px;
-  background: var(--accent); color: var(--on-accent);
+  border: 1.5px solid var(--btn-fill);
+  background: var(--btn-fill); color: var(--btn-ink);
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .78rem; font-weight: 700; white-space: nowrap;
   transition: background-color .2s ease, color .2s ease, transform .16s cubic-bezier(.16, 1, .3, 1);
 }
-/* The secondary of the pair. Our case study is the accent one; the client's
-   live site sits beside it as an outline so the order of the two reads as an
-   order rather than as two equal choices. */
+/* The secondary of the pair. Our case study is the filled one; the client's
+   live site sits beside it in the opposite tone, so the order of the two reads
+   as an order rather than as two equal choices. */
 .pv-modal__open--ghost, .pv .pv-modal__open--ghost {
-  background: transparent; color: var(--ink);
-  border: 1.5px solid var(--rule);
+  background: var(--btn-ink); color: var(--btn-fill);
+  border: 1.5px solid var(--btn-fill);
 }
 .pv-modal__open--ghost:hover, .pv .pv-modal__open--ghost:hover {
-  border-color: var(--ink); background: transparent; color: var(--ink);
+  background: var(--btn-fill); color: var(--btn-ink); border-color: var(--btn-fill);
 }
 
 .pv-modal__open svg {
   width: 13px; height: 13px; fill: none; stroke: currentColor;
   stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
 }
-.pv-modal__open:hover, .pv .pv-modal__open:hover { background: var(--band); color: #fff; transform: translateY(-1px); }
+.pv-modal__open:hover, .pv .pv-modal__open:hover {
+  background: var(--btn-ink); color: var(--btn-fill); transform: translateY(-1px);
+}
+/* The ghost's own hover is declared above and must not be undone by the rule
+   before it, which matches every `.pv-modal__open`. */
+.pv-modal__open--ghost:hover, .pv .pv-modal__open--ghost:hover {
+  background: var(--btn-fill); color: var(--btn-ink);
+}
 @media (max-width: 460px) { .pv-modal__open { padding: 7px 10px; font-size: 0; gap: 0; } }
 
 .pv-modal__x {

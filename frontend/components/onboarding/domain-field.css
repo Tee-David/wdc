@@ -161,7 +161,7 @@
 }
 .pv .dm__yes { background: var(--btn-fill); color: var(--btn-ink); }
 .pv .dm__yes:hover { background: var(--btn-ink); color: var(--btn-fill); }
-.pv .dm__no { background: transparent; color: var(--btn-fill); }
+.pv .dm__no { background: var(--btn-ink); color: var(--btn-fill); }
 .pv .dm__no:hover { background: var(--btn-fill); color: var(--btn-ink); }
 
 .pv .dm__reopen { margin: 0; font-size: .86rem; line-height: 1.5; color: var(--muted); }
@@ -197,7 +197,7 @@
   display: inline-flex; align-items: center; justify-content: center;
   min-height: 36px; padding: .35rem .85rem;
   border-radius: 999px; border: 1px solid var(--btn-fill);
-  background: transparent; color: var(--btn-fill);
+  background: var(--btn-ink); color: var(--btn-fill);
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .82rem; font-weight: 600; cursor: pointer;
   transition: background-color .2s ease, color .2s ease;

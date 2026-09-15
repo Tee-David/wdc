@@ -423,18 +423,25 @@ export function Hero() {
         >
           <Link
             href="#pv-contact"
-            /* WHITE FILL, BLACK LABEL, like the header CTA beside it. It was an
-               orange fill, which the button rule forbids outright, and it sits on
-               the navy hero where white is the primary.
+            /* THE SITE'S PRIMARY BUTTON, and this is the one every other
+               primary on the site is now measured against.
 
-               THE TWO BUTTONS ARE ONE PAIR, MIRRORED. This one starts white and
-               turns black; "Explore our work" beside it starts black and turns
-               white. Each one hovers into what the other one is, so the row
-               always shows both halves of the pair and neither hover state can
-               be mistaken for the button next to it. Same colours in both
-               themes: the hero is a photograph either way, not a theme surface,
-               so nothing here follows --btn-fill. */
-            className="group inline-flex w-full items-center justify-center gap-2 rounded-full border border-white bg-white px-7 py-3.5 sm:w-auto text-sm font-semibold text-black shadow-[0_12px_34px_rgba(0,0,26,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:border-black hover:bg-black hover:text-white hover:shadow-none active:translate-y-0"
+               THE TWO HERE ARE ONE PAIR, MIRRORED. This one is filled in the
+               ground's strong tone with the weak tone as its label; "Explore
+               our work" beside it is the same two colours the other way round.
+               Each hovers into what the other one is, so the row always shows
+               both halves and neither hover state can be mistaken for the
+               button next to it.
+
+               THE COLOURS COME FROM `.btn-primary`, not from utilities. They
+               were `bg-white text-black` written out here, which is right on
+               this hero and is also how a pair like this drifts: the header
+               said the same thing in its own words, the 404 said something
+               else entirely in orange and navy, and nothing connected them.
+               The hero section sets `--btn-fill: #fff` on itself because it is
+               a dark photograph in both themes -- see `.hero-cta` in
+               globals.css -- and the class does the rest. */
+            className="hero-cta group btn-primary inline-flex w-full items-center justify-center gap-2 rounded-full border px-7 py-3.5 sm:w-auto text-sm font-semibold shadow-[0_12px_34px_rgba(0,0,26,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-none active:translate-y-0"
           >
             Let&apos;s Talk
             <svg
@@ -451,13 +458,13 @@ export function Hero() {
           </Link>
           <Link
             href="#pv-work"
-            /* THE MIRROR OF THE BUTTON ABOVE: black fill, white label, and it
-               hovers into the white one. The navy hover it used to carry was
-               the last #000065 fill left on a button anywhere on the site --
-               the pair is black and white now, in both themes, and the edge is
-               drawn in the label's colour so the black fill still has a visible
-               boundary against a dark photograph. */
-            className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white bg-black text-white px-7 py-3.5 sm:w-auto text-sm font-semibold shadow-[0_8px_26px_rgba(0,0,0,0.12)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:text-black hover:border-black active:translate-y-0"
+            /* THE SITE'S SECONDARY BUTTON: the mirror of the one above, and
+               solid rather than an outline. The navy hover it used to carry
+               was the last #000065 fill on a button anywhere on the site. Its
+               border is the primary's fill, which is what keeps a black pill
+               visible against a dark photograph -- the one case where the fill
+               alone would not carry an edge. */
+            className="hero-cta btn-secondary inline-flex w-full items-center justify-center gap-2 rounded-full border px-7 py-3.5 sm:w-auto text-sm font-semibold shadow-[0_8px_26px_rgba(0,0,0,0.12)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
           >
             Explore Our Work
           </Link>

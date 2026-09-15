@@ -105,12 +105,15 @@
 
 /* Back to the box, because answering once and stranding the reader is the
    fault the screenshot showed. */
+/* The secondary, filled rather than outlined -- see globals.css. It was
+   transparent, which on the paper these tools sit on looks the same and on
+   anything else read as a third kind of control. */
 .pv .tl__again {
   justify-self: start;
   display: inline-flex; align-items: center; gap: .45rem;
   min-height: 44px; padding: .55rem 1.1rem;
   border-radius: 999px; border: 1px solid var(--btn-fill);
-  background: transparent; color: var(--btn-fill);
+  background: var(--btn-ink); color: var(--btn-fill);
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .9rem; font-weight: 600; cursor: pointer;
   transition: background-color .2s ease, color .2s ease;

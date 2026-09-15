@@ -17,7 +17,12 @@
   cursor: pointer;
   transition: background .2s ease, color .2s ease, border-color .2s ease;
 }
-.tsb:hover { background: #000065; border-color: #000065; color: #fff; }
+/* THE SITE'S BUTTON COLOURS ON HOVER, not a navy fill. The disc inside it
+   stays navy -- an icon chip is exactly where the brand colour belongs -- but
+   the fill of a control is decided by the ground, and navy on the dark theme's
+   own menu panel is 1.15:1. The panel is `var(--background)` in both themes,
+   so the root pair is already the right one here. */
+.tsb:hover { background: var(--btn-fill); border-color: var(--btn-fill); color: var(--btn-ink); }
 .tsb:focus-visible { outline: 2px solid var(--accent, #ff6500); outline-offset: 3px; }
 
 /* The glyph sits in its own navy disc, so the button reads as "a control with
@@ -28,5 +33,5 @@
   width: 1.85rem; height: 1.85rem; border-radius: 50%;
   background: #000065; color: #fff;
 }
-.tsb:hover .tsb__ic { background: #fff; color: #000065; }
+.tsb:hover .tsb__ic { background: var(--btn-ink); color: var(--btn-fill); }
 .tsb__ic svg { position: absolute; width: 1rem; height: 1rem; }

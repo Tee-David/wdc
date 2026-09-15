@@ -238,5 +238,7 @@
   color: var(--ink); font: inherit; font-size: .82rem; font-weight: 600;
   cursor: pointer;
 }
-.rs__link button:hover { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+/* The site's secondary on hover rather than an orange fill; orange stays the
+   accent it is everywhere else on this form. */
+.rs__link button:hover { background: var(--btn-fill); border-color: var(--btn-fill); color: var(--btn-ink); }
 .rs__or { margin: 1rem 0 .5rem; font-size: .85rem; color: var(--muted); }
