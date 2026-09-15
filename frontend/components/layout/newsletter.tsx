@@ -154,16 +154,17 @@ export function Newsletter() {
                  the rule are white at low alpha: they sit correctly on either
                  without a second palette to keep in step.
 
-                 THE BUTTON LABEL IS BLACK. White on #ff6500 measures 2.95:1
-                 and fails even the 3:1 allowed for large text; black on it is
-                 7.11:1. This is the site's rule, pinned by
-                 tests/button-colours.spec.ts. */
+                 THE BUTTON IS THE SITE'S PRIMARY: black fill, white label, at
+                 21:1. It used to be an orange fill with a black label, which
+                 was the old primary. The fill needs no extra edge here because
+                 it sits on the bar's own translucent panel over navy, not on
+                 the navy itself. */
               backgroundColor="rgba(255, 255, 255, 0.06)"
               borderColor="rgba(255, 255, 255, 0.20)"
               textColor="#ffffff"
               placeholderColor="rgba(238, 240, 255, 0.58)"
-              buttonColor="#ff6500"
-              buttonTextColor="#000000"
+              buttonColor="#000000"
+              buttonTextColor="#ffffff"
               iconColor="#ff6500"
               shadowSize="sm"
               shadowColor="#000018"
