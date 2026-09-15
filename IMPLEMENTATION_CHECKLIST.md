@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **127 open** (11 of them in progress), **253 done**.
+At last update: **126 open** (11 of them in progress), **254 done**.
 
 ---
 
@@ -73,10 +73,6 @@ Kept at the top because these came from someone looking at the live site, and
 that is the shortest feedback loop there is.
 
 - [ ] Truehost SMTP takes about 23 seconds just to authenticate, measured from two networks. The contact form now answers in half that by sending the receipt after the response, but the real fix is a transactional provider, which would also give proper SPF and DKIM.
-
-## 1. Public frontend
-
-- [ ] `components/services/services-body.tsx` is now unreferenced: `/services` is a hub and each service renders through `service-detail.tsx`. Delete it once the new pages have been live long enough to be sure nothing is missed, and move anything worth keeping (the filter chips, the in-page nav, the brand rail) onto the hub first.
 
 ## 1A. Client onboarding experience
 
@@ -837,3 +833,10 @@ the count at the top wrong again.
 - [x] `lib/blog.ts` REMAINS THE SOURCE and the fallback until the editor ships. It is still the only way to write a post, so the seed copies it in, and if the database is unreachable at build time the site builds from the file rather than failing. Remove the fallback in the same change that ships the editor, not before.
 - [x] `scripts/seed-blog.mjs` is dry by default and needs `--commit`, upserts on slug so re-running is safe, never deletes (it cannot tell "removed from the fixture" from "written in the editor"), and REFUSES TO RUN if `lib/blog.ts` contains an em dash, so the copy cannot drift into a tidied database copy of itself. Seeded: 6 added, 0 updated.
 - [x] A fault found on the way: the blog index's JSON-LD was a module-level constant reading `BLOG_POSTS`. Correct while the fixture was the only source, and a quiet lie once the page read the table, since the structured data would describe the file while the cards described the database. It takes the rendered list as an argument now.
+
+
+## Moved out of Open, 2026-09-15
+
+### (no heading)
+
+- [x] `components/services/services-body.tsx` deleted, 490 lines, and NOTHING was salvaged onto the hub -- deliberately, having checked each of the three things the item named. The brand rail already lives on `service-detail.tsx`, per service, so it was never at risk. The filter chips and the in-page ticker were built for the ONE-LONG-PAGE version: chips filtered six sections on a single page, and the ticker jumped between them. Six separate pages and a hub of cards make both obsolete by design rather than lost by accident. Verified unreferenced first: the only remaining mentions anywhere were three comments in `service-detail.tsx` explaining why it exists instead. 54 lines of orphaned `.sv-chip` and `.sv-jump` CSS went with it, including a hero/ticker note describing a 85/15 viewport split that no longer has a ticker to split with, and the media query it left empty. This also retires the two undeclared `quality={74}` call sites recorded under the images fix, which were left alone at the time precisely because this file was queued for deletion.
