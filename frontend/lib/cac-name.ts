@@ -156,18 +156,15 @@ export function readName(raw: string, entity: EntityKind): NameReading {
       match: suffix.canonical,
       title: `A business name cannot end in ${suffix.canonical}`,
       detail:
-        `"${suffix.canonical}" says the business is an incorporated company. If you ` +
-        "want that ending, register a company instead. If you want a business name, " +
-        "drop it and the rest of the name is fine to file.",
+        `Only a registered company may end in ${suffix.canonical}. Drop it, or ` +
+        "register a company instead.",
     });
   }
   if (entity === "company" && !suffix) {
     findings.push({
       kind: "form",
-      title: "A company name has to end in Limited, Plc or Unlimited",
-      detail:
-        "That ending is part of the registered name rather than decoration. Most " +
-        "people want Limited. Nothing is wrong with your name, it just needs the ending.",
+      title: "Add Limited, Plc or Unlimited to the end",
+      detail: "Nothing is wrong with the name. It just needs the ending. Most people use Limited.",
     });
   }
 
@@ -188,10 +185,10 @@ export function readName(raw: string, entity: EntityKind): NameReading {
          A straight " renders as a slanted glyph in Outfit and made the opening
          quote look like a closing one. */
       title: `\u201C${titleCase(entry.word)}\u201D needs the Commission\u2019s consent`,
-      detail:
-        `Not a refusal: plenty of registered Nigerian companies carry it. But ${entry.why}, ` +
-        "so the Commission reviews it by hand instead of approving it automatically, and " +
-        "that takes longer. We can take you through it, or you can pick a name without it.",
+      /* SHORT. This used to run to 46 words and read like a letter from a
+         solicitor. The reader needs three facts: it is allowed, it is slower,
+         here is why. Everything else was us explaining ourselves. */
+      detail: `Allowed, but ${entry.why}, so CAC checks it by hand and it takes longer.`,
     });
   }
 
@@ -207,9 +204,7 @@ export function readName(raw: string, entity: EntityKind): NameReading {
     findings.push({
       kind: "note",
       title: "That is a very short name",
-      detail:
-        "Short names are the most contested, so this one is more likely than most to " +
-        "collide with something already on the register. Worth having a second choice ready.",
+      detail: "Short names get taken first. Worth having a second choice ready.",
     });
   }
 

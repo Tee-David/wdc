@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle, Check, Info, Search, ShieldQuestion } from "lucide-react";
+import { AlertCircle, Check, Copy, Info, Search, ShieldQuestion } from "lucide-react";
 import Link from "next/link";
 import { NewTab } from "@/components/ui/new-tab";
 import { readName, looksLikeName, type EntityKind, type NameReading } from "@/lib/cac-name";
@@ -68,6 +68,7 @@ export default function NameChecker() {
   /* What was actually checked, so the results never describe a name the
      visitor has since edited in the box above them. */
   const [checked, setChecked] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,7 +84,20 @@ export default function NameChecker() {
 
   /* Editing anything invalidates the answer rather than leaving a stale one on
      screen under a different name. */
-  const reset = () => { setReading(null); setError(""); };
+  const reset = () => { setReading(null); setError(""); setCopied(false); };
+
+  /* Copy, then say so for two seconds. A copy button that gives no feedback
+     gets pressed three times and the reader still does not know it worked. */
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(checked);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* A browser that refuses the clipboard is not an error worth a message:
+         the name is still in the box above, ready to be selected by hand. */
+    }
+  };
 
   return (
     <div className="tl">
@@ -158,9 +172,8 @@ export default function NameChecker() {
 
           {reading.clear ? (
             <p className="tl__note">
-              No word in it needs the Commission&rsquo;s consent, and the ending
-              matches what you are registering. That is the part a list can
-              answer.
+              No restricted words, and the ending is right for what you are
+              registering.
             </p>
           ) : (
             <ul className="tl__list">
@@ -181,46 +194,40 @@ export default function NameChecker() {
             </ul>
           )}
 
-          {/* SAID EVERY TIME, PASS OR FAIL. The commonest way a checker like
-              this misleads somebody is by being right about the small half and
-              silent about the big one. */}
-          <div className="tl__gap">
-            <h3>What this has not told you</h3>
-            <p>
-              <b>Whether somebody already has it.</b> That lives in the register,
-              and the Commission publishes a search page for people rather than
-              anything a website may query. So we have not looked, and we will not
-              pretend we have.
-            </p>
-            <p>
-              <b>Whether they will accept it.</b> The Commission can refuse a name
-              that is free today for being too close to one already registered, or
-              for misleading people about what the business does. That is their
-              judgement, and no checker anywhere can promise it.
-            </p>
-            <div className="tl__gapActs">
-              {/* SHORT ENOUGH FOR ONE LINE AT 320px. "Search the register
-                  yourself" wrapped on a phone, and a two-line button reads as
-                  a mistake. `.pv-btn` already draws its own arrow, so the
-                  external-link glyph beside it was a second arrow saying the
-                  same thing; `NewTab` carries the "opens in a new tab" meaning
-                  for a screen reader without adding a third. */}
+          {/* STEP TWO, NOT A DISCLAIMER.
+
+              This was three paragraphs headed "What this has not told you",
+              explaining at length why we had not checked the register. All
+              true, and it read like a solicitor's letter on a page whose whole
+              job is to answer one question. The limitation has not changed;
+              the FRAMING has. "Here is the second step and here is the button"
+              is the same fact as "we did not do this", and it is the version
+              somebody can act on.
+
+              The copy button is the point of it. CAC's search takes a pasted
+              name, so two taps gets the reader a real answer rather than
+              leaving them to retype what they just typed. */}
+          <div className="tl__step">
+            <p className="tl__stepK">Step 2</p>
+            <h3>Is it already taken?</h3>
+            <p>Only CAC&rsquo;s register can say. Copy the name and search it there.</p>
+            <div className="tl__stepActs">
+              <button type="button" className="pv-btn pv-btn--accent" onClick={copy}>
+                {copied ? <><Check aria-hidden="true" /> Copied</> : <><Copy aria-hidden="true" /> Copy name</>}
+              </button>
               <a
                 className="pv-btn pv-btn--light"
                 href={CAC_SEARCH}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Search the register
+                Open CAC register
                 <NewTab />
               </a>
-              {/* Four words, because five wrapped at 320px. It also pairs
-                  better with the button beside it: search it yourself, or let
-                  us. */}
-              <Link className="pv-btn pv-btn--accent" href="/contact">
-                Let us file it
-              </Link>
             </div>
+            <p className="tl__stepAlt">
+              Rather we did it? <Link href="/contact">We check it and file it for you</Link>.
+            </p>
           </div>
         </div>
       )}
