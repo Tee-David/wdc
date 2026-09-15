@@ -114,6 +114,12 @@ export function looksLikeName(raw: string) {
   return value.length >= 2 && value.length <= 100 && /[a-z]/.test(value);
 }
 
+/** "building society" -> "Building Society". For display only; every match and
+    every comparison is done on the normalised lower-case form. */
+function titleCase(value: string) {
+  return value.replace(/(^|[\s-])([a-z])/g, (_, lead, ch) => lead + ch.toUpperCase());
+}
+
 function findSuffix(normalised: string) {
   for (const entry of SUFFIXES) {
     if (entry.pattern.test(normalised)) {
@@ -177,7 +183,11 @@ export function readName(raw: string, entity: EntityKind): NameReading {
     findings.push({
       kind: "consent",
       match: entry.word,
-      title: `"${entry.word}" needs the Commission's consent`,
+      /* Title-cased and in real typographic quotes, so it reads back as the
+         word sitting in THEIR name rather than as a row from a lookup table.
+         A straight " renders as a slanted glyph in Outfit and made the opening
+         quote look like a closing one. */
+      title: `\u201C${titleCase(entry.word)}\u201D needs the Commission\u2019s consent`,
       detail:
         `Not a refusal: plenty of registered Nigerian companies carry it. But ${entry.why}, ` +
         "so the Commission reviews it by hand instead of approving it automatically, and " +

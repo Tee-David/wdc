@@ -628,10 +628,15 @@
    down the left and the indent say "this follows from the question above"; the
    reveal gives the eye something to track instead of a jump cut.
    ========================================================================== */
+/* THE RULE STAYS, THE ORANGE GOES. This one is not a status marker: it is a
+   hierarchy device saying "this question followed from the one above", and the
+   indent would not read without something on the edge to indent from. A
+   neutral hairline says it just as well and stops it looking like a warning
+   about nothing. */
 .pv .ob__f--sub {
   margin-left: clamp(0px, 1.2vw, 14px);
   padding-left: clamp(12px, 1.6vw, 18px);
-  border-left: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-left: 2px solid var(--rule);
 }
 @media (prefers-reduced-motion: no-preference) {
   .pv .ob__f--sub { animation: ob-reveal .28s cubic-bezier(.16, 1, .3, 1) both; }
@@ -842,9 +847,15 @@
 .pv .ob__svcCard.is-on .ob__svcMark { opacity: 1; transform: none; }
 .pv .ob__svcMark svg { width: .95rem; height: .95rem; stroke-width: 3; }
 
+/* A PANEL, NOT A BAR. An orange rule down the left edge of a paragraph is the
+   house style of every generated component on the internet, and it was not
+   this site's: everything else that sets copy apart here does it with a
+   hairline all the way round on `--paper-2`. Same change as `.tl__find`,
+   `.pv-note` and `.doc__warn`. */
 .pv .ob__reassure {
-  margin: 1.4rem 0 1.8rem; padding: .9rem 1.1rem;
-  border-left: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  margin: 1.4rem 0 1.8rem; padding: .95rem 1.15rem;
+  border: 1px solid var(--rule); border-radius: 14px;
+  background: var(--paper-2);
   color: var(--muted); font-size: .92rem; line-height: 1.65;
 }
 

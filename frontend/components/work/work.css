@@ -571,7 +571,10 @@
    Caption selectors carry `.pv` to match `.pv .wk-quote figcaption` above,
    which is (0,2,1): a two-class selector here would lose to it however late
    it is declared. */
-.wk-quote--said { border-left-color: var(--accent); }
+/* Neutral, like the blog's blockquote. The rule beside a quote stays, because
+   that is typography; the orange went, because that was the part that read as
+   a status bar. */
+.wk-quote--said { border-left-color: var(--rule); }
 .pv .wk-quote--said blockquote::before { content: "\201C"; }
 .pv .wk-quote--said blockquote::after { content: "\201D"; }
 .pv .wk-quote--said figcaption { font-weight: 700; color: var(--ink); }

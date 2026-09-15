@@ -40,6 +40,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
        on the tool. Monthly because the page changes when the tool does, not
        when a registry answers differently. */
     { path: "/tools/domain", priority: 0.75, changeFrequency: "monthly" },
+    { path: "/tools/business-name", priority: 0.75, changeFrequency: "monthly" },
     { path: "/tools/email", priority: 0.75, changeFrequency: "monthly" },
     { path: "/about", priority: 0.7, changeFrequency: "yearly" },
     { path: "/contact", priority: 0.8, changeFrequency: "yearly" },
