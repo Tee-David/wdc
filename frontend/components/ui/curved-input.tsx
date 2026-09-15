@@ -123,7 +123,14 @@ const THEMES: Record<Theme, ThemePalette> = {
   }
 };
 
-interface Geometry {
+/**
+ * EXPORTED so that anything drawn ALONGSIDE the bar sits on the bar's own
+ * curve rather than on a second one that merely looks similar. The footer's
+ * helper line is drawn this way: it calls `buildGeometry` with the same
+ * arguments the bar does and reads points off the result, so the two cannot
+ * drift apart when the bend changes. See `curved-note.tsx`.
+ */
+export interface Geometry {
   straight: boolean;
   W: number;
   T: number;
@@ -139,7 +146,7 @@ interface Geometry {
 // Maps the flat coordinate space (u: 0..W along the bar, v: offset from the
 // centerline, positive down) onto a circular arc with the given sagitta
 // (`bend`, in px). Positive bend arches up, negative sags down, 0 is flat.
-const buildGeometry = (width: number, bend: number, thickness: number, pad: number): Geometry => {
+export const buildGeometry = (width: number, bend: number, thickness: number, pad: number): Geometry => {
   const W = width;
   const T = thickness;
   const s = Math.max(-W * 0.35, Math.min(bend, W * 0.35));
@@ -219,7 +226,7 @@ const bentRectPath = (g: Geometry, u0: number, u1: number, vTop: number, vBot: n
   ].join(' ');
 };
 
-const bentLinePath = (g: Geometry, u0: number, u1: number, v: number): string =>
+export const bentLinePath = (g: Geometry, u0: number, u1: number, v: number): string =>
   `M ${fmt(g, u0, v)} ${edgeSeg(g, u1, v, true)}`;
 
 const SELECTABLE_TYPES = ['text', 'search', 'tel', 'url', 'password'];
