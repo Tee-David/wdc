@@ -296,7 +296,12 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
           </Link>
           <Link
             href="/#pv-contact"
-            className="header-cta-pulse group hidden items-center gap-2 rounded-full bg-secondary px-5 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:-translate-y-0.5 hover:bg-black hover:text-white hover:shadow-[0_10px_30px_rgba(255,101,0,0.35)] active:translate-y-0 md:inline-flex"
+            /* WHITE FILL, BLACK LABEL. It was an orange fill, which is the one thing a
+               button on this site may never be: orange is an accent in type, icons,
+               chips and rules. This sits on the navy hero and on white further down
+               the page, so white with black type is the primary in both places and
+               the hover inverts it. See AGENTS.md. */
+            className="header-cta-pulse group hidden items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:-translate-y-0.5 hover:bg-black hover:text-white hover:shadow-[0_10px_30px_rgba(0,0,26,0.35)] active:translate-y-0 md:inline-flex"
           >
             {/* Not "Book a Strategy Call". That was carried over wholesale
                 when this header was rebuilt to match litchconsulting's, and it

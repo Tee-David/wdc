@@ -74,10 +74,10 @@ export default function DomainToolPage() {
               <i aria-hidden="true">/</i>
               <span>Domain checker</span>
             </nav>
-            <h1>Is your business name still free?</h1>
+            <h1>Is the domain name free?</h1>
             <p className="pv-lede">
-              One name, six endings, answered by the registries themselves. Free,
-              no sign-up, and nothing is bought here.
+              Type a name and we check six web addresses at once. Free, no
+              sign-up, and nothing is bought here.
             </p>
           </div>
         </section>
@@ -92,28 +92,31 @@ export default function DomainToolPage() {
           <div className="pv-wrap">
             <div className="pv-head">
               <span className="pv-eyebrow">How it works</span>
-              <h2 className="pv-mix">Asked of the registry, <b>not guessed</b></h2>
+              <h2 className="pv-mix">How we know, <b>and what we cannot know</b></h2>
             </div>
             <div className="tl__prose">
               <p>
-                Most free checkers look up whether a name has DNS records. That is
-                not the same question: plenty of registered domains are parked with
-                no records at all, so a name somebody already owns can look free.
-                This asks each registry directly, through the protocol registries
-                publish for exactly this purpose.
+                Most free checkers just ask whether a name has any web records.
+                That misses a lot. Plenty of addresses somebody already owns sit
+                empty with no records at all, so they look free when they are
+                not. We ask the registries who actually keep the list.
               </p>
               <p>
-                Where a registry does not answer, we say so instead of guessing.
-                Nigeria&rsquo;s does not currently publish a reliable lookup, so
-                <code> .ng</code> and <code>.com.ng</code> are usually the two we
-                confirm by hand. That is a real check by a person, not a brush-off.
+                When a registry does not answer, we say so rather than guess.
+                Nigeria&rsquo;s is unreliable right now, so <code>.ng</code> and{" "}
+                <code>.com.ng</code> are usually the two a person checks for you
+                by hand. That is a real check, not a brush-off.
               </p>
               <p>
-                A name is only yours once it is registered, and whatever we register
-                for you is registered in <strong>your</strong> name with your email
-                as the owner. Losing control of a domain is the most expensive thing
-                that happens to a small business online, and it is entirely
-                preventable at the start.
+                A name is only yours once it is registered. Somebody else can
+                take it tomorrow, so if you have found the one you want, it is
+                worth moving.
+              </p>
+              <p>
+                Anything we buy for you is registered in <strong>your</strong>{" "}
+                name, with your email as the owner. Losing control of a web
+                address is the most expensive thing that happens to a small
+                business online, and it is entirely avoidable at the start.
               </p>
             </div>
           </div>

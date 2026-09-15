@@ -62,13 +62,62 @@
 
 .pv .tl__list { margin: 0; padding: 0; list-style: none; display: grid; gap: .5rem; }
 
+/* A ROW WITH THREE PARTS, not two ends and a void. The ending chip holds the
+   left, the name takes whatever is left in the middle, and the verdict sits at
+   the right. `1fr` on the name is what stops the middle collapsing into empty
+   space, which is what a `space-between` flex row does the moment its two
+   children are narrow. */
 .pv .tl__item {
-  display: flex; flex-wrap: wrap; align-items: center;
-  justify-content: space-between; gap: .5rem 1rem;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center; gap: .5rem 1rem;
   padding: .8rem 1rem;
   border: 1px solid var(--rule); border-radius: 12px;
   background: var(--paper);
 }
+
+/* The ending, pulled out because it is the thing a reader compares across six
+   rows. Solid, like every other chip on the site. */
+.pv .tl__tld {
+  display: grid; place-items: center;
+  min-width: 4.4rem; padding: .4rem .6rem;
+  border-radius: 10px;
+  background: var(--paper-2); border: 1px solid var(--rule);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .82rem; font-weight: 700; letter-spacing: .01em;
+  color: var(--accent-ink);
+}
+.pv .tl__item--available .tl__tld { color: #16794a; }
+.pv .tl__item--taken .tl__tld { color: var(--muted); }
+.dark .pv .tl__item--available .tl__tld { color: #6ee7a8; }
+
+/* The ending repeats inside the name in a lighter weight, so the row reads as
+   one address rather than as a chip and a separate word. */
+.pv .tl__name b { font-weight: 500; color: var(--muted); }
+
+@media (max-width: 460px) {
+  /* The chip and the verdict share the top line, the name gets its own, and
+     nothing is squeezed to nine characters. */
+  .pv .tl__item { grid-template-columns: auto minmax(0, 1fr); }
+  .pv .tl__name { grid-column: 1 / -1; order: 2; }
+  .pv .tl__state { justify-self: end; }
+}
+
+/* Back to the box, because answering once and stranding the reader is the
+   fault the screenshot showed. */
+.pv .tl__again {
+  justify-self: start;
+  display: inline-flex; align-items: center; gap: .45rem;
+  min-height: 44px; padding: .55rem 1.1rem;
+  border-radius: 999px; border: 1px solid var(--btn-fill);
+  background: transparent; color: var(--btn-fill);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .9rem; font-weight: 600; cursor: pointer;
+  transition: background-color .2s ease, color .2s ease;
+}
+.pv .tl__again:hover { background: var(--btn-fill); color: var(--btn-ink); }
+.pv .tl__again:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.pv .tl__again svg { width: 1rem; height: 1rem; }
 /* THE STATE IS THE WHOLE BORDER, NOT A BAR DOWN THE LEFT.
 
    A 3px `border-left` on a box with a 12px radius does not draw a bar: the
@@ -132,7 +181,16 @@
 }
 .pv .tl__cta p { margin: 0; font-size: .92rem; color: var(--muted); }
 
-.pv .tl__prose { display: grid; gap: 1rem; max-width: 62ch; }
+/* IT FILLS THE MEASURE IT IS GIVEN. `max-width: 62ch` is the right measure for
+   ONE column of prose, but this sits alone in a full-width wrap, so on a laptop
+   it left two thirds of the row empty and read as a broken layout rather than
+   as typography. Two columns above 60rem: the measure stays readable and the
+   section stops looking half-built. */
+.pv .tl__prose {
+  display: grid; gap: 1rem 2.6rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
+  align-items: start;
+}
 .pv .tl__prose p { margin: 0; color: var(--ink); line-height: 1.7; }
 .pv .tl__prose code {
   font-size: .92em; padding: .1em .35em; border-radius: 5px;
