@@ -43,7 +43,7 @@ test("answers without sending the name anywhere", async ({ page }) => {
   expect(outbound, `unexpected outbound request: ${outbound.join(", ")}`).toHaveLength(0);
 });
 
-test("never says a name is available", async ({ page }) => {
+test("never claims a name is free, and offers the step that would say", async ({ page }) => {
   await page.goto(URL);
   /* A name with nothing wrong with it is the dangerous case: it is the one a
      careless tool would call available. */
@@ -54,11 +54,13 @@ test("never says a name is available", async ({ page }) => {
   await expect(out).not.toContainText(/available/i);
   await expect(out).not.toContainText(/free to (use|register)/i);
 
-  /* Said whether the name passed or failed, because the commonest way a tool
-     like this misleads people is by being right about the small half and
-     silent about the big one. */
-  await expect(out.locator(".tl__gap")).toBeVisible();
-  await expect(out).toContainText("Whether somebody already has it");
+  /* STEP TWO IS SHOWN WHETHER THE NAME PASSED OR FAILED. The commonest way a
+     tool like this misleads people is by being right about the small half and
+     silent about the big one, and the fix is a next step rather than a
+     disclaimer: same fact, and something the reader can act on. */
+  await expect(out.locator(".tl__step")).toBeVisible();
+  await expect(out).toContainText("Is it already taken?");
+  await expect(out.getByRole("link", { name: /Open CAC register/ })).toBeVisible();
 });
 
 test("reads the section 852 rules, and the entity decides which apply", async ({ page }) => {
