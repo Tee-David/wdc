@@ -82,27 +82,30 @@ export default function EmailToolPage() {
               <span className="pv-eyebrow">Why it matters</span>
               <h2 className="pv-mix">Delivered is <b>not the same as trusted</b></h2>
             </div>
-            <div className="tl__prose">
-              <p>
-                Mail that fails these checks does not usually bounce. It arrives in spam,
-                which is worse, because nothing tells you it happened. Quotes, invoices
-                and password resets quietly stop landing and the first you hear of it is
-                a client saying they never got anything.
-              </p>
-              <p>
-                The other half is forgery. Without a DMARC policy, anyone can put your
-                domain in the From line and send an invoice with their own bank details
-                on it. The recipient sees your name. This is the commonest way small
+            {/* Cards rather than three paragraphs, matching the other two
+                tools. Each lead sentence is the finding; the rest is why it
+                matters. */}
+            <ul className="tl__facts">
+              <li>
+                <b>Failing mail does not bounce, it goes to spam.</b> Which is
+                worse, because nothing tells you it happened. Quotes, invoices and
+                password resets quietly stop landing, and the first you hear is a
+                client saying they never got anything.
+              </li>
+              <li>
+                <b>Without DMARC, anyone can invoice as you.</b> They put your
+                domain in the From line and their own bank details in the body,
+                and the recipient sees your name. This is the commonest way small
                 businesses lose money to fraud, and the fix is a DNS record.
-              </p>
-              <p>
-                We learned this on our own domain. Authentication was not the headline
-                problem: SPF aligned, a DKIM key was published, MX was correct, and mail
-                was still filed as spam because the policy said to do nothing about
-                failures and no reports were being collected. The tool above checks the
-                same four things we had to work through.
-              </p>
-            </div>
+              </li>
+              <li>
+                <b>We learned this on our own domain.</b> Authentication was not
+                the headline problem: SPF aligned, a DKIM key was published, MX
+                was correct, and mail was still filed as spam because the policy
+                said to do nothing about failures and nobody was collecting the
+                reports. The tool above checks the same four things.
+              </li>
+            </ul>
           </div>
         </section>
 

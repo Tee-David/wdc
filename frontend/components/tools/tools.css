@@ -181,22 +181,6 @@
 }
 .pv .tl__cta p { margin: 0; font-size: .92rem; color: var(--muted); }
 
-/* IT FILLS THE MEASURE IT IS GIVEN. `max-width: 62ch` is the right measure for
-   ONE column of prose, but this sits alone in a full-width wrap, so on a laptop
-   it left two thirds of the row empty and read as a broken layout rather than
-   as typography. Two columns above 60rem: the measure stays readable and the
-   section stops looking half-built. */
-.pv .tl__prose {
-  display: grid; gap: 1rem 2.6rem;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
-  align-items: start;
-}
-.pv .tl__prose p { margin: 0; color: var(--ink); line-height: 1.7; }
-.pv .tl__prose code {
-  font-size: .92em; padding: .1em .35em; border-radius: 5px;
-  background: var(--paper-2); border: 1px solid var(--rule);
-}
-
 /* ------------------------------------------------- the email check findings */
 
 /* GRID, NOT A BARE BLOCK. An inline SVG with no sizing inherits its 24-unit
@@ -448,6 +432,13 @@
   background-color: var(--accent);
   -webkit-mask: var(--tick) center/contain no-repeat;
           mask: var(--tick) center/contain no-repeat;
+}
+/* `<code>` inside a fact card: the domain checker names two endings in one,
+   and they read as literals rather than as prose. Inherited from the prose
+   block this replaced. */
+.pv .tl__facts code {
+  font-size: .92em; padding: .1em .35em; border-radius: 5px;
+  background: var(--paper-2); border: 1px solid var(--rule);
 }
 .pv .tl__facts b {
   display: block; margin-bottom: .4rem;

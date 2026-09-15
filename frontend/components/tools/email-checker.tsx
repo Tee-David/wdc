@@ -70,7 +70,7 @@ export default function EmailChecker() {
   const problems = result?.findings.filter((f) => f.verdict === "weak" || f.verdict === "missing") ?? [];
 
   return (
-    <div className="tl">
+    <div className={`tl${result ? " tl--split" : ""}`}>
       <form className="tl__form" onSubmit={submit}>
         <label className="tl__label" htmlFor="em-domain">Your domain or email address</label>
         <div className="tl__row">
@@ -99,7 +99,8 @@ export default function EmailChecker() {
 
       {error && <p className="tl__err" role="alert">{error}</p>}
 
-      <div aria-live="polite">
+      {/* Beside the form once there is a verdict, not under it. */}
+      <div className="tl__out" aria-live="polite">
         {result && (
           <>
             {problems.length > 0 && (
