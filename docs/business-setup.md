@@ -177,6 +177,21 @@ different callers making one lookup each is a thousand paid lookups and not one
 of them trips a per-caller limit. It fails closed: if the database is
 unreachable it denies, because an outage must not become an uncapped bill.
 
+### The free layer, built 2026-09-15
+
+`lib/cac-name.ts` reads a proposed name against CAMA 2020 section 852 with no
+network call and no key: the words section 852(2) says need the Commission's
+consent, and whether the ending matches what is being registered. Those are the
+two commonest reasons a filing comes back, and neither depends on who else is
+on the register, so asking a paid lookup about them is spending money on the
+wrong question.
+
+It is also the fallback. A day with the budget spent, a provider down, or no
+provider at all still produces a real answer instantly. 28 cases in
+`npm run check:cac-name`, and roughly half of them assert that nothing was
+reported: "Stateside" is not "State" and "Grouper" is not "Group", because a
+false alarm on somebody's good name teaches them to ignore the real ones.
+
 ### The honesty rule, carried over
 
 The domain checker taught this and it applies with more force here: **a name
@@ -234,9 +249,22 @@ route C: the story widens and the architecture does not move.
 ## 5. What is needed before any of this starts
 
 - **Approval of the name.** "Brand & Business Identity", or another one.
-- **Which of the six services we actually deliver today**, versus which we
-  broker or refer. The band has to be honest about that, and only the studio
-  knows.
+- ~~**Which of the six services we actually deliver today**, versus which we
+  broker or refer.~~ **Answered 2026-09-15: we deliver.** CAC registration is
+  filed by a partner firm that works as part of the team, and the studio does
+  not name them publicly. That is ordinary subcontracting and the copy can
+  speak in the first person: "we register your business", not "we can put you
+  in touch with someone". One boundary worth keeping: we say we HANDLE the
+  registration, never that we ARE the Commission or an accredited agent, if the
+  accreditation sits with the partner rather than with us. Nobody has to be
+  named for that to stay true.
+
+  It also settles what the tool is for. A free checker is a giveaway when you
+  refer the work on and a funnel when you do it yourself, and this is the
+  second one.
 - **A budget ceiling for lookups**, which sets the daily cap on the free tool.
+  Now expressed in naira rather than calls, and the free rules layer means a
+  spent budget degrades the tool instead of closing it. See
+  `docs/tools-programme.md`.
 - **Whether the compliance work is quoted or priced**, because that decides
   whether the band ends in a price list or a conversation.
