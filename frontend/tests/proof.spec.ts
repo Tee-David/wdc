@@ -104,7 +104,7 @@ test("it sits directly under the hero, before the work", async ({ page }) => {
   expect(order!.band).toBeLessThan(order!.work);
 });
 
-test("each figure says where it comes from, and the pair of buttons is the site's", async ({ page }) => {
+test("each figure says where it comes from, and the card carries no buttons of its own", async ({ page }) => {
   await page.addInitScript(() => {
     try { localStorage.setItem("wdc-intro-seen-at", String(Date.now())); } catch { /* private mode */ }
   });
@@ -116,11 +116,9 @@ test("each figure says where it comes from, and the pair of buttons is the site'
   expect(details).toHaveLength(4);
   for (const line of details) expect(line.trim().length).toBeGreaterThan(40);
 
-  /* And the two buttons are the site's pair, not a third thing invented for
-     this card. `tests/button-colours.spec.ts` checks their colours; this
-     checks they are the shared component at all. */
-  await expect(page.locator(".pf__acts .pv-btn--accent")).toHaveCount(1);
-  await expect(page.locator(".pf__acts .pv-btn--light")).toHaveCount(1);
+  /* The hero directly above already carries the site's pair, so this card
+     does not repeat it. */
+  await expect(page.locator(".pf__card .pv-btn")).toHaveCount(0);
 });
 
 test("the band holds together on a phone", async ({ page }) => {
