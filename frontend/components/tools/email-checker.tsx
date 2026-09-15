@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, Check, HelpCircle, Loader2, Search, X } from "lucide-react";
+import WaitingLine from "./waiting-line";
 
 /**
  * The email deliverability check at /tools/email.
@@ -34,6 +35,18 @@ const WORD: Record<Verdict, string> = {
   missing: "Missing",
   unknown: "Could not tell",
 };
+
+/* Something to read while the resolvers answer. Fifteen DKIM selectors are
+   probed at once, which is most of the wait, so the phrases say so rather
+   than pretending to a single lookup. */
+const WAITING = [
+  "Reading your DNS records 📖",
+  "Asking Cloudflare and Google to double-check 🌐",
+  "Trying fifteen DKIM selectors at once 🔑",
+  "Looking for who is allowed to send as you 📮",
+  "Checking your MX provider 📡",
+  "Reading your DMARC policy, if you have one 🛡️",
+];
 
 export default function EmailChecker() {
   const [domain, setDomain] = useState("");
@@ -98,6 +111,8 @@ export default function EmailChecker() {
       </form>
 
       {error && <p className="tl__err" role="alert">{error}</p>}
+
+      {busy && <WaitingLine phrases={WAITING} />}
 
       {/* Beside the form once there is a verdict, not under it. */}
       <div className="tl__out" aria-live="polite">

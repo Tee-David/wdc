@@ -87,23 +87,19 @@ export default function AiCostToolPage() {
             </div>
             <ul className="tl__facts">
               <li>
-                <b>Writing costs several times more than reading.</b> Output tokens are
-                priced four to six times higher than input on every model anyone sells.
-                A feature that reads a hundred pages and answers in a sentence is cheap;
-                one that drafts a page from a sentence is not.
+                <b>Writing costs several times more than reading.</b> Output tokens
+                run four to six times the price of input on every model. A summary
+                is cheap; a draft from scratch is not.
               </li>
               <li>
                 <b>The model you pick matters more than the prompt.</b> The spread
-                between the cheapest and dearest model in the table above is more than
-                twentyfold for identical work. Most features do not need the dearest,
-                and finding that out takes an afternoon of testing rather than a
-                quarter of tuning.
+                between the cheapest and dearest model above is over twentyfold for
+                identical work, and most features do not need the dearest.
               </li>
               <li>
-                <b>Sometimes the answer is ordinary code.</b> Sorting into fixed
-                buckets, matching a record, answering from a table you already have;
-                code does those faster, cheaper and the same way every time. We say so
-                before quoting, which is occasionally an expensive sentence for us.
+                <b>Sometimes the answer is ordinary code.</b> Sorting, matching,
+                filling in a table you already have: code does that faster and
+                cheaper, and we will say so before quoting.
               </li>
             </ul>
           </div>

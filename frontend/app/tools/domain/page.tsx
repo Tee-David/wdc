@@ -101,26 +101,22 @@ export default function DomainToolPage() {
                 finishes. */}
             <ul className="tl__facts">
               <li>
-                <b>We ask the registries, not the web.</b> Most free checkers only
-                look for web records, and plenty of addresses somebody already
-                owns sit empty with none. Those look free when they are not.
+                <b>We ask the registries, not the web.</b> A parked name with no
+                website still reads as taken here, not free.
               </li>
               <li>
                 <b>When a registry will not answer, we say so.</b> Nigeria&rsquo;s
                 is unreliable right now, so <code>.ng</code> and{" "}
-                <code>.com.ng</code> are usually checked by a person for you. That
-                is a real check, not a brush-off.
+                <code>.com.ng</code> are usually confirmed by a person, not guessed.
               </li>
               <li>
                 <b>A name is only yours once it is registered.</b> Somebody else
-                can take it tomorrow, so if you have found the one you want, it is
-                worth moving.
+                can take it tomorrow, so move on the one you want.
               </li>
               <li>
-                <b>Whatever we buy is registered in your name.</b> With your email
-                as the owner. Losing control of a web address is the most expensive
-                thing that happens to a small business online, and it is entirely
-                avoidable at the start.
+                <b>Whatever we buy is registered in your name,</b> with your email
+                as the owner. Losing a domain is the costliest mistake a small
+                business makes online, and the easiest to avoid.
               </li>
             </ul>
           </div>
