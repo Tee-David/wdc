@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **122 open** (11 of them in progress), **261 done**.
+At last update: **122 open** (11 of them in progress), **262 done**.
 
 ---
 
@@ -427,6 +427,10 @@ with the rest of section 4's content and settings work.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-15, from conversation
+
+- [x] **A stats band under the homepage hero**, in the shape of the reference layout supplied: one card, a sentence and the site's two buttons across the top, a row of figures under a hairline with a rule between each. Everything inside it is ours -- Space Grotesk on the figures, Outfit on the prose, `--paper` on `--paper-2` so the card reads as a card in both themes, and an orange EYEBROW rather than an orange figure, because orange is an accent in type and not a headline. NOT ONE NUMBER IS TYPED IN: `lib/proof.ts` counts them from the same data the rest of the site renders -- 17 projects from `CASE_STUDIES`, 107 deliverables summed from every case study's `did` list, 13 clients on the record from `TESTIMONIALS`, 6 disciplines from `SERVICES` -- so adding a project changes the band the same day and there is no second copy to drift. That is the whole design rather than an implementation detail: a stats band is the easiest thing on a marketing site to lie with, `lib/work.ts` already refuses to carry invented client results, and this site has previously deleted eight fabricated testimonials attributed to invented people. THE SMALLNESS IS THE ARGUMENT -- seventeen projects you can open beats five hundred you cannot, and the copy says so ("A small studio with numbers you can check", "nothing rounded up"). Deliberately absent: revenue, satisfaction scores, uptime, years in business, team size -- none of which we can evidence, and any one of which makes a reader discount the four beside it. The counter runs once, on first sight, for 1.1s, and never under reduced motion; the figures are SERVER-RENDERED at their real values so a reader with no JavaScript is not told the studio has delivered nothing. `tests/proof.spec.ts` pins the lot: each figure against the data it claims to count, no suffixes, the no-JavaScript case, the position between hero and work, and one column at 320px. `.sr-only` was hoisted from `stages.css` (four pages) to `globals.css` (every page) while wiring the accessible reading of each figure.
 
 ## Closed 2026-09-15, section 1B: the free tools on the service pages
 

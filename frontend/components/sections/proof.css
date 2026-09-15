@@ -1,0 +1,115 @@
+/* ==========================================================================
+   THE PROOF BAND — the figures directly under the homepage hero.
+
+   IMPORTED BY THE COMPONENT, not by the page, for the reason the picker
+   learned the hard way: a control whose appearance depends on an import
+   somewhere else will eventually be dropped somewhere else.
+
+   THE SHAPE IS THE REFERENCE'S: one card, a sentence and two buttons across
+   the top, a row of figures under a hairline. What is OURS is everything
+   inside it -- Space Grotesk on the numbers, Outfit on the prose, the paper
+   and rule tokens, the site's two buttons, and an orange eyebrow rather than
+   an orange figure, because orange is an accent in type and not a headline.
+   ========================================================================== */
+
+/* THE CARD SITS ON THE ALT GROUND SO IT READS AS A CARD. `--paper` on
+   `--paper-2` is white on warm off-white in the light theme and near-black on
+   navy-black in the dark one; both give the panel an edge without a heavy
+   border doing the work. */
+.pv .pf__card {
+  border: 1px solid var(--rule);
+  border-radius: clamp(18px, 2.2vw, 28px);
+  background: var(--paper);
+  padding: clamp(1.4rem, 3.4vw, 2.75rem);
+  /* Low and wide rather than dark: the reference's card floats, and a heavy
+     shadow on a light page reads as a box rather than a lift. */
+  box-shadow: 0 18px 50px -32px rgba(0, 0, 26, .38);
+}
+.dark .pv .pf__card { box-shadow: 0 18px 50px -30px rgba(0, 0, 0, .8); }
+
+/* ------------------------------------------------------------------- top */
+
+/* THE SENTENCE AND THE BUTTONS SHARE A LINE WHERE THERE IS ROOM, and the
+   buttons keep their own column rather than wrapping under a heading that has
+   already used the width. Below 900px they stack, which is where two pills
+   beside three lines of prose stops being a row and starts being a squeeze. */
+.pv .pf__top {
+  display: grid; gap: clamp(1.1rem, 2.4vw, 2rem);
+  align-items: end;
+  padding-bottom: clamp(1.4rem, 3vw, 2.2rem);
+  border-bottom: 1px solid var(--rule);
+}
+@media (min-width: 900px) {
+  .pv .pf__top { grid-template-columns: minmax(0, 1fr) auto; }
+}
+
+/* LEFT-ALIGNED, WHICH IS THE ONE PLACE ON THE HOMEPAGE THAT IS. `.pv-head` is
+   centred everywhere else and this is not a section head -- it is the top half
+   of a card whose other half is a row of figures, and centring it would leave
+   the buttons stranded under a middle. Its own class rather than a modifier on
+   `.pv-head`, because `.pv-head--left` was removed from this site once already
+   for being used twice and read as a mistake both times. */
+.pv .pf__say { display: grid; gap: .6rem; justify-items: start; text-align: left; }
+.pv .pf__say h2 { margin: 0; max-width: 20ch; }
+.pv .pf__say .pv-lede { margin: 0; max-width: 58ch; }
+
+.pv .pf__acts { display: flex; flex-wrap: wrap; gap: .7rem; }
+
+/* ----------------------------------------------------------------- figures */
+
+/* FOUR ACROSS, THEN TWO, THEN ONE. `auto-fit` with a 13rem floor rather than
+   breakpoints: the card is the full measure on a desktop and the width of a
+   phone at 320, and the figures should reflow on the room they have rather
+   than on a number somebody guessed. */
+.pv .pf__grid {
+  display: grid;
+  gap: clamp(1.4rem, 3vw, 2.2rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  padding-top: clamp(1.4rem, 3vw, 2.2rem);
+}
+
+.pv .pf__stat { display: grid; gap: .3rem; align-content: start; min-width: 0; }
+
+/* HAIRLINES BETWEEN THE COLUMNS, like the reference, drawn on the stat rather
+   than as separate elements -- and only from the width where the figures are
+   actually side by side, or the first item of each wrapped row carries a rule
+   with nothing to its left. */
+@media (min-width: 40rem) {
+  .pv .pf__stat + .pf__stat {
+    padding-left: clamp(1.4rem, 3vw, 2.2rem);
+    border-left: 1px solid var(--rule);
+  }
+}
+
+/* THE FIGURE. Space Grotesk, because this site sets every prominent number in
+   it; tabular figures and a reserved `ch` width because the counter runs from
+   0 and would otherwise resize the column twice on its way to 107. */
+.pv .pf__num {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: clamp(2.3rem, 5.6vw, 3.4rem);
+  font-weight: 700; line-height: 1; letter-spacing: -.03em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  /* One digit is about 0.62em in this face at this weight; the extra 0.1
+     covers the comma-free widest case without leaving a visible gap. */
+  min-width: calc(var(--digits, 2) * .62em);
+}
+
+.pv .pf__label {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 1rem; font-weight: 600; line-height: 1.3; color: var(--ink);
+}
+
+/* The sentence under each figure is where the honesty lives -- where the
+   number came from, and what it does not claim -- so it is readable prose
+   rather than a caption. */
+.pv .pf__detail {
+  font-size: .87rem; line-height: 1.6; color: var(--muted);
+  max-width: 34ch;
+}
+
+/* ----------------------------------------------------------------- motion */
+
+/* The card uses the homepage's own reveal, which `preview-body.tsx` wires up
+   and which does nothing at all under reduced motion. The counter inside it is
+   gated separately in the component, for the same reason. */
