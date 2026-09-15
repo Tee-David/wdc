@@ -1,6 +1,7 @@
 # Getting a business out there: the compliance side
 
-A plan, not a change. Nothing in this document has been built.
+A plan. Step 3 of the sequencing below is now built; everything else here is
+still a proposal, waiting on the decisions in section 5.
 
 ## What was asked for
 
@@ -26,7 +27,7 @@ service stops meaning one thing.
 
 But the two belong to the same moment. Somebody registering a company and
 somebody commissioning a logo are the same person on the same week, and a
-trademark is not adjacent to the identity — it is the identity, defended. The
+trademark is not adjacent to the identity; it is the identity, defended. The
 seam is real; it is the LABEL that is wrong, not the pairing.
 
 ### Three ways to hold it, and the one to take
@@ -35,8 +36,8 @@ seam is real; it is the LABEL that is wrong, not the pairing.
 Conceptually cleanest and the most expensive thing on this page. `ServiceSlug`
 is a union type threaded through `lib/services.ts`, the header dropdown,
 `/services`, the six work categories, `lib/onboarding.ts`'s per-service step
-sets, the OG image route, and — the part that is not a refactor but a
-migration — `serviceEnum` in `lib/db/schema.ts` and the `service` CHECK
+sets, the OG image route, and, the part that is not a refactor but a
+migration, `serviceEnum` in `lib/db/schema.ts` and the `service` CHECK
 constraint in `db/migrations/0002_onboarding.sql`. It also quietly changes what
 the studio is: six creative services and one compliance desk reads as two
 businesses sharing a website.
@@ -46,8 +47,8 @@ compliance appears as a clearly separated section further down. Cheap, ships in
 a day, no architecture touched. Weakness: the page now has two subjects and the
 heading above it is doing all the work of explaining why.
 
-**C. Widen the frame so both belong under it.** Keep the slug `branding` —
-nothing migrates, no URL changes, no enum moves — and change what the service
+**C. Widen the frame so both belong under it.** Keep the slug `branding`.
+nothing migrates, no URL changes, no enum moves. Change what the service
 is CALLED and what its lede says, so that registering the company and designing
 its marks are visibly the same promise.
 
@@ -56,10 +57,10 @@ is an internal identifier and the database does not care what the heading says.
 
 ### The naming
 
-Current: **Branding & Design** — "One consistent identity across everything a
+Current: **Branding & Design**. "One consistent identity across everything a
 customer touches."
 
-Proposed: **Brand & Business Identity** — "Everything that makes your company
+Proposed: **Brand & Business Identity**. "Everything that makes your company
 real: registered, protected, and recognisable."
 
 "Identity" is the hinge, and it is not a pun for its own sake. A CAC
@@ -97,7 +98,7 @@ have already paid to learn once.
 
 ### The two routes proposed, and the verdict on each
 
-**Headless browser against cac.gov.ng — no.** This is already ruled out in the
+**Headless browser against cac.gov.ng: no.** This is already ruled out in the
 checklist for the SEO tools and the reasoning holds harder here. A browser
 binary does not fit a serverless function; the checklist says so and that is
 why Unlighthouse and Puppeteer were rejected. On top of that: it is scraping a
@@ -107,23 +108,80 @@ IP in front of that portal at whatever rate our visitors generate, which is the
 the legal footing is somewhere between unclear and bad. A free public tool that
 can take down our own registration workflow is not worth having.
 
-**A licensed identity API — yes, with a cap.** Prembly, Youverify, Verified.ng
-and Mono all sell CAC lookups. They are metered, which is the whole design
-constraint: a free public tool on a paid key is a bill somebody else controls.
-That is not a reason not to build it, it is the reason the checklist already
-has this item open:
+**A licensed identity API: yes, with a cap.** Approved by the studio on
+2026-09-15: "there are even paid APIs online that actually help you check.
+Many businesses have them as an offering inside of their brands."
+
+### Providers, measured 2026-09-15
+
+Three were checked against their own documentation rather than their marketing.
+The question that decides it is narrow: **can you search by NAME**, or only
+look up a company you already have the RC number for. A tool for somebody who
+has not registered yet is useless if it needs an RC number.
+
+| Provider | Endpoint | Search by name? | Verdict |
+| --- | --- | --- | --- |
+| **Mono** | `GET /v3/lookup/cac?search={name or RC}`, optional `exact` | **Yes**, partial or full | The candidate |
+| **Prembly** (IdentityPass) | `POST /identitypass/verification/global/company/search` | Yes, name + ISO-3166-1 alpha-2 country | Possible, needs checking |
+| **Dojah** | `GET /api/v1/kyc/cac/basic` and `/advance` | **No**, RC number only | Ruled out |
+
+**Mono** is the one to price. It searches the name a founder actually has in
+their head, it exposes an `exact` flag so we can separate "this exact name is
+taken" from "these look similar", and it claims over 3.1 million registered
+businesses behind it.
+
+**Prembly's** is a GLOBAL company search taking a country code, not a CAC
+endpoint. Whether the Nigerian rows behind it are the CAC register or an
+aggregated third-party dataset is not stated, and that difference is the whole
+value of the tool. Confirm before trusting it; do not ship on it unverified.
+
+**Dojah** takes an RC number and nothing else, which answers a question our
+visitor cannot ask.
+
+### What none of them sell
+
+**Not one provider sells "is this name available."** Every one of them sells
+"here is what is in the register." That is not a gap in the market, it is the
+truth of the thing: availability is CAC's decision, made against similarity,
+restricted words and their own discretion, and nobody can sell a promise they
+do not control.
+
+This is the honesty rule from the domain checker arriving early, and it is
+load-bearing rather than cautious. It also means our tool is not worse than
+anybody else's. Every competing checker is doing exactly this and some of
+them describe it far less carefully than we are about to.
+
+### Pricing: still unknown, and it is the only thing blocking
+
+Neither Mono nor Prembly publishes per-lookup pricing. Mono's general rate is
+**$0.05 / about ₦19 per successful API call** with automatic volume discounts,
+but Lookup is priced per endpoint and that table is behind the dashboard or
+sales@mono.co. Dojah is wallet-funded (a `402` means top up).
+
+So a cap cannot be set from public information. What is needed is one of: a
+Mono account we can read the Lookup pricing table in, or a reply from sales.
+Everything else is built.
+
+### The prerequisite, now built
 
 > A shared rate-limit counter in Postgres for anything gating a metered key.
 > `lib/rate-limit.ts` lives in one instance's memory and cannot protect a
 > quota.
 
-So that item is a prerequisite, not a nicety. It has to exist first.
+**Done.** `db/migrations/0005_rate_limit_counters.sql` and `lib/quota.ts`, with
+`npm run db:check-quota` proving the property that matters against a real
+database: 200 simultaneous hits are counted exactly once each, with no lost
+updates. It carries two kinds of bucket, and the second is the one the
+in-memory limiter could never see: a `global` cap, because a thousand
+different callers making one lookup each is a thousand paid lookups and not one
+of them trips a per-caller limit. It fails closed: if the database is
+unreachable it denies, because an outage must not become an uncapped bill.
 
 ### The honesty rule, carried over
 
 The domain checker taught this and it applies with more force here: **a name
 not found in the register is not an available name.** CAC can refuse a name
-that is free today — too similar to an existing one, a restricted word needing
+that is free today: too similar to an existing one, a restricted word needing
 consent, a form of words they will not accept. A tool that says "Available" and
 is wrong costs somebody a rejected filing and a fee.
 
@@ -153,11 +211,13 @@ Nothing here is one change. In order, each shippable on its own:
 2. **The compliance band** on the service page, as static content. No backend,
    no tool, no dependency. This is the part that earns revenue soonest, because
    the work is sold by conversation and the page only has to say we do it.
-3. **The Postgres rate-limit counter.** A prerequisite for any metered key, and
-   already an open checklist item in its own right.
-4. **A provider decision**, with real prices in front of us: per-lookup cost,
-   free tier if any, what their response actually contains, and whether their
-   terms permit a public-facing free tool. This needs quotes, not a guess.
+3. ~~**The Postgres rate-limit counter.**~~ **Built, 2026-09-15.**
+   `db/migrations/0005_rate_limit_counters.sql`, `lib/quota.ts`, and
+   `npm run db:check-quota` to prove it.
+4. **A provider decision.** Narrowed to Mono above. What is still missing is
+   the per-lookup price, which is not published and is what sets the cap. That
+   needs the Mono dashboard or a reply from sales, not a guess. **This is now
+   the only thing between us and shipping the tool.**
 5. **The tool**, once 3 and 4 are done.
 6. **Onboarding**, last. A compliance client answers different questions from a
    branding client, and `lib/onboarding.ts` is where that lives. Only worth
