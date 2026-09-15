@@ -75,6 +75,14 @@
 }
 .qa--numbered .qa__inner p { padding-left: 2.6rem; }
 @media (max-width: 520px) { .qa--numbered .qa__inner p { padding-left: 0; } }
+
+/* `--muted` reads as a faint, blue-tinted grey against the dark theme's own
+   near-black page background, which is a bigger jump in dimness than the
+   same token makes against a light page. An answer somebody has just opened
+   to read is body copy, not a caption, so it takes the dark theme's own
+   near-white ink instead. Light theme is untouched: `--muted` there is a
+   plain grey with none of the tint this was about. */
+.dark .qa__inner p { color: var(--ink); }
 .qa__item.is-open .qa__inner p { opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) {
