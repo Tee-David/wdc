@@ -7,6 +7,7 @@ import {
   QUESTIONS, RATE_CARD, estimate, shortDollars, shortNaira,
   type Answers, type Option,
 } from "@/lib/estimate";
+import OptionSelect from "@/components/tools/option-select";
 
 /**
  * The scope and budget estimator at /tools/estimate.
@@ -43,10 +44,13 @@ import {
  * one-way door a wizard usually is never actually is one here.
  */
 
-/* A radio group per question, so a keyboard gets arrow keys and a screen
-   reader is told what has been chosen. Buttons with aria-checked, the same
-   pattern the name checker's entity cards use, because a real <input
-   type=radio> cannot be styled into a card without a wrapper anyway. */
+/* Each question is a single dropdown, not a stack of full-width cards: five
+   options used to mean five boxes to scroll past before the question could
+   be answered at all, on a step that already asks for nothing else on
+   screen. OptionSelect is the same searchable-select shell the contact
+   form's own fields open (components/onboarding/picker.tsx), so a reader who
+   has met it there meets it again here rather than a second control that
+   looks close but not quite the same. */
 export default function ScopeEstimator() {
   const [answers, setAnswers] = useState<Answers>({});
   const [index, setIndex] = useState(0);
@@ -180,29 +184,28 @@ export default function ScopeEstimator() {
               </p>
             </div>
 
-            <fieldset className="es__q" key={question.key}>
-              <legend className="tl__label es__stepLabel">{question.label}</legend>
-              {question.hint && <p className="tl__hint es__qhint">{question.hint}</p>}
-              <div className="es__stepOpts" role="radiogroup" aria-label={question.label}>
-                {question.options.map((option) => (
-                  <button
-                    key={option.key}
-                    type="button"
-                    role="radio"
-                    aria-checked={answers[question.key] === option.key}
-                    className={`es__opt${answers[question.key] === option.key ? " is-on" : ""}`}
-                    onClick={() => choose(option)}
-                  >
-                    <span className="es__optT">{option.label}</span>
-                    {option.note && <span className="es__optN">{option.note}</span>}
-                  </button>
-                ))}
+            <div className="es__q" key={question.key}>
+              <label className="tl__label es__stepLabel" htmlFor={`es-q-${question.key}`}>
+                {question.label}
+              </label>
+              {question.hint && (
+                <p className="tl__hint es__qhint" id={`es-q-${question.key}-hint`}>
+                  {question.hint}
+                </p>
+              )}
+              <div className="es__stepSelect">
+                <OptionSelect
+                  id={`es-q-${question.key}`}
+                  options={question.options}
+                  value={answers[question.key] ?? ""}
+                  onChange={choose}
+                  describedBy={question.hint ? `es-q-${question.key}-hint` : undefined}
+                />
               </div>
               <p className="tl__hint es__advanceHint">
-                Choosing an answer moves you to the next question. Tab and press Enter
-                works the same way.
+                Choosing an answer moves you to the next question.
               </p>
-            </fieldset>
+            </div>
 
             {index > 0 && (
               <button type="button" className="tl__again es__back" onClick={back}>

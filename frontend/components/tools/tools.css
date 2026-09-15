@@ -502,11 +502,11 @@
 
 .pv .es__stepLabel { font-size: 1.15rem; }
 
-/* ONE ACROSS, ALWAYS. This is the one question on the screen, so it gets the
-   whole width and room to breathe -- the opposite of `.es__opts` below, which
-   is packed because it shares the screen with seven others. */
-.pv .es__stepOpts { display: grid; gap: .7rem; margin-top: .7rem; }
-.pv .es__stepOpts .es__opt { padding: 1.05rem 1.2rem; min-height: 56px; }
+/* THE STEP'S OWN ANSWER, one dropdown rather than a stack of cards -- see
+   option-select.tsx. `.sf`/`.pk__pop` already go full width off
+   components/onboarding/picker.css; this only adds the gap above it that
+   `.es__stepOpts` used to set. */
+.pv .es__stepSelect { margin-top: .7rem; }
 
 .pv .es__advanceHint { margin-top: .5rem; }
 .pv .es__back { margin-top: .2rem; }
@@ -520,11 +520,12 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
 }
 
-/* The same card as the name checker's entity pair, shared by the AI cost
-   calculator's job picker and the estimator's own steps above. The base card
-   stays dense, because the calculator shows four of these beside a live
-   result column; `.es__stepOpts` widens it back out for the estimator, which
-   has the whole screen to itself one question at a time. */
+/* The same card as the name checker's entity pair. Only the AI cost
+   calculator's job picker still uses it -- it shares the screen with a live
+   result column, where a stack of full cards has room; the estimator's own
+   steps above moved to one dropdown each once that stopped being true, five
+   options being five card-widths of scroll on a phone before the question
+   could be answered. */
 .pv .es__opt {
   display: grid; gap: .2rem; align-content: start;
   min-height: 44px; padding: .8rem .9rem; text-align: left;
