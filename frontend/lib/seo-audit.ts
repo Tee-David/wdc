@@ -227,7 +227,7 @@ export function findings(facts: Facts): Finding[] {
   );
 
   if (facts.images === 0) {
-    out.push({ id: "alt", label: "Image descriptions", verdict: "unknown", detail: "No images in the HTML. Either there genuinely are none, or they are added by JavaScript after the page loads — which is also how Google first sees it." });
+    out.push({ id: "alt", label: "Image descriptions", verdict: "unknown", detail: "No images in the HTML. Either there genuinely are none, or they are added by JavaScript after the page loads, which is also how Google first sees it." });
   } else if (facts.imagesWithoutAlt === 0) {
     out.push({ id: "alt", label: "Image descriptions", verdict: "good", detail: `All ${facts.images} images carry an alt attribute. An empty one is correct for decoration; what matters is that none is missing.` });
   } else {
@@ -242,7 +242,7 @@ export function findings(facts: Facts): Finding[] {
   out.push(
     facts.structuredData.length
       ? { id: "schema", label: "Structured data", verdict: "good", detail: `Found: ${facts.structuredData.join(", ")}. That is what lets a result carry stars, prices, breadcrumbs or opening hours instead of two lines of text.` }
-      : { id: "schema", label: "Structured data", verdict: "weak", detail: "No valid JSON-LD on the page. It is how a search result earns the extra detail — an address, a rating, a breadcrumb trail — and it only describes what is already visible here." },
+      : { id: "schema", label: "Structured data", verdict: "weak", detail: "No valid JSON-LD on the page. It is how a search result earns the extra detail (an address, a rating, a breadcrumb trail), and it only describes what is already visible here." },
   );
 
   return out;

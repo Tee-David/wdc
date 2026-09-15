@@ -85,7 +85,7 @@
 
 /* THE FIGURE. Space Grotesk, because this site sets every prominent number in
    it; tabular figures and a reserved `ch` width because the counter runs from
-   0 and would otherwise resize the column twice on its way to 107. */
+   0 and would otherwise resize the column twice on its way to 500. */
 .pv .pf__num {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: clamp(2.3rem, 5.6vw, 3.4rem);

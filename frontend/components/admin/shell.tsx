@@ -124,7 +124,7 @@ function Sidebar({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/icon.svg" alt="" width={32} height={32} />
           {!collapsed ? (
-            <span><b>WDC</b><small>Studio admin</small></span>
+            <span><b>WDC</b><small>Agency admin</small></span>
           ) : null}
         </Link>
         {canPin && !collapsed ? (

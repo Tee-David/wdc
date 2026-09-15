@@ -51,7 +51,7 @@ export async function GET() {
     "  <channel>",
     `    <title>${escape(SITE_NAME)} Blog</title>`,
     `    <link>${SITE_URL}/blog</link>`,
-    "    <description>Notes on branding, search, building and growth, from the studio.</description>",
+    "    <description>Notes on branding, search, building and growth, from the agency.</description>",
     "    <language>en</language>",
     `    <lastBuildDate>${new Date(newest).toUTCString()}</lastBuildDate>`,
     `    <atom:link href="${SITE_URL}/blog/rss.xml" rel="self" type="application/rss+xml" />`,

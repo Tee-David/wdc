@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **122 open** (11 of them in progress), **263 done**.
+At last update: **122 open** (11 of them in progress), **266 done**.
 
 ---
 
@@ -427,6 +427,60 @@ with the rest of section 4's content and settings work.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-15, the stats band tells the agency's own story and "studio" comes out
+
+- [x] **The homepage stats band now shows the agency's own hand-set track
+  record** (10+ years in business, 50+ projects shipped, 200+ clients on
+  record, 500+ deliverables met) instead of the count of case studies and
+  testimonials published on this site, at the agency's explicit direction
+  after being asked to reconcile the two. `lib/proof.ts` was rewritten: the
+  four figures are set by hand now, with a `REVIEWED` date beside them the
+  same way `RATE_CARD` in `lib/estimate.ts` carries one, rather than derived
+  from `CASE_STUDIES`/`TESTIMONIALS`/`SERVICES` at build time. The eyebrow,
+  headline and lede changed with them, since "nothing rounded up" and "open
+  any of them and see for yourself" stopped being true the moment the figures
+  stopped being a count of what is on the site; they now read "Track record"
+  and "Ten years in, with the numbers to show for it". `tests/proof.spec.ts`
+  was rewritten to pin the new contract: the page shows exactly
+  `lib/proof.ts`'s figures, each one carries the "+" it is owed, and the
+  server-rendered-before-hydration guarantee still holds. THIS IS A DELIBERATE
+  DEPARTURE from the "counted, not claimed" principle the band shipped with
+  on 2026-09-15 (see the entry above), on the client's own authority over
+  their own company's numbers; the principle itself was not wrong, it was
+  reconciled against real figures too large to click through one by one.
+- [x] **"Studio" is out of the site's own voice.** WDC calls itself a
+  creative and digital agency, not a studio; "studio" reads as design-only,
+  which is one service among several. Fixed everywhere the word was
+  describing the company to a reader rather than describing a client's own
+  recording or photography studio (`lib/work.ts`'s Thinkers Diary case study
+  keeps every one of its "studio photograph" references, since that studio is
+  the client's, not ours): the About page's hero, its "most agencies hand you
+  a logo and leave" line, its work-section caption and its aria-label; the
+  About page's metadata description, JSON-LD `Organization.description` and
+  OpenGraph note; the blog's RSS description; the admin shell's own label,
+  the settings page's copy, an expense form's placeholder, and the
+  `/signed-in` door label in `lib/roles.ts`. Left alone, on purpose: the
+  hundreds of internal code comments that use "the studio" as reasoning
+  shorthand for "the company" throughout `lib/`, `components/` and `tests/`,
+  which nobody outside the team ever reads, and the demo social-calendar
+  entry "Studio reel", which is a generic example post idea, not a reference
+  to WDC.
+- [x] **No em dashes anywhere the site actually speaks**, extended past the
+  free tools (closed 2026-09-15, above) to the rest of the app: transactional
+  email subjects and a preheader in `lib/email-templates.ts` (a plain hyphen
+  now separates a reference number from a title, the way most inboxes already
+  show subject lines); two SEO-finding sentences in `lib/seo-audit.ts`; four
+  tool API error/notification strings across `app/api/tools/*`; a rate-limit
+  error in the login form; and the em-dash-as-empty-value placeholder used in
+  nine table cells and detail rows across the admin money pages and the
+  client-facing quote/invoice/receipt pages, now an en dash so the "no value"
+  convention still reads as a dash without being the character asked against.
+  A CSS `::before` that printed an em dash ahead of a client testimonial's
+  name became an en dash for the same reason. Left alone, on the same
+  reasoning as the tools sweep: the internal code comments throughout the
+  repository, and test files, neither of which a visitor or client ever
+  reads.
 
 ## Closed 2026-09-15, the estimator becomes a conversational form
 

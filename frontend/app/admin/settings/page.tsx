@@ -46,7 +46,7 @@ export default function SettingsPage() {
       <div className="ad__head">
         <div>
           <h1>Settings</h1>
-          <p>Content on the public site, and how the studio runs.</p>
+          <p>Content on the public site, and how the agency runs.</p>
         </div>
       </div>
 

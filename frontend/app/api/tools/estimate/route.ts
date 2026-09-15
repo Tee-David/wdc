@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
         await sendMail({
           to: process.env.SMTP_REPLY_TO || CONTACT_EMAIL,
           replyTo: email,
-          subject: `Estimator: ${rangeNgn} — ${email}`,
+          subject: `Estimator: ${rangeNgn} - ${email}`,
           text: [
             `${email} asked for a copy of their estimate.`,
             "",
@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Estimate email failed", error instanceof Error ? error.message : "unknown error");
     return NextResponse.json(
-      { error: "That did not send. The estimate is still on this page — print it, or try again in a moment." },
+      { error: "That did not send. The estimate is still on this page; print it, or try again in a moment." },
       { status: 502 },
     );
   }

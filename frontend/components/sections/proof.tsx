@@ -10,10 +10,10 @@ import "./proof.css";
  *
  * THE NUMBERS ARE SERVER-RENDERED AT THEIR FINAL VALUE, and the counter only
  * animates over the top of them. That order matters three ways: a reader with
- * no JavaScript sees seventeen rather than zero, a crawler indexes the real
- * figure, and nothing on the page is briefly a lie. A counter that starts from
- * zero in the markup is a section that says "0 projects delivered" to anyone
- * whose bundle has not arrived.
+ * no JavaScript sees ten rather than zero, a crawler indexes the real figure,
+ * and nothing on the page is briefly a lie. A counter that starts from zero in
+ * the markup is a section that says "0 years in business" to anyone whose
+ * bundle has not arrived.
  *
  * IT ONLY RUNS ONCE AND ONLY WHEN SEEN. One observer, disconnected on the first
  * intersection, then one `requestAnimationFrame` loop of about a second.
@@ -121,14 +121,13 @@ export default function Proof() {
         <div className="pf__card pv-reveal" ref={card}>
           <div className="pf__top">
             <div className="pf__say">
-              <span className="pv-eyebrow">Counted, not claimed</span>
+              <span className="pv-eyebrow">Track record</span>
               <h2 className="pv-mix" id="pf-title">
-                <b>A small studio</b> with numbers <b>you can check</b>
+                <b>Ten years in</b>, with the numbers <b>to show for it</b>
               </h2>
               <p className="pv-lede">
-                {proofLine()} Every figure here is counted from the work itself, and
-                every project behind it is live — open any of them and see for
-                yourself.
+                {proofLine()} A creative and digital agency spanning brand, web,
+                apps, software, SEO and social, delivered by one team.
               </p>
             </div>
           </div>

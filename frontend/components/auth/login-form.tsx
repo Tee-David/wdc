@@ -97,7 +97,7 @@ export default function LoginForm({
            that was never broken. The limiter is per-IP, so this also fires for
            a colleague on the same office connection. */
         setError(result.error.status === 429
-          ? "Too many sign-in attempts from this connection. Wait a minute and try again — your password has not changed."
+          ? "Too many sign-in attempts from this connection. Wait a minute and try again; your password has not changed."
           /* Otherwise, ONE message for a wrong password and for an address with
              no account. Two would turn this form into a way to find out who
              has one. */

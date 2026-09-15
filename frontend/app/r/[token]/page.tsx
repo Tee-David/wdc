@@ -132,7 +132,7 @@ export default async function PublicReceipt({
       <dl className="doc__meta">
         <div>
           <dt>From</dt>
-          <dd>{client?.company ?? "—"}</dd>
+          <dd>{client?.company ?? "–"}</dd>
         </div>
         <div>
           <dt>Received</dt>

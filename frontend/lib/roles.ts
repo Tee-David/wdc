@@ -20,7 +20,7 @@ export type Role = "owner" | "staff" | "client";
 type Door = { home: string; ready: boolean; label: string };
 
 const DOORS: Record<Role, Door> = {
-  owner:  { home: "/admin",  ready: true,  label: "the studio admin" },
+  owner:  { home: "/admin",  ready: true,  label: "the agency admin" },
   /* Staff get a narrower view of the same admin. Until that view exists they
      are not handed the owner's one -- app/admin/layout.tsx would bounce them
      straight back out, and a redirect loop is a worse answer than a sentence. */

@@ -79,7 +79,7 @@ function explain(reason: FetchPageFailure, status?: number) {
       return "That address is a file rather than a page, so there is nothing to read.";
     case "http-error":
       return status === 404
-        ? "That page returned a 404. Check the address — a page Google cannot fetch cannot rank."
+        ? "That page returned a 404. Check the address; a page Google cannot fetch cannot rank."
         : `The site answered with an error (${status ?? "no status"}). Googlebot would get the same.`;
     default:
       return "We could not reach that page just now.";

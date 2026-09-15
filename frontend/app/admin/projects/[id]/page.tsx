@@ -155,7 +155,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                         <span className="ad__pill ad__pill--warn" style={{ marginLeft: ".35rem" }}>Rebillable</span>
                       ) : null}
                     </td>
-                    <td className="ad__dim">{e.vendor ?? "—"}</td>
+                    <td className="ad__dim">{e.vendor ?? "–"}</td>
                     <td className="num">{naira(e.amount)}</td>
                   </tr>
                 ))}

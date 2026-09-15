@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
           "",
           psi.ok
             ? `Lighthouse: ${psi.scores.map((s) => `${s.label} ${s.score}`).join(", ")}`
-            : `Lighthouse did NOT run (${psi.reason}). They have been told somebody will run it by hand — please do.`,
+            : `Lighthouse did NOT run (${psi.reason}). They have been told somebody will run it by hand, please do.`,
           "",
           `${worst.length} thing(s) worth fixing:`,
           ...worst.map((f) => `- ${f.label}: ${f.detail}`),
