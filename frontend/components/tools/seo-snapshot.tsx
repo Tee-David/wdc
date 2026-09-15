@@ -217,7 +217,7 @@ export default function SeoSnapshot() {
               </p>
               <p className="tl__hint">
                 This is the HTML document alone, which is all one fetch can honestly
-                measure. Images, fonts and scripts are on top — the Lighthouse report
+                measure. Images, fonts and scripts are on top; the Lighthouse report
                 below counts them.
               </p>
             </div>
@@ -246,7 +246,7 @@ export default function SeoSnapshot() {
               <p className="tl__stepK">The slow half</p>
               <h3>Want the full Lighthouse report?</h3>
               <p>
-                Google runs it on your live page — performance, accessibility, best
+                Google runs it on your live page: performance, accessibility, best
                 practices and SEO, scored, with the biggest wins named. It takes about
                 a minute, which is why we send it rather than make you wait for it.
               </p>

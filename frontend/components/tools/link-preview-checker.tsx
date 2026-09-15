@@ -210,7 +210,7 @@ export default function LinkPreviewChecker() {
             <p className="tl__note">
               Measurements reviewed in {result.reviewed}. Every one of these platforms
               redraws its cards without telling anybody, so they are close rather than
-              exact — which is why the cards say &ldquo;about&rdquo;.
+              exact, which is why the cards say &ldquo;about&rdquo;.
             </p>
 
             <h3 className="es__h">What to fix</h3>
@@ -247,7 +247,7 @@ export default function LinkPreviewChecker() {
                 </Link>
               </div>
               <p className="tl__stepAlt">
-                Already fixed it? LinkedIn caches hard — run its Post Inspector on the
+                Already fixed it? LinkedIn caches hard; run its Post Inspector on the
                 URL or it will keep showing the old card.
               </p>
             </div>

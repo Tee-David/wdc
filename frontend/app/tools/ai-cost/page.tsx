@@ -12,7 +12,7 @@ import "@/components/tools/tools.css";
 /**
  * Its own indexable route. "How much does the OpenAI API cost" is a search
  * somebody makes with a spreadsheet open, and every answer they find is in
- * dollars per million tokens — a unit nobody budgets in. This one answers in
+ * dollars per million tokens, a unit nobody budgets in. This one answers in
  * naira a month.
  */
 
@@ -66,7 +66,7 @@ export default function AiCostToolPage() {
             </nav>
             <h1>What will an AI feature cost you every month?</h1>
             <p className="pv-lede">
-              Not to build — to run. Tell us what it does and how often, and see the
+              Not to build: to run. Tell us what it does and how often, and see the
               same feature priced across eight models in naira, with the cheap and the
               expensive way to do it side by side.
             </p>
@@ -101,7 +101,7 @@ export default function AiCostToolPage() {
               </li>
               <li>
                 <b>Sometimes the answer is ordinary code.</b> Sorting into fixed
-                buckets, matching a record, answering from a table you already have —
+                buckets, matching a record, answering from a table you already have;
                 code does those faster, cheaper and the same way every time. We say so
                 before quoting, which is occasionally an expensive sentence for us.
               </li>

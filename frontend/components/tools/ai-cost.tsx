@@ -91,7 +91,7 @@ export default function AiCost() {
           aria-describedby="ai-runs-hint"
         />
         <p className="tl__hint" id="ai-runs-hint">
-          Conversations, documents, messages — whatever one use of the feature is.
+          Conversations, documents, messages, whatever one use of the feature is.
         </p>
 
         {/* THE TWO WORD COUNTS ARE THE HONEST PART OF THE FORM. Everybody
@@ -125,7 +125,7 @@ export default function AiCost() {
         </div>
         <p className="tl__hint">
           Starting points for {chosen.label.toLowerCase()}. Change them to match what
-          you actually have — writing costs several times more than reading, so the
+          you actually have; writing costs several times more than reading, so the
           second box moves the bill hardest.
         </p>
       </form>
@@ -177,7 +177,7 @@ export default function AiCost() {
             </li>
             <li>
               Anything a provider charges for images, audio or long-context tiers. The
-              table above is text in, text out — check the provider&rsquo;s own page
+              table above is text in, text out; check the provider&rsquo;s own page
               before you sign anything.
             </li>
           </ul>

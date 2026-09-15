@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Check, Loader2, Printer, RotateCcw, Send } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Printer, RotateCcw, Send } from "lucide-react";
 import {
-  QUESTIONS, RATE_CARD, estimate, isComplete, shortDollars, shortNaira,
-  type Answers,
+  QUESTIONS, RATE_CARD, estimate, shortDollars, shortNaira,
+  type Answers, type Option,
 } from "@/lib/estimate";
 
 /**
@@ -24,10 +24,23 @@ import {
  * eight answers and the arithmetic stay on the device. The only request this
  * component can make is the one the reader presses "email it to me" for.
  *
- * ONE QUESTION AT A TIME WAS TRIED AND PUT BACK. A wizard hides how much is
- * left, which is the reason people abandon them; eight small cards in a column
- * show the whole ask at a glance and let somebody who knows their project
- * answer it in twenty seconds by tapping down the page.
+ * ONE QUESTION AT A TIME, REVISITED. An earlier version tried this and put it
+ * back, on the theory that a wizard hides how much is left and that is how
+ * people abandon them. What that version was missing was the wizard's own
+ * answer to its own objection: a progress bar and a running "question 3 of 8"
+ * tell a reader exactly how much is left, the same way the onboarding form
+ * already does for a longer set of questions than this one. Eight cards in a
+ * column is a wall of text to scan before answering any of it; one question,
+ * full width, with the previous and next ones out of sight, is what the
+ * conversational form pattern gets right and is what was asked for here.
+ *
+ * CHOOSING AN ANSWER IS THE ONLY ACTION. There is no separate "Next" to press:
+ * picking a card both answers the question and turns the page, after a short
+ * pause so the choice is seen before the page moves. A keyboard visitor gets
+ * the same thing for free, because Enter and Space already "click" a focused
+ * button; nothing here has to intercept the key to fake it. Every step keeps a
+ * Back arrow, and the result screen keeps a way to reopen the answers, so the
+ * one-way door a wizard usually is never actually is one here.
  */
 
 /* A radio group per question, so a keyboard gets arrow keys and a screen
@@ -36,15 +49,23 @@ import {
    type=radio> cannot be styled into a card without a wrapper anyway. */
 export default function ScopeEstimator() {
   const [answers, setAnswers] = useState<Answers>({});
+  const [index, setIndex] = useState(0);
+  const [revealed, setRevealed] = useState(false);
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
   const resultRef = useRef<HTMLDivElement>(null);
+  const advanceTimer = useRef<number | undefined>(undefined);
 
+  const question = QUESTIONS[index];
   const result = useMemo(() => estimate(answers), [answers]);
-  const done = isComplete(answers);
-  const answered = QUESTIONS.filter((q) => answers[q.key]).length;
+
+  const clearAdvanceTimer = () => {
+    window.clearTimeout(advanceTimer.current);
+    advanceTimer.current = undefined;
+  };
+  useEffect(() => clearAdvanceTimer, []);
 
   /* THE ANSWER IS BROUGHT TO THE READER, ONCE.
      The eighth question is at the bottom of a long form and the range appears
@@ -59,23 +80,51 @@ export default function ScopeEstimator() {
      put back when the form is reset. */
   const settled = useRef(false);
   useEffect(() => {
-    if (!done) { settled.current = false; return; }
+    if (!revealed) { settled.current = false; return; }
     if (settled.current) return;
     settled.current = true;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     resultRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
-  }, [done]);
+  }, [revealed]);
 
-  const pick = (question: string, option: string) => {
-    setAnswers((prev) => ({ ...prev, [question]: option }));
-    /* A changed answer invalidates a sent copy rather than leaving "sent"
-       under a figure that is no longer the one they sent. */
+  /* Picking a card sets the answer and, after a short pause long enough to see
+     what was chosen, moves on. The pause is skipped under reduced motion,
+     which is not a courtesy to animation -- it is the faster path for a reader
+     who has already said they do not want to wait for one. */
+  const choose = (option: Option) => {
+    setAnswers((prev) => ({ ...prev, [question.key]: option.key }));
     setSent(false);
     setError("");
+    clearAdvanceTimer();
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const atLast = index === QUESTIONS.length - 1;
+    advanceTimer.current = window.setTimeout(() => {
+      if (atLast) setRevealed(true);
+      else setIndex((i) => i + 1);
+    }, reduce ? 0 : 380);
+  };
+
+  const back = () => {
+    clearAdvanceTimer();
+    if (revealed) { setRevealed(false); return; }
+    setIndex((i) => Math.max(0, i - 1));
+  };
+
+  /* Reopens the last question without touching what was already answered, for
+     a reader who wants to change one thing rather than start over. */
+  const editAnswers = () => {
+    clearAdvanceTimer();
+    settled.current = false;
+    setRevealed(false);
+    setIndex(QUESTIONS.length - 1);
   };
 
   const reset = () => {
+    clearAdvanceTimer();
     setAnswers({});
+    setIndex(0);
+    setRevealed(false);
+    settled.current = false;
     setSent(false);
     setError("");
     setEmail("");
@@ -108,39 +157,59 @@ export default function ScopeEstimator() {
     }
   };
 
-  return (
-    <div className={`tl${result ? " tl--split" : ""}`}>
-      <form className="tl__form es__form" onSubmit={(e) => e.preventDefault()}>
-        {QUESTIONS.map((question) => (
-          <fieldset className="tl__kinds es__q" key={question.key}>
-            <legend className="tl__label">{question.label}</legend>
-            {question.hint && <p className="tl__hint es__qhint">{question.hint}</p>}
-            <div className="es__opts" role="radiogroup" aria-label={question.label}>
-              {question.options.map((option) => (
-                <button
-                  key={option.key}
-                  type="button"
-                  role="radio"
-                  aria-checked={answers[question.key] === option.key}
-                  className={`es__opt${answers[question.key] === option.key ? " is-on" : ""}`}
-                  onClick={() => pick(question.key, option.key)}
-                >
-                  <span className="es__optT">{option.label}</span>
-                  {option.note && <span className="es__optN">{option.note}</span>}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-        ))}
+  const progress = Math.round((index / QUESTIONS.length) * 100);
 
-        {!done && (
-          /* THE COUNT, NOT A PROGRESS BAR. A bar animating towards a number
-             nobody asked for is decoration; "three of eight" is the fact, and
-             it is the fact that decides whether somebody keeps going. */
-          <p className="tl__hint es__count" aria-live="polite">
-            {answered} of {QUESTIONS.length} answered. The range appears as soon as
-            the last one is.
-          </p>
+  return (
+    <div className="tl">
+      <form className="tl__form es__form" onSubmit={(e) => e.preventDefault()}>
+        {!revealed && (
+          <div className="es__wiz">
+            <div className="es__wizTop">
+              <div
+                className="es__prog"
+                role="progressbar"
+                aria-label="Estimator progress"
+                aria-valuemin={0}
+                aria-valuemax={QUESTIONS.length}
+                aria-valuenow={index + 1}
+              >
+                <span style={{ width: `${progress}%` }} />
+              </div>
+              <p className="tl__hint es__count" aria-live="polite">
+                Question {index + 1} of {QUESTIONS.length}
+              </p>
+            </div>
+
+            <fieldset className="es__q" key={question.key}>
+              <legend className="tl__label es__stepLabel">{question.label}</legend>
+              {question.hint && <p className="tl__hint es__qhint">{question.hint}</p>}
+              <div className="es__stepOpts" role="radiogroup" aria-label={question.label}>
+                {question.options.map((option) => (
+                  <button
+                    key={option.key}
+                    type="button"
+                    role="radio"
+                    aria-checked={answers[question.key] === option.key}
+                    className={`es__opt${answers[question.key] === option.key ? " is-on" : ""}`}
+                    onClick={() => choose(option)}
+                  >
+                    <span className="es__optT">{option.label}</span>
+                    {option.note && <span className="es__optN">{option.note}</span>}
+                  </button>
+                ))}
+              </div>
+              <p className="tl__hint es__advanceHint">
+                Choosing an answer moves you to the next question. Tab and press Enter
+                works the same way.
+              </p>
+            </fieldset>
+
+            {index > 0 && (
+              <button type="button" className="tl__again es__back" onClick={back}>
+                <ArrowLeft aria-hidden="true" /> Back
+              </button>
+            )}
+          </div>
         )}
       </form>
 
@@ -148,7 +217,7 @@ export default function ScopeEstimator() {
           reader who cannot see it appear has no other way to know the form is
           finished doing its job. */}
       <div className="tl__out" ref={resultRef} aria-live="polite">
-        {result && (
+        {revealed && result && (
           <>
             <div className="es__range">
               <p className="tl__stepK">Indicative range</p>
@@ -168,6 +237,9 @@ export default function ScopeEstimator() {
                 A range, not a quote. It is what work of this shape usually costs us
                 to do properly; the real figure comes from one conversation about
                 what you actually need.
+              </p>
+              <p className="tl__stepAlt">
+                Not quite right? <button type="button" onClick={editAnswers}>Change an answer</button>.
               </p>
             </div>
 

@@ -66,7 +66,7 @@ export default function LinkPreviewToolPage() {
             <h1>What does your link look like when it is shared?</h1>
             <p className="pv-lede">
               Paste it once and see the card WhatsApp, X, LinkedIn and Facebook will
-              each build from it — before it goes to a group of four hundred.
+              each build from it, before it goes to a group of four hundred.
             </p>
           </div>
         </section>
