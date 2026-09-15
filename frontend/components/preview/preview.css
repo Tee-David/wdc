@@ -913,6 +913,23 @@ html:not(.dark) .pv .pv-card {
   font-size: .85rem; line-height: 1.6; color: var(--muted);
 }
 
+/* THE BUTTON ROW, DEFINED WHERE EVERY PAGE CAN SEE IT.
+
+   `.sv-cta__row` was only in services.css, and the tool pages use the same
+   markup while importing preview.css, work.css and tools.css but NOT that
+   file. Measured: `gap` computed as `normal` on /tools/domain, so the two
+   buttons there had never been a flex row at all and the spacing fix landed on
+   pages that were already fine. services.css still carries its own copy with
+   the same values, so nothing on a service page changes. */
+.pv .sv-cta__row {
+  display: flex; gap: 20px; flex-wrap: wrap;
+  justify-content: center; margin-top: 18px;
+}
+@media (max-width: 560px) {
+  .pv .sv-cta__row { gap: 16px; }
+  .pv .sv-cta__row .pv-btn { width: 100%; word-break: break-word; }
+}
+
 /* ---------------- FAQ ---------------- */
 .pv-faq { display: grid; grid-template-columns: .85fr 1.15fr; gap: clamp(20px, 3vw, 40px); align-items: start; }
 @media (max-width: 860px) { .pv-faq { grid-template-columns: 1fr; } }

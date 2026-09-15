@@ -408,7 +408,10 @@ export function Hero() {
         >
           <Link
             href="#pv-contact"
-            className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-secondary px-7 py-3.5 sm:w-auto text-sm font-semibold text-black shadow-[0_12px_34px_rgba(255,101,0,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-black hover:text-white hover:shadow-none active:translate-y-0"
+            /* WHITE FILL, BLACK LABEL, like the header CTA beside it. It was an
+               orange fill, which the button rule forbids outright, and it sits on
+               the navy hero where white is the primary. */
+            className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-7 py-3.5 sm:w-auto text-sm font-semibold text-black shadow-[0_12px_34px_rgba(0,0,26,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-black hover:text-white hover:shadow-none active:translate-y-0"
           >
             Let&apos;s Talk
             <svg
