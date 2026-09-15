@@ -1,0 +1,49 @@
+/* The helper line bent along the curved input's own arc.
+   See the note at the top of curved-note.tsx for how the two stay in step. */
+
+.cn__wrap { display: block; position: relative; }
+
+.cn__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* The arc's ends dip below the cropped viewBox by a fraction of a pixel at
+     some widths, and a descender on a `y` or a `q` at the very end of the
+     sentence sits lower still. Visible overflow costs nothing here because
+     nothing is drawn outside the band, and it removes a clipped tail that is
+     maddening to track down. */
+  overflow: visible;
+}
+
+.cn__svg text {
+  /* Outfit, like every other line of helper text on the site. An SVG <text>
+     does not inherit the page font unless it is told to. */
+  font-family: inherit;
+  /* The sentence is carried by the sr-only node beside this SVG, so nothing is
+     lost by making the drawing itself unselectable, and a caret dragged across
+     a footer picking up letters one at a time off a curve is worse than
+     nothing. */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* The straight fallback: an ordinary line of text that wraps. It has to look
+   like it belongs to the same family, so it takes the same size and colour
+   from the component rather than declaring its own. */
+.cn__plain { display: block; position: relative; }
+/* The sentence itself, kept a leaf so the wrapper's text content is exactly
+   this and not this plus the ruler's hidden copy. */
+.cn__text { display: inline; }
+
+/* THE RULER. Off canvas rather than `display: none`, because a hidden element
+   has no layout and `getComputedTextLength` on it returns zero, which would
+   make every sentence look like it fits. */
+.cn__ruler {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+  pointer-events: none;
+}
