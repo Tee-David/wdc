@@ -431,7 +431,7 @@ function textShell(body: string, options: { unsubscribe?: boolean } = {}) {
 export function enquiryReceiptEmail(input: { firstName: string; topic: string }): Email {
   const { firstName, topic } = input;
   return {
-    subject: "We received your message — We Dig Creativity",
+    subject: "We received your message: We Dig Creativity",
     /* The enquirer asked us a question; they did not ask for this copy. That
        is the whole test for `unsubscribe`, and this is the clearest case. */
     unsubscribe: true,
@@ -576,7 +576,7 @@ export function quoteEmail(input: {
 }): Email {
   const { clientName, quoteNumber, projectTitle, lines, totals, validUntil, url } = input;
   return {
-    subject: `Quote ${quoteNumber} — ${projectTitle}`,
+    subject: `Quote ${quoteNumber} - ${projectTitle}`,
     text: textShell(`Hi ${clientName},
 
 Here is our quote for ${projectTitle}, reference ${quoteNumber}.
@@ -597,7 +597,7 @@ will re-issue rather than argue about it later.
 The WDC team`),
     html: shell({
       title: `Quote ${quoteNumber}`,
-      preheader: `${projectTitle} — ${naira(totals.total)}, valid until ${emailDate(validUntil)}.`,
+      preheader: `${projectTitle}, ${naira(totals.total)}, valid until ${emailDate(validUntil)}.`,
       eyebrow: `Quote ${quoteNumber}`,
       heading: projectTitle,
       blocks: [
@@ -648,7 +648,7 @@ export async function invoiceEmail(input: {
   const dueLabel = partPaid ? "Balance outstanding" : "Amount due";
 
   return {
-    subject: `Invoice ${number} — ${naira(outstanding)} due ${emailDate(due)}`,
+    subject: `Invoice ${number} - ${naira(outstanding)} due ${emailDate(due)}`,
     attachments: [qr.attachment],
     text: textShell(`Hi ${clientName},
 
@@ -709,7 +709,7 @@ export async function receiptEmail(input: {
     : `Balance still outstanding: ${naira(balance)}`;
 
   return {
-    subject: `Receipt ${receiptNumber} — ${naira(amount)} received`,
+    subject: `Receipt ${receiptNumber} - ${naira(amount)} received`,
     attachments: [qr.attachment],
     text: textShell(`Hi ${clientName},
 
@@ -787,7 +787,7 @@ Nothing is needed from you unless we have asked for it separately.
 
 The WDC team`, { unsubscribe: true }),
     html: shell({
-      title: `${projectTitle} — ${toStage}`,
+      title: `${projectTitle} - ${toStage}`,
       preheader: `Moved from ${fromStage} to ${toStage}.`,
       eyebrow: "Project update",
       heading: `${projectTitle} is now at ${toStage}.`,

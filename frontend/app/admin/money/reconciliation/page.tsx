@@ -85,7 +85,7 @@ export default function ReconciliationPage() {
                         {e.provider} · {e.event}{e.channel ? ` · ${e.channel}` : ""}
                       </p>
                     </td>
-                    <td className="num">{e.amount === null ? "—" : naira(e.amount)}</td>
+                    <td className="num">{e.amount === null ? "–" : naira(e.amount)}</td>
                     <td className="ad__rmC">
                       <span className="ad__row">
                         {e.outcome === "Unmatched" && e.amount !== null && e.amount > 0
@@ -157,7 +157,7 @@ export default function ReconciliationPage() {
                           <p className="ad__dim" style={{ margin: ".3rem 0 0", fontSize: ".78rem" }}>{e.note}</p>
                         ) : null}
                       </td>
-                      <td className="num">{e.amount === null ? "—" : naira(e.amount)}</td>
+                      <td className="num">{e.amount === null ? "–" : naira(e.amount)}</td>
                     </tr>
                   ))}
                 </tbody>

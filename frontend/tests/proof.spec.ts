@@ -1,41 +1,28 @@
 import { expect, test } from "@playwright/test";
-import { CASE_STUDIES } from "../lib/work";
-import { TESTIMONIALS } from "../lib/testimonials";
-import { SERVICES } from "../lib/services";
 import { proofStats } from "../lib/proof";
 
 /**
  * The figures under the homepage hero.
  *
- * THE ONLY ASSERTION THAT REALLY MATTERS IS THE FIRST ONE: every number on
- * screen is the count of something in the repository. A stats band is the
- * easiest thing on a marketing site to quietly inflate -- one hand-typed "40+"
- * in a component, six months later nobody remembers it was a guess -- and this
- * site has already deleted eight fabricated testimonials for exactly that
- * reason (see the note at the top of `lib/testimonials.ts`). So the test walks
- * the rendered page and checks each figure against the data it claims to
- * count, which is the one check a typed-in number cannot pass.
+ * THESE FOUR ARE HAND-SET, not derived from the case studies or testimonials
+ * on the site; see the note at the top of `lib/proof.ts` for why. What this
+ * suite can still pin is that the page renders exactly `lib/proof.ts`'s own
+ * figures, that every one carries the "+" it is supposed to (a round number
+ * with no suffix reads as an exact count, which these are not), and that the
+ * counter is honest about arriving with JavaScript.
  *
- * THE SECOND ONE IS ABOUT TRUST OF A DIFFERENT KIND. The band is a counter, and
- * a counter written the obvious way renders zero into the HTML and animates up
- * after hydration -- so a reader with no JavaScript, a crawler, and anybody
- * whose bundle is still arriving are all told this studio has delivered no
- * projects. The figures are server-rendered at their real value and the
- * animation only runs over the top of them, which is what the no-JavaScript
- * case below proves.
+ * THE SECOND TEST IS ABOUT TRUST OF A DIFFERENT KIND. The band is a counter,
+ * and a counter written the obvious way renders zero into the HTML and
+ * animates up after hydration, so a reader with no JavaScript, a crawler, and
+ * anybody whose bundle is still arriving are all told the agency has ten
+ * years and nothing to show for them. The figures are server-rendered at
+ * their real value and the animation only runs over the top of them, which is
+ * what the no-JavaScript case below proves.
  */
 
 const HOME = "/";
 
-/** What the page should be able to count, computed here from the same data. */
-const EXPECTED = {
-  projects: CASE_STUDIES.length,
-  deliverables: CASE_STUDIES.reduce((n, c) => n + c.did.length, 0),
-  quoted: TESTIMONIALS.length,
-  services: SERVICES.length,
-};
-
-test("every figure is a count of something real", async ({ page }) => {
+test("every figure on screen matches lib/proof.ts, with the suffix it is owed", async ({ page }) => {
   await page.addInitScript(() => {
     try { localStorage.setItem("wdc-intro-seen-at", String(Date.now())); } catch { /* private mode */ }
   });
@@ -46,37 +33,34 @@ test("every figure is a count of something real", async ({ page }) => {
   /* Past the counter's ~1.1s run, so what is read is the settled figure. */
   await page.waitForTimeout(1_800);
 
-  const shown = (await page.locator(".pf__num").allInnerTexts()).map((t) => Number(t.trim()));
-  expect(shown, "the band should show four figures").toHaveLength(4);
-
-  /* Each one against the thing it claims to count. Order is the component's,
-     and `lib/proof.ts` is the single place both it and this test read. */
   const stats = proofStats();
-  expect(stats.map((s) => s.value)).toEqual(shown);
+  const nums = page.locator(".pf__num");
+  await expect(nums).toHaveCount(stats.length);
 
-  expect(shown[0], "projects delivered is the case study count").toBe(EXPECTED.projects);
-  expect(shown[1], "things shipped is the sum of every case study's deliverables").toBe(EXPECTED.deliverables);
-  expect(shown[2], "clients on the record is the testimonial count").toBe(EXPECTED.quoted);
-  expect(shown[3], "disciplines is the service count").toBe(EXPECTED.services);
+  const shown = await nums.allInnerTexts();
+  for (const [i, stat] of stats.entries()) {
+    expect(shown[i].trim(), `figure ${i} matches lib/proof.ts`).toBe(`${stat.value}${stat.suffix ?? ""}`);
+  }
 
-  /* AND NOTHING IS ROUNDED UP OR DECORATED. A "+" or a "k" on a figure this
-     size is the first step back towards a claim nobody can check. */
-  for (const text of await page.locator(".pf__num").allInnerTexts()) {
-    expect(text.trim(), "a figure carries a suffix it has not earned").toMatch(/^\d+$/);
+  /* A hand-set round figure without its "+" reads as an exact count, which
+     these are not: the suffix is what tells a reader these are the agency's
+     own approximation of its history rather than a number that ends in .5. */
+  for (const stat of stats) {
+    expect(stat.suffix, `${stat.key} carries a "+"`).toBe("+");
   }
 });
 
 test("the real figures are in the HTML, not animated into it", async ({ browser }) => {
   /* NO JAVASCRIPT AT ALL. This is the case a counter gets wrong: server-render
      zero, count up on hydration, and every reader whose bundle has not arrived
-     is told the studio has shipped nothing. */
+     is told the agency has shipped nothing. */
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
   await page.goto(HOME);
 
-  const shown = (await page.locator(".pf__num").allInnerTexts()).map((t) => Number(t.trim()));
-  expect(shown).toEqual(proofStats().map((s) => s.value));
-  expect(shown).not.toContain(0);
+  const stats = proofStats();
+  const shown = await page.locator(".pf__num").allInnerTexts();
+  expect(shown.map((t) => t.trim())).toEqual(stats.map((s) => `${s.value}${s.suffix ?? ""}`));
 
   await context.close();
 });

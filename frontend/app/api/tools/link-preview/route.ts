@@ -69,7 +69,7 @@ function explain(reason: FetchPageFailure, status?: number) {
     case "timeout":
       return "The page took too long to answer. A scraper gives it about the same patience we just did.";
     case "too-large":
-      return "That page is enormous — too big for us to read, and slow for anyone you send it to.";
+      return "That page is enormous, too big for us to read, and slow for anyone you send it to.";
     case "not-html":
       return "That address is a file rather than a page, so there is nothing to unfurl.";
     case "http-error":

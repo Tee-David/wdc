@@ -203,7 +203,7 @@ function TeamRail() {
         onScroll={sync}
         tabIndex={0}
         role="region"
-        aria-label="Disciplines in the studio"
+        aria-label="Disciplines at the agency"
       >
         {TEAM.map((m, n) => (
           <article className="ab-tm" key={m.id} style={{ "--d": `${n * 70}ms` } as CSSProperties}>
@@ -258,7 +258,7 @@ export default function AboutBody() {
             </p>
             <h1>{MOTTO}</h1>
             <p className="pv-lede">
-              We are a creative and digital studio. We design the brand, build the
+              We are a creative and digital agency. We design the brand, build the
               product and run the growth that follows, with the same team on all
               three, so the work arrives as one thing rather than three handovers.
             </p>
@@ -279,7 +279,7 @@ export default function AboutBody() {
         <div className="pv-wrap">
           <div className="ab-say pv-reveal">
             <h2>
-              Most studios hand you a logo and leave. We stay for the part where
+              Most agencies hand you a logo and leave. We stay for the part where
               it has to <em>work</em>.
             </h2>
             <p className="pv-lede">
@@ -323,7 +323,7 @@ export default function AboutBody() {
               </ul>
             </div>
           </ScrollExpand>
-          <p className="ab-cap">Work from the studio. More of it on the services page.</p>
+          <p className="ab-cap">Work from the agency. More of it on the services page.</p>
           {/* This section is 300vh tall with the wheel pinned in the middle of
               it, so for three screens of scrolling nothing moves vertically and
               the page reads as having ended. It has not: the wheel is turning

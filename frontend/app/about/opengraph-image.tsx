@@ -9,6 +9,6 @@ export default async function Image() {
   return ogCard({
     eyebrow: "About",
     title: MOTTO,
-    note: "A creative and digital studio. Design, engineering and growth on one team.",
+    note: "A creative and digital agency. Design, engineering and growth on one team.",
   });
 }

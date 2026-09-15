@@ -119,7 +119,7 @@ export default function MoneyPage() {
             not billed yet is a different thing and not a problem. */}
         <Tile
           label="Collected of billed"
-          value={rate === null ? "—" : `${Math.round(rate * 100)}%`}
+          value={rate === null ? "–" : `${Math.round(rate * 100)}%`}
           tone={rate === null ? undefined : rate >= 0.9 ? "good" : rate >= 0.7 ? undefined : "bad"}
           note={rate === null ? "Nothing invoiced yet" : undefined}
         />
@@ -146,7 +146,7 @@ export default function MoneyPage() {
                     <tr key={b.label}>
                       <td><b>{b.label}</b></td>
                       <td className="num">
-                        {b.amount ? naira(b.amount) : <span className="ad__dim">—</span>}
+                        {b.amount ? naira(b.amount) : <span className="ad__dim">–</span>}
                       </td>
                       <td>
                         {b.invoices.length ? (
@@ -250,7 +250,7 @@ export default function MoneyPage() {
                             </p>
                           ) : null}
                         </td>
-                        <td>{c ? <Link href={`/admin/clients/${c.id}`}>{c.company}</Link> : "—"}</td>
+                        <td>{c ? <Link href={`/admin/clients/${c.id}`}>{c.company}</Link> : "–"}</td>
                         <td>
                           <span className={`ad__pill ${
                             st === "Accepted" ? "ad__pill--good"
@@ -403,7 +403,7 @@ export default function MoneyPage() {
                             ) : null}
                           </p>
                         </td>
-                        <td>{e.vendor ?? <span className="ad__dim">—</span>}</td>
+                        <td>{e.vendor ?? <span className="ad__dim">–</span>}</td>
                         <td>
                           {on
                             ? <Link href={`/admin/projects/${on.id}`}>{on.title}</Link>

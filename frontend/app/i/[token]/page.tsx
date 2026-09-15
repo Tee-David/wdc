@@ -143,7 +143,7 @@ export default async function PublicInvoice({
       <dl className="doc__meta">
         <div>
           <dt>Billed to</dt>
-          <dd>{client?.company ?? "—"}</dd>
+          <dd>{client?.company ?? "–"}</dd>
         </div>
         <div>
           <dt>Issued</dt>

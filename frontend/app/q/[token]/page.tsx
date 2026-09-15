@@ -94,7 +94,7 @@ export default async function PublicEstimate({
       <dl className="doc__meta">
         <div>
           <dt>For</dt>
-          <dd>{client?.company ?? "—"}</dd>
+          <dd>{client?.company ?? "–"}</dd>
         </div>
         <div>
           <dt>Issued</dt>

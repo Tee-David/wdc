@@ -582,5 +582,5 @@
 .pv .wk-quote--said blockquote::after { content: "\201D"; }
 .pv .wk-quote--said figcaption { font-weight: 700; color: var(--ink); }
 .pv .wk-quote--said figcaption::before {
-  content: "— "; color: var(--muted); font-weight: 400;
+  content: "\2013 "; color: var(--muted); font-weight: 400;
 }
