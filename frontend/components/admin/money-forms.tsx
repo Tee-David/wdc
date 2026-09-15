@@ -415,7 +415,7 @@ export function AddExpense({ projects = [] }: { projects?: Pick<Project, "id" | 
             {projects.length ? (
               <Select
                 name="projectId" label="Against a project"
-                placeholder="Studio overhead, no project"
+                placeholder="Agency overhead, no project"
                 hint="Leave it on overhead unless the cost belongs to one job. This is what makes a project's margin readable."
                 options={projects.map((p) => ({ value: p.id, label: p.title }))}
               />

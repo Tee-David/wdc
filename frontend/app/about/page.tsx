@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "About We Dig Creativity | Creative & Digital Agency",
     description:
-      "The studio behind the work: design, engineering and growth under one roof.",
+      "The agency behind the work: design, engineering and growth under one roof.",
     type: "website",
     url: `${SITE_URL}/about`,
   },
@@ -35,7 +35,7 @@ const jsonLd = {
     slogan: MOTTO,
     email: CONTACT_EMAIL,
     description:
-      "A creative and digital studio: branding and design, SEO, full-stack web development, cross-platform apps, software engineering with AI, and social media and PPC.",
+      "A creative and digital agency: branding and design, SEO, full-stack web development, cross-platform apps, software engineering with AI, and social media and PPC.",
   },
 };
 
