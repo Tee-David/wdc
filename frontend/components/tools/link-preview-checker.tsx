@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, Check, HelpCircle, ImageOff, Loader2, Search, X } from "lucide-react";
 import type { Card, Finding, ImageFacts, Tags } from "@/lib/link-preview";
+import WaitingLine from "./waiting-line";
 
 import "./link-preview.css";
 
@@ -51,6 +52,16 @@ const WORD: Record<Finding["verdict"], string> = {
   missing: "Missing",
   unknown: "Could not tell",
 };
+
+/* Something to read while we fetch the page and probe its image. */
+const WAITING = [
+  "Fetching your page 📄",
+  "Reading the tags in your page head 🏷️",
+  "Downloading your og:image 🖼️",
+  "Weighing it in kilobytes ⚖️",
+  "Cropping it the way WhatsApp would ✂️",
+  "Checking what Facebook and X would show 📱",
+];
 
 export default function LinkPreviewChecker() {
   const [url, setUrl] = useState("");
@@ -125,6 +136,8 @@ export default function LinkPreviewChecker() {
       </form>
 
       {error && <p className="tl__err" role="alert">{error}</p>}
+
+      {busy && <WaitingLine phrases={WAITING} />}
 
       <div className="tl__out" aria-live="polite">
         {result && (

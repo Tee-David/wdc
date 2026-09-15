@@ -7,6 +7,7 @@ import type { Facts, Finding } from "@/lib/seo-audit";
 import {
   DEFAULT_NAIRA_PER_GB, PRICE_REVIEWED, dataCost, nairaCost, waitLabel, weightLabel,
 } from "@/lib/data-cost";
+import WaitingLine from "./waiting-line";
 
 /**
  * The on-page SEO snapshot at /tools/seo, and the data-cost panel bolted onto
@@ -53,6 +54,17 @@ const WORD: Record<Finding["verdict"], string> = {
   missing: "Missing",
   unknown: "Could not tell",
 };
+
+/* Something to read while we fetch the page and read it the way Google
+   would. */
+const WAITING = [
+  "Fetching your page 📄",
+  "Reading it the way Google does 🤖",
+  "Counting your headings 📊",
+  "Checking if this page can be indexed 🔍",
+  "Weighing every byte of the HTML ⚖️",
+  "Looking for your alt text 🖼️",
+];
 
 export default function SeoSnapshot() {
   const [url, setUrl] = useState("");
@@ -164,6 +176,8 @@ export default function SeoSnapshot() {
       </form>
 
       {error && <p className="tl__err" role="alert">{error}</p>}
+
+      {busy && <WaitingLine phrases={WAITING} />}
 
       <div className="tl__out" aria-live="polite">
         {result && cost && (

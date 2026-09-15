@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Check, Loader2, RotateCcw, Search, X } from "lucide-react";
+import WaitingLine from "./waiting-line";
 
 /**
  * The public domain checker at /tools/domain.
@@ -81,20 +82,6 @@ export default function DomainChecker() {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [waitIndex, setWaitIndex] = useState(0);
-
-  /* One interval, alive only while a check is in flight. The only setState
-     here is inside the timer's callback: setting state synchronously in an
-     effect body is a cascading render, and the compiler rejects it. The random
-     starting phrase is chosen where the check starts instead, which is also
-     where it belongs. */
-  useEffect(() => {
-    if (!busy) return;
-    const id = window.setInterval(() => {
-      setWaitIndex((n) => (n + 1) % WAITING.length);
-    }, 1500);
-    return () => window.clearInterval(id);
-  }, [busy]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,9 +95,6 @@ export default function DomainChecker() {
     const wanted = parsed.kind === "domain"
       ? [parsed.domain]
       : TLDS.map((t) => `${parsed.base}.${t}`);
-    /* A different opening line each time, picked here rather than in the
-       effect that rotates them. */
-    setWaitIndex(Math.floor(Math.random() * WAITING.length));
     setBusy(true);
     setError("");
     try {
@@ -169,15 +153,8 @@ export default function DomainChecker() {
 
       {/* Not a spinner. The lookup fans out to six registries and some of them
           take their time, so this is a couple of seconds of dead air; a line
-          that changes is the same wait spent better. `aria-live` is off here
-          deliberately: a screen reader does not need a new joke every 1.5
-          seconds, and the button already announces itself as busy. */}
-      {busy && (
-        <p className="tl__wait" aria-hidden="true">
-          <span className="tl__waitDot" />
-          {WAITING[waitIndex]}
-        </p>
-      )}
+          that changes is the same wait spent better. */}
+      {busy && <WaitingLine phrases={WAITING} />}
 
       {/* `aria-live` so the answer is announced rather than silently appearing
           under a button somebody just pressed. */}
