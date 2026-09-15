@@ -296,29 +296,36 @@
   .nf__btn:hover .nf__btnIc { transform: translateY(-1px); }
 }
 
-/* Home: orange, going navy. */
+/* THE SITE'S TWO BUTTONS, which these three were the last holdouts from.
+
+   They were an orange fill going navy, a navy fill going orange, and a quiet
+   third one -- three fills, two of them brand colours, on a page whose whole
+   job is to get somebody back onto the site. The idea underneath was good and
+   survives: the pair trade places on hover. What changes is which two colours
+   they trade, and the reason is the measured one written in preview.css --
+   orange on paper is 2.8:1 and navy on the dark theme's own page is 1.15:1,
+   so both of those fills are buttons you cannot see the edge of.
+
+   THE PAGE KEEPS ITS COLOUR. The sketch, the marks, the eyebrow and the
+   figures are all still navy and orange; it is the buttons that are not. */
 .pv .nf__btn--home {
-  background: var(--accent); border-color: var(--accent); color: var(--on-accent);
+  background: var(--btn-fill); border-color: var(--btn-fill); color: var(--btn-ink);
 }
 .pv .nf__btn--home:hover {
-  background: var(--nf-blue); border-color: var(--nf-blue); color: #fff;
+  background: var(--btn-ink); border-color: var(--btn-fill); color: var(--btn-fill);
 }
 
-/* Work: navy, going orange. The reverse of home, so hovering either one lands
-   on the colour the other started in -- the pair trade places. */
-.pv .nf__btn--work {
-  background: var(--nf-blue); border-color: var(--nf-blue); color: #fff;
+/* Work and Broke are both the secondary, filled in the opposite tone. Two of
+   them side by side is not a mistake: they are two different places to go, not
+   two weights of the same offer, and the primary above is the one being
+   pushed. */
+.pv .nf__btn--work,
+.pv .nf__btn--broke {
+  background: var(--btn-ink); border-color: var(--btn-fill); color: var(--btn-fill);
 }
-.pv .nf__btn--work:hover {
-  background: var(--accent); border-color: var(--accent); color: var(--on-accent);
-}
-
-/* Broke: the quiet one, because "something is wrong here" should be offered
-   and not pushed. It goes black on hover, which is the only one of the three
-   that is not a brand colour -- deliberately, since it is the only one that
-   leads somewhere other than the work. */
+.pv .nf__btn--work:hover,
 .pv .nf__btn--broke:hover {
-  background: #000; border-color: #000; color: #fff;
+  background: var(--btn-fill); border-color: var(--btn-fill); color: var(--btn-ink);
 }
 
 @media (prefers-reduced-motion: no-preference) {
