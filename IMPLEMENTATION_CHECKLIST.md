@@ -11,13 +11,102 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **148 open** (11 of them in progress), **222 done**.
+At last update: **159 open** (11 of them in progress), **222 done**.
 
 ---
 
 # Open
 
 ## 0. Raised in conversation, not yet done
+
+### Performance pass, 2026-09-15 (PageSpeed mobile: Performance 45, Best Practices 73)
+
+Measured on the live homepage, Moto G Power / Slow 4G, Lighthouse 13.4.1.
+FCP 1.5s, LCP 4.4s, TBT 2,880ms, CLS 0.056, Speed Index 26.3s.
+
+READ THE SPLIT BEFORE PICKING ANYTHING UP. Total page weight was 26,333 KiB.
+Jotform is 22,688 KiB of it (jotfor.ms 11,733.5 + jotform.com 10,954.5), which
+is 86%. Of the 5,147ms Lighthouse attributed to long main-thread tasks,
+3,384ms is jotfor.ms and 852ms is jotform.com; ours is 911ms across nine
+tasks, and only the part of each task over 50ms counts toward TBT, so our real
+contribution to a 2,880ms TBT is roughly 460ms. Driving every first-party
+item below to zero therefore still leaves TBT around 2,400ms against a 200ms
+green threshold. **90+ on mobile is not reachable while this embed loads on
+page load.** Everything in group A is still worth doing and adds up to a real
+improvement; none of it changes that sentence. Group C is the only lever that
+does, and it is the owner's call, not ours.
+
+#### A. Ours to fix, inside the "don't touch the widget" constraint
+
+- [ ] `style-src` is missing `cdn.jotfor.ms`, so the browser blocks
+  `https://cdn.jotfor.ms/fonts/?family=Inter&display=swap` and logs a console
+  error on every page load. `script-src` and `connect-src` both name the host;
+  `style-src` only names `https://*.jotform.com`, which does not match
+  `jotfor.ms`. This is the "Browser errors were logged to the console" audit
+  and part of why Best Practices is 73. One directive in `next.config.ts`, and
+  it makes the widget work better rather than touching it.
+- [ ] Ship no legacy polyfills. There is no `browserslist` in `package.json`
+  and no `.browserslistrc` anywhere, so the build targets Next's default and
+  transpiles `Array.prototype.at/flat/flatMap`, `Object.fromEntries/hasOwn`
+  and `String.prototype.trimEnd/trimStart` into our own chunk: 14 KiB of the
+  42 KiB "Legacy JavaScript" finding, for browsers nobody on this site uses.
+- [ ] Preconnect the three Jotform origins (`cdn.jotfor.ms`,
+  `www.jotform.com`, `files.jotform.com`). Lighthouse reports no origins were
+  preconnected at all. The widget's first request currently pays DNS, TCP and
+  TLS in series after the document has already parsed. This speeds the widget
+  up without altering how or when it loads.
+- [ ] Collapse the render-blocking CSS. The prerendered homepage links nine
+  stylesheet chunks (56K + 44K + 16K + 8K + 8K + 4K + 4K + 4K + 4K raw);
+  Lighthouse estimates 330ms of blocking. They are one chunk per CSS import
+  boundary, so the fix is in how the component stylesheets are imported, not
+  in the rules themselves.
+- [ ] Remove `matter-js` and `components/ui/falling-text.tsx`. Nothing imports
+  the component; it is the package's only consumer. Dead weight in
+  `package.json` and in the install.
+- [ ] Profile our own 911ms of long tasks. The worst is 170ms in
+  `chunks/1qfsszn-x_yw5.js`, which Lighthouse also puts at 1,698ms total CPU
+  and 919ms script evaluation. Confirm what is in it before changing anything;
+  `gsap`, `lenis` and `ogl` are already correctly kept off the mobile
+  homepage, so this is something else.
+- [ ] Decide on `productionBrowserSourceMaps`. "Missing source maps for large
+  first-party JavaScript" names `chunks/3ya9z09h84u-4.js`. The audit is
+  unscored and only buys clearer future Lighthouse reports, so this is a
+  judgement call, not a defect.
+
+#### B. The widget's, but fixable in the Jotform account with no code at all
+
+- [ ] **Re-upload the agent avatar at a sane size.** It is a 1254x1254 PNG
+  displayed at 74x74, 2,402 KiB, fetched TWICE (4,804 KiB, 18% of the entire
+  page) and served with `Cache-Control: None` so it is re-fetched on every
+  visit. Jotform AI Agent Builder, Designer, Avatar. This is the single
+  largest thing anybody can do about this page today and it takes one upload.
+- [ ] Ask Jotform support why `for-embedded-agent.js` (6,150 KiB) is served
+  uncompressed. Requested twice from here, once with `Accept-Encoding: gzip,
+  br` and once with `--compressed`: no `content-encoding` header either time.
+  A gzip on their side would cut roughly 4 MB off the page with no change to
+  the embed. Worth one support ticket even if the answer is no.
+
+#### C. The structural choice, owner's call
+
+- [ ] Decide whether the agent still loads on page load. This has been
+  proposed twice and rejected twice, deliberately, and the reasons are written
+  into `components/agent/jotform-agent.tsx`: framing the agent directly means
+  we own the launcher and lose their auto-open, greeting bubble and voice-call
+  handoff. Recording it once more only because the number is now on the table:
+  loading it on first click instead would move roughly 22.7 MB and about
+  2,400ms of TBT off first load, which is the difference between a 45 and a
+  score in the 90s, and the chat would then take a moment to open the first
+  time somebody clicks it. Not doing this without an explicit yes.
+
+#### D. Record corrections, found while measuring
+
+- [ ] Two items in the Done archive under "3. Performance and release
+  verification" no longer describe the deployed site: "Delay Jotform until
+  user intent" and "Host the chat avatar ourselves" are both marked `[x]`, and
+  the live report shows the embed loading on page load and the avatar coming
+  from `files.jotform.com` twice. Both were reverted on purpose by the owner,
+  which is a legitimate decision; the archive just should not still claim
+  them. Move them out with a note rather than deleting them.
 
 ### From screenshots, 2026-09-14
 

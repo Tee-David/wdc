@@ -28,17 +28,42 @@ async function check(page: import("@playwright/test").Page, name: string, compan
   await expect(page.locator(".tl__out")).toBeVisible();
 }
 
-test("answers without sending the name anywhere", async ({ page }) => {
+test("answers without sending the name anywhere", async ({ page, baseURL }) => {
+  const NAME = "Federal Holdings Ltd";
   const outbound: string[] = [];
-  /* Everything except the documents, scripts and styles the page itself is
-     made of. A name typed into this box must not appear in any of it. */
+
+  /* WHAT THIS IS ACTUALLY ASSERTING, and it took a production run to get the
+     assertion to match the intent. The first version counted every fetch and
+     xhr and demanded zero. That passed under `next dev`, where the App Router
+     does not prefetch, and failed under `next start`, where it prefetches
+     every link in the viewport: twenty-five `?_rsc=` requests for the nav and
+     the footer, none of which has anything to do with the box. A test that is
+     green in dev and red in prod is worse than no test, because prod is the
+     thing that ships.
+ 
+     So the two facts that matter are asserted directly instead. The typed
+     name must not appear in any request -- not in a path, not in a query, not
+     in a body -- and no request may leave our own origin. Between them those
+     rule out the thing the tool promises: that the check is arithmetic in the
+     visitor's browser and the name never travels. The router's own navigation
+     prefetches are neither. */
+  /* NOTE `URL` IS A STRING IN THIS FILE, shadowing the global constructor, so
+     the origin comes from the runner's own baseURL rather than being parsed. */
+  const origin = baseURL ?? "http://localhost:3100";
+
   page.on("request", (r) => {
     const type = r.resourceType();
-    if (type === "fetch" || type === "xhr" || type === "websocket") outbound.push(r.url());
+    if (type !== "fetch" && type !== "xhr" && type !== "websocket") return;
+    const url = r.url();
+    const body = r.postData() ?? "";
+    const carriesName = [url, decodeURIComponent(url), body].some((text) =>
+      /federal/i.test(text),
+    );
+    if (carriesName || !url.startsWith(origin)) outbound.push(url);
   });
 
   await page.goto(URL);
-  await check(page, "Federal Holdings Ltd");
+  await check(page, NAME);
 
   expect(outbound, `unexpected outbound request: ${outbound.join(", ")}`).toHaveLength(0);
 });
