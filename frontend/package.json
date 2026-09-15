@@ -11,7 +11,8 @@
     "skeletons:build": "node scripts/build-admin-skeletons.mjs",
     "db:migrate": "node scripts/migrate.mjs",
     "db:check-onboarding": "node scripts/check-onboarding-queries.mjs",
-    "db:check-quota": "node scripts/check-quota.mjs"
+    "db:check-quota": "node scripts/check-quota.mjs",
+    "check:cac-name": "node --experimental-strip-types scripts/check-cac-name.mjs"
   },
   "dependencies": {
     "better-auth": "^1.7.4",
