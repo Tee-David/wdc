@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **122 open** (11 of them in progress), **272 done**.
+At last update: **122 open** (11 of them in progress), **274 done**.
 
 ---
 
@@ -427,6 +427,46 @@ with the rest of section 4's content and settings work.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-15, the CTA card's headline gets more room on a phone
+
+- [x] **The "Next step" CTA card's headline ("Most of this is an
+  afternoon, not a rebuild." and its equivalents on every other tool and
+  service page) read as cramped on a phone, wrapping into three short,
+  narrow-looking lines centred inside a lot of empty side margin.** MEASURED
+  RATHER THAN GUESSED: at 390px the card's own content width was 307px, the
+  sum of two legitimate but stacked paddings, `.pv-wrap`'s page gutter and
+  `.pv-cta`'s own internal padding, and the headline's natural (unwrapped)
+  width is 325px, so three lines was the genuine minimum at that width, not
+  a `text-wrap: balance` side effect (checked: the previous, non-balanced
+  wrap needed three lines too, and forcing the box to roughly 360px is what
+  actually drops it to two, per a direct binary search over widths). Real
+  per-line measurements taken with `Range.getClientRects()` on the text,
+  since the block element's own `getClientRects()` collapses to one rect
+  regardless of how many lines are inside it and had been read as "already
+  fits on one line" at first, wrongly.
+  `.pv-cta`'s own mobile padding came down from 22px to 16px, which is
+  exactly the safe direction: the 22px value was itself chosen to GIVE the
+  buttons more room over an earlier 34px+ floor that made them wrap, so
+  taking it down further only gives everything inside more room, never
+  less. Reverified at 320px and 390px, the two widths the original fix was
+  measured against: both buttons still hold one line each, and the
+  headline's available width grew from 307px to 319px. True two-line
+  wrapping would need roughly 360px, which is not reachable at a 390px
+  phone without removing the padding almost entirely, so this is a real,
+  bounded improvement rather than a full fix to an exact line count.
+  `tests/button-colours.spec.ts` (25/25 across both themes) and
+  `tests/page-opening.spec.ts` still pass.
+- [x] **The two CTA buttons ("Start a conversation" and the service-specific
+  second one) were reported as both rendering white**, which would be
+  exactly the "two of the same colour" fault `tests/button-colours.spec.ts`
+  exists to catch. Checked fresh rather than assumed: `.pv-btn--accent`
+  computes white-fill/black-text and `.pv-btn--light` computes
+  black-fill/white-text on this band in both themes, matching the pair the
+  hero already uses, and the full button suite passes 25/25. Nothing in
+  the code needed changing; what was seen was very likely an
+  not-yet-refreshed view of the previously deployed site, the same gap a
+  few earlier rounds this session turned out to be.
 
 ## Closed 2026-09-15, the proof band's lede stops explaining itself
 
