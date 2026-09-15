@@ -72,12 +72,6 @@ export function proofStats(): Stat[] {
   ];
 }
 
-/** The line that makes the numbers mean something, kept in sync with the
-    stats above by hand since both are set by hand now. */
-export function proofLine() {
-  return "10+ years in business, 200+ clients on record, nothing invented.";
-}
-
 /** A thousand or more reads as "2K", not "2000": the same "k" shorthand
     `lib/estimate.ts` already uses for a figure this size. Below a thousand
     this is just the whole number. Exported so the component that animates
