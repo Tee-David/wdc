@@ -448,11 +448,14 @@
 }
 .sv-chip:hover { border-color: var(--accent); }
 .sv-chip.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+/* The count badge, solid for the same reason as the icon chip above: mixed
+   against the ground it sits on rather than against `transparent`. Identical
+   colour, nothing showing through. */
 .sv-chip__c {
   font-size: .76rem; padding: 1px 7px; border-radius: 999px;
-  background: rgba(255, 255, 255, .14); color: inherit;
+  background: color-mix(in srgb, #fff 14%, var(--band)); color: inherit;
 }
-.sv-chip.is-on .sv-chip__c { background: rgba(0, 0, 101, .22); }
+.sv-chip.is-on .sv-chip__c { background: color-mix(in srgb, #000065 22%, var(--accent)); }
 
 .sv-work__bar {
   display: flex; align-items: center; justify-content: space-between;
@@ -680,9 +683,15 @@
    chip needs to read against navy rather than on it. (0,2,0) to beat the
    single-class rules above. */
 .pv .wk-hero .sv-svc__title { color: #fff; }
+/* SOLID, NOT TRANSLUCENT. It was white at 12% alpha, which is a hole in the
+   chip rather than a chip: whatever the band is doing behind it shows through,
+   and it shifts the moment anything is drawn under it. Mixing the same 12%
+   against `--band` instead of against `transparent` gives the identical colour
+   as a SOLID fill, and it still follows the theme because `--band` does. No
+   icon on this site has a see-through background. */
 .pv .wk-hero .sv-svc__icon {
-  background: rgb(255 255 255 / .12);
-  border-color: rgb(255 255 255 / .22);
+  background: color-mix(in srgb, #fff 12%, var(--band));
+  border-color: color-mix(in srgb, #fff 22%, var(--band));
   color: #fff;
 }
 .pv .wk-hero .sv-svc__top { margin-top: 0; }
