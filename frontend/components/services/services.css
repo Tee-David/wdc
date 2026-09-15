@@ -109,29 +109,6 @@
    sticky behaviour would have left it pinned only between 640 and 767px,
    which is a band nobody designs for and nobody would have noticed was
    inconsistent. One behaviour is better than two. */
-.sv-jump {
-  position: static; z-index: 20; overflow: hidden;
-  background: var(--paper); border-bottom: 1px solid var(--rule);
-}
-/* clips its own track. Without this the max-content track escapes the sticky
-   bar and widens the document — 1737px of horizontal scroll on a phone. */
-.sv-jump__loop { --logoloop-fadeColorAuto: transparent; overflow: hidden; }
-.sv-jump__loop .logoloop__link { text-decoration: none; }
-.sv-jump__link {
-  display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-weight: 600; font-size: .88rem; color: var(--ink);
-  padding-block: 12px;
-  transition: color .18s ease;
-}
-.sv-jump__loop .logoloop__link:hover .sv-jump__link { color: var(--accent); }
-/* The icon takes the accent the number used to carry, so the ticker keeps the
-   same two-tone rhythm — a coloured mark, then the name in the section's ink. */
-.sv-jump__i {
-  display: inline-flex; align-items: center; color: var(--accent);
-  flex: none; line-height: 0;
-}
-.sv-jump__loop .logoloop__link:hover .sv-jump__i { color: currentColor; }
 
 /* ---------------- one service ---------------- */
 /* The title block now stands alone above the showcase, so it carries the
@@ -453,25 +430,6 @@
   display: flex; flex-wrap: wrap; gap: 9px; justify-content: center;
   margin-bottom: clamp(1.6rem, 3vw, 2.4rem);
 }
-.sv-chip {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 10px 17px; border-radius: 999px; cursor: pointer;
-  background: transparent; border: 1px solid var(--on-band-rule); color: #fff;
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-weight: 600; font-size: .88rem;
-  transition: background-color .18s ease, color .18s ease, border-color .18s ease;
-}
-.sv-chip:hover { border-color: var(--accent); }
-.sv-chip.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-/* The count badge, solid for the same reason as the icon chip above: mixed
-   against the ground it sits on rather than against `transparent`. Identical
-   colour, nothing showing through. */
-.sv-chip__c {
-  font-size: .76rem; padding: 1px 7px; border-radius: 999px;
-  background: color-mix(in srgb, #fff 14%, var(--band)); color: inherit;
-}
-.sv-chip.is-on .sv-chip__c { background: color-mix(in srgb, #000065 22%, var(--accent)); }
-
 .sv-work__bar {
   display: flex; align-items: center; justify-content: space-between;
   gap: 16px; margin-bottom: 18px;
@@ -651,49 +609,11 @@
    a white primary and an outlined secondary without a word here.
    --------------------------------------------------------------------------- */
 
-/* ---------------------------------------------------------------------------
-   Hero and ticker are ONE viewport, split 85/15.
-
-   On /services the two read as a single opening: the navy panel and the strip
-   of service names under it. Sized independently they came to more than one
-   screen, so the strip sat half below the fold and the opening had no bottom
-   edge. Together they now come to exactly 100svh, with the ticker taking the
-   bottom 15% as a proper band rather than a hairline.
-
-   `:has(+ .sv-jump)` rather than a page class: this is the hero that is
-   FOLLOWED BY the ticker, which is the actual condition. /about uses the same
-   `.sv-hero` with nothing under it and keeps the full screen to itself.
-
-   `svh` throughout, not `vh`: mobile browsers measure `vh` against the largest
-   viewport, the one with the URL bar already gone, so a `vh` hero starts
-   taller than the screen and pushes its own buttons under the fold on first
-   paint.
-   --------------------------------------------------------------------------- */
-@media (min-width: 1024px) {
-  .sv-hero:has(+ .sv-jump) { min-height: 85svh; }
-
-  .sv-jump {
-    min-height: 15svh;
-    display: flex; flex-direction: column; justify-content: center;
-  }
-  /* Bigger, because the band is bigger. At the old .88rem the names read as a
-     footnote inside a band this tall instead of as the second half of the
-     hero. */
-  .sv-jump__link {
-    font-size: 1.05rem;
-    gap: 12px;
-    padding-block: 0;
-  }
-  .sv-jump__i svg { width: 1.35em; height: 1.35em; }
-}
-
-
 /* THE SERVICE DETAIL PAGE'S HEADER. `sv-svc__top` was written for a section
    inside the combined page, where a band above it supplied the air. On its own
    page it sits directly under the breadcrumb and needs its own. */
 .sv-svc__top { margin-top: clamp(1rem, 2.4vw, 1.6rem); }
 .sv-svc__top .pv-lede { margin-top: .85rem; max-width: 58ch; }
-
 
 /* THE SERVICE TITLE INSIDE THE HERO BAND. `sv-svc__title` was written for a
    section on a light page; in the band it needs the band's ink, and the icon
