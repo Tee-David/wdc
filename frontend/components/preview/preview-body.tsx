@@ -8,6 +8,7 @@ import SiteModal from "./site-modal";
 import { FAQS } from "@/lib/faq";
 import { TESTIMONIALS } from "@/lib/testimonials";
 import { caseBySlug, caseHref } from "@/lib/work";
+import Proof from "@/components/sections/proof";
 import FaqAccordion from "@/components/ui/faq-accordion";
 import { CONTACT_EMAIL } from "@/lib/site";
 
@@ -371,6 +372,13 @@ export default function PreviewBody() {
 
   return (
     <div className="pv">
+      {/* THE FIGURES COME FIRST, directly under the hero: somebody who has just
+          read "what if we made it the one they copy?" is at the exact moment of
+          asking whether we can, and the band answers it with numbers they can
+          check rather than with another claim. Everything in it is counted from
+          `lib/work.ts` and `lib/testimonials.ts` -- see `lib/proof.ts`. */}
+      <Proof />
+
       {/* ---------------- work ---------------- */}
       <section className="pv-sec" id="pv-work">
         <div className="pv-wrap">

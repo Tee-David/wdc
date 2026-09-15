@@ -70,10 +70,8 @@
    and 2.21:1 in the light theme, well under the 4.5:1 this size of text needs.
    One colour, --muted, which is 6.4:1 on paper and correct in both themes. */
 
-.sr-only {
-  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
-  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
-}
+/* `.sr-only` moved to app/globals.css, which every page loads. It was declared
+   here and used by components outside this file's reach. */
 
 /* ---------------- 02 serp ---------------- */
 .serp { position: absolute; inset: 0; padding: clamp(14px, 2.4vw, 26px); display: flex; flex-direction: column; }
