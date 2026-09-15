@@ -332,8 +332,19 @@ export function Hero() {
              Re-measure before changing either number, and remember the
              tracking here is NOT what the class says: `.pv-hero
              [class*="tracking-"]` in preview.css overrides it to +0.02em on
-             this page, which is worth about 4% of the width. */
-          className="hero-rise--solid text-[clamp(1.5rem,7.8vw,4.3rem)] font-bold leading-[1.08] tracking-tight !text-white [text-shadow:0_4px_20px_rgba(0,0,0,0.5),0_1px_4px_rgba(0,0,0,0.35)]"
+             this page, which is worth about 4% of the width.
+
+             7.4vw, NOT 7.8, AND THE CARET IS WHAT PAID FOR IT. The old number
+             was measured against the phrase and the chevron alone, so the line
+             it sized had no room left for the blinking bar at the end of it --
+             which is a part of the line, and which therefore wrapped onto a
+             line of its own at 320, 360, 390 and 430. Re-measured with the
+             caret in: the whole line takes 11.22F of measure (0.94F chevron,
+             9.88F for the longest phrase, 0.44F caret), and 320px is the width
+             that binds, because the 24px gutters are fixed there while
+             everything else scales. 11.22F <= 272px puts the ceiling at 7.57vw
+             and this sits under it with 5px in hand for the webfont. */
+          className="hero-rise--solid text-[clamp(1.5rem,7.4vw,4.3rem)] font-bold leading-[1.08] tracking-tight !text-white [text-shadow:0_4px_20px_rgba(0,0,0,0.5),0_1px_4px_rgba(0,0,0,0.35)]"
         >
           {/* TWO BLOCKS, NOT ONE LINE AND A `<br>`, and the reason is
               measurable rather than typographic -- it looks identical.
@@ -390,6 +401,10 @@ export function Hero() {
             startFull
             reserveWidth
             cursorCharacter="▎"
+            /* See `.hero-caret` in globals.css: the block glyph carries half an
+               em of empty advance behind the bar, and the line has no room to
+               pay for it. */
+            cursorClassName="hero-caret"
             className="min-w-0 font-heading"
             /* Decorative. Without aria-hidden a screen reader reads the h1 as
                "What if we made it greater than your best decision". */
@@ -410,8 +425,16 @@ export function Hero() {
             href="#pv-contact"
             /* WHITE FILL, BLACK LABEL, like the header CTA beside it. It was an
                orange fill, which the button rule forbids outright, and it sits on
-               the navy hero where white is the primary. */
-            className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-7 py-3.5 sm:w-auto text-sm font-semibold text-black shadow-[0_12px_34px_rgba(0,0,26,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-black hover:text-white hover:shadow-none active:translate-y-0"
+               the navy hero where white is the primary.
+
+               THE TWO BUTTONS ARE ONE PAIR, MIRRORED. This one starts white and
+               turns black; "Explore our work" beside it starts black and turns
+               white. Each one hovers into what the other one is, so the row
+               always shows both halves of the pair and neither hover state can
+               be mistaken for the button next to it. Same colours in both
+               themes: the hero is a photograph either way, not a theme surface,
+               so nothing here follows --btn-fill. */
+            className="group inline-flex w-full items-center justify-center gap-2 rounded-full border border-white bg-white px-7 py-3.5 sm:w-auto text-sm font-semibold text-black shadow-[0_12px_34px_rgba(0,0,26,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:border-black hover:bg-black hover:text-white hover:shadow-none active:translate-y-0"
           >
             Let&apos;s Talk
             <svg
@@ -428,7 +451,13 @@ export function Hero() {
           </Link>
           <Link
             href="#pv-work"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-line bg-white text-black px-7 py-3.5 sm:w-auto text-sm font-semibold shadow-[0_8px_26px_rgba(0,0,0,0.12)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#000065] hover:text-white hover:border-[#000065] active:translate-y-0 dark:bg-background/40 dark:text-foreground dark:hover:bg-primary dark:hover:text-white dark:hover:border-primary"
+            /* THE MIRROR OF THE BUTTON ABOVE: black fill, white label, and it
+               hovers into the white one. The navy hover it used to carry was
+               the last #000065 fill left on a button anywhere on the site --
+               the pair is black and white now, in both themes, and the edge is
+               drawn in the label's colour so the black fill still has a visible
+               boundary against a dark photograph. */
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white bg-black text-white px-7 py-3.5 sm:w-auto text-sm font-semibold shadow-[0_8px_26px_rgba(0,0,0,0.12)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:text-black hover:border-black active:translate-y-0"
           >
             Explore Our Work
           </Link>

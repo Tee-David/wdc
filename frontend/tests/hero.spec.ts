@@ -63,6 +63,72 @@ for (const width of WIDTHS) {
   });
 }
 
+/**
+ * THE CARET IS PART OF THE LINE, and the test above cannot see it.
+ *
+ * `.text-type__content` holds the words only, so a phrase can pass that check
+ * on one line while the blinking bar after it sits on a line of its own
+ * underneath -- which is exactly what the headline did at every phone width:
+ * the size was measured against the phrase and the chevron, and nothing had
+ * reserved the caret any room. It reads as a third line of headline with one
+ * orange mark on it, and it moves the buttons and the logo rail down with it.
+ *
+ * TWO THINGS HAD TO BE MEASURED RATHER THAN ASSUMED, and both were wrong on
+ * the first pass:
+ *
+ * WHICH CARET. The reserved sizer carries a hidden copy of the caret, and it
+ * comes FIRST in the DOM, so a plain `.text-type__cursor` lookup finds an
+ * element that is laid out and never seen. Written that way, this test passed
+ * on a page whose real caret was sitting on a line of its own. It is the
+ * `:not(--sizer)` one that a reader looks at.
+ *
+ * WHICH COMPARISON. "Do the boxes overlap vertically" is the obvious check and
+ * it does not work here: the headline's leading is 1.08 and the font's own box
+ * is taller than that, so the caret's box on the NEXT line still overlaps the
+ * text's box on this one. What separates the two cases cleanly is the distance
+ * between their tops -- a few pixels while they share a line, a whole line
+ * advance once they do not.
+ */
+for (const width of WIDTHS) {
+  test(`the caret stays on the phrase's line at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+
+    const content = page.locator(".text-type__content");
+    await expect(content).toBeVisible();
+    await page.evaluate(() => document.fonts?.ready);
+    await page.waitForTimeout(600);
+
+    const split: string[] = [];
+    for (let i = 0; i < SAMPLES; i += 1) {
+      const shot = await page.evaluate(() => {
+        const text = document.querySelector(".text-type__content");
+        const caret = document.querySelector(
+          ".text-type__cursor:not(.text-type__cursor--sizer)",
+        );
+        const h1 = document.querySelector("h1");
+        if (!text || !caret || !h1) return null;
+        const t = text.getBoundingClientRect();
+        const c = caret.getBoundingClientRect();
+        /* Half the type size: comfortably more than the few pixels an
+           inline-block sits below the text beside it, and comfortably less
+           than the 1.08em it would drop by to reach the next line. */
+        const slack = parseFloat(getComputedStyle(h1).fontSize) / 2;
+        return {
+          text: text.textContent?.trim() ?? "",
+          sameLine: Math.abs(c.top - t.top) < slack,
+        };
+      });
+      if (shot?.text.endsWith("?") && !shot.sameLine && !split.includes(shot.text)) {
+        split.push(shot.text);
+      }
+      await page.waitForTimeout(EVERY_MS);
+    }
+
+    expect(split, `the caret drops off the line at ${width}px`).toEqual([]);
+  });
+}
+
 /* BOTH WIDTHS, AND THE DESKTOP ONE IS THE POINT. The homepage carried two
    `h1`s -- the hero's, and "We Dig Creativity." inside the intro splash -- and
    it never showed on a phone, because the intro does not run on a touch
