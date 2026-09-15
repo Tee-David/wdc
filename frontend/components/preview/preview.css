@@ -176,8 +176,12 @@ main.pv {
   padding-inline: clamp(18px, 5vw, 44px);
 }
 
-/* mixed-weight heading: emphasis by weight, never by colouring one word */
-.pv-mix { color: var(--ink); font-weight: 500; }
+/* mixed-weight heading: emphasis by weight, never by colouring one word.
+   `text-wrap: balance` is what stops a wrap landing a single short word on
+   its own last line -- a real fault on the proof band's headline, caught on
+   a browser width narrower than any this repo's own checks run at. Browsers
+   without it just wrap the old way, so this costs nothing to ship early. */
+.pv-mix { color: var(--ink); font-weight: 500; text-wrap: balance; }
 .pv-mix b { color: var(--ink); font-weight: 700; }
 .pv-sec--band .pv-mix,
 .pv-sec--band .pv-mix b { color: #fff; }
@@ -372,7 +376,7 @@ html:not(.dark) .pv .pv-card {
 .pv-sec--alt { background: var(--paper-2); }
 .pv-sec--band { background: var(--band); color: var(--on-band); }
 .pv-sec--band h1, .pv-sec--band h2, .pv-sec--band h3, .pv-sec--band h4 { color: #fff; }
-.pv-sec--band .pv-lede { color: var(--on-band-dim); }
+.pv-sec--band .pv-lede { color: #fff; }
 
 .pv-head {
   display: grid; gap: 16px; justify-items: center; text-align: center;
@@ -431,7 +435,7 @@ html:not(.dark) .pv .pv-card {
 }
 .pv .wk-hero__in .pv-lede { max-width: 62ch; }
 .pv .wk-hero h1 { color: #fff; font-size: clamp(2.3rem, 1.4rem + 3.6vw, 4.2rem); }
-.pv .wk-hero .pv-lede { color: var(--on-band-dim); }
+.pv .wk-hero .pv-lede { color: #fff; }
 /* ORANGE ON NAVY IS `--accent`, NOT `--accent-ink`. The ink variant is the
    darkened #c95000 that orange has to become on a LIGHT surface; on the band
    it measures 3.93:1, under the 4.5:1 this 13px label needs. #ff6500 on

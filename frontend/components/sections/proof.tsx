@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { proofLine, proofStats, type Stat } from "@/lib/proof";
+import { proofLine, proofStats, shortCount, type Stat } from "@/lib/proof";
 
 import "./proof.css";
 
@@ -67,16 +67,16 @@ function Figure({ stat, start }: { stat: Stat; start: boolean }) {
   return (
     <div className="pf__stat">
       {/* THE BOX IS RESERVED BY THE FINAL VALUE, not by whatever is in it now.
-          A counter running 0 -> 107 is one, two and three digits wide in turn,
-          and without `ch` sizing plus tabular figures the label under it jumps
-          twice on the way. `aria-hidden` because the number a screen reader
-          should hear is the one in the label below, said once. */}
+          A counter running 0 -> 2K is one character wide, then two, then
+          three in turn, and without `ch` sizing plus tabular figures the
+          label under it jumps on the way. `aria-hidden` because the number a
+          screen reader should hear is the one in the label below, said once. */}
       <span
         className="pf__num"
         aria-hidden="true"
-        style={{ "--digits": `${String(stat.value).length + (stat.suffix?.length ?? 0)}` } as React.CSSProperties}
+        style={{ "--digits": `${shortCount(stat.value).length + (stat.suffix?.length ?? 0)}` } as React.CSSProperties}
       >
-        {shown}
+        {shortCount(shown)}
         {stat.suffix}
       </span>
       <span className="pf__label">
@@ -123,7 +123,7 @@ export default function Proof() {
             <div className="pf__say">
               <span className="pv-eyebrow">Track record</span>
               <h2 className="pv-mix" id="pf-title">
-                <b>Ten years in</b>, with the numbers <b>to show for it</b>
+                <b>Ten years in</b>, and the numbers <b>to prove it</b>
               </h2>
               <p className="pv-lede">
                 {proofLine()} A creative and digital agency spanning brand, web,
