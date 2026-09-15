@@ -76,7 +76,10 @@ export default async function SubmissionPage({ params }: { params: Promise<{ id:
                     return (
                       <div key={f.key} style={{ padding: ".5rem 0", borderBottom: "1px solid var(--ad-line)" }}>
                         <dt className="ad__dim" style={{ fontSize: ".82rem" }}>{f.label}</dt>
-                        <dd style={{ margin: ".15rem 0 0" }}>
+                        {/* `pre-line`, so a three-line answer (the domain ideas, any long
+                            textarea) reads as three lines here instead of one run-on
+                            string. Same fix as the client review screen. */}
+                        <dd style={{ margin: ".15rem 0 0", whiteSpace: "pre-line" }}>
                           {has(v)
                             ? (Array.isArray(v) ? v.join(", ") : String(v))
                             : <em className="ad__dim">Not answered</em>}
