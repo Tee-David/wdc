@@ -837,11 +837,14 @@ html:not(.dark) .pv .pv-card {
    inside it wrapped a word early and the second button took two lines, which
    is the one thing a button must not do.
 
-   22px is still a margin and gives back 24px of measure, which is about two
-   words a line. The buttons stop wrapping because they have the width, not
-   because the label was cut down to fit a box that was too small. */
+   16px is still a margin and gives back 36px of measure over the 34px floor.
+   Padding only ever gives width back to what sits inside it, so a headline
+   that used to wrap into three narrow, boxed-in-looking lines now has enough
+   room that each one reads fuller rather than centred inside its own
+   whitespace, and the buttons -- which were the reason this rule exists --
+   keep every bit of the room they needed and gain a little more. */
 @media (max-width: 560px) {
-  .pv-cta, .pv .pv-cta { padding: clamp(26px, 7vw, 34px) 22px; }
+  .pv-cta, .pv .pv-cta { padding: clamp(26px, 7vw, 34px) 16px; }
 }
 /* AND THE BUTTON'S OWN PADDING AT THE NARROW END. 28px a side is right at
    every width where there is width to spare; at 320 it was eating 56px of a
