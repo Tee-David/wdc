@@ -506,6 +506,11 @@
 @media (max-width: 480px) {
   .sv-cta__row .pv-btn { width: 100%; word-break: break-word; }
   .sv-hero__cta .pv-btn { width: 100%; }
+  /* STACKED, THEY NEED MORE AIR THAN THEY DO SIDE BY SIDE. 12px reads as a
+     gap between two pills in a row and as almost nothing between two
+     full-width bars, where the eye has no vertical edge to measure it
+     against. */
+  .sv-cta__row, .sv-hero__cta { gap: 14px; }
 }
 
 /* ---------------- hero rotating line ---------------- */
@@ -614,48 +619,17 @@
 /* ---------------------------------------------------------------------------
    Hero buttons, services and about.
 
-   Both heroes sit on the navy band, so both buttons are defined here rather
-   than twice. The pair still inverts in opposite directions on hover, which is
-   what keeps them telling apart at a glance: the primary goes from filled
-   orange to black, the secondary from white to filled orange.
+   THERE IS NOTHING LEFT HERE, and that is the change. Both heroes sit on the
+   navy band, and this block existed to give them their own orange-filled
+   primary and white secondary, at (0,3,0) so it beat the shared rule. That is
+   exactly why the site had an orange button left standing after the buttons
+   were repainted: one override, three specificity points up, in a file nobody
+   reads when they are editing the button system.
 
-   Specificity: `.pv .pv-btn--accent:hover` in preview.css scores (0,2,0), so a
-   bare `.sv-hero__cta .pv-btn--accent:hover` at (0,2,0) would only tie and
-   then lose or win on emit order. Every rule here carries the `.pv` as well,
-   for (0,3,0), and settles it outright.
-
-   Contrast, measured: navy #000065 on white 15.0:1. White on #FF6500 is 2.9:1,
-   which is under what WCAG asks of body text -- a deliberate brand call, and
-   it only ever applies to a large, bold, short label whose other state is
-   15:1.
+   The shared pair in preview.css already knows what to do on a dark ground --
+   `.sv-hero` is in the list that sets `--btn-fill: #fff` -- so the heroes get
+   a white primary and an outlined secondary without a word here.
    --------------------------------------------------------------------------- */
-.pv .sv-hero__cta .pv-btn--accent,
-.sv-hero__cta .pv-btn--accent {
-  background: var(--accent); color: var(--on-accent); border-color: var(--accent);
-}
-/* Black fill, white label, white edge -- the same hover the accent button has
-   everywhere else now (see the note in preview.css). The edge is what keeps it
-   from sinking into the navy band these heroes sit on. */
-.pv .sv-hero__cta .pv-btn--accent:hover,
-.sv-hero__cta .pv-btn--accent:hover {
-  background: #000; color: #fff; border-color: #fff;
-}
-
-/* `--light` on /about and `--line` on /services were two different resting
-   looks for the same button in the same place. One rule now, on both. */
-.pv .sv-hero__cta .pv-btn--light,
-.pv .sv-hero__cta .pv-btn--line,
-.sv-hero__cta .pv-btn--light,
-.sv-hero__cta .pv-btn--line {
-  /* Neutral label, brand fill -- see the note on .pv-btn--light. */
-  background: #fff; color: #000; border-color: #fff;
-}
-.pv .sv-hero__cta .pv-btn--light:hover,
-.pv .sv-hero__cta .pv-btn--line:hover,
-.sv-hero__cta .pv-btn--light:hover,
-.sv-hero__cta .pv-btn--line:hover {
-  background: var(--accent); color: var(--on-accent); border-color: var(--accent);
-}
 
 /* ---------------------------------------------------------------------------
    Hero and ticker are ONE viewport, split 85/15.

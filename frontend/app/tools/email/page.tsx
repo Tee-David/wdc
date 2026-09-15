@@ -120,7 +120,7 @@ export default function EmailToolPage() {
                   Start a conversation
                 </Link>
                 <Link className="pv-btn pv-btn--light" href="/services/seo">
-                  See what SEO work covers
+                  See our SEO work
                 </Link>
               </div>
             </div>

@@ -207,36 +207,97 @@ main.pv {
    written as a link silently ignored its own colour and inherited the
    section's instead. The `.pv`-prefixed copy scores (0,2,0) and wins, while
    the bare one keeps working for buttons outside the preview scope. */
-.pv-btn--accent, .pv .pv-btn--accent { background: var(--accent); color: var(--on-accent); }
-/* HOVER IS BLACK WITH A WHITE LABEL, everywhere this button appears. It used
-   to invert to white-on-white-ish surfaces, which on a light page turned the
-   loudest control on the screen into an outline you had to hunt for. Black
-   holds against the paper, the navy band and the CTA card alike, and the label
-   is 21:1 on it. */
-.pv-btn--accent:hover, .pv .pv-btn--accent:hover {
-  background: #000; color: #fff; border-color: #000;
+/* ============================================================================
+   THE TWO BUTTONS. Black and white, and WHICH of the two is decided by what
+   the button is sitting on rather than by the variant name.
+
+   On paper the primary is a black fill with a white label. On the navy band,
+   the navy CTA card, the navy hero and the whole of the dark theme it is a
+   white fill with a black label. The secondary is the outline of whichever
+   the primary is not, and fills in on hover. Orange is not a button fill
+   anywhere any more; it goes back to being an accent.
+
+   WHY IT IS A TOKEN AND NOT A VARIANT PER SECTION. A filled control has to
+   clear 3:1 against what it sits ON (1.4.11), and the old scheme kept losing
+   that: measured, a black fill is 1.19:1 on the navy band and 1.03:1 on the
+   dark theme's paper, and a white fill is 1.00:1 on white paper. Every one of
+   those is a button you cannot see the edge of.
+
+   The first fix here was a hairline in the opposite tone, and the numbers
+   killed it: a 32% white edge on black composites to #525252, which is 2.26:1
+   on navy and still fails; it needs 40% before it clears, and by then it is a
+   grey ring nobody asked for. Flipping the FILL instead makes the boundary
+   the same 21:1 as the label, on every ground, with no extra chrome. A dark
+   surface sets two custom properties and every button on it follows.
+   ========================================================================== */
+.pv {
+  --btn-fill: #000;
+  --btn-ink: #fff;
 }
-/* On navy, a black fill needs an edge or it sinks into the band. */
-.pv .pv-sec--band .pv-btn--accent:hover,
-.pv-sec--band .pv-btn--accent:hover,
-.pv .pv-cta .pv-btn--accent:hover { border-color: #fff; }
-.pv-btn--dark, .pv .pv-btn--dark { background: #000065; color: #fff; }
-.pv-btn--dark:hover, .pv .pv-btn--dark:hover { background: #000; color: #fff; }
-/* The secondary button ON a navy band. This variant was being used on /about
-   with no definition anywhere, so both buttons rendered with a transparent
-   border and the section's dim inherited text — an invisible control. It rests
-   as an orange ring on the band and inverts to a white fill with navy type,
-   which is the one pairing on this palette that stays legible either way.
-   The hover label is BLACK, not navy: navy on white is perfectly legible at
-   15:1, but it is still a brand colour on a button label, and the rule for
-   this site is that labels are neutral and the FILL carries the brand. */
-.pv-btn--light, .pv .pv-btn--light {
-  background: transparent; color: #fff; border-color: var(--accent);
+/* Every dark ground on the site, in one place. A surface added later gets
+   correct buttons by joining this list rather than by writing its own. */
+.pv .pv-sec--band,
+.pv-sec--band,
+.pv .pv-cta,
+.pv .pv-faq__aside,
+.pv .wk-hero,
+.pv .sv-hero,
+.sv-hero,
+.dark .pv,
+.ft {
+  --btn-fill: #fff;
+  --btn-ink: #000;
 }
-.pv-btn--light:hover, .pv .pv-btn--light:hover {
-  background: #fff; color: #000; border-color: #fff;
+/* AND BACK AGAIN FOR A LIGHT PANEL INSIDE A DARK ONE, which is the one trap
+   in inheriting this. The contact form is a white card sitting inside the navy
+   band, so it took the band's white fill and rendered a white button on white
+   paper: 1.00:1, measured. The token belongs to whatever actually PAINTS the
+   background behind the button, not to the section around it, so a surface
+   that reverses the ground has to say so. */
+/* ...AND ONLY IN THE LIGHT THEME, because the card reverses with it. In light
+   mode the contact form is a white panel inside the navy band and needs the
+   light ground's black button. In dark mode the same panel is dark, the band
+   around it is dark, and forcing black there put a black button on a #030318
+   page at 1.03:1 -- the same invisibility, one theme over. Measured both ways
+   rather than assumed after the first fix looked right. */
+html:not(.dark) .pv .pv-form,
+html:not(.dark) .pv .pv-panel,
+html:not(.dark) .pv .pv-card {
+  --btn-fill: #000;
+  --btn-ink: #fff;
 }
-.pv-btn--line, .pv .pv-btn--line { background: transparent; color: var(--ink); border-color: var(--ink); }
+
+/* PRIMARY: the solid one. */
+.pv-btn--accent, .pv .pv-btn--accent,
+.pv-btn--dark, .pv .pv-btn--dark {
+  background: var(--btn-fill); color: var(--btn-ink);
+  border-color: var(--btn-fill);
+}
+/* Hover swaps the two, which is the same pair of colours the ground already
+   guarantees a 21:1 separation between, so the hover state cannot be the one
+   that disappears. */
+.pv-btn--accent:hover, .pv .pv-btn--accent:hover,
+.pv-btn--dark:hover, .pv .pv-btn--dark:hover {
+  background: var(--btn-ink); color: var(--btn-fill);
+  border-color: var(--btn-fill);
+}
+
+/* SECONDARY: the outline of the same pair, in both the names the site uses for
+   it. `--light` was an orange ring on a band and `--line` an ink outline on
+   paper; they were two answers to one question and now give the same one. The
+   stroke is the primary's fill, so it is the same 21:1 against the ground and
+   needs no measured alpha to stay visible. */
+.pv-btn--light, .pv .pv-btn--light,
+.pv-btn--line, .pv .pv-btn--line {
+  background: transparent; color: var(--btn-fill);
+  border-color: var(--btn-fill);
+}
+.pv-btn--light:hover, .pv .pv-btn--light:hover,
+.pv-btn--line:hover, .pv .pv-btn--line:hover {
+  background: var(--btn-fill); color: var(--btn-ink);
+  border-color: var(--btn-fill);
+}
+
 /* ---- FULL WIDTH ON A PHONE ----------------------------------------------
    Every CTA row on the site is a wrapping flex row of one or two buttons
    (.sv-hero__cta, the work footer, the contact aside). At 390px two of them
@@ -263,11 +324,13 @@ main.pv {
    to contrast with is the SECTION behind it, not the fill: on a normal section
    that is --ink (near-black on light, near-white on dark), and on a navy band
    it is white. */
-.pv .pv-btn--accent:focus-visible,
-.pv .pv-btn--dark:focus-visible { outline-color: var(--ink); }
-.pv .pv-sec--band .pv-btn:focus-visible,
-.pv-sec--band .pv-btn:focus-visible,
-.pv .pv-cta .pv-btn:focus-visible { outline-color: #fff; }
+/* THE RING CONTRASTS WITH THE GROUND, NOT WITH THE BUTTON, because it sits
+   3px outside the button. `--btn-fill` is by definition the colour that
+   contrasts with whatever the button is standing on, so it is exactly the
+   right value and it follows every ground automatically. The per-band
+   override this replaced said the same thing by hand for two of them. */
+.pv .pv-btn:focus-visible,
+.pv-btn:focus-visible { outline-color: var(--btn-fill); }
 
 /* The contact form disables its submit while sending and nothing styled that,
    so a button mid-send was indistinguishable from one waiting to be pressed
@@ -287,16 +350,9 @@ main.pv {
   .pv-btn:active, .pv .pv-btn:active { transform: none; }
 }
 
-.pv-btn--line:hover, .pv .pv-btn--line:hover { background: var(--ink); color: var(--paper); }
-/* On the navy band this button is solid white at rest and flips to an orange
-   fill on hover. The label is black in both states: 21:1 on the white rest,
-   7.11:1 on the orange hover. */
-.pv .pv-sec--band .pv-btn--line, .pv-sec--band .pv-btn--line {
-  background: #fff; color: #000; border-color: #fff;
-}
-.pv .pv-sec--band .pv-btn--line:hover, .pv-sec--band .pv-btn--line:hover {
-  background: var(--accent); color: var(--on-accent); border-color: var(--accent);
-}
+/* The per-band overrides that used to live here are gone. They existed
+   because the old pair changed meaning depending on what they sat on; the new
+   pair does not, so a band no longer needs its own rules. */
 
 /* ---------------- bands ---------------- */
 .pv-sec { padding-block: clamp(3.4rem, 6vw, 6rem); background: var(--paper); }
@@ -757,6 +813,27 @@ main.pv {
   background: var(--band); color: #fff; border-radius: 24px;
   padding: clamp(34px, 5vw, 64px); text-align: center;
   display: grid; gap: 18px; justify-items: center;
+}
+/* ROOM TO WORK ON A PHONE. `clamp(34px, 5vw, 64px)` floors at 34px a side, so
+   on a 393px screen the card spent 68px of a 353px panel on its own margins
+   and left 285px for a headline, a paragraph and two buttons. Everything
+   inside it wrapped a word early and the second button took two lines, which
+   is the one thing a button must not do.
+
+   22px is still a margin and gives back 24px of measure, which is about two
+   words a line. The buttons stop wrapping because they have the width, not
+   because the label was cut down to fit a box that was too small. */
+@media (max-width: 560px) {
+  .pv-cta, .pv .pv-cta { padding: clamp(26px, 7vw, 34px) 22px; }
+}
+/* AND THE BUTTON'S OWN PADDING AT THE NARROW END. 28px a side is right at
+   every width where there is width to spare; at 320 it was eating 56px of a
+   240px card and "Start a conversation" took two lines with 190px of label in
+   184px of room. 18px hands back 20px, which is the difference between one
+   line and two. Measured at 320 and 393 rather than guessed, and the label is
+   untouched: the box was too small, the words were not too long. */
+@media (max-width: 380px) {
+  .pv-btn, .pv .pv-btn { padding-inline: 18px; gap: 8px; }
 }
 /* THE BOX WAS NEVER NARROW -- THE HEADING WAS. A 20ch cap inside a centred
    grid broke "Describe the problem and we will tell you which of these it is."
