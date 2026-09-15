@@ -238,20 +238,22 @@
 }
 
 /* The chip. Solid, square, hairline, 12px radius: the site's icon. */
+/* The shared solid tile. It was `--paper-2` with a hairline, which has no
+   alpha and still reads as a ghost square two per cent off the card. The state
+   colour moves to the GLYPH, in the light variants, because those are what
+   read on navy. */
 .pv .tl__findhead {
   grid-column: 1; grid-row: 1;
   display: grid; place-items: center;
-  width: 38px; aspect-ratio: 1; border-radius: 12px;
-  background: var(--paper-2); border: 1px solid var(--rule);
+  width: 38px; aspect-ratio: 1; border-radius: 10px;
+  background: #000065; border: 0;
 }
-.pv .tl__findhead svg { width: 18px; height: 18px; }
-.pv .tl__find--good .tl__findhead svg { color: #16794a; }
-.pv .tl__find--weak .tl__findhead svg { color: #b26a00; }
-.pv .tl__find--missing .tl__findhead svg { color: #b3261e; }
-.pv .tl__find--unknown .tl__findhead svg { color: var(--muted); }
-.dark .pv .tl__find--good .tl__findhead svg { color: #6ee7a8; }
-.dark .pv .tl__find--weak .tl__findhead svg { color: #fbbf5c; }
-.dark .pv .tl__find--missing .tl__findhead svg { color: #fca5a5; }
+.dark .pv .tl__findhead { background: #2b2b8f; }
+.pv .tl__findhead svg { width: 18px; height: 18px; color: #fff; }
+.pv .tl__find--good .tl__findhead svg { color: #6ee7a8; }
+.pv .tl__find--weak .tl__findhead svg { color: #fbbf5c; }
+.pv .tl__find--missing .tl__findhead svg { color: #fca5a5; }
+.pv .tl__find--unknown .tl__findhead svg { color: #cbd0ff; }
 
 /* Title and state word share the second column on the first row, so the chip
    sits beside the title however many lines the title takes. */

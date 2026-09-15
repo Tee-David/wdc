@@ -1,0 +1,56 @@
+/* ============================================================================
+   Getting the business registered, beneath the identity work on the brand page.
+
+   IT USES THE CARDS THE SITE ALREADY HAS. The track is the shared one
+   (`minmax(min(100%, 20rem), 1fr)`), the chip is the solid `--paper-2` square
+   with a hairline and an orange glyph that `.ct-line__i` and the free-tool
+   cards already are, and nothing here introduces a colour or a radius the rest
+   of the site does not use. A compliance band that looked like a different
+   product is the whole thing this was trying to avoid.
+   ========================================================================== */
+
+.pv .bz__grid {
+  margin: clamp(1.6rem, 3vw, 2.4rem) 0 0;
+  padding: 0; list-style: none;
+  display: grid; gap: clamp(.9rem, 1.6vw, 1.2rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+
+.pv .bz__card {
+  display: grid; gap: .55rem; align-content: start;
+  padding: clamp(1.1rem, 2vw, 1.4rem);
+  border: 1px solid var(--rule); border-radius: 16px;
+  background: var(--paper);
+  transition: border-color .2s ease, transform .2s ease;
+}
+.pv .bz__card:hover { border-color: var(--accent); transform: translateY(-2px); }
+@media (prefers-reduced-motion: reduce) {
+  .pv .bz__card { transition: border-color .2s ease; }
+  .pv .bz__card:hover { transform: none; }
+}
+
+/* ICON ON TOP, WORDS UNDER IT. The tile is the shared one in preview.css:
+   solid navy, white glyph, visible on the card rather than a two-per-cent
+   tint of it. */
+.pv .bz__t {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem .6rem;
+  margin: .25rem 0 0;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 1.05rem; font-weight: 700; line-height: 1.3; color: var(--ink);
+}
+
+/* "Included" and "Only if it applies". A quiet label rather than a pill,
+   because it qualifies the heading rather than competing with it. */
+.pv .bz__note {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-style: normal; font-size: .72rem; font-weight: 600;
+  letter-spacing: .05em; text-transform: uppercase; color: var(--muted);
+}
+
+.pv .bz__d { margin: 0; font-size: .95rem; line-height: 1.6; color: var(--muted); }
+
+.pv .bz__foot {
+  margin: clamp(1.2rem, 2.4vw, 1.8rem) 0 0;
+  font-size: .9rem; line-height: 1.6; color: var(--muted);
+  max-width: 62ch;
+}

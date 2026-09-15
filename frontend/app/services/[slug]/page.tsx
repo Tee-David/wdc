@@ -8,6 +8,7 @@ import JsonLd from "@/components/seo/json-ld";
 import ServiceIcon from "@/components/ui/service-icon";
 import ServiceDetail from "@/components/services/service-detail";
 import ServiceTools from "@/components/tools/service-tools";
+import BusinessSetup from "@/components/services/business-setup";
 import { SERVICES, SERVICE_BY_SLUG } from "@/lib/services";
 import { faqsFor } from "@/lib/faq";
 import FaqAccordion from "@/components/ui/faq-accordion";
@@ -146,6 +147,12 @@ export default async function ServicePage(
         </section>
 
         <ServiceDetail service={service} />
+
+        {/* THE COMPLIANCE HALF, AND ONLY ON THE BRAND PAGE. It sits after the
+            identity work rather than before it: somebody who came for a logo
+            should meet the logo work first, and then find out we can register
+            the company it belongs to. */}
+        {service.slug === "branding" ? <BusinessSetup /> : null}
 
         {work.length > 0 ? (
           <section className="pv-sec">

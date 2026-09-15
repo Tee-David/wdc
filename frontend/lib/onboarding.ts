@@ -224,7 +224,7 @@ export const CORE_STEPS: Step[] = [
 
 export const SERVICE_STEPS: Step[] = [
   {
-    phase: "work", id: "branding", service: "branding", title: "Branding & Design",
+    phase: "work", id: "branding", service: "branding", title: "Brand & Business Identity",
     blurb: "What we are making, and everywhere it has to survive.",
     fields: [
       {

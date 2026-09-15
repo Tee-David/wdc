@@ -930,6 +930,35 @@ html:not(.dark) .pv .pv-card {
   .pv .sv-cta__row .pv-btn { width: 100%; word-break: break-word; }
 }
 
+/* ============================================================================
+   THE ICON TILE, DEFINED ONCE.
+
+   Every icon chip on this site kept being written as `--paper-2` with a
+   hairline, and `--paper-2` is #f9f7f4 on a #ffffff card: a two-per-cent
+   difference. It passes any test for "is the background solid" because it has
+   no alpha at all, and it still reads on screen as a ghost square with an icon
+   floating in it. That is what was being complained about, repeatedly, and
+   measuring the alpha channel was the wrong measurement.
+
+   The site already had the right answer in `.sv-step__icon`: a SOLID navy tile
+   with a white glyph. This is that, in one place, so the next chip does not
+   have to rediscover it.
+
+   Dark mode gets a lighter navy rather than the same one, because #000065 on a
+   near-black card is the same ghost problem wearing different clothes.
+   ========================================================================== */
+.pv .wdc-tile {
+  flex: none;
+  width: 46px; aspect-ratio: 1; border-radius: 12px;
+  display: grid; place-items: center;
+  background: #000065; color: #fff;
+  border: 0;
+}
+.pv .wdc-tile--sm { width: 38px; border-radius: 10px; }
+.dark .pv .wdc-tile, .pv .dark .wdc-tile { background: #2b2b8f; color: #fff; }
+.pv .wdc-tile svg { width: 19px; height: 19px; }
+.pv .wdc-tile--sm svg { width: 17px; height: 17px; }
+
 /* ---------------- FAQ ---------------- */
 .pv-faq { display: grid; grid-template-columns: .85fr 1.15fr; gap: clamp(20px, 3vw, 40px); align-items: start; }
 @media (max-width: 860px) { .pv-faq { grid-template-columns: 1fr; } }

@@ -50,25 +50,9 @@
   outline: 2px solid var(--accent); outline-offset: 3px;
 }
 
-/* THE ICON CHIP IS THE ONE THE SITE ALREADY HAS, and solid.
-
-   This was a tinted panel: `color-mix(--accent 12%, transparent)`. Every other
-   icon chip on the site is a solid `--paper-2` square with a hairline and an
-   orange glyph, which is what `.ct-line__i` on the contact page is, so a
-   translucent one here was the only chip of its kind anywhere.
-
-   The glyph takes the brand orange rather than `--accent-ink`. That token is
-   for body-sized TEXT, where #FF6500 on white is 2.8:1 and fails; a 19px
-   line-art glyph beside a heading that already names it answers to the 3:1 for
-   non-text, which #FF6500 clears. Same reasoning, same result, as the contact
-   rows. */
-.pv .svc-tool__ic {
-  flex: none; width: 46px; aspect-ratio: 1; border-radius: 12px;
-  display: grid; place-items: center;
-  background: var(--paper-2); border: 1px solid var(--rule);
-  color: var(--accent);
-}
-.pv .svc-tool__ic svg { width: 19px; height: 19px; }
+/* The tile is the shared `.wdc-tile` in preview.css now: solid navy with a
+   white glyph. It used to be `--paper-2`, which has no alpha and still reads
+   as a ghost square because it is two per cent off the card behind it. */
 
 .pv .svc-tool__body { display: grid; gap: .55rem; min-width: 0; }
 .pv .svc-tool__t {

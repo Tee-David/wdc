@@ -46,9 +46,16 @@ export const SERVICES: Service[] = [
   {
     slug: "branding",
     icon: "Palette",
-    name: "Branding & Design",
+    /* RENAMED, SLUG UNTOUCHED. `branding` is an internal identifier threaded
+       through the work categories, the onboarding step sets, the database enum
+       and every URL, so none of that moves. What changed is what the service is
+       CALLED, so that registering the company and designing its marks read as
+       one promise rather than two things joined by an ampersand. A CAC
+       certificate and a logo are both identity documents; one satisfies a bank,
+       the other satisfies a customer. See docs/business-setup.md. */
+    name: "Brand & Business Identity",
     short: "Branding",
-    lede: "One consistent identity across everything a customer touches.",
+    lede: "Everything that makes your company real: registered, protected, and recognisable.",
     body:
       "Everything visual a company needs, built as a system rather than a set of one-off files. We work out what the brand has to say before we draw anything, then design the identity, the motion and the assets that carry it, so the logo, the deck, the storefront banner and the app icon all read as the same company.",
     steps: [
@@ -70,6 +77,11 @@ export const SERVICES: Service[] = [
       "Naming and tagline work",
       "Typography and colour systems",
       "Social profile and cover artwork",
+      "CAC registration, business name or company",
+      "Trademark registration",
+      "SCUML certificate where the trade requires one",
+      "Corporate account opening support",
+      "Annual returns and post-registration filings",
     ],
     tools: ["design"],
   },
