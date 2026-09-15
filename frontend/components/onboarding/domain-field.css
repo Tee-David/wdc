@@ -74,17 +74,28 @@
   transition: border-color .2s ease, background-color .2s ease, color .2s ease;
 }
 .pv .dm__add svg, .pv .dm__check svg { width: 1rem; height: 1rem; }
-.pv .dm__add:hover, .pv .dm__check:hover:not(:disabled) { border-color: var(--accent); }
+.pv .dm__add:hover { border-color: var(--accent); }
 
-/* The accent fill takes --on-accent, the one label colour for a brand fill. */
+/* BLACK OR WHITE, DECIDED BY THE GROUND. This was an orange fill, which is
+   the one thing a button on this site is never allowed to be: orange is an
+   accent in type, icons, chips and rules. `--btn-fill` and `--btn-ink` come
+   down from the surface this form sits on, so the button follows the page
+   into dark mode without a second rule here. See AGENTS.md. */
 .pv .dm__check {
-  background: var(--accent); border-color: var(--accent); color: var(--on-accent);
+  background: var(--btn-fill); border-color: var(--btn-fill); color: var(--btn-ink);
+}
+.pv .dm__check:hover:not(:disabled) {
+  background: var(--btn-ink); color: var(--btn-fill); border-color: var(--btn-fill);
 }
 .pv .dm__check:disabled { opacity: .55; cursor: not-allowed; }
 
 .pv .dm__add:focus-visible,
 .pv .dm__check:focus-visible,
-.pv .dm__drop:focus-visible {
+.pv .dm__drop:focus-visible,
+.pv .dm__yes:focus-visible,
+.pv .dm__no:focus-visible,
+.pv .dm__use:focus-visible,
+.pv .dm__reopen button:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 3px;
 }
 
@@ -97,3 +108,130 @@
 .dark .pv .dm__err, .pv .dark .dm__err { color: #fca5a5; }
 
 .pv .dm__note { margin: 0; font-size: .84rem; line-height: 1.5; color: var(--muted); }
+
+/* ==========================================================================
+   THE OFFER, THE TIPS AND THE PICK
+
+   The checker is opt-in, so everything below only exists once a client has
+   said yes to it. ICON ALIGNMENT, the one thing that goes wrong in all three:
+   these icons sit beside copy that wraps to two or three lines, so centring
+   them on the block drifts them to the middle of the paragraph. They are
+   pinned to the FIRST LINE instead, and nudged down by the difference between
+   the line box and the glyph so they read as optically centred on that line
+   rather than hanging off the top of it.
+   ========================================================================== */
+
+.pv .dm__offer {
+  display: grid; gap: .45rem;
+  padding: .95rem 1.05rem;
+  border: 1px solid var(--rule); border-radius: 14px;
+  background: var(--paper-2);
+}
+
+.pv .dm__offerT {
+  display: grid; grid-template-columns: auto minmax(0, 1fr);
+  align-items: start; gap: .5rem;
+  margin: 0;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .98rem; font-weight: 600; line-height: 1.35; color: var(--ink);
+}
+/* PINNED TO THE FIRST LINE. Centred, it drifted to the middle of a heading
+   that wraps to two lines on a phone and read as though it belonged to
+   neither. The nudge is half the difference between the line box (.98 x 1.35)
+   and the glyph, which puts it optically level with the first line's
+   capitals. */
+.pv .dm__offerT svg {
+  width: 1.05rem; height: 1.05rem; flex: none;
+  margin-top: .14rem;
+  color: var(--accent-ink);
+}
+
+.pv .dm__offerP { margin: 0; font-size: .88rem; line-height: 1.5; color: var(--muted); }
+
+.pv .dm__offerActs { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .2rem; }
+
+.pv .dm__yes,
+.pv .dm__no {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: .5rem 1.1rem;
+  border-radius: 999px; border: 1px solid var(--btn-fill);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .9rem; font-weight: 600; cursor: pointer;
+  transition: background-color .2s ease, color .2s ease;
+}
+.pv .dm__yes { background: var(--btn-fill); color: var(--btn-ink); }
+.pv .dm__yes:hover { background: var(--btn-ink); color: var(--btn-fill); }
+.pv .dm__no { background: transparent; color: var(--btn-fill); }
+.pv .dm__no:hover { background: var(--btn-fill); color: var(--btn-ink); }
+
+.pv .dm__reopen { margin: 0; font-size: .86rem; line-height: 1.5; color: var(--muted); }
+.pv .dm__reopen button {
+  padding: 0; border: 0; background: none; cursor: pointer;
+  font: inherit; font-weight: 600; color: var(--accent-ink);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+
+.pv .dm__tips { margin: 0; padding: 0; list-style: none; display: grid; gap: .5rem; }
+.pv .dm__tips li {
+  display: grid; grid-template-columns: auto minmax(0, 1fr);
+  align-items: start; gap: .5rem;
+  font-size: .86rem; line-height: 1.5; color: var(--muted);
+}
+.pv .dm__tips svg {
+  width: 1rem; height: 1rem; flex: none;
+  margin-top: .16rem;           /* (1.5em line box - 1rem glyph) / 2 */
+  color: var(--accent-ink);
+}
+.pv .dm__tips b { color: var(--ink); font-weight: 600; }
+
+/* The result line and its action, side by side while there is room and stacked
+   when there is not, under the input they belong to. */
+.pv .dm__after {
+  grid-column: 1 / -1;
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: .4rem .7rem;
+}
+.pv .dm__after .dm__state { grid-column: auto; }
+
+.pv .dm__use {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 36px; padding: .35rem .85rem;
+  border-radius: 999px; border: 1px solid var(--btn-fill);
+  background: transparent; color: var(--btn-fill);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .82rem; font-weight: 600; cursor: pointer;
+  transition: background-color .2s ease, color .2s ease;
+}
+.pv .dm__use:hover { background: var(--btn-fill); color: var(--btn-ink); }
+
+.pv .dm__is {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .3rem .7rem; border-radius: 999px;
+  background: var(--paper-2); border: 1px solid var(--rule);
+  font-size: .8rem; font-weight: 600; color: var(--ink);
+}
+.pv .dm__is svg { width: .9rem; height: .9rem; flex: none; color: #16794a; }
+.dark .pv .dm__is svg, .pv .dark .dm__is svg { color: #6ee7a8; }
+
+.pv .dm__won {
+  display: grid; grid-template-columns: auto minmax(0, 1fr);
+  align-items: start; gap: .5rem;
+  margin: 0; padding: .8rem .95rem;
+  border: 1px solid var(--rule); border-radius: 14px;
+  background: var(--paper-2);
+  font-size: .86rem; line-height: 1.5; color: var(--muted);
+}
+.pv .dm__won svg {
+  width: 1rem; height: 1rem; flex: none;
+  margin-top: .16rem;
+  color: #16794a;
+}
+.dark .pv .dm__won svg, .pv .dark .dm__won svg { color: #6ee7a8; }
+.pv .dm__won b { color: var(--ink); font-weight: 600; }
+
+/* 36px is under the 44px floor, so on a touch device the pick grows to it.
+   It is a small secondary action beside a result line on a pointer device and
+   a real target on a thumb; the same button cannot be both at one size. */
+@media (pointer: coarse) {
+  .pv .dm__use { min-height: 44px; padding-inline: 1.05rem; }
+}

@@ -362,9 +362,16 @@ export const SERVICE_STEPS: Step[] = [
            the honest three-state answer is the whole reason this is a control
            rather than a box: `.ng` has an RDAP service that does not respond,
            and `.io` and `.co` publish none at all, so "we will check this one
-           by hand" is a real outcome and is said plainly. See lib/rdap.ts. */
+           by hand" is a real outcome and is said plainly. See lib/rdap.ts.
+
+           THE CHECKER ITSELF IS OFFERED, NOT IMPOSED, and the offer lives
+           inside the control rather than as a question of its own, so the step
+           count, the validation and the review screen are all unchanged by it.
+           Picking a favourite is one tap on a result for the same reason:
+           "which of these do you actually want" is what the first call opens
+           with, and it did not deserve a fourth question. */
         key: "domain_ideas", assist: true, label: "Domain names you would like, best first", kind: "domains",
-        tip: "Include the ending you want, like .com or .com.ng. Checking is optional and nothing here is bought.",
+        tip: "Include the ending you want, like .com or .com.ng. Torn between a few? Put them all in and the field will offer to check them.",
         showIf: { key: "has_hosting", equals: ["Neither"] },
       },
       {
