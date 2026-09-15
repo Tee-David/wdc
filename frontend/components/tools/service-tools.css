@@ -1,0 +1,100 @@
+/* ============================================================================
+   The free-tool cards on a service page.
+
+   One track, `minmax(min(100%, 20rem), 1fr)`, which is the same card track the
+   rest of the site uses -- see AGENTS.md. A tool card a quarter narrower than
+   the work cards on the next page reads as inconsistency without anybody being
+   able to say why.
+   ========================================================================== */
+
+/* `auto-fit` WITH A CEILING, NOT `auto-fill` WITH A FRACTION.
+
+   The site's card track is `minmax(min(100%, 20rem), 1fr)` and that is right
+   for a grid with a dozen cards in it. Here there are two, and `auto-fill`
+   laid three tracks at 1280px and left the third empty -- the pair sat in the
+   left two-thirds with a void beside them, which reads as a missing card
+   rather than as a deliberate row.
+
+   `auto-fit` collapses the empty track, the 24rem ceiling stops two cards
+   ballooning to 588px each to fill it, and `justify-content: center` puts the
+   row under the centred heading it belongs to. One rule that is correct for
+   one tool, two, or the five the checklist still has to build. */
+.pv .svc-tools {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 24rem));
+  justify-content: center;
+  gap: clamp(16px, 2.2vw, 26px);
+}
+
+.pv .svc-tool {
+  /* ICON ON TOP, WORDS UNDER IT. Beside the text the icon competed with the
+     heading for the first line and squeezed the blurb into a narrow column; on
+     top it reads as a card rather than as a list row, which is what every
+     other card on the site does. */
+  display: grid; justify-items: start; gap: 14px;
+  min-width: 0;
+  padding: clamp(22px, 2.6vw, 30px);
+  border: 1px solid var(--rule); border-radius: 18px;
+  background: var(--paper); color: var(--ink);
+  text-decoration: none;
+  transition: transform .28s cubic-bezier(.16, 1, .3, 1), border-color .2s ease;
+}
+/* The same lift and the same border the blog and work cards use. A tool card
+   that hovers differently from every other card on the site is the kind of
+   inconsistency nobody can name and everybody feels. */
+.pv .svc-tool:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--rule));
+}
+.pv .svc-tool:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 3px;
+}
+
+/* THE ICON CHIP IS THE ONE THE SITE ALREADY HAS, and solid.
+
+   This was a tinted panel: `color-mix(--accent 12%, transparent)`. Every other
+   icon chip on the site is a solid `--paper-2` square with a hairline and an
+   orange glyph, which is what `.ct-line__i` on the contact page is, so a
+   translucent one here was the only chip of its kind anywhere.
+
+   The glyph takes the brand orange rather than `--accent-ink`. That token is
+   for body-sized TEXT, where #FF6500 on white is 2.8:1 and fails; a 19px
+   line-art glyph beside a heading that already names it answers to the 3:1 for
+   non-text, which #FF6500 clears. Same reasoning, same result, as the contact
+   rows. */
+.pv .svc-tool__ic {
+  flex: none; width: 46px; aspect-ratio: 1; border-radius: 12px;
+  display: grid; place-items: center;
+  background: var(--paper-2); border: 1px solid var(--rule);
+  color: var(--accent);
+}
+.pv .svc-tool__ic svg { width: 19px; height: 19px; }
+
+.pv .svc-tool__body { display: grid; gap: .55rem; min-width: 0; }
+.pv .svc-tool__t {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: clamp(1.08rem, 1rem + .45vw, 1.25rem);
+  line-height: 1.25; color: var(--ink);
+}
+.pv .svc-tool__d {
+  color: var(--muted); font-size: .94rem; line-height: 1.65;
+}
+/* The label reads as the control even though the card is the link, so the
+   arrow travels with the words rather than sitting at the card's edge. */
+.pv .svc-tool__go {
+  display: inline-flex; align-items: center; gap: .4rem;
+  margin-top: .35rem;
+  color: var(--accent-ink); font-weight: 600; font-size: .92rem;
+  white-space: nowrap;
+}
+.pv .svc-tool__go svg {
+  width: 1rem; height: 1rem; flex: none;
+  transition: transform .22s cubic-bezier(.16, 1, .3, 1);
+}
+.pv .svc-tool:hover .svc-tool__go svg { transform: translateX(3px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .pv .svc-tool, .pv .svc-tool__go svg { transition: none; }
+  .pv .svc-tool:hover { transform: none; }
+  .pv .svc-tool:hover .svc-tool__go svg { transform: none; }
+}

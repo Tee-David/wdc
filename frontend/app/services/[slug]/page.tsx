@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import JsonLd from "@/components/seo/json-ld";
 import ServiceIcon from "@/components/ui/service-icon";
 import ServiceDetail from "@/components/services/service-detail";
+import ServiceTools from "@/components/tools/service-tools";
 import { SERVICES, SERVICE_BY_SLUG } from "@/lib/services";
 import { faqsFor } from "@/lib/faq";
 import FaqAccordion from "@/components/ui/faq-accordion";
@@ -192,6 +193,12 @@ export default async function ServicePage(
             </div>
           </section>
         ) : null}
+
+        {/* AFTER THE PROOF, BEFORE THE QUESTIONS. By here the reader has the
+            argument and the evidence, and "here is one you can use right now,
+            without talking to anyone" is the natural next beat. It renders
+            nothing for a service with no tools of its own. */}
+        <ServiceTools service={service.slug} />
 
         {faqs.length > 0 ? (
           <section className="pv-sec pv-sec--alt">
