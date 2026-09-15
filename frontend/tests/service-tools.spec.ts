@@ -16,6 +16,10 @@ import { expect, test } from "@playwright/test";
 
 const SERVICE_WITH_TOOLS = "/services/web";
 const EXPECTED = ["/tools/domain", "/tools/email"];
+/* EVERY tool in the registry, not just the web ones. The resolve test below
+   walks this, because a card pointing at a 404 is worse than no card and a
+   tool filed under a different service is exactly the one nobody rechecks. */
+const ALL_TOOLS = ["/tools/domain", "/tools/email", "/tools/business-name"];
 
 test("the web service page offers its free tools", async ({ page }) => {
   await page.goto(SERVICE_WITH_TOOLS);
@@ -64,10 +68,15 @@ test("the card is the link, all of it", async ({ page }) => {
 });
 
 test("a service with no tools of its own grows no empty section", async ({ page }) => {
-  /* The section must render nothing rather than an empty heading, or five of
-     the six service pages gain a "Try one before you talk to us" with nothing
-     under it. */
-  await page.goto("/services/branding");
+  /* The section must render nothing rather than an empty heading, or the
+     service pages with no tool of their own gain a "Try one before you talk to
+     us" with nothing under it.
+
+     NOT `branding` ANY MORE. It has the business name checker now, which is
+     the whole point of the registry being data: a service gains a tool by
+     gaining a row, and a test naming a specific empty service has to move with
+     it. `seo` is the one furthest from having a tool of its own. */
+  await page.goto("/services/seo");
   await expect(page.locator(".svc-tools")).toHaveCount(0);
   await expect(page.getByText("Try one before you talk to us")).toHaveCount(0);
 });
@@ -76,7 +85,7 @@ test("every tool the registry names actually resolves", async ({ page }) => {
   /* A card pointing at a 404 is worse than no card. The hrefs come from
      `lib/tools.ts`, which is data -- so it can name a route that does not
      exist, and nothing would complain until a reader clicked. */
-  for (const href of EXPECTED) {
+  for (const href of ALL_TOOLS) {
     const response = await page.goto(href);
     expect(response?.status(), `${href} did not resolve`).toBe(200);
     await expect(page.locator("h1")).toHaveCount(1);

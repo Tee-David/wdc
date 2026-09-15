@@ -904,9 +904,13 @@ html:not(.dark) .pv .pv-card {
 }
 .pv-tcard__by b { font-family: var(--font-space-grotesk), system-ui, sans-serif; display: block; font-size: .98rem; }
 .pv-tcard__by span { font-size: .82rem; color: var(--muted); }
+/* A PANEL, NOT AN ORANGE BAR. See `.ob__reassure` in onboarding.css for why
+   the whole site dropped this pattern. */
 .pv-note {
-  margin-top: 22px; font-size: .85rem; color: var(--muted);
-  border-left: 2px solid var(--accent); padding-left: 14px; max-width: 80ch;
+  margin-top: 22px; padding: .8rem 1rem; max-width: 80ch;
+  border: 1px solid var(--rule); border-radius: 14px;
+  background: var(--paper-2);
+  font-size: .85rem; line-height: 1.6; color: var(--muted);
 }
 
 /* ---------------- FAQ ---------------- */

@@ -121,8 +121,8 @@ export default function EmailChecker() {
                 const Icon = ICON[f.verdict];
                 return (
                   <li className={`tl__find tl__find--${f.verdict}`} key={f.id}>
-                    <span className="tl__findhead">
-                      <Icon aria-hidden="true" />
+                    <span className="tl__findhead" aria-hidden="true"><Icon /></span>
+                    <span className="tl__findtop">
                       <span className="tl__findname">{f.label}</span>
                       <span className="tl__findverdict">{WORD[f.verdict]}</span>
                     </span>

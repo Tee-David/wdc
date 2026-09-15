@@ -356,9 +356,12 @@
 .bl-body li { font-size: 1.03rem; line-height: 1.7; color: var(--ink); }
 .bl-body li::marker { color: var(--accent-ink); }
 
+/* A rule beside a pulled quote is a typographic convention several centuries
+   older than the web, so it stays. The ORANGE goes, because that was the part
+   that made it look like the status bars everywhere else. */
 .bl-body blockquote {
   margin: 2rem 0; padding: .2rem 0 .2rem 1.2rem;
-  border-left: 3px solid var(--accent);
+  border-left: 3px solid var(--rule);
   font-size: clamp(1.05rem, 1rem + .4vw, 1.25rem);
   line-height: 1.5; color: var(--ink);
 }

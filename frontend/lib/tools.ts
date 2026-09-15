@@ -50,6 +50,17 @@ export const FREE_TOOLS: FreeTool[] = [
     services: ["web"],
   },
   {
+    slug: "business-name",
+    href: "/tools/business-name",
+    title: "Will CAC accept your business name?",
+    blurb:
+      "The words that need the Commission's consent and the ending your entity type has to carry, checked against section 852 of CAMA 2020 before you pay to file. It runs on your own device, so a name you have not registered yet is never sent anywhere.",
+    action: "Check a name",
+    short: "Business name checker",
+    icon: "Building2",
+    services: ["branding"],
+  },
+  {
     slug: "email",
     href: "/tools/email",
     title: "Can someone send an invoice as you?",
