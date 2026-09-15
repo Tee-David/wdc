@@ -32,11 +32,17 @@
 /* The helper line under the bar. It holds its height whether or not there is
    an error in it, so a message appearing cannot shove the closing rule and the
    copyright down the page while somebody is reading them. */
+/* NO TOP MARGIN WHEN THE LINE IS CURVED. The curved version positions itself
+   from the bar's own geometry, down to the pixel, so a margin here would be
+   added on top of a distance that is already correct. The straight versions,
+   the fallback and the error, set their own. */
 .nl__note {
-  margin: .7rem 0 0; min-height: 1.25rem;
+  margin: 0; min-height: 1.25rem;
   font-size: .82rem; line-height: 1.4;
   color: rgb(238 240 255 / .58);
 }
+.nl__note > .cn__plain,
+.nl__note > .nl__bad { display: block; margin-top: .7rem; }
 /* #ff8a4d on the footer navy measures 6.1:1. The site's `--accent-ink` is
    tuned for a light ground and is too dark to read here, which is why this one
    value is written out rather than taken from a token. */

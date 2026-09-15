@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import CurvedInput from "@/components/ui/curved-input";
+import CurvedNote from "@/components/ui/curved-note";
 
 import "./newsletter.css";
 
@@ -30,10 +31,14 @@ import "./newsletter.css";
 /* The arch as a FRACTION of the width, then clamped. Below the floor the curve
    stops reading as deliberate and looks like a rendering fault; above the
    ceiling the text at the ends tips far enough to be harder to read than it is
-   pretty. Both numbers were set by looking at it at 320, 390 and 1280. */
-const BEND_RATIO = 0.045;
-const BEND_MIN = 8;
-const BEND_MAX = 26;
+   pretty. All three numbers were set by looking at it at 320, 390 and 1280.
+
+   RAISED FROM 0.045 / 8 / 26 on request: the bow was too shy to read as a
+   decision. The helper line underneath follows the same arc automatically,
+   because it is drawn from this same number rather than from one of its own. */
+const BEND_RATIO = 0.062;
+const BEND_MIN = 10;
+const BEND_MAX = 34;
 
 type State =
   | { kind: "idle" }
@@ -183,14 +188,39 @@ export function Newsletter() {
             />
 
             {/* Reserved whether or not there is a message, so an error does
-                not push the footer around as it appears. */}
-            <p className="nl__note" role="status">
+                not push the footer around as it appears.
+
+                THE STANDING LINE IS BENT ALONG THE BAR'S OWN ARC, passed the
+                same width, bend, height and border width the bar above it got,
+                so the two are one circle rather than two that were eyeballed
+                into agreement. It shrinks to fit and falls back to ordinary
+                wrapped text in a column too narrow for one line.
+
+                THE ERROR IS NOT BENT, deliberately. Its length changes at
+                runtime, it is longer than the standing line, and it is the one
+                sentence here that has to be read and acted on rather than
+                admired. Text on a path cannot wrap, so curving it would be
+                choosing prettiness at the exact moment something has gone
+                wrong. */}
+            <div className="nl__note" role="status">
               {state.kind === "error" ? (
                 <span className="nl__bad">{state.message}</span>
               ) : (
-                "No more than once a month. Leave whenever you like."
+                <CurvedNote
+                  text="No more than once a month. Leave whenever you like."
+                  width={width}
+                  bend={bend}
+                  height={height}
+                  borderWidth={1.5}
+                  /* The same size the straight version was, in both cases.
+                     The component measures and steps down on its own when a
+                     column cannot hold the sentence, so hard-coding a smaller
+                     one for narrow screens only shrank it twice. */
+                  fontSize={13}
+                  color="rgb(238 240 255 / .58)"
+                />
               )}
-            </p>
+            </div>
           </>
         )}
       </div>
