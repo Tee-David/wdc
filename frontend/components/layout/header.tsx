@@ -296,12 +296,17 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
           </Link>
           <Link
             href="/#pv-contact"
-            /* WHITE FILL, BLACK LABEL. It was an orange fill, which is the one thing a
-               button on this site may never be: orange is an accent in type, icons,
-               chips and rules. This sits on the navy hero and on white further down
-               the page, so white with black type is the primary in both places and
-               the hover inverts it. See AGENTS.md. */
-            className="header-cta-pulse group hidden items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black transition-all duration-200 hover:-translate-y-0.5 hover:bg-black hover:text-white hover:shadow-[0_10px_30px_rgba(0,0,26,0.35)] active:translate-y-0 md:inline-flex"
+            /* THE SITE'S PRIMARY, AND THE GROUND IT SITS ON MOVES UNDER IT.
+
+               It was `bg-white text-black` in every state, which is right over
+               the hero photograph and wrong the moment the bar goes solid: a
+               white pill on a white bar has no edge at all, and nothing
+               measured it because the header is not a `.pv-btn`. So the colours
+               come from `.btn-primary` like every other primary on the site,
+               and the only thing decided here is WHICH ground it is on --
+               transparent over a dark hero, the page's own surface once the bar
+               is solid, which the theme already answers for at `:root`. */
+            className={`header-cta-pulse group btn-primary hidden items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(0,0,26,0.35)] active:translate-y-0 md:inline-flex ${solid ? "" : "hero-cta"}`}
           >
             {/* Not "Book a Strategy Call". That was carried over wholesale
                 when this header was rebuilt to match litchconsulting's, and it
