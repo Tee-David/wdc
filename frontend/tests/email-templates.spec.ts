@@ -10,12 +10,14 @@ import {
   projectStageEmail,
   quoteEmail,
   receiptEmail,
+  scopeEstimateEmail,
   signOffEmail,
+  siteReportEmail,
   type Email,
 } from "../lib/email-templates";
 
 /**
- * THE TEN MESSAGES, CHECKED AS A SET.
+ * THE TRANSACTIONAL SET, CHECKED AS A SET.
  *
  * These assertions are not style policing. Every one of them is a way a
  * transactional email quietly fails after it has been written and before
@@ -63,12 +65,54 @@ async function everyEmail(): Promise<{ name: string; email: Email }[]> {
     { name: "deliverable ready", email: deliverableReadyEmail({ clientName: "Ada", projectTitle: "Atlas rebrand", deliverable: "The first design route", url: URL_UNDER_TEST, respondBy: DUE }) },
     { name: "sign-off", email: signOffEmail({ clientName: "Ada", projectTitle: "Atlas rebrand", deliverable: "The first design route", signedBy: "Ada Obi", signedAt: DUE, url: URL_UNDER_TEST }) },
     { name: "password reset", email: passwordResetEmail({ name: "Ada", url: URL_UNDER_TEST, expiresInMinutes: 60 }) },
+    /* The two the free tools send. They are the only messages here a stranger
+       can cause to be sent without ever talking to us, which is exactly why
+       they are held to the same rules as the rest. */
+    { name: "scope estimate", email: scopeEstimateEmail({
+      rangeNgn: "₦4.5m to ₦6.6m",
+      rangeUsd: "$2.9k to $4.3k",
+      days: 48,
+      phases: [
+        { label: "Discovery and design", range: "₦1.1m to ₦1.6m" },
+        { label: "Build", range: "₦2.5m to ₦3.7m" },
+      ],
+      answers: [
+        { question: "What are we building?", answer: "A web app people log into" },
+        { question: "Does it take money?", answer: "Subscriptions or a wallet" },
+      ],
+      assumptions: ["Hosting, care and support are monthly and quoted separately."],
+      url: URL_UNDER_TEST,
+    }) },
+    /* WITH LIGHTHOUSE AND WITHOUT IT ARE DIFFERENT MESSAGES, and the one that
+       matters is the degraded one: it is what a reader gets on the day the
+       PageSpeed budget is spent, and it still has to read as a report rather
+       than as an apology. Both shapes are in the set. */
+    { name: "site report", email: siteReportEmail({
+      site: "https://example.com/",
+      findings: [
+        { label: "Meta description", detail: "There is none, so Google picks two lines out of the page." },
+        { label: "Sharing tags", detail: "None of the three Open Graph tags are set." },
+      ],
+      scores: [{ label: "Performance", score: 41 }, { label: "SEO", score: 92 }],
+      opportunities: ["Properly size images — about 2.1s faster"],
+      url: URL_UNDER_TEST,
+    }) },
+    { name: "site report, Lighthouse unavailable", email: siteReportEmail({
+      site: "https://example.com/",
+      findings: [{ label: "Title", detail: "Only 4 characters." }],
+      scores: [],
+      opportunities: [],
+      url: URL_UNDER_TEST,
+    }) },
   ];
 }
 
-test("all ten messages exist and are complete HTML documents", async () => {
+test("every message exists and is a complete HTML document", async () => {
   const all = await everyEmail();
-  expect(all).toHaveLength(10);
+  /* A COUNT RATHER THAN A NAMED NUMBER IN THE TITLE. It said "ten" and the
+     tools added three more shapes to the set; a title carrying the count is a
+     title that has to be edited by somebody who has already forgotten why. */
+  expect(all.length).toBeGreaterThanOrEqual(13);
 
   const failures: string[] = [];
   for (const { name, email } of all) {

@@ -61,6 +61,39 @@ export const FREE_TOOLS: FreeTool[] = [
     services: ["branding"],
   },
   {
+    slug: "estimate",
+    href: "/tools/estimate",
+    title: "What will it cost to build?",
+    blurb:
+      "Eight questions about the shape of the project, then an indicative range in naira and dollars with the phases broken out and the assumptions named. The arithmetic runs on your device and the figure appears before we ask for anything.",
+    action: "Work out a range",
+    short: "Budget estimator",
+    icon: "Calculator",
+    services: ["software", "apps"],
+  },
+  {
+    slug: "seo",
+    href: "/tools/seo",
+    title: "Why can't anyone find your website?",
+    blurb:
+      "Ten things Google reads off a page — title, description, headings, indexing, canonical, sharing tags, alt text — checked in about a second, with what the page costs a Nigerian visitor in naira beside them. The full Lighthouse report follows by email.",
+    action: "Check a page",
+    short: "SEO snapshot",
+    icon: "Gauge",
+    services: ["seo"],
+  },
+  {
+    slug: "link-preview",
+    href: "/tools/link-preview",
+    title: "How will your link look when it is shared?",
+    blurb:
+      "Paste a URL and see the card WhatsApp, X, LinkedIn and Facebook each build from it, with the title and description cut where each one cuts them and the image checked against what each one accepts.",
+    action: "Check a link",
+    short: "Link preview checker",
+    icon: "Share2",
+    services: ["social"],
+  },
+  {
     slug: "email",
     href: "/tools/email",
     title: "Can someone send an invoice as you?",

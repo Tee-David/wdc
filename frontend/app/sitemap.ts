@@ -4,6 +4,7 @@ import { CASE_STUDIES, WORK_CATEGORIES } from "@/lib/work";
 import { LEGAL_DOCS } from "@/lib/legal";
 import { BLOG_POSTS } from "@/lib/blog";
 import { SERVICES } from "@/lib/services";
+import { FREE_TOOLS } from "@/lib/tools";
 
 /**
  * Sitemap.
@@ -38,10 +39,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     /* A tool is its own destination, not a section of a marketing page:
        somebody searching "is my business name available .com.ng" should land
        on the tool. Monthly because the page changes when the tool does, not
-       when a registry answers differently. */
-    { path: "/tools/domain", priority: 0.75, changeFrequency: "monthly" },
-    { path: "/tools/business-name", priority: 0.75, changeFrequency: "monthly" },
-    { path: "/tools/email", priority: 0.75, changeFrequency: "monthly" },
+       when a registry answers differently.
+
+       DERIVED, LIKE THE SERVICES ABOVE, and for the reason written there. The
+       three that shipped first were listed by hand here, so the four added
+       with section 1B would have been live, linked from the footer and from
+       their service pages, and invisible to this file -- which is the exact
+       failure the note at the top of this sitemap says it exists to prevent.
+       `lib/tools.ts` is the one list now. */
+    ...FREE_TOOLS.map((tool) => ({
+      path: tool.href,
+      priority: 0.75,
+      changeFrequency: "monthly" as const,
+    })),
     { path: "/about", priority: 0.7, changeFrequency: "yearly" },
     { path: "/contact", priority: 0.8, changeFrequency: "yearly" },
     { path: "/work", priority: 0.9, changeFrequency: "monthly" },

@@ -945,3 +945,178 @@ The WDC team`),
     }),
   };
 }
+
+/* ============================================== 11. the estimate, on request */
+
+/**
+ * The scope estimate, sent because the reader asked for a copy.
+ *
+ * THE FIGURES ARE PASSED IN, NOT COMPUTED HERE, for the same reason the money
+ * table's totals are: an email that does its own arithmetic is a second
+ * opinion about a number, and the day it disagrees with the page the reader
+ * saw there is no way to tell which one is right. `lib/estimate.ts` computes
+ * once, on the server, from the answers; this renders what it returned.
+ *
+ * IT REPEATS THE ANSWERS. The estimate is worthless in a month without them --
+ * "₦4m to ₦6m" in an inbox with no note of what was being priced is a number
+ * somebody will quote back at us for a different project. Printed as a panel,
+ * they are also the fastest possible brief for whoever picks up the reply.
+ */
+export function scopeEstimateEmail(input: {
+  /** Already formatted by the caller, in the currency and shape the page used. */
+  rangeNgn: string;
+  rangeUsd: string;
+  days: number;
+  phases: Array<{ label: string; range: string }>;
+  answers: Array<{ question: string; answer: string }>;
+  assumptions: string[];
+  url: string;
+}): Email {
+  const { rangeNgn, rangeUsd, days, phases, answers, assumptions, url } = input;
+
+  const phaseRows = phases.map((phase) => [phase.label, phase.range] as [string, string]);
+  const answerRows = answers.map((row) => [row.question, row.answer] as [string, string]);
+
+  return {
+    subject: `Your indicative range: ${rangeNgn}`,
+    /* NO UNSUBSCRIBE, and the rule is the one the enquiry receipt states from
+       the other side. There, the enquirer asked us a question and did not ask
+       for the copy, so the copy owes them an opt-out. Here the reader pressed
+       "email it to me": this message IS the thing they asked for, like the
+       password reset, and an unsubscribe line on it offers to opt out of the
+       only thing they wanted. They are added to no list, so there is nothing
+       to opt out of. The day this is followed by anything they did not ask
+       for, that message carries the flag. */
+    text: textShell(`Hello,
+
+Here is the range you worked out on our estimator, with the answers you gave so
+it still makes sense when you open this in a fortnight.
+
+  Indicative range: ${rangeNgn} (${rangeUsd})
+  Roughly ${days} days of the team's time
+
+Where it goes:
+${phaseRows.map(([label, range]) => `  - ${label}: ${range}`).join("\n")}
+
+What you told us:
+${answerRows.map(([question, answer]) => `  - ${question} ${answer}`).join("\n")}
+
+What it assumes:
+${assumptions.map((line) => `  - ${line}`).join("\n")}
+
+This is a range and not a quote. It is what work of this shape usually costs us
+to do properly, and the real figure comes out of one conversation about what you
+actually need. Reply to this email and we will have it.
+
+${url}
+
+The WDC team`),
+    html: shell({
+      title: "Your indicative range",
+      preheader: `${rangeNgn} for the project you described, with the phases broken out.`,
+      eyebrow: "Indicative range",
+      heading: rangeNgn,
+      blocks: [
+        p(`That is ${escapeHtml(rangeUsd)}, and about <b>${days} days</b> of the team&rsquo;s time. Calendar time is longer, because your review and ours both take days nobody is building on.`),
+        p("<b>Where it goes</b>"),
+        panel(phaseRows),
+        p("<b>What you told us</b>"),
+        panel(answerRows),
+        p("<b>What it assumes</b>"),
+        small(assumptions.map((line) => `&bull; ${escapeHtml(line)}`).join("<br>")),
+        p("This is a range and not a quote. It is what work of this shape usually costs us to do properly, and the real figure comes out of one conversation about what you actually need."),
+        action("Talk it through with us", url),
+        fallbackLink(url),
+      ],
+    }),
+  };
+}
+
+/* ========================================== 12. the site report, on request */
+
+/**
+ * The on-page report from /tools/seo, sent once the reader gives an address.
+ *
+ * IT IS SENT WHETHER OR NOT LIGHTHOUSE RAN. That is the whole shape of this
+ * message and it comes from rule 1 of `docs/tools-programme.md`: the metered
+ * half is an upgrade on an answer we can already give free, never the answer
+ * itself. On a day the PageSpeed budget is spent, or on an installation with
+ * no key at all, `scores` is empty and the mail carries the on-page findings
+ * plus a line saying a person will run the rest. That is a better outcome for
+ * the reader than an apology, and a better one for us than silence.
+ */
+export function siteReportEmail(input: {
+  site: string;
+  /** The on-page findings, already reduced to a label and a verdict. */
+  findings: Array<{ label: string; detail: string }>;
+  /** Lighthouse, where it ran. Empty means it did not, and the copy changes. */
+  scores: Array<{ label: string; score: number }>;
+  /** The biggest wins Lighthouse named, where it ran. */
+  opportunities: string[];
+  url: string;
+}): Email {
+  const { site, findings, scores, opportunities, url } = input;
+  const ran = scores.length > 0;
+
+  const scoreRows = scores.map((s) => [s.label, `${s.score} / 100`] as [string, string]);
+  const findingRows = findings.map((f) => [f.label, f.detail] as [string, string]);
+
+  const lighthouseText = ran
+    ? `Lighthouse, run by Google on your live page:
+${scoreRows.map(([label, value]) => `  - ${label}: ${value}`).join("\n")}
+
+${opportunities.length ? `The biggest wins it found:\n${opportunities.map((o) => `  - ${o}`).join("\n")}` : "It found nothing large enough to be worth naming, which is rarer than you would think."}`
+    : `The full Lighthouse run is queued rather than attached: we cap how many of
+those we ask Google for in a day, and today's are spent. Somebody here will run
+yours by hand and reply with it. Nothing above depends on it.`;
+
+  return {
+    subject: `Your site report: ${site}`,
+    /* No unsubscribe, for the reason written on the estimate above: they asked
+       for this one message, it is the thing they asked for, and nothing is
+       added to any list. */
+    text: textShell(`Hello,
+
+Here is the report for ${site}, in full and in writing so you can forward it to
+whoever looks after the site.
+
+What we read off the page itself:
+${findingRows.map(([label, detail]) => `  - ${label}: ${detail}`).join("\n")}
+
+${lighthouseText}
+
+Every one of these is fixable, and most of them are an afternoon rather than a
+rebuild. Reply to this email if you would like us to do it, or to argue with any
+of it.
+
+${url}
+
+The WDC team`),
+    html: shell({
+      title: "Your site report",
+      preheader: `The on-page findings for ${site}${ran ? ", with Lighthouse scores" : ""}.`,
+      eyebrow: "Site report",
+      heading: escapeHtml(site),
+      blocks: [
+        p("Here is the report in full, so you can forward it to whoever looks after the site."),
+        p("<b>What we read off the page itself</b>"),
+        panel(findingRows),
+        ...(ran
+          ? [
+              p("<b>Lighthouse, run by Google on your live page</b>"),
+              panel(scoreRows),
+              ...(opportunities.length
+                ? [small(`The biggest wins it found:<br>${opportunities.map((o) => `&bull; ${escapeHtml(o)}`).join("<br>")}`)]
+                : [small("It found nothing large enough to be worth naming, which is rarer than you would think.")]),
+            ]
+          : [
+              p("<b>The Lighthouse run is queued</b>"),
+              small("We cap how many of those we ask Google for in a day, and today&rsquo;s are spent. Somebody here will run yours by hand and reply with it &mdash; nothing above depends on it."),
+            ]),
+        p("Every one of these is fixable, and most of them are an afternoon rather than a rebuild."),
+        action("Ask us to fix them", url),
+        fallbackLink(url),
+      ],
+    }),
+  };
+}

@@ -43,6 +43,21 @@ export async function publicImageSize(src: string): Promise<Size> {
   }
 }
 
+/**
+ * The same parser, for bytes that never came from disk.
+ *
+ * ADDED FOR THE LINK PREVIEW CHECKER, which has to say whether somebody's
+ * og:image is the shape WhatsApp and LinkedIn want. That answer needs the real
+ * pixel size of a file on a stranger's server, and the alternative to reusing
+ * this was a second copy of the same header walking in another module.
+ *
+ * It takes the first bytes of the file, not the file: the caller stops reading
+ * once it has enough, so a 4MB hero image costs us a few kilobytes.
+ */
+export function imageSizeFromBytes(bytes: Uint8Array): Size | null {
+  return sizeOf(Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength));
+}
+
 function sizeOf(b: Buffer): Size | null {
   /* PNG: 8-byte signature, then the IHDR chunk with width and height as
      big-endian 32-bit integers at offsets 16 and 20. */
@@ -68,5 +83,39 @@ function sizeOf(b: Buffer): Size | null {
       i += 2 + len;
     }
   }
+
+  /* GIF: "GIF8", then the logical screen width and height as little-endian
+     16-bit integers. Two lines, and it is what an animated social image
+     usually is. */
+  if (b.length > 10 && b.toString("ascii", 0, 4) === "GIF8") {
+    return { width: b.readUInt16LE(6), height: b.readUInt16LE(8) };
+  }
+
+  /* WEBP, WHICH IS WHY THIS FUNCTION GREW. Every image optimiser now emits it,
+     including our own `next/image`, so a checker that could not read one would
+     report "we could not measure that" on a large share of modern sites -- the
+     ones that have done the work, which is the wrong half to fail on.
+     It is a RIFF container with three shapes inside it, and they disagree
+     about where the size lives:
+       VP8   lossy:    two 14-bit values after the start code, at 26 and 28
+       VP8L  lossless: 14 bits each, packed across four bytes from 21
+       VP8X  extended: two 24-bit values from 24, stored one less than actual */
+  if (b.length > 30 && b.toString("ascii", 0, 4) === "RIFF" && b.toString("ascii", 8, 12) === "WEBP") {
+    const chunk = b.toString("ascii", 12, 16);
+    if (chunk === "VP8 " && b.length > 30) {
+      return { width: b.readUInt16LE(26) & 0x3fff, height: b.readUInt16LE(28) & 0x3fff };
+    }
+    if (chunk === "VP8L" && b.length > 25) {
+      const bits = b.readUInt32LE(21);
+      return { width: (bits & 0x3fff) + 1, height: ((bits >> 14) & 0x3fff) + 1 };
+    }
+    if (chunk === "VP8X" && b.length > 30) {
+      return {
+        width: (b[24] | (b[25] << 8) | (b[26] << 16)) + 1,
+        height: (b[27] | (b[28] << 8) | (b[29] << 16)) + 1,
+      };
+    }
+  }
+
   return null;
 }

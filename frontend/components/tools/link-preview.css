@@ -1,0 +1,82 @@
+/* ==========================================================================
+   THE LINK PREVIEW CHECKER'S FOUR CARDS.
+
+   IMPORTED BY THE COMPONENT, not by the page. The picker learned this the
+   expensive way: `picker.css` was imported by one form and by nothing else, so
+   the same control rendered correctly on one page and as an unstyled list of
+   245 rows on another. A control whose appearance depends on an import
+   somewhere else will eventually be dropped somewhere else.
+
+   THE CARDS ARE MOCKS IN OUR OWN TOKENS, not copies of anybody's chrome.
+   Cloning WhatsApp's bubble or X's card would be somebody else's trademark
+   drawn in our stylesheet, and it would be wrong within a quarter anyway.
+   What has to be faithful is the MEASUREMENTS -- where each one cuts the
+   title, whether it shows a description at all, whether the picture is a
+   banner or a thumbnail -- and those come from `lib/link-preview.ts`.
+   ========================================================================== */
+
+.pv .lp__cards {
+  display: grid; gap: .9rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+}
+
+.pv .lp__card { margin: 0; display: grid; gap: .5rem; align-content: start; }
+
+.pv .lp__head { display: grid; gap: .15rem; }
+.pv .lp__who {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .78rem; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--accent-ink);
+}
+.pv .lp__note { font-size: .82rem; line-height: 1.5; color: var(--muted); }
+
+/* The card itself. One shape for all four, because the differences that matter
+   are in the copy and the picture rather than in the corner radius. */
+.pv .lp__mock {
+  display: grid;
+  border: 1px solid var(--rule); border-radius: 14px;
+  background: var(--paper); overflow: hidden;
+}
+
+/* THE BANNER. 1.91:1 is the ratio every one of these platforms crops to, so
+   the mock crops to it as well -- a card that showed a tall image whole would
+   be hiding the exact fault the tool exists to report. */
+.pv .lp__img {
+  display: block; width: 100%; aspect-ratio: 1.91 / 1;
+  object-fit: cover; background: var(--paper-2);
+}
+
+/* X WITHOUT `twitter:card`: a square thumbnail beside the text rather than a
+   banner above it. Same markup, one modifier, because that is the difference
+   the platform actually makes. */
+.pv .lp__mock--small { grid-template-columns: 5.5rem minmax(0, 1fr); align-items: stretch; }
+.pv .lp__mock--small .lp__img { aspect-ratio: 1 / 1; height: 100%; }
+.pv .lp__mock--small .lp__noimg { border-right: 1px solid var(--rule); border-bottom: 0; }
+
+/* The empty state carries the REASON, because "no image" and "your image is
+   340KB and WhatsApp drops it" are different problems with different fixes. */
+.pv .lp__noimg {
+  display: grid; place-items: center; gap: .4rem;
+  padding: 1.2rem 1rem; min-height: 5.5rem;
+  background: var(--paper-2); border-bottom: 1px solid var(--rule);
+  text-align: center;
+}
+.pv .lp__noimg svg { width: 1.3rem; height: 1.3rem; color: var(--muted); }
+.pv .lp__noimg span { font-size: .8rem; line-height: 1.45; color: var(--muted); }
+
+.pv .lp__text { display: grid; gap: .2rem; padding: .8rem .9rem; min-width: 0; }
+.pv .lp__domain {
+  font-size: .72rem; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--muted); overflow-wrap: anywhere;
+}
+.pv .lp__title {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: .95rem; line-height: 1.3; color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.pv .lp__title i { font-weight: 500; color: var(--muted); }
+.pv .lp__desc { font-size: .84rem; line-height: 1.5; color: var(--muted); overflow-wrap: anywhere; }
+
+/* Under the card rather than inside it: it is our annotation, not part of what
+   the reader's audience will see. */
+.pv .lp__cut { margin: 0; font-size: .78rem; line-height: 1.5; color: var(--accent-ink); }
