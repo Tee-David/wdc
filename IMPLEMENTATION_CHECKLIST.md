@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **122 open** (11 of them in progress), **268 done**.
+At last update: **122 open** (11 of them in progress), **271 done**.
 
 ---
 
@@ -427,6 +427,42 @@ with the rest of section 4's content and settings work.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-15, the proof band's headline, its "2K+", and white ledes on every band
+
+- [x] **"Ten years in, with the numbers to show for it" wrapped onto a
+  second line holding only the word "it".** `text-wrap: balance` was added
+  to `.pv-mix`, the shared mixed-weight heading class every `<b>`-emphasised
+  h1/h2 on the site uses, so a heading landing an orphaned short word on its
+  own line is no longer possible on a browser that supports the property
+  (every evergreen one) and wraps the old way, at no cost, on one that does
+  not. The headline itself was also shortened, to "Ten years in, and the
+  numbers to prove it", both because it reads tighter and for a wider
+  margin against the exact browser width that produced the fault, which this
+  repo's own checks do not run at.
+- [x] **"Deliverables met" now reads 2K+, not 500+,** at the agency's
+  correction of its own figure. `lib/proof.ts`'s `shortCount` renders a
+  thousand or more as "2K" rather than "2000", the same shorthand
+  `lib/estimate.ts` already uses for a figure this size; the counter still
+  animates over the real integer (0 to 2000) so the motion stays smooth, and
+  only the digits actually shown are compacted. Exported from `lib/proof.ts`
+  rather than kept local to the component, so `tests/proof.spec.ts` pins the
+  displayed string against the same rule the page renders with instead of a
+  copy of it.
+- [x] **Every lede sitting on a navy band or hero is white now, not the
+  dimmed `--on-band-dim` lavender** it was reviewed and signed off with. The
+  agency's own read: on a screen where the h1 above it is already the
+  brightest thing on the page, the dimmed second line looked like reduced
+  contrast rather than intentional hierarchy. Three rules carried it --
+  `.pv-sec--band .pv-lede`, `.pv .wk-hero .pv-lede` and `.ab-cta__in
+  .pv-lede` -- which between them are the lede on every `wk-hero` (every
+  landing page's opening band) and every CTA band on the site, so the
+  change reaches all of them from three lines. `--on-band-dim` keeps every
+  OTHER job it already had -- captions, the footer's secondary links, code
+  syntax highlighting -- untouched, because none of those were the
+  complaint. `tests/page-opening.spec.ts`'s own 4.5:1 contrast floor for the
+  lede against the band, in both themes, at both a phone and a desktop
+  width, only rises with white text on navy; it still passes, 25/25.
 
 ## Closed 2026-09-15, the domain checker's waiting line spreads to every tool that waits on one
 

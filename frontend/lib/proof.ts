@@ -7,7 +7,7 @@
  * safest defence is to derive every figure from data a reader can click
  * through. That held while the agency's real track record and its published
  * case studies were the same size; they no longer are. Ten years, 50-plus
- * projects, 200-plus clients and 500-plus deliverables are the agency's own
+ * projects, 200-plus clients and 2,000-plus deliverables are the agency's own
  * count of its history, not a count of what happens to be written up on this
  * site today, so they are set by hand below rather than derived from
  * `lib/work.ts`.
@@ -64,7 +64,7 @@ export function proofStats(): Stat[] {
     },
     {
       key: "deliverables",
-      value: 500,
+      value: 2000,
       suffix: "+",
       label: "Deliverables met",
       detail: "Logo suites, booking flows, payment integrations, dashboards and more, each one shipped and signed off.",
@@ -76,4 +76,15 @@ export function proofStats(): Stat[] {
     stats above by hand since both are set by hand now. */
 export function proofLine() {
   return "10+ years in business, 200+ clients on record, nothing invented.";
+}
+
+/** A thousand or more reads as "2K", not "2000": the same "k" shorthand
+    `lib/estimate.ts` already uses for a figure this size. Below a thousand
+    this is just the whole number. Exported so the component that animates
+    through it and the test that pins the settled figure read the same
+    rule. */
+export function shortCount(n: number) {
+  if (n < 1000) return String(Math.round(n));
+  const k = Math.round(n / 100) / 10;
+  return `${Number.isInteger(k) ? k : k.toFixed(1)}K`;
 }

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { proofStats } from "../lib/proof";
+import { proofStats, shortCount } from "../lib/proof";
 
 /**
  * The figures under the homepage hero.
@@ -39,7 +39,7 @@ test("every figure on screen matches lib/proof.ts, with the suffix it is owed", 
 
   const shown = await nums.allInnerTexts();
   for (const [i, stat] of stats.entries()) {
-    expect(shown[i].trim(), `figure ${i} matches lib/proof.ts`).toBe(`${stat.value}${stat.suffix ?? ""}`);
+    expect(shown[i].trim(), `figure ${i} matches lib/proof.ts`).toBe(`${shortCount(stat.value)}${stat.suffix ?? ""}`);
   }
 
   /* A hand-set round figure without its "+" reads as an exact count, which
@@ -60,7 +60,7 @@ test("the real figures are in the HTML, not animated into it", async ({ browser 
 
   const stats = proofStats();
   const shown = await page.locator(".pf__num").allInnerTexts();
-  expect(shown.map((t) => t.trim())).toEqual(stats.map((s) => `${s.value}${s.suffix ?? ""}`));
+  expect(shown.map((t) => t.trim())).toEqual(stats.map((s) => `${shortCount(s.value)}${s.suffix ?? ""}`));
 
   await context.close();
 });
