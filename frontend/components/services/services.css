@@ -321,7 +321,14 @@
 .sv-step { overflow: hidden; }
 .sv-step::before {
   content: ""; position: absolute; inset: 0; z-index: 0;
-  background: var(--accent);
+  /* #c95000, NOT #ff6500, AND THIS IS WHY EVERY WORD ON IT CAN BE WHITE.
+     Measured: white on the bright orange is 2.95:1, which fails even the 3:1
+     bar for large text, and that is the whole reason the title used to go
+     BLACK while the body went white. One card, two ink colours, looking like a
+     mistake. The deeper orange is the same brand family and takes white at
+     4.53:1, so the card can do what it obviously wants to: fill, and turn
+     everything on it white. */
+  background: #c95000;
   transform: scaleY(0); transform-origin: bottom center;
   transition: transform .34s cubic-bezier(.16, 1, .3, 1);
 }
@@ -336,9 +343,14 @@
 /* One set of hover colours for both themes: the fill is the same orange in
    light and dark, so what sits on it must be too. Reading these off the theme
    tokens instead would put dark ink on orange in light mode. */
+/* EVERY WORD, not just the heading. `--on-accent` is black, which is correct
+   ON THE BRIGHT ORANGE and wrong here, and having the title read black while
+   the paragraph under it read white was the fault. */
 .sv-step:hover h3,
-.sv-step:hover .sv-step__n { color: var(--on-accent); }
-.sv-step:hover p { color: rgb(255 255 255 / .88); }
+.sv-step:hover .sv-step__n,
+.sv-step:hover p,
+.sv-step:hover li,
+.sv-step:hover span { color: #fff; }
 /* The navy tile is left alone deliberately: it is the one element that should
    still read as a distinct object once the card fills, and navy on orange
    holds up where a white-on-orange tile would dissolve into it. */
@@ -423,14 +435,17 @@
   border-color: #ff6500;
   box-shadow: 0 16px 34px -24px rgba(0, 0, 0, .9);
 }
-.dark .sv-step:hover h3 { color: #fff; }
-.dark .sv-step:hover .sv-step__n { color: #ff6500; }
+/* The fill is the same colour in both themes, so what sits on it is too. The
+   number used to go #ff6500 here, which was orange on orange. */
+.dark .sv-step:hover h3,
+.dark .sv-step:hover .sv-step__n,
+.dark .sv-step:hover p { color: #fff; }
 .dark .sv-step:hover p { color: #c5c3e2; }
 
 /* ---------------- work ---------------- */
 .sv-pill {
   display: inline-block; padding: 6px 16px; border-radius: 999px;
-  background: rgba(255, 255, 255, .08); border: 1px solid var(--on-band-rule);
+  background: color-mix(in srgb, #fff 8%, var(--band)); border: 1px solid var(--on-band-rule);
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .8rem; font-weight: 600; color: var(--accent);
 }
@@ -502,7 +517,9 @@
    two names. */
 .sv-cta__box h2 { max-width: none; text-wrap: balance; }
 .sv-cta__box .pv-lede { max-width: 60ch; }
-.sv-cta__row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 12px; }
+/* 20px, not 12. Two pill buttons 12px apart read as one wide control with a
+   seam down it, which is what the screenshot showed. */
+.sv-cta__row { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 18px; }
 
 /* the mailto button carries a long address; let it wrap on small screens
    rather than pushing the page into a horizontal scroll */
@@ -513,7 +530,7 @@
      gap between two pills in a row and as almost nothing between two
      full-width bars, where the eye has no vertical edge to measure it
      against. */
-  .sv-cta__row, .sv-hero__cta { gap: 14px; }
+  .sv-cta__row, .sv-hero__cta { gap: 16px; }
 }
 
 /* ---------------- hero rotating line ---------------- */

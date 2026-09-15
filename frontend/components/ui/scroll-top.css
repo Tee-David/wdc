@@ -42,7 +42,12 @@
   background: var(--paper, #fff);
   color: var(--accent, #ff6500);
   cursor: pointer;
-  box-shadow: 0 10px 26px -10px rgb(0 0 26 / .45);
+  /* A HAIRLINE, SO IT READS AS AN OBJECT. The fill was already solid
+     `--paper`, but white on the cream `--paper-2` sections is white on nearly
+     white: only the drop shadow separated it, and it looked like a floating
+     arrow with nothing behind it. An inset ring rather than a border, so the
+     2.9rem box does not change size. */
+  box-shadow: 0 10px 26px -10px rgb(0 0 26 / .45), inset 0 0 0 1px var(--rule, rgb(0 0 101 / .14));
 
   /* HIDDEN, NOT ABSENT. Animating opacity and transform lets it arrive and
      leave; `display: none` would make it pop. `visibility` is what actually

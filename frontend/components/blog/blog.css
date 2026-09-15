@@ -260,9 +260,25 @@
 
 /* Sticky on desktop, a plain block above the article on narrow screens --
    the same pattern the legal pages already use. */
-.bl-rail { position: sticky; top: 96px; align-self: start; display: grid; gap: 2rem; }
+/* THE ITEM STRETCHES; THE CHILD STICKS. See the note in the page component:
+   a sticky grid item with `align-self: start` was measured NOT clamping to its
+   grid area, so it sailed 543px past the end of the article and over "Read
+   next". A stretched item's child has the row for a containing block, and that
+   the browser does honour. */
+.bl-rail { align-self: stretch; min-height: 0; }
+.bl-rail__stick {
+  position: sticky; top: 96px;
+  display: grid; gap: 2rem;
+  /* Capped to the viewport so a long contents list scrolls inside itself
+     rather than running off the bottom, which is the site's rule for long
+     menus anyway. */
+  max-height: calc(100dvh - 96px - 2rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
 @media (max-width: 1000px) {
-  .bl-rail { position: static; }
+  .bl-rail__stick { position: static; max-height: none; overflow: visible; }
   /* One column below 1000px, so the explicit placement above would strand the
      end matter in a second column that no longer exists. */
   .bl-layout > .bl-rail,

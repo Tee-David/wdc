@@ -196,7 +196,16 @@ export default async function BlogPostPage(
                   reader and what they came for. */}
               {outline.length > 0 && (
                 <aside className="bl-rail">
-                  <div>
+                  {/* THE STICKY ELEMENT IS THE CHILD, NOT THE GRID ITEM.
+                      Measured: a sticky grid item with `align-self: start` was
+                      NOT clamped to its grid area by the browser. It carried on
+                      past the end of the article by 543px, straight over the
+                      share row and into "Read next", which is exactly what the
+                      explicit rows were supposed to prevent. Stretching the
+                      item and sticking a child inside it gives the child a
+                      containing block that IS the row, and that one the browser
+                      honours. */}
+                  <div className="bl-rail__stick" data-lenis-prevent>
                     <BlogToc outline={outline} />
                   </div>
                 </aside>

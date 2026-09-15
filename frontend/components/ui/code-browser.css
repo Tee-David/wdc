@@ -38,7 +38,7 @@
    the accent — the two states together are what say "these are controls". */
 .cb__file:hover { background: rgb(255 255 255 / .07); color: #fff; }
 .cb__file:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.cb__file.is-on { background: rgb(255 101 0 / .16); border-color: var(--accent); color: #fff; }
+.cb__file.is-on { background: color-mix(in srgb, var(--accent) 16%, var(--band, #0a0a3a)); border-color: var(--accent); color: #fff; }
 
 .cb__ext {
   display: inline-grid; place-items: center; flex: none;
@@ -48,7 +48,9 @@
 }
 .cb__ext--ts { background: #2f6fd0; }
 .cb__ext--json { background: #b8860b; }
-.cb__ext--other { background: rgb(255 255 255 / .22); }
+/* SOLID, like its two siblings directly above. It was the only one of the
+   three file badges with a see-through fill. */
+.cb__ext--other { background: #4c5170; }
 
 /* --- pane --- */
 .cb__pane { min-width: 0; display: flex; flex-direction: column; }
