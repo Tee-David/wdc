@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { proofLine, proofStats, type Stat } from "@/lib/proof";
 
 import "./proof.css";
@@ -131,22 +130,6 @@ export default function Proof() {
                 every project behind it is live — open any of them and see for
                 yourself.
               </p>
-            </div>
-
-            {/* The site's two buttons, in the order the page wants them: the
-                work first, because the whole argument of this band is that it
-                can be checked. */}
-            <div className="pf__acts">
-              {/* NO ICON IN THE MARKUP. `.pv-btn` draws its own arrow with a
-                  `::after` that slides on hover, so an ArrowRight here renders
-                  the button with two of them -- which is what the first pass
-                  did. */}
-              <Link className="pv-btn pv-btn--accent" href="/work">
-                See the work
-              </Link>
-              <Link className="pv-btn pv-btn--light" href="/contact">
-                Start a project
-              </Link>
             </div>
           </div>
 

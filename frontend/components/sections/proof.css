@@ -5,11 +5,14 @@
    learned the hard way: a control whose appearance depends on an import
    somewhere else will eventually be dropped somewhere else.
 
-   THE SHAPE IS THE REFERENCE'S: one card, a sentence and two buttons across
-   the top, a row of figures under a hairline. What is OURS is everything
-   inside it -- Space Grotesk on the numbers, Outfit on the prose, the paper
-   and rule tokens, the site's two buttons, and an orange eyebrow rather than
-   an orange figure, because orange is an accent in type and not a headline.
+   THE SHAPE IS THE REFERENCE'S: one card, a sentence across the top, a row
+   of figures under a hairline. No buttons here -- the hero directly above
+   already carries the site's pair, and a second "see the work" / "start a
+   project" prompt one scroll later reads as the page repeating itself.
+   What is OURS is everything inside it -- Space Grotesk on the numbers,
+   Outfit on the prose, the paper and rule tokens, and an orange eyebrow
+   rather than an orange figure, because orange is an accent in type and not
+   a headline.
    ========================================================================== */
 
 /* THE CARD SITS ON THE ALT GROUND SO IT READS AS A CARD. `--paper` on
@@ -25,35 +28,34 @@
      shadow on a light page reads as a box rather than a lift. */
   box-shadow: 0 18px 50px -32px rgba(0, 0, 26, .38);
 }
-.dark .pv .pf__card { box-shadow: 0 18px 50px -30px rgba(0, 0, 0, .8); }
+/* NO SEPARATE DARK FILL IN THE DARK THEME. `--paper` is a near-black navy
+   there, darker than the `--paper-2` ground this section (`.pv-sec--alt`)
+   already sits on, so the card read as a second, blacker box stacked on the
+   band above it. Matching the section's own ground keeps this one navy blue
+   straight down the page, with only the hairline and shadow left to mark
+   the card. */
+.dark .pv .pf__card { background: var(--paper-2); box-shadow: 0 18px 50px -30px rgba(0, 0, 0, .8); }
 
 /* ------------------------------------------------------------------- top */
 
-/* THE SENTENCE AND THE BUTTONS SHARE A LINE WHERE THERE IS ROOM, and the
-   buttons keep their own column rather than wrapping under a heading that has
-   already used the width. Below 900px they stack, which is where two pills
-   beside three lines of prose stops being a row and starts being a squeeze. */
 .pv .pf__top {
-  display: grid; gap: clamp(1.1rem, 2.4vw, 2rem);
-  align-items: end;
   padding-bottom: clamp(1.4rem, 3vw, 2.2rem);
   border-bottom: 1px solid var(--rule);
 }
-@media (min-width: 900px) {
-  .pv .pf__top { grid-template-columns: minmax(0, 1fr) auto; }
-}
 
-/* LEFT-ALIGNED, WHICH IS THE ONE PLACE ON THE HOMEPAGE THAT IS. `.pv-head` is
-   centred everywhere else and this is not a section head -- it is the top half
-   of a card whose other half is a row of figures, and centring it would leave
-   the buttons stranded under a middle. Its own class rather than a modifier on
-   `.pv-head`, because `.pv-head--left` was removed from this site once already
-   for being used twice and read as a mistake both times. */
+/* LEFT-ALIGNED ON MOBILE, CENTRED FROM 900PX. Below that width this is one
+   column with the figures, so left keeps it reading as a card top; from
+   900px there is no second column fighting for the middle any more (the
+   buttons that used to live here are gone), so it centres and the heading
+   and lede lose their character caps to run the card's full width. */
 .pv .pf__say { display: grid; gap: .6rem; justify-items: start; text-align: left; }
 .pv .pf__say h2 { margin: 0; max-width: 20ch; }
 .pv .pf__say .pv-lede { margin: 0; max-width: 58ch; }
 
-.pv .pf__acts { display: flex; flex-wrap: wrap; gap: .7rem; }
+@media (min-width: 900px) {
+  .pv .pf__say { justify-items: center; text-align: center; }
+  .pv .pf__say h2, .pv .pf__say .pv-lede { max-width: none; }
+}
 
 /* ----------------------------------------------------------------- figures */
 
