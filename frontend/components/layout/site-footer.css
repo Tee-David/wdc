@@ -53,11 +53,21 @@
 .ft__cols {
   position: relative; z-index: 2;
   display: grid; gap: clamp(2rem, 4vw, 3rem);
-  grid-template-columns: 1.4fr .9fr 1.5fr 1.15fr;
+  /* Five columns now that Tools has one: the studio, Company, Useful links,
+     Tools, and the subscribe box. Useful links keeps the widest of the four
+     because it carries the address as well as the policies. */
+  grid-template-columns: 1.3fr .8fr 1.3fr .8fr 1.1fr;
 }
 @media (max-width: 1000px) { .ft__cols { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 560px)  {
-  .ft__cols { grid-template-columns: 1fr; }
+  /* TWO ACROSS, NOT ONE. Stacked, the three link lists were three full-width
+     blocks one after another and you scrolled past Company to reach Useful
+     links to reach Tools. Side by side they read as a directory, which is what
+     a footer is. The brand block and the subscribe box keep the full width and
+     keep their lead: a paragraph in a 170px column is a column of single
+     words, and a subscribe field needs the room. */
+  .ft__cols { grid-template-columns: 1fr 1fr; }
+  .ft__brand, .ft__col--sub { grid-column: 1 / -1; }
   /* One column, so the brand block and the subscribe box that follows it lead
      the mobile footer, ahead of the Company and Useful links lists. Those two
      nav columns have no `order` of their own, which defaults to 0 -- lower

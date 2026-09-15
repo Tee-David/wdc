@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Check, Loader2, Search, X } from "lucide-react";
 
@@ -36,31 +36,88 @@ type Row = { domain: string; status: Status; note?: string };
    request on it. The server validates properly; this is only politeness. */
 const looksLikeName = (v: string) => /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i.test(v);
 
+/* A LABEL, OR A WHOLE DOMAIN. WHICHEVER THEY TYPED.
+
+   The field used to throw away everything after the first dot, so somebody who
+   typed `mybusiness.co.uk` got six Nigerian endings back and never the one
+   they asked about. There is no reason for that: the registry lookup works on
+   any name, so if they gave us an ending we check exactly that and nothing
+   else.
+
+   Told apart by whether a dot survives once the scheme, the www and any path
+   are stripped. Two or more labels means they chose an ending, including the
+   two-part ones like `.com.ng` and `.co.uk`, which is why this counts dots
+   rather than trying to know the world's suffix list. */
+function readInput(raw: string) {
+  const cleaned = raw.trim().toLowerCase()
+    .replace(/^https?:\/\//, "").replace(/^www\./, "")
+    .split("/")[0].split("?")[0].replace(/\.$/, "");
+  if (!cleaned) return null;
+  const labels = cleaned.split(".").filter(Boolean);
+  if (labels.length < 2) {
+    return looksLikeName(cleaned) ? { kind: "name" as const, base: cleaned } : null;
+  }
+  const ok = labels.every(looksLikeName) && /^[a-z]{2,}$/.test(labels[labels.length - 1]);
+  return ok ? { kind: "domain" as const, domain: labels.join(".") } : null;
+}
+
+/* SOMETHING TO READ WHILE THE REGISTRIES ANSWER.
+
+   A lookup fans out to six registries and some of them are slow, so this is a
+   couple of seconds of nothing. A spinner says "wait"; these say "somebody is
+   doing something", which is the same wait spent better. They rotate rather
+   than repeat, because the joke lands once. */
+const WAITING = [
+  "Knocking on the registry's door 🚪",
+  "Consulting the domain wizards 🧙",
+  "Asking six registries, politely 📬",
+  "Rifling through the internet's filing cabinet 🗄️",
+  "Waking up the .africa server ☕",
+  "Checking who got there first 🏁",
+];
+
 export default function DomainChecker() {
   const [name, setName] = useState("");
   const [rows, setRows] = useState<Row[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [waitIndex, setWaitIndex] = useState(0);
+
+  /* One interval, alive only while a check is in flight. The only setState
+     here is inside the timer's callback: setting state synchronously in an
+     effect body is a cascading render, and the compiler rejects it. The random
+     starting phrase is chosen where the check starts instead, which is also
+     where it belongs. */
+  useEffect(() => {
+    if (!busy) return;
+    const id = window.setInterval(() => {
+      setWaitIndex((n) => (n + 1) % WAITING.length);
+    }, 1500);
+    return () => window.clearInterval(id);
+  }, [busy]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    /* Take whatever they pasted and keep only the label: someone types
-       "https://mybusiness.com" as often as "mybusiness". */
-    const base = name.trim().toLowerCase()
-      .replace(/^https?:\/\//, "").replace(/^www\./, "")
-      .split("/")[0].split(".")[0];
-    if (!base || !looksLikeName(base)) {
-      setError("Enter a name on its own, like mybusiness.");
+    const parsed = readInput(name);
+    if (!parsed) {
+      setError("Enter a name like mybusiness, or a full one like mybusiness.com.ng.");
       setRows(null);
       return;
     }
+    /* Their ending if they gave one, our six if they did not. */
+    const wanted = parsed.kind === "domain"
+      ? [parsed.domain]
+      : TLDS.map((t) => `${parsed.base}.${t}`);
+    /* A different opening line each time, picked here rather than in the
+       effect that rotates them. */
+    setWaitIndex(Math.floor(Math.random() * WAITING.length));
     setBusy(true);
     setError("");
     try {
       const response = await fetch("/api/domain", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ domains: TLDS.map((t) => `${base}.${t}`) }),
+        body: JSON.stringify({ domains: wanted }),
       });
       const data = await response.json();
       if (!response.ok) {
@@ -103,11 +160,24 @@ export default function DomainChecker() {
           </button>
         </div>
         <p className="tl__hint" id="tl-hint">
-          Just the name, without the ending. We check six endings at once.
+          A name on its own checks six endings at once. Add an ending, like
+          mybusiness.com.ng, and we check just that one.
         </p>
       </form>
 
       {error && <p className="tl__err" role="alert">{error}</p>}
+
+      {/* Not a spinner. The lookup fans out to six registries and some of them
+          take their time, so this is a couple of seconds of dead air; a line
+          that changes is the same wait spent better. `aria-live` is off here
+          deliberately: a screen reader does not need a new joke every 1.5
+          seconds, and the button already announces itself as busy. */}
+      {busy && (
+        <p className="tl__wait" aria-hidden="true">
+          <span className="tl__waitDot" />
+          {WAITING[waitIndex]}
+        </p>
+      )}
 
       {/* `aria-live` so the answer is announced rather than silently appearing
           under a button somebody just pressed. */}
@@ -121,17 +191,20 @@ export default function DomainChecker() {
                   <span className="tl__state">
                     {r.status === "available" && <><Check aria-hidden="true" /> Available</>}
                     {r.status === "taken" && <><X aria-hidden="true" /> Taken</>}
-                    {r.status === "unknown" && <>We will confirm by hand</>}
+                    {r.status === "unknown" && <>Unconfirmed</>}
                   </span>
                 </li>
               ))}
             </ul>
 
+            {/* The long explanation about Nigeria's registry is gone. It was
+                three lines of our problem in the middle of their answer, and
+                the reader's question is which names they can have. The short
+                line says the same thing and gets out of the way. */}
             {unknowns > 0 && (
               <p className="tl__note">
-                {unknowns === 1 ? "One ending" : `${unknowns} endings`} could not be
-                confirmed automatically. Nigeria&rsquo;s registry does not publish a
-                reliable lookup, so we check those ourselves rather than guess.
+                {unknowns === 1 ? "One ending" : `${unknowns} endings`} did not
+                answer. We will check by hand and tell you.
               </p>
             )}
 

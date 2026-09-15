@@ -6,6 +6,7 @@ import { COMPANY_NAME, CONTACT_EMAIL } from "@/lib/site";
 import "./site-footer.css";
 import { NewTab } from "@/components/ui/new-tab";
 import { Newsletter } from "./newsletter";
+import { FREE_TOOLS } from "@/lib/tools";
 
 /**
  * The site footer.
@@ -95,6 +96,28 @@ export function SiteFooter() {
               </li>
             </ul>
           </nav>
+
+          {/* THE TOOLS, FROM THE SAME REGISTRY THE SERVICE PAGES READ.
+
+              Both tools had shipped without a single link to them anywhere on
+              the site. The service page fixed that for a reader already on the
+              matching service; this fixes it for everybody else, and a footer
+              is where people look for a site's small free things.
+
+              Rendered from `lib/tools.ts`, so the next one appears here the
+              moment it is added and nobody has to remember this file. The
+              column hides itself if the list is ever empty rather than leaving
+              a heading with nothing under it. */}
+          {FREE_TOOLS.length > 0 ? (
+            <nav className="ft__col" aria-label="Free tools">
+              <h2>Tools</h2>
+              <ul>
+                {FREE_TOOLS.map((t) => (
+                  <li key={t.slug}><Link href={t.href}>{t.short}</Link></li>
+                ))}
+              </ul>
+            </nav>
+          ) : null}
 
           <div className="ft__col ft__col--sub">
             {/* The subscribe box's own heading, now that it has a column to

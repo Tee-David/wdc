@@ -127,24 +127,41 @@ test.describe("the footer", () => {
     expect(wide, "the footer widened the page").toBe(false);
   });
 
-  test("the subscribe box lines up with the columns at every width", async ({ page }) => {
+  test("every footer column sits on the same measure", async ({ page }) => {
+    /* REWRITTEN, because the layout it described is gone. It used to assert
+       that the subscribe box spanned the same edges as `.ft__cols`, which was
+       true when the box was a full-width block below the columns. It is a
+       COLUMN now, so at 768px it correctly starts at 400 rather than 41 and
+       the old assertion failed on a change that was deliberate.
+
+       What is still worth pinning is the thing the original bug was about: the
+       subscribe box was once the one block in the footer not pulled back to
+       the same measure as everything else. So the assertion is that no column
+       escapes the grid, and that the closing line agrees with it. */
     for (const width of [320, 393, 768, 1280, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/contact");
 
-      const edges = await page.evaluate(() => {
-        const box = (s: string) => {
-          const el = document.querySelector(s);
-          if (!el) return null;
-          const r = el.getBoundingClientRect();
-          return [Math.round(r.left), Math.round(r.right)];
+      const m = await page.evaluate(() => {
+        const cols = document.querySelector(".ft__cols")!.getBoundingClientRect();
+        const base = document.querySelector(".ft__base")!.getBoundingClientRect();
+        const children = [...document.querySelectorAll<HTMLElement>(".ft__cols > *")].map((c) => {
+          const r = c.getBoundingClientRect();
+          return {
+            name: c.querySelector("h2")?.textContent?.trim() ?? c.className.split(" ")[0],
+            escapes: r.left < cols.left - 1 || r.right > cols.right + 1,
+          };
+        });
+        return {
+          stray: children.filter((c) => c.escapes).map((c) => c.name),
+          baseMatches: Math.abs(base.left - cols.left) < 2 && Math.abs(base.right - cols.right) < 2,
+          count: children.length,
         };
-        return { cols: box(".ft__cols"), nl: box(".nl"), base: box(".ft__base") };
       });
 
-      expect(edges.nl, `no subscribe box at ${width}px`).not.toBeNull();
-      expect(edges.nl, `the subscribe box is off the columns' measure at ${width}px`).toEqual(edges.cols);
-      expect(edges.base, `the copyright line is off the measure at ${width}px`).toEqual(edges.cols);
+      expect(m.stray, `these break the measure at ${width}px`).toEqual([]);
+      expect(m.baseMatches, `the closing line is off the measure at ${width}px`).toBe(true);
+      expect(m.count, `the footer lost a column at ${width}px`).toBeGreaterThanOrEqual(4);
     }
   });
 });
