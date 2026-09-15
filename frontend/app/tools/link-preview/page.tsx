@@ -86,23 +86,18 @@ export default function LinkPreviewToolPage() {
             <ul className="tl__facts">
               <li>
                 <b>WhatsApp is the strictest, and it is the one that counts.</b> It
-                refuses any preview image over 300KB, so the channel most Nigerian
-                links actually travel through is the one most likely to show a bare
-                grey line where your picture should be. Keep it under 300KB at
-                1200×630.
+                refuses any image over 300KB, so keep yours under that at 1200×630.
               </li>
               <li>
-                <b>Four tags decide all of it.</b> <code>og:title</code>,{" "}
+                <b>Four tags decide all of it:</b> <code>og:title</code>,{" "}
                 <code>og:description</code>, <code>og:image</code> and{" "}
-                <code>twitter:card</code>. They live in the head of the page, they are
-                the same for every platform, and most sites we check are missing at
-                least one.
+                <code>twitter:card</code>. Most sites we check are missing at least
+                one.
               </li>
               <li>
-                <b>The scrapers do not run JavaScript.</b> If your tags are added by
-                the browser after the page loads, a crawler sees an empty head and
-                builds an empty card. That is also what this tool sees, which is why
-                it is the honest answer rather than a limitation.
+                <b>The scrapers do not run JavaScript.</b> A tag added after the
+                page loads is invisible to them, and to this tool, which is why the
+                answer here is the honest one.
               </li>
             </ul>
           </div>

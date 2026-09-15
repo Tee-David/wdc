@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **122 open** (11 of them in progress), **266 done**.
+At last update: **122 open** (11 of them in progress), **268 done**.
 
 ---
 
@@ -427,6 +427,41 @@ with the rest of section 4's content and settings work.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-15, the domain checker's waiting line spreads to every tool that waits on one
+
+- [x] **The count-up on the homepage stats band was checked, not assumed.**
+  Sampled `.pf__num`'s text every hundred milliseconds or so on a fresh
+  scroll-into-view: 0, 115, 263, 393, 485, 500, easing into the real figure
+  exactly as `useCountUp` in `components/sections/proof.tsx` was built to.
+  Nothing needed fixing; the one time it looked frozen in an earlier check was
+  a scroll timing artefact in the check itself, not the component.
+- [x] **The domain checker's rotating "still working" line, the one that
+  says "Consulting the domain wizards" instead of showing a bare spinner, now
+  plays on every free tool that makes a real round trip**: the email
+  deliverability check, the link preview checker and the on-page SEO
+  snapshot, alongside the domain checker it started on. Pulled out into
+  `components/tools/waiting-line.tsx` so the four tools share one component
+  rather than four copies of the same interval logic, and so a fifth tool
+  gets the same treatment by passing it a phrase list rather than
+  reimplementing the rotation. EACH TOOL'S PHRASES ARE TRUE TO WHAT IT IS
+  ACTUALLY DOING in that moment (fifteen DKIM selectors at once for email,
+  cropping the image for WhatsApp for link preview, reading the page the way
+  Google does for the SEO snapshot), not a generic set borrowed from the
+  domain checker, because the joke only lands if it is honest about the
+  wait. `ai-cost`, `name-checker` and the estimator's own questions stay
+  without one: they are synchronous or answer as you type, so there is no
+  dead air to fill and a rotating line on top of an instant answer would be
+  decoration pretending to be a delay.
+- [x] **The four tool pages whose "how it works" facts ran two and three
+  sentences a bullet (domain, SEO, AI cost, link preview) were trimmed to
+  the one-sentence-plus-a-clause shape the business name checker and the
+  estimator already used**, so the seven tool pages read as one family
+  rather than four terser ones and three that talk on. Every specific fact
+  that earned its place stayed (300KB at 1200x630, the four Open Graph tags,
+  the twentyfold spread between models, Nigeria's registry going down);
+  what came out was the connective sentence restating what the fact already
+  said.
 
 ## Closed 2026-09-15, the stats band tells the agency's own story and "studio" comes out
 

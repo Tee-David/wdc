@@ -86,22 +86,19 @@ export default function SeoToolPage() {
             </div>
             <ul className="tl__facts">
               <li>
-                <b>It reads one page, not a site.</b> One fetch of the address you give
-                us, exactly as a crawler would take it. It knows nothing about your
-                other pages, your links or whether Google has indexed anything, and
-                anything claiming otherwise from a single URL is guessing at you.
+                <b>It reads one page, not a site.</b> One fetch, exactly as a
+                crawler would take it; anything claiming to know your whole site
+                from one URL is guessing.
               </li>
               <li>
-                <b>Page weight is money here.</b> Everywhere else it is argued about in
-                kilobytes. In Nigeria the person loading your site is paying for every
-                byte of it on a bundle, so the same number is naira, and a heavy page
-                is a page that charges people to look at it.
+                <b>Page weight is money here.</b> Elsewhere it is argued about in
+                kilobytes; in Nigeria the reader is paying for every byte, so a
+                heavy page is a page that charges people to look at it.
               </li>
               <li>
-                <b>The slow half is the free half.</b> Lighthouse is Google&rsquo;s own
-                audit and it takes about a minute to run, so we run it behind the scenes
-                and email it. You keep everything on this page whether or not you give
-                us an address.
+                <b>The slow half is the free half.</b> Lighthouse takes about a
+                minute, so we run it behind the scenes and email it. Everything
+                on this page is yours either way.
               </li>
             </ul>
           </div>
