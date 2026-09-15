@@ -55,17 +55,15 @@
    does not appear rather than showing a blank line — see lib/contact.ts. */
 .ct-lines { display: grid; gap: 18px; margin-top: clamp(28px, 4vw, 40px); }
 .ct-line { display: flex; align-items: flex-start; gap: 14px; }
+/* SOLID NAVY, WHITE GLYPH, the shared tile. It was `--paper-2` with an orange
+   glyph, and `--paper-2` on a white card is a two-per-cent difference: no
+   alpha, and still a ghost. */
 .ct-line__i {
   flex: none; width: 42px; aspect-ratio: 1; border-radius: 12px;
   display: grid; place-items: center;
-  background: var(--paper-2); border: 1px solid var(--rule);
-  /* The brand orange, not the darkened --accent-ink. That token exists for
-     body-sized TEXT, where #FF6500 on white is 2.8:1 and fails; these are
-     19px line-art glyphs beside a label that already names each one, so the
-     rule they answer to is the 3:1 for non-text — #FF6500 clears it — and
-     using the ink version instead just made them look like rust. */
-  color: var(--accent);
+  background: #000065; border: 0; color: #fff;
 }
+.dark .ct-line__i { background: #2b2b8f; }
 .ct-line__i svg { width: 19px; height: 19px; }
 .ct-line__t { display: grid; gap: 2px; min-width: 0; }
 .pv .ct-line__k { font-size: .82rem; color: var(--muted); }

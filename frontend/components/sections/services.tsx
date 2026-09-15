@@ -142,7 +142,7 @@ type Service = {
 
 const SERVICES: Service[] = [
   {
-    title: "Branding & Design",
+    title: "Brand & Business Identity",
     description:
       "Identity systems, logos, motion, and visuals that make brands unmistakable across every surface.",
     icon: <BrandingIcon />,

@@ -55,7 +55,13 @@ test("the card is the link, all of it", async ({ page }) => {
      move. */
   const shape = await page.locator(".svc-tool").first().evaluate((el) => ({
     tag: el.tagName.toLowerCase(),
-    wraps: ["svc-tool__ic", "svc-tool__t", "svc-tool__d", "svc-tool__go"]
+    /* `wdc-tile` rather than a `svc-tool__ic` of its own: the icon square is
+       the one shared tile the whole site uses, and this card stopped carrying
+       a private class for it when that tile was factored out. Asserting the
+       class the element actually has is the point -- a role class with no
+       rules behind it, kept alive so a test keeps passing, is how a selector
+       and a stylesheet quietly stop describing the same thing. */
+    wraps: ["wdc-tile", "svc-tool__t", "svc-tool__d", "svc-tool__go"]
       .every((c) => el.querySelector("." + c) !== null),
     /* And nothing inside it is a second link, which would swallow the click
        and navigate somewhere else. */

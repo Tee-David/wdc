@@ -64,7 +64,7 @@ export const CHANNELS: Channel[] = [
 /** What the enquiry form offers as a subject. Drawn from the six services so
     the list cannot drift from what the studio actually sells. */
 export const ENQUIRY_TOPICS = [
-  "Branding & Design",
+  "Brand & Business Identity",
   "SEO",
   "Full-Stack Web Development",
   "Cross-Platform Apps",

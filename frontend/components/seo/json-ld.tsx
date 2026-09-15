@@ -73,7 +73,7 @@ export function websiteJsonLd() {
 
 export function servicesJsonLd() {
   const services = [
-    "Branding & Design",
+    "Brand & Business Identity",
     "Search Engine Optimization",
     "Full-Stack Web Development",
     "Cross-Platform App Development",
