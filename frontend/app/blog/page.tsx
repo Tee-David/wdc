@@ -4,7 +4,8 @@ import Link from "next/link";
 import { Header } from "@/components/layout/header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import JsonLd from "@/components/seo/json-ld";
-import { BLOG_POSTS, formatDate, postsNewestFirst, readingMinutes } from "@/lib/blog";
+import { formatDate, readingMinutes, type BlogPost } from "@/lib/blog";
+import { postsNewestFirstDb } from "@/lib/blog-db";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 import "@/components/preview/preview.css";
@@ -27,9 +28,14 @@ export const metadata: Metadata = {
   },
 };
 
-/* Blog + Breadcrumb, both derived from the same array the page renders, so the
-   markup and the structured data cannot describe different things. */
-const jsonLd = [
+/* Blog + Breadcrumb, built from the posts THIS RENDER is showing.
+
+   It used to be a module-level constant reading `BLOG_POSTS`. That was correct
+   while the fixture was the only source, and became a quiet lie the moment the
+   page started reading the table: the structured data would have gone on
+   describing the file while the cards described the database. Taking the list
+   as an argument is what keeps the promise the old comment made. */
+const jsonLdFor = (posts: BlogPost[]) => [
   {
     "@context": "https://schema.org",
     "@type": "Blog",
@@ -38,7 +44,7 @@ const jsonLd = [
     description:
       "Practical writing on websites, branding, SEO, apps and software.",
     publisher: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
-    blogPost: BLOG_POSTS.map((p) => ({
+    blogPost: posts.map((p) => ({
       "@type": "BlogPosting",
       headline: p.title,
       description: p.description,
@@ -58,8 +64,9 @@ const jsonLd = [
   },
 ];
 
-export default function BlogIndex() {
-  const posts = postsNewestFirst();
+export default async function BlogIndex() {
+  const posts = await postsNewestFirstDb();
+  const jsonLd = jsonLdFor(posts);
 
   return (
     <>
