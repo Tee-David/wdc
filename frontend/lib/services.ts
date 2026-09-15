@@ -123,7 +123,7 @@ export const SERVICES: Service[] = [
       "Business and company websites",
       "Personal sites and blogs",
       "E-commerce builds",
-      "WordPress and CMS builds",
+      "WordPress, Shopify and CMS builds",
       "Fully custom builds",
       "Ongoing maintenance",
       "Continuous SEO and performance optimisation",

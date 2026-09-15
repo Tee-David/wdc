@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Check, Loader2, Search, X } from "lucide-react";
+import { Check, Loader2, RotateCcw, Search, X } from "lucide-react";
 
 /**
  * The public domain checker at /tools/domain.
@@ -139,7 +139,7 @@ export default function DomainChecker() {
   return (
     <div className="tl">
       <form className="tl__form" onSubmit={submit}>
-        <label className="tl__label" htmlFor="tl-name">Your business name</label>
+        <label className="tl__label" htmlFor="tl-name">The name you want</label>
         <div className="tl__row">
           <input
             id="tl-name"
@@ -160,8 +160,8 @@ export default function DomainChecker() {
           </button>
         </div>
         <p className="tl__hint" id="tl-hint">
-          A name on its own checks six endings at once. Add an ending, like
-          mybusiness.com.ng, and we check just that one.
+          Type just the name and we check six endings. Type a full address,
+          like mybusiness.com.ng, and we check only that one.
         </p>
       </form>
 
@@ -185,16 +185,30 @@ export default function DomainChecker() {
         {rows && (
           <>
             <ul className="tl__list">
-              {rows.map((r) => (
-                <li className={`tl__item tl__item--${r.status}`} key={r.domain}>
-                  <span className="tl__name">{r.domain}</span>
-                  <span className="tl__state">
-                    {r.status === "available" && <><Check aria-hidden="true" /> Available</>}
-                    {r.status === "taken" && <><X aria-hidden="true" /> Taken</>}
-                    {r.status === "unknown" && <>Unconfirmed</>}
-                  </span>
-                </li>
-              ))}
+              {rows.map((r) => {
+                /* THE ENDING, ON THE LEFT, AS A CHIP. The row used to be a name
+                   at one end and a verdict at the other with a hand's width of
+                   nothing between them, which read as a layout that had given
+                   up. The ending is the thing a reader is actually comparing
+                   across six rows, so pulling it out is useful as well as
+                   something to look at. */
+                const dot = r.domain.indexOf(".");
+                const ending = dot > 0 ? r.domain.slice(dot) : "";
+                const stem = dot > 0 ? r.domain.slice(0, dot) : r.domain;
+                return (
+                  <li className={`tl__item tl__item--${r.status}`} key={r.domain}>
+                    <span className="tl__tld" aria-hidden="true">{ending}</span>
+                    <span className="tl__name">
+                      {stem}<b>{ending}</b>
+                    </span>
+                    <span className="tl__state">
+                      {r.status === "available" && <><Check aria-hidden="true" /> Available</>}
+                      {r.status === "taken" && <><X aria-hidden="true" /> Taken</>}
+                      {r.status === "unknown" && <>Unconfirmed</>}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
 
             {/* The long explanation about Nigeria's registry is gone. It was
@@ -207,6 +221,22 @@ export default function DomainChecker() {
                 answer. We will check by hand and tell you.
               </p>
             )}
+
+            {/* A WAY BACK. The tool answered and then left the reader with no
+                way to ask again except selecting the box and retyping over it.
+                One button clears the answer and puts the cursor back. */}
+            <button
+              type="button"
+              className="tl__again"
+              onClick={() => {
+                setRows(null);
+                setError("");
+                setName("");
+                document.getElementById("tl-name")?.focus();
+              }}
+            >
+              <RotateCcw aria-hidden="true" /> Check another name
+            </button>
 
             <div className="tl__cta">
               <p>

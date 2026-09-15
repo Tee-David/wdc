@@ -495,7 +495,10 @@
 .wk-lb__x {
   position: fixed; top: clamp(12px, 2vw, 22px); right: clamp(12px, 2vw, 22px);
   width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgb(255 255 255 / .3);
-  background: rgb(255 255 255 / .1); color: #fff; cursor: pointer;
+  /* SOLID. It was white at 10% alpha, so the picture behind it showed through
+     the one control that has to be findable on every image. Mixed against the
+     lightbox's own dark ground gives the identical colour without the hole. */
+  background: color-mix(in srgb, #fff 10%, #0b0b20); color: #fff; cursor: pointer;
   display: grid; place-items: center; font-size: 1.4rem; line-height: 1;
 }
 .wk-lb__x:hover { background: var(--accent); border-color: var(--accent); }
