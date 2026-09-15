@@ -48,7 +48,7 @@ export function ServiceTools({ service }: { service: ServiceSlug }) {
                eye sees a whole panel, and it is the commonest reason a tile
                feels unresponsive on a phone. */
             <Link className="svc-tool pv-reveal" key={t.slug} href={t.href}>
-              <span className="svc-tool__ic" aria-hidden="true">
+              <span className="wdc-tile" aria-hidden="true">
                 {/* Staggered, the way every other icon row on the site draws:
                     one at a time rather than all at once. */}
                 <ServiceIcon name={t.icon} size={19} delay={n * 120} />

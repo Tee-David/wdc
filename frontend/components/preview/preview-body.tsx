@@ -23,7 +23,7 @@ import ScrollCue from "@/components/ui/scroll-cue";
 const SERVICES = [
   {
     slug: "branding",
-    title: "Branding & Design",
+    title: "Brand & Business Identity",
     body: "Identity systems, logos, motion, and visuals that make brands unmistakable across every surface.",
     /* Moore Designs, not the Marfaa guideline page. That page is a spread of
        body copy and small mono marks: at card size it cropped into the middle
