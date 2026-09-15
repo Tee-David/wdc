@@ -151,6 +151,59 @@ load-bearing rather than cautious. It also means our tool is not worse than
 anybody else's. Every competing checker is doing exactly this and some of
 them describe it far less carefully than we are about to.
 
+### The open-source route, checked 2026-09-15
+
+Asked to find a GitHub tool for this. Two exist, both by the same author, both
+published on 2023-12-10 and untouched since:
+
+| Package | Stars | What it does |
+| --- | --- | --- |
+| `cac-verify` | 17 | Search CAC by name, verify by RC number |
+| `company-verify` | 4 | The same, plus a FIRS TIN lookup |
+
+**Both call the same endpoint**, which is the useful part of the finding:
+
+    POST https://postapp.cac.gov.ng/postapp/api/front-office/search/company-business-name-it
+    { "searchTerm": "..." }
+
+No key, no account, no CAPTCHA, and a response carrying `approvedName`,
+`rcNumber`, `classification`, `registrationDate` and `active`. Exactly the
+shape our tool would want.
+
+**It is dead.** Tested on 2026-09-15: CAC's own server answers with a
+structured 404 and a request id, so the host is up and the path is gone. Both
+packages are therefore broken, and have been for some unknown part of two and a
+half years.
+
+`cac-verify` would not have worked anyway. Its published build reads
+`const companies = response.data.forEach(...)`, and `forEach` returns
+`undefined`, so `data` is `undefined` on every successful call. Nobody has
+noticed since 2023.
+
+### What that settles
+
+This is the argument against an undocumented endpoint, written by somebody
+else and dated. Not "it might break one day": it broke, silently, in a package
+with 17 stars, and the only reason we know is that we tried it. Any version of
+this we build has to assume the same thing will happen to us, which is exactly
+why `lib/cac-name.ts` exists and why the rule is that no tool may depend on a
+lookup to be able to answer.
+
+The endpoint the LIVE site uses today is the one traced from its own bundle,
+`https://authapp.cac.gov.ng/name_similarity_app/api/public_search/search`,
+taking `{ searchTerm, SearchType, classificationId }`. That is current because
+the page is running on it right now. It carries every one of the same risks,
+and it will have the same lifespan as the dead one.
+
+### One more thing worth knowing about the money
+
+CAC's public search is free. **The formal name search that issues an
+availability code costs ₦500**, and that is the step that actually reserves a
+name. So the paid step in this whole story is CAC's own, not a data vendor's,
+and it is a step the client needs and we can perform for them. A free checker
+that ends at "now let us run the formal search and reserve it" is a funnel into
+a real, priced piece of work rather than into a quote.
+
 ### Pricing: still unknown, and it is the only thing blocking
 
 Neither Mono nor Prembly publishes per-lookup pricing. Mono's general rate is
