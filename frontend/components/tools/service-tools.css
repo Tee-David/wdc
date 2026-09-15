@@ -62,13 +62,27 @@
    line-art glyph beside a heading that already names it answers to the 3:1 for
    non-text, which #FF6500 clears. Same reasoning, same result, as the contact
    rows. */
+/* SOLID, AND THE SAME SOLID AS EVERY OTHER CARD ICON. `--paper-2` is a real
+   colour rather than a tint, but against a `--paper` card it is a shade off
+   white, which reads as a translucent wash rather than as a chip. The service
+   cards have used a solid navy tile with a white glyph since they shipped
+   (`.sv-step__icon`, `.sv-svc__icon`), so these now match them instead of
+   being a third treatment. White on navy is 17.68:1. */
 .pv .svc-tool__ic {
   flex: none; width: 46px; aspect-ratio: 1; border-radius: 12px;
   display: grid; place-items: center;
-  background: var(--paper-2); border: 1px solid var(--rule);
-  color: var(--accent);
+  background: var(--band); border: 0;
+  color: #fff;
 }
-.pv .svc-tool__ic svg { width: 19px; height: 19px; }
+/* CENTRING THE GLYPH, NOT THE WRAPPER IT ARRIVES IN. `place-items: center`
+   centres the child, and the child is an inline element carrying the line
+   height of the text around it -- so the box is centred and the drawing inside
+   it sits low by a couple of pixels. `.sv-svc__icon > *` has had exactly this
+   fix since the service pages shipped; these chips never got it. */
+.pv .svc-tool__ic > * {
+  display: flex; align-items: center; justify-content: center; line-height: 0;
+}
+.pv .svc-tool__ic svg { width: 19px; height: 19px; display: block; }
 
 .pv .svc-tool__body { display: grid; gap: .55rem; min-width: 0; }
 .pv .svc-tool__t {
