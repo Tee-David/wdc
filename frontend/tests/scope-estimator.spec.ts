@@ -21,15 +21,17 @@ async function settle(page: import("@playwright/test").Page) {
   await page.waitForTimeout(450);
 }
 
-/** Answers the CURRENT question by taking its Nth option, and N is
-    deliberately not always the first: the first is the cheapest everywhere,
-    so a bug that ignored the answers entirely would still produce a
-    plausible figure. Choosing an option both answers the question and turns
-    the page, so this walks the whole wizard rather than one field. */
+/** Answers the CURRENT question by opening its dropdown and taking its Nth
+    option, and N is deliberately not always the first: the first is the
+    cheapest everywhere, so a bug that ignored the answers entirely would
+    still produce a plausible figure. Choosing an option both answers the
+    question and turns the page, so this walks the whole wizard rather than
+    one field. */
 async function answerAll(page: import("@playwright/test").Page, index = 1) {
   let count = 0;
-  while (await page.locator(".es__stepOpts").count() > 0) {
-    const options = page.locator(".es__stepOpts .es__opt");
+  while (await page.locator(".es__stepSelect .sf__btn").count() > 0) {
+    await page.locator(".es__stepSelect .sf__btn").click();
+    const options = page.locator(".es__stepSelect .pk__opt");
     const available = await options.count();
     await options.nth(Math.min(index, available - 1)).click();
     count += 1;
@@ -42,15 +44,15 @@ test("only one question shows at a time, and no figure appears until the last is
   await page.goto(PAGE);
 
   await expect(page.locator(".es__ngn")).toHaveCount(0);
-  /* Never more than one question's options on screen at once. */
-  await expect(page.locator(".es__stepOpts")).toHaveCount(1);
+  /* Never more than one question's dropdown on screen at once. */
+  await expect(page.locator(".es__stepSelect")).toHaveCount(1);
 
   const total = await answerAll(page);
   expect(total, "the checklist asks for six to eight questions").toBeGreaterThanOrEqual(6);
   expect(total).toBeLessThanOrEqual(8);
   await expect(page.locator(".es__ngn")).toBeVisible();
   /* The wizard is gone once the range has appeared. */
-  await expect(page.locator(".es__stepOpts")).toHaveCount(0);
+  await expect(page.locator(".es__stepSelect")).toHaveCount(0);
 });
 
 test("the count and the progress bar move with each answer", async ({ page }) => {
@@ -59,26 +61,29 @@ test("the count and the progress bar move with each answer", async ({ page }) =>
   await expect(page.locator(".es__count")).toContainText("Question 1 of 8");
   await expect(page.locator(".es__prog[aria-valuenow='1']")).toHaveCount(1);
 
-  await page.locator(".es__stepOpts .es__opt").first().click();
+  await page.locator(".es__stepSelect .sf__btn").click();
+  await page.locator(".es__stepSelect .pk__opt").first().click();
   await settle(page);
 
   await expect(page.locator(".es__count")).toContainText("Question 2 of 8");
   await expect(page.locator(".es__prog[aria-valuenow='2']")).toHaveCount(1);
 });
 
-test("back reopens the previous question with its answer still on it", async ({ page }) => {
+test("back reopens the previous question with its answer still showing", async ({ page }) => {
   await page.goto(PAGE);
 
-  const first = page.locator(".es__stepOpts .es__opt").nth(2);
-  const label = await first.locator(".es__optT").innerText();
-  await first.click();
+  await page.locator(".es__stepSelect .sf__btn").click();
+  const options = page.locator(".es__stepSelect .pk__opt");
+  const label = (await options.nth(2).locator(".pk__optT").innerText()).trim();
+  await options.nth(2).click();
   await settle(page);
 
   await expect(page.locator(".es__count")).toContainText("Question 2 of 8");
   await page.getByRole("button", { name: /back/i }).click();
 
   await expect(page.locator(".es__count")).toContainText("Question 1 of 8");
-  await expect(page.locator(`.es__opt.is-on:has-text("${label}")`)).toBeVisible();
+  /* The answer that was already there is still what the closed dropdown says. */
+  await expect(page.locator(".es__stepSelect .sf__val")).toHaveText(label);
 });
 
 test("the estimate arrives before the email ask, not after it", async ({ page }) => {
@@ -137,8 +142,8 @@ test("changing an answer from the result reopens the last question", async ({ pa
 
   await expect(page.locator(".es__ngn")).toHaveCount(0);
   await expect(page.locator(".es__count")).toContainText("Question 8 of 8");
-  /* The answer that was already there is still on it. */
-  await expect(page.locator(".es__opt.is-on")).toHaveCount(1);
+  /* The answer that was already there is still on it, not the placeholder. */
+  await expect(page.locator(".es__stepSelect .sf__btn")).not.toHaveClass(/is-empty/);
 });
 
 test("starting again clears the figure and the answers", async ({ page }) => {
@@ -150,7 +155,8 @@ test("starting again clears the figure and the answers", async ({ page }) => {
 
   await expect(page.locator(".es__ngn")).toHaveCount(0);
   await expect(page.locator(".es__count")).toContainText("Question 1 of 8");
-  await expect(page.locator(".es__opt.is-on")).toHaveCount(0);
+  /* Back to the unanswered placeholder, not a leftover choice. */
+  await expect(page.locator(".es__stepSelect .sf__btn")).toHaveClass(/is-empty/);
 });
 
 test("the estimate is readable on a phone", async ({ page }) => {
@@ -166,14 +172,19 @@ test("the estimate is readable on a phone", async ({ page }) => {
   expect(overflow, "the page scrolls sideways at 320px").toBeLessThanOrEqual(1);
 });
 
-test("every option is a real touch target on the way through", async ({ page }) => {
+test("every control is a real touch target on the way through", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 900 });
   await page.goto(PAGE);
 
-  /* Checked on the first question, before anything has been answered away:
-     the wizard shows one question's options at a time, so this is the whole
-     set that is ever on screen at once. */
-  const short = await page.locator(".es__stepOpts .es__opt").evaluateAll((els) =>
+  /* The closed dropdown, before anything has been answered away. */
+  const trigger = page.locator(".es__stepSelect .sf__btn");
+  const triggerHeight = await trigger.evaluate((el) => el.getBoundingClientRect().height);
+  expect(triggerHeight, "the select button is below the 44px touch target").toBeGreaterThanOrEqual(44);
+
+  /* And every row inside it once it opens -- the whole set the first
+     question ever puts on screen at once. */
+  await trigger.click();
+  const short = await page.locator(".es__stepSelect .pk__opt").evaluateAll((els) =>
     els.filter((el) => el.getBoundingClientRect().height < 44).length);
   expect(short, "options below the 44px touch target").toBe(0);
 });

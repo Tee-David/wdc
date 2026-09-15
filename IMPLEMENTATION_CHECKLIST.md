@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **122 open** (11 of them in progress), **279 done**.
+At last update: **122 open** (11 of them in progress), **281 done**.
 
 ---
 
@@ -427,6 +427,46 @@ with the rest of section 4's content and settings work.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-15, the estimator's wizard steps are a dropdown, not a stack of cards
+
+- [x] **Each of the scope estimator's eight steps laid its options out as a
+  stack of full-width cards ("A website you can edit yourself", "A web app
+  people log into"...), which on a step with five options was five card
+  -heights to scroll past before the question could even be answered.**
+  Reported from a screenshot of the "What are we building?" step, five
+  boxes deep. Replaced with one dropdown per step
+  (`components/tools/option-select.tsx`): closed, it shows the current
+  answer in a single row; opened, it lists every option with the same
+  explanatory line the cards used to carry underneath it, so nothing that
+  used to be on the card is lost, just collapsed until it's wanted.
+- [x] **Built on the contact form's own control, not a second one that
+  looks close but isn't.** `option-select.tsx` reuses
+  `usePickerOpen` from `components/onboarding/picker.tsx` and the `.pk`/`.sf`
+  classes from `picker.css` verbatim: the same panel that flips up when the
+  field is near the foot of the window, the same mobile bottom sheet with
+  a grab handle, the same 44px row floor. The one thing it doesn't reuse is
+  the search box `select-field.tsx` shows past ten options, since every
+  question here tops out at five.
+  Added to `picker.css` rather than duplicated: a `.pk__note` line under an
+  option's label, shown only on a `.pk__opt` that actually has one
+  (`:has(.pk__note)`), so the country list and the industry select --
+  neither of which has ever carried a note -- render exactly as they did
+  before this.
+- [x] **Left alone, deliberately**: the AI cost calculator's own job picker
+  (`.es__opts`/`.es__opt`) still renders as cards. It shares the screen
+  with a live result column that updates as you go, which is a different
+  problem from a step that owns the whole screen for one question -- and
+  every one of its questions is genuinely single-select, so there was
+  never a multi-pick list here to turn into checkboxes either.
+- [x] **Verified with the full suite, not just a source read.**
+  `tests/scope-estimator.spec.ts` rewritten for the dropdown interaction
+  (12/12) and `tests/onboarding.spec.ts` plus
+  `tests/onboarding-domain.spec.ts` (5/5) confirm the shared picker
+  component still behaves exactly as before on the contact form. Checked
+  by eye in both themes, on a 390px phone (the panel opens as a bottom
+  sheet) and at desktop width (the panel opens as a dropdown under the
+  field). `npm run build` completes clean.
 
 ## Closed 2026-09-15, the homepage link-preview card is the mark, not a screenshot
 
