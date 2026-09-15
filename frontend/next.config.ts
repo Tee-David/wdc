@@ -128,7 +128,13 @@ const nextConfig: NextConfig = {
          decides where a payment form may send somebody. */
       "form-action 'self' https://checkout.paystack.com https://*.paystack.com",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jotfor.ms https://*.jotform.com https://cdn.userway.org https://*.userway.org",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.jotform.com https://*.userway.org",
+      /* `cdn.jotfor.ms` IS A SEPARATE ORIGIN FROM `*.jotform.com` AND HAS TO BE
+         NAMED TWICE. The agent runtime pulls its own Inter face from
+         `cdn.jotfor.ms/fonts/?family=Inter&display=swap`, which the wildcard
+         above does not match, so the browser blocked it and logged a console
+         error on every page load. `script-src` and `connect-src` already
+         name the host; this directive had been missed. */
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jotfor.ms https://*.jotform.com https://*.userway.org",
       "font-src 'self' data: https://fonts.gstatic.com https://*.userway.org",
       "img-src 'self' data: blob: https:",
       "media-src 'self' https://*.jotform.com",
