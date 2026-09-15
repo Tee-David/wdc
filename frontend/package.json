@@ -10,7 +10,8 @@
     "test:e2e": "playwright test",
     "skeletons:build": "node scripts/build-admin-skeletons.mjs",
     "db:migrate": "node scripts/migrate.mjs",
-    "db:check-onboarding": "node scripts/check-onboarding-queries.mjs"
+    "db:check-onboarding": "node scripts/check-onboarding-queries.mjs",
+    "db:check-quota": "node scripts/check-quota.mjs"
   },
   "dependencies": {
     "better-auth": "^1.7.4",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Globe, Loader2, Minus, Plus, Sparkles, X } from "lucide-react";
+import { Check, Globe, Lightbulb, Loader2, Minus, Plus, X } from "lucide-react";
 
 /**
  * Up to three domain names, with the availability check offered rather than
@@ -199,7 +199,7 @@ export default function DomainField({
       {open ? (
         <ul className="dm__tips">
           <li>
-            <Sparkles aria-hidden="true" />
+            <Lightbulb aria-hidden="true" />
             <span>
               Short and easy to say out loud beats clever. If you have to spell
               it down the phone, it is too long.
