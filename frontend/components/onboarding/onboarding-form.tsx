@@ -356,8 +356,8 @@ export default function OnboardingForm() {
         <p className="ob__pickSub">Choose the one this form is for.</p>
 
         {/* FILLED CARDS, and the icon is the card's own artwork rather than a
-            badge sitting on it. The colour alternates navy and orange by
-            index: a navy column beside an orange one at two columns, a strict
+            badge sitting on it. The colour alternates navy and black by
+            index: a navy column beside a black one at two columns, a strict
             alternation at one. See the note in onboarding.css for why not a
             staggered checker. */}
         <ul className="ob__svc">
@@ -365,7 +365,7 @@ export default function OnboardingForm() {
             <li key={sv.slug}>
               <button
                 type="button"
-                className={`ob__svcCard ob__svcCard--${n % 2 ? "orange" : "navy"}${
+                className={`ob__svcCard ob__svcCard--${n % 2 ? "black" : "navy"}${
                   service === sv.slug ? " is-on" : ""
                 }`}
                 aria-pressed={service === sv.slug}

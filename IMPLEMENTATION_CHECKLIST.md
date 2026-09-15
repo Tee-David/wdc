@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **122 open** (11 of them in progress), **283 done**.
+At last update: **122 open** (11 of them in progress), **284 done**.
 
 ---
 
@@ -427,6 +427,34 @@ with the rest of section 4's content and settings work.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-15, the onboarding form's orange service cards are black
+
+- [x] **The onboarding form's opening picker (six cards: Branding, SEO, Web,
+  Apps, Software & AI, Social & PPC) alternated navy and orange fills.**
+  Asked to replace the orange with black and white text. Renamed the
+  modifier class itself, `ob__svcCard--orange` to `ob__svcCard--black` in
+  both `onboarding-form.tsx` and `onboarding.css`, rather than leaving a
+  class called "orange" painting black -- the exact kind of stale name
+  this repo's own comments keep singling out elsewhere.
+  `background: var(--accent); color: var(--on-accent)` (orange fill, black
+  label) became `background: #0e0e0e; color: #fff`, lifted to `#242424` in
+  dark mode for the same reason the navy card already lifts to `#1b1b8f`
+  there: a fill this close in value to the dark theme's own near-black
+  page is a shape you can barely find. The selected-card tick badge, which
+  had its own `#c24d00` override for legibility on white for the orange
+  variant, now reads `#0e0e0e` for the black one.
+- [x] **`tests/button-colours.spec.ts` does not audit these cards** (they
+  were never in its `BUTTONS` selector list, being a selection-card
+  pattern rather than the site's primary/secondary pair), so nothing there
+  needed updating, and its "no button is filled with the brand orange"
+  case still passes. Confirmed by reading the computed
+  `background-color`/`color` of every `.ob__svcCard` in both themes at
+  390px: navy `#000065`/`#1b1b8f` and black `#0e0e0e`/`#242424`, white
+  label throughout, matching the source rather than assumed from it.
+  `tests/onboarding.spec.ts` and `tests/onboarding-domain.spec.ts` (5/5)
+  and the button-colours suite (5/5) all still pass. `npm run build`
+  completes clean.
 
 ## Closed 2026-09-15, the estimator borrows the onboarding form's "not sure" and its tips
 
