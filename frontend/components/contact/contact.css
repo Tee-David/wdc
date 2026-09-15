@@ -66,7 +66,12 @@
      using the ink version instead just made them look like rust. */
   color: var(--accent);
 }
-.ct-line__i svg { width: 19px; height: 19px; }
+/* The same centring fix the service icons carry: the glyph arrives inside an
+   inline wrapper, so the wrapper is centred and the drawing sits low in it. */
+.ct-line__i > * {
+  display: flex; align-items: center; justify-content: center; line-height: 0;
+}
+.ct-line__i svg { width: 19px; height: 19px; display: block; }
 .ct-line__t { display: grid; gap: 2px; min-width: 0; }
 .pv .ct-line__k { font-size: .82rem; color: var(--muted); }
 .pv .ct-line__v {
