@@ -33,9 +33,9 @@ gone.
 have on the table, at roughly ₦19 a call. This is the class that can cut a
 neck. One at a time, hard budget, aggressive cache.
 
-Five of the six tools now shipped are Class A: the domain checker, the email
-spoof checker, the CAC name checker, the budget estimator and the link preview
-checker. They have cost nothing and will keep costing nothing. The sixth, the
+Six of the seven tools now shipped are Class A: the domain checker, the email
+spoof checker, the CAC name checker, the budget estimator, the link preview
+checker and the AI running-cost calculator. They have cost nothing and will keep costing nothing. The sixth, the
 SEO snapshot, is a Class A floor with a Class B upgrade -- see rule 1.
 
 ## 2. The four rules
@@ -119,7 +119,7 @@ the studio delivers.
 | SEO | What the page costs a Nigerian visitor, bolted onto the same result | A | **Shipped**. Page weight is argued about in kilobytes everywhere else; here it is naira, which is an argument the person paying can have. |
 | Software & apps | Scope and budget estimator: eight questions, a range in naira and dollars | A | **Shipped** at `/tools/estimate`. Pure arithmetic, and the figure appears before any email is asked for. |
 | Social | Link preview checker: what WhatsApp, X, LinkedIn and Facebook will show | A | **Shipped** at `/tools/link-preview`. One fetch, and WhatsApp is the channel links actually travel through here. |
-| Software & AI | Honest LLM cost estimator: volume in, monthly naira out | A | Pure arithmetic. On brand for a studio that says plainly when a model is not the answer, and it disqualifies bad-fit enquiries before they reach a call. Still to build. |
+| Software & AI | Honest LLM cost estimator: volume in, monthly naira out | A | **Shipped** at `/tools/ai-cost`. Pure arithmetic, eight models across three makers, and it says plainly where ordinary code is the better answer. |
 
 ### Tier 3: useful, cheap, but lower intent
 
@@ -154,8 +154,13 @@ Tier 3 only if a quiet week wants filling.
   Both the SEO snapshot and the link preview checker go through it, and so does
   the og:image probe.
 - `lib/estimate.ts`, `lib/link-preview.ts`, `lib/seo-audit.ts`,
-  `lib/data-cost.ts`: the four tools of section 1B, all pure, each with a check
-  script that runs without a browser.
+  `lib/data-cost.ts`, `lib/ai-cost.ts`: the tools of section 1B and the first
+  off its later list, all pure, each with a check script that runs without a
+  browser.
+- ONE DOLLAR RATE on the whole site: `RATE_CARD.nairaPerUsd` in
+  `lib/estimate.ts`. The AI calculator takes it as an argument rather than
+  importing it, which is also what lets its check script load the module
+  straight into node.
 - `lib/psi.ts`: the only Class B thing on the site. PageSpeed Insights behind
   the response, capped at 300 runs a day through `lib/quota.ts`, degrading to a
   sentence when the key is absent or the budget is spent.

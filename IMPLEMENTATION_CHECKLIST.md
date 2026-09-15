@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **122 open** (11 of them in progress), **260 done**.
+At last update: **122 open** (11 of them in progress), **261 done**.
 
 ---
 
@@ -114,8 +114,9 @@ Later, in rough order: a CrUX field-data card beside the audit (free, 150
 queries a minute, sub-second); a brand asset pack from an uploaded logo using
 `sharp`, which is already installed, giving a palette, a WCAG contrast grid and
 a favicon set; a standalone contrast checker as the cheap subset of that; a
-single-page broken-link check; a Flesch readability score; an AI running-cost
-calculator with a dated price table; an ad budget and CPM calculator.
+single-page broken-link check; a Flesch readability score; an ad budget and CPM
+calculator. (The AI running-cost calculator came off this list on 2026-09-15 and
+is archived in `# Done`.)
 
 Deliberately not building: anything needing headless Chrome (Unlighthouse,
 Puppeteer, axe-core run by us) -- PageSpeed Insights already runs Lighthouse
@@ -428,6 +429,8 @@ Archived, with the evidence that closed each one. Search here before
 reopening anything.
 
 ## Closed 2026-09-15, section 1B: the free tools on the service pages
+
+- [x] **AI running-cost calculator** shipped at `/tools/ai-cost` for `software`, the first item off section 1B's own "later" list and the last Tier 2 tool in `docs/tools-programme.md`. It answers the second question nobody asks: not what an AI feature costs to build, but what it costs every month for as long as it is switched on. Four shapes of work (answering questions, summarising, classifying, drafting) each pre-fill the two numbers that matter -- words read and words written per use -- and both stay editable, because the reader knows their own use better than four examples do. Out comes the same feature priced across EIGHT models from Anthropic, OpenAI and Google, cheapest first, in naira a month and kobo per request. THE SPREAD IS THE POINT: at 5,000 uses a month of a support-style feature it runs ₦3,139 on the cheapest model and ₦78,469 on the dearest, which is 25x for identical work, and the panel says so in one sentence rather than repeating the figures. No submit button and no email field anywhere on the page -- the arithmetic is pure and runs on the reader's device -- which `tests/ai-cost.spec.ts` asserts, because the day somebody puts a gate in front of it that test goes red. Prices carry a review date (September 2026) and their sources; the Claude rows are Anthropic's published rates, the OpenAI and Google rows were read off public pricing trackers and the page says only the provider's own page is authoritative. Tokens are estimated from words at 1.35, leaning high, and the page says that too. It reuses the site's ONE dollar rate from the estimator's `RATE_CARD` -- passed in as an argument rather than imported, which is what lets `npm run check:ai-cost` load the module straight into node. And it carries the sentence the programme asks of it: sorting into fixed buckets, matching a record or answering from a table you already have is ordinary code's job, said before we quote for the other thing. 29 assertions in the check script (relationships, not figures, so a price change cannot silently break a test nobody reads) and six browser cases.
 
 - [x] **Scope and budget estimator** shipped at `/tools/estimate` for `software` and `apps`, server-rendered and indexable with its own title, description, canonical, breadcrumb and WebApplication JSON-LD, and in the sitemap. Eight questions -- what we are building, what exists, screens, accounts, payments, integrations, AI, timeline -- and the eighth produces a range in naira AND dollars with four phases, the day count and the assumptions the answers earned. THE WHOLE MODEL IS DAYS: each answer adds days of team time, one blended day rate turns them into money, and the phases are proportions of that, so the studio tunes the whole tool by editing one number in `RATE_CARD` (`lib/estimate.ts`). Two numbers in that card are the studio's to confirm -- ₦120,000 a day and ₦1,550 to the dollar, both dated 2026-09 and printed beside the figure. It NEVER produces a single number: the high end sits further from the middle than the low end (x1.25 against x0.85) because under-scoping is the failure mode of every estimate, and the words "a range, not a quote" sit in the same panel as the figure so they travel with the screenshot. The email ask comes AFTER the figure, never before it, and a print stylesheet gives "save as PDF" for nothing -- the same way the invoices and receipts already print, since this project has no PDF renderer and the checklist itself rules out a headless browser in a serverless function. Posted answers are re-checked against the question set and the estimate is recomputed server-side in the route, so no number a browser chose can reach an email over our name. 37 assertions in `npm run check:estimate` (properties, not figures, so the rate card can change without editing tests) and six browser cases in `tests/scope-estimator.spec.ts`, including that no figure appears until the eighth answer and that the email field does not exist before it.
 

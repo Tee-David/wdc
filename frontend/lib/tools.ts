@@ -72,6 +72,17 @@ export const FREE_TOOLS: FreeTool[] = [
     services: ["software", "apps"],
   },
   {
+    slug: "ai-cost",
+    href: "/tools/ai-cost",
+    title: "What will an AI feature cost to run?",
+    blurb:
+      "Volume in, naira a month out. The same feature priced across eight models from Anthropic, OpenAI and Google, with what moves the bill — and a plain word about when ordinary code is the better answer.",
+    action: "Price a feature",
+    short: "AI cost calculator",
+    icon: "Sparkles",
+    services: ["software"],
+  },
+  {
     slug: "seo",
     href: "/tools/seo",
     title: "Why can't anyone find your website?",
