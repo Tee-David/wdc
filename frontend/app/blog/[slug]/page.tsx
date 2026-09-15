@@ -8,9 +8,10 @@ import JsonLd from "@/components/seo/json-ld";
 import PageEnd from "@/components/ui/page-end";
 import BlogToc from "@/components/blog/toc";
 import {
-  BLOG_POSTS, formatDate, postBySlug, readingMinutes, relatedPosts,
+  BLOG_POSTS, formatDate, readingMinutes,
   type BlogBlock, type BlogPost,
 } from "@/lib/blog";
+import { postBySlugDb, relatedPostsDb } from "@/lib/blog-db";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 import "@/components/preview/preview.css";
@@ -25,7 +26,7 @@ export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
 ): Promise<Metadata> {
   const { slug } = await params;
-  const post = postBySlug(slug);
+  const post = await postBySlugDb(slug);
   if (!post) return { title: "Not found" };
 
   const url = `${SITE_URL}/blog/${post.slug}`;
@@ -102,14 +103,14 @@ export default async function BlogPostPage(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
-  const post = postBySlug(slug);
+  const post = await postBySlugDb(slug);
   if (!post) notFound();
 
   const url = `${SITE_URL}/blog/${post.slug}`;
   /* MORE THAN TWO, because this is a rail now. Two cards in a scroller is a grid
    with extra steps: nothing to scroll to, and a third of the track empty on a
    wide screen. */
-  const more = relatedPosts(post, 5);
+  const more = await relatedPostsDb(post, 5);
   const outline = outlineOf(post);
 
   const jsonLd = [

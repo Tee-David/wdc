@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { ogCard, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og";
-import { BLOG_POSTS, postBySlug } from "@/lib/blog";
+import { BLOG_POSTS } from "@/lib/blog";
+import { postBySlugDb } from "@/lib/blog-db";
 
 export const alt = "A post from the We Dig Creativity blog";
 export const size = OG_SIZE;
@@ -22,7 +23,7 @@ export function generateStaticParams() {
  */
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const post = postBySlug(slug);
+  const post = await postBySlugDb(slug);
   if (!post) notFound();
 
   return ogCard({

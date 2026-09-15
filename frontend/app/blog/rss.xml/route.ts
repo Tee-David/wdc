@@ -1,4 +1,4 @@
-import { postsNewestFirst } from "@/lib/blog";
+import { postsNewestFirstDb } from "@/lib/blog-db";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 /**
@@ -23,7 +23,7 @@ const escape = (value: string) =>
     .replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 
 export async function GET() {
-  const posts = postsNewestFirst();
+  const posts = await postsNewestFirstDb();
   /* The feed's own timestamp is the newest post's, not "now" -- a feed whose
      lastBuildDate moves on every fetch tells every reader it has changed when
      it has not. */
