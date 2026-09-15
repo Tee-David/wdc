@@ -33,8 +33,10 @@ gone.
 have on the table, at roughly ₦19 a call. This is the class that can cut a
 neck. One at a time, hard budget, aggressive cache.
 
-The two tools already shipped, the domain checker and the email spoof checker,
-are both Class A. They have cost nothing and will keep costing nothing.
+Five of the six tools now shipped are Class A: the domain checker, the email
+spoof checker, the CAC name checker, the budget estimator and the link preview
+checker. They have cost nothing and will keep costing nothing. The sixth, the
+SEO snapshot, is a Class A floor with a Class B upgrade -- see rule 1.
 
 ## 2. The four rules
 
@@ -102,7 +104,7 @@ costs maintenance and it converts strangers into strangers.
 | --- | --- | --- | --- |
 | Web | Domain checker, "is your business name still free?" | A | **Shipped** |
 | Web | Email spoof checker, "can someone send an invoice as you?" | A | **Shipped** |
-| Brand & business | CAC name checker, "can you even have this name?" | A floor + C upgrade | Floor built, upgrade needs a provider |
+| Brand & business | CAC name checker, "can you even have this name?" | A floor + C upgrade | **Shipped** on the floor; upgrade needs a provider |
 
 The CAC one is the strongest tool on this list, because the anxiety is sharp,
 the answer is genuinely hard to get elsewhere, and it leads directly to work
@@ -112,9 +114,12 @@ the studio delivers.
 
 | Service | Tool | Class | Why it converts |
 | --- | --- | --- | --- |
-| SEO | Page readiness check: fetch their URL, report title and description lengths, H1 count, canonical, robots, sitemap, structured data, image alt text | A | "Why can't anyone find me" is the question every SEO enquiry opens with. Costs one HTTP fetch. |
-| SEO | Core Web Vitals, as an upgrade on the above | B | The PageSpeed key already exists. Free, capped by Google. |
-| Software & AI | Honest LLM cost estimator: volume in, monthly naira out | A | Pure arithmetic. On brand for a studio that says plainly when a model is not the answer, and it disqualifies bad-fit enquiries before they reach a call. |
+| SEO | Page readiness check: fetch their URL, report title and description lengths, H1 count, canonical, robots, structured data, image alt text | A | "Why can't anyone find me" is the question every SEO enquiry opens with. Costs one HTTP fetch. **Shipped** at `/tools/seo`. |
+| SEO | Lighthouse, as an upgrade on the above, emailed | B | **Shipped**. Capped at 300 runs a day in `lib/psi.ts`, behind the response, and the page is complete without it. |
+| SEO | What the page costs a Nigerian visitor, bolted onto the same result | A | **Shipped**. Page weight is argued about in kilobytes everywhere else; here it is naira, which is an argument the person paying can have. |
+| Software & apps | Scope and budget estimator: eight questions, a range in naira and dollars | A | **Shipped** at `/tools/estimate`. Pure arithmetic, and the figure appears before any email is asked for. |
+| Social | Link preview checker: what WhatsApp, X, LinkedIn and Facebook will show | A | **Shipped** at `/tools/link-preview`. One fetch, and WhatsApp is the channel links actually travel through here. |
+| Software & AI | Honest LLM cost estimator: volume in, monthly naira out | A | Pure arithmetic. On brand for a studio that says plainly when a model is not the answer, and it disqualifies bad-fit enquiries before they reach a call. Still to build. |
 
 ### Tier 3: useful, cheap, but lower intent
 
@@ -142,19 +147,32 @@ Tier 3 only if a quiet week wants filling.
   global bucket. Proved under concurrency by `npm run db:check-quota`.
 - `lib/cac-name.ts`: the Class A floor for the CAC checker. The CAMA 2020
   section 852 rules, checked in memory, no network and no key.
-- `lib/tools.ts`: the registry both the footer and the service pages read, so a
-  new tool appears in both the moment it is added.
+- `lib/tools.ts`: the registry the footer, the service pages and the sitemap
+  all read, so a new tool appears in all three the moment it is added.
+- `lib/fetch-page.ts`: one audited path for fetching a URL a stranger typed,
+  with the SSRF guards written down and checked by `npm run check:fetch-page`.
+  Both the SEO snapshot and the link preview checker go through it, and so does
+  the og:image probe.
+- `lib/estimate.ts`, `lib/link-preview.ts`, `lib/seo-audit.ts`,
+  `lib/data-cost.ts`: the four tools of section 1B, all pure, each with a check
+  script that runs without a browser.
+- `lib/psi.ts`: the only Class B thing on the site. PageSpeed Insights behind
+  the response, capped at 300 runs a day through `lib/quota.ts`, degrading to a
+  sentence when the key is absent or the budget is spent.
 
 **Next, in order.**
 
-1. The naira-denominated cap in the registry (Rule 2). Small, and it should
-   land before any metered call exists rather than after.
-2. The shared lookup cache (Rule 3). Same.
-3. The CAC tool page, on the free floor alone. It is useful without the
-   register lookup and it can ship before a provider is chosen.
-4. The provider, when pricing is known. The metered layer then slots under the
-   existing page.
-5. The SEO page-readiness tool, which is Class A and blocked by nothing.
+1. The naira-denominated cap in the registry (Rule 2). Still worth doing before
+   any Class C call exists rather than after. `lib/psi.ts` caps in CALLS, which
+   is honest for a free quota and would not be for a paid one.
+2. The shared lookup cache (Rule 3). Every tool currently caches in one
+   instance's memory and says so at the call site; a shared cache is what turns
+   a tool shared around WhatsApp from a bill into a rounding error.
+3. The CAC register provider, when pricing is known. The metered layer slots
+   under the page that already ships on its free floor.
+4. A PageSpeed key in the environment (`PAGESPEED_API_KEY`). Without one the
+   SEO tool still works and still emails its report; what it cannot do is
+   attach Lighthouse, and it says so in the mail rather than failing.
 
 Note the order: the tool ships before the money does. That is deliberate, and
 it is the cheapest possible way to find out whether anyone actually uses it.

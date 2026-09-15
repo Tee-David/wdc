@@ -4,6 +4,7 @@ import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 
 import { addressIsPublic, readUrl, type UrlFailure } from "./net-guard";
+import { imageSizeFromBytes } from "./image-size";
 
 /**
  * Fetches ONE page at a URL a stranger typed into a box.
@@ -106,16 +107,31 @@ async function hostIsPublic(hostname: string) {
   }
 }
 
-/* ------------------------------------------------------------------- fetch */
+/* --------------------------------------------------------------- the journey */
 
-export async function fetchPage(input: string): Promise<FetchPageResult> {
+/**
+ * Walks the redirects and hands back the response at the end of them.
+ *
+ * EXTRACTED SO THERE IS STILL ONE AUDITED PATH. The link preview checker needs
+ * a second kind of fetch -- the og:image, to say whether it is the size and
+ * weight the platforms want -- and the alternative to this was a second copy
+ * of the hop loop in another function. Two copies of an SSRF guard is one copy
+ * that gets fixed and one that does not.
+ *
+ * The caller decides what it will accept and what it does with the body; every
+ * rule at the top of this file is applied here regardless.
+ */
+async function walk(
+  input: string,
+  accept: string,
+  signal: AbortSignal,
+): Promise<
+  | { ok: true; response: Response; url: URL; redirects: string[] }
+  | { ok: false; reason: FetchPageFailure; status?: number }
+> {
   const first = readUrl(input);
   if (typeof first === "string") return { ok: false, reason: first };
 
-  /* ONE DEADLINE FOR THE WHOLE JOURNEY. A per-hop timeout means three hops can
-     legitimately take eighteen seconds, which is not a tool anybody waits for
-     and is long enough to be worth pointing at us for fun. */
-  const signal = AbortSignal.timeout(DEADLINE_MS);
   const redirects: string[] = [];
   let url = first;
 
@@ -131,7 +147,7 @@ export async function fetchPage(input: string): Promise<FetchPageResult> {
         signal,
         headers: {
           "user-agent": USER_AGENT,
-          accept: "text/html,application/xhtml+xml",
+          accept,
           "accept-language": "en",
         },
       });
@@ -168,60 +184,137 @@ export async function fetchPage(input: string): Promise<FetchPageResult> {
       return { ok: false, reason: "http-error", status: response.status };
     }
 
-    const contentType = response.headers.get("content-type") ?? "";
-    if (contentType && !/text\/html|application\/xhtml|text\/plain/i.test(contentType)) {
-      await response.body?.cancel().catch(() => {});
-      return { ok: false, reason: "not-html", status: response.status };
-    }
-
-    /* THE CAP IS ENFORCED WHILE READING, not by trusting Content-Length. A
-       server can declare 1KB and send a gigabyte, and `await response.text()`
-       would happily hold all of it. */
-    const declared = Number(response.headers.get("content-length") ?? 0);
-    if (declared > MAX_BYTES) {
-      await response.body?.cancel().catch(() => {});
-      return { ok: false, reason: "too-large", status: response.status };
-    }
-
-    const reader = response.body?.getReader();
-    if (!reader) return { ok: true, url: url.toString(), status: response.status, html: "", bytes: 0, contentType, redirects };
-
-    const chunks: Uint8Array[] = [];
-    let bytes = 0;
-    try {
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        bytes += value.byteLength;
-        if (bytes > MAX_BYTES) {
-          await reader.cancel().catch(() => {});
-          return { ok: false, reason: "too-large", status: response.status };
-        }
-        chunks.push(value);
-      }
-    } catch (error) {
-      const timedOut = error instanceof Error && error.name === "TimeoutError";
-      return { ok: false, reason: timedOut ? "timeout" : "network" };
-    }
-
-    const buffer = new Uint8Array(bytes);
-    let at = 0;
-    for (const chunk of chunks) { buffer.set(chunk, at); at += chunk.byteLength; }
-
-    return {
-      ok: true,
-      url: url.toString(),
-      status: response.status,
-      /* `fatal: false`, so a page with one bad byte still reads rather than
-         throwing. We are looking at titles and headings, not verifying an
-         encoding. */
-      html: new TextDecoder("utf-8", { fatal: false }).decode(buffer),
-      bytes,
-      contentType,
-      redirects,
-    };
+    return { ok: true, response, url, redirects };
   }
 
   return { ok: false, reason: "too-many-redirects" };
 }
 
+/**
+ * Reads a body up to a cap, enforcing it WHILE READING.
+ *
+ * Not by trusting Content-Length: a server can declare 1KB and send a
+ * gigabyte, and `await response.text()` would happily hold all of it.
+ */
+async function readCapped(response: Response, maxBytes: number) {
+  const declared = Number(response.headers.get("content-length") ?? 0);
+  if (declared > maxBytes) {
+    await response.body?.cancel().catch(() => {});
+    return { ok: false as const, reason: "too-large" as const };
+  }
+
+  const reader = response.body?.getReader();
+  if (!reader) return { ok: true as const, bytes: new Uint8Array(0) };
+
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel().catch(() => {});
+        return { ok: false as const, reason: "too-large" as const };
+      }
+      chunks.push(value);
+    }
+  } catch (error) {
+    const timedOut = error instanceof Error && error.name === "TimeoutError";
+    return { ok: false as const, reason: timedOut ? ("timeout" as const) : ("network" as const) };
+  }
+
+  const buffer = new Uint8Array(total);
+  let at = 0;
+  for (const chunk of chunks) { buffer.set(chunk, at); at += chunk.byteLength; }
+  return { ok: true as const, bytes: buffer };
+}
+
+/* ------------------------------------------------------------------- fetch */
+
+export async function fetchPage(input: string): Promise<FetchPageResult> {
+  /* ONE DEADLINE FOR THE WHOLE JOURNEY. A per-hop timeout means three hops can
+     legitimately take eighteen seconds, which is not a tool anybody waits for
+     and is long enough to be worth pointing at us for fun. */
+  const signal = AbortSignal.timeout(DEADLINE_MS);
+  const walked = await walk(input, "text/html,application/xhtml+xml", signal);
+  if (!walked.ok) return walked;
+
+  const { response, url, redirects } = walked;
+  const contentType = response.headers.get("content-type") ?? "";
+  if (contentType && !/text\/html|application\/xhtml|text\/plain/i.test(contentType)) {
+    await response.body?.cancel().catch(() => {});
+    return { ok: false, reason: "not-html", status: response.status };
+  }
+
+  const body = await readCapped(response, MAX_BYTES);
+  if (!body.ok) return { ok: false, reason: body.reason, status: response.status };
+
+  return {
+    ok: true,
+    url: url.toString(),
+    status: response.status,
+    /* `fatal: false`, so a page with one bad byte still reads rather than
+       throwing. We are looking at titles and headings, not verifying an
+       encoding. */
+    html: new TextDecoder("utf-8", { fatal: false }).decode(body.bytes),
+    bytes: body.bytes.byteLength,
+    contentType,
+    redirects,
+  };
+}
+
+/* ------------------------------------------------------------------- image */
+
+/**
+ * Enough of an og:image to say whether it will render.
+ *
+ * WHY THE WHOLE FILE AND NOT A HEAD REQUEST. The question is "how many
+ * kilobytes is this", because WhatsApp drops anything over 300KB, and a
+ * Content-Length is a claim rather than a measurement -- plenty of CDNs omit
+ * it on a compressed response. So the bytes are counted as they arrive, and
+ * the read stops at a cap: anything past 2MB is already far past every
+ * platform's ceiling, and the exact figure stops mattering once the answer is
+ * "too big".
+ *
+ * IT RETURNS FACTS, NOT A VERDICT. `lib/link-preview.ts` decides what they
+ * mean, and it is the pure module a check script can run.
+ */
+export type ImageProbe =
+  | { ok: true; bytes: number; width: number | null; height: number | null; contentType: string; truncated: boolean }
+  | { ok: false; reason: FetchPageFailure; status?: number };
+
+/** Past this we stop counting and say so, rather than holding a video in
+    memory because somebody pointed og:image at one. */
+const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+
+export async function probeImage(input: string): Promise<ImageProbe> {
+  const signal = AbortSignal.timeout(DEADLINE_MS);
+  const walked = await walk(input, "image/*", signal);
+  if (!walked.ok) return walked;
+
+  const { response } = walked;
+  const contentType = response.headers.get("content-type") ?? "";
+
+  const body = await readCapped(response, MAX_IMAGE_BYTES);
+  if (!body.ok) {
+    /* Over the cap is an answer rather than a failure: it is enormous, which
+       is the only thing the caller needed to know. */
+    if (body.reason === "too-large") {
+      return { ok: true, bytes: MAX_IMAGE_BYTES, width: null, height: null, contentType, truncated: true };
+    }
+    return { ok: false, reason: body.reason, status: response.status };
+  }
+
+  return {
+    ok: true,
+    bytes: body.bytes.byteLength,
+    /* The header parser is the one `next/image`'s sizing already leans on. It
+       reads PNG, JPEG, GIF and WebP, and returns null rather than guessing at
+       anything else -- an SVG social image has no pixel size to read, and
+       saying so is more use than inventing one. */
+    ...(imageSizeFromBytes(body.bytes) ?? { width: null, height: null }),
+    contentType,
+    truncated: false,
+  };
+}

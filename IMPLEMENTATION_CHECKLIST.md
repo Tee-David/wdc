@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **126 open** (11 of them in progress), **254 done**.
+At last update: **122 open** (11 of them in progress), **260 done**.
 
 ---
 
@@ -98,32 +98,17 @@ browser cannot call a third-party API at all: every one of these goes through
 our own route handler, which is the rule anyway. Client cost below is what a
 reader downloads; the work is server-side, as in `lib/qr.ts`.
 
-Order is conversion divided by effort, lowest risk first.
+**All four of this section's tools shipped on 2026-09-15** and are archived in
+`# Done`. `/tools/estimate`, `/tools/link-preview` and `/tools/seo` are live,
+indexable, in the sitemap and linked from their service pages; the Nigerian
+data-cost panel is part of the SEO result rather than a page of its own. What
+is left of this section is the list below, which was always "later".
 
-- [ ] **Scope and budget estimator** (`software`, `apps`). Six to eight
-  questions, then a range in naira and dollars with a phased breakdown. Pure
-  arithmetic, no network until the visitor asks for it. The estimate appears
-  *before* any email ask; the ask is "send me this as a PDF". Label it an
-  indicative range, not a quote -- section 4 forbids fabricated totals and this
-  is the same rule facing outward.
-- [ ] **Link preview checker** (`social`). Paste a URL, see how it unfurls on
-  WhatsApp, X, LinkedIn and Facebook, with the image dimensions checked and the
-  description shown truncated where each one truncates it. Mock cards are CSS
-  using existing tokens. WhatsApp is the channel that matters in this market,
-  and this is the most shareable thing on the list.
-- [ ] **On-page SEO snapshot, with the Lighthouse report emailed**
-  (`seo`). Instantly: title and description lengths, one-H1 check, canonical,
-  robots, viewport, `og:*`, images missing `alt`, structured data found, HTTPS,
-  page weight. Then the ask -- "the full Lighthouse report takes about thirty
-  seconds, where should we send it?" -- and PageSpeed Insights runs in `after()`
-  exactly as the contact receipt does. The slow part becomes the magnet instead
-  of a spinner, and nothing already shown is taken away. PSI needs an API key
-  (keyless returned 429 in testing); 25,000/day, 400 per 100s. Extract the five
-  scores and top opportunities server-side -- never return that JSON to a
-  browser.
-- [ ] **What your site costs a Nigerian visitor**, bolted onto the SEO result.
-  Page weight times an editable naira-per-gigabyte figure, plus the wait on 3G,
-  next to our own number. Pure arithmetic once the fetcher exists.
+ONE THING NEEDS AN ENVIRONMENT VARIABLE BEFORE IT IS WHOLE: `PAGESPEED_API_KEY`
+is not set on any environment, so the Lighthouse half of `/tools/seo` reports
+as unavailable and the report email says a person will run it by hand. The tool
+works without it -- that is rule 1 of the programme -- but the key is worth
+twenty minutes.
 
 Later, in rough order: a CrUX field-data card beside the audit (free, 150
 queries a minute, sub-second); a brand asset pack from an uploaded logo using
@@ -441,6 +426,20 @@ with the rest of section 4's content and settings work.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-15, section 1B: the free tools on the service pages
+
+- [x] **Scope and budget estimator** shipped at `/tools/estimate` for `software` and `apps`, server-rendered and indexable with its own title, description, canonical, breadcrumb and WebApplication JSON-LD, and in the sitemap. Eight questions -- what we are building, what exists, screens, accounts, payments, integrations, AI, timeline -- and the eighth produces a range in naira AND dollars with four phases, the day count and the assumptions the answers earned. THE WHOLE MODEL IS DAYS: each answer adds days of team time, one blended day rate turns them into money, and the phases are proportions of that, so the studio tunes the whole tool by editing one number in `RATE_CARD` (`lib/estimate.ts`). Two numbers in that card are the studio's to confirm -- ₦120,000 a day and ₦1,550 to the dollar, both dated 2026-09 and printed beside the figure. It NEVER produces a single number: the high end sits further from the middle than the low end (x1.25 against x0.85) because under-scoping is the failure mode of every estimate, and the words "a range, not a quote" sit in the same panel as the figure so they travel with the screenshot. The email ask comes AFTER the figure, never before it, and a print stylesheet gives "save as PDF" for nothing -- the same way the invoices and receipts already print, since this project has no PDF renderer and the checklist itself rules out a headless browser in a serverless function. Posted answers are re-checked against the question set and the estimate is recomputed server-side in the route, so no number a browser chose can reach an email over our name. 37 assertions in `npm run check:estimate` (properties, not figures, so the rate card can change without editing tests) and six browser cases in `tests/scope-estimator.spec.ts`, including that no figure appears until the eighth answer and that the email field does not exist before it.
+
+- [x] **Link preview checker** shipped at `/tools/link-preview` for `social`, with the same page furniture and sitemap entry. Paste a URL, get four cards -- WhatsApp first, deliberately, because in this market it is the channel links travel through and the fussiest of the four -- each cutting the title and description where that platform cuts them, each showing the real og:image or the reason it will not appear. The measurements are dated and sourced in `lib/link-preview.ts` (reviewed September 2026) and the page says "about" rather than pretending to the character, because every one of these platforms redraws its cards without telling anybody. The image is probed through the same audited fetcher: bytes counted as they arrive rather than trusted from Content-Length, and the header parsed for real pixel dimensions -- `lib/image-size.ts` grew GIF and WebP for this, which is a dozen lines against a dependency and also fixes the case where a site that HAS optimised its images was the one we could not measure. WhatsApp's 300KB ceiling is enforced per platform, so the same image shows on three cards and not on the fourth, which is exactly what happens in life. Tags are read from the `<head>` only, so a page documenting Open Graph tags is not read as having them; `name=` is accepted where the specification says `property=`, because the crawlers accept it. 43 assertions in `npm run check:link-preview` and six browser cases in `tests/link-preview.spec.ts`, rendered from a fixture rather than a live site so the suite does not depend on a stranger's uptime.
+
+- [x] **On-page SEO snapshot** shipped at `/tools/seo`, with the full Lighthouse report emailed. Instantly and free: indexing (noindex first, because it is the only finding that makes everything else academic and it is almost always an accident), title and description lengths, one-H1, canonical, viewport, HTTPS, the three Open Graph tags, images missing `alt` -- where an EMPTY alt is correctly counted as done rather than missing -- and JSON-LD types, with blocks that will not parse counted as none because that is how Google treats them. Then the ask: "the full Lighthouse report takes about a minute, where should we send it?", and `POST /api/tools/seo/report` answers immediately and does the work in `after()`, exactly as the contact receipt does. `lib/psi.ts` is the only Class B thing on this site: capped at 300 runs a day through the shared `lib/quota.ts` counter (which fails closed, so an outage cannot become an open tap on Google's meter), the spend recorded BEFORE the call, and the raw PageSpeed JSON never leaving the server -- four scores and the three largest opportunities come out of it. With no key or a spent budget the email still goes, carrying every on-page finding and a line saying a person will run the rest, which is rule 4 of the programme written as a feature rather than an apology. 51 assertions in `npm run check:seo-audit` and six browser cases in `tests/seo-snapshot.spec.ts`.
+
+- [x] **What your site costs a Nigerian visitor**, bolted onto the SEO result rather than given a page of its own. Page weight becomes naira and seconds: the default ₦250 a gigabyte is a mainstream MTN/Airtel bundle rate as of September 2026 (pay-as-you-go runs near ₦4,600, which is the case the editable input exists for), and the wait is Chrome's own Slow 3G profile at 400kbps, chosen because the question worth answering is what happens to the person having a bad day. It shows one visit, a thousand visits and our own homepage measured the same way on the same day -- fetched, not remembered, because a hard-coded figure for our own page is the sort of number that is quietly wrong for a year. IT SAYS WHAT IT MEASURED: the HTML document alone, which is all one fetch can honestly weigh, with images and scripts on top and Lighthouse counting those. Worth knowing and acting on: our own homepage HTML measured 428KB against example.com's 559 bytes, so the comparison currently flatters nobody. Arithmetic checked in `npm run check:seo-audit`; the panel, the editable rate and the half-typed-rate case in `tests/seo-snapshot.spec.ts`.
+
+- [x] **The registry is now the only list.** `lib/tools.ts` grew four rows and every consumer followed on its own: the footer's Tools column, the `ServiceTools` row on each service page, and -- new -- `app/sitemap.ts`, which had the three original tools written out by hand and would otherwise have shipped four live, linked, indexable pages it had never heard of. That is the exact failure the sitemap's own header note says the file exists to prevent. `tests/service-tools.spec.ts` was rewritten to read the registry rather than copy it: it had a hard-coded list of three tools and a test naming the one service with no tool of its own, and after this section every service has one. The replacement asserts the rule over all six services instead, so a seventh service with no tool is covered without anybody remembering to come back.
+
+- [x] **`lib/fetch-page.ts` refactored to one audited path.** The og:image probe needed a second kind of fetch, and the alternative was a second copy of the redirect-and-revalidate loop in another function -- two copies of an SSRF guard being one copy that gets fixed and one that does not. `walk()` now holds the hop loop and `readCapped()` the byte ceiling; `fetchPage` and `probeImage` are thin over both. No guard changed: `npm run check:fetch-page` still passes every case, and the pure rules it exercises live in `lib/net-guard.ts` as before.
 
 ## Closed 2026-09-14, from live-site review
 
