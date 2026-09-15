@@ -684,3 +684,54 @@
 }
 /* Narrow, because it holds three digits and a wide box invites a paragraph. */
 .pv .sn__priceIn { flex: none; width: 9rem; max-width: 100%; font-size: .95rem; padding: .6rem .8rem; }
+
+/* ==========================================================================
+   THE AI RUNNING-COST CALCULATOR
+
+   The same form furniture as the estimator; what it needs of its own is a row
+   per model, because eight of them are read down the page and compared.
+   ========================================================================== */
+
+/* Two number fields side by side where there is room. They are a pair -- what
+   it reads and what it writes -- and separating them onto two rows loses the
+   comparison the tool is making. */
+.pv .ai__pair {
+  display: grid; gap: .7rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+}
+.pv .ai__pair label { display: grid; gap: .3rem; }
+
+.pv .ai__list { margin: 0; padding: 0; list-style: none; display: grid; gap: .45rem; }
+
+/* NAME LEFT, MONEY RIGHT, NOTE UNDER BOTH. The figure is what the eye runs
+   down, so it is a column of its own rather than the end of a sentence. */
+.pv .ai__list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: .1rem .9rem;
+  padding: .8rem 1rem;
+  border: 1px solid var(--rule); border-radius: 12px;
+  background: var(--paper);
+}
+.pv .ai__name {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 600; font-size: .96rem; color: var(--ink);
+}
+/* The maker sits under the model's own name rather than beside it: eight rows
+   of "Claude Sonnet 5 (Anthropic)" reads as noise, and the column of makers is
+   what somebody actually scans. */
+.pv .ai__name b {
+  display: block; font-weight: 500; font-size: .78rem; color: var(--muted);
+}
+.pv .ai__money {
+  justify-self: end; text-align: right; white-space: nowrap;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: 1rem; color: var(--accent-ink);
+}
+.pv .ai__money b {
+  display: block; font-weight: 500; font-size: .76rem; color: var(--muted);
+}
+.pv .ai__note {
+  grid-column: 1 / -1; margin-top: .25rem;
+  font-size: .85rem; line-height: 1.5; color: var(--muted);
+}

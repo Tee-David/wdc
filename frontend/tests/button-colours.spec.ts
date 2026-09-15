@@ -35,7 +35,7 @@ import { PNG } from "pngjs";
 const publicPages = [
   "/", "/services", "/services/web", "/contact",
   "/tools/domain", "/tools/email", "/tools/estimate", "/tools/seo",
-  "/tools/link-preview", "/tools/business-name",
+  "/tools/link-preview", "/tools/business-name", "/tools/ai-cost",
   "/work", "/about", "/blog", "/onboarding", "/this-page-does-not-exist",
 ];
 

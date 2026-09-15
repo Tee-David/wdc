@@ -15,6 +15,7 @@
     "check:cac-name": "node --experimental-strip-types scripts/check-cac-name.mjs",
     "check:fetch-page": "node --experimental-strip-types scripts/check-fetch-page.mjs",
     "check:estimate": "node --experimental-strip-types scripts/check-estimate.mjs",
+    "check:ai-cost": "node --experimental-strip-types scripts/check-ai-cost.mjs",
     "check:link-preview": "node --experimental-strip-types scripts/check-link-preview.mjs",
     "check:seo-audit": "node --experimental-strip-types scripts/check-seo-audit.mjs"
   },
