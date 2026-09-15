@@ -86,6 +86,57 @@ test("back reopens the previous question with its answer still showing", async (
   await expect(page.locator(".es__stepSelect .sf__val")).toHaveText(label);
 });
 
+test("\"not sure yet\" is offered where a reader might need it, and still produces a real estimate", async ({ page }) => {
+  await page.goto(PAGE);
+
+  /* The first question (what are we building) is always something a reader
+     already knows on arrival, so it does not carry the escape hatch. */
+  await page.locator(".es__stepSelect .sf__btn").click();
+  const firstLabels = await page.locator(".es__stepSelect .pk__opt .pk__optT").allInnerTexts();
+  expect(firstLabels).not.toContain("Not sure yet");
+  await page.keyboard.press("Escape");
+
+  /* Walk the whole wizard, taking "Not sure yet" wherever it is on offer and
+     the first option everywhere else, and confirm a real figure still comes
+     out the other end -- an unanswerable question must not mean no answer. */
+  let sawUnsure = false;
+  while (await page.locator(".es__stepSelect .sf__btn").count() > 0) {
+    await page.locator(".es__stepSelect .sf__btn").click();
+    const rows = page.locator(".es__stepSelect .pk__opt");
+    const rowLabels = await rows.locator(".pk__optT").allInnerTexts();
+    const at = rowLabels.indexOf("Not sure yet");
+    if (at >= 0) sawUnsure = true;
+    await rows.nth(at >= 0 ? at : 0).click();
+    await settle(page);
+  }
+
+  expect(sawUnsure, "at least one question in this wizard should offer it").toBe(true);
+  await expect(page.locator(".es__ngn")).toBeVisible();
+});
+
+test("a question with background beyond its hint carries a tip, hidden until pressed", async ({ page }) => {
+  await page.goto(PAGE);
+
+  /* "Do people sign in?" is the fourth question: kind, start, screens, then
+     this one, so three quick first-option answers land on it. */
+  for (let i = 0; i < 3; i++) {
+    await page.locator(".es__stepSelect .sf__btn").click();
+    await page.locator(".es__stepSelect .pk__opt").first().click();
+    await settle(page);
+  }
+  await expect(page.locator(".es__stepLabel")).toContainText("Do people sign in?");
+
+  await expect(page.locator(".tip__p")).toHaveCount(0);
+  await page.locator(".tip__b").click();
+  await expect(page.locator(".tip__p")).toBeVisible();
+  await expect(page.locator(".tip__p")).toContainText(/roles/i);
+
+  /* Escape closes it without moving the wizard on. */
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".tip__p")).toHaveCount(0);
+  await expect(page.locator(".es__stepLabel")).toContainText("Do people sign in?");
+});
+
 test("the estimate arrives before the email ask, not after it", async ({ page }) => {
   await page.goto(PAGE);
 

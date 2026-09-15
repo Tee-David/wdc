@@ -8,6 +8,8 @@ import {
   type Answers, type Option,
 } from "@/lib/estimate";
 import OptionSelect from "@/components/tools/option-select";
+import Tip from "@/components/onboarding/tip";
+import "@/components/onboarding/form-kit.css";
 
 /**
  * The scope and budget estimator at /tools/estimate.
@@ -187,6 +189,10 @@ export default function ScopeEstimator() {
             <div className="es__q" key={question.key}>
               <label className="tl__label es__stepLabel" htmlFor={`es-q-${question.key}`}>
                 {question.label}
+                {/* Background lives behind the question mark, the same rule
+                    the contact form follows: only what a question genuinely
+                    cannot be answered without stays inline, as `hint`. */}
+                {question.tip ? <Tip text={question.tip} /> : null}
               </label>
               {question.hint && (
                 <p className="tl__hint es__qhint" id={`es-q-${question.key}-hint`}>

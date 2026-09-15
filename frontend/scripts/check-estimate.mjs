@@ -50,6 +50,23 @@ report("every question changes the answer",
   QUESTIONS.every((q) => q.options.some((o) => (o.days ?? 0) !== (q.options[0].days ?? 0)
     || (o.multiplier ?? 1) !== (q.options[0].multiplier ?? 1))));
 
+/* --------------------------------------------------------- "not sure yet" */
+
+console.log("-- \"not sure yet\" --");
+report("more than half the questions offer an escape hatch for a reader who does not know",
+  QUESTIONS.filter((q) => q.options.some((o) => o.key === "unsure")).length >= 4);
+for (const q of QUESTIONS) {
+  const unsure = q.options.find((o) => o.key === "unsure");
+  if (!unsure) continue;
+  /* Neither the cheapest nor the dearest guess: the rounded average of the
+     question's REAL answers, so picking it does not quietly bias the total
+     toward either end of the range on its own. */
+  const real = q.options.filter((o) => o.key !== "unsure");
+  const avg = Math.round(real.reduce((sum, o) => sum + (o.days ?? 0), 0) / real.length);
+  report(`"${q.label}" prices "not sure yet" as the average of its real answers`,
+    unsure.days === avg, `got ${unsure.days}, expected ${avg}`);
+}
+
 /* ----------------------------------------------------------- completeness */
 
 console.log("-- an unfinished form produces no number --");
