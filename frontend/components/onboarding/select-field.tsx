@@ -130,6 +130,11 @@ export default function SelectField({
 
       {open && (
         <div className="pk__pop">
+          {/* Below 560px this is the sheet's own grab handle; usePickerOpen
+              attaches the drag-to-dismiss listener to it directly. Hidden
+              above that width, where the panel is a dropdown with nothing
+              to grab. */}
+          <div className="pk__grab" aria-hidden="true" />
           {searchable ? <div className="pk__search">
             <Search aria-hidden="true" />
             <input
