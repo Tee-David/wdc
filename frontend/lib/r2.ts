@@ -122,19 +122,24 @@ export function uploadKey(draftId: string, filename: string) {
 }
 
 /**
- * A presigned PUT, good for `expiresIn` seconds.
+ * A presigned request, good for `expiresIn` seconds.
  *
- * `contentType` is signed, which means the browser must send exactly that type
- * or R2 rejects the request. That is the point: the URL authorises uploading
- * one PNG, not "anything at all to this key".
+ * `contentType` is signed, which means the caller must send exactly that type
+ * or R2 rejects the request. That is the point for a PUT: the URL authorises
+ * uploading one PNG, not "anything at all to this key". `method` defaults to
+ * PUT, which is every real upload; DELETE exists for `probeWrite` below,
+ * which cleans up after the tiny object it writes to prove the credentials
+ * actually can.
  */
-export function presignPut({
+export function presignRequest({
   config,
+  method = "PUT",
   key,
   contentType,
   expiresIn = 300,
 }: {
   config: R2Config;
+  method?: "PUT" | "DELETE";
   key: string;
   contentType: string;
   expiresIn?: number;
@@ -147,7 +152,7 @@ export function presignPut({
   const canonicalUri = `/${uriEncode(config.bucket, false)}/${uriEncode(key, false)}`;
 
   /* Content-Type is signed as well as Host, so the query has to declare both
-     and the browser has to send both. They are listed alphabetically because
+     and the caller has to send both. They are listed alphabetically because
      SigV4 requires it, not as a style choice. */
   const signedHeaders = "content-type;host";
   const query: Array<[string, string]> = [
@@ -165,7 +170,7 @@ export function presignPut({
 
   const canonicalHeaders = `content-type:${contentType}\nhost:${host}\n`;
   const canonicalRequest = [
-    "PUT",
+    method,
     canonicalUri,
     canonicalQuery,
     canonicalHeaders,
@@ -192,6 +197,17 @@ export function presignPut({
   const publicUrl = config.publicBase ? `${config.publicBase}/${key}` : undefined;
 
   return { url, publicUrl, key, expiresIn };
+}
+
+/** The PUT case, which is every real upload. Kept as its own name because
+    that is what every call site outside this file means. */
+export function presignPut(args: {
+  config: R2Config;
+  key: string;
+  contentType: string;
+  expiresIn?: number;
+}) {
+  return presignRequest({ ...args, method: "PUT" });
 }
 
 /**
@@ -306,5 +322,80 @@ export async function probeCors({
     ok: true,
     reason: "The upload did not finish. It is worth trying again.",
     detail: `CORS is correct for this origin, so the upload failed in transit. ${detail}`,
+  };
+}
+
+/**
+ * ASK THE BUCKET WHETHER THESE CREDENTIALS CAN ACTUALLY WRITE, because a CORS
+ * pass does not mean that.
+ *
+ * A WRONG-PERMISSION TOKEN LOOKS EXACTLY LIKE A DROPPED CONNECTION FROM THE
+ * BROWSER'S SEAT. CORS and authorisation are two separate checks R2 makes,
+ * and the browser only shows its own work for the first one: a token that can
+ * sign a request but is scoped to read-only, or to a different bucket, gets a
+ * 403 from R2 same as a bad signature would -- and several S3-compatible
+ * error responses, this one included in practice, do not carry
+ * Access-Control-Allow-Origin on the ERROR body the way they do on a success.
+ * Without that header the browser refuses to hand the response to JavaScript
+ * at all, so `xhr.onerror` fires: the exact same event a genuinely dropped
+ * connection produces. `probeCors` above rules out the bucket's CORS policy;
+ * this rules out (or confirms) the token's own permissions, and it can,
+ * because a request made from THIS SERVER is never subject to CORS in the
+ * first place -- CORS is a browser rule, not an R2 one.
+ *
+ * IT WRITES A REAL, TINY OBJECT rather than trying to infer permission from a
+ * HEAD or a list, because a token can easily be scoped to List and Read
+ * without Write, and that combination is exactly the misconfiguration this
+ * exists to catch. The object is cleaned up afterward on a best-effort basis;
+ * leaving one three-byte file behind on a failed delete is a smaller cost
+ * than not running this check at all.
+ */
+export async function probeWrite({
+  config, timeoutMs = 6000,
+}: {
+  config: R2Config;
+  timeoutMs?: number;
+}): Promise<CorsVerdict> {
+  const key = `onboarding/_diagnostic/${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const contentType = "text/plain";
+  const put = presignRequest({ config, method: "PUT", key, contentType, expiresIn: 60 });
+
+  let status = 0;
+  try {
+    const res = await fetch(put.url, {
+      method: "PUT",
+      headers: { "content-type": contentType },
+      body: "diagnostic",
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    status = res.status;
+  } catch (e) {
+    return {
+      ok: false,
+      reason: "We could not reach the file store from our own server just now. This is on us, not on your connection.",
+      detail: `diagnostic PUT to ${key} threw outright: ${e instanceof Error ? e.message : String(e)}`,
+    };
+  }
+
+  /* Cleanup is not awaited: whether it succeeds or not has no bearing on the
+     verdict this function already has, and there is nothing useful to do
+     with a delete failure here beyond noting it. */
+  const del = presignRequest({ config, method: "DELETE", key, contentType, expiresIn: 60 });
+  void fetch(del.url, { method: "DELETE", headers: { "content-type": contentType }, signal: AbortSignal.timeout(timeoutMs) })
+    .catch((e) => console.error(`[r2] diagnostic cleanup delete for ${key} failed: ${e instanceof Error ? e.message : String(e)}`));
+
+  if (status >= 200 && status < 300) {
+    return {
+      ok: true,
+      reason: "The upload did not finish, and it is not the bucket's permissions either -- worth trying again.",
+      detail: `diagnostic PUT to ${key} from this server succeeded (status ${status}), so this credential can write here.`,
+    };
+  }
+  return {
+    ok: false,
+    reason: status === 403
+      ? "The upload credentials can sign a request but are not allowed to write to this bucket. Check the R2 API token's permissions in the Cloudflare dashboard -- it needs Object Read & Write, not Read only."
+      : `The file store refused a write from our own server (status ${status}). Check the bucket name and the token's permissions.`,
+    detail: `diagnostic PUT to ${key} from this server returned status ${status}.`,
   };
 }
