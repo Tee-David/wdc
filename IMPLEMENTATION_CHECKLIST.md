@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **122 open** (11 of them in progress), **284 done**.
+At last update: **122 open** (11 of them in progress), **285 done**.
 
 ---
 
@@ -427,6 +427,68 @@ with the rest of section 4's content and settings work.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-16, the mobile picker sheet can actually be dismissed
+
+- [x] **Reported from a screenshot of the industry select stuck open on a
+  phone: tapping the dimmed page behind it did nothing, and there was no
+  way to drag it away either.** Root-caused rather than guessed: below
+  560px the scrim is `.pk.is-open::before`, a pseudo-element with no DOM
+  node of its own, so a tap on it reports the PICKER ITSELF
+  (`root.current`) as the event's target. The outside-click handler in
+  `usePickerOpen` (`components/onboarding/picker.tsx`, shared by the
+  industry select, the phone field's country picker and the estimator's
+  own dropdown) read `root.contains(root)` -- true, an element always
+  contains itself -- as "the tap landed inside the picker," and never
+  closed it. Fixed by also treating a tap that lands on `root` itself,
+  rather than one of the real controls it wraps, as outside. Confirmed
+  with a synthetic tap on the scrim corner in a touch-emulated context:
+  closed 0/1 times before the fix, 1/1 after.
+- [x] **Drag-to-dismiss did not exist at all, so there was nothing to try
+  once the tap didn't work either.** The grab handle was purely
+  decorative -- `.pk__pop::before`, again a pseudo-element, so nothing
+  could attach a listener to it. Turned into a real `.pk__grab` element
+  (added to the three consumers: `select-field.tsx`, `phone-field.tsx`,
+  `option-select.tsx`), and `usePickerOpen` now tracks a pointer captured
+  on it, translating the sheet with the finger and closing it past 28% of
+  its own height or snapping back under that, skipping the snap-back
+  transition under `prefers-reduced-motion`. Hidden above 560px, where the
+  panel is a dropdown with nothing to grab.
+- [x] **A genuine scroll region that iOS Safari gives no visible sign of
+  being one**, which a screenshot showing the list cut off just past
+  "Non-profit" is consistent with: that browser does not draw the
+  `scrollbar-width: thin` bar this file already sets, only a transient
+  thumb during an active scroll. Reproduced with real wheel-scroll
+  events in a touch-emulated context first, confirming the list DOES
+  scroll (the industry list's own overflow past its 12 options was small
+  enough at a typical phone height that the missing affordance was easy
+  to read as "stuck" rather than "nearly at the end already"). Added a
+  four-layer CSS scroll shadow to `.pk__list` -- two fades attached to the
+  content masking the shadow at whichever edge is flush with the true
+  start or end of the list, two shadows attached to the viewport showing
+  through once scrolling moves the content-attached fade away from that
+  edge -- so there is a persistent visual cue on every browser regardless
+  of whether it draws its own scrollbar.
+- [x] **The phone field's own validation was checked against exactly what
+  was described** -- a Nigerian number typed as 10 digits (no leading 0)
+  or 11 (with it) should be accepted, anything longer should not -- and it
+  already does both: `parsePhoneNumber(digits, "NG").isValid()` returns
+  true for `8021234567` and `08021234567` and false for 12+ digits,
+  confirmed directly against `libphonenumber-js/max` and then again
+  through the real field (`aria-invalid` and the inline error both track
+  it correctly, live, and block the step from advancing). No change made
+  here since nothing reproduced; if this is still wrong in what is
+  actually deployed rather than in this branch, the concrete number and
+  country tried would narrow it down.
+- [x] **Verified with the full suite.** Three new cases added to
+  `tests/onboarding.spec.ts` (tap-outside now closes it, a small drag
+  snaps back while a larger one dismisses, the list stays a genuine
+  scroll region with the grab handle's own `touch-action` not leaking
+  onto it), run five times over to confirm none of the three are flaky.
+  `tests/onboarding.spec.ts`, `tests/onboarding-domain.spec.ts`,
+  `tests/scope-estimator.spec.ts` (whose own dropdown shares this same
+  code) and `tests/button-colours.spec.ts` all still pass together, and
+  `npm run build` completes clean.
 
 ## Closed 2026-09-15, the onboarding form's orange service cards are black
 

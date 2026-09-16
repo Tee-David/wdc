@@ -19,6 +19,10 @@
 
 .pv .pk { position: relative; }
 
+/* The grab handle exists only for the phone-width bottom sheet below; on the
+   dropdown it would be an empty bar with nothing to grab. */
+.pv .pk__grab { display: none; }
+
 /* ---------------------------------------------------------------- the panel */
 
 .pv .pk__pop {
@@ -117,6 +121,24 @@
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--ink) 30%, transparent) transparent;
   scrollbar-gutter: stable;
+  /* A SHADOW AT WHICHEVER EDGE STILL HAS MORE TO SHOW, because the thin
+     scrollbar above is a Firefox/Chrome affordance that iOS Safari does not
+     draw at all outside an active scroll gesture -- on that browser a list
+     cut short by its own `max-height` was otherwise indistinguishable from
+     one that had reached its end. Four background layers, the classic
+     technique: two solid fades ATTACHED TO THE CONTENT (`local`) cover the
+     shadow at whichever edge is flush with the actual start or end of the
+     list, and two shadows attached to the VIEWPORT (`scroll`) show through
+     once scrolling has moved the content-attached fade away from that edge.
+     Needs no scroll listener and no JS. */
+  background:
+    linear-gradient(var(--paper) 40%, transparent) local,
+    linear-gradient(transparent, var(--paper) 60%) local 0 100%,
+    linear-gradient(rgb(6 6 26 / .18), transparent 70%) scroll,
+    linear-gradient(0deg, rgb(6 6 26 / .18), transparent 70%) scroll 0 100%;
+  background-repeat: no-repeat;
+  background-color: var(--paper);
+  background-size: 100% 28px, 100% 28px, 100% 12px, 100% 12px;
 }
 
 .pv .pk__opt {
@@ -216,13 +238,22 @@
     padding-bottom: env(safe-area-inset-bottom);
     box-shadow: 0 -18px 40px -18px rgb(6 6 26 / .5);
   }
-  /* The grab handle. It is the one piece of chrome that says "this sheet came
-     up from the bottom and goes back down", which a dropdown floating in the
-     middle of a form does not need to say. */
-  .pv .pk__pop::before {
-    content: ""; flex: none;
-    width: 2.25rem; height: 4px; margin: .6rem auto .1rem;
-    border-radius: 999px;
+  /* THE GRAB HANDLE, A REAL ELEMENT NOW rather than `.pk__pop::before`. It is
+     the one piece of chrome that says "this sheet came up from the bottom and
+     goes back down", which a dropdown floating in the middle of a form does
+     not need to say -- and, since usePickerOpen's drag-to-dismiss listens on
+     it directly, it has to be a node pointer events can target rather than
+     generated content a script cannot attach to. `touch-action: none` stops
+     the browser starting its own scroll or pull-to-refresh gesture on the one
+     strip of the sheet whose entire job is being dragged. */
+  .pv .pk__grab {
+    display: flex; flex: none; justify-content: center;
+    width: 100%; padding: .55rem 0 .3rem;
+    touch-action: none;
+  }
+  .pv .pk__grab::before {
+    content: "";
+    width: 2.25rem; height: 4px; border-radius: 999px;
     background: color-mix(in srgb, var(--ink) 18%, transparent);
   }
   /* The sheet sets its own height off the screen rather than off the room
