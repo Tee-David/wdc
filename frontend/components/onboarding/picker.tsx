@@ -175,10 +175,85 @@ export function usePickerOpen({
        view by definition, and the panel is placed against it. */
     requestAnimationFrame(() =>
       (searchRef.current ?? listRef.current)?.focus({ preventScroll: true }));
+    /* THE SCRIM COUNTS AS OUTSIDE, EVEN THOUGH `root` PAINTS IT.
+       Below 560px the scrim is `.pk.is-open::before` -- a pseudo-element, so it
+       has no DOM node of its own and a tap on it reports `root` itself as the
+       target, the same element this check is walking UP FROM. `contains()`
+       says an element contains itself, so the old `!root.contains(target)`
+       read a scrim tap as "inside the picker" and the sheet could not be
+       dismissed by tapping the dimmed page behind it. A tap that lands on
+       `root` itself, rather than one of the real controls it wraps, is the
+       backdrop, not the picker. */
     const away = (e: PointerEvent) => {
-      if (!root.current?.contains(e.target as Node)) onClose();
+      const target = e.target as Node;
+      if (target === root.current || !root.current?.contains(target)) onClose();
     };
     document.addEventListener("pointerdown", away);
     return () => document.removeEventListener("pointerdown", away);
   }, [open, root, searchRef, listRef, onClose]);
+
+  /* DRAG THE SHEET DOWN TO CLOSE IT, on the phone-width bottom sheet only.
+     The grab handle (`.pk__grab`, the first child of `.pk__pop`, drawn as a
+     small bar) is the one part of the sheet that carries no interaction of
+     its own -- unlike the search box or the list below it -- so it is the one
+     safe place to start a drag without stealing a gesture that already means
+     something else. Pointer capture, not a `dragging` flag read by a window
+     listener: once the handle has the pointer, every following event for that
+     same finger arrives here even if it leaves the handle's own box, which a
+     fast flick otherwise would. */
+  useEffect(() => {
+    if (!open) return;
+    const el = root.current;
+    const pop = el?.querySelector<HTMLElement>(".pk__pop");
+    const grab = pop?.querySelector<HTMLElement>(".pk__grab");
+    if (!pop || !grab) return;
+
+    const DISMISS_FRACTION = 0.28;
+    let startY = 0;
+    let sheetHeight = 0;
+    let dragging = false;
+
+    const onDown = (e: PointerEvent) => {
+      if (e.pointerType === "mouse") return;
+      if (!window.matchMedia("(max-width: 560px)").matches) return;
+      dragging = true;
+      startY = e.clientY;
+      sheetHeight = pop.getBoundingClientRect().height;
+      pop.style.transition = "none";
+      /* Best-effort: a pointer the browser no longer considers active (a
+         fast double-tap, a stray synthetic event) throws here, and losing
+         capture only means a fast flick can out-run the handle -- not a
+         reason to abandon the drag entirely. */
+      try { grab.setPointerCapture(e.pointerId); } catch { /* not fatal */ }
+    };
+    const onMove = (e: PointerEvent) => {
+      if (!dragging) return;
+      e.preventDefault();
+      const dy = Math.max(0, e.clientY - startY);
+      pop.style.transform = `translateY(${dy}px)`;
+    };
+    const onUp = (e: PointerEvent) => {
+      if (!dragging) return;
+      dragging = false;
+      const dy = Math.max(0, e.clientY - startY);
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const dismiss = dy > sheetHeight * DISMISS_FRACTION;
+      pop.style.transition = reduce || dismiss ? "none" : "transform .22s cubic-bezier(.16, 1, .3, 1)";
+      pop.style.transform = "";
+      if (dismiss) onClose();
+    };
+
+    grab.addEventListener("pointerdown", onDown);
+    grab.addEventListener("pointermove", onMove, { passive: false });
+    grab.addEventListener("pointerup", onUp);
+    grab.addEventListener("pointercancel", onUp);
+    return () => {
+      grab.removeEventListener("pointerdown", onDown);
+      grab.removeEventListener("pointermove", onMove);
+      grab.removeEventListener("pointerup", onUp);
+      grab.removeEventListener("pointercancel", onUp);
+      pop.style.transform = "";
+      pop.style.transition = "";
+    };
+  }, [open, root, onClose]);
 }
