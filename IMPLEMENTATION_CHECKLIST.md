@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **122 open** (11 of them in progress), **287 done**.
+At last update: **122 open** (11 of them in progress), **290 done**.
 
 ---
 
@@ -110,13 +110,17 @@ as unavailable and the report email says a person will run it by hand. The tool
 works without it -- that is rule 1 of the programme -- but the key is worth
 twenty minutes.
 
+**Three more shipped on 2026-09-16** and are archived in `# Done`: the
+contrast checker, the readability checker and the ad budget & reach
+calculator. All three are pure, Class A, no network and no key -- there was
+never a reason for them to wait on anything.
+
 Later, in rough order: a CrUX field-data card beside the audit (free, 150
 queries a minute, sub-second); a brand asset pack from an uploaded logo using
-`sharp`, which is already installed, giving a palette, a WCAG contrast grid and
-a favicon set; a standalone contrast checker as the cheap subset of that; a
-single-page broken-link check; a Flesch readability score; an ad budget and CPM
-calculator. (The AI running-cost calculator came off this list on 2026-09-15 and
-is archived in `# Done`.)
+`sharp`, which is already installed, giving a palette, a WCAG contrast grid --
+now trivial, since the contrast maths already exists in `lib/contrast.ts` --
+and a favicon set; a single-page broken-link check. (The AI running-cost
+calculator came off this list on 2026-09-15 and is archived in `# Done`.)
 
 Deliberately not building: anything needing headless Chrome (Unlighthouse,
 Puppeteer, axe-core run by us) -- PageSpeed Insights already runs Lighthouse
@@ -427,6 +431,56 @@ with the rest of section 4's content and settings work.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-16, three more free tools: contrast, readability, ad budget
+
+- [x] **The contrast checker (`/tools/contrast`).** Two colours in, the real
+  WCAG ratio out against all six thresholds (AA/AAA, normal/large text, and
+  UI components) at once, answering live as you type -- no submit, no
+  network, no key. `lib/contrast.ts` parses hex and `rgb()`/`rgba()`,
+  applies the published relative-luminance formula exactly (checked against
+  the formula's own maximum: black on white is 21:1 to three decimal
+  places), and never clamps a ratio, because clamping would hide exactly
+  the pairing that most needs rewriting. A half-typed hex code holds the
+  last good answer rather than erroring, the same "don't be naggy"
+  principle the rest of the site's forms already follow. Registered on the
+  branding service page; this is the "cheap subset of the brand asset
+  pack" the checklist already named, and the brand asset pack itself now
+  reuses this exact library rather than a second implementation.
+  `scripts/check-contrast.mjs` (22 checks, `npm run check:contrast`) and
+  `tests/contrast.spec.ts` (5 cases) both pass.
+- [x] **The readability checker (`/tools/readability`).** Paste copy, get
+  the Flesch Reading Ease and Grade Level scores instantly, with a plain
+  line of advice rather than a bare number. `lib/readability.ts` counts
+  syllables with the same vowel-group heuristic most open-source Flesch
+  implementations converge on -- documented honestly, including its two
+  known limitations (a blanket "-ed" strip, and vowel triphthongs
+  occasionally over-splitting) rather than claimed as exact. Starts from
+  real homepage copy already scored rather than a blank box, so the first
+  thing a visitor sees is the tool proving itself on a sentence we are
+  willing to be judged by. Registered on the SEO service page.
+  `scripts/check-readability.mjs` (22 checks, `npm run check:readability`)
+  and `tests/readability.spec.ts` (4 cases) both pass.
+- [x] **The ad budget & reach calculator (`/tools/ad-budget`).** One naira
+  figure compared across five platforms (Meta, Google Search, Google
+  Display, TikTok, LinkedIn) at once, from each platform's own published
+  CPM and click-through ranges for this market, reviewed 2026-09 like the
+  estimator's own rate card. Ranges are paired at the same end
+  deliberately -- the cheapest CPM with the LOWEST click-through rate that
+  cheap reach tends to come with, not the highest, so the estimate never
+  prints a rosier number than either extreme on its own would produce.
+  Registered on the social service page. `scripts/check-ad-budget.mjs` (18
+  checks, `npm run check:ad-budget`) and `tests/ad-budget.spec.ts` (3
+  cases) both pass.
+- [x] **All three wired through the existing `lib/tools.ts` registry**
+  rather than by hand-editing the footer, the sitemap and each service
+  page separately -- adding one entry there is what put all three on
+  their matching service page, in the footer's Tools column and in
+  `sitemap.xml` for free, confirmed by `tests/service-tools.spec.ts` (which
+  already covers the registry generically and needed no changes) and by
+  reading `sitemap.xml` directly off a live dev server.
+  `tests/button-colours.spec.ts` (5/5) confirms nothing about these three
+  pages' shared chrome broke, and `npm run build` completes clean.
 
 ## Closed 2026-09-16, the "sent" screen's buttons and the R2 upload diagnostic
 

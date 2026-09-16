@@ -115,6 +115,39 @@ export const FREE_TOOLS: FreeTool[] = [
     icon: "ShieldCheck",
     services: ["web"],
   },
+  {
+    slug: "contrast",
+    href: "/tools/contrast",
+    title: "Can people actually read that colour combination?",
+    blurb:
+      "Two colours in, the real WCAG ratio out, checked against all six thresholds at once. Runs on your own device, and answers as you type.",
+    action: "Check two colours",
+    short: "Contrast checker",
+    icon: "Contrast",
+    services: ["branding"],
+  },
+  {
+    slug: "readability",
+    href: "/tools/readability",
+    title: "Is your website copy actually easy to read?",
+    blurb:
+      "Paste a paragraph and get the Flesch Reading Ease and Grade Level scores instantly, with plain advice on the number. Runs on your own device.",
+    action: "Check your copy",
+    short: "Readability checker",
+    icon: "BookOpenText",
+    services: ["seo"],
+  },
+  {
+    slug: "ad-budget",
+    href: "/tools/ad-budget",
+    title: "How far does an ad budget actually go?",
+    blurb:
+      "One naira figure compared across five platforms at once, from each one's own published CPM and click-through ranges for this market. No ad account needed to see it.",
+    action: "Price a budget",
+    short: "Ad budget calculator",
+    icon: "BarChart3",
+    services: ["social"],
+  },
 ];
 
 export function toolsFor(service: ServiceSlug) {
