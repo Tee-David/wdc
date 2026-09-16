@@ -139,6 +139,61 @@ test.describe("the mobile picker sheet", () => {
   });
 });
 
+/**
+ * The "sent" screen's own two buttons, reported as near-white text on a
+ * white fill -- 1.09:1, from a screenshot of "Back to the site". Root cause:
+ * `Link` renders an `<a>`, and `.pv a { color: inherit }` in preview.css is
+ * (0,1,1), which beats a bare `.ob__btn--go { color: var(--btn-ink) }` at
+ * (0,1,0) regardless of source order. The label quietly inherited the page's
+ * own text colour instead of the token meant to contrast with its own fill.
+ *
+ * REACHING THE REAL SCREEN NEEDS A SUBMITTED FORM, which this suite does not
+ * drive end to end. What actually broke was two rules and their specificity,
+ * not anything about the submit flow, so the exact markup the real screen
+ * renders (`.ob__btn.ob__btn--go` / `.ob__btn.ob__btn--ghost`, an `<a>` each,
+ * inside `.ob.ob--sent`) is dropped onto a live page and read with the
+ * browser's own cascade -- the same CSS the real screen would resolve,
+ * without needing to fabricate a submission.
+ */
+test("the sent screen's own buttons keep their contrast against the page's inherited link colour", async ({ page }) => {
+  await page.goto("/onboarding");
+  await page.evaluate(() => {
+    const main = document.querySelector("main.pv");
+    if (!main) throw new Error("no main.pv on the page");
+    main.insertAdjacentHTML("beforeend", `
+      <div class="ob ob--sent" id="btn-probe">
+        <div class="ob__acts ob__acts--sent">
+          <a class="ob__btn ob__btn--go" href="/">Back to the site</a>
+          <a class="ob__btn ob__btn--ghost" href="/work">See what we have made</a>
+        </div>
+      </div>`);
+  });
+
+  const contrasts = await page.evaluate(() => {
+    const lum = ([r, g, b]: number[]) => {
+      const c = [r, g, b].map((v) => {
+        const s = v / 255;
+        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+    };
+    const rgb = (s: string) => (s.match(/[\d.]+/g) ?? ["0", "0", "0"]).slice(0, 3).map(Number);
+    const ratio = (a: number[], b: number[]) => {
+      const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m);
+      return (x + 0.05) / (y + 0.05);
+    };
+    return [".ob__btn--go", ".ob__btn--ghost"].map((sel) => {
+      const el = document.querySelector(`#btn-probe ${sel}`)!;
+      const cs = getComputedStyle(el);
+      return { sel, fill: cs.backgroundColor, ink: cs.color, ratio: ratio(rgb(cs.color), rgb(cs.backgroundColor)) };
+    });
+  });
+
+  for (const { sel, ratio, fill, ink } of contrasts) {
+    expect(ratio, `${sel}: ink ${ink} on fill ${fill} should clear WCAG AA (4.5:1)`).toBeGreaterThanOrEqual(4.5);
+  }
+});
+
 /** A synthetic touch drag on an element, since Playwright has no built-in
     swipe gesture: dispatches the same pointer event sequence a finger would,
     which usePickerOpen's own listeners (real addEventListener calls) respond

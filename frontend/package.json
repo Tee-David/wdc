@@ -17,7 +17,8 @@
     "check:estimate": "node --experimental-strip-types scripts/check-estimate.mjs",
     "check:ai-cost": "node --experimental-strip-types scripts/check-ai-cost.mjs",
     "check:link-preview": "node --experimental-strip-types scripts/check-link-preview.mjs",
-    "check:seo-audit": "node --experimental-strip-types scripts/check-seo-audit.mjs"
+    "check:seo-audit": "node --experimental-strip-types scripts/check-seo-audit.mjs",
+    "check:r2": "node --experimental-strip-types scripts/check-r2.mjs"
   },
   "dependencies": {
     "better-auth": "^1.7.4",

@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **122 open** (11 of them in progress), **285 done**.
+At last update: **122 open** (11 of them in progress), **287 done**.
 
 ---
 
@@ -427,6 +427,67 @@ with the rest of section 4's content and settings work.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-16, the "sent" screen's buttons and the R2 upload diagnostic
+
+- [x] **"Back to the site" on the onboarding form's own "sent" screen
+  rendered near-white text on a white fill (1.09:1), reported from a
+  screenshot.** Root-caused rather than guessed: `Link` renders an `<a>`,
+  and `preview.css` carries `.pv a { color: inherit }` at specificity
+  (0,1,1). The button's own rule, `.ob__btn--go { color: var(--btn-ink) }`,
+  is a bare class at (0,1,0) and LOSES to it regardless of source order --
+  so the label quietly inherited the page's own text colour instead of the
+  token meant to contrast with its own fill. Fixed the way this same file
+  already handles every other case of this exact trap (see its own
+  SPECIFICITY note at the top): `.ob__btn--go`, its hover state,
+  `.ob__btn--ghost`, its hover state, and the disabled-hover case are now
+  `.pv .ob__btn--go` etc, (0,2,0), which beats (0,1,1) outright.
+  `.ob__btn--danger` already had the prefix; the primary/secondary pair
+  had simply been missed when it was retrofitted.
+- [x] **Verified without needing to submit a real form.** What broke was
+  two CSS rules and their specificity, not the submit flow, so
+  `tests/onboarding.spec.ts` drops the exact markup the "sent" screen
+  renders onto a live page and reads the browser's own resolved
+  `color`/`background-color` against WCAG AA (4.5:1). Confirmed the test
+  actually catches the regression by reverting the CSS fix and watching it
+  fail, then restoring it and watching it pass.
+- [x] **Reported separately: R2 uploads failing with "The upload did not
+  finish. It is worth trying again." despite the bucket, the public
+  endpoint and the API token all being set up already.** Read the whole
+  path end to end -- `dropzone.tsx`, the `/api/onboarding/upload` route,
+  the SigV4 signing and the existing CORS diagnostic in `lib/r2.ts` -- and
+  found it internally correct: a fixed SigV4 vector confirms `presignPut`
+  and a generalised `presignRequest({method:"PUT"})` produce byte-identical
+  URLs, and Nigerian phone numbers aside, nothing here was broken by
+  anything in this repository.
+  THE MESSAGE ITSELF WAS THE GAP. It is shown specifically when the
+  server's own CORS preflight simulation SUCCEEDS -- meaning the bucket's
+  CORS policy is correctly configured for this exact origin -- and yet the
+  browser's real PUT still failed outright (`xhr.onerror`, not a readable
+  403). That combination has one very common cause `probeCors` cannot see:
+  CORS and object permissions are two separate checks R2 makes, and a
+  token that can sign a request but is scoped to Read only (or to a
+  different bucket) gets a 403 whose error body, in practice, often carries
+  no `Access-Control-Allow-Origin` -- so the browser blocks the response
+  from script entirely and reports the exact same `onerror` a dropped
+  connection would.
+  Added `probeWrite()`: a request from THIS SERVER is never subject to
+  CORS at all, so it can settle the question outright by actually signing
+  and writing a tiny diagnostic object, reading R2's real answer, and
+  cleaning up after itself. When CORS checks out, the upload route now
+  runs this second probe and returns its verdict instead of a shrug: either
+  confirmation that the credentials really can write (pointing at something
+  transient) or, the likely case here, "the token can sign a request but
+  is not allowed to write to this bucket -- check its permissions in the
+  Cloudflare dashboard."
+- [x] **`scripts/check-r2.mjs` (new, `npm run check:r2`)** pins the pure
+  parts of `lib/r2.ts` -- key derivation, that changing the content type or
+  the key changes the signature, that `presignPut` and
+  `presignRequest({method:"PUT"})` agree -- and drives `probeCors` and
+  `probeWrite` through every branch with a stubbed `fetch`, including the
+  403-reads-as-a-permissions-problem case this fix exists for. 26/26 pass.
+  `npm run build` and the onboarding/estimator/button-colours suites all
+  still pass.
 
 ## Closed 2026-09-16, the mobile picker sheet can actually be dismissed
 
