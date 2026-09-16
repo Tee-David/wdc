@@ -340,11 +340,19 @@
 
    The pair now, like every other button: the primary filled in the ground's
    strong tone, the back button filled in the weak one, each hovering into what
-   the other is. The form keeps every other orange it has. */
-.ob__btn--go { background: var(--btn-fill); color: var(--btn-ink); border-color: var(--btn-fill); }
-.ob__btn--go:hover { background: var(--btn-ink); color: var(--btn-fill); border-color: var(--btn-fill); }
-.ob__btn--ghost { background: var(--btn-ink); color: var(--btn-fill); border-color: var(--btn-fill); }
-.ob__btn--ghost:hover { background: var(--btn-fill); color: var(--btn-ink); border-color: var(--btn-fill); }
+   the other is. The form keeps every other orange it has.
+
+   `.pv` PREFIXED, PER THE FILE'S OWN RULE AT THE TOP, and this is exactly the
+   case it warns about: `Link` renders an `<a>`, and `.pv a { color: inherit }`
+   in preview.css is (0,1,1). A bare `.ob__btn--go` is (0,1,0) and LOSES to it
+   regardless of source order, so the label quietly inherited the surrounding
+   text colour instead of `--btn-ink` -- on the "sent" screen that read as
+   near-white on white, which is 1.09:1. `.pv .ob__btn--go` is (0,2,0), which
+   beats (0,1,1) on the second term alone. */
+.pv .ob__btn--go { background: var(--btn-fill); color: var(--btn-ink); border-color: var(--btn-fill); }
+.pv .ob__btn--go:hover { background: var(--btn-ink); color: var(--btn-fill); border-color: var(--btn-fill); }
+.pv .ob__btn--ghost { background: var(--btn-ink); color: var(--btn-fill); border-color: var(--btn-fill); }
+.pv .ob__btn--ghost:hover { background: var(--btn-fill); color: var(--btn-ink); border-color: var(--btn-fill); }
 /* Grid children fill their track, which stretched this pill across the whole
    72ch column and made it read as a banner rather than a button. */
 .ob--intro .ob__btn--go { margin-top: 2rem; justify-self: start; }
@@ -393,7 +401,7 @@
 }
 /* A disabled button does not answer a hover, so it holds its resting colours
    rather than half-performing the swap. */
-.ob__btn--go:disabled:hover { background: var(--btn-fill); color: var(--btn-ink); border-color: var(--btn-fill); }
+.pv .ob__btn--go:disabled:hover { background: var(--btn-fill); color: var(--btn-ink); border-color: var(--btn-fill); }
 
 .pv .ob__err {
   margin: 1rem 0 0;

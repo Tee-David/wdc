@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookieToken, draftFromToken, requestOriginIsAllowed } from "@/lib/onboarding-server";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
-import { presignPut, probeCors, r2Config, uploadKey } from "@/lib/r2";
+import { presignPut, probeCors, probeWrite, r2Config, uploadKey } from "@/lib/r2";
 
 /**
  * Authorises ONE upload, to a key of our choosing, for five minutes.
@@ -98,9 +98,26 @@ export async function POST(request: NextRequest) {
        and that answer is the difference between telling somebody their
        connection dropped and telling them, correctly, that the bucket does
        not allow this origin yet. */
-    const verdict = await probeCors({ config: config.config, origin });
-    console.error(`[r2] upload transport failed for ${file}: ${verdict.detail}`);
-    return NextResponse.json({ reason: verdict.reason, corsOk: verdict.ok }, { status: 200 });
+    const corsVerdict = await probeCors({ config: config.config, origin });
+    if (!corsVerdict.ok) {
+      console.error(`[r2] upload transport failed for ${file}: ${corsVerdict.detail}`);
+      return NextResponse.json({ reason: corsVerdict.reason, corsOk: false }, { status: 200 });
+    }
+
+    /* CORS CHECKS OUT, SO THE FAILURE THE BROWSER SAW IS SOMETHING ELSE, AND
+       THIS SERVER CAN FIND OUT WHICH: a request made from here is never
+       subject to CORS at all, so a real signed write either succeeds or
+       fails on its own permissions -- see the note on probeWrite for why a
+       wrong-scoped token produces the exact same onerror a dropped
+       connection does. */
+    const writeVerdict = await probeWrite({ config: config.config });
+    console.error(
+      `[r2] upload transport failed for ${file}: cors ok (${corsVerdict.detail}); write probe: ${writeVerdict.detail}`,
+    );
+    return NextResponse.json(
+      { reason: writeVerdict.reason, corsOk: true, writeOk: writeVerdict.ok },
+      { status: 200 },
+    );
   }
 
   const filename = typeof body.filename === "string" ? body.filename.slice(0, 200) : "";
