@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import NextImage from "next/image";
-import type React from "react";
-import { useEffect, useState } from "react";
 import TextType from "@/components/ui/text-type";
 import { LogoGlyph } from "@/components/ui/logo-glyph";
 import LogoLoop from "@/components/ui/logo-loop";
@@ -76,183 +74,32 @@ function LogoMarquee() {
   );
 }
 
-/**
- * The backdrop cycle: one image per discipline, so the thing behind the claim
- * changes as you watch and covers the whole offer rather than one corner of it.
- *
- * Supplied by the studio and processed rather than dropped in raw — the
- * originals are 2576px camera files and this paints a 16:10 band. Each is
- * centre-cropped to that shape once, at build time, instead of being letterboxed
- * or squashed by the browser: a 2.5MB image resized on every load is the single
- * heaviest thing a hero can do to a phone on mobile data. Six images, 1.1MB
- * total, and only the first is eager.
- */
-const BG_IMAGES = [
-  "/hero/web-design.jpg",
-  "/hero/design-desk.jpg",
-  "/hero/mobile-dev.jpg",
-  "/hero/ai-key.jpg",
-  "/hero/search-console.jpg",
-  "/hero/robotics.jpg",
-];
-
-/* Five is the number of bands. Enough that the wipe reads as a wipe rather
-   than a two-piece split, few enough that a 390px phone still gets 78px
-   slices and the compositor still gets one viewport of texture in total. */
-const SLATS = 5;
+/** The hero uses one optimized, high-priority image. Keeping it stable avoids
+ * decoding and compositing more full-viewport photography while the visitor
+ * reads or scrolls. */
+const HERO_IMAGE = "/hero/web-design.jpg";
 
 function HeroBackdrop() {
-  const [i, setI] = useState(0);
-  /* THE FRAME WE CAME FROM, and the whole reason the transition used to look
-     grey. Only one backdrop was ever mounted: `key` remounted it on every
-     change, so the incoming image animated from opacity 0 with NOTHING behind
-     it, and for the length of the fade the hero was the page's own dark ground
-     seen through the scrim. That is not a crossfade, it is a dip to grey and
-     back. Holding the previous frame underneath at full opacity means the new
-     one fades over a picture instead of over a hole. */
-  const [prev, setPrev] = useState<number | null>(null);
-  const [warmNext, setWarmNext] = useState(false);
-
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const id = setInterval(() => setI((p) => { setPrev(p); return (p + 1) % BG_IMAGES.length; }), 5000);
-    return () => clearInterval(id);
-  }, []);
-
-  useEffect(() => {
-    // Keep the second frame out of the initial network queue. It only becomes
-    // visible after five seconds, so fetching it during the LCP window makes
-    // the first frame slower for no user-visible benefit.
-    const id = window.setTimeout(() => setWarmNext(true), 3500);
-    return () => window.clearTimeout(id);
-  }, []);
-
-  const next = BG_IMAGES[(i + 1) % BG_IMAGES.length];
-
   return (
     <div
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
-      {/* THE ANIMATION MOVED TO A WRAPPER so the picture itself can be a
-          `next/image`. The crossfade and the slow scale are identical -- they
-          are transform and opacity either way -- but the image is now resized
-          per device and served as AVIF or WebP instead of as the raw 1.1MB set
-          of JPEGs. This is the homepage's LCP element, and it was measuring
-          5.4s on emulated mobile against a 2.5s target. */}
-      {/* The outgoing frame, held still and fully opaque until the incoming one
-          has covered it. No animation of its own: it is a floor, not a layer
-          anyone is meant to notice. */}
-      {prev !== null && prev !== i ? (
-        <div className="absolute inset-0">
-          <NextImage
-            src={BG_IMAGES[prev]}
-            alt=""
-            fill
-            sizes="100vw"
-            quality={70}
-            className="object-cover"
-          />
-        </div>
-      ) : null}
-
-      {/* FIRST FRAME: one plain image, no slats.
-
-          The first backdrop is the page's Largest Contentful Paint, and the
-          wipe below exists to move BETWEEN pictures. Running it on arrival
-          would start the LCP element at opacity 0 in five pieces, which is the
-          exact mistake the headline comment further down describes. So the
-          entrance stays the plain fade it was, and the wipe only ever runs from
-          the second slide onward -- by which time `prev` is set. */}
-      {prev === null ? (
-        <div className="hero-backdrop absolute inset-0">
-          <NextImage
-            src={BG_IMAGES[i]}
-            alt=""
-            fill
-            /* Full-bleed at every width, so the browser should pick the
-               variant that matches the viewport and nothing smaller. */
-            sizes="100vw"
-            /* It is the LCP element, so it is preloaded and fetched at high
-               priority; every later frame appears at least five seconds in and
-               has no business competing for that queue. Marking more than one
-               image `priority` is the commonest way to make LCP worse rather
-               than better. */
-            priority
-            quality={70}
-            className="object-cover"
-          />
-        </div>
-      ) : (
-        /* THE SLIT WIPE.
-
-           Five vertical bands of the incoming photograph slide into place in
-           sequence over the frame we came from. It reads as one picture being
-           drawn across the other rather than as a dissolve, and it is the
-           reason `@vfx-js/core` was turned down: that would have cost a live
-           WebGL context and a permanent requestAnimationFrame loop on the
-           page's LCP element. This costs neither.
-
-           WHY IT IS CHEAP. Each band is a `overflow: hidden` window holding
-           the same image, shifted left by its own index so the picture lines
-           up across all five -- so the five layers add up to exactly one
-           viewport of texture, the same as the single layer it replaces, and
-           the browser makes one network request because every band asks for
-           the same URL. Only `transform` and `opacity` are animated, both of
-           which the compositor handles without the main thread, so the wipe
-           cannot collide with hydration, scrolling, or the typing headline.
-
-           WHY THE ZOOM IS ON THE CONTAINER. A transform on a band moves that
-           band's slice of the picture relative to its neighbours; that is the
-           effect, and it resolves to zero. A SCALE per band would do the same
-           thing permanently at the seams, because each band would scale about
-           its own centre. Scaling the container scales all five together, so
-           the slow push-in survives with the picture intact. */
-        <div
-          key={BG_IMAGES[i]}
-          className="hero-slats"
-          style={{ "--n": SLATS } as React.CSSProperties}
-        >
-          {Array.from({ length: SLATS }, (_, k) => (
-            <span
-              className="hero-slat"
-              key={k}
-              style={{ "--k": k } as React.CSSProperties}
-            >
-              <span className="hero-slat__in">
-                <NextImage
-                  src={BG_IMAGES[i]}
-                  alt=""
-                  fill
-                  sizes="100vw"
-                  quality={70}
-                  className="object-cover"
-                />
-              </span>
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* WARMING THE NEXT FRAME. The crossfade is 1.4s and an unfetched image
-          cannot make that, so without this the first pass through the set fades
-          to blank and then pops. This used to be `new Image()` with the raw
-          path, which now fetches the ORIGINAL JPEG and defeats the optimiser
-          entirely -- the wrong file, at full size, on every slide. Rendering
-          the next frame as a real `next/image` at zero opacity fetches exactly
-          the variant the visible one will ask for, so when it comes round it is
-          already in the cache. */}
-      {warmNext ? (
+      {/* One stable LCP image. The former carousel mounted five full-viewport
+          copies for every transition and kept decoding new hero images while
+          the visitor was trying to scroll. A static backdrop keeps the same
+          composition without the recurring memory and compositor pressure. */}
+      <div className="absolute inset-0">
         <NextImage
-          key={`warm-${next}`}
-          src={next}
+          src={HERO_IMAGE}
           alt=""
           fill
           sizes="100vw"
+          priority
           quality={70}
-          className="object-cover opacity-0"
+          className="object-cover"
         />
-      ) : null}
+      </div>
       {/* Keep the photography visible while the white hero copy remains clear.
           A light base plus a scrim shaped to the copy, NOT one flat veil --
           see .hero-scrim in globals.css for the measurements behind the

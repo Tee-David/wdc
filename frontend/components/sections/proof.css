@@ -15,26 +15,21 @@
    a headline.
    ========================================================================== */
 
-/* THE CARD SITS ON THE ALT GROUND SO IT READS AS A CARD. `--paper` on
-   `--paper-2` is white on warm off-white in the light theme and near-black on
-   navy-black in the dark one; both give the panel an edge without a heavy
-   border doing the work. */
+/* Flat on its section ground: this block groups the figures through spacing
+   and its internal rule, without drawing a second outlined, floating panel. */
 .pv .pf__card {
-  border: 1px solid var(--rule);
+  border: 0;
   border-radius: clamp(18px, 2.2vw, 28px);
   background: var(--paper);
   padding: clamp(1.4rem, 3.4vw, 2.75rem);
-  /* Low and wide rather than dark: the reference's card floats, and a heavy
-     shadow on a light page reads as a box rather than a lift. */
-  box-shadow: 0 18px 50px -32px rgba(0, 0, 26, .38);
+  box-shadow: none;
 }
 /* NO SEPARATE DARK FILL IN THE DARK THEME. `--paper` is a near-black navy
    there, darker than the `--paper-2` ground this section (`.pv-sec--alt`)
    already sits on, so the card read as a second, blacker box stacked on the
    band above it. Matching the section's own ground keeps this one navy blue
-   straight down the page, with only the hairline and shadow left to mark
-   the card. */
-.dark .pv .pf__card { background: var(--paper-2); box-shadow: 0 18px 50px -30px rgba(0, 0, 0, .8); }
+   straight down the page. */
+.dark .pv .pf__card { background: var(--paper-2); box-shadow: none; }
 
 /* ------------------------------------------------------------------- top */
 
