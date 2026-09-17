@@ -21,7 +21,9 @@
     "check:r2": "node --experimental-strip-types scripts/check-r2.mjs",
     "check:contrast": "node --experimental-strip-types scripts/check-contrast.mjs",
     "check:ad-budget": "node --experimental-strip-types scripts/check-ad-budget.mjs",
-    "check:readability": "node --experimental-strip-types scripts/check-readability.mjs"
+    "check:readability": "node --experimental-strip-types scripts/check-readability.mjs",
+    "check:broken-links": "node --experimental-strip-types scripts/check-broken-links.mjs",
+    "check:brand-kit": "node --experimental-strip-types scripts/check-brand-kit.mjs"
   },
   "dependencies": {
     "better-auth": "^1.7.4",
@@ -42,6 +44,7 @@
     "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "sharp": "^0.35.4",
     "simple-icons": "^16.26.0"
   },
   "devDependencies": {

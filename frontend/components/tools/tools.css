@@ -269,6 +269,13 @@
 .pv .tl__find .tl__raw { grid-column: 1 / -1; }
 
 .pv .tl__finddetail { margin: 0; font-size: .93rem; line-height: 1.6; color: var(--ink); }
+.pv .tl__finddetail a { word-break: break-all; }
+
+/* The broken-link checker's two small marks: an external-site glyph beside a
+   link's own text, and the same glyph reused after its address to say the
+   line opens elsewhere. Sized off the text around it rather than a fixed
+   pixel value, so it scales with the finding name or the address it sits in. */
+.pv .bl__ext { width: .8em; height: .8em; margin-left: .3em; vertical-align: -0.1em; display: inline; }
 
 /* The record itself. `anywhere` because an SPF record is one long unbroken
    token and would otherwise push the card wider than the phone. */
@@ -918,3 +925,95 @@
   font-size: 1.35rem; font-weight: 700; color: var(--ink);
 }
 .pv .rd__stats span { font-size: .78rem; color: var(--muted); }
+
+/* ==========================================================================
+   THE BRAND ASSET PACK
+
+   A file input dressed as a drop target -- the click and keyboard path is
+   the real control, `role="button"` on the wrapper, and the native
+   `<input type="file">` is visually hidden rather than removed, so drag-drop
+   from the OS still lands on it and a screen reader still finds a real file
+   input rather than a div pretending to be one.
+   ========================================================================== */
+
+.pv .bk__drop {
+  display: grid; justify-items: center; gap: .5rem;
+  padding: 1.6rem 1rem;
+  border: 1.5px dashed var(--rule); border-radius: 16px;
+  background: var(--paper); text-align: center; cursor: pointer;
+  transition: border-color .2s ease, background-color .2s ease;
+}
+.pv .bk__drop:hover, .pv .bk__drop:focus-visible {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, var(--paper));
+}
+.pv .bk__drop:focus-visible { outline: none; }
+.pv .bk__dropIcon { width: 2rem; height: 2rem; color: var(--muted); }
+.pv .bk__dropText { font-size: .92rem; color: var(--muted); }
+.pv .bk__thumb {
+  width: 4rem; height: 4rem; object-fit: contain;
+  background: repeating-conic-gradient(#e5e5e5 0% 25%, transparent 0% 50%) 50% / 12px 12px;
+  border-radius: 8px;
+}
+.dark .pv .bk__thumb { background: repeating-conic-gradient(#3a3a3a 0% 25%, transparent 0% 50%) 50% / 12px 12px; }
+/* Visually hidden rather than `display: none`, so it stays focusable and
+   remains a real drop target for a file dragged from the desktop. */
+.pv .bk__fileInput {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+.pv .bk__palette { margin: 0; padding: 0; list-style: none; display: grid; gap: .5rem; }
+.pv .bk__swatchRow {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center; gap: .8rem;
+  padding: .7rem .9rem;
+  border: 1px solid var(--rule); border-radius: 12px;
+  background: var(--paper);
+}
+.pv .bk__chip {
+  width: 2.2rem; height: 2.2rem; border-radius: 50%; flex: none;
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+}
+.pv .bk__swatchInfo { display: grid; gap: .1rem; min-width: 0; }
+.pv .bk__swatchHex {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 600; font-size: .95rem; color: var(--ink);
+  text-transform: uppercase;
+}
+.pv .bk__contrastPair {
+  display: grid; gap: .15rem; justify-items: end;
+  font-size: .82rem; font-weight: 600; white-space: nowrap;
+}
+.pv .bk__contrastPair span { display: inline-flex; align-items: center; gap: .3rem; }
+.pv .bk__contrastPair svg { width: .9rem; height: .9rem; stroke-width: 3; }
+.pv .bk__contrastPair .is-pass { color: #1a8a4a; }
+.pv .bk__contrastPair .is-fail { color: #d13b2f; }
+
+.pv .bk__favicons {
+  margin: 0; padding: 0; list-style: none;
+  display: grid; gap: .7rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr));
+}
+.pv .bk__favicon {
+  display: grid; justify-items: center; gap: .3rem;
+  padding: .9rem .6rem;
+  border: 1px solid var(--rule); border-radius: 12px;
+  background: var(--paper); text-align: center;
+}
+.pv .bk__favicon img {
+  background: repeating-conic-gradient(#e5e5e5 0% 25%, transparent 0% 50%) 50% / 10px 10px;
+  border-radius: 6px;
+}
+.dark .pv .bk__favicon img { background: repeating-conic-gradient(#3a3a3a 0% 25%, transparent 0% 50%) 50% / 10px 10px; }
+.pv .bk__faviconLabel {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 600; font-size: .82rem; color: var(--ink);
+}
+.pv .bk__faviconDl {
+  display: inline-flex; align-items: center; gap: .3rem;
+  margin-top: .2rem; font-size: .82rem; font-weight: 600; color: var(--accent-ink);
+}
+.pv .bk__faviconDl svg { width: .85rem; height: .85rem; }
+.pv .bk__faviconDl:hover { text-decoration: underline; }

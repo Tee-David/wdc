@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **122 open** (11 of them in progress), **290 done**.
+At last update: **122 open** (11 of them in progress), **312 done**.
 
 ---
 
@@ -115,12 +115,14 @@ contrast checker, the readability checker and the ad budget & reach
 calculator. All three are pure, Class A, no network and no key -- there was
 never a reason for them to wait on anything.
 
-Later, in rough order: a CrUX field-data card beside the audit (free, 150
-queries a minute, sub-second); a brand asset pack from an uploaded logo using
-`sharp`, which is already installed, giving a palette, a WCAG contrast grid --
-now trivial, since the contrast maths already exists in `lib/contrast.ts` --
-and a favicon set; a single-page broken-link check. (The AI running-cost
-calculator came off this list on 2026-09-15 and is archived in `# Done`.)
+**Two more shipped on 2026-09-17** and are archived in `# Done`: the brand
+asset pack and the single-page broken-link check. That was the rest of the
+"later" list except the CrUX card, which is Class B and stays open below.
+
+Later: a CrUX field-data card beside the audit (free, 150 queries a minute,
+sub-second, but it is a Google Cloud key -- Class B, same as PageSpeed --
+rather than something to build blind). (The AI running-cost calculator came
+off this list on 2026-09-15 and is archived in `# Done`.)
 
 Deliberately not building: anything needing headless Chrome (Unlighthouse,
 Puppeteer, axe-core run by us) -- PageSpeed Insights already runs Lighthouse
@@ -431,6 +433,67 @@ with the rest of section 4's content and settings work.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-17, the last of section 1B: brand kit and broken links
+
+- [x] **The brand asset pack (`/tools/brand-kit`).** A logo upload in, a
+  real colour palette, a WCAG contrast row per colour against white and
+  black, and a six-size favicon set (16 through 512, transparent
+  background, cropped to fit) out. `sharp` was already in the dependency
+  tree -- `next/image`'s own optimizer resolves it -- and is now a direct
+  dependency at the exact version already locked, rather than code relying
+  on a transitive one Next could stop needing. The palette comes from
+  `lib/color-quantize.ts`, a bucket-counting reducer written for this
+  rather than a clustering library: round each channel to a coarse step,
+  count the buckets, average the real pixels inside the winner. Pixels more
+  than about 12% transparent are not counted, so a logo on a transparent
+  background reports its own colours rather than the checkerboard. The
+  contrast row reuses `lib/contrast.ts` exactly -- no second
+  implementation -- and a live upload of a flat #ff6500 square reproduces
+  the 2.95:1-on-white figure AGENTS.md already states by hand for that
+  colour, which is the cross-check that the maths agrees with itself
+  everywhere it is used.
+- [x] **NOTHING UPLOADED IS STORED.** Decoded, measured and resized for the
+  length of one request, in memory, then gone -- no R2, no database row.
+  `lib/r2.ts` stays reserved for what it already does: onboarding and admin
+  uploads, which are ours to keep. The route checks the declared
+  `content-length` before it reads a byte of the body, then the actual file
+  size again once it has it, so an oversized upload never reaches `sharp`
+  at all (capped at 8MB and 25 megapixels either way).
+- [x] **The single-page broken-link check (`/tools/broken-links`).** One
+  page fetched through the existing SSRF-guarded `fetchPage`, every
+  `<a href>` on it read by the new pure `lib/broken-links.ts`
+  (deduplicated, `mailto:`/`tel:`/`javascript:`/anchor-only links never
+  enter the list, capped at 25), then every one of those checked in
+  parallel -- eight at a time -- through a new `checkLink` added to
+  `lib/fetch-page.ts` rather than a second SSRF path: a HEAD request,
+  retried once as GET only when a server answers HEAD with 405 or 501, so a
+  site that simply does not support HEAD is never reported as broken for
+  it. Results are sorted broken first, then the ones we genuinely could not
+  reach, then the ones that work -- nothing is filtered out of the list,
+  because a tool that hides what it could not verify can be wrong silently.
+  "Could not check" and "broken" stay two different words throughout,
+  including in the one figure the headline reports.
+- [x] **Both registered through `lib/tools.ts`** like every tool before
+  them, which is what put brand-kit on the branding service page and
+  broken-links on the web service page, both in the footer's Tools column
+  and both in `sitemap.xml`, confirmed by reading a live dev server rather
+  than assumed from the registry alone.
+- [x] **Pure logic checked without a browser**: `scripts/check-brand-kit.mjs`
+  (12 checks, `npm run check:brand-kit`) against hand-built pixel buffers,
+  and `scripts/check-broken-links.mjs` (19 checks, `npm run check:broken-links`)
+  against hand-built HTML. The browser half -- a real upload actually
+  producing a real palette and a real favicon set with nothing sent to an
+  email; broken links actually sorting before working ones; an unreachable
+  private address still refused in a sentence through the real endpoint --
+  is `tests/brand-kit.spec.ts` (5 cases) and `tests/broken-links.spec.ts`
+  (6 cases), both passing against a production build. `npm run lint`,
+  `npx tsc --noEmit` and `npm run build` are all clean, and
+  `tests/button-colours.spec.ts` / `tests/service-tools.spec.ts` confirm
+  nothing about the shared chrome these two pages sit inside broke.
+- [x] Section 1B is now fully shipped except the CrUX field-data card, which
+  is Class B (a Google Cloud API key) and stays open under that section
+  rather than being built against a key nobody has set.
 
 ## Closed 2026-09-16, three more free tools: contrast, readability, ad budget
 

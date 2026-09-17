@@ -125,6 +125,7 @@ async function walk(
   input: string,
   accept: string,
   signal: AbortSignal,
+  method: "GET" | "HEAD" = "GET",
 ): Promise<
   | { ok: true; response: Response; url: URL; redirects: string[] }
   | { ok: false; reason: FetchPageFailure; status?: number }
@@ -141,6 +142,7 @@ async function walk(
     let response: Response;
     try {
       response = await fetch(url, {
+        method,
         /* BY HAND. `follow` would re-resolve and re-connect with none of the
            checks above applied to wherever it landed. */
         redirect: "manual",
@@ -316,5 +318,43 @@ export async function probeImage(input: string): Promise<ImageProbe> {
     ...(imageSizeFromBytes(body.bytes) ?? { width: null, height: null }),
     contentType,
     truncated: false,
+  };
+}
+
+/* -------------------------------------------------------------------- link */
+
+/**
+ * Whether one link on somebody's page actually answers, for the broken-link
+ * checker at /tools/broken-links.
+ *
+ * A HEAD REQUEST, RETRIED AS GET ONCE. HEAD is cheap -- no body to read or
+ * cap -- but some servers answer it with 405 or 501 when GET would have
+ * worked fine, and reporting that as a broken link would be wrong about the
+ * one thing this tool promises to get right. The body is never read either
+ * way; only the status this link answered with matters here.
+ *
+ * EVERYTHING ELSE IS `walk()`: the same SSRF guard, the same two-hop redirect
+ * limit, the same public-host check on every hop including the first.
+ */
+export type LinkCheckResult =
+  | { ok: true; status: number; url: string; redirected: boolean }
+  | { ok: false; reason: FetchPageFailure; status?: number };
+
+const LINK_DEADLINE_MS = 6_000;
+
+export async function checkLink(input: string): Promise<LinkCheckResult> {
+  const signal = AbortSignal.timeout(LINK_DEADLINE_MS);
+  let walked = await walk(input, "*/*", signal, "HEAD");
+  if (!walked.ok && walked.reason === "http-error" && (walked.status === 405 || walked.status === 501)) {
+    walked = await walk(input, "*/*", signal, "GET");
+  }
+  if (!walked.ok) return walked;
+
+  await walked.response.body?.cancel().catch(() => {});
+  return {
+    ok: true,
+    status: walked.response.status,
+    url: walked.url.toString(),
+    redirected: walked.redirects.length > 0,
   };
 }
