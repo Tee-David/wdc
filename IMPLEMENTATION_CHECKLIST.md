@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **114 open** (26 of them in progress), **365 done**.
+At last update: **117 open** (24 of them in progress), **368 done**.
 
 ---
 
@@ -166,7 +166,6 @@ and one is only half fixed -- said plainly below rather than folded into the
 - [ ] Let authenticated clients link or unlink Google in account settings; require another usable sign-in method before unlinking their last identity.
 - [ ] Bind each client invitation to the intended normalized email and project/client record; store only a token hash, set an expiry, enforce one-time redemption, and reject email substitution or replay.
 - [ ] Let an invited client create credentials or continue with an approved Google identity without granting admin access; keep the project relationship attached to the same client account.
-- [-] Audit Fluent Forms for where dropdowns, radios, checkboxes, multi-selects and free text are intentionally used. UNBLOCKED 2026-09-17: what arrived in `plans/` is the plugin SOURCE, free and Pro v6.2.14 (`fluentform.6.2.14.zip`, `fluentformpro_v6.2.14.zip`), not form exports, which is more useful: the builder, notifications, entries and payments can be read rather than guessed. A full audit is running and lands in `plans/fluent-forms-audit.md`, scoped to the admin form builder as well as this onboarding question.
 
 ## 1B. Free tools on the service pages
 
@@ -351,6 +350,7 @@ running code rather than assumed from the file's own claims.
 
 ### 4.5 Money, invoices, payments, and expenditure
 
+- [ ] Close the payment gaps the Fluent Forms audit found in our own money module (section 6.5): record a row for every checkout attempt; check that Paystack's verified metadata matches the invoice before applying; carry live/test `mode` on every payment and provider event (all environments share one database today); handle refund and dispute webhooks; add a "view on Paystack" link. The webhook currently trusts the signed payload without re-verifying with Paystack, which the 2A item above already requires.
   ADDRESSED BY A RANDOM TOKEN, NEVER BY THE NUMBER. Invoice numbers are sequential by design -- that is what makes them auditable -- so a page at `/i/INV-2026-004` would hand anyone holding one invoice every other invoice the studio has raised, by subtracting one. The token is 128 bits from `crypto.getRandomValues`, it is the entire authorisation, and a wrong one gets a plain 404 rather than a message confirming the format was right. A draft has no public page at all. Pinned by `tests/money-documents.spec.ts`: the number 404s, a near-miss token 404s, a draft's token 404s.
 
   THE CODE WAS DECODED, NOT LOOKED AT, and the first attempt failed. These URLs carry a full absolute address plus a token, and the mark in the middle forces error-correction level H, so they need far more modules than a blog slug: at the 136px the blog rail uses, jsQR found NO code at all at 1x, 2x and 3x. Two fixes, both measured. The token moved from 32 hex characters to 22 base64url ones -- the same 128 bits, ten fewer characters of data. And `.qr__code`'s hard 136px cap became a variable, with the documents asking for 160px. All 36 decodes then passed. `content-visibility: auto` was also turned off for still codes: it exists to stop a looping animation below the fold, a still code has no loop, and it was leaving the code unrendered in a screenshot or print taken before it scrolled into view.
@@ -445,7 +445,12 @@ running code rather than assumed from the file's own claims.
 
 ### 4.6 Forms, builder, onboarding, and submissions
 
-- [-] Consolidate the supplied Fluent Forms material and research into a concise WDC form-builder specification (in progress 2026-09-17: plugin source audit running, report at `plans/fluent-forms-audit.md`) covering field types, validation, conditional logic, calculated/default values, notifications, confirmations, exports, and accessibility.
+Read `plans/fluent-forms-audit.md` before starting anything in this section. It is the specification: every Fluent Forms area with KEEP / ADAPT / DROP verdicts and evidence, the data model, the admin screen map inside the six-page rule, the data-table standard (section 9), the mail transport (section 10), payments (section 6.5), and a phased plan of about 17 to 21 weeks.
+
+- [ ] Phase 0 of the form-builder plan: every outbound email writes a log row. Only the three money emails go through `deliver()` in `lib/money-mail.ts`; contact, newsletter, onboarding, tool reports and password reset call `sendMail` directly and leave no trace when they fail. Route them all through the outbox, with no email bodies stored (re-render from template and record ids).
+- [ ] Build one shared admin data table to the standard in section 9 of the audit: state in the URL, keyset (cursor) pagination with a stable sort key plus id, 25/50/100 per page, capped counts, filter chips, saved views, select-all-matching for bulk actions, streamed CSV export that respects filters, a card layout at 320px, geometry-matched skeletons, `aria-sort` headers. Clients already follows most of this; Money, Forms and the logs have no pagination at all and the logs are hard-capped at 20 to 100 rows.
+- [ ] Build the notification centre from the audit: event, rule, template, log. A form notification is one kind of rule. Move the existing transactional templates into it with the code versions as fallback; eight templates in `lib/email-templates.ts` are currently never called.
+- [ ] Store every contact enquiry. `/api/contact` sends an email and keeps nothing, so an enquiry that fails to send is simply gone.
 - [ ] Rebuild Forms to Litch parity with draft/published/archived states, submission counts, last activity, duplication, preview, share link, and clear primary actions.
 - [ ] Build a responsive form editor with sections/steps, reusable fields, labels/helpers/placeholders, option editing, required state, ordering, conditional visibility, and live preview without a heavy drag-and-drop dependency.
 - [ ] Support text, textarea, email, phone, number, date, URL, radio, checkbox, multi-select, short/long dropdown, searchable long list, address/country, consent, and file upload controls.
@@ -648,6 +653,12 @@ blocked at all.
 - [x] SMTP DELIVERY VERIFIED. Authentication succeeds with the credentials in `.env`, which match Vercel's for all five SMTP variables. A plainly worded message to the owner's inbox was accepted `250 OK` and the owner confirmed receipt. Worded like correspondence rather than a diagnostic, because Truehost's outbound filter discards test-sounding mail (see the open item in section 2). The spam-folder problem is a separate open item and is not closed by this.
 - [x] THE SMTP PASSWORD RE-SYNC IS DONE, and checked by comparing values rather than trusting the earlier note: Vercel's `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER` and `SMTP_PASSWORD` equal `.env` on every target, and Doppler dev, stg and prd all carry the full set.
 - [x] PAYSTACK KEYS INVENTORIED AND SYNCED. Both secret keys answer 200 from Paystack's API. Vercel production runs `PAYSTACK_MODE=live` with the live key as `PAYSTACK_SECRET_KEY`; preview and development run `test` with the test key. Doppler prd carries the live pair and stg the test pair. No values were printed at any point; comparisons were done by equality.
+
+## Closed 2026-09-17, the Fluent Forms audit
+
+- [x] FLUENT FORMS AUDITED FROM ITS SOURCE, not from exports. `plans/` holds the plugin source, free and Pro v6.2.14, which answers the original question better than exports would have: which control each kind of question uses, and why, is readable directly. Written up in `plans/fluent-forms-audit.md` (about 1,370 lines, gitignored like the rest of `plans/`), covering the builder and every field type, notifications and routing, confirmations, settings and spam protection, entries, tables, pagination and filtering, mail transport including FluentSMTP, payments in depth, the database schema, and how all of it links to clients, estimates, invoices, Paystack and receipts. Every area has KEEP / ADAPT / DROP verdicts with evidence.
+- [x] THE WDC FORM-BUILDER SPECIFICATION exists as the same report's data model, screen map and phased plan, which is what the old "consolidate into a concise specification" item asked for. The build itself is open under 4.6.
+- [x] WARNING RECORDED: `plans/fluentformpro_v6.2.14.zip` is a pirated ("nulled") copy that fakes its licence by intercepting Fluent's licence server. Reference only; never install it anywhere. Both plugins are GPL: studying behaviour is fine, copying code, element definitions, CSS or branding is not.
 
 ## Closed 2026-09-17, headings stress one phrase
 
@@ -1964,6 +1975,7 @@ the count at the top wrong again.
 
 ### 4.5 Money, invoices, payments, and expenditure
 
+- [ ] Close the payment gaps the Fluent Forms audit found in our own money module (section 6.5): record a row for every checkout attempt; check that Paystack's verified metadata matches the invoice before applying; carry live/test `mode` on every payment and provider event (all environments share one database today); handle refund and dispute webhooks; add a "view on Paystack" link. The webhook currently trusts the signed payload without re-verifying with Paystack, which the 2A item above already requires.
 - [x] Done, and it needed more than pointing the existing helper at a new string. The code has to resolve to something a client can open without an account, so there are now public invoice and receipt documents at `/i/<token>` and `/r/<token>`.
 - [x] All five, and the list lives in one place now. The action used to re-type `["Paystack", "Transfer", "Cash"]`, so adding POS and Other to the union in types.ts would have silently kept rejecting both and filed them as "Transfer" -- there is one reader and one list. "Other" is labelled rather than left as a gap, and picking it REQUIRES saying what it actually was: recording money against an unnamed catch-all is how a set of books stops being auditable.
 - [x] All seven, and the point of the work was keeping them APART rather than adding seven buttons.
