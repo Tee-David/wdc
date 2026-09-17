@@ -172,16 +172,30 @@ type Common = {
  * knows. What is added is an echo in words, fixed to en-GB so it says the same
  * thing to everybody: "Monday, 14 September 2026". No dependency, no second
  * calendar to maintain, and the ambiguity is gone.
+ *
+ * WRITTEN BY HAND, NOT BY `toLocaleDateString`. Naming "en-GB" pins the
+ * language but not the CLDR data an engine formats it with, and Node's ICU
+ * and Chrome's disagree on this exact pattern: one writes "Thursday 17
+ * September 2026", the other "Thursday, 17 September 2026", comma and all.
+ * Server and client rendered different text for the same input, which React
+ * treats as a hydration failure and discards the subtree to rebuild it on
+ * every date field -- caught by `pageerror` events on `/admin` and
+ * `/admin/money` in a full render, not by anything a snapshot of markup
+ * would show. A fixed table can never drift between two engines.
  */
+const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
 function inWords(value: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return "";
   /* Midday UTC, so reading it back in Lagos or in London names the same day --
      the same reason `isoDate` in validate.ts stores it that way. */
   const d = new Date(`${value}T12:00:00.000Z`);
   if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString("en-GB", {
-    weekday: "long", day: "numeric", month: "long", year: "numeric",
-  });
+  return `${WEEKDAYS[d.getUTCDay()]}, ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
 export function Field({
