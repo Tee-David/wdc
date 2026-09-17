@@ -1338,6 +1338,29 @@ export function clearSetting(key: string, actor = "Studio"): boolean {
   return had;
 }
 
+export const FINANCE_DEFAULTS = { vatRate: 7.5, dueInDays: 30 };
+
+/**
+ * The studio's own defaults for a new invoice or estimate, read off the
+ * generic settings override and validated on the way out rather than on the
+ * way in: `setSetting` accepts any non-empty string for any key, so a saved
+ * "abc" or "-4" falls back to what shipped here instead of reaching the
+ * builder as NaN or a negative due date.
+ */
+export function financeDefaults(): typeof FINANCE_DEFAULTS {
+  /* `Number(null)` is `0`, not `NaN` -- a raw `Number(getSetting(...))` would
+     have read an absent override as a valid 0% VAT rate. Reading the string
+     first and only converting when there is one avoids that trap. */
+  const rawVat = getSetting("finance.vatRate");
+  const rawDue = getSetting("finance.dueInDays");
+  const vatRate = rawVat === null ? NaN : Number(rawVat);
+  const dueInDays = rawDue === null ? NaN : Number(rawDue);
+  return {
+    vatRate: Number.isFinite(vatRate) && vatRate >= 0 ? vatRate : FINANCE_DEFAULTS.vatRate,
+    dueInDays: Number.isFinite(dueInDays) && dueInDays > 0 ? Math.trunc(dueInDays) : FINANCE_DEFAULTS.dueInDays,
+  };
+}
+
 /* ============================================================ delivery ====
    Tasks, updates and deliverables.
 
