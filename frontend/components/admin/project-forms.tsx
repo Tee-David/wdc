@@ -12,14 +12,15 @@ const STAGE_OPTIONS = STAGES.map((s) => ({ value: s, label: s }));
 const CHANNEL_OPTIONS = CHANNELS.map((c) => ({ value: c, label: c }));
 
 export function AddProject({
-  clients, clientId,
+  clients, clientId, dataTour,
 }: {
   clients: Pick<Client, "id" | "company">[];
   /** Fixed when opened from a client's own page, chosen otherwise. */
   clientId?: string;
+  dataTour?: string;
 }) {
   return (
-    <DialogButton label="New project" title="Open a project" icon={Plus} wide>
+    <DialogButton label="New project" title="Open a project" icon={Plus} wide dataTour={dataTour}>
       {/* createProject redirects to the project it opened. */}
       {() => (
         <Form action={createProject}>

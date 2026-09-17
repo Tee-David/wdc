@@ -12,6 +12,7 @@ import { AddExpense, EstimateBuilder, InvoiceBuilder } from "@/components/admin/
 import {
   EstimateMenu, ExpenseMenu, InvoiceMenu, PaymentMenu,
 } from "@/components/admin/row-actions";
+import PageTourButton from "@/components/admin/tour/page-tour-button";
 
 export const metadata = { title: "Money" };
 
@@ -58,9 +59,10 @@ export default function MoneyPage() {
           <p>In, out, and what is still owed.</p>
         </div>
         <div className="ad__row">
+          <PageTourButton />
           <AddExpense projects={projects} />
           <EstimateBuilder clients={getClients()} projects={projects} />
-          <InvoiceBuilder clients={getClients()} projects={projects} />
+          <InvoiceBuilder clients={getClients()} projects={projects} dataTour="money-add" />
         </div>
       </div>
 
@@ -98,7 +100,7 @@ export default function MoneyPage() {
         </p>
       ) : null}
 
-      <dl className="ad__tiles">
+      <dl className="ad__tiles" data-tour="money-tiles">
         <Tile label="Collected" value={nairaShort(s.collected)} tone="good" />
         <Tile label="Outstanding" value={nairaShort(s.outstanding)} tone={s.outstanding ? "bad" : undefined} />
         <Tile label="Overdue" value={nairaShort(s.overdue)} tone={s.overdue ? "bad" : "good"} />

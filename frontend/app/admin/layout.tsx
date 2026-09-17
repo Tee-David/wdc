@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import AdminShell from "@/components/admin/shell";
+import AdminTourProvider from "@/components/admin/tour/tour-provider";
 import { getSubmissions } from "@/lib/admin/store";
 import { getAdminRequest } from "@/lib/admin/session";
 import "@/components/admin/admin.css";
@@ -41,12 +42,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="ad">
-      <AdminShell
-        counts={{ Forms: open }}
-        user={{ name: session.user.name, email: session.user.email, image: session.user.image }}
-      >
-        {children}
-      </AdminShell>
+      <AdminTourProvider role={(session.user as typeof session.user & { role?: string }).role ?? "owner"}>
+        <AdminShell
+          counts={{ Forms: open }}
+          user={{ name: session.user.name, email: session.user.email, image: session.user.image }}
+        >
+          {children}
+        </AdminShell>
+      </AdminTourProvider>
     </div>
   );
 }

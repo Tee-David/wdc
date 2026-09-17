@@ -5,6 +5,7 @@ import { getSettings } from "@/lib/admin/store";
 import { DemoNote, Panel } from "@/components/admin/bits";
 import { SettingMenu } from "@/components/admin/row-actions";
 import AuditLog from "@/components/admin/audit-log";
+import PageTourButton from "@/components/admin/tour/page-tour-button";
 
 export const metadata = { title: "Settings" };
 
@@ -48,6 +49,7 @@ export default function SettingsPage() {
           <h1>Settings</h1>
           <p>Content on the public site, and how the agency runs.</p>
         </div>
+        <PageTourButton />
       </div>
 
       <DemoNote>
@@ -60,7 +62,7 @@ export default function SettingsPage() {
 
       <div className="ad__stack">
         <Panel title="Editable content">
-          <div className="ad__scroll">
+          <div className="ad__scroll" data-tour="settings-table">
             <table className="ad__t">
               <thead>
                 <tr>

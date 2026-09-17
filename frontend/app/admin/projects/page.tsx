@@ -9,6 +9,7 @@ import {
 } from "@/components/admin/bits";
 import { AddProject } from "@/components/admin/project-forms";
 import { ProjectMenu } from "@/components/admin/row-actions";
+import PageTourButton from "@/components/admin/tour/page-tour-button";
 
 export const metadata = { title: "Projects" };
 
@@ -98,13 +99,14 @@ export default async function ProjectsPage({
         <div className="ad__row">
           {/* Two links styled as one control. Server-rendered from the URL, so
               the choice survives a reload and can be linked to. */}
-          <span className="ad__switch">
+          <span className="ad__switch" data-tour="projects-switch">
             {/* The default sits on the left, which is the order somebody
                 reads them in and the order they are in the URL. */}
             <Link href={withQuery(q, { view: "" })} aria-current={!board}>List</Link>
             <Link href={withQuery(q, { view: "board" })} aria-current={board}>Board</Link>
           </span>
-          <AddProject clients={getClients()} />
+          <PageTourButton />
+          <AddProject clients={getClients()} dataTour="projects-add" />
         </div>
       </div>
 

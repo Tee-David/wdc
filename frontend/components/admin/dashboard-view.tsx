@@ -17,6 +17,7 @@ import { AddExpense, InvoiceBuilder } from "./money-forms";
 import { AddProject } from "./project-forms";
 import { InvoiceMenu, ProjectMenu, SubmissionMenu } from "./row-actions";
 import { DemoNote, Empty, Panel, StagePill, Tile, when } from "./bits";
+import PageTourButton from "./tour/page-tour-button";
 import "./dashboard.css";
 
 function greeting() {
@@ -111,7 +112,10 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
           <h1>{greeting()}{firstName ? `, ${firstName}` : ""}</h1>
           <p>Start with what needs a decision, a reply, or a payment follow-up.</p>
         </div>
-        <AddProject clients={clients} />
+        <div className="ad__row">
+          <PageTourButton />
+          <AddProject clients={clients} />
+        </div>
       </header>
 
       <DemoNote>
@@ -127,7 +131,11 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
 
       <div className="adDash__layout">
         <main className="adDash__work">
-          <Panel title="Attention needed" action={<Link href="/admin/projects">Open projects <ArrowRight aria-hidden="true" /></Link>}>
+          <Panel
+            title="Attention needed"
+            dataTour="dash-attention"
+            action={<Link href="/admin/projects">Open projects <ArrowRight aria-hidden="true" /></Link>}
+          >
             {attention.length ? (
               <div className="adDash__attention">
                 {attention.slice(0, 6).map((item) => {
@@ -169,7 +177,7 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
         </main>
 
         <aside className="adDash__rail">
-          <Panel title="Quick actions">
+          <Panel title="Quick actions" dataTour="dash-quick-actions">
             <div className="adDash__actions">
               <AddClient />
               <InvoiceBuilder clients={clients} projects={projects} />
