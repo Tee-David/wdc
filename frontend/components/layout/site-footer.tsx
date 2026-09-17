@@ -43,6 +43,13 @@ const SOCIALS: { label: string; href: string }[] = [];
 
 export function SiteFooter() {
   const year = new Date().getFullYear();
+  /* THIRTEEN TOOLS NOW, AND ONE COLUMN READS AS A SCROLL. Split at the
+     midpoint rather than curated by hand, so a fourteenth tool added to
+     `lib/tools.ts` rebalances the two headings on its own instead of
+     piling onto whichever list somebody left longer. */
+  const toolsHalf = Math.ceil(FREE_TOOLS.length / 2);
+  const toolsA = FREE_TOOLS.slice(0, toolsHalf);
+  const toolsB = FREE_TOOLS.slice(toolsHalf);
 
   return (
     <footer className="pv ft">
@@ -66,7 +73,7 @@ export function SiteFooter() {
             </p>
           </div>
 
-          <nav className="ft__col" aria-label="Site">
+          <nav className="ft__col ft__col--company" aria-label="Site">
             <h2>Company</h2>
             <ul>
               {NAV.map((n) => (
@@ -80,7 +87,7 @@ export function SiteFooter() {
               as the small print nobody clicks; the same four plus the way to
               reach a person reads as the column you check when you want
               something. */}
-          <nav className="ft__col" aria-label="Useful links">
+          <nav className="ft__col ft__col--useful" aria-label="Useful links">
             <h2>Useful links</h2>
             <ul>
               {LEGAL_DOCS.map((d) => (
@@ -97,22 +104,32 @@ export function SiteFooter() {
             </ul>
           </nav>
 
-          {/* THE TOOLS, FROM THE SAME REGISTRY THE SERVICE PAGES READ.
+          {/* THE TOOLS, FROM THE SAME REGISTRY THE SERVICE PAGES READ, SPLIT
+              IN TWO. Thirteen tools in one list was a scroll rather than a
+              column, and the four-menu grid this footer now arranges as two
+              rows of two needed a fourth heading to fill anyway -- "Tools"
+              and "More tools" split the same registry rather than inventing
+              a second one, so a tool added to `lib/tools.ts` still needs no
+              edit here.
 
-              Both tools had shipped without a single link to them anywhere on
-              the site. The service page fixed that for a reader already on the
-              matching service; this fixes it for everybody else, and a footer
-              is where people look for a site's small free things.
-
-              Rendered from `lib/tools.ts`, so the next one appears here the
-              moment it is added and nobody has to remember this file. The
-              column hides itself if the list is ever empty rather than leaving
-              a heading with nothing under it. */}
-          {FREE_TOOLS.length > 0 ? (
-            <nav className="ft__col" aria-label="Free tools">
+              Both hide themselves if the underlying list is ever empty
+              rather than leaving a heading with nothing under it. */}
+          {toolsA.length > 0 ? (
+            <nav className="ft__col ft__col--tools" aria-label="Free tools">
               <h2>Tools</h2>
               <ul>
-                {FREE_TOOLS.map((t) => (
+                {toolsA.map((t) => (
+                  <li key={t.slug}><Link href={t.href}>{t.short}</Link></li>
+                ))}
+              </ul>
+            </nav>
+          ) : null}
+
+          {toolsB.length > 0 ? (
+            <nav className="ft__col ft__col--more" aria-label="More free tools">
+              <h2>More tools</h2>
+              <ul>
+                {toolsB.map((t) => (
                   <li key={t.slug}><Link href={t.href}>{t.short}</Link></li>
                 ))}
               </ul>
