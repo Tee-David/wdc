@@ -586,11 +586,11 @@ line-by-line split of what closed and what did not.
   `components/admin/tour/tour-blur.tsx` renders four fixed bands framing
   the current target's rect instead, recomputed on every step and kept
   fresh through scrolling and resizing.
-- [x] **A confetti burst on Finish**, never on Skip -- a small
-  dependency-free canvas animation in the site's own palette
-  (`lib/tours/confetti.ts`), off entirely under reduced motion, verified
-  live by watching the canvas element appear and remove itself after the
-  23-step walkthrough's closing step.
+- [x] **A confetti burst on Finish**, never on Skip. Built once as its own
+  canvas animation, then replaced -- see the entry below -- with the exact
+  component the onboarding form's own "sent" screen already uses, so the
+  two moments share one celebration rather than two that merely resemble
+  each other.
 
   FOUND AND FIXED ALONG THE WAY, each one a genuine bug rather than a
   planned step: (1) a step's optional `placement` set to `undefined`
@@ -649,6 +649,27 @@ line-by-line split of what closed and what did not.
   `tests/admin-responsive.spec.ts` (18 cases combined, 5 skipped for
   needing a database) still pass alongside it. `npm run lint`,
   `npx tsc --noEmit` and `npm run build` are all clean.
+
+## Closed 2026-09-17, the tour's confetti reuses the onboarding form's own, rather than a second implementation of the same idea
+
+- [x] **`lib/tours/confetti.ts` deleted.** It was a working canvas-based
+  burst, but a second implementation of "confetti at the end of a
+  celebratory moment" was never the goal -- asked directly to match "the
+  one at the end of onboarding", the tour now mounts
+  `components/onboarding/confetti.tsx` itself: the same CSS-keyframe
+  burst, the same brand palette, the same reduced-motion handling, reused
+  rather than resembled. `AdminTourProvider` mounts it on `onFinish` with
+  an incrementing `key`, because the component hides itself for good once
+  its own timer runs out and a second finish in the same session needs a
+  fresh instance to animate again, not a prop flipped on one that has
+  already decided it is done.
+- [x] **Verified live, twice**: the tour's own case fired 70 pieces on the
+  first finish, settled to zero on its own, then fired a fresh 70 on a
+  second finish in the same session without a page reload. The
+  onboarding form's own test suite (7 cases) still passes unchanged,
+  confirming the shared component was not altered for the admin, only
+  reused by it. `npm run lint`, `npx tsc --noEmit` and `npm run build`
+  clean; `tests/admin-tour.spec.ts` (12 cases) unaffected.
 
 ## Closed 2026-09-17, the tour's fourth pass: every drill-down page, and the icon/copy/layout feedback that came from actually looking at it
 

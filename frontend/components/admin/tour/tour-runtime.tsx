@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useJoyride, EVENTS, STATUS, type Step } from "react-joyride";
 import type { TourDef, TourStepMeta } from "@/lib/tours/types";
 import { withStepMeta } from "@/lib/tours/meta";
-import { fireConfetti } from "@/lib/tours/confetti";
 import { emit } from "@/lib/tours/events";
 import TourTooltip from "./tooltip";
 import TourBlur from "./tour-blur";
@@ -193,14 +192,13 @@ export default function TourRuntime({ tour, role, isReplay, onFinish, onSkip }: 
   useEffect(() => on(EVENTS.TOUR_END, (data) => {
     if (data.status === STATUS.FINISHED) {
       emit({ name: "completed", tourId: tour.id, tourVersion: tour.version, role, page: window.location.pathname });
-      if (!reducedMotion) fireConfetti();
       onFinish();
     } else if (data.status === STATUS.SKIPPED) {
       emit({ name: "skipped", tourId: tour.id, tourVersion: tour.version, role, page: window.location.pathname });
       onSkip();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- onFinish/onSkip are stable setters from the provider
-  }), [on, tour, reducedMotion]);
+  }), [on, tour]);
 
   return (
     <>
