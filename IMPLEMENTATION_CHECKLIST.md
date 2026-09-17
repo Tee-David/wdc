@@ -102,6 +102,53 @@ and one is only half fixed -- said plainly below rather than folded into the
   Kept open rather than folded into the fixes below because it is not
   actually fixed.
 
+  BISECTED 2026-09-17, still not minimal. Reconfirmed live first (capture
+  auth, dev mode): `/admin/clients/c1` and `/admin/clients/<missing>` both
+  answer 200, while `/admin/<unmatched-path>` correctly 404s. Then, in a
+  disposable `git worktree` (not this checkout), the client detail route was
+  cut down to bare essentials one layer at a time, re-testing after each
+  cut, in both `next dev` and a real `next build && next start`:
+  `clients/[id]/page.tsx` trimmed to just `generateMetadata` + `notFound()`
+  + a one-line body -- still 200. `app/admin/layout.tsx` trimmed to a bare
+  auth-free `force-dynamic` div -- still 200. The ROOT `app/layout.tsx`
+  (every third-party widget, the intro script, `ThemeProvider`, all of it)
+  replaced with a bare `<html><body>` -- still 200. `next.config.ts`
+  (headers, CSP, image config, the `optimizePackageImports` list, the
+  repo-root `.env` loader) replaced with an empty config object -- still
+  200. `proxy.ts` -- Next 16's rename of `middleware.ts`, matched on
+  `/admin/:path*`, confirmed present in the build output (`proxy.ts: 287ms`
+  in the dev log) and therefore the one file this pass had not already
+  ruled out by name -- deleted outright, manifest confirmed empty
+  (`"middleware": {}`), rebuilt clean -- still 200.
+
+  So it is none of: the page body, `generateMetadata`, the admin layout's
+  own auth/session logic, the client-component shell (`AdminShell`,
+  `AdminTourProvider`), the root layout's site furniture, `next.config.ts`,
+  or the auth proxy. A hand-built throwaway project reproducing the exact
+  same shape -- one `force-dynamic` layout, one `[id]` page calling
+  `notFound()` in both `generateMetadata` and the body, a segment
+  `not-found.tsx` -- does NOT show the bug, in dev or production, with one
+  dynamic route or with four sibling ones (`items`, `projects`, `money`,
+  `forms` all added to rule out a multi-route-under-one-layout
+  interaction). The one variable never isolated is the surrounding app's
+  sheer size: the real project's ~60 other routes (marketing pages, API
+  routes, other segments) versus the toy project's four. Also worth
+  recording since it was read directly rather than assumed: the comment in
+  `clients/[id]/page.tsx` claiming "`generateMetadata`... is what actually
+  gets a real 404 status out of the route" describes intended, documented
+  Next.js behaviour that this bug means does not actually hold here --
+  worth a follow-up comment fix once the real cause is known, not fixed
+  now to avoid hiding the discrepancy before it is understood.
+
+  NOT YET A FILEABLE MINIMAL REPRODUCTION. The honest state: a real,
+  isolated reproduction exists (the disposable worktree, WDC-code-free
+  down to the layout/page/config layer) but a hand-built minimal one does
+  not, and closing that last gap means bisecting the other ~55 routes
+  rather than guessing at another single file. Next step, not done here:
+  either continue that bisection, or accept the worktree itself as the
+  thing to share upstream (Vercel's own bug template accepts a repo link
+  in place of a hand-minimized case).
+
 ## 1A. Client onboarding experience
 
 - [-] Make Save and continue later create a securely hashed, single-purpose resume token and email the link through Truehost SMTP. (Token flow is complete. UPDATED 2026-09-17: the `535` is gone -- SMTP authentication succeeds with the same credentials Vercel holds, in about 22 seconds, and a real message was accepted `250 OK` and seen by the owner. What is left is sending an actual resume link through the form and opening it.)
