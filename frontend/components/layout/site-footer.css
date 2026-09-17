@@ -41,54 +41,116 @@
   padding: clamp(2.6rem, 5vw, 4.2rem) clamp(1.25rem, 4vw, 3.5rem) 0;
 }
 
-/* NAMED AREAS, NOT COLUMN COUNTING. Four real menus now that Tools split into
-   Tools and More tools -- Company, Useful links, Tools, More tools -- and the
-   one thing every width has to keep true is that they read as two rows of two,
-   never three-and-a-straggler. Brand and the subscribe box are the tall
-   columns either side of that block on a wide screen, and lead it full-width
-   everywhere narrower; areas say that once instead of coordinating grid-column
-   and order across three separate media queries the way the previous five-
-   column layout had to.
+/* THE LAYOUT, PHONE FIRST.
 
-   THE THIRD COLUMN IS WIDER THAN THE SECOND because of what is in it. Company
-   is five one-word links; Useful links ends on the studio's address, and
-   `info@wedigcreativity.com.ng` is 27 characters that mean nothing broken in
-   half -- at 1fr it was landing the "g" of ".ng" alone on a second line. The
-   width is set from the longest thing in the column rather than from tidiness
-   about equal fractions. */
+   On a phone everything is one column in reading order: the studio and the
+   subscribe box, Company as a row of pills, the tools two across, and the
+   policies as small print just above the copyright. */
 .ft__cols {
   position: relative; z-index: 2;
-  display: grid; gap: clamp(2rem, 4vw, 3rem);
-  grid-template-columns: 1fr 1fr;
-  grid-template-areas:
-    "brand      brand"
-    "company    useful"
-    "tools      more"
-    "newsletter newsletter";
+  display: grid; gap: 2rem;
 }
-.ft__brand      { grid-area: brand; }
-.ft__col--company { grid-area: company; }
-.ft__col--useful  { grid-area: useful; }
-.ft__col--tools   { grid-area: tools; }
-.ft__col--more    { grid-area: more; }
-.ft__col--sub   { grid-area: newsletter; }
+.ft__side, .ft__links { min-width: 0; }
+.ft__links { display: flex; flex-direction: column; gap: 2rem; }
+/* The small print goes last, just above the copyright. */
+.ft__col--legal { order: 1; }
 
-/* 1279, NOT 1000, AND THE ODD NUMBER IS THE POINT. The subscribe field needs
-   about 300px before its button and the line under it fit on one line;
-   measured, that arrives at 1280px viewport and not before. 1280 is also the
-   commonest laptop width there is, so the breakpoint stops one pixel short of
-   it rather than rounding down and handing the most likely desktop the worse
-   of the two layouts. Brand keeps the left rail and the subscribe box the
-   right one, tall enough to run beside both menu rows; the four menus fill
-   the two columns between them, two over two, which is the arrangement asked
-   for and the one that was missing below this width too. */
+.ft__col--tools ul { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1rem; }
+/* `.ft` in front for the same reason as the headings below: a bare
+   `.ft__col a` lost to a page stylesheet's link colour, and the tools were the
+   one list rendering bright instead of dim. */
+.ft .ft__col--tools a { color: var(--on-band-dim); }
+.ft .ft__col--tools a:hover { color: var(--on-band); }
+.ft__col--tools { padding-top: 2rem; border-top: 1px solid color-mix(in srgb, var(--on-band) 14%, transparent); }
+
+/* Visually hidden, still read out: the pills and the small print explain
+   themselves, but a screen reader moving by heading should find both. */
+.ft__col--nav h2,
+.ft__col--legal h2 {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap; margin: 0;
+}
+.ft .ft__col--nav ul { display: flex; flex-wrap: wrap; gap: 8px; }
+.ft .ft__col--nav a {
+  display: inline-flex; align-items: center; min-height: 44px;
+  padding: 0 1.1rem; border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--on-band) 24%, transparent);
+  color: var(--on-band); background-image: none;
+  transition: border-color .2s ease, background-color .2s ease;
+}
+.ft .ft__col--nav a:hover {
+  border-color: color-mix(in srgb, var(--on-band) 55%, transparent);
+  background-color: color-mix(in srgb, var(--on-band) 8%, transparent);
+}
+.ft .ft__col--legal ul { display: flex; flex-wrap: wrap; gap: 0 1rem; }
+.ft .ft__col--legal a {
+  display: inline-flex; align-items: center; min-height: 44px;
+  font-size: .8rem; background-image: none;
+  text-decoration: underline; text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ft .ft__col--nav a { transition: none; }
+}
+
+/* FROM 561PX, EVERY LIST IS A COLUMN AGAIN. The pills, the small print and the
+   hidden headings are a phone's answer to a narrow screen; with room for
+   columns, three titled lists read faster than any of them. */
+@media (min-width: 561px) {
+  .ft__col--nav h2,
+  .ft__col--legal h2 {
+    position: static; width: auto; height: auto; overflow: visible;
+    clip-path: none; white-space: normal; margin: 0 0 1rem;
+  }
+  .ft .ft__col--nav ul,
+  .ft .ft__col--legal ul { display: grid; gap: .65rem; }
+  .ft .ft__col--nav a,
+  .ft .ft__col--legal a {
+    display: inline; min-height: 0; padding: 0; border: 0; border-radius: 0;
+    font-size: .92rem; color: var(--on-band-dim); text-decoration: none;
+    background-color: transparent;
+    background-image: linear-gradient(currentColor, currentColor);
+  }
+  .ft .ft__col--nav a:hover,
+  .ft .ft__col--legal a:hover { color: var(--on-band); background-color: transparent; }
+  .ft .ft__col--legal .ft__mail { display: inline-flex; }
+
+  .ft__col--legal { order: 0; }
+  .ft__col--tools { padding-top: 0; border-top: 0; }
+  /* Down, then across, in two columns of equal length, so thirteen tools read
+     as two lists beside the others rather than one scroll. `--tool-rows` comes
+     from the markup: an explicit row count past the list's length would leave
+     empty rows whose gaps still take up height. */
+  .ft__col--tools ul {
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    grid-template-rows: repeat(var(--tool-rows, 6), auto);
+    grid-auto-columns: max-content;
+    column-gap: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  .ft__cols { gap: 2.5rem; }
+  .ft__side {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.5rem; align-items: start;
+  }
+  .ft__side .nl { margin-top: 0; }
+  .ft__links { flex-direction: row; flex-wrap: wrap; justify-content: space-between; gap: 2rem 2.5rem; }
+}
+
+/* THE SIDEBAR, FROM 1280PX. The studio and the subscribe box stack on the left
+   and the link columns fill the right, spread edge to edge so the last column
+   ends on the same line as the closing rule. Company, Useful links and two
+   columns of tools need about 740px beside a 340px sidebar, which arrives at
+   1280 and not before; below it the tablet layout above holds. */
 @media (min-width: 1280px) {
   .ft__cols {
-    grid-template-columns: 1.15fr .95fr 1.15fr 1.75fr;
-    grid-template-areas:
-      "brand company useful  newsletter"
-      "brand tools   more    newsletter";
+    grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+    gap: clamp(3rem, 5vw, 4.5rem);
   }
+  .ft__side { display: flex; flex-direction: column; gap: 0; }
+  .ft__side .nl { margin-top: 1.25rem; }
+  .ft__links { flex-wrap: nowrap; }
 }
 
 /* The card is navy in BOTH themes, so the logo's auto ink -- which is navy on
@@ -186,7 +248,7 @@
 
 .ft__base {
   position: relative; z-index: 2;
-  margin-top: clamp(3.5rem, 9vw, 6.5rem);
+  margin-top: clamp(2.5rem, 5vw, 3.5rem);
   padding-block: 1.4rem;
   border-top: 1px solid color-mix(in srgb, var(--on-band) 16%, transparent);
   display: flex; flex-wrap: wrap; gap: .6rem 1.5rem;
@@ -246,7 +308,9 @@
    case the number was written for, so it is the case that gets it. */
 @media (pointer: coarse) {
   .ft__col ul { gap: 0; }
-  .ft__col ul a {
+  /* `.ft` in front to outrank the per-column link rules above, which reset
+     `display` for the tablet and desktop columns. */
+  .ft .ft__col ul a {
     display: flex;
     align-items: center;
     min-height: 44px;
