@@ -34,7 +34,7 @@ export function ServiceTools({ service }: { service: ServiceSlug }) {
       <div className="pv-wrap">
         <div className="pv-head pv-reveal">
           <span className="pv-eyebrow">Free, and yours</span>
-          <h2>Try one before you talk to us</h2>
+          <h2 className="pv-mix">Try one <b>before you talk to us</b></h2>
           <p className="pv-lede">
             No sign-up, no email, no drip sequence afterwards. Answers in a few
             seconds, and they are the same checks we run on our own work.

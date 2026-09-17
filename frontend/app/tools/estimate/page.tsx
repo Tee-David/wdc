@@ -63,7 +63,7 @@ export default function EstimateToolPage() {
               <i aria-hidden="true">/</i>
               <span>Budget estimator</span>
             </nav>
-            <h1>What will it cost to build?</h1>
+            <h1 className="pv-mix">What will it <b>cost to build</b>?</h1>
             <p className="pv-lede">
               Eight questions, then a range in naira and dollars with the phases
               broken out. No email, no call, and nothing is sent anywhere while you

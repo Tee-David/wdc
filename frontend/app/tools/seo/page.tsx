@@ -63,7 +63,7 @@ export default function SeoToolPage() {
               <i aria-hidden="true">/</i>
               <span>SEO snapshot</span>
             </nav>
-            <h1>Why can&rsquo;t anyone find your website?</h1>
+            <h1 className="pv-mix">Why can&rsquo;t anyone <b>find your website</b>?</h1>
             <p className="pv-lede">
               Ten things Google reads off a page, checked in about a second, and what
               that page costs the person loading it, in naira. The full Lighthouse

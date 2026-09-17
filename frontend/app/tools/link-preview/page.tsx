@@ -63,7 +63,7 @@ export default function LinkPreviewToolPage() {
               <i aria-hidden="true">/</i>
               <span>Link preview checker</span>
             </nav>
-            <h1>What does your link look like when it is shared?</h1>
+            <h1 className="pv-mix">What does your link look like <b>when it is shared</b>?</h1>
             <p className="pv-lede">
               Paste it once and see the card WhatsApp, X, LinkedIn and Facebook will
               each build from it, before it goes to a group of four hundred.

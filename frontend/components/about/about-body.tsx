@@ -10,7 +10,6 @@ import { SERVICES } from "@/lib/services";
 import ScrollExpand from "@/components/ui/scroll-expand";
 import dynamic from "next/dynamic";
 import { BRAND_KINDS } from "@/lib/showcase";
-import { MOTTO } from "@/lib/site";
 
 import "@/components/preview/preview.css";
 import "@/components/services/services.css";
@@ -256,7 +255,7 @@ export default function AboutBody() {
             <p className="sv-hero__loop">
               <span>We Dig Creativity Solutions</span>
             </p>
-            <h1>{MOTTO}</h1>
+            <h1 className="pv-mix">Brilliant simplicity <b>of thought</b></h1>
             <p className="pv-lede">
               We are a creative and digital agency. We design the brand, build the
               product and run the growth that follows, with the same team on all
@@ -278,9 +277,9 @@ export default function AboutBody() {
       <section className="pv-sec">
         <div className="pv-wrap">
           <div className="ab-say pv-reveal">
-            <h2>
+            <h2 className="pv-mix">
               Most agencies hand you a logo and leave. We stay for the part where
-              it has to <em>work</em>.
+              it has to <b>work</b>.
             </h2>
             <p className="pv-lede">
               A brand that looks right but loads slowly, ranks nowhere and cannot be

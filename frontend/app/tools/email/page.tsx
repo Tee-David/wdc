@@ -62,7 +62,7 @@ export default function EmailToolPage() {
               <i aria-hidden="true">/</i>
               <span>Email check</span>
             </nav>
-            <h1>Can someone send an invoice as you?</h1>
+            <h1 className="pv-mix">Can someone <b>send an invoice as you</b>?</h1>
             <p className="pv-lede">
               Four public records decide it. Most business domains we check leave the
               door open. Yours takes about five seconds to read.

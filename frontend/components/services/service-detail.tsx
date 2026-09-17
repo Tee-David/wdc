@@ -101,7 +101,7 @@ export default function ServiceDetail({ service }: { service: Service }) {
               </div>
 
               <aside className="sv-side">
-                <h2>What you get</h2>
+                <h2 className="pv-mix"><b>What you get</b></h2>
                 <ul className="sv-deliv">
                   {service.deliverables.map((d) => <li key={d}>{d}</li>)}
                 </ul>
@@ -143,7 +143,7 @@ export default function ServiceDetail({ service }: { service: Service }) {
         <div className="pv-wrap">
           <div className="pv-head pv-reveal">
             <span className="pv-eyebrow">How it goes</span>
-            <h2>What working with us on {service.short.toLowerCase()} looks like</h2>
+            <h2 className="pv-mix">What working with us on <b>{service.short.toLowerCase()}</b> looks like</h2>
           </div>
           {/* The reference's six-card grid: a grid on desktop, and on a phone
               the same pinned horizontal run the homepage services use. */}

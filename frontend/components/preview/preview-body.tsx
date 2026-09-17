@@ -385,7 +385,7 @@ export default function PreviewBody() {
           <div className="pv-bar pv-reveal">
             <div className="pv-head">
               <span className="pv-eyebrow">Selected work</span>
-              <h2 className="pv-mix"><b>Brands that get noticed,</b> get found <b>and get results</b></h2>
+              <h2 className="pv-mix">Brands that get noticed, get found <b>and get results</b></h2>
               <p className="pv-lede">Every project below is live. Open any of them and see for yourself.</p>
             </div>
             <div className="pv-nav">
@@ -461,7 +461,7 @@ export default function PreviewBody() {
         <div className="pv-wrap">
           <div className="pv-head pv-reveal">
             <span className="pv-eyebrow">How we work</span>
-            <h2 className="pv-mix"><b>A clear line</b> from the first call <b>to what ships</b></h2>
+            <h2 className="pv-mix">A clear line from the first call <b>to what ships</b></h2>
             <p className="pv-lede">You are included at every step, rather than shown a finished thing at the end.</p>
           </div>
           <div className="pv-steps pv-reveal">
@@ -487,7 +487,7 @@ export default function PreviewBody() {
         <div className="pv-wrap">
           <div className="pv-head pv-reveal">
             <span className="pv-eyebrow">Services</span>
-            <h2 className="pv-mix"><b>Everything a brand needs</b> to show up <b>and be taken seriously</b></h2>
+            <h2 className="pv-mix">Everything a brand needs to show up <b>and be taken seriously</b></h2>
             <p className="pv-lede">
               From brand identity and websites to cross-platform apps, SEO, and AI-powered
               software; we design and engineer the entire experience, so every touchpoint
@@ -562,7 +562,7 @@ export default function PreviewBody() {
         <div className="pv-wrap">
           <div className="pv-head pv-reveal">
             <span className="pv-eyebrow">Why WDC</span>
-            <h2 className="pv-mix"><b>The creative engine</b> behind brands <b>that get results</b></h2>
+            <h2 className="pv-mix">The <b>creative engine</b> behind brands that get results</h2>
           </div>
           <div className="pv-icards pv-reveal">
             {WHY.map((w) => (
