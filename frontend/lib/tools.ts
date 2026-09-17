@@ -148,6 +148,28 @@ export const FREE_TOOLS: FreeTool[] = [
     icon: "BarChart3",
     services: ["social"],
   },
+  {
+    slug: "broken-links",
+    href: "/tools/broken-links",
+    title: "Are any of the links on your page broken?",
+    blurb:
+      "Paste one page and every link on it gets checked in parallel: which ones work, which answer with an error, and which we could not reach at all. One fetch of one page, sorted broken first.",
+    action: "Check a page",
+    short: "Broken link checker",
+    icon: "Link2Off",
+    services: ["web"],
+  },
+  {
+    slug: "brand-kit",
+    href: "/tools/brand-kit",
+    title: "What does your logo actually give you to work with?",
+    blurb:
+      "Upload your logo and get its real colour palette, a WCAG contrast check of each colour against white and black, and a six-size favicon set. Nothing you upload is stored.",
+    action: "Build a kit",
+    short: "Brand asset pack",
+    icon: "Palette",
+    services: ["branding"],
+  },
 ];
 
 export function toolsFor(service: ServiceSlug) {
