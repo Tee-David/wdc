@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **118 open** (20 of them in progress), **337 done**.
+At last update: **115 open** (21 of them in progress), **364 done**.
 
 ---
 
@@ -104,13 +104,13 @@ and one is only half fixed -- said plainly below rather than folded into the
 
 ## 1A. Client onboarding experience
 
-- [-] Make Save and continue later create a securely hashed, single-purpose resume token and email the link through Truehost SMTP. (Token flow is complete; Truehost currently rejects SMTP authentication with `535`.)
+- [-] Make Save and continue later create a securely hashed, single-purpose resume token and email the link through Truehost SMTP. (Token flow is complete. UPDATED 2026-09-17: the `535` is gone -- SMTP authentication succeeds with the same credentials Vercel holds, in about 22 seconds, and a real message was accepted `250 OK` and seen by the owner. What is left is sending an actual resume link through the form and opening it.)
 - [ ] After successful onboarding, send the client a personalized next-steps email; explain that project communication may use the client dashboard, direct chat, a WhatsApp project group where appropriate, or another agreed channel.
 - [ ] Keep client account creation optional in that email; bind its expiring, single-purpose invitation to the onboarded recipient so a forwarded link cannot register a different email address.
 - [ ] Let authenticated clients link or unlink Google in account settings; require another usable sign-in method before unlinking their last identity.
 - [ ] Bind each client invitation to the intended normalized email and project/client record; store only a token hash, set an expiry, enforce one-time redemption, and reject email substitution or replay.
 - [ ] Let an invited client create credentials or continue with an approved Google identity without granting admin access; keep the project relationship attached to the same client account.
-- [ ] BLOCKED, needs the files: audit the supplied Fluent Forms exports for where dropdowns, radios, checkboxes, multi-selects and free text are intentionally used. No Fluent Forms export exists anywhere in this repo (checked 2026-09-14), so there is nothing to audit against. The client's own forms have clearly been consulted before -- the social step's nine conditional handle fields cite them -- so the exports exist somewhere; they need to be added to `plans/` before this can be done.
+- [-] Audit Fluent Forms for where dropdowns, radios, checkboxes, multi-selects and free text are intentionally used. UNBLOCKED 2026-09-17: what arrived in `plans/` is the plugin SOURCE, free and Pro v6.2.14 (`fluentform.6.2.14.zip`, `fluentformpro_v6.2.14.zip`), not form exports, which is more useful: the builder, notifications, entries and payments can be read rather than guessed. A full audit is running and lands in `plans/fluent-forms-audit.md`, scoped to the admin form builder as well as this onboarding question.
 
 ## 1B. Free tools on the service pages
 
@@ -132,11 +132,11 @@ indexable, in the sitemap and linked from their service pages; the Nigerian
 data-cost panel is part of the SEO result rather than a page of its own. What
 is left of this section is the list below, which was always "later".
 
-ONE THING NEEDS AN ENVIRONMENT VARIABLE BEFORE IT IS WHOLE: `PAGESPEED_API_KEY`
-is not set on any environment, so the Lighthouse half of `/tools/seo` reports
-as unavailable and the report email says a person will run it by hand. The tool
-works without it -- that is rule 1 of the programme -- but the key is worth
-twenty minutes.
+`PAGESPEED_API_KEY` IS SET, as of 2026-09-17, on Vercel (production, preview,
+development) and Doppler (dev, stg, prd), and was proven against Google's API
+before it went anywhere: a live mobile run of the homepage came back in 42
+seconds. It took effect with deployment `4b257df`, so the Lighthouse half of
+`/tools/seo` is no longer the "a person will run it by hand" fallback.
 
 **Three more shipped on 2026-09-16** and are archived in `# Done`: the
 contrast checker, the readability checker and the ad budget & reach
@@ -167,13 +167,10 @@ party, which our own CSP blocks and which we should not loosen it for.
 - [ ] **Mail is delivered but filed as spam by Gmail.** Diagnosed and written up in `plans/email-deliverability.md`. Authentication is NOT the headline problem: SPF lists the sending IP and aligns, a DKIM key is published on the `default` selector, MX is correct. The problems, in order: (1) the reverse DNS for `94.23.160.111` is `rbx107b.superfasthost.cloud`, a generic PTR on a SHARED IP, so forward-confirmed reverse DNS fails and our reputation is the average of everyone else on that box; (2) DMARC is `p=none` with no `rua`, so there is no policy and no reports; (3) SPF ends `~all`. Order of work: publish a DMARC record with `rua` (costs nothing, breaks nothing), ask Truehost about the PTR and a dedicated IP, read two weeks of reports, then move to `p=quarantine` and `-all`.
 - [ ] Truehost's OUTBOUND filter scores what we send and will discard it with `550 Message discarded as high-probability spam`. Found the hard way: a test enquiry whose body read like a diagnostic ("test", "confirm the mail path end to end", "no reply needed") was rejected, while the identical route with an ordinary customer enquiry was accepted. Verified separately that the message SHAPE is fine -- plain text, our HTML blob, and the HTML with a Reply-To were all accepted when sent directly. Consequence: never test this path with text that reads like a test, and treat a 550 as content scoring rather than a broken form.
 
-- [-] Re-sync the reset SMTP password from root `.env` to Doppler dev/stg/prd and Vercel without exposing it; redeploy and send a new production test email. (Doppler and Vercel values are updated; redeployment/test delivery in progress.)
-- [ ] Verify a real SMTP delivery. (Production reached the mail server on 2026-09-12, but authentication was rejected with SMTP `535`; mailbox credentials or the accepted login identity still need correction.)
 - [ ] Verify Google origin/callback configuration for apex, `www`, Vercel, and localhost without exposing credentials.
 
 ## 2A. Payments, invoices, and transaction integrity
 
-- [ ] Inventory the newly added Paystack test/live environment key names without exposing values; sync them to Doppler and Vercel.
 - [ ] Review Litch Consulting's relevant payment, invoice, webhook, reconciliation, and audit-log patterns; adapt only what fits WDC.
 - [ ] Review Nomarc's local/private project and client-management flows; adopt only useful day-to-day patterns that fit WDC and keep the admin UX simple.
 - [ ] Support multiple payment methods per invoice: Paystack, bank transfer, cash, POS, and a clearly labelled other method.
@@ -200,7 +197,7 @@ party, which our own CSP blocks and which we should not loosen it for.
 ## 3. Performance and release verification
 
 - [-] Raise canonical-home mobile Lighthouse from the supplied 82 toward 90+ without regressing the supplied desktop 98; prioritise the 2.99s hero-text render delay, 3.8s LCP, 6.7s Speed Index, render-blocking CSS, forced reflow, and unused first-party JavaScript shown in the evidence.
-- [ ] Rerun mobile Lighthouse on the canonical domain and target 90+. BLOCKED: the PageSpeed Insights API returns 429 without a key, and local Lighthouse reports TBT about 10x worse than PSI, so it cannot give an honest absolute score. Needs a free PSI API key in the environment (25,000 queries a day). Field numbers measured directly meanwhile, live at 390px and 4x throttle: homepage LCP 1,708ms CLS 0.010, Services 1,944ms CLS 0, a service page 888ms CLS 0.002 (was 0.423 before the stage floor), Our Work 2,264ms CLS 0, Blog 1,492ms CLS 0. STILL BLOCKED as of this pass: PSI returns the same 429 without a key. See the newer local production-build numbers recorded below, and note the homepage CLS there reads 0.0563 rather than 0.010 because the hero is larger now, not because anything regressed.
+- [ ] Rerun mobile Lighthouse on the canonical domain and target 90+. UNBLOCKED 2026-09-17 and MEASURED, and the number is bad: PageSpeed Insights, mobile, live homepage -- performance **42**, accessibility 100, best practices 73, SEO 100. That is well under the 82 this item started from, so something regressed and it needs attributing before anything else here. One run; PSI varies, so re-measure before concluding. Historical note: it was blocked because the PageSpeed Insights API returns 429 without a key, and local Lighthouse reports TBT about 10x worse than PSI, so it cannot give an honest absolute score. Needs a free PSI API key in the environment (25,000 queries a day). Field numbers measured directly meanwhile, live at 390px and 4x throttle: homepage LCP 1,708ms CLS 0.010, Services 1,944ms CLS 0, a service page 888ms CLS 0.002 (was 0.423 before the stage floor), Our Work 2,264ms CLS 0, Blog 1,492ms CLS 0. STILL BLOCKED as of this pass: PSI returns the same 429 without a key. See the newer local production-build numbers recorded below, and note the homepage CLS there reads 0.0563 rather than 0.010 because the hero is larger now, not because anything regressed.
 
 ### 4.0 Reference, scope, and release guardrails
 
@@ -370,7 +367,7 @@ running code rather than assumed from the file's own claims.
 
 ### 4.6 Forms, builder, onboarding, and submissions
 
-- [ ] Consolidate the supplied Fluent Forms exports and research into a concise WDC form-builder specification covering field types, validation, conditional logic, calculated/default values, notifications, confirmations, exports, and accessibility.
+- [-] Consolidate the supplied Fluent Forms material and research into a concise WDC form-builder specification (in progress 2026-09-17: plugin source audit running, report at `plans/fluent-forms-audit.md`) covering field types, validation, conditional logic, calculated/default values, notifications, confirmations, exports, and accessibility.
 - [ ] Rebuild Forms to Litch parity with draft/published/archived states, submission counts, last activity, duplication, preview, share link, and clear primary actions.
 - [ ] Build a responsive form editor with sections/steps, reusable fields, labels/helpers/placeholders, option editing, required state, ordering, conditional visibility, and live preview without a heavy drag-and-drop dependency.
 - [ ] Support text, textarea, email, phone, number, date, URL, radio, checkbox, multi-select, short/long dropdown, searchable long list, address/country, consent, and file upload controls.
@@ -503,7 +500,7 @@ verified, and found along the way.
   FOUND AND FIXED, A REAL BUG NOT JUST A SUBTLETY: the blur did not render at all for a full pass -- confirmed by reading the SHIPPED stylesheet's own `cssRules`, which had `position`/`z-index`/`pointer-events` and no `backdrop-filter` at all. Writing both `backdrop-filter` and `-webkit-backdrop-filter` by hand, rather than leaving the build's own autoprefixer to add the vendor one only where a target browser still needs it, silently dropped the whole declaration pair somewhere in the pipeline; the unprefixed property alone survives it, proven by `.ad__topbar` in `admin.css` already doing exactly that.
 - [-] Keep Joyride above dashboard popovers but below critical system dialogs; prevent clipping, off-screen placement, background scrolling, and collisions with mobile safe areas. `zIndex: 95` sits above popovers (80) and the new blur bands (94), below the command palette and mobile drawer (100); native `<dialog>` elements sit above everything regardless of any z-index, being in the browser's own top layer. Off-screen placement is Floating UI's own flip/shift middleware, unmodified. NOT done: background scrolling is not locked while a tour runs. Considered and deliberately left alone rather than rushed -- the walkthrough needs Joyride's own scroll-into-view to reach a target below the fold, and locking `overflow` on the body would block that same mechanism from working, trading a minor polish item for a tour that cannot reach half its targets. Revisit if a real scroll-jank complaint shows up rather than guessed at now.
 - [x] Support keyboard navigation, Escape/dismissal, readable focus order, screen-reader labels, reduced motion, and minimum 44px touch targets. Escape is handled by hand (`controls.skip()` on a `keydown` listener) rather than through Joyride's own `dismissKeyAction`, whose type -- `'close' | 'next' | 'replay' | false` -- has no `'skip'` option and would only have closed the current step. `locale` keeps every button's accessible name matching its visible word (`next`/`back`/`last`→"Finish"/`skip`), rather than Joyride's own defaults, which is what WCAG's "label in name" actually asks for. `prefers-reduced-motion` turns off `scrollToFirstStep`, Joyride's own scroll animation (`scrollDuration: 0`), every icon's own motion loop, and the confetti burst on Finish; the full 23-step walkthrough was run end to end under `reducedMotion: "reduce"` with zero errors. 44px is a `@media (pointer: coarse)` rule on every tour control, matching the site-wide floor.
-- [ ] Persist tour progress/completion per authenticated account and role in CockroachDB; local storage may cache UI state but is not the cross-device source of truth. NOT done -- no database connection exists in this environment. `lib/tours/storage.ts` is written as the honest interim the checklist itself allows for, with a comment saying so, and is structured so a server read that seeds the cache is additive rather than a rewrite.
+- [ ] Persist tour progress/completion per authenticated account and role in CockroachDB; local storage may cache UI state but is not the cross-device source of truth. NOT done. CORRECTION 2026-09-17: the database is NOT missing -- `COCKROACHDB_URL` connects locally and from Vercel, and 16 tables already live there (blog, onboarding, invitations, auth, rate limits). This item and the rest of 4.9's admin data move are claimed by claude on the bridge. `lib/tours/storage.ts` is written as the honest interim the checklist itself allows for, with a comment saying so, and is structured so a server read that seeds the cache is additive rather than a rewrite.
 - [-] Never show admin-only steps to clients or staff without the relevant permission; filter steps before a tour begins. The filtering mechanism is built and wired (`TourStep.roles`, applied in `tour-runtime.tsx` before steps ever reach Joyride) but nothing in the registry actually uses it: only one role (`owner`) is wired through auth today, so there is no `staff` step to filter yet. Ready rather than exercised.
 - [x] Add "Skip tour", "Back", "Next", "Finish", and "Restart tour" behaviour with clear neutral button contrast and no dark patterns. "Restart tour" is worded "Replay..." in the topbar launcher -- the same action (clears the completion record, starts fresh) under the word this admin's own copy already uses elsewhere for a repeated action. All five verified live across the expanded 23-step walkthrough and the ten page tours: Back and Next walk it forward and back, Skip and Escape both end the tour and write a `skipped` record, Finish writes `completed`, fires a brief brand-coloured confetti burst (never on Skip), and the launcher updates every affected item to offer a replay.
 - [x] Instrument only privacy-safe tour events: started, step reached, skipped, completed, replayed, tour/version, role, and page; never capture field contents. `lib/tours/events.ts`, unchanged this pass. NOWHERE TO SEND THEM YET -- said plainly there rather than faked: this site has no analytics pipeline of its own, so `emit()` is the one seam, logging to the console in development only until a real destination exists. Verified live that `started`, `skipped`, and `replayed` are each fired exactly once and only on the action that should fire them, never on the echo of another.
@@ -515,6 +512,23 @@ verified, and found along the way.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-17, the "blocked on you" list, checked rather than assumed
+
+Every item on the list of things supposedly waiting on the owner was tested
+against the live services before anything was written here. Four were not
+blocked at all.
+
+- [x] UPLOADS NEVER LEFT THE PAGE, AND THE REASON WAS OUR OWN CSP. `connect-src` in `next.config.ts` did not include the R2 host, so the browser blocked every presigned PUT before sending it. Every server-side check passed, which is why it survived so long: the bucket's CORS allowed the live origin, `www` and localhost, a signed write from the server returned 200, and Vercel's six R2 variables match `.env` exactly -- none of those run under the page's policy. Found by driving the live form in a real browser, where the request failed with `csp`. `connect-src` now names the account's own R2 host (falling back to `*.r2.cloudflarestorage.com` if the build cannot see the account id). Verified on the live site after deploy: draft 200, grant 200, PUT 200.
+- [x] `R2_ACCOUNT_ID` IS NOT NEEDED. `lib/r2.ts` reads `CLOUDFLARE_ACCOUNT_ID` first, then `R2_ACCOUNT_ID`, then the subdomain of `CLOUDFLARE_S3_API`; the first is set everywhere. Doppler dev, stg and prd now carry `CLOUDFLARE_ACCOUNT_ID` too, and stg and prd gained the `BUCKET_NAME` they were missing.
+- [x] SMTP DELIVERY VERIFIED. Authentication succeeds with the credentials in `.env`, which match Vercel's for all five SMTP variables. A plainly worded message to the owner's inbox was accepted `250 OK` and the owner confirmed receipt. Worded like correspondence rather than a diagnostic, because Truehost's outbound filter discards test-sounding mail (see the open item in section 2). The spam-folder problem is a separate open item and is not closed by this.
+- [x] THE SMTP PASSWORD RE-SYNC IS DONE, and checked by comparing values rather than trusting the earlier note: Vercel's `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER` and `SMTP_PASSWORD` equal `.env` on every target, and Doppler dev, stg and prd all carry the full set.
+- [x] PAYSTACK KEYS INVENTORIED AND SYNCED. Both secret keys answer 200 from Paystack's API. Vercel production runs `PAYSTACK_MODE=live` with the live key as `PAYSTACK_SECRET_KEY`; preview and development run `test` with the test key. Doppler prd carries the live pair and stg the test pair. No values were printed at any point; comparisons were done by equality.
+
+## Closed 2026-09-17, headings stress one phrase
+
+- [x] EVERY MARKETING HEADING STRESSES EXACTLY ONE PHRASE, IN BOLD ITALIC, agreed with the owner from local screenshots before it shipped. The phrase can sit at the start, the middle or the end, never at both ends. Homepage and track record headings that stressed both ends were cut to one, and the page H1s on services, contact, work, about and all twelve tools, the service pages' section headings and the tools strip now follow it. Data-driven titles (blog posts, case studies, service names) and small labels are left alone.
+- [x] THE EMPHASIS HAD NOT BEEN SHOWING, and this is why. `.pv h2 { font-weight: 700 }` outranked the bare `.pv-mix { font-weight: 500 }`, so the "light" part of every mixed heading rendered Bold. The weight now sits on `.pv .pv-mix`; the colour stays on the bare class so headings on dark heroes keep their white, and the phrase inherits its heading's colour. Checked by computed style on six pages at 1440 and 390: heading 500, phrase 700 italic, colours correct. Space Grotesk ships Medium and Bold only, so 500 against 700 is the contrast available without another font file; the slant is synthesised by the browser.
 
 ## Closed 2026-09-17, the admin's own guided tour, saved for last as asked, then rebuilt to Litch's own depth
 
