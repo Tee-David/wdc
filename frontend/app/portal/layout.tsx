@@ -1,0 +1,65 @@
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import ClientShell from "@/components/client/shell";
+import { getPortalRequest } from "@/lib/portal/session";
+import { AdminState } from "@/components/admin/admin-state";
+import "@/components/admin/admin.css";
+/* The dashboard's own `adDash__*` rules (KPI grid, attention rows, compact
+   lists) -- shared by name across every portal screen the same way the
+   admin's own dashboard-view.tsx pulls them in, rather than duplicated
+   under a `portal` prefix for no visual difference. */
+import "@/components/admin/dashboard.css";
+
+/**
+ * The client portal's own shell, mirroring `app/admin/layout.tsx` almost
+ * exactly -- same reason for not inheriting the site's furniture (a
+ * preloader and a custom cursor are wrong on a screen somebody opens to
+ * check an invoice), same `force-dynamic`, same `.ad` token scope. The two
+ * audiences share one design system on purpose: AGENTS.md asks for "the
+ * established Litch-style shell" for BOTH admin and client navigation, not
+ * two shells that happen to look similar.
+ */
+export const metadata: Metadata = {
+  title: { default: "Portal", template: "%s · WDC Portal" },
+  robots: { index: false, follow: false, nocache: true },
+};
+
+export const dynamic = "force-dynamic";
+
+export default async function PortalLayout({ children }: { children: React.ReactNode }) {
+  const { session, client } = await getPortalRequest();
+
+  if (!session?.user) redirect("/login?redirect=/portal");
+  const role = (session.user as typeof session.user & { role?: string }).role;
+  if (role !== "client") redirect("/signed-in");
+
+  const user = { name: session.user.name, email: session.user.email, image: session.user.image };
+
+  /* A SIGNED-IN CLIENT WITH NO CLIENT RECORD is not an error -- it is
+     somebody the studio has not entered yet, most likely because they made
+     an account before onboarding finished. Said honestly, in the same shell
+     rather than a bare page, with the one real next step: email us. */
+  if (!client) {
+    return (
+      <div className="ad">
+        <ClientShell user={user} clientCompany={null}>
+          <section className="ad__panel">
+            <AdminState
+              kind="first-use"
+              title="Your account isn't linked to a project yet"
+              description="Nothing is missing from your side -- there is simply no client record matched to this email yet. Email us at hello@wedigcreativity.com.ng and we'll connect it, usually the same working day."
+            />
+          </section>
+        </ClientShell>
+      </div>
+    );
+  }
+
+  return (
+    <div className="ad">
+      <ClientShell user={user} clientCompany={client.company}>
+        {children}
+      </ClientShell>
+    </div>
+  );
+}

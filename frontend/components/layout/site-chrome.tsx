@@ -24,7 +24,7 @@ import UserWay from "@/components/ui/userway";
  */
 export default function SiteChrome() {
   const path = usePathname();
-  if (path.startsWith("/admin") || ["/login", "/forgot-password", "/reset-password"].includes(path)) return null;
+  if (path.startsWith("/admin") || path.startsWith("/portal") || ["/login", "/forgot-password", "/reset-password"].includes(path)) return null;
 
   return (
     <>

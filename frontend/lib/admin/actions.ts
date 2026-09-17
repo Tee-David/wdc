@@ -919,3 +919,22 @@ export async function duplicateEstimate(_prev: ActionState, fd: FormData): Promi
   refresh("/admin/money", `/admin/clients/${copy.clientId}`);
   return OK(`Copied to ${copy.number} as a draft. Change what needs changing, then send it.`);
 }
+
+/* ----------------------------------------------------------- portal: support */
+
+export async function replyToTicketAsStudio(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const body = str(fd, "body");
+  if (!body) return FAIL({ body: "Type a reply first." });
+  const t = db.addTicketMessage({ ticketId: str(fd, "id"), from: "studio", author: "Studio", body });
+  if (!t) return FAIL({}, "That conversation is no longer there.");
+  const ticket = db.getTicket(t.ticketId);
+  if (ticket) refresh(`/admin/clients/${ticket.clientId}`, "/portal/support", `/portal/support/${ticket.id}`, "/portal");
+  return OK("Reply sent.");
+}
+
+export async function closeTicket(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const t = db.setTicketStatus(str(fd, "id"), "Closed");
+  if (!t) return FAIL({}, "That conversation is no longer there.");
+  refresh(`/admin/clients/${t.clientId}`, "/portal/support", `/portal/support/${t.id}`, "/portal");
+  return OK("Closed.");
+}

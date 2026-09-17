@@ -461,6 +461,49 @@ export type Submission = {
   answers: Record<string, string | string[]>;
 };
 
+/* --------------------------------------------------------------- support ---
+
+   A CLIENT'S OWN WAY TO RAISE SOMETHING, separate from the project's own
+   update thread. `Update` is a record the STUDIO writes about a project;
+   a ticket is a conversation the CLIENT starts, about anything -- a
+   project, an invoice, or nothing on the system at all ("can we add a
+   third domain to the hosting"). Modelling it as a project update would
+   force every concern through a project that may not exist yet.
+
+   THREE STATES A CLIENT UNDERSTANDS, not a queue's internal states. "Open"
+   is the client's own last word; "Answered" is the studio's; "Closed" is
+   either side saying it is done. There is no "in progress" distinct from
+   "open" -- a ticket sitting unanswered for a day is exactly as open on
+   day two as it was when it was raised, and inventing a state for that
+   would be tracking the studio's own guilt rather than the conversation's
+   actual state. */
+export const TICKET_STATUSES = ["Open", "Answered", "Closed"] as const;
+export type TicketStatus = (typeof TICKET_STATUSES)[number];
+
+export type Ticket = {
+  id: Id;
+  clientId: Id;
+  /** Set when the client raised this about a specific project; optional,
+      because plenty of real questions are not about one. */
+  projectId?: Id | null;
+  subject: string;
+  status: TicketStatus;
+  createdAt: string;
+  /** Bumped on every reply, either direction -- what a list sorts by. */
+  updatedAt: string;
+};
+
+export type TicketMessage = {
+  id: Id;
+  ticketId: Id;
+  at: string;
+  /** Who is speaking, not who is signed in -- the studio replies as a
+      named person, the same way `Update.author` and `Payment.by` do. */
+  author: string;
+  from: "client" | "studio";
+  body: string;
+};
+
 /* ---------------------------------------------------------------- derived */
 
 /** Line total in kobo, before tax. */
