@@ -15,21 +15,17 @@
    a headline.
    ========================================================================== */
 
-/* Flat on its section ground: this block groups the figures through spacing
-   and its internal rule, without drawing a second outlined, floating panel. */
+/* NO PANEL, IN EITHER THEME. The figures sit straight on the section's own
+   ground and are grouped by spacing and the internal rule alone. A white card
+   on the light ground (and a darker one on the dark) read as a box stacked on
+   the band. With no fill there is no edge to inset from, so the side padding
+   goes too and the figures start on the same line as every other section. */
 .pv .pf__card {
   border: 0;
-  border-radius: clamp(18px, 2.2vw, 28px);
-  background: var(--paper);
-  padding: clamp(1.4rem, 3.4vw, 2.75rem);
+  background: transparent;
+  padding: clamp(1.4rem, 3.4vw, 2.75rem) 0;
   box-shadow: none;
 }
-/* NO SEPARATE DARK FILL IN THE DARK THEME. `--paper` is a near-black navy
-   there, darker than the `--paper-2` ground this section (`.pv-sec--alt`)
-   already sits on, so the card read as a second, blacker box stacked on the
-   band above it. Matching the section's own ground keeps this one navy blue
-   straight down the page. */
-.dark .pv .pf__card { background: var(--paper-2); box-shadow: none; }
 
 /* ------------------------------------------------------------------- top */
 
