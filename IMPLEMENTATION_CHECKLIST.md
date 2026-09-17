@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **122 open** (11 of them in progress), **312 done**.
+At last update: **123 open** (11 of them in progress), **316 done**.
 
 ---
 
@@ -73,6 +73,34 @@ Kept at the top because these came from someone looking at the live site, and
 that is the shortest feedback loop there is.
 
 - [ ] Truehost SMTP takes about 23 seconds just to authenticate, measured from two networks. The contact form now answers in half that by sending the receipt after the response, but the real fix is a transactional provider, which would also give proper SPF and DKIM.
+
+### From live testing, 2026-09-17
+
+The admin was loaded through the same door the skeleton capture script uses
+(`BONEYARD_CAPTURE_TOKEN` plus a local Postgres for the auth tables) and
+walked with Playwright, console and network errors watched throughout rather
+than assumed clean. Two real faults came out of that, both fixed and pinned,
+and one is only half fixed -- said plainly below rather than folded into the
+"done" pile.
+
+- [ ] **A missing admin id answers HTTP 200, not 404**, on all four dynamic
+  detail routes (`clients/[id]`, `projects/[id]`, `money/[id]`,
+  `forms/[id]`). Reproduced three ways -- curl, Node's own `fetch`, and
+  Playwright, all against a production `next start` build as well as `next
+  dev` -- so it is not a proxy or tooling artefact. `notFound()` fires (the
+  page correctly renders `app/admin/not-found.tsx`, added below) but the
+  response status stays 200. Moving the `notFound()` call into
+  `generateMetadata`, which runs before the page body and is the pattern
+  Next.js documents for exactly this race, made no difference. Every route
+  everywhere ELSE on the site (`/blog/<missing>`, `/work/<missing>`, an
+  unmatched path) returns a correct 404, including an unmatched path under
+  `/admin` itself -- only a `notFound()` called from *inside* a page nested
+  under the admin's `force-dynamic` layout is affected. Reads as a Next
+  16.3.5 framework interaction rather than anything in this app's own code,
+  worth a minimal reproduction filed upstream or an upgrade once one lands,
+  not a workaround bolted on here.
+  Kept open rather than folded into the fixes below because it is not
+  actually fixed.
 
 ## 1A. Client onboarding experience
 
@@ -433,6 +461,60 @@ with the rest of section 4's content and settings work.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-17, two real admin faults found by loading it and watching
+
+- [x] **The admin never had its own 404.** Every one of the four dynamic
+  detail routes -- `clients/[id]`, `projects/[id]`, `money/[id]`,
+  `forms/[id]` -- calls `notFound()` on a deleted or mistyped id, and with
+  no boundary anywhere under `app/admin`, that fell all the way through to
+  the ROOT `app/not-found.tsx`: the public marketing 404, complete with the
+  site header, the "lost" illustration and the `.pv` light/dark tokens. An
+  admin who followed a stale link out of an old email left the dashboard
+  entirely rather than landing on a page that still looked like the tool
+  they were using. `app/admin/not-found.tsx` fixes it: a `not-found.tsx`
+  placed in a route segment renders inside that segment's own layout, so
+  this one keeps the admin shell -- nav, counts, signed-in owner -- and
+  only swaps the content area for a plain "That isn't here" with links to
+  the four main lists. (The response's HTTP status is a separate, still
+  open fault -- see the entry kept in `# Open` above.)
+- [x] **A hydration mismatch on every date field in the admin**, found from
+  a `pageerror` event on `/admin` and `/admin/money` rather than from
+  anything a snapshot of markup would show. The word-echo beside every date
+  input (`inWords` in `components/admin/form.tsx`) used
+  `toLocaleDateString("en-GB", {...})`, and naming the locale pins the
+  language but not the CLDR data an engine formats it with: Node's ICU
+  wrote "Thursday 17 September 2026", Chrome's wrote "Thursday, 17
+  September 2026", comma and all, for the exact same input. Server and
+  client disagreeing on rendered text is a hydration failure, and React
+  discarded and rebuilt the whole dialog -- the invoice builder, the
+  expense form, every dialog with a date in it -- on first paint, every
+  time. Rewritten as a fixed lookup table (`WEEKDAYS`/`MONTHS` arrays and
+  manual string assembly) rather than `Intl`, which can never disagree
+  with itself between two engines because there is no second engine's
+  opinion to consult.
+- [x] **Every dynamic admin detail page shared one tab title**, the
+  layout's own default "Admin | We Dig Creativity", because none of the
+  four set their own `generateMetadata`. Five clients open in five tabs
+  were five identical tabs. Fixed on all four: `<Company> · Client`,
+  `<Title> · Project`, `<Number> · Invoice`, `<Name> · Form`, falling back
+  to the same "Unnamed" a form's own `<h1>` already uses so the tab and the
+  heading never disagree. Each `generateMetadata` also calls `notFound()`
+  itself now rather than only returning a "not found" title string, which
+  is the pattern Next.js documents for resolving a missing id before the
+  page body renders -- it did not fix the status-code fault above, but it
+  is still the more correct shape and was kept.
+- [x] Found by loading `/admin`, `/admin/clients`, `/admin/projects`,
+  `/admin/money`, `/admin/forms`, `/admin/settings`, a client workspace, a
+  project, an invoice and a form submission with Playwright, watching
+  `console`, `pageerror` and every response over 400 throughout rather than
+  assuming a clean load. Zero issues on any of them after the two fixes
+  above. `tests/admin-not-found.spec.ts` (5 cases) pins both: the admin
+  shell surviving a missing id on all four routes, and no hydration error
+  firing on `/admin/money`. `tests/admin-actions.spec.ts`,
+  `tests/admin-clients.spec.ts` and `tests/admin-responsive.spec.ts` (13
+  cases, run against the same `BONEYARD_CAPTURE_TOKEN` door) all still
+  pass. `npm run lint`, `npx tsc --noEmit` and `npm run build` are clean.
 
 ## Closed 2026-09-17, the last of section 1B: brand kit and broken links
 

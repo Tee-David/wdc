@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
@@ -8,6 +9,17 @@ import { AttachSubmission } from "@/components/admin/submission-forms";
 
 /* NO generateStaticParams: a form that arrives after the build still has to
    open. */
+
+/* See the note beside the same function in clients/[id]/page.tsx. The name
+   falls back the same way the page's own `<h1>` does, so the tab and the
+   heading never disagree about what to call an unnamed lead. */
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const sub = getSubmission(id);
+  if (!sub) notFound();
+  const name = String(sub.answers.company ?? sub.answers.first_name ?? "Unnamed");
+  return { title: `${name} · Form` };
+}
 
 /**
  * One brief, read back in the order it was asked.
