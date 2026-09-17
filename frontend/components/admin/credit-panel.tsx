@@ -1,7 +1,5 @@
 import Link from "next/link";
-import {
-  creditBalance, getCreditsFor, getInvoice, getInvoicesFor,
-} from "@/lib/admin/store";
+import { creditBalance, getCreditsFor, getInvoice, getInvoices, getInvoicesFor } from "@/lib/admin/data";
 import { invoiceTotals, naira } from "@/lib/admin/types";
 import { Empty, Panel, when } from "@/components/admin/bits";
 import { ApplyCredit } from "./credit-forms";
@@ -24,13 +22,14 @@ import { ApplyCredit } from "./credit-forms";
  * balance and a permanent empty panel on every record is a row of pixels
  * people learn to scroll past.
  */
-export default function CreditPanel({ clientId }: { clientId: string }) {
-  const credits = getCreditsFor(clientId);
+export default async function CreditPanel({ clientId }: { clientId: string }) {
+  const credits = await getCreditsFor(clientId);
   if (!credits.length) return null;
+  const invoiceById = new Map((await getInvoices()).map((i) => [i.id, i]));
 
-  const balance = creditBalance(clientId);
+  const balance = await creditBalance(clientId);
   /* Only invoices a credit could actually come off. */
-  const open = getInvoicesFor(clientId)
+  const open = (await getInvoicesFor(clientId))
     .filter((i) => i.status !== "Draft" && !i.voided && invoiceTotals(i).due > 0)
     .map((i) => ({ id: i.id, number: i.number, due: invoiceTotals(i).due }));
 
@@ -79,7 +78,7 @@ export default function CreditPanel({ clientId }: { clientId: string }) {
                         <p className="ad__dim" style={{ margin: ".25rem 0 0", fontSize: ".78rem" }}>
                           to{" "}
                           <Link href={`/admin/money/${c.applied.invoiceId}`}>
-                            {getInvoice(c.applied.invoiceId)?.number ?? "an invoice"}
+                            {invoiceById.get(c.applied.invoiceId)?.number ?? "an invoice"}
                           </Link>{" "}
                           on {when(c.applied.at)}
                         </p>

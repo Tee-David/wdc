@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { FileCheck2, ScrollText } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
-import { getDeliverablesFor, getProject, getUpdatesFor } from "@/lib/admin/store";
+import { getDeliverablesFor, getProject, getUpdatesFor } from "@/lib/admin/data";
 import { STAGES } from "@/lib/admin/types";
 import { SERVICES } from "@/lib/services";
 import { ApprovalPill, Empty, HealthPill, Panel, StagePill, when } from "@/components/admin/bits";
@@ -11,7 +11,7 @@ import { DeliverableActions } from "@/components/client/deliverable-actions";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const { client } = await getPortalRequest();
-  const p = client ? getProject(id) : null;
+  const p = client ? await getProject(id) : null;
   if (!p || !client || p.clientId !== client.id) notFound();
   return { title: p.title };
 }
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function PortalProjectDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { client } = await getPortalRequest();
-  const p = client ? getProject(id) : null;
+  const p = client ? await getProject(id) : null;
   /* SAME OWNERSHIP CHECK AS THE METADATA ABOVE, deliberately re-run here
      rather than trusted from it: `generateMetadata` and the page body are
      two separate invocations, and a project that belongs to another client
@@ -28,8 +28,8 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
 
   const at = STAGES.indexOf(p.stage);
   const service = SERVICES.find((s) => s.slug === p.service);
-  const updates = getUpdatesFor(p.id).filter((u) => u.clientVisible).sort((a, b) => b.at.localeCompare(a.at));
-  const deliverables = getDeliverablesFor(p.id);
+  const updates = (await getUpdatesFor(p.id)).filter((u) => u.clientVisible).sort((a, b) => b.at.localeCompare(a.at));
+  const deliverables = await getDeliverablesFor(p.id);
 
   return (
     <div className="adDash">

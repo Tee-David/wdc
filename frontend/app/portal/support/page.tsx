@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LifeBuoy } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
-import { getTicketsFor } from "@/lib/admin/store";
+import { getTicketsFor } from "@/lib/admin/data";
 import { Empty, Panel, when } from "@/components/admin/bits";
 import { NewTicketForm } from "@/components/client/new-ticket-form";
 
@@ -18,7 +18,7 @@ export default async function PortalSupport({ searchParams }: { searchParams: Pr
   if (!client) return null;
   const startOpen = (await searchParams).new === "1";
 
-  const tickets = getTicketsFor(client.id);
+  const tickets = await getTicketsFor(client.id);
 
   return (
     <div className="adDash">

@@ -3,7 +3,7 @@ import { ArrowRight, Banknote, FileCheck2, LifeBuoy } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
 import {
   getDeliverablesFor, getInvoicesFor, getProjectsFor, getTicketsFor, getUpdatesFor,
-} from "@/lib/admin/store";
+} from "@/lib/admin/data";
 import { invoiceStatus, invoiceTotals, naira, nairaShort } from "@/lib/admin/types";
 import { DemoNote, Empty, Panel, StagePill, Tile, when } from "@/components/admin/bits";
 
@@ -18,14 +18,14 @@ export default async function PortalOverview() {
   const { client } = await getPortalRequest();
   if (!client) return null; // the layout already renders the "not linked" state
 
-  const projects = getProjectsFor(client.id);
-  const invoices = getInvoicesFor(client.id);
-  const tickets = getTicketsFor(client.id);
+  const projects = await getProjectsFor(client.id);
+  const invoices = await getInvoicesFor(client.id);
+  const tickets = await getTicketsFor(client.id);
   const firstName = client.name.split(" ")[0];
 
-  const deliverables = projects.flatMap((project) => (
-    getDeliverablesFor(project.id).map((d) => ({ deliverable: d, project }))
-  ));
+  const deliverables = (await Promise.all(
+    projects.map(async (project) => (await getDeliverablesFor(project.id)).map((d) => ({ deliverable: d, project }))),
+  )).flat();
   const awaitingApproval = deliverables.filter((x) => x.deliverable.approval === "Awaiting client");
 
   const outstandingInvoices = invoices.filter((inv) => {
@@ -40,8 +40,10 @@ export default async function PortalOverview() {
   const balance = invoices.reduce((n, inv) => n + invoiceTotals(inv).due, 0);
   const live = projects.filter((p) => p.stage !== "Delivered");
 
-  const recentUpdates = projects
-    .flatMap((project) => getUpdatesFor(project.id).map((u) => ({ update: u, project })))
+  const recentUpdates = (await Promise.all(
+    projects.map(async (project) => (await getUpdatesFor(project.id)).map((u) => ({ update: u, project }))),
+  ))
+    .flat()
     .filter((x) => x.update.clientVisible)
     .sort((a, b) => b.update.at.localeCompare(a.update.at))
     .slice(0, 4);

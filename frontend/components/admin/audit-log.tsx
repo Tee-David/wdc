@@ -1,4 +1,4 @@
-import { getAudit, auditCount } from "@/lib/admin/store";
+import { getAudit, auditCount } from "@/lib/admin/data";
 import type { AuditKind, Id } from "@/lib/admin/types";
 import { Empty, Panel } from "./bits";
 
@@ -15,7 +15,7 @@ import { Empty, Panel } from "./bits";
  * week it is used, and the count under it is what stops a bounded list reading
  * as the whole history.
  */
-export default function AuditLog({
+export default async function AuditLog({
   kind, subjectId, subjectIds, limit = 60, title = "Everything that changed",
 }: {
   kind?: AuditKind;
@@ -24,8 +24,8 @@ export default function AuditLog({
   limit?: number;
   title?: string;
 }) {
-  const entries = getAudit({ kind, subjectId, subjectIds, limit });
-  const total = auditCount({ kind, subjectId, subjectIds });
+  const entries = await getAudit({ kind, subjectId, subjectIds, limit });
+  const total = await auditCount({ kind, subjectId, subjectIds });
 
   return (
     <Panel title={title}>

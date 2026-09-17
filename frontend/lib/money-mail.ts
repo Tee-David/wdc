@@ -2,7 +2,7 @@ import "server-only";
 
 import { CONTACT_EMAIL, SITE_URL } from "@/lib/site";
 import { escapeHtml, mailIsConfigured, sendMail } from "@/lib/email";
-import { getClient, queueMessage, settleMessage } from "@/lib/admin/store";
+import { getClient, queueMessage, settleMessage } from "@/lib/admin/data";
 import { invoiceTotals, naira, notifyAllows } from "@/lib/admin/types";
 import type { Invoice, Payment } from "@/lib/admin/types";
 
@@ -54,7 +54,7 @@ async function deliver(input: {
   about?: { kind: "invoice" | "payment"; id: string; label: string };
   unsubscribe?: boolean;
 }): Promise<SendOutcome> {
-  const queued = queueMessage({
+  const queued = await queueMessage({
     channel: "Email", to: input.to, subject: input.subject, summary: input.summary,
     dedupeKey: input.dedupeKey, by: input.by, clientId: input.clientId, about: input.about,
   });
@@ -62,7 +62,7 @@ async function deliver(input: {
   if (!queued.ok) return { sent: false, reason: "already sent" };
 
   if (!mailIsConfigured()) {
-    settleMessage(queued.message.id, "Failed", "SMTP is not configured on this deployment.");
+    await settleMessage(queued.message.id, "Failed", "SMTP is not configured on this deployment.");
     return { sent: false, reason: "mail not configured" };
   }
   try {
@@ -70,10 +70,10 @@ async function deliver(input: {
       to: input.to, subject: input.subject, text: input.text, html: input.html,
       unsubscribe: input.unsubscribe,
     });
-    settleMessage(queued.message.id, "Sent");
+    await settleMessage(queued.message.id, "Sent");
     return { sent: true };
   } catch (e) {
-    settleMessage(queued.message.id, "Failed", e instanceof Error ? e.message : "The mail server refused it.");
+    await settleMessage(queued.message.id, "Failed", e instanceof Error ? e.message : "The mail server refused it.");
     return { sent: false, reason: "send failed" };
   }
 }
@@ -89,10 +89,10 @@ export async function sendPaymentReceiptEmail(input: {
   payment: Payment; invoice: Invoice; outstanding: number;
 }) {
   const { payment, invoice, outstanding } = input;
-  const client = getClient(invoice.clientId);
+  const client = await getClient(invoice.clientId);
   const to = client?.email?.trim();
   if (!to) {
-    queueMessage({
+    await queueMessage({
       channel: "Email", to: "(no address on file)",
       subject: `Receipt ${payment.receiptNo}`,
       summary: `Not sent: ${client?.company ?? "the client"} has no email address on file.`,
@@ -149,13 +149,13 @@ ${button(url, "Open your receipt")}
  */
 export async function sendInvoiceEmail(input: { invoice: Invoice; by?: string }) {
   const { invoice } = input;
-  const client = getClient(invoice.clientId);
+  const client = await getClient(invoice.clientId);
   const to = client?.email?.trim();
   const totals = invoiceTotals(invoice);
   const url = new URL(`/i/${invoice.token}`, SITE_URL).toString();
 
   if (!to) {
-    queueMessage({
+    await queueMessage({
       channel: "Email", to: "(no address on file)",
       subject: `Invoice ${invoice.number}`,
       summary: `Not sent: ${client?.company ?? "the client"} has no email address on file.`,
@@ -203,12 +203,12 @@ ${button(url, "Open and pay the invoice")}
  */
 export async function sendInvoiceReminderEmail(input: { invoice: Invoice; today?: Date; by?: string }) {
   const { invoice } = input;
-  const client = getClient(invoice.clientId);
+  const client = await getClient(invoice.clientId);
   const to = client?.email?.trim();
   const day = (input.today ?? new Date()).toISOString().slice(0, 10);
 
   if (!notifyAllows(client?.notify, "reminders")) {
-    queueMessage({
+    await queueMessage({
       channel: "Email", to: to || "(no address on file)",
       subject: `Reminder for ${invoice.number}`,
       summary: `Not sent: ${client?.company ?? "the client"} has invoice reminders switched off.`,

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getClient, getInvoice, getPaymentByToken, getProject } from "@/lib/admin/store";
+import { getClient, getInvoice, getPaymentByToken, getProject } from "@/lib/admin/data";
 import { invoiceTotals, naira, paymentNet, refundedTotal } from "@/lib/admin/types";
 import { DocumentShell, Headline, invoiceUrl, receiptUrl } from "@/components/money/document";
 
@@ -32,18 +32,18 @@ export default async function PublicReceipt({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  const pay = getPaymentByToken(token);
+  const pay = await getPaymentByToken(token);
   if (!pay) notFound();
 
-  const inv = getInvoice(pay.invoiceId);
+  const inv = await getInvoice(pay.invoiceId);
   /* A receipt without its invoice cannot say what the money was for, which is
      most of what a receipt is. This should not happen -- reversing a payment
      removes the payment, not the invoice -- so it is a 404 rather than a
      half-rendered document. */
   if (!inv) notFound();
 
-  const client = getClient(inv.clientId);
-  const project = inv.projectId ? getProject(inv.projectId) : null;
+  const client = await getClient(inv.clientId);
+  const project = inv.projectId ? await getProject(inv.projectId) : null;
   const t = invoiceTotals(inv);
   const remaining = t.due;
   const gone = pay.reversed;

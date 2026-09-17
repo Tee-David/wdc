@@ -5,7 +5,7 @@ import { SERVICES } from "@/lib/services";
 import {
   getClient, getDeliverablesFor, getExpensesFor, getInvoicesFor, getProject,
   getTasksFor, getUpdatesFor, projectMargin,
-} from "@/lib/admin/store";
+} from "@/lib/admin/data";
 import {
   invoiceStatus, invoiceTotals, naira, projectAttention, STAGES,
 } from "@/lib/admin/types";
@@ -30,24 +30,24 @@ import PageTourButton from "@/components/admin/tour/page-tour-button";
    recommended way to get a missing id decided before anything streams. */
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const p = getProject(id);
+  const p = await getProject(id);
   if (!p) notFound();
   return { title: `${p.title} · Project` };
 }
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const p = getProject(id);
+  const p = await getProject(id);
   if (!p) notFound();
-  const client = getClient(p.clientId);
-  const invoices = client ? getInvoicesFor(client.id).filter((i) => i.projectId === p.id) : [];
+  const client = await getClient(p.clientId);
+  const invoices = client ? (await getInvoicesFor(client.id)).filter((i) => i.projectId === p.id) : [];
   const at = STAGES.indexOf(p.stage);
-  const tasks = getTasksFor(p.id);
-  const updates = getUpdatesFor(p.id);
-  const deliverables = getDeliverablesFor(p.id);
+  const tasks = await getTasksFor(p.id);
+  const updates = await getUpdatesFor(p.id);
+  const deliverables = await getDeliverablesFor(p.id);
   const attention = projectAttention(p, tasks);
-  const margin = projectMargin(p.id);
-  const costs = getExpensesFor(p.id);
+  const margin = await projectMargin(p.id);
+  const costs = await getExpensesFor(p.id);
 
   return (
     <>

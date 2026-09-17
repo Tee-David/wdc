@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { SERVICES } from "@/lib/services";
 import { CORE_STEPS, SERVICE_STEPS, CLOSING_STEPS } from "@/lib/onboarding";
-import { getClient, getClients, getSubmissions } from "@/lib/admin/store";
+import { getClient, getClients, getSubmissions } from "@/lib/admin/data";
 import { DemoNote, Empty, Panel, when } from "@/components/admin/bits";
 import { SubmissionMenu } from "@/components/admin/row-actions";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
@@ -19,15 +19,16 @@ export const metadata = { title: "Forms" };
  * is a demo. What is useful today is seeing every question the form asks in
  * one place, which is what this is.
  */
-export default function FormsPage() {
-  const subs = getSubmissions();
+export default async function FormsPage() {
+  const clientById = new Map((await getClients({ includeArchived: true })).map((c) => [c.id, c]));
+  const subs = await getSubmissions();
   const open = subs.filter((s) => s.status === "In progress");
   const done = subs.filter((s) => s.status === "Submitted");
   const allSteps = [...CORE_STEPS, ...SERVICE_STEPS, ...CLOSING_STEPS];
   const questions = allSteps.reduce((n, s) => n + s.fields.length, 0);
   /* Only what the attach dialog needs: a submission's menu offers the list of
      people it could belong to. */
-  const clientList = getClients().map((c) => ({ id: c.id, company: c.company }));
+  const clientList = (await getClients()).map((c) => ({ id: c.id, company: c.company }));
 
   return (
     <>
@@ -66,7 +67,7 @@ export default function FormsPage() {
                         </Link>
                         <small>
                           {s.clientId
-                            ? getClient(s.clientId)?.name
+                            ? clientById.get(s.clientId)?.name
                             : <span className="ad__dim">Not linked to a client yet</span>}
                         </small>
                       </td>

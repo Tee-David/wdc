@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getClient, getEstimateByToken, getInvoice, getProject } from "@/lib/admin/store";
+import { getClient, getEstimateByToken, getInvoice, getProject } from "@/lib/admin/data";
 import { estimateState, estimateTotals, lineTotal, naira } from "@/lib/admin/types";
 import { DocumentShell, Headline, estimateUrl, invoiceUrl } from "@/components/money/document";
 import { CONTACT_EMAIL } from "@/lib/site";
@@ -32,12 +32,12 @@ export default async function PublicEstimate({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  const est = getEstimateByToken(token);
+  const est = await getEstimateByToken(token);
   if (!est || est.state === "Draft") notFound();
 
-  const client = getClient(est.clientId);
-  const project = est.projectId ? getProject(est.projectId) : null;
-  const invoice = est.invoiceId ? getInvoice(est.invoiceId) : null;
+  const client = await getClient(est.clientId);
+  const project = est.projectId ? await getProject(est.projectId) : null;
+  const invoice = est.invoiceId ? await getInvoice(est.invoiceId) : null;
   const t = estimateTotals(est);
   const state = estimateState(est);
 

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, CalendarClock, CircleDollarSign, ClipboardList, FolderClock } from "lucide-react";
 import { SERVICES } from "@/lib/services";
-import { getBoard, getClient, getClients, getInvoices, getMonthly, getPayments, getProjects, getSubmissions, getSummary, getTasks } from "@/lib/admin/store";
+import { getBoard, getClient, getClients, getInvoices, getMonthly, getPayments, getProjects, getSubmissions, getSummary, getTasks } from "@/lib/admin/data";
 import { invoiceStatus, invoiceTotals, naira, nairaShort, projectAttention, STAGES } from "@/lib/admin/types";
 
 /* Worst first. The attention queue is read top-down in the morning, so the
@@ -25,25 +25,26 @@ function greeting() {
   return hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 }
 
-export function AdminDashboardView({ firstName }: { firstName?: string }) {
-  const clients = getClients();
-  const projects = getProjects();
-  const invoices = getInvoices();
-  const payments = getPayments().sort((a, b) => b.at.localeCompare(a.at));
-  const summary = getSummary();
-  const board = getBoard();
-  const monthly = getMonthly();
+export async function AdminDashboardView({ firstName }: { firstName?: string }) {
+  const clientById = new Map((await getClients({ includeArchived: true })).map((c) => [c.id, c]));
+  const clients = await getClients();
+  const projects = await getProjects();
+  const invoices = await getInvoices();
+  const payments = (await getPayments()).sort((a, b) => b.at.localeCompare(a.at));
+  const summary = await getSummary();
+  const board = await getBoard();
+  const monthly = await getMonthly();
   const maxMonthly = Math.max(1, ...monthly.flatMap((month) => [month.in, month.out]));
   const collectionRate = summary.invoiced ? Math.round((summary.collected / summary.invoiced) * 100) : 0;
 
-  const tasks = getTasks();
+  const tasks = await getTasks();
   const attention = [
     ...invoices
       .filter((invoice) => invoiceStatus(invoice) === "Overdue")
       .map((invoice) => ({
         href: `/admin/money/${invoice.id}`,
         title: `${invoice.number} is overdue`,
-        detail: `${getClient(invoice.clientId)?.company ?? "Unknown client"} · ${naira(invoiceTotals(invoice).due)} outstanding`,
+        detail: `${clientById.get(invoice.clientId)?.company ?? "Unknown client"} · ${naira(invoiceTotals(invoice).due)} outstanding`,
         meta: `Due ${when(invoice.due)}`,
         icon: AlertTriangle,
         tone: "bad",
@@ -70,13 +71,13 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
       .map(({ project, why }) => ({
         href: `/admin/projects/${project.id}`,
         title: project.title,
-        detail: `${getClient(project.clientId)?.company ?? "Unknown client"} · ${why.map((w) => w.label).join(" · ")}`,
+        detail: `${clientById.get(project.clientId)?.company ?? "Unknown client"} · ${why.map((w) => w.label).join(" · ")}`,
         meta: project.due ? `Due ${when(project.due)}` : "Date not set",
         icon: FolderClock,
         tone: why[0].tone === "bad" ? "bad" : why[0].tone === "warn" ? "warn" : "neutral",
-        menu: <ProjectMenu project={project} clientName={getClient(project.clientId)?.company} />,
+        menu: <ProjectMenu project={project} clientName={clientById.get(project.clientId)?.company} />,
       })),
-    ...getSubmissions()
+    ...(await getSubmissions())
       .filter((submission) => submission.status === "In progress")
       .map((submission) => ({
         href: `/admin/forms/${submission.id}`,
@@ -205,7 +206,7 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
                   return (
                     <Link href={`/admin/money/${payment.invoiceId}`} key={payment.id}>
                       <span className="adDash__listIcon"><CircleDollarSign aria-hidden="true" /></span>
-                      <span><b>{naira(payment.amount)}</b><small>{invoice ? getClient(invoice.clientId)?.company : "Unknown client"} · {payment.method}</small></span>
+                      <span><b>{naira(payment.amount)}</b><small>{invoice ? clientById.get(invoice.clientId)?.company : "Unknown client"} · {payment.method}</small></span>
                       <time>{when(payment.at)}</time>
                     </Link>
                   );
@@ -224,7 +225,7 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
                 {upcoming.map((project) => (
                   <Link href={`/admin/projects/${project.id}`} key={project.id}>
                     <span className="adDash__listIcon"><CalendarClock aria-hidden="true" /></span>
-                    <span><b>{project.title}</b><small>{getClient(project.clientId)?.company ?? "Unknown client"}</small></span>
+                    <span><b>{project.title}</b><small>{clientById.get(project.clientId)?.company ?? "Unknown client"}</small></span>
                     <time>{when(project.due)}</time>
                   </Link>
                 ))}

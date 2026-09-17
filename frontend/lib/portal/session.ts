@@ -3,7 +3,7 @@ import "server-only";
 import { cache } from "react";
 import { headers } from "next/headers";
 import { isAdminCapture } from "@/lib/admin/capture";
-import { getClient, getClients } from "@/lib/admin/store";
+import { getClient, getClients } from "@/lib/admin/data";
 import type { Client } from "@/lib/admin/types";
 
 /**
@@ -30,7 +30,7 @@ export const getPortalRequest = cache(async () => {
        env-gated, non-production-only mechanism `isAdminCapture` already
        is; this header only does anything alongside a valid capture token. */
     const wantId = requestHeaders.get("x-boneyard-capture-client") || "c1";
-    const client = getClient(wantId) ?? getClients()[0] ?? null;
+    const client = await getClient(wantId) ?? (await getClients())[0] ?? null;
     return {
       capture,
       session: { user: { name: client?.name ?? "Client", email: client?.email ?? "client@localhost", image: null, role: "client" } },
@@ -42,7 +42,7 @@ export const getPortalRequest = cache(async () => {
   const session = await auth.api.getSession({ headers: requestHeaders });
   const email = session?.user?.email?.toLowerCase();
   const client = email
-    ? getClients({ includeArchived: true }).find((c) => c.email.toLowerCase() === email) ?? null
+    ? (await getClients({ includeArchived: true })).find((c) => c.email.toLowerCase() === email) ?? null
     : null;
 
   return { capture, session, client };

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import AdminShell from "@/components/admin/shell";
 import AdminTourProvider from "@/components/admin/tour/tour-provider";
-import { getSubmissions } from "@/lib/admin/store";
+import { getSubmissions } from "@/lib/admin/data";
 import { getAdminRequest } from "@/lib/admin/session";
 import "@/components/admin/admin.css";
 
@@ -38,7 +38,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
   /* Counts that belong on the nav rather than on a screen: an admin should
      say what is waiting before you go looking for it. */
-  const open = getSubmissions().filter((s) => s.status === "In progress").length;
+  const open = (await getSubmissions()).filter((s) => s.status === "In progress").length;
 
   return (
     <div className="ad">

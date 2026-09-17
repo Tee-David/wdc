@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SITE_URL } from "@/lib/site";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
-import { getClient, getInvoiceByToken, recordProviderEvent } from "@/lib/admin/store";
+import { getClient, getInvoiceByToken, recordProviderEvent } from "@/lib/admin/data";
 import { invoiceStatus, invoiceTotals } from "@/lib/admin/types";
 import { initializeTransaction, paymentReference } from "@/lib/paystack";
 
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest, ctx: { params: Promise<{ token:
   const limit = rateLimit(callerKey(request, `pay:${token}`), LIMIT, WINDOW_MS);
   if (!limit.ok) return back(token, "busy");
 
-  const inv = getInvoiceByToken(token);
+  const inv = await getInvoiceByToken(token);
   /* The same plain 404 a wrong token gets on the document itself. A different
      answer here would confirm that a token is nearly right. */
   if (!inv || inv.status === "Draft") return new NextResponse("Not found", { status: 404 });
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest, ctx: { params: Promise<{ token:
   const totals = invoiceTotals(inv);
   if (totals.due <= 0) return back(token, "settled");
 
-  const client = getClient(inv.clientId);
+  const client = await getClient(inv.clientId);
   const email = client?.email?.trim();
   /* PAYSTACK REQUIRES AN EMAIL AND WE WILL NOT INVENT ONE. A placeholder
      address means the receipt Paystack sends goes nowhere and the transaction
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest, ctx: { params: Promise<{ token:
        start is the invisible failure: the payer sees an error, closes the tab
        and waits for somebody to chase them. This is the row that lets the
        studio notice. */
-    recordProviderEvent({
+    await recordProviderEvent({
       event: "checkout.initialize", reference, amount: totals.due,
       outcome: "Failed", invoiceId: inv.id,
       note: started.error,
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest, ctx: { params: Promise<{ token:
     return back(token, "unavailable");
   }
 
-  recordProviderEvent({
+  await recordProviderEvent({
     event: "checkout.started", reference, amount: totals.due,
     outcome: "Ignored", invoiceId: inv.id,
     note: `Checkout opened for ${invoiceStatus(inv).toLowerCase()} invoice ${inv.number}.`,

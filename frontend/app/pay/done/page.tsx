@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { after } from "next/server";
 import {
   applyPayment, getInvoice, getPaymentsFor, matchInvoice, recordProviderEvent,
-} from "@/lib/admin/store";
+} from "@/lib/admin/data";
 import { invoiceTotals, naira } from "@/lib/admin/types";
 import { fromKobo, verifyTransaction } from "@/lib/paystack";
 import { sendPaymentReceiptEmail } from "@/lib/money-mail";
@@ -51,7 +51,7 @@ type Outcome =
 async function settle(reference: string): Promise<Outcome> {
   const verified = await verifyTransaction(reference);
   if (!verified.ok) {
-    recordProviderEvent({
+    await recordProviderEvent({
       event: "verify.failed", reference, amount: null, outcome: "Rejected",
       note: verified.error,
     });
@@ -65,7 +65,7 @@ async function settle(reference: string): Promise<Outcome> {
   const amount = fromKobo(t.amount);
 
   if (t.status !== "success") {
-    recordProviderEvent({
+    await recordProviderEvent({
       event: "verify.not-success", reference, amount, outcome: "Failed",
       channel: t.channel ?? undefined,
       note: t.gateway_response ?? `Paystack reports the transaction as ${t.status}.`,
@@ -79,7 +79,7 @@ async function settle(reference: string): Promise<Outcome> {
   }
 
   if ((t.currency || "NGN") !== "NGN") {
-    recordProviderEvent({
+    await recordProviderEvent({
       event: "verify.currency", reference, amount, outcome: "Unmatched",
       note: `Charged in ${t.currency}, and the books are in NGN.`,
     });
@@ -87,12 +87,12 @@ async function settle(reference: string): Promise<Outcome> {
   }
 
   const meta = (t.metadata ?? {}) as Record<string, unknown>;
-  const invoice = matchInvoice({
+  const invoice = await matchInvoice({
     invoiceId: typeof meta.invoiceId === "string" ? meta.invoiceId : undefined,
     reference,
   });
   if (!invoice) {
-    recordProviderEvent({
+    await recordProviderEvent({
       event: "verify.unmatched", reference, amount, outcome: "Unmatched",
       channel: t.channel ?? undefined,
       note: "Verified as paid, and no invoice in the books matches the reference.",
@@ -100,7 +100,7 @@ async function settle(reference: string): Promise<Outcome> {
     return { kind: "pending", message: "Your payment went through. We are matching it to the right invoice and will email your receipt shortly." };
   }
 
-  const applied = applyPayment({
+  const applied = await applyPayment({
     invoiceId: invoice.id, amount, method: "Paystack", reference,
     by: "Paystack checkout",
   });
@@ -108,16 +108,16 @@ async function settle(reference: string): Promise<Outcome> {
   /* ALREADY BANKED IS A SUCCESS, NOT AN ERROR. It means the webhook got here
      first, which is the system working. The payer is shown their receipt. */
   if (!applied.ok) {
-    const existing = getPaymentsFor(invoice.id).find((p) => p.reference === reference);
+    const existing = (await getPaymentsFor(invoice.id)).find((p) => p.reference === reference);
     if (applied.reason === "duplicate" && existing) {
-      const fresh = getInvoice(invoice.id) ?? invoice;
+      const fresh = await getInvoice(invoice.id) ?? invoice;
       return {
         kind: "paid", receiptUrl: `/r/${existing.token}`, amount: existing.amount,
         number: invoice.number, outstanding: invoiceTotals(fresh).due,
         receiptNo: existing.receiptNo, method: existing.method, at: existing.at,
       };
     }
-    recordProviderEvent({
+    await recordProviderEvent({
       event: "verify.not-applied", reference, amount, outcome: "Unmatched",
       invoiceId: invoice.id,
       note: `Verified as paid but could not be applied to ${invoice.number}: ${applied.reason}.`,
@@ -125,14 +125,14 @@ async function settle(reference: string): Promise<Outcome> {
     return { kind: "pending", message: "Your payment went through and we are recording it. We will email your receipt shortly." };
   }
 
-  recordProviderEvent({
+  await recordProviderEvent({
     event: "verify.success", reference, amount, outcome: "Applied",
     channel: t.channel ?? undefined,
     invoiceId: invoice.id, paymentId: applied.payment.id,
     note: applied.overpaid ? `Takes ${invoice.number} past its total.` : undefined,
   });
 
-  const fresh = getInvoice(invoice.id) ?? invoice;
+  const fresh = await getInvoice(invoice.id) ?? invoice;
   /* Behind the response, and deduped on the payment, so the webhook arriving
      a second later does not send a second copy. */
   after(async () => {

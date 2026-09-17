@@ -1,4 +1,4 @@
-import { getMessages } from "@/lib/admin/store";
+import { getMessages } from "@/lib/admin/data";
 import { Empty, Panel, when } from "@/components/admin/bits";
 import { ResendMessage } from "./reconcile-forms";
 import type { MessageState } from "@/lib/admin/types";
@@ -29,7 +29,7 @@ const TONE: Record<MessageState, string> = {
   Skipped: "ad__pill--flat",
 };
 
-export default function CommsLog({
+export default async function CommsLog({
   clientId, aboutIds, title = "What we have sent", limit = 20,
 }: {
   clientId?: string;
@@ -37,7 +37,7 @@ export default function CommsLog({
   title?: string;
   limit?: number;
 }) {
-  const messages = getMessages({ clientId, aboutIds, limit });
+  const messages = await getMessages({ clientId, aboutIds, limit });
 
   return (
     <Panel title={title}>
