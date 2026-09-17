@@ -26,7 +26,6 @@
   font-size: clamp(1.7rem, 1.1rem + 2.4vw, 3rem);
   line-height: 1.12; margin-bottom: 18px;
 }
-.ab-say h2 em { font-style: italic; color: var(--accent); }
 .ab-say .pv-lede { margin-inline: auto; max-width: 46ch; }
 
 /* ---------------- the wheel ---------------- */

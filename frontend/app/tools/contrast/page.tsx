@@ -63,7 +63,7 @@ export default function ContrastToolPage() {
               <i aria-hidden="true">/</i>
               <span>Contrast checker</span>
             </nav>
-            <h1>Can people actually read that colour combination?</h1>
+            <h1 className="pv-mix">Can people <b>actually read</b> that colour combination?</h1>
             <p className="pv-lede">
               Pick a text colour and a background, and see the real ratio against
               all six WCAG thresholds at once, with a live preview at both text

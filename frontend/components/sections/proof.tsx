@@ -123,7 +123,7 @@ export default function Proof() {
             <div className="pf__say">
               <span className="pv-eyebrow">Track record</span>
               <h2 className="pv-mix" id="pf-title">
-                <b>Ten years in</b>, and the numbers <b>to prove it</b>
+                Ten years in, and the numbers <b>to prove it</b>
               </h2>
               <p className="pv-lede">
                 A creative and digital agency spanning brand, web, apps, software,

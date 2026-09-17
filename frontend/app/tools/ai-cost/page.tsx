@@ -64,7 +64,7 @@ export default function AiCostToolPage() {
               <i aria-hidden="true">/</i>
               <span>AI running cost</span>
             </nav>
-            <h1>What will an AI feature cost you every month?</h1>
+            <h1 className="pv-mix">What will an AI feature <b>cost you every month</b>?</h1>
             <p className="pv-lede">
               Not to build: to run. Tell us what it does and how often, and see the
               same feature priced across eight models in naira, with the cheap and the
