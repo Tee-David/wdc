@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **123 open** (11 of them in progress), **318 done**.
+At last update: **122 open** (11 of them in progress), **319 done**.
 
 ---
 
@@ -196,10 +196,6 @@ party, which our own CSP blocks and which we should not loosen it for.
 - [ ] Add permission checks, CSRF/origin protections where applicable, rate limits, safe redirects, and non-enumerating public errors.
 - [ ] Add unit/integration/E2E tests for initialization, callback, valid and invalid webhook signatures, duplicates, retries, partial payment, and reconciliation.
 - [ ] Publish the exact Paystack webhook and callback URLs after routes are implemented and deployed.
-
-### Abuse and upload safety, raised by the independent audit 2026-09-13
-
-- [ ] Record, in the upload route and wherever admin will render client files, that SVG uploads must only ever be served from the storage domain and never inline from ours. (Finding R3. SVG is a document format that can carry script. Safe today because nothing renders it on our origin; it becomes a live vulnerability the day the admin dashboard displays a client's uploaded SVG inline.)
 
 ## 3. Performance and release verification
 
@@ -461,6 +457,26 @@ with the rest of section 4's content and settings work.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-17, the SVG-inline finding from the independent audit, recorded
+
+- [x] **Finding R3, recorded at both ends of the path it warns about.**
+  `app/api/onboarding/upload/route.ts` now says, beside `svg` in the
+  extension table, exactly what stays true for it to remain safe: every
+  upload is served from R2's own domain, never drawn inline (an
+  `<img>`/`<object>`) on `wedigcreativity.com.ng`, and an admin file
+  preview that fetched the bytes and rendered them inline ON OUR ORIGIN
+  would run a client's uploaded script as us. The two places a client's
+  uploaded file is actually opened today -- the deliverable version link in
+  `components/admin/delivery.tsx` and its twin on the client workspace
+  (`app/admin/clients/[id]/page.tsx`) -- both carry the same note beside
+  the `<a target="_blank">` that keeps them safe, so the constraint is
+  visible exactly where someone would have to break it (turning either
+  link into an `<img>`) rather than only in a document nobody reads before
+  changing a component. Nothing behaviourally changed: both links were
+  already links, never inline embeds -- this closes the finding by making
+  that fact impossible to remove by accident rather than by fixing a bug
+  that did not yet exist.
 
 ## Closed 2026-09-17, two real admin faults found by loading it and watching
 

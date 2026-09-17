@@ -249,6 +249,12 @@ export function Deliverables({
                       {v.url ? (
                         <>
                           {" "}
+                          {/* A LINK, NEVER AN `<img>` OR AN INLINE EMBED. A
+                              deliverable can be an uploaded SVG, which is a
+                              document format that can carry a `<script>`; a
+                              link opens it on the storage domain, where it
+                              cannot touch our origin. See the note beside
+                              `svg` in `app/api/onboarding/upload/route.ts`. */}
                           <a href={v.url} target="_blank" rel="noopener noreferrer">Open</a>
                         </>
                       ) : null}
