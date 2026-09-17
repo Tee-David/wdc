@@ -237,6 +237,9 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
                         <td className="num">{when(version.at)}</td>
                         <td>
                           {version.url ? (
+                            /* A link, not an inline embed -- see the note
+                               beside `svg` in
+                               app/api/onboarding/upload/route.ts. */
                             <a href={version.url} target="_blank" rel="noopener noreferrer">Open file</a>
                           ) : <span className="ad__dim">Not linked</span>}
                         </td>
