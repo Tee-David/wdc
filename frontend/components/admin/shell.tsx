@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
+  Compass,
   FolderKanban,
   Home,
   LayoutDashboard,
@@ -23,6 +24,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { authClient } from "@/lib/auth-client";
+import { useAdminTour } from "./tour/tour-provider";
 
 export type AdminUser = {
   name?: string | null;
@@ -31,12 +33,12 @@ export type AdminUser = {
 };
 
 const NAV = [
-  { href: "/admin", label: "Dashboard", Icon: LayoutDashboard, group: "main" },
-  { href: "/admin/clients", label: "Clients", Icon: Users, group: "main" },
-  { href: "/admin/projects", label: "Projects", Icon: FolderKanban, group: "main" },
-  { href: "/admin/money", label: "Money", Icon: Banknote, group: "main" },
-  { href: "/admin/forms", label: "Forms", Icon: ClipboardList, group: "main" },
-  { href: "/admin/settings", label: "Settings", Icon: Settings, group: "general" },
+  { href: "/admin", label: "Dashboard", Icon: LayoutDashboard, group: "main", tour: "nav-dashboard" },
+  { href: "/admin/clients", label: "Clients", Icon: Users, group: "main", tour: "nav-clients" },
+  { href: "/admin/projects", label: "Projects", Icon: FolderKanban, group: "main", tour: "nav-projects" },
+  { href: "/admin/money", label: "Money", Icon: Banknote, group: "main", tour: "nav-money" },
+  { href: "/admin/forms", label: "Forms", Icon: ClipboardList, group: "main", tour: "nav-forms" },
+  { href: "/admin/settings", label: "Settings", Icon: Settings, group: "general", tour: "nav-settings" },
 ] as const;
 
 const SIDEBAR_KEY = "wdc:admin-sidebar-collapsed";
@@ -98,7 +100,7 @@ function Sidebar({
   const main = NAV.filter((item) => item.group === "main");
   const general = NAV.filter((item) => item.group === "general");
 
-  const renderItem = ({ href, label, Icon }: (typeof NAV)[number]) => {
+  const renderItem = ({ href, label, Icon, tour }: (typeof NAV)[number]) => {
     const active = isActive(href, path);
     const count = counts?.[label] ?? 0;
     return (
@@ -109,6 +111,7 @@ function Sidebar({
         className={`ad__link${active ? " is-on" : ""}`}
         aria-current={active ? "page" : undefined}
         title={collapsed ? label : undefined}
+        data-tour={tour}
       >
         <Icon aria-hidden="true" />
         <span className={collapsed ? "ad__srOnly" : undefined}>{label}</span>
@@ -200,6 +203,7 @@ function AccountMenu({ user }: { user: AdminUser }) {
   const ref = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const router = useRouter();
+  const { active, fullTourCompleted, startFullTour, restartFullTour } = useAdminTour();
 
   useEffect(() => {
     function close(event: PointerEvent) {
@@ -234,6 +238,17 @@ function AccountMenu({ user }: { user: AdminUser }) {
             {user.email ? <span>{user.email}</span> : null}
           </div>
           <Link href="/" role="menuitem" onClick={() => setOpen(false)}><Home aria-hidden="true" /> Back to website</Link>
+          {/* THE PERSISTENT ENTRY POINT section 5.1 asks for. Reads its own
+              label off whether this browser has finished the full
+              walkthrough before, so it never claims "take a tour" to
+              someone who already has -- "replay" is the honest word then. */}
+          {!active ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => { setOpen(false); (fullTourCompleted ? restartFullTour : startFullTour)(); }}
+            ><Compass aria-hidden="true" /> {fullTourCompleted ? "Replay the tour" : "Take a tour"}</button>
+          ) : null}
           <button
             type="button"
             role="menuitem"
@@ -418,7 +433,7 @@ export default function AdminShell({ children, counts = {}, user }: { children: 
         <header className="ad__topbar">
           <button type="button" className="ad__topIcon ad__mobileMenu" onClick={() => setMobileOpen(true)} aria-label="Open menu"><Menu aria-hidden="true" /></button>
           <h1>{active?.label ?? "Admin"}</h1>
-          <button type="button" className="ad__search" onClick={() => setCommandOpen(true)}><Search aria-hidden="true" /><span>Search…</span><kbd>Ctrl K</kbd></button>
+          <button type="button" className="ad__search" data-tour="topbar-search" onClick={() => setCommandOpen(true)}><Search aria-hidden="true" /><span>Search…</span><kbd>Ctrl K</kbd></button>
           <div className="ad__topActions">
             <ThemeButton />
             <Notifications openForms={counts.Forms ?? 0} />

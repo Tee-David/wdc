@@ -72,7 +72,7 @@ export function Dialog({
  * `close` lets the form inside call it without the caller wiring state.
  */
 export function DialogButton({
-  label, title, children, tone = "primary", icon: Icon, wide,
+  label, title, children, tone = "primary", icon: Icon, wide, dataTour,
 }: {
   label: string;
   title: string;
@@ -80,6 +80,9 @@ export function DialogButton({
   tone?: "primary" | "plain";
   icon?: React.ComponentType<{ "aria-hidden"?: boolean }>;
   wide?: boolean;
+  /** A tour step's `target`, when this button is one. Optional and inert
+   *  otherwise -- see `lib/tours/admin.ts`. */
+  dataTour?: string;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -88,6 +91,7 @@ export function DialogButton({
         type="button"
         className={`ad__btn${tone === "primary" ? " ad__btn--primary" : ""}`}
         onClick={() => setOpen(true)}
+        data-tour={dataTour}
       >
         {Icon ? <Icon aria-hidden={true} /> : null}
         {label}
