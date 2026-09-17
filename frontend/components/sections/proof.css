@@ -34,17 +34,15 @@
   border-bottom: 1px solid var(--rule);
 }
 
-/* LEFT-ALIGNED ON MOBILE, CENTRED FROM 900PX. Below that width this is one
-   column with the figures, so left keeps it reading as a card top; from
-   900px there is no second column fighting for the middle any more (the
-   buttons that used to live here are gone), so it centres and the heading
-   and lede lose their character caps to run the card's full width. */
-.pv .pf__say { display: grid; gap: .6rem; justify-items: start; text-align: left; }
+/* CENTRED AT EVERY WIDTH. With no card around it there is no left edge for
+   the heading to hold to, so it sits on the page's centre line like the
+   figures under it. The character caps keep the lines readable on a phone
+   and come off from 900px, where the heading runs the full measure. */
+.pv .pf__say { display: grid; gap: .6rem; justify-items: center; text-align: center; }
 .pv .pf__say h2 { margin: 0; max-width: 20ch; }
 .pv .pf__say .pv-lede { margin: 0; max-width: 58ch; }
 
 @media (min-width: 900px) {
-  .pv .pf__say { justify-items: center; text-align: center; }
   .pv .pf__say h2, .pv .pf__say .pv-lede { max-width: none; }
 }
 
@@ -62,6 +60,15 @@
 }
 
 .pv .pf__stat { display: grid; gap: .3rem; align-content: start; min-width: 0; }
+
+/* CENTRED WHILE THE FIGURES STACK. One to a row on a phone, a left-aligned
+   figure leaves the right half of the screen empty beside every number; from
+   40rem, where they stand side by side between hairlines, they read from the
+   rule on their left instead. */
+@media (max-width: 39.99rem) {
+  .pv .pf__stat { justify-items: center; text-align: center; }
+  .pv .pf__detail { margin-inline: auto; }
+}
 
 /* HAIRLINES BETWEEN THE COLUMNS, like the reference, drawn on the stat rather
    than as separate elements -- and only from the width where the figures are
