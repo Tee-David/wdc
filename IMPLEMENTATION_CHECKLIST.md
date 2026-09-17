@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **114 open** (22 of them in progress), **365 done**.
+At last update: **114 open** (26 of them in progress), **365 done**.
 
 ---
 
@@ -149,6 +149,15 @@ and one is only half fixed -- said plainly below rather than folded into the
   thing to share upstream (Vercel's own bug template accepts a repo link
   in place of a hand-minimized case).
 
+  ALSO CONFIRMED ON `/portal`. Its own `[id]` routes (`projects/[id]`,
+  `support/[id]`) share the exact shape -- a `force-dynamic` layout, a
+  nested dynamic segment calling `notFound()`. A client fetching another
+  client's project id gets the same pattern: the correct `not-found.tsx`
+  content renders (the ownership check itself works -- no data leaks, no
+  cross-client body ever reaches the response) but the status stays 200.
+  One more data point for "this is route-tree-shape-dependent, not
+  admin-specific", not a new instance to chase separately.
+
 ## 1A. Client onboarding experience
 
 - [-] Make Save and continue later create a securely hashed, single-purpose resume token and email the link through Truehost SMTP. (Token flow is complete. UPDATED 2026-09-17: the `535` is gone -- SMTP authentication succeeds with the same credentials Vercel holds, in about 22 seconds, and a real message was accepted `250 OK` and seen by the owner. What is left is sending an actual resume link through the form and opening it.)
@@ -253,10 +262,15 @@ so the four are named together, in one place, as what is actually left of
 section 4's biggest, undone shapes, rather than scattered across four
 subsections where the size of what remains is easy to lose.
 
-- **The client portal.** Does not exist. Overview, Projects, Billing,
-  Forms & files, Messages/support, Settings. See 4.7's four open lines
-  for the full shape, and 5.0/5.1's own notes on why no client tour
-  registry exists yet -- a tour of a page that is not built is not a tour.
+- **The client portal.** Built this pass, at `/portal`: Overview,
+  Projects, Billing, Support, Settings -- five of the six possible
+  sections, Forms & files left out because there is no forms builder yet
+  to populate it. See 4.7's own lines for what is covered and what
+  genuinely is not (version history beyond the latest, file upload,
+  replying to a specific update). 5.0/5.1's note on no client tour
+  registry existing yet no longer applies for the reason it gave -- the
+  pages exist now -- but a client tour is still its own piece of work,
+  not started here.
 - **A real forms builder.** Today's onboarding form is fixed in code: no
   editor, no versioning, no submission inbox. See 4.6's nine open lines.
 - **Settings and Money's UI, rebuilt to full Litch shell parity.** Money's
@@ -459,10 +473,56 @@ running code rather than assumed from the file's own claims.
   THE DEDUPE KEY IS THE EVENT, NOT THE ATTEMPT. `receipt:y7` is the receipt for payment y7 however many times Paystack retries the webhook and however many times the payer reloads the return page. A reminder's key carries the day, so the same nudge cannot go twice in one day however many times a job runs, and tomorrow's is allowed through. Resend clears the key onto a superseded name so the failed row STAYS as the record that the first try did not go.
 
   NO PAYLOADS, ANYWHERE. Paystack's webhook body carries a customer record, an authorization object and on some events a card's last four and its bank. What is stored is the reference, the amount, the channel and our own verdict. A log that copies the rest is a second place for it to leak from.
-- [ ] Give clients a simple portal view of their projects, updates, invoices/payments, files, approvals, forms, and agreed communication route; keep internal notes and admin-only money data private.
-- [ ] Build the client dashboard with the same Litch-parity shell quality but a simpler client-first information architecture: Overview, Projects, Billing, Forms & files, Messages/support, and Settings at most.
-- [ ] Add the client-use-case areas Litch currently lacks: project progress/health, milestones and next steps, update history, deliverable versions, approvals/revision requests, onboarding status, agreed communication channel, and a single “what do I need to do?” queue.
-- [ ] Let clients download invoices/receipts, see partial-payment history and remaining balance, upload requested files, answer forms, approve work, request a revision, and reply to project updates without exposing internal operational data.
+- [-] The portal exists now, at `/portal` -- `lib/roles.ts`'s `client` door
+  flipped to `ready: true`, matching where it always said a client
+  belonged. Gives a client their projects, client-visible updates,
+  invoices/payments, and approvals; internal notes, tasks, and admin-only
+  money stay off every portal screen because the portal's own queries
+  never read them, not because a flag hides them. NOT DONE: files as a
+  distinct concept (a deliverable's versions carry `url`, no separate
+  upload/library), forms (no visibility into a client's own submissions
+  -- 4.6's forms builder does not exist yet, so there is nothing to
+  show), agreed communication route (`Project.channel` is recorded but
+  not surfaced anywhere in the portal).
+- [-] Shell built to the same `.ad`/`admin.css`/`dashboard.css` system the
+  admin uses -- one design system, not two, per this file's own
+  authenticated-UX rule. Five sections, not six: Overview, Projects,
+  Billing, Support, Settings. Forms & files deliberately left out rather
+  than built empty: there is no forms builder yet for it to show.
+- [-] Covered: project stage and health (the same stage-track component
+  as the admin's own project page), update history filtered to
+  `clientVisible`, deliverable approvals and revision requests, and a
+  combined "needs your attention" queue on the overview (deliverables
+  awaiting review, invoices with a balance, answered support tickets).
+  NOT DONE: a deliverable shows only its LATEST version, not the version
+  history the type actually carries (`versions[]` -- the type comment's
+  own "which logo did they approve" question is not answerable from the
+  portal today, only from the admin); `Project.channel` is not shown;
+  "onboarding status" is implicit in the stage pill (`Onboarding` is one
+  of the six stages) rather than its own callout.
+- [-] Invoices link out to the existing public `/i/[token]` page rather
+  than re-rendering payment history and receipts a second time -- one
+  renderer for a document, not two that can disagree. Approve/request-
+  revision both built, as the one place a client writes back; every
+  write re-derives the client from the session and checks the record
+  being mutated actually belongs to them (`lib/portal/actions.ts`) rather
+  than trusting an id in the form, since `lib/admin/validate.ts`'s own
+  note that a server action is a public endpoint whether or not a form
+  points at it applies more here than on the admin side. NOT DONE:
+  uploading a requested file (no upload target exists for it yet -- same
+  gap as 4.9's own R2 item, just from the other side of the same door),
+  and replying to a specific project update (a client can open a support
+  ticket about anything, including a project, but there is no reply
+  thread hung off one particular update).
+
+  ALSO BUILT, NOT ASKED FOR BY NAME BUT THE SAME "WHAT DO I DO ABOUT
+  THIS" GAP THE OTHER FOUR ANSWER: a support ticket system.
+  `Ticket`/`TicketMessage` in `lib/admin/types.ts`, a client-side thread
+  view with reply, and a panel on the admin's own client workspace
+  (`components/admin/ticket-panel.tsx`) to answer them -- because nothing
+  before this let a client raise a concern without email or WhatsApp,
+  and "Support" was one of the six section names section 4.7's own line
+  above already asked for.
 
 ### 4.8 Settings, content, team access, and audit
 
