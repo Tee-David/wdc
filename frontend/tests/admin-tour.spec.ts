@@ -170,6 +170,58 @@ test("a page tour stays on one page and never offers Finish where the walkthroug
   await expect(page.locator(".tourCard__headText span")).toHaveText(/Step 2 of 3/);
 });
 
+test("the four drill-down pages each have their own tour, matched by route template", async ({ page }) => {
+  const routes: Array<[string, string]> = [
+    ["/admin/clients/c1", "One client's record"],
+    ["/admin/projects/p1", "One project, start to delivery"],
+    ["/admin/money/i1", "One invoice"],
+    ["/admin/money/reconciliation", "Where the books and the bank are asked to agree"],
+  ];
+
+  for (const [path, introTitle] of routes) {
+    await page.goto(path, { waitUntil: "networkidle" });
+    const launcher = page.locator(".tourLauncher__btn");
+    await expect(launcher).toBeVisible();
+    await launcher.click();
+    const item = page.getByRole("menuitem", { name: /^tour this page$/i });
+    await expect(item).toBeEnabled();
+    await item.click();
+    await expect(page.locator(".tourCard__headText b")).toHaveText(introTitle);
+
+    // Click through to the end, tolerating an optional step's missing
+    // target along the way, and confirm it ends cleanly: no leftover card,
+    // no leftover blur band. Tries Finish first every round rather than
+    // checking `isVisible` up front, which is a point-in-time read that
+    // can miss the moment a skipped optional step swaps Next for Finish.
+    for (let i = 0; i < 8; i += 1) {
+      try {
+        await page.getByRole("button", { name: /^finish$/i }).click({ timeout: 3_000 });
+        break;
+      } catch {
+        await page.getByRole("button", { name: /^next$/i }).click({ timeout: 3_000 });
+      }
+    }
+    await expect(page.locator(".tourCard")).toHaveCount(0);
+    await expect(page.locator(".tourBlur")).toHaveCount(0, { timeout: 3_000 });
+  }
+});
+
+test("an optional step's missing target never ends the tour early", async ({ page }) => {
+  // c1 has no credit balance, so the client workspace tour's "credit" step
+  // has nothing to spotlight -- it must skip straight to "payments" (the
+  // step placed after it on purpose) rather than closing the tour on it.
+  await page.goto("/admin/clients/c1", { waitUntil: "networkidle" });
+  await page.locator(".tourLauncher__btn").click();
+  await page.getByRole("menuitem", { name: /^tour this page$/i }).click();
+  await expect(page.locator(".tourCard")).toBeVisible();
+
+  await page.getByRole("button", { name: /^next$/i }).click(); // projects
+  await page.getByRole("button", { name: /^next$/i }).click(); // invoices
+  await page.getByRole("button", { name: /^next$/i }).click(); // credit (missing) -> skips
+  await expect(page.locator(".tourCard__headText b")).toHaveText("What they have actually paid", { timeout: 8_000 });
+  await expect(page.getByRole("button", { name: /^finish$/i })).toBeVisible();
+});
+
 test("a step whose target has vanished is skipped, not a stuck tour", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (err) => errors.push(err.message));
