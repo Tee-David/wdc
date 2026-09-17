@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -15,6 +16,14 @@ import CommsLog from "@/components/admin/comms-log";
 
 /* NO generateStaticParams: invoices are raised at runtime, and a prerendered
    list would 404 on the one just created. */
+
+/* See the note beside the same function in clients/[id]/page.tsx. */
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const inv = getInvoice(id);
+  if (!inv) notFound();
+  return { title: `${inv.number} · Invoice` };
+}
 
 /**
  * One invoice, as the client will see it and as the studio needs it.

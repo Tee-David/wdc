@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
@@ -19,6 +20,21 @@ import AuditLog from "@/components/admin/audit-log";
 /* NO generateStaticParams. The client list is written to now, and a route
    prerendered from the list as it stood at build time would 404 on the client
    added a minute ago. The admin layout is force-dynamic for the same reason. */
+
+/* EVERY DETAIL PAGE ON THIS SITE HAD THE SAME TAB TITLE: the layout's own
+   default, "Admin | We Dig Creativity", because none of the four dynamic
+   admin routes set their own. Five clients open in five tabs were five
+   identical tabs -- the one thing a tab title exists to prevent.
+   Calling `notFound()` here too, rather than only in the page body below, is
+   what actually gets a real 404 status out of the route: metadata resolves
+   before the page body renders, so a missing client is decided once, here,
+   before anything has started streaming a 200. */
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const c = getClient(id);
+  if (!c) notFound();
+  return { title: `${c.company} · Client` };
+}
 
 export default async function ClientPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

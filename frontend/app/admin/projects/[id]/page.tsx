@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
@@ -21,6 +22,17 @@ import AuditLog from "@/components/admin/audit-log";
 
 /* NO generateStaticParams: projects are created at runtime now, and a route
    list frozen at build time would 404 on anything opened since. */
+
+/* See the note beside the same function in clients/[id]/page.tsx: every
+   detail route shared one generic tab title before this, and calling
+   `notFound()` from here rather than only from the page body is the
+   recommended way to get a missing id decided before anything streams. */
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const p = getProject(id);
+  if (!p) notFound();
+  return { title: `${p.title} · Project` };
+}
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
