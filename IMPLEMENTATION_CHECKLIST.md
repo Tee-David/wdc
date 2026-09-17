@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **120 open** (22 of them in progress), **326 done**.
+At last update: **118 open** (20 of them in progress), **337 done**.
 
 ---
 
@@ -458,22 +458,24 @@ with the rest of section 4's content and settings work.
 
 ### 5.0 Tour architecture and content
 
-Reconciled 2026-09-17, second pass: the admin's tour went from one flat
-13-step walkthrough to the three-tier, Litch-parity shape the user asked
-for by name -- welcome, walkthrough, page -- with an icon system, an
-interactive click-to-advance step, a progress rail, a duration estimate,
-and a spotlight-aware background blur. `react-joyride` stays a direct
-dependency, dynamically imported so it never enters the initial admin
-bundle (`components/admin/tour/tour-runtime.tsx` is the only file that
-imports it, behind `next/dynamic({ ssr: false })`, mounted only once a
-tour is actually running). See the closed entry below for what was built,
+Reconciled 2026-09-17, third pass: the admin's tour is now the three-tier,
+Litch-parity shape the user asked for by name -- welcome, walkthrough,
+page -- with ten page tours (all six sidebar routes plus, new this pass,
+the four drill-down pages reached only by opening a row), an interactive
+click-to-advance step, a progress rail, a spotlight-aware background blur,
+and a header icon that reuses the marketing site's own animation rather
+than a bespoke one. `react-joyride` stays a direct dependency, dynamically
+imported so it never enters the initial admin bundle
+(`components/admin/tour/tour-runtime.tsx` is the only file that imports
+it, behind `next/dynamic({ ssr: false })`, mounted only once a tour is
+actually running). See the closed entry below for what was built,
 verified, and found along the way.
 
 - [x] Add React Joyride only to authenticated dashboard bundles; lazy-load it after the dashboard is interactive and never include it in public marketing routes.
-- [-] Create separate typed tour registries for admin and client experiences, with one full walkthrough and independently launchable page-only tours. `lib/tours/admin.ts` now has three tiers for the admin -- `admin-welcome` (nav orientation, auto-offered once), `admin-walkthrough` (the deep cross-page tour), and six page tours. No client registry exists, on purpose: every one of section 5.1's client-tour stops (deliverables/approvals, invoices/payments/receipts, forms/files, messages/support) is a screen section 4.7's client portal has not built yet, and a tour of a page that does not exist is not a tour.
-- [x] Keep tour copy task-oriented and concise: explain the outcome, identify the control, and tell the user what to do next without narrating obvious UI.
-- [x] Give every tour target a stable semantic `data-tour` identifier that survives layout and copy changes; do not target generated classes or DOM position. Every target is a `data-tour` attribute, wired at the real control -- `DialogButton` and `Panel` both carry an optional `dataTour` prop threaded through from the page that uses them, rather than a class name being repurposed as a hook. Widened this pass: the sidebar's collapse toggle, the mobile menu button, and the dashboard's cashflow/pipeline/payments/deadlines/KPI panels all grew one, closing the gap between what the walkthrough could reach and what was actually on the page.
-- [x] Define versioned tour IDs so meaningful product changes can offer an updated tour without repeatedly showing completed old tours. Persistence is keyed on `${id}@${version}` (see `lib/tours/storage.ts`). The walkthrough's id changed (`admin-full` → `admin-walkthrough`) and every tour's version bumped this pass, since the step content changed enough that a completed old tour should not suppress the new one.
+- [-] Create separate typed tour registries for admin and client experiences, with one full walkthrough and independently launchable page-only tours. `lib/tours/admin.ts` has three tiers for the admin -- `admin-welcome` (nav orientation, auto-offered once), `admin-walkthrough` (the deep cross-page tour), and ten page tours, one per admin route including the four reached only by drilling into a list. No client registry exists, on purpose: every one of section 5.1's client-tour stops (deliverables/approvals, invoices/payments/receipts, forms/files, messages/support) is a screen section 4.7's client portal has not built yet, and a tour of a page that does not exist is not a tour.
+- [x] Keep tour copy task-oriented and concise: explain the outcome, identify the control, and tell the user what to do next without narrating obvious UI. Also stripped of em dashes this pass, at the user's explicit request -- every step's `content`/`title` string was rewritten to use a colon, a comma or a full stop instead.
+- [x] Give every tour target a stable semantic `data-tour` identifier that survives layout and copy changes; do not target generated classes or DOM position. Every target is a `data-tour` attribute, wired at the real control. Widened twice this pass: first the sidebar's collapse toggle, the mobile menu button, and the dashboard's cashflow/pipeline/payments/deadlines/KPI panels; then, closing the bigger gap, the client workspace (projects, invoices, payments, a conditional credit panel), the project detail page (stage track, tasks, updates, deliverables, margin), an invoice's own page (the status-dependent action row, payments, a conditional client-copy panel), and the reconciliation room (the attention queue, the full event log). `adminPageTourFor` gained a route-template normaliser so a real pathname like `/admin/clients/c1` resolves against the one `/admin/clients/[id]` entry every client record shares, rather than needing an entry per id -- the same idea the reference product's own `route-match.ts` uses.
+- [x] Define versioned tour IDs so meaningful product changes can offer an updated tour without repeatedly showing completed old tours. Persistence is keyed on `${id}@${version}` (see `lib/tours/storage.ts`). The walkthrough's id changed (`admin-full` → `admin-walkthrough`) and every tour's version bumped when this file was rebuilt, since the step content changed enough that a completed old tour should not suppress the new one.
 
 ### 5.1 Full walkthroughs
 
@@ -486,24 +488,26 @@ verified, and found along the way.
 
 ### 5.2 Page-only tours
 
-- [x] Add a short page tour launcher to each major admin and client page; page tours start and finish without changing routes. All six admin pages keep their own inline button (`PageTourButton`, in each page's header) and now also reach the same tour from the topbar launcher's "Tour this page" item, wherever the reader happens to be; no client pages exist to add one to.
-- [x] Keep page tours focused on the page's primary task and non-obvious controls, usually three to seven steps rather than exhaustive tours. Two to seven steps each -- the dashboard's grew to seven to cover its added panels; the other five stay at two or three.
+- [x] Add a short page tour launcher to each major admin and client page; page tours start and finish without changing routes. Ten page tours now, not six: every sidebar route plus the client workspace, a project's detail, an invoice's detail, and the reconciliation room -- the four reached only by opening a row, which an audit this pass confirmed had the densest, least obvious controls on the whole admin and, until now, zero tour coverage. All ten pages keep their own inline button (`PageTourButton`, in each page's header) and are also reachable from the topbar launcher's "Tour this page" item, wherever the reader happens to be; no client pages exist to add one to.
+- [x] Keep page tours focused on the page's primary task and non-obvious controls, usually three to seven steps rather than exhaustive tours. Two to seven steps each across all ten.
 - [x] Maintain separate completion state for every page tour so users can replay one page without resetting the full walkthrough. Each tour's completion is its own `localStorage` key; verified finishing a page tour does not touch the welcome or walkthrough records or vice versa.
-- [-] Ensure dynamically loaded tables, tabs, drawers, empty states, and responsive variants provide valid alternate targets or skip logic. The missing-target case is covered (see 5.1's fourth line) and pinned by a test; `desktopOnly`/`mobileOnly` step flags are new this pass and filtered by an actual `matchMedia` check against the sidebar's own 1024px collapse breakpoint, verified at both a 1440px and a 375px viewport live. NOT walked against every empty/populated permutation of every page -- the seeded demo data was never empty during this pass, so a tour launched against a genuinely empty clients or projects list is exercising the same skip logic but was not watched doing it.
+- [-] Ensure dynamically loaded tables, tabs, drawers, empty states, and responsive variants provide valid alternate targets or skip logic. The missing-target case is covered (see 5.1's fourth line) and pinned by a test; `desktopOnly`/`mobileOnly` step flags are filtered by an actual `matchMedia` check against the sidebar's own 1024px collapse breakpoint, verified at both a 1440px and a 375px viewport live. Two of the new drill-down tours carry a genuinely conditional step -- a client's credit panel, an invoice's client-copy panel -- marked `optional: true` and, found this pass, deliberately placed BEFORE a guaranteed step rather than last: ending a tour on a step whose target is missing left the background blur visibly lingering for a second or so after the card had already closed, confirmed with a frame-by-frame trace (card hidden at t=0, still hidden at t=900ms, reappeared correctly on the next real step at t=1200ms) rather than assumed from the symptom. NOT walked against every empty/populated permutation of every page -- the seeded demo data was never empty during this pass, so a tour launched against a genuinely empty clients or projects list is exercising the same skip logic but was not watched doing it.
 
 ### 5.3 UX, accessibility, state, and verification
 
-- [x] Style React Joyride tooltips, beacons, buttons, overlays, progress, and focus treatment to match the WDC/Litch-parity dashboard in both themes. No beacons (`skipBeacon: true` -- a guided walkthrough reads better as continuous than as a hunt for pulsing dots). Everything else is a custom `tooltipComponent` (`components/admin/tour/tooltip.tsx`) built from the admin's own `.ad__btn` primitives rather than Joyride's colour-prop API, which cannot reach a 44px touch target or a focus ring. Rebuilt this pass to match the reference product's own tooltip more closely, at the user's explicit request: a progress rail that fills as the tour advances, an animated header icon per step (27 icons, five gentle motion families, all skipped under reduced motion), a "~N min · N stops" estimate chip on each tour's opening step, and a short encouragement line ("3 stops left on this page") computed once per tour start in `lib/tours/meta.ts`. Verified in both themes by reading the card's own computed `background-color` -- `rgb(255, 255, 255)` in light, `rgb(14, 14, 46)` in dark, matching `admin.css`'s `--ad-panel` exactly.
+- [x] Style React Joyride tooltips, beacons, buttons, overlays, progress, and focus treatment to match the WDC/Litch-parity dashboard in both themes. No beacons (`skipBeacon: true` -- a guided walkthrough reads better as continuous than as a hunt for pulsing dots). Everything else is a custom `tooltipComponent` (`components/admin/tour/tooltip.tsx`) built from the admin's own `.ad__btn` primitives rather than Joyride's colour-prop API, which cannot reach a 44px touch target or a focus ring. Went through several rounds of direct feedback this pass, each verified live rather than assumed from the diff: a wider card; the header icon replaced twice over (first its own animated-disc system, then, at the explicit ask to "use the same icon animation as the marketing site", swapped for `ServiceIcon` itself -- the exact `motion-icons-react` stroke-draw component `/services`, `/about` and the header already use, in a big solid navy tile rather than a translucent one, centred above the title instead of beside it); every remaining translucent chip fill (the duration estimate, the interactive-step hint box) made solid or, for the estimate, dropped to plain accent-coloured text with no fill at all; Back and Skip tour share Next's exact height (a `min-height` let their own line-height inflate past their icon, which read as the icon sitting off-centre against the label -- reset to `line-height: 1` once the real cause was found rather than nudged with padding); Back isolated at the footer's left edge with Skip and Next kept together on the right; Skip tour given, then explicitly taken back off, a white-on-black treatment -- it now matches Back's own secondary style. Verified in both themes by reading the card's own computed `background-color` -- `rgb(255, 255, 255)` in light, `rgb(14, 14, 46)` in dark, matching `admin.css`'s `--ad-panel` exactly.
 
   FOUND ALONG THE WAY (earlier pass): Joyride portals its overlay and tooltip into a div it appends to `document.body`, a SIBLING of the `.ad` div rather than a descendant of it -- and every `--ad-*` token is scoped to `.ad`, not `:root`. The first fix tried was Joyride's own `portalElement` option, pointed at `.ad`; it left the tour never opening for a reason neither the console nor `debug: true` logging pinned down, so it was abandoned for one already proven to work: `#react-joyride-portal` (Joyride's fixed id for its default portal) gets its own small copy of the same tokens in `tour.css`, kept in sync with `admin.css` by hand, with a comment saying why the duplication exists.
-- [x] Blur the background outside the spotlighted control during a tour, so the eye has nowhere else to land. Not in the original checklist -- added at the user's request this pass. Joyride's own overlay dims everything through an SVG-path cutout it owns internally (confirmed by reading its compiled source: no `overlayComponent` customisation point exists), so `backdrop-filter` cannot ride along on that element without blurring the spotlighted control too. `components/admin/tour/tour-blur.tsx` instead renders four `position: fixed` bands framing the current step's target rect (top/bottom/left/right, computed from `getBoundingClientRect()` plus Joyride's own `spotlightPadding`), recomputed on every step change and kept fresh through Joyride's scroll-into-view animation and any later scroll or resize. A `target: "body"` step (an intro/outro slide with nothing to spotlight) blurs edge to edge instead. Sits at `z-index: 94`, just under Joyride's own overlay at 95.
+- [x] Blur the background outside the spotlighted control during a tour, so the eye has nowhere else to land. Not in the original checklist -- added at the user's request. Joyride's own overlay dims everything through an SVG-path cutout it owns internally (confirmed by reading its compiled source: no `overlayComponent` customisation point exists), so `backdrop-filter` cannot ride along on that element without blurring the spotlighted control too. `components/admin/tour/tour-blur.tsx` instead renders four `position: fixed` bands framing the current step's target rect (top/bottom/left/right, computed from `getBoundingClientRect()` plus Joyride's own `spotlightPadding`), recomputed on every step change and kept fresh through Joyride's scroll-into-view animation and any later scroll or resize. A `target: "body"` step (an intro/outro slide with nothing to spotlight) blurs edge to edge instead. Sits at `z-index: 94`, just under Joyride's own overlay at 95.
+
+  FOUND AND FIXED, A REAL BUG NOT JUST A SUBTLETY: the blur did not render at all for a full pass -- confirmed by reading the SHIPPED stylesheet's own `cssRules`, which had `position`/`z-index`/`pointer-events` and no `backdrop-filter` at all. Writing both `backdrop-filter` and `-webkit-backdrop-filter` by hand, rather than leaving the build's own autoprefixer to add the vendor one only where a target browser still needs it, silently dropped the whole declaration pair somewhere in the pipeline; the unprefixed property alone survives it, proven by `.ad__topbar` in `admin.css` already doing exactly that.
 - [-] Keep Joyride above dashboard popovers but below critical system dialogs; prevent clipping, off-screen placement, background scrolling, and collisions with mobile safe areas. `zIndex: 95` sits above popovers (80) and the new blur bands (94), below the command palette and mobile drawer (100); native `<dialog>` elements sit above everything regardless of any z-index, being in the browser's own top layer. Off-screen placement is Floating UI's own flip/shift middleware, unmodified. NOT done: background scrolling is not locked while a tour runs. Considered and deliberately left alone rather than rushed -- the walkthrough needs Joyride's own scroll-into-view to reach a target below the fold, and locking `overflow` on the body would block that same mechanism from working, trading a minor polish item for a tour that cannot reach half its targets. Revisit if a real scroll-jank complaint shows up rather than guessed at now.
 - [x] Support keyboard navigation, Escape/dismissal, readable focus order, screen-reader labels, reduced motion, and minimum 44px touch targets. Escape is handled by hand (`controls.skip()` on a `keydown` listener) rather than through Joyride's own `dismissKeyAction`, whose type -- `'close' | 'next' | 'replay' | false` -- has no `'skip'` option and would only have closed the current step. `locale` keeps every button's accessible name matching its visible word (`next`/`back`/`last`→"Finish"/`skip`), rather than Joyride's own defaults, which is what WCAG's "label in name" actually asks for. `prefers-reduced-motion` turns off `scrollToFirstStep`, Joyride's own scroll animation (`scrollDuration: 0`), every icon's own motion loop, and the confetti burst on Finish; the full 23-step walkthrough was run end to end under `reducedMotion: "reduce"` with zero errors. 44px is a `@media (pointer: coarse)` rule on every tour control, matching the site-wide floor.
 - [ ] Persist tour progress/completion per authenticated account and role in CockroachDB; local storage may cache UI state but is not the cross-device source of truth. NOT done -- no database connection exists in this environment. `lib/tours/storage.ts` is written as the honest interim the checklist itself allows for, with a comment saying so, and is structured so a server read that seeds the cache is additive rather than a rewrite.
 - [-] Never show admin-only steps to clients or staff without the relevant permission; filter steps before a tour begins. The filtering mechanism is built and wired (`TourStep.roles`, applied in `tour-runtime.tsx` before steps ever reach Joyride) but nothing in the registry actually uses it: only one role (`owner`) is wired through auth today, so there is no `staff` step to filter yet. Ready rather than exercised.
-- [x] Add "Skip tour", "Back", "Next", "Finish", and "Restart tour" behaviour with clear neutral button contrast and no dark patterns. "Restart tour" is worded "Replay..." in the topbar launcher -- the same action (clears the completion record, starts fresh) under the word this admin's own copy already uses elsewhere for a repeated action. All five verified live across the expanded 23-step walkthrough: Back and Next walk it forward and back, Skip and Escape both end the tour and write a `skipped` record, Finish writes `completed`, fires a brief brand-coloured confetti burst (never on Skip), and the launcher updates every affected item to offer a replay.
+- [x] Add "Skip tour", "Back", "Next", "Finish", and "Restart tour" behaviour with clear neutral button contrast and no dark patterns. "Restart tour" is worded "Replay..." in the topbar launcher -- the same action (clears the completion record, starts fresh) under the word this admin's own copy already uses elsewhere for a repeated action. All five verified live across the expanded 23-step walkthrough and the ten page tours: Back and Next walk it forward and back, Skip and Escape both end the tour and write a `skipped` record, Finish writes `completed`, fires a brief brand-coloured confetti burst (never on Skip), and the launcher updates every affected item to offer a replay.
 - [x] Instrument only privacy-safe tour events: started, step reached, skipped, completed, replayed, tour/version, role, and page; never capture field contents. `lib/tours/events.ts`, unchanged this pass. NOWHERE TO SEND THEM YET -- said plainly there rather than faked: this site has no analytics pipeline of its own, so `emit()` is the one seam, logging to the console in development only until a real destination exists. Verified live that `started`, `skipped`, and `replayed` are each fired exactly once and only on the action that should fire them, never on the echo of another.
-- [-] Test full and page-only tours at all dashboard breakpoints, themes, permissions, empty/populated states, keyboard-only mode, reduced motion, and route transitions. Covered by `tests/admin-tour.spec.ts` (10 cases, up from 8): both themes, 320px with a real scroll-attempt check (not the `scrollWidth` false-positive `admin-responsive.spec.ts` already ruled out for this exact shell), Escape, Skip, Finish, the welcome tour's single-offer behaviour, the 23-step walkthrough's full six-page cross-navigation, an interactive step advancing on a real click rather than only Next, a page tour staying on one page, and the missing-target recovery. NOT covered: every dashboard breakpoint in between 320px and desktop, keyboard-only navigation with no mouse at all, and permissions (there is only the one role to test against).
+- [-] Test full and page-only tours at all dashboard breakpoints, themes, permissions, empty/populated states, keyboard-only mode, reduced motion, and route transitions. Covered by `tests/admin-tour.spec.ts` (12 cases, up from 8): both themes, 320px with a real scroll-attempt check (not the `scrollWidth` false-positive `admin-responsive.spec.ts` already ruled out for this exact shell), Escape, Skip, Finish, the welcome tour's single-offer behaviour, the 23-step walkthrough's full six-page cross-navigation, an interactive step advancing on a real click rather than only Next, a page tour staying on one page, the missing-target recovery, all four new drill-down page tours resolving by route template and finishing cleanly, and the optional-step-not-last fix specifically. NOT covered: every dashboard breakpoint in between 320px and desktop, keyboard-only navigation with no mouse at all, and permissions (there is only the one role to test against).
 
 ---
 
@@ -626,7 +630,7 @@ line-by-line split of what closed and what did not.
   burst, run end to end under it with zero errors. Every button's
   accessible name matches its visible word. 44px floor on every tour
   control on a coarse pointer.
-- [x] **`tests/admin-tour.spec.ts`, 10 cases** (up from 8), run against
+- [x] **`tests/admin-tour.spec.ts`, 12 cases** (up from 8), run against
   the same `BONEYARD_CAPTURE_TOKEN` door `admin-actions.spec.ts` already
   uses: the welcome tour never appearing before the dashboard's real
   numbers do, the welcome tour auto-offering exactly once and finishing,
@@ -634,15 +638,80 @@ line-by-line split of what closed and what did not.
   interactive step advancing on a real click rather than only Next, skip
   recording completion and the launcher offering to replay rather than
   repeat, Escape ending the tour outright, a page tour staying on one
-  page, a broken target recovering rather than sticking, both themes, and
-  no sideways scroll at 320px with the tour open -- measured by a real
-  scroll attempt, the same technique `admin-responsive.spec.ts` already
-  uses to rule out the `scrollWidth` false positive this exact shell
-  produces. `tests/admin-actions.spec.ts`, `tests/admin-clients.spec.ts`,
+  page, a broken target recovering rather than sticking, all four
+  drill-down page tours resolving by route template and finishing
+  cleanly, an optional step's missing target never ending a tour early,
+  both themes, and no sideways scroll at 320px with the tour open --
+  measured by a real scroll attempt, the same technique
+  `admin-responsive.spec.ts` already uses to rule out the `scrollWidth`
+  false positive this exact shell produces. `tests/admin-actions.spec.ts`,
+  `tests/admin-clients.spec.ts`, `tests/admin-not-found.spec.ts` and
+  `tests/admin-responsive.spec.ts` (18 cases combined, 5 skipped for
+  needing a database) still pass alongside it. `npm run lint`,
+  `npx tsc --noEmit` and `npm run build` are all clean.
+
+## Closed 2026-09-17, the tour's fourth pass: every drill-down page, and the icon/copy/layout feedback that came from actually looking at it
+
+Three more rounds after the entry above, all driven by the user looking at
+live screenshots rather than the code, plus the one piece of coverage an
+explicit "make sure every page is accounted for" audit found missing.
+
+- [x] **Ten page tours, not six.** An audit of the five admin routes with
+  no tour coverage (`clients/[id]`, `projects/[id]`, `money/[id]`,
+  `money/reconciliation`, `forms/[id]`) found four of them densely worth
+  one -- a client-visible toggle buried in a project update's form, a
+  deliverable's approval silently resetting on a new version, refund kept
+  visually apart from reverse on a payment, match kept apart from write-off
+  on a reconciliation event -- and one (`forms/[id]`) genuinely too simple
+  to need one, left alone rather than padded out for symmetry.
+  `adminPageTourFor` gained a route-template normaliser
+  (`/admin/clients/c1` → the registry's own `/admin/clients/[id]` key) so
+  one tour definition covers every record instead of needing one per id.
+- [x] **The icon is `ServiceIcon` itself**, not a second animation system
+  built to resemble it. Asked directly to reuse "the same icon animation as
+  the marketing site" rather than approximate it, the tour's header icon
+  now wraps the exact `motion-icons-react` stroke-draw component
+  `/services`, `/about` and the site header already use, started
+  immediately on mount rather than gated behind the scroll-arrival
+  IntersectionObserver `draw-gate.tsx` uses for a page a reader scrolls
+  down, which a tour card never does.
+- [x] **A real, confirmed-by-reading-the-build-output bug in the blur**:
+  writing `-webkit-backdrop-filter` alongside the standard property, rather
+  than trusting the build's own autoprefixer to add it only where needed,
+  silently dropped the whole declaration pair from the shipped CSS, so the
+  blur had never actually been rendering. Fixed by removing the manual
+  prefix; `.ad__topbar` in `admin.css` already proved the unprefixed
+  property alone survives the same pipeline.
+- [x] **A second, subtler blur bug, found only by live frame-by-frame
+  tracing**: ending a tour on a step whose target is genuinely optional (a
+  client with no credit balance, a draft invoice with no public copy) left
+  the blur visibly lingering for close to a second after the card had
+  already closed, because Joyride's own ~1s wait before declaring a target
+  missing runs before the tooltip updates. Fixed at the content level, not
+  the component: both new tours carrying an optional step now place it
+  before a guaranteed one rather than last, so a skip always lands
+  somewhere real.
+- [x] **Direct layout and copy feedback, each verified against a fresh
+  screenshot rather than assumed fixed**: the card widened; the duration
+  estimate lost its filled-chip treatment for plain accent-coloured text,
+  moved into the same row `"N steps left"` already occupies (the two never
+  appear on the same step) instead of crowding the footer buttons; Back
+  isolated at the footer's left edge with Skip tour and Next kept together
+  on the right; Skip tour tried as white-on-black, then explicitly reverted
+  to match Back's own style; every remaining translucent fill on the card
+  made solid; Back, Skip and Next given one fixed height each with a
+  `line-height` reset that fixed an icon/label misalignment traced to the
+  card's own paragraph line-height leaking into its buttons; every visible
+  string rewritten to drop the em dash.
+- [x] **`tests/admin-tour.spec.ts` grew to 12 cases**: the four new
+  drill-down tours resolving by route template and finishing cleanly with
+  no leftover card or blur band, and the optional-step reordering verified
+  directly (the client workspace tour's "credit" step skips straight to
+  "payments" rather than ending the tour). `npm run lint`,
+  `npx tsc --noEmit` and `npm run build` clean after every round;
+  `tests/admin-actions.spec.ts`, `tests/admin-clients.spec.ts`,
   `tests/admin-not-found.spec.ts` and `tests/admin-responsive.spec.ts`
-  (18 cases combined, 5 skipped for needing a database) still pass
-  alongside it. `npm run lint`, `npx tsc --noEmit` and `npm run build`
-  are all clean.
+  (18 cases, 5 skipped for needing a database) still pass alongside it.
 
 ## Closed 2026-09-17, the SVG-inline finding from the independent audit, recorded
 
