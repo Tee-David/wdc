@@ -16,6 +16,22 @@ import PageTourButton from "@/components/admin/tour/page-tour-button";
 
 export const metadata = { title: "Money" };
 
+type MoneyQuery = { q?: string; status?: string; sort?: string; dir?: string; page?: string };
+
+const PAGE_SIZE = 10;
+const INVOICE_SORTS = ["number", "client", "due", "total", "owed"] as const;
+type InvoiceSort = (typeof INVOICE_SORTS)[number];
+
+function queryHref(query: MoneyQuery, changes: Partial<MoneyQuery>) {
+  const params = new URLSearchParams();
+  const next = { ...query, ...changes };
+  for (const [key, value] of Object.entries(next)) {
+    if (value) params.set(key, value);
+  }
+  const suffix = params.toString();
+  return `/admin/money${suffix ? `?${suffix}` : ""}#invoice-list`;
+}
+
 /**
  * Invoices, payments, expenses and the reports that fall out of them.
  *
@@ -28,14 +44,20 @@ export const metadata = { title: "Money" };
  * what `flex` and a percentage height already draw, on a page that has to stay
  * fast because it is opened every day.
  */
-export default function MoneyPage() {
+export default async function MoneyPage({
+  searchParams,
+}: { searchParams: Promise<MoneyQuery> }) {
+  const query = await searchParams;
   const s = getSummary();
   const unreconciled = providerAttentionCount();
   const failedMail = failedMessageCount();
   const aging = getAging();
   const rate = getCollectionRate();
   const owed = aging.reduce((n, b) => n + b.amount, 0);
-  const invoices = getInvoices();
+  /* UNFILTERED, because the Payments panel below looks an invoice up by id
+     off this list -- a payment against an invoice the Invoices filter is
+     currently hiding must still show which invoice it was. */
+  const allInvoices = getInvoices();
   const payments = getPayments().slice().sort((a, b) => b.at.localeCompare(a.at));
   const expenses = getExpenses();
   const projects = getProjects();
@@ -44,6 +66,42 @@ export default function MoneyPage() {
   const projectById = new Map(projects.map((p) => [p.id, p]));
   const months = getMonthly(6);
   const peak = Math.max(1, ...months.flatMap((m) => [m.in, m.out]));
+
+  const search = query.q?.trim().toLocaleLowerCase() ?? "";
+  const statusFilter = query.status ?? "";
+  const sort: InvoiceSort = INVOICE_SORTS.includes(query.sort as InvoiceSort) ? query.sort as InvoiceSort : "due";
+  const direction = query.dir === "asc" || query.dir === "desc"
+    ? query.dir
+    : sort === "number" || sort === "client" ? "asc" : "desc";
+  const invoiceRows = allInvoices
+    .map((invoice) => ({ invoice, client: getClient(invoice.clientId), computedStatus: invoiceStatus(invoice), totals: invoiceTotals(invoice) }))
+    .filter(({ computedStatus }) => !statusFilter || computedStatus === statusFilter)
+    .filter(({ invoice, client }) => !search
+      || invoice.number.toLocaleLowerCase().includes(search)
+      || (client?.company ?? "").toLocaleLowerCase().includes(search))
+    .sort((a, b) => {
+      const order = direction === "asc" ? 1 : -1;
+      if (sort === "number") return order * a.invoice.number.localeCompare(b.invoice.number);
+      if (sort === "client") return order * (a.client?.company ?? "").localeCompare(b.client?.company ?? "");
+      if (sort === "total") return order * (a.totals.total - b.totals.total);
+      if (sort === "owed") return order * (a.totals.due - b.totals.due);
+      return order * a.invoice.due.localeCompare(b.invoice.due);
+    });
+  const hasInvoiceFilters = Boolean(search || statusFilter);
+  const requestedPage = Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1);
+  const invoicePageCount = Math.max(1, Math.ceil(invoiceRows.length / PAGE_SIZE));
+  const invoicePage = Math.min(requestedPage, invoicePageCount);
+  const invoices = invoiceRows.slice((invoicePage - 1) * PAGE_SIZE, invoicePage * PAGE_SIZE);
+  const invoiceSortHref = (column: InvoiceSort) => queryHref(query, {
+    sort: column,
+    dir: sort === column ? direction === "asc" ? "desc" : "asc" : column === "number" || column === "client" ? "asc" : "desc",
+    page: undefined,
+  });
+  const invoiceExportParams = new URLSearchParams();
+  for (const key of ["q", "status", "sort", "dir"] as const) {
+    if (query[key]) invoiceExportParams.set(key, query[key]);
+  }
+  const invoiceExportHref = `/admin/money/export${invoiceExportParams.size ? `?${invoiceExportParams}` : ""}`;
 
   /* Expenses by category, biggest first: the question an expense list is
      always asked is "where is it going", not "what happened on the 4th". */
@@ -288,40 +346,88 @@ export default function MoneyPage() {
         </Panel>
 
         <Panel title="Invoices">
+          <form className="ad__filterBar" method="get" action="/admin/money#invoice-list" aria-label="Filter invoices" data-tour="money-invoice-filters">
+            <label className="ad__filterSearch">
+              <span className="ad__sr">Search invoices</span>
+              <input name="q" type="search" defaultValue={query.q} placeholder="Search number or client" />
+            </label>
+            <label>
+              <span className="ad__sr">Status</span>
+              <select name="status" defaultValue={statusFilter}>
+                <option value="">All statuses</option>
+                {(["Draft", "Sent", "Part paid", "Paid", "Overdue", "Void"] as const).map((st) => (
+                  <option key={st} value={st}>{st}</option>
+                ))}
+              </select>
+            </label>
+            <button className="ad__btn ad__btn--primary" type="submit">Apply</button>
+            {hasInvoiceFilters ? <Link className="ad__btn" href="/admin/money#invoice-list">Clear</Link> : null}
+            <a className="ad__btn" href={invoiceExportHref}>Export CSV</a>
+          </form>
+          <div className="ad__listMeta" id="invoice-list" aria-live="polite">
+            <span>{invoiceRows.length} {invoiceRows.length === 1 ? "invoice" : "invoices"}</span>
+            {invoicePageCount > 1 ? <span>Page {invoicePage} of {invoicePageCount}</span> : null}
+          </div>
           {invoices.length ? (
             <div className="ad__scroll">
               <table className="ad__t">
                 <thead>
                   <tr>
-                    <th>Number</th><th>Client</th><th>Status</th><th>Due</th>
-                    <th className="num">Total</th><th className="num">Paid</th><th className="num">Owed</th>
+                    <th aria-sort={sort === "number" ? direction === "asc" ? "ascending" : "descending" : undefined}>
+                      <Link href={invoiceSortHref("number")}>Number</Link>
+                    </th>
+                    <th aria-sort={sort === "client" ? direction === "asc" ? "ascending" : "descending" : undefined}>
+                      <Link href={invoiceSortHref("client")}>Client</Link>
+                    </th>
+                    <th>Status</th>
+                    <th className="num" aria-sort={sort === "due" ? direction === "asc" ? "ascending" : "descending" : undefined}>
+                      <Link href={invoiceSortHref("due")}>Due</Link>
+                    </th>
+                    <th className="num" aria-sort={sort === "total" ? direction === "asc" ? "ascending" : "descending" : undefined}>
+                      <Link href={invoiceSortHref("total")}>Total</Link>
+                    </th>
+                    <th className="num">Paid</th>
+                    <th className="num" aria-sort={sort === "owed" ? direction === "asc" ? "ascending" : "descending" : undefined}>
+                      <Link href={invoiceSortHref("owed")}>Owed</Link>
+                    </th>
                     <th className="ad__rmH"><span className="ad__sr">Actions</span></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {invoices.map((i) => {
-                    const t = invoiceTotals(i);
-                    return (
-                      <tr key={i.id}>
-                        <td><Link href={`/admin/money/${i.id}`}><b>{i.number}</b></Link></td>
-                        <td>{getClient(i.clientId)?.company ?? "Unknown"}</td>
-                        <td><InvoicePill status={invoiceStatus(i)} /></td>
-                        <td className="num">{when(i.due)}</td>
-                        <td className="num">{naira(t.total)}</td>
-                        <td className="num">{naira(i.paid)}</td>
-                        <td className="num">{t.due ? naira(t.due) : <span className="ad__dim">Nil</span>}</td>
-                        <td className="ad__rmC"><InvoiceMenu invoice={i} /></td>
-                      </tr>
-                    );
-                  })}
+                  {invoices.map(({ invoice: i, client, computedStatus, totals: t }) => (
+                    <tr key={i.id}>
+                      <td><Link href={`/admin/money/${i.id}`}><b>{i.number}</b></Link></td>
+                      <td>{client?.company ?? "Unknown"}</td>
+                      <td><InvoicePill status={computedStatus} /></td>
+                      <td className="num">{when(i.due)}</td>
+                      <td className="num">{naira(t.total)}</td>
+                      <td className="num">{naira(i.paid)}</td>
+                      <td className="num">{t.due ? naira(t.due) : <span className="ad__dim">Nil</span>}</td>
+                      <td className="ad__rmC"><InvoiceMenu invoice={i} /></td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
           ) : (
-            <Empty title="No invoices yet" action={<InvoiceBuilder clients={getClients()} projects={projects} />}>
-              Create the first invoice to track what is billed, paid, and still outstanding.
+            <Empty
+              title={hasInvoiceFilters ? "No invoices match these filters" : "No invoices yet"}
+              action={hasInvoiceFilters
+                ? <Link className="ad__btn" href="/admin/money#invoice-list">Clear filters</Link>
+                : <InvoiceBuilder clients={getClients()} projects={projects} />}
+            >
+              {hasInvoiceFilters
+                ? "Try a broader search or clear the filters to see every invoice."
+                : "Create the first invoice to track what is billed, paid, and still outstanding."}
             </Empty>
           )}
+          {invoicePageCount > 1 ? (
+            <nav className="ad__pagination" aria-label="Invoice pages">
+              {invoicePage > 1 ? <Link className="ad__btn" href={queryHref(query, { page: String(invoicePage - 1) })}>Previous</Link> : <span />}
+              <span>Page {invoicePage} of {invoicePageCount}</span>
+              {invoicePage < invoicePageCount ? <Link className="ad__btn" href={queryHref(query, { page: String(invoicePage + 1) })}>Next</Link> : <span />}
+            </nav>
+          ) : null}
         </Panel>
 
         <div className="ad__grid2">
@@ -332,7 +438,7 @@ export default function MoneyPage() {
                   <thead><tr><th>When</th><th>Invoice</th><th>Method</th><th>Reference</th><th className="num">Amount</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
                   <tbody>
                     {payments.map((p) => {
-                      const inv = invoices.find((i) => i.id === p.invoiceId);
+                      const inv = allInvoices.find((i) => i.id === p.invoiceId);
                       return (
                         <tr key={p.id}>
                           <td className="num">{when(p.at)}</td>

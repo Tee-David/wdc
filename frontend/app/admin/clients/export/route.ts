@@ -3,14 +3,9 @@ import { SERVICES } from "@/lib/services";
 import { getAdminRequest } from "@/lib/admin/session";
 import { getClients, getInvoicesFor, getProjectsFor } from "@/lib/admin/store";
 import { invoiceTotals } from "@/lib/admin/types";
+import { csvBody, CSV_HEADERS } from "@/lib/admin/csv";
 
 export const dynamic = "force-dynamic";
-
-const csvCell = (value: string | number) => {
-  let text = String(value);
-  if (/^[=+\-@]/.test(text)) text = `'${text}`;
-  return `"${text.replaceAll('"', '""')}"`;
-};
 
 export async function GET(request: Request) {
   const { session } = await getAdminRequest();
@@ -41,14 +36,7 @@ export async function GET(request: Request) {
       client.archived ? "Archived" : "Active", live, (owed / 100).toFixed(2), client.since,
     ];
   });
-  const csv = [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n");
-
-  return new NextResponse(`\uFEFF${csv}\r\n`, {
-    headers: {
-      "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": 'attachment; filename="wdc-clients.csv"',
-      "Cache-Control": "private, no-store",
-      "X-Content-Type-Options": "nosniff",
-    },
+  return new NextResponse(csvBody([header, ...rows]), {
+    headers: CSV_HEADERS("wdc-clients.csv"),
   });
 }
