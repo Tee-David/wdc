@@ -17,7 +17,12 @@
    reason an admin feels amateur.
    ========================================================================== */
 
-.ad {
+/* THE ADMIN PALETTE LIVES AT :root, NOT ON `.ad`.
+   The tour's card is portalled to <body>, outside the admin element, so a
+   token declared on `.ad` was simply unset inside it -- its primary button
+   resolved to no fill at all. Every consumer has to be able to see these,
+   which is the rule in AGENTS.md; `.ad` keeps only what it paints itself. */
+:root {
   --ad-bg: #f6f7fb;
   --ad-panel: #ffffff;
   --ad-ink: #0e0e2c;
@@ -29,10 +34,35 @@
   --ad-warn: #b8860b;
   --ad-bad: #d63333;
   --ad-r: 14px;
+
+  /* THE PRIMARY FILL, AND ITS LABEL. Navy with a white label in light mode,
+     orange with a black label in dark: on a pale admin a wall of orange
+     buttons shouted over the data, and navy is the brand's own dark surface
+     (17.68:1 with white). Dark mode keeps the orange it already had, because
+     there it is the one warm thing on a navy screen. */
+  --ad-fill: var(--ad-navy);
+  --ad-on-fill: #fff;
+  --ad-fill-hover: #23239b;
+
+  /* SOLID TAGS AND ICON TILES, NEVER TINTS. A tint is a colour at a few per
+     cent over whatever panel it sits on, so the same tag reads differently on
+     every surface and fades to nothing in dark mode. Each tone is one solid
+     fill with the label colour that clears WCAG AA on it: white on the dark
+     fills, black on the light ones. */
+  --ad-tone-neutral: #5c5c7a;  --ad-on-neutral: #fff;   /* 6.3:1 */
+  --ad-tone-good: #15803d;     --ad-on-good: #fff;      /* 5.0:1 */
+  --ad-tone-warn: #e0a526;     --ad-on-warn: #000;      /* 10.6:1 */
+  --ad-tone-bad: #c62828;      --ad-on-bad: #fff;       /* 5.6:1 */
+  --ad-tone-live: #ff6500;     --ad-on-live: #000;      /* 7.1:1 */
+  --ad-tone-flat: #e4e6f0;     --ad-on-flat: #0e0e2c;   /* 15.9:1 */
+  --ad-tone-brand: var(--ad-navy); --ad-on-brand: #fff; /* 17.7:1 */
+
   /* One stroked chevron, masked wherever a caret is needed, so the select and
      anything else that grows one cannot drift apart. */
   --ad-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
 
+.ad {
   min-height: 100dvh;
   max-width: 100%; overflow-x: clip;
   background: var(--ad-bg);
@@ -42,12 +72,18 @@
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
-.dark .ad {
+.dark {
   --ad-bg: #06061c;
   --ad-panel: #0e0e2e;
   --ad-ink: #eef0fb;
   --ad-dim: #9b9dc4;
   --ad-line: #1e2046;
+  --ad-fill: var(--ad-accent);
+  --ad-on-fill: #000;
+  --ad-fill-hover: var(--ad-navy);
+  --ad-tone-neutral: #3a3c6e;  --ad-on-neutral: #fff;   /* 10.4:1 */
+  --ad-tone-flat: #2a2c56;     --ad-on-flat: #eef0fb;   /* 12.6:1 */
+  --ad-tone-brand: #23239b;    --ad-on-brand: #fff;     /* 11.9:1 */
 }
 
 .ad *, .ad *::before, .ad *::after { box-sizing: border-box; }
@@ -175,7 +211,7 @@
    background, which also meant it changed colour when the row behind it
    highlighted on hover. `.ad__emptyIcon` two hundred lines down was already
    doing it the right way. */
-.ad__noticeIcon { width: 2rem; height: 2rem; flex: none; display: grid; place-items: center; border-radius: 999px; background: color-mix(in srgb, var(--ad-accent) 13%, var(--ad-panel)); color: var(--ad-accent); }
+.ad__noticeIcon { width: 2rem; height: 2rem; flex: none; display: grid; place-items: center; border-radius: 999px; background: var(--ad-tone-live); color: var(--ad-on-live); }
 .ad__noticeIcon svg { width: 1rem; height: 1rem; }
 .ad__popoverEmpty { padding: 2rem 1rem; display: grid; gap: .15rem; text-align: center; }
 .ad__popoverEmpty b { font-size: .8rem; }
@@ -392,7 +428,7 @@
   display: inline-flex; align-items: center; gap: .3rem;
   padding: .16em .6em; border-radius: 999px;
   font-size: .72rem; font-weight: 600; white-space: nowrap;
-  border: 1px solid var(--ad-line); background: var(--ad-bg); color: var(--ad-dim);
+  border: 1px solid var(--ad-tone-neutral); background: var(--ad-tone-neutral); color: var(--ad-on-neutral);
 }
 /* STATE IS A SHAPE AND A COLOUR, not a colour alone: a dot before the word
    means the row still reads correctly in greyscale and to anyone who cannot
@@ -400,10 +436,13 @@
 .ad__pill::before {
   content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor;
 }
-.ad__pill--good { color: var(--ad-good); border-color: color-mix(in srgb, var(--ad-good) 35%, var(--ad-line)); }
-.ad__pill--warn { color: var(--ad-warn); border-color: color-mix(in srgb, var(--ad-warn) 35%, var(--ad-line)); }
-.ad__pill--bad { color: var(--ad-bad); border-color: color-mix(in srgb, var(--ad-bad) 35%, var(--ad-line)); }
-.ad__pill--live { color: var(--ad-accent); border-color: color-mix(in srgb, var(--ad-accent) 35%, var(--ad-line)); }
+/* The dot stays: it is the shape half of "a shape and a colour", and in the
+   label's own colour it reads on every fill. */
+.ad__pill--good { background: var(--ad-tone-good); border-color: var(--ad-tone-good); color: var(--ad-on-good); }
+.ad__pill--warn { background: var(--ad-tone-warn); border-color: var(--ad-tone-warn); color: var(--ad-on-warn); }
+.ad__pill--bad { background: var(--ad-tone-bad); border-color: var(--ad-tone-bad); color: var(--ad-on-bad); }
+.ad__pill--live { background: var(--ad-tone-live); border-color: var(--ad-tone-live); color: var(--ad-on-live); }
+.ad__pill--flat { background: var(--ad-tone-flat); border-color: var(--ad-tone-flat); color: var(--ad-on-flat); }
 .ad__pill--flat::before { display: none; }
 
 /* --------------------------------------------------------------- buttons */
@@ -418,15 +457,14 @@
 }
 .ad__btn:hover { border-color: var(--ad-accent); color: var(--ad-accent); }
 .ad__btn svg { width: 1rem; height: 1rem; }
-.ad__btn--primary { background: var(--ad-accent); border-color: var(--ad-accent); color: #000; }
-.ad__btn--primary:hover { background: var(--ad-navy); border-color: var(--ad-navy); color: #fff; }
+.ad__btn--primary { background: var(--ad-fill); border-color: var(--ad-fill); color: var(--ad-on-fill); }
+.ad__btn--primary:hover { background: var(--ad-fill-hover); border-color: var(--ad-fill-hover); color: #fff; }
 .ad__btn:disabled { opacity: .5; cursor: not-allowed; }
 
 /* ----------------------------------------------------------------- empty */
 
 .ad__empty { padding: clamp(2rem, 6vw, 3.5rem) 1rem; display: flex; flex-direction: column; align-items: center; color: var(--ad-dim); text-align: center; }
-.ad__emptyIcon { width: 3rem; height: 3rem; margin-bottom: .8rem; display: grid; place-items: center; border-radius: 15px; background: color-mix(in srgb, var(--ad-navy) 9%, var(--ad-panel)); color: var(--ad-navy); }
-.dark .ad__emptyIcon { background: color-mix(in srgb, #5f65ff 16%, var(--ad-panel)); color: #aeb1ff; }
+.ad__emptyIcon { width: 3rem; height: 3rem; margin-bottom: .8rem; display: grid; place-items: center; border-radius: 15px; background: var(--ad-tone-brand); color: var(--ad-on-brand); }
 .ad__emptyIcon svg { width: 1.3rem; height: 1.3rem; }
 .ad__empty > b { display: block; color: var(--ad-ink); font: 700 .95rem var(--font-space-grotesk), system-ui, sans-serif; }
 .ad__empty p { max-width: 30rem; margin: .35rem auto 0; color: var(--ad-dim); font-size: .8rem; }
@@ -1006,7 +1044,7 @@
 .ad__tick:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
 .ad__tick svg { width: .95rem; height: .95rem; }
 .ad__tick.is-on {
-  background: var(--ad-accent); border-color: var(--ad-accent); color: var(--ad-on-accent, #000);
+  background: var(--ad-fill); border-color: var(--ad-fill); color: var(--ad-on-fill);
 }
 .ad__taskT { min-width: 0; flex: 1; }
 .ad__taskT b { display: block; font-weight: 600; }
@@ -1055,7 +1093,7 @@
   font-size: .84rem; font-weight: 600; color: var(--ad-dim);
   text-decoration: none; white-space: nowrap;
 }
-.ad__switch a[aria-current="true"] { background: var(--ad-accent); color: var(--ad-on-accent, #000); }
+.ad__switch a[aria-current="true"] { background: var(--ad-fill); color: var(--ad-on-fill); }
 .ad__switch a:hover:not([aria-current="true"]) { color: var(--ad-ink); }
 .ad__switch a:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
 

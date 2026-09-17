@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode,
 } from "react";
@@ -78,6 +78,7 @@ const FIRST_SIGN_IN_KEY = "wdc-admin-tour:offered-welcome";
 
 export default function AdminTourProvider({ children, role }: { children: ReactNode; role: string }) {
   const pathname = usePathname();
+  const router = useRouter();
   const mounted = useMounted();
   const [runningTour, setRunningTour] = useState<TourDef | null>(null);
   /* Whether the run in progress was launched via "Restart"/"Replay", so
@@ -166,6 +167,11 @@ export default function AdminTourProvider({ children, role }: { children: ReactN
             writeCompletion(runningTour.id, runningTour.version, "completed");
             setConfettiKey((k) => k + 1);
             stop();
+            /* A finished tour ends on the dashboard, wherever its last stop
+               was: that is home, and the confetti lands somewhere familiar
+               rather than on whichever page the walkthrough happened to end.
+               A skipped tour leaves the reader where they chose to stop. */
+            if (pathname !== "/admin") router.push("/admin");
           }}
           onSkip={() => { writeCompletion(runningTour.id, runningTour.version, "skipped"); stop(); }}
         />
