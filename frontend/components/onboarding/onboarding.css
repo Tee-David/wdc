@@ -543,17 +543,9 @@
   color: var(--muted); font-size: .84rem; line-height: 1.45;
 }
 
-.pv .ob__save {
-  display: inline-flex; align-items: center; gap: .45rem;
-  padding: .5em .9em; border-radius: 999px;
-  border: 1px solid var(--rule); background: transparent;
-  color: var(--ink); font: inherit; font-size: .86rem; font-weight: 600;
-  cursor: pointer;
-  transition: border-color .2s ease, background .2s ease, color .2s ease;
-}
-.pv .ob__save:hover { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
-.pv .ob__save:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.pv .ob__save svg { width: 1rem; height: 1rem; }
+/* Save & continue later is a ghost button in the bottom row now, so it takes
+   the row's own geometry and states; only its icon size is its own. */
+.pv .ob__stepSave svg { width: 1rem; height: 1rem; }
 
 .pv .ob__saved {
   display: flex; align-items: flex-start; gap: .5rem;
@@ -668,7 +660,6 @@
 @media (max-width: 620px) {
   .pv .ob__phName { font-size: .62rem; letter-spacing: .06em; }
   .pv .ob__topMeta { flex-direction: column; align-items: stretch; }
-  .pv .ob__save { justify-content: center; }
 }
 
 /* ---------------------------------------------------------------------------
@@ -712,6 +703,20 @@
   .pv .ob__acts, .pv .ob__acts--end { flex-direction: column; align-items: stretch; }
   .pv .ob__acts .ob__btn { width: 100%; justify-content: center; }
   .pv .ob__acts--end > .ob__btn--go { margin-right: 0; }
+}
+
+/* THE STEP ROW: Back on the left, Next on the right, Save beside Back. On a
+   phone the three do not fit on one line, so Back and Next keep their row and
+   their opposite ends, and Save takes the full width beneath them. */
+.pv .ob__acts--step { align-items: center; }
+/* NOT `.ob__next`: that class is the "what happens next" panel on the sent
+   screen, and it is full width. */
+.pv .ob__acts--step > .ob__stepNext { margin-left: auto; }
+@media (max-width: 560px) {
+  .pv .ob__acts.ob__acts--step { flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .pv .ob__acts--step > .ob__stepBack,
+  .pv .ob__acts--step > .ob__stepNext { width: auto; }
+  .pv .ob__acts--step > .ob__stepSave { order: 3; width: 100%; }
 }
 
 /* The one destructive action on the form, and it looks like one. */

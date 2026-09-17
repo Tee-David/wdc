@@ -638,9 +638,6 @@ export default function OnboardingForm() {
               <span aria-hidden="true"> · </span>
               <span className="ob__mins">about {mins} min left</span>
             </p>
-            <button type="button" className="ob__save" onClick={saveNow}>
-              <Save aria-hidden="true" /> Save &amp; continue later
-            </button>
           </div>
           <p className="ob__encourage">{encouragement}</p>
 
@@ -676,13 +673,21 @@ export default function OnboardingForm() {
           ))}
         </div>
 
-        <div className="ob__acts">
+        {/* BACK AND NEXT AT OPPOSITE ENDS, SAVE BESIDE BACK. Moving forward
+            and moving back are opposite decisions, so they sit at opposite
+            edges; saving for later belongs at the bottom with them, where
+            somebody deciding whether to carry on already is, rather than up
+            by the progress bar. */}
+        <div className="ob__acts ob__acts--step">
           {i > 0 && (
-            <button className="ob__btn ob__btn--ghost" type="button" onClick={back}>
+            <button className="ob__btn ob__btn--ghost ob__stepBack" type="button" onClick={back}>
               <ArrowLeft aria-hidden="true" /> Back
             </button>
           )}
-          <button className="ob__btn ob__btn--go" type="button" onClick={next}>
+          <button className="ob__btn ob__btn--ghost ob__stepSave" type="button" onClick={saveNow}>
+            <Save aria-hidden="true" /> Save &amp; continue later
+          </button>
+          <button className="ob__btn ob__btn--go ob__stepNext" type="button" onClick={next}>
             {i === steps.length - 1 ? "Review" : "Next"} <ArrowRight aria-hidden="true" />
           </button>
         </div>
