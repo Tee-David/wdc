@@ -254,6 +254,34 @@ party, which our own CSP blocks and which we should not loosen it for.
 - [-] Raise canonical-home mobile Lighthouse from the supplied 82 toward 90+ without regressing the supplied desktop 98; prioritise the 2.99s hero-text render delay, 3.8s LCP, 6.7s Speed Index, render-blocking CSS, forced reflow, and unused first-party JavaScript shown in the evidence.
 - [ ] Rerun mobile Lighthouse on the canonical domain and target 90+. UNBLOCKED 2026-09-17 and MEASURED, and the number is bad: PageSpeed Insights, mobile, live homepage -- performance **42**, accessibility 100, best practices 73, SEO 100. That is well under the 82 this item started from, so something regressed and it needs attributing before anything else here. One run; PSI varies, so re-measure before concluding. Historical note: it was blocked because the PageSpeed Insights API returns 429 without a key, and local Lighthouse reports TBT about 10x worse than PSI, so it cannot give an honest absolute score. Needs a free PSI API key in the environment (25,000 queries a day). Field numbers measured directly meanwhile, live at 390px and 4x throttle: homepage LCP 1,708ms CLS 0.010, Services 1,944ms CLS 0, a service page 888ms CLS 0.002 (was 0.423 before the stage floor), Our Work 2,264ms CLS 0, Blog 1,492ms CLS 0. STILL BLOCKED as of this pass: PSI returns the same 429 without a key. See the newer local production-build numbers recorded below, and note the homepage CLS there reads 0.0563 rather than 0.010 because the hero is larger now, not because anything regressed.
 
+  INVESTIGATED 2026-09-17, NOT REPRODUCED, NOT CLOSED. No live network
+  access and no PSI key in this environment, so the 42 itself could not
+  be rerun -- what follows is a local `next build && next start` mobile
+  Lighthouse (`--throttling-method=simulate`, 390x844, 3x DPR) against
+  the exact commit this checklist is on. Local score: **66** -- FCP
+  1.9s, LCP 5.0s, TBT 570ms, CLS 0.014, Speed Index 2.6s, TTI 7.0s.
+  Total page weight 987 KiB, no oversized single asset (the two heaviest
+  are Next's own framework chunks at ~223KB and ~73KB; the largest image,
+  the hero photo, is 51KB) and no third-party script shows up as a
+  bottleneck. LCP is the worst figure and the likely place to look next.
+
+  THIS CONTRADICTS THE ESTABLISHED PATTERN, worth saying plainly rather
+  than quietly reconciled: the note directly above this one says local
+  Lighthouse reports WORSE than PSI (about 10x on TBT). Here PSI (42) is
+  WORSE than local (66) -- the opposite direction. That mismatch is
+  itself evidence the 42 may not be reproducible from this repo's code
+  at all: a stale live deploy behind the canonical domain, a slow
+  TTFB/CDN condition PSI's real network path hits and a local
+  `localhost` server never can, or a live-only third-party script are
+  all more consistent with "worse on PSI than local" than a first-party
+  code regression would be. NOT CONCLUDED, because none of those three
+  can be checked without either a PSI key or verifying the live deploy's
+  commit against `main`'s current HEAD -- both outside what this
+  environment can reach. Next step, not done here: get a PSI key into
+  the environment, or confirm what commit is actually live before
+  spending more time chasing a number that may describe a different
+  build than the one in front of it.
+
 Reconciled 2026-09-17 (second pass): the four large net-new builds below
 have no blocker against them, only time. None is a new checklist line --
 each already has an open item further down this section -- this note exists
