@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
 import {
-  getClient, getDeliverablesFor, getInvoicesFor, getPaymentsFor,
+  financeDefaults, getClient, getDeliverablesFor, getInvoicesFor, getPaymentsFor,
   getProjects, getProjectsFor, getSubmissions,
 } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, naira, paymentNet, refundedTotal } from "@/lib/admin/types";
@@ -42,6 +42,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   const { id } = await params;
   const c = getClient(id);
   if (!c) notFound();
+  const finance = financeDefaults();
 
   const projects = getProjectsFor(c.id);
   const invoices = getInvoicesFor(c.id);
@@ -84,6 +85,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
             clients={[c]}
             projects={getProjects().filter((p) => p.clientId === c.id)}
             clientId={c.id}
+            defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays}
           />
         </div>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import {
   Banknote, FileSignature, FileText, Plus, Save, Send, Trash2, Undo2,
 } from "lucide-react";
@@ -36,6 +36,7 @@ const emptyRow = (): Row => ({ key: ++rowKey, description: "", qty: "1", unit: "
  */
 export function InvoiceBuilder({
   clients, projects, invoice, clientId, trigger = "New invoice", dataTour,
+  defaultVatRate, defaultDueInDays,
 }: {
   clients: Pick<Client, "id" | "company">[];
   projects: Pick<Project, "id" | "title" | "clientId">[];
@@ -44,6 +45,10 @@ export function InvoiceBuilder({
   clientId?: string;
   trigger?: string;
   dataTour?: string;
+  /** The studio's own default, from Settings -- ignored once `invoice` is
+      present, since an existing draft's own figures always win. */
+  defaultVatRate?: number;
+  defaultDueInDays?: number;
 }) {
   return (
     <DialogButton
@@ -58,6 +63,7 @@ export function InvoiceBuilder({
         <Builder
           clients={clients} projects={projects} invoice={invoice}
           clientId={clientId} close={close}
+          defaultVatRate={defaultVatRate} defaultDueInDays={defaultDueInDays}
         />
       )}
     </DialogButton>
@@ -74,17 +80,21 @@ export function InvoiceBuilder({
  * that decide arguments later and otherwise live only in a covering email.
  */
 export function EstimateBuilder({
-  clients, projects, clientId, trigger = "New estimate",
+  clients, projects, clientId, trigger = "New estimate", defaultVatRate,
 }: {
   clients: Pick<Client, "id" | "company">[];
   projects: Pick<Project, "id" | "title" | "clientId">[];
   clientId?: string;
   trigger?: string;
+  defaultVatRate?: number;
 }) {
   return (
     <DialogButton label={trigger} title="Quote for a piece of work" icon={FileSignature} tone="plain" wide>
       {(close) => (
-        <Builder clients={clients} projects={projects} clientId={clientId} close={close} estimate />
+        <Builder
+          clients={clients} projects={projects} clientId={clientId} close={close} estimate
+          defaultVatRate={defaultVatRate}
+        />
       )}
     </DialogButton>
   );
@@ -92,6 +102,7 @@ export function EstimateBuilder({
 
 function Builder({
   clients, projects, invoice, clientId, close, estimate = false,
+  defaultVatRate, defaultDueInDays,
 }: {
   clients: Pick<Client, "id" | "company">[];
   projects: Pick<Project, "id" | "title" | "clientId">[];
@@ -100,7 +111,17 @@ function Builder({
   close: () => void;
   /** Build an estimate rather than an invoice. */
   estimate?: boolean;
+  defaultVatRate?: number;
+  defaultDueInDays?: number;
 }) {
+  /* SCOPES THE VAT/DISCOUNT FIELD IDS TO THIS INSTANCE. `DialogButton` mounts
+     its dialog's content whether or not it is open, and Money renders four of
+     these builders (one invoice, three estimate) on one page -- a literal
+     "vatRate" id would be duplicated four times over, and a browser's
+     `label[for]` association resolves a duplicate id to whichever element
+     matching it comes first in the document, which silently strips the label
+     off every instance after that one. */
+  const uid = useId();
   const [rows, setRows] = useState<Row[]>(() =>
     invoice?.lines.length
       ? invoice.lines.map((l) => ({
@@ -109,7 +130,7 @@ function Builder({
         }))
       : [emptyRow()],
   );
-  const [vat, setVat] = useState(String(invoice?.vatRate ?? 7.5));
+  const [vat, setVat] = useState(String(invoice?.vatRate ?? defaultVatRate ?? 7.5));
   const [who, setWho] = useState(invoice?.clientId ?? clientId ?? "");
 
   const subtotal = rows.reduce((n, r) => {
@@ -157,7 +178,7 @@ function Builder({
                  hint="After this the price is no longer held. The state says so on its own; nothing expires silently." />
         ) : (
           <Field name="due" label="Due" type="date" required half
-                 defaultValue={(invoice?.due ?? plusDays(30)).slice(0, 10)} />
+                 defaultValue={(invoice?.due ?? plusDays(defaultDueInDays ?? 30)).slice(0, 10)} />
         )}
       </Fields>
 
@@ -239,16 +260,16 @@ function Builder({
         <div className="ad__vat">
           {estimate ? (
             <>
-              <label htmlFor="discount">Discount %</label>
+              <label htmlFor={`discount-${uid}`}>Discount %</label>
               <input
-                id="discount" name="discount" value={off} inputMode="decimal"
+                id={`discount-${uid}`} name="discount" value={off} inputMode="decimal"
                 onChange={(e) => setOff(e.target.value)}
               />
             </>
           ) : null}
-          <label htmlFor="vatRate">VAT %</label>
+          <label htmlFor={`vatRate-${uid}`}>VAT %</label>
           <input
-            id="vatRate" name="vatRate" value={vat} inputMode="decimal"
+            id={`vatRate-${uid}`} name="vatRate" value={vat} inputMode="decimal"
             onChange={(e) => setVat(e.target.value)}
           />
         </div>

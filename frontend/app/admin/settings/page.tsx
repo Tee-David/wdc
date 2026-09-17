@@ -1,7 +1,7 @@
 import { CONTACT_EMAIL } from "@/lib/site";
 import { SERVICES } from "@/lib/services";
 import { CASE_STUDIES } from "@/lib/work";
-import { getSettings } from "@/lib/admin/store";
+import { FINANCE_DEFAULTS, getSettings } from "@/lib/admin/store";
 import { DemoNote, Panel } from "@/components/admin/bits";
 import { SettingMenu } from "@/components/admin/row-actions";
 import AuditLog from "@/components/admin/audit-log";
@@ -40,6 +40,10 @@ export default function SettingsPage() {
       note: "Copy and figures. Adding one still needs its images." },
     { key: "legal", label: "Legal documents", value: "4 documents",
       note: "Privacy, terms, cookies and the engagement policy." },
+    { key: "finance.vatRate", label: "Default VAT %", value: String(FINANCE_DEFAULTS.vatRate),
+      note: "Pre-fills a new invoice or estimate. Editing an existing one is unaffected -- its own figure always wins." },
+    { key: "finance.dueInDays", label: "Default days to pay", value: String(FINANCE_DEFAULTS.dueInDays),
+      note: "How far out a new invoice's due date starts. A non-number, zero or negative value is ignored and this default is used instead." },
   ];
 
   return (
@@ -132,12 +136,23 @@ export default function SettingsPage() {
         <Panel title="Access">
           <div style={{ padding: ".9rem 1rem" }}>
             <p style={{ margin: 0 }}>
-              Three roles: <b>owner</b> sees everything including money,{" "}
-              <b>staff</b> sees clients and projects but not the books, and{" "}
-              <b>client</b> sees only their own portal. Gated in two layers: a
-              cheap cookie check in middleware to keep the route from rendering
-              at all, and a real session check in the layout, because a
-              middleware check alone is a redirect and not a permission.
+              Three roles exist on the user table -- <b>owner</b>,{" "}
+              <b>staff</b> and <b>client</b> -- and a <b>client</b> sees only
+              their own portal. Gated in two layers: a cheap cookie check in
+              the proxy to keep an unauthenticated request from reaching the
+              route at all, and a real session check in the layout, because a
+              cookie check alone is a redirect and not a permission.
+            </p>
+            <p style={{ margin: ".6rem 0 0" }}>
+              <b>Not yet true, said plainly rather than implied:</b> the
+              layout&rsquo;s own permission check only lets <b>owner</b> through
+              today -- a least-privilege <b>staff</b> role that can reach
+              clients and projects but not the books does not exist yet, and
+              neither does a way to create a staff account, invite one, or
+              revoke a session from this screen. Building it properly means
+              gating every money-related write in{" "}
+              <code>lib/admin/actions.ts</code> by role, not only the pages,
+              since a server action is reachable on its own.
             </p>
           </div>
         </Panel>

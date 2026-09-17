@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
 import {
-  getClient, getDeliverablesFor, getExpensesFor, getInvoicesFor, getProject,
+  financeDefaults, getClient, getDeliverablesFor, getExpensesFor, getInvoicesFor, getProject,
   getTasksFor, getUpdatesFor, projectMargin,
 } from "@/lib/admin/store";
 import {
@@ -39,6 +39,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const { id } = await params;
   const p = getProject(id);
   if (!p) notFound();
+  const finance = financeDefaults();
   const client = getClient(p.clientId);
   const invoices = client ? getInvoicesFor(client.id).filter((i) => i.projectId === p.id) : [];
   const at = STAGES.indexOf(p.stage);
@@ -73,7 +74,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           <PageTourButton />
           <ProjectDetails project={p} />
           {client ? (
-            <InvoiceBuilder clients={[client]} projects={[p]} clientId={client.id} />
+            <InvoiceBuilder
+              clients={[client]} projects={[p]} clientId={client.id}
+              defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays}
+            />
           ) : null}
         </div>
       </div>
