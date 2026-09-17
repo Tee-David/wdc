@@ -83,7 +83,7 @@ than assumed clean. Two real faults came out of that, both fixed and pinned,
 and one is only half fixed -- said plainly below rather than folded into the
 "done" pile.
 
-- [ ] **A missing admin id answers HTTP 200, not 404**, on all four dynamic
+- [-] **A missing admin id answers HTTP 200, not 404**, on all four dynamic
   detail routes (`clients/[id]`, `projects/[id]`, `money/[id]`,
   `forms/[id]`). Reproduced three ways -- curl, Node's own `fetch`, and
   Playwright, all against a production `next start` build as well as `next
@@ -199,6 +199,28 @@ party, which our own CSP blocks and which we should not loosen it for.
 - [-] Raise canonical-home mobile Lighthouse from the supplied 82 toward 90+ without regressing the supplied desktop 98; prioritise the 2.99s hero-text render delay, 3.8s LCP, 6.7s Speed Index, render-blocking CSS, forced reflow, and unused first-party JavaScript shown in the evidence.
 - [ ] Rerun mobile Lighthouse on the canonical domain and target 90+. UNBLOCKED 2026-09-17 and MEASURED, and the number is bad: PageSpeed Insights, mobile, live homepage -- performance **42**, accessibility 100, best practices 73, SEO 100. That is well under the 82 this item started from, so something regressed and it needs attributing before anything else here. One run; PSI varies, so re-measure before concluding. Historical note: it was blocked because the PageSpeed Insights API returns 429 without a key, and local Lighthouse reports TBT about 10x worse than PSI, so it cannot give an honest absolute score. Needs a free PSI API key in the environment (25,000 queries a day). Field numbers measured directly meanwhile, live at 390px and 4x throttle: homepage LCP 1,708ms CLS 0.010, Services 1,944ms CLS 0, a service page 888ms CLS 0.002 (was 0.423 before the stage floor), Our Work 2,264ms CLS 0, Blog 1,492ms CLS 0. STILL BLOCKED as of this pass: PSI returns the same 429 without a key. See the newer local production-build numbers recorded below, and note the homepage CLS there reads 0.0563 rather than 0.010 because the hero is larger now, not because anything regressed.
 
+Reconciled 2026-09-17 (second pass): the four large net-new builds below
+have no blocker against them, only time. None is a new checklist line --
+each already has an open item further down this section -- this note exists
+so the four are named together, in one place, as what is actually left of
+section 4's biggest, undone shapes, rather than scattered across four
+subsections where the size of what remains is easy to lose.
+
+- **The client portal.** Does not exist. Overview, Projects, Billing,
+  Forms & files, Messages/support, Settings. See 4.7's four open lines
+  for the full shape, and 5.0/5.1's own notes on why no client tour
+  registry exists yet -- a tour of a page that is not built is not a tour.
+- **A real forms builder.** Today's onboarding form is fixed in code: no
+  editor, no versioning, no submission inbox. See 4.6's nine open lines.
+- **Settings and Money's UI, rebuilt to full Litch shell parity.** Money's
+  underlying *logic* is unusually complete already -- invoices, payments,
+  credit, estimates, reconciliation are all real and tested; it is the
+  reusable shell and primitives (4.1) plus the screen itself (4.5's first
+  line) that are missing. Settings has no UI at all yet beyond the audit
+  log (4.8's first four lines).
+- **A blog/content admin editor.** Posts live in code (`lib/blog.ts`), not
+  a CMS. See 4.8's seven lines moved over from the old section 1C.
+
 ### 4.0 Reference, scope, and release guardrails
 
 - [ ] Capture desktop, tablet, and mobile reference screenshots for the Litch shell and every equivalent WDC admin route before visual implementation.
@@ -252,7 +274,7 @@ running code rather than assumed from the file's own claims.
   banner discloses the seeded records are demonstration data rather than
   presenting them as real, which is the honest form this takes before the
   admin is on a real database.
-- [ ] Verify every dashboard number reconciles to its underlying filtered
+- [-] Verify every dashboard number reconciles to its underlying filtered
   records and every card/action links to the correct destination. NOT
   verified end to end -- the figures are derived from the same store
   functions Money's own pinned tests already exercise, but nobody has
