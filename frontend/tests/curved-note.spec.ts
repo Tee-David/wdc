@@ -35,7 +35,7 @@ async function exposedCopies(page: import("@playwright/test").Page, text: string
 /** Three points along the note's path, in its own coordinate space. */
 async function sampleArc(page: import("@playwright/test").Page) {
   return page.evaluate(() => {
-    const path = document.querySelector<SVGPathElement>(".cn__svg path");
+    const path = document.querySelector<SVGPathElement>(".nl .cn__svg path");
     if (!path) return null;
     const len = path.getTotalLength();
     const at = (t: number) => {
@@ -47,7 +47,8 @@ async function sampleArc(page: import("@playwright/test").Page) {
 }
 
 test("the helper line curves, and curves the way the bar does", async ({ page }) => {
-  await page.setViewportSize({ width: 1280, height: 1000 });
+  /* A phone: the curve is a phone-only treatment now. */
+  await page.setViewportSize({ width: 390, height: 1000 });
   await page.goto("/");
   await page.locator("footer.ft").scrollIntoViewIfNeeded();
 
@@ -74,17 +75,28 @@ test("the helper line curves, and curves the way the bar does", async ({ page })
 });
 
 test("the sentence reaches a screen reader exactly once", async ({ page }) => {
-  await page.setViewportSize({ width: 1280, height: 1000 });
+  await page.setViewportSize({ width: 390, height: 1000 });
   await page.goto("/");
   await page.locator("footer.ft").scrollIntoViewIfNeeded();
-  await expect(page.locator(".cn__svg")).toBeVisible();
+  await expect(page.locator(".nl .cn__svg")).toBeVisible();
 
   /* The drawing is marked decorative and a plain node beside it carries the
      words, because screen reader support for text inside <textPath> is uneven.
      Drawn three times in the DOM, announced once. */
   expect(await exposedCopies(page, NOTE)).toBe(1);
-  await expect(page.locator(".cn__svg")).toHaveAttribute("aria-hidden", "true");
-  await expect(page.locator(".cn__ruler")).toHaveAttribute("aria-hidden", "true");
+  await expect(page.locator(".nl .cn__svg")).toHaveAttribute("aria-hidden", "true");
+  await expect(page.locator(".nl .cn__ruler")).toHaveAttribute("aria-hidden", "true");
+});
+
+test("on a desktop the box and its line are straight", async ({ page }) => {
+  /* Beside the footer's straight menu columns the arch read as a tilt, so it
+     is kept for phones. Straight means no bent SVG line at all: the note is
+     ordinary text. */
+  await page.setViewportSize({ width: 1280, height: 1000 });
+  await page.goto("/contact");
+  await page.locator("footer.ft").scrollIntoViewIfNeeded();
+  await expect(page.locator(".nl .cn__plain")).toBeVisible();
+  await expect(page.locator(".nl .cn__svg")).toHaveCount(0);
 });
 
 test("a column too narrow for one line keeps the words and drops the curve", async ({ page }) => {
