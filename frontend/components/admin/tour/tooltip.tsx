@@ -45,12 +45,6 @@ export default function TourTooltip({
           <span>{meta.page ? `${meta.page} · ` : ""}Step {index + 1} of {size}</span>
         </div>
 
-        {meta.showEstimate && meta.estimateMinutes && meta.totalStops ? (
-          <p className="tourCard__estimate">
-            <Clock3 aria-hidden="true" />~{meta.estimateMinutes} min · {meta.totalStops} stops
-          </p>
-        ) : null}
-
         {step.content ? <p className="tourCard__content">{step.content}</p> : null}
 
         {meta.interactHint ? (
@@ -73,6 +67,11 @@ export default function TourTooltip({
         {meta.encouragement ? <p className="tourCard__encouragement">{meta.encouragement}</p> : null}
 
         <div className="tourCard__foot">
+          {meta.showEstimate && meta.estimateMinutes && meta.totalStops ? (
+            <p className="tourCard__estimate">
+              <Clock3 aria-hidden="true" />~{meta.estimateMinutes} min · {meta.totalStops} stops
+            </p>
+          ) : null}
           <div className="tourCard__btns">
             {!isFirstStep ? (
               <button {...backProps} className="ad__btn tourCard__btn">
@@ -80,7 +79,7 @@ export default function TourTooltip({
               </button>
             ) : null}
             {!isLastStep ? (
-              <button {...skipProps} className="ad__btn tourCard__btn">
+              <button {...skipProps} className="ad__btn tourCard__btn tourCard__btn--skip">
                 <SkipForward aria-hidden="true" /> Skip tour
               </button>
             ) : null}
