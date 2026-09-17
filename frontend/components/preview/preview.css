@@ -1006,6 +1006,21 @@ html:not(.dark) .pv .pv-card {
 /* White, matching the lede above it in the same reach-us band. These are the
    agency's own capabilities, not a caption under something else. */
 .pv-cwork li { position: relative; padding-left: 22px; font-size: .95rem; color: #fff; }
+/* TWO TO A ROW, CENTRED, once the band is one column. Four one-line items
+   stacked down the left of a phone left most of the width empty. Each item is
+   centred in its half with the tick inline before its first word, so an item
+   that wraps on a narrow screen stays centred instead of hanging off a tick
+   pinned to the left edge. */
+@media (max-width: 860px) {
+  .pv-cwork { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; }
+  .pv-cwork li { min-width: 0; padding-left: 0; text-align: center; font-size: .9rem; }
+  /* `.pv-reach` in front: the base tick rule below this block has the same
+     specificity and would otherwise win on source order. */
+  .pv-reach .pv-cwork li::before {
+    position: static; display: inline-block;
+    vertical-align: -.12em; margin-right: 6px;
+  }
+}
 .pv-cwork li::before {
   content: ""; position: absolute; left: 0; top: .42em; width: 14px; height: 14px;
   background-color: var(--accent);

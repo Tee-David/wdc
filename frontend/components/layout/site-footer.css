@@ -95,7 +95,11 @@
   /* The logo is centred as one object; its wordmark keeps its own left edge. */
   .ft__logo { text-align: left; }
   .ft .ft__logo span:not(.sr-only) { font-size: 1.55rem; }
-  .ft__pitch { max-width: none; }
+  /* Room under the larger logo, and the pitch set a touch smaller so each
+     line carries more words across the width instead of sitting compact. */
+  .ft .ft__pitch { max-width: none; margin-top: 1.6rem; font-size: .9rem; }
+  /* The site's 16px phone gutter rather than 20px, for the same reason. */
+  .ft__card { padding-inline: 16px; }
   .ft__pitchShort { display: none; }
   .ft__pitchLong { display: inline; }
   .ft__col--tools, .ft__col--more { text-align: center; }
