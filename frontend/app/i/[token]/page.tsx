@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getClient, getInvoiceByToken, getPaymentsFor } from "@/lib/admin/store";
+import { getClient, getInvoiceByToken, getPaymentsFor } from "@/lib/admin/data";
 import { invoiceStatus, invoiceTotals, lineTotal, naira } from "@/lib/admin/types";
 import { DocumentShell, Headline, invoiceUrl } from "@/components/money/document";
 import { CONTACT_EMAIL } from "@/lib/site";
@@ -61,15 +61,15 @@ export default async function PublicInvoice({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { token } = await params;
-  const inv = getInvoiceByToken(token);
+  const inv = await getInvoiceByToken(token);
   /* A draft has not been sent to anybody, so there is nothing here to show
      even with the right token: 404 is the truthful answer. */
   if (!inv || inv.status === "Draft") notFound();
 
-  const client = getClient(inv.clientId);
+  const client = await getClient(inv.clientId);
   const t = invoiceTotals(inv);
   const status = invoiceStatus(inv);
-  const payments = getPaymentsFor(inv.id);
+  const payments = await getPaymentsFor(inv.id);
   const settled = t.due <= 0;
 
   const q = await searchParams;

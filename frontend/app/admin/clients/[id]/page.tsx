@@ -5,7 +5,7 @@ import { SERVICES } from "@/lib/services";
 import {
   getClient, getDeliverablesFor, getInvoicesFor, getPaymentsFor,
   getProjects, getProjectsFor, getSubmissions,
-} from "@/lib/admin/store";
+} from "@/lib/admin/data";
 import { invoiceStatus, invoiceTotals, naira, paymentNet, refundedTotal } from "@/lib/admin/types";
 import { ApprovalPill, Empty, InvoicePill, Panel, StagePill, Tile, when } from "@/components/admin/bits";
 import { InvoiceMenu, ProjectMenu } from "@/components/admin/row-actions";
@@ -33,25 +33,27 @@ import PageTourButton from "@/components/admin/tour/page-tour-button";
    before anything has started streaming a 200. */
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const c = getClient(id);
+  const c = await getClient(id);
   if (!c) notFound();
   return { title: `${c.company} · Client` };
 }
 
 export default async function ClientPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const c = getClient(id);
+  const c = await getClient(id);
   if (!c) notFound();
 
-  const projects = getProjectsFor(c.id);
-  const invoices = getInvoicesFor(c.id);
-  const forms = getSubmissions().filter((s) => s.clientId === c.id);
-  const payments = invoices
-    .flatMap((invoice) => getPaymentsFor(invoice.id).map((payment) => ({ invoice, payment })))
+  const projects = await getProjectsFor(c.id);
+  const invoices = await getInvoicesFor(c.id);
+  const forms = (await getSubmissions()).filter((s) => s.clientId === c.id);
+  const payments = (await Promise.all(
+    invoices.map(async (invoice) => (await getPaymentsFor(invoice.id)).map((payment) => ({ invoice, payment }))),
+  ))
+    .flat()
     .sort((a, b) => b.payment.at.localeCompare(a.payment.at));
-  const deliverables = projects.flatMap((project) => (
-    getDeliverablesFor(project.id).map((deliverable) => ({ deliverable, project }))
-  ));
+  const deliverables = (await Promise.all(
+    projects.map(async (project) => (await getDeliverablesFor(project.id)).map((deliverable) => ({ deliverable, project }))),
+  )).flat();
   const relatedAuditIds = [
     c.id,
     ...projects.map((project) => project.id),
@@ -82,7 +84,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
           <AddProject clients={[c]} clientId={c.id} />
           <InvoiceBuilder
             clients={[c]}
-            projects={getProjects().filter((p) => p.clientId === c.id)}
+            projects={(await getProjects()).filter((p) => p.clientId === c.id)}
             clientId={c.id}
           />
         </div>

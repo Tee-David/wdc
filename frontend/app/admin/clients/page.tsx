@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SERVICES } from "@/lib/services";
-import { getClients, getClientsByService, getInvoicesFor, getProjectsFor } from "@/lib/admin/store";
+import { getClients, getClientsByService, getInvoices, getProjects } from "@/lib/admin/data";
 import { invoiceTotals, naira } from "@/lib/admin/types";
 import { DemoNote, Empty, Panel, when } from "@/components/admin/bits";
 import { AddClient } from "@/components/admin/client-form";
@@ -53,8 +53,11 @@ export default async function ClientsPage({
   const direction = query.dir === "asc" || query.dir === "desc"
     ? query.dir
     : sort === "company" ? "asc" : "desc";
-  const source = getClients({ includeArchived: status !== "active" });
-  const grouped = getClientsByService();
+  const source = await getClients({ includeArchived: status !== "active" });
+  const grouped = await getClientsByService();
+  /* One read of each list, grouped per client here, rather than a read per row. */
+  const invoices = await getInvoices();
+  const projects = await getProjects();
   const rows = source
     .filter((client) => status !== "archived" || client.archived)
     .filter((client) => !service || client.services.includes(service))
@@ -62,10 +65,10 @@ export default async function ClientsPage({
       .some((value) => value.toLocaleLowerCase().includes(search)))
     .map((client) => ({
       client,
-      owed: getInvoicesFor(client.id)
-        .filter((invoice) => invoice.status !== "Draft")
+      owed: invoices
+        .filter((invoice) => invoice.clientId === client.id && invoice.status !== "Draft")
         .reduce((sum, invoice) => sum + invoiceTotals(invoice).due, 0),
-      live: getProjectsFor(client.id).filter((project) => project.stage !== "Delivered").length,
+      live: projects.filter((project) => project.clientId === client.id && project.stage !== "Delivered").length,
     }))
     .sort((a, b) => {
       const order = direction === "asc" ? 1 : -1;
@@ -95,7 +98,7 @@ export default async function ClientsPage({
       <div className="ad__head">
         <div>
           <h1>Clients</h1>
-          <p>{getClients().length} active clients, grouped by what they buy.</p>
+          <p>{(await getClients()).length} active clients, grouped by what they buy.</p>
         </div>
         <div className="ad__row">
           <PageTourButton />

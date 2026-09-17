@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, FolderKanban } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
-import { getProjectsFor } from "@/lib/admin/store";
+import { getProjectsFor } from "@/lib/admin/data";
 import { SERVICES } from "@/lib/services";
 import { Empty, Panel, StagePill } from "@/components/admin/bits";
 
@@ -11,7 +11,7 @@ export default async function PortalProjects() {
   const { client } = await getPortalRequest();
   if (!client) return null;
 
-  const projects = getProjectsFor(client.id, true);
+  const projects = await getProjectsFor(client.id, true);
 
   return (
     <div className="adDash">

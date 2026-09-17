@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   getClient, getInvoice, getPaymentsFor, getProject, getProjectsFor,
-} from "@/lib/admin/store";
+} from "@/lib/admin/data";
 import { invoiceStatus, invoiceTotals, lineTotal, naira } from "@/lib/admin/types";
 import { Empty, InvoicePill, Panel, Tile, when } from "@/components/admin/bits";
 import QrCode from "@/components/ui/qr-code";
@@ -21,7 +21,7 @@ import PageTourButton from "@/components/admin/tour/page-tour-button";
 /* See the note beside the same function in clients/[id]/page.tsx. */
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const inv = getInvoice(id);
+  const inv = await getInvoice(id);
   if (!inv) notFound();
   return { title: `${inv.number} · Invoice` };
 }
@@ -36,11 +36,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
  */
 export default async function InvoicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const inv = getInvoice(id);
+  const inv = await getInvoice(id);
   if (!inv) notFound();
-  const client = getClient(inv.clientId);
-  const project = inv.projectId ? getProject(inv.projectId) : null;
-  const payments = getPaymentsFor(inv.id);
+  const client = await getClient(inv.clientId);
+  const project = inv.projectId ? await getProject(inv.projectId) : null;
+  const payments = await getPaymentsFor(inv.id);
   const t = invoiceTotals(inv);
   const status = invoiceStatus(inv);
 
@@ -69,7 +69,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
               {client ? (
                 <InvoiceBuilder
                   clients={[client]}
-                  projects={getProjectsFor(inv.clientId)}
+                  projects={await getProjectsFor(inv.clientId)}
                   invoice={inv}
                   trigger="Edit the draft"
                 />

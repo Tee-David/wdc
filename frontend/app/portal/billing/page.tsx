@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Banknote, FileText } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
-import { getCreditsFor, getInvoicesFor } from "@/lib/admin/store";
+import { getCreditsFor, getInvoicesFor } from "@/lib/admin/data";
 import { invoiceStatus, invoiceTotals, naira } from "@/lib/admin/types";
 import { Empty, InvoicePill, Panel, Tile, when } from "@/components/admin/bits";
 
@@ -11,8 +11,8 @@ export default async function PortalBilling() {
   const { client } = await getPortalRequest();
   if (!client) return null;
 
-  const invoices = getInvoicesFor(client.id).filter((inv) => inv.status !== "Draft");
-  const credits = getCreditsFor(client.id).filter((c) => !c.applied);
+  const invoices = (await getInvoicesFor(client.id)).filter((inv) => inv.status !== "Draft");
+  const credits = (await getCreditsFor(client.id)).filter((c) => !c.applied);
   const balance = invoices.reduce((n, inv) => n + invoiceTotals(inv).due, 0);
   const creditBalance = credits.reduce((n, c) => n + c.amount, 0);
   const paidTotal = invoices.reduce((n, inv) => n + inv.paid, 0);

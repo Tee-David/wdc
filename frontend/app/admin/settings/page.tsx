@@ -1,7 +1,7 @@
 import { CONTACT_EMAIL } from "@/lib/site";
 import { SERVICES } from "@/lib/services";
 import { CASE_STUDIES } from "@/lib/work";
-import { getSettings } from "@/lib/admin/store";
+import { getSettings } from "@/lib/admin/data";
 import { DemoNote, Panel } from "@/components/admin/bits";
 import { SettingMenu } from "@/components/admin/row-actions";
 import AuditLog from "@/components/admin/audit-log";
@@ -24,8 +24,8 @@ export const metadata = { title: "Settings" };
  * deleting the row restores what shipped. That is the whole design, and it is
  * why this screen shows what is editable before anything is editable.
  */
-export default function SettingsPage() {
-  const overrides = getSettings();
+export default async function SettingsPage() {
+  const overrides = await getSettings();
 
   const rows: { key: string; label: string; value: string; note?: string }[] = [
     { key: "contact.email", label: "Contact email", value: CONTACT_EMAIL },

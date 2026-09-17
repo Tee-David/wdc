@@ -2,7 +2,7 @@ import Link from "next/link";
 import { SERVICES } from "@/lib/services";
 import {
   getBoard, getClient, getClients, getProjects, getTasks,
-} from "@/lib/admin/store";
+} from "@/lib/admin/data";
 import { HEALTH, STAGES, projectAttention, type Project } from "@/lib/admin/types";
 import {
   AttentionPills, DemoNote, Empty, HealthPill, Panel, StagePill, when,
@@ -51,6 +51,8 @@ export default async function ProjectsPage({
   searchParams: Promise<Query>;
 }) {
   const q = await searchParams;
+  const boardByStage = await getBoard();
+  const clientById = new Map((await getClients({ includeArchived: true })).map((c) => [c.id, c]));
 
   /* Every one of these is checked against the closed set it belongs to rather
      than used as typed. A query string is user input on a page that renders
@@ -66,8 +68,8 @@ export default async function ProjectsPage({
      renamed so an existing `?view=list` link still lands on the list. */
   const board = q.view === "board";
 
-  const projects = getProjects();
-  const tasks = getTasks();
+  const projects = await getProjects();
+  const tasks = await getTasks();
 
   /* Owners come from the projects themselves rather than a list somewhere:
      there is no user table yet, and offering names nobody is using would be
@@ -106,7 +108,7 @@ export default async function ProjectsPage({
             <Link href={withQuery(q, { view: "board" })} aria-current={board}>Board</Link>
           </span>
           <PageTourButton />
-          <AddProject clients={getClients()} dataTour="projects-add" />
+          <AddProject clients={await getClients()} dataTour="projects-add" />
         </div>
       </div>
 
@@ -170,7 +172,7 @@ export default async function ProjectsPage({
         <div className="ad__scroll" style={{ margin: ".9rem 0" }}>
           <div style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "minmax(210px, 1fr)", gap: ".7rem" }}>
             {(stage ? [stage] : STAGES).map((st) => {
-              const list = (getBoard().get(st) ?? []).filter(match);
+              const list = (boardByStage.get(st) ?? []).filter(match);
               return (
                 <section key={st} className="ad__panel">
                   <div className="ad__panelH">
@@ -193,10 +195,10 @@ export default async function ProjectsPage({
                       >
                         <Link href={`/admin/projects/${p.id}`} style={{ display: "block" }}>
                           <b>{p.title}</b>
-                          <small className="ad__dim">{getClient(p.clientId)?.company}</small>
+                          <small className="ad__dim">{clientById.get(p.clientId)?.company}</small>
                           <AttentionPills items={projectAttention(p, tasks)} />
                         </Link>
-                        <ProjectMenu project={p} clientName={getClient(p.clientId)?.company} />
+                        <ProjectMenu project={p} clientName={clientById.get(p.clientId)?.company} />
                       </div>
                     )) : <p className="ad__dim" style={{ padding: ".4rem .6rem", margin: 0 }}>Empty</p>}
                   </div>
@@ -225,14 +227,14 @@ export default async function ProjectsPage({
                           <Link href={`/admin/projects/${p.id}`}><b>{p.title}</b></Link>
                           <AttentionPills items={projectAttention(p, tasks)} except={p.health} />
                         </td>
-                        <td>{getClient(p.clientId)?.company ?? "Unknown"}</td>
+                        <td>{clientById.get(p.clientId)?.company ?? "Unknown"}</td>
                         <td>{p.owner || <span className="ad__dim">Nobody</span>}</td>
                         <td>{SERVICES.find((x) => x.slug === p.service)?.short}</td>
                         <td><StagePill stage={p.stage} /></td>
                         <td><HealthPill health={p.health} /></td>
                         <td className="num">{when(p.due)}</td>
                         <td className="ad__rmC">
-                          <ProjectMenu project={p} clientName={getClient(p.clientId)?.company} />
+                          <ProjectMenu project={p} clientName={clientById.get(p.clientId)?.company} />
                         </td>
                       </tr>
                     ))}
@@ -250,7 +252,7 @@ export default async function ProjectsPage({
                 Try a different stage, service, owner or health.
               </Empty>
             ) : (
-              <Empty title="No projects yet" action={<AddProject clients={getClients()} />}>
+              <Empty title="No projects yet" action={<AddProject clients={await getClients()} />}>
                 Projects keep delivery, deadlines, files, and client updates together.
               </Empty>
             )}

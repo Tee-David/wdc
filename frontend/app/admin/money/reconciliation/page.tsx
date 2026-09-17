@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   getInvoices, getMessages, getProviderEvents, providerAttentionCount,
-} from "@/lib/admin/store";
+} from "@/lib/admin/data";
 import { naira, providerNeedsAttention } from "@/lib/admin/types";
 import type { ProviderOutcome } from "@/lib/admin/types";
 import { Empty, Panel, when } from "@/components/admin/bits";
@@ -40,15 +40,15 @@ const TONE: Record<ProviderOutcome, string> = {
   Rejected: "ad__pill--bad",
 };
 
-export default function ReconciliationPage() {
-  const attention = getProviderEvents({ attention: true, limit: 100 });
-  const everything = getProviderEvents({ limit: 100 });
-  const outstanding = providerAttentionCount();
+export default async function ReconciliationPage() {
+  const attention = await getProviderEvents({ attention: true, limit: 100 });
+  const everything = await getProviderEvents({ limit: 100 });
+  const outstanding = await providerAttentionCount();
   /* Only invoices somebody could actually bank money against. */
-  const invoices = getInvoices()
+  const invoices = (await getInvoices())
     .filter((i) => i.status !== "Draft")
     .map((i) => ({ id: i.id, number: i.number }));
-  const failedMail = getMessages({ state: "Failed", limit: 25 });
+  const failedMail = await getMessages({ state: "Failed", limit: 25 });
 
   return (
     <>

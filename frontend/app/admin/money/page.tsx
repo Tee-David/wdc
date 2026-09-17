@@ -3,7 +3,7 @@ import {
   failedMessageCount, getAging, getClient, getClients, getCollectionRate,
   getEstimates, getExpenses, getInvoice, getInvoices, getMonthly, getPayments,
   getPipeline, getProjects, getSummary, providerAttentionCount,
-} from "@/lib/admin/store";
+} from "@/lib/admin/data";
 import {
   estimateState, estimateTotals, invoiceStatus, invoiceTotals, naira, nairaShort,
 } from "@/lib/admin/types";
@@ -28,21 +28,23 @@ export const metadata = { title: "Money" };
  * what `flex` and a percentage height already draw, on a page that has to stay
  * fast because it is opened every day.
  */
-export default function MoneyPage() {
-  const s = getSummary();
-  const unreconciled = providerAttentionCount();
-  const failedMail = failedMessageCount();
-  const aging = getAging();
-  const rate = getCollectionRate();
+export default async function MoneyPage() {
+  const invoiceById = new Map((await getInvoices()).map((i) => [i.id, i]));
+  const clientById = new Map((await getClients({ includeArchived: true })).map((c) => [c.id, c]));
+  const s = await getSummary();
+  const unreconciled = await providerAttentionCount();
+  const failedMail = await failedMessageCount();
+  const aging = await getAging();
+  const rate = await getCollectionRate();
   const owed = aging.reduce((n, b) => n + b.amount, 0);
-  const invoices = getInvoices();
-  const payments = getPayments().slice().sort((a, b) => b.at.localeCompare(a.at));
-  const expenses = getExpenses();
-  const projects = getProjects();
-  const estimates = getEstimates();
-  const pipeline = getPipeline();
+  const invoices = await getInvoices();
+  const payments = (await getPayments()).slice().sort((a, b) => b.at.localeCompare(a.at));
+  const expenses = await getExpenses();
+  const projects = await getProjects();
+  const estimates = await getEstimates();
+  const pipeline = await getPipeline();
   const projectById = new Map(projects.map((p) => [p.id, p]));
-  const months = getMonthly(6);
+  const months = await getMonthly(6);
   const peak = Math.max(1, ...months.flatMap((m) => [m.in, m.out]));
 
   /* Expenses by category, biggest first: the question an expense list is
@@ -61,8 +63,8 @@ export default function MoneyPage() {
         <div className="ad__row">
           <PageTourButton />
           <AddExpense projects={projects} />
-          <EstimateBuilder clients={getClients()} projects={projects} />
-          <InvoiceBuilder clients={getClients()} projects={projects} dataTour="money-add" />
+          <EstimateBuilder clients={await getClients()} projects={projects} />
+          <InvoiceBuilder clients={await getClients()} projects={projects} dataTour="money-add" />
         </div>
       </div>
 
@@ -155,7 +157,7 @@ export default function MoneyPage() {
                           <span className="ad__row" style={{ flexWrap: "wrap", gap: ".35rem" }}>
                             {b.invoices.map((i) => (
                               <Link key={i.id} href={`/admin/money/${i.id}`} className="ad__pill">
-                                {i.number} · {getClient(i.clientId)?.company ?? "Unknown"}
+                                {i.number} · {clientById.get(i.clientId)?.company ?? "Unknown"}
                               </Link>
                             ))}
                           </span>
@@ -217,7 +219,7 @@ export default function MoneyPage() {
             ones the studio wins. */}
         <Panel
           title="Estimates"
-          action={<EstimateBuilder clients={getClients()} projects={projects} trigger="New estimate" />}
+          action={<EstimateBuilder clients={await getClients()} projects={projects} trigger="New estimate" />}
         >
           {estimates.length ? (
             <div className="ad__scroll">
@@ -232,7 +234,7 @@ export default function MoneyPage() {
                 <tbody>
                   {estimates.map((e) => {
                     const st = estimateState(e);
-                    const c = getClient(e.clientId);
+                    const c = clientById.get(e.clientId) ?? null;
                     return (
                       <tr key={e.id}>
                         <td>
@@ -247,7 +249,7 @@ export default function MoneyPage() {
                             <p className="ad__dim" style={{ margin: ".15rem 0 0", fontSize: ".78rem" }}>
                               Billed as{" "}
                               <Link href={`/admin/money/${e.invoiceId}`}>
-                                {getInvoice(e.invoiceId)?.number ?? "an invoice"}
+                                {invoiceById.get(e.invoiceId)?.number ?? "an invoice"}
                               </Link>
                             </p>
                           ) : null}
@@ -278,7 +280,7 @@ export default function MoneyPage() {
           ) : (
             <Empty
               title="Nothing out for quote"
-              action={<EstimateBuilder clients={getClients()} projects={projects} />}
+              action={<EstimateBuilder clients={await getClients()} projects={projects} />}
             >
               An estimate is its own document with its own number, not a draft
               invoice. Accepting one raises the invoice and keeps the quote as
@@ -304,7 +306,7 @@ export default function MoneyPage() {
                     return (
                       <tr key={i.id}>
                         <td><Link href={`/admin/money/${i.id}`}><b>{i.number}</b></Link></td>
-                        <td>{getClient(i.clientId)?.company ?? "Unknown"}</td>
+                        <td>{clientById.get(i.clientId)?.company ?? "Unknown"}</td>
                         <td><InvoicePill status={invoiceStatus(i)} /></td>
                         <td className="num">{when(i.due)}</td>
                         <td className="num">{naira(t.total)}</td>
@@ -318,7 +320,7 @@ export default function MoneyPage() {
               </table>
             </div>
           ) : (
-            <Empty title="No invoices yet" action={<InvoiceBuilder clients={getClients()} projects={projects} />}>
+            <Empty title="No invoices yet" action={<InvoiceBuilder clients={await getClients()} projects={projects} />}>
               Create the first invoice to track what is billed, paid, and still outstanding.
             </Empty>
           )}

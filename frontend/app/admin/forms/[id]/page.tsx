@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
 import { stepsFor } from "@/lib/onboarding";
-import { getClient, getClients, getSubmission } from "@/lib/admin/store";
+import { getClient, getClients, getSubmission } from "@/lib/admin/data";
 import { Empty, Panel, when } from "@/components/admin/bits";
 import { AttachSubmission } from "@/components/admin/submission-forms";
 
@@ -15,7 +15,7 @@ import { AttachSubmission } from "@/components/admin/submission-forms";
    heading never disagree about what to call an unnamed lead. */
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const sub = getSubmission(id);
+  const sub = await getSubmission(id);
   if (!sub) notFound();
   const name = String(sub.answers.company ?? sub.answers.first_name ?? "Unnamed");
   return { title: `${name} · Form` };
@@ -33,9 +33,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
  */
 export default async function SubmissionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const sub = getSubmission(id);
+  const sub = await getSubmission(id);
   if (!sub) notFound();
-  const client = sub.clientId ? getClient(sub.clientId) : null;
+  const client = sub.clientId ? await getClient(sub.clientId) : null;
   const steps = stepsFor(sub.service);
 
   const shown = (key: string) => sub.answers[key];
@@ -60,7 +60,7 @@ export default async function SubmissionPage({ params }: { params: Promise<{ id:
           <span className={`ad__pill ${sub.status === "Submitted" ? "ad__pill--good" : "ad__pill--warn"}`}>
             {sub.status}
           </span>
-          {client ? null : <AttachSubmission submissionId={sub.id} clients={getClients()} />}
+          {client ? null : <AttachSubmission submissionId={sub.id} clients={await getClients()} />}
         </div>
       </div>
 

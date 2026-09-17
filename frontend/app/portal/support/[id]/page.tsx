@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPortalRequest } from "@/lib/portal/session";
-import { getTicket, getTicketMessages } from "@/lib/admin/store";
+import { getTicket, getTicketMessages } from "@/lib/admin/data";
 import { Panel, when } from "@/components/admin/bits";
 import { TicketReplyForm } from "@/components/client/ticket-reply-form";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const { client } = await getPortalRequest();
-  const t = client ? getTicket(id) : null;
+  const t = client ? await getTicket(id) : null;
   if (!t || !client || t.clientId !== client.id) notFound();
   return { title: t.subject };
 }
@@ -22,10 +22,10 @@ const STATUS_CLASS: Record<string, string> = {
 export default async function PortalTicketThread({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { client } = await getPortalRequest();
-  const t = client ? getTicket(id) : null;
+  const t = client ? await getTicket(id) : null;
   if (!t || !client || t.clientId !== client.id) notFound();
 
-  const messages = getTicketMessages(t.id);
+  const messages = await getTicketMessages(t.id);
 
   return (
     <div className="adDash">

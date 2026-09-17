@@ -1,7 +1,7 @@
 import { after, NextRequest, NextResponse } from "next/server";
 import {
   applyPayment, getInvoice, getPaymentsFor, matchInvoice, recordProviderEvent,
-} from "@/lib/admin/store";
+} from "@/lib/admin/data";
 import { invoiceTotals } from "@/lib/admin/types";
 import { fromKobo, paystackSignatureValid } from "@/lib/paystack";
 import { sendPaymentReceiptEmail } from "@/lib/money-mail";
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
        to make a genuine misconfiguration -- a rotated key, say -- findable. */
     let ref = "";
     try { ref = str((JSON.parse(raw) as { data?: Charge })?.data?.reference); } catch { /* not ours to parse */ }
-    recordProviderEvent({
+    await recordProviderEvent({
       event: "signature.invalid", reference: ref || "(unreadable)", amount: null,
       outcome: "Rejected",
       note: "A webhook arrived whose signature did not verify. Nothing was written to the books.",
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
   const channel = str(data.channel) || undefined;
 
   if (event !== "charge.success") {
-    recordProviderEvent({
+    await recordProviderEvent({
       event, reference: reference || "(none)", amount, channel,
       outcome: event.startsWith("charge.") ? "Failed" : "Ignored",
       note: str(data.gateway_response) || `No handler for ${event}. Recorded so the log is complete.`,
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
      it on the strength of the event name alone is the expensive way to find
      out. */
   if (str(data.status) !== "success" || !reference || amount === null || amount <= 0) {
-    recordProviderEvent({
+    await recordProviderEvent({
       event, reference: reference || "(none)", amount, channel, outcome: "Failed",
       note: str(data.gateway_response) || "A success event that did not describe a successful charge.",
     });
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
      factor of hundreds, which is the kind of error that survives a review. */
   const currency = str(data.currency) || "NGN";
   if (currency !== "NGN") {
-    recordProviderEvent({
+    await recordProviderEvent({
       event, reference, amount, channel, outcome: "Unmatched",
       note: `Charged in ${currency}, and the books are in NGN. Somebody has to decide the rate.`,
     });
@@ -114,20 +114,20 @@ export async function POST(request: NextRequest) {
   }
 
   const meta = data.metadata ?? {};
-  const invoice = matchInvoice({
+  const invoice = await matchInvoice({
     invoiceId: str((meta as Record<string, unknown>).invoiceId) || undefined,
     reference,
   });
 
   if (!invoice) {
-    recordProviderEvent({
+    await recordProviderEvent({
       event, reference, amount, channel, outcome: "Unmatched",
       note: "Money arrived and no invoice in the books matches the reference.",
     });
     return NextResponse.json({ received: true });
   }
 
-  const applied = applyPayment({
+  const applied = await applyPayment({
     invoiceId: invoice.id, amount, method: "Paystack", reference,
     by: "Paystack webhook",
   });
@@ -135,9 +135,9 @@ export async function POST(request: NextRequest) {
   if (!applied.ok) {
     const duplicate = applied.reason === "duplicate";
     const existing = duplicate
-      ? getPaymentsFor(invoice.id).find((p) => p.reference === reference)
+      ? (await getPaymentsFor(invoice.id)).find((p) => p.reference === reference)
       : undefined;
-    recordProviderEvent({
+    await recordProviderEvent({
       event, reference, amount, channel,
       outcome: duplicate ? "Duplicate" : "Unmatched",
       invoiceId: invoice.id, paymentId: existing?.id,
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   }
 
-  recordProviderEvent({
+  await recordProviderEvent({
     event, reference, amount, channel, outcome: "Applied",
     invoiceId: invoice.id, paymentId: applied.payment.id,
     note: applied.overpaid
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
     /* Re-read rather than reusing the invoice from before the write: `paid`
        was recomputed by applyPayment, and the figure the client reads on the
        receipt has to be the one the books now hold. */
-    const fresh = getInvoice(invoice.id) ?? invoice;
+    const fresh = await getInvoice(invoice.id) ?? invoice;
     await sendPaymentReceiptEmail({
       payment: applied.payment,
       invoice: fresh,
