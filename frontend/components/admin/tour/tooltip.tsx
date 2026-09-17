@@ -32,15 +32,17 @@ export default function TourTooltip({
       </div>
 
       <div className="tourCard__body">
-        <div className="tourCard__head">
+        <button {...closeProps} className="tourCard__close" aria-label="Close this tour">
+          <X aria-hidden="true" />
+        </button>
+
+        <div className="tourCard__iconWrap">
           <TourIcon name={meta.icon} />
-          <div className="tourCard__headText">
-            {step.title ? <b>{step.title}</b> : null}
-            <span>{meta.page ? `${meta.page} · ` : ""}Step {index + 1} of {size}</span>
-          </div>
-          <button {...closeProps} className="tourCard__close" aria-label="Close this tour">
-            <X aria-hidden="true" />
-          </button>
+        </div>
+
+        <div className="tourCard__headText">
+          {step.title ? <b>{step.title}</b> : null}
+          <span>{meta.page ? `${meta.page} · ` : ""}Step {index + 1} of {size}</span>
         </div>
 
         {meta.showEstimate && meta.estimateMinutes && meta.totalStops ? (

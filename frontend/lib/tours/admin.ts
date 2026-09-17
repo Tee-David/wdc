@@ -46,7 +46,7 @@ export const ADMIN_WELCOME: TourDef = {
       target: "body",
       placement: "center",
       href: "/admin",
-      icon: "sparkles",
+      icon: "compass",
       showEstimate: true,
       title: "Welcome to the WDC admin",
       content:
@@ -76,7 +76,7 @@ export const ADMIN_WALKTHROUGH: TourDef = {
       target: "body",
       placement: "center",
       href: "/admin",
-      icon: "sparkles",
+      icon: "compass",
       showEstimate: true,
       page: "Dashboard",
       title: "The full workflow, start to finish",
@@ -124,7 +124,7 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
     kind: "page",
     title: "This page: the dashboard",
     steps: [
-      { id: "intro", target: "body", placement: "center", icon: "sparkles", showEstimate: true, title: "The dashboard", content: "What needs a decision, a reply, or a payment follow-up, at a glance." },
+      { id: "intro", target: "body", placement: "center", icon: "compass", showEstimate: true, title: "The dashboard", content: "What needs a decision, a reply, or a payment follow-up, at a glance." },
       { id: "kpis", target: '[data-tour="dash-kpis"]', icon: "gauge", title: "The four numbers", content: "Collected, outstanding, cash position, and live projects." },
       { id: "attention", target: '[data-tour="dash-attention"]', icon: "flag", title: "Attention needed", content: "Overdue invoices, projects asking for something, and unfinished onboarding, worst first." },
       { id: "cashflow", target: '[data-tour="dash-cashflow"]', icon: "barChart", title: "Cashflow", content: "Six months of collected income against recorded spend." },
