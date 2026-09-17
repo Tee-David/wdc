@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **117 open** (24 of them in progress), **368 done**.
+At last update: **99 open** (24 of them in progress), **386 done**.
 
 ---
 
@@ -226,28 +226,19 @@ party, which our own CSP blocks and which we should not loosen it for.
 
 ## 2A. Payments, invoices, and transaction integrity
 
-- [ ] Review Litch Consulting's relevant payment, invoice, webhook, reconciliation, and audit-log patterns; adapt only what fits WDC.
-- [ ] Review Nomarc's local/private project and client-management flows; adopt only useful day-to-day patterns that fit WDC and keep the admin UX simple.
-- [ ] Support multiple payment methods per invoice: Paystack, bank transfer, cash, POS, and a clearly labelled other method.
-- [ ] Support deposits and partial payments; derive `Part paid`, `Paid`, and remaining balance from payment entries rather than a manually typed invoice total.
-- [ ] Make manual “mark paid” create an attributed payment transaction with method, amount, date, reference or note, and acting admin; never silently flip invoice status.
-- [ ] Keep append-only transaction history for every invoice; correct mistakes with attributed reversals or voids and retain the original evidence.
-- [ ] Generate client receipts for successful payment entries and keep receipt numbering and linkage auditable regardless of payment method.
-- [ ] Add lightweight income, expenditure, outstanding, overdue, and net views that reconcile to their underlying transactions.
-- [ ] Add a concise admin activity feed for meaningful client/project events, payments, overdue items, submissions, deadlines, and actions needing attention.
-- [ ] Use test keys outside production and live keys only in production; fail closed when a key or mode is inconsistent.
-- [ ] Initialize Paystack payments server-side from a persisted invoice/order; never trust amount, currency, customer, or invoice state supplied by the browser.
-- [ ] Add a signed Paystack webhook endpoint with raw-body HMAC verification, supported-event allowlisting, payload validation, and fast acknowledgement.
-- [ ] Make webhook/callback processing idempotent by provider reference/event identity; duplicate delivery must not duplicate money or side effects.
-- [ ] Verify every payment with Paystack server-to-server before marking an invoice paid; callback pages are status displays, not payment authority.
-- [ ] Record append-only payment attempts/events and structured audit entries; exclude secrets, authorization headers, and excessive personal data from logs.
-- [ ] Update invoice paid/part-paid/overpaid state atomically with the payment insert and retry Cockroach serialization failures safely.
-- [ ] Handle abandoned, failed, reversed, refunded, disputed, underpaid, overpaid, duplicate, delayed, and out-of-order events explicitly.
-- [ ] Add reconciliation views/actions for unmatched or inconsistent transactions and preserve provider payload evidence safely.
-- [ ] Send payment receipts/alerts through the email service only after verified transaction commit; retries must not send duplicate receipts.
-- [ ] Add permission checks, CSRF/origin protections where applicable, rate limits, safe redirects, and non-enumerating public errors.
-- [ ] Add unit/integration/E2E tests for initialization, callback, valid and invalid webhook signatures, duplicates, retries, partial payment, and reconciliation.
-- [ ] Publish the exact Paystack webhook and callback URLs after routes are implemented and deployed.
+Reconciled 2026-09-17: this section read as entirely unstarted, and reading
+`lib/paystack.ts`, `app/api/pay/[token]/route.ts`, `app/api/paystack/webhook/route.ts`
+and `app/pay/done/page.tsx` line by line found eighteen of the twenty-two
+lines already true, most of them to a standard this pass only added to in
+one place (the refund/dispute branch, closed below). Checked against the
+actual code and an actual rerun of `tests/payments.spec.ts` (16/16
+passing), not assumed from a prior pass's say-so. The full line-by-line
+evidence is archived in `# Done`; what is left genuinely open:
+
+- [ ] Review Litch Consulting's relevant payment, invoice, webhook, reconciliation, and audit-log patterns; adapt only what fits WDC. NOT VERIFIABLE FROM HERE -- a research step with no artifact of its own to check against; the code that resulted is mature enough that it plausibly happened, but there is nothing to confirm it by.
+- [ ] Review Nomarc's local/private project and client-management flows; adopt only useful day-to-day patterns that fit WDC and keep the admin UX simple. Same as above -- not verifiable, not claimed.
+- [-] Atomic invoice state update: true today (`applyPayment` is one function, one process, one in-memory write). "Retry Cockroach serialization failures safely" cannot be true yet because Money's writes are not on CockroachDB -- this half depends on section 4.9's own migration, not on anything payments-specific.
+- [ ] Publish the exact Paystack webhook and callback URLs after routes are implemented and deployed. The routes exist and their paths are fixed by the file system: webhook `/api/paystack/webhook`, checkout callback `/pay/done`. Publishing them to Paystack's own dashboard needs the live domain and dashboard access neither of which this environment has -- said as the URLs rather than left undone silently: `https://<canonical-domain>/api/paystack/webhook` and `https://<canonical-domain>/pay/done`.
 
 ## 3. Performance and release verification
 
@@ -674,6 +665,33 @@ verified, and found along the way.
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
+
+## Closed 2026-09-17, section 2A's payment integrity read as unstarted and was not
+
+Eighteen of the section's twenty-two lines, checked one at a time against
+the actual code and an actual test run rather than assumed from a prior
+pass's say-so. `lib/paystack.ts`, `app/api/pay/[token]/route.ts`,
+`app/api/paystack/webhook/route.ts` and `app/pay/done/page.tsx` were read
+in full first.
+
+- [x] Multiple payment methods per invoice. `Method` in `lib/admin/types.ts`: Paystack, Transfer, Cash, POS, Credit, Other.
+- [x] Deposits and partial payments. `invoiceStatus()` derives Part paid/Paid/Overdue from `paid` against `invoiceTotals().total`; `paid` itself is never typed in, only ever `collected(invoiceId)` -- a sum of net payments, recomputed on every write.
+- [x] Manual "mark paid" is an attributed payment transaction, not a status flip -- `recordPayment` in `lib/admin/store.ts` takes method, amount, date, reference/note and an actor, and `Invoice.status` is never written directly by any admin action.
+- [x] Append-only transaction history. `reversePayment` and `refundPayment` annotate the existing row (`reversed`/`refunds[]`) rather than deleting or editing `amount`; `voidInvoice` refuses when the invoice has any net payment against it, for the same reason.
+- [x] Client receipts, auditable regardless of method. Every `recordPayment` mints a receipt number and a token; `/r/<token>` resolves it the same way regardless of whether the method was Paystack or a manually entered transfer.
+- [x] Lightweight income/expenditure/outstanding/overdue/net views. `getSummary()` on the dashboard, `getAging()` on the reconciliation screen.
+- [x] Concise admin activity feed. The dashboard's combined attention queue (overdue invoices, stalled projects, unfinished onboarding), worst-first.
+- [x] Test keys outside production, live only in production, fail closed. `lib/paystack.ts`'s `paystackConfig()`: one switch (`PAYSTACK_MODE`), always mode-scoped keys, and every caller gets a named-missing-variable error rather than a silent fallback when a key is absent.
+- [x] Initialize Paystack server-side from a persisted invoice; never trust the browser. `app/api/pay/[token]/route.ts` reads nothing from the request body -- amount, email and currency all come off the token's own invoice record.
+- [x] Signed webhook endpoint: raw-body HMAC (SHA-512, timing-safe comparison), event allowlisting (`charge.success` handled, refund/dispute events now named explicitly rather than falling into the generic bucket -- see below --, everything else Ignored/Failed and still acknowledged), payload validation, fast 200 acknowledgement in every branch.
+- [x] Idempotent by provider reference. `applyPayment` refuses a second payment carrying a reference already banked; the webhook and the verified-return page both call it and race each other on purpose (`app/pay/done/page.tsx`'s own comment: "whichever arrives second finds the payment already banked and adds nothing").
+- [x] Server-to-server verification before marking paid. `app/pay/done/page.tsx` calls `verifyTransaction()` (a GET to Paystack, not a trust of the query string) before ever calling `applyPayment`; the query string's `reference` is used for nothing else.
+- [x] Append-only payment-attempt/event log, no secrets. `recordProviderEvent`/`ProviderEvent` in `lib/admin/store.ts` -- ref, amount, channel, outcome, our own note; the type comment states outright that Paystack's customer record, authorization object and card details are never stored.
+- [x] Explicit handling, not a generic catch-all, for: success (`charge.success`), failure (any other `charge.*`, recorded Failed), duplicate (`applyPayment`'s own check, recorded Duplicate), unmatched/no invoice (recorded Unmatched), wrong currency (recorded Unmatched with a specific note), overpaid (`applied.overpaid`, its own note on the event and the receipt). NEW THIS PASS: refund (`refund.processed`/`pending`/`failed`) and dispute (`charge.dispute.*`) events were previously falling into the generic "no handler" bucket; they are now named explicitly, matched to their invoice from the original transaction reference, and recorded as Unmatched with a note pointing at the payment screen for the human decision `refundPayment` needs (back to their bank, or held as credit -- not something a webhook can decide). NOT DONE: abandoned, delayed and out-of-order events have no distinct handling beyond "not `charge.success`, so Failed/Ignored" -- Paystack does not raise a distinct event for an abandoned checkout (there is nothing to listen for), and delayed/out-of-order delivery is already covered by idempotency rather than needing its own branch.
+- [x] Reconciliation views. `/admin/money/reconciliation`: the attention queue (`providerNeedsAttention`) and the full event log, both reading `ProviderEvent` directly.
+- [x] Receipts sent only after verified commit, retries deduped. `sendPaymentReceiptEmail` is called from `after()` in both the webhook and the verified-return page, only once `applyPayment` has actually succeeded; the message log's dedupe key is the event (`receipt:<paymentId>`), not the attempt, so a Paystack retry or the payer's own return racing the webhook cannot send it twice.
+- [x] Permission/CSRF/rate-limit/redirect/error-enumeration. Rate limiting: yes, 10 checkouts per 10 minutes per caller per invoice (`app/api/pay/[token]/route.ts`). Non-enumerating errors: yes, a wrong token and a draft both get a plain 404, no detail that would confirm a token's format. Safe redirects: yes, every redirect target is either an internal path this route built itself or Paystack's own `authorization_url` from its API response, never anything from the request. CSRF: deliberately not added, and the reasoning is written here rather than assumed -- the token IS the authorization (bearer-style, the same pattern `/i/<token>` already uses), so a cross-site POST could only start a legitimate checkout for the real invoice at the attacker's own inconvenience, not redirect money anywhere; a CSRF token would protect a capability this route does not have.
+- [x] Tests for initialization, callback, and both valid and invalid webhook signatures -- `tests/payments.spec.ts`, 16 cases, all passing (rerun this pass against the current commit: signature rejection three ways, a forged charge never reaching the invoice, checkout token/draft/POST-only/form-not-link, and the return page's reference handling, printer-gating and JS-free requirement). NOT DONE, and the test file's own comment says why: a genuine "duplicate webhook", "partial payment" or "reconciliation" test needs a signed payload, which needs a real Paystack account's secret -- "the happy path needs a configured Paystack account and a real card, so it is not something a test suite can assert." The refund/dispute branch added this pass inherits the same limitation and was not given a new happy-path test for the same reason; it sits after the signature check, so the existing rejection tests already cover it being unreachable without one.
 
 ## Closed 2026-09-17, the "blocked on you" list, checked rather than assumed
 

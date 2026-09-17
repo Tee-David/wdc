@@ -49,7 +49,24 @@ type Charge = {
   channel?: string;
   gateway_response?: string;
   metadata?: Record<string, unknown> | null;
+  /* Present on refund events; Paystack's own docs and its actual payloads
+     have disagreed on the exact shape across API versions, so both are
+     read rather than trusted to one. */
+  transaction_reference?: string;
+  transaction?: { reference?: string };
 };
+
+/* EVENTS THIS ROUTE NAMES RATHER THAN LETTING FALL INTO THE GENERIC
+   "no handler" BUCKET, because a refund or a dispute is real money moving
+   the other way and the reconciliation screen should say so in words
+   rather than "Ignored". Recorded, never auto-applied: `refundPayment`
+   needs a human decision this webhook cannot make on its own (does the
+   money go back to their bank, or sit as credit -- see the type's own
+   note on `toCredit`), so the row exists to be FOUND on the
+   reconciliation screen and acted on there, the same as any other
+   Unmatched event. */
+const REFUND_EVENTS = new Set(["refund.processed", "refund.pending", "refund.failed"]);
+const DISPUTE_EVENTS = new Set(["charge.dispute.create", "charge.dispute.remind", "charge.dispute.resolve"]);
 
 const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
 
@@ -79,6 +96,23 @@ export async function POST(request: NextRequest) {
   const reference = str(data.reference);
   const amount = typeof data.amount === "number" ? fromKobo(data.amount) : null;
   const channel = str(data.channel) || undefined;
+
+  if (REFUND_EVENTS.has(event) || DISPUTE_EVENTS.has(event)) {
+    /* The reference on a refund/dispute event names the ORIGINAL charge,
+       not a new transaction -- checked under a few field names since this
+       has not been exercised against a live payload. */
+    const origRef = str(data.transaction_reference) || str(data.transaction?.reference) || reference;
+    const invoice = origRef ? matchInvoice({ reference: origRef }) : null;
+    recordProviderEvent({
+      event, reference: origRef || "(none)", amount, channel,
+      outcome: "Unmatched",
+      invoiceId: invoice?.id,
+      note: invoice
+        ? `${REFUND_EVENTS.has(event) ? "Refund" : "Dispute"} against ${invoice.number}. Needs a human decision -- apply it from the payment's own screen, this is not done automatically.`
+        : `${REFUND_EVENTS.has(event) ? "Refund" : "Dispute"} event with no invoice matched from the reference. Needs a look.`,
+    });
+    return NextResponse.json({ received: true });
+  }
 
   if (event !== "charge.success") {
     recordProviderEvent({
