@@ -16,6 +16,7 @@ import CommsLog from "@/components/admin/comms-log";
 import CreditPanel from "@/components/admin/credit-panel";
 import { ArchiveClient } from "@/components/admin/client-archive";
 import AuditLog from "@/components/admin/audit-log";
+import PageTourButton from "@/components/admin/tour/page-tour-button";
 
 /* NO generateStaticParams. The client list is written to now, and a route
    prerendered from the list as it stood at build time would 404 on the client
@@ -74,6 +75,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
           </p>
         </div>
         <div className="ad__row">
+          <PageTourButton />
           <ArchiveClient client={c} />
           <EditClient client={c} />
           <AddProject clients={[c]} clientId={c.id} />
@@ -95,7 +97,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
 
       <div className="ad__grid2">
         <div className="ad__stack">
-          <Panel title="Projects">
+          <Panel title="Projects" dataTour="client-projects">
             {projects.length ? (
               <div className="ad__scroll">
                 <table className="ad__t">
@@ -118,7 +120,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
             ) : <Empty title="No projects yet" />}
           </Panel>
 
-          <Panel title="Invoices">
+          <Panel title="Invoices" dataTour="client-invoices">
             {invoices.length ? (
               <div className="ad__scroll">
                 <table className="ad__t">
@@ -181,7 +183,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
       </div>
 
       <div className="ad__grid2" style={{ marginTop: ".9rem" }}>
-        <Panel title="Payment history">
+        <Panel title="Payment history" dataTour="client-payments">
           {payments.length ? (
             <div className="ad__scroll">
               <table className="ad__t">

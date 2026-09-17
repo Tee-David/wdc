@@ -35,7 +35,7 @@ export default function CreditPanel({ clientId }: { clientId: string }) {
     .map((i) => ({ id: i.id, number: i.number, due: invoiceTotals(i).due }));
 
   return (
-    <Panel title="Their balance with us">
+    <Panel title="Their balance with us" dataTour="client-credit">
       <div style={{ padding: ".9rem 1rem", borderBottom: "1px solid var(--ad-line)" }}>
         <p style={{ margin: 0 }}>
           {balance > 0 ? (

@@ -19,6 +19,7 @@ import {
 } from "@/components/admin/delivery";
 import { AddExpense, InvoiceBuilder } from "@/components/admin/money-forms";
 import AuditLog from "@/components/admin/audit-log";
+import PageTourButton from "@/components/admin/tour/page-tour-button";
 
 /* NO generateStaticParams: projects are created at runtime now, and a route
    list frozen at build time would 404 on anything opened since. */
@@ -69,6 +70,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           </p>
         </div>
         <div className="ad__row">
+          <PageTourButton />
           <ProjectDetails project={p} />
           {client ? (
             <InvoiceBuilder clients={[client]} projects={[p]} clientId={client.id} />
@@ -103,7 +105,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       {/* THE STAGE TRACK. Six named steps, the current one lit, everything
           behind it filled. A client asking "where are we" is asking this
           question, and this is the answer in one glance. */}
-      <section className="ad__panel" style={{ marginBottom: ".9rem" }}>
+      <section className="ad__panel" style={{ marginBottom: ".9rem" }} data-tour="proj-stage">
         <div className="ad__panelH"><h2>Where it is</h2><StagePill stage={p.stage} /></div>
         <ol style={{ display: "grid", gridTemplateColumns: `repeat(${STAGES.length}, 1fr)`, gap: ".35rem", listStyle: "none", margin: 0, padding: ".9rem 1rem" }}>
           {STAGES.map((st, n) => (
@@ -138,7 +140,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           not on receipts is precisely the one worth knowing about. Every
           figure is derived from the invoices and the expenses filed against
           this project; nothing is stored, so nothing can go stale. */}
-      <section className="ad__panel" style={{ marginBottom: ".9rem" }}>
+      <section className="ad__panel" style={{ marginBottom: ".9rem" }} data-tour="proj-margin">
         <div className="ad__panelH">
           <h2>What it has made</h2>
           <AddExpense projects={[p]} />
