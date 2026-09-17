@@ -5,7 +5,7 @@ import {
   applyPayment, getInvoice, getPaymentsFor, matchInvoice, recordProviderEvent,
 } from "@/lib/admin/store";
 import { invoiceTotals, naira } from "@/lib/admin/types";
-import { fromKobo, verifyTransaction } from "@/lib/paystack";
+import { fromKobo, paystackMode, verifyTransaction } from "@/lib/paystack";
 import { sendPaymentReceiptEmail } from "@/lib/money-mail";
 import ReceiptPrinter from "@/components/money/receipt-printer";
 import "@/components/money/document.css";
@@ -52,7 +52,7 @@ async function settle(reference: string): Promise<Outcome> {
   const verified = await verifyTransaction(reference);
   if (!verified.ok) {
     recordProviderEvent({
-      event: "verify.failed", reference, amount: null, outcome: "Rejected",
+      event: "verify.failed", reference, amount: null, outcome: "Rejected", mode: paystackMode(),
       note: verified.error,
     });
     return {
@@ -66,7 +66,7 @@ async function settle(reference: string): Promise<Outcome> {
 
   if (t.status !== "success") {
     recordProviderEvent({
-      event: "verify.not-success", reference, amount, outcome: "Failed",
+      event: "verify.not-success", reference, amount, outcome: "Failed", mode: paystackMode(),
       channel: t.channel ?? undefined,
       note: t.gateway_response ?? `Paystack reports the transaction as ${t.status}.`,
     });
@@ -80,7 +80,7 @@ async function settle(reference: string): Promise<Outcome> {
 
   if ((t.currency || "NGN") !== "NGN") {
     recordProviderEvent({
-      event: "verify.currency", reference, amount, outcome: "Unmatched",
+      event: "verify.currency", reference, amount, outcome: "Unmatched", mode: paystackMode(),
       note: `Charged in ${t.currency}, and the books are in NGN.`,
     });
     return { kind: "pending", message: "Your payment went through and we are checking it against the invoice. We will email your receipt shortly." };
@@ -93,7 +93,7 @@ async function settle(reference: string): Promise<Outcome> {
   });
   if (!invoice) {
     recordProviderEvent({
-      event: "verify.unmatched", reference, amount, outcome: "Unmatched",
+      event: "verify.unmatched", reference, amount, outcome: "Unmatched", mode: paystackMode(),
       channel: t.channel ?? undefined,
       note: "Verified as paid, and no invoice in the books matches the reference.",
     });
@@ -102,7 +102,7 @@ async function settle(reference: string): Promise<Outcome> {
 
   const applied = applyPayment({
     invoiceId: invoice.id, amount, method: "Paystack", reference,
-    by: "Paystack checkout",
+    by: "Paystack checkout", mode: paystackMode(),
   });
 
   /* ALREADY BANKED IS A SUCCESS, NOT AN ERROR. It means the webhook got here
@@ -118,7 +118,7 @@ async function settle(reference: string): Promise<Outcome> {
       };
     }
     recordProviderEvent({
-      event: "verify.not-applied", reference, amount, outcome: "Unmatched",
+      event: "verify.not-applied", reference, amount, outcome: "Unmatched", mode: paystackMode(),
       invoiceId: invoice.id,
       note: `Verified as paid but could not be applied to ${invoice.number}: ${applied.reason}.`,
     });
@@ -126,7 +126,7 @@ async function settle(reference: string): Promise<Outcome> {
   }
 
   recordProviderEvent({
-    event: "verify.success", reference, amount, outcome: "Applied",
+    event: "verify.success", reference, amount, outcome: "Applied", mode: paystackMode(),
     channel: t.channel ?? undefined,
     invoiceId: invoice.id, paymentId: applied.payment.id,
     note: applied.overpaid ? `Takes ${invoice.number} past its total.` : undefined,
