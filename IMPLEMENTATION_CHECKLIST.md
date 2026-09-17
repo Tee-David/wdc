@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **122 open** (11 of them in progress), **319 done**.
+At last update: **132 open** (15 of them in progress), **319 done**.
 
 ---
 
@@ -216,12 +216,50 @@ party, which our own CSP blocks and which we should not loosen it for.
 
 ### 4.2 Daily admin dashboard
 
-- [ ] Add an “Attention needed” queue for overdue invoices, stalled onboarding, approaching deadlines, revision requests, failed payments/uploads, and unread client actions; each item must link directly to the resolution screen.
-- [ ] Add billed-versus-collected trends, collection rate, outstanding and overdue totals, lightweight income versus expenditure, and accounts-receivable aging backed by transaction data.
-- [ ] Add recent payments, recent clients/leads, upcoming deadlines or meetings, incomplete onboarding, and meaningful activity without duplicating the attention queue.
-- [ ] Add Litch-style quick actions for a new client, project, invoice, payment, expense, and onboarding link; show only actions the current role can perform.
-- [ ] Support a useful empty first-run dashboard and compact loading/error states rather than displaying fictional production data.
-- [ ] Verify every dashboard number reconciles to its underlying filtered records and every card/action links to the correct destination.
+Reconciled 2026-09-17: this section was marked entirely unstarted, and
+`components/admin/dashboard-view.tsx` already does most of it -- the same
+drift the older "Moved out of Open, 2026-09-14 (second pass)" note further
+down this file already caught once for this exact section ("Marked done by
+another agent but left in the open half"). Read line by line against the
+running code rather than assumed from the file's own claims.
+
+- [-] Overdue invoices, stalled onboarding, and project-derived reasons
+  (blocked, waiting on a client, in revision, a slipped task) all feed one
+  combined `attention` queue, sorted worst-first, every row linking straight
+  to its resolution screen (`AdminDashboardView`). NOT built: failed
+  payments/uploads and unread client actions -- both need a system that
+  does not exist yet (Paystack is not wired; there is no client portal), so
+  neither can honestly appear.
+- [-] Outstanding, overdue, and a collection rate are on the KPI tiles;
+  "Cashflow, last six months" charts collected income against recorded
+  spend, which is the lightweight income-versus-expenditure view. NOT on
+  this route: accounts-receivable aging, which exists (30-day buckets,
+  drillable) but only on `/admin/money/reconciliation` -- it answers the
+  question asked here, just from a different page.
+- [-] Recent payments and upcoming deadlines are both rail panels, both now
+  with a real empty state rather than a blank box (see the 2026-09-17
+  closed entry). NOT built: a recent clients/leads panel -- there is
+  nothing on `/admin` today naming who signed up or enquired most recently.
+- [-] Quick actions has a new client, a new invoice (`InvoiceBuilder`), and
+  a new expense. NOT built: a "new project" action in this panel
+  specifically (it exists, but only as a header button, not beside the
+  other three here), a standalone "record a payment" not tied to opening
+  one invoice first, an onboarding-link action, and any role filtering --
+  there is only one role (`owner`) wired today, so "show only what the
+  role can do" has nothing to differ against yet.
+- [x] A first-run dashboard with nothing in every store renders honestly:
+  the KPI tiles show ₦0 rather than breaking, the pipeline strip shows
+  every stage at zero, and every panel with a list now falls back to a
+  real `Empty` state rather than a blank box. `app/admin/loading.tsx` and
+  `app/admin/error.tsx` already cover the loading/error pair. The `DemoNote`
+  banner discloses the seeded records are demonstration data rather than
+  presenting them as real, which is the honest form this takes before the
+  admin is on a real database.
+- [ ] Verify every dashboard number reconciles to its underlying filtered
+  records and every card/action links to the correct destination. NOT
+  verified end to end -- the figures are derived from the same store
+  functions Money's own pinned tests already exercise, but nobody has
+  walked this specific route's numbers against the records one by one.
 
 ### 4.3 Clients and client workspace
 
