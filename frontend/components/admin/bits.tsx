@@ -18,10 +18,14 @@ export function DemoNote({ children }: { children: React.ReactNode }) {
 }
 
 export function Panel({
-  title, action, children,
-}: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
+  title, action, children, dataTour,
+}: {
+  title: string; action?: React.ReactNode; children: React.ReactNode;
+  /** A tour step's `target`, when this panel is one -- see `lib/tours/admin.ts`. */
+  dataTour?: string;
+}) {
   return (
-    <section className="ad__panel">
+    <section className="ad__panel" data-tour={dataTour}>
       <div className="ad__panelH">
         <h2>{title}</h2>
         {action}

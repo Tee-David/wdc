@@ -35,7 +35,7 @@ const emptyRow = (): Row => ({ key: ++rowKey, description: "", qty: "1", unit: "
  * saved invoice cannot differ by a kobo on a fractional quantity.
  */
 export function InvoiceBuilder({
-  clients, projects, invoice, clientId, trigger = "New invoice",
+  clients, projects, invoice, clientId, trigger = "New invoice", dataTour,
 }: {
   clients: Pick<Client, "id" | "company">[];
   projects: Pick<Project, "id" | "title" | "clientId">[];
@@ -43,6 +43,7 @@ export function InvoiceBuilder({
   invoice?: Invoice;
   clientId?: string;
   trigger?: string;
+  dataTour?: string;
 }) {
   return (
     <DialogButton
@@ -51,6 +52,7 @@ export function InvoiceBuilder({
       icon={invoice ? Save : Plus}
       tone={invoice ? "plain" : "primary"}
       wide
+      dataTour={dataTour}
     >
       {(close) => (
         <Builder

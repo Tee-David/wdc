@@ -4,6 +4,7 @@ import { CORE_STEPS, SERVICE_STEPS, CLOSING_STEPS } from "@/lib/onboarding";
 import { getClient, getClients, getSubmissions } from "@/lib/admin/store";
 import { DemoNote, Empty, Panel, when } from "@/components/admin/bits";
 import { SubmissionMenu } from "@/components/admin/row-actions";
+import PageTourButton from "@/components/admin/tour/page-tour-button";
 
 export const metadata = { title: "Forms" };
 
@@ -35,7 +36,10 @@ export default function FormsPage() {
           <h1>Forms</h1>
           <p>{done.length} sent, {open.length} still open.</p>
         </div>
-        <Link className="ad__btn" href="/onboarding" target="_blank">Open the form</Link>
+        <div className="ad__row">
+          <PageTourButton />
+          <Link className="ad__btn" href="/onboarding" target="_blank">Open the form</Link>
+        </div>
       </div>
 
       <DemoNote>
@@ -50,7 +54,7 @@ export default function FormsPage() {
       <div className="ad__stack">
         <Panel title="Submissions">
           {subs.length ? (
-            <div className="ad__scroll">
+            <div className="ad__scroll" data-tour="forms-table">
               <table className="ad__t">
                 <thead><tr><th>Who</th><th>Service</th><th>Status</th><th>Started</th><th>Sent</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
                 <tbody>

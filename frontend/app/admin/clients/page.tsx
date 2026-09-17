@@ -4,6 +4,7 @@ import { getClients, getClientsByService, getInvoicesFor, getProjectsFor } from 
 import { invoiceTotals, naira } from "@/lib/admin/types";
 import { DemoNote, Empty, Panel, when } from "@/components/admin/bits";
 import { AddClient } from "@/components/admin/client-form";
+import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { ClientMenu } from "@/components/admin/row-actions";
 
 export const metadata = { title: "Clients" };
@@ -96,7 +97,10 @@ export default async function ClientsPage({
           <h1>Clients</h1>
           <p>{getClients().length} active clients, grouped by what they buy.</p>
         </div>
-        <AddClient />
+        <div className="ad__row">
+          <PageTourButton />
+          <AddClient dataTour="clients-add" />
+        </div>
       </div>
 
       <DemoNote>
@@ -133,7 +137,7 @@ export default async function ClientsPage({
         </Panel>
 
         <Panel title="Everyone">
-          <form className="ad__filterBar" method="get" action="/admin/clients#client-list" aria-label="Filter clients">
+          <form className="ad__filterBar" method="get" action="/admin/clients#client-list" aria-label="Filter clients" data-tour="clients-filters">
             <label className="ad__filterSearch">
               <span className="ad__sr">Search clients</span>
               <input name="q" type="search" defaultValue={query.q} placeholder="Search name, company, email or sector" />
