@@ -41,8 +41,14 @@
   padding: clamp(2.6rem, 5vw, 4.2rem) clamp(1.25rem, 4vw, 3.5rem) 0;
 }
 
-/* 1.5fr on the brand column because it carries a paragraph and the other three
-   carry link lists; equal columns left the pitch in a 200px gutter.
+/* NAMED AREAS, NOT COLUMN COUNTING. Four real menus now that Tools split into
+   Tools and More tools -- Company, Useful links, Tools, More tools -- and the
+   one thing every width has to keep true is that they read as two rows of two,
+   never three-and-a-straggler. Brand and the subscribe box are the tall
+   columns either side of that block on a wide screen, and lead it full-width
+   everywhere narrower; areas say that once instead of coordinating grid-column
+   and order across three separate media queries the way the previous five-
+   column layout had to.
 
    THE THIRD COLUMN IS WIDER THAN THE SECOND because of what is in it. Company
    is five one-word links; Useful links ends on the studio's address, and
@@ -53,48 +59,37 @@
 .ft__cols {
   position: relative; z-index: 2;
   display: grid; gap: clamp(2rem, 4vw, 3rem);
-  /* Five columns now that Tools has one: the studio, Company, Useful links,
-     Tools, and the subscribe box. Useful links keeps the widest of the three
-     link lists because it carries the address as well as the policies.
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "brand      brand"
+    "company    useful"
+    "tools      more"
+    "newsletter newsletter";
+}
+.ft__brand      { grid-area: brand; }
+.ft__col--company { grid-area: company; }
+.ft__col--useful  { grid-area: useful; }
+.ft__col--tools   { grid-area: tools; }
+.ft__col--more    { grid-area: more; }
+.ft__col--sub   { grid-area: newsletter; }
 
-     THE SUBSCRIBE COLUMN IS THE WIDEST OF ALL, AND IT HAS TO BE. It holds a
-     control, not a list, and that control has a fixed-width button on one end
-     and an icon on the other. At 1.1fr it measured 208px, which left about
-     32px of usable room for the address between the two, so the Subscribe
-     button sat on top of the placeholder. A link list can be narrow and simply
-     wrap; a field cannot. Adding the Tools column is what took the width away,
-     so this is the other half of that change. */
-  grid-template-columns: 1.15fr .7fr 1.2fr .7fr 1.75fr;
+/* 1279, NOT 1000, AND THE ODD NUMBER IS THE POINT. The subscribe field needs
+   about 300px before its button and the line under it fit on one line;
+   measured, that arrives at 1280px viewport and not before. 1280 is also the
+   commonest laptop width there is, so the breakpoint stops one pixel short of
+   it rather than rounding down and handing the most likely desktop the worse
+   of the two layouts. Brand keeps the left rail and the subscribe box the
+   right one, tall enough to run beside both menu rows; the four menus fill
+   the two columns between them, two over two, which is the arrangement asked
+   for and the one that was missing below this width too. */
+@media (min-width: 1280px) {
+  .ft__cols {
+    grid-template-columns: 1.15fr .95fr 1.15fr 1.75fr;
+    grid-template-areas:
+      "brand company useful  newsletter"
+      "brand tools   more    newsletter";
+  }
 }
-/* 1279, NOT 1000, AND THE ODD NUMBER IS THE POINT. Five columns need about
-   300px in the last one before the subscribe field has room for its button and
-   the line under it can hold one line of text; measured, that arrives at
-   1280px viewport and not before. Below it the whole five-column layout is
-   cramped at once, with "Domain checker" wrapping in a 106px Tools column as
-   well. 1280 is also the commonest laptop width there is, so the breakpoint
-   stops one pixel short of it rather than rounding down and handing the most
-   likely desktop the worse of the two layouts. */
-@media (max-width: 1279px) { .ft__cols { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 560px)  {
-  /* TWO ACROSS, NOT ONE. Stacked, the three link lists were three full-width
-     blocks one after another and you scrolled past Company to reach Useful
-     links to reach Tools. Side by side they read as a directory, which is what
-     a footer is. The brand block and the subscribe box keep the full width and
-     keep their lead: a paragraph in a 170px column is a column of single
-     words, and a subscribe field needs the room. */
-  .ft__cols { grid-template-columns: 1fr 1fr; }
-  .ft__brand, .ft__col--sub { grid-column: 1 / -1; }
-  /* One column, so the brand block and the subscribe box that follows it lead
-     the mobile footer, ahead of the Company and Useful links lists. Those two
-     nav columns have no `order` of their own, which defaults to 0 -- lower
-     than `.ft__brand`'s 1, so without setting it here they float above the
-     brand block instead of below it. The whole subscribe column moves as one
-     piece, heading and all. */
-  .ft__brand { order: 1; }
-  .ft__col--sub { order: 2; }
-  .ft__cols > nav.ft__col { order: 3; }
-}
-@media (max-width: 1279px) { .ft__brand { grid-column: 1 / -1; } }
 
 /* The card is navy in BOTH themes, so the logo's auto ink -- which is navy on
    a light theme -- has to be told otherwise here, or the mark disappears into
