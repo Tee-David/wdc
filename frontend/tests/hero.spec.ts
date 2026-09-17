@@ -211,7 +211,7 @@ test.describe("the footer", () => {
       const m = await page.evaluate(() => {
         const cols = document.querySelector(".ft__cols")!.getBoundingClientRect();
         const base = document.querySelector(".ft__base")!.getBoundingClientRect();
-        const children = [...document.querySelectorAll<HTMLElement>(".ft__cols > *")].map((c) => {
+        const children = [...document.querySelectorAll<HTMLElement>(".ft__side, .ft__cols .ft__col")].map((c) => {
           const r = c.getBoundingClientRect();
           return {
             name: c.querySelector("h2")?.textContent?.trim() ?? c.className.split(" ")[0],

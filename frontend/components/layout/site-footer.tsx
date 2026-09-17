@@ -18,10 +18,15 @@ import { FREE_TOOLS } from "@/lib/tools";
  * of grey text at the bottom of a page that had just spent a screen and a half
  * arguing for the studio. It also had nowhere to put the legal documents.
  *
- * THE SHAPE is the one the brief asked for: a card that comes up out of the
- * page on a rounded top edge, four columns, the wordmark set enormous behind
- * them and cropped by the bottom of the card, and a closing rule. Everything
- * inside it is WDC's own type, colour and spacing.
+ * THE SHAPE, on a desktop: a sidebar holding the studio -- wordmark, pitch and
+ * the subscribe box -- beside one row of link columns. It replaced a five-column
+ * grid whose tools wrapped onto a second row, which left the brand and the
+ * subscribe columns standing over empty navy on either side. With the brand
+ * and the box stacked in one column, every link list starts on the same line
+ * and the two halves end at about the same depth.
+ *
+ * On a phone: the studio and the box first, Company as a row of pills, the
+ * tools two across, and the policies as small print just above the copyright.
  *
  * NO INVENTED LINKS. There is no social row, because no handles are recorded
  * anywhere in this project and a footer full of `href="#"` icons is worse than
@@ -41,119 +46,40 @@ const NAV = [
 /** Add real profiles here and the row appears. Nothing is guessed. */
 const SOCIALS: { label: string; href: string }[] = [];
 
+
 export function SiteFooter() {
   const year = new Date().getFullYear();
-  /* THIRTEEN TOOLS NOW, AND ONE COLUMN READS AS A SCROLL. Split at the
-     midpoint rather than curated by hand, so a fourteenth tool added to
-     `lib/tools.ts` rebalances the two headings on its own instead of
-     piling onto whichever list somebody left longer. */
-  const toolsHalf = Math.ceil(FREE_TOOLS.length / 2);
-  const toolsA = FREE_TOOLS.slice(0, toolsHalf);
-  const toolsB = FREE_TOOLS.slice(toolsHalf);
+  /* Two columns of tools on a desktop, split at the midpoint, so a tool added
+     to `lib/tools.ts` rebalances them on its own. */
+  const toolRows = Math.max(1, Math.ceil(FREE_TOOLS.length / 2));
 
   return (
     <footer className="pv ft">
       <div className="ft__card">
         <div className="ft__cols">
-          {/* the studio */}
-          <div className="ft__brand">
-            {/* The project's own Logo component rather than a guessed asset
-                path. `tone="auto"` is what keeps the nib orange; the other
-                tones flatten the mark to a single colour. Auto reads its ink
-                from `--logo-ink`, which follows the THEME -- navy on light --
-                and this card is navy in both themes, so the footer overrides
-                that token to white for its own subtree. */}
-            <Link href="/" className="ft__logo" aria-label={`${COMPANY_NAME} home`}>
-              <Logo markClassName="ft__logoMark" />
-            </Link>
-            <p className="ft__pitch">
-              A creative and digital agency. Branding, search, websites, apps,
-              software and campaigns, built by one team so nothing is lost in the
-              hand-off.
-            </p>
-          </div>
+          {/* the studio, and the one ask this part of the page is for */}
+          <div className="ft__side">
+            <div className="ft__brand">
+              {/* The project's own Logo component rather than a guessed asset
+                  path. `tone="auto"` is what keeps the nib orange; the other
+                  tones flatten the mark to a single colour. Auto reads its ink
+                  from `--logo-ink`, which follows the THEME -- navy on light --
+                  and this card is navy in both themes, so the footer overrides
+                  that token to white for its own subtree. */}
+              <Link href="/" className="ft__logo" aria-label={`${COMPANY_NAME} home`}>
+                <Logo markClassName="ft__logoMark" />
+              </Link>
+              <p className="ft__pitch">
+                A creative and digital agency. Branding, search, websites, apps,
+                software and campaigns, built by one team so nothing is lost in the
+                hand-off.
+              </p>
+            </div>
 
-          <nav className="ft__col ft__col--company" aria-label="Site">
-            <h2>Company</h2>
-            <ul>
-              {NAV.map((n) => (
-                <li key={n.href}><Link href={n.href}>{n.label}</Link></li>
-              ))}
-            </ul>
-          </nav>
-
-          {/* "Useful links" rather than "Legal", and the address sits at the
-              bottom of it. Four policies under a heading that says Legal reads
-              as the small print nobody clicks; the same four plus the way to
-              reach a person reads as the column you check when you want
-              something. */}
-          <nav className="ft__col ft__col--useful" aria-label="Useful links">
-            <h2>Useful links</h2>
-            <ul>
-              {LEGAL_DOCS.map((d) => (
-                <li key={d.slug}>
-                  <Link href={`/legal/${d.slug}`}>{d.title}</Link>
-                </li>
-              ))}
-              <li>
-                <a href={`mailto:${CONTACT_EMAIL}`} className="ft__mail">
-                  {CONTACT_EMAIL}
-                  <ArrowUpRight aria-hidden="true" />
-                </a>
-              </li>
-            </ul>
-          </nav>
-
-          {/* THE TOOLS, FROM THE SAME REGISTRY THE SERVICE PAGES READ, SPLIT
-              IN TWO. Thirteen tools in one list was a scroll rather than a
-              column, and the four-menu grid this footer now arranges as two
-              rows of two needed a fourth heading to fill anyway -- "Tools"
-              and "More tools" split the same registry rather than inventing
-              a second one, so a tool added to `lib/tools.ts` still needs no
-              edit here.
-
-              Both hide themselves if the underlying list is ever empty
-              rather than leaving a heading with nothing under it. */}
-          {toolsA.length > 0 ? (
-            <nav className="ft__col ft__col--tools" aria-label="Free tools">
-              <h2>Tools</h2>
-              <ul>
-                {toolsA.map((t) => (
-                  <li key={t.slug}><Link href={t.href}>{t.short}</Link></li>
-                ))}
-              </ul>
-            </nav>
-          ) : null}
-
-          {toolsB.length > 0 ? (
-            <nav className="ft__col ft__col--more" aria-label="More free tools">
-              <h2>More tools</h2>
-              <ul>
-                {toolsB.map((t) => (
-                  <li key={t.slug}><Link href={t.href}>{t.short}</Link></li>
-                ))}
-              </ul>
-            </nav>
-          ) : null}
-
-          <div className="ft__col ft__col--sub">
-            {/* The subscribe box's own heading, now that it has a column to
-                itself. The two lines that used to sit here -- where we are and
-                how fast we reply -- are on /contact, which is where somebody
-                deciding whether to write is already headed. */}
-            <h2>Worth your inbox</h2>
-            {/* IN THE COLUMN, under its own heading. It was briefly a direct
-                child of `.ft__cols` placed into row 2, which put it below the
-                TALLEST column rather than below its own heading -- a row's
-                start is set by the whole row, so the box sat in open space
-                with the heading stranded far above it. */}
+            {/* NO HEADING. Under the pitch, the field's placeholder and the line
+                beneath it already say what this is and how often it sends. */}
             <Newsletter />
-            {/* NO "START A CONVERSATION" BUTTON. Contact Us is already in the
-                Company list two columns over, the address is in Useful links
-                beside it, and every page above this one ends in its own ask.
-                A fourth route to the same place, styled as the loudest thing
-                in the footer, was competing with the subscribe box for the one
-                decision this part of the page is actually for. */}
+
             {SOCIALS.length ? (
               <div className="ft__social">
                 {SOCIALS.map((s) => (
@@ -166,6 +92,57 @@ export function SiteFooter() {
             ) : null}
           </div>
 
+          <div className="ft__links">
+            <nav className="ft__col ft__col--nav" aria-label="Site">
+              <h2>Company</h2>
+              <ul>
+                {NAV.map((n) => (
+                  <li key={n.href}><Link href={n.href}>{n.label}</Link></li>
+                ))}
+              </ul>
+            </nav>
+
+            {/* "Useful links" rather than "Legal", and the address sits at the
+                bottom of it. On a phone this column becomes the small print
+                above the copyright; its heading is kept for screen readers. */}
+            <nav className="ft__col ft__col--legal" aria-label="Useful links">
+              <h2>Useful links</h2>
+              <ul>
+                {LEGAL_DOCS.map((d) => (
+                  <li key={d.slug}>
+                    <Link href={`/legal/${d.slug}`}>{d.title}</Link>
+                  </li>
+                ))}
+                <li>
+                  <a href={`mailto:${CONTACT_EMAIL}`} className="ft__mail">
+                    {CONTACT_EMAIL}
+                    <ArrowUpRight aria-hidden="true" />
+                  </a>
+                </li>
+              </ul>
+            </nav>
+
+            {/* THE TOOLS, FROM THE SAME REGISTRY THE SERVICE PAGES READ, so the
+                next one appears here the moment it is added to `lib/tools.ts`.
+                One list under one heading, flowed into two columns on a
+                desktop and two across on a phone: splitting it under "Tools"
+                and "More tools" read as two different kinds of thing. The
+                column hides itself if the registry is ever empty. */}
+            {FREE_TOOLS.length > 0 ? (
+              <nav
+                className="ft__col ft__col--tools"
+                aria-label="Free tools"
+                style={{ "--tool-rows": toolRows } as React.CSSProperties}
+              >
+                <h2>Free tools</h2>
+                <ul>
+                  {FREE_TOOLS.map((t) => (
+                    <li key={t.slug}><Link href={t.href}>{t.short}</Link></li>
+                  ))}
+                </ul>
+              </nav>
+            ) : null}
+          </div>
         </div>
 
         {/* The wordmark, set at a share of the CARD's width rather than the
