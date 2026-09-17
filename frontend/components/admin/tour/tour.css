@@ -80,20 +80,16 @@
 .tourCard__close svg { width: 1rem; height: 1rem; }
 .tourCard__close:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
 
-/* Solid, not a tint: a translucent chip read as washed-out against the
-   blur behind the card, and it is the one thing that has to stay legible
-   at a glance -- it is the reader's only cue, before they have read a
-   word of the step, that this will not take long. Its own row, the same
+/* Plain text in the accent colour, not a chip -- its own row, the same
    slot `.tourCard__encouragement` sits in on every OTHER step (the two
    never appear together -- see `meta.ts` -- so one slot is genuinely
    enough), rather than sharing a row with the buttons where it crowded
    them on a narrow card. */
 .tourCard__estimate {
-  display: inline-flex; width: fit-content; align-items: center; gap: .35rem;
-  margin: .7rem 0 0; padding: .4rem .7rem;
-  border-radius: 999px; background: var(--ad-accent);
-  color: #000;
-  font-size: .72rem; font-weight: 700; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: .35rem;
+  margin: .7rem 0 0;
+  color: var(--ad-accent);
+  font-size: .74rem; font-weight: 700; white-space: nowrap;
 }
 .tourCard__estimate svg { width: .8rem; height: .8rem; }
 
