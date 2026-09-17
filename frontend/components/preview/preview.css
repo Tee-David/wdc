@@ -533,32 +533,27 @@ html:not(.dark) .pv .pv-card {
    most expensive part of the hover: a blurred shadow that size repaints on
    every frame of the transition. The border doing the work is both cleaner
    and free. */
-/* THE SAME HOVER `.wk-cat` ALREADY USES, rather than a third variation.
+/* THE FOOT FILLS NAVY ON HOVER, with an orange badge and an off-white arrow.
 
-   The orange OUTLINE is gone: a 1px accent ring around a pale card is the
-   weakest way this palette can say "live", and it read as a selection state
-   rather than a hover. The card's foot fills with the accent instead, which is
-   exactly what a category card on /work does, and the label on that fill takes
-   `--on-accent` because that is the ONE label colour any brand fill takes
-   anywhere on this site -- black at 7.11:1, where white would be 2.95:1.
+   Navy rather than the orange fill it used to take: a row of cards each
+   turning orange competed with the orange scroll bar under them, and the navy
+   foot is the brand's primary dark surface. The title and description go to
+   the band's own ink (white at 17.68:1, the dim tone at 7.9:1 on navy).
 
-   THE BADGE INVERTS TO NAVY WITH A WHITE GLYPH, and that is deliberate rather
-   than the black-and-orange it could have been. On the orange foot, navy is
-   the one colour the site already uses to keep an object distinct (17.68:1
-   white on navy), and `.wk-cat` does precisely this with its own pill. Orange
-   on black would be a fourth pairing at about 4.3:1 -- fine for a glyph, but a
-   new rule to remember for no gain. */
-.pv-job:hover { transform: translateY(-4px); }
-.pv-job:hover .pv-job__body { background: var(--accent); }
-.pv-job:hover .pv-job__row b { color: var(--on-accent); }
-.pv-job:hover .pv-job__desc { color: rgb(0 0 0 / .72); }
+   The same state on `:focus-visible`, so a keyboard user sees what a mouse
+   user sees; the outline keeps the focus ring the site uses everywhere. */
+.pv-job:hover, .pv-job:focus-visible { transform: translateY(-4px); }
+.pv-job:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.pv-job:hover .pv-job__body, .pv-job:focus-visible .pv-job__body { background: var(--band); }
+.pv-job:hover .pv-job__row b, .pv-job:focus-visible .pv-job__row b { color: var(--on-band); }
+.pv-job:hover .pv-job__desc, .pv-job:focus-visible .pv-job__desc { color: var(--on-band-dim); }
 /* `position: relative` for `next/image`'s `fill`. */
 .pv-shot { position: relative; aspect-ratio: 4/3; overflow: hidden; background: var(--paper-2); }
 .pv-shot img {
   width: 100%; height: 100%; object-fit: cover; object-position: top center;
   transition: transform .5s cubic-bezier(.16, 1, .3, 1);
 }
-.pv-job:hover .pv-shot img { transform: scale(1.05); }
+.pv-job:hover .pv-shot img, .pv-job:focus-visible .pv-shot img { transform: scale(1.05); }
 /* `background` transitions with the card, so the fill arrives at the same
    speed as the lift rather than snapping under it. */
 .pv-job__body {
@@ -581,7 +576,9 @@ html:not(.dark) .pv .pv-card {
   -webkit-mask: var(--arrow-ne) center/contain no-repeat;
           mask: var(--arrow-ne) center/contain no-repeat;
 }
-.pv-job:hover .pv-badge { background: var(--band); color: #fff; transform: translate(2px, -2px); }
+.pv-job:hover .pv-badge, .pv-job:focus-visible .pv-badge {
+  background: var(--accent); color: #f9f7f4; transform: translate(2px, -2px);
+}
 .pv-job__desc { font-size: .9rem; color: var(--muted); }
 
 .pv-nav { display: flex; gap: 10px; }
