@@ -170,7 +170,24 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                           is queried, this is the one field that ties our row to
                           the provider's, and it is unique so the webhook, the
                           callback and a manual entry cannot double-count. */}
-                      <td className="ad__dim ad__num">{p.reference}</td>
+                      <td className="ad__dim ad__num">
+                        {p.reference}
+                        {p.method === "Paystack" ? (
+                          /* PAYSTACK'S OWN RECORD OF THE SAME CHARGE, one click
+                             away rather than a copy-paste into their search box.
+                             The dashboard itself decides test vs. live from
+                             whichever the signed-in staff account has open --
+                             there is no mode parameter in this URL to get
+                             wrong. */
+                          <a
+                            href={`https://dashboard.paystack.com/#/transactions?search=${encodeURIComponent(p.reference)}`}
+                            target="_blank" rel="noopener noreferrer"
+                            style={{ display: "block", fontSize: ".75rem" }}
+                          >
+                            View on Paystack
+                          </a>
+                        ) : null}
+                      </td>
                       <td className="ad__dim">{p.by}</td>
                       <td className="num">{naira(p.amount)}</td>
                       <td className="ad__rmC">

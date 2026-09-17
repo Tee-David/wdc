@@ -887,6 +887,10 @@ export function applyPayment(d: {
       so this falls back to a label rather than to an empty string. */
   by?: string;
   note?: string;
+  /** `PAYSTACK_MODE` at the caller's own moment -- see `Payment.mode`.
+      Passed in rather than read here, so this module stays free of the
+      Paystack integration's own config. */
+  mode?: "test" | "live";
 }): ApplyResult {
   const inv = getInvoice(d.invoiceId);
   if (!inv) return { ok: false, reason: "no-invoice" };
@@ -914,6 +918,7 @@ export function applyPayment(d: {
     receiptNo: nextReceiptNumber(), token: token(),
     by: d.by?.trim() || "Studio",
     note: d.note?.trim() || undefined,
+    mode: d.mode,
   };
   PAYMENTS.push(payment);
   audit({ actor: payment.by, kind: "payment", subjectId: payment.id, subject: payment.receiptNo,
@@ -1766,19 +1771,30 @@ export function resolveProviderEvent(id: Id, note: string, actor = "Studio"): bo
  * person, and a wrong match is a payment on somebody else's invoice.
  */
 export function matchInvoice(input: { reference?: string; invoiceId?: string }): Invoice | null {
+  const ref = (input.reference ?? "").toUpperCase();
+  const namesInvoice = (i: Invoice) => ref.includes(i.number.replace(/[^A-Za-z0-9]/g, "").toUpperCase())
+                                     || ref.includes(i.number.toUpperCase());
+
   if (input.invoiceId) {
     const byId = getInvoice(input.invoiceId);
-    if (byId) return byId;
+    /* TRUSTED ONLY WHEN A REFERENCE THAT CAME WITH IT AGREES. `invoiceId` is
+       metadata Paystack echoed back from checkout -- unsigned, and editable
+       by anyone who can shape a request to this endpoint. The reference is
+       the one string this module itself derived from the invoice number at
+       mint time (`paymentReference`), so a checkout replayed with a doctored
+       invoiceId but the original reference is caught here rather than banked
+       against the wrong invoice. Callers with no reference to check against
+       (none today -- both call sites always have one) fall back to trusting
+       invoiceId alone. */
+    if (byId && (!ref || namesInvoice(byId))) return byId;
   }
-  const ref = (input.reference ?? "").toUpperCase();
   if (!ref) return null;
   /* Longest number first, so INV-2026-0012 is not matched by INV-2026-001. */
   const candidates = INVOICES
     .filter((i) => i.status !== "Draft")
     .slice()
     .sort((a, b) => b.number.length - a.number.length);
-  return candidates.find((i) => ref.includes(i.number.replace(/[^A-Za-z0-9]/g, "").toUpperCase())
-                             || ref.includes(i.number.toUpperCase())) ?? null;
+  return candidates.find(namesInvoice) ?? null;
 }
 
 /* ================================================ the communication log ====

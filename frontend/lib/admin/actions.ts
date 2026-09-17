@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import * as db from "./store";
 import { invoiceTotals, naira, type InvoiceLine } from "./types";
+import { paystackMode } from "@/lib/paystack";
 import {
   FAIL, OK, type ActionState,
   approval, channel, checked, health, isoDate, kobo, looksEmail, method, num, priority,
@@ -317,6 +318,9 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
        moment there is one. */
     by: str(fd, "by"),
     note,
+    /* Only a Paystack row is test-or-live at all -- cash in an envelope has no
+       mode. See the note on `Payment.mode`. */
+    mode: how === "Paystack" ? paystackMode() : undefined,
   });
 
   if (!res.ok) {
@@ -654,6 +658,12 @@ export async function matchEventToInvoice(_prev: ActionState, fd: FormData): Pro
     invoiceId, amount: event.amount, method: "Paystack",
     reference: event.reference, by: `${by} (matched by hand)`,
     note: "Matched to this invoice by hand from the reconciliation screen.",
+    /* The event's own mode, when it has one, rather than whatever
+       `PAYSTACK_MODE` happens to be right now -- a test event matched days
+       later on a since-switched-to-live deployment stays test money. Older
+       events recorded before this field existed fall back to the current
+       mode, which is the best guess available for them. */
+    mode: event.mode ?? paystackMode(),
   });
   if (!applied.ok) {
     return FAIL({}, applied.reason === "duplicate"

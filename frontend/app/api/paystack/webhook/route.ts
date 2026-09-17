@@ -3,7 +3,7 @@ import {
   applyPayment, getInvoice, getPaymentsFor, matchInvoice, recordProviderEvent,
 } from "@/lib/admin/store";
 import { invoiceTotals } from "@/lib/admin/types";
-import { fromKobo, paystackSignatureValid } from "@/lib/paystack";
+import { fromKobo, paystackMode, paystackSignatureValid } from "@/lib/paystack";
 import { sendPaymentReceiptEmail } from "@/lib/money-mail";
 
 /**
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     try { ref = str((JSON.parse(raw) as { data?: Charge })?.data?.reference); } catch { /* not ours to parse */ }
     recordProviderEvent({
       event: "signature.invalid", reference: ref || "(unreadable)", amount: null,
-      outcome: "Rejected",
+      outcome: "Rejected", mode: paystackMode(),
       note: "A webhook arrived whose signature did not verify. Nothing was written to the books.",
     });
     return new NextResponse("Invalid signature", { status: 401 });
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
     const invoice = origRef ? matchInvoice({ reference: origRef }) : null;
     recordProviderEvent({
       event, reference: origRef || "(none)", amount, channel,
-      outcome: "Unmatched",
+      outcome: "Unmatched", mode: paystackMode(),
       invoiceId: invoice?.id,
       note: invoice
         ? `${REFUND_EVENTS.has(event) ? "Refund" : "Dispute"} against ${invoice.number}. Needs a human decision -- apply it from the payment's own screen, this is not done automatically.`
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
   if (event !== "charge.success") {
     recordProviderEvent({
       event, reference: reference || "(none)", amount, channel,
-      outcome: event.startsWith("charge.") ? "Failed" : "Ignored",
+      outcome: event.startsWith("charge.") ? "Failed" : "Ignored", mode: paystackMode(),
       note: str(data.gateway_response) || `No handler for ${event}. Recorded so the log is complete.`,
     });
     return NextResponse.json({ received: true });
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
      out. */
   if (str(data.status) !== "success" || !reference || amount === null || amount <= 0) {
     recordProviderEvent({
-      event, reference: reference || "(none)", amount, channel, outcome: "Failed",
+      event, reference: reference || "(none)", amount, channel, outcome: "Failed", mode: paystackMode(),
       note: str(data.gateway_response) || "A success event that did not describe a successful charge.",
     });
     return NextResponse.json({ received: true });
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
   const currency = str(data.currency) || "NGN";
   if (currency !== "NGN") {
     recordProviderEvent({
-      event, reference, amount, channel, outcome: "Unmatched",
+      event, reference, amount, channel, outcome: "Unmatched", mode: paystackMode(),
       note: `Charged in ${currency}, and the books are in NGN. Somebody has to decide the rate.`,
     });
     return NextResponse.json({ received: true });
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
 
   if (!invoice) {
     recordProviderEvent({
-      event, reference, amount, channel, outcome: "Unmatched",
+      event, reference, amount, channel, outcome: "Unmatched", mode: paystackMode(),
       note: "Money arrived and no invoice in the books matches the reference.",
     });
     return NextResponse.json({ received: true });
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
 
   const applied = applyPayment({
     invoiceId: invoice.id, amount, method: "Paystack", reference,
-    by: "Paystack webhook",
+    by: "Paystack webhook", mode: paystackMode(),
   });
 
   if (!applied.ok) {
@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
       ? getPaymentsFor(invoice.id).find((p) => p.reference === reference)
       : undefined;
     recordProviderEvent({
-      event, reference, amount, channel,
+      event, reference, amount, channel, mode: paystackMode(),
       outcome: duplicate ? "Duplicate" : "Unmatched",
       invoiceId: invoice.id, paymentId: existing?.id,
       note: duplicate
@@ -183,7 +183,7 @@ export async function POST(request: NextRequest) {
   }
 
   recordProviderEvent({
-    event, reference, amount, channel, outcome: "Applied",
+    event, reference, amount, channel, outcome: "Applied", mode: paystackMode(),
     invoiceId: invoice.id, paymentId: applied.payment.id,
     note: applied.overpaid
       ? `Banked, and it takes ${invoice.number} past its total. The excess is real money and needs a decision.`
