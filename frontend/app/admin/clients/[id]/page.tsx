@@ -14,6 +14,7 @@ import { AddProject } from "@/components/admin/project-forms";
 import { InvoiceBuilder } from "@/components/admin/money-forms";
 import CommsLog from "@/components/admin/comms-log";
 import CreditPanel from "@/components/admin/credit-panel";
+import TicketPanel from "@/components/admin/ticket-panel";
 import { ArchiveClient } from "@/components/admin/client-archive";
 import AuditLog from "@/components/admin/audit-log";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
@@ -264,6 +265,13 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
           which is almost all of them. */}
       <div style={{ marginTop: ".9rem" }}>
         <CreditPanel clientId={c.id} />
+      </div>
+
+      {/* THE OTHER DIRECTION AGAIN: what THEY have raised with US, from their
+          own portal. Renders nothing for a client with no conversations,
+          same convention as the credit panel above. */}
+      <div style={{ marginTop: ".9rem" }}>
+        <TicketPanel clientId={c.id} />
       </div>
 
       {/* WHAT HAS BEEN SAID TO THEM, in one place and across every channel.
