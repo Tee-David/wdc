@@ -64,14 +64,15 @@ export default function TourTooltip({
           </div>
         ) : null}
 
-        {meta.encouragement ? <p className="tourCard__encouragement">{meta.encouragement}</p> : null}
+        {meta.showEstimate && meta.estimateMinutes && meta.totalStops ? (
+          <p className="tourCard__estimate">
+            <Clock3 aria-hidden="true" />~{meta.estimateMinutes} min · {meta.totalStops} stops
+          </p>
+        ) : meta.encouragement ? (
+          <p className="tourCard__encouragement">{meta.encouragement}</p>
+        ) : null}
 
         <div className="tourCard__foot">
-          {meta.showEstimate && meta.estimateMinutes && meta.totalStops ? (
-            <p className="tourCard__estimate">
-              <Clock3 aria-hidden="true" />~{meta.estimateMinutes} min · {meta.totalStops} stops
-            </p>
-          ) : null}
           <div className="tourCard__btns">
             {!isFirstStep ? (
               <button {...backProps} className="ad__btn tourCard__btn">
