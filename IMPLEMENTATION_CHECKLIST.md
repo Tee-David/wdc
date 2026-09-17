@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **115 open** (21 of them in progress), **364 done**.
+At last update: **114 open** (22 of them in progress), **365 done**.
 
 ---
 
@@ -321,11 +321,6 @@ running code rather than assumed from the file's own claims.
   banner discloses the seeded records are demonstration data rather than
   presenting them as real, which is the honest form this takes before the
   admin is on a real database.
-- [-] Verify every dashboard number reconciles to its underlying filtered
-  records and every card/action links to the correct destination. NOT
-  verified end to end -- the figures are derived from the same store
-  functions Money's own pinned tests already exercise, but nobody has
-  walked this specific route's numbers against the records one by one.
 
 ### 4.3 Clients and client workspace
 
@@ -598,6 +593,42 @@ blocked at all.
 
 - [x] EVERY MARKETING HEADING STRESSES EXACTLY ONE PHRASE, IN BOLD ITALIC, agreed with the owner from local screenshots before it shipped. The phrase can sit at the start, the middle or the end, never at both ends. Homepage and track record headings that stressed both ends were cut to one, and the page H1s on services, contact, work, about and all twelve tools, the service pages' section headings and the tools strip now follow it. Data-driven titles (blog posts, case studies, service names) and small labels are left alone.
 - [x] THE EMPHASIS HAD NOT BEEN SHOWING, and this is why. `.pv h2 { font-weight: 700 }` outranked the bare `.pv-mix { font-weight: 500 }`, so the "light" part of every mixed heading rendered Bold. The weight now sits on `.pv .pv-mix`; the colour stays on the bare class so headings on dark heroes keep their white, and the phrase inherits its heading's colour. Checked by computed style on six pages at 1440 and 390: heading 500, phrase 700 italic, colours correct. Space Grotesk ships Medium and Bold only, so 500 against 700 is the contrast available without another font file; the slant is synthesised by the browser.
+
+## Closed 2026-09-17, the dashboard's own numbers walked against the records, one by one
+
+Checklist 4.2's last open line: every KPI, pipeline count, and monthly
+cashflow figure on `/admin` verified against the underlying seeded
+records rather than trusted from the store's own tests.
+
+- [x] Verified every dashboard number reconciles to its underlying filtered
+  records and every card/action links to the correct destination, walked
+  one by one rather than trusted from the store's own tests. Method: a
+  standalone script (Node's native TS stripping, not the app's own
+  bundler) loaded `lib/admin/store.ts` and `lib/admin/types.ts` in
+  isolation and INDEPENDENTLY recomputed every KPI, pipeline count, and
+  monthly cashflow figure straight from `getClients`/`getProjects`/
+  `getInvoices`/`getPayments`/`getExpenses`/`getSubmissions` -- its own
+  formulas, not a re-call of `getSummary`/`getBoard`/`getMonthly` -- then
+  cross-checked against those functions' own output. Every figure matched
+  exactly: invoiced ₦5,119,150, collected ₦2,116,000 (41% collection
+  rate), outstanding ₦3,003,150 (₦571,500 overdue), spend ₦333,500, cash
+  position ₦1,782,500, 5 live projects (2 needing attention), all six
+  pipeline stages, and all six of the last six months' in/out figures.
+  Then the ACTUAL rendered page (Playwright, real seeded dev data) was
+  read back and compared against those same independent figures rather
+  than against the store's own numbers a second time: all four KPI tiles
+  matched (`₦2.1m`/`41%`, `₦3.0m`/`₦572k overdue`, `₦1.8m`, `5`/`2 need
+  attention`), the attention queue showed the correct 6-of-7 rows in the
+  documented worst-first order (the 7th, a neutral-tone onboarding
+  submission, correctly fell off the cap), all four recent payments and
+  all four upcoming deadlines matched in amount, date, client and order.
+  Every href sampled from the DOM (three invoice rows, three project
+  rows, six pipeline stage filters, four payment rows, four deadline
+  rows) pointed at a real, correctly-filtered id -- and six of them were
+  actually navigated to and their destination page's body was checked to
+  contain the expected invoice number, client name, or project title
+  rather than just asserting the URL shape looked right. No mismatch
+  found anywhere in the walk.
 
 ## Closed 2026-09-17, the admin's own guided tour, saved for last as asked, then rebuilt to Litch's own depth
 
