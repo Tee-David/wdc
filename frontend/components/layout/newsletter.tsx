@@ -55,6 +55,19 @@ export function Newsletter() {
      it came from something filling every input on the page. */
   const trap = useRef<HTMLInputElement>(null);
 
+  /* CURVED ON A PHONE ONLY. Beside the footer's straight menu columns on a
+     wider screen the arch read as a tilt rather than a flourish; on a phone
+     the box has the width to itself and the curve matches the pitch above it.
+     Straight until the query answers, which is also what the server draws. */
+  const [phone, setPhone] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 560px)");
+    const update = () => setPhone(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
   useEffect(() => {
     const el = box.current;
     if (!el) return;
@@ -66,7 +79,7 @@ export function Newsletter() {
     return () => ro.disconnect();
   }, []);
 
-  const bend = Math.round(Math.min(BEND_MAX, Math.max(BEND_MIN, width * BEND_RATIO)));
+  const bend = phone ? Math.round(Math.min(BEND_MAX, Math.max(BEND_MIN, width * BEND_RATIO))) : 0;
   /* The bar itself shrinks too, or a 64px pill with 16px type looks pasted on
      at 320px. Below 420 the button label is the first thing to run out of
      room, so the type steps down with the bar. */
