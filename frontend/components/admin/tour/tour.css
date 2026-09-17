@@ -28,6 +28,7 @@
   --ad-dim: #5c5c7a;
   --ad-line: #e4e6f0;
   --ad-accent: #ff6500;
+  --ad-navy: #000065;
   --ad-r: 14px;
   font-family: var(--font-outfit), system-ui, sans-serif;
 }
@@ -59,19 +60,19 @@
 .tourCard__rail { height: 3px; width: 100%; background: var(--ad-line); }
 .tourCard__railFill { height: 100%; border-radius: 0 3px 3px 0; background: var(--ad-accent); }
 
-.tourCard__body { padding: 1rem; }
+.tourCard__body { position: relative; padding: 1.4rem 1.15rem 1.1rem; }
 
-.tourCard__head { display: flex; align-items: flex-start; gap: .7rem; }
-.tourCard__headText { min-width: 0; flex: 1 1 auto; display: grid; gap: .1rem; }
+.tourCard__headText { display: grid; gap: .2rem; text-align: center; }
 .tourCard__headText b {
   font-family: var(--font-space-grotesk, system-ui), sans-serif;
-  font-size: .98rem; font-weight: 700; line-height: 1.3; color: var(--ad-ink);
+  font-size: 1.05rem; font-weight: 700; line-height: 1.3; color: var(--ad-ink);
 }
 .tourCard__headText span { font-size: .72rem; font-weight: 600; color: var(--ad-dim); }
 
 .tourCard__close {
-  flex: none; display: grid; place-items: center;
-  width: 2rem; height: 2rem; margin: -.2rem -.3rem 0 0;
+  position: absolute; top: .6rem; right: .6rem; z-index: 1;
+  display: grid; place-items: center;
+  width: 2rem; height: 2rem;
   border: 0; border-radius: 8px; background: transparent; color: var(--ad-dim);
   cursor: pointer;
 }
@@ -80,8 +81,8 @@
 .tourCard__close:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
 
 .tourCard__estimate {
-  display: inline-flex; align-items: center; gap: .35rem;
-  margin: .7rem 0 0; padding: .3rem .6rem;
+  display: flex; width: fit-content; align-items: center; gap: .35rem;
+  margin: .7rem auto 0; padding: .3rem .6rem;
   border-radius: 999px; background: color-mix(in srgb, var(--ad-accent) 14%, transparent);
   color: var(--ad-accent);
   font-size: .72rem; font-weight: 700;
@@ -123,18 +124,17 @@
 
 /* ---------------------------------------------------------------- the icon */
 
+/* Big, centred, and a SOLID tile -- the same `.sv-step__icon`/`.svc-tool__ic`
+   treatment the public site uses everywhere else it houses a lucide glyph
+   (navy fill, white glyph, rounded square), not a translucent tint invented
+   fresh for the admin. The glyph itself is `ServiceIcon`, drawn with the
+   site's own stroke-on-arrival animation -- see `tour-icon.tsx`. */
+.tourCard__iconWrap { display: flex; justify-content: center; margin-bottom: .85rem; }
 .tourCard__icon {
-  position: relative; flex: none; display: grid; place-items: center;
-  width: 2.25rem; height: 2.25rem; border-radius: 50%;
-  background: color-mix(in srgb, var(--ad-accent) 16%, transparent);
-  color: var(--ad-accent);
+  display: grid; place-items: center;
+  width: 4.25rem; height: 4.25rem; border-radius: 18px;
+  background: var(--ad-navy); color: #fff;
 }
-.tourCard__iconHalo {
-  position: absolute; inset: 0; border-radius: 50%;
-  background: color-mix(in srgb, var(--ad-accent) 10%, transparent);
-}
-.tourCard__iconGlyph { position: relative; display: grid; place-items: center; }
-.tourCard__iconGlyph svg { width: 1.1rem; height: 1.1rem; stroke-width: 2; }
 
 @media (prefers-reduced-motion: reduce) {
   /* Joyride's own scroll-into-view is neutralised at the call site
@@ -190,7 +190,14 @@
    softened as well as darkened. */
 .tourBlur {
   position: fixed; pointer-events: none; z-index: 94;
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  /* NOT `-webkit-backdrop-filter` as well: writing both by hand, rather
+     than leaving the build's own autoprefixer to add the vendor one only
+     where a target browser still needs it, silently dropped the WHOLE
+     declaration pair in the shipped CSS -- confirmed by reading the built
+     stylesheet's own `cssRules`, which had `position`/`z-index`/
+     `pointer-events` and no filter at all. `.ad__topbar` in `admin.css`
+     proves the unprefixed property alone survives the same pipeline. */
+  backdrop-filter: blur(8px);
 }
 @media (prefers-reduced-motion: reduce) {
   .tourBlur { transition: none !important; }
