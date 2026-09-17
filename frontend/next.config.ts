@@ -112,6 +112,21 @@ const nextConfig: NextConfig = {
      than accidental.
      ========================================================================== */
   async headers() {
+    /* THE FILE STORE HAS TO BE IN `connect-src`, OR NO UPLOAD EVER LEAVES THE
+       PAGE. Uploads are a presigned PUT from the browser straight to R2, and
+       with `'self'` alone the browser blocked every one before it was sent --
+       the page saw the same bare `onerror` a dropped connection gives, and
+       the server's own checks (CORS, a test write) all passed, because none
+       of them run under this policy. The exact account host when the build
+       knows it, R2's domain when it does not. */
+    const r2Account =
+      process.env.CLOUDFLARE_ACCOUNT_ID ||
+      process.env.R2_ACCOUNT_ID ||
+      process.env.CLOUDFLARE_S3_API?.match(/^https?:\/\/([^.]+)\.r2\.cloudflarestorage\.com/i)?.[1];
+    const r2Host = r2Account
+      ? `https://${r2Account}.r2.cloudflarestorage.com`
+      : "https://*.r2.cloudflarestorage.com";
+
     const csp = [
       "default-src 'self'",
       "base-uri 'self'",
@@ -132,7 +147,7 @@ const nextConfig: NextConfig = {
       "font-src 'self' data: https://fonts.gstatic.com https://*.userway.org",
       "img-src 'self' data: blob: https:",
       "media-src 'self' https://*.jotform.com",
-      "connect-src 'self' https://*.jotform.com https://cdn.jotfor.ms https://*.userway.org https://api.userway.org",
+      `connect-src 'self' ${r2Host} https://*.jotform.com https://cdn.jotfor.ms https://*.userway.org https://api.userway.org`,
       /* The chat renders in an iframe from Jotform's own origin, and the
          preview modal embeds client sites. */
       "frame-src 'self' https://*.jotform.com https://*.jotfor.ms https:",
