@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  failedMessageCount, getAging, getClient, getClients, getCollectionRate,
+  failedMessageCount, financeDefaults, getAging, getClient, getClients, getCollectionRate,
   getEstimates, getExpenses, getInvoice, getInvoices, getMonthly, getPayments,
   getPipeline, getProjects, getSummary, providerAttentionCount,
 } from "@/lib/admin/store";
@@ -48,6 +48,7 @@ export default async function MoneyPage({
   searchParams,
 }: { searchParams: Promise<MoneyQuery> }) {
   const query = await searchParams;
+  const finance = financeDefaults();
   const s = getSummary();
   const unreconciled = providerAttentionCount();
   const failedMail = failedMessageCount();
@@ -119,8 +120,11 @@ export default async function MoneyPage({
         <div className="ad__row">
           <PageTourButton />
           <AddExpense projects={projects} />
-          <EstimateBuilder clients={getClients()} projects={projects} />
-          <InvoiceBuilder clients={getClients()} projects={projects} dataTour="money-add" />
+          <EstimateBuilder clients={getClients()} projects={projects} defaultVatRate={finance.vatRate} />
+          <InvoiceBuilder
+            clients={getClients()} projects={projects} dataTour="money-add"
+            defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays}
+          />
         </div>
       </div>
 
@@ -275,7 +279,7 @@ export default async function MoneyPage({
             ones the studio wins. */}
         <Panel
           title="Estimates"
-          action={<EstimateBuilder clients={getClients()} projects={projects} trigger="New estimate" />}
+          action={<EstimateBuilder clients={getClients()} projects={projects} trigger="New estimate" defaultVatRate={finance.vatRate} />}
         >
           {estimates.length ? (
             <div className="ad__scroll">
@@ -336,7 +340,7 @@ export default async function MoneyPage({
           ) : (
             <Empty
               title="Nothing out for quote"
-              action={<EstimateBuilder clients={getClients()} projects={projects} />}
+              action={<EstimateBuilder clients={getClients()} projects={projects} defaultVatRate={finance.vatRate} />}
             >
               An estimate is its own document with its own number, not a draft
               invoice. Accepting one raises the invoice and keeps the quote as
@@ -414,7 +418,7 @@ export default async function MoneyPage({
               title={hasInvoiceFilters ? "No invoices match these filters" : "No invoices yet"}
               action={hasInvoiceFilters
                 ? <Link className="ad__btn" href="/admin/money#invoice-list">Clear filters</Link>
-                : <InvoiceBuilder clients={getClients()} projects={projects} />}
+                : <InvoiceBuilder clients={getClients()} projects={projects} defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} />}
             >
               {hasInvoiceFilters
                 ? "Try a broader search or clear the filters to see every invoice."
