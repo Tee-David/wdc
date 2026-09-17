@@ -2,7 +2,7 @@ import type {
   Approval, AuditEntry, AuditKind, Channel, Client, Deliverable, Expense,
   Credit, Estimate, Health, Id, Invoice, InvoiceLine, Message, MessageChannel,
   MessageState, Payment, Priority, Project, ProviderEvent, ProviderOutcome,
-  Refund, Stage, Submission, Task, Update,
+  Refund, Stage, Submission, Task, Ticket, TicketMessage, TicketStatus, Update,
 } from "./types";
 import {
   estimateState, estimateTotals, invoiceStatus, invoiceTotals, naira, paymentNet,
@@ -295,6 +295,34 @@ const SUBMISSIONS: Submission[] = [
   },
 ];
 
+const TICKETS: Ticket[] = [
+  {
+    id: "tk1", clientId: "c1", projectId: null,
+    subject: "Can we add a WhatsApp catalogue link to the new site?",
+    status: "Answered", createdAt: iso("2026-09-10"), updatedAt: iso("2026-09-11"),
+  },
+  {
+    id: "tk2", clientId: "c1", projectId: null,
+    subject: "Receipt breakdown for INV-2026-001",
+    status: "Open", createdAt: iso("2026-09-15"), updatedAt: iso("2026-09-15"),
+  },
+];
+
+const TICKET_MESSAGES: TicketMessage[] = [
+  {
+    id: "tm1", ticketId: "tk1", at: iso("2026-09-10"), author: "Tobi Adeyemi", from: "client",
+    body: "Quick one -- once the identity work lands on the site, can we link straight out to our WhatsApp catalogue from the header? We already run one.",
+  },
+  {
+    id: "tm2", ticketId: "tk1", at: iso("2026-09-11"), author: "Studio", from: "studio",
+    body: "Yes -- that's a normal header action, not a new build. We'll wire it in when the site work starts and confirm the link with you before it goes live.",
+  },
+  {
+    id: "tm3", ticketId: "tk2", at: iso("2026-09-15"), author: "Tobi Adeyemi", from: "client",
+    body: "Could you send a line-by-line breakdown for INV-2026-001? Our accountant is asking what the deposit covered.",
+  },
+];
+
 /* ------------------------------------------------------------- the reads */
 
 /* Sorted at the boundary rather than in each screen, so two lists of the same
@@ -392,6 +420,21 @@ export function getSubmissions() {
 }
 export function getSubmission(id: Id) {
   return SUBMISSIONS.find((s) => s.id === id) ?? null;
+}
+
+/** Newest activity first -- a ticket somebody just replied to belongs at the
+    top whether it was the client or the studio who moved it. */
+export function getTickets() {
+  return TICKETS.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+}
+export function getTicketsFor(clientId: Id) {
+  return TICKETS.filter((t) => t.clientId === clientId).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+}
+export function getTicket(id: Id) {
+  return TICKETS.find((t) => t.id === id) ?? null;
+}
+export function getTicketMessages(ticketId: Id) {
+  return TICKET_MESSAGES.filter((m) => m.ticketId === ticketId).sort((a, b) => a.at.localeCompare(b.at));
 }
 
 /* ----------------------------------------------------------- the figures */
@@ -1481,6 +1524,42 @@ export function setApproval(id: Id, approval: Approval, note?: string): Delivera
   d.approvalNote = approval === "Revision requested" ? (note || undefined) : undefined;
   addProjectNote(d.projectId, `${d.name}: ${approval.toLowerCase()}`);
   return d;
+}
+
+/** Opens a ticket with its first message in one call -- there is no such
+    thing as a ticket with nothing said yet. */
+export function addTicket(d: { clientId: Id; projectId?: Id | null; subject: string; body: string; author: string }): Ticket | null {
+  if (!CLIENTS.some((c) => c.id === d.clientId)) return null;
+  const at = now();
+  const t: Ticket = {
+    id: mint("tk"), clientId: d.clientId, projectId: d.projectId ?? null,
+    subject: d.subject, status: "Open", createdAt: at, updatedAt: at,
+  };
+  TICKETS.push(t);
+  TICKET_MESSAGES.push({ id: mint("tm"), ticketId: t.id, at, author: d.author, from: "client", body: d.body });
+  return t;
+}
+
+/** A reply from either side. The client's own reply on a closed ticket
+    reopens it -- their word is what "closed" was waiting on either way, so
+    a studio-closed ticket a client writes back on is not actually closed. */
+export function addTicketMessage(d: { ticketId: Id; from: "client" | "studio"; author: string; body: string }): TicketMessage | null {
+  const t = TICKETS.find((x) => x.id === d.ticketId);
+  if (!t) return null;
+  const at = now();
+  const m: TicketMessage = { id: mint("tm"), ticketId: t.id, at, author: d.author, from: d.from, body: d.body };
+  TICKET_MESSAGES.push(m);
+  t.updatedAt = at;
+  t.status = d.from === "studio" ? "Answered" : "Open";
+  return m;
+}
+
+export function setTicketStatus(id: Id, status: TicketStatus): Ticket | null {
+  const t = TICKETS.find((x) => x.id === id);
+  if (!t) return null;
+  t.status = status;
+  t.updatedAt = now();
+  return t;
 }
 
 export function patchProject(id: Id, d: Partial<Pick<Project,

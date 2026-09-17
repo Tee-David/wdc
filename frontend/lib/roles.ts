@@ -25,7 +25,7 @@ const DOORS: Record<Role, Door> = {
      are not handed the owner's one -- app/admin/layout.tsx would bounce them
      straight back out, and a redirect loop is a worse answer than a sentence. */
   staff:  { home: "/admin",  ready: false, label: "your team workspace" },
-  client: { home: "/portal", ready: false, label: "your project portal" },
+  client: { home: "/portal", ready: true,  label: "your project portal" },
 };
 
 const FALLBACK: Door = { home: "/signed-in", ready: true, label: "your account" };
