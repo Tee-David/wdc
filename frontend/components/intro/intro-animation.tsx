@@ -464,7 +464,7 @@ export default function IntroAnimation() {
               className="pointer-events-none absolute top-[20%] z-10 flex flex-col items-center justify-center px-6 text-center md:top-[22%] xl:top-[25%]"
             >
               <h2 className="mb-6 font-heading text-4xl font-bold tracking-tight text-foreground md:text-6xl xl:text-7xl 2xl:text-[5.5rem]">
-                Most brands are buried.
+                Most brands <i className="italic">are buried.</i>
               </h2>
               {/* foreground, not muted: this paragraph is the intro's one piece of real
                   copy, and it reads at full contrast in both themes (near-black on
