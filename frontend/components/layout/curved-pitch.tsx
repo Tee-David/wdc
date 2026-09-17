@@ -95,9 +95,10 @@ export default function CurvedPitch({ lines, className }: { lines: string[]; cla
       const x2 = cx + r * Math.sin(theta);
       const y = cy - r * Math.cos(theta);
       paths.push(`M ${round(x1)} ${round(y)} A ${round(r)} ${round(r)} 0 0 1 ${round(x2)} ${round(y)}`);
-      /* 20px held back at each end, so the widest line does not run into
-         the edge of the screen. */
-      fit = Math.min(fit, (r * 2 * theta - 40) / lengths[i]);
+      /* 10px held back at each end: enough that the widest line does not
+         touch the edge of the card, little enough that the block spreads
+         across it rather than sitting compact in the middle. */
+      fit = Math.min(fit, (r * 2 * theta - 20) / lengths[i]);
     });
     const scale = Math.min(1, fit);
     const last = R - (lines.length - 1) * step;
