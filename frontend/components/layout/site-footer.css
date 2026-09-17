@@ -82,16 +82,23 @@
   clip-path: inset(50%); white-space: nowrap; margin: 0;
 }
 
-/* CENTRED ON A PHONE: the studio, the subscribe box, the pills and the small
-   print. The two tool menus keep their left edge, because a list read down
-   a column is easier to scan from a straight edge. The logo is larger here,
-   where it is the first thing in the footer and has the width to itself. */
+/* The long pitch is the phone's; see the markup. */
+.ft__pitchLong { display: none; }
+
+/* CENTRED ON A PHONE: the studio, the subscribe box, the pills, the tool
+   menus and the small print. The logo is larger here, where it is the first
+   thing in the footer and has the width to itself. */
 @media (max-width: 560px) {
   .ft__side { text-align: center; }
   .ft__brand { display: flex; flex-direction: column; align-items: center; }
   .ft__logoMark { height: 4.75rem; }
+  /* The logo is centred as one object; its wordmark keeps its own left edge. */
+  .ft__logo { text-align: left; }
   .ft .ft__logo span:not(.sr-only) { font-size: 1.55rem; }
-  .ft__pitch { margin-inline: auto; }
+  .ft__pitch { max-width: none; }
+  .ft__pitchShort { display: none; }
+  .ft__pitchLong { display: inline; }
+  .ft__col--tools, .ft__col--more { text-align: center; }
   .ft .ft__col--nav ul { justify-content: center; }
   .ft .ft__col--legal ul { justify-content: center; text-align: center; }
 }

@@ -72,8 +72,19 @@ export function SiteFooter() {
               <Link href="/" className="ft__logo" aria-label={`${COMPANY_NAME} home`}>
                 <Logo markClassName="ft__logoMark" />
               </Link>
+              {/* TWO LENGTHS OF ONE SENTENCE. Beside the menus on a wider
+                  screen a short line keeps the subscribe box level with them;
+                  on a phone, where the pitch has the width to itself, the full
+                  sentence spreads across it instead of sitting compact. */}
               <p className="ft__pitch">
-                Brand, web, apps and campaigns, built by one creative agency.
+                <span className="ft__pitchShort">
+                  Brand, web, apps and campaigns, built by one creative agency.
+                </span>
+                <span className="ft__pitchLong">
+                  A creative and digital agency. Branding, search, websites, apps,
+                  software and campaigns, built by one team so nothing is lost in the
+                  hand-off.
+                </span>
               </p>
             </div>
 
