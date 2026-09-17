@@ -8,6 +8,7 @@ import {
 import { ADMIN_WALKTHROUGH, ADMIN_WELCOME, adminPageTourFor } from "@/lib/tours/admin";
 import type { TourDef } from "@/lib/tours/types";
 import { clearCompletion, readCompletion, writeCompletion } from "@/lib/tours/storage";
+import Confetti from "@/components/onboarding/confetti";
 import "./tour.css";
 
 /**
@@ -83,6 +84,14 @@ export default function AdminTourProvider({ children, role }: { children: ReactN
      `TourRuntime` can emit `replayed` rather than `started` -- the two
      privacy-safe events section 5.3 asks for kept genuinely distinct. */
   const [isReplay, setIsReplay] = useState(false);
+  /* The SAME celebration the onboarding form's "sent" screen uses --
+     `components/onboarding/confetti.tsx`, reused rather than answered with
+     a second implementation, at the user's own request for consistency.
+     Bumped, not just flipped true, because `Confetti` hides itself for
+     good once its own internal timer runs out; a second finish in the same
+     session needs a fresh mount (a new `key`) to animate again, not a
+     state change on an instance that has already decided it is done. */
+  const [confettiKey, setConfettiKey] = useState(0);
 
   const pageTour = adminPageTourFor(pathname);
 
@@ -153,10 +162,15 @@ export default function AdminTourProvider({ children, role }: { children: ReactN
           tour={runningTour}
           role={role}
           isReplay={isReplay}
-          onFinish={() => { writeCompletion(runningTour.id, runningTour.version, "completed"); stop(); }}
+          onFinish={() => {
+            writeCompletion(runningTour.id, runningTour.version, "completed");
+            setConfettiKey((k) => k + 1);
+            stop();
+          }}
           onSkip={() => { writeCompletion(runningTour.id, runningTour.version, "skipped"); stop(); }}
         />
       ) : null}
+      {confettiKey > 0 ? <Confetti key={confettiKey} /> : null}
     </Ctx.Provider>
   );
 }
