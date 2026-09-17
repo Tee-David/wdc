@@ -153,7 +153,7 @@ export default async function ServicePage(
               <div className="pv-bar pv-bar--split pv-reveal">
                 <div className="pv-head">
                   <span className="pv-eyebrow">Proof</span>
-                  <h2>{service.short} we have already shipped</h2>
+                  <h2 className="pv-mix">{service.short} <b>we have already shipped</b></h2>
                 </div>
                 {category ? (
                   <Link className="pv-btn pv-btn--line" href={`/work/${category.slug}`}>
@@ -205,7 +205,7 @@ export default async function ServicePage(
             <div className="pv-wrap">
               <div className="pv-head pv-reveal">
                 <span className="pv-eyebrow">Before you ask</span>
-                <h2>Questions we get about {service.short.toLowerCase()}</h2>
+                <h2 className="pv-mix">Questions we get about <b>{service.short.toLowerCase()}</b></h2>
               </div>
               <FaqAccordion items={faqs} idPrefix={`svcfaq-${service.slug}`} />
             </div>
@@ -216,7 +216,7 @@ export default async function ServicePage(
           <div className="pv-wrap">
             <div className="pv-cta pv-reveal">
               <span className="pv-eyebrow">Next step</span>
-              <h2>Tell us what you need {service.short.toLowerCase()} to do.</h2>
+              <h2 className="pv-mix">Tell us what you need <b>{service.short.toLowerCase()} to do</b>.</h2>
               <p>
                 Describe the problem rather than the deliverable and we will tell you
                 what it actually takes, including when the answer is less than you

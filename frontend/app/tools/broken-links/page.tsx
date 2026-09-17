@@ -63,7 +63,7 @@ export default function BrokenLinksToolPage() {
               <i aria-hidden="true">/</i>
               <span>Broken link checker</span>
             </nav>
-            <h1>Are any of the links on your page broken?</h1>
+            <h1 className="pv-mix">Are any of the links on your page <b>broken</b>?</h1>
             <p className="pv-lede">
               Paste one page and we check every link on it in parallel: which
               ones work, which answer with an error, and which we could not

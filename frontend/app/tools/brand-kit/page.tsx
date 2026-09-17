@@ -63,7 +63,7 @@ export default function BrandKitToolPage() {
               <i aria-hidden="true">/</i>
               <span>Brand asset pack</span>
             </nav>
-            <h1>What does your logo actually give you to work with?</h1>
+            <h1 className="pv-mix">What does your logo <b>actually give you</b> to work with?</h1>
             <p className="pv-lede">
               Upload it and get the real colours in the file, whether each one
               reads as text on white or black, and a six-size favicon set ready

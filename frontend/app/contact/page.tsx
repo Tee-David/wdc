@@ -74,7 +74,7 @@ export default function ContactPage() {
         <section className="wk-hero">
           <div className="pv-wrap wk-hero__in">
             <span className="pv-eyebrow">Contact</span>
-            <h1>How can we help you today?</h1>
+            <h1 className="pv-mix">How can we <b>help you</b> today?</h1>
             <p className="pv-lede">
               Tell us what you are trying to achieve rather than what you think you
               need built. We will come back the same working day, and we will say

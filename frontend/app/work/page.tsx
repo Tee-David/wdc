@@ -59,7 +59,7 @@ export default function WorkHubPage() {
         <section className="wk-hero">
           <div className="pv-wrap wk-hero__in">
             <span className="pv-eyebrow">Our Work</span>
-            <h1>Work, by what it took to make</h1>
+            <h1 className="pv-mix">Work, by <b>what it took to make</b></h1>
             <p className="pv-lede">
               Explore the digital journeys we have designed and built in partnership
               with our clients. Pick the discipline you came for.

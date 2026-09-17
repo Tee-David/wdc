@@ -176,13 +176,33 @@ main.pv {
   padding-inline: clamp(18px, 5vw, 44px);
 }
 
-/* mixed-weight heading: emphasis by weight, never by colouring one word.
+/* ONE STRESSED PHRASE PER HEADING, bold and italic, never colour.
+
+   The convention, agreed 2026-09-17: a heading stresses exactly ONE phrase --
+   at its start, its middle or its end, whichever carries what the section is
+   about -- and never both ends at once. The rest of the heading is Medium, the
+   phrase is Bold and slanted. Space Grotesk ships no italic, so the slant is
+   the browser's; it reads cleanly at display sizes, and a real italic face
+   would be another font file on every page for one word per heading.
+
+   `.pv .pv-mix` rather than `.pv-mix`: the site-wide `.pv h2 { font-weight:
+   700 }` outranked a bare class, so the "light" part of every mixed heading
+   had been rendering Bold all along and the emphasis barely showed.
+
+   The phrase keeps a hairline of room after it, because a slanted last letter
+   leans into the space before the next upright word.
+
+   mixed-weight heading: emphasis by weight, never by colouring one word.
    `text-wrap: balance` is what stops a wrap landing a single short word on
    its own last line -- a real fault on the proof band's headline, caught on
    a browser width narrower than any this repo's own checks run at. Browsers
    without it just wrap the old way, so this costs nothing to ship early. */
-.pv-mix { color: var(--ink); font-weight: 500; text-wrap: balance; }
-.pv-mix b { color: var(--ink); font-weight: 700; }
+/* Colour stays on the bare class so a heading on a dark hero keeps its own
+   white; only the weight needs the stronger selector. The phrase inherits
+   its heading's colour for the same reason. */
+.pv-mix { color: var(--ink); text-wrap: balance; }
+.pv .pv-mix { font-weight: 500; }
+.pv-mix b { color: inherit; font-weight: 700; font-style: italic; padding-inline-end: .06em; }
 .pv-sec--band .pv-mix,
 .pv-sec--band .pv-mix b { color: #fff; }
 

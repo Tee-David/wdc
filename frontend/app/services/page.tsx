@@ -96,7 +96,7 @@ export default function ServicesPage() {
         <section className="wk-hero">
           <div className="pv-wrap wk-hero__in">
             <span className="pv-eyebrow">Services</span>
-            <h1>Six services, one team</h1>
+            <h1 className="pv-mix">Six services, <b>one team</b></h1>
             <p className="pv-lede">
               Design, engineering and growth under one roof, so nothing is lost in
               the hand-off. Pick the one you came for.

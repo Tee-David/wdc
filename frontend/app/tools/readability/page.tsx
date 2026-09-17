@@ -64,7 +64,7 @@ export default function ReadabilityToolPage() {
               <i aria-hidden="true">/</i>
               <span>Readability checker</span>
             </nav>
-            <h1>Is your website copy actually easy to read?</h1>
+            <h1 className="pv-mix">Is your website copy <b>actually easy to read</b>?</h1>
             <p className="pv-lede">
               Paste a paragraph or a whole page and get the Flesch Reading Ease
               and Grade Level scores instantly, with a plain line on what the

@@ -64,7 +64,7 @@ export default function AdBudgetToolPage() {
               <i aria-hidden="true">/</i>
               <span>Ad budget & reach</span>
             </nav>
-            <h1>How far does an ad budget actually go?</h1>
+            <h1 className="pv-mix">How far does an ad budget <b>actually go</b>?</h1>
             <p className="pv-lede">
               Put in a monthly figure and see the impressions and clicks it buys on
               five platforms at once, from each one&rsquo;s own published ranges for

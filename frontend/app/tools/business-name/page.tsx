@@ -76,7 +76,7 @@ export default function BusinessNameToolPage() {
               <i aria-hidden="true">/</i>
               <span>Business name checker</span>
             </nav>
-            <h1>Is your business name available?</h1>
+            <h1 className="pv-mix">Is your <b>business name</b> available?</h1>
             <p className="pv-lede">
               Two steps. We check it against CAC&rsquo;s naming rules, then you
               check the register. Free, and nothing is sent anywhere.

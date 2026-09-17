@@ -74,7 +74,7 @@ export default function DomainToolPage() {
               <i aria-hidden="true">/</i>
               <span>Domain checker</span>
             </nav>
-            <h1>Is the domain name free?</h1>
+            <h1 className="pv-mix">Is the <b>domain name</b> free?</h1>
             <p className="pv-lede">
               Type a name and we check six web addresses at once. Free, no
               sign-up, and nothing is bought here.
