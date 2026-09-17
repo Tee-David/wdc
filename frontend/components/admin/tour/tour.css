@@ -119,8 +119,13 @@
 
 .tourCard__encouragement { margin: .7rem 0 0; font-size: .74rem; font-weight: 600; color: var(--ad-dim); }
 
-.tourCard__foot { display: flex; align-items: center; justify-content: flex-end; margin-top: 1rem; }
-.tourCard__btns { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .5rem; }
+/* Back sits alone at the left; `margin-left: auto` on the Skip/Next group
+   is what pins THEM to the right whether or not Back is even rendered
+   (the first step has none) -- `justify-content` alone cannot do that for
+   an optional first child, since a lone remaining child in a row still
+   sits at the START without it. */
+.tourCard__foot { display: flex; align-items: center; gap: .5rem; margin-top: 1rem; }
+.tourCard__btns { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .5rem; margin-left: auto; }
 .tourCard__btn {
   height: 2.6rem; padding: 0 .9rem; font-size: .82rem;
   /* The card's own `font` shorthand sets a 1.55 line-height for its body
@@ -139,19 +144,6 @@
 @media (pointer: coarse) {
   .tourCard__btn { height: 44px; }
 }
-
-/* SKIP TOUR, WHITE WITH BLACK TEXT BY DESIGN, not the neutral secondary
-   the rest of the admin uses for a lesser action -- asked for explicitly,
-   and solid in both themes rather than adapting to the card's own tokens,
-   so it reads as the same control wherever the tour is running.
-   `.ad__btn` in front: a bare `.tourCard__btn--skip` ties `.ad__btn`'s own
-   specificity exactly, and which one then wins is source order, not
-   intent -- the button rendered navy-on-navy, invisible against the card,
-   until this outranked it on purpose. */
-.ad__btn.tourCard__btn--skip {
-  background: #fff; border-color: #fff; color: #000;
-}
-.ad__btn.tourCard__btn--skip:hover { background: #e9e9ee; border-color: #e9e9ee; color: #000; }
 
 /* ---------------------------------------------------------------- the icon */
 
