@@ -83,12 +83,14 @@
 /* Solid, not a tint: a translucent chip read as washed-out against the
    blur behind the card, and it is the one thing that has to stay legible
    at a glance -- it is the reader's only cue, before they have read a
-   word of the step, that this will not take long. Sits bottom-left of the
-   footer, beside the buttons rather than under the title, so the header
-   is just the icon and the name of the step. */
+   word of the step, that this will not take long. Its own row, the same
+   slot `.tourCard__encouragement` sits in on every OTHER step (the two
+   never appear together -- see `meta.ts` -- so one slot is genuinely
+   enough), rather than sharing a row with the buttons where it crowded
+   them on a narrow card. */
 .tourCard__estimate {
-  display: inline-flex; align-items: center; gap: .35rem;
-  padding: .4rem .7rem;
+  display: inline-flex; width: fit-content; align-items: center; gap: .35rem;
+  margin: .7rem 0 0; padding: .4rem .7rem;
   border-radius: 999px; background: var(--ad-accent);
   color: #000;
   font-size: .72rem; font-weight: 700; white-space: nowrap;
@@ -117,14 +119,8 @@
 
 .tourCard__encouragement { margin: .7rem 0 0; font-size: .74rem; font-weight: 600; color: var(--ad-dim); }
 
-/* The estimate chip lives here now, at the start of the row; `margin-left:
-   auto` on the button group is what keeps THEM pinned to the right
-   whether or not a given step has a chip to sit beside -- `justify-
-   content` alone cannot do that with an optional first child, since a
-   lone remaining child in a `space-between` row sits at the START, not
-   the end. */
-.tourCard__foot { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem .8rem; margin-top: 1rem; }
-.tourCard__btns { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-left: auto; }
+.tourCard__foot { display: flex; align-items: center; justify-content: flex-end; margin-top: 1rem; }
+.tourCard__btns { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .5rem; }
 .tourCard__btn {
   height: 2.6rem; padding: 0 .9rem; font-size: .82rem;
   /* The card's own `font` shorthand sets a 1.55 line-height for its body
