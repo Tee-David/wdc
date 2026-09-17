@@ -656,6 +656,32 @@ const token = () => {
 
 export type ClientDraft = Omit<Client, "id" | "since" | "archived">;
 
+/** Comparable forms of an email and a phone number, for spotting the same
+    person under two different pieces of typing rather than two different
+    people. Email is case-insensitive by convention; a phone number is
+    compared on its digits alone, so "+234 803 555 0102", "0803-555-0102"
+    and "234 803 555 0102" all collapse to the same key -- a leading "0"
+    trunk prefix and the "234" country code are the same digit dropped or
+    kept, so both are stripped rather than just one. Neither form is what
+    gets stored: a client's own phone stays exactly as they gave it. */
+const normEmail = (email: string) => email.trim().toLowerCase();
+const normPhone = (phone: string) => phone.replace(/\D/g, "").replace(/^(234|0)/, "");
+
+/**
+ * The existing client this email or phone already belongs to, if any --
+ * archived included, because re-adding an archived client's own details is
+ * the commonest way a duplicate gets created (the person looks gone from
+ * the list and is added again rather than restored).
+ */
+export function findDuplicateClient(
+  email: string, phone: string, excludeId?: Id,
+): Client | null {
+  const e = normEmail(email);
+  const p = phone ? normPhone(phone) : "";
+  return CLIENTS.find((c) => c.id !== excludeId
+    && (normEmail(c.email) === e || (p && normPhone(c.phone) === p))) ?? null;
+}
+
 export function addClient(d: ClientDraft, actor = "Studio"): Client {
   const c: Client = { ...d, id: mint("c"), since: now() };
   audit({ actor, kind: "client", subjectId: c.id, subject: c.company, action: "added" });
