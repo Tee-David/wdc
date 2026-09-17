@@ -50,11 +50,11 @@ function encouragementFor(options: {
 }): string | undefined {
   const { index, total, kind, pagesLeft, stopsLeftOnPage } = options;
 
-  if (index === total - 1) return "That's everything -- you're all set.";
+  if (index === total - 1) return "That's everything. You're all set.";
   if (index === 0) return undefined; // the opener leads with the duration estimate instead
 
   if (kind === "walkthrough") {
-    if (stopsLeftOnPage === 0 && pagesLeft > 0) return `Good progress -- ${plural(pagesLeft, "page", "pages")} to go.`;
+    if (stopsLeftOnPage === 0 && pagesLeft > 0) return `Good progress, ${plural(pagesLeft, "page", "pages")} to go.`;
     if (stopsLeftOnPage > 0) return `${plural(stopsLeftOnPage, "stop", "stops")} left on this page.`;
     return undefined;
   }

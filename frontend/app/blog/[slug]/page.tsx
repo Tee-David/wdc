@@ -205,8 +205,26 @@ export default async function BlogPostPage(
                       explicit rows were supposed to prevent. Stretching the
                       item and sticking a child inside it gives the child a
                       containing block that IS the row, and that one the browser
-                      honours. */}
-                  <div className="bl-rail__stick" data-lenis-prevent>
+                      honours.
+
+                      NO `data-lenis-prevent` HERE, ON PURPOSE. This box is
+                      only sometimes tall enough to overflow -- a two-heading
+                      post never fills it, a long one does -- and
+                      `data-lenis-prevent` hands the whole element to native
+                      scroll-chaining unconditionally, not only when it
+                      actually has something to scroll. Paired with the CSS's
+                      own `overscroll-behavior: contain`, a SHORT outline
+                      still claimed the wheel gesture and never let it reach
+                      the page: scrolling froze the moment the sticky rail
+                      entered the viewport, for the whole rest of the
+                      article, recoverable only by dragging the scrollbar
+                      directly. Lenis's own `allowNestedScroll` (see
+                      `smooth-scroll.tsx`) already checks `scrollHeight >
+                      clientHeight` before treating an element as a nested
+                      scroller, which is the conditional version of the same
+                      thing -- so this is left to it rather than the blunt
+                      opt-out. */}
+                  <div className="bl-rail__stick">
                     <BlogToc outline={outline} />
                   </div>
                 </aside>

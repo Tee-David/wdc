@@ -98,7 +98,7 @@ export default function TourLauncher() {
         <div className="tourLauncher__menu" role="menu">
           <div className="tourLauncher__label">
             <b>Tours</b>
-            <span>Pick a depth -- all of them skip any time.</span>
+            <span>Pick a depth. All of them skip any time.</span>
           </div>
           <button
             type="button"

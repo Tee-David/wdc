@@ -274,8 +274,16 @@
      menus anyway. */
   max-height: calc(100dvh - 96px - 2rem);
   overflow-y: auto;
-  overscroll-behavior: contain;
   scrollbar-width: thin;
+  /* NOT `overscroll-behavior: contain`. A short outline never actually
+     overflows this box, but the combination of that rule with an
+     `overflow: auto` element that ISN'T scrolling is a known browser trap:
+     it still claims a wheel gesture that lands on it and stops the
+     gesture from chaining anywhere, including up to the document. See the
+     long note in `app/blog/[slug]/page.tsx` beside this element -- that
+     was the page-scroll freeze, and Lenis's own `allowNestedScroll` does
+     not need this rule's help to keep a genuinely long list from leaking
+     its own scroll into the page. */
 }
 @media (max-width: 1000px) {
   .bl-rail__stick { position: static; max-height: none; overflow: visible; }
