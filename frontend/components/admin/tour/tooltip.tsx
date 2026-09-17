@@ -66,21 +66,21 @@ export default function TourTooltip({
 
         {meta.showEstimate && meta.estimateMinutes && meta.totalStops ? (
           <p className="tourCard__estimate">
-            <Clock3 aria-hidden="true" />~{meta.estimateMinutes} min · {meta.totalStops} stops
+            <Clock3 aria-hidden="true" />{meta.estimateMinutes} min · {meta.totalStops} stops
           </p>
         ) : meta.encouragement ? (
           <p className="tourCard__encouragement">{meta.encouragement}</p>
         ) : null}
 
         <div className="tourCard__foot">
+          {!isFirstStep ? (
+            <button {...backProps} className="ad__btn tourCard__btn">
+              <ChevronLeft aria-hidden="true" /> Back
+            </button>
+          ) : null}
           <div className="tourCard__btns">
-            {!isFirstStep ? (
-              <button {...backProps} className="ad__btn tourCard__btn">
-                <ChevronLeft aria-hidden="true" /> Back
-              </button>
-            ) : null}
             {!isLastStep ? (
-              <button {...skipProps} className="ad__btn tourCard__btn tourCard__btn--skip">
+              <button {...skipProps} className="ad__btn tourCard__btn">
                 <SkipForward aria-hidden="true" /> Skip tour
               </button>
             ) : null}
