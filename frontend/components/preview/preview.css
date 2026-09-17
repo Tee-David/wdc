@@ -648,7 +648,7 @@ html:not(.dark) .pv .pv-card {
   padding: 20px; border-radius: 20px; overflow: hidden; cursor: pointer;
   background: var(--paper-2); border: 1px solid var(--rule); color: var(--ink);
   transition: flex-grow .55s cubic-bezier(.16, 1, .3, 1), background-color .4s ease,
-              box-shadow .4s ease, border-color .3s ease;
+              border-color .3s ease;
 }
 .pv-scard__media {
   position: relative; height: 0; opacity: 0; overflow: hidden;
@@ -691,10 +691,9 @@ html:not(.dark) .pv .pv-card {
   transition: transform .22s cubic-bezier(.16, 1, .3, 1);
 }
 .pv-scard:hover .pv-more::after { transform: translateX(4px); }
-.pv-scard.is-on {
-  flex-grow: 2.1; background: var(--paper); border-color: transparent;
-  box-shadow: 0 28px 54px -24px rgba(0, 0, 101, .4);
-}
+/* No shadow on the open card: it is marked by its width, its fill and its
+   border, and a soft shadow under it read as a smudge on the pale ground. */
+.pv-scard.is-on { flex-grow: 2.1; background: var(--paper); }
 /* In dark mode --paper is the page itself, so an active card painted with it
    reads as a hole. Lift it above the resting surface instead. */
 .dark .pv .pv-scard.is-on { background: var(--band-2); }
@@ -792,7 +791,7 @@ html:not(.dark) .pv .pv-card {
   border: 1px solid var(--rule);
   padding: clamp(22px, 2.6vw, 30px); border-radius: 20px;
   background: var(--band); color: #fff; border-top: 4px solid var(--accent);
-  transition: transform .3s cubic-bezier(.16, 1, .3, 1), box-shadow .3s cubic-bezier(.16, 1, .3, 1);
+  transition: transform .3s cubic-bezier(.16, 1, .3, 1);
 }
 .pv-icard:nth-child(2n), .pv .pv-icard:nth-child(2n) { background: var(--paper); color: var(--ink); border-top-color: var(--rule); }
 .pv-icard h3 {
@@ -823,7 +822,7 @@ html:not(.dark) .pv .pv-card {
   -webkit-mask: var(--arrow-ne) center/contain no-repeat;
           mask: var(--arrow-ne) center/contain no-repeat;
 }
-.pv-icard:hover { transform: translateY(-4px); box-shadow: 0 26px 50px -22px rgba(0, 0, 0, .55); }
+.pv-icard:hover { transform: translateY(-4px); }
 .pv-icard:hover .pv-icard__btn { transform: translate(3px, -3px); }
 
 /* ---------------- CTA banner ---------------- */
