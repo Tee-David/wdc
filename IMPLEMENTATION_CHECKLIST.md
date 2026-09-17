@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **123 open** (11 of them in progress), **316 done**.
+At last update: **123 open** (11 of them in progress), **318 done**.
 
 ---
 
@@ -504,6 +504,23 @@ reopening anything.
   is the pattern Next.js documents for resolving a missing id before the
   page body renders -- it did not fix the status-code fault above, but it
   is still the more correct shape and was kept.
+- [x] **Two dashboard panels had no empty state**, against the project's own
+  written rule in AGENTS.md that every true first-use empty state needs a
+  concise explanation. "Recent payments" and "Upcoming deadlines" rendered
+  a blank box with nothing in it and no icon or sentence, unlike every
+  other panel on the same screen, which invisibly matched the seeded demo
+  data always having rows -- exactly the day-one production case (a fresh
+  deploy with no payments recorded yet) this codebase measures rather than
+  assumes. Both now fall back to `Empty` with the same icon the panel
+  already uses and a one-line explanation of what will appear there.
+- [x] Clicked through every row-menu action on `/admin/clients`,
+  `/admin/projects`, `/admin/money` and `/admin/settings` with Playwright
+  -- 34 menu items across 29 row menus, every dialog opened, console and
+  network errors watched throughout. All clean; two intermittent
+  `ERR_TUNNEL_CONNECTION_FAILED` entries traced to Chrome's own background
+  requests to `google.com` and a JotForm CDN check being refused by this
+  sandbox's network policy, confirmed by isolating the failing hosts, not
+  anything the app itself requested.
 - [x] Found by loading `/admin`, `/admin/clients`, `/admin/projects`,
   `/admin/money`, `/admin/forms`, `/admin/settings`, a client workspace, a
   project, an invoice and a form submission with Playwright, watching

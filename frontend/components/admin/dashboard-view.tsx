@@ -190,30 +190,42 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
           </Panel>
 
           <Panel title="Recent payments" action={<Link href="/admin/money">View all <ArrowRight aria-hidden="true" /></Link>}>
-            <div className="adDash__compactList">
-              {payments.slice(0, 4).map((payment) => {
-                const invoice = invoices.find((item) => item.id === payment.invoiceId);
-                return (
-                  <Link href={`/admin/money/${payment.invoiceId}`} key={payment.id}>
-                    <span className="adDash__listIcon"><CircleDollarSign aria-hidden="true" /></span>
-                    <span><b>{naira(payment.amount)}</b><small>{invoice ? getClient(invoice.clientId)?.company : "Unknown client"} · {payment.method}</small></span>
-                    <time>{when(payment.at)}</time>
-                  </Link>
-                );
-              })}
-            </div>
+            {payments.length ? (
+              <div className="adDash__compactList">
+                {payments.slice(0, 4).map((payment) => {
+                  const invoice = invoices.find((item) => item.id === payment.invoiceId);
+                  return (
+                    <Link href={`/admin/money/${payment.invoiceId}`} key={payment.id}>
+                      <span className="adDash__listIcon"><CircleDollarSign aria-hidden="true" /></span>
+                      <span><b>{naira(payment.amount)}</b><small>{invoice ? getClient(invoice.clientId)?.company : "Unknown client"} · {payment.method}</small></span>
+                      <time>{when(payment.at)}</time>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <Empty title="No payments yet" icon={CircleDollarSign}>
+                Payments recorded against an invoice will appear here.
+              </Empty>
+            )}
           </Panel>
 
           <Panel title="Upcoming deadlines">
-            <div className="adDash__compactList">
-              {upcoming.map((project) => (
-                <Link href={`/admin/projects/${project.id}`} key={project.id}>
-                  <span className="adDash__listIcon"><CalendarClock aria-hidden="true" /></span>
-                  <span><b>{project.title}</b><small>{getClient(project.clientId)?.company ?? "Unknown client"}</small></span>
-                  <time>{when(project.due)}</time>
-                </Link>
-              ))}
-            </div>
+            {upcoming.length ? (
+              <div className="adDash__compactList">
+                {upcoming.map((project) => (
+                  <Link href={`/admin/projects/${project.id}`} key={project.id}>
+                    <span className="adDash__listIcon"><CalendarClock aria-hidden="true" /></span>
+                    <span><b>{project.title}</b><small>{getClient(project.clientId)?.company ?? "Unknown client"}</small></span>
+                    <time>{when(project.due)}</time>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <Empty title="Nothing due yet" icon={CalendarClock}>
+                Live projects with a due date will appear here.
+              </Empty>
+            )}
           </Panel>
         </aside>
       </div>
