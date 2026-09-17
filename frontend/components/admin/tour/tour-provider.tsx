@@ -5,16 +5,16 @@ import { usePathname } from "next/navigation";
 import {
   createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode,
 } from "react";
-import { ADMIN_FULL_TOUR, adminPageTourFor } from "@/lib/tours/admin";
-import type { Tour } from "@/lib/tours/types";
+import { ADMIN_WALKTHROUGH, ADMIN_WELCOME, adminPageTourFor } from "@/lib/tours/admin";
+import type { TourDef } from "@/lib/tours/types";
 import { clearCompletion, readCompletion, writeCompletion } from "@/lib/tours/storage";
 import "./tour.css";
 
 /**
  * The seam between "an admin page renders a tour button" and "react-joyride
  * actually runs". Mounted once, at the top of the admin shell, so it
- * survives every client-side navigation a full walkthrough makes rather
- * than remounting (and losing its place) each time the route changes.
+ * survives every client-side navigation a walkthrough makes rather than
+ * remounting (and losing its place) each time the route changes.
  *
  * LAZY-LOADED, NOT IMPORTED. `TourRuntime` -- the only file that touches
  * `react-joyride` -- is behind `next/dynamic({ ssr: false })` and is not
@@ -26,18 +26,24 @@ import "./tour.css";
 const TourRuntime = dynamic(() => import("./tour-runtime"), { ssr: false });
 
 type AdminTourContext = {
-  /** Whether *some* tour is currently running -- used to hide the launcher
-   *  UI while one is already on screen rather than stacking a second. */
+  /** Whether *some* tour is currently running -- used to hide launcher UI
+   *  while one is already on screen rather than stacking a second. */
   active: boolean;
-  startFullTour: () => void;
-  /** The page tour for wherever the caller already is. No-ops if this route
-   *  has none. */
+  /** The short, nav-only orientation. Auto-offered once; replayable any
+   *  time from the launcher. */
+  startWelcome: () => void;
+  /** The deep, cross-page tour of the actual daily workflow. */
+  startWalkthrough: () => void;
+  /** The tour for wherever the caller already is. No-ops if this route has
+   *  none. */
   startPageTour: () => void;
   hasPageTour: boolean;
-  fullTourCompleted: boolean;
+  welcomeCompleted: boolean;
+  walkthroughCompleted: boolean;
   pageTourCompleted: boolean;
   /** Clears the record for the given tour so it runs fresh, then starts it. */
-  restartFullTour: () => void;
+  restartWelcome: () => void;
+  restartWalkthrough: () => void;
   restartPageTour: () => void;
 };
 
@@ -67,14 +73,14 @@ function useMounted() {
   return useSyncExternalStore(subscribeToMount, () => mountedFlag, () => false);
 }
 
-const FIRST_SIGN_IN_KEY = "wdc-admin-tour:offered-full";
+const FIRST_SIGN_IN_KEY = "wdc-admin-tour:offered-welcome";
 
 export default function AdminTourProvider({ children, role }: { children: ReactNode; role: string }) {
   const pathname = usePathname();
   const mounted = useMounted();
-  const [runningTour, setRunningTour] = useState<Tour | null>(null);
-  /* Whether the run in progress was launched via "Restart tour"/"Replay",
-     so `TourRuntime` can emit `replayed` rather than `started` -- the two
+  const [runningTour, setRunningTour] = useState<TourDef | null>(null);
+  /* Whether the run in progress was launched via "Restart"/"Replay", so
+     `TourRuntime` can emit `replayed` rather than `started` -- the two
      privacy-safe events section 5.3 asks for kept genuinely distinct. */
   const [isReplay, setIsReplay] = useState(false);
 
@@ -82,42 +88,47 @@ export default function AdminTourProvider({ children, role }: { children: ReactN
 
   const stop = useCallback(() => setRunningTour(null), []);
 
-  const startFullTour = useCallback(() => { setIsReplay(false); setRunningTour(ADMIN_FULL_TOUR); }, []);
+  const startWelcome = useCallback(() => { setIsReplay(false); setRunningTour(ADMIN_WELCOME); }, []);
+  const startWalkthrough = useCallback(() => { setIsReplay(false); setRunningTour(ADMIN_WALKTHROUGH); }, []);
   const startPageTour = useCallback(() => {
     if (pageTour) { setIsReplay(false); setRunningTour(pageTour); }
   }, [pageTour]);
 
-  const restart = useCallback((tour: Tour) => {
+  const restart = useCallback((tour: TourDef) => {
     clearCompletion(tour.id, tour.version);
     setIsReplay(true);
     setRunningTour(tour);
   }, []);
 
   /* OFFERED ONCE, NEVER FORCED. "First eligible sign-in" is read as "this
-     browser has never been offered the full tour before", checked once
+     browser has never been offered the welcome tour before", checked once
      mounted so it never runs during SSR and never blocks the dashboard's
      own first paint -- a short delay lets the real numbers render first,
      then the tour offers itself rather than assuming consent. Dismissing
      it (skip, or navigating away) still writes a completion-shaped record
-     via `onSkip`, so it is never offered again uninvited. */
+     via `onSkip`, so it is never offered again uninvited. The WELCOME tour
+     is what is offered, not the full walkthrough -- a first-time sign-in
+     gets the map, not a twenty-step lecture; the walkthrough stays one
+     click away in the launcher for whoever wants it. */
   useEffect(() => {
     if (!mounted || pathname !== "/admin") return;
     let already = false;
     try { already = localStorage.getItem(FIRST_SIGN_IN_KEY) === "1"; } catch { /* offer it */ }
     if (already) return;
-    const completed = readCompletion(ADMIN_FULL_TOUR.id, ADMIN_FULL_TOUR.version);
+    const completed = readCompletion(ADMIN_WELCOME.id, ADMIN_WELCOME.version);
     if (completed) return;
 
     const id = window.setTimeout(() => {
       try { localStorage.setItem(FIRST_SIGN_IN_KEY, "1"); } catch { /* best effort */ }
-      setRunningTour(ADMIN_FULL_TOUR);
+      setRunningTour(ADMIN_WELCOME);
     }, 1_500);
     return () => window.clearTimeout(id);
   }, [mounted, pathname]);
 
   const value = useMemo<AdminTourContext>(() => ({
     active: runningTour !== null,
-    startFullTour,
+    startWelcome,
+    startWalkthrough,
     startPageTour,
     hasPageTour: pageTour !== null,
     /* `false` until `mounted`, always -- localStorage does not exist during
@@ -126,11 +137,13 @@ export default function AdminTourProvider({ children, role }: { children: ReactN
        hydration mismatch fixed once already in `components/admin/form.tsx`.
        The genuine answer appears one tick after hydration rather than
        being guessed at during it. */
-    fullTourCompleted: mounted && readCompletion(ADMIN_FULL_TOUR.id, ADMIN_FULL_TOUR.version) !== null,
+    welcomeCompleted: mounted && readCompletion(ADMIN_WELCOME.id, ADMIN_WELCOME.version) !== null,
+    walkthroughCompleted: mounted && readCompletion(ADMIN_WALKTHROUGH.id, ADMIN_WALKTHROUGH.version) !== null,
     pageTourCompleted: mounted && pageTour ? readCompletion(pageTour.id, pageTour.version) !== null : false,
-    restartFullTour: () => restart(ADMIN_FULL_TOUR),
+    restartWelcome: () => restart(ADMIN_WELCOME),
+    restartWalkthrough: () => restart(ADMIN_WALKTHROUGH),
     restartPageTour: () => { if (pageTour) restart(pageTour); },
-  }), [runningTour, startFullTour, startPageTour, pageTour, restart, mounted]);
+  }), [runningTour, startWelcome, startWalkthrough, startPageTour, pageTour, restart, mounted]);
 
   return (
     <Ctx.Provider value={value}>

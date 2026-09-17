@@ -9,7 +9,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
-  Compass,
   FolderKanban,
   Home,
   LayoutDashboard,
@@ -24,7 +23,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { authClient } from "@/lib/auth-client";
-import { useAdminTour } from "./tour/tour-provider";
+import TourLauncher from "./tour/tour-launcher";
 
 export type AdminUser = {
   name?: string | null;
@@ -134,6 +133,7 @@ function Sidebar({
           <button
             type="button"
             className="ad__iconButton"
+            data-tour="sidebar-pin"
             onClick={onTogglePin}
             aria-label={pinnedCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             title={pinnedCollapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -203,7 +203,6 @@ function AccountMenu({ user }: { user: AdminUser }) {
   const ref = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const router = useRouter();
-  const { active, fullTourCompleted, startFullTour, restartFullTour } = useAdminTour();
 
   useEffect(() => {
     function close(event: PointerEvent) {
@@ -238,17 +237,6 @@ function AccountMenu({ user }: { user: AdminUser }) {
             {user.email ? <span>{user.email}</span> : null}
           </div>
           <Link href="/" role="menuitem" onClick={() => setOpen(false)}><Home aria-hidden="true" /> Back to website</Link>
-          {/* THE PERSISTENT ENTRY POINT section 5.1 asks for. Reads its own
-              label off whether this browser has finished the full
-              walkthrough before, so it never claims "take a tour" to
-              someone who already has -- "replay" is the honest word then. */}
-          {!active ? (
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => { setOpen(false); (fullTourCompleted ? restartFullTour : startFullTour)(); }}
-            ><Compass aria-hidden="true" /> {fullTourCompleted ? "Replay the tour" : "Take a tour"}</button>
-          ) : null}
           <button
             type="button"
             role="menuitem"
@@ -431,10 +419,11 @@ export default function AdminShell({ children, counts = {}, user }: { children: 
 
       <div className="ad__column">
         <header className="ad__topbar">
-          <button type="button" className="ad__topIcon ad__mobileMenu" onClick={() => setMobileOpen(true)} aria-label="Open menu"><Menu aria-hidden="true" /></button>
+          <button type="button" className="ad__topIcon ad__mobileMenu" data-tour="mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Open menu"><Menu aria-hidden="true" /></button>
           <h1>{active?.label ?? "Admin"}</h1>
           <button type="button" className="ad__search" data-tour="topbar-search" onClick={() => setCommandOpen(true)}><Search aria-hidden="true" /><span>Search…</span><kbd>Ctrl K</kbd></button>
           <div className="ad__topActions">
+            <TourLauncher />
             <ThemeButton />
             <Notifications openForms={counts.Forms ?? 0} />
             <AccountMenu user={user} />

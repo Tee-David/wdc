@@ -122,7 +122,7 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
         This dashboard currently uses labelled demonstration records. Figures reconcile with the Money and Projects screens, but are not production trading data and reset with the server.
       </DemoNote>
 
-      <dl className="adDash__kpis">
+      <dl className="adDash__kpis" data-tour="dash-kpis">
         <Tile label="Collected" value={nairaShort(summary.collected)} tone="good" note={`${collectionRate}% collection rate`} />
         <Tile label="Outstanding" value={nairaShort(summary.outstanding)} tone={summary.overdue ? "bad" : undefined} note={`${nairaShort(summary.overdue)} overdue`} />
         <Tile label="Cash position" value={nairaShort(summary.profit)} tone={summary.profit >= 0 ? "good" : "bad"} note="Collected less recorded spend" />
@@ -155,7 +155,7 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
             )}
           </Panel>
 
-          <Panel title="Cashflow, last six months" action={<Link href="/admin/money">Open Money <ArrowRight aria-hidden="true" /></Link>}>
+          <Panel title="Cashflow, last six months" dataTour="dash-cashflow" action={<Link href="/admin/money">Open Money <ArrowRight aria-hidden="true" /></Link>}>
             <div className="adDash__cashSummary">
               <span><small>Billed</small><b>{nairaShort(summary.invoiced)}</b></span>
               <span><small>Collected</small><b>{nairaShort(summary.collected)}</b></span>
@@ -186,7 +186,7 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
             </div>
           </Panel>
 
-          <Panel title="Project pipeline" action={<Link href="/admin/projects">View all <ArrowRight aria-hidden="true" /></Link>}>
+          <Panel title="Project pipeline" dataTour="dash-pipeline" action={<Link href="/admin/projects">View all <ArrowRight aria-hidden="true" /></Link>}>
             <div className="adDash__pipeline">
               {STAGES.map((stage) => (
                 <Link href={`/admin/projects?stage=${encodeURIComponent(stage)}#project-list`} key={stage}>
@@ -197,7 +197,7 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
             </div>
           </Panel>
 
-          <Panel title="Recent payments" action={<Link href="/admin/money">View all <ArrowRight aria-hidden="true" /></Link>}>
+          <Panel title="Recent payments" dataTour="dash-payments" action={<Link href="/admin/money">View all <ArrowRight aria-hidden="true" /></Link>}>
             {payments.length ? (
               <div className="adDash__compactList">
                 {payments.slice(0, 4).map((payment) => {
@@ -218,7 +218,7 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
             )}
           </Panel>
 
-          <Panel title="Upcoming deadlines">
+          <Panel title="Upcoming deadlines" dataTour="dash-deadlines">
             {upcoming.length ? (
               <div className="adDash__compactList">
                 {upcoming.map((project) => (

@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 /**
- * The admin's guided tour: one full walkthrough that crosses six pages, and
- * a short page-only tour on each of them.
+ * The admin's guided tour, three tiers deep: a short welcome (nav only,
+ * auto-offered once), the full cross-page walkthrough, and a page-only tour
+ * on each of the six routes. Reached from the topbar's `?` launcher.
  *
  * HOW IT GETS IN. Same door as `admin-actions.spec.ts` --
  * `BONEYARD_CAPTURE_TOKEN` on the server under test plus the matching
@@ -23,7 +24,7 @@ test.beforeEach(async ({ page, baseURL }) => {
   ]);
 });
 
-test("the tour never appears before the dashboard's real numbers do", async ({ page }) => {
+test("the welcome tour never appears before the dashboard's real numbers do", async ({ page }) => {
   await page.goto("/admin", { waitUntil: "networkidle" });
   /* First eligible sign-in: offered, but only after the page underneath has
      already rendered -- never a blank dashboard behind a modal. */
@@ -31,70 +32,142 @@ test("the tour never appears before the dashboard's real numbers do", async ({ p
   await expect(page.locator(".tourCard")).toHaveCount(0);
 });
 
-test("the full walkthrough crosses all six pages and finishes", async ({ page }) => {
+test("the welcome tour auto-offers once, walks the nav, and finishes", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (err) => errors.push(err.message));
 
   await page.goto("/admin", { waitUntil: "networkidle" });
-  await page.locator(".ad__avatar").click();
-  await page.getByRole("menuitem", { name: /take a tour/i }).click();
+  await expect(page.locator(".tourCard")).toBeVisible({ timeout: 4_000 });
+  await expect(page.locator(".tourCard__headText b")).toHaveText("Welcome to the WDC admin");
+
+  for (let i = 0; i < 20; i += 1) {
+    const finish = page.getByRole("button", { name: /^finish$/i });
+    if (await finish.isVisible().catch(() => false)) {
+      await finish.click();
+      break;
+    }
+    await page.getByRole("button", { name: /^next$/i }).click();
+    await page.waitForTimeout(150);
+  }
+  await expect(page.locator(".tourCard")).toHaveCount(0);
+  expect(errors, errors.join("\n")).toHaveLength(0);
+
+  // Never offered a second time.
+  await page.reload({ waitUntil: "networkidle" });
+  await expect(page.locator(".tourCard")).toHaveCount(0, { timeout: 3_000 });
+});
+
+test("the full walkthrough, opened from the launcher, crosses every page and finishes", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (err) => errors.push(err.message));
+
+  await page.goto("/admin", { waitUntil: "networkidle" });
+  await page.waitForTimeout(2_000);
+  const skip = page.getByRole("button", { name: /skip tour/i });
+  if (await skip.isVisible().catch(() => false)) await skip.click();
+
+  await page.locator(".tourLauncher__btn").click();
+  await page.getByRole("menuitem", { name: /full platform walkthrough/i }).click();
   await expect(page.locator(".tourCard")).toBeVisible();
 
+  /* One entry per step, and it is the step's OWN `href` -- the page it is
+     already showing on, not the page the reader is about to click toward.
+     An interactive nav step (`nav-clients`, `nav-projects`, ...) still
+     carries the PREVIOUS page's href, because its `before` hook runs
+     before that step is shown; the actual page change happens on the step
+     AFTER it, whose own href is the new page. See `lib/tours/admin.ts`. */
   const expectedPages = [
-    "/admin", "/admin", "/admin", "/admin",
-    "/admin/clients", "/admin/clients",
-    "/admin/projects", "/admin/projects",
-    "/admin/money", "/admin/money",
-    "/admin/forms", "/admin/settings", "/admin/settings",
+    "/admin", "/admin", "/admin", "/admin", "/admin", "/admin", "/admin", "/admin", "/admin",
+    "/admin/clients", "/admin/clients", "/admin/clients",
+    "/admin/projects", "/admin/projects", "/admin/projects",
+    "/admin/money", "/admin/money", "/admin/money",
+    "/admin/forms", "/admin/forms",
+    "/admin/settings", "/admin/settings", "/admin/settings",
   ];
 
-  for (let i = 0; i < expectedPages.length; i += 1) {
+  /* The last entry is the closing step, whose button reads "Finish", not
+     "Next" -- clicked separately below rather than inside this loop. */
+  for (let i = 0; i < expectedPages.length - 1; i += 1) {
     await page.waitForURL(new RegExp(`${expectedPages[i]}$`), { timeout: 8_000 });
-    const isLast = i === expectedPages.length - 1;
-    const button = page.getByRole("button", { name: isLast ? /^finish$/i : /^next$/i });
+    const button = page.getByRole("button", { name: /^next$/i });
     await expect(button).toBeVisible();
     await button.click();
   }
+  await page.waitForURL(new RegExp(`${expectedPages[expectedPages.length - 1]}$`), { timeout: 8_000 });
+  await page.getByRole("button", { name: /^finish$/i }).click();
 
   await expect(page.locator(".tourCard")).toHaveCount(0);
   expect(errors, errors.join("\n")).toHaveLength(0);
+
+  // The launcher now offers a replay, not a repeat.
+  await page.locator(".tourLauncher__btn").click();
+  await expect(page.getByRole("menuitem", { name: /replay the full walkthrough/i })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: /^full platform walkthrough$/i })).toHaveCount(0);
 });
 
-test("skipping records completion; the account menu offers to replay, not repeat", async ({ page }) => {
+test("an interactive step advances on a real click, not only on Next", async ({ page }) => {
   await page.goto("/admin", { waitUntil: "networkidle" });
-  await page.locator(".ad__avatar").click();
-  await page.getByRole("menuitem", { name: /take a tour/i }).click();
+  await page.waitForTimeout(2_000);
+  const skip = page.getByRole("button", { name: /skip tour/i });
+  if (await skip.isVisible().catch(() => false)) await skip.click();
+
+  await page.locator(".tourLauncher__btn").click();
+  await page.getByRole("menuitem", { name: /full platform walkthrough/i }).click();
+  await expect(page.locator(".tourCard")).toBeVisible();
+
+  // Step to "nav-clients", the first interactive stop.
+  for (let i = 0; i < 8; i += 1) {
+    await page.getByRole("button", { name: /^next$/i }).click();
+    await page.waitForTimeout(150);
+  }
+  await expect(page.locator(".tourCard__interact")).toBeVisible();
+  await page.locator('[data-tour="nav-clients"]').click();
+  await expect(page).toHaveURL(/\/admin\/clients$/);
+  await expect(page.locator(".tourCard")).toBeVisible();
+});
+
+test("skipping records completion; the launcher offers to replay, not repeat", async ({ page }) => {
+  await page.goto("/admin", { waitUntil: "networkidle" });
+  await page.waitForTimeout(2_000);
+  const skip = page.getByRole("button", { name: /skip tour/i });
+  if (await skip.isVisible().catch(() => false)) await skip.click();
+
+  await page.locator(".tourLauncher__btn").click();
+  await page.getByRole("menuitem", { name: /full platform walkthrough/i }).click();
   await expect(page.locator(".tourCard")).toBeVisible();
 
   await page.getByRole("button", { name: /skip tour/i }).click();
   await expect(page.locator(".tourCard")).toHaveCount(0);
 
   await page.reload({ waitUntil: "networkidle" });
-  await page.locator(".ad__avatar").click();
-  await expect(page.getByRole("menuitem", { name: /replay the tour/i })).toBeVisible();
-  await expect(page.getByRole("menuitem", { name: /^take a tour$/i })).toHaveCount(0);
+  await page.locator(".tourLauncher__btn").click();
+  await expect(page.getByRole("menuitem", { name: /replay the full walkthrough/i })).toBeVisible();
 });
 
 test("Escape ends the tour outright, not just the current step", async ({ page }) => {
   await page.goto("/admin", { waitUntil: "networkidle" });
-  await page.locator(".ad__avatar").click();
-  await page.getByRole("menuitem", { name: /take a tour/i }).click();
+  await page.waitForTimeout(2_000);
+  const skip = page.getByRole("button", { name: /skip tour/i });
+  if (await skip.isVisible().catch(() => false)) await skip.click();
+
+  await page.locator(".tourLauncher__btn").click();
+  await page.getByRole("menuitem", { name: /full platform walkthrough/i }).click();
   await expect(page.locator(".tourCard")).toBeVisible();
 
   await page.keyboard.press("Escape");
   await expect(page.locator(".tourCard")).toHaveCount(0);
 });
 
-test("a page tour stays on one page and never offers Finish where the full tour would", async ({ page }) => {
+test("a page tour stays on one page and never offers Finish where the walkthrough would", async ({ page }) => {
   await page.goto("/admin/clients", { waitUntil: "networkidle" });
-  const launcher = page.getByRole("button", { name: /tour this page/i });
-  await expect(launcher).toBeVisible();
+  const launcher = page.locator(".tourLauncher__btn");
   await launcher.click();
+  await page.getByRole("menuitem", { name: /^tour this page$/i }).click();
 
   await expect(page.locator(".tourCard")).toBeVisible();
   await page.getByRole("button", { name: /^next$/i }).click();
   await expect(page).toHaveURL(/\/admin\/clients$/);
-  await expect(page.locator(".tourCard__progress")).toHaveText("2 of 3");
+  await expect(page.locator(".tourCard__headText span")).toHaveText(/Step 2 of 3/);
 });
 
 test("a step whose target has vanished is skipped, not a stuck tour", async ({ page }) => {
@@ -103,13 +176,14 @@ test("a step whose target has vanished is skipped, not a stuck tour", async ({ p
 
   await page.goto("/admin/clients", { waitUntil: "networkidle" });
   await page.evaluate(() => document.querySelector('[data-tour="clients-add"]')?.removeAttribute("data-tour"));
-  await page.getByRole("button", { name: /tour this page/i }).click();
+  await page.locator(".tourLauncher__btn").click();
+  await page.getByRole("menuitem", { name: /^tour this page$/i }).click();
   await expect(page.locator(".tourCard")).toBeVisible();
 
   await page.getByRole("button", { name: /^next$/i }).click();
   // The second step's target no longer exists; the tour must recover on
   // its own within a few seconds rather than sit on a dead target forever.
-  await expect(page.locator(".tourCard__head b")).toHaveText("Search and filter", { timeout: 8_000 });
+  await expect(page.locator(".tourCard__headText b")).toHaveText("Search and filter", { timeout: 8_000 });
   expect(errors, errors.join("\n")).toHaveLength(0);
 });
 
@@ -117,7 +191,8 @@ test("the card is themed by the admin's own tokens, in both themes", async ({ pa
   await page.goto("/admin/clients", { waitUntil: "networkidle" });
 
   await page.evaluate(() => document.documentElement.classList.remove("dark"));
-  await page.getByRole("button", { name: /tour this page/i }).click();
+  await page.locator(".tourLauncher__btn").click();
+  await page.getByRole("menuitem", { name: /^tour this page$/i }).click();
   await expect(page.locator(".tourCard")).toBeVisible();
   const light = await page.locator(".tourCard").evaluate((el) => getComputedStyle(el).backgroundColor);
   expect(light).toBe("rgb(255, 255, 255)");
@@ -131,8 +206,12 @@ test("the card is themed by the admin's own tokens, in both themes", async ({ pa
 test("no admin route scrolls sideways with a tour open, at 320px", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 800 });
   await page.goto("/admin", { waitUntil: "networkidle" });
-  await page.locator(".ad__avatar").click();
-  await page.getByRole("menuitem", { name: /take a tour/i }).click();
+  await page.waitForTimeout(2_000);
+  const skip = page.getByRole("button", { name: /skip tour/i });
+  if (await skip.isVisible().catch(() => false)) await skip.click();
+
+  await page.locator(".tourLauncher__btn").click();
+  await page.getByRole("menuitem", { name: /full platform walkthrough/i }).click();
   await expect(page.locator(".tourCard")).toBeVisible();
 
   /* Not `scrollWidth - clientWidth`: `.ad`/`.ad__main` clip horizontally on
