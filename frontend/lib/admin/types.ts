@@ -299,6 +299,18 @@ export type Payment = {
       the money. Unique, so a webhook, a callback and a manual entry cannot
       double-count the same payment. */
   reference: string;
+  /**
+   * WHICH ENVIRONMENT WROTE THIS ROW, not just which Paystack keys a card
+   * payment happened to clear against. Every payment carries it -- a cash
+   * entry made on a staging admin is exactly as much test data as a card
+   * charge against a test key -- because the real reason this exists is
+   * "all environments share one database today" (or will, once 4.9's
+   * migration lands): without a mode on the row, a QA pass's payments and
+   * production's cannot be told apart once they are sitting in the same
+   * table. Optional because it did not exist when the seed data was
+   * written, and old rows are not retroactively guessed at.
+   */
+  mode?: "test" | "live";
   /** RCT-YYYY-NNN. Every successful payment gets one, whatever the method. */
   receiptNo: string;
   /** Its own public address, for the same reason the invoice has one. */
@@ -754,6 +766,10 @@ export type ProviderEvent = {
   outcome: ProviderOutcome;
   /** Card, bank transfer, USSD -- whatever Paystack said. */
   channel?: string;
+  /** Which Paystack account raised it -- `PAYSTACK_MODE` at the moment this
+      row was written. See the note on `Payment.mode` for why every event
+      carries it rather than only the ones that became a payment. */
+  mode?: "test" | "live";
   invoiceId?: Id;
   paymentId?: Id;
   /** Why the outcome is what it is, in a sentence a person can act on. */
