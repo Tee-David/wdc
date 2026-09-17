@@ -1,78 +1,528 @@
 # WDC implementation checklist
 
-Status key: `[ ]` not started, `[-]` in progress, `[x]` done and verified.
+**91 open** (28 in progress) · **394 done**
 
-Ordering rule: always keep `[ ]` and `[-]` items in `# Open` at the top, and
-move every `[x]` item into the `# Done
+`[ ]` not started · `[-]` in progress · `[x]` done and verified.
 
-` archive at the bottom when updating
-this checklist. Never leave completed work mixed into the open queue.
-
-**Open work is below. Everything already delivered is archived at the end** —
-kept rather than deleted, because each line records what was measured and why,
-and that is the only defence against redoing work or reintroducing a bug that
-was already understood once.
-
-At last update: **92 open** (28 of them in progress), **393 done**.
+Open work is grouped by section below. Finished work is archived under
+`# Done`, with the evidence that closed it: search there before reopening
+anything. When an item is finished, move it down rather than ticking it in
+place, so the counts above stay true.
 
 ---
 
 # Open
 
-### From screenshots, 2026-09-14
+## 1A. Client onboarding experience
 
-  THE PANEL HAD NO STYLESHEET ON THE CONTACT PAGE. `picker.css` was imported by `onboarding-form.tsx` and by nothing else, so the contact form rendered the closed control correctly and then opened an unstyled, in-flow list of 245 rows -- no border, no ground, no elevation, no row padding, and a search icon rendered at three rows tall because a lucide glyph has no intrinsic size. It pushed the page down, so scrolling it meant scrolling the whole site. Both stylesheets are now imported by the components themselves; a control whose appearance depends on an import somewhere else will eventually be dropped somewhere else.
+- [-] Make Save and continue later create a securely hashed, single-purpose resume token and email the link through Truehost SMTP. (Token flow is complete. UPDATED 2026-09-17: the `535` is gone -- SMTP authentication succeeds with the same credentials Vercel holds, in about 22 seconds, and a real message was accepted `250 OK` and seen by the owner. What is left is sending an actual resume link through the form and opening it.)
 
-  THE BOX INSIDE THE BOX CAME BACK, in the other form. The reset that stops the number input drawing its own border inside the bar's border named `.ob__f`, the onboarding wrapper. On the contact page the ring came from `.ct-f input:focus`'s BOX-SHADOW, which a rule about borders never touched. Rewritten against the control's own ancestry -- `.pv .ph .ph__num:focus` outranks any `.wrapper input:focus` a form can write, including one nobody has written yet.
+- [ ] After successful onboarding, send the client a personalized next-steps email; explain that project communication may use the client dashboard, direct chat, a WhatsApp project group where appropriate, or another agreed channel.
 
-  AND THE COUNTRY BUTTON'S OWN OUTLINE WENT WITH IT: `:focus-within` already rings the whole bar, so a second orange rectangle inside it was the same fault in a different place. A tint marks which half has focus without drawing another edge.
+- [ ] Keep client account creation optional in that email; bind its expiring, single-purpose invitation to the onboarded recipient so a forwarded link cannot register a different email address.
 
-  THE PANEL NOW FLIPS. A dropdown that only ever drops downward is off screen when the field is near the foot of the window, which no amount of styling fixes. `usePickerOpen` measures the room below against the room above on open and on resize, and only flips when there genuinely is not room AND up is roomier -- a panel that flips for eight pixels is worse than one slightly clipped, because the reader cannot predict where it appears. Measured at 1280x900 with the field 150px off the bottom: panel top 392, bottom 740.
+- [ ] Let authenticated clients link or unlink Google in account settings; require another usable sign-in method before unlinking their last identity.
 
-  ROWS READ AS ROWS: flag, name, and the dial code in parentheses beside it, with a tick on the chosen one rather than a dot -- a dot says something is true about the row, a tick says which one is selected. 44px minimum, 48px on a phone. On a phone the panel is a bottom sheet with a grab handle and a scrim, and the scrim is the open control's own pseudo-element so no consumer renders an extra node and none can forget to.
+- [ ] Bind each client invitation to the intended normalized email and project/client record; store only a token hash, set an expiry, enforce one-time redemption, and reject email substitution or replay.
 
-  NOT VERIFIED, AND SAID RATHER THAN CLAIMED: the scrollbar's appearance. `::-webkit-scrollbar` painted nothing in this headless engine -- a thumb forced to solid red did not appear in a screenshot, though the gutter reserved its 10px -- so the list uses `scrollbar-width`/`scrollbar-color`, which is what `work.css` and `preview.css` already use for this site's rails.
+- [ ] Let an invited client create credentials or continue with an approved Google identity without granting admin access; keep the project relationship attached to the same client account.
 
-  STILL A PLAIN TEXT FIELD: the admin client form's Phone. It never had the picker, so it never had the fault; giving it one means porting `--paper`, `--rule` and `--ink` into the admin scope, which is a deliberate change rather than part of this fix.
+## 2. Authentication and email
 
-  Pinned by `tests/phone-field.spec.ts`, seven cases that walk BOTH forms: the panel is positioned, has a ground and has elevation; the list scrolls itself with `overscroll-behavior: contain` and `data-lenis-prevent`; the number input draws no border, radius, shadow or outline while the bar does; the panel stays inside the window when the field is low; and the sheet is full width at the bottom edge with a scrim and does not widen the page.
+- [ ] **Mail is delivered but filed as spam by Gmail.** Diagnosed and written up in `plans/email-deliverability.md`. Authentication is NOT the headline problem: SPF lists the sending IP and aligns, a DKIM key is published on the `default` selector, MX is correct. The problems, in order: (1) the reverse DNS for `94.23.160.111` is `rbx107b.superfasthost.cloud`, a generic PTR on a SHARED IP, so forward-confirmed reverse DNS fails and our reputation is the average of everyone else on that box; (2) DMARC is `p=none` with no `rua`, so there is no policy and no reports; (3) SPF ends `~all`. Order of work: publish a DMARC record with `rua` (costs nothing, breaks nothing), ask Truehost about the PTR and a dedicated IP, read two weeks of reports, then move to `p=quarantine` and `-all`.
 
-  THE NOUN IS A PROP, because the accessible names say what is being shared and seven buttons reading "this post" on a case study would simply be wrong. Nothing visible changes with it.
+- [ ] Truehost's OUTBOUND filter scores what we send and will discard it with `550 Message discarded as high-probability spam`. Found the hard way: a test enquiry whose body read like a diagnostic ("test", "confirm the mail path end to end", "no reply needed") was rejected, while the identical route with an ordinary customer enquiry was accepted. Verified separately that the message SHAPE is fine -- plain text, our HTML blob, and the HTML with a Reply-To were all accepted when sent directly. Consequence: never test this path with text that reads like a test, and treat a 550 as content scoring rather than a broken form.
 
-  IT SITS BELOW THE ARTICLE, IN ITS OWN ROW, on every page that has a contents rail. A sticky element releases at the edge of its grid area, so a share row inside the same row as the rail leaves the rail travelling beside a QR code long after there is any heading left to point at.
+- [ ] Verify Google origin/callback configuration for apex, `www`, Vercel, and localhost without exposing credentials.
 
-  THE CANONICAL ADDRESS IS BUILT ONCE PER PAGE and passed to the structured data, the share links and the code together. The case study was carrying four hand-typed copies of the same template literal, which is three chances for one to point elsewhere after a route moves.
+## 2A. Payments, invoices, and transaction integrity
 
-  CODES DECODED, NOT EYEBALLED: jsQR at 1x, 2x and 3x on a case study, a discipline page and a second case study, nine reads, all clean at the default 136px box. Checked at 320, 390 and 1280 with no horizontal overflow, and the row wraps to two lines at 320 rather than pushing the page wide. Pinned by `tests/share.spec.ts`: every link on both work pages must carry the page's own canonical URL, the code must have modules in it, copy must announce itself, and the article must still end the way it did.
+Reconciled 2026-09-17: this section read as entirely unstarted, and reading
+`lib/paystack.ts`, `app/api/pay/[token]/route.ts`, `app/api/paystack/webhook/route.ts`
+and `app/pay/done/page.tsx` line by line found eighteen of the twenty-two
+lines already true, most of them to a standard this pass only added to in
+one place (the refund/dispute branch, closed below). Checked against the
+actual code and an actual rerun of `tests/payments.spec.ts` (16/16
+passing), not assumed from a prior pass's say-so. The full line-by-line
+evidence is archived in `# Done`; what is left genuinely open:
 
-  Found on the way: `playwright.config.ts` asked for `channel: "chrome"`, and a container with a Chromium but no Chrome fails to launch on every test at once, which reads like a broken suite rather than a missing binary. `WDC_E2E_CHROME` now points it at a named binary; unset, nothing changes.
+- [ ] Review Litch Consulting's relevant payment, invoice, webhook, reconciliation, and audit-log patterns; adapt only what fits WDC. NOT VERIFIABLE FROM HERE -- a research step with no artifact of its own to check against; the code that resulted is mature enough that it plausibly happened, but there is nothing to confirm it by.
 
-  NO JAVASCRIPT AT ALL. Not "a small amount": none. One CSS animation on a server-rendered element, so it costs no bundle, no hydration and no main-thread work beyond compositing. That matters more here than anywhere else on the site, because this page is reached on a phone on Nigerian mobile data immediately after somebody has parted with money. A test counts the scripts the page requests so a client component cannot creep in later.
+- [ ] Review Nomarc's local/private project and client-management flows; adopt only useful day-to-day patterns that fit WDC and keep the admin UX simple. Same as above -- not verifiable, not claimed.
 
-  IT PRINTS THE TOP LINE FIRST, which the obvious build gets backwards. Translating the slip down out of a clip means its BOTTOM edge enters first: you watch "Thank you" and the torn edge appear and the amount arrives last. Caught by sampling the animation at 39% rather than by watching it. The paper does not move now; it is revealed top-down with `clip-path: inset()` in `steps(24)` over 1.4s, about 58ms a line, which is close to what a real till roll does and is the single thing that makes it read as printing rather than as a card sliding out.
+- [-] Atomic invoice state update: true today (`applyPayment` is one function, one process, one in-memory write). "Retry Cockroach serialization failures safely" cannot be true yet because Money's writes are not on CockroachDB -- this half depends on section 4.9's own migration, not on anything payments-specific.
 
-  THE STAGE IS DARK BECAUSE PAPER ONLY LOOKS LIKE PAPER AGAINST SOMETHING THAT IS NOT. The first build was a white slip on a white sheet: the feed, the teeth and the shadow were all correct and none of it was visible. The brand navy does the job the reference does with black. The torn edge is a conic-gradient mask rather than an image, so the drop shadow follows the same shape and there is nothing to download.
+- [ ] Publish the exact Paystack webhook and callback URLs after routes are implemented and deployed. The routes exist and their paths are fixed by the file system: webhook `/api/paystack/webhook`, checkout callback `/pay/done`. Publishing them to Paystack's own dashboard needs the live domain and dashboard access neither of which this environment has -- said as the URLs rather than left undone silently: `https://<canonical-domain>/api/paystack/webhook` and `https://<canonical-domain>/pay/done`.
 
-  NO LOGO ON THE SLIP, on purpose. `/r/<token>` is the receipt and carries the mark; this is the moment, not the record, and branding it twice would make the animation look like the thing to keep. It uses our own two faces with tabular figures rather than a monospace, which is what makes it look like our document instead of a generic till roll.
+## 3. Performance and release verification
 
-  Measured at 320, 360, 390, 430, 768, 1280 and 1920: no horizontal overflow anywhere and the slip always inside its stage. At 320 the receipt number was wrapping across two lines, which is the one thing a reference must never do, so the detail values hold one line and the label beside them gives way instead.
+- [-] Raise canonical-home mobile Lighthouse from the supplied 82 toward 90+ without regressing the supplied desktop 98; prioritise the 2.99s hero-text render delay, 3.8s LCP, 6.7s Speed Index, render-blocking CSS, forced reflow, and unused first-party JavaScript shown in the evidence.
 
-  WHAT WAS ACTUALLY WRONG, measured rather than eyeballed. Fields were 39px tall, which is a mouse target and not a thumb one; the site's floor is 44px and the admin is not exempt. There was no hover state at all. Focus was an `outline`, which sits outside the box and gets clipped by the dialog's own overflow on the fields nearest its edge; it is a box-shadow ring now, which follows the border radius and never clips. And the select's caret was two 45-degree linear-gradients meeting in a corner, which is the old CSS trick for an arrowhead and looks like one: a filled wedge among stroked glyphs. It is a real chevron now, masked from one shared inline SVG so the select and anything else that grows a caret cannot drift apart, and it takes the accent on focus like the border does.
+- [ ] Rerun mobile Lighthouse on the canonical domain and target 90+. UNBLOCKED 2026-09-17 and MEASURED, and the number is bad: PageSpeed Insights, mobile, live homepage -- performance **42**, accessibility 100, best practices 73, SEO 100. That is well under the 82 this item started from, so something regressed and it needs attributing before anything else here. One run; PSI varies, so re-measure before concluding. Historical note: it was blocked because the PageSpeed Insights API returns 429 without a key, and local Lighthouse reports TBT about 10x worse than PSI, so it cannot give an honest absolute score. Needs a free PSI API key in the environment (25,000 queries a day). Field numbers measured directly meanwhile, live at 390px and 4x throttle: homepage LCP 1,708ms CLS 0.010, Services 1,944ms CLS 0, a service page 888ms CLS 0.002 (was 0.423 before the stage floor), Our Work 2,264ms CLS 0, Blog 1,492ms CLS 0. STILL BLOCKED as of this pass: PSI returns the same 429 without a key. See the newer local production-build numbers recorded below, and note the homepage CLS there reads 0.0563 rather than 0.010 because the hero is larger now, not because anything regressed.
 
-  AND THE ONE THING NATIVE GENUINELY DOES BADLY. A date input renders in the BROWSER's language, not the page's, and nothing on our side changes that: the same due date reads 09/14 on one laptop and 14/09 on the next, and for any day of the month under thirteen there is no telling them apart by looking. On an invoice date that is not a nicety. The picker stays native; underneath it there is now an echo in words, fixed to en-GB so it says the same thing to everybody -- "Monday 14 September 2026". No dependency and no second calendar to maintain.
+  INVESTIGATED 2026-09-17, NOT REPRODUCED, NOT CLOSED. No live network
+  access and no PSI key in this environment, so the 42 itself could not
+  be rerun -- what follows is a local `next build && next start` mobile
+  Lighthouse (`--throttling-method=simulate`, 390x844, 3x DPR) against
+  the exact commit this checklist is on. Local score: **66** -- FCP
+  1.9s, LCP 5.0s, TBT 570ms, CLS 0.014, Speed Index 2.6s, TTI 7.0s.
+  Total page weight 987 KiB, no oversized single asset (the two heaviest
+  are Next's own framework chunks at ~223KB and ~73KB; the largest image,
+  the hero photo, is 51KB) and no third-party script shows up as a
+  bottleneck. LCP is the worst figure and the likely place to look next.
 
-  Found while doing it: the 44px floor had leaked onto tick boxes, whose rows went 60px tall with the box stranded at the bottom. The checkbox reset had to grow again; it now resets height and min-height as well, and the note there says why it has grown twice.
+  THIS CONTRADICTS THE ESTABLISHED PATTERN, worth saying plainly rather
+  than quietly reconciled: the note directly above this one says local
+  Lighthouse reports WORSE than PSI (about 10x on TBT). Here PSI (42) is
+  WORSE than local (66) -- the opposite direction. That mismatch is
+  itself evidence the 42 may not be reproducible from this repo's code
+  at all: a stale live deploy behind the canonical domain, a slow
+  TTFB/CDN condition PSI's real network path hits and a local
+  `localhost` server never can, or a live-only third-party script are
+  all more consistent with "worse on PSI than local" than a first-party
+  code regression would be. NOT CONCLUDED, because none of those three
+  can be checked without either a PSI key or verifying the live deploy's
+  commit against `main`'s current HEAD -- both outside what this
+  environment can reach. Next step, not done here: get a PSI key into
+  the environment, or confirm what commit is actually live before
+  spending more time chasing a number that may describe a different
+  build than the one in front of it.
 
-  THE OBSERVER IS NOW SHARED. There were about to be three copies of the same IntersectionObserver with the same band and the same comment -- legal wrote it, the blog copied it, and this would have copied it again. `components/ui/use-active-heading.ts` is the one copy; all three rails call it. The band is unchanged: `-30% 0px -55% 0px`, a strip across the upper middle, so the heading that lights up is the one being READ rather than the one that has just appeared at the bottom.
+Reconciled 2026-09-17 (second pass): the four large net-new builds below
+have no blocker against them, only time. None is a new checklist line --
+each already has an open item further down this section -- this note exists
+so the four are named together, in one place, as what is actually left of
+section 4's biggest, undone shapes, rather than scattered across four
+subsections where the size of what remains is easy to lose.
 
-  THE RAIL IS FIRST IN THE DOM AND SECOND ON THE PAGE. Below 1001px there is no second column and it stacks, and a contents list under the thing it lists is a list nobody uses; the grid places it right on a wide screen without changing the order a screen reader or a narrow viewport sees. It collapses to a `<details>` on a phone, like the blog's.
+- **The client portal.** Built this pass, at `/portal`: Overview,
+  Projects, Billing, Support, Settings -- five of the six possible
+  sections, Forms & files left out because there is no forms builder yet
+  to populate it. See 4.7's own lines for what is covered and what
+  genuinely is not (version history beyond the latest, file upload,
+  replying to a specific update). 5.0/5.1's note on no client tour
+  registry existing yet no longer applies for the reason it gave -- the
+  pages exist now -- but a client tour is still its own piece of work,
+  not started here.
+- **A real forms builder.** Today's onboarding form is fixed in code: no
+  editor, no versioning, no submission inbox. See 4.6's nine open lines.
+- **Settings and Money's UI, rebuilt to full Litch shell parity.** Money's
+  underlying *logic* is unusually complete already -- invoices, payments,
+  credit, estimates, reconciliation are all real and tested; it is the
+  reusable shell and primitives (4.1) plus the screen itself (4.5's first
+  line) that are missing. Settings has no UI at all yet beyond the audit
+  log (4.8's first four lines).
+- **A blog/content admin editor.** Posts live in code (`lib/blog.ts`), not
+  a CMS. See 4.8's seven lines moved over from the old section 1C.
 
-  Pinned by `tests/work-toc.spec.ts`, which walks EVERY case study on the site and asserts every rail link resolves to exactly one element. The rail's ids and the section ids are declared in two places and two entries are conditional, so nothing in TypeScript can catch a dead anchor -- it is a valid string either way, and the reader just clicks and the page does not move.
+### 4.0 Reference, scope, and release guardrails
 
-Kept at the top because these came from someone looking at the live site, and
-that is the shortest feedback loop there is.
+- [ ] Capture desktop, tablet, and mobile reference screenshots for the Litch shell and every equivalent WDC admin route before visual implementation.
 
-- [ ] Truehost SMTP takes about 23 seconds just to authenticate, measured from two networks. The contact form now answers in half that by sending the receipt after the response, but the real fix is a transactional provider, which would also give proper SPF and DKIM.
+### 4.1 Litch-parity admin shell and UI foundation
+
+Reconciled 2026-09-17: read against `components/admin/{admin.css,bits.tsx,
+form.tsx,admin-state.tsx,dialog.tsx,dashboard.css}` and every admin route,
+rather than assumed unstarted because no line here had been checked yet.
+
+- [-] Reusable primitives -- audited one at a time rather than assumed as a set:
+  page headers (`adDash__head`, one shape, every page), stat cards (`Tile`),
+  panels (`Panel`), badges (`StagePill`/`InvoicePill`/`HealthPill`/`ApprovalPill`,
+  all thin wrappers over one `.ad__pill`), data tables (`.ad__t`, ONE class,
+  used on 20 tables across nine routes -- checked by grep, not assumed),
+  empty/skeleton/error states (`Empty`, `.ad__loading*`, `AdminState`'s five
+  kinds), confirmation modals (`Dialog` on the platform `<dialog>`, plus
+  `Form`'s `confirm` prop for the simple cases), export (a real CSV link on
+  the clients list, `/admin/clients/export`). Filters and pagination exist
+  as a proven pattern (`.ad__pagination`, search + status + service filters)
+  but ONLY on the clients list -- projects, money and forms have neither,
+  which is fine at today's seed-data volume and a real gap once record
+  counts grow (see 4.10's load-testing line). Tabs and toasts genuinely do
+  not exist: no admin screen currently has tabbed content to justify one,
+  and mutation feedback is inline next to the control that caused it
+  (`Form`'s own `.ad__msg`) rather than a floating snackbar -- a deliberate
+  choice, not an oversight, since a receipt next to the button it answers
+  cannot be missed the way a toast that has already faded can be, but
+  worth saying plainly since "toasts" was asked for by name and this is
+  not one. Charts: the dashboard's cashflow chart is CSS bars, not a
+  charting library, per this file's own "do not add a package for a small
+  UI effect" rule -- a reusable `<Chart>` primitive was not built because
+  nothing else on the admin needs one yet.
+
+- [ ] Verify the shell and primitives visually against Litch at all target widths before building deeper routes. NOT DONE and not really doable from here now -- deeper routes are already built (4.2 through 4.9 all exist), so this is retroactive rather than a gate; a real side-by-side against Litch's own screenshots is 4.10's own line, not repeated here.
+
+### 4.2 Daily admin dashboard
+
+Reconciled 2026-09-17: this section was marked entirely unstarted, and
+`components/admin/dashboard-view.tsx` already does most of it -- the same
+drift the older "Moved out of Open, 2026-09-14 (second pass)" note further
+down this file already caught once for this exact section ("Marked done by
+another agent but left in the open half"). Read line by line against the
+running code rather than assumed from the file's own claims.
+
+- [-] Overdue invoices, stalled onboarding, and project-derived reasons
+  (blocked, waiting on a client, in revision, a slipped task) all feed one
+  combined `attention` queue, sorted worst-first, every row linking straight
+  to its resolution screen (`AdminDashboardView`). NOT built: failed
+  payments/uploads and unread client actions -- both need a system that
+  does not exist yet (Paystack is not wired; there is no client portal), so
+  neither can honestly appear.
+
+- [-] Outstanding, overdue, and a collection rate are on the KPI tiles;
+  "Cashflow, last six months" charts collected income against recorded
+  spend, which is the lightweight income-versus-expenditure view. NOT on
+  this route: accounts-receivable aging, which exists (30-day buckets,
+  drillable) but only on `/admin/money/reconciliation` -- it answers the
+  question asked here, just from a different page.
+
+- [-] Recent payments and upcoming deadlines are both rail panels, both now
+  with a real empty state rather than a blank box (see the 2026-09-17
+  closed entry). NOT built: a recent clients/leads panel -- there is
+  nothing on `/admin` today naming who signed up or enquired most recently.
+
+- [-] Quick actions has a new client, a new invoice (`InvoiceBuilder`), and
+  a new expense. NOT built: a "new project" action in this panel
+  specifically (it exists, but only as a header button, not beside the
+  other three here), a standalone "record a payment" not tied to opening
+  one invoice first, an onboarding-link action, and any role filtering --
+  there is only one role (`owner`) wired today, so "show only what the
+  role can do" has nothing to differ against yet.
+
+### 4.3 Clients and client workspace
+
+- [-] Create, edit, archive and restore were already live (`createClient`/`updateClient`/`archiveClient` in `lib/admin/actions.ts`, restore is the same action with a `restore` flag). Notes are a field on the form; communication preferences are the `notify` map (`NotifyForm`, opted in by default to the two kinds that are part of doing the work). NOT DONE: **merge/duplicate review** -- this pass added prevention (below) but nothing to resolve the duplicates that already exist in a real set of records, which is a different tool (find candidates, choose which wins, re-point their projects/invoices/payments). **Tags** and **multiple contacts** -- no field for either; `name` is one contact and `company` is the business, which covers "keep personal and company identity distinct" but not a client with two people the studio deals with. **Client-level access status** -- see the note on 388 below; showing it needs the same database read that item is blocked on.
+
+- [ ] NOT ATTEMPTED, and the reason is specific rather than "ran out of time": every part of this line reads the `user`/`account`/`session` tables Better Auth owns, and **this sandboxed environment has no `DATABASE_URL`/`COCKROACHDB_URL` configured at all** -- `lib/db/pool.ts` throws the moment anything tries to connect. Every admin/portal session in this environment has gone through the `isAdminCapture` header bypass in `lib/admin/session.ts`/`lib/portal/session.ts`, which never touches the database, so the real Better Auth path (`auth.api.getSession`, and by extension any raw query against `"user"`/`"account"`) has not been exercised even once this session. Writing a query against column names this environment cannot check (CockroachDB is case-sensitive on the quoted identifiers the migration uses, e.g. `"userId"` vs `userid`) and shipping it unverified is a worse outcome than leaving the line open.
+
+- [ ] NOT ATTEMPTED, on purpose and for a size-and-risk reason rather than the database one above. `emailAndPassword.disableSignUp` and the Google provider's own `disableSignUp` in `lib/auth.ts` mean there genuinely is no self-service door today -- and `disableSignUp` is enforced INSIDE Better Auth's sign-up route handler itself (`node_modules/better-auth/dist/api/routes/sign-up.mjs`), so calling `auth.api.signUpEmail()` server-side hits the identical check and is refused; an invite-accept flow cannot go through it. The clean way in is Better Auth's own `admin` plugin (`createUser` with `role: "client"`, least privilege by construction), reusing the password-reset email/token machinery already built and tested for the actual "set your password" step -- but that plugin's schema adds `user.banned`/`banReason`/`banExpires` and `session.impersonatedBy` columns this database does not have, which means a new migration against live auth infrastructure. That is a deliberate decision for the person running this migration to make, not something to bundle into an unattended sweep across ten unrelated sections -- named here with the concrete shape of the fix rather than left as a bare unchecked box.
+
+- [ ] NOT ATTEMPTED, same reasoning as the invitation line above: unlinking is a core Better Auth capability and would not need a migration, but building the "require another usable sign-in method before unlinking the final identity" guard correctly means reading the account rows first, in a portal settings action, on a Better Auth setup this environment cannot connect to or test against. Paired with the invitation line rather than done alone, since a client cannot reach a portal settings page to unlink anything without an account in the first place.
+
+### 4.4 Projects and day-to-day delivery
+
+- [-] Tasks are in, with assignee, due date, priority and ONE dependency, and ticking one writes a line on the project's history. Deliberately one dependency and not a list: a task waiting on two things waits on whichever finishes last, and modelling that properly means a graph, a cycle check and a topological sort for a screen that shows six rows. NOT DONE and not started: milestones, nested checklists, per-task comments and recurring work. The checklist's own instruction is not to turn the default screen into a project-management suite, so these want a deliberate decision rather than being added because the word appears in the line.
+
+### 4.5 Money, invoices, payments, and expenditure
+
+- [-] Estimates are built, with their own number series, their own public document and their own life.
+
+  AN ESTIMATE IS NOT A DRAFT INVOICE, and building it as one would have been the easy mistake. A draft is a document the studio has not finished writing. An estimate is one it HAS finished and sent, waiting on somebody else -- so it has EST-YYYY-NNN of its own, an expiry rather than a due date, and a state only the client can move. Filed as drafts, the one thing nobody could answer is "what have we quoted and not heard back about", which is the question a pipeline is made of. A quote nobody takes must also not burn an invoice number.
+
+  ACCEPTING RAISES A NEW INVOICE rather than converting the quote. The estimate keeps its number and its lines exactly as quoted; the invoice gets its own number, token and due date. When the scope changes next month there is still a document saying what the price was when it was agreed. Recording the answer requires the CLIENT'S name, not the studio's: "accepted by Studio" is a row nobody can defend, and an acceptance is what a disagreement about scope gets settled against.
+
+  NO ACCEPT BUTTON ON THE PUBLIC PAGE, and the page says why. A click on a page addressed by a token is not a signature, and treating it as one would let anybody the link was forwarded to commit the client to a price. There is no pay button either: nobody should be able to pay a quote.
+
+  DISCOUNT IS A RATE, ROUNDED ONCE ON THE SUM. Kept as a percentage so it survives a line being edited, and applied to the subtotal rather than per line, because a per-line discount summed drifts from one taken on the sum by a kobo or two -- and both figures sit on the same page. Carried onto the invoice as a negative LINE rather than an invoice-level rate, because an invoice's total has to be the sum of its lines and every other screen relies on that.
+
+  NOTES AND TERMS ARE ON THE DOCUMENT, not in the covering email. The email is the thing nobody can find in December.
+
+  NOTHING DELETES AN ESTIMATE. Declined and expired ones are kept, because a quote nobody took is the most useful row in a pipeline six months later and removing it is how a studio forgets what its prices have been doing. "Quote it again" copies the lines and terms to a fresh draft at today's date, which is what stops a price changing by accident during a re-type.
+
+  EXPIRED IS DERIVED AND NEVER STORED, like an invoice's overdue -- a state time creates while nobody is looking. An ANSWERED estimate does not expire: accepting on the last day and invoicing a week later is normal, and a document that flipped to Expired after the client had said yes would be lying about something the studio has an agreement on.
+
+  Pinned by `tests/estimates.spec.ts`, thirteen cases.
+
+  ALSO DONE on invoices, from the same line: immutable numbering was already there, and void now is (see the entry above). NOT DONE: currency is naira only and the code says so rather than pretending to a currency field; PDF is still "print the public page" rather than a generated file; and an invoice cannot yet be duplicated, only an estimate.
+
+  A VOID, A REVERSAL AND A REFUND ARE THREE DIFFERENT EVENTS. A void says the invoice should never have existed. A reversal says the money never really arrived: the transfer bounced, or somebody typed a row that should not be there. A refund says it arrived, we had it, and it went back. A client reconciling against their own bank statement sees TWO movements for a refund and none for the other two, so a system that collapses any pair of them forces somebody to record the wrong thing.
+
+  A STRUCK INVOICE KEEPS ITS NUMBER. Unbroken numbering is most of what makes a set of books auditable, so there is no delete for anything issued -- only a strike. The row stays, `INV-2026-007` still follows `INV-2026-006`, the client's copy still opens and says plainly that nothing is owed with the reason on it, and every receivables figure skips it. A 404 on a document somebody is holding reads as the studio having made it disappear.
+
+  AND IT CANNOT BE STRUCK IF MONEY HAS LANDED. That is the rule, not a limitation: the money is real, and the honest correction names where it went. Voiding it would leave a payment belonging to nothing. The menu does not offer the button, and the action refuses it if the request is made anyway.
+
+  REFUNDS COME IN PARTS, because half a deposit returned when a project is cut short is the ordinary case. They are a list on the payment, never an edit to it -- `amount` is what arrived and the client is holding a receipt with that number on it. `paymentNet` is what every total reads instead, taking a reversal off in full and a refund off in part, and the receipt itemises what went back and where so a part refund can be checked rather than trusted.
+
+  WHERE A REFUND GOES IS A REAL DISTINCTION. Back to their bank means the money has left the studio. Held on their balance means it has not, and the client now has credit -- which is what balance carry-forward actually is. Applying that credit creates an ORDINARY payment on the next invoice, with a receipt number in the same sequence and its own public page, marked as having come from credit. No parallel rules for money off a balance, and no way to adjust a balance by hand, because a balance that can be typed is one nobody can reconcile. A credit larger than the invoice is split: what fits is applied and the rest stays as its own row.
+
+  OVERPAYMENTS ALREADY FLAGGED THEMSELVES AND NOW HAVE THE TWO ANSWERS: move the excess to the client's balance, or refund it. The excess is real money and silently swallowing it is the one outcome that is certainly wrong.
+
+  DERIVED, NOT STORED, ALL OF IT. `invoiceStatus` returns Void before anything else; `invoiceTotals` returns nothing due on a struck invoice, which is what stops one table remembering and another forgetting; `collected` sums `paymentNet`; the client's balance is the sum of unapplied credits. Reconciled against the seeded books after the change: outstanding ₦3,003,150.00 on the tiles and in the aging footer, the struck ₦548,250.00 in neither, collected ₦2.1m net of the refund, and the collection rate 41% of what is still billed.
+
+  Pinned by `tests/money-corrections.spec.ts`, fourteen cases across the documents and the arithmetic.
+
+- [ ] Keep payment and invoice event histories append-only; correct mistakes through attributed reversals/voids and retain original evidence.
+
+- [-] Receipts are generated for every successful payment whatever the method, numbered `RCT-YYYY-NNN` in order and never reused, and each links to its invoice, client and project. The number is assigned when the payment is recorded rather than when the receipt is opened, so reprinting cannot change it, and it is derived from the highest number already taken rather than from a count -- reversing a payment removes a row, and a count would then reissue a number already printed and posted. Each receipt has its own public page and its own QR.
+
+  PRINTING WAS CHECKED AGAINST REAL PDFs, NOT A PREVIEW, and the first pass was wrong in three ways nothing on screen could have shown. The site's skip link printed as a navy button at the top of sheet one. A document printed from a dark session came out with a black border on every sheet, because `color-scheme: dark` paints the page canvas and a white background on the element does not undo it. And a two-line invoice cost two sheets: `min-height: 100dvh` is a full page of height on paper, and the colophon wrapped into a 218px band -- a fifth of an A4 page -- because the small print holds 30rem and the code could not fit beside it.
+
+  MULTI-PAGE IS THE CASE THAT MATTERS, so there is a seeded 24-line retainer invoice (`INV-2026-005`) that exists only to find pagination bugs. Measured on it: the column headings reprint on every sheet, a running head carries the invoice number and the client onto sheet two -- otherwise it is a column of money with nothing saying whose it is -- no line item is cut in half by a fold, the totals stay with the items they total, and the stamp and the code appear once, on the last sheet. The stamp had to leave absolute positioning to do that: in paged media an absolutely positioned box lands on whichever page its containing block starts on, so it printed over the line items on page one.
+
+  ROOM WAS MADE RATHER THAN TAKEN. The print rhythm is tighter than the screen's -- paper does not need thumb-sized gaps between rows -- which brought the two-line invoice from 1185px to 989px against a 1032px sheet. The code is now sized in millimetres because that is what a camera sees on paper: 34mm, with the quiet zone pulled in so the modules get 30mm of it, about 0.57mm each. Decoded out of the generated PDFs at 120, 150 and 200dpi, all three documents, every one read. Pinned by `tests/money-print.spec.ts`.
+
+  NOT DONE: server-side PDF generation and resend history. "Save as PDF" from a browser now produces a correct document, but that is not the same as a generated file and is not claimed as one.
+
+- [-] Eight of the nine, and the ninth is named rather than faked. Expenses had carried four fields: date, description, category, amount. They now also carry who was paid, how it left, the project it belongs against, whether it can be billed back, a note, and the admin who entered it.
+
+  WHO WAS PAID IS ITS OWN FIELD. "Adobe" answers "who do we pay for this" and "Creative Cloud, the team plan" answers "what is it". They were one field, which is why the expense list could not be grouped by anybody.
+
+  THE CLIENT IS DERIVED FROM THE PROJECT AND IS NEVER ASKED FOR. Two fields that have to agree will eventually disagree -- a project moved to a different client, or a form that let somebody pick both -- so there is one source. An expense with no project is overhead, which is a real answer and is shown as one rather than as a gap.
+
+  WHICH BUYS THE THING IT WAS FOR: every project now has a "what it has made" panel reading invoiced, collected, spent on it and net. COLLECTED rather than invoiced, because an invoice nobody has paid is not income, and a project that looks profitable on billings and is not on receipts is exactly the one worth knowing about. Every figure is derived; nothing is stored, so nothing can go stale.
+
+  REBILLABLE IS SEPARATE FROM HAVING A PROJECT, because plenty of project costs are ours to absorb.
+
+  NOT DONE: the receipt is a LINK, not an upload. R2 upload from the admin is still not wired, and a file field that quietly does nothing is worse than one that asks for the address where the receipt already lives. The helper text says so. Links are validated as http or https on the server, because a URL field that accepts whatever is typed eventually holds a `javascript:` and the page that renders it as an href is where that becomes an attack.
+
+  Found on the way: a checkbox inside `.ad__f` had been inheriting the text field rule -- `width: 100%`, a 9px radius, a border and a text field's padding. It never showed, because every checkbox in the admin sat inside a pill that shrink-wraps. The first box given a full-width row stretched its input to 654px and pushed its own label off the edge of the dialog. Fixed at the rule rather than at the one form.
+
+- [-] Cashflow, income, expenditure, outstanding, overdue and net were already on Money. Added: a collection rate, and accounts-receivable aging in the conventional 30-day buckets so the numbers mean to an accountant what they mean here. One outstanding figure treats an invoice sent last Tuesday and one sent in March as the same thing, and they are not: the first is a cashflow line, the second is a conversation somebody has to have.
+
+  THEY DRILL AND THEY RECONCILE, and both were checked rather than assumed. Every bucket lists the invoices behind it as links, so no total has to be taken on trust, and the panel's footer is summed from the same buckets the rows draw. Measured against the seeded books: the aging footer reads ₦646,500.00 and the Outstanding tile reads ₦647k, which is the same figure through `nairaShort`; collection rate reads 76% against ₦2.0m collected of ₦2.65m billed. The rate is capped at 100% and returns nothing rather than 0% when nothing has been invoiced — a red 0% for a studio that has simply not billed yet is a different thing and not a problem.
+
+  NOT DONE: a cashflow FORECAST, and per-bucket export. The six-month chart is history, not projection, and is not labelled as one.
+
+  WHAT IS IN IT IS EVERYTHING THAT DID NOT LAND CLEANLY. A charge whose reference matched no invoice. A transfer where somebody typed their company name into the narration instead of the invoice number. A webhook that arrived twice. One whose signature did not verify. A checkout that would not open. None of these appear anywhere else, because on every other screen they are an absence: an invoice that quietly stayed unpaid.
+
+  THE BANNER IS ABOVE THE FIGURES, not beside them, because the figures are wrong while it is there -- an unmatched charge is money in the bank that the Collected tile does not know about.
+
+  TWO ACTIONS, KEPT APART. "Match it to an invoice" banks real money through the same `applyPayment` everything else uses, with the same idempotency, the same receipt number and the same audit line, then closes the event with a note naming who decided. "Write it off" records what was done and moves no money. One button with a dropdown would make the consequential one something somebody reaches by accident. Both require a note, for the same reason a reversal requires a reason: "resolved" on its own is a tick somebody put there.
+
+  MATCHING BY HAND IS THE LAST RESORT, NOT THE FIRST. `matchInvoice` tries the charge's metadata, then the invoice number inside the reference -- our own references carry it as a prefix, and "INV-2026-004" typed into a bank narration is the commonest reference a Nigerian transfer carries. It returns null rather than guessing, because a wrong match is a payment on somebody else's invoice.
+
+  HOSTED CHECKOUT, NOT THE INLINE POPUP. Paystack offers both. The popup needs their script running on the page that shows a client what they owe; the redirect hands the card details to Paystack on Paystack's own origin, keeps our document free of third-party JavaScript, and works with JavaScript off. The cost is losing the client's context for the length of the payment, which for an invoice paid once is the cheaper side of the trade.
+
+  THE BUTTON IS A REAL FORM POSTING TO A REAL ROUTE. Not a link -- a link that spends money can be followed by a prefetcher or a mail scanner -- and not a fetch. The route reads NOTHING from the request body: the amount, the invoice and the payer's email all come off the record the public token resolves to, because a form field is a number the payer can edit. A wrong token and a draft both get the same plain 404 the document itself gets.
+
+  TWO PATHS IN, ONE FUNCTION AT THE END. The webhook is the reliable path and the browser's return is the fast one, and they race each other within the same second on almost every payment. Both verify with Paystack before anything is written, and both end at `applyPayment`, which is idempotent on the reference -- so whichever arrives second banks nothing and the client is not shown as having paid twice. The return page is the one people get wrong: it takes the reference out of the query string and nothing else, then asks Paystack what happened. A page that read `?status=success` would thank anybody who typed it.
+
+  THE WEBHOOK FAILS CLOSED, in order. No signature header or one that does not verify is a 401 with nothing written and a Rejected row so the attempt is visible. An unparseable body is a 400. An event we do not act on is a 200 -- because a non-200 makes Paystack retry something that will never succeed -- with an Ignored row. The signature is an HMAC-SHA512 keyed on ONE account's secret, compared in constant time, which is also where MODE SAFETY comes from for free: a test-mode event cannot validate against a live key or the reverse, so there is no separate mode check to forget.
+
+  PROVIDER EVENTS ARE APPEND-ONLY AND SEPARATE FROM THE AUDIT LOG. The audit log answers "who changed this"; this answers "what did Paystack say and what did we do about it", and most of its entries are things that happened TO us. Every event is written whatever its outcome, including the duplicates and the ones that were ignored, because a log of successful charges tells nobody anything they could not read off the invoice. The single mutation allowed is a resolution note, written once onto an event that has none.
+
+  Pinned by `tests/payments.spec.ts`, which tests the closed door rather than the happy path: an unsigned webhook, a wrongly signed one, an empty signature header, a forged charge that must not appear on the invoice, a wrong token, a draft, a GET on the POST-only route, and a made-up reference that must never be treated as paid.
+
+  NOT DONE: the keys are not set on this deployment, so no real card has been through it.
+
+- [ ] Ensure financial writes are transactional, integer-minor-unit based, server-validated, role-authorized, idempotent, and audited.
+
+### 4.6 Forms, builder, onboarding, and submissions
+
+Read `plans/fluent-forms-audit.md` before starting anything in this section. It is the specification: every Fluent Forms area with KEEP / ADAPT / DROP verdicts and evidence, the data model, the admin screen map inside the six-page rule, the data-table standard (section 9), the mail transport (section 10), payments (section 6.5), and a phased plan of about 17 to 21 weeks.
+
+- [ ] Phase 0 of the form-builder plan: every outbound email writes a log row. Only the three money emails go through `deliver()` in `lib/money-mail.ts`; contact, newsletter, onboarding, tool reports and password reset call `sendMail` directly and leave no trace when they fail. Route them all through the outbox, with no email bodies stored (re-render from template and record ids).
+
+- [ ] Build one shared admin data table to the standard in section 9 of the audit: state in the URL, keyset (cursor) pagination with a stable sort key plus id, 25/50/100 per page, capped counts, filter chips, saved views, select-all-matching for bulk actions, streamed CSV export that respects filters, a card layout at 320px, geometry-matched skeletons, `aria-sort` headers. Clients already follows most of this; Money, Forms and the logs have no pagination at all and the logs are hard-capped at 20 to 100 rows.
+
+- [ ] Build the notification centre from the audit: event, rule, template, log. A form notification is one kind of rule. Move the existing transactional templates into it with the code versions as fallback; eight templates in `lib/email-templates.ts` are currently never called.
+
+- [ ] Store every contact enquiry. `/api/contact` sends an email and keeps nothing, so an enquiry that fails to send is simply gone.
+
+- [ ] Rebuild Forms to Litch parity with draft/published/archived states, submission counts, last activity, duplication, preview, share link, and clear primary actions.
+
+- [ ] Build a responsive form editor with sections/steps, reusable fields, labels/helpers/placeholders, option editing, required state, ordering, conditional visibility, and live preview without a heavy drag-and-drop dependency.
+
+- [ ] Support text, textarea, email, phone, number, date, URL, radio, checkbox, multi-select, short/long dropdown, searchable long list, address/country, consent, and file upload controls.
+
+- [ ] Use normal dropdowns for ten or fewer options and searchable, bounded, touch-scrollable lists for longer choices; popovers must render above every global control.
+
+- [ ] Add versioned publishing so existing submissions retain the schema they answered; prevent destructive edits without an explicit new version.
+
+- [ ] Build a submission inbox with status, service, client/project link, assignee, tags, search/filter/export, detail view, internal notes, and activity history.
+
+- [ ] Convert a valid submission into or attach it to a client and project without duplicating people or losing the original answers/files.
+
+- [ ] Finish conditional question sets, domain suggestions/checks, client fatigue validation, and completion/resume testing for every onboarding service.
+
+### 4.7 Communications and client portal handoff
+
+- [ ] Send a personalized next-steps/thank-you email after successful onboarding, including the agreed next steps and the optional account invitation.
+
+- [ ] State that project communication may use the client dashboard, direct chat, a WhatsApp project group where appropriate, or another agreed channel.
+
+- [-] Three of the eight are built and sending: the invoice with its pay link, the payment receipt, and the invoice reminder. They share one shell, one delivery path and one set of rules, and the buttons that send them are on the invoice screen rather than buried in a menu. The orange call-to-action in them carries BLACK type, not white: white on #ff6500 measures 2.95:1 and fails even the 3:1 allowed for large text, and an email client is no more forgiving than a browser. The password-reset mail had that bug and it is fixed here too.
+
+  NOT DONE: onboarding receipt, account invitation, project update, approval request and completion messages. And they are TEMPLATES IN CODE, not editable by the studio -- the checklist asks for editable, and a template editor is a real piece of work rather than a field. Said plainly rather than ticked.
+
+  THE ROW IS WRITTEN BEFORE THE MAIL SERVER IS CALLED, NEVER AFTER. A receipt goes out behind the response -- this SMTP server takes about 23 seconds just to authenticate -- which means by the time it fails there is nobody left to tell. The row IS the telling: Queued first, then Sent or Failed. A row still reading Queued long after the fact is a send that disappeared inside the provider, which is exactly the thing a log written after a successful send can never show.
+
+  FOUR STATES, NOT TWO. Skipped is separate from Failed and says why: "they have reminders switched off" is a different fact from "the mail server refused it", and a log that collapses them teaches people to distrust the log.
+
+- [ ] Provide explicit WhatsApp handoff actions without pretending the website can read or sync WhatsApp messages unless a real approved integration is added.
+
+  WHAT CANNOT BE SWITCHED OFF, AND WHY. A receipt for money a client has actually paid is a record they are entitled to. It is not a notification, and it is not in the list.
+
+  THE DEDUPE KEY IS THE EVENT, NOT THE ATTEMPT. `receipt:y7` is the receipt for payment y7 however many times Paystack retries the webhook and however many times the payer reloads the return page. A reminder's key carries the day, so the same nudge cannot go twice in one day however many times a job runs, and tomorrow's is allowed through. Resend clears the key onto a superseded name so the failed row STAYS as the record that the first try did not go.
+
+  NO PAYLOADS, ANYWHERE. Paystack's webhook body carries a customer record, an authorization object and on some events a card's last four and its bank. What is stored is the reference, the amount, the channel and our own verdict. A log that copies the rest is a second place for it to leak from.
+
+- [-] The portal exists now, at `/portal` -- `lib/roles.ts`'s `client` door
+  flipped to `ready: true`, matching where it always said a client
+  belonged. Gives a client their projects, client-visible updates,
+  invoices/payments, and approvals; internal notes, tasks, and admin-only
+  money stay off every portal screen because the portal's own queries
+  never read them, not because a flag hides them. `Project.channel` now
+  shown on the project header ("Updates via Email"/WhatsApp group/etc).
+  NOT DONE: files as a distinct concept (a deliverable's versions carry
+  `url`, no separate upload/library), forms (no visibility into a
+  client's own submissions -- 4.6's forms builder does not exist yet, so
+  there is nothing to show).
+
+- [-] Shell built to the same `.ad`/`admin.css`/`dashboard.css` system the
+  admin uses -- one design system, not two, per this file's own
+  authenticated-UX rule. Five sections, not six: Overview, Projects,
+  Billing, Support, Settings. Forms & files deliberately left out rather
+  than built empty: there is no forms builder yet for it to show.
+
+- [-] Covered: project stage and health (the same stage-track component
+  as the admin's own project page), update history filtered to
+  `clientVisible`, deliverable approvals and revision requests, and a
+  combined "needs your attention" queue on the overview (deliverables
+  awaiting review, invoices with a balance, answered support tickets). A
+  deliverable's full version history is now there too, latest expanded
+  and older versions under a `<details>` -- the type's own "which logo
+  did they approve" question is answerable from the portal now, not only
+  from the admin. "Onboarding status" stays implicit in the stage pill
+  (`Onboarding` is one of the six stages) rather than its own callout --
+  a second, redundant indicator for information the pill already carries
+  is not worth the row it would take.
+
+- [-] Invoices link out to the existing public `/i/[token]` page rather
+  than re-rendering payment history and receipts a second time -- one
+  renderer for a document, not two that can disagree. Approve/request-
+  revision both built, as the one place a client writes back; every
+  write re-derives the client from the session and checks the record
+  being mutated actually belongs to them (`lib/portal/actions.ts`) rather
+  than trusting an id in the form, since `lib/admin/validate.ts`'s own
+  note that a server action is a public endpoint whether or not a form
+  points at it applies more here than on the admin side. Replying to a
+  specific update is built: each update carries a "Reply" link that
+  opens Support with the project and a dated subject already filled in
+  (`?project=<id>&subject=Re: <title> update, <date>`) -- a full reply
+  THREAD hung off one exact update record was considered and dropped for
+  now, since a ticket already carries the same project context and a
+  second threading mechanism next to the first would be two ways to ask
+  the same question. NOT DONE: uploading a requested file (no upload
+  target exists for it yet -- same gap as 4.9's own R2 item, just from
+  the other side of the same door).
+
+  ALSO BUILT, NOT ASKED FOR BY NAME BUT THE SAME "WHAT DO I DO ABOUT
+  THIS" GAP THE OTHER FOUR ANSWER: a support ticket system.
+  `Ticket`/`TicketMessage` in `lib/admin/types.ts`, a client-side thread
+  view with reply, and a panel on the admin's own client workspace
+  (`components/admin/ticket-panel.tsx`) to answer them -- because nothing
+  before this let a client raise a concern without email or WhatsApp,
+  and "Support" was one of the six section names section 4.7's own line
+  above already asked for.
+
+### 4.8 Settings, content, team access, and audit
+
+- [ ] Rebuild Settings to Litch parity with grouped navigation for business profile, branding, services/content, finance defaults, payment methods, email/templates, integrations, team, security, and data.
+
+- [-] Two of these are real now, and three are a deliberate no rather than an oversight. Settings gained "Default VAT %" and "Default days to pay" (`app/admin/settings/page.tsx`, `finance.vatRate`/`finance.dueInDays`), through the same override-by-key mechanism every other row on that screen already used -- so nothing new had to be built to store or reset them. `financeDefaults()` in `lib/admin/store.ts` reads them back validated rather than trusted: a non-number, a negative VAT, or zero/negative days falls back to what shipped, and the one real trap in that validation -- `Number(null)` is `0`, not `NaN`, so a never-set override would have silently read as a valid 0% VAT rate -- is guarded explicitly rather than left to `Number.isFinite`. The value reaches all six places a NEW invoice or estimate can be started (both on Money's own page, and the three other pages that raise an invoice against a specific client or project); an invoice being EDITED keeps its own figure regardless, same as before. Fixing this also surfaced and fixed a real accessibility bug it shared no cause with: the VAT and discount inputs had a literal `id="vatRate"`/`id="discount"`, and Money mounts four of these builders on one page (`DialogButton` mounts its dialog's content whether or not it is open) -- so the label only bound to whichever instance happened to come first in the document, and every other VAT field on the page was unlabelled to a screen reader. Scoped with `useId()` now. Pinned by `tests/money-finance-defaults.spec.ts`. NOT DONE, and on purpose rather than left for later: **currency** is not a setting because the system is NGN-only by design at every layer that would need to change -- `fromKobo`/`naira()`, the webhook's own "NGN ONLY, AND SAID OUT LOUD" check, Paystack's NGN-keyed account -- making it configurable is a currency-conversion feature, not a settings field. **Payment instructions** is not a setting because the site's whole design is "there is ONE way to pay, and it is not a bank transfer" (a real test name in `tests/payments.spec.ts`); a free-text field inviting "transfer to account X" copy onto an invoice would undercut the one-path-only model the rest of 2A was just reconciled against. **Business identity and document branding** (logo/address/invoice-number prefix on the PDF-equivalent public documents) were not touched this pass -- real gap, not declined.
+
+- [ ] Add service catalogue and onboarding-template management without exposing implementation-only configuration to day-to-day users.
+
+- [ ] Add owner/staff roles and least-privilege permissions for clients, projects, money, forms, content, settings, exports, and destructive actions.
+
+  CORRECTED THIS PASS, because the checklist's own note on the audit log item below said "no auth" and that is no longer true, if it ever was: `lib/auth.ts` is a full Better Auth setup (email/password, Google sign-in gated to an existing row, password-reset session revocation, per-route rate limits), `proxy.ts` gates `/admin/:path*` and `/portal/:path*` behind a session cookie, and `app/admin/layout.tsx` re-checks the real session and requires `role === "owner"` before rendering anything. What is still true, and is the actual gap this line is asking about: that last check is **owner-only**. A `staff` role exists on the user table (Better Auth's `role` field, `defaultValue: "client"`) but nothing grants a session with `role: "staff"` entry to `/admin` at all -- the least-privilege middle tier the Settings screen's own "Access" panel used to describe ("staff sees clients and projects but not the books") does not exist; that panel was describing a permission model the code has never enforced, and its copy has been corrected to say so rather than left standing. Building it for real needs more than a wider layout check: every money-related write in `lib/admin/actions.ts` (roughly twenty of the forty-one exports) is a public POST endpoint on its own account, per that file's own stated principle, and would need the same role check the layout does, not just the pages. Deliberately not attempted this pass: there is no user-management surface to create a staff account with in the first place (see the item below), so a role check with nothing to test it against is easy to get quietly wrong on a financial-data boundary, and that is worse than leaving it named and open.
+
+- [ ] Preserve last-owner/self-change guards, session revocation, invitation expiry, and a clear staff access/activity view.
+
+  NOT STARTED, and it is the dependency the item above is waiting on: there is no `better-auth` admin plugin wired (`createUser`/`listUsers`/`setRole`/`listSessions`/`revokeSession` are all unused today) and no screen that calls anything like them, so there is currently no way to create a staff account, invite one, or revoke a session from the admin at all -- `scripts/seed-admin.mjs` is the only thing that has ever written a user row. Naming this rather than skipping it: least-privilege staff access (the item above) cannot be tested end to end until an actual staff session can be produced, which makes this the item that unblocks that one, not a parallel piece of work.
+
+- [-] Append-only audit log built and wired into the writes that exist. APPEND-ONLY BY CONSTRUCTION, not by promise: the array is module-private and the only export that touches it pushes, so there is no update, no delete, and nowhere to write from. A log you can edit answers "what happened" with "whatever somebody last wanted it to say", which is worse than none because it looks like evidence — so the screen has no controls at all.
+
+  Covered now: client added/edited/archived (one entry per field that actually moved, never a single "edited"), project opened/stage moved/archived, invoice drafted/raised/issued/deleted-as-draft, payment recorded and reversed, expense recorded and removed, setting overridden and put back. Before/after is stored already formatted for reading rather than as raw values: an amount means nothing as `37725000`, and the rendered form still makes sense in a year when the formatting code has moved on.
+
+  Reversing a payment keeps the receipt number and the bank reference ON THE ENTRY, because the row that carried them is gone and those are what tie the reversal to the bank's record of the original.
+
+  Deliberately NOT stored: request bodies, provider payloads, credentials, or any field whose old value is a secret. A log that copies everything is a second place for a leak to come from.
+
+  Verified in a browser: empty before any change, then a stage move and a settings override both landed with their before/after and actor, and the project workspace showed only its own entries.
+
+  NOT DONE, because the subsystems do not exist yet: form and file changes (no form builder, no admin uploads), integration changes (no integrations wired). CORRECTED FROM AN EARLIER PASS: this line used to also say "authentication and role changes (no auth)" — that was wrong even when it was written, or has since stopped being true; `lib/auth.ts` is a full Better Auth setup and `app/admin/layout.tsx` requires a real owner session. What is genuinely missing is a role/staff-access UI TO log changes about, per the two items just above — the audit log itself would cover it the moment that surface exists, since `setSetting`-style writes already show the pattern. The actor reads "Studio" everywhere until there is a signed-in admin to name — the parameter is threaded through every write and just has nothing better to fill it with yet.
+
+- [ ] Add content-management entry points only for public content that genuinely needs editing; avoid rebuilding a general-purpose CMS.
+
+- [ ] Show honest integration health and “coming soon” states; never display a control as working before its backend is verified.
+
+Moved here from section 1C on 2026-09-14. They were filed under the blog
+because that is what they edit, but every one of them is admin UI and belongs
+with the rest of section 4's content and settings work.
+
+- [ ] Blog editor: create, edit, schedule and unpublish posts, writing the same block shape `lib/blog.ts` already defines (`p`, `h2`, `h3`, `list`, `quote`, `callout`). The renderer guarantees one h1 and a correct heading outline; an editor that emits raw HTML would give that away.
+
+- [ ] Per-post SEO fields as first-class inputs, not afterthoughts: search-result title, meta description with a live character count, canonical override, and a social image.
+
+- [ ] Draft, scheduled and published states, with the published date separate from the created date and a visible `updated` date when a post is revised.
+
+- [ ] Author and category records, once there is more than one person writing.
+
+- [ ] Editable site content beyond the blog: the FAQ list, testimonials, the services copy and the work catalogue all currently live in `lib/` and need the same treatment.
+
+- [ ] Media library backed by R2, reusing `r2Config()` and `presignPut()` from `lib/r2.ts` rather than a second uploader. Note the SVG caveat recorded under upload safety.
+
+- [ ] Preview a draft as it will actually render, on the real page, before publishing.
+
+### 4.9 CockroachDB, R2, and backend integrity
+
+- [-] Connect document/upload workflows to Cloudflare R2. (`lib/r2.ts` signs presigned PUTs with SigV4 and no new dependency; `POST /api/onboarding/upload` authorises one file against the caller's draft, choosing the key, content type and 25MB ceiling server-side, and fails closed naming the missing variable. Files land under `onboarding/<draftId>/`. BLOCKED on one value: `R2_ACCOUNT_ID`, the subdomain of the bucket's S3 API endpoint.)
+
+- [ ] Replace every remaining in-memory admin read/write with repository/query modules backed by CockroachDB; remove fictional seed data from production paths.
+
+- [ ] Design and apply explicit migrations for clients/contacts, projects/tasks/updates, forms/versions/submissions, invoices/lines, payments/events, expenses, receipts, communications, invitations, files, notifications, and audit records.
+
+- [ ] Add constraints, indexes, normalized identifiers, foreign-key/archive policy, timestamps, actor attribution, and idempotency keys; review migration storage and rollback risk before applying production changes.
+
+- [ ] Use short retryable transactions for multi-record invariants; prevent duplicate invoice numbers, receipts, invitations, webhook events, payments, and form conversions.
+
+- [ ] Extend R2 to client/project/invoice/expense files with scoped keys, persisted metadata, file-size/type rules, signed access, authorization checks, replacement/version rules, and safe deletion/archive behaviour.
+
+- [ ] Add rate limits, origin/signature checks, server-side validation, structured redacted logs, backup/restore procedures, and fail-closed integration configuration.
+
+### 4.10 Verification, parity review, and release
+
+- [ ] Add focused unit/integration tests for derived money state, permissions, invitations, form conditions/versioning, project transitions, audit events, uploads, and idempotency.
+
+- [ ] Add browser tests for every admin route's primary task, keyboard flow, navigation/top restoration, mobile drawer, tables/filters, empty/error states, and duplicate-submit protection.
+
+- [ ] Compare WDC and Litch screenshots side by side at every target width; close shell, spacing, typography, component, state, and interaction gaps until parity is deliberate and documented.
+
+- [ ] Run lint, TypeScript, production build, admin tests, responsive visual checks, accessibility checks, and a performance/bundle regression check.
+
+- [ ] Test with production-like record volumes so dashboard queries, filters, tables, search, exports, and timelines remain responsive.
+
+- [ ] Verify a database backup and rollback path before the first production migration; deploy the exact tested commit and validate authenticated admin routes on the canonical domain.
+
+- [ ] Push each completed Section 4 milestone to `main` as a narrow commit that excludes Claude's public-frontend work and unrelated user files; update this checklist and the bridge at each boundary.
+
+### 5.0 Tour architecture and content
+
+Reconciled 2026-09-17, third pass: the admin's tour is now the three-tier,
+Litch-parity shape the user asked for by name -- welcome, walkthrough,
+page -- with ten page tours (all six sidebar routes plus, new this pass,
+the four drill-down pages reached only by opening a row), an interactive
+click-to-advance step, a progress rail, a spotlight-aware background blur,
+and a header icon that reuses the marketing site's own animation rather
+than a bespoke one. `react-joyride` stays a direct dependency, dynamically
+imported so it never enters the initial admin bundle
+(`components/admin/tour/tour-runtime.tsx` is the only file that imports
+it, behind `next/dynamic({ ssr: false })`, mounted only once a tour is
+actually running). See the closed entry below for what was built,
+verified, and found along the way.
+
+- [-] Create separate typed tour registries for admin and client experiences, with one full walkthrough and independently launchable page-only tours. `lib/tours/admin.ts` has three tiers for the admin -- `admin-welcome` (nav orientation, auto-offered once), `admin-walkthrough` (the deep cross-page tour), and ten page tours, one per admin route including the four reached only by drilling into a list. No client registry exists, on purpose: every one of section 5.1's client-tour stops (deliverables/approvals, invoices/payments/receipts, forms/files, messages/support) is a screen section 4.7's client portal has not built yet, and a tour of a page that does not exist is not a tour.
+
+### 5.1 Full walkthroughs
+
+- [ ] Build the client full walkthrough around the real client workflow. Not started -- see the note on section 5.0's second line.
+
+### 5.2 Page-only tours
+
+- [-] Ensure dynamically loaded tables, tabs, drawers, empty states, and responsive variants provide valid alternate targets or skip logic. The missing-target case is covered (see 5.1's fourth line) and pinned by a test; `desktopOnly`/`mobileOnly` step flags are filtered by an actual `matchMedia` check against the sidebar's own 1024px collapse breakpoint, verified at both a 1440px and a 375px viewport live. Two of the new drill-down tours carry a genuinely conditional step -- a client's credit panel, an invoice's client-copy panel -- marked `optional: true` and, found this pass, deliberately placed BEFORE a guaranteed step rather than last: ending a tour on a step whose target is missing left the background blur visibly lingering for a second or so after the card had already closed, confirmed with a frame-by-frame trace (card hidden at t=0, still hidden at t=900ms, reappeared correctly on the next real step at t=1200ms) rather than assumed from the symptom. NOT walked against every empty/populated permutation of every page -- the seeded demo data was never empty during this pass, so a tour launched against a genuinely empty clients or projects list is exercising the same skip logic but was not watched doing it.
+
+### 5.3 UX, accessibility, state, and verification
+
+- [-] Keep Joyride above dashboard popovers but below critical system dialogs; prevent clipping, off-screen placement, background scrolling, and collisions with mobile safe areas. `zIndex: 95` sits above popovers (80) and the new blur bands (94), below the command palette and mobile drawer (100); native `<dialog>` elements sit above everything regardless of any z-index, being in the browser's own top layer. Off-screen placement is Floating UI's own flip/shift middleware, unmodified. NOT done: background scrolling is not locked while a tour runs. Considered and deliberately left alone rather than rushed -- the walkthrough needs Joyride's own scroll-into-view to reach a target below the fold, and locking `overflow` on the body would block that same mechanism from working, trading a minor polish item for a tour that cannot reach half its targets. Revisit if a real scroll-jank complaint shows up rather than guessed at now.
+
+- [ ] Persist tour progress/completion per authenticated account and role in CockroachDB; local storage may cache UI state but is not the cross-device source of truth. NOT done. CORRECTION 2026-09-17: the database is NOT missing -- `COCKROACHDB_URL` connects locally and from Vercel, and 16 tables already live there (blog, onboarding, invitations, auth, rate limits). This item and the rest of 4.9's admin data move are claimed by claude on the bridge. `lib/tours/storage.ts` is written as the honest interim the checklist itself allows for, with a comment saying so, and is structured so a server read that seeds the cache is additive rather than a rewrite.
+
+- [-] Never show admin-only steps to clients or staff without the relevant permission; filter steps before a tour begins. The filtering mechanism is built and wired (`TourStep.roles`, applied in `tour-runtime.tsx` before steps ever reach Joyride) but nothing in the registry actually uses it: only one role (`owner`) is wired through auth today, so there is no `staff` step to filter yet. Ready rather than exercised.
+
+- [-] Test full and page-only tours at all dashboard breakpoints, themes, permissions, empty/populated states, keyboard-only mode, reduced motion, and route transitions. Covered by `tests/admin-tour.spec.ts` (12 cases, up from 8): both themes, 320px with a real scroll-attempt check (not the `scrollWidth` false-positive `admin-responsive.spec.ts` already ruled out for this exact shell), Escape, Skip, Finish, the welcome tour's single-offer behaviour, the 23-step walkthrough's full six-page cross-navigation, an interactive step advancing on a real click rather than only Next, a page tour staying on one page, the missing-target recovery, all four new drill-down page tours resolving by route template and finishing cleanly, and the optional-step-not-last fix specifically. NOT covered: every dashboard breakpoint in between 320px and desktop, keyboard-only navigation with no mouse at all, and permissions (there is only the one role to test against).
+
+---
 
 ### From live testing, 2026-09-17
 
@@ -158,16 +608,69 @@ and one is only half fixed -- said plainly below rather than folded into the
   One more data point for "this is route-tree-shape-dependent, not
   admin-specific", not a new instance to chase separately.
 
-## 1A. Client onboarding experience
+### From screenshots, 2026-09-14
 
-- [-] Make Save and continue later create a securely hashed, single-purpose resume token and email the link through Truehost SMTP. (Token flow is complete. UPDATED 2026-09-17: the `535` is gone -- SMTP authentication succeeds with the same credentials Vercel holds, in about 22 seconds, and a real message was accepted `250 OK` and seen by the owner. What is left is sending an actual resume link through the form and opening it.)
-- [ ] After successful onboarding, send the client a personalized next-steps email; explain that project communication may use the client dashboard, direct chat, a WhatsApp project group where appropriate, or another agreed channel.
-- [ ] Keep client account creation optional in that email; bind its expiring, single-purpose invitation to the onboarded recipient so a forwarded link cannot register a different email address.
-- [ ] Let authenticated clients link or unlink Google in account settings; require another usable sign-in method before unlinking their last identity.
-- [ ] Bind each client invitation to the intended normalized email and project/client record; store only a token hash, set an expiry, enforce one-time redemption, and reject email substitution or replay.
-- [ ] Let an invited client create credentials or continue with an approved Google identity without granting admin access; keep the project relationship attached to the same client account.
+  THE PANEL HAD NO STYLESHEET ON THE CONTACT PAGE. `picker.css` was imported by `onboarding-form.tsx` and by nothing else, so the contact form rendered the closed control correctly and then opened an unstyled, in-flow list of 245 rows -- no border, no ground, no elevation, no row padding, and a search icon rendered at three rows tall because a lucide glyph has no intrinsic size. It pushed the page down, so scrolling it meant scrolling the whole site. Both stylesheets are now imported by the components themselves; a control whose appearance depends on an import somewhere else will eventually be dropped somewhere else.
 
-## 1B. Free tools on the service pages
+  THE BOX INSIDE THE BOX CAME BACK, in the other form. The reset that stops the number input drawing its own border inside the bar's border named `.ob__f`, the onboarding wrapper. On the contact page the ring came from `.ct-f input:focus`'s BOX-SHADOW, which a rule about borders never touched. Rewritten against the control's own ancestry -- `.pv .ph .ph__num:focus` outranks any `.wrapper input:focus` a form can write, including one nobody has written yet.
+
+  AND THE COUNTRY BUTTON'S OWN OUTLINE WENT WITH IT: `:focus-within` already rings the whole bar, so a second orange rectangle inside it was the same fault in a different place. A tint marks which half has focus without drawing another edge.
+
+  THE PANEL NOW FLIPS. A dropdown that only ever drops downward is off screen when the field is near the foot of the window, which no amount of styling fixes. `usePickerOpen` measures the room below against the room above on open and on resize, and only flips when there genuinely is not room AND up is roomier -- a panel that flips for eight pixels is worse than one slightly clipped, because the reader cannot predict where it appears. Measured at 1280x900 with the field 150px off the bottom: panel top 392, bottom 740.
+
+  ROWS READ AS ROWS: flag, name, and the dial code in parentheses beside it, with a tick on the chosen one rather than a dot -- a dot says something is true about the row, a tick says which one is selected. 44px minimum, 48px on a phone. On a phone the panel is a bottom sheet with a grab handle and a scrim, and the scrim is the open control's own pseudo-element so no consumer renders an extra node and none can forget to.
+
+  NOT VERIFIED, AND SAID RATHER THAN CLAIMED: the scrollbar's appearance. `::-webkit-scrollbar` painted nothing in this headless engine -- a thumb forced to solid red did not appear in a screenshot, though the gutter reserved its 10px -- so the list uses `scrollbar-width`/`scrollbar-color`, which is what `work.css` and `preview.css` already use for this site's rails.
+
+  STILL A PLAIN TEXT FIELD: the admin client form's Phone. It never had the picker, so it never had the fault; giving it one means porting `--paper`, `--rule` and `--ink` into the admin scope, which is a deliberate change rather than part of this fix.
+
+  Pinned by `tests/phone-field.spec.ts`, seven cases that walk BOTH forms: the panel is positioned, has a ground and has elevation; the list scrolls itself with `overscroll-behavior: contain` and `data-lenis-prevent`; the number input draws no border, radius, shadow or outline while the bar does; the panel stays inside the window when the field is low; and the sheet is full width at the bottom edge with a scrim and does not widen the page.
+
+  THE NOUN IS A PROP, because the accessible names say what is being shared and seven buttons reading "this post" on a case study would simply be wrong. Nothing visible changes with it.
+
+  IT SITS BELOW THE ARTICLE, IN ITS OWN ROW, on every page that has a contents rail. A sticky element releases at the edge of its grid area, so a share row inside the same row as the rail leaves the rail travelling beside a QR code long after there is any heading left to point at.
+
+  THE CANONICAL ADDRESS IS BUILT ONCE PER PAGE and passed to the structured data, the share links and the code together. The case study was carrying four hand-typed copies of the same template literal, which is three chances for one to point elsewhere after a route moves.
+
+  CODES DECODED, NOT EYEBALLED: jsQR at 1x, 2x and 3x on a case study, a discipline page and a second case study, nine reads, all clean at the default 136px box. Checked at 320, 390 and 1280 with no horizontal overflow, and the row wraps to two lines at 320 rather than pushing the page wide. Pinned by `tests/share.spec.ts`: every link on both work pages must carry the page's own canonical URL, the code must have modules in it, copy must announce itself, and the article must still end the way it did.
+
+  Found on the way: `playwright.config.ts` asked for `channel: "chrome"`, and a container with a Chromium but no Chrome fails to launch on every test at once, which reads like a broken suite rather than a missing binary. `WDC_E2E_CHROME` now points it at a named binary; unset, nothing changes.
+
+  NO JAVASCRIPT AT ALL. Not "a small amount": none. One CSS animation on a server-rendered element, so it costs no bundle, no hydration and no main-thread work beyond compositing. That matters more here than anywhere else on the site, because this page is reached on a phone on Nigerian mobile data immediately after somebody has parted with money. A test counts the scripts the page requests so a client component cannot creep in later.
+
+  IT PRINTS THE TOP LINE FIRST, which the obvious build gets backwards. Translating the slip down out of a clip means its BOTTOM edge enters first: you watch "Thank you" and the torn edge appear and the amount arrives last. Caught by sampling the animation at 39% rather than by watching it. The paper does not move now; it is revealed top-down with `clip-path: inset()` in `steps(24)` over 1.4s, about 58ms a line, which is close to what a real till roll does and is the single thing that makes it read as printing rather than as a card sliding out.
+
+  THE STAGE IS DARK BECAUSE PAPER ONLY LOOKS LIKE PAPER AGAINST SOMETHING THAT IS NOT. The first build was a white slip on a white sheet: the feed, the teeth and the shadow were all correct and none of it was visible. The brand navy does the job the reference does with black. The torn edge is a conic-gradient mask rather than an image, so the drop shadow follows the same shape and there is nothing to download.
+
+  NO LOGO ON THE SLIP, on purpose. `/r/<token>` is the receipt and carries the mark; this is the moment, not the record, and branding it twice would make the animation look like the thing to keep. It uses our own two faces with tabular figures rather than a monospace, which is what makes it look like our document instead of a generic till roll.
+
+  Measured at 320, 360, 390, 430, 768, 1280 and 1920: no horizontal overflow anywhere and the slip always inside its stage. At 320 the receipt number was wrapping across two lines, which is the one thing a reference must never do, so the detail values hold one line and the label beside them gives way instead.
+
+  WHAT WAS ACTUALLY WRONG, measured rather than eyeballed. Fields were 39px tall, which is a mouse target and not a thumb one; the site's floor is 44px and the admin is not exempt. There was no hover state at all. Focus was an `outline`, which sits outside the box and gets clipped by the dialog's own overflow on the fields nearest its edge; it is a box-shadow ring now, which follows the border radius and never clips. And the select's caret was two 45-degree linear-gradients meeting in a corner, which is the old CSS trick for an arrowhead and looks like one: a filled wedge among stroked glyphs. It is a real chevron now, masked from one shared inline SVG so the select and anything else that grows a caret cannot drift apart, and it takes the accent on focus like the border does.
+
+  AND THE ONE THING NATIVE GENUINELY DOES BADLY. A date input renders in the BROWSER's language, not the page's, and nothing on our side changes that: the same due date reads 09/14 on one laptop and 14/09 on the next, and for any day of the month under thirteen there is no telling them apart by looking. On an invoice date that is not a nicety. The picker stays native; underneath it there is now an echo in words, fixed to en-GB so it says the same thing to everybody -- "Monday 14 September 2026". No dependency and no second calendar to maintain.
+
+  Found while doing it: the 44px floor had leaked onto tick boxes, whose rows went 60px tall with the box stranded at the bottom. The checkbox reset had to grow again; it now resets height and min-height as well, and the note there says why it has grown twice.
+
+  THE OBSERVER IS NOW SHARED. There were about to be three copies of the same IntersectionObserver with the same band and the same comment -- legal wrote it, the blog copied it, and this would have copied it again. `components/ui/use-active-heading.ts` is the one copy; all three rails call it. The band is unchanged: `-30% 0px -55% 0px`, a strip across the upper middle, so the heading that lights up is the one being READ rather than the one that has just appeared at the bottom.
+
+  THE RAIL IS FIRST IN THE DOM AND SECOND ON THE PAGE. Below 1001px there is no second column and it stacks, and a contents list under the thing it lists is a list nobody uses; the grid places it right on a wide screen without changing the order a screen reader or a narrow viewport sees. It collapses to a `<details>` on a phone, like the blog's.
+
+  Pinned by `tests/work-toc.spec.ts`, which walks EVERY case study on the site and asserts every rail link resolves to exactly one element. The rail's ids and the section ids are declared in two places and two entries are conditional, so nothing in TypeScript can catch a dead anchor -- it is a valid string either way, and the reader just clicks and the page does not move.
+
+Kept at the top because these came from someone looking at the live site, and
+that is the shortest feedback loop there is.
+
+- [ ] Truehost SMTP takes about 23 seconds just to authenticate, measured from two networks. The contact form now answers in half that by sending the receipt after the response, but the real fix is a transactional provider, which would also give proper SPF and DKIM.
+
+# Done
+
+## Closed earlier, swept out of the open half on 2026-09-17
+
+Completed items that were still sitting among the open ones, kept with
+the section they belonged to.
+
+### 1B. Free tools on the service pages
 
 Small tools that give a visitor something real in under thirty seconds. They
 are the difference between saying we can do the work and showing it, and each
@@ -217,160 +720,18 @@ keyword or backlink data, where no free tier permits a public tool and
 everything claiming otherwise is scraping; and any client-side call to a third
 party, which our own CSP blocks and which we should not loosen it for.
 
-## 2. Authentication and email
-
-- [ ] **Mail is delivered but filed as spam by Gmail.** Diagnosed and written up in `plans/email-deliverability.md`. Authentication is NOT the headline problem: SPF lists the sending IP and aligns, a DKIM key is published on the `default` selector, MX is correct. The problems, in order: (1) the reverse DNS for `94.23.160.111` is `rbx107b.superfasthost.cloud`, a generic PTR on a SHARED IP, so forward-confirmed reverse DNS fails and our reputation is the average of everyone else on that box; (2) DMARC is `p=none` with no `rua`, so there is no policy and no reports; (3) SPF ends `~all`. Order of work: publish a DMARC record with `rua` (costs nothing, breaks nothing), ask Truehost about the PTR and a dedicated IP, read two weeks of reports, then move to `p=quarantine` and `-all`.
-- [ ] Truehost's OUTBOUND filter scores what we send and will discard it with `550 Message discarded as high-probability spam`. Found the hard way: a test enquiry whose body read like a diagnostic ("test", "confirm the mail path end to end", "no reply needed") was rejected, while the identical route with an ordinary customer enquiry was accepted. Verified separately that the message SHAPE is fine -- plain text, our HTML blob, and the HTML with a Reply-To were all accepted when sent directly. Consequence: never test this path with text that reads like a test, and treat a 550 as content scoring rather than a broken form.
-
-- [ ] Verify Google origin/callback configuration for apex, `www`, Vercel, and localhost without exposing credentials.
-
-## 2A. Payments, invoices, and transaction integrity
-
-Reconciled 2026-09-17: this section read as entirely unstarted, and reading
-`lib/paystack.ts`, `app/api/pay/[token]/route.ts`, `app/api/paystack/webhook/route.ts`
-and `app/pay/done/page.tsx` line by line found eighteen of the twenty-two
-lines already true, most of them to a standard this pass only added to in
-one place (the refund/dispute branch, closed below). Checked against the
-actual code and an actual rerun of `tests/payments.spec.ts` (16/16
-passing), not assumed from a prior pass's say-so. The full line-by-line
-evidence is archived in `# Done`; what is left genuinely open:
-
-- [ ] Review Litch Consulting's relevant payment, invoice, webhook, reconciliation, and audit-log patterns; adapt only what fits WDC. NOT VERIFIABLE FROM HERE -- a research step with no artifact of its own to check against; the code that resulted is mature enough that it plausibly happened, but there is nothing to confirm it by.
-- [ ] Review Nomarc's local/private project and client-management flows; adopt only useful day-to-day patterns that fit WDC and keep the admin UX simple. Same as above -- not verifiable, not claimed.
-- [-] Atomic invoice state update: true today (`applyPayment` is one function, one process, one in-memory write). "Retry Cockroach serialization failures safely" cannot be true yet because Money's writes are not on CockroachDB -- this half depends on section 4.9's own migration, not on anything payments-specific.
-- [ ] Publish the exact Paystack webhook and callback URLs after routes are implemented and deployed. The routes exist and their paths are fixed by the file system: webhook `/api/paystack/webhook`, checkout callback `/pay/done`. Publishing them to Paystack's own dashboard needs the live domain and dashboard access neither of which this environment has -- said as the URLs rather than left undone silently: `https://<canonical-domain>/api/paystack/webhook` and `https://<canonical-domain>/pay/done`.
-
-## 3. Performance and release verification
-
-- [-] Raise canonical-home mobile Lighthouse from the supplied 82 toward 90+ without regressing the supplied desktop 98; prioritise the 2.99s hero-text render delay, 3.8s LCP, 6.7s Speed Index, render-blocking CSS, forced reflow, and unused first-party JavaScript shown in the evidence.
-- [ ] Rerun mobile Lighthouse on the canonical domain and target 90+. UNBLOCKED 2026-09-17 and MEASURED, and the number is bad: PageSpeed Insights, mobile, live homepage -- performance **42**, accessibility 100, best practices 73, SEO 100. That is well under the 82 this item started from, so something regressed and it needs attributing before anything else here. One run; PSI varies, so re-measure before concluding. Historical note: it was blocked because the PageSpeed Insights API returns 429 without a key, and local Lighthouse reports TBT about 10x worse than PSI, so it cannot give an honest absolute score. Needs a free PSI API key in the environment (25,000 queries a day). Field numbers measured directly meanwhile, live at 390px and 4x throttle: homepage LCP 1,708ms CLS 0.010, Services 1,944ms CLS 0, a service page 888ms CLS 0.002 (was 0.423 before the stage floor), Our Work 2,264ms CLS 0, Blog 1,492ms CLS 0. STILL BLOCKED as of this pass: PSI returns the same 429 without a key. See the newer local production-build numbers recorded below, and note the homepage CLS there reads 0.0563 rather than 0.010 because the hero is larger now, not because anything regressed.
-
-  INVESTIGATED 2026-09-17, NOT REPRODUCED, NOT CLOSED. No live network
-  access and no PSI key in this environment, so the 42 itself could not
-  be rerun -- what follows is a local `next build && next start` mobile
-  Lighthouse (`--throttling-method=simulate`, 390x844, 3x DPR) against
-  the exact commit this checklist is on. Local score: **66** -- FCP
-  1.9s, LCP 5.0s, TBT 570ms, CLS 0.014, Speed Index 2.6s, TTI 7.0s.
-  Total page weight 987 KiB, no oversized single asset (the two heaviest
-  are Next's own framework chunks at ~223KB and ~73KB; the largest image,
-  the hero photo, is 51KB) and no third-party script shows up as a
-  bottleneck. LCP is the worst figure and the likely place to look next.
-
-  THIS CONTRADICTS THE ESTABLISHED PATTERN, worth saying plainly rather
-  than quietly reconciled: the note directly above this one says local
-  Lighthouse reports WORSE than PSI (about 10x on TBT). Here PSI (42) is
-  WORSE than local (66) -- the opposite direction. That mismatch is
-  itself evidence the 42 may not be reproducible from this repo's code
-  at all: a stale live deploy behind the canonical domain, a slow
-  TTFB/CDN condition PSI's real network path hits and a local
-  `localhost` server never can, or a live-only third-party script are
-  all more consistent with "worse on PSI than local" than a first-party
-  code regression would be. NOT CONCLUDED, because none of those three
-  can be checked without either a PSI key or verifying the live deploy's
-  commit against `main`'s current HEAD -- both outside what this
-  environment can reach. Next step, not done here: get a PSI key into
-  the environment, or confirm what commit is actually live before
-  spending more time chasing a number that may describe a different
-  build than the one in front of it.
-
-Reconciled 2026-09-17 (second pass): the four large net-new builds below
-have no blocker against them, only time. None is a new checklist line --
-each already has an open item further down this section -- this note exists
-so the four are named together, in one place, as what is actually left of
-section 4's biggest, undone shapes, rather than scattered across four
-subsections where the size of what remains is easy to lose.
-
-- **The client portal.** Built this pass, at `/portal`: Overview,
-  Projects, Billing, Support, Settings -- five of the six possible
-  sections, Forms & files left out because there is no forms builder yet
-  to populate it. See 4.7's own lines for what is covered and what
-  genuinely is not (version history beyond the latest, file upload,
-  replying to a specific update). 5.0/5.1's note on no client tour
-  registry existing yet no longer applies for the reason it gave -- the
-  pages exist now -- but a client tour is still its own piece of work,
-  not started here.
-- **A real forms builder.** Today's onboarding form is fixed in code: no
-  editor, no versioning, no submission inbox. See 4.6's nine open lines.
-- **Settings and Money's UI, rebuilt to full Litch shell parity.** Money's
-  underlying *logic* is unusually complete already -- invoices, payments,
-  credit, estimates, reconciliation are all real and tested; it is the
-  reusable shell and primitives (4.1) plus the screen itself (4.5's first
-  line) that are missing. Settings has no UI at all yet beyond the audit
-  log (4.8's first four lines).
-- **A blog/content admin editor.** Posts live in code (`lib/blog.ts`), not
-  a CMS. See 4.8's seven lines moved over from the old section 1C.
-
-### 4.0 Reference, scope, and release guardrails
-
-- [ ] Capture desktop, tablet, and mobile reference screenshots for the Litch shell and every equivalent WDC admin route before visual implementation.
-### 4.1 Litch-parity admin shell and UI foundation
-
-Reconciled 2026-09-17: read against `components/admin/{admin.css,bits.tsx,
-form.tsx,admin-state.tsx,dialog.tsx,dashboard.css}` and every admin route,
-rather than assumed unstarted because no line here had been checked yet.
+##### 4.1 Litch-parity admin shell and UI foundation
 
 - [x] Shell tokens and states. `.ad` in `admin.css` declares its own spacing/radius/shadow/colour tokens (`--ad-r`, `--ad-line`, `--ad-panel`, etc.), Space Grotesk on headings and Outfit on everything else per this file's own product-language rule, `:focus-visible` rings, `is-on`/hover states on every `.ad__link`, and a collapsible/hover-expand sidebar plus a mobile drawer for the responsive break. NOT VERIFIED: pixel comparison against Litch's own screenshots -- no reference capture exists in this environment to diff against, so this is "built to the same described system", not "measured against Litch's rendered pixels".
-- [-] Reusable primitives -- audited one at a time rather than assumed as a set:
-  page headers (`adDash__head`, one shape, every page), stat cards (`Tile`),
-  panels (`Panel`), badges (`StagePill`/`InvoicePill`/`HealthPill`/`ApprovalPill`,
-  all thin wrappers over one `.ad__pill`), data tables (`.ad__t`, ONE class,
-  used on 20 tables across nine routes -- checked by grep, not assumed),
-  empty/skeleton/error states (`Empty`, `.ad__loading*`, `AdminState`'s five
-  kinds), confirmation modals (`Dialog` on the platform `<dialog>`, plus
-  `Form`'s `confirm` prop for the simple cases), export (a real CSV link on
-  the clients list, `/admin/clients/export`). Filters and pagination exist
-  as a proven pattern (`.ad__pagination`, search + status + service filters)
-  but ONLY on the clients list -- projects, money and forms have neither,
-  which is fine at today's seed-data volume and a real gap once record
-  counts grow (see 4.10's load-testing line). Tabs and toasts genuinely do
-  not exist: no admin screen currently has tabbed content to justify one,
-  and mutation feedback is inline next to the control that caused it
-  (`Form`'s own `.ad__msg`) rather than a floating snackbar -- a deliberate
-  choice, not an oversight, since a receipt next to the button it answers
-  cannot be missed the way a toast that has already faded can be, but
-  worth saying plainly since "toasts" was asked for by name and this is
-  not one. Charts: the dashboard's cashflow chart is CSS bars, not a
-  charting library, per this file's own "do not add a package for a small
-  UI effect" rule -- a reusable `<Chart>` primitive was not built because
-  nothing else on the admin needs one yet.
+
 - [x] First-use/cleared/no-results/forbidden/error states are distinct types (`AdminStateKind`), not one generic blank box, each with its own icon and the actions its column reconciles: `Empty` on a list with nothing in it, `AdminState kind="no-results"` on a `hasFilters` search with nothing matching (with a "clear filters" action), `kind="error"` with retry on `app/admin/error.tsx`.
+
 - [x] Tables: tabular numerals via `.ad__t`'s own font-feature settings (checked in `admin.css`), a bounded `overflow-x: auto` wrapper rather than pushing the page wide (`overflow-x: clip` on `.ad` and `.ad__main` besides), and no page-level horizontal overflow reported anywhere this pass touched. NOT DONE: a distinct mobile row layout (a card stack instead of a scrolling table) -- every table today is the same scrolling `.ad__t` at every width, which is usable but not the "useful mobile row alternative" this line asks for.
+
 - [x] Pending/receipt/retry/duplicate-submit protection. `Submit` in `form.tsx` disables itself and shows a spinner via `useFormStatus` while pending -- the literal double-charge guard the component's own comment names -- and `Form`'s `Result` renders the success/failure message inline once the action returns; a failed submit keeps what was typed (`values`/`gen` in the form kit) so retrying does not mean retyping.
-- [ ] Verify the shell and primitives visually against Litch at all target widths before building deeper routes. NOT DONE and not really doable from here now -- deeper routes are already built (4.2 through 4.9 all exist), so this is retroactive rather than a gate; a real side-by-side against Litch's own screenshots is 4.10's own line, not repeated here.
 
-### 4.2 Daily admin dashboard
+##### 4.2 Daily admin dashboard
 
-Reconciled 2026-09-17: this section was marked entirely unstarted, and
-`components/admin/dashboard-view.tsx` already does most of it -- the same
-drift the older "Moved out of Open, 2026-09-14 (second pass)" note further
-down this file already caught once for this exact section ("Marked done by
-another agent but left in the open half"). Read line by line against the
-running code rather than assumed from the file's own claims.
-
-- [-] Overdue invoices, stalled onboarding, and project-derived reasons
-  (blocked, waiting on a client, in revision, a slipped task) all feed one
-  combined `attention` queue, sorted worst-first, every row linking straight
-  to its resolution screen (`AdminDashboardView`). NOT built: failed
-  payments/uploads and unread client actions -- both need a system that
-  does not exist yet (Paystack is not wired; there is no client portal), so
-  neither can honestly appear.
-- [-] Outstanding, overdue, and a collection rate are on the KPI tiles;
-  "Cashflow, last six months" charts collected income against recorded
-  spend, which is the lightweight income-versus-expenditure view. NOT on
-  this route: accounts-receivable aging, which exists (30-day buckets,
-  drillable) but only on `/admin/money/reconciliation` -- it answers the
-  question asked here, just from a different page.
-- [-] Recent payments and upcoming deadlines are both rail panels, both now
-  with a real empty state rather than a blank box (see the 2026-09-17
-  closed entry). NOT built: a recent clients/leads panel -- there is
-  nothing on `/admin` today naming who signed up or enquired most recently.
-- [-] Quick actions has a new client, a new invoice (`InvoiceBuilder`), and
-  a new expense. NOT built: a "new project" action in this panel
-  specifically (it exists, but only as a header button, not beside the
-  other three here), a standalone "record a payment" not tied to opening
-  one invoice first, an onboarding-link action, and any role filtering --
-  there is only one role (`owner`) wired today, so "show only what the
-  role can do" has nothing to differ against yet.
 - [x] A first-run dashboard with nothing in every store renders honestly:
   the KPI tiles show ₦0 rather than breaking, the pipeline strip shows
   every stage at zero, and every panel with a list now falls back to a
@@ -380,20 +741,13 @@ running code rather than assumed from the file's own claims.
   presenting them as real, which is the honest form this takes before the
   admin is on a real database.
 
-### 4.3 Clients and client workspace
+##### 4.3 Clients and client workspace
 
-- [-] Create, edit, archive and restore were already live (`createClient`/`updateClient`/`archiveClient` in `lib/admin/actions.ts`, restore is the same action with a `restore` flag). Notes are a field on the form; communication preferences are the `notify` map (`NotifyForm`, opted in by default to the two kinds that are part of doing the work). NOT DONE: **merge/duplicate review** -- this pass added prevention (below) but nothing to resolve the duplicates that already exist in a real set of records, which is a different tool (find candidates, choose which wins, re-point their projects/invoices/payments). **Tags** and **multiple contacts** -- no field for either; `name` is one contact and `company` is the business, which covers "keep personal and company identity distinct" but not a client with two people the studio deals with. **Client-level access status** -- see the note on 388 below; showing it needs the same database read that item is blocked on.
 - [x] Checked against the actual client workspace rather than assumed: a project (`AddProject`), an invoice (`InvoiceBuilder`), an onboarding request (the Onboarding panel lists their forms, linked to `/admin/forms/<id>`), a message/WhatsApp handoff (`CommsLog`, a manually-logged communication -- the site cannot read WhatsApp, so a row means somebody wrote one down, and its own empty state says so), and a note (the edit form's Notes field) are all quick actions from `/admin/clients/<id>` today. Payment is one click further, from the invoice it is against, which is where `RecordPayment` already lives -- not duplicated onto the client page since a payment has to name an invoice regardless. NOT DONE: a **portal invitation** action (no invitation mechanism exists at all, see 389) and **file upload** (R2 upload from the admin is not wired anywhere, stated plainly on the project workspace's own Deliverables panel -- a file is a link, not an upload, site-wide).
+
 - [x] Personal/company identity was already distinct (`name` vs `company`). Added this pass: `findDuplicateClient()` in `lib/admin/store.ts` normalizes an email (case) and a phone (digits only, with the `234`/leading-`0` trunk prefix stripped so "+234 802 123 4567" and "0802-123-4567" compare equal) and checks both a new and an edited client against every existing one, archived included -- archived is checked ON PURPOSE, because the commonest duplicate is re-adding somebody who dropped off the active list instead of restoring them. `createClient`/`updateClient` in `lib/admin/actions.ts` reject a match with the matching client named in the message, before anything is written; nothing is silently merged or blocked without saying why. "Preserve archived records referenced by money or projects" was already true (`archiveClient`'s own comment: the row stays, only the lists exclude it). Pinned by `tests/client-duplicates.spec.ts`: same email in different case, same phone in a different format, and an unrelated new client going through untouched.
-- [ ] NOT ATTEMPTED, and the reason is specific rather than "ran out of time": every part of this line reads the `user`/`account`/`session` tables Better Auth owns, and **this sandboxed environment has no `DATABASE_URL`/`COCKROACHDB_URL` configured at all** -- `lib/db/pool.ts` throws the moment anything tries to connect. Every admin/portal session in this environment has gone through the `isAdminCapture` header bypass in `lib/admin/session.ts`/`lib/portal/session.ts`, which never touches the database, so the real Better Auth path (`auth.api.getSession`, and by extension any raw query against `"user"`/`"account"`) has not been exercised even once this session. Writing a query against column names this environment cannot check (CockroachDB is case-sensitive on the quoted identifiers the migration uses, e.g. `"userId"` vs `userid`) and shipping it unverified is a worse outcome than leaving the line open.
-- [ ] NOT ATTEMPTED, on purpose and for a size-and-risk reason rather than the database one above. `emailAndPassword.disableSignUp` and the Google provider's own `disableSignUp` in `lib/auth.ts` mean there genuinely is no self-service door today -- and `disableSignUp` is enforced INSIDE Better Auth's sign-up route handler itself (`node_modules/better-auth/dist/api/routes/sign-up.mjs`), so calling `auth.api.signUpEmail()` server-side hits the identical check and is refused; an invite-accept flow cannot go through it. The clean way in is Better Auth's own `admin` plugin (`createUser` with `role: "client"`, least privilege by construction), reusing the password-reset email/token machinery already built and tested for the actual "set your password" step -- but that plugin's schema adds `user.banned`/`banReason`/`banExpires` and `session.impersonatedBy` columns this database does not have, which means a new migration against live auth infrastructure. That is a deliberate decision for the person running this migration to make, not something to bundle into an unattended sweep across ten unrelated sections -- named here with the concrete shape of the fix rather than left as a bare unchecked box.
-- [ ] NOT ATTEMPTED, same reasoning as the invitation line above: unlinking is a core Better Auth capability and would not need a migration, but building the "require another usable sign-in method before unlinking the final identity" guard correctly means reading the account rows first, in a portal settings action, on a Better Auth setup this environment cannot connect to or test against. Paired with the invitation line rather than done alone, since a client cannot reach a portal settings page to unlink anything without an account in the first place.
 
-### 4.4 Projects and day-to-day delivery
-
-- [-] Tasks are in, with assignee, due date, priority and ONE dependency, and ticking one writes a line on the project's history. Deliberately one dependency and not a list: a task waiting on two things waits on whichever finishes last, and modelling that properly means a graph, a cycle check and a topological sort for a screen that shows six rows. NOT DONE and not started: milestones, nested checklists, per-task comments and recurring work. The checklist's own instruction is not to turn the default screen into a project-management suite, so these want a deliberate decision rather than being added because the word appears in the line.
-
-### 4.5 Money, invoices, payments, and expenditure
+##### 4.5 Money, invoices, payments, and expenditure
 
 - [x] Closed the five payment gaps the Fluent Forms audit found in section 6.5. **Record a row for every checkout attempt** was already true before this pass -- `app/api/pay/[token]/route.ts` calls `recordProviderEvent` for both a successful and a failed checkout start, so there was nothing to add. **Check that Paystack's verified metadata matches the invoice before applying** -- `matchInvoice()` in `lib/admin/store.ts` used to trust a bare `invoiceId` from checkout metadata (unsigned, and editable by anyone shaping a request at the webhook or `/pay/done`); it now only trusts `invoiceId` when a `reference` came with it AND that reference names the same invoice's number, falling through to reference-only matching otherwise. **Carry live/test `mode` on every payment and provider event** -- both `Payment` and `ProviderEvent` in `lib/admin/types.ts` gained an optional `mode?: "test" | "live"` field; `applyPayment()` writes it onto the row it constructs; all three places money gets banked now pass it -- the webhook and `/pay/done` pass `paystackMode()` (the account whose signature/verification just answered), the manual admin `recordPayment` action passes it only when the method is "Paystack" (cash and transfer have no mode), and `matchEventToInvoice` (matching an unmatched event to an invoice by hand from the reconciliation screen) carries the ORIGINAL event's own mode forward rather than reading the current one, since a test event matched days later on a since-switched-to-live deployment is still test money. **Handle refund and dispute webhooks** -- `app/api/paystack/webhook/route.ts` now names `refund.processed/pending/failed` and `charge.dispute.create/remind/resolve` explicitly, matches the original charge's invoice from the event's `transaction_reference`, and records an Unmatched provider-event row for a human to act on from the reconciliation screen -- never auto-applied, because reversing a payment needs a judgement call (`refundPayment`'s own `toCredit` decision) a webhook cannot make. **Add a "view on Paystack" link** -- the invoice detail page's payment table (`app/admin/money/[id]/page.tsx`) now links every Paystack-method payment's reference to Paystack's own dashboard transaction search, opened in a new tab. Verified: `npx tsc --noEmit` clean, `next build` clean, `tests/payments.spec.ts` all 16 passing unchanged (no test covers the refund/dispute or mode paths specifically -- the suite's own documented limitation is that a happy-path Paystack account is needed, which this environment does not have).
   ADDRESSED BY A RANDOM TOKEN, NEVER BY THE NUMBER. Invoice numbers are sequential by design -- that is what makes them auditable -- so a page at `/i/INV-2026-004` would hand anyone holding one invoice every other invoice the studio has raised, by subtracting one. The token is 128 bits from `crypto.getRandomValues`, it is the entire authorisation, and a wrong one gets a plain 404 rather than a message confirming the format was right. A draft has no public page at all. Pinned by `tests/money-documents.spec.ts`: the number 404s, a near-miss token 404s, a draft's token 404s.
@@ -401,297 +755,52 @@ running code rather than assumed from the file's own claims.
   THE CODE WAS DECODED, NOT LOOKED AT, and the first attempt failed. These URLs carry a full absolute address plus a token, and the mark in the middle forces error-correction level H, so they need far more modules than a blog slug: at the 136px the blog rail uses, jsQR found NO code at all at 1x, 2x and 3x. Two fixes, both measured. The token moved from 32 hex characters to 22 base64url ones -- the same 128 bits, ten fewer characters of data. And `.qr__code`'s hard 136px cap became a variable, with the documents asking for 160px. All 36 decodes then passed. `content-visibility: auto` was also turned off for still codes: it exists to stop a looping animation below the fold, a still code has no loop, and it was leaving the code unrendered in a screenshot or print taken before it scrolled into view.
 
 - [x] Closed, and most of this line was already standing before this pass -- `app/admin/money/page.tsx` (435 lines going in) already had an overview (five tiles plus a collection-rate tile and a pipeline tile), an aging panel, a six-month cashflow bar chart drawn in CSS, estimates, invoices, payments, an expenses table with a by-category breakdown, and receipts (public documents at `/r/<token>`, reached from every payment row) -- all on the one screen, which is the "concise primary navigation" half of the line. What was missing, named specifically rather than guessed at: exports and filters existed on the Clients list (from the 4.1 audit) and nowhere else. This pass closed that gap the same way, not a new way: the Invoices panel now has the identical shape Clients already had -- a search-and-status filter bar, sortable column headers (`aria-sort`, same convention as the rest of `.ad__t`), ten-row pagination, and an "Export CSV" link at `/admin/money/export` that carries the panel's own filters into the download, gated to the owner role exactly like `/admin/clients/export`. The duplicated `csvCell`/BOM/header logic between the two export routes was pulled into `lib/admin/csv.ts` rather than copied a second time. NOT DONE, and said rather than implied: Payments and Expenses did not get the same filter bar -- this pass scoped to Invoices, the list Litch's own screen treats as primary, and doing the same to Payments/Expenses is the same shape of work again rather than a different gap. Pinned by `tests/money-invoice-filters.spec.ts`, mirroring `tests/admin-clients.spec.ts`: a search narrows the list and the export together, a no-match search shows the empty state with a way back, clearing restores all six seeded invoices, and the sort link carries the right query param. Verified: `npx tsc --noEmit` clean, `next build` clean, `npx eslint` clean on every changed file, and both the new test file and the untouched `tests/admin-clients.spec.ts` pass (confirming the `csv.ts` extraction did not change the clients export's behaviour).
-- [-] Estimates are built, with their own number series, their own public document and their own life.
 
-  AN ESTIMATE IS NOT A DRAFT INVOICE, and building it as one would have been the easy mistake. A draft is a document the studio has not finished writing. An estimate is one it HAS finished and sent, waiting on somebody else -- so it has EST-YYYY-NNN of its own, an expiry rather than a due date, and a state only the client can move. Filed as drafts, the one thing nobody could answer is "what have we quoted and not heard back about", which is the question a pipeline is made of. A quote nobody takes must also not burn an invoice number.
-
-  ACCEPTING RAISES A NEW INVOICE rather than converting the quote. The estimate keeps its number and its lines exactly as quoted; the invoice gets its own number, token and due date. When the scope changes next month there is still a document saying what the price was when it was agreed. Recording the answer requires the CLIENT'S name, not the studio's: "accepted by Studio" is a row nobody can defend, and an acceptance is what a disagreement about scope gets settled against.
-
-  NO ACCEPT BUTTON ON THE PUBLIC PAGE, and the page says why. A click on a page addressed by a token is not a signature, and treating it as one would let anybody the link was forwarded to commit the client to a price. There is no pay button either: nobody should be able to pay a quote.
-
-  DISCOUNT IS A RATE, ROUNDED ONCE ON THE SUM. Kept as a percentage so it survives a line being edited, and applied to the subtotal rather than per line, because a per-line discount summed drifts from one taken on the sum by a kobo or two -- and both figures sit on the same page. Carried onto the invoice as a negative LINE rather than an invoice-level rate, because an invoice's total has to be the sum of its lines and every other screen relies on that.
-
-  NOTES AND TERMS ARE ON THE DOCUMENT, not in the covering email. The email is the thing nobody can find in December.
-
-  NOTHING DELETES AN ESTIMATE. Declined and expired ones are kept, because a quote nobody took is the most useful row in a pipeline six months later and removing it is how a studio forgets what its prices have been doing. "Quote it again" copies the lines and terms to a fresh draft at today's date, which is what stops a price changing by accident during a re-type.
-
-  EXPIRED IS DERIVED AND NEVER STORED, like an invoice's overdue -- a state time creates while nobody is looking. An ANSWERED estimate does not expire: accepting on the last day and invoicing a week later is normal, and a document that flipped to Expired after the client had said yes would be lying about something the studio has an agreement on.
-
-  Pinned by `tests/estimates.spec.ts`, thirteen cases.
-
-  ALSO DONE on invoices, from the same line: immutable numbering was already there, and void now is (see the entry above). NOT DONE: currency is naira only and the code says so rather than pretending to a currency field; PDF is still "print the public page" rather than a generated file; and an invoice cannot yet be duplicated, only an estimate.
-
-  A VOID, A REVERSAL AND A REFUND ARE THREE DIFFERENT EVENTS. A void says the invoice should never have existed. A reversal says the money never really arrived: the transfer bounced, or somebody typed a row that should not be there. A refund says it arrived, we had it, and it went back. A client reconciling against their own bank statement sees TWO movements for a refund and none for the other two, so a system that collapses any pair of them forces somebody to record the wrong thing.
-
-  A STRUCK INVOICE KEEPS ITS NUMBER. Unbroken numbering is most of what makes a set of books auditable, so there is no delete for anything issued -- only a strike. The row stays, `INV-2026-007` still follows `INV-2026-006`, the client's copy still opens and says plainly that nothing is owed with the reason on it, and every receivables figure skips it. A 404 on a document somebody is holding reads as the studio having made it disappear.
-
-  AND IT CANNOT BE STRUCK IF MONEY HAS LANDED. That is the rule, not a limitation: the money is real, and the honest correction names where it went. Voiding it would leave a payment belonging to nothing. The menu does not offer the button, and the action refuses it if the request is made anyway.
-
-  REFUNDS COME IN PARTS, because half a deposit returned when a project is cut short is the ordinary case. They are a list on the payment, never an edit to it -- `amount` is what arrived and the client is holding a receipt with that number on it. `paymentNet` is what every total reads instead, taking a reversal off in full and a refund off in part, and the receipt itemises what went back and where so a part refund can be checked rather than trusted.
-
-  WHERE A REFUND GOES IS A REAL DISTINCTION. Back to their bank means the money has left the studio. Held on their balance means it has not, and the client now has credit -- which is what balance carry-forward actually is. Applying that credit creates an ORDINARY payment on the next invoice, with a receipt number in the same sequence and its own public page, marked as having come from credit. No parallel rules for money off a balance, and no way to adjust a balance by hand, because a balance that can be typed is one nobody can reconcile. A credit larger than the invoice is split: what fits is applied and the rest stays as its own row.
-
-  OVERPAYMENTS ALREADY FLAGGED THEMSELVES AND NOW HAVE THE TWO ANSWERS: move the excess to the client's balance, or refund it. The excess is real money and silently swallowing it is the one outcome that is certainly wrong.
-
-  DERIVED, NOT STORED, ALL OF IT. `invoiceStatus` returns Void before anything else; `invoiceTotals` returns nothing due on a struck invoice, which is what stops one table remembering and another forgetting; `collected` sums `paymentNet`; the client's balance is the sum of unapplied credits. Reconciled against the seeded books after the change: outstanding ₦3,003,150.00 on the tiles and in the aging footer, the struck ₦548,250.00 in neither, collected ₦2.1m net of the refund, and the collection rate 41% of what is still billed.
-
-  Pinned by `tests/money-corrections.spec.ts`, fourteen cases across the documents and the arithmetic.
-- [ ] Keep payment and invoice event histories append-only; correct mistakes through attributed reversals/voids and retain original evidence.
-- [-] Receipts are generated for every successful payment whatever the method, numbered `RCT-YYYY-NNN` in order and never reused, and each links to its invoice, client and project. The number is assigned when the payment is recorded rather than when the receipt is opened, so reprinting cannot change it, and it is derived from the highest number already taken rather than from a count -- reversing a payment removes a row, and a count would then reissue a number already printed and posted. Each receipt has its own public page and its own QR.
-
-  PRINTING WAS CHECKED AGAINST REAL PDFs, NOT A PREVIEW, and the first pass was wrong in three ways nothing on screen could have shown. The site's skip link printed as a navy button at the top of sheet one. A document printed from a dark session came out with a black border on every sheet, because `color-scheme: dark` paints the page canvas and a white background on the element does not undo it. And a two-line invoice cost two sheets: `min-height: 100dvh` is a full page of height on paper, and the colophon wrapped into a 218px band -- a fifth of an A4 page -- because the small print holds 30rem and the code could not fit beside it.
-
-  MULTI-PAGE IS THE CASE THAT MATTERS, so there is a seeded 24-line retainer invoice (`INV-2026-005`) that exists only to find pagination bugs. Measured on it: the column headings reprint on every sheet, a running head carries the invoice number and the client onto sheet two -- otherwise it is a column of money with nothing saying whose it is -- no line item is cut in half by a fold, the totals stay with the items they total, and the stamp and the code appear once, on the last sheet. The stamp had to leave absolute positioning to do that: in paged media an absolutely positioned box lands on whichever page its containing block starts on, so it printed over the line items on page one.
-
-  ROOM WAS MADE RATHER THAN TAKEN. The print rhythm is tighter than the screen's -- paper does not need thumb-sized gaps between rows -- which brought the two-line invoice from 1185px to 989px against a 1032px sheet. The code is now sized in millimetres because that is what a camera sees on paper: 34mm, with the quiet zone pulled in so the modules get 30mm of it, about 0.57mm each. Decoded out of the generated PDFs at 120, 150 and 200dpi, all three documents, every one read. Pinned by `tests/money-print.spec.ts`.
-
-  NOT DONE: server-side PDF generation and resend history. "Save as PDF" from a browser now produces a correct document, but that is not the same as a generated file and is not claimed as one.
-- [-] Eight of the nine, and the ninth is named rather than faked. Expenses had carried four fields: date, description, category, amount. They now also carry who was paid, how it left, the project it belongs against, whether it can be billed back, a note, and the admin who entered it.
-
-  WHO WAS PAID IS ITS OWN FIELD. "Adobe" answers "who do we pay for this" and "Creative Cloud, the team plan" answers "what is it". They were one field, which is why the expense list could not be grouped by anybody.
-
-  THE CLIENT IS DERIVED FROM THE PROJECT AND IS NEVER ASKED FOR. Two fields that have to agree will eventually disagree -- a project moved to a different client, or a form that let somebody pick both -- so there is one source. An expense with no project is overhead, which is a real answer and is shown as one rather than as a gap.
-
-  WHICH BUYS THE THING IT WAS FOR: every project now has a "what it has made" panel reading invoiced, collected, spent on it and net. COLLECTED rather than invoiced, because an invoice nobody has paid is not income, and a project that looks profitable on billings and is not on receipts is exactly the one worth knowing about. Every figure is derived; nothing is stored, so nothing can go stale.
-
-  REBILLABLE IS SEPARATE FROM HAVING A PROJECT, because plenty of project costs are ours to absorb.
-
-  NOT DONE: the receipt is a LINK, not an upload. R2 upload from the admin is still not wired, and a file field that quietly does nothing is worse than one that asks for the address where the receipt already lives. The helper text says so. Links are validated as http or https on the server, because a URL field that accepts whatever is typed eventually holds a `javascript:` and the page that renders it as an href is where that becomes an attack.
-
-  Found on the way: a checkbox inside `.ad__f` had been inheriting the text field rule -- `width: 100%`, a 9px radius, a border and a text field's padding. It never showed, because every checkbox in the admin sat inside a pill that shrink-wraps. The first box given a full-width row stretched its input to 654px and pushed its own label off the edge of the dialog. Fixed at the rule rather than at the one form.
-- [-] Cashflow, income, expenditure, outstanding, overdue and net were already on Money. Added: a collection rate, and accounts-receivable aging in the conventional 30-day buckets so the numbers mean to an accountant what they mean here. One outstanding figure treats an invoice sent last Tuesday and one sent in March as the same thing, and they are not: the first is a cashflow line, the second is a conversation somebody has to have.
-
-  THEY DRILL AND THEY RECONCILE, and both were checked rather than assumed. Every bucket lists the invoices behind it as links, so no total has to be taken on trust, and the panel's footer is summed from the same buckets the rows draw. Measured against the seeded books: the aging footer reads ₦646,500.00 and the Outstanding tile reads ₦647k, which is the same figure through `nairaShort`; collection rate reads 76% against ₦2.0m collected of ₦2.65m billed. The rate is capped at 100% and returns nothing rather than 0% when nothing has been invoiced — a red 0% for a studio that has simply not billed yet is a different thing and not a problem.
-
-  NOT DONE: a cashflow FORECAST, and per-bucket export. The six-month chart is history, not projection, and is not labelled as one.
-
-  WHAT IS IN IT IS EVERYTHING THAT DID NOT LAND CLEANLY. A charge whose reference matched no invoice. A transfer where somebody typed their company name into the narration instead of the invoice number. A webhook that arrived twice. One whose signature did not verify. A checkout that would not open. None of these appear anywhere else, because on every other screen they are an absence: an invoice that quietly stayed unpaid.
-
-  THE BANNER IS ABOVE THE FIGURES, not beside them, because the figures are wrong while it is there -- an unmatched charge is money in the bank that the Collected tile does not know about.
-
-  TWO ACTIONS, KEPT APART. "Match it to an invoice" banks real money through the same `applyPayment` everything else uses, with the same idempotency, the same receipt number and the same audit line, then closes the event with a note naming who decided. "Write it off" records what was done and moves no money. One button with a dropdown would make the consequential one something somebody reaches by accident. Both require a note, for the same reason a reversal requires a reason: "resolved" on its own is a tick somebody put there.
-
-  MATCHING BY HAND IS THE LAST RESORT, NOT THE FIRST. `matchInvoice` tries the charge's metadata, then the invoice number inside the reference -- our own references carry it as a prefix, and "INV-2026-004" typed into a bank narration is the commonest reference a Nigerian transfer carries. It returns null rather than guessing, because a wrong match is a payment on somebody else's invoice.
-
-  HOSTED CHECKOUT, NOT THE INLINE POPUP. Paystack offers both. The popup needs their script running on the page that shows a client what they owe; the redirect hands the card details to Paystack on Paystack's own origin, keeps our document free of third-party JavaScript, and works with JavaScript off. The cost is losing the client's context for the length of the payment, which for an invoice paid once is the cheaper side of the trade.
-
-  THE BUTTON IS A REAL FORM POSTING TO A REAL ROUTE. Not a link -- a link that spends money can be followed by a prefetcher or a mail scanner -- and not a fetch. The route reads NOTHING from the request body: the amount, the invoice and the payer's email all come off the record the public token resolves to, because a form field is a number the payer can edit. A wrong token and a draft both get the same plain 404 the document itself gets.
-
-  TWO PATHS IN, ONE FUNCTION AT THE END. The webhook is the reliable path and the browser's return is the fast one, and they race each other within the same second on almost every payment. Both verify with Paystack before anything is written, and both end at `applyPayment`, which is idempotent on the reference -- so whichever arrives second banks nothing and the client is not shown as having paid twice. The return page is the one people get wrong: it takes the reference out of the query string and nothing else, then asks Paystack what happened. A page that read `?status=success` would thank anybody who typed it.
-
-  THE WEBHOOK FAILS CLOSED, in order. No signature header or one that does not verify is a 401 with nothing written and a Rejected row so the attempt is visible. An unparseable body is a 400. An event we do not act on is a 200 -- because a non-200 makes Paystack retry something that will never succeed -- with an Ignored row. The signature is an HMAC-SHA512 keyed on ONE account's secret, compared in constant time, which is also where MODE SAFETY comes from for free: a test-mode event cannot validate against a live key or the reverse, so there is no separate mode check to forget.
-
-  PROVIDER EVENTS ARE APPEND-ONLY AND SEPARATE FROM THE AUDIT LOG. The audit log answers "who changed this"; this answers "what did Paystack say and what did we do about it", and most of its entries are things that happened TO us. Every event is written whatever its outcome, including the duplicates and the ones that were ignored, because a log of successful charges tells nobody anything they could not read off the invoice. The single mutation allowed is a resolution note, written once onto an event that has none.
-
-  Pinned by `tests/payments.spec.ts`, which tests the closed door rather than the happy path: an unsigned webhook, a wrongly signed one, an empty signature header, a forged charge that must not appear on the invoice, a wrong token, a draft, a GET on the POST-only route, and a made-up reference that must never be treated as paid.
-
-  NOT DONE: the keys are not set on this deployment, so no real card has been through it.
-- [ ] Ensure financial writes are transactional, integer-minor-unit based, server-validated, role-authorized, idempotent, and audited.
-
-### 4.6 Forms, builder, onboarding, and submissions
-
-Read `plans/fluent-forms-audit.md` before starting anything in this section. It is the specification: every Fluent Forms area with KEEP / ADAPT / DROP verdicts and evidence, the data model, the admin screen map inside the six-page rule, the data-table standard (section 9), the mail transport (section 10), payments (section 6.5), and a phased plan of about 17 to 21 weeks.
-
-- [ ] Phase 0 of the form-builder plan: every outbound email writes a log row. Only the three money emails go through `deliver()` in `lib/money-mail.ts`; contact, newsletter, onboarding, tool reports and password reset call `sendMail` directly and leave no trace when they fail. Route them all through the outbox, with no email bodies stored (re-render from template and record ids).
-- [ ] Build one shared admin data table to the standard in section 9 of the audit: state in the URL, keyset (cursor) pagination with a stable sort key plus id, 25/50/100 per page, capped counts, filter chips, saved views, select-all-matching for bulk actions, streamed CSV export that respects filters, a card layout at 320px, geometry-matched skeletons, `aria-sort` headers. Clients already follows most of this; Money, Forms and the logs have no pagination at all and the logs are hard-capped at 20 to 100 rows.
-- [ ] Build the notification centre from the audit: event, rule, template, log. A form notification is one kind of rule. Move the existing transactional templates into it with the code versions as fallback; eight templates in `lib/email-templates.ts` are currently never called.
-- [ ] Store every contact enquiry. `/api/contact` sends an email and keeps nothing, so an enquiry that fails to send is simply gone.
-- [ ] Rebuild Forms to Litch parity with draft/published/archived states, submission counts, last activity, duplication, preview, share link, and clear primary actions.
-- [ ] Build a responsive form editor with sections/steps, reusable fields, labels/helpers/placeholders, option editing, required state, ordering, conditional visibility, and live preview without a heavy drag-and-drop dependency.
-- [ ] Support text, textarea, email, phone, number, date, URL, radio, checkbox, multi-select, short/long dropdown, searchable long list, address/country, consent, and file upload controls.
-- [ ] Use normal dropdowns for ten or fewer options and searchable, bounded, touch-scrollable lists for longer choices; popovers must render above every global control.
-- [ ] Add versioned publishing so existing submissions retain the schema they answered; prevent destructive edits without an explicit new version.
-- [ ] Build a submission inbox with status, service, client/project link, assignee, tags, search/filter/export, detail view, internal notes, and activity history.
-- [ ] Convert a valid submission into or attach it to a client and project without duplicating people or losing the original answers/files.
-- [ ] Finish conditional question sets, domain suggestions/checks, client fatigue validation, and completion/resume testing for every onboarding service.
-
-### 4.7 Communications and client portal handoff
-
-- [ ] Send a personalized next-steps/thank-you email after successful onboarding, including the agreed next steps and the optional account invitation.
-- [ ] State that project communication may use the client dashboard, direct chat, a WhatsApp project group where appropriate, or another agreed channel.
-- [-] Three of the eight are built and sending: the invoice with its pay link, the payment receipt, and the invoice reminder. They share one shell, one delivery path and one set of rules, and the buttons that send them are on the invoice screen rather than buried in a menu. The orange call-to-action in them carries BLACK type, not white: white on #ff6500 measures 2.95:1 and fails even the 3:1 allowed for large text, and an email client is no more forgiving than a browser. The password-reset mail had that bug and it is fixed here too.
-
-  NOT DONE: onboarding receipt, account invitation, project update, approval request and completion messages. And they are TEMPLATES IN CODE, not editable by the studio -- the checklist asks for editable, and a template editor is a real piece of work rather than a field. Said plainly rather than ticked.
-
-  THE ROW IS WRITTEN BEFORE THE MAIL SERVER IS CALLED, NEVER AFTER. A receipt goes out behind the response -- this SMTP server takes about 23 seconds just to authenticate -- which means by the time it fails there is nobody left to tell. The row IS the telling: Queued first, then Sent or Failed. A row still reading Queued long after the fact is a send that disappeared inside the provider, which is exactly the thing a log written after a successful send can never show.
-
-  FOUR STATES, NOT TWO. Skipped is separate from Failed and says why: "they have reminders switched off" is a different fact from "the mail server refused it", and a log that collapses them teaches people to distrust the log.
-- [ ] Provide explicit WhatsApp handoff actions without pretending the website can read or sync WhatsApp messages unless a real approved integration is added.
-
-  WHAT CANNOT BE SWITCHED OFF, AND WHY. A receipt for money a client has actually paid is a record they are entitled to. It is not a notification, and it is not in the list.
-
-  THE DEDUPE KEY IS THE EVENT, NOT THE ATTEMPT. `receipt:y7` is the receipt for payment y7 however many times Paystack retries the webhook and however many times the payer reloads the return page. A reminder's key carries the day, so the same nudge cannot go twice in one day however many times a job runs, and tomorrow's is allowed through. Resend clears the key onto a superseded name so the failed row STAYS as the record that the first try did not go.
-
-  NO PAYLOADS, ANYWHERE. Paystack's webhook body carries a customer record, an authorization object and on some events a card's last four and its bank. What is stored is the reference, the amount, the channel and our own verdict. A log that copies the rest is a second place for it to leak from.
-- [-] The portal exists now, at `/portal` -- `lib/roles.ts`'s `client` door
-  flipped to `ready: true`, matching where it always said a client
-  belonged. Gives a client their projects, client-visible updates,
-  invoices/payments, and approvals; internal notes, tasks, and admin-only
-  money stay off every portal screen because the portal's own queries
-  never read them, not because a flag hides them. `Project.channel` now
-  shown on the project header ("Updates via Email"/WhatsApp group/etc).
-  NOT DONE: files as a distinct concept (a deliverable's versions carry
-  `url`, no separate upload/library), forms (no visibility into a
-  client's own submissions -- 4.6's forms builder does not exist yet, so
-  there is nothing to show).
-- [-] Shell built to the same `.ad`/`admin.css`/`dashboard.css` system the
-  admin uses -- one design system, not two, per this file's own
-  authenticated-UX rule. Five sections, not six: Overview, Projects,
-  Billing, Support, Settings. Forms & files deliberately left out rather
-  than built empty: there is no forms builder yet for it to show.
-- [-] Covered: project stage and health (the same stage-track component
-  as the admin's own project page), update history filtered to
-  `clientVisible`, deliverable approvals and revision requests, and a
-  combined "needs your attention" queue on the overview (deliverables
-  awaiting review, invoices with a balance, answered support tickets). A
-  deliverable's full version history is now there too, latest expanded
-  and older versions under a `<details>` -- the type's own "which logo
-  did they approve" question is answerable from the portal now, not only
-  from the admin. "Onboarding status" stays implicit in the stage pill
-  (`Onboarding` is one of the six stages) rather than its own callout --
-  a second, redundant indicator for information the pill already carries
-  is not worth the row it would take.
-- [-] Invoices link out to the existing public `/i/[token]` page rather
-  than re-rendering payment history and receipts a second time -- one
-  renderer for a document, not two that can disagree. Approve/request-
-  revision both built, as the one place a client writes back; every
-  write re-derives the client from the session and checks the record
-  being mutated actually belongs to them (`lib/portal/actions.ts`) rather
-  than trusting an id in the form, since `lib/admin/validate.ts`'s own
-  note that a server action is a public endpoint whether or not a form
-  points at it applies more here than on the admin side. Replying to a
-  specific update is built: each update carries a "Reply" link that
-  opens Support with the project and a dated subject already filled in
-  (`?project=<id>&subject=Re: <title> update, <date>`) -- a full reply
-  THREAD hung off one exact update record was considered and dropped for
-  now, since a ticket already carries the same project context and a
-  second threading mechanism next to the first would be two ways to ask
-  the same question. NOT DONE: uploading a requested file (no upload
-  target exists for it yet -- same gap as 4.9's own R2 item, just from
-  the other side of the same door).
-
-  ALSO BUILT, NOT ASKED FOR BY NAME BUT THE SAME "WHAT DO I DO ABOUT
-  THIS" GAP THE OTHER FOUR ANSWER: a support ticket system.
-  `Ticket`/`TicketMessage` in `lib/admin/types.ts`, a client-side thread
-  view with reply, and a panel on the admin's own client workspace
-  (`components/admin/ticket-panel.tsx`) to answer them -- because nothing
-  before this let a client raise a concern without email or WhatsApp,
-  and "Support" was one of the six section names section 4.7's own line
-  above already asked for.
-
-### 4.8 Settings, content, team access, and audit
-
-- [ ] Rebuild Settings to Litch parity with grouped navigation for business profile, branding, services/content, finance defaults, payment methods, email/templates, integrations, team, security, and data.
-- [-] Two of these are real now, and three are a deliberate no rather than an oversight. Settings gained "Default VAT %" and "Default days to pay" (`app/admin/settings/page.tsx`, `finance.vatRate`/`finance.dueInDays`), through the same override-by-key mechanism every other row on that screen already used -- so nothing new had to be built to store or reset them. `financeDefaults()` in `lib/admin/store.ts` reads them back validated rather than trusted: a non-number, a negative VAT, or zero/negative days falls back to what shipped, and the one real trap in that validation -- `Number(null)` is `0`, not `NaN`, so a never-set override would have silently read as a valid 0% VAT rate -- is guarded explicitly rather than left to `Number.isFinite`. The value reaches all six places a NEW invoice or estimate can be started (both on Money's own page, and the three other pages that raise an invoice against a specific client or project); an invoice being EDITED keeps its own figure regardless, same as before. Fixing this also surfaced and fixed a real accessibility bug it shared no cause with: the VAT and discount inputs had a literal `id="vatRate"`/`id="discount"`, and Money mounts four of these builders on one page (`DialogButton` mounts its dialog's content whether or not it is open) -- so the label only bound to whichever instance happened to come first in the document, and every other VAT field on the page was unlabelled to a screen reader. Scoped with `useId()` now. Pinned by `tests/money-finance-defaults.spec.ts`. NOT DONE, and on purpose rather than left for later: **currency** is not a setting because the system is NGN-only by design at every layer that would need to change -- `fromKobo`/`naira()`, the webhook's own "NGN ONLY, AND SAID OUT LOUD" check, Paystack's NGN-keyed account -- making it configurable is a currency-conversion feature, not a settings field. **Payment instructions** is not a setting because the site's whole design is "there is ONE way to pay, and it is not a bank transfer" (a real test name in `tests/payments.spec.ts`); a free-text field inviting "transfer to account X" copy onto an invoice would undercut the one-path-only model the rest of 2A was just reconciled against. **Business identity and document branding** (logo/address/invoice-number prefix on the PDF-equivalent public documents) were not touched this pass -- real gap, not declined.
-- [ ] Add service catalogue and onboarding-template management without exposing implementation-only configuration to day-to-day users.
-- [ ] Add owner/staff roles and least-privilege permissions for clients, projects, money, forms, content, settings, exports, and destructive actions.
-
-  CORRECTED THIS PASS, because the checklist's own note on the audit log item below said "no auth" and that is no longer true, if it ever was: `lib/auth.ts` is a full Better Auth setup (email/password, Google sign-in gated to an existing row, password-reset session revocation, per-route rate limits), `proxy.ts` gates `/admin/:path*` and `/portal/:path*` behind a session cookie, and `app/admin/layout.tsx` re-checks the real session and requires `role === "owner"` before rendering anything. What is still true, and is the actual gap this line is asking about: that last check is **owner-only**. A `staff` role exists on the user table (Better Auth's `role` field, `defaultValue: "client"`) but nothing grants a session with `role: "staff"` entry to `/admin` at all -- the least-privilege middle tier the Settings screen's own "Access" panel used to describe ("staff sees clients and projects but not the books") does not exist; that panel was describing a permission model the code has never enforced, and its copy has been corrected to say so rather than left standing. Building it for real needs more than a wider layout check: every money-related write in `lib/admin/actions.ts` (roughly twenty of the forty-one exports) is a public POST endpoint on its own account, per that file's own stated principle, and would need the same role check the layout does, not just the pages. Deliberately not attempted this pass: there is no user-management surface to create a staff account with in the first place (see the item below), so a role check with nothing to test it against is easy to get quietly wrong on a financial-data boundary, and that is worse than leaving it named and open.
-- [ ] Preserve last-owner/self-change guards, session revocation, invitation expiry, and a clear staff access/activity view.
-
-  NOT STARTED, and it is the dependency the item above is waiting on: there is no `better-auth` admin plugin wired (`createUser`/`listUsers`/`setRole`/`listSessions`/`revokeSession` are all unused today) and no screen that calls anything like them, so there is currently no way to create a staff account, invite one, or revoke a session from the admin at all -- `scripts/seed-admin.mjs` is the only thing that has ever written a user row. Naming this rather than skipping it: least-privilege staff access (the item above) cannot be tested end to end until an actual staff session can be produced, which makes this the item that unblocks that one, not a parallel piece of work.
-- [-] Append-only audit log built and wired into the writes that exist. APPEND-ONLY BY CONSTRUCTION, not by promise: the array is module-private and the only export that touches it pushes, so there is no update, no delete, and nowhere to write from. A log you can edit answers "what happened" with "whatever somebody last wanted it to say", which is worse than none because it looks like evidence — so the screen has no controls at all.
-
-  Covered now: client added/edited/archived (one entry per field that actually moved, never a single "edited"), project opened/stage moved/archived, invoice drafted/raised/issued/deleted-as-draft, payment recorded and reversed, expense recorded and removed, setting overridden and put back. Before/after is stored already formatted for reading rather than as raw values: an amount means nothing as `37725000`, and the rendered form still makes sense in a year when the formatting code has moved on.
-
-  Reversing a payment keeps the receipt number and the bank reference ON THE ENTRY, because the row that carried them is gone and those are what tie the reversal to the bank's record of the original.
-
-  Deliberately NOT stored: request bodies, provider payloads, credentials, or any field whose old value is a secret. A log that copies everything is a second place for a leak to come from.
-
-  Verified in a browser: empty before any change, then a stage move and a settings override both landed with their before/after and actor, and the project workspace showed only its own entries.
-
-  NOT DONE, because the subsystems do not exist yet: form and file changes (no form builder, no admin uploads), integration changes (no integrations wired). CORRECTED FROM AN EARLIER PASS: this line used to also say "authentication and role changes (no auth)" — that was wrong even when it was written, or has since stopped being true; `lib/auth.ts` is a full Better Auth setup and `app/admin/layout.tsx` requires a real owner session. What is genuinely missing is a role/staff-access UI TO log changes about, per the two items just above — the audit log itself would cover it the moment that surface exists, since `setSetting`-style writes already show the pattern. The actor reads "Studio" everywhere until there is a signed-in admin to name — the parameter is threaded through every write and just has nothing better to fill it with yet.
-- [ ] Add content-management entry points only for public content that genuinely needs editing; avoid rebuilding a general-purpose CMS.
-- [ ] Show honest integration health and “coming soon” states; never display a control as working before its backend is verified.
-
-Moved here from section 1C on 2026-09-14. They were filed under the blog
-because that is what they edit, but every one of them is admin UI and belongs
-with the rest of section 4's content and settings work.
-
-- [ ] Blog editor: create, edit, schedule and unpublish posts, writing the same block shape `lib/blog.ts` already defines (`p`, `h2`, `h3`, `list`, `quote`, `callout`). The renderer guarantees one h1 and a correct heading outline; an editor that emits raw HTML would give that away.
-- [ ] Per-post SEO fields as first-class inputs, not afterthoughts: search-result title, meta description with a live character count, canonical override, and a social image.
-- [ ] Draft, scheduled and published states, with the published date separate from the created date and a visible `updated` date when a post is revised.
-- [ ] Author and category records, once there is more than one person writing.
-- [ ] Editable site content beyond the blog: the FAQ list, testimonials, the services copy and the work catalogue all currently live in `lib/` and need the same treatment.
-- [ ] Media library backed by R2, reusing `r2Config()` and `presignPut()` from `lib/r2.ts` rather than a second uploader. Note the SVG caveat recorded under upload safety.
-- [ ] Preview a draft as it will actually render, on the real page, before publishing.
-
-### 4.9 CockroachDB, R2, and backend integrity
-
-- [-] Connect document/upload workflows to Cloudflare R2. (`lib/r2.ts` signs presigned PUTs with SigV4 and no new dependency; `POST /api/onboarding/upload` authorises one file against the caller's draft, choosing the key, content type and 25MB ceiling server-side, and fails closed naming the missing variable. Files land under `onboarding/<draftId>/`. BLOCKED on one value: `R2_ACCOUNT_ID`, the subdomain of the bucket's S3 API endpoint.)
-- [ ] Replace every remaining in-memory admin read/write with repository/query modules backed by CockroachDB; remove fictional seed data from production paths.
-- [ ] Design and apply explicit migrations for clients/contacts, projects/tasks/updates, forms/versions/submissions, invoices/lines, payments/events, expenses, receipts, communications, invitations, files, notifications, and audit records.
-- [ ] Add constraints, indexes, normalized identifiers, foreign-key/archive policy, timestamps, actor attribution, and idempotency keys; review migration storage and rollback risk before applying production changes.
-- [ ] Use short retryable transactions for multi-record invariants; prevent duplicate invoice numbers, receipts, invitations, webhook events, payments, and form conversions.
-- [ ] Extend R2 to client/project/invoice/expense files with scoped keys, persisted metadata, file-size/type rules, signed access, authorization checks, replacement/version rules, and safe deletion/archive behaviour.
-- [ ] Add rate limits, origin/signature checks, server-side validation, structured redacted logs, backup/restore procedures, and fail-closed integration configuration.
-
-### 4.10 Verification, parity review, and release
-
-- [ ] Add focused unit/integration tests for derived money state, permissions, invitations, form conditions/versioning, project transitions, audit events, uploads, and idempotency.
-- [ ] Add browser tests for every admin route's primary task, keyboard flow, navigation/top restoration, mobile drawer, tables/filters, empty/error states, and duplicate-submit protection.
-- [ ] Compare WDC and Litch screenshots side by side at every target width; close shell, spacing, typography, component, state, and interaction gaps until parity is deliberate and documented.
-- [ ] Run lint, TypeScript, production build, admin tests, responsive visual checks, accessibility checks, and a performance/bundle regression check.
-- [ ] Test with production-like record volumes so dashboard queries, filters, tables, search, exports, and timelines remain responsive.
-- [ ] Verify a database backup and rollback path before the first production migration; deploy the exact tested commit and validate authenticated admin routes on the canonical domain.
-- [ ] Push each completed Section 4 milestone to `main` as a narrow commit that excludes Claude's public-frontend work and unrelated user files; update this checklist and the bridge at each boundary.
-
-### 5.0 Tour architecture and content
-
-Reconciled 2026-09-17, third pass: the admin's tour is now the three-tier,
-Litch-parity shape the user asked for by name -- welcome, walkthrough,
-page -- with ten page tours (all six sidebar routes plus, new this pass,
-the four drill-down pages reached only by opening a row), an interactive
-click-to-advance step, a progress rail, a spotlight-aware background blur,
-and a header icon that reuses the marketing site's own animation rather
-than a bespoke one. `react-joyride` stays a direct dependency, dynamically
-imported so it never enters the initial admin bundle
-(`components/admin/tour/tour-runtime.tsx` is the only file that imports
-it, behind `next/dynamic({ ssr: false })`, mounted only once a tour is
-actually running). See the closed entry below for what was built,
-verified, and found along the way.
+##### 5.0 Tour architecture and content
 
 - [x] Add React Joyride only to authenticated dashboard bundles; lazy-load it after the dashboard is interactive and never include it in public marketing routes.
-- [-] Create separate typed tour registries for admin and client experiences, with one full walkthrough and independently launchable page-only tours. `lib/tours/admin.ts` has three tiers for the admin -- `admin-welcome` (nav orientation, auto-offered once), `admin-walkthrough` (the deep cross-page tour), and ten page tours, one per admin route including the four reached only by drilling into a list. No client registry exists, on purpose: every one of section 5.1's client-tour stops (deliverables/approvals, invoices/payments/receipts, forms/files, messages/support) is a screen section 4.7's client portal has not built yet, and a tour of a page that does not exist is not a tour.
+
 - [x] Keep tour copy task-oriented and concise: explain the outcome, identify the control, and tell the user what to do next without narrating obvious UI. Also stripped of em dashes this pass, at the user's explicit request -- every step's `content`/`title` string was rewritten to use a colon, a comma or a full stop instead.
+
 - [x] Give every tour target a stable semantic `data-tour` identifier that survives layout and copy changes; do not target generated classes or DOM position. Every target is a `data-tour` attribute, wired at the real control. Widened twice this pass: first the sidebar's collapse toggle, the mobile menu button, and the dashboard's cashflow/pipeline/payments/deadlines/KPI panels; then, closing the bigger gap, the client workspace (projects, invoices, payments, a conditional credit panel), the project detail page (stage track, tasks, updates, deliverables, margin), an invoice's own page (the status-dependent action row, payments, a conditional client-copy panel), and the reconciliation room (the attention queue, the full event log). `adminPageTourFor` gained a route-template normaliser so a real pathname like `/admin/clients/c1` resolves against the one `/admin/clients/[id]` entry every client record shares, rather than needing an entry per id -- the same idea the reference product's own `route-match.ts` uses.
+
 - [x] Define versioned tour IDs so meaningful product changes can offer an updated tour without repeatedly showing completed old tours. Persistence is keyed on `${id}@${version}` (see `lib/tours/storage.ts`). The walkthrough's id changed (`admin-full` → `admin-walkthrough`) and every tour's version bumped when this file was rebuilt, since the step content changed enough that a completed old tour should not suppress the new one.
 
-### 5.1 Full walkthroughs
+##### 5.1 Full walkthroughs
 
 - [x] Offer a short, nav-only welcome orientation distinct from the full walkthrough, matching the reference product's own three-tier shape (welcome → walkthrough → page). `admin-welcome`, ten steps: each sidebar section, the sidebar's collapse toggle (desktop) or the mobile menu button (phone), search, and a closing note pointing at the full walkthrough. This is what auto-offers on first sign-in now, not the 23-step walkthrough -- a first login gets the map, not a lecture.
+
 - [x] Build the admin full walkthrough around the real daily workflow: attention queue, clients, projects/updates, invoices/payments, forms/submissions, search/quick actions, and settings are all real stops, in that order, across six pages. Widened from thirteen steps to twenty-three: the dashboard alone now stops at the KPI tiles, the cashflow chart, the project pipeline, recent payments, and upcoming deadlines, not just the attention queue and quick actions, and every hop to a new page is its own interactive stop (see the next line). NOT separate stops, still: "communications" (comms-log lives embedded per-client and per-invoice) and "notifications" (the topbar bell) are not their own screens.
-- [ ] Build the client full walkthrough around the real client workflow. Not started -- see the note on section 5.0's second line.
+
 - [x] Allow the full walkthrough to navigate between pages safely while preserving the current step, waiting for the next target to mount, and handling a missing/unauthorized target gracefully. A step whose target lives on a different page carries an `href`; Joyride's own per-step `before` hook navigates there and polls for the target (capped at 3s) before the tour is allowed to show it. A target that still is not there is not reimplemented failure handling: uncontrolled Joyride already advances past a step whose target never mounts, verified by deliberately deleting a step's `data-tour` attribute mid-tour and watching it skip cleanly to the next one within the wait, no error, no stall.
+
 - [x] Let a reader advance a step by clicking the real control it is about to introduce, not only by pressing Next. New this pass, and the closest the admin's tour gets to matching Litch's own "click through it" feel: a step can carry `interact: { hint, clickTarget? }`; the tooltip renders a pulsing "click this" prompt instead of relying on Next alone, and a document-level capture-phase click listener calls `controls.next()` the moment the real target is clicked. Used on every sidebar-nav hop in the walkthrough (`blockTargetInteraction` stays at Joyride's own default of `false`, so the click reaches the real link underneath the spotlight cutout rather than being eaten by the overlay). Next still works as the fallback for a reader who would rather not click through the live UI.
+
 - [x] Offer tours on first eligible sign-in and from a persistent entry point; never block the dashboard if dismissed. Verified: the dashboard's real KPI tiles render before the welcome tour offers itself (a 1.5s delay after mount, on `/admin` only), and the offer is written to `localStorage` the moment it is shown so it is never repeated on this device whether accepted, skipped, or simply navigated away from. The persistent entry point moved this pass from a single line in the account menu to a dedicated `?` button in the topbar (`components/admin/tour/tour-launcher.tsx`) offering all three depths -- this page's tour, the full walkthrough, or a welcome replay -- each already reading "replay" instead of "start" once this browser's own record says it is done.
 
-### 5.2 Page-only tours
+##### 5.2 Page-only tours
 
 - [x] Add a short page tour launcher to each major admin and client page; page tours start and finish without changing routes. Ten page tours now, not six: every sidebar route plus the client workspace, a project's detail, an invoice's detail, and the reconciliation room -- the four reached only by opening a row, which an audit this pass confirmed had the densest, least obvious controls on the whole admin and, until now, zero tour coverage. All ten pages keep their own inline button (`PageTourButton`, in each page's header) and are also reachable from the topbar launcher's "Tour this page" item, wherever the reader happens to be; no client pages exist to add one to.
-- [x] Keep page tours focused on the page's primary task and non-obvious controls, usually three to seven steps rather than exhaustive tours. Two to seven steps each across all ten.
-- [x] Maintain separate completion state for every page tour so users can replay one page without resetting the full walkthrough. Each tour's completion is its own `localStorage` key; verified finishing a page tour does not touch the welcome or walkthrough records or vice versa.
-- [-] Ensure dynamically loaded tables, tabs, drawers, empty states, and responsive variants provide valid alternate targets or skip logic. The missing-target case is covered (see 5.1's fourth line) and pinned by a test; `desktopOnly`/`mobileOnly` step flags are filtered by an actual `matchMedia` check against the sidebar's own 1024px collapse breakpoint, verified at both a 1440px and a 375px viewport live. Two of the new drill-down tours carry a genuinely conditional step -- a client's credit panel, an invoice's client-copy panel -- marked `optional: true` and, found this pass, deliberately placed BEFORE a guaranteed step rather than last: ending a tour on a step whose target is missing left the background blur visibly lingering for a second or so after the card had already closed, confirmed with a frame-by-frame trace (card hidden at t=0, still hidden at t=900ms, reappeared correctly on the next real step at t=1200ms) rather than assumed from the symptom. NOT walked against every empty/populated permutation of every page -- the seeded demo data was never empty during this pass, so a tour launched against a genuinely empty clients or projects list is exercising the same skip logic but was not watched doing it.
 
-### 5.3 UX, accessibility, state, and verification
+- [x] Keep page tours focused on the page's primary task and non-obvious controls, usually three to seven steps rather than exhaustive tours. Two to seven steps each across all ten.
+
+- [x] Maintain separate completion state for every page tour so users can replay one page without resetting the full walkthrough. Each tour's completion is its own `localStorage` key; verified finishing a page tour does not touch the welcome or walkthrough records or vice versa.
+
+##### 5.3 UX, accessibility, state, and verification
 
 - [x] Style React Joyride tooltips, beacons, buttons, overlays, progress, and focus treatment to match the WDC/Litch-parity dashboard in both themes. No beacons (`skipBeacon: true` -- a guided walkthrough reads better as continuous than as a hunt for pulsing dots). Everything else is a custom `tooltipComponent` (`components/admin/tour/tooltip.tsx`) built from the admin's own `.ad__btn` primitives rather than Joyride's colour-prop API, which cannot reach a 44px touch target or a focus ring. Went through several rounds of direct feedback this pass, each verified live rather than assumed from the diff: a wider card; the header icon replaced twice over (first its own animated-disc system, then, at the explicit ask to "use the same icon animation as the marketing site", swapped for `ServiceIcon` itself -- the exact `motion-icons-react` stroke-draw component `/services`, `/about` and the header already use, in a big solid navy tile rather than a translucent one, centred above the title instead of beside it); every remaining translucent chip fill (the duration estimate, the interactive-step hint box) made solid or, for the estimate, dropped to plain accent-coloured text with no fill at all; Back and Skip tour share Next's exact height (a `min-height` let their own line-height inflate past their icon, which read as the icon sitting off-centre against the label -- reset to `line-height: 1` once the real cause was found rather than nudged with padding); Back isolated at the footer's left edge with Skip and Next kept together on the right; Skip tour given, then explicitly taken back off, a white-on-black treatment -- it now matches Back's own secondary style. Verified in both themes by reading the card's own computed `background-color` -- `rgb(255, 255, 255)` in light, `rgb(14, 14, 46)` in dark, matching `admin.css`'s `--ad-panel` exactly.
 
   FOUND ALONG THE WAY (earlier pass): Joyride portals its overlay and tooltip into a div it appends to `document.body`, a SIBLING of the `.ad` div rather than a descendant of it -- and every `--ad-*` token is scoped to `.ad`, not `:root`. The first fix tried was Joyride's own `portalElement` option, pointed at `.ad`; it left the tour never opening for a reason neither the console nor `debug: true` logging pinned down, so it was abandoned for one already proven to work: `#react-joyride-portal` (Joyride's fixed id for its default portal) gets its own small copy of the same tokens in `tour.css`, kept in sync with `admin.css` by hand, with a comment saying why the duplication exists.
+
 - [x] Blur the background outside the spotlighted control during a tour, so the eye has nowhere else to land. Not in the original checklist -- added at the user's request. Joyride's own overlay dims everything through an SVG-path cutout it owns internally (confirmed by reading its compiled source: no `overlayComponent` customisation point exists), so `backdrop-filter` cannot ride along on that element without blurring the spotlighted control too. `components/admin/tour/tour-blur.tsx` instead renders four `position: fixed` bands framing the current step's target rect (top/bottom/left/right, computed from `getBoundingClientRect()` plus Joyride's own `spotlightPadding`), recomputed on every step change and kept fresh through Joyride's scroll-into-view animation and any later scroll or resize. A `target: "body"` step (an intro/outro slide with nothing to spotlight) blurs edge to edge instead. Sits at `z-index: 94`, just under Joyride's own overlay at 95.
 
   FOUND AND FIXED, A REAL BUG NOT JUST A SUBTLETY: the blur did not render at all for a full pass -- confirmed by reading the SHIPPED stylesheet's own `cssRules`, which had `position`/`z-index`/`pointer-events` and no `backdrop-filter` at all. Writing both `backdrop-filter` and `-webkit-backdrop-filter` by hand, rather than leaving the build's own autoprefixer to add the vendor one only where a target browser still needs it, silently dropped the whole declaration pair somewhere in the pipeline; the unprefixed property alone survives it, proven by `.ad__topbar` in `admin.css` already doing exactly that.
-- [-] Keep Joyride above dashboard popovers but below critical system dialogs; prevent clipping, off-screen placement, background scrolling, and collisions with mobile safe areas. `zIndex: 95` sits above popovers (80) and the new blur bands (94), below the command palette and mobile drawer (100); native `<dialog>` elements sit above everything regardless of any z-index, being in the browser's own top layer. Off-screen placement is Floating UI's own flip/shift middleware, unmodified. NOT done: background scrolling is not locked while a tour runs. Considered and deliberately left alone rather than rushed -- the walkthrough needs Joyride's own scroll-into-view to reach a target below the fold, and locking `overflow` on the body would block that same mechanism from working, trading a minor polish item for a tour that cannot reach half its targets. Revisit if a real scroll-jank complaint shows up rather than guessed at now.
+
 - [x] Support keyboard navigation, Escape/dismissal, readable focus order, screen-reader labels, reduced motion, and minimum 44px touch targets. Escape is handled by hand (`controls.skip()` on a `keydown` listener) rather than through Joyride's own `dismissKeyAction`, whose type -- `'close' | 'next' | 'replay' | false` -- has no `'skip'` option and would only have closed the current step. `locale` keeps every button's accessible name matching its visible word (`next`/`back`/`last`→"Finish"/`skip`), rather than Joyride's own defaults, which is what WCAG's "label in name" actually asks for. `prefers-reduced-motion` turns off `scrollToFirstStep`, Joyride's own scroll animation (`scrollDuration: 0`), every icon's own motion loop, and the confetti burst on Finish; the full 23-step walkthrough was run end to end under `reducedMotion: "reduce"` with zero errors. 44px is a `@media (pointer: coarse)` rule on every tour control, matching the site-wide floor.
-- [ ] Persist tour progress/completion per authenticated account and role in CockroachDB; local storage may cache UI state but is not the cross-device source of truth. NOT done. CORRECTION 2026-09-17: the database is NOT missing -- `COCKROACHDB_URL` connects locally and from Vercel, and 16 tables already live there (blog, onboarding, invitations, auth, rate limits). This item and the rest of 4.9's admin data move are claimed by claude on the bridge. `lib/tours/storage.ts` is written as the honest interim the checklist itself allows for, with a comment saying so, and is structured so a server read that seeds the cache is additive rather than a rewrite.
-- [-] Never show admin-only steps to clients or staff without the relevant permission; filter steps before a tour begins. The filtering mechanism is built and wired (`TourStep.roles`, applied in `tour-runtime.tsx` before steps ever reach Joyride) but nothing in the registry actually uses it: only one role (`owner`) is wired through auth today, so there is no `staff` step to filter yet. Ready rather than exercised.
+
 - [x] Add "Skip tour", "Back", "Next", "Finish", and "Restart tour" behaviour with clear neutral button contrast and no dark patterns. "Restart tour" is worded "Replay..." in the topbar launcher -- the same action (clears the completion record, starts fresh) under the word this admin's own copy already uses elsewhere for a repeated action. All five verified live across the expanded 23-step walkthrough and the ten page tours: Back and Next walk it forward and back, Skip and Escape both end the tour and write a `skipped` record, Finish writes `completed`, fires a brief brand-coloured confetti burst (never on Skip), and the launcher updates every affected item to offer a replay.
+
 - [x] Instrument only privacy-safe tour events: started, step reached, skipped, completed, replayed, tour/version, role, and page; never capture field contents. `lib/tours/events.ts`, unchanged this pass. NOWHERE TO SEND THEM YET -- said plainly there rather than faked: this site has no analytics pipeline of its own, so `emit()` is the one seam, logging to the console in development only until a real destination exists. Verified live that `started`, `skipped`, and `replayed` are each fired exactly once and only on the action that should fire them, never on the echo of another.
-- [-] Test full and page-only tours at all dashboard breakpoints, themes, permissions, empty/populated states, keyboard-only mode, reduced motion, and route transitions. Covered by `tests/admin-tour.spec.ts` (12 cases, up from 8): both themes, 320px with a real scroll-attempt check (not the `scrollWidth` false-positive `admin-responsive.spec.ts` already ruled out for this exact shell), Escape, Skip, Finish, the welcome tour's single-offer behaviour, the 23-step walkthrough's full six-page cross-navigation, an interactive step advancing on a real click rather than only Next, a page tour staying on one page, the missing-target recovery, all four new drill-down page tours resolving by route template and finishing cleanly, and the optional-step-not-last fix specifically. NOT covered: every dashboard breakpoint in between 320px and desktop, keyboard-only navigation with no mouse at all, and permissions (there is only the one role to test against).
-
----
-
-# Done
 
 Archived, with the evidence that closed each one. Search here before
 reopening anything.
