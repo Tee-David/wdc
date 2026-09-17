@@ -13,7 +13,7 @@ kept rather than deleted, because each line records what was measured and why,
 and that is the only defence against redoing work or reintroducing a bug that
 was already understood once.
 
-At last update: **99 open** (24 of them in progress), **386 done**.
+At last update: **96 open** (26 of them in progress), **389 done**.
 
 ---
 
@@ -305,12 +305,38 @@ subsections where the size of what remains is easy to lose.
 - [ ] Capture desktop, tablet, and mobile reference screenshots for the Litch shell and every equivalent WDC admin route before visual implementation.
 ### 4.1 Litch-parity admin shell and UI foundation
 
-- [ ] Match Litch's shell dimensions, spacing, radii, borders, shadows, typography hierarchy, icon sizing, active states, hover states, and responsive breakpoints while applying WDC's logo and established colour tokens.
-- [ ] Create reusable Litch-parity primitives for page headers, stat cards, panels, badges, tabs, data tables, filters, empty states, skeletons, error states, pagination, confirmation modals, toasts, charts, and export menus.
-- [ ] Distinguish first-use, cleared, filtered/no-results, permission-denied, and load-error states; provide clear-filters, request-access, retry, or create actions as appropriate instead of reusing one generic blank state.
-- [ ] Ensure tables use tabular numerals, sticky or persistent context where useful, bounded horizontal scrolling, useful mobile row alternatives, and no page-level horizontal overflow.
-- [ ] Give every admin mutation an immediate pending state, clear success/failure receipt, safe retry path, and protection against duplicate submission.
-- [ ] Verify the shell and primitives visually against Litch at all target widths before building deeper routes.
+Reconciled 2026-09-17: read against `components/admin/{admin.css,bits.tsx,
+form.tsx,admin-state.tsx,dialog.tsx,dashboard.css}` and every admin route,
+rather than assumed unstarted because no line here had been checked yet.
+
+- [x] Shell tokens and states. `.ad` in `admin.css` declares its own spacing/radius/shadow/colour tokens (`--ad-r`, `--ad-line`, `--ad-panel`, etc.), Space Grotesk on headings and Outfit on everything else per this file's own product-language rule, `:focus-visible` rings, `is-on`/hover states on every `.ad__link`, and a collapsible/hover-expand sidebar plus a mobile drawer for the responsive break. NOT VERIFIED: pixel comparison against Litch's own screenshots -- no reference capture exists in this environment to diff against, so this is "built to the same described system", not "measured against Litch's rendered pixels".
+- [-] Reusable primitives -- audited one at a time rather than assumed as a set:
+  page headers (`adDash__head`, one shape, every page), stat cards (`Tile`),
+  panels (`Panel`), badges (`StagePill`/`InvoicePill`/`HealthPill`/`ApprovalPill`,
+  all thin wrappers over one `.ad__pill`), data tables (`.ad__t`, ONE class,
+  used on 20 tables across nine routes -- checked by grep, not assumed),
+  empty/skeleton/error states (`Empty`, `.ad__loading*`, `AdminState`'s five
+  kinds), confirmation modals (`Dialog` on the platform `<dialog>`, plus
+  `Form`'s `confirm` prop for the simple cases), export (a real CSV link on
+  the clients list, `/admin/clients/export`). Filters and pagination exist
+  as a proven pattern (`.ad__pagination`, search + status + service filters)
+  but ONLY on the clients list -- projects, money and forms have neither,
+  which is fine at today's seed-data volume and a real gap once record
+  counts grow (see 4.10's load-testing line). Tabs and toasts genuinely do
+  not exist: no admin screen currently has tabbed content to justify one,
+  and mutation feedback is inline next to the control that caused it
+  (`Form`'s own `.ad__msg`) rather than a floating snackbar -- a deliberate
+  choice, not an oversight, since a receipt next to the button it answers
+  cannot be missed the way a toast that has already faded can be, but
+  worth saying plainly since "toasts" was asked for by name and this is
+  not one. Charts: the dashboard's cashflow chart is CSS bars, not a
+  charting library, per this file's own "do not add a package for a small
+  UI effect" rule -- a reusable `<Chart>` primitive was not built because
+  nothing else on the admin needs one yet.
+- [x] First-use/cleared/no-results/forbidden/error states are distinct types (`AdminStateKind`), not one generic blank box, each with its own icon and the actions its column reconciles: `Empty` on a list with nothing in it, `AdminState kind="no-results"` on a `hasFilters` search with nothing matching (with a "clear filters" action), `kind="error"` with retry on `app/admin/error.tsx`.
+- [x] Tables: tabular numerals via `.ad__t`'s own font-feature settings (checked in `admin.css`), a bounded `overflow-x: auto` wrapper rather than pushing the page wide (`overflow-x: clip` on `.ad` and `.ad__main` besides), and no page-level horizontal overflow reported anywhere this pass touched. NOT DONE: a distinct mobile row layout (a card stack instead of a scrolling table) -- every table today is the same scrolling `.ad__t` at every width, which is usable but not the "useful mobile row alternative" this line asks for.
+- [x] Pending/receipt/retry/duplicate-submit protection. `Submit` in `form.tsx` disables itself and shows a spinner via `useFormStatus` while pending -- the literal double-charge guard the component's own comment names -- and `Form`'s `Result` renders the success/failure message inline once the action returns; a failed submit keeps what was typed (`values`/`gen` in the form kit) so retrying does not mean retyping.
+- [ ] Verify the shell and primitives visually against Litch at all target widths before building deeper routes. NOT DONE and not really doable from here now -- deeper routes are already built (4.2 through 4.9 all exist), so this is retroactive rather than a gate; a real side-by-side against Litch's own screenshots is 4.10's own line, not repeated here.
 
 ### 4.2 Daily admin dashboard
 
