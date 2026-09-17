@@ -13,6 +13,7 @@ import {
   DeleteDraft, InvoiceBuilder, IssueInvoice, RecordPayment, } from "@/components/admin/money-forms";
 import { EmailInvoice, EmailReminder } from "@/components/admin/reconcile-forms";
 import CommsLog from "@/components/admin/comms-log";
+import PageTourButton from "@/components/admin/tour/page-tour-button";
 
 /* NO generateStaticParams: invoices are raised at runtime, and a prerendered
    list would 404 on the one just created. */
@@ -55,7 +56,8 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
             {" · issued "}{when(inv.issued)}
           </p>
         </div>
-        <div className="ad__row">
+        <div className="ad__row" data-tour="inv-actions">
+          <PageTourButton />
           <InvoicePill status={status} />
           {/* A DRAFT AND AN ISSUED INVOICE OFFER DIFFERENT THINGS, because
               they are different objects: a draft is still being written, and
@@ -147,7 +149,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
           </div>
         </Panel>
 
-        <Panel title="Payments">
+        <Panel title="Payments" dataTour="inv-payments">
           {payments.length ? (
             <div className="ad__scroll">
               <table className="ad__t">
@@ -199,7 +201,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
             one the studio has raised, by subtracting one. A draft has no
             public page at all, because a draft has not been sent to anybody. */}
         {inv.status !== "Draft" ? (
-          <Panel title="The client's copy">
+          <Panel title="The client's copy" dataTour="inv-client-copy">
             <div style={{ display: "flex", flexWrap: "wrap", gap: "1.2rem", alignItems: "center", padding: ".9rem 1rem" }}>
               <div className="ad__qr">
                 <QrCode url={invoiceUrl(inv.token)} label={`Open invoice ${inv.number}`} animate={false} boxPx={160} />

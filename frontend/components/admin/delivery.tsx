@@ -38,6 +38,7 @@ export function Tasks({ project, tasks }: { project: Project; tasks: Task[] }) {
   return (
     <Panel
       title={`What is left${open ? ` (${open})` : ""}`}
+      dataTour="proj-tasks"
       action={
         <DialogButton label="Add a task" title="Add a task" icon={ListPlus} tone="plain">
           {(close) => (
@@ -130,6 +131,7 @@ export function Updates({ project, updates }: { project: Project; updates: Updat
   return (
     <Panel
       title="Updates"
+      dataTour="proj-updates"
       action={
         <DialogButton label="Post an update" title="Post an update" icon={Send} tone="plain" wide>
           {(close) => (
@@ -208,6 +210,7 @@ export function Deliverables({
   return (
     <Panel
       title="Deliverables"
+      dataTour="proj-deliverables"
       action={
         <DialogButton label="Add a deliverable" title="Add a deliverable" icon={FilePlus2} tone="plain">
           {(close) => (

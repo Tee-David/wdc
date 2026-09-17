@@ -6,6 +6,7 @@ import { naira, providerNeedsAttention } from "@/lib/admin/types";
 import type { ProviderOutcome } from "@/lib/admin/types";
 import { Empty, Panel, when } from "@/components/admin/bits";
 import { MatchEvent, ResendMessage, ResolveEvent } from "@/components/admin/reconcile-forms";
+import PageTourButton from "@/components/admin/tour/page-tour-button";
 
 export const metadata = { title: "Reconciliation" };
 
@@ -61,9 +62,12 @@ export default function ReconciliationPage() {
               : "Everything Paystack has told us has landed where it should."}
           </p>
         </div>
+        <div className="ad__row">
+          <PageTourButton />
+        </div>
       </div>
 
-      <Panel title="Needs somebody">
+      <Panel title="Needs somebody" dataTour="recon-attention">
         {attention.length ? (
           <div className="ad__scroll">
             <table className="ad__t">
@@ -134,7 +138,7 @@ export default function ReconciliationPage() {
       ) : null}
 
       <div style={{ marginTop: ".9rem" }}>
-        <Panel title="Everything Paystack has said">
+        <Panel title="Everything Paystack has said" dataTour="recon-log">
           {everything.length ? (
             <div className="ad__scroll">
               <table className="ad__t">

@@ -186,8 +186,99 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
       { id: "table", target: '[data-tour="settings-table"]', icon: "shieldCheck", title: "Editable content", content: "An override by field. The worst an edit can do is change one value; putting it back deletes the row." },
     ],
   },
+
+  /* THE FOUR BELOW ARE DRILL-DOWN PAGES, not sidebar routes -- reached by
+     opening a row on the list above them, never by a nav link. `[id]` in
+     their key is literal: `adminPageTourFor` normalises a real pathname
+     like `/admin/clients/c_10` down to `/admin/clients/[id]` before the
+     lookup, the same idea `route-match.ts` uses in the reference this
+     registry followed. `/admin/money/reconciliation` is the one exception
+     kept out of that normalisation on purpose -- see the note there. */
+  "/admin/clients/[id]": {
+    id: "admin-page-client",
+    version: 1,
+    kind: "page",
+    title: "This page: a client",
+    steps: [
+      { id: "intro", target: "body", placement: "center", icon: "users", showEstimate: true, title: "One client's record", content: "Everything under their name: projects, invoices, payments, and what is owed between the studio and them." },
+      { id: "projects", target: '[data-tour="client-projects"]', icon: "folder", title: "Their projects", content: "Open the menu on any row for what a first look will not show: move its stage, set a due date, archive it." },
+      { id: "invoices", target: '[data-tour="client-invoices"]', icon: "receipt", title: "Their invoices", content: "Issue, record a payment, or void, all from the row menu here too." },
+      /* NOT LAST, DELIBERATELY: this step's target is only in the DOM for a
+         client the studio currently owes something, which is almost none
+         of them. `optional: true` already tells the missing-target case
+         apart from a real fault; putting it before a step that is ALWAYS
+         there means a skip here still lands on a real step with a proper
+         Finish, rather than ending the tour on nothing and leaving the
+         background blur to catch up a beat behind the vanished card. */
+      { id: "credit", target: '[data-tour="client-credit"]', optional: true, icon: "wallet", title: "Their balance with us", content: "Only appears when the studio owes them something: an overpayment held rather than refunded. Apply it to their next invoice from here." },
+      { id: "payments", target: '[data-tour="client-payments"]', icon: "creditCard", title: "What they have actually paid", content: "Every receipt, with a reversal or a refund shown rather than hidden once it happens." },
+    ],
+  },
+  "/admin/projects/[id]": {
+    id: "admin-page-project",
+    version: 1,
+    kind: "page",
+    title: "This page: a project",
+    steps: [
+      { id: "intro", target: "body", placement: "center", icon: "folder", showEstimate: true, title: "One project, start to delivery", content: "What was agreed, where it stands, and what it has actually made the studio." },
+      { id: "stage", target: '[data-tour="proj-stage"]', icon: "gauge", title: "Moving the stage", content: "The track shows where it is; the control under it is what moves it." },
+      { id: "tasks", target: '[data-tour="proj-tasks"]', icon: "check", title: "What is left", content: "Add, tick, or remove. A task can wait on one other task, shown as soon as it is entered." },
+      { id: "updates", target: '[data-tour="proj-updates"]', icon: "bell", title: "Posting an update", content: "Worth knowing before you post one: a box in that form decides whether the client can read it. Leave it unticked for a note that stays internal." },
+      { id: "deliverables", target: '[data-tour="proj-deliverables"]', icon: "fileStack", title: "Deliverables and approval", content: "Adding a new version resets its approval to not sent. That is deliberate: an old approval should never cover new work." },
+      { id: "margin", target: '[data-tour="proj-margin"]', icon: "calculator", title: "What it has made", content: "Collected against spent, not invoiced against spent: a bill nobody has paid is not income yet." },
+    ],
+  },
+  "/admin/money/[id]": {
+    id: "admin-page-invoice",
+    version: 1,
+    kind: "page",
+    title: "This page: an invoice",
+    steps: [
+      { id: "intro", target: "body", placement: "center", icon: "receipt", showEstimate: true, title: "One invoice", content: "What it offers changes with its own status: a draft, an issued invoice, and a struck one are three different documents." },
+      { id: "actions", target: '[data-tour="inv-actions"]', icon: "gauge", title: "The actions here follow the status", content: "A draft can still be edited or deleted. Once issued, neither is offered again: somebody outside the studio is holding a copy." },
+      /* NOT LAST: a draft has no client-facing copy at all, and ending a
+         tour on a step that might not exist leaves the background blur
+         catching up a beat after the card has already gone. See the same
+         note on the client workspace tour above. */
+      { id: "client-copy", target: '[data-tour="inv-client-copy"]', optional: true, icon: "fileStack", title: "The client's own copy", content: "A code and a link that open a live version of this invoice: what is owed right now, not what was true when it was printed." },
+      { id: "payments", target: '[data-tour="inv-payments"]', icon: "creditCard", title: "Refund or reverse, not the same thing", content: "Reverse says the money never really arrived. Refund says it did, and some or all of it went back. The row menu keeps them apart on purpose." },
+    ],
+  },
+  "/admin/money/reconciliation": {
+    id: "admin-page-reconciliation",
+    version: 1,
+    kind: "page",
+    title: "This page: Reconciliation",
+    steps: [
+      { id: "intro", target: "body", placement: "center", icon: "shieldCheck", showEstimate: true, title: "Where the books and the bank are asked to agree", content: "Not a sidebar page: reached from a banner on Money, and only when there is genuinely something in it." },
+      { id: "attention", target: '[data-tour="recon-attention"]', icon: "flag", title: "Match it, or write it off", content: "Matching banks real money onto an invoice. Writing off records a decision and moves nothing. Kept as two separate buttons so neither happens by accident." },
+      { id: "log", target: '[data-tour="recon-log"]', icon: "clipboard", title: "Seeing two rows for one payment is normal", content: "Paystack's own retry and a payer's return from checkout often race each other. Both get logged; only one gets banked." },
+    ],
+  },
 };
 
+/** The one route this registry deliberately does NOT collapse to `[id]`:
+ *  `/admin/money/reconciliation` has the exact same shape as
+ *  `/admin/money/<invoiceId>` (two segments past `/admin`), and the two
+ *  pages have nothing in common. Checked first, and by itself, rather than
+ *  folded into a shared exceptions list that would need a new entry every
+ *  time a static route happens to sit at the same depth as a dynamic one. */
+const STATIC_ROUTES_AT_DYNAMIC_DEPTH = new Set(["/admin/money/reconciliation"]);
+
+/** Collapses a real pathname like `/admin/clients/c_10` down to the
+ *  registry's own `/admin/clients/[id]` key, the same idea Litch's own
+ *  `route-match.ts` uses for exactly this problem: a page tour is written
+ *  once per TEMPLATE, not once per record. */
+function normalizeAdminRoute(pathname: string): string {
+  if (STATIC_ROUTES_AT_DYNAMIC_DEPTH.has(pathname)) return pathname;
+  const segments = pathname.split("/").filter(Boolean);
+  const [admin, section, id] = segments;
+  if (admin === "admin" && id && ["clients", "projects", "money", "forms"].includes(section)) {
+    return `/admin/${section}/[id]`;
+  }
+  return pathname;
+}
+
 export function adminPageTourFor(pathname: string): TourDef | null {
-  return ADMIN_PAGE_TOURS[pathname] ?? null;
+  return ADMIN_PAGE_TOURS[normalizeAdminRoute(pathname)] ?? null;
 }
