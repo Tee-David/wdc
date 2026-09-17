@@ -483,12 +483,12 @@ Read `plans/fluent-forms-audit.md` before starting anything in this section. It 
   belonged. Gives a client their projects, client-visible updates,
   invoices/payments, and approvals; internal notes, tasks, and admin-only
   money stay off every portal screen because the portal's own queries
-  never read them, not because a flag hides them. NOT DONE: files as a
-  distinct concept (a deliverable's versions carry `url`, no separate
-  upload/library), forms (no visibility into a client's own submissions
-  -- 4.6's forms builder does not exist yet, so there is nothing to
-  show), agreed communication route (`Project.channel` is recorded but
-  not surfaced anywhere in the portal).
+  never read them, not because a flag hides them. `Project.channel` now
+  shown on the project header ("Updates via Email"/WhatsApp group/etc).
+  NOT DONE: files as a distinct concept (a deliverable's versions carry
+  `url`, no separate upload/library), forms (no visibility into a
+  client's own submissions -- 4.6's forms builder does not exist yet, so
+  there is nothing to show).
 - [-] Shell built to the same `.ad`/`admin.css`/`dashboard.css` system the
   admin uses -- one design system, not two, per this file's own
   authenticated-UX rule. Five sections, not six: Overview, Projects,
@@ -498,13 +498,14 @@ Read `plans/fluent-forms-audit.md` before starting anything in this section. It 
   as the admin's own project page), update history filtered to
   `clientVisible`, deliverable approvals and revision requests, and a
   combined "needs your attention" queue on the overview (deliverables
-  awaiting review, invoices with a balance, answered support tickets).
-  NOT DONE: a deliverable shows only its LATEST version, not the version
-  history the type actually carries (`versions[]` -- the type comment's
-  own "which logo did they approve" question is not answerable from the
-  portal today, only from the admin); `Project.channel` is not shown;
-  "onboarding status" is implicit in the stage pill (`Onboarding` is one
-  of the six stages) rather than its own callout.
+  awaiting review, invoices with a balance, answered support tickets). A
+  deliverable's full version history is now there too, latest expanded
+  and older versions under a `<details>` -- the type's own "which logo
+  did they approve" question is answerable from the portal now, not only
+  from the admin. "Onboarding status" stays implicit in the stage pill
+  (`Onboarding` is one of the six stages) rather than its own callout --
+  a second, redundant indicator for information the pill already carries
+  is not worth the row it would take.
 - [-] Invoices link out to the existing public `/i/[token]` page rather
   than re-rendering payment history and receipts a second time -- one
   renderer for a document, not two that can disagree. Approve/request-
@@ -513,12 +514,16 @@ Read `plans/fluent-forms-audit.md` before starting anything in this section. It 
   being mutated actually belongs to them (`lib/portal/actions.ts`) rather
   than trusting an id in the form, since `lib/admin/validate.ts`'s own
   note that a server action is a public endpoint whether or not a form
-  points at it applies more here than on the admin side. NOT DONE:
-  uploading a requested file (no upload target exists for it yet -- same
-  gap as 4.9's own R2 item, just from the other side of the same door),
-  and replying to a specific project update (a client can open a support
-  ticket about anything, including a project, but there is no reply
-  thread hung off one particular update).
+  points at it applies more here than on the admin side. Replying to a
+  specific update is built: each update carries a "Reply" link that
+  opens Support with the project and a dated subject already filled in
+  (`?project=<id>&subject=Re: <title> update, <date>`) -- a full reply
+  THREAD hung off one exact update record was considered and dropped for
+  now, since a ticket already carries the same project context and a
+  second threading mechanism next to the first would be two ways to ask
+  the same question. NOT DONE: uploading a requested file (no upload
+  target exists for it yet -- same gap as 4.9's own R2 item, just from
+  the other side of the same door).
 
   ALSO BUILT, NOT ASKED FOR BY NAME BUT THE SAME "WHAT DO I DO ABOUT
   THIS" GAP THE OTHER FOUR ANSWER: a support ticket system.

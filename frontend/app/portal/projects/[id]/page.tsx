@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FileCheck2, ScrollText } from "lucide-react";
+import { FileCheck2, MessageSquareReply, ScrollText } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
 import { getDeliverablesFor, getProject, getUpdatesFor } from "@/lib/admin/store";
 import { STAGES } from "@/lib/admin/types";
@@ -37,7 +38,7 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
         <div>
           <span className="adDash__eyebrow">{service?.short ?? p.service}</span>
           <h1>{p.title}</h1>
-          <p>{p.due ? `Due ${when(p.due)}` : "No due date agreed yet"} · <HealthPill health={p.health} /></p>
+          <p>{p.due ? `Due ${when(p.due)}` : "No due date agreed yet"} · <HealthPill health={p.health} /> · Updates via {p.channel}</p>
         </div>
       </header>
 
@@ -66,7 +67,8 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
             {deliverables.length ? (
               <div className="adDash__compactList" style={{ display: "grid", gap: ".7rem" }}>
                 {deliverables.map((d) => {
-                  const latest = d.versions[d.versions.length - 1];
+                  const versions = d.versions.slice().reverse();
+                  const [latest, ...older] = versions;
                   return (
                     <div key={d.id} className="ad__panel" style={{ padding: "1rem" }}>
                       <div className="ad__row" style={{ justifyContent: "space-between" }}>
@@ -77,6 +79,24 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
                         v{latest.v} · {when(latest.at)}{latest.note ? ` · ${latest.note}` : ""}
                       </p>
                       {latest.url ? <a className="ad__btn" href={latest.url} target="_blank" rel="noopener noreferrer" style={{ marginBottom: ".6rem", display: "inline-flex" }}>View file</a> : null}
+                      {older.length ? (
+                        /* EVERY VERSION IS KEPT, so "which logo did they approve"
+                           stays answerable -- see the type's own comment on why
+                           versions are appended, never replaced. */
+                        <details style={{ margin: ".2rem 0 .6rem" }}>
+                          <summary style={{ cursor: "pointer", fontSize: ".8rem", color: "var(--ad-dim)" }}>
+                            {older.length} earlier version{older.length === 1 ? "" : "s"}
+                          </summary>
+                          <div style={{ display: "grid", gap: ".4rem", marginTop: ".5rem" }}>
+                            {older.map((v) => (
+                              <p key={v.v} style={{ margin: 0, fontSize: ".8rem", color: "var(--ad-dim)" }}>
+                                v{v.v} · {when(v.at)}{v.note ? ` · ${v.note}` : ""}
+                                {v.url ? <> · <a href={v.url} target="_blank" rel="noopener noreferrer">View file</a></> : null}
+                              </p>
+                            ))}
+                          </div>
+                        </details>
+                      ) : null}
                       {d.approval === "Revision requested" && d.approvalNote ? (
                         <p style={{ fontSize: ".85rem", background: "var(--ad-bg)", padding: ".6rem .75rem", borderRadius: "var(--ad-r)" }}>
                           <b>Your note:</b> {d.approvalNote}
@@ -103,6 +123,13 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
                     </div>
                     <p style={{ margin: ".5rem 0 0", fontSize: ".9rem" }}>{u.progress}</p>
                     {u.next ? <p style={{ margin: ".3rem 0 0", fontSize: ".85rem", color: "var(--ad-dim)" }}><b>Next:</b> {u.next}</p> : null}
+                    <Link
+                      className="ad__btn"
+                      style={{ marginTop: ".6rem", display: "inline-flex" }}
+                      href={`/portal/support?new=1&project=${p.id}&subject=${encodeURIComponent(`Re: ${p.title} update, ${when(u.at)}`)}`}
+                    >
+                      <MessageSquareReply aria-hidden="true" /> Reply
+                    </Link>
                   </div>
                 ))}
               </div>

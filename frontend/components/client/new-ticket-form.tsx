@@ -4,9 +4,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Send } from "lucide-react";
 import { submitTicket } from "@/lib/portal/actions";
-import { Area, Field, Form, Submit } from "@/components/admin/form";
+import { Area, Field, Form, Hidden, Submit } from "@/components/admin/form";
 
-export function NewTicketForm({ startOpen = false }: { startOpen?: boolean }) {
+export function NewTicketForm({
+  startOpen = false, subject, projectId,
+}: { startOpen?: boolean; subject?: string; projectId?: string }) {
   const [open, setOpen] = useState(startOpen);
   const router = useRouter();
 
@@ -21,7 +23,8 @@ export function NewTicketForm({ startOpen = false }: { startOpen?: boolean }) {
   return (
     <section className="ad__panel" style={{ padding: "1rem", marginBottom: ".9rem" }}>
       <Form action={submitTicket} resetOnDone onDone={() => { setOpen(false); router.refresh(); }}>
-        <Field name="subject" label="Subject" required placeholder="What's this about?" />
+        {projectId ? <Hidden name="projectId" value={projectId} /> : null}
+        <Field name="subject" label="Subject" required placeholder="What's this about?" defaultValue={subject} />
         <Area name="body" label="Message" required rows={4} placeholder="Tell us what you need -- the more specific, the faster we can help." />
         <div className="ad__row">
           <Submit tone="primary" icon={Send}>Send</Submit>

@@ -13,10 +13,13 @@ const STATUS_CLASS: Record<string, string> = {
   Closed: "ad__pill--flat",
 };
 
-export default async function PortalSupport({ searchParams }: { searchParams: Promise<{ new?: string }> }) {
+export default async function PortalSupport({
+  searchParams,
+}: { searchParams: Promise<{ new?: string; subject?: string; project?: string }> }) {
   const { client } = await getPortalRequest();
   if (!client) return null;
-  const startOpen = (await searchParams).new === "1";
+  const sp = await searchParams;
+  const startOpen = sp.new === "1";
 
   const tickets = getTicketsFor(client.id);
 
@@ -30,7 +33,7 @@ export default async function PortalSupport({ searchParams }: { searchParams: Pr
       </header>
 
       <div style={{ marginBottom: ".9rem" }}>
-        <NewTicketForm startOpen={startOpen} />
+        <NewTicketForm startOpen={startOpen} subject={sp.subject} projectId={sp.project} />
       </div>
 
       <Panel title={`${tickets.length} conversation${tickets.length === 1 ? "" : "s"}`}>
