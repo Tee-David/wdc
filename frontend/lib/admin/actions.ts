@@ -69,6 +69,20 @@ export async function createClient(_prev: ActionState, fd: FormData): Promise<Ac
   const { errors, draft } = readClient(fd);
   if (Object.keys(errors).length) return FAIL(errors);
 
+  /* CAUGHT HERE, ONE LEVEL ABOVE THE STORE, because this is a business rule
+     with a message a person reads, not a storage constraint. Archived
+     clients are checked too: the commonest duplicate is somebody re-adding a
+     client who dropped off the active list instead of restoring them. */
+  const dupe = db.findDuplicateClient(draft.email, draft.phone);
+  if (dupe) {
+    return FAIL(
+      { email: `${dupe.company} is already a client${dupe.archived ? ", archived" : ""} with this email or phone.` },
+      dupe.archived
+        ? `${dupe.company} matches this email or phone and is archived. Restore them from the client list instead of adding a second record.`
+        : `${dupe.company} already matches this email or phone.`,
+    );
+  }
+
   const c = db.addClient(draft);
   refresh("/admin/clients");
   /* REDIRECTED FROM THE SERVER, not pushed from the browser afterwards.
@@ -83,6 +97,15 @@ export async function updateClient(_prev: ActionState, fd: FormData): Promise<Ac
   const id = str(fd, "id");
   const { errors, draft } = readClient(fd);
   if (Object.keys(errors).length) return FAIL(errors);
+
+  const dupe = db.findDuplicateClient(draft.email, draft.phone, id);
+  if (dupe) {
+    return FAIL(
+      { email: `${dupe.company} already has this email or phone.` },
+      `${dupe.company} already matches this email or phone -- that would make two client records for one contact.`,
+    );
+  }
+
   if (!db.patchClient(id, draft)) return FAIL({}, "That client is no longer there.");
 
   refresh("/admin/clients", `/admin/clients/${id}`);
