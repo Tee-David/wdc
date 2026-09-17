@@ -73,9 +73,7 @@ export function SiteFooter() {
                 <Logo markClassName="ft__logoMark" />
               </Link>
               <p className="ft__pitch">
-                A creative and digital agency. Branding, search, websites, apps,
-                software and campaigns, built by one team so nothing is lost in the
-                hand-off.
+                Brand, web, apps and campaigns, built by one creative agency.
               </p>
             </div>
 
