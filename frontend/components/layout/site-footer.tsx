@@ -25,8 +25,9 @@ import { FREE_TOOLS } from "@/lib/tools";
  * and the box stacked in one column, every link list starts on the same line
  * and the two halves end at about the same depth.
  *
- * On a phone: the studio and the box first, Company as a row of pills, the
- * tools two across, and the policies as small print just above the copyright.
+ * On a phone: the studio and the box first, Company as a row of pills, Tools
+ * and More tools side by side, and the policies as small print just above the
+ * copyright.
  *
  * NO INVENTED LINKS. There is no social row, because no handles are recorded
  * anywhere in this project and a footer full of `href="#"` icons is worse than
@@ -49,9 +50,11 @@ const SOCIALS: { label: string; href: string }[] = [];
 
 export function SiteFooter() {
   const year = new Date().getFullYear();
-  /* Two columns of tools on a desktop, split at the midpoint, so a tool added
-     to `lib/tools.ts` rebalances them on its own. */
-  const toolRows = Math.max(1, Math.ceil(FREE_TOOLS.length / 2));
+  /* Split at the midpoint rather than curated by hand, so a tool added to
+     `lib/tools.ts` rebalances the two menus on its own. */
+  const toolsHalf = Math.ceil(FREE_TOOLS.length / 2);
+  const toolsA = FREE_TOOLS.slice(0, toolsHalf);
+  const toolsB = FREE_TOOLS.slice(toolsHalf);
 
   return (
     <footer className="pv ft">
@@ -114,8 +117,11 @@ export function SiteFooter() {
                   </li>
                 ))}
                 <li>
+                  {/* "Email us", not the address: 27 characters set the
+                      column's width and crowded the menus beside it. The
+                      address is still the link, and is on /contact. */}
                   <a href={`mailto:${CONTACT_EMAIL}`} className="ft__mail">
-                    {CONTACT_EMAIL}
+                    Email us
                     <ArrowUpRight aria-hidden="true" />
                   </a>
                 </li>
@@ -124,19 +130,31 @@ export function SiteFooter() {
 
             {/* THE TOOLS, FROM THE SAME REGISTRY THE SERVICE PAGES READ, so the
                 next one appears here the moment it is added to `lib/tools.ts`.
-                One list under one heading, flowed into two columns on a
-                desktop and two across on a phone: splitting it under "Tools"
-                and "More tools" read as two different kinds of thing. The
-                column hides itself if the registry is ever empty. */}
+                Two menus with their own titles, so every column in the row is
+                a titled menu and the gaps between them can be equal. Each hides
+                itself if its half of the registry is ever empty. */}
             {FREE_TOOLS.length > 0 ? (
-              <nav
-                className="ft__col ft__col--tools"
-                aria-label="Free tools"
-                style={{ "--tool-rows": toolRows } as React.CSSProperties}
-              >
-                <h2>Free tools</h2>
+              <div className="ft__toolsHead" aria-hidden="true">
+                <h2>Explore Our Free Tools</h2>
+              </div>
+            ) : null}
+
+            {toolsA.length > 0 ? (
+              <nav className="ft__col ft__col--tools" aria-label="Free tools">
+                <h2>Tools</h2>
                 <ul>
-                  {FREE_TOOLS.map((t) => (
+                  {toolsA.map((t) => (
+                    <li key={t.slug}><Link href={t.href}>{t.short}</Link></li>
+                  ))}
+                </ul>
+              </nav>
+            ) : null}
+
+            {toolsB.length > 0 ? (
+              <nav className="ft__col ft__col--more" aria-label="More free tools">
+                <h2>More tools</h2>
+                <ul>
+                  {toolsB.map((t) => (
                     <li key={t.slug}><Link href={t.href}>{t.short}</Link></li>
                   ))}
                 </ul>

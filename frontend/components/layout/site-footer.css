@@ -44,24 +44,57 @@
 /* THE LAYOUT, PHONE FIRST.
 
    On a phone everything is one column in reading order: the studio and the
-   subscribe box, Company as a row of pills, the tools two across, and the
-   policies as small print just above the copyright. */
+   subscribe box, Company as a row of pills, Tools and More tools side by
+   side, and the policies as small print just above the copyright. */
 .ft__cols {
   position: relative; z-index: 2;
   display: grid; gap: 2rem;
 }
 .ft__side, .ft__links { min-width: 0; }
-.ft__links { display: flex; flex-direction: column; gap: 2rem; }
+.ft__links {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2rem 1rem;
+}
+.ft__col--nav, .ft__col--legal { grid-column: 1 / -1; }
 /* The small print goes last, just above the copyright. */
 .ft__col--legal { order: 1; }
 
-.ft__col--tools ul { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1rem; }
 /* `.ft` in front for the same reason as the headings below: a bare
    `.ft__col a` lost to a page stylesheet's link colour, and the tools were the
    one list rendering bright instead of dim. */
-.ft .ft__col--tools a { color: var(--on-band-dim); }
-.ft .ft__col--tools a:hover { color: var(--on-band); }
-.ft__col--tools { padding-top: 2rem; border-top: 1px solid color-mix(in srgb, var(--on-band) 14%, transparent); }
+.ft .ft__col--tools a, .ft .ft__col--more a { color: var(--on-band-dim); }
+.ft .ft__col--tools a:hover, .ft .ft__col--more a:hover { color: var(--on-band); }
+/* ONE TITLE OVER BOTH TOOL MENUS ON A PHONE. Side by side at this width,
+   "Tools" and "More tools" read as a heading each over half a list; one
+   centred title over the pair says what the whole block is. The two menu
+   titles stay in the markup for screen readers and return from 561px. */
+.ft__toolsHead {
+  grid-column: 1 / -1; margin: 0; padding-top: 2rem; text-align: center;
+  border-top: 1px solid color-mix(in srgb, var(--on-band) 14%, transparent);
+}
+.ft .ft__toolsHead h2 {
+  margin: 0;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 700; font-size: 1.05rem; color: var(--on-band);
+}
+.ft__col--tools h2, .ft__col--more h2 {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap; margin: 0;
+}
+
+/* CENTRED ON A PHONE: the studio, the subscribe box, the pills and the small
+   print. The two tool menus keep their left edge, because a list read down
+   a column is easier to scan from a straight edge. The logo is larger here,
+   where it is the first thing in the footer and has the width to itself. */
+@media (max-width: 560px) {
+  .ft__side { text-align: center; }
+  .ft__brand { display: flex; flex-direction: column; align-items: center; }
+  .ft__logoMark { height: 4.75rem; }
+  .ft .ft__logo span:not(.sr-only) { font-size: 1.55rem; }
+  .ft__pitch { margin-inline: auto; }
+  .ft .ft__col--nav ul { justify-content: center; }
+  .ft .ft__col--legal ul { justify-content: center; text-align: center; }
+}
 
 /* Visually hidden, still read out: the pills and the small print explain
    themselves, but a screen reader moving by heading should find both. */
@@ -95,7 +128,7 @@
 
 /* FROM 561PX, EVERY LIST IS A COLUMN AGAIN. The pills, the small print and the
    hidden headings are a phone's answer to a narrow screen; with room for
-   columns, three titled lists read faster than any of them. */
+   columns, four titled lists read faster than any of them. */
 @media (min-width: 561px) {
   .ft__col--nav h2,
   .ft__col--legal h2 {
@@ -116,17 +149,10 @@
   .ft .ft__col--legal .ft__mail { display: inline-flex; }
 
   .ft__col--legal { order: 0; }
-  .ft__col--tools { padding-top: 0; border-top: 0; }
-  /* Down, then across, in two columns of equal length, so thirteen tools read
-     as two lists beside the others rather than one scroll. `--tool-rows` comes
-     from the markup: an explicit row count past the list's length would leave
-     empty rows whose gaps still take up height. */
-  .ft__col--tools ul {
-    grid-auto-flow: column;
-    grid-template-columns: none;
-    grid-template-rows: repeat(var(--tool-rows, 6), auto);
-    grid-auto-columns: max-content;
-    column-gap: clamp(1.5rem, 3vw, 2.5rem);
+  .ft__toolsHead { display: none; }
+  .ft__col--tools h2, .ft__col--more h2 {
+    position: static; width: auto; height: auto; overflow: visible;
+    clip-path: none; white-space: normal; margin: 0 0 1rem;
   }
 
   .ft__cols { gap: 2.5rem; }
@@ -135,14 +161,25 @@
     gap: 2.5rem; align-items: start;
   }
   .ft__side .nl { margin-top: 0; }
-  .ft__links { flex-direction: row; flex-wrap: wrap; gap: 2.5rem clamp(2.5rem, 8vw, 5rem); }
+  /* Two menus a row until four fit, sized to their content so the gap
+     between neighbours is the gap and nothing else. */
+  .ft .ft__col--nav, .ft .ft__col--legal { grid-column: auto; }
+  .ft__links { grid-template-columns: repeat(2, max-content); gap: 2.5rem 5rem; }
+}
+
+/* FOUR ACROSS FROM 900PX, WITH EQUAL SPACE BETWEEN THEM. `space-between`
+   shares the leftover width out evenly between neighbouring menus, so the gap
+   from Company to Useful links is the gap from Tools to More tools; the first
+   menu starts on the measure and the last ends on it. */
+@media (min-width: 900px) {
+  .ft__links { display: flex; justify-content: space-between; column-gap: 2.5rem; }
 }
 
 /* THE SIDEBAR, FROM 1280PX. The studio and the subscribe box stack on the left
    and the link columns fill the right, spread edge to edge so the last column
-   ends on the same line as the closing rule. Company, Useful links and two
-   columns of tools need about 740px beside a 340px sidebar, which arrives at
-   1280 and not before; below it the tablet layout above holds. */
+   ends on the same line as the closing rule. The four menus need about 700px
+   beside a 340px sidebar, which arrives at 1280 and not before; below it the
+   menus run the full width under the studio. */
 @media (min-width: 1280px) {
   .ft__cols {
     grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
@@ -150,7 +187,6 @@
   }
   .ft__side { display: flex; flex-direction: column; gap: 0; }
   .ft__side .nl { margin-top: 1.25rem; }
-  .ft__links { flex-wrap: nowrap; justify-content: space-between; column-gap: 2.5rem; }
 }
 
 /* The card is navy in BOTH themes, so the logo's auto ink -- which is navy on
