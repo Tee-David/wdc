@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { draftMode } from "next/headers";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -11,11 +12,26 @@ import {
   BLOG_POSTS, formatDate, readingMinutes,
   type BlogBlock, type BlogPost,
 } from "@/lib/blog";
-import { postBySlugDb, relatedPostsDb } from "@/lib/blog-db";
+import { postBySlugDb, postForPreview, relatedPostsDb } from "@/lib/blog-db";
+import { owner } from "@/lib/admin/guard";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 import "@/components/preview/preview.css";
 import "@/components/blog/blog.css";
+
+/**
+ * The post a request should see.
+ *
+ * Normally the live post and nothing else. In draft mode, and only for the
+ * signed-in owner, the post whatever its state -- which is how the editor's
+ * preview shows a draft on this exact page rather than on a lookalike.
+ */
+async function load(slug: string): Promise<{ post: BlogPost | undefined; preview: boolean }> {
+  if ((await draftMode()).isEnabled && !(await owner())) {
+    try { return { post: await postForPreview(slug), preview: true }; } catch { /* fall back to live */ }
+  }
+  return { post: await postBySlugDb(slug), preview: false };
+}
 
 /* Every post is known at build time, so every post is a static page. */
 export function generateStaticParams() {
@@ -26,10 +42,10 @@ export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
 ): Promise<Metadata> {
   const { slug } = await params;
-  const post = await postBySlugDb(slug);
+  const { post, preview } = await load(slug);
   if (!post) return { title: "Not found" };
 
-  const url = `${SITE_URL}/blog/${post.slug}`;
+  const url = post.canonical ?? `${SITE_URL}/blog/${post.slug}`;
   return {
     /* `absolute`, because each post writes its own search-result title and the
        root template would otherwise append the brand to a title already sized
@@ -37,6 +53,7 @@ export async function generateMetadata(
     title: { absolute: post.seoTitle },
     description: post.description,
     alternates: { canonical: url },
+    ...(preview ? { robots: { index: false, follow: false } } : {}),
     openGraph: {
       title: post.seoTitle,
       description: post.description,
@@ -46,6 +63,9 @@ export async function generateMetadata(
          `opengraph-image` file convention, and the drawn card beside this file
          carries the post's headline -- which the cover photograph does not.
          Next serves the same generated image as `twitter:image` too. */
+      /* Only a post that asks for a different picture sets one, because
+         setting it suppresses the drawn card. */
+      ...(post.socialImage ? { images: [{ url: `${SITE_URL}${post.socialImage}` }] } : {}),
       publishedTime: post.date,
       modifiedTime: post.updated ?? post.date,
     },
@@ -103,7 +123,7 @@ export default async function BlogPostPage(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
-  const post = await postBySlugDb(slug);
+  const { post, preview } = await load(slug);
   if (!post) notFound();
 
   const url = `${SITE_URL}/blog/${post.slug}`;
@@ -142,6 +162,14 @@ export default async function BlogPostPage(
   return (
     <>
       <JsonLd data={jsonLd} />
+      {preview ? (
+        /* On the page's own ground, so the button pair is the paper pair in
+           light mode and the inverted one in dark, like every other control. */
+        <form className="bl-preview" method="post" action={`/api/blog/preview/exit?to=/blog/${post.slug}`} role="region" aria-label="Preview">
+          <p>Preview. This is how the post renders; it may not be live yet.</p>
+          <button type="submit" className="btn-primary">Leave preview</button>
+        </form>
+      ) : null}
       <Header overHero />
       <main id="main" tabIndex={-1} className="flex-1 pv">
         {/* The cover IS the hero. The scrim is weighted to the bottom, where the
