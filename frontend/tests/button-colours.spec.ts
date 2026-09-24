@@ -37,6 +37,9 @@ const publicPages = [
   "/tools/domain", "/tools/email", "/tools/estimate", "/tools/seo",
   "/tools/link-preview", "/tools/business-name", "/tools/ai-cost",
   "/work", "/about", "/blog", "/onboarding", "/this-page-does-not-exist",
+  /* The sign-in submit was navy in light mode and orange in dark until it was
+     found in a screenshot; it is on the list so that cannot happen quietly. */
+  "/login", "/forgot-password",
 ];
 
 /**
@@ -61,6 +64,9 @@ const BUTTONS = [
   ".tl__go", ".tl__again",
   ".dm__yes", ".dm__no", ".dm__use",
   ".pv-modal__open",
+  /* Google's sign-in button is not here on purpose: its look is Google's
+     branding requirement, not ours to recolour. */
+  ".au__submit",
 ].join(", ");
 
 test.describe.configure({ timeout: 240_000 });
