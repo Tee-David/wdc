@@ -252,3 +252,38 @@ export async function savePost(
     throw error;
   }
 }
+
+/**
+ * The list's quick actions. "Publish now" dates the post today unless it
+ * already carries a date in the past, so a post moved back from draft keeps
+ * the date it first went out. A draft is the only thing that can be deleted:
+ * a post that has been live is in search results and other people's links,
+ * so it is unpublished, never erased.
+ */
+export async function publishPostNow(id: string, by: string): Promise<{ slug: string; title: string } | null> {
+  const r = await db.query<{ slug: string; title: string }>(
+    `UPDATE blog_posts
+     SET status = 'published',
+         published_at = CASE WHEN published_at IS NOT NULL AND published_at <= now() THEN published_at ELSE now() END,
+         saved_by = $2, saved_at = now()
+     WHERE id = $1 RETURNING slug, title`,
+    [id, by],
+  );
+  return r.rows[0] ?? null;
+}
+
+export async function movePostToDraft(id: string, by: string): Promise<{ slug: string; title: string } | null> {
+  const r = await db.query<{ slug: string; title: string }>(
+    `UPDATE blog_posts SET status = 'draft', saved_by = $2, saved_at = now() WHERE id = $1 RETURNING slug, title`,
+    [id, by],
+  );
+  return r.rows[0] ?? null;
+}
+
+export async function deleteDraftPost(id: string): Promise<{ slug: string; title: string } | null> {
+  const r = await db.query<{ slug: string; title: string }>(
+    `DELETE FROM blog_posts WHERE id = $1 AND status = 'draft' RETURNING slug, title`,
+    [id],
+  );
+  return r.rows[0] ?? null;
+}

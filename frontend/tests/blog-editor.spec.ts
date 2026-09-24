@@ -50,7 +50,7 @@ async function asOwner(page: Page, baseURL?: string) {
 
 test("a short description is refused with the count, and nothing is written", async ({ page, baseURL }) => {
   await asOwner(page, baseURL);
-  await page.goto("/admin/settings/blog/new", { waitUntil: "load" });
+  await page.goto("/admin/blog/new", { waitUntil: "load" });
   await page.getByLabel(/^Headline/).fill(TITLE);
   await page.getByLabel(/^Address/).fill(SLUG);
   await page.getByLabel(/^Service/).selectOption("branding");
@@ -70,7 +70,7 @@ test("a short description is refused with the count, and nothing is written", as
 
 test("a draft is saved, invisible on /blog, and visible in preview to the owner", async ({ page, baseURL, request }) => {
   await asOwner(page, baseURL);
-  await page.goto("/admin/settings/blog/new", { waitUntil: "load" });
+  await page.goto("/admin/blog/new", { waitUntil: "load" });
   await page.getByLabel(/^Headline/).fill(TITLE);
   await page.getByLabel(/^Address/).fill(SLUG);
   await page.getByLabel(/^Service/).selectOption("branding");
@@ -84,7 +84,7 @@ test("a draft is saved, invisible on /blog, and visible in preview to the owner"
   await page.getByLabel(/^Block 3 text/).fill("With the customer, not the logo.");
   await page.getByRole("button", { name: "Save" }).click();
 
-  await expect(page).toHaveURL(/\/admin\/settings\/blog\/[0-9a-f-]{36}\?saved=1$/);
+  await expect(page).toHaveURL(/\/admin\/blog\/[0-9a-f-]{36}\?saved=1$/);
   editUrl = page.url().replace(/\?saved=1$/, "");
 
   const row = await db.query<{ status: string; body: unknown[] }>("SELECT status, body FROM blog_posts WHERE slug = $1", [SLUG]);
@@ -140,4 +140,51 @@ test("publishing puts it on /blog and in the sitemap; unpublishing takes it out"
 
   expect((await request.get(`/blog/${SLUG}`)).status()).toBe(404);
   expect(await (await request.get("/sitemap.xml")).text()).not.toContain(`/blog/${SLUG}`);
+});
+
+test("Blog is its own admin page, the old Settings address still lands there, and the list's actions work", async ({ page, baseURL, request }) => {
+  await asOwner(page, baseURL);
+  await page.goto("/admin", { waitUntil: "load" });
+  const nav = page.getByRole("navigation", { name: "Admin sections" }).getByRole("link", { name: "Blog" });
+  await expect(nav).toHaveAttribute("href", "/admin/blog");
+
+  const moved = await request.get("/admin/settings/blog", { maxRedirects: 0 });
+  expect([301, 308]).toContain(moved.status());
+  expect(moved.headers()["location"]).toContain("/admin/blog");
+
+  /* A draft to act on, written straight into the table. */
+  const slug = `list-actions-${Date.now().toString(36)}`;
+  await db.query(
+    `INSERT INTO blog_posts (slug, title, seo_title, description, excerpt, topic, tags, cover, body, status)
+     VALUES ($1, 'List actions check', 'List actions check', $2, 'One line.', 'seo', '[]'::JSONB, '/hero/ai-key.jpg', $3::JSONB, 'draft')`,
+    [slug, DESCRIPTION, JSON.stringify([{ kind: "p", text: "Body." }])],
+  );
+  try {
+    const row = () => page.locator("tbody tr", { hasText: "List actions check" });
+    const act = async (item: string, verb: string) => {
+      await page.goto("/admin/blog?q=list+actions", { waitUntil: "load" });
+      await row().locator(".ad__rm").click();
+      await page.locator(".ad__rmList [data-item]", { hasText: item }).click();
+      await page.locator("dialog.addlg[open]").getByRole("button", { name: verb }).click();
+      await expect(page.locator("dialog.addlg[open]")).toHaveCount(0, { timeout: 30_000 });
+    };
+
+    await act("Publish now", "Publish it");
+    expect((await request.get(`/blog/${slug}`)).status()).toBe(200);
+
+    await act("Move to draft", "Move to draft");
+    expect((await request.get(`/blog/${slug}`)).status()).toBe(404);
+
+    /* Refused without the owner's credential, served with it. */
+    expect((await request.get("/admin/blog/export", { maxRedirects: 0 })).status()).toBe(307);
+    expect((await request.get("/admin/blog/export", { headers: { cookie: "wdc.session_token=placeholder" } })).status()).toBe(404);
+    const csv = await request.get("/admin/blog/export", { headers: { "x-boneyard-capture": TOKEN ?? "", cookie: "wdc.session_token=placeholder" } });
+    expect(csv.headers()["content-type"]).toContain("text/csv");
+    expect(await csv.text()).toContain(`/blog/${slug}`);
+
+    await act("Delete the draft", "Delete it");
+    expect((await db.query("SELECT 1 FROM blog_posts WHERE slug = $1", [slug])).rowCount).toBe(0);
+  } finally {
+    await db.query("DELETE FROM blog_posts WHERE slug = $1", [slug]);
+  }
 });
