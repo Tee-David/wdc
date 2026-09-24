@@ -22,7 +22,7 @@ export default async function PortalProjects() {
         </div>
       </header>
 
-      <Panel title={`${projects.length} project${projects.length === 1 ? "" : "s"}`}>
+      <Panel dataTour="portal-projects" title={`${projects.length} project${projects.length === 1 ? "" : "s"}`}>
         {projects.length ? (
           <div className="adDash__compactList">
             {projects.map((project) => {

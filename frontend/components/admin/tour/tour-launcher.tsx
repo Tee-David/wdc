@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { Compass, HelpCircle, RotateCcw } from "lucide-react";
-import { useAdminTour } from "./tour-provider";
+import { useOptionalAdminTour } from "./tour-provider";
 
 const SEEN_KEY = "wdc-admin-tour:launcher-opened";
 
@@ -44,12 +44,7 @@ export default function TourLauncher() {
   const trigger = useRef<HTMLButtonElement>(null);
   const reduced = useReducedMotion();
 
-  const {
-    active,
-    hasPageTour, pageTourCompleted, startPageTour, restartPageTour,
-    walkthroughCompleted, startWalkthrough, restartWalkthrough,
-    welcomeCompleted, startWelcome, restartWelcome,
-  } = useAdminTour();
+  const tours = useOptionalAdminTour();
 
   useEffect(() => {
     function close(event: PointerEvent) {
@@ -69,7 +64,12 @@ export default function TourLauncher() {
     };
   }, [open]);
 
-  if (active) return null;
+  if (!tours || tours.active) return null;
+  const {
+    hasPageTour, pageTourCompleted, startPageTour, restartPageTour,
+    walkthroughCompleted, startWalkthrough, restartWalkthrough,
+    welcomeCompleted, startWelcome, restartWelcome,
+  } = tours;
 
   const toggle = () => {
     setOpen((value) => !value);
