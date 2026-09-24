@@ -1,17 +1,15 @@
 import type { TourCompletion } from "./types";
 
 /**
- * Where a tour's "have I seen this" lives, for now.
+ * Where a tour's "have I seen this" lives.
  *
- * LOCAL STORAGE IS THE CACHE THE CHECKLIST ALLOWS, NOT THE SOURCE OF TRUTH
- * IT RULES OUT. Section 5.3 is explicit: "local storage may cache UI state
- * but is not the cross-device source of truth" -- the same admin signed in
- * on a phone and a laptop should not be offered the full walkthrough twice,
- * and that needs a row in CockroachDB keyed to the account, which does not
- * exist yet. What is here is the honest interim: real behaviour (skip once,
- * stay skipped; finish once, stay finished) on the one device that did it,
- * written so the eventual swap is additive -- a server read that seeds this
- * cache -- rather than a rewrite. Said plainly rather than left unsaid.
+ * THE ACCOUNT IS THE SOURCE OF TRUTH AND LOCAL STORAGE IS ITS CACHE, which is
+ * the split section 5.3 asks for. Every write lands here synchronously, so
+ * the UI answers at once, and is sent to `/api/tours`, which keeps one row per
+ * account per tour version. On mount the provider calls `syncFromAccount`,
+ * which copies the account's rows into this cache and sends up anything this
+ * browser knew first. Without a session (the capture bypass, or the database
+ * down) the server answers 401 or 503 and this simply stays a local cache.
  */
 
 const PREFIX = "wdc-admin-tour:";
@@ -34,6 +32,24 @@ export function readCompletion(tourId: string, version: number): TourCompletion 
   }
 }
 
+/* Set once the account answered a read. Until then there may be no account
+   to write to (the capture bypass, an expired session), and a write would
+   only be refused. */
+let accountKnown = false;
+
+function send(tour: string, status: TourCompletion["status"] | "cleared") {
+  if (!accountKnown) return;
+  try {
+    void fetch("/api/tours", {
+      method: "POST", keepalive: true,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ tour, status }),
+    }).catch(() => { /* The local copy stands. */ });
+  } catch {
+    /* No fetch here (a test, an old browser): the local copy stands. */
+  }
+}
+
 export function writeCompletion(tourId: string, version: number, status: TourCompletion["status"]) {
   try {
     const value: TourCompletion = { status, at: new Date().toISOString() };
@@ -41,6 +57,35 @@ export function writeCompletion(tourId: string, version: number, status: TourCom
   } catch {
     // Nothing to fall back to on this device; the tour just offers itself again.
   }
+  send(`${tourId}@${version}`, status);
+}
+
+/**
+ * Copy the account's record into this browser, and this browser's into the
+ * account. Returns whether anything local changed, so the caller can re-read.
+ */
+export async function syncFromAccount(tours: readonly { id: string; version: number }[]): Promise<boolean> {
+  let records: Record<string, TourCompletion>;
+  try {
+    const res = await fetch("/api/tours", { cache: "no-store" });
+    if (res.status !== 200) return false;
+    records = (await res.json()).records ?? {};
+    accountKnown = true;
+  } catch {
+    return false;
+  }
+  let changed = false;
+  for (const t of tours) {
+    const tour = `${t.id}@${t.version}`;
+    const remote = records[tour];
+    const local = readCompletion(t.id, t.version);
+    if (remote && (remote.status === "completed" || remote.status === "skipped") && !local) {
+      try { localStorage.setItem(key(t.id, t.version), JSON.stringify(remote)); changed = true; } catch { /* cache only */ }
+    } else if (local && !remote) {
+      send(tour, local.status);
+    }
+  }
+  return changed;
 }
 
 /** "Restart tour" clears the one record rather than every key this prefix
@@ -52,4 +97,5 @@ export function clearCompletion(tourId: string, version: number) {
   } catch {
     // Nothing stored, nothing to clear.
   }
+  send(`${tourId}@${version}`, "cleared");
 }

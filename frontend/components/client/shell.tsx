@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, Home, LogOut, Menu, Moon, Sun, X } from "luc
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { authClient } from "@/lib/auth-client";
 import { CLIENT_NAV, isClientNavActive } from "./client-nav";
+import TourLauncher from "@/components/admin/tour/tour-launcher";
 
 /**
  * THE CLIENT PORTAL'S OWN SHELL -- the same sidebar/topbar/mobile-drawer
@@ -89,13 +90,16 @@ function Sidebar({
 
       <nav className="ad__nav" aria-label="Portal sections">
         <div className="ad__navGroup">
-          {CLIENT_NAV.map(({ href, label, Icon }) => {
+          {CLIENT_NAV.map(({ href, label, Icon, tour }) => {
             const active = isClientNavActive(href, path);
             return (
               <Link
                 key={href}
                 href={href}
                 onClick={onNavigate}
+                /* Only the rail's copy is a tour target; the drawer renders
+                   the same links again and two matches would be ambiguous. */
+                data-tour={onNavigate ? undefined : tour}
                 className={`ad__link${active ? " is-on" : ""}`}
                 aria-current={active ? "page" : undefined}
                 title={collapsed ? label : undefined}
@@ -273,9 +277,10 @@ export default function ClientShell({
 
       <div className="ad__column">
         <header className="ad__topbar">
-          <button type="button" className="ad__topIcon ad__mobileMenu" onClick={() => setMobileOpen(true)} aria-label="Open menu"><Menu aria-hidden="true" /></button>
+          <button type="button" className="ad__topIcon ad__mobileMenu" data-tour="portal-mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Open menu"><Menu aria-hidden="true" /></button>
           <h1>{active?.label ?? "Portal"}</h1>
           <div className="ad__topActions">
+            <TourLauncher />
             <ThemeButton />
             <AccountMenu user={user} />
           </div>

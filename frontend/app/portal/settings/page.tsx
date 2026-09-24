@@ -30,7 +30,7 @@ export default async function PortalSettings() {
         </p>
       </Panel>
 
-      <Panel title="Notifications">
+      <Panel title="Notifications" dataTour="portal-notify">
         <div style={{ padding: "1rem" }}>
           <NotifyForm client={client} />
         </div>

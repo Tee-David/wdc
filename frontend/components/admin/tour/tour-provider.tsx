@@ -5,9 +5,10 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode,
 } from "react";
-import { ADMIN_WALKTHROUGH, ADMIN_WELCOME, adminPageTourFor } from "@/lib/tours/admin";
+import { ADMIN_PAGE_TOURS, ADMIN_WALKTHROUGH, ADMIN_WELCOME, adminPageTourFor } from "@/lib/tours/admin";
+import { CLIENT_WALKTHROUGH, CLIENT_WELCOME, clientPageTourFor } from "@/lib/tours/client";
 import type { TourDef } from "@/lib/tours/types";
-import { clearCompletion, readCompletion, writeCompletion } from "@/lib/tours/storage";
+import { clearCompletion, readCompletion, syncFromAccount, writeCompletion } from "@/lib/tours/storage";
 import Confetti from "@/components/onboarding/confetti";
 import "./tour.css";
 
@@ -50,6 +51,12 @@ type AdminTourContext = {
 
 const Ctx = createContext<AdminTourContext | null>(null);
 
+/** For a control that can render outside a provider -- the portal shell's
+ *  launcher, on the "not linked yet" screen that has nothing to tour. */
+export function useOptionalAdminTour() {
+  return useContext(Ctx);
+}
+
 export function useAdminTour() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useAdminTour must be used inside AdminTourProvider");
@@ -74,9 +81,29 @@ function useMounted() {
   return useSyncExternalStore(subscribeToMount, () => mountedFlag, () => false);
 }
 
-const FIRST_SIGN_IN_KEY = "wdc-admin-tour:offered-welcome";
+/* ONE PROVIDER, TWO AUDIENCES. The portal runs the same runtime, tooltip and
+   persistence as the admin, over its own registry; only these four things
+   differ. Chosen by name rather than passed in, because the layouts that
+   mount this are server components and cannot hand a function across. */
+const REGISTRIES = {
+  admin: {
+    welcome: ADMIN_WELCOME, walkthrough: ADMIN_WALKTHROUGH, pageTourFor: adminPageTourFor,
+    all: [ADMIN_WELCOME, ADMIN_WALKTHROUGH, ...Object.values(ADMIN_PAGE_TOURS)],
+    home: "/admin", offeredKey: "wdc-admin-tour:offered-welcome",
+  },
+  client: {
+    welcome: CLIENT_WELCOME, walkthrough: CLIENT_WALKTHROUGH, pageTourFor: clientPageTourFor,
+    all: [CLIENT_WELCOME, CLIENT_WALKTHROUGH],
+    home: "/portal", offeredKey: "wdc-client-tour:offered-welcome",
+  },
+} as const;
 
-export default function AdminTourProvider({ children, role }: { children: ReactNode; role: string }) {
+export type TourAudience = keyof typeof REGISTRIES;
+
+export default function AdminTourProvider({
+  children, role, audience = "admin",
+}: { children: ReactNode; role: string; audience?: TourAudience }) {
+  const { welcome: WELCOME, walkthrough: WALKTHROUGH, pageTourFor, home: HOME, offeredKey: FIRST_SIGN_IN_KEY, all: ALL } = REGISTRIES[audience];
   const pathname = usePathname();
   const router = useRouter();
   const mounted = useMounted();
@@ -94,12 +121,30 @@ export default function AdminTourProvider({ children, role }: { children: ReactN
      state change on an instance that has already decided it is done. */
   const [confettiKey, setConfettiKey] = useState(0);
 
-  const pageTour = adminPageTourFor(pathname);
+  const pageTour = pageTourFor(pathname);
+
+  /* THE ACCOUNT'S RECORD FIRST. Read once per mount, before the welcome is
+     offered, so a tour skipped on another device is not offered here. The
+     count is bumped to re-read the cache it filled; `synced` is true whether
+     the read worked or not, because a missing session must not hold the
+     offer back forever. */
+  const [synced, setSynced] = useState(false);
+  const [, setSyncCount] = useState(0);
+  useEffect(() => {
+    if (!mounted) return;
+    let live = true;
+    syncFromAccount(ALL).then((changed) => {
+      if (!live) return;
+      if (changed) setSyncCount((n) => n + 1);
+      setSynced(true);
+    });
+    return () => { live = false; };
+  }, [mounted, ALL]);
 
   const stop = useCallback(() => setRunningTour(null), []);
 
-  const startWelcome = useCallback(() => { setIsReplay(false); setRunningTour(ADMIN_WELCOME); }, []);
-  const startWalkthrough = useCallback(() => { setIsReplay(false); setRunningTour(ADMIN_WALKTHROUGH); }, []);
+  const startWelcome = useCallback(() => { setIsReplay(false); setRunningTour(WELCOME); }, [WELCOME]);
+  const startWalkthrough = useCallback(() => { setIsReplay(false); setRunningTour(WALKTHROUGH); }, [WALKTHROUGH]);
   const startPageTour = useCallback(() => {
     if (pageTour) { setIsReplay(false); setRunningTour(pageTour); }
   }, [pageTour]);
@@ -121,19 +166,19 @@ export default function AdminTourProvider({ children, role }: { children: ReactN
      gets the map, not a twenty-step lecture; the walkthrough stays one
      click away in the launcher for whoever wants it. */
   useEffect(() => {
-    if (!mounted || pathname !== "/admin") return;
+    if (!mounted || !synced || pathname !== HOME) return;
     let already = false;
     try { already = localStorage.getItem(FIRST_SIGN_IN_KEY) === "1"; } catch { /* offer it */ }
     if (already) return;
-    const completed = readCompletion(ADMIN_WELCOME.id, ADMIN_WELCOME.version);
+    const completed = readCompletion(WELCOME.id, WELCOME.version);
     if (completed) return;
 
     const id = window.setTimeout(() => {
       try { localStorage.setItem(FIRST_SIGN_IN_KEY, "1"); } catch { /* best effort */ }
-      setRunningTour(ADMIN_WELCOME);
+      setRunningTour(WELCOME);
     }, 1_500);
     return () => window.clearTimeout(id);
-  }, [mounted, pathname]);
+  }, [mounted, synced, pathname, HOME, FIRST_SIGN_IN_KEY, WELCOME]);
 
   const value = useMemo<AdminTourContext>(() => ({
     active: runningTour !== null,
@@ -147,13 +192,13 @@ export default function AdminTourProvider({ children, role }: { children: ReactN
        hydration mismatch fixed once already in `components/admin/form.tsx`.
        The genuine answer appears one tick after hydration rather than
        being guessed at during it. */
-    welcomeCompleted: mounted && readCompletion(ADMIN_WELCOME.id, ADMIN_WELCOME.version) !== null,
-    walkthroughCompleted: mounted && readCompletion(ADMIN_WALKTHROUGH.id, ADMIN_WALKTHROUGH.version) !== null,
+    welcomeCompleted: mounted && readCompletion(WELCOME.id, WELCOME.version) !== null,
+    walkthroughCompleted: mounted && readCompletion(WALKTHROUGH.id, WALKTHROUGH.version) !== null,
     pageTourCompleted: mounted && pageTour ? readCompletion(pageTour.id, pageTour.version) !== null : false,
-    restartWelcome: () => restart(ADMIN_WELCOME),
-    restartWalkthrough: () => restart(ADMIN_WALKTHROUGH),
+    restartWelcome: () => restart(WELCOME),
+    restartWalkthrough: () => restart(WALKTHROUGH),
     restartPageTour: () => { if (pageTour) restart(pageTour); },
-  }), [runningTour, startWelcome, startWalkthrough, startPageTour, pageTour, restart, mounted]);
+  }), [runningTour, startWelcome, startWalkthrough, startPageTour, pageTour, restart, mounted, WELCOME, WALKTHROUGH]);
 
   return (
     <Ctx.Provider value={value}>
@@ -171,7 +216,11 @@ export default function AdminTourProvider({ children, role }: { children: ReactN
                was: that is home, and the confetti lands somewhere familiar
                rather than on whichever page the walkthrough happened to end.
                A skipped tour leaves the reader where they chose to stop. */
-            if (pathname !== "/admin") router.push("/admin");
+            /* The live location, not `pathname`: the runtime keeps the
+               first `onFinish` it was handed, so the closure's pathname is
+               the page the tour STARTED on -- which is home, for every
+               walkthrough, and meant a finish elsewhere never came back. */
+            if (window.location.pathname !== HOME) router.push(HOME);
           }}
           onSkip={() => { writeCompletion(runningTour.id, runningTour.version, "skipped"); stop(); }}
         />

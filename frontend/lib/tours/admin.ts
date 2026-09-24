@@ -12,12 +12,8 @@ import type { TourDef } from "./types";
  * - one page tour per route in the sidebar, for "what does THIS page do"
  *   without sitting through either of the above.
  *
- * NO CLIENT REGISTRY SITS BESIDE THIS ONE YET. Section 5.1 also asks for a
- * client full walkthrough -- required actions, deliverables/approvals,
- * invoices/payments, forms/files, messages/support -- and every one of
- * those is a screen in the client portal section 4.7 has not built. A tour
- * of a page that does not exist is not a tour, it is a lie with steps, so
- * this file stays admin-only until there is a portal to walk through.
+ * THE CLIENT PORTAL HAS ITS OWN REGISTRY, `lib/tours/client.ts`, run by the
+ * same provider with `audience="client"`. Nothing here is shown to a client.
  *
  * TARGETS ARE `data-tour` ATTRIBUTES, EVERY ONE OF THEM, wired at the
  * component that renders the real control rather than guessed from a class

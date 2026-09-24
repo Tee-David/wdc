@@ -6,14 +6,14 @@ import { Banknote, FolderKanban, LayoutDashboard, LifeBuoy, Settings } from "luc
  * truth `components/admin/shell.tsx` already uses for `NAV`, sized to
  * AGENTS.md's "no more than six primary pages" rule with one to spare.
  */
-export type ClientNavItem = { href: string; label: string; Icon: LucideIcon };
+export type ClientNavItem = { href: string; label: string; Icon: LucideIcon; tour: string };
 
 export const CLIENT_NAV: ClientNavItem[] = [
-  { href: "/portal", label: "Overview", Icon: LayoutDashboard },
-  { href: "/portal/projects", label: "Projects", Icon: FolderKanban },
-  { href: "/portal/billing", label: "Billing", Icon: Banknote },
-  { href: "/portal/support", label: "Support", Icon: LifeBuoy },
-  { href: "/portal/settings", label: "Settings", Icon: Settings },
+  { href: "/portal", label: "Overview", Icon: LayoutDashboard, tour: "portal-nav-overview" },
+  { href: "/portal/projects", label: "Projects", Icon: FolderKanban, tour: "portal-nav-projects" },
+  { href: "/portal/billing", label: "Billing", Icon: Banknote, tour: "portal-nav-billing" },
+  { href: "/portal/support", label: "Support", Icon: LifeBuoy, tour: "portal-nav-support" },
+  { href: "/portal/settings", label: "Settings", Icon: Settings, tour: "portal-nav-settings" },
 ];
 
 export function isClientNavActive(href: string, path: string) {

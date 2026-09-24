@@ -13,7 +13,7 @@ import type { TourIconName } from "@/components/admin/tour/tour-icon";
  * possible if a tour is a hand-written tree of Joyride components.
  */
 
-export type TourRole = "owner" | "staff";
+export type TourRole = "owner" | "staff" | "client";
 
 /** Three depths, not one. `welcome` orients a first-time sign-in around the
  *  navigation alone; `walkthrough` is the deep, cross-page tour of what is

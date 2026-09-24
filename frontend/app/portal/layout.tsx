@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import ClientShell from "@/components/client/shell";
+import AdminTourProvider from "@/components/admin/tour/tour-provider";
 import { getPortalRequest } from "@/lib/portal/session";
 import { AdminState } from "@/components/admin/admin-state";
 import "@/components/admin/admin.css";
@@ -55,11 +56,16 @@ export default async function PortalLayout({ children }: { children: React.React
     );
   }
 
+  /* The same tour provider the admin mounts, over the portal's own registry.
+     Only a linked client gets it: the unlinked state above is one sentence
+     and has nothing to walk through. */
   return (
     <div className="ad">
-      <ClientShell user={user} clientCompany={client.company}>
-        {children}
-      </ClientShell>
+      <AdminTourProvider role="client" audience="client">
+        <ClientShell user={user} clientCompany={client.company}>
+          {children}
+        </ClientShell>
+      </AdminTourProvider>
     </div>
   );
 }
