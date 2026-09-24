@@ -20,6 +20,8 @@ import {
 import { AddExpense, InvoiceBuilder } from "@/components/admin/money-forms";
 import AuditLog from "@/components/admin/audit-log";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
+import { adminRole } from "@/lib/admin/guard";
+import { can } from "@/lib/admin/permissions";
 
 /* NO generateStaticParams: projects are created at runtime now, and a route
    list frozen at build time would 404 on anything opened since. */
@@ -40,6 +42,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const p = getProject(id);
   if (!p) notFound();
   const finance = financeDefaults();
+  /* Staff run the work and never see the money on it (lib/admin/permissions.ts). */
+  const money = can(await adminRole(), "money");
   const client = getClient(p.clientId);
   const invoices = client ? getInvoicesFor(client.id).filter((i) => i.projectId === p.id) : [];
   const at = STAGES.indexOf(p.stage);
@@ -73,7 +77,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         <div className="ad__row">
           <PageTourButton />
           <ProjectDetails project={p} />
-          {client ? (
+          {client && money ? (
             <InvoiceBuilder
               clients={[client]} projects={[p]} clientId={client.id}
               defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays}
@@ -91,14 +95,14 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             <dt>Scope</dt>
             <dd>{p.scope || <span className="ad__dim">Not written down yet</span>}</dd>
           </div>
-          <div>
+          {money ? <div>
             <dt>Budget</dt>
             <dd className="ad__num">
               {p.budget === null
                 ? <span className="ad__dim">No figure agreed</span>
                 : naira(p.budget)}
             </dd>
-          </div>
+          </div> : null}
           <div>
             <dt>Updates go through</dt>
             <dd>{p.channel}</dd>
@@ -144,7 +148,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           not on receipts is precisely the one worth knowing about. Every
           figure is derived from the invoices and the expenses filed against
           this project; nothing is stored, so nothing can go stale. */}
-      <section className="ad__panel" style={{ marginBottom: ".9rem" }} data-tour="proj-margin">
+      {money ? <section className="ad__panel" style={{ marginBottom: ".9rem" }} data-tour="proj-margin">
         <div className="ad__panelH">
           <h2>What it has made</h2>
           <AddExpense projects={[p]} />
@@ -189,7 +193,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             </p>
           </div>
         )}
-      </section>
+      </section> : null}
 
       <div className="ad__grid2">
         <Panel title="History">
@@ -210,7 +214,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           </div>
         </Panel>
 
-        <Panel title="Invoices">
+        {money ? <Panel title="Invoices">
           {invoices.length ? (
             <div className="ad__scroll">
               <table className="ad__t">
@@ -228,7 +232,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
               </table>
             </div>
           ) : <Empty title="Nothing invoiced against this" />}
-        </Panel>
+        </Panel> : null}
       </div>
 
       <div style={{ marginTop: ".9rem" }}>

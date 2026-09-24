@@ -10,7 +10,12 @@ export const getAdminRequest = cache(async () => {
   if (capture) {
     return {
       capture,
-      session: { user: { name: "WDC Admin", email: "admin@localhost", image: null, role: "owner" } },
+      /* Capture can stand in for staff too (same token, never in
+         production -- see isAdminCapture), so a spec can prove what staff
+         are shown and refused without a second real account. */
+      session: requestHeaders.get("x-boneyard-capture-role") === "staff"
+        ? { user: { name: "WDC Staff", email: "staff@localhost", image: null, role: "staff" } }
+        : { user: { name: "WDC Admin", email: "admin@localhost", image: null, role: "owner" } },
     };
   }
 
