@@ -379,6 +379,15 @@ test("the page never scrolls sideways at 320px, and every control is a 44px targ
       .map(({ label, box }) => `${label} (${Math.round(box.height)}px)`),
   );
   /* Inline links inside a sentence (the legal line) are exempt under 2.5.8. */
-  expect(small.filter((s) => !/Terms of Service|Privacy Policy|Talk to us/.test(s))).toEqual([]);
+  expect(small.filter((s) => !/^Terms \(|Privacy Policy|Talk to us/.test(s))).toEqual([]);
+
+  /* The footer is two lines: the way back and the way in share one row, and
+     the legal line fits on the next. */
+  const back = await page.locator(".au__back--foot").boundingBox();
+  const newHere = await page.locator(".au__new").boundingBox();
+  expect(Math.abs(back!.y + back!.height / 2 - (newHere!.y + newHere!.height / 2))).toBeLessThan(4);
+  expect(newHere!.x).toBeGreaterThan(back!.x + back!.width);
+  const legal = await page.locator(".au__legal").evaluate((el) => el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight));
+  expect(legal).toBeLessThan(1.5);
   await context.close();
 });

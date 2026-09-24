@@ -320,6 +320,7 @@
 .au__foot p { margin: 0; }
 .au__foot a { color: inherit; text-decoration: underline; text-underline-offset: .2em; }
 .au__foot a:hover { color: var(--foreground); }
+.au__footRow { display: grid; justify-items: center; gap: 4px; }
 .au__new { font-size: 14px; }
 .au__new a { color: var(--accent-ink); font-weight: 600; }
 .au__new a:hover { color: var(--accent-ink); }
@@ -779,8 +780,13 @@
     transform-origin: center;
     transition: transform .4s var(--au-ease);
   }
+  /* THE GREETING BESIDE THE ORB: one centred column, word over name over
+     language, so every language and every length shares one axis. */
+  .au__stage { gap: 12px; }
   .greet { flex: 1 1 auto; max-width: 340px; transition: opacity .25s var(--au-ease); }
-  .greet__caption { text-align: left; padding-left: 4%; }
+  .greet__svg { aspect-ratio: 460 / 230; }
+  .greet__caption { margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .greet__captionLead { display: none; }
 
   .au__panel {
     position: relative;
@@ -799,6 +805,19 @@
   .au__column { align-self: center; }
   .au__foot { margin-top: auto; padding-top: 8px; }
   .au__back--foot { display: inline-flex; }
+  /* TWO LINES, NOT FOUR: the way back and the way in on one row, the legal
+     line under them. Wraps to two rows only if a font makes it too wide. */
+  .au__foot { gap: 6px; }
+  .au__footRow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0 16px;
+    width: 100%;
+  }
+  .au__footRow .au__new { margin: 0; }
+  .au__legal { font-size: 12.5px; }
   .lx__heading { font-size: 26px; }
   .lx__form { margin-top: 24px; }
 

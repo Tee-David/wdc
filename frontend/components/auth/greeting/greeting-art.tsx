@@ -1,7 +1,7 @@
 "use client";
 
 import localFont from "next/font/local";
-import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useGreetingState, useStage } from "@/components/auth/stage/stage-context";
 import { byLang, GREETINGS, type Greeting } from "./greetings";
 import { PEN_HELLO, PEN_XIN_CHAO, penLength, type PenWord } from "./pen-paths";
@@ -28,6 +28,22 @@ const caveat = localFont({
 const SYSTEM = 'system-ui, -apple-system, "Segoe UI", "Noto Sans", sans-serif';
 const W = 460;
 const H = 150;
+/**
+ * TALLER ON A PHONE. Beside the orb the greeting gets about 155px of width,
+ * and in a 460x150 canvas a name had to share the height with the word:
+ * "hello" shrank to 60% the moment it knew who you were. At 460x230 the word
+ * keeps the size it had alone and the name takes a line of its own.
+ */
+const H_PHONE = 230;
+const PHONE = "(max-width: 1023.98px)";
+const onPhoneChange = (notify: () => void) => {
+  const mq = window.matchMedia(PHONE);
+  mq.addEventListener("change", notify);
+  return () => mq.removeEventListener("change", notify);
+};
+const isPhone = () => window.matchMedia(PHONE).matches;
+/* The server draws the desktop canvas; a phone corrects it before the word is drawn. */
+const notPhone = () => false;
 
 const HOLD_MS = 1600;
 const FADE_MS = 350;
@@ -79,7 +95,9 @@ function FittedText({
   dir,
   className,
   delay = 0,
+  height = H,
 }: {
+  height?: number;
   text: string;
   family: string;
   weight: number;
@@ -132,7 +150,7 @@ function FittedText({
   return (
     <g className={`${className}${fit === null ? " is-measuring" : ""}`} style={{ ["--delay" as string]: `${delay}s` }}>
       <clipPath id={clip}>
-        <rect className={`greet__wipe greet__wipe--${dir}`} x={0} y={0} width={W} height={H} />
+        <rect className={`greet__wipe greet__wipe--${dir}`} x={0} y={0} width={W} height={height} />
       </clipPath>
       <text
         ref={ref}
@@ -149,10 +167,39 @@ function FittedText({
   );
 }
 
-function Word({ greeting, name }: { greeting: Greeting; name: string | null }) {
+function Word({ greeting, name, phone }: { greeting: Greeting; name: string | null; phone: boolean }) {
   const isPen = greeting.method === "pen-en" || greeting.method === "pen-vi";
   const word = greeting.method === "pen-vi" ? PEN_XIN_CHAO : PEN_HELLO;
   const speed = greeting.method === "pen-vi" ? PEN_SPEED_VI : 1;
+  const h = phone ? H_PHONE : H;
+
+  if (phone) {
+    /* ONE LAYOUT FOR EVERY LANGUAGE ON A PHONE: the greeting as large as the
+       width allows on the top line, the name on the line under it, both
+       centred on the same axis as the caption. Alone, the greeting sits in
+       the middle of the canvas. */
+    const top = name ? 0 : (H_PHONE - 150) / 2;
+    const greetingLine = isPen ? (
+      <PenSvg word={word} speed={speed} y={top + 4} height={142} />
+    ) : greeting.method === "reveal" ? (
+      <FittedText text={greeting.text} family={SYSTEM} weight={600} y={top + 108} size={96} maxWidth={W * 0.92} dir={greeting.dir} className="greet__reveal" height={h} />
+    ) : (
+      <FittedText text={greeting.text} family={caveat.style.fontFamily} weight={700} y={top + 118} size={124} maxWidth={W * 0.94} dir="ltr" className="greet__script" height={h} />
+    );
+    const penTime = isPen ? penLength(word) * speed : 0.9;
+    return (
+      <>
+        {greetingLine}
+        {name ? (
+          greeting.method === "reveal" ? (
+            <FittedText text={name} family="var(--font-space-grotesk), system-ui, sans-serif" weight={600} y={214} size={56} maxWidth={W * 0.8} dir="ltr" className="greet__reveal" delay={0.9} height={h} />
+          ) : (
+            <FittedText text={name} family={caveat.style.fontFamily} weight={700} y={218} size={80} maxWidth={W * 0.8} dir="ltr" className="greet__script" delay={penTime * 0.8} height={h} />
+          )
+        ) : null}
+      </>
+    );
+  }
 
   if (isPen) {
     const penTime = penLength(word) * speed;
@@ -214,9 +261,10 @@ export default function GreetingArt() {
   const [index, setIndex] = useState(0);
   const [leaving, setLeaving] = useState(false);
   const [still, setStill] = useState(false);
+  const phone = useSyncExternalStore(onPhoneChange, isPhone, notPhone);
 
   const greeting = name ? byLang(lang) : GREETINGS[index % GREETINGS.length]!;
-  const key = `${greeting.lang}|${name ?? ""}`;
+  const key = `${greeting.lang}|${name ?? ""}|${phone ? "phone" : "wide"}`;
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -263,14 +311,19 @@ export default function GreetingArt() {
       <svg
         key={key}
         className={`greet__svg${leaving && !name ? " is-leaving" : ""}`}
-        viewBox={`0 0 ${W} ${H}`}
+        viewBox={`0 0 ${W} ${phone ? H_PHONE : H}`}
         preserveAspectRatio="xMidYMid meet"
         overflow="visible"
         lang={greeting.lang === "English" ? "en" : undefined}
       >
-        <Word greeting={greeting} name={name} />
+        <Word greeting={greeting} name={name} phone={phone} />
       </svg>
-      <span className="greet__caption">{name ? `Welcome back, in ${greeting.lang}` : greeting.lang}</span>
+      {/* On a phone only the language shows: the name above already says
+          "welcome back", and the long form wrapped to two ragged lines. */}
+      <span className="greet__caption">
+        {name ? <span className="greet__captionLead">Welcome back, in </span> : null}
+        {greeting.lang}
+      </span>
     </div>
   );
 }
