@@ -7,6 +7,7 @@ import * as db from "./store";
 import { invoiceTotals, naira, type InvoiceLine } from "./types";
 import { paystackMode } from "@/lib/paystack";
 import { actorName, owner } from "./guard";
+import { queueLogged, retryLogged } from "@/lib/message-log";
 import {
   FAIL, OK, type ActionState,
   approval, channel, checked, health, isoDate, kobo, looksEmail, method, num, priority,
@@ -922,7 +923,7 @@ export async function logMessage(_prev: ActionState, fd: FormData): Promise<Acti
   if (!subject) return FAIL({ subject: "Say in a few words what it was about." });
   const summary = str(fd, "summary").slice(0, 600);
   const by = await actorName();
-  db.queueMessage({
+  await queueLogged({
     channel: channel as "WhatsApp" | "Phone" | "In person", direction,
     to: str(fd, "to").slice(0, 120) || client.name,
     subject, summary: summary || "No further note.",
@@ -940,7 +941,7 @@ export async function logMessage(_prev: ActionState, fd: FormData): Promise<Acti
 export async function resendMessage(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const refused = await owner();
   if (refused) return refused;
-  const m = db.retryMessage(str(fd, "id"), str(fd, "by") || "Studio");
+  const m = await retryLogged(str(fd, "id"), str(fd, "by") || "Studio");
   if (!m) return FAIL({}, "That one did not fail, or is no longer there.");
   refresh("/admin/money", "/admin/clients");
   return OK("Cleared for another attempt. The failed row stays as the record that the first try did not go.");

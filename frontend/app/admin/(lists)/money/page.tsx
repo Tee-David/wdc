@@ -1,9 +1,10 @@
 import Link from "next/link";
 import {
-  failedMessageCount, financeDefaults, getAging, getClient, getClients, getCollectionRate,
+  financeDefaults, getAging, getClient, getClients, getCollectionRate,
   getEstimates, getExpenses, getInvoice, getInvoices, getMonthly, getPayments,
   getPipeline, getProjects, getSummary, providerAttentionCount,
 } from "@/lib/admin/store";
+import { failedLoggedCount } from "@/lib/message-log";
 import {
   estimateState, estimateTotals, invoiceStatus, invoiceTotals, naira, nairaShort,
 } from "@/lib/admin/types";
@@ -51,7 +52,7 @@ export default async function MoneyPage({
   const finance = financeDefaults();
   const s = getSummary();
   const unreconciled = providerAttentionCount();
-  const failedMail = failedMessageCount();
+  const failedMail = await failedLoggedCount();
   const aging = getAging();
   const rate = getCollectionRate();
   const owed = aging.reduce((n, b) => n + b.amount, 0);

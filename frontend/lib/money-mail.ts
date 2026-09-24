@@ -3,7 +3,8 @@ import "server-only";
 import { SITE_URL } from "@/lib/site";
 import { escapeHtml, mailIsConfigured } from "@/lib/email";
 import { composeEmailHtml, emailButton, emailP, emailSmall } from "@/lib/email-templates";
-import { getClient, queueMessage } from "@/lib/admin/store";
+import { getClient } from "@/lib/admin/store";
+import { queueLogged } from "@/lib/message-log";
 import { sendLogged } from "@/lib/outbox";
 import { invoiceTotals, naira, notifyAllows } from "@/lib/admin/types";
 import type { Invoice, Payment } from "@/lib/admin/types";
@@ -72,7 +73,7 @@ export async function sendPaymentReceiptEmail(input: {
   const client = getClient(invoice.clientId);
   const to = client?.email?.trim();
   if (!to) {
-    queueMessage({
+    await queueLogged({
       channel: "Email", to: "(no address on file)",
       subject: `Receipt ${payment.receiptNo}`,
       summary: `Not sent: ${client?.company ?? "the client"} has no email address on file.`,
@@ -136,7 +137,7 @@ export async function sendInvoiceEmail(input: { invoice: Invoice; by?: string })
   const url = new URL(`/i/${invoice.token}`, SITE_URL).toString();
 
   if (!to) {
-    queueMessage({
+    await queueLogged({
       channel: "Email", to: "(no address on file)",
       subject: `Invoice ${invoice.number}`,
       summary: `Not sent: ${client?.company ?? "the client"} has no email address on file.`,
@@ -190,7 +191,7 @@ export async function sendInvoiceReminderEmail(input: { invoice: Invoice; today?
   const day = (input.today ?? new Date()).toISOString().slice(0, 10);
 
   if (!notifyAllows(client?.notify, "reminders")) {
-    queueMessage({
+    await queueLogged({
       channel: "Email", to: to || "(no address on file)",
       subject: `Reminder for ${invoice.number}`,
       summary: `Not sent: ${client?.company ?? "the client"} has invoice reminders switched off.`,

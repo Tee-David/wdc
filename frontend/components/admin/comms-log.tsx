@@ -1,4 +1,5 @@
-import { getClient, getMessages } from "@/lib/admin/store";
+import { getClient } from "@/lib/admin/store";
+import { listLogged } from "@/lib/message-log";
 import { whatsappLink } from "@/lib/admin/whatsapp";
 import { MessageActions } from "./log-message";
 import { Empty, Panel, when } from "@/components/admin/bits";
@@ -31,7 +32,7 @@ const TONE: Record<MessageState, string> = {
   Skipped: "ad__pill--flat",
 };
 
-export default function CommsLog({
+export default async function CommsLog({
   clientId, aboutIds, title = "What we have sent", limit = 20,
 }: {
   clientId?: string;
@@ -39,7 +40,7 @@ export default function CommsLog({
   title?: string;
   limit?: number;
 }) {
-  const messages = getMessages({ clientId, aboutIds, limit });
+  const messages = await listLogged({ clientId, aboutIds, limit });
   /* The hand-over controls belong to a person, so they only appear on a
      client's own log, not on an invoice's. */
   const client = clientId && !aboutIds ? getClient(clientId) : null;

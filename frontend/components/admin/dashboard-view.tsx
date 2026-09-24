@@ -2,7 +2,8 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, CalendarClock, CircleDollarSign, ClipboardList, FolderClock, LifeBuoy, MailWarning, MessageSquareWarning, Send } from "lucide-react";
 import { SERVICES } from "@/lib/services";
-import { failedMessageCount, getBoard, getClient, getClients, getDeliverablesFor, getInvoices, getMonthly, getPayments, getProjects, getSubmissions, getSummary, getTasks, getTickets, providerAttentionCount } from "@/lib/admin/store";
+import { getBoard, getClient, getClients, getDeliverablesFor, getInvoices, getMonthly, getPayments, getProjects, getSubmissions, getSummary, getTasks, getTickets, providerAttentionCount } from "@/lib/admin/store";
+import { failedLoggedCount } from "@/lib/message-log";
 import { invoiceStatus, invoiceTotals, naira, nairaShort, projectAttention, STAGES } from "@/lib/admin/types";
 
 /* Worst first. The attention queue is read top-down in the morning, so the
@@ -27,7 +28,8 @@ function greeting() {
   return hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 }
 
-export function AdminDashboardView({ firstName }: { firstName?: string }) {
+export async function AdminDashboardView({ firstName }: { firstName?: string }) {
+  const failedMail = await failedLoggedCount();
   const clients = getClients();
   const projects = getProjects();
   const invoices = getInvoices();
@@ -90,9 +92,9 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
       tone: "bad",
       menu: null,
     }] : []),
-    ...(failedMessageCount() ? [{
+    ...(failedMail ? [{
       href: "/admin/money/reconciliation",
-      title: `${failedMessageCount()} message${failedMessageCount() === 1 ? "" : "s"} did not go`,
+      title: `${failedMail} message${failedMail === 1 ? "" : "s"} did not go`,
       detail: "Emails the mail server refused or that could not be sent",
       meta: "Reconciliation",
       icon: MailWarning,
