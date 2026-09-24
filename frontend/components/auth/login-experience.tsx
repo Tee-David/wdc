@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, useSyncExternalStore } from "react";
-import { ChevronRight, Fingerprint, KeyRound, Mail } from "lucide-react";
+import { Fingerprint, KeyRound, Mail } from "lucide-react";
 import { useStage } from "@/components/auth/stage/stage-context";
 import { useHydrated } from "@/components/auth/use-hydrated";
 import { CodeField, EmailChip, EmailField, GoogleMark, InboxButton, PasswordField, PrimaryButton } from "@/components/auth/fields";
@@ -45,6 +45,8 @@ const HEADINGS: Record<Step, string> = {
   resetSent: copy.resetSent.heading,
   success: copy.identify.heading,
 };
+
+type Tab = "magic" | "password" | "passkey";
 
 const errorText = (key: ErrorKey | null) => (key ? copy.errors[key] : null);
 
@@ -92,6 +94,8 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
   const popping = useRef(false);
   const selectEmailNext = useRef(false);
   const pressingSubmit = useRef(false);
+  /** Where focus goes after a tab changes the step: stay on the tab (keyboard), or into the field (a tap on Password). */
+  const tabFocus = useRef<"tab" | "field" | null>(null);
   /** How many step entries this page has pushed onto the history stack. */
   const historyIndex = useRef(0);
 
@@ -233,8 +237,13 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
       container?.querySelector<HTMLElement>("[data-heading]")?.focus({ preventScroll: true });
     };
     /* Announced and focused together, once the new step is on screen. */
+    const fromTab = tabFocus.current;
+    tabFocus.current = null;
     const id = requestAnimationFrame(() => {
       setLive(HEADINGS[step]);
+      /* Switching tabs from the keyboard keeps focus on the tabs, so the
+         arrows keep working; a tap on Password goes straight to the field. */
+      if (fromTab === "tab") return;
       if (step === "password") passwordRef.current?.focus({ preventScroll: true });
       else if (step === "identify" && selectEmailNext.current) {
         selectEmailNext.current = false;
@@ -350,6 +359,9 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
     setReturnError("");
     personalise(email);
     dispatch({ type: "IDENTIFY_SUBMIT" });
+    /* The way in that worked last time opens first. Password is a step of
+       its own, so its tab is opened by going there. */
+    if (lastMethod === "password") dispatch({ type: "CHOOSE_METHOD", method: "password" });
   };
 
   /* ------------------------------------------------------------ magic */
@@ -554,25 +566,47 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
 
   /* ------------------------------------------------------------ views */
 
+  /* A FIXED ORDER. Tabs that reorder themselves by last use move under the
+     thumb; last use chooses which one opens instead. */
   const methods = useMemo(() => {
-    const list: Array<{ id: "magic" | "password" | "passkey"; icon: React.ReactNode; title: string; desc: string }> = [
-      { id: "magic", icon: <Mail aria-hidden="true" />, ...copy.method.magic },
-      { id: "password", icon: <KeyRound aria-hidden="true" />, ...copy.method.password },
+    const list: Array<{ id: Tab; icon: React.ReactNode; tab: string }> = [
+      { id: "magic", icon: <Mail aria-hidden="true" />, tab: copy.method.magic.tab },
+      { id: "password", icon: <KeyRound aria-hidden="true" />, tab: copy.method.password.tab },
     ];
-    if (passkeyOffered) list.push({ id: "passkey", icon: <Fingerprint aria-hidden="true" />, ...copy.method.passkey });
-    const last = list.findIndex((m) => m.id === lastMethod);
-    if (last > 0) list.unshift(...list.splice(last, 1));
+    if (passkeyOffered) list.push({ id: "passkey", icon: <Fingerprint aria-hidden="true" />, tab: copy.method.passkey.tab });
     return list;
-  }, [passkeyOffered, lastMethod]);
+  }, [passkeyOffered]);
 
-  const onMethodKeys = (event: React.KeyboardEvent<HTMLUListElement>) => {
-    if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
-    const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>("button"));
-    const at = buttons.indexOf(document.activeElement as HTMLButtonElement);
-    const next =
-      event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1 : event.key === "ArrowDown" ? (at + 1) % buttons.length : (at - 1 + buttons.length) % buttons.length;
-    buttons[next]?.focus();
+  /* Password is a step of its own (Back, focus, the reducer's failure count),
+     so its tab IS the step; the other two are views of the method step. */
+  const [pickedTab, setPickedTab] = useState<Tab | null>(null);
+  const fallbackTab: Tab = lastMethod === "passkey" && passkeyOffered ? "passkey" : lastMethod === "password" ? "password" : "magic";
+  const shownTab = step === "password" ? "password" : pickedTab && pickedTab !== "password" ? pickedTab : fallbackTab === "password" ? "magic" : fallbackTab;
+  const activeTab: Tab = methods.some((m) => m.id === shownTab) ? shownTab : "magic";
+
+  const chooseTab = (id: Tab, pointer: boolean) => {
+    if (busy) return;
+    setPickedTab(id);
+    /* Set only when the step changes, or it would be spent on a later one. */
+    if (id === "password") {
+      if (step === "password") return;
+      tabFocus.current = pointer ? "field" : "tab";
+      dispatch({ type: "CHOOSE_METHOD", method: "password" });
+    } else if (step === "password") {
+      tabFocus.current = "tab";
+      dispatch({ type: "GO", step: "method" });
+    }
+  };
+
+  const onTabKeys = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(event.key)) return;
+    const at = methods.findIndex((m) => m.id === activeTab);
+    const rtl = getComputedStyle(event.currentTarget).direction === "rtl";
+    const forward = (event.key === "ArrowRight") !== rtl;
+    const next = event.key === "Home" ? 0 : event.key === "End" ? methods.length - 1 : forward ? (at + 1) % methods.length : (at - 1 + methods.length) % methods.length;
     event.preventDefault();
+    chooseTab(methods[next].id, false);
+    event.currentTarget.querySelector<HTMLButtonElement>(`#lx-tab-${methods[next].id}`)?.focus();
   };
 
   const changeEmail = () => {
@@ -611,6 +645,44 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
         </div>
       </>
     ) : null;
+
+  function passwordPanel() {
+    const suggest = state.failedPasswordAttempts >= 3 || errorKey === "rateLimited";
+    return (
+      <>
+        <form className="au__form lx__form" method="post" noValidate onSubmit={submitPassword}>
+          {/* The address, invisibly, in the same form, so a password
+              manager saves the pair rather than a password for nobody. */}
+          <input type="email" name="username" autoComplete="username" value={email} readOnly hidden />
+          <PasswordField
+            ref={passwordRef}
+            value={password}
+            onChange={(value) => {
+              setPassword(value);
+              if (errorKey === "passwordEmpty") dispatch({ type: "SET_ERROR", errorKey: null });
+            }}
+            error={errorKey && ["passwordEmpty", "invalidCredentials", "rateLimited", "network"].includes(errorKey) ? errorText(errorKey) : null}
+            onCaps={(on) => on && setLive(copy.password.capsLock)}
+          />
+          <PrimaryButton awake={password.length > 0} hydrated={hydrated} busy={busy}>
+            {copy.password.submit}
+          </PrimaryButton>
+        </form>
+        <button type="button" className="au-link lx__forgot" onClick={() => dispatch({ type: "FORGOT_PASSWORD" })}>
+          {copy.password.forgot}
+        </button>
+        {suggest ? (
+          <div className="lx__suggest">
+            <p>{copy.password.suggestMagic}</p>
+            <button type="button" className="au-btn au-btn--secondary" onClick={() => void sendMagic()} disabled={!hydrated}>
+              <Mail aria-hidden="true" />
+              {copy.password.suggestMagicButton}
+            </button>
+          </div>
+        ) : null}
+      </>
+    );
+  }
 
   function renderFront(current: Step) {
     switch (current) {
@@ -662,81 +734,72 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
         );
 
       case "method":
+      case "password":
         return (
           <>
             <EmailChip email={email} onChange={changeEmail} />
             <Heading step="method" />
-            <ul className="lx__methods" onKeyDown={onMethodKeys}>
-              {methods.map((method) => (
-                <li key={method.id}>
+            {/* ICONS UNTIL CHOSEN. Three labelled tabs did not fit a phone:
+                "Password" was cut to "Passwo..." and lost its icon. The
+                chosen tab opens to icon and label; the others close to an
+                icon. The label stays in the DOM, only its width animates, so
+                every tab keeps its accessible name. */}
+            <div className="lx__tabs" role="tablist" aria-label={copy.method.heading} onKeyDown={onTabKeys}>
+              {methods.map((method) => {
+                const selected = method.id === activeTab;
+                return (
                   <button
+                    key={method.id}
                     type="button"
-                    className="lx__method"
-                    aria-disabled={busy || undefined}
+                    role="tab"
+                    id={`lx-tab-${method.id}`}
+                    aria-selected={selected}
+                    aria-controls="lx-tabpanel"
+                    tabIndex={selected ? 0 : -1}
+                    className="lx__tab"
                     disabled={!hydrated}
-                    onClick={() => {
-                      if (busy) return;
-                      if (method.id === "magic") void sendMagic();
-                      else if (method.id === "password") dispatch({ type: "CHOOSE_METHOD", method: "password" });
-                      else void startPasskey();
-                    }}
+                    onClick={(event) => chooseTab(method.id, event.detail > 0)}
                   >
-                    <span className="lx__methodIcon">{method.icon}</span>
-                    <span className="lx__methodText">
-                      <span className="lx__methodTitle">
-                        {method.title}
-                        {method.id === lastMethod ? <span className="lx__badge">{copy.method.lastUsed}</span> : null}
-                      </span>
-                      <span className="lx__methodDesc">{method.desc}</span>
+                    {method.icon}
+                    <span className="lx__tabLabel">
+                      <span>{method.tab}</span>
                     </span>
-                    <ChevronRight aria-hidden="true" className="lx__methodGo" />
                   </button>
-                </li>
-              ))}
-            </ul>
-            {blockError(["rateLimited", "network"])}
+                );
+              })}
+            </div>
+            <div className="lx__panel" role="tabpanel" id="lx-tabpanel" key={activeTab}>
+              {activeTab === "password" ? passwordPanel() : activeTab === "passkey" ? (
+                <>
+                  <p className="lx__sub">
+                    {copy.method.passkey.desc}
+                    {lastMethod === "passkey" ? <span className="lx__badge">{copy.method.lastUsed}</span> : null}
+                  </p>
+                  <div className="lx__stack">
+                    <button type="button" className="au-btn au-btn--primary" data-awake="true" onClick={() => void startPasskey()} disabled={!hydrated} aria-disabled={busy || undefined}>
+                      <Fingerprint aria-hidden="true" />
+                      {copy.method.passkey.title}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="lx__sub">
+                    {copy.method.magic.desc}
+                    {lastMethod === "magic" ? <span className="lx__badge">{copy.method.lastUsed}</span> : null}
+                  </p>
+                  <div className="lx__stack">
+                    <button type="button" className="au-btn au-btn--primary" data-awake="true" onClick={() => void sendMagic()} disabled={!hydrated} aria-disabled={busy || undefined}>
+                      <Mail aria-hidden="true" />
+                      {copy.method.magic.title}
+                    </button>
+                  </div>
+                  {blockError(["rateLimited", "network"])}
+                </>
+              )}
+            </div>
           </>
         );
-
-      case "password": {
-        const suggest = state.failedPasswordAttempts >= 3 || errorKey === "rateLimited";
-        return (
-          <>
-            <EmailChip email={email} onChange={changeEmail} />
-            <Heading step="password" />
-            <form className="au__form lx__form" method="post" noValidate onSubmit={submitPassword}>
-              {/* The address, invisibly, in the same form, so a password
-                  manager saves the pair rather than a password for nobody. */}
-              <input type="email" name="username" autoComplete="username" value={email} readOnly hidden />
-              <PasswordField
-                ref={passwordRef}
-                value={password}
-                onChange={(value) => {
-                  setPassword(value);
-                  if (errorKey === "passwordEmpty") dispatch({ type: "SET_ERROR", errorKey: null });
-                }}
-                error={errorKey && ["passwordEmpty", "invalidCredentials", "rateLimited", "network"].includes(errorKey) ? errorText(errorKey) : null}
-                onCaps={(on) => on && setLive(copy.password.capsLock)}
-              />
-              <PrimaryButton awake={password.length > 0} hydrated={hydrated} busy={busy}>
-                {copy.password.submit}
-              </PrimaryButton>
-            </form>
-            <button type="button" className="au-link lx__forgot" onClick={() => dispatch({ type: "FORGOT_PASSWORD" })}>
-              {copy.password.forgot}
-            </button>
-            {suggest ? (
-              <div className="lx__suggest">
-                <p>{copy.password.suggestMagic}</p>
-                <button type="button" className="au-btn au-btn--secondary" onClick={() => void sendMagic()} disabled={!hydrated}>
-                  <Mail aria-hidden="true" />
-                  {copy.password.suggestMagicButton}
-                </button>
-              </div>
-            ) : null}
-          </>
-        );
-      }
 
       case "magicSent":
         return (
@@ -868,8 +931,11 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
     <div className="lx" ref={rootRef}>
       <div className="lx__flip" ref={flipRef} data-face={shownFace}>
         <div className="lx__face lx__face--front" ref={frontRef} inert={shownFace !== "front" || undefined}>
+          {/* Method and password are one screen with tabs: the same key, so a
+              tab change neither remounts the tabs (and drops focus) nor
+              slides the whole card in again. */}
           {face === "front" || shownFace === "front" || flipping ? (
-            <div className="lx__step" key={frontStep} data-dir={state.direction}>
+            <div className="lx__step" key={frontStep === "password" ? "method" : frontStep} data-dir={state.direction}>
               {renderFront(frontStep)}
             </div>
           ) : null}
