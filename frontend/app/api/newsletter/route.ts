@@ -1,7 +1,7 @@
 import { after, NextRequest, NextResponse } from "next/server";
 import { CONTACT_EMAIL } from "@/lib/site";
-import { escapeHtml } from "@/lib/email";
 import { sendLogged } from "@/lib/outbox";
+import { composeEmailHtml, emailP, emailPanel, emailSmall } from "@/lib/email-templates";
 import { looksLikeEmail, newsletterIsConfigured, normaliseEmail, subscribe } from "@/lib/newsletter";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 
@@ -108,7 +108,16 @@ export async function POST(request: NextRequest) {
              contact page to get back out. */
           unsubscribe: true,
           text: `You asked to hear from We Dig Creativity.\n\nWe write when we have something worth your time: work we have shipped, what it cost, and what we learned. Not weekly, and never a digest of other people's links.\n\nIf this was not you, ignore this message and nothing else will arrive.\n\nWe Dig Creativity\n${CONTACT_EMAIL}`,
-          html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a;max-width:560px"><p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#c95000">WE DIG CREATIVITY</p><h1 style="font-size:27px;margin:12px 0">You are on the list.</h1><p>We write when we have something worth your time: work we have shipped, what it cost, and what we learned. Not weekly, and never a digest of other people&rsquo;s links.</p><p style="color:#666680;font-size:13px">If this was not you, ignore this message and nothing else will arrive.</p></div>`,
+          html: composeEmailHtml({
+            title: "You are on the list",
+            preheader: "We write when we have something worth your time.",
+            heading: "You are on the list",
+            blocks: [
+              emailP("We write when we have something worth your time: work we have shipped, what it cost, and what we learned. Not weekly, and never a digest of other people&rsquo;s links."),
+              emailSmall("If this was not you, ignore this message and nothing else will arrive."),
+            ],
+            unsubscribe: true,
+          }),
         }, {
           summary: `Welcome to the newsletter, from the ${source}.`,
           /* The day is in the key: one welcome per address per day, however
@@ -125,7 +134,12 @@ export async function POST(request: NextRequest) {
           to: process.env.SMTP_REPLY_TO || CONTACT_EMAIL,
           subject: "New newsletter subscriber",
           text: `${email}\nFrom: ${source}`,
-          html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a"><p><b>${escapeHtml(email)}</b> subscribed from the ${escapeHtml(source)}.</p></div>`,
+          html: composeEmailHtml({
+            title: "New newsletter subscriber",
+            preheader: `${email} subscribed from the ${source}.`,
+            heading: "New newsletter subscriber",
+            blocks: [emailPanel([["Email", email], ["Signed up from", source]])],
+          }),
         }, {
           summary: `New subscriber from the ${source}.`,
           dedupeKey: `newsletter-notice:${email}:${new Date().toISOString().slice(0, 10)}`,

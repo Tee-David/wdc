@@ -1,8 +1,9 @@
 import { after, NextRequest, NextResponse } from "next/server";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 import { db } from "@/lib/db/pool";
-import { escapeHtml, mailIsConfigured } from "@/lib/email";
+import { mailIsConfigured } from "@/lib/email";
 import { secretKey, sendLogged } from "@/lib/outbox";
+import { composeEmailHtml, emailButton, emailP, emailSmall } from "@/lib/email-templates";
 import {
   cleanAnswers, cleanService, cleanStep, cookieToken, draftFromToken, issueToken,
   normalizeEmail, requestOriginIsAllowed, RESUME_TTL_SECONDS, setOnboardingCookie, tokenHash,
@@ -159,7 +160,16 @@ export async function POST(request: NextRequest) {
           to,
           subject: "Continue your WDC onboarding form",
           text: `Your onboarding answers are saved. Continue within three days: ${resumeUrl}\n\nIf you did not request this link, you can ignore this email.`,
-          html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a;max-width:560px"><p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#c95000">WE DIG CREATIVITY</p><h1 style="font-size:28px;margin:12px 0">Your answers are saved.</h1><p>Use the button below to continue on any device within three days.</p><p><a href="${escapeHtml(resumeUrl)}" style="display:inline-block;background:#000000;color:#ffffff;padding:13px 20px;border-radius:999px;font-weight:700;text-decoration:none">Continue onboarding</a></p><p style="color:#666680;font-size:13px">If you did not request this link, you can ignore this email.</p></div>`,
+          html: composeEmailHtml({
+            title: "Your answers are saved",
+            preheader: "Continue your onboarding form on any device within three days.",
+            heading: "Your answers are saved",
+            blocks: [
+              emailP("Continue on any device within three days."),
+              emailButton("Continue onboarding", resumeUrl),
+              emailSmall("If you did not request this link, you can ignore this email."),
+            ],
+          }),
         }, {
           summary: "A link to continue a saved onboarding form.",
           dedupeKey: secretKey("onboarding-resume", linkToken),
