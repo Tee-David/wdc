@@ -128,6 +128,19 @@ body:has(.sm-panel[data-open="true"]) .st {
   opacity: 0 !important;
   pointer-events: none !important;
 }
+/* THE SIGN-IN PAGES, THE ADMIN AND THE PORTAL NEVER LOAD THE AGENT (see
+   components/layout/site-chrome.tsx), but a client-side navigation into them
+   keeps whatever a public page already injected: the avatar arrived on /login
+   from the homepage and sat on top of "Back to site". Same rule as the open
+   menu: step aside rather than be removed, so nothing reflows. */
+body:has(.au) .ai-agent-chat-avatar-container,
+body:has(.au) .embedded-agent-container,
+body:has(.ad) .ai-agent-chat-avatar-container,
+body:has(.ad) .embedded-agent-container {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
 @media (prefers-reduced-motion: no-preference) {
   .uw--corner, .st { transition: opacity .2s ease; }
 }
