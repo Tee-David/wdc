@@ -31,7 +31,7 @@ const font = fs.readFileSync(path.join(root, "assets/fonts/SpaceGrotesk-Bold.ttf
 const mark = fs.readFileSync(path.join(root, "public/brand/icon-white.svg"), "utf8");
 
 const WHITE = "#ffffff";
-const ORANGE = "#ff6500";
+const NAVY = "#000065";
 /* Mid-grey on purpose: 3.4:1 on the white card, and still visible when a
    dark-mode client repaints the card near-black. */
 const SOCIAL = "#8a8aa3";
@@ -55,7 +55,7 @@ const linkedin = `<div style="width:22px;height:22px;border-radius:4px;backgroun
 
 const assets = {
   "logo-white.png": lockup(WHITE),
-  "logo-orange.png": lockup(ORANGE),
+  "logo-navy.png": lockup(NAVY),
   "arrow-right-white.png": arrow,
   "social-x.png": brand(icons.siX),
   "social-instagram.png": brand(icons.siInstagram),

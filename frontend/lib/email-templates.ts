@@ -50,7 +50,6 @@ import {
 /* ------------------------------------------------------------------ tokens */
 
 const NAVY = "#000065";
-const ORANGE = "#ff6500";
 /** The button's fill: see the note at the top of this file. */
 const ACCENT_INK = "#c95000";
 const INK = "#0e0e2c";
@@ -343,9 +342,13 @@ function socialRow() {
  * Mail from repainting it, but the Gmail and Outlook apps darken light mail
  * whatever it says. So nothing here depends on the card staying white: the
  * header logo is white on a navy cell, which those apps leave dark; the
- * footer's logo is the orange one, which reads on white and on near-black
- * alike; the social marks are mid-grey for the same reason; and every
- * colour of type is left for the client to invert, which it does well.
+ * social marks are mid-grey, which reads on white and on near-black alike;
+ * and every colour of type is left for the client to invert.
+ *
+ * THE FOOTER'S NAVY LOGO IS THE ONE WEAK SPOT. Navy on a darkened card is
+ * hard to see. Outlook marks its dark mode with `[data-ogsc]`, so there the
+ * white lockup is swapped in; the Gmail apps darken without saying so, and
+ * nothing in an email can respond to that.
  */
 function shell(input: {
   title: string;
@@ -379,6 +382,9 @@ function shell(input: {
     .wdc-wrap{width:100% !important}
     .wdc-pad{padding-left:22px !important;padding-right:22px !important}
   }
+  /* Outlook's dark mode: the navy footer logo would vanish, so show the white one. */
+  [data-ogsc] .wdc-logo-light{display:none !important}
+  [data-ogsc] .wdc-logo-dark{display:block !important}
 </style>
 </head>
 <body style="margin:0;padding:0;background:${PAGE};-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">
@@ -398,7 +404,8 @@ function shell(input: {
 
 <tr><td class="wdc-pad" style="padding:8px 32px 32px">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="border-top:1px solid ${HAIRLINE};padding-top:28px">
-    <a href="${SITE_URL}" style="text-decoration:none"><img src="${ASSETS}/logo-orange.png" width="122" height="40" alt="We Dig Creativity" style="display:block;width:122px;height:40px;border:0;margin:0 0 20px;color:${ORANGE};font-family:${DISPLAY};font-size:16px;font-weight:700"></a>
+    <a href="${SITE_URL}" style="text-decoration:none"><img src="${ASSETS}/logo-navy.png" width="122" height="40" alt="We Dig Creativity" class="wdc-logo-light" style="display:block;width:122px;height:40px;border:0;margin:0 0 20px;color:${NAVY};font-family:${DISPLAY};font-size:16px;font-weight:700"></a>
+    <!--[if !mso]><!--><a href="${SITE_URL}" style="text-decoration:none"><img src="${ASSETS}/logo-white.png" width="122" height="40" alt="" class="wdc-logo-dark" style="display:none;width:122px;height:40px;border:0;margin:0 0 20px"></a><!--<![endif]-->
     ${socialRow()}
     <p style="margin:0 0 4px;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">&copy; ${year} ${escapeHtml(COMPANY_NAME)}</p>
     <p style="margin:0 0 16px;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">${escapeHtml(LOCATION)}</p>
