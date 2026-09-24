@@ -446,3 +446,8 @@ export function Actions({ children }: { children: React.ReactNode }) {
 export function Hidden({ name, value }: { name: string; value: string }) {
   return <input type="hidden" name={name} value={value} />;
 }
+
+/** The error for one field, for a control that is not one of the kit's own. */
+export function useFieldError(name: string): string | undefined {
+  return useContext(Ctx).errors[name];
+}

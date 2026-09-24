@@ -1,5 +1,6 @@
 import { SERVICES, type ServiceSlug } from "@/lib/services";
 import { BLOG_POSTS, type BlogBlock } from "@/lib/blog";
+import { blocksToDoc, cleanDoc, docHeadings, isDoc, type RichDoc } from "@/lib/blog-doc";
 
 /**
  * What the blog editor is allowed to write.
@@ -8,10 +9,13 @@ import { BLOG_POSTS, type BlogBlock } from "@/lib/blog";
  * same limits the server enforces. Everything here treats its input as
  * hostile: the editor is a form, and a form is a POST anybody can send.
  *
- * THE BODY IS THE BLOCK SHAPE AND NOTHING ELSE. p, h2, h3, list, quote,
- * callout -- the same union the renderer walks to guarantee one h1 and a
- * correct outline. There is no HTML block, because an editor that accepts
- * markup has given that guarantee away.
+ * THE BODY IS A WHITELISTED DOCUMENT, NEVER MARKUP. The rich-text editor
+ * sends a ProseMirror document; `cleanDoc` rebuilds it from the nodes the
+ * renderer knows (paragraphs, h2/h3, lists, quotes, images; bold, italic,
+ * links) and drops everything else. A body in the original block shape is
+ * converted first, so an older client or a script cannot bypass the check.
+ * There is no HTML anywhere in this path, because an editor that accepts
+ * markup has given the one-h1, nested-outline guarantee away.
  */
 
 export const POST_STATUSES = ["draft", "scheduled", "published"] as const;
@@ -41,7 +45,7 @@ export type PostInput = {
   cover: string;
   canonical: string | null;
   socialImage: string | null;
-  body: BlogBlock[];
+  body: RichDoc;
   status: PostStatus;
   /** The display date. Required to publish or schedule; ignored for a draft. */
   publishedAt: string | null;
@@ -77,7 +81,7 @@ function block(raw: unknown): BlogBlock | null {
   }
 }
 
-export function parsePost(raw: Raw): { ok: true; post: PostInput } | { ok: false; errors: Record<string, string> } {
+export function parsePost(raw: Raw, opts: { imageHosts?: readonly string[] } = {}): { ok: true; post: PostInput } | { ok: false; errors: Record<string, string> } {
   const errors: Record<string, string> = {};
 
   const slug = text(raw.slug, 80).toLowerCase();
@@ -126,11 +130,13 @@ export function parsePost(raw: Raw): { ok: true; post: PostInput } | { ok: false
   if (typeof parsedBody === "string") {
     try { parsedBody = JSON.parse(parsedBody); } catch { parsedBody = null; }
   }
-  const body = Array.isArray(parsedBody) ? parsedBody.slice(0, LIMITS.blocks).map(block).filter((b): b is BlogBlock => b !== null) : [];
-  if (!body.some((b) => b.kind === "p")) errors.body = "The post needs at least one paragraph.";
+  const legacy = Array.isArray(parsedBody)
+    ? blocksToDoc(parsedBody.slice(0, LIMITS.blocks).map(block).filter((b): b is BlogBlock => b !== null))
+    : null;
+  const body = cleanDoc(legacy ?? (isDoc(parsedBody) ? parsedBody : null), { imageHosts: opts.imageHosts });
+  if (!body.content.some((b) => b.type === "paragraph")) errors.body = "The post needs at least one paragraph.";
   /* The outline rule the renderer relies on: an h3 only ever sits under an h2. */
-  const firstHeading = body.find((b) => b.kind === "h2" || b.kind === "h3");
-  if (firstHeading?.kind === "h3") errors.body = "The first heading has to be a section heading (h2); a sub-heading needs a section above it.";
+  if (docHeadings(body)[0]?.level === 3) errors.body = "The first heading has to be a section heading (h2); a sub-heading needs a section above it.";
 
   const status = (POST_STATUSES as readonly string[]).includes(String(raw.status)) ? (raw.status as PostStatus) : "draft";
   const dateRaw = text(raw.publishedAt, 40);

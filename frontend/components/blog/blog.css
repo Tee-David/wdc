@@ -380,6 +380,31 @@
 .bl-body li { font-size: 1.03rem; line-height: 1.7; color: var(--ink); }
 .bl-body li::marker { color: var(--accent-ink); }
 
+/* What the rich-text editor adds to the block shape: numbered lists, lists
+   and paragraphs inside a quote, links, emphasis and pictures. */
+.bl-body ol {
+  margin: 0; padding-left: 1.5rem;
+  list-style: decimal outside;
+  display: grid; gap: .6rem;
+}
+.bl-body li > * + * { margin-top: .5rem; }
+.bl-body :is(ul, ol) :is(ul, ol) { margin-top: .5rem; }
+.bl-body blockquote > * + * { margin-top: .6rem; }
+.bl-body blockquote p { font-size: inherit; line-height: inherit; }
+.bl-body strong { font-weight: 700; }
+.bl-body a {
+  color: var(--accent-ink);
+  text-decoration: underline; text-underline-offset: .2em; text-decoration-thickness: 1px;
+  overflow-wrap: anywhere;
+}
+.bl-body a:hover { text-decoration-thickness: 2px; }
+.bl-body a:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; border-radius: 2px; }
+.bl-figure { margin: 2rem 0; }
+.bl-figure img {
+  display: block; width: 100%; height: auto;
+  border-radius: 14px; background: var(--paper-2);
+}
+
 /* A rule beside a pulled quote is a typographic convention several centuries
    older than the web, so it stays. The ORANGE goes, because that was the part
    that made it look like the status bars everywhere else. */

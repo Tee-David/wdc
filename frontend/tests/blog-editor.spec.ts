@@ -41,6 +41,14 @@ test.afterAll(async () => {
   await db.end();
 });
 
+/** The body is a rich-text editor now; it loads after the form. */
+async function body(page: Page) {
+  const doc = page.locator(".adRte__doc");
+  await expect(doc).toBeVisible({ timeout: 60_000 });
+  await doc.click();
+  return doc;
+}
+
 async function asOwner(page: Page, baseURL?: string) {
   await page.setExtraHTTPHeaders({ "x-boneyard-capture": TOKEN ?? "" });
   await page.context().addCookies([
@@ -58,14 +66,16 @@ test("a short description is refused with the count, and nothing is written", as
   await page.getByLabel(/^Search result title/).fill("What a brand audit covers");
   await page.getByLabel(/^Meta description/).fill("Too short.");
   await expect(page.locator(".adBlog__count").nth(1)).toContainText("10 characters");
-  await page.getByLabel(/^Block 1 text/).fill("Most rebrands start in the wrong place.");
+  await body(page);
+  await page.keyboard.type("Most rebrands start in the wrong place.");
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.locator(".ad__msg.is-bad")).toBeVisible();
   await expect(page.locator(".ad__fe", { hasText: "Between 120 and 155" })).toBeVisible();
   const rows = await db.query("SELECT 1 FROM blog_posts WHERE slug = $1", [SLUG]);
   expect(rows.rowCount).toBe(0);
-  /* What was typed survives the failure. */
+  /* What was typed survives the failure, body included. */
   await expect(page.getByLabel(/^Headline/)).toHaveValue(TITLE);
+  await expect(page.locator(".adRte__doc")).toContainText("Most rebrands start in the wrong place.");
 });
 
 test("a draft is saved, invisible on /blog, and visible in preview to the owner", async ({ page, baseURL, request }) => {
@@ -77,23 +87,43 @@ test("a draft is saved, invisible on /blog, and visible in preview to the owner"
   await page.getByLabel(/^Card sentence/).fill("What we look at before we touch a logo.");
   await page.getByLabel(/^Search result title/).fill("What a brand audit covers");
   await page.getByLabel(/^Meta description/).fill(DESCRIPTION);
-  await page.getByLabel(/^Block 1 text/).fill("Most rebrands start in the wrong place.");
-  await page.getByRole("button", { name: "Section heading" }).click();
-  await page.getByLabel(/^Block 2 text/).fill("Where to start");
-  await page.getByRole("button", { name: "Paragraph" }).click();
-  await page.getByLabel(/^Block 3 text/).fill("With the customer, not the logo.");
+  await body(page);
+  await page.keyboard.type("Most rebrands start in the ");
+  await page.getByRole("button", { name: "Bold" }).click();
+  await page.keyboard.type("wrong place");
+  await page.getByRole("button", { name: "Bold" }).click();
+  await page.keyboard.type(".");
+  await page.keyboard.press("Enter");
+  await page.getByRole("button", { name: "Heading", exact: true }).click();
+  await page.keyboard.type("Where to start");
+  await page.keyboard.press("Enter");
+  await page.keyboard.type("With the customer, not the logo.");
+  await page.keyboard.press("Enter");
+  await page.getByRole("button", { name: "Numbered list" }).click();
+  await page.keyboard.type("Talk to five customers");
   await page.getByRole("button", { name: "Save" }).click();
 
   await expect(page).toHaveURL(/\/admin\/blog\/[0-9a-f-]{36}\?saved=1$/);
   editUrl = page.url().replace(/\?saved=1$/, "");
 
-  const row = await db.query<{ status: string; body: unknown[] }>("SELECT status, body FROM blog_posts WHERE slug = $1", [SLUG]);
+  const row = await db.query<{ status: string; body: unknown }>("SELECT status, body FROM blog_posts WHERE slug = $1", [SLUG]);
   expect(row.rows[0].status).toBe("draft");
-  expect(row.rows[0].body).toEqual([
-    { kind: "p", text: "Most rebrands start in the wrong place." },
-    { kind: "h2", text: "Where to start" },
-    { kind: "p", text: "With the customer, not the logo." },
-  ]);
+  /* Stored as the cleaned document: the trailing empty line is gone. */
+  expect(row.rows[0].body).toEqual({
+    type: "doc",
+    content: [
+      { type: "paragraph", content: [
+        { type: "text", text: "Most rebrands start in the " },
+        { type: "text", text: "wrong place", marks: [{ type: "bold" }] },
+        { type: "text", text: "." },
+      ] },
+      { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Where to start" }] },
+      { type: "paragraph", content: [{ type: "text", text: "With the customer, not the logo." }] },
+      { type: "orderedList", content: [
+        { type: "listItem", content: [{ type: "paragraph", content: [{ type: "text", text: "Talk to five customers" }] }] },
+      ] },
+    ],
+  });
 
   /* A stranger sees nothing. */
   expect((await request.get(`/blog/${SLUG}`, { headers: { "x-boneyard-capture": "" } })).status()).toBe(404);
@@ -104,6 +134,8 @@ test("a draft is saved, invisible on /blog, and visible in preview to the owner"
   await expect(page.locator("h1")).toHaveText(TITLE);
   await expect(page.locator(".bl-preview")).toContainText("Preview");
   await expect(page.locator("#where-to-start")).toHaveText("Where to start");
+  await expect(page.locator(".bl-body strong")).toHaveText("wrong place");
+  await expect(page.locator(".bl-body ol li")).toHaveText("Talk to five customers");
   await page.getByRole("button", { name: "Leave preview" }).click();
   await expect(page.locator(".bl-preview")).toHaveCount(0);
 });

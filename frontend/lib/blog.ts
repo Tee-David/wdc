@@ -1,4 +1,5 @@
 import type { ServiceSlug } from "@/lib/services";
+import { docText, isDoc, type BlogBody } from "@/lib/blog-doc";
 
 /**
  * The blog.
@@ -50,7 +51,8 @@ export type BlogPost = {
   /** Card and article cover. One of the site's own hero photographs, so the
       blog introduces no new licensing and no new visual vocabulary. */
   cover: string;
-  body: BlogBlock[];
+  /** Blocks for the posts written in code; an editor document for the rest. */
+  body: BlogBody;
   /** Set only when the post first appeared somewhere else. */
   canonical?: string;
   /** Set only when the drawn Open Graph card is the wrong picture. */
@@ -496,6 +498,7 @@ const countWords = (text: string) => text.trim().split(/\s+/).filter(Boolean).le
  * `ceil` with a floor of one, so nothing ever reads "0 min".
  */
 export function readingMinutes(post: BlogPost): number {
+  if (isDoc(post.body)) return Math.max(1, Math.ceil(countWords(docText(post.body)) / 200));
   const words = post.body.reduce((n, block) => {
     if (block.kind === "list") return n + countWords(block.items.join(" "));
     if (block.kind === "callout") return n + countWords(`${block.title} ${block.text}`);

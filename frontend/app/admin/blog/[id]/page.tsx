@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { postForAdmin } from "@/lib/blog-db";
+import { toDoc } from "@/lib/blog-doc";
 import { BLOG_COVERS } from "@/lib/blog-validate";
 import { SERVICES } from "@/lib/services";
 import { BlogEditor, type EditorPost } from "@/components/admin/blog-editor";
@@ -12,7 +13,7 @@ export const metadata = { title: "Edit post" };
 const EMPTY: EditorPost = {
   id: null, slug: "", title: "", seoTitle: "", description: "", excerpt: "",
   topic: "", tags: [], cover: BLOG_COVERS[0] ?? "", canonical: "", socialImage: "",
-  body: [], status: "draft", publishedAt: "", live: false,
+  body: { type: "doc", content: [] }, status: "draft", publishedAt: "", live: false,
 };
 
 export default async function EditPostPage({ params, searchParams }: {
@@ -38,7 +39,8 @@ export default async function EditPostPage({ params, searchParams }: {
       id: found.id, slug: found.slug, title: found.title, seoTitle: found.seoTitle,
       description: found.description, excerpt: found.excerpt, topic: found.topic, tags: found.tags,
       cover: found.cover, canonical: found.canonical ?? "", socialImage: found.socialImage ?? "",
-      body: found.body,
+      /* A post written before the editor opens in it converted, nothing lost. */
+      body: toDoc(found.body),
       status: found.status === "draft" ? "draft" : found.scheduled ? "scheduled" : "published",
       publishedAt: found.publishedAt ? found.publishedAt.slice(0, 10) : "",
       live,

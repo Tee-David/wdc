@@ -1,18 +1,87 @@
-/* The blog editor. Built on the admin's own form rules; only the block list
-   and the counters are new. */
+/* The blog editor. Built on the admin's own form rules; only the rich-text
+   body and the counters are new. */
 .adBlog__h { margin: 1.4rem 0 .6rem; font: 700 1rem var(--font-space-grotesk), system-ui, sans-serif; }
 .adBlog__count { display: block; margin: -.35rem 0 .4rem; color: var(--ad-dim); font-size: .74rem; }
 .adBlog__count.is-bad { color: var(--ad-tone-bad); font-weight: 600; }
-.adBlog__blocks { min-width: 0; margin: 1.2rem 0 0; padding: 0; border: 0; }
-.adBlog__list { margin: .6rem 0 0; padding: 0; list-style: none; display: grid; gap: .6rem; }
-.adBlog__block { min-width: 0; display: grid; gap: .45rem; padding: .7rem; border: 1px solid var(--ad-line); border-radius: var(--ad-r); background: var(--ad-bg); }
-.adBlog__blockBar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; }
-.adBlog__blockBar select { min-height: 44px; }
-.adBlog__tools { display: flex; gap: .35rem; }
-.adBlog__tools .ad__btn { min-width: 44px; min-height: 44px; justify-content: center; padding-inline: .5rem; }
-.adBlog__block textarea, .adBlog__block input { width: 100%; min-width: 0; font: inherit; padding: .6rem .7rem; border: 1px solid var(--ad-line); border-radius: 9px; background: var(--ad-panel); color: inherit; }
-.adBlog__block textarea:focus-visible, .adBlog__block input:focus-visible, .adBlog__blockBar select:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
-.adBlog__add { margin-top: .7rem; display: flex; flex-wrap: wrap; gap: .4rem; }
+.adBlog__body { min-width: 0; margin-top: 1.2rem; display: grid; gap: .35rem; }
+
+/* THE RICH-TEXT BODY. A page with a toolbar: the toolbar sticks under the
+   admin's top bar while a long post scrolls, its buttons are 44px targets,
+   and the writing area uses the published post's proportions so what is
+   typed here reads the way it will read on the blog. */
+.adRte { min-width: 0; border: 1px solid var(--ad-line); border-radius: var(--ad-r); background: var(--ad-panel); }
+.adRte.is-bad { border-color: var(--ad-tone-bad); }
+.adRte:focus-within { border-color: var(--ad-accent); box-shadow: 0 0 0 1px var(--ad-accent); }
+/* Holds the editor's space while its code arrives, so nothing below moves. */
+.adRte--loading { min-height: calc(3.25rem + 22rem + 2.4rem); background: var(--ad-bg); }
+.adRte__bar {
+  position: sticky; top: 4rem; z-index: 5;
+  display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .5rem;
+  padding: .35rem;
+  border-bottom: 1px solid var(--ad-line); border-radius: var(--ad-r) var(--ad-r) 0 0;
+  background: var(--ad-panel);
+}
+.adRte__group { display: flex; gap: .15rem; }
+.adRte__group + .adRte__group { padding-left: .5rem; border-left: 1px solid var(--ad-line); }
+.adRte__group--end { margin-left: auto; }
+.adRte__tool {
+  display: inline-grid; place-items: center;
+  width: 44px; height: 44px; border: 1px solid transparent; border-radius: 10px;
+  background: none; color: var(--ad-ink); cursor: pointer;
+  transition: background .14s ease, border-color .14s ease, color .14s ease;
+}
+.adRte__tool svg { width: 18px; height: 18px; }
+/* 44px is for a finger; with a mouse the whole bar fits one row of a laptop's
+   editing column. */
+@media (pointer: fine) { .adRte__tool { width: 36px; height: 36px; border-radius: 8px; } }
+.adRte__tool:hover:not(:disabled) { background: var(--ad-bg); border-color: var(--ad-line); }
+.adRte__tool.is-on { background: var(--ad-fill); border-color: var(--ad-fill); color: var(--ad-on-fill); }
+.adRte__tool:disabled { opacity: .4; cursor: not-allowed; }
+.adRte__tool:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 1px; }
+@media (max-width: 560px) {
+  .adRte__group + .adRte__group { padding-left: 0; border-left: 0; }
+  .adRte__group--end { margin-left: 0; }
+}
+
+.adRte__panel {
+  display: grid; gap: .4rem; padding: .8rem;
+  border-bottom: 1px solid var(--ad-line); background: var(--ad-bg);
+}
+.adRte__panel label:not(.ad__btn) { font-size: .8rem; font-weight: 600; }
+.adRte__panel input:not([type="file"]) {
+  width: 100%; min-width: 0; min-height: 44px; padding: .55rem .7rem;
+  border: 1px solid var(--ad-line); border-radius: 9px; background: var(--ad-panel); color: inherit; font: inherit;
+}
+.adRte__panel input:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 1px; }
+.adRte__panelRow { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+.adRte__panelRow > input { flex: 1 1 14rem; }
+.adRte__close { margin-left: auto; min-width: 44px; justify-content: center; }
+.adRte__upload { position: relative; cursor: pointer; }
+.adRte__upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.adRte__upload:focus-within { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+
+.adRte__doc {
+  min-height: 22rem; padding: 1.1rem clamp(.9rem, 2vw, 1.4rem);
+  font-size: 1.02rem; font-weight: 400; line-height: 1.7; color: var(--ad-ink);
+  outline: none; overflow-wrap: break-word;
+}
+.adRte__doc > * + * { margin-top: .9rem; }
+.adRte__doc h2 { margin-top: 1.8rem; font: 700 1.35rem/1.25 var(--font-space-grotesk), system-ui, sans-serif; }
+.adRte__doc h3 { margin-top: 1.4rem; font: 700 1.1rem/1.3 var(--font-space-grotesk), system-ui, sans-serif; }
+.adRte__doc > :first-child { margin-top: 0; }
+.adRte__doc ul { padding-left: 1.35rem; list-style: disc outside; }
+.adRte__doc ol { padding-left: 1.5rem; list-style: decimal outside; }
+.adRte__doc li + li, .adRte__doc li > * + * { margin-top: .35rem; }
+.adRte__doc strong { font-weight: 700; }
+.adRte__doc blockquote { padding-left: 1rem; border-left: 3px solid var(--ad-line); font-size: 1.08rem; }
+.adRte__doc a { color: var(--ad-accent); text-decoration: underline; text-underline-offset: .2em; }
+.adRte__doc img { display: block; max-width: 100%; height: auto; border-radius: 12px; }
+.adRte__doc img.ProseMirror-selectednode { outline: 3px solid var(--ad-accent); outline-offset: 2px; }
+.adRte__doc p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder); float: left; height: 0; pointer-events: none; color: var(--ad-dim);
+}
+.adRte__foot { margin: 0; padding: .5rem .9rem; border-top: 1px solid var(--ad-line); color: var(--ad-dim); font-size: .78rem; }
+@media (prefers-reduced-motion: reduce) { .adRte__tool { transition: none; } }
 .adBlog__tags { min-width: 0; margin: 0; padding: 0; border: 0; display: flex; flex-wrap: wrap; gap: .4rem; }
 .adBlog__tags legend { width: 100%; margin-bottom: .3rem; font-size: .76rem; }
 
@@ -22,7 +91,9 @@
 .adBlog--split { display: grid; gap: .9rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
 .adBlog--split > .ad__banner, .adBlog--split > .ad__msg, .adBlog--split > [role="status"] { grid-column: 1 / -1; }
 .adBlog__main, .adBlog__side { min-width: 0; display: grid; gap: .9rem; }
-.adBlog__card { padding: 1rem; min-width: 0; }
+/* `clip`, not the panel's `hidden`: hidden makes the card a scroll container,
+   and a sticky toolbar inside one sticks to the card instead of the screen. */
+.adBlog__card { padding: 1rem; min-width: 0; overflow: clip; }
 .adBlog__card > .adBlog__h:first-child { margin-top: 0; }
 .adBlog__side .ad__f--half { grid-column: 1 / -1; }
 @media (min-width: 1100px) {
