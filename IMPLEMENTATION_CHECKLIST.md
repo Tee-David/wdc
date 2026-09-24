@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**78 open** (32 in progress)
+**75 open** (33 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -12,10 +12,8 @@ the evidence. Detail that used to sit in this file is in git history and in
 ## 1A. Client onboarding experience
 
 - [-] Make Save and continue later create a securely hashed, single-purpose resume token and email the link through Truehost SMTP. (Token flow is complete. UPDATED 2026-09-17: the `535` is gone -- SMTP authentication succeeds with the same credentials Vercel holds, in about 22 seconds, and a real message was accepted `250 OK` and seen by the owner. (…)
-- [-] Keep client account creation optional in that email; bind its expiring, single-purpose invitation to the onboarded recipient so a forwarded link cannot register a different email address. The next-steps email now says an account is optional and offers an invitation on request, tied to that address. The invitation itself is not built: it is the same Better Auth invitation work as 4.3's second line.
 - [ ] Let authenticated clients link or unlink Google in account settings; require another usable sign-in method before unlinking their last identity.
-- [ ] Bind each client invitation to the intended normalized email and project/client record; store only a token hash, set an expiry, enforce one-time redemption, and reject email substitution or replay.
-- [ ] Let an invited client create credentials or continue with an approved Google identity without granting admin access; keep the project relationship attached to the same client account.
+- [-] Let an invited client create credentials or continue with an approved Google identity without granting admin access; keep the project relationship attached to the same client account. DONE for credentials: an invited client sets a password (or chooses emailed sign-in links, no password) and gets role `client` only; the portal binds by the signed-in email, which is the invitation's, which is the client record's. BUILT 2026-09-24: `db/migrations/0012_invitations.sql`, `lib/invitations.ts`, `/invite/[token]`. The table keeps only a SHA-256 of the token, the normalised address, role, client id, a 7-day expiry, and redeemed/revoked stamps; redemption locks the row (`FOR UPDATE`) and creates the verified account, its password and the redeemed stamp in one retried transaction, so a link works once and two tabs make one account. The page shows the address and has no field to change it. An address that already has an account is refused, never taken over or promoted. Sending another invitation withdraws the outstanding one. Admin: "Portal access" on each client record (invite, resend, withdraw, account status). Pinned by `tests/invitations.spec.ts` (7 cases) against Postgres over TLS; not yet run against CockroachDB. **OWNER DECISION for Google:** `lib/auth-google.ts` deliberately admits Google for owner and staff only ("Clients sign in with a password"), pinned by `tests/google-admission.spec.ts`; that was not overridden. Staff invitations offer Google; client ones do not until that rule is changed on purpose.
 
 ## 2. Authentication and email
 
@@ -57,8 +55,7 @@ the evidence. Detail that used to sit in this file is in git history and in
 ### 4.3 Clients and client workspace
 
 - [-] Create, edit, archive and restore were already live (`createClient`/`updateClient`/`archiveClient` in `lib/admin/actions.ts`), with duplicate prevention on create and edit. Added this pass: **tags** (comma separated, searchable on the Clients list, shown as pills), **other contacts** (one per line: name, role, email, phone; searchable, listed on the client page) and **merge**, which folds a duplicate into the record kept: projects, invoices, estimates, credit, tickets, messages, expenses and forms move across, services, tags, notes and the duplicate's contact are added, the kept record's own details are never overwritten, and the duplicate is archived with a banner saying where it went. Pinned by `tests/client-records.spec.ts`. NOT DONE: client-level access status, which needs the Better Auth user rows (see the next line).
-- [ ] NOT ATTEMPTED, and the reason is specific rather than "ran out of time": every part of this line reads the `user`/`account`/`session` tables Better Auth owns, and **this sandboxed environment has no `DATABASE_URL`/`COCKROACHDB_URL` configured at all** -- `lib/db/pool.ts` throws the moment anything tries to connect. (…)
-- [ ] NOT ATTEMPTED, on purpose and for a size-and-risk reason rather than the database one above. (…)
+- [-] Client account status in the admin: the client record's "Portal access" panel now reads the `user` table for the client's address (has an account, since when) and the latest invitation (pending until, expired, withdrawn), with invite/resend/withdraw. The earlier blocker -- no database in this environment -- was worked around with a local Postgres over TLS carrying every migration. NOT yet shown: last sign-in and active sessions per client.
 - [ ] NOT ATTEMPTED, same reasoning as the invitation line above: unlinking is a core Better Auth capability and would not need a migration, but building the "require another usable sign-in method before unlinking the final identity" guard correctly means reading the account rows first, in a portal settings action, on a Better Auth setup this environment cannot connect to or test against. (…)
 
 ### 4.4 Projects and day-to-day delivery

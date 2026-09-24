@@ -16,6 +16,7 @@ import CreditPanel from "@/components/admin/credit-panel";
 import TicketPanel from "@/components/admin/ticket-panel";
 import { ArchiveClient } from "@/components/admin/client-archive";
 import AuditLog from "@/components/admin/audit-log";
+import PortalAccess from "@/components/admin/portal-access";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 
 /* NO generateStaticParams. The client list is written to now, and a route
@@ -192,6 +193,8 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
               ))}
             </div>
           </Panel>
+
+          <PortalAccess clientId={c.id} email={c.email} />
 
           <Panel title="Onboarding">
             {forms.length ? (
