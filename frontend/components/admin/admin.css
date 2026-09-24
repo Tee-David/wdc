@@ -360,30 +360,64 @@
 }
 .ad__t { width: 100%; border-collapse: collapse; font-size: .875rem; }
 
-/* A SCROLLER ONLY SCROLLS SOMETHING WIDER THAN ITSELF.
+/* ON A PHONE, A ROW IS A CARD.
 
-   The wrapper above has had `overflow-x: auto` all along and never did
-   anything, because the table inside it is `width: 100%` -- so instead of
-   overflowing and scrolling, the columns squeezed. On a 393px phone the
-   communications log put six columns in 360px and the recipient's address
-   came out one character per line, a 40-row-tall column reading "t o b i @ m
-   o o r e". It looked like a rendering fault and it was a sizing one.
+   Below 720px a list table used to scroll sideways inside its panel: the
+   invoices table was 1110px in a 341px panel, three screens of it, and the
+   columns past the first two were simply off the edge. It never widened the
+   page, but it read as a page that did not fit, and on the money page the
+   invoice pills were cut in half at the panel's edge.
 
-   The floor is per column rather than one number on the table, so a table with
-   three columns does not get a 44rem scroll it has no use for, and a cell with
-   an address in it cannot be squeezed below something readable whatever else
-   is on the row. */
+   So each row becomes a card: the first cell is its title, every other cell is
+   a line of "column name, value". The column names come from the header row,
+   copied onto each cell as `data-label` by `table-labels.tsx`, because CSS
+   cannot read another element's text. The label column is a fixed track that
+   exists before those names arrive, so their arrival moves nothing.
+
+   The header row stays in the document for screen readers and is hidden
+   visually; the row's menu keeps its corner. A cell spanning columns is a
+   message ("Nothing yet"), not a value, so it takes the full width unlabelled. */
 @media (max-width: 720px) {
-  .ad__scroll > .ad__t { width: auto; min-width: 100%; }
-  .ad__scroll > .ad__t :is(th, td) { min-width: 6.5rem; }
-  /* The two that carry prose rather than a value. Wide enough to read a line
-     of, narrow enough that the row is still a row. */
-  .ad__scroll > .ad__t :is(th, td):nth-child(3) { min-width: 11rem; }
-  .ad__scroll > .ad__t :is(th, td):nth-child(4) { min-width: 14rem; }
-  /* Never per-character. `anywhere` is what let the address column collapse to
-     one glyph: it tells the browser the narrowest useful width is a single
-     character, and the table believed it. */
-  .ad__scroll > .ad__t td { overflow-wrap: break-word; }
+  .ad__scroll:has(> .ad__t) { overflow-x: visible; }
+  .ad__scroll > .ad__t,
+  .ad__scroll > .ad__t :is(tbody, tfoot) { display: block; width: 100%; min-width: 0; }
+  .ad__scroll > .ad__t thead {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip-path: inset(50%); white-space: nowrap;
+  }
+  .ad__scroll > .ad__t tr {
+    position: relative;
+    display: grid; grid-template-columns: minmax(0, 1fr); gap: .4rem;
+    padding: .85rem 1rem;
+    border-bottom: 1px solid var(--ad-line);
+  }
+  .ad__scroll > .ad__t :is(tbody, tfoot) tr:last-child { border-bottom: 0; }
+  .ad__scroll > .ad__t tfoot tr { border-top: 1px solid var(--ad-line); }
+  .ad__scroll > .ad__t td {
+    display: grid; grid-template-columns: minmax(5.5rem, 36%) minmax(0, 1fr);
+    gap: .75rem; align-items: baseline; justify-items: start;
+    min-width: 0; padding: 0; border: 0;
+    text-align: left; white-space: normal; overflow-wrap: break-word;
+  }
+  .ad__scroll > .ad__t td::before {
+    content: attr(data-label);
+    color: var(--ad-dim);
+    font-size: .72rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  }
+  /* The title line: no label, and room on the right for the row's menu. */
+  .ad__scroll > .ad__t td:first-child,
+  .ad__scroll > .ad__t td[colspan] { display: block; padding-right: 2.75rem; }
+  .ad__scroll > .ad__t td[colspan] { padding-right: 0; }
+  .ad__scroll > .ad__t td:first-child::before,
+  .ad__scroll > .ad__t td[colspan]::before { content: none; }
+  .ad__scroll > .ad__t td:empty { display: none; }
+  /* A pill naming an invoice and a company is a sentence, not a tag. */
+  .ad__scroll > .ad__t .ad__pill { max-width: 100%; white-space: normal; border-radius: .7rem; }
+  .ad__scroll > .ad__t td.ad__rmC {
+    position: absolute; top: .45rem; right: .4rem;
+    display: block; width: auto; padding: 0;
+  }
+  .ad__scroll > .ad__t td.ad__rmC::before { content: none; }
 }
 .ad__t th {
   text-align: left; padding: .6rem 1rem;
@@ -816,6 +850,14 @@
 /* The six stages as the path they are. The current one is not a button,
    because a control that offers a move that does nothing is a control that
    wastes a press. */
+/* The stage bar. One row of six on a screen that has room for six names;
+   below that, two rows of three, because six columns at 320px are 38px each
+   and "Revisions" and "Delivered" were cut off at the panel's edge. */
+.ad__track {
+  display: grid; grid-template-columns: repeat(var(--steps, 6), minmax(0, 1fr));
+  gap: .35rem; list-style: none; margin: 0; padding: .9rem 1rem;
+}
+@media (max-width: 480px) { .ad__track { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: .7rem; } }
 .ad__stages { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
 .ad__stageF { display: contents; }
 .ad__stageBtn {
