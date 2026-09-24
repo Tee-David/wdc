@@ -49,19 +49,17 @@ export default async function EditPostPage({ params, searchParams }: {
     <>
       <div className="ad__head">
         <div>
-          <p className="ad__dim"><Link href="/admin/settings/blog">Blog posts</Link></p>
+          <p className="ad__dim"><Link href="/admin/blog">Blog</Link></p>
           <h1>{post.id ? post.title : "New post"}</h1>
           <p>{post.id ? `/blog/${post.slug}` : "Nothing is public until you publish it."}</p>
         </div>
       </div>
       {saved ? <p className="ad__msg is-ok" role="status"><span>Saved.</span></p> : null}
-      <section className="ad__panel" style={{ padding: "1rem" }}>
-        <BlogEditor
-          post={post}
-          topics={SERVICES.map((s) => ({ value: s.slug, label: s.name }))}
-          covers={[...BLOG_COVERS]}
-        />
-      </section>
+      <BlogEditor
+        post={post}
+        topics={SERVICES.map((s) => ({ value: s.slug, label: s.name }))}
+        covers={[...BLOG_COVERS]}
+      />
     </>
   );
 }

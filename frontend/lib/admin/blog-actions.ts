@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { savePost } from "@/lib/blog-db";
+import { deleteDraftPost, movePostToDraft, publishPostNow, savePost } from "@/lib/blog-db";
 import { parsePost } from "@/lib/blog-validate";
 import { audit } from "./store";
 import { actorName, owner } from "./guard";
@@ -56,10 +56,43 @@ export async function saveBlogPost(_prev: ActionState, fd: FormData): Promise<Ac
   if (saved.previousSlug) revalidatePath(`/blog/${saved.previousSlug}`);
   revalidatePath("/sitemap.xml");
   revalidatePath("/blog/rss.xml");
-  revalidatePath("/admin/settings/blog");
+  revalidatePath("/admin/blog");
 
-  if (!id) redirect(`/admin/settings/blog/${saved.id}?saved=1`);
+  if (!id) redirect(`/admin/blog/${saved.id}?saved=1`);
   return OK(p.status === "draft" ? "Saved. It is a draft, so nobody can see it yet."
     : p.status === "scheduled" ? "Saved. It goes live on its date without anybody pressing anything."
     : "Saved and live.");
 }
+
+function refreshBlog(slug: string) {
+  revalidatePath("/blog");
+  revalidatePath(`/blog/${slug}`);
+  revalidatePath("/sitemap.xml");
+  revalidatePath("/blog/rss.xml");
+  revalidatePath("/admin/blog");
+}
+
+/** The list's three quick actions: same checks, same audit, same refresh. */
+async function quick(fd: FormData, verb: "publish" | "draft" | "delete"): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
+  const id = String(fd.get("id") ?? "").trim();
+  const by = await actorName();
+  let done;
+  try {
+    done = verb === "publish" ? await publishPostNow(id, by)
+      : verb === "draft" ? await movePostToDraft(id, by)
+      : await deleteDraftPost(id);
+  } catch {
+    return FAIL({}, "That could not be saved just now. Nothing changed; try again.");
+  }
+  if (!done) return FAIL({}, verb === "delete" ? "Only a draft can be deleted. Move a live post to draft instead." : "That post is no longer there.");
+  audit({ actor: by, kind: "content", subjectId: id, subject: done.title,
+          action: verb === "publish" ? "published" : verb === "draft" ? "moved to draft" : "deleted while still a draft", note: `/blog/${done.slug}` });
+  refreshBlog(done.slug);
+  return OK(verb === "publish" ? `${done.title} is live.` : verb === "draft" ? `${done.title} is a draft again; nobody can see it.` : `${done.title} was deleted.`);
+}
+
+export async function publishBlogPostNow(_prev: ActionState, fd: FormData) { return quick(fd, "publish"); }
+export async function moveBlogPostToDraft(_prev: ActionState, fd: FormData) { return quick(fd, "draft"); }
+export async function deleteBlogDraft(_prev: ActionState, fd: FormData) { return quick(fd, "delete"); }
