@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**75 open** (33 in progress)
+**92 open** (33 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -82,6 +82,28 @@ the evidence. Detail that used to sit in this file is in git history and in
 - [-] Build a submission inbox with status, service, client/project link, assignee, tags, search/filter/export, detail view, internal notes, and activity history. Built: briefs from the live form (`onboarding_submissions`) are on `/admin/forms` with status, service, dates and the client they belong to, and open to a detail view that reads them back under the questions as asked. They were written to the table and shown nowhere before. NOT built: assignee, tags, search/filter/export, internal notes and activity history.
 - [-] Convert a valid submission into or attach it to a client and project without duplicating people or losing the original answers/files. Built for live briefs: "Make them a client" matches on email or phone first, so a second press or a second brief from the same person lands on the existing client; the answers stay in the table untouched. The link is derived, not stored, until clients leave memory (4.9). NOT built: creating the project in the same step, and files.
 - [ ] Finish conditional question sets, domain suggestions/checks, client fatigue validation, and completion/resume testing for every onboarding service.
+
+### 4.6A Entries, notifications and mail, after Fluent Forms (the light version)
+
+Reconciled 2026-09-24 against the Fluent Forms, Fluent Forms Pro and FluentSMTP source code (working notes with file references are in `plans/`, which `.gitignore` keeps out of the repo; every task below stands on its own). Borrow the shapes, not the weight: no routing rules, no EAV tables, no coupons or subscriptions, no filter builder, no print view. Sizes: S under half a day, M one to two days.
+
+- [ ] (S) Entry state on every submission: `unread | read | spam | trashed` plus a separate favourite flag, validated against the enum on the server. Opening the detail view flips `unread` to `read` (never a list render). Tabs All/Unread/Favourites/Spam/Trash counted by one `GROUP BY`, and an unread count on the Forms nav item. Permanent delete only from Trash.
+- [ ] (S) A per-form serial ("Brief #42") assigned inside the insert transaction, shown beside the id everywhere a person reads it.
+- [ ] (S) The entries list on the shared table (4.6, first line): status, date range with the end padded to 23:59:59, a search over name, email and answers, payment status; 25/50/100 per page remembered per viewer; prev/next in the detail view walking the same filtered set.
+- [ ] (S) Bulk actions over a checked set: mark read/unread, spam, trash, favourite on/off, delete permanently from Trash; every id re-checked on the server.
+- [ ] (M) One activity timeline per entry that joins internal notes (author name as it was at the time) with system events: status changed, email sent or failed (linking the outbox row), payment status changed, refund recorded.
+- [ ] (S) Entry CSV export through the list's own query, so it respects the filters and "export selected": entry number, submitted at, status, one column per question by its label, payment status/amount/currency on paid forms, optional notes. Reuse the formula guard already in `lib/admin/csv.ts`. No XLSX/ODS/JSON until asked.
+- [ ] (M) Per-form notifications in the notification centre (4.6, second line), minimal shape: name, on/off, to (fixed address or the form's email answer), reply-to, cc, bcc, subject, body, and when (on submit, or on payment). The From is the SMTP setting's, never per notification. An invalid address is dropped with a timeline event rather than failing the send; every send goes through the outbox with a dedupe key `entry:<id>:notif:<nid>:<trigger>`.
+- [ ] (S) A small smart-code set with a picker and a preview against the latest real entry: `{inputs.<name>}`, `{labels.<name>}`, `{all_data}` (skipping hidden fields), `{submission.id|serial|created_at|status|admin_url}`, `{site.name|url}`, `{payment.amount|status|reference}`. Escaped three ways: HTML in bodies, plain in subjects, URL-encoded in redirects.
+- [ ] (S) Confirmation after submit, per form: a message (with smart codes) or a redirect to a page on this site; a redirect elsewhere is refused.
+- [ ] (S) Resend a notification from the entry, to the original recipient or a custom address; a custom address clears cc and bcc. Rendered again from the stored entry, through the outbox, with a timeline event.
+- [ ] (M) Make the message log durable (it is still in memory, see 4.9) and give it what the email log needs: pending before the provider call (already the rule), the provider's response verbatim, retry count, a capped trail of resends `{at, to, by, sent, ms}`, and search that understands `to:` and `subject:`. The original recipient is never overwritten.
+- [ ] (S) A "Send a test email" button in Settings that uses the real send path, prefilled with the owner's address, and reports "Delivered in 23.4 s" or the provider's error word for word. Truehost's slow authentication is why the timing matters.
+- [ ] (S) An SMTP panel in Settings that shows what is configured (host, port, encryption, username, From name and address) and never echoes the password, which stays in the environment. Force-From on by default. Not a form that writes secrets.
+- [ ] (S) Retention: the message log kept 30 days by default (7/14/30/90/180/365), optional per-form entry auto-delete after N days, both purged daily, and the figure shown on the log screen.
+- [ ] (S) When a message fails for the last time, raise an in-app alert, at most one a minute. A fallback SMTP connection waits until failure numbers justify it.
+- [ ] (S) Audit the Paystack verification against the invariants Fluent enforces: our own random reference, metadata that must match the invoice, a reused charge id refused, amount and currency checked strictly, and an "actions ran" flag so a webhook delivered twice does nothing twice. Record what already holds rather than rebuilding it.
+- [ ] (M) Refunds as their own ledger rows (positive amount, type refund, note or provider id), with refunded vs partially refunded decided by summing them against the charge. Recorded only; the admin does not call Paystack to refund at first.
 
 ### 4.7 Communications and client portal handoff
 
