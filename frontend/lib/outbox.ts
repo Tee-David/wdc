@@ -3,7 +3,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { mailIsConfigured, sendMail } from "@/lib/email";
 import { passwordResetEmail, signInEmail } from "@/lib/email-templates";
-import { queueMessage, settleMessage } from "@/lib/admin/store";
+import { queueLogged, settleLogged } from "@/lib/message-log";
 import type { Id, Message } from "@/lib/admin/types";
 
 /**
@@ -38,22 +38,25 @@ export type OutboxLog = {
 type Mail = Parameters<typeof sendMail>[0];
 
 export async function sendLogged(mail: Mail, log: OutboxLog): Promise<"sent" | "duplicate"> {
-  const queued = queueMessage({
+  const queued = await queueLogged({
     channel: "Email", to: mail.to, subject: mail.subject, summary: log.summary,
     dedupeKey: log.dedupeKey, by: log.by ?? "Website", clientId: log.clientId, about: log.about,
   });
   if (!queued.ok) return "duplicate";
 
   if (!mailIsConfigured()) {
-    settleMessage(queued.message.id, "Failed", "SMTP is not configured on this deployment.");
+    await settleLogged(queued.message.id, "Failed", "SMTP is not configured on this deployment.");
     throw new Error("SMTP is not configured on this deployment.");
   }
+  /* Timed, because this mail server spends about 23 seconds authenticating,
+     and "slow" and "broken" look the same from the outside without a number. */
+  const started = Date.now();
   try {
     await sendMail(mail);
-    settleMessage(queued.message.id, "Sent");
+    await settleLogged(queued.message.id, "Sent", undefined, Date.now() - started);
     return "sent";
   } catch (error) {
-    settleMessage(queued.message.id, "Failed", error instanceof Error ? error.message : "The mail server refused it.");
+    await settleLogged(queued.message.id, "Failed", error instanceof Error ? error.message : "The mail server refused it.", Date.now() - started);
     throw error;
   }
 }

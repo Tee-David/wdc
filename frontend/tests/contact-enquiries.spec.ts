@@ -48,6 +48,7 @@ const EMAIL = `wdc-e2e-${MARK}@wedigcreativity.com.ng`;
 const LAST = `Okafor${MARK}`;
 
 test.afterAll(async () => {
+  await db.query("DELETE FROM message_log WHERE to_addr = $1 OR dedupe_key IN (SELECT 'enquiry:' || id::TEXT FROM contact_enquiries WHERE email = $1)", [EMAIL]);
   await db.query("DELETE FROM contact_enquiries WHERE email = $1", [EMAIL]);
   await db.end();
 });
@@ -71,6 +72,29 @@ test("an enquiry is stored before any mail, and the failed notice is recorded", 
     );
     return rows.rows[0] ? `${rows.rows[0].delivery}: ${rows.rows[0].delivery_error}` : "missing";
   }, { timeout: 20_000 }).toBe("failed: SMTP is not configured on this deployment.");
+});
+
+test("the message log is a database row, one per event, and it says why", async () => {
+  const id = (await db.query<{ id: string }>("SELECT id FROM contact_enquiries WHERE email = $1", [EMAIL])).rows[0].id;
+  /* Both mails for this enquiry, the receipt and the studio notice, were
+     written to the table before any send was tried, and settled after. */
+  await expect.poll(async () => {
+    const rows = await db.query<{ dedupe_key: string; state: string; error: string | null }>(
+      "SELECT dedupe_key, state, error FROM message_log WHERE dedupe_key IN ($1, $2) ORDER BY dedupe_key",
+      [`enquiry:${id}`, `enquiry-receipt:${id}`],
+    );
+    return rows.rows.map((r) => `${r.dedupe_key.split(":")[0]} ${r.state} ${r.error}`);
+  }, { timeout: 20_000 }).toEqual([
+    "enquiry-receipt Failed SMTP is not configured on this deployment.",
+    "enquiry Failed SMTP is not configured on this deployment.",
+  ]);
+  /* The database refuses a second row for the same event, whichever server
+     instance tries to write it. */
+  const again = await db.query(
+    "INSERT INTO message_log (channel, to_addr, subject, summary, sent_by, dedupe_key) VALUES ('Email', 'x', 'x', 'x', 'test', $1) ON CONFLICT (dedupe_key) DO NOTHING",
+    [`enquiry:${id}`],
+  );
+  expect(again.rowCount).toBe(0);
 });
 
 test("the admin shows the enquiry and the message that did not go", async ({ page, baseURL }) => {
