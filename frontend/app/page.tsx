@@ -3,19 +3,23 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { Header } from "@/components/layout/header";
 import { Hero } from "@/components/sections/hero";
 import PreviewBody from "@/components/preview/preview-body";
-import { FAQS } from "@/lib/faq";
+import type { Faq } from "@/lib/faq";
+import { siteFaqs } from "@/lib/site-content";
 
-const faqJsonLd = {
+/* Built from the same list the accordion shows, which the admin can edit. */
+const faqJsonLdFor = (faqs: Faq[]) => ({
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: FAQS.map((f) => ({
+  mainEntity: faqs.map((f) => ({
     "@type": "Question",
     name: f.q,
     acceptedAnswer: { "@type": "Answer", text: f.a },
   })),
-};
+});
 
-export default function Home() {
+export default async function Home() {
+  const { faqs } = await siteFaqs();
+  const faqJsonLd = faqJsonLdFor(faqs);
   return (
     <>
       {/*
@@ -35,7 +39,7 @@ export default function Home() {
         <div className="pv-hero">
           <Hero />
         </div>
-        <PreviewBody />
+        <PreviewBody faqs={faqs} />
       </main>
 
       <SiteFooter />

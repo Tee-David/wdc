@@ -118,8 +118,8 @@ export const FAQS: Faq[] = [
  * THIS service is most likely to be holding, and the specific ones come first
  * because they are why this list is on this page at all.
  */
-export function faqsFor(slug: ServiceSlug, limit = 5): Faq[] {
-  const mine = FAQS.filter((f) => f.services?.includes(slug));
-  const general = FAQS.filter((f) => !f.services);
+export function faqsFor(slug: ServiceSlug, limit = 5, list: Faq[] = FAQS): Faq[] {
+  const mine = list.filter((f) => f.services?.includes(slug));
+  const general = list.filter((f) => !f.services);
   return [...mine, ...general].slice(0, limit);
 }

@@ -10,6 +10,7 @@ import ServiceDetail from "@/components/services/service-detail";
 import ServiceTools from "@/components/tools/service-tools";
 import { SERVICES, SERVICE_BY_SLUG } from "@/lib/services";
 import { faqsFor } from "@/lib/faq";
+import { siteFaqs } from "@/lib/site-content";
 import FaqAccordion from "@/components/ui/faq-accordion";
 import { CASE_STUDIES, WORK_CATEGORIES } from "@/lib/work";
 import { COMPANY_NAME, SITE_URL } from "@/lib/site";
@@ -69,7 +70,7 @@ export default async function ServicePage(
     .slice(0, 6);
   const category = WORK_CATEGORIES.find((c) => c.slug === service.slug);
   const url = `${SITE_URL}/services/${service.slug}`;
-  const faqs = faqsFor(service.slug);
+  const faqs = faqsFor(service.slug, 5, (await siteFaqs()).faqs);
 
   const jsonLd = [
     {
