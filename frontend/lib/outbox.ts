@@ -2,7 +2,7 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 import { mailIsConfigured, sendMail } from "@/lib/email";
-import { passwordResetEmail } from "@/lib/email-templates";
+import { passwordResetEmail, signInEmail } from "@/lib/email-templates";
 import { queueMessage, settleMessage } from "@/lib/admin/store";
 import type { Id, Message } from "@/lib/admin/types";
 
@@ -94,5 +94,24 @@ export async function sendPasswordResetEmail(
     { to, ...passwordResetEmail({ name, url, expiresInMinutes }) },
     /* The link is a credential, so only its hash names the row. */
     { summary: "A password reset link.", dedupeKey: secretKey("password-reset", url), by: "Account security" },
+  );
+}
+
+/**
+ * The sign-in link and code, as mail. Called from behind the response, like
+ * the reset link above, and for the same 23-second reason. Both tokens are in
+ * the database before this runs, so a lost send is one more request.
+ */
+export async function sendSignInEmail(
+  to: string,
+  url: string,
+  code: string,
+  name?: string,
+  expiresInMinutes = 15,
+) {
+  await sendLogged(
+    { to, ...signInEmail({ name, url, code, expiresInMinutes }) },
+    /* The link and the code are credentials, so only the link's hash names the row. */
+    { summary: "A sign-in link and code.", dedupeKey: secretKey("sign-in", url), by: "Account security" },
   );
 }

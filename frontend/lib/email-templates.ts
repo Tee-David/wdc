@@ -1010,6 +1010,69 @@ The WDC team`),
   };
 }
 
+/**
+ * The sign-in link AND the six-digit code, in one message.
+ *
+ * TWO WAYS IN, ONE EMAIL, because they answer two different situations. The
+ * link is for somebody reading their mail on the device they want to be signed
+ * in on. The code is for everybody else: mail on the phone, login on the
+ * laptop. A session cookie belongs to the browser that opened the link, so the
+ * link alone would sign in the phone and leave the laptop waiting for ever.
+ * Using either one spends both -- see `hooks.after` in lib/auth.ts.
+ *
+ * The code is set in the display face at a size that survives a glance from
+ * across a desk, and spaced so a reader copying it does not lose their place.
+ */
+export function signInEmail(input: {
+  name?: string;
+  url: string;
+  code: string;
+  expiresInMinutes: number;
+}): Email {
+  const { name, url, code, expiresInMinutes } = input;
+  const greeting = name ? `Hi ${name},` : "Hello,";
+  const life = `${expiresInMinutes} minutes`;
+  const spaced = `${code.slice(0, 3)} ${code.slice(3)}`;
+  return {
+    subject: `${spaced} is your We Dig Creativity sign-in code`,
+    /* No unsubscribe, for the reason the reset email gives: somebody asked for
+       this seconds ago, and it is account access, not bulk mail. */
+    text: textShell(`${greeting}
+
+Here is your sign-in link for We Dig Creativity. It works for ${life}:
+
+${url}
+
+Signing in on a different device? Enter this code on the login page instead:
+
+${spaced}
+
+The link and the code work once. Using either one cancels the other.
+
+If you did not ask to sign in, you can ignore this email. Nobody can get in
+without it.
+
+The WDC team`),
+    html: shell({
+      title: "Your sign-in link",
+      preheader: `Your code is ${spaced}. It works for ${life}.`,
+      eyebrow: "Sign in",
+      heading: "Your sign-in link",
+      blocks: [
+        p(escapeHtml(greeting)),
+        p("Here is your link to sign in to We Dig Creativity. Open it on the device you want to use."),
+        action("Sign in to WDC", url),
+        p("Signing in on a different device? Enter this code on the login page instead:"),
+        `<p style="margin:0 0 20px;padding:16px 20px;background:${PAGE};border:1px solid ${HAIRLINE};border-radius:12px;` +
+          `font-family:${DISPLAY};font-size:32px;font-weight:700;letter-spacing:.18em;color:${NAVY};text-align:center">${escapeHtml(spaced)}</p>`,
+        p(`The link and the code each work once, for ${escapeHtml(life)}. Using either one cancels the other.`),
+        small("If you did not ask to sign in, you can ignore this email. Nobody can get in without it."),
+        fallbackLink(url),
+      ],
+    }),
+  };
+}
+
 /* ============================================== 11. the estimate, on request */
 
 /**

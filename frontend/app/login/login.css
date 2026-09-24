@@ -1,320 +1,695 @@
 /* THE DOOR INTO THE PLATFORM.
-   Shared by /login, /forgot-password, /reset-password and /signed-in. */
+   Shared by /login, /forgot-password, /reset-password and /signed-in.
+
+   Royal blue on the left in both themes, the page's own ground on the right.
+   Buttons are the site's black and white pair (--btn-fill / --btn-ink, which
+   invert under .dark), orange is an accent in the ring and in type, and
+   orange AS TEXT is --accent-ink. Tags and tiles are solid fills. */
 
 .au {
-  --au-blue: #000065;
-  --au-orange: #ff6500;
+  --au-navy: #000065;
+  --au-orange: var(--accent, #ff6500);
+  --au-valid: #2b2bd9;
+  --au-error: #c62828;
+  --au-error-bg: #fdecec;
+  --au-focus: rgb(0 0 101 / .22);
+  --au-edge: #000065;
+  --au-border: #e4e4eb;
+  --au-border-strong: #c9c9d6;
+  --au-field: var(--background);
+  --au-placeholder: #7a7a8c;
+  --au-ease: cubic-bezier(.2, .8, .2, 1);
+  --au-pop: cubic-bezier(.34, 1.56, .64, 1);
+  --au-emph: cubic-bezier(.76, 0, .24, 1);
+  --au-body: var(--font-body, var(--font-space-grotesk)), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --au-display: var(--font-space-grotesk), system-ui, -apple-system, "Segoe UI", sans-serif;
+
   min-height: 100svh;
   display: grid;
-  grid-template-columns: minmax(0, 42%) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--au-body);
+}
+.dark .au {
+  --au-valid: #a3a7ff;
+  --au-error: #ff8a80;
+  --au-error-bg: #3a0d14;
+  --au-focus: rgb(163 167 255 / .35);
+  --au-edge: #a3a7ff;
+  --au-border: #262650;
+  --au-border-strong: #3d3d70;
+  --au-placeholder: #8586b3;
+  --au-field: var(--surface);
 }
 
-/* ---- brand side ---------------------------------------------------------- */
+.au :focus-visible { outline: 3px solid var(--au-edge); outline-offset: 3px; }
+.au__brand :focus-visible { outline-color: #fff; }
+
+/* ======================================================= the brand panel */
 
 .au__brand {
   position: relative;
   min-height: 100svh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: 40px;
+  background: var(--au-navy);
+  color: #fff;
   overflow: hidden;
-  padding: 2.25rem;
+}
+.au__brandTop { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.au__logo { display: inline-flex; min-height: 44px; align-items: center; text-decoration: none; }
+.au__logoMark { height: 32px; width: auto; }
+/* The site's toggle is 40px; on these pages every control is a 44px target. */
+.au .au__theme { flex: none; width: 44px; height: 44px; }
+.au__theme--band { color: #fff; display: none; }
+.au__theme--panel { color: var(--foreground); }
+
+.au__stage {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 2rem;
-}
-.au__photo {
-  position: absolute;
-  inset: 0;
-  background: url("/hero/design-desk.jpg") center/cover no-repeat;
-  transform: scale(1.02);
-}
-.au__wash {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgb(0 0 101 / .74), rgb(3 3 24 / .94));
-}
-.au__brandTop,
-.au__brandFoot { position: relative; z-index: 1; }
-.au__brandTop {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  justify-content: center;
+  gap: 32px;
+  min-width: 0;
 }
-.au__logo { width: fit-content; text-decoration: none; }
 
-/* THE SWITCH CARRIES ITS OWN COLOUR. It sits on a photograph, not on the
-   page, so `currentColor` here is white in both themes rather than following
-   the surface underneath it. */
-.au__theme {
-  color: #fff;
-  border-color: rgb(255 255 255 / .55);
-}
-.au__theme:hover { border-color: #fff; }
-
-.au blockquote { margin: 0; color: #fff; max-width: 30rem; }
-/* SMALLER THAN IT WAS (1.3-1.85rem). At the old size the longest of the three
-   quotes ran to five lines and filled the panel, which made a supporting
-   detail compete with the form beside it -- and because the tallest quote sets
-   the height for all three, that cost was paid on every one of them. This
-   still reads as a pull quote rather than body copy. */
-.au blockquote p {
+.au__tagline {
   margin: 0;
-  font: 700 clamp(1.12rem, 1.45vw, 1.45rem)/1.35 var(--font-space-grotesk), system-ui, sans-serif;
-  text-wrap: balance;
+  color: rgb(255 255 255 / .72);
+  font: 400 14px/1.4 var(--au-body);
 }
-.au blockquote footer {
-  margin-top: 1.1rem;
-  color: rgb(255 255 255 / .78);
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-size: .85rem;
-  font-weight: 700;
+.au__tagline strong { color: #fff; font-weight: 700; }
+
+/* ------------------------------------------------------------ greeting */
+
+.greet { width: min(460px, 100%); min-width: 0; }
+.greet__box { width: 100%; aspect-ratio: 460 / 150; }
+.greet__art { width: 100%; height: 100%; display: grid; grid-template-rows: 1fr auto; }
+.greet__svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  color: #fff;
+  transition: opacity .35s var(--au-ease);
+}
+.greet__svg.is-leaving { opacity: 0; }
+.greet__caption {
+  display: block;
+  min-height: 1.4em;
+  margin-top: 6px;
+  text-align: center;
+  color: rgb(255 255 255 / .7);
+  font: 400 13px/1.4 var(--au-body);
+}
+.greet__line { display: none; }
+
+.greet__pen {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 14.8883;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  animation-name: greet-pen;
+  animation-fill-mode: forwards;
+}
+.greet__pen--accent { stroke: var(--au-orange); }
+@keyframes greet-pen {
+  0% { stroke-dashoffset: 1; opacity: 0; }
+  12% { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
 }
 
-/* One quote swaps for another in place, so the column must not resize under
-   the reader: the tallest of the three sets the height and the rest sit in it. */
-.au__quote { display: grid; gap: 1.5rem; }
-.au__dots { display: flex; gap: .5rem; }
-.au__dot {
-  width: 26px;
-  height: 4px;
-  padding: 0;
-  border: 0;
+.greet__script text,
+.greet__reveal text { fill: #fff; }
+.greet__script text {
+  stroke: #fff;
+  stroke-width: 1.4;
+  stroke-dasharray: 260;
+  stroke-dashoffset: 260;
+  fill-opacity: 0;
+  animation: greet-stroke 1.6s var(--au-ease) forwards, greet-fill .7s ease 1s forwards;
+  animation-delay: var(--delay, 0s), calc(var(--delay, 0s) + 1s);
+}
+.greet__wipe {
+  transform-box: fill-box;
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: greet-wipe 1.5s linear forwards;
+  animation-delay: var(--delay, 0s);
+}
+.greet__wipe--rtl { transform-origin: right center; }
+.greet__reveal .greet__wipe { animation-duration: 1.2s; animation-timing-function: var(--au-ease); }
+.greet__reveal text { fill-opacity: 1; }
+.is-measuring { opacity: 0; }
+.is-measuring * { animation-play-state: paused !important; }
+@keyframes greet-stroke { to { stroke-dashoffset: 0; } }
+@keyframes greet-fill { to { fill-opacity: 1; stroke-opacity: 0; } }
+@keyframes greet-wipe { to { transform: scaleX(1); } }
+
+.greet__art.is-still .greet__pen,
+.greet__art.is-still .greet__script text,
+.greet__art.is-still .greet__wipe { animation: none; }
+.greet__art.is-still .greet__pen { stroke-dashoffset: 0; opacity: 1; }
+.greet__art.is-still .greet__script text { stroke-dashoffset: 0; fill-opacity: 1; stroke-opacity: 0; }
+.greet__art.is-still .greet__wipe { transform: none; }
+.greet__art.is-still .greet__svg { transition-duration: .2s; }
+
+/* ----------------------------------------------------------------- orb */
+
+/* The box holds the ring; the ring sits `--gap` outside the sphere. The
+   shader draws its sphere at 94% of the canvas, so the canvas is sized up
+   by 1/0.94 to make the sphere exactly `--orb` across. */
+.orb {
+  --orb: clamp(240px, 24vw, 360px);
+  --gap: 12px;
+  --stroke: 3px;
+  --box: calc(var(--orb) + 2 * var(--gap) + 2 * var(--stroke));
+  position: relative;
+  flex: none;
+  width: var(--box);
+  height: var(--box);
+}
+.orb__floor {
+  position: absolute;
+  left: 50%;
+  bottom: -2%;
+  width: 56%;
+  height: 7%;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(0 0 30 / .7), rgb(0 0 30 / 0));
+  pointer-events: none;
+}
+.orb__body {
+  position: absolute;
+  inset: calc((var(--box) - var(--orb) / .94) / 2);
+}
+.orb__canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
+.orb[data-gl="on"] .orb__canvas { opacity: 1; }
+.orb[data-gl="on"] .orb__face { visibility: hidden; }
+
+.orb__face {
+  position: absolute;
+  inset: 3%;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #f4f4f5;
+}
+.orb__wash {
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(from 200deg, #3b3bff, #ff6500, #ffffff, #3b3bff);
+  opacity: var(--mix, 0);
+  transition: opacity .6s var(--au-ease);
+}
+.orb__eye {
+  position: absolute;
+  top: 34%;
+  width: 13%;
+  height: 28%;
   border-radius: 999px;
-  background: rgb(255 255 255 / .3);
-  cursor: pointer;
-  transition: background .25s ease, width .25s ease;
+  background: #09090b;
+  translate: calc(var(--lx, 0) * 110%) calc(var(--ly, .08) * -45%);
+  scale: 1 calc(1 - var(--hold, 0) * .9);
+  transition: translate .2s var(--au-ease), scale .12s var(--au-ease), opacity .3s var(--au-ease);
 }
-.au__dot.is-on { width: 40px; background: #fff; }
-@media (prefers-reduced-motion: reduce) { .au__dot { transition: none; } }
+.orb__eye--l { left: 31%; }
+.orb__eye--r { left: 56%; }
+.orb[data-turned="true"] .orb__eye { opacity: 0; translate: 160% -10%; }
+.orb[data-blink="true"] .orb__eye { animation: orb-blink .18s ease; }
+@keyframes orb-blink { 40%, 60% { scale: 1 .1; } }
 
-/* ---- form side ----------------------------------------------------------- */
+.orb__ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: rotate(-90deg);
+  opacity: 0;
+  transition: opacity .3s var(--au-ease);
+}
+.orb__ring:not([data-mode="hidden"]) { opacity: 1; }
+/* In viewBox units, not a non-scaling stroke: Chrome measures dashes in
+   screen space under `vector-effect`, which breaks `pathLength`, and the arc
+   came out as two broken pieces. `--ring-w` is --stroke / --box x 100. */
+.orb__ring circle {
+  fill: none;
+  stroke-width: var(--ring-w, .8);
+  stroke-linecap: round;
+}
+.orb__track { stroke: rgb(255 255 255 / .16); }
+.orb__arc { stroke: var(--au-orange); stroke-dasharray: 100; stroke-dashoffset: 100; }
+.orb__ring[data-mode="indeterminate"] .orb__arc {
+  stroke-dasharray: 22 78;
+  animation: orb-run 1.1s linear infinite;
+}
+.orb__ring[data-mode="complete"] { animation: orb-glow .4s ease-out; }
+.orb__ring[data-mode="drain"] .orb__arc {
+  transition: stroke-dashoffset .4s var(--au-ease);
+  animation: orb-flash .4s ease;
+}
+@keyframes orb-run { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -100; } }
+@keyframes orb-glow {
+  50% { filter: drop-shadow(0 0 10px var(--au-orange)); }
+}
+@keyframes orb-flash { 30%, 70% { stroke: #ff5a4e; } }
+
+/* ======================================================== the form panel */
 
 .au__panel {
   min-height: 100svh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2.5rem clamp(1.25rem, 5vw, 4rem);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: 40px clamp(24px, 5vw, 64px) 32px;
   background: var(--background);
 }
-.au__inner { width: 100%; max-width: 27rem; }
+.au__bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.au__barEnd { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+.au__demo {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--au-navy);
+  color: #fff;
+  font: 600 12.5px/1.4 var(--au-body);
+}
+.dark .au__demo { background: var(--au-orange); color: #000; }
 
 .au__back {
   display: inline-flex;
   align-items: center;
-  gap: .45rem;
-  margin-bottom: 1.75rem;
+  gap: 8px;
+  min-height: 44px;
   color: var(--muted);
-  font-size: .86rem;
-  font-weight: 600;
+  font: 500 14px var(--au-body);
   text-decoration: none;
 }
-.au__back:hover { color: var(--au-orange); }
-.au__back svg { width: 1rem; height: 1rem; }
+.au__back:hover { color: var(--foreground); }
+.au__back svg { width: 16px; height: 16px; transition: translate .15s var(--au-ease); }
+.au__back:hover svg { translate: -2px 0; }
+.au__back--foot { display: none; }
 
-.au__formWrap h1 {
+.au__column {
+  align-self: center;
+  justify-self: center;
+  width: 100%;
+  max-width: 400px;
+  padding: 40px 0;
+  min-width: 0;
+}
+
+.au__foot {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  text-align: center;
+  color: var(--muted);
+  font: 400 13px/1.5 var(--au-body);
+}
+.au__foot p { margin: 0; }
+.au__foot a { color: inherit; text-decoration: underline; text-underline-offset: .2em; }
+.au__foot a:hover { color: var(--foreground); }
+.au__new { font-size: 14px; }
+.au__new a { color: var(--accent-ink); font-weight: 600; }
+.au__new a:hover { color: var(--accent-ink); }
+
+/* ========================================================== the steps */
+
+.lx { perspective: 1200px; min-width: 0; }
+.lx__flip {
+  position: relative;
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform .6s var(--au-ease), height .22s var(--au-ease);
+}
+.lx__flip[data-face="back"] { transform: rotateY(180deg); }
+.lx__face {
+  grid-area: 1 / 1;
+  align-self: start;
+  min-width: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.lx__face--back { transform: rotateY(180deg); }
+
+.lx[data-live="true"] .lx__step { animation: lx-in .22s var(--au-ease) both; }
+.lx__step { --from: 16px; min-width: 0; }
+.lx__step[data-dir="-1"] { --from: -16px; }
+@keyframes lx-in { from { opacity: 0; transform: translateX(var(--from)); } }
+
+.lx__heading {
   margin: 0;
-  font: 700 clamp(1.8rem, 4vw, 2.25rem)/1.1 var(--font-space-grotesk), system-ui, sans-serif;
+  font: 600 30px/1.1 var(--au-display);
+  letter-spacing: -.02em;
   text-wrap: balance;
 }
-.au__lede { margin: .6rem 0 0; color: var(--muted); font-size: .94rem; line-height: 1.55; }
-
-.au__google {
-  width: 100%;
-  min-height: 3.2rem;
-  margin-top: 1rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: .7rem;
-  border: 1px solid var(--line);
-  border-radius: .8rem;
-  background: var(--surface);
-  color: var(--foreground);
-  font: 700 .86rem var(--font-space-grotesk), system-ui, sans-serif;
-  cursor: pointer;
+/* Focus lands on the heading so a screen reader starts reading the new
+   step there. It is not a control, so it draws no ring. */
+.au .lx__heading:focus, .au .lx__heading:focus-visible { outline: none; }
+.lx__sub {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font: 400 16px/1.5 var(--au-body);
+  overflow-wrap: anywhere;
 }
-.au__google:hover { border-color: var(--au-orange); }
-.au__google:disabled { opacity: .65; cursor: wait; }
-.au__google svg { width: 1.15rem; height: 1.15rem; }
+.lx__email { color: var(--foreground); font-weight: 600; }
+.lx__form { display: grid; gap: 16px; margin-top: 28px; }
+.lx__note { margin: 8px 0 0; color: var(--muted); font-size: 13.5px; }
 
-.au__or {
+.lx__or {
   display: flex;
   align-items: center;
-  gap: .7rem;
-  margin-top: 1.6rem;
+  gap: 12px;
+  margin: 24px 0 16px;
   color: var(--muted);
-  font-size: .7rem;
-  text-transform: uppercase;
-  letter-spacing: .08em;
+  font: 500 13px var(--au-body);
 }
-.au__or::before, .au__or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.lx__or::before, .lx__or::after { content: ""; flex: 1; height: 1px; background: var(--au-border); }
+.lx__social { display: grid; gap: 10px; }
 
-.au__form { display: grid; gap: 1.1rem; margin-top: 1.8rem; }
-
-
-/* A LABEL THAT NEVER MOVES. The previous field floated its label into the box
-   on focus, which collided with whatever a password manager had already put
-   there -- the value and the label drawn over each other in the same 58px. */
-.au__field { display: grid; gap: .4rem; }
-.au__field > label {
-  font-size: .78rem;
-  font-weight: 700;
-  letter-spacing: .01em;
-  color: var(--foreground);
-}
-.au__inputWrap { position: relative; display: block; }
-.au__field input[type="email"],
-.au__field input[type="text"],
-.au__field input[type="password"] {
+.lx__methods { list-style: none; margin: 24px 0 0; padding: 0; display: grid; gap: 10px; }
+.lx__method {
   width: 100%;
-  min-height: 3.25rem;
-  padding: .75rem .9rem;
-  /* FILLED, NOT OUTLINED. A 1px rule on a white page makes the field a
-     drawing of a box; a tinted fill makes it a place to type. The border stays
-     so the edge survives forced-colours and high-contrast modes, where a
-     background is dropped and an outline is not. */
-  border: 1px solid transparent;
-  border-radius: .7rem;
-  background: color-mix(in srgb, var(--au-blue) 6%, var(--surface));
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--au-border);
+  border-radius: 14px;
+  background: var(--background);
   color: var(--foreground);
-  outline: none;
+  text-align: left;
   font: inherit;
-  font-size: 1rem; /* 16px: anything smaller makes iOS Safari zoom on focus. */
-  transition: border-color .2s, box-shadow .2s;
+  cursor: pointer;
+  transition: border-color .15s var(--au-ease), background .15s var(--au-ease);
 }
-.au__inputWrap input { padding-right: 3rem; }
-.au__field input:focus {
-  border-color: var(--au-orange);
-  box-shadow: 0 0 0 3px rgb(255 101 0 / .14);
+.lx__method:hover { border-color: var(--btn-fill); background: var(--surface); }
+.lx__method[aria-disabled="true"] { cursor: progress; }
+.lx__methodIcon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--au-navy);
+  color: #fff;
 }
-/* Chrome paints its own background on an autofilled field and ignores
-   `background`. The inset shadow is the only thing it honours. */
-.au__field input:-webkit-autofill,
-.au__field input:-webkit-autofill:hover,
-.au__field input:-webkit-autofill:focus {
+.dark .lx__methodIcon { background: var(--au-orange); color: #000; }
+.lx__methodIcon svg { width: 20px; height: 20px; }
+.lx__methodText { display: grid; gap: 2px; min-width: 0; }
+.lx__methodTitle { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font: 600 16px/1.3 var(--au-body); }
+.lx__methodDesc { color: var(--muted); font: 400 13.5px/1.4 var(--au-body); }
+.lx__methodGo { width: 18px; height: 18px; color: var(--muted); transition: translate .15s var(--au-ease); }
+.lx__method:hover .lx__methodGo { translate: 2px 0; color: var(--foreground); }
+.lx__badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #ffe8da;
+  color: var(--au-navy);
+  font: 600 12.5px/1.4 var(--au-body);
+}
+.dark .lx__badge { background: var(--au-orange); color: #000; }
+
+.lx__forgot { margin-top: 8px; }
+.lx__back { margin-top: 12px; }
+.lx__row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; margin-top: 12px; }
+.lx__inbox:not(:empty) { margin-top: 20px; }
+.lx__stack { display: grid; gap: 10px; margin-top: 16px; }
+.lx__demo { margin-top: 16px; border-style: dashed; }
+
+.lx__suggest {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 16px;
+  border: 1.5px solid var(--au-border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.lx__suggest p { margin: 0; font: 400 14px/1.5 var(--au-body); }
+
+/* --------------------------------------------------------------- chip */
+
+.au-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 44px;
+  margin-bottom: 20px;
+  padding: 0 4px 0 14px;
+  border: 1px solid var(--au-border);
+  border-radius: 999px;
+  background: var(--surface);
+}
+.au-chip__email {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 500 14px var(--au-body);
+}
+.au-chip__change { padding: 0 10px; }
+
+/* ------------------------------------------------------------- fields */
+
+.au-field { display: grid; gap: 8px; min-width: 0; }
+.au-field > label { font: 500 14px/1.3 var(--au-body); color: var(--foreground); }
+.au-input { position: relative; }
+.au-input input {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 48px 0 16px;
+  border: 1.5px solid var(--au-border);
+  border-radius: 14px;
+  background: var(--au-field);
+  color: var(--foreground);
+  font: 400 16px var(--au-body); /* 16px: anything smaller makes iOS zoom. */
+  outline: none;
+  transition: border-color .15s var(--au-ease), box-shadow .15s var(--au-ease);
+}
+.au-input input::placeholder { color: var(--au-placeholder); opacity: 1; }
+.au-field[data-state="typing"] input,
+.au-field[data-state="has-at"] input { border-color: var(--au-border-strong); }
+.au-field[data-state="valid"] input { border-color: var(--au-valid); }
+.au .au-input input:focus-visible, .au .au-code__input:focus-visible { outline: none; }
+.au-input input:focus { border-color: var(--au-edge); box-shadow: 0 0 0 3px var(--au-focus); }
+.au-field[data-state="valid"] input:focus { border-color: var(--au-valid); }
+.au-field[data-state="invalid"] input,
+.au-field[data-state="invalid"] input:focus { border-color: var(--au-error); }
+.au-field[data-state="invalid"] input:focus { box-shadow: 0 0 0 3px rgb(198 40 40 / .2); }
+.au-input input:-webkit-autofill,
+.au-input input:-webkit-autofill:hover,
+.au-input input:-webkit-autofill:focus {
   -webkit-text-fill-color: var(--foreground);
-  box-shadow: 0 0 0 100px var(--surface) inset;
+  box-shadow: 0 0 0 100px var(--au-field) inset;
   caret-color: var(--foreground);
 }
 
-.au__reveal {
+.au-input__mark { position: absolute; right: 16px; top: 50%; width: 18px; height: 18px; translate: 0 -50%; pointer-events: none; }
+.au-input__mark svg { position: absolute; inset: 0; width: 18px; height: 18px; opacity: 0; transition: opacity .15s var(--au-ease), scale .15s var(--au-pop), color .15s; }
+.au-input__at { color: var(--muted); }
+.au-input__check { color: var(--au-valid); scale: .4; stroke-width: 3; }
+.au-field[data-state="has-at"] .au-input__at { opacity: 1; color: var(--au-valid); }
+.au-field[data-state="valid"] .au-input__check { opacity: 1; scale: 1; }
+
+.au-input--action input { padding-right: 56px; }
+.au-input__reveal {
   position: absolute;
-  right: .55rem;
+  right: 4px;
   top: 50%;
   translate: 0 -50%;
   display: grid;
   place-items: center;
-  /* 44px, so it is a target and not a dare. */
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 44px;
+  height: 44px;
   border: 0;
-  border-radius: .6rem;
+  border-radius: 10px;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
 }
-.au__reveal:hover { color: var(--foreground); }
-.au__reveal svg { width: 1.05rem; height: 1.05rem; }
+.au-input__reveal:hover { color: var(--foreground); }
+.au-input__reveal svg { width: 18px; height: 18px; }
 
-.au__hint { margin: 0; color: var(--accent-ink, #b64800); font-size: .78rem; font-weight: 600; }
+.au-msg { display: flex; align-items: flex-start; gap: 6px; margin: 0; font: 400 13.5px/1.4 var(--au-body); }
+.au-msg svg { flex: none; width: 16px; height: 16px; margin-top: 1px; }
+.au-msg--error { color: var(--au-error); }
+.au-msg--hint { color: var(--accent-ink); font-weight: 500; }
 
-.au__remember {
-  display: flex;
-  align-items: center;
-  gap: .55rem;
-  color: var(--muted);
-  font-size: .78rem;
-  font-weight: 600;
-  cursor: pointer;
+/* The code: one real input over six drawn boxes. */
+.au-code__row { position: relative; }
+.au-code__boxes { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.au-code__box {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 56px;
+  border: 1.5px solid var(--au-border);
+  border-radius: 12px;
+  background: var(--au-field);
+  font: 600 24px var(--au-display);
+  font-variant-numeric: tabular-nums;
+  transition: border-color .15s var(--au-ease), box-shadow .15s var(--au-ease);
 }
-.au__remember input { width: 1rem; height: 1rem; accent-color: var(--au-orange); }
-.au__formMeta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
+.au-code__box.is-filled { border-color: var(--au-border-strong); }
+.au-code__box.is-active { border-color: var(--au-edge); box-shadow: 0 0 0 3px var(--au-focus); }
+.au-code__box.is-active:not(.is-filled)::after {
+  content: "";
+  width: 2px;
+  height: 24px;
+  background: var(--foreground);
+  animation: au-caret 1s steps(1) infinite;
 }
-.au__formMeta > a { color: var(--accent-ink, #b64800); font-size: .78rem; font-weight: 700; text-decoration: none; }
-.au__formMeta > a:hover { text-decoration: underline; text-underline-offset: .2em; }
-
-.au__error {
-  margin: 0;
-  padding: .65rem .75rem;
-  border-radius: .6rem;
-  background: rgb(190 28 28 / .1);
-  color: #c02626;
-  font-size: .82rem;
+.au-code[data-state="valid"] .au-code__box { border-color: var(--au-valid); }
+.au-code[data-state="invalid"] .au-code__box { border-color: var(--au-error); }
+.au-code__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: transparent;
+  caret-color: transparent;
+  font-size: 16px;
+  letter-spacing: 2em;
+  outline: none;
+  cursor: text;
 }
-.dark .au__error { color: #fca5a5; }
+.au-code__input::selection { background: transparent; }
+@keyframes au-caret { 50% { opacity: 0; } }
 
-.au__submit {
-  min-height: 3.1rem;
+/* ------------------------------------------------------------ buttons */
+
+/* THE SITE'S PAIR. Primary is --btn-fill with an --btn-ink label, secondary
+   the same two the other way round, solid, with the primary's fill as its
+   edge. They trade places on hover. Asleep, the primary is quiet until the
+   step is ready: a state, not a third button. */
+.au-btn {
+  width: 100%;
+  min-height: 52px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: .55rem;
-  width: 100%;
-  border: 1px solid var(--btn-fill);
-  border-radius: .7rem;
-  /* THE SITE'S BUTTON PAIR, NOT A COLOUR OF ITS OWN. This was navy in light
-     mode and orange in dark, which made it the one labelled button on the
-     site outside the black/white pair AGENTS.md sets -- and orange is never a
-     button fill. `--btn-fill`/`--btn-ink` invert under `.dark`, so the same
-     two lines give black on the paper theme and white on the dark one, both
-     21:1, and the hover trades them like every other primary. */
-  background: var(--btn-fill);
-  color: var(--btn-ink);
-  font: 700 .92rem var(--font-space-grotesk), system-ui, sans-serif;
+  gap: 10px;
+  padding: 0 20px;
+  border: 1.5px solid var(--btn-fill);
+  border-radius: 14px;
+  font: 600 16px var(--au-body);
+  text-decoration: none;
   cursor: pointer;
-  transition: transform .18s, background .18s, color .18s;
+  transition: background .15s var(--au-ease), color .15s var(--au-ease), border-color .15s var(--au-ease), transform .15s var(--au-ease);
 }
-.au__submit:hover {
-  transform: translateY(-1px);
-  background: var(--btn-ink);
-  color: var(--btn-fill);
+.au-btn svg { flex: none; width: 18px; height: 18px; }
+.au-btn:active { transform: scale(.98); }
+.au-btn:disabled { opacity: .8; cursor: wait; }
+.au-btn[aria-busy="true"] { cursor: progress; }
+.au-btn--primary { background: var(--btn-fill); color: var(--btn-ink); }
+.au-btn--primary:hover { background: var(--btn-ink); color: var(--btn-fill); }
+.au-btn--secondary { background: var(--btn-ink); color: var(--btn-fill); }
+.au-btn--secondary:hover { background: var(--btn-fill); color: var(--btn-ink); }
+/* Asleep: a flat, borderless tone, so it cannot be mistaken for a field. */
+.au-btn--primary[data-awake="false"],
+.au-btn--primary[data-awake="false"]:hover {
+  background: var(--surface-2);
+  color: var(--muted);
+  border-color: var(--surface-2);
+  cursor: default;
 }
-.au__submit:disabled { opacity: .8; cursor: wait; transform: none; }
+.au-btn--primary[data-awake="true"] { animation: au-wake .18s var(--au-ease); }
+@keyframes au-wake { from { transform: scale(.98); } }
+.au-google { width: 18px; height: 18px; }
 
-.au__spin {
-  width: .95rem;
-  height: .95rem;
-  border: 2px solid currentColor;
-  border-right-color: transparent;
-  border-radius: 50%;
-  animation: au-spin .7s linear infinite;
+.au-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-ink);
+  font: 600 14px var(--au-body);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: .22em;
+  cursor: pointer;
+  transition: text-decoration-color .15s;
 }
-@keyframes au-spin { to { transform: rotate(360deg); } }
+.au-link:hover { text-decoration-color: currentColor; }
+.au-link:disabled { color: var(--muted); cursor: default; text-decoration: none; }
 
-.au__help { margin: 1.6rem 0 0; color: var(--muted); font-size: .78rem; line-height: 1.6; text-align: center; }
-.au__help a { color: var(--accent-ink, #b64800); font-weight: 700; text-decoration: none; }
-.au__help a:hover { text-decoration: underline; text-underline-offset: .2em; }
+/* ------------------------------------------------ messages and notices */
 
-.au :focus-visible { outline: 2px solid var(--au-orange); outline-offset: 3px; }
-
-.au__textLink { justify-self: center; color: var(--accent-ink, #b64800); font-size: .8rem; font-weight: 700; text-decoration: none; }
-.au__textLink:hover { text-decoration: underline; text-underline-offset: .2em; }
+.au__error {
+  margin: 16px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--au-error-bg);
+  color: var(--au-error);
+  font: 400 14px/1.45 var(--au-body);
+}
+.au__form .au__error { margin: 0; }
 
 .au__notice {
   display: grid;
-  gap: .65rem;
-  margin-top: 1.8rem;
-  padding: 1.2rem;
-  border: 1px solid var(--line);
-  border-radius: .85rem;
+  gap: 10px;
+  margin-top: 24px;
+  padding: 18px;
+  border: 1.5px solid var(--au-border);
+  border-radius: 14px;
   background: var(--surface);
 }
-.au__notice b { font-family: var(--font-space-grotesk), system-ui, sans-serif; }
-.au__notice span { color: var(--muted); font-size: .88rem; line-height: 1.55; }
-.au__notice a { width: fit-content; color: var(--accent-ink, #b64800); font-size: .82rem; font-weight: 700; text-decoration: none; }
+.au__notice b { font-family: var(--au-display); font-size: 17px; }
+.au__notice span { color: var(--muted); font-size: 14px; line-height: 1.55; }
+.au__notice a:not(.au-btn) { width: fit-content; color: var(--accent-ink); font-size: 14px; font-weight: 600; text-decoration: none; }
+.au__notice .au-btn { margin-top: 6px; }
 
-/* ---- /signed-in, which has no brand column ------------------------------- */
+/* =========================================== the closing moment (success) */
+
+/* Appended to <body>, outside .au, so it carries the tokens it uses. */
+.au-zoom {
+  --au-ease: cubic-bezier(.2, .8, .2, 1);
+  --au-body: var(--font-body, var(--font-space-grotesk)), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --au-display: var(--font-space-grotesk), system-ui, -apple-system, "Segoe UI", sans-serif;
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  background:
+    radial-gradient(circle at var(--x) var(--y), rgb(59 59 255 / .55), rgb(255 101 0 / .14) 24%, rgb(0 0 101 / 0) 52%),
+    #000065;
+  clip-path: circle(0 at var(--x) var(--y));
+}
+.au-zoom--demo { display: grid; place-items: center; padding: 24px; }
+.au-zoom__card {
+  --btn-fill: #fff;
+  --btn-ink: #000;
+  display: grid;
+  gap: 12px;
+  max-width: 360px;
+  color: #fff;
+  text-align: center;
+  font: 400 16px/1.5 var(--au-body);
+}
+.au-zoom__card p { margin: 0; }
+.au-zoom__title { font: 600 34px/1.1 var(--au-display); letter-spacing: -.02em; }
+.au-zoom__card .au-btn { margin-top: 12px; }
+
+/* ================================================= /signed-in (no panel) */
 
 .au--solo { grid-template-columns: minmax(0, 1fr); }
+.au--solo .au__panel { display: flex; align-items: center; justify-content: center; }
+.au__inner { width: 100%; max-width: 27rem; }
 .au__soloLogo { display: inline-block; margin-bottom: 2rem; text-decoration: none; }
+.au__formWrap h1 { margin: 0; font: 600 clamp(1.7rem, 4vw, 2.1rem)/1.1 var(--au-display); letter-spacing: -.02em; text-wrap: balance; }
+.au__lede { margin: .6rem 0 0; color: var(--muted); font-size: .94rem; line-height: 1.55; }
 .au__soloActions { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.6rem; }
 .au__ghost {
   flex: 1 1 10rem;
@@ -323,41 +698,146 @@
   align-items: center;
   justify-content: center;
   padding: 0 1.1rem;
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--btn-fill);
   border-radius: .8rem;
-  background: transparent;
-  color: var(--foreground);
-  font: 700 .82rem var(--font-space-grotesk), system-ui, sans-serif;
+  background: var(--btn-ink);
+  color: var(--btn-fill);
+  font: 600 .88rem var(--au-body);
   text-decoration: none;
   cursor: pointer;
 }
-.au__ghost:hover { border-color: var(--au-orange); color: var(--au-orange); }
+.au__ghost:hover { background: var(--btn-fill); color: var(--btn-ink); }
 .au__ghost:disabled { opacity: .65; cursor: wait; }
 
-/* ---- narrow ------------------------------------------------------------- */
+/* ============================================== tablet and phone: the band */
 
-@media (max-width: 899px) {
-  .au { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
-  /* The brand column becomes a band rather than disappearing. A bare form on a
-     white page could belong to anybody, and this is the page where someone is
-     about to type a password. */
+@media (max-width: 1023.98px) {
+  .au {
+    --band: clamp(250px, 31svh, 300px);
+    --band-compact: 104px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+  }
   .au__brand {
     min-height: 0;
-    padding: 1.5rem clamp(1.25rem, 5vw, 2.25rem) 1.35rem;
-    gap: 1.1rem;
+    height: calc(var(--band) + var(--safe-top));
+    display: block;
+    padding: calc(12px + var(--safe-top)) max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+    transition: height .4s var(--au-ease);
   }
-  /* THE QUOTE GOES, THE LOGO STAYS. On a phone the brand column is a band a
-     few centimetres tall above the form; a testimonial in it would push the
-     email field below the fold on the page where someone came to type. */
-  .au__brandFoot { display: none; }
-  .au__panel { min-height: 0; padding-top: 2.25rem; padding-bottom: 3rem; align-items: flex-start; }
-  .au__back { margin-bottom: 1.25rem; }
-  .au--solo .au__panel { padding-top: 3rem; }
+  .au__brandTop { transition: opacity .25s var(--au-ease); }
+  .au__logoMark { height: 26px; }
+  .au__theme--band { display: inline-flex; }
+  .au__theme--panel, .au__back--bar, .au__tagline { display: none; }
+
+  /* The stage is pinned to the top of the band, so folding the band never
+     moves it, and the orb's fold is a pure transform from a known place. */
+  .au__stage {
+    position: absolute;
+    top: calc(68px + var(--safe-top));
+    left: max(16px, env(safe-area-inset-left));
+    right: max(16px, env(safe-area-inset-right));
+    flex-direction: row;
+    justify-content: center;
+    gap: 16px;
+  }
+  .orb {
+    --orb: clamp(96px, 27vw, 128px);
+    --gap: 8px;
+    --stroke: 2.5px;
+    --ring-w: 1.7;
+    order: -1;
+    transform-origin: center;
+    transition: transform .4s var(--au-ease);
+  }
+  .greet { flex: 1 1 auto; max-width: 340px; transition: opacity .25s var(--au-ease); }
+  .greet__caption { text-align: left; padding-left: 4%; }
+
+  .au__panel {
+    position: relative;
+    z-index: 1;
+    min-height: 0;
+    margin-top: -28px;
+    padding: 28px 20px max(24px, env(safe-area-inset-bottom));
+    border-radius: 28px 28px 0 0;
+    box-shadow: 0 -8px 30px rgb(0 0 40 / .18);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .au__bar:not(:has(.au__demo)) { display: none; }
+  .au__column { align-self: start; max-width: 480px; padding: 0; }
+  .au__column { align-self: center; }
+  .au__foot { margin-top: auto; padding-top: 8px; }
+  .au__back--foot { display: inline-flex; }
+  .lx__heading { font-size: 26px; }
+  .lx__form { margin-top: 24px; }
+
+  /* KEYBOARD UP: the band folds to a strip, the orb shrinks to 52px beside
+     one plain line of the greeting, and keeps reacting at that size. */
+  .greet__line {
+    position: absolute;
+    left: 64px;
+    top: -30px;
+    right: 0;
+    display: block;
+    overflow: hidden;
+    color: #fff;
+    font: 600 15px/1.2 var(--au-display);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    opacity: 0;
+    translate: 0 -50%;
+    pointer-events: none;
+    transition: opacity .25s var(--au-ease);
+  }
+  .au[data-compact="true"] .au__brand { height: calc(var(--band-compact) + var(--safe-top)); }
+  .au[data-compact="true"] .au__brandTop { opacity: 0; pointer-events: none; }
+  .au[data-compact="true"] .orb { transform: translate(var(--orb-dx, 0), var(--orb-dy, 0)) scale(var(--orb-s, .4)); }
+  .au[data-compact="true"] .greet__box,
+  .au[data-compact="true"] .greet__caption { opacity: 0; }
+  .au[data-compact="true"] .greet__line { opacity: 1; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .au__submit,
-  .au__field input { transition: none; }
-  .au__submit:hover { transform: none; }
-  .au__spin { animation-duration: 2s; }
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  /* A floating card on a tablet, as tall as what is in it, not a sheet
+     stretched to the bottom of the screen with a hole in the middle. */
+  .au { grid-template-rows: auto auto; align-content: start; }
+  .au__foot { margin-top: 8px; }
+  .au__panel {
+    justify-self: center;
+    width: min(100% - 48px, 520px);
+    margin-bottom: 32px;
+    border-radius: 28px;
+    padding: 36px 36px 28px;
+  }
+  .au { --band: clamp(280px, 34svh, 340px); }
+  .orb { --orb: 150px; --ring-w: 1.45; }
+  .au__stage { top: calc(76px + var(--safe-top)); }
 }
+
+@media (max-width: 359.98px) {
+  .au__panel { padding-left: 16px; padding-right: 16px; }
+  .au-code__boxes { gap: 6px; }
+  .au-code__box { height: 50px; font-size: 21px; }
+}
+
+/* ======================================================== reduced motion */
+
+@media (prefers-reduced-motion: reduce) {
+  .lx__flip { transition: none; }
+  .lx__flip[data-face="back"], .lx__face--back { transform: none; }
+  .lx__face { transition: opacity .12s linear; }
+  .lx__face[inert] { opacity: 0; visibility: hidden; }
+  .lx[data-live="true"] .lx__step { animation: lx-fade .12s linear both; }
+  .au__brand, .orb, .greet, .greet__line, .au__brandTop { transition: none; }
+  .orb__eye, .orb__wash { transition: none; }
+  .orb__ring[data-mode="indeterminate"] .orb__arc { stroke-dasharray: 30 70; animation: orb-pulse 1.6s ease-in-out infinite; }
+  .orb__ring[data-mode="complete"], .orb__ring[data-mode="drain"] .orb__arc { animation: none; transition: none; }
+  .au-btn, .au-btn--primary[data-awake="true"] { transition: none; animation: none; }
+  .au-btn:active { transform: none; }
+  .au-code__box.is-active:not(.is-filled)::after { animation: none; }
+}
+@keyframes lx-fade { from { opacity: 0; } }
+@keyframes orb-pulse { 50% { opacity: .45; } }
