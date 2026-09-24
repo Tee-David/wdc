@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Images, MessagesSquare } from "lucide-react";
+import { adminRole } from "@/lib/admin/guard";
+import { AdminState } from "@/components/admin/admin-state";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { SERVICES } from "@/lib/services";
 import { CASE_STUDIES } from "@/lib/work";
@@ -27,7 +29,30 @@ export const metadata = { title: "Settings" };
  * deleting the row restores what shipped. That is the whole design, and it is
  * why this screen shows what is editable before anything is editable.
  */
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  /* Staff reach the content tools that live under Settings (the FAQ, the
+     media library) and nothing else here: site settings, finance defaults,
+     integrations, the team and the audit log are the owner's. */
+  if ((await adminRole()) !== "owner") {
+    return (
+      <>
+        <div className="ad__head">
+          <div>
+            <h1>Settings</h1>
+            <p>The site&rsquo;s content you can edit. Everything else here is the owner&rsquo;s.</p>
+          </div>
+          <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
+            <Link className="ad__btn" href="/admin/settings/faq"><MessagesSquare aria-hidden="true" /> FAQ</Link>
+            <Link className="ad__btn" href="/admin/settings/media"><Images aria-hidden="true" /> Media</Link>
+          </div>
+        </div>
+        <section className="ad__panel">
+          <AdminState kind="forbidden" title="Site settings are for the owner"
+            description="The FAQ and the media library above are yours to edit. Contact details, services, finance defaults, integrations and the team are changed by the owner." />
+        </section>
+      </>
+    );
+  }
   const overrides = getSettings();
 
   const rows: { key: string; label: string; value: string; note?: string }[] = [

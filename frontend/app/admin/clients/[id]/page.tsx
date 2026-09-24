@@ -17,6 +17,8 @@ import TicketPanel from "@/components/admin/ticket-panel";
 import { ArchiveClient } from "@/components/admin/client-archive";
 import AuditLog from "@/components/admin/audit-log";
 import PortalAccess from "@/components/admin/portal-access";
+import { adminRole } from "@/lib/admin/guard";
+import { can } from "@/lib/admin/permissions";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 
 /* NO generateStaticParams. The client list is written to now, and a route
@@ -43,6 +45,11 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   const c = getClient(id);
   if (!c) notFound();
   const finance = financeDefaults();
+  /* Staff see the relationship and the work, not the books, and do not get
+     the controls that cannot be undone here (lib/admin/permissions.ts). */
+  const role = await adminRole();
+  const money = can(role, "money");
+  const destructive = can(role, "destructive");
 
   const projects = getProjectsFor(c.id);
   const invoices = getInvoicesFor(c.id);
@@ -56,8 +63,8 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   const relatedAuditIds = [
     c.id,
     ...projects.map((project) => project.id),
-    ...invoices.map((invoice) => invoice.id),
-    ...payments.map(({ payment }) => payment.id),
+    ...(money ? invoices.map((invoice) => invoice.id) : []),
+    ...(money ? payments.map(({ payment }) => payment.id) : []),
     ...deliverables.map(({ deliverable }) => deliverable.id),
     ...forms.map((form) => form.id),
   ];
@@ -83,8 +90,8 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
         </div>
         <div className="ad__row">
           <PageTourButton />
-          <ArchiveClient client={c} />
-          {c.mergedInto ? null : (
+          {destructive ? <ArchiveClient client={c} /> : null}
+          {c.mergedInto || !destructive ? null : (
             <MergeClient keepId={c.id} keepName={c.company}
               candidates={getClients({ includeArchived: false })
                 .filter((x) => x.id !== c.id)
@@ -92,12 +99,14 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
           )}
           <EditClient client={c} />
           <AddProject clients={[c]} clientId={c.id} />
-          <InvoiceBuilder
-            clients={[c]}
-            projects={getProjects().filter((p) => p.clientId === c.id)}
-            clientId={c.id}
-            defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays}
-          />
+          {money ? (
+            <InvoiceBuilder
+              clients={[c]}
+              projects={getProjects().filter((p) => p.clientId === c.id)}
+              clientId={c.id}
+              defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays}
+            />
+          ) : null}
         </div>
       </div>
 
@@ -125,8 +134,8 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
       ) : null}
 
       <dl className="ad__tiles">
-        <Tile label="Paid to date" value={naira(paid)} tone="good" />
-        <Tile label="Outstanding" value={naira(owed)} tone={owed ? "bad" : undefined} />
+        {money ? <Tile label="Paid to date" value={naira(paid)} tone="good" /> : null}
+        {money ? <Tile label="Outstanding" value={naira(owed)} tone={owed ? "bad" : undefined} /> : null}
         <Tile label="Projects" value={String(projects.length)}
               note={`${projects.filter((p) => p.stage !== "Delivered").length} live`} />
         <Tile label="Client since" value={when(c.since)} note={c.sector} />
@@ -157,7 +166,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
             ) : <Empty title="No projects yet" />}
           </Panel>
 
-          <Panel title="Invoices" dataTour="client-invoices">
+          {money ? <Panel title="Invoices" dataTour="client-invoices">
             {invoices.length ? (
               <div className="ad__scroll">
                 <table className="ad__t">
@@ -180,7 +189,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
                 </table>
               </div>
             ) : <Empty title="Nothing invoiced yet" />}
-          </Panel>
+          </Panel> : null}
         </div>
 
         <div className="ad__stack">
@@ -222,7 +231,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
       </div>
 
       <div className="ad__grid2" style={{ marginTop: ".9rem" }}>
-        <Panel title="Payment history" dataTour="client-payments">
+        {money ? <Panel title="Payment history" dataTour="client-payments">
           {payments.length ? (
             <div className="ad__scroll">
               <table className="ad__t">
@@ -258,7 +267,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
               Payments appear here with their receipt, method, reversals and refunds kept intact.
             </Empty>
           )}
-        </Panel>
+        </Panel> : null}
 
         <Panel title="Files and deliverables">
           {deliverables.length ? (
@@ -301,9 +310,11 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
       {/* WHAT WE OWE THEM, which is the other direction from everything above.
           Renders nothing at all for a client who has never had a balance,
           which is almost all of them. */}
-      <div style={{ marginTop: ".9rem" }}>
-        <CreditPanel clientId={c.id} />
-      </div>
+      {money ? (
+        <div style={{ marginTop: ".9rem" }}>
+          <CreditPanel clientId={c.id} />
+        </div>
+      ) : null}
 
       {/* THE OTHER DIRECTION AGAIN: what THEY have raised with US, from their
           own portal. Renders nothing for a client with no conversations,

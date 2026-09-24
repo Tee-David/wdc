@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { deleteDraftPost, movePostToDraft, publishPostNow, savePost } from "@/lib/blog-db";
 import { parsePost } from "@/lib/blog-validate";
 import { audit } from "./store";
-import { actorName, owner } from "./guard";
+import { actorName, owner, allow } from "./guard";
 import { FAIL, OK, type ActionState } from "./validate";
 
 /**
@@ -16,7 +16,7 @@ import { FAIL, OK, type ActionState } from "./validate";
  * live on the next request rather than at the next deploy.
  */
 export async function saveBlogPost(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const refused = await owner();
+  const refused = await allow("content");
   if (refused) return refused;
 
   const raw: Record<string, unknown> = {};
@@ -76,7 +76,9 @@ function refreshBlog(slug: string) {
 
 /** The list's three quick actions: same checks, same audit, same refresh. */
 async function quick(fd: FormData, verb: "publish" | "draft" | "delete"): Promise<ActionState> {
-  const refused = await owner();
+  /* Publishing and unpublishing are content work; deleting a post is not
+     undoable from here, so it stays with the owner. */
+  const refused = verb === "delete" ? await owner() : await allow("content");
   if (refused) return refused;
   const id = String(fd.get("id") ?? "").trim();
   const by = await actorName();

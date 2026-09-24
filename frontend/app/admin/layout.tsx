@@ -4,6 +4,7 @@ import AdminShell from "@/components/admin/shell";
 import AdminTourProvider from "@/components/admin/tour/tour-provider";
 import { getSubmissions } from "@/lib/admin/store";
 import { getAdminRequest } from "@/lib/admin/session";
+import { isAdminRole } from "@/lib/admin/permissions";
 import "@/components/admin/admin.css";
 
 /**
@@ -33,7 +34,11 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const { session } = await getAdminRequest();
-  if (!session?.user || (session.user as typeof session.user & { role?: string }).role !== "owner") {
+  const role = (session?.user as { role?: string } | undefined)?.role;
+  /* Owner and staff. What staff may do inside is lib/admin/permissions.ts,
+     enforced at every action by lib/admin/guard.ts; this only keeps everyone
+     else out of the building. */
+  if (!session?.user || !isAdminRole(role)) {
     redirect("/login?redirect=/admin");
   }
   /* Counts that belong on the nav rather than on a screen: an admin should
@@ -42,10 +47,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="ad">
-      <AdminTourProvider role={(session.user as typeof session.user & { role?: string }).role ?? "owner"}>
+      <AdminTourProvider role={role}>
         <AdminShell
           counts={{ Forms: open }}
           user={{ name: session.user.name, email: session.user.email, image: session.user.image }}
+          role={role}
         >
           {children}
         </AdminShell>
