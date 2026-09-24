@@ -1,10 +1,10 @@
 "use client";
 
-import { Plus, Save } from "lucide-react";
+import { Combine, Plus, Save } from "lucide-react";
 import { SERVICES } from "@/lib/services";
 import type { Client } from "@/lib/admin/types";
-import { createClient, updateClient } from "@/lib/admin/actions";
-import { Actions, Area, Checks, Field, Fields, Form, Hidden, Submit } from "./form";
+import { createClient, mergeClient, updateClient } from "@/lib/admin/actions";
+import { Actions, Area, Checks, Field, Fields, Form, Hidden, Select, Submit } from "./form";
 import { DialogButton } from "./dialog";
 
 const SERVICE_OPTIONS = SERVICES.map((s) => ({ value: s.slug, label: s.short }));
@@ -33,6 +33,12 @@ export function ClientFields({ client }: { client?: Client }) {
         hint="A client appears under each of these on the Clients screen."
         options={SERVICE_OPTIONS} defaultValue={client?.services ?? []}
       />
+      <Field name="tags" label="Tags" defaultValue={client?.tags?.join(", ")} half
+             placeholder="retainer, referral" hint="Your own labels, comma separated. Searchable on the Clients screen." />
+      <Area name="contacts" label="Other contacts" rows={3}
+            defaultValue={client?.contacts?.map((x) => [x.name, x.role, x.email, x.phone].map((v) => v ?? "").join(", ").replace(/(, )+$/, "")).join("\n")}
+            placeholder={"Ada Obi, marketing lead, ada@company.ng, +234 803 000 0000"}
+            hint="One person per line: name, role, email, phone. Only the name is needed." />
       <Area name="notes" label="Notes" defaultValue={client?.notes} rows={3}
             hint="Anything the next person opening this record should know." />
     </Fields>
@@ -64,6 +70,43 @@ export function EditClient({ client }: { client: Client }) {
           <ClientFields client={client} />
           <Actions>
             <Submit icon={Save}>Save</Submit>
+          </Actions>
+        </Form>
+      )}
+    </DialogButton>
+  );
+}
+
+/**
+ * Fold a duplicate into this client.
+ *
+ * The likely duplicates (same email or phone) are listed first and marked,
+ * but any client can be chosen, because the commonest duplicate is the same
+ * business entered twice under two different addresses.
+ */
+export function MergeClient({ keepId, keepName, candidates }: {
+  keepId: string; keepName: string;
+  candidates: { id: string; company: string; likely: boolean }[];
+}) {
+  if (!candidates.length) return null;
+  const ordered = [...candidates].sort((a, b) => Number(b.likely) - Number(a.likely) || a.company.localeCompare(b.company));
+  return (
+    <DialogButton label="Merge a duplicate" title={`Fold a duplicate into ${keepName}`} icon={Combine} tone="plain">
+      {(close) => (
+        <Form action={mergeClient} onDone={() => close()}
+              confirm={`Move everything from the chosen record into ${keepName} and archive the duplicate? This cannot be undone from here.`}>
+          <Hidden name="keepId" value={keepId} />
+          <Fields>
+            <Select name="dupeId" label="The duplicate" required placeholder="Pick the record to fold in"
+                    options={ordered.map((x) => ({ value: x.id, label: x.likely ? `${x.company} (same email or phone)` : x.company }))} />
+          </Fields>
+          <p className="ad__dim" style={{ fontSize: ".86rem", lineHeight: 1.6 }}>
+            Its projects, invoices, estimates, credit, messages, tickets and forms move here. Its services,
+            tags and notes are added; its contact joins the other contacts. {keepName}&apos;s own name,
+            email and phone stay as they are. The duplicate is archived with a note saying where it went.
+          </p>
+          <Actions>
+            <Submit icon={Combine}>Merge it</Submit>
           </Actions>
         </Form>
       )}

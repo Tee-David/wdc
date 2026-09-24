@@ -1188,3 +1188,7 @@
      which is the only way both stay readable at 320px. */
   .ad__logRow { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* A client's other people: one line each, wrapping rather than widening. */
+.ad__contacts { margin: 0; padding: .4rem 1rem .9rem; list-style: none; display: grid; gap: .4rem; font-size: .88rem; }
+.ad__contacts li { min-width: 0; overflow-wrap: anywhere; }

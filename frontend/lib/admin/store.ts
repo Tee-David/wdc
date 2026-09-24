@@ -717,10 +717,12 @@ export function patchClient(id: Id, d: Partial<ClientDraft>, actor = "Studio"): 
      answer the question the log exists for, which is always about one field;
      and writing an entry for a field somebody opened and left alone fills the
      record with noise that hides the changes that matter. */
+  const text = (x: unknown) => Array.isArray(x)
+    ? x.map((y) => (y && typeof y === "object" ? (y as { name?: string }).name ?? "" : String(y))).join(", ")
+    : String(x ?? "");
   for (const [k, v] of Object.entries(d) as [keyof ClientDraft, unknown][]) {
-    const before = c[k];
-    const from = Array.isArray(before) ? before.join(", ") : String(before ?? "");
-    const to = Array.isArray(v) ? v.join(", ") : String(v ?? "");
+    const from = text(c[k]);
+    const to = text(v);
     if (from === to) continue;
     audit({ actor, kind: "client", subjectId: c.id, subject: c.company, action: "edited", field: k, from, to });
   }
@@ -735,6 +737,53 @@ export function patchClient(id: Id, d: Partial<ClientDraft>, actor = "Studio"): 
  * financial record. Removing the row would orphan them and quietly break the
  * year's reporting, so the row stays and drops out of the lists.
  */
+/**
+ * Fold a duplicate into the client record that stays.
+ *
+ * EVERYTHING MOVES, NOTHING IS DELETED. Projects, invoices, estimates,
+ * credits, tickets, messages, expenses and forms that pointed at the
+ * duplicate now point at the record kept; the duplicate is archived with a
+ * note saying where it went, so an old link still explains itself. Payments
+ * follow their invoices, so they need no change of their own.
+ *
+ * WHAT IS KEPT FROM THE DUPLICATE: its services, tags and notes are added to
+ * the kept record, and its main contact joins the kept record's other
+ * contacts if it is a different person. The kept record's own name, email
+ * and phone are never overwritten -- choosing which details are right is a
+ * decision, and this is the record the person chose.
+ */
+export function mergeClients(keepId: Id, dupeId: Id, actor = "Studio"):
+  | { ok: true; kept: Client; moved: number }
+  | { ok: false; reason: "same" | "missing" | "merged" } {
+  if (keepId === dupeId) return { ok: false, reason: "same" };
+  const keep = getClient(keepId);
+  const dupe = getClient(dupeId);
+  if (!keep || !dupe) return { ok: false, reason: "missing" };
+  if (dupe.mergedInto || keep.mergedInto) return { ok: false, reason: "merged" };
+
+  let moved = 0;
+  const repoint = (rows: { clientId?: Id | null }[]) => {
+    for (const r of rows) if (r.clientId === dupeId) { r.clientId = keepId; moved++; }
+  };
+  repoint(PROJECTS); repoint(INVOICES); repoint(ESTIMATES); repoint(CREDITS);
+  repoint(TICKETS); repoint(MESSAGES); repoint(EXPENSES as { clientId?: Id | null }[]); repoint(SUBMISSIONS);
+
+  keep.services = [...new Set([...keep.services, ...dupe.services])];
+  keep.tags = [...new Set([...(keep.tags ?? []), ...(dupe.tags ?? [])])];
+  const known = new Set([keep.email, ...(keep.contacts ?? []).map((x) => x.email)].filter(Boolean).map((e) => normEmail(e!)));
+  const others = [...(keep.contacts ?? [])];
+  if (dupe.email && !known.has(normEmail(dupe.email))) others.push({ name: dupe.name, email: dupe.email, phone: dupe.phone || undefined, role: `From ${dupe.company}` });
+  for (const x of dupe.contacts ?? []) if (!x.email || !known.has(normEmail(x.email))) others.push(x);
+  keep.contacts = others;
+  if (dupe.notes) keep.notes = [keep.notes, `From the merged record ${dupe.company}: ${dupe.notes}`].filter(Boolean).join("\n\n");
+
+  dupe.archived = true;
+  dupe.mergedInto = keepId;
+  audit({ actor, kind: "client", subjectId: keepId, subject: keep.company, action: "merged in a duplicate", note: `${dupe.company} (${moved} records moved)` });
+  audit({ actor, kind: "client", subjectId: dupeId, subject: dupe.company, action: "merged into", note: keep.company });
+  return { ok: true, kept: keep, moved };
+}
+
 export function archiveClient(id: Id, archived = true, actor = "Studio"): Client | null {
   const c = getClient(id);
   if (!c) return null;

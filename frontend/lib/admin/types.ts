@@ -19,6 +19,8 @@ export type Id = string;
 
 /* ------------------------------------------------------------------ people */
 
+export type Contact = { name: string; role?: string; email?: string; phone?: string };
+
 export type Client = {
   id: Id;
   name: string;
@@ -32,6 +34,14 @@ export type Client = {
   since: string;
   notes?: string;
   archived?: boolean;
+  /** The studio's own labels ("retainer", "referral", "slow payer"), for
+      finding a group of clients again. Lower case, deduplicated. */
+  tags?: string[];
+  /** Other people at the client besides `name`: the marketing lead, the
+      person who pays. `name`/`email`/`phone` stay the main contact. */
+  contacts?: Contact[];
+  /** Set when this record was folded into another as a duplicate. */
+  mergedInto?: Id;
   /** What they have agreed to hear from us about. See NOTIFY_KINDS: absent
       means the default, which is yes to the two that are part of the work and
       no to the one that is not. */

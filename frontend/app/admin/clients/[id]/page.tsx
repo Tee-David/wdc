@@ -3,13 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
 import {
-  financeDefaults, getClient, getDeliverablesFor, getInvoicesFor, getPaymentsFor,
-  getProjects, getProjectsFor, getSubmissions,
+  financeDefaults, findDuplicateClient, getClient, getClients, getDeliverablesFor, getInvoicesFor, getPaymentsFor, getProjects, getProjectsFor, getSubmissions,
 } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, naira, paymentNet, refundedTotal } from "@/lib/admin/types";
 import { ApprovalPill, Empty, InvoicePill, Panel, StagePill, Tile, when } from "@/components/admin/bits";
 import { InvoiceMenu, ProjectMenu } from "@/components/admin/row-actions";
-import { EditClient } from "@/components/admin/client-form";
+import { EditClient, MergeClient } from "@/components/admin/client-form";
 import { AddProject } from "@/components/admin/project-forms";
 import { InvoiceBuilder } from "@/components/admin/money-forms";
 import CommsLog from "@/components/admin/comms-log";
@@ -75,10 +74,21 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
             {c.name} · <a href={`mailto:${c.email}`}>{c.email}</a> ·{" "}
             <a href={`tel:${c.phone.replace(/\s/g, "")}`}>{c.phone}</a>
           </p>
+          {c.tags?.length ? (
+            <p className="ad__row" style={{ marginTop: ".4rem" }}>
+              {c.tags.map((t) => <span key={t} className="ad__pill ad__pill--flat">{t}</span>)}
+            </p>
+          ) : null}
         </div>
         <div className="ad__row">
           <PageTourButton />
           <ArchiveClient client={c} />
+          {c.mergedInto ? null : (
+            <MergeClient keepId={c.id} keepName={c.company}
+              candidates={getClients({ includeArchived: false })
+                .filter((x) => x.id !== c.id)
+                .map((x) => ({ id: x.id, company: x.company, likely: Boolean(findDuplicateClient(x.email, x.phone, x.id)?.id === c.id) }))} />
+          )}
           <EditClient client={c} />
           <AddProject clients={[c]} clientId={c.id} />
           <InvoiceBuilder
@@ -89,6 +99,29 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
           />
         </div>
       </div>
+
+      {c.mergedInto ? (
+        <p className="ad__banner" role="status">
+          <Link href={`/admin/clients/${c.mergedInto}`}>
+            <b>This record was merged into {getClient(c.mergedInto)?.company ?? "another client"}.</b> Its work moved there; open that record.
+          </Link>
+        </p>
+      ) : null}
+
+      {c.contacts?.length ? (
+        <section className="ad__panel" style={{ marginBottom: ".9rem" }}>
+          <div className="ad__panelH"><h2>Other contacts</h2></div>
+          <ul className="ad__contacts">
+            {c.contacts.map((x, i) => (
+              <li key={`${x.name}-${i}`}>
+                <b>{x.name}</b>{x.role ? <span className="ad__dim"> · {x.role}</span> : null}
+                {x.email ? <> · <a href={`mailto:${x.email}`}>{x.email}</a></> : null}
+                {x.phone ? <> · <a href={`tel:${x.phone.replace(/\s/g, "")}`}>{x.phone}</a></> : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <dl className="ad__tiles">
         <Tile label="Paid to date" value={naira(paid)} tone="good" />
