@@ -1,4 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
+import { CONTACT_EMAIL } from "@/lib/site";
+import { escapeHtml } from "@/lib/email";
+import { onboardingNextStepsEmail } from "@/lib/email-templates";
+import { sendLogged } from "@/lib/outbox";
+import { SERVICES } from "@/lib/services";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 import { db } from "@/lib/db/pool";
 import { problemWith, stepsFor, type Field } from "@/lib/onboarding";
@@ -74,7 +79,42 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "This form could not be submitted again." }, { status: 409 });
   }
 
-  const response = NextResponse.json({ ok: true, submissionId: result.rows[0].id });
+  const submissionId = result.rows[0].id;
+
+  /* THE THANK-YOU AND THE STUDIO'S NOTICE, BEHIND THE RESPONSE. The row above
+     is the submission; both mails are about it, and neither is worth making a
+     client watch a 23-second handshake for. The dedupe key is the submission,
+     so a double-click that races past the status check still sends once. */
+  const first = typeof answers.first_name === "string" ? answers.first_name.trim() : "";
+  const last = typeof answers.last_name === "string" ? answers.last_name.trim() : "";
+  const company = typeof answers.company === "string" ? answers.company.trim() : "";
+  const serviceName = SERVICES.find((s) => s.slug === service)?.name ?? service;
+  after(async () => {
+    if (email) {
+      try {
+        await sendLogged(
+          { to: email, ...onboardingNextStepsEmail({ name: first || "there", service: serviceName, company: company || undefined }) },
+          { summary: `Next steps after the ${serviceName} brief.`, dedupeKey: `onboarding-next-steps:${submissionId}` },
+        );
+      } catch (error) {
+        console.error("Onboarding next-steps email failed", error instanceof Error ? error.message : "unknown error");
+      }
+    }
+    try {
+      const who = [first, last].filter(Boolean).join(" ") || "A client";
+      await sendLogged({
+        to: process.env.SMTP_REPLY_TO || CONTACT_EMAIL,
+        replyTo: email ?? undefined,
+        subject: `Onboarding brief: ${serviceName}${company ? ` for ${company}` : ""}`,
+        text: `${who}${email ? ` <${email}>` : ""} submitted the ${serviceName} onboarding form.\nSubmission ${submissionId}.`,
+        html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a"><p><b>${escapeHtml(who)}</b>${email ? ` &lt;${escapeHtml(email)}&gt;` : ""} submitted the ${escapeHtml(serviceName)} onboarding form.</p><p style="color:#666680;font-size:13px">Submission ${escapeHtml(submissionId)}</p></div>`,
+      }, { summary: `${who} submitted the ${serviceName} brief.`, dedupeKey: `onboarding-notice:${submissionId}` });
+    } catch (error) {
+      console.error("Onboarding notice failed", error instanceof Error ? error.message : "unknown error");
+    }
+  });
+
+  const response = NextResponse.json({ ok: true, submissionId });
   clearOnboardingCookie(response);
   return response;
 }
