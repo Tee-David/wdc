@@ -5,7 +5,7 @@ import Image from "next/image";
 import type { CSSProperties } from "react";
 import { PROJECTS, type Project } from "@/lib/projects";
 import SiteModal from "./site-modal";
-import { FAQS } from "@/lib/faq";
+import { FAQS, type Faq } from "@/lib/faq";
 import { TESTIMONIALS } from "@/lib/testimonials";
 import { caseBySlug, caseHref } from "@/lib/work";
 import Proof from "@/components/sections/proof";
@@ -166,7 +166,7 @@ function Icon({ slug, delay }: { slug: string; delay: number }) {
   );
 }
 
-export default function PreviewBody() {
+export default function PreviewBody({ faqs = FAQS }: { faqs?: Faq[] }) {
   const [active, setActive] = useState(0);
   const track = useRef<HTMLDivElement | null>(null);
   const pinWrap = useRef<HTMLDivElement | null>(null);
@@ -643,7 +643,7 @@ export default function PreviewBody() {
                 lives in there too: `<details>` cannot be transitioned, so both
                 lists used to snap. */}
             <div className="pv-qa pv-reveal">
-              <FaqAccordion items={FAQS} idPrefix="pvfaq" />
+              <FaqAccordion items={faqs} idPrefix="pvfaq" />
             </div>
           </div>
         </div>

@@ -13,3 +13,5 @@
 .adBlog__block textarea, .adBlog__block input { width: 100%; min-width: 0; font: inherit; padding: .6rem .7rem; border: 1px solid var(--ad-line); border-radius: 9px; background: var(--ad-panel); color: inherit; }
 .adBlog__block textarea:focus-visible, .adBlog__block input:focus-visible, .adBlog__blockBar select:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
 .adBlog__add { margin-top: .7rem; display: flex; flex-wrap: wrap; gap: .4rem; }
+.adBlog__tags { min-width: 0; margin: 0; padding: 0; border: 0; display: flex; flex-wrap: wrap; gap: .4rem; }
+.adBlog__tags legend { width: 100%; margin-bottom: .3rem; font-size: .76rem; }
