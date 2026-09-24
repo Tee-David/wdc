@@ -45,16 +45,19 @@ export async function playSuccess({
   destination,
   navigate,
   demo,
+  hold,
 }: {
   stage: Stage;
   destination: string;
   navigate: (href: string) => void;
   demo: boolean;
+  /** Something on the card still finishing (the code's tick); the circle waits for it. */
+  hold?: Promise<void>;
 }) {
   const reduced = stage.reduced;
   await stage.ringEnd(true);
   if (!reduced) stage.celebrate();
-  await sleep(reduced ? 0 : 440);
+  await Promise.all([sleep(reduced ? 0 : 440), hold]);
 
   const centre = stage.orbCentre() ?? { x: window.innerWidth / 2, y: window.innerHeight / 2, r: 60 };
   const cover = buildCover(centre, reduced);
@@ -113,7 +116,7 @@ export async function playSuccess({
 
 const CSS = `
 .auz{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;
-  background:radial-gradient(circle at var(--x) var(--y),rgb(255 101 0 / .22),rgb(0 0 101 / 0) 42%),${NAVY};
+  background:${NAVY};
   color:#fff;font-family:var(--font-space-grotesk),system-ui,-apple-system,"Segoe UI",sans-serif}
 .auz__in{display:grid;justify-items:center;gap:22px;opacity:0;transform:translateY(8px) scale(.94);
   animation:auz-in .45s cubic-bezier(.2,.8,.2,1) .25s forwards}
@@ -141,8 +144,6 @@ const CSS = `
 function buildCover(centre: { x: number; y: number; r: number }, reduced: boolean) {
   const root = document.createElement("div");
   root.className = `auz${reduced ? " auz--still" : ""}`;
-  root.style.setProperty("--x", `${centre.x}px`);
-  root.style.setProperty("--y", `${centre.y}px`);
   if (!reduced) root.style.clipPath = `circle(${centre.r}px at ${centre.x}px ${centre.y}px)`;
 
   const style = document.createElement("style");

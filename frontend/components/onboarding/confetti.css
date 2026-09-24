@@ -1,7 +1,7 @@
 /* ============================================================================
    The confetti layer.
 
-   Seventy small boxes, one keyframe block, and no JavaScript once the first
+   Seventy small boxes, one Web Animation each, and no JavaScript once the first
    frame is painted. See the note at the top of confetti.tsx for why it is not
    a library and why it removes itself.
    ========================================================================== */
@@ -29,41 +29,16 @@
   /* Above the top edge, so every piece enters rather than appearing. */
   top: -8vh;
   border-radius: 2px;
-  /* Starts invisible: the first keyframe brings it in over the first few
-     percent, which is what stops a row of pieces popping into existence at
-     their starting positions. */
+  /* Invisible until its animation (confetti.tsx) brings it in, which is what
+     stops a row of pieces popping into existence at their starting positions.
+     The flight itself is a Web Animation with every value resolved to plain
+     pixels and degrees, not a keyframe block reading custom properties:
+     Safari runs the second kind on the main thread, and that is why pieces
+     froze mid-air whenever the page behind them was busy. */
   opacity: 0;
-  animation-name: ob-confetti;
-  /* Linear, because paper falling at terminal velocity does not ease. The
-     drift and the spin carry the character instead. */
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
-  /* Said out loud even though it is the default: this must run once. An
-     `infinite` here is a decoration that never stops, which the house rules
-     forbid and which nobody would notice in review. */
-  animation-iteration-count: 1;
-  will-change: transform, opacity;
 }
 
 .ob-conf i.is-round { border-radius: 50%; }
-
-/* ONE BLOCK FOR EVERY PIECE. The per-piece variation is in two custom
-   properties set inline -- how far sideways, how far round -- so seventy
-   different flight paths cost one keyframe block rather than seventy. */
-@keyframes ob-confetti {
-  0% {
-    opacity: 0;
-    transform: translate3d(0, 0, 0) rotate3d(1, 1, .4, 0deg);
-  }
-  6% { opacity: 1; }
-  /* Fades on the way out rather than vanishing at the floor, so the screen
-     empties instead of blinking clear. */
-  85% { opacity: 1; }
-  100% {
-    opacity: 0;
-    transform: translate3d(var(--dx, 0), 118vh, 0) rotate3d(1, 1, .4, var(--spin, 540deg));
-  }
-}
 
 /* Half the pieces on a phone. The screen is a third of the width, so the same
    count reads as denser anyway, and a mid-range phone has a fraction of the

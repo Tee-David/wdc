@@ -5,7 +5,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, u
 import { Fingerprint, KeyRound, Mail } from "lucide-react";
 import { useStage } from "@/components/auth/stage/stage-context";
 import { useHydrated } from "@/components/auth/use-hydrated";
-import { CodeField, EmailChip, EmailField, GoogleMark, InboxButton, PasswordField, PrimaryButton } from "@/components/auth/fields";
+import { CodeField, type CodePhase, EmailChip, EmailField, GoogleMark, InboxButton, PasswordField, PrimaryButton } from "@/components/auth/fields";
 import { playSuccess } from "@/components/auth/success";
 import { realAdapter, type AuthAdapter, type SignedIn } from "@/lib/auth/adapter";
 import { copy, RETURN_ERRORS, RETURN_ERROR_FALLBACK } from "@/lib/auth/copy";
@@ -19,6 +19,10 @@ const CHANNEL = "wdc-auth";
 const POLL_MS = 3000;
 const LISTEN_FOR_MS = 15 * 60 * 1000;
 const PENDING_KEY = "wdc.auth.pending";
+/** From a right code to the tick finished: the fold, the heading, the outline, the check. */
+const CODE_VERIFIED_MS = 1700;
+
+const sleep = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 
 type Props = {
   demo: boolean;
@@ -76,6 +80,7 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
   const webauthn = useSyncExternalStore(noSubscription, hasWebAuthn, noWebAuthn);
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
+  const [codePhase, setCodePhase] = useState<CodePhase>("entry");
   const [live, setLive] = useState("");
   const [returnError, setReturnError] = useState(refused ? RETURN_ERRORS[refused] ?? RETURN_ERROR_FALLBACK : "");
   const [now, setNow] = useState(() => Date.now());
@@ -149,7 +154,8 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
   );
 
   const succeed = useCallback(
-    (result: SignedIn, method: Method) => {
+    /** `hold`: something on the card still finishing, which the curtain waits for. */
+    (result: SignedIn, method: Method, hold?: Promise<void>) => {
       if (finishing.current) return;
       finishing.current = true;
       dispatch({ type: "SIGNED_IN" });
@@ -174,7 +180,7 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
           /* A prefetch is a head start, never a requirement. */
         }
       }
-      void playSuccess({ stage, destination: result.redirectTo, navigate: leave, demo });
+      void playSuccess({ stage, destination: result.redirectTo, navigate: leave, demo, hold });
     },
     [stage, leave, demo, email, router],
   );
@@ -454,20 +460,30 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
       return;
     }
     dispatch({ type: "REQUEST_START" });
+    setCodePhase("checking");
     setLive(copy.status.checking);
     stage.setMood("attentive");
     stage.ringBegin();
     const result = await adapter.verifyCode(email, value, state.requestId ?? "");
-    if (result.ok) return succeed(result, "magic");
+    if (result.ok) {
+      /* The code folds into its tick while the orb lights up; the curtain
+         waits until the tick has been drawn. */
+      setCodePhase("verified");
+      return succeed(result, "magic", sleep(stage.reduced ? 500 : CODE_VERIFIED_MS));
+    }
     const errorKey: ErrorKey = result.reason === "expired" ? "expired" : result.reason === "rate_limited" ? "rateLimited" : result.reason === "network" ? "network" : "badCode";
     if (errorKey === "badCode") {
-      await Promise.all([stage.ringEnd(false), stage.shakeHead(), shakeCard()]);
+      /* The orb shakes its head and the boxes shake theirs, together. */
+      setCodePhase("refused");
+      await Promise.all([stage.ringEnd(false), stage.shakeHead(), sleep(stage.reduced ? 0 : 460)]);
     } else {
+      setCodePhase("entry");
       await stage.ringEnd(false);
       if (errorKey === "network") void stage.confused();
     }
     dispatch({ type: "REQUEST_FAILED", errorKey });
     setCode("");
+    setCodePhase("entry");
     stage.setMood("watching");
     codeRef.current?.focus();
   };
@@ -843,9 +859,17 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
                 onComplete={(value) => void submitCode(value)}
                 error={errorKey && ["badCode", "codeIncomplete", "expired", "rateLimited", "network"].includes(errorKey) ? errorText(errorKey) : null}
                 label={copy.magic.codeLabel}
-                disabled={busy}
+                disabled={busy || codePhase === "verified"}
+                phase={codePhase}
               />
             </form>
+            {codePhase === "verified" ? (
+              /* Said to a screen reader by the live region already. */
+              <div className="lx__verified" aria-hidden="true">
+                <p className="lx__heading lx__verifiedTitle">{copy.magic.verifiedHeading}</p>
+                <p className="lx__sub lx__verifiedSub">{copy.magic.verifiedSub}</p>
+              </div>
+            ) : null}
             <div className="lx__row">
               <button type="button" className="au-link" onClick={() => void sendMagic(true)} disabled={resendIn > 0 || busy} aria-live="off">
                 {resendIn > 0 ? copy.magic.resendIn(resendIn) : copy.magic.resend}
@@ -948,7 +972,7 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
               tab change neither remounts the tabs (and drops focus) nor
               slides the whole card in again. */}
           {face === "front" || shownFace === "front" || flipping ? (
-            <div className="lx__step" key={frontStep === "password" ? "method" : frontStep} data-dir={state.direction}>
+            <div className="lx__step" key={frontStep === "password" ? "method" : frontStep} data-dir={state.direction} data-code={frontStep === "magicSent" && codePhase === "verified" ? "verified" : undefined}>
               {renderFront(frontStep)}
             </div>
           ) : null}

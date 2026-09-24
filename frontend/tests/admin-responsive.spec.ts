@@ -161,3 +161,26 @@ test("no admin page scrolls sideways on a phone", async ({ page }) => {
     expect(by, `${route} scrolls ${by}px sideways`).toBe(0);
   }
 });
+
+test.describe("on a phone's own viewport", () => {
+  /* `isMobile` is what makes Chromium behave like a phone browser: the layout
+     viewport grows to fit whatever the page overflows by and the page is
+     zoomed out to show it. A desktop window of the same width just clips, so
+     the test above cannot see this. */
+  test.use({ isMobile: true, hasTouch: true });
+
+  test("no admin page is zoomed out to fit something off the edge", async ({ page }) => {
+    /* THE FAULT: the visually hidden labels in a table row's actions are
+       `position: absolute`, the table's scroller was not positioned, so they
+       escaped it to the far end of an 1100px table. Nothing scrolled
+       sideways (the shell clips), but the phone sized its viewport to them
+       and drew the money page in the left third of the screen.
+       `innerWidth` wider than the device is exactly that zoom. */
+    for (const route of ["/admin", "/admin/clients", "/admin/projects", "/admin/money", "/admin/money/reconciliation", "/admin/forms", "/admin/blog"]) {
+      await page.goto(route);
+      await page.waitForTimeout(400);
+      const inner = await page.evaluate(() => window.innerWidth);
+      expect(inner, `${route} lays out ${inner}px wide on a 393px phone`).toBe(393);
+    }
+  });
+});

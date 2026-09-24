@@ -53,6 +53,8 @@ export const copy = {
     openYahoo: "Open Yahoo Mail",
     openIcloud: "Open iCloud Mail",
     codeLabel: "Or enter the 6-digit code from the email",
+    verifiedHeading: "Code accepted",
+    verifiedSub: "You're signed in on this device.",
     resend: "Resend link",
     resendIn: (seconds: number) => `Resend in ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`,
     resent: "Sent again. Check your inbox.",
