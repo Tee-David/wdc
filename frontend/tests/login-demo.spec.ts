@@ -391,3 +391,17 @@ test("the page never scrolls sideways at 320px, and every control is a 44px targ
   expect(legal).toBeLessThan(1.5);
   await context.close();
 });
+
+test("a chat avatar carried over from the public site stays out of the way", async ({ page }) => {
+  /* The Jotform script never loads here, but a client-side navigation from a
+     public page keeps what it injected. Stand one in and check it steps aside
+     rather than covering "Back to site". */
+  await page.evaluate(() => {
+    const avatar = document.createElement("div");
+    avatar.className = "ai-agent-chat-avatar-container";
+    avatar.style.cssText = "position:fixed;left:16px;bottom:0;width:56px;height:56px;background:red";
+    document.body.append(avatar);
+  });
+  const avatar = page.locator(".ai-agent-chat-avatar-container");
+  await expect(avatar).toBeHidden();
+});
