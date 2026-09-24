@@ -15,7 +15,7 @@ import {
 } from "@/lib/admin/types";
 import {
   addNote, answerEstimate, archiveClient, attachSubmission, createProject,
-  deleteInvoice, duplicateEstimate, issueInvoice, moveStage, overpaymentToCredit,
+  deleteInvoice, duplicateEstimate, duplicateInvoice, issueInvoice, moveStage, overpaymentToCredit,
   recordPayment, refundPayment, removeExpense, reversePayment, resetSetting,
   saveSetting, sendEstimate, setDue, setProjectArchived, updateClient,
   voidInvoice,
@@ -305,6 +305,19 @@ export function InvoiceMenu({ invoice }: { invoice: Invoice }) {
 
   items.push({
     kind: "link", label: "Open the client", href: `/admin/clients/${invoice.clientId}`, icon: Users,
+  });
+
+  items.push({
+    kind: "dialog", label: "Duplicate it", icon: Copy,
+    title: `Copy ${invoice.number}`,
+    render: (close) => (
+      <Sure action={duplicateInvoice as never} fields={{ id: invoice.id }}
+            verb="Copy it" icon={Copy} close={close}>
+        The same client, project and lines, as a new draft with its own number,
+        dated today. Nothing paid against {invoice.number} comes across, and the
+        original stays exactly as it is.
+      </Sure>
+    ),
   });
 
   /* STRIKING IS OFFERED ONLY WHERE IT IS TRUE. Not on a draft -- that gets

@@ -22,9 +22,17 @@ import { getPortalRequest } from "./session";
  * client which ids are real.
  */
 
+/* A CLIENT, AND ONLY A CLIENT. The portal layout redirects other roles, but
+   an action is reachable without the layout, and an owner whose address
+   happens to match a client record must not be able to act as that client. */
 async function requireClient() {
-  const { client } = await getPortalRequest();
-  return client;
+  try {
+    const { session, client } = await getPortalRequest();
+    const role = (session?.user as { role?: string } | undefined)?.role;
+    return role === "client" ? client : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function approveDeliverable(_prev: ActionState, fd: FormData): Promise<ActionState> {

@@ -14,7 +14,7 @@ const TONE_RANK = { bad: 0, warn: 1, info: 2 } as const;
    than first, so a new kind of row added later cannot silently take the top. */
 const ROW_RANK: Record<string, number> = { bad: 0, warn: 1, neutral: 2 };
 import { AddClient } from "./client-form";
-import { AddExpense, InvoiceBuilder } from "./money-forms";
+import { AddExpense, InvoiceBuilder, RecordAnyPayment } from "./money-forms";
 import { AddProject } from "./project-forms";
 import { InvoiceMenu, ProjectMenu, SubmissionMenu } from "./row-actions";
 import { DemoNote, Empty, Panel, StagePill, Tile, when } from "./bits";
@@ -184,6 +184,9 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
               <AddClient />
               <InvoiceBuilder clients={clients} projects={projects} />
               <AddExpense />
+              <RecordAnyPayment open={invoices
+                .filter((i) => i.status !== "Draft" && !i.voided && invoiceTotals(i).due > 0)
+                .map((i) => ({ id: i.id, label: `${i.number} · ${getClient(i.clientId)?.company ?? "Unknown client"}`, owed: invoiceTotals(i).due }))} />
               <Link className="ad__btn" href="/admin/forms"><ClipboardList aria-hidden="true" /> Review forms</Link>
               {/* The public form, opened in its own tab so its address can be
                   copied into a message to a new client. */}

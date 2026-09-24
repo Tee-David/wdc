@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Newspaper } from "lucide-react";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { SERVICES } from "@/lib/services";
 import { CASE_STUDIES } from "@/lib/work";
@@ -5,6 +7,7 @@ import { FINANCE_DEFAULTS, getSettings } from "@/lib/admin/store";
 import { DemoNote, Panel } from "@/components/admin/bits";
 import { SettingMenu } from "@/components/admin/row-actions";
 import AuditLog from "@/components/admin/audit-log";
+import { IntegrationsPanel } from "@/components/admin/integrations-panel";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 
 export const metadata = { title: "Settings" };
@@ -53,7 +56,10 @@ export default function SettingsPage() {
           <h1>Settings</h1>
           <p>Content on the public site, and how the agency runs.</p>
         </div>
-        <PageTourButton />
+        <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
+          <Link className="ad__btn" href="/admin/settings/blog"><Newspaper aria-hidden="true" /> Blog posts</Link>
+          <PageTourButton />
+        </div>
       </div>
 
       <DemoNote>
@@ -111,16 +117,10 @@ export default function SettingsPage() {
           </div>
         </Panel>
 
-        <Panel title="Booking">
-          <div style={{ padding: ".9rem 1rem" }}>
-            <p style={{ margin: 0 }}>
-              Cal.com embeds the booking page and posts a webhook when somebody
-              books. The webhook mirrors it into a consultation row keyed on{" "}
-              <code>cal_booking_uid</code>, which is what stops a retried
-              delivery creating a second meeting.
-            </p>
-          </div>
-        </Panel>
+        {/* WHAT EACH OUTSIDE SERVICE IS, NOT WHAT IT WILL BE. This slot used to
+            describe a Cal.com booking webhook as though it existed; there is
+            no such code. */}
+        <IntegrationsPanel />
 
         {/* WHAT CHANGED, WHO CHANGED IT, AND WHAT IT WAS BEFORE.
 

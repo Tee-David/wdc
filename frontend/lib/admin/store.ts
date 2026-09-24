@@ -858,7 +858,11 @@ export function patchInvoice(
   d: Partial<Pick<Invoice, "clientId" | "projectId" | "issued" | "due" | "vatRate" | "lines">>,
 ): Invoice | null {
   const inv = getInvoice(id);
-  if (!inv) return null;
+  /* DRAFTS ONLY, HERE AND NOT JUST IN THE ACTION. An issued invoice is a
+     document somebody outside the studio is holding; its correction is a
+     void or a credit, never an edit. Enforced where the write happens so a
+     second caller cannot forget the rule. */
+  if (!inv || inv.status !== "Draft") return null;
   Object.assign(inv, d);
   return inv;
 }
@@ -1215,8 +1219,7 @@ export function applyCredit(creditId: Id, invoiceId: Id, actor = "Studio"):
   if (!applied.ok) return { ok: false, reason: "nothing-due" };
 
   const leftOver = credit.amount - use;
-  credit.amount = use;
-  credit.applied = { at: now(), by: actor, invoiceId: inv.id, paymentId: applied.payment.id };
+  credit.applied = { at: now(), by: actor, invoiceId: inv.id, paymentId: applied.payment.id, amount: use };
 
   /* WHAT DID NOT FIT STAYS ON THE BALANCE, as its own row rather than as a
      remainder hidden inside a spent one. A balance you cannot list line by
@@ -2184,6 +2187,31 @@ export function duplicateEstimate(id: Id, actor = "Studio"): Estimate | null {
   }, actor);
   audit({ actor, kind: "invoice", subjectId: copy.id, subject: copy.number,
           action: "copied from", note: e.number });
+  return copy;
+}
+
+/**
+ * The same invoice again, as a draft with its own number.
+ *
+ * THE COMMON CASES are next month's retainer and the invoice raised against
+ * the wrong client, voided and re-issued. Both want the lines exactly as they
+ * were, which is what stops a price changing by accident during a re-type.
+ * Nothing about money comes across: the copy starts unpaid, dated today and
+ * due on the studio's default terms, and the original is untouched.
+ */
+export function duplicateInvoice(id: Id, actor = "Studio"): Invoice | null {
+  const inv = getInvoice(id);
+  if (!inv) return null;
+  const issued = new Date();
+  const copy = addInvoice({
+    clientId: inv.clientId, projectId: inv.projectId,
+    issued: issued.toISOString(),
+    due: new Date(issued.getTime() + financeDefaults().dueInDays * 86_400_000).toISOString(),
+    vatRate: inv.vatRate, lines: inv.lines.map((l) => ({ ...l })),
+    status: "Draft",
+  });
+  audit({ actor, kind: "invoice", subjectId: copy.id, subject: copy.number,
+          action: "copied from", note: inv.number });
   return copy;
 }
 
