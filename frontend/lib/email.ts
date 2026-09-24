@@ -1,7 +1,7 @@
 import "server-only";
 
 import nodemailer from "nodemailer";
-import { escapeHtml } from "@/lib/email-templates";
+import { addressTo, escapeHtml } from "@/lib/email-templates";
 
 function required(name: string) {
   const value = process.env[name]?.trim();
@@ -87,6 +87,8 @@ export async function sendMail(input: {
     },
     replyTo: input.replyTo || process.env.SMTP_REPLY_TO || undefined,
     ...message,
+    /* The footer's "sent to" line names this address. */
+    html: message.html ? addressTo(message.html, message.to) : undefined,
     headers: unsubscribe && contact
       ? {
           /* A mailto rather than a URL, because there is no unsubscribe

@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { naira } from "../lib/admin/types";
 import {
+  addressTo,
   deliverableReadyEmail,
   enquiryReceiptEmail,
   invoiceEmail,
@@ -12,6 +13,7 @@ import {
   quoteEmail,
   receiptEmail,
   scopeEstimateEmail,
+  signInEmail,
   signOffEmail,
   siteReportEmail,
   type Email,
@@ -67,6 +69,7 @@ async function everyEmail(): Promise<{ name: string; email: Email }[]> {
     { name: "deliverable ready", email: deliverableReadyEmail({ clientName: "Ada", projectTitle: "Atlas rebrand", deliverable: "The first design route", url: URL_UNDER_TEST, respondBy: DUE }) },
     { name: "sign-off", email: signOffEmail({ clientName: "Ada", projectTitle: "Atlas rebrand", deliverable: "The first design route", signedBy: "Ada Obi", signedAt: DUE, url: URL_UNDER_TEST }) },
     { name: "password reset", email: passwordResetEmail({ name: "Ada", url: URL_UNDER_TEST, expiresInMinutes: 60 }) },
+    { name: "sign in", email: signInEmail({ name: "Ada", url: URL_UNDER_TEST, code: "205720", expiresInMinutes: 15 }) },
     /* The two the free tools send. They are the only messages here a stranger
        can cause to be sent without ever talking to us, which is exactly why
        they are held to the same rules as the rest. */
@@ -173,17 +176,53 @@ test("the link in the HTML is the link in the text", async () => {
   expect(failures, failures.join("\n")).toEqual([]);
 });
 
-test("no filled button carries a white label on orange", async () => {
+/** WCAG relative luminance of a #rrggbb colour. */
+function luminance(hex: string) {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+const contrast = (a: string, b: string) => {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+};
+
+test("every button is full width, orange, and its white label measures AA", async () => {
   const failures: string[] = [];
   for (const { name, email } of await everyEmail()) {
-    /* Every cell painted orange, and the colour of the anchor inside it. */
-    for (const match of email.html.matchAll(/bgcolor="#ff6500"[\s\S]{0,400}?<\/a>/gi)) {
-      const block = match[0];
-      if (!/color\s*:\s*#000000/i.test(block)) failures.push(`${name}: an orange button's label is not black`);
-      if (/color\s*:\s*#fff(fff)?\b/i.test(block)) failures.push(`${name}: an orange button's label is white (2.95:1)`);
+    /* The bright brand orange is never a fill: white on it is 2.95:1. */
+    if (/bgcolor="#ff6500"/i.test(email.html)) failures.push(`${name}: a button is filled #ff6500`);
+    for (const match of email.html.matchAll(/<table role="presentation" width="100%"[^>]*><tr><td bgcolor="(#[0-9a-f]{6})"[\s\S]{0,700}?<\/a>/gi)) {
+      const [block, fill] = match;
+      const label = block.match(/<a [^>]*style="[^"]*color:(#[0-9a-f]{6})/i)?.[1];
+      if (!label) continue;
+      if (label.toLowerCase() !== "#ffffff") failures.push(`${name}: a button's label is ${label}, not white`);
+      if (contrast(fill, label) < 4.5) failures.push(`${name}: label on ${fill} is ${contrast(fill, label).toFixed(2)}:1`);
+      if (!/display:block/.test(block)) failures.push(`${name}: the button's anchor does not fill its row`);
+      if (!block.includes("/email/arrow-right-white.png")) failures.push(`${name}: the button has no arrow`);
     }
   }
   expect(failures, failures.join("\n")).toEqual([]);
+});
+
+test("a message says what it has to and no more", async () => {
+  const failures: string[] = [];
+  for (const { name, email } of await everyEmail()) {
+    /* The button carries the link; a printed copy of it is clutter. */
+    if (/copy this address|does not work/i.test(email.html)) failures.push(`${name}: prints a fallback link`);
+    if (/letter-spacing:\.14em;text-transform:uppercase/.test(email.html)) failures.push(`${name}: has an eyebrow over the heading`);
+    if (!email.html.includes("/email/logo-white.png")) failures.push(`${name}: header has no logo`);
+    if (!email.html.includes("Lagos, Nigeria")) failures.push(`${name}: footer has no location`);
+    if (!email.html.includes("This email was sent to")) failures.push(`${name}: footer does not say who it was sent to`);
+  }
+  expect(failures, failures.join("\n")).toEqual([]);
+});
+
+test("the footer names the address the message was sent to", () => {
+  const email = passwordResetEmail({ name: "Ada", url: URL_UNDER_TEST, expiresInMinutes: 60 });
+  expect(email.html).toContain("This email was sent to <span data-wdc-recipient>you</span>.");
+  const sent = addressTo(email.html, "ada<x>@example.com");
+  expect(sent).toContain("ada&lt;x&gt;@example.com");
+  expect(sent).not.toContain("data-wdc-recipient");
 });
 
 test("an unsubscribe is offered exactly where one is owed", async () => {
