@@ -51,6 +51,10 @@ export type BlogPost = {
       blog introduces no new licensing and no new visual vocabulary. */
   cover: string;
   body: BlogBlock[];
+  /** Set only when the post first appeared somewhere else. */
+  canonical?: string;
+  /** Set only when the drawn Open Graph card is the wrong picture. */
+  socialImage?: string;
 };
 
 /* ------------------------------------------------------------------ posts */
