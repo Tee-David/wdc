@@ -258,27 +258,25 @@
   justify-content: center;
   gap: .55rem;
   width: 100%;
-  border: 0;
+  border: 1px solid var(--btn-fill);
   border-radius: .7rem;
-  /* NAVY, NOT ORANGE. Orange is this site's colour for "go and do something
-     new"; it is on every call to action on the marketing pages. Signing in is
-     not that -- it is the one serious control on a page that has no others,
-     and the brand's dark surface says so without competing with the accent
-     that still carries the links and the focus ring. White on #000065 is
-     17.68:1. */
-  background: var(--au-blue);
-  color: #fff;
+  /* THE SITE'S BUTTON PAIR, NOT A COLOUR OF ITS OWN. This was navy in light
+     mode and orange in dark, which made it the one labelled button on the
+     site outside the black/white pair AGENTS.md sets -- and orange is never a
+     button fill. `--btn-fill`/`--btn-ink` invert under `.dark`, so the same
+     two lines give black on the paper theme and white on the dark one, both
+     21:1, and the hover trades them like every other primary. */
+  background: var(--btn-fill);
+  color: var(--btn-ink);
   font: 700 .92rem var(--font-space-grotesk), system-ui, sans-serif;
   cursor: pointer;
-  transition: transform .18s, background .18s, box-shadow .18s;
+  transition: transform .18s, background .18s, color .18s;
 }
 .au__submit:hover {
   transform: translateY(-1px);
-  background: #0a0a8a;
-  box-shadow: 0 12px 26px -14px rgb(0 0 101 / .8);
+  background: var(--btn-ink);
+  color: var(--btn-fill);
 }
-.dark .au__submit { background: var(--au-orange); color: var(--on-accent, #000); }
-.dark .au__submit:hover { background: #ff7b24; }
 .au__submit:disabled { opacity: .8; cursor: wait; transform: none; }
 
 .au__spin {

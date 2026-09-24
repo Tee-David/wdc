@@ -155,6 +155,7 @@ test.afterAll(async () => {
        because `verification` is keyed by a string rather than a user id. */
     await db.query('DELETE FROM "verification" WHERE "value" = $1', [userId]);
     await db.query('DELETE FROM "user" WHERE "id" = $1', [userId]);
+    await db.query("DELETE FROM tour_progress WHERE user_id = $1", [userId]).catch(() => undefined);
   }
   await db.end();
 });
@@ -285,17 +286,18 @@ test("a correct password signs in and lands on the page that decides where to go
   await page.goto("/login", { waitUntil: "domcontentloaded" });
   await signIn(page, EMAIL, PASSWORD);
 
-  await page.waitForURL((url) => url.pathname === "/signed-in", { timeout: 30_000, waitUntil: "domcontentloaded" });
-  /* This account is a client, and the client portal is not built. The page
-     says so rather than dropping them on a 404 or on the admin. */
-  await expect(page.getByRole("heading", { name: /You are signed in/i })).toBeVisible();
+  /* This account is a client, so /signed-in sends them on to the portal,
+     which is their door now that it is built -- not to a 404 and never to
+     the admin. It used to stop on /signed-in, when the portal did not exist. */
+  await page.waitForURL((url) => url.pathname === "/portal", { timeout: 30_000, waitUntil: "domcontentloaded" });
+  await expect(page.locator(".ad")).toBeVisible();
   expect(await sessionCookie(page)).toBeTruthy();
 });
 
 test("a valid session that is not an owner still cannot reach the admin", async ({ page }) => {
   await page.goto("/login", { waitUntil: "domcontentloaded" });
   await signIn(page, EMAIL, PASSWORD);
-  await page.waitForURL((url) => url.pathname === "/signed-in", { timeout: 30_000, waitUntil: "domcontentloaded" });
+  await page.waitForURL((url) => url.pathname === "/portal", { timeout: 30_000, waitUntil: "domcontentloaded" });
   expect(await sessionCookie(page)).toBeTruthy();
 
   await page.goto("/admin", { waitUntil: "domcontentloaded" });
@@ -303,8 +305,10 @@ test("a valid session that is not an owner still cannot reach the admin", async 
      The layout reads the role and turns them round, and `safeDestination`
      refuses to honour ?redirect=/admin for a role whose door is not /admin --
      so they end up on their own page, not on somebody else's. */
-  expect(new URL(page.url()).pathname).toMatch(/^\/(login|signed-in)$/);
-  await expect(page.locator(".ad")).toHaveCount(0);
+  expect(new URL(page.url()).pathname).toMatch(/^\/(login|signed-in|portal)$/);
+  /* The admin's own navigation, not `.ad`: the portal shares the admin's
+     design system and its root class. */
+  await expect(page.getByRole("navigation", { name: "Admin sections" })).toHaveCount(0);
 
   /* AND THE SAME REFUSAL WHEN THE PATH IS HANDED IN RATHER THAN WALKED TO.
      /signed-in is the only page allowed to spend a ?redirect=, and it runs it
@@ -319,25 +323,62 @@ test("a valid session that is not an owner still cannot reach the admin", async 
      when this started life as a test with a sign-in of its own. */
   const site = new URL(page.url()).origin;
 
+  /* A client's door is the portal, so a refused redirect lands there. */
   await page.goto("/signed-in?redirect=%2Fadmin%2Fprojects", { waitUntil: "domcontentloaded" });
-  expect(new URL(page.url()).pathname).toBe("/signed-in");
-  await expect(page.getByRole("heading", { name: /You are signed in/i })).toBeVisible();
+  expect(new URL(page.url()).pathname).toBe("/portal");
 
   /* A protocol-relative path is the other half of the same question: it starts
      with a slash, so a careless check calls it relative, and the browser calls
      it somebody else's website. */
   await page.goto("/signed-in?redirect=%2F%2Fexample.com%2Fowned", { waitUntil: "domcontentloaded" });
   expect(new URL(page.url()).origin, "the redirect left our own site").toBe(site);
-  expect(new URL(page.url()).pathname).toBe("/signed-in");
+  expect(new URL(page.url()).pathname).toBe("/portal");
+});
+
+test("tour progress belongs to the account, not the browser", async ({ page, request, baseURL }) => {
+  /* Nobody signed in: nothing to read and nothing to write. */
+  expect((await request.get("/api/tours")).status()).toBe(204);
+
+  await page.goto("/login", { waitUntil: "domcontentloaded" });
+  await signIn(page, EMAIL, PASSWORD);
+  await page.waitForURL((url) => url.pathname === "/portal", { timeout: 30_000, waitUntil: "domcontentloaded" });
+
+  const origin = baseURL ?? "http://localhost:3100";
+  const wrote = await page.request.post("/api/tours", {
+    headers: { origin }, data: { tour: "client-walkthrough@1", status: "skipped" },
+  });
+  expect(wrote.status()).toBe(200);
+  const row = await query<{ status: string }>("SELECT status FROM tour_progress WHERE user_id = $1 AND tour = $2", [userId, "client-walkthrough@1"]);
+  expect(row.rows[0]?.status).toBe("skipped");
+
+  /* And it reads back for this account, which is what another device's
+     portal copies into its own storage (see tests/tour-sync.spec.ts). */
+  const read = await page.request.get("/api/tours");
+  expect(read.status()).toBe(200);
+  expect((await read.json()).records["client-walkthrough@1"]).toMatchObject({ status: "skipped" });
+
+  /* A write without our own origin is refused before the session is read. */
+  const foreign = await page.request.post("/api/tours", {
+    headers: { origin: "https://example.com" }, data: { tour: "client-walkthrough@1", status: "cleared" },
+  });
+  expect(foreign.status()).toBe(403);
 });
 
 test("signing out removes the session, not just the screen", async ({ page }) => {
   await page.goto("/login", { waitUntil: "domcontentloaded" });
   await signIn(page, EMAIL, PASSWORD);
-  await page.waitForURL((url) => url.pathname === "/signed-in", { timeout: 30_000, waitUntil: "domcontentloaded" });
+  await page.waitForURL((url) => url.pathname === "/portal", { timeout: 30_000, waitUntil: "domcontentloaded" });
 
-  await submit(page, "Sign out");
-  await page.waitForURL((url) => url.pathname === "/", { timeout: 60_000, waitUntil: "domcontentloaded" });
+  /* The portal's own sign-out, in the sidebar, which lands on /login. Pressed
+     from the keyboard: in development Next's own badge sits over the corner
+     it lives in and would take a pointer click. */
+  const out = page.locator(".ad__side").getByRole("button", { name: "Sign out" });
+  /* Retried, because a press that lands before hydration does nothing. */
+  await expect(async () => {
+    await out.focus();
+    await page.keyboard.press("Enter");
+    await page.waitForURL((url) => url.pathname === "/login", { timeout: 5_000, waitUntil: "domcontentloaded" });
+  }).toPass({ timeout: 60_000 });
   expect(await sessionCookie(page)).toBeUndefined();
 
   await page.goto("/admin", { waitUntil: "domcontentloaded" });
@@ -406,6 +447,6 @@ test("a reset link is requested, answered immediately, emailed, and works once",
 
   await page.goto("/login", { waitUntil: "domcontentloaded" });
   await signIn(page, EMAIL, NEW_PASSWORD);
-  await page.waitForURL((url) => url.pathname === "/signed-in", { timeout: 30_000, waitUntil: "domcontentloaded" });
+  await page.waitForURL((url) => url.pathname === "/portal", { timeout: 30_000, waitUntil: "domcontentloaded" });
   expect(await sessionCookie(page)).toBeTruthy();
 });
