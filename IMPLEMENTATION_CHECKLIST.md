@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**76 open** (28 in progress)
+**76 open** (30 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -78,8 +78,8 @@ the evidence. Detail that used to sit in this file is in git history and in
 - [ ] Support text, textarea, email, phone, number, date, URL, radio, checkbox, multi-select, short/long dropdown, searchable long list, address/country, consent, and file upload controls.
 - [ ] Use normal dropdowns for ten or fewer options and searchable, bounded, touch-scrollable lists for longer choices; popovers must render above every global control.
 - [ ] Add versioned publishing so existing submissions retain the schema they answered; prevent destructive edits without an explicit new version.
-- [ ] Build a submission inbox with status, service, client/project link, assignee, tags, search/filter/export, detail view, internal notes, and activity history.
-- [ ] Convert a valid submission into or attach it to a client and project without duplicating people or losing the original answers/files.
+- [-] Build a submission inbox with status, service, client/project link, assignee, tags, search/filter/export, detail view, internal notes, and activity history. Built: briefs from the live form (`onboarding_submissions`) are on `/admin/forms` with status, service, dates and the client they belong to, and open to a detail view that reads them back under the questions as asked. They were written to the table and shown nowhere before. NOT built: assignee, tags, search/filter/export, internal notes and activity history.
+- [-] Convert a valid submission into or attach it to a client and project without duplicating people or losing the original answers/files. Built for live briefs: "Make them a client" matches on email or phone first, so a second press or a second brief from the same person lands on the existing client; the answers stay in the table untouched. The link is derived, not stored, until clients leave memory (4.9). NOT built: creating the project in the same step, and files.
 - [ ] Finish conditional question sets, domain suggestions/checks, client fatigue validation, and completion/resume testing for every onboarding service.
 
 ### 4.7 Communications and client portal handoff
@@ -127,9 +127,6 @@ the evidence. Detail that used to sit in this file is in git history and in
 ### 5.0 Tour architecture and content
 
 - [-] Create separate typed tour registries for admin and client experiences, with one full walkthrough and independently launchable page-only tours. Admin: `lib/tours/admin.ts`, welcome, walkthrough and ten page tours. Client: `lib/tours/client.ts`, welcome and walkthrough, run by the same provider with `audience="client"`. NOT built, deliberately for now: client page tours. Five short screens with one job each, all already stops on the walkthrough; add one when a portal screen has more controls than its heading explains.
-
-### 5.1 Full walkthroughs
-
 
 ### 5.2 Page-only tours
 

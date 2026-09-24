@@ -1,0 +1,95 @@
+import fs from "node:fs";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
+import { expect, test } from "@playwright/test";
+import pg from "pg";
+
+/**
+ * A brief sent through the live form reaches the admin.
+ *
+ * It used to be written to the table and shown nowhere: the Forms screen read
+ * only the demonstration list. This seeds one real row and follows it from
+ * the inbox to a client record, twice, to prove the second press does not
+ * make a second client.
+ */
+
+const CONNECTION = process.env.DATABASE_URL || process.env.COCKROACHDB_URL;
+const TOKEN = process.env.BONEYARD_CAPTURE_TOKEN;
+
+test.describe.configure({ mode: "serial", timeout: 150_000 });
+test.skip(!CONNECTION, "Needs DATABASE_URL or COCKROACHDB_URL: a live brief is a database row.");
+test.skip(!TOKEN, "Needs BONEYARD_CAPTURE_TOKEN set on the dev server under test.");
+test.use({ extraHTTPHeaders: { "x-boneyard-capture": TOKEN ?? "" } });
+
+function pool() {
+  const url = new URL(CONNECTION!);
+  url.searchParams.delete("sslmode");
+  const configured = process.env.COCKROACHDB_CERT || "";
+  const local = process.env.APPDATA ? path.join(process.env.APPDATA, "postgresql", "root.crt") : "";
+  const ca = configured.startsWith("-----BEGIN CERTIFICATE-----")
+    ? configured.replace(/\\n/g, "\n")
+    : local && fs.existsSync(local) ? fs.readFileSync(local, "utf8") : undefined;
+  return new pg.Pool({ connectionString: url.toString(), ssl: { rejectUnauthorized: true, ...(ca ? { ca } : {}) }, max: 2, connectionTimeoutMillis: 40_000 });
+}
+
+const db = pool();
+const MARK = randomUUID().slice(0, 6);
+const COMPANY = `Adaeze Bakes ${MARK}`;
+const EMAIL = `wdc-e2e-${MARK}@wedigcreativity.com.ng`;
+let id = "";
+
+test.beforeAll(async () => {
+  const r = await db.query<{ id: string }>(
+    `INSERT INTO onboarding_submissions (service, status, current_step, answers, email, submitted_at)
+     VALUES ('branding', 'submitted', 4, $1::JSONB, $2, now()) RETURNING id`,
+    [JSON.stringify({ first_name: "Adaeze", last_name: "Okoro", email: EMAIL, phone: "+2348030000000", company: COMPANY,
+                      about: "Small-batch cakes for events in Lekki.", industry: "Food & drink" }), EMAIL],
+  );
+  id = r.rows[0].id;
+});
+
+test.afterAll(async () => {
+  await db.query("DELETE FROM onboarding_submissions WHERE id = $1", [id]);
+  await db.end();
+});
+
+test.beforeEach(async ({ page, baseURL }) => {
+  await page.context().addCookies([
+    { name: "wdc.session_token", value: "placeholder", url: baseURL ?? "http://localhost:3100" },
+  ]);
+});
+
+test("the brief is in the inbox and reads back under its questions", async ({ page }) => {
+  await page.goto("/admin/forms", { waitUntil: "load" });
+  const row = page.locator('[data-tour="forms-live"] tr', { hasText: COMPANY });
+  await expect(row).toBeVisible();
+  await expect(row).toContainText("Submitted");
+  await expect(row).toContainText("Not a client yet");
+
+  await row.getByRole("link").click();
+  await expect(page).toHaveURL(new RegExp(`/admin/forms/${id}$`));
+  await expect(page.locator("h1")).toHaveText(COMPANY);
+  await expect(page.locator("dd", { hasText: "Small-batch cakes for events in Lekki." })).toBeVisible();
+});
+
+test("making them a client twice lands on the same client", async ({ page }) => {
+  await page.goto(`/admin/forms/${id}`, { waitUntil: "load" });
+  await page.getByRole("button", { name: "Make them a client" }).click();
+  await expect(page).toHaveURL(/\/admin\/clients\/c\d+$/);
+  const first = page.url();
+  await expect(page.locator("h1")).toContainText(COMPANY);
+
+  /* Back on the brief, it now names its client and offers no second one. */
+  await page.goto(`/admin/forms/${id}`, { waitUntil: "load" });
+  await expect(page.getByRole("button", { name: "Make them a client" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: COMPANY })).toHaveAttribute("href", new URL(first).pathname);
+
+  /* And the inbox says so. */
+  await page.goto("/admin/forms", { waitUntil: "load" });
+  await expect(page.locator('[data-tour="forms-live"] tr', { hasText: COMPANY })).not.toContainText("Not a client yet");
+});
+
+test("a live id that does not exist is a 404", async ({ request }) => {
+  const res = await request.get(`/admin/forms/${randomUUID()}`, { headers: { cookie: "wdc.session_token=placeholder" } });
+  expect(res.status()).toBe(404);
+});
