@@ -222,9 +222,12 @@
 /* ---------------- fields ---------------- */
 
 .ob__main { min-width: 0; width: min(100%, 58rem); margin-inline: auto; }
-.ob__fields { display: grid; gap: clamp(1.4rem, 2.6vw, 1.9rem); margin-top: 2.2rem; }
+/* minmax(0, 1fr), and min-width: 0 on each question. The implied `auto`
+   track took the width of the widest thing inside it, so on a 320px phone one
+   question grew to 345px and the whole page zoomed out to fit it. */
+.ob__fields { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(1.4rem, 2.6vw, 1.9rem); margin-top: 2.2rem; }
 
-.ob__f { display: grid; gap: .5rem; max-width: 46rem; }
+.ob__f { display: grid; grid-template-columns: minmax(0, 1fr); gap: .5rem; max-width: 46rem; min-width: 0; }
 
 .ob__label {
   font-family: var(--font-body);

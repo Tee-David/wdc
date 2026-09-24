@@ -44,7 +44,7 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
 
       <section className="ad__panel" style={{ marginBottom: ".9rem" }}>
         <div className="ad__panelH"><h2>Where it is</h2><StagePill stage={p.stage} /></div>
-        <ol style={{ display: "grid", gridTemplateColumns: `repeat(${STAGES.length}, 1fr)`, gap: ".35rem", listStyle: "none", margin: 0, padding: ".9rem 1rem" }}>
+        <ol className="ad__track" style={{ "--steps": STAGES.length } as React.CSSProperties}>
           {STAGES.map((st, n) => (
             <li key={st}>
               <span style={{

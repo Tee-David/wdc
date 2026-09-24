@@ -8,6 +8,7 @@ import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } fro
 import { authClient } from "@/lib/auth-client";
 import { CLIENT_NAV, isClientNavActive } from "./client-nav";
 import TourLauncher from "@/components/admin/tour/tour-launcher";
+import TableLabels from "@/components/admin/table-labels";
 
 /**
  * THE CLIENT PORTAL'S OWN SHELL -- the same sidebar/topbar/mobile-drawer
@@ -288,6 +289,7 @@ export default function ClientShell({
           </div>
         </header>
         <main className="ad__main">{children}</main>
+        <TableLabels />
       </div>
     </div>
   );
