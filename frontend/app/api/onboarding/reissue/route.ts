@@ -1,8 +1,9 @@
 import { after, NextRequest, NextResponse } from "next/server";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 import { db } from "@/lib/db/pool";
-import { escapeHtml, mailIsConfigured } from "@/lib/email";
+import { mailIsConfigured } from "@/lib/email";
 import { secretKey, sendLogged } from "@/lib/outbox";
+import { composeEmailHtml, emailButton, emailP, emailSmall } from "@/lib/email-templates";
 import {
   issueToken, normalizeEmail, requestOriginIsAllowed, RESUME_TTL_SECONDS, tokenHash,
 } from "@/lib/onboarding-server";
@@ -133,11 +134,16 @@ export async function POST(request: NextRequest) {
               `Here is a fresh link to your unfinished WDC onboarding form.\n\n${url}\n\n` +
               `It works for three days, and any earlier link you had has now stopped working.\n\n` +
               `If you did not ask for this, you can ignore it. Nothing has changed on your form.`,
-            html:
-              `<p>Here is a fresh link to your unfinished WDC onboarding form.</p>` +
-              `<p><a href="${escapeHtml(url)}">Pick up where you left off</a></p>` +
-              `<p>It works for three days, and any earlier link you had has now stopped working.</p>` +
-              `<p>If you did not ask for this, you can ignore it. Nothing has changed on your form.</p>`,
+            html: composeEmailHtml({
+              title: "Your onboarding link",
+              preheader: "A fresh link to your unfinished onboarding form. It works for three days.",
+              heading: "Your onboarding link",
+              blocks: [
+                emailP("Here is a fresh link to your unfinished onboarding form. It works for three days, and any earlier link has stopped working."),
+                emailButton("Pick up where you left off", url),
+                emailSmall("If you did not ask for this, you can ignore it. Nothing has changed on your form."),
+              ],
+            }),
             unsubscribe: false,
           }, {
             summary: "A fresh link to an unfinished onboarding form.",

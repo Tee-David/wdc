@@ -1,9 +1,9 @@
 import { after, NextResponse, type NextRequest } from "next/server";
 import { CONTACT_EMAIL, SITE_URL } from "@/lib/site";
 import { randomUUID } from "node:crypto";
-import { escapeHtml, mailIsConfigured } from "@/lib/email";
+import { mailIsConfigured } from "@/lib/email";
 import { sendLogged } from "@/lib/outbox";
-import { siteReportEmail } from "@/lib/email-templates";
+import { composeEmailHtml, emailPanel, siteReportEmail } from "@/lib/email-templates";
 import { fetchPage } from "@/lib/fetch-page";
 import { findings, read } from "@/lib/seo-audit";
 import { runPsi } from "@/lib/psi";
@@ -130,17 +130,19 @@ export async function POST(request: NextRequest) {
           `${worst.length} thing(s) worth fixing:`,
           ...worst.map((f) => `- ${f.label}: ${f.detail}`),
         ].join("\n"),
-        html:
-          `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a;max-width:620px">` +
-          `<p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#c95000">SITE REPORT LEAD</p>` +
-          `<h1 style="font-size:22px;margin:12px 0">${escapeHtml(page.url)}</h1>` +
-          `<p><b>From:</b> ${escapeHtml(email)}</p>` +
-          `<p><b>Lighthouse:</b> ${psi.ok
-            ? escapeHtml(psi.scores.map((s) => `${s.label} ${s.score}`).join(", "))
-            : `did not run (${escapeHtml(psi.reason)}) &mdash; they were told a person would run it, so please do`}</p>` +
-          `<hr style="border:0;border-top:1px solid #e7e7ef">` +
-          worst.map((f) => `<p style="margin:0 0 8px"><b>${escapeHtml(f.label)}</b><br>${escapeHtml(f.detail)}</p>`).join("") +
-          `</div>`,
+        html: composeEmailHtml({
+          title: `Site report: ${page.url}`,
+          preheader: `${email} asked for a site report.`,
+          heading: "Site report lead",
+          blocks: [
+            emailPanel([
+              ["From", email],
+              ["Page", page.url],
+              ["Lighthouse", psi.ok ? psi.scores.map((s) => `${s.label} ${s.score}`).join(", ") : `Did not run (${psi.reason}). They were told a person would run it, so please do.`],
+            ]),
+            emailPanel(worst.map((f) => [f.label, f.detail] as [string, string])),
+          ],
+        }),
       }, { summary: `Lead: ${email} asked for a SEO site report.`, dedupeKey: `seo-report-lead:${eventId}` });
     } catch (error) {
       console.error("SEO report failed", error instanceof Error ? error.message : "unknown error");

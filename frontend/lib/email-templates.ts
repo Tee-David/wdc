@@ -1245,3 +1245,15 @@ The WDC team`),
     }),
   };
 }
+
+/* ======================================== the frame, for mail built elsewhere */
+
+/**
+ * THE SAME FRAME FOR EVERY MESSAGE WE SEND, including the ones composed
+ * outside this file: the money mail, the onboarding links, the newsletter
+ * confirmation and the studio's own lead notifications. Each of those used
+ * to hand-write a bare `<div>` with its own eyebrow and its own button, which
+ * is how a receipt came to look like a different company from the sign-in
+ * link. Build the body from these blocks and pass it to `composeEmailHtml`.
+ */
+export { shell as composeEmailHtml, p as emailP, small as emailSmall, action as emailButton, panel as emailPanel };

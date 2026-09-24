@@ -1,7 +1,8 @@
 import "server-only";
 
-import { CONTACT_EMAIL, SITE_URL } from "@/lib/site";
+import { SITE_URL } from "@/lib/site";
 import { escapeHtml, mailIsConfigured } from "@/lib/email";
+import { composeEmailHtml, emailButton, emailP, emailSmall } from "@/lib/email-templates";
 import { getClient, queueMessage } from "@/lib/admin/store";
 import { sendLogged } from "@/lib/outbox";
 import { invoiceTotals, naira, notifyAllows } from "@/lib/admin/types";
@@ -26,23 +27,10 @@ import type { Invoice, Payment } from "@/lib/admin/types";
  * is not a notification to opt out of.
  */
 
-const FROM_STUDIO = "We Dig Creativity";
 
-function shell(title: string, body: string) {
-  return `<div style="font-family:Arial,Helvetica,sans-serif;line-height:1.6;color:#11113a;max-width:600px">
-<p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#c95000;margin:0">${escapeHtml(FROM_STUDIO.toUpperCase())}</p>
-<h1 style="font-size:26px;margin:10px 0 16px">${escapeHtml(title)}</h1>
-${body}
-<hr style="border:0;border-top:1px solid #e7e7ef;margin:26px 0 14px">
-<p style="color:#5a5a72;font-size:13px;margin:0">Questions about this go to <a href="mailto:${CONTACT_EMAIL}" style="color:#c95000">${CONTACT_EMAIL}</a>.</p>
-</div>`;
-}
-
-/* BLACK ON ORANGE, NOT WHITE. White on #ff6500 measures 2.95:1 and fails even
-   the 3:1 allowed for large text; black is 7.11:1. The same rule the site's
-   buttons follow, and an email client is no more forgiving than a browser. */
-function button(href: string, label: string) {
-  return `<p style="margin:22px 0"><a href="${escapeHtml(href)}" style="display:inline-block;background:#ff6500;color:#000000;padding:13px 22px;border-radius:10px;font-weight:700;text-decoration:none">${escapeHtml(label)}</a></p>`;
+/** The shared frame from lib/email-templates.ts: one look for every message we send. */
+function shell(title: string, preheader: string, blocks: string[], unsubscribe = false) {
+  return composeEmailHtml({ title, preheader, heading: title, blocks, unsubscribe });
 }
 
 type SendOutcome = { sent: boolean; reason?: string };
@@ -116,11 +104,12 @@ export async function sendPaymentReceiptEmail(input: {
       "",
       `Receipt number ${payment.receiptNo}. Paid by ${payment.method}, reference ${payment.reference}.`,
     ].join("\n"),
-    html: shell("Thank you, payment received", `
-<p>We have received <b>${naira(payment.amount)}</b> against <b>${escapeHtml(invoice.number)}</b>.</p>
-<p>${escapeHtml(line)}</p>
-${button(url, "Open your receipt")}
-<p style="color:#5a5a72;font-size:13px">Receipt ${escapeHtml(payment.receiptNo)} · paid by ${escapeHtml(payment.method)} · reference ${escapeHtml(payment.reference)}</p>`),
+    html: shell("Thank you, payment received", `${naira(payment.amount)} received against ${invoice.number}.`, [
+      emailP(`We have received <b>${naira(payment.amount)}</b> against <b>${escapeHtml(invoice.number)}</b>.`),
+      emailP(escapeHtml(line)),
+      emailButton("Open your receipt", url),
+      emailSmall(`Receipt ${escapeHtml(payment.receiptNo)} &middot; paid by ${escapeHtml(payment.method)} &middot; reference ${escapeHtml(payment.reference)}`),
+    ]),
   });
 }
 
@@ -174,11 +163,12 @@ export async function sendInvoiceEmail(input: { invoice: Invoice; by?: string })
       "",
       "Card or bank transfer, both on the same page. Anything that goes wrong, reply to this email and we will sort it out.",
     ].join("\n"),
-    html: shell(`Invoice ${invoice.number}`, `
-<p><b>${naira(totals.due)}</b> is due on <b>${escapeHtml(due)}</b>.</p>
-<p>The link below opens the invoice. It shows everything billed and anything already paid against it, and it carries a button to pay by card.</p>
-${button(url, "Open and pay the invoice")}
-<p style="color:#5a5a72;font-size:13px">Card or bank transfer, both on the same page. Anything that goes wrong, reply to this email quoting ${escapeHtml(invoice.number)} and we will sort it out.</p>`),
+    html: shell(`Invoice ${invoice.number}`, `${naira(totals.due)} due ${due}.`, [
+      emailP(`<b>${naira(totals.due)}</b> is due on <b>${escapeHtml(due)}</b>.`),
+      emailP("The invoice shows everything billed and anything already paid against it, and you can pay it by card or transfer on the same page."),
+      emailButton("Open and pay the invoice", url),
+      emailSmall(`Anything that goes wrong, reply to this email quoting ${escapeHtml(invoice.number)} and we will sort it out.`),
+    ]),
   });
 }
 
@@ -232,9 +222,10 @@ export async function sendInvoiceReminderEmail(input: { invoice: Invoice; today?
       "",
       "If it has already been paid, or if something about it needs sorting out, just reply and we will take a look.",
     ].join("\n"),
-    html: shell("A reminder about your invoice", `
-<p><b>${naira(totals.due)}</b> is outstanding on <b>${escapeHtml(invoice.number)}</b>, which was due on ${escapeHtml(due)}.</p>
-${button(url, "Open and pay the invoice")}
-<p>If it has already been paid, or if something about it needs sorting out, just reply to this email and we will take a look.</p>`),
+    html: shell("A reminder about your invoice", `${naira(totals.due)} outstanding on ${invoice.number}.`, [
+      emailP(`<b>${naira(totals.due)}</b> is outstanding on <b>${escapeHtml(invoice.number)}</b>, which was due on ${escapeHtml(due)}.`),
+      emailButton("Open and pay the invoice", url),
+      emailSmall("Already paid, or something needs sorting out? Reply to this email and we will take a look."),
+    ], true),
   });
 }
