@@ -10,17 +10,19 @@ import type { SuccessStyle } from "@/components/ui/live-orb";
 const SUCCESS_WASH = ["#3B3BFF", "#FF6500", "#FFFFFF"];
 
 /**
- * WHAT THE ORB FLOODS TO WHEN SIGN-IN SUCCEEDS. Ember: the brand orange, lit
- * as a sphere. It replaced "mesh", a noise wash of blue, orange and white
- * that read as a texture sliding across the orb rather than the orb itself
- * lighting up. On the demo login, `?orb=eclipse|pearl|dusk|mesh` shows the
- * other candidates, so they can be compared in the real flow.
+ * WHAT THE ORB FLOODS TO WHEN SIGN-IN SUCCEEDS. Sapphire: royal blue, lit as
+ * a sphere, with white eyes. Blue is the login's colour for "accepted" (the
+ * code's tick is drawn in it), so the orb and the card say the same thing at
+ * the same moment. It replaced ember, the same lighting in brand orange,
+ * which itself replaced "mesh", a noise wash that read as a texture sliding
+ * across the orb. On the demo login, `?orb=ember|eclipse|pearl|dusk|mesh`
+ * shows the other candidates, so they can be compared in the real flow.
  */
-const SUCCESS_STYLE: SuccessStyle = "ember";
+const SUCCESS_STYLE: SuccessStyle = "sapphire";
 function successStyle(): SuccessStyle {
   if (process.env.NEXT_PUBLIC_AUTH_DEMO !== "true") return SUCCESS_STYLE;
   const asked = new URLSearchParams(window.location.search).get("orb");
-  const known: SuccessStyle[] = ["mesh", "ember", "eclipse", "pearl", "dusk"];
+  const known: SuccessStyle[] = ["mesh", "ember", "eclipse", "pearl", "dusk", "sapphire"];
   return known.includes(asked as SuccessStyle) ? (asked as SuccessStyle) : SUCCESS_STYLE;
 }
 
