@@ -1,10 +1,14 @@
 "use client";
 
 import localFont from "next/font/local";
-import { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useGreetingState, useStage } from "@/components/auth/stage/stage-context";
 import { byLang, GREETINGS, type Greeting } from "./greetings";
 import { PEN_HELLO, PEN_XIN_CHAO, penLength, type PenWord } from "./pen-paths";
+import { TextPainter } from "./text-painter";
+
+/** The canvas the text words are drawn on; see ./text-painter.ts for why not SVG text. */
+const PainterContext = createContext<TextPainter | null>(null);
 
 /**
  * CAVEAT, SELF-HOSTED AND SUBSET, and only ever loaded by this module.
@@ -85,6 +89,11 @@ function PenSvg({ word, speed, y, height }: { word: PenWord; speed: number; y: n
  * ready, and scaled down until it fits. Hidden until measured, so nobody sees
  * it jump.
  */
+/**
+ * A text word of the greeting, fitted to `maxWidth` and drawn on the canvas
+ * over the SVG (never as SVG text: see ./text-painter.ts). Renders nothing
+ * itself; it hands the word to the painter and takes it back on unmount.
+ */
 function FittedText({
   text,
   family,
@@ -95,7 +104,6 @@ function FittedText({
   dir,
   className,
   delay = 0,
-  height = H,
 }: {
   height?: number;
   text: string;
@@ -105,66 +113,15 @@ function FittedText({
   size: number;
   maxWidth: number;
   dir: "ltr" | "rtl";
-  className: string;
+  className: "greet__script" | "greet__reveal";
   delay?: number;
 }) {
-  const ref = useRef<SVGTextElement>(null);
-  const [fit, setFit] = useState<number | null>(null);
-  const clip = useId().replace(/:/g, "");
-
-  useLayoutEffect(() => {
-    let alive = true;
-    let applied = size;
-    /* Scaled from whatever size is on screen now, so measuring again after a
-       change is safe, and capped at `size` so it never grows past the design. */
-    const measure = () => {
-      const node = ref.current;
-      if (!node || !alive) return;
-      const width = node.getComputedTextLength();
-      if (!width) return;
-      applied = Math.min(size, (applied * maxWidth) / width);
-      setFit(applied);
-    };
-    const first = family.split(",")[0]!;
-    const later: number[] = [];
-    const settle = () => {
-      measure();
-      /* AND AGAIN, LATER. A script the page has never drawn (Japanese,
-         Korean) can fall back to a system face that arrives a frame or two
-         after the first layout; measured only once, こんにちは came out 470
-         units wide in a 414-unit box. */
-      later.push(requestAnimationFrame(() => requestAnimationFrame(measure)));
-      later.push(window.setTimeout(measure, 300));
-    };
-    if (document.fonts?.load) document.fonts.load(`${weight} ${size}px ${first}`, text).then(settle, settle);
-    else settle();
-    return () => {
-      alive = false;
-      later.forEach((id) => {
-        cancelAnimationFrame(id);
-        window.clearTimeout(id);
-      });
-    };
-  }, [text, family, weight, size, maxWidth]);
-
-  return (
-    <g className={`${className}${fit === null ? " is-measuring" : ""}`} style={{ ["--delay" as string]: `${delay}s` }}>
-      <clipPath id={clip}>
-        <rect className={`greet__wipe greet__wipe--${dir}`} x={0} y={0} width={W} height={height} />
-      </clipPath>
-      <text
-        ref={ref}
-        x={W / 2}
-        y={y}
-        textAnchor="middle"
-        direction={dir}
-        clipPath={`url(#${clip})`}
-        style={{ fontFamily: family, fontWeight: weight, fontSize: `${fit ?? size}px` }}
-      >
-        {text}
-      </text>
-    </g>
-  );
+  const painter = useContext(PainterContext);
+  useEffect(() => {
+    if (!painter) return;
+    return painter.add({ text, family, weight, y, size, maxWidth, dir, delay, kind: className === "greet__script" ? "script" : "reveal" });
+  }, [painter, text, family, weight, y, size, maxWidth, dir, delay, className]);
+  return null;
 }
 
 /** The site's display face: every name is set in it, whatever the greeting is written in. */
@@ -244,6 +201,8 @@ export default function GreetingArt() {
   const [leaving, setLeaving] = useState(false);
   const [still, setStill] = useState(false);
   const phone = useSyncExternalStore(onPhoneChange, isPhone, notPhone);
+  const [painter] = useState(() => new TextPainter(W, H, false));
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const greeting = name ? byLang(lang) : GREETINGS[index % GREETINGS.length]!;
   const key = `${greeting.lang}|${name ?? ""}|${phone ? "phone" : "wide"}`;
@@ -255,6 +214,12 @@ export default function GreetingArt() {
     mq.addEventListener("change", update);
     return () => mq.removeEventListener("change", update);
   }, []);
+
+  useEffect(() => {
+    painter.attach(canvasRef.current);
+    return () => painter.destroy();
+  }, [painter]);
+  useEffect(() => painter.configure(W, phone ? H_PHONE : H, still), [painter, phone, still]);
 
   /* Tell the stage what is on screen, so personalising picks this language
      and the collapsed band can say the same word in plain text. */
@@ -290,16 +255,21 @@ export default function GreetingArt() {
 
   return (
     <div className={`greet__art${still ? " is-still" : ""}`}>
-      <svg
-        key={key}
-        className={`greet__svg${leaving && !name ? " is-leaving" : ""}`}
-        viewBox={`0 0 ${W} ${phone ? H_PHONE : H}`}
-        preserveAspectRatio="xMidYMid meet"
-        overflow="visible"
-        lang={greeting.lang === "English" ? "en" : undefined}
-      >
-        <Word greeting={greeting} name={name} phone={phone} />
-      </svg>
+      <PainterContext.Provider value={painter}>
+        <div className={`greet__draw${leaving && !name ? " is-leaving" : ""}`}>
+          <svg
+            key={key}
+            className="greet__svg"
+            viewBox={`0 0 ${W} ${phone ? H_PHONE : H}`}
+            preserveAspectRatio="xMidYMid meet"
+            overflow="visible"
+            lang={greeting.lang === "English" ? "en" : undefined}
+          >
+            <Word greeting={greeting} name={name} phone={phone} />
+          </svg>
+          <canvas ref={canvasRef} className="greet__canvas" />
+        </div>
+      </PainterContext.Provider>
       {/* On a phone only the language shows: the name above already says
           "welcome back", and the long form wrapped to two ragged lines. */}
       <span className="greet__caption">
