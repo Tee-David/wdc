@@ -101,10 +101,11 @@
   /* The site's 16px phone gutter rather than 20px, for the same reason. */
   .ft__card { padding-inline: 16px; }
   .ft__pitchShort { display: none; }
-  .ft__pitchLong { display: block; }
-  .ft__pitchLong .cp__svg { display: block; margin-inline: auto; overflow: visible; }
-  .ft__pitchLong .cn__text { display: block; }
+  .ft__pitchLong { display: block; text-align: center; text-wrap: balance; line-height: 1.6; }
+  /* Centred by the grid as well as by the text, so each link sits in the
+     middle of its column whatever a later rule does to the anchors. */
   .ft__col--tools, .ft__col--more { text-align: center; }
+  .ft .ft__col--tools ul, .ft .ft__col--more ul { justify-items: center; }
   .ft .ft__col--nav ul { justify-content: center; }
   .ft .ft__col--legal ul { justify-content: center; text-align: center; }
 }
