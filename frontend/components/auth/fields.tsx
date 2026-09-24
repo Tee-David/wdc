@@ -19,6 +19,8 @@ function useRelax() {
     window.setTimeout(() => {
       const active = document.activeElement;
       if (active instanceof HTMLInputElement && active.closest(".au__panel")) return;
+      /* The eye beside a password is part of the field: tabbing to it is not leaving. */
+      if (active?.classList.contains("au-input__reveal")) return;
       if (stage.getMood() === "reading" || stage.getMood() === "private") stage.setMood("idle");
     }, 80);
   };
@@ -146,13 +148,21 @@ export const PasswordField = forwardRef<
     }
   };
 
+  /* THE ORB MATCHES WHAT IS ON SCREEN, every time, not just on focus. Masked,
+     it turns its back; shown, the password is on screen anyway, so it turns
+     round to face you. It used to change only when the field took focus, so
+     the eye did nothing to it after the first time. */
+  const face = (visible: boolean) => stage.setMood(visible ? "reading" : "private");
+
   /* Switching the input type throws the caret to the end in some browsers;
      put it back where it was. */
   const toggle = () => {
     const node = input.current;
     const start = node?.selectionStart ?? null;
     const end = node?.selectionEnd ?? null;
-    setShow((value) => !value);
+    const next = !show;
+    setShow(next);
+    face(next);
     requestAnimationFrame(() => {
       if (node && start !== null && end !== null && document.activeElement === node) node.setSelectionRange(start, end);
     });
@@ -178,7 +188,7 @@ export const PasswordField = forwardRef<
           onChange={(event) => onChange(event.target.value)}
           onKeyDown={watchCaps}
           onKeyUp={watchCaps}
-          onFocus={() => stage.setMood("private")}
+          onFocus={() => face(show)}
           onBlur={() => {
             setCaps(false);
             onCaps?.(false);
@@ -189,6 +199,11 @@ export const PasswordField = forwardRef<
           type="button"
           className="au-input__reveal"
           onClick={toggle}
+          /* Pressing the eye keeps focus (and a phone's keyboard) in the
+             field, so the toggle is not also a blur that relaxes the orb. */
+          onPointerDown={(event) => {
+            if (document.activeElement === input.current) event.preventDefault();
+          }}
           aria-label={show ? copy.password.hide : copy.password.show}
           aria-pressed={show}
         >

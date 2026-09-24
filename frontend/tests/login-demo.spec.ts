@@ -282,18 +282,34 @@ test("/forgot-password opens on the back of the card", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Log in to WDC" })).toBeVisible();
 });
 
-test("the orb turns its back while the password is typed, and faces you otherwise", async ({ page }) => {
+test("the orb turns its back while the password is masked, and faces you when it is shown", async ({ page }) => {
   await toPassword(page);
-  /* Whichever orb is live (shader or CSS face), the stage records the turn
-     on the CSS face's dataset only when the face is the engine; read the
-     mood through focus instead: the password field has focus, so the orb is
-     private, and leaving it returns to idle. */
-  await expect(page.getByLabel("Password", { exact: true })).toBeFocused();
-  const turned = await page.evaluate(() => {
-    const orb = document.querySelector<HTMLElement>(".orb");
-    return orb?.dataset.gl === "on" ? "gl" : orb?.dataset.turned;
-  });
-  expect(["gl", "true"]).toContain(turned);
+  const field = page.getByLabel("Password", { exact: true });
+  const orb = page.locator(".orb");
+  await expect(field).toBeFocused();
+  await expect(orb).toHaveAttribute("data-facing", "away");
+  await field.pressSequentially("secret");
+
+  /* Every press of the eye, not only the first: shown faces you, masked turns away. */
+  for (let round = 0; round < 2; round += 1) {
+    await page.getByRole("button", { name: "Show password" }).click();
+    await expect(field).toHaveAttribute("type", "text");
+    await expect(orb).toHaveAttribute("data-facing", "you");
+    await expect(field).toBeFocused();
+    await page.getByRole("button", { name: "Hide password" }).click();
+    await expect(field).toHaveAttribute("type", "password");
+    await expect(orb).toHaveAttribute("data-facing", "away");
+  }
+
+  /* From the keyboard too: tabbing to the eye is not leaving the field. */
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Show password" })).toBeFocused();
+  await page.waitForTimeout(200);
+  await expect(orb).toHaveAttribute("data-facing", "away");
+  await page.keyboard.press("Enter");
+  await expect(orb).toHaveAttribute("data-facing", "you");
+  await page.keyboard.press("Enter");
+  await expect(orb).toHaveAttribute("data-facing", "away");
 });
 
 test("a returning visitor is greeted by name, and 'Not Tee?' forgets them", async ({ page }) => {

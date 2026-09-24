@@ -114,6 +114,9 @@ export class Stage {
   private turn(radians: number) {
     this.desired.turn = radians;
     this.engine?.setTurn(radians);
+    /* Which way it faces, on the box, whichever engine is drawing: the shader
+       has no DOM of its own to say so. */
+    if (this.orbBox) this.orbBox.dataset.facing = Math.abs(radians) > Math.PI / 2 ? "away" : "you";
   }
   private hold(value: number) {
     this.desired.hold = value;
