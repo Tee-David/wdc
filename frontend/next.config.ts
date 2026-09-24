@@ -111,6 +111,14 @@ const nextConfig: NextConfig = {
      than it buys today. This is written down so the trade is visible rather
      than accidental.
      ========================================================================== */
+  /* The blog editor moved from Settings to its own menu page. Old links and
+     bookmarks land on the same screen. */
+  async redirects() {
+    return [
+      { source: "/admin/settings/blog", destination: "/admin/blog", permanent: true },
+      { source: "/admin/settings/blog/:id", destination: "/admin/blog/:id", permanent: true },
+    ];
+  },
   async headers() {
     /* THE FILE STORE HAS TO BE IN `connect-src`, OR NO UPLOAD EVER LEAVES THE
        PAGE. Uploads are a presigned PUT from the browser straight to R2, and

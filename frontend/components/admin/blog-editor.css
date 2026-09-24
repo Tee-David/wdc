@@ -15,3 +15,33 @@
 .adBlog__add { margin-top: .7rem; display: flex; flex-wrap: wrap; gap: .4rem; }
 .adBlog__tags { min-width: 0; margin: 0; padding: 0; border: 0; display: flex; flex-wrap: wrap; gap: .4rem; }
 .adBlog__tags legend { width: 100%; margin-bottom: .3rem; font-size: .76rem; }
+
+/* THE TWO-COLUMN EDITOR, after rp-web's: the writing on the left, the
+   decisions about it on the right. One column below 1100px, with the publish
+   card first so Save is never below a long post on a phone. */
+.adBlog--split { display: grid; gap: .9rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
+.adBlog--split > .ad__banner, .adBlog--split > .ad__msg, .adBlog--split > [role="status"] { grid-column: 1 / -1; }
+.adBlog__main, .adBlog__side { min-width: 0; display: grid; gap: .9rem; }
+.adBlog__card { padding: 1rem; min-width: 0; }
+.adBlog__card > .adBlog__h:first-child { margin-top: 0; }
+.adBlog__side .ad__f--half { grid-column: 1 / -1; }
+@media (min-width: 1100px) {
+  .adBlog--split { grid-template-columns: minmax(0, 1fr) minmax(19rem, 23rem); }
+  .adBlog__side { position: sticky; top: 5rem; }
+}
+@media (max-width: 1099px) {
+  .adBlog__side { order: -1; }
+}
+.adBlog__restore { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem; }
+
+/* The Google result, in Google's own proportions: small grey address,
+   blue title, two lines of description. */
+.adBlog__serp { display: grid; gap: .15rem; margin: 0 0 .9rem; padding: .8rem .9rem; border: 1px solid var(--ad-line); border-radius: var(--ad-r); background: var(--ad-bg); font-family: Arial, Helvetica, sans-serif; min-width: 0; }
+.adBlog__serpUrl { color: var(--ad-dim); font-size: .78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adBlog__serpTitle { color: #1a0dab; font-size: 1.05rem; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dark .adBlog__serpTitle { color: #8ab4f8; }
+.adBlog__serpDesc { color: var(--ad-dim); font-size: .84rem; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+/* Fields placed straight in a card, outside a Fields grid, get the grid's
+   rhythm: one gap between each, and room under the card's heading. */
+.adBlog__card > .adBlog__h { margin-bottom: .6rem; }
+.adBlog__card > .ad__f + .ad__f, .adBlog__card > .ad__f + .ad__formActions { margin-top: .9rem; }

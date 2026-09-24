@@ -15,6 +15,7 @@ import {
   LogOut,
   Menu,
   Moon,
+  Newspaper,
   Search,
   Settings,
   Sun,
@@ -37,6 +38,9 @@ const NAV = [
   { href: "/admin/projects", label: "Projects", Icon: FolderKanban, group: "main", tour: "nav-projects" },
   { href: "/admin/money", label: "Money", Icon: Banknote, group: "main", tour: "nav-money" },
   { href: "/admin/forms", label: "Forms", Icon: ClipboardList, group: "main", tour: "nav-forms" },
+  /* A seventh primary page, asked for by name: posts are written weekly,
+     which is not an "infrequent control" to bury under Settings. */
+  { href: "/admin/blog", label: "Blog", Icon: Newspaper, group: "main", tour: "nav-blog" },
   { href: "/admin/settings", label: "Settings", Icon: Settings, group: "general", tour: "nav-settings" },
 ] as const;
 

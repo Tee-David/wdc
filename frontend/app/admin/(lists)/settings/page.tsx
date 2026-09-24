@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MessagesSquare, Newspaper } from "lucide-react";
+import { MessagesSquare } from "lucide-react";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { SERVICES } from "@/lib/services";
 import { CASE_STUDIES } from "@/lib/work";
@@ -57,7 +57,6 @@ export default function SettingsPage() {
           <p>Content on the public site, and how the agency runs.</p>
         </div>
         <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
-          <Link className="ad__btn" href="/admin/settings/blog"><Newspaper aria-hidden="true" /> Blog posts</Link>
           <Link className="ad__btn" href="/admin/settings/faq"><MessagesSquare aria-hidden="true" /> FAQ</Link>
           <PageTourButton />
         </div>

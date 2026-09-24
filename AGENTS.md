@@ -85,7 +85,7 @@
 
 ## Authenticated product UX
 
-- Keep admin and client navigation task-based and compact: no more than six primary pages, with infrequent controls under Settings. Preserve the established Litch-style shell while adapting content to WDC workflows.
+- Keep admin and client navigation task-based and compact: no more than six primary pages, with infrequent controls under Settings. The one agreed exception is the admin's Blog page, a seventh, because posts are written weekly rather than configured once. Preserve the established Litch-style shell while adapting content to WDC workflows.
 - Loading states must resemble the final page geometry, reserve layout space, support light/dark and reduced-motion modes, and never show invented data. When Boneyard is used, rebuild its snapshots whenever captured UI geometry changes.
 - Every true first-use empty state needs a concise explanation, a friendly existing icon or lightweight visual, and one clear next action. Distinguish empty, filtered-no-results, loading, error, and no-permission states.
 - React Joyride tours are optional, short, keyboard-accessible, role-aware, and lazy-loaded only inside authenticated dashboards. Support a full walkthrough and page-only tours using stable `data-tour` targets; persist completion per user and tour version, and always allow skip, close, and replay.
