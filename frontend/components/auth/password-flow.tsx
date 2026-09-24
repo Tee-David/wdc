@@ -1,94 +1,135 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useState } from "react";
-import { authClient } from "@/lib/auth-client";
+import { useRef, useState } from "react";
+import { PasswordField, PrimaryButton } from "@/components/auth/fields";
+import { useStage } from "@/components/auth/stage/stage-context";
 import { useHydrated } from "@/components/auth/use-hydrated";
+import { authClient } from "@/lib/auth-client";
 
 /**
+ * CHOOSING A NEW PASSWORD, from the emailed reset link.
+ *
  * THE TOKEN AND THE ERROR ARRIVE AS PROPS, read from the query on the server.
+ * They used to come from `useSearchParams()`, which made this a dynamic client
+ * component, and the Suspense boundary that required rendered NOTHING on the
+ * server: primary content behind client-only rendering, on the page where
+ * somebody is already locked out. Read on the server, the form is in the first
+ * response.
  *
- * They used to come from `useSearchParams()`, which made this a dynamic
- * client component -- and the Suspense boundary it therefore needed rendered
- * NOTHING on the server. `curl /forgot-password` returned the brand panel and
- * no form at all: primary content behind client-only rendering, which is the
- * one thing this repo says not to do, on the page where somebody is already
- * locked out and least in the mood for a blank panel.
- *
- * Both pages now read their own query and hand it down, so the form is in the
- * first response and there is no boundary to render empty.
+ * The orb turns its back while either password field has focus, the ring
+ * tells the truth about the request, and a success earns a nod.
  */
-
-export function ForgotPasswordForm() {
-  const emailId = useId();
-  const hydrated = useHydrated();
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
-  const [error, setError] = useState("");
-
-  async function submit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setLoading(true); setError("");
-    try {
-      const result = await authClient.requestPasswordReset({ email: email.trim().toLowerCase(), redirectTo: "/reset-password" });
-      /* The endpoint answers the same way whether or not the address has an
-         account, so there is nothing here to leak. The one real error worth
-         distinguishing is the rate limit, which is not "we could not send it". */
-      if (result.error?.status === 429) { setError("Too many requests from this connection. Wait a minute and try again."); return; }
-      if (result.error) throw new Error(result.error.message);
-      setDone(true);
-    } catch { setError("The reset email could not be sent. Please try again shortly."); }
-    finally { setLoading(false); }
-  }
-
-  return <div className="au__formWrap">
-    <h1>Reset your password</h1>
-    <p className="au__lede">We will send a secure, one-hour reset link to the email on your account.</p>
-    {done ? <div className="au__notice" role="status"><b>Check your inbox.</b><span>If that address has an account, a reset link is on its way. It expires in an hour.</span><Link href="/login">Return to login</Link></div> :
-      <form onSubmit={submit} className="au__form" method="post">
-        <div className="au__field"><label htmlFor={emailId}>Email address</label><input id={emailId} type="email" autoComplete="email" inputMode="email" autoCapitalize="none" spellCheck={false} required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-        {error ? <p className="au__error" role="alert">{error}</p> : null}
-        <button className="au__submit" type="submit" disabled={loading || !hydrated}>{loading ? "Sending…" : "Email reset link"}</button>
-        <Link className="au__textLink" href="/login">Back to login</Link>
-      </form>}
-  </div>;
-}
-
 export function ResetPasswordForm({ token = "", invalid = false }: { token?: string; invalid?: boolean }) {
-  const passwordId = useId();
-  const confirmId = useId();
+  const stage = useStage();
   const hydrated = useHydrated();
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmRef = useRef<HTMLInputElement>(null);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState(invalid ? "This reset link is invalid or has expired." : "");
+  const [field, setField] = useState<{ password?: string; confirm?: string }>({});
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (password !== confirm) return setError("The two passwords do not match.");
-    if (password.length < 10) return setError("Use at least 10 characters.");
+    if (loading) return;
+    if (password.length < 10) {
+      setField({ password: "Use at least 10 characters." });
+      passwordRef.current?.focus();
+      return;
+    }
+    if (password !== confirm) {
+      setField({ confirm: "The two passwords do not match." });
+      confirmRef.current?.focus();
+      return;
+    }
     if (!token) return setError("This reset link is invalid or has expired.");
-    setLoading(true); setError("");
+    setField({});
+    setLoading(true);
+    setError("");
+    stage.setMood("attentive");
+    stage.ringBegin();
     try {
       const result = await authClient.resetPassword({ newPassword: password, token });
-      if (result.error?.status === 429) { setError("Too many attempts from this connection. Wait a minute and try again."); return; }
-      if (result.error) throw new Error(result.error.message);
+      if (result.error) {
+        await Promise.all([stage.ringEnd(false), stage.shakeHead()]);
+        setError(
+          result.error.status === 429
+            ? "Too many attempts from this connection. Wait a minute and try again."
+            : "This reset link is invalid or has expired. Request a new one.",
+        );
+        return;
+      }
+      await stage.ringEnd(true);
+      void stage.nod();
+      window.setTimeout(() => stage.ringHide(), 900);
       setDone(true);
-    } catch { setError("This reset link is invalid or has expired. Request a new one."); }
-    finally { setLoading(false); }
+    } catch {
+      await stage.ringEnd(false);
+      void stage.confused();
+      setError("We couldn't reach the server. Check your connection and try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  return <div className="au__formWrap">
-    <h1>Choose a new password</h1>
-    <p className="au__lede">Use at least 10 characters and keep it unique to this account.</p>
-    {done ? <div className="au__notice" role="status"><b>Password updated.</b><span>You can now sign in with the new password.</span><Link href="/login">Continue to login</Link></div> :
-      <form onSubmit={submit} className="au__form" method="post">
-        <div className="au__field"><label htmlFor={passwordId}>New password</label><input id={passwordId} type="password" autoComplete="new-password" required minLength={10} value={password} onChange={(e) => setPassword(e.target.value)} /></div>
-        <div className="au__field"><label htmlFor={confirmId}>Confirm password</label><input id={confirmId} type="password" autoComplete="new-password" required minLength={10} value={confirm} onChange={(e) => setConfirm(e.target.value)} /></div>
-        {error ? <p className="au__error" role="alert">{error}</p> : null}
-        <button className="au__submit" type="submit" disabled={loading || !hydrated}>{loading ? "Updating…" : "Update password"}</button>
-        <Link className="au__textLink" href="/forgot-password">Request a new link</Link>
-      </form>}
-  </div>;
+  return (
+    <div className="lx">
+      <div className="lx__step" data-dir="1">
+        <h1 className="lx__heading">Choose a new password</h1>
+        {done ? (
+          <div className="au__notice" role="status">
+            <b>Password updated.</b>
+            <span>Every other session on this account has been signed out. Log in with the new password.</span>
+            <Link href="/login" className="au-btn au-btn--primary" data-awake="true">
+              Continue to log in
+            </Link>
+          </div>
+        ) : (
+          <>
+            <p className="lx__sub">Use at least 10 characters, and keep it unique to this account.</p>
+            {error ? (
+              <p className="au__error" role="alert">
+                {error}
+              </p>
+            ) : null}
+            <form onSubmit={submit} className="au__form lx__form" method="post" noValidate>
+              <PasswordField
+                ref={passwordRef}
+                label="New password"
+                name="new-password"
+                autoComplete="new-password"
+                value={password}
+                onChange={(value) => {
+                  setPassword(value);
+                  if (field.password) setField({});
+                }}
+                error={field.password ?? null}
+              />
+              <PasswordField
+                ref={confirmRef}
+                label="Confirm password"
+                name="confirm-password"
+                autoComplete="new-password"
+                value={confirm}
+                onChange={(value) => {
+                  setConfirm(value);
+                  if (field.confirm) setField({});
+                }}
+                error={field.confirm ?? null}
+              />
+              <PrimaryButton awake={password.length >= 10 && confirm.length > 0} hydrated={hydrated} busy={loading}>
+                Update password
+              </PrimaryButton>
+            </form>
+            <Link className="au-link lx__back" href="/forgot-password">
+              Request a new link
+            </Link>
+          </>
+        )}
+      </div>
+    </div>
+  );
 }
