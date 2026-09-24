@@ -184,7 +184,7 @@ const submit = async (page: Page, name: string) => {
 };
 
 /**
- * Email first, then "Use my password", then the password: the login page asks
+ * Email first, then the Password tab, then the password: the login page asks
  * for one thing at a time, and never says whether the address has an account
  * until a credential is checked.
  */
@@ -197,7 +197,7 @@ const signIn = async (page: Page, email: string, password: string) => {
   await hydrated(page);
   await page.getByLabel("Email", { exact: true }).fill(email);
   await submit(page, "Continue");
-  await page.getByRole("button", { name: /Use my password/ }).click();
+  await page.getByRole("tab", { name: "Password" }).click();
   await page.getByLabel("Password", { exact: true }).fill(password);
   await submit(page, "Log in");
 };
@@ -516,7 +516,7 @@ test("a sign-in email carries a link and a code, and the code signs in", async (
   await submit(page, "Continue");
 
   const asked = Date.now();
-  await page.getByRole("button", { name: /Email me a sign-in link/ }).click();
+  await page.getByRole("button", { name: "Email me a link" }).click();
   await expect(page.getByRole("heading", { name: "Check your inbox" })).toBeVisible({ timeout: 20_000 });
   /* The same sentence for everybody: nothing on this screen says whether the
      address had an account. */
@@ -551,7 +551,7 @@ test("opening the link in another tab moves the waiting tab on by itself", async
   await waiting.getByLabel("Email", { exact: true }).fill(EMAIL);
   await waiting.getByRole("button", { name: "Continue", exact: true }).click();
   const asked = Date.now();
-  await waiting.getByRole("button", { name: /Email me a sign-in link/ }).click();
+  await waiting.getByRole("button", { name: "Email me a link" }).click();
   await expect(waiting.getByRole("heading", { name: "Check your inbox" })).toBeVisible({ timeout: 20_000 });
 
   const mail = await latestMailTo(EMAIL, asked);

@@ -28,10 +28,10 @@ export const copy = {
     talkToUs: "Talk to us",
   },
   method: {
-    heading: "How would you like to log in?",
-    magic: { title: "Email me a sign-in link", desc: "No password needed. We'll also include a code." },
-    password: { title: "Use my password", desc: "Type the password for this account." },
-    passkey: { title: "Use a passkey", desc: "Your fingerprint, face or screen lock." },
+    heading: "Choose how to log in",
+    magic: { tab: "Link", title: "Email me a link", desc: "No password needed. We'll email you a link and a 6-digit code." },
+    password: { tab: "Password" },
+    passkey: { tab: "Passkey", title: "Use my passkey", desc: "Your fingerprint, face or screen lock. Nothing to type." },
     lastUsed: "Last used",
   },
   password: {
