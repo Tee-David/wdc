@@ -25,6 +25,7 @@ import {
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { authClient } from "@/lib/auth-client";
 import TourLauncher from "./tour/tour-launcher";
+import TableLabels from "./table-labels";
 
 export type AdminUser = {
   name?: string | null;
@@ -436,6 +437,7 @@ export default function AdminShell({ children, counts = {}, user }: { children: 
           </div>
         </header>
         <main className="ad__main">{children}</main>
+        <TableLabels />
       </div>
 
       {commandOpen ? <CommandPalette onClose={() => setCommandOpen(false)} /> : null}

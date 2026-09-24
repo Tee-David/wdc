@@ -23,6 +23,16 @@
 .adDash__attentionCopy { min-width: 0; display: grid; }
 .adDash__attentionCopy b, .adDash__compactList b { overflow: hidden; font-size: .82rem; text-overflow: ellipsis; white-space: nowrap; }
 .adDash__attentionCopy small, .adDash__compactList small { overflow: hidden; color: var(--ad-dim); font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
+/* A linked title is the grid item, not its <b>, so the ellipsis has to be on
+   the link: on the <b> inside an inline <a> it did nothing and the title ran
+   past the card. On a phone the title wraps instead, because "is ready for
+   your re…" hides the half of the sentence that says what to do. */
+.adDash__attentionCopy > a { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 560px) {
+  .adDash__attentionCopy > a,
+  .adDash__attentionCopy b,
+  .adDash__attentionCopy small { white-space: normal; overflow-wrap: break-word; }
+}
 .adDash__attentionCopy a:hover { text-decoration: underline; text-underline-offset: 2px; }
 .adDash__attentionMeta { color: var(--ad-dim); font-size: .69rem; white-space: nowrap; }
 .adDash__attentionActions { display: flex; justify-content: flex-end; }
