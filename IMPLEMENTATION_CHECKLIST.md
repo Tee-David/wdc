@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**75 open** (30 in progress)
+**74 open** (31 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -98,9 +98,8 @@ the evidence. Detail that used to sit in this file is in git history and in
 - [ ] Add owner/staff roles and least-privilege permissions for clients, projects, money, forms, content, settings, exports, and destructive actions. (…)
 - [ ] Preserve last-owner/self-change guards, session revocation, invitation expiry, and a clear staff access/activity view. (…)
 - [-] Append-only audit log built and wired into the writes that exist. APPEND-ONLY BY CONSTRUCTION, not by promise: the array is module-private and the only export that touches it pushes, so there is no update, no delete, and nowhere to write from. (…)
-- [ ] Add content-management entry points only for public content that genuinely needs editing; avoid rebuilding a general-purpose CMS.
 - [ ] Author and category records, once there is more than one person writing.
-- [ ] Editable site content beyond the blog: the FAQ list, testimonials, the services copy and the work catalogue all currently live in `lib/` and need the same treatment.
+- [-] Editable site content beyond the blog: the FAQ list, testimonials, the services copy and the work catalogue all currently live in `lib/` and need the same treatment. DONE for the FAQ: `/admin/settings/faq` saves one override over `lib/faq.ts` (migration 0010, `site_content`), shown on the homepage, /contact and the service pages and in their FAQPage data; reset deletes the row and the shipped questions return. DELIBERATELY NOT for testimonials: they are clients' words verbatim and `lib/testimonials.ts` says nothing there may be written by us, so an editor that makes them typeable works against the rule. NOT DONE: the services copy and the work catalogue, which carry slugs and derivation chains (sitemap, work categories) and need more care than an override.
 - [ ] Media library backed by R2, reusing `r2Config()` and `presignPut()` from `lib/r2.ts` rather than a second uploader. Note the SVG caveat recorded under upload safety.
 
 ### 4.9 CockroachDB, R2, and backend integrity

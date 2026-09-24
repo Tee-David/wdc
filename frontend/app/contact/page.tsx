@@ -6,7 +6,8 @@ import { WorkFooter } from "@/components/work/work-footer";
 import ContactForm from "@/components/contact/contact-form";
 import FaqAccordion from "@/components/ui/faq-accordion";
 import { CHANNELS } from "@/lib/contact";
-import { FAQS } from "@/lib/faq";
+import type { Faq } from "@/lib/faq";
+import { siteFaqs } from "@/lib/site-content";
 import { COMPANY_NAME, CONTACT_EMAIL, SITE_URL } from "@/lib/site";
 import "@/components/preview/preview.css";
 import "@/components/contact/contact.css";
@@ -40,15 +41,15 @@ const breadcrumbJsonLd = {
 
 /* The same FAQ that feeds the homepage, so an answer cannot be updated in one
    place and go stale in the other. */
-const faqJsonLd = {
+const faqJsonLdFor = (faqs: Faq[]) => ({
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: FAQS.map((f) => ({
+  mainEntity: faqs.map((f) => ({
     "@type": "Question",
     name: f.q,
     acceptedAnswer: { "@type": "Answer", text: f.a },
   })),
-};
+});
 
 const contactJsonLd = {
   "@context": "https://schema.org",
@@ -62,7 +63,9 @@ const contactJsonLd = {
   },
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const { faqs } = await siteFaqs();
+  const faqJsonLd = faqJsonLdFor(faqs);
   const channels = CHANNELS.filter((c) => c.value);
 
   return (
@@ -129,7 +132,7 @@ export default function ContactPage() {
                 and narrow, and a counter down its left edge only takes width
                 from the questions. */}
             <div className="ct-faq">
-              <FaqAccordion items={FAQS} numbered={false} idPrefix="ctfaq" initial={-1} />
+              <FaqAccordion items={faqs} numbered={false} idPrefix="ctfaq" initial={-1} />
             </div>
             <p style={{ textAlign: "center", marginTop: "clamp(1.6rem, 3vw, 2.4rem)" }}>
               <Link className="pv-btn pv-btn--line" href="/work">See the work first</Link>
