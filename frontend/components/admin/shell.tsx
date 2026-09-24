@@ -22,8 +22,9 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { authClient } from "@/lib/auth-client";
+import { can, NAV_AREA, type AdminRole } from "@/lib/admin/permissions";
 import TourLauncher from "./tour/tour-launcher";
 import TableLabels from "./table-labels";
 
@@ -44,6 +45,21 @@ const NAV = [
   { href: "/admin/blog", label: "Blog", Icon: Newspaper, group: "main", tour: "nav-blog" },
   { href: "/admin/settings", label: "Settings", Icon: Settings, group: "general", tour: "nav-settings" },
 ] as const;
+
+/* The pages this role may open. A courtesy, not the permission: every write
+   is checked again on the server (lib/admin/guard.ts). */
+const RoleContext = createContext<AdminRole>("owner");
+/** The signed-in admin's role, for client components inside the shell. */
+export function useAdminRole() {
+  return useContext(RoleContext);
+}
+function useNav() {
+  const role = useContext(RoleContext);
+  return useMemo(() => NAV.filter((item) => {
+    const area = NAV_AREA[item.href];
+    return !area || can(role, area);
+  }), [role]);
+}
 
 const SIDEBAR_KEY = "wdc:admin-sidebar-collapsed";
 let clientMounted = false;
@@ -101,8 +117,9 @@ function Sidebar({
 }) {
   const path = usePathname();
   const router = useRouter();
-  const main = NAV.filter((item) => item.group === "main");
-  const general = NAV.filter((item) => item.group === "general");
+  const nav = useNav();
+  const main = nav.filter((item) => item.group === "main");
+  const general = nav.filter((item) => item.group === "general");
 
   const renderItem = ({ href, label, Icon, tour }: (typeof NAV)[number]) => {
     const active = isActive(href, path);
@@ -307,10 +324,11 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
   const [query, setQuery] = useState("");
   const input = useRef<HTMLInputElement>(null);
   const dialog = useRef<HTMLElement>(null);
+  const nav = useNav();
   const results = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    return NAV.filter((item) => !needle || item.label.toLowerCase().includes(needle));
-  }, [query]);
+    return nav.filter((item) => !needle || item.label.toLowerCase().includes(needle));
+  }, [query, nav]);
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -346,7 +364,15 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
   );
 }
 
-export default function AdminShell({ children, counts = {}, user }: { children: ReactNode; counts?: Record<string, number>; user: AdminUser }) {
+export default function AdminShell({ children, counts = {}, user, role = "owner" }: { children: ReactNode; counts?: Record<string, number>; user: AdminUser; role?: AdminRole }) {
+  return (
+    <RoleContext.Provider value={role}>
+      <ShellFrame counts={counts} user={user}>{children}</ShellFrame>
+    </RoleContext.Provider>
+  );
+}
+
+function ShellFrame({ children, counts, user }: { children: ReactNode; counts: Record<string, number>; user: AdminUser }) {
   const path = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [pinnedCollapsed, setPinnedCollapsed] = useState(false);

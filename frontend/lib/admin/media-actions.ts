@@ -6,7 +6,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { checkMediaFile, isMediaKey, MEDIA_ALT_MAX, MEDIA_MAX_BYTES, MEDIA_TYPES } from "@/lib/media-validate";
 import { mediaById, mediaDatabaseConfigured, recordMedia, setMediaAlt, setMediaArchived, type MediaAsset } from "@/lib/media";
 import { audit } from "./store";
-import { actorName, owner } from "./guard";
+import { actorName, allow } from "./guard";
 import { FAIL, OK, str, type ActionState } from "./validate";
 
 const PAGE = "/admin/settings/media";
@@ -23,7 +23,7 @@ type Signed = { ok: true; url: string; key: string; contentType: string } | { ok
  * to itself this way, and Next checks the origin of every action call.
  */
 export async function signMediaUpload(input: { filename: string; size: number }): Promise<Signed> {
-  const refused = await owner();
+  const refused = await allow("content");
   if (refused) return { ok: false, error: refused.message ?? "Sign in again, then retry." };
 
   const by = await actorName();
@@ -60,7 +60,7 @@ export async function signMediaUpload(input: { filename: string; size: number })
  * row is how somebody finds it to archive it.
  */
 export async function recordMediaUpload(input: { key: string; filename: string }): Promise<{ ok: true; item: MediaAsset } | { ok: false; error: string }> {
-  const refused = await owner();
+  const refused = await allow("content");
   if (refused) return { ok: false, error: refused.message ?? "Sign in again, then retry." };
 
   const key = String(input?.key ?? "");
@@ -106,7 +106,7 @@ export async function recordMediaUpload(input: { key: string; filename: string }
 }
 
 export async function saveMediaAlt(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const refused = await owner();
+  const refused = await allow("content");
   if (refused) return refused;
   const id = str(fd, "id");
   const alt = str(fd, "alt").replace(/\s+/g, " ");
@@ -130,7 +130,8 @@ export async function saveMediaAlt(_prev: ActionState, fd: FormData): Promise<Ac
 }
 
 async function archive(fd: FormData, archived: boolean): Promise<ActionState> {
-  const refused = await owner();
+  /* Content work, and reversible: the object is never deleted. */
+  const refused = await allow("content");
   if (refused) return refused;
   const id = str(fd, "id");
   if (!UUID.test(id)) return FAIL({}, "That file could not be found.");

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { parseFaqs } from "@/lib/faq-validate";
 import { resetSiteFaqs, saveSiteFaqs } from "@/lib/site-content";
 import { audit } from "./store";
-import { actorName, owner } from "./guard";
+import { actorName, allow } from "./guard";
 import { FAIL, OK, type ActionState } from "./validate";
 
 /* Every page that shows the FAQ, so a save is live on the next request. */
@@ -16,7 +16,7 @@ function refreshFaqPages() {
 }
 
 export async function saveFaqs(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const refused = await owner();
+  const refused = await allow("content");
   if (refused) return refused;
   const parsed = parseFaqs(String(fd.get("faqs") ?? ""));
   if (!parsed.ok) return FAIL({}, parsed.error);
@@ -32,7 +32,7 @@ export async function saveFaqs(_prev: ActionState, fd: FormData): Promise<Action
 }
 
 export async function resetFaqs(): Promise<ActionState> {
-  const refused = await owner();
+  const refused = await allow("content");
   if (refused) return refused;
   const by = await actorName();
   try {

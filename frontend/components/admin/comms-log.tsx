@@ -5,6 +5,8 @@ import { MessageActions } from "./log-message";
 import { Empty, Panel, when } from "@/components/admin/bits";
 import { ResendMessage } from "./reconcile-forms";
 import type { MessageState } from "@/lib/admin/types";
+import { adminRole } from "@/lib/admin/guard";
+import { can } from "@/lib/admin/permissions";
 
 /**
  * What we have said to somebody, and whether it arrived.
@@ -40,7 +42,11 @@ export default async function CommsLog({
   title?: string;
   limit?: number;
 }) {
-  const messages = await listLogged({ clientId, aboutIds, limit });
+  /* Staff see what was said to a client about the work, not the invoices,
+     receipts and reminders: those carry the figures (lib/admin/permissions.ts). */
+  const money = can(await adminRole(), "money");
+  const messages = (await listLogged({ clientId, aboutIds, limit }))
+    .filter((m) => money || (m.about?.kind !== "invoice" && m.about?.kind !== "payment" && !/estimate|invoice|receipt/i.test(m.subject)));
   /* The hand-over controls belong to a person, so they only appear on a
      client's own log, not on an invoice's. */
   const client = clientId && !aboutIds ? getClient(clientId) : null;
