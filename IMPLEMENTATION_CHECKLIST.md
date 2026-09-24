@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**88 open** (32 in progress)
+**120 open** (32 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -87,7 +87,6 @@ the evidence. Detail that used to sit in this file is in git history and in
 
 Agreed 2026-09-24 after reading Fluent Forms, Fluent Forms Pro and FluentSMTP (working notes in the gitignored `plans/`). The eight forms stay defined in code: six onboarding forms (one per service), contact, and newsletter. The estimate and SEO report tools are NOT forms here, by decision. CSV and XLSX export both ship from day one. Left out on purpose: a form builder, editable email bodies, conditional routing, charts, an advanced filter builder, editing entries, double opt-in, IP logging, a second SMTP connection. Build in this order.
 
-- [ ] (M) Durable email log. Replace the in-memory `MESSAGES` behind `lib/outbox.ts` with a table: a row written `pending` before the provider is called, a unique dedupe key, the provider's response word for word, time taken, retry count, and a capped trail of resends `{at, to, by, sent, ms}`. The original recipient is never overwritten. Everything below depends on it.
 - [ ] (S) A form registry in code (`lib/forms/registry.ts`): one record per form with a stable key (`onboarding-branding` ... `contact`, `newsletter`), title, group, public path, its columns and its notifications.
 - [ ] (S) `/admin/forms` lists the eight forms in two groups (Onboarding, Website): open or closed, unread and total (plus drafts for onboarding, active subscribers for the newsletter), last entry, and a pill when a studio notice failed. No create/duplicate/delete. The "Submissions (demonstration)" panel goes. The Forms nav item shows the unread count.
 - [ ] (S) Entry state and numbers: read, starred, and inbox/spam/trash on onboarding briefs and contact enquiries, validated on the server; a per-form number ("Brief #12", "Enquiry #7") assigned inside the insert; opening an entry marks it read.
@@ -111,15 +110,70 @@ Agreed 2026-09-24 after reading Fluent Forms, Fluent Forms Pro and FluentSMTP (w
 
 ### 4.8 Settings, content, team access, and audit
 
-- [ ] Rebuild Settings to Litch parity with grouped navigation for business profile, branding, services/content, finance defaults, payment methods, email/templates, integrations, team, security, and data.
 - [-] Two of these are real now, and three are a deliberate no rather than an oversight. Settings gained "Default VAT %" and "Default days to pay" (`app/admin/(lists)/settings/page.tsx`, `finance.vatRate`/`finance.dueInDays`), through the same override-by-key mechanism every other row on that screen already used -- so nothing new had to be built to store or reset them. (…)
 - [ ] Add service catalogue and onboarding-template management without exposing implementation-only configuration to day-to-day users.
-- [ ] Add owner/staff roles and least-privilege permissions for clients, projects, money, forms, content, settings, exports, and destructive actions. (…)
-- [ ] Preserve last-owner/self-change guards, session revocation, invitation expiry, and a clear staff access/activity view. (…)
 - [-] Append-only audit log built and wired into the writes that exist. APPEND-ONLY BY CONSTRUCTION, not by promise: the array is module-private and the only export that touches it pushes, so there is no update, no delete, and nowhere to write from. (…)
 - [ ] Author and category records, once there is more than one person writing.
 - [-] Editable site content beyond the blog: the FAQ list, testimonials, the services copy and the work catalogue all currently live in `lib/` and need the same treatment. DONE for the FAQ: `/admin/settings/faq` saves one override over `lib/faq.ts` (migration 0010, `site_content`), shown on the homepage, /contact and the service pages and in their FAQPage data; reset deletes the row and the shipped questions return. DELIBERATELY NOT for testimonials: they are clients' words verbatim and `lib/testimonials.ts` says nothing there may be written by us, so an editor that makes them typeable works against the rule. NOT DONE: the services copy and the work catalogue, which carry slugs and derivation chains (sitemap, work categories) and need more care than an override.
 - [-] Media library backed by R2, reusing `r2Config()` and `presignPut()` from `lib/r2.ts` rather than a second uploader. BUILT 2026-09-24 at `/admin/settings/media` (linked from Settings): the browser PUTs straight to R2 under a server-chosen `media/YYYY/MM/` key, then the server asks the bucket (`headObject`, a signed HEAD) whether the object really arrived and records R2's own size -- a browser that claims an upload the bucket never got is refused, and that is pinned by `tests/media-library.spec.ts`. Alt text per image with a "No description" pill until it has one; archive and restore rather than delete, because a published page may be using the address; every upload, alt change, archive and restore goes to the audit log. **SVG is refused** (the caveat recorded under upload safety): these files are meant to be drawn inline on our own pages, which the onboarding uploader never does. PNG/JPEG/WebP/AVIF/GIF/PDF, 10MB. Fails closed and says which of `COCKROACHDB_URL`, the four R2 credentials or `CLOUDFLARE_R2_URL` is missing. STILL OPEN: (1) apply `db/migrations/0011_media_library.sql` to the production database (`npm run db:migrate`) -- until then the page shows its "could not be read" state; (2) pictures INSIDE a post now upload to the library straight from the blog editor's Picture panel (same sign-then-verify steps), and the post accepts images only from this site or the bucket's own origin; the cover and social image still only accept the shipped cover photographs (`BLOG_COVERS` in `lib/blog-validate.ts`), and there is no "pick from the library" browser yet; (3) the bucket's CORS policy has to allow PUT from the admin origin, the same requirement as onboarding uploads. Verified against a local Postgres over TLS (the table, alt text, archive/restore, the refused forged upload, 320px) -- not yet against CockroachDB or a real bucket.
+
+### 4.8A Settings, roles and a light CMS
+
+Agreed 2026-09-24. Settings takes the Realtors Practice layout (grouped sections, a sidebar on desktop, a tappable section list on a phone, each section its own page) in WDC's own tokens and type. Ideas taken from WordPress (capabilities, post statuses, revisions, site health, admin notices, personal data tools) and WooCommerce (a settings registry, business address, retention, logs, a maintenance mode that never blocks payments), and only where they fit a small studio. The email and forms settings are in 4.6A. Left out on purpose: a fourth role or a role editor, editable menus or a page builder, comments, editable email bodies, Paystack or SMTP secrets in the UI, API keys and webhooks, a job queue, currency options, appearance settings, a backups button, open sign-up.
+
+#### Honesty fixes (do first)
+
+- [ ] (S) Settings: make "Contact email", "Social links", "Services", "Case studies" and "Legal documents" read-only with a "Not editable yet" pill until each has a consumer; today `saveSetting` says "The site shows it now" while only `finance.*` is read (`lib/admin/store.ts:1453`).
+- [ ] (S) Refuse unknown setting keys on the server: `saveSetting` accepts only keys in the settings registry, each parsed by its own validator.
+- [ ] (S) Fix the enum comments: `"user"."role"` is a STRING with no CHECK (migrations 0001/0004), not a Postgres enum as `lib/roles.ts` and `lib/db/schema.ts` say; add the next free migration with `CHECK ("role" IN ('owner','staff','client'))`.
+
+#### Settings foundation
+
+- [ ] (S) `lib/settings/registry.ts`: one record per setting (key, section, label, help, type, default = shipped value, parse, capability, paths to revalidate).
+- [ ] (S) Migration `app_settings (key, value JSONB, saved_by, saved_at)`; move the in-memory `SETTINGS` map behind the same get/set/clear functions; cached read with tag invalidation on write; audit row per change.
+- [ ] (M) Settings shell: `/admin/settings/layout.tsx` with grouped sub-navigation (sticky at 1000px+), an overview/list page shared by desktop overview and phone list (icon tile, label, one-line description, state pill, chevron), section routes with a "Settings" back link, per-section `loading.tsx`, `aria-current`, 44px rows, tour targets updated.
+- [ ] (S) Panel save kit: dirty tracking, primary Save disabled until dirty, Discard, "Unsaved changes" pill, leave-page warning only while dirty, inline `role="status"` result, server value re-synced only when it changes, provenance line ("Edited by … · shipped as … · Reset").
+- [ ] (S) Move the Integrations table, the audit log and the FAQ/Media links into their sections; the long single page goes.
+
+#### Roles and team
+
+- [ ] (M) `lib/admin/can.ts` with a capability table per role and `can()`/`canOn()`; replace all 59 `owner()` calls with specific capabilities; every refusal test posts to the action directly as staff.
+- [ ] (S) Admin layout lets owner and staff in; each page calls `requireCap()` and renders the no-permission state; NAV and command palette filtered by capability; staff dashboard omits money tiles and money attention rows at the query.
+- [ ] (S) Capture-as-staff for tests (non-production, same token), and tag money/settings tour steps `owner` so `TourStep.roles` filtering is exercised.
+- [ ] (M) Team and access section: list owners and staff with last sign-in and session count; invite staff (wires the existing `inviteStaff`); pending staff invitations with resend/withdraw; change role; deactivate/reactivate; sign out everywhere.
+- [ ] (S) Migration for `deactivatedAt`/`deactivatedBy`; refuse sign-in for a deactivated row in the session-create hook and in the Google admission check; deactivation deletes the user's sessions in the same transaction.
+- [ ] (S) Last-owner and self-change guards inside the transaction (`FOR UPDATE` on owner rows); staff may act on client rows only; flip `staff.ready` in `lib/roles.ts` in the same commit.
+- [ ] (M) My account section: name, password change (revoking other sessions), sign-in methods with last-method unlink guard (closes 1A's Google line for admins too), active sessions with "Sign out everywhere else", replay tours.
+
+#### Business, site and money settings
+
+- [ ] (M) Business profile: trading and legal name, BN, registrar, tagline, contact email, phone/WhatsApp, address, location, social URLs (validated, fills `SOCIAL_LINKS`), timezone, date format, week start; wire every consumer (footer, legal pages, email footer, invoice/receipt header, Organization JSON-LD) in the same change.
+- [ ] (S) Studio notice address with confirmation mailed to the new address (hashed token, TTL) before it takes effect.
+- [ ] (S) Site and SEO: default description and social image; "ask search engines not to index" read by `robots.ts` and root metadata, with a shell notice while on and a typed confirmation to enable.
+- [ ] (M) Invoicing and payments section: default VAT and days to pay (moved), VAT registered toggle with TIN, bank transfer details, payment terms and footer note, reminder schedule on/off per step, next invoice/receipt/estimate numbers shown read-only, Paystack mode and key status from env, webhook and callback URLs with copy.
+- [ ] (S) Content section: FAQ and Media entries, blog defaults (default topic, posts per page, RSS count), read-only rows for services/work/legal/testimonials saying why.
+
+#### Privacy, visibility, system
+
+- [ ] (M) Retention rules per data type (drafts, enquiries, spam/Trash, invitations, email log, unsubscribed addresses, deactivated accounts), a daily batched job that anonymises or deletes, and one audit row per run with counts; money records excluded by design.
+- [ ] (M) Personal data request: look up an email across tables, export JSON/CSV, erase by anonymising personal fields, log the request.
+- [ ] (M) Maintenance mode: whole-site 503 with `Retry-After` and noindex, a reviewer share link, bypass for signed-in owner/staff, never blocking admin, portal, login, Paystack webhook, `/pay/*` and `/i/*`; shell notice; audited.
+- [ ] (M) System status: health probes (DB, applied migrations vs files, SMTP connect behind the response, bucket HEAD and CORS, recent webhook deliveries), environment info with "Copy report", background work (pending/failed outbox rows, last retention run).
+- [ ] (S) Tools panel: retry failed emails, purge expired invitations, re-verify media against R2, revalidate public pages; each audited and safe to run twice.
+- [ ] (S) "Check now" on each integration row where a cheap probe exists, showing the answer and its time rather than "working".
+- [ ] (S) Audit log section with filters by kind and actor, date presets and search; bounded with a count.
+- [ ] (S) Admin notices in the shell for persistent conditions (Paystack test mode, maintenance on, noindex on, failed emails today, unapplied migration), at most two at once, solid tone fills, dismissible per user by cookie.
+
+#### Blog as a CMS
+
+- [ ] (S) Pending review status: staff "Submit for review", owner publish or return with a note, count on the Blog nav item and an attention row on the dashboard.
+- [ ] (S) Optimistic concurrency on post saves: refuse when the row's `saved_at` is newer than the one the editor opened, and say who saved it and when.
+- [ ] (M) Revisions for published posts (last 25, in the save transaction), list with who/when and Restore; last 10 values per `site_content` key for the FAQ.
+- [ ] (S) Trash for posts with Restore and a 30-day purge, replacing permanent draft deletion.
+- [ ] (S) Verify scheduled posts reach /blog, the post page, the sitemap and RSS within the promised window with a one-minute-ahead test; fix or reword the editor's promise.
+- [ ] (M) "Choose from library" for cover and social image, with search, type filter and "Used in".
+- [ ] (M) Services copy override by key (names, blurbs, deliverables; slugs locked), shown with provenance and Reset, following the FAQ's pattern.
+- [ ] (S) Post locking with a 150-second heartbeat and "Take over" — only if the concurrency refusal is ever hit in practice.
 
 ### 4.9 CockroachDB, R2, and backend integrity
 
