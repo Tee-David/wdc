@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import * as db from "./store";
 import { invoiceTotals, naira, type InvoiceLine } from "./types";
 import { paystackMode } from "@/lib/paystack";
-import { owner } from "./guard";
+import { actorName, owner } from "./guard";
 import {
   FAIL, OK, type ActionState,
   approval, channel, checked, health, isoDate, kobo, looksEmail, method, num, priority,
@@ -843,6 +843,40 @@ export async function emailReminder(_prev: ActionState, fd: FormData): Promise<A
       : sent.reason === "no address"
         ? "There is no email address on file for that client."
         : "The mail server would not take it.");
+}
+
+/**
+ * A call, a WhatsApp message or a conversation, written down.
+ *
+ * THE SITE CANNOT SEE THESE, so this is a person saying it happened, and the
+ * row says who. It is never an email: an email row is written by the outbox
+ * when the site itself sends one.
+ */
+export async function logMessage(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
+  const clientId = str(fd, "clientId");
+  const client = db.getClient(clientId);
+  if (!client) return FAIL({}, "That client is no longer there.");
+  const channel = str(fd, "channel");
+  if (!["WhatsApp", "Phone", "In person"].includes(channel)) return FAIL({ channel: "Pick how it happened." });
+  const direction = str(fd, "direction") === "Inbound" ? "Inbound" : "Outbound";
+  const subject = str(fd, "subject").slice(0, 160);
+  if (!subject) return FAIL({ subject: "Say in a few words what it was about." });
+  const summary = str(fd, "summary").slice(0, 600);
+  const by = await actorName();
+  db.queueMessage({
+    channel: channel as "WhatsApp" | "Phone" | "In person", direction,
+    to: str(fd, "to").slice(0, 120) || client.name,
+    subject, summary: summary || "No further note.",
+    dedupeKey: `manual:${crypto.randomUUID()}`,
+    by, clientId, state: "Sent",
+  });
+  db.audit({ actor: by, kind: "client", subjectId: clientId, subject: client.company,
+             action: `logged ${direction === "Inbound" ? "an incoming" : "an outgoing"} ${channel === "In person" ? "conversation" : channel === "Phone" ? "call" : "WhatsApp message"}`,
+             note: subject });
+  refresh(`/admin/clients/${clientId}`);
+  return OK("Logged.");
 }
 
 /** A message that failed, queued to be tried again. */
