@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { authViewport } from "@/components/auth/login-route";
 import { ResetPasswordForm } from "@/components/auth/password-flow";
 
 export const metadata: Metadata = { title: "Choose a new password", robots: { index: false, follow: false } };
+
+export const viewport = authViewport;
 
 /**
  * The token is read here, not in the browser.
@@ -23,7 +26,7 @@ export default async function ResetPasswordPage({
 }) {
   const query = await searchParams;
   return (
-    <AuthShell>
+    <AuthShell demo={process.env.NEXT_PUBLIC_AUTH_DEMO === "true"}>
       <ResetPasswordForm token={first(query.token)} invalid={Boolean(first(query.error))} />
     </AuthShell>
   );
