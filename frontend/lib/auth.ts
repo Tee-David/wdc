@@ -4,7 +4,7 @@ import { after } from "next/server";
 import { betterAuth } from "better-auth";
 import { googleAdmission } from "@/lib/auth-google";
 import { db } from "@/lib/db/pool";
-import { sendPasswordResetEmail } from "@/lib/email";
+import { sendPasswordResetEmail } from "@/lib/outbox";
 import { SITE_URL } from "@/lib/site";
 
 /** One hour, in the token and in the sentence the email says out loud. */

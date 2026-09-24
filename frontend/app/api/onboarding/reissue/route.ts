@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 import { db } from "@/lib/db/pool";
-import { escapeHtml, mailIsConfigured, sendMail } from "@/lib/email";
+import { escapeHtml, mailIsConfigured } from "@/lib/email";
+import { secretKey, sendLogged } from "@/lib/outbox";
 import {
   issueToken, normalizeEmail, requestOriginIsAllowed, RESUME_TTL_SECONDS, tokenHash,
 } from "@/lib/onboarding-server";
@@ -115,28 +116,38 @@ export async function POST(request: NextRequest) {
       }
 
       const url = `${request.nextUrl.origin}/onboarding?resume=${encodeURIComponent(token)}`;
-      /* NOT AWAITED, and this is measured rather than stylistic: this mail
-         server takes about 23 seconds just to authenticate, and the client is
-         staring at a button. The answer goes back now and the mail follows.
-         Nothing downstream depends on the send, because the answer does not
-         reveal whether one happened. */
-      void sendMail({
-        to: draft.email,
-        subject: "Your onboarding link",
-        text:
-          `Here is a fresh link to your unfinished WDC onboarding form.\n\n${url}\n\n` +
-          `It works for three days, and any earlier link you had has now stopped working.\n\n` +
-          `If you did not ask for this, you can ignore it. Nothing has changed on your form.`,
-        html:
-          `<p>Here is a fresh link to your unfinished WDC onboarding form.</p>` +
-          `<p><a href="${escapeHtml(url)}">Pick up where you left off</a></p>` +
-          `<p>It works for three days, and any earlier link you had has now stopped working.</p>` +
-          `<p>If you did not ask for this, you can ignore it. Nothing has changed on your form.</p>`,
-        unsubscribe: false,
-      }).catch(() => {
-        /* Swallowed on purpose. A failed send must not change the response,
-           or the timing and the status become the oracle this route exists to
-           avoid being. It is logged by sendMail itself. */
+      /* BEHIND THE RESPONSE, and this is measured rather than stylistic: this
+         mail server takes about 23 seconds just to authenticate, and the
+         client is staring at a button. `after` rather than a bare `void`,
+         because a platform may freeze the function once the response is sent
+         and a floating promise has nobody keeping it alive. Nothing
+         downstream depends on the send, because the answer does not reveal
+         whether one happened. */
+      const to = draft.email;
+      after(async () => {
+        try {
+          await sendLogged({
+            to,
+            subject: "Your onboarding link",
+            text:
+              `Here is a fresh link to your unfinished WDC onboarding form.\n\n${url}\n\n` +
+              `It works for three days, and any earlier link you had has now stopped working.\n\n` +
+              `If you did not ask for this, you can ignore it. Nothing has changed on your form.`,
+            html:
+              `<p>Here is a fresh link to your unfinished WDC onboarding form.</p>` +
+              `<p><a href="${escapeHtml(url)}">Pick up where you left off</a></p>` +
+              `<p>It works for three days, and any earlier link you had has now stopped working.</p>` +
+              `<p>If you did not ask for this, you can ignore it. Nothing has changed on your form.</p>`,
+            unsubscribe: false,
+          }, {
+            summary: "A fresh link to an unfinished onboarding form.",
+            dedupeKey: secretKey("onboarding-reissue", token),
+          });
+        } catch {
+          /* Swallowed on purpose. A failed send must not change the response,
+             or the timing and the status become the oracle this route exists
+             to avoid being. The outbox row records the failure. */
+        }
       });
     }
   } catch {

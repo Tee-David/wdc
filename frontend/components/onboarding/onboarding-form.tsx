@@ -293,8 +293,8 @@ export default function OnboardingForm() {
     try {
       const result = await serverDraft.save({ email, emailLink: true });
       serverDraft.setMessage(result.emailSent
-        ? "Your secure link has been sent. It expires in three days."
-        : "Your answers are saved, but the email could not be delivered. Copy the link instead.");
+        ? "Your secure link is on its way. It expires in three days."
+        : "Your answers are saved, but email is not available right now. Copy the link instead.");
     } catch { /* The hook exposes a useful message. */ }
   };
 

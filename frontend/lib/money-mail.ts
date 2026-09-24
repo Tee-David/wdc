@@ -1,8 +1,9 @@
 import "server-only";
 
 import { CONTACT_EMAIL, SITE_URL } from "@/lib/site";
-import { escapeHtml, mailIsConfigured, sendMail } from "@/lib/email";
-import { getClient, queueMessage, settleMessage } from "@/lib/admin/store";
+import { escapeHtml, mailIsConfigured } from "@/lib/email";
+import { getClient, queueMessage } from "@/lib/admin/store";
+import { sendLogged } from "@/lib/outbox";
 import { invoiceTotals, naira, notifyAllows } from "@/lib/admin/types";
 import type { Invoice, Payment } from "@/lib/admin/types";
 
@@ -46,7 +47,9 @@ function button(href: string, label: string) {
 
 type SendOutcome = { sent: boolean; reason?: string };
 
-/** The one path every message in this file takes out. */
+/** The one path every message in this file takes out. The row, the dedupe and
+    the settle all live in `sendLogged`; this only turns its throw into an
+    outcome, because the money actions report a reason rather than fail. */
 async function deliver(input: {
   to: string; subject: string; text: string; html: string;
   summary: string; dedupeKey: string; by: string;
@@ -54,27 +57,16 @@ async function deliver(input: {
   about?: { kind: "invoice" | "payment"; id: string; label: string };
   unsubscribe?: boolean;
 }): Promise<SendOutcome> {
-  const queued = queueMessage({
-    channel: "Email", to: input.to, subject: input.subject, summary: input.summary,
-    dedupeKey: input.dedupeKey, by: input.by, clientId: input.clientId, about: input.about,
-  });
-  /* The retry that did not double-send. */
-  if (!queued.ok) return { sent: false, reason: "already sent" };
-
-  if (!mailIsConfigured()) {
-    settleMessage(queued.message.id, "Failed", "SMTP is not configured on this deployment.");
-    return { sent: false, reason: "mail not configured" };
-  }
+  const configured = mailIsConfigured();
   try {
-    await sendMail({
-      to: input.to, subject: input.subject, text: input.text, html: input.html,
-      unsubscribe: input.unsubscribe,
-    });
-    settleMessage(queued.message.id, "Sent");
-    return { sent: true };
-  } catch (e) {
-    settleMessage(queued.message.id, "Failed", e instanceof Error ? e.message : "The mail server refused it.");
-    return { sent: false, reason: "send failed" };
+    const result = await sendLogged(
+      { to: input.to, subject: input.subject, text: input.text, html: input.html, unsubscribe: input.unsubscribe },
+      { summary: input.summary, dedupeKey: input.dedupeKey, by: input.by, clientId: input.clientId, about: input.about },
+    );
+    /* The retry that did not double-send. */
+    return result === "duplicate" ? { sent: false, reason: "already sent" } : { sent: true };
+  } catch {
+    return { sent: false, reason: configured ? "send failed" : "mail not configured" };
   }
 }
 

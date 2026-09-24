@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 import { db } from "@/lib/db/pool";
-import { escapeHtml, sendMail } from "@/lib/email";
+import { escapeHtml, mailIsConfigured } from "@/lib/email";
+import { secretKey, sendLogged } from "@/lib/outbox";
 import {
   cleanAnswers, cleanService, cleanStep, cookieToken, draftFromToken, issueToken,
   normalizeEmail, requestOriginIsAllowed, RESUME_TTL_SECONDS, setOnboardingCookie, tokenHash,
@@ -142,19 +143,32 @@ export async function POST(request: NextRequest) {
   }
 
   const resumeUrl = `${request.nextUrl.origin}/onboarding?resume=${encodeURIComponent(token)}`;
+  /* THE LINK GOES BEHIND THE RESPONSE. This used to be awaited, which put
+     the mail server's 23-second handshake between the click and the saved
+     message. The reply now says the link is on its way rather than that it
+     arrived, which is also the more honest sentence: acceptance by our mail
+     server was never delivery to the client's inbox. The outbox row is where
+     a failure shows up. */
   let emailSent = false;
-  if (requestedEmail && body.emailLink === true) {
-    try {
-      await sendMail({
-        to: requestedEmail,
-        subject: "Continue your WDC onboarding form",
-        text: `Your onboarding answers are saved. Continue within three days: ${resumeUrl}\n\nIf you did not request this link, you can ignore this email.`,
-        html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a;max-width:560px"><p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#ff6500">WE DIG CREATIVITY</p><h1 style="font-size:28px;margin:12px 0">Your answers are saved.</h1><p>Use the button below to continue on any device within three days.</p><p><a href="${escapeHtml(resumeUrl)}" style="display:inline-block;background:#ff6500;color:#ffffff;padding:13px 20px;border-radius:999px;font-weight:700;text-decoration:none">Continue onboarding</a></p><p style="color:#666680;font-size:13px">If you did not request this link, you can ignore this email.</p></div>`,
-      });
-      emailSent = true;
-    } catch (error) {
-      console.error("Onboarding resume email failed", error instanceof Error ? error.message : "unknown error");
-    }
+  if (requestedEmail && body.emailLink === true && mailIsConfigured()) {
+    const to = requestedEmail;
+    const linkToken = token;
+    after(async () => {
+      try {
+        await sendLogged({
+          to,
+          subject: "Continue your WDC onboarding form",
+          text: `Your onboarding answers are saved. Continue within three days: ${resumeUrl}\n\nIf you did not request this link, you can ignore this email.`,
+          html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a;max-width:560px"><p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#c95000">WE DIG CREATIVITY</p><h1 style="font-size:28px;margin:12px 0">Your answers are saved.</h1><p>Use the button below to continue on any device within three days.</p><p><a href="${escapeHtml(resumeUrl)}" style="display:inline-block;background:#000000;color:#ffffff;padding:13px 20px;border-radius:999px;font-weight:700;text-decoration:none">Continue onboarding</a></p><p style="color:#666680;font-size:13px">If you did not request this link, you can ignore this email.</p></div>`,
+        }, {
+          summary: "A link to continue a saved onboarding form.",
+          dedupeKey: secretKey("onboarding-resume", linkToken),
+        });
+      } catch (error) {
+        console.error("Onboarding resume email failed", error instanceof Error ? error.message : "unknown error");
+      }
+    });
+    emailSent = true;
   }
 
   const response = NextResponse.json({ draft, resumeUrl, emailSent });
