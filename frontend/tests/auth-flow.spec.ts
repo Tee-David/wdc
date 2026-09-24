@@ -160,6 +160,15 @@ test.afterAll(async () => {
 });
 
 /**
+ * HYDRATED, NOT "ENABLED". The primary button is natively `disabled` only
+ * until React is live; after that it is asleep or awake through
+ * `aria-disabled`, which Playwright also counts as disabled. So the signal
+ * that the page can take input is the native attribute going away.
+ */
+const hydrated = (page: Page) =>
+  expect(page.locator("button.au__submit").first()).not.toHaveAttribute("disabled", { timeout: 30_000 });
+
+/**
  * Presses the button only once it can do anything.
  *
  * The submit is disabled until the component hydrates -- see
@@ -173,23 +182,35 @@ const submit = async (page: Page, name: string) => {
   await button.click();
 };
 
+/**
+ * Email first, then "Use my password", then the password: the login page asks
+ * for one thing at a time, and never says whether the address has an account
+ * until a credential is checked.
+ */
 const signIn = async (page: Page, email: string, password: string) => {
   /* WAIT FIRST, THEN TYPE. These are controlled inputs, so a value written
      before React attaches is reconciled away the instant it hydrates -- the
      email field came back empty and the sign-in failed for a reason that had
      nothing to do with the password. The submit button becoming enabled is the
      signal that hydration has happened. */
-  await expect(page.getByRole("button", { name: "Log in" })).toBeEnabled({ timeout: 30_000 });
-  await page.getByLabel("Email address").fill(email);
+  await hydrated(page);
+  await page.getByLabel("Email", { exact: true }).fill(email);
+  await submit(page, "Continue");
+  await page.getByRole("button", { name: /Use my password/ }).click();
   await page.getByLabel("Password", { exact: true }).fill(password);
   await submit(page, "Log in");
 };
+
+/** Anywhere but the login page: the closing moment has run and the door opened. */
+const leftLogin = (page: Page) =>
+  page.waitForURL((url) => url.pathname !== "/login", { timeout: 30_000, waitUntil: "domcontentloaded" });
 
 const sessionCookie = async (page: Page) =>
   (await page.context().cookies()).find((c) => c.name.startsWith("wdc.session_token"));
 
 /**
- * The form's own error line.
+ * The form's own error line, for errors that belong to the page rather than
+ * to one field (a refused Google sign-in, a spent link).
  *
  * BY CLASS, NOT BY ROLE, and that cost a run to find out: Next's dev-mode
  * route announcer is an empty element with `role="alert"`, so `getByRole` was
@@ -199,10 +220,17 @@ const sessionCookie = async (page: Page) =>
  */
 const errorLine = (page: Page) => page.locator("p.au__error");
 
-const errorText = async (page: Page) => {
-  const line = errorLine(page);
-  await expect(line).toBeVisible({ timeout: 30_000 });
-  await expect(line).toHaveAttribute("role", "alert");
+/**
+ * A credential error belongs to the password field: it is written under it,
+ * linked with `aria-describedby`, the field is marked invalid, and focus goes
+ * back to it, which is how a screen reader hears it.
+ */
+const passwordError = async (page: Page) => {
+  const field = page.getByLabel("Password", { exact: true });
+  await expect(field).toHaveAttribute("aria-invalid", "true", { timeout: 30_000 });
+  const describedBy = (await field.getAttribute("aria-describedby")) ?? "";
+  const line = page.locator(`[id="${describedBy.split(" ").pop()}"]`);
+  await expect(line).toBeVisible();
   return (await line.textContent())?.trim() ?? "";
 };
 
@@ -212,7 +240,7 @@ test("a protected route with no session goes to the login page, carrying where i
   const url = new URL(page.url());
   expect(url.pathname).toBe("/login");
   expect(url.searchParams.get("redirect")).toBe("/admin/projects");
-  await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Log in to WDC" })).toBeVisible();
 });
 
 /**
@@ -228,12 +256,12 @@ test("a protected route with no session goes to the login page, carrying where i
 for (const path of ["/login", "/forgot-password", "/reset-password"]) {
   test(`${path} cannot put a credential in a URL before it hydrates`, async ({ request }) => {
     const html = await (await request.get(path)).text();
-    const forms = [...html.matchAll(/<form\b[^>]*class="au__form"[^>]*>/g)].map((m) => m[0]);
+    const forms = [...html.matchAll(/<form\b[^>]*class="au__form\b[^"]*"[^>]*>/g)].map((m) => m[0]);
     expect(forms.length, `${path} renders no form`).toBeGreaterThan(0);
     for (const form of forms) expect(form, `${path}: ${form}`).toContain('method="post"');
     /* And it does not get that far: the submit is disabled in the markup the
        server sends, and enabled by the effect that runs once React is live. */
-    expect(html).toMatch(/class="au__submit"[^>]*\bdisabled\b/);
+    expect(html).toMatch(/class="[^"]*\bau__submit\b[^"]*"[^>]*\bdisabled\b/);
   });
 }
 
@@ -267,11 +295,11 @@ for (const [code, expected] of [
 test("a wrong password and an unknown address give the same answer", async ({ page }) => {
   await page.goto("/login", { waitUntil: "domcontentloaded" });
   await signIn(page, EMAIL, "not-the-password-at-all");
-  const wrongPassword = await errorText(page);
+  const wrongPassword = await passwordError(page);
 
   await page.goto("/login", { waitUntil: "domcontentloaded" });
   await signIn(page, `nobody-${randomUUID().slice(0, 8)}@wedigcreativity.com.ng`, "not-the-password-at-all");
-  const noAccount = await errorText(page);
+  const noAccount = await passwordError(page);
 
   expect(wrongPassword).toBeTruthy();
   /* Identical, on purpose: two different messages would answer "does this
@@ -281,21 +309,27 @@ test("a wrong password and an unknown address give the same answer", async ({ pa
   expect(await sessionCookie(page)).toBeUndefined();
 });
 
-test("a correct password signs in and lands on the page that decides where to go", async ({ page }) => {
+test("a correct password signs in and is sent on by the page that decides where to go", async ({ page }) => {
   await page.goto("/login", { waitUntil: "domcontentloaded" });
   await signIn(page, EMAIL, PASSWORD);
 
-  await page.waitForURL((url) => url.pathname === "/signed-in", { timeout: 30_000, waitUntil: "domcontentloaded" });
-  /* This account is a client, and the client portal is not built. The page
-     says so rather than dropping them on a 404 or on the admin. */
-  await expect(page.getByRole("heading", { name: /You are signed in/i })).toBeVisible();
+  /* The browser never picks its own destination: it is sent to /signed-in,
+     which reads the role on the server. This account is a client, and the
+     client door is the portal. */
+  await leftLogin(page);
+  expect(new URL(page.url()).pathname).toMatch(/^\/(portal|signed-in)/);
   expect(await sessionCookie(page)).toBeTruthy();
+
+  /* And Back does not return to a login form: the page it lands on sends a
+     signed-in person straight on again. */
+  await page.goBack({ waitUntil: "domcontentloaded" }).catch(() => undefined);
+  expect(new URL(page.url()).pathname).not.toBe("/login");
 });
 
 test("a valid session that is not an owner still cannot reach the admin", async ({ page }) => {
   await page.goto("/login", { waitUntil: "domcontentloaded" });
   await signIn(page, EMAIL, PASSWORD);
-  await page.waitForURL((url) => url.pathname === "/signed-in", { timeout: 30_000, waitUntil: "domcontentloaded" });
+  await leftLogin(page);
   expect(await sessionCookie(page)).toBeTruthy();
 
   await page.goto("/admin", { waitUntil: "domcontentloaded" });
@@ -303,8 +337,10 @@ test("a valid session that is not an owner still cannot reach the admin", async 
      The layout reads the role and turns them round, and `safeDestination`
      refuses to honour ?redirect=/admin for a role whose door is not /admin --
      so they end up on their own page, not on somebody else's. */
-  expect(new URL(page.url()).pathname).toMatch(/^\/(login|signed-in)$/);
-  await expect(page.locator(".ad")).toHaveCount(0);
+  expect(new URL(page.url()).pathname).toMatch(/^\/(login|signed-in|portal)/);
+  /* The client portal reuses the admin shell's `.ad` classes, so the class
+     proves nothing now. The admin's own navigation is what must be absent. */
+  await expect(page.getByRole("navigation", { name: "Admin sections" })).toHaveCount(0);
 
   /* AND THE SAME REFUSAL WHEN THE PATH IS HANDED IN RATHER THAN WALKED TO.
      /signed-in is the only page allowed to spend a ?redirect=, and it runs it
@@ -320,24 +356,27 @@ test("a valid session that is not an owner still cannot reach the admin", async 
   const site = new URL(page.url()).origin;
 
   await page.goto("/signed-in?redirect=%2Fadmin%2Fprojects", { waitUntil: "domcontentloaded" });
-  expect(new URL(page.url()).pathname).toBe("/signed-in");
-  await expect(page.getByRole("heading", { name: /You are signed in/i })).toBeVisible();
+  expect(new URL(page.url()).pathname).not.toMatch(/^\/admin/);
 
   /* A protocol-relative path is the other half of the same question: it starts
      with a slash, so a careless check calls it relative, and the browser calls
      it somebody else's website. */
   await page.goto("/signed-in?redirect=%2F%2Fexample.com%2Fowned", { waitUntil: "domcontentloaded" });
   expect(new URL(page.url()).origin, "the redirect left our own site").toBe(site);
-  expect(new URL(page.url()).pathname).toBe("/signed-in");
+  expect(new URL(page.url()).pathname).not.toMatch(/^\/admin/);
 });
 
 test("signing out removes the session, not just the screen", async ({ page }) => {
   await page.goto("/login", { waitUntil: "domcontentloaded" });
   await signIn(page, EMAIL, PASSWORD);
-  await page.waitForURL((url) => url.pathname === "/signed-in", { timeout: 30_000, waitUntil: "domcontentloaded" });
-
-  await submit(page, "Sign out");
-  await page.waitForURL((url) => url.pathname === "/", { timeout: 60_000, waitUntil: "domcontentloaded" });
+  await leftLogin(page);
+  /* Whichever page the role landed on has its own "Sign out": /signed-in, or
+     the portal's shell. Press the one that is on screen. */
+  const signOut = page.getByRole("button", { name: "Sign out" }).filter({ visible: true }).first();
+  await expect(signOut).toBeEnabled({ timeout: 30_000 });
+  const from = new URL(page.url()).pathname;
+  await signOut.click();
+  await page.waitForURL((url) => url.pathname !== from, { timeout: 60_000, waitUntil: "domcontentloaded" });
   expect(await sessionCookie(page)).toBeUndefined();
 
   await page.goto("/admin", { waitUntil: "domcontentloaded" });
@@ -346,12 +385,12 @@ test("signing out removes the session, not just the screen", async ({ page }) =>
 
 test("a reset link is requested, answered immediately, emailed, and works once", async ({ page }) => {
   await page.goto("/forgot-password", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("button", { name: "Email reset link" })).toBeEnabled({ timeout: 30_000 });
-  await page.getByLabel("Email address").fill(EMAIL);
+  await hydrated(page);
+  await page.getByLabel("Email", { exact: true }).fill(EMAIL);
 
   const started = Date.now();
-  await submit(page, "Email reset link");
-  await expect(page.getByText("Check your inbox.")).toBeVisible({ timeout: 20_000 });
+  await submit(page, "Send reset link");
+  await expect(page.getByRole("heading", { name: "Check your inbox" })).toBeVisible({ timeout: 20_000 });
   const elapsed = Date.now() - started;
 
   /* THE POINT OF THE MEASUREMENT. This mail server needs about 23 seconds just
@@ -384,7 +423,7 @@ test("a reset link is requested, answered immediately, emailed, and works once",
   expect(new URL(page.url()).pathname).toBe("/reset-password");
   expect(new URL(page.url()).searchParams.get("token")).toBe(token);
 
-  await expect(page.getByRole("button", { name: "Update password" })).toBeEnabled({ timeout: 30_000 });
+  await hydrated(page);
   await page.getByLabel("New password").fill(NEW_PASSWORD);
   await page.getByLabel("Confirm password").fill(NEW_PASSWORD);
   await submit(page, "Update password");
@@ -393,7 +432,7 @@ test("a reset link is requested, answered immediately, emailed, and works once",
   /* ONCE. A reset link that still works after it has been used is a password
      sitting in somebody's inbox for an hour. */
   await page.goto("/reset-password?token=" + token, { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("button", { name: "Update password" })).toBeEnabled({ timeout: 30_000 });
+  await hydrated(page);
   await page.getByLabel("New password").fill(NEW_PASSWORD);
   await page.getByLabel("Confirm password").fill(NEW_PASSWORD);
   await submit(page, "Update password");
@@ -402,10 +441,95 @@ test("a reset link is requested, answered immediately, emailed, and works once",
   /* And the new password is the one that works now. */
   await page.goto("/login", { waitUntil: "domcontentloaded" });
   await signIn(page, EMAIL, PASSWORD);
-  await expect(errorLine(page)).toBeVisible({ timeout: 30_000 });
+  expect(await passwordError(page)).toBeTruthy();
 
   await page.goto("/login", { waitUntil: "domcontentloaded" });
   await signIn(page, EMAIL, NEW_PASSWORD);
-  await page.waitForURL((url) => url.pathname === "/signed-in", { timeout: 30_000, waitUntil: "domcontentloaded" });
+  await leftLogin(page);
   expect(await sessionCookie(page)).toBeTruthy();
+});
+
+/* ======================================================= the sign-in email */
+
+/**
+ * WHERE THE LOCAL SMTP SINK WRITES MESSAGES, so a test can read the email it
+ * caused. Without it these tests skip: they must never read a real inbox.
+ */
+const MAIL_DIR = process.env.WDC_E2E_MAIL_DIR;
+
+/** The newest message to `to`, waited for, with quoted-printable undone. */
+async function latestMailTo(to: string, after: number) {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const files = fs.existsSync(MAIL_DIR!) ? fs.readdirSync(MAIL_DIR!).sort().reverse() : [];
+    for (const file of files) {
+      const full = path.join(MAIL_DIR!, file);
+      if (fs.statSync(full).mtimeMs < after) continue;
+      const raw = fs.readFileSync(full, "utf8");
+      if (!raw.includes(`To: ${to}`)) continue;
+      return raw.replace(/=\r?\n/g, "").replace(/=3D/g, "=").replace(/&amp;/g, "&");
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  throw new Error(`no email reached ${to}`);
+}
+
+test("a sign-in email carries a link and a code, and the code signs in", async ({ page }) => {
+  test.skip(!MAIL_DIR, "set WDC_E2E_MAIL_DIR to the SMTP sink's folder");
+  await page.goto("/login", { waitUntil: "domcontentloaded" });
+  await hydrated(page);
+  await page.getByLabel("Email", { exact: true }).fill(EMAIL);
+  await submit(page, "Continue");
+
+  const asked = Date.now();
+  await page.getByRole("button", { name: /Email me a sign-in link/ }).click();
+  await expect(page.getByRole("heading", { name: "Check your inbox" })).toBeVisible({ timeout: 20_000 });
+  /* The same sentence for everybody: nothing on this screen says whether the
+     address had an account. */
+  await expect(page.getByText(/If .* has a WDC account, a sign-in link is on its way/)).toBeVisible();
+
+  const mail = await latestMailTo(EMAIL, asked);
+  const code = mail.match(/Subject: (\d{3}) (\d{3})/)?.slice(1).join("");
+  expect(code, "the subject line carries the code").toMatch(/^\d{6}$/);
+  expect(mail).toMatch(/\/api\/auth\/magic-link\/verify\?token=/);
+
+  /* The six boxes are one real input; typing the sixth digit submits. */
+  await page.getByLabel("Or enter the 6-digit code from the email").pressSequentially(code!, { delay: 40 });
+  await leftLogin(page);
+  expect(await sessionCookie(page)).toBeTruthy();
+
+  /* Using the code spent the link that came with it. */
+  const link = mail.match(/https?:\/\/\S+?\/api\/auth\/magic-link\/verify\?token=[^\s"<]+/)![0];
+  const fresh = await page.context().browser()!.newContext();
+  const other = await fresh.newPage();
+  await other.goto(link, { waitUntil: "domcontentloaded" });
+  expect(new URL(other.url()).pathname).toBe("/login");
+  await expect(other.locator("p.au__error")).toContainText(/expired/i, { timeout: 30_000 });
+  await fresh.close();
+});
+
+test("opening the link in another tab moves the waiting tab on by itself", async ({ context }) => {
+  test.skip(!MAIL_DIR, "set WDC_E2E_MAIL_DIR to the SMTP sink's folder");
+  const waiting = await context.newPage();
+  await waiting.route(/jotfor|userway/i, (route) => route.abort());
+  await waiting.goto("/login", { waitUntil: "domcontentloaded" });
+  await hydrated(waiting);
+  await waiting.getByLabel("Email", { exact: true }).fill(EMAIL);
+  await waiting.getByRole("button", { name: "Continue", exact: true }).click();
+  const asked = Date.now();
+  await waiting.getByRole("button", { name: /Email me a sign-in link/ }).click();
+  await expect(waiting.getByRole("heading", { name: "Check your inbox" })).toBeVisible({ timeout: 20_000 });
+
+  const mail = await latestMailTo(EMAIL, asked);
+  const link = mail.match(/https?:\/\/\S+?\/api\/auth\/magic-link\/verify\?token=[^\s"<]+/)![0];
+
+  /* Same browser, a second tab: the one the email client would open. */
+  const opened = await context.newPage();
+  await opened.route(/jotfor|userway/i, (route) => route.abort());
+  await opened.goto(link, { waitUntil: "domcontentloaded" });
+  await opened.waitForURL((url) => url.pathname !== "/login" || url.searchParams.get("done") === "1", { timeout: 30_000 });
+
+  /* The first tab hears about it (BroadcastChannel, confirmed with the
+     server) and runs its own closing moment without being touched. */
+  await waiting.waitForURL((url) => url.pathname !== "/login", { timeout: 30_000, waitUntil: "domcontentloaded" });
+  expect(await sessionCookie(waiting)).toBeTruthy();
 });

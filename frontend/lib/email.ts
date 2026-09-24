@@ -1,7 +1,7 @@
 import "server-only";
 
 import nodemailer from "nodemailer";
-import { escapeHtml, passwordResetEmail, type Email } from "@/lib/email-templates";
+import { escapeHtml, passwordResetEmail, signInEmail, type Email } from "@/lib/email-templates";
 
 function required(name: string) {
   const value = process.env[name]?.trim();
@@ -124,6 +124,21 @@ export async function sendPasswordResetEmail(
   expiresInMinutes = 60,
 ) {
   await sendTemplate(to, passwordResetEmail({ name, url, expiresInMinutes }));
+}
+
+/**
+ * The sign-in link and code, as mail. Called from behind the response, like
+ * the reset link above, and for the same 23-second reason. Both tokens are in
+ * the database before this runs, so a lost send is one more request.
+ */
+export async function sendSignInEmail(
+  to: string,
+  url: string,
+  code: string,
+  name?: string,
+  expiresInMinutes = 15,
+) {
+  await sendTemplate(to, signInEmail({ name, url, code, expiresInMinutes }));
 }
 
 export { escapeHtml };
