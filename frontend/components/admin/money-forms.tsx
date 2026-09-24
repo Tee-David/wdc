@@ -5,7 +5,7 @@ import {
   Banknote, FileSignature, FileText, Plus, Save, Send, Trash2, Undo2,
 } from "lucide-react";
 import type { Client, Invoice, Project } from "@/lib/admin/types";
-import { EXPENSE_CATEGORIES, METHODS, naira } from "@/lib/admin/types";
+import { ENTERABLE_METHODS, EXPENSE_CATEGORIES, METHODS, naira } from "@/lib/admin/types";
 import {
   createEstimate, createExpense, createInvoice, deleteInvoice, issueInvoice,
   recordPayment, reversePayment, updateInvoice,
@@ -517,3 +517,40 @@ export function ReversePayment({ id, invoiceId }: { id: string; invoiceId: strin
    Removing an expense is in the row's own menu now, behind a sentence that
    names the expense and says what it comes out of -- see ExpenseMenu in
    row-actions.tsx. */
+
+/* ------------------------------------------------- a payment, from anywhere */
+
+/**
+ * Money arrived; which invoice is it for?
+ *
+ * The same `recordPayment` the invoice's own menu uses, with the invoice
+ * picked first, for the morning somebody opens the dashboard holding a bank
+ * alert rather than an invoice number. Only invoices that can take money are
+ * offered: issued, not struck, with something still owed.
+ */
+export function RecordAnyPayment({ open }: { open: { id: string; label: string; owed: number }[] }) {
+  if (!open.length) return null;
+  return (
+    <DialogButton label="Record a payment" title="Money in" icon={Banknote} wide>
+      {(close) => (
+        <Form action={recordPayment} onDone={() => close()} resetOnDone>
+          <Fields>
+            <Select name="invoiceId" label="Against which invoice" required
+                    placeholder="Pick the invoice"
+                    options={open.map((o) => ({ value: o.id, label: `${o.label} · ${naira(o.owed)} owed` }))} />
+            <Field name="amount" label="Amount (₦)" required half inputMode="decimal"
+                   hint="What arrived. A part payment is fine." />
+            <Select name="method" label="How" half defaultValue="Transfer"
+                    options={ENTERABLE_METHODS.map((m) => ({ value: m, label: m === "Transfer" ? "Bank transfer" : m }))} />
+            <Field name="reference" label="Reference" required placeholder="TRF_0092"
+                   hint="The bank reference or the Paystack transaction id. This is what stops the same payment being recorded twice." />
+            <Field name="at" label="When" type="date" half defaultValue={new Date().toISOString().slice(0, 10)} />
+          </Fields>
+          <Actions>
+            <Submit icon={Banknote}>Record it</Submit>
+          </Actions>
+        </Form>
+      )}
+    </DialogButton>
+  );
+}
