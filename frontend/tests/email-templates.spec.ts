@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { expect, test } from "@playwright/test";
 import { naira } from "../lib/admin/types";
 import {
@@ -316,4 +318,25 @@ test("the onboarding next steps name every channel and keep the account optional
   }
   /* No company given means no dangling "for" in the sentence. */
   expect(email.text).not.toMatch(/project for\s*\./);
+});
+
+test("no message is hand-built outside the shared frame", () => {
+  /* Every email goes through composeEmailHtml or a builder in
+     lib/email-templates.ts. A route that writes its own `html:` string is how
+     a receipt came to look like a different company from the sign-in link. */
+  const root = path.resolve(__dirname, "..");
+  const offenders: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (/\.tsx?$/.test(entry.name) && !full.endsWith("email-templates.ts")) {
+        const source = fs.readFileSync(full, "utf8");
+        if (!/sendLogged\(|sendMail\(|deliver\(/.test(source)) continue;
+        if (/html:\s*[`'"]</.test(source) || /html:\s*\n\s*`</.test(source)) offenders.push(path.relative(root, full));
+      }
+    }
+  };
+  for (const dir of ["app", "lib"]) walk(path.join(root, dir));
+  expect(offenders, "build these with composeEmailHtml").toEqual([]);
 });

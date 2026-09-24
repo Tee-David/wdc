@@ -1,7 +1,6 @@
 import { after, NextRequest, NextResponse } from "next/server";
 import { CONTACT_EMAIL } from "@/lib/site";
-import { escapeHtml } from "@/lib/email";
-import { onboardingNextStepsEmail } from "@/lib/email-templates";
+import { composeEmailHtml, emailPanel, onboardingNextStepsEmail } from "@/lib/email-templates";
 import { sendLogged } from "@/lib/outbox";
 import { SERVICES } from "@/lib/services";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
@@ -107,7 +106,14 @@ export async function POST(request: NextRequest) {
         replyTo: email ?? undefined,
         subject: `Onboarding brief: ${serviceName}${company ? ` for ${company}` : ""}`,
         text: `${who}${email ? ` <${email}>` : ""} submitted the ${serviceName} onboarding form.\nSubmission ${submissionId}.`,
-        html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a"><p><b>${escapeHtml(who)}</b>${email ? ` &lt;${escapeHtml(email)}&gt;` : ""} submitted the ${escapeHtml(serviceName)} onboarding form.</p><p style="color:#666680;font-size:13px">Submission ${escapeHtml(submissionId)}</p></div>`,
+        html: composeEmailHtml({
+          title: `Onboarding brief: ${serviceName}`,
+          preheader: `${who} submitted the ${serviceName} onboarding form.`,
+          heading: `New ${serviceName} brief`,
+          blocks: [
+            emailPanel([["From", who], ...(email ? [["Email", email] as [string, string]] : []), ...(company ? [["Company", company] as [string, string]] : []), ["Submission", submissionId]]),
+          ],
+        }),
       }, { summary: `${who} submitted the ${serviceName} brief.`, dedupeKey: `onboarding-notice:${submissionId}` });
     } catch (error) {
       console.error("Onboarding notice failed", error instanceof Error ? error.message : "unknown error");

@@ -1,9 +1,9 @@
 import { after, NextResponse, type NextRequest } from "next/server";
 import { CONTACT_EMAIL, SITE_URL } from "@/lib/site";
 import { randomUUID } from "node:crypto";
-import { escapeHtml, mailIsConfigured } from "@/lib/email";
+import { mailIsConfigured } from "@/lib/email";
 import { sendLogged } from "@/lib/outbox";
-import { scopeEstimateEmail } from "@/lib/email-templates";
+import { composeEmailHtml, emailPanel, scopeEstimateEmail } from "@/lib/email-templates";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 import {
   QUESTIONS, RATE_CARD, describe, estimate, fullNaira, shortDollars, shortNaira,
@@ -158,16 +158,19 @@ export async function POST(request: NextRequest) {
             "",
             ...rows.map((row) => `${row.question} ${row.answer}`),
           ].join("\n"),
-          html:
-            `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a;max-width:620px">` +
-            `<p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#c95000">ESTIMATOR LEAD</p>` +
-            `<h1 style="font-size:24px;margin:12px 0">${escapeHtml(rangeNgn)}</h1>` +
-            `<p><b>From:</b> ${escapeHtml(email)}</p>` +
-            `<p><b>Exact range:</b> ${escapeHtml(fullNaira(result.ngn.low))} to ${escapeHtml(fullNaira(result.ngn.high))} ` +
-            `&middot; ${escapeHtml(String(result.days))} days</p>` +
-            `<hr style="border:0;border-top:1px solid #e7e7ef">` +
-            rows.map((row) => `<p style="margin:0 0 8px"><b>${escapeHtml(row.question)}</b><br>${escapeHtml(row.answer)}</p>`).join("") +
-            `</div>`,
+          html: composeEmailHtml({
+            title: `Estimator: ${rangeNgn}`,
+            preheader: `${email} asked for a copy of their estimate.`,
+            heading: rangeNgn,
+            blocks: [
+              emailPanel([
+                ["From", email],
+                ["Exact range", `${fullNaira(result.ngn.low)} to ${fullNaira(result.ngn.high)}`],
+                ["Days", String(result.days)],
+              ]),
+              emailPanel(rows.map((row) => [row.question, row.answer] as [string, string])),
+            ],
+          }),
         }, { summary: `Lead: ${email} asked for a scope estimate.`, dedupeKey: `estimate-lead:${eventId}` });
       } catch (error) {
         console.error("Estimator lead failed", error instanceof Error ? error.message : "unknown error");

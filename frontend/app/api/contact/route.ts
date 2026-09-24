@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { escapeHtml, mailIsConfigured } from "@/lib/email";
 import { enquiriesAreConfigured, saveEnquiry, settleEnquiry } from "@/lib/enquiries";
 import { sendLogged } from "@/lib/outbox";
-import { enquiryReceiptEmail } from "@/lib/email-templates";
+import { composeEmailHtml, emailP, emailPanel, enquiryReceiptEmail } from "@/lib/email-templates";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 
 /* THE PLATFORM MUST NOT CUT THE SEND OFF BEFORE OUR OWN TIMEOUTS DO.
@@ -55,7 +55,15 @@ export async function POST(request: NextRequest) {
   const studioCopy = {
     to: process.env.SMTP_REPLY_TO || CONTACT_EMAIL, replyTo: email,
     subject: `Website enquiry: ${topic}`, text: detailText,
-    html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a;max-width:620px"><p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#c95000">NEW WEBSITE ENQUIRY</p><h1 style="font-size:26px;margin:12px 0">${escapeHtml(topic)}</h1><p><b>From:</b> ${escapeHtml(name)} &lt;${escapeHtml(email)}&gt;</p>${phone ? `<p><b>Phone:</b> ${escapeHtml(phone)}</p>` : ""}<hr style="border:0;border-top:1px solid #e7e7ef"><p>${escapeHtml(message).replace(/\n/g, "<br>")}</p></div>`,
+    html: composeEmailHtml({
+      title: `Website enquiry: ${topic}`,
+      preheader: `${name} wrote about ${topic}.`,
+      heading: topic,
+      blocks: [
+        emailPanel([["From", name], ["Email", email], ...(phone ? [["Phone", phone] as [string, string]] : [])]),
+        emailP(escapeHtml(message).replace(/\n/g, "<br>")),
+      ],
+    }),
   };
 
   let enquiryId: string | null = null;
