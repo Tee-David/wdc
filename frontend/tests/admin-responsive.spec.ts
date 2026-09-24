@@ -47,9 +47,15 @@ test.beforeEach(async ({ page }) => {
   test.skip(!EMAIL || !PASSWORD, "set WDC_E2E_ADMIN_EMAIL and WDC_E2E_ADMIN_PASSWORD to run the admin tests");
   await page.setViewportSize({ width: 393, height: 852 });
   await page.goto("/login");
-  await page.fill('input[type=email]', EMAIL!);
-  await page.fill('input[type=password]', PASSWORD!);
-  await page.getByRole("button", { name: /sign in|log in|continue/i }).first().click();
+  /* Email first, then the method, then the password: the login page asks
+     for one thing at a time. Wait for hydration before typing, because the
+     fields are controlled and a value typed earlier is reconciled away. */
+  await expect(page.locator("button.au__submit").first()).not.toHaveAttribute("disabled", { timeout: 30_000 });
+  await page.getByLabel("Email", { exact: true }).fill(EMAIL!);
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: /Use my password/ }).click();
+  await page.getByLabel("Password", { exact: true }).fill(PASSWORD!);
+  await page.getByRole("button", { name: "Log in", exact: true }).click();
   await page.waitForURL(/\/admin/, { timeout: 30_000 });
 });
 

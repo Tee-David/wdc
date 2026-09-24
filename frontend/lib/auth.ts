@@ -2,13 +2,66 @@ import "server-only";
 
 import { after } from "next/server";
 import { betterAuth } from "better-auth";
+import { emailOTP, magicLink } from "better-auth/plugins";
 import { googleAdmission } from "@/lib/auth-google";
 import { db } from "@/lib/db/pool";
-import { sendPasswordResetEmail } from "@/lib/outbox";
+import { sendPasswordResetEmail, sendSignInEmail } from "@/lib/outbox";
 import { SITE_URL } from "@/lib/site";
 
 /** One hour, in the token and in the sentence the email says out loud. */
 const RESET_TOKEN_TTL_SECONDS = 60 * 60;
+
+/** Fifteen minutes, for the sign-in link and for the code that travels with it. */
+const SIGN_IN_TOKEN_TTL_SECONDS = 15 * 60;
+
+/**
+ * Runs `promise` after the response has gone, and never lets it throw.
+ *
+ * Truehost's SMTP needs about 23 seconds just to finish TLS and authenticate,
+ * so anything that sends mail from an auth route goes through here. The work
+ * it is handed must already have persisted what it needs (the token rows are
+ * written before any send is queued), because a failure here has nobody left
+ * to tell. `after()` throws outside a request scope; the promise has already
+ * started by then, so it still runs with nothing holding the response open.
+ */
+function behindTheResponse(promise: Promise<unknown>) {
+  /* Settled first, so the job is reported once and can never surface as an
+     unhandled rejection if there is no request to attach it to. */
+  const settled = promise.catch((error) => {
+    console.error("Auth background task failed", error instanceof Error ? error.message : "unknown error");
+  });
+  try {
+    after(settled);
+  } catch {
+    /* No request scope. It is already running. */
+  }
+}
+
+/**
+ * The account a sign-in email may be sent to, or null.
+ *
+ * VERIFIED ROWS ONLY, and this is the line that makes the magic link safe to
+ * switch on. Better Auth treats a link or code as proof of the mailbox, and
+ * when that proof lands on a row whose email was never verified it DELETES
+ * every password and Google link on the account before signing in
+ * (`revokeUnprovenAccountAccess`). That is correct against somebody who
+ * pre-registered an address they do not own, and a nasty surprise for a
+ * client whose password vanishes the first time they use a link. Every row
+ * the studio creates is verified (scripts/seed-admin.mjs), so in practice this
+ * refuses nobody; it exists so the day an unverified row appears, the answer
+ * is "no email" rather than "no password".
+ *
+ * An address with no account gets the same response as one with an account:
+ * the route answers before this decides anything, and nothing is sent.
+ */
+async function signInRecipient(email: string): Promise<{ name: string | null } | null> {
+  const result = await db.query<{ name: string | null; emailVerified: boolean }>(
+    'SELECT "name", "emailVerified" FROM "user" WHERE lower("email") = $1 LIMIT 1',
+    [email.trim().toLowerCase()],
+  );
+  const row = result.rows[0];
+  return row?.emailVerified ? { name: row.name } : null;
+}
 
 
 /**
@@ -137,7 +190,97 @@ export const auth = betterAuth({
       }
     },
   },
+  /**
+   * THE EMAIL-CODE PLUGIN IS USED FOR ONE THING, and every other door it adds
+   * is shut. It ships endpoints for sending codes on request, verifying email,
+   * resetting passwords and changing address by code. None of them is part of
+   * this site, and a public route that sends mail is a public way to spam
+   * somebody's inbox. Codes are only ever minted server-side, inside
+   * `sendMagicLink` below, so the one route left open is the one that
+   * spends them.
+   */
+  disabledPaths: [
+    "/email-otp/send-verification-otp",
+    "/email-otp/check-verification-otp",
+    "/email-otp/verify-email",
+    "/email-otp/request-password-reset",
+    "/email-otp/reset-password",
+    "/forget-password/email-otp",
+    "/email-otp/request-email-change",
+    "/email-otp/change-email",
+  ],
+  plugins: [
+    /**
+     * "EMAIL ME A SIGN-IN LINK", with a code in the same message.
+     *
+     * The route always answers `{ status: true }`, whether or not the address
+     * has an account, so the login page can say the same sentence to everybody.
+     * What differs is only what happens behind the response: a verified
+     * account gets one email with a link and a six-digit code; anything else
+     * gets nothing.
+     *
+     * Both tokens are stored HASHED. A copy of the `verification` table is then
+     * a list of fingerprints, not a list of ways into people's accounts.
+     */
+    magicLink({
+      expiresIn: SIGN_IN_TOKEN_TTL_SECONDS,
+      disableSignUp: true,
+      storeToken: "hashed",
+      sendMagicLink: async ({ email, url }) => {
+        const address = email.trim().toLowerCase();
+        const recipient = await signInRecipient(address);
+        if (!recipient) return;
+        /* Minted here rather than requested from the browser, so there is no
+           public route that sends a code on its own. */
+        const code = await auth.api.createVerificationOTP({ body: { email: address, type: "sign-in" } });
+        behindTheResponse(sendSignInEmail(
+          address,
+          url,
+          code,
+          recipient.name?.trim().split(/\s+/)[0] || undefined,
+          SIGN_IN_TOKEN_TTL_SECONDS / 60,
+        ));
+      },
+    }),
+    emailOTP({
+      expiresIn: SIGN_IN_TOKEN_TTL_SECONDS,
+      disableSignUp: true,
+      storeOTP: "hashed",
+      /* Required by the plugin and never reached: every route that would call
+         it is in `disabledPaths` above. The code travels in the sign-in email. */
+      sendVerificationOTP: async () => {},
+    }),
+  ],
   databaseHooks: {
+    session: {
+      create: {
+        /**
+         * ANY WAY IN SPENDS THE EMAIL WAYS IN.
+         *
+         * The link and the code arrive together and each promises to cancel
+         * the other. The plugins consume only the token that was used, so
+         * this finishes the job: once a session exists, whatever sign-in link
+         * or code is still outstanding for that person is deleted. It also
+         * covers somebody who asked for a link and then remembered their
+         * password, which leaves nothing live in their inbox either.
+         *
+         * Reset tokens are left alone (their `value` is a user id, not this
+         * shape), because resetting a password is a separate promise.
+         */
+        after: async (session) => {
+          const found = await db.query<{ email: string }>('SELECT "email" FROM "user" WHERE "id" = $1', [session.userId]);
+          const email = found.rows[0]?.email?.toLowerCase();
+          if (!email) return;
+          await db.query(
+            'DELETE FROM "verification" WHERE "identifier" = $1 OR "value" = $2',
+            [`sign-in-otp-${email}`, JSON.stringify({ email })],
+          ).catch(() => {
+            /* Worth nothing to fail a sign-in over: both tokens expire in
+               fifteen minutes regardless. */
+          });
+        },
+      },
+    },
     user: {
       create: {
         /**
@@ -182,6 +325,14 @@ export const auth = betterAuth({
       /* Tighter, because each of these puts a message in somebody's inbox. */
       "/request-password-reset": { window: 900, max: 5 },
       "/reset-password": { window: 900, max: 10 },
+      /* The same budget as a reset request, for the same reason: every call
+         that reaches a real account puts a message in a real inbox. The login
+         page adds a 30-second cooldown on top, which is courtesy, not control. */
+      "/sign-in/magic-link": { window: 900, max: 5 },
+      /* A code is six digits, so guessing is the attack. The plugin already
+         kills a code after three wrong tries; this caps how many fresh codes'
+         worth of guesses one connection gets. */
+      "/sign-in/email-otp": { window: 300, max: 10 },
     },
   },
   session: { expiresIn: 60 * 60 * 24 * 7, updateAge: 60 * 60 * 24 },
@@ -200,26 +351,8 @@ export const auth = betterAuth({
      * goes out once the response has already gone. The token is written to the
      * database BEFORE the send is queued, so the work behind the response is
      * safe to lose: the link exists, and asking again just sends another.
-     *
-     * `after()` throws outside a request scope. The promise has already started
-     * by then, so it still runs; there is simply nothing to attach it to, and
-     * that is not worth failing a sign-in over.
      */
-    backgroundTasks: {
-      handler: (promise) => {
-        /* Settled first, so the job is reported once and can never surface as
-           an unhandled rejection if there is no request to attach it to. */
-        const settled = promise.catch((error) => {
-          console.error("Auth background task failed", error instanceof Error ? error.message : "unknown error");
-        });
-        try {
-          after(settled);
-        } catch {
-          /* No request scope. It is already running; there is simply nothing
-             holding the response open to wait on it. */
-        }
-      },
-    },
+    backgroundTasks: { handler: behindTheResponse },
   },
 });
 
