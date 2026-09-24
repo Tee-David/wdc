@@ -18,11 +18,14 @@ import "./globals.css";
 /* Keep both families on the same locally bundled face. This removes two
    render-blocking Google Fonts requests (and makes production builds work in
    regions where Google Fonts is unavailable) without introducing a new asset:
-   these are the exact Space Grotesk files the project already shipped. */
+   these are the exact Space Grotesk files the project already shipped.
+   WOFF2, converted losslessly from the TTFs beside them (same 1,001 glyphs):
+   32KB a weight on the wire against 45KB for the gzipped TTF, on every page.
+   The TTFs stay for lib/og.tsx, whose renderer reads TTF only. */
 const spaceGrotesk = localFont({
   src: [
-    { path: "../assets/fonts/SpaceGrotesk-Medium.ttf", weight: "300 600" },
-    { path: "../assets/fonts/SpaceGrotesk-Bold.ttf", weight: "700 900" },
+    { path: "../assets/fonts/SpaceGrotesk-Medium.woff2", weight: "300 600" },
+    { path: "../assets/fonts/SpaceGrotesk-Bold.woff2", weight: "700 900" },
   ],
   variable: "--font-space-grotesk",
   display: "swap",
