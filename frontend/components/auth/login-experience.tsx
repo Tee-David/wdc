@@ -165,9 +165,18 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
       } catch {
         /* Storage blocked. */
       }
+      /* The dashboard's code starts downloading now, under the orb's flood
+         and the circle, so it is ready by the time the circle has covered. */
+      if (!demo) {
+        try {
+          router.prefetch(result.redirectTo);
+        } catch {
+          /* A prefetch is a head start, never a requirement. */
+        }
+      }
       void playSuccess({ stage, destination: result.redirectTo, navigate: leave, demo });
     },
-    [stage, leave, demo, email],
+    [stage, leave, demo, email, router],
   );
 
   /* A sign-in that left the page came back successful: this is the tab the
@@ -581,7 +590,9 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
      so its tab IS the step; the other two are views of the method step. */
   const [pickedTab, setPickedTab] = useState<Tab | null>(null);
   const fallbackTab: Tab = lastMethod === "passkey" && passkeyOffered ? "passkey" : lastMethod === "password" ? "password" : "magic";
-  const shownTab = step === "password" ? "password" : pickedTab && pickedTab !== "password" ? pickedTab : fallbackTab === "password" ? "magic" : fallbackTab;
+  /* `frontStep`, not `step`: under the closing moment the step is "success"
+     while the password screen stays on show, and the tab must not jump. */
+  const shownTab = frontStep === "password" ? "password" : pickedTab && pickedTab !== "password" ? pickedTab : fallbackTab === "password" ? "magic" : fallbackTab;
   const activeTab: Tab = methods.some((m) => m.id === shownTab) ? shownTab : "magic";
 
   const chooseTab = (id: Tab, pointer: boolean) => {

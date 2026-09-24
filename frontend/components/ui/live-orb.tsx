@@ -38,12 +38,24 @@ export type LiveOrbOptions = {
   colors?: string[];
   /** Eyes follow the pointer. Default `true`. */
   interactive?: boolean;
+  /** What the body floods to when `mix` rises (the success moment). Default `"mesh"`, the noise wash over `colors`. */
+  successStyle?: SuccessStyle;
   /** Occasional blink. Default `true`. */
   blink?: boolean;
   /** Device pixel ratio ceiling. Default 2. */
   maxDpr?: number;
   /** Fires when WebGL is ready (`true`) or torn down or lost (`false`). */
   onHasGl?: (ok: boolean) => void;
+};
+
+export type SuccessStyle = "mesh" | "ember" | "eclipse" | "pearl" | "dusk";
+/** Shader index, and the eye colour that reads on that fill. */
+export const SUCCESS_STYLES: Record<SuccessStyle, { index: number; eye: string }> = {
+  mesh: { index: 0, eye: "#09090B" },
+  ember: { index: 1, eye: "#09090B" },
+  eclipse: { index: 2, eye: "#FFFFFF" },
+  pearl: { index: 3, eye: "#09090B" },
+  dusk: { index: 4, eye: "#FFFFFF" },
 };
 
 export type LiveOrbState = { look: { x: number; y: number }; turn: number; hold: number; mix: number };
@@ -93,6 +105,8 @@ uniform vec3 u_eye;
 uniform vec3 u_c1;
 uniform vec3 u_c2;
 uniform vec3 u_c3;
+uniform float u_style;
+uniform vec3 u_eye2;
 
 float hash(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
@@ -155,6 +169,44 @@ vec3 wash(vec3 n, float t) {
   return mix(col, u_c3, pow(smoothstep(0.42, 0.9, g), 1.4));
 }
 
+/* What the body floods to on success. 0 is the original noise wash over
+   u_c1..u_c3; the others are lit spheres, so the moment reads as the orb
+   itself changing, not a texture sliding across it. */
+vec3 success(vec3 n, float t) {
+  if (u_style < 0.5) return wash(n, t);
+  vec3 L = normalize(vec3(-0.45, 0.55, 0.7));
+  float diff = clamp(dot(n, L), 0.0, 1.0);
+  float rim = pow(1.0 - clamp(n.z, 0.0, 1.0), 2.2);
+  float spec = pow(clamp(dot(reflect(-L, n), vec3(0.0, 0.0, 1.0)), 0.0, 1.0), 24.0);
+  if (u_style < 1.5) {
+    /* Ember: the brand orange, lit, with a slow warm shimmer. */
+    float band = fbm(n.xy * 1.6 + vec2(t * 0.10, -t * 0.08));
+    vec3 c = mix(vec3(0.70, 0.22, 0.0), vec3(1.0, 0.40, 0.0), smoothstep(-0.1, 0.9, diff));
+    c = mix(c, vec3(1.0, 0.72, 0.45), smoothstep(0.55, 0.95, band) * 0.35 * diff);
+    return c + spec * 0.55;
+  }
+  if (u_style < 2.5) {
+    /* Eclipse: a navy sphere with the orange light breaking round its edge. */
+    vec3 c = mix(vec3(0.02, 0.02, 0.36), vec3(0.14, 0.14, 0.78), diff * 0.8);
+    float pulse = 0.85 + 0.15 * sin(t * 2.4);
+    c = mix(c, vec3(1.0, 0.45, 0.05), clamp(rim * 1.15 * pulse, 0.0, 1.0));
+    return c + spec * 0.25;
+  }
+  if (u_style < 3.5) {
+    /* Pearl: white, with a thin-film sheen that drifts. */
+    float film = n.z * 3.2 + fbm(n.xy * 1.2 + t * 0.05) * 1.4 + t * 0.15;
+    vec3 iri = 0.5 + 0.5 * cos(6.2832 * (film + vec3(0.0, 0.33, 0.67)));
+    vec3 c = mix(vec3(0.96, 0.96, 0.98), iri, 0.10 + 0.22 * rim);
+    return c * (0.84 + 0.16 * diff) + spec * 0.35;
+  }
+  /* Dusk: one smooth sky from royal blue to orange, turning slowly. */
+  float h = dot(n, normalize(vec3(sin(t * 0.35) * 0.35, 1.0, 0.25))) * 0.5 + 0.5;
+  vec3 c = mix(vec3(1.0, 0.55, 0.20), vec3(1.0, 0.40, 0.0), smoothstep(0.0, 0.35, h));
+  c = mix(c, vec3(0.45, 0.18, 0.55), smoothstep(0.35, 0.6, h));
+  c = mix(c, vec3(0.10, 0.10, 0.70), smoothstep(0.55, 0.95, h));
+  return c * (0.8 + 0.2 * diff) + spec * 0.3;
+}
+
 void main() {
   vec2 uv = (gl_FragCoord.xy / u_resolution.xy) * 2.0 - 1.0;
   float aspect = u_resolution.x / max(u_resolution.y, 1.0);
@@ -189,8 +241,12 @@ void main() {
   );
 
   vec3 body = u_body;
-  if (u_mix > 0.001) body = mix(u_body, wash(n, u_time * u_speed), u_mix);
-  vec3 col = mix(body, u_eye, clamp(eyes, 0.0, 1.0));
+  vec3 eyeCol = u_eye;
+  if (u_mix > 0.001) {
+    body = mix(u_body, success(n, u_time * u_speed), u_mix);
+    eyeCol = mix(u_eye, u_eye2, u_mix);
+  }
+  vec3 col = mix(body, eyeCol, clamp(eyes, 0.0, 1.0));
 
   gl_FragColor = vec4(clamp(col, 0.0, 1.0), edge);
 }
@@ -323,6 +379,8 @@ export function createLiveOrb(canvas: HTMLCanvasElement, initial: LiveOrbOptions
   const uC1 = u("u_c1");
   const uC2 = u("u_c2");
   const uC3 = u("u_c3");
+  const uStyle = u("u_style");
+  const uEye2 = u("u_eye2");
 
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -389,6 +447,10 @@ export function createLiveOrb(canvas: HTMLCanvasElement, initial: LiveOrbOptions
     gl.uniform3f(uC1, palette[0]![0], palette[0]![1], palette[0]![2]);
     gl.uniform3f(uC2, palette[1]![0], palette[1]![1], palette[1]![2]);
     gl.uniform3f(uC3, palette[2]![0], palette[2]![1], palette[2]![2]);
+    const style = SUCCESS_STYLES[options.successStyle ?? "mesh"];
+    const eye2 = hexToRgb(style.eye);
+    gl.uniform1f(uStyle, style.index);
+    gl.uniform3f(uEye2, eye2[0], eye2[1], eye2[2]);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   };
 

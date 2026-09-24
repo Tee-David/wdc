@@ -3,9 +3,26 @@
 import { useEffect, useRef } from "react";
 import { useStage } from "./stage-context";
 import type { OrbEngine, RingMode } from "./stage-store";
+/* Type only: the shader module itself is loaded after first paint. */
+import type { SuccessStyle } from "@/components/ui/live-orb";
 
 /** Royal blue, brand orange, white: what the orb floods with on success. */
 const SUCCESS_WASH = ["#3B3BFF", "#FF6500", "#FFFFFF"];
+
+/**
+ * WHAT THE ORB FLOODS TO WHEN SIGN-IN SUCCEEDS. Ember: the brand orange, lit
+ * as a sphere. It replaced "mesh", a noise wash of blue, orange and white
+ * that read as a texture sliding across the orb rather than the orb itself
+ * lighting up. On the demo login, `?orb=eclipse|pearl|dusk|mesh` shows the
+ * other candidates, so they can be compared in the real flow.
+ */
+const SUCCESS_STYLE: SuccessStyle = "ember";
+function successStyle(): SuccessStyle {
+  if (process.env.NEXT_PUBLIC_AUTH_DEMO !== "true") return SUCCESS_STYLE;
+  const asked = new URLSearchParams(window.location.search).get("orb");
+  const known: SuccessStyle[] = ["mesh", "ember", "eclipse", "pearl", "dusk"];
+  return known.includes(asked as SuccessStyle) ? (asked as SuccessStyle) : SUCCESS_STYLE;
+}
 
 /**
  * THE CSS FACE, which is also the orb until WebGL arrives.
@@ -97,6 +114,8 @@ export function OrbStage({ className = "" }: { className?: string }) {
       },
     });
 
+    const style = successStyle();
+    box.dataset.success = style;
     const face = cssEngine(box);
     stage.attachEngine(face);
 
@@ -113,6 +132,7 @@ export function OrbStage({ className = "" }: { className?: string }) {
       const orb = createLiveOrb(canvas, {
         variant: "white",
         colors: SUCCESS_WASH,
+        successStyle: style,
         interactive: false,
         blink: true,
         maxDpr: 1.5,
