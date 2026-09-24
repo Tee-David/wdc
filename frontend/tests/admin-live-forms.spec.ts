@@ -87,6 +87,15 @@ test("making them a client twice lands on the same client", async ({ page }) => 
   /* And the inbox says so. */
   await page.goto("/admin/forms", { waitUntil: "load" });
   await expect(page.locator('[data-tour="forms-live"] tr', { hasText: COMPANY })).not.toContainText("Not a client yet");
+
+  /* The books are shared by every spec in the run, so the client made here is
+     archived again: other specs count the active list. */
+  await page.goto(first, { waitUntil: "load" });
+  page.once("dialog", (d) => d.accept());
+  await expect(async () => {
+    await page.getByRole("button", { name: "Archive", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Restore" })).toBeVisible({ timeout: 3_000 });
+  }).toPass({ timeout: 60_000 });
 });
 
 test("a live id that does not exist is a 404", async ({ request }) => {

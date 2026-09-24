@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**76 open** (30 in progress)
+**75 open** (30 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -85,7 +85,6 @@ the evidence. Detail that used to sit in this file is in git history and in
 ### 4.7 Communications and client portal handoff
 
 - [-] Three of the eight are built and sending: the invoice with its pay link, the payment receipt, and the invoice reminder. They share one shell, one delivery path and one set of rules, and the buttons that send them are on the invoice screen rather than buried in a menu. (…)
-- [ ] Provide explicit WhatsApp handoff actions without pretending the website can read or sync WhatsApp messages unless a real approved integration is added. WHAT CANNOT BE SWITCHED OFF, AND WHY. A receipt for money a client has actually paid is a record they are entitled to. It is not a notification, and it is not in the list. THE DEDUPE KEY IS THE EVENT, NOT THE ATTEMPT. (…)
 - [-] The portal exists now, at `/portal` -- `lib/roles.ts`'s `client` door flipped to `ready: true`, matching where it always said a client belonged. Gives a client their projects, client-visible updates, invoices/payments, and approvals; internal notes, tasks, and admin-only money stay off every portal screen because the portal's own queries never read them, not because a flag hides them. (…)
 - [-] Shell built to the same `.ad`/`admin.css`/`dashboard.css` system the admin uses -- one design system, not two, per this file's own authenticated-UX rule. Five sections, not six: Overview, Projects, Billing, Support, Settings. Forms & files deliberately left out rather than built empty: there is no forms builder yet for it to show.
 - [-] Covered: project stage and health (the same stage-track component as the admin's own project page), update history filtered to `clientVisible`, deliverable approvals and revision requests, and a combined "needs your attention" queue on the overview (deliverables awaiting review, invoices with a balance, answered support tickets). (…)

@@ -1,4 +1,6 @@
-import { getMessages } from "@/lib/admin/store";
+import { getClient, getMessages } from "@/lib/admin/store";
+import { whatsappLink } from "@/lib/admin/whatsapp";
+import { MessageActions } from "./log-message";
 import { Empty, Panel, when } from "@/components/admin/bits";
 import { ResendMessage } from "./reconcile-forms";
 import type { MessageState } from "@/lib/admin/types";
@@ -38,9 +40,19 @@ export default function CommsLog({
   limit?: number;
 }) {
   const messages = getMessages({ clientId, aboutIds, limit });
+  /* The hand-over controls belong to a person, so they only appear on a
+     client's own log, not on an invoice's. */
+  const client = clientId && !aboutIds ? getClient(clientId) : null;
+  const actions = client ? (
+    <MessageActions
+      clientId={client.id}
+      clientName={client.name}
+      waHref={whatsappLink(client.phone, `Hi ${client.name.split(/\s+/)[0]}, it's We Dig Creativity.`)}
+    />
+  ) : undefined;
 
   return (
-    <Panel title={title}>
+    <Panel title={title} action={actions}>
       {messages.length ? (
         <div className="ad__scroll">
           <table className="ad__t">
@@ -80,8 +92,9 @@ export default function CommsLog({
       ) : (
         <Empty title="Nothing sent yet">
           Every email the studio sends about this is recorded here with whether
-          it arrived. Calls and WhatsApp messages can be written down here too;
-          the site cannot read them, so a row for one means somebody typed it.
+          it arrived. Calls and WhatsApp messages can be written down with
+          &ldquo;Log a call or message&rdquo;; the site cannot read them, so a row for
+          one means somebody typed it.
         </Empty>
       )}
     </Panel>
