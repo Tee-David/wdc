@@ -226,6 +226,22 @@ export const PasswordField = forwardRef<
 
 /* ------------------------------------------------------------------- code */
 
+const CODE_LENGTH = 6;
+/** How long the last box holds its glow before checking starts, so the final digit is seen to land. */
+const LAST_DIGIT_HOLD_MS = 250;
+
+/**
+ * Where the code is in its life. The field draws each one; the parent decides
+ * when to move on, because only it knows what the server said.
+ *
+ *   entry     typing: the active box is lit and a light carries focus along
+ *   checking  all six brighten and a light sweeps the row while we ask
+ *   refused   red, a shake, and the parent clears it
+ *   verified  the boxes let go of the digits, which fold into an orange
+ *             glow, and a tick is drawn where they were
+ */
+export type CodePhase = "entry" | "checking" | "refused" | "verified";
+
 /**
  * ONE INPUT, DRAWN AS SIX BOXES.
  *
@@ -233,27 +249,90 @@ export const PasswordField = forwardRef<
  * paste and screen readers all see one field with one value; the boxes are a
  * drawing of that value underneath it. Six separate inputs break every one of
  * those.
+ *
+ * THE MOTION SAYS WHERE THE NEXT DIGIT GOES. Blue is input, orange is
+ * success, red is refusal, and nothing else moves. The orb reads along: its
+ * gaze follows the lit box, so the light in the row and the eyes above it
+ * are telling the same story. Every animation is transform or opacity bar a
+ * 220ms blur on a digit landing and the tick's stroke being drawn, and all of
+ * it steps down to plain state changes under reduced motion.
  */
 export const CodeField = forwardRef<
   HTMLInputElement,
-  { value: string; onChange: (value: string) => void; onComplete: (value: string) => void; error: string | null; label: string; disabled?: boolean }
->(function CodeField({ value, onChange, onComplete, error, label, disabled }, forwarded) {
+  { value: string; onChange: (value: string) => void; onComplete: (value: string) => void; error: string | null; label: string; disabled?: boolean; phase?: CodePhase }
+>(function CodeField({ value, onChange, onComplete, error, label, disabled, phase = "entry" }, forwarded) {
   const id = useId();
+  const stage = useStage();
   const input = useRef<HTMLInputElement>(null);
+  const boxes = useRef<HTMLDivElement>(null);
+  const beam = useRef<HTMLElement>(null);
+  const settle = useRef(0);
   const [focused, setFocused] = useState(false);
   useImperativeHandle(forwarded, () => input.current!);
 
+  const active = Math.min(value.length, CODE_LENGTH - 1);
+  const lit = focused && phase === "entry";
+
+  /* The orb's eyes go to the box the next digit lands in. */
+  const gaze = (index: number) => {
+    const box = boxes.current?.children[index] as HTMLElement | undefined;
+    if (!box) return;
+    const rect = box.getBoundingClientRect();
+    stage.lookAtPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+  };
+
+  /* FOCUS IS CARRIED, NOT TELEPORTED. The light glides to the next box on a
+     CSS transition; this stretches it on the way, so it reads as a streak
+     crossing the gap. Backspace plays the same thing in reverse. */
+  const shown = useRef(active);
+  useEffect(() => {
+    const from = shown.current;
+    shown.current = active;
+    const node = beam.current;
+    if (from === active || !node || !lit || stage.reduced) return;
+    const lean = active > from ? -12 : 12;
+    node.animate(
+      [
+        { opacity: 0, transform: "translateX(0) scaleX(.6)" },
+        { opacity: 1, transform: `translateX(${lean}%) scaleX(2.1)`, offset: 0.45 },
+        { opacity: 0, transform: "translateX(0) scaleX(1)" },
+      ],
+      { duration: 300, easing: "cubic-bezier(.2,.8,.2,1)" },
+    );
+  }, [active, lit, stage]);
+
+  useEffect(() => () => window.clearTimeout(settle.current), []);
+
   return (
-    <div className="au-field au-code" data-state={error ? "invalid" : value.length === 6 ? "valid" : value ? "typing" : "empty"}>
+    <div
+      className="au-field au-code"
+      data-state={error ? "invalid" : value.length === CODE_LENGTH ? "valid" : value ? "typing" : "empty"}
+      data-phase={phase}
+      data-lit={lit ? "true" : undefined}
+    >
       <label htmlFor={id}>{label}</label>
       <div className="au-code__row">
-        <div className="au-code__boxes" aria-hidden="true">
-          {Array.from({ length: 6 }, (_, i) => (
-            <span key={i} className={`au-code__box${focused && i === Math.min(value.length, 5) ? " is-active" : ""}${value[i] ? " is-filled" : ""}`}>
-              {value[i] ?? ""}
+        <span className="au-code__light" aria-hidden="true" style={{ ["--i" as string]: active }}>
+          <i ref={beam} />
+        </span>
+        <div className="au-code__boxes" ref={boxes} aria-hidden="true">
+          {Array.from({ length: CODE_LENGTH }, (_, i) => (
+            <span
+              key={i}
+              className={`au-code__box${lit && i === active ? " is-active" : ""}${value[i] ? " is-filled" : ""}`}
+              style={{ ["--k" as string]: i - (CODE_LENGTH - 1) / 2 }}
+            >
+              <span className="au-code__glow" />
+              {/* Keyed by the digit, so a changed digit lands again. */}
+              {value[i] ? <span key={value[i]} className="au-code__digit">{value[i]}</span> : null}
+              <span className="au-code__caret" />
             </span>
           ))}
         </div>
+        <span className="au-code__sweep" aria-hidden="true">
+          <i />
+        </span>
+        {phase === "verified" ? <VerifiedMark /> : null}
         <input
           ref={input}
           id={id}
@@ -263,18 +342,35 @@ export const CodeField = forwardRef<
           inputMode="numeric"
           autoComplete="one-time-code"
           pattern="[0-9]*"
-          maxLength={6}
+          maxLength={CODE_LENGTH}
           enterKeyHint="go"
           value={value}
           disabled={disabled}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${id}-error` : undefined}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
+          onFocus={() => {
+            setFocused(true);
+            stage.setMood("reading");
+            gaze(active);
+          }}
+          onBlur={() => {
+            setFocused(false);
+            /* Back to waiting on the email, unless something else took over. */
+            window.setTimeout(() => {
+              if (stage.getMood() === "reading" && document.activeElement !== input.current) stage.setMood("watching");
+            }, 80);
+          }}
           onChange={(event) => {
-            const digits = event.target.value.replace(/\D/g, "").slice(0, 6);
+            const digits = event.target.value.replace(/\D/g, "").slice(0, CODE_LENGTH);
             onChange(digits);
-            if (digits.length === 6) onComplete(digits);
+            gaze(Math.min(digits.length, CODE_LENGTH - 1));
+            /* No Verify button: the sixth digit is the submit. It is held for
+               a beat first so it is seen to land, and a backspace in that
+               beat takes it back. */
+            window.clearTimeout(settle.current);
+            if (digits.length === CODE_LENGTH) {
+              settle.current = window.setTimeout(() => onComplete(digits), LAST_DIGIT_HOLD_MS);
+            }
           }}
         />
       </div>
@@ -282,6 +378,26 @@ export const CodeField = forwardRef<
     </div>
   );
 });
+
+/* A rounded square as one path, starting at twelve o'clock and running
+   clockwise, so its outline draws the way a hand would. */
+const TILE = "M32 3H44A17 17 0 0 1 61 20V44A17 17 0 0 1 44 61H20A17 17 0 0 1 3 44V20A17 17 0 0 1 20 3Z";
+
+/** The tick that replaces the code: a navy tile, its orange edge drawn round it, then the check. */
+function VerifiedMark() {
+  return (
+    <span className="au-code__mark" aria-hidden="true">
+      <span className="au-code__halo" />
+      <span className="au-code__ripple" />
+      <span className="au-code__ripple au-code__ripple--late" />
+      <svg className="au-code__tile" viewBox="0 0 64 64" focusable="false">
+        <path className="au-code__tileFill" d={TILE} />
+        <path className="au-code__tileEdge" d={TILE} pathLength={100} />
+        <path className="au-code__tick" d="M21 33l7.5 7.5L44 25" pathLength={100} />
+      </svg>
+    </span>
+  );
+}
 
 /* ---------------------------------------------------------------- buttons */
 
