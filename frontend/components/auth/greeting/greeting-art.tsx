@@ -191,8 +191,11 @@ function Word({ greeting, name, phone }: { greeting: Greeting; name: string | nu
 }
 
 /**
- * THE HANDWRITTEN GREETING. Cycles until it knows who you are, then stops and
- * addresses you.
+ * THE HANDWRITTEN GREETING. It never stops cycling. Once it knows who you
+ * are, your name sits under each word and the cycle restarts from the
+ * language you last saw, then carries on through the rest. It used to stop
+ * on that one language for good, which on a returning visit left a page
+ * that looked frozen.
  */
 export default function GreetingArt() {
   const stage = useStage();
@@ -204,7 +207,16 @@ export default function GreetingArt() {
   const [painter] = useState(() => new TextPainter(W, H, false));
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const greeting = name ? byLang(lang) : GREETINGS[index % GREETINGS.length]!;
+  /* Learning a name (or being told it on arrival) jumps the cycle to that
+     person's language; from there it carries on as before. Adjusted during
+     render, the documented way to reset state from a changed input. */
+  const anchor = name ? `${name}|${lang}` : "";
+  const [anchoredTo, setAnchoredTo] = useState(anchor);
+  if (anchoredTo !== anchor) {
+    setAnchoredTo(anchor);
+    if (name) setIndex(GREETINGS.indexOf(byLang(lang)));
+  }
+  const greeting = GREETINGS[index % GREETINGS.length]!;
   const key = `${greeting.lang}|${name ?? ""}|${phone ? "phone" : "wide"}`;
 
   useEffect(() => {
@@ -227,9 +239,8 @@ export default function GreetingArt() {
     stage.showing(greeting.lang, greeting.text, name ? `${greeting.text}, ${name}` : greeting.text);
   }, [stage, greeting, name]);
 
-  /* The cycle. Stops once personalised; pauses while the tab is hidden. */
+  /* The cycle. Named or not; pauses while the tab is hidden. */
   useEffect(() => {
-    if (name) return;
     let timer = 0;
     const advance = () => {
       setLeaving(true);
@@ -241,7 +252,8 @@ export default function GreetingArt() {
     const schedule = () => {
       window.clearTimeout(timer);
       if (document.hidden) return;
-      const wait = still ? STILL_MS : drawSeconds(greeting, false) * 1000 + HOLD_MS;
+      /* A named word waits for its name to be written too. */
+      const wait = still ? STILL_MS : drawSeconds(greeting, Boolean(name)) * 1000 + HOLD_MS;
       timer = window.setTimeout(advance, wait);
     };
     const onVisibility = () => (document.hidden ? window.clearTimeout(timer) : schedule());
@@ -256,7 +268,7 @@ export default function GreetingArt() {
   return (
     <div className={`greet__art${still ? " is-still" : ""}`}>
       <PainterContext.Provider value={painter}>
-        <div className={`greet__draw${leaving && !name ? " is-leaving" : ""}`}>
+        <div className={`greet__draw${leaving ? " is-leaving" : ""}`}>
           <svg
             key={key}
             className="greet__svg"
