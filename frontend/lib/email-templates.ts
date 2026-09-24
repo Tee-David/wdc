@@ -1075,6 +1075,68 @@ The WDC team`),
   };
 }
 
+/* ================================================= 10b. an account, offered */
+
+/**
+ * The invitation to have an account: a client to their portal, or a member
+ * of staff to the admin.
+ *
+ * IT SAYS WHICH ADDRESS THE ACCOUNT WILL BE, in words, because that is the
+ * one thing the reader cannot change: the account is made for this inbox,
+ * and a forwarded copy makes the same account, not a new one.
+ *
+ * No unsubscribe line: it is a single message somebody at the studio chose to
+ * send, about access, not a list.
+ */
+export function accountInvitationEmail(input: {
+  name?: string;
+  email: string;
+  url: string;
+  role: "client" | "staff";
+  invitedBy: string;
+  expiresInDays: number;
+}): Email {
+  const { name, email, url, role, invitedBy, expiresInDays } = input;
+  const greeting = name ? `Hi ${name},` : "Hello,";
+  const life = `${expiresInDays} days`;
+  const what = role === "staff"
+    ? "an account on the We Dig Creativity studio admin"
+    : "an account on your We Dig Creativity project portal, where you can follow your project, approve work and see your invoices";
+  const optional = role === "client"
+    ? "\n\nAn account is optional. Everything still reaches you by email and the channels we agreed; the portal is there if you want it."
+    : "";
+  return {
+    subject: role === "staff" ? "Your We Dig Creativity team account" : "Your We Dig Creativity project portal",
+    text: textShell(`${greeting}
+
+${invitedBy} has set up ${what}.
+
+Open this link to finish it. It works once, for ${life}:
+
+${url}
+
+The account will be for ${email}. You can choose a password, or continue
+with Google if this address is a Google account.${optional}
+
+If you were not expecting this, you can ignore it and nothing is created.
+
+The WDC team`),
+    html: shell({
+      title: role === "staff" ? "Your team account" : "Your project portal",
+      preheader: `Finish setting up your account for ${email}. The link works for ${life}.`,
+      heading: role === "staff" ? "Your team account is ready" : "Your project portal is ready",
+      blocks: [
+        p(escapeHtml(greeting)),
+        p(`${escapeHtml(invitedBy)} has set up ${escapeHtml(what)}.`),
+        action("Finish setting up", url),
+        p(`The account will be for <b>${escapeHtml(email)}</b>. You can choose a password, or continue with Google if this address is a Google account.`),
+        ...(role === "client" ? [p("An account is optional. Everything still reaches you by email and the channels we agreed; the portal is there if you want it.")] : []),
+        small(`The link works once, for ${escapeHtml(life)}. If you were not expecting this, you can ignore it and nothing is created.`),
+      ],
+    }),
+  };
+}
+
 /* ============================================== 11. the estimate, on request */
 
 /**
