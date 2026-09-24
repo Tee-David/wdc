@@ -388,7 +388,8 @@
   gap: 4px;
   margin-top: 24px;
   padding: 4px;
-  border-radius: 16px;
+  /* Concentric pills: the track's radius is the tab's plus the 4px gap. */
+  border-radius: 26px;
   background: var(--surface-2, var(--surface));
 }
 .lx__tab {
@@ -400,7 +401,7 @@
   justify-content: center;
   padding: 0 14px;
   border: 1.5px solid transparent;
-  border-radius: 12px;
+  border-radius: 22px;
   background: transparent;
   color: var(--muted);
   font: 600 15px var(--au-body);
@@ -445,7 +446,6 @@
 }
 .dark .lx__badge { background: var(--au-orange); color: #000; }
 
-.lx__forgot { margin-top: 8px; }
 .lx__back { margin-top: 12px; }
 .lx__row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; margin-top: 12px; }
 .lx__inbox:not(:empty) { margin-top: 20px; }
@@ -472,7 +472,7 @@
   max-width: 100%;
   min-height: 44px;
   margin-bottom: 20px;
-  padding: 0 4px 0 14px;
+  padding: 0 6px 0 18px;
   border: 1px solid var(--au-border);
   border-radius: 999px;
   background: var(--surface);
@@ -484,12 +484,21 @@
   white-space: nowrap;
   font: 500 14px var(--au-body);
 }
-.au-chip__change { padding: 0 10px; }
+/* Scoped past .au-link, which comes later in this file and set this
+   padding back to 0: "Change" sat against the pill's curve. */
+.au-chip .au-chip__change { flex: none; padding: 0 12px; border-radius: 999px; }
 
 /* ------------------------------------------------------------- fields */
 
 .au-field { display: grid; gap: 8px; min-width: 0; }
-.au-field > label { font: 500 14px/1.3 var(--au-body); color: var(--foreground); }
+.au-field > label, .au-field__head > label { font: 500 14px/1.3 var(--au-body); color: var(--foreground); }
+/* The label and its link share a line; the link keeps its 44px target by
+   overhanging the row rather than padding it out. */
+.au-field__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 18px; }
+.au-field__head .au-link { margin: -13px 0; }
+/* A soft tint, not the site's orange block: after a wrong password the
+   field is selected so retyping replaces it, and orange read as an error. */
+.au-input input::selection { background: var(--au-focus); color: var(--foreground); }
 .au-input { position: relative; }
 .au-input input {
   width: 100%;

@@ -128,8 +128,8 @@ export const EmailField = forwardRef<
 
 export const PasswordField = forwardRef<
   HTMLInputElement,
-  { value: string; onChange: (value: string) => void; error: string | null; autoFocus?: boolean; onCaps?: (on: boolean) => void; autoComplete?: string; label?: string; name?: string }
->(function PasswordField({ value, onChange, error, autoFocus, onCaps, autoComplete = "current-password", label = copy.password.label, name = "password" }, forwarded) {
+  { value: string; onChange: (value: string) => void; error: string | null; autoFocus?: boolean; onCaps?: (on: boolean) => void; autoComplete?: string; label?: string; name?: string; aside?: React.ReactNode }
+>(function PasswordField({ value, onChange, error, autoFocus, onCaps, autoComplete = "current-password", label = copy.password.label, name = "password", aside }, forwarded) {
   const id = useId();
   const stage = useStage();
   const relax = useRelax();
@@ -172,7 +172,15 @@ export const PasswordField = forwardRef<
 
   return (
     <div className="au-field" data-state={error ? "invalid" : value ? "typing" : "empty"}>
-      <label htmlFor={id}>{label}</label>
+      {aside ? (
+        /* A link that belongs to the field, on the label's line. */
+        <div className="au-field__head">
+          <label htmlFor={id}>{label}</label>
+          {aside}
+        </div>
+      ) : (
+        <label htmlFor={id}>{label}</label>
+      )}
       <div className="au-input au-input--action">
         <input
           ref={input}

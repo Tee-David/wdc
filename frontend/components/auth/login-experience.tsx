@@ -663,14 +663,16 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
             }}
             error={errorKey && ["passwordEmpty", "invalidCredentials", "rateLimited", "network"].includes(errorKey) ? errorText(errorKey) : null}
             onCaps={(on) => on && setLive(copy.password.capsLock)}
+            aside={
+              <button type="button" className="au-link lx__forgot" onClick={() => dispatch({ type: "FORGOT_PASSWORD" })}>
+                {copy.password.forgot}
+              </button>
+            }
           />
           <PrimaryButton awake={password.length > 0} hydrated={hydrated} busy={busy}>
             {copy.password.submit}
           </PrimaryButton>
         </form>
-        <button type="button" className="au-link lx__forgot" onClick={() => dispatch({ type: "FORGOT_PASSWORD" })}>
-          {copy.password.forgot}
-        </button>
         {suggest ? (
           <div className="lx__suggest">
             <p>{copy.password.suggestMagic}</p>
