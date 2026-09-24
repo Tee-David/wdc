@@ -57,14 +57,17 @@ export function AuthShell({ children, demo = false }: { children: React.ReactNod
         <div className="au__column">{children}</div>
 
         <footer className="au__foot">
-          <p className="au__new">
-            {copy.common.newHere} <Link href="/contact">{copy.common.talkToUs}</Link>
-          </p>
-          <Link href="/" className="au__back au__back--foot">
-            <ArrowLeft aria-hidden="true" /> {copy.common.backToSite}
-          </Link>
+          {/* On a phone these two share a line, at opposite ends. */}
+          <div className="au__footRow">
+            <Link href="/" className="au__back au__back--foot">
+              <ArrowLeft aria-hidden="true" /> {copy.common.backToSite}
+            </Link>
+            <p className="au__new">
+              {copy.common.newHere} <Link href="/contact">{copy.common.talkToUs}</Link>
+            </p>
+          </div>
           <p className="au__legal">
-            By continuing you agree to our <Link href="/legal/terms-of-service">Terms of Service</Link> and{" "}
+            You agree to our <Link href="/legal/terms-of-service">Terms</Link> and{" "}
             <Link href="/legal/privacy-policy">Privacy Policy</Link>.
           </p>
         </footer>
