@@ -183,7 +183,9 @@
 .orb__wash {
   position: absolute;
   inset: 0;
-  background: conic-gradient(from 200deg, #3b3bff, #ff6500, #ffffff, #3b3bff);
+  /* The CSS face's version of each success fill; see SUCCESS_STYLE in
+     components/auth/stage/orb-stage.tsx. */
+  background: radial-gradient(circle at 34% 30%, #ffd9b0 0 4%, #ff6500 26%, #b33800 100%);
   opacity: var(--mix, 0);
   transition: opacity .6s var(--au-ease);
 }
@@ -198,6 +200,14 @@
   scale: 1 calc(1 - var(--hold, 0) * .9);
   transition: translate .2s var(--au-ease), scale .12s var(--au-ease), opacity .3s var(--au-ease);
 }
+.orb[data-success="mesh"] .orb__wash { background: conic-gradient(from 200deg, #3b3bff, #ff6500, #ffffff, #3b3bff); }
+.orb[data-success="eclipse"] .orb__wash { background: radial-gradient(circle at 34% 30%, #2424c8, #05055c 62%, #ff7317 100%); }
+.orb[data-success="pearl"] .orb__wash { background: radial-gradient(circle at 34% 30%, #fff, #f1f1f6 55%, #d9e8ff 80%, #ffe0ef 100%); }
+.orb[data-success="dusk"] .orb__wash { background: linear-gradient(170deg, #1a1ab3 20%, #73306e 48%, #ff6500 70%, #ff9a52); }
+.orb[data-success="eclipse"] .orb__eye,
+.orb[data-success="dusk"] .orb__eye { transition: background .6s var(--au-ease), translate .2s var(--au-ease), scale .12s var(--au-ease), opacity .3s var(--au-ease); }
+.orb[data-success="eclipse"][style*="--mix: 1"] .orb__eye,
+.orb[data-success="dusk"][style*="--mix: 1"] .orb__eye { background: #fff; }
 .orb__eye--l { left: 31%; }
 .orb__eye--r { left: 56%; }
 .orb[data-turned="true"] .orb__eye { opacity: 0; translate: 160% -10%; }
@@ -664,35 +674,8 @@
 .au__notice a:not(.au-btn) { width: fit-content; color: var(--accent-ink); font-size: 14px; font-weight: 600; text-decoration: none; }
 .au__notice .au-btn { margin-top: 6px; }
 
-/* =========================================== the closing moment (success) */
-
-/* Appended to <body>, outside .au, so it carries the tokens it uses. */
-.au-zoom {
-  --au-ease: cubic-bezier(.2, .8, .2, 1);
-  --au-body: var(--font-body, var(--font-space-grotesk)), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --au-display: var(--font-space-grotesk), system-ui, -apple-system, "Segoe UI", sans-serif;
-  position: fixed;
-  inset: 0;
-  z-index: 2147483000;
-  background:
-    radial-gradient(circle at var(--x) var(--y), rgb(59 59 255 / .55), rgb(255 101 0 / .14) 24%, rgb(0 0 101 / 0) 52%),
-    #000065;
-  clip-path: circle(0 at var(--x) var(--y));
-}
-.au-zoom--demo { display: grid; place-items: center; padding: 24px; }
-.au-zoom__card {
-  --btn-fill: #fff;
-  --btn-ink: #000;
-  display: grid;
-  gap: 12px;
-  max-width: 360px;
-  color: #fff;
-  text-align: center;
-  font: 400 16px/1.5 var(--au-body);
-}
-.au-zoom__card p { margin: 0; }
-.au-zoom__title { font: 600 34px/1.1 var(--au-display); letter-spacing: -.02em; }
-.au-zoom__card .au-btn { margin-top: 12px; }
+/* The closing moment (the curtain over the dashboard's arrival) styles
+   itself: see components/auth/success.ts for why it cannot live here. */
 
 /* ================================================= /signed-in (no panel) */
 
