@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**77 open** (29 in progress)
+**76 open** (28 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -94,7 +94,7 @@ the evidence. Detail that used to sit in this file is in git history and in
 ### 4.8 Settings, content, team access, and audit
 
 - [ ] Rebuild Settings to Litch parity with grouped navigation for business profile, branding, services/content, finance defaults, payment methods, email/templates, integrations, team, security, and data.
-- [-] Two of these are real now, and three are a deliberate no rather than an oversight. Settings gained "Default VAT %" and "Default days to pay" (`app/admin/settings/page.tsx`, `finance.vatRate`/`finance.dueInDays`), through the same override-by-key mechanism every other row on that screen already used -- so nothing new had to be built to store or reset them. (…)
+- [-] Two of these are real now, and three are a deliberate no rather than an oversight. Settings gained "Default VAT %" and "Default days to pay" (`app/admin/(lists)/settings/page.tsx`, `finance.vatRate`/`finance.dueInDays`), through the same override-by-key mechanism every other row on that screen already used -- so nothing new had to be built to store or reset them. (…)
 - [ ] Add service catalogue and onboarding-template management without exposing implementation-only configuration to day-to-day users.
 - [ ] Add owner/staff roles and least-privilege permissions for clients, projects, money, forms, content, settings, exports, and destructive actions. (…)
 - [ ] Preserve last-owner/self-change guards, session revocation, invitation expiry, and a clear staff access/activity view. (…)
@@ -140,10 +140,6 @@ the evidence. Detail that used to sit in this file is in git history and in
 - [-] Keep Joyride above dashboard popovers but below critical system dialogs; prevent clipping, off-screen placement, background scrolling, and collisions with mobile safe areas. `zIndex: 95` sits above popovers (80) and the new blur bands (94), below the command palette and mobile drawer (100); native `<dialog>` elements sit above everything regardless of any z-index, being in the browser's own top layer. (…)
 - [-] Never show admin-only steps to clients or staff without the relevant permission; filter steps before a tour begins. The filtering mechanism is built and wired (`TourStep.roles`, applied in `tour-runtime.tsx` before steps ever reach Joyride) but nothing in the registry actually uses it: only one role (`owner`) is wired through auth today, so there is no `staff` step to filter yet. Ready rather than exercised.
 - [-] Test full and page-only tours at all dashboard breakpoints, themes, permissions, empty/populated states, keyboard-only mode, reduced motion, and route transitions. (…)
-
-### From live testing, 2026-09-17
-
-- [-] **A missing admin id answers HTTP 200, not 404**, on all four dynamic detail routes (`clients/[id]`, `projects/[id]`, `money/[id]`, `forms/[id]`). Reproduced three ways -- curl, Node's own `fetch`, and Playwright, all against a production `next start` build as well as `next dev` -- so it is not a proxy or tooling artefact. (…)
 
 ### From screenshots, 2026-09-14
 

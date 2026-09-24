@@ -34,7 +34,11 @@ const ROUTES = [
 
 for (const path of ROUTES) {
   test(`${path} stays inside the admin shell`, async ({ page }) => {
-    await page.goto(path, { waitUntil: "domcontentloaded" });
+    /* AND ANSWERS 404. It answered 200 for months, because the admin's
+       loading boundary sat above every detail page and streamed the shell
+       before `notFound()` ran. See app/admin/(lists)/loading.tsx. */
+    const response = await page.goto(path, { waitUntil: "domcontentloaded" });
+    expect(response?.status()).toBe(404);
 
     /* The admin's own nav, not the public site's header. */
     await expect(page.locator(".ad__nav")).toBeVisible();
@@ -50,6 +54,19 @@ for (const path of ROUTES) {
     await expect(empty.getByRole("link", { name: "Projects", exact: true })).toBeVisible();
   });
 }
+
+test("a real record and every list still answer 200", async ({ request }) => {
+  for (const path of ["/admin", "/admin/clients", "/admin/clients/c1", "/admin/projects", "/admin/money",
+                      "/admin/money/i1", "/admin/forms", "/admin/settings", "/admin/money/reconciliation"]) {
+    expect((await request.get(path, { headers: { cookie: "wdc.session_token=placeholder" } })).status(), path).toBe(200);
+  }
+});
+
+test("a missing portal record answers 404 too", async ({ request }) => {
+  for (const path of ["/portal/projects/not-a-real-id", "/portal/support/not-a-real-id"]) {
+    expect((await request.get(path, { headers: { cookie: "wdc.session_token=placeholder" } })).status(), path).toBe(404);
+  }
+});
 
 test("a date field's echo does not trigger a hydration mismatch", async ({ page }) => {
   /* Regression pin for the fault where the server and the client formatted

@@ -27,10 +27,10 @@ import PageTourButton from "@/components/admin/tour/page-tour-button";
    default, "Admin | We Dig Creativity", because none of the four dynamic
    admin routes set their own. Five clients open in five tabs were five
    identical tabs -- the one thing a tab title exists to prevent.
-   Calling `notFound()` here too, rather than only in the page body below, is
-   what actually gets a real 404 status out of the route: metadata resolves
-   before the page body renders, so a missing client is decided once, here,
-   before anything has started streaming a 200. */
+   `notFound()` is called here as well as in the body so a missing client
+   gets the not-found title too. It is NOT what makes the status a 404: that
+   was the loading boundary above this page, which streamed a 200 first, and
+   it moved into `app/admin/(lists)` for exactly that reason. */
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const c = getClient(id);
