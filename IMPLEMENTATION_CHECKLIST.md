@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**91 open** (28 in progress)
+**94 open** (28 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -23,6 +23,9 @@ the evidence. Detail that used to sit in this file is in git history and in
 - [ ] **Mail is delivered but filed as spam by Gmail.** Diagnosed and written up in `plans/email-deliverability.md`. Authentication is NOT the headline problem: SPF lists the sending IP and aligns, a DKIM key is published on the `default` selector, MX is correct. (…)
 - [ ] Truehost's OUTBOUND filter scores what we send and will discard it with `550 Message discarded as high-probability spam`. Found the hard way: a test enquiry whose body read like a diagnostic ("test", "confirm the mail path end to end", "no reply needed") was rejected, while the identical route with an ordinary customer enquiry was accepted. (…)
 - [ ] Verify Google origin/callback configuration for apex, `www`, Vercel, and localhost without exposing credentials.
+- [ ] Verify the redesigned login on the deployed commit and canonical domain: the sign-in email arrives with the code in its subject, its link lands on `/login?done=1` and moves on, the code signs in from a second device, Google (where configured) returns through `/login?done=1`, and the keyboard fold and orb hold up on a real low-end Android phone. Everything here passed locally against Postgres and an SMTP sink (`tests/auth-flow.spec.ts`, 17/17; `tests/login-demo.spec.ts`, 16/16); none of it has been seen on production yet.
+- [ ] Passkeys on the login page. The whole UI (button, method row, waiting screen, cancel path, orb and ring behaviour) is built and covered in demo mode, and hidden in production by `passkeys: false` in `lib/auth/adapter.ts`. Real support needs `@better-auth/passkey` (a new package), a `passkey` table migration, and a registration screen inside the dashboard; shown before then, it would be a button that fails for everybody.
+- [ ] Have a native speaker check Edo ("Kóyo"), Fulfulde ("Jam"), Wolof ("Nanga def") and Shona ("Mhoro"), then add them to `components/auth/greeting/greetings.ts`. Left out on purpose rather than shipped unverified; the login greeting cycles the other 36.
 
 ## 2A. Payments, invoices, and transaction integrity
 

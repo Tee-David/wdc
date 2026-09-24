@@ -1,0 +1,276 @@
+"use client";
+
+import localFont from "next/font/local";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { useGreetingState, useStage } from "@/components/auth/stage/stage-context";
+import { byLang, GREETINGS, type Greeting } from "./greetings";
+import { PEN_HELLO, PEN_XIN_CHAO, penLength, type PenWord } from "./pen-paths";
+
+/**
+ * CAVEAT, SELF-HOSTED AND SUBSET, and only ever loaded by this module.
+ *
+ * `assets/fonts/Caveat-Bold-subset.woff2` is Caveat Bold (OFL, licence beside
+ * it) cut down to Latin, Latin Extended-A, the combining marks and the four
+ * Latin Extended Additional letters Yoruba and Igbo need (Ẹ ẹ Ọ ọ), with the
+ * contextual alternates dropped: 29.6 KB. The whole module arrives after first
+ * paint, and `preload: false` keeps the font out of the page's <head>, so
+ * nobody signing in pays for handwriting before they can see the form.
+ *
+ * Non-Latin greetings use the device's own fonts and download nothing.
+ */
+const caveat = localFont({
+  src: "../../../assets/fonts/Caveat-Bold-subset.woff2",
+  weight: "700",
+  display: "swap",
+  preload: false,
+});
+
+const SYSTEM = 'system-ui, -apple-system, "Segoe UI", "Noto Sans", sans-serif';
+const W = 460;
+const H = 150;
+
+const HOLD_MS = 1600;
+const FADE_MS = 350;
+const STILL_MS = 4000;
+
+/** Drawing time per method, in seconds, used to know when a word is finished. */
+function drawSeconds(greeting: Greeting, named: boolean) {
+  const pen = greeting.method === "pen-en" ? penLength(PEN_HELLO) : greeting.method === "pen-vi" ? penLength(PEN_XIN_CHAO) * PEN_SPEED_VI : 0;
+  if (pen) return pen + (named ? 1.7 : 0);
+  return greeting.method === "reveal" ? 1.2 : 1.7;
+}
+
+/* "xin chào" takes almost eight seconds at the original speed. Half of that
+   still reads as handwriting and does not hold the cycle up. */
+const PEN_SPEED_VI = 0.5;
+
+function PenSvg({ word, speed, y, height }: { word: PenWord; speed: number; y: number; height: number }) {
+  return (
+    <svg x={0} y={y} width={W} height={height} viewBox={word.viewBox} preserveAspectRatio="xMidYMid meet" overflow="visible">
+      {word.strokes.map((stroke, i) => (
+        <path
+          key={i}
+          d={stroke.d}
+          pathLength={1}
+          className={`greet__pen${stroke.accent ? " greet__pen--accent" : ""}`}
+          style={{
+            animationDuration: `${stroke.duration * speed}s`,
+            animationDelay: `${stroke.delay * speed}s`,
+            animationTimingFunction: stroke.ease,
+          }}
+        />
+      ))}
+    </svg>
+  );
+}
+
+/**
+ * Text that fits the box: drawn at a generous size, measured once the face is
+ * ready, and scaled down until it fits. Hidden until measured, so nobody sees
+ * it jump.
+ */
+function FittedText({
+  text,
+  family,
+  weight,
+  y,
+  size,
+  maxWidth,
+  dir,
+  className,
+  delay = 0,
+}: {
+  text: string;
+  family: string;
+  weight: number;
+  y: number;
+  size: number;
+  maxWidth: number;
+  dir: "ltr" | "rtl";
+  className: string;
+  delay?: number;
+}) {
+  const ref = useRef<SVGTextElement>(null);
+  const [fit, setFit] = useState<number | null>(null);
+  const clip = useId().replace(/:/g, "");
+
+  useLayoutEffect(() => {
+    let alive = true;
+    let applied = size;
+    /* Scaled from whatever size is on screen now, so measuring again after a
+       change is safe, and capped at `size` so it never grows past the design. */
+    const measure = () => {
+      const node = ref.current;
+      if (!node || !alive) return;
+      const width = node.getComputedTextLength();
+      if (!width) return;
+      applied = Math.min(size, (applied * maxWidth) / width);
+      setFit(applied);
+    };
+    const first = family.split(",")[0]!;
+    const later: number[] = [];
+    const settle = () => {
+      measure();
+      /* AND AGAIN, LATER. A script the page has never drawn (Japanese,
+         Korean) can fall back to a system face that arrives a frame or two
+         after the first layout; measured only once, こんにちは came out 470
+         units wide in a 414-unit box. */
+      later.push(requestAnimationFrame(() => requestAnimationFrame(measure)));
+      later.push(window.setTimeout(measure, 300));
+    };
+    if (document.fonts?.load) document.fonts.load(`${weight} ${size}px ${first}`, text).then(settle, settle);
+    else settle();
+    return () => {
+      alive = false;
+      later.forEach((id) => {
+        cancelAnimationFrame(id);
+        window.clearTimeout(id);
+      });
+    };
+  }, [text, family, weight, size, maxWidth]);
+
+  return (
+    <g className={`${className}${fit === null ? " is-measuring" : ""}`} style={{ ["--delay" as string]: `${delay}s` }}>
+      <clipPath id={clip}>
+        <rect className={`greet__wipe greet__wipe--${dir}`} x={0} y={0} width={W} height={H} />
+      </clipPath>
+      <text
+        ref={ref}
+        x={W / 2}
+        y={y}
+        textAnchor="middle"
+        direction={dir}
+        clipPath={`url(#${clip})`}
+        style={{ fontFamily: family, fontWeight: weight, fontSize: `${fit ?? size}px` }}
+      >
+        {text}
+      </text>
+    </g>
+  );
+}
+
+function Word({ greeting, name }: { greeting: Greeting; name: string | null }) {
+  const isPen = greeting.method === "pen-en" || greeting.method === "pen-vi";
+  const word = greeting.method === "pen-vi" ? PEN_XIN_CHAO : PEN_HELLO;
+  const speed = greeting.method === "pen-vi" ? PEN_SPEED_VI : 1;
+
+  if (isPen) {
+    const penTime = penLength(word) * speed;
+    return name ? (
+      <>
+        <PenSvg word={word} speed={speed} y={0} height={86} />
+        <FittedText
+          text={name}
+          family={caveat.style.fontFamily}
+          weight={700}
+          y={140}
+          size={60}
+          maxWidth={W * 0.8}
+          dir="ltr"
+          className="greet__script"
+          delay={penTime * 0.8}
+        />
+      </>
+    ) : (
+      <PenSvg word={word} speed={speed} y={4} height={H - 8} />
+    );
+  }
+
+  if (greeting.method === "reveal") {
+    /* Non-Latin and right-to-left: the greeting on one line and the name on
+       the next, in the site's face, so two scripts or two directions never
+       share a line. */
+    return name ? (
+      <>
+        <FittedText text={greeting.text} family={SYSTEM} weight={600} y={78} size={72} maxWidth={W * 0.9} dir={greeting.dir} className="greet__reveal" />
+        <FittedText text={name} family="var(--font-space-grotesk), system-ui, sans-serif" weight={600} y={134} size={40} maxWidth={W * 0.8} dir="ltr" className="greet__reveal" delay={0.9} />
+      </>
+    ) : (
+      <FittedText text={greeting.text} family={SYSTEM} weight={600} y={104} size={92} maxWidth={W * 0.9} dir={greeting.dir} className="greet__reveal" />
+    );
+  }
+
+  return (
+    <FittedText
+      text={name ? `${greeting.text}, ${name}` : greeting.text}
+      family={caveat.style.fontFamily}
+      weight={700}
+      y={112}
+      size={118}
+      maxWidth={W * 0.94}
+      dir="ltr"
+      className="greet__script"
+    />
+  );
+}
+
+/**
+ * THE HANDWRITTEN GREETING. Cycles until it knows who you are, then stops and
+ * addresses you.
+ */
+export default function GreetingArt() {
+  const stage = useStage();
+  const { name, lang } = useGreetingState();
+  const [index, setIndex] = useState(0);
+  const [leaving, setLeaving] = useState(false);
+  const [still, setStill] = useState(false);
+
+  const greeting = name ? byLang(lang) : GREETINGS[index % GREETINGS.length]!;
+  const key = `${greeting.lang}|${name ?? ""}`;
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setStill(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  /* Tell the stage what is on screen, so personalising picks this language
+     and the collapsed band can say the same word in plain text. */
+  useEffect(() => {
+    stage.showing(greeting.lang, greeting.text, name ? `${greeting.text}, ${name}` : greeting.text);
+  }, [stage, greeting, name]);
+
+  /* The cycle. Stops once personalised; pauses while the tab is hidden. */
+  useEffect(() => {
+    if (name) return;
+    let timer = 0;
+    const advance = () => {
+      setLeaving(true);
+      timer = window.setTimeout(() => {
+        setLeaving(false);
+        setIndex((i) => (i + 1) % GREETINGS.length);
+      }, still ? 200 : FADE_MS);
+    };
+    const schedule = () => {
+      window.clearTimeout(timer);
+      if (document.hidden) return;
+      const wait = still ? STILL_MS : drawSeconds(greeting, false) * 1000 + HOLD_MS;
+      timer = window.setTimeout(advance, wait);
+    };
+    const onVisibility = () => (document.hidden ? window.clearTimeout(timer) : schedule());
+    schedule();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [greeting, name, still]);
+
+  return (
+    <div className={`greet__art${still ? " is-still" : ""}`}>
+      <svg
+        key={key}
+        className={`greet__svg${leaving && !name ? " is-leaving" : ""}`}
+        viewBox={`0 0 ${W} ${H}`}
+        preserveAspectRatio="xMidYMid meet"
+        overflow="visible"
+        lang={greeting.lang === "English" ? "en" : undefined}
+      >
+        <Word greeting={greeting} name={name} />
+      </svg>
+      <span className="greet__caption">{name ? `Welcome back, in ${greeting.lang}` : greeting.lang}</span>
+    </div>
+  );
+}
