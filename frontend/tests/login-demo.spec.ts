@@ -37,13 +37,14 @@ const EMAIL = "tee.david@gmail.com";
 async function toMethod(page: Page, email = EMAIL) {
   await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByRole("button", { name: "Continue", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "How would you like to log in?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Choose how to log in" })).toBeVisible();
 }
 
 async function toPassword(page: Page) {
   await toMethod(page);
-  await page.getByRole("button", { name: /Use my password/ }).click();
-  await expect(page.getByRole("heading", { name: "Enter your password" })).toBeVisible();
+  await page.getByRole("tab", { name: "Password" }).click();
+  await expect(page.getByRole("tab", { name: "Password" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByLabel("Password", { exact: true })).toBeVisible();
 }
 
 async function tryPassword(page: Page, value: string) {
@@ -77,18 +78,82 @@ test("the first screen asks only for an email, and says what is wrong only when 
 
 test("the method step is the same for every address and remembers nothing it should not", async ({ page }) => {
   await toMethod(page, `nobody-${Date.now()}@example.com`);
-  const options = page.locator(".lx__method");
-  await expect(options).toHaveCount(3);
+  const tabs = page.getByRole("tab");
+  await expect(tabs).toHaveCount(3);
   await expect(page.getByText("Last used")).toHaveCount(0);
+  await expect(page.getByRole("tab", { name: "Link" })).toHaveAttribute("aria-selected", "true");
 
-  /* Arrow keys move between the options. */
-  await options.first().focus();
-  await page.keyboard.press("ArrowDown");
-  await expect(options.nth(1)).toBeFocused();
+  /* Arrow keys move between the tabs and choose as they go, and focus stays
+     on the tabs even when the choice is Password, which is a step of its own. */
+  await page.getByRole("tab", { name: "Link" }).focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(tabs.nth(1)).toBeFocused();
+  await expect(tabs.nth(1)).toHaveAttribute("aria-selected", "true");
   await page.keyboard.press("End");
-  await expect(options.nth(2)).toBeFocused();
-  await page.keyboard.press("ArrowDown");
-  await expect(options.first()).toBeFocused();
+  await expect(tabs.nth(2)).toBeFocused();
+  await expect(page.getByRole("button", { name: "Use my passkey" })).toBeVisible();
+  await page.keyboard.press("ArrowRight");
+  await expect(tabs.first()).toBeFocused();
+  await expect(page.getByRole("button", { name: "Email me a link" })).toBeVisible();
+});
+
+test("only the chosen tab shows its label, and it is never cut short", async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 568 }, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  await page.route(/jotfor|userway/i, (route) => route.abort());
+  await page.goto("/login", { waitUntil: "domcontentloaded" });
+  await hydrated(page);
+  await toMethod(page);
+  for (const name of ["Link", "Password", "Passkey"]) {
+    await page.getByRole("tab", { name }).click();
+    /* Past the width animation. */
+    await page.waitForTimeout(500);
+    const labels = await page.getByRole("tab").evaluateAll((els) =>
+      els.map((el) => {
+        const label = el.querySelector(".lx__tabLabel > span") as HTMLElement;
+        const icon = el.querySelector("svg")!.getBoundingClientRect();
+        return {
+          selected: el.getAttribute("aria-selected") === "true",
+          clipped: label.scrollWidth > label.clientWidth + 1,
+          shown: label.getBoundingClientRect().width > 1,
+          icon: icon.width > 0 && icon.right <= el.getBoundingClientRect().right,
+        };
+      }),
+    );
+    for (const tab of labels) {
+      expect(tab.icon, "every tab keeps its icon").toBe(true);
+      expect(tab.shown, "a label shows only on the chosen tab").toBe(tab.selected);
+      if (tab.selected) expect(tab.clipped, `${name} is cut short`).toBe(false);
+    }
+  }
+  await context.close();
+});
+
+test("on a short phone the greeting's caption stays above the sheet, and the code shows its six boxes", async ({ browser }) => {
+  for (const colorScheme of ["light", "dark"] as const) {
+    const context = await browser.newContext({ viewport: { width: 320, height: 568 }, isMobile: true, hasTouch: true, colorScheme });
+    const page = await context.newPage();
+    await page.route(/jotfor|userway/i, (route) => route.abort());
+    await page.addInitScript((theme) => localStorage.setItem("theme", theme), colorScheme);
+    await page.goto("/login", { waitUntil: "domcontentloaded" });
+    await hydrated(page);
+    await toMethod(page);
+    await page.getByRole("button", { name: "Email me a link" }).click();
+    await expect(page.getByRole("heading", { name: "Check your inbox" })).toBeVisible({ timeout: 10_000 });
+    await page.evaluate(() => window.scrollTo(0, 0));
+
+    const caption = await page.locator(".greet__caption").boundingBox();
+    const sheet = await page.locator(".au__panel").boundingBox();
+    expect(caption!.y + caption!.height, `${colorScheme}: caption under the sheet`).toBeLessThanOrEqual(sheet!.y);
+
+    /* The boxes are what a person reads; the real input over them must not paint over them. */
+    const boxes = page.locator(".au-code__box");
+    await expect(boxes).toHaveCount(6);
+    for (const box of await boxes.all()) await expect(box).toBeVisible();
+    const cover = await page.locator(".au-code__input").evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(cover, `${colorScheme}: the input paints over the boxes`).toMatch(/rgba\(0, 0, 0, 0\)|transparent/);
+    await context.close();
+  }
 });
 
 test("a wrong password shakes its head, keeps the value and, after three, offers a link", async ({ page }) => {
@@ -145,7 +210,7 @@ test("the ring waits for a slow answer, never closes early, and never flickers o
 
 test("the emailed code signs in; a wrong one is cleared and explained", async ({ page }) => {
   await toMethod(page);
-  await page.getByRole("button", { name: /Email me a sign-in link/ }).click();
+  await page.getByRole("button", { name: "Email me a link" }).click();
   await expect(page.getByRole("heading", { name: "Check your inbox" })).toBeVisible({ timeout: 10_000 });
   await expect(page.getByRole("link", { name: /Open Gmail/ })).toHaveAttribute("href", /mail\.google\.com/);
   await expect(page.getByRole("button", { name: /Resend in 0:\d\d/ })).toBeDisabled();
@@ -162,7 +227,7 @@ test("the emailed code signs in; a wrong one is cleared and explained", async ({
 
 test("the waiting screen moves on by itself when the link is opened elsewhere", async ({ page }) => {
   await toMethod(page);
-  await page.getByRole("button", { name: /Email me a sign-in link/ }).click();
+  await page.getByRole("button", { name: "Email me a link" }).click();
   await page.getByRole("button", { name: "Simulate opening the link" }).click();
   await expect(curtain(page)).toBeVisible({ timeout: 10_000 });
 });
@@ -180,7 +245,7 @@ test("a cancelled passkey says no problem and offers the ways back", async ({ pa
 test("browser Back walks back through the steps and keeps the address", async ({ page }) => {
   await toPassword(page);
   await page.goBack();
-  await expect(page.getByRole("heading", { name: "How would you like to log in?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Choose how to log in" })).toBeVisible();
   await page.goBack();
   await expect(page.getByRole("heading", { name: "Log in to WDC" })).toBeVisible();
   await expect(page.getByLabel("Email", { exact: true })).toHaveValue(EMAIL);
@@ -203,7 +268,8 @@ test("forgot password flips the card, leaves one email field, and flips back", a
   await expect(page.getByText(/If tee\.david@gmail\.com has a WDC account, a reset link is on its way/)).toBeVisible();
 
   await page.getByRole("button", { name: "Back to log in" }).click();
-  await expect(page.getByRole("heading", { name: "Enter your password" })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Password" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByLabel("Password", { exact: true })).toBeVisible();
   await expect(page.locator(".lx__flip")).toHaveAttribute("data-face", "front");
 });
 
@@ -240,9 +306,8 @@ test("a returning visitor is greeted by name, and 'Not Tee?' forgets them", asyn
   await expect(page.getByText("Welcome back, Tee", { exact: true })).toBeAttached();
 
   await toMethod(page);
-  /* The way in that worked last time is offered first. */
-  await expect(page.locator(".lx__method").first()).toContainText("Use my password");
-  await expect(page.locator(".lx__method").first()).toContainText("Last used");
+  /* The way in that worked last time opens first. */
+  await expect(page.getByRole("tab", { name: "Password" })).toHaveAttribute("aria-selected", "true");
 
   await page.goto("/login", { waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "Not Tee?" }).click();
@@ -271,7 +336,7 @@ test("no dashes in anything the page says", async ({ page }) => {
   await read();
   await toMethod(page);
   await read();
-  await page.getByRole("button", { name: /Use my password/ }).click();
+  await page.getByRole("tab", { name: "Password" }).click();
   await tryPassword(page, "oops");
   await expect(page.getByLabel("Password", { exact: true })).toHaveAttribute("aria-invalid", "true", { timeout: 10_000 });
   await read();
@@ -288,7 +353,7 @@ test("the page never scrolls sideways at 320px, and every control is a 44px targ
   await hydrated(page);
   await page.getByLabel("Email", { exact: true }).fill("a.very.long.address.that.keeps.going@some-long-company-domain.co.uk");
   await page.getByRole("button", { name: "Continue", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "How would you like to log in?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Choose how to log in" })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
 
   const small = await page.locator(".au button:visible, .au a:visible").evaluateAll((els) =>

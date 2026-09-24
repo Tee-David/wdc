@@ -53,7 +53,7 @@ test.beforeEach(async ({ page }) => {
   await expect(page.locator("button.au__submit").first()).not.toHaveAttribute("disabled", { timeout: 30_000 });
   await page.getByLabel("Email", { exact: true }).fill(EMAIL!);
   await page.getByRole("button", { name: "Continue", exact: true }).click();
-  await page.getByRole("button", { name: /Use my password/ }).click();
+  await page.getByRole("tab", { name: "Password" }).click();
   await page.getByLabel("Password", { exact: true }).fill(PASSWORD!);
   await page.getByRole("button", { name: "Log in", exact: true }).click();
   await page.waitForURL(/\/admin/, { timeout: 30_000 });
