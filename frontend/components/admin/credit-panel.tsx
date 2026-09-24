@@ -82,6 +82,9 @@ export default function CreditPanel({ clientId }: { clientId: string }) {
                             {getInvoice(c.applied.invoiceId)?.number ?? "an invoice"}
                           </Link>{" "}
                           on {when(c.applied.at)}
+                          {c.applied.amount !== undefined && c.applied.amount < c.amount
+                            ? ` · ${naira(c.applied.amount)} used, the rest carried forward`
+                            : ""}
                         </p>
                       </>
                     ) : (

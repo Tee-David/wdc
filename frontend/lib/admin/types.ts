@@ -411,8 +411,11 @@ export type Credit = {
   /** Where it came from, so a balance can always be explained. */
   fromInvoiceId?: Id;
   fromPaymentId?: Id;
-  /** Set the moment it is spent. Never cleared. */
-  applied?: { at: string; by: string; invoiceId: Id; paymentId: Id };
+  /** Set the moment it is spent. Never cleared. `amount` is how much of the
+      credit went; when it is less than the credit, the rest is a new row. The
+      credit's own `amount` is never rewritten, so what was put on account is
+      still on the record after it is spent. */
+  applied?: { at: string; by: string; invoiceId: Id; paymentId: Id; amount?: number };
 };
 
 export const EXPENSE_CATEGORIES = [
@@ -673,7 +676,7 @@ export function taskIsWaiting(t: Task, all: Task[]) {
  */
 export const AUDIT_KINDS = [
   "client", "project", "task", "update", "deliverable",
-  "invoice", "payment", "expense", "submission", "setting",
+  "invoice", "payment", "expense", "submission", "setting", "content",
 ] as const;
 export type AuditKind = (typeof AUDIT_KINDS)[number];
 

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import * as db from "./store";
 import { invoiceTotals, naira, type InvoiceLine } from "./types";
 import { paystackMode } from "@/lib/paystack";
+import { owner } from "./guard";
 import {
   FAIL, OK, type ActionState,
   approval, channel, checked, health, isoDate, kobo, looksEmail, method, num, priority,
@@ -24,12 +25,12 @@ import {
  * renders the returned value next to the field it belongs to. A throw here
  * becomes an error page, which loses what the person had typed.
  *
- * WHAT IS NOT HERE YET, said rather than implied: there is no authentication.
- * These endpoints are reachable by anyone who can reach /admin, which is
- * everyone, because Better Auth and the middleware gate are the next piece of
- * work. next.config.ts keeps /admin out of the index and out of every cache,
- * which is not the same as keeping people out. Nothing below should be
- * exposed to the internet until that gate is in front of it.
+ * EVERY ONE OF THEM CHECKS WHO IS ASKING, FIRST. The admin layout redirects
+ * anybody who is not the owner, but a layout guards pages and a server action
+ * is not a page: it is a POST to an id, and the id is in the HTML of every
+ * screen that renders the form. So `owner()` runs before anything is read,
+ * and a missing session, a missing role or any other role is refused the
+ * same way. It fails closed: an error reading the session is a refusal too.
  */
 
 /* Every write touches the dashboard's figures, so it is always revalidated
@@ -66,6 +67,8 @@ function readClient(fd: FormData) {
 }
 
 export async function createClient(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const { errors, draft } = readClient(fd);
   if (Object.keys(errors).length) return FAIL(errors);
 
@@ -94,6 +97,8 @@ export async function createClient(_prev: ActionState, fd: FormData): Promise<Ac
 }
 
 export async function updateClient(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const id = str(fd, "id");
   const { errors, draft } = readClient(fd);
   if (Object.keys(errors).length) return FAIL(errors);
@@ -113,6 +118,8 @@ export async function updateClient(_prev: ActionState, fd: FormData): Promise<Ac
 }
 
 export async function archiveClient(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const id = str(fd, "id");
   const back = str(fd, "restore") === "1";
   const c = db.archiveClient(id, !back);
@@ -125,6 +132,8 @@ export async function archiveClient(_prev: ActionState, fd: FormData): Promise<A
 /* -------------------------------------------------------------- projects */
 
 export async function createProject(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const errors: Record<string, string> = {};
   const title = required(errors, "title", str(fd, "title"), "A project name");
   const clientId = str(fd, "clientId");
@@ -162,6 +171,8 @@ export async function createProject(_prev: ActionState, fd: FormData): Promise<A
  * keyboard shortcut all get it without each remembering to.
  */
 export async function moveStage(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const id = str(fd, "id");
   const to = stage(fd);
   if (!to) return FAIL({ stage: "Pick a stage." });
@@ -174,6 +185,8 @@ export async function moveStage(_prev: ActionState, fd: FormData): Promise<Actio
 }
 
 export async function addNote(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const id = str(fd, "id");
   const text = str(fd, "note");
   if (!text) return FAIL({ note: "Write the note first." });
@@ -186,6 +199,8 @@ export async function addNote(_prev: ActionState, fd: FormData): Promise<ActionS
 }
 
 export async function setDue(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const id = str(fd, "id");
   const p = db.setProjectDue(id, isoDate(fd, "due"));
   if (!p) return FAIL({}, "That project is no longer there.");
@@ -224,6 +239,8 @@ function readLines(fd: FormData): { lines: InvoiceLine[]; bad: string | null } {
 }
 
 export async function createInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const errors: Record<string, string> = {};
   const clientId = str(fd, "clientId");
   if (!db.getClient(clientId)) errors.clientId = "Say who it is for.";
@@ -252,6 +269,8 @@ export async function createInvoice(_prev: ActionState, fd: FormData): Promise<A
 }
 
 export async function updateInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const id = str(fd, "id");
   const inv = db.getInvoice(id);
   if (!inv) return FAIL({}, "That invoice is no longer there.");
@@ -273,6 +292,8 @@ export async function updateInvoice(_prev: ActionState, fd: FormData): Promise<A
 }
 
 export async function issueInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const id = str(fd, "id");
   const inv = db.sendInvoice(id);
   if (!inv) return FAIL({}, "That invoice is no longer there.");
@@ -283,6 +304,8 @@ export async function issueInvoice(_prev: ActionState, fd: FormData): Promise<Ac
 }
 
 export async function deleteInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const id = str(fd, "id");
   if (!db.deleteDraftInvoice(id)) {
     return FAIL({}, "Only a draft can be deleted. An issued invoice is part of the record.");
@@ -302,6 +325,8 @@ export async function deleteInvoice(_prev: ActionState, fd: FormData): Promise<A
  * accidentally get a laxer version of the rules than the form does.
  */
 export async function recordPayment(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const invoiceId = str(fd, "invoiceId");
   const amount = kobo(fd, "amount");
   const reference = str(fd, "reference");
@@ -368,6 +393,8 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
 }
 
 export async function reversePayment(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const id = str(fd, "id");
   const invoiceId = str(fd, "invoiceId");
   /* A REASON IS REQUIRED, and this is the one place in the admin where a free
@@ -390,6 +417,8 @@ export async function reversePayment(_prev: ActionState, fd: FormData): Promise<
 /* -------------------------------------------------------------- expenses */
 
 export async function createExpense(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const errors: Record<string, string> = {};
   const description = required(errors, "description", str(fd, "description"), "What it was for");
   const amount = kobo(fd, "amount");
@@ -428,6 +457,8 @@ export async function createExpense(_prev: ActionState, fd: FormData): Promise<A
 }
 
 export async function removeExpense(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   if (!db.deleteExpense(str(fd, "id"))) return FAIL({}, "That one is already gone.");
   refresh("/admin/money");
   return OK("Removed.");
@@ -436,6 +467,8 @@ export async function removeExpense(_prev: ActionState, fd: FormData): Promise<A
 /* ------------------------------------------------------------ onboarding */
 
 export async function attachSubmission(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const id = str(fd, "id");
   const clientId = str(fd, "clientId");
 
@@ -457,6 +490,8 @@ export async function attachSubmission(_prev: ActionState, fd: FormData): Promis
 /* ---------------------------------------------------------------- settings */
 
 export async function saveSetting(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const key = str(fd, "key");
   const value = str(fd, "value");
   if (!key) return FAIL({}, "That setting is no longer there.");
@@ -471,6 +506,8 @@ export async function saveSetting(_prev: ActionState, fd: FormData): Promise<Act
 }
 
 export async function resetSetting(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const key = str(fd, "key");
   if (!db.clearSetting(key)) return FAIL({}, "That one was already back to what shipped.");
 
@@ -490,6 +527,8 @@ function refreshProject(id: string) {
 }
 
 export async function createTask(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const errors: Record<string, string> = {};
   const projectId = str(fd, "projectId");
   const title = required(errors, "title", str(fd, "title"), "A task name");
@@ -513,6 +552,8 @@ export async function createTask(_prev: ActionState, fd: FormData): Promise<Acti
 }
 
 export async function toggleTask(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const id = str(fd, "id");
   /* The CURRENT state is read from the store rather than taken from the form.
      A hidden field saying "this is currently open" is a field the browser can
@@ -527,6 +568,8 @@ export async function toggleTask(_prev: ActionState, fd: FormData): Promise<Acti
 }
 
 export async function removeTask(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const id = str(fd, "id");
   const t = db.getTasks().find((x) => x.id === id);
   if (!t) return FAIL({}, "That task is no longer there.");
@@ -538,6 +581,8 @@ export async function removeTask(_prev: ActionState, fd: FormData): Promise<Acti
 /* ----------------------------------------------------- delivery: updates */
 
 export async function postUpdate(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const errors: Record<string, string> = {};
   const projectId = str(fd, "projectId");
   const progress = required(errors, "progress", str(fd, "progress"), "What moved");
@@ -560,6 +605,8 @@ export async function postUpdate(_prev: ActionState, fd: FormData): Promise<Acti
 /* ------------------------------------------------ delivery: deliverables */
 
 export async function createDeliverable(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const errors: Record<string, string> = {};
   const projectId = str(fd, "projectId");
   const name = required(errors, "name", str(fd, "name"), "A name");
@@ -573,6 +620,8 @@ export async function createDeliverable(_prev: ActionState, fd: FormData): Promi
 }
 
 export async function addDeliverableVersion(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const errors: Record<string, string> = {};
   const note = required(errors, "note", str(fd, "note"), "A note saying what changed");
   if (Object.keys(errors).length) return FAIL(errors);
@@ -585,6 +634,8 @@ export async function addDeliverableVersion(_prev: ActionState, fd: FormData): P
 }
 
 export async function moveApproval(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const a = approval(fd, "approval");
   if (!a) return FAIL({ approval: "Pick what happened." });
   const note = str(fd, "note");
@@ -600,6 +651,8 @@ export async function moveApproval(_prev: ActionState, fd: FormData): Promise<Ac
 /* ------------------------------------------------- delivery: the project */
 
 export async function saveProjectDetails(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const id = str(fd, "id");
   const h = health(fd, "health");
   const ch = channel(fd, "channel");
@@ -621,6 +674,8 @@ export async function saveProjectDetails(_prev: ActionState, fd: FormData): Prom
 }
 
 export async function setProjectArchived(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const id = str(fd, "id");
   const back = str(fd, "archived") === "false";
   const p = db.archiveProject(id, !back);
@@ -645,6 +700,8 @@ export async function setProjectArchived(_prev: ActionState, fd: FormData): Prom
  * the first person's account of what happened.
  */
 export async function resolveEvent(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const id = str(fd, "id");
   const note = str(fd, "note");
   if (!note) return FAIL({ note: "Say what was done. A tick with nothing beside it explains nothing later." });
@@ -665,6 +722,8 @@ export async function resolveEvent(_prev: ActionState, fd: FormData): Promise<Ac
  * then closes the event with a note naming who decided.
  */
 export async function matchEventToInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const id = str(fd, "id");
   const invoiceId = str(fd, "invoiceId");
   const by = str(fd, "by") || "Studio";
@@ -707,6 +766,8 @@ export async function matchEventToInvoice(_prev: ActionState, fd: FormData): Pro
 
 /** Send the invoice, with the link that pays it. */
 export async function emailInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const id = str(fd, "id");
   const inv = db.getInvoice(id);
   if (!inv) return FAIL({}, "That invoice is no longer there.");
@@ -726,6 +787,8 @@ export async function emailInvoice(_prev: ActionState, fd: FormData): Promise<Ac
 
 /** The nudge on an overdue invoice. */
 export async function emailReminder(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const id = str(fd, "id");
   const inv = db.getInvoice(id);
   if (!inv) return FAIL({}, "That invoice is no longer there.");
@@ -747,6 +810,8 @@ export async function emailReminder(_prev: ActionState, fd: FormData): Promise<A
 
 /** A message that failed, queued to be tried again. */
 export async function resendMessage(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const m = db.retryMessage(str(fd, "id"), str(fd, "by") || "Studio");
   if (!m) return FAIL({}, "That one did not fail, or is no longer there.");
   refresh("/admin/money", "/admin/clients");
@@ -763,6 +828,8 @@ export async function resendMessage(_prev: ActionState, fd: FormData): Promise<A
  * will be asked.
  */
 export async function voidInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const id = str(fd, "id");
   const reason = str(fd, "reason");
   if (!reason) return FAIL({ reason: "Say why. A struck invoice with no reason cannot be explained later." });
@@ -790,6 +857,8 @@ export async function voidInvoice(_prev: ActionState, fd: FormData): Promise<Act
  * asks, and the books record which.
  */
 export async function refundPayment(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const errors: Record<string, string> = {};
   const paymentId = str(fd, "id");
   const amount = kobo(fd, "amount");
@@ -826,6 +895,8 @@ export async function refundPayment(_prev: ActionState, fd: FormData): Promise<A
 
 /** Move an overpayment onto the client's balance rather than sending it back. */
 export async function overpaymentToCredit(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const id = str(fd, "id");
   const res = db.overpaymentToCredit(id, str(fd, "by") || "Studio");
   if (!res.ok) {
@@ -842,6 +913,8 @@ export async function overpaymentToCredit(_prev: ActionState, fd: FormData): Pro
 
 /** Spend a credit on an invoice. This is the balance carrying forward. */
 export async function applyCredit(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const creditId = str(fd, "id");
   const invoiceId = str(fd, "invoiceId");
   if (!invoiceId) return FAIL({ invoiceId: "Pick the invoice it should come off." });
@@ -867,6 +940,8 @@ export async function applyCredit(_prev: ActionState, fd: FormData): Promise<Act
 /* ---------------------------------------------------------- estimates -- */
 
 export async function createEstimate(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const errors: Record<string, string> = {};
   const clientId = str(fd, "clientId");
   if (!db.getClient(clientId)) errors.clientId = "Say who it is for.";
@@ -906,6 +981,8 @@ export async function createEstimate(_prev: ActionState, fd: FormData): Promise<
 }
 
 export async function sendEstimate(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const est = db.sendEstimate(str(fd, "id"), str(fd, "by") || "Studio");
   if (!est) return FAIL({}, "That one is no longer a draft, or is no longer there.");
   refresh("/admin/money", `/admin/clients/${est.clientId}`);
@@ -920,6 +997,8 @@ export async function sendEstimate(_prev: ActionState, fd: FormData): Promise<Ac
  * disagreement about scope gets settled against.
  */
 export async function answerEstimate(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const accepted = str(fd, "answer") === "accepted";
   const by = str(fd, "by");
   if (!by) return FAIL({ by: "Who said so? An acceptance with no name against it cannot be relied on." });
@@ -947,15 +1026,28 @@ export async function answerEstimate(_prev: ActionState, fd: FormData): Promise<
 
 /** Quote the same thing again, as a fresh draft at today's date. */
 export async function duplicateEstimate(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const copy = db.duplicateEstimate(str(fd, "id"), str(fd, "by") || "Studio");
   if (!copy) return FAIL({}, "That estimate is no longer there.");
   refresh("/admin/money", `/admin/clients/${copy.clientId}`);
   return OK(`Copied to ${copy.number} as a draft. Change what needs changing, then send it.`);
 }
 
+export async function duplicateInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
+  const copy = db.duplicateInvoice(str(fd, "id"), str(fd, "by") || "Studio");
+  if (!copy) return FAIL({}, "That invoice is no longer there.");
+  refresh("/admin/money", `/admin/clients/${copy.clientId}`);
+  return OK(`Copied to ${copy.number} as a draft, due on your default terms. Change what needs changing, then issue it.`);
+}
+
 /* ----------------------------------------------------------- portal: support */
 
 export async function replyToTicketAsStudio(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const body = str(fd, "body");
   if (!body) return FAIL({ body: "Type a reply first." });
   const t = db.addTicketMessage({ ticketId: str(fd, "id"), from: "studio", author: "Studio", body });
@@ -966,6 +1058,8 @@ export async function replyToTicketAsStudio(_prev: ActionState, fd: FormData): P
 }
 
 export async function closeTicket(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
   const t = db.setTicketStatus(str(fd, "id"), "Closed");
   if (!t) return FAIL({}, "That conversation is no longer there.");
   refresh(`/admin/clients/${t.clientId}`, "/portal/support", `/portal/support/${t.id}`, "/portal");
