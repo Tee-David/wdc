@@ -48,7 +48,7 @@ export type LiveOrbOptions = {
   onHasGl?: (ok: boolean) => void;
 };
 
-export type SuccessStyle = "mesh" | "ember" | "eclipse" | "pearl" | "dusk";
+export type SuccessStyle = "mesh" | "ember" | "eclipse" | "pearl" | "dusk" | "sapphire";
 /** Shader index, and the eye colour that reads on that fill. */
 export const SUCCESS_STYLES: Record<SuccessStyle, { index: number; eye: string }> = {
   mesh: { index: 0, eye: "#09090B" },
@@ -56,6 +56,7 @@ export const SUCCESS_STYLES: Record<SuccessStyle, { index: number; eye: string }
   eclipse: { index: 2, eye: "#FFFFFF" },
   pearl: { index: 3, eye: "#09090B" },
   dusk: { index: 4, eye: "#FFFFFF" },
+  sapphire: { index: 5, eye: "#FFFFFF" },
 };
 
 export type LiveOrbState = { look: { x: number; y: number }; turn: number; hold: number; mix: number };
@@ -178,6 +179,14 @@ vec3 success(vec3 n, float t) {
   float diff = clamp(dot(n, L), 0.0, 1.0);
   float rim = pow(1.0 - clamp(n.z, 0.0, 1.0), 2.2);
   float spec = pow(clamp(dot(reflect(-L, n), vec3(0.0, 0.0, 1.0)), 0.0, 1.0), 24.0);
+  if (u_style > 4.5) {
+    /* Sapphire: ember's lighting in royal blue, the colour a right code
+       turns on the login card, so the orb and the tick agree. */
+    float band = fbm(n.xy * 1.6 + vec2(t * 0.10, -t * 0.08));
+    vec3 c = mix(vec3(0.06, 0.06, 0.52), vec3(0.26, 0.26, 1.0), smoothstep(-0.1, 0.9, diff));
+    c = mix(c, vec3(0.62, 0.64, 1.0), smoothstep(0.55, 0.95, band) * 0.35 * diff);
+    return c + spec * 0.55;
+  }
   if (u_style < 1.5) {
     /* Ember: the brand orange, lit, with a slow warm shimmer. */
     float band = fbm(n.xy * 1.6 + vec2(t * 0.10, -t * 0.08));

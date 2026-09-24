@@ -203,10 +203,13 @@
 .orb[data-success="mesh"] .orb__wash { background: conic-gradient(from 200deg, #3b3bff, #ff6500, #ffffff, #3b3bff); }
 .orb[data-success="eclipse"] .orb__wash { background: radial-gradient(circle at 34% 30%, #2424c8, #05055c 62%, #ff7317 100%); }
 .orb[data-success="pearl"] .orb__wash { background: radial-gradient(circle at 34% 30%, #fff, #f1f1f6 55%, #d9e8ff 80%, #ffe0ef 100%); }
+.orb[data-success="sapphire"] .orb__wash { background: radial-gradient(circle at 34% 30%, #c9caff 0 4%, #3b3bff 30%, #0f0f85 100%); }
 .orb[data-success="dusk"] .orb__wash { background: linear-gradient(170deg, #1a1ab3 20%, #73306e 48%, #ff6500 70%, #ff9a52); }
 .orb[data-success="eclipse"] .orb__eye,
+.orb[data-success="sapphire"] .orb__eye,
 .orb[data-success="dusk"] .orb__eye { transition: background .6s var(--au-ease), translate .2s var(--au-ease), scale .12s var(--au-ease), opacity .3s var(--au-ease); }
 .orb[data-success="eclipse"][style*="--mix: 1"] .orb__eye,
+.orb[data-success="sapphire"][style*="--mix: 1"] .orb__eye,
 .orb[data-success="dusk"][style*="--mix: 1"] .orb__eye { background: #fff; }
 .orb__eye--l { left: 31%; }
 .orb__eye--r { left: 56%; }
@@ -239,6 +242,10 @@
   stroke-dasharray: 22 78;
   animation: orb-run 1.1s linear infinite;
 }
+/* The answer came back yes: the arc closes in the blue the orb floods to.
+   A lighter blue than the orb's own, so it still reads against the navy band. */
+.orb__arc { transition: stroke .25s var(--au-ease); }
+.orb__ring[data-mode="complete"] .orb__arc { stroke: #8a8eff; }
 .orb__ring[data-mode="complete"] { animation: orb-glow .4s ease-out; }
 .orb__ring[data-mode="drain"] .orb__arc {
   transition: stroke-dashoffset .4s var(--au-ease);
@@ -246,7 +253,7 @@
 }
 @keyframes orb-run { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -100; } }
 @keyframes orb-glow {
-  50% { filter: drop-shadow(0 0 10px var(--au-orange)); }
+  50% { filter: drop-shadow(0 0 10px #8a8eff); }
 }
 @keyframes orb-flash { 30%, 70% { stroke: #ff5a4e; } }
 
