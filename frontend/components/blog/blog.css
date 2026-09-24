@@ -443,3 +443,16 @@
     flex-basis: calc((100% - 2.2 * var(--rail-gap)) / 3.2);
   }
 }
+
+/* The editor's preview strip. Fixed to the bottom, clear of the safe area, on
+   the page's own ground so it never sits over the hero's photograph. */
+.bl-preview {
+  position: fixed; z-index: 90; left: 50%; bottom: max(1rem, env(safe-area-inset-bottom));
+  transform: translateX(-50%); width: min(40rem, calc(100% - 2rem));
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem;
+  padding: .75rem 1rem; border: 1px solid var(--foreground); border-radius: 14px;
+  background: var(--background); color: var(--foreground);
+  font-family: var(--font-outfit), system-ui, sans-serif; font-size: .95rem;
+}
+.bl-preview p { margin: 0; min-width: 0; flex: 1 1 14rem; }
+.bl-preview .btn-primary { min-height: 44px; border: 1px solid; padding: 0 1.1rem; border-radius: 999px; font-weight: 600; }

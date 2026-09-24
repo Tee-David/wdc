@@ -1,0 +1,15 @@
+/* The blog editor. Built on the admin's own form rules; only the block list
+   and the counters are new. */
+.adBlog__h { margin: 1.4rem 0 .6rem; font: 700 1rem var(--font-space-grotesk), system-ui, sans-serif; }
+.adBlog__count { display: block; margin: -.35rem 0 .4rem; color: var(--ad-dim); font-size: .74rem; }
+.adBlog__count.is-bad { color: var(--ad-tone-bad); font-weight: 600; }
+.adBlog__blocks { min-width: 0; margin: 1.2rem 0 0; padding: 0; border: 0; }
+.adBlog__list { margin: .6rem 0 0; padding: 0; list-style: none; display: grid; gap: .6rem; }
+.adBlog__block { min-width: 0; display: grid; gap: .45rem; padding: .7rem; border: 1px solid var(--ad-line); border-radius: var(--ad-r); background: var(--ad-bg); }
+.adBlog__blockBar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; }
+.adBlog__blockBar select { min-height: 44px; }
+.adBlog__tools { display: flex; gap: .35rem; }
+.adBlog__tools .ad__btn { min-width: 44px; min-height: 44px; justify-content: center; padding-inline: .5rem; }
+.adBlog__block textarea, .adBlog__block input { width: 100%; min-width: 0; font: inherit; padding: .6rem .7rem; border: 1px solid var(--ad-line); border-radius: 9px; background: var(--ad-panel); color: inherit; }
+.adBlog__block textarea:focus-visible, .adBlog__block input:focus-visible, .adBlog__blockBar select:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.adBlog__add { margin-top: .7rem; display: flex; flex-wrap: wrap; gap: .4rem; }

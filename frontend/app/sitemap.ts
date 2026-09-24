@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site";
 import { CASE_STUDIES, WORK_CATEGORIES } from "@/lib/work";
 import { LEGAL_DOCS } from "@/lib/legal";
-import { BLOG_POSTS } from "@/lib/blog";
+import { postsNewestFirstDb } from "@/lib/blog-db";
 import { SERVICES } from "@/lib/services";
 import { FREE_TOOLS } from "@/lib/tools";
 
@@ -16,8 +16,11 @@ import { FREE_TOOLS } from "@/lib/tools";
  * enforce — listing it under every category it is tagged to would hand search
  * engines three URLs for one page.
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+  /* The live posts, from the table the editor writes: an unpublished post
+     leaves the sitemap the moment it leaves the blog. */
+  const posts = await postsNewestFirstDb();
   const routes: Array<{
     path: string;
     priority: number;
@@ -56,11 +59,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/contact", priority: 0.8, changeFrequency: "yearly" },
     { path: "/work", priority: 0.9, changeFrequency: "monthly" },
     { path: "/blog", priority: 0.8, changeFrequency: "weekly" },
-    /* Derived like the work tiers: a post added to lib/blog.ts is in the
+    /* Derived like the work tiers: a post published in the editor is in the
        sitemap the same day and cannot ship as a page nothing has heard of.
        Weekly on the index because that is where new posts appear; monthly on
        a post, which changes only when it is revised. */
-    ...BLOG_POSTS.map((p) => ({
+    ...posts.filter((p) => !p.canonical).map((p) => ({
       path: `/blog/${p.slug}`,
       priority: 0.6,
       changeFrequency: "monthly" as const,

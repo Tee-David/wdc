@@ -22,13 +22,13 @@ import type { ServiceSlug } from "@/lib/services";
  * to on-demand revalidation later is a change to caching rather than to this
  * file.
  *
- * THE FIXTURE IS STILL THE FALLBACK, and that is deliberate rather than
- * timid. Until the editor in 4.8 exists, `lib/blog.ts` is the only way to
- * write a post, so it remains the source of truth that `scripts/seed-blog.mjs`
- * copies in. If the database is unreachable at build time the site builds from
- * the fixture instead of failing -- a blog that is one revision stale beats a
- * deploy that cannot go out. Delete the fallback in the same change that ships
- * the editor, not before.
+ * THE FIXTURE IS THE FALLBACK FOR AN UNREACHABLE DATABASE, AND ONLY THAT.
+ * The admin editor writes here now, so a reachable table is the truth even
+ * when it answers with nothing: a post the editor unpublished must not come
+ * back from `lib/blog.ts`. It used to fall back on an empty answer too, which
+ * would have done exactly that. If the database cannot be reached at build
+ * time the site still builds from the fixture -- a blog that is one revision
+ * stale beats a deploy that cannot go out.
  */
 
 /** A row as the table stores it. `body` and `tags` come back parsed. */
@@ -44,6 +44,8 @@ type Row = {
   body: BlogBlock[];
   published_at: Date | null;
   updated_at: Date | null;
+  canonical: string | null;
+  social_image: string | null;
 };
 
 /** ISO date, which is what `BlogPost.date` is and what the pages format. */
@@ -62,7 +64,12 @@ const toPost = (r: Row): BlogPost => ({
   tags: Array.isArray(r.tags) ? r.tags : [],
   cover: r.cover,
   body: Array.isArray(r.body) ? r.body : [],
+  ...(r.canonical ? { canonical: r.canonical } : {}),
+  ...(r.social_image ? { socialImage: r.social_image } : {}),
 });
+
+const COLUMNS = `slug, title, seo_title, description, excerpt, topic, tags, cover,
+              body, published_at, updated_at, canonical, social_image`;
 
 /* Only what is published AND dated at or before now, so a post written today
    for next week stays invisible until then. The index behind this query is
@@ -82,12 +89,11 @@ const LIVE = `
 export async function postsNewestFirstDb(): Promise<BlogPost[]> {
   try {
     const result = await db.query<Row>(
-      `SELECT slug, title, seo_title, description, excerpt, topic, tags, cover,
-              body, published_at, updated_at
+      `SELECT ${COLUMNS}
        ${LIVE}
        ORDER BY published_at DESC`,
     );
-    if (result.rowCount) return result.rows.map(toPost);
+    return result.rows.map(toPost);
   } catch {
     /* Unreachable at build time. Fall through. */
   }
@@ -98,14 +104,13 @@ export async function postsNewestFirstDb(): Promise<BlogPost[]> {
 export async function postBySlugDb(slug: string): Promise<BlogPost | undefined> {
   try {
     const result = await db.query<Row>(
-      `SELECT slug, title, seo_title, description, excerpt, topic, tags, cover,
-              body, published_at, updated_at
+      `SELECT ${COLUMNS}
        ${LIVE} AND slug = $1
        LIMIT 1`,
       [slug],
     );
     const row = result.rows[0];
-    if (row) return toPost(row);
+    return row ? toPost(row) : undefined;
   } catch {
     /* Fall through. */
   }
@@ -122,14 +127,13 @@ export async function postBySlugDb(slug: string): Promise<BlogPost | undefined> 
 export async function relatedPostsDb(post: BlogPost, limit = 2): Promise<BlogPost[]> {
   try {
     const result = await db.query<Row>(
-      `SELECT slug, title, seo_title, description, excerpt, topic, tags, cover,
-              body, published_at, updated_at
+      `SELECT ${COLUMNS}
        ${LIVE} AND slug <> $1
        ORDER BY (topic = $2) DESC, published_at DESC
        LIMIT $3`,
       [post.slug, post.topic, limit],
     );
-    if (result.rowCount) return result.rows.map(toPost);
+    return result.rows.map(toPost);
   } catch {
     /* Fall through. */
   }
@@ -137,4 +141,114 @@ export async function relatedPostsDb(post: BlogPost, limit = 2): Promise<BlogPos
   const mine = others.filter((p) => p.topic === post.topic);
   const rest = others.filter((p) => p.topic !== post.topic);
   return [...mine, ...rest].slice(0, limit);
+}
+
+/* ================================================================ editor ===
+   Everything below is for the admin editor and the preview. None of it falls
+   back to the fixture: an editor that silently showed the file when the table
+   was unreachable would be editing something that is not there. */
+
+export type AdminPost = BlogPost & {
+  id: string;
+  status: "draft" | "published";
+  /** Derived: published with a date still in the future. */
+  scheduled: boolean;
+  publishedAt: string | null;
+  savedBy: string | null;
+  savedAt: string | null;
+};
+
+type AdminRow = Row & { id: string; status: string; saved_by: string | null; saved_at: Date | null };
+
+const toAdmin = (r: AdminRow): AdminPost => ({
+  ...toPost(r),
+  id: r.id,
+  status: r.status === "published" ? "published" : "draft",
+  scheduled: r.status === "published" && !!r.published_at && new Date(r.published_at) > new Date(),
+  publishedAt: r.published_at ? new Date(r.published_at).toISOString() : null,
+  savedBy: r.saved_by,
+  savedAt: r.saved_at ? new Date(r.saved_at).toISOString() : null,
+});
+
+const ADMIN_COLUMNS = `id, status, saved_by, saved_at, ${COLUMNS}`;
+
+/** Every post, any state. Drafts first, then newest. Bounded. */
+export async function postsForAdmin(limit = 200): Promise<AdminPost[]> {
+  const result = await db.query<AdminRow>(
+    `SELECT ${ADMIN_COLUMNS} FROM blog_posts
+     ORDER BY (status = 'draft') DESC, published_at DESC NULLS FIRST, created_at DESC
+     LIMIT $1`,
+    [limit],
+  );
+  return result.rows.map(toAdmin);
+}
+
+export async function postForAdmin(id: string): Promise<AdminPost | null> {
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
+  const result = await db.query<AdminRow>(`SELECT ${ADMIN_COLUMNS} FROM blog_posts WHERE id = $1`, [id]);
+  return result.rows[0] ? toAdmin(result.rows[0]) : null;
+}
+
+/** For the preview only: the post whatever its state. */
+export async function postForPreview(slug: string): Promise<BlogPost | undefined> {
+  const result = await db.query<Row>(`SELECT ${COLUMNS} FROM blog_posts WHERE slug = $1 LIMIT 1`, [slug]);
+  return result.rows[0] ? toPost(result.rows[0]) : undefined;
+}
+
+export type SaveResult =
+  | { ok: true; id: string; slug: string; previousSlug: string | null }
+  | { ok: false; reason: "slug-taken" | "missing" | "slug-locked" };
+
+/**
+ * Insert or update one post.
+ *
+ * `updated_at` IS THE READER'S "UPDATED" DATE, so it moves only when the
+ * editor says the revision is worth announcing, and only on a post that was
+ * already live. A typo fix must not claim the post was rewritten.
+ */
+export async function savePost(
+  id: string | null,
+  p: import("@/lib/blog-validate").PostInput,
+  by: string,
+): Promise<SaveResult> {
+  const stored = p.status === "draft" ? "draft" : "published";
+  const values = [
+    p.slug, p.title, p.seoTitle, p.description, p.excerpt, p.topic, JSON.stringify(p.tags), p.cover,
+    JSON.stringify(p.body), stored, p.publishedAt, p.canonical, p.socialImage, by,
+  ];
+  try {
+    if (!id) {
+      const r = await db.query<{ id: string }>(
+        `INSERT INTO blog_posts (slug, title, seo_title, description, excerpt, topic, tags, cover, body,
+                                 status, published_at, canonical, social_image, saved_by, saved_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7::JSONB, $8, $9::JSONB, $10, $11, $12, $13, $14, now())
+         RETURNING id`,
+        values,
+      );
+      return { ok: true, id: r.rows[0].id, slug: p.slug, previousSlug: null };
+    }
+    const before = await db.query<{ slug: string; status: string; published_at: Date | null }>(
+      "SELECT slug, status, published_at FROM blog_posts WHERE id = $1", [id],
+    );
+    const was = before.rows[0];
+    if (!was) return { ok: false, reason: "missing" };
+    const wasLive = was.status === "published" && !!was.published_at && new Date(was.published_at) <= new Date();
+    /* A live post's address is in search results, feeds and other people's
+       links. Changing it would turn every one of those into a 404. */
+    if (wasLive && was.slug !== p.slug) return { ok: false, reason: "slug-locked" };
+    const touch = p.revised && wasLive && stored === "published";
+    await db.query(
+      `UPDATE blog_posts SET slug = $1, title = $2, seo_title = $3, description = $4, excerpt = $5,
+              topic = $6, tags = $7::JSONB, cover = $8, body = $9::JSONB, status = $10,
+              published_at = $11, canonical = $12, social_image = $13, saved_by = $14, saved_at = now()
+              ${touch ? ", updated_at = now()" : ""}
+       WHERE id = $15`,
+      [...values, id],
+    );
+    return { ok: true, id, slug: p.slug, previousSlug: was.slug !== p.slug ? was.slug : null };
+  } catch (error) {
+    /* 23505 is a unique violation, and the only unique column is the slug. */
+    if ((error as { code?: string }).code === "23505") return { ok: false, reason: "slug-taken" };
+    throw error;
+  }
 }
