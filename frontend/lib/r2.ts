@@ -122,6 +122,18 @@ export function uploadKey(draftId: string, filename: string) {
 }
 
 /**
+ * A media library key, dated so the bucket stays browsable by month. The
+ * extension comes from the server's own table (see `lib/media-validate.ts`),
+ * never from the filename directly.
+ */
+export function mediaKey(ext: string, at = new Date()) {
+  const month = String(at.getUTCMonth() + 1).padStart(2, "0");
+  const stamp = at.getTime().toString(36);
+  const rand = Math.random().toString(36).slice(2, 10).padEnd(6, "0");
+  return `media/${at.getUTCFullYear()}/${month}/${stamp}-${rand}.${ext}`;
+}
+
+/**
  * A presigned request, good for `expiresIn` seconds.
  *
  * `contentType` is signed, which means the caller must send exactly that type
@@ -129,7 +141,7 @@ export function uploadKey(draftId: string, filename: string) {
  * uploading one PNG, not "anything at all to this key". `method` defaults to
  * PUT, which is every real upload; DELETE exists for `probeWrite` below,
  * which cleans up after the tiny object it writes to prove the credentials
- * actually can.
+ * actually can; HEAD is `headObject`, which asks what actually arrived.
  */
 export function presignRequest({
   config,
@@ -139,7 +151,7 @@ export function presignRequest({
   expiresIn = 300,
 }: {
   config: R2Config;
-  method?: "PUT" | "DELETE";
+  method?: "PUT" | "DELETE" | "HEAD";
   key: string;
   contentType: string;
   expiresIn?: number;
@@ -208,6 +220,43 @@ export function presignPut(args: {
   expiresIn?: number;
 }) {
   return presignRequest({ ...args, method: "PUT" });
+}
+
+/**
+ * WHAT ACTUALLY ARRIVED, asked of the bucket rather than the browser.
+ *
+ * A browser that says "I uploaded 2MB of PNG" is describing what it meant to
+ * do. R2 knows what it stored. Recording the second is what lets a row be
+ * trusted: the size is R2's Content-Length, and a key nobody uploaded to
+ * answers 404 and is never recorded at all.
+ */
+export async function headObject({
+  config, key, timeoutMs = 6000,
+}: {
+  config: R2Config;
+  key: string;
+  timeoutMs?: number;
+}): Promise<{ ok: true; bytes: number; contentType: string } | { ok: false; status: number }> {
+  /* The signature covers a content-type header, so one is sent; R2 ignores it
+     on a HEAD and answers with the stored object's own type. */
+  const contentType = "application/octet-stream";
+  const head = presignRequest({ config, method: "HEAD", key, contentType, expiresIn: 60 });
+  try {
+    const res = await fetch(head.url, {
+      method: "HEAD",
+      headers: { "content-type": contentType },
+      signal: AbortSignal.timeout(timeoutMs),
+      cache: "no-store",
+    });
+    if (!res.ok) return { ok: false, status: res.status };
+    return {
+      ok: true,
+      bytes: Number(res.headers.get("content-length") ?? -1),
+      contentType: res.headers.get("content-type") ?? "",
+    };
+  } catch {
+    return { ok: false, status: 0 };
+  }
 }
 
 /**
