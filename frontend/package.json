@@ -26,6 +26,11 @@
     "check:brand-kit": "node --experimental-strip-types scripts/check-brand-kit.mjs"
   },
   "dependencies": {
+    "@tiptap/extension-image": "^3.31.3",
+    "@tiptap/extension-placeholder": "^3.31.3",
+    "@tiptap/pm": "^3.31.3",
+    "@tiptap/react": "^3.31.3",
+    "@tiptap/starter-kit": "^3.31.3",
     "better-auth": "^1.7.4",
     "boneyard-js": "^1.10.0",
     "drizzle-orm": "^0.45.2",

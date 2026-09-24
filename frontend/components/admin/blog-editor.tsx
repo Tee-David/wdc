@@ -1,48 +1,22 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { ArrowDown, ArrowUp, Eye, Plus, Save, Trash2 } from "lucide-react";
-import type { BlogBlock } from "@/lib/blog";
+import dynamic from "next/dynamic";
+import { Eye, Save } from "lucide-react";
+import { docText, isDoc, type RichDoc } from "@/lib/blog-doc";
 import { saveBlogPost } from "@/lib/admin/blog-actions";
 import { LIMITS } from "@/lib/blog-validate";
-import { Actions, Area, Checks, Field, Fields, Form, Hidden, Radios, Select, Submit } from "./form";
+import { Actions, Area, Checks, Field, Fields, Form, Hidden, Radios, Select, Submit, useFieldError } from "./form";
 
 export type EditorPost = {
   id: string | null;
   slug: string; title: string; seoTitle: string; description: string; excerpt: string;
   topic: string; tags: string[]; cover: string; canonical: string; socialImage: string;
-  body: BlogBlock[];
+  body: RichDoc;
   status: "draft" | "scheduled" | "published";
   publishedAt: string;
   live: boolean;
 };
-
-const KINDS: { value: BlogBlock["kind"]; label: string }[] = [
-  { value: "p", label: "Paragraph" },
-  { value: "h2", label: "Section heading" },
-  { value: "h3", label: "Sub-heading" },
-  { value: "list", label: "Bulleted list" },
-  { value: "quote", label: "Quote" },
-  { value: "callout", label: "Callout" },
-];
-
-function blank(kind: BlogBlock["kind"]): BlogBlock {
-  switch (kind) {
-    case "list": return { kind, items: [""] };
-    case "quote": return { kind, text: "" };
-    case "callout": return { kind, title: "", text: "" };
-    default: return { kind, text: "" };
-  }
-}
-
-/** Re-shape a block into another kind, keeping whatever text it had. */
-function convert(b: BlogBlock, kind: BlogBlock["kind"]): BlogBlock {
-  const words = b.kind === "list" ? b.items.join("\n") : b.text;
-  if (kind === "list") return { kind, items: words.split("\n") };
-  if (kind === "callout") return { kind, title: b.kind === "callout" ? b.title : "", text: words };
-  if (kind === "quote") return { kind, text: words, ...(b.kind === "quote" && b.who ? { who: b.who } : {}) };
-  return { kind, text: words };
-}
 
 /**
  * The live count under a search-result field, read off the real input.
@@ -70,71 +44,40 @@ function Count({ name, min, max }: { name: string; min?: number; max: number }) 
   );
 }
 
-function Blocks({ initial, restore }: { initial: BlogBlock[]; restore: { at: number; blocks: BlogBlock[] } | null }) {
-  const [blocks, setBlocks] = useState<BlogBlock[]>(initial.length ? initial : [blank("p")]);
-  /* A restore from the browser's copy replaces the list once, on request. */
+/**
+ * The body field: the rich-text editor, loaded on this page only and after the
+ * rest of the form, with a box the editor's size standing in until it arrives.
+ * The hidden input is here rather than inside the editor, so a save pressed
+ * before the editor has loaded still sends the body it was given.
+ */
+const RichTextEditor = dynamic(() => import("./rich-text-editor"), {
+  ssr: false,
+  loading: () => <div className="adRte adRte--loading" aria-hidden="true" />,
+});
+
+function Body({ initial, restore }: { initial: RichDoc; restore: { at: number; doc: RichDoc } | null }) {
+  const [doc, setDoc] = useState<RichDoc>(initial);
+  /* A restore from the browser's copy remounts the editor with that copy. */
   const [seen, setSeen] = useState(0);
   if (restore && restore.at !== seen) {
     setSeen(restore.at);
-    setBlocks(restore.blocks.length ? restore.blocks : [blank("p")]);
+    setDoc(restore.doc);
   }
   const id = useId();
-  const set = (i: number, b: BlogBlock) => setBlocks((all) => all.map((x, j) => (j === i ? b : x)));
-  const move = (i: number, by: number) => setBlocks((all) => {
-    const next = [...all];
-    const [b] = next.splice(i, 1);
-    next.splice(i + by, 0, b);
-    return next;
-  });
-
+  const error = useFieldError("body");
   return (
-    <fieldset className="adBlog__blocks" aria-describedby={`${id}-h`}>
-      <legend className="ad__fl">Body</legend>
+    <div className="adBlog__body">
+      <span className="ad__fl" id={`${id}-l`}>Body<b aria-hidden="true"> *</b></span>
       <small className="ad__fh" id={`${id}-h`}>
-        One block at a time. The post&apos;s headline is its title above, so sections start at &ldquo;Section heading&rdquo;.
+        The headline above is the page&apos;s title, so start sections with Heading and use Subheading inside them.
       </small>
-      <Hidden name="body" value={JSON.stringify(blocks)} />
-      <ol className="adBlog__list">
-        {blocks.map((b, i) => (
-          <li key={i} className="adBlog__block">
-            <div className="adBlog__blockBar">
-              <label className="ad__sr" htmlFor={`${id}-k${i}`}>Block {i + 1} type</label>
-              <select id={`${id}-k${i}`} value={b.kind} onChange={(e) => set(i, convert(b, e.target.value as BlogBlock["kind"]))}>
-                {KINDS.map((k) => <option key={k.value} value={k.value}>{k.label}</option>)}
-              </select>
-              <span className="adBlog__tools">
-                <button type="button" className="ad__btn" onClick={() => move(i, -1)} disabled={i === 0} aria-label={`Move block ${i + 1} up`}><ArrowUp aria-hidden="true" /></button>
-                <button type="button" className="ad__btn" onClick={() => move(i, 1)} disabled={i === blocks.length - 1} aria-label={`Move block ${i + 1} down`}><ArrowDown aria-hidden="true" /></button>
-                <button type="button" className="ad__btn" onClick={() => setBlocks((all) => all.filter((_, j) => j !== i))} disabled={blocks.length === 1} aria-label={`Remove block ${i + 1}`}><Trash2 aria-hidden="true" /></button>
-              </span>
-            </div>
-            {b.kind === "callout" ? (
-              <input aria-label={`Block ${i + 1} callout title`} placeholder="The claim, in a few words" value={b.title}
-                     onChange={(e) => set(i, { ...b, title: e.target.value })} />
-            ) : null}
-            {b.kind === "list" ? (
-              <textarea aria-label={`Block ${i + 1} list, one item per line`} rows={Math.max(3, b.items.length)}
-                        placeholder="One item per line" value={b.items.join("\n")}
-                        onChange={(e) => set(i, { kind: "list", items: e.target.value.split("\n") })} />
-            ) : (
-              <textarea aria-label={`Block ${i + 1} text`} rows={b.kind === "h2" || b.kind === "h3" ? 1 : 4}
-                        value={b.text} onChange={(e) => set(i, { ...b, text: e.target.value } as BlogBlock)} />
-            )}
-            {b.kind === "quote" ? (
-              <input aria-label={`Block ${i + 1} quote attribution`} placeholder="Who said it (optional)" value={b.who ?? ""}
-                     onChange={(e) => set(i, { ...b, who: e.target.value })} />
-            ) : null}
-          </li>
-        ))}
-      </ol>
-      <div className="adBlog__add">
-        {KINDS.map((k) => (
-          <button type="button" key={k.value} className="ad__btn" onClick={() => setBlocks((all) => [...all, blank(k.value)])}>
-            <Plus aria-hidden="true" /> {k.label}
-          </button>
-        ))}
-      </div>
-    </fieldset>
+      <Hidden name="body" value={JSON.stringify(doc)} />
+      <RichTextEditor
+        key={seen} initial={doc} onChange={setDoc}
+        labelledBy={`${id}-l`} describedBy={error ? `${id}-h ${id}-e` : `${id}-h`} invalid={Boolean(error)}
+      />
+      {error ? <small className="ad__fe" id={`${id}-e`}>{error}</small> : null}
+    </div>
   );
 }
 
@@ -202,12 +145,12 @@ function SlugFollowsTitle({ locked }: { locked: boolean }) {
   return <span ref={ref} hidden />;
 }
 
-/* Empty blocks carry no writing, so they do not make a copy worth offering. */
+/* An empty body carries no writing, so it does not make a copy worth offering. */
 const bodyText = (json: string) => {
   try {
-    const blocks = JSON.parse(json || "[]") as BlogBlock[];
-    return JSON.stringify(blocks.filter((b) => (b.kind === "list" ? b.items.join("") : b.kind === "callout" ? b.title + b.text : b.text).trim()));
-  } catch { return "[]"; }
+    const doc = JSON.parse(json || "null");
+    return isDoc(doc) && docText(doc).trim() ? JSON.stringify(doc) : "";
+  } catch { return ""; }
 };
 
 const BACKUP_FIELDS = ["title", "slug", "topic", "excerpt", "tags", "cover", "seoTitle", "description", "canonical", "socialImage", "publishedAt"];
@@ -245,7 +188,7 @@ function useBackup(key: string, formRef: React.RefObject<HTMLDivElement | null>,
         for (const n of BACKUP_FIELDS) {
           data[n] = form.querySelector<HTMLInputElement>(`[name="${n}"]`)?.value ?? "";
         }
-        data.body = bodyText(form.querySelector<HTMLInputElement>('[name="body"]')?.value ?? "[]");
+        data.body = bodyText(form.querySelector<HTMLInputElement>('[name="body"]')?.value ?? "");
         const json = JSON.stringify(data);
         try {
           if (json === saved) localStorage.removeItem(key);
@@ -274,7 +217,7 @@ export function BlogEditor({ post, topics, covers }: {
     socialImage: post.socialImage, publishedAt: post.publishedAt, body: bodyText(JSON.stringify(post.body)),
   });
   const backup = useBackup(key, anchor, savedSnapshot);
-  const [restore, setRestore] = useState<{ at: number; blocks: BlogBlock[] } | null>(null);
+  const [restore, setRestore] = useState<{ at: number; doc: RichDoc } | null>(null);
 
   const doRestore = () => {
     const form = anchor.current?.closest("form");
@@ -283,7 +226,10 @@ export function BlogEditor({ post, topics, covers }: {
       const el = form.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(`[name="${n}"]`);
       if (el && typeof backup.offer[n] === "string") el.value = backup.offer[n];
     }
-    try { setRestore({ at: Date.now(), blocks: JSON.parse(backup.offer.body || "[]") }); } catch { /* keep the blocks */ }
+    try {
+      const doc = JSON.parse(backup.offer.body || "null");
+      if (isDoc(doc)) setRestore({ at: Date.now(), doc });
+    } catch { /* keep the body as it is */ }
     form.dispatchEvent(new Event("input", { bubbles: true }));
     backup.dismiss();
   };
@@ -310,7 +256,7 @@ export function BlogEditor({ post, topics, covers }: {
             <Field name="title" label="Headline" required defaultValue={post.title} hint="The page's one h1." />
             <Area name="excerpt" label="Card sentence" required rows={2} defaultValue={post.excerpt} hint="One sentence on the blog index and in link previews." />
           </Fields>
-          <Blocks initial={post.body} restore={restore} />
+          <Body initial={post.body} restore={restore} />
         </section>
       </div>
 

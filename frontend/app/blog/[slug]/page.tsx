@@ -8,11 +8,13 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import JsonLd from "@/components/seo/json-ld";
 import PageEnd from "@/components/ui/page-end";
 import BlogToc from "@/components/blog/toc";
+import { headingId, RichBody } from "@/components/blog/rich-body";
 import {
   BLOG_POSTS, formatDate, readingMinutes,
   type BlogBlock, type BlogPost,
 } from "@/lib/blog";
 import { postBySlugDb, postForPreview, relatedPostsDb } from "@/lib/blog-db";
+import { docHeadings, isDoc } from "@/lib/blog-doc";
 import { owner } from "@/lib/admin/guard";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
@@ -85,14 +87,15 @@ export async function generateMetadata(
  * heading that no longer exists is worse than no contents at all. The same
  * function builds the link and the target, so they cannot disagree.
  */
-const headingId = (text: string) =>
-  text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
+/* Shared with the editor-post renderer, so both kinds of post anchor alike. */
 
 /** Only h2 and h3 are navigable landmarks; nothing else gets an id. */
 const outlineOf = (post: BlogPost) =>
-  post.body
-    .filter((b): b is Extract<BlogBlock, { kind: "h2" | "h3" }> => b.kind === "h2" || b.kind === "h3")
-    .map((b) => ({ id: headingId(b.text), text: b.text, sub: b.kind === "h3" }));
+  isDoc(post.body)
+    ? docHeadings(post.body).map((h) => ({ id: headingId(h.text), text: h.text, sub: h.level === 3 }))
+    : post.body
+      .filter((b): b is Extract<BlogBlock, { kind: "h2" | "h3" }> => b.kind === "h2" || b.kind === "h3")
+      .map((b) => ({ id: headingId(b.text), text: b.text, sub: b.kind === "h3" }));
 
 /** One block, one element. Headings stay h2/h3 so the outline never breaks. */
 function Block({ block }: { block: BlogBlock }) {
@@ -260,9 +263,11 @@ export default async function BlogPostPage(
 
               <article className="bl-post">
                 <div className="bl-body">
-                  {post.body.map((block, i) => (
-                    <Block key={`${block.kind}-${i}`} block={block} />
-                  ))}
+                  {isDoc(post.body)
+                    ? <RichBody doc={post.body} />
+                    : post.body.map((block, i) => (
+                      <Block key={`${block.kind}-${i}`} block={block} />
+                    ))}
                 </div>
 
                 <ul className="bl-tags" aria-label="Topics">
