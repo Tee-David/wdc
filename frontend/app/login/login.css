@@ -564,28 +564,32 @@
 
 /* THE CODE: one real input over six drawn boxes.
 
-   Royal blue is input activity and brand orange is success, the orb's own
-   success colour, so the tick in the card and the orb lighting up above it
-   are one moment. Each box is a ring (the box's own background) with a face
-   laid over it 1.5px in, which is what lets a light travel round the ring:
-   a conic streak rotating behind the face shows only at the edge. */
+   Typing is lit in the ground's own accent: orange on paper, white on the
+   dark theme. Success is blue in both, so the moment the code is accepted
+   reads as a change of state, not more of the same light. Each box is a ring
+   (the box's own background) with a face laid over it 1.5px in, which is
+   what lets a light travel round the ring: a conic streak rotating behind
+   the face shows only at the edge. */
 .au-code {
   --code-gap: 8px;
-  --code-hot: #3b3bff;
-  --code-glow: 59 59 255;
-  --code-streak: #c3c5ff;
+  /* The ring is a shade under the brand orange so it holds 3:1 on white
+     (3.35 against #ff6500's 2.95); the glow around it is the brand orange. */
+  --code-hot: #f05d00;
+  --code-glow: 255 101 0;
+  --code-streak: #ffd3b3;
   --code-caret: var(--au-navy);
-  --code-bright: #2323c8;
-  --code-sweep: rgb(59 59 255 / .16);
-  --code-win: 255 101 0;
+  --code-bright: var(--foreground);
+  --code-sweep: rgb(255 101 0 / .16);
+  --code-win: 59 59 255;
 }
 .dark .au-code {
-  --code-hot: #8a8eff;
-  --code-glow: 123 127 255;
-  --code-streak: #ffffff;
-  --code-caret: #d9dbff;
+  --code-hot: #ffffff;
+  --code-glow: 255 255 255;
+  --code-streak: #9ea1ff;
+  --code-caret: #ffffff;
   --code-bright: #ffffff;
   --code-sweep: rgb(255 255 255 / .22);
+  --code-win: 123 127 255;
 }
 .au-code > label { transition: opacity .3s var(--au-ease); }
 .au-code__row { position: relative; }
@@ -743,6 +747,10 @@
   opacity: 0;
   transform: scale(.2);
   animation: au-halo .62s cubic-bezier(.2, .8, .2, 1) .18s forwards, au-flare .5s ease-out 1.3s;
+}
+.dark .au-code__halo {
+  /* Blue on navy needs more strength than blue on paper to read as light. */
+  background: radial-gradient(closest-side, rgb(var(--code-win) / .5), rgb(var(--code-win) / .18) 55%, rgb(var(--code-win) / 0));
 }
 .au-code__ripple {
   position: absolute;

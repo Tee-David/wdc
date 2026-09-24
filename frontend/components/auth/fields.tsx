@@ -237,7 +237,7 @@ const LAST_DIGIT_HOLD_MS = 250;
  *   entry     typing: the active box is lit and a light carries focus along
  *   checking  all six brighten and a light sweeps the row while we ask
  *   refused   red, a shake, and the parent clears it
- *   verified  the boxes let go of the digits, which fold into an orange
+ *   verified  the boxes let go of the digits, which fold into a blue
  *             glow, and a tick is drawn where they were
  */
 export type CodePhase = "entry" | "checking" | "refused" | "verified";
@@ -250,8 +250,9 @@ export type CodePhase = "entry" | "checking" | "refused" | "verified";
  * drawing of that value underneath it. Six separate inputs break every one of
  * those.
  *
- * THE MOTION SAYS WHERE THE NEXT DIGIT GOES. Blue is input, orange is
- * success, red is refusal, and nothing else moves. The orb reads along: its
+ * THE MOTION SAYS WHERE THE NEXT DIGIT GOES. Input is lit orange on paper
+ * and white on the dark theme, success is blue in both, refusal is red, and
+ * nothing else moves. The orb reads along: its
  * gaze follows the lit box, so the light in the row and the eyes above it
  * are telling the same story. Every animation is transform or opacity bar a
  * 220ms blur on a digit landing and the tick's stroke being drawn, and all of
@@ -383,7 +384,7 @@ export const CodeField = forwardRef<
    clockwise, so its outline draws the way a hand would. */
 const TILE = "M32 3H44A17 17 0 0 1 61 20V44A17 17 0 0 1 44 61H20A17 17 0 0 1 3 44V20A17 17 0 0 1 20 3Z";
 
-/** The tick that replaces the code: a navy tile, its orange edge drawn round it, then the check. */
+/** The tick that replaces the code: a navy tile, its blue edge drawn round it, then the check. */
 function VerifiedMark() {
   return (
     <span className="au-code__mark" aria-hidden="true">
