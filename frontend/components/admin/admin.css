@@ -348,7 +348,13 @@
 /* WRAPPED, ALWAYS. A table is the one thing allowed to be wider than the page,
    and only inside its own scroller: the body itself must never scroll
    sideways. */
+/* POSITIONED, so it is the containing block for what is inside it. The
+   visually hidden labels in a row's actions (`.ad__sr`) are absolute; with no
+   positioned ancestor inside the scroller they escaped it, landed at the far
+   end of a 1100px table, and the phone zoomed the whole dashboard out to fit
+   them: the money page drew in the left third of the screen. */
 .ad__scroll {
+  position: relative;
   width: 100%; max-width: 100%; min-width: 0; overflow-x: auto;
   overscroll-behavior-inline: contain;
 }

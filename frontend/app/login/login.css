@@ -333,6 +333,23 @@
 .lx__step[data-dir="-1"] { --from: -16px; }
 @keyframes lx-in { from { opacity: 0; transform: translateX(var(--from)); } }
 
+/* A RIGHT CODE TAKES THE SCREEN WITH IT. Everything but the code fades up
+   and out while the code folds into its tick; the new heading and line take
+   the old ones' place. Opacity only, so the card keeps its height and the
+   tick lands exactly where the boxes were. */
+.lx__step { position: relative; }
+.lx__step[data-code="verified"] > :not(.lx__form):not(.lx__verified) {
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity .38s var(--au-ease), transform .38s var(--au-ease);
+}
+.lx__verified { position: absolute; inset: 0 0 auto; }
+.lx__verified p { margin: 0; }
+.lx__verifiedTitle { animation: lx-rise .34s var(--au-ease) .42s both; }
+.lx__verifiedSub { animation: lx-rise .34s var(--au-ease) .54s both; }
+@keyframes lx-rise { from { opacity: 0; transform: translateY(6px); } }
+
 .lx__heading {
   margin: 0;
   font: 600 30px/1.1 var(--au-display);
@@ -545,35 +562,222 @@
 .au-msg--error { color: var(--au-error); }
 .au-msg--hint { color: var(--accent-ink); font-weight: 500; }
 
-/* The code: one real input over six drawn boxes. */
+/* THE CODE: one real input over six drawn boxes.
+
+   Royal blue is input activity and brand orange is success, the orb's own
+   success colour, so the tick in the card and the orb lighting up above it
+   are one moment. Each box is a ring (the box's own background) with a face
+   laid over it 1.5px in, which is what lets a light travel round the ring:
+   a conic streak rotating behind the face shows only at the edge. */
+.au-code {
+  --code-gap: 8px;
+  --code-hot: #3b3bff;
+  --code-glow: 59 59 255;
+  --code-streak: #c3c5ff;
+  --code-caret: var(--au-navy);
+  --code-bright: #2323c8;
+  --code-sweep: rgb(59 59 255 / .16);
+  --code-win: 255 101 0;
+}
+.dark .au-code {
+  --code-hot: #8a8eff;
+  --code-glow: 123 127 255;
+  --code-streak: #ffffff;
+  --code-caret: #d9dbff;
+  --code-bright: #ffffff;
+  --code-sweep: rgb(255 255 255 / .22);
+}
+.au-code > label { transition: opacity .3s var(--au-ease); }
 .au-code__row { position: relative; }
-.au-code__boxes { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.au-code__boxes {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--code-gap);
+}
 .au-code__box {
   position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: grid;
   place-items: center;
   height: 56px;
-  border: 1.5px solid var(--au-border);
   border-radius: 12px;
-  background: var(--au-field);
+  background: var(--au-border);
+  color: var(--foreground);
   font: 600 24px var(--au-display);
   font-variant-numeric: tabular-nums;
-  transition: border-color .15s var(--au-ease), box-shadow .15s var(--au-ease);
+  transition: background-color .2s var(--au-ease), box-shadow .25s var(--au-ease);
 }
-.au-code__box.is-filled { border-color: var(--au-border-strong); }
-.au-code__box.is-active { border-color: var(--au-edge); box-shadow: 0 0 0 3px var(--au-focus); }
-.au-code__box.is-active:not(.is-filled)::after {
+/* The streak that runs round a lit ring. */
+.au-code__box::before {
   content: "";
-  width: 2px;
-  height: 24px;
-  background: var(--foreground);
-  animation: au-caret 1s steps(1) infinite;
+  position: absolute;
+  inset: -60%;
+  z-index: -2;
+  background: conic-gradient(from 0deg, transparent 0 58%, var(--code-streak) 70%, transparent 80% 100%);
+  opacity: 0;
+  transition: opacity .2s var(--au-ease);
 }
-.au-code[data-state="valid"] .au-code__box { border-color: var(--au-valid); }
-.au-code[data-state="invalid"] .au-code__box { border-color: var(--au-error); }
+/* The face. */
+.au-code__box::after {
+  content: "";
+  position: absolute;
+  inset: 1.5px;
+  z-index: -1;
+  border-radius: 10.5px;
+  background: var(--au-field);
+  transition: opacity .25s var(--au-ease);
+}
+.au-code__glow {
+  position: absolute;
+  inset: 1.5px;
+  z-index: -1;
+  border-radius: 10.5px;
+  background: radial-gradient(closest-side, rgb(var(--code-glow) / .26), rgb(var(--code-glow) / 0));
+  opacity: 0;
+  transform: scale(.55);
+  transition: opacity .22s var(--au-ease), transform .22s var(--au-ease);
+}
+.au-code__digit, .au-code__caret { grid-area: 1 / 1; }
+.au-code__digit { animation: au-digit .22s cubic-bezier(.2, .8, .2, 1) both; transition: color .2s var(--au-ease); }
+.au-code__caret { width: 2px; height: 24px; border-radius: 1px; background: var(--code-caret); opacity: 0; }
+
+.au-code__box.is-filled { background: var(--au-border-strong); }
+.au-code__box.is-active {
+  background: var(--code-hot);
+  box-shadow: 0 0 0 3px rgb(var(--code-glow) / .14), 0 8px 24px -8px rgb(var(--code-glow) / .7);
+}
+.au-code__box.is-active::before { opacity: 1; animation: au-orbit 2.8s linear infinite; }
+/* The light arrives, swells, and settles into a slow breath. */
+.au-code__box.is-active .au-code__glow {
+  opacity: 1;
+  transform: none;
+  animation: au-arrive .32s var(--au-ease), au-breathe 2.4s ease-in-out .32s infinite;
+}
+.au-code__box.is-active:not(.is-filled) .au-code__caret { animation: au-caret 1.05s linear .12s infinite; }
+.au-code[data-state="invalid"] .au-code__box { background: var(--au-error); }
+
+/* Focus is carried from box to box by this light, behind the faces, so it
+   shows in the gaps and at the edges as it crosses. */
+.au-code__light {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc((100% - 5 * var(--code-gap)) / 6);
+  height: 100%;
+  pointer-events: none;
+  transform: translateX(calc(var(--i, 0) * (100% + var(--code-gap))));
+  transition: transform .28s cubic-bezier(.2, .8, .2, 1);
+}
+/* No more than a quarter of a box past either end: at the last box it would
+   otherwise reach past a 320px screen, and even at opacity 0 that widens the
+   page. */
+.au-code__light i {
+  position: absolute;
+  inset: -22% -25%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(var(--code-glow) / .75), rgb(var(--code-glow) / 0));
+  opacity: 0;
+}
+
+/* Checking: every box lit, every digit brighter, a light across the row. */
+.au-code__sweep {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  border-radius: 12px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .2s var(--au-ease);
+}
+.au-code__sweep i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 35%;
+  background: linear-gradient(100deg, transparent, var(--code-sweep), transparent);
+  transform: translateX(-120%);
+}
+.au-code[data-phase="checking"] .au-code__box { background: var(--code-hot); }
+.au-code[data-phase="checking"] .au-code__digit { color: var(--code-bright); }
+.au-code[data-phase="checking"] .au-code__sweep { opacity: 1; }
+.au-code[data-phase="checking"] .au-code__sweep i { animation: au-sweep 1.2s cubic-bezier(.45, 0, .2, 1) infinite; }
+
+/* Refused: red, and the row shakes its head with the orb. */
+.au-code[data-phase="refused"] .au-code__box { background: var(--au-error); }
+.au-code[data-phase="refused"] .au-code__digit { color: var(--au-error); }
+.au-code[data-phase="refused"] .au-code__boxes { animation: au-no .42s ease-out; }
+
+/* Verified: the rings go, the digits stay a moment, then fold into the
+   middle as an orange glow grows behind them. */
+.au-code[data-phase="verified"] > label { opacity: 0; }
+.au-code[data-phase="verified"] .au-code__box {
+  background-color: transparent;
+  box-shadow: none;
+  animation: au-absorb .42s cubic-bezier(.55, 0, .75, .2) .26s forwards;
+}
+.au-code[data-phase="verified"] .au-code__box::after { opacity: 0; }
+.au-code[data-phase="verified"] .au-code__digit { color: var(--code-bright); }
+
+.au-code__mark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  width: 64px;
+  height: 64px;
+  margin: -32px 0 0 -32px;
+  pointer-events: none;
+}
+.au-code__halo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 280px;
+  height: 200px;
+  margin: -100px 0 0 -140px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(var(--code-win) / .34), rgb(var(--code-win) / .12) 55%, rgb(var(--code-win) / 0));
+  opacity: 0;
+  transform: scale(.2);
+  animation: au-halo .62s cubic-bezier(.2, .8, .2, 1) .18s forwards, au-flare .5s ease-out 1.3s;
+}
+.au-code__ripple {
+  position: absolute;
+  inset: 0;
+  border: 1.5px solid rgb(var(--code-win) / .6);
+  border-radius: 20px;
+  opacity: 0;
+  animation: au-ripple .75s cubic-bezier(.2, .8, .2, 1) 1.3s;
+}
+.au-code__ripple--late { animation-delay: 1.46s; }
+.au-code__tile {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  opacity: 0;
+  transform: scale(.6);
+  animation: au-tile-in .28s cubic-bezier(.2, .8, .2, 1) .62s forwards, au-bounce .34s cubic-bezier(.34, 1.56, .64, 1) 1.34s;
+}
+.au-code__tileFill { fill: var(--au-navy); }
+.au-code__tileEdge, .au-code__tick {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+}
+.au-code__tileEdge { stroke: rgb(var(--code-win)); stroke-width: 2.5; animation: au-draw .42s cubic-bezier(.65, 0, .35, 1) .7s forwards; }
+.au-code__tick { stroke: #fff; stroke-width: 4; animation: au-draw .26s cubic-bezier(.65, 0, .35, 1) 1.12s forwards; }
+
 .au-code__input {
   position: absolute;
   inset: 0;
+  z-index: 3;
   width: 100%;
   height: 100%;
   border: 0;
@@ -587,7 +791,24 @@
   cursor: text;
 }
 .au-code__input::selection { background: transparent; }
-@keyframes au-caret { 50% { opacity: 0; } }
+@keyframes au-digit {
+  0% { opacity: 0; transform: scale(.75); filter: blur(5px); }
+  60% { opacity: 1; transform: scale(1.08); filter: blur(0); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+@keyframes au-caret { 0% { opacity: 0; } 12%, 50% { opacity: 1; } 62%, 100% { opacity: 0; } }
+@keyframes au-orbit { to { transform: rotate(1turn); } }
+@keyframes au-arrive { 0% { opacity: 0; transform: scale(.4); } 60% { opacity: 1; transform: scale(1.14); } 100% { opacity: 1; transform: none; } }
+@keyframes au-breathe { 0%, 100% { opacity: 1; transform: none; } 50% { opacity: .6; transform: scale(.9); } }
+@keyframes au-sweep { to { transform: translateX(400%); } }
+@keyframes au-no { 20% { transform: translateX(-8px); } 40% { transform: translateX(7px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(2px); } }
+@keyframes au-absorb { to { opacity: 0; transform: translateX(calc(var(--k) * -1 * (100% + var(--code-gap)))) scale(.5); filter: blur(4px); } }
+@keyframes au-halo { to { opacity: 1; transform: none; } }
+@keyframes au-flare { 0%, 100% { opacity: 1; transform: none; } 40% { opacity: 1; transform: scale(1.14); } }
+@keyframes au-ripple { 0% { opacity: .8; transform: scale(1); } 100% { opacity: 0; transform: scale(1.9); } }
+@keyframes au-tile-in { to { opacity: 1; transform: none; } }
+@keyframes au-bounce { 0%, 100% { transform: none; } 45% { transform: scale(1.08); } }
+@keyframes au-draw { to { stroke-dashoffset: 0; } }
 
 /* ------------------------------------------------------------ buttons */
 
@@ -832,7 +1053,7 @@
 
 @media (max-width: 359.98px) {
   .au__panel { padding-left: 16px; padding-right: 16px; }
-  .au-code__boxes { gap: 6px; }
+  .au-code { --code-gap: 6px; }
   .au-code__box { height: 50px; font-size: 21px; }
 }
 
@@ -852,7 +1073,19 @@
   .orb__ring[data-mode="complete"], .orb__ring[data-mode="drain"] .orb__arc { animation: none; transition: none; }
   .au-btn, .au-btn--primary[data-awake="true"] { transition: none; animation: none; }
   .au-btn:active { transform: none; }
-  .au-code__box.is-active:not(.is-filled)::after { animation: none; }
+  /* The code keeps every state and loses the travel: no light carried or
+     swept, no orbit, no pop, no fold. The tick is simply there. */
+  .au-code__light, .au-code__sweep, .au-code__box::before, .au-code__ripple { display: none; }
+  .au-code__digit, .au-code__glow, .au-code__boxes, .au-code__box.is-active .au-code__glow { animation: none; }
+  .au-code__box.is-active:not(.is-filled) .au-code__caret { animation: none; opacity: 1; }
+  .au-code[data-phase="verified"] .au-code__box { animation: au-hide .2s linear forwards; }
+  .au-code__halo, .au-code__tile { transform: none; }
+  .au-code__halo { animation: au-show .2s linear forwards; }
+  .au-code__tile { animation: au-show .2s linear .1s forwards; }
+  .lx__verifiedTitle, .lx__verifiedSub { animation: lx-fade .2s linear both; }
+  .au-code__tileEdge, .au-code__tick { animation: none; stroke-dashoffset: 0; }
 }
 @keyframes lx-fade { from { opacity: 0; } }
+@keyframes au-show { to { opacity: 1; } }
+@keyframes au-hide { to { opacity: 0; } }
 @keyframes orb-pulse { 50% { opacity: .45; } }
