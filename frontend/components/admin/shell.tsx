@@ -420,7 +420,9 @@ export default function AdminShell({ children, counts = {}, user }: { children: 
       <div className="ad__column">
         <header className="ad__topbar">
           <button type="button" className="ad__topIcon ad__mobileMenu" data-tour="mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Open menu"><Menu aria-hidden="true" /></button>
-          <h1>{active?.label ?? "Admin"}</h1>
+          {/* The section name, not the page's heading: every page renders its own
+              h1, and a second one here made two per page. */}
+          <p className="ad__topTitle">{active?.label ?? "Admin"}</p>
           <button type="button" className="ad__search" data-tour="topbar-search" onClick={() => setCommandOpen(true)}><Search aria-hidden="true" /><span>Search…</span><kbd>Ctrl K</kbd></button>
           <div className="ad__topActions">
             <TourLauncher />

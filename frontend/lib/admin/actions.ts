@@ -466,6 +466,43 @@ export async function removeExpense(_prev: ActionState, fd: FormData): Promise<A
 
 /* ------------------------------------------------------------ onboarding */
 
+/**
+ * A client from a brief sent through the live form.
+ *
+ * IDEMPOTENT BY CONTACT, not by a stored link: if a client with the same
+ * email or phone already exists, the brief is theirs and nothing is created.
+ * A second press, or a second brief from the same person, lands on the same
+ * client.
+ */
+export async function clientFromLiveSubmission(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
+  const { liveSubmission, answer } = await import("@/lib/onboarding-admin");
+  let sub;
+  try { sub = await liveSubmission(str(fd, "id")); } catch { return FAIL({}, "The form could not be read just now. Try again in a minute."); }
+  if (!sub) return FAIL({}, "That form is no longer there.");
+
+  const email = answer(sub, "email");
+  const phone = answer(sub, "phone");
+  const existing = db.findDuplicateClient(email, phone);
+  if (existing) {
+    refresh("/admin/forms", `/admin/forms/${sub.id}`);
+    redirect(`/admin/clients/${existing.id}`);
+  }
+  const name = [answer(sub, "first_name"), answer(sub, "last_name")].filter(Boolean).join(" ");
+  const company = answer(sub, "company");
+  const c = db.addClient({
+    name: name || company || "Unnamed",
+    company: company || name || "Unnamed",
+    email, phone,
+    services: [sub.service],
+    sector: answer(sub, "industry"),
+    notes: `Created from the ${sub.service} onboarding form sent ${sub.submittedAt ? sub.submittedAt.slice(0, 10) : "(not sent yet)"}.`,
+  });
+  refresh("/admin/forms", `/admin/forms/${sub.id}`, "/admin/clients");
+  redirect(`/admin/clients/${c.id}`);
+}
+
 export async function attachSubmission(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const refused = await owner();
   if (refused) return refused;

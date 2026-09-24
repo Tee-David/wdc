@@ -2,7 +2,7 @@
 
 import { UserPlus } from "lucide-react";
 import type { Client } from "@/lib/admin/types";
-import { attachSubmission } from "@/lib/admin/actions";
+import { attachSubmission, clientFromLiveSubmission } from "@/lib/admin/actions";
 import { Actions, Fields, Form, Hidden, Select, Submit } from "./form";
 import { DialogButton } from "./dialog";
 
@@ -42,5 +42,19 @@ export function AttachSubmission({
         </Form>
       )}
     </DialogButton>
+  );
+}
+
+/**
+ * For a brief from the live form: make it a client, or open the one it
+ * already belongs to. Matching is by email or phone on the server, so this
+ * cannot create a second record for somebody already on the books.
+ */
+export function LiveSubmissionClient({ submissionId }: { submissionId: string }) {
+  return (
+    <Form action={clientFromLiveSubmission}>
+      <Hidden name="id" value={submissionId} />
+      <Submit icon={UserPlus}>Make them a client</Submit>
+    </Form>
   );
 }

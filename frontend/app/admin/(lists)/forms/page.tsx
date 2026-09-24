@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { SERVICES } from "@/lib/services";
 import { CORE_STEPS, SERVICE_STEPS, CLOSING_STEPS } from "@/lib/onboarding";
-import { getClient, getClients, getSubmissions } from "@/lib/admin/store";
+import { findDuplicateClient, getClient, getClients, getSubmissions } from "@/lib/admin/store";
+import type { Submission } from "@/lib/admin/types";
+import { answer, liveSubmissions, liveSubmissionsConfigured } from "@/lib/onboarding-admin";
+import { AdminState } from "@/components/admin/admin-state";
 import { DemoNote, Empty, Panel, when } from "@/components/admin/bits";
 import { SubmissionMenu } from "@/components/admin/row-actions";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
@@ -19,7 +22,16 @@ export const metadata = { title: "Forms" };
  * is a demo. What is useful today is seeing every question the form asks in
  * one place, which is what this is.
  */
-export default function FormsPage() {
+async function loadLive(): Promise<{ state: "off" | "error" | "ok"; rows: Submission[] }> {
+  if (!liveSubmissionsConfigured()) return { state: "off", rows: [] };
+  try { return { state: "ok", rows: await liveSubmissions() }; } catch (error) {
+    console.error("Live submissions could not be read", error instanceof Error ? error.message : "unknown error");
+    return { state: "error", rows: [] };
+  }
+}
+
+export default async function FormsPage() {
+  const live = await loadLive();
   const subs = getSubmissions();
   const open = subs.filter((s) => s.status === "In progress");
   const done = subs.filter((s) => s.status === "Submitted");
@@ -52,7 +64,51 @@ export default function FormsPage() {
       </DemoNote>
 
       <div className="ad__stack">
-        <Panel title="Submissions">
+        {/* WHAT CLIENTS ACTUALLY SENT. The panel below is the demonstration
+            list; this one reads the table the public form writes, so a real
+            brief is on this screen the moment it is saved. */}
+        <Panel title="From the live form" dataTour="forms-live">
+          {live.state === "off" ? (
+            <AdminState kind="error" title="The form database is not connected"
+              description="COCKROACHDB_URL is not set, so the live form cannot save and there is nothing to show." />
+          ) : live.state === "error" ? (
+            <AdminState kind="error" title="Live forms could not be loaded"
+              description="The database did not answer. Nothing has been lost; reload in a minute." />
+          ) : live.rows.length ? (
+            <div className="ad__scroll">
+              <table className="ad__t">
+                <thead><tr><th>Who</th><th>Service</th><th>Status</th><th>Started</th><th>Sent</th></tr></thead>
+                <tbody>
+                  {live.rows.map((s) => {
+                    const client = findDuplicateClient(answer(s, "email"), answer(s, "phone"));
+                    const who = answer(s, "company") || [answer(s, "first_name"), answer(s, "last_name")].filter(Boolean).join(" ") || answer(s, "email") || "Not named yet";
+                    return (
+                      <tr key={s.id}>
+                        <td>
+                          <Link href={`/admin/forms/${s.id}`}><b>{who}</b></Link>
+                          <small>{client ? client.company : <span className="ad__dim">Not a client yet</span>}</small>
+                        </td>
+                        <td>{SERVICES.find((x) => x.slug === s.service)?.short}</td>
+                        <td>
+                          <span className={`ad__pill ${s.status === "Submitted" ? "ad__pill--good" : "ad__pill--warn"}`}>{s.status}</span>
+                        </td>
+                        <td className="num">{when(s.startedAt)}</td>
+                        <td className="num">{s.submittedAt ? when(s.submittedAt) : <span className="ad__dim">Not yet</span>}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <Empty title="Nothing from the live form yet"
+              action={<Link className="ad__btn" href="/onboarding" target="_blank">Open the form</Link>}>
+              Briefs clients save or send through /onboarding appear here straight away.
+            </Empty>
+          )}
+        </Panel>
+
+        <Panel title="Submissions (demonstration)">
           {subs.length ? (
             <div className="ad__scroll" data-tour="forms-table">
               <table className="ad__t">

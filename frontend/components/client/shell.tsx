@@ -278,7 +278,9 @@ export default function ClientShell({
       <div className="ad__column">
         <header className="ad__topbar">
           <button type="button" className="ad__topIcon ad__mobileMenu" data-tour="portal-mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Open menu"><Menu aria-hidden="true" /></button>
-          <h1>{active?.label ?? "Portal"}</h1>
+          {/* The section name, not the page's heading: every page renders its own
+              h1, and a second one here made two per page. */}
+          <p className="ad__topTitle">{active?.label ?? "Portal"}</p>
           <div className="ad__topActions">
             <TourLauncher />
             <ThemeButton />

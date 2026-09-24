@@ -3,7 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
 import { stepsFor } from "@/lib/onboarding";
-import { getClient, getClients, getSubmission } from "@/lib/admin/store";
+import { findDuplicateClient, getClient, getClients, getSubmission } from "@/lib/admin/store";
+import type { Submission } from "@/lib/admin/types";
+import { answer, isLiveSubmissionId, liveSubmission } from "@/lib/onboarding-admin";
+import { LiveSubmissionClient } from "@/components/admin/submission-forms";
 import { Empty, Panel, when } from "@/components/admin/bits";
 import { AttachSubmission } from "@/components/admin/submission-forms";
 
@@ -13,9 +16,23 @@ import { AttachSubmission } from "@/components/admin/submission-forms";
 /* See the note beside the same function in clients/[id]/page.tsx. The name
    falls back the same way the page's own `<h1>` does, so the tab and the
    heading never disagree about what to call an unnamed lead. */
+/** A demonstration row from the store, or a live one from the table. */
+async function load(id: string): Promise<{ sub: Submission; live: boolean } | null> {
+  if (isLiveSubmissionId(id)) {
+    try {
+      const sub = await liveSubmission(id);
+      return sub ? { sub, live: true } : null;
+    } catch {
+      return null;
+    }
+  }
+  const sub = getSubmission(id);
+  return sub ? { sub, live: false } : null;
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const sub = getSubmission(id);
+  const sub = (await load(id))?.sub;
   if (!sub) notFound();
   const name = String(sub.answers.company ?? sub.answers.first_name ?? "Unnamed");
   return { title: `${name} · Form` };
@@ -33,9 +50,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
  */
 export default async function SubmissionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const sub = getSubmission(id);
-  if (!sub) notFound();
-  const client = sub.clientId ? getClient(sub.clientId) : null;
+  const found = await load(id);
+  if (!found) notFound();
+  const { sub, live } = found;
+  /* A live brief's client is whoever has its email or phone; see
+     lib/onboarding-admin.ts for why that is derived rather than stored. */
+  const client = live
+    ? findDuplicateClient(answer(sub, "email"), answer(sub, "phone"))
+    : sub.clientId ? getClient(sub.clientId) : null;
   const steps = stepsFor(sub.service);
 
   const shown = (key: string) => sub.answers[key];
@@ -60,7 +82,9 @@ export default async function SubmissionPage({ params }: { params: Promise<{ id:
           <span className={`ad__pill ${sub.status === "Submitted" ? "ad__pill--good" : "ad__pill--warn"}`}>
             {sub.status}
           </span>
-          {client ? null : <AttachSubmission submissionId={sub.id} clients={getClients()} />}
+          {client ? null : live
+            ? <LiveSubmissionClient submissionId={sub.id} />
+            : <AttachSubmission submissionId={sub.id} clients={getClients()} />}
         </div>
       </div>
 
