@@ -750,3 +750,19 @@ html { scroll-padding-top: 88px; }
 @media (prefers-reduced-motion: reduce) {
   .hd-caret { transition: none; }
 }
+
+/* NO ZOOM WHEN A FIELD IS TAPPED ON A PHONE.
+   iOS Safari zooms the page into any field whose text is under 16px, and
+   leaves it zoomed after the keyboard closes. Setting `maximum-scale=1` in the
+   viewport would stop that by also stopping people from zooming at all, which
+   fails WCAG 1.4.4. The honest fix is the one iOS asks for: 16px text in
+   fields on touch screens. `!important` because component rules set smaller
+   sizes with more specific selectors, and this must win over every one of
+   them; desktop and fine pointers keep their designed sizes. */
+@media (pointer: coarse) and (max-width: 1024px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"]):not([type="submit"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
