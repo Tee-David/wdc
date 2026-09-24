@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import * as db from "@/lib/admin/store";
 import { NOTIFY_KINDS, type NotifyKind } from "@/lib/admin/types";
 import { FAIL, OK, str, type ActionState } from "@/lib/admin/validate";
@@ -43,6 +44,14 @@ export async function approveDeliverable(_prev: ActionState, fd: FormData): Prom
   const project = d ? db.getProject(d.projectId) : null;
   if (!d || !project || project.clientId !== client.id) return FAIL({}, "That deliverable is no longer there.");
   db.setApproval(id, "Approved");
+  /* A confirmation of what they agreed to, like a receipt, behind the
+     response. The name is the signed-in person's, not a form field. */
+  const { session } = await getPortalRequest();
+  const signedBy = session?.user?.name?.trim() || client.name;
+  after(async () => {
+    const { sendSignOffConfirmation } = await import("@/lib/project-mail");
+    await sendSignOffConfirmation({ project, deliverable: d, signedBy });
+  });
   revalidatePath(`/portal/projects/${project.id}`);
   revalidatePath("/portal");
   return OK(`${d.name} marked approved.`);
