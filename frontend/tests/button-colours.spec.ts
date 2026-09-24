@@ -109,6 +109,15 @@ async function auditButtons(page: import("@playwright/test").Page, path: string,
   await page.goto(path, { waitUntil: "load" });
   await page.waitForLoadState("networkidle").catch(() => {});
   await page.waitForTimeout(500);
+  /* The sign-in forms' main button rests dimmed (aria-disabled) until there is
+     an address to act on. Measure the button somebody actually presses. */
+  if (/^\/(login|forgot-password)$/.test(path)) {
+    const email = page.locator('input[type="email"]:visible').first();
+    if (await email.count()) {
+      await email.fill("reader@example.com");
+      await page.waitForTimeout(400);
+    }
+  }
 
   return page.evaluate(`(() => {
     const BUTTONS_SELECTOR = ${JSON.stringify(BUTTONS)};
@@ -118,6 +127,9 @@ async function auditButtons(page: import("@playwright/test").Page, path: string,
       const r = el.getBoundingClientRect();
       const cs = getComputedStyle(el);
       if (!r.width || !r.height || cs.visibility === "hidden" || cs.opacity === "0") continue;
+      /* An inactive control is exempt from the contrast rules (WCAG 1.4.3 and
+         1.4.11), and a dimmed resting state is not a third button. */
+      if (el.matches(":disabled, [aria-disabled='true']")) continue;
 
       /* The ground is whatever actually paints behind it, which may be several
          levels up and may reverse the section's own colour. */
