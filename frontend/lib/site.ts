@@ -27,3 +27,16 @@ export const REGISTRATION_NO = "BN 8480926";
 export const REGISTRAR = "Corporate Affairs Commission (CAC), Nigeria";
 export const MOTTO = "Brilliant simplicity of thought";
 export const CONTACT_EMAIL = "info@wedigcreativity.com.ng";
+/** Where the studio is, as the email footer says it. */
+export const LOCATION = "Lagos, Nigeria";
+
+/**
+ * The studio's own profiles, for the email footer's row of marks.
+ *
+ * EMPTY UNTIL THE REAL ADDRESSES ARE ADDED. Nothing in this repo says what
+ * our handles are, and a guessed URL in every email we send is a link to
+ * somebody else's account. The footer draws a mark only for an entry here,
+ * and draws no row at all while the list is empty. Each `network` has a
+ * picture in public/email/ (scripts/build-email-assets.mjs).
+ */
+export const SOCIAL_LINKS: { network: "x" | "linkedin" | "instagram" | "facebook" | "tiktok" | "youtube" | "behance" | "whatsapp"; label: string; url: string }[] = [];

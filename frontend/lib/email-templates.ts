@@ -1,7 +1,7 @@
 import { naira } from "@/lib/admin/types";
 import { qrSvg } from "@/lib/qr";
 import {
-  COMPANY_NAME, CONTACT_EMAIL, REGISTERED_NAME, REGISTRAR, REGISTRATION_NO, SITE_URL,
+  COMPANY_NAME, CONTACT_EMAIL, LOCATION, REGISTERED_NAME, REGISTRAR, REGISTRATION_NO, SITE_URL, SOCIAL_LINKS,
 } from "@/lib/site";
 
 /**
@@ -36,10 +36,10 @@ import {
  * plain reply -- and it is the version a watch, a screen reader and a
  * text-only client actually get.
  *
- * WHY BLACK LABELS ON THE ORANGE BUTTON. The same measurement that governs the
- * site: white on #ff6500 is 2.95:1 and fails even the 3:1 WCAG allows large
- * text, black is 7.11:1. Pinned for the site by tests/button-colours.spec.ts
- * and for these by tests/email-templates.spec.ts.
+ * WHY THE BUTTON IS A DEEPER ORANGE THAN THE LOGO. The label is white, and
+ * white on #ff6500 measures 2.95:1, which fails AA. #c95000 is the site's own
+ * `--accent-ink`, the orange it already uses wherever orange has to be read,
+ * and white on it is 4.53:1. Pinned by tests/email-templates.spec.ts.
  *
  * NO `server-only` HERE ON PURPOSE. This module builds strings: it holds no
  * credential, opens no connection and reads no environment beyond the public
@@ -51,6 +51,8 @@ import {
 
 const NAVY = "#000065";
 const ORANGE = "#ff6500";
+/** The button's fill: see the note at the top of this file. */
+const ACCENT_INK = "#c95000";
 const INK = "#0e0e2c";
 const MUTED = "#666680";
 const HAIRLINE = "#e7e7ef";
@@ -62,6 +64,9 @@ const CARD = "#ffffff";
    webfont is not an option: Gmail strips `@font-face` outright. */
 const DISPLAY = "'Space Grotesk','Segoe UI',Helvetica,Arial,sans-serif";
 const BODY = "'Outfit','Segoe UI',Helvetica,Arial,sans-serif";
+
+/** Where the pictures live: built by scripts/build-email-assets.mjs. */
+const ASSETS = `${SITE_URL}/email`;
 
 /** The content column. 600px is the width every client renders without help. */
 const WIDTH = 600;
@@ -154,37 +159,25 @@ function small(html: string) {
 }
 
 /**
- * The call to action.
+ * The call to action: full width, orange, white label, the site's arrow.
  *
  * A table with a background on the cell rather than a styled anchor, because
  * Outlook ignores padding on an inline element and would render the button as
- * underlined text on a coloured word. The anchor still fills the cell, so the
- * whole shape is the target -- and it clears 44px, which is the same touch
- * target the site holds itself to.
+ * underlined text on a coloured word. The anchor is a block that fills the
+ * cell, so the whole bar is the target, and it clears 44px.
+ *
+ * THE ARROW IS A PICTURE. Gmail strips inline SVG, so it is lucide's
+ * arrow-right rendered by scripts/build-email-assets.mjs. With images off it
+ * has no alt and simply is not there; the label still says everything.
  */
 function action(label: string, href: string) {
   return (
-    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 20px">` +
-    `<tr><td bgcolor="${ORANGE}" style="border-radius:10px">` +
-    `<a href="${safeUrl(href)}" style="display:inline-block;padding:14px 26px;font-family:${BODY};font-size:16px;` +
-    /* BLACK, measured. See the note at the top of this file. */
-    `font-weight:700;color:#000000;text-decoration:none;border-radius:10px">${escapeHtml(label)}</a>` +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:8px 0 24px">` +
+    `<tr><td bgcolor="${ACCENT_INK}" align="center" style="background:${ACCENT_INK};border-radius:12px">` +
+    `<a href="${safeUrl(href)}" style="display:block;padding:16px 24px;font-family:${BODY};font-size:17px;line-height:22px;` +
+    `font-weight:700;color:#ffffff;text-decoration:none;text-align:center;border-radius:12px">${escapeHtml(label)}` +
+    `&nbsp;&nbsp;<img src="${ASSETS}/arrow-right-white.png" width="18" height="18" alt="" style="display:inline-block;width:18px;height:18px;border:0;vertical-align:-3px"></a>` +
     `</td></tr></table>`
-  );
-}
-
-/**
- * A quiet secondary copy of the link, for a client that ate the button.
- *
- * The visible text is the RESOLVED url, not the one that was passed in. A
- * rejected `javascript:` href that still printed itself as the link's label
- * would be a safe anchor under a line of text telling the reader to paste an
- * attack into their own address bar.
- */
-function fallbackLink(href: string) {
-  return small(
-    `If the button does not work, copy this address into your browser:<br>` +
-    `<a href="${safeUrl(href)}" style="color:${NAVY}">${safeUrl(href)}</a>`,
   );
 }
 
@@ -288,8 +281,7 @@ async function documentQr(requested: string) {
     `<img src="cid:${QR_CID}" width="132" height="132" alt="QR code linking to this document" style="display:block;width:132px;height:132px">` +
     `</td>` +
     `<td style="padding-left:16px;vertical-align:middle">` +
-    `<p style="margin:0;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">Scan to open this document, or use the link.<br>` +
-    `<a href="${safeUrl(url)}" style="color:${NAVY}">${escapeHtml(url)}</a></p>` +
+    `<p style="margin:0;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">Scan to open this document on your phone.</p>` +
     `</td></tr></table>`;
   const attachment: EmailAttachment = {
     filename: "document-qr.svg",
@@ -316,6 +308,29 @@ const LEGAL_LINE =
 const UNSUBSCRIBE_MAILTO = `mailto:${CONTACT_EMAIL}?subject=unsubscribe`;
 
 /**
+ * Where the footer names the person it was sent to. The template does not
+ * know the address; `sendMail()` does, and swaps it in with `addressTo()`.
+ * Anything that renders a template without sending it reads "you".
+ */
+const RECIPIENT_SLOT = `<span data-wdc-recipient>you</span>`;
+
+/** Fills the footer's "sent to" line with the address the message is going to. */
+export function addressTo(html: string, to: string) {
+  return html.replace(RECIPIENT_SLOT, `<span style="color:${INK}">${escapeHtml(to)}</span>`);
+}
+
+/** The footer's row of marks: one per profile in SOCIAL_LINKS, none while it is empty. */
+function socialRow() {
+  if (!SOCIAL_LINKS.length) return "";
+  const cells = SOCIAL_LINKS.map(
+    (link, index) =>
+      `<td style="padding:0 ${index === SOCIAL_LINKS.length - 1 ? 0 : 20}px 0 0">` +
+      `<a href="${safeUrl(link.url)}" style="text-decoration:none"><img src="${ASSETS}/social-${link.network}.png" width="22" height="22" alt="${escapeHtml(link.label)}" style="display:block;width:22px;height:22px;border:0"></a></td>`,
+  ).join("");
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px"><tr>${cells}</tr></table>`;
+}
+
+/**
  * The frame every message in this file shares.
  *
  * `preheader` is the line the inbox shows after the subject. Left unset, a
@@ -323,20 +338,25 @@ const UNSUBSCRIBE_MAILTO = `mailto:${CONTACT_EMAIL}?subject=unsubscribe`;
  * greeting is "Hi Ada," -- a wasted second line in every inbox. The run of
  * zero-width spaces after it is the standard trick that stops Gmail appending
  * the body text to it.
+ *
+ * LIGHT, AND SAFE WHEN A CLIENT DARKENS IT. `color-scheme: light` keeps Apple
+ * Mail from repainting it, but the Gmail and Outlook apps darken light mail
+ * whatever it says. So nothing here depends on the card staying white: the
+ * header logo is white on a navy cell, which those apps leave dark; the
+ * footer's logo is the orange one, which reads on white and on near-black
+ * alike; the social marks are mid-grey for the same reason; and every
+ * colour of type is left for the client to invert, which it does well.
  */
 function shell(input: {
   title: string;
   preheader: string;
-  eyebrow: string;
   heading: string;
   blocks: string[];
   unsubscribe?: boolean;
 }) {
   const year = new Date().getFullYear();
-  const unsubscribeRow = input.unsubscribe
-    ? `<p style="margin:10px 0 0;font-family:${BODY};font-size:12px;line-height:1.6;color:${MUTED}">` +
-      `You are receiving this because you contacted We Dig Creativity or are working with us on a project. ` +
-      `<a href="${UNSUBSCRIBE_MAILTO}" style="color:${MUTED};text-decoration:underline">Unsubscribe</a>.</p>`
+  const unsubscribe = input.unsubscribe
+    ? ` <a href="${UNSUBSCRIBE_MAILTO}" style="color:${MUTED};text-decoration:underline">Unsubscribe</a>.`
     : "";
 
   return `<!doctype html>
@@ -367,27 +387,23 @@ function shell(input: {
 <tr><td align="center" style="padding:28px 12px">
 <table role="presentation" class="wdc-wrap" width="${WIDTH}" cellpadding="0" cellspacing="0" border="0" style="width:${WIDTH}px;max-width:${WIDTH}px;background:${CARD};border:1px solid ${HAIRLINE};border-radius:16px">
 
-<tr><td bgcolor="${NAVY}" class="wdc-pad" style="padding:22px 32px;background:${NAVY};border-radius:16px 16px 0 0">
-  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-    <td style="padding-right:12px"><img src="${SITE_URL}/icon-192.png" width="36" height="36" alt="" style="display:block;width:36px;height:36px;border-radius:8px"></td>
-    <td style="font-family:${DISPLAY};font-size:17px;font-weight:700;letter-spacing:.01em;color:#ffffff">We Dig Creativity</td>
-  </tr></table>
+<tr><td bgcolor="${NAVY}" class="wdc-pad" style="padding:24px 32px;background:${NAVY};border-radius:16px 16px 0 0">
+  <a href="${SITE_URL}" style="text-decoration:none"><img src="${ASSETS}/logo-white.png" width="152" height="50" alt="We Dig Creativity" style="display:block;width:152px;height:50px;border:0;color:#ffffff;font-family:${DISPLAY};font-size:18px;font-weight:700"></a>
 </td></tr>
 
 <tr><td class="wdc-pad" style="padding:32px 32px 8px">
-  <p style="margin:0 0 10px;font-family:${BODY};font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:${ORANGE}">${escapeHtml(input.eyebrow)}</p>
   <h1 style="margin:0 0 18px;font-family:${DISPLAY};font-size:26px;line-height:1.25;font-weight:700;color:${INK}">${escapeHtml(input.heading)}</h1>
   ${input.blocks.join("\n  ")}
 </td></tr>
 
-<tr><td class="wdc-pad" style="padding:8px 32px 28px">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="border-top:1px solid ${HAIRLINE};padding-top:18px">
-    <p style="margin:0 0 6px;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">
-      <a href="${SITE_URL}" style="color:${NAVY};text-decoration:none;font-weight:600">wedigcreativity.com.ng</a>
-      &nbsp;&middot;&nbsp;<a href="mailto:${CONTACT_EMAIL}" style="color:${MUTED};text-decoration:none">${CONTACT_EMAIL}</a>
-    </p>
-    <p style="margin:0;font-family:${BODY};font-size:12px;line-height:1.6;color:${MUTED}">&copy; ${year} ${escapeHtml(LEGAL_LINE)}</p>
-    ${unsubscribeRow}
+<tr><td class="wdc-pad" style="padding:8px 32px 32px">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="border-top:1px solid ${HAIRLINE};padding-top:28px">
+    <a href="${SITE_URL}" style="text-decoration:none"><img src="${ASSETS}/logo-orange.png" width="122" height="40" alt="We Dig Creativity" style="display:block;width:122px;height:40px;border:0;margin:0 0 20px;color:${ORANGE};font-family:${DISPLAY};font-size:16px;font-weight:700"></a>
+    ${socialRow()}
+    <p style="margin:0 0 4px;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">&copy; ${year} ${escapeHtml(COMPANY_NAME)}</p>
+    <p style="margin:0 0 16px;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">${escapeHtml(LOCATION)}</p>
+    <p style="margin:0 0 16px;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">This email was sent to ${RECIPIENT_SLOT}.${unsubscribe}</p>
+    <p style="margin:0;font-family:${BODY};font-size:12px;line-height:1.6;color:${MUTED}">${escapeHtml(REGISTERED_NAME)}, ${escapeHtml(REGISTRATION_NO)}, registered with the ${escapeHtml(REGISTRAR)}.</p>
   </td></tr></table>
 </td></tr>
 
@@ -412,6 +428,7 @@ function textShell(body: string, options: { unsubscribe?: boolean } = {}) {
     "We Dig Creativity",
     SITE_URL.replace(/^https?:\/\//, ""),
     CONTACT_EMAIL,
+    LOCATION,
     "",
     LEGAL_LINE,
   ];
@@ -450,7 +467,6 @@ The WDC team`, { unsubscribe: true }),
     html: shell({
       title: "We received your message",
       preheader: `Your message about ${topic} is with us. We reply the same working day.`,
-      eyebrow: "Enquiry received",
       heading: "Your message is with us.",
       unsubscribe: true,
       blocks: [
@@ -496,7 +512,6 @@ The WDC team`),
     html: shell({
       title: "Start your project",
       preheader: `Your ${service} onboarding form is ready. It takes about ten minutes.`,
-      eyebrow: "Onboarding",
       heading: "Welcome aboard. Tell us about the work.",
       blocks: [
         p(`Hi ${escapeHtml(name)},`),
@@ -504,7 +519,6 @@ The WDC team`),
         action("Open the onboarding form", url),
         p(`It takes about ten minutes if you have the details to hand, and rather less if you answer <i>&ldquo;I'm not sure, please advise me&rdquo;</i> wherever you would rather we took the decision. That is a real answer, and you can change it later.`),
         small(`You can leave the form and come back to it on any device. The link works for ${expiresInDays} days &mdash; if it expires, reply to this email and we will send a fresh one.`),
-        fallbackLink(url),
       ],
     }),
   };
@@ -548,7 +562,6 @@ The WDC team`, { unsubscribe: true }),
     html: shell({
       title: "Your brief is still open",
       preheader: `${where} The link expires ${deadline}.`,
-      eyebrow: "Reminder",
       heading: "Your brief is still open.",
       unsubscribe: true,
       blocks: [
@@ -557,7 +570,6 @@ The WDC team`, { unsubscribe: true }),
         action("Pick up where you left off", url),
         p(`This link expires ${escapeHtml(deadline)}. There is no rush from our side beyond that &mdash; we simply cannot schedule the work until we know what it is.`),
         small("If the project is on hold, or is not going ahead after all, reply and say so and we will stop reminding you."),
-        fallbackLink(url),
       ],
     }),
   };
@@ -609,7 +621,6 @@ The WDC team`, { unsubscribe: true }),
     html: shell({
       title: "Your brief is with us",
       preheader: `Your ${service} brief is saved. Here is what happens next.`,
-      eyebrow: "Onboarding complete",
       heading: "Thank you. Your brief is with us.",
       unsubscribe: true,
       blocks: [
@@ -662,7 +673,6 @@ The WDC team`),
     html: shell({
       title: `Quote ${quoteNumber}`,
       preheader: `${projectTitle}, ${naira(totals.total)}, valid until ${emailDate(validUntil)}.`,
-      eyebrow: `Quote ${quoteNumber}`,
       heading: projectTitle,
       blocks: [
         p(`Hi ${escapeHtml(clientName)},`),
@@ -675,7 +685,6 @@ The WDC team`),
         action("Read and accept the quote", url),
         p("This quote covers the work described above and nothing else. Anything added later is quoted separately before it starts, so there are no surprises on the invoice."),
         small("If something in the scope is wrong, or you want a line taken out, say so and we will re-issue rather than argue about it later."),
-        fallbackLink(url),
       ],
     }),
   };
@@ -735,7 +744,6 @@ The WDC team`),
     html: shell({
       title: `Invoice ${number}`,
       preheader: `${naira(outstanding)} due ${emailDate(due)} for ${projectTitle}.`,
-      eyebrow: `Invoice ${number}`,
       heading: partPaid ? "Balance outstanding on your invoice" : "Your invoice is ready",
       blocks: [
         p(`Hi ${escapeHtml(clientName)},`),
@@ -745,7 +753,6 @@ The WDC team`),
         action("Read and pay the invoice", url),
         qr.html,
         p("Card and bank transfer both work through that link. If you would rather send a direct transfer, or pay by cash or POS, tell us which and we will record it against this invoice so your statement stays straight."),
-        fallbackLink(url),
       ],
     }),
   };
@@ -798,7 +805,6 @@ The WDC team`),
     html: shell({
       title: `Receipt ${receiptNumber}`,
       preheader: `${naira(amount)} received against invoice ${invoiceNumber}.`,
-      eyebrow: `Receipt ${receiptNumber}`,
       heading: `${naira(amount)} received. Thank you.`,
       blocks: [
         p(`Hi ${escapeHtml(clientName)},`),
@@ -815,7 +821,6 @@ The WDC team`),
         action("Open your receipt", url),
         qr.html,
         small("Keep it for your records. If any detail above does not match what you sent, reply to this email and we will look at it the same day."),
-        fallbackLink(url),
       ],
     }),
   };
@@ -853,7 +858,6 @@ The WDC team`, { unsubscribe: true }),
     html: shell({
       title: `${projectTitle} - ${toStage}`,
       preheader: `Moved from ${fromStage} to ${toStage}.`,
-      eyebrow: "Project update",
       heading: `${projectTitle} is now at ${toStage}.`,
       unsubscribe: true,
       blocks: [
@@ -862,7 +866,6 @@ The WDC team`, { unsubscribe: true }),
         ...(note ? [p(escapeHtml(note))] : []),
         action("See the project", url),
         small("Nothing is needed from you unless we have asked for it separately."),
-        fallbackLink(url),
       ],
     }),
   };
@@ -898,7 +901,6 @@ The WDC team`),
     html: shell({
       title: `${deliverable} is ready`,
       preheader: `${deliverable} for ${projectTitle} is ready for your approval.`,
-      eyebrow: "Ready for approval",
       heading: `${deliverable} is ready for you.`,
       blocks: [
         p(`Hi ${escapeHtml(clientName)},`),
@@ -906,7 +908,6 @@ The WDC team`),
         action("Review and approve", url),
         panel([["Project", projectTitle], ["We have held", emailDate(respondBy)]]),
         p(`If your answer comes after ${escapeHtml(emailDate(respondBy))}, the stages after it move by the same amount &mdash; which is the only reason we mention a date at all.`),
-        fallbackLink(url),
       ],
     }),
   };
@@ -944,7 +945,6 @@ The WDC team`),
     html: shell({
       title: `Signed off: ${deliverable}`,
       preheader: `${deliverable} was signed off by ${signedBy}.`,
-      eyebrow: "Sign-off",
       heading: `${deliverable} is signed off.`,
       blocks: [
         p(`Hi ${escapeHtml(clientName)},`),
@@ -956,7 +956,6 @@ The WDC team`),
         ]),
         action("Open the signed record", url),
         p("Work on the next stage starts from here. If anything about this approval looks wrong, tell us before we build on it rather than after."),
-        fallbackLink(url),
       ],
     }),
   };
@@ -996,7 +995,6 @@ The WDC team`),
     html: shell({
       title: "Reset your password",
       preheader: `Choose a new password. The link works once and expires in ${life}.`,
-      eyebrow: "Account security",
       heading: "Reset your password",
       blocks: [
         p(escapeHtml(greeting)),
@@ -1004,7 +1002,6 @@ The WDC team`),
         action("Choose a new password", url),
         p(`The link works once, and expires in ${escapeHtml(life)}.`),
         small("If it was not you, nothing has happened and there is nothing you need to do &mdash; your current password still works and nobody has been let in. If these keep arriving, reply and tell us."),
-        fallbackLink(url),
       ],
     }),
   };
@@ -1056,7 +1053,6 @@ The WDC team`),
     html: shell({
       title: "Your sign-in link",
       preheader: `Your code is ${spaced}. It works for ${life}.`,
-      eyebrow: "Sign in",
       heading: "Your sign-in link",
       blocks: [
         p(escapeHtml(greeting)),
@@ -1067,7 +1063,6 @@ The WDC team`),
           `font-family:${DISPLAY};font-size:32px;font-weight:700;letter-spacing:.18em;color:${NAVY};text-align:center">${escapeHtml(spaced)}</p>`,
         p(`The link and the code each work once, for ${escapeHtml(life)}. Using either one cancels the other.`),
         small("If you did not ask to sign in, you can ignore this email. Nobody can get in without it."),
-        fallbackLink(url),
       ],
     }),
   };
@@ -1141,7 +1136,6 @@ The WDC team`),
     html: shell({
       title: "Your indicative range",
       preheader: `${rangeNgn} for the project you described, with the phases broken out.`,
-      eyebrow: "Indicative range",
       heading: rangeNgn,
       blocks: [
         p(`That is ${escapeHtml(rangeUsd)}, and about <b>${days} days</b> of the team&rsquo;s time. Calendar time is longer, because your review and ours both take days nobody is building on.`),
@@ -1153,7 +1147,6 @@ The WDC team`),
         small(assumptions.map((line) => `&bull; ${escapeHtml(line)}`).join("<br>")),
         p("This is a range and not a quote. It is what work of this shape usually costs us to do properly, and the real figure comes out of one conversation about what you actually need."),
         action("Talk it through with us", url),
-        fallbackLink(url),
       ],
     }),
   };
@@ -1222,7 +1215,6 @@ The WDC team`),
     html: shell({
       title: "Your site report",
       preheader: `The on-page findings for ${site}${ran ? ", with Lighthouse scores" : ""}.`,
-      eyebrow: "Site report",
       heading: escapeHtml(site),
       blocks: [
         p("Here is the report in full, so you can forward it to whoever looks after the site."),
@@ -1242,7 +1234,6 @@ The WDC team`),
             ]),
         p("Every one of these is fixable, and most of them are an afternoon rather than a rebuild."),
         action("Ask us to fix them", url),
-        fallbackLink(url),
       ],
     }),
   };
