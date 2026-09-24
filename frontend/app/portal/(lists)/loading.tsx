@@ -1,3 +1,6 @@
+/* The portal's list skeleton, in a route group for the same reason as the
+   admin's: see app/admin/(lists)/loading.tsx. Above the `[id]` pages it made
+   a missing project or support thread answer 200. */
 export default function PortalLoading() {
   return (
     <div className="ad__loading">
