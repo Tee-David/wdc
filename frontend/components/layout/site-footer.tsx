@@ -6,7 +6,6 @@ import { COMPANY_NAME, CONTACT_EMAIL } from "@/lib/site";
 import "./site-footer.css";
 import { NewTab } from "@/components/ui/new-tab";
 import { Newsletter } from "./newsletter";
-import CurvedPitch from "./curved-pitch";
 import { FREE_TOOLS } from "@/lib/tools";
 
 /**
@@ -81,17 +80,14 @@ export function SiteFooter() {
                 <span className="ft__pitchShort">
                   Brand, web, apps and campaigns, built by one creative agency.
                 </span>
-                {/* Bent on arcs that match the subscribe box's below it. The
-                    line breaks are chosen here because text on a path cannot
-                    wrap; below its size floor it falls back to plain text. */}
-                <CurvedPitch
-                  className="ft__pitchLong"
-                  lines={[
-                    "A creative and digital agency. Branding, search,",
-                    "websites, apps, software and campaigns, built by",
-                    "one team so nothing is lost in the hand-off.",
-                  ]}
-                />
+                {/* STRAIGHT, NOT BENT. This line used to sit on arcs echoing the
+                    subscribe box; on a phone that read as a wobble rather than
+                    a design, so it is plain centred text that wraps. */}
+                <span className="ft__pitchLong">
+                  A creative and digital agency. Branding, search, websites, apps,
+                  software and campaigns, built by one team so nothing is lost in
+                  the hand-off.
+                </span>
               </p>
             </div>
 
