@@ -572,11 +572,14 @@
    the face shows only at the edge. */
 .au-code {
   --code-gap: 8px;
-  /* The ring is a shade under the brand orange so it holds 3:1 on white
-     (3.35 against #ff6500's 2.95); the glow around it is the brand orange. */
+  /* The lit colour is a shade under the brand orange so it holds 3:1 on
+     white (3.35 against #ff6500's 2.95); the glow around it is the brand
+     orange. The active ring rests at a paler tint so the arc circling it,
+     in the full colour, is what the eye follows. */
   --code-hot: #f05d00;
   --code-glow: 255 101 0;
-  --code-streak: #ffd3b3;
+  --code-ring: #ffc7a1;
+  --code-streak: #f05d00;
   --code-caret: var(--au-navy);
   --code-bright: var(--foreground);
   --code-sweep: rgb(255 101 0 / .16);
@@ -585,7 +588,8 @@
 .dark .au-code {
   --code-hot: #ffffff;
   --code-glow: 255 255 255;
-  --code-streak: #9ea1ff;
+  --code-ring: #5c5c8a;
+  --code-streak: #ffffff;
   --code-caret: #ffffff;
   --code-bright: #ffffff;
   --code-sweep: rgb(255 255 255 / .22);
@@ -614,13 +618,15 @@
   font-variant-numeric: tabular-nums;
   transition: background-color .2s var(--au-ease), box-shadow .25s var(--au-ease);
 }
-/* The streak that runs round a lit ring. */
+/* THE ARC THAT RUNS ROUND A LIT RING. A comet: a quarter of the way round,
+   fading in from its tail to a solid head, then nothing. It turns behind the
+   face, so only the part crossing the ring is seen. */
 .au-code__box::before {
   content: "";
   position: absolute;
   inset: -60%;
   z-index: -2;
-  background: conic-gradient(from 0deg, transparent 0 58%, var(--code-streak) 70%, transparent 80% 100%);
+  background: conic-gradient(from 0deg, transparent 0 70%, rgb(var(--code-glow) / 0) 70%, var(--code-streak) 94%, var(--code-streak) 97%, transparent 97.5% 100%);
   opacity: 0;
   transition: opacity .2s var(--au-ease);
 }
@@ -650,10 +656,12 @@
 
 .au-code__box.is-filled { background: var(--au-border-strong); }
 .au-code__box.is-active {
-  background: var(--code-hot);
+  background: var(--code-ring);
   box-shadow: 0 0 0 3px rgb(var(--code-glow) / .14), 0 8px 24px -8px rgb(var(--code-glow) / .7);
 }
-.au-code__box.is-active::before { opacity: 1; animation: au-orbit 2.8s linear infinite; }
+.au-code__box.is-active::before { opacity: 1; animation: au-orbit 1.8s linear infinite; }
+/* A touch thicker while lit, so the arc has a line to run along. */
+.au-code__box.is-active::after { inset: 2px; border-radius: 10px; }
 /* The light arrives, swells, and settles into a slow breath. */
 .au-code__box.is-active .au-code__glow {
   opacity: 1;
@@ -1084,6 +1092,8 @@
   /* The code keeps every state and loses the travel: no light carried or
      swept, no orbit, no pop, no fold. The tick is simply there. */
   .au-code__light, .au-code__sweep, .au-code__box::before, .au-code__ripple { display: none; }
+  /* No arc to follow, so the lit ring is the full colour instead. */
+  .au-code__box.is-active { background: var(--code-hot); }
   .au-code__digit, .au-code__glow, .au-code__boxes, .au-code__box.is-active .au-code__glow { animation: none; }
   .au-code__box.is-active:not(.is-filled) .au-code__caret { animation: none; opacity: 1; }
   .au-code[data-phase="verified"] .au-code__box { animation: au-hide .2s linear forwards; }
