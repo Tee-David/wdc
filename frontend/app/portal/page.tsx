@@ -60,7 +60,7 @@ export default async function PortalOverview() {
         This portal currently uses labelled demonstration records for this account. Figures reconcile with what the studio sees, but reset with the server.
       </DemoNote>
 
-      <dl className="adDash__kpis">
+      <dl className="adDash__kpis" data-tour="portal-kpis">
         <Tile label="Active projects" value={String(live.length)} note={`${projects.length} total`} />
         <Tile label="Balance owed" value={nairaShort(balance)} tone={balance > 0 ? "bad" : "good"} note={balance > 0 ? "Across your invoices" : "Nothing outstanding"} />
         <Tile label="Awaiting your review" value={String(awaitingApproval.length)} tone={awaitingApproval.length ? "accent" : undefined} note="Deliverables ready to look at" />
@@ -69,7 +69,7 @@ export default async function PortalOverview() {
 
       <div className="adDash__layout">
         <main className="adDash__work">
-          <Panel title="Needs your attention" action={<Link href="/portal/projects">Open projects <ArrowRight aria-hidden="true" /></Link>}>
+          <Panel title="Needs your attention" dataTour="portal-attention" action={<Link href="/portal/projects">Open projects <ArrowRight aria-hidden="true" /></Link>}>
             {attentionCount ? (
               <div className="adDash__attention">
                 {awaitingApproval.map(({ deliverable, project }) => (

@@ -32,7 +32,7 @@ export default async function PortalBilling() {
         {creditBalance > 0 ? <Tile label="Credit on account" value={naira(creditBalance)} tone="accent" note="Applied to your next invoice" /> : null}
       </dl>
 
-      <Panel title={`${invoices.length} document${invoices.length === 1 ? "" : "s"}`}>
+      <Panel dataTour="portal-billing" title={`${invoices.length} document${invoices.length === 1 ? "" : "s"}`}>
         {invoices.length ? (
           <div className="adDash__compactList">
             {invoices.map((inv) => {

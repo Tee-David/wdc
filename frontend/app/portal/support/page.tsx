@@ -36,7 +36,7 @@ export default async function PortalSupport({
         <NewTicketForm startOpen={startOpen} subject={sp.subject} projectId={sp.project} />
       </div>
 
-      <Panel title={`${tickets.length} conversation${tickets.length === 1 ? "" : "s"}`}>
+      <Panel dataTour="portal-support" title={`${tickets.length} conversation${tickets.length === 1 ? "" : "s"}`}>
         {tickets.length ? (
           <div className="adDash__compactList">
             {tickets.map((t) => (
