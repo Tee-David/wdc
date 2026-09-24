@@ -2,7 +2,8 @@ import "server-only";
 
 import { SITE_URL } from "@/lib/site";
 import { deliverableReadyEmail, projectStageEmail, signOffEmail } from "@/lib/email-templates";
-import { getClient, queueMessage } from "@/lib/admin/store";
+import { getClient } from "@/lib/admin/store";
+import { queueLogged } from "@/lib/message-log";
 import { notifyAllows, type Deliverable, type Project } from "@/lib/admin/types";
 import { sendLogged } from "@/lib/outbox";
 
@@ -22,9 +23,9 @@ import { sendLogged } from "@/lib/outbox";
 const portalUrl = (projectId: string) => new URL(`/portal/projects/${projectId}`, SITE_URL).toString();
 const first = (name: string) => name.trim().split(/\s+/)[0] || name;
 
-function skipped(project: Project, subject: string, dedupeKey: string, by: string) {
+async function skipped(project: Project, subject: string, dedupeKey: string, by: string) {
   const client = getClient(project.clientId);
-  queueMessage({
+  await queueLogged({
     channel: "Email", to: client?.email || "(no address on file)", subject,
     summary: `Not sent: ${client?.company ?? "the client"} has project updates switched off.`,
     dedupeKey, by, clientId: project.clientId, state: "Skipped",
