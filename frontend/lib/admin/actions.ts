@@ -55,6 +55,20 @@ function readClient(fd: FormData) {
   const picked = services(fd);
   if (!picked.length) errors.services = "Pick at least one service.";
 
+  /* Tags: comma separated, lower case, deduplicated, ten at most. */
+  const tags = [...new Set(str(fd, "tags").split(",").map((t) => t.trim().toLowerCase().slice(0, 30)).filter(Boolean))].slice(0, 10);
+
+  /* Other contacts: one per line, "Name, role, email, phone", only the name
+     required. A line whose email does not look like one is refused rather
+     than stored, because a contact list is where somebody copies from. */
+  const contacts: { name: string; role?: string; email?: string; phone?: string }[] = [];
+  for (const line of str(fd, "contacts").split("\n").map((l) => l.trim()).filter(Boolean).slice(0, 10)) {
+    const [cName, role, cEmail, cPhone] = line.split(",").map((p) => p.trim());
+    if (!cName) continue;
+    if (cEmail && !looksEmail(cEmail)) { errors.contacts = `"${cEmail}" does not look like an email address.`; break; }
+    contacts.push({ name: cName.slice(0, 80), ...(role ? { role: role.slice(0, 60) } : {}), ...(cEmail ? { email: cEmail } : {}), ...(cPhone ? { phone: cPhone.slice(0, 40) } : {}) });
+  }
+
   return {
     errors,
     draft: {
@@ -63,6 +77,8 @@ function readClient(fd: FormData) {
       services: picked,
       sector: str(fd, "sector"),
       notes: str(fd, "notes") || undefined,
+      tags,
+      contacts,
     },
   };
 }
@@ -514,6 +530,25 @@ export async function clientFromLiveSubmission(_prev: ActionState, fd: FormData)
   });
   refresh("/admin/forms", `/admin/forms/${sub.id}`, "/admin/clients");
   redirect(`/admin/clients/${c.id}`);
+}
+
+/** Fold a duplicate into the client whose page this is. */
+export async function mergeClient(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
+  const keepId = str(fd, "keepId");
+  const dupeId = str(fd, "dupeId");
+  if (!dupeId) return FAIL({ dupeId: "Pick the duplicate to fold in." });
+  const res = db.mergeClients(keepId, dupeId, await actorName());
+  if (!res.ok) {
+    return FAIL({}, {
+      same: "That is this client.",
+      missing: "One of those clients is no longer there.",
+      merged: "One of those records has already been merged.",
+    }[res.reason]);
+  }
+  refresh("/admin/clients", `/admin/clients/${keepId}`, `/admin/clients/${dupeId}`, "/admin/money", "/admin/projects");
+  return OK(`Merged. ${res.moved} record${res.moved === 1 ? "" : "s"} moved to ${res.kept.company}; the duplicate is archived and says where it went.`);
 }
 
 export async function attachSubmission(_prev: ActionState, fd: FormData): Promise<ActionState> {

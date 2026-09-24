@@ -58,7 +58,8 @@ export default async function ClientsPage({
   const rows = source
     .filter((client) => status !== "archived" || client.archived)
     .filter((client) => !service || client.services.includes(service))
-    .filter((client) => !search || [client.company, client.name, client.email, client.sector]
+    .filter((client) => !search || [client.company, client.name, client.email, client.sector,
+      ...(client.tags ?? []), ...(client.contacts ?? []).flatMap((x) => [x.name, x.email ?? ""])]
       .some((value) => value.toLocaleLowerCase().includes(search)))
     .map((client) => ({
       client,
@@ -140,7 +141,7 @@ export default async function ClientsPage({
           <form className="ad__filterBar" method="get" action="/admin/clients#client-list" aria-label="Filter clients" data-tour="clients-filters">
             <label className="ad__filterSearch">
               <span className="ad__sr">Search clients</span>
-              <input name="q" type="search" defaultValue={query.q} placeholder="Search name, company, email or sector" />
+              <input name="q" type="search" defaultValue={query.q} placeholder="Search name, company, email, sector or tag" />
             </label>
             <label>
               <span className="ad__sr">Service</span>
@@ -190,7 +191,7 @@ export default async function ClientsPage({
                     <tr key={c.id}>
                       <td>
                         <Link href={`/admin/clients/${c.id}`}><b>{c.company}</b></Link>
-                        <small>{c.name}{c.archived ? " · Archived" : ""}</small>
+                        <small>{c.name}{c.archived ? (c.mergedInto ? " · Merged" : " · Archived") : ""}{c.tags?.length ? ` · ${c.tags.join(", ")}` : ""}</small>
                       </td>
                       <td>{c.sector || <span className="ad__dim">Not set</span>}</td>
                       <td>
