@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, CalendarClock, CircleDollarSign, ClipboardList, FolderClock, Send } from "lucide-react";
+import { AlertTriangle, ArrowRight, CalendarClock, CircleDollarSign, ClipboardList, FolderClock, LifeBuoy, MailWarning, MessageSquareWarning, Send } from "lucide-react";
 import { SERVICES } from "@/lib/services";
-import { getBoard, getClient, getClients, getInvoices, getMonthly, getPayments, getProjects, getSubmissions, getSummary, getTasks } from "@/lib/admin/store";
+import { failedMessageCount, getBoard, getClient, getClients, getDeliverablesFor, getInvoices, getMonthly, getPayments, getProjects, getSubmissions, getSummary, getTasks, getTickets, providerAttentionCount } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, naira, nairaShort, projectAttention, STAGES } from "@/lib/admin/types";
 
 /* Worst first. The attention queue is read top-down in the morning, so the
@@ -78,6 +78,50 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
         tone: why[0].tone === "bad" ? "bad" : why[0].tone === "warn" ? "warn" : "neutral",
         menu: <ProjectMenu project={project} clientName={getClient(project.clientId)?.company} />,
       })),
+    /* WHAT THE BANK AND THE MAIL SERVER DID NOT DO CLEANLY. Money that
+       matched no invoice, and messages that did not go, are an absence on
+       every other screen; here they are a row with the fix one click away. */
+    ...(providerAttentionCount() ? [{
+      href: "/admin/money/reconciliation",
+      title: `${providerAttentionCount()} payment event${providerAttentionCount() === 1 ? "" : "s"} did not land cleanly`,
+      detail: "Money Paystack reported that is not matched to an invoice, or an event that failed its checks",
+      meta: "Reconciliation",
+      icon: AlertTriangle,
+      tone: "bad",
+      menu: null,
+    }] : []),
+    ...(failedMessageCount() ? [{
+      href: "/admin/money/reconciliation",
+      title: `${failedMessageCount()} message${failedMessageCount() === 1 ? "" : "s"} did not go`,
+      detail: "Emails the mail server refused or that could not be sent",
+      meta: "Reconciliation",
+      icon: MailWarning,
+      tone: "warn",
+      menu: null,
+    }] : []),
+    /* WHAT A CLIENT DID IN THE PORTAL AND IS WAITING ON US FOR. */
+    ...projects.flatMap((project) => getDeliverablesFor(project.id)
+      .filter((d) => d.approval === "Revision requested")
+      .map((d) => ({
+        href: `/admin/projects/${project.id}`,
+        title: `Changes asked for on ${d.name}`,
+        detail: `${getClient(project.clientId)?.company ?? "Unknown client"} · ${d.approvalNote ?? "No note given"}`,
+        meta: project.title,
+        icon: MessageSquareWarning,
+        tone: "warn",
+        menu: null,
+      }))),
+    ...getTickets()
+      .filter((t) => t.status === "Open")
+      .map((t) => ({
+        href: `/admin/clients/${t.clientId}`,
+        title: `${getClient(t.clientId)?.company ?? "A client"} is waiting for a reply`,
+        detail: t.subject,
+        meta: `Asked ${when(t.updatedAt)}`,
+        icon: LifeBuoy,
+        tone: "warn",
+        menu: null,
+      })),
     ...getSubmissions()
       .filter((submission) => submission.status === "In progress")
       .map((submission) => ({
@@ -151,9 +195,16 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
                     </div>
                   );
                 })}
+                {attention.length > 6 ? (
+                  /* SAID, NOT HIDDEN. The panel shows the six worst; a queue
+                     that silently drops the rest reads as "that is all". */
+                  <p className="adDash__more" role="status">
+                    {attention.length - 6} more not shown. They are on the Money, Projects and Clients screens.
+                  </p>
+                ) : null}
               </div>
             ) : (
-              <Empty title="You’re caught up" icon={ClipboardList}>New deadlines, revisions, unfinished onboarding, and overdue invoices will appear here.</Empty>
+              <Empty title="You’re caught up" icon={ClipboardList}>Overdue invoices, stuck projects, client requests, unanswered questions, unmatched payments and failed messages will appear here.</Empty>
             )}
           </Panel>
 

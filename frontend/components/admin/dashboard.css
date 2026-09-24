@@ -57,6 +57,7 @@
 .adDash__listIcon { width: 1.9rem; height: 1.9rem; }
 .adDash__compactList > a > span:nth-child(2) { min-width: 0; display: grid; }
 .adDash__compactList time { color: var(--ad-dim); font-size: .66rem; white-space: nowrap; }
+.adDash__more { margin: 0; padding: .6rem .85rem .75rem; color: var(--ad-dim); font-size: .74rem; }
 .adDash__leadsNote { margin: 0; padding: .6rem .85rem .75rem; border-top: 1px solid var(--ad-line); color: var(--ad-dim); font-size: .72rem; line-height: 1.45; }
 /* The skeleton row is the height a real row renders at: a 1.9rem icon plus
    the row's own padding. */
