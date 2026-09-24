@@ -210,9 +210,16 @@ export const LogoLoop = memo(function LogoLoop({
   const seqRef = useRef<HTMLUListElement>(null);
 
   const [seqWidth, setSeqWidth] = useState(0);
-  const [copyCount, setCopyCount] = useState<number>(
-    ANIMATION_CONFIG.MIN_COPIES
-  );
+  /* ONE COPY IN THE SERVER HTML, THE REST AFTER MOUNT.
+
+     The copies only matter once the track moves, and it only moves from the
+     animation loop, which needs hydration anyway. Until then the first
+     sequence sits still at offset 0, and one sequence is already wider than
+     its rail, so a second copy in the HTML is bytes nobody can see: on the
+     homepage it was 72 more inline SVGs, about a fifth of the document, on
+     the critical path of every first visit. `updateDimensions` raises this
+     to the real count on mount, before the first animated frame. */
+  const [copyCount, setCopyCount] = useState<number>(1);
   const [isHovered, setIsHovered] = useState(false);
 
   const effectiveHoverSpeed = useMemo(() => {
