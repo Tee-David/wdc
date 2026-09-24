@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**85 open** (28 in progress)
+**77 open** (29 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -48,7 +48,7 @@ the evidence. Detail that used to sit in this file is in git history and in
 
 - [-] Overdue invoices, stalled onboarding, and project-derived reasons (blocked, waiting on a client, in revision, a slipped task) all feed one combined `attention` queue, sorted worst-first, every row linking straight to its resolution screen (`AdminDashboardView`). (…)
 - [-] Outstanding, overdue, and a collection rate are on the KPI tiles; "Cashflow, last six months" charts collected income against recorded spend, which is the lightweight income-versus-expenditure view. NOT on this route: accounts-receivable aging, which exists (30-day buckets, drillable) but only on `/admin/money/reconciliation` -- it answers the question asked here, just from a different page.
-- [-] Quick actions has a new client, a new invoice (`InvoiceBuilder`), a new expense, Review forms, and an onboarding-form link that opens the public form in its own tab for copying into a message. Deliberately NOT duplicated: "New project", which is already the dashboard header's button; two identical dialogs on one screen is noise. NOT built: a standalone "record a payment" not tied to one invoice, and role filtering (only `owner` is wired).
+- [-] Quick actions has a new client, a new invoice (`InvoiceBuilder`), a new expense, a standalone "Record a payment" that picks the invoice first, Review forms, and an onboarding-form link that opens the public form in its own tab. Deliberately NOT duplicated: "New project", which is already the dashboard header's button. NOT built: role filtering, because only `owner` is wired.
 
 ### 4.3 Clients and client workspace
 
@@ -64,11 +64,10 @@ the evidence. Detail that used to sit in this file is in git history and in
 ### 4.5 Money, invoices, payments, and expenditure
 
 - [-] Estimates are built, with their own number series, their own public document and their own life. AN ESTIMATE IS NOT A DRAFT INVOICE, and building it as one would have been the easy mistake. A draft is a document the studio has not finished writing. (…)
-- [ ] Keep payment and invoice event histories append-only; correct mistakes through attributed reversals/voids and retain original evidence.
 - [-] Receipts are generated for every successful payment whatever the method, numbered `RCT-YYYY-NNN` in order and never reused, and each links to its invoice, client and project. (…)
 - [-] Eight of the nine, and the ninth is named rather than faked. Expenses had carried four fields: date, description, category, amount. They now also carry who was paid, how it left, the project it belongs against, whether it can be billed back, a note, and the admin who entered it. WHO WAS PAID IS ITS OWN FIELD. "Adobe" answers "who do we pay for this" and "Creative Cloud, the team plan" answers "what is it". (…)
 - [-] Cashflow, income, expenditure, outstanding, overdue and net were already on Money. Added: a collection rate, and accounts-receivable aging in the conventional 30-day buckets so the numbers mean to an accountant what they mean here. (…)
-- [ ] Ensure financial writes are transactional, integer-minor-unit based, server-validated, role-authorized, idempotent, and audited.
+- [-] Ensure financial writes are transactional, integer-minor-unit based, server-validated, role-authorized, idempotent, and audited. True now: kobo integers, server-side parsing in `lib/admin/validate.ts`, idempotency on the payment reference, an audit row per write, and (since this pass) an owner check inside every action rather than only on the page. NOT true: transactional, because Money's writes are still in memory; that is 4.9's migration.
 
 ### 4.6 Forms, builder, onboarding, and submissions
 
@@ -101,14 +100,9 @@ the evidence. Detail that used to sit in this file is in git history and in
 - [ ] Preserve last-owner/self-change guards, session revocation, invitation expiry, and a clear staff access/activity view. (…)
 - [-] Append-only audit log built and wired into the writes that exist. APPEND-ONLY BY CONSTRUCTION, not by promise: the array is module-private and the only export that touches it pushes, so there is no update, no delete, and nowhere to write from. (…)
 - [ ] Add content-management entry points only for public content that genuinely needs editing; avoid rebuilding a general-purpose CMS.
-- [ ] Show honest integration health and “coming soon” states; never display a control as working before its backend is verified. Moved here from section 1C on 2026-09-14. They were filed under the blog because that is what they edit, but every one of them is admin UI and belongs with the rest of section 4's content and settings work.
-- [ ] Blog editor: create, edit, schedule and unpublish posts, writing the same block shape `lib/blog.ts` already defines (`p`, `h2`, `h3`, `list`, `quote`, `callout`). The renderer guarantees one h1 and a correct heading outline; an editor that emits raw HTML would give that away.
-- [ ] Per-post SEO fields as first-class inputs, not afterthoughts: search-result title, meta description with a live character count, canonical override, and a social image.
-- [ ] Draft, scheduled and published states, with the published date separate from the created date and a visible `updated` date when a post is revised.
 - [ ] Author and category records, once there is more than one person writing.
 - [ ] Editable site content beyond the blog: the FAQ list, testimonials, the services copy and the work catalogue all currently live in `lib/` and need the same treatment.
 - [ ] Media library backed by R2, reusing `r2Config()` and `presignPut()` from `lib/r2.ts` rather than a second uploader. Note the SVG caveat recorded under upload safety.
-- [ ] Preview a draft as it will actually render, on the real page, before publishing.
 
 ### 4.9 CockroachDB, R2, and backend integrity
 
@@ -132,11 +126,10 @@ the evidence. Detail that used to sit in this file is in git history and in
 
 ### 5.0 Tour architecture and content
 
-- [-] Create separate typed tour registries for admin and client experiences, with one full walkthrough and independently launchable page-only tours. `lib/tours/admin.ts` has three tiers for the admin -- `admin-welcome` (nav orientation, auto-offered once), `admin-walkthrough` (the deep cross-page tour), and ten page tours, one per admin route including the four reached only by drilling into a list. (…)
+- [-] Create separate typed tour registries for admin and client experiences, with one full walkthrough and independently launchable page-only tours. Admin: `lib/tours/admin.ts`, welcome, walkthrough and ten page tours. Client: `lib/tours/client.ts`, welcome and walkthrough, run by the same provider with `audience="client"`. NOT built, deliberately for now: client page tours. Five short screens with one job each, all already stops on the walkthrough; add one when a portal screen has more controls than its heading explains.
 
 ### 5.1 Full walkthroughs
 
-- [ ] Build the client full walkthrough around the real client workflow. Not started -- see the note on section 5.0's second line.
 
 ### 5.2 Page-only tours
 
@@ -145,7 +138,6 @@ the evidence. Detail that used to sit in this file is in git history and in
 ### 5.3 UX, accessibility, state, and verification
 
 - [-] Keep Joyride above dashboard popovers but below critical system dialogs; prevent clipping, off-screen placement, background scrolling, and collisions with mobile safe areas. `zIndex: 95` sits above popovers (80) and the new blur bands (94), below the command palette and mobile drawer (100); native `<dialog>` elements sit above everything regardless of any z-index, being in the browser's own top layer. (…)
-- [ ] Persist tour progress/completion per authenticated account and role in CockroachDB; local storage may cache UI state but is not the cross-device source of truth. NOT done. CORRECTION 2026-09-17: the database is NOT missing -- `COCKROACHDB_URL` connects locally and from Vercel, and 16 tables already live there (blog, onboarding, invitations, auth, rate limits). (…)
 - [-] Never show admin-only steps to clients or staff without the relevant permission; filter steps before a tour begins. The filtering mechanism is built and wired (`TourStep.roles`, applied in `tour-runtime.tsx` before steps ever reach Joyride) but nothing in the registry actually uses it: only one role (`owner`) is wired through auth today, so there is no `staff` step to filter yet. Ready rather than exercised.
 - [-] Test full and page-only tours at all dashboard breakpoints, themes, permissions, empty/populated states, keyboard-only mode, reduced motion, and route transitions. (…)
 
