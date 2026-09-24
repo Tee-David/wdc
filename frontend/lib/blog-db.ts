@@ -1,7 +1,8 @@
 import "server-only";
 
 import { db } from "@/lib/db/pool";
-import { BLOG_POSTS, type BlogBlock, type BlogPost } from "@/lib/blog";
+import { BLOG_POSTS, type BlogPost } from "@/lib/blog";
+import { isDoc, type BlogBody } from "@/lib/blog-doc";
 import type { ServiceSlug } from "@/lib/services";
 
 /**
@@ -41,7 +42,7 @@ type Row = {
   topic: string;
   tags: string[];
   cover: string;
-  body: BlogBlock[];
+  body: BlogBody;
   published_at: Date | null;
   updated_at: Date | null;
   canonical: string | null;
@@ -63,7 +64,7 @@ const toPost = (r: Row): BlogPost => ({
   topic: r.topic as ServiceSlug,
   tags: Array.isArray(r.tags) ? r.tags : [],
   cover: r.cover,
-  body: Array.isArray(r.body) ? r.body : [],
+  body: Array.isArray(r.body) || isDoc(r.body) ? r.body : [],
   ...(r.canonical ? { canonical: r.canonical } : {}),
   ...(r.social_image ? { socialImage: r.social_image } : {}),
 });

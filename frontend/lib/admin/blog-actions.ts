@@ -25,7 +25,9 @@ export async function saveBlogPost(_prev: ActionState, fd: FormData): Promise<Ac
     const v = fd.get(key);
     if (typeof v === "string") raw[key] = v;
   }
-  const parsed = parsePost(raw);
+  /* Images in a post come from this site or our own media bucket, nowhere else. */
+  const bucket = process.env.CLOUDFLARE_R2_URL?.replace(/\/+$/, "");
+  const parsed = parsePost(raw, { imageHosts: bucket ? [bucket] : [] });
   if (!parsed.ok) return FAIL(parsed.errors, "Some fields need attention before this can be saved.");
 
   const id = String(fd.get("id") ?? "").trim() || null;
