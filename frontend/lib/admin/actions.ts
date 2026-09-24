@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import * as db from "./store";
 import { invoiceTotals, naira, type InvoiceLine } from "./types";
@@ -177,8 +178,20 @@ export async function moveStage(_prev: ActionState, fd: FormData): Promise<Actio
   const to = stage(fd);
   if (!to) return FAIL({ stage: "Pick a stage." });
 
-  const p = db.setStage(id, to, str(fd, "note") || undefined);
+  const was = db.getProject(id)?.stage;
+  const note = str(fd, "note") || undefined;
+  const p = db.setStage(id, to, note);
   if (!p) return FAIL({}, "That project is no longer there.");
+
+  /* The client hears about it behind the response, if they want updates. */
+  if (was && was !== p.stage) {
+    const by = await actorName();
+    const moved = p;
+    after(async () => {
+      const { sendStageEmail } = await import("@/lib/project-mail");
+      await sendStageEmail({ project: moved, from: was, to: moved.stage, note, by });
+    });
+  }
 
   refresh("/admin/projects", `/admin/projects/${id}`, `/admin/clients/${p.clientId}`);
   return OK(`Now at ${p.stage}.`);
@@ -681,6 +694,15 @@ export async function moveApproval(_prev: ActionState, fd: FormData): Promise<Ac
   }
   const d = db.setApproval(str(fd, "id"), a, note);
   if (!d) return FAIL({}, "That deliverable is no longer there.");
+  /* Sending it for approval is the moment the client needs telling. */
+  const project = db.getProject(d.projectId);
+  if (a === "Awaiting client" && project) {
+    const by = await actorName();
+    after(async () => {
+      const { sendApprovalRequest } = await import("@/lib/project-mail");
+      await sendApprovalRequest({ project, deliverable: d, by });
+    });
+  }
   refreshProject(d.projectId);
   return OK(`${d.name} is now "${a.toLowerCase()}".`);
 }
