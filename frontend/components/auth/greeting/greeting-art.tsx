@@ -167,11 +167,26 @@ function FittedText({
   );
 }
 
+/** The site's display face: every name is set in it, whatever the greeting is written in. */
+const GROTESK = "var(--font-space-grotesk), system-ui, sans-serif";
+
+/**
+ * THE NAME, ALWAYS IN SPACE GROTESK. It used to follow the greeting: Caveat
+ * under a handwritten word, Space Grotesk under a non-Latin one, so the same
+ * person's name looked like two different brands depending on the language.
+ * The greeting is the flourish; the name is the site speaking.
+ */
+function Name({ name, y, size, delay, height }: { name: string; y: number; size: number; delay: number; height: number }) {
+  return <FittedText text={name} family={GROTESK} weight={600} y={y} size={size} maxWidth={W * 0.8} dir="ltr" className="greet__reveal" delay={delay} height={height} />;
+}
+
 function Word({ greeting, name, phone }: { greeting: Greeting; name: string | null; phone: boolean }) {
   const isPen = greeting.method === "pen-en" || greeting.method === "pen-vi";
   const word = greeting.method === "pen-vi" ? PEN_XIN_CHAO : PEN_HELLO;
   const speed = greeting.method === "pen-vi" ? PEN_SPEED_VI : 1;
   const h = phone ? H_PHONE : H;
+  /* The name appears as the word finishes: late in a pen stroke, straight after a reveal. */
+  const nameDelay = isPen ? penLength(word) * speed * 0.8 : 0.9;
 
   if (phone) {
     /* ONE LAYOUT FOR EVERY LANGUAGE ON A PHONE: the greeting as large as the
@@ -186,68 +201,35 @@ function Word({ greeting, name, phone }: { greeting: Greeting; name: string | nu
     ) : (
       <FittedText text={greeting.text} family={caveat.style.fontFamily} weight={700} y={top + 118} size={124} maxWidth={W * 0.94} dir="ltr" className="greet__script" height={h} />
     );
-    const penTime = isPen ? penLength(word) * speed : 0.9;
     return (
       <>
         {greetingLine}
-        {name ? (
-          greeting.method === "reveal" ? (
-            <FittedText text={name} family="var(--font-space-grotesk), system-ui, sans-serif" weight={600} y={214} size={56} maxWidth={W * 0.8} dir="ltr" className="greet__reveal" delay={0.9} height={h} />
-          ) : (
-            <FittedText text={name} family={caveat.style.fontFamily} weight={700} y={218} size={80} maxWidth={W * 0.8} dir="ltr" className="greet__script" delay={penTime * 0.8} height={h} />
-          )
-        ) : null}
+        {name ? <Name name={name} y={212} size={56} delay={nameDelay} height={h} /> : null}
       </>
     );
   }
 
-  if (isPen) {
-    const penTime = penLength(word) * speed;
-    return name ? (
-      <>
-        <PenSvg word={word} speed={speed} y={0} height={86} />
-        <FittedText
-          text={name}
-          family={caveat.style.fontFamily}
-          weight={700}
-          y={140}
-          size={60}
-          maxWidth={W * 0.8}
-          dir="ltr"
-          className="greet__script"
-          delay={penTime * 0.8}
-        />
-      </>
-    ) : (
-      <PenSvg word={word} speed={speed} y={4} height={H - 8} />
-    );
-  }
-
-  if (greeting.method === "reveal") {
-    /* Non-Latin and right-to-left: the greeting on one line and the name on
-       the next, in the site's face, so two scripts or two directions never
-       share a line. */
-    return name ? (
-      <>
-        <FittedText text={greeting.text} family={SYSTEM} weight={600} y={78} size={72} maxWidth={W * 0.9} dir={greeting.dir} className="greet__reveal" />
-        <FittedText text={name} family="var(--font-space-grotesk), system-ui, sans-serif" weight={600} y={134} size={40} maxWidth={W * 0.8} dir="ltr" className="greet__reveal" delay={0.9} />
-      </>
-    ) : (
+  /* Wider screens: the same stack in the 460x150 canvas, word above name. */
+  if (!name) {
+    if (isPen) return <PenSvg word={word} speed={speed} y={4} height={H - 8} />;
+    return greeting.method === "reveal" ? (
       <FittedText text={greeting.text} family={SYSTEM} weight={600} y={104} size={92} maxWidth={W * 0.9} dir={greeting.dir} className="greet__reveal" />
+    ) : (
+      <FittedText text={greeting.text} family={caveat.style.fontFamily} weight={700} y={112} size={118} maxWidth={W * 0.94} dir="ltr" className="greet__script" />
     );
   }
-
   return (
-    <FittedText
-      text={name ? `${greeting.text}, ${name}` : greeting.text}
-      family={caveat.style.fontFamily}
-      weight={700}
-      y={112}
-      size={118}
-      maxWidth={W * 0.94}
-      dir="ltr"
-      className="greet__script"
-    />
+    <>
+      {isPen ? (
+        <PenSvg word={word} speed={speed} y={0} height={90} />
+      ) : greeting.method === "reveal" ? (
+        /* Non-Latin and right-to-left: two scripts or two directions never share a line. */
+        <FittedText text={greeting.text} family={SYSTEM} weight={600} y={78} size={72} maxWidth={W * 0.9} dir={greeting.dir} className="greet__reveal" />
+      ) : (
+        <FittedText text={greeting.text} family={caveat.style.fontFamily} weight={700} y={80} size={96} maxWidth={W * 0.9} dir="ltr" className="greet__script" />
+      )}
+      <Name name={name} y={136} size={40} delay={nameDelay} height={H} />
+    </>
   );
 }
 
