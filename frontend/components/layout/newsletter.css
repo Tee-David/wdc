@@ -74,3 +74,9 @@
   opacity: 0; pointer-events: none;
 }
 
+
+/* The subscribe button is white on the navy card, so its hover is the other
+   half of the pair: black fill, white label. The shared control's own hover
+   goes white, which on a white button would be no change at all. */
+.nl .curved-input__button:hover .curved-input__button-bg { fill: #000; }
+.nl .curved-input__button:hover text { fill: #fff; }

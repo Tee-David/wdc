@@ -172,17 +172,17 @@ export function Newsletter() {
                  the rule are white at low alpha: they sit correctly on either
                  without a second palette to keep in step.
 
-                 THE BUTTON IS THE SITE'S PRIMARY: black fill, white label, at
-                 21:1. It used to be an orange fill with a black label, which
-                 was the old primary. The fill needs no extra edge here because
-                 it sits on the bar's own translucent panel over navy, not on
-                 the navy itself. */
+                 THE BUTTON IS THE SITE'S PRIMARY ON A DARK GROUND: white fill,
+                 black label, at 21:1 -- the pair inverted, as AGENTS.md sets for
+                 the navy band. It was black on white, which is the paper
+                 version of the pair. The hover swaps to black with a white
+                 label, so it trades places like every other primary. */
               backgroundColor="rgba(255, 255, 255, 0.06)"
               borderColor="rgba(255, 255, 255, 0.20)"
               textColor="#ffffff"
               placeholderColor="rgba(238, 240, 255, 0.58)"
-              buttonColor="#000000"
-              buttonTextColor="#ffffff"
+              buttonColor="#ffffff"
+              buttonTextColor="#000000"
               iconColor="#ff6500"
               shadowSize="sm"
               shadowColor="#000018"

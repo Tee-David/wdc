@@ -106,7 +106,11 @@
      middle of its column whatever a later rule does to the anchors. */
   .ft__col--tools, .ft__col--more { text-align: center; }
   .ft .ft__col--tools ul, .ft .ft__col--more ul { justify-items: center; }
-  .ft .ft__col--nav ul { justify-content: center; }
+  /* THE PAGE PILLS GO ON A PHONE, and the rule over the tools with them.
+     The header's menu already carries every one of those pages; repeated
+     here they were a second menu a thumb had to scroll past. */
+  .ft .ft__col--nav { display: none; }
+  .ft__toolsHead { border-top: 0; padding-top: .5rem; }
   .ft .ft__col--legal ul { justify-content: center; text-align: center; }
 }
 
