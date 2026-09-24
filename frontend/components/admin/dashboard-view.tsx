@@ -1,5 +1,6 @@
+import { Suspense } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, CalendarClock, CircleDollarSign, ClipboardList, FolderClock } from "lucide-react";
+import { AlertTriangle, ArrowRight, CalendarClock, CircleDollarSign, ClipboardList, FolderClock, Send } from "lucide-react";
 import { SERVICES } from "@/lib/services";
 import { getBoard, getClient, getClients, getInvoices, getMonthly, getPayments, getProjects, getSubmissions, getSummary, getTasks } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, naira, nairaShort, projectAttention, STAGES } from "@/lib/admin/types";
@@ -17,6 +18,7 @@ import { AddExpense, InvoiceBuilder } from "./money-forms";
 import { AddProject } from "./project-forms";
 import { InvoiceMenu, ProjectMenu, SubmissionMenu } from "./row-actions";
 import { DemoNote, Empty, Panel, StagePill, Tile, when } from "./bits";
+import { RecentLeads, RecentLeadsSkeleton } from "./recent-leads";
 import PageTourButton from "./tour/page-tour-button";
 import "./dashboard.css";
 
@@ -183,8 +185,15 @@ export function AdminDashboardView({ firstName }: { firstName?: string }) {
               <InvoiceBuilder clients={clients} projects={projects} />
               <AddExpense />
               <Link className="ad__btn" href="/admin/forms"><ClipboardList aria-hidden="true" /> Review forms</Link>
+              {/* The public form, opened in its own tab so its address can be
+                  copied into a message to a new client. */}
+              <a className="ad__btn" href="/onboarding" target="_blank" rel="noopener"><Send aria-hidden="true" /> Onboarding form</a>
             </div>
           </Panel>
+
+          <Suspense fallback={<RecentLeadsSkeleton />}>
+            <RecentLeads />
+          </Suspense>
 
           <Panel title="Project pipeline" dataTour="dash-pipeline" action={<Link href="/admin/projects">View all <ArrowRight aria-hidden="true" /></Link>}>
             <div className="adDash__pipeline">

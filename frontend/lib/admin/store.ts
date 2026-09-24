@@ -32,11 +32,32 @@ import {
 
 /* --------------------------------------------------------------- the seed */
 
+/**
+ * ONE COPY OF THE BOOKS PER PROCESS, NOT ONE PER BUNDLE.
+ *
+ * Next compiles route handlers and pages as separate entries, and each entry
+ * can evaluate this module for itself. With the collections as plain module
+ * constants, a write from `/api/contact` or the Paystack webhook landed in the
+ * route's own copy and no admin page ever saw it -- measured, not guessed: an
+ * enquiry whose notice failed was recorded by the route and absent from
+ * Reconciliation's failed-mail list. Hanging the state off `globalThis` gives
+ * every entry the same arrays. The seed runs once, on first use.
+ *
+ * The cost, in development: editing the seed below no longer resets the data
+ * on save. Restart the dev server to reseed.
+ */
+const STATE = globalThis as typeof globalThis & { __wdcAdminStore?: Map<string, unknown> };
+function shared<T>(key: string, seed: () => T): T {
+  const store = (STATE.__wdcAdminStore ??= new Map());
+  if (!store.has(key)) store.set(key, seed());
+  return store.get(key) as T;
+}
+
 const iso = (d: string) => new Date(d).toISOString();
 /** Naira to kobo, so the seed reads in the unit a person would say. */
 const N = (naira: number) => Math.round(naira * 100);
 
-const CLIENTS: Client[] = [
+const CLIENTS: Client[] = shared("CLIENTS", (): Client[] => [
   {
     id: "c1", name: "Tobi Adeyemi", company: "Moore Designs",
     email: "tobi@mooredesigns.ng", phone: "+234 802 123 4567",
@@ -68,9 +89,9 @@ const CLIENTS: Client[] = [
     services: ["software", "apps"], sector: "Technology",
     since: iso("2025-08-14"),
   },
-];
+]);
 
-const PROJECTS: Project[] = [
+const PROJECTS: Project[] = shared("PROJECTS", (): Project[] => [
   {
     id: "p1", clientId: "c1", title: "Identity system", service: "branding",
     stage: "Review", due: iso("2026-09-26"),
@@ -126,7 +147,7 @@ const PROJECTS: Project[] = [
     budget: N(420_000), scope: "Wordmark and a one-page usage sheet.",
     events: [{ at: iso("2026-09-02"), text: "Moved to Discovery" }],
   },
-];
+]);
 
 /* A LONG ONE, ON PURPOSE.
 
@@ -164,7 +185,7 @@ const RETAINER_LINES: Invoice["lines"] = [
   { description: "Out-of-hours community cover, launch week", qty: 7, unit: N(9_500) },
 ];
 
-const INVOICES: Invoice[] = [
+const INVOICES: Invoice[] = shared("INVOICES", (): Invoice[] => [
   {
     id: "i1", token: "seedInv1AAAAAAAAAAAAAAA", number: "INV-2026-001", clientId: "c1", projectId: "p1",
     status: "Sent", issued: iso("2026-08-01"), due: iso("2026-08-31"), vatRate: 7.5,
@@ -219,9 +240,9 @@ const INVOICES: Invoice[] = [
       reason: "Raised against the wrong project. The packaging work sits under the retainer, not the identity job.",
     },
   },
-];
+]);
 
-const PAYMENTS: Payment[] = [
+const PAYMENTS: Payment[] = shared("PAYMENTS", (): Payment[] => [
   { id: "y1", invoiceId: "i1", at: iso("2026-08-06"), amount: N(300_000), method: "Paystack",
     reference: "PSK_8fj2k1", receiptNo: "RCT-2026-001", token: "seedRct1AAAAAAAAAAAAAAA", by: "Paystack webhook" },
   { id: "y2", invoiceId: "i3", at: iso("2026-07-30"), amount: N(1_000_000), method: "Transfer",
@@ -243,9 +264,9 @@ const PAYMENTS: Payment[] = [
         reason: "July stopped halfway through. Returning the unused half of the deposit.",
         toCredit: true },
     ] },
-];
+]);
 
-const EXPENSES: Expense[] = [
+const EXPENSES: Expense[] = shared("EXPENSES", (): Expense[] => [
   /* Overhead: no project, so it is the studio's cost and nobody's margin. */
   { id: "e1", at: iso("2026-08-01"), description: "Adobe Creative Cloud, team plan",
     category: "Software", amount: N(38_000), vendor: "Adobe", method: "Paystack", by: "Babatope" },
@@ -262,9 +283,9 @@ const EXPENSES: Expense[] = [
     note: "Agreed as a pass-through cost in the scope. Bill it on the next invoice." },
   { id: "e5", at: iso("2026-09-04"), description: "Meta ads, agency test",
     category: "Marketing", amount: N(60_000), vendor: "Meta", method: "Paystack", by: "Babatope" },
-];
+]);
 
-const SUBMISSIONS: Submission[] = [
+const SUBMISSIONS: Submission[] = shared("SUBMISSIONS", (): Submission[] => [
   {
     id: "s1", clientId: "c1", service: "branding", status: "Submitted",
     startedAt: iso("2026-07-28"), submittedAt: iso("2026-07-29"),
@@ -293,9 +314,9 @@ const SUBMISSIONS: Submission[] = [
     startedAt: iso("2026-09-10"), submittedAt: null,
     answers: { first_name: "Ngozi", company: "Ngozi Interiors", email: "ngozi@example.com" },
   },
-];
+]);
 
-const TICKETS: Ticket[] = [
+const TICKETS: Ticket[] = shared("TICKETS", (): Ticket[] => [
   {
     id: "tk1", clientId: "c1", projectId: null,
     subject: "Can we add a WhatsApp catalogue link to the new site?",
@@ -306,9 +327,9 @@ const TICKETS: Ticket[] = [
     subject: "Receipt breakdown for INV-2026-001",
     status: "Open", createdAt: iso("2026-09-15"), updatedAt: iso("2026-09-15"),
   },
-];
+]);
 
-const TICKET_MESSAGES: TicketMessage[] = [
+const TICKET_MESSAGES: TicketMessage[] = shared("TICKET_MESSAGES", (): TicketMessage[] => [
   {
     id: "tm1", ticketId: "tk1", at: iso("2026-09-10"), author: "Tobi Adeyemi", from: "client",
     body: "Quick one -- once the identity work lands on the site, can we link straight out to our WhatsApp catalogue from the header? We already run one.",
@@ -321,7 +342,7 @@ const TICKET_MESSAGES: TicketMessage[] = [
     id: "tm3", ticketId: "tk2", at: iso("2026-09-15"), author: "Tobi Adeyemi", from: "client",
     body: "Could you send a line-by-line breakdown for INV-2026-001? Our accountant is asking what the deposit covered.",
   },
-];
+]);
 
 /* ------------------------------------------------------------- the reads */
 
@@ -625,8 +646,8 @@ export function getMonthly(months = 6) {
 
 /* Monotonic within the process, prefixed so an id says what it is. Real rows
    get a UUID from the database default; this only has to be unique here. */
-let seq = 1000;
-const mint = (p: string) => `${p}${++seq}`;
+const SEQ = shared("SEQ", () => ({ n: 1000 }));
+const mint = (p: string) => `${p}${++SEQ.n}`;
 const now = () => new Date().toISOString();
 
 /**
@@ -1084,14 +1105,14 @@ export function refundPayment(d: {
 
 /* ------------------------------------------------------------------ credit */
 
-const CREDITS: Credit[] = [
+const CREDITS: Credit[] = shared("CREDITS", (): Credit[] => [
   /* The other half of rf1. Held rather than returned, so it is money the
      studio still has and the client has a claim on. It comes off their next
      invoice, which is what "balance carry-forward" means in practice. */
   { id: "cr1", clientId: "c2", at: iso("2026-07-21"), amount: N(75_000), by: "Babatope",
     reason: "Held from RCT-2026-004 rather than returned. July stopped halfway through.",
     fromInvoiceId: "i2", fromPaymentId: "y4" },
-];
+]);
 
 function addCredit(d: Omit<Credit, "id" | "at">): Credit {
   const c: Credit = { ...d, id: mint("cr"), at: now() };
@@ -1327,7 +1348,7 @@ export function clientFromSubmission(id: Id): Client | null {
  * Moving it to CockroachDB is this map becoming a table with the same two
  * columns.
  */
-const SETTINGS = new Map<string, string>();
+const SETTINGS = shared("SETTINGS", () => new Map<string, string>());
 
 export function getSettings(): Record<string, string> {
   return Object.fromEntries(SETTINGS);
@@ -1402,7 +1423,7 @@ export function financeDefaults(): typeof FINANCE_DEFAULTS {
    swapping the storage is this module changing and nothing above it.
    ========================================================================= */
 
-const TASKS: Task[] = [
+const TASKS: Task[] = shared("TASKS", (): Task[] => [
   { id: "t1", projectId: "p1", title: "Send the three routes with rationale", assignee: "Babatope",
     due: iso("2026-09-08"), priority: "High", done: true, doneAt: iso("2026-09-08"), blockedBy: null },
   { id: "t2", projectId: "p1", title: "Chase Tobi for a pick", assignee: "Babatope",
@@ -1417,9 +1438,9 @@ const TASKS: Task[] = [
     due: iso("2026-09-01"), priority: "Normal", done: true, doneAt: iso("2026-08-29"), blockedBy: null },
   { id: "t7", projectId: "p6", title: "Get the registration certificate for the mark", assignee: "Babatope",
     due: iso("2026-09-05"), priority: "High", done: false, doneAt: null, blockedBy: null },
-];
+]);
 
-const UPDATES: Update[] = [
+const UPDATES: Update[] = shared("UPDATES", (): Update[] => [
   { id: "u1", projectId: "p1", at: iso("2026-09-08"), author: "Babatope", health: "Waiting on client",
     progress: "Three identity routes sent, each with the reasoning and a mock in situ.",
     blockers: "We need a pick before the guideline work can start.",
@@ -1432,9 +1453,9 @@ const UPDATES: Update[] = [
     progress: "Revisions on dispatch are underway; the assignment screen is the big one.",
     blockers: "The rework pushes the load test into October.",
     next: "Assignment screen this week, load test straight after.", clientVisible: true },
-];
+]);
 
-const DELIVERABLES: Deliverable[] = [
+const DELIVERABLES: Deliverable[] = shared("DELIVERABLES", (): Deliverable[] => [
   { id: "d1", projectId: "p1", name: "Identity routes",
     versions: [
       { v: 1, at: iso("2026-09-08"), note: "Three routes, each with rationale." },
@@ -1451,7 +1472,7 @@ const DELIVERABLES: Deliverable[] = [
     versions: [{ v: 1, at: iso("2026-08-28"), note: "Beta for internal testing." }],
     approval: "Revision requested",
     approvalNote: "Assignment screen is confusing when two drivers are equidistant." },
-];
+]);
 
 /* ------------------------------------------------------------------ reads */
 
@@ -1659,7 +1680,7 @@ export function archiveProject(id: Id, archived = true, actor = "Studio"): Proje
    gets slower every week it is used.
    ========================================================================= */
 
-const AUDIT: AuditEntry[] = [];
+const AUDIT: AuditEntry[] = shared("AUDIT", (): AuditEntry[] => []);
 
 export function audit(d: Omit<AuditEntry, "id" | "at"> & { at?: string }): AuditEntry {
   const entry: AuditEntry = { ...d, id: mint("a"), at: d.at ?? now() };
@@ -1718,7 +1739,7 @@ export function auditCount(opts: { kind?: AuditKind; subjectId?: Id; subjectIds?
    somebody an afternoon, and they are here so the reconciliation screen is
    reviewable before the first live charge rather than after it. Same rule as
    the rest of this seed: fiction, shaped like real work. */
-const PROVIDER_EVENTS: ProviderEvent[] = [
+const PROVIDER_EVENTS: ProviderEvent[] = shared("PROVIDER_EVENTS", (): ProviderEvent[] => [
   { id: "pe1", at: iso("2026-08-06T09:14:00"), provider: "Paystack", event: "charge.success",
     reference: "PSK_8fj2k1", amount: N(300_000), outcome: "Applied", channel: "card",
     invoiceId: "i1", paymentId: "y1" },
@@ -1741,7 +1762,7 @@ const PROVIDER_EVENTS: ProviderEvent[] = [
   { id: "pe5", at: iso("2026-09-09T03:22:00"), provider: "Paystack", event: "signature.invalid",
     reference: "(unreadable)", amount: null, outcome: "Rejected",
     note: "A webhook arrived whose signature did not verify. Nothing was written to the books." },
-];
+]);
 
 export function recordProviderEvent(d: Omit<ProviderEvent, "id" | "at" | "provider"> & {
   at?: string;
@@ -1861,7 +1882,7 @@ export function matchInvoice(input: { reference?: string; invoiceId?: string }):
    WhatsApp row here means somebody wrote down that they sent one.
    ========================================================================= */
 
-const MESSAGES: Message[] = [
+const MESSAGES: Message[] = shared("MESSAGES", (): Message[] => [
   { id: "m1", at: iso("2026-08-01T10:12:00"), channel: "Email", direction: "Outbound",
     to: "tobi@mooredesigns.ng", subject: "Invoice INV-2026-001: ₦677,250.00 due 31 August 2026",
     summary: "Link sent with the invoice and the pay button on it.", state: "Sent",
@@ -1885,7 +1906,7 @@ const MESSAGES: Message[] = [
     to: "Moore Designs project group", subject: "Three identity routes sent",
     summary: "Told Tobi the routes were in the email and asked for a pick by Friday.",
     state: "Sent", by: "Babatope", clientId: "c1", dedupeKey: "manual:m4" },
-];
+]);
 
 export type QueueResult =
   | { ok: true; message: Message }
@@ -1982,7 +2003,7 @@ export function retryMessage(id: Id, actor = "Studio"): Message | null {
    to point at when the scope changes and the price does too.
    ========================================================================= */
 
-const ESTIMATES: Estimate[] = [
+const ESTIMATES: Estimate[] = shared("ESTIMATES", (): Estimate[] => [
   /* Sent and still live: the pipeline row. */
   {
     id: "q1", number: "EST-2026-001", token: "seedEst1AAAAAAAAAAAAAAA",
@@ -2023,7 +2044,7 @@ const ESTIMATES: Estimate[] = [
     terms: "Monthly in advance.",
     answered: { at: iso("2026-09-04"), by: "Ifeanyi Nwosu", note: "Going in-house for now. Ask again in the new year." },
   },
-];
+]);
 
 export function getEstimates() {
   return ESTIMATES.slice().sort((a, b) => b.issued.localeCompare(a.issued));

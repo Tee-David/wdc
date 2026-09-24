@@ -1,6 +1,9 @@
 import { after, NextRequest, NextResponse } from "next/server";
 import { CONTACT_EMAIL } from "@/lib/site";
-import { escapeHtml, mailIsConfigured, sendMail, sendTemplate } from "@/lib/email";
+import { randomUUID } from "node:crypto";
+import { escapeHtml, mailIsConfigured } from "@/lib/email";
+import { enquiriesAreConfigured, saveEnquiry, settleEnquiry } from "@/lib/enquiries";
+import { sendLogged } from "@/lib/outbox";
 import { enquiryReceiptEmail } from "@/lib/email-templates";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 
@@ -37,45 +40,81 @@ export async function POST(request: NextRequest) {
   if (!first || !last || !topic || message.length < 10 || !/^\S+@\S+\.\S+$/.test(email)) {
     return NextResponse.json({ error: "Please complete all required fields with valid details." }, { status: 422 });
   }
-  if (!mailIsConfigured()) return NextResponse.json({ error: "Email delivery is being configured. Please email us directly for now." }, { status: 503 });
+  /* STORED FIRST, WHEN THERE IS SOMEWHERE TO STORE IT. With a row, the
+     enquiry exists whatever the mail server does next, so the visitor is
+     answered straight away and both emails go behind the response. Without
+     a database this falls back to the old path, where the studio's copy is
+     the only record and so has to succeed before we say thanks. */
+  const storable = enquiriesAreConfigured();
+  if (!storable && !mailIsConfigured()) {
+    return NextResponse.json({ error: "Email delivery is being configured. Please email us directly for now." }, { status: 503 });
+  }
 
   const name = `${first} ${last}`;
   const detailText = [`Name: ${name}`, `Email: ${email}`, phone ? `Phone: ${phone}` : null, `About: ${topic}`, "", message].filter(Boolean).join("\n");
-  try {
-    await sendMail({
-      to: process.env.SMTP_REPLY_TO || CONTACT_EMAIL, replyTo: email,
-      subject: `Website enquiry: ${topic}`, text: detailText,
-      html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a;max-width:620px"><p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#ff6500">NEW WEBSITE ENQUIRY</p><h1 style="font-size:26px;margin:12px 0">${escapeHtml(topic)}</h1><p><b>From:</b> ${escapeHtml(name)} &lt;${escapeHtml(email)}&gt;</p>${phone ? `<p><b>Phone:</b> ${escapeHtml(phone)}</p>` : ""}<hr style="border:0;border-top:1px solid #e7e7ef"><p>${escapeHtml(message).replace(/\n/g, "<br>")}</p></div>`,
-    });
-    /* THE RECEIPT IS SENT AFTER THE RESPONSE, NOT BEFORE IT.
+  const studioCopy = {
+    to: process.env.SMTP_REPLY_TO || CONTACT_EMAIL, replyTo: email,
+    subject: `Website enquiry: ${topic}`, text: detailText,
+    html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a;max-width:620px"><p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#c95000">NEW WEBSITE ENQUIRY</p><h1 style="font-size:26px;margin:12px 0">${escapeHtml(topic)}</h1><p><b>From:</b> ${escapeHtml(name)} &lt;${escapeHtml(email)}&gt;</p>${phone ? `<p><b>Phone:</b> ${escapeHtml(phone)}</p>` : ""}<hr style="border:0;border-top:1px solid #e7e7ef"><p>${escapeHtml(message).replace(/\n/g, "<br>")}</p></div>`,
+  };
 
-       The enquiry reaching the studio is the authoritative success; the copy
-       to the visitor is a courtesy, and its failure must never tell them to
-       resubmit and create a duplicate enquiry. That was already true. What is
-       new is WHEN it runs.
+  let enquiryId: string | null = null;
+  if (storable) {
+    try {
+      enquiryId = await saveEnquiry({ firstName: first, lastName: last, email, phone, topic, message });
+    } catch (error) {
+      console.error("Contact enquiry could not be stored", error instanceof Error ? error.message : "unknown error");
+      if (!mailIsConfigured()) {
+        return NextResponse.json({ error: "Your message could not be sent right now. Please try again or email us directly." }, { status: 502 });
+      }
+    }
+  }
+  const eventId = enquiryId ?? randomUUID();
+  const log = { summary: `Enquiry from ${name} about ${topic}.`, dedupeKey: `enquiry:${eventId}` };
 
-       This mail server is slow: measured at about 23 seconds just to complete
-       the TLS handshake and authenticate, from two different networks. Two
-       sends in series meant the visitor watched a spinner for 39 seconds and,
-       before the credentials were fixed, often hit the function timeout and
-       was told the message had failed when it had not. `after` runs the
-       receipt once the response has already gone, so the form answers in
-       roughly half the time and the visitor is never waiting on the courtesy.
+  /* THE RECEIPT IS SENT AFTER THE RESPONSE, ALWAYS.
 
-       The real fix is a transactional mail provider; this is the honest
-       interim, and it is written down so the interim is visible. */
+     The enquiry reaching the studio is the authoritative success; the copy
+     to the visitor is a courtesy, and its failure must never tell them to
+     resubmit and create a duplicate enquiry.
+
+     This mail server is slow: measured at about 23 seconds just to complete
+     the TLS handshake and authenticate, from two different networks. `after`
+     runs the receipt once the response has already gone, so the visitor is
+     never waiting on the courtesy. The real fix is a transactional mail
+     provider; this is the honest interim. */
+  const sendReceipt = async () => {
+    try {
+      await sendLogged(
+        { to: email, ...enquiryReceiptEmail({ firstName: first, topic }) },
+        { summary: `Receipt for an enquiry about ${topic}.`, dedupeKey: `enquiry-receipt:${eventId}` },
+      );
+    } catch (receiptError) {
+      console.error("Contact receipt failed", receiptError instanceof Error ? receiptError.message : "unknown error");
+    }
+  };
+
+  if (enquiryId) {
+    const stored = enquiryId;
     after(async () => {
       try {
-        /* The receipt is now one of the shared templates rather than a `<div>`
-           written here: full document, real plain-text alternative, and the
-           unsubscribe line in the footer matching the header `sendMail` sets.
-           See lib/email-templates.ts for why each of those is not decoration. */
-        await sendTemplate(email, enquiryReceiptEmail({ firstName: first, topic }));
-      } catch (receiptError) {
-        console.error("Contact receipt failed", receiptError instanceof Error ? receiptError.message : "unknown error");
+        await sendLogged(studioCopy, log);
+        await settleEnquiry(stored, "sent");
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : "unknown error";
+        console.error("Contact email failed", reason);
+        /* The enquiry is safe in the table; the row says the notice did not go
+           so the admin can see it rather than the studio never hearing. */
+        await settleEnquiry(stored, "failed", reason).catch(() => {});
       }
+      await sendReceipt();
     });
+    return NextResponse.json({ ok: true });
+  }
 
+  try {
+    await sendLogged(studioCopy, log);
+    after(sendReceipt);
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Contact email failed", error instanceof Error ? error.message : "unknown error");

@@ -5,6 +5,7 @@ import {
   enquiryReceiptEmail,
   invoiceEmail,
   onboardingInvitationEmail,
+  onboardingNextStepsEmail,
   onboardingReminderEmail,
   passwordResetEmail,
   projectStageEmail,
@@ -57,6 +58,7 @@ async function everyEmail(): Promise<{ name: string; email: Email }[]> {
   return [
     { name: "enquiry receipt", email: enquiryReceiptEmail({ firstName: "Ada", topic: "a new website" }) },
     { name: "onboarding invitation", email: onboardingInvitationEmail({ name: "Ada", service: "Web design", url: URL_UNDER_TEST, expiresInDays: 14 }) },
+    { name: "onboarding next steps", email: onboardingNextStepsEmail({ name: "Ada", service: "Full-Stack Web Development", company: "Ada & Co" }) },
     { name: "onboarding reminder", email: onboardingReminderEmail({ name: "Ada", service: "Web design", url: URL_UNDER_TEST, progressPercent: 40, daysLeft: 3 }) },
     { name: "quote", email: quoteEmail({ clientName: "Ada", quoteNumber: "QTE-2026-014", projectTitle: "Atlas rebrand", lines: LINES, totals: TOTALS, validUntil: DUE, url: URL_UNDER_TEST }) },
     { name: "invoice", email: await invoiceEmail({ clientName: "Ada", number: "INV-2026-014", projectTitle: "Atlas rebrand", lines: LINES, totals: TOTALS, paid: 0, issued: ISSUED, due: DUE, url: URL_UNDER_TEST }) },
@@ -163,7 +165,8 @@ test("every message has a plain-text alternative that reads as the message", asy
 test("the link in the HTML is the link in the text", async () => {
   const failures: string[] = [];
   for (const { name, email } of await everyEmail()) {
-    if (name === "enquiry receipt") continue; // the only one with nowhere to send anybody
+    /* The two with nowhere to send anybody: both are answered by a reply. */
+    if (name === "enquiry receipt" || name === "onboarding next steps") continue;
     if (!email.html.includes(URL_UNDER_TEST)) failures.push(`${name}: the URL is missing from the HTML part`);
     if (!email.text.includes(URL_UNDER_TEST)) failures.push(`${name}: the URL is missing from the text part`);
   }
@@ -184,7 +187,7 @@ test("no filled button carries a white label on orange", async () => {
 });
 
 test("an unsubscribe is offered exactly where one is owed", async () => {
-  const owed = new Set(["enquiry receipt", "onboarding reminder", "project stage change"]);
+  const owed = new Set(["enquiry receipt", "onboarding next steps", "onboarding reminder", "project stage change"]);
   const failures: string[] = [];
   for (const { name, email } of await everyEmail()) {
     const declared = email.unsubscribe === true;
@@ -262,4 +265,16 @@ test("a link that is not ours never reaches an href", () => {
   const email = passwordResetEmail({ url: "javascript:alert(1)", expiresInMinutes: 60 });
   expect(email.html).not.toContain("javascript:");
   expect(email.html).toContain('href="https://wedigcreativity.com.ng"');
+});
+
+test("the onboarding next steps name every channel and keep the account optional", () => {
+  const email = onboardingNextStepsEmail({ name: "Ada", service: "SEO" });
+  for (const part of [email.text, email.html]) {
+    expect(part).toContain("client dashboard");
+    expect(part).toContain("WhatsApp project group");
+    expect(part).toContain("another channel we agree with you");
+    expect(part).toContain("You do not need an account");
+  }
+  /* No company given means no dangling "for" in the sentence. */
+  expect(email.text).not.toMatch(/project for\s*\./);
 });

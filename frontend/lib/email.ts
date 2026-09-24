@@ -1,7 +1,7 @@
 import "server-only";
 
 import nodemailer from "nodemailer";
-import { escapeHtml, passwordResetEmail, type Email } from "@/lib/email-templates";
+import { escapeHtml } from "@/lib/email-templates";
 
 function required(name: string) {
   const value = process.env[name]?.trim();
@@ -99,31 +99,6 @@ export async function sendMail(input: {
         }
       : undefined,
   });
-}
-
-/** Sends one of the composed messages in lib/email-templates.ts. */
-export async function sendTemplate(to: string, email: Email, options: { replyTo?: string } = {}) {
-  return sendMail({ to, replyTo: options.replyTo, ...email });
-}
-
-/**
- * The reset link, as mail.
- *
- * CALLED FROM BEHIND THE RESPONSE. Better Auth runs this through its
- * `advanced.backgroundTasks` handler, which lib/auth.ts wires to Next's
- * `after()`: this mail server needs about 23 seconds just to authenticate, and
- * nobody should watch a spinner for that after asking for a reset link. The
- * consequence is that a failure here has no one left to tell, so it is logged
- * rather than thrown -- and the reset token is already in the database either
- * way, so a retry is one more request rather than a lost account.
- */
-export async function sendPasswordResetEmail(
-  to: string,
-  url: string,
-  name?: string,
-  expiresInMinutes = 60,
-) {
-  await sendTemplate(to, passwordResetEmail({ name, url, expiresInMinutes }));
 }
 
 export { escapeHtml };

@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**91 open** (28 in progress)
+**85 open** (28 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -12,8 +12,7 @@ the evidence. Detail that used to sit in this file is in git history and in
 ## 1A. Client onboarding experience
 
 - [-] Make Save and continue later create a securely hashed, single-purpose resume token and email the link through Truehost SMTP. (Token flow is complete. UPDATED 2026-09-17: the `535` is gone -- SMTP authentication succeeds with the same credentials Vercel holds, in about 22 seconds, and a real message was accepted `250 OK` and seen by the owner. (…)
-- [ ] After successful onboarding, send the client a personalized next-steps email; explain that project communication may use the client dashboard, direct chat, a WhatsApp project group where appropriate, or another agreed channel.
-- [ ] Keep client account creation optional in that email; bind its expiring, single-purpose invitation to the onboarded recipient so a forwarded link cannot register a different email address.
+- [-] Keep client account creation optional in that email; bind its expiring, single-purpose invitation to the onboarded recipient so a forwarded link cannot register a different email address. The next-steps email now says an account is optional and offers an invitation on request, tied to that address. The invitation itself is not built: it is the same Better Auth invitation work as 4.3's second line.
 - [ ] Let authenticated clients link or unlink Google in account settings; require another usable sign-in method before unlinking their last identity.
 - [ ] Bind each client invitation to the intended normalized email and project/client record; store only a token hash, set an expiry, enforce one-time redemption, and reject email substitution or replay.
 - [ ] Let an invited client create credentials or continue with an approved Google identity without granting admin access; keep the project relationship attached to the same client account.
@@ -49,8 +48,7 @@ the evidence. Detail that used to sit in this file is in git history and in
 
 - [-] Overdue invoices, stalled onboarding, and project-derived reasons (blocked, waiting on a client, in revision, a slipped task) all feed one combined `attention` queue, sorted worst-first, every row linking straight to its resolution screen (`AdminDashboardView`). (…)
 - [-] Outstanding, overdue, and a collection rate are on the KPI tiles; "Cashflow, last six months" charts collected income against recorded spend, which is the lightweight income-versus-expenditure view. NOT on this route: accounts-receivable aging, which exists (30-day buckets, drillable) but only on `/admin/money/reconciliation` -- it answers the question asked here, just from a different page.
-- [-] Recent payments and upcoming deadlines are both rail panels, both now with a real empty state rather than a blank box (see the 2026-09-17 closed entry). NOT built: a recent clients/leads panel -- there is nothing on `/admin` today naming who signed up or enquired most recently.
-- [-] Quick actions has a new client, a new invoice (`InvoiceBuilder`), and a new expense. (…)
+- [-] Quick actions has a new client, a new invoice (`InvoiceBuilder`), a new expense, Review forms, and an onboarding-form link that opens the public form in its own tab for copying into a message. Deliberately NOT duplicated: "New project", which is already the dashboard header's button; two identical dialogs on one screen is noise. NOT built: a standalone "record a payment" not tied to one invoice, and role filtering (only `owner` is wired).
 
 ### 4.3 Clients and client workspace
 
@@ -74,10 +72,8 @@ the evidence. Detail that used to sit in this file is in git history and in
 
 ### 4.6 Forms, builder, onboarding, and submissions
 
-- [ ] Phase 0 of the form-builder plan: every outbound email writes a log row. Only the three money emails go through `deliver()` in `lib/money-mail.ts`; contact, newsletter, onboarding, tool reports and password reset call `sendMail` directly and leave no trace when they fail. Route them all through the outbox, with no email bodies stored (re-render from template and record ids).
 - [ ] Build one shared admin data table to the standard in section 9 of the audit: state in the URL, keyset (cursor) pagination with a stable sort key plus id, 25/50/100 per page, capped counts, filter chips, saved views, select-all-matching for bulk actions, streamed CSV export that respects filters, a card layout at 320px, geometry-matched skeletons, `aria-sort` headers. (…)
 - [ ] Build the notification centre from the audit: event, rule, template, log. A form notification is one kind of rule. Move the existing transactional templates into it with the code versions as fallback; eight templates in `lib/email-templates.ts` are currently never called.
-- [ ] Store every contact enquiry. `/api/contact` sends an email and keeps nothing, so an enquiry that fails to send is simply gone.
 - [ ] Rebuild Forms to Litch parity with draft/published/archived states, submission counts, last activity, duplication, preview, share link, and clear primary actions.
 - [ ] Build a responsive form editor with sections/steps, reusable fields, labels/helpers/placeholders, option editing, required state, ordering, conditional visibility, and live preview without a heavy drag-and-drop dependency.
 - [ ] Support text, textarea, email, phone, number, date, URL, radio, checkbox, multi-select, short/long dropdown, searchable long list, address/country, consent, and file upload controls.
@@ -89,8 +85,6 @@ the evidence. Detail that used to sit in this file is in git history and in
 
 ### 4.7 Communications and client portal handoff
 
-- [ ] Send a personalized next-steps/thank-you email after successful onboarding, including the agreed next steps and the optional account invitation.
-- [ ] State that project communication may use the client dashboard, direct chat, a WhatsApp project group where appropriate, or another agreed channel.
 - [-] Three of the eight are built and sending: the invoice with its pay link, the payment receipt, and the invoice reminder. They share one shell, one delivery path and one set of rules, and the buttons that send them are on the invoice screen rather than buried in a menu. (…)
 - [ ] Provide explicit WhatsApp handoff actions without pretending the website can read or sync WhatsApp messages unless a real approved integration is added. WHAT CANNOT BE SWITCHED OFF, AND WHY. A receipt for money a client has actually paid is a record they are entitled to. It is not a notification, and it is not in the list. THE DEDUPE KEY IS THE EVENT, NOT THE ATTEMPT. (…)
 - [-] The portal exists now, at `/portal` -- `lib/roles.ts`'s `client` door flipped to `ready: true`, matching where it always said a client belonged. Gives a client their projects, client-visible updates, invoices/payments, and approvals; internal notes, tasks, and admin-only money stay off every portal screen because the portal's own queries never read them, not because a flag hides them. (…)

@@ -563,6 +563,70 @@ The WDC team`, { unsubscribe: true }),
   };
 }
 
+/* ================================================ 3b. onboarding next steps */
+
+/**
+ * "We have your brief. Here is what happens now."
+ *
+ * Sent once, after the form is submitted. It names every channel the project
+ * might run on, because a client who has only ever seen an email from us will
+ * otherwise be surprised by a WhatsApp group, and one who prefers WhatsApp
+ * should know they can say so.
+ *
+ * THE ACCOUNT IS OPTIONAL, AND SAID SO. Nothing about the work needs one. The
+ * invitation is offered, not sent: it is bound to this address when a person
+ * issues it, which is what stops a forwarded email registering somebody else.
+ */
+export function onboardingNextStepsEmail(input: { name: string; service: string; company?: string }): Email {
+  const { name, service, company } = input;
+  const forWhom = company ? ` for ${company}` : "";
+  return {
+    subject: `Thank you, ${name}: your ${service} brief is with us`,
+    /* They asked for the work, not for this message, which is the test the
+       enquiry receipt uses too. */
+    unsubscribe: true,
+    text: textShell(`Hi ${name},
+
+Thank you for completing the onboarding form for your ${service} project${forWhom}.
+Your answers are saved and the brief is with the team.
+
+What happens next:
+
+1. Somebody on the team reads your brief properly. Anything you marked "I'm not
+   sure, please advise me" is ours to recommend, and we will explain why.
+2. We come back to you with any questions, then the proposed scope and price.
+3. Once you are happy with both, we agree a start date and begin.
+
+How we will stay in touch: project communication may happen through the client
+dashboard, direct chat by email, a WhatsApp project group where that suits the
+work, or another channel we agree with you. Reply and tell us what you prefer.
+
+You do not need an account to work with us. If you would like to follow the
+project in the client dashboard, reply and ask, and we will send a personal
+invitation tied to this email address.
+
+The WDC team`, { unsubscribe: true }),
+    html: shell({
+      title: "Your brief is with us",
+      preheader: `Your ${service} brief is saved. Here is what happens next.`,
+      eyebrow: "Onboarding complete",
+      heading: "Thank you. Your brief is with us.",
+      unsubscribe: true,
+      blocks: [
+        p(`Hi ${escapeHtml(name)},`),
+        p(`Thank you for completing the onboarding form for your <b>${escapeHtml(service)}</b> project${escapeHtml(forWhom)}. Your answers are saved and the brief is with the team.`),
+        panel([
+          ["First", "We read your brief properly, and recommend on anything you asked us to advise on."],
+          ["Then", "We come back with any questions, then the proposed scope and price."],
+          ["After that", "Once you are happy with both, we agree a start date and begin."],
+        ]),
+        p("Project communication may happen through the client dashboard, direct chat by email, a WhatsApp project group where that suits the work, or another channel we agree with you. Reply and tell us what you prefer."),
+        small("You do not need an account to work with us. If you would like to follow the project in the client dashboard, reply and ask, and we will send a personal invitation tied to this email address."),
+      ],
+    }),
+  };
+}
+
 /* ================================================================== 4. quote */
 
 export function quoteEmail(input: {

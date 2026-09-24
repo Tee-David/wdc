@@ -1,6 +1,8 @@
 import { after, NextResponse, type NextRequest } from "next/server";
 import { CONTACT_EMAIL, SITE_URL } from "@/lib/site";
-import { escapeHtml, mailIsConfigured, sendMail, sendTemplate } from "@/lib/email";
+import { randomUUID } from "node:crypto";
+import { escapeHtml, mailIsConfigured } from "@/lib/email";
+import { sendLogged } from "@/lib/outbox";
 import { scopeEstimateEmail } from "@/lib/email-templates";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 import {
@@ -60,6 +62,7 @@ function readAnswers(raw: unknown): Answers {
 }
 
 export async function POST(request: NextRequest) {
+  const eventId = randomUUID();
   const limit = rateLimit(callerKey(request, "tools-estimate"), LIMIT, WINDOW_MS);
   if (!limit.ok) {
     return NextResponse.json(
@@ -119,9 +122,9 @@ export async function POST(request: NextRequest) {
        reader has to be told about, and the studio's notification is the one
        that goes behind the response. Two sends in series would put roughly
        forty seconds between the click and the answer. */
-    await sendTemplate(
-      email,
-      scopeEstimateEmail({
+    /* A reply goes to a person, not into the void. */
+    await sendLogged(
+      { to: email, replyTo: process.env.SMTP_REPLY_TO || CONTACT_EMAIL, ...scopeEstimateEmail({
         rangeNgn,
         rangeUsd,
         days: result.days,
@@ -132,9 +135,8 @@ export async function POST(request: NextRequest) {
         answers: rows,
         assumptions: result.assumptions,
         url: `${SITE_URL}/contact`,
-      }),
-      /* A reply goes to a person, not into the void. */
-      { replyTo: process.env.SMTP_REPLY_TO || CONTACT_EMAIL },
+      }) },
+      { summary: "The scope estimate they asked for.", dedupeKey: `estimate:${eventId}` },
     );
 
     after(async () => {
@@ -144,7 +146,7 @@ export async function POST(request: NextRequest) {
            us, it needs the exact figures rather than the rounded ones, and it
            carries the answers so whoever replies knows what was priced without
            opening anything. */
-        await sendMail({
+        await sendLogged({
           to: process.env.SMTP_REPLY_TO || CONTACT_EMAIL,
           replyTo: email,
           subject: `Estimator: ${rangeNgn} - ${email}`,
@@ -158,7 +160,7 @@ export async function POST(request: NextRequest) {
           ].join("\n"),
           html:
             `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#11113a;max-width:620px">` +
-            `<p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#ff6500">ESTIMATOR LEAD</p>` +
+            `<p style="font-size:12px;font-weight:700;letter-spacing:.12em;color:#c95000">ESTIMATOR LEAD</p>` +
             `<h1 style="font-size:24px;margin:12px 0">${escapeHtml(rangeNgn)}</h1>` +
             `<p><b>From:</b> ${escapeHtml(email)}</p>` +
             `<p><b>Exact range:</b> ${escapeHtml(fullNaira(result.ngn.low))} to ${escapeHtml(fullNaira(result.ngn.high))} ` +
@@ -166,7 +168,7 @@ export async function POST(request: NextRequest) {
             `<hr style="border:0;border-top:1px solid #e7e7ef">` +
             rows.map((row) => `<p style="margin:0 0 8px"><b>${escapeHtml(row.question)}</b><br>${escapeHtml(row.answer)}</p>`).join("") +
             `</div>`,
-        });
+        }, { summary: `Lead: ${email} asked for a scope estimate.`, dedupeKey: `estimate-lead:${eventId}` });
       } catch (error) {
         console.error("Estimator lead failed", error instanceof Error ? error.message : "unknown error");
       }
