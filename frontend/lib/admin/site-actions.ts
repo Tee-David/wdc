@@ -13,6 +13,7 @@ import {
 } from "@/lib/site-seo";
 
 const PAGE = "/admin/settings/site";
+const MAINTENANCE_PAGE = "/admin/settings/maintenance";
 
 /** Every public page reads these, so every public page is refreshed. */
 function refreshSite() {
@@ -90,7 +91,8 @@ export async function setMaintenance(_prev: ActionState, fd: FormData): Promise<
   try { await setAppSetting(MAINTENANCE_KEY, value, by); } catch { return FAIL({}, "That could not be saved just now."); }
   forgetMaintenance();
   audit({ actor: by, kind: "setting", subjectId: MAINTENANCE_KEY, subject: "Maintenance mode", action: on ? "put the public site into maintenance" : "brought the public site back" });
-  revalidatePath(PAGE);
+  revalidatePath(MAINTENANCE_PAGE);
+  revalidatePath("/admin/settings");
   if (!on) {
     /* The people who asked to be told, behind the response: the mail server
        is slow, and whatever does not go now the daily job sends. */
@@ -135,6 +137,6 @@ export async function saveMaintenanceDesign(_prev: ActionState, fd: FormData): P
   try { await setAppSetting(DESIGN_KEY, design, by); } catch { return FAIL({}, "That could not be saved just now."); }
   forgetMaintenanceDesign();
   audit({ actor: by, kind: "setting", subjectId: DESIGN_KEY, subject: "Maintenance page", action: `chose the “${def.name}” maintenance page` });
-  revalidatePath(PAGE);
+  revalidatePath(MAINTENANCE_PAGE);
   return OK(`Visitors will see “${def.name}” while the site is in maintenance.`);
 }
