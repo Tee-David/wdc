@@ -10,6 +10,7 @@ import {
 } from "@/components/admin/bits";
 import { AddProject } from "@/components/admin/project-forms";
 import { ProjectMenu } from "@/components/admin/row-actions";
+import { ProjectBoard, type BoardCard } from "@/components/admin/project-board";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { ExampleNote } from "@/components/admin/example-note";
@@ -172,45 +173,20 @@ export default async function ProjectsPage({
            per project. The card is a link and the menu is a button, so they
            cannot be nested -- a button inside an anchor is invalid and
            behaves differently in every browser. They are siblings. */
-        <div className="ad__board" data-lenis-prevent>
-          {(stage ? [stage] : STAGES).map((st) => {
-            const list = (getBoard().get(st) ?? []).filter(match);
-            return (
-              <section key={st} className="ad__kcol" aria-label={`${st}, ${list.length}`}>
-                <header className="ad__kcolH">
-                  <span className={`ad__kdot ad__kdot--${STAGES.indexOf(st)}`} aria-hidden="true" />
-                  <h2>{st}</h2>
-                  <span className="ad__tabN">{list.length}</span>
-                </header>
-                {list.length ? list.map((p) => {
-                  const client = getClient(p.clientId);
-                  const svc = SERVICES.find((x) => x.slug === p.service);
-                  return (
-                    <article key={p.id} className="ad__kcard">
-                      <div className="ad__kcardTags">
-                        {svc ? <span className="ad__pill ad__pill--flat">{svc.short}</span> : null}
-                        <HealthPill health={p.health} />
-                        <span className="ad__kcardMenu"><ProjectMenu project={p} clientName={client?.company} /></span>
-                      </div>
-                      <Link href={`/admin/projects/${p.id}`} className="ad__kcardTitle"><b>{p.title}</b></Link>
-                      {client ? (
-                        <span className="ad__who ad__kcardWho">
-                          <span className="ad__av ad__av--sm" aria-hidden="true">{initialsOf(client.company)}</span>
-                          <small>{client.company}</small>
-                        </span>
-                      ) : null}
-                      <AttentionPills items={projectAttention(p, tasks)} except={p.health} />
-                      <div className="ad__kcardFoot">
-                        <span className="ad__dim"><CalendarDays aria-hidden="true" />{p.due ? when(p.due) : "No date yet"}</span>
-                        {p.owner ? <span className="ad__av ad__av--sm ad__av--good" title={`Owner: ${p.owner}`} aria-label={`Owner: ${p.owner}`}>{initialsOf(p.owner)}</span> : null}
-                      </div>
-                    </article>
-                  );
-                }) : <p className="ad__kempty">Nothing here</p>}
-              </section>
-            );
-          })}
-        </div>
+        <ProjectBoard
+          key={JSON.stringify([...getBoard()].map(([st, l]) => [st, l.map((p) => p.id)]))}
+          columns={(stage ? [stage] : STAGES).map((st) => ({
+            stage: st, dot: STAGES.indexOf(st), ids: (getBoard().get(st) ?? []).filter(match).map((p) => p.id),
+          }))}
+          cards={Object.fromEntries(all.map((p) => {
+            const client = getClient(p.clientId);
+            return [p.id, {
+              project: p, clientName: client?.company, clientInitials: client ? initialsOf(client.company) : undefined,
+              service: SERVICES.find((x) => x.slug === p.service)?.short, attention: projectAttention(p, tasks),
+              due: p.due ? when(p.due) : "No date yet", ownerInitials: p.owner ? initialsOf(p.owner) : undefined,
+            } satisfies BoardCard];
+          }))}
+        />
       ) : (
         <div style={{ marginTop: ".9rem" }}>
           <Panel title={filtered ? "Matching projects" : "All projects"}>
