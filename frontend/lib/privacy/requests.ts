@@ -33,17 +33,18 @@ export type Found = {
   invitations: Record<string, unknown>[];
   accounts: Record<string, unknown>[];
   notes: Record<string, unknown>[];
+  waitlist: Record<string, unknown>[];
 };
 
 export const SECTION_LABEL: Record<keyof Found, string> = {
   enquiries: "Contact enquiries", briefs: "Onboarding briefs", newsletter: "Newsletter", messages: "Emails sent to them",
-  invitations: "Invitations", accounts: "Accounts", notes: "Notes on their entries",
+  invitations: "Invitations", accounts: "Accounts", notes: "Notes on their entries", waitlist: "Maintenance notify-me",
 };
 
 export async function findPersonalData(raw: string): Promise<Found> {
   const email = raw.trim().toLowerCase();
   const q = <T extends Record<string, unknown>>(sql: string, args: unknown[] = [email]) => db.query<T>(sql, args).then((r) => r.rows);
-  const [enquiries, briefs, newsletter, messages, invitations, accounts] = await Promise.all([
+  const [enquiries, briefs, newsletter, messages, invitations, accounts, waitlist] = await Promise.all([
     q(`SELECT id, serial, first_name, last_name, email, phone, topic, message, created_at FROM contact_enquiries WHERE lower(email) = $1 ORDER BY created_at`),
     q(`SELECT id, serial, service, status, email, answers, created_at, updated_at, submitted_at FROM onboarding_submissions
        WHERE lower(email) = $1 OR lower(answers->>'email') = $1 ORDER BY created_at`),
@@ -51,12 +52,13 @@ export async function findPersonalData(raw: string): Promise<Found> {
     q(`SELECT created_at, subject, summary, state FROM message_log WHERE lower(to_addr) = $1 ORDER BY created_at LIMIT 1000`),
     q(`SELECT name, email, role, created_at, expires_at, redeemed_at, revoked_at FROM invitations WHERE email = $1 ORDER BY created_at`),
     q(`SELECT "name", "email", "role", "createdAt" FROM "user" WHERE lower("email") = $1`),
+    q(`SELECT email, reason, created_at FROM maintenance_waitlist WHERE email = $1`),
   ]);
   const ids = [...enquiries, ...briefs].map((r) => String(r.id));
   const notes = ids.length
     ? await q(`SELECT entry_id, kind, body, actor, created_at FROM entry_events WHERE entry_id = ANY($1::UUID[]) ORDER BY created_at`, [ids])
     : [];
-  return { enquiries, briefs, newsletter, messages, invitations, accounts, notes };
+  return { enquiries, briefs, newsletter, messages, invitations, accounts, notes, waitlist };
 }
 
 export const countOf = (f: Found) => Object.fromEntries(Object.entries(f).map(([k, v]) => [k, v.length])) as Record<keyof Found, number>;
@@ -99,8 +101,9 @@ export async function erasePersonalData(raw: string): Promise<EraseResult> {
     const s = await tx.query(`DELETE FROM newsletter_subscribers WHERE email = $1`, [email]);
     const m = await tx.query(`UPDATE message_log SET to_addr = 'erased', summary = 'Erased at the person''s request.' WHERE lower(to_addr) = $1`, [email]);
     const i = await tx.query(`DELETE FROM invitations WHERE email = $1 AND redeemed_at IS NULL`, [email]);
+    const w = await tx.query(`DELETE FROM maintenance_waitlist WHERE email = $1`, [email]);
     await tx.query("COMMIT");
-    return { ok: true, counts: { enquiries: e.rowCount ?? 0, briefs: b.rowCount ?? 0, notes: n.rowCount ?? 0, newsletter: s.rowCount ?? 0, messages: m.rowCount ?? 0, invitations: i.rowCount ?? 0 } };
+    return { ok: true, counts: { enquiries: e.rowCount ?? 0, briefs: b.rowCount ?? 0, notes: n.rowCount ?? 0, newsletter: s.rowCount ?? 0, messages: m.rowCount ?? 0, invitations: i.rowCount ?? 0, waitlist: w.rowCount ?? 0 } };
   } catch (error) {
     await tx.query("ROLLBACK").catch(() => {});
     throw error;

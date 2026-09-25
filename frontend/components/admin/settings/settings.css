@@ -232,3 +232,41 @@
 .adSet__more[open] summary::after { transform: rotate(180deg); }
 /* The menu beside the page has the same search on a wide screen. */
 @media (min-width: 1000px) { .adSet__search--page { display: none; } }
+
+/* ---- Site: the maintenance page gallery ----
+   Same card track as the public site's cards, so the thumbnails are not a
+   size of their own. The whole card is the radio's label; the preview link
+   sits under it, outside the label, so the two never swallow each other's
+   click. */
+.adMt__intro { margin: 0; }
+.adMt__set { border: 0; margin: 0; padding: 0; min-width: 0; }
+.adMt__set legend { margin-bottom: .6rem; }
+.adMt__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: .9rem; }
+.adMt__card { position: relative; display: grid; gap: .5rem; align-content: start; min-width: 0; }
+.adMt__pick { position: relative; display: grid; gap: .55rem; padding: .45rem .45rem .7rem; border: 1.5px solid var(--ad-line); border-radius: 14px; background: var(--ad-panel); cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+.adMt__pick:hover { border-color: var(--ad-dim); }
+.adMt__card.is-on .adMt__pick { border-color: var(--ad-accent); box-shadow: 0 0 0 2px var(--ad-accent); }
+.adMt__pick:has(input:focus-visible) { outline: 2px solid var(--ad-accent); outline-offset: 3px; }
+.adMt__pick input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.adMt__pick img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 9px; background: #000065; }
+.adMt__meta { display: grid; gap: .2rem; padding: 0 .35rem; min-width: 0; }
+.adMt__meta b { display: flex; align-items: baseline; gap: .45rem; font-weight: 600; color: var(--ad-ink); }
+.adMt__n { font-variant-numeric: tabular-nums; color: var(--ad-dim); font-weight: 500; }
+.adMt__meta small { color: var(--ad-dim); line-height: 1.35; }
+.adMt__tag { position: absolute; top: .85rem; left: .85rem; padding: .3rem .55rem; border-radius: 999px; background: var(--ad-tone-live); color: var(--ad-on-live); font-size: .72rem; font-weight: 600; }
+.adMt__pv { justify-self: start; }
+.adMt__pv svg { width: .9rem; height: .9rem; }
+.adMt__opts { display: grid; gap: 1rem; }
+.adMt__none { margin: 0; }
+.adMt__wait { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .8rem; padding: .75rem .9rem; border-radius: 12px; background: var(--ad-panel-2); }
+.adMt__wait b { font-variant-numeric: tabular-nums; }
+.adMt__chip { padding: .25rem .55rem; border-radius: 999px; background: var(--ad-tone-flat); color: var(--ad-on-flat); font-size: .78rem; font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .adMt__pick { transition: none; } }
+/* Phones: two to a row, so eleven templates are a short scroll rather than a long one. */
+@media (max-width: 560px) {
+  .adMt__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+  .adMt__pick { padding: .35rem .35rem .55rem; }
+  .adMt__meta b { font-size: .88rem; }
+  .adMt__meta small { font-size: .74rem; }
+  .adMt__tag { top: .6rem; left: .6rem; font-size: .66rem; }
+}
