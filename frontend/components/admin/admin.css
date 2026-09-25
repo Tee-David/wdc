@@ -1595,6 +1595,24 @@ a.ad__pgBtn:hover { background: var(--ad-panel-2); border-color: var(--ad-dim); 
 .ad__kcardFoot > span:first-child { min-width: 0; display: inline-flex; align-items: center; gap: .35rem; }
 .ad__kcardFoot > .ad__av { flex: none; }
 .ad__kcardFoot svg { width: .95rem; height: .95rem; }
+/* DRAGGING (components/admin/project-board.tsx). A card is grabbed with a
+   mouse, a long press or its grip; the gap it leaves is dashed, the copy in
+   the hand floats, and the column under it is outlined. Transform only. */
+.ad__board[data-lenis-prevent] .ad__kcard[data-card] { cursor: grab; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.ad__kcard.is-placeholder { border-style: dashed; border-color: var(--ad-dim); background: transparent; box-shadow: none; }
+.ad__kcard.is-placeholder > * { visibility: hidden; }
+.ad__kcard.is-lifted { outline: 2px solid var(--ad-accent); outline-offset: 2px; box-shadow: var(--ad-sh-3); }
+.ad__kghost { position: fixed; z-index: 90; margin: 0; pointer-events: none; box-shadow: var(--ad-sh-3); cursor: grabbing; will-change: transform; }
+.ad__kcol.is-over { border-color: var(--ad-accent); }
+html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
+.ad__kgrip {
+  position: relative; display: inline-grid; place-items: center; width: 1.75rem; height: 1.75rem; margin: -.15rem .05rem -.15rem -.35rem; padding: 0;
+  border: 0; border-radius: 8px; background: none; color: var(--ad-dim); cursor: grab;
+}
+.ad__kgrip::after { content: ""; position: absolute; inset: -.5rem; }
+.ad__kgrip svg { width: 1rem; height: 1rem; }
+.ad__kgrip:hover, .ad__kgrip[aria-pressed="true"] { color: var(--ad-ink); background: var(--ad-panel-2); }
+.ad__kgrip:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 1px; }
 .ad__kempty { margin: 0; padding: .6rem .25rem; color: var(--ad-dim); font-size: .84rem; }
 .ad__av--sm { width: 1.75rem; height: 1.75rem; font-size: .62rem; }
 

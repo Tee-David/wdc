@@ -503,7 +503,18 @@ export function getBoard() {
     list.push(p);
     board.set(p.stage, list);
   }
+  /* The order somebody dragged them into; the rest keep their own order after. */
+  const r = (p: Project) => p.rank ?? Number.MAX_SAFE_INTEGER;
+  for (const list of board.values()) list.sort((a, b) => r(a) - r(b));
   return board;
+}
+
+/** A column's order, as dragged: each project named gets its place. */
+export function rankColumn(stage: Stage, ids: Id[]) {
+  ids.forEach((id, i) => {
+    const p = getProject(id);
+    if (p && p.stage === stage) p.rank = i;
+  });
 }
 
 /**
