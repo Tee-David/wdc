@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { headObject, mediaKey, presignPut, r2Config } from "@/lib/r2";
 import { rateLimit } from "@/lib/rate-limit";
-import { checkMediaFile, isMediaKey, MEDIA_ALT_MAX, MEDIA_MAX_BYTES, MEDIA_TYPES } from "@/lib/media-validate";
+import { checkMediaFile, isMediaKey, maxBytesFor, MEDIA_ALT_MAX, MEDIA_TYPES } from "@/lib/media-validate";
 import { mediaById, mediaDatabaseConfigured, recordMedia, setMediaAlt, setMediaArchived, type MediaAsset } from "@/lib/media";
 import { audit } from "./store";
 import { actorName, allow } from "./guard";
@@ -99,7 +99,7 @@ export async function recordMediaUpload(input: { key: string; filename: string }
 
   audit({
     actor: by, kind: "content", subjectId: item.id, subject: item.filename, action: "uploaded to the media library",
-    note: stored.bytes > MEDIA_MAX_BYTES ? "larger than the library's limit" : undefined,
+    note: stored.bytes > maxBytesFor(ext) ? "larger than the library's limit" : undefined,
   });
   revalidatePath(PAGE);
   return { ok: true, item };
