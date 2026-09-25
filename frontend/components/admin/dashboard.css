@@ -156,7 +156,6 @@
 .adDash__leadsNote { margin: 0; padding: .75rem 1.25rem .9rem; border-top: 1px solid var(--ad-line); color: var(--ad-dim); font-size: .78rem; line-height: 1.45; }
 /* The skeleton row is the height a real row renders at: a 2.25rem icon plus
    the row's own padding. */
-.adDash__leadsGhost { min-height: calc(2.25rem + 1.5rem); padding: 0 1.25rem; display: grid; align-items: center; border-bottom: 1px solid var(--ad-line); }
 
 @media (max-width: 1180px) {
   .adDash__row { grid-template-columns: minmax(0, 1fr); }

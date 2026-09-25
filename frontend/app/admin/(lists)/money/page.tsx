@@ -9,7 +9,7 @@ import { failedLoggedCount } from "@/lib/message-log";
 import {
   estimateState, estimateTotals, invoiceStatus, invoiceTotals, naira, nairaShort,
 } from "@/lib/admin/types";
-import { DemoNote, Empty, InvoicePill, Panel, Tile, when } from "@/components/admin/bits";
+import { Empty, InvoicePill, Panel, Tile, when } from "@/components/admin/bits";
 import { AddExpense, EstimateBuilder, InvoiceBuilder } from "@/components/admin/money-forms";
 import {
   EstimateMenu, ExpenseMenu, InvoiceMenu, PaymentMenu,
@@ -21,6 +21,7 @@ import "@/components/admin/dashboard.css";
 import { Pager, readPer } from "@/components/admin/pager";
 import { DateRange } from "@/components/admin/date-range";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
+import { ExampleNote } from "@/components/admin/example-note";
 
 export const metadata = { title: "Money" };
 
@@ -149,17 +150,7 @@ export default async function MoneyPage({
         </div>
       </div>
 
-      <DemoNote>
-        Raising an invoice, issuing it, recording a payment and logging an
-        expense all work, and so does the pay link: an issued invoice has a
-        public page with a card checkout on it, the webhook and the browser
-        callback both verify with Paystack before anything is banked, and every
-        payment goes through one function keyed on its <code>reference</code>,
-        so all three routes can fire and the money is counted once. What is
-        still missing is a generated PDF; printing the public page produces a
-        correct document today. Paystack needs its keys set on the deployment
-        before a real card will go through.
-      </DemoNote>
+      <ExampleNote />
 
       {/* THE ONE THING ON THIS SCREEN THAT IS ASKING FOR SOMEBODY, and it is
           above the figures because the figures are wrong while it is here: an

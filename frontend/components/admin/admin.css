@@ -320,7 +320,6 @@
 .ad__commandResults p { margin: 0; padding: 1.6rem; color: var(--ad-dim); text-align: center; }
 
 .ad__main { min-width: 0; flex: 1; padding: clamp(1rem, 2.4vw, 2rem); overflow-x: clip; }
-.ad__pageSkeleton { min-width: 0; }
 
 /* THE FLOATING TAB BAR (the MTabs board). Hidden until the sidebar goes.
    Every colour on it is solid: navy bar, white-ish icons (12:1), the
@@ -703,40 +702,7 @@
 .ad__empty p { max-width: 30rem; margin: .45rem auto 0; color: var(--ad-dim); font-size: .92rem; line-height: 1.5; }
 .ad__emptyAction { margin-top: 1rem; }
 
-/* -------------------------------------------------------------- loading */
-
-.ad__loading { display: grid; gap: 1rem; min-height: 34rem; }
-.ad__loadingHead { display: grid; gap: .45rem; padding-block: .15rem .3rem; }
-.ad__loadingLine,
-.ad__loadingTile,
-.ad__loadingPanel {
-  display: block;
-  background: var(--ad-line);
-  animation: ad-skeleton-pulse 1.8s ease-in-out infinite;
-}
-.ad__loadingLine { height: .8rem; border-radius: 999px; }
-.ad__loadingLine--title { width: min(9rem, 42%); height: 1.65rem; border-radius: 8px; }
-.ad__loadingLine--copy { width: min(25rem, 72%); }
-.ad__loadingTiles {
-  display: grid; gap: .7rem;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
-}
-.ad__loadingTile { min-height: 6.4rem; border-radius: var(--ad-r); }
-.ad__loadingGrid { display: grid; gap: .9rem; grid-template-columns: minmax(0, 1fr); }
-.ad__loadingPanel { min-height: 13rem; border-radius: var(--ad-r); }
-.ad__bone { will-change: background-color; }
-@media (min-width: 1000px) {
-  .ad__loadingGrid { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
-}
-@keyframes ad-skeleton-pulse {
-  0%, 100% { opacity: .62; }
-  50% { opacity: 1; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ad__loadingLine, .ad__loadingTile, .ad__loadingPanel, .ad__bone {
-    animation: none !important;
-  }
-}
+/* Loading skeletons live in components/admin/skeleton.css. */
 
 /* -------------------------------------------------------------- the note */
 

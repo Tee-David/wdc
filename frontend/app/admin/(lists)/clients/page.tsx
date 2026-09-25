@@ -4,7 +4,7 @@ import { getClients, getClientsByService, getInvoicesFor, getProjectsFor } from 
 import { invoiceStatus, invoiceTotals, naira, nairaShort } from "@/lib/admin/types";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
-import { DemoNote, Empty, Panel, Tile, when } from "@/components/admin/bits";
+import { Empty, Panel, Tile, when } from "@/components/admin/bits";
 import { Archive, Boxes, Users, Wallet } from "lucide-react";
 import { AddClient } from "@/components/admin/client-form";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
@@ -12,6 +12,7 @@ import { ClientMenu } from "@/components/admin/row-actions";
 import { Pager, readPer } from "@/components/admin/pager";
 import { DateRange } from "@/components/admin/date-range";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
+import { ExampleNote } from "@/components/admin/example-note";
 
 export const metadata = { title: "Clients" };
 
@@ -154,12 +155,7 @@ export default async function ClientsPage({
         </div>
       </div>
 
-      <DemoNote>
-        Adding, editing and archiving are live and go through{" "}
-        <code>lib/admin/actions.ts</code>. What they write to is still the
-        in-memory store, so a change holds until the server restarts and is
-        then gone. Wiring CockroachDB underneath it changes one file.
-      </DemoNote>
+      <ExampleNote />
 
       <dl className="ad__tiles ad__tiles--4">
         <Tile label="Active clients" value={String(active.length)} icon={Users} note={newThisQuarter ? `${newThisQuarter} new this quarter` : "None new this quarter"} />

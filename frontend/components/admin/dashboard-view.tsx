@@ -19,11 +19,12 @@ import { AddClient } from "./client-form";
 import { AddExpense, InvoiceBuilder, RecordAnyPayment } from "./money-forms";
 import { AddProject } from "./project-forms";
 import { InvoiceMenu, ProjectMenu, SubmissionMenu } from "./row-actions";
-import { DemoNote, Empty, Panel, Tile, when } from "./bits";
+import { Empty, Panel, Tile, when } from "./bits";
 import { RecentLeads, RecentLeadsSkeleton } from "./recent-leads";
 import PageTourButton from "./tour/page-tour-button";
 import { CashflowChart } from "./cashflow-chart";
 import "./dashboard.css";
+import { ExampleNote } from "@/components/admin/example-note";
 
 function greeting() {
   const hour = new Date().getHours();
@@ -205,9 +206,7 @@ export async function AdminDashboardView({ firstName, money = true }: { firstNam
         </div>
       </header>
 
-      <DemoNote>
-        This dashboard currently uses labelled demonstration records. Figures reconcile with the Money and Projects screens, but are not production trading data and reset with the server.
-      </DemoNote>
+      <ExampleNote />
 
       <dl className="adDash__kpis" data-tour="dash-kpis">
         {money ? <>

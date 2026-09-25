@@ -6,12 +6,13 @@ import {
 } from "@/lib/admin/store";
 import { HEALTH, STAGES, projectAttention, type Project } from "@/lib/admin/types";
 import {
-  AttentionPills, DemoNote, Empty, HealthPill, Panel, StagePill, when,
+  AttentionPills, Empty, HealthPill, Panel, StagePill, when,
 } from "@/components/admin/bits";
 import { AddProject } from "@/components/admin/project-forms";
 import { ProjectMenu } from "@/components/admin/row-actions";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
+import { ExampleNote } from "@/components/admin/example-note";
 
 export const metadata = { title: "Projects" };
 
@@ -114,11 +115,7 @@ export default async function ProjectsPage({
         </div>
       </div>
 
-      <DemoNote>
-        Opening a project and moving its stage are live. A stage change writes
-        an event onto the project&apos;s history now, and will email the client
-        from the same line in <code>moveStage()</code> once SMTP is in.
-      </DemoNote>
+      <ExampleNote />
 
       <Panel title="Narrow it down">
         {/* GET, so submitting navigates rather than posting. `view` rides
