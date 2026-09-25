@@ -22,6 +22,7 @@ export function ProfileCard({
   tags,
   actions,
   stats,
+  children,
 }: {
   crumbs: { href: string; label: string }[];
   initials?: string;
@@ -32,6 +33,8 @@ export function ProfileCard({
   tags?: ReactNode;
   actions?: ReactNode;
   stats?: ProfileStat[];
+  /** Anything that belongs in the card under the rest, such as a stage track. */
+  children?: ReactNode;
 }) {
   return (
     <>
@@ -64,6 +67,7 @@ export function ProfileCard({
             ))}
           </dl>
         ) : null}
+        {children}
       </section>
     </>
   );
