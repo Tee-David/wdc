@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BulkBar, PickAll, RowPick } from "@/components/admin/bulk";
 import { hydrateSettings } from "@/lib/settings/store";
 import {
   financeDefaults, getAging, getClient, getClients, getCollectionRate,
@@ -369,12 +370,16 @@ export default async function MoneyPage({
             <span>{invoiceRows.length} {invoiceRows.length === 1 ? "invoice" : "invoices"}</span>
           </div>
           {invoices.length ? (
-            <div className="ad__scroll">
+            <>
+              <BulkBar target="invoices-table" noun="invoices" actions={[
+                { kind: "invoices:remind", label: "Send reminder", icon: "mail", confirm: "Email a reminder about {n} invoices? Paid ones and clients who turned reminders off are skipped." },
+              ]} />
+            <div className="ad__scroll" id="invoices-table">
               <table className="ad__t">
                 <thead>
                   <tr>
                     <th aria-sort={sort === "number" ? direction === "asc" ? "ascending" : "descending" : undefined}>
-                      <Link href={invoiceSortHref("number")}>Number</Link>
+                      <span className="ad__pickRow"><PickAll label="Select every invoice" /><Link href={invoiceSortHref("number")}>Number</Link></span>
                     </th>
                     <th aria-sort={sort === "client" ? direction === "asc" ? "ascending" : "descending" : undefined}>
                       <Link href={invoiceSortHref("client")}>Client</Link>
@@ -396,7 +401,7 @@ export default async function MoneyPage({
                 <tbody>
                   {invoices.map(({ invoice: i, client, computedStatus, totals: t }) => (
                     <tr key={i.id}>
-                      <td><Link href={`/admin/money/${i.id}`}><b>{i.number}</b></Link></td>
+                      <td><span className="ad__pickRow"><RowPick id={i.id} label={i.number} /><Link href={`/admin/money/${i.id}`}><b>{i.number}</b></Link></span></td>
                       <td>{client?.company ?? "Unknown"}</td>
                       <td><InvoicePill status={computedStatus} /></td>
                       <td className="num">{when(i.due)}</td>
@@ -409,6 +414,7 @@ export default async function MoneyPage({
                 </tbody>
               </table>
             </div>
+            </>
           ) : (
             <Empty
               title={hasInvoiceFilters ? "No invoices match these filters" : "No invoices yet"}
