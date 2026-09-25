@@ -17,6 +17,7 @@ import {
   required, services, stage, str, url,
 } from "./validate";
 import { persistSoon, saveStore, syncStore } from "@/lib/admin/persist";
+import { isProjectIcon, randomProjectIcon } from "@/lib/project-icons";
 
 /**
  * THE ADMIN'S WRITE ENDPOINTS.
@@ -204,6 +205,7 @@ export async function createProject(_prev: ActionState, fd: FormData): Promise<A
     /* Staff cannot set a figure: the budget is money (lib/admin/permissions.ts). */
     budget: can(await adminRole(), "money") ? kobo(fd, "budget") : null,
     scope: str(fd, "scope") || undefined,
+    icon: isProjectIcon(str(fd, "icon")) ? str(fd, "icon") : randomProjectIcon(),
   });
   refresh("/admin/projects", `/admin/clients/${clientId}`);
   redirect(`/admin/projects/${p.id}`);
@@ -842,6 +844,7 @@ export async function saveProjectDetails(_prev: ActionState, fd: FormData): Prom
     /* A staff save leaves the agreed figure exactly as it was. */
     ...(can(await adminRole(), "money") ? { budget: kobo(fd, "budget") } : {}),
     scope: str(fd, "scope"),
+    ...(isProjectIcon(str(fd, "icon")) ? { icon: str(fd, "icon") } : {}),
   });
   if (!p) return FAIL({}, "That project is no longer there.");
   refreshProject(id);

@@ -8,6 +8,7 @@ import { Actions, Area, Field, Fields, Form, Hidden, Select, Submit } from "./fo
 import { useAdminRole } from "./shell";
 import { can } from "@/lib/admin/permissions";
 import { DialogButton } from "./dialog";
+import { IconPicker } from "./icon-picker";
 
 const SERVICE_OPTIONS = SERVICES.map((s) => ({ value: s.slug, label: s.short }));
 const STAGE_OPTIONS = STAGES.map((s) => ({ value: s, label: s }));
@@ -66,6 +67,7 @@ export function AddProject({
             <Area name="scope" label="What was bought" rows={2}
                   placeholder="Logo, palette, type scale and a short guideline set."
                   hint="In words the client would recognise. This is what an argument gets settled against." />
+            <IconPicker />
           </Fields>
           <Actions>
             <Submit icon={Plus}>Open it</Submit>
