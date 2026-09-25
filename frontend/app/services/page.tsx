@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { Header } from "@/components/layout/header";
-import Image from "next/image";
 import Link from "next/link";
 import { SERVICES } from "@/lib/services";
 import { WORK_CATEGORIES, countFor } from "@/lib/work";
@@ -9,7 +8,11 @@ import { COMPANY_NAME, SITE_URL } from "@/lib/site";
 
 import "@/components/preview/preview.css";
 import "@/components/work/work.css";
+import "@/components/services/services-hub.css";
 import { hydrateCaseStudies } from "@/lib/work-db";
+import ServiceIcon from "@/components/ui/service-icon";
+import ServiceChooser from "@/components/services/service-chooser";
+import { needsFor } from "@/lib/service-needs";
 
 export const metadata: Metadata = {
   /* Not "Services". The template appends the brand, so the first and most
@@ -106,36 +109,50 @@ export default async function ServicesPage() {
           </div>
         </section>
 
+        {/* A MENU, NOT A SECOND GALLERY. This used to be the same six picture
+            tiles, with the same counts, as /work, so the two pages answered the
+            same question twice. /work shows the work; this answers the buyer's
+            question: what do I actually get, and which one do I need? The four
+            chips are the first four deliverables from each service page, and
+            the counts come from the catalogue, never typed by hand. */}
         <section className="pv-sec">
           <div className="pv-wrap">
-            <div className="wk-cats">
+            <ServiceChooser listId="svh-list" />
+            <ul className="svh-list" id="svh-list">
               {SERVICES.map((s) => {
                 const category = WORK_CATEGORIES.find((c) => c.slug === s.slug);
+                const n = category ? countFor(category) : 0;
                 return (
-                  <Link className="wk-cat" href={`/services/${s.slug}`} key={s.slug}>
-                    <span className="wk-cat__bar">
-                      <span className="wk-cat__t">{s.short}</span>
-                      {/* Counted from the catalogue, never typed by hand. A
-                          service with no work filed under it shows nothing
+                  <li className="svh-row" key={s.slug} data-needs={needsFor(s.slug)}>
+                    <span className="svh-row__ic" aria-hidden="true">
+                      <ServiceIcon name={s.icon} size={22} />
+                    </span>
+                    <div className="svh-row__body">
+                      <h2 className="svh-row__t">
+                        <Link href={`/services/${s.slug}`}>{s.name}</Link>
+                        <span className="svh-row__fit">Fits</span>
+                      </h2>
+                      <p className="svh-row__d">{s.lede}</p>
+                      <ul className="svh-row__chips" aria-label={`Part of ${s.name}`}>
+                        {s.deliverables.slice(0, 4).map((d) => <li key={d}>{d}</li>)}
+                      </ul>
+                    </div>
+                    <div className="svh-row__acts">
+                      <Link className="pv-btn pv-btn--accent" href={`/services/${s.slug}`} aria-label={`What's included in ${s.name}`}>
+                        What&rsquo;s included
+                      </Link>
+                      {/* A service with no work filed under it offers none,
                           rather than a confident zero. */}
-                      {category ? <span className="wk-cat__n">{countFor(category)}</span> : null}
-                    </span>
-                    <span className="wk-cat__shot">
-                      {category ? (
-                        <Image
-                          src={category.cover}
-                          alt=""
-                          fill
-                          sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw"
-                          quality={78}
-                        />
+                      {category && n > 0 ? (
+                        <Link className="svh-row__work" href={`/work/${category.slug}`}>
+                          See the work ({n})
+                        </Link>
                       ) : null}
-                      <span className="wk-cat__go" aria-hidden="true" />
-                    </span>
-                  </Link>
+                    </div>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           </div>
         </section>
 
