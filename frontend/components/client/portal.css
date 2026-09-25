@@ -317,3 +317,5 @@
 .pAsk__chip.is-on { background: var(--ad-fill); border-color: var(--ad-fill); color: var(--ad-on-fill); }
 .pAsk__chip:has(input:focus-visible) { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
 .pAsk__foot { display: flex; justify-content: flex-end; gap: .6rem; padding-top: .9rem; border-top: 1px solid var(--ad-line); }
+.pBill__cardPay { margin: .45rem 0 0; }
+.pBill__cardPay .ad__btn { width: 100%; justify-content: center; min-height: 2.75rem; }

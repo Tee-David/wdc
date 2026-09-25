@@ -37,15 +37,33 @@ async function requireClient() {
   }
 }
 
+/* SIGNED OUT IS NOT "NOT LINKED". A session that ended while a long note was
+   being written used to be told the account was not linked, which is false
+   and alarming; it is told the truth, and that what they typed is still on
+   the page. */
+async function whyNoClient() {
+  const signedIn = await getPortalRequest().then((r) => Boolean(r.session?.user)).catch(() => false);
+  return signedIn
+    ? "Your account isn't linked to a client record yet. Email us and we'll connect it."
+    : "You've been signed out. Sign in again in a new tab, then press this again. What you typed is still here.";
+}
+
 export async function approveDeliverable(_prev: ActionState, fd: FormData): Promise<ActionState> {
   await syncStore();
   persistSoon();
   const client = await requireClient();
-  if (!client) return FAIL({}, "Your account isn't linked to a client record.");
+  if (!client) return FAIL({}, await whyNoClient());
   const id = str(fd, "id");
   const d = db.getDeliverable(id);
   const project = d ? db.getProject(d.projectId) : null;
   if (!d || !project || project.clientId !== client.id) return FAIL({}, "That deliverable is no longer there.");
+  /* APPROVE WHAT WAS SEEN. A tab left open while the studio shared a newer
+     version must not sign off on one the client has not looked at; and a
+     second press on something approved is not a second sign-off email. */
+  const latest = d.versions.at(-1)?.v ?? 0;
+  const seen = Number(str(fd, "version") || latest);
+  if (seen < latest) return FAIL({}, `A newer version (v${latest}) was shared since you opened this page. Reload and look at it first.`);
+  if (d.approval === "Approved") return OK(`${d.name} is already approved.`);
   db.setApproval(id, "Approved");
   /* A confirmation of what they agreed to, like a receipt, behind the
      response. The name is the signed-in person's, not a form field. */
@@ -64,7 +82,7 @@ export async function requestRevision(_prev: ActionState, fd: FormData): Promise
   await syncStore();
   persistSoon();
   const client = await requireClient();
-  if (!client) return FAIL({}, "Your account isn't linked to a client record.");
+  if (!client) return FAIL({}, await whyNoClient());
   const id = str(fd, "id");
   const note = str(fd, "note");
   if (!note) return FAIL({ note: "Say what needs to change -- it goes straight to the team working on it." });
@@ -81,7 +99,7 @@ export async function submitTicket(_prev: ActionState, fd: FormData): Promise<Ac
   await syncStore();
   persistSoon();
   const client = await requireClient();
-  if (!client) return FAIL({}, "Your account isn't linked to a client record.");
+  if (!client) return FAIL({}, await whyNoClient());
   const subject = str(fd, "subject");
   const body = str(fd, "body");
   if (!subject) return FAIL({ subject: "Give it a short subject." });
@@ -107,7 +125,7 @@ export async function replyToTicket(_prev: ActionState, fd: FormData): Promise<A
   await syncStore();
   persistSoon();
   const client = await requireClient();
-  if (!client) return FAIL({}, "Your account isn't linked to a client record.");
+  if (!client) return FAIL({}, await whyNoClient());
   const ticketId = str(fd, "ticketId");
   const body = str(fd, "body");
   if (!body) return FAIL({ body: "Type a reply first." });
@@ -129,7 +147,7 @@ export async function closeMyTicket(_prev: ActionState, fd: FormData): Promise<A
   await syncStore();
   persistSoon();
   const client = await requireClient();
-  if (!client) return FAIL({}, "Your account isn't linked to a client record.");
+  if (!client) return FAIL({}, await whyNoClient());
   const t = db.getTicket(str(fd, "ticketId"));
   if (!t || t.clientId !== client.id) return FAIL({}, "That conversation is no longer there.");
   if (t.status !== "Closed") db.setTicketStatus(t.id, "Closed");
@@ -147,7 +165,7 @@ export async function updateMyDetails(_prev: ActionState, fd: FormData): Promise
   await syncStore();
   persistSoon();
   const client = await requireClient();
-  if (!client) return FAIL({}, "Your account isn't linked to a client record.");
+  if (!client) return FAIL({}, await whyNoClient());
   const name = str(fd, "name").replace(/\s+/g, " ").slice(0, 120);
   const phone = str(fd, "phone").slice(0, 40);
   const errors: Record<string, string> = {};
@@ -163,7 +181,7 @@ export async function updateMyDetails(_prev: ActionState, fd: FormData): Promise
 /* Every other device signed in as this person is signed out; this one stays. */
 export async function signOutOtherDevices(): Promise<ActionState> {
   const client = await requireClient();
-  if (!client) return FAIL({}, "Your account isn't linked to a client record.");
+  if (!client) return FAIL({}, await whyNoClient());
   const { headers } = await import("next/headers");
   const h = await headers();
   const { auth } = await import("@/lib/auth");
@@ -177,7 +195,7 @@ export async function updateNotifyPrefs(_prev: ActionState, fd: FormData): Promi
   await syncStore();
   persistSoon();
   const client = await requireClient();
-  if (!client) return FAIL({}, "Your account isn't linked to a client record.");
+  if (!client) return FAIL({}, await whyNoClient());
   const notify = Object.fromEntries(
     NOTIFY_KINDS.map((k: NotifyKind) => [k, fd.get(k) === "on" || fd.get(k) === "1"]),
   ) as Record<NotifyKind, boolean>;

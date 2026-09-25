@@ -43,9 +43,16 @@ export const getPortalRequest = cache(async () => {
   const { auth } = await import("@/lib/auth");
   const session = await auth.api.getSession({ headers: requestHeaders });
   const email = session?.user?.email?.toLowerCase();
-  const client = email
-    ? getClients({ includeArchived: true }).find((c) => c.email.toLowerCase() === email) ?? null
-    : null;
+  /* A LIVE RECORD FIRST, then an archived one; and a record merged into
+     another is followed to the one that was kept, because every project and
+     invoice moved there -- matching the dead duplicate showed an empty portal. */
+  const all = email ? getClients({ includeArchived: true }) : [];
+  const same = all.filter((c) => c.email.toLowerCase() === email);
+  let client = same.find((c) => !c.archived) ?? same[0] ?? null;
+  for (let hops = 0; client?.mergedInto && hops < 5; hops++) {
+    client = all.find((c) => c.id === client!.mergedInto) ?? client;
+    if (!client.mergedInto) break;
+  }
 
   return { capture, session, client };
 });
