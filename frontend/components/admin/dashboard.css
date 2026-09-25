@@ -37,7 +37,7 @@
 .adDash__chartBar--in { background: #3d52e0; }
 .adDash__chartBar--out { background: #e25a00; }
 .dark .adDash__chartBar--in { background: #7377ff; }
-.dark .adDash__chartBar--out { background: #ff7a26; }
+.dark .adDash__chartBar--out { background: #e8600f; }
 .adDash__chartMonth small { align-self: center; color: var(--ad-dim); font-size: .74rem; }
 .adDash__chartMonth.is-now small { color: var(--ad-ink); font-weight: 700; }
 .adDash__foot { margin: .5rem 1.25rem 1.25rem; padding: .75rem 1rem; display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; border-radius: 12px; background: var(--ad-panel-2); font-size: .86rem; }
@@ -47,7 +47,7 @@
 .adDash__legend i.is-in { background: #3d52e0; }
 .adDash__legend i.is-out { background: #e25a00; }
 .dark .adDash__legend i.is-in { background: #7377ff; }
-.dark .adDash__legend i.is-out { background: #ff7a26; }
+.dark .adDash__legend i.is-out { background: #e8600f; }
 
 /* --------------------------------------------------------------- gauge */
 
@@ -192,3 +192,29 @@
 @media (prefers-reduced-motion: reduce) {
   .adDash__attentionItem, .adDash__pipeBar { transition: none; }
 }
+
+/* THE CASHFLOW CHART, INTERACTIVE (components/admin/cashflow-chart.tsx): a
+   month is a button; the hovered or focused one lifts and one tooltip lists
+   both figures and the difference. Values lead, labels follow; line keys. */
+.adDash__chart { position: relative; }
+button.adDash__chartMonth { padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
+button.adDash__chartMonth:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.adDash__chartMonth.is-on { background: linear-gradient(to bottom, var(--ad-nav-on), var(--ad-nav-on)) top / 100% calc(100% - 1.6rem) no-repeat; }
+.adDash__chartMonth.is-on .adDash__chartBar { filter: brightness(1.08); }
+.adDash__tip {
+  position: absolute; top: .25rem; z-index: 5; min-width: 10.5rem; pointer-events: none;
+  display: grid; gap: .25rem; padding: .6rem .75rem; border: 1px solid var(--ad-line); border-radius: 12px;
+  background: var(--ad-panel); box-shadow: var(--ad-sh-3); font-size: .8rem; color: var(--ad-dim); text-align: left; white-space: nowrap;
+}
+.adDash__tip b { color: var(--ad-ink); font-variant-numeric: tabular-nums; }
+.adDash__tipH { font-size: .82rem; margin-bottom: .1rem; }
+.adDash__tip span { display: flex; align-items: center; gap: .4rem; }
+.adDash__tip i { width: .8rem; height: 2px; border-radius: 2px; }
+.adDash__tip i.is-in { background: #3d52e0; }
+.adDash__tip i.is-out { background: #e25a00; }
+.dark .adDash__tip i.is-in { background: #7377ff; }
+.dark .adDash__tip i.is-out { background: #e8600f; }
+.adDash__tipNet { padding-top: .25rem; border-top: 1px solid var(--ad-line); }
+.adDash__table { flex-basis: 100%; }
+.adDash__table summary { display: inline-flex; align-items: center; min-height: 2.75rem; cursor: pointer; color: var(--ad-ink); font-weight: 500; font-size: .86rem; }
+.adDash__table summary:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; border-radius: 6px; }
