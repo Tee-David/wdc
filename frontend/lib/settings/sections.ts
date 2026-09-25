@@ -9,7 +9,7 @@ import type { Area } from "@/lib/admin/permissions";
  * than out of Settings. `area` is who may open it (lib/admin/permissions.ts);
  * a section a role cannot open is not listed for it, and its page refuses.
  */
-export type SettingsIcon = "sliders" | "messages" | "images" | "mail" | "plug" | "history" | "shield" | "users" | "user" | "globe" | "activity";
+export type SettingsIcon = "sliders" | "messages" | "images" | "mail" | "plug" | "history" | "shield" | "users" | "user" | "globe" | "activity" | "lock";
 
 export type SettingsSection = {
   href: string;
@@ -31,6 +31,7 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   { href: "/admin/settings/email", label: "Email", line: "The mail server, a test send, and every message sent.", group: "Communication", icon: "mail", area: "settings" },
   { href: "/admin/settings/integrations", label: "Integrations", line: "Each outside service, and whether it is set up.", group: "System", icon: "plug", area: "settings" },
   { href: "/admin/settings/system", label: "System", line: "Each service's last answer, the schema, and tools to put things right.", group: "System", icon: "activity", area: "settings" },
+  { href: "/admin/settings/privacy", label: "Privacy", line: "How long personal data is kept, and requests to see or erase it.", group: "System", icon: "lock", area: "settings" },
   { href: "/admin/settings/audit", label: "Audit log", line: "What changed, who changed it, and what it was.", group: "System", icon: "history", area: "settings" },
   { href: "/admin/settings/access", label: "Access", line: "The roles, and what each can do.", group: "System", icon: "shield", area: "settings" },
 ];

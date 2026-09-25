@@ -42,7 +42,6 @@ export default async function SitePage() {
             </p>
             {m.on ? (
               <div className="ad__stack" style={{ gap: ".6rem", marginBottom: ".8rem" }}>
-                {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- a route that sets a cookie, not a page */}
                 <p><a className="ad__btn" href="/api/maintenance/pass">View the site as it is now</a></p>
                 {token ? <div><p className="ad__dim" style={{ margin: "0 0 .3rem" }}>Share this link with a reviewer. It lets them see the site until maintenance ends.</p><ReviewerLink url={`${SITE_URL}/api/maintenance/pass?t=${token}`} /></div> : null}
               </div>
