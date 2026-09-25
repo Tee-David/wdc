@@ -307,7 +307,8 @@ function ClientWatcher({ onChange }: { onChange: (v: string) => void }) {
         const form = el?.form;
         if (!form) return;
         const read = () => {
-          const sel = form.querySelector<HTMLSelectElement>('select[name="clientId"]');
+          /* A native select, or the searchable picker's hidden input. */
+          const sel = form.querySelector<HTMLSelectElement | HTMLInputElement>('[name="clientId"]');
           if (sel) onChange(sel.value);
         };
         form.addEventListener("change", read);

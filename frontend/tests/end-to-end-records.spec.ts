@@ -41,6 +41,8 @@ test("a client's new email and phone are saved, kept and shown", async ({ page }
   await dialog.getByRole("button", { name: "Save" }).click();
   await expect(dialog).toHaveCount(0, { timeout: 15_000 });
   await expect(page.locator(".ad__profile")).toContainText(`amaka.${mark}@marfaa.com`);
+  /* And it said so where the eye is, after the dialog closed. */
+  await expect(page.locator(".adToast--good")).toBeVisible();
   await expect.poll(async () => (await kept("CLIENTS", "c2"))?.email, { timeout: 15_000 }).toBe(`amaka.${mark}@marfaa.com`);
   await page.goto("/admin/clients", { waitUntil: "networkidle" });
   await expect(page.locator("#client-list + .ad__scroll")).toContainText("Marfaa Foods");
