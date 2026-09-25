@@ -3,6 +3,7 @@ import "server-only";
 import { after } from "next/server";
 import { betterAuth } from "better-auth";
 import { emailOTP, magicLink } from "better-auth/plugins";
+import { nextCookies } from "better-auth/next-js";
 import { googleAdmission } from "@/lib/auth-google";
 import { db } from "@/lib/db/pool";
 import { sendPasswordResetEmail, sendSignInEmail } from "@/lib/outbox";
@@ -251,6 +252,10 @@ export const auth = betterAuth({
          it is in `disabledPaths` above. The code travels in the sign-in email. */
       sendVerificationOTP: async () => {},
     }),
+    /* Last, as Better Auth requires. A server action that calls `auth.api`
+       (My account's password change, which replaces this session with a
+       new one) otherwise sets no cookie, and the person is signed out. */
+    nextCookies(),
   ],
   databaseHooks: {
     session: {
