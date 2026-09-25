@@ -43,6 +43,9 @@ export default async function PortalOverview() {
 
   const { greeting, date } = today();
   const projects = getProjectsFor(client.id);
+  /* Archived work still belongs to the client; it is what "nothing in
+     progress" points them to, rather than "no projects yet". */
+  const finished = getProjectsFor(client.id, true).length - projects.length;
   const invoices = getInvoicesFor(client.id);
   const tickets = getTicketsFor(client.id);
   const firstName = client.name.split(" ")[0];
@@ -170,7 +173,12 @@ export default async function PortalOverview() {
                 })}
               </div>
             ) : (
-              <Empty title="No projects yet" icon={FolderKanban}>Once a project starts, it will show up here.</Empty>
+              finished > 0
+                ? <Empty title="Nothing in progress right now" icon={FolderKanban}
+                    action={<Link className="ad__btn" href="/portal/projects?show=delivered">See finished projects</Link>}>
+                    {finished === 1 ? "Your finished project is" : `Your ${finished} finished projects are`} still here, with everything we handed over.
+                  </Empty>
+                : <Empty title="No projects yet" icon={FolderKanban}>Once a project starts, it will show up here.</Empty>
             )}
           </Panel>
         </div>
