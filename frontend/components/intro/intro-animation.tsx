@@ -282,13 +282,36 @@ export default function IntroAnimation() {
       touchStartY = touchY;
     };
 
-    container.addEventListener("wheel", handleWheel, { passive: false });
+    /* THE KEYBOARD DRIVES IT TOO. It used to answer only the wheel and a
+       finger, so somebody on a keyboard had one way out, the Skip button, and
+       had to find it. The keys a reader already uses to move down a page move
+       the ring; End and Escape leave. */
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLElement && e.target.closest("button, a, input, textarea")) return;
+      if (["ArrowDown", "PageDown", " ", "Enter"].includes(e.key)) { e.preventDefault(); touched(); advance(e.key === "ArrowDown" ? 300 : 700); }
+      else if (e.key === "ArrowUp" || e.key === "PageUp") { e.preventDefault(); touched(); advance(e.key === "ArrowUp" ? -300 : -700); }
+      else if (e.key === "End" || e.key === "Escape") { e.preventDefault(); release(); }
+    };
+
+    /* AND IT LETS GO BY ITSELF. Somebody who neither scrolls nor presses a
+       key -- reading the ring, or not realising it wants input -- was held
+       on it indefinitely. Left untouched, it hands over to the page once the
+       ring has had time to form and be seen. */
+    let idle: ReturnType<typeof setTimeout> | null = setTimeout(release, 7000);
+    const touched = () => { if (idle) { clearTimeout(idle); idle = null; } };
+    const onWheel = (e: WheelEvent) => { touched(); handleWheel(e); };
+    const onTouch = (e: TouchEvent) => { touched(); handleTouchMove(e); };
+
+    container.addEventListener("wheel", onWheel, { passive: false });
     container.addEventListener("touchstart", handleTouchStart, { passive: false });
-    container.addEventListener("touchmove", handleTouchMove, { passive: false });
+    container.addEventListener("touchmove", onTouch, { passive: false });
+    window.addEventListener("keydown", handleKey);
     return () => {
-      container.removeEventListener("wheel", handleWheel);
+      touched();
+      container.removeEventListener("wheel", onWheel);
       container.removeEventListener("touchstart", handleTouchStart);
-      container.removeEventListener("touchmove", handleTouchMove);
+      container.removeEventListener("touchmove", onTouch);
+      window.removeEventListener("keydown", handleKey);
     };
   }, [active, virtualScroll]);
 
@@ -568,7 +591,10 @@ export default function IntroAnimation() {
               })}
             </div>
 
-            {/* Skip affordance */}
+            {/* SKIP, BOTTOM LEFT, AT FULL STRENGTH. It sat bottom right, where
+                the accessibility button is pinned, so on a desktop the one way
+                out was under another control -- and in muted type at 34px.
+                Now it is the page's ink, 44px tall, with the keys beside it. */}
             <button
               type="button"
               onClick={() => {
@@ -577,10 +603,13 @@ export default function IntroAnimation() {
                 document.documentElement.dataset.intro = "done";
                 setReleasing(true);
               }}
-              className="absolute bottom-6 right-6 z-20 rounded-full border border-line px-4 py-2 text-xs font-semibold uppercase tracking-widest text-muted transition-colors hover:border-secondary hover:text-secondary"
+              className="absolute bottom-6 left-6 z-20 inline-flex min-h-11 items-center rounded-full border border-foreground px-5 text-xs font-semibold uppercase tracking-widest text-foreground transition-colors hover:bg-foreground hover:text-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
             >
               Skip intro
             </button>
+            <p className="pointer-events-none absolute bottom-9 left-44 z-20 hidden text-xs text-foreground sm:block" aria-hidden="true">
+              Scroll, or press ↓
+            </p>
           </div>
         </motion.div>
       ) : null}

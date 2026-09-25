@@ -262,7 +262,7 @@ export default function AboutBody() {
               three, so the work arrives as one thing rather than three handovers.
             </p>
             <div className="sv-hero__cta">
-              <Link className="pv-btn pv-btn--accent" href="/#pv-contact">
+              <Link className="pv-btn pv-btn--accent" href="/contact">
                 Book a strategy call
               </Link>
               <Link className="pv-btn pv-btn--light" href="/services">
@@ -322,7 +322,7 @@ export default function AboutBody() {
               </ul>
             </div>
           </ScrollExpand>
-          <p className="ab-cap">Work from the agency. More of it on the services page.</p>
+          <p className="ab-cap">Work from the agency. <Link href="/work">See more of it</Link>.</p>
           {/* This section is 300vh tall with the wheel pinned in the middle of
               it, so for three screens of scrolling nothing moves vertically and
               the page reads as having ended. It has not: the wheel is turning
@@ -372,10 +372,10 @@ export default function AboutBody() {
               actually takes, and say so if it is not us.
             </p>
             <div className="sv-hero__cta">
-              <Link className="pv-btn pv-btn--accent" href="/#pv-contact">
+              <Link className="pv-btn pv-btn--accent" href="/contact">
                 Book a strategy call
               </Link>
-              <Link className="pv-btn pv-btn--light" href="/#pv-work">
+              <Link className="pv-btn pv-btn--light" href="/work">
                 See the work
               </Link>
             </div>
