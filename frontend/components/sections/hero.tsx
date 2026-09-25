@@ -353,6 +353,17 @@ export function Hero() {
           </span>
         </h1>
 
+        {/* WHAT WE DO, AND WHERE, in one line. The motto and the rotating
+            question are the brand's voice; neither tells a first-time visitor
+            what the studio makes. Smaller than the heading on purpose, so it
+            is never the page's largest text and never an LCP candidate. */}
+        <p
+          className="hero-rise mx-auto mt-5 max-w-[34rem] text-balance text-sm font-medium leading-relaxed !text-white [text-shadow:0_1px_12px_rgba(0,0,0,0.55)] sm:text-base"
+          style={{ animationDelay: "300ms" }}
+        >
+          Branding, websites, apps and SEO, designed and built by one team in Lagos.
+        </p>
+
         <div
           className="hero-rise mt-8 flex w-full flex-col items-stretch justify-center gap-4 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center"
           style={{ animationDelay: "400ms" }}

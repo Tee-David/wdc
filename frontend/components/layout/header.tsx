@@ -299,14 +299,20 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
                and the only thing decided here is WHICH ground it is on --
                transparent over a dark hero, the page's own surface once the bar
                is solid, which the theme already answers for at `:root`. */
-            className={`header-cta-pulse group btn-primary hidden items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(0,0,26,0.35)] active:translate-y-0 md:inline-flex ${solid ? "" : "hero-cta"}`}
+            /* ON PHONES TOO. It was `hidden` below 768px, so on the screens
+               most visitors use the site's main action was nowhere on screen
+               until they opened the menu. It is smaller there (44px tall, the
+               touch minimum) and says "Start" under 360px, and it steps out of
+               the way while the menu is open over it. */
+            className={`header-cta-pulse group btn-primary inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3.5 text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(0,0,26,0.35)] active:translate-y-0 md:min-h-0 md:gap-2 md:px-5 md:py-2.5 md:text-sm ${solid ? "" : "hero-cta"} ${menuOpen ? "max-lg:invisible" : ""}`}
           >
             {/* Not "Book a Strategy Call". That was carried over wholesale
                 when this header was rebuilt to match litchconsulting's, and it
                 is a finance consultancy's product: WDC does not sell a
                 strategy call, it takes a brief. The link has always gone to
                 the contact form, so the label now says what the click does. */}
-            Start a project
+            <span className="min-[360px]:hidden">Start</span>
+            <span className="hidden min-[360px]:inline">Start a project</span>
             <svg
               viewBox="0 0 16 16"
               fill="none"
