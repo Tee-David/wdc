@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**93 open** (36 in progress)
+**91 open** (36 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -148,9 +148,7 @@ DONE 2026-09-25: the audit log is kept in the database (migration 0021, `lib/aud
 - [ ] (M) Retention rules per data type (drafts, enquiries, spam/Trash, invitations, email log, unsubscribed addresses, deactivated accounts), a daily batched job that anonymises or deletes, and one audit row per run with counts; money records excluded by design.
 - [ ] (M) Personal data request: look up an email across tables, export JSON/CSV, erase by anonymising personal fields, log the request.
 - [ ] (M) Maintenance mode: whole-site 503 with `Retry-After` and noindex, a reviewer share link, bypass for signed-in owner/staff, never blocking admin, portal, login, Paystack webhook, `/pay/*` and `/i/*`; shell notice (add it to `lib/admin/notices.ts`); audited.
-- [ ] (M) System status: health probes (DB, applied migrations vs files, SMTP connect behind the response, bucket HEAD and CORS, recent webhook deliveries), environment info with "Copy report", background work (pending/failed outbox rows, last retention run). The unapplied-migration shell notice goes in `lib/admin/notices.ts` with it.
-- [ ] (S) Tools panel: retry failed emails, purge expired invitations, re-verify media against R2, revalidate public pages; each audited and safe to run twice.
-- [ ] (S) "Check now" on each integration row where a cheap probe exists, showing the answer and its time rather than "working".
+- [-] (M) System status: health probes (DB, applied migrations vs files, SMTP connect behind the response, bucket HEAD and CORS, recent webhook deliveries), environment info with "Copy report", background work (pending/failed outbox rows, last retention run). BUILT 2026-09-25 at `/admin/settings/system` (owner): database, mail server (behind the response), Paystack (the secret key against `/balance`) and R2 (a signed HEAD plus the CORS preflight) each answer "Check now", timed and kept in `app_settings` so the answer and its time are the same on every instance and on Integrations; migrations on disk against `wdc_schema_migrations` (the files ship with the admin via `outputFileTracingIncludes`, confirmed in the build's trace) with a shell notice when one is missing; failed emails not yet sent on, sends stuck in Queued, the last daily tidy; the environment with Copy report and no secrets. Tools: retry failed form emails rebuilt from their entries (originals only, once per row per Lagos day, so a second run sends nothing), remove unused invitations over 30 days old, refresh public pages, check the media library against the bucket (reports, never deletes); each audited with its last result shown. A failed email sent on by a resend or a retry no longer counts as failed. Pinned by `tests/system.spec.ts` (4 cases). NOT YET: webhook delivery history, which lives in memory until the money records move (4.9).
 
 #### Blog as a CMS
 
