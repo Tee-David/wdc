@@ -1,8 +1,10 @@
 import { after, NextRequest, NextResponse } from "next/server";
+import { formByKey } from "@/lib/forms/registry";
+import { availability, getFormSettings } from "@/lib/forms/settings-db";
+import { confirmation, sendFormEmail } from "@/lib/forms/notify";
+import { formEmail } from "@/lib/forms/emails";
 import { CONTACT_EMAIL } from "@/lib/site";
-import { sendLogged } from "@/lib/outbox";
-import { composeEmailHtml, emailP, emailPanel, emailSmall } from "@/lib/email-templates";
-import { looksLikeEmail, newsletterIsConfigured, normaliseEmail, subscribe } from "@/lib/newsletter";
+import { looksLikeEmail, newsletterIsConfigured, normaliseEmail, subscribe, unsubscribeUrl } from "@/lib/newsletter";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 
 /* Same ceiling and the same reason as the contact route: this mail server's
@@ -78,6 +80,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  /* Closed in the form's settings refuses here, not only on the page. */
+  const form = formByKey("newsletter")!;
+  const settings = await getFormSettings(form);
+  const open = await availability(form, settings);
+  if (!open.open) return NextResponse.json({ error: open.message, closed: true }, { status: 403 });
+
   let result;
   try {
     result = await subscribe(typed, source);
@@ -98,52 +106,27 @@ export async function POST(request: NextRequest) {
      not produce two welcomes, and the studio should not be told twice about
      one subscriber. */
   if (result.kind === "added") {
+    const base = { id: "", serial: null, first: "", last: "", email, phone: "", company: "", topic: "", message: "", source };
     after(async () => {
       try {
-        await sendLogged({
-          to: email,
-          subject: "We Dig Creativity: you are on the list",
-          /* A newsletter is the case the List-Unsubscribe header exists for.
-             Somebody who signed up in a footer should not have to find a
-             contact page to get back out. */
-          unsubscribe: true,
-          text: `You asked to hear from We Dig Creativity.\n\nWe write when we have something worth your time: work we have shipped, what it cost, and what we learned. Not weekly, and never a digest of other people's links.\n\nIf this was not you, ignore this message and nothing else will arrive.\n\nWe Dig Creativity\n${CONTACT_EMAIL}`,
-          html: composeEmailHtml({
-            title: "You are on the list",
-            preheader: "We write when we have something worth your time.",
-            heading: "You are on the list",
-            blocks: [
-              emailP("We write when we have something worth your time: work we have shipped, what it cost, and what we learned. Not weekly, and never a digest of other people&rsquo;s links."),
-              emailSmall("If this was not you, ignore this message and nothing else will arrive."),
-            ],
-            unsubscribe: true,
-          }),
-        }, {
+        const unsubscribeLink = unsubscribeUrl(email) ?? undefined;
+        const welcome = formEmail(form, "welcome", { ...base, email }, { unsubscribeUrl: unsubscribeLink })!;
+        await sendFormEmail(form, settings, "welcome", { ...welcome, unsubscribeUrl: unsubscribeLink }, {
           summary: `Welcome to the newsletter, from the ${source}.`,
           /* The day is in the key: one welcome per address per day, however
              many times the button is pressed, and a returning subscriber next
              month still gets one. */
           dedupeKey: `newsletter-welcome:${email}:${new Date().toISOString().slice(0, 10)}`,
-        });
+        }, { email });
       } catch (welcomeError) {
         console.error("Newsletter welcome failed", welcomeError instanceof Error ? welcomeError.message : "unknown error");
       }
 
       try {
-        await sendLogged({
-          to: process.env.SMTP_REPLY_TO || CONTACT_EMAIL,
-          subject: "New newsletter subscriber",
-          text: `${email}\nFrom: ${source}`,
-          html: composeEmailHtml({
-            title: "New newsletter subscriber",
-            preheader: `${email} subscribed from the ${source}.`,
-            heading: "New newsletter subscriber",
-            blocks: [emailPanel([["Email", email], ["Signed up from", source]])],
-          }),
-        }, {
+        await sendFormEmail(form, settings, "studio-notice", formEmail(form, "studio-notice", { ...base, email, source })!, {
           summary: `New subscriber from the ${source}.`,
           dedupeKey: `newsletter-notice:${email}:${new Date().toISOString().slice(0, 10)}`,
-        });
+        }, { email });
       } catch (noticeError) {
         console.error("Newsletter notice failed", noticeError instanceof Error ? noticeError.message : "unknown error");
       }
@@ -153,5 +136,5 @@ export async function POST(request: NextRequest) {
   /* ONE ANSWER FOR BOTH OUTCOMES. "You are already subscribed" would turn this
      box into a way of testing whether a given person is on our list, which is
      not something a stranger is owed about somebody else. */
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, confirmation: confirmation(settings, {}) });
 }

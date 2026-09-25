@@ -1,9 +1,10 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, CalendarClock, CircleDollarSign, ClipboardList, FolderClock, LifeBuoy, MailWarning, MessageSquareWarning, Send } from "lucide-react";
+import { AlertTriangle, ArrowRight, FileClock, CalendarClock, CircleDollarSign, ClipboardList, FolderClock, LifeBuoy, MailWarning, MessageSquareWarning, Send } from "lucide-react";
 import { SERVICES } from "@/lib/services";
 import { getBoard, getClient, getClients, getDeliverablesFor, getInvoices, getMonthly, getPayments, getProjects, getSubmissions, getSummary, getTasks, getTickets, providerAttentionCount } from "@/lib/admin/store";
 import { failedLoggedCount } from "@/lib/message-log";
+import { reviewCount } from "@/lib/blog-db";
 import { invoiceStatus, invoiceTotals, naira, nairaShort, projectAttention, STAGES } from "@/lib/admin/types";
 
 /* Worst first. The attention queue is read top-down in the morning, so the
@@ -28,8 +29,15 @@ function greeting() {
   return hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 }
 
-export async function AdminDashboardView({ firstName }: { firstName?: string }) {
-  const failedMail = await failedLoggedCount();
+/**
+ * `money` is false for staff (lib/admin/permissions.ts): the books are not on
+ * their dashboard at all -- no figures, no invoice rows in the queue, no
+ * money quick actions -- rather than shown and then refused.
+ */
+export async function AdminDashboardView({ firstName, money = true }: { firstName?: string; money?: boolean }) {
+  const failedMail = money ? await failedLoggedCount() : 0;
+  /* The owner is the one who publishes, so the queue is theirs. */
+  const inReview = money && (process.env.DATABASE_URL || process.env.COCKROACHDB_URL) ? await reviewCount().catch(() => 0) : 0;
   const clients = getClients();
   const projects = getProjects();
   const invoices = getInvoices();
@@ -42,7 +50,7 @@ export async function AdminDashboardView({ firstName }: { firstName?: string }) 
 
   const tasks = getTasks();
   const attention = [
-    ...invoices
+    ...(money ? invoices : [])
       .filter((invoice) => invoiceStatus(invoice) === "Overdue")
       .map((invoice) => ({
         href: `/admin/money/${invoice.id}`,
@@ -83,7 +91,7 @@ export async function AdminDashboardView({ firstName }: { firstName?: string }) 
     /* WHAT THE BANK AND THE MAIL SERVER DID NOT DO CLEANLY. Money that
        matched no invoice, and messages that did not go, are an absence on
        every other screen; here they are a row with the fix one click away. */
-    ...(providerAttentionCount() ? [{
+    ...(money && providerAttentionCount() ? [{
       href: "/admin/money/reconciliation",
       title: `${providerAttentionCount()} payment event${providerAttentionCount() === 1 ? "" : "s"} did not land cleanly`,
       detail: "Money Paystack reported that is not matched to an invoice, or an event that failed its checks",
@@ -92,12 +100,21 @@ export async function AdminDashboardView({ firstName }: { firstName?: string }) 
       tone: "bad",
       menu: null,
     }] : []),
-    ...(failedMail ? [{
+    ...(money && failedMail ? [{
       href: "/admin/money/reconciliation",
       title: `${failedMail} message${failedMail === 1 ? "" : "s"} did not go`,
       detail: "Emails the mail server refused or that could not be sent",
       meta: "Reconciliation",
       icon: MailWarning,
+      tone: "warn",
+      menu: null,
+    }] : []),
+    ...(inReview ? [{
+      href: "/admin/blog?state=review",
+      title: `${inReview} blog post${inReview === 1 ? "" : "s"} waiting for review`,
+      detail: "Submitted by staff. Publish, or send back with a note",
+      meta: "Blog",
+      icon: FileClock,
       tone: "warn",
       menu: null,
     }] : []),
@@ -158,7 +175,7 @@ export async function AdminDashboardView({ firstName }: { firstName?: string }) 
         <div>
           <span className="adDash__eyebrow">{new Intl.DateTimeFormat("en-NG", { weekday: "long", day: "numeric", month: "long" }).format(new Date())}</span>
           <h1>{greeting()}{firstName ? `, ${firstName}` : ""}</h1>
-          <p>Start with what needs a decision, a reply, or a payment follow-up.</p>
+          <p>{money ? "Start with what needs a decision, a reply, or a payment follow-up." : "Start with what needs a decision or a reply."}</p>
         </div>
         <div className="ad__row">
           <PageTourButton />
@@ -171,9 +188,15 @@ export async function AdminDashboardView({ firstName }: { firstName?: string }) 
       </DemoNote>
 
       <dl className="adDash__kpis" data-tour="dash-kpis">
+        {money ? <>
         <Tile label="Collected" value={nairaShort(summary.collected)} tone="good" note={`${collectionRate}% collection rate`} />
         <Tile label="Outstanding" value={nairaShort(summary.outstanding)} tone={summary.overdue ? "bad" : undefined} note={`${nairaShort(summary.overdue)} overdue`} />
         <Tile label="Cash position" value={nairaShort(summary.profit)} tone={summary.profit >= 0 ? "good" : "bad"} note="Collected less recorded spend" />
+        </> : <>
+        <Tile label="Clients" value={String(clients.length)} note="Active records" />
+        <Tile label="Open forms" value={String(getSubmissions().filter((x) => x.status === "In progress").length)} note="Onboarding not finished" />
+        <Tile label="Open tickets" value={String(getTickets().filter((t) => t.status === "Open").length)} tone={getTickets().some((t) => t.status === "Open") ? "accent" : undefined} note="Waiting on a reply" />
+        </>}
         <Tile label="Live projects" value={String(summary.liveProjects)} tone={summary.needsUs ? "accent" : undefined} note={`${summary.needsUs} need attention`} />
       </dl>
 
@@ -201,7 +224,7 @@ export async function AdminDashboardView({ firstName }: { firstName?: string }) 
                   /* SAID, NOT HIDDEN. The panel shows the six worst; a queue
                      that silently drops the rest reads as "that is all". */
                   <p className="adDash__more" role="status">
-                    {attention.length - 6} more not shown. They are on the Money, Projects and Clients screens.
+                    {attention.length - 6} more not shown. They are on the Money, Projects, Clients and Blog screens.
                   </p>
                 ) : null}
               </div>
@@ -210,7 +233,7 @@ export async function AdminDashboardView({ firstName }: { firstName?: string }) 
             )}
           </Panel>
 
-          <Panel title="Cashflow, last six months" dataTour="dash-cashflow" action={<Link href="/admin/money">Open Money <ArrowRight aria-hidden="true" /></Link>}>
+          {money ? <Panel title="Cashflow, last six months" dataTour="dash-cashflow" action={<Link href="/admin/money">Open Money <ArrowRight aria-hidden="true" /></Link>}>
             <div className="adDash__cashSummary">
               <span><small>Billed</small><b>{nairaShort(summary.invoiced)}</b></span>
               <span><small>Collected</small><b>{nairaShort(summary.collected)}</b></span>
@@ -228,18 +251,20 @@ export async function AdminDashboardView({ firstName }: { firstName?: string }) 
               ))}
             </div>
             <div className="adDash__legend"><span>Collected</span><span>Spend</span></div>
-          </Panel>
+          </Panel> : null}
         </main>
 
         <aside className="adDash__rail">
           <Panel title="Quick actions" dataTour="dash-quick-actions">
             <div className="adDash__actions">
               <AddClient />
+              {money ? <>
               <InvoiceBuilder clients={clients} projects={projects} />
               <AddExpense />
               <RecordAnyPayment open={invoices
                 .filter((i) => i.status !== "Draft" && !i.voided && invoiceTotals(i).due > 0)
                 .map((i) => ({ id: i.id, label: `${i.number} · ${getClient(i.clientId)?.company ?? "Unknown client"}`, owed: invoiceTotals(i).due }))} />
+              </> : null}
               <Link className="ad__btn" href="/admin/forms"><ClipboardList aria-hidden="true" /> Review forms</Link>
               {/* The public form, opened in its own tab so its address can be
                   copied into a message to a new client. */}
@@ -262,7 +287,7 @@ export async function AdminDashboardView({ firstName }: { firstName?: string }) 
             </div>
           </Panel>
 
-          <Panel title="Recent payments" dataTour="dash-payments" action={<Link href="/admin/money">View all <ArrowRight aria-hidden="true" /></Link>}>
+          {money ? <Panel title="Recent payments" dataTour="dash-payments" action={<Link href="/admin/money">View all <ArrowRight aria-hidden="true" /></Link>}>
             {payments.length ? (
               <div className="adDash__compactList">
                 {payments.slice(0, 4).map((payment) => {
@@ -281,7 +306,7 @@ export async function AdminDashboardView({ firstName }: { firstName?: string }) 
                 Payments recorded against an invoice will appear here.
               </Empty>
             )}
-          </Panel>
+          </Panel> : null}
 
           <Panel title="Upcoming deadlines" dataTour="dash-deadlines">
             {upcoming.length ? (

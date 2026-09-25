@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createInvitation, invitationsConfigured, normaliseEmail, revokeInvitation } from "@/lib/invitations";
 import { sendInvitationEmail } from "@/lib/invitation-mail";
 import { getClient, audit } from "./store";
-import { actorName, owner } from "./guard";
+import { actorName, owner, allow } from "./guard";
 import { FAIL, OK, looksEmail, str, type ActionState } from "./validate";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -26,7 +26,7 @@ function sendLater(...args: Parameters<typeof sendInvitationEmail>) {
  * is bound to this record by construction.
  */
 export async function inviteClient(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const refused = await owner();
+  const refused = await allow("clients");
   if (refused) return refused;
   if (!invitationsConfigured()) return FAIL({}, NOT_CONNECTED);
   const client = getClient(str(fd, "clientId"));

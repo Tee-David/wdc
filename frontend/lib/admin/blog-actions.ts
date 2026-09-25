@@ -2,10 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { deleteDraftPost, movePostToDraft, publishPostNow, savePost } from "@/lib/blog-db";
+import { deleteTrashedPost, movePostToDraft, postForAdmin, publishPostNow, restorePost, returnPost, savePost, trashDraftPost } from "@/lib/blog-db";
 import { parsePost } from "@/lib/blog-validate";
 import { audit } from "./store";
-import { actorName, owner } from "./guard";
+import { actorName, adminRole, owner, allow } from "./guard";
 import { FAIL, OK, type ActionState } from "./validate";
 
 /**
@@ -16,7 +16,7 @@ import { FAIL, OK, type ActionState } from "./validate";
  * live on the next request rather than at the next deploy.
  */
 export async function saveBlogPost(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const refused = await owner();
+  const refused = await allow("content");
   if (refused) return refused;
 
   const raw: Record<string, unknown> = {};
@@ -31,13 +31,36 @@ export async function saveBlogPost(_prev: ActionState, fd: FormData): Promise<Ac
   if (!parsed.ok) return FAIL(parsed.errors, "Some fields need attention before this can be saved.");
 
   const id = String(fd.get("id") ?? "").trim() || null;
+  /* STAFF WRITE, THE OWNER PUBLISHES. Staff can draft and submit for review;
+     putting a post live, scheduling it, or changing one that already is,
+     is the owner's. Checked here, not only by the options the editor shows. */
+  if ((await adminRole()) !== "owner") {
+    if (parsed.post.status === "published" || parsed.post.status === "scheduled") {
+      return FAIL({ status: "Publishing is the owner's. Choose Submit for review and they will see it." });
+    }
+    if (id) {
+      const current = await postForAdmin(id).catch(() => null);
+      if (current?.status === "published") return FAIL({}, "This post is live or scheduled, so changes to it are the owner's.");
+    }
+  }
+  /* The saved_at this editor opened, "" for a post never saved in the
+     editor. Absent altogether means a caller that is not the editor. */
+  const openedRaw = fd.get("opened");
+  const opened = typeof openedRaw === "string" ? (openedRaw.trim() || null) : undefined;
+  if (opened && Number.isNaN(Date.parse(opened))) return FAIL({}, "Reload the post, then save again.");
   const by = await actorName();
   let saved;
   try {
-    saved = await savePost(id, parsed.post, by);
+    saved = await savePost(id, parsed.post, by, opened);
   } catch (error) {
     console.error("Blog save failed", error instanceof Error ? error.message : "unknown error");
     return FAIL({}, "The post could not be saved just now. Nothing was changed; try again.");
+  }
+  if (!saved.ok && saved.reason === "stale") {
+    const at = saved.savedAt
+      ? new Date(saved.savedAt).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" })
+      : "a moment ago";
+    return FAIL({}, `${saved.savedBy ?? "Somebody"} saved this post at ${at}, after you opened it, so nothing was saved. Reload to see their version; yours is kept in this browser and offered back, so you can choose.`);
   }
   if (!saved.ok) {
     return FAIL(
@@ -49,7 +72,7 @@ export async function saveBlogPost(_prev: ActionState, fd: FormData): Promise<Ac
   }
 
   const p = parsed.post;
-  const label = p.status === "draft" ? "saved as a draft" : p.status === "scheduled" ? "scheduled" : "published";
+  const label = p.status === "draft" ? "saved as a draft" : p.status === "review" ? "submitted for review" : p.status === "scheduled" ? "scheduled" : "published";
   audit({ actor: by, kind: "content", subjectId: saved.id, subject: p.title, action: id ? `edited and ${label}` : label,
           note: `/blog/${p.slug}` });
 
@@ -61,9 +84,13 @@ export async function saveBlogPost(_prev: ActionState, fd: FormData): Promise<Ac
   revalidatePath("/admin/blog");
 
   if (!id) redirect(`/admin/blog/${saved.id}?saved=1`);
-  return OK(p.status === "draft" ? "Saved. It is a draft, so nobody can see it yet."
-    : p.status === "scheduled" ? "Saved. It goes live on its date without anybody pressing anything."
-    : "Saved and live.");
+  return {
+    ...OK(p.status === "draft" ? "Saved. It is a draft, so nobody can see it yet."
+      : p.status === "review" ? "Submitted for review. The owner sees it on the dashboard and on Blog."
+      : p.status === "scheduled" ? "Saved. It goes live on its date without anybody pressing anything."
+      : "Saved and live."),
+    stamp: saved.savedAt,
+  };
 }
 
 function refreshBlog(slug: string) {
@@ -74,9 +101,18 @@ function refreshBlog(slug: string) {
   revalidatePath("/admin/blog");
 }
 
-/** The list's three quick actions: same checks, same audit, same refresh. */
-async function quick(fd: FormData, verb: "publish" | "draft" | "delete"): Promise<ActionState> {
-  const refused = await owner();
+type Verb = "publish" | "draft" | "trash" | "restore" | "delete";
+
+const DONE: Record<Verb, string> = {
+  publish: "published", draft: "moved to draft", trash: "moved to the Trash", restore: "restored from the Trash", delete: "deleted for good from the Trash",
+};
+
+/** The list's quick actions: same checks, same audit, same refresh. */
+async function quick(fd: FormData, verb: Verb): Promise<ActionState> {
+  /* The Trash is content work, because it can be undone. Publishing and
+     unpublishing are the owner's (staff submit for review), and so is
+     deleting for good, which cannot be undone. */
+  const refused = verb === "trash" || verb === "restore" ? await allow("content") : await owner();
   if (refused) return refused;
   const id = String(fd.get("id") ?? "").trim();
   const by = await actorName();
@@ -84,17 +120,45 @@ async function quick(fd: FormData, verb: "publish" | "draft" | "delete"): Promis
   try {
     done = verb === "publish" ? await publishPostNow(id, by)
       : verb === "draft" ? await movePostToDraft(id, by)
-      : await deleteDraftPost(id);
+      : verb === "trash" ? await trashDraftPost(id, by)
+      : verb === "restore" ? await restorePost(id, by)
+      : await deleteTrashedPost(id);
   } catch {
     return FAIL({}, "That could not be saved just now. Nothing changed; try again.");
   }
-  if (!done) return FAIL({}, verb === "delete" ? "Only a draft can be deleted. Move a live post to draft instead." : "That post is no longer there.");
-  audit({ actor: by, kind: "content", subjectId: id, subject: done.title,
-          action: verb === "publish" ? "published" : verb === "draft" ? "moved to draft" : "deleted while still a draft", note: `/blog/${done.slug}` });
+  if (!done) {
+    return FAIL({}, verb === "trash" ? "Only a draft can go in the Trash. Move a live post to draft first."
+      : verb === "delete" ? "Only a post in the Trash can be deleted for good."
+      : "That post is no longer there.");
+  }
+  audit({ actor: by, kind: "content", subjectId: id, subject: done.title, action: DONE[verb], note: `/blog/${done.slug}` });
   refreshBlog(done.slug);
-  return OK(verb === "publish" ? `${done.title} is live.` : verb === "draft" ? `${done.title} is a draft again; nobody can see it.` : `${done.title} was deleted.`);
+  return OK(verb === "publish" ? `${done.title} is live.`
+    : verb === "draft" ? `${done.title} is a draft again; nobody can see it.`
+    : verb === "trash" ? `${done.title} is in the Trash for 30 days.`
+    : verb === "restore" ? `${done.title} is back, as a draft.`
+    : `${done.title} was deleted for good.`);
 }
 
 export async function publishBlogPostNow(_prev: ActionState, fd: FormData) { return quick(fd, "publish"); }
 export async function moveBlogPostToDraft(_prev: ActionState, fd: FormData) { return quick(fd, "draft"); }
-export async function deleteBlogDraft(_prev: ActionState, fd: FormData) { return quick(fd, "delete"); }
+export async function trashBlogDraft(_prev: ActionState, fd: FormData) { return quick(fd, "trash"); }
+export async function restoreBlogPost(_prev: ActionState, fd: FormData) { return quick(fd, "restore"); }
+export async function deleteBlogPostForever(_prev: ActionState, fd: FormData) { return quick(fd, "delete"); }
+
+/** The owner sends a post in review back to its writer, with what to change. */
+export async function returnBlogPost(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
+  const id = String(fd.get("id") ?? "").trim();
+  const note = String(fd.get("note") ?? "").trim();
+  if (note.length < 5) return FAIL({ note: "Say what to change, so the writer knows where to start." });
+  const by = await actorName();
+  let done;
+  try { done = await returnPost(id, note, by); } catch { return FAIL({}, "That could not be saved just now. Nothing changed; try again."); }
+  if (!done) return FAIL({}, "That post is not waiting for review any more.");
+  audit({ actor: by, kind: "content", subjectId: id, subject: done.title, action: "sent back to its writer", note: note.slice(0, 300) });
+  refreshBlog(done.slug);
+  revalidatePath(`/admin/blog/${id}`);
+  return OK(`${done.title} is back with ${done.to ?? "its writer"} as a draft, with your note.`);
+}

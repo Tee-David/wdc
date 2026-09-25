@@ -45,6 +45,8 @@ export const invoiceStatusEnum = pgEnum("invoice_status", [
   "Draft", "Sent", "Part paid", "Paid", "Overdue",
 ]);
 
+/* A description, not the enforcement: the live column is a STRING held to these
+   three by `user_role_check` (migration 0019), not a Postgres enum. */
 export const roleEnum = pgEnum("role", ["owner", "staff", "client"]);
 
 /* -------------------------------------------------------------------- auth */

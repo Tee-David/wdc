@@ -1032,3 +1032,7 @@
 @media (prefers-reduced-motion: reduce) {
   .pv .ob__seal { animation: none; }
 }
+
+/* A service the studio has closed to new briefs, from the form's settings.
+   Still readable (it says why), no longer choosable. */
+.ob__svcCard.is-shut { opacity: .55; cursor: not-allowed; }

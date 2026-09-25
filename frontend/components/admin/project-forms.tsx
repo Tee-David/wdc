@@ -5,6 +5,8 @@ import { SERVICES } from "@/lib/services";
 import { CHANNELS, STAGES, type Client, type Project } from "@/lib/admin/types";
 import { addNote, createProject, moveStage, setDue } from "@/lib/admin/actions";
 import { Actions, Area, Field, Fields, Form, Hidden, Select, Submit } from "./form";
+import { useAdminRole } from "./shell";
+import { can } from "@/lib/admin/permissions";
 import { DialogButton } from "./dialog";
 
 const SERVICE_OPTIONS = SERVICES.map((s) => ({ value: s.slug, label: s.short }));
@@ -19,6 +21,7 @@ export function AddProject({
   clientId?: string;
   dataTour?: string;
 }) {
+  const money = can(useAdminRole(), "money");
   return (
     <DialogButton label="New project" title="Open a project" icon={Plus} wide dataTour={dataTour}>
       {/* createProject redirects to the project it opened. */}
@@ -55,9 +58,11 @@ export function AddProject({
             <Select name="channel" label="Where updates go" half
                     defaultValue="Client dashboard" options={CHANNEL_OPTIONS}
                     hint="Change it once a route is agreed with the client." />
-            <Field name="budget" label="Agreed budget" half inputMode="decimal"
-                   placeholder="630000"
-                   hint="Naira. Leave it empty when nothing is agreed; empty is not zero." />
+            {money ? (
+              <Field name="budget" label="Agreed budget" half inputMode="decimal"
+                     placeholder="630000"
+                     hint="Naira. Leave it empty when nothing is agreed; empty is not zero." />
+            ) : null}
             <Area name="scope" label="What was bought" rows={2}
                   placeholder="Logo, palette, type scale and a short guideline set."
                   hint="In words the client would recognise. This is what an argument gets settled against." />

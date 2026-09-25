@@ -13,9 +13,11 @@ export type EditorPost = {
   slug: string; title: string; seoTitle: string; description: string; excerpt: string;
   topic: string; tags: string[]; cover: string; canonical: string; socialImage: string;
   body: RichDoc;
-  status: "draft" | "scheduled" | "published";
+  status: "draft" | "review" | "scheduled" | "published";
   publishedAt: string;
   live: boolean;
+  /** The row's saved_at when the editor opened it, for the concurrency check. */
+  savedAt: string | null;
 };
 
 /**
@@ -203,10 +205,12 @@ function useBackup(key: string, formRef: React.RefObject<HTMLDivElement | null>,
   return { offer, dismiss: () => { try { localStorage.removeItem(key); } catch {} setOffer(null); } };
 }
 
-export function BlogEditor({ post, topics, covers }: {
+export function BlogEditor({ post, topics, covers, canPublish = true }: {
   post: EditorPost;
   topics: { value: string; label: string }[];
   covers: string[];
+  /** The owner publishes; staff submit for review (checked again on save). */
+  canPublish?: boolean;
 }) {
   const coverOptions = covers.map((c) => ({ value: c, label: c.replace(/^\/hero\//, "").replace(/\.\w+$/, "").replace(/-/g, " ") }));
   const anchor = useRef<HTMLDivElement>(null);
@@ -218,6 +222,7 @@ export function BlogEditor({ post, topics, covers }: {
   });
   const backup = useBackup(key, anchor, savedSnapshot);
   const [restore, setRestore] = useState<{ at: number; doc: RichDoc } | null>(null);
+  const [opened, setOpened] = useState(post.savedAt);
 
   const doRestore = () => {
     const form = anchor.current?.closest("form");
@@ -235,10 +240,15 @@ export function BlogEditor({ post, topics, covers }: {
   };
 
   return (
-    <Form action={saveBlogPost} className="adBlog adBlog--split" onDone={() => { try { localStorage.removeItem(key); } catch {} }}>
+    <Form action={saveBlogPost} className="adBlog adBlog--split" onDone={(s) => {
+      try { localStorage.removeItem(key); } catch {}
+      /* The version this editor now holds, so its next save is not refused as stale. */
+      if (s.stamp) setOpened(s.stamp);
+    }}>
       <div ref={anchor} hidden />
       <SlugFollowsTitle locked={post.live} />
       {post.id ? <Hidden name="id" value={post.id} /> : null}
+      {post.id ? <Hidden name="opened" value={opened ?? ""} /> : null}
 
       {backup.offer ? (
         <p className="ad__banner adBlog__restore" role="status">
@@ -263,13 +273,17 @@ export function BlogEditor({ post, topics, covers }: {
       <aside className="adBlog__side">
         <section className="ad__panel adBlog__card">
           <h2 className="adBlog__h">Publish</h2>
-          <Radios name="status" label="State" defaultValue={post.status} options={[
+          <Radios name="status" label="State" defaultValue={post.status} options={canPublish ? [
             { value: "draft", label: "Draft", note: "Nobody can see it. Choosing this for a live post unpublishes it." },
+            ...(post.status === "review" ? [{ value: "review", label: "In review", note: "Leave it waiting. To send it back with a note, use the box above." }] : []),
             { value: "scheduled", label: "Scheduled", note: "Goes live by itself on the date below." },
             { value: "published", label: "Published", note: "Live now, shown with the date below." },
+          ] : [
+            { value: "draft", label: "Draft", note: "Nobody can see it, and the owner is not asked to look yet." },
+            { value: "review", label: "Submit for review", note: "The owner is shown it on the dashboard and publishes it or sends it back." },
           ]} />
           <Field name="publishedAt" label="Date shown on the post" type="date" defaultValue={post.publishedAt}
-                 hint="Separate from when it was written. Needed to publish or schedule." />
+                 hint={canPublish ? "Separate from when it was written. Needed to publish or schedule." : "The date you would like it to carry. The owner can change it."} />
           {post.live ? (
             <Checks name="revised" label="Revision" long options={[{ value: "on", label: "A meaningful revision: show readers an updated date" }]} />
           ) : null}

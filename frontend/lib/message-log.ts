@@ -115,11 +115,17 @@ export async function listLogged(opts: {
 }
 
 /** Messages that did not go: the number worth a badge. */
-export async function failedLoggedCount(): Promise<number> {
-  const memory = memoryMessages({ state: "Failed", limit: 10_000 }).length;
+export async function failedLoggedCount(opts: { since?: Date } = {}): Promise<number> {
+  const since = opts.since;
+  const memory = memoryMessages({ state: "Failed", limit: 10_000 }).filter((m) => !since || new Date(m.at) >= since).length;
   if (!configured()) return memory;
   try {
-    const r = await db.query<{ n: string }>("SELECT count(*) AS n FROM message_log WHERE state = 'Failed'");
+    /* A failed message that has since been sent on (a resend or a retry
+       recorded on its trail) is settled, and stops counting. */
+    const settled = `AND NOT (resends @> '[{"sent": true}]'::JSONB)`;
+    const r = since
+      ? await db.query<{ n: string }>(`SELECT count(*) AS n FROM message_log WHERE state = 'Failed' ${settled} AND created_at >= $1`, [since])
+      : await db.query<{ n: string }>(`SELECT count(*) AS n FROM message_log WHERE state = 'Failed' ${settled}`);
     return memory + Number(r.rows[0]?.n ?? 0);
   } catch (error) {
     console.error("[message-log] count failed:", error instanceof Error ? error.message : error);
@@ -170,5 +176,110 @@ export async function recordResend(id: Id, resend: Resend) {
     return true;
   } catch {
     return false;
+  }
+}
+
+/** Every message about one record, found by its id at the end of the dedupe key. */
+export async function listForRecord(id: string, limit = 30): Promise<LoggedMessage[]> {
+  const memory = memoryMessages({ limit: 10_000 }).filter((m) => m.dedupeKey.endsWith(`:${id}`)).map(fromMemory);
+  if (!configured()) return memory;
+  try {
+    const r = await db.query<Row>(
+      "SELECT * FROM message_log WHERE dedupe_key LIKE $1 ORDER BY created_at DESC LIMIT $2",
+      [`%:${id.replace(/[\\%_]/g, "")}`, limit],
+    );
+    return [...r.rows.map(toMessage), ...memory].sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit);
+  } catch (error) {
+    console.error("[message-log] record read failed:", error instanceof Error ? error.message : error);
+    return memory;
+  }
+}
+
+/* ------------------------------------------------ the email log screen */
+
+export type LogQuery = { q: string; state: "" | MessageState; page: number; per: number };
+
+/**
+ * One page of the log, newest first, with the total that matched.
+ *
+ * `to:` and `subject:` narrow to those columns (FluentSMTP's search syntax);
+ * anything else is matched against the address, the subject and the summary.
+ */
+export async function searchLogged(query: LogQuery): Promise<{ rows: LoggedMessage[]; total: number }> {
+  const where: string[] = [];
+  const args: unknown[] = [];
+  const like = (v: string) => `%${v.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+  let rest = query.q;
+  for (const m of query.q.matchAll(/\b(to|subject):("([^"]+)"|\S+)/gi)) {
+    const value = m[3] ?? m[2];
+    args.push(like(value));
+    where.push(`${m[1].toLowerCase() === "to" ? "to_addr" : "subject"} ILIKE $${args.length}`);
+    rest = rest.replace(m[0], " ");
+  }
+  rest = rest.trim();
+  if (rest) {
+    args.push(like(rest));
+    where.push(`(to_addr ILIKE $${args.length} OR subject ILIKE $${args.length} OR summary ILIKE $${args.length})`);
+  }
+  if (query.state) { args.push(query.state); where.push(`state = $${args.length}`); }
+  const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
+  const rows = await db.query<Row>(
+    `SELECT * FROM message_log ${clause} ORDER BY created_at DESC, id DESC LIMIT ${query.per} OFFSET ${(query.page - 1) * query.per}`, args,
+  );
+  const total = await db.query<{ n: string }>(`SELECT count(*) AS n FROM message_log ${clause}`, args);
+  return { rows: rows.rows.map(toMessage), total: Number(total.rows[0]?.n ?? 0) };
+}
+
+/** Rows per state, for the tabs. */
+export async function loggedStateCounts(): Promise<Record<string, number>> {
+  const r = await db.query<{ state: string; n: string }>("SELECT state, count(*) AS n FROM message_log GROUP BY state");
+  const out: Record<string, number> = { Queued: 0, Sent: 0, Failed: 0, Skipped: 0 };
+  for (const x of r.rows) out[x.state] = Number(x.n);
+  return out;
+}
+
+/** Rows older than the retention period, removed. Returns how many. */
+export async function purgeLogged(days: number): Promise<number> {
+  const r = await db.query("DELETE FROM message_log WHERE created_at < now() - ($1::INT8 * INTERVAL '1 day')", [days]);
+  return r.rowCount ?? 0;
+}
+
+/** The row an event was first sent under, by its dedupe key. */
+export async function findLogged(dedupeKey: string): Promise<LoggedMessage | null> {
+  if (!configured()) return null;
+  try {
+    const r = await db.query<Row>("SELECT * FROM message_log WHERE dedupe_key = $1", [dedupeKey]);
+    return r.rows[0] ? toMessage(r.rows[0]) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Failed ORIGINALS not yet sent on, newest first, for Tools' retry. A failed
+ * resend or retry is not listed: retrying the original is the same email,
+ * and listing both would send it twice.
+ */
+export async function outstandingFailures(days: number, limit: number): Promise<{ id: string; dedupeKey: string; to: string; subject: string }[]> {
+  if (!configured()) return [];
+  const r = await db.query<{ id: string; dedupe_key: string; to_addr: string; subject: string }>(`
+    SELECT id, dedupe_key, to_addr, subject FROM message_log
+    WHERE state = 'Failed' AND created_at >= now() - ($1::INT * INTERVAL '1 day')
+      AND dedupe_key NOT LIKE '%:superseded:%' AND dedupe_key NOT LIKE '%:resend:%' AND dedupe_key NOT LIKE '%:retry:%'
+      AND NOT (resends @> '[{"sent": true}]'::JSONB)
+    ORDER BY created_at DESC LIMIT $2
+  `, [days, limit]);
+  return r.rows.map((x) => ({ id: x.id, dedupeKey: x.dedupe_key, to: x.to_addr, subject: x.subject }));
+}
+
+/** Rows written but never settled: a send that died mid-flight. */
+export async function stuckQueuedCount(olderThanMinutes = 15): Promise<number> {
+  if (!configured()) return 0;
+  try {
+    const r = await db.query<{ n: string }>(
+      "SELECT count(*) AS n FROM message_log WHERE state = 'Queued' AND created_at < now() - ($1::INT * INTERVAL '1 minute')", [olderThanMinutes]);
+    return Number(r.rows[0]?.n ?? 0);
+  } catch {
+    return 0;
   }
 }
