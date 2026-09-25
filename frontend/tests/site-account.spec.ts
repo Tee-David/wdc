@@ -47,7 +47,10 @@ test("signed in, the menu shows who, the dashboard and Log out", async ({ page, 
   await page.locator(".sm-toggle").click();
   const account = page.locator(".sm-account");
   await expect(account).toContainText("Ada Obi");
-  await expect(account.getByRole("link", { name: "Dashboard" })).toHaveAttribute("href", "/signed-in");
+  /* The dashboard is the list's last item; the account row carries only the way out, in red. */
+  await expect(page.locator(".sm-panel").getByRole("link", { name: "Open your dashboard" })).toHaveAttribute("href", "/signed-in");
+  await expect(account.getByRole("button", { name: "Log out" })).toHaveCSS("background-color", "rgb(198, 40, 40)");
+  await expect(page.locator(".sm-foot .sm-footer--icons").getByRole("button", { name: "Switch theme" })).toBeVisible();
   await expect(page.locator(".sm-panel").getByRole("link", { name: "Log in to your account" })).toHaveCount(0);
   await account.getByRole("button", { name: "Log out" }).click();
   await page.waitForURL((u) => u.pathname === "/");

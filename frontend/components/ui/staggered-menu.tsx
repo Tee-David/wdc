@@ -13,6 +13,8 @@ import "./staggered-menu.css";
 export interface MenuItem {
   label: string;
   ariaLabel: string;
+  /** Drawn in the accent, with an arrow: a place outside the marketing site (the dashboard). */
+  accent?: boolean;
   link: string;
 }
 
@@ -86,7 +88,7 @@ export default function StaggeredMenu({
     const itemEls = Array.from(panel.querySelectorAll(".sm-panel-itemLabel"));
     const socialTitle = panel.querySelector(".sm-socials-title");
     const socialLinks = Array.from(panel.querySelectorAll(".sm-socials-link"));
-    const footer = panel.querySelector(".sm-footer");
+    const footer = panel.querySelector(".sm-foot") ?? panel.querySelector(".sm-footer");
 
     if (itemEls.length) gsap.set(itemEls, { yPercent: 140, rotate: 10 });
     if (socialTitle) gsap.set(socialTitle, { opacity: 0 });
@@ -267,12 +269,12 @@ export default function StaggeredMenu({
             {items.map((it, idx) => (
               <li className="sm-panel-itemWrap" key={it.label + idx}>
                 <a
-                  className="sm-panel-item"
+                  className={`sm-panel-item${it.accent ? " sm-panel-item--accent" : ""}`}
                   href={it.link}
                   aria-label={it.ariaLabel}
                   onClick={closeMenu}
                 >
-                  <span className="sm-panel-itemLabel">{it.label}</span>
+                  <span className="sm-panel-itemLabel">{it.label}{it.accent ? <span className="sm-panel-itemArrow" aria-hidden="true">↗</span> : null}</span>
                 </a>
               </li>
             ))}
@@ -302,8 +304,16 @@ export default function StaggeredMenu({
               </ul>
             </div>
           )}
-          {accountSlot}
-          {footerSlot && <div className="sm-footer">{footerSlot}</div>}
+          {/* SIGNED IN, ONE FOOT: the look controls sit as two small icons
+              on top of the account row, under a single rule, rather than as a
+              second row of pills. Signed out there is no account row, and the
+              two stay labelled pills. */}
+          {accountSlot ? (
+            <div className="sm-foot">
+              {footerSlot && <div className="sm-footer sm-footer--icons">{footerSlot}</div>}
+              {accountSlot}
+            </div>
+          ) : footerSlot ? <div className="sm-footer">{footerSlot}</div> : null}
         </div>
       </aside>
     </div>
