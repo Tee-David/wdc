@@ -86,6 +86,16 @@ export default async function BlogIndex() {
 
         <section className="pv-sec">
           <div className="pv-wrap">
+            {posts.length ? null : (
+              /* A fresh database, or every post taken down: say so rather
+                 than leave a hero over nothing. The sign-up is in the footer
+                 on every page, so the action is a jump to it. */
+              <div className="bl-none" role="status">
+                <h2>The first posts are on their way</h2>
+                <p>We write about what we learn on real projects. Leave your email and the first one comes to you.</p>
+                <a className="pv-btn pv-btn--accent" href="#newsletter">Get new posts by email</a>
+              </div>
+            )}
             <div className="bl-grid">
               {posts.map((post, n) => (
                 <Link className="bl-card" key={post.slug} href={`/blog/${post.slug}`}>
