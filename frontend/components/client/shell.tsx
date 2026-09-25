@@ -3,22 +3,24 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { ChevronLeft, ChevronRight, Home, LogOut, Menu, Moon, Sun, X } from "lucide-react";
+import { ArrowLeft, ChevronDown, Globe, House, LogOut, Moon, PanelLeft, Sun } from "lucide-react";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { authClient } from "@/lib/auth-client";
+import { WdcMark } from "@/components/brand/logo";
 import { CLIENT_NAV, isClientNavActive } from "./client-nav";
 import TourLauncher from "@/components/admin/tour/tour-launcher";
 import TableLabels from "@/components/admin/table-labels";
+import { TabBar } from "@/components/admin/tab-bar";
+import { SideProfile, SideTourCard } from "@/components/admin/side-foot";
+import { initialsOf } from "@/components/admin/focus";
 
 /**
- * THE CLIENT PORTAL'S OWN SHELL -- the same sidebar/topbar/mobile-drawer
- * skeleton `components/admin/shell.tsx` already built, trimmed rather than
- * duplicated from scratch: no command palette and no notification bell (a
- * five-item nav has nothing worth a Ctrl+K search for, and there is no
- * unread-count source on this side yet), everything else -- the collapse
- * behaviour, the hover-expand on a pinned-collapsed rail, the focus trap in
- * the mobile drawer, the theme toggle -- carried over because it is the
- * same shell, not a client-flavoured guess at one.
+ * THE CLIENT PORTAL'S OWN SHELL -- the admin's shell (`components/admin/
+ * shell.tsx`) trimmed rather than rebuilt: the same sidebar with its pinned
+ * foot, the same top bar, the same floating tab bar on a phone. No command
+ * palette and no notification bell (a five-item nav has nothing worth a
+ * Ctrl+K search for, and there is no unread-count source on this side yet),
+ * and no More: five sections fit the bar exactly.
  */
 
 export type PortalUser = { name?: string | null; email?: string | null; image?: string | null };
@@ -33,35 +35,17 @@ function subscribeToClientMount(onChange: () => void) {
   return () => undefined;
 }
 
-function initials(user: PortalUser) {
-  const source = user.name?.trim() || user.email?.split("@")[0] || "Client";
-  return source.split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("");
-}
-
-function keepFocusInside(event: KeyboardEvent, container: HTMLElement | null) {
-  if (event.key !== "Tab" || !container) return;
-  const focusable = Array.from(
-    container.querySelectorAll<HTMLElement>(
-      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    ),
-  ).filter((element) => element.offsetParent !== null);
-  if (!focusable.length) return;
-  const first = focusable[0];
-  const last = focusable[focusable.length - 1];
-  if (event.shiftKey && document.activeElement === first) {
-    event.preventDefault();
-    last.focus();
-  } else if (!event.shiftKey && document.activeElement === last) {
-    event.preventDefault();
-    first.focus();
-  }
+async function signOut(router: ReturnType<typeof useRouter>) {
+  await authClient.signOut();
+  router.replace("/login");
+  router.refresh();
 }
 
 function Sidebar({
-  collapsed = false, canPin = false, onNavigate, onTogglePin, pinnedCollapsed = false, clientCompany,
+  collapsed = false, onTogglePin, pinnedCollapsed = false, clientCompany, user,
 }: {
-  collapsed?: boolean; canPin?: boolean; onNavigate?: () => void; onTogglePin?: () => void;
-  pinnedCollapsed?: boolean; clientCompany: string | null;
+  collapsed?: boolean; onTogglePin?: () => void; pinnedCollapsed?: boolean;
+  clientCompany: string | null; user: PortalUser;
 }) {
   const path = usePathname();
   const router = useRouter();
@@ -69,14 +53,13 @@ function Sidebar({
   return (
     <div className="ad__sideInner">
       <div className="ad__brand">
-        <Link href="/portal" onClick={onNavigate} aria-label="WDC client portal">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icon.svg" alt="" width={32} height={32} />
+        <Link href="/portal" aria-label="WDC client portal">
+          <WdcMark className="ad__brandMark" />
           {!collapsed ? (
-            <span><b>WDC</b><small>{clientCompany ?? "Client portal"}</small></span>
+            <span><b>We Dig Creativity</b><small>{clientCompany ?? "Client portal"}</small></span>
           ) : null}
         </Link>
-        {canPin && !collapsed ? (
+        {onTogglePin && !collapsed ? (
           <button
             type="button"
             className="ad__iconButton"
@@ -84,49 +67,38 @@ function Sidebar({
             aria-label={pinnedCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             title={pinnedCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            {pinnedCollapsed ? <ChevronRight aria-hidden="true" /> : <ChevronLeft aria-hidden="true" />}
+            <PanelLeft aria-hidden="true" />
           </button>
         ) : null}
       </div>
 
-      <nav className="ad__nav" aria-label="Portal sections">
-        <div className="ad__navGroup">
-          {CLIENT_NAV.map(({ href, label, Icon, tour }) => {
-            const active = isClientNavActive(href, path);
-            return (
-              <Link
-                key={href}
-                href={href}
-                onClick={onNavigate}
-                /* Only the rail's copy is a tour target; the drawer renders
-                   the same links again and two matches would be ambiguous. */
-                data-tour={onNavigate ? undefined : tour}
-                className={`ad__link${active ? " is-on" : ""}`}
-                aria-current={active ? "page" : undefined}
-                title={collapsed ? label : undefined}
-              >
-                <Icon aria-hidden="true" />
-                <span className={collapsed ? "ad__srOnly" : undefined}>{label}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      <div className="ad__sideScroll" data-lenis-prevent>
+        <nav className="ad__nav" aria-label="Portal sections">
+          {!collapsed ? <p className="ad__navLabel">Your work</p> : null}
+          <div className="ad__navGroup">
+            {CLIENT_NAV.map(({ href, label, Icon, tour }) => {
+              const active = isClientNavActive(href, path);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  data-tour={tour}
+                  className={`ad__link${active ? " is-on" : ""}`}
+                  aria-current={path === href ? "page" : undefined}
+                  title={collapsed ? label : undefined}
+                >
+                  <Icon aria-hidden="true" />
+                  <span className={collapsed ? "ad__srOnly" : undefined}>{label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+      </div>
 
       <div className="ad__sideFoot">
-        <button
-          type="button"
-          className="ad__link ad__logout"
-          title={collapsed ? "Sign out" : undefined}
-          onClick={async () => {
-            await authClient.signOut();
-            router.replace("/login");
-            router.refresh();
-          }}
-        >
-          <LogOut aria-hidden="true" />
-          <span className={collapsed ? "ad__srOnly" : undefined}>Sign out</span>
-        </button>
+        <SideTourCard collapsed={collapsed} />
+        <SideProfile user={user} role={clientCompany ?? "Client"} collapsed={collapsed} onSignOut={() => signOut(router)} />
       </div>
     </div>
   );
@@ -156,7 +128,7 @@ function ThemeButton() {
   );
 }
 
-function AccountMenu({ user }: { user: PortalUser }) {
+function AccountMenu({ user, clientCompany }: { user: PortalUser; clientCompany: string | null }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -182,28 +154,27 @@ function AccountMenu({ user }: { user: PortalUser }) {
 
   return (
     <div className="ad__menuWrap" ref={ref}>
-      <button ref={trigger} type="button" className="ad__avatar" aria-label="Account menu" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
-        {user.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={user.image} alt="" />
-        ) : initials(user)}
+      <button ref={trigger} type="button" className="ad__account" aria-label="Account menu" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
+        <span className="ad__avatar" aria-hidden="true">
+          {user.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={user.image} alt="" />
+          ) : initialsOf(user, "Client")}
+        </span>
+        <span className="ad__accountText">
+          <b>{user.name || "Client"}</b>
+          <small>{clientCompany ?? "Client"}</small>
+        </span>
+        <ChevronDown className="ad__accountChev" aria-hidden="true" />
       </button>
       {open ? (
-        <div className="ad__popover ad__account" role="menu">
+        <div className="ad__popover ad__accountMenu" role="menu">
           <div className="ad__accountMeta">
             <b>{user.name || "Client"}</b>
             {user.email ? <span>{user.email}</span> : null}
           </div>
-          <Link href="/" role="menuitem" onClick={() => setOpen(false)}><Home aria-hidden="true" /> Back to website</Link>
-          <button
-            type="button"
-            role="menuitem"
-            onClick={async () => {
-              await authClient.signOut();
-              router.replace("/login");
-              router.refresh();
-            }}
-          ><LogOut aria-hidden="true" /> Sign out</button>
+          <Link href="/" role="menuitem" onClick={() => setOpen(false)}><Globe aria-hidden="true" /> Back to website</Link>
+          <button type="button" role="menuitem" onClick={() => signOut(router)}><LogOut aria-hidden="true" /> Sign out</button>
         </div>
       ) : null}
     </div>
@@ -214,13 +185,13 @@ export default function ClientShell({
   children, user, clientCompany,
 }: { children: ReactNode; user: PortalUser; clientCompany: string | null }) {
   const path = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [pinnedCollapsed, setPinnedCollapsed] = useState(false);
   const [hoverExpanded, setHoverExpanded] = useState(false);
-  const mobileClose = useRef<HTMLButtonElement>(null);
-  const mobileDialog = useRef<HTMLElement>(null);
   const active = CLIENT_NAV.find((item) => isClientNavActive(item.href, path));
   const visuallyCollapsed = pinnedCollapsed && !hoverExpanded;
+  /* Inside a section (a project, a conversation) the phone's arrow goes back
+     to the section's list; on the list itself the mark stands in its place. */
+  const parent = active && active.href !== "/portal" && path !== active.href ? active.href : undefined;
 
   useEffect(() => {
     const id = window.setTimeout(() => {
@@ -228,24 +199,6 @@ export default function ClientShell({
     }, 0);
     return () => window.clearTimeout(id);
   }, []);
-
-  useEffect(() => {
-    if (!mobileOpen) return;
-    const previous = document.activeElement as HTMLElement | null;
-    const oldOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    mobileClose.current?.focus();
-    function keydown(event: KeyboardEvent) {
-      if (event.key === "Escape") setMobileOpen(false);
-      keepFocusInside(event, mobileDialog.current);
-    }
-    document.addEventListener("keydown", keydown);
-    return () => {
-      document.body.style.overflow = oldOverflow;
-      document.removeEventListener("keydown", keydown);
-      previous?.focus();
-    };
-  }, [mobileOpen]);
 
   function togglePin() {
     setPinnedCollapsed((current) => {
@@ -255,6 +208,13 @@ export default function ClientShell({
     });
   }
 
+  const tabs = CLIENT_NAV.map((item) => ({
+    label: item.label,
+    Icon: item.href === "/portal" ? House : item.Icon,
+    href: item.href,
+    active: isClientNavActive(item.href, path),
+  }));
+
   return (
     <div className={`ad__wrap${pinnedCollapsed ? " is-collapsed" : ""}`}>
       <aside
@@ -262,35 +222,31 @@ export default function ClientShell({
         onMouseEnter={() => pinnedCollapsed && setHoverExpanded(true)}
         onMouseLeave={() => setHoverExpanded(false)}
       >
-        <Sidebar collapsed={visuallyCollapsed} canPin onTogglePin={togglePin} pinnedCollapsed={pinnedCollapsed} clientCompany={clientCompany} />
+        <Sidebar collapsed={visuallyCollapsed} onTogglePin={togglePin} pinnedCollapsed={pinnedCollapsed} clientCompany={clientCompany} user={user} />
       </aside>
-
-      {mobileOpen ? (
-        <div className="ad__mobileLayer" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setMobileOpen(false)}>
-          <aside ref={mobileDialog} className="ad__mobileDrawer" role="dialog" aria-modal="true" aria-label="Portal navigation">
-            <button ref={mobileClose} type="button" className="ad__mobileClose" onClick={() => setMobileOpen(false)} aria-label="Close menu">
-              <X aria-hidden="true" />
-            </button>
-            <Sidebar onNavigate={() => setMobileOpen(false)} clientCompany={clientCompany} />
-          </aside>
-        </div>
-      ) : null}
 
       <div className="ad__column">
         <header className="ad__topbar">
-          <button type="button" className="ad__topIcon ad__mobileMenu" data-tour="portal-mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Open menu"><Menu aria-hidden="true" /></button>
+          {parent ? (
+            <Link href={parent} className="ad__topIcon ad__topBack" aria-label="Back"><ArrowLeft aria-hidden="true" /></Link>
+          ) : (
+            <Link href="/portal" className="ad__topMark" aria-label="WDC client portal"><WdcMark /></Link>
+          )}
           {/* The section name, not the page's heading: every page renders its own
               h1, and a second one here made two per page. */}
           <p className="ad__topTitle">{active?.label ?? "Portal"}</p>
           <div className="ad__topActions">
             <TourLauncher />
             <ThemeButton />
-            <AccountMenu user={user} />
+            <span className="ad__topRule" aria-hidden="true" />
+            <AccountMenu user={user} clientCompany={clientCompany} />
           </div>
         </header>
         <main className="ad__main">{children}</main>
         <TableLabels />
       </div>
+
+      <TabBar items={tabs} label="Portal sections" tour="portal-mobile-menu" />
     </div>
   );
 }

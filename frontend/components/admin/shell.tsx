@@ -4,28 +4,37 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
+  ArrowLeft,
   Banknote,
   Bell,
-  ChevronLeft,
-  ChevronRight,
+  ChevronDown,
   ClipboardList,
   FolderKanban,
-  Home,
+  Globe,
+  House,
+  Images,
   LayoutDashboard,
+  LayoutGrid,
   LogOut,
-  Menu,
+  MessagesSquare,
   Moon,
   Newspaper,
+  PanelLeft,
+  Scale,
   Search,
   Settings,
   Sun,
   Users,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { authClient } from "@/lib/auth-client";
+import { WdcMark } from "@/components/brand/logo";
 import TourLauncher from "./tour/tour-launcher";
 import TableLabels from "./table-labels";
+import { BottomSheet, TabBar } from "./tab-bar";
+import { SideProfile, SideTourCard } from "./side-foot";
+import { initialsOf, keepFocusInside } from "./focus";
 
 export type AdminUser = {
   name?: string | null;
@@ -33,17 +42,56 @@ export type AdminUser = {
   image?: string | null;
 };
 
-const NAV = [
+type NavSub = { href: string; label: string };
+type NavItem = {
+  href: string;
+  label: string;
+  Icon: typeof Users;
+  group: "main" | "general";
+  tour: string;
+  sub?: NavSub[];
+};
+
+/* Sub-pages appear under their section only while you are in it, and only
+   pages that exist: a link to a screen that has not been built is a lie
+   with a hover state. */
+const NAV: NavItem[] = [
   { href: "/admin", label: "Dashboard", Icon: LayoutDashboard, group: "main", tour: "nav-dashboard" },
   { href: "/admin/clients", label: "Clients", Icon: Users, group: "main", tour: "nav-clients" },
   { href: "/admin/projects", label: "Projects", Icon: FolderKanban, group: "main", tour: "nav-projects" },
-  { href: "/admin/money", label: "Money", Icon: Banknote, group: "main", tour: "nav-money" },
+  {
+    href: "/admin/money", label: "Money", Icon: Banknote, group: "main", tour: "nav-money",
+    sub: [
+      { href: "/admin/money", label: "Invoices and spend" },
+      { href: "/admin/money/reconciliation", label: "Reconciliation" },
+    ],
+  },
   { href: "/admin/forms", label: "Forms", Icon: ClipboardList, group: "main", tour: "nav-forms" },
   /* A seventh primary page, asked for by name: posts are written weekly,
      which is not an "infrequent control" to bury under Settings. */
   { href: "/admin/blog", label: "Blog", Icon: Newspaper, group: "main", tour: "nav-blog" },
-  { href: "/admin/settings", label: "Settings", Icon: Settings, group: "general", tour: "nav-settings" },
-] as const;
+  {
+    href: "/admin/settings", label: "Settings", Icon: Settings, group: "general", tour: "nav-settings",
+    sub: [
+      { href: "/admin/settings", label: "All settings" },
+      { href: "/admin/settings/faq", label: "FAQ" },
+      { href: "/admin/settings/media", label: "Media library" },
+    ],
+  },
+];
+
+/* The phone's bar: the four places visited daily, then More. */
+const TABS = ["/admin", "/admin/clients", "/admin/projects", "/admin/money"];
+
+/* What More holds on a phone, in the order a studio reaches for it. */
+const MORE: { href: string; label: string; hint: string; Icon: typeof Users; count?: string }[] = [
+  { href: "/admin/forms", label: "Forms", hint: "Briefs and enquiries", Icon: ClipboardList, count: "Forms" },
+  { href: "/admin/blog", label: "Blog", hint: "Posts and drafts", Icon: Newspaper },
+  { href: "/admin/money/reconciliation", label: "Reconciliation", hint: "Payments to check", Icon: Scale },
+  { href: "/admin/settings", label: "Settings", hint: "Studio and site", Icon: Settings },
+  { href: "/admin/settings/faq", label: "FAQ", hint: "Questions on the site", Icon: MessagesSquare },
+  { href: "/admin/settings/media", label: "Media", hint: "Images and files", Icon: Images },
+];
 
 const SIDEBAR_KEY = "wdc:admin-sidebar-collapsed";
 let clientMounted = false;
@@ -57,84 +105,96 @@ function subscribeToClientMount(onChange: () => void) {
 }
 
 function isActive(href: string, path: string) {
-  return href === "/admin" ? path === href : path.startsWith(href);
+  return href === "/admin" ? path === href : path === href || path.startsWith(href + "/");
 }
 
-function initials(user: AdminUser) {
-  const source = user.name?.trim() || user.email?.split("@")[0] || "Admin";
-  return source.split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("");
+/* The sub-page you are on: the longest one that matches, so "Invoices and
+   spend" is not lit while you are in Reconciliation. */
+function activeSub(item: NavItem, path: string) {
+  return item.sub
+    ?.filter((s) => path === s.href || path.startsWith(s.href + "/"))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
 }
 
-function keepFocusInside(event: KeyboardEvent, container: HTMLElement | null) {
-  if (event.key !== "Tab" || !container) return;
-  const focusable = Array.from(
-    container.querySelectorAll<HTMLElement>(
-      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    ),
-  ).filter((element) => element.offsetParent !== null);
-  if (!focusable.length) return;
-  const first = focusable[0];
-  const last = focusable[focusable.length - 1];
-  if (event.shiftKey && document.activeElement === first) {
-    event.preventDefault();
-    last.focus();
-  } else if (!event.shiftKey && document.activeElement === last) {
-    event.preventDefault();
-    first.focus();
-  }
+/* Where the phone's back arrow goes: the nearest page above this one that
+   the navigation knows about. A section's own front page has none. */
+function parentOf(path: string) {
+  const known = NAV.flatMap((item) => [item.href, ...(item.sub?.map((s) => s.href) ?? [])]);
+  return known
+    .filter((href) => href !== path && (href === "/admin" ? false : path.startsWith(href + "/")))
+    .sort((a, b) => b.length - a.length)[0];
+}
+
+async function signOut(router: ReturnType<typeof useRouter>) {
+  await authClient.signOut();
+  router.replace("/login");
+  router.refresh();
 }
 
 function Sidebar({
   collapsed = false,
-  canPin = false,
   counts,
-  onNavigate,
   onTogglePin,
   pinnedCollapsed = false,
+  user,
 }: {
   collapsed?: boolean;
-  canPin?: boolean;
   counts?: Record<string, number>;
-  onNavigate?: () => void;
   onTogglePin?: () => void;
   pinnedCollapsed?: boolean;
+  user: AdminUser;
 }) {
   const path = usePathname();
   const router = useRouter();
   const main = NAV.filter((item) => item.group === "main");
   const general = NAV.filter((item) => item.group === "general");
 
-  const renderItem = ({ href, label, Icon, tour }: (typeof NAV)[number]) => {
+  const renderItem = (item: NavItem) => {
+    const { href, label, Icon, tour, sub } = item;
     const active = isActive(href, path);
     const count = counts?.[label] ?? 0;
+    const current = activeSub(item, path);
     return (
-      <Link
-        key={href}
-        href={href}
-        onClick={onNavigate}
-        className={`ad__link${active ? " is-on" : ""}`}
-        aria-current={active ? "page" : undefined}
-        title={collapsed ? label : undefined}
-        data-tour={tour}
-      >
-        <Icon aria-hidden="true" />
-        <span className={collapsed ? "ad__srOnly" : undefined}>{label}</span>
-        {count > 0 ? <span className="ad__count">{count > 99 ? "99+" : count}</span> : null}
-      </Link>
+      <div key={href} className="ad__navItem">
+        <Link
+          href={href}
+          className={`ad__link${active ? " is-on" : ""}`}
+          aria-current={path === href ? "page" : undefined}
+          title={collapsed ? label : undefined}
+          data-tour={tour}
+        >
+          <Icon aria-hidden="true" />
+          <span className={collapsed ? "ad__srOnly" : undefined}>{label}</span>
+          {count > 0 ? <span className="ad__count">{count > 99 ? "99+" : count}</span> : null}
+        </Link>
+        {sub && active && !collapsed ? (
+          <div className="ad__sub">
+            {sub.map((s) => (
+              <Link
+                key={s.href}
+                href={s.href}
+                className={`ad__subLink${current === s.href ? " is-on" : ""}`}
+                aria-current={path === s.href ? "page" : undefined}
+              >
+                {s.label}
+              </Link>
+            ))}
+          </div>
+        ) : null}
+      </div>
     );
   };
 
   return (
     <div className="ad__sideInner">
       <div className="ad__brand">
-        <Link href="/admin" onClick={onNavigate} aria-label="WDC admin dashboard">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icon.svg" alt="" width={32} height={32} />
+        <Link href="/admin" aria-label="WDC admin dashboard">
+          <WdcMark className="ad__brandMark" />
           {!collapsed ? (
-            <span><b>WDC</b><small>Agency admin</small></span>
+            <span><b>We Dig Creativity</b><small>Studio admin</small></span>
           ) : null}
         </Link>
-        {canPin && !collapsed ? (
+        {onTogglePin && !collapsed ? (
           <button
             type="button"
             className="ad__iconButton"
@@ -143,58 +203,54 @@ function Sidebar({
             aria-label={pinnedCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             title={pinnedCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            {pinnedCollapsed ? <ChevronRight aria-hidden="true" /> : <ChevronLeft aria-hidden="true" />}
+            <PanelLeft aria-hidden="true" />
           </button>
         ) : null}
       </div>
 
-      <nav className="ad__nav" aria-label="Admin sections">
-        <div className="ad__navGroup">{main.map(renderItem)}</div>
-        <div className="ad__navGroup ad__navGroup--general">
-          {!collapsed ? <p>General</p> : <span className="ad__navRule" />}
-          {general.map(renderItem)}
-        </div>
-      </nav>
+      {/* The menu scrolls; the foot below it never moves. */}
+      <div className="ad__sideScroll" data-lenis-prevent>
+        <nav className="ad__nav" aria-label="Admin sections">
+          {!collapsed ? <p className="ad__navLabel">Workspace</p> : null}
+          <div className="ad__navGroup">{main.map(renderItem)}</div>
+          {!collapsed ? <p className="ad__navLabel">General</p> : <span className="ad__navRule" />}
+          <div className="ad__navGroup">{general.map(renderItem)}</div>
+        </nav>
+      </div>
 
       <div className="ad__sideFoot">
-        <button
-          type="button"
-          className="ad__link ad__logout"
-          title={collapsed ? "Sign out" : undefined}
-          onClick={async () => {
-            await authClient.signOut();
-            router.replace("/login");
-            router.refresh();
-          }}
-        >
-          <LogOut aria-hidden="true" />
-          <span className={collapsed ? "ad__srOnly" : undefined}>Sign out</span>
-        </button>
+        <SideTourCard collapsed={collapsed} />
+        <SideProfile user={user} role="Owner" collapsed={collapsed} onSignOut={() => signOut(router)} />
       </div>
     </div>
   );
 }
 
-function ThemeButton() {
+function useThemeSwitch() {
   const { resolvedTheme, setTheme } = useTheme();
   const mounted = useSyncExternalStore(
     subscribeToClientMount,
     () => clientMounted,
     () => false,
   );
+  const dark = mounted && resolvedTheme === "dark";
+  return { mounted, dark, toggle: () => setTheme(dark ? "light" : "dark") };
+}
+
+function ThemeButton() {
+  const { mounted, dark, toggle } = useThemeSwitch();
   if (!mounted) {
     return (
-      <button type="button" className="ad__topIcon" aria-label="Switch theme" title="Switch theme">
+      <button type="button" className="ad__topIcon ad__themeBtn" aria-label="Switch theme" title="Switch theme">
         <Moon aria-hidden="true" />
       </button>
     );
   }
-  const dark = resolvedTheme === "dark";
   return (
     <button
       type="button"
-      className="ad__topIcon"
-      onClick={() => setTheme(dark ? "light" : "dark")}
+      className="ad__topIcon ad__themeBtn"
+      onClick={toggle}
       aria-label={`Switch to ${dark ? "light" : "dark"} theme`}
       title={`Switch to ${dark ? "light" : "dark"} theme`}
     >
@@ -229,28 +285,27 @@ function AccountMenu({ user }: { user: AdminUser }) {
 
   return (
     <div className="ad__menuWrap" ref={ref}>
-      <button ref={trigger} type="button" className="ad__avatar" aria-label="Account menu" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
-        {user.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={user.image} alt="" />
-        ) : initials(user)}
+      <button ref={trigger} type="button" className="ad__account" aria-label="Account menu" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
+        <span className="ad__avatar" aria-hidden="true">
+          {user.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={user.image} alt="" />
+          ) : initialsOf(user, "Admin")}
+        </span>
+        <span className="ad__accountText">
+          <b>{user.name || "Admin"}</b>
+          <small>Owner</small>
+        </span>
+        <ChevronDown className="ad__accountChev" aria-hidden="true" />
       </button>
       {open ? (
-        <div className="ad__popover ad__account" role="menu">
+        <div className="ad__popover ad__accountMenu" role="menu">
           <div className="ad__accountMeta">
             <b>{user.name || "Admin"}</b>
             {user.email ? <span>{user.email}</span> : null}
           </div>
-          <Link href="/" role="menuitem" onClick={() => setOpen(false)}><Home aria-hidden="true" /> Back to website</Link>
-          <button
-            type="button"
-            role="menuitem"
-            onClick={async () => {
-              await authClient.signOut();
-              router.replace("/login");
-              router.refresh();
-            }}
-          ><LogOut aria-hidden="true" /> Sign out</button>
+          <Link href="/" role="menuitem" onClick={() => setOpen(false)}><Globe aria-hidden="true" /> Back to website</Link>
+          <button type="button" role="menuitem" onClick={() => signOut(router)}><LogOut aria-hidden="true" /> Sign out</button>
         </div>
       ) : null}
     </div>
@@ -282,9 +337,16 @@ function Notifications({ openForms }: { openForms: number }) {
 
   return (
     <div className="ad__menuWrap" ref={ref}>
-      <button ref={trigger} type="button" className="ad__topIcon" aria-label="Notifications" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
+      <button
+        ref={trigger}
+        type="button"
+        className="ad__topIcon"
+        aria-label={openForms > 0 ? `Notifications, ${openForms} waiting` : "Notifications"}
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+      >
         <Bell aria-hidden="true" />
-        {openForms > 0 ? <span className="ad__notificationDot">{openForms > 9 ? "9+" : openForms}</span> : null}
+        {openForms > 0 ? <span className="ad__notificationDot" aria-hidden="true">{openForms > 9 ? "9+" : openForms}</span> : null}
       </button>
       {open ? (
         <div className="ad__popover ad__notifications">
@@ -309,7 +371,11 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
   const dialog = useRef<HTMLElement>(null);
   const results = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    return NAV.filter((item) => !needle || item.label.toLowerCase().includes(needle));
+    const pages = NAV.flatMap((item) => [
+      { href: item.href, label: item.label, Icon: item.Icon },
+      ...(item.sub ?? []).filter((s) => s.href !== item.href).map((s) => ({ href: s.href, label: s.label, Icon: item.Icon })),
+    ]);
+    return pages.filter((item) => !needle || item.label.toLowerCase().includes(needle));
   }, [query]);
 
   useEffect(() => {
@@ -331,12 +397,12 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
       <section ref={dialog} className="ad__command" role="dialog" aria-modal="true" aria-label="Search admin">
         <div className="ad__commandInput">
           <Search aria-hidden="true" />
-          <input ref={input} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search pages and actions…" />
+          <input ref={input} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search pages and actions…" aria-label="Search pages and actions" />
           <button type="button" onClick={onClose} aria-label="Close search"><X aria-hidden="true" /></button>
         </div>
         <div className="ad__commandResults">
           {results.length ? results.map(({ href, label, Icon }) => (
-            <Link key={href} href={href} onClick={onClose}>
+            <Link key={href + label} href={href} onClick={onClose}>
               <Icon aria-hidden="true" /><span>{label}</span>
             </Link>
           )) : <p>No matching admin page or action.</p>}
@@ -346,16 +412,49 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
   );
 }
 
+function MoreSheet({ counts, onClose }: { counts: Record<string, number>; onClose: () => void }) {
+  const path = usePathname();
+  const router = useRouter();
+  const theme = useThemeSwitch();
+  return (
+    <BottomSheet title="More" onClose={onClose}>
+      <nav className="ad__moreGrid" aria-label="More sections">
+        {MORE.map(({ href, label, hint, Icon, count }) => {
+          const n = count ? counts[count] ?? 0 : 0;
+          const on = isActive(href, path) && !MORE.some((m) => m.href !== href && m.href.startsWith(href + "/") && isActive(m.href, path));
+          return (
+            <Link key={href} href={href} onClick={onClose} className={`ad__moreTile${on ? " is-on" : ""}`} aria-current={on ? "page" : undefined}>
+              <span className="ad__moreIcon" aria-hidden="true"><Icon /></span>
+              <b>{label}</b>
+              <small>{hint}</small>
+              {n > 0 ? <span className="ad__count" aria-label={`${n} waiting`}>{n > 99 ? "99+" : n}</span> : null}
+            </Link>
+          );
+        })}
+      </nav>
+      <div className="ad__moreList">
+        <button type="button" onClick={theme.toggle} disabled={!theme.mounted}>
+          {theme.dark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
+          {theme.dark ? "Switch to light theme" : "Switch to dark theme"}
+        </button>
+        <Link href="/" onClick={onClose}><Globe aria-hidden="true" /> Back to website</Link>
+        <button type="button" className="ad__moreOut" onClick={() => signOut(router)}><LogOut aria-hidden="true" /> Sign out</button>
+      </div>
+    </BottomSheet>
+  );
+}
+
 export default function AdminShell({ children, counts = {}, user }: { children: ReactNode; counts?: Record<string, number>; user: AdminUser }) {
   const path = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [pinnedCollapsed, setPinnedCollapsed] = useState(false);
   const [hoverExpanded, setHoverExpanded] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
-  const mobileClose = useRef<HTMLButtonElement>(null);
-  const mobileDialog = useRef<HTMLElement>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
   const active = NAV.find((item) => isActive(item.href, path));
+  const parent = parentOf(path);
   const visuallyCollapsed = pinnedCollapsed && !hoverExpanded;
+  const closeMore = useCallback(() => setMoreOpen(false), []);
+  const closeCommand = useCallback(() => setCommandOpen(false), []);
 
   useEffect(() => {
     const id = window.setTimeout(() => {
@@ -375,24 +474,6 @@ export default function AdminShell({ children, counts = {}, user }: { children: 
     return () => document.removeEventListener("keydown", keydown);
   }, []);
 
-  useEffect(() => {
-    if (!mobileOpen) return;
-    const previous = document.activeElement as HTMLElement | null;
-    const oldOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    mobileClose.current?.focus();
-    function keydown(event: KeyboardEvent) {
-      if (event.key === "Escape") setMobileOpen(false);
-      keepFocusInside(event, mobileDialog.current);
-    }
-    document.addEventListener("keydown", keydown);
-    return () => {
-      document.body.style.overflow = oldOverflow;
-      document.removeEventListener("keydown", keydown);
-      previous?.focus();
-    };
-  }, [mobileOpen]);
-
   function togglePin() {
     setPinnedCollapsed((current) => {
       const next = !current;
@@ -401,6 +482,27 @@ export default function AdminShell({ children, counts = {}, user }: { children: 
     });
   }
 
+  const inMore = !TABS.some((href) => isActive(href, path));
+  const tabs = [
+    ...NAV.filter((item) => TABS.includes(item.href)).map((item) => ({
+      label: item.href === "/admin" ? "Home" : item.label,
+      Icon: item.href === "/admin" ? House : item.Icon,
+      href: item.href,
+      active: !moreOpen && !inMore && isActive(item.href, path),
+      count: counts[item.label],
+      tour: `tab-${item.label.toLowerCase()}`,
+    })),
+    {
+      label: "More",
+      Icon: LayoutGrid,
+      active: moreOpen || inMore,
+      count: counts.Forms,
+      onSelect: () => setMoreOpen(true),
+      expanded: moreOpen,
+      tour: "tab-more",
+    },
+  ];
+
   return (
     <div className={`ad__wrap${pinnedCollapsed ? " is-collapsed" : ""}`}>
       <aside
@@ -408,31 +510,29 @@ export default function AdminShell({ children, counts = {}, user }: { children: 
         onMouseEnter={() => pinnedCollapsed && setHoverExpanded(true)}
         onMouseLeave={() => setHoverExpanded(false)}
       >
-        <Sidebar collapsed={visuallyCollapsed} canPin counts={counts} onTogglePin={togglePin} pinnedCollapsed={pinnedCollapsed} />
+        <Sidebar collapsed={visuallyCollapsed} counts={counts} onTogglePin={togglePin} pinnedCollapsed={pinnedCollapsed} user={user} />
       </aside>
-
-      {mobileOpen ? (
-        <div className="ad__mobileLayer" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setMobileOpen(false)}>
-          <aside ref={mobileDialog} className="ad__mobileDrawer" role="dialog" aria-modal="true" aria-label="Admin navigation">
-            <button ref={mobileClose} type="button" className="ad__mobileClose" onClick={() => setMobileOpen(false)} aria-label="Close menu">
-              <X aria-hidden="true" />
-            </button>
-            <Sidebar counts={counts} onNavigate={() => setMobileOpen(false)} />
-          </aside>
-        </div>
-      ) : null}
 
       <div className="ad__column">
         <header className="ad__topbar">
-          <button type="button" className="ad__topIcon ad__mobileMenu" data-tour="mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Open menu"><Menu aria-hidden="true" /></button>
+          {/* On a phone: back to the page above, or the mark on a section's
+              front page. The desktop has the sidebar for both. */}
+          {parent ? (
+            <Link href={parent} className="ad__topIcon ad__topBack" aria-label="Back"><ArrowLeft aria-hidden="true" /></Link>
+          ) : (
+            <Link href="/admin" className="ad__topMark" aria-label="WDC admin dashboard"><WdcMark /></Link>
+          )}
           {/* The section name, not the page's heading: every page renders its own
               h1, and a second one here made two per page. */}
           <p className="ad__topTitle">{active?.label ?? "Admin"}</p>
-          <button type="button" className="ad__search" data-tour="topbar-search" onClick={() => setCommandOpen(true)}><Search aria-hidden="true" /><span>Search…</span><kbd>Ctrl K</kbd></button>
+          <button type="button" className="ad__search" data-tour="topbar-search" onClick={() => setCommandOpen(true)} aria-label="Search, Ctrl K">
+            <Search aria-hidden="true" /><span>Search clients, projects, invoices</span><kbd>Ctrl K</kbd>
+          </button>
           <div className="ad__topActions">
             <TourLauncher />
             <ThemeButton />
             <Notifications openForms={counts.Forms ?? 0} />
+            <span className="ad__topRule" aria-hidden="true" />
             <AccountMenu user={user} />
           </div>
         </header>
@@ -440,7 +540,9 @@ export default function AdminShell({ children, counts = {}, user }: { children: 
         <TableLabels />
       </div>
 
-      {commandOpen ? <CommandPalette onClose={() => setCommandOpen(false)} /> : null}
+      <TabBar items={tabs} label="Admin sections" tour="mobile-menu" />
+      {moreOpen ? <MoreSheet counts={counts} onClose={closeMore} /> : null}
+      {commandOpen ? <CommandPalette onClose={closeCommand} /> : null}
     </div>
   );
 }

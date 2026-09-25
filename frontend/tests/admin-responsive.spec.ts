@@ -90,22 +90,37 @@ test("a panel's action keeps its own line, arrow included", async ({ page }) => 
   }
 });
 
-test("the menu drawer is a list, not a list split across a chasm", async ({ page }) => {
+test("on a phone the sections are a bar at the bottom, and More is a sheet", async ({ page }) => {
   await page.goto("/admin");
-  await page.locator(".ad__mobileMenu").click();
-  await expect(page.locator(".ad__mobileDrawer")).toBeVisible();
 
-  /* The drawer is full height, which is right for a nav drawer. What was wrong
-     was `margin-top: auto` on the last group pushing Settings to the foot and
-     opening 430px of nothing in the middle of five links. So the assertion is
-     about the GAP BETWEEN ITEMS, not about the height of the panel. */
-  const gaps = await page.locator(".ad__mobileDrawer .ad__link").evaluateAll((links) => {
-    const boxes = links.map((l) => l.getBoundingClientRect()).sort((a, b) => a.top - b.top);
-    return boxes.slice(1).map((b, i) => Math.round(b.top - boxes[i].bottom));
-  });
-  expect(gaps.length).toBeGreaterThan(3);
-  const worst = Math.max(...gaps);
-  expect(worst, `a ${worst}px gap between two menu items`).toBeLessThan(80);
+  /* The floating bar replaced the hamburger drawer. It must sit wholly on
+     screen, above the bottom edge, with every target at least 44px, and it
+     must not push the page sideways. */
+  const bar = page.locator(".ad__tabs .ad__tabsBar");
+  await expect(bar).toBeVisible();
+  const box = (await bar.boundingBox())!;
+  const view = page.viewportSize()!;
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(view.width);
+  expect(box.y + box.height).toBeLessThan(view.height);
+  const sizes = await page.locator(".ad__tabs .ad__tab").evaluateAll((tabs) =>
+    tabs.map((t) => { const r = t.getBoundingClientRect(); return Math.min(r.width, r.height); }),
+  );
+  expect(sizes.length).toBe(5);
+  for (const size of sizes) expect(size).toBeGreaterThanOrEqual(44);
+  await expect(page.locator('.ad__tabs [aria-current="page"]')).toHaveText("Home");
+  expect(await scrollsSideways(page)).toBe(0);
+
+  /* More opens a sheet holding what the bar has no room for, and Escape
+     closes it again. */
+  await page.getByRole("button", { name: /^More/ }).click();
+  const sheet = page.getByRole("dialog", { name: "More" });
+  await expect(sheet).toBeVisible();
+  for (const name of ["Forms", "Blog", "Settings"]) {
+    await expect(sheet.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
+  }
+  await page.keyboard.press("Escape");
+  await expect(sheet).toBeHidden();
 });
 
 test("a wide table scrolls itself instead of crushing its columns", async ({ page }) => {
