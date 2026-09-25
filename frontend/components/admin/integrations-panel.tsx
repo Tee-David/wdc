@@ -6,6 +6,8 @@ import { paystackConfig, paystackMode } from "@/lib/paystack";
 import { r2Config } from "@/lib/r2";
 import { psiIsConfigured } from "@/lib/psi";
 import { Panel } from "./bits";
+import { lastProbes, type ProbeName, type ProbeResult } from "@/lib/system/probes";
+import { CheckNow } from "./settings/system-controls";
 
 /**
  * What each outside service is, honestly.
@@ -30,7 +32,7 @@ const PILL: Record<State, { label: string; tone: string }> = {
   manual: { label: "Manual", tone: "ad__pill--flat" },
 };
 
-type Row = { name: string; state: State; detail: React.ReactNode };
+type Row = { name: string; state: State; detail: React.ReactNode; probe?: ProbeName };
 
 function rows(): Row[] {
   const database = Boolean(process.env.DATABASE_URL || process.env.COCKROACHDB_URL);
@@ -40,28 +42,28 @@ function rows(): Row[] {
 
   return [
     {
-      name: "Database (CockroachDB)",
+      name: "Database (CockroachDB)", probe: "database",
       state: database ? "ready" : "missing",
       detail: database
         ? "Sign-in, onboarding drafts, the newsletter, the blog and contact enquiries are stored here. The admin's clients, projects and money are not yet: they are in memory until section 4.9's migration."
         : "COCKROACHDB_URL is not set. Sign-in, onboarding and stored enquiries cannot work.",
     },
     {
-      name: "Email (SMTP)",
+      name: "Email (SMTP)", probe: "email",
       state: mailIsConfigured() ? "ready" : "missing",
       detail: mailIsConfigured()
         ? <>Credentials are present. Whether a message arrived is recorded per message; failures are listed under <Link href="/admin/money/reconciliation">Reconciliation</Link>.</>
         : "SMTP_HOST, SMTP_USER or SMTP_PASSWORD is not set. Every send is logged as failed rather than silently dropped.",
     },
     {
-      name: `Payments (Paystack, ${paystackMode()} mode)`,
+      name: `Payments (Paystack, ${paystackMode()} mode)`, probe: "payments",
       state: paystack.ok ? "ready" : "missing",
       detail: paystack.ok
         ? "Keys for this mode are present. The webhook is /api/paystack/webhook and the checkout returns to /pay/done; both must be registered in Paystack's dashboard."
         : `Not set: ${paystack.missing.join(", ")}. Pressing pay on an invoice returns to it saying payments are unavailable, rather than failing silently.`,
     },
     {
-      name: "File uploads (Cloudflare R2)",
+      name: "File uploads (Cloudflare R2)", probe: "storage",
       state: r2.ok ? "ready" : "missing",
       detail: r2.ok
         ? "Onboarding uploads go straight to the bucket with a signed link. Admin uploads (receipts, project files) are not built yet."
@@ -94,13 +96,22 @@ function rows(): Row[] {
   ];
 }
 
-export function IntegrationsPanel() {
+const when = (iso: string) => new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" });
+
+/** What the last "Check now" said, and when: the one thing this screen may call working. */
+function Checked({ r }: { r?: ProbeResult }) {
+  if (!r) return <small className="ad__dim">Not checked yet.</small>;
+  return <small><span className={`ad__pill ${r.ok ? "ad__pill--good" : "ad__pill--bad"}`}>{r.ok ? "Answered" : "Failed"}</span> {when(r.at)}: {r.detail}</small>;
+}
+
+export async function IntegrationsPanel() {
+  const probes = await lastProbes();
   return (
     <Panel title="Integrations" dataTour="settings-integrations">
       <div className="ad__scroll">
         <table className="ad__t">
           <thead>
-            <tr><th>Service</th><th>State</th><th>What that means</th></tr>
+            <tr><th>Service</th><th>State</th><th>What that means</th><th>Last check</th></tr>
           </thead>
           <tbody>
             {rows().map((row) => (
@@ -108,6 +119,7 @@ export function IntegrationsPanel() {
                 <td><b>{row.name}</b></td>
                 <td><span className={`ad__pill ${PILL[row.state].tone}`}>{PILL[row.state].label}</span></td>
                 <td className="ad__dim">{row.detail}</td>
+                <td>{row.probe ? <><Checked r={probes[row.probe]} /><CheckNow probe={row.probe} /></> : <span className="ad__dim">No cheap check</span>}</td>
               </tr>
             ))}
           </tbody>

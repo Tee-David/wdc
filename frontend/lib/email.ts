@@ -56,6 +56,14 @@ function transport() {
   return client;
 }
 
+/**
+ * Connect and authenticate, send nothing. About 23 seconds against Truehost,
+ * so it is only ever called behind a response (Settings > System).
+ */
+export async function verifyMail(): Promise<void> {
+  await transport().verify();
+}
+
 export async function sendMail(input: {
   to: string;
   subject: string;

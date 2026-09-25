@@ -5,6 +5,7 @@ import { siteSeo } from "@/lib/site-seo";
 import { paystackMode } from "@/lib/paystack";
 import { failedLoggedCount } from "@/lib/message-log";
 import type { AdminRole } from "./permissions";
+import { migrationStatus } from "@/lib/system/migrations";
 
 /**
  * Standing conditions the admin should not have to go looking for: the site
@@ -34,12 +35,17 @@ const lagosDay = () => new Date(Date.now() + 60 * 60 * 1000).toISOString().slice
 
 export async function adminNotices(role: AdminRole): Promise<AdminNotice[]> {
   const found: AdminNotice[] = [];
-  const [seo, failed] = await Promise.all([
+  const [seo, failed, migrations] = await Promise.all([
     siteSeo().catch(() => null),
     role === "owner"
       ? failedLoggedCount({ since: new Date(Date.now() - 24 * 60 * 60 * 1000) }).catch(() => 0)
       : Promise.resolve(0),
+    role === "owner" && (process.env.DATABASE_URL || process.env.COCKROACHDB_URL) ? migrationStatus() : Promise.resolve(null),
   ]);
+
+  if (migrations?.ok && migrations.pending.length) {
+    found.push({ key: `migrations:${migrations.pending.at(-1)}`, tone: "bad", title: `${migrations.pending.length} database ${migrations.pending.length === 1 ? "change has" : "changes have"} not been applied`, body: "Screens that rely on them will fail until npm run db:migrate is run.", href: "/admin/settings/system", link: "System" });
+  }
 
   if (role === "owner" && process.env.VERCEL_ENV === "production" && paystackMode() === "test") {
     found.push({ key: "paystack-test", tone: "bad", title: "Payments are in test mode", body: "Pay links on this live site cannot take real money until PAYSTACK_MODE is live.", href: "/admin/settings/integrations", link: "Integrations" });
