@@ -195,6 +195,7 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
                 {filtered ? <Link className="ad__btn" href="/admin/blog">Clear filters</Link> : null}
                 {trashCount ? <Link className="ad__btn" href="/admin/blog?state=trash"><Trash2 aria-hidden="true" /> Trash ({trashCount})</Link> : null}
               </div>
+              <div data-tour="blog-table">
               {rows.length ? (
                 <>
                 {/* Publishing and unpublishing are the owner's; the Trash takes
@@ -205,7 +206,7 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
                     { kind: "posts:trash", label: "Move to Trash", icon: "trash" as const, danger: true, confirm: "Move {n} drafts to the Trash? They stay there 30 days and can be put back." },
                   ]}
                   more={isOwner ? [{ kind: "posts:draft", label: "Move to draft", confirm: "Take {n} posts off the blog and back to draft?" }] : []} />
-                <div className="ad__scroll" data-tour="blog-table" id="post-list">
+                <div className="ad__scroll" id="post-list">
                   <table className="ad__t">
                     <thead>
                       <tr>
@@ -240,6 +241,7 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
                   Try a broader search, or clear the filters to see every post.
                 </Empty>
               )}
+              </div>
               {rows.length ? (
                 <Pager
                   label="Post pages"
