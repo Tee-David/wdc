@@ -7,6 +7,7 @@ import { docText, isDoc, type RichDoc } from "@/lib/blog-doc";
 import { saveBlogPost } from "@/lib/admin/blog-actions";
 import { LIMITS } from "@/lib/blog-validate";
 import { Actions, Area, Checks, Field, Fields, Form, Hidden, Radios, Select, Submit, useFieldError } from "./form";
+import Tip from "@/components/onboarding/tip";
 
 export type EditorPost = {
   id: string | null;
@@ -69,8 +70,12 @@ function Body({ initial, restore }: { initial: RichDoc; restore: { at: number; d
   const error = useFieldError("body");
   return (
     <div className="adBlog__body">
-      <span className="ad__fl" id={`${id}-l`}>Body<b aria-hidden="true"> *</b></span>
-      <small className="ad__fh" id={`${id}-h`}>
+      <span className="ad__flRow">
+        <span className="ad__fl" id={`${id}-l`}>Body<b aria-hidden="true"> *</b></span>
+        <Tip label="About the body" text="The headline above is the page's title, so start sections with Heading and use Subheading inside them." />
+      </span>
+      {/* Behind the question mark on screen; still read with the field. */}
+      <small className="ad__sr" id={`${id}-h`}>
         The headline above is the page&apos;s title, so start sections with Heading and use Subheading inside them.
       </small>
       <Hidden name="body" value={JSON.stringify(doc)} />

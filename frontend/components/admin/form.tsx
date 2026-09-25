@@ -6,6 +6,7 @@ import {
 } from "react";
 import { useFormStatus } from "react-dom";
 import { AlertCircle, Check, Loader2 } from "lucide-react";
+import Tip from "@/components/onboarding/tip";
 import type { ActionState, Errors } from "@/lib/admin/validate";
 
 /**
@@ -301,8 +302,11 @@ export function Radios({
 
   return (
     <div className="ad__f" role="radiogroup" aria-labelledby={`${id}-l`} aria-describedby={err ? `${id}-e` : undefined}>
-      <span className="ad__fl" id={`${id}-l`}>{label}</span>
-      {hint ? <small className="ad__fh">{hint}</small> : null}
+      <span className="ad__flRow">
+        <span className="ad__fl" id={`${id}-l`}>{label}</span>
+        <HintTip hint={hint} label={label} />
+      </span>
+      {hint ? <Hint hint={hint} /> : null}
       <div className="ad__checks ad__checks--long">
         {options.map((o) => (
           <label key={`${o.value}-${gen}`} className="ad__check ad__check--long">
@@ -348,8 +352,11 @@ export function Checks({
 
   return (
     <div className="ad__f" role="group" aria-labelledby={`${id}-l`} aria-describedby={err ? `${id}-e` : undefined}>
-      <span className="ad__fl" id={`${id}-l`}>{label}</span>
-      {hint ? <small className="ad__fh">{hint}</small> : null}
+      <span className="ad__flRow">
+        <span className="ad__fl" id={`${id}-l`}>{label}</span>
+        <HintTip hint={hint} label={label} />
+      </span>
+      {hint ? <Hint hint={hint} /> : null}
       <div className={`ad__checks${long ? " ad__checks--long" : ""}`}>
         {options.map((o) => (
           <label key={`${o.value}-${gen}`} className={`ad__check${long ? " ad__check--long" : ""}`}>
@@ -361,6 +368,22 @@ export function Checks({
       {err ? <small className="ad__fe" id={`${id}-e`}>{err}</small> : null}
     </div>
   );
+}
+
+/* A HINT THAT IS A SENTENCE OF BACKGROUND goes behind the question mark
+   (components/onboarding/tip.tsx); a few words that the field cannot be
+   filled without stay on show. Long hints under every label turned a
+   six-field dialog into a page of prose on a phone. The words are still in
+   the page, visually hidden and tied to the field by aria-describedby, so a
+   screen reader hears them without anybody pressing anything. */
+const SHORT_HINT = 48;
+function Hint({ id, hint }: { id?: string; hint: string }) {
+  return hint.length <= SHORT_HINT
+    ? <small className="ad__fh" id={id}>{hint}</small>
+    : <small className="ad__sr" id={id}>{hint}</small>;
+}
+function HintTip({ hint, label }: { hint?: string; label: string }) {
+  return hint && hint.length > SHORT_HINT ? <Tip text={hint} label={`About ${label}`} /> : null;
 }
 
 /** The label, hint and error around whatever control the caller renders. */
@@ -383,11 +406,14 @@ function Wrap({
 
   return (
     <div className={`ad__f${half ? " ad__f--half" : ""}${kind === "select" ? " ad__f--sel" : ""}${err ? " is-bad" : ""}`}>
-      <label className="ad__fl" htmlFor={id}>
-        {label}
-        {required ? <b aria-hidden="true"> *</b> : null}
-      </label>
-      {hint ? <small className="ad__fh" id={`${id}-h`}>{hint}</small> : null}
+      <span className="ad__flRow">
+        <label className="ad__fl" htmlFor={id}>
+          {label}
+          {required ? <b aria-hidden="true"> *</b> : null}
+        </label>
+        <HintTip hint={hint} label={label} />
+      </span>
+      {hint ? <Hint id={`${id}-h`} hint={hint} /> : null}
       {/* Keyed on the failure count: a changed key remounts the control, which
           is what makes a new defaultValue actually reach the DOM. Without it
           the reset stands and the typing is gone. */}

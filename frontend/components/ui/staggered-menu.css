@@ -281,7 +281,7 @@
   transform: translateY(-2px);
 }
 
-/* Footer slot (theme toggler) pinned below the socials */
+/* Footer slot (theme toggler) pinned below the menu */
 /* Theme and accessibility are one balanced row, including narrow phones. */
 .sm-footer {
   margin-top: clamp(.9rem, 2.4vh, 1.75rem);
@@ -289,11 +289,14 @@
   border-top: 1px solid var(--line);
   display: flex;
   flex-wrap: nowrap;
-  align-items: center;
+  /* STRETCH, so the two buttons are always the same height. The theme
+     button carries a 1.85rem disc and the accessibility one a 1.2rem glyph,
+     so sized by their own contents they came out visibly different. */
+  align-items: stretch;
   gap: 0.6rem;
 }
 
-.sm-footer > * { flex: 1 1 0; min-width: 0; justify-content: center; }
+.sm-footer > * { flex: 1 1 0; min-width: 0; min-height: 3.25rem; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; }
 
 @media (max-width: 380px) {
   .sm-footer { gap: .4rem; }

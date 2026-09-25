@@ -25,10 +25,12 @@ import { X } from "lucide-react";
  * moves when it opens: the panel is absolutely positioned, so a question does
  * not jump down the screen while somebody is reading the one above it.
  */
-export default function Tip({ text }: { text: string }) {
+export default function Tip({ text, label = "What does this mean?" }: { text: string; label?: string }) {
   const id = useId();
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
+  /* Where the note is portalled, found when it is opened. */
+  const [host, setHost] = useState<Element | null>(null);
   const root = useRef<HTMLSpanElement>(null);
   const panel = useRef<HTMLDivElement>(null);
 
@@ -81,9 +83,10 @@ export default function Tip({ text }: { text: string }) {
         className={`tip__b${open ? " is-on" : ""}`}
         aria-expanded={open}
         aria-controls={open ? id : undefined}
-        aria-label="What does this mean?"
+        aria-label={label}
         onClick={() => {
           setPosition(null);
+          setHost(root.current?.closest("dialog") ?? document.body);
           setOpen((o) => !o);
         }}
       >
@@ -94,7 +97,7 @@ export default function Tip({ text }: { text: string }) {
           <path d="M12 16.9h.01" />
         </svg>
       </button>
-      {open && createPortal(
+      {open && host && createPortal(
         <div className="pv tip__portal">
           <div
             ref={panel}
@@ -109,7 +112,11 @@ export default function Tip({ text }: { text: string }) {
             </button>
           </div>
         </div>,
-        document.body,
+        /* INTO THE OPEN DIALOG when there is one. A modal <dialog> sits in
+           the browser's top layer, above everything in <body> whatever its
+           z-index, so a note portalled to <body> opened underneath the very
+           dialog whose field it explains. */
+        host,
       )}
     </span>
   );
