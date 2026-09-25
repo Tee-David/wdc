@@ -13,6 +13,7 @@ import { ClientMenu } from "@/components/admin/row-actions";
 import { Pager, readPer } from "@/components/admin/pager";
 import { DateRange } from "@/components/admin/date-range";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
+import { avTone, initials } from "@/lib/admin/client-mark";
 import { ExampleNote } from "@/components/admin/example-note";
 
 export const metadata = { title: "Clients" };
@@ -326,18 +327,6 @@ export default async function ClientsPage({
       </div>
     </>
   );
-}
-
-function initials(name: string) {
-  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
-}
-
-/* One of five solid fills, chosen from the name so a client keeps its colour. */
-function avTone(name: string) {
-  const tones = ["brand", "live", "good", "warn", "neutral"] as const;
-  let h = 0;
-  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  return tones[h % tones.length];
 }
 
 /** The first day of this calendar quarter, in Lagos (UTC+1, no daylight saving). */

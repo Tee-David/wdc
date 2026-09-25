@@ -37,14 +37,27 @@ test("invoice filters are useful, reversible, and the export matches the screen"
   expect(exportBody).toContain("INV-2026-005");
   expect(exportBody).not.toContain("Moore Designs");
 
-  await page.locator('.ad__filterBar input[type="search"][name="q"]').fill("nobody matches this");
-  await page.locator('.ad__filterForm button[type="submit"]').click();
+  const search = page.locator('.ad__filterBar input[type="search"][name="q"]');
+  await search.fill("nobody matches this");
+  await search.press("Enter");
   await expect(page).toHaveURL(/q=nobody(?:\+|%20)matches(?:\+|%20)this/);
   await expect(page.getByText("No invoices match these filters")).toBeVisible();
 
   await page.getByRole("link", { name: "Clear filters" }).click();
   await expect(page).toHaveURL(/\/admin\/money(?:#invoice-list)?$/);
-  await expect(page.locator("#invoice-list + .ad__scroll tbody tr")).toHaveCount(6);
+  /* Every invoice again. Counted from the list's own total rather than a
+     fixed six, because other specs raise invoices on the same server. */
+  const total = Number((await page.locator(".ad__listMeta").innerText()).match(/\d+/)?.[0]);
+  expect(total).toBeGreaterThanOrEqual(6);
+  await expect(page.locator("#invoice-list + .ad__scroll tbody tr")).toHaveCount(total);
+
+  /* The statuses are tabs: one press filters, and "All" undoes it. */
+  const everything = await page.locator("#invoice-list + .ad__scroll tbody tr").count();
+  await page.locator('nav[aria-label="Invoice status"]').getByRole("link", { name: "Overdue", exact: true }).click();
+  await expect(page).toHaveURL(/status=Overdue/);
+  for (const row of await page.locator("#invoice-list + .ad__scroll tbody tr").all()) await expect(row).toContainText("Overdue");
+  await page.locator('nav[aria-label="Invoice status"]').getByRole("link", { name: "All", exact: true }).click();
+  await expect(page.locator("#invoice-list + .ad__scroll tbody tr")).toHaveCount(everything);
 
   const numberSort = page.locator("th").getByRole("link", { name: "Number", exact: true });
   await expect(numberSort).toHaveAttribute("href", /sort=number/);
