@@ -129,6 +129,8 @@ export type Project = {
    * of the lists; there is deliberately no way to destroy it.
    */
   archived?: boolean;
+  /** Its place in its board column, set by dragging; unset sorts after the ranked ones. */
+  rank?: number;
 };
 
 /* --------------------------------------------------------- the work itself */
