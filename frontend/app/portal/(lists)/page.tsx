@@ -9,9 +9,10 @@ import {
 import { STAGES, invoiceStatus, invoiceTotals, naira } from "@/lib/admin/types";
 import { SERVICE_BY_SLUG } from "@/lib/services";
 import { serviceGlyph } from "@/components/client/service-glyph";
-import { DemoNote, Empty, Panel, StagePill, Tile, when } from "@/components/admin/bits";
+import { Empty, Panel, StagePill, Tile, when } from "@/components/admin/bits";
 import "@/components/client/portal.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
+import { PortalExampleNote } from "@/components/admin/example-note";
 
 export const metadata = { title: "Overview" };
 
@@ -84,9 +85,7 @@ export default async function PortalOverview() {
         </div>
       </header>
 
-      <DemoNote>
-        This portal currently uses labelled demonstration records for this account. Figures reconcile with what the studio sees, but reset with the server.
-      </DemoNote>
+      <PortalExampleNote clientId={client.id} />
 
       <dl className="adDash__kpis" data-tour="portal-kpis">
         <Tile label="Active projects" value={String(live.length)} icon={FolderKanban}

@@ -3,6 +3,7 @@ import { Mail, UserPlus } from "lucide-react";
 import { getClients } from "@/lib/admin/store";
 import { enquiriesAreConfigured, recentEnquiries, type Enquiry } from "@/lib/enquiries";
 import { Empty, Panel, when } from "./bits";
+import { SkRows } from "./skeleton";
 
 /**
  * Who signed up or got in touch most recently.
@@ -91,13 +92,7 @@ export async function RecentLeads() {
 export function RecentLeadsSkeleton() {
   return (
     <Panel title="New clients and enquiries">
-      <div className="adDash__compactList" aria-hidden="true">
-        {Array.from({ length: 3 }, (_, i) => (
-          <span className="adDash__leadsGhost" key={i}>
-            <span className="ad__loadingLine" />
-          </span>
-        ))}
-      </div>
+      <div className="sk" aria-hidden="true"><div className="sk__body"><SkRows n={3} /></div></div>
     </Panel>
   );
 }
