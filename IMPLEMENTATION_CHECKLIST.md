@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**118 open** (51 in progress)
+**118 open** (52 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -211,7 +211,7 @@ Started 2026-09-25. The target is `dashboard-mockups/` at the repo root: 134 boa
 - [-] (S) The confetti at the end of a tour and of a form hangs midway: find why (a frame loop cut short, a timer, or a layout read) and fix it once in `components/onboarding/confetti.tsx`. DONE 2026-09-25: every keyframe now states its transform (the middle two carried only opacity, which WebKit will not composite, so the pieces ran on the main thread and froze while the page behind was busy). NOT yet: confirmed on an iPhone.
 - [-] (M) Drop-down lists that do not scroll: the country picker's bottom sheet on the onboarding forms and every other list in a menu, sheet or combobox. Probably Lenis taking the wheel and touch; mark them `data-lenis-prevent` and pin with a test that scrolls one. DONE 2026-09-25: a touch swipe scrolls the country sheet in Chromium; the sheet's and the admin menus' opening animations now fill `backwards`, not `both`, since a held transform can stop iOS Safari scrolling inside it. NOT yet: confirmed on an iPhone (no WebKit in this environment), and a test that swipes every list.
 - [ ] (M) The blog editor on a phone: cover image, headline and body first, then Details (address, service, tags) and Search and sharing as collapsible sections closed by default, then the publish panel; full-width Save and Preview.
-- [ ] (M) Blog content media: an image placed in the middle of a post shows in the editor, the preview and the live post; a short video can be added and plays; media is optimised (right-sized, modern formats, lazy below the fold) without visible loss.
+- [-] (M) Blog content media: an image placed in the middle of a post shows in the editor, the preview and the live post; a short video can be added and plays; media is optimised (right-sized, modern formats, lazy below the fold) without visible loss. DONE 2026-09-25: a picture inserted mid-post stays (it was left selected, so the next key typed replaced it; the cursor now goes to a paragraph under it), and a picture the save cannot keep (another website, or inside a list or quote) is named in the error instead of vanishing; pinned by `tests/blog-media.spec.ts` and `tests/blog-doc.spec.ts`. NOT yet: video, and media optimisation.
 - [ ] (M) Bulk selection on every list: a compact sticky bar (count, the three commonest actions, the rest under More, Clear), never a wall of buttons; rows stay a table.
 - [ ] (M) An entry opens on its own page, laid out question by question (Fluent Forms is the reference), with previous and next, status, notes, and the file uploads; every screen a form needs is accounted for.
 - [ ] (M) Form uploads and validation: file fields with type and size limits checked on the server, and every field validated on the server, not only in the browser.

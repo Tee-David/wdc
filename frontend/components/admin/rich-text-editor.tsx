@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
+import { TextSelection } from "@tiptap/pm/state";
 import Placeholder from "@tiptap/extension-placeholder";
 import {
   Bold, Heading2, Heading3, ImagePlus, Italic, Link2, List, ListOrdered, Pilcrow, Quote, Redo2, Undo2, Upload, X,
@@ -130,7 +131,16 @@ function ImagePanel({ editor, close }: { editor: Editor; close: () => void }) {
     setState({ busy: "Checking the picture..." });
     const size = await measure(value);
     if (!size) return setState({ error: "That picture could not be loaded. Check the address." });
-    editor.chain().focus().insertContent({ type: "image", attrs: { src: value, alt: alt.trim(), ...size } }).run();
+    /* THE CURSOR GOES UNDER THE PICTURE, in a paragraph of its own. Left
+       where insertContent puts it, the picture itself was selected, so the
+       next letter typed replaced it: "I added a picture and it vanished". */
+    editor.chain().focus().insertContent({ type: "image", attrs: { src: value, alt: alt.trim(), ...size } }).command(({ tr, state }) => {
+      const end = tr.selection.to;
+      const next = tr.doc.nodeAt(end);
+      if (!next || next.type.name !== "paragraph") tr.insert(end, state.schema.nodes.paragraph.create());
+      tr.setSelection(TextSelection.create(tr.doc, end + 1));
+      return true;
+    }).run();
     close();
   };
 

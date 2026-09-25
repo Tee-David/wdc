@@ -105,3 +105,28 @@ test("published on today's date is live now, whatever the hour; a later day need
   if (!future.ok) expect(future.errors.publishedAt).toContain("Choose Scheduled");
   expect(parsePost({ ...base, body, status: "scheduled", publishedAt: later }).ok).toBe(true);
 });
+
+test("a picture the whitelist refuses is reported on save, not dropped in silence", () => {
+  const base = {
+    slug: "picture-check", title: "Pictures", seoTitle: "Pictures", excerpt: "One line.", topic: "seo", cover: "",
+    description: "x".repeat(130), status: "draft",
+  };
+  const r = parsePost({
+    ...base,
+    body: JSON.stringify({ type: "doc", content: [
+      { type: "paragraph", content: [t("Text.")] },
+      { type: "image", attrs: { src: "https://elsewhere.example/photo.jpg", alt: "A photo" } },
+    ] }),
+  });
+  expect(r.ok).toBe(false);
+  if (!r.ok) expect(r.errors.body).toMatch(/One picture cannot be used/);
+  const ok = parsePost({
+    ...base,
+    cover: "/hero/ai-key.jpg",
+    body: JSON.stringify({ type: "doc", content: [
+      { type: "paragraph", content: [t("Text.")] },
+      { type: "image", attrs: { src: "/hero/ai-key.jpg", alt: "A key" } },
+    ] }),
+  });
+  expect(ok.ok).toBe(true);
+});
