@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ListSearch } from "@/components/admin/list-search";
 import {
   getInvoices, getProviderEvents, providerAttentionCount,
 } from "@/lib/admin/store";
@@ -143,8 +144,9 @@ export default async function ReconciliationPage() {
 
       <div style={{ marginTop: ".9rem" }}>
         <Panel title="Everything Paystack has said" dataTour="recon-log">
+          {everything.length ? <ListSearch target="recon-log" placeholder="Search by reference, event or amount" noun="events" /> : null}
           {everything.length ? (
-            <div className="ad__scroll">
+            <div className="ad__scroll" id="recon-log">
               <table className="ad__t">
                 <thead>
                   <tr><th>When</th><th>Reference</th><th>Event</th><th>Outcome</th><th className="num">Amount</th></tr>

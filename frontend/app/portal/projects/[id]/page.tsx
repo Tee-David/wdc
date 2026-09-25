@@ -9,7 +9,7 @@ import { getPortalRequest } from "@/lib/portal/session";
 import { getDeliverablesFor, getInvoicesFor, getProject, getUpdatesFor } from "@/lib/admin/store";
 import { STAGES, invoiceTotals, naira } from "@/lib/admin/types";
 import { SERVICE_BY_SLUG } from "@/lib/services";
-import { serviceGlyph } from "@/components/client/service-glyph";
+import { projectGlyph } from "@/components/client/service-glyph";
 import { ApprovalPill, Empty, HealthPill, Panel, StagePill, when } from "@/components/admin/bits";
 import { ProfileCard } from "@/components/admin/profile-card";
 import { DeliverableActions } from "@/components/client/deliverable-actions";
@@ -64,7 +64,7 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
     <>
       <ProfileCard
         crumbs={[{ href: "/portal/projects", label: "Your projects" }]}
-        icon={serviceGlyph(p.service)}
+        icon={projectGlyph(p)}
         tone="brand"
         title={p.title}
         pills={<StagePill stage={p.stage} />}
@@ -92,7 +92,7 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
 
       <div className="ad__split">
         <div className="ad__stack">
-          <Panel title="Deliverables">
+          <Panel title="Deliverables" id="deliverables">
             {deliverables.length ? (
               <>
                 <p className="cpSub">Open each one, then approve it or tell us what to change.</p>

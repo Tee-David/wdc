@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { redirect } from "next/navigation";
 import * as db from "./store";
-import { invoiceTotals, naira, type InvoiceLine } from "./types";
+import { invoiceTotals, naira, STAGES, type InvoiceLine } from "./types";
 import { paystackMode } from "@/lib/paystack";
 import { actorName, adminRole, owner, allow } from "./guard";
 import { can } from "./permissions";
@@ -16,7 +16,8 @@ import {
   approval, channel, checked, health, isoDate, kobo, looksEmail, method, num, priority,
   required, services, stage, str, url,
 } from "./validate";
-import { persistSoon, syncStore } from "@/lib/admin/persist";
+import { persistSoon, saveStore, syncStore } from "@/lib/admin/persist";
+import { isProjectIcon, randomProjectIcon } from "@/lib/project-icons";
 
 /**
  * THE ADMIN'S WRITE ENDPOINTS.
@@ -204,6 +205,7 @@ export async function createProject(_prev: ActionState, fd: FormData): Promise<A
     /* Staff cannot set a figure: the budget is money (lib/admin/permissions.ts). */
     budget: can(await adminRole(), "money") ? kobo(fd, "budget") : null,
     scope: str(fd, "scope") || undefined,
+    icon: isProjectIcon(str(fd, "icon")) ? str(fd, "icon") : randomProjectIcon(),
   });
   refresh("/admin/projects", `/admin/clients/${clientId}`);
   redirect(`/admin/projects/${p.id}`);
@@ -244,6 +246,33 @@ export async function moveStage(_prev: ActionState, fd: FormData): Promise<Actio
 
   refresh("/admin/projects", `/admin/projects/${id}`, `/admin/clients/${p.clientId}`);
   return OK(`Now at ${p.stage}.`);
+}
+
+/**
+ * A card dropped on the board: its stage (the same event, history and client
+ * email as `moveStage`) and the order of the column it landed in.
+ */
+export async function moveOnBoard(input: { id: string; stage: string; order: string[] }): Promise<ActionState> {
+  await syncStore();
+  const refused = await allow("projects");
+  if (refused) return refused;
+  const to = STAGES.find((s) => s === input?.stage);
+  const p = db.getProject(String(input?.id ?? ""));
+  if (!to || !p) return FAIL({}, "That card could not be moved. Reload and try again.");
+  const order = Array.isArray(input.order) ? input.order.map(String).slice(0, 500) : [];
+  const was = p.stage;
+  if (was !== to) {
+    const by = await actorName();
+    db.setStage(p.id, to, undefined, by);
+    after(async () => {
+      const { sendStageEmail } = await import("@/lib/project-mail");
+      await sendStageEmail({ project: p, from: was, to, by });
+    });
+  }
+  db.rankColumn(to, order);
+  await saveStore();
+  refresh("/admin/projects", `/admin/projects/${p.id}`, `/admin/clients/${p.clientId}`);
+  return OK(was !== to ? `Moved to ${to}.` : "Order saved.");
 }
 
 export async function addNote(_prev: ActionState, fd: FormData): Promise<ActionState> {
@@ -815,6 +844,7 @@ export async function saveProjectDetails(_prev: ActionState, fd: FormData): Prom
     /* A staff save leaves the agreed figure exactly as it was. */
     ...(can(await adminRole(), "money") ? { budget: kobo(fd, "budget") } : {}),
     scope: str(fd, "scope"),
+    ...(isProjectIcon(str(fd, "icon")) ? { icon: str(fd, "icon") } : {}),
   });
   if (!p) return FAIL({}, "That project is no longer there.");
   refreshProject(id);

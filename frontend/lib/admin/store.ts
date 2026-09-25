@@ -503,7 +503,18 @@ export function getBoard() {
     list.push(p);
     board.set(p.stage, list);
   }
+  /* The order somebody dragged them into; the rest keep their own order after. */
+  const r = (p: Project) => p.rank ?? Number.MAX_SAFE_INTEGER;
+  for (const list of board.values()) list.sort((a, b) => r(a) - r(b));
   return board;
+}
+
+/** A column's order, as dragged: each project named gets its place. */
+export function rankColumn(stage: Stage, ids: Id[]) {
+  ids.forEach((id, i) => {
+    const p = getProject(id);
+    if (p && p.stage === stage) p.rank = i;
+  });
 }
 
 /**
@@ -804,7 +815,7 @@ export function addProject(d: {
   clientId: Id; title: string; service: Project["service"];
   stage: Stage; due: string | null;
   owner?: string; health?: Health; channel?: Channel;
-  budget?: number | null; scope?: string;
+  budget?: number | null; scope?: string; icon?: string;
 }): Project {
   /* DEFAULTS THAT ARE HONEST. A new project is on track because nothing has
      gone wrong yet, and its channel is the dashboard because that is the one
@@ -1721,7 +1732,7 @@ export function setTicketStatus(id: Id, status: TicketStatus): Ticket | null {
 }
 
 export function patchProject(id: Id, d: Partial<Pick<Project,
-  "owner" | "health" | "channel" | "budget" | "scope" | "title">>): Project | null {
+  "owner" | "health" | "channel" | "budget" | "scope" | "title" | "icon">>): Project | null {
   const p = PROJECTS.find((x) => x.id === id);
   if (!p) return null;
   if (d.health && d.health !== p.health) addProjectNote(id, `Health moved to ${d.health}`);

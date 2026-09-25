@@ -61,7 +61,8 @@ test("a picture between two paragraphs is saved, previewed and shown", async ({ 
   expect(row.rows[0].body.content.map((b) => b.type)).toEqual(["paragraph", "image", "paragraph"]);
 
   await page.goto(`/api/blog/preview?slug=${SLUG}`, { waitUntil: "load" });
-  const img = page.locator('.bl-body img[src="/hero/design-desk.jpg"]');
+  /* Through the image optimiser now: its address is /_next/image?url=... */
+  const img = page.locator('.bl-body figure img[src*="design-desk.jpg"]');
   await expect(img).toBeVisible();
   expect(await img.evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth > 0)).toBe(true);
 });

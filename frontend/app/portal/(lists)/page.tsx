@@ -8,7 +8,7 @@ import {
 } from "@/lib/admin/store";
 import { STAGES, invoiceStatus, invoiceTotals, naira } from "@/lib/admin/types";
 import { SERVICE_BY_SLUG } from "@/lib/services";
-import { serviceGlyph } from "@/components/client/service-glyph";
+import { projectGlyph } from "@/components/client/service-glyph";
 import { Empty, Panel, StagePill, Tile, when } from "@/components/admin/bits";
 import "@/components/client/portal.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
@@ -156,7 +156,7 @@ export default async function PortalOverview() {
                   return (
                     <Link className="cpProject" href={`/portal/projects/${project.id}`} key={project.id}>
                       <span className="cpProject__top">
-                        <span className="cpProject__icon">{serviceGlyph(project.service)}</span>
+                        <span className="cpProject__icon">{projectGlyph(project)}</span>
                         <StagePill stage={project.stage} />
                       </span>
                       <b className="cpProject__title">{project.title}</b>
