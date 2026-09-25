@@ -9,7 +9,7 @@ import { authClient } from "@/lib/auth-client";
 import { WdcMark } from "@/components/brand/logo";
 import { CLIENT_NAV, isClientNavActive } from "./client-nav";
 import TourLauncher from "@/components/admin/tour/tour-launcher";
-import TableLabels from "@/components/admin/table-labels";
+import TableScroll from "@/components/admin/table-scroll";
 import { TabBar } from "@/components/admin/tab-bar";
 import { SideProfile, SideTourCard } from "@/components/admin/side-foot";
 import { initialsOf } from "@/components/admin/focus";
@@ -243,7 +243,7 @@ export default function ClientShell({
           </div>
         </header>
         <main className="ad__main">{children}</main>
-        <TableLabels />
+        <TableScroll />
       </div>
 
       <TabBar items={tabs} label="Portal sections" tour="portal-mobile-menu" />

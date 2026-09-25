@@ -33,7 +33,7 @@ import { authClient } from "@/lib/auth-client";
 import { can, NAV_AREA, type AdminRole } from "@/lib/admin/permissions";
 import { WdcMark } from "@/components/brand/logo";
 import TourLauncher from "./tour/tour-launcher";
-import TableLabels from "./table-labels";
+import TableScroll from "./table-scroll";
 import { BottomSheet, TabBar } from "./tab-bar";
 import { SideProfile, SideTourCard } from "./side-foot";
 import { initialsOf, keepFocusInside } from "./focus";
@@ -581,7 +581,7 @@ function ShellFrame({ children, counts, user }: { children: ReactNode; counts: R
           </div>
         </header>
         <main className="ad__main">{children}</main>
-        <TableLabels />
+        <TableScroll />
       </div>
 
       <TabBar items={tabs} label="Admin sections" tour="mobile-menu" />
