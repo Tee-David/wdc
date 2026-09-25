@@ -13,9 +13,19 @@ const globalMail = globalThis as typeof globalThis & {
   __wdcTransport?: ReturnType<typeof nodemailer.createTransport>;
 };
 
+/**
+ * Everything `sendMail` refuses to run without, the from-address included.
+ * It used to leave SMTP_FROM_EMAIL out, so a deploy missing it was listed as
+ * set up and then failed every send at the last step.
+ */
+export const MAIL_VARIABLES = ["SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD", "SMTP_FROM_EMAIL"] as const;
+
 export function mailIsConfigured() {
-  return Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD);
+  return MAIL_VARIABLES.every((k) => Boolean(process.env[k]?.trim()));
 }
+
+/** The names of what is missing, never the values. */
+export const missingMailVariables = () => MAIL_VARIABLES.filter((k) => !process.env[k]?.trim());
 
 function transport() {
   if (globalMail.__wdcTransport) return globalMail.__wdcTransport;
