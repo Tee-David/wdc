@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { AdminState } from "@/components/admin/admin-state";
+import { Pager } from "@/components/admin/pager";
 import { MediaGrid, MediaUploader } from "@/components/admin/media-library";
 import { listMedia, MEDIA_PAGE, mediaCounts, mediaDatabaseConfigured, type MediaAsset } from "@/lib/media";
 import { r2Config } from "@/lib/r2";
@@ -16,8 +18,20 @@ export const dynamic = "force-dynamic";
  * to put on pages. Separate key prefixes (`media/` against `onboarding/`) so
  * neither can reach into the other.
  */
-export default async function MediaPage({ searchParams }: { searchParams: Promise<{ show?: string }> }) {
-  const archived = (await searchParams).show === "archived";
+export default async function MediaPage({ searchParams }: { searchParams: Promise<{ show?: string; q?: string; page?: string }> }) {
+  const query = await searchParams;
+  const archived = query.show === "archived";
+  const q = (query.q ?? "").trim().slice(0, 80);
+  const page = Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1);
+  const href = (patch: { page?: number; q?: string }) => {
+    const u = new URLSearchParams();
+    if (archived) u.set("show", "archived");
+    const nq = patch.q ?? q;
+    if (nq) u.set("q", nq);
+    if ((patch.page ?? 1) > 1) u.set("page", String(patch.page));
+    const s = u.toString();
+    return `/admin/settings/media${s ? `?${s}` : ""}`;
+  };
 
   if (!mediaDatabaseConfigured()) {
     return (
@@ -46,10 +60,14 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
   let counts = { live: 0, archived: 0 };
   let failed = false;
   try {
-    [{ items, total }, counts] = await Promise.all([listMedia({ archived }), mediaCounts()]);
+    [{ items, total }, counts] = await Promise.all([listMedia({ archived, q, page }), mediaCounts()]);
   } catch {
     failed = true;
   }
+
+  /* A page past the end (a file archived since the link was made): the last
+     page that exists, rather than an empty library. */
+  if (!failed && !items.length && total > 0 && page > 1) redirect(href({ page: Math.ceil(total / MEDIA_PAGE) }));
 
   return (
     <>
@@ -67,7 +85,25 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
             description="The database did not answer just now. Nothing was lost; reload in a moment." />
         ) : (
           <>
-            <MediaGrid items={items} empty={archived ? (
+            {/* SEARCH ON THE SERVER once the library is bigger than a page,
+                so a file from years ago is one search away rather than
+                unreachable behind the newest 120. */}
+            {(archived ? counts.archived : counts.live) > MEDIA_PAGE || q ? (
+              <form className="adMedia__find" method="get" action="/admin/settings/media" aria-label="Search files">
+                {archived ? <input type="hidden" name="show" value="archived" /> : null}
+                <label className="ad__filterSearch">
+                  <span className="ad__sr">Search files</span>
+                  <input name="q" type="search" defaultValue={q} placeholder="Search every file by name or description" />
+                </label>
+                <button type="submit" className="ad__btn">Search</button>
+                {q ? <Link className="ad__btn" href={href({ q: "", page: 1 })}>Clear</Link> : null}
+              </form>
+            ) : null}
+            <MediaGrid search={!q && total <= MEDIA_PAGE} items={items} empty={q ? (
+              <AdminState kind="no-results" title={`No files match “${q}”`}
+                description="Search looks at file names and descriptions."
+                action={<Link className="ad__btn" href={href({ q: "", page: 1 })}>Clear the search</Link>} />
+            ) : archived ? (
               <AdminState kind="cleared" title="Nothing archived"
                 description="Files you archive land here, and can be put back from here." />
             ) : (
@@ -75,8 +111,8 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
                 description="Upload a picture or a PDF and it gets a permanent address you can use on any page, with its description kept beside it."
                 action={<span className="ad__dim">Use “Upload files” above to add the first one.</span>} />
             )} />
-            {total > items.length ? (
-              <p className="ad__dim adMedia__more">Showing the newest {MEDIA_PAGE} of {total}.</p>
+            {total > MEDIA_PAGE ? (
+              <Pager label="Pages of files" total={total} page={page} per={MEDIA_PAGE} noun="files" perOptions={[]} href={(p) => href({ page: p.page })} />
             ) : null}
           </>
         )}
