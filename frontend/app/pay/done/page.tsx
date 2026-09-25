@@ -51,7 +51,10 @@ type Outcome =
   /* The invoice's public address when it is known, so a failed or unconfirmed
      payment always has "Try again" rather than a dead end. */
   | { kind: "pending"; message: string; invoiceToken?: string }
-  | { kind: "failed"; message: string; invoiceToken?: string };
+  | { kind: "failed"; message: string; invoiceToken?: string }
+  /* No reference at all: this page cannot know what happened, so it must not
+     say "not paid" -- that alarms somebody whose money may well have gone. */
+  | { kind: "unknown"; message: string; invoiceToken?: string };
 
 async function settle(reference: string): Promise<Outcome> {
   const verified = await verifyTransaction(reference);
@@ -172,7 +175,7 @@ export default async function PaymentDone({
 
   const outcome: Outcome = reference
     ? await settle(reference)
-    : { kind: "failed", message: "This page needs a payment reference, and there is not one on it. If you were paying an invoice, open the invoice again and use the button on it." };
+    : { kind: "unknown", message: "This page needs a payment reference to look your payment up, and there is not one on it. If you were paying an invoice, open the invoice again: it shows whether the payment arrived, and has the button to pay if it did not." };
 
   return (
     <main className="doc doc--return">
@@ -219,10 +222,10 @@ export default async function PaymentDone({
         ) : (
           <>
             <div className="doc__owed">
-              <span className="doc__k">{outcome.kind === "failed" ? "Not paid" : "Checking"}</span>
-              <b style={{ fontSize: "1.5rem" }}>
-                {outcome.kind === "failed" ? "The payment did not go through" : "We are confirming your payment"}
-              </b>
+              <span className="doc__k">{outcome.kind === "failed" ? "Not paid" : outcome.kind === "unknown" ? "No reference" : "Checking"}</span>
+              <h1 style={{ fontSize: "1.5rem", margin: 0, lineHeight: 1.2 }}>
+                {outcome.kind === "failed" ? "The payment did not go through" : outcome.kind === "unknown" ? "We cannot tell which payment this is" : "We are confirming your payment"}
+              </h1>
             </div>
             <p>{outcome.message}</p>
             <p className="doc__actions">

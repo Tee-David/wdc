@@ -268,7 +268,7 @@ function Empty({ label }: { label: string }) {
         We have done the work; it is the case study that is outstanding. Ask us and we
         will send relevant examples directly.
       </p>
-      <Link className="pv-btn pv-btn--accent" href="/#pv-contact">
+      <Link className="pv-btn pv-btn--accent" href="/contact">
         Ask for examples
       </Link>
     </div>

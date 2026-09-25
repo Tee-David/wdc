@@ -11,6 +11,7 @@ import { caseBySlug, caseHref } from "@/lib/work";
 import Proof from "@/components/sections/proof";
 import FaqAccordion from "@/components/ui/faq-accordion";
 import { CONTACT_EMAIL } from "@/lib/site";
+import { ENQUIRY_DRAFT_KEY } from "@/lib/contact";
 
 import "./preview.css";
 import StrokeNumber from "@/components/ui/stroke-number";
@@ -82,7 +83,7 @@ const WHY = [
   { t: "Every budget", d: "A first logo or a full platform, held to the same standard either way.", label: "How we work", href: "#pv-process" },
   { t: "Built to last", d: "Fast, accessible, maintainable code, not a template with your logo on it.", label: "Our services", href: "/services" },
   { t: "You are included", d: "You see the work as it happens instead of a reveal at the end.", label: "How we work", href: "#pv-process" },
-  { t: "Found, not just seen", d: "Search and content work that keeps paying after the site ships.", label: "Our services", href: "/services#seo" },
+  { t: "Found, not just seen", d: "Search and content work that keeps paying after the site ships.", label: "Our services", href: "/services/seo" },
   { t: "Real engineering", d: "AI and software built around outcomes, and we say when it is not needed.", label: "Talk to us", href: "#pv-contact" },
 ];
 
@@ -679,34 +680,40 @@ export default function PreviewBody({ faqs = FAQS }: { faqs?: Faq[] }) {
                 <li>Software engineering and AI</li>
               </ul>
             </div>
-            {/* This form used to be `onSubmit={(e) => e.preventDefault()}` and
-                nothing else: it accepted a message, showed no confirmation and
-                dropped it. Every enquiry typed into it was lost silently. The
-                full version, with validation and a delivery route, lives on
-                /contact — so this one hands over to it rather than pretending
-                to send. */}
+            {/* THIS FORM HANDS OVER, AND NOW IT HANDS OVER WHAT WAS TYPED.
+                It used to send the visitor to /contact and leave everything
+                they had written behind, so every enquiry started here had to
+                be typed twice, and most were not. The full form, with its
+                validation and delivery, lives on /contact; this one keeps the
+                words in this tab's session storage for it to pick up. */}
             <form
               className="pv-form"
-              onSubmit={(e) => { e.preventDefault(); window.location.href = "/contact"; }}
+              onSubmit={(e) => {
+                e.preventDefault();
+                const f = new FormData(e.currentTarget);
+                const draft = { name: f.get("name"), email: f.get("email"), website: f.get("website"), message: f.get("message") };
+                try { sessionStorage.setItem(ENQUIRY_DRAFT_KEY, JSON.stringify(draft)); } catch { /* private mode: /contact starts empty */ }
+                window.location.href = "/contact?from=home";
+              }}
             >
               <h3 style={{ marginBottom: 20 }}>Tell us about your project</h3>
               <div className="pv-f">
                 <label htmlFor="pv-n">Full name</label>
-                <input id="pv-n" type="text" placeholder="Your name" />
+                <input id="pv-n" name="name" type="text" autoComplete="name" placeholder="Your name" />
               </div>
               <div className="pv-f">
                 <label htmlFor="pv-e">Email</label>
-                <input id="pv-e" type="email" placeholder="you@business.com" />
+                <input id="pv-e" name="email" type="email" autoComplete="email" placeholder="you@business.com" />
               </div>
               <div className="pv-f">
                 <label htmlFor="pv-u">Current website <i>(optional)</i></label>
-                <input id="pv-u" type="url" placeholder="https://" />
+                <input id="pv-u" name="website" type="url" placeholder="https://" />
               </div>
               <div className="pv-f">
                 <label htmlFor="pv-m">What are you looking to build or fix?</label>
-                <textarea id="pv-m" />
+                <textarea id="pv-m" name="message" />
               </div>
-              <button className="pv-btn pv-btn--accent" type="submit">Send the details</button>
+              <button className="pv-btn pv-btn--accent" type="submit">Continue to send</button>
             </form>
           </div>
         </div>

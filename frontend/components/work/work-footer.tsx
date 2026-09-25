@@ -26,7 +26,7 @@ export function WorkFooter({ cta = true }: { cta?: boolean }) {
                 something we should be doing for you.
               </p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "center" }}>
-                <Link className="pv-btn pv-btn--accent" href="/#pv-contact">
+                <Link className="pv-btn pv-btn--accent" href="/contact">
                   Start a conversation
                 </Link>
                 <Link className="pv-btn pv-btn--line" href="/services">
