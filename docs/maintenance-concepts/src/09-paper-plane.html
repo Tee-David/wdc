@@ -132,7 +132,7 @@
   document.getElementById('note-close').addEventListener('click', close);
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') close(); });
   document.getElementById('note-mail').addEventListener('click', function(){
-    close().then(function(){ var d = document.getElementById('dock'); if (d.classList.contains('min')) document.getElementById('dk-toggle').click(); document.getElementById('dk-email').focus(); });
+    close().then(function(){ document.getElementById('dk-email').focus(); });
   });
 
   /* when the work is done the plane comes in to land and opens back into the page */

@@ -5,12 +5,12 @@ public site is in maintenance mode. Each one is a single standalone HTML file, s
 any of them could be ported into `maintenancePage()`, which also returns one
 self-contained string.
 
-Every concept shares the same dock, in `shared/`:
+Every concept shares one lockup, in `shared/`: plain type set beside the scene, not a panel on top of it. It carries:
 
 - the admin's message and the back-by time, in Lagos time and the visitor's own
 - a live countdown
 - "Notify me": one email when the site is back, then the address is deleted
-- an optional "what brings you here" choice (starting a project, a client, just looking)
+- after sign-up only, an optional "what brings you here" question (a new project, a client, just looking)
 - the things that still work during maintenance: the client portal, invoice links and the contact email
 
 The forms in these prototypes do not send anything.
