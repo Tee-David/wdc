@@ -48,8 +48,11 @@ export default async function PortalProjects({ searchParams }: { searchParams: P
 
       {projects.length ? <ListSearch target="portal-projects-list" placeholder="Search projects" noun="projects" /> : null}
 
+      {/* The tour's target wraps both the cards and the empty state, so a new
+          client's tour lands on what they actually see. */}
+      <div data-tour="portal-projects">
       {projects.length ? (
-        <div className="pProj" id="portal-projects-list" data-tour="portal-projects">
+        <div className="pProj" id="portal-projects-list">
           {projects.map((project) => {
             const service = SERVICES.find((s) => s.slug === project.service);
             const at = STAGES.indexOf(project.stage);
@@ -107,9 +110,15 @@ export default async function PortalProjects({ searchParams }: { searchParams: P
         <div className="ad__panel">
           {tab === "delivered"
             ? <Empty title="Nothing delivered yet" icon={FolderKanban}>Finished projects move here, with everything we handed over.</Empty>
-            : <Empty title="No projects yet" icon={FolderKanban}>Once we start work with {client.company}, projects will appear here with their status and deliverables.</Empty>}
+            : delivered.length
+              ? <Empty title="Nothing in progress right now" icon={FolderKanban}
+                  action={<Link className="ad__btn" href="/portal/projects?show=delivered">See delivered projects</Link>}>
+                  {delivered.length === 1 ? "Your finished project is" : `Your ${delivered.length} finished projects are`} under Delivered, with everything we handed over.
+                </Empty>
+              : <Empty title="No projects yet" icon={FolderKanban}>Once we start work with {client.company}, projects will appear here with their status and deliverables.</Empty>}
         </div>
       )}
+      </div>
     </div>
   );
 }

@@ -45,3 +45,13 @@
 .dark .cf-msg { color: #fecaca; }
 .dark .ct-f.is-bad input, .dark .ct-f.is-bad textarea, .dark .ct-f.is-bad .cf-choice, .dark .ct-f.is-bad .cf-drop { border-color: #ff8a8a; }
 .cf-wrap { max-width: 44rem; }
+
+/* An address: street across the top, then city, state and country. */
+.cf-address { margin: 0; padding: 0; border: 0; min-width: 0; display: grid; gap: .7rem; grid-template-columns: minmax(0, 1fr); }
+.cf-address legend { margin-bottom: .35rem; padding: 0; }
+.cf-address__part { display: grid; gap: .3rem; min-width: 0; }
+.cf-address__part label { font-size: .88rem; }
+@media (min-width: 640px) {
+  .cf-address { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .cf-address legend, .cf-address .cf-help, .cf-address .ct-error, .cf-address__part--street { grid-column: 1 / -1; }
+}

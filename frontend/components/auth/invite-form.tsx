@@ -22,7 +22,7 @@ import { redeem } from "@/lib/invite-redeem";
  *  - for a client, no password at all: sign-in links by email, the same ones
  *    the login page sends.
  */
-export function InviteForm({ token, email, name: invitedName, role, google, company, expires }: {
+export function InviteForm({ token, email, name: invitedName, role, google, company, expires, signedInAs }: {
   token: string;
   email: string;
   name: string;
@@ -33,8 +33,13 @@ export function InviteForm({ token, email, name: invitedName, role, google, comp
   company?: string | null;
   /** When the link stops working, already written out for Lagos ("2 Oct"). */
   expires: string;
+  /** Someone else is signed in on this browser; accepting will replace them. */
+  signedInAs?: string | null;
 }) {
   const router = useRouter();
+  /* The account was made but signing in after it failed: say it exists and
+     how to get in, rather than dropping them on a log-in page unexplained. */
+  const [ready, setReady] = useState(false);
   const stage = useStage();
   const hydrated = useHydrated();
   const nameId = useId();
@@ -66,7 +71,8 @@ export function InviteForm({ token, email, name: invitedName, role, google, comp
       await stage.ringEnd(!signed.error);
       /* The account exists either way; a failed sign-in here is only a
          missing cookie, and the login page fixes that. */
-      router.replace(signed.error ? "/login" : "/signed-in");
+      if (signed.error) { setReady(true); return; }
+      router.replace("/signed-in");
     } catch {
       await stage.ringEnd(false);
       setError("We couldn't reach the server. Check your connection and try again.");
@@ -110,9 +116,30 @@ export function InviteForm({ token, email, name: invitedName, role, google, comp
     );
   }
 
+  if (ready) {
+    return (
+      <div className="lx">
+        <div className="lx__step" data-dir="1">
+          <h1 className="lx__heading">Your account is ready</h1>
+          <div className="au__notice" role="status">
+            <b>Log in as {email}.</b>
+            <span>We made your account but could not sign you in automatically. Use the password you just chose.</span>
+          </div>
+          <a href="/login" className="au-btn au-btn--primary" data-awake="true">Go to log in</a>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="lx">
       <div className="lx__step" data-dir="1">
+        {signedInAs ? (
+          <div className="au__notice" role="status">
+            <b>You&rsquo;re signed in as {signedInAs}.</b>
+            <span>Accepting this invitation signs this browser in as {email} instead, and signs {signedInAs} out.</span>
+          </div>
+        ) : null}
         <h1 className="lx__heading">{role === "staff" ? "Join the studio" : company ? `Welcome, ${company}` : "Your project portal"}</h1>
         {/* One line: who asked, and the address the account is for. */}
         <p className="lx__sub"><b>{email}</b> · invited by WDC Solutions</p>

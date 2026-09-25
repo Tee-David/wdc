@@ -32,7 +32,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (!(size > 0) || size > FILE_MAX_BYTES) return NextResponse.json({ error: `Files need to be ${FILE_MAX_BYTES / 1024 / 1024}MB or smaller.` }, { status: 413 });
 
   const config = r2Config();
-  if (!config.ok) return NextResponse.json({ error: "File uploads are unavailable right now. Send the file by email instead." }, { status: 503 });
+  if (!config.ok) return NextResponse.json({ error: "Uploads are not available right now. Tick the box below and email the file to us instead." }, { status: 503 });
   const key = `forms/${row.slug}/${Date.now().toString(36)}-${randomUUID().slice(0, 8)}.${ext}`;
   const signed = presignPut({ config: config.config, key, contentType });
   return NextResponse.json({ url: signed.url, key: signed.key, contentType });

@@ -30,10 +30,12 @@ export const getPortalRequest = cache(async () => {
        env-gated, non-production-only mechanism `isAdminCapture` already
        is; this header only does anything alongside a valid capture token. */
     const wantId = requestHeaders.get("x-boneyard-capture-client") || "c1";
-    const client = getClient(wantId) ?? getClients()[0] ?? null;
+    /* "none" is the signed-in client nobody has matched yet, so the
+       not-linked screen can be seen and tested like every other. */
+    const client = wantId === "none" ? null : getClient(wantId) ?? getClients()[0] ?? null;
     return {
       capture,
-      session: { user: { name: client?.name ?? "Client", email: client?.email ?? "client@localhost", image: null, role: "client" } },
+      session: { user: { name: client?.name ?? "Ngozi Eze", email: client?.email ?? "ngozi@example.com", image: null, role: "client" } },
       client,
     };
   }
@@ -41,9 +43,16 @@ export const getPortalRequest = cache(async () => {
   const { auth } = await import("@/lib/auth");
   const session = await auth.api.getSession({ headers: requestHeaders });
   const email = session?.user?.email?.toLowerCase();
-  const client = email
-    ? getClients({ includeArchived: true }).find((c) => c.email.toLowerCase() === email) ?? null
-    : null;
+  /* A LIVE RECORD FIRST, then an archived one; and a record merged into
+     another is followed to the one that was kept, because every project and
+     invoice moved there -- matching the dead duplicate showed an empty portal. */
+  const all = email ? getClients({ includeArchived: true }) : [];
+  const same = all.filter((c) => c.email.toLowerCase() === email);
+  let client = same.find((c) => !c.archived) ?? same[0] ?? null;
+  for (let hops = 0; client?.mergedInto && hops < 5; hops++) {
+    client = all.find((c) => c.id === client!.mergedInto) ?? client;
+    if (!client.mergedInto) break;
+  }
 
   return { capture, session, client };
 });

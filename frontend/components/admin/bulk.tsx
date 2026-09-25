@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Archive, Check, Loader2, Mail, RotateCcw, X, type LucideIcon } from "lucide-react";
+import { Archive, Check, Loader2, Mail, MoreHorizontal, RotateCcw, Send, Trash2, X, type LucideIcon } from "lucide-react";
 import { runBulk } from "@/lib/admin/bulk-actions";
 import { toast } from "./toast";
 
-const ICONS: Record<string, LucideIcon> = { check: Check, close: X, archive: Archive, mail: Mail, reopen: RotateCcw };
+const ICONS: Record<string, LucideIcon> = { check: Check, close: X, archive: Archive, mail: Mail, reopen: RotateCcw, publish: Send, trash: Trash2 };
 
 export type BulkAction = { kind: string; label: string; icon: keyof typeof ICONS; danger?: boolean; confirm?: string };
 
@@ -34,7 +34,11 @@ export function PickAll({ label = "Select all" }: { label?: string }) {
  * the tab bar on a phone, with the words dropped to icons (the same bar as the
  * form entries).
  */
-export function BulkBar({ target, noun, actions }: { target: string; noun: string; actions: BulkAction[] }) {
+export function BulkBar({ target, noun, actions, more = [] }: {
+  target: string; noun: string; actions: BulkAction[];
+  /** The rest, under More, so the bar stays one line: never a wall of buttons. */
+  more?: Omit<BulkAction, "icon">[];
+}) {
   const router = useRouter();
   const [ids, setIds] = useState<string[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
@@ -60,7 +64,7 @@ export function BulkBar({ target, noun, actions }: { target: string; noun: strin
     box?.dispatchEvent(new Event("change", { bubbles: true }));
   };
 
-  const run = async (a: BulkAction) => {
+  const run = async (a: Omit<BulkAction, "icon">) => {
     if (a.confirm && !window.confirm(a.confirm.replace("{n}", String(ids.length)))) return;
     setBusy(a.kind);
     const r = await runBulk(a.kind, ids).catch(() => null);
@@ -81,6 +85,19 @@ export function BulkBar({ target, noun, actions }: { target: string; noun: strin
           </button>
         );
       })}
+      {more.length ? (
+        <details className="adBulk__more">
+          <summary className="ad__btn adBulk__btn"><MoreHorizontal aria-hidden="true" /> <span className="adBulk__t">More</span></summary>
+          <div className="adBulk__menu" role="group" aria-label="More actions">
+            {more.map((a) => (
+              <button key={a.kind} type="button" className={a.danger ? "is-danger" : undefined} disabled={Boolean(busy)}
+                onClick={(e) => { e.currentTarget.closest("details")?.removeAttribute("open"); void run(a); }}>
+                {busy === a.kind ? <Loader2 className="ad__spin" aria-hidden="true" /> : null}{a.label}
+              </button>
+            ))}
+          </div>
+        </details>
+      ) : null}
       <button type="button" className="ad__iconButton adBulk__x" aria-label="Clear the selection" onClick={clear}><X aria-hidden="true" /></button>
     </div>
   );

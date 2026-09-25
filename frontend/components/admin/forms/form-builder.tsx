@@ -211,7 +211,7 @@ function FieldCard({ f, i, count, open, earlier, onToggle, onChange, onMove, onR
               <input id={`${id}-label`} value={f.label} maxLength={160} onChange={(e) => onChange({ label: e.target.value })} /></div>
             <div className="ad__f"><label className="ad__fl" htmlFor={`${id}-help`}>Help text <span className="ad__dim">(optional)</span></label>
               <input id={`${id}-help`} value={f.help ?? ""} maxLength={300} onChange={(e) => onChange({ help: e.target.value })} /></div>
-            {f.type !== "heading" && f.type !== "consent" && !CHOICE.includes(f.type) || f.type === "select" ? (
+            {f.type !== "heading" && f.type !== "consent" && f.type !== "address" && !CHOICE.includes(f.type) || f.type === "select" ? (
               <div className="ad__f ad__f--half"><label className="ad__fl" htmlFor={`${id}-ph`}>Placeholder <span className="ad__dim">(optional)</span></label>
                 <input id={`${id}-ph`} value={f.placeholder ?? ""} maxLength={160} onChange={(e) => onChange({ placeholder: e.target.value })} /></div>
             ) : null}
