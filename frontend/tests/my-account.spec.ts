@@ -96,25 +96,39 @@ test("sign out everywhere else ends the other device and keeps this one", async 
   await expect(page.locator("h1")).toHaveText("My account");
 });
 
-test("a password change needs the current one, and signs out every other session", async ({ page, baseURL, playwright }) => {
+test("a new password needs no old one: it is confirmed by an emailed code, and signs out every other session", async ({ page, baseURL, playwright }) => {
   expect((await signIn(page.request, baseURL, PASSWORD)).ok()).toBe(true);
   const other = await playwright.request.newContext({ baseURL });
   expect((await signIn(other, baseURL, PASSWORD)).ok()).toBe(true);
   await other.dispose();
   await open(page);
+  await expect(page.getByLabel(/^Current password/)).toHaveCount(0);
 
-  await page.getByLabel(/^Current password/).fill("not-my-password-at-all");
-  await page.getByLabel(/^New password\b(?! again)/).fill(NEW_PASSWORD);
-  await page.getByLabel(/^New password again/).fill(NEW_PASSWORD);
-  await page.getByRole("button", { name: "Change password" }).click();
-  await expect(page.getByText("That is not your current password")).toBeVisible({ timeout: 20_000 });
+  /* A weak or mismatched pair is refused before any code is sent. */
+  await page.getByLabel(/^New password/).fill("short");
+  await page.getByLabel(/^Confirm it/).fill("short");
+  await page.getByRole("button", { name: "Send me a code" }).click();
+  await expect(page.getByText(/at least 8 characters/).first()).toBeVisible({ timeout: 20_000 });
 
-  await page.getByLabel(/^Current password/).fill(PASSWORD);
-  await page.getByLabel(/^New password\b(?! again)/).fill(NEW_PASSWORD);
-  await page.getByLabel(/^New password again/).fill(NEW_PASSWORD);
+  await page.getByLabel(/^New password/).fill(NEW_PASSWORD);
+  await page.getByLabel(/^Confirm it/).fill(NEW_PASSWORD);
+  await page.getByRole("button", { name: "Send me a code" }).click();
+  await expect(page.getByLabel(/^Code from the email/)).toBeVisible({ timeout: 20_000 });
+
+  /* The email cannot be read here, so the stored hash is replaced with one of a known code. */
+  const { createHash } = await import("node:crypto");
+  await db.query(`UPDATE "verification" SET "value" = $1 WHERE "identifier" = $2`,
+    [JSON.stringify({ h: createHash("sha256").update(`${userId}:123456`).digest("hex"), tries: 0 }), `password-change:${userId}`]);
+
+  await page.getByLabel(/^Code from the email/).fill("000000");
   await page.getByRole("button", { name: "Change password" }).click();
-  await expect(page.locator(".ad__msg.is-ok")).toContainText("Password changed", { timeout: 20_000 });
+  await expect(page.getByText(/That code is not right/)).toBeVisible({ timeout: 20_000 });
+
+  await page.getByLabel(/^Code from the email/).fill("123456");
+  await page.getByRole("button", { name: "Change password" }).click();
+  await expect(page.locator(".adToast", { hasText: "Password changed" })).toBeVisible({ timeout: 20_000 });
   await expect.poll(sessions, { timeout: 20_000 }).toBe(1);
+  expect((await db.query(`SELECT 1 FROM "verification" WHERE "identifier" = $1`, [`password-change:${userId}`])).rowCount).toBe(0);
 
   const fresh = await playwright.request.newContext({ baseURL });
   expect((await signIn(fresh, baseURL, PASSWORD)).ok()).toBe(false);

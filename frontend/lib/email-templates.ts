@@ -1161,6 +1161,42 @@ The WDC team`),
   };
 }
 
+/**
+ * The code that confirms a new password, asked for from the account page.
+ * No current password is asked there; this code, sent to the account's own
+ * inbox, is what proves the change is theirs.
+ */
+export function passwordCodeEmail(input: { name?: string; code: string; expiresInMinutes: number }): Email {
+  const { name, code, expiresInMinutes } = input;
+  const greeting = name ? `Hi ${name},` : "Hello,";
+  const spaced = `${code.slice(0, 3)} ${code.slice(3)}`;
+  return {
+    subject: `${spaced} is your code to change your password`,
+    text: textShell(`${greeting}
+
+Enter this code to confirm your new We Dig Creativity password. It works for ${expiresInMinutes} minutes:
+
+${spaced}
+
+If you did not ask to change your password, ignore this email and nothing changes. Someone may be signed in as you, so sign out your other devices from your account page.
+
+The WDC team`),
+    html: shell({
+      title: "Confirm your new password",
+      preheader: `Your code is ${spaced}. It works for ${expiresInMinutes} minutes.`,
+      heading: "Confirm your new password",
+      blocks: [
+        p(escapeHtml(greeting)),
+        p("Enter this code on your account page to confirm your new password:"),
+        `<p style="margin:0 0 20px;padding:16px 20px;background:${PAGE};border:1px solid ${HAIRLINE};border-radius:12px;` +
+          `font-family:${DISPLAY};font-size:32px;font-weight:700;letter-spacing:.18em;color:${NAVY};text-align:center">${escapeHtml(spaced)}</p>`,
+        p(`It works once, for ${expiresInMinutes} minutes.`),
+        small("If you did not ask to change your password, ignore this email and nothing changes. Someone may be signed in as you, so sign out your other devices from your account page."),
+      ],
+    }),
+  };
+}
+
 /* ================================================= 10b. an account, offered */
 
 /**
