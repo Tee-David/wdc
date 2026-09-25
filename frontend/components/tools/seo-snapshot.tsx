@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { AlertTriangle, Check, HelpCircle, Loader2, Search, Send, X } from "lucide-react";
 import type { Facts, Finding } from "@/lib/seo-audit";
 import {
   DEFAULT_NAIRA_PER_GB, PRICE_REVIEWED, dataCost, nairaCost, waitLabel, weightLabel,
 } from "@/lib/data-cost";
 import WaitingLine from "./waiting-line";
+import { SendToWdc } from "./send-to-wdc";
 
 /**
  * The on-page SEO snapshot at /tools/seo, and the data-cost panel bolted onto
@@ -301,7 +301,11 @@ export default function SeoSnapshot() {
               {mailError && <p className="tl__err" role="alert">{mailError}</p>}
 
               <p className="tl__stepAlt">
-                Rather we fixed them? <Link href="/contact">Tell us about the site</Link>.
+                Rather we fixed them?{" "}
+                <SendToWdc topic="seo" from="your SEO snapshot" className=""
+                  summary={`SEO snapshot for ${result.url}: ${result.headline}\n${result.findings.filter((f) => f.verdict !== "good").map((f) => `- ${f.label}: ${WORD[f.verdict]}`).join("\n")}\n\nCan you fix these?`}>
+                  Send this to WDC
+                </SendToWdc>.
               </p>
             </div>
           </>

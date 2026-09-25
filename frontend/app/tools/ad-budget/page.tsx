@@ -36,7 +36,8 @@ const jsonLd = [
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-      { "@type": "ListItem", position: 2, name: "Ad budget & reach calculator", item: `${SITE_URL}/tools/ad-budget` },
+      { "@type": "ListItem", position: 2, name: "Free tools", item: `${SITE_URL}/tools` },
+      { "@type": "ListItem", position: 3, name: "Ad budget & reach calculator", item: `${SITE_URL}/tools/ad-budget` },
     ],
   },
   {
@@ -61,6 +62,8 @@ export default function AdBudgetToolPage() {
           <div className="pv-wrap wk-hero__in">
             <nav className="wk-crumbs" aria-label="Breadcrumb">
               <Link href="/">Home</Link>
+              <i aria-hidden="true">/</i>
+              <Link href="/tools">Free tools</Link>
               <i aria-hidden="true">/</i>
               <span>Ad budget & reach</span>
             </nav>

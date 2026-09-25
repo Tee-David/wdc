@@ -35,7 +35,8 @@ const jsonLd = [
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-      { "@type": "ListItem", position: 2, name: "Broken link checker", item: `${SITE_URL}/tools/broken-links` },
+      { "@type": "ListItem", position: 2, name: "Free tools", item: `${SITE_URL}/tools` },
+      { "@type": "ListItem", position: 3, name: "Broken link checker", item: `${SITE_URL}/tools/broken-links` },
     ],
   },
   {
@@ -60,6 +61,8 @@ export default function BrokenLinksToolPage() {
           <div className="pv-wrap wk-hero__in">
             <nav className="wk-crumbs" aria-label="Breadcrumb">
               <Link href="/">Home</Link>
+              <i aria-hidden="true">/</i>
+              <Link href="/tools">Free tools</Link>
               <i aria-hidden="true">/</i>
               <span>Broken link checker</span>
             </nav>

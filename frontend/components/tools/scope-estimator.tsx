@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { ArrowLeft, Check, Loader2, Printer, RotateCcw, Send } from "lucide-react";
 import {
   QUESTIONS, RATE_CARD, estimate, shortDollars, shortNaira,
@@ -10,6 +9,7 @@ import {
 import OptionSelect from "@/components/tools/option-select";
 import Tip from "@/components/onboarding/tip";
 import "@/components/onboarding/form-kit.css";
+import { SendToWdc } from "./send-to-wdc";
 
 /**
  * The scope and budget estimator at /tools/estimate.
@@ -340,7 +340,11 @@ export default function ScopeEstimator() {
               {error && <p className="tl__err" role="alert">{error}</p>}
 
               <p className="tl__stepAlt">
-                Rather talk it through? <Link href="/contact">Tell us about the project</Link>.
+                Rather talk it through?{" "}
+                <SendToWdc topic="software" from="your estimate" className=""
+                  summary={`From the budget estimator: ${shortNaira(result.ngn.low)} to ${shortNaira(result.ngn.high)}.\n${QUESTIONS.map((q) => `- ${q.label} ${q.options.find((o) => o.key === answers[q.key])?.label ?? ""}`).join("\n")}\n\nCan we talk it through?`}>
+                  Send this to WDC
+                </SendToWdc>.
               </p>
             </div>
           </>
