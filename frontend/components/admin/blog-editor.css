@@ -136,3 +136,16 @@
 @media (max-width: 900px) {
   .adBlog__restore { bottom: calc(6.75rem + env(safe-area-inset-bottom)); }
 }
+
+/* THE COVER: a 16:10 preview beside an upload button and the built-in list;
+   stacked on a phone. */
+.adCover__row { display: grid; grid-template-columns: minmax(0, 14rem) minmax(0, 1fr); gap: .9rem; align-items: start; }
+.adCover__shot { display: grid; place-items: center; aspect-ratio: 16 / 10; overflow: hidden; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel-2); }
+.adCover__shot img { width: 100%; height: 100%; object-fit: cover; }
+.adCover__none { color: var(--ad-dim); font-size: .84rem; }
+.adCover__pick { min-width: 0; display: grid; gap: .6rem; align-content: start; }
+.adCover__up { position: relative; justify-content: center; cursor: pointer; }
+.adCover__up input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.adCover__up:focus-within { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.adCover__pick select { width: 100%; }
+@media (max-width: 640px) { .adCover__row { grid-template-columns: minmax(0, 1fr); } }

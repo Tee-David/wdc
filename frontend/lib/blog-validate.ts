@@ -1,6 +1,6 @@
 import { SERVICES, type ServiceSlug } from "@/lib/services";
 import { BLOG_POSTS, type BlogBlock } from "@/lib/blog";
-import { blocksToDoc, cleanDoc, docHeadings, isDoc, type RichDoc } from "@/lib/blog-doc";
+import { blocksToDoc, cleanDoc, docHeadings, isDoc, safeImage, type RichDoc } from "@/lib/blog-doc";
 
 /**
  * What the blog editor is allowed to write.
@@ -110,8 +110,10 @@ export function parsePost(raw: Raw, opts: { imageHosts?: readonly string[] } = {
     .map((t) => text(t, 40)).filter(Boolean);
   const uniqueTags = [...new Set(tags)].slice(0, LIMITS.tags);
 
-  const cover = text(raw.cover, 200);
-  if (!BLOG_COVERS.includes(cover)) errors.cover = "Pick one of the site's cover photographs.";
+  const cover = text(raw.cover, 500);
+  /* One of the site's own, or a photo uploaded to our own media bucket. */
+  const ownCover = (v: string) => BLOG_COVERS.includes(v) || Boolean(opts.imageHosts?.length && safeImage(v, opts.imageHosts) && /^https:/.test(v));
+  if (!ownCover(cover)) errors.cover = "Pick one of the site's cover photographs, or upload one.";
 
   const canonicalRaw = text(raw.canonical, 500);
   let canonical: string | null = null;
@@ -123,9 +125,9 @@ export function parsePost(raw: Raw, opts: { imageHosts?: readonly string[] } = {
     } catch { errors.canonical = "An https address, or leave it empty to use the post's own URL."; }
   }
 
-  const socialRaw = text(raw.socialImage, 200);
+  const socialRaw = text(raw.socialImage, 500);
   const socialImage = socialRaw || null;
-  if (socialImage && !BLOG_COVERS.includes(socialImage)) errors.socialImage = "Leave it empty to use the drawn card, or pick a cover photograph.";
+  if (socialImage && !ownCover(socialImage)) errors.socialImage = "Leave it empty to use the drawn card, or pick a cover photograph.";
 
   let parsedBody: unknown = raw.body;
   if (typeof parsedBody === "string") {

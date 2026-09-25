@@ -142,7 +142,7 @@ export default async function BlogPostPage(
       "@type": "BlogPosting",
       headline: post.title,
       description: post.description,
-      image: `${SITE_URL}${post.cover}`,
+      image: /^https?:/.test(post.cover) ? post.cover : `${SITE_URL}${post.cover}`,
       datePublished: post.date,
       dateModified: post.updated ?? post.date,
       mainEntityOfPage: { "@type": "WebPage", "@id": url },

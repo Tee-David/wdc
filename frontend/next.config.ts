@@ -56,9 +56,17 @@ loadRepoRootEnv();
  * `qualities` has to be declared in Next 16 for any value other than the
  * default 75 to be allowed at the call site.
  */
+const mediaHost = (() => {
+  try { return process.env.CLOUDFLARE_R2_URL ? new URL(process.env.CLOUDFLARE_R2_URL).hostname : ""; } catch { return ""; }
+})();
+
 const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
+    /* UPLOADED PHOTOS (a blog cover, a picture in a post) live in our own R2
+       bucket; the optimiser may fetch from there and nowhere else, so they get
+       the same resizing and AVIF/WebP as the site's own images. */
+    remotePatterns: mediaHost ? [{ protocol: "https", hostname: mediaHost, pathname: "/**" }] : [],
     /* The widths actually requested by this site's `sizes` attributes. Trimming
        the default list means fewer variants to encode and cache without any
        call site losing the width it asks for. */
