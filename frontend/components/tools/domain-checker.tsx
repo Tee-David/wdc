@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { Check, Loader2, RotateCcw, Search, X } from "lucide-react";
 import WaitingLine from "./waiting-line";
+import { SendToWdc } from "./send-to-wdc";
 
 /**
  * The public domain checker at /tools/domain.
@@ -222,9 +222,10 @@ export default function DomainChecker() {
                 A name is only yours once it is registered, and it is registered in
                 your name, not ours.
               </p>
-              <Link className="pv-btn pv-btn--accent" href="/contact">
+              <SendToWdc topic="web" from="your domain check"
+                summary={`I checked some domain names on your site:\n${(rows ?? []).map((r) => `- ${r.domain}: ${r.status === "unknown" ? "unconfirmed" : r.status}`).join("\n")}\n\nCan you help me secure one?`}>
                 Ask us to secure one
-              </Link>
+              </SendToWdc>
             </div>
           </>
         )}

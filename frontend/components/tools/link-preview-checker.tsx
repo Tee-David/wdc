@@ -7,6 +7,7 @@ import type { Card, Finding, ImageFacts, Tags } from "@/lib/link-preview";
 import WaitingLine from "./waiting-line";
 
 import "./link-preview.css";
+import { SendToWdc } from "./send-to-wdc";
 
 /**
  * The link preview checker at /tools/link-preview.
@@ -252,9 +253,10 @@ export default function LinkPreviewChecker() {
                 every app anyone shares it in.
               </p>
               <div className="tl__stepActs">
-                <Link className="pv-btn pv-btn--accent" href="/contact">
+                <SendToWdc topic="social" from="your link preview check"
+                  summary={`Link preview check for ${result.url}:\n${result.findings.map((f) => `- ${f.label}: ${WORD[f.verdict]}`).join("\n")}\n\nCan you fix how it shows when shared?`}>
                   Ask us to fix it
-                </Link>
+                </SendToWdc>
                 <Link className="pv-btn pv-btn--light" href="/services/social">
                   See our social work
                 </Link>
