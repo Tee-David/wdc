@@ -21,12 +21,10 @@ async function fits(page: Page) {
     const vw = document.documentElement.clientWidth;
     const problems: string[] = [];
     if (document.documentElement.scrollWidth > vw) problems.push(`page is ${document.documentElement.scrollWidth}px in ${vw}px`);
-    for (const el of document.querySelectorAll<HTMLElement>(".ad__scroll")) {
-      const scrolls = /(auto|scroll)/.test(getComputedStyle(el).overflowX);
-      if (scrolls && el.scrollWidth > el.clientWidth + 1) problems.push(`a table scrolls sideways: ${el.scrollWidth}px in ${el.clientWidth}px`);
-    }
+    /* A table is the one thing allowed to be wider than the screen, inside
+       its own scroller (admin.css, "a table stays a table"). */
     for (const el of document.querySelectorAll<HTMLElement>(".ad__main .ad__panel *")) {
-      if (el.children.length || !el.textContent?.trim() || el.closest("thead")) continue;
+      if (el.children.length || !el.textContent?.trim() || el.closest("thead") || el.closest(".ad__scroll")) continue;
       const panel = el.closest(".ad__panel")!.getBoundingClientRect();
       const box = el.getBoundingClientRect();
       if (box.width && box.right > panel.right + 1) problems.push(`"${el.textContent.trim().slice(0, 30)}" runs past its panel`);
@@ -53,19 +51,23 @@ test.describe("admin and portal", () => {
     });
   }
 
-  test("a table row on a phone is a card whose lines name their column", async ({ page }) => {
-    await page.goto("/admin/money", { waitUntil: "load" });
-    /* The invoices table (the aging table this used to read became a bar
-       and a list in the redesign, and is no longer a table). */
+  test("a table on a phone stays a table: columns, a pinned first column, and a swipe", async ({ page }) => {
+    await page.goto("/admin/money", { waitUntil: "networkidle" });
     const invoices = page.locator(".ad__panel", { has: page.getByRole("heading", { name: "Invoices", exact: true }) });
-    const row = invoices.locator("tbody tr").first();
-    await expect(row.locator("td").nth(1)).toHaveAttribute("data-label", "Client");
-    await expect(row.locator("td").nth(2)).toHaveAttribute("data-label", "Status");
-    /* The header row is still there for a screen reader, just not drawn. */
+    const scroller = invoices.locator(".ad__scroll").first();
+    /* The header row is drawn, as on a desktop. */
+    await expect(invoices.locator("thead th").first()).toBeVisible();
     await expect(invoices.locator("thead th").first()).toHaveText("Number");
-    const pill = invoices.locator("tbody .ad__pill").first();
-    const [pillBox, panelBox] = [await pill.boundingBox(), await invoices.boundingBox()];
-    expect(pillBox!.x + pillBox!.width).toBeLessThanOrEqual(panelBox!.x + panelBox!.width);
+    /* There is more to the right, and it says so. */
+    await expect(scroller).toHaveAttribute("data-more", "");
+    const first = invoices.locator("tbody tr").first().locator("td").first();
+    expect(await first.evaluate((td) => getComputedStyle(td).position)).toBe("sticky");
+    const before = (await first.boundingBox())!.x;
+    await scroller.evaluate((el) => el.scrollTo({ left: el.scrollWidth }));
+    await expect(scroller).toHaveAttribute("data-scrolled", "");
+    await expect(scroller).not.toHaveAttribute("data-more", "");
+    /* The first column stayed where it was while the rest moved. */
+    expect(Math.abs((await first.boundingBox())!.x - before)).toBeLessThan(2);
   });
 });
 

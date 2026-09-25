@@ -34,7 +34,11 @@ test("client filters are useful, reversible, and keep their context", async ({ p
 
   await page.getByRole("link", { name: "Clear filters" }).click();
   await expect(page).toHaveURL(/\/admin\/clients(?:#client-list)?$/);
-  await expect(page.locator("#client-list + .ad__scroll tbody tr")).toHaveCount(5);
+  /* Every active client is back: however many the kept records hold, the
+     list shows the count its own header states. */
+  const stated = Number((await page.locator(".ad__listMeta span").first().innerText()).match(/\d+/)![0]);
+  expect(stated).toBeGreaterThanOrEqual(5);
+  await expect(page.locator("#client-list + .ad__scroll tbody tr")).toHaveCount(Math.min(stated, 25));
 
   const companySort = page.locator("th").getByRole("link", { name: "Client", exact: true });
   await expect(companySort).toHaveAttribute("href", /sort=company/);
@@ -58,9 +62,10 @@ test("client filters remain usable on a narrow screen", async ({ page }) => {
   });
   expect(pageOverflow).toEqual({ bodyWidth: 320, scrollX: 0 });
   const tableScroller = page.locator("#client-list + .ad__scroll");
-  /* A phone gets the table as labelled cards (components/admin/table-labels.tsx),
-     so nothing scrolls sideways, not even inside the table. */
-  expect(await tableScroller.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+  /* A phone keeps the table a table: it scrolls sideways inside its own box
+     (never the page, checked above), with the client column pinned. */
+  expect(await tableScroller.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+  expect(await tableScroller.locator("tbody td").first().evaluate((td) => getComputedStyle(td).position)).toBe("sticky");
 });
 
 test("client workspace keeps money, files, and related history together", async ({ page }) => {
