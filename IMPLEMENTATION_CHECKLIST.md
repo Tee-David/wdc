@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**98 open** (36 in progress)
+**97 open** (36 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -141,13 +141,14 @@ DONE 2026-09-25: My account (`/admin/settings/account`, every admin role, the "Y
 
 #### Privacy, visibility, system
 
+DONE 2026-09-25: the audit log is kept in the database (migration 0021, `lib/audit-db.ts`). `audit()` stays synchronous for its callers and writes through behind them; a read waits for this instance's writes in flight, and an entry whose insert failed stays in memory and is merged in, so it is never lost from view on that instance. Settings > Audit log filters by kind, person, Today/7/30/90 days/all time and words in the subject, action, note or the before and after; the filters live in the URL, the list is capped at 100 with the matched count, and it defaults to the last 30 days. The client and project pages read the same table. Pinned by `tests/audit-log.spec.ts` (4 cases). Also fixed a stale assertion in `tests/admin-clients.spec.ts`: phone tables are cards now, so the table must NOT scroll sideways.
+
 - [ ] (M) Retention rules per data type (drafts, enquiries, spam/Trash, invitations, email log, unsubscribed addresses, deactivated accounts), a daily batched job that anonymises or deletes, and one audit row per run with counts; money records excluded by design.
 - [ ] (M) Personal data request: look up an email across tables, export JSON/CSV, erase by anonymising personal fields, log the request.
 - [ ] (M) Maintenance mode: whole-site 503 with `Retry-After` and noindex, a reviewer share link, bypass for signed-in owner/staff, never blocking admin, portal, login, Paystack webhook, `/pay/*` and `/i/*`; shell notice; audited.
 - [ ] (M) System status: health probes (DB, applied migrations vs files, SMTP connect behind the response, bucket HEAD and CORS, recent webhook deliveries), environment info with "Copy report", background work (pending/failed outbox rows, last retention run).
 - [ ] (S) Tools panel: retry failed emails, purge expired invitations, re-verify media against R2, revalidate public pages; each audited and safe to run twice.
 - [ ] (S) "Check now" on each integration row where a cheap probe exists, showing the answer and its time rather than "working".
-- [ ] (S) Audit log section with filters by kind and actor, date presets and search; bounded with a count.
 - [ ] (S) Admin notices in the shell for persistent conditions (Paystack test mode, maintenance on, noindex on, failed emails today, unapplied migration), at most two at once, solid tone fills, dismissible per user by cookie.
 
 #### Blog as a CMS
