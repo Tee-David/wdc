@@ -6,6 +6,7 @@ import { Logo } from "@/components/brand/logo";
 import SignOutButton from "@/components/auth/sign-out-button";
 import { auth } from "@/lib/auth";
 import { doorFor, safeDestination } from "@/lib/roles";
+import { CONTACT_EMAIL } from "@/lib/site";
 import "../login/login.css";
 
 export const metadata: Metadata = {
@@ -70,7 +71,7 @@ export default async function SignedInPage({
             <div className="au__notice">
               <b>What you can do now</b>
               <span>
-                Email us at hello@wedigcreativity.com.ng and we will answer the
+                Email us at {CONTACT_EMAIL} and we will answer the
                 same working day. If you are mid-project, your WDC contact has
                 everything you need in the meantime.
               </span>

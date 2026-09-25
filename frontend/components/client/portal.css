@@ -234,3 +234,86 @@
   .pSup__when { display: none; }
 }
 .pProj__card[hidden], .pBill__cards [hidden], .pSup__list [hidden] { display: none; }
+
+/* ------------------------------------------------------ conversation --
+   PConversation.dc.html. */
+.pConv__crumbs { display: flex; align-items: center; gap: .4rem; min-width: 0; margin: 0 0 1rem; font-size: .88rem; color: var(--ad-dim); }
+.pConv__crumbs a { color: var(--ad-dim); }
+.pConv__crumbs svg { width: .9rem; height: .9rem; flex: none; }
+.pConv__crumbs [aria-current] { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ad-ink); font-weight: 600; }
+.pConv__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1.1rem 1.25rem; border-bottom: 1px solid var(--ad-line); }
+.pConv__head > div { min-width: 0; }
+.pConv__head h1 { margin: 0; font: 700 clamp(1.15rem, 2.2vw, 1.35rem)/1.25 var(--font-space-grotesk), system-ui, sans-serif; overflow-wrap: anywhere; }
+.pConv__head p { margin: .25rem 0 0; color: var(--ad-dim); font-size: .84rem; }
+.pConv__state { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: .6rem; }
+.pConv__close .ad__btn { min-height: 2.75rem; }
+@media (max-width: 559px) {
+  .pConv__head { flex-wrap: wrap; }
+  .pConv__state { width: 100%; flex-direction: row; justify-content: space-between; align-items: center; }
+}
+.pConv__none { margin: 0; padding: 1.25rem; }
+.pConv .adConv__reply { display: grid; gap: .6rem; }
+.pConv__about dl { width: 100%; margin: .2rem 0 0; display: grid; gap: .55rem; }
+.pConv__about dl > div { display: flex; justify-content: space-between; gap: 1rem; font-size: .86rem; }
+.pConv__about dt { color: var(--ad-dim); }
+.pConv__about dd { margin: 0; text-align: right; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+
+/* --------------------------------------------------------- settings --
+   PSettings.dc.html: profile beside notifications and sign-in. */
+.pSet { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 1000px) { .pSet { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.pSet__side { display: grid; gap: 1.25rem; min-width: 0; }
+.pSet__sub { margin: .85rem 1.25rem .2rem; font-size: .86rem; }
+.pSet__form { display: grid; gap: .9rem; padding: .6rem 1.25rem 1.25rem; }
+.pSet__fixed { display: grid; gap: .2rem; min-width: 0; }
+.pSet__fixed span { font-size: .86rem; font-weight: 600; }
+.pSet__fixed b { min-height: 2.75rem; padding: .6rem .8rem; display: flex; align-items: center; border: 1px solid var(--ad-line); border-radius: 10px; background: var(--ad-bg); font-weight: 500; overflow-wrap: anywhere; }
+.pSet__fixed small { color: var(--ad-dim); font-size: .8rem; }
+.pSet__act { display: flex; justify-content: flex-end; }
+.pSet__notify .pSet__act, .pSet__notify { padding-bottom: 1rem; }
+.pSet__notify .pSet__act { padding-inline: 1.25rem; }
+.pSet__rowIcon { flex: none; }
+.pSet__signin .adSR { justify-content: flex-start; }
+.pSet__signin .adSR__text { flex: 1; }
+
+/* ------------------------------------------------------- not linked --
+   PNotLinked.dc.html: one centred card with the two ways forward. */
+.pNL {
+  max-width: 35rem; margin: clamp(1rem, 8vh, 6rem) auto; padding: clamp(1.5rem, 4vw, 2.75rem);
+  display: grid; justify-items: center; gap: .9rem; text-align: center;
+}
+.pNL__icon {
+  width: 4.5rem; height: 4.5rem; display: grid; place-items: center; border-radius: 20px;
+  background: var(--ad-tone-brand); color: var(--ad-on-brand); box-shadow: 0 0 0 8px var(--ad-nav-on);
+}
+.pNL__icon svg { width: 1.6rem; height: 1.6rem; }
+.pNL h1 { margin: .6rem 0 0; font: 700 clamp(1.15rem, 2.4vw, 1.35rem)/1.3 var(--font-space-grotesk), system-ui, sans-serif; }
+.pNL p { margin: 0; max-width: 30rem; color: var(--ad-dim); font-size: .92rem; line-height: 1.6; }
+.pNL .ad__btn { margin-top: .4rem; max-width: 100%; overflow-wrap: anywhere; }
+.pNL .pNL__who { font-size: .82rem; }
+.pNL__who b { color: var(--ad-ink); font-weight: 600; overflow-wrap: anywhere; }
+.pNL__out {
+  min-height: 2.75rem; padding: 0 .25rem; border: 0; background: none; cursor: pointer;
+  color: var(--ad-ink); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 3px;
+}
+.pNL__out:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; border-radius: 4px; }
+
+/* ------------------------------------------------------ ask a question --
+   PNewTicket.dc.html, in place above the list. */
+.pAsk { margin-bottom: 1.25rem; }
+.pAsk__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1.1rem 1.25rem .4rem; }
+.pAsk__head h2 { margin: 0; font: 700 1.2rem var(--font-space-grotesk), system-ui, sans-serif; }
+.pAsk__head p { margin: .2rem 0 0; color: var(--ad-dim); font-size: .88rem; }
+.pAsk form { display: grid; gap: .9rem; padding: .6rem 1.25rem 1.25rem; }
+.pAsk__about { margin: 0; padding: 0; border: 0; display: flex; flex-wrap: wrap; gap: .5rem; min-width: 0; }
+.pAsk__about legend { width: 100%; margin-bottom: .45rem; padding: 0; font-size: .86rem; font-weight: 600; }
+.pAsk__chip {
+  position: relative; min-height: 2.75rem; padding: 0 1rem; display: inline-flex; align-items: center; gap: .4rem;
+  border: 1px solid var(--ad-line); border-radius: 99px; background: var(--ad-panel); font-size: .88rem; font-weight: 500; cursor: pointer;
+  max-width: 100%;
+}
+.pAsk__chip input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.pAsk__chip svg { width: 1rem; height: 1rem; flex: none; }
+.pAsk__chip.is-on { background: var(--ad-fill); border-color: var(--ad-fill); color: var(--ad-on-fill); }
+.pAsk__chip:has(input:focus-visible) { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.pAsk__foot { display: flex; justify-content: flex-end; gap: .6rem; padding-top: .9rem; border-top: 1px solid var(--ad-line); }
