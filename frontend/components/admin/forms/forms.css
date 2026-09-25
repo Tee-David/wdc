@@ -23,6 +23,17 @@
 .adForms__clip { max-width: 22rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .adForms__star { width: 14px; height: 14px; margin-right: .3rem; vertical-align: -2px; fill: currentColor; }
 
+/* The date range and the list's tools, in a row of their own under the
+   search form: the range is a form, and a form cannot sit inside another. */
+.adForms__range { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; padding: .75rem 1rem; border-bottom: 1px solid var(--ad-line); }
+.adForms__range .ad__range { position: static; }
+.adForms__range .ad__rangeMenu { left: 1rem; top: calc(100% - .35rem); }
+.adForms__range > .ad__row { margin-left: auto; }
+@media (max-width: 560px) {
+  .adForms__range > * { flex: 1 1 100%; }
+  .adForms__range .ad__range > summary { width: 100%; justify-content: space-between; }
+  .adForms__range > .ad__row { margin-left: 0; }
+}
 .adForms__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem; padding: .8rem 1rem; border-top: 1px solid var(--ad-line); }
 
 .adForms__cols { position: relative; }

@@ -197,7 +197,8 @@ export async function listForRecord(id: string, limit = 30): Promise<LoggedMessa
 
 /* ------------------------------------------------ the email log screen */
 
-export type LogQuery = { q: string; state: "" | MessageState; page: number; per: number };
+/** `from` and `to` are Lagos calendar days (YYYY-MM-DD); `to` includes the whole day. */
+export type LogQuery = { q: string; state: "" | MessageState; page: number; per: number; from?: string; to?: string };
 
 /**
  * One page of the log, newest first, with the total that matched.
@@ -222,6 +223,10 @@ export async function searchLogged(query: LogQuery): Promise<{ rows: LoggedMessa
     where.push(`(to_addr ILIKE $${args.length} OR subject ILIKE $${args.length} OR summary ILIKE $${args.length})`);
   }
   if (query.state) { args.push(query.state); where.push(`state = $${args.length}`); }
+  /* Lagos is UTC+1 all year, so a Lagos day starts at 23:00 UTC the day before. */
+  const DAY = /^\d{4}-\d{2}-\d{2}$/;
+  if (query.from && DAY.test(query.from)) { args.push(`${query.from}T00:00:00+01:00`); where.push(`created_at >= $${args.length}::TIMESTAMPTZ`); }
+  if (query.to && DAY.test(query.to)) { args.push(`${query.to}T00:00:00+01:00`); where.push(`created_at < $${args.length}::TIMESTAMPTZ + INTERVAL '1 day'`); }
   const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
   const rows = await db.query<Row>(
     `SELECT * FROM message_log ${clause} ORDER BY created_at DESC, id DESC LIMIT ${query.per} OFFSET ${(query.page - 1) * query.per}`, args,
