@@ -58,9 +58,18 @@ export default async function AdminLayout({ children }: { children: React.ReactN
      say what is waiting before you go looking for it. */
   /* Unread entries across the forms: what arrived that nobody has opened.
      A database that does not answer shows no badge rather than a wrong one. */
-  const open = await unreadTotal().catch(() => 0);
+  /* A count that could not be read is remembered as such, so the bell can say
+     "could not check" rather than "all caught up" over a database that is
+     down. */
+  const openRead = await unreadTotal().catch(() => null);
+  const open = openRead ?? 0;
   /* Emails that did not go, for the bell: the owner's to deal with. */
-  const failedMail = role === "owner" ? await failedLoggedCount().catch(() => 0) : 0;
+  const failedRead = role === "owner" ? await failedLoggedCount().catch(() => null) : 0;
+  const failedMail = failedRead ?? 0;
+  /* Only a database that is set up and did not answer; a site run without one
+     has nothing to check. */
+  const hasDb = Boolean(process.env.DATABASE_URL || process.env.COCKROACHDB_URL);
+  const unchecked = hasDb && (openRead === null || failedRead === null) ? 1 : 0;
   /* Posts staff submitted, waiting on the owner to publish or send back. */
   const inReview = role === "owner" && (process.env.DATABASE_URL || process.env.COCKROACHDB_URL) ? await reviewCount().catch(() => 0) : 0;
   /* Standing conditions: the site hidden from search, test payments on the
@@ -71,7 +80,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="ad">
       <AdminTourProvider role={role}>
         <AdminShell
-          counts={{ Forms: open, FailedMail: failedMail, Blog: inReview }}
+          counts={{ Forms: open, FailedMail: failedMail, Blog: inReview, Unchecked: unchecked }}
           user={{ name: session.user.name, email: session.user.email, image: session.user.image }}
           role={role}
         >
