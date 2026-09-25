@@ -31,9 +31,11 @@ function pool() {
 
 const db = pool();
 const MESSAGE = `Moving house, back soon ${randomUUID().slice(0, 6)}`;
+const WAITING = `waiting-${randomUUID().slice(0, 8)}@example.com`;
 
 test.afterAll(async ({ playwright, baseURL }) => {
   await db.query("DELETE FROM app_settings WHERE key = 'site.maintenance'");
+  await db.query("DELETE FROM maintenance_waitlist WHERE email = $1", [WAITING]);
   /* Nothing after this file may find the site down. */
   const r = await playwright.request.newContext({ baseURL });
   await expect.poll(async () => (await r.get("/")).status(), { timeout: 45_000, intervals: [2_000] }).toBe(200);
@@ -66,6 +68,15 @@ test("switched on, visitors get a 503 holding page and the rest keeps working", 
   expect(home.headers()["x-robots-tag"]).toBe("noindex");
   expect(await home.text()).toContain(MESSAGE);
   expect(await status(visitor, "/work")).toBe(503);
+  /* the template chosen in Settings, Site, and its notify-me box */
+  expect(await home.text()).toMatch(/<body data-template="\d{2}">/);
+  const origin = new URL(baseURL ?? "http://localhost:3100").origin;
+  const joined = await visitor.post("/api/maintenance/notify", { data: { email: WAITING }, headers: { origin } });
+  expect(joined.status()).toBe(200);
+  const answered = await visitor.post("/api/maintenance/notify", { data: { email: WAITING, reason: "project" }, headers: { origin } });
+  expect(answered.status()).toBe(200);
+  const row = await db.query("SELECT reason FROM maintenance_waitlist WHERE email = $1", [WAITING]);
+  expect(row.rows[0]?.reason).toBe("project");
 
   /* Never in the way: signing in, the webhook, money a client is paying, files. */
   expect(await status(visitor, "/login")).toBe(200);

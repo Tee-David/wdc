@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored, minified third-party builds served as static files.
+    "public/maintenance/*.min.js",
   ]),
 ]);
 

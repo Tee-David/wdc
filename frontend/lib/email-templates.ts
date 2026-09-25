@@ -1405,3 +1405,38 @@ The WDC team`),
  * link. Build the body from these blocks and pass it to `composeEmailHtml`.
  */
 export { shell as composeEmailHtml, p as emailP, small as emailSmall, action as emailButton, panel as emailPanel };
+
+/* ====================================================== maintenance: back */
+
+/**
+ * The one message a maintenance "notify me" sign-up asked for.
+ *
+ * NO UNSUBSCRIBE, and nothing to unsubscribe from: the address was given for
+ * this message alone and is deleted once it is sent, which the message says.
+ */
+export function backOnlineEmail(): Email {
+  const url = SITE_URL;
+  return {
+    subject: "We Dig Creativity is back online",
+    text: textShell(`Hello,
+
+You asked us to tell you when our site was back. It is:
+
+${url}
+
+This was the only message about it. We have deleted your address from
+that list, so you will not hear from us again unless you get in touch.
+
+The WDC team`),
+    html: shell({
+      title: "We are back online",
+      preheader: "You asked us to tell you when the site was back. It is.",
+      heading: "We are back online.",
+      blocks: [
+        p("You asked us to tell you when our site was back. It is."),
+        action("Visit the site", url),
+        small("This was the only message about it. We have deleted your address from that list, so you will not hear from us again unless you get in touch."),
+      ],
+    }),
+  };
+}
