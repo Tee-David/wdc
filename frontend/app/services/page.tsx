@@ -9,6 +9,7 @@ import { COMPANY_NAME, SITE_URL } from "@/lib/site";
 
 import "@/components/preview/preview.css";
 import "@/components/work/work.css";
+import { hydrateCaseStudies } from "@/lib/work-db";
 
 export const metadata: Metadata = {
   /* Not "Services". The template appends the brand, so the first and most
@@ -73,7 +74,8 @@ const breadcrumbJsonLd = {
   ],
 };
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  await hydrateCaseStudies();
   return (
     <>
       <Header overHero />
