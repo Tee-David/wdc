@@ -8,6 +8,8 @@ import { DemoNote, Empty, Panel, when } from "@/components/admin/bits";
 import { AddClient } from "@/components/admin/client-form";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { ClientMenu } from "@/components/admin/row-actions";
+import { Pager, readPer } from "@/components/admin/pager";
+import { DateRange } from "@/components/admin/date-range";
 
 export const metadata = { title: "Clients" };
 
@@ -26,9 +28,13 @@ type ClientQuery = {
   sort?: string;
   dir?: string;
   page?: string;
+  per?: string;
+  /* Client since, as Lagos calendar days; `to` includes the whole day. */
+  from?: string;
+  to?: string;
 };
 
-const PAGE_SIZE = 10;
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 const SORTS = ["company", "projects", "owed", "since"] as const;
 type ClientSort = (typeof SORTS)[number];
 
@@ -53,6 +59,9 @@ export default async function ClientsPage({
   const money = can(role, "money");
   const exportable = can(role, "exports");
   const search = query.q?.trim().toLocaleLowerCase() ?? "";
+  const per = readPer(query.per);
+  const from = query.from && DAY_RE.test(query.from) ? query.from : undefined;
+  const to = query.to && DAY_RE.test(query.to) ? query.to : undefined;
   const service = SERVICES.find((item) => item.slug === query.service)?.slug;
   const status = query.status === "archived" || query.status === "all" ? query.status : "active";
   const sort: ClientSort = SORTS.includes(query.sort as ClientSort) && (money || query.sort !== "owed") ? query.sort as ClientSort : "since";
@@ -64,6 +73,7 @@ export default async function ClientsPage({
   const rows = source
     .filter((client) => status !== "archived" || client.archived)
     .filter((client) => !service || client.services.includes(service))
+    .filter((client) => (!from || client.since.slice(0, 10) >= from) && (!to || client.since.slice(0, 10) <= to))
     .filter((client) => !search || [client.company, client.name, client.email, client.sector,
       ...(client.tags ?? []), ...(client.contacts ?? []).flatMap((x) => [x.name, x.email ?? ""])]
       .some((value) => value.toLocaleLowerCase().includes(search)))
@@ -82,17 +92,17 @@ export default async function ClientsPage({
       return order * a.client.since.localeCompare(b.client.since);
     });
   const requestedPage = Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1);
-  const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(rows.length / per));
   const page = Math.min(requestedPage, pageCount);
-  const clients = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const hasFilters = Boolean(search || service || status !== "active");
+  const clients = rows.slice((page - 1) * per, page * per);
+  const hasFilters = Boolean(search || service || status !== "active" || from || to);
   const sortHref = (column: ClientSort) => queryHref(query, {
     sort: column,
     dir: sort === column ? direction === "asc" ? "desc" : "asc" : column === "company" ? "asc" : "desc",
     page: undefined,
   });
   const exportParams = new URLSearchParams();
-  for (const key of ["q", "service", "status", "sort", "dir"] as const) {
+  for (const key of ["q", "service", "status", "sort", "dir", "from", "to"] as const) {
     if (query[key]) exportParams.set(key, query[key]);
   }
   const exportHref = `/admin/clients/export${exportParams.size ? `?${exportParams}` : ""}`;
@@ -144,7 +154,10 @@ export default async function ClientsPage({
         </Panel>
 
         <Panel title="Everyone">
-          <form className="ad__filterBar" method="get" action="/admin/clients#client-list" aria-label="Filter clients" data-tour="clients-filters">
+          <div className="ad__filterBar" data-tour="clients-filters">
+          {/* The range is its own form, so it sits beside this one rather
+              than inside it: a form inside a form is invalid HTML. */}
+          <form className="ad__filterForm" method="get" action="/admin/clients#client-list" aria-label="Filter clients">
             <label className="ad__filterSearch">
               <span className="ad__sr">Search clients</span>
               <input name="q" type="search" defaultValue={query.q} placeholder="Search name, company, email, sector or tag" />
@@ -164,13 +177,23 @@ export default async function ClientsPage({
                 <option value="all">All statuses</option>
               </select>
             </label>
+            {from ? <input type="hidden" name="from" value={from} /> : null}
+            {to ? <input type="hidden" name="to" value={to} /> : null}
+            {query.per ? <input type="hidden" name="per" value={per} /> : null}
             <button className="ad__btn ad__btn--primary" type="submit">Apply</button>
+          </form>
+            <DateRange
+              label="Client since"
+              value={{ from, to }}
+              href={(r) => queryHref(query, { from: r.from, to: r.to, page: undefined })}
+              keep={{ q: query.q, service: query.service, status: query.status, sort: query.sort, dir: query.dir, per: query.per }}
+              action="/admin/clients#client-list"
+            />
             {hasFilters ? <Link className="ad__btn" href="/admin/clients#client-list">Clear</Link> : null}
             {exportable ? <a className="ad__btn" href={exportHref}>Export CSV</a> : null}
-          </form>
+          </div>
           <div className="ad__listMeta" id="client-list" aria-live="polite">
             <span>{rows.length} {rows.length === 1 ? "client" : "clients"}</span>
-            {pageCount > 1 ? <span>Page {page} of {pageCount}</span> : null}
           </div>
           <div className="ad__scroll">
             <table className="ad__t">
@@ -226,12 +249,18 @@ export default async function ClientsPage({
                 : "Add the first person or business you work with, then connect their projects, forms, and invoices."}
             </Empty>
           )}
-          {pageCount > 1 ? (
-            <nav className="ad__pagination" aria-label="Client pages">
-              {page > 1 ? <Link className="ad__btn" href={queryHref(query, { page: String(page - 1) })}>Previous</Link> : <span />}
-              <span>Page {page} of {pageCount}</span>
-              {page < pageCount ? <Link className="ad__btn" href={queryHref(query, { page: String(page + 1) })}>Next</Link> : <span />}
-            </nav>
+          {rows.length ? (
+            <Pager
+              label="Client pages"
+              total={rows.length}
+              page={page}
+              per={per}
+              noun={rows.length === 1 ? "client" : "clients"}
+              href={(patch) => queryHref(query, {
+                page: patch.page && patch.page > 1 ? String(patch.page) : undefined,
+                per: patch.per ? String(patch.per) : query.per,
+              })}
+            />
           ) : null}
         </Panel>
       </div>

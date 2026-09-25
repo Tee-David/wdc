@@ -15,12 +15,15 @@ import {
   EstimateMenu, ExpenseMenu, InvoiceMenu, PaymentMenu,
 } from "@/components/admin/row-actions";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
+import { Pager, readPer } from "@/components/admin/pager";
+import { DateRange } from "@/components/admin/date-range";
 
 export const metadata = { title: "Money" };
 
-type MoneyQuery = { q?: string; status?: string; sort?: string; dir?: string; page?: string };
+/* `from` and `to` are the invoice's issue date, as Lagos calendar days. */
+type MoneyQuery = { q?: string; status?: string; sort?: string; dir?: string; page?: string; per?: string; from?: string; to?: string };
 
-const PAGE_SIZE = 10;
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 const INVOICE_SORTS = ["number", "client", "due", "total", "owed"] as const;
 type InvoiceSort = (typeof INVOICE_SORTS)[number];
 
@@ -73,6 +76,9 @@ export default async function MoneyPage({
 
   const search = query.q?.trim().toLocaleLowerCase() ?? "";
   const statusFilter = query.status ?? "";
+  const per = readPer(query.per);
+  const from = query.from && DAY_RE.test(query.from) ? query.from : undefined;
+  const to = query.to && DAY_RE.test(query.to) ? query.to : undefined;
   const sort: InvoiceSort = INVOICE_SORTS.includes(query.sort as InvoiceSort) ? query.sort as InvoiceSort : "due";
   const direction = query.dir === "asc" || query.dir === "desc"
     ? query.dir
@@ -80,6 +86,7 @@ export default async function MoneyPage({
   const invoiceRows = allInvoices
     .map((invoice) => ({ invoice, client: getClient(invoice.clientId), computedStatus: invoiceStatus(invoice), totals: invoiceTotals(invoice) }))
     .filter(({ computedStatus }) => !statusFilter || computedStatus === statusFilter)
+    .filter(({ invoice }) => (!from || invoice.issued.slice(0, 10) >= from) && (!to || invoice.issued.slice(0, 10) <= to))
     .filter(({ invoice, client }) => !search
       || invoice.number.toLocaleLowerCase().includes(search)
       || (client?.company ?? "").toLocaleLowerCase().includes(search))
@@ -91,18 +98,18 @@ export default async function MoneyPage({
       if (sort === "owed") return order * (a.totals.due - b.totals.due);
       return order * a.invoice.due.localeCompare(b.invoice.due);
     });
-  const hasInvoiceFilters = Boolean(search || statusFilter);
+  const hasInvoiceFilters = Boolean(search || statusFilter || from || to);
   const requestedPage = Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1);
-  const invoicePageCount = Math.max(1, Math.ceil(invoiceRows.length / PAGE_SIZE));
+  const invoicePageCount = Math.max(1, Math.ceil(invoiceRows.length / per));
   const invoicePage = Math.min(requestedPage, invoicePageCount);
-  const invoices = invoiceRows.slice((invoicePage - 1) * PAGE_SIZE, invoicePage * PAGE_SIZE);
+  const invoices = invoiceRows.slice((invoicePage - 1) * per, invoicePage * per);
   const invoiceSortHref = (column: InvoiceSort) => queryHref(query, {
     sort: column,
     dir: sort === column ? direction === "asc" ? "desc" : "asc" : column === "number" || column === "client" ? "asc" : "desc",
     page: undefined,
   });
   const invoiceExportParams = new URLSearchParams();
-  for (const key of ["q", "status", "sort", "dir"] as const) {
+  for (const key of ["q", "status", "sort", "dir", "from", "to"] as const) {
     if (query[key]) invoiceExportParams.set(key, query[key]);
   }
   const invoiceExportHref = `/admin/money/export${invoiceExportParams.size ? `?${invoiceExportParams}` : ""}`;
@@ -353,7 +360,8 @@ export default async function MoneyPage({
         </Panel>
 
         <Panel title="Invoices">
-          <form className="ad__filterBar" method="get" action="/admin/money#invoice-list" aria-label="Filter invoices" data-tour="money-invoice-filters">
+          <div className="ad__filterBar" data-tour="money-invoice-filters">
+          <form className="ad__filterForm" method="get" action="/admin/money#invoice-list" aria-label="Filter invoices">
             <label className="ad__filterSearch">
               <span className="ad__sr">Search invoices</span>
               <input name="q" type="search" defaultValue={query.q} placeholder="Search number or client" />
@@ -367,13 +375,23 @@ export default async function MoneyPage({
                 ))}
               </select>
             </label>
+            {from ? <input type="hidden" name="from" value={from} /> : null}
+            {to ? <input type="hidden" name="to" value={to} /> : null}
+            {query.per ? <input type="hidden" name="per" value={per} /> : null}
             <button className="ad__btn ad__btn--primary" type="submit">Apply</button>
+          </form>
+            <DateRange
+              label="Issued"
+              value={{ from, to }}
+              href={(r) => queryHref(query, { from: r.from, to: r.to, page: undefined })}
+              keep={{ q: query.q, status: query.status, sort: query.sort, dir: query.dir, per: query.per }}
+              action="/admin/money#invoice-list"
+            />
             {hasInvoiceFilters ? <Link className="ad__btn" href="/admin/money#invoice-list">Clear</Link> : null}
             <a className="ad__btn" href={invoiceExportHref}>Export CSV</a>
-          </form>
+          </div>
           <div className="ad__listMeta" id="invoice-list" aria-live="polite">
             <span>{invoiceRows.length} {invoiceRows.length === 1 ? "invoice" : "invoices"}</span>
-            {invoicePageCount > 1 ? <span>Page {invoicePage} of {invoicePageCount}</span> : null}
           </div>
           {invoices.length ? (
             <div className="ad__scroll">
@@ -428,12 +446,18 @@ export default async function MoneyPage({
                 : "Create the first invoice to track what is billed, paid, and still outstanding."}
             </Empty>
           )}
-          {invoicePageCount > 1 ? (
-            <nav className="ad__pagination" aria-label="Invoice pages">
-              {invoicePage > 1 ? <Link className="ad__btn" href={queryHref(query, { page: String(invoicePage - 1) })}>Previous</Link> : <span />}
-              <span>Page {invoicePage} of {invoicePageCount}</span>
-              {invoicePage < invoicePageCount ? <Link className="ad__btn" href={queryHref(query, { page: String(invoicePage + 1) })}>Next</Link> : <span />}
-            </nav>
+          {invoiceRows.length ? (
+            <Pager
+              label="Invoice pages"
+              total={invoiceRows.length}
+              page={invoicePage}
+              per={per}
+              noun={invoiceRows.length === 1 ? "invoice" : "invoices"}
+              href={(patch) => queryHref(query, {
+                page: patch.page && patch.page > 1 ? String(patch.page) : undefined,
+                per: patch.per ? String(patch.per) : query.per,
+              })}
+            />
           ) : null}
         </Panel>
 

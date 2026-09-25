@@ -23,12 +23,17 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const search = url.searchParams.get("q")?.trim().toLocaleLowerCase() ?? "";
+  /* The list's date range, so an export is what the screen showed. */
+  const day = (k: string) => { const v = url.searchParams.get(k) ?? ""; return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : ""; };
+  const from = day("from");
+  const to = day("to");
   const statusParam = url.searchParams.get("status");
   const status = STATUSES.includes(statusParam as InvoiceStatus) ? (statusParam as InvoiceStatus) : null;
 
   const rows = getInvoices()
     .map((invoice) => ({ invoice, client: getClient(invoice.clientId), computed: invoiceStatus(invoice) }))
     .filter(({ computed }) => !status || computed === status)
+    .filter(({ invoice }) => (!from || invoice.issued.slice(0, 10) >= from) && (!to || invoice.issued.slice(0, 10) <= to))
     .filter(({ invoice, client }) => !search
       || invoice.number.toLocaleLowerCase().includes(search)
       || (client?.company ?? "").toLocaleLowerCase().includes(search))
