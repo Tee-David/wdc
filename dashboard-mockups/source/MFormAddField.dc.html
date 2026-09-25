@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin mobile · Add a field</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="m root lt" style="width: 390px; height: 844px;">
+  <dc-import name="MFormBuild" hint-size="390px,1300px"></dc-import>
+  <div class="scrim"></div>
+  <div class="sheet" role="dialog" aria-label="Add a field" style="top: 96px;">
+    <div class="grab"></div>
+    <div class="sh"><h2>Add to “Needs”</h2><a class="ibtn" href="MFormBuild.dc.html" aria-label="Close"><span class="ic i-x"></span></a></div>
+    <div style="padding: 0 20px 4px;"><label class="inp" style="height: 44px;"><span class="ic i-search s16 dim"></span><span style="color: #6e7090;">Find a field</span></label></div>
+    <div class="sb" style="flex: 1; min-height: 0; overflow: auto; padding-top: 14px; padding-bottom: 34px;">
+      <div class="xs dim b" style="text-transform: uppercase; letter-spacing: .08em;">Basic</div><div class="grid c2" style="gap: 8px;"><a class="fb-type" href="MFormField.dc.html" style="min-height: 52px; flex-direction: row; align-items: center; gap: 10px; font-size: 13.5px;"><span class="tile "><span class="ic i-type s14"></span></span>Short text</a><a class="fb-type" href="MFormField.dc.html" style="min-height: 52px; flex-direction: row; align-items: center; gap: 10px; font-size: 13.5px;"><span class="tile "><span class="ic i-align s14"></span></span>Long text</a><a class="fb-type" href="MFormField.dc.html" style="min-height: 52px; flex-direction: row; align-items: center; gap: 10px; font-size: 13.5px;"><span class="tile "><span class="ic i-mail s14"></span></span>Email</a><a class="fb-type" href="MFormField.dc.html" style="min-height: 52px; flex-direction: row; align-items: center; gap: 10px; font-size: 13.5px;"><span class="tile "><span class="ic i-phone s14"></span></span>Phone</a><a class="fb-type" href="MFormField.dc.html" style="min-height: 52px; flex-direction: row; align-items: center; gap: 10px; font-size: 13.5px;"><span class="tile "><span class="ic i-hash s14"></span></span>Number</a><a class="fb-type" href="MFormField.dc.html" style="min-height: 52px; flex-direction: row; align-items: center; gap: 10px; font-size: 13.5px;"><span class="tile "><span class="ic i-cal s14"></span></span>Date</a><a class="fb-type" href="MFormField.dc.html" style="min-height: 52px; flex-direction: row; align-items: center; gap: 10px; font-size: 13.5px;"><span class="tile "><span class="ic i-link s14"></span></span>Website link</a><a class="fb-type" href="MFormField.dc.html" style="min-height: 52px; flex-direction: row; align-items: center; gap: 10px; font-size: 13.5px;"><span class="tile "><span class="ic i-mappin s14"></span></span>Address</a></div>
+      <div class="xs dim b" style="text-transform: uppercase; letter-spacing: .08em;">Choices</div><div class="grid c2" style="gap: 8px;"><a class="fb-type" href="MFormField.dc.html" style="min-height: 52px; flex-direction: row; align-items: center; gap: 10px; font-size: 13.5px;"><span class="tile live"><span class="ic i-radio s14"></span></span>Single choice</a><a class="fb-type" href="MFormField.dc.html" style="min-height: 52px; flex-direction: row; align-items: center; gap: 10px; font-size: 13.5px;"><span class="tile live"><span class="ic i-checksq s14"></span></span>Checkboxes</a><a class="fb-type" href="MFormField.dc.html" style="min-height: 52px; flex-direction: row; align-items: center; gap: 10px; font-size: 13.5px;"><span class="tile live"><span class="ic i-dropdown s14"></span></span>Dropdown</a><a class="fb-type" href="MFormField.dc.html" style="min-height: 52px; flex-direction: row; align-items: center; gap: 10px; font-size: 13.5px;"><span class="tile live"><span class="ic i-search s14"></span></span>Searchable list</a></div>
+      <div class="xs dim b" style="text-transform: uppercase; letter-spacing: .08em;">More</div><div class="grid c2" style="gap: 8px;"><a class="fb-type" href="MFormField.dc.html" style="min-height: 52px; flex-direction: row; align-items: center; gap: 10px; font-size: 13.5px;"><span class="tile good"><span class="ic i-up s14"></span></span>File upload</a><a class="fb-type" href="MFormField.dc.html" style="min-height: 52px; flex-direction: row; align-items: center; gap: 10px; font-size: 13.5px;"><span class="tile good"><span class="ic i-shield s14"></span></span>Consent</a><a class="fb-type" href="MFormField.dc.html" style="min-height: 52px; flex-direction: row; align-items: center; gap: 10px; font-size: 13.5px;"><span class="tile neu"><span class="ic i-layers s14"></span></span>New step</a><a class="fb-type" href="MFormField.dc.html" style="min-height: 52px; flex-direction: row; align-items: center; gap: 10px; font-size: 13.5px;"><span class="tile neu"><span class="ic i-heading s14"></span></span>Heading and text</a></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

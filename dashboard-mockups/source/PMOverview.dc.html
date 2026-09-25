@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Portal mobile · Overview</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="m root lt" style="width: 390px; height: 1500px;">
+  <dc-import name="MTop" client="{{yes}}" initials="TA" hint-size="390px,64px"></dc-import>
+  <main class="m-page">
+    <div class="m-ph">
+      <div class="eyebrow">Moore Designs</div>
+      <h1 style="margin-top: 4px;">Good afternoon, Tobi</h1>
+      <p class="lede">Here is where things stand on your projects with us today.</p>
+    </div>
+
+    <div class="card" style="padding: 18px; background: #000065; border-color: #000065; color: #fff;">
+      <div class="row g10"><span class="tile live"><span class="ic i-file s16"></span></span><div class="grow"><div class="b" style="color: #fff;">Your pick is needed</div><div class="xs" style="color: #d4d6f5;">Identity routes v2 · sent 8 Sep</div></div></div>
+      <p class="sm" style="margin-top: 12px !important; color: #e4e6fa; line-height: 1.5;">Three routes are ready. Your pick sets the next step, and the shop build waits on it.</p>
+      <a class="btn full" href="PMProject.dc.html" style="margin-top: 14px; background: #fff; color: #000065; border-color: #fff;">Review the routes<span class="ic i-arrow s16"></span></a>
+    </div>
+
+    <div class="grid c2" style="gap: 12px;">
+      <div class="card kpi" style="padding: 14px; gap: 6px;"><div class="note xs">Active projects</div><div class="val" style="font-size: 22px;">2</div></div>
+      <div class="card kpi" style="padding: 14px; gap: 6px;"><div class="note xs">Balance owed</div><div class="val" style="font-size: 22px;">₦330k</div><div class="note xs">Due 30 Sep</div></div>
+    </div>
+
+    <div class="card" style="padding: 16px;">
+      <div class="ch" style="margin-bottom: 8px;"><h3>Needs your attention</h3></div>
+      <div class="col g10">
+        <a class="attn" href="PMInvoice.dc.html" style="padding: 12px;"><span class="tile sm warn"><span class="ic i-receipt s14"></span></span><div class="grow"><div class="b sm">₦330,000 left on INV-2026-001</div><div class="xs dim">Due Wed 30 Sep</div></div><span class="btn s sm">Pay</span></a>
+        <a class="attn" href="PMConversation.dc.html" style="padding: 12px;"><span class="tile sm"><span class="ic i-chat s14"></span></span><div class="grow"><div class="b sm">Babatope replied</div><div class="xs dim">About the shop launch date</div></div><span class="ic i-right s16 dim"></span></a>
+      </div>
+    </div>
+
+    <div class="card flush">
+      <div class="ch" style="padding: 16px 16px 0; margin-bottom: 6px;"><h3>Your projects</h3><a class="linkbtn" href="PMProjects.dc.html">All</a></div>
+      <a class="mcard-row" href="PMProject.dc.html" style="flex-direction: column; align-items: stretch; gap: 10px;">
+        <div class="row sp"><b>Identity system</b><span class="pill live">Review</span></div>
+        <div class="steps" style="gap: 4px;"><div class="st done"><i></i></div><div class="st done"><i></i></div><div class="st done"><i></i></div><div class="st now"><i></i></div><div class="st"><i></i></div><div class="st"><i></i></div></div>
+        <div class="xs dim">Stage 4 of 6 · due 26 Sep</div>
+      </a>
+      <a class="mcard-row" href="PMProject.dc.html" style="flex-direction: column; align-items: stretch; gap: 10px;">
+        <div class="row sp"><b>Shop rebuild</b><span class="pill flat">Onboarding</span></div>
+        <div class="steps" style="gap: 4px;"><div class="st now"><i></i></div><div class="st"><i></i></div><div class="st"><i></i></div><div class="st"><i></i></div><div class="st"><i></i></div><div class="st"><i></i></div></div>
+        <div class="xs dim">Stage 1 of 6 · date to be agreed</div>
+      </a>
+    </div>
+
+    <div class="card" style="padding: 16px;">
+      <div class="ch" style="margin-bottom: 10px;"><h3>Recent updates</h3></div>
+      <div class="tl">
+        <div class="ti"><span class="dotc o"><span class="ic i-send s14"></span></span><div><div class="sm b">Three identity routes sent</div><div class="xs dim">8 Sep</div></div></div>
+        <div class="ti"><span class="dotc b"><span class="ic i-folder s14"></span></span><div><div class="sm b">Shop rebuild opened</div><div class="xs dim">9 Sep</div></div></div>
+        <div class="ti"><span class="dotc g"><span class="ic i-check s14"></span></span><div><div class="sm b">You approved the moodboard</div><div class="xs dim">22 Aug</div></div></div>
+      </div>
+    </div>
+  </main>
+  <a class="fab" href="PMNewTicket.dc.html"><span class="ic i-chat s20"></span>Ask a question</a>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 15;"><dc-import name="MTabs" portal="{{yes}}" active="overview" hint-size="390px,84px"></dc-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() { return { yes: true }; }
+}
+</script>
+</body>
+</html>

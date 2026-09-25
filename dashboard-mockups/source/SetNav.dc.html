@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Settings section menu</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<nav class="card nav" aria-label="Settings sections" style="width: 250px; height: 760px; padding: 10px; font-family: var(--ff-b); color: var(--ink); gap: 2px;">
+  <sc-for list="{{groups}}" as="g" hint-placeholder-count="5">
+    <div class="navlabel" style="padding: 12px 12px 4px;">{{g.label}}</div>
+    <sc-for list="{{g.items}}" as="it" hint-placeholder-count="2">
+      <a href="{{it.href}}" class="{{it.cls}}" style="height: 40px; font-size: 14px;"><span class="ic {{it.icon}} s16"></span><span>{{it.label}}</span><sc-if value="{{it.hasPill}}" hint-placeholder-val="{{false}}"><span class="pill {{it.pillCls}}" style="margin-left: auto; height: 20px; padding: 0 7px; font-size: 11px;">{{it.pill}}</span></sc-if></a>
+    </sc-for>
+  </sc-for>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"enum","options":["overview","account","business","team","invoicing","site","content","email","privacy","system","audit"],"default":"overview"},"$preview":{"width":250,"height":760}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const a = this.props.active ?? 'overview';
+    const it = (key, label, icon, href, pill, pillCls) => ({ label, icon, href, cls: a === key ? 'on' : '', hasPill: !!pill, pill: pill || '', pillCls: pillCls || 'flat' });
+    return {
+      groups: [
+        { label: 'Settings', items: [it('overview', 'Overview', 'i-grid', 'Settings.dc.html')] },
+        { label: 'You', items: [it('account', 'My account', 'i-user', 'SettingsAccount.dc.html')] },
+        { label: 'Studio', items: [
+          it('business', 'Business profile', 'i-home', 'SettingsBusiness.dc.html'),
+          it('team', 'Team and access', 'i-users', 'SettingsTeam.dc.html', '1', 'warn'),
+          it('invoicing', 'Invoicing and payments', 'i-receipt', 'SettingsInvoicing.dc.html'),
+        ] },
+        { label: 'Website', items: [
+          it('site', 'Site and SEO', 'i-globe', 'SettingsSite.dc.html'),
+          it('content', 'Content', 'i-news', 'SettingsContent.dc.html'),
+        ] },
+        { label: 'Messages', items: [it('email', 'Email', 'i-mail', 'SettingsEmail.dc.html', '1 failed', 'bad')] },
+        { label: 'Data and system', items: [
+          it('privacy', 'Privacy and retention', 'i-shield', 'SettingsPrivacy.dc.html'),
+          it('system', 'System status', 'i-activity', 'SettingsSystem.dc.html'),
+          it('audit', 'Audit log', 'i-list', 'SettingsAudit.dc.html'),
+        ] },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1689 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-09-24T12:00:00Z"
+  },
+  "title": "WDC Dashboards Redesign",
+  "launch": {
+    "view": "canvas",
+    "page": "admin-desktop"
+  },
+  "pages": [
+    {
+      "id": "admin-desktop",
+      "name": "Admin · desktop"
+    },
+    {
+      "id": "admin-mobile",
+      "name": "Admin · mobile"
+    },
+    {
+      "id": "forms-desktop",
+      "name": "Forms · desktop"
+    },
+    {
+      "id": "forms-mobile",
+      "name": "Forms · mobile"
+    },
+    {
+      "id": "settings-desktop",
+      "name": "Settings, email and money · desktop"
+    },
+    {
+      "id": "settings-mobile",
+      "name": "Settings, email and money · mobile"
+    },
+    {
+      "id": "portal-desktop",
+      "name": "Client portal · desktop"
+    },
+    {
+      "id": "portal-mobile",
+      "name": "Client portal · mobile"
+    },
+    {
+      "id": "system",
+      "name": "Design system"
+    }
+  ],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1600,
+      "page": "admin-desktop",
+      "title": "Dashboard",
+      "is_interactive": true
+    },
+    "MainDark.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 1600,
+      "page": "admin-desktop",
+      "title": "Dashboard · dark theme",
+      "is_interactive": true
+    },
+    "DashCommand.dc.html": {
+      "x": 3040,
+      "y": 0,
+      "w": 1440,
+      "h": 1000,
+      "page": "admin-desktop",
+      "title": "Search anything (⌘K)",
+      "is_interactive": true
+    },
+    "DashNotify.dc.html": {
+      "x": 4560,
+      "y": 0,
+      "w": 1440,
+      "h": 1000,
+      "page": "admin-desktop",
+      "title": "Notifications, account and New menus",
+      "is_interactive": true
+    },
+    "Clients.dc.html": {
+      "x": 0,
+      "y": 2000,
+      "w": 1440,
+      "h": 1250,
+      "page": "admin-desktop",
+      "title": "Clients · everyone",
+      "is_interactive": true
+    },
+    "ClientsService.dc.html": {
+      "x": 1520,
+      "y": 2000,
+      "w": 1440,
+      "h": 1250,
+      "page": "admin-desktop",
+      "title": "Clients · by service",
+      "is_interactive": true
+    },
+    "ClientsFilter.dc.html": {
+      "x": 3040,
+      "y": 2000,
+      "w": 1440,
+      "h": 1000,
+      "page": "admin-desktop",
+      "title": "Clients · filter and row menus",
+      "is_interactive": true
+    },
+    "ClientsAdd.dc.html": {
+      "x": 4560,
+      "y": 2000,
+      "w": 1440,
+      "h": 1000,
+      "page": "admin-desktop",
+      "title": "Clients · add a client",
+      "is_interactive": true
+    },
+    "Client.dc.html": {
+      "x": 0,
+      "y": 3650,
+      "w": 1440,
+      "h": 2000,
+      "page": "admin-desktop",
+      "title": "Client detail",
+      "is_interactive": true
+    },
+    "ClientEdit.dc.html": {
+      "x": 1520,
+      "y": 3650,
+      "w": 1440,
+      "h": 1000,
+      "page": "admin-desktop",
+      "title": "Client · edit details",
+      "is_interactive": true
+    },
+    "ClientMerge.dc.html": {
+      "x": 3040,
+      "y": 3650,
+      "w": 1440,
+      "h": 1000,
+      "page": "admin-desktop",
+      "title": "Client · merge a duplicate",
+      "is_interactive": true
+    },
+    "Projects.dc.html": {
+      "x": 0,
+      "y": 6050,
+      "w": 1440,
+      "h": 1150,
+      "page": "admin-desktop",
+      "title": "Projects · board",
+      "is_interactive": true
+    },
+    "ProjectsList.dc.html": {
+      "x": 1520,
+      "y": 6050,
+      "w": 1440,
+      "h": 1150,
+      "page": "admin-desktop",
+      "title": "Projects · list with stage menu",
+      "is_interactive": true
+    },
+    "ProjectsNew.dc.html": {
+      "x": 3040,
+      "y": 6050,
+      "w": 1440,
+      "h": 1000,
+      "page": "admin-desktop",
+      "title": "Projects · open a project",
+      "is_interactive": true
+    },
+    "Project.dc.html": {
+      "x": 0,
+      "y": 7600,
+      "w": 1440,
+      "h": 2050,
+      "page": "admin-desktop",
+      "title": "Project detail",
+      "is_interactive": true
+    },
+    "ProjectUpdate.dc.html": {
+      "x": 1520,
+      "y": 7600,
+      "w": 1440,
+      "h": 1000,
+      "page": "admin-desktop",
+      "title": "Project · post an update",
+      "is_interactive": true
+    },
+    "ProjectDeliverable.dc.html": {
+      "x": 3040,
+      "y": 7600,
+      "w": 1440,
+      "h": 1000,
+      "page": "admin-desktop",
+      "title": "Project · add a deliverable",
+      "is_interactive": true
+    },
+    "Money.dc.html": {
+      "x": 0,
+      "y": 10050,
+      "w": 1440,
+      "h": 2300,
+      "page": "admin-desktop",
+      "title": "Money",
+      "is_interactive": true
+    },
+    "MoneyInvoice.dc.html": {
+      "x": 1520,
+      "y": 10050,
+      "w": 1440,
+      "h": 1000,
+      "page": "admin-desktop",
+      "title": "Money · new invoice",
+      "is_interactive": true
+    },
+    "MoneyPayment.dc.html": {
+      "x": 3040,
+      "y": 10050,
+      "w": 1440,
+      "h": 1000,
+      "page": "admin-desktop",
+      "title": "Money · record a payment",
+      "is_interactive": true
+    },
+    "MoneyExpense.dc.html": {
+      "x": 4560,
+      "y": 10050,
+      "w": 1440,
+      "h": 1000,
+      "page": "admin-desktop",
+      "title": "Money · add an expense",
+      "is_interactive": true
+    },
+    "Invoice.dc.html": {
+      "x": 0,
+      "y": 12750,
+      "w": 1440,
+      "h": 1400,
+      "page": "admin-desktop",
+      "title": "Invoice detail",
+      "is_interactive": true
+    },
+    "Reconciliation.dc.html": {
+      "x": 1520,
+      "y": 12750,
+      "w": 1440,
+      "h": 1400,
+      "page": "admin-desktop",
+      "title": "Money · reconciliation",
+      "is_interactive": true
+    },
+    "Forms.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1500,
+      "page": "forms-desktop",
+      "title": "Forms",
+      "is_interactive": true
+    },
+    "Blog.dc.html": {
+      "x": 0,
+      "y": 14550,
+      "w": 1440,
+      "h": 1100,
+      "page": "admin-desktop",
+      "title": "Blog",
+      "is_interactive": true
+    },
+    "BlogEditor.dc.html": {
+      "x": 1520,
+      "y": 14550,
+      "w": 1440,
+      "h": 1500,
+      "page": "admin-desktop",
+      "title": "Blog · editor",
+      "is_interactive": true
+    },
+    "BlogPublish.dc.html": {
+      "x": 3040,
+      "y": 14550,
+      "w": 1440,
+      "h": 1000,
+      "page": "admin-desktop",
+      "title": "Blog · publish or schedule",
+      "is_interactive": true
+    },
+    "Settings.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1300,
+      "page": "settings-desktop",
+      "title": "Settings overview",
+      "is_interactive": true
+    },
+    "SettingsFaq.dc.html": {
+      "x": 3040,
+      "y": 2000,
+      "w": 1440,
+      "h": 1200,
+      "page": "settings-desktop",
+      "title": "Content · FAQ",
+      "is_interactive": true
+    },
+    "SettingsMedia.dc.html": {
+      "x": 4560,
+      "y": 2000,
+      "w": 1440,
+      "h": 1150,
+      "page": "settings-desktop",
+      "title": "Content · media",
+      "is_interactive": true
+    },
+    "MediaUpload.dc.html": {
+      "x": 6080,
+      "y": 2000,
+      "w": 1440,
+      "h": 1000,
+      "page": "settings-desktop",
+      "title": "Content · upload media",
+      "is_interactive": true
+    },
+    "MDashboard.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 1900,
+      "page": "admin-mobile",
+      "title": "Dashboard",
+      "is_interactive": true
+    },
+    "MMore.dc.html": {
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "page": "admin-mobile",
+      "title": "More menu",
+      "is_interactive": true
+    },
+    "MSearch.dc.html": {
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "page": "admin-mobile",
+      "title": "Search",
+      "is_interactive": true
+    },
+    "MNew.dc.html": {
+      "x": 1410,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "page": "admin-mobile",
+      "title": "Create menu",
+      "is_interactive": true
+    },
+    "MClients.dc.html": {
+      "x": 0,
+      "y": 2300,
+      "w": 390,
+      "h": 1300,
+      "page": "admin-mobile",
+      "title": "Clients",
+      "is_interactive": true
+    },
+    "MClient.dc.html": {
+      "x": 470,
+      "y": 2300,
+      "w": 390,
+      "h": 1900,
+      "page": "admin-mobile",
+      "title": "Client detail",
+      "is_interactive": true
+    },
+    "MClientsFilter.dc.html": {
+      "x": 940,
+      "y": 2300,
+      "w": 390,
+      "h": 844,
+      "page": "admin-mobile",
+      "title": "Clients · filter sheet",
+      "is_interactive": true
+    },
+    "MClientAdd.dc.html": {
+      "x": 1410,
+      "y": 2300,
+      "w": 390,
+      "h": 1300,
+      "page": "admin-mobile",
+      "title": "Add a client",
+      "is_interactive": true
+    },
+    "MProjects.dc.html": {
+      "x": 0,
+      "y": 4600,
+      "w": 390,
+      "h": 1400,
+      "page": "admin-mobile",
+      "title": "Projects",
+      "is_interactive": true
+    },
+    "MProject.dc.html": {
+      "x": 470,
+      "y": 4600,
+      "w": 390,
+      "h": 2000,
+      "page": "admin-mobile",
+      "title": "Project detail",
+      "is_interactive": true
+    },
+    "MProjectUpdate.dc.html": {
+      "x": 940,
+      "y": 4600,
+      "w": 390,
+      "h": 844,
+      "page": "admin-mobile",
+      "title": "Post an update",
+      "is_interactive": true
+    },
+    "MRowActions.dc.html": {
+      "x": 1410,
+      "y": 4600,
+      "w": 390,
+      "h": 844,
+      "page": "admin-mobile",
+      "title": "Move stage · action sheet",
+      "is_interactive": true
+    },
+    "MMoney.dc.html": {
+      "x": 0,
+      "y": 7000,
+      "w": 390,
+      "h": 1900,
+      "page": "admin-mobile",
+      "title": "Money",
+      "is_interactive": true
+    },
+    "MInvoice.dc.html": {
+      "x": 470,
+      "y": 7000,
+      "w": 390,
+      "h": 1500,
+      "page": "admin-mobile",
+      "title": "Invoice detail",
+      "is_interactive": true
+    },
+    "MPayment.dc.html": {
+      "x": 940,
+      "y": 7000,
+      "w": 390,
+      "h": 844,
+      "page": "admin-mobile",
+      "title": "Record a payment",
+      "is_interactive": true
+    },
+    "MNewInvoice.dc.html": {
+      "x": 1410,
+      "y": 7000,
+      "w": 390,
+      "h": 1400,
+      "page": "admin-mobile",
+      "title": "New invoice",
+      "is_interactive": true
+    },
+    "MReconciliation.dc.html": {
+      "x": 0,
+      "y": 9300,
+      "w": 390,
+      "h": 1300,
+      "page": "admin-mobile",
+      "title": "Reconciliation",
+      "is_interactive": true
+    },
+    "MForms.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 1500,
+      "page": "forms-mobile",
+      "title": "Forms",
+      "is_interactive": true
+    },
+    "MFormSubmission.dc.html": {
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 1800,
+      "page": "forms-mobile",
+      "title": "One entry",
+      "is_interactive": true
+    },
+    "MBlog.dc.html": {
+      "x": 0,
+      "y": 11100,
+      "w": 390,
+      "h": 1100,
+      "page": "admin-mobile",
+      "title": "Blog",
+      "is_interactive": true
+    },
+    "MBlogEditor.dc.html": {
+      "x": 470,
+      "y": 11100,
+      "w": 390,
+      "h": 1500,
+      "page": "admin-mobile",
+      "title": "Blog editor",
+      "is_interactive": true
+    },
+    "MSettings.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 1560,
+      "page": "settings-mobile",
+      "title": "Settings",
+      "is_interactive": true
+    },
+    "MMedia.dc.html": {
+      "x": 940,
+      "y": 11100,
+      "w": 390,
+      "h": 1200,
+      "page": "admin-mobile",
+      "title": "Media",
+      "is_interactive": true
+    },
+    "POverview.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1400,
+      "page": "portal-desktop",
+      "title": "Overview",
+      "is_interactive": true
+    },
+    "PAccount.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "page": "portal-desktop",
+      "title": "Account menu and notifications",
+      "is_interactive": true
+    },
+    "PNotLinked.dc.html": {
+      "x": 3040,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "page": "portal-desktop",
+      "title": "Account not linked yet",
+      "is_interactive": true
+    },
+    "PProjects.dc.html": {
+      "x": 0,
+      "y": 1800,
+      "w": 1440,
+      "h": 1000,
+      "page": "portal-desktop",
+      "title": "Your projects",
+      "is_interactive": true
+    },
+    "PProject.dc.html": {
+      "x": 1520,
+      "y": 1800,
+      "w": 1440,
+      "h": 1700,
+      "page": "portal-desktop",
+      "title": "Project detail",
+      "is_interactive": true
+    },
+    "PRevision.dc.html": {
+      "x": 3040,
+      "y": 1800,
+      "w": 1440,
+      "h": 1000,
+      "page": "portal-desktop",
+      "title": "Request a revision",
+      "is_interactive": true
+    },
+    "PApprove.dc.html": {
+      "x": 4560,
+      "y": 1800,
+      "w": 1440,
+      "h": 1000,
+      "page": "portal-desktop",
+      "title": "Approve a deliverable",
+      "is_interactive": true
+    },
+    "PBilling.dc.html": {
+      "x": 0,
+      "y": 3900,
+      "w": 1440,
+      "h": 1250,
+      "page": "portal-desktop",
+      "title": "Billing",
+      "is_interactive": true
+    },
+    "PInvoice.dc.html": {
+      "x": 1520,
+      "y": 3900,
+      "w": 1440,
+      "h": 1400,
+      "page": "portal-desktop",
+      "title": "Invoice · your copy",
+      "is_interactive": true
+    },
+    "PPay.dc.html": {
+      "x": 3040,
+      "y": 3900,
+      "w": 1440,
+      "h": 1000,
+      "page": "portal-desktop",
+      "title": "Pay an invoice",
+      "is_interactive": true
+    },
+    "PSupport.dc.html": {
+      "x": 0,
+      "y": 5700,
+      "w": 1440,
+      "h": 1000,
+      "page": "portal-desktop",
+      "title": "Support",
+      "is_interactive": true
+    },
+    "PNewTicket.dc.html": {
+      "x": 1520,
+      "y": 5700,
+      "w": 1440,
+      "h": 1000,
+      "page": "portal-desktop",
+      "title": "Ask a question",
+      "is_interactive": true
+    },
+    "PConversation.dc.html": {
+      "x": 3040,
+      "y": 5700,
+      "w": 1440,
+      "h": 1200,
+      "page": "portal-desktop",
+      "title": "Conversation",
+      "is_interactive": true
+    },
+    "PSettings.dc.html": {
+      "x": 4560,
+      "y": 5700,
+      "w": 1440,
+      "h": 1200,
+      "page": "portal-desktop",
+      "title": "Settings",
+      "is_interactive": true
+    },
+    "PMOverview.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 1500,
+      "page": "portal-mobile",
+      "title": "Overview",
+      "is_interactive": true
+    },
+    "PMMenu.dc.html": {
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "page": "portal-mobile",
+      "title": "Account menu",
+      "is_interactive": true
+    },
+    "PMProjects.dc.html": {
+      "x": 0,
+      "y": 1900,
+      "w": 390,
+      "h": 1100,
+      "page": "portal-mobile",
+      "title": "Projects",
+      "is_interactive": true
+    },
+    "PMProject.dc.html": {
+      "x": 470,
+      "y": 1900,
+      "w": 390,
+      "h": 1700,
+      "page": "portal-mobile",
+      "title": "Project detail",
+      "is_interactive": true
+    },
+    "PMRevision.dc.html": {
+      "x": 940,
+      "y": 1900,
+      "w": 390,
+      "h": 844,
+      "page": "portal-mobile",
+      "title": "Request a revision",
+      "is_interactive": true
+    },
+    "PMBilling.dc.html": {
+      "x": 0,
+      "y": 4000,
+      "w": 390,
+      "h": 1300,
+      "page": "portal-mobile",
+      "title": "Billing",
+      "is_interactive": true
+    },
+    "PMInvoice.dc.html": {
+      "x": 470,
+      "y": 4000,
+      "w": 390,
+      "h": 1400,
+      "page": "portal-mobile",
+      "title": "Invoice",
+      "is_interactive": true
+    },
+    "PMSupport.dc.html": {
+      "x": 0,
+      "y": 5800,
+      "w": 390,
+      "h": 1000,
+      "page": "portal-mobile",
+      "title": "Support",
+      "is_interactive": true
+    },
+    "PMNewTicket.dc.html": {
+      "x": 470,
+      "y": 5800,
+      "w": 390,
+      "h": 844,
+      "page": "portal-mobile",
+      "title": "Ask a question",
+      "is_interactive": true
+    },
+    "PMConversation.dc.html": {
+      "x": 940,
+      "y": 5800,
+      "w": 390,
+      "h": 1200,
+      "page": "portal-mobile",
+      "title": "Conversation",
+      "is_interactive": true
+    },
+    "PMSettings.dc.html": {
+      "x": 1410,
+      "y": 5800,
+      "w": 390,
+      "h": 1300,
+      "page": "portal-mobile",
+      "title": "Settings",
+      "is_interactive": true
+    },
+    "Foundations.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1800,
+      "page": "system",
+      "title": "Foundations"
+    },
+    "Controls.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 1800,
+      "page": "system",
+      "title": "Buttons, fields and selection"
+    },
+    "Overlays.dc.html": {
+      "x": 0,
+      "y": 2200,
+      "w": 1440,
+      "h": 1500,
+      "page": "system",
+      "title": "Menus, popovers, dialogs and toasts"
+    },
+    "States.dc.html": {
+      "x": 1520,
+      "y": 2200,
+      "w": 1440,
+      "h": 1300,
+      "page": "system",
+      "title": "Empty, loading, error and no-access states"
+    },
+    "Sidebar.dc.html": {
+      "x": 0,
+      "y": 4100,
+      "w": 264,
+      "h": 900,
+      "page": "system",
+      "title": "Admin sidebar"
+    },
+    "PSidebar.dc.html": {
+      "x": 344,
+      "y": 4100,
+      "w": 264,
+      "h": 900,
+      "page": "system",
+      "title": "Portal sidebar"
+    },
+    "Topbar.dc.html": {
+      "x": 688,
+      "y": 4100,
+      "w": 1176,
+      "h": 72,
+      "page": "system",
+      "title": "Top bar"
+    },
+    "MTop.dc.html": {
+      "x": 688,
+      "y": 4300,
+      "w": 390,
+      "h": 64,
+      "page": "system",
+      "title": "Mobile header"
+    },
+    "MTabs.dc.html": {
+      "x": 1158,
+      "y": 4300,
+      "w": 390,
+      "h": 84,
+      "page": "system",
+      "title": "Mobile tab bar"
+    },
+    "MoneyFilters.dc.html": {
+      "x": 6080,
+      "y": 10050,
+      "w": 1440,
+      "h": 1000,
+      "page": "admin-desktop",
+      "title": "Money · filters with dates",
+      "is_interactive": true
+    },
+    "MDateRange.dc.html": {
+      "x": 1880,
+      "y": 7000,
+      "w": 390,
+      "h": 844,
+      "page": "admin-mobile",
+      "title": "Choose dates",
+      "is_interactive": true
+    },
+    "Filters.dc.html": {
+      "x": 3040,
+      "y": 2200,
+      "w": 1440,
+      "h": 1640,
+      "page": "system",
+      "title": "Filters and date ranges"
+    },
+    "FormNew.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 1000,
+      "page": "forms-desktop",
+      "title": "New form",
+      "is_interactive": true
+    },
+    "FormNewsletter.dc.html": {
+      "x": 3040,
+      "y": 0,
+      "w": 1440,
+      "h": 1200,
+      "page": "forms-desktop",
+      "title": "Newsletter subscribers",
+      "is_interactive": true
+    },
+    "FormImport.dc.html": {
+      "x": 4560,
+      "y": 0,
+      "w": 1440,
+      "h": 1000,
+      "page": "forms-desktop",
+      "title": "Import subscribers",
+      "is_interactive": true
+    },
+    "FormEntries.dc.html": {
+      "x": 0,
+      "y": 1900,
+      "w": 1440,
+      "h": 1560,
+      "page": "forms-desktop",
+      "title": "Entries, 2 selected",
+      "is_interactive": true
+    },
+    "FormColumns.dc.html": {
+      "x": 1520,
+      "y": 1900,
+      "w": 1440,
+      "h": 1000,
+      "page": "forms-desktop",
+      "title": "Entries · columns",
+      "is_interactive": true
+    },
+    "FormExport.dc.html": {
+      "x": 3040,
+      "y": 1900,
+      "w": 1440,
+      "h": 1000,
+      "page": "forms-desktop",
+      "title": "Entries · export",
+      "is_interactive": true
+    },
+    "FormTrash.dc.html": {
+      "x": 4560,
+      "y": 1900,
+      "w": 1440,
+      "h": 1000,
+      "page": "forms-desktop",
+      "title": "Entries · delete forever",
+      "is_interactive": true
+    },
+    "FormEntry.dc.html": {
+      "x": 0,
+      "y": 3860,
+      "w": 1440,
+      "h": 1700,
+      "page": "forms-desktop",
+      "title": "Entry view",
+      "is_interactive": true
+    },
+    "FormBuild.dc.html": {
+      "x": 0,
+      "y": 5960,
+      "w": 1440,
+      "h": 1500,
+      "page": "forms-desktop",
+      "title": "Builder",
+      "is_interactive": true
+    },
+    "FormBuildLogic.dc.html": {
+      "x": 1520,
+      "y": 5960,
+      "w": 1440,
+      "h": 1000,
+      "page": "forms-desktop",
+      "title": "Builder · conditional logic",
+      "is_interactive": true
+    },
+    "FormPreview.dc.html": {
+      "x": 3040,
+      "y": 5960,
+      "w": 1440,
+      "h": 1100,
+      "page": "forms-desktop",
+      "title": "Builder · preview",
+      "is_interactive": true
+    },
+    "FormPublish.dc.html": {
+      "x": 4560,
+      "y": 5960,
+      "w": 1440,
+      "h": 1000,
+      "page": "forms-desktop",
+      "title": "Builder · publish a version",
+      "is_interactive": true
+    },
+    "FormSettings.dc.html": {
+      "x": 0,
+      "y": 7860,
+      "w": 1440,
+      "h": 1720,
+      "page": "forms-desktop",
+      "title": "Form settings",
+      "is_interactive": true
+    },
+    "FormNotify.dc.html": {
+      "x": 1520,
+      "y": 7860,
+      "w": 1440,
+      "h": 1250,
+      "page": "forms-desktop",
+      "title": "Form notifications",
+      "is_interactive": true
+    },
+    "FormNotifyEdit.dc.html": {
+      "x": 3040,
+      "y": 7860,
+      "w": 1440,
+      "h": 1000,
+      "page": "forms-desktop",
+      "title": "Edit a form email",
+      "is_interactive": true
+    },
+    "FormHead.dc.html": {
+      "x": 688,
+      "y": 4520,
+      "w": 1112,
+      "h": 160,
+      "page": "system",
+      "title": "Form header and tabs"
+    },
+    "SettingsAccount.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 1300,
+      "page": "settings-desktop",
+      "title": "My account",
+      "is_interactive": true
+    },
+    "SettingsBusiness.dc.html": {
+      "x": 3040,
+      "y": 0,
+      "w": 1440,
+      "h": 1300,
+      "page": "settings-desktop",
+      "title": "Business profile",
+      "is_interactive": true
+    },
+    "SettingsTeam.dc.html": {
+      "x": 4560,
+      "y": 0,
+      "w": 1440,
+      "h": 1300,
+      "page": "settings-desktop",
+      "title": "Team and access",
+      "is_interactive": true
+    },
+    "SettingsEmail.dc.html": {
+      "x": 0,
+      "y": 3700,
+      "w": 1440,
+      "h": 1420,
+      "page": "settings-desktop",
+      "title": "Email: SMTP, test, log",
+      "is_interactive": true
+    },
+    "SettingsEmailView.dc.html": {
+      "x": 1520,
+      "y": 3700,
+      "w": 1440,
+      "h": 1000,
+      "page": "settings-desktop",
+      "title": "Email log · one message",
+      "is_interactive": true
+    },
+    "SettingsInvoicing.dc.html": {
+      "x": 6080,
+      "y": 0,
+      "w": 1440,
+      "h": 1600,
+      "page": "settings-desktop",
+      "title": "Invoicing and payments",
+      "is_interactive": true
+    },
+    "SettingsPrivacy.dc.html": {
+      "x": 3040,
+      "y": 3700,
+      "w": 1440,
+      "h": 1400,
+      "page": "settings-desktop",
+      "title": "Privacy and retention",
+      "is_interactive": true
+    },
+    "SettingsSystem.dc.html": {
+      "x": 4560,
+      "y": 3700,
+      "w": 1440,
+      "h": 1200,
+      "page": "settings-desktop",
+      "title": "System status and tools",
+      "is_interactive": true
+    },
+    "SetNav.dc.html": {
+      "x": 1880,
+      "y": 4100,
+      "w": 250,
+      "h": 760,
+      "page": "system",
+      "title": "Settings section menu"
+    },
+    "SettingsSite.dc.html": {
+      "x": 0,
+      "y": 2000,
+      "w": 1440,
+      "h": 1300,
+      "page": "settings-desktop",
+      "title": "Site and SEO",
+      "is_interactive": true
+    },
+    "SettingsContent.dc.html": {
+      "x": 1520,
+      "y": 2000,
+      "w": 1440,
+      "h": 1300,
+      "page": "settings-desktop",
+      "title": "Content",
+      "is_interactive": true
+    },
+    "SettingsAudit.dc.html": {
+      "x": 6080,
+      "y": 3700,
+      "w": 1440,
+      "h": 1300,
+      "page": "settings-desktop",
+      "title": "Audit log",
+      "is_interactive": true
+    },
+    "Receipt.dc.html": {
+      "x": 0,
+      "y": 5620,
+      "w": 1440,
+      "h": 1250,
+      "page": "settings-desktop",
+      "title": "Money · receipt",
+      "is_interactive": true
+    },
+    "MoneyRefund.dc.html": {
+      "x": 1520,
+      "y": 5620,
+      "w": 1440,
+      "h": 1000,
+      "page": "settings-desktop",
+      "title": "Money · record a refund",
+      "is_interactive": true
+    },
+    "Estimate.dc.html": {
+      "x": 3040,
+      "y": 5620,
+      "w": 1440,
+      "h": 1300,
+      "page": "settings-desktop",
+      "title": "Money · estimate",
+      "is_interactive": true
+    },
+    "InvoiceVoid.dc.html": {
+      "x": 4560,
+      "y": 5620,
+      "w": 1440,
+      "h": 1000,
+      "page": "settings-desktop",
+      "title": "Money · void an invoice",
+      "is_interactive": true
+    },
+    "MFormEntries.dc.html": {
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 1400,
+      "page": "forms-mobile",
+      "title": "Entries · bulk select",
+      "is_interactive": true
+    },
+    "MFormBuild.dc.html": {
+      "x": 0,
+      "y": 2100,
+      "w": 390,
+      "h": 1300,
+      "page": "forms-mobile",
+      "title": "Builder",
+      "is_interactive": true
+    },
+    "MFormField.dc.html": {
+      "x": 470,
+      "y": 2100,
+      "w": 390,
+      "h": 844,
+      "page": "forms-mobile",
+      "title": "Builder · field settings sheet",
+      "is_interactive": true
+    },
+    "MFormAddField.dc.html": {
+      "x": 940,
+      "y": 2100,
+      "w": 390,
+      "h": 844,
+      "page": "forms-mobile",
+      "title": "Builder · add a field sheet",
+      "is_interactive": true
+    },
+    "MFormSettings.dc.html": {
+      "x": 1410,
+      "y": 2100,
+      "w": 390,
+      "h": 2150,
+      "page": "forms-mobile",
+      "title": "Form settings and emails",
+      "is_interactive": true
+    },
+    "MSettingsAccount.dc.html": {
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 1700,
+      "page": "settings-mobile",
+      "title": "My account",
+      "is_interactive": true
+    },
+    "MSettingsTeam.dc.html": {
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 1120,
+      "page": "settings-mobile",
+      "title": "Team and access",
+      "is_interactive": true
+    },
+    "MSettingsEmail.dc.html": {
+      "x": 1410,
+      "y": 0,
+      "w": 390,
+      "h": 2050,
+      "page": "settings-mobile",
+      "title": "Email · connection, test and log",
+      "is_interactive": true
+    },
+    "MReceipt.dc.html": {
+      "x": 0,
+      "y": 2450,
+      "w": 390,
+      "h": 1220,
+      "page": "settings-mobile",
+      "title": "Receipt",
+      "is_interactive": true
+    },
+    "PInvite.dc.html": {
+      "x": 4560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "page": "portal-desktop",
+      "title": "Accept an invitation",
+      "is_interactive": true
+    },
+    "PMInvite.dc.html": {
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 1180,
+      "page": "portal-mobile",
+      "title": "Accept an invitation",
+      "is_interactive": true
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "MainDark.dc.html",
+    "DashCommand.dc.html",
+    "DashNotify.dc.html",
+    "Clients.dc.html",
+    "ClientsService.dc.html",
+    "ClientsFilter.dc.html",
+    "ClientsAdd.dc.html",
+    "Client.dc.html",
+    "ClientEdit.dc.html",
+    "ClientMerge.dc.html",
+    "Projects.dc.html",
+    "ProjectsList.dc.html",
+    "ProjectsNew.dc.html",
+    "Project.dc.html",
+    "ProjectUpdate.dc.html",
+    "ProjectDeliverable.dc.html",
+    "Money.dc.html",
+    "MoneyInvoice.dc.html",
+    "MoneyPayment.dc.html",
+    "MoneyExpense.dc.html",
+    "Invoice.dc.html",
+    "Reconciliation.dc.html",
+    "Forms.dc.html",
+    "Blog.dc.html",
+    "BlogEditor.dc.html",
+    "BlogPublish.dc.html",
+    "Settings.dc.html",
+    "SettingsFaq.dc.html",
+    "SettingsMedia.dc.html",
+    "MediaUpload.dc.html",
+    "MDashboard.dc.html",
+    "MMore.dc.html",
+    "MSearch.dc.html",
+    "MNew.dc.html",
+    "MClients.dc.html",
+    "MClient.dc.html",
+    "MClientsFilter.dc.html",
+    "MClientAdd.dc.html",
+    "MProjects.dc.html",
+    "MProject.dc.html",
+    "MProjectUpdate.dc.html",
+    "MRowActions.dc.html",
+    "MMoney.dc.html",
+    "MInvoice.dc.html",
+    "MPayment.dc.html",
+    "MNewInvoice.dc.html",
+    "MReconciliation.dc.html",
+    "MForms.dc.html",
+    "MFormSubmission.dc.html",
+    "MBlog.dc.html",
+    "MBlogEditor.dc.html",
+    "MSettings.dc.html",
+    "MMedia.dc.html",
+    "POverview.dc.html",
+    "PAccount.dc.html",
+    "PNotLinked.dc.html",
+    "PProjects.dc.html",
+    "PProject.dc.html",
+    "PRevision.dc.html",
+    "PApprove.dc.html",
+    "PBilling.dc.html",
+    "PInvoice.dc.html",
+    "PPay.dc.html",
+    "PSupport.dc.html",
+    "PNewTicket.dc.html",
+    "PConversation.dc.html",
+    "PSettings.dc.html",
+    "PMOverview.dc.html",
+    "PMMenu.dc.html",
+    "PMProjects.dc.html",
+    "PMProject.dc.html",
+    "PMRevision.dc.html",
+    "PMBilling.dc.html",
+    "PMInvoice.dc.html",
+    "PMSupport.dc.html",
+    "PMNewTicket.dc.html",
+    "PMConversation.dc.html",
+    "PMSettings.dc.html",
+    "Foundations.dc.html",
+    "Controls.dc.html",
+    "Overlays.dc.html",
+    "States.dc.html",
+    "Sidebar.dc.html",
+    "PSidebar.dc.html",
+    "Topbar.dc.html",
+    "MTop.dc.html",
+    "MTabs.dc.html",
+    "MoneyFilters.dc.html",
+    "MDateRange.dc.html",
+    "Filters.dc.html",
+    "FormNew.dc.html",
+    "FormNewsletter.dc.html",
+    "FormImport.dc.html",
+    "FormEntries.dc.html",
+    "FormColumns.dc.html",
+    "FormExport.dc.html",
+    "FormTrash.dc.html",
+    "FormEntry.dc.html",
+    "FormBuild.dc.html",
+    "FormBuildLogic.dc.html",
+    "FormPreview.dc.html",
+    "FormPublish.dc.html",
+    "FormSettings.dc.html",
+    "FormNotify.dc.html",
+    "FormNotifyEdit.dc.html",
+    "FormHead.dc.html",
+    "SettingsAccount.dc.html",
+    "SettingsBusiness.dc.html",
+    "SettingsTeam.dc.html",
+    "SettingsEmail.dc.html",
+    "SettingsEmailView.dc.html",
+    "SettingsInvoicing.dc.html",
+    "SettingsPrivacy.dc.html",
+    "SettingsSystem.dc.html",
+    "SetNav.dc.html",
+    "SettingsSite.dc.html",
+    "SettingsContent.dc.html",
+    "SettingsAudit.dc.html",
+    "Receipt.dc.html",
+    "MoneyRefund.dc.html",
+    "Estimate.dc.html",
+    "InvoiceVoid.dc.html",
+    "MFormEntries.dc.html",
+    "MFormBuild.dc.html",
+    "MFormField.dc.html",
+    "MFormAddField.dc.html",
+    "MFormSettings.dc.html",
+    "MSettingsAccount.dc.html",
+    "MSettingsTeam.dc.html",
+    "MSettingsEmail.dc.html",
+    "MReceipt.dc.html",
+    "PInvite.dc.html",
+    "PMInvite.dc.html"
+  ],
+  "notes": {
+    "ad1": {
+      "x": 0,
+      "y": -280,
+      "text": "Dashboard",
+      "kind": "title1",
+      "maxW": 5840,
+      "page": "admin-desktop"
+    },
+    "ad2": {
+      "x": 0,
+      "y": 1720,
+      "text": "Clients",
+      "kind": "title1",
+      "maxW": 5840,
+      "page": "admin-desktop"
+    },
+    "ad3": {
+      "x": 0,
+      "y": 3370,
+      "text": "Client detail",
+      "kind": "title1",
+      "maxW": 5840,
+      "page": "admin-desktop"
+    },
+    "ad4": {
+      "x": 0,
+      "y": 5770,
+      "text": "Projects",
+      "kind": "title1",
+      "maxW": 5840,
+      "page": "admin-desktop"
+    },
+    "ad5": {
+      "x": 0,
+      "y": 7320,
+      "text": "Project detail",
+      "kind": "title1",
+      "maxW": 5840,
+      "page": "admin-desktop"
+    },
+    "ad6": {
+      "x": 0,
+      "y": 9770,
+      "text": "Money",
+      "kind": "title1",
+      "maxW": 7520,
+      "page": "admin-desktop"
+    },
+    "ad7": {
+      "x": 0,
+      "y": 12470,
+      "text": "Invoices and reconciliation",
+      "kind": "title1",
+      "maxW": 5840,
+      "page": "admin-desktop"
+    },
+    "ad9": {
+      "x": 0,
+      "y": 14270,
+      "text": "Blog",
+      "kind": "title1",
+      "maxW": 5840,
+      "page": "admin-desktop"
+    },
+    "am1": {
+      "x": 0,
+      "y": -280,
+      "text": "Home, menus and search",
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "admin-mobile"
+    },
+    "am2": {
+      "x": 0,
+      "y": 2020,
+      "text": "Clients",
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "admin-mobile"
+    },
+    "am3": {
+      "x": 0,
+      "y": 4320,
+      "text": "Projects",
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "admin-mobile"
+    },
+    "am4": {
+      "x": 0,
+      "y": 6720,
+      "text": "Money",
+      "kind": "title1",
+      "maxW": 2270,
+      "page": "admin-mobile"
+    },
+    "am5": {
+      "x": 0,
+      "y": 9020,
+      "text": "Reconciliation",
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "admin-mobile"
+    },
+    "am6": {
+      "x": 0,
+      "y": 10820,
+      "text": "Blog and media",
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "admin-mobile"
+    },
+    "pd1": {
+      "x": 0,
+      "y": -280,
+      "text": "Overview",
+      "kind": "title1",
+      "maxW": 4400,
+      "page": "portal-desktop"
+    },
+    "pd2": {
+      "x": 0,
+      "y": 1520,
+      "text": "Projects and deliverables",
+      "kind": "title1",
+      "maxW": 5840,
+      "page": "portal-desktop"
+    },
+    "pd3": {
+      "x": 0,
+      "y": 3620,
+      "text": "Billing",
+      "kind": "title1",
+      "maxW": 4400,
+      "page": "portal-desktop"
+    },
+    "pd4": {
+      "x": 0,
+      "y": 5420,
+      "text": "Support and settings",
+      "kind": "title1",
+      "maxW": 5840,
+      "page": "portal-desktop"
+    },
+    "pm1": {
+      "x": 0,
+      "y": -280,
+      "text": "Overview",
+      "kind": "title1",
+      "maxW": 860,
+      "page": "portal-mobile"
+    },
+    "pm2": {
+      "x": 0,
+      "y": 1620,
+      "text": "Projects",
+      "kind": "title1",
+      "maxW": 1330,
+      "page": "portal-mobile"
+    },
+    "pm3": {
+      "x": 0,
+      "y": 3720,
+      "text": "Billing",
+      "kind": "title1",
+      "maxW": 860,
+      "page": "portal-mobile"
+    },
+    "pm4": {
+      "x": 0,
+      "y": 5520,
+      "text": "Support and settings",
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "portal-mobile"
+    },
+    "sy1": {
+      "x": 0,
+      "y": -280,
+      "text": "Design system",
+      "kind": "title1",
+      "maxW": 2960,
+      "page": "system"
+    },
+    "sy2": {
+      "x": 0,
+      "y": 1920,
+      "text": "Overlays and states",
+      "kind": "title1",
+      "maxW": 4480,
+      "page": "system"
+    },
+    "sy3": {
+      "x": 0,
+      "y": 3820,
+      "text": "Shared shell parts",
+      "kind": "title1",
+      "maxW": 2960,
+      "page": "system"
+    },
+    "fd1": {
+      "x": 0,
+      "y": -280,
+      "text": "Forms, templates and subscribers",
+      "kind": "title1",
+      "maxW": 6000,
+      "page": "forms-desktop"
+    },
+    "fd2": {
+      "x": 0,
+      "y": 1620,
+      "text": "Entries",
+      "kind": "title1",
+      "maxW": 6000,
+      "page": "forms-desktop"
+    },
+    "fd3": {
+      "x": 0,
+      "y": 3580,
+      "text": "One entry",
+      "kind": "title1",
+      "maxW": 6000,
+      "page": "forms-desktop"
+    },
+    "fd4": {
+      "x": 0,
+      "y": 5680,
+      "text": "Form builder",
+      "kind": "title1",
+      "maxW": 6000,
+      "page": "forms-desktop"
+    },
+    "fd5": {
+      "x": 0,
+      "y": 7580,
+      "text": "Form settings and emails",
+      "kind": "title1",
+      "maxW": 6000,
+      "page": "forms-desktop"
+    },
+    "sd1": {
+      "x": 0,
+      "y": -280,
+      "text": "Settings: you and the studio",
+      "kind": "title1",
+      "maxW": 7520,
+      "page": "settings-desktop"
+    },
+    "sd2": {
+      "x": 0,
+      "y": 1720,
+      "text": "Settings: website and content",
+      "kind": "title1",
+      "maxW": 7520,
+      "page": "settings-desktop"
+    },
+    "sd3": {
+      "x": 0,
+      "y": 3420,
+      "text": "Settings: email, privacy and system",
+      "kind": "title1",
+      "maxW": 7520,
+      "page": "settings-desktop"
+    },
+    "sd4": {
+      "x": 0,
+      "y": 5340,
+      "text": "Money: receipts, refunds, estimates, void",
+      "kind": "title1",
+      "maxW": 6000,
+      "page": "settings-desktop"
+    },
+    "fm1": {
+      "x": 0,
+      "y": -280,
+      "text": "Forms and entries",
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "forms-mobile"
+    },
+    "fm2": {
+      "x": 0,
+      "y": 1820,
+      "text": "Builder and form settings",
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "forms-mobile"
+    },
+    "sm1": {
+      "x": 0,
+      "y": -280,
+      "text": "Settings",
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "settings-mobile"
+    },
+    "sm2": {
+      "x": 0,
+      "y": 2170,
+      "text": "Money: receipt",
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "settings-mobile"
+    }
+  },
+  "designSystems": []
+}

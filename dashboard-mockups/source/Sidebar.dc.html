@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin sidebar</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="side-in" style="width: 264px; height: 900px; background: var(--panel); font-family: var(--ff-b); color: var(--ink);">
+  <div class="brand">
+    <sc-if value="{{dark}}" hint-placeholder-val="{{false}}"><img src="brand/logo-white.svg" alt="WDC" width="94" height="30"></sc-if>
+    <sc-if value="{{light}}" hint-placeholder-val="{{true}}"><img src="brand/logo-navy.svg" alt="WDC" width="94" height="30"></sc-if>
+    <button class="ibtn sm bare" aria-label="Collapse sidebar"><span class="ic i-panel s18"></span></button>
+  </div>
+  <div class="side-scroll">
+  <div class="navlabel">Workspace</div>
+  <nav class="nav" aria-label="Admin sections">
+    <sc-for list="{{items}}" as="it" hint-placeholder-count="6">
+      <a href="{{it.href}}" class="{{it.cls}}"><span class="ic {{it.icon}}"></span><span>{{it.label}}</span><sc-if value="{{it.hasCt}}" hint-placeholder-val="{{false}}"><span class="ct {{it.ctCls}}">{{it.ct}}</span></sc-if></a>
+      <sc-if value="{{it.hasSub}}" hint-placeholder-val="{{false}}">
+        <div class="sub">
+          <sc-for list="{{it.sub}}" as="s" hint-placeholder-count="2"><a href="{{s.href}}" class="{{s.cls}}">{{s.label}}</a></sc-for>
+        </div>
+      </sc-if>
+    </sc-for>
+  </nav>
+  <div class="navlabel">General</div>
+  <nav class="nav" aria-label="General">
+    <sc-for list="{{general}}" as="it" hint-placeholder-count="1">
+      <a href="{{it.href}}" class="{{it.cls}}"><span class="ic {{it.icon}}"></span><span>{{it.label}}</span></a>
+      <sc-if value="{{it.hasSub}}" hint-placeholder-val="{{false}}">
+        <div class="sub">
+          <sc-for list="{{it.sub}}" as="s" hint-placeholder-count="2"><a href="{{s.href}}" class="{{s.cls}}">{{s.label}}</a></sc-for>
+        </div>
+      </sc-if>
+    </sc-for>
+    <a href="Main.dc.html"><span class="ic i-help"></span><span>Help and tours</span></a>
+  </nav>
+  </div>
+  <div class="side-foot">
+  <div class="tourcard">
+    <div class="tile"><span class="ic i-play"></span></div>
+    <h4>Two-minute tour</h4>
+    <p>Walk through the dashboard, or only this page. Skip it any time.</p>
+    <a class="btn sm" href="Main.dc.html">Start the tour</a>
+  </div>
+  <div class="me">
+    <span class="av">BA</span>
+    <div class="grow">
+      <div class="b sm trunc">Babatope Adeyemi</div>
+      <div class="xs dim trunc">Owner · hello@wedigcreativity.com.ng</div>
+    </div>
+    <button class="ibtn sm bare" aria-label="Sign out"><span class="ic i-out s16"></span></button>
+  </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"enum","options":["dashboard","clients","projects","money","reconciliation","forms","form","formbuild","formentry","newsletter","blog","settings","email","team","invoicing","account","business","privacy","system","site","audit","faq","media"],"default":"dashboard"},"dark":{"editor":"boolean","default":false},"$preview":{"width":264,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const a = this.props.active ?? 'dashboard';
+    const dark = !!this.props.dark;
+    const mk = (key, label, icon, href, ct, ctCls, sub) => {
+      const hit = (s) => s.key === a || (s.also || []).includes(a);
+      const subOn = (sub || []).some(hit);
+      return {
+        label, icon, href,
+        cls: (a === key || subOn) ? 'on' : '',
+        hasCt: !!ct, ct: ct || '', ctCls: ctCls || '',
+        hasSub: !!sub && (a === key || subOn),
+        sub: (sub || []).map((s) => ({ ...s, cls: hit(s) ? 'on' : '' })),
+      };
+    };
+    return {
+      dark, light: !dark,
+      items: [
+        mk('dashboard', 'Dashboard', 'i-dash', 'Main.dc.html'),
+        mk('clients', 'Clients', 'i-users', 'Clients.dc.html', '5', 'n'),
+        mk('projects', 'Projects', 'i-folder', 'Projects.dc.html', '6', 'n'),
+        mk('money', 'Money', 'i-cash', 'Money.dc.html', '2', '', [
+          { key: 'money', label: 'Invoices and spend', href: 'Money.dc.html' },
+          { key: 'reconciliation', label: 'Reconciliation', href: 'Reconciliation.dc.html' },
+        ]),
+        mk('forms', 'Forms', 'i-clip', 'Forms.dc.html', '3', '', [
+          { key: 'forms', label: 'All forms', href: 'Forms.dc.html', also: ['form', 'formbuild', 'formentry'] },
+          { key: 'newsletter', label: 'Newsletter', href: 'FormNewsletter.dc.html' },
+        ]),
+        mk('blog', 'Blog', 'i-news', 'Blog.dc.html'),
+      ],
+      general: [
+        mk('settings', 'Settings', 'i-cog', 'Settings.dc.html', null, null, [
+          { key: 'settings', label: 'All settings', href: 'Settings.dc.html', also: ['account', 'business', 'privacy', 'system', 'site', 'audit'] },
+          { key: 'email', label: 'Email', href: 'SettingsEmail.dc.html' },
+          { key: 'team', label: 'Team and access', href: 'SettingsTeam.dc.html' },
+          { key: 'invoicing', label: 'Invoicing', href: 'SettingsInvoicing.dc.html' },
+          { key: 'faq', label: 'Content', href: 'SettingsFaq.dc.html', also: ['media'] },
+        ]),
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

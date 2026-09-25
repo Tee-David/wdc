@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Conditional logic</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root" style="width: 1440px; height: 1000px;">
+  <dc-import name="FormBuild" hint-size="1440px,1500px"></dc-import>
+  <div class="scrim"></div>
+  <form class="dlg" aria-label="When to show Launch date" style="left: 380px; top: 120px; width: 680px;">
+    <div class="dh">
+      <div class="row g14" style="gap: 14px; align-items: flex-start;"><span class="tile lg live"><span class="ic i-branch s20"></span></span><div><h2>When to show “Launch date”</h2><p>Hidden questions are skipped, and their answers are not saved.</p></div></div>
+      <a class="ibtn" href="FormBuild.dc.html" aria-label="Close"><span class="ic i-x"></span></a>
+    </div>
+    <div class="db">
+      <div class="row g8 sm"><span>Show this field when</span><div class="seg"><button type="button" class="on">all</button><button type="button">any</button></div><span>of these are true:</span></div>
+      <div class="cond">
+        <div class="row g8"><span class="inp sel grow">Is there a launch date?<span class="ic i-chev s14 dim"></span></span><span class="inp sel" style="width: 120px;">is<span class="ic i-chev s14 dim"></span></span><span class="inp sel" style="width: 130px;">Yes<span class="ic i-chev s14 dim"></span></span><button class="ibtn sm bare" type="button" aria-label="Remove condition"><span class="ic i-trash s16"></span></button></div>
+        <div class="xs b dim" style="padding-left: 4px;">AND</div>
+        <div class="row g8"><span class="inp sel grow">What should we make?<span class="ic i-chev s14 dim"></span></span><span class="inp sel" style="width: 120px;">includes<span class="ic i-chev s14 dim"></span></span><span class="inp sel" style="width: 130px;">Packaging…<span class="ic i-chev s14 dim"></span></span><button class="ibtn sm bare" type="button" aria-label="Remove condition"><span class="ic i-trash s16"></span></button></div>
+      </div>
+      <button class="btn g sm" type="button" style="align-self: flex-start;"><span class="ic i-plus s14"></span>Add a condition</button>
+      <div class="attn" style="background: var(--panel);"><span class="tile sm"><span class="ic i-eye s14"></span></span><div class="grow sm">In the latest 14 briefs, this would have shown for <b>5</b>.</div></div>
+    </div>
+    <div class="df" style="justify-content: space-between;"><button class="btn g" type="button" style="color: var(--t-bad);">Remove all conditions</button><div class="row g10"><a class="btn s" href="FormBuild.dc.html">Cancel</a><a class="btn p" href="FormBuild.dc.html">Save rule</a></div></div>
+  </form>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

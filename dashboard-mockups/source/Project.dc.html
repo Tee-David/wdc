@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Project detail</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root lt" style="width: 1440px; height: 2050px;">
+<div class="app" style="height: 2050px;">
+  <aside class="side"><dc-import name="Sidebar" active="projects" hint-size="264px,900px"></dc-import></aside>
+  <div class="main">
+    <dc-import name="Topbar" hint-size="1176px,72px"></dc-import>
+    <main class="page">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="Projects.dc.html">Projects</a><span class="ic i-right s14"></span><a href="Client.dc.html">Moore Designs</a><span class="ic i-right s14"></span><b>Identity system</b></nav>
+
+      <div class="card" style="padding: 24px;">
+        <div class="row g16" style="align-items: flex-start;">
+          <span class="tile lg"><span class="ic i-star s22"></span></span>
+          <div class="grow">
+            <div class="row g10 wrap"><h1 style="font-size: 28px;">Identity system</h1><span class="pill live">Review</span><span class="pill warn">Waiting on client</span></div>
+            <div class="row g16 wrap sm dim" style="margin-top: 8px;">
+              <a class="row g6" href="Client.dc.html"><span class="av o sm" style="width: 22px; height: 22px; font-size: 9px;">MD</span>Moore Designs</a>
+              <span class="row g6"><span class="ic i-user s16"></span>Babatope is answerable</span>
+              <span class="row g6"><span class="ic i-chat s16"></span>Updates go through the WhatsApp group</span>
+              <span class="row g6" style="color: var(--t-bad); font-weight: 600;"><span class="ic i-clock s16"></span>Due Sat 26 Sep · 2 days</span>
+            </div>
+          </div>
+          <div class="row g10" style="flex: none;">
+            <button class="ibtn" aria-label="More actions"><span class="ic i-more"></span></button>
+            <a class="btn s" href="ProjectsList.dc.html">Move stage<span class="ic i-chev s14"></span></a>
+            <a class="btn p" href="ProjectUpdate.dc.html"><span class="ic i-send s16"></span>Post an update</a>
+          </div>
+        </div>
+        <div class="steps" style="margin-top: 22px;">
+          <div class="st done"><i></i><span>Onboarding</span></div>
+          <div class="st done"><i></i><span>Discovery</span></div>
+          <div class="st done"><i></i><span>In progress</span></div>
+          <div class="st now"><i></i><span>Review · since 8 Sep</span></div>
+          <div class="st"><i></i><span>Revisions</span></div>
+          <div class="st"><i></i><span>Delivered</span></div>
+        </div>
+      </div>
+
+      <div class="grid" style="grid-template-columns: repeat(5, minmax(0, 1fr));">
+        <div class="card kpi"><div class="note">Agreed budget</div><div class="val" style="font-size: 24px;">₦630,000</div></div>
+        <div class="card kpi"><div class="note">Invoiced</div><div class="val" style="font-size: 24px;">₦630,000</div><div class="bar n"><i style="width: 100%;"></i></div></div>
+        <div class="card kpi"><div class="note">Collected</div><div class="val" style="font-size: 24px;">₦300,000</div><div class="bar g"><i style="width: 48%;"></i></div></div>
+        <div class="card kpi"><div class="note">Spent on it</div><div class="val" style="font-size: 24px;">₦24,500</div><div class="bar o"><i style="width: 4%;"></i></div></div>
+        <div class="card kpi"><div class="note">Net so far</div><div class="val" style="font-size: 24px;">₦275,500</div><div class="note">Collected less spend</div></div>
+      </div>
+
+      <div class="grid c21">
+        <div class="col g20">
+          <div class="card">
+            <div class="ch"><div><h3>Updates</h3><p class="sub">What the client sees, newest first.</p></div><a class="btn s sm" href="ProjectUpdate.dc.html"><span class="ic i-plus s14"></span>Post an update</a></div>
+            <div class="tl">
+              <div class="ti">
+                <span class="dotc o"><span class="ic i-send s14"></span></span>
+                <div class="card soft" style="padding: 16px;">
+                  <div class="row sp"><div class="row g8"><b>Three identity routes sent</b><span class="pill warn">Waiting on client</span></div><span class="xs dim">8 Sep · Babatope</span></div>
+                  <p class="sm" style="margin-top: 8px !important; line-height: 1.55;">Three routes sent, each with the reasoning, a mock shopfront and the type pairing.</p>
+                  <div class="grid c3" style="gap: 10px; margin-top: 12px;">
+                    <div><div class="xs dim b">Progress</div><div class="row g8" style="margin-top: 6px;"><div class="bar n grow"><i style="width: 70%;"></i></div><span class="xs b">70%</span></div></div>
+                    <div><div class="xs dim b">What happens next</div><div class="sm" style="margin-top: 4px;">Tobi picks a route. We build it out the same week.</div></div>
+                    <div><div class="xs dim b">In the way</div><div class="sm" style="margin-top: 4px;">Nothing</div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="ti">
+                <span class="dotc b"><span class="ic i-img s14"></span></span>
+                <div class="card soft" style="padding: 16px;">
+                  <div class="row sp"><b>Moodboard approved</b><span class="xs dim">22 Aug · Babatope</span></div>
+                  <p class="sm" style="margin-top: 8px !important; line-height: 1.55;">Tobi approved the moodboard in the portal. Direction: warm, tactile, tailoring rather than streetwear.</p>
+                </div>
+              </div>
+              <div class="ti">
+                <span class="dotc"><span class="ic i-flag s14"></span></span>
+                <div style="padding-top: 4px;"><b class="sm">Moved to In progress</b><div class="xs dim">19 Aug</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card flush">
+            <div class="ch" style="margin-bottom: 14px;"><div><h3>Deliverables</h3><p class="sub">What it has made, and what the client said.</p></div><a class="btn s sm" href="ProjectDeliverable.dc.html"><span class="ic i-plus s14"></span>Add a deliverable</a></div>
+            <table class="tbl">
+              <thead><tr><th>Deliverable</th><th>Version</th><th>Sent</th><th>Client said</th><th style="width: 120px;"></th></tr></thead>
+              <tbody>
+                <tr><td><div class="who"><span class="tile sm live"><span class="ic i-file s14"></span></span><div><div class="t">Identity routes</div><div class="s">PDF · 18 pages</div></div></div></td><td><span class="tag">v2</span></td><td class="dim">8 Sep</td><td><span class="pill warn">Awaiting a response</span></td><td><div class="row g6"><button class="btn s sm">Open</button><button class="ibtn sm bare" aria-label="Deliverable actions"><span class="ic i-more"></span></button></div></td></tr>
+                <tr><td><div class="who"><span class="tile sm flat"><span class="ic i-img s14"></span></span><div><div class="t">Moodboard</div><div class="s">Figma</div></div></div></td><td><span class="tag">v1</span></td><td class="dim">19 Aug</td><td><span class="pill good"><span class="ic i-check"></span>Approved</span></td><td><div class="row g6"><button class="btn s sm">Open</button><button class="ibtn sm bare" aria-label="Deliverable actions"><span class="ic i-more"></span></button></div></td></tr>
+                <tr><td><div class="who"><span class="tile sm flat"><span class="ic i-file s14"></span></span><div><div class="t">Identity routes</div><div class="s">PDF · first pass</div></div></div></td><td><span class="tag">v1</span></td><td class="dim">1 Sep</td><td><span class="pill live">Revision asked</span></td><td><div class="row g6"><button class="btn s sm">Open</button><button class="ibtn sm bare" aria-label="Deliverable actions"><span class="ic i-more"></span></button></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="grid c2">
+            <div class="card">
+              <div class="ch"><h3>Tasks</h3><button class="btn g sm"><span class="ic i-plus s14"></span>Add a task</button></div>
+              <div class="lrow"><span class="cbx on"><span class="ic i-check s14"></span></span><div class="grow"><div class="t sm" style="text-decoration: line-through; color: var(--dim);">Send three routes</div></div><span class="av sm">BA</span></div>
+              <div class="lrow"><span class="cbx"></span><div class="grow"><div class="t sm">Chase Tobi for a pick</div><div class="s">By 24 Sep · high</div></div><span class="pill bad">Today</span></div>
+              <div class="lrow"><span class="cbx"></span><div class="grow"><div class="t sm">Guideline set, 12 pages</div><div class="s">Waits for the pick</div></div><span class="av g sm">AD</span></div>
+            </div>
+            <div class="card">
+              <div class="ch"><h3>Money on this project</h3><a class="linkbtn" href="Money.dc.html">Money<span class="ic i-right s14"></span></a></div>
+              <div class="lrow"><span class="tile sm live"><span class="ic i-receipt s14"></span></span><div class="grow"><div class="t sm">INV-2026-001</div><div class="s">₦630,000 · ₦330,000 owed</div></div><span class="pill warn">Part paid</span></div>
+              <div class="lrow"><span class="tile sm flat"><span class="ic i-receipt s14"></span></span><div class="grow"><div class="t sm">INV-2026-006</div><div class="s">₦210,000 · guidelines</div></div><span class="pill flat">Draft</span></div>
+              <div class="lrow"><span class="tile sm neu"><span class="ic i-card s14"></span></span><div class="grow"><div class="t sm">Envato · font licence</div><div class="s">₦24,500 · rebillable</div></div><span class="pill neu">Spend</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col g20">
+          <div class="card">
+            <div class="ch"><h3>Project details</h3><button class="linkbtn" style="background: none; border: 0; font-family: var(--ff-b); cursor: pointer;"><span class="ic i-pen s14"></span>Edit</button></div>
+            <div class="col g16">
+              <div><div class="xs dim b">What was bought</div><p class="sm" style="margin-top: 4px !important; line-height: 1.5;">Logo, palette, type scale and a short guideline set.</p></div>
+              <div class="grid c2" style="gap: 14px;">
+                <div><div class="xs dim b">Service</div><div class="sm" style="margin-top: 4px;">Branding</div></div>
+                <div><div class="xs dim b">Started</div><div class="sm" style="margin-top: 4px;">2 Aug 2026</div></div>
+                <div><div class="xs dim b">Due date</div><div class="sm" style="margin-top: 4px;">26 Sep 2026</div></div>
+                <div><div class="xs dim b">Updates go through</div><div class="sm" style="margin-top: 4px;">WhatsApp group</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch"><h3>How is it going</h3></div>
+            <div class="grid c2" style="gap: 8px;">
+              <div class="choice" style="padding: 10px 12px;"><span class="radio"></span><span class="sm b">On track</span></div>
+              <div class="choice" style="padding: 10px 12px;"><span class="radio"></span><span class="sm b">At risk</span></div>
+              <div class="choice on" style="padding: 10px 12px;"><span class="radio on"></span><span class="sm b">Waiting on client</span></div>
+              <div class="choice" style="padding: 10px 12px;"><span class="radio"></span><span class="sm b">Blocked</span></div>
+            </div>
+            <p class="help" style="margin-top: 10px !important;">Health is separate from stage: the work has not gone backwards, it has stopped.</p>
+          </div>
+          <div class="card">
+            <div class="ch"><h3>Record a client response</h3></div>
+            <div class="col g10">
+              <div class="inp sel">Identity routes · v2<span class="ic i-chev s14 dim"></span></div>
+              <div class="seg" style="width: 100%;"><button class="on" style="flex: 1; justify-content: center;">Approved</button><button style="flex: 1; justify-content: center;">Revision</button></div>
+              <div class="inp ta ph" style="min-height: 80px;">What they asked for, in their words.</div>
+              <button class="btn p full">Record it</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch"><h3>History</h3></div>
+            <div class="tl">
+              <div class="ti"><span class="dotc o"><span class="ic i-flag s14"></span></span><div><div class="sm b">Moved to Review. Three routes sent.</div><div class="xs dim">8 Sep</div></div></div>
+              <div class="ti"><span class="dotc"><span class="ic i-flag s14"></span></span><div><div class="sm b">Moved to In progress</div><div class="xs dim">19 Aug</div></div></div>
+              <div class="ti"><span class="dotc"><span class="ic i-flag s14"></span></span><div><div class="sm b">Moved to Discovery</div><div class="xs dim">2 Aug</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2050}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

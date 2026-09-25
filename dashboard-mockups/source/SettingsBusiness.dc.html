@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Business profile</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root lt" style="width: 1440px; height: 1300px;">
+<div class="app" style="height: 1300px;">
+  <aside class="side"><dc-import name="Sidebar" active="business" hint-size="264px,900px"></dc-import></aside>
+  <div class="main">
+    <dc-import name="Topbar" hint-size="1176px,72px"></dc-import>
+    <main class="page">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="Settings.dc.html">Settings</a><span class="ic i-right s14"></span><b>Business profile</b></nav>
+      <div class="grid" style="grid-template-columns: 250px minmax(0, 1fr); align-items: start;">
+        <dc-import name="SetNav" active="business" hint-size="250px,760px"></dc-import>
+        <div class="col g20">
+          <div class="row sp" style="padding: 12px 16px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line);">
+            <div class="row g10"><span class="dirty"><span class="ic i-pen s14"></span>Unsaved changes</span><span class="prov">Phone and address changed</span></div>
+            <div class="row g8"><button class="btn g sm" type="button">Discard</button><button class="btn p sm" type="button">Save</button></div>
+          </div>
+          <div class="card">
+            <div class="ch"><div><h3>Business profile</h3><p class="sub">Used in the footer, legal pages, invoices, receipts and email footers.</p></div></div>
+            <div class="grid c2" style="gap: 14px;">
+              <div class="fld"><label>Trading name</label><div class="inp">We Dig Creativity</div></div>
+              <div class="fld"><label>Legal name</label><div class="inp">We Dig Creativity Ltd</div></div>
+              <div class="fld"><label>Registration (BN / RC)</label><div class="inp code">RC 1849203</div></div>
+              <div class="fld"><label>Tagline</label><div class="inp">Brands, websites and software from Lagos</div></div>
+              <div class="fld"><label>Phone and WhatsApp</label><div class="inp foc"><span class="pre">+234</span>812 000 4411</div></div>
+              <div class="fld"><label>Studio notices go to</label><div class="inp">hello@wedigcreativity.com.ng<span class="pill good" style="margin-left: auto;">Confirmed</span></div><div class="help">Changing it sends a confirmation to the new address first.</div></div>
+              <div class="fld" style="grid-column: span 2;"><label>Address</label><div class="inp foc">14 Admiralty Way, Lekki Phase 1, Lagos</div></div>
+              <div class="fld"><label>Timezone</label><div class="inp sel">Africa/Lagos (WAT)<span class="ic i-chev s14 dim"></span></div></div>
+              <div class="fld"><label>Date format</label><div class="inp sel">24 Sep 2026<span class="ic i-chev s14 dim"></span></div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch"><div><h3>Social profiles</h3><p class="sub">Empty ones are left out of the footer and emails.</p></div><span class="pill warn">3 empty</span></div>
+            <div class="grid c2" style="gap: 12px;">
+              <div class="fld"><label>Instagram</label><div class="inp"><span class="pre">instagram.com/</span>wedigcreativity</div></div>
+              <div class="fld"><label>LinkedIn</label><div class="inp ph"><span class="pre">linkedin.com/company/</span></div></div>
+              <div class="fld"><label>X</label><div class="inp ph"><span class="pre">x.com/</span></div></div>
+              <div class="fld"><label>Behance</label><div class="inp ph"><span class="pre">behance.net/</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Settings</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root lt" style="width: 1440px; height: 1300px;">
+<div class="app" style="height: 1300px;">
+  <aside class="side"><dc-import name="Sidebar" active="settings" hint-size="264px,900px"></dc-import></aside>
+  <div class="main">
+    <dc-import name="Topbar" hint-size="1176px,72px"></dc-import>
+    <main class="page">
+      <div class="ph"><div><h1>Settings</h1><p class="lede">How the studio, the website and the dashboard run.</p></div>
+        <label class="inp" style="width: 300px; height: 44px;"><span class="ic i-search s16 dim"></span><span style="color: #6e7090;">Find a setting</span></label>
+      </div>
+
+      <div class="col g10">
+        <div class="notice bad" role="status"><span class="ic i-alert s18"></span><span class="grow"><b>1 email failed for the last time today.</b> Folake Ade did not get her next-steps email.</span><a class="linkbtn" href="SettingsEmail.dc.html">Open the email log</a><button class="ibtn sm bare" type="button" aria-label="Dismiss" style="color: #fff;"><span class="ic i-x s16"></span></button></div>
+        <div class="notice warn" role="status"><span class="ic i-clock s18"></span><span class="grow"><b>1 database change is waiting to be applied.</b> The media library cannot be read until it is.</span><a class="linkbtn" href="SettingsSystem.dc.html">System status</a><button class="ibtn sm bare" type="button" aria-label="Dismiss" style="color: #fff;"><span class="ic i-x s16"></span></button></div>
+      </div>
+
+      <div class="grid" style="grid-template-columns: 250px minmax(0, 1fr); align-items: start;">
+        <dc-import name="SetNav" active="overview" hint-size="250px,760px"></dc-import>
+        <div class="grid c2" style="align-items: start;">
+          <div class="card flush">
+            <div class="ch" style="margin-bottom: 4px;"><h3>You and the studio</h3></div>
+            <a class="set-row" href="SettingsAccount.dc.html"><span class="tile"><span class="ic i-user s16"></span></span><div class="grow"><div class="t">My account</div><div class="s">Name, password, sign-in methods, 2 active sessions</div></div><span class="ic i-right s16 dim"></span></a>
+            <a class="set-row" href="SettingsBusiness.dc.html"><span class="tile"><span class="ic i-home s16"></span></span><div class="grow"><div class="t">Business profile</div><div class="s">Trading name, address, socials, timezone</div></div><span class="pill warn">3 empty</span><span class="ic i-right s16 dim"></span></a>
+            <a class="set-row" href="SettingsTeam.dc.html"><span class="tile"><span class="ic i-users s16"></span></span><div class="grow"><div class="t">Team and access</div><div class="s">3 people, 1 invitation waiting</div></div><span class="pill warn">1 waiting</span><span class="ic i-right s16 dim"></span></a>
+            <a class="set-row" href="SettingsInvoicing.dc.html"><span class="tile"><span class="ic i-receipt s16"></span></span><div class="grow"><div class="t">Invoicing and payments</div><div class="s">VAT 7.5%, 14 days to pay, Paystack live</div></div><span class="pill good">Live</span><span class="ic i-right s16 dim"></span></a>
+          </div>
+          <div class="card flush">
+            <div class="ch" style="margin-bottom: 4px;"><h3>Website and messages</h3></div>
+            <a class="set-row" href="SettingsSite.dc.html"><span class="tile"><span class="ic i-globe s16"></span></span><div class="grow"><div class="t">Site and SEO</div><div class="s">Default description, social image, search visibility</div></div><span class="pill good">Indexed</span><span class="ic i-right s16 dim"></span></a>
+            <a class="set-row" href="SettingsContent.dc.html"><span class="tile"><span class="ic i-news s16"></span></span><div class="grow"><div class="t">Content</div><div class="s">FAQ, media library, blog defaults</div></div><span class="ic i-right s16 dim"></span></a>
+            <a class="set-row" href="SettingsEmail.dc.html"><span class="tile"><span class="ic i-mail s16"></span></span><div class="grow"><div class="t">Email</div><div class="s">Truehost SMTP, test email, email log</div></div><span class="pill bad">1 failed</span><span class="ic i-right s16 dim"></span></a>
+            <a class="set-row" href="Forms.dc.html"><span class="tile"><span class="ic i-clip s16"></span></span><div class="grow"><div class="t">Form emails</div><div class="s">Set per form, on each form's Notifications tab</div></div><span class="ic i-right s16 dim"></span></a>
+          </div>
+          <div class="card flush">
+            <div class="ch" style="margin-bottom: 4px;"><h3>Data and system</h3></div>
+            <a class="set-row" href="SettingsPrivacy.dc.html"><span class="tile"><span class="ic i-shield s16"></span></span><div class="grow"><div class="t">Privacy and retention</div><div class="s">How long we keep things, personal data requests</div></div><span class="ic i-right s16 dim"></span></a>
+            <a class="set-row" href="SettingsSystem.dc.html"><span class="tile"><span class="ic i-activity s16"></span></span><div class="grow"><div class="t">System status</div><div class="s">Database, email, storage, Paystack, maintenance mode</div></div><span class="pill warn">1 to fix</span><span class="ic i-right s16 dim"></span></a>
+            <a class="set-row" href="SettingsAudit.dc.html"><span class="tile"><span class="ic i-list s16"></span></span><div class="grow"><div class="t">Audit log</div><div class="s">Every change, who made it and when</div></div><span class="ic i-right s16 dim"></span></a>
+          </div>
+          <div class="card soft">
+            <div class="tile" style="margin-bottom: 12px;"><span class="ic i-lock s16"></span></div>
+            <h3 style="font-size: 16px;">Kept out of the dashboard on purpose</h3>
+            <p class="sm dim" style="margin-top: 6px !important; line-height: 1.55;">Paystack keys and the SMTP password live in the hosting environment, not here. The dashboard shows whether they are set, never what they are.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Portal mobile · Conversation</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="m root lt" style="width: 390px; height: 1200px; background: var(--panel);">
+  <dc-import name="MTop" client="{{yes}}" initials="TA" title="When can the shop go live?" back="PMSupport.dc.html" hint-size="390px,64px"></dc-import>
+  <div class="row sp xs" style="padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel-2);"><span class="dim">Shop rebuild · opened 22 Sep</span><span class="pill live">Open</span></div>
+  <div class="col g16" style="padding: 18px 16px 170px;">
+    <div class="row g8" style="justify-content: flex-end; align-items: flex-end;">
+      <div style="max-width: 82%;"><div style="padding: 12px 14px; border-radius: 18px 18px 6px 18px; background: var(--fill); color: var(--on-fill); line-height: 1.5; font-size: 15px;">We want to launch for the December season. When is the latest the shop could go live if we start after the identity?</div><div class="xs dim" style="text-align: right; margin-top: 4px;">You · 22 Sep, 16:10</div></div>
+    </div>
+    <div class="row g8" style="align-items: flex-end;">
+      <span class="av sm">BA</span>
+      <div style="max-width: 82%;"><div style="padding: 12px 14px; border-radius: 18px 18px 18px 6px; background: var(--panel-2); border: 1px solid var(--line); line-height: 1.5; font-size: 15px;">If you pick a route by Friday, we can have the shop live by 20 November. That leaves two weeks to load products and test payments before the rush.</div>
+        <div class="attn" style="margin-top: 6px; padding: 10px 12px; background: var(--panel);"><span class="tile sm flat"><span class="ic i-file s14"></span></span><div class="grow"><div class="b xs">shop-timeline.pdf</div><div class="xs dim">84 KB</div></div></div>
+        <div class="xs dim" style="margin-top: 4px;">Babatope · today, 11:20</div></div>
+    </div>
+  </div>
+  <form class="row g8" aria-label="Reply" style="position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 12px 94px; background: var(--panel); border-top: 1px solid var(--line); align-items: flex-end;">
+    <button class="ibtn" type="button" aria-label="Attach a file"><span class="ic i-pin"></span></button>
+    <label class="inp ta grow" style="min-height: 44px; height: 44px; padding: 11px 14px; border-radius: 22px; color: #6e7090;">Type your reply...</label>
+    <button class="ibtn" type="submit" aria-label="Send reply" style="background: var(--fill); color: var(--on-fill); border-color: var(--fill); border-radius: 50%;"><span class="ic i-send s16"></span></button>
+  </form>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 15;"><dc-import name="MTabs" portal="{{yes}}" active="support" hint-size="390px,84px"></dc-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1200}}'>
+class Component extends DCLogic {
+  renderVals() { return { yes: true }; }
+}
+</script>
+</body>
+</html>

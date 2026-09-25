@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Privacy and retention</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root lt" style="width: 1440px; height: 1400px;">
+<div class="app" style="height: 1400px;">
+  <aside class="side"><dc-import name="Sidebar" active="privacy" hint-size="264px,900px"></dc-import></aside>
+  <div class="main">
+    <dc-import name="Topbar" hint-size="1176px,72px"></dc-import>
+    <main class="page">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="Settings.dc.html">Settings</a><span class="ic i-right s14"></span><b>Privacy and retention</b></nav>
+      <div class="grid" style="grid-template-columns: 250px minmax(0, 1fr); align-items: start;">
+        <dc-import name="SetNav" active="privacy" hint-size="250px,760px"></dc-import>
+        <div class="col g20">
+          <div class="ph"><div><h1>Privacy and retention</h1><p class="lede">What we keep, for how long, and how to hand someone their data or erase it.</p></div></div>
+          <div class="card flush">
+            <div class="ch" style="margin-bottom: 8px;"><div><h3>How long we keep things</h3><p class="sub">Checked every night at 02:00. Last run removed 6 items.</p></div><span class="pill flat">Money records are never touched</span></div>
+            <table class="tbl">
+              <thead><tr><th>What</th><th>Keep for</th><th>Then</th><th>Due next run</th></tr></thead>
+              <tbody>
+                <tr><td class="b">Unfinished form drafts</td><td><span class="inp sel" style="height: 36px; width: 130px; font-size: 13.5px;">30 days<span class="ic i-chev s14 dim"></span></span></td><td class="dim">Delete</td><td>2</td></tr>
+                <tr><td class="b">Contact enquiries</td><td><span class="inp sel" style="height: 36px; width: 130px; font-size: 13.5px;">2 years<span class="ic i-chev s14 dim"></span></span></td><td class="dim">Anonymise</td><td class="dim">0</td></tr>
+                <tr><td class="b">Spam and Trash</td><td><span class="inp sel" style="height: 36px; width: 130px; font-size: 13.5px;">30 days<span class="ic i-chev s14 dim"></span></span></td><td class="dim">Delete</td><td>1</td></tr>
+                <tr><td class="b">Email log</td><td><span class="inp sel" style="height: 36px; width: 130px; font-size: 13.5px;">30 days<span class="ic i-chev s14 dim"></span></span></td><td class="dim">Delete</td><td>14</td></tr>
+                <tr><td class="b">Expired invitations</td><td><span class="inp sel" style="height: 36px; width: 130px; font-size: 13.5px;">90 days<span class="ic i-chev s14 dim"></span></span></td><td class="dim">Delete</td><td class="dim">0</td></tr>
+                <tr><td class="b">Unsubscribed addresses</td><td><span class="pill flat">Kept</span></td><td class="dim wrap">Kept so they are never emailed again</td><td class="dim">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="ch"><div><h3>Personal data request</h3><p class="sub">Someone asked what we hold about them, or to be forgotten.</p></div></div>
+            <div class="row g8"><div class="inp">folake@adecouture.com</div><button class="btn p" type="button" style="flex: none;"><span class="ic i-search s16"></span>Look up</button></div>
+            <div class="card soft" style="padding: 0; margin-top: 14px;">
+              <div class="lrow" style="padding: 12px 16px;"><span class="tile sm"><span class="ic i-clip s14"></span></span><div class="grow"><div class="t sm">1 form entry</div><div class="s">Branding brief #12</div></div></div>
+              <div class="lrow" style="padding: 12px 16px;"><span class="tile sm"><span class="ic i-mail s14"></span></span><div class="grow"><div class="t sm">3 emails in the log</div></div></div>
+              <div class="lrow" style="padding: 12px 16px;"><span class="tile sm flat"><span class="ic i-news s14"></span></span><div class="grow"><div class="t sm">Not on the newsletter</div></div></div>
+            </div>
+            <div class="row g10" style="margin-top: 14px;"><button class="btn s" type="button"><span class="ic i-down s16"></span>Export as JSON</button><button class="btn s" type="button">Export as CSV</button><div class="grow"></div><button class="btn d" type="button"><span class="ic i-trash s16"></span>Erase personal details</button></div>
+            <p class="help" style="margin-top: 10px !important;">Erasing replaces names, emails and answers with “Erased”. Invoices and payments stay, as the law requires. The request itself is logged.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1400}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

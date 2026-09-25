@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin mobile · Email settings</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="m root lt" style="width: 390px; height: 2050px;">
+  <dc-import name="MTop" title="Email" back="MSettings.dc.html" hint-size="390px,64px"></dc-import>
+  <main class="m-page">
+
+    <div class="m-ph"><h1>Email</h1><p class="lede">How the studio's emails leave, and what happened to each one.</p></div>
+    <div class="card" style="padding: 16px;">
+      <div class="ch" style="margin-bottom: 12px;"><div><h3>Connection</h3><p class="sub">Read from the hosting environment.</p></div><span class="pill good">Connected</span></div>
+      <div class="col g10 sm">
+        <div class="row sp g12"><span class="dim">Host</span><span class="trunc" style="min-width: 0;">mail.wedigcreativity.com.ng</span></div>
+        <div class="row sp"><span class="dim">Port</span><span>465 · SSL</span></div>
+        <div class="row sp g12"><span class="dim">Username</span><span class="trunc" style="min-width: 0;">hello@wedigcreativity.com.ng</span></div>
+        <div class="row sp"><span class="dim">Password</span><span class="row g6"><span class="ic i-lock s14"></span>Set, never shown</span></div>
+      </div>
+      <div class="col g12" style="margin-top: 14px;">
+        <div class="fld"><label>From name</label><div class="inp" style="height: 44px;">We Dig Creativity</div></div>
+        <div class="fld"><label>From address</label><div class="inp dis" style="height: 44px;">hello@wedigcreativity.com.ng</div><div class="help">To change the host or password, update the environment and redeploy.</div></div>
+      </div>
+    </div>
+    <div class="card" style="padding: 16px;">
+      <div class="ch" style="margin-bottom: 12px;"><h3>Send a test email</h3></div>
+      <div class="inp" style="height: 44px;">babatope@wedigcreativity.com.ng</div>
+      <button class="btn p full" type="button" style="margin-top: 10px;"><span class="ic i-send s16"></span>Send test</button>
+      <div class="attn" style="margin-top: 12px; background: var(--panel); align-items: flex-start;"><span class="tile sm good"><span class="ic i-check s14"></span></span><div class="grow sm" style="min-width: 0;"><b>Delivered in 23.4 s</b><div class="xs dim" style="margin-top: 2px; line-height: 1.45;">Server said 250 OK · today 12:02. Truehost takes about 23 seconds to sign in, so every email goes out after the page answers.</div></div></div>
+    </div>
+    <div class="card flush">
+      <div class="ch" style="padding: 16px 16px 0; margin-bottom: 4px;"><h3>Keeping the log</h3></div>
+      <div class="mcard-row"><div class="grow"><b class="sm">Delete entries after 30 days</b><div class="xs dim" style="margin-top: 3px;">Failed ones are kept until you retry or dismiss them</div></div><span class="sw on" role="switch" aria-checked="true" aria-label="Delete entries after 30 days"></span></div>
+      <div class="mcard-row"><div class="grow"><b class="sm">Tell me when an email fails for good</b><div class="xs dim" style="margin-top: 3px;">In the dashboard, at most once a minute</div></div><span class="sw on" role="switch" aria-checked="true" aria-label="Tell me when an email fails for good"></span></div>
+    </div>
+    <div class="row sp" style="padding: 0 4px;"><h3 style="font-size: 17px;">Email log</h3><a class="ibtn" href="MDateRange.dc.html" aria-label="Last 7 days, change dates"><span class="ic i-cal"></span></a></div>
+    <div class="hscroll"><button class="chip on" type="button">All 5</button><button class="chip" type="button">Sent 3</button><button class="chip" type="button">Failed 1</button><button class="chip" type="button">Skipped 1</button></div>
+    <label class="inp" style="height: 44px;"><span class="ic i-search s16 dim"></span><span style="color: #6e7090;">Search to: or subject:</span></label>
+    <div class="card flush">
+      <a class="mcard-row" href="SettingsEmailView.dc.html" style="align-items: flex-start;"><div class="grow" style="min-width: 0;"><div class="row sp g8"><b class="sm trunc">ngozi@example.com</b><span class="pill flat">Sending</span></div><div class="xs dim trunc" style="margin-top: 3px;">Form · Your branding brief is saved</div><div class="xs dim" style="margin-top: 2px;">Now</div></div></a>
+      <a class="mcard-row" href="SettingsEmailView.dc.html" style="align-items: flex-start;"><div class="grow" style="min-width: 0;"><div class="row sp g8"><b class="sm trunc">adaeze@glowskincare.ng</b><span class="pill good">Delivered</span></div><div class="xs dim trunc" style="margin-top: 3px;">Form · Thanks, Adaeze. Here is what happens next</div><div class="xs dim" style="margin-top: 2px;">Today, 12:42 · 22.8 s</div></div></a>
+      <div class="mcard-row" style="align-items: flex-start;"><div class="grow" style="min-width: 0;"><div class="row sp g8"><b class="sm trunc">folake@adecouture.com</b><span class="pill bad">Failed</span></div><div class="xs dim trunc" style="margin-top: 3px;">Form · Thanks, Folake. Here is what happens next</div><div class="xs dim" style="margin-top: 2px;">21 Sep, 09:14 · 3 tries · mailbox full</div><div class="row g8" style="margin-top: 10px;"><a class="btn s sm" href="SettingsEmailView.dc.html">View</a><button class="btn p sm" type="button"><span class="ic i-refresh s14"></span>Retry</button></div></div></div>
+      <a class="mcard-row" href="SettingsEmailView.dc.html" style="align-items: flex-start;"><div class="grow" style="min-width: 0;"><div class="row sp g8"><b class="sm trunc">femi@traxstaff.com</b><span class="pill good">Delivered</span></div><div class="xs dim trunc" style="margin-top: 3px;">Reminder · INV-2026-004 is overdue</div><div class="xs dim" style="margin-top: 2px;">20 Sep, 16:30 · 24.1 s</div></div></a>
+      <a class="mcard-row" href="SettingsEmailView.dc.html" style="align-items: flex-start;"><div class="grow" style="min-width: 0;"><div class="row sp g8"><b class="sm trunc">amaka@marfaafoods.ng</b><span class="pill neu">Skipped</span></div><div class="xs dim trunc" style="margin-top: 3px;">Project · Your September social calendar is ready</div><div class="xs dim" style="margin-top: 2px;">20 Sep, 16:29 · switched off by client</div></div></a>
+      <div class="m-pager"><button class="pp" type="button" aria-label="Rows per page, 25">25 per page<span class="ic i-chev s14"></span></button><div class="pgn"><button class="ibtn" type="button" aria-label="Previous page" disabled style="opacity: .45;"><span class="ic i-left s16"></span></button><span class="nowrap">1–5 of 5</span><button class="ibtn" type="button" aria-label="Next page" disabled style="opacity: .45;"><span class="ic i-right s16"></span></button></div></div>
+    </div>
+  </main>
+  
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 15;"><dc-import name="MTabs" active="more" hint-size="390px,84px"></dc-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2050}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

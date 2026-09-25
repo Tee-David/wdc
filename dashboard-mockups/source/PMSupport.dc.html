@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Portal mobile · Support</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="m root lt" style="width: 390px; height: 1000px;">
+  <dc-import name="MTop" client="{{yes}}" initials="TA" hint-size="390px,64px"></dc-import>
+  <main class="m-page">
+    <div class="m-ph"><h1>Support</h1><p class="lede">Ask us anything about your account, a project, or an invoice.</p></div>
+    <div class="seg" style="width: 100%;"><button class="on" style="flex: 1; justify-content: center;">Open 1</button><button style="flex: 1; justify-content: center;">Closed 2</button></div>
+    <div class="card flush">
+      <a class="mcard-row" href="PMConversation.dc.html" style="align-items: flex-start; background: var(--panel-2);"><span class="tile sm live"><span class="ic i-chat s14"></span></span><div class="grow"><div class="row sp"><b class="sm">When can the shop go live?</b><span class="xs dim">2h</span></div><div class="xs dim" style="margin-top: 4px; line-height: 1.45;">Babatope: If you pick a route by Friday, we can have the shop live by 20 November…</div><span class="pill live" style="margin-top: 8px;">New reply</span></div></a>
+    </div>
+    <div class="card soft" style="padding: 16px;">
+      <div class="row g10"><span class="tile sm"><span class="ic i-clock s14"></span></span><div class="sm" style="line-height: 1.45;">We usually reply the same working day, 9am to 6pm Lagos time.</div></div>
+    </div>
+  </main>
+  <a class="fab" href="PMNewTicket.dc.html"><span class="ic i-plus s20"></span>Ask a question</a>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 15;"><dc-import name="MTabs" portal="{{yes}}" active="support" hint-size="390px,84px"></dc-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return { yes: true }; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Money filters</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root" style="width: 1440px; height: 1000px;">
+  <dc-import name="Money" hint-size="1440px,2300px"></dc-import>
+  <div class="scrim"></div>
+  <form class="drawer" aria-label="Filter invoices" style="width: 480px;">
+    <div class="dh">
+      <div><h2>Filter invoices</h2><div class="xs dim" style="margin-top: 2px;">4 filters on · 3 invoices match</div></div>
+      <a class="ibtn" href="Money.dc.html" aria-label="Close"><span class="ic i-x"></span></a>
+    </div>
+    <div class="db" style="gap: 20px;">
+      <div class="fld">
+        <div class="row sp"><label class="lbl">Dates</label><div class="seg"><button type="button" class="on">Issued</button><button type="button">Due</button><button type="button">Paid</button></div></div>
+        <div class="row g8 wrap">
+          <span class="chip" style="height: 34px;">Any time</span><span class="chip" style="height: 34px;">Today</span><span class="chip" style="height: 34px;">Last 7 days</span><span class="chip" style="height: 34px;">Last 30 days</span><span class="chip" style="height: 34px;">This month</span><span class="chip" style="height: 34px;">Last month</span><span class="chip" style="height: 34px;">This quarter</span><span class="chip" style="height: 34px;">Year to date</span><span class="chip" style="height: 34px;">Last year</span><span class="chip on" style="height: 34px;"><span class="ic i-cal s14"></span>Custom</span>
+        </div>
+        <div class="grid c2" style="gap: 10px;">
+          <div class="fld" style="gap: 4px;"><span class="xs dim b">From</span><a class="inp sel" href="Filters.dc.html" style="height: 42px; font-size: 14px;">1 Aug 2026<span class="ic i-cal s16 dim"></span></a></div>
+          <div class="fld" style="gap: 4px;"><span class="xs dim b">To</span><a class="inp sel" href="Filters.dc.html" style="height: 42px; font-size: 14px;">24 Sep 2026<span class="ic i-cal s16 dim"></span></a></div>
+        </div>
+      </div>
+      <div class="fld"><label class="lbl">Status</label>
+        <div class="grid c3" style="gap: 8px;">
+          <label class="row g8 sm"><span class="cbx"></span>Draft</label><label class="row g8 sm"><span class="cbx"></span>Sent</label><label class="row g8 sm"><span class="cbx on"><span class="ic i-check s14"></span></span>Part paid</label>
+          <label class="row g8 sm"><span class="cbx on"><span class="ic i-check s14"></span></span>Overdue</label><label class="row g8 sm"><span class="cbx"></span>Paid</label><label class="row g8 sm"><span class="cbx"></span>Void</label>
+        </div>
+      </div>
+      <div class="fld"><label class="lbl">Client</label><div class="inp sel" style="gap: 6px;"><span class="row g6" style="min-width: 0;"><span class="tag">Moore Designs<span class="ic i-x s14" style="margin-left: 4px;"></span></span><span class="ph sm">Add a client</span></span><span class="ic i-chev s14 dim"></span></div></div>
+      <div class="fld"><label class="lbl">Amount owed</label>
+        <div class="row g8"><div class="inp" style="height: 42px;"><span class="pre">₦</span>100,000</div><span class="dim">to</span><div class="inp" style="height: 42px;"><span class="pre">₦</span><span class="ph">Any</span></div></div>
+      </div>
+      <div class="fld"><label class="lbl">Late by</label><div class="row g8 wrap"><span class="chip" style="height: 34px;">Not due yet</span><span class="chip on" style="height: 34px;">1–30 days</span><span class="chip" style="height: 34px;">31–60</span><span class="chip" style="height: 34px;">61–90</span><span class="chip" style="height: 34px;">Over 90</span></div></div>
+    </div>
+    <div class="df">
+      <button class="btn g" type="button">Clear all</button>
+      <div class="row g10"><button class="btn s" type="button"><span class="ic i-star s16"></span>Save view</button><a class="btn p" href="Money.dc.html">Show 3 invoices</a></div>
+    </div>
+  </form>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

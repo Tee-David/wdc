@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Portal · Overview</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root lt" style="width: 1440px; height: 1400px;">
+<div class="app" style="height: 1400px;">
+  <aside class="side"><dc-import name="PSidebar" active="overview" hint-size="264px,900px"></dc-import></aside>
+  <div class="main">
+    <dc-import name="Topbar" client="{{yes}}" person="Tobi Adeyemi" role="Moore Designs" initials="TA" hint-size="1176px,72px"></dc-import>
+    <main class="page">
+      <div class="ph">
+        <div>
+          <div class="eyebrow">Thursday, 24 September</div>
+          <h1 style="margin-top: 6px;">Good afternoon, Tobi</h1>
+          <p class="lede">Here is where things stand on your projects with us today.</p>
+        </div>
+        <div class="acts">
+          <a class="btn s" href="PBilling.dc.html"><span class="ic i-cash s16"></span>View billing</a>
+          <a class="btn p" href="PNewTicket.dc.html"><span class="ic i-chat s16"></span>Ask a question</a>
+        </div>
+      </div>
+
+      <div class="grid c4">
+        <div class="card kpi"><div class="lab">Active projects<span class="tile sm"><span class="ic i-folder s16"></span></span></div><div class="val">2</div><div class="note">1 in review, 1 just starting</div></div>
+        <div class="card kpi"><div class="lab">Awaiting your review<span class="tile sm live"><span class="ic i-eye s16"></span></span></div><div class="val">1</div><div class="note">Identity routes, version 2</div></div>
+        <div class="card kpi"><div class="lab">Balance owed<span class="tile sm warn"><span class="ic i-wallet s16"></span></span></div><div class="val">₦330,000</div><div class="note">Due Wed 30 Sep</div></div>
+        <div class="card kpi"><div class="lab">Support<span class="tile sm flat"><span class="ic i-buoy s16"></span></span></div><div class="val">1 <small class="dim">open</small></div><div class="note">Reply from the studio today</div></div>
+      </div>
+
+      <div class="grid c21">
+        <div class="col g20">
+          <div class="card">
+            <div class="ch"><div><h3>Needs your attention</h3><p class="sub">The quickest way to keep your projects moving.</p></div></div>
+            <div class="col g10">
+              <div class="attn">
+                <span class="tile live"><span class="ic i-file s16"></span></span>
+                <div class="grow"><div class="b">Pick a route for your identity</div><div class="sm dim">Identity routes v2 · sent 8 Sep · your pick sets the next step</div></div>
+                <a class="btn p sm" href="PProject.dc.html">Review now</a>
+              </div>
+              <div class="attn">
+                <span class="tile warn"><span class="ic i-receipt s16"></span></span>
+                <div class="grow"><div class="b">₦330,000 left on INV-2026-001</div><div class="sm dim">Identity system, first stage · due Wed 30 Sep</div></div>
+                <a class="btn s sm" href="PInvoice.dc.html">Pay now</a>
+              </div>
+              <div class="attn">
+                <span class="tile"><span class="ic i-chat s16"></span></span>
+                <div class="grow"><div class="b">Babatope replied about the shop launch date</div><div class="sm dim">Support · 2 hours ago</div></div>
+                <a class="btn s sm" href="PConversation.dc.html">Read</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="ch"><h3>Your projects</h3><a class="linkbtn" href="PProjects.dc.html">View all projects<span class="ic i-right s14"></span></a></div>
+            <div class="grid c2">
+              <a class="card soft" href="PProject.dc.html" style="padding: 18px;">
+                <div class="row sp"><span class="tile sm"><span class="ic i-star s14"></span></span><span class="pill live">Review</span></div>
+                <div class="b" style="margin-top: 12px; font-size: 16px;">Identity system</div>
+                <div class="xs dim" style="margin-top: 2px;">Branding · due 26 Sep</div>
+                <div class="steps" style="gap: 4px; margin-top: 14px;"><div class="st done"><i></i></div><div class="st done"><i></i></div><div class="st done"><i></i></div><div class="st now"><i></i></div><div class="st"><i></i></div><div class="st"><i></i></div></div>
+                <div class="sm" style="margin-top: 12px;"><b>Next:</b> you pick a route. We build it out the same week.</div>
+              </a>
+              <a class="card soft" href="PProject.dc.html" style="padding: 18px;">
+                <div class="row sp"><span class="tile sm"><span class="ic i-globe s14"></span></span><span class="pill flat">Onboarding</span></div>
+                <div class="b" style="margin-top: 12px; font-size: 16px;">Shop rebuild</div>
+                <div class="xs dim" style="margin-top: 2px;">Website · date to be agreed</div>
+                <div class="steps" style="gap: 4px; margin-top: 14px;"><div class="st now"><i></i></div><div class="st"><i></i></div><div class="st"><i></i></div><div class="st"><i></i></div><div class="st"><i></i></div><div class="st"><i></i></div></div>
+                <div class="sm" style="margin-top: 12px;"><b>Next:</b> a kick-off call once the identity is picked.</div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col g20">
+          <div class="card">
+            <div class="ch"><h3>Recent updates</h3></div>
+            <div class="tl">
+              <div class="ti"><span class="dotc o"><span class="ic i-send s14"></span></span><div><div class="sm b">Three identity routes sent</div><div class="xs dim">Identity system · 8 Sep</div><p class="sm dim" style="margin-top: 6px !important; line-height: 1.5;">Each comes with the reasoning, a mock shopfront and the type pairing.</p></div></div>
+              <div class="ti"><span class="dotc b"><span class="ic i-folder s14"></span></span><div><div class="sm b">Shop rebuild opened</div><div class="xs dim">Shop rebuild · 9 Sep</div></div></div>
+              <div class="ti"><span class="dotc g"><span class="ic i-check s14"></span></span><div><div class="sm b">You approved the moodboard</div><div class="xs dim">Identity system · 22 Aug</div></div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch"><h3>Quick actions</h3></div>
+            <div class="col g8">
+              <a class="attn" href="PNewTicket.dc.html" style="padding: 12px;"><span class="tile sm"><span class="ic i-chat s14"></span></span><span class="grow b sm">Ask a question</span><span class="ic i-right s16 dim"></span></a>
+              <a class="attn" href="PBilling.dc.html" style="padding: 12px;"><span class="tile sm"><span class="ic i-receipt s14"></span></span><span class="grow b sm">Download an invoice</span><span class="ic i-right s16 dim"></span></a>
+              <a class="attn" href="PSettings.dc.html" style="padding: 12px;"><span class="tile sm"><span class="ic i-bell s14"></span></span><span class="grow b sm">Choose what we email you</span><span class="ic i-right s16 dim"></span></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1400}}'>
+class Component extends DCLogic {
+  renderVals() { return { yes: true }; }
+}
+</script>
+</body>
+</html>

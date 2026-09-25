@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin mobile · Form builder</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="m root lt" style="width: 390px; height: 1300px;">
+  <div class="row g8" style="height: 64px; padding: 0 12px; background: var(--panel); border-bottom: 1px solid var(--line);">
+    <a class="ibtn" href="MFormEntries.dc.html" aria-label="Back"><span class="ic i-back"></span></a>
+    <div class="grow" style="min-width: 0;"><div class="b sm trunc">Branding brief</div><div class="xs dim row g6"><span class="pill warn" style="height: 18px; padding: 0 6px; font-size: 10.5px;">Draft v4</span>Saved 12:40</div></div>
+    <a class="ibtn" href="FormPreview.dc.html" aria-label="Preview"><span class="ic i-eye"></span></a>
+    <a class="btn p sm" href="FormPublish.dc.html">Publish</a>
+  </div>
+  <div class="fb-step" style="padding: 10px 12px 0; gap: 4px;">
+    <a href="MFormBuild.dc.html"><span class="n">1</span>You</a>
+    <a href="MFormBuild.dc.html"><span class="n">2</span>Brand</a>
+    <a class="on" href="MFormBuild.dc.html"><span class="n">3</span>Needs</a>
+    <a href="MFormBuild.dc.html" aria-label="Add a step" style="color: var(--navy);"><span class="ic i-plus s14"></span></a>
+  </div>
+  <main class="col g10" style="padding: 14px 12px 160px; background: var(--bg);">
+    <a class="fb-field sel" href="MFormField.dc.html" style="padding-left: 36px;"><span class="grip ic i-drag s16"></span><div class="fh"><span class="tile sm live" style="width: 24px; height: 24px; border-radius: 7px;"><span class="ic i-checksq s14"></span></span><b class="trunc">What should we make?</b><span class="req">*</span></div><div class="xs dim">Checkboxes · 6 options</div></a>
+    <a class="fb-field" href="MFormField.dc.html" style="padding-left: 36px;"><span class="grip ic i-drag s16"></span><div class="fh"><span class="tile sm live" style="width: 24px; height: 24px; border-radius: 7px;"><span class="ic i-radio s14"></span></span><b>Budget</b><span class="req">*</span></div><div class="xs dim">Single choice · 3 options + “Not sure”</div></a>
+    <a class="fb-field" href="MFormField.dc.html" style="padding-left: 36px;"><span class="grip ic i-drag s16"></span><div class="fh"><span class="tile sm live" style="width: 24px; height: 24px; border-radius: 7px;"><span class="ic i-dropdown s14"></span></span><b class="trunc">When do you want to start?</b><span class="req">*</span></div><div class="xs dim">Dropdown · 6 options</div></a>
+    <a class="fb-field" href="MFormField.dc.html" style="padding-left: 36px;"><span class="grip ic i-drag s16"></span><div class="fh"><span class="tile sm live" style="width: 24px; height: 24px; border-radius: 7px;"><span class="ic i-radio s14"></span></span><b class="trunc">Is there a launch date?</b></div><div class="xs dim">Yes · No</div></a>
+    <a class="fb-field" href="FormBuildLogic.dc.html" style="padding-left: 36px; margin-left: 16px;"><span class="grip ic i-drag s16"></span><div class="fh"><span class="tile sm" style="width: 24px; height: 24px; border-radius: 7px;"><span class="ic i-cal s14"></span></span><b>Launch date</b><span class="req">*</span></div><div class="row g6 xs" style="color: var(--accent-ink); font-weight: 600;"><span class="ic i-branch s14"></span>When launch date is Yes</div></a>
+    <a class="fb-field" href="MFormField.dc.html" style="padding-left: 36px;"><span class="grip ic i-drag s16"></span><div class="fh"><span class="tile sm good" style="width: 24px; height: 24px; border-radius: 7px;"><span class="ic i-shield s14"></span></span><b>Consent</b><span class="req">*</span></div></a>
+  </main>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 16px 30px; background: var(--panel); border-top: 1px solid var(--line); box-shadow: 0 -8px 24px rgba(14,14,44,.06);">
+    <a class="btn p full" href="MFormAddField.dc.html"><span class="ic i-plus s16"></span>Add a field to “Needs”</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

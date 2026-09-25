@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Projects list, moving a stage</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root" style="width: 1440px; height: 1150px;">
+  <dc-import name="Projects" view="list" hint-size="1440px,1150px"></dc-import>
+  <div class="menu" role="listbox" aria-label="Move this project" style="left: 716px; top: 436px; width: 280px;">
+    <div class="ml">Move Dispatch platform to</div>
+    <div class="mi"><span class="dotst" style="--c: var(--t-neutral);"></span>Onboarding</div>
+    <div class="mi"><span class="dotst" style="--c: var(--t-neutral);"></span>Discovery</div>
+    <div class="mi"><span class="dotst" style="--c: var(--c1);"></span>In progress</div>
+    <div class="mi hov"><span class="dotst" style="--c: var(--t-live);"></span>Review<span class="hint">Client is told</span></div>
+    <div class="mi on"><span class="dotst" style="--c: var(--t-warn);"></span>Revisions<span class="chk ic i-check s16"></span></div>
+    <div class="mi"><span class="dotst" style="--c: var(--t-good);"></span>Delivered</div>
+    <div class="sep"></div>
+    <div class="ml">Health</div>
+    <div class="row g6 wrap" style="padding: 2px 8px 8px;"><span class="chip" style="height: 30px; font-size: 12.5px;">On track</span><span class="chip on" style="height: 30px; font-size: 12.5px;">At risk</span><span class="chip" style="height: 30px; font-size: 12.5px;">Waiting on client</span><span class="chip" style="height: 30px; font-size: 12.5px;">Blocked</span></div>
+  </div>
+  <div class="tip" style="left: 1010px; top: 606px;">Moving to Review posts an update the client can see</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1150}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

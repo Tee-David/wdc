@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin mobile · Media</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="m root lt" style="width: 390px; height: 1200px;">
+  <dc-import name="MTop" title="Media" back="MSettings.dc.html" hint-size="390px,64px"></dc-import>
+  <main class="m-page">
+    <div class="m-ph"><h1>Media</h1><p class="lede">Each file gets a permanent address. Archiving hides it here without breaking a page.</p></div>
+    <div class="hscroll"><button class="chip on">In use 12</button><button class="chip">Pictures</button><button class="chip">Documents</button><button class="chip">Archived 2</button></div>
+    <div class="grid c2" style="gap: 12px;">
+      <div class="card flush" style="overflow: hidden;"><div style="height: 110px; background: var(--t-brand); display: grid; place-items: center; color: #fff;"><span class="ic i-img s22"></span></div><div style="padding: 10px 12px;"><div class="b xs trunc">hero-studio.webp</div><div class="xs dim">182 KB</div></div></div>
+      <div class="card flush" style="overflow: hidden;"><div style="height: 110px; background: var(--t-live); display: grid; place-items: center; color: #fff;"><span class="ic i-img s22"></span></div><div style="padding: 10px 12px;"><div class="b xs trunc">moore-case-study.webp</div><div class="xs dim">96 KB</div></div></div>
+      <div class="card flush" style="overflow: hidden;"><div style="height: 110px; background: var(--t-good); display: grid; place-items: center; color: #fff;"><span class="ic i-img s22"></span></div><div style="padding: 10px 12px;"><div class="b xs trunc">millcon-listings.webp</div><div class="xs dim">110 KB</div></div></div>
+      <div class="card flush" style="overflow: hidden;"><div style="height: 110px; background: var(--t-flat); display: grid; place-items: center; color: #fff;"><span class="ic i-file s22"></span></div><div style="padding: 10px 12px;"><div class="b xs trunc">rate-card-2026.pdf</div><div class="xs dim">380 KB</div></div></div>
+      <div class="card flush" style="overflow: hidden;"><div style="height: 110px; background: var(--t-neutral); display: grid; place-items: center; color: #fff;"><span class="ic i-img s22"></span></div><div style="padding: 10px 12px;"><div class="b xs trunc">team-lagos.webp</div><div class="xs dim">204 KB</div></div></div>
+      <div class="card flush" style="overflow: hidden;"><div style="height: 110px; background: var(--t-warn); display: grid; place-items: center; color: #fff;"><span class="ic i-img s22"></span></div><div style="padding: 10px 12px;"><div class="b xs trunc">marfaa-reels.webp</div><div class="xs dim">120 KB</div></div></div>
+    </div>
+  </main>
+  <a class="fab" href="MMedia.dc.html"><span class="ic i-up s20"></span>Upload</a>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 15;"><dc-import name="MTabs" active="more" hint-size="390px,84px"></dc-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1200}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

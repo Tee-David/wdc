@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Top bar</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<header class="top" style="width: 1176px; height: 72px; font-family: var(--ff-b); color: var(--ink);">
+  <label class="search">
+    <span class="ic i-search s16"></span>
+    <span class="grow">{{placeholder}}</span>
+    <span class="kbd">⌘K</span>
+  </label>
+  <div class="grow"></div>
+  <button class="ibtn" aria-label="Switch theme"><span class="ic {{themeIcon}}"></span></button>
+  <button class="ibtn" aria-label="Notifications, 4 unread"><span class="ic i-bell"></span><span class="dot"></span></button>
+  <div class="vr" style="margin: 14px 4px;"></div>
+  <button class="row g10" style="background: transparent; border: 0; padding: 4px 6px; border-radius: 12px; font-family: var(--ff-b); color: var(--ink); cursor: pointer;" aria-label="Account menu">
+    <span class="av {{avCls}}">{{initials}}</span>
+    <span style="text-align: left;">
+      <span class="b sm" style="display: block;">{{person}}</span>
+      <span class="xs dim" style="display: block;">{{role}}</span>
+    </span>
+    <span class="ic i-chev s16 dim"></span>
+  </button>
+</header>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"person":{"editor":"text","default":"Babatope Adeyemi"},"role":{"editor":"text","default":"Owner"},"initials":{"editor":"text","default":"BA"},"client":{"editor":"boolean","default":false},"dark":{"editor":"boolean","default":false},"$preview":{"width":1176,"height":72}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const client = !!this.props.client;
+    return {
+      person: this.props.person ?? 'Babatope Adeyemi',
+      role: this.props.role ?? 'Owner',
+      initials: this.props.initials ?? 'BA',
+      avCls: client ? 'o' : '',
+      placeholder: client ? 'Search projects, invoices, messages' : 'Search clients, projects, invoices',
+      themeIcon: this.props.dark ? 'i-sun' : 'i-moon',
+    };
+  }
+}
+</script>
+</body>
+</html>
