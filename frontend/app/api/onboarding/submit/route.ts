@@ -1,4 +1,5 @@
 import { after, NextRequest, NextResponse } from "next/server";
+import { assignSerial } from "@/lib/forms/serial";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { composeEmailHtml, emailPanel, onboardingNextStepsEmail } from "@/lib/email-templates";
 import { sendLogged } from "@/lib/outbox";
@@ -79,6 +80,8 @@ export async function POST(request: NextRequest) {
   }
 
   const submissionId = result.rows[0].id;
+  /* "Brief #12", counted per service. */
+  await assignSerial("onboarding_submissions", `onboarding-${service}`, submissionId);
 
   /* THE THANK-YOU AND THE STUDIO'S NOTICE, BEHIND THE RESPONSE. The row above
      is the submission; both mails are about it, and neither is worth making a
