@@ -370,6 +370,12 @@
 .ad__sheetHead { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .3rem 1.25rem .6rem; }
 .ad__sheetHead h2 { font-size: 1.2rem; }
 .ad__sheetBody { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: .25rem 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+/* The body scrolls; what is in it never shrinks to fit. Without this the
+   list under the tiles (overflow: hidden, so no content floor) was squeezed
+   to its border on a short phone, and the theme switch and Sign out vanished. */
+.ad__sheetBody > * { flex-shrink: 0; }
+/* Back to top belongs to the page, not to a sheet laid over it. */
+body:has(.ad__sheetLayer) .st { display: none; }
 .ad__moreGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
 .ad__moreGrid .ad__moreTile {
   position: relative; min-width: 0; min-height: 6.25rem; padding: .9rem;
