@@ -35,6 +35,11 @@
 /* Lines. */
 .sk__line { height: .8rem; border-radius: 6px; }
 .sk__line--lede { width: min(28rem, 80%); height: .95rem; }
+/* A detail page's header: crumbs above, then the record's mark and name. */
+.sk__head--record { flex-wrap: wrap; align-items: center; }
+.sk__line--crumb { flex: 0 0 min(14rem, 60%); margin-right: calc(100% - min(14rem, 60%)); height: .8rem; }
+.sk__mark { width: 3.25rem; height: 3.25rem; flex: none; border-radius: 14px; }
+.sk__recTitle { display: block; width: min(20rem, 70%); height: 2rem; border-radius: 8px; }
 .sk__line--label { width: 45%; }
 .sk__line--note { width: 60%; height: .7rem; }
 .sk__line--h { width: 9rem; height: 1rem; }

@@ -15,13 +15,20 @@ import "./skeleton.css";
 
 const b = (cls: string, style?: React.CSSProperties) => <span className={`sk__b ${cls}`} style={style} />;
 
-export function Skeleton({ title, lede = true, actions = 0, children }: { title: string; lede?: boolean; actions?: number; children: React.ReactNode }) {
+/**
+ * `record`: a detail page, whose heading is the record's own name and so is
+ * not known yet. The header becomes a breadcrumb line, the record's mark and a
+ * grey title block; `title` is only what a screen reader hears.
+ */
+export function Skeleton({ title, lede = true, actions = 0, record = false, children }: { title: string; lede?: boolean; actions?: number; record?: boolean; children: React.ReactNode }) {
   return (
     <div className="sk" aria-busy="true" aria-live="polite">
       <span className="ad__sr">Loading {title}</span>
-      <div className="sk__head" aria-hidden="true">
+      <div className={`sk__head${record ? " sk__head--record" : ""}`} aria-hidden="true">
+        {record ? b("sk__line sk__line--crumb") : null}
+        {record ? b("sk__mark") : null}
         <div className="sk__headText">
-          <h1 className="sk__title">{title}</h1>
+          {record ? b("sk__recTitle") : <h1 className="sk__title">{title}</h1>}
           {lede ? b("sk__line sk__line--lede") : null}
         </div>
         {actions ? <div className="sk__acts">{Array.from({ length: actions }, (_, i) => <span key={i} className="sk__b sk__btn" />)}</div> : null}
