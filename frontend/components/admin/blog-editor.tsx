@@ -16,6 +16,8 @@ export type EditorPost = {
   status: "draft" | "scheduled" | "published";
   publishedAt: string;
   live: boolean;
+  /** The row's saved_at when the editor opened it, for the concurrency check. */
+  savedAt: string | null;
 };
 
 /**
@@ -218,6 +220,7 @@ export function BlogEditor({ post, topics, covers }: {
   });
   const backup = useBackup(key, anchor, savedSnapshot);
   const [restore, setRestore] = useState<{ at: number; doc: RichDoc } | null>(null);
+  const [opened, setOpened] = useState(post.savedAt);
 
   const doRestore = () => {
     const form = anchor.current?.closest("form");
@@ -235,10 +238,15 @@ export function BlogEditor({ post, topics, covers }: {
   };
 
   return (
-    <Form action={saveBlogPost} className="adBlog adBlog--split" onDone={() => { try { localStorage.removeItem(key); } catch {} }}>
+    <Form action={saveBlogPost} className="adBlog adBlog--split" onDone={(s) => {
+      try { localStorage.removeItem(key); } catch {}
+      /* The version this editor now holds, so its next save is not refused as stale. */
+      if (s.stamp) setOpened(s.stamp);
+    }}>
       <div ref={anchor} hidden />
       <SlugFollowsTitle locked={post.live} />
       {post.id ? <Hidden name="id" value={post.id} /> : null}
+      {post.id ? <Hidden name="opened" value={opened ?? ""} /> : null}
 
       {backup.offer ? (
         <p className="ad__banner adBlog__restore" role="status">

@@ -32,7 +32,7 @@ const open = async (page: Page, path: string, baseURL: string | undefined) => {
   await page.waitForTimeout(1500);
 };
 
-const LISTS = ["/admin", "/admin/projects", "/admin/clients", "/admin/money", "/admin/forms", "/admin/settings"];
+const LISTS = ["/admin", "/admin/projects", "/admin/clients", "/admin/money", "/admin/forms", "/admin/settings/general"];
 
 for (const path of LISTS) {
   test(`${path} offers actions on its rows`, async ({ page, baseURL }) => {
@@ -136,8 +136,9 @@ test("an invoice is only offered what its status allows", async ({ page, baseURL
 });
 
 test("editing a setting writes an override, and putting it back clears it", async ({ page, baseURL }) => {
-  await open(page, "/admin/settings", baseURL);
-  const row = page.locator("table.ad__t tbody tr").first();
+  await open(page, "/admin/settings/general", baseURL);
+  /* Only the finance defaults are editable (lib/settings/registry.ts). */
+  const row = page.locator("table.ad__t tbody tr", { hasText: "Default days to pay" });
 
   await row.locator(".ad__rm").click();
   await expect(page.locator(".ad__rmList [data-item]")).toHaveCount(1);
@@ -145,11 +146,11 @@ test("editing a setting writes an override, and putting it back clears it", asyn
 
   const field = page.locator("dialog.addlg[open] input[name=value]");
   const shipped = await field.inputValue();
-  await field.fill("changed@example.com");
+  await field.fill("21");
   await page.locator("dialog.addlg[open] button[type=submit]").click();
   await page.waitForTimeout(2000);
 
-  await expect(row).toContainText("changed@example.com");
+  await expect(row).toContainText("21");
   /* The screen says what shipped as well as what it is showing, which is the
      question people actually bring to a settings page. */
   await expect(row).toContainText("Edited");

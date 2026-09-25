@@ -147,6 +147,16 @@ export function parsePost(raw: Raw, opts: { imageHosts?: readonly string[] } = {
     else publishedAt = d.toISOString();
   }
   if (status !== "draft" && !publishedAt) errors.publishedAt = "Publishing or scheduling needs a date.";
+  /* A DAY, NOT A MOMENT. A date-only value is stored at 08:00 UTC (09:00 in
+     Lagos), so "published, today" pressed at 7am was a post that stayed
+     hidden for two hours while the editor said it was live. Published means
+     live now: today's date is clamped to this moment, and a later day is
+     what Scheduled is for. */
+  if (status === "published" && publishedAt && new Date(publishedAt) > new Date()) {
+    const lagosToday = new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateRaw) && dateRaw <= lagosToday) publishedAt = new Date().toISOString();
+    else errors.publishedAt = "That date is still to come. Choose Scheduled to publish it then, or today's date to publish now.";
+  }
   if (status === "scheduled" && publishedAt && new Date(publishedAt) <= new Date()) {
     errors.publishedAt = "A scheduled post needs a date in the future. For today, publish it.";
   }

@@ -1,7 +1,7 @@
 "use client";
 
-import { ArrowRight, ExternalLink, FilePen, Globe, Trash2, Undo2 } from "lucide-react";
-import { deleteBlogDraft, moveBlogPostToDraft, publishBlogPostNow } from "@/lib/admin/blog-actions";
+import { ArchiveRestore, ArrowRight, ExternalLink, FilePen, Globe, Trash2, Undo2 } from "lucide-react";
+import { deleteBlogPostForever, moveBlogPostToDraft, publishBlogPostNow, restoreBlogPost, trashBlogDraft } from "@/lib/admin/blog-actions";
 import { Actions, Form, Hidden, Submit } from "./form";
 import { RowMenu, type RowMenuItem } from "./row-menu";
 
@@ -61,10 +61,33 @@ export function BlogPostMenu({ post }: { post: Row }) {
   }
   if (post.state === "draft") {
     items.push({
-      kind: "dialog", label: "Delete the draft", icon: Trash2, tone: "danger", title: `Delete ${post.title}`,
+      kind: "dialog", label: "Move to the Trash", icon: Trash2, tone: "danger", title: `Move ${post.title} to the Trash`,
       render: (close) => (
-        <Confirm id={post.id} action={deleteBlogDraft as never} verb="Delete it" tone="danger" close={close}>
-          The draft is removed for good. Nobody has seen it, so nothing links to it.
+        <Confirm id={post.id} action={trashBlogDraft as never} verb="Move to the Trash" tone="danger" close={close}>
+          It can be restored from the Trash for 30 days, then it is removed for good. Its address stays reserved until then.
+        </Confirm>
+      ),
+    });
+  }
+  return <RowMenu items={items} label={post.title} />;
+}
+
+/** A post in the Trash: back as a draft, or (the owner only) gone for good. */
+export function TrashedPostMenu({ post, canDelete }: { post: { id: string; title: string }; canDelete: boolean }) {
+  const items: RowMenuItem[] = [{
+    kind: "dialog", label: "Restore", icon: ArchiveRestore, title: `Restore ${post.title}`,
+    render: (close) => (
+      <Confirm id={post.id} action={restoreBlogPost as never} verb="Restore it" close={close}>
+        It comes back as a draft, exactly as it went in.
+      </Confirm>
+    ),
+  }];
+  if (canDelete) {
+    items.push({
+      kind: "dialog", label: "Delete for good", icon: Trash2, tone: "danger", title: `Delete ${post.title} for good`,
+      render: (close) => (
+        <Confirm id={post.id} action={deleteBlogPostForever as never} verb="Delete it for good" tone="danger" close={close}>
+          This cannot be undone. It was never published, so nothing links to it.
         </Confirm>
       ),
     });
