@@ -29,7 +29,6 @@
   background: var(--paper-2); text-decoration: none;
   transition: border-color .25s ease, transform .25s ease, background .25s ease;
 }
-.pv-sec--alt .lg-card { background: var(--paper); }
 .lg-card:hover { border-color: var(--accent); transform: translateY(-3px); }
 .lg-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .lg-card__n {

@@ -139,7 +139,7 @@ export default function ServiceDetail({ service }: { service: Service }) {
       {/* HOW IT GOES. The six steps were a grid on the combined page and stay
           one here; they are the part a prospect reads when they are deciding
           whether we know what we are doing. */}
-      <section className="pv-sec sv-svc pv-sec--alt">
+      <section className="pv-sec sv-svc">
         <div className="pv-wrap">
           <div className="pv-head pv-reveal">
             <span className="pv-eyebrow">How it goes</span>

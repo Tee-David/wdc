@@ -356,7 +356,7 @@ export default function AboutBody() {
       </section>
 
       {/* ---------------- team ---------------- */}
-      <section className="pv-sec pv-sec--alt ab-team">
+      <section className="pv-sec ab-team">
         <div className="pv-wrap pv-reveal">
           <TeamRail />
         </div>

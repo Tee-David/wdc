@@ -79,7 +79,7 @@ export default function AdBudgetToolPage() {
           </div>
         </section>
 
-        <section className="pv-sec pv-sec--alt">
+        <section className="pv-sec">
           <div className="pv-wrap">
             <div className="pv-head">
               <span className="pv-eyebrow">Three things a platform&rsquo;s own calculator will not say</span>

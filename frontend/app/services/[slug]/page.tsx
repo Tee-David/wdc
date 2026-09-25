@@ -202,7 +202,7 @@ export default async function ServicePage(
         <ServiceTools service={service.slug} />
 
         {faqs.length > 0 ? (
-          <section className="pv-sec pv-sec--alt">
+          <section className="pv-sec">
             <div className="pv-wrap">
               <div className="pv-head pv-reveal">
                 <span className="pv-eyebrow">Before you ask</span>
