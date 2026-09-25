@@ -113,16 +113,23 @@ test.describe("in the admin", () => {
   test("the pipeline figure is separate from collected income", async ({ page }) => {
     await page.goto("/admin/money", { waitUntil: "load" });
     const tiles = page.locator("dl.ad__tiles").first();
-    await expect(tiles).toContainText("Out for quote");
-    /* A quote is not money, so it is its own tile and is added to nothing. */
+    /* A quote is not money: the figure sits on the Estimates panel, and no
+       tile of money in or out counts it. */
     await expect(tiles).toContainText("Collected");
+    await expect(tiles).not.toContainText(/quote/i);
+    const panel = page.locator(".ad__panel", { has: page.getByRole("heading", { name: "Estimates", exact: true }) });
+    await expect(panel).toContainText("out for quote");
   });
 
   test("a declined estimate is kept rather than deleted", async ({ page }) => {
     await page.goto("/admin/money", { waitUntil: "load" });
     const row = page.locator("tr", { hasText: "EST-2026-003" }).first();
     await expect(row).toContainText("Declined");
-    await row.locator(".ad__rm").click();
+    /* A click before hydration opens nothing, so try until the menu shows. */
+    await expect(async () => {
+      await row.locator(".ad__rm").click();
+      await expect(page.locator(".ad__rmList [data-item]").first()).toBeVisible({ timeout: 1_000 });
+    }).toPass({ timeout: 30_000 });
     const items = (await page.locator(".ad__rmList [data-item]").allTextContents()).join(" | ");
     /* No delete anywhere: a quote nobody took is the most useful row in a
        pipeline six months later. */
@@ -133,7 +140,11 @@ test.describe("in the admin", () => {
   test("a draft has no public page, so the menu does not offer one", async ({ page }) => {
     await page.goto("/admin/money", { waitUntil: "load" });
     const row = page.locator("tr", { hasText: "EST-2026-001" }).first();
-    await row.locator(".ad__rm").click();
+    /* A click before hydration opens nothing, so try until the menu shows. */
+    await expect(async () => {
+      await row.locator(".ad__rm").click();
+      await expect(page.locator(".ad__rmList [data-item]").first()).toBeVisible({ timeout: 1_000 });
+    }).toPass({ timeout: 30_000 });
     const items = (await page.locator(".ad__rmList [data-item]").allTextContents()).join(" | ");
     /* This one is Sent, so it does offer the client's copy and an answer. */
     expect(items).toContain("Open the client's copy");

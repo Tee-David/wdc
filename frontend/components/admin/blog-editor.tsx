@@ -72,7 +72,7 @@ function Body({ initial, restore }: { initial: RichDoc; restore: { at: number; d
     <div className="adBlog__body">
       <span className="ad__flRow">
         <span className="ad__fl" id={`${id}-l`}>Body<b aria-hidden="true"> *</b></span>
-        <Tip label="About the body" text="The headline above is the page's title, so start sections with Heading and use Subheading inside them." />
+        <Tip text="The headline above is the page's title, so start sections with Heading and use Subheading inside them." />
       </span>
       {/* Behind the question mark on screen; still read with the field. */}
       <small className="ad__sr" id={`${id}-h`}>

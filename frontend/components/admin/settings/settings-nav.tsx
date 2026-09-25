@@ -2,17 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, ChevronLeft, ChevronRight, Globe, History, Lock, Images, Mail, MessagesSquare, Plug, ShieldCheck, SlidersHorizontal, UserRound, Users } from "lucide-react";
+import { ChevronLeft, LayoutGrid } from "lucide-react";
 import { can, isAdminRole, type AdminRole } from "@/lib/admin/permissions";
-import { SETTINGS_GROUPS, SETTINGS_SECTIONS, type SettingsIcon } from "@/lib/settings/sections";
+import { SETTINGS_GROUPS, SETTINGS_SECTIONS } from "@/lib/settings/sections";
+import { SETTINGS_ICON as ICON } from "./settings-icons";
 
-const ICON: Record<SettingsIcon, typeof Mail> = {
-  sliders: SlidersHorizontal, messages: MessagesSquare, images: Images, mail: Mail, plug: Plug, history: History, shield: ShieldCheck, users: Users, user: UserRound, globe: Globe, activity: Activity, lock: Lock,
-};
 
 /**
- * The Settings sections: a sidebar on a wide screen, and on a phone a list on
- * the Settings page itself and a "Settings" link back on every section.
+ * The Settings sections (the mockups' SetNav): a compact card of links beside
+ * every Settings page on a wide screen. On a phone the overview page lists
+ * the sections itself, with their descriptions, and each section shows a
+ * "Settings" link back instead of this.
  */
 export function SettingsNav({ role }: { role: AdminRole | null }) {
   const path = usePathname();
@@ -23,7 +23,16 @@ export function SettingsNav({ role }: { role: AdminRole | null }) {
       {!onIndex ? (
         <Link className="adSet__back" href="/admin/settings"><ChevronLeft aria-hidden="true" /> Settings</Link>
       ) : null}
-      <nav className={`adSet__nav${onIndex ? " is-index" : ""}`} aria-label="Settings sections">
+      <nav className="adSet__nav" aria-label="Settings sections">
+        <p className="adSet__groupH">Settings</p>
+        <ul>
+          <li>
+            <Link href="/admin/settings" aria-current={onIndex ? "page" : undefined}>
+              <LayoutGrid aria-hidden="true" className="adSet__glyph" />
+              <span className="adSet__text"><b>Overview</b></span>
+            </Link>
+          </li>
+        </ul>
         {SETTINGS_GROUPS.map((g) => {
           const items = sections.filter((s) => s.group === g);
           if (!items.length) return null;
@@ -37,9 +46,8 @@ export function SettingsNav({ role }: { role: AdminRole | null }) {
                   return (
                     <li key={s.href}>
                       <Link href={s.href} aria-current={on ? "page" : undefined}>
-                        <span className="adSet__icon"><Icon aria-hidden="true" /></span>
-                        <span className="adSet__text"><b>{s.label}</b><small>{s.line}</small></span>
-                        <ChevronRight aria-hidden="true" className="adSet__chev" />
+                        <Icon aria-hidden="true" className="adSet__glyph" />
+                        <span className="adSet__text"><b>{s.label}</b></span>
                       </Link>
                     </li>
                   );

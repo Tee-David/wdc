@@ -382,8 +382,11 @@ function Hint({ id, hint }: { id?: string; hint: string }) {
     ? <small className="ad__fh" id={id}>{hint}</small>
     : <small className="ad__sr" id={id}>{hint}</small>;
 }
-function HintTip({ hint, label }: { hint?: string; label: string }) {
-  return hint && hint.length > SHORT_HINT ? <Tip text={hint} label={`About ${label}`} /> : null;
+/* Named "What does this mean?", like the onboarding form's, and NOT after
+   the field: a button called "About Amount" is found by every lookup of the
+   field by its label, which is how both people and tests find a field. */
+function HintTip({ hint }: { hint?: string; label?: string }) {
+  return hint && hint.length > SHORT_HINT ? <Tip text={hint} /> : null;
 }
 
 /** The label, hint and error around whatever control the caller renders. */

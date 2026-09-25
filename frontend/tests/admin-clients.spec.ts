@@ -27,8 +27,8 @@ test("client filters are useful, reversible, and keep their context", async ({ p
   expect(exportBody).toContain("Marfaa Foods");
   expect(exportBody).not.toContain("Moore Designs");
 
-  await page.locator('input[name="q"]').fill("nobody matches this");
-  await page.locator('.ad__filterBar button[type="submit"]').click();
+  await page.locator('.ad__filterBar input[type="search"][name="q"]').fill("nobody matches this");
+  await page.locator('.ad__filterForm button[type="submit"]').click();
   await expect(page).toHaveURL(/q=nobody(?:\+|%20)matches(?:\+|%20)this/);
   await expect(page.getByText("No clients match these filters")).toBeVisible();
 

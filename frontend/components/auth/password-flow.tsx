@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { PasswordField, PrimaryButton } from "@/components/auth/fields";
+import { PasswordField, PrimaryButton, StrengthMeter } from "@/components/auth/fields";
 import { useStage } from "@/components/auth/stage/stage-context";
 import { useHydrated } from "@/components/auth/use-hydrated";
 import { authClient } from "@/lib/auth-client";
@@ -89,7 +89,7 @@ export function ResetPasswordForm({ token = "", invalid = false }: { token?: str
           </div>
         ) : (
           <>
-            <p className="lx__sub">Use at least 10 characters, and keep it unique to this account.</p>
+            <p className="lx__sub">Keep it unique to this account.</p>
             {error ? (
               <p className="au__error" role="alert">
                 {error}
@@ -108,6 +108,7 @@ export function ResetPasswordForm({ token = "", invalid = false }: { token?: str
                 }}
                 error={field.password ?? null}
               />
+              <StrengthMeter value={password} />
               <PasswordField
                 ref={confirmRef}
                 label="Confirm password"

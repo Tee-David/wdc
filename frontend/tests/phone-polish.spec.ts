@@ -45,7 +45,7 @@ test.describe("admin on a phone", () => {
     await expect(dialog).toBeVisible();
     const body = await dialog.locator(".addlg__b").evaluate((b) => ({ sw: b.scrollWidth, cw: b.clientWidth }));
     expect(body.sw, "the dialog body scrolls sideways").toBeLessThanOrEqual(body.cw);
-    await dialog.getByRole("button", { name: /^About Amount/ }).click();
+    await dialog.getByRole("button", { name: "What does this mean?" }).first().click();
     const note = dialog.locator(".tip__p");
     await expect(note).toBeVisible();
     await expect(note).toBeInViewport();

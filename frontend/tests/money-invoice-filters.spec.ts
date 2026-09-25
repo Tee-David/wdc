@@ -37,8 +37,8 @@ test("invoice filters are useful, reversible, and the export matches the screen"
   expect(exportBody).toContain("INV-2026-005");
   expect(exportBody).not.toContain("Moore Designs");
 
-  await page.locator('input[name="q"]').fill("nobody matches this");
-  await page.locator('.ad__filterBar button[type="submit"]').click();
+  await page.locator('.ad__filterBar input[type="search"][name="q"]').fill("nobody matches this");
+  await page.locator('.ad__filterForm button[type="submit"]').click();
   await expect(page).toHaveURL(/q=nobody(?:\+|%20)matches(?:\+|%20)this/);
   await expect(page.getByText("No invoices match these filters")).toBeVisible();
 

@@ -224,6 +224,33 @@ export const PasswordField = forwardRef<
   );
 });
 
+/* --------------------------------------------------------------- strength */
+
+/**
+ * HOW GOOD A NEW PASSWORD IS, as four bars and a word. Length does most of
+ * the work, so a short sentence scores well and "Pa$$w0rd" does not; the
+ * only rule it enforces is the one the server enforces, ten characters.
+ */
+export function passwordStrength(value: string): { score: 0 | 1 | 2 | 3 | 4; word: string } {
+  if (!value) return { score: 0, word: "" };
+  if (value.length < 10) return { score: 1, word: "Too short" };
+  const kinds = [/[a-z]/, /[A-Z]/, /\d/, /[^\w]/].filter((r) => r.test(value)).length;
+  const score = (2 + (value.length >= 14 ? 1 : 0) + (kinds >= 3 || /\s/.test(value) ? 1 : 0)) as 2 | 3 | 4;
+  return { score, word: score === 4 ? "Strong" : score === 3 ? "Good" : "Fair" };
+}
+
+export function StrengthMeter({ value }: { value: string }) {
+  const { score, word } = passwordStrength(value);
+  return (
+    <div className="au-meter" data-score={score}>
+      <div className="au-meter__bars" aria-hidden="true"><span /><span /><span /><span /></div>
+      <p className="au-meter__text" aria-live="polite">
+        {word ? <b>{word}.</b> : null} At least 10 characters; a short sentence works well.
+      </p>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------- code */
 
 const CODE_LENGTH = 6;

@@ -65,7 +65,7 @@ const entry = () => `/admin/forms/onboarding-branding/entries/${id}`;
 test("the brief is in its form's inbox and reads back under its questions", async ({ page }) => {
   await page.goto("/admin/forms", { waitUntil: "load" });
   /* The list counts it against the branding form. */
-  await expect(page.locator('[data-tour="forms-live"] tr', { hasText: "Branding onboarding" })).toContainText("unread of");
+  await expect(page.locator('[data-tour="forms-live"] tr', { hasText: "Branding onboarding" }).getByLabel(/^\d+ unread$/)).toBeVisible();
 
   await page.goto("/admin/forms/onboarding-branding", { waitUntil: "load" });
   const row = page.locator("tbody tr", { hasText: COMPANY });
