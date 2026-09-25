@@ -1,0 +1,122 @@
+/* LOADING SKELETONS (components/admin/skeleton.tsx). Blocks the shape of the
+   page's own parts, on the same grids and breakpoints, so the page lands where
+   its skeleton stood, on a desktop and on a phone. */
+.sk {
+  --sk-bone: #e6e8f2;
+  --sk-panel: var(--ad-panel);
+  --sk-sweep: rgb(255 255 255 / .55);
+  min-width: 0;
+  /* Only after 150ms: a page that answers quickly never flashes this. */
+  animation: sk-in .2s ease 150ms backwards;
+}
+.dark .sk { --sk-bone: #1f2150; --sk-sweep: rgb(255 255 255 / .06); }
+@keyframes sk-in { from { opacity: 0; } }
+
+.sk__b { display: block; border-radius: 8px; background: var(--sk-bone); }
+.sk__body { position: relative; overflow: hidden; display: grid; gap: 1.25rem; }
+/* ONE sweep over the whole skeleton, a transform, rather than an animation
+   per block. */
+.sk__body::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 30%, var(--sk-sweep) 50%, transparent 70%);
+  transform: translateX(-100%); animation: sk-sweep 1.5s ease-in-out infinite;
+}
+@keyframes sk-sweep { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .sk { animation: none; } .sk__body::after { display: none; } }
+
+/* The header: the page's real title, a lede line, its buttons. */
+.sk__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
+.sk__headText { min-width: 0; flex: 1; display: grid; gap: .6rem; }
+.sk__title { margin: 0; font-size: clamp(1.55rem, 1.15rem + 1.2vw, 2rem); font-weight: 600; }
+.sk__acts { display: flex; gap: .6rem; flex: none; }
+.sk__btn { width: 7.5rem; height: 2.75rem; border-radius: 12px; }
+.sk__btn--sm { width: 5.5rem; height: 2.5rem; }
+
+/* Lines. */
+.sk__line { height: .8rem; border-radius: 6px; }
+.sk__line--lede { width: min(28rem, 80%); height: .95rem; }
+.sk__line--label { width: 45%; }
+.sk__line--note { width: 60%; height: .7rem; }
+.sk__line--h { width: 9rem; height: 1rem; }
+.sk__line--th { height: .6rem; width: 60%; }
+.sk__line--name { width: 70%; height: .85rem; }
+.sk__line--sub { width: 45%; height: .65rem; }
+.sk__line--cell { width: 70%; }
+.sk__line--tick { width: 60%; height: .6rem; margin: .5rem auto 0; }
+.sk__stack { min-width: 0; display: grid; gap: .45rem; }
+
+/* Tiles. */
+.sk__tiles { display: grid; gap: 1rem; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.sk__tiles--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.sk__tiles--5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.sk__tile, .sk__panel, .sk__card {
+  min-width: 0; border: 1px solid var(--ad-line); border-radius: var(--ad-r); background: var(--sk-panel); box-shadow: var(--ad-sh-1);
+}
+.sk__tile { display: grid; gap: .8rem; padding: 1.25rem; }
+.sk__tileTop { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.sk__icon { width: 2.25rem; height: 2.25rem; flex: none; border-radius: 10px; }
+.sk__fig { width: 55%; height: 1.9rem; border-radius: 8px; }
+.sk__pill { width: 4.5rem; height: 1.4rem; border-radius: 999px; }
+.sk__av { width: 2.25rem; height: 2.25rem; flex: none; border-radius: 50%; }
+
+/* Panels, filters and tables. */
+.sk__panel { overflow: hidden; }
+.sk__panelHead { padding: 1.1rem 1.25rem; border-bottom: 1px solid var(--ad-line); }
+.sk__filters { display: flex; flex-wrap: wrap; gap: .6rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--ad-line); }
+.sk__field { height: 2.75rem; border-radius: 12px; width: 10rem; }
+.sk__field--search { flex: 1 1 14rem; width: auto; }
+.sk__form .sk__field { width: 100%; }
+.sk__table { display: grid; }
+.sk__tr { display: grid; grid-template-columns: minmax(12rem, 2fr) repeat(var(--sk-cols, 4), minmax(0, 1fr)); gap: 1rem; align-items: center; padding: .95rem 1.25rem; border-top: 1px solid var(--ad-line); }
+.sk__tr--head { padding-block: .75rem; background: var(--ad-panel-2); border-top: 0; }
+.sk__lead { min-width: 0; display: flex; align-items: center; gap: .75rem; }
+.sk__lead .sk__stack { flex: 1; }
+
+/* Chart. */
+.sk__chart { height: 15rem; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: clamp(.4rem, 2vw, 1rem); padding: 1.25rem; }
+.sk__month { min-width: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; }
+.sk__bars { display: flex; align-items: flex-end; justify-content: center; gap: 12%; border-bottom: 1px solid var(--ad-line); }
+.sk__bar { width: 30%; border-radius: 6px 6px 2px 2px; }
+.sk__bar--b { opacity: .7; }
+
+/* Rows, cards, the board, a form. */
+.sk__rows { display: grid; gap: .6rem; padding: 1rem 1.25rem 1.25rem; }
+.sk__rowItem { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr) auto; gap: .85rem; align-items: center; padding: .8rem .9rem; border: 1px solid var(--ad-line); border-radius: 14px; }
+.sk__rowItem .sk__icon { width: 2.4rem; height: 2.4rem; }
+.sk__cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); gap: 1rem; padding: 1rem 1.25rem 1.25rem; }
+.sk__card { display: grid; gap: .6rem; padding: 1.1rem; }
+.sk__stages { display: grid; grid-template-columns: repeat(6, 1fr); gap: .3rem; margin-top: .4rem; }
+.sk__stages .sk__b { height: .3rem; border-radius: 99px; }
+.sk__board { display: grid; grid-template-columns: repeat(6, minmax(13rem, 1fr)); gap: 1rem; overflow: hidden; }
+.sk__col { display: grid; gap: .75rem; align-content: start; padding: .9rem; border-radius: var(--ad-r); background: var(--ad-panel-2); }
+.sk__card--k { box-shadow: none; }
+.sk__form { display: grid; gap: 1.1rem; padding: 1.25rem; }
+.sk__split { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(18rem, .8fr); gap: 1.25rem; align-items: start; }
+.sk__col2 { min-width: 0; display: grid; gap: 1.25rem; }
+
+/* THE SAME BREAKPOINTS AS THE PAGES: the dashboard's rows fold at 1180px,
+   tiles go two-up then one-up, a table keeps its lead cell and two others,
+   and the header's buttons drop under the title. */
+@media (max-width: 1180px) {
+  .sk__split { grid-template-columns: minmax(0, 1fr); }
+  .sk__tiles, .sk__tiles--5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .sk__tiles--3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sk__tr { grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)); padding-inline: 1rem; }
+  .sk__tr > :nth-child(n + 4) { display: none; }
+  .sk__board { grid-template-columns: repeat(6, minmax(15rem, 1fr)); }
+}
+@media (max-width: 640px) {
+  .sk__head { flex-direction: column; align-items: stretch; }
+  .sk__acts { flex-wrap: wrap; }
+  .sk__acts .sk__btn { flex: 1 1 12rem; width: auto; }
+  .sk__filters .sk__field, .sk__filters .sk__btn { flex: 1 1 100%; width: 100%; }
+}
+@media (max-width: 520px) {
+  .sk__tiles, .sk__tiles--3, .sk__tiles--5 { grid-template-columns: minmax(0, 1fr); }
+  .sk__tile { padding: 1rem; }
+  .sk__chart { height: 12rem; padding: 1rem; }
+  .sk__rowItem { grid-template-columns: 2.4rem minmax(0, 1fr); }
+  .sk__rowItem > .sk__btn { grid-column: 2; width: 100%; }
+}
