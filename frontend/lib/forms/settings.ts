@@ -70,6 +70,9 @@ export const NOTIFICATIONS: Record<FormSource, NotificationDef[]> = {
     { key: "welcome", name: "Welcome to the subscriber", audience: "person", defaultSubject: "You are on the list", tokens: [] },
     { key: "studio-notice", name: "Notice to the studio", audience: "studio", defaultSubject: "New newsletter subscriber", tokens: ["{email}"] },
   ],
+  custom: [
+    { key: "studio-notice", name: "Notice to the studio", audience: "studio", defaultSubject: "New entry: {form}", tokens: ["{form}", "{serial}"] },
+  ],
   onboarding: [
     { key: "next-steps", name: "Next steps to the client", audience: "person", defaultSubject: "Your {service} brief is with us", tokens: [...PERSON_TOKENS, "{service}"] },
     { key: "studio-notice", name: "Notice to the studio", audience: "studio", defaultSubject: "Onboarding brief: {service}", tokens: ["{first_name}", "{company}", "{service}", "{serial}"] },

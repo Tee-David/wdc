@@ -111,3 +111,126 @@
 .cpMoney__bar { display: block; height: .45rem; margin: 0 1.25rem; border-radius: 99px; background: var(--ad-line); overflow: hidden; }
 .cpMoney__bar i { display: block; height: 100%; border-radius: inherit; background: var(--ad-tone-good); }
 .cpMoney__pay { margin: 0 1.25rem; justify-content: center; }
+
+/* ---------------------------------------------------------- billing --
+   PBilling.dc.html: the balance on a navy card with the button that pays
+   it, then paid to date and credit as ordinary tiles. */
+.pBill__kpis { display: grid; gap: 1rem; margin: 0 0 1.25rem; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 760px) { .pBill__kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.ad .pBill__owed { background: var(--ad-navy); border-color: var(--ad-navy); color: #fff; }
+.ad .pBill__owed dt, .ad .pBill__owed dd { color: #fff; }
+.ad .pBill__owed small { color: #d6d6f5; }
+.dark .pBill__owed { background: #14145a; border-color: #2c2c80; }
+.pBill__owed form { margin-top: 1rem; }
+/* The public pair on a dark ground: white fill, black label. */
+.pBill__pay {
+  min-height: 2.75rem; padding: 0 1.1rem; display: inline-flex; align-items: center; gap: .5rem;
+  border: 1px solid #fff; border-radius: 10px; background: #fff; color: #0a0a0a;
+  font: 700 .95rem var(--font-outfit), system-ui, sans-serif; cursor: pointer;
+}
+.pBill__pay svg { width: 1.1rem; height: 1.1rem; }
+.pBill__pay:hover { background: #0a0a0a; color: #fff; }
+.pBill__pay:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.pBill__acts { display: flex; align-items: center; justify-content: flex-end; gap: .5rem; }
+.pBill__acts form { margin: 0; }
+.pBill__acts .ad__btn, .ad__t td > .ad__btn { white-space: nowrap; }
+.ad__t td > .ad__btn svg, .pBill__acts .ad__btn svg { width: 1rem; height: 1rem; }
+.pBill__cards { display: none; margin: 0; padding: .5rem 1rem 1rem; list-style: none; gap: .6rem; }
+.pBill__cards a {
+  min-height: 4rem; padding: .8rem .9rem; display: flex; align-items: center; gap: .8rem;
+  border: 1px solid var(--ad-line); border-radius: 14px; background: var(--ad-panel); color: var(--ad-ink); text-decoration: none;
+}
+.pBill__cards a:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.pBill__cardMain { min-width: 0; flex: 1; display: grid; gap: .15rem; }
+.pBill__cardMain b, .pBill__cardMain small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pBill__cardMain small { color: var(--ad-dim); font-size: .8rem; }
+.pBill__cardEnd { flex: none; display: grid; justify-items: end; gap: .3rem; }
+.pBill__safe { display: flex; align-items: center; justify-content: center; gap: .4rem; margin: 0 0 1.25rem; font-size: .84rem; }
+.pBill__safe svg { width: .95rem; height: .95rem; }
+@media (max-width: 759px) {
+  .pBill__kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pBill__owed { grid-column: 1 / -1; }
+  .pBill__owed form, .pBill__pay { width: 100%; justify-content: center; }
+  .pBill__cards { display: grid; }
+  .pBill__table { display: none; }
+  /* PMBilling's two small cards: label, figure, nothing else. */
+  .pBill__kpis > .ad__tile:not(.pBill__owed) { padding: .9rem 1rem; }
+  .pBill__kpis > .ad__tile:not(.pBill__owed) .ad__tileIcon,
+  .pBill__kpis > .ad__tile:not(.pBill__owed) small { display: none; }
+  .pBill__kpis > .ad__tile:not(.pBill__owed) dt { min-height: 0; font-size: .82rem; font-weight: 500; }
+  .pBill__kpis > .ad__tile:not(.pBill__owed) dd { font-size: 1.2rem; margin-top: .3rem; }
+}
+
+/* --------------------------------------------------------- projects --
+   PProjects.dc.html: a card per project, two across on a wide screen. */
+.pProj { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 28rem), 1fr)); }
+.pProj__card {
+  position: relative; min-width: 0; padding: 1.35rem 1.5rem; display: grid; gap: 1.1rem;
+  border: 1px solid var(--ad-line); border-radius: 18px; background: var(--ad-panel); box-shadow: var(--ad-sh-1);
+}
+.pProj__card:has(.pProj__link:hover) { border-color: var(--ad-dim); }
+.pProj__head { display: flex; align-items: flex-start; gap: .9rem; min-width: 0; }
+.pProj__icon {
+  width: 2.75rem; height: 2.75rem; flex: none; display: grid; place-items: center; border-radius: 12px;
+  background: var(--ad-tone-brand); color: var(--ad-on-brand);
+}
+.pProj__icon svg { width: 1.25rem; height: 1.25rem; }
+.pProj__name { flex: 1; min-width: 0; display: grid; gap: .1rem; }
+.pProj__name b { font: 700 1.3rem/1.2 var(--font-space-grotesk), system-ui, sans-serif; color: var(--ad-ink); }
+.pProj__name small { color: var(--ad-dim); font-size: .86rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pProj__link { color: inherit; text-decoration: none; }
+/* The whole card opens the project; the Review button sits above it. */
+.pProj__link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.pProj__link:focus-visible { outline: none; }
+.pProj__link:focus-visible::after { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.pProj__card .ad__btn, .pProj__head .ad__pill { position: relative; z-index: 1; }
+.pProj__stages { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .4rem; }
+.pProj__stages li { min-width: 0; display: grid; gap: .45rem; font-size: .78rem; font-weight: 600; color: var(--ad-dim); }
+.pProj__stages li.is-done, .pProj__stages li.is-now { color: var(--ad-ink); }
+.pProj__stages i { height: .3rem; border-radius: 99px; background: var(--ad-line); }
+.pProj__stages li.is-done i { background: var(--ad-tone-brand); }
+.pProj__stages li.is-now i { background: var(--ad-accent); }
+.dark .pProj__stages li.is-done i { background: #7377ff; }
+.pProj__wait {
+  display: flex; align-items: center; gap: .8rem; padding: .8rem 1rem; min-width: 0;
+  border: 1px solid var(--ad-line); border-radius: 14px; background: var(--ad-bg);
+}
+.pProj__wait p { flex: 1; min-width: 0; margin: 0; font-size: .9rem; }
+.pProj__stageNow { display: none; color: var(--ad-dim); font-size: .8rem; font-weight: 600; }
+.pProj__foot { display: flex; align-items: center; justify-content: space-between; gap: .75rem; font-size: .86rem; flex-wrap: wrap; }
+.pProj__lead { display: inline-flex; align-items: center; gap: .5rem; color: var(--ad-dim); }
+@media (max-width: 559px) {
+  .pProj__card { padding: 1.1rem; }
+  .pProj__stages span { display: none; }
+  .pProj__stageNow { display: block; margin-top: -.6rem; }
+  .pProj__wait { flex-wrap: wrap; }
+  .pProj__wait .ad__btn { width: 100%; justify-content: center; }
+}
+
+/* ---------------------------------------------------------- support --
+   PSupport.dc.html: conversations beside a note on reply times. */
+.pSup { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 1000px) { .pSup { grid-template-columns: minmax(0, 1fr) minmax(16rem, 21rem); } }
+.pSup__bar { padding: 1rem 1.25rem; border-bottom: 1px solid var(--ad-line); }
+.pSup__list { margin: 0; padding: 0; list-style: none; }
+.pSup__list li + li { border-top: 1px solid var(--ad-line); }
+.pSup__list a {
+  min-height: 4.5rem; padding: 1rem 1.25rem; display: flex; align-items: center; gap: .9rem;
+  color: var(--ad-ink); text-decoration: none;
+}
+.pSup__list a:hover { background: var(--ad-bg); }
+.pSup__list a:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: -2px; }
+.pSup__list a.is-fresh { background: color-mix(in srgb, var(--ad-bg) 70%, var(--ad-panel)); }
+.pSup__main { flex: 1; min-width: 0; display: grid; gap: .25rem; }
+.pSup__subject { display: flex; align-items: center; gap: .5rem; min-width: 0; flex-wrap: wrap; }
+.pSup__subject b { font: 700 1.02rem/1.3 var(--font-space-grotesk), system-ui, sans-serif; min-width: 0; }
+.pSup__main small { color: var(--ad-dim); font-size: .86rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pSup__when { flex: none; color: var(--ad-dim); font-size: .8rem; white-space: nowrap; }
+.pSup__aside { padding: 1.25rem; display: grid; gap: .6rem; justify-items: start; }
+.pSup__aside h2 { margin: .3rem 0 0; font: 700 1.05rem var(--font-space-grotesk), system-ui, sans-serif; }
+.pSup__aside p { margin: 0; color: var(--ad-dim); font-size: .88rem; line-height: 1.55; }
+@media (max-width: 559px) {
+  .pSup__list a { padding: .9rem 1rem; align-items: flex-start; }
+  .pSup__when { display: none; }
+}
+.pProj__card[hidden], .pBill__cards [hidden], .pSup__list [hidden] { display: none; }

@@ -15,7 +15,6 @@ import { db } from "@/lib/db/pool";
  */
 
 const PAGE = "/admin/settings/account";
-import { passwordProblem } from "@/lib/auth/password-policy";
 
 async function signedIn() {
   if (!(await adminRole())) return null;
@@ -38,31 +37,6 @@ export async function saveMyName(_prev: ActionState, fd: FormData): Promise<Acti
   audit({ actor: name, kind: "setting", subjectId: me.session.user.id, subject: name, action: "changed their name", note: me.session.user.name });
   revalidatePath(PAGE);
   return OK("Saved. New changes carry this name; old ones keep the name they were made under.");
-}
-
-/** A new password ends every other session, so a stolen one stops working. */
-export async function changeMyPassword(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const me = await signedIn();
-  if (!me) return FAIL({}, NO_SESSION);
-  const current = String(fd.get("current") ?? "");
-  const next = String(fd.get("next") ?? "");
-  const again = String(fd.get("again") ?? "");
-  const errors: Record<string, string> = {};
-  if (!current) errors.current = "Your current password.";
-  const weak = passwordProblem(next);
-  if (weak) errors.next = weak;
-  else if (next !== again) errors.again = "The two new passwords are not the same.";
-  if (Object.keys(errors).length) return FAIL(errors);
-  try {
-    await me.auth.api.changePassword({ body: { currentPassword: current, newPassword: next, revokeOtherSessions: true }, headers: me.h });
-  } catch {
-    return FAIL({ current: "That is not your current password, or this account signs in without one." });
-  }
-  audit({ actor: me.session.user.name, kind: "setting", subjectId: me.session.user.id, subject: me.session.user.name, action: "changed their password and signed out their other sessions" });
-  /* Safe to re-render: the change replaced this session, and
-     getAdminRequest reads the new cookie rather than the request's header. */
-  revalidatePath(PAGE);
-  return OK("Password changed. Every other session has been signed out.");
 }
 
 export async function signOutMyOtherSessions(): Promise<ActionState> {

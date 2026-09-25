@@ -150,11 +150,27 @@ function emailDateTime(value: Date) {
 
 /** A paragraph. Its argument is already-escaped markup, not raw user text. */
 function p(html: string) {
-  return `<p style="margin:0 0 16px;font-family:${BODY};font-size:16px;line-height:1.65;color:${INK}">${html}</p>`;
+  return `<p class="wdc-ink" style="margin:0 0 16px;font-family:${BODY};font-size:16px;line-height:1.65;color:${INK}">${html}</p>`;
 }
 
 function small(html: string) {
-  return `<p style="margin:0 0 16px;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">${html}</p>`;
+  return `<p class="wdc-muted" style="margin:0 0 16px;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">${html}</p>`;
+}
+
+/**
+ * THE ONE NUMBER THAT MATTERS, set apart: the amount due, the amount
+ * received, the new stage. The sign-in code's panel, carried into every email
+ * that has a figure. `label` sits above it, `note` below.
+ */
+function figure(value: string, opts: { label?: string; note?: string } = {}) {
+  return (
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="wdc-fig" ` +
+    `style="margin:0 0 20px;background:${PAGE};border:1px solid ${HAIRLINE};border-radius:12px"><tr><td align="center" style="padding:18px 20px">` +
+    (opts.label ? `<p class="wdc-muted" style="margin:0 0 6px;font-family:${BODY};font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:${MUTED}">${escapeHtml(opts.label)}</p>` : "") +
+    `<p class="wdc-figv" style="margin:0;font-family:${DISPLAY};font-size:32px;line-height:1.2;font-weight:700;letter-spacing:.01em;color:${NAVY}">${escapeHtml(value)}</p>` +
+    (opts.note ? `<p class="wdc-muted" style="margin:6px 0 0;font-family:${BODY};font-size:13px;line-height:1.5;color:${MUTED}">${escapeHtml(opts.note)}</p>` : "") +
+    `</td></tr></table>`
+  );
 }
 
 /**
@@ -186,13 +202,13 @@ function panel(rows: [string, string][]) {
     const top = index ? "10px" : "0";
     return (
       `<tr>` +
-      `<td style="padding:${top} 0 0;font-family:${BODY};font-size:13px;color:${MUTED};width:42%;vertical-align:top">${escapeHtml(label)}</td>` +
-      `<td style="padding:${top} 0 0;font-family:${BODY};font-size:15px;color:${INK};font-weight:600;vertical-align:top">${escapeHtml(value)}</td>` +
+      `<td class="wdc-muted" style="padding:${top} 0 0;font-family:${BODY};font-size:13px;color:${MUTED};width:42%;vertical-align:top">${escapeHtml(label)}</td>` +
+      `<td class="wdc-ink" style="padding:${top} 0 0;font-family:${BODY};font-size:15px;color:${INK};font-weight:600;vertical-align:top">${escapeHtml(value)}</td>` +
       `</tr>`
     );
   }).join("");
   return (
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" ` +
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="wdc-fig" ` +
     `style="margin:0 0 20px;background:${PAGE};border:1px solid ${HAIRLINE};border-radius:12px">` +
     `<tr><td style="padding:18px 20px">` +
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${cells}</table>` +
@@ -338,9 +354,9 @@ function socialRow() {
  * zero-width spaces after it is the standard trick that stops Gmail appending
  * the body text to it.
  *
- * LIGHT, AND SAFE WHEN A CLIENT DARKENS IT. `color-scheme: light` keeps Apple
- * Mail from repainting it, but the Gmail and Outlook apps darken light mail
- * whatever it says. So nothing here depends on the card staying white: the
+ * LIGHT BY DEFAULT, WITH ITS OWN DARK STEPS for the clients that ask (the
+ * `prefers-color-scheme` block below), and safe when one darkens it without
+ * asking: the Gmail and Outlook apps darken light mail whatever it says. So nothing here depends on the card staying white: the
  * header logo is white on a navy cell, which those apps leave dark; the
  * social marks are mid-grey, which reads on white and on near-black alike;
  * and every colour of type is left for the client to invert.
@@ -356,8 +372,16 @@ function shell(input: {
   heading: string;
   blocks: string[];
   unsubscribe?: boolean;
+  /** One sentence on why this arrived, and where to switch it off (the design's footer rule). */
+  why?: string;
+  manage?: "client" | "staff";
 }) {
   const year = new Date().getFullYear();
+  const manageUrl = input.manage === "client" ? `${SITE_URL}/portal/settings` : input.manage === "staff" ? `${SITE_URL}/admin/settings/notifications` : "";
+  const why = input.why
+    ? `<p class="wdc-muted" style="margin:0 0 16px;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">${escapeHtml(input.why)}` +
+      (manageUrl ? ` <a class="wdc-link" href="${manageUrl}" style="color:${ACCENT_INK};text-decoration:underline">Manage what we email you</a>.` : "") + `</p>`
+    : "";
   const unsubscribe = input.unsubscribe
     ? ` <a href="${UNSUBSCRIBE_MAILTO}" style="color:${MUTED};text-decoration:underline">Unsubscribe</a>.`
     : "";
@@ -369,8 +393,8 @@ function shell(input: {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="x-ua-compatible" content="ie=edge">
 <meta name="x-apple-disable-message-reformatting">
-<meta name="color-scheme" content="light">
-<meta name="supported-color-schemes" content="light">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
 <title>${escapeHtml(input.title)}</title>
 <!--[if mso]><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->
 <style>
@@ -382,35 +406,53 @@ function shell(input: {
     .wdc-wrap{width:100% !important}
     .wdc-pad{padding-left:22px !important;padding-right:22px !important}
   }
+  /* DARK MODE, for the clients that ask (Apple Mail, iOS Mail): the email
+     design's own dark steps, not an automatic inversion. The navy header
+     stays navy; the card, the type, the figure panels and the footer logo
+     swap. Clients that darken without asking (Gmail's apps) ignore this and
+     nothing important depends on them. */
+  @media (prefers-color-scheme: dark){
+    .wdc-page{background:#0a0a1a !important}
+    .wdc-card{background:#15152b !important;border-color:#2c2c48 !important}
+    .wdc-ink{color:#f1f1f7 !important}
+    .wdc-muted{color:#a9a9c2 !important}
+    .wdc-fig{background:#0d0d22 !important;border-color:#2c2c48 !important}
+    .wdc-figv{color:#ffffff !important}
+    .wdc-hair{border-color:#2c2c48 !important}
+    .wdc-link{color:#ff8a3d !important}
+    .wdc-logo-light{display:none !important}
+    .wdc-logo-dark{display:block !important}
+  }
   /* Outlook's dark mode: the navy footer logo would vanish, so show the white one. */
   [data-ogsc] .wdc-logo-light{display:none !important}
   [data-ogsc] .wdc-logo-dark{display:block !important}
 </style>
 </head>
-<body style="margin:0;padding:0;background:${PAGE};-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">
+<body class="wdc-page" style="margin:0;padding:0;background:${PAGE};-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all">${escapeHtml(input.preheader)}&#8203;&#8203;&#8203;&#8203;&#8203;&#8203;&#8203;&#8203;</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${PAGE}">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="wdc-page" style="background:${PAGE}">
 <tr><td align="center" style="padding:28px 12px">
-<table role="presentation" class="wdc-wrap" width="${WIDTH}" cellpadding="0" cellspacing="0" border="0" style="width:${WIDTH}px;max-width:${WIDTH}px;background:${CARD};border:1px solid ${HAIRLINE};border-radius:16px">
+<table role="presentation" class="wdc-wrap wdc-card" width="${WIDTH}" cellpadding="0" cellspacing="0" border="0" style="width:${WIDTH}px;max-width:${WIDTH}px;background:${CARD};border:1px solid ${HAIRLINE};border-radius:16px">
 
 <tr><td bgcolor="${NAVY}" class="wdc-pad" style="padding:24px 32px;background:${NAVY};border-radius:16px 16px 0 0">
   <a href="${SITE_URL}" style="text-decoration:none"><img src="${ASSETS}/logo-white.png" width="152" height="50" alt="We Dig Creativity" style="display:block;width:152px;height:50px;border:0;color:#ffffff;font-family:${DISPLAY};font-size:18px;font-weight:700"></a>
 </td></tr>
 
 <tr><td class="wdc-pad" style="padding:32px 32px 8px">
-  <h1 style="margin:0 0 18px;font-family:${DISPLAY};font-size:26px;line-height:1.25;font-weight:700;color:${INK}">${escapeHtml(input.heading)}</h1>
+  <h1 class="wdc-ink" style="margin:0 0 18px;font-family:${DISPLAY};font-size:26px;line-height:1.25;font-weight:700;color:${INK}">${escapeHtml(input.heading)}</h1>
   ${input.blocks.join("\n  ")}
 </td></tr>
 
 <tr><td class="wdc-pad" style="padding:8px 32px 32px">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="border-top:1px solid ${HAIRLINE};padding-top:28px">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td class="wdc-hair" style="border-top:1px solid ${HAIRLINE};padding-top:28px">
     <a href="${SITE_URL}" style="text-decoration:none"><img src="${ASSETS}/logo-navy.png" width="122" height="40" alt="We Dig Creativity" class="wdc-logo-light" style="display:block;width:122px;height:40px;border:0;margin:0 0 20px;color:${NAVY};font-family:${DISPLAY};font-size:16px;font-weight:700"></a>
     <!--[if !mso]><!--><a href="${SITE_URL}" style="text-decoration:none"><img src="${ASSETS}/logo-white.png" width="122" height="40" alt="" class="wdc-logo-dark" style="display:none;width:122px;height:40px;border:0;margin:0 0 20px"></a><!--<![endif]-->
     ${socialRow()}
-    <p style="margin:0 0 4px;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">&copy; ${year} ${escapeHtml(COMPANY_NAME)}</p>
-    <p style="margin:0 0 16px;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">${escapeHtml(LOCATION)}</p>
-    <p style="margin:0 0 16px;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">This email was sent to ${RECIPIENT_SLOT}.${unsubscribe}</p>
-    <p style="margin:0;font-family:${BODY};font-size:12px;line-height:1.6;color:${MUTED}">${escapeHtml(REGISTERED_NAME)}, ${escapeHtml(REGISTRATION_NO)}, registered with the ${escapeHtml(REGISTRAR)}.</p>
+    ${why}
+    <p class="wdc-muted" style="margin:0 0 4px;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">&copy; ${year} ${escapeHtml(COMPANY_NAME)}</p>
+    <p class="wdc-muted" style="margin:0 0 16px;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">${escapeHtml(LOCATION)}</p>
+    <p class="wdc-muted" style="margin:0 0 16px;font-family:${BODY};font-size:13px;line-height:1.6;color:${MUTED}">This email was sent to ${RECIPIENT_SLOT}.${unsubscribe}</p>
+    <p class="wdc-muted" style="margin:0;font-family:${BODY};font-size:12px;line-height:1.6;color:${MUTED}">${escapeHtml(REGISTERED_NAME)}, ${escapeHtml(REGISTRATION_NO)}, registered with the ${escapeHtml(REGISTRAR)}.</p>
   </td></tr></table>
 </td></tr>
 
@@ -475,6 +517,7 @@ The WDC team`, { unsubscribe: true }),
       title: "We received your message",
       preheader: `Your message about ${topic} is with us. We reply the same working day.`,
       heading: "Your message is with us.",
+      why: "You get this because you sent us a message on the site.",
       unsubscribe: true,
       blocks: [
         p(`Hi ${escapeHtml(firstName)},`),
@@ -629,6 +672,7 @@ The WDC team`, { unsubscribe: true }),
       title: "Your brief is with us",
       preheader: `Your ${service} brief is saved. Here is what happens next.`,
       heading: "Thank you. Your brief is with us.",
+      why: "You get this because you sent us a brief on the site.",
       unsubscribe: true,
       blocks: [
         p(`Hi ${escapeHtml(name)},`),
@@ -866,6 +910,8 @@ The WDC team`, { unsubscribe: true }),
       title: `${projectTitle} - ${toStage}`,
       preheader: `Moved from ${fromStage} to ${toStage}.`,
       heading: `${projectTitle} is now at ${toStage}.`,
+      why: "You get project updates while we work on your project.",
+      manage: "client",
       unsubscribe: true,
       blocks: [
         p(`Hi ${escapeHtml(clientName)},`),
@@ -903,6 +949,8 @@ The WDC team`, { unsubscribe: true }),
       title: `Re: ${subject}`,
       preheader: reply.slice(0, 120),
       heading: "We replied to your question.",
+      why: "You get this because you asked us a question in your portal.",
+      manage: "client",
       unsubscribe: true,
       blocks: [
         p(`Hi ${escapeHtml(clientName)},`),
@@ -938,6 +986,8 @@ ${url}`),
         p(escapeHtml(body).replace(/\n/g, "<br>")),
         action("Answer it", url),
       ],
+      why: "You get this because support notices are on.",
+      manage: "staff",
     }),
   };
 }
@@ -959,9 +1009,12 @@ ${url}`),
       preheader: `${amount} against ${invoice}. ${left}`,
       heading,
       blocks: [
-        panel([["Invoice", invoice], ["Paid by", method], ["Still owed", left]]),
+        figure(amount, { label: "Received" }),
+        panel([["Client", company], ["Invoice", invoice], ["Paid by", method], ["Still owed", left]]),
         action("Open the invoice", url),
       ],
+      why: "You get this because payment notices are on.",
+      manage: "staff",
     }),
   };
 }
@@ -995,6 +1048,8 @@ The WDC team`),
       title: `${deliverable} is ready`,
       preheader: `${deliverable} for ${projectTitle} is ready for your approval.`,
       heading: `${deliverable} is ready for you.`,
+      why: "You get this when something is ready for you to review.",
+      manage: "client",
       blocks: [
         p(`Hi ${escapeHtml(clientName)},`),
         p(`${escapeHtml(deliverable)} for <b>${escapeHtml(projectTitle)}</b> is ready. Open it, leave any comments directly on it, and either approve it or send it back with changes.`),
@@ -1039,6 +1094,7 @@ The WDC team`),
       title: `Signed off: ${deliverable}`,
       preheader: `${deliverable} was signed off by ${signedBy}.`,
       heading: `${deliverable} is signed off.`,
+      why: "You get a copy of every sign-off, for your records.",
       blocks: [
         p(`Hi ${escapeHtml(clientName)},`),
         p("This is your record of the approval."),
@@ -1089,6 +1145,7 @@ The WDC team`),
       title: "Reset your password",
       preheader: `Choose a new password. The link works once and expires in ${life}.`,
       heading: "Reset your password",
+      why: "Security emails always arrive.",
       blocks: [
         p(escapeHtml(greeting)),
         p("Somebody asked to reset the password on your We Dig Creativity account. If that was you, choose a new one now."),
@@ -1147,6 +1204,7 @@ The WDC team`),
       title: "Your sign-in link",
       preheader: `Your code is ${spaced}. It works for ${life}.`,
       heading: "Your sign-in link",
+      why: "Security emails always arrive.",
       blocks: [
         p(escapeHtml(greeting)),
         p("Here is your link to sign in to We Dig Creativity. Open it on the device you want to use."),
@@ -1156,6 +1214,43 @@ The WDC team`),
           `font-family:${DISPLAY};font-size:32px;font-weight:700;letter-spacing:.18em;color:${NAVY};text-align:center">${escapeHtml(spaced)}</p>`,
         p(`The link and the code each work once, for ${escapeHtml(life)}. Using either one cancels the other.`),
         small("If you did not ask to sign in, you can ignore this email. Nobody can get in without it."),
+      ],
+    }),
+  };
+}
+
+/**
+ * The code that confirms a new password, asked for from the account page.
+ * No current password is asked there; this code, sent to the account's own
+ * inbox, is what proves the change is theirs.
+ */
+export function passwordCodeEmail(input: { name?: string; code: string; expiresInMinutes: number }): Email {
+  const { name, code, expiresInMinutes } = input;
+  const greeting = name ? `Hi ${name},` : "Hello,";
+  const spaced = `${code.slice(0, 3)} ${code.slice(3)}`;
+  return {
+    subject: `${spaced} is your code to change your password`,
+    text: textShell(`${greeting}
+
+Enter this code to confirm your new We Dig Creativity password. It works for ${expiresInMinutes} minutes:
+
+${spaced}
+
+If you did not ask to change your password, ignore this email and nothing changes. Someone may be signed in as you, so sign out your other devices from your account page.
+
+The WDC team`),
+    html: shell({
+      title: "Confirm your new password",
+      preheader: `Your code is ${spaced}. It works for ${expiresInMinutes} minutes.`,
+      heading: "Confirm your new password",
+      why: "Security emails always arrive.",
+      blocks: [
+        p(escapeHtml(greeting)),
+        p("Enter this code on your account page to confirm your new password:"),
+        `<p style="margin:0 0 20px;padding:16px 20px;background:${PAGE};border:1px solid ${HAIRLINE};border-radius:12px;` +
+          `font-family:${DISPLAY};font-size:32px;font-weight:700;letter-spacing:.18em;color:${NAVY};text-align:center">${escapeHtml(spaced)}</p>`,
+        p(`It works once, for ${expiresInMinutes} minutes.`),
+        small("If you did not ask to change your password, ignore this email and nothing changes. Someone may be signed in as you, so sign out your other devices from your account page."),
       ],
     }),
   };
@@ -1404,7 +1499,7 @@ The WDC team`),
  * is how a receipt came to look like a different company from the sign-in
  * link. Build the body from these blocks and pass it to `composeEmailHtml`.
  */
-export { shell as composeEmailHtml, p as emailP, small as emailSmall, action as emailButton, panel as emailPanel };
+export { shell as composeEmailHtml, p as emailP, small as emailSmall, action as emailButton, panel as emailPanel, figure as emailFigure };
 
 /* ====================================================== maintenance: back */
 
@@ -1432,6 +1527,7 @@ The WDC team`),
       title: "We are back online",
       preheader: "You asked us to tell you when the site was back. It is.",
       heading: "We are back online.",
+      why: "You get this because you asked on our maintenance page to be told when the site was back. It was the only one.",
       blocks: [
         p("You asked us to tell you when our site was back. It is."),
         action("Visit the site", url),

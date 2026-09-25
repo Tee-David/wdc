@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { CalendarDays } from "lucide-react";
 import { SERVICES } from "@/lib/services";
 import {
   getBoard, getClient, getClients, getProjects, getTasks,
@@ -10,6 +9,7 @@ import {
 } from "@/components/admin/bits";
 import { AddProject } from "@/components/admin/project-forms";
 import { ProjectMenu } from "@/components/admin/row-actions";
+import { ProjectBoard, type BoardCard } from "@/components/admin/project-board";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { ExampleNote } from "@/components/admin/example-note";
@@ -35,7 +35,7 @@ export const metadata = { title: "Projects" };
  */
 
 type Query = {
-  stage?: string; service?: string; owner?: string; health?: string; view?: string;
+  stage?: string; service?: string; owner?: string; health?: string; view?: string; q?: string;
 };
 
 /** A link that keeps every filter except the one it is changing. */
@@ -80,14 +80,17 @@ export default async function ProjectsPage({
   const owners = [...new Set(projects.map((p) => p.owner).filter(Boolean))].sort();
   const owner = owners.find((o) => o === q.owner);
 
+  /* Words, matched against the title, the client and the owner. */
+  const needle = String(q.q ?? "").trim().slice(0, 80).toLocaleLowerCase();
   const match = (p: Project) =>
+    (!needle || `${p.title} ${getClient(p.clientId)?.company ?? ""} ${p.owner}`.toLocaleLowerCase().includes(needle)) &&
     (!stage || p.stage === stage) &&
     (!service || p.service === service.slug) &&
     (!health || p.health === health) &&
     (!owner || p.owner === owner);
 
   const all = projects.filter(match);
-  const filtered = !!(stage || service || health || owner);
+  const filtered = !!(needle || stage || service || health || owner);
   const live = all.filter((p) => p.stage !== "Delivered").length;
 
   return (
@@ -126,6 +129,10 @@ export default async function ProjectsPage({
               when it submits -- which would bounce a reader off the board and
               back to the list every time they narrowed something down. */}
           {board ? <input type="hidden" name="view" value="board" /> : null}
+          <label className="ad__filterSearch">
+            Search
+            <input type="search" name="q" defaultValue={needle} placeholder="A project, client or owner" />
+          </label>
           <label>
             Stage
             <select name="stage" defaultValue={stage ?? ""}>
@@ -172,45 +179,20 @@ export default async function ProjectsPage({
            per project. The card is a link and the menu is a button, so they
            cannot be nested -- a button inside an anchor is invalid and
            behaves differently in every browser. They are siblings. */
-        <div className="ad__board" data-lenis-prevent>
-          {(stage ? [stage] : STAGES).map((st) => {
-            const list = (getBoard().get(st) ?? []).filter(match);
-            return (
-              <section key={st} className="ad__kcol" aria-label={`${st}, ${list.length}`}>
-                <header className="ad__kcolH">
-                  <span className={`ad__kdot ad__kdot--${STAGES.indexOf(st)}`} aria-hidden="true" />
-                  <h2>{st}</h2>
-                  <span className="ad__tabN">{list.length}</span>
-                </header>
-                {list.length ? list.map((p) => {
-                  const client = getClient(p.clientId);
-                  const svc = SERVICES.find((x) => x.slug === p.service);
-                  return (
-                    <article key={p.id} className="ad__kcard">
-                      <div className="ad__kcardTags">
-                        {svc ? <span className="ad__pill ad__pill--flat">{svc.short}</span> : null}
-                        <HealthPill health={p.health} />
-                        <span className="ad__kcardMenu"><ProjectMenu project={p} clientName={client?.company} /></span>
-                      </div>
-                      <Link href={`/admin/projects/${p.id}`} className="ad__kcardTitle"><b>{p.title}</b></Link>
-                      {client ? (
-                        <span className="ad__who ad__kcardWho">
-                          <span className="ad__av ad__av--sm" aria-hidden="true">{initialsOf(client.company)}</span>
-                          <small>{client.company}</small>
-                        </span>
-                      ) : null}
-                      <AttentionPills items={projectAttention(p, tasks)} except={p.health} />
-                      <div className="ad__kcardFoot">
-                        <span className="ad__dim"><CalendarDays aria-hidden="true" />{p.due ? when(p.due) : "No date yet"}</span>
-                        {p.owner ? <span className="ad__av ad__av--sm ad__av--good" title={`Owner: ${p.owner}`} aria-label={`Owner: ${p.owner}`}>{initialsOf(p.owner)}</span> : null}
-                      </div>
-                    </article>
-                  );
-                }) : <p className="ad__kempty">Nothing here</p>}
-              </section>
-            );
-          })}
-        </div>
+        <ProjectBoard
+          key={JSON.stringify([...getBoard()].map(([st, l]) => [st, l.map((p) => p.id)]))}
+          columns={(stage ? [stage] : STAGES).map((st) => ({
+            stage: st, dot: STAGES.indexOf(st), ids: (getBoard().get(st) ?? []).filter(match).map((p) => p.id),
+          }))}
+          cards={Object.fromEntries(all.map((p) => {
+            const client = getClient(p.clientId);
+            return [p.id, {
+              project: p, clientName: client?.company, clientInitials: client ? initialsOf(client.company) : undefined,
+              service: SERVICES.find((x) => x.slug === p.service)?.short, attention: projectAttention(p, tasks),
+              due: p.due ? when(p.due) : "No date yet", ownerInitials: p.owner ? initialsOf(p.owner) : undefined,
+            } satisfies BoardCard];
+          }))}
+        />
       ) : (
         <div style={{ marginTop: ".9rem" }}>
           <Panel title={filtered ? "Matching projects" : "All projects"}>

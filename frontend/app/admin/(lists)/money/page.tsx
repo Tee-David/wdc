@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BulkBar, PickAll, RowPick } from "@/components/admin/bulk";
 import { hydrateSettings } from "@/lib/settings/store";
 import {
   financeDefaults, getAging, getClient, getClients, getCollectionRate,
@@ -10,6 +11,7 @@ import {
   estimateState, estimateTotals, invoiceStatus, invoiceTotals, naira, nairaShort,
 } from "@/lib/admin/types";
 import { Empty, InvoicePill, Panel, Tile, when } from "@/components/admin/bits";
+import { avTone, initials } from "@/lib/admin/client-mark";
 import { AddExpense, EstimateBuilder, InvoiceBuilder } from "@/components/admin/money-forms";
 import {
   EstimateMenu, ExpenseMenu, InvoiceMenu, PaymentMenu,
@@ -250,90 +252,6 @@ export default async function MoneyPage({
       </div>
 
       <div className="ad__stack">
-        {/* QUOTES BEFORE INVOICES, because that is the order the work happens
-            in and the panel above it is the one somebody opens this screen
-            for. A quote is not money and is not added to any total on the
-            page; the tile above says what is out and what share of answered
-            ones the studio wins. */}
-        <Panel
-          title="Estimates"
-          action={<EstimateBuilder clients={getClients()} projects={projects} trigger="New estimate" defaultVatRate={finance.vatRate} />}
-        >
-          {/* WHAT IS QUOTED AND STILL LIVE, the only forward-looking figure on
-              this screen and deliberately not added to anything else. A quote
-              is not money; putting it in the same sum as collected income is
-              how a studio talks itself into spending it. */}
-          <p className="ad__dim ad__panelNote ad__panelNote--top">
-            {nairaShort(pipeline.open)} out for quote · {pipeline.winRate === null ? "nothing answered yet" : `${Math.round(pipeline.winRate * 100)}% of answered quotes won`}
-          </p>
-          {estimates.length ? (
-            <div className="ad__scroll">
-              <table className="ad__t">
-                <thead>
-                  <tr>
-                    <th>Number</th><th>Client</th><th>State</th><th>Holds until</th>
-                    <th className="num">Total</th>
-                    <th className="ad__rmH"><span className="ad__sr">Actions</span></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {estimates.map((e) => {
-                    const st = estimateState(e);
-                    const c = getClient(e.clientId);
-                    return (
-                      <tr key={e.id}>
-                        <td>
-                          {e.state === "Draft"
-                            ? <b>{e.number}</b>
-                            : <a href={`/q/${e.token}`} target="_blank" rel="noopener noreferrer"><b>{e.number}</b></a>}
-                          {/* NAMED, NOT "that invoice". The number is the
-                              thing somebody is looking for, and a link whose
-                              text is a pronoun is one they have to open to
-                              find out whether it is the right one. */}
-                          {e.invoiceId ? (
-                            <p className="ad__dim" style={{ margin: ".15rem 0 0", fontSize: ".78rem" }}>
-                              Billed as{" "}
-                              <Link href={`/admin/money/${e.invoiceId}`}>
-                                {getInvoice(e.invoiceId)?.number ?? "an invoice"}
-                              </Link>
-                            </p>
-                          ) : null}
-                        </td>
-                        <td>{c ? <Link href={`/admin/clients/${c.id}`}>{c.company}</Link> : "–"}</td>
-                        <td>
-                          <span className={`ad__pill ${
-                            st === "Accepted" ? "ad__pill--good"
-                              : st === "Declined" ? "ad__pill--bad"
-                                : st === "Expired" ? "ad__pill--warn"
-                                  : st === "Draft" ? "ad__pill--flat" : ""
-                          }`}>{st}</span>
-                          {e.answered ? (
-                            <p className="ad__dim" style={{ margin: ".2rem 0 0", fontSize: ".78rem" }}>
-                              {e.answered.by}, {when(e.answered.at)}
-                            </p>
-                          ) : null}
-                        </td>
-                        <td className="ad__num ad__dim">{when(e.expires)}</td>
-                        <td className="num">{naira(estimateTotals(e).total)}</td>
-                        <td className="ad__rmC"><EstimateMenu estimate={e} /></td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <Empty
-              title="Nothing out for quote"
-              action={<EstimateBuilder clients={getClients()} projects={projects} defaultVatRate={finance.vatRate} />}
-            >
-              An estimate is its own document with its own number, not a draft
-              invoice. Accepting one raises the invoice and keeps the quote as
-              the record of what was agreed.
-            </Empty>
-          )}
-        </Panel>
-
         <Panel title="Invoices">
           <div className="ad__filterBar" data-tour="money-invoice-filters">
           <form className="ad__filterForm" method="get" action="/admin/money#invoice-list" aria-label="Filter invoices">
@@ -341,20 +259,20 @@ export default async function MoneyPage({
               <span className="ad__sr">Search invoices</span>
               <input name="q" type="search" defaultValue={query.q} placeholder="Search number or client" />
             </label>
-            <label>
-              <span className="ad__sr">Status</span>
-              <select name="status" defaultValue={statusFilter}>
-                <option value="">All statuses</option>
-                {(["Draft", "Sent", "Part paid", "Paid", "Overdue", "Void"] as const).map((st) => (
-                  <option key={st} value={st}>{st}</option>
-                ))}
-              </select>
-            </label>
+            {statusFilter ? <input type="hidden" name="status" value={statusFilter} /> : null}
             {from ? <input type="hidden" name="from" value={from} /> : null}
             {to ? <input type="hidden" name="to" value={to} /> : null}
             {query.per ? <input type="hidden" name="per" value={per} /> : null}
-            <button className="ad__btn ad__btn--primary" type="submit">Apply</button>
+            <button className="ad__sr" type="submit">Search</button>
           </form>
+            {/* THE STATUSES AS TABS, one press each, as the mockup draws them;
+                each is a link, so a filtered list has its own address. */}
+            <nav className="ad__switch ad__switch--wrap" aria-label="Invoice status">
+              {(["", "Draft", "Sent", "Part paid", "Overdue", "Paid", "Void"] as const).map((st) => (
+                <Link key={st || "all"} aria-current={statusFilter === st ? "true" : undefined}
+                  href={queryHref(query, { status: st || undefined, page: undefined })}>{st || "All"}</Link>
+              ))}
+            </nav>
             <DateRange
               label="Issued"
               value={{ from, to }}
@@ -369,16 +287,22 @@ export default async function MoneyPage({
             <span>{invoiceRows.length} {invoiceRows.length === 1 ? "invoice" : "invoices"}</span>
           </div>
           {invoices.length ? (
-            <div className="ad__scroll">
+            <>
+              <BulkBar target="invoices-table" noun="invoices" actions={[
+                { kind: "invoices:remind", label: "Send reminder", icon: "mail", confirm: "Email a reminder about {n} invoices? Paid ones and clients who turned reminders off are skipped." },
+              ]} />
+            <div className="ad__scroll" id="invoices-table">
               <table className="ad__t">
                 <thead>
                   <tr>
                     <th aria-sort={sort === "number" ? direction === "asc" ? "ascending" : "descending" : undefined}>
-                      <Link href={invoiceSortHref("number")}>Number</Link>
+                      <span className="ad__pickRow"><PickAll label="Select every invoice" /><Link href={invoiceSortHref("number")}>Number</Link></span>
                     </th>
                     <th aria-sort={sort === "client" ? direction === "asc" ? "ascending" : "descending" : undefined}>
                       <Link href={invoiceSortHref("client")}>Client</Link>
                     </th>
+                    <th>Against</th>
+                    <th>Issued</th>
                     <th>Status</th>
                     <th className="num" aria-sort={sort === "due" ? direction === "asc" ? "ascending" : "descending" : undefined}>
                       <Link href={invoiceSortHref("due")}>Due</Link>
@@ -386,7 +310,6 @@ export default async function MoneyPage({
                     <th className="num" aria-sort={sort === "total" ? direction === "asc" ? "ascending" : "descending" : undefined}>
                       <Link href={invoiceSortHref("total")}>Total</Link>
                     </th>
-                    <th className="num">Paid</th>
                     <th className="num" aria-sort={sort === "owed" ? direction === "asc" ? "ascending" : "descending" : undefined}>
                       <Link href={invoiceSortHref("owed")}>Owed</Link>
                     </th>
@@ -396,12 +319,18 @@ export default async function MoneyPage({
                 <tbody>
                   {invoices.map(({ invoice: i, client, computedStatus, totals: t }) => (
                     <tr key={i.id}>
-                      <td><Link href={`/admin/money/${i.id}`}><b>{i.number}</b></Link></td>
-                      <td>{client?.company ?? "Unknown"}</td>
+                      <td><span className="ad__pickRow"><RowPick id={i.id} label={i.number} /><Link href={`/admin/money/${i.id}`}><b className="ad__docNo">{i.number}</b></Link></span></td>
+                      <td>
+                        <span className="ad__who">
+                          <span className={`ad__av ad__av--sm ad__av--${avTone(client?.company ?? "?")}`} aria-hidden="true">{initials(client?.company ?? "?")}</span>
+                          <span>{client?.company ?? "Unknown"}</span>
+                        </span>
+                      </td>
+                      <td className="ad__dim">{i.projectId ? projectById.get(i.projectId)?.title ?? "–" : "–"}</td>
+                      <td className="ad__dim ad__num ad__docNo">{i.status === "Draft" ? "–" : when(i.issued)}</td>
                       <td><InvoicePill status={computedStatus} /></td>
-                      <td className="num">{when(i.due)}</td>
+                      <td className={`num ad__docNo${computedStatus === "Overdue" ? " ad__lateDue" : ""}`}>{when(i.due)}</td>
                       <td className="num">{naira(t.total)}</td>
-                      <td className="num">{naira(i.paid)}</td>
                       <td className="num">{t.due ? naira(t.due) : <span className="ad__dim">Nil</span>}</td>
                       <td className="ad__rmC"><InvoiceMenu invoice={i} /></td>
                     </tr>
@@ -409,6 +338,7 @@ export default async function MoneyPage({
                 </tbody>
               </table>
             </div>
+            </>
           ) : (
             <Empty
               title={hasInvoiceFilters ? "No invoices match these filters" : "No invoices yet"}
@@ -436,21 +366,174 @@ export default async function MoneyPage({
           ) : null}
         </Panel>
 
-        <div className="ad__grid2">
+        {/* The order of the mockup: what is owed, then where money went,
+            then what is quoted beside what came in. */}
+        <div className="ad__grid2 ad__grid2--side">
+          <Panel title="Where the spend goes">
+            <div style={{ padding: ".8rem 1rem" }}>
+              {categories.map(([cat, amount]) => (
+                <div key={cat} style={{ padding: ".4rem 0" }}>
+                  <div className="ad__row" style={{ justifyContent: "space-between" }}>
+                    <span>{cat}</span>
+                    <b className="ad__num">{naira(amount)}</b>
+                  </div>
+                  <span className="ad__barTrack" aria-hidden="true">
+                    <span style={{ width: `${(amount / (categories[0]?.[1] || 1)) * 100}%` }} />
+                  </span>
+                </div>
+              ))}
+              {!categories.length && (
+                <Empty title="No expenses yet" action={<AddExpense />}>
+                  Record business spending to keep the net view accurate.
+                </Empty>
+              )}
+            </div>
+          </Panel>
+          <Panel title="Expenses">
+            {expenses.length ? (
+              <div className="ad__scroll">
+                <table className="ad__t">
+                  <thead><tr><th>When</th><th>What</th><th>Who was paid</th><th>Against</th><th className="num">Amount</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
+                  <tbody>
+                    {expenses.map((e) => {
+                      const on = e.projectId ? projectById.get(e.projectId) : null;
+                      return (
+                        <tr key={e.id}>
+                          <td className="num ad__docNo">{when(e.at)}</td>
+                          <td>
+                            <b>{e.description}</b>
+                            <p className="ad__dim" style={{ margin: ".15rem 0 0", fontSize: ".78rem" }}>
+                              <span className="ad__pill ad__pill--flat">{e.category}</span>
+                              {e.method ? <> · {e.method}</> : null}
+                              {e.by ? <> · {e.by}</> : null}
+                              {/* THE LINK IS OFFERED WHERE THE ROW IS, because
+                                  "do we have a receipt for this" is asked of the
+                                  row and not of a detail screen. */}
+                              {e.receiptUrl ? (
+                                <> · <a href={e.receiptUrl} target="_blank" rel="noopener noreferrer">Receipt</a></>
+                              ) : null}
+                            </p>
+                          </td>
+                          <td>{e.vendor ?? <span className="ad__dim">–</span>}</td>
+                          <td>
+                            {on
+                              ? <Link href={`/admin/projects/${on.id}`}>{on.title}</Link>
+                              : <span className="ad__dim">Overhead</span>}
+                            {e.rebillable ? (
+                              <span className="ad__pill ad__pill--warn" style={{ marginLeft: ".35rem" }}>Rebillable</span>
+                            ) : null}
+                          </td>
+                          <td className="num">{naira(e.amount)}</td>
+                          <td className="ad__rmC"><ExpenseMenu expense={e} /></td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <Empty title="No expenses recorded" action={<AddExpense projects={projects} />}>
+                Add the first one with who was paid, what it was for, and the
+                project it belongs against if it belongs to one.
+              </Empty>
+            )}
+          </Panel>
+        </div>
+
+        <div className="ad__grid2 ad__grid2--even">
+          {/* A quote is not money and is not added to any total on the page. */}
+          <Panel
+            title="Estimates"
+            action={<EstimateBuilder clients={getClients()} projects={projects} trigger="New estimate" defaultVatRate={finance.vatRate} />}
+          >
+            {/* WHAT IS QUOTED AND STILL LIVE, the only forward-looking figure on
+                this screen and deliberately not added to anything else. A quote
+                is not money; putting it in the same sum as collected income is
+                how a studio talks itself into spending it. */}
+            <p className="ad__dim ad__panelNote ad__panelNote--top">
+              {nairaShort(pipeline.open)} out for quote · {pipeline.winRate === null ? "nothing answered yet" : `${Math.round(pipeline.winRate * 100)}% of answered quotes won`}
+            </p>
+            {estimates.length ? (
+              <div className="ad__scroll">
+                <table className="ad__t">
+                  <thead>
+                    <tr>
+                      <th>Number</th><th>Client</th><th>Holds until</th>
+                      <th className="num">Total</th>
+                      <th className="ad__rmH"><span className="ad__sr">Actions</span></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {estimates.map((e) => {
+                      const st = estimateState(e);
+                      const c = getClient(e.clientId);
+                      return (
+                        <tr key={e.id}>
+                          <td>
+                            {e.state === "Draft"
+                              ? <b className="ad__docNo">{e.number}</b>
+                              : <a href={`/q/${e.token}`} target="_blank" rel="noopener noreferrer"><b className="ad__docNo">{e.number}</b></a>}
+                            {/* NAMED, NOT "that invoice". The number is the
+                                thing somebody is looking for, and a link whose
+                                text is a pronoun is one they have to open to
+                                find out whether it is the right one. */}
+                            {e.invoiceId ? (
+                              <p className="ad__dim" style={{ margin: ".15rem 0 0", fontSize: ".78rem" }}>
+                                Billed as{" "}
+                                <Link href={`/admin/money/${e.invoiceId}`}>
+                                  {getInvoice(e.invoiceId)?.number ?? "an invoice"}
+                                </Link>
+                              </p>
+                            ) : null}
+                            <span className={`ad__pill ad__subPill ${
+                              st === "Accepted" ? "ad__pill--good"
+                                : st === "Declined" ? "ad__pill--bad"
+                                  : st === "Expired" ? "ad__pill--warn"
+                                    : st === "Draft" ? "ad__pill--flat" : ""
+                            }`}>{st}</span>
+                            {e.answered ? (
+                              <p className="ad__dim" style={{ margin: ".2rem 0 0", fontSize: ".78rem" }}>
+                                {e.answered.by}, {when(e.answered.at)}
+                              </p>
+                            ) : null}
+                          </td>
+                          <td>{c ? <Link href={`/admin/clients/${c.id}`}>{c.company}</Link> : "–"}</td>
+                          <td className="ad__num ad__dim ad__docNo">{when(e.expires)}</td>
+                          <td className="num">{naira(estimateTotals(e).total)}</td>
+                          <td className="ad__rmC"><EstimateMenu estimate={e} /></td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <Empty
+                title="Nothing out for quote"
+                action={<EstimateBuilder clients={getClients()} projects={projects} defaultVatRate={finance.vatRate} />}
+              >
+                An estimate is its own document with its own number, not a draft
+                invoice. Accepting one raises the invoice and keeps the quote as
+                the record of what was agreed.
+              </Empty>
+            )}
+          </Panel>
           <Panel title="Payments received">
             {payments.length ? (
               <div className="ad__scroll">
                 <table className="ad__t">
-                  <thead><tr><th>When</th><th>Invoice</th><th>Method</th><th>Reference</th><th className="num">Amount</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
+                  <thead><tr><th>When</th><th>Invoice</th><th>Method</th><th className="num">Amount</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
                   <tbody>
                     {payments.map((p) => {
                       const inv = allInvoices.find((i) => i.id === p.invoiceId);
                       return (
                         <tr key={p.id}>
-                          <td className="num">{when(p.at)}</td>
-                          <td>{inv ? <Link href={`/admin/money/${inv.id}`}>{inv.number}</Link> : "Unknown"}</td>
+                          <td className="num ad__docNo">{when(p.at)}</td>
+                          <td>
+                            {inv ? <Link className="ad__docNo" href={`/admin/money/${inv.id}`}>{inv.number}</Link> : "Unknown"}
+                            <small className="ad__dim ad__num ad__subLine">{p.reference}</small>
+                          </td>
                           <td>{p.method}</td>
-                          <td className="ad__dim ad__num">{p.reference}</td>
                           <td className="num">{naira(p.amount)}</td>
                           <td className="ad__rmC">
                             <PaymentMenu payment={p} invoiceNumber={inv?.number} />
@@ -468,79 +551,7 @@ export default async function MoneyPage({
             )}
           </Panel>
 
-          <Panel title="Where the spend goes">
-            <div style={{ padding: ".8rem 1rem" }}>
-              {categories.map(([cat, amount]) => (
-                <div key={cat} style={{ padding: ".4rem 0" }}>
-                  <div className="ad__row" style={{ justifyContent: "space-between" }}>
-                    <span>{cat}</span>
-                    <b className="ad__num">{naira(amount)}</b>
-                  </div>
-                  <span style={{
-                    display: "block", height: "4px", marginTop: ".3rem", borderRadius: "3px",
-                    background: "var(--ad-accent)",
-                    width: `${(amount / (categories[0]?.[1] || 1)) * 100}%`,
-                  }} />
-                </div>
-              ))}
-              {!categories.length && (
-                <Empty title="No expenses yet" action={<AddExpense />}>
-                  Record business spending to keep the net view accurate.
-                </Empty>
-              )}
-            </div>
-          </Panel>
         </div>
-
-        <Panel title="Expenses">
-          {expenses.length ? (
-            <div className="ad__scroll">
-              <table className="ad__t">
-                <thead><tr><th>When</th><th>What</th><th>Who was paid</th><th>Against</th><th className="num">Amount</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
-                <tbody>
-                  {expenses.map((e) => {
-                    const on = e.projectId ? projectById.get(e.projectId) : null;
-                    return (
-                      <tr key={e.id}>
-                        <td className="num">{when(e.at)}</td>
-                        <td>
-                          <b>{e.description}</b>
-                          <p className="ad__dim" style={{ margin: ".15rem 0 0", fontSize: ".78rem" }}>
-                            <span className="ad__pill ad__pill--flat">{e.category}</span>
-                            {e.method ? <> · {e.method}</> : null}
-                            {e.by ? <> · {e.by}</> : null}
-                            {/* THE LINK IS OFFERED WHERE THE ROW IS, because
-                                "do we have a receipt for this" is asked of the
-                                row and not of a detail screen. */}
-                            {e.receiptUrl ? (
-                              <> · <a href={e.receiptUrl} target="_blank" rel="noopener noreferrer">Receipt</a></>
-                            ) : null}
-                          </p>
-                        </td>
-                        <td>{e.vendor ?? <span className="ad__dim">–</span>}</td>
-                        <td>
-                          {on
-                            ? <Link href={`/admin/projects/${on.id}`}>{on.title}</Link>
-                            : <span className="ad__dim">Overhead</span>}
-                          {e.rebillable ? (
-                            <span className="ad__pill ad__pill--warn" style={{ marginLeft: ".35rem" }}>Rebillable</span>
-                          ) : null}
-                        </td>
-                        <td className="num">{naira(e.amount)}</td>
-                        <td className="ad__rmC"><ExpenseMenu expense={e} /></td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <Empty title="No expenses recorded" action={<AddExpense projects={projects} />}>
-              Add the first one with who was paid, what it was for, and the
-              project it belongs against if it belongs to one.
-            </Empty>
-          )}
-        </Panel>
       </div>
     </>
   );

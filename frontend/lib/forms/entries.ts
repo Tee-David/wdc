@@ -1,5 +1,7 @@
 import "server-only";
 
+import { ensureCustomForms } from "./custom";
+
 import { db } from "@/lib/db/pool";
 import { stepsFor } from "@/lib/onboarding";
 import { findDuplicateClient } from "@/lib/admin/store";
@@ -45,6 +47,8 @@ export type Entry = {
   unsubscribedAt?: string | null;
   /** Onboarding drafts: which step they reached. */
   step?: number;
+  /** A built form: the published version this entry answered. */
+  version?: number;
 };
 
 export type Filters = {
@@ -98,22 +102,25 @@ function tabWhere(form: FormDef, tab: string): string {
   }
 }
 
-const TABLE = { onboarding: "onboarding_submissions", contact: "contact_enquiries", newsletter: "newsletter_subscribers" } as const;
-const DATE = { onboarding: "COALESCE(submitted_at, updated_at)", contact: "created_at", newsletter: "created_at" } as const;
+const TABLE = { onboarding: "onboarding_submissions", contact: "contact_enquiries", newsletter: "newsletter_subscribers", custom: "custom_entries" } as const;
+const DATE = { onboarding: "COALESCE(submitted_at, updated_at)", contact: "created_at", newsletter: "created_at", custom: "created_at" } as const;
 const NAME = {
   onboarding: "lower(COALESCE(answers->>'first_name', '') || ' ' || COALESCE(answers->>'last_name', ''))",
   contact: "lower(first_name || ' ' || last_name)",
   newsletter: "lower(email)",
+  custom: "lower(COALESCE(name, email, ''))",
 } as const;
 const SEARCH = {
   onboarding: "(answers::TEXT ILIKE $N OR COALESCE(email, '') ILIKE $N)",
   contact: "(first_name ILIKE $N OR last_name ILIKE $N OR email ILIKE $N OR topic ILIKE $N OR message ILIKE $N)",
   newsletter: "(email ILIKE $N OR email_as_typed ILIKE $N)",
+  custom: "(answers::TEXT ILIKE $N OR COALESCE(email, '') ILIKE $N OR COALESCE(name, '') ILIKE $N)",
 } as const;
 
 function base(form: FormDef): Built {
   const b: Built = { where: [], args: [] };
   if (form.source === "onboarding") { b.args.push(form.service); b.where.push(`service = $${b.args.length}`); }
+  if (form.source === "custom") { b.args.push(form.key); b.where.push(`form_key = $${b.args.length}`); }
   return b;
 }
 
@@ -141,7 +148,9 @@ const order = (form: FormDef, sort: Filters["sort"]) =>
 
 type Row = Record<string, unknown>;
 const iso = (v: unknown) => (v ? new Date(v as string).toISOString() : "");
-const text = (v: unknown) => (typeof v === "string" ? v : Array.isArray(v) ? v.join(", ") : v == null ? "" : String(v));
+const text = (v: unknown): string => (typeof v === "string" ? v
+  : Array.isArray(v) ? v.map((x) => (x && typeof x === "object" && "name" in x ? String((x as { name: unknown }).name) : String(x))).join(", ")
+  : v == null ? "" : String(v));
 
 function toEntry(form: FormDef, r: Row): Entry {
   if (form.source === "onboarding") {
@@ -154,6 +163,15 @@ function toEntry(form: FormDef, r: Row): Entry {
       read: Boolean(r.read_at), starred: Boolean(r.starred),
       box: r.status === "archived" ? "trash" : (r.box as Box) ?? "inbox",
       draft: r.status === "in_progress", answers, step: Number(r.current_step ?? 0),
+    };
+  }
+  if (form.source === "custom") {
+    const answers = (r.answers && typeof r.answers === "object" ? r.answers : {}) as Record<string, string | string[]>;
+    return {
+      id: String(r.id), serial: r.serial == null ? null : Number(r.serial), at: iso(r.created_at),
+      name: text(r.name), email: text(r.email), phone: text(r.phone),
+      read: Boolean(r.read_at), starred: Boolean(r.starred), box: (r.box as Box) ?? "inbox", draft: false,
+      answers, version: Number(r.version ?? 0),
     };
   }
   if (form.source === "contact") {
@@ -366,6 +384,16 @@ export async function formSummaries(): Promise<Record<string, FormSummary>> {
   `);
   const n = news.rows[0];
   if (n) out.newsletter = { ...EMPTY, total: Number(n.total), recent: Number(n.recent), last: n.last ? iso(n.last) : null };
+  /* Forms built in the admin: one grouped query, and none at all before the first exists. */
+  try {
+    await ensureCustomForms();
+    const custom = await db.query<{ form_key: string; total: string; unread: string; last: Date | null }>(`
+      SELECT form_key, count(*) FILTER (WHERE box = 'inbox') AS total,
+        count(*) FILTER (WHERE box = 'inbox' AND read_at IS NULL) AS unread, max(created_at) AS last
+      FROM custom_entries GROUP BY form_key
+    `);
+    for (const r of custom.rows) out[r.form_key] = { ...EMPTY, total: Number(r.total), unread: Number(r.unread), last: r.last ? iso(r.last) : null };
+  } catch { /* The built forms' counts are shown as none rather than failing the page. */ }
   return out;
 }
 
@@ -375,7 +403,12 @@ export async function unreadTotal(): Promise<number> {
     SELECT (SELECT count(*) FROM onboarding_submissions WHERE status = 'submitted' AND box = 'inbox' AND read_at IS NULL)
          + (SELECT count(*) FROM contact_enquiries WHERE box = 'inbox' AND read_at IS NULL) AS n
   `);
-  return Number(r.rows[0]?.n ?? 0);
+  let custom = 0;
+  try {
+    await ensureCustomForms();
+    custom = Number((await db.query<{ n: string }>("SELECT count(*) AS n FROM custom_entries WHERE box = 'inbox' AND read_at IS NULL")).rows[0]?.n ?? 0);
+  } catch { /* none */ }
+  return Number(r.rows[0]?.n ?? 0) + custom;
 }
 
 export const summaryOf = (all: Record<string, FormSummary>, key: string) => all[key] ?? EMPTY;

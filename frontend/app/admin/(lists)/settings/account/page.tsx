@@ -1,9 +1,10 @@
 import { adminRole } from "@/lib/admin/guard";
+import { PasswordChange } from "@/components/account/password-change";
 import { getAdminRequest } from "@/lib/admin/session";
 import { db } from "@/lib/db/pool";
 import { AdminState } from "@/components/admin/admin-state";
 import { Panel } from "@/components/admin/bits";
-import { MyNameForm, MyPasswordForm, SignOutOthers, UnlinkGoogle } from "@/components/admin/settings/account-controls";
+import { MyNameForm, SignOutOthers, UnlinkGoogle } from "@/components/admin/settings/account-controls";
 
 export const metadata = { title: "My account" };
 
@@ -60,7 +61,7 @@ export default async function AccountPage() {
         <Panel title="Sign-in methods">
           {failed ? <AdminState kind="error" title="Could not load your sign-in methods" description="The database did not answer. Reload in a minute." /> : (
             <dl className="adForms__dl">
-              <div><dt>Password</dt><dd>{hasPassword ? "Set" : "Not set. Use “Forgot password” on the sign-in page to set one."}</dd></div>
+              <div><dt>Password</dt><dd>{hasPassword ? "Set" : "Not set yet. Set one below."}</dd></div>
               <div><dt>Emailed link</dt><dd>Always available, to {session.user.email}</dd></div>
               <div><dt>Google</dt><dd>
                 {hasGoogle ? (
@@ -71,14 +72,9 @@ export default async function AccountPage() {
           )}
         </Panel>
 
-        {hasPassword ? (
-          <Panel title="Change password">
-            <div style={{ padding: "0 1rem 1rem" }}>
-              <p className="ad__dim" style={{ marginBottom: ".6rem" }}>A new password signs you out everywhere else.</p>
-              <MyPasswordForm />
-            </div>
-          </Panel>
-        ) : null}
+        <Panel title={hasPassword ? "Change password" : "Set a password"}>
+          <div className="adSetPad"><PasswordChange email={session.user.email} hasPassword={hasPassword} /></div>
+        </Panel>
 
         <Panel title={`Signed in on ${sessions.length} ${sessions.length === 1 ? "device" : "devices"}`}>
           {sessions.length ? (
