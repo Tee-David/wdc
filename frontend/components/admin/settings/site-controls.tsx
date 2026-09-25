@@ -7,10 +7,8 @@ import { Panel } from "@/components/admin/bits";
 import { Field, Fields } from "@/components/admin/form";
 import { ConfirmSwitch, SettingsForm, Text } from "./kit";
 
-/** Search engines and maintenance: two switches that change the site for everybody, so each asks first. */
-export function Visibility({ indexed, maintenance, host, reviewer }: {
-  indexed: boolean; maintenance: boolean; host: string; reviewer: string | null;
-}) {
+/** Search engines: a switch that changes the site for everybody, so it asks first. */
+export function Visibility({ indexed, host }: { indexed: boolean; host: string }) {
   return (
     <Panel title="Visibility">
       <ConfirmSwitch label="Show in search engines" note={indexed ? "Every public page may be listed." : "Search engines are asked not to list the site."}
@@ -19,13 +17,21 @@ export function Visibility({ indexed, maintenance, host, reviewer }: {
         confirmLabel={indexed ? "Hide from search" : "Show in search"} danger={indexed}>
         {indexed ? <Fields><Field name="confirm" label={`Type ${host} to confirm`} required /></Fields> : null}
       </ConfirmSwitch>
-      <ConfirmSwitch label="Maintenance mode" note={maintenance ? "Visitors see a holding page. The admin, payments and invoices still work." : "Visitors see a “back soon” page."}
+    </Panel>
+  );
+}
+
+/** Maintenance on or off. Turning it on takes the public site down, so it asks, and needs the address typed. */
+export function MaintenanceSwitch({ maintenance, host, reviewer }: { maintenance: boolean; host: string; reviewer: string | null }) {
+  return (
+    <Panel title="Status">
+      <ConfirmSwitch label="Maintenance mode" note={maintenance ? "Visitors see the holding page below. The admin, payments and invoices still work." : "Visitors see the site as normal."}
         on={maintenance} post={maintenance ? "0" : "1"} action={setMaintenance}
         ask={maintenance ? "Bring the site back for everybody?" : "Put the public site into maintenance?"}
         confirmLabel={maintenance ? "Bring it back" : "Turn on"} danger={!maintenance}>
         {!maintenance ? (
           <Fields>
-            <Field name="message" label="What visitors are told" placeholder="We are making some changes and will be back shortly." />
+            <Field name="message" label="What visitors are told" placeholder="We are making a few changes to the site." />
             <Field name="backBy" label="Back by (Lagos time)" type="datetime-local" half />
             <Field name="confirm" label={`Type ${host} to confirm`} half required />
           </Fields>
