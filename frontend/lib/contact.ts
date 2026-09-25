@@ -63,6 +63,20 @@ export const CHANNELS: Channel[] = [
 
 /** What the enquiry form offers as a subject. Drawn from the six services so
     the list cannot drift from what the studio actually sells. */
+/** The topic a service page's button opens the contact form on (`/contact?topic=web`). */
+export const TOPIC_BY_SERVICE: Record<string, (typeof ENQUIRY_TOPICS)[number]> = {
+  branding: "Branding & Design",
+  seo: "SEO",
+  web: "Full-Stack Web Development",
+  apps: "Cross-Platform Apps",
+  software: "Software Engineering & AI",
+  social: "Social Media & PPC",
+};
+
+/** What the homepage's short form hands to /contact, kept for this tab only. */
+export const ENQUIRY_DRAFT_KEY = "wdc.enquiry-draft";
+export type EnquiryDraft = { name?: string; email?: string; website?: string; message?: string };
+
 export const ENQUIRY_TOPICS = [
   "Branding & Design",
   "SEO",

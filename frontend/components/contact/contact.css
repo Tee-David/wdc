@@ -212,3 +212,7 @@
 /* Just the column. The rows are components/ui/faq-accordion.css, shared with
    the homepage — including the fact that an open row is NOT ringed in orange. */
 .ct-faq { max-width: 68ch; margin-inline: auto; }
+
+/* The words the homepage's short form handed over: said once, above the
+   fields they went into, so the filled form is not a surprise. */
+.ct-carried { margin: 0; padding: .7rem .9rem; border-left: 3px solid var(--accent); color: var(--foreground); font-size: .88rem; line-height: 1.45; }

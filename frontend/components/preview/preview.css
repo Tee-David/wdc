@@ -1236,6 +1236,17 @@ html:not(.dark) .pv .pv-card {
   stroke-width: 2.2; stroke-linecap: round;
 }
 .pv-modal__x:hover { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+/* ON A PHONE THE CLOSE COMES FIRST. At 390px the bar held the traffic lights,
+   the address, two buttons and this, and the cross was the one pushed past the
+   panel's edge -- the only way out of the modal, off screen and 34px. The
+   lights are decoration, so they go; the address gives up its room; the
+   cross is 44px and never shrinks. */
+@media (max-width: 560px) {
+  .pv-modal__lights { display: none; }
+  .pv-modal__bar { gap: 8px; }
+  .pv-modal__url { padding: 5px 10px; }
+  .pv-modal__x { width: 44px; height: 44px; }
+}
 
 /* ---- the view ---- */
 .pv-modal__view { position: relative; flex: 1; min-height: 0; background: var(--paper-2); overflow: hidden; }
