@@ -2,7 +2,7 @@ import "server-only";
 
 import { SITE_URL } from "@/lib/site";
 import { escapeHtml, mailIsConfigured, studioInbox } from "@/lib/email";
-import { composeEmailHtml, emailButton, emailP, emailSmall, paymentNoticeEmail } from "@/lib/email-templates";
+import { composeEmailHtml, emailButton, emailFigure, emailP, emailPanel, emailSmall, paymentNoticeEmail } from "@/lib/email-templates";
 import { getClient, getSetting } from "@/lib/admin/store";
 import { hydrateSettings } from "@/lib/settings/store";
 import { queueLogged } from "@/lib/message-log";
@@ -31,8 +31,8 @@ import type { Invoice, Payment } from "@/lib/admin/types";
 
 
 /** The shared frame from lib/email-templates.ts: one look for every message we send. */
-function shell(title: string, preheader: string, blocks: string[], unsubscribe = false) {
-  return composeEmailHtml({ title, preheader, heading: title, blocks, unsubscribe });
+function shell(title: string, preheader: string, blocks: string[], unsubscribe = false, footer: { why?: string; manage?: "client" | "staff" } = {}) {
+  return composeEmailHtml({ title, preheader, heading: title, blocks, unsubscribe, ...footer });
 }
 
 type SendOutcome = { sent: boolean; reason?: string };
@@ -107,11 +107,10 @@ export async function sendPaymentReceiptEmail(input: {
       `Receipt number ${payment.receiptNo}. Paid by ${payment.method}, reference ${payment.reference}.`,
     ].join("\n"),
     html: shell("Thank you, payment received", `${naira(payment.amount)} received against ${invoice.number}.`, [
-      emailP(`We have received <b>${naira(payment.amount)}</b> against <b>${escapeHtml(invoice.number)}</b>.`),
-      emailP(escapeHtml(line)),
+      emailFigure(naira(payment.amount), { label: "Received", note: line }),
+      emailPanel([["Invoice", invoice.number], ["Receipt", payment.receiptNo], ["Paid by", payment.method], ["Reference", payment.reference]]),
       emailButton("Open your receipt", url),
-      emailSmall(`Receipt ${escapeHtml(payment.receiptNo)} &middot; paid by ${escapeHtml(payment.method)} &middot; reference ${escapeHtml(payment.reference)}`),
-    ]),
+    ], false, { why: "You get a receipt for every payment. Receipts always arrive." }),
   });
 }
 
@@ -190,11 +189,11 @@ export async function sendInvoiceEmail(input: { invoice: Invoice; by?: string })
       "Card or bank transfer, both on the same page. Anything that goes wrong, reply to this email and we will sort it out.",
     ].join("\n"),
     html: shell(`Invoice ${invoice.number}`, `${naira(totals.due)} due ${due}.`, [
-      emailP(`<b>${naira(totals.due)}</b> is due on <b>${escapeHtml(due)}</b>.`),
-      emailP("The invoice shows everything billed and anything already paid against it, and you can pay it by card or transfer on the same page."),
+      emailFigure(naira(totals.due), { label: "Amount due", note: `Due ${due}` }),
+      emailP("The invoice shows everything billed and anything already paid against it. Pay by card or transfer on the same page."),
       emailButton("Open and pay the invoice", url),
       emailSmall(`Anything that goes wrong, reply to this email quoting ${escapeHtml(invoice.number)} and we will sort it out.`),
-    ]),
+    ], false, { why: "You get this because the studio issued you an invoice." }),
   });
 }
 
@@ -249,9 +248,9 @@ export async function sendInvoiceReminderEmail(input: { invoice: Invoice; today?
       "If it has already been paid, or if something about it needs sorting out, just reply and we will take a look.",
     ].join("\n"),
     html: shell("A reminder about your invoice", `${naira(totals.due)} outstanding on ${invoice.number}.`, [
-      emailP(`<b>${naira(totals.due)}</b> is outstanding on <b>${escapeHtml(invoice.number)}</b>, which was due on ${escapeHtml(due)}.`),
+      emailFigure(naira(totals.due), { label: "Still to pay", note: `${invoice.number} · due ${due}` }),
       emailButton("Open and pay the invoice", url),
       emailSmall("Already paid, or something needs sorting out? Reply to this email and we will take a look."),
-    ], true),
+    ], true, { why: "You get reminders while an invoice is unpaid.", manage: "client" }),
   });
 }
