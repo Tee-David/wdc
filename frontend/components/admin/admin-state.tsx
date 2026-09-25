@@ -1,5 +1,7 @@
 import { Ban, CheckCircle2, Inbox, SearchX, TriangleAlert, type LucideIcon } from "lucide-react";
 import "./states.css";
+import "./empty-scene.css";
+import { EmptyScene } from "./empty-scene";
 
 export type AdminStateKind = "first-use" | "cleared" | "no-results" | "forbidden" | "error";
 
@@ -21,7 +23,7 @@ export function AdminState({ kind, title, description, action, secondaryAction }
   const Icon = icons[kind];
   return (
     <div className={`adState adState--${kind}`} role={kind === "error" ? "alert" : "status"}>
-      <span className="adState__visual"><Icon aria-hidden="true" /></span>
+      <EmptyScene kind={kind} icon={Icon} />
       <strong>{title}</strong>
       <p>{description}</p>
       {action || secondaryAction ? <div className="adState__actions">{action}{secondaryAction}</div> : null}
