@@ -9,7 +9,8 @@ import type { MessageState } from "@/lib/admin/types";
 import { AdminState } from "@/components/admin/admin-state";
 import { Empty, Panel } from "@/components/admin/bits";
 import { ResendMessage } from "@/components/admin/reconcile-forms";
-import { Retention, TestEmail, TidyNow } from "@/components/admin/email-settings";
+import { FailureAlertForm, Retention, TestEmail, TidyNow } from "@/components/admin/email-settings";
+import { FAILURE_ALERT_KEY, type FailureAlert } from "@/lib/mail-alert";
 import "@/components/admin/forms/forms.css";
 
 export const metadata = { title: "Email" };
@@ -61,6 +62,7 @@ export default async function EmailSettingsPage({ searchParams }: Props) {
   const query: LogQuery = { q: one(sp.q).trim().slice(0, 120), state, page, per };
   const { session } = await getAdminRequest().catch(() => ({ session: null }));
   const days = await getAppSetting(LOG_RETENTION_KEY, DEFAULT_LOG_RETENTION);
+  const alert = await getAppSetting<FailureAlert>(FAILURE_ALERT_KEY, null);
   const conn = connection();
 
   let log: Awaited<ReturnType<typeof searchLogged>> | null = null;
@@ -162,6 +164,13 @@ export default async function EmailSettingsPage({ searchParams }: Props) {
           ) : (
             <Empty title="Nothing sent yet">Every email the site sends is written here before it goes, with whether it arrived.</Empty>
           )}
+        </Panel>
+
+        <Panel title="Failure alerts">
+          <div style={{ padding: "0 1rem 1rem" }}>
+            <FailureAlertForm to={alert?.to ?? ""} />
+            <p className="ad__dim adForms__p">It goes through the same mail server, so it tells you about an address that was refused, not about the server being down. For that, the bell at the top of the admin counts failed emails whatever the cause.</p>
+          </div>
         </Panel>
 
         <Panel title="Keeping the log">

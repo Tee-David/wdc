@@ -1,7 +1,7 @@
 "use client";
 
 import { Send, Trash2 } from "lucide-react";
-import { runDailyNow, saveLogRetention, sendTestEmail } from "@/lib/admin/email-actions";
+import { runDailyNow, saveFailureAlert, saveLogRetention, sendTestEmail } from "@/lib/admin/email-actions";
 import { Actions, Field, Fields, Form, Select, Submit } from "./form";
 
 /** The test email, the log's retention and the tidy-now button: the three writes on Settings, Email. */
@@ -33,6 +33,18 @@ export function TidyNow() {
   return (
     <Form action={runDailyNow}>
       <Actions><Submit icon={Trash2}>Run the daily tidy now</Submit></Actions>
+    </Form>
+  );
+}
+
+export function FailureAlertForm({ to }: { to: string }) {
+  return (
+    <Form action={saveFailureAlert}>
+      <Fields>
+        <Field name="to" label="Tell this address when an email fails" type="email" defaultValue={to}
+          hint="A list, at most once an hour. Leave empty to switch it off." />
+      </Fields>
+      <Actions><Submit>Save alert address</Submit></Actions>
     </Form>
   );
 }
