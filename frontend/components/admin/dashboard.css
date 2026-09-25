@@ -1,28 +1,94 @@
-.adDash { min-width: 0; }
-.adDash__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
-.adDash__head > div { min-width: 0; }
-.adDash__eyebrow { display: block; margin-bottom: .2rem; color: var(--ad-dim); font-size: .7rem; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
-.adDash__head h1 { font-size: clamp(1.45rem, 1.15rem + 1vw, 1.85rem); }
-.adDash__head p { margin: .28rem 0 0; color: var(--ad-dim); }
-.adDash__kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .7rem; margin: 0 0 .9rem; }
-.adDash__layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(17rem, .75fr); gap: .9rem; align-items: start; }
-.adDash__work, .adDash__rail { min-width: 0; display: grid; gap: .9rem; }
+/* THE DASHBOARD (dashboard-mockups/ Main). Rows of a wide panel and a rail:
+   the cashflow beside what was collected, the attention queue beside the
+   pipeline and deadlines, recent payments beside the quick actions. The
+   compact list and the attention rows are shared with the portal. */
 
-.adDash__attention { display: grid; }
-.adDash__attentionItem { min-width: 0; min-height: 4.25rem; padding: .7rem 1rem; display: grid; grid-template-columns: 2.15rem minmax(0, 1fr) auto auto; align-items: center; gap: .75rem; border-bottom: 1px solid var(--ad-line); transition: background .14s ease; }
-.adDash__attentionItem:last-child { border-bottom: 0; }
-.adDash__attentionItem:hover { background: var(--ad-bg); }
+.adDash { min-width: 0; }
+.adDash__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+.adDash__head > div { min-width: 0; }
+.adDash__head > .ad__row { flex: none; }
+.adDash__eyebrow { display: block; margin-bottom: .35rem; color: var(--ad-accent-ink); font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.dark .adDash__eyebrow { color: var(--ad-accent); }
+.adDash__head h1 { font-size: clamp(1.55rem, 1.15rem + 1.2vw, 2rem); font-weight: 600; }
+.adDash__head p { margin: .4rem 0 0; color: var(--ad-dim); font-size: .95rem; }
+.adDash__kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; margin: 0 0 1.25rem; }
+
+.adDash__row { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(18rem, .8fr); gap: 1.25rem; align-items: start; margin-bottom: 1.25rem; }
+.adDash__rail { min-width: 0; display: grid; gap: 1.25rem; }
+.adDash__sub { margin: -.35rem 0 0; padding: 0 1.25rem; color: var(--ad-dim); font-size: .86rem; }
+.adDash__row .ad__panelH { border-bottom: 0; padding-bottom: .6rem; }
+
+/* ------------------------------------------------------------ cashflow */
+
+.adDash__plot { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .75rem; padding: 1.25rem 1.25rem .5rem; }
+.adDash__axis { height: 13rem; display: flex; flex-direction: column; justify-content: space-between; padding-bottom: 1.6rem; color: var(--ad-dim); font-size: .72rem; font-variant-numeric: tabular-nums; text-align: right; }
+.adDash__axis span { transform: translateY(50%); line-height: 1; }
+.adDash__axis span:first-child { transform: translateY(0); }
+.adDash__chart {
+  position: relative; height: 13rem; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: clamp(.35rem, 2vw, 1rem);
+  /* Gridlines behind the bars: five, at the axis labels. */
+  background: repeating-linear-gradient(to bottom, var(--ad-line) 0 1px, transparent 1px calc((100% - 1.6rem) / 4)) top / 100% calc(100% - 1.6rem) no-repeat;
+}
+.adDash__chartMonth { height: 100%; min-width: 0; display: grid; grid-template-rows: minmax(0, 1fr) 1.6rem; text-align: center; border-radius: 12px; }
+.adDash__chartMonth.is-now { background: linear-gradient(to bottom, var(--ad-panel-2), var(--ad-panel-2)) top / 100% calc(100% - 1.6rem) no-repeat; }
+.adDash__chartBars { min-height: 0; display: flex; align-items: flex-end; justify-content: center; gap: min(.35rem, 12%); border-bottom: 1px solid var(--ad-line); }
+.adDash__chartBar { width: min(1.35rem, 34%); border-radius: 6px 6px 2px 2px; }
+.adDash__chartBar--in { background: #3d52e0; }
+.adDash__chartBar--out { background: #e25a00; }
+.dark .adDash__chartBar--in { background: #7377ff; }
+.dark .adDash__chartBar--out { background: #ff7a26; }
+.adDash__chartMonth small { align-self: center; color: var(--ad-dim); font-size: .74rem; }
+.adDash__chartMonth.is-now small { color: var(--ad-ink); font-weight: 700; }
+.adDash__foot { margin: .5rem 1.25rem 1.25rem; padding: .75rem 1rem; display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; border-radius: 12px; background: var(--ad-panel-2); font-size: .86rem; }
+.adDash__legend { display: inline-flex; align-items: center; gap: .45rem; color: var(--ad-dim); }
+.adDash__legend b { color: var(--ad-ink); font-family: var(--font-space-grotesk), system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+.adDash__legend i { width: .7rem; height: .7rem; border-radius: 3px; }
+.adDash__legend i.is-in { background: #3d52e0; }
+.adDash__legend i.is-out { background: #e25a00; }
+.dark .adDash__legend i.is-in { background: #7377ff; }
+.dark .adDash__legend i.is-out { background: #ff7a26; }
+
+/* --------------------------------------------------------------- gauge */
+
+.adDash__gauge { position: relative; padding: .75rem 1.25rem 0; display: grid; justify-items: center; }
+.adDash__gaugeSvg { width: min(15rem, 100%); height: auto; }
+.adDash__gaugeSvg line { stroke: var(--ad-line); stroke-width: 3.2; stroke-linecap: round; }
+.adDash__gaugeSvg line.is-on { stroke: var(--ad-tone-good); }
+.dark .adDash__gaugeSvg line.is-on { stroke: #4ade80; }
+.adDash__gaugeText { position: absolute; left: 0; right: 0; bottom: .1rem; display: grid; justify-items: center; }
+.adDash__gaugeText b { font: 600 2.2rem/1 var(--font-space-grotesk), system-ui, sans-serif; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.adDash__gaugeText small { margin-top: .3rem; color: var(--ad-dim); font-size: .78rem; }
+.adDash__facts { margin: 1.25rem 1.25rem 0; padding-top: 1rem; display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--ad-line); }
+.adDash__facts > div { min-width: 0; }
+.adDash__facts > div + div { padding-left: 1rem; border-left: 1px solid var(--ad-line); text-align: right; }
+.adDash__facts dt { color: var(--ad-dim); font-size: .78rem; }
+.adDash__facts dd { margin: .2rem 0 0; font: 600 1.15rem var(--font-space-grotesk), system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+.adDash__panelFoot { padding: 1rem 1.25rem 1.25rem; }
+.adDash__panelFoot .ad__btn { width: 100%; }
+
+/* ------------------------------------------------------------ attention */
+
+.adDash__attention { display: grid; gap: .6rem; padding: .25rem 1.25rem 1.25rem; }
+.adDash__attentionItem {
+  min-width: 0; min-height: 4.25rem; padding: .75rem .9rem;
+  display: grid; grid-template-columns: 2.4rem minmax(0, 1fr) auto auto; align-items: center; gap: .85rem;
+  border: 1px solid var(--ad-line); border-radius: 14px; background: var(--ad-panel);
+  transition: background .14s ease;
+}
+.adDash__attentionItem:hover { background: var(--ad-panel-2); }
 /* Solid tiles with a white (or black) glyph, never a tint: see the tone
    tokens in admin.css. In dark mode the old navy glyph on a near-black tile
    was barely visible. */
 .adDash__attentionIcon, .adDash__listIcon { display: grid; place-items: center; border-radius: 10px; background: var(--ad-tone-brand); color: var(--ad-on-brand); }
-.adDash__attentionIcon { width: 2.15rem; height: 2.15rem; }
+.adDash__attentionIcon { width: 2.4rem; height: 2.4rem; border-radius: 12px; }
 .adDash__attentionIcon svg, .adDash__listIcon svg { width: 1rem; height: 1rem; }
 .adDash__attentionIcon--bad { background: var(--ad-tone-bad); color: var(--ad-on-bad); }
 .adDash__attentionIcon--warn { background: var(--ad-tone-warn); color: var(--ad-on-warn); }
-.adDash__attentionCopy { min-width: 0; display: grid; }
-.adDash__attentionCopy b, .adDash__compactList b { overflow: hidden; font-size: .82rem; text-overflow: ellipsis; white-space: nowrap; }
-.adDash__attentionCopy small, .adDash__compactList small { overflow: hidden; color: var(--ad-dim); font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
+.adDash__attentionCopy { min-width: 0; display: grid; gap: .1rem; }
+.adDash__attentionCopy b { font-size: .92rem; }
+.adDash__attentionCopy b, .adDash__compactList b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adDash__compactList b { font-size: .86rem; }
+.adDash__attentionCopy small, .adDash__compactList small { overflow: hidden; color: var(--ad-dim); font-size: .78rem; text-overflow: ellipsis; white-space: nowrap; }
 /* A linked title is the grid item, not its <b>, so the ellipsis has to be on
    the link: on the <b> inside an inline <a> it did nothing and the title ran
    past the card. On a phone the title wraps instead, because "is ready for
@@ -34,67 +100,91 @@
   .adDash__attentionCopy small { white-space: normal; overflow-wrap: break-word; }
 }
 .adDash__attentionCopy a:hover { text-decoration: underline; text-underline-offset: 2px; }
-.adDash__attentionMeta { color: var(--ad-dim); font-size: .69rem; white-space: nowrap; }
+.adDash__attentionMeta { color: var(--ad-dim); font-size: .76rem; white-space: nowrap; }
 .adDash__attentionActions { display: flex; justify-content: flex-end; }
+.adDash__more { margin: 0; padding: .25rem .25rem 0; color: var(--ad-dim); font-size: .82rem; }
 
-.adDash__cashSummary { display: flex; flex-wrap: wrap; gap: 1.25rem; padding: .9rem 1rem 0; }
-.adDash__cashSummary span { display: grid; }
-.adDash__cashSummary small { color: var(--ad-dim); font-size: .68rem; }
-.adDash__cashSummary b { font: 700 .95rem var(--font-space-grotesk), system-ui, sans-serif; font-variant-numeric: tabular-nums; }
-.adDash__chart { height: 12rem; padding: 1.2rem 1rem .6rem; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); align-items: end; gap: clamp(.35rem, 2vw, .85rem); }
-.adDash__chartMonth { height: 100%; min-width: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: .35rem; text-align: center; }
-.adDash__chartBars { min-height: 0; display: flex; align-items: flex-end; justify-content: center; gap: min(.32rem, 12%); border-bottom: 1px solid var(--ad-line); }
-.adDash__chartBar { width: min(1rem, 32%); min-height: 4px; border-radius: 4px 4px 1px 1px; }
-.adDash__chartBar--in { background: var(--ad-navy); }
-.dark .adDash__chartBar--in { background: #7377ff; }
-.adDash__chartBar--out { background: var(--ad-accent); }
-.adDash__chartMonth small { color: var(--ad-dim); font-size: .68rem; }
-.adDash__legend { padding: 0 1rem .9rem; display: flex; justify-content: flex-end; gap: .9rem; color: var(--ad-dim); font-size: .68rem; }
-.adDash__legend span::before { content: ""; width: .5rem; height: .5rem; margin-right: .35rem; display: inline-block; border-radius: 2px; background: var(--ad-navy); }
-.adDash__legend span:last-child::before { background: var(--ad-accent); }
+/* ------------------------------------------------------------- pipeline */
 
-.adDash__actions { padding: .75rem; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
-.adDash__actions .ad__btn { width: 100%; min-width: 0; justify-content: flex-start; overflow: hidden; text-overflow: ellipsis; }
-.adDash__pipeline { padding: .55rem .85rem .7rem; display: grid; }
-.adDash__pipeline > a { min-width: 0; min-height: 2.25rem; padding: .38rem .45rem; display: flex; align-items: center; justify-content: space-between; gap: .75rem; border-radius: 8px; }
-.adDash__pipeline > a:hover { background: var(--ad-bg); }
-.adDash__pipeline > a:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
-.adDash__pipeline b { font-variant-numeric: tabular-nums; }
+.adDash__pipeline { height: 11rem; padding: .5rem 1.25rem 1.25rem; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .5rem; align-items: end; }
+.adDash__pipeline > a { height: 100%; min-width: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; justify-items: center; align-items: end; gap: .35rem; border-radius: 10px; }
+.adDash__pipeline > a:hover .adDash__pipeBar { background: var(--ad-dim); }
+.adDash__pipeline b { font-size: .82rem; font-variant-numeric: tabular-nums; }
+.adDash__pipeBar { width: 100%; max-width: 2.75rem; min-height: 4px; border-radius: 8px; background: var(--ad-line); transition: background .14s ease; }
+.adDash__pipeline > a.is-peak .adDash__pipeBar { background: #3d52e0; }
+.dark .adDash__pipeline > a.is-peak .adDash__pipeBar { background: #7377ff; }
+.adDash__pipeline small { color: var(--ad-dim); font-size: .72rem; white-space: nowrap; }
+.adDash__pipeline > a.is-peak small { color: var(--ad-ink); font-weight: 700; }
+
+/* ------------------------------------------------------------ deadlines */
+
+.adDash__deadlines { display: grid; padding: 0 1.25rem .75rem; }
+.adDash__deadlines > a { min-width: 0; padding: .75rem 0; display: grid; grid-template-columns: 2.75rem minmax(0, 1fr) auto; align-items: center; gap: .85rem; border-bottom: 1px solid var(--ad-line); }
+.adDash__deadlines > a:last-child { border-bottom: 0; }
+.adDash__date { width: 2.75rem; height: 2.9rem; display: grid; place-content: center; text-align: center; border-radius: 12px; background: var(--ad-tone-neutral); color: var(--ad-on-neutral); line-height: 1; }
+.adDash__date b { font: 600 1.05rem var(--font-space-grotesk), system-ui, sans-serif; }
+.adDash__date small { margin-top: .15rem; font-size: .62rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.adDash__deadlineCopy { min-width: 0; display: grid; }
+.adDash__deadlineCopy b, .adDash__deadlineCopy small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adDash__deadlineCopy b { font-size: .9rem; }
+.adDash__deadlineCopy small { color: var(--ad-dim); font-size: .78rem; }
+.adDash__deadlines > a:hover b { text-decoration: underline; text-underline-offset: 2px; }
+
+/* ------------------------------------------------------------- payments */
+
+.adDash__who { display: flex; align-items: center; gap: .75rem; min-width: 0; }
+.adDash__who > span:last-child { min-width: 0; display: grid; }
+.adDash__av { width: 2.25rem; height: 2.25rem; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--ad-tone-brand); color: var(--ad-on-brand); font: 600 .74rem var(--font-space-grotesk), system-ui, sans-serif; }
+
+/* --------------------------------------------------------------- shared */
+
+.adDash__actions { padding: .25rem 1.25rem 1.25rem; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+.adDash__actions .ad__btn { width: 100%; min-width: 0; min-height: 3.25rem; justify-content: flex-start; white-space: normal; text-align: left; overflow-wrap: anywhere; }
 .adDash__compactList { display: grid; }
 /* Icon, text, then however many trailing items the row has (a date, or a
    pill and an arrow) each in its own auto column on the same line. A fixed
    third column sent the fourth item round to the icon's 1.9rem track, which
    is how a stage pill came to be cut to "Rev" on a phone. */
-.adDash__compactList > a { min-width: 0; padding: .65rem .85rem; display: grid; grid-template-columns: 1.9rem minmax(0, 1fr); grid-auto-columns: auto; grid-auto-flow: column; align-items: center; gap: .6rem; border-bottom: 1px solid var(--ad-line); }
+.adDash__compactList > a { min-width: 0; padding: .75rem 1.25rem; display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); grid-auto-columns: auto; grid-auto-flow: column; align-items: center; gap: .75rem; border-bottom: 1px solid var(--ad-line); }
 .adDash__compactList > a:last-child { border-bottom: 0; }
-.adDash__compactList > a:hover { background: var(--ad-bg); }
-.adDash__listIcon { width: 1.9rem; height: 1.9rem; }
+.adDash__compactList > a:hover { background: var(--ad-panel-2); }
+.adDash__listIcon { width: 2.25rem; height: 2.25rem; }
 .adDash__compactList > a > span:nth-child(2) { min-width: 0; display: grid; }
-.adDash__compactList time { color: var(--ad-dim); font-size: .66rem; white-space: nowrap; }
-.adDash__more { margin: 0; padding: .6rem .85rem .75rem; color: var(--ad-dim); font-size: .74rem; }
-.adDash__leadsNote { margin: 0; padding: .6rem .85rem .75rem; border-top: 1px solid var(--ad-line); color: var(--ad-dim); font-size: .72rem; line-height: 1.45; }
-/* The skeleton row is the height a real row renders at: a 1.9rem icon plus
+.adDash__compactList time { color: var(--ad-dim); font-size: .74rem; white-space: nowrap; }
+.adDash__leadsNote { margin: 0; padding: .75rem 1.25rem .9rem; border-top: 1px solid var(--ad-line); color: var(--ad-dim); font-size: .78rem; line-height: 1.45; }
+/* The skeleton row is the height a real row renders at: a 2.25rem icon plus
    the row's own padding. */
-.adDash__leadsGhost { min-height: calc(1.9rem + 1.3rem); padding: 0 .85rem; display: grid; align-items: center; border-bottom: 1px solid var(--ad-line); }
+.adDash__leadsGhost { min-height: calc(2.25rem + 1.5rem); padding: 0 1.25rem; display: grid; align-items: center; border-bottom: 1px solid var(--ad-line); }
 
-@media (max-width: 1120px) {
-  .adDash__layout { grid-template-columns: minmax(0, 1fr); }
-  .adDash__rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 1180px) {
+  .adDash__row { grid-template-columns: minmax(0, 1fr); }
+  .adDash__rail { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .adDash__kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 760px) {
-  .adDash__kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .adDash__rail { grid-template-columns: minmax(0, 1fr); }
-  .adDash__attentionItem { grid-template-columns: 2.15rem minmax(0, 1fr) auto; }
+  .adDash__attention { padding-inline: 1rem; }
+  .adDash__attentionItem { grid-template-columns: 2.4rem minmax(0, 1fr) auto; }
   .adDash__attentionMeta { grid-column: 2; }
   .adDash__attentionActions { grid-column: 3; grid-row: 1 / span 2; }
+  .adDash__plot { padding-inline: 1rem; gap: .5rem; }
+  .adDash__foot { margin-inline: 1rem; }
 }
 @media (max-width: 520px) {
   .adDash__head { align-items: stretch; flex-direction: column; }
   .adDash__head .ad__btn { align-self: flex-start; }
   .adDash__kpis { grid-template-columns: minmax(0, 1fr); }
   .adDash__actions { grid-template-columns: minmax(0, 1fr); }
+  /* A dated row puts its date under the text. Flowing by row, not column:
+     with column flow the explicitly placed date pushed the text into the
+     icon's track and squeezed the name to "Dhi…". */
+  .adDash__compactList > a:has(> time) { grid-auto-flow: row; }
+  .adDash__compactList > a:has(> time) > :first-child { grid-row: 1 / span 2; }
   .adDash__compactList time { grid-column: 2; grid-row: 2; }
+  .adDash__axis { display: none; }
+  .adDash__plot { grid-template-columns: minmax(0, 1fr); }
+  .adDash__pipeline { padding-inline: .75rem; gap: .3rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .adDash__attentionItem { transition: none; }
+  .adDash__attentionItem, .adDash__pipeBar { transition: none; }
 }

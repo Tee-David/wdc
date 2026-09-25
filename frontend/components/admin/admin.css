@@ -493,6 +493,15 @@
   font-variant-numeric: tabular-nums; letter-spacing: -.02em;
 }
 .ad__tile small { display: block; margin-top: .45rem; color: var(--ad-dim); font-size: .82rem; }
+.ad__tile dt { display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-height: 2rem; }
+.ad__tile dd { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+.ad__tileIcon { width: 2rem; height: 2rem; flex: none; display: grid; place-items: center; border-radius: 10px; background: var(--ad-tone-brand); color: var(--ad-on-brand); }
+.ad__tileIcon svg { width: 1rem; height: 1rem; }
+.ad__tileIcon--good { background: var(--ad-tone-good); color: var(--ad-on-good); }
+.ad__tileIcon--bad { background: var(--ad-tone-bad); color: var(--ad-on-bad); }
+.ad__tileIcon--warn { background: var(--ad-tone-warn); color: var(--ad-on-warn); }
+.ad__tileIcon--live { background: var(--ad-tone-live); color: var(--ad-on-live); }
+.ad__tileBadge { font-family: var(--font-body); font-size: .72rem; letter-spacing: 0; }
 .ad__tile--good dd { color: var(--ad-tone-good); }
 .ad__tile--bad dd { color: var(--ad-bad-ink); }
 .ad__tile--accent dd { color: var(--ad-accent-ink); }
