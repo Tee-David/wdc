@@ -14,7 +14,7 @@ export function WorkFooter({ cta = true }: { cta?: boolean }) {
   return (
     <>
       {cta ? (
-        <section className="pv pv-sec pv-sec--alt">
+        <section className="pv pv-sec">
           <div className="pv-wrap">
             <div className="pv-head">
               <span className="pv-eyebrow">Next</span>

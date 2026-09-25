@@ -595,7 +595,7 @@ export default function PreviewBody({ faqs = FAQS }: { faqs?: Faq[] }) {
       </section>
 
       {/* ---------------- testimonials ---------------- */}
-      <section className="pv-sec pv-sec--alt">
+      <section className="pv-sec">
         <div className="pv-wrap">
           <div className="pv-head pv-reveal">
             <span className="pv-eyebrow">Testimonials</span>

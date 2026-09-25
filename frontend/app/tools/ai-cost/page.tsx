@@ -79,7 +79,7 @@ export default function AiCostToolPage() {
           </div>
         </section>
 
-        <section className="pv-sec pv-sec--alt">
+        <section className="pv-sec">
           <div className="pv-wrap">
             <div className="pv-head">
               <span className="pv-eyebrow">Three things nobody mentions</span>

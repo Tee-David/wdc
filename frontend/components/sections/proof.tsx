@@ -116,7 +116,7 @@ export default function Proof() {
   }, []);
 
   return (
-    <section className="pv-sec pv-sec--alt pf" aria-labelledby="pf-title">
+    <section className="pv-sec pf" aria-labelledby="pf-title">
       <div className="pv-wrap">
         <div className="pf__card pv-reveal" ref={card}>
           <div className="pf__top">

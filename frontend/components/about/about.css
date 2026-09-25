@@ -157,7 +157,6 @@
   background: var(--paper); border: 1px solid var(--rule);
   transition: transform .3s cubic-bezier(.16, 1, .3, 1), border-color .3s ease;
 }
-.pv-sec--alt .ab-tm { background: var(--paper-2); }
 .ab-tm:hover { transform: translateY(-4px); border-color: var(--accent); }
 /* Same centring correction as the service tiles: the icon wrapper inherits a
    line-height and pushes the glyph to the bottom of the tile otherwise. */

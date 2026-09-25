@@ -393,7 +393,6 @@ html:not(.dark) .pv .pv-card {
 
 /* ---------------- bands ---------------- */
 .pv-sec { padding-block: clamp(3.4rem, 6vw, 6rem); background: var(--paper); }
-.pv-sec--alt { background: var(--paper-2); }
 .pv-sec--band { background: var(--band); color: var(--on-band); }
 .pv-sec--band h1, .pv-sec--band h2, .pv-sec--band h3, .pv-sec--band h4 { color: #fff; }
 .pv-sec--band .pv-lede { color: #fff; }

@@ -15,12 +15,6 @@
    a headline.
    ========================================================================== */
 
-/* THE PAGE'S OWN GROUND, NOT THE ALTERNATE ONE: pure white in the light
-   theme and the deepest navy in the dark, as the owner asked (2026-09-25).
-   The warm `--paper-2` read as a faded grey on a real screen, and its navy
-   as a lighter blue band under the hero. */
-.pv .pf.pv-sec--alt { background: var(--paper); }
-
 /* NO PANEL, IN EITHER THEME. The figures sit straight on the section's own
    ground and are grouped by spacing and the internal rule alone. A white card
    on the light ground (and a darker one on the dark) read as a box stacked on

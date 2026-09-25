@@ -230,7 +230,6 @@
      runaway that took the page to 500,000px wide and 200 copies deep. */
   min-width: 0;
 }
-.pv-sec--alt .sv-side { background: var(--paper); }
 /* h3 on the combined page, h2 on a service's own page -- where the service
    name is the h1, so "What you get" is a top-level section and skipping to h3
    would leave a hole in the outline. Same size either way; the heading level is
@@ -290,7 +289,6 @@
   transition: transform .28s cubic-bezier(.16, 1, .3, 1),
               border-color .28s ease, box-shadow .28s ease;
 }
-.pv-sec--alt .sv-step { background: var(--paper); }
 /* The hover is an orange fill that RISES from the bottom edge, not a ring.
    A ring only outlines the card; the fill commits to it, and rising is what
    makes it feel like a deliberate answer to the pointer rather than a colour
@@ -392,8 +390,7 @@
 /* One dark-mode card language across every discipline. The surface stays navy
    against the ink canvas; icons are glyphs rather than a second card inside
    the card, and numbers keep the full-strength brand orange. */
-.dark .sv-step,
-.dark .pv-sec--alt .sv-step {
+.dark .sv-step {
   background: #0b0b50;
   border-color: rgba(112, 112, 196, .34);
   box-shadow: none;
@@ -577,7 +574,6 @@
   background: var(--paper); border: 1px solid var(--rule);
   border-radius: 20px; overflow: hidden;
 }
-.pv-sec--alt .sv-art { background: var(--paper-2); }
 .sv-art__shot {
   position: relative; /* the containing block for next/image's `fill` */
   /* square, the same crop the wall above uses, so a piece looks the same in

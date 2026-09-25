@@ -95,7 +95,7 @@ export default function BusinessNameToolPage() {
             register. All of it true and none of it what somebody came here
             for. What is left is the three things a reader actually benefits
             from knowing, one sentence each. */}
-        <section className="pv-sec pv-sec--alt">
+        <section className="pv-sec">
           <div className="pv-wrap">
             <ul className="tl__facts">
               <li>

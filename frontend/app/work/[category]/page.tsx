@@ -181,7 +181,7 @@ export default async function WorkCategoryPage(
             output. It sits under the stories, where it reads as the archive
             rather than as the argument. */}
         {wall.length ? (
-          <section className="pv-sec pv-sec--alt">
+          <section className="pv-sec">
             <div className="pv-wrap">
               <div
                 style={{
@@ -203,7 +203,7 @@ export default async function WorkCategoryPage(
         ) : null}
 
         {/* Sideways move, so a category with two entries is not a dead end. */}
-        <section className={`pv-sec${wall.length ? "" : " pv-sec--alt"}`}>
+        <section className="pv-sec">
           <div className="pv-wrap">
             <h2 className="pv-mix" style={{ fontSize: "clamp(1.2rem, 1.1rem + .6vw, 1.5rem)", marginBottom: "1.2rem" }}>
               Other <b>disciplines</b>
