@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Reconciliation</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root lt" style="width: 1440px; height: 1400px;">
+<div class="app" style="height: 1400px;">
+  <aside class="side"><dc-import name="Sidebar" active="reconciliation" hint-size="264px,900px"></dc-import></aside>
+  <div class="main">
+    <dc-import name="Topbar" hint-size="1176px,72px"></dc-import>
+    <main class="page">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="Money.dc.html">Money</a><span class="ic i-right s14"></span><b>Reconciliation</b></nav>
+      <div class="ph">
+        <div>
+          <h1>Reconciliation</h1>
+          <p class="lede">What Paystack told us, what we matched, and what still needs a person.</p>
+        </div>
+        <div class="acts">
+          <span class="row g8 sm dim"><span class="dotst" style="--c: var(--t-good);"></span>Paystack live · last event 12 minutes ago</span>
+          <button class="btn s"><span class="ic i-refresh s16"></span>Check again</button>
+        </div>
+      </div>
+
+      <div class="grid c3">
+        <div class="card kpi"><div class="lab">Needs somebody<span class="tile sm live"><span class="ic i-flag s16"></span></span></div><div class="val">2</div><div class="note">1 payment, 1 message</div></div>
+        <div class="card kpi"><div class="lab">Matched by itself<span class="tile sm good"><span class="ic i-okc s16"></span></span></div><div class="val">14</div><div class="note">This month, no action needed</div></div>
+        <div class="card kpi"><div class="lab">Messages sent<span class="tile sm"><span class="ic i-mail s16"></span></span></div><div class="val">38 <small class="dim">of 39</small></div><div class="note">1 refused by the mail server</div></div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><div><h3>Needs somebody</h3><p class="sub">Each one says why it could not be settled on its own.</p></div></div>
+        <div class="col g10">
+          <div class="attn" style="align-items: flex-start;">
+            <span class="tile live"><span class="ic i-card s16"></span></span>
+            <div class="grow">
+              <div class="row g8"><b>₦150,000 from a card ending 4471</b><span class="pill live">Unmatched</span></div>
+              <div class="sm dim" style="margin-top: 4px;">Paystack · reference TRF_0092 · 21 Sep, 14:08</div>
+              <div class="sm" style="margin-top: 8px;"><b>Why not:</b> the customer email, a.obi@gmail.com, is not on any client, and no open invoice is for exactly ₦150,000.</div>
+            </div>
+            <div class="col g8" style="align-items: stretch; width: 250px;">
+              <div class="inp sel" style="height: 40px; font-size: 14px;">Match to INV-2026-005<span class="ic i-chev s14 dim"></span></div>
+              <div class="row g8"><button class="btn g sm" style="flex: 1;">Not ours</button><button class="btn p sm" style="flex: 1;">Match it</button></div>
+            </div>
+          </div>
+          <div class="attn" style="align-items: flex-start;">
+            <span class="tile bad"><span class="ic i-mail s16"></span></span>
+            <div class="grow">
+              <div class="row g8"><b>Invoice INV-2026-005 to Marfaa Foods</b><span class="pill bad">Not sent</span></div>
+              <div class="sm dim" style="margin-top: 4px;">Email · amaka@marfaafoods.ng · 21 Sep, 09:00</div>
+              <div class="sm" style="margin-top: 8px;"><b>Why not:</b> the mail server refused the address (550 mailbox unavailable). Safe to retry, it will not send twice.</div>
+            </div>
+            <div class="row g8"><button class="btn s sm"><span class="ic i-pen s14"></span>Fix address</button><button class="btn p sm"><span class="ic i-refresh s14"></span>Retry</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card flush">
+        <div class="ch" style="margin-bottom: 0;"><div><h3>Everything Paystack has said</h3><p class="sub">Newest first. Every event is kept, including the ones we ignored.</p></div></div>
+        <div class="toolbar"><div class="seg"><button class="on">All</button><button>Matched</button><button>Ignored</button><button>Needs somebody</button></div><div class="grow"></div><a class="inp sel" href="Filters.dc.html" style="width: auto; height: 42px; gap: 8px; font-size: 14px;"><span class="ic i-cal s16 dim"></span><span>Last 90 days</span><span class="ic i-chev s14 dim"></span></a></div>
+        <table class="tbl">
+          <thead><tr><th>When</th><th>Event</th><th>Reference</th><th>About</th><th>Outcome</th><th class="num">Amount</th></tr></thead>
+          <tbody>
+            <tr><td class="dim nowrap">24 Sep, 11:52</td><td><code class="xs" style="font-family: ui-monospace, monospace;">charge.success</code></td><td class="dim">PSK_9012</td><td>INV-2026-003 · Millcon Properties</td><td><span class="pill good">Matched</span></td><td class="num">₦741,000</td></tr>
+            <tr class="hov"><td class="dim nowrap">21 Sep, 14:08</td><td><code class="xs" style="font-family: ui-monospace, monospace;">charge.success</code></td><td class="dim">TRF_0092</td><td class="dim">No invoice found</td><td><span class="pill live">Needs somebody</span></td><td class="num">₦150,000</td></tr>
+            <tr><td class="dim nowrap">6 Aug, 16:44</td><td><code class="xs" style="font-family: ui-monospace, monospace;">charge.success</code></td><td class="dim">PSK_8790</td><td>INV-2026-001 · Moore Designs</td><td><span class="pill good">Matched</span></td><td class="num">₦300,000</td></tr>
+            <tr><td class="dim nowrap">6 Aug, 16:44</td><td><code class="xs" style="font-family: ui-monospace, monospace;">charge.success</code></td><td class="dim">PSK_8790</td><td class="dim">Same event, sent twice</td><td><span class="pill flat">Ignored</span></td><td class="num dim">₦300,000</td></tr>
+            <tr><td class="dim nowrap">21 Jul, 10:30</td><td><code class="xs" style="font-family: ui-monospace, monospace;">refund.processed</code></td><td class="dim">RF_0031</td><td>INV-2026-002 · Marfaa Foods</td><td><span class="pill good">Matched</span></td><td class="num">−₦75,000</td></tr>
+          </tbody>
+        </table>
+        <div class="pager"><div class="per"><span>Rows per page</span><button class="pp" type="button" aria-label="Rows per page, 5">5<span class="ic i-chev s14"></span></button><span class="vr" style="height: 20px;"></span><span>1–5 of 31 events</span></div><nav class="pg" aria-label="Pages"><a class="dis" href="#"><span class="ic i-left s14"></span>Previous</a><a class="on" aria-current="page" href="#">1</a><a class="" href="#">2</a><a class="" href="#">3</a><a class="gap" aria-hidden="true">…</a><a class="" href="#">7</a><a class="" href="#">Next<span class="ic i-right s14"></span></a></nav></div>
+      </div>
+    </main>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1400}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

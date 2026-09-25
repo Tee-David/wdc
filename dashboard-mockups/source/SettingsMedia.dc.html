@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Media</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root lt" style="width: 1440px; height: 1150px;">
+<div class="app" style="height: 1150px;">
+  <aside class="side"><dc-import name="Sidebar" active="media" hint-size="264px,900px"></dc-import></aside>
+  <div class="main">
+    <dc-import name="Topbar" hint-size="1176px,72px"></dc-import>
+    <main class="page">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="Settings.dc.html">Settings</a><span class="ic i-right s14"></span><a href="SettingsContent.dc.html">Content</a><span class="ic i-right s14"></span><b>Media</b></nav>
+      <div class="grid" style="grid-template-columns: 250px minmax(0, 1fr); align-items: start;">
+        <dc-import name="SetNav" active="content" hint-size="250px,760px"></dc-import>
+        <div class="col g24">
+      <div class="ph">
+        <div><h1>Media</h1><p class="lede">Pictures and documents for the public site. Each one gets a permanent address; archiving hides it here without breaking a page that uses it.</p></div>
+        <div class="acts"><a class="btn p" href="MediaUpload.dc.html"><span class="ic i-up s16"></span>Upload files</a></div>
+      </div>
+
+      <div class="row g10">
+        <div class="seg"><button class="on">In use <span class="dim">12</span></button><button>Pictures</button><button>Documents</button><button>Archived <span class="dim">2</span></button></div>
+        <label class="inp" style="width: 220px; height: 42px;"><span class="ic i-search s16 dim"></span><span style="color: #6e7090;">Search files</span></label>
+        <div class="grow"></div>
+        <div class="seg"><button class="on" aria-label="Grid view"><span class="ic i-grid s16"></span></button><button aria-label="List view"><span class="ic i-list s16"></span></button></div>
+      </div>
+
+      <div class="grid" style="grid-template-columns: minmax(0, 1fr) 280px; align-items: start;">
+        <div class="grid c3" style="gap: 14px;">
+          <div class="card flush" style="overflow: hidden;"><div style="height: 130px; background: var(--t-brand); display: grid; place-items: center; color: #fff;"><span class="ic i-img s28"></span></div><div style="padding: 12px;"><div class="b sm trunc">hero-studio.webp</div><div class="xs dim">1600 × 900 · 182 KB</div></div></div>
+          <div class="card flush" style="overflow: hidden; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(0,0,101,.14), var(--sh-2);"><div style="height: 130px; background: var(--t-live); display: grid; place-items: center; color: #fff; position: relative;"><span class="ic i-img s28"></span><span class="cbx on" style="position: absolute; top: 10px; left: 10px;"><span class="ic i-check s14"></span></span></div><div style="padding: 12px;"><div class="b sm trunc">moore-case-study.webp</div><div class="xs dim">1200 × 800 · 96 KB</div></div></div>
+          <div class="card flush" style="overflow: hidden;"><div style="height: 130px; background: var(--t-good); display: grid; place-items: center; color: #fff;"><span class="ic i-img s28"></span></div><div style="padding: 12px;"><div class="b sm trunc">millcon-listings.webp</div><div class="xs dim">1200 × 800 · 110 KB</div></div></div>
+          <div class="card flush" style="overflow: hidden;"><div style="height: 130px; background: var(--t-flat); display: grid; place-items: center; color: #fff;"><span class="ic i-file s28"></span></div><div style="padding: 12px;"><div class="b sm trunc">rate-card-2026.pdf</div><div class="xs dim">PDF · 4 pages · 380 KB</div></div></div>
+          <div class="card flush" style="overflow: hidden;"><div style="height: 130px; background: var(--t-neutral); display: grid; place-items: center; color: #fff;"><span class="ic i-img s28"></span></div><div style="padding: 12px;"><div class="b sm trunc">team-lagos.webp</div><div class="xs dim">1600 × 1067 · 204 KB</div></div></div>
+          <div class="card flush" style="overflow: hidden;"><div style="height: 130px; background: var(--t-brand); display: grid; place-items: center; color: #fff;"><span class="ic i-img s28"></span></div><div style="padding: 12px;"><div class="b sm trunc">traxstaff-dispatch.webp</div><div class="xs dim">1440 × 900 · 150 KB</div></div></div>
+          <div class="card flush" style="overflow: hidden;"><div style="height: 130px; background: var(--t-warn); display: grid; place-items: center; color: #fff;"><span class="ic i-img s28"></span></div><div style="padding: 12px;"><div class="b sm trunc">marfaa-reels.webp</div><div class="xs dim">1080 × 1350 · 120 KB</div></div></div>
+          <div class="card flush" style="overflow: hidden;"><div style="height: 130px; background: var(--t-flat); display: grid; place-items: center; color: #fff;"><span class="ic i-file s28"></span></div><div style="padding: 12px;"><div class="b sm trunc">brand-guidelines-sample.pdf</div><div class="xs dim">PDF · 12 pages · 2.1 MB</div></div></div>
+        </div>
+        <div class="card">
+          <div class="ch"><h3>moore-case-study.webp</h3><button class="ibtn sm bare" aria-label="Close details"><span class="ic i-x s16"></span></button></div>
+          <div style="height: 170px; border-radius: 14px; background: var(--t-live); display: grid; place-items: center; color: #fff;"><span class="ic i-img s28"></span></div>
+          <div class="col g14" style="gap: 14px; margin-top: 16px;">
+            <div class="fld"><label>Description, read aloud to people who cannot see it</label><div class="inp ta" style="min-height: 80px; font-size: 14px;">Moore Designs shopfront mock-up in the new warm palette, with the stacked logo on the awning.</div></div>
+            <div class="fld"><label>Permanent address</label><div class="inp" style="font-size: 13.5px;"><span class="trunc grow">/media/moore-case-study.webp</span><button class="ibtn sm bare" aria-label="Copy address"><span class="ic i-copy s16"></span></button></div></div>
+            <div class="row sp sm"><span class="dim">Used on</span><span>/work/branding, /</span></div>
+            <div class="row sp sm"><span class="dim">Uploaded</span><span>12 Sep · Ada</span></div>
+            <div class="row g8"><button class="btn s sm" style="flex: 1;">Replace file</button><button class="btn g sm" style="flex: 1; color: var(--t-bad);"><span class="ic i-archive s14"></span>Archive</button></div>
+          </div>
+        </div>
+      </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1150}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

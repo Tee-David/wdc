@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Publish a form version</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root" style="width: 1440px; height: 1000px;">
+  <dc-import name="FormBuild" hint-size="1440px,1500px"></dc-import>
+  <div class="scrim"></div>
+  <form class="dlg" aria-label="Publish version 4" style="left: 400px; top: 90px; width: 640px;">
+    <div class="dh">
+      <div class="row g14" style="gap: 14px; align-items: flex-start;"><span class="tile lg"><span class="ic i-send s20"></span></span><div><h2>Publish version 4 of Branding brief?</h2><p>New visitors get v4 straight away. The 14 entries already in keep the questions they answered.</p></div></div>
+      <a class="ibtn" href="FormBuild.dc.html" aria-label="Close"><span class="ic i-x"></span></a>
+    </div>
+    <div class="db">
+      <div class="card soft" style="padding: 0;">
+        <div class="lrow" style="padding: 12px 16px;"><span class="tile sm good"><span class="ic i-plus s14"></span></span><div class="grow"><div class="t sm">2 added</div><div class="s">Launch date · Consent</div></div></div>
+        <div class="lrow" style="padding: 12px 16px;"><span class="tile sm"><span class="ic i-pen s14"></span></span><div class="grow"><div class="t sm">1 changed</div><div class="s">What should we make? · 1 new option, “Packaging labels”</div></div></div>
+        <div class="lrow" style="padding: 12px 16px;"><span class="tile sm bad"><span class="ic i-trash s14"></span></span><div class="grow"><div class="t sm">1 removed</div><div class="s">“Your Instagram handle”, answered in 9 past entries</div></div></div>
+      </div>
+      <div class="attn" style="background: var(--panel); border-color: var(--t-warn);"><span class="tile sm warn"><span class="ic i-alert s14"></span></span><div class="grow sm">Removing a question does not delete old answers. They stay on those 9 entries and in exports as “Your Instagram handle (v3)”.</div></div>
+      <div class="attn" style="background: var(--panel);"><span class="tile sm"><span class="ic i-clock s14"></span></span><div class="grow sm">2 people have a draft on v3. They finish on v3; nothing they typed is lost.</div></div>
+      <div class="fld"><label>What changed <span class="opt">(for the version history)</span></label><div class="inp">Launch date, consent, packaging labels</div></div>
+    </div>
+    <div class="df"><a class="btn s" href="FormBuild.dc.html">Keep editing</a><a class="btn p" href="FormBuild.dc.html"><span class="ic i-send s16"></span>Publish v4</a></div>
+  </form>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

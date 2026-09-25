@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Newsletter subscribers</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root lt" style="width: 1440px; height: 1200px;">
+<div class="app" style="height: 1200px;">
+  <aside class="side"><dc-import name="Sidebar" active="newsletter" hint-size="264px,900px"></dc-import></aside>
+  <div class="main">
+    <dc-import name="Topbar" hint-size="1176px,72px"></dc-import>
+    <main class="page">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="Forms.dc.html">Forms</a><span class="ic i-right s14"></span><b>Newsletter</b></nav>
+      <div class="ph">
+        <div><h1>Newsletter subscribers</h1><p class="lede">Everyone who signed up in the footer. Each email we send carries a one-click unsubscribe.</p></div>
+        <div class="acts"><button class="btn s" type="button"><span class="ic i-down s16"></span>Export CSV</button><a class="btn p" href="FormImport.dc.html"><span class="ic i-up s16"></span>Import CSV</a></div>
+      </div>
+      <div class="grid c4">
+        <div class="card kpi"><div class="lab">Subscribed<span class="tile sm good"><span class="ic i-users s16"></span></span></div><div class="val">212</div><div class="note">+4 this week</div></div>
+        <div class="card kpi"><div class="lab">Unsubscribed<span class="tile sm neu"><span class="ic i-ban s16"></span></span></div><div class="val">9</div><div class="note">Kept so we never email them again</div></div>
+        <div class="card kpi"><div class="lab">Bounced<span class="tile sm bad"><span class="ic i-alert s16"></span></span></div><div class="val">3</div><div class="note">Address no longer works</div></div>
+        <div class="card kpi"><div class="lab">Welcome email<span class="tile sm"><span class="ic i-mail s16"></span></span></div><div class="val" style="font-size: 22px;">On</div><div class="note"><a class="linkbtn" href="FormNotify.dc.html">Edit the welcome email</a></div></div>
+      </div>
+      <div class="card flush">
+        <div class="toolbar">
+          <div class="seg"><button type="button" class="on">Subscribed <b>212</b></button><button type="button">Unsubscribed <b>9</b></button><button type="button">Bounced <b>3</b></button></div>
+          <div class="grow"></div>
+          <label class="inp" style="width: 260px; height: 42px;"><span class="ic i-search s16 dim"></span><span style="color: #6e7090;">Search email</span></label>
+          <a class="inp sel" href="Filters.dc.html" style="width: auto; height: 42px; gap: 8px; font-size: 14px;"><span class="ic i-cal s16 dim"></span><span>Joined: Any time</span><span class="ic i-chev s14 dim"></span></a>
+        </div>
+        <table class="tbl">
+          <thead><tr><th style="width: 40px;"><span class="cbx"></span></th><th>Email</th><th>Joined</th><th>From</th><th>Last email</th><th>Status</th><th style="width: 52px;"></th></tr></thead>
+          <tbody>
+            <tr><td><span class="cbx"></span></td><td class="b">amara.okafor@gmail.com</td><td class="dim">Today</td><td class="dim">Footer · /blog/seo-without-jargon</td><td class="dim">Welcome · opened</td><td><span class="pill good">Subscribed</span></td><td><button class="ibtn sm bare" type="button" aria-label="Actions"><span class="ic i-more"></span></button></td></tr>
+            <tr><td><span class="cbx"></span></td><td class="b">femi@traxstaff.com</td><td class="dim">22 Sep</td><td class="dim">Footer · /work</td><td class="dim">Welcome · delivered</td><td><span class="pill good">Subscribed</span></td><td><button class="ibtn sm bare" type="button" aria-label="Actions"><span class="ic i-more"></span></button></td></tr>
+            <tr><td><span class="cbx"></span></td><td class="b">hello@glowskincare.ng</td><td class="dim">19 Sep</td><td class="dim">Branding brief consent</td><td class="dim">Welcome · opened</td><td><span class="pill good">Subscribed</span></td><td><button class="ibtn sm bare" type="button" aria-label="Actions"><span class="ic i-more"></span></button></td></tr>
+            <tr><td><span class="cbx"></span></td><td class="b">tunde@afolabiprints.ng</td><td class="dim">3 Sep</td><td class="dim">Import · clients-2026.csv</td><td class="dim">—</td><td><span class="pill good">Subscribed</span></td><td><button class="ibtn sm bare" type="button" aria-label="Actions"><span class="ic i-more"></span></button></td></tr>
+            <tr><td><span class="cbx"></span></td><td class="b">kemi@lawaldental.com</td><td class="dim">28 Aug</td><td class="dim">Footer · /</td><td class="dim">Welcome · delivered</td><td><span class="pill good">Subscribed</span></td><td><button class="ibtn sm bare" type="button" aria-label="Actions"><span class="ic i-more"></span></button></td></tr>
+            <tr><td colspan="7" class="dim sm" style="text-align: center; background: var(--panel-2);">20 more on this page</td></tr>
+          </tbody>
+        </table>
+        <div class="pager"><div class="per"><span>Rows per page</span><button class="pp" type="button" aria-label="Rows per page, 25">25<span class="ic i-chev s14"></span></button><span class="vr" style="height: 20px;"></span><span>1–25 of 212 subscribers</span></div><nav class="pg" aria-label="Pages"><a class="dis" href="#"><span class="ic i-left s14"></span>Previous</a><a class="on" aria-current="page" href="#">1</a><a class="" href="#">2</a><a class="" href="#">3</a><a class="gap" aria-hidden="true">…</a><a class="" href="#">9</a><a class="" href="#">Next<span class="ic i-right s14"></span></a></nav></div>
+      </div>
+    </main>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1200}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

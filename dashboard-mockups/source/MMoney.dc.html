@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin mobile · Money</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="m root lt" style="width: 390px; height: 1900px;">
+  <dc-import name="MTop" hint-size="390px,64px"></dc-import>
+  <main class="m-page">
+    <div class="m-ph row sp" style="align-items: flex-end;">
+      <div><h1>Money</h1><p class="lede">In, out, and what is still owed.</p></div>
+      <a class="chip" href="MDateRange.dc.html"><span class="ic i-cal s14"></span>This year<span class="ic i-chev s14"></span></a>
+    </div>
+
+    <div class="card" style="padding: 18px; background: #000065; border-color: #000065; color: #fff;">
+      <div class="row sp"><span class="sm" style="color: #d4d6f5;">Collected this year</span><span class="pill good"><span class="ic i-tri-up"></span>18.4%</span></div>
+      <div class="fig" style="font-size: 34px; font-weight: 600; margin-top: 6px; color: #fff;">₦2,116,000</div>
+      <div style="display: flex; height: 10px; gap: 3px; border-radius: 999px; overflow: hidden; margin-top: 14px;"><i style="flex: 51; background: #fff;"></i><i style="flex: 49; background: #3a3c8e;"></i></div>
+      <div class="row sp xs" style="margin-top: 8px; color: #d4d6f5;"><span>51% of ₦4.17M billed</span><span>₦1.98M still owed</span></div>
+    </div>
+
+    <div class="grid c2" style="gap: 12px;">
+      <div class="card kpi" style="padding: 14px; gap: 6px;"><div class="lab" style="font-size: 13px;">Overdue<span class="tile sm bad" style="width: 26px; height: 26px;"><span class="ic i-alert s14"></span></span></div><div class="val" style="font-size: 20px;">₦1.20M</div><div class="note xs">1 invoice</div></div>
+      <div class="card kpi" style="padding: 14px; gap: 6px;"><div class="lab" style="font-size: 13px;">Spend<span class="tile sm neu" style="width: 26px; height: 26px;"><span class="ic i-card s14"></span></span></div><div class="val" style="font-size: 20px;">₦333,500</div><div class="note xs">₦24.5k rebillable</div></div>
+    </div>
+
+    <div class="card" style="padding: 16px;">
+      <div class="ch" style="margin-bottom: 8px;"><h3>Last six months</h3><div class="legend"><span><i class="l"></i>In</span><span><i class="dash"></i>Billed</span></div></div>
+      <svg class="chart" viewBox="0 0 340 150" height="150" role="img" aria-label="Collected and billed by month">
+        <line class="grid-l" x1="0" x2="340" y1="10" y2="10"></line>
+        <line class="grid-l" x1="0" x2="340" y1="65" y2="65"></line>
+        <line x1="0" x2="340" y1="120" y2="120" stroke="var(--line-2)"></line>
+        <path d="M14 87 L76 90 L138 72 L200 30 L262 38 L324 80 L324 120 L14 120 Z" fill="var(--c1)" fill-opacity=".12"></path>
+        <path d="M14 72 L76 84 L138 65 L200 18 L262 50 L324 58" fill="none" stroke="var(--dim)" stroke-width="2" stroke-dasharray="5 5"></path>
+        <path d="M14 87 L76 90 L138 72 L200 30 L262 38 L324 80" fill="none" stroke="var(--c1)" stroke-width="2.5" stroke-linejoin="round"></path>
+        <circle cx="200" cy="30" r="5.5" fill="var(--c1)" stroke="var(--panel)" stroke-width="2.5"></circle>
+        <text x="14" y="142" text-anchor="middle">Apr</text><text x="76" y="142" text-anchor="middle">May</text><text x="138" y="142" text-anchor="middle">Jun</text><text x="200" y="142" text-anchor="middle" style="fill: var(--ink); font-weight: 600;">Jul</text><text x="262" y="142" text-anchor="middle">Aug</text><text x="324" y="142" text-anchor="middle">Sep</text>
+      </svg>
+    </div>
+
+    <div class="seg" style="width: 100%;"><button class="on" style="flex: 1; justify-content: center;">Invoices</button><button style="flex: 1; justify-content: center;">Spend</button><button style="flex: 1; justify-content: center;">Paid</button><button style="flex: 1; justify-content: center;">Quotes</button></div>
+    <div class="hscroll"><button class="chip on">All 6</button><button class="chip">Overdue 1</button><button class="chip">Sent 1</button><button class="chip">Part paid 1</button><button class="chip">Draft 1</button></div>
+
+    <div class="card flush">
+      <a class="mcard-row" href="MInvoice.dc.html"><span class="av sm">TX</span><div class="grow"><div class="row sp"><b class="sm">INV-2026-004</b><b class="fig sm">₦1,200,000</b></div><div class="row sp" style="margin-top: 4px;"><span class="xs dim">Traxstaff · due 12 Sep</span><span class="pill bad">Overdue</span></div></div></a>
+      <a class="mcard-row" href="MInvoice.dc.html"><span class="av y sm">MF</span><div class="grow"><div class="row sp"><b class="sm">INV-2026-005</b><b class="fig sm">₦450,000</b></div><div class="row sp" style="margin-top: 4px;"><span class="xs dim">Marfaa Foods · due 30 Sep</span><span class="pill brand">Sent</span></div></div></a>
+      <a class="mcard-row" href="MInvoice.dc.html"><span class="av o sm">MD</span><div class="grow"><div class="row sp"><b class="sm">INV-2026-001</b><b class="fig sm">₦630,000</b></div><div class="row sp" style="margin-top: 4px;"><span class="xs dim">Moore Designs · ₦330k owed</span><span class="pill warn">Part paid</span></div></div></a>
+      <a class="mcard-row" href="MInvoice.dc.html"><span class="av g sm">MP</span><div class="grow"><div class="row sp"><b class="sm">INV-2026-003</b><b class="fig sm">₦1,741,000</b></div><div class="row sp" style="margin-top: 4px;"><span class="xs dim">Millcon Properties</span><span class="pill good">Paid</span></div></div></a>
+      <a class="mcard-row" href="MInvoice.dc.html"><span class="av o sm">MD</span><div class="grow"><div class="row sp"><b class="sm">INV-2026-006</b><b class="fig sm">₦210,000</b></div><div class="row sp" style="margin-top: 4px;"><span class="xs dim">Moore Designs · not issued</span><span class="pill flat">Draft</span></div></div></a>
+      <div class="m-pager"><button class="pp" type="button" aria-label="Rows per page, 5">5 per page<span class="ic i-chev s14"></span></button><div class="pgn"><button class="ibtn" type="button" aria-label="Previous page" disabled style="opacity: .45;"><span class="ic i-left s16"></span></button><span class="nowrap">1–5 of 6</span><button class="ibtn" type="button" aria-label="Next page" style=""><span class="ic i-right s16"></span></button></div></div>
+    </div>
+    <a class="attn" href="MReconciliation.dc.html" style="padding: 12px;"><span class="tile sm live"><span class="ic i-refresh s14"></span></span><div class="grow"><div class="b sm">2 things to reconcile</div><div class="xs dim">1 Paystack payment, 1 message</div></div><span class="ic i-right s16 dim"></span></a>
+  </main>
+  <a class="fab" href="MNew.dc.html"><span class="ic i-plus s20"></span>New</a>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 15;"><dc-import name="MTabs" active="money" hint-size="390px,84px"></dc-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

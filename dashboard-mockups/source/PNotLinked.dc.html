@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Portal · Account not linked yet</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root lt" style="width: 1440px; height: 900px;">
+<div class="app" style="height: 900px;">
+  <aside class="side"><dc-import name="PSidebar" active="overview" linked="{{no}}" hint-size="264px,900px"></dc-import></aside>
+  <div class="main">
+    <dc-import name="Topbar" client="{{yes}}" person="Ngozi Eze" role="No company yet" initials="NE" hint-size="1176px,72px"></dc-import>
+    <main class="page" style="align-items: center; justify-content: center; min-height: 760px;">
+      <div class="card" style="width: 560px; padding: 12px;">
+        <div class="empty">
+          <div class="halo"><span class="ic i-link s28"></span></div>
+          <h3>Your account isn't linked to a project yet</h3>
+          <p>Nothing is missing from your side. There is simply no client record matched to this email yet. We'll connect it, usually the same working day.</p>
+          <div class="row g10" style="margin-top: 8px;">
+            <a class="btn p" href="POverview.dc.html"><span class="ic i-mail s16"></span>Email hello@wedigcreativity.com.ng</a>
+          </div>
+          <div class="xs dim" style="margin-top: 6px;">Signed in as ngozi@example.com · <a class="linkbtn" href="POverview.dc.html" style="font-size: 12px;">Not you? Sign out</a></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return { yes: true, no: false }; }
+}
+</script>
+</body>
+</html>

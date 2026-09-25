@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Projects</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root lt" style="width: 1440px; height: 1150px;">
+<div class="app" style="height: 1150px;">
+  <aside class="side"><dc-import name="Sidebar" active="projects" hint-size="264px,900px"></dc-import></aside>
+  <div class="main">
+    <dc-import name="Topbar" hint-size="1176px,72px"></dc-import>
+    <main class="page">
+      <div class="ph">
+        <div>
+          <h1>Projects</h1>
+          <p class="lede">Where every piece of work is, and whether it is moving.</p>
+        </div>
+        <div class="acts">
+          <div class="seg"><a class="{{boardOn}}" href="Projects.dc.html"><span class="ic i-board s16"></span>Board</a><a class="{{listOn}}" href="ProjectsList.dc.html"><span class="ic i-list s16"></span>List</a></div>
+          <button class="btn s"><span class="ic i-down s16"></span>Export</button>
+          <a class="btn p" href="ProjectsNew.dc.html"><span class="ic i-plus s16"></span>Open a project</a>
+        </div>
+      </div>
+
+      <div class="row g10 wrap">
+        <label class="inp" style="width: 300px; height: 40px;"><span class="ic i-search s16 dim"></span><span style="color: #6e7090;">Search projects or clients</span></label>
+        <button class="chip">Owner: Anyone<span class="ic i-chev s14"></span></button>
+        <button class="chip">Service: Any<span class="ic i-chev s14"></span></button>
+        <button class="chip on">Health: Needs a push<span class="ic i-x s14 x"></span></button>
+        <button class="chip">Due: Any time<span class="ic i-chev s14"></span></button>
+        <div class="grow"></div>
+        <div class="legend"><span><i style="background: var(--t-good);"></i>On track</span><span><i style="background: var(--t-warn);"></i>At risk or waiting</span><span><i style="background: var(--t-bad);"></i>Blocked</span></div>
+      </div>
+
+      <sc-if value="{{isBoard}}" hint-placeholder-val="{{true}}">
+      <div class="kan">
+        <div class="kcol">
+          <div class="kh"><span class="row g8"><span class="dotst" style="--c: var(--t-neutral);"></span>Onboarding</span><span class="pill flat">2</span></div>
+          <a class="kcard" href="Project.dc.html">
+            <div class="row sp"><span class="tag">Web</span><span class="pill good">On track</span></div>
+            <div class="t">Shop rebuild</div>
+            <div class="row g8"><span class="av o sm">MD</span><span class="s trunc">Moore Designs</span></div>
+            <div class="row sp s"><span class="row g6"><span class="ic i-cal s14"></span>No date yet</span><span class="av sm">BA</span></div>
+          </a>
+          <a class="kcard" href="Project.dc.html">
+            <div class="row sp"><span class="tag">Web</span><span class="pill warn">Waiting</span></div>
+            <div class="t">Showroom website</div>
+            <div class="row g8"><span class="av sl sm">NI</span><span class="s trunc">Ngozi Interiors</span></div>
+            <div class="row sp s"><span class="row g6"><span class="ic i-clip s14"></span>Form half done</span><span class="av g sm">AD</span></div>
+          </a>
+          <button class="btn g sm full"><span class="ic i-plus s14"></span>Add</button>
+        </div>
+        <div class="kcol">
+          <div class="kh"><span class="row g8"><span class="dotst" style="--c: var(--t-neutral);"></span>Discovery</span><span class="pill flat">1</span></div>
+          <a class="kcard" href="Project.dc.html">
+            <div class="row sp"><span class="tag">Branding</span><span class="pill bad">Blocked</span></div>
+            <div class="t">Charity mark</div>
+            <div class="row g8"><span class="av sl sm">DW</span><span class="s trunc">Dhiol World</span></div>
+            <div class="xs" style="padding: 8px 10px; border-radius: 10px; background: var(--panel-2); color: var(--dim);">In the way: board has not agreed the name</div>
+            <div class="row sp s"><span class="row g6"><span class="ic i-cal s14"></span>31 Oct</span><span class="av sm">BA</span></div>
+          </a>
+          <button class="btn g sm full"><span class="ic i-plus s14"></span>Add</button>
+        </div>
+        <div class="kcol">
+          <div class="kh"><span class="row g8"><span class="dotst" style="--c: var(--c1);"></span>In progress</span><span class="pill flat">3</span></div>
+          <a class="kcard" href="Project.dc.html">
+            <div class="row sp"><span class="tag">Social</span><span class="pill good">On track</span></div>
+            <div class="t">Always-on social</div>
+            <div class="row g8"><span class="av y sm">MF</span><span class="s trunc">Marfaa Foods</span></div>
+            <div class="col g6"><div class="row sp xs dim"><span>Sept posts</span><span>8 of 12</span></div><div class="bar"><i style="width: 66%;"></i></div></div>
+            <div class="row sp s"><span class="row g6"><span class="ic i-cal s14"></span>19 Dec</span><span class="av g sm">AD</span></div>
+          </a>
+          <a class="kcard" href="Project.dc.html">
+            <div class="row sp"><span class="tag">SEO</span><span class="pill good">On track</span></div>
+            <div class="t">Search report, September</div>
+            <div class="row g8"><span class="av g sm">MP</span><span class="s trunc">Millcon Properties</span></div>
+            <div class="row sp s"><span class="row g6"><span class="ic i-cal s14"></span>30 Sep</span><span class="av g sm">AD</span></div>
+          </a>
+          <a class="kcard" href="Project.dc.html">
+            <div class="row sp"><span class="tag">Apps</span><span class="pill warn">At risk</span></div>
+            <div class="t">Driver app</div>
+            <div class="row g8"><span class="av sm">TX</span><span class="s trunc">Traxstaff</span></div>
+            <div class="row sp s"><span class="row g6"><span class="ic i-cal s14"></span>10 Oct</span><span class="av y sm">FE</span></div>
+          </a>
+        </div>
+        <div class="kcol">
+          <div class="kh"><span class="row g8"><span class="dotst" style="--c: var(--t-live);"></span>Review</span><span class="pill flat">1</span></div>
+          <a class="kcard" href="Project.dc.html">
+            <div class="row sp"><span class="tag">Branding</span><span class="pill warn">Waiting</span></div>
+            <div class="t">Identity system</div>
+            <div class="row g8"><span class="av o sm">MD</span><span class="s trunc">Moore Designs</span></div>
+            <div class="xs" style="padding: 8px 10px; border-radius: 10px; background: var(--panel-2); color: var(--dim);">Next: Tobi picks a route</div>
+            <div class="row sp s"><span class="row g6" style="color: var(--t-bad); font-weight: 600;"><span class="ic i-clock s14"></span>26 Sep</span><span class="av sm">BA</span></div>
+          </a>
+        </div>
+        <div class="kcol">
+          <div class="kh"><span class="row g8"><span class="dotst" style="--c: var(--t-warn);"></span>Revisions</span><span class="pill flat">1</span></div>
+          <a class="kcard" href="Project.dc.html">
+            <div class="row sp"><span class="tag">Software</span><span class="pill warn">At risk</span></div>
+            <div class="t">Dispatch platform</div>
+            <div class="row g8"><span class="av sm">TX</span><span class="s trunc">Traxstaff</span></div>
+            <div class="row sp s"><span class="row g6"><span class="ic i-cal s14"></span>10 Oct</span><span class="av y sm">FE</span></div>
+          </a>
+        </div>
+        <div class="kcol">
+          <div class="kh"><span class="row g8"><span class="dotst" style="--c: var(--t-good);"></span>Delivered</span><span class="pill flat">8</span></div>
+          <a class="kcard" href="Project.dc.html">
+            <div class="row sp"><span class="tag">Web</span><span class="pill brand">Delivered</span></div>
+            <div class="t">Listings site</div>
+            <div class="row g8"><span class="av g sm">MP</span><span class="s trunc">Millcon Properties</span></div>
+            <div class="row sp s"><span class="row g6"><span class="ic i-okc s14"></span>24 Jul</span><span class="av g sm">AD</span></div>
+          </a>
+          <a class="kcard" href="Project.dc.html" style="opacity: .8;">
+            <div class="t">Social launch kit</div>
+            <div class="row g8"><span class="av y sm">MF</span><span class="s trunc">Marfaa Foods</span></div>
+          </a>
+          <button class="btn g sm full">Show 6 more</button>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{isList}}" hint-placeholder-val="{{false}}">
+      <div class="card flush">
+        <table class="tbl">
+          <thead><tr><th>Project</th><th>Client</th><th>Stage</th><th>Health</th><th>Owner</th><th>Due</th><th class="num">Budget</th><th style="width: 56px;"></th></tr></thead>
+          <tbody>
+            <tr><td><a class="who" href="Project.dc.html"><span class="tile sm"><span class="ic i-star s14"></span></span><div><div class="t">Identity system</div><div class="s">Branding</div></div></a></td><td>Moore Designs</td><td><button class="chip" style="height: 32px;"><span class="dotst" style="--c: var(--t-live);"></span>Review<span class="ic i-chev s14"></span></button></td><td><span class="pill warn">Waiting on client</span></td><td><div class="row g8"><span class="av sm">BA</span>Babatope</div></td><td style="color: var(--t-bad); font-weight: 600;">26 Sep</td><td class="num">₦630,000</td><td><button class="ibtn sm bare" aria-label="Actions"><span class="ic i-more"></span></button></td></tr>
+            <tr class="sel"><td><a class="who" href="Project.dc.html"><span class="tile sm"><span class="ic i-zap s14"></span></span><div><div class="t">Dispatch platform</div><div class="s">Software</div></div></a></td><td>Traxstaff</td><td><button class="chip" style="height: 32px; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(0,0,101,.12);"><span class="dotst" style="--c: var(--t-warn);"></span>Revisions<span class="ic i-chevup s14"></span></button></td><td><span class="pill warn">At risk</span></td><td><div class="row g8"><span class="av y sm">FE</span>Femi</div></td><td>10 Oct</td><td class="num">₦4,800,000</td><td><button class="ibtn sm bare" aria-label="Actions"><span class="ic i-more"></span></button></td></tr>
+            <tr><td><a class="who" href="Project.dc.html"><span class="tile sm"><span class="ic i-chat s14"></span></span><div><div class="t">Always-on social</div><div class="s">Social media</div></div></a></td><td>Marfaa Foods</td><td><button class="chip" style="height: 32px;"><span class="dotst" style="--c: var(--c1);"></span>In progress<span class="ic i-chev s14"></span></button></td><td><span class="pill good">On track</span></td><td><div class="row g8"><span class="av g sm">AD</span>Ada</div></td><td>19 Dec</td><td class="num">₦3,000,000</td><td><button class="ibtn sm bare" aria-label="Actions"><span class="ic i-more"></span></button></td></tr>
+            <tr><td><a class="who" href="Project.dc.html"><span class="tile sm"><span class="ic i-star s14"></span></span><div><div class="t">Charity mark</div><div class="s">Branding</div></div></a></td><td>Dhiol World</td><td><button class="chip" style="height: 32px;"><span class="dotst"></span>Discovery<span class="ic i-chev s14"></span></button></td><td><span class="pill bad">Blocked</span></td><td><div class="row g8"><span class="av sm">BA</span>Babatope</div></td><td>31 Oct</td><td class="num">₦420,000</td><td><button class="ibtn sm bare" aria-label="Actions"><span class="ic i-more"></span></button></td></tr>
+            <tr><td><a class="who" href="Project.dc.html"><span class="tile sm"><span class="ic i-globe s14"></span></span><div><div class="t">Shop rebuild</div><div class="s">Web</div></div></a></td><td>Moore Designs</td><td><button class="chip" style="height: 32px;"><span class="dotst"></span>Onboarding<span class="ic i-chev s14"></span></button></td><td><span class="pill good">On track</span></td><td><div class="row g8"><span class="av sm">BA</span>Babatope</div></td><td class="dim">Not set</td><td class="num dim">Not agreed</td><td><button class="ibtn sm bare" aria-label="Actions"><span class="ic i-more"></span></button></td></tr>
+            <tr><td><a class="who" href="Project.dc.html"><span class="tile sm"><span class="ic i-globe s14"></span></span><div><div class="t">Listings site</div><div class="s">Web</div></div></a></td><td>Millcon Properties</td><td><button class="chip" style="height: 32px;"><span class="dotst" style="--c: var(--t-good);"></span>Delivered<span class="ic i-chev s14"></span></button></td><td><span class="pill good">On track</span></td><td><div class="row g8"><span class="av g sm">AD</span>Ada</div></td><td class="dim">31 Jul</td><td class="num">₦1,620,000</td><td><button class="ibtn sm bare" aria-label="Actions"><span class="ic i-more"></span></button></td></tr>
+          </tbody>
+        </table>
+        <div class="pager"><div class="per"><span>Rows per page</span><button class="pp" type="button" aria-label="Rows per page, 10">10<span class="ic i-chev s14"></span></button><span class="vr" style="height: 20px;"></span><span>1–6 of 6 projects</span></div><nav class="pg" aria-label="Pages"><a class="dis" href="#"><span class="ic i-left s14"></span>Previous</a><a class="on" aria-current="page" href="#">1</a><a class="dis" href="#">Next<span class="ic i-right s14"></span></a></nav></div>
+      </div>
+      </sc-if>
+    </main>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"view":{"editor":"enum","options":["board","list"],"default":"board"},"$preview":{"width":1440,"height":1150}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const list = (this.props.view ?? 'board') === 'list';
+    return { isBoard: !list, isList: list, boardOn: list ? '' : 'on', listOn: list ? 'on' : '' };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Add a client</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root" style="width: 1440px; height: 1000px;">
+  <dc-import name="Clients" hint-size="1440px,1250px"></dc-import>
+  <div class="scrim"></div>
+  <form class="drawer" aria-label="A new client" style="width: 560px;">
+    <div class="dh">
+      <div><div class="eyebrow">Clients</div><h2 style="margin-top: 4px;">A new client</h2></div>
+      <a class="ibtn" href="Clients.dc.html" aria-label="Close"><span class="ic i-x"></span></a>
+    </div>
+    <div class="db">
+      <div class="grid c2" style="gap: 14px;">
+        <div class="fld"><label>Company</label><div class="inp foc">Ngozi Interiors<span style="width: 1.5px; height: 20px; background: var(--ink); margin-left: -8px;"></span></div></div>
+        <div class="fld"><label>Who you deal with</label><div class="inp">Ngozi Eze</div></div>
+        <div class="fld"><label>Email</label><div class="inp err">ngozi@ngozi-interiors</div><div class="errt"><span class="ic i-alert s14"></span>That address is missing its ending, like .com</div></div>
+        <div class="fld"><label>Phone <span class="opt">(optional)</span></label><div class="inp ph">+234 802 123 4567</div></div>
+        <div class="fld"><label>Sector</label><div class="inp sel">Interiors and furniture<span class="ic i-chev s14 dim"></span></div></div>
+        <div class="fld"><label>Tags <span class="opt">(optional)</span></label><div class="inp" style="gap: 6px;"><span class="tag">referral</span><span class="ph">Add a tag</span></div></div>
+      </div>
+      <div class="fld">
+        <label>What they buy</label>
+        <div class="row g8 wrap">
+          <span class="chip"><span class="ic i-plus s14"></span>Branding</span>
+          <span class="chip on"><span class="ic i-check s14"></span>Websites</span>
+          <span class="chip"><span class="ic i-plus s14"></span>Social media</span>
+          <span class="chip on"><span class="ic i-check s14"></span>SEO</span>
+          <span class="chip"><span class="ic i-plus s14"></span>Software</span>
+          <span class="chip"><span class="ic i-plus s14"></span>Mobile apps</span>
+          <span class="chip"><span class="ic i-help s14"></span>Not sure yet, advise me</span>
+        </div>
+        <p class="help">Choosing a real service replaces “Not sure yet”. You can change this later.</p>
+      </div>
+      <div class="fld"><label>Notes <span class="opt">(optional)</span></label><div class="inp ta ph">Anything the team should know before the first call.</div></div>
+      <div class="choice"><span class="sw on"></span><div class="grow"><div class="b sm">Invite them to the client portal</div><div class="xs dim">They get an email to set a password and see their projects and invoices.</div></div></div>
+    </div>
+    <div class="df">
+      <a class="btn g" href="Clients.dc.html">Cancel</a>
+      <div class="row g10"><button class="btn s" type="button">Save and add another</button><button class="btn p" type="submit"><span class="ic i-check s16"></span>Add them</button></div>
+    </div>
+  </form>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

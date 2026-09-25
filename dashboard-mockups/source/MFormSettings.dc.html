@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin mobile · Form settings</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="m root lt" style="width: 390px; height: 2150px;">
+  <dc-import name="MTop" title="Branding brief" back="MForms.dc.html" hint-size="390px,64px"></dc-import>
+  <div class="hscroll" style="padding: 10px 16px 0; background: var(--panel); border-bottom: 1px solid var(--line); gap: 18px; margin: 0;">
+    <a class="row g6 b sm dim" href="MFormEntries.dc.html" style="padding: 10px 0;">Entries <span class="pill flat" style="height: 20px; padding: 0 7px;">14</span></a>
+    <a class="row g6 b sm dim" href="MFormBuild.dc.html" style="padding: 10px 0;">Build</a>
+    <a class="row g6 b sm" href="MFormSettings.dc.html" style="padding: 10px 0; border-bottom: 3px solid var(--accent);">Settings</a>
+    <a class="row g6 b sm dim" href="MFormSettings.dc.html" style="padding: 10px 0;">Emails</a>
+  </div>
+  <main class="m-page">
+
+    <div class="card" style="padding: 16px;">
+      <div class="ch" style="margin-bottom: 4px;"><div><h3>Availability</h3><p class="sub">When the form accepts entries.</p></div></div>
+      <div class="row sp g12" style="margin-top: 12px;"><div class="grow" style="min-width: 0;"><b class="sm">Open for entries</b><div class="xs dim" style="margin-top: 3px;">Off shows the closed message instead</div></div><span class="sw on" role="switch" aria-checked="true" aria-label="Open for entries"></span></div>
+      <div class="col g12" style="margin-top: 14px;">
+        <div class="fld"><label>Message while closed</label><div class="inp ta" style="min-height: 76px;">We are fully booked for branding until November. Leave your email and we will write when a slot opens.</div></div>
+        <div class="grid c2" style="gap: 10px;"><div class="fld"><label>Opens <span class="opt">(optional)</span></label><div class="inp ph" style="height: 44px;">Any time</div></div><div class="fld"><label>Closes <span class="opt">(optional)</span></label><div class="inp" style="height: 44px;">31 Dec 2026</div></div></div>
+        <div class="fld"><label>Entry limit <span class="opt">(optional)</span></label><div class="inp foc" style="height: 44px;">10 per month<span class="grow"></span><span class="xs dim">4 used</span></div><div class="help">When it is reached the form shows the closed message until next month.</div></div>
+      </div>
+    </div>
+    <div class="card" style="padding: 16px;">
+      <div class="ch" style="margin-bottom: 12px;"><h3>After someone sends it</h3></div>
+      <div class="seg" style="width: 100%;"><button class="on" type="button" style="flex: 1; justify-content: center;">Show a message</button><button type="button" style="flex: 1; justify-content: center;">Go to a page</button></div>
+      <div class="fld" style="margin-top: 12px;"><label>Message</label><div class="inp ta" style="min-height: 76px; display: block; line-height: 1.7;">Thank you, <span class="token">first_name</span>. Your brief is with Babatope. Expect a WhatsApp or email within one working day.</div></div>
+    </div>
+    <div class="card flush">
+      <div class="ch" style="padding: 16px 16px 0; margin-bottom: 4px;"><div><h3>Emails this form sends</h3><p class="sub">Off still writes “Skipped” in the email log.</p></div></div>
+      <a class="mcard-row" href="FormNotifyEdit.dc.html" style="align-items: flex-start;"><div class="grow" style="min-width: 0;"><b class="sm">Studio notice</b><div class="xs dim" style="margin-top: 3px;">To hello@wedigcreativity.com.ng</div><div class="xs dim" style="margin-top: 2px;">Last sent today 12:41 · delivered</div></div><span class="sw on" role="switch" aria-checked="true" aria-label="Studio notice"></span></a>
+      <a class="mcard-row" href="FormNotifyEdit.dc.html" style="align-items: flex-start;"><div class="grow" style="min-width: 0;"><b class="sm">Next steps for the client</b><div class="xs dim" style="margin-top: 3px;">To whoever filled it in</div><div class="xs dim" style="margin-top: 2px;">Last sent today 12:42 · delivered</div></div><span class="sw on" role="switch" aria-checked="true" aria-label="Next steps for the client"></span></a>
+      <a class="mcard-row" href="FormNotifyEdit.dc.html" style="align-items: flex-start;"><div class="grow" style="min-width: 0;"><b class="sm">Draft reminder</b><div class="xs dim" style="margin-top: 3px;">3 days after a draft is saved</div><div class="xs dim" style="margin-top: 2px;">Off · 4 skipped this month</div></div><span class="sw" role="switch" aria-checked="false" aria-label="Draft reminder"></span></a>
+    </div>
+    <div class="card flush">
+      <div class="ch" style="padding: 16px 16px 0; margin-bottom: 4px;"><div><h3>Spam protection</h3><p class="sub">1 entry sent to Spam this month.</p></div></div>
+      <div class="mcard-row"><div class="grow"><b class="sm">Hidden trap field</b><div class="xs dim" style="margin-top: 3px;">Always on. People never see it.</div></div><span class="pill good">On</span></div>
+      <div class="mcard-row"><div class="grow"><b class="sm">Too fast to be human</b><div class="xs dim" style="margin-top: 3px;">Sent within 3 seconds goes to Spam</div></div><span class="sw on" role="switch" aria-checked="true" aria-label="Too fast to be human"></span></div>
+      <div class="mcard-row"><div class="grow"><b class="sm">Repeat limit</b><div class="xs dim" style="margin-top: 3px;">5 entries an hour from one address</div></div><span class="ic i-right s16 dim"></span></div>
+    </div>
+    <div class="card flush">
+      <div class="ch" style="padding: 16px 16px 0; margin-bottom: 4px;"><div><h3>How long we keep things</h3><p class="sub">Checked every night.</p></div></div>
+      <div class="mcard-row"><div class="grow sm b">Entries</div><button class="pp" type="button">2 years<span class="ic i-chev s14"></span></button></div>
+      <div class="mcard-row"><div class="grow sm b">Trash</div><button class="pp" type="button">30 days<span class="ic i-chev s14"></span></button></div>
+      <div class="mcard-row"><div class="grow sm b">Drafts</div><button class="pp" type="button">30 days<span class="ic i-chev s14"></span></button></div>
+    </div>
+    <div class="card flush">
+      <div class="ch" style="padding: 16px 16px 0; margin-bottom: 4px;"><h3>Versions</h3></div>
+      <a class="mcard-row" href="MFormBuild.dc.html"><span class="tag">v4</span><div class="grow" style="min-width: 0;"><b class="sm">Draft</b><div class="xs dim trunc" style="margin-top: 3px;">Ada, today · launch date, consent</div></div><span class="pill warn">Draft</span></a>
+      <a class="mcard-row" href="FormPreview.dc.html"><span class="tag">v3</span><div class="grow" style="min-width: 0;"><b class="sm">Published 2 Sep</b><div class="xs dim" style="margin-top: 3px;">Babatope · 14 entries</div></div><span class="pill good">Live</span></a>
+    </div>
+    <button class="btn s full" type="button" style="color: var(--t-bad);"><span class="ic i-archive s16"></span>Close or archive this form</button>
+  </main>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 14; padding: 12px 16px 96px; background: var(--panel); border-top: 1px solid var(--line); box-shadow: 0 -8px 24px rgba(14,14,44,.06);"><div class="row g10"><div class="grow" style="min-width: 0;"><b class="sm">2 unsaved changes</b><div class="xs dim">Last saved 20 Sep</div></div><button class="btn s sm" type="button">Discard</button><button class="btn p sm" type="button">Save</button></div></div>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 15;"><dc-import name="MTabs" active="more" hint-size="390px,84px"></dc-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2150}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

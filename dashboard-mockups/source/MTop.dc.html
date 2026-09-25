@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mobile header</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<header class="m-top" style="width: 390px; height: 64px; font-family: var(--ff-b); color: var(--ink);">
+  <sc-if value="{{hasBack}}" hint-placeholder-val="{{false}}">
+    <a class="ibtn" href="{{back}}" aria-label="Back"><span class="ic i-back"></span></a>
+    <div class="grow b trunc" style="font-size: 16px;">{{title}}</div>
+  </sc-if>
+  <sc-if value="{{noBack}}" hint-placeholder-val="{{true}}">
+    <sc-if value="{{dark}}" hint-placeholder-val="{{false}}"><img src="brand/logo-white.svg" alt="WDC" width="81" height="26"></sc-if>
+    <sc-if value="{{light}}" hint-placeholder-val="{{true}}"><img src="brand/logo-navy.svg" alt="WDC" width="81" height="26"></sc-if>
+    <div class="grow"></div>
+  </sc-if>
+  <button class="ibtn" aria-label="Search"><span class="ic i-search"></span></button>
+  <button class="ibtn" aria-label="Notifications, 4 unread"><span class="ic i-bell"></span><span class="dot"></span></button>
+  <button class="av {{avCls}}" style="border: 0; width: 40px; height: 40px;" aria-label="Account menu">{{initials}}</button>
+</header>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"title":{"editor":"text","default":""},"back":{"editor":"text","default":""},"initials":{"editor":"text","default":"BA"},"client":{"editor":"boolean","default":false},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":64}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const back = this.props.back ?? '';
+    const dark = !!this.props.dark;
+    return {
+      hasBack: !!back, noBack: !back, back,
+      title: this.props.title ?? '',
+      initials: this.props.initials ?? 'BA',
+      avCls: this.props.client ? 'o' : '',
+      dark, light: !dark,
+    };
+  }
+}
+</script>
+</body>
+</html>

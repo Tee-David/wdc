@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Portal · Support</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root lt" style="width: 1440px; height: 1000px;">
+<div class="app" style="height: 1000px;">
+  <aside class="side"><dc-import name="PSidebar" active="support" hint-size="264px,900px"></dc-import></aside>
+  <div class="main">
+    <dc-import name="Topbar" client="{{yes}}" person="Tobi Adeyemi" role="Moore Designs" initials="TA" hint-size="1176px,72px"></dc-import>
+    <main class="page">
+      <div class="ph">
+        <div><h1>Support</h1><p class="lede">Ask us anything about your account, a project, or an invoice.</p></div>
+        <div class="acts"><a class="btn p" href="PNewTicket.dc.html"><span class="ic i-plus s16"></span>Ask a question</a></div>
+      </div>
+      <div class="grid" style="grid-template-columns: minmax(0, 1fr) 340px; align-items: start;">
+        <div class="card flush">
+          <div class="toolbar"><div class="seg"><button class="on">Open 1</button><button>Closed 2</button></div></div>
+          <a class="row g14" href="PConversation.dc.html" style="gap: 14px; padding: 18px 20px; border-top: 1px solid var(--line); background: var(--panel-2);">
+            <span class="tile live"><span class="ic i-chat s16"></span></span>
+            <div class="grow"><div class="row g8"><b>When can the shop go live?</b><span class="pill live">New reply</span></div><div class="sm dim trunc" style="margin-top: 4px;">Babatope: If you pick a route by Friday, we can have the shop live by 20 November…</div></div>
+            <div class="xs dim nowrap">2 hours ago</div>
+          </a>
+          <a class="row g14" href="PConversation.dc.html" style="gap: 14px; padding: 18px 20px; border-top: 1px solid var(--line);">
+            <span class="tile flat"><span class="ic i-okc s16"></span></span>
+            <div class="grow"><div class="row g8"><b>Can I pay the second half by transfer?</b><span class="pill flat">Closed</span></div><div class="sm dim trunc" style="margin-top: 4px;">You: Perfect, thank you.</div></div>
+            <div class="xs dim nowrap">3 Aug</div>
+          </a>
+          <a class="row g14" href="PConversation.dc.html" style="gap: 14px; padding: 18px 20px; border-top: 1px solid var(--line);">
+            <span class="tile flat"><span class="ic i-okc s16"></span></span>
+            <div class="grow"><div class="row g8"><b>Adding Kemi to the project</b><span class="pill flat">Closed</span></div><div class="sm dim trunc" style="margin-top: 4px;">Babatope: Done. Kemi will get updates by email from now on.</div></div>
+            <div class="xs dim nowrap">1 Aug</div>
+          </a>
+        </div>
+        <div class="card soft">
+          <div class="tile" style="margin-bottom: 12px;"><span class="ic i-clock s16"></span></div>
+          <h3 style="font-size: 16px;">How quickly we reply</h3>
+          <p class="sm dim" style="margin-top: 6px !important; line-height: 1.55;">Usually the same working day, Monday to Friday, 9am to 6pm Lagos time. Anything urgent on a live site, say so in the subject.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return { yes: true }; }
+}
+</script>
+</body>
+</html>

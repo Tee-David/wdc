@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · System status</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root lt" style="width: 1440px; height: 1200px;">
+<div class="app" style="height: 1200px;">
+  <aside class="side"><dc-import name="Sidebar" active="system" hint-size="264px,900px"></dc-import></aside>
+  <div class="main">
+    <dc-import name="Topbar" hint-size="1176px,72px"></dc-import>
+    <main class="page">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="Settings.dc.html">Settings</a><span class="ic i-right s14"></span><b>System status</b></nav>
+      <div class="grid" style="grid-template-columns: 250px minmax(0, 1fr); align-items: start;">
+        <dc-import name="SetNav" active="system" hint-size="250px,760px"></dc-import>
+        <div class="col g20">
+          <div class="ph"><div><h1>System status</h1><p class="lede">What the dashboard depends on, checked when you open this page.</p></div><div class="acts"><button class="btn s" type="button"><span class="ic i-copy s16"></span>Copy report</button><button class="btn p" type="button"><span class="ic i-refresh s16"></span>Check again</button></div></div>
+          <div class="grid c2" style="align-items: start;">
+            <div class="card">
+              <div class="ch"><h3>Health</h3><span class="xs dim">Checked 12:44</span></div>
+              <div class="probe"><span class="tile sm good"><span class="ic i-server s14"></span></span><div class="grow"><div class="b sm">Database</div><div class="xs dim">Answered in 38 ms</div></div><span class="pill good">OK</span></div>
+              <div class="probe"><span class="tile sm warn"><span class="ic i-layers s14"></span></span><div class="grow"><div class="b sm">Database changes</div><div class="xs dim">11 of 12 applied · 0012_invitations waiting</div></div><span class="pill warn">1 to apply</span></div>
+              <div class="probe"><span class="tile sm good"><span class="ic i-mail s14"></span></span><div class="grow"><div class="b sm">Email server</div><div class="xs dim">Signed in, 23.1 s · checked after the page loaded</div></div><span class="pill good">OK</span></div>
+              <div class="probe"><span class="tile sm good"><span class="ic i-box s14"></span></span><div class="grow"><div class="b sm">File storage</div><div class="xs dim">Bucket reachable · uploads allowed from this site</div></div><span class="pill good">OK</span></div>
+              <div class="probe"><span class="tile sm good"><span class="ic i-card s14"></span></span><div class="grow"><div class="b sm">Paystack webhooks</div><div class="xs dim">14 in the last 7 days, all signed</div></div><span class="pill good">OK</span></div>
+              <div class="probe"><span class="tile sm bad"><span class="ic i-send s14"></span></span><div class="grow"><div class="b sm">Emails waiting</div><div class="xs dim">1 failed for good · 1 queued</div></div><a class="btn s sm" href="SettingsEmail.dc.html">Open log</a></div>
+            </div>
+            <div class="col g20">
+              <div class="card" style="border-color: var(--line);">
+                <div class="ch"><div><h3>Maintenance mode</h3><p class="sub">Visitors see a short “back soon” page.</p></div><span class="sw"></span></div>
+                <p class="sm dim" style="line-height: 1.5;">Never blocks the dashboard, the client portal, sign-in, invoice pages or Paystack. You can share a preview link with a reviewer while it is on.</p>
+              </div>
+              <div class="card">
+                <div class="ch"><h3>Tools</h3></div>
+                <div class="lrow"><div class="grow"><div class="t sm">Retry failed emails</div><div class="s">1 waiting</div></div><button class="btn s sm" type="button">Run</button></div>
+                <div class="lrow"><div class="grow"><div class="t sm">Remove expired invitations</div><div class="s">None to remove</div></div><button class="btn s sm dis" type="button" disabled>Run</button></div>
+                <div class="lrow"><div class="grow"><div class="t sm">Re-check media files against storage</div><div class="s">Last run 3 days ago</div></div><button class="btn s sm" type="button">Run</button></div>
+                <div class="lrow"><div class="grow"><div class="t sm">Refresh public pages</div><div class="s">After a content change that has not shown</div></div><button class="btn s sm" type="button">Run</button></div>
+              </div>
+            </div>
+          </div>
+          <a class="set-row card" href="SettingsAudit.dc.html" style="padding: 16px 20px;"><span class="tile"><span class="ic i-list s16"></span></span><div class="grow"><div class="t">Audit log</div><div class="s">Every change, who made it and when</div></div><span class="ic i-right s16 dim"></span></a>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1200}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

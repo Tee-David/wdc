@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin mobile · Post an update</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="m root lt" style="width: 390px; height: 844px;">
+  <dc-import name="MProject" hint-size="390px,2000px"></dc-import>
+  <div class="scrim"></div>
+  <form class="sheet" aria-label="Post an update" style="top: 60px;">
+    <div class="grab"></div>
+    <div class="sh"><div><div class="eyebrow">Identity system</div><h2 style="margin-top: 2px;">Post an update</h2></div><a class="ibtn" href="MProject.dc.html" aria-label="Close"><span class="ic i-x"></span></a></div>
+    <div class="sb" style="flex: 1; overflow: hidden;">
+      <div class="fld"><label>What moved</label><div class="inp">Route B built out</div></div>
+      <div class="fld"><label>What changed</label><div class="inp ta foc" style="min-height: 100px;">Tobi picked Route B. We have drawn the lockups and set the palette as six tokens.</div></div>
+      <div class="fld"><div class="row sp"><label class="lbl">Progress</label><b class="fig">85%</b></div><div style="position: relative; height: 24px; display: flex; align-items: center;"><div class="bar n" style="width: 100%;"><i style="width: 85%;"></i></div><span style="position: absolute; left: calc(85% - 11px); width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 2px solid var(--navy); box-shadow: var(--sh-2);"></span></div></div>
+      <div class="fld"><label>What happens next</label><div class="inp">Guidelines, 12 pages</div></div>
+      <div class="fld"><label>How is it going</label><div class="row g8 wrap"><span class="chip on"><span class="ic i-check s14"></span>On track</span><span class="chip">At risk</span><span class="chip">Waiting</span><span class="chip">Blocked</span></div></div>
+    </div>
+    <div class="sf"><button class="ibtn" type="button" aria-label="Attach a file" style="width: 44px;"><span class="ic i-pin"></span></button><button class="btn p" type="submit" style="flex: 1;"><span class="ic i-send s16"></span>Post to the WhatsApp group</button></div>
+  </form>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

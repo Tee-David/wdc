@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin mobile · Form entry</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="m root lt" style="width: 390px; height: 1800px;">
+  <dc-import name="MTop" title="Brief #14" back="MFormEntries.dc.html" hint-size="390px,64px"></dc-import>
+  <main class="m-page" style="padding-bottom: 190px;">
+    <div class="row sp sm"><span class="dim">1 of 12 in Inbox</span><div class="row g6"><button class="ibtn" type="button" aria-label="Newer" disabled style="opacity: .45;"><span class="ic i-left s16"></span></button><a class="ibtn" href="MFormSubmission.dc.html" aria-label="Older"><span class="ic i-right s16"></span></a></div></div>
+    <div class="card" style="padding: 18px;">
+      <div class="row g12"><span class="av lg o">AN</span><div class="grow"><h1 style="font-size: 21px;">Adaeze Nnamdi</h1><div class="sm dim">Glow Skincare</div></div><button class="ibtn" type="button" aria-label="Star"><span class="ic i-star-o"></span></button></div>
+      <div class="row g6 wrap" style="margin-top: 12px;"><span class="pill brand">Inbox</span><span class="tag">v3</span><span class="pill flat">17 of 18 answered</span></div>
+      <div class="grid c3" style="gap: 8px; margin-top: 14px;">
+        <button class="btn s sm" type="button" style="flex-direction: column; height: 60px; gap: 4px;"><span class="ic i-mail s16"></span>Reply</button>
+        <button class="btn s sm" type="button" style="flex-direction: column; height: 60px; gap: 4px;"><span class="ic i-phone s16"></span>Call</button>
+        <button class="btn s sm" type="button" style="flex-direction: column; height: 60px; gap: 4px;"><span class="ic i-more s16"></span>More</button>
+      </div>
+    </div>
+    <div class="seg" style="width: 100%;"><button class="on" type="button" style="flex: 1; justify-content: center;">All answers</button><button type="button" style="flex: 1; justify-content: center;">Hide unanswered</button></div>
+    <div class="card" style="padding: 16px;">
+      <div class="ch" style="margin-bottom: 10px;"><h3>1 · About you</h3></div>
+      <div class="col g10 sm">
+        <div><div class="xs dim b">Email</div><div>adaeze@glowskincare.ng</div></div>
+        <div><div class="xs dim b">Phone or WhatsApp</div><div>+234 805 441 2090</div></div>
+        <div><div class="xs dim b">Where are you based?</div><div>Lekki, Lagos</div></div>
+      </div>
+    </div>
+    <div class="card" style="padding: 16px;">
+      <div class="ch" style="margin-bottom: 10px;"><h3>2 · Your brand today</h3></div>
+      <div class="col g12 sm">
+        <div><div class="xs dim b">What do you sell, and to whom?</div><p style="line-height: 1.5; margin-top: 2px !important;">Natural skincare made in Lagos, for women 25 to 45 who buy online and at pop-ups.</p></div>
+        <div><div class="xs dim b">Upload what you have</div><div class="attn" style="padding: 10px; margin-top: 4px; background: var(--panel);"><span class="tile sm flat"><span class="ic i-file s14"></span></span><span class="grow b xs">glow-logo-2021.pdf</span><button class="btn g sm" type="button">Open</button></div></div>
+        <div><div class="xs dim b">Brands you admire</div><div class="dim" style="font-style: italic;">Not answered</div></div>
+      </div>
+    </div>
+    <div class="card" style="padding: 16px;">
+      <div class="ch" style="margin-bottom: 10px;"><h3>3 · What you need</h3></div>
+      <div class="col g12 sm">
+        <div><div class="xs dim b">What should we make?</div><div class="row g6 wrap" style="margin-top: 4px;"><span class="tag">Logo</span><span class="tag">Colour palette</span><span class="tag">Packaging labels</span></div></div>
+        <div class="row sp"><span class="dim">Budget</span><span>₦400k–₦900k</span></div>
+        <div class="row sp"><span class="dim">Start</span><span>October</span></div>
+        <div class="row sp"><span class="dim">Launch date</span><span>1 Dec 2026</span></div>
+      </div>
+    </div>
+    <div class="card" style="padding: 16px;">
+      <div class="ch" style="margin-bottom: 10px;"><h3>Timeline</h3></div>
+      <div class="tl">
+        <div class="ti"><span class="dotc o"><span class="ic i-pen s14"></span></span><div><div class="sm b">Note: intro call Thursday 10am</div><div class="xs dim">Babatope · today 13:05</div></div></div>
+        <div class="ti"><span class="dotc g"><span class="ic i-mail s14"></span></span><div><div class="sm b">Next-steps email delivered</div><div class="xs dim">12:42</div></div></div>
+        <div class="ti"><span class="dotc b"><span class="ic i-inbox s14"></span></span><div><div class="sm b">Entry received</div><div class="xs dim">12:41 · iPhone · from /services/branding</div></div></div>
+      </div>
+      <button class="btn s sm full" type="button" style="margin-top: 14px;"><span class="ic i-plus s14"></span>Add a note</button>
+    </div>
+  </main>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 14; padding: 12px 16px 96px; background: var(--panel); border-top: 1px solid var(--line);">
+    <a class="btn p full" href="MClientAdd.dc.html"><span class="ic i-users s16"></span>Make them a client</a>
+  </div>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 15;"><dc-import name="MTabs" active="more" hint-size="390px,84px"></dc-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1800}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
