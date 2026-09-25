@@ -2,7 +2,7 @@
 
 import { after } from "next/server";
 import { revalidatePath } from "next/cache";
-import { createInvitation, invitationsConfigured, normaliseEmail, revokeInvitation } from "@/lib/invitations";
+import { accountFor, createInvitation, invitationsConfigured, normaliseEmail, revokeInvitation } from "@/lib/invitations";
 import { sendInvitationEmail } from "@/lib/invitation-mail";
 import { getClient, audit } from "./store";
 import { actorName, owner, allow } from "./guard";
@@ -63,6 +63,16 @@ export async function inviteStaff(_prev: ActionState, fd: FormData): Promise<Act
   if (!looksEmail(email)) errors.email = "Enter the address they will sign in with.";
   if (!name) errors.name = "Their name, as it should appear on what they change.";
   if (Object.keys(errors).length) return FAIL(errors);
+
+  /* AN ADDRESS THAT ALREADY HAS AN ACCOUNT cannot redeem an invitation (the
+     invite page would tell them to log in, and logging in keeps the role they
+     have), so it is refused here with the reason, not sent and left to fail. */
+  const existing = await accountFor(email).catch(() => null);
+  if (existing) {
+    return FAIL({ email: existing.role === "client"
+      ? `${email} already has a client account, and a client account cannot be made staff. Invite a different address for their studio work.`
+      : `${email} already has an account here. Change what they can do in the list above instead.` });
+  }
 
   const by = await actorName();
   let made;

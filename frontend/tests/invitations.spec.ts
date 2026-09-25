@@ -101,8 +101,11 @@ test("accepting makes a verified account for that address, signs in, and spends 
 
   /* The same link again, in a fresh browser: spent. */
   await page.context().clearCookies();
-  await page.goto(`/invite/${token}`, { waitUntil: "load" });
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("This invitation has been used");
+  await page.waitForURL((u) => !u.pathname.startsWith("/signed-in"), { timeout: 30_000 }).catch(() => undefined);
+  await page.goto(`/invite/${token}`, { waitUntil: "load" }).catch(() => page.goto(`/invite/${token}`, { waitUntil: "load" }));
+  /* Spent, and it says what to do now: which address to log in as. */
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your account is ready");
+  await expect(page.getByText(email)).toBeVisible();
 });
 
 test("two tabs racing the same link make one account", async ({ browser }) => {
