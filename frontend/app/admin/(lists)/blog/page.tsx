@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Download, FilePlus2, Newspaper } from "lucide-react";
-import { postsForAdmin, type AdminPost } from "@/lib/blog-db";
+import { Download, FilePlus2, Newspaper, Trash2 } from "lucide-react";
+import { POST_TRASH_DAYS, postsForAdmin, trashedPostCount, trashedPosts, type AdminPost } from "@/lib/blog-db";
+import { adminRole } from "@/lib/admin/guard";
 import { SERVICES } from "@/lib/services";
 import { Empty, Panel, Tile, when } from "@/components/admin/bits";
 import { AdminState } from "@/components/admin/admin-state";
-import { BlogPostMenu } from "@/components/admin/blog-menu";
+import { BlogPostMenu, TrashedPostMenu } from "@/components/admin/blog-menu";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 
 export const metadata = { title: "Blog" };
@@ -31,10 +32,15 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
   const query = await searchParams;
   const search = query.q?.trim().toLocaleLowerCase() ?? "";
   const wanted = (["draft", "scheduled", "published"] as const).find((s) => s === query.state);
+  const inTrash = query.state === "trash";
   const configured = Boolean(process.env.DATABASE_URL || process.env.COCKROACHDB_URL);
   let posts: AdminPost[] | null = null;
+  let trash: AdminPost[] = [];
+  let trashCount = 0;
   if (configured) {
-    try { posts = await postsForAdmin(); } catch (error) {
+    try {
+      [posts, trashCount, trash] = await Promise.all([postsForAdmin(), trashedPostCount(), inTrash ? trashedPosts() : Promise.resolve([])]);
+    } catch (error) {
       console.error("Blog posts could not be read", error instanceof Error ? error.message : "unknown error");
     }
   }
@@ -44,6 +50,8 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
     .filter((p) => !wanted || stateOf(p) === wanted)
     .filter((p) => !search || [p.title, p.slug, p.excerpt, ...p.tags].some((v) => v.toLocaleLowerCase().includes(search)));
   const filtered = Boolean(search || wanted);
+  const isOwner = (await adminRole()) === "owner";
+  const trashRows = trash.filter((p) => !search || [p.title, p.slug].some((v) => v.toLocaleLowerCase().includes(search)));
 
   return (
     <>
@@ -72,11 +80,37 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
           <AdminState kind="error" title="Posts could not be loaded"
             description="The database did not answer. Nothing has changed; reload in a minute." />
         </section>
+      ) : inTrash ? (
+        <Panel title={`Trash (${trash.length})`} action={<Link className="ad__btn" href="/admin/blog">Back to the posts</Link>}>
+          <p className="ad__dim" style={{ padding: "0 1rem", margin: ".2rem 0 .8rem" }}>
+            Drafts stay here for {POST_TRASH_DAYS} days, then the daily tidy removes them for good. Restoring one brings it back as a draft.
+          </p>
+          {trashRows.length ? (
+            <div className="ad__scroll">
+              <table className="ad__t">
+                <thead><tr><th>Post</th><th>Moved here</th><th>Removed for good</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
+                <tbody>
+                  {trashRows.map((p) => (
+                    <tr key={p.id}>
+                      <td><b>{p.title}</b><small>/blog/{p.slug}</small></td>
+                      <td className="ad__dim">{p.trashedAt ? `${when(p.trashedAt)}${p.trashedBy ? ` by ${p.trashedBy}` : ""}` : ""}</td>
+                      <td className="ad__dim ad__num">{p.trashedAt ? when(new Date(new Date(p.trashedAt).getTime() + POST_TRASH_DAYS * 86_400_000).toISOString()) : ""}</td>
+                      <td className="ad__rmC"><TrashedPostMenu post={{ id: p.id, title: p.title }} canDelete={isOwner} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <Empty title="The Trash is empty" icon={Trash2}>Drafts you move to the Trash wait here for {POST_TRASH_DAYS} days before they are removed.</Empty>
+          )}
+        </Panel>
       ) : posts.length === 0 ? (
         <section className="ad__panel">
           <AdminState kind="first-use" title="No posts yet"
             description="Posts you write here appear on /blog when you publish them, or on the date you schedule."
-            action={<Link className="ad__btn ad__btn--primary" href="/admin/blog/new"><FilePlus2 aria-hidden="true" /> Write the first post</Link>} />
+            action={<Link className="ad__btn ad__btn--primary" href="/admin/blog/new"><FilePlus2 aria-hidden="true" /> Write the first post</Link>}
+            secondaryAction={trashCount ? <Link className="ad__btn" href="/admin/blog?state=trash"><Trash2 aria-hidden="true" /> Trash ({trashCount})</Link> : undefined} />
         </section>
       ) : (
         <>
@@ -104,6 +138,7 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
                 </label>
                 <button type="submit" className="ad__btn">Filter</button>
                 {filtered ? <Link className="ad__btn" href="/admin/blog">Clear filters</Link> : null}
+                {trashCount ? <Link className="ad__btn" href="/admin/blog?state=trash"><Trash2 aria-hidden="true" /> Trash ({trashCount})</Link> : null}
               </form>
               {rows.length ? (
                 <div className="ad__scroll" data-tour="blog-table">

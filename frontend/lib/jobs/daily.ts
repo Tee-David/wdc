@@ -6,12 +6,14 @@ import { purgeLogged } from "@/lib/message-log";
 import { FORMS } from "@/lib/forms/registry";
 import { purgeTrash } from "@/lib/forms/entries";
 import { getFormSettings } from "@/lib/forms/settings-db";
+import { POST_TRASH_DAYS, purgeTrashedPosts } from "@/lib/blog-db";
 
-export type DailyResult = { logRows: number; trashed: Record<string, number>; errors: string[] };
+export type DailyResult = { logRows: number; trashed: Record<string, number>; posts: number; errors: string[] };
 
 /**
- * The once-a-day tidy: the message log past its retention, and each form's
- * Trash past the days its settings keep it.
+ * The once-a-day tidy: the message log past its retention, each form's
+ * Trash past the days its settings keep it, and blog drafts in the Trash
+ * past 30 days.
  *
  * SAFE TO RUN TWICE. Both are "delete what is older than N days", so a second
  * run the same day finds nothing to do. Each part runs on its own, so one
@@ -19,7 +21,7 @@ export type DailyResult = { logRows: number; trashed: Record<string, number>; er
  * its counts whatever happened.
  */
 export async function runDaily(by: string): Promise<DailyResult> {
-  const result: DailyResult = { logRows: 0, trashed: {}, errors: [] };
+  const result: DailyResult = { logRows: 0, trashed: {}, posts: 0, errors: [] };
   try {
     result.logRows = await purgeLogged(await getAppSetting(LOG_RETENTION_KEY, DEFAULT_LOG_RETENTION));
   } catch (error) {
@@ -33,10 +35,15 @@ export async function runDaily(by: string): Promise<DailyResult> {
       result.errors.push(`${form.key}: ${error instanceof Error ? error.message : "failed"}`);
     }
   }
+  try {
+    result.posts = await purgeTrashedPosts(POST_TRASH_DAYS);
+  } catch (error) {
+    result.errors.push(`blog: ${error instanceof Error ? error.message : "failed"}`);
+  }
   const trashed = Object.values(result.trashed).reduce((a, b) => a + b, 0);
   audit({
     actor: by, kind: "content", subjectId: "daily", subject: "Daily tidy",
-    action: `removed ${result.logRows} old message log rows and ${trashed} entries past their Trash period`,
+    action: `removed ${result.logRows} old message log rows, ${trashed} entries and ${result.posts} blog drafts past their Trash period`,
     note: result.errors.length ? result.errors.join("; ").slice(0, 300) : undefined,
   });
   return result;

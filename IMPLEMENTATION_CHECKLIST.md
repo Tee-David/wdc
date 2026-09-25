@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**96 open** (36 in progress)
+**94 open** (36 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -154,11 +154,11 @@ DONE 2026-09-25: the audit log is kept in the database (migration 0021, `lib/aud
 
 #### Blog as a CMS
 
+DONE 2026-09-25: optimistic concurrency and Trash. A save lands only while the row still carries the `saved_at` the editor opened (compared to the millisecond); otherwise nothing is written and the editor says who saved and when, the typed values stay on screen and the in-browser backup offers them back after a reload. A successful save hands the editor its new stamp, so the same editor can keep saving. A draft now goes to the Trash (migration 0022, any content role, because it can be undone) instead of being deleted: hidden from the list, editor, preview and publishing, address still reserved, restorable as a draft, deleted for good by the owner or by the daily tidy after 30 days. Pinned by `tests/blog-editor.spec.ts` (a two-tab refusal, and Trash, Restore, Delete for good from the list). Also fixed two specs left stale by the Settings split and the honesty fixes: `tests/admin-actions.spec.ts` now reads `/admin/settings/general` and edits an editable row.
+
 - [ ] (S) Pending review status: staff "Submit for review", owner publish or return with a note, count on the Blog nav item and an attention row on the dashboard.
-- [ ] (S) Optimistic concurrency on post saves: refuse when the row's `saved_at` is newer than the one the editor opened, and say who saved it and when.
 - [ ] (M) Revisions for published posts (last 25, in the save transaction), list with who/when and Restore; last 10 values per `site_content` key for the FAQ.
-- [ ] (S) Trash for posts with Restore and a 30-day purge, replacing permanent draft deletion.
-- [ ] (S) Verify scheduled posts reach /blog, the post page, the sitemap and RSS within the promised window with a one-minute-ahead test; fix or reword the editor's promise.
+- [-] (S) Verify scheduled posts reach /blog, the post page, the sitemap and RSS within the promised window with a one-minute-ahead test; fix or reword the editor's promise. FIXED 2026-09-25, the half found on the way: a date-only publish is stored at 08:00 UTC, so "Published, today" pressed before 09:00 Lagos stayed hidden while the editor said "Saved and live". Today's date now publishes this moment, and a later day with Published is refused with a pointer to Scheduled (`lib/blog-validate.ts`, pinned in `tests/blog-doc.spec.ts`). NOT YET: the scheduled path itself on the deployed site, which depends on how long the pages are cached.
 - [ ] (M) "Choose from library" for cover and social image, with search, type filter and "Used in".
 - [ ] (M) Services copy override by key (names, blurbs, deliverables; slugs locked), shown with provenance and Reset, following the FAQ's pattern.
 - [ ] (S) Post locking with a 150-second heartbeat and "Take over" — only if the concurrency refusal is ever hit in practice.
