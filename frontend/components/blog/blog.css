@@ -356,7 +356,11 @@
 
 .bl-post { min-width: 0; max-width: 74ch; }
 
-.bl-body > * + * { margin-top: 1.15rem; }
+/* `:root` IN FRONT, FOR SPECIFICITY. The page's `.pv p { margin: 0 }` and the
+   `.bl-body ul { margin: 0 }` below both outrank a bare `.bl-body > * + *`, so
+   every paragraph and list sat flush against the one before it and each
+   article read as a single block of text. */
+:root .bl-body > * + * { margin-top: 1.15rem; }
 .bl-body p { font-size: 1.03rem; line-height: 1.75; color: var(--ink); }
 .bl-body h2, .pv .bl-body h2 {
   margin-top: 2.6rem; scroll-margin-top: 6rem;
@@ -387,9 +391,9 @@
   list-style: decimal outside;
   display: grid; gap: .6rem;
 }
-.bl-body li > * + * { margin-top: .5rem; }
-.bl-body :is(ul, ol) :is(ul, ol) { margin-top: .5rem; }
-.bl-body blockquote > * + * { margin-top: .6rem; }
+:root .bl-body li > * + * { margin-top: .5rem; }
+:root .bl-body :is(ul, ol) :is(ul, ol) { margin-top: .5rem; }
+:root .bl-body blockquote > * + * { margin-top: .6rem; }
 .bl-body blockquote p { font-size: inherit; line-height: inherit; }
 .bl-body strong { font-weight: 700; }
 .bl-body a {

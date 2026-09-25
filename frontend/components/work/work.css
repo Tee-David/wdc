@@ -258,12 +258,13 @@
 }
 .pv .wk-card__d { color: var(--muted); font-size: .9rem; line-height: 1.45; }
 .wk-card__meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
-/* (0,2,0) and literal #fff — the accent chip pairing used across the site. */
+/* (0,2,0), and a BLACK label: --on-accent is the only label the site allows on
+   an orange fill. White on #ff6500 is 2.95:1; black is 7.1:1. */
 .pv .wk-chip {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .7rem; font-weight: 700; letter-spacing: .03em;
   padding: 4px 10px; border-radius: 999px;
-  background: var(--accent); color: #fff;
+  background: var(--accent); color: var(--on-accent, #000);
 }
 .pv .wk-chip--quiet { background: var(--paper-2); color: var(--muted); border: 1px solid var(--rule); }
 

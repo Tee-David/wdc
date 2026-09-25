@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import SelectField from "@/components/onboarding/select-field";
-import { ENQUIRY_TOPICS } from "@/lib/contact";
+import { ENQUIRY_DRAFT_KEY, ENQUIRY_TOPICS, TOPIC_BY_SERVICE, type EnquiryDraft } from "@/lib/contact";
 import { CONTACT_EMAIL } from "@/lib/site";
 
 
@@ -48,6 +48,44 @@ export function ContactForm() {
      rides to `FormData` in a hidden input. */
   const [topic, setTopic] = useState<string>(ENQUIRY_TOPICS[0]);
   const form = useRef<HTMLFormElement | null>(null);
+  /* Set when the homepage's short form handed its words over. */
+  const [carried, setCarried] = useState(false);
+
+  /* WHAT THE VISITOR ALREADY SAID. A service page links here as
+     `/contact?topic=web`, so the subject starts on that service rather than on
+     the first in the list; and the homepage's short form leaves what was typed
+     in this tab's session storage, so nobody writes their enquiry twice. Read
+     once, after hydration: both live only in the browser. */
+  const carryOver = () => {
+    const wanted = new URLSearchParams(window.location.search).get("topic");
+    const t = wanted ? TOPIC_BY_SERVICE[wanted] : undefined;
+    if (t) setTopic(t);
+    let draft: EnquiryDraft | null = null;
+    try { draft = JSON.parse(sessionStorage.getItem(ENQUIRY_DRAFT_KEY) || "null"); } catch { draft = null; }
+    const el = form.current;
+    if (!draft || !el) return;
+    const put = (name: string, v: string | undefined) => {
+      const f = el.elements.namedItem(name) as HTMLInputElement | HTMLTextAreaElement | null;
+      if (f && v && !f.value) f.value = v;
+    };
+    const [first, ...rest] = String(draft.name ?? "").trim().split(/\s+/);
+    put("first", first);
+    put("last", rest.join(" "));
+    put("email", String(draft.email ?? "").trim());
+    const site = String(draft.website ?? "").trim();
+    const msg = String(draft.message ?? "").trim();
+    put("message", [msg, site ? `Current website: ${site}` : ""].filter(Boolean).join("\n\n"));
+    setCarried(true);
+    /* Straight to the first thing still missing. */
+    const empty = ["first", "last", "email", "message"].map((n) => el.elements.namedItem(n) as HTMLInputElement | null).find((f) => f && !f.value);
+    (empty ?? (el.elements.namedItem("message") as HTMLTextAreaElement | null))?.focus({ preventScroll: false });
+  };
+  useEffect(() => {
+    /* A frame after hydration, so the server's render and the first client
+       one agree, and nothing here sets state inside the effect itself. */
+    const id = requestAnimationFrame(() => carryOver());
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   const send = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -74,6 +112,8 @@ export function ContactForm() {
         window.location.assign(result.confirmation.redirect);
         return;
       }
+      try { sessionStorage.removeItem(ENQUIRY_DRAFT_KEY); } catch { /* nothing kept */ }
+      setCarried(false);
       setThanks(result.confirmation ?? null);
       setSent(true);
       el.reset();
@@ -98,6 +138,11 @@ export function ContactForm() {
       onSubmit={send}
       noValidate
     >
+      {carried ? (
+        <p className="ct-carried" role="status">
+          We brought over what you wrote on the homepage. Add anything missing, then send it.
+        </p>
+      ) : null}
       <label className="ct-trap" aria-hidden="true">
         Company website
         <input name="company" type="text" tabIndex={-1} autoComplete="off" />

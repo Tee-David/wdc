@@ -288,7 +288,7 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
             </Link>
           )}
           <Link
-            href="/#pv-contact"
+            href="/contact"
             /* THE SITE'S PRIMARY, AND THE GROUND IT SITS ON MOVES UNDER IT.
 
                It was `bg-white text-black` in every state, which is right over
