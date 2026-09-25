@@ -127,7 +127,7 @@ export function Newsletter() {
   }
 
   return (
-    <div className="nl ft__nl">
+    <div className="nl ft__nl" id="newsletter">
       {/* NO HEADING AND NO PITCH. The box now sits inside the footer's own
           columns rather than in a band of its own, where a display-sized
           "Worth your inbox." was a second headline competing with the four
