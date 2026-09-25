@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { hydrateSettings } from "@/lib/settings/store";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
@@ -44,6 +45,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   const { id } = await params;
   const c = getClient(id);
   if (!c) notFound();
+  await hydrateSettings();
   const finance = financeDefaults();
   /* Staff see the relationship and the work, not the books, and do not get
      the controls that cannot be undone here (lib/admin/permissions.ts). */

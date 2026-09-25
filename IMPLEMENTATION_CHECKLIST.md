@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**109 open** (36 in progress)
+**104 open** (36 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -112,14 +112,11 @@ Agreed 2026-09-24. Settings takes the Realtors Practice layout (grouped sections
 
 #### Honesty fixes (do first)
 
-- [ ] (S) Settings: make "Contact email", "Social links", "Services", "Case studies" and "Legal documents" read-only with a "Not editable yet" pill until each has a consumer; today `saveSetting` says "The site shows it now" while only `finance.*` is read (`lib/admin/store.ts:1453`).
-- [ ] (S) Refuse unknown setting keys on the server: `saveSetting` accepts only keys in the settings registry, each parsed by its own validator.
-- [ ] (S) Fix the enum comments: `"user"."role"` is a STRING with no CHECK (migrations 0001/0004), not a Postgres enum as `lib/roles.ts` and `lib/db/schema.ts` say; add the next free migration with `CHECK ("role" IN ('owner','staff','client'))`.
+DONE 2026-09-25: the five rows nothing read are read-only with the reason; `saveSetting` accepts only registry keys (`lib/settings/registry.ts`), each parsed; settings are written through to `app_settings` and loaded once per instance, so a deploy no longer resets the VAT and days-to-pay defaults; `"user"."role"` is held to the three roles by `user_role_check` (migration 0019, unknown values become `client` first). The CSV guard was fixed with the export work.
+
 
 #### Settings foundation
 
-- [ ] (S) `lib/settings/registry.ts`: one record per setting (key, section, label, help, type, default = shipped value, parse, capability, paths to revalidate).
-- [ ] (S) Migration `app_settings (key, value JSONB, saved_by, saved_at)`; move the in-memory `SETTINGS` map behind the same get/set/clear functions; cached read with tag invalidation on write; audit row per change.
 - [ ] (M) Settings shell: `/admin/settings/layout.tsx` with grouped sub-navigation (sticky at 1000px+), an overview/list page shared by desktop overview and phone list (icon tile, label, one-line description, state pill, chevron), section routes with a "Settings" back link, per-section `loading.tsx`, `aria-current`, 44px rows, tour targets updated.
 - [ ] (S) Panel save kit: dirty tracking, primary Save disabled until dirty, Discard, "Unsaved changes" pill, leave-page warning only while dirty, inline `role="status"` result, server value re-synced only when it changes, provenance line ("Edited by … · shipped as … · Reset").
 - [ ] (S) Move the Integrations table, the audit log and the FAQ/Media links into their sections; the long single page goes.
