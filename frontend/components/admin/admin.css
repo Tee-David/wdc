@@ -507,6 +507,7 @@
 .ad__tileIcon--bad { background: var(--ad-tone-bad); color: var(--ad-on-bad); }
 .ad__tileIcon--warn { background: var(--ad-tone-warn); color: var(--ad-on-warn); }
 .ad__tileIcon--live { background: var(--ad-tone-live); color: var(--ad-on-live); }
+.ad__tileIcon--neutral { background: var(--ad-tone-neutral); color: var(--ad-on-neutral); }
 .ad__tileBadge { font-family: var(--font-body); font-size: .72rem; letter-spacing: 0; }
 .ad__tile--good dd { color: var(--ad-tone-good); }
 .ad__tile--bad dd { color: var(--ad-bad-ink); }
@@ -1596,6 +1597,7 @@ a.ad__pgBtn:hover { background: var(--ad-panel-2); border-color: var(--ad-dim); 
 .ad__profile { margin-bottom: 1.25rem; padding: 1.5rem; border: 1px solid var(--ad-line); border-radius: var(--ad-r); background: var(--ad-panel); box-shadow: var(--ad-sh-1); }
 .ad__profileTop { display: flex; align-items: flex-start; gap: 1.25rem; }
 .ad__profileAv { width: 4.5rem; height: 4.5rem; flex: none; display: grid; place-items: center; border-radius: 22px; background: var(--ad-tone-live); color: var(--ad-on-live); font: 600 1.5rem var(--font-space-grotesk), system-ui, sans-serif; }
+.ad__profileAv svg { width: 45%; height: 45%; }
 .ad__profileMain { min-width: 0; flex: 1; display: grid; gap: .55rem; }
 .ad__profileTitle { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
 .ad__profileTitle h1 { font-size: clamp(1.45rem, 1.1rem + 1vw, 1.9rem); font-weight: 600; line-height: 1.15; overflow-wrap: anywhere; }

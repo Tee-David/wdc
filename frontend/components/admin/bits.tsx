@@ -46,7 +46,7 @@ export function Tile({
   label: string; value: string; note?: string;
   tone?: "good" | "bad" | "accent";
   icon?: LucideIcon;
-  iconTone?: "brand" | "good" | "bad" | "warn" | "live";
+  iconTone?: "brand" | "good" | "bad" | "warn" | "live" | "neutral";
   badge?: { label: string; tone: "good" | "bad" | "warn" | "live" | "flat" };
 }) {
   return (
