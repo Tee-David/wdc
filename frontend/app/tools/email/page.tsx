@@ -34,7 +34,8 @@ const jsonLd = [
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-      { "@type": "ListItem", position: 2, name: "Email check", item: `${SITE_URL}/tools/email` },
+      { "@type": "ListItem", position: 2, name: "Free tools", item: `${SITE_URL}/tools` },
+      { "@type": "ListItem", position: 3, name: "Email check", item: `${SITE_URL}/tools/email` },
     ],
   },
   {
@@ -59,6 +60,8 @@ export default function EmailToolPage() {
           <div className="pv-wrap wk-hero__in">
             <nav className="wk-crumbs" aria-label="Breadcrumb">
               <Link href="/">Home</Link>
+              <i aria-hidden="true">/</i>
+              <Link href="/tools">Free tools</Link>
               <i aria-hidden="true">/</i>
               <span>Email check</span>
             </nav>
