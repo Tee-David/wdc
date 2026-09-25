@@ -68,6 +68,11 @@ export type CaseStudy = {
   quote?: { text: string; from: string };
   /** Captures of the delivered work. */
   gallery?: string[];
+  /** Descriptions for people who cannot see them: the cover's, and one per
+      gallery picture in the same order. Written in the admin editor; the
+      case studies in this file fall back to "client: title". */
+  coverAlt?: string;
+  galleryAlt?: string[];
   /** Only when the client has published them. */
   metrics?: WorkMetric[];
 };

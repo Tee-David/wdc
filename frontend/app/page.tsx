@@ -5,6 +5,7 @@ import { Hero } from "@/components/sections/hero";
 import PreviewBody from "@/components/preview/preview-body";
 import type { Faq } from "@/lib/faq";
 import { siteFaqs } from "@/lib/site-content";
+import { hydrateCaseStudies } from "@/lib/work-db";
 
 /* Built from the same list the accordion shows, which the admin can edit. */
 const faqJsonLdFor = (faqs: Faq[]) => ({
@@ -18,6 +19,7 @@ const faqJsonLdFor = (faqs: Faq[]) => ({
 });
 
 export default async function Home() {
+  await hydrateCaseStudies();
   const { faqs } = await siteFaqs();
   const faqJsonLd = faqJsonLdFor(faqs);
   return (
