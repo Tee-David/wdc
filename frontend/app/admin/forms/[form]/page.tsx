@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { findForm } from "@/lib/forms/find";
 import Link from "next/link";
 import { Pager } from "@/components/admin/pager";
 import { DateRange } from "@/components/admin/date-range";
@@ -8,7 +9,7 @@ import { ExternalLink } from "lucide-react";
 import { stepsFor } from "@/lib/onboarding";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
-import { columnCookie, chosenColumns, formByKey, PER_PAGE, tabsFor, type FormDef } from "@/lib/forms/registry";
+import { columnCookie, chosenColumns, PER_PAGE, tabsFor, type FormDef } from "@/lib/forms/registry";
 import { cellText, isEntryId, listEntries, onboardingServiceOf, readFilters, type Filters } from "@/lib/forms/entries";
 import { AdminState } from "@/components/admin/admin-state";
 import { Empty, Panel, when } from "@/components/admin/bits";
@@ -34,7 +35,7 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   await syncStore();
   const { form: key } = await params;
-  const form = formByKey(key);
+  const form = await findForm(key);
   if (form) return { title: form.title };
   return { title: demoTitle(key) ?? "Form" };
 }
@@ -57,7 +58,9 @@ function Tabs({ form, current, settings }: { form: FormDef; current: "entries" |
     <nav aria-label={`${form.title} sections`}>
       <ul className="adForms__tabs">
         <li><Link href={`/admin/forms/${form.key}`} aria-current={current === "entries" ? "page" : undefined}>Entries</Link></li>
-        <li><Link href={`/admin/forms/${form.key}?view=questions`} aria-current={current === "questions" ? "page" : undefined}>Questions</Link></li>
+        {form.custom
+          ? <li><Link href={`/admin/forms/${form.key}/build`}>Edit form</Link></li>
+          : <li><Link href={`/admin/forms/${form.key}?view=questions`} aria-current={current === "questions" ? "page" : undefined}>Questions</Link></li>}
         {settings ? <li><Link href={`/admin/forms/${form.key}?view=settings`} aria-current={current === "settings" ? "page" : undefined}>Settings</Link></li> : null}
       </ul>
     </nav>
@@ -103,7 +106,7 @@ export default async function FormPage({ params, searchParams }: Props) {
   await syncStore();
   persistSoon();
   const { form: key } = await params;
-  const form = formByKey(key);
+  const form = await findForm(key);
 
   if (!form) {
     /* An old link to one brief, from before each form had its own page. */

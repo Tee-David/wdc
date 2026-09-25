@@ -6,6 +6,12 @@
  */
 
 export const MEDIA_MAX_BYTES = 10 * 1024 * 1024;
+/** A short clip for a blog post: a minute or so of web video, not a film. */
+export const VIDEO_MAX_BYTES = 40 * 1024 * 1024;
+export const VIDEO_EXTENSIONS = ["mp4", "webm"] as const;
+export const isVideoExt = (ext: string) => (VIDEO_EXTENSIONS as readonly string[]).includes(ext);
+/** The size limit for a file of this extension. */
+export const maxBytesFor = (ext: string | null) => (ext && isVideoExt(ext) ? VIDEO_MAX_BYTES : MEDIA_MAX_BYTES);
 export const MEDIA_ALT_MAX = 250;
 
 /* Extension to the type the upload is SIGNED as. The browser's reported MIME
@@ -25,6 +31,8 @@ export const MEDIA_TYPES: Readonly<Record<string, string>> = {
   avif: "image/avif",
   gif: "image/gif",
   pdf: "application/pdf",
+  mp4: "video/mp4",
+  webm: "video/webm",
 };
 
 export const MEDIA_ACCEPT = Object.keys(MEDIA_TYPES).map((e) => `.${e}`).join(",");
@@ -43,16 +51,21 @@ export function checkMediaFile(filename: string, size: number): MediaCheck {
   const name = filename.trim();
   if (!name) return { ok: false, error: "That file has no name we can use." };
   if (!Number.isFinite(size) || size <= 0) return { ok: false, error: `${name} is empty.` };
-  if (size > MEDIA_MAX_BYTES) {
-    return { ok: false, error: `${name} is over ${MEDIA_MAX_BYTES / 1024 / 1024}MB. Resize it first; a web image rarely needs to be more than 1MB.` };
-  }
   const ext = mediaExtension(name);
+  if (size > maxBytesFor(ext)) {
+    return {
+      ok: false,
+      error: ext && isVideoExt(ext)
+        ? `${name} is over ${VIDEO_MAX_BYTES / 1024 / 1024}MB. Trim it or export it at 1080p or smaller; a clip for a post rarely needs more than 20MB.`
+        : `${name} is over ${MEDIA_MAX_BYTES / 1024 / 1024}MB. Resize it first; a web image rarely needs to be more than 1MB.`,
+    };
+  }
   if (!ext) {
     return {
       ok: false,
       error: /\.svg$/i.test(name)
         ? `${name} is an SVG, which the library does not take: it can carry a script and these files are shown on the public site. Export a PNG or WebP.`
-        : `${name} is not a type the library takes. PNG, JPEG, WebP, AVIF, GIF or PDF.`,
+        : `${name} is not a type the library takes. PNG, JPEG, WebP, AVIF, GIF, PDF, or an MP4 or WebM video.`,
     };
   }
   return { ok: true, ext, contentType: MEDIA_TYPES[ext] };

@@ -76,7 +76,8 @@
 .adRte__doc blockquote { padding-left: 1rem; border-left: 3px solid var(--ad-line); font-size: 1.08rem; }
 .adRte__doc a { color: var(--ad-accent); text-decoration: underline; text-underline-offset: .2em; }
 .adRte__doc img { display: block; max-width: 100%; height: auto; border-radius: 12px; }
-.adRte__doc img.ProseMirror-selectednode { outline: 3px solid var(--ad-accent); outline-offset: 2px; }
+.adRte__doc img.ProseMirror-selectednode, .adRte__doc video.ProseMirror-selectednode { outline: 3px solid var(--ad-accent); outline-offset: 2px; }
+.adRte__doc video { display: block; width: 100%; max-width: 100%; height: auto; border-radius: 12px; background: #000; }
 .adRte__doc p.is-editor-empty:first-child::before {
   content: attr(data-placeholder); float: left; height: 0; pointer-events: none; color: var(--ad-dim);
 }

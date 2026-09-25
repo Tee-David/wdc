@@ -1,5 +1,6 @@
 "use client";
 
+import { ListSearch } from "./list-search";
 import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Archive, Check, Copy, FileText, RotateCcw, Save, Upload } from "lucide-react";
@@ -121,8 +122,9 @@ export function MediaGrid({ items, empty }: { items: MediaAsset[]; empty: React.
       <p className={notice ? "ad__msg is-ok adMedia__notice" : "ad__sr adMedia__notice"} role="status">{notice}</p>
       {/* The empty state is drawn here too, so archiving the last card does
           not unmount the notice along with the list. */}
+      {items.length ? <ListSearch target="media-grid" placeholder="Search by file name or description" noun="files" /> : null}
       {items.length ? (
-        <ul className="adMedia__grid">
+        <ul className="adMedia__grid" id="media-grid">
           {items.map((m) => <MediaCard key={m.id} item={m} onMoved={moved} />)}
         </ul>
       ) : empty}
@@ -135,7 +137,7 @@ function MediaCard({ item, onMoved }: { item: MediaAsset; onMoved: (message: str
   const image = item.contentType.startsWith("image/");
   const altId = `alt-${item.id}`;
   return (
-    <li className="adMedia__card">
+    <li className="adMedia__card" data-row data-search={`${item.filename} ${item.alt ?? ""}`}>
       <div className="adMedia__thumb">
         {image && item.url ? (
           /* A plain img, not next/image: these are arbitrary uploads on

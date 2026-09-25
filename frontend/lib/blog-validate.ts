@@ -141,12 +141,12 @@ export function parsePost(raw: Raw, opts: { imageHosts?: readonly string[] } = {
   /* A PICTURE THE WHITELIST REFUSED IS SAID, NOT SWALLOWED. cleanDoc drops an
      image from another website (or one tucked inside a list or quote); saving
      without a word left the owner looking for a picture that had gone. */
-  const offered = JSON.stringify(parsedBody ?? null).match(/"type":"image"/g)?.length ?? 0;
-  const kept = body.content.filter((b) => b.type === "image").length;
+  const offered = JSON.stringify(parsedBody ?? null).match(/"type":"(image|video)"/g)?.length ?? 0;
+  const kept = body.content.filter((b) => b.type === "image" || b.type === "video").length;
   if (!legacy && offered > kept) {
     errors.body = offered - kept === 1
-      ? "One picture cannot be used: it is from another website, or inside a list or quote. Upload it with Picture, on a line of its own."
-      : `${offered - kept} pictures cannot be used: they are from another website, or inside a list or quote. Upload them with Picture, each on a line of its own.`;
+      ? "One picture or video cannot be used: it is from another website, or inside a list or quote. Upload it with Picture or Video, on a line of its own."
+      : `${offered - kept} pictures or videos cannot be used: they are from another website, or inside a list or quote. Upload them with Picture or Video, each on a line of its own.`;
   }
   /* The outline rule the renderer relies on: an h3 only ever sits under an h2. */
   if (docHeadings(body)[0]?.level === 3) errors.body = "The first heading has to be a section heading (h2); a sub-heading needs a section above it.";

@@ -119,7 +119,7 @@ test("a picture the whitelist refuses is reported on save, not dropped in silenc
     ] }),
   });
   expect(r.ok).toBe(false);
-  if (!r.ok) expect(r.errors.body).toMatch(/One picture cannot be used/);
+  if (!r.ok) expect(r.errors.body).toMatch(/One picture or video cannot be used/);
   const ok = parsePost({
     ...base,
     cover: "/hero/ai-key.jpg",
@@ -143,4 +143,24 @@ test("a cover is one of ours or an upload in our bucket, never another website's
   expect(other.ok).toBe(false);
   if (!other.ok) expect(other.errors.cover).toMatch(/Upload a cover/);
   expect(parsePost({ ...base, cover: "/hero/ai-key.jpg" }).ok).toBe(true);
+});
+
+test("a short video is kept when it is ours, and said when it is not", () => {
+  const BUCKET = "https://media.example-bucket.dev";
+  const doc = (src: string) => ({ type: "doc", content: [
+    { type: "paragraph", content: [t("Before.")] },
+    { type: "video", attrs: { src, title: "The site on a phone", width: 1080, height: 1920 } },
+    { type: "paragraph", content: [t("After.")] },
+  ] });
+  const kept = cleanDoc(doc(`${BUCKET}/media/2026/09/tour.mp4`), { imageHosts: [BUCKET] });
+  expect(kept.content.map((b) => b.type)).toEqual(["paragraph", "video", "paragraph"]);
+  expect(cleanDoc(doc("https://elsewhere.example/tour.mp4"), { imageHosts: [BUCKET] }).content.map((b) => b.type)).toEqual(["paragraph", "paragraph"]);
+  /* A picture's address passed off as a video is not a video. */
+  expect(cleanDoc(doc(`${BUCKET}/media/2026/09/photo.jpg`), { imageHosts: [BUCKET] }).content.map((b) => b.type)).toEqual(["paragraph", "paragraph"]);
+  const refused = parsePost({
+    slug: "video-check", title: "Video", seoTitle: "Video", excerpt: "One line.", topic: "seo", cover: "/hero/ai-key.jpg",
+    description: "x".repeat(130), status: "draft", body: JSON.stringify(doc("https://elsewhere.example/tour.mp4")),
+  }, { imageHosts: [BUCKET] });
+  expect(refused.ok).toBe(false);
+  if (!refused.ok) expect(refused.errors.body).toMatch(/One picture or video cannot be used/);
 });

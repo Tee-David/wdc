@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BulkBar, PickAll, RowPick } from "@/components/admin/bulk";
 import { SERVICES } from "@/lib/services";
 import { getClients, getClientsByService, getInvoicesFor, getProjectsFor } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, naira, nairaShort } from "@/lib/admin/types";
@@ -12,6 +13,7 @@ import { ClientMenu } from "@/components/admin/row-actions";
 import { Pager, readPer } from "@/components/admin/pager";
 import { DateRange } from "@/components/admin/date-range";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
+import { avTone, initials } from "@/lib/admin/client-mark";
 import { ExampleNote } from "@/components/admin/example-note";
 
 export const metadata = { title: "Clients" };
@@ -240,12 +242,17 @@ export default async function ClientsPage({
           <div className="ad__listMeta" id="client-list" aria-live="polite">
             <span>{rows.length} {rows.length === 1 ? "client" : "clients"}</span>
           </div>
-          <div className="ad__scroll">
+            {can(role, "destructive") ? (
+              <BulkBar target="clients-table" noun="clients" actions={[
+                { kind: "clients:archive", label: "Archive", icon: "archive", danger: true, confirm: "Archive {n} clients? Their projects, invoices and history stay; you can restore them from Archived." },
+              ]} />
+            ) : null}
+          <div className="ad__scroll" id="clients-table">
             <table className="ad__t">
               <thead>
                 <tr>
                   <th aria-sort={sort === "company" ? direction === "asc" ? "ascending" : "descending" : undefined}>
-                    <Link href={sortHref("company")}>Client</Link>
+                    <span className="ad__pickRow">{can(role, "destructive") ? <PickAll label="Select every client" /> : null}<Link href={sortHref("company")}>Client</Link></span>
                   </th><th>Sector</th><th>Buys</th>
                   <th className="num" aria-sort={sort === "projects" ? direction === "asc" ? "ascending" : "descending" : undefined}>
                     <Link href={sortHref("projects")}>Projects</Link>
@@ -266,6 +273,7 @@ export default async function ClientsPage({
                     <tr key={c.id}>
                       <td>
                         <span className="ad__who">
+                          {can(role, "destructive") ? <RowPick id={c.id} label={c.company} /> : null}
                           <span className={`ad__av ad__av--${avTone(c.company)}`} aria-hidden="true">{initials(c.company)}</span>
                           <span>
                             <Link href={`/admin/clients/${c.id}`}><b>{c.company}</b></Link>
@@ -319,18 +327,6 @@ export default async function ClientsPage({
       </div>
     </>
   );
-}
-
-function initials(name: string) {
-  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
-}
-
-/* One of five solid fills, chosen from the name so a client keeps its colour. */
-function avTone(name: string) {
-  const tones = ["brand", "live", "good", "warn", "neutral"] as const;
-  let h = 0;
-  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  return tones[h % tones.length];
 }
 
 /** The first day of this calendar quarter, in Lagos (UTC+1, no daylight saving). */

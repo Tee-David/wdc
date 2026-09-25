@@ -1,8 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { findForm } from "@/lib/forms/find";
 import { allow } from "@/lib/admin/guard";
 import { csvBody, CSV_HEADERS } from "@/lib/admin/csv";
 import { xlsxBody, XLSX_HEADERS } from "@/lib/xlsx";
-import { formByKey } from "@/lib/forms/registry";
+
 import { cellText, exportEntries, readFilters, type Entry } from "@/lib/forms/entries";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +29,7 @@ function state(e: Entry, inbox: boolean) {
 export async function GET(request: NextRequest, { params }: { params: Promise<{ form: string }> }) {
   if (await allow("exports")) return new NextResponse("Not found", { status: 404 });
   const { form: key } = await params;
-  const form = formByKey(key);
+  const form = await findForm(key);
   if (!form) return new NextResponse("Not found", { status: 404 });
 
   const sp = Object.fromEntries(request.nextUrl.searchParams.entries());

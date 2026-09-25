@@ -1,0 +1,87 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Archive, Check, Loader2, Mail, RotateCcw, X, type LucideIcon } from "lucide-react";
+import { runBulk } from "@/lib/admin/bulk-actions";
+import { toast } from "./toast";
+
+const ICONS: Record<string, LucideIcon> = { check: Check, close: X, archive: Archive, mail: Mail, reopen: RotateCcw };
+
+export type BulkAction = { kind: string; label: string; icon: keyof typeof ICONS; danger?: boolean; confirm?: string };
+
+/** A row's tick box. Inside the first cell, so the phone's sticky column keeps it. */
+export function RowPick({ id, label }: { id: string; label: string }) {
+  return <input type="checkbox" className="adRowPick" value={id} aria-label={`Select ${label}`} />;
+}
+
+/** "Select all" in the header: ticks or clears every visible row in the table. */
+export function PickAll({ label = "Select all" }: { label?: string }) {
+  return (
+    <input type="checkbox" className="adRowPickAll" aria-label={label}
+      onChange={(e) => {
+        const table = e.currentTarget.closest("table");
+        table?.querySelectorAll<HTMLInputElement>("tbody tr:not([hidden]) .adRowPick").forEach((b) => { b.checked = e.currentTarget.checked; });
+        table?.dispatchEvent(new Event("change", { bubbles: true }));
+      }} />
+  );
+}
+
+/**
+ * THE BULK BAR, for any list whose rows carry a `RowPick`: it appears when
+ * something is ticked, says how many, and offers what those rows can have done
+ * to them. Sticky at the top of the list on a wide screen, and floating above
+ * the tab bar on a phone, with the words dropped to icons (the same bar as the
+ * form entries).
+ */
+export function BulkBar({ target, noun, actions }: { target: string; noun: string; actions: BulkAction[] }) {
+  const router = useRouter();
+  const [ids, setIds] = useState<string[]>([]);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  useEffect(() => {
+    const box = document.getElementById(target);
+    if (!box) return;
+    const read = () => {
+      const picked = [...box.querySelectorAll<HTMLInputElement>(".adRowPick:checked")].map((b) => b.value);
+      setIds(picked);
+      const all = box.querySelector<HTMLInputElement>(".adRowPickAll");
+      const every = box.querySelectorAll(".adRowPick").length;
+      if (all) { all.checked = picked.length > 0 && picked.length === every; all.indeterminate = picked.length > 0 && picked.length < every; }
+      box.querySelectorAll<HTMLInputElement>(".adRowPick").forEach((b) => b.closest("tr")?.classList.toggle("is-picked", b.checked));
+    };
+    box.addEventListener("change", read);
+    return () => box.removeEventListener("change", read);
+  }, [target]);
+
+  const clear = () => {
+    const box = document.getElementById(target);
+    box?.querySelectorAll<HTMLInputElement>(".adRowPick, .adRowPickAll").forEach((b) => { b.checked = false; b.indeterminate = false; });
+    box?.dispatchEvent(new Event("change", { bubbles: true }));
+  };
+
+  const run = async (a: BulkAction) => {
+    if (a.confirm && !window.confirm(a.confirm.replace("{n}", String(ids.length)))) return;
+    setBusy(a.kind);
+    const r = await runBulk(a.kind, ids).catch(() => null);
+    setBusy(null);
+    toast(r?.message ?? "That could not be done just now.", r?.ok ? "good" : "bad");
+    if (r?.ok) { clear(); router.refresh(); }
+  };
+
+  if (!ids.length) return null;
+  return (
+    <div className="adBulk" role="region" aria-label={`Selected ${noun}`}>
+      <b className="adBulk__n">{ids.length} selected</b>
+      {actions.map((a) => {
+        const Icon = ICONS[a.icon];
+        return (
+          <button key={a.kind} type="button" className={`ad__btn adBulk__btn${a.danger ? " is-danger" : ""}`} disabled={Boolean(busy)} onClick={() => void run(a)}>
+            {busy === a.kind ? <Loader2 className="ad__spin" aria-hidden="true" /> : <Icon aria-hidden="true" />} <span className="adBulk__t">{a.label}</span>
+          </button>
+        );
+      })}
+      <button type="button" className="ad__iconButton adBulk__x" aria-label="Clear the selection" onClick={clear}><X aria-hidden="true" /></button>
+    </div>
+  );
+}

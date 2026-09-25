@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { projectGlyph } from "@/components/client/service-glyph";
 import { hydrateSettings } from "@/lib/settings/store";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -69,6 +70,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           ...(client ? [{ href: `/admin/clients/${client.id}`, label: client.company }] : []),
         ]}
         title={p.title}
+        icon={projectGlyph(p)}
         pills={<>
           <StagePill stage={p.stage} />
           <HealthPill health={p.health} />

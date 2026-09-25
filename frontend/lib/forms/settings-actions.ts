@@ -1,5 +1,6 @@
 "use server";
 
+import { findForm } from "@/lib/forms/find";
 import { revalidatePath } from "next/cache";
 import { actorName, allow } from "@/lib/admin/guard";
 import { getAdminRequest } from "@/lib/admin/session";
@@ -8,7 +9,6 @@ import { audit } from "@/lib/admin/store";
 import { mailIsConfigured } from "@/lib/email";
 import { sendLogged } from "@/lib/outbox";
 import { composeEmailHtml, emailP, emailPanel } from "@/lib/email-templates";
-import { formByKey } from "./registry";
 import { fillTokens, NOTIFICATIONS, parseFormSettings } from "./settings";
 import { getFormSettings, resetFormSettings, saveFormSettings } from "./settings-db";
 
@@ -22,7 +22,7 @@ const PAGE = (key: string) => `/admin/forms/${key}`;
 export async function saveFormSettingsAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const refused = await allow("settings");
   if (refused) return refused;
-  const form = formByKey(String(fd.get("form") ?? ""));
+  const form = await findForm(String(fd.get("form") ?? ""));
   if (!form) return FAIL({}, "That form is not there.");
   const raw: Record<string, unknown> = {};
   for (const [k, v] of fd.entries()) if (typeof v === "string") raw[k] = v;
@@ -43,7 +43,7 @@ export async function saveFormSettingsAction(_prev: ActionState, fd: FormData): 
 export async function resetFormSettingsAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const refused = await allow("settings");
   if (refused) return refused;
-  const form = formByKey(String(fd.get("form") ?? ""));
+  const form = await findForm(String(fd.get("form") ?? ""));
   if (!form) return FAIL({}, "That form is not there.");
   try { await resetFormSettings(form); } catch { return FAIL({}, "The settings could not be reset just now."); }
   audit({ actor: await actorName(), kind: "content", subjectId: form.key, subject: form.title, action: "reset the form's settings to the defaults" });
@@ -63,7 +63,7 @@ export async function resetFormSettingsAction(_prev: ActionState, fd: FormData):
 export async function testFormEmailAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const refused = await allow("settings");
   if (refused) return refused;
-  const form = formByKey(String(fd.get("form") ?? ""));
+  const form = await findForm(String(fd.get("form") ?? ""));
   const key = String(fd.get("notification") ?? "");
   const def = form && NOTIFICATIONS[form.source].find((n) => n.key === key);
   if (!form || !def) return FAIL({}, "That email is not there.");

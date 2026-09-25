@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BulkBar, PickAll, RowPick } from "@/components/admin/bulk";
 import { CheckCircle2, Inbox, LifeBuoy, MessageSquare } from "lucide-react";
 import { getClient, getProject, getTicketMessages, getTickets } from "@/lib/admin/store";
 import { adminRole } from "@/lib/admin/guard";
@@ -96,14 +97,21 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
             {filtered ? <Link className="ad__btn" href="/admin/clients/support">Clear</Link> : null}
           </div>
           {rows.length ? (
+            <>
+              <BulkBar target="tickets" noun="questions" actions={[
+                { kind: "tickets:Answered", label: "Mark answered", icon: "check" },
+                { kind: "tickets:Closed", label: "Close", icon: "close" },
+                { kind: "tickets:Open", label: "Reopen", icon: "reopen" },
+              ]} />
             <div className="ad__scroll" id="tickets">
               <table className="ad__t">
-                <thead><tr><th>Question</th><th>Status</th><th>Last message</th><th className="num">Messages</th><th>Opened</th></tr></thead>
+                <thead><tr><th><span className="ad__pickRow"><PickAll label="Select every question" />Question</span></th><th>Status</th><th>Last message</th><th className="num">Messages</th><th>Opened</th></tr></thead>
                 <tbody>
                   {shown.map(({ t, client, last, count, project }) => (
                     <tr key={t.id}>
                       <td>
-                        <Link href={`/admin/clients/support/${t.id}`}><b>{t.subject}</b></Link>
+                        <span className="ad__pickRow"><RowPick id={t.id} label={t.subject} />
+                        <Link href={`/admin/clients/support/${t.id}`}><b>{t.subject}</b></Link></span>
                         <small>{client?.company ?? "Unknown client"}{project ? ` · ${project.title}` : ""}</small>
                       </td>
                       <td><span className={`ad__pill ${PILL[t.status]}`}>{LABEL[t.status]}</span></td>
@@ -115,6 +123,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
                 </tbody>
               </table>
             </div>
+            </>
           ) : filtered ? (
             <Empty title="No questions match" icon={LifeBuoy} action={<Link className="ad__btn" href="/admin/clients/support">Clear filters</Link>}>
               Try a broader search, or clear the filters.

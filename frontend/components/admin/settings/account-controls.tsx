@@ -1,7 +1,7 @@
 "use client";
 
-import { KeyRound, LogOut, Save } from "lucide-react";
-import { changeMyPassword, saveMyName, signOutMyOtherSessions, unlinkMyGoogle } from "@/lib/admin/account-actions";
+import { LogOut, Save } from "lucide-react";
+import { saveMyName, signOutMyOtherSessions, unlinkMyGoogle } from "@/lib/admin/account-actions";
 import { Actions, Field, Fields, Form, Submit } from "@/components/admin/form";
 
 export function MyNameForm({ name }: { name: string }) {
@@ -9,19 +9,6 @@ export function MyNameForm({ name }: { name: string }) {
     <Form action={saveMyName}>
       <Fields><Field name="name" label="Your name" defaultValue={name} required hint="As it appears on what you change." /></Fields>
       <Actions><Submit icon={Save}>Save name</Submit></Actions>
-    </Form>
-  );
-}
-
-export function MyPasswordForm() {
-  return (
-    <Form action={changeMyPassword} resetOnDone>
-      <Fields>
-        <Field name="current" label="Current password" type="password" required />
-        <Field name="next" label="New password" type="password" half required hint="8+ characters, with a capital, a small letter, a number and a symbol." />
-        <Field name="again" label="New password again" type="password" half required />
-      </Fields>
-      <Actions><Submit icon={KeyRound}>Change password</Submit></Actions>
     </Form>
   );
 }
