@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import ServiceIcon from "@/components/ui/service-icon";
-import { toolsFor } from "@/lib/tools";
+import { toolsFor, type FreeTool } from "@/lib/tools";
 import type { ServiceSlug } from "@/lib/services";
 
 import "./service-tools.css";
@@ -41,31 +41,39 @@ export function ServiceTools({ service }: { service: ServiceSlug }) {
           </p>
         </div>
 
-        <div className="svc-tools">
-          {tools.map((t, n) => (
-            /* THE WHOLE CARD IS THE LINK, not a card containing one. A card
-               with a button in the corner gives a thumb one target where the
-               eye sees a whole panel, and it is the commonest reason a tile
-               feels unresponsive on a phone. */
-            <Link className="svc-tool pv-reveal" key={t.slug} href={t.href}>
-              <span className="svc-tool__ic" aria-hidden="true">
-                {/* Staggered, the way every other icon row on the site draws:
-                    one at a time rather than all at once. */}
-                <ServiceIcon name={t.icon} size={19} delay={n * 120} />
-              </span>
-              <span className="svc-tool__body">
-                <span className="svc-tool__t">{t.title}</span>
-                <span className="svc-tool__d">{t.blurb}</span>
-                <span className="svc-tool__go">
-                  {t.action}
-                  <ArrowRight aria-hidden="true" />
-                </span>
-              </span>
-            </Link>
-          ))}
-        </div>
+        <ToolCards tools={tools} />
       </div>
     </section>
+  );
+}
+
+/** The cards themselves, shared with the /tools page so a tool looks the
+ *  same wherever it is offered. */
+export function ToolCards({ tools }: { tools: FreeTool[] }) {
+  return (
+    <div className="svc-tools">
+      {tools.map((t, n) => (
+        /* THE WHOLE CARD IS THE LINK, not a card containing one. A card
+           with a button in the corner gives a thumb one target where the
+           eye sees a whole panel, and it is the commonest reason a tile
+           feels unresponsive on a phone. */
+        <Link className="svc-tool pv-reveal" key={t.slug} href={t.href}>
+          <span className="svc-tool__ic" aria-hidden="true">
+            {/* Staggered, the way every other icon row on the site draws:
+                one at a time rather than all at once. */}
+            <ServiceIcon name={t.icon} size={19} delay={n * 120} />
+          </span>
+          <span className="svc-tool__body">
+            <span className="svc-tool__t">{t.title}</span>
+            <span className="svc-tool__d">{t.blurb}</span>
+            <span className="svc-tool__go">
+              {t.action}
+              <ArrowRight aria-hidden="true" />
+            </span>
+          </span>
+        </Link>
+      ))}
+    </div>
   );
 }
 

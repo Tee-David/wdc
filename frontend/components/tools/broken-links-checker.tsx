@@ -7,6 +7,7 @@ import { AlertTriangle, Check, ExternalLink, HelpCircle, Link2, Loader2, Search,
 import type { CheckedLink } from "@/app/api/tools/broken-links/route";
 import type { LinkVerdict } from "@/lib/broken-links";
 import WaitingLine from "./waiting-line";
+import { SendToWdc } from "./send-to-wdc";
 
 /**
  * The single-page broken-link check at /tools/broken-links.
@@ -185,6 +186,16 @@ export default function BrokenLinksChecker() {
                   );
                 })}
               </ul>
+            )}
+
+            {broken > 0 && (
+              <p className="tl__stepAlt">
+                Rather we fixed them?{" "}
+                <SendToWdc topic="web" from="your broken link check" className=""
+                  summary={`Broken link check for ${result.url}: ${headline}\n${result.links.filter((l) => l.verdict === "broken").map((l) => `- ${l.href}`).join("\n")}\n\nCan you fix these?`}>
+                  Send this to WDC
+                </SendToWdc>.
+              </p>
             )}
           </>
         )}

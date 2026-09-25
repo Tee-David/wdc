@@ -73,9 +73,11 @@ export const TOPIC_BY_SERVICE: Record<string, (typeof ENQUIRY_TOPICS)[number]> =
   social: "Social Media & PPC",
 };
 
-/** What the homepage's short form hands to /contact, kept for this tab only. */
+/** What the homepage's short form, or a free tool's result, hands to
+ *  /contact, kept for this tab only. `from` finishes the sentence the form
+ *  shows ("We brought over ..."); the homepage leaves it out. */
 export const ENQUIRY_DRAFT_KEY = "wdc.enquiry-draft";
-export type EnquiryDraft = { name?: string; email?: string; website?: string; message?: string };
+export type EnquiryDraft = { name?: string; email?: string; website?: string; message?: string; from?: string };
 
 export const ENQUIRY_TOPICS = [
   "Branding & Design",

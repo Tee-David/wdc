@@ -49,7 +49,7 @@ export function ContactForm() {
   const [topic, setTopic] = useState<string>(ENQUIRY_TOPICS[0]);
   const form = useRef<HTMLFormElement | null>(null);
   /* Set when the homepage's short form handed its words over. */
-  const [carried, setCarried] = useState(false);
+  const [carried, setCarried] = useState("");
 
   /* WHAT THE VISITOR ALREADY SAID. A service page links here as
      `/contact?topic=web`, so the subject starts on that service rather than on
@@ -75,7 +75,7 @@ export function ContactForm() {
     const site = String(draft.website ?? "").trim();
     const msg = String(draft.message ?? "").trim();
     put("message", [msg, site ? `Current website: ${site}` : ""].filter(Boolean).join("\n\n"));
-    setCarried(true);
+    setCarried(String(draft.from ?? "").trim().slice(0, 80) || "what you wrote on the homepage");
     /* Straight to the first thing still missing. */
     const empty = ["first", "last", "email", "message"].map((n) => el.elements.namedItem(n) as HTMLInputElement | null).find((f) => f && !f.value);
     (empty ?? (el.elements.namedItem("message") as HTMLTextAreaElement | null))?.focus({ preventScroll: false });
@@ -113,7 +113,7 @@ export function ContactForm() {
         return;
       }
       try { sessionStorage.removeItem(ENQUIRY_DRAFT_KEY); } catch { /* nothing kept */ }
-      setCarried(false);
+      setCarried("");
       setThanks(result.confirmation ?? null);
       setSent(true);
       el.reset();
@@ -140,7 +140,7 @@ export function ContactForm() {
     >
       {carried ? (
         <p className="ct-carried" role="status">
-          We brought over what you wrote on the homepage. Add anything missing, then send it.
+          We brought over {carried}. Add anything missing, then send it.
         </p>
       ) : null}
       <label className="ct-trap" aria-hidden="true">
