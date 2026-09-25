@@ -157,9 +157,14 @@ export type AdminPost = BlogPost & {
   publishedAt: string | null;
   savedBy: string | null;
   savedAt: string | null;
+  trashedAt: string | null;
+  trashedBy: string | null;
 };
 
-type AdminRow = Row & { id: string; status: string; saved_by: string | null; saved_at: Date | null };
+type AdminRow = Row & {
+  id: string; status: string; saved_by: string | null; saved_at: Date | null;
+  trashed_at: Date | null; trashed_by: string | null;
+};
 
 const toAdmin = (r: AdminRow): AdminPost => ({
   ...toPost(r),
@@ -169,14 +174,16 @@ const toAdmin = (r: AdminRow): AdminPost => ({
   publishedAt: r.published_at ? new Date(r.published_at).toISOString() : null,
   savedBy: r.saved_by,
   savedAt: r.saved_at ? new Date(r.saved_at).toISOString() : null,
+  trashedAt: r.trashed_at ? new Date(r.trashed_at).toISOString() : null,
+  trashedBy: r.trashed_by,
 });
 
-const ADMIN_COLUMNS = `id, status, saved_by, saved_at, ${COLUMNS}`;
+const ADMIN_COLUMNS = `id, status, saved_by, saved_at, trashed_at, trashed_by, ${COLUMNS}`;
 
-/** Every post, any state. Drafts first, then newest. Bounded. */
+/** Every post not in the Trash, any state. Drafts first, then newest. Bounded. */
 export async function postsForAdmin(limit = 200): Promise<AdminPost[]> {
   const result = await db.query<AdminRow>(
-    `SELECT ${ADMIN_COLUMNS} FROM blog_posts
+    `SELECT ${ADMIN_COLUMNS} FROM blog_posts WHERE trashed_at IS NULL
      ORDER BY (status = 'draft') DESC, published_at DESC NULLS FIRST, created_at DESC
      LIMIT $1`,
     [limit],
@@ -184,21 +191,37 @@ export async function postsForAdmin(limit = 200): Promise<AdminPost[]> {
   return result.rows.map(toAdmin);
 }
 
+/** The Trash, most recently thrown out first. */
+export async function trashedPosts(limit = 200): Promise<AdminPost[]> {
+  const result = await db.query<AdminRow>(
+    `SELECT ${ADMIN_COLUMNS} FROM blog_posts WHERE trashed_at IS NOT NULL ORDER BY trashed_at DESC LIMIT $1`, [limit],
+  );
+  return result.rows.map(toAdmin);
+}
+
+export async function trashedPostCount(): Promise<number> {
+  const r = await db.query<{ n: string }>("SELECT count(*) AS n FROM blog_posts WHERE trashed_at IS NOT NULL");
+  return Number(r.rows[0]?.n ?? 0);
+}
+
+/** A post to edit. One in the Trash is not: restore it first. */
 export async function postForAdmin(id: string): Promise<AdminPost | null> {
   if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
-  const result = await db.query<AdminRow>(`SELECT ${ADMIN_COLUMNS} FROM blog_posts WHERE id = $1`, [id]);
+  const result = await db.query<AdminRow>(`SELECT ${ADMIN_COLUMNS} FROM blog_posts WHERE id = $1 AND trashed_at IS NULL`, [id]);
   return result.rows[0] ? toAdmin(result.rows[0]) : null;
 }
 
 /** For the preview only: the post whatever its state. */
 export async function postForPreview(slug: string): Promise<BlogPost | undefined> {
-  const result = await db.query<Row>(`SELECT ${COLUMNS} FROM blog_posts WHERE slug = $1 LIMIT 1`, [slug]);
+  const result = await db.query<Row>(`SELECT ${COLUMNS} FROM blog_posts WHERE slug = $1 AND trashed_at IS NULL LIMIT 1`, [slug]);
   return result.rows[0] ? toPost(result.rows[0]) : undefined;
 }
 
 export type SaveResult =
-  | { ok: true; id: string; slug: string; previousSlug: string | null }
-  | { ok: false; reason: "slug-taken" | "missing" | "slug-locked" };
+  | { ok: true; id: string; slug: string; previousSlug: string | null; savedAt: string }
+  | { ok: false; reason: "slug-taken" | "missing" | "slug-locked" }
+  /* Somebody saved it after this editor opened it. */
+  | { ok: false; reason: "stale"; savedBy: string | null; savedAt: string | null };
 
 /**
  * Insert or update one post.
@@ -206,11 +229,19 @@ export type SaveResult =
  * `updated_at` IS THE READER'S "UPDATED" DATE, so it moves only when the
  * editor says the revision is worth announcing, and only on a post that was
  * already live. A typo fix must not claim the post was rewritten.
+ *
+ * OPTIMISTIC CONCURRENCY. `opened` is the `saved_at` the editor loaded (or
+ * last saved). The update only lands while the row still carries it, so two
+ * people editing the same post cannot silently overwrite each other: the
+ * second is refused and told who saved and when. Compared to the
+ * millisecond, because that is all a JavaScript date carries. `undefined`
+ * skips the check, for a caller that is not an editor.
  */
 export async function savePost(
   id: string | null,
   p: import("@/lib/blog-validate").PostInput,
   by: string,
+  opened?: string | null,
 ): Promise<SaveResult> {
   const stored = p.status === "draft" ? "draft" : "published";
   const values = [
@@ -219,17 +250,17 @@ export async function savePost(
   ];
   try {
     if (!id) {
-      const r = await db.query<{ id: string }>(
+      const r = await db.query<{ id: string; saved_at: Date }>(
         `INSERT INTO blog_posts (slug, title, seo_title, description, excerpt, topic, tags, cover, body,
                                  status, published_at, canonical, social_image, saved_by, saved_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7::JSONB, $8, $9::JSONB, $10, $11, $12, $13, $14, now())
-         RETURNING id`,
+         RETURNING id, saved_at`,
         values,
       );
-      return { ok: true, id: r.rows[0].id, slug: p.slug, previousSlug: null };
+      return { ok: true, id: r.rows[0].id, slug: p.slug, previousSlug: null, savedAt: new Date(r.rows[0].saved_at).toISOString() };
     }
     const before = await db.query<{ slug: string; status: string; published_at: Date | null }>(
-      "SELECT slug, status, published_at FROM blog_posts WHERE id = $1", [id],
+      "SELECT slug, status, published_at FROM blog_posts WHERE id = $1 AND trashed_at IS NULL", [id],
     );
     const was = before.rows[0];
     if (!was) return { ok: false, reason: "missing" };
@@ -238,15 +269,30 @@ export async function savePost(
        links. Changing it would turn every one of those into a 404. */
     if (wasLive && was.slug !== p.slug) return { ok: false, reason: "slug-locked" };
     const touch = p.revised && wasLive && stored === "published";
-    await db.query(
+    const check = opened === undefined ? "" : "AND date_trunc('milliseconds', saved_at) IS NOT DISTINCT FROM $16::TIMESTAMPTZ";
+    const updated = await db.query<{ saved_at: Date }>(
       `UPDATE blog_posts SET slug = $1, title = $2, seo_title = $3, description = $4, excerpt = $5,
               topic = $6, tags = $7::JSONB, cover = $8, body = $9::JSONB, status = $10,
               published_at = $11, canonical = $12, social_image = $13, saved_by = $14, saved_at = now()
               ${touch ? ", updated_at = now()" : ""}
-       WHERE id = $15`,
-      [...values, id],
+       WHERE id = $15 AND trashed_at IS NULL ${check}
+       RETURNING saved_at`,
+      opened === undefined ? [...values, id] : [...values, id, opened],
     );
-    return { ok: true, id, slug: p.slug, previousSlug: was.slug !== p.slug ? was.slug : null };
+    if (!updated.rows[0]) {
+      const now = await db.query<{ saved_by: string | null; saved_at: Date | null }>(
+        "SELECT saved_by, saved_at FROM blog_posts WHERE id = $1 AND trashed_at IS NULL", [id],
+      );
+      if (!now.rows[0]) return { ok: false, reason: "missing" };
+      return {
+        ok: false, reason: "stale", savedBy: now.rows[0].saved_by,
+        savedAt: now.rows[0].saved_at ? new Date(now.rows[0].saved_at).toISOString() : null,
+      };
+    }
+    return {
+      ok: true, id, slug: p.slug, previousSlug: was.slug !== p.slug ? was.slug : null,
+      savedAt: new Date(updated.rows[0].saved_at).toISOString(),
+    };
   } catch (error) {
     /* 23505 is a unique violation, and the only unique column is the slug. */
     if ((error as { code?: string }).code === "23505") return { ok: false, reason: "slug-taken" };
@@ -257,9 +303,10 @@ export async function savePost(
 /**
  * The list's quick actions. "Publish now" dates the post today unless it
  * already carries a date in the past, so a post moved back from draft keeps
- * the date it first went out. A draft is the only thing that can be deleted:
- * a post that has been live is in search results and other people's links,
- * so it is unpublished, never erased.
+ * the date it first went out. A draft is the only thing that can go in the
+ * Trash: a post that has been live is in search results and other people's
+ * links, so it is unpublished, never erased. Nothing here touches a post that
+ * is already in the Trash.
  */
 export async function publishPostNow(id: string, by: string): Promise<{ slug: string; title: string } | null> {
   const r = await db.query<{ slug: string; title: string }>(
@@ -267,7 +314,7 @@ export async function publishPostNow(id: string, by: string): Promise<{ slug: st
      SET status = 'published',
          published_at = CASE WHEN published_at IS NOT NULL AND published_at <= now() THEN published_at ELSE now() END,
          saved_by = $2, saved_at = now()
-     WHERE id = $1 RETURNING slug, title`,
+     WHERE id = $1 AND trashed_at IS NULL RETURNING slug, title`,
     [id, by],
   );
   return r.rows[0] ?? null;
@@ -275,16 +322,48 @@ export async function publishPostNow(id: string, by: string): Promise<{ slug: st
 
 export async function movePostToDraft(id: string, by: string): Promise<{ slug: string; title: string } | null> {
   const r = await db.query<{ slug: string; title: string }>(
-    `UPDATE blog_posts SET status = 'draft', saved_by = $2, saved_at = now() WHERE id = $1 RETURNING slug, title`,
+    `UPDATE blog_posts SET status = 'draft', saved_by = $2, saved_at = now() WHERE id = $1 AND trashed_at IS NULL RETURNING slug, title`,
     [id, by],
   );
   return r.rows[0] ?? null;
 }
 
-export async function deleteDraftPost(id: string): Promise<{ slug: string; title: string } | null> {
+export const POST_TRASH_DAYS = 30;
+
+/** A draft into the Trash. Its address stays reserved until it is removed. */
+export async function trashDraftPost(id: string, by: string): Promise<{ slug: string; title: string } | null> {
   const r = await db.query<{ slug: string; title: string }>(
-    `DELETE FROM blog_posts WHERE id = $1 AND status = 'draft' RETURNING slug, title`,
+    `UPDATE blog_posts SET trashed_at = now(), trashed_by = $2
+     WHERE id = $1 AND status = 'draft' AND trashed_at IS NULL RETURNING slug, title`,
+    [id, by.slice(0, 120)],
+  );
+  return r.rows[0] ?? null;
+}
+
+/** Out of the Trash, as the draft it went in as. */
+export async function restorePost(id: string, by: string): Promise<{ slug: string; title: string } | null> {
+  const r = await db.query<{ slug: string; title: string }>(
+    `UPDATE blog_posts SET trashed_at = NULL, trashed_by = NULL, saved_by = $2, saved_at = now()
+     WHERE id = $1 AND trashed_at IS NOT NULL RETURNING slug, title`,
+    [id, by],
+  );
+  return r.rows[0] ?? null;
+}
+
+/** For good, and only from the Trash. */
+export async function deleteTrashedPost(id: string): Promise<{ slug: string; title: string } | null> {
+  const r = await db.query<{ slug: string; title: string }>(
+    `DELETE FROM blog_posts WHERE id = $1 AND trashed_at IS NOT NULL RETURNING slug, title`,
     [id],
   );
   return r.rows[0] ?? null;
+}
+
+/** The daily tidy: what has been in the Trash longer than it keeps things. */
+export async function purgeTrashedPosts(days = POST_TRASH_DAYS): Promise<number> {
+  const r = await db.query(
+    `DELETE FROM blog_posts WHERE trashed_at IS NOT NULL AND trashed_at < now() - ($1::INT * INTERVAL '1 day')`,
+    [days],
+  );
+  return r.rowCount ?? 0;
 }

@@ -66,5 +66,5 @@ export async function runDailyNow(): Promise<ActionState> {
   revalidatePath(PAGE);
   const trashed = Object.values(r.trashed).reduce((a, b) => a + b, 0);
   if (r.errors.length) return FAIL({}, `Part of the tidy did not run: ${r.errors.join("; ")}`);
-  return OK(`Done. Removed ${r.logRows} old log rows and ${trashed} entries past their Trash period.`);
+  return OK(`Done. Removed ${r.logRows} old log rows, ${trashed} entries and ${r.posts} blog drafts past their Trash period.`);
 }

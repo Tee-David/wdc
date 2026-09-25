@@ -13,7 +13,7 @@ export const metadata = { title: "Edit post" };
 const EMPTY: EditorPost = {
   id: null, slug: "", title: "", seoTitle: "", description: "", excerpt: "",
   topic: "", tags: [], cover: BLOG_COVERS[0] ?? "", canonical: "", socialImage: "",
-  body: { type: "doc", content: [] }, status: "draft", publishedAt: "", live: false,
+  body: { type: "doc", content: [] }, status: "draft", publishedAt: "", live: false, savedAt: null,
 };
 
 export default async function EditPostPage({ params, searchParams }: {
@@ -44,6 +44,7 @@ export default async function EditPostPage({ params, searchParams }: {
       status: found.status === "draft" ? "draft" : found.scheduled ? "scheduled" : "published",
       publishedAt: found.publishedAt ? found.publishedAt.slice(0, 10) : "",
       live,
+      savedAt: found.savedAt,
     };
   }
 
