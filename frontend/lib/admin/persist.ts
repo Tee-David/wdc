@@ -55,7 +55,26 @@ function apply(coll: string, rows: Rec[], id: string, data: Rec | null) {
   snapshot(coll).set(id, JSON.stringify(data));
 }
 
+/**
+ * THE TABLE MAKES ITSELF (migration 0025, statement for statement). Without
+ * this, a deploy whose migration was not run by hand kept the records in each
+ * instance's memory, so an email changed on one instance was not the email the
+ * next request read: the owner's resent invitation went to the old address.
+ * Idempotent, and recorded as applied so `scripts/migrate.mjs` and System
+ * status agree with it.
+ */
+async function ensureSchema() {
+  await db.query("CREATE SEQUENCE IF NOT EXISTS admin_records_seq");
+  await db.query(`CREATE TABLE IF NOT EXISTS admin_records (
+    collection STRING NOT NULL, id STRING NOT NULL, data JSONB, seq INT8 NOT NULL, ord INT8 NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(), PRIMARY KEY (collection, id))`);
+  await db.query("CREATE INDEX IF NOT EXISTS admin_records_seq_idx ON admin_records (seq)");
+  await db.query(`CREATE TABLE IF NOT EXISTS wdc_schema_migrations (name STRING PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL DEFAULT now())`).catch(() => undefined);
+  await db.query("INSERT INTO wdc_schema_migrations (name) VALUES ('0025_admin_records.sql') ON CONFLICT (name) DO NOTHING").catch(() => undefined);
+}
+
 async function load() {
+  await ensureSchema();
   const colls = persistedCollections();
   const count = await db.query<{ n: string }>("SELECT count(*)::STRING AS n FROM admin_records");
   if (Number(count.rows[0]?.n ?? 0) === 0) {

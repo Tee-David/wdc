@@ -130,3 +130,17 @@ test("a picture the whitelist refuses is reported on save, not dropped in silenc
   });
   expect(ok.ok).toBe(true);
 });
+
+test("a cover is one of ours or an upload in our bucket, never another website's", () => {
+  const BUCKET = "https://media.example-bucket.dev";
+  const base = {
+    slug: "cover-check", title: "Covers", seoTitle: "Covers", excerpt: "One line.", topic: "seo",
+    description: "x".repeat(130), status: "draft",
+    body: JSON.stringify({ type: "doc", content: [{ type: "paragraph", content: [t("Text.")] }] }),
+  };
+  expect(parsePost({ ...base, cover: `${BUCKET}/media/2026/09/shop.webp` }, { imageHosts: [BUCKET] }).ok).toBe(true);
+  const other = parsePost({ ...base, cover: "https://elsewhere.example/shop.webp" }, { imageHosts: [BUCKET] });
+  expect(other.ok).toBe(false);
+  if (!other.ok) expect(other.errors.cover).toMatch(/upload one/);
+  expect(parsePost({ ...base, cover: "/hero/ai-key.jpg" }).ok).toBe(true);
+});
