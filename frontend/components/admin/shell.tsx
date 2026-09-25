@@ -27,8 +27,9 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { authClient } from "@/lib/auth-client";
+import { can, NAV_AREA, type AdminRole } from "@/lib/admin/permissions";
 import { WdcMark } from "@/components/brand/logo";
 import TourLauncher from "./tour/tour-launcher";
 import TableLabels from "./table-labels";
@@ -70,28 +71,41 @@ const NAV: NavItem[] = [
   /* A seventh primary page, asked for by name: posts are written weekly,
      which is not an "infrequent control" to bury under Settings. */
   { href: "/admin/blog", label: "Blog", Icon: Newspaper, group: "main", tour: "nav-blog" },
-  {
-    href: "/admin/settings", label: "Settings", Icon: Settings, group: "general", tour: "nav-settings",
-    sub: [
-      { href: "/admin/settings", label: "All settings" },
-      { href: "/admin/settings/faq", label: "FAQ" },
-      { href: "/admin/settings/media", label: "Media library" },
-    ],
-  },
+  /* No sub-links here: Settings carries its own section menu on the page
+     (lib/settings/sections.ts), and a second copy of twelve links in the
+     sidebar would be the same list twice. */
+  { href: "/admin/settings", label: "Settings", Icon: Settings, group: "general", tour: "nav-settings" },
 ];
 
 /* The phone's bar: the four places visited daily, then More. */
 const TABS = ["/admin", "/admin/clients", "/admin/projects", "/admin/money"];
 
 /* What More holds on a phone, in the order a studio reaches for it. */
-const MORE: { href: string; label: string; hint: string; Icon: typeof Users; count?: string }[] = [
-  { href: "/admin/forms", label: "Forms", hint: "Briefs and enquiries", Icon: ClipboardList, count: "Forms" },
-  { href: "/admin/blog", label: "Blog", hint: "Posts and drafts", Icon: Newspaper },
-  { href: "/admin/money/reconciliation", label: "Reconciliation", hint: "Payments to check", Icon: Scale },
-  { href: "/admin/settings", label: "Settings", hint: "Studio and site", Icon: Settings },
-  { href: "/admin/settings/faq", label: "FAQ", hint: "Questions on the site", Icon: MessagesSquare },
-  { href: "/admin/settings/media", label: "Media", hint: "Images and files", Icon: Images },
+const MORE: { href: string; label: string; hint: string; Icon: typeof Users; count?: string; area: string }[] = [
+  { href: "/admin/forms", label: "Forms", hint: "Briefs and enquiries", Icon: ClipboardList, count: "Forms", area: "/admin/forms" },
+  { href: "/admin/blog", label: "Blog", hint: "Posts and drafts", Icon: Newspaper, count: "Blog", area: "/admin/blog" },
+  { href: "/admin/money/reconciliation", label: "Reconciliation", hint: "Payments to check", Icon: Scale, area: "/admin/money" },
+  { href: "/admin/settings", label: "Settings", hint: "Studio and site", Icon: Settings, area: "/admin/settings" },
+  { href: "/admin/settings/faq", label: "FAQ", hint: "Questions on the site", Icon: MessagesSquare, area: "/admin/blog" },
+  { href: "/admin/settings/media", label: "Media", hint: "Images and files", Icon: Images, area: "/admin/blog" },
 ];
+
+/* The pages this role may open. A courtesy, not the permission: every write
+   is checked again on the server (lib/admin/guard.ts). */
+const RoleContext = createContext<AdminRole>("owner");
+/** The signed-in admin's role, for client components inside the shell. */
+export function useAdminRole() {
+  return useContext(RoleContext);
+}
+function allowed(role: AdminRole, href: string) {
+  const area = NAV_AREA[href];
+  return !area || can(role, area);
+}
+function useNav() {
+  const role = useContext(RoleContext);
+  return useMemo(() => NAV.filter((item) => allowed(role, item.href)), [role]);
+}
+const ROLE_LABEL: Record<string, string> = { owner: "Owner", staff: "Staff" };
 
 const SIDEBAR_KEY = "wdc:admin-sidebar-collapsed";
 let clientMounted = false;
@@ -146,8 +160,10 @@ function Sidebar({
 }) {
   const path = usePathname();
   const router = useRouter();
-  const main = NAV.filter((item) => item.group === "main");
-  const general = NAV.filter((item) => item.group === "general");
+  const nav = useNav();
+  const role = useAdminRole();
+  const main = nav.filter((item) => item.group === "main");
+  const general = nav.filter((item) => item.group === "general");
 
   const renderItem = (item: NavItem) => {
     const { href, label, Icon, tour, sub } = item;
@@ -220,7 +236,7 @@ function Sidebar({
 
       <div className="ad__sideFoot">
         <SideTourCard collapsed={collapsed} />
-        <SideProfile user={user} role="Owner" collapsed={collapsed} onSignOut={() => signOut(router)} />
+        <SideProfile user={user} role={ROLE_LABEL[role] ?? "Admin"} collapsed={collapsed} onSignOut={() => signOut(router)} />
       </div>
     </div>
   );
@@ -260,6 +276,7 @@ function ThemeButton() {
 }
 
 function AccountMenu({ user }: { user: AdminUser }) {
+  const role = useAdminRole();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -294,7 +311,7 @@ function AccountMenu({ user }: { user: AdminUser }) {
         </span>
         <span className="ad__accountText">
           <b>{user.name || "Admin"}</b>
-          <small>Owner</small>
+          <small>{ROLE_LABEL[role] ?? "Admin"}</small>
         </span>
         <ChevronDown className="ad__accountChev" aria-hidden="true" />
       </button>
@@ -312,7 +329,7 @@ function AccountMenu({ user }: { user: AdminUser }) {
   );
 }
 
-function Notifications({ openForms }: { openForms: number }) {
+function Notifications({ openForms, failedMail = 0 }: { openForms: number; failedMail?: number }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -341,22 +358,28 @@ function Notifications({ openForms }: { openForms: number }) {
         ref={trigger}
         type="button"
         className="ad__topIcon"
-        aria-label={openForms > 0 ? `Notifications, ${openForms} waiting` : "Notifications"}
+        aria-label={openForms + failedMail > 0 ? `Notifications, ${openForms + failedMail} waiting` : "Notifications"}
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
       >
         <Bell aria-hidden="true" />
-        {openForms > 0 ? <span className="ad__notificationDot" aria-hidden="true">{openForms > 9 ? "9+" : openForms}</span> : null}
+        {openForms + failedMail > 0 ? <span className="ad__notificationDot" aria-hidden="true">{openForms + failedMail > 9 ? "9+" : openForms + failedMail}</span> : null}
       </button>
       {open ? (
         <div className="ad__popover ad__notifications">
           <div className="ad__popoverHead"><b>Notifications</b></div>
+          {failedMail > 0 ? (
+            <Link href="/admin/settings/email?state=Failed" onClick={() => setOpen(false)}>
+              <span className="ad__noticeIcon"><Bell aria-hidden="true" /></span>
+              <span><b>{failedMail} {failedMail === 1 ? "email" : "emails"} did not send</b><small>See why in the message log, and retry</small></span>
+            </Link>
+          ) : null}
           {openForms > 0 ? (
             <Link href="/admin/forms" onClick={() => setOpen(false)}>
               <span className="ad__noticeIcon"><ClipboardList aria-hidden="true" /></span>
-              <span><b>{openForms} onboarding {openForms === 1 ? "form is" : "forms are"} in progress</b><small>Review incomplete submissions</small></span>
+              <span><b>{openForms} unread form {openForms === 1 ? "entry" : "entries"}</b><small>Briefs and enquiries nobody has opened yet</small></span>
             </Link>
-          ) : (
+          ) : failedMail > 0 ? null : (
             <div className="ad__popoverEmpty"><b>You’re all caught up.</b><span>New activity will show up here.</span></div>
           )}
         </div>
@@ -369,14 +392,15 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
   const [query, setQuery] = useState("");
   const input = useRef<HTMLInputElement>(null);
   const dialog = useRef<HTMLElement>(null);
+  const nav = useNav();
   const results = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    const pages = NAV.flatMap((item) => [
+    const pages = nav.flatMap((item) => [
       { href: item.href, label: item.label, Icon: item.Icon },
       ...(item.sub ?? []).filter((s) => s.href !== item.href).map((s) => ({ href: s.href, label: s.label, Icon: item.Icon })),
     ]);
     return pages.filter((item) => !needle || item.label.toLowerCase().includes(needle));
-  }, [query]);
+  }, [query, nav]);
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -416,10 +440,12 @@ function MoreSheet({ counts, onClose }: { counts: Record<string, number>; onClos
   const path = usePathname();
   const router = useRouter();
   const theme = useThemeSwitch();
+  const role = useAdminRole();
+  const more = MORE.filter((m) => allowed(role, m.area));
   return (
     <BottomSheet title="More" onClose={onClose}>
       <nav className="ad__moreGrid" aria-label="More sections">
-        {MORE.map(({ href, label, hint, Icon, count }) => {
+        {more.map(({ href, label, hint, Icon, count }) => {
           const n = count ? counts[count] ?? 0 : 0;
           const on = isActive(href, path) && !MORE.some((m) => m.href !== href && m.href.startsWith(href + "/") && isActive(m.href, path));
           return (
@@ -444,8 +470,17 @@ function MoreSheet({ counts, onClose }: { counts: Record<string, number>; onClos
   );
 }
 
-export default function AdminShell({ children, counts = {}, user }: { children: ReactNode; counts?: Record<string, number>; user: AdminUser }) {
+export default function AdminShell({ children, counts = {}, user, role = "owner" }: { children: ReactNode; counts?: Record<string, number>; user: AdminUser; role?: AdminRole }) {
+  return (
+    <RoleContext.Provider value={role}>
+      <ShellFrame counts={counts} user={user}>{children}</ShellFrame>
+    </RoleContext.Provider>
+  );
+}
+
+function ShellFrame({ children, counts, user }: { children: ReactNode; counts: Record<string, number>; user: AdminUser }) {
   const path = usePathname();
+  const nav = useNav();
   const [pinnedCollapsed, setPinnedCollapsed] = useState(false);
   const [hoverExpanded, setHoverExpanded] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
@@ -484,7 +519,7 @@ export default function AdminShell({ children, counts = {}, user }: { children: 
 
   const inMore = !TABS.some((href) => isActive(href, path));
   const tabs = [
-    ...NAV.filter((item) => TABS.includes(item.href)).map((item) => ({
+    ...nav.filter((item) => TABS.includes(item.href)).map((item) => ({
       label: item.href === "/admin" ? "Home" : item.label,
       Icon: item.href === "/admin" ? House : item.Icon,
       href: item.href,
@@ -496,7 +531,7 @@ export default function AdminShell({ children, counts = {}, user }: { children: 
       label: "More",
       Icon: LayoutGrid,
       active: moreOpen || inMore,
-      count: counts.Forms,
+      count: (counts.Forms ?? 0) + (counts.Blog ?? 0) || undefined,
       onSelect: () => setMoreOpen(true),
       expanded: moreOpen,
       tour: "tab-more",
@@ -531,7 +566,7 @@ export default function AdminShell({ children, counts = {}, user }: { children: 
           <div className="ad__topActions">
             <TourLauncher />
             <ThemeButton />
-            <Notifications openForms={counts.Forms ?? 0} />
+            <Notifications openForms={counts.Forms ?? 0} failedMail={counts.FailedMail ?? 0} />
             <span className="ad__topRule" aria-hidden="true" />
             <AccountMenu user={user} />
           </div>

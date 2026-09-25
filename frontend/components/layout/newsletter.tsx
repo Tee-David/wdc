@@ -43,7 +43,7 @@ const BEND_MAX = 34;
 type State =
   | { kind: "idle" }
   | { kind: "busy" }
-  | { kind: "done" }
+  | { kind: "done"; message?: string }
   | { kind: "error"; message: string };
 
 export function Newsletter() {
@@ -104,7 +104,7 @@ export function Newsletter() {
           company: trap.current?.value ?? "",
         }),
       });
-      const data = (await response.json().catch(() => ({}))) as { error?: string };
+      const data = (await response.json().catch(() => ({}))) as { error?: string; confirmation?: { message?: string } };
       if (!response.ok) {
         setState({
           kind: "error",
@@ -112,7 +112,8 @@ export function Newsletter() {
         });
         return;
       }
-      setState({ kind: "done" });
+      /* The studio's own words, when they set some in the form's settings. */
+      setState({ kind: "done", message: data.confirmation?.message || undefined });
       setEmail("");
     } catch {
       /* A network failure, not a refusal. Saying "check your connection" is
@@ -140,7 +141,7 @@ export function Newsletter() {
              page most likely to be near the bottom of their screen. */
           <p className="nl__done" role="status">
             <span aria-hidden="true" className="nl__tick" />
-            You are on the list. Check your inbox for a note confirming it.
+            {state.message ?? "You are on the list. Check your inbox for a note confirming it."}
           </p>
         ) : (
           <>

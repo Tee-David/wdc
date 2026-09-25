@@ -10,6 +10,8 @@ import {
   postUpdate, removeTask, saveProjectDetails, toggleTask,
 } from "@/lib/admin/actions";
 import { Actions, Area, Field, Fields, Form, Hidden, Select, Submit } from "./form";
+import { useAdminRole } from "./shell";
+import { can } from "@/lib/admin/permissions";
 import { DialogButton } from "./dialog";
 import { ApprovalPill, Empty, HealthPill, Panel, when } from "./bits";
 
@@ -324,6 +326,8 @@ export function Deliverables({
 /* -------------------------------------------------------- the project card */
 
 export function ProjectDetails({ project }: { project: Project }) {
+  /* The budget is money: staff do not see it, and the action ignores it from them. */
+  const money = can(useAdminRole(), "money");
   return (
     <DialogButton label="Edit details" title="Project details" wide>
       {(close) => (
@@ -337,12 +341,14 @@ export function ProjectDetails({ project }: { project: Project }) {
             <Select name="channel" label="Where updates go" half required
                     defaultValue={project.channel} options={CHANNEL_OPTIONS}
                     hint="The route agreed with this client, so nobody has to guess where to post." />
-            <Field
-              name="budget" label="Agreed budget" half inputMode="decimal"
-              defaultValue={project.budget === null ? "" : String(project.budget / 100)}
-              placeholder="630000"
-              hint="Naira. Leave it empty when no figure has been agreed; empty is not the same as zero."
-            />
+            {money ? (
+              <Field
+                name="budget" label="Agreed budget" half inputMode="decimal"
+                defaultValue={project.budget === null ? "" : String(project.budget / 100)}
+                placeholder="630000"
+                hint="Naira. Leave it empty when no figure has been agreed; empty is not the same as zero."
+              />
+            ) : null}
             <Area name="scope" label="What was bought" rows={2} defaultValue={project.scope ?? ""}
                   placeholder="Logo, palette, type scale and a short guideline set."
                   hint="In words the client would recognise, because this is what an argument gets settled against." />

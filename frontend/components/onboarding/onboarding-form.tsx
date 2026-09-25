@@ -91,7 +91,7 @@ function readDraft(): Partial<Draft> {
   }
 }
 
-export default function OnboardingForm() {
+export default function OnboardingForm({ closed = {} }: { closed?: Record<string, string> }) {
   const [draft] = useState(readDraft);
 
   /* WHICH SERVICE THIS FORM IS FOR -- one, not a list.
@@ -130,6 +130,7 @@ export default function OnboardingForm() {
   const [copied, setCopied] = useState(false);
   const [resumeEmail, setResumeEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [thanks, setThanks] = useState<{ heading?: string; message?: string } | null>(null);
   /* Whether there is a draft to return to, so the opening button can say
      "pick up where you left off" rather than "start". Cleared by "start over",
      which wipes the draft: the button must not keep offering one. */
@@ -361,15 +362,20 @@ export default function OnboardingForm() {
             alternation at one. See the note in onboarding.css for why not a
             staggered checker. */}
         <ul className="ob__svc">
-          {SERVICES.map((sv, n) => (
+          {SERVICES.map((sv, n) => {
+            /* Not taking new briefs, set in the admin. A draft already
+               started for it can still be finished. */
+            const shut = closed[sv.slug] && !(restored && service === sv.slug) ? closed[sv.slug] : "";
+            return (
             <li key={sv.slug}>
               <button
                 type="button"
                 className={`ob__svcCard ob__svcCard--${n % 2 ? "black" : "navy"}${
                   service === sv.slug ? " is-on" : ""
-                }`}
+                }${shut ? " is-shut" : ""}`}
                 aria-pressed={service === sv.slug}
-                onClick={() => setService(sv.slug)}
+                aria-disabled={shut ? true : undefined}
+                onClick={() => { if (!shut) setService(sv.slug); }}
               >
                 {/* The watermark. Cropped by the card, drawn in the card's own
                     ink at low alpha, and deliberately NOT `ServiceIcon`: that
@@ -379,14 +385,15 @@ export default function OnboardingForm() {
                 <PickIcon name={sv.icon} />
                 <span className="ob__svcT">
                   <b>{sv.short}</b>
-                  <em>{PICKER_LINE[sv.slug]}</em>
+                  <em>{shut || PICKER_LINE[sv.slug]}</em>
                 </span>
                 <span className="ob__svcMark" aria-hidden="true">
                   <Check />
                 </span>
               </button>
             </li>
-          ))}
+            );
+          })}
         </ul>
 
         {/* A <dl>, because it holds dt/dd pairs. They were in plain divs,
@@ -450,11 +457,15 @@ export default function OnboardingForm() {
         </span>
 
         <p className="ob__k">Sent</p>
-        <h2>Thank you. That is everything we need.</h2>
+        <h2>{thanks?.heading || "Thank you. That is everything we need."}</h2>
         <p className="ob__lede">
-          Your brief is with us, and it goes straight to the people who will do
-          the work. You have just saved yourself a fortnight of back-and-forth,
-          and us a pile of guessing.
+          {thanks?.message || (
+            <>
+              Your brief is with us, and it goes straight to the people who will do
+              the work. You have just saved yourself a fortnight of back-and-forth,
+              and us a pile of guessing.
+            </>
+          )}
         </p>
 
         <div className="ob__next">
@@ -561,8 +572,12 @@ export default function OnboardingForm() {
             disabled={serverDraft.submitting}
             onClick={async () => {
               try {
-                await serverDraft.submit();
+                const result = await serverDraft.submit() as { confirmation?: { heading?: string; message?: string; redirect?: string } } | undefined;
                 try { localStorage.removeItem(KEY); } catch { /* local fallback only */ }
+                /* The studio's own page or words, when set in the form's settings. */
+                const c = result?.confirmation;
+                if (c?.redirect?.startsWith("/") && !c.redirect.startsWith("//")) { window.location.assign(c.redirect); return; }
+                if (c?.heading || c?.message) setThanks({ heading: c.heading, message: c.message });
                 setSubmitted(true);
               } catch { /* The hook presents the server message. */ }
             }}

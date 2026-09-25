@@ -58,7 +58,9 @@ test("client filters remain usable on a narrow screen", async ({ page }) => {
   });
   expect(pageOverflow).toEqual({ bodyWidth: 320, scrollX: 0 });
   const tableScroller = page.locator("#client-list + .ad__scroll");
-  expect(await tableScroller.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+  /* A phone gets the table as labelled cards (components/admin/table-labels.tsx),
+     so nothing scrolls sideways, not even inside the table. */
+  expect(await tableScroller.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
 });
 
 test("client workspace keeps money, files, and related history together", async ({ page }) => {

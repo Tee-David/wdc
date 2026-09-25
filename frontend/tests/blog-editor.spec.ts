@@ -174,6 +174,35 @@ test("publishing puts it on /blog and in the sitemap; unpublishing takes it out"
   expect(await (await request.get("/sitemap.xml")).text()).not.toContain(`/blog/${SLUG}`);
 });
 
+test("two editors on one post: the second save is refused and says who saved", async ({ page, baseURL, context }) => {
+  await asOwner(page, baseURL);
+  /* Headers set on a page do not reach a second one; the context's do. */
+  await context.setExtraHTTPHeaders({ "x-boneyard-capture": TOKEN ?? "" });
+  const other = await context.newPage();
+  await page.goto(editUrl, { waitUntil: "load" });
+  await other.goto(editUrl, { waitUntil: "load" });
+
+  await page.getByLabel(/^Card sentence/).fill("First editor's sentence.");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.locator(".ad__msg.is-ok")).toContainText("Saved", { timeout: 30_000 });
+
+  await other.getByLabel(/^Card sentence/).fill("Second editor's sentence.");
+  await other.getByRole("button", { name: "Save" }).click();
+  await expect(other.locator(".ad__msg.is-bad")).toContainText("WDC Admin saved this post at", { timeout: 30_000 });
+  expect((await db.query("SELECT excerpt FROM blog_posts WHERE slug = $1", [SLUG])).rows[0].excerpt).toBe("First editor's sentence.");
+  /* What they typed is still in front of them. */
+  await expect(other.getByLabel(/^Card sentence/)).toHaveValue("Second editor's sentence.");
+
+  /* The first editor holds the new version, so saving again is not refused. */
+  await page.getByLabel(/^Card sentence/).fill("First editor, second save.");
+  await page.getByRole("button", { name: "Save" }).click();
+  /* The first save's "Saved" is still on screen, so wait on the row. */
+  await expect.poll(async () => (await db.query("SELECT excerpt FROM blog_posts WHERE slug = $1", [SLUG])).rows[0].excerpt, { timeout: 30_000 })
+    .toBe("First editor, second save.");
+  await expect(page.locator(".ad__msg.is-bad")).toHaveCount(0);
+  await other.close();
+});
+
 test("Blog is its own admin page, the old Settings address still lands there, and the list's actions work", async ({ page, baseURL, request }) => {
   await asOwner(page, baseURL);
   await page.goto("/admin", { waitUntil: "load" });
@@ -214,7 +243,23 @@ test("Blog is its own admin page, the old Settings address still lands there, an
     expect(csv.headers()["content-type"]).toContain("text/csv");
     expect(await csv.text()).toContain(`/blog/${slug}`);
 
-    await act("Delete the draft", "Delete it");
+    /* Trash, not deletion: the row stays, out of the list, and comes back. */
+    await act("Move to the Trash", "Move to the Trash");
+    expect((await db.query("SELECT trashed_at FROM blog_posts WHERE slug = $1", [slug])).rows[0].trashed_at).not.toBeNull();
+    await expect(row()).toHaveCount(0);
+    const trashed = () => page.locator("tbody tr", { hasText: "List actions check" });
+    const inTrash = async (item: string, verb: string) => {
+      await page.goto("/admin/blog?state=trash&q=list+actions", { waitUntil: "load" });
+      await trashed().locator(".ad__rm").click();
+      await page.locator(".ad__rmList [data-item]", { hasText: item }).click();
+      await page.locator("dialog.addlg[open]").getByRole("button", { name: verb }).click();
+      await expect(page.locator("dialog.addlg[open]")).toHaveCount(0, { timeout: 30_000 });
+    };
+    await inTrash("Restore", "Restore it");
+    expect((await db.query("SELECT trashed_at, status FROM blog_posts WHERE slug = $1", [slug])).rows[0]).toMatchObject({ trashed_at: null, status: "draft" });
+
+    await act("Move to the Trash", "Move to the Trash");
+    await inTrash("Delete for good", "Delete it for good");
     expect((await db.query("SELECT 1 FROM blog_posts WHERE slug = $1", [slug])).rowCount).toBe(0);
   } finally {
     await db.query("DELETE FROM blog_posts WHERE slug = $1", [slug]);

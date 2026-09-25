@@ -45,6 +45,11 @@ export type ActionState = {
    * state is the one thing that is allowed to be read during a render.
    */
   attempt?: number;
+  /**
+   * A value the form should send next time, from a success: the record's new
+   * `saved_at` for an editor's concurrency check (lib/blog-db.ts `savePost`).
+   */
+  stamp?: string;
 };
 
 export const OK = (message: string): ActionState => ({ ok: true, message });

@@ -1,5 +1,8 @@
 "use client";
 
+import { useAdminRole } from "./shell";
+import { can } from "@/lib/admin/permissions";
+
 import {
   Archive, ArchiveRestore, ArrowRight, Ban, Banknote, CalendarDays, Copy,
   CornerUpLeft, FilePlus2, FolderPlus, MessageSquarePlus, Move, Pencil,
@@ -152,7 +155,7 @@ export function ProjectMenu({
          updates and approvals, and those are the financial and evidential
          record of what was agreed. Archiving takes it out of the lists and
          leaves every one of them exactly where it is. */
-      kind: "dialog",
+      kind: "dialog", area: "destructive",
       label: project.archived ? "Take it out of the archive" : "Archive it",
       icon: Archive,
       title: project.archived ? `Restore ${project.title}` : `Archive ${project.title}`,
@@ -221,7 +224,7 @@ export function ClientMenu({ client }: { client: Client }) {
       ),
     },
     {
-      kind: "dialog",
+      kind: "dialog", area: "destructive",
       label: back ? "Put them back on the books" : "Archive them",
       icon: back ? ArchiveRestore : Archive,
       tone: back ? undefined : "danger",
@@ -514,6 +517,7 @@ export function SubmissionMenu({
   clients: Pick<Client, "id" | "company">[];
 }) {
   const who = String(submission.answers.company ?? submission.answers.first_name ?? "this form");
+  const money = can(useAdminRole(), "money");
 
   const items: RowMenuItem[] = [
     { kind: "link", label: "Read the answers", href: `/admin/forms/${submission.id}`, icon: ArrowRight },
@@ -551,8 +555,8 @@ export function SubmissionMenu({
                     hint="Discovery rather than Onboarding: the form is already in." />
             <Field name="due" label="Due" type="date" half />
             <Field name="owner" label="Who is answerable" half placeholder="Babatope" />
-            <Field name="budget" label="Agreed budget" half inputMode="decimal"
-                   hint="Naira. Empty is not zero." />
+            {money ? <Field name="budget" label="Agreed budget" half inputMode="decimal"
+                   hint="Naira. Empty is not zero." /> : null}
             <Area name="scope" label="What was agreed" rows={2}
                   hint="Their answers are on the form itself; this is what we have committed to." />
           </Fields>

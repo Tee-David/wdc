@@ -1,7 +1,10 @@
 import { after, NextRequest, NextResponse } from "next/server";
-import { CONTACT_EMAIL } from "@/lib/site";
-import { composeEmailHtml, emailPanel, onboardingNextStepsEmail } from "@/lib/email-templates";
-import { sendLogged } from "@/lib/outbox";
+import { onboardingFormFor } from "@/lib/forms/registry";
+import { hasBlockedWord } from "@/lib/forms/settings";
+import { availability, getFormSettings } from "@/lib/forms/settings-db";
+import { confirmation, sendFormEmail } from "@/lib/forms/notify";
+import { formEmail, type FormEmailData } from "@/lib/forms/emails";
+import { assignSerial } from "@/lib/forms/serial";
 import { SERVICES } from "@/lib/services";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 import { db } from "@/lib/db/pool";
@@ -57,6 +60,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Some questions still need attention.", problems }, { status: 422 });
   }
 
+  /* THE FORM'S SETTINGS. A brief already started may still be sent when the
+     form is closed (closing pauses NEW briefs, as the settings screen says),
+     but not past an entry limit. A blocked word keeps the brief, in Spam,
+     and sends nothing about it. */
+  const form = onboardingFormFor(service)!;
+  const settings = await getFormSettings(form);
+  const open = await availability(form, settings);
+  if (!open.open && open.reason === "limit") return NextResponse.json({ error: open.message, closed: true }, { status: 403 });
+  const spam = hasBlockedWord(settings.blockedWords, ...Object.values(answers).flat().map(String));
+
   const token = cookieToken(request);
   const draft = token ? await draftFromToken(token) : null;
   if (!draft) {
@@ -79,48 +92,50 @@ export async function POST(request: NextRequest) {
   }
 
   const submissionId = result.rows[0].id;
+  /* "Brief #12", counted per service. */
+  const serial = await assignSerial("onboarding_submissions", `onboarding-${service}`, submissionId);
+  const first0 = typeof answers.first_name === "string" ? answers.first_name.trim() : "";
+  const tokens = { first_name: first0, service: SERVICES.find((s) => s.slug === service)?.short ?? service };
+  if (spam) {
+    await db.query("UPDATE onboarding_submissions SET box = 'spam', box_at = now() WHERE id = $1", [submissionId]).catch(() => {});
+    const held = NextResponse.json({ ok: true, submissionId, confirmation: confirmation(settings, tokens) });
+    clearOnboardingCookie(held);
+    return held;
+  }
 
   /* THE THANK-YOU AND THE STUDIO'S NOTICE, BEHIND THE RESPONSE. The row above
      is the submission; both mails are about it, and neither is worth making a
      client watch a 23-second handshake for. The dedupe key is the submission,
      so a double-click that races past the status check still sends once. */
-  const first = typeof answers.first_name === "string" ? answers.first_name.trim() : "";
-  const last = typeof answers.last_name === "string" ? answers.last_name.trim() : "";
-  const company = typeof answers.company === "string" ? answers.company.trim() : "";
+  const text = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+  const data: FormEmailData = {
+    id: submissionId, serial, first: text(answers.first_name), last: text(answers.last_name), email: email ?? "",
+    phone: text(answers.phone), company: text(answers.company), topic: "", message: "", source: "",
+  };
   const serviceName = SERVICES.find((s) => s.slug === service)?.name ?? service;
   after(async () => {
-    if (email) {
+    const next = formEmail(form, "next-steps", data);
+    if (next) {
       try {
-        await sendLogged(
-          { to: email, ...onboardingNextStepsEmail({ name: first || "there", service: serviceName, company: company || undefined }) },
+        await sendFormEmail(form, settings, "next-steps", next,
           { summary: `Next steps after the ${serviceName} brief.`, dedupeKey: `onboarding-next-steps:${submissionId}` },
+          tokens,
         );
       } catch (error) {
         console.error("Onboarding next-steps email failed", error instanceof Error ? error.message : "unknown error");
       }
     }
     try {
-      const who = [first, last].filter(Boolean).join(" ") || "A client";
-      await sendLogged({
-        to: process.env.SMTP_REPLY_TO || CONTACT_EMAIL,
-        replyTo: email ?? undefined,
-        subject: `Onboarding brief: ${serviceName}${company ? ` for ${company}` : ""}`,
-        text: `${who}${email ? ` <${email}>` : ""} submitted the ${serviceName} onboarding form.\nSubmission ${submissionId}.`,
-        html: composeEmailHtml({
-          title: `Onboarding brief: ${serviceName}`,
-          preheader: `${who} submitted the ${serviceName} onboarding form.`,
-          heading: `New ${serviceName} brief`,
-          blocks: [
-            emailPanel([["From", who], ...(email ? [["Email", email] as [string, string]] : []), ...(company ? [["Company", company] as [string, string]] : []), ["Submission", submissionId]]),
-          ],
-        }),
-      }, { summary: `${who} submitted the ${serviceName} brief.`, dedupeKey: `onboarding-notice:${submissionId}` });
+      const who = [data.first, data.last].filter(Boolean).join(" ") || "A client";
+      await sendFormEmail(form, settings, "studio-notice", formEmail(form, "studio-notice", data)!,
+        { summary: `${who} submitted the ${serviceName} brief.`, dedupeKey: `onboarding-notice:${submissionId}` },
+        { ...tokens, company: data.company, serial: serial ? String(serial) : "" });
     } catch (error) {
       console.error("Onboarding notice failed", error instanceof Error ? error.message : "unknown error");
     }
   });
 
-  const response = NextResponse.json({ ok: true, submissionId });
+  const response = NextResponse.json({ ok: true, submissionId, confirmation: confirmation(settings, tokens) });
   clearOnboardingCookie(response);
   return response;
 }

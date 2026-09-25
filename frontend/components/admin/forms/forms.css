@@ -1,0 +1,67 @@
+/* The Forms section. A scaffold on the admin's own kit, to be restyled with
+   the dashboard redesign; only what the kit does not already have is here. */
+.adForms__tabs { display: flex; flex-wrap: wrap; gap: .35rem; margin: 0 0 .9rem; padding: 0; list-style: none; }
+.adForms__tabs a {
+  display: inline-flex; align-items: center; gap: .4rem; min-height: 44px; padding: 0 .9rem;
+  border: 1px solid var(--ad-line); border-radius: 999px; color: var(--ad-ink); text-decoration: none; font-size: .88rem;
+}
+.adForms__tabs a[aria-current="page"] { background: var(--ad-fill); border-color: var(--ad-fill); color: var(--ad-on-fill); }
+.adForms__tabs a.is-empty:not([aria-current]) { color: var(--ad-dim); }
+.adForms__tabs .ad__num { font-weight: 700; }
+
+.adForms__filters { display: flex; flex-wrap: wrap; align-items: end; gap: .6rem; padding: .9rem 1rem; border-bottom: 1px solid var(--ad-line); }
+.adForms__filters label { display: grid; gap: .25rem; font-size: .78rem; color: var(--ad-dim); min-width: 0; }
+.adForms__filters input, .adForms__filters select {
+  min-height: 44px; min-width: 0; padding: .5rem .7rem; border: 1px solid var(--ad-line); border-radius: 9px;
+  background: var(--ad-panel); color: var(--ad-ink); font: inherit;
+}
+.adForms__filters .adForms__search { flex: 1 1 14rem; }
+.adForms__filters .adForms__search input { width: 100%; }
+
+.adForms__bulk { padding: .7rem 1rem; border-bottom: 1px solid var(--ad-line); background: var(--ad-bg); }
+.adForms__unread td { font-weight: 600; }
+.adForms__clip { max-width: 22rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adForms__star { width: 14px; height: 14px; margin-right: .3rem; vertical-align: -2px; fill: currentColor; }
+
+.adForms__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem; padding: .8rem 1rem; border-top: 1px solid var(--ad-line); }
+
+.adForms__cols { position: relative; }
+.adForms__cols > summary { list-style: none; cursor: pointer; }
+.adForms__cols > summary::-webkit-details-marker { display: none; }
+.adForms__colsPanel {
+  position: absolute; right: 0; top: calc(100% + .35rem); z-index: 40;
+  width: min(22rem, calc(100vw - 2rem)); max-height: min(28rem, 70vh); overflow: auto; overscroll-behavior: contain;
+  display: grid; gap: .6rem; padding: .8rem;
+  border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); box-shadow: 0 12px 32px rgb(0 0 0 / .18);
+}
+.adForms__colsPanel ol { margin: 0; padding: 0; list-style: none; display: grid; gap: .15rem; }
+.adForms__colsPanel li { display: flex; align-items: center; gap: .25rem; }
+.adForms__colsPanel label { flex: 1; min-width: 0; display: flex; align-items: center; gap: .5rem; min-height: 40px; font-size: .88rem; }
+.adForms__colsPanel label span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adForms__colsPanel input[type="search"] { min-height: 40px; padding: .4rem .6rem; border: 1px solid var(--ad-line); border-radius: 8px; background: var(--ad-bg); color: inherit; font: inherit; }
+
+/* One entry: the answers, then the details beside them on a wide screen. */
+.adForms__entry { display: grid; gap: .9rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 1100px) { .adForms__entry { grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr); } }
+.adForms__dl { margin: 0; padding: .4rem 1rem 1rem; }
+.adForms__dl > div { display: grid; gap: .15rem; padding: .55rem 0; border-bottom: 1px solid var(--ad-line); }
+.adForms__dl dt { color: var(--ad-dim); font-size: .82rem; }
+.adForms__dl dd { margin: 0; white-space: pre-line; overflow-wrap: break-word; }
+.adForms__timeline { margin: 0; padding: .4rem 1rem 1rem; list-style: none; display: grid; gap: .6rem; }
+.adForms__timeline li { display: grid; gap: .15rem; padding-bottom: .6rem; border-bottom: 1px solid var(--ad-line); }
+.adForms__timeline small { color: var(--ad-dim); }
+
+@media print {
+  .ad__sidebar, .ad__topbar, .adForms__noPrint, .ad__mobileMenu { display: none !important; }
+  .adForms__entry { grid-template-columns: 1fr; }
+}
+
+/* Settings: cards of fields, one per concern. */
+.adForms__card { padding: 1rem; min-width: 0; }
+.adForms__h { margin: 0 0 .7rem; font: 700 1rem var(--font-space-grotesk), system-ui, sans-serif; }
+.adForms__p { margin: 0 0 .8rem; font-size: .85rem; }
+.adForms__notif { min-width: 0; margin: 0 0 1rem; padding: .9rem; border: 1px solid var(--ad-line); border-radius: var(--ad-r); }
+.adForms__notif legend { padding: 0 .35rem; font-weight: 700; }
+.adForms__preview { margin-top: .6rem; }
+.adForms__preview summary { cursor: pointer; font-size: .88rem; min-height: 44px; display: flex; align-items: center; }
+.adForms__preview iframe { display: block; width: 100%; height: 520px; border: 1px solid var(--ad-line); border-radius: 10px; background: #fff; }

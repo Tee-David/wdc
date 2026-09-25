@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getAdminRequest } from "./session";
+import { can, isAdminRole, type AdminRole, type Area } from "./permissions";
 import { FAIL, type ActionState } from "./validate";
 
 /**
@@ -31,4 +32,26 @@ export async function actorName(): Promise<string> {
   } catch {
     return "Studio";
   }
+}
+
+const REFUSED = "Your session has ended or does not have access to this. Sign in again, then retry.";
+
+/** The signed-in admin's role, or null for anybody who is not one. Fails closed. */
+export async function adminRole(): Promise<AdminRole | null> {
+  try {
+    const { session } = await getAdminRequest();
+    const role = (session?.user as { role?: string } | undefined)?.role;
+    return session?.user && isAdminRole(role) ? role : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The check for a write in `area`: the owner always, staff where
+ * lib/admin/permissions.ts says so, nobody else. Same refusal as `owner()`,
+ * so a refused request learns nothing about which rule stopped it.
+ */
+export async function allow(area: Area): Promise<ActionState | null> {
+  return can(await adminRole(), area) ? null : FAIL({}, REFUSED);
 }

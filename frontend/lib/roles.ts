@@ -12,19 +12,20 @@ import "server-only";
  * tells them so honestly rather than dropping them on a 404 or -- far worse --
  * on somebody else's dashboard. When the area ships, flip one flag here.
  */
-/* The three the database can actually hold. `roleEnum` in lib/db/schema.ts is
-   a Postgres enum, so a fourth value is a migration, not a line of TypeScript;
-   this list stays honest about what exists rather than guessing at what might. */
+/* The three the database can actually hold. The column is a STRING, and
+   `user_role_check` (migration 0019) is what holds it to these three, so a
+   fourth value is a migration, not a line of TypeScript. (`roleEnum` in
+   lib/db/schema.ts is a typed description of the same list, not a Postgres
+   enum the database enforces.) */
 export type Role = "owner" | "staff" | "client";
 
 type Door = { home: string; ready: boolean; label: string };
 
 const DOORS: Record<Role, Door> = {
   owner:  { home: "/admin",  ready: true,  label: "the agency admin" },
-  /* Staff get a narrower view of the same admin. Until that view exists they
-     are not handed the owner's one -- app/admin/layout.tsx would bounce them
-     straight back out, and a redirect loop is a worse answer than a sentence. */
-  staff:  { home: "/admin",  ready: false, label: "your team workspace" },
+  /* Staff get a narrower view of the same admin: clients, projects, forms
+     and content, never the books or the settings (lib/admin/permissions.ts). */
+  staff:  { home: "/admin",  ready: true,  label: "your team workspace" },
   client: { home: "/portal", ready: true,  label: "your project portal" },
 };
 

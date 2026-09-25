@@ -7,6 +7,8 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { MoreHorizontal, type LucideIcon } from "lucide-react";
 import { Dialog } from "./dialog";
+import { can, type Area } from "@/lib/admin/permissions";
+import { useAdminRole } from "./shell";
 
 /**
  * The row menu: what you can do to the thing on this row.
@@ -62,6 +64,9 @@ export type RowMenuItem =
       icon?: LucideIcon;
       tone?: "danger";
       wide?: boolean;
+      /** Owner only (lib/admin/permissions.ts): left out of the menu for
+          staff. The action refuses them regardless; this spares the dialog. */
+      area?: Area;
       render: (close: () => void) => ReactNode;
     };
 
@@ -69,7 +74,7 @@ const GAP = 6;
 const WIDTH = 232;
 
 export function RowMenu({
-  items,
+  items: allItems,
   /** Names the row, so a screen reader hears which one this opens. */
   label,
   align = "end",
@@ -78,6 +83,8 @@ export function RowMenu({
   label: string;
   align?: "start" | "end";
 }) {
+  const role = useAdminRole();
+  const items = allItems.filter((item) => item.kind !== "dialog" || !item.area || can(role, item.area));
   const [open, setOpen] = useState(false);
   const [at, setAt] = useState<{ top: number; left: number } | null>(null);
   const [dialog, setDialog] = useState<number | null>(null);

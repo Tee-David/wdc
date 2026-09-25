@@ -3,6 +3,8 @@ import { SITE_URL } from "@/lib/site";
 import { Header } from "@/components/layout/header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import OnboardingMount from "@/components/onboarding/onboarding-mount";
+import { FORMS } from "@/lib/forms/registry";
+import { availability } from "@/lib/forms/settings-db";
 import "@/components/preview/preview.css";
 import "@/components/work/work.css";
 
@@ -31,7 +33,21 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/onboarding` },
 };
 
-export default function OnboardingPage() {
+/* Read on every visit: whether a service takes new briefs is a setting the
+   studio can change at any moment, and a page built once would not know. */
+export const dynamic = "force-dynamic";
+
+/** The services not taking new briefs right now, with what to tell the visitor. */
+async function closedServices(): Promise<Record<string, string>> {
+  const rows = await Promise.all(FORMS.filter((f) => f.source === "onboarding").map(async (f) => {
+    const a = await availability(f).catch(() => ({ open: true as const }));
+    return a.open ? [] : [[f.service as string, a.message] as [string, string]];
+  }));
+  return Object.fromEntries(rows.flat());
+}
+
+export default async function OnboardingPage() {
+  const closed = await closedServices();
   return (
     <>
       <Header />
@@ -52,7 +68,7 @@ export default function OnboardingPage() {
                 whole point of it. The step titles below are h2 so the outline
                 has exactly one h1 and no gaps. */}
             <h1 className="sr-only">Client onboarding</h1>
-            <OnboardingMount />
+            <OnboardingMount closed={closed} />
           </div>
         </section>
       </main>

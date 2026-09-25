@@ -3,6 +3,7 @@ import "server-only";
 import { after } from "next/server";
 import { betterAuth } from "better-auth";
 import { emailOTP, magicLink } from "better-auth/plugins";
+import { nextCookies } from "better-auth/next-js";
 import { googleAdmission } from "@/lib/auth-google";
 import { db } from "@/lib/db/pool";
 import { sendPasswordResetEmail, sendSignInEmail } from "@/lib/outbox";
@@ -74,7 +75,8 @@ async function signInRecipient(email: string): Promise<{ name: string | null } |
  */
 async function storedRoleFor(email: string): Promise<string | null> {
   const result = await db.query<{ role: string | null }>(
-    'SELECT "role" FROM "user" WHERE lower("email") = $1 LIMIT 1',
+    /* A deactivated account has no role as far as signing in is concerned. */
+    'SELECT "role" FROM "user" WHERE lower("email") = $1 AND "deactivatedAt" IS NULL LIMIT 1',
     [email.trim().toLowerCase()],
   );
   return result.rows[0]?.role ?? null;
@@ -250,10 +252,29 @@ export const auth = betterAuth({
          it is in `disabledPaths` above. The code travels in the sign-in email. */
       sendVerificationOTP: async () => {},
     }),
+    /* Last, as Better Auth requires. A server action that calls `auth.api`
+       (My account's password change, which replaces this session with a
+       new one) otherwise sets no cookie, and the person is signed out. */
+    nextCookies(),
   ],
   databaseHooks: {
     session: {
       create: {
+        /**
+         * A DEACTIVATED ACCOUNT CANNOT START A SESSION, whichever way in it
+         * tried: password, emailed link or code, Google, or an invitation.
+         * Checked on the row itself, at the one seam every sign-in passes.
+         * Fails closed: an account that cannot be read gets no session.
+         */
+        before: async (session) => {
+          try {
+            const r = await db.query<{ off: Date | null }>('SELECT "deactivatedAt" AS off FROM "user" WHERE "id" = $1', [session.userId]);
+            if (!r.rows[0] || r.rows[0].off) return false;
+          } catch {
+            return false;
+          }
+          return { data: session };
+        },
         /**
          * ANY WAY IN SPENDS THE EMAIL WAYS IN.
          *

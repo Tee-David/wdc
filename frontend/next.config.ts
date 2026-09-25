@@ -71,6 +71,14 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 31_536_000,
   },
 
+  /* The migration files, shipped with the admin so Settings > System and the
+     shell's notice can compare what is on disk with what the database has
+     applied (lib/system/migrations.ts). Nothing else reads them at runtime. */
+  outputFileTracingIncludes: {
+    "/admin": ["./db/migrations/*.sql"],
+    "/admin/**/*": ["./db/migrations/*.sql"],
+  },
+
   /* Tree-shakes the icon barrel files. `lucide-react` and `simple-icons` both
      re-export thousands of icons from one entry point, and without this a
      single named import can pull the whole module graph into the bundle. */

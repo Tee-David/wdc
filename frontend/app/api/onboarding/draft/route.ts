@@ -1,4 +1,6 @@
 import { after, NextRequest, NextResponse } from "next/server";
+import { onboardingFormFor } from "@/lib/forms/registry";
+import { availability } from "@/lib/forms/settings-db";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 import { db } from "@/lib/db/pool";
 import { mailIsConfigured } from "@/lib/email";
@@ -90,6 +92,10 @@ export async function POST(request: NextRequest) {
     `, [draft.id, service, currentStep, JSON.stringify(answers), requestedEmail]);
     draft = { ...draft, service, currentStep, answers, email: result.rows[0]?.email ?? draft.email };
   } else {
+    /* A NEW brief is refused when the service's form is closed; an existing
+       draft carries on above, so a client halfway through is not locked out. */
+    const open = await availability(onboardingFormFor(service)!);
+    if (!open.open) return NextResponse.json({ error: open.message, closed: true }, { status: 403 });
     token = issueToken();
     const client = await db.connect();
     try {

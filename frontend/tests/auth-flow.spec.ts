@@ -327,6 +327,22 @@ test("a correct password signs in and is sent on by the page that decides where 
   expect(new URL(page.url()).pathname).not.toBe("/login");
 });
 
+test("a deactivated account cannot start a session, whatever the password", async ({ request, baseURL }) => {
+  await query('UPDATE "user" SET "deactivatedAt" = now(), "deactivatedBy" = $2 WHERE "id" = $1', [userId, "auth-flow.spec"]);
+  try {
+    const before = Number((await query<{ n: string }>('SELECT count(*) AS n FROM "session" WHERE "userId" = $1', [userId])).rows[0].n);
+    const res = await request.post("/api/auth/sign-in/email", {
+      headers: { origin: baseURL ?? "http://localhost:3100", "x-forwarded-for": `10.6.${Math.floor(Math.random() * 250)}.3` },
+      data: { email: EMAIL, password: PASSWORD },
+    });
+    expect(res.ok()).toBe(false);
+    const after = Number((await query<{ n: string }>('SELECT count(*) AS n FROM "session" WHERE "userId" = $1', [userId])).rows[0].n);
+    expect(after).toBe(before);
+  } finally {
+    await query('UPDATE "user" SET "deactivatedAt" = NULL, "deactivatedBy" = NULL WHERE "id" = $1', [userId]);
+  }
+});
+
 test("a valid session that is not an owner still cannot reach the admin", async ({ page }) => {
   await page.goto("/login", { waitUntil: "domcontentloaded" });
   await signIn(page, EMAIL, PASSWORD);

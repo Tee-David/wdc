@@ -87,3 +87,21 @@ test("the outline rule holds for editor posts: no sub-heading before a heading",
   expect(r.ok).toBe(false);
   if (!r.ok) expect(r.errors.body).toContain("first heading");
 });
+
+test("published on today's date is live now, whatever the hour; a later day needs Scheduled", () => {
+  const lagosToday = new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 10);
+  const base = {
+    slug: "date-check", title: "Date check", seoTitle: "Date check", excerpt: "One line.", topic: "seo",
+    cover: "/hero/ai-key.jpg", description: "x".repeat(130),
+  };
+  const body = JSON.stringify({ type: "doc", content: [{ type: "paragraph", content: [t("Text.")] }] });
+  const today = parsePost({ ...base, body, status: "published", publishedAt: lagosToday });
+  expect(today.ok).toBe(true);
+  if (today.ok) expect(new Date(today.post.publishedAt!).getTime()).toBeLessThanOrEqual(Date.now());
+
+  const later = new Date(Date.now() + 3 * 86_400_000).toISOString().slice(0, 10);
+  const future = parsePost({ ...base, body, status: "published", publishedAt: later });
+  expect(future.ok).toBe(false);
+  if (!future.ok) expect(future.errors.publishedAt).toContain("Choose Scheduled");
+  expect(parsePost({ ...base, body, status: "scheduled", publishedAt: later }).ok).toBe(true);
+});

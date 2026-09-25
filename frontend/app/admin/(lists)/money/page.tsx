@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { hydrateSettings } from "@/lib/settings/store";
 import {
   financeDefaults, getAging, getClient, getClients, getCollectionRate,
   getEstimates, getExpenses, getInvoice, getInvoices, getMonthly, getPayments,
@@ -49,6 +50,7 @@ export default async function MoneyPage({
   searchParams,
 }: { searchParams: Promise<MoneyQuery> }) {
   const query = await searchParams;
+  await hydrateSettings();
   const finance = financeDefaults();
   const s = getSummary();
   const unreconciled = providerAttentionCount();
