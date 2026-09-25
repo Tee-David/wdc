@@ -62,3 +62,6 @@
 .adForms__p { margin: 0 0 .8rem; font-size: .85rem; }
 .adForms__notif { min-width: 0; margin: 0 0 1rem; padding: .9rem; border: 1px solid var(--ad-line); border-radius: var(--ad-r); }
 .adForms__notif legend { padding: 0 .35rem; font-weight: 700; }
+.adForms__preview { margin-top: .6rem; }
+.adForms__preview summary { cursor: pointer; font-size: .88rem; min-height: 44px; display: flex; align-items: center; }
+.adForms__preview iframe { display: block; width: 100%; height: 520px; border: 1px solid var(--ad-line); border-radius: 10px; background: #fff; }

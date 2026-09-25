@@ -14,7 +14,10 @@ import { EntriesTable, type TableRow } from "@/components/admin/forms/entries-ta
 import { ColumnPicker } from "@/components/admin/forms/column-picker";
 import DemoSubmission, { demoTitle } from "@/components/admin/forms/demo-submission";
 import { FormSettingsEditor } from "@/components/admin/forms/form-settings";
-import { NOTIFICATIONS } from "@/lib/forms/settings";
+import { ImportSubscribers } from "@/components/admin/forms/import-subscribers";
+import { fillTokens, NOTIFICATIONS } from "@/lib/forms/settings";
+import { dataFromEntry, formEmail, tokensFor } from "@/lib/forms/emails";
+import { unsubscribeUrl } from "@/lib/newsletter";
 import { getFormSettings } from "@/lib/forms/settings-db";
 import "@/components/admin/forms/forms.css";
 
@@ -124,6 +127,7 @@ export default async function FormPage({ params, searchParams }: Props) {
         <p>{form.noun === "Subscriber" ? "Everyone who asked for the newsletter." : `Every ${form.noun.toLowerCase()} this form has received.`}</p>
       </div>
       <div className="ad__row">
+        {form.source === "newsletter" && mayConfigure ? <ImportSubscribers /> : null}
         <a className="ad__btn" href={form.publicPath} target="_blank" rel="noopener"><ExternalLink aria-hidden="true" /> Open form</a>
       </div>
     </div>
@@ -131,11 +135,26 @@ export default async function FormPage({ params, searchParams }: Props) {
 
   if (view === "settings") {
     const settings = await getFormSettings(form);
+    /* The latest real entry, so the preview shows real words, not placeholders. */
+    const latest = (await listEntries(form, readFilters(form, { per: "25" })).catch(() => null))?.rows[0];
+    const previews: Record<string, { to: string; subject: string; html: string }> = {};
+    if (latest) {
+      const data = dataFromEntry(form, latest);
+      for (const n of NOTIFICATIONS[form.source]) {
+        const m = formEmail(form, n.key, data, form.source === "newsletter" ? { unsubscribeUrl: unsubscribeUrl(latest.email) ?? undefined } : {});
+        const s = settings.notifications[n.key];
+        if (m) previews[n.key] = {
+          to: n.audience === "studio" && s.to.length ? s.to.join(", ") : m.to,
+          subject: s.subject ? fillTokens(s.subject, tokensFor(form, data)) : m.subject,
+          html: m.html,
+        };
+      }
+    }
     return (
       <>{head}<Tabs form={form} current="settings" settings />
         {settings.savedAt ? <p className="ad__dim" style={{ margin: "0 0 .8rem" }}>Last changed by {settings.savedBy} on {when(settings.savedAt)}.</p> : null}
         <FormSettingsEditor formKey={form.key} title={form.title} settings={settings}
-          notifications={NOTIFICATIONS[form.source]} isOnboarding={form.source === "onboarding"} />
+          notifications={NOTIFICATIONS[form.source]} isOnboarding={form.source === "onboarding"} previews={previews} />
       </>
     );
   }

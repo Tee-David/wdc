@@ -237,3 +237,14 @@ export async function purgeLogged(days: number): Promise<number> {
   const r = await db.query("DELETE FROM message_log WHERE created_at < now() - ($1::INT8 * INTERVAL '1 day')", [days]);
   return r.rowCount ?? 0;
 }
+
+/** The row an event was first sent under, by its dedupe key. */
+export async function findLogged(dedupeKey: string): Promise<LoggedMessage | null> {
+  if (!configured()) return null;
+  try {
+    const r = await db.query<Row>("SELECT * FROM message_log WHERE dedupe_key = $1", [dedupeKey]);
+    return r.rows[0] ? toMessage(r.rows[0]) : null;
+  } catch {
+    return null;
+  }
+}

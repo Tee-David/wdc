@@ -2,10 +2,9 @@ import { after, NextRequest, NextResponse } from "next/server";
 import { onboardingFormFor } from "@/lib/forms/registry";
 import { hasBlockedWord } from "@/lib/forms/settings";
 import { availability, getFormSettings } from "@/lib/forms/settings-db";
-import { confirmation, entryAdminUrl, sendFormEmail } from "@/lib/forms/notify";
+import { confirmation, sendFormEmail } from "@/lib/forms/notify";
+import { formEmail, type FormEmailData } from "@/lib/forms/emails";
 import { assignSerial } from "@/lib/forms/serial";
-import { CONTACT_EMAIL } from "@/lib/site";
-import { composeEmailHtml, emailP, emailPanel, onboardingNextStepsEmail } from "@/lib/email-templates";
 import { SERVICES } from "@/lib/services";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 import { db } from "@/lib/db/pool";
@@ -108,15 +107,17 @@ export async function POST(request: NextRequest) {
      is the submission; both mails are about it, and neither is worth making a
      client watch a 23-second handshake for. The dedupe key is the submission,
      so a double-click that races past the status check still sends once. */
-  const first = typeof answers.first_name === "string" ? answers.first_name.trim() : "";
-  const last = typeof answers.last_name === "string" ? answers.last_name.trim() : "";
-  const company = typeof answers.company === "string" ? answers.company.trim() : "";
+  const text = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+  const data: FormEmailData = {
+    id: submissionId, serial, first: text(answers.first_name), last: text(answers.last_name), email: email ?? "",
+    phone: text(answers.phone), company: text(answers.company), topic: "", message: "", source: "",
+  };
   const serviceName = SERVICES.find((s) => s.slug === service)?.name ?? service;
   after(async () => {
-    if (email) {
+    const next = formEmail(form, "next-steps", data);
+    if (next) {
       try {
-        await sendFormEmail(form, settings, "next-steps",
-          { to: email, ...onboardingNextStepsEmail({ name: first || "there", service: serviceName, company: company || undefined }) },
+        await sendFormEmail(form, settings, "next-steps", next,
           { summary: `Next steps after the ${serviceName} brief.`, dedupeKey: `onboarding-next-steps:${submissionId}` },
           tokens,
         );
@@ -125,24 +126,10 @@ export async function POST(request: NextRequest) {
       }
     }
     try {
-      const who = [first, last].filter(Boolean).join(" ") || "A client";
-      const adminUrl = entryAdminUrl(form, submissionId);
-      await sendFormEmail(form, settings, "studio-notice", {
-        to: process.env.SMTP_REPLY_TO || CONTACT_EMAIL,
-        replyTo: email ?? undefined,
-        subject: `Onboarding brief: ${serviceName}${company ? ` for ${company}` : ""}`,
-        text: `${who}${email ? ` <${email}>` : ""} submitted the ${serviceName} onboarding form.\n${serial ? `Brief #${serial}. ` : ""}Open it in the admin: ${adminUrl}`,
-        html: composeEmailHtml({
-          title: `Onboarding brief: ${serviceName}`,
-          preheader: `${who} submitted the ${serviceName} onboarding form.`,
-          heading: `New ${serviceName} brief`,
-          blocks: [
-            emailPanel([["From", who], ...(email ? [["Email", email] as [string, string]] : []), ...(company ? [["Company", company] as [string, string]] : []), ["Brief", serial ? `#${serial}` : submissionId]]),
-            emailP(`<a href="${adminUrl}">Open it in the admin</a>`),
-          ],
-        }),
-      }, { summary: `${who} submitted the ${serviceName} brief.`, dedupeKey: `onboarding-notice:${submissionId}` },
-      { ...tokens, company, serial: serial ? String(serial) : "" });
+      const who = [data.first, data.last].filter(Boolean).join(" ") || "A client";
+      await sendFormEmail(form, settings, "studio-notice", formEmail(form, "studio-notice", data)!,
+        { summary: `${who} submitted the ${serviceName} brief.`, dedupeKey: `onboarding-notice:${submissionId}` },
+        { ...tokens, company: data.company, serial: serial ? String(serial) : "" });
     } catch (error) {
       console.error("Onboarding notice failed", error instanceof Error ? error.message : "unknown error");
     }

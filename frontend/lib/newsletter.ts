@@ -1,6 +1,8 @@
 import "server-only";
 
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { db } from "@/lib/db/pool";
+import { SITE_URL } from "@/lib/site";
 
 /**
  * The newsletter list.
@@ -108,4 +110,88 @@ export async function subscribe(
   return row.created_at.getTime() === row.updated_at.getTime()
     ? { kind: "added" }
     : { kind: "already" };
+}
+
+/* ------------------------------------------------------- unsubscribing */
+
+
+/**
+ * The secret the unsubscribe links are signed with. `UNSUBSCRIBE_SECRET` when
+ * set, otherwise the auth secret with this purpose mixed in, so a link signed
+ * for unsubscribing is useless for anything else. None at all means no link:
+ * the email falls back to the reply-to-unsubscribe address, which is honest,
+ * rather than a link anybody could forge.
+ */
+function unsubscribeSecret() {
+  return process.env.UNSUBSCRIBE_SECRET?.trim() || process.env.BETTER_AUTH_SECRET?.trim() || "";
+}
+
+function sign(email: string, secret: string) {
+  return createHmac("sha256", secret).update(`newsletter-unsubscribe:${email}`).digest("base64url").slice(0, 32);
+}
+
+/** The one-click link for this address, or null when links cannot be signed. */
+export function unsubscribeUrl(email: string): string | null {
+  const secret = unsubscribeSecret();
+  const normal = normaliseEmail(email);
+  if (!secret || !normal) return null;
+  const url = new URL("/unsubscribe", SITE_URL);
+  url.searchParams.set("e", normal);
+  url.searchParams.set("t", sign(normal, secret));
+  return url.toString();
+}
+
+/** Whether a link's token is the one this address was given. Fails closed. */
+export function unsubscribeTokenValid(email: string, token: string) {
+  const secret = unsubscribeSecret();
+  const normal = normaliseEmail(email);
+  if (!secret || !normal || !token) return false;
+  const a = Buffer.from(sign(normal, secret));
+  const b = Buffer.from(token);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+/** Take an address off the list. Returns false when it was not on it. */
+export async function unsubscribe(email: string): Promise<boolean> {
+  const normal = normaliseEmail(email);
+  if (!normal) return false;
+  const r = await db.query(
+    "UPDATE newsletter_subscribers SET unsubscribed_at = now(), updated_at = now() WHERE email = $1 AND unsubscribed_at IS NULL",
+    [normal],
+  );
+  return (r.rowCount ?? 0) > 0;
+}
+
+/**
+ * Addresses from a CSV, added to the list without a welcome email.
+ *
+ * NOT A WAY TO SUBSCRIBE PEOPLE WHO DID NOT ASK. It is for moving a list the
+ * studio already had permission for (from an old tool, an event sign-up
+ * sheet). The first cell in each row that looks like an address is taken;
+ * everything else in the file is ignored. Somebody who unsubscribed is NOT
+ * put back: leaving is their decision, and an import must not undo it.
+ */
+export async function importSubscribers(csv: string): Promise<{ added: number; skipped: number; invalid: number }> {
+  const found: string[] = [];
+  let invalid = 0;
+  for (const line of csv.split(/\r?\n/).slice(0, 20_000)) {
+    const cells = line.split(/[,;\t]/).map((c) => c.trim().replace(/^"|"$/g, ""));
+    const cell = cells.find((c) => c.includes("@"));
+    if (!cell) continue;
+    if (!looksLikeEmail(cell)) { invalid += 1; continue; }
+    found.push(normaliseEmail(cell));
+  }
+  const unique = [...new Set(found)];
+  let added = 0;
+  for (let i = 0; i < unique.length; i += 500) {
+    const batch = unique.slice(i, i + 500);
+    const r = await db.query(
+      `INSERT INTO newsletter_subscribers (email, email_as_typed, source)
+       SELECT e, e, 'import' FROM unnest($1::TEXT[]) AS e
+       ON CONFLICT (email) DO NOTHING`,
+      [batch],
+    );
+    added += r.rowCount ?? 0;
+  }
+  return { added, skipped: unique.length - added, invalid };
 }

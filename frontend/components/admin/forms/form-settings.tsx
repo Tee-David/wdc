@@ -12,8 +12,10 @@ import { Actions, Area, Checks, Field, Fields, Form, Hidden, Radios, Select, Sub
  * A scaffold on the admin's form kit, to be restyled with the dashboard
  * redesign. Everything here is checked again by the server.
  */
-export function FormSettingsEditor({ formKey, title, settings, notifications, isOnboarding }: {
+export function FormSettingsEditor({ formKey, title, settings, notifications, isOnboarding, previews = {} }: {
   formKey: string;
+  /** Each email rendered for the latest real entry, or absent when there is none yet. */
+  previews?: Record<string, { to: string; subject: string; html: string }>;
   title: string;
   settings: FormSettings;
   notifications: NotificationDef[];
@@ -78,6 +80,14 @@ export function FormSettingsEditor({ formKey, title, settings, notifications, is
                   <Field name={`n.${n.key}.subject`} label="Subject" defaultValue={s.subject} placeholder={n.defaultSubject}
                     hint={n.tokens.length ? `Empty keeps "${n.defaultSubject}". You can use ${n.tokens.join(", ")}.` : `Empty keeps "${n.defaultSubject}".`} />
                 </Fields>
+                {previews[n.key] ? (
+                  <details className="adForms__preview">
+                    <summary>Preview, for the latest entry</summary>
+                    <p className="ad__dim adForms__p">To {previews[n.key].to} · {previews[n.key].subject}</p>
+                    {/* Sandboxed with no permissions: the email's HTML is drawn, never run. */}
+                    <iframe title={`Preview of ${n.name}`} sandbox="" srcDoc={previews[n.key].html} />
+                  </details>
+                ) : null}
               </fieldset>
             );
           })}

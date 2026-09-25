@@ -10,7 +10,10 @@ import { eventsFor, type EntryEvent } from "@/lib/forms/events";
 import { listForRecord } from "@/lib/message-log";
 import { Empty, Panel, when } from "@/components/admin/bits";
 import { LiveSubmissionClient } from "@/components/admin/submission-forms";
-import { AddNote, EntryState } from "@/components/admin/forms/entry-actions";
+import { AddNote, EntryState, ResendEmail } from "@/components/admin/forms/entry-actions";
+import { NOTIFICATIONS } from "@/lib/forms/settings";
+import { adminRole } from "@/lib/admin/guard";
+import { can } from "@/lib/admin/permissions";
 import "@/components/admin/forms/forms.css";
 
 type Props = {
@@ -130,6 +133,7 @@ export default async function EntryPage({ params, searchParams }: Props) {
   const next = at >= 0 && at < ids.length - 1 ? ids[at + 1] : null;
   const link = (x: string) => `/admin/forms/${form.key}/entries/${x}${listQuery ? `?${listQuery}` : ""}`;
   const client = form.source === "newsletter" ? null : clientFor(entry);
+  const mayResend = can(await adminRole(), "settings");
 
   return (
     <>
@@ -209,6 +213,7 @@ export default async function EntryPage({ params, searchParams }: Props) {
 
           {form.source !== "newsletter" ? (
             <Panel title="Emails about this entry">
+              {mayResend ? <ResendEmail formKey={form.key} id={entry.id} notifications={NOTIFICATIONS[form.source].map((n) => ({ key: n.key, name: n.name }))} /> : null}
               {messages.length ? (
                 <ol className="adForms__timeline">
                   {messages.map((m) => (

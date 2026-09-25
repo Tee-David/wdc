@@ -79,9 +79,16 @@ export async function sendMail(input: {
    * A reply to a human conversation should leave this off.
    */
   unsubscribe?: boolean;
+  /** A signed one-click link for this recipient, when there is one. */
+  unsubscribeUrl?: string;
 }) {
-  const { unsubscribe, ...message } = input;
+  const { unsubscribe, unsubscribeUrl, ...message } = input;
   const contact = process.env.SMTP_REPLY_TO || process.env.SMTP_FROM_EMAIL;
+  /* The link first, where there is one: RFC 8058's one-click POST is what
+     Gmail and Yahoo reward. The mailto stays as the fallback for clients that
+     only understand that. */
+  const listUnsubscribe = [unsubscribeUrl ? `<${unsubscribeUrl}>` : null, contact ? `<mailto:${contact}?subject=unsubscribe>` : null]
+    .filter(Boolean).join(", ");
 
   return transport().sendMail({
     from: {
@@ -92,15 +99,10 @@ export async function sendMail(input: {
     ...message,
     /* The footer's "sent to" line names this address. */
     html: message.html ? addressTo(message.html, message.to) : undefined,
-    headers: unsubscribe && contact
+    headers: unsubscribe && listUnsubscribe
       ? {
-          /* A mailto rather than a URL, because there is no unsubscribe
-             endpoint yet and a link to one that does not exist is worse than
-             no link. Swap it for a URL the day there is one. The footer of
-             every template that sets `unsubscribe` points at the same address,
-             because a header that offers a way out and a body that does not is
-             two different promises. */
-          "List-Unsubscribe": `<mailto:${contact}?subject=unsubscribe>`,
+          "List-Unsubscribe": listUnsubscribe,
+          ...(unsubscribeUrl ? { "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } : {}),
         }
       : undefined,
   });
