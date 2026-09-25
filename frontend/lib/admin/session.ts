@@ -14,8 +14,8 @@ export const getAdminRequest = cache(async () => {
          production -- see isAdminCapture), so a spec can prove what staff
          are shown and refused without a second real account. */
       session: requestHeaders.get("x-boneyard-capture-role") === "staff"
-        ? { user: { name: "WDC Staff", email: "staff@localhost", image: null, role: "staff" } }
-        : { user: { name: "WDC Admin", email: "admin@localhost", image: null, role: "owner" } },
+        ? { user: { id: "capture-staff", name: "WDC Staff", email: "staff@localhost", image: null, role: "staff" } }
+        : { user: { id: "capture-owner", name: "WDC Admin", email: "admin@localhost", image: null, role: "owner" } },
     };
   }
 

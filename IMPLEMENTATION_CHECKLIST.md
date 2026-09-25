@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**102 open** (36 in progress)
+**99 open** (36 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -123,12 +123,11 @@ DONE 2026-09-25: the Realtors Practice layout (`app/admin/(lists)/settings/layou
 
 #### Roles and team
 
+DONE 2026-09-25: Settings, Team (`/admin/settings/team`, owner only): owners and staff with last sign-in and live sessions; invite staff, send again, withdraw; make owner or staff, sign out everywhere, deactivate and reactivate. The guards are in the transaction (`lib/team.ts`: active owner rows locked `FOR UPDATE`), so nobody changes their own access and the last owner can be neither demoted nor deactivated. Deactivation (migration 0020) deletes the person's sessions in the same transaction and is refused at sign-in by the session-create hook and the Google admission check. Pinned by `tests/team.spec.ts` and a new case in `tests/auth-flow.spec.ts`.
+
 - [-] (M) Capability table and checks. BUILT 2026-09-24 as `lib/admin/permissions.ts` (`can(role, area)`, areas: clients, projects, forms, content, money, settings, team, exports, destructive; staff = the first four) and `allow(area)`/`adminRole()` in `lib/admin/guard.ts`. 25 actions moved from `owner()` to `allow(...)` (client and project work, tasks, updates, deliverables, forms, tickets, messages, blog save/publish, FAQ, media); money, settings, archive/merge, resend and blog delete stay `owner()` on purpose. Staff cannot set or change a project budget even through the allowed actions (the field is ignored server-side). Pinned by `tests/staff-role.spec.ts`, including an owner-only action submitted with a staff session and refused. NOT YET: per-record `canOn()` and a refusal test for every owner-only action.
 - [-] (S) Admin layout lets owner and staff in. DONE: the layout admits owner and staff; NAV and the command palette are filtered by the same table; Money (both route trees) renders a no-access state for staff via `components/admin/owner-only.tsx`; Settings shows staff only the FAQ/Media entries; the dashboard, client list, client record, project page and comms log omit every money figure, money attention row, money quick action, the Owed column, Export CSV, and Archive/Merge for staff. NOT YET: a `requireCap()` call on every page (only money and settings are gated at page level; the rest rely on the per-action checks plus the hidden controls).
 - [-] (S) Capture-as-staff for tests: DONE (`x-boneyard-capture-role: staff` with the same token, never in production, in `lib/admin/session.ts`). NOT YET: tagging money/settings tour steps `owner`.
-- [ ] (M) Team and access section: list owners and staff with last sign-in and session count; invite staff (wires the existing `inviteStaff`); pending staff invitations with resend/withdraw; change role; deactivate/reactivate; sign out everywhere.
-- [ ] (S) Migration for `deactivatedAt`/`deactivatedBy`; refuse sign-in for a deactivated row in the session-create hook and in the Google admission check; deactivation deletes the user's sessions in the same transaction.
-- [ ] (S) Last-owner and self-change guards inside the transaction (`FOR UPDATE` on owner rows); staff may act on client rows only; flip `staff.ready` in `lib/roles.ts` in the same commit. NOTE: `staff.ready` in `lib/roles.ts` was flipped with the staff view (2026-09-24) so an invited member of staff lands in /admin; staff accounts can still only come from an invitation or the seed script, and there is no role-change screen yet for these guards to protect.
 - [ ] (M) My account section: name, password change (revoking other sessions), sign-in methods with last-method unlink guard (closes 1A's Google line for admins too), active sessions with "Sign out everywhere else", replay tours.
 
 #### Business, site and money settings
