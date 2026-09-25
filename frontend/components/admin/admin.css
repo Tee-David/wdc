@@ -409,7 +409,7 @@
   .ad__tabs { display: flex; }
   /* The site's back-to-top (components/ui/scroll-top.css) takes the bottom
      right corner, which on a phone is the tab bar's. Lift it clear. */
-  body:has(.ad__tabs) .st { bottom: calc(5.75rem + env(safe-area-inset-bottom)); }
+  body:has(.ad__tabs) .st { bottom: calc(6.25rem + env(safe-area-inset-bottom)); }
 }
 @media (max-width: 380px) {
   .ad__topbar { gap: .25rem; padding-inline: .5rem; }
@@ -1706,3 +1706,44 @@ a.ad__pgBtn:hover { background: var(--ad-panel-2); border-color: var(--ad-dim); 
 .ad__agingWho .ad__who { min-width: 0; }
 .ad__agingWho small { color: var(--ad-dim); font-size: .78rem; }
 .ad__agingWho a:hover b { text-decoration: underline; text-underline-offset: 2px; }
+
+/* --------------------------------------------------- help behind a "?" */
+
+/* The label and its question mark on one line (components/admin/form.tsx
+   puts a hint longer than a few words behind the mark). The mark is the
+   onboarding form's Tip, sized to a 44px target without growing the line. */
+.ad__flRow { display: flex; align-items: center; gap: .35rem; min-width: 0; }
+.ad .tip { position: relative; display: inline-flex; flex: none; }
+.ad .tip__b {
+  position: relative; display: grid; place-items: center; width: 1.2rem; height: 1.2rem; padding: 0;
+  border: 0; border-radius: 50%; background: transparent; color: var(--ad-dim); cursor: pointer;
+}
+.ad .tip__b::before { content: ""; position: absolute; inset: -.8rem; }
+.ad .tip__b:hover, .ad .tip__b.is-on { color: var(--ad-accent-ink); }
+.dark .ad .tip__b:hover, .dark .ad .tip__b.is-on { color: var(--ad-accent); }
+.ad .tip__b:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.ad .tip__b svg { width: 100%; height: 100%; }
+
+/* NOTHING IN A DIALOG SCROLLS SIDEWAYS. iOS gives a date input an intrinsic
+   minimum width that ignores width: 100%, which pushed the payment dialog's
+   body wider than the dialog and let the whole form slide left and right. */
+.ad__f :is(input, select, textarea) { min-width: 0; max-width: 100%; }
+.ad__f input[type="date"] { display: block; -webkit-appearance: none; appearance: none; }
+.addlg__b { overflow-x: hidden; }
+/* The note itself. Its onboarding styles live in form-kit.css, which the
+   admin never loads, so it is styled here from the admin's own tokens (at
+   :root, so a note portalled to <body> can still see them). */
+.ad .tip__p, .tip__portal:not(.pv *) .tip__p {
+  position: fixed; z-index: 1000;
+  width: max-content; max-width: min(22rem, calc(100vw - 2.5rem));
+  padding: .8rem 2.3rem .8rem 1rem;
+  border: 1px solid var(--ad-line); border-radius: 12px;
+  background: var(--ad-panel); color: var(--ad-ink); box-shadow: var(--ad-sh-3);
+  font: 400 .88rem/1.55 var(--font-body); text-transform: none; letter-spacing: normal; white-space: normal;
+}
+.ad .tip__p > button {
+  position: absolute; top: .35rem; right: .35rem; display: grid; place-items: center;
+  width: 1.75rem; height: 1.75rem; border: 0; border-radius: 50%; background: transparent; color: var(--ad-dim); cursor: pointer;
+}
+.ad .tip__p > button:hover { background: var(--ad-panel-2); color: var(--ad-ink); }
+.ad .tip__p > button svg { width: .95rem; height: .95rem; }

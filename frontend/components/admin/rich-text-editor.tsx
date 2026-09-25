@@ -97,7 +97,7 @@ function LinkPanel({ editor, close }: { editor: Editor; close: () => void }) {
         ) : null}
         <button type="button" className="ad__btn adRte__close" aria-label="Close" onClick={close}><X aria-hidden="true" /></button>
       </div>
-      {error ? <small className="ad__fe" role="alert">{error}</small> : <small className="ad__fh">Select words first to turn them into a link, or type an address to insert it.</small>}
+      {error ? <small className="ad__fe" role="alert">{error}</small> : <small className="ad__fh">Select words to link them, or type an address.</small>}
     </div>
   );
 }

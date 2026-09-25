@@ -9,7 +9,6 @@ import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import ThemeSwitchButton from "@/components/ui/theme-switch-button";
 import UserWay from "@/components/ui/userway";
 import StaggeredMenu from "@/components/ui/staggered-menu";
-import { CONTACT_EMAIL } from "@/lib/site";
 import { SERVICES } from "@/lib/services";
 import ServiceIcon from "@/components/ui/service-icon";
 
@@ -39,27 +38,6 @@ const NAV = [
   { label: "Blog", link: "/blog" },
   { label: "About Us", link: "/about" },
   { label: "Contact Us", link: "/contact" },
-];
-
-function MailGlyph() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <rect x="3" y="5" width="18" height="14" rx="2.5" />
-      <path d="m4 7 8 5.5L20 7" />
-    </svg>
-  );
-}
-
-const SOCIALS = [
-  { label: "Email", link: `mailto:${CONTACT_EMAIL}`, icon: <MailGlyph /> },
 ];
 
 /**
@@ -348,7 +326,6 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
               })),
               { label: "Log in", link: "/login", ariaLabel: "Log in to your account" },
             ]}
-            socialItems={SOCIALS}
             onMenuOpen={() => setMenuOpen(true)}
             onMenuClose={() => setMenuOpen(false)}
             /* TWO REAL BUTTONS, not a disc with a caption floating beside it.
