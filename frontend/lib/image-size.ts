@@ -32,6 +32,20 @@ export type Size = { width: number; height: number };
 const FALLBACK: Size = { width: 3, height: 2 };
 
 export async function publicImageSize(src: string): Promise<Size> {
+  /* A PICTURE IN OUR OWN BUCKET (uploaded in the admin, e.g. a case study's
+     gallery): the first 64KB over the network, never somebody else's host. */
+  if (/^https:\/\//i.test(src)) {
+    const { r2PublicBase } = await import("./r2");
+    const base = r2PublicBase();
+    if (!base || !src.startsWith(`${base}/`)) return FALLBACK;
+    try {
+      const r = await fetch(src, { headers: { range: "bytes=0-65535" }, signal: AbortSignal.timeout(3000) });
+      if (!r.ok) return FALLBACK;
+      return sizeOf(Buffer.from(await r.arrayBuffer()).subarray(0, 65536)) ?? FALLBACK;
+    } catch {
+      return FALLBACK;
+    }
+  }
   try {
     const file = path.join(process.cwd(), "public", src.replace(/^\//, ""));
     /* 64KB is far past any JPEG's SOF marker in practice and the whole of a

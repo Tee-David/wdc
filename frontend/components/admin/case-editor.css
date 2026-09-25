@@ -1,0 +1,94 @@
+/* The case study editor (components/admin/case-editor.tsx): the steps and
+   the form beside a preview of the page. */
+.ce { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 1100px) { .ce { grid-template-columns: minmax(0, 1fr); } }
+.ce__main { min-width: 0; }
+.ce__steps { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0; padding: .9rem 1rem; list-style: none; border-bottom: 1px solid var(--ad-line); }
+.ce__step {
+  min-height: 2.75rem; padding: 0 .8rem; display: inline-flex; align-items: center; gap: .5rem;
+  border: 1px solid var(--ad-line); border-radius: 10px; background: var(--ad-panel); color: var(--ad-ink); font: 500 .88rem var(--font-body); cursor: pointer;
+}
+.ce__step[aria-current="step"] { background: var(--ad-fill); border-color: var(--ad-fill); color: var(--ad-on-fill); }
+.ce__step:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.ce__dot { width: 1.4rem; height: 1.4rem; display: grid; place-items: center; border-radius: 50%; background: var(--ad-tone-neutral); color: var(--ad-on-neutral); font: 700 .72rem var(--font-space-grotesk), system-ui, sans-serif; }
+.ce__dot svg { width: .8rem; height: .8rem; }
+.ce__step.is-done .ce__dot { background: var(--ad-tone-good); color: var(--ad-on-good); }
+.ce__step[aria-current="step"] .ce__dot { background: var(--ad-on-fill); color: var(--ad-fill); }
+.ce__body { padding: 1.1rem 1.25rem 1.25rem; display: grid; gap: 1rem; }
+.ce__f { display: grid; gap: .35rem; min-width: 0; margin: 0; padding: 0; border: 0; }
+.ce__f > label, .ce__f > legend, .ce__l { font-weight: 600; font-size: .9rem; padding: 0; }
+.ce__f > small { color: var(--ad-dim); font-size: .8rem; }
+.ce__f input[type="text"], .ce__f select, .ce__f textarea, .ce__addRow input {
+  width: 100%; min-height: 2.75rem; padding: .55rem .75rem; border: 1px solid var(--ad-line); border-radius: 10px;
+  background: var(--ad-panel); color: var(--ad-ink); font: inherit; font-size: .92rem;
+}
+.ce__f textarea { resize: vertical; line-height: 1.5; }
+.ce__f :is(input, select, textarea):focus { outline: none; border-color: var(--ad-fill); box-shadow: 0 0 0 3px var(--ad-nav-on); }
+.ce__f.is-bad :is(input, textarea) { border-color: var(--ad-bad-ink); }
+.ce__err { color: var(--ad-bad-ink); font-size: .82rem; }
+.ce__two, .ce__three { display: grid; gap: .9rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); }
+.ce__kinds { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); }
+.ce__kind { position: relative; display: grid; gap: .2rem; padding: .8rem .9rem; border: 1px solid var(--ad-line); border-radius: 14px; background: var(--ad-panel); cursor: pointer; }
+.ce__kind input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.ce__kind b { font-family: var(--font-space-grotesk), system-ui, sans-serif; }
+.ce__kind small { color: var(--ad-dim); font-size: .8rem; line-height: 1.35; }
+.ce__kind.is-on { border-color: var(--ad-fill); box-shadow: 0 0 0 2px var(--ad-fill); }
+.ce__kind:has(input:focus-visible), .ce__chip:has(input:focus-visible) { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.ce__chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+.ce__chip {
+  position: relative; min-height: 2.5rem; padding: 0 .85rem; display: inline-flex; align-items: center; gap: .35rem;
+  border: 1px solid var(--ad-line); border-radius: 99px; background: var(--ad-panel); color: var(--ad-ink); font: 500 .86rem var(--font-body); cursor: pointer;
+}
+.ce__chip input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.ce__chip.is-on { background: var(--ad-fill); border-color: var(--ad-fill); color: var(--ad-on-fill); }
+.ce__chip svg { width: .85rem; height: .85rem; }
+.ce__addRow { display: flex; gap: .5rem; align-items: center; }
+.ce__add { justify-self: start; }
+.ce__sw { display: flex; gap: .5rem; align-items: center; }
+.ce__sw input[type="color"] { width: 2.75rem; height: 2.75rem; flex: none; padding: 2px; border: 1px solid var(--ad-line); border-radius: 10px; background: var(--ad-panel); }
+.ce__drop { position: relative; border: 1.5px dashed var(--ad-line); border-radius: 14px; overflow: hidden; }
+.ce__drop.has-pic { border-style: solid; }
+.ce__drop img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.ce__dropBtn { width: 100%; min-height: 9rem; display: grid; place-items: center; align-content: center; gap: .35rem; border: 0; background: none; color: var(--ad-ink); cursor: pointer; font: inherit; }
+.ce__dropBtn svg { width: 1.5rem; height: 1.5rem; }
+.ce__dropBtn small { color: var(--ad-dim); }
+.ce__dropActs { position: absolute; right: .6rem; bottom: .6rem; display: flex; gap: .4rem; }
+.ce__ours summary { min-height: 2.75rem; display: inline-flex; align-items: center; cursor: pointer; color: var(--ad-accent-ink); font-weight: 600; font-size: .88rem; }
+.ce__oursGrid { max-height: 16rem; overflow: auto; display: grid; gap: .45rem; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); padding: .4rem 0; }
+.ce__oursGrid button { padding: 0; border: 1px solid var(--ad-line); border-radius: 8px; overflow: hidden; cursor: pointer; background: none; }
+.ce__oursGrid button:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.ce__oursGrid img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
+.ce__gal { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr) auto; gap: .6rem; align-items: center; }
+.ce__gal img { width: 4.5rem; height: 3.2rem; object-fit: cover; border-radius: 8px; }
+.ce__galActs { display: flex; gap: .2rem; }
+.ce__check { padding: 1rem; border-radius: 12px; background: var(--ad-panel-2); display: grid; gap: .4rem; }
+.ce__check b { display: flex; gap: .4rem; align-items: center; }
+.ce__check svg { width: 1rem; height: 1rem; color: var(--ad-tone-good); }
+.ce__check ul { margin: 0; padding-left: 1.2rem; }
+.ce__where { margin: 0; display: grid; gap: .6rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+.ce__where div { padding: .8rem; border: 1px solid var(--ad-line); border-radius: 12px; }
+.ce__where dt { color: var(--ad-dim); font-size: .8rem; }
+.ce__where dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.ce__foot { display: flex; justify-content: space-between; gap: .6rem; padding: .9rem 1.25rem; border-top: 1px solid var(--ad-line); flex-wrap: wrap; }
+.ce__footR { display: flex; gap: .5rem; flex-wrap: wrap; }
+/* The preview: the case study page, small. */
+.ce__pv { position: sticky; top: 5rem; overflow: hidden; }
+@media (max-width: 1100px) { .ce__pv { position: static; } }
+.ce__pvH { display: flex; justify-content: space-between; align-items: center; padding: .7rem 1rem; border-bottom: 1px solid var(--ad-line); font: 600 .74rem var(--font-space-grotesk), system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--ad-dim); }
+.ce__hero { display: grid; gap: .35rem; padding: 1.1rem 1rem; background: #000065; color: #fff; }
+.ce__hero span { font: 600 .7rem var(--font-space-grotesk), system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #ff8a3d; }
+.ce__hero b { font: 700 1.25rem/1.2 var(--font-space-grotesk), system-ui, sans-serif; }
+.ce__hero p { margin: 0; color: #d9daf5; font-size: .88rem; }
+.ce__cover { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.ce__pvB { padding: 1rem; display: grid; gap: .55rem; font-size: .88rem; max-height: 34rem; overflow: auto; }
+.ce__pvB small { color: var(--ad-dim); }
+.ce__pvB h4 { margin: .4rem 0 0; font: 600 .7rem var(--font-space-grotesk), system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--ad-accent-ink); }
+.ce__pvB p { margin: 0; }
+.ce__pvB ul { margin: 0; padding-left: 1.1rem; }
+.ce__pvB i { color: var(--ad-dim); }
+.ce__pal { display: flex; flex-wrap: wrap; gap: .5rem; }
+.ce__pal span { display: grid; gap: .2rem; font-size: .72rem; color: var(--ad-dim); text-align: center; }
+.ce__pal i { display: block; width: 2.5rem; height: 2.5rem; border-radius: 8px; border: 1px solid var(--ad-line); }
+.ce__pvB blockquote { margin: 0; padding: .6rem .8rem; border-left: 3px solid var(--ad-accent); background: var(--ad-panel-2); font-style: italic; display: grid; gap: .2rem; }
+.ce__thumbs { display: grid; gap: .4rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ce__thumbs img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; }

@@ -648,6 +648,8 @@ body:has(.ad__sheetLayer) .st { display: none; }
 .ad__pill--bad { background: var(--ad-tone-bad); border-color: var(--ad-tone-bad); color: var(--ad-on-bad); }
 .ad__pill--live { background: var(--ad-tone-live); border-color: var(--ad-tone-live); color: var(--ad-on-live); }
 .ad__pill--flat { background: var(--ad-tone-flat); border-color: var(--ad-tone-flat); color: var(--ad-on-flat); }
+.ad__pill--brand { background: var(--ad-tone-brand); border-color: var(--ad-tone-brand); color: var(--ad-on-brand); }
+.ad__pill--brand::before { display: none; }
 .ad__pill--flat::before { display: none; }
 
 /* --------------------------------------------------------------- buttons */
@@ -1950,3 +1952,13 @@ td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
 .adLS__none p { margin: 0; font-size: .86rem; }
 .adLS__none .ad__btn { margin-top: .35rem; }
 .ad__filterBar .adLS { padding: 0; border-bottom: 0; flex: 1 1 16rem; }
+.adBlogTabs { margin: 0 0 1rem; }
+/* Case studies list: the cover beside the client and title. */
+.adCase__who { display: flex; align-items: center; gap: .75rem; min-width: 0; }
+.adCase__who img, .adCase__noPic { width: 64px; height: 44px; flex: none; border-radius: 8px; object-fit: cover; background: var(--ad-panel-2); }
+.adCase__noPic { display: grid; place-items: center; background: var(--ad-tone-neutral); color: var(--ad-on-neutral); }
+.adCase__noPic svg { width: 1.1rem; height: 1.1rem; }
+.adCase__who > span:last-child { min-width: 0; display: grid; }
+.adCase__who small { color: var(--ad-dim); max-width: 32rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adCase__acts { flex-wrap: nowrap; }
+.adCase__acts form { margin: 0; }

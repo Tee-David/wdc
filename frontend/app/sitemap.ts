@@ -5,6 +5,7 @@ import { LEGAL_DOCS } from "@/lib/legal";
 import { postsNewestFirstDb } from "@/lib/blog-db";
 import { SERVICES } from "@/lib/services";
 import { FREE_TOOLS } from "@/lib/tools";
+import { hydrateCaseStudies } from "@/lib/work-db";
 
 /**
  * Sitemap.
@@ -17,6 +18,7 @@ import { FREE_TOOLS } from "@/lib/tools";
  * engines three URLs for one page.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  await hydrateCaseStudies();
   const now = new Date();
   /* The live posts, from the table the editor writes: an unpublished post
      leaves the sitemap the moment it leaves the blog. */
