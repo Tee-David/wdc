@@ -20,7 +20,8 @@ import { db } from "@/lib/db/pool";
 export type InviteRole = "client" | "staff";
 
 export const INVITE_TTL_DAYS = 7;
-export const INVITE_PASSWORD_MIN = 10;
+import { passwordProblem } from "@/lib/auth/password-policy";
+export { PASSWORD_MIN as INVITE_PASSWORD_MIN } from "@/lib/auth/password-policy";
 
 export type Invitation = {
   id: string;
@@ -145,7 +146,7 @@ export type Redeemed =
 export async function redeemInvitation(token: string, input: { name: string; password?: string | null }): Promise<Redeemed> {
   if (!/^[A-Za-z0-9_-]{20,100}$/.test(token)) return { ok: false, reason: "invalid" };
   const password = input.password ?? null;
-  if (password !== null && password.length < INVITE_PASSWORD_MIN) return { ok: false, reason: "weak-password" };
+  if (password !== null && passwordProblem(password)) return { ok: false, reason: "weak-password" };
   /* Hashed before the transaction: scrypt is deliberately slow and a lock
      should not be held across it. */
   const hashed = password !== null ? await hashPassword(password) : null;

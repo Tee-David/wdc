@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, Play } from "lucide-react";
+import { LogOut, Play, X } from "lucide-react";
 import { useOptionalAdminTour } from "./tour/tour-provider";
 import { initialsOf } from "./focus";
 
@@ -8,14 +8,17 @@ import { initialsOf } from "./focus";
  * The sidebar's foot, pinned under a menu that scrolls: an offer of the tour
  * until it has been taken, then who is signed in and the way out.
  *
- * The card goes once the walkthrough is finished rather than nagging for
- * ever; the "?" in the top bar still replays any tour.
+ * The card goes once the walkthrough is finished or dismissed rather than
+ * nagging for ever; the "?" in the top bar still replays any tour.
  */
 export function SideTourCard({ collapsed }: { collapsed: boolean }) {
   const tours = useOptionalAdminTour();
   if (collapsed || !tours || tours.active || tours.walkthroughCompleted) return null;
   return (
     <div className="ad__tourCard">
+      <button type="button" className="ad__tourClose" onClick={tours.dismissWalkthrough} aria-label="Dismiss the tour offer" title="Not now">
+        <X aria-hidden="true" />
+      </button>
       <span className="ad__tourTile" aria-hidden="true"><Play /></span>
       <b>Two-minute tour</b>
       <p>Walk through the dashboard, or only this page. Skip it any time.</p>

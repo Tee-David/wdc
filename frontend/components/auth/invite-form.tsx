@@ -2,7 +2,8 @@
 
 import { useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { GoogleMark, PasswordField, PrimaryButton, StrengthMeter } from "@/components/auth/fields";
+import { GoogleMark, PasswordField, PasswordRules, PrimaryButton } from "@/components/auth/fields";
+import { passwordProblem } from "@/lib/auth/password-policy";
 import { useStage } from "@/components/auth/stage/stage-context";
 import { useHydrated } from "@/components/auth/use-hydrated";
 import { authClient } from "@/lib/auth-client";
@@ -46,13 +47,14 @@ export function InviteForm({ token, email, name: invitedName, role, invitedBy, g
   const [error, setError] = useState("");
   const [field, setField] = useState<{ password?: string; confirm?: string }>({});
   const [sent, setSent] = useState(false);
+  const [suggested, setSuggested] = useState(false);
 
-  const place = role === "staff" ? "the studio admin" : company ? `${company}'s project portal` : "your project portal";
 
   async function finish(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy) return;
-    if (password.length < 10) { setField({ password: "Use at least 10 characters." }); passwordRef.current?.focus(); return; }
+    const weak = passwordProblem(password);
+    if (weak) { setField({ password: weak }); passwordRef.current?.focus(); return; }
     if (password !== confirm) { setField({ confirm: "The two passwords do not match." }); confirmRef.current?.focus(); return; }
     setField({});
     setBusy(true);
@@ -112,17 +114,9 @@ export function InviteForm({ token, email, name: invitedName, role, invitedBy, g
   return (
     <div className="lx">
       <div className="lx__step" data-dir="1">
-        <h1 className="lx__heading">{role === "staff" ? "Join the studio" : "Your project portal"}</h1>
-        <p className="lx__sub">
-          {invitedBy} invited <b>{email}</b> to {place}. The account is for this address.
-        </p>
-        {role === "client" ? (
-          <ul className="lx__perks">
-            <li>See every stage and what is due next</li>
-            <li>Approve drafts or ask for changes</li>
-            <li>Pay invoices and keep the receipts</li>
-          </ul>
-        ) : null}
+        <h1 className="lx__heading">{role === "staff" ? "Join the studio" : company ? `Welcome, ${company}` : "Your project portal"}</h1>
+        {/* One line: who asked, and the address the account is for. */}
+        <p className="lx__sub">For <b>{email}</b> · invited by {invitedBy}</p>
         {error ? <p className="au__error" role="alert">{error}</p> : null}
         <form onSubmit={finish} className="au__form lx__form" method="post" noValidate>
           <div className="au-field" data-state={name ? "valid" : "empty"}>
@@ -133,11 +127,14 @@ export function InviteForm({ token, email, name: invitedName, role, invitedBy, g
             </div>
           </div>
           <PasswordField ref={passwordRef} label="Choose a password" name="new-password" autoComplete="new-password"
-            value={password} onChange={(v) => { setPassword(v); if (field.password) setField({}); }} error={field.password ?? null} />
-          <StrengthMeter value={password} />
+            value={password} onChange={(v) => { setPassword(v); setSuggested(false); if (field.password) setField({}); }} error={field.password ?? null} />
+          <PasswordRules value={password} onSuggest={(made) => {
+            setPassword(made); setConfirm(made); setSuggested(true); setField({});
+          }} />
+          {suggested ? <p className="lx__note" role="status">Filled in both boxes. Tap the eye to see it, and save it somewhere safe.</p> : null}
           <PasswordField ref={confirmRef} label="Confirm password" name="confirm-password" autoComplete="new-password"
             value={confirm} onChange={(v) => { setConfirm(v); if (field.confirm) setField({}); }} error={field.confirm ?? null} />
-          <PrimaryButton awake={password.length >= 10 && confirm.length > 0} hydrated={hydrated} busy={busy}>
+          <PrimaryButton awake={!passwordProblem(password) && confirm.length > 0} hydrated={hydrated} busy={busy}>
             Create my account
           </PrimaryButton>
         </form>
@@ -150,10 +147,10 @@ export function InviteForm({ token, email, name: invitedName, role, invitedBy, g
         {role === "client" ? (
           <button type="button" className="au-link lx__back" disabled={!hydrated || busy}
                   onClick={() => withoutPassword("link")}>
-            No password: email me a sign-in link instead
+            Email me a sign-in link instead
           </button>
         ) : null}
-        <p className="lx__fine">This link works once and expires on {expires}.</p>
+        <p className="lx__fine">Link expires {expires}.</p>
       </div>
     </div>
   );
