@@ -225,7 +225,7 @@ export default async function ServicePage(
                 what it actually takes, including when the answer is less than you
                 expected.
               </p>
-              <Link className="pv-btn pv-btn--accent" href="/contact">
+              <Link className="pv-btn pv-btn--accent" href={`/contact?topic=${service.slug}`}>
                 Start a conversation
               </Link>
             </div>

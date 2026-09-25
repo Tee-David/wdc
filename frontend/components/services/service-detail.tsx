@@ -128,7 +128,7 @@ export default function ServiceDetail({ service }: { service: Service }) {
               {/* `service.short` is used as written -- "Software & AI", "Social
                   & PPC" -- because lowercasing it turned AI into ai and PPC
                   into ppc, which reads as a typo rather than a house style. */}
-              <Link className="pv-btn pv-btn--line sv-svc__cta" href="/contact">
+              <Link className="pv-btn pv-btn--line sv-svc__cta" href={`/contact?topic=${service.slug}`}>
                 Talk about {service.short}
               </Link>
             </div>

@@ -11,7 +11,8 @@
   margin-top: .9rem;
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .82rem; letter-spacing: .04em;
-  color: var(--muted);
+  /* It sits in the navy band in both themes, where --muted was 2.5:1. */
+  color: #c7c9ec;
 }
 
 /* ---------------- index ---------------- */
