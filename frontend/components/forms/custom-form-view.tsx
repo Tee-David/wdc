@@ -27,7 +27,22 @@ export function CustomFormView({ def, slug, preview }: { def: CustomFormDef; slu
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");
   const [message, setMessage] = useState("");
   const [trap, setTrap] = useState("");
+  /* The form stopped taking entries while this person was filling it in. */
+  const [closed, setClosed] = useState(false);
+  const [copied, setCopied] = useState(false);
   const id = useId();
+
+  /* Everything typed, as plain text, so closing the form does not throw it
+     away: "Question: answer" per line, files by name. */
+  const asText = () => def.fields.filter((f) => f.type !== "heading" && visible(f, answers) && answers[f.id] !== undefined).map((f) => {
+    const v = answers[f.id];
+    const text = typeof v === "string" ? v : v.map((x) => (typeof x === "string" ? x : x.name)).join(", ");
+    return `${f.label}: ${text}`;
+  }).filter((line) => !line.endsWith(": ")).join("\n");
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(`${def.title}\n\n${asText()}`); setCopied(true); }
+    catch { setCopied(false); setMessage("Copying did not work here. Select the answers above and copy them by hand."); }
+  };
 
   const set = (f: CustomField, v: Answer) => {
     setAnswers((a) => ({ ...a, [f.id]: v }));
@@ -48,7 +63,13 @@ export function CustomFormView({ def, slug, preview }: { def: CustomFormDef; slu
     const r = await fetch(`/api/forms/${slug}`, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ answers: checked.answers, website: trap }),
-    }).then(async (x) => ({ ok: x.ok, body: await x.json().catch(() => ({})) })).catch(() => null);
+    }).then(async (x) => ({ ok: x.ok, status: x.status, body: await x.json().catch(() => ({})) })).catch(() => null);
+    if (r && (r.status === 404 || r.status === 409)) {
+      setState("idle");
+      setClosed(true);
+      setMessage("");
+      return;
+    }
     if (!r?.ok) {
       setState("idle");
       if (r?.body?.errors) setErrors(r.body.errors);
@@ -78,11 +99,21 @@ export function CustomFormView({ def, slug, preview }: { def: CustomFormDef; slu
       {/* A field no person sees; a bot fills it in. */}
       <label className="ct-trap" aria-hidden="true">Website<input tabIndex={-1} autoComplete="off" value={trap} onChange={(e) => setTrap(e.target.value)} name="website" /></label>
       <div className="cf-foot">
-        <button type="submit" className="pv-btn pv-btn--accent" disabled={state === "sending"}>
+        <button type="submit" className="pv-btn pv-btn--accent" disabled={state === "sending" || closed} hidden={closed}>
           {state === "sending" ? <Loader2 className="cf-spin" aria-hidden="true" /> : null}
           {state === "sending" ? "Sending" : def.submitLabel}
         </button>
         {message ? <p id={`${id}-msg`} className="cf-msg" role="alert">{message}</p> : null}
+        {closed ? (
+          <div className="cf-closed" role="alert">
+            <b>This form stopped taking entries while you were filling it in.</b>
+            <p>Your answers are still here. Copy them and send them to us another way, and we will pick it up from there.</p>
+            <div className="cf-closed__acts">
+              <button type="button" className="pv-btn pv-btn--accent" onClick={copy}>{copied ? "Copied" : "Copy my answers"}</button>
+              <a className="pv-btn pv-btn--line" href="/contact">Contact us</a>
+            </div>
+          </div>
+        ) : null}
       </div>
     </form>
     </>

@@ -55,3 +55,10 @@
   .cf-address { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .cf-address legend, .cf-address .cf-help, .cf-address .ct-error, .cf-address__part--street { grid-column: 1 / -1; }
 }
+
+/* The form closed under the visitor (components/forms/custom-form-view.tsx):
+   the answers stay on screen, and the note says what to do with them. */
+.cf-closed { display: grid; gap: 8px; padding: 16px; border: 1.5px solid currentColor; border-radius: 14px; }
+.cf-closed p { margin: 0; }
+.cf-closed__acts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+@media (max-width: 560px) { .cf-closed__acts .pv-btn { width: 100%; justify-content: center; } }

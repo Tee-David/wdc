@@ -205,7 +205,10 @@ export function checkAnswers(def: CustomFormDef, raw: unknown, fileKeyPrefix?: s
         break;
       }
       case "consent": {
-        if (v === true || v === "yes" || v === "on") answers[f.id] = "Yes"; else missing();
+        /* The form sends "Yes", which is also what is stored; the lower-case
+           and "on" spellings are what a plain HTML tick box posts. Missing
+           the capital meant a required tick box could never be ticked. */
+        if (v === true || (typeof v === "string" && ["yes", "on"].includes(v.toLowerCase()))) answers[f.id] = "Yes"; else missing();
         break;
       }
       case "file": {
