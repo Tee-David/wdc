@@ -81,7 +81,11 @@ export default async function EditPostPage({ params, searchParams }: {
       {!isOwner && found?.status === "published" ? (
         <section className="ad__panel">
           <AdminState kind="forbidden" title={found.scheduled ? "This post is scheduled" : "This post is live"}
-            description="Changes to a published or scheduled post are the owner's. Ask them, or preview it on the site." />
+            description="Changes to a published or scheduled post are the owner's. Ask them, or read it on the site."
+            action={found.scheduled
+              ? <Link className="ad__btn" href="/admin/blog">Back to the blog</Link>
+              : <a className="ad__btn ad__btn--primary" href={`/blog/${found.slug}`} target="_blank" rel="noopener noreferrer">View on the site</a>}
+            secondaryAction={found.scheduled ? undefined : <Link className="ad__btn" href="/admin/blog">Back to the blog</Link>} />
         </section>
       ) : (
         <BlogEditor

@@ -19,7 +19,7 @@ export const metadata = { title: "Maintenance" };
  */
 export default async function MaintenancePage() {
   if (!can(await adminRole(), "settings")) {
-    return <section className="ad__panel"><AdminState kind="forbidden" title="Maintenance is the owner's" description="Whether the public site is down, and the page visitors see while it is." /></section>;
+    return <section className="ad__panel"><AdminState kind="forbidden" back={{ href: "/admin/settings", label: "Back to settings" }} title="Maintenance is the owner's" description="Whether the public site is down, and the page visitors see while it is." /></section>;
   }
   const [m, design, waiting] = await Promise.all([maintenance({ fresh: true }), maintenanceDesign({ fresh: true }), waitlistSummary()]);
   const token = m.on ? linkToken(m) : null;
