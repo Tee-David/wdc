@@ -1,3 +1,4 @@
+import { PayForm } from "@/components/money/pay-form";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getClient, getInvoiceByToken, getPaymentsFor } from "@/lib/admin/store";
@@ -269,7 +270,7 @@ export default async function PublicInvoice({
               come off the token in the URL, because a form field is a number
               the payer can edit. */}
           {canCheckout ? (
-            <form method="post" action={`/api/pay/${inv.token}`} className="doc__actions">
+            <PayForm action={`/api/pay/${inv.token}`} className="doc__actions">
               {/* THE AMOUNT AND THE VERB, AND NOTHING ELSE IN THE LABEL. It
                   used to carry "by card or transfer" as well, which is a
                   sentence about method inside a control whose job is the
@@ -304,7 +305,7 @@ export default async function PublicInvoice({
               <small>
                 Card or bank transfer, on Paystack&rsquo;s own secure page.
               </small>
-            </form>
+            </PayForm>
           ) : null}
 
           {/* ONE WAY TO PAY, AND IT IS THE ONE THAT WORKS.
