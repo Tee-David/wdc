@@ -85,6 +85,7 @@
 .adDash__attentionIcon svg, .adDash__listIcon svg { width: 1rem; height: 1rem; }
 .adDash__attentionIcon--bad { background: var(--ad-tone-bad); color: var(--ad-on-bad); }
 .adDash__attentionIcon--warn { background: var(--ad-tone-warn); color: var(--ad-on-warn); }
+.adDash__attentionIcon--live { background: var(--ad-tone-live); color: var(--ad-on-live); }
 .adDash__attentionCopy { min-width: 0; display: grid; gap: .1rem; }
 .adDash__attentionCopy b { font-size: .92rem; }
 .adDash__attentionCopy b, .adDash__compactList b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -176,6 +177,9 @@
   .adDash__head .ad__btn { align-self: flex-start; }
   .adDash__kpis { grid-template-columns: minmax(0, 1fr); }
   .adDash__actions { grid-template-columns: minmax(0, 1fr); }
+  /* The row's button goes under its text on a phone: beside it, it
+     squeezed the title to three words a line and itself to its label. */
+  .adDash__attentionActions { grid-column: 2 / -1; grid-row: auto; justify-content: flex-start; }
   /* A dated row puts its date under the text. Flowing by row, not column:
      with column flow the explicitly placed date pushed the text into the
      icon's track and squeezed the name to "Dhi…". */
