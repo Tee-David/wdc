@@ -1,0 +1,45 @@
+<aside class="dock" id="dock" aria-labelledby="dk-h1">
+  <div class="dock-top">
+    <img src="data:image/svg+xml;base64,@@MARK@@" alt="We Dig Creativity" width="30" height="31">
+    <span class="eyebrow">Maintenance · We Dig Creativity</span>
+    <button class="dock-toggle" id="dk-toggle" type="button" aria-expanded="true" aria-controls="dk-body" aria-label="Hide the details">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+  </div>
+  <h1 id="dk-h1">Back shortly</h1>
+  <div class="mini"><span class="count-mini" data-count-short>…</span><button class="btn btn-primary" type="button" id="dk-open">Notify me</button></div>
+  <div class="dock-body" id="dk-body">
+    <p class="msg">We are making some changes to the site and will be back shortly.</p>
+    <div class="when" aria-live="off">
+      <span class="count" data-count>…</span>
+      <small>Back by <strong data-back-lagos>…</strong> Lagos time</small>
+      <small>That is <strong data-back-local>…</strong> where you are</small>
+    </div>
+    <form class="notify" id="dk-form" novalidate>
+      <label for="dk-email">Get one email when we are back</label>
+      <div class="row">
+        <input id="dk-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@company.com" required>
+        <button class="btn btn-primary" type="submit">Notify me</button>
+      </div>
+      <p class="err" id="dk-err" role="alert"></p>
+      <fieldset class="why">
+        <legend>What brings you here? (optional)</legend>
+        <label><input type="radio" name="why" value="project" id="why-project"><span>Starting a project</span></label>
+        <label><input type="radio" name="why" value="client" id="why-client"><span>I am a client</span></label>
+        <label><input type="radio" name="why" value="browsing" id="why-browsing"><span>Just looking</span></label>
+      </fieldset>
+      <p class="fine">We send one message when the site is back, then delete your address.</p>
+    </form>
+    <div class="done" id="dk-done" hidden tabindex="-1">
+      <strong>You are on the list</strong>
+      <p>We will email <span id="dk-who"></span> once, when the site is back.</p>
+      <p class="proto-note">Prototype: this form does not send anything yet.</p>
+    </div>
+    <div class="still">
+      <p>These still work while we are down</p>
+      <a class="btn btn-secondary" href="https://wedigcreativity.com.ng/portal" target="_blank" rel="noopener">Client portal</a>
+      <button class="btn btn-secondary" type="button" id="dk-copy" data-email="info@wedigcreativity.com.ng">Copy our email</button>
+    </div>
+    <p class="fine" id="dk-copied" aria-live="polite">Invoice payment links keep working. info@wedigcreativity.com.ng</p>
+  </div>
+</aside>
