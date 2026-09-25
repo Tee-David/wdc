@@ -37,6 +37,13 @@ on:
     branches: [main]
   # So a failed deploy can be retried without an empty commit.
   workflow_dispatch:
+  # THE CATCH-UP. When the day's deployment allowance is spent, a push cannot
+  # ship and nothing would ever retry it: the next deploy waited for the next
+  # push. Once an hour this checks that production is on the tip of main and
+  # ships it if not, which costs nothing when it already is (see the next
+  # step), so the site catches up on its own after the allowance resets.
+  schedule:
+    - cron: "23 * * * *"
 
 # One deploy at a time. Two pushes a minute apart would otherwise race, and the
 # older build could finish last and become production.
@@ -84,9 +91,24 @@ jobs:
             echo "skip=1" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+          # A scheduled run has no push behind it, so the integration will not
+          # be building anything: look once, and only deploy if the tip has
+          # no live deployment yet.
+          tries=18
+          if [ "${GITHUB_EVENT_NAME}" = "schedule" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            tries=1
+            ready=$(curl -sS \
+              "https://api.vercel.com/v6/deployments?teamId=${TEAM_ID}&projectId=${PROJECT_ID}&target=production&sha=${SHA}&state=READY&limit=1" \
+              -H "Authorization: Bearer ${VERCEL_TOKEN}" | jq -r '.deployments[0]?.uid // empty')
+            if [ -n "$ready" ]; then
+              echo "Production already has ${SHA} (${ready}); nothing to catch up."
+              echo "skip=1" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
           # The integration usually registers its deployment within seconds.
           # Three minutes of silence means it made none, so deploy ourselves.
-          for _ in $(seq 1 18); do
+          for _ in $(seq 1 "$tries"); do
             list=$(curl -sS \
               "https://api.vercel.com/v6/deployments?teamId=${TEAM_ID}&projectId=${PROJECT_ID}&target=production&sha=${SHA}&limit=10" \
               -H "Authorization: Bearer ${VERCEL_TOKEN}")
@@ -125,6 +147,19 @@ jobs:
             -d "{\"name\":\"wdc\",\"project\":\"${PROJECT_ID}\",\"target\":\"production\",\"gitSource\":{\"type\":\"github\",\"org\":\"Tee-David\",\"repo\":\"wdc\",\"ref\":\"main\",\"sha\":\"${SHA}\"}}")
 
           id=$(printf '%s' "$response" | jq -r '.id // empty')
+          # OUT OF TODAY'S ALLOWANCE is not a broken deploy: nothing in the
+          # repo can fix it and the hourly catch-up ships main once it resets.
+          # Said as a warning with the reset time, not a red run per push.
+          if [ -z "$id" ] && printf '%s' "$response" | jq -e '.error.code == "payment_required" or .error.limit != null' >/dev/null 2>&1; then
+            reset=$(printf '%s' "$response" | jq -r '.error.limit.reset // empty')
+            when=$([ -n "$reset" ] && date -u -d "@$((reset / 1000))" '+%Y-%m-%d %H:%M UTC' || echo "within 24 hours")
+            msg="Vercel's daily deployment allowance is spent, so ${SHA} is not live yet. It resets ${when}; the hourly catch-up deploys the tip of main after that, with no push needed."
+            echo "::warning::${msg}"
+            echo "### Not deployed yet" >> "$GITHUB_STEP_SUMMARY"
+            echo "${msg}" >> "$GITHUB_STEP_SUMMARY"
+            echo "quota=1" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           if [ -z "$id" ]; then
             # The token is in the request, never in the response, so printing
             # the body here is safe and is the only way to see what went wrong.
@@ -136,7 +171,7 @@ jobs:
           echo "Created $id for ${SHA}"
 
       - name: Wait for it to finish
-        if: steps.existing.outputs.skip != '1'
+        if: steps.existing.outputs.skip != '1' && steps.create.outputs.quota != '1'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           TEAM_ID: team_PD5oXspJXbmnw6BZuI1B6xIi
