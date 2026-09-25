@@ -67,8 +67,8 @@ test.describe("in the admin", () => {
     await dialog.getByRole("button", { name: "Add them" }).click();
 
     await expect(page).toHaveURL(/\/admin\/clients\/c\d+$/, { timeout: 30_000 });
-    await expect(page.locator(".ad__head .ad__pill", { hasText: `tag${mark}` })).toBeVisible();
-    await expect(page.locator(".ad__head .ad__pill", { hasText: "wholesale" })).toBeVisible();
+    await expect(page.locator(".ad__profile .ad__pill", { hasText: `tag${mark}` })).toBeVisible();
+    await expect(page.locator(".ad__profile .ad__pill", { hasText: "wholesale" })).toBeVisible();
     const contacts = page.locator(".ad__panel", { has: page.getByRole("heading", { name: "Other contacts" }) });
     await expect(contacts).toContainText("Sade Bello");
     await expect(contacts.getByRole("link", { name: `sade-${mark}@example.com` })).toHaveAttribute("href", `mailto:sade-${mark}@example.com`);

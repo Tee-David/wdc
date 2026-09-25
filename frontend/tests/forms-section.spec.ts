@@ -78,7 +78,9 @@ test("the enquiry is numbered, new, and counted on the forms list", async ({ pag
   await as(page, "owner", baseURL);
   await page.goto("/admin/forms", { waitUntil: "load" });
   const contact = page.locator("tr", { hasText: "Contact" }).first();
-  await expect(contact).toContainText("unread of");
+  /* The unread count is its own column since the redesign, drawn as a
+     badge named for screen readers. */
+  await expect(contact.getByLabel(/^\d+ unread$/)).toBeVisible();
   await expect(contact).toContainText("not delivered");
 
   await page.goto(`/admin/forms/contact?q=${LAST}`, { waitUntil: "load" });
