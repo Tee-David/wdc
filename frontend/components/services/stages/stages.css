@@ -33,7 +33,6 @@
    defaults to `min-height: auto` and would otherwise refuse to shrink below
    its content, pushing the caption out of the frame it is meant to sit in. */
 .sv-stage__area { position: relative; flex: 1 1 auto; min-height: 0; }
-.pv-sec--alt .sv-stage__frame { background: var(--paper); }
 .sv-stage--tall .sv-stage__frame { aspect-ratio: 16 / 11; }
 /* the placeholder mirrors the real stage's boxes so its height matches to the
    pixel: a controls row when the stage has one, and the frame */
@@ -85,7 +84,6 @@
   background: var(--paper); border: 1px solid var(--rule); color: var(--muted);
   transition: box-shadow .22s ease, border-color .22s ease;
 }
-.pv-sec--alt .serp__bar { background: var(--paper-2); }
 .serp__bar:hover {
   border-color: transparent;
   box-shadow: 0 1px 6px rgb(32 33 36 / .28);
@@ -280,7 +278,6 @@
   display: flex; flex-direction: column;
 }
 .ph__vp { flex: 1 1 auto; min-height: 0; overflow: hidden; position: relative; }
-.pv-sec--alt .ph__screen { background: var(--paper-2); }
 .ph__track { display: flex; flex-direction: column; }
 /* A real capture, scrolled by the same duplicate-and-translate trick as the
    sketch reel. `width: 100%` on the images and `height: auto` means a capture
@@ -359,7 +356,6 @@
   width: 13px; height: 13px; border-radius: 50%;
   background: var(--paper); border: 2px solid var(--accent);
 }
-.pv-sec--alt .pl__dot { background: var(--paper-2); }
 /* Each dot waits for the fill to reach it. The delay is its own position along
    the run times the 72% of the cycle the fill is actually moving, so a
    four-node chain and a six-node chain both light in time with the bar.
@@ -375,13 +371,6 @@
 }
 @keyframes pl-lit {
   0%   { transform: scale(1);    background: var(--paper); }
-  5%   { transform: scale(1.55); background: var(--accent); }
-  12%  { transform: scale(1);    background: var(--accent); }
-  100% { transform: scale(1);    background: var(--accent); }
-}
-.pv-sec--alt .pl.is-live .pl__dot { animation-name: pl-lit-alt; }
-@keyframes pl-lit-alt {
-  0%   { transform: scale(1);    background: var(--paper-2); }
   5%   { transform: scale(1.55); background: var(--accent); }
   12%  { transform: scale(1);    background: var(--accent); }
   100% { transform: scale(1);    background: var(--accent); }
@@ -447,7 +436,6 @@
   display: grid; gap: 8px; padding: 13px;
   border-radius: 12px; border: 1px solid var(--rule); background: var(--paper);
 }
-.pv-sec--alt .fw__card { background: var(--paper-2); }
 .fw__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .fw__tag {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
@@ -532,7 +520,6 @@
   display: grid; gap: 2px; padding: 10px 12px;
   border-radius: 12px; border: 1px solid var(--rule); background: var(--paper);
 }
-.pv-sec--alt .seo-m { background: var(--paper-2); }
 .seo-m__n {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-weight: 700; font-size: 1.3rem; color: var(--accent);
@@ -548,7 +535,6 @@
   font-size: .68rem; font-weight: 600; padding: 3px 9px; border-radius: 999px;
   background: var(--paper-2); border: 1px solid var(--rule); color: var(--muted);
 }
-.pv-sec--alt .vp__chip { background: var(--paper); }
 
 /* ---------------- social: plan beside the wall ---------------- */
 .fw-split {
@@ -576,7 +562,6 @@
   padding: 14px; border-radius: 14px;
   border: 1px solid var(--rule); background: var(--paper);
 }
-.pv-sec--alt .fw-plan { background: var(--paper-2); }
 .fw-plan__head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .fw-plan__t {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
@@ -592,7 +577,6 @@
   font-size: .66rem; font-weight: 600; padding: 3px 8px; border-radius: 999px;
   background: var(--paper-2); border: 1px solid var(--rule); color: var(--muted);
 }
-.pv-sec--alt .fw-chan__c { background: var(--paper); }
 /* The key lives inside the calendar now; only the channel row hides here. */
 @media (max-width: 560px) { .fw-chan { display: none; } }
 
@@ -621,7 +605,6 @@
   font-size: .7rem; font-weight: 600; padding: 4px 10px; border-radius: 999px;
   background: var(--paper-2); border: 1px solid var(--rule); color: var(--muted);
 }
-.pv-sec--alt .ts__screens li { background: var(--paper); }
 /* The product-kind note, inside the source card rather than above the frame.
    It changes with the tabs, so it needs a settled height: two lines at this
    width, reserved, or the code panel under it jumps a line every time the
@@ -1007,7 +990,6 @@
   gap: 10px; padding: 14px;
   border: 1px solid var(--rule); border-radius: 16px; background: var(--paper);
 }
-.pv-sec--alt .cal { background: var(--paper-2); }
 
 .cal__bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .cal__month {
