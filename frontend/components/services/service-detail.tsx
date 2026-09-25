@@ -8,7 +8,7 @@ import { LOGOS, type LogoCategory } from "@/lib/logos";
 import { LogoGlyph } from "@/components/ui/logo-glyph";
 import LogoLoop from "@/components/ui/logo-loop";
 import ServiceIcon from "@/components/ui/service-icon";
-import PinnedRow from "@/components/ui/pinned-row";
+import SwipeRail from "@/components/ui/swipe-rail";
 import StrokeNumber from "@/components/ui/stroke-number";
 import { LazyStage } from "./stages/stage-shell";
 
@@ -146,9 +146,11 @@ export default function ServiceDetail({ service }: { service: Service }) {
             <h2 className="pv-mix">What working with us on <b>{service.short.toLowerCase()}</b> looks like</h2>
           </div>
           {/* The reference's six-card grid: a grid on desktop, and on a phone
-              the same pinned horizontal run the homepage services use. */}
-          <PinnedRow className="sv-steps__pin pv-reveal sv-steps--after">
-            <ol className="sv-steps">
+              a swipe rail. It used to pin, like the homepage services, which
+              held the page still for a thousand pixels of scrolling; the
+              homepage keeps that as its one showpiece. */}
+          <SwipeRail label={`How it goes: ${service.steps.length} steps, swipe for more`} count={service.steps.length}>
+            <ol className="sv-steps pv-reveal">
               {service.steps.map((step, n) => (
                 <li className="sv-step" key={step.t}>
                   {/* The stagger for the idle bob; see sv-bob in services.css. */}
@@ -161,7 +163,7 @@ export default function ServiceDetail({ service }: { service: Service }) {
                 </li>
               ))}
             </ol>
-          </PinnedRow>
+          </SwipeRail>
         </div>
       </section>
     </>

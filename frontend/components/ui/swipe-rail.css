@@ -1,0 +1,41 @@
+/* ============================================================================
+   SwipeRail: the list's own layout on desktop, a native snap rail on phones.
+   ========================================================================== */
+
+.srail, .srail__track { display: contents; }
+.srail__dots { display: none; }
+
+@media (max-width: 768px) {
+  .srail { display: block; }
+  .srail__track {
+    display: block; overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory; scrollbar-width: none;
+    /* Room for the cards' hover lift and focus ring inside the scroller. */
+    padding-block: 6px; margin-block: -6px;
+    scroll-padding-inline: 0;
+  }
+  .srail__track::-webkit-scrollbar { display: none; }
+  .srail__track:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 12px; }
+  /* Two classes deep: the list sets its own `display: grid` from its own
+     stylesheet, and a single class here would lose on source order. */
+  .srail .srail__track > :is(ol, ul) {
+    display: flex; gap: 14px; grid-template-columns: none;
+    height: auto; overflow: visible;
+  }
+  /* 82% leaves the next card peeking in, which is what says "there is more". */
+  .srail .srail__track > :is(ol, ul) > li {
+    flex: 0 0 82%; min-width: 0; scroll-snap-align: start;
+  }
+  .srail__dots {
+    display: flex; justify-content: center; gap: 8px; margin-top: 16px;
+  }
+  .srail__dots i {
+    width: 7px; height: 7px; border-radius: 999px; background: var(--rule);
+    transition: width .25s ease, background-color .25s ease;
+  }
+  .srail__dots i.is-on { width: 20px; background: var(--accent); }
+}
+
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .srail__dots i { transition: none; }
+}

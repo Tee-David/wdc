@@ -112,6 +112,19 @@
   .ab-wheelsec__pin { position: static; height: auto; }
 }
 
+/* PHONES: A SWIPE RAIL, NOT A PIN. The section is as tall as its content,
+   nothing sticks, the canvas is never mounted (see WHEEL_QUERY in
+   about-body.tsx), and the twelve real images are the rail. */
+@media (max-width: 768px) {
+  .ab-wheelsec { height: auto; padding-block: clamp(2.5rem, 8vw, 3.5rem); }
+  .ab-wheelsec__pin { position: static; height: auto; padding-inline: 16px; overflow: visible; }
+  .ab-wheelsec__zoom { height: auto; transform: none; transition: none; }
+  .ab-wheelsec__stage { height: auto; }
+  .ab-wheelsec__pin > .cue { display: none; }
+  .ab-wheelsec .ab-wheelsec__flat { display: flex; }
+  .ab .ab-wheelsec .srail__track > .ab-wheelsec__flat > li { flex-basis: 62%; }
+}
+
 .ab-cap {
   margin-top: 12px; text-align: center; flex: none;
   font-size: .82rem; color: var(--muted);
