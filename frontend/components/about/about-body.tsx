@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { useReveal } from "@/components/preview/use-reveal";
@@ -17,6 +17,7 @@ import "@/components/ui/motion-kit.css";
 import "./about.css";
 import StrokeNumber from "@/components/ui/stroke-number";
 import Image from "next/image";
+import SwipeRail from "@/components/ui/swipe-rail";
 
 /* 156 KB of WebGL (`ogl`), for one decorative wheel most of the way down ONE
    page -- and it was not even /about paying for it. The homepage links to
@@ -31,6 +32,19 @@ import Image from "next/image";
 const CircularGallery = dynamic(() => import("@/components/ui/circular-gallery"), {
   ssr: false,
 });
+
+/* THE WHEEL IS FOR WIDE SCREENS WITH MOTION. On a phone it pinned the page
+   for 170vh of scrolling while it turned, and the page seemed stuck; there
+   the same twelve images are a swipe rail instead, and the WebGL wheel is not
+   even downloaded. With reduced motion the grid below it has always been the
+   answer. */
+const WHEEL_QUERY = "(min-width: 769px) and (prefers-reduced-motion: no-preference)";
+const wheelSubscribe = (cb: () => void) => {
+  const mq = window.matchMedia(WHEEL_QUERY);
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+};
+const wheelWanted = () => window.matchMedia(WHEEL_QUERY).matches;
 
 /**
  * /about — the studio behind the work.
@@ -233,6 +247,7 @@ function Arrow({ dir }: { dir: "left" | "right" }) {
 export default function AboutBody() {
   useReveal();
   const { ref: wheelRef, run: wheelRun } = useScrollRun<HTMLDivElement>();
+  const wheel = useSyncExternalStore(wheelSubscribe, wheelWanted, () => false);
 
   return (
     <div className="pv ab">
@@ -300,10 +315,11 @@ export default function AboutBody() {
         <div className="ab-wheelsec__pin">
           <ScrollExpand className="ab-wheelsec__zoom">
             <div className="ab-wheelsec__stage">
-              <CircularGallery items={WHEEL} progress={wheelRun} perView={6} slots={24} />
+              {wheel ? <CircularGallery items={WHEEL} progress={wheelRun} perView={6} slots={24} /> : null}
               {/* The canvas is decorative to assistive tech, so the artwork
                   itself lives here as real images: this is what a screen
                   reader, a crawler and a browser without WebGL all get. */}
+              <SwipeRail label="Work from the agency, swipe for more" count={WHEEL.length}>
               <ul className="ab-wheelsec__flat">
                 {WHEEL.map((m, n) => (
                   <li key={m.id} style={{ "--d": `${n * 40}ms` } as CSSProperties}>
@@ -320,6 +336,7 @@ export default function AboutBody() {
                   </li>
                 ))}
               </ul>
+              </SwipeRail>
             </div>
           </ScrollExpand>
           <p className="ab-cap">Work from the agency. <Link href="/work">See more of it</Link>.</p>
