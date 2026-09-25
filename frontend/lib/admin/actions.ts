@@ -9,6 +9,7 @@ import { paystackMode } from "@/lib/paystack";
 import { actorName, adminRole, owner, allow } from "./guard";
 import { can } from "./permissions";
 import { queueLogged, retryLogged } from "@/lib/message-log";
+import { addEvents } from "@/lib/forms/events";
 import {
   FAIL, OK, type ActionState,
   approval, channel, checked, health, isoDate, kobo, looksEmail, method, num, priority,
@@ -517,8 +518,11 @@ export async function clientFromLiveSubmission(_prev: ActionState, fd: FormData)
   const email = answer(sub, "email");
   const phone = answer(sub, "phone");
   const existing = db.findDuplicateClient(email, phone);
+  const formKey = `onboarding-${sub.service}`;
+  const entryPath = `/admin/forms/${formKey}/entries/${sub.id}`;
   if (existing) {
-    refresh("/admin/forms", `/admin/forms/${sub.id}`);
+    await addEvents(formKey, [sub.id], "client", `Matched to the existing client ${existing.company}`, await actorName());
+    refresh("/admin/forms", entryPath);
     redirect(`/admin/clients/${existing.id}`);
   }
   const name = [answer(sub, "first_name"), answer(sub, "last_name")].filter(Boolean).join(" ");
@@ -531,7 +535,8 @@ export async function clientFromLiveSubmission(_prev: ActionState, fd: FormData)
     sector: answer(sub, "industry"),
     notes: `Created from the ${sub.service} onboarding form sent ${sub.submittedAt ? sub.submittedAt.slice(0, 10) : "(not sent yet)"}.`,
   });
-  refresh("/admin/forms", `/admin/forms/${sub.id}`, "/admin/clients");
+  await addEvents(formKey, [sub.id], "client", `Made a client: ${c.company}`, await actorName());
+  refresh("/admin/forms", entryPath, "/admin/clients");
   redirect(`/admin/clients/${c.id}`);
 }
 

@@ -1,7 +1,8 @@
 /**
  * One cell of a CSV export, quoted and guarded against formula injection.
  *
- * A cell starting with =, +, - or @ is a formula to Excel and Sheets the
+ * A cell starting with =, +, - or @ (or a tab or carriage return, which
+ * Excel strips before looking) is a formula to Excel and Sheets the
  * moment the file is opened -- and several of the values here (an invoice
  * note, a client's name) are text a person typed, not text we chose. The
  * leading apostrophe forces it back to a literal without changing what is
@@ -9,7 +10,7 @@
  */
 export function csvCell(value: string | number) {
   let text = String(value);
-  if (/^[=+\-@]/.test(text)) text = `'${text}`;
+  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
   return `"${text.replaceAll('"', '""')}"`;
 }
 

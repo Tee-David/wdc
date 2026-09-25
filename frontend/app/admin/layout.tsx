@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import AdminShell from "@/components/admin/shell";
 import AdminTourProvider from "@/components/admin/tour/tour-provider";
-import { getSubmissions } from "@/lib/admin/store";
+import { unreadTotal } from "@/lib/forms/entries";
 import { getAdminRequest } from "@/lib/admin/session";
 import { isAdminRole } from "@/lib/admin/permissions";
 import "@/components/admin/admin.css";
@@ -43,7 +43,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
   /* Counts that belong on the nav rather than on a screen: an admin should
      say what is waiting before you go looking for it. */
-  const open = getSubmissions().filter((s) => s.status === "In progress").length;
+  /* Unread entries across the forms: what arrived that nobody has opened.
+     A database that does not answer shows no badge rather than a wrong one. */
+  const open = await unreadTotal().catch(() => 0);
 
   return (
     <div className="ad">
