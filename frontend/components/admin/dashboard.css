@@ -7,6 +7,7 @@
 .adDash__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
 .adDash__head > div { min-width: 0; }
 .adDash__head > .ad__row { flex: none; }
+@media (max-width: 640px) { .adDash__head > .ad__row { flex: 1 1 100%; } }
 .adDash__eyebrow { display: block; margin-bottom: .35rem; color: var(--ad-accent-ink); font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
 .dark .adDash__eyebrow { color: var(--ad-accent); }
 .adDash__head h1 { font-size: clamp(1.55rem, 1.15rem + 1.2vw, 2rem); font-weight: 600; }

@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**100 open** (41 in progress)
+**100 open** (42 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -195,7 +195,7 @@ Started 2026-09-25. The target is `dashboard-mockups/` at the repo root: 134 boa
 #### Admin pages
 
 - [-] (M) Dashboard: greeting and date range, KPI row, cashflow chart, collected-of-billed gauge, attention queue, project pipeline, recent payments; dark theme board included. DONE 2026-09-25: KPI cards with solid icon tiles and a badge for the one fact that changes what to do ("3 overdue", "2 need attention"), the cashflow bars on a round-number axis with gridlines and this month marked, the gauge with paid-on-time and average days to pay DERIVED from invoices and their payments (it says "None paid yet" rather than inventing a figure), the attention queue as cards with its count, the pipeline as columns, deadlines with a date tile and days left, recent payments as a table; staff still see no money; the Boneyard skeleton rebuilt. NOT yet: the header's date range and Export, which need `getSummary`/`getMonthly` to take a range first.
-- [ ] (M) Clients: the list (filters sheet on a phone, bulk bar), a client (overview, projects, money, contacts, portal access, timeline), add, edit, merge.
+- [-] (M) Clients: the list (filters sheet on a phone, bulk bar), a client (overview, projects, money, contacts, portal access, timeline), add, edit, merge. DONE 2026-09-25: the list opens with four derived figures (active and new this quarter, owed and how many owe, buying more than one service and the pair bought together most, archived), tabs for Everyone, By service and Archived, avatars and a status column (Active, Overdue, Archived, Merged); a client opens on `ProfileCard` (crumbs, initials, state, contact line, services and tags, actions, and a strip of since, projects, paid and outstanding). NOT yet: the phone filter sheet, the bulk bar, and restyling contacts and the add, edit and merge dialogs beyond the shared dialog rules.
 - [ ] (M) Projects: board and list views, new project, a project (stage track, tasks, deliverables, updates), post an update, send a deliverable for review.
 - [ ] (L) Money: overview with tabs, invoice builder and invoice, record a payment, expense, estimate, receipt, refund, void, filters, reconciliation.
 - [ ] (L) Forms (with 4.6A): the list in its groups, entries with columns, export and trash, one entry, and the builder (steps, field list, field settings, add-a-field, logic, preview, publish), form settings, and the form's emails with the editor.

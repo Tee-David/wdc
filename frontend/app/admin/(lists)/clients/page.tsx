@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { SERVICES } from "@/lib/services";
 import { getClients, getClientsByService, getInvoicesFor, getProjectsFor } from "@/lib/admin/store";
-import { invoiceTotals, naira } from "@/lib/admin/types";
+import { invoiceStatus, invoiceTotals, naira, nairaShort } from "@/lib/admin/types";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
-import { DemoNote, Empty, Panel, when } from "@/components/admin/bits";
+import { DemoNote, Empty, Panel, Tile, when } from "@/components/admin/bits";
+import { Archive, Boxes, Users, Wallet } from "lucide-react";
 import { AddClient } from "@/components/admin/client-form";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { ClientMenu } from "@/components/admin/row-actions";
@@ -29,6 +30,8 @@ type ClientQuery = {
   dir?: string;
   page?: string;
   per?: string;
+  /* "service" shows the grouping by what they buy; anything else, the list. */
+  view?: string;
   /* Client since, as Lagos calendar days; `to` includes the whole day. */
   from?: string;
   to?: string;
@@ -107,15 +110,43 @@ export default async function ClientsPage({
   }
   const exportHref = `/admin/clients/export${exportParams.size ? `?${exportParams}` : ""}`;
 
+  /* THE ROW OF FIGURES, all read off the store: nothing here is typed. */
+  const active = getClients();
+  const archivedCount = getClients({ includeArchived: true }).filter((c) => c.archived).length;
+  const quarterStart = quarterStartInLagos();
+  const newThisQuarter = active.filter((c) => c.since.slice(0, 10) >= quarterStart).length;
+  const balances = active.map((c) => getInvoicesFor(c.id)
+    .filter((invoice) => invoice.status !== "Draft")
+    .reduce((sum, invoice) => sum + invoiceTotals(invoice).due, 0));
+  const owedTotal = balances.reduce((a, b) => a + b, 0);
+  const withBalance = balances.filter((b) => b > 0).length;
+  const multi = active.filter((c) => c.services.length > 1);
+  const pairs = new Map<string, number>();
+  for (const c of multi) {
+    const names = c.services.map((x) => SERVICES.find((sv) => sv.slug === x)?.short ?? x).sort();
+    for (let i = 0; i < names.length; i++) for (let j = i + 1; j < names.length; j++) {
+      const key = `${names[i]} and ${names[j]}`;
+      pairs.set(key, (pairs.get(key) ?? 0) + 1);
+    }
+  }
+  const topPair = [...pairs.entries()].sort((a, b) => b[1] - a[1])[0];
+  const view = query.view === "service" ? "service" : status === "archived" ? "archived" : "everyone";
+  const statusOf = (c: (typeof rows)[number]["client"]) => c.archived
+    ? (c.mergedInto ? { label: "Merged", tone: "flat" } : { label: "Archived", tone: "flat" })
+    : money && getInvoicesFor(c.id).some((invoice) => invoiceStatus(invoice) === "Overdue")
+      ? { label: "Overdue", tone: "bad" }
+      : { label: "Active", tone: "good" };
+
   return (
     <>
       <div className="ad__head">
         <div>
           <h1>Clients</h1>
-          <p>{getClients().length} active clients, grouped by what they buy.</p>
+          <p>{money ? "Everyone you work for, what they buy and what they owe." : "Everyone you work for, and what they buy."}</p>
         </div>
         <div className="ad__row">
           <PageTourButton />
+          {exportable ? <a className="ad__btn" href={exportHref}>Export CSV</a> : null}
           <AddClient dataTour="clients-add" />
         </div>
       </div>
@@ -127,7 +158,23 @@ export default async function ClientsPage({
         then gone. Wiring CockroachDB underneath it changes one file.
       </DemoNote>
 
+      <dl className="ad__tiles ad__tiles--4">
+        <Tile label="Active clients" value={String(active.length)} icon={Users} note={newThisQuarter ? `${newThisQuarter} new this quarter` : "None new this quarter"} />
+        {money ? (
+          <Tile label="Owed to us" value={nairaShort(owedTotal)} icon={Wallet} iconTone="live" note={withBalance ? `${withBalance} client${withBalance === 1 ? "" : "s"} with a balance` : "Nobody owes anything"} />
+        ) : null}
+        <Tile label="Buying more than one service" value={`${multi.length} of ${active.length}`} icon={Boxes} iconTone="good" note={topPair ? `${topPair[0]} bought together most` : "Each buys one service"} />
+        <Tile label="Archived" value={String(archivedCount)} icon={Archive} iconTone="warn" note="Kept for their invoices and history" />
+      </dl>
+
+      <nav className="ad__tabsNav" aria-label="Client views">
+        <Link href="/admin/clients" aria-current={view === "everyone" ? "page" : undefined}>Everyone <span className="ad__tabN">{active.length}</span></Link>
+        <Link href="/admin/clients?view=service" aria-current={view === "service" ? "page" : undefined}>By service</Link>
+        <Link href="/admin/clients?status=archived#client-list" aria-current={view === "archived" ? "page" : undefined}>Archived <span className="ad__tabN">{archivedCount}</span></Link>
+      </nav>
+
       <div className="ad__stack">
+        {view === "service" ? (
         <Panel title="By service">
           <div style={{ padding: ".8rem 1rem" }}>
             {SERVICES.map((sv) => {
@@ -152,7 +199,7 @@ export default async function ClientsPage({
             })}
           </div>
         </Panel>
-
+        ) : (
         <Panel title="Everyone">
           <div className="ad__filterBar" data-tour="clients-filters">
           {/* The range is its own form, so it sits beside this one rather
@@ -190,7 +237,6 @@ export default async function ClientsPage({
               action="/admin/clients#client-list"
             />
             {hasFilters ? <Link className="ad__btn" href="/admin/clients#client-list">Clear</Link> : null}
-            {exportable ? <a className="ad__btn" href={exportHref}>Export CSV</a> : null}
           </div>
           <div className="ad__listMeta" id="client-list" aria-live="polite">
             <span>{rows.length} {rows.length === 1 ? "client" : "clients"}</span>
@@ -211,6 +257,7 @@ export default async function ClientsPage({
                   <th aria-sort={sort === "since" ? direction === "asc" ? "ascending" : "descending" : undefined}>
                     <Link href={sortHref("since")}>Since</Link>
                   </th>
+                  <th>Status</th>
                   <th className="ad__rmH"><span className="ad__sr">Actions</span></th>
                 </tr>
               </thead>
@@ -219,8 +266,13 @@ export default async function ClientsPage({
                   return (
                     <tr key={c.id}>
                       <td>
-                        <Link href={`/admin/clients/${c.id}`}><b>{c.company}</b></Link>
-                        <small>{c.name}{c.archived ? (c.mergedInto ? " · Merged" : " · Archived") : ""}{c.tags?.length ? ` · ${c.tags.join(", ")}` : ""}</small>
+                        <span className="ad__who">
+                          <span className={`ad__av ad__av--${avTone(c.company)}`} aria-hidden="true">{initials(c.company)}</span>
+                          <span>
+                            <Link href={`/admin/clients/${c.id}`}><b>{c.company}</b></Link>
+                            <small>{c.name}{c.tags?.length ? ` · ${c.tags.join(", ")}` : ""}</small>
+                          </span>
+                        </span>
                       </td>
                       <td>{c.sector || <span className="ad__dim">Not set</span>}</td>
                       <td>
@@ -235,6 +287,7 @@ export default async function ClientsPage({
                       <td className="num">{live}</td>
                       {money ? <td className="num">{owed ? naira(owed) : <span className="ad__dim">Nil</span>}</td> : null}
                       <td className="num">{when(c.since)}</td>
+                      <td><span className={`ad__pill ad__pill--${statusOf(c).tone}`}>{statusOf(c).label}</span></td>
                       <td className="ad__rmC"><ClientMenu client={c} /></td>
                     </tr>
                   );
@@ -263,7 +316,26 @@ export default async function ClientsPage({
             />
           ) : null}
         </Panel>
+        )}
       </div>
     </>
   );
+}
+
+function initials(name: string) {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
+}
+
+/* One of five solid fills, chosen from the name so a client keeps its colour. */
+function avTone(name: string) {
+  const tones = ["brand", "live", "good", "warn", "neutral"] as const;
+  let h = 0;
+  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return tones[h % tones.length];
+}
+
+/** The first day of this calendar quarter, in Lagos (UTC+1, no daylight saving). */
+function quarterStartInLagos() {
+  const d = new Date(Date.now() + 3_600_000);
+  return new Date(Date.UTC(d.getUTCFullYear(), Math.floor(d.getUTCMonth() / 3) * 3, 1)).toISOString().slice(0, 10);
 }
