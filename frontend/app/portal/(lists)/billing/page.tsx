@@ -1,3 +1,4 @@
+import { PayForm } from "@/components/money/pay-form";
 import Link from "next/link";
 import { ListSearch } from "@/components/admin/list-search";
 import { Banknote, Lock, CheckCircle2, CreditCard, Download, FileText, Receipt, Wallet } from "lucide-react";
@@ -80,11 +81,11 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
             /* A real POST, as on the invoice itself: a link that spends money
                can be followed by a prefetcher. The amount comes off the
                token, never from this page. */
-            <form method="post" action={`/api/pay/${next.token}`}>
+            <PayForm action={`/api/pay/${next.token}`}>
               <button type="submit" className="pBill__pay">
                 <CreditCard aria-hidden="true" /> Pay {naira(invoiceTotals(next).due)}
               </button>
-            </form>
+            </PayForm>
           ) : null}
         </div>
         <div className="ad__tile">
@@ -128,9 +129,9 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
                     <span className="pBill__cardEnd"><b className="ad__num">{naira(t.total)}</b><InvoicePill status={invoiceStatus(inv)} /></span>
                   </a>
                   {owing && canPay ? (
-                    <form method="post" action={`/api/pay/${inv.token}`} className="pBill__cardPay">
+                    <PayForm action={`/api/pay/${inv.token}`} className="pBill__cardPay">
                       <button type="submit" className="ad__btn ad__btn--primary"><CreditCard aria-hidden="true" /> Pay {naira(t.due)}</button>
-                    </form>
+                    </PayForm>
                   ) : null}
                 </li>
               );
@@ -162,9 +163,9 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
                       <td>
                         <span className="pBill__acts">
                           {owing && canPay ? (
-                            <form method="post" action={`/api/pay/${inv.token}`}>
+                            <PayForm action={`/api/pay/${inv.token}`}>
                               <button type="submit" className="ad__btn ad__btn--primary">Pay now</button>
-                            </form>
+                            </PayForm>
                           ) : null}
                           <a className="ad__btn" href={`/i/${inv.token}`} target="_blank" rel="noopener noreferrer" aria-label={`Open ${inv.number} to save or print`}>
                             <Download aria-hidden="true" /> PDF

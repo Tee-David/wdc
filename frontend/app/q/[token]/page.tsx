@@ -70,6 +70,12 @@ export default async function PublicEstimate({
           again; nothing here has changed, so it is a short conversation.
         </p>
       ) : null}
+      {state === "Expired" ? (
+        <div className="doc__actions">
+          <a className="doc__btn doc__btn--ghost" href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`A new quote for ${est.number}`)}`}>Ask for a new quote</a>
+          <small>Or write to {CONTACT_EMAIL} and mention {est.number}.</small>
+        </div>
+      ) : null}
 
       {state === "Declined" && est.answered ? (
         <p className="doc__void" role="status">

@@ -242,6 +242,12 @@ h4 {
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
+/* A Pay form after its first press (components/money/pay-form.tsx): the
+   button says it heard, and the line under it says where the payer is going.
+   Used on the public invoice and in the portal, so it lives here. */
+form[data-busy="1"] [type="submit"] { cursor: progress; }
+.pay-busy { display: block; flex-basis: 100%; margin-top: .4rem; font-size: .85rem; color: inherit; }
+
 /* --- TextType --- */
 .text-type {
   display: inline-block;
