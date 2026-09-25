@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { AlertTriangle, Check, HelpCircle, Loader2, Search, X } from "lucide-react";
 import WaitingLine from "./waiting-line";
+import { SendToWdc } from "./send-to-wdc";
 
 /**
  * The email deliverability check at /tools/email.
@@ -154,9 +154,10 @@ export default function EmailChecker() {
                 These are DNS changes, not a rebuild. We fix them as part of any web or
                 SEO work, or on their own if that is all you need.
               </p>
-              <Link className="pv-btn pv-btn--accent" href="/contact">
+              <SendToWdc topic="web" from="your email check"
+                summary={`Email check for ${result.domain}:\n${result.findings.map((f) => `- ${f.label}: ${WORD[f.verdict]}`).join("\n")}\n\nCan you fix what needs fixing?`}>
                 Ask us to fix this
-              </Link>
+              </SendToWdc>
             </div>
           </>
         )}
