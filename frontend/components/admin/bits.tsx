@@ -1,3 +1,5 @@
+import { EmptyScene, sceneFor, type SceneKind } from "./empty-scene";
+import "./empty-scene.css";
 import { Inbox, Info, type LucideIcon } from "lucide-react";
 import type { Approval, Attention, Health, InvoiceStatus, Stage } from "@/lib/admin/types";
 
@@ -71,15 +73,18 @@ export function Empty({
   children,
   action,
   icon: Icon = Inbox,
+  kind,
 }: {
   title: string;
   children?: React.ReactNode;
   action?: React.ReactNode;
   icon?: LucideIcon;
+  /** Which scene: first-use unless the title says otherwise (see sceneFor). */
+  kind?: SceneKind;
 }) {
   return (
     <div className="ad__empty" role="status">
-      <span className="ad__emptyIcon"><Icon aria-hidden="true" /></span>
+      <EmptyScene kind={kind ?? sceneFor(title)} icon={Icon} />
       <b>{title}</b>
       {children ? <p>{children}</p> : null}
       {action ? <div className="ad__emptyAction">{action}</div> : null}

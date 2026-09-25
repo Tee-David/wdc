@@ -2,7 +2,9 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Search, SearchX, X } from "lucide-react";
+import { Search, X } from "lucide-react";
+import { EmptyScene } from "./empty-scene";
+import "./empty-scene.css";
 
 /**
  * A SEARCH FOR A LIST THAT IS ALREADY ON THE PAGE (the owner's rule: every
@@ -57,7 +59,7 @@ export function ListSearch({ target, label = "Search", placeholder = "Search", n
     <div className="adLS" role="search">
       {holder && shown && shown.n === 0 ? createPortal(
         <div className="adLS__none">
-          <span className="ad__emptyIcon"><SearchX aria-hidden="true" /></span>
+          <EmptyScene kind="no-results" />
           <b>No {noun} match &ldquo;{q.trim()}&rdquo;</b>
           <p>Check the spelling, or search for part of a name.</p>
           <button type="button" className="ad__btn" onClick={() => { setQ(""); input.current?.focus(); }}>Clear the search</button>
