@@ -13,17 +13,20 @@ import { NewTab } from "@/components/ui/new-tab";
 import { publicImageSize } from "@/lib/image-size";
 import WorkToc from "@/components/work/toc";
 import PageEnd from "@/components/ui/page-end";
+import { hydrateCaseStudies } from "@/lib/work-db";
 
 /* One path per case study, at its CANONICAL category only. Generating every
    category a piece is tagged to would prerender the same page at three URLs,
    which is the duplicate-content problem the canonical rule exists to avoid. */
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  await hydrateCaseStudies();
   return CASE_STUDIES.map((c) => ({ category: c.category, slug: c.slug }));
 }
 
 export async function generateMetadata(
   { params }: { params: Promise<{ category: string; slug: string }> },
 ): Promise<Metadata> {
+  await hydrateCaseStudies();
   const { slug } = await params;
   const cs = caseBySlug(slug);
   if (!cs) return {};
@@ -87,6 +90,7 @@ export async function generateMetadata(
 export default async function WorkDetailPage(
   { params }: { params: Promise<{ category: string; slug: string }> },
 ) {
+  await hydrateCaseStudies();
   const { category, slug } = await params;
   const cs = caseBySlug(slug);
   // A real case study reached through a category it is not tagged to, or at a
@@ -210,7 +214,7 @@ export default async function WorkDetailPage(
                   { }
                   <Image
                     src={cs.cover}
-                    alt={`${cs.client}: ${cs.title}`}
+                    alt={cs.coverAlt || `${cs.client}: ${cs.title}`}
                     fill
                     sizes="(max-width: 900px) 100vw, 860px"
                     quality={78}
@@ -261,12 +265,12 @@ export default async function WorkDetailPage(
 
                   {lead.length ? (
                     <div className={`wk-shots${lead.length === 2 ? " wk-shots--2" : ""}`}>
-                      {lead.map((src) => (
+                      {lead.map((src, n) => (
                         <div className="wk-shot" key={src}>
                           { }
                           <Image
                             src={src}
-                            alt={`${cs.client} interface`}
+                            alt={cs.galleryAlt?.[n] || `${cs.client} interface`}
                             fill
                             sizes="(max-width: 720px) 100vw, 45vw"
                             quality={78}
@@ -351,7 +355,7 @@ export default async function WorkDetailPage(
                         >
                           <Image
                             src={src}
-                            alt={`${cs.client}: a page from the delivered work`}
+                            alt={cs.galleryAlt?.[lead.length + n] || `${cs.client}: a page from the delivered work`}
                             fill
                             sizes="(max-width: 720px) 100vw, 45vw"
                             quality={78}
