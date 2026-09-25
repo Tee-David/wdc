@@ -1882,6 +1882,7 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 .adIcons__top { display: flex; align-items: center; gap: .75rem; margin-bottom: .6rem; }
 .adIcons__now { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; flex: none; border-radius: 12px; background: var(--ad-tone-brand); color: var(--ad-on-brand); }
 .adIcons__now svg { width: 1.25rem; height: 1.25rem; }
+.adIcons__now.is-empty { background: var(--ad-tone-flat); color: var(--ad-on-flat); font-weight: 700; }
 .adIcons__hint { flex: 1; min-width: 0; font-size: .84rem; }
 .adIcons__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.75rem, 1fr)); gap: .35rem; max-height: 9.5rem; overflow-y: auto; overscroll-behavior: contain; padding: .15rem; }
 .adIcons__opt { position: relative; }
