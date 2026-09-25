@@ -30,7 +30,8 @@ export type DocBlock =
   | { type: "heading"; attrs: { level: 2 | 3 }; content?: DocInline[] }
   | { type: "bulletList" | "orderedList"; content: DocListItem[] }
   | { type: "blockquote"; content: DocBlock[] }
-  | { type: "image"; attrs: { src: string; alt: string; width?: number; height?: number } };
+  | { type: "image"; attrs: { src: string; alt: string; width?: number; height?: number } }
+  | { type: "video"; attrs: { src: string; title: string; width?: number; height?: number } };
 
 export type DocListItem = { type: "listItem"; content: DocBlock[] };
 export type RichDoc = { type: "doc"; content: DocBlock[] };
@@ -72,6 +73,12 @@ export function safeImage(raw: unknown, hosts: readonly string[]): string | null
     if (u.protocol !== "https:") return null;
     return hosts.some((h) => { try { return new URL(h).origin === u.origin; } catch { return false; } }) ? u.toString() : null;
   } catch { return null; }
+}
+
+/** A clip the post may play: an MP4 or WebM from this site or our own bucket. */
+export function safeVideo(raw: unknown, hosts: readonly string[]): string | null {
+  const src = safeImage(raw, hosts);
+  return src && /\.(mp4|webm)(\?.*)?$/i.test(src) ? src : null;
 }
 
 type Raw = Record<string, unknown>;
@@ -169,6 +176,16 @@ export function cleanDoc(raw: unknown, opts: { imageHosts?: readonly string[] } 
           const alt = typeof a.alt === "string" ? a.alt.trim().slice(0, DOC_LIMITS.alt) : "";
           const width = dim(a.width), height = dim(a.height);
           out.push({ type: "image", attrs: { src, alt, ...(width && height ? { width, height } : {}) } });
+          break;
+        }
+        case "video": {
+          if (depth > 0) break;
+          const a = obj(o.attrs) ?? {};
+          const src = safeVideo(a.src, hosts);
+          if (!src) break;
+          const title = typeof a.title === "string" ? a.title.trim().slice(0, DOC_LIMITS.alt) : "";
+          const width = dim(a.width), height = dim(a.height);
+          out.push({ type: "video", attrs: { src, title, ...(width && height ? { width, height } : {}) } });
           break;
         }
         default: break;
