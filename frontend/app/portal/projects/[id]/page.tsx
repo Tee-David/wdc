@@ -92,7 +92,7 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
 
       <div className="ad__split">
         <div className="ad__stack">
-          <Panel title="Deliverables">
+          <Panel title="Deliverables" id="deliverables">
             {deliverables.length ? (
               <>
                 <p className="cpSub">Open each one, then approve it or tell us what to change.</p>

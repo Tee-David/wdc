@@ -23,15 +23,18 @@ export function ListSearch({ target, label = "Search", placeholder = "Search", n
     if (!box) return;
     const rows = [...box.querySelectorAll<HTMLElement>("tbody tr, [data-row]")];
     const needle = q.trim().toLocaleLowerCase();
+    /* A second view of the same rows (the phone cards beside a table) is
+       filtered with them but not counted twice. */
+    const counted = rows.filter((r) => !r.closest("[data-ls-mirror]"));
     let n = 0;
     for (const r of rows) {
       const hit = !needle || (r.dataset.search ?? r.textContent ?? "").toLocaleLowerCase().includes(needle);
       r.hidden = !hit;
-      if (hit) n += 1;
+      if (hit && !r.closest("[data-ls-mirror]")) n += 1;
     }
     box.dataset.searching = needle ? "1" : "";
     /* Reported in a frame, not during this effect's own pass. */
-    const f = requestAnimationFrame(() => setShown(needle ? { n, of: rows.length } : null));
+    const f = requestAnimationFrame(() => setShown(needle ? { n, of: counted.length } : null));
     return () => cancelAnimationFrame(f);
   }, [q, target]);
 
