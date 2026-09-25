@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ListSearch } from "@/components/admin/list-search";
 import { ClipboardList, ExternalLink, Globe, Inbox, Mail, MailWarning, MessageCircle, Newspaper, Smartphone, Star, TrendingUp, Zap, type LucideIcon } from "lucide-react";
 import { FORMS, type FormDef } from "@/lib/forms/registry";
 import { formSummaries, summaryOf, type FormSummary } from "@/lib/forms/entries";
@@ -159,12 +160,15 @@ export default async function FormsPage() {
             <Tile label="Notices that failed" value={String(failed)} icon={MailWarning} iconTone={failed ? "bad" : "good"}
               note={failed ? "Retry them from the email log" : "Every studio notice went"} />
           </dl>
+          <section className="ad__panel"><ListSearch target="forms-lists" placeholder="Search forms" noun="forms" /></section>
+          <div className="ad__stack" id="forms-lists">
           <Panel title="Onboarding" dataTour="forms-live">
             <FormTable forms={FORMS.filter((f) => f.group === "onboarding")} all={all} open={open} tour="forms-table" />
           </Panel>
           <Panel title="Website">
             <FormTable forms={FORMS.filter((f) => f.group === "website")} all={all} open={open} />
           </Panel>
+          </div>
           <p className="ad__dim" style={{ margin: 0, fontSize: ".85rem" }}>
             These forms are defined in the site&apos;s code. This is where their entries, and the emails they send, are looked after.
           </p>
