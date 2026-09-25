@@ -1,4 +1,5 @@
 import { after, NextRequest, NextResponse } from "next/server";
+import { hydrateSettings } from "@/lib/settings/store";
 import { formByKey } from "@/lib/forms/registry";
 import { availability, getFormSettings } from "@/lib/forms/settings-db";
 import { confirmation, sendFormEmail } from "@/lib/forms/notify";
@@ -33,6 +34,8 @@ function clean(value: unknown, max: number) {
 }
 
 export async function POST(request: NextRequest) {
+  /* Studio notices go to "Replies go to" from Settings, Email. */
+  await hydrateSettings();
   const limit = rateLimit(callerKey(request, "newsletter"), LIMIT, WINDOW_MS);
   if (!limit.ok) {
     return NextResponse.json(

@@ -72,10 +72,12 @@ async function failOne(page: Page) {
 
 test("a refused address is listed to the alert address, once an hour", async ({ page, baseURL }) => {
   await asOwner(page, baseURL);
-  await page.goto("/admin/settings/email", { waitUntil: "load" });
-  await page.getByLabel(/^Tell this address when an email fails/).fill(ALERTS);
-  await page.getByRole("button", { name: "Save alert address" }).click();
-  await expect(page.locator(".ad__msg.is-ok").first()).toContainText(`listed to ${ALERTS}`, { timeout: 20_000 });
+  await page.goto("/admin/settings/notifications", { waitUntil: "networkidle" });
+  const alertSwitch = page.getByRole("switch", { name: "Tell me when an email bounces or fails" });
+  if ((await alertSwitch.getAttribute("aria-checked")) !== "true") await alertSwitch.click();
+  await page.getByLabel(/^Send alerts to/).fill(ALERTS);
+  await page.getByRole("region", { name: "Unsaved changes" }).getByRole("button", { name: "Save changes" }).click();
+  await expect(page.locator(".adToast", { hasText: "Settings saved." })).toBeVisible({ timeout: 20_000 });
 
   await failOne(page);
   await expect.poll(() => alertsIn().length, { timeout: 30_000 }).toBe(1);

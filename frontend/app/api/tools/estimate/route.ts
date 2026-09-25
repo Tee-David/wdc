@@ -1,7 +1,8 @@
 import { after, NextResponse, type NextRequest } from "next/server";
+import { hydrateSettings } from "@/lib/settings/store";
 import { CONTACT_EMAIL, SITE_URL } from "@/lib/site";
 import { randomUUID } from "node:crypto";
-import { mailIsConfigured } from "@/lib/email";
+import { mailIsConfigured, studioInbox } from "@/lib/email";
 import { sendLogged } from "@/lib/outbox";
 import { composeEmailHtml, emailPanel, scopeEstimateEmail } from "@/lib/email-templates";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
@@ -62,6 +63,8 @@ function readAnswers(raw: unknown): Answers {
 }
 
 export async function POST(request: NextRequest) {
+  /* Studio notices go to "Replies go to" from Settings, Email. */
+  await hydrateSettings();
   const eventId = randomUUID();
   const limit = rateLimit(callerKey(request, "tools-estimate"), LIMIT, WINDOW_MS);
   if (!limit.ok) {
@@ -124,7 +127,7 @@ export async function POST(request: NextRequest) {
        forty seconds between the click and the answer. */
     /* A reply goes to a person, not into the void. */
     await sendLogged(
-      { to: email, replyTo: process.env.SMTP_REPLY_TO || CONTACT_EMAIL, ...scopeEstimateEmail({
+      { to: email, replyTo: studioInbox(), ...scopeEstimateEmail({
         rangeNgn,
         rangeUsd,
         days: result.days,
@@ -147,7 +150,7 @@ export async function POST(request: NextRequest) {
            carries the answers so whoever replies knows what was priced without
            opening anything. */
         await sendLogged({
-          to: process.env.SMTP_REPLY_TO || CONTACT_EMAIL,
+          to: studioInbox(),
           replyTo: email,
           subject: `Estimator: ${rangeNgn} - ${email}`,
           text: [

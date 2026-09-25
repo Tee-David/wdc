@@ -1,8 +1,11 @@
 import "server-only";
 
-import { CONTACT_EMAIL, SITE_URL } from "@/lib/site";
+import { studioInbox } from "@/lib/email";
+import { hydrateSettings } from "@/lib/settings/store";
+
+import { SITE_URL } from "@/lib/site";
 import { supportNoticeEmail, supportReplyEmail } from "@/lib/email-templates";
-import { getClient } from "@/lib/admin/store";
+import { getClient, getSetting } from "@/lib/admin/store";
 import { queueLogged } from "@/lib/message-log";
 import { notifyAllows, type Ticket } from "@/lib/admin/types";
 import { sendLogged } from "@/lib/outbox";
@@ -17,10 +20,12 @@ import { sendLogged } from "@/lib/outbox";
  * they can switch off; switched off, the row says Skipped and why.
  */
 const first = (name: string) => name.trim().split(/\s+/)[0] || name;
-const studioInbox = () => process.env.SMTP_REPLY_TO || CONTACT_EMAIL;
 
 export async function sendSupportNotice(input: { ticket: Ticket; body: string; opened: boolean; messageId: string }) {
   const { ticket, body, opened, messageId } = input;
+  /* Settings, Notifications: the studio can switch these off. */
+  await hydrateSettings();
+  if (getSetting("notify.tickets") === "0") return;
   const client = getClient(ticket.clientId);
   const company = client?.company || client?.name || "A client";
   try {

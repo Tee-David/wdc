@@ -113,7 +113,7 @@ export function parsePost(raw: Raw, opts: { imageHosts?: readonly string[] } = {
   const cover = text(raw.cover, 500);
   /* One of the site's own, or a photo uploaded to our own media bucket. */
   const ownCover = (v: string) => BLOG_COVERS.includes(v) || Boolean(opts.imageHosts?.length && safeImage(v, opts.imageHosts) && /^https:/.test(v));
-  if (!ownCover(cover)) errors.cover = "Pick one of the site's cover photographs, or upload one.";
+  if (!ownCover(cover)) errors.cover = "Upload a cover photograph, or choose one of ours.";
 
   const canonicalRaw = text(raw.canonical, 500);
   let canonical: string | null = null;

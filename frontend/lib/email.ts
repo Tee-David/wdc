@@ -2,6 +2,9 @@ import "server-only";
 
 import nodemailer from "nodemailer";
 import { addressTo, escapeHtml } from "@/lib/email-templates";
+import { getSetting } from "@/lib/admin/store";
+import { hydrateSettings } from "@/lib/settings/store";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 function required(name: string) {
   const value = process.env[name]?.trim();
@@ -101,7 +104,12 @@ export async function sendMail(input: {
   unsubscribeUrl?: string;
 }) {
   const { unsubscribe, unsubscribeUrl, ...message } = input;
-  const contact = process.env.SMTP_REPLY_TO || process.env.SMTP_FROM_EMAIL;
+  /* Sender name and reply-to from Settings, Email; the environment is what
+     shipped. A settings read that fails leaves what shipped. */
+  await hydrateSettings();
+  const replyTo = getSetting("mail.replyTo") || process.env.SMTP_REPLY_TO || undefined;
+  const fromName = getSetting("mail.fromName") || process.env.SMTP_FROM_NAME?.trim() || "WDC Solutions";
+  const contact = replyTo || process.env.SMTP_FROM_EMAIL;
   /* The link first, where there is one: RFC 8058's one-click POST is what
      Gmail and Yahoo reward. The mailto stays as the fallback for clients that
      only understand that. */
@@ -110,10 +118,10 @@ export async function sendMail(input: {
 
   return transport().sendMail({
     from: {
-      name: process.env.SMTP_FROM_NAME?.trim() || "WDC Solutions",
+      name: fromName,
       address: required("SMTP_FROM_EMAIL"),
     },
-    replyTo: input.replyTo || process.env.SMTP_REPLY_TO || undefined,
+    replyTo: input.replyTo || replyTo,
     ...message,
     /* The footer's "sent to" line names this address. */
     html: message.html ? addressTo(message.html, message.to) : undefined,
@@ -127,3 +135,13 @@ export async function sendMail(input: {
 }
 
 export { escapeHtml };
+
+/**
+ * Where notices to the studio go: "Replies go to" from Settings, Email, else
+ * the environment's reply-to, else the contact address. Synchronous, because
+ * the form emails are built synchronously: a caller runs `hydrateSettings()`
+ * first (every route that builds one does), or it reads what shipped.
+ */
+export function studioInbox(): string {
+  return getSetting("mail.replyTo") || process.env.SMTP_REPLY_TO || CONTACT_EMAIL;
+}

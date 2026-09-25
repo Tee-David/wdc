@@ -37,16 +37,13 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <div className="ad__head"><div><h1>Privacy</h1><p>How long personal data is kept, and what to do when somebody asks to see or erase theirs.</p></div></div>
+      <div className="ad__head"><div><h1>Privacy and data</h1><p>How long things are kept, and requests about a person.</p></div></div>
       <div className="ad__stack">
-        <Panel title="How long things are kept">
+        <Panel title="Keep for">
           <div style={{ padding: "0 1rem 1rem" }}>
             <RetentionForm rules={RULES} values={rules} />
             <p className="ad__dim adForms__p">
-              Applied by the daily tidy, at most 500 records of each kind a run.{" "}
-              {daily ? `Last run ${time(daily.at)}: ${daily.action}.` : "It has not run yet."}{" "}
-              Not here on purpose: money records (kept for the accounts), unsubscribed addresses (kept so an import cannot sign them up again),
-              the message log and each form&apos;s Trash (their own settings). Expired sessions, sign-in codes and rate-limit counters are always removed after a day.
+              {daily ? `Applied nightly. Last run ${time(daily.at)}: ${daily.action}.` : "Applied nightly. It has not run yet."}
             </p>
           </div>
         </Panel>
@@ -66,7 +63,7 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
           {asked && !valid ? (
             <p className="ad__msg is-bad" style={{ margin: "0 1rem 1rem" }} role="status"><span>That is not an email address.</span></p>
           ) : !asked ? (
-            <p className="ad__dim" style={{ padding: "0 1rem 1rem", margin: 0 }}>Every table that holds an address is searched: enquiries, onboarding briefs, the newsletter, emails sent, invitations and accounts. The audit log names the studio&apos;s people and records, not visitors, and is not searched.</p>
+            <p className="ad__dim" style={{ padding: "0 1rem 1rem", margin: 0 }}>Searches enquiries, briefs, the newsletter, emails sent, invitations and accounts.</p>
           ) : !found ? (
             <AdminState kind="error" title="The lookup did not finish" description="The database did not answer. Nothing was changed; try again." />
           ) : total === 0 ? (

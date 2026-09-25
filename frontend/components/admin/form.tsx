@@ -432,7 +432,7 @@ function HintTip({ hint }: { hint?: string; label?: string }) {
 }
 
 /** The label, hint and error around whatever control the caller renders. */
-function Wrap({
+export function Wrap({
   name, label, hint, required, half, kind, children,
 }: Common & {
   /* What is inside, so the wrapper can carry the caret a `<select>` needs.
@@ -469,7 +469,7 @@ function Wrap({
 }
 
 /** The value to put back: what was submitted, else what the caller passed. */
-function useKept(name: string, fallback?: string | number) {
+export function useKept(name: string, fallback?: string | number) {
   const { values } = useContext(Ctx);
   const v = values[name];
   if (v === undefined) return fallback;
@@ -521,4 +521,9 @@ export function Hidden({ name, value }: { name: string; value: string }) {
 /** The error for one field, for a control that is not one of the kit's own. */
 export function useFieldError(name: string): string | undefined {
   return useContext(Ctx).errors[name];
+}
+
+/** Every field error the last submit came back with (the settings save bar counts them). */
+export function useFormErrors(): Errors {
+  return useContext(Ctx).errors;
 }

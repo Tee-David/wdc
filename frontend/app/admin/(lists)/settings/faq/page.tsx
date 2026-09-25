@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { siteFaqs } from "@/lib/site-content";
 import { SERVICES } from "@/lib/services";
 import { when } from "@/components/admin/bits";
@@ -22,12 +21,10 @@ export default async function FaqPage() {
     <>
       <div className="ad__head">
         <div>
-          <p className="ad__dim"><Link href="/admin/settings">Settings</Link></p>
           <h1>FAQ</h1>
           <p>
             {edited ? `Edited ${when(edited.at)} by ${edited.by}.` : "Showing the questions that shipped with the site."}
-            {" "}Shown on the homepage, /contact and the service pages.
-          </p>
+                      </p>
         </div>
       </div>
       {configured ? (

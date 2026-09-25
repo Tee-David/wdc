@@ -30,7 +30,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
   const filtered = Boolean(filters.kind || filters.actor || filters.q || filters.range !== "30d");
   return (
     <>
-      <div className="ad__head"><div><h1>Audit log</h1><p>Every change made in the admin, newest first, with who made it and what it was before.</p></div></div>
+      <div className="ad__head"><div><h1>Audit log</h1><p>Every change, who made it, and what it was.</p></div></div>
       <section className="ad__panel" style={{ marginBottom: ".9rem" }}>
       <form className="adForms__filters" method="get" role="search" style={{ borderBottom: 0 }}>
         <label>What

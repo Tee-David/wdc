@@ -15,7 +15,7 @@ export const metadata = { title: "Edit post" };
 
 const EMPTY: EditorPost = {
   id: null, slug: "", title: "", seoTitle: "", description: "", excerpt: "",
-  topic: "", tags: [], cover: BLOG_COVERS[0] ?? "", canonical: "", socialImage: "",
+  topic: "", tags: [], cover: "", canonical: "", socialImage: "",
   body: { type: "doc", content: [] }, status: "draft", publishedAt: "", live: false, savedAt: null,
 };
 

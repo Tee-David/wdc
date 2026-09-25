@@ -26,7 +26,7 @@ export default async function AccountPage() {
     return <section className="ad__panel"><AdminState kind="forbidden" title="Sign in to see your account" description="This page is about the account you are signed in with." /></section>;
   }
   const { capture, session } = await getAdminRequest();
-  const head = <div className="ad__head"><div><h1>My account</h1><p>Your name, how you sign in, and where you are signed in.</p></div></div>;
+  const head = <div className="ad__head"><div><h1>My account</h1><p>Your profile, password and devices.</p></div></div>;
   if (capture || !session?.session) {
     return <>{head}<section className="ad__panel"><AdminState kind="forbidden" title="This is a preview session" description="There is no real account behind it, so there is nothing to change. Sign in to manage your own." /></section></>;
   }
@@ -101,7 +101,7 @@ export default async function AccountPage() {
         </Panel>
 
         <Panel title="Tours">
-          <p className="ad__dim" style={{ padding: "0 1rem 1rem" }}>The help button (the question mark) at the top of every page replays the welcome tour, the full walkthrough, or the tour for the page you are on.</p>
+          <p className="ad__dim" style={{ padding: "0 1rem 1rem" }}>Replay any tour from the question mark at the top of every page.</p>
         </Panel>
       </div>
     </>

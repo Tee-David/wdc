@@ -139,13 +139,56 @@
 
 /* THE COVER: a 16:10 preview beside an upload button and the built-in list;
    stacked on a phone. */
-.adCover__row { display: grid; grid-template-columns: minmax(0, 14rem) minmax(0, 1fr); gap: .9rem; align-items: start; }
-.adCover__shot { display: grid; place-items: center; aspect-ratio: 16 / 10; overflow: hidden; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel-2); }
-.adCover__shot img { width: 100%; height: 100%; object-fit: cover; }
-.adCover__none { color: var(--ad-dim); font-size: .84rem; }
-.adCover__pick { min-width: 0; display: grid; gap: .6rem; align-content: start; }
-.adCover__up { position: relative; justify-content: center; cursor: pointer; }
-.adCover__up input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-.adCover__up:focus-within { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
-.adCover__pick select { width: 100%; }
-@media (max-width: 640px) { .adCover__row { grid-template-columns: minmax(0, 1fr); } }
+
+/* THE COVER: a box to click or drop a photo on, the photo itself once there
+   is one, and our own photographs as thumbnails underneath. */
+.adCover__drop {
+  position: relative; display: grid; aspect-ratio: 16 / 7; min-height: 10rem; overflow: hidden;
+  border: 2px dashed var(--ad-line); border-radius: 14px; background: var(--ad-panel-2);
+  transition: border-color .15s ease, background-color .15s ease;
+}
+.adCover__drop.has-shot { border-style: solid; border-width: 1px; }
+.adCover__drop.is-over { border-color: var(--ad-accent); background: var(--ad-panel); }
+.adCover.is-bad .adCover__drop { border-color: var(--ad-bad); }
+.adCover__drop > img { width: 100%; height: 100%; object-fit: cover; }
+.adCover__empty { display: grid; place-content: center; justify-items: center; gap: .35rem; padding: 1rem; text-align: center; cursor: pointer; }
+.adCover__empty b { font-size: .98rem; }
+.adCover__empty small { color: var(--ad-dim); font-size: .84rem; }
+.adCover__empty:focus-within { outline: 2px solid var(--ad-accent); outline-offset: -4px; border-radius: 12px; }
+.adCover__icon { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 12px; background: var(--ad-tone-brand); color: var(--ad-on-brand); }
+.adCover__icon svg { width: 1.25rem; height: 1.25rem; }
+.adCover__file { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.adCover__acts { position: absolute; right: .6rem; bottom: .6rem; display: flex; gap: .4rem; }
+.adCover__btn { position: relative; cursor: pointer; background: var(--ad-panel); box-shadow: var(--ad-sh-1); }
+.adCover__btn:focus-within { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.adCover__busy {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: .5rem;
+  background: color-mix(in srgb, var(--ad-panel) 85%, transparent); font-weight: 600;
+}
+.adCover__ours summary { display: inline-flex; align-items: center; min-height: 2.75rem; cursor: pointer; font-weight: 500; font-size: .9rem; }
+.adCover__ours summary:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; border-radius: 8px; }
+.adCover__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: .6rem; padding-top: .25rem; max-height: 22rem; overflow-y: auto; overscroll-behavior: contain; }
+.adCover__thumb {
+  position: relative; display: grid; gap: .3rem; padding: .3rem; border: 1px solid var(--ad-line); border-radius: 12px;
+  background: var(--ad-panel); color: var(--ad-ink); font: inherit; text-align: left; cursor: pointer;
+}
+.adCover__thumb img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 8px; }
+.adCover__thumb span { font-size: .78rem; text-transform: capitalize; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 .15rem .1rem; }
+.adCover__thumb:hover { border-color: var(--ad-dim); }
+.adCover__thumb.is-on { border-color: var(--ad-fill); box-shadow: 0 0 0 2px var(--ad-fill); }
+.adCover__thumb:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.adCover__tick { position: absolute; top: .5rem; right: .5rem; width: 1.4rem; height: 1.4rem; padding: .2rem; border-radius: 50%; background: var(--ad-fill); color: var(--ad-on-fill); }
+@media (max-width: 640px) {
+  .adCover__drop { aspect-ratio: 16 / 9; }
+  .adCover__acts { left: .6rem; }
+  .adCover__acts .ad__btn { flex: 1; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { .adCover__drop { transition: none; } }
+.adCover__ours summary { list-style: none; gap: .35rem; }
+.adCover__ours summary::-webkit-details-marker { display: none; }
+.adCover__ours summary::after {
+  content: ""; width: 1rem; height: 1rem; background: currentColor;
+  -webkit-mask: var(--ad-chevron) center / contain no-repeat; mask: var(--ad-chevron) center / contain no-repeat;
+  transition: transform .18s ease;
+}
+.adCover__ours[open] summary::after { transform: rotate(180deg); }

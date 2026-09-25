@@ -2,7 +2,7 @@ import "server-only";
 
 import { SERVICES } from "@/lib/services";
 import { CONTACT_EMAIL, SITE_URL } from "@/lib/site";
-import { escapeHtml } from "@/lib/email";
+import { escapeHtml, studioInbox } from "@/lib/email";
 import { composeEmailHtml, emailP, emailPanel, emailSmall, enquiryReceiptEmail, onboardingNextStepsEmail } from "@/lib/email-templates";
 import type { FormDef } from "./registry";
 import type { Entry } from "./entries";
@@ -32,7 +32,6 @@ export type FormEmailData = {
 
 export type BuiltEmail = { to: string; replyTo?: string; subject: string; text: string; html: string; unsubscribe?: boolean };
 
-const studioInbox = () => process.env.SMTP_REPLY_TO || CONTACT_EMAIL;
 const adminUrl = (form: FormDef, id: string) => new URL(`/admin/forms/${form.key}/entries/${id}`, SITE_URL).toString();
 
 export function dataFromEntry(form: FormDef, e: Entry): FormEmailData {

@@ -6,8 +6,9 @@ import { listTeam, type TeamMember } from "@/lib/team";
 import { AdminState } from "@/components/admin/admin-state";
 import { Empty, Panel, when } from "@/components/admin/bits";
 import { InvitationRow, InviteStaffForm, MemberControls } from "@/components/admin/settings/team-controls";
+import { RolesTable } from "@/components/admin/settings/roles-table";
 
-export const metadata = { title: "Team" };
+export const metadata = { title: "Team and roles" };
 
 const time = (iso: string | null) => iso
   ? new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" })
@@ -35,11 +36,15 @@ export default async function TeamPage() {
 
   return (
     <>
-      <div className="ad__head"><div><h1>Team</h1><p>Who can reach the admin. Staff run the day&apos;s work; owners can do everything, including this page.</p></div></div>
+      <div className="ad__head"><div><h1>Team and roles</h1><p>Who can open the admin.</p></div></div>
       {failed ? (
         <AdminState kind="error" title="The team could not be loaded" description="The database did not answer. Reload in a minute." />
       ) : (
         <div className="ad__stack">
+          <Panel title="Invite someone">
+            <div className="adSetPad"><InviteStaffForm /></div>
+          </Panel>
+
           <Panel title={`${team.filter((t) => !t.deactivatedAt).length} with access`}>
             {team.length ? (
               <div className="ad__scroll">
@@ -66,12 +71,8 @@ export default async function TeamPage() {
                 </table>
               </div>
             ) : (
-              <Empty title="No accounts yet">The first owner is made with the seed script; everybody else is invited from here.</Empty>
+              <Empty title="No accounts yet">Invite someone above.</Empty>
             )}
-          </Panel>
-
-          <Panel title="Invite a member of staff">
-            <div style={{ padding: "0 1rem 1rem" }}><InviteStaffForm /></div>
           </Panel>
 
           <Panel title={`Invitations waiting (${pending.length})`}>
@@ -92,9 +93,11 @@ export default async function TeamPage() {
                 </table>
               </div>
             ) : (
-              <Empty title="Nobody is waiting">An invitation works once, for a week, and only for the address it was sent to. Sending another withdraws the first.</Empty>
+              <Empty title="Nobody waiting">Invitations show here until they&apos;re accepted.</Empty>
             )}
           </Panel>
+
+          <RolesTable />
         </div>
       )}
     </>

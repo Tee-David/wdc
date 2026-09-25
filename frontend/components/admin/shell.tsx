@@ -379,7 +379,7 @@ function Notifications({ openForms, failedMail = 0 }: { openForms: number; faile
         <div className="ad__popover ad__notifications">
           <div className="ad__popoverHead"><b>Notifications</b></div>
           {failedMail > 0 ? (
-            <Link href="/admin/settings/email?state=Failed" onClick={() => setOpen(false)}>
+            <Link href="/admin/settings/email/log?state=Failed" onClick={() => setOpen(false)}>
               <span className="ad__noticeIcon"><Bell aria-hidden="true" /></span>
               <span><b>{failedMail} {failedMail === 1 ? "email" : "emails"} did not send</b><small>See why in the message log, and retry</small></span>
             </Link>

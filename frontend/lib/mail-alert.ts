@@ -51,7 +51,7 @@ export async function alertFailures(): Promise<"sent" | "none" | "off" | "duplic
     const { sendLogged } = await import("@/lib/outbox");
     const n = rows.length;
     const lines = rows.map((r) => `${r.subject} to ${r.to_addr}: ${r.error ?? "refused"}`);
-    const link = new URL("/admin/settings/email?state=Failed", SITE_URL).toString();
+    const link = new URL("/admin/settings/email/log?state=Failed", SITE_URL).toString();
     const result = await sendLogged({
       to: cfg.to,
       subject: `${n} ${n === 1 ? "email" : "emails"} from the site did not go`,

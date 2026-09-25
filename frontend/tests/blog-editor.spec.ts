@@ -87,6 +87,9 @@ test("a draft is saved, invisible on /blog, and visible in preview to the owner"
   await page.getByLabel(/^Card sentence/).fill("What we look at before we touch a logo.");
   await page.getByLabel(/^Search result title/).fill("What a brand audit covers");
   await page.getByLabel(/^Meta description/).fill(DESCRIPTION);
+  /* A new post starts with no cover: pick one of ours from the thumbnails. */
+  await page.getByText("Or use one of our photos").click();
+  await page.getByRole("group", { name: "Our photos" }).getByRole("button").first().click();
   await body(page);
   await page.keyboard.type("Most rebrands start in the ");
   await page.getByRole("button", { name: "Bold" }).click();

@@ -89,9 +89,8 @@ function Head() {
   return (
     <div className="ad__head">
       <div>
-        <p className="ad__dim"><Link href="/admin/settings">Settings</Link></p>
-        <h1>Media</h1>
-        <p>Pictures and documents for the public site. Each one gets a permanent address; archiving hides it here without breaking a page that uses it.</p>
+        <h1>Media library</h1>
+        <p>Pictures and files for the site and the blog.</p>
       </div>
     </div>
   );

@@ -3,15 +3,16 @@
 import { UserPlus } from "lucide-react";
 import { inviteStaff, revokeInvite } from "@/lib/admin/invite-actions";
 import { deactivateMember, reactivateMember, setTeamRole, signOutMember } from "@/lib/admin/team-actions";
-import { Actions, Field, Fields, Form, Hidden, Submit } from "@/components/admin/form";
+import { Actions, Fields, Form, Hidden, Submit } from "@/components/admin/form";
+import { Text } from "./kit";
 
 /** Invite a member of staff: a link that works once, for a week, for that address only. */
 export function InviteStaffForm() {
   return (
     <Form action={inviteStaff} resetOnDone>
       <Fields>
-        <Field name="name" label="Their name" half required hint="As it should appear on what they change." />
-        <Field name="email" label="Email" type="email" half required hint="The address they will sign in with." />
+        <Text name="name" label="Their name" half required message="Add their name." autoComplete="off" />
+        <Text name="email" label="Email" type="email" half required message="Enter an email like name@example.com." autoComplete="off" />
       </Fields>
       <Actions><Submit icon={UserPlus}>Send invitation</Submit></Actions>
     </Form>

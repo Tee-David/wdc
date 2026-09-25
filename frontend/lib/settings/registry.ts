@@ -38,6 +38,40 @@ const number = (min: number, max: number, whole: boolean, what: string) => (raw:
   return { ok: true as const, value: String(whole ? Math.trunc(n) : Math.round(n * 100) / 100) };
 };
 
+const flag = (raw: string) => (raw === "1" || raw === "0"
+  ? { ok: true as const, value: raw }
+  : { ok: false as const, error: "On or off." });
+
+/** Days from the due date a reminder goes: before (negative), on, or after. */
+export const REMINDER_DAYS = [
+  { value: "-3", label: "3 days before" },
+  { value: "0", label: "On the due date" },
+  { value: "7", label: "7 days late" },
+  { value: "14", label: "14 days late" },
+  { value: "30", label: "30 days late" },
+];
+const reminders = (raw: string) => {
+  const t = raw.trim();
+  if (t === "off") return { ok: true as const, value: "off" };
+  const days = [...new Set(t.split(",").map((d) => d.trim()).filter(Boolean))];
+  if (!days.length) return { ok: true as const, value: "off" };
+  if (!days.every((d) => REMINDER_DAYS.some((r) => r.value === d))) return { ok: false as const, error: "Pick from the listed days." };
+  return { ok: true as const, value: days.sort((a, b) => Number(a) - Number(b)).join(",") };
+};
+const text = (min: number, max: number, what: string) => (raw: string) => {
+  const t = raw.trim().replace(/\s+/g, " ");
+  if (t.length < min) return { ok: false as const, error: `Add ${what}.` };
+  if (t.length > max) return { ok: false as const, error: `Keep it to ${max} characters.` };
+  if (/[<>\r\n]/.test(t)) return { ok: false as const, error: "Letters, numbers and punctuation only." };
+  return { ok: true as const, value: t };
+};
+const email = (raw: string) => {
+  const t = raw.trim().toLowerCase();
+  if (!t) return { ok: true as const, value: "" };
+  if (t.length > 254 || !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(t)) return { ok: false as const, error: "Enter an email like name@example.com." };
+  return { ok: true as const, value: t };
+};
+
 export const SETTINGS: SettingDef[] = [
   {
     key: "contact.email", label: "Contact email", shipped: () => CONTACT_EMAIL,
@@ -81,6 +115,36 @@ export const SETTINGS: SettingDef[] = [
     note: "How far out a new invoice's due date starts.",
     parse: number(1, 365, true, "of days"),
     revalidate: ["/admin/money", "/admin/clients", "/admin/projects"],
+  },
+  {
+    key: "finance.vatOn", label: "Add VAT to new invoices", shipped: () => "1",
+    note: "Off, a new invoice or estimate starts at 0% and VAT is added per invoice.",
+    parse: flag, revalidate: ["/admin/money", "/admin/clients", "/admin/projects"],
+  },
+  {
+    key: "finance.reminders", label: "Payment reminders", shipped: () => "off",
+    note: "Days around the due date the daily job emails a reminder on an unpaid invoice.",
+    parse: reminders, revalidate: [],
+  },
+  {
+    key: "notify.tickets", label: "Support tickets", shipped: () => "1",
+    note: "Email the studio when a client opens or replies to a ticket.",
+    parse: flag, revalidate: [],
+  },
+  {
+    key: "notify.payments", label: "Payments", shipped: () => "1",
+    note: "Email the studio when a client pays online.",
+    parse: flag, revalidate: [],
+  },
+  {
+    key: "mail.fromName", label: "Sender name", shipped: () => process.env.SMTP_FROM_NAME?.trim() || "WDC Solutions",
+    note: "The name in the From line of every email.",
+    parse: text(2, 60, "a sender name"), revalidate: [],
+  },
+  {
+    key: "mail.replyTo", label: "Replies go to", shipped: () => process.env.SMTP_REPLY_TO?.trim() || "",
+    note: "Where a reply to one of our emails lands, and where studio notices go.",
+    parse: email, revalidate: [],
   },
 ];
 

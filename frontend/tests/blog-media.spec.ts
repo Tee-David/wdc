@@ -52,6 +52,8 @@ test("a picture between two paragraphs is saved, previewed and shown", async ({ 
   await insertPicture(page, "/hero/design-desk.jpg", "A designer's desk");
   await page.keyboard.type("The paragraph after the picture.");
   await expect(doc.locator('img[src="/hero/design-desk.jpg"]')).toBeVisible();
+  await page.getByText("Or use one of our photos").click();
+  await page.getByRole("group", { name: "Our photos" }).getByRole("button").first().click();
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page).toHaveURL(/\?saved=1$/, { timeout: 30_000 });
 

@@ -1,7 +1,7 @@
 import "server-only";
 
 import { db } from "@/lib/db/pool";
-import { clearSetting, primeSetting, setSetting } from "@/lib/admin/store";
+import { clearSetting, forgetSetting, primeSetting, setSetting } from "@/lib/admin/store";
 import { editableKeys } from "./registry";
 
 /**
@@ -18,19 +18,29 @@ const configured = () => Boolean(process.env.DATABASE_URL || process.env.COCKROA
 
 declare global {
   var __wdcSettingsLoaded: Promise<void> | undefined;
+  var __wdcSettingsAt: number | undefined;
 }
 
-/** Load the saved rows into memory, once per instance. Never throws. */
+/* How long one instance trusts its copy. An edit saved on another instance
+   reaches this one within this long, rather than at its next cold start. */
+const FRESH_MS = 20_000;
+
+/** Load the saved rows into memory, and again when the copy is stale. Never throws. */
 export function hydrateSettings(): Promise<void> {
   if (!configured()) return Promise.resolve();
-  globalThis.__wdcSettingsLoaded ??= (async () => {
+  if (globalThis.__wdcSettingsLoaded && Date.now() - (globalThis.__wdcSettingsAt ?? 0) < FRESH_MS) return globalThis.__wdcSettingsLoaded;
+  globalThis.__wdcSettingsAt = Date.now();
+  globalThis.__wdcSettingsLoaded = (async () => {
     try {
-      const r = await db.query<{ key: string; value: unknown }>("SELECT key, value FROM app_settings WHERE key = ANY($1::TEXT[])", [editableKeys()]);
-      for (const row of r.rows) if (typeof row.value === "string") primeSetting(row.key, row.value);
+      const keys = editableKeys();
+      const r = await db.query<{ key: string; value: unknown }>("SELECT key, value FROM app_settings WHERE key = ANY($1::TEXT[])", [keys]);
+      const seen = new Set<string>();
+      for (const row of r.rows) if (typeof row.value === "string") { primeSetting(row.key, row.value); seen.add(row.key); }
+      for (const k of keys) if (!seen.has(k)) forgetSetting(k);
     } catch (error) {
       console.error("[settings] could not be loaded; showing what shipped:", error instanceof Error ? error.message : error);
       /* Try again on the next request rather than never. */
-      globalThis.__wdcSettingsLoaded = undefined;
+      globalThis.__wdcSettingsAt = 0;
     }
   })();
   return globalThis.__wdcSettingsLoaded;

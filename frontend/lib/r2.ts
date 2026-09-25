@@ -80,9 +80,23 @@ export function r2Config(): { ok: true; config: R2Config } | { ok: false; missin
       bucket: bucket as string,
       accessKeyId: accessKeyId as string,
       secretAccessKey: secretAccessKey as string,
-      publicBase: process.env.CLOUDFLARE_R2_URL?.replace(/\/+$/, ""),
+      publicBase: r2PublicBase(),
     },
   };
+}
+
+/**
+ * The bucket's public address, as an origin a browser can load from.
+ * `CLOUDFLARE_R2_URL` is often pasted without its scheme ("pub-x.r2.dev"),
+ * which made every uploaded picture a relative path that 404ed on our own
+ * domain and failed the post's "is this our bucket" check, so the picture
+ * was dropped from the article. The scheme is added here, once, for every
+ * reader.
+ */
+export function r2PublicBase(): string | undefined {
+  const raw = process.env.CLOUDFLARE_R2_URL?.trim().replace(/\/+$/, "");
+  if (!raw) return undefined;
+  return /^https?:\/\//i.test(raw) ? raw.replace(/^http:/i, "https:") : `https://${raw}`;
 }
 
 const sha256 = (value: string | Buffer) => createHash("sha256").update(value).digest("hex");

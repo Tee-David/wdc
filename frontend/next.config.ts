@@ -57,7 +57,8 @@ loadRepoRootEnv();
  * default 75 to be allowed at the call site.
  */
 const mediaHost = (() => {
-  try { return process.env.CLOUDFLARE_R2_URL ? new URL(process.env.CLOUDFLARE_R2_URL).hostname : ""; } catch { return ""; }
+  const raw = process.env.CLOUDFLARE_R2_URL?.trim();
+  try { return raw ? new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`).hostname : ""; } catch { return ""; }
 })();
 
 const nextConfig: NextConfig = {

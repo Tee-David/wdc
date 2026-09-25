@@ -9,7 +9,7 @@ import type { Area } from "@/lib/admin/permissions";
  * than out of Settings. `area` is who may open it (lib/admin/permissions.ts);
  * a section a role cannot open is not listed for it, and its page refuses.
  */
-export type SettingsIcon = "sliders" | "messages" | "images" | "mail" | "plug" | "history" | "shield" | "users" | "user" | "globe" | "activity" | "lock";
+export type SettingsIcon = "sliders" | "messages" | "images" | "mail" | "plug" | "history" | "shield" | "users" | "user" | "globe" | "activity" | "lock" | "bell";
 
 export type SettingsSection = {
   href: string;
@@ -19,21 +19,29 @@ export type SettingsSection = {
   icon: SettingsIcon;
   /** Who may open it; null is anybody with an admin role (their own account). */
   area: Area | null;
+  /** What the menu's search matches besides the label. */
+  words: string;
 };
 
 export const SETTINGS_SECTIONS: SettingsSection[] = [
-  { href: "/admin/settings/account", label: "My account", line: "Your name, password, sign-in methods and sessions.", group: "You", icon: "user", area: null },
-  { href: "/admin/settings/general", label: "Content and defaults", line: "What the site says, and the defaults for new invoices.", group: "Studio", icon: "sliders", area: "settings" },
-  { href: "/admin/settings/site", label: "Site and SEO", line: "The search description, and whether search engines may index the site.", group: "Studio", icon: "globe", area: "settings" },
-  { href: "/admin/settings/faq", label: "FAQ", line: "The questions on the homepage, contact and service pages.", group: "Studio", icon: "messages", area: "content" },
-  { href: "/admin/settings/media", label: "Media", line: "Pictures and files for the site and the blog.", group: "Studio", icon: "images", area: "content" },
-  { href: "/admin/settings/team", label: "Team", line: "Who can reach the admin, invitations, roles and sessions.", group: "People", icon: "users", area: "team" },
-  { href: "/admin/settings/email", label: "Email", line: "The mail server, a test send, and every message sent.", group: "Communication", icon: "mail", area: "settings" },
-  { href: "/admin/settings/integrations", label: "Integrations", line: "Each outside service, and whether it is set up.", group: "System", icon: "plug", area: "settings" },
-  { href: "/admin/settings/system", label: "System", line: "Each service's last answer, the schema, and tools to put things right.", group: "System", icon: "activity", area: "settings" },
-  { href: "/admin/settings/privacy", label: "Privacy", line: "How long personal data is kept, and requests to see or erase it.", group: "System", icon: "lock", area: "settings" },
-  { href: "/admin/settings/audit", label: "Audit log", line: "What changed, who changed it, and what it was.", group: "System", icon: "history", area: "settings" },
-  { href: "/admin/settings/access", label: "Access", line: "The roles, and what each can do.", group: "System", icon: "shield", area: "settings" },
+  { href: "/admin/settings/account", label: "My account", line: "Name, password and devices.", group: "You", icon: "user", area: null, words: "profile password sign in google devices sessions tours" },
+  { href: "/admin/settings/general", label: "Studio and invoices", line: "VAT, payment terms and reminders.", group: "Studio", icon: "sliders", area: "settings", words: "vat payment due terms reminders invoices estimates finance defaults" },
+  { href: "/admin/settings/notifications", label: "Notifications", line: "What the studio is emailed about.", group: "Studio", icon: "bell", area: "settings", words: "alerts email tickets payments forms entries" },
+  { href: "/admin/settings/site", label: "Website and SEO", line: "Search results and maintenance.", group: "Studio", icon: "globe", area: "settings", words: "seo search engines google index noindex maintenance description" },
+  { href: "/admin/settings/email", label: "Email", line: "Sender, test send and the log.", group: "Studio", icon: "mail", area: "settings", words: "mail smtp sender from reply test failure alerts message log" },
+  { href: "/admin/settings/faq", label: "FAQ", line: "Questions on the site.", group: "Content", icon: "messages", area: "content", words: "questions answers" },
+  { href: "/admin/settings/media", label: "Media library", line: "Pictures and files.", group: "Content", icon: "images", area: "content", words: "images pictures uploads files" },
+  { href: "/admin/settings/team", label: "Team and roles", line: "Who can open the admin.", group: "People", icon: "users", area: "team", words: "staff owner invite members access roles permissions" },
+  { href: "/admin/settings/integrations", label: "Integrations", line: "Outside services and their state.", group: "System", icon: "plug", area: "settings", words: "paystack r2 storage database google pagespeed cal whatsapp" },
+  { href: "/admin/settings/privacy", label: "Privacy and data", line: "Keep-for rules and requests.", group: "System", icon: "lock", area: "settings", words: "retention erase export requests ndpr gdpr" },
+  { href: "/admin/settings/audit", label: "Audit log", line: "Every change and who made it.", group: "System", icon: "history", area: "settings", words: "history changes" },
+  { href: "/admin/settings/system", label: "System health", line: "Services, schema and fix-it tools.", group: "System", icon: "activity", area: "settings", words: "services schema tools retry cache status" },
 ];
 
-export const SETTINGS_GROUPS = ["You", "Studio", "People", "Communication", "System"] as const;
+export const SETTINGS_GROUPS = ["You", "Studio", "Content", "People", "System"] as const;
+
+/** A section matches a search on its label, its line or its words. */
+export function sectionMatches(s: SettingsSection, q: string) {
+  const needle = q.trim().toLowerCase();
+  return !needle || `${s.label} ${s.line} ${s.words}`.toLowerCase().includes(needle);
+}

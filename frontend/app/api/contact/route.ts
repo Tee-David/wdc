@@ -1,4 +1,5 @@
 import { after, NextRequest, NextResponse } from "next/server";
+import { hydrateSettings } from "@/lib/settings/store";
 import { formByKey } from "@/lib/forms/registry";
 import { hasBlockedWord } from "@/lib/forms/settings";
 import { availability, getFormSettings } from "@/lib/forms/settings-db";
@@ -22,6 +23,8 @@ const LIMIT = 5;
 function clean(value: unknown, max: number) { return typeof value === "string" ? value.trim().slice(0, max) : ""; }
 
 export async function POST(request: NextRequest) {
+  /* Studio notices go to "Replies go to" from Settings, Email. */
+  await hydrateSettings();
   /* Moved onto the shared limiter, which sweeps. The old local Map never
      removed anything, so a long-lived instance kept one array per distinct
      address for its entire life. */

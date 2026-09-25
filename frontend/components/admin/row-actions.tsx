@@ -6,7 +6,7 @@ import { can } from "@/lib/admin/permissions";
 import {
   Archive, ArchiveRestore, ArrowRight, Ban, Banknote, CalendarDays, Copy,
   CornerUpLeft, FilePlus2, FolderPlus, MessageSquarePlus, Move, Pencil,
-  RotateCcw, Send, Trash2, Undo2, UserPlus, Users, Wallet,
+  Send, Trash2, Undo2, UserPlus, Users, Wallet,
   type LucideIcon,
 } from "lucide-react";
 import { SERVICES } from "@/lib/services";
@@ -19,8 +19,8 @@ import {
 import {
   addNote, answerEstimate, archiveClient, attachSubmission, createProject,
   deleteInvoice, duplicateEstimate, duplicateInvoice, issueInvoice, moveStage, overpaymentToCredit,
-  recordPayment, refundPayment, removeExpense, reversePayment, resetSetting,
-  saveSetting, sendEstimate, setDue, setProjectArchived, updateClient,
+  recordPayment, refundPayment, removeExpense, reversePayment,
+  sendEstimate, setDue, setProjectArchived, updateClient,
   voidInvoice,
 } from "@/lib/admin/actions";
 import { Actions, Area, Field, Fields, Form, Hidden, Radios, Select, Submit } from "./form";
@@ -591,65 +591,6 @@ export function SubmissionMenu({
   }
 
   return <RowMenu items={items} label={who} />;
-}
-
-/* --------------------------------------------------------------- settings */
-
-/**
- * A content row, and the two things that can be done to it.
- *
- * Only two, because the override is the whole design: a row either carries an
- * edit or it does not, so the verbs are "change it" and "put it back". There
- * is no delete, because there is nothing of ours to delete -- clearing the row
- * restores what shipped in git, which is the only copy that was ever the
- * truth.
- */
-export function SettingMenu({
-  settingKey, label, shipped, override,
-}: {
-  settingKey: string;
-  label: string;
-  /** What git says, shown so an edit is made against something. */
-  shipped: string;
-  /** What the override says, when there is one. */
-  override: string | null;
-}) {
-  const items: RowMenuItem[] = [
-    {
-      kind: "dialog", label: override ? "Change the override" : "Edit it", icon: Pencil,
-      title: `Edit ${label.toLowerCase()}`,
-      render: (close) => (
-        <Form action={saveSetting} onDone={() => close()}>
-          <Fields>
-            <Hidden name="key" value={settingKey} />
-            <Field
-              name="value" label={label} required defaultValue={override ?? shipped}
-              hint={`Shipped as “${shipped}”. Saving writes one row keyed on ${settingKey} and merges it over that.`}
-            />
-          </Fields>
-          <Actions>
-            <Submit icon={Pencil}>Save it</Submit>
-          </Actions>
-        </Form>
-      ),
-    },
-  ];
-
-  if (override) {
-    items.push({
-      kind: "dialog", label: "Put it back", icon: RotateCcw, tone: "danger",
-      title: `Reset ${label.toLowerCase()}`,
-      render: (close) => (
-        <Sure action={resetSetting as never} fields={{ key: settingKey }}
-              verb="Put it back" icon={RotateCcw} tone="danger" close={close}>
-          The override is deleted and the site goes back to “{shipped}”, which
-          is what shipped in git. Nothing else changes.
-        </Sure>
-      ),
-    });
-  }
-
-  return <RowMenu items={items} label={label} />;
 }
 
 /* -------------------------------------------------------------- estimates */

@@ -60,7 +60,7 @@ export async function adminNotices(role: AdminRole): Promise<AdminNotice[]> {
     found.push({ key: `noindex:${seo.noindex.since ?? "on"}`, tone: "warn", title: "Search engines are asked not to index the site", body: "Left on, the studio drops out of search results.", href: role === "owner" ? "/admin/settings/site" : undefined, link: "Site and SEO" });
   }
   if (failed > 0) {
-    found.push({ key: `failed-mail:${lagosDay()}`, tone: "warn", title: `${failed} ${failed === 1 ? "email" : "emails"} did not go in the last day`, body: "Each one is in the message log with the mail server's reason.", href: "/admin/settings/email?state=Failed", link: "Message log" });
+    found.push({ key: `failed-mail:${lagosDay()}`, tone: "warn", title: `${failed} ${failed === 1 ? "email" : "emails"} did not go in the last day`, body: "Each one is in the message log with the mail server's reason.", href: "/admin/settings/email/log?state=Failed", link: "Message log" });
   }
 
   const dismissed = new Set(((await cookies()).get(NOTICE_COOKIE)?.value ?? "").split("|").filter(Boolean));

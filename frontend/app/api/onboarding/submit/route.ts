@@ -1,4 +1,5 @@
 import { after, NextRequest, NextResponse } from "next/server";
+import { hydrateSettings } from "@/lib/settings/store";
 import { onboardingFormFor } from "@/lib/forms/registry";
 import { hasBlockedWord } from "@/lib/forms/settings";
 import { availability, getFormSettings } from "@/lib/forms/settings-db";
@@ -25,6 +26,8 @@ function isVisible(field: Field, answers: Answers) {
 }
 
 export async function POST(request: NextRequest) {
+  /* Studio notices go to "Replies go to" from Settings, Email. */
+  await hydrateSettings();
   if (!requestOriginIsAllowed(request)) {
     return NextResponse.json({ error: "This request could not be verified." }, { status: 403 });
   }
