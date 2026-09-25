@@ -7,17 +7,20 @@ import { PROJECT_ICONS, PROJECT_ICON_NAMES, randomProjectIcon } from "@/lib/proj
 /**
  * A project's icon: a grid of real radio buttons (arrow keys move between
  * them), with a shuffle for "just pick one". Starts on the project's own icon,
- * or a random one for a new project.
+ * or none for a new project, which then gets a random one when saved.
  */
 export function IconPicker({ name = "icon", defaultValue }: { name?: string; defaultValue?: string }) {
-  const [value, setValue] = useState(() => defaultValue || randomProjectIcon());
+  /* No random pick here: this renders on the server too, and a different
+     random icon in the browser is a hydration mismatch. A new project with
+     none chosen gets a random one when it is saved (createProject). */
+  const [value, setValue] = useState(defaultValue ?? "");
   const Chosen = PROJECT_ICONS[value]?.icon;
   return (
     <fieldset className="ad__f adIcons">
       <legend className="ad__fl">Icon</legend>
       <div className="adIcons__top">
-        <span className="adIcons__now" aria-hidden="true">{Chosen ? <Chosen /> : null}</span>
-        <span className="ad__dim adIcons__hint">The client sees it beside the project.</span>
+        <span className={`adIcons__now${Chosen ? "" : " is-empty"}`} aria-hidden="true">{Chosen ? <Chosen /> : <span>?</span>}</span>
+        <span className="ad__dim adIcons__hint">{Chosen ? "The client sees it beside the project." : "A random one unless you pick. The client sees it too."}</span>
         <button type="button" className="ad__btn" onClick={() => {
           let next = randomProjectIcon();
           while (next === value && PROJECT_ICON_NAMES.length > 1) next = randomProjectIcon();

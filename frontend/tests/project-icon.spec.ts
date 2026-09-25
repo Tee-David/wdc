@@ -26,14 +26,12 @@ test("the icon picked in Edit details shows on the project and in the portal", a
   await expect(page.locator(".adDash__listIcon svg.lucide-rocket").first()).toBeVisible();
 });
 
-test("a new project starts with an icon, and Shuffle changes it", async ({ page, baseURL }) => {
+test("a new project offers Shuffle, and gets a random icon if none is picked", async ({ page, baseURL }) => {
   await asOwner(page, baseURL);
   await page.goto("/admin/projects", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "New project" }).first().click();
   const dialog = page.getByRole("dialog");
-  const picked = dialog.getByRole("radio", { checked: true });
-  await expect(picked).toHaveCount(1);
-  const first = await picked.getAttribute("value");
+  await expect(dialog.getByRole("radio", { checked: true })).toHaveCount(0);
   await dialog.getByRole("button", { name: "Shuffle" }).click();
-  await expect(dialog.getByRole("radio", { checked: true })).not.toHaveAttribute("value", first!);
+  await expect(dialog.getByRole("radio", { checked: true })).toHaveCount(1);
 });
