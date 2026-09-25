@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**114 open** (61 in progress)
+**112 open** (63 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -76,10 +76,8 @@ the evidence. Detail that used to sit in this file is in git history and in
 
 - [ ] Build one shared admin data table to the standard in section 9 of the audit: state in the URL, keyset (cursor) pagination with a stable sort key plus id, 25/50/100 per page, capped counts, filter chips, saved views, select-all-matching for bulk actions, streamed CSV export that respects filters, a card layout at 320px, geometry-matched skeletons, `aria-sort` headers. (…)
 - [ ] Build the notification centre from the audit: event, rule, template, log. A form notification is one kind of rule. Move the existing transactional templates into it with the code versions as fallback; eight templates in `lib/email-templates.ts` are currently never called.
-- [ ] Build a responsive form editor with sections/steps, reusable fields, labels/helpers/placeholders, option editing, required state, ordering, conditional visibility, and live preview without a heavy drag-and-drop dependency.
-- [ ] Support text, textarea, email, phone, number, date, URL, radio, checkbox, multi-select, short/long dropdown, searchable long list, address/country, consent, and file upload controls.
-- [ ] Use normal dropdowns for ten or fewer options and searchable, bounded, touch-scrollable lists for longer choices; popovers must render above every global control.
-- [ ] Add versioned publishing so existing submissions retain the schema they answered; prevent destructive edits without an explicit new version.
+- [-] Build a responsive form editor with sections/steps, reusable fields, labels/helpers/placeholders, option editing, required state, ordering, conditional visibility, and live preview without a heavy drag-and-drop dependency. BUILT 2026-09-25: Forms, New form (`/admin/forms/new`, builder at `/admin/forms/<key>/build`): section headings, labels, help, placeholders, choices, required, reordering, duplicate/remove, one show-if condition per question, and a live preview; public at `/f/<address>` with the site's opening band. NOT: multi-step pages, reusable field library.
+- [-] Support text, textarea, email, phone, number, date, URL, radio, checkbox, multi-select, short/long dropdown, searchable long list, address/country, consent, and file upload controls. BUILT for built forms: short/long answer, email, phone, number (range), date, URL, dropdown, one choice, several choices, consent, file upload (signed PUT to `forms/<address>/`, type and size checked, re-checked on submit), section heading; every answer checked with the same rules in the browser and on the server (`lib/forms/custom-def.ts`). NOT: address/country field.
 - [-] Convert a valid submission into or attach it to a client and project without duplicating people or losing the original answers/files. Built for live briefs: "Make them a client" matches on email or phone first, so a second press or a second brief from the same person lands on the existing client; the answers stay in the table untouched. The link is derived, not stored, until clients leave memory (4.9). NOT built: creating the project in the same step, and files.
 - [ ] Finish conditional question sets, domain suggestions/checks, client fatigue validation, and completion/resume testing for every onboarding service.
 
