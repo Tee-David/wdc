@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { LayoutDashboard, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 export type SiteUser = { name: string; email: string; image: string | null };
 
@@ -59,7 +59,16 @@ async function signOut() {
   }
 }
 
-/** The signed-in card at the foot of the phone menu. */
+/**
+ * The signed-in row at the foot of the phone menu: who you are, and a way
+ * out. The dashboard is not here: it is the last item in the menu's own
+ * list, since it is a place like every other item there.
+ *
+ * LOG OUT IS RED, the one labelled control on the public site outside the
+ * black and white pair (see AGENTS.md), at the owner's request: it is the
+ * action nobody should take by accident, and it should read as that at a
+ * glance. #c62828 under a white label measures 5.6:1.
+ */
 export function MenuAccount({ user }: { user: SiteUser }) {
   const [busy, setBusy] = useState(false);
   return (
@@ -74,12 +83,9 @@ export function MenuAccount({ user }: { user: SiteUser }) {
         <b>{user.name}</b>
         <small>{user.email}</small>
       </span>
-      <span className="sm-account__acts">
-      <a className="sm-account__btn btn-primary" href="/signed-in"><LayoutDashboard aria-hidden="true" /> Dashboard</a>
-      <button type="button" className="sm-account__btn btn-secondary" disabled={busy} onClick={() => { setBusy(true); void signOut(); }}>
+      <button type="button" className="sm-account__out" disabled={busy} onClick={() => { setBusy(true); void signOut(); }}>
         <LogOut aria-hidden="true" /> {busy ? "Signing out…" : "Log out"}
       </button>
-      </span>
     </div>
   );
 }

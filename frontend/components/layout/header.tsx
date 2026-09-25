@@ -339,9 +339,12 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
                 link: n.link,
                 ariaLabel: `Go to ${n.label}`,
               })),
-              /* Signed in, the account card below carries the dashboard and the
-                 way out, so the list does not repeat it. */
-              ...(user ? [] : [{ label: "Log in", link: "/login", ariaLabel: "Log in to your account" }]),
+              /* Signed in, the dashboard is a place like the others, so it is
+                 the last item in the list, in the accent; the account row below
+                 carries only the way out. Signed out, Log in takes its spot. */
+              ...(user
+                ? [{ label: "Dashboard", link: "/signed-in", ariaLabel: "Open your dashboard", accent: true }]
+                : [{ label: "Log in", link: "/login", ariaLabel: "Log in to your account" }]),
             ]}
             accountSlot={user ? <MenuAccount user={user} /> : null}
             onMenuOpen={() => setMenuOpen(true)}
