@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CalendarDays } from "lucide-react";
 import { SERVICES } from "@/lib/services";
 import {
   getBoard, getClient, getClients, getProjects, getTasks,
@@ -167,43 +168,48 @@ export default async function ProjectsPage({
       </Panel>
 
       {board ? (
-        <div className="ad__scroll" style={{ margin: ".9rem 0" }}>
-          <div style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "minmax(210px, 1fr)", gap: ".7rem" }}>
-            {(stage ? [stage] : STAGES).map((st) => {
-              const list = (getBoard().get(st) ?? []).filter(match);
-              return (
-                <section key={st} className="ad__panel">
-                  <div className="ad__panelH">
-                    <StagePill stage={st} />
-                    <b className="ad__num ad__dim">{list.length}</b>
-                  </div>
-                  <div style={{ padding: ".5rem" }}>
-                    {list.length ? list.map((p) => (
-                      /* The card is a link and the menu is a button, so they
-                         cannot be nested -- a button inside an anchor is
-                         invalid and behaves differently in every browser. They
-                         are siblings in one bordered row instead. */
-                      <div
-                        key={p.id}
-                        className="ad__cardTop"
-                        style={{
-                          padding: ".5rem .35rem .5rem .6rem", borderRadius: "9px",
-                          border: "1px solid var(--ad-line)", marginBottom: ".4rem",
-                        }}
-                      >
-                        <Link href={`/admin/projects/${p.id}`} style={{ display: "block" }}>
-                          <b>{p.title}</b>
-                          <small className="ad__dim">{getClient(p.clientId)?.company}</small>
-                          <AttentionPills items={projectAttention(p, tasks)} />
-                        </Link>
-                        <ProjectMenu project={p} clientName={getClient(p.clientId)?.company} />
+        /* THE BOARD (the mockups' Projects board): a column per stage, a card
+           per project. The card is a link and the menu is a button, so they
+           cannot be nested -- a button inside an anchor is invalid and
+           behaves differently in every browser. They are siblings. */
+        <div className="ad__board" data-lenis-prevent>
+          {(stage ? [stage] : STAGES).map((st) => {
+            const list = (getBoard().get(st) ?? []).filter(match);
+            return (
+              <section key={st} className="ad__kcol" aria-label={`${st}, ${list.length}`}>
+                <header className="ad__kcolH">
+                  <span className={`ad__kdot ad__kdot--${STAGES.indexOf(st)}`} aria-hidden="true" />
+                  <h2>{st}</h2>
+                  <span className="ad__tabN">{list.length}</span>
+                </header>
+                {list.length ? list.map((p) => {
+                  const client = getClient(p.clientId);
+                  const svc = SERVICES.find((x) => x.slug === p.service);
+                  return (
+                    <article key={p.id} className="ad__kcard">
+                      <div className="ad__kcardTags">
+                        {svc ? <span className="ad__pill ad__pill--flat">{svc.short}</span> : null}
+                        <HealthPill health={p.health} />
+                        <span className="ad__kcardMenu"><ProjectMenu project={p} clientName={client?.company} /></span>
                       </div>
-                    )) : <p className="ad__dim" style={{ padding: ".4rem .6rem", margin: 0 }}>Empty</p>}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
+                      <Link href={`/admin/projects/${p.id}`} className="ad__kcardTitle"><b>{p.title}</b></Link>
+                      {client ? (
+                        <span className="ad__who ad__kcardWho">
+                          <span className="ad__av ad__av--sm" aria-hidden="true">{initialsOf(client.company)}</span>
+                          <small>{client.company}</small>
+                        </span>
+                      ) : null}
+                      <AttentionPills items={projectAttention(p, tasks)} except={p.health} />
+                      <div className="ad__kcardFoot">
+                        <span className="ad__dim"><CalendarDays aria-hidden="true" />{p.due ? when(p.due) : "No date yet"}</span>
+                        {p.owner ? <span className="ad__av ad__av--sm ad__av--good" title={`Owner: ${p.owner}`} aria-label={`Owner: ${p.owner}`}>{initialsOf(p.owner)}</span> : null}
+                      </div>
+                    </article>
+                  );
+                }) : <p className="ad__kempty">Nothing here</p>}
+              </section>
+            );
+          })}
         </div>
       ) : (
         <div style={{ marginTop: ".9rem" }}>
@@ -259,4 +265,8 @@ export default async function ProjectsPage({
       )}
     </>
   );
+}
+
+function initialsOf(name: string) {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
 }
