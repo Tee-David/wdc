@@ -2,12 +2,11 @@ import { after, NextRequest, NextResponse } from "next/server";
 import { formByKey } from "@/lib/forms/registry";
 import { hasBlockedWord } from "@/lib/forms/settings";
 import { availability, getFormSettings } from "@/lib/forms/settings-db";
-import { confirmation, entryAdminUrl, sendFormEmail } from "@/lib/forms/notify";
-import { CONTACT_EMAIL } from "@/lib/site";
+import { confirmation, sendFormEmail } from "@/lib/forms/notify";
+import { formEmail, type FormEmailData } from "@/lib/forms/emails";
 import { randomUUID } from "node:crypto";
-import { escapeHtml, mailIsConfigured } from "@/lib/email";
+import { mailIsConfigured } from "@/lib/email";
 import { enquiriesAreConfigured, saveEnquiry, settleEnquiry } from "@/lib/enquiries";
-import { composeEmailHtml, emailP, emailPanel, enquiryReceiptEmail } from "@/lib/email-templates";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 
 /* THE PLATFORM MUST NOT CUT THE SEND OFF BEFORE OUR OWN TIMEOUTS DO.
@@ -65,23 +64,6 @@ export async function POST(request: NextRequest) {
   }
 
   const name = `${first} ${last}`;
-  const detailText = [`Name: ${name}`, `Email: ${email}`, phone ? `Phone: ${phone}` : null, `About: ${topic}`, "", message].filter(Boolean).join("\n");
-  /* Built once the enquiry has an id, so the studio's copy can link to it. */
-  const studioMail = (adminUrl?: string) => ({
-    to: process.env.SMTP_REPLY_TO || CONTACT_EMAIL, replyTo: email,
-    subject: `Website enquiry: ${topic}`,
-    text: adminUrl ? `${detailText}\n\nOpen it in the admin: ${adminUrl}` : detailText,
-    html: composeEmailHtml({
-      title: `Website enquiry: ${topic}`,
-      preheader: `${name} wrote about ${topic}.`,
-      heading: topic,
-      blocks: [
-        emailPanel([["From", name], ["Email", email], ...(phone ? [["Phone", phone] as [string, string]] : [])]),
-        emailP(escapeHtml(message).replace(/\n/g, "<br>")),
-        ...(adminUrl ? [emailP(`<a href="${escapeHtml(adminUrl)}">Open it in the admin</a>`)] : []),
-      ],
-    }),
-  });
 
   let enquiryId: string | null = null;
   let serial: number | null = null;
@@ -101,7 +83,8 @@ export async function POST(request: NextRequest) {
   }
   const eventId = enquiryId ?? randomUUID();
   const studioTokens = { ...tokens, serial: serial ? String(serial) : "" };
-  const studioCopy = studioMail(enquiryId ? entryAdminUrl(form, enquiryId) : undefined);
+  const data: FormEmailData = { id: enquiryId ?? "", serial, first, last, email, phone, company: "", topic, message, source: "" };
+  const studioCopy = formEmail(form, "studio-notice", data)!;
   const log = { summary: `Enquiry from ${name} about ${topic}.`, dedupeKey: `enquiry:${eventId}` };
 
   /* THE RECEIPT IS SENT AFTER THE RESPONSE, ALWAYS.
@@ -118,7 +101,7 @@ export async function POST(request: NextRequest) {
   const sendReceipt = async () => {
     try {
       await sendFormEmail(form, settings, "receipt",
-        { to: email, ...enquiryReceiptEmail({ firstName: first, topic }) },
+        formEmail(form, "receipt", data)!,
         { summary: `Receipt for an enquiry about ${topic}.`, dedupeKey: `enquiry-receipt:${eventId}` },
         tokens,
       );
