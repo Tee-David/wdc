@@ -40,6 +40,7 @@ const NAV = [
   { label: "Home", href: "/" },
   { label: "Our Works", href: "/work" },
   { label: "Services", href: "/services" },
+  { label: "Blog", href: "/blog" },
   { label: "About Us", href: "/about" },
   { label: "Contact Us", href: "/contact" },
 ];
