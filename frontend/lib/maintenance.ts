@@ -14,7 +14,8 @@ import { CONTACT_EMAIL } from "@/lib/site";
  *
  * NEVER IN THE WAY OF: the admin, the portal, signing in, every /api route
  * (the Paystack webhook among them), /pay, /i, /r and /q (money a client is
- * in the middle of), /unsubscribe, and static files. That list is the
+ * in the middle of), /onboarding and /f/ (a brief or form being filled in),
+ * /unsubscribe, and static files. That list is the
  * proxy's matcher, not a condition here, so there is no code path that can
  * forget it.
  *

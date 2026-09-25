@@ -486,3 +486,15 @@
 }
 .bl-preview p { margin: 0; min-width: 0; flex: 1 1 14rem; }
 .bl-preview .btn-primary { min-height: 44px; border: 1px solid; padding: 0 1.1rem; border-radius: 999px; font-weight: 600; }
+
+/* No live posts yet (app/blog/page.tsx): a short note and a jump to the
+   footer sign-up, in the page's own type, instead of a hero over nothing. */
+.bl-none {
+  display: grid; justify-items: start; gap: .75rem;
+  max-width: 40rem; padding-block: clamp(8px, 2vw, 24px) clamp(24px, 5vw, 56px);
+}
+.bl-none h2 {
+  margin: 0; font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: clamp(1.4rem, 3vw, 2rem); line-height: 1.15; color: var(--ink);
+}
+.bl-none p { margin: 0; color: var(--ink-2, var(--ink)); }
