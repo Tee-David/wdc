@@ -26,7 +26,7 @@ export const metadata = { title: "Clients" };
  * at branding work. The flat list underneath is the same people once each,
  * with what they are worth and what is open.
  */
-type ClientQuery = {
+type ClientQuery = { new?: string;
   q?: string;
   service?: string;
   status?: string;
@@ -153,7 +153,7 @@ export default async function ClientsPage({
         <div className="ad__row">
           <PageTourButton />
           {exportable ? <a className="ad__btn" href={exportHref}>Export CSV</a> : null}
-          <AddClient dataTour="clients-add" />
+          <AddClient dataTour="clients-add" startOpen={query.new === "1"} />
         </div>
       </div>
 

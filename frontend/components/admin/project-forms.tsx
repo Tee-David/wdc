@@ -8,6 +8,7 @@ import { Actions, Area, Field, Fields, Form, Hidden, Select, Submit } from "./fo
 import { useAdminRole } from "./shell";
 import { can } from "@/lib/admin/permissions";
 import { DialogButton } from "./dialog";
+import { NoClientsYet } from "./no-clients";
 import { IconPicker } from "./icon-picker";
 
 const SERVICE_OPTIONS = SERVICES.map((s) => ({ value: s.slug, label: s.short }));
@@ -26,7 +27,7 @@ export function AddProject({
   return (
     <DialogButton label="New project" title="Open a project" icon={Plus} wide dataTour={dataTour}>
       {/* createProject redirects to the project it opened. */}
-      {() => (
+      {() => (!clientId && clients.length === 0 ? <NoClientsYet what="project" /> :
         <Form action={createProject}>
           <Fields>
             {clientId ? (
