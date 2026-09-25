@@ -35,16 +35,30 @@ export function Panel({
   );
 }
 
+/**
+ * A KPI card (the mockups' .kpi). `icon` sits in a solid tile beside the
+ * label; `badge` is a short solid pill beside the figure ("1 overdue"), for
+ * the one fact about the number that changes what you do next.
+ */
 export function Tile({
-  label, value, note, tone,
+  label, value, note, tone, icon: Icon, iconTone = "brand", badge,
 }: {
   label: string; value: string; note?: string;
   tone?: "good" | "bad" | "accent";
+  icon?: LucideIcon;
+  iconTone?: "brand" | "good" | "bad" | "warn" | "live";
+  badge?: { label: string; tone: "good" | "bad" | "warn" | "live" | "flat" };
 }) {
   return (
     <div className={`ad__tile${tone ? ` ad__tile--${tone}` : ""}`}>
-      <dt>{label}</dt>
-      <dd>{value}</dd>
+      <dt>
+        <span>{label}</span>
+        {Icon ? <span className={`ad__tileIcon ad__tileIcon--${iconTone}`} aria-hidden="true"><Icon /></span> : null}
+      </dt>
+      <dd>
+        {value}
+        {badge ? <span className={`ad__pill ad__pill--${badge.tone} ad__tileBadge`}>{badge.label}</span> : null}
+      </dd>
       {note ? <small>{note}</small> : null}
     </div>
   );
