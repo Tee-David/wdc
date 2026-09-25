@@ -83,6 +83,9 @@ test("switched on, visitors get a 503 holding page and the rest keeps working", 
   expect(await status(visitor, "/api/paystack/webhook")).not.toBe(503);
   expect(await status(visitor, "/i/not-a-real-token")).not.toBe(503);
   expect(await status(visitor, "/pay/done")).not.toBe(503);
+  /* A brief or a built form being filled in is not interrupted either. */
+  expect(await status(visitor, "/onboarding")).not.toBe(503);
+  expect(await status(visitor, "/f/anything")).not.toBe(503);
   expect(await status(visitor, "/robots.txt")).toBe(200);
   await visitor.dispose();
 
