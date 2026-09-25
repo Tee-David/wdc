@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**115 open** (59 in progress)
+**114 open** (61 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -119,7 +119,6 @@ DONE 2026-09-25: the five rows nothing read are read-only with the reason; `save
 
 DONE 2026-09-25: the Realtors Practice layout (`app/admin/(lists)/settings/layout.tsx`, `lib/settings/sections.ts`): sections grouped Studio, Communication and System, a sticky sidebar from 1000px, and on a phone the Settings page is the tappable list and every section is its own page with a "Settings" link back, so Back works; sections a role cannot open are not listed and their pages refuse. The long page is split into Content and defaults, FAQ, Media, Email, Integrations, Audit log and Access (drawn from `lib/admin/permissions.ts`, so it cannot say something the guard does not do). Tours and specs moved with it.
 
-- [ ] (S) Panel save kit: dirty tracking, primary Save disabled until dirty, Discard, "Unsaved changes" pill, leave-page warning only while dirty, inline `role="status"` result, server value re-synced only when it changes, provenance line ("Edited by … · shipped as … · Reset").
 
 #### Roles and team
 
@@ -138,7 +137,7 @@ DONE 2026-09-25: Settings > Site and SEO (`/admin/settings/site`, owner only, `l
 - [ ] (M) Business profile: trading and legal name, BN, registrar, tagline, contact email, phone/WhatsApp, address, location, social URLs (validated, fills `SOCIAL_LINKS`), timezone, date format, week start; wire every consumer (footer, legal pages, email footer, invoice/receipt header, Organization JSON-LD) in the same change.
 - [ ] (S) Studio notice address with confirmation mailed to the new address (hashed token, TTL) before it takes effect.
 - [ ] (S) Default social image for the site, picked with "Choose from library" (below) once that exists. Mind AGENTS.md: setting `openGraph.images` on the root suppresses the `opengraph-image` files.
-- [ ] (M) Invoicing and payments section: default VAT and days to pay (moved), VAT registered toggle with TIN, bank transfer details, payment terms and footer note, reminder schedule on/off per step, next invoice/receipt/estimate numbers shown read-only, Paystack mode and key status from env, webhook and callback URLs with copy.
+- [-] (M) Invoicing and payments section: default VAT and days to pay (moved), VAT registered toggle with TIN, bank transfer details, payment terms and footer note, reminder schedule on/off per step, next invoice/receipt/estimate numbers shown read-only, Paystack mode and key status from env, webhook and callback URLs with copy. DONE 2026-09-25: default VAT and days to pay, "Add VAT to new invoices", and the reminder schedule (sent by the daily job) on Settings, Studio and invoices. NOT: VAT registration and TIN, footer note; bank transfer details deliberately not offered (payment is through Paystack only).
 - [ ] (S) Content section: FAQ and Media entries, blog defaults (default topic, posts per page, RSS count), read-only rows for services/work/legal/testimonials saying why.
 
 #### Privacy, visibility, system
@@ -159,7 +158,7 @@ DONE 2026-09-25: pending review (migration 0023). Staff write a draft and "Submi
 
 - [ ] (M) Revisions for published posts (last 25, in the save transaction), list with who/when and Restore; last 10 values per `site_content` key for the FAQ.
 - [-] (S) Verify scheduled posts reach /blog, the post page, the sitemap and RSS within the promised window with a one-minute-ahead test; fix or reword the editor's promise. FIXED 2026-09-25, the half found on the way: a date-only publish is stored at 08:00 UTC, so "Published, today" pressed before 09:00 Lagos stayed hidden while the editor said "Saved and live". Today's date now publishes this moment, and a later day with Published is refused with a pointer to Scheduled (`lib/blog-validate.ts`, pinned in `tests/blog-doc.spec.ts`). NOT YET: the scheduled path itself on the deployed site, which depends on how long the pages are cached.
-- [ ] (M) "Choose from library" for cover and social image, with search, type filter and "Used in".
+- [-] (M) "Choose from library" for cover and social image, with search, type filter and "Used in". PART 2026-09-25: the cover is an upload box with our own photos as thumbnails; library browsing with search and "Used in" is not built.
 - [ ] (M) Services copy override by key (names, blurbs, deliverables; slugs locked), shown with provenance and Reset, following the FAQ's pattern.
 - [ ] (S) Post locking with a 150-second heartbeat and "Take over" — only if the concurrency refusal is ever hit in practice.
 
