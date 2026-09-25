@@ -188,3 +188,52 @@ export async function listForRecord(id: string, limit = 30): Promise<LoggedMessa
     return memory;
   }
 }
+
+/* ------------------------------------------------ the email log screen */
+
+export type LogQuery = { q: string; state: "" | MessageState; page: number; per: number };
+
+/**
+ * One page of the log, newest first, with the total that matched.
+ *
+ * `to:` and `subject:` narrow to those columns (FluentSMTP's search syntax);
+ * anything else is matched against the address, the subject and the summary.
+ */
+export async function searchLogged(query: LogQuery): Promise<{ rows: LoggedMessage[]; total: number }> {
+  const where: string[] = [];
+  const args: unknown[] = [];
+  const like = (v: string) => `%${v.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+  let rest = query.q;
+  for (const m of query.q.matchAll(/\b(to|subject):("([^"]+)"|\S+)/gi)) {
+    const value = m[3] ?? m[2];
+    args.push(like(value));
+    where.push(`${m[1].toLowerCase() === "to" ? "to_addr" : "subject"} ILIKE $${args.length}`);
+    rest = rest.replace(m[0], " ");
+  }
+  rest = rest.trim();
+  if (rest) {
+    args.push(like(rest));
+    where.push(`(to_addr ILIKE $${args.length} OR subject ILIKE $${args.length} OR summary ILIKE $${args.length})`);
+  }
+  if (query.state) { args.push(query.state); where.push(`state = $${args.length}`); }
+  const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
+  const rows = await db.query<Row>(
+    `SELECT * FROM message_log ${clause} ORDER BY created_at DESC, id DESC LIMIT ${query.per} OFFSET ${(query.page - 1) * query.per}`, args,
+  );
+  const total = await db.query<{ n: string }>(`SELECT count(*) AS n FROM message_log ${clause}`, args);
+  return { rows: rows.rows.map(toMessage), total: Number(total.rows[0]?.n ?? 0) };
+}
+
+/** Rows per state, for the tabs. */
+export async function loggedStateCounts(): Promise<Record<string, number>> {
+  const r = await db.query<{ state: string; n: string }>("SELECT state, count(*) AS n FROM message_log GROUP BY state");
+  const out: Record<string, number> = { Queued: 0, Sent: 0, Failed: 0, Skipped: 0 };
+  for (const x of r.rows) out[x.state] = Number(x.n);
+  return out;
+}
+
+/** Rows older than the retention period, removed. Returns how many. */
+export async function purgeLogged(days: number): Promise<number> {
+  const r = await db.query("DELETE FROM message_log WHERE created_at < now() - ($1::INT8 * INTERVAL '1 day')", [days]);
+  return r.rowCount ?? 0;
+}

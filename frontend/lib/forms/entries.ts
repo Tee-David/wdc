@@ -379,3 +379,13 @@ export async function unreadTotal(): Promise<number> {
 }
 
 export const summaryOf = (all: Record<string, FormSummary>, key: string) => all[key] ?? EMPTY;
+
+/** Entries in Trash for longer than the form keeps them, deleted for good. Returns how many. */
+export async function purgeTrash(form: FormDef, days: number): Promise<number> {
+  if (!form.inbox) return 0;
+  const b = base(form);
+  b.args.push(days);
+  b.where.push(`box = 'trash' AND box_at IS NOT NULL AND box_at < now() - ($${b.args.length}::INT8 * INTERVAL '1 day')`);
+  const r = await db.query(`DELETE FROM ${TABLE[form.source]} ${where(b)}`, b.args);
+  return r.rowCount ?? 0;
+}

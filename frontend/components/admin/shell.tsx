@@ -274,7 +274,7 @@ function AccountMenu({ user }: { user: AdminUser }) {
   );
 }
 
-function Notifications({ openForms }: { openForms: number }) {
+function Notifications({ openForms, failedMail = 0 }: { openForms: number; failedMail?: number }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -301,17 +301,23 @@ function Notifications({ openForms }: { openForms: number }) {
     <div className="ad__menuWrap" ref={ref}>
       <button ref={trigger} type="button" className="ad__topIcon" aria-label="Notifications" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
         <Bell aria-hidden="true" />
-        {openForms > 0 ? <span className="ad__notificationDot">{openForms > 9 ? "9+" : openForms}</span> : null}
+        {openForms + failedMail > 0 ? <span className="ad__notificationDot">{openForms + failedMail > 9 ? "9+" : openForms + failedMail}</span> : null}
       </button>
       {open ? (
         <div className="ad__popover ad__notifications">
           <div className="ad__popoverHead"><b>Notifications</b></div>
+          {failedMail > 0 ? (
+            <Link href="/admin/settings/email?state=Failed" onClick={() => setOpen(false)}>
+              <span className="ad__noticeIcon"><Bell aria-hidden="true" /></span>
+              <span><b>{failedMail} {failedMail === 1 ? "email" : "emails"} did not send</b><small>See why in the message log, and retry</small></span>
+            </Link>
+          ) : null}
           {openForms > 0 ? (
             <Link href="/admin/forms" onClick={() => setOpen(false)}>
               <span className="ad__noticeIcon"><ClipboardList aria-hidden="true" /></span>
               <span><b>{openForms} unread form {openForms === 1 ? "entry" : "entries"}</b><small>Briefs and enquiries nobody has opened yet</small></span>
             </Link>
-          ) : (
+          ) : failedMail > 0 ? null : (
             <div className="ad__popoverEmpty"><b>You’re all caught up.</b><span>New activity will show up here.</span></div>
           )}
         </div>
@@ -458,7 +464,7 @@ function ShellFrame({ children, counts, user }: { children: ReactNode; counts: R
           <div className="ad__topActions">
             <TourLauncher />
             <ThemeButton />
-            <Notifications openForms={counts.Forms ?? 0} />
+            <Notifications openForms={counts.Forms ?? 0} failedMail={counts.FailedMail ?? 0} />
             <AccountMenu user={user} />
           </div>
         </header>
