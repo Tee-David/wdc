@@ -15,12 +15,17 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const search = url.searchParams.get("q")?.trim().toLocaleLowerCase() ?? "";
+  /* The list's date range, so an export is what the screen showed. */
+  const day = (k: string) => { const v = url.searchParams.get(k) ?? ""; return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : ""; };
+  const from = day("from");
+  const to = day("to");
   const service = SERVICES.find((item) => item.slug === url.searchParams.get("service"))?.slug;
   const status = url.searchParams.get("status");
   const includeArchived = status === "archived" || status === "all";
   const clients = getClients({ includeArchived })
     .filter((client) => status !== "archived" || client.archived)
     .filter((client) => !service || client.services.includes(service))
+    .filter((client) => (!from || client.since.slice(0, 10) >= from) && (!to || client.since.slice(0, 10) <= to))
     .filter((client) => !search || [client.company, client.name, client.email, client.sector]
       .some((value) => value.toLocaleLowerCase().includes(search)));
 

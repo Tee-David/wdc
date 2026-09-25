@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**100 open** (39 in progress)
+**100 open** (40 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -190,7 +190,7 @@ Started 2026-09-25. The target is `dashboard-mockups/` at the repo root: 134 boa
 #### Foundation
 
 - [-] (S) Tokens to the boards: solid tone fills with a white label on every one (warn `#a16207`, live `#c95000`, good `#15803d`, bad `#c62828`), chart colours, radii and shadows, in `components/admin/admin.css` at `:root` so the portalled tour card still sees them. Re-run `tests/contrast.spec.ts` and `tests/button-colours.spec.ts`. DONE 2026-09-25 with the shells: the tone fills (warn and live now carry white), `--ad-nav-on`, and `--ad-bad-ink` for red text on a dark panel (the bad fill measured 3.33:1 as text there). NOT yet: chart colours, radii and shadows, which move with the primitives below.
-- [ ] (M) Shared primitives: page header (eyebrow, h1, lede, actions that never shrink), KPI card, panel, pill, tag, icon tile, segmented control, tabs, chips, inputs, the pager (rows per page, 25/50/100; Previous and Next with their arrows beside the words), the date range popover (presets plus a custom range, end of day included), row menu, dialog, drawer, bottom sheet, bulk bar, toast, and the empty, filtered-empty, loading, error and no-permission states. Rebuild the Boneyard snapshots once geometry moves.
+- [-] (M) Shared primitives: page header (eyebrow, h1, lede, actions that never shrink), KPI card, panel, pill, tag, icon tile, segmented control, tabs, chips, inputs, the pager (rows per page, 25/50/100; Previous and Next with their arrows beside the words), the date range popover (presets plus a custom range, end of day included), row menu, dialog, drawer, bottom sheet, bulk bar, toast, and the empty, filtered-empty, loading, error and no-permission states. Rebuild the Boneyard snapshots once geometry moves. DONE 2026-09-25: the page header, panel, KPI tile (coloured figures in ink shades, never #ff6500 as text), pill, button (44px, no orange hover), table, filter bar, empty state, the demonstration note (a quiet card, no wash), the amber banner (solid, white type), fields and dialogs, all in `admin.css` so every page moved at once; `Pager` (rows per page 25/50/100, the range, Previous and Next with their arrows) and `DateRange` (all time, nine presets, a custom pair; Lagos days) as script-free server components on `<details>`, on clients, money invoices, the email log and form entries, with both exports honouring the range. Pinned by `tests/list-controls.spec.ts`. NOT yet: the segmented control, tabs and chips, the bulk bar and toasts, and the Boneyard rebuild.
 
 #### Admin pages
 

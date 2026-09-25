@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Pager } from "@/components/admin/pager";
+import { DateRange } from "@/components/admin/date-range";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { ExternalLink } from "lucide-react";
@@ -47,7 +49,6 @@ function query(f: Filters, patch: Partial<Record<keyof Filters, string | number>
   return qs.toString();
 }
 
-const day = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10);
 
 function Tabs({ form, current, settings }: { form: FormDef; current: "entries" | "questions" | "settings"; settings: boolean }) {
   return (
@@ -190,9 +191,6 @@ export default async function FormPage({ params, searchParams }: Props) {
       return t;
     }),
   }));
-  const first = page.total ? (f.page - 1) * f.per + 1 : 0;
-  const last = Math.min(f.page * f.per, page.total);
-  const pages = Math.max(1, Math.ceil(page.total / f.per));
   const exportQuery = query(f, { page: "", per: "" });
   const canExport = can(role, "exports");
 
@@ -221,8 +219,9 @@ export default async function FormPage({ params, searchParams }: Props) {
           <label className="adForms__search">Search
             <input type="search" name="q" defaultValue={f.q} placeholder={form.source === "contact" ? "Name, email, topic or message" : form.source === "newsletter" ? "An address" : "Name, email or any answer"} />
           </label>
-          <label>From<input type="date" name="from" defaultValue={f.from} /></label>
-          <label>To<input type="date" name="to" defaultValue={f.to} /></label>
+          {f.from ? <input type="hidden" name="from" value={f.from} /> : null}
+          {f.to ? <input type="hidden" name="to" value={f.to} /> : null}
+          {f.per !== 25 ? <input type="hidden" name="per" value={f.per} /> : null}
           <label>Sort
             <select name="sort" defaultValue={f.sort}>
               <option value="newest">Newest first</option>
@@ -230,16 +229,18 @@ export default async function FormPage({ params, searchParams }: Props) {
               <option value="name">{form.source === "newsletter" ? "Address" : "Name"}</option>
             </select>
           </label>
-          <label>Per page
-            <select name="per" defaultValue={String(f.per)}>
-              {PER_PAGE.map((n) => <option key={n} value={n}>{n}</option>)}
-            </select>
-          </label>
           <button className="ad__btn ad__btn--primary" type="submit">Apply</button>
           {filtered ? <Link className="ad__btn" href={`/admin/forms/${form.key}?tab=${f.tab}`}>Clear</Link> : null}
-          <span className="ad__row" style={{ marginLeft: "auto" }}>
-            <Link className="ad__btn" href={`/admin/forms/${form.key}?${query(f, { from: day(6), to: day(0), page: 1 })}`}>Last 7 days</Link>
-            <Link className="ad__btn" href={`/admin/forms/${form.key}?${query(f, { from: day(29), to: day(0), page: 1 })}`}>Last 30 days</Link>
+        </form>
+        <div className="adForms__range">
+          <DateRange
+            label="Received"
+            value={{ from: f.from || undefined, to: f.to || undefined }}
+            href={(r) => `/admin/forms/${form.key}?${query(f, { from: r.from ?? "", to: r.to ?? "", page: 1 })}`}
+            keep={{ tab: f.tab, q: f.q, sort: f.sort === "newest" ? undefined : f.sort, per: f.per }}
+            action={`/admin/forms/${form.key}`}
+          />
+          <span className="ad__row">
             <ColumnPicker formKey={form.key} columns={form.columns} chosen={chosen} />
             {canExport ? (
               <>
@@ -248,19 +249,20 @@ export default async function FormPage({ params, searchParams }: Props) {
               </>
             ) : null}
           </span>
-        </form>
+        </div>
 
         <EntriesTable formKey={form.key} inbox={form.inbox} tab={f.tab} canDelete={can(role, "destructive")} canExport={canExport}
           columns={columns} rows={rows} exportQuery={exportQuery}
           footer={
-            <div className="adForms__foot">
-              <span className="ad__dim ad__num">{first}–{last} of {page.total}</span>
-              <span className="ad__row">
-                {f.page > 1 ? <Link className="ad__btn" href={`/admin/forms/${form.key}?${query(f, { page: f.page - 1 })}`}>Previous</Link> : null}
-                <span className="ad__dim">Page {f.page} of {pages}</span>
-                {f.page < pages ? <Link className="ad__btn" href={`/admin/forms/${form.key}?${query(f, { page: f.page + 1 })}`}>Next</Link> : null}
-              </span>
-            </div>
+            <Pager
+              label="Entry pages"
+              total={page.total}
+              page={f.page}
+              per={f.per}
+              noun={page.total === 1 ? "entry" : "entries"}
+              perOptions={PER_PAGE}
+              href={(patch) => `/admin/forms/${form.key}?${query(f, { ...(patch.page ? { page: patch.page } : {}), ...(patch.per ? { per: patch.per } : {}) })}`}
+            />
           }
           empty={filtered ? (
             <Empty title="Nothing matches these filters" action={<Link className="ad__btn" href={`/admin/forms/${form.key}?tab=${f.tab}`}>Clear filters</Link>} />

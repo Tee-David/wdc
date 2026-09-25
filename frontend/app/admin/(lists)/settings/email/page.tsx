@@ -8,6 +8,8 @@ import { loggedStateCounts, searchLogged, type LogQuery } from "@/lib/message-lo
 import type { MessageState } from "@/lib/admin/types";
 import { AdminState } from "@/components/admin/admin-state";
 import { Empty, Panel } from "@/components/admin/bits";
+import { Pager } from "@/components/admin/pager";
+import { DateRange } from "@/components/admin/date-range";
 import { ResendMessage } from "@/components/admin/reconcile-forms";
 import { FailureAlertForm, Retention, TestEmail, TidyNow } from "@/components/admin/email-settings";
 import { FAILURE_ALERT_KEY, type FailureAlert } from "@/lib/mail-alert";
@@ -59,7 +61,8 @@ export default async function EmailSettingsPage({ searchParams }: Props) {
   const state = (STATES.find((s) => s === one(sp.state)) ?? "") as LogQuery["state"];
   const per = PER.includes(Number(one(sp.per))) ? Number(one(sp.per)) : 25;
   const page = Math.max(1, Math.floor(Number(one(sp.page)) || 1));
-  const query: LogQuery = { q: one(sp.q).trim().slice(0, 120), state, page, per };
+  const dayOf = (v: string) => (/^\d{4}-\d{2}-\d{2}$/.test(v) ? v : undefined);
+  const query: LogQuery = { q: one(sp.q).trim().slice(0, 120), state, page, per, from: dayOf(one(sp.from)), to: dayOf(one(sp.to)) };
   const { session } = await getAdminRequest().catch(() => ({ session: null }));
   const days = await getAppSetting(LOG_RETENTION_KEY, DEFAULT_LOG_RETENTION);
   const alert = await getAppSetting<FailureAlert>(FAILURE_ALERT_KEY, null);
@@ -70,11 +73,10 @@ export default async function EmailSettingsPage({ searchParams }: Props) {
   try { [log, counts] = await Promise.all([searchLogged(query), loggedStateCounts()]); } catch { log = null; }
   const qs = (patch: Record<string, string | number>) => {
     const v = new URLSearchParams();
-    const all = { q: query.q, state: query.state, per: query.per, page: query.page, ...patch };
+    const all = { q: query.q, state: query.state, per: query.per, page: query.page, from: query.from ?? "", to: query.to ?? "", ...patch };
     for (const [k, x] of Object.entries(all)) if (String(x) && !(k === "page" && String(x) === "1") && !(k === "per" && String(x) === "25")) v.set(k, String(x));
     return v.toString();
   };
-  const pages = log ? Math.max(1, Math.ceil(log.total / per)) : 1;
 
   return (
     <>
@@ -119,12 +121,20 @@ export default async function EmailSettingsPage({ searchParams }: Props) {
             <label className="adForms__search">Search
               <input type="search" name="q" defaultValue={query.q} placeholder="An address or subject, or to:someone subject:receipt" />
             </label>
-            <label>Per page
-              <select name="per" defaultValue={String(per)}>{PER.map((n) => <option key={n} value={n}>{n}</option>)}</select>
-            </label>
+            {per !== 25 ? <input type="hidden" name="per" value={per} /> : null}
+            {query.from ? <input type="hidden" name="from" value={query.from} /> : null}
+            {query.to ? <input type="hidden" name="to" value={query.to} /> : null}
             <button className="ad__btn ad__btn--primary" type="submit">Search</button>
-            {query.q ? <Link className="ad__btn" href={`?${qs({ q: "", page: 1 })}`}>Clear</Link> : null}
+            {query.q || query.from || query.to ? <Link className="ad__btn" href={`?${qs({ q: "", from: "", to: "", page: 1 })}`}>Clear</Link> : null}
           </form>
+          <div className="adForms__range">
+            <DateRange
+              label="Sent"
+              value={{ from: query.from, to: query.to }}
+              href={(r) => `?${qs({ from: r.from ?? "", to: r.to ?? "", page: 1 })}`}
+              keep={{ q: query.q, state, per: per === 25 ? undefined : per }}
+            />
+          </div>
           {!log ? (
             <AdminState kind="error" title="The message log could not be read" description="The database did not answer, or it is not connected." />
           ) : log.rows.length ? (
@@ -150,16 +160,16 @@ export default async function EmailSettingsPage({ searchParams }: Props) {
                   </tbody>
                 </table>
               </div>
-              <div className="adForms__foot">
-                <span className="ad__dim ad__num">{(page - 1) * per + 1}–{Math.min(page * per, log.total)} of {log.total}</span>
-                <span className="ad__row">
-                  {page > 1 ? <Link className="ad__btn" href={`?${qs({ page: page - 1 })}`}>Previous</Link> : null}
-                  <span className="ad__dim">Page {page} of {pages}</span>
-                  {page < pages ? <Link className="ad__btn" href={`?${qs({ page: page + 1 })}`}>Next</Link> : null}
-                </span>
-              </div>
+              <Pager
+                label="Message log pages"
+                total={log.total}
+                page={page}
+                per={per}
+                noun={log.total === 1 ? "message" : "messages"}
+                href={(patch) => `?${qs({ ...(patch.page ? { page: patch.page } : {}), ...(patch.per ? { per: patch.per } : {}) })}`}
+              />
             </>
-          ) : query.q || state ? (
+          ) : query.q || state || query.from || query.to ? (
             <Empty title="Nothing matches" action={<Link className="ad__btn" href="?">Show everything</Link>} />
           ) : (
             <Empty title="Nothing sent yet">Every email the site sends is written here before it goes, with whether it arrived.</Empty>
