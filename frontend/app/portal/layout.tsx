@@ -3,13 +3,14 @@ import { redirect } from "next/navigation";
 import ClientShell from "@/components/client/shell";
 import AdminTourProvider from "@/components/admin/tour/tour-provider";
 import { getPortalRequest } from "@/lib/portal/session";
-import { AdminState } from "@/components/admin/admin-state";
+import { NotLinked } from "@/components/client/not-linked";
 import "@/components/admin/admin.css";
 /* The dashboard's own `adDash__*` rules (KPI grid, attention rows, compact
    lists) -- shared by name across every portal screen the same way the
    admin's own dashboard-view.tsx pulls them in, rather than duplicated
    under a `portal` prefix for no visual difference. */
 import "@/components/admin/dashboard.css";
+import "@/components/client/portal.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 /**
@@ -47,13 +48,7 @@ export default async function PortalLayout({ children }: { children: React.React
     return (
       <div className="ad">
         <ClientShell user={user} clientCompany={null}>
-          <section className="ad__panel">
-            <AdminState
-              kind="first-use"
-              title="Your account isn't linked to a project yet"
-              description="Nothing is missing from your side -- there is simply no client record matched to this email yet. Email us at hello@wedigcreativity.com.ng and we'll connect it, usually the same working day."
-            />
-          </section>
+          <NotLinked email={session.user.email} />
         </ClientShell>
       </div>
     );

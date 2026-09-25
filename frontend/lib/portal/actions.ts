@@ -122,13 +122,64 @@ export async function replyToTicket(_prev: ActionState, fd: FormData): Promise<A
   return OK("Sent.");
 }
 
+/* THE CLIENT CAN SETTLE THEIR OWN QUESTION. Closing is a status, not a
+   deletion: the thread stays readable, and writing on it again reopens it
+   (addTicketMessage does that), so a close pressed by mistake costs nothing. */
+export async function closeMyTicket(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
+  const client = await requireClient();
+  if (!client) return FAIL({}, "Your account isn't linked to a client record.");
+  const t = db.getTicket(str(fd, "ticketId"));
+  if (!t || t.clientId !== client.id) return FAIL({}, "That conversation is no longer there.");
+  if (t.status !== "Closed") db.setTicketStatus(t.id, "Closed");
+  revalidatePath("/admin/clients/support");
+  revalidatePath(`/portal/support/${t.id}`);
+  revalidatePath("/portal/support");
+  revalidatePath("/portal");
+  return OK("Closed. Write here again any time and it reopens.");
+}
+
+/* THE CLIENT'S OWN NAME AND PHONE. The email is not here on purpose: it is
+   what the portal matches the signed-in person to their client record by,
+   so changing it from inside would lock them out. That goes through Support. */
+export async function updateMyDetails(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
+  const client = await requireClient();
+  if (!client) return FAIL({}, "Your account isn't linked to a client record.");
+  const name = str(fd, "name").replace(/\s+/g, " ").slice(0, 120);
+  const phone = str(fd, "phone").slice(0, 40);
+  const errors: Record<string, string> = {};
+  if (name.length < 2) errors.name = "Your name, as we should address you.";
+  if (phone && !/^\+?[0-9][0-9 ()-]{6,}$/.test(phone)) errors.phone = "A phone number, like +234 803 555 0142.";
+  if (Object.keys(errors).length) return FAIL(errors);
+  db.patchClient(client.id, { name, phone }, name);
+  revalidatePath("/portal/settings");
+  revalidatePath("/portal");
+  return OK("Details saved.");
+}
+
+/* Every other device signed in as this person is signed out; this one stays. */
+export async function signOutOtherDevices(): Promise<ActionState> {
+  const client = await requireClient();
+  if (!client) return FAIL({}, "Your account isn't linked to a client record.");
+  const { headers } = await import("next/headers");
+  const h = await headers();
+  const { auth } = await import("@/lib/auth");
+  try { await auth.api.revokeOtherSessions({ headers: h }); } catch {
+    return FAIL({}, "That could not be done just now. Try again in a minute.");
+  }
+  return OK("Every other device is signed out. This one stays.");
+}
+
 export async function updateNotifyPrefs(_prev: ActionState, fd: FormData): Promise<ActionState> {
   await syncStore();
   persistSoon();
   const client = await requireClient();
   if (!client) return FAIL({}, "Your account isn't linked to a client record.");
   const notify = Object.fromEntries(
-    NOTIFY_KINDS.map((k: NotifyKind) => [k, fd.get(k) === "on"]),
+    NOTIFY_KINDS.map((k: NotifyKind) => [k, fd.get(k) === "on" || fd.get(k) === "1"]),
   ) as Record<NotifyKind, boolean>;
   db.patchClient(client.id, { notify }, client.name);
   revalidatePath("/portal/settings");

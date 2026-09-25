@@ -30,10 +30,12 @@ export const getPortalRequest = cache(async () => {
        env-gated, non-production-only mechanism `isAdminCapture` already
        is; this header only does anything alongside a valid capture token. */
     const wantId = requestHeaders.get("x-boneyard-capture-client") || "c1";
-    const client = getClient(wantId) ?? getClients()[0] ?? null;
+    /* "none" is the signed-in client nobody has matched yet, so the
+       not-linked screen can be seen and tested like every other. */
+    const client = wantId === "none" ? null : getClient(wantId) ?? getClients()[0] ?? null;
     return {
       capture,
-      session: { user: { name: client?.name ?? "Client", email: client?.email ?? "client@localhost", image: null, role: "client" } },
+      session: { user: { name: client?.name ?? "Ngozi Eze", email: client?.email ?? "ngozi@example.com", image: null, role: "client" } },
       client,
     };
   }

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ListSearch } from "@/components/admin/list-search";
 import { CheckCircle2, Clock, LifeBuoy, MessageSquare, Plus } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
-import { getTicketMessages, getTicketsFor } from "@/lib/admin/store";
+import { getProjectsFor, getTicketMessages, getTicketsFor } from "@/lib/admin/store";
 import { Empty, when } from "@/components/admin/bits";
 import { NewTicketForm } from "@/components/client/new-ticket-form";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
@@ -45,7 +45,8 @@ export default async function PortalSupport({ searchParams }: { searchParams: Pr
         )}
       </header>
 
-      {asking ? <NewTicketForm startOpen subject={sp.subject} projectId={sp.project} closeHref="/portal/support" /> : null}
+      {asking ? <NewTicketForm startOpen subject={sp.subject} projectId={sp.project} closeHref="/portal/support"
+        projects={getProjectsFor(client.id).map((p) => ({ id: p.id, title: p.title }))} /> : null}
 
       <div className="pSup">
         <section className="ad__panel" data-tour="portal-support" aria-label="Conversations">
