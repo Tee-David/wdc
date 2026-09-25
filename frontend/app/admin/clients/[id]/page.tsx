@@ -7,7 +7,7 @@ import {
   financeDefaults, findDuplicateClient, getClient, getClients, getDeliverablesFor, getInvoicesFor, getPaymentsFor, getProjects, getProjectsFor, getSubmissions,
 } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, naira, paymentNet, refundedTotal } from "@/lib/admin/types";
-import { ApprovalPill, Empty, InvoicePill, Panel, StagePill, Tile, when } from "@/components/admin/bits";
+import { ApprovalPill, Empty, InvoicePill, Panel, StagePill, when } from "@/components/admin/bits";
 import { InvoiceMenu, ProjectMenu } from "@/components/admin/row-actions";
 import { EditClient, MergeClient } from "@/components/admin/client-form";
 import { AddProject } from "@/components/admin/project-forms";
@@ -21,6 +21,8 @@ import PortalAccess from "@/components/admin/portal-access";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
+import { ProfileCard } from "@/components/admin/profile-card";
+import { Mail, Phone, Tag, User } from "lucide-react";
 
 /* NO generateStaticParams. The client list is written to now, and a route
    prerendered from the list as it stood at build time would 404 on the client
@@ -73,24 +75,29 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   const billed = invoices.filter((i) => i.status !== "Draft");
   const owed = billed.reduce((n, i) => n + invoiceTotals(i).due, 0);
   const paid = billed.reduce((n, i) => n + i.paid, 0);
+  const overdue = billed.some((i) => invoiceStatus(i) === "Overdue");
 
   return (
     <>
-      <div className="ad__head">
-        <div>
-          <p className="ad__dim"><Link href="/admin/clients">Clients</Link></p>
-          <h1>{c.company}</h1>
-          <p>
-            {c.name} · <a href={`mailto:${c.email}`}>{c.email}</a> ·{" "}
-            <a href={`tel:${c.phone.replace(/\s/g, "")}`}>{c.phone}</a>
-          </p>
-          {c.tags?.length ? (
-            <p className="ad__row" style={{ marginTop: ".4rem" }}>
-              {c.tags.map((t) => <span key={t} className="ad__pill ad__pill--flat">{t}</span>)}
-            </p>
-          ) : null}
-        </div>
-        <div className="ad__row">
+      <ProfileCard
+        crumbs={[{ href: "/admin/clients", label: "Clients" }]}
+        initials={initials(c.company)}
+        title={c.company}
+        pills={<>
+          <span className={`ad__pill ad__pill--${c.archived ? "flat" : "good"}`}>{c.mergedInto ? "Merged" : c.archived ? "Archived" : "Active"}</span>
+          {overdue && money ? <span className="ad__pill ad__pill--bad">Overdue</span> : null}
+        </>}
+        lines={<>
+          <span><User aria-hidden="true" />{c.name}</span>
+          <a href={`mailto:${c.email}`}><Mail aria-hidden="true" />{c.email}</a>
+          {c.phone ? <a href={`tel:${c.phone.replace(/\s/g, "")}`}><Phone aria-hidden="true" />{c.phone}</a> : null}
+          {c.sector ? <span><Tag aria-hidden="true" />{c.sector}</span> : null}
+        </>}
+        tags={c.services.length || c.tags?.length ? <>
+          {c.services.map((s) => <span key={s} className="ad__pill ad__pill--flat">{SERVICES.find((x) => x.slug === s)?.short ?? s}</span>)}
+          {(c.tags ?? []).map((t) => <span key={t} className="ad__pill ad__pill--flat">{t}</span>)}
+        </> : undefined}
+        actions={<>
           <PageTourButton />
           {destructive ? <ArchiveClient client={c} /> : null}
           {c.mergedInto || !destructive ? null : (
@@ -109,8 +116,16 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
               defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays}
             />
           ) : null}
-        </div>
-      </div>
+        </>}
+        stats={[
+          { label: "Client since", value: when(c.since) },
+          { label: "Projects", value: String(projects.length), badge: { label: `${projects.filter((p) => p.stage !== "Delivered").length} live`, tone: "flat" } },
+          ...(money ? [
+            { label: "Paid to date", value: naira(paid) },
+            { label: "Outstanding", value: owed ? naira(owed) : "Nil", badge: overdue ? { label: "Overdue", tone: "bad" as const } : undefined },
+          ] : []),
+        ]}
+      />
 
       {c.mergedInto ? (
         <p className="ad__banner" role="status">
@@ -135,13 +150,6 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
         </section>
       ) : null}
 
-      <dl className="ad__tiles">
-        {money ? <Tile label="Paid to date" value={naira(paid)} tone="good" /> : null}
-        {money ? <Tile label="Outstanding" value={naira(owed)} tone={owed ? "bad" : undefined} /> : null}
-        <Tile label="Projects" value={String(projects.length)}
-              note={`${projects.filter((p) => p.stage !== "Delivered").length} live`} />
-        <Tile label="Client since" value={when(c.since)} note={c.sector} />
-      </dl>
 
       <div className="ad__grid2">
         <div className="ad__stack">
@@ -195,15 +203,6 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
         </div>
 
         <div className="ad__stack">
-          <Panel title="Buys">
-            <div style={{ padding: ".8rem 1rem" }} className="ad__row">
-              {c.services.map((s) => (
-                <span key={s} className="ad__pill ad__pill--flat">
-                  {SERVICES.find((x) => x.slug === s)?.short}
-                </span>
-              ))}
-            </div>
-          </Panel>
 
           <PortalAccess clientId={c.id} email={c.email} />
 
@@ -342,4 +341,8 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
       </div>
     </>
   );
+}
+
+function initials(name: string) {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
 }

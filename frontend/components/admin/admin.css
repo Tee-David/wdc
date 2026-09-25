@@ -436,6 +436,9 @@
 .ad__head h1 { font-size: clamp(1.5rem, 1.15rem + 1.1vw, 1.9rem); font-weight: 600; line-height: 1.15; }
 .ad__head p { margin: .4rem 0 0; color: var(--ad-dim); font-size: .95rem; }
 .ad__head > .ad__row { flex: none; }
+/* On a phone the actions take their own line and may wrap within it: "never
+   shrink" is for a wide header, where the title is the part that gives. */
+@media (max-width: 640px) { .ad__head > .ad__row { flex: 1 1 100%; } }
 
 .ad__panel {
   min-width: 0;
@@ -1537,4 +1540,80 @@ a.ad__pgBtn:hover { background: var(--ad-panel-2); border-color: var(--ad-dim); 
 @media (max-width: 400px) {
   .ad__rangeMenu, .ad__range--end .ad__rangeMenu { grid-template-columns: minmax(0, 1fr); }
   .ad__rangePresets { border-right: 0; border-bottom: 1px solid var(--ad-line); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ----------------------------------------------- tabs, avatars, tile rows */
+
+/* Four KPI cards across on a wide screen, two on a tablet, one on a phone. */
+.ad__tiles--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
+@media (max-width: 1180px) { .ad__tiles--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .ad__tiles--4 { grid-template-columns: minmax(0, 1fr); } }
+
+/* UNDERLINE TABS (the mockups' .tabs): views of one list, as links, with
+   the current one marked by an orange rule and `aria-current`. */
+.ad__tabsNav {
+  display: flex; gap: 1.5rem; margin: 0 0 1.25rem; overflow-x: auto; scrollbar-width: none;
+  border-bottom: 1px solid var(--ad-line);
+}
+.ad__tabsNav::-webkit-scrollbar { display: none; }
+.ad .ad__tabsNav > a {
+  position: relative; min-height: 2.75rem; padding: .6rem 0; display: inline-flex; align-items: center; gap: .5rem;
+  color: var(--ad-dim); font-weight: 600; font-size: .92rem; white-space: nowrap;
+}
+.ad .ad__tabsNav > a:hover { color: var(--ad-ink); }
+.ad .ad__tabsNav > a[aria-current="page"] { color: var(--ad-ink); }
+.ad__tabsNav > a[aria-current="page"]::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--ad-accent);
+}
+.ad__tabN { min-width: 1.35rem; padding: .05rem .4rem; border-radius: 999px; background: var(--ad-tone-neutral); color: var(--ad-on-neutral); font-size: .72rem; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+
+/* A person or company in a table: a solid initials disc, then the name. */
+.ad__who { display: flex; align-items: center; gap: .75rem; min-width: 0; }
+.ad__who > span:last-child { min-width: 0; display: grid; }
+.ad__av {
+  width: 2.25rem; height: 2.25rem; flex: none; display: grid; place-items: center; border-radius: 50%;
+  background: var(--ad-tone-brand); color: var(--ad-on-brand); font: 600 .74rem var(--font-space-grotesk), system-ui, sans-serif;
+}
+.ad__av--live { background: var(--ad-tone-live); color: var(--ad-on-live); }
+.ad__av--good { background: var(--ad-tone-good); color: var(--ad-on-good); }
+.ad__av--warn { background: var(--ad-tone-warn); color: var(--ad-on-warn); }
+.ad__av--neutral { background: var(--ad-tone-neutral); color: var(--ad-on-neutral); }
+
+/* ------------------------------------------------------- the record card */
+
+/* components/admin/profile-card.tsx: the top of a client, project or
+   invoice page. */
+.ad__crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin: 0 0 1rem; color: var(--ad-dim); font-size: .9rem; }
+.ad__crumbs > span { display: inline-flex; align-items: center; gap: .35rem; }
+.ad__crumbs a:hover { color: var(--ad-ink); text-decoration: underline; text-underline-offset: 2px; }
+.ad__crumbs svg { width: .9rem; height: .9rem; }
+.ad__crumbs b { color: var(--ad-ink); font-weight: 600; }
+.ad__profile { margin-bottom: 1.25rem; padding: 1.5rem; border: 1px solid var(--ad-line); border-radius: var(--ad-r); background: var(--ad-panel); box-shadow: var(--ad-sh-1); }
+.ad__profileTop { display: flex; align-items: flex-start; gap: 1.25rem; }
+.ad__profileAv { width: 4.5rem; height: 4.5rem; flex: none; display: grid; place-items: center; border-radius: 22px; background: var(--ad-tone-live); color: var(--ad-on-live); font: 600 1.5rem var(--font-space-grotesk), system-ui, sans-serif; }
+.ad__profileMain { min-width: 0; flex: 1; display: grid; gap: .55rem; }
+.ad__profileTitle { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+.ad__profileTitle h1 { font-size: clamp(1.45rem, 1.1rem + 1vw, 1.9rem); font-weight: 600; line-height: 1.15; overflow-wrap: anywhere; }
+.ad__profileLines { display: flex; flex-wrap: wrap; gap: .35rem 1.1rem; color: var(--ad-dim); font-size: .9rem; }
+.ad__profileLines > * { display: inline-flex; align-items: center; gap: .4rem; min-width: 0; overflow-wrap: anywhere; }
+.ad__profileLines svg { width: 1rem; height: 1rem; flex: none; }
+.ad__profileLines a:hover { color: var(--ad-ink); text-decoration: underline; text-underline-offset: 2px; }
+.ad__profileTags { display: flex; flex-wrap: wrap; gap: .4rem; }
+.ad__profileActions { flex: none; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .5rem; max-width: 55%; }
+.ad__profileStats { margin: 1.25rem 0 0; padding-top: 1.25rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: 1rem 0; border-top: 1px solid var(--ad-line); }
+.ad__profileStats > div { min-width: 0; padding: 0 1.25rem; border-left: 1px solid var(--ad-line); }
+.ad__profileStats > div:first-child { padding-left: 0; border-left: 0; }
+.ad__profileStats dt { color: var(--ad-dim); font-size: .84rem; }
+.ad__profileStats dd { margin: .3rem 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; font: 600 clamp(1.2rem, 1rem + .6vw, 1.5rem) var(--font-space-grotesk), system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+.ad__profileStats dd .ad__pill { font-family: var(--font-body); }
+@media (max-width: 900px) {
+  .ad__profileTop { flex-wrap: wrap; }
+  .ad__profileActions { max-width: none; flex: 1 1 100%; justify-content: flex-start; }
+}
+@media (max-width: 560px) {
+  .ad__profile { padding: 1.1rem; }
+  .ad__profileAv { width: 3.5rem; height: 3.5rem; border-radius: 16px; font-size: 1.15rem; }
+  .ad__profileStats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ad__profileStats > div { padding: 0 .75rem; }
+  .ad__profileStats > div:nth-child(odd) { padding-left: 0; border-left: 0; }
 }
