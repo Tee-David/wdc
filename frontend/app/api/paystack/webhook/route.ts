@@ -5,6 +5,7 @@ import {
 import { invoiceTotals } from "@/lib/admin/types";
 import { fromKobo, paystackMode, paystackSignatureValid } from "@/lib/paystack";
 import { sendPaymentReceiptEmail } from "@/lib/money-mail";
+import { saveStore, syncStore } from "@/lib/admin/persist";
 
 /**
  * Paystack telling us what happened, which is the only account of a payment
@@ -70,7 +71,16 @@ const DISPUTE_EVENTS = new Set(["charge.dispute.create", "charge.dispute.remind"
 
 const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
 
+/* MONEY IS SAVED BEFORE PAYSTACK HEARS "OK": a 200 tells it not to retry,
+   so the payment has to be in the table by then, not behind the response. */
 export async function POST(request: NextRequest) {
+  await syncStore();
+  const res = await receive(request);
+  await saveStore();
+  return res;
+}
+
+async function receive(request: NextRequest) {
   const raw = await request.text();
 
   if (!(await paystackSignatureValid(raw, request.headers.get("x-paystack-signature")))) {

@@ -20,6 +20,7 @@ import {
   Moon,
   Newspaper,
   PanelLeft,
+  LifeBuoy,
   Scale,
   Search,
   Settings,
@@ -58,7 +59,14 @@ type NavItem = {
    with a hover state. */
 const NAV: NavItem[] = [
   { href: "/admin", label: "Dashboard", Icon: LayoutDashboard, group: "main", tour: "nav-dashboard" },
-  { href: "/admin/clients", label: "Clients", Icon: Users, group: "main", tour: "nav-clients" },
+  {
+    href: "/admin/clients", label: "Clients", Icon: Users, group: "main", tour: "nav-clients",
+    sub: [
+      { href: "/admin/clients", label: "All clients" },
+      /* Support sits with the people asking, not as an eighth page. */
+      { href: "/admin/clients/support", label: "Support" },
+    ],
+  },
   { href: "/admin/projects", label: "Projects", Icon: FolderKanban, group: "main", tour: "nav-projects" },
   {
     href: "/admin/money", label: "Money", Icon: Banknote, group: "main", tour: "nav-money",
@@ -84,6 +92,7 @@ const TABS = ["/admin", "/admin/clients", "/admin/projects", "/admin/money"];
 const MORE: { href: string; label: string; hint: string; Icon: typeof Users; count?: string; area: string }[] = [
   { href: "/admin/forms", label: "Forms", hint: "Briefs and enquiries", Icon: ClipboardList, count: "Forms", area: "/admin/forms" },
   { href: "/admin/blog", label: "Blog", hint: "Posts and drafts", Icon: Newspaper, count: "Blog", area: "/admin/blog" },
+  { href: "/admin/clients/support", label: "Support", hint: "Client questions", Icon: LifeBuoy, area: "/admin/clients" },
   { href: "/admin/money/reconciliation", label: "Reconciliation", hint: "Payments to check", Icon: Scale, area: "/admin/money" },
   { href: "/admin/settings", label: "Settings", hint: "Studio and site", Icon: Settings, area: "/admin/settings" },
   { href: "/admin/settings/faq", label: "FAQ", hint: "Questions on the site", Icon: MessagesSquare, area: "/admin/blog" },

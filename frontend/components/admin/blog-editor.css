@@ -116,3 +116,17 @@
    rhythm: one gap between each, and room under the card's heading. */
 .adBlog__card > .adBlog__h { margin-bottom: .6rem; }
 .adBlog__card > .ad__f + .ad__f, .adBlog__card > .ad__f + .ad__formActions { margin-top: .9rem; }
+
+/* THE "UNSAVED VERSION" OFFER FLOATS, it does not push. It appears a moment
+   after the editor loads (the browser copy is read in an effect), and at the
+   top of the form it moved every field down under the reader's finger: a tap
+   aimed at a State option landed on the one below it. As a bar over the
+   foot of the screen it takes no room in the page. */
+.adBlog__restore {
+  position: fixed; z-index: 60; left: 50%; bottom: calc(1.25rem + env(safe-area-inset-bottom));
+  transform: translateX(-50%); width: min(40rem, calc(100vw - 2rem)); margin: 0;
+  box-shadow: 0 18px 40px -16px rgb(0 0 40 / .45);
+}
+@media (max-width: 900px) {
+  .adBlog__restore { bottom: calc(6.75rem + env(safe-area-inset-bottom)); }
+}

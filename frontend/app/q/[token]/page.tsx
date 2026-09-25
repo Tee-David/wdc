@@ -4,6 +4,7 @@ import { getClient, getEstimateByToken, getInvoice, getProject } from "@/lib/adm
 import { estimateState, estimateTotals, lineTotal, naira } from "@/lib/admin/types";
 import { DocumentShell, Headline, estimateUrl, invoiceUrl } from "@/components/money/document";
 import { CONTACT_EMAIL } from "@/lib/site";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 /**
  * An estimate, for the person deciding whether to say yes.
@@ -31,6 +32,8 @@ export default async function PublicEstimate({
 }: {
   params: Promise<{ token: string }>;
 }) {
+  await syncStore();
+  persistSoon();
   const { token } = await params;
   const est = getEstimateByToken(token);
   if (!est || est.state === "Draft") notFound();

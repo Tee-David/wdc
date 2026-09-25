@@ -1,0 +1,16 @@
+/* A support conversation (components/admin/conversation.tsx). */
+.adConv { margin: 0; padding: 1rem 1.25rem 1.25rem; list-style: none; display: grid; gap: 1rem; }
+.adConv__msg { display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); gap: .65rem; align-items: end; max-width: min(40rem, 92%); }
+.adConv__msg.is-mine { grid-template-columns: minmax(0, 1fr) 2.25rem; margin-left: auto; }
+.adConv__msg.is-mine .adConv__av { order: 2; }
+.adConv__av { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 50%; font-size: .74rem; font-weight: 700; }
+.adConv__bubble { min-width: 0; padding: .75rem .95rem; border: 1px solid var(--ad-line); border-radius: 16px 16px 16px 4px; background: var(--ad-panel-2); }
+.adConv__msg.is-mine .adConv__bubble { border-color: var(--ad-navy); border-radius: 16px 16px 4px 16px; background: var(--ad-navy); color: #fff; }
+.dark .adConv__msg.is-mine .adConv__bubble { border-color: #2a2c7a; background: #23237a; }
+.adConv__who { margin: 0 0 .25rem; display: flex; flex-wrap: wrap; gap: .25rem .6rem; align-items: baseline; font-size: .8rem; }
+.adConv__who time { color: var(--ad-dim); font-size: .74rem; }
+.adConv__msg.is-mine .adConv__who time { color: #d9dcf5; }
+.adConv__body { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .92rem; line-height: 1.55; }
+@media (max-width: 560px) { .adConv { padding-inline: 1rem; } .adConv__msg { max-width: 100%; } }
+.adConv__reply { padding: 1rem 1.25rem 1.25rem; border-top: 1px solid var(--ad-line); }
+.adConv__reply .ad__dim { margin: 0; }

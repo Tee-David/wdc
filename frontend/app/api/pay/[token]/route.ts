@@ -4,6 +4,7 @@ import { callerKey, rateLimit } from "@/lib/rate-limit";
 import { getClient, getInvoiceByToken, recordProviderEvent } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals } from "@/lib/admin/types";
 import { initializeTransaction, paymentReference } from "@/lib/paystack";
+import { saveStore, syncStore } from "@/lib/admin/persist";
 
 /**
  * "Pay this invoice" -- the only endpoint that starts a checkout.
@@ -40,7 +41,15 @@ function back(token: string, error?: string) {
   return NextResponse.redirect(url, 303);
 }
 
+/* The checkout's record is saved before the client is sent to pay. */
 export async function POST(request: NextRequest, ctx: { params: Promise<{ token: string }> }) {
+  await syncStore();
+  const res = await start(request, ctx);
+  await saveStore();
+  return res;
+}
+
+async function start(request: NextRequest, ctx: { params: Promise<{ token: string }> }) {
   const { token } = await ctx.params;
 
   const limit = rateLimit(callerKey(request, `pay:${token}`), LIMIT, WINDOW_MS);

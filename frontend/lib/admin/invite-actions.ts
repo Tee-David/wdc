@@ -7,6 +7,7 @@ import { sendInvitationEmail } from "@/lib/invitation-mail";
 import { getClient, audit } from "./store";
 import { actorName, owner, allow } from "./guard";
 import { FAIL, OK, looksEmail, str, type ActionState } from "./validate";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const NOT_CONNECTED = "The account database is not connected, so an invitation has nowhere to be kept.";
@@ -26,6 +27,8 @@ function sendLater(...args: Parameters<typeof sendInvitationEmail>) {
  * is bound to this record by construction.
  */
 export async function inviteClient(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await allow("clients");
   if (refused) return refused;
   if (!invitationsConfigured()) return FAIL({}, NOT_CONNECTED);
@@ -49,6 +52,8 @@ export async function inviteClient(_prev: ActionState, fd: FormData): Promise<Ac
 
 /** A member of staff, to the admin. Owner only, whatever else staff can do. */
 export async function inviteStaff(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   if (!invitationsConfigured()) return FAIL({}, NOT_CONNECTED);
@@ -73,6 +78,8 @@ export async function inviteStaff(_prev: ActionState, fd: FormData): Promise<Act
 }
 
 export async function revokeInvite(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const id = str(fd, "id");

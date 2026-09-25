@@ -1773,4 +1773,7 @@ a.ad__pgBtn:hover { background: var(--ad-panel-2); border-color: var(--ad-dim); 
     flex: 1 1 12rem; width: 100%; justify-content: center;
   }
   .ad :is(form, .ad__panelFoot) > .ad__btn { width: 100%; }
+  /* A button inside its own form (Close, Reopen, Approve) stretches only if
+     the form does. */
+  .ad :is(.ad__row, .ad__profileActions, .cpDeliv__acts, .adDash__attentionActions) > form { flex: 1 1 12rem; min-width: 0; }
 }

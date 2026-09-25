@@ -5,6 +5,7 @@ import { authViewport } from "@/components/auth/login-route";
 import { InviteForm } from "@/components/auth/invite-form";
 import { invitationForToken, invitationsConfigured, inviteState } from "@/lib/invitations";
 import { getClient } from "@/lib/admin/store";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 export const metadata: Metadata = { title: "Accept your invitation", robots: { index: false, follow: false } };
 export const viewport = authViewport;
@@ -24,6 +25,8 @@ const GONE: Record<string, { title: string; body: string }> = {
  * response, and a spent or withdrawn link says so before anybody types.
  */
 export default async function InvitePage({ params }: { params: Promise<{ token: string }> }) {
+  await syncStore();
+  persistSoon();
   const { token } = await params;
   let state: string = "unavailable";
   let invite = null;

@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**118 open** (52 in progress)
+**117 open** (54 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -166,7 +166,7 @@ DONE 2026-09-25: pending review (migration 0023). Staff write a draft and "Submi
 ### 4.9 CockroachDB, R2, and backend integrity
 
 - [-] Connect document/upload workflows to Cloudflare R2. (`lib/r2.ts` signs presigned PUTs with SigV4 and no new dependency; `POST /api/onboarding/upload` authorises one file against the caller's draft, choosing the key, content type and 25MB ceiling server-side, and fails closed naming the missing variable. Files land under `onboarding/<draftId>/`. (…)
-- [ ] Replace every remaining in-memory admin read/write with repository/query modules backed by CockroachDB; remove fictional seed data from production paths.
+- [-] Replace every remaining in-memory admin read/write with repository/query modules backed by CockroachDB; remove fictional seed data from production paths. DONE 2026-09-25: the records are KEPT: `lib/admin/persist.ts` over migration 0025 (`admin_records`, one JSON row per record, a rising `seq`, deletions kept as tombstones). Every page, route and action that reads the store syncs first (one query for rows newer than this instance has seen, so Vercel instances agree) and saves what changed (a diff, so a write path that forgets is caught by the next save); the Paystack webhook and the pay route save before they answer. Ids are unique across instances. An empty table is seeded from memory once. Pinned by `tests/end-to-end-records.spec.ts`. `scripts/reset-admin-store.mjs` empties a LOCAL table for tests. NOT yet: per-record tables with constraints and transactions, removing the demonstration seed (it is still what an empty production table starts from), and running 0025 on production (`node scripts/migrate.mjs`); until then the sync fails safe and the admin runs from memory as before.
 - [ ] Design and apply explicit migrations for clients/contacts, projects/tasks/updates, forms/versions/submissions, invoices/lines, payments/events, expenses, receipts, communications, invitations, files, notifications, and audit records.
 - [ ] Add constraints, indexes, normalized identifiers, foreign-key/archive policy, timestamps, actor attribution, and idempotency keys; review migration storage and rollback risk before applying production changes.
 - [ ] Use short retryable transactions for multi-record invariants; prevent duplicate invoice numbers, receipts, invitations, webhook events, payments, and form conversions.
@@ -215,13 +215,12 @@ Started 2026-09-25. The target is `dashboard-mockups/` at the repo root: 134 boa
 - [ ] (M) Bulk selection on every list: a compact sticky bar (count, the three commonest actions, the rest under More, Clear), never a wall of buttons; rows stay a table.
 - [ ] (M) An entry opens on its own page, laid out question by question (Fluent Forms is the reference), with previous and next, status, notes, and the file uploads; every screen a form needs is accounted for.
 - [ ] (M) Form uploads and validation: file fields with type and size limits checked on the server, and every field validated on the server, not only in the browser.
-- [ ] (M) Support end to end: a client opens a ticket, staff answer and manage it (status, assignee), both sides are told, and it is tested.
-- [ ] (M) Client records end to end: editing a client's email and details saves and shows everywhere; the invitation email reaches the client and the link works. Every editable field on a record is tested to save.
+- [-] (M) Client records end to end: editing a client's email and details saves and shows everywhere; the invitation email reaches the client and the link works. Every editable field on a record is tested to save. DONE 2026-09-25: a client's email and phone edited in the admin are saved to the table and shown (`tests/end-to-end-records.spec.ts`); the invitation binds to the client record, which now survives deploys. NOT yet: proof the invitation email is delivered, which needs the production mail server, and a test for every other editable field.
 - [ ] (M) Project icons: choose an icon for a project from our own icon set, or get a random one; the client sees it in the portal.
 - [ ] (S) Success toasts after every action that changes something, one shared primitive, announced to screen readers.
 - [ ] (M) Charts are interactive: hover and tap a bar for its month and figures, keyboard reachable, on the dashboard and Money.
 - [ ] (M) The tours: a step whose target is off screen scrolls it into view before the card points at it (today the reader has to scroll to find it); design every page tour for admin and portal on desktop and phone so nobody is lost on any page. Design for approval: https://claude.ai/artifact/HQVFLW8y3Ui5De7ywsqNve (33 page tours, step cards on desktop and phone, the off-screen fix through one `reveal()` with Joyride's own scrolling off).
-- [ ] (M) Skeletons that look like the page they stand for: blocks the shape of the real cards, tiles, tables and charts, not thin lines, fast and responsive, for every admin and portal page. Design for approval: https://claude.ai/artifact/Bqtw4xKmkbYzydFphD4EAY (six CSS parts and a skeleton per page, replacing Boneyard).
+- [ ] (M) Skeletons that look like the page they stand for: blocks the shape of the real cards, tiles, tables and charts, not thin lines, fast and responsive, for every admin and portal page. Design for approval: https://claude.ai/artifact/Bqtw4xKmkbYzydFphD4EAY (six CSS parts and a skeleton per page, replacing Boneyard). Every skeleton is built for BOTH desktop and phone (the owner's rule, 2026-09-25), each checked at 1440px and 390px in light and dark.
 
 #### Client portal
 

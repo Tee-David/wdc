@@ -11,6 +11,7 @@ import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { ClientMenu } from "@/components/admin/row-actions";
 import { Pager, readPer } from "@/components/admin/pager";
 import { DateRange } from "@/components/admin/date-range";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 export const metadata = { title: "Clients" };
 
@@ -56,6 +57,8 @@ export default async function ClientsPage({
 }: {
   searchParams: Promise<ClientQuery>;
 }) {
+  await syncStore();
+  persistSoon();
   const query = await searchParams;
   /* Staff see who and what, not what is owed; exports are the owner's. */
   const role = await adminRole();

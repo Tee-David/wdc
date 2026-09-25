@@ -4,6 +4,7 @@ import { getClient, getInvoiceByToken, getPaymentsFor } from "@/lib/admin/store"
 import { invoiceStatus, invoiceTotals, lineTotal, naira } from "@/lib/admin/types";
 import { DocumentShell, Headline, invoiceUrl } from "@/components/money/document";
 import { CONTACT_EMAIL } from "@/lib/site";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 /**
  * One invoice, for the person who has to pay it.
@@ -60,6 +61,8 @@ export default async function PublicInvoice({
   params: Promise<{ token: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  await syncStore();
+  persistSoon();
   const { token } = await params;
   const inv = getInvoiceByToken(token);
   /* A draft has not been sent to anybody, so there is nothing here to show

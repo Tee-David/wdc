@@ -6,6 +6,7 @@ import * as db from "@/lib/admin/store";
 import { NOTIFY_KINDS, type NotifyKind } from "@/lib/admin/types";
 import { FAIL, OK, str, type ActionState } from "@/lib/admin/validate";
 import { getPortalRequest } from "./session";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 /**
  * THE PORTAL'S OWN WRITE ENDPOINTS -- a separate module from
@@ -37,6 +38,8 @@ async function requireClient() {
 }
 
 export async function approveDeliverable(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const client = await requireClient();
   if (!client) return FAIL({}, "Your account isn't linked to a client record.");
   const id = str(fd, "id");
@@ -58,6 +61,8 @@ export async function approveDeliverable(_prev: ActionState, fd: FormData): Prom
 }
 
 export async function requestRevision(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const client = await requireClient();
   if (!client) return FAIL({}, "Your account isn't linked to a client record.");
   const id = str(fd, "id");
@@ -73,6 +78,8 @@ export async function requestRevision(_prev: ActionState, fd: FormData): Promise
 }
 
 export async function submitTicket(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const client = await requireClient();
   if (!client) return FAIL({}, "Your account isn't linked to a client record.");
   const subject = str(fd, "subject");
@@ -88,12 +95,17 @@ export async function submitTicket(_prev: ActionState, fd: FormData): Promise<Ac
   const projectId = project && project.clientId === client.id ? project.id : null;
   const t = db.addTicket({ clientId: client.id, projectId, subject, body, author: client.name });
   if (!t) return FAIL({}, "Could not open that. Try again.");
+  /* The studio hears about it by email, behind the response. */
+  after(() => import("@/lib/support-mail").then((m) => m.sendSupportNotice({ ticket: t, body, opened: true, messageId: `${t.id}-open` })));
+  revalidatePath("/admin/clients/support");
   revalidatePath("/portal/support");
   revalidatePath("/portal");
   return OK("Sent. We'll reply here, usually the same working day.");
 }
 
 export async function replyToTicket(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const client = await requireClient();
   if (!client) return FAIL({}, "Your account isn't linked to a client record.");
   const ticketId = str(fd, "ticketId");
@@ -101,7 +113,9 @@ export async function replyToTicket(_prev: ActionState, fd: FormData): Promise<A
   if (!body) return FAIL({ body: "Type a reply first." });
   const t = db.getTicket(ticketId);
   if (!t || t.clientId !== client.id) return FAIL({}, "That conversation is no longer there.");
-  db.addTicketMessage({ ticketId: t.id, from: "client", author: client.name, body });
+  const m = db.addTicketMessage({ ticketId: t.id, from: "client", author: client.name, body });
+  if (m) after(() => import("@/lib/support-mail").then((x) => x.sendSupportNotice({ ticket: t, body, opened: false, messageId: m.id })));
+  revalidatePath("/admin/clients/support");
   revalidatePath(`/portal/support/${t.id}`);
   revalidatePath("/portal/support");
   revalidatePath("/portal");
@@ -109,6 +123,8 @@ export async function replyToTicket(_prev: ActionState, fd: FormData): Promise<A
 }
 
 export async function updateNotifyPrefs(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const client = await requireClient();
   if (!client) return FAIL({}, "Your account isn't linked to a client record.");
   const notify = Object.fromEntries(

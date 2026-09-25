@@ -24,6 +24,7 @@ import { Building2, CalendarDays, Layers, MessageSquare, User } from "lucide-rea
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 /* NO generateStaticParams: projects are created at runtime now, and a route
    list frozen at build time would 404 on anything opened since. */
@@ -33,6 +34,7 @@ import { can } from "@/lib/admin/permissions";
    `notFound()` from here rather than only from the page body is the
    recommended way to get a missing id decided before anything streams. */
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  await syncStore();
   const { id } = await params;
   const p = getProject(id);
   if (!p) notFound();
@@ -40,6 +42,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
+  await syncStore();
+  persistSoon();
   const { id } = await params;
   const p = getProject(id);
   if (!p) notFound();

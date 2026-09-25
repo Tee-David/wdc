@@ -14,12 +14,14 @@ import {
 import { EmailInvoice, EmailReminder } from "@/components/admin/reconcile-forms";
 import CommsLog from "@/components/admin/comms-log";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 /* NO generateStaticParams: invoices are raised at runtime, and a prerendered
    list would 404 on the one just created. */
 
 /* See the note beside the same function in clients/[id]/page.tsx. */
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  await syncStore();
   const { id } = await params;
   const inv = getInvoice(id);
   if (!inv) notFound();
@@ -35,6 +37,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
  * See `invoiceTotals` in lib/admin/types.ts.
  */
 export default async function InvoicePage({ params }: { params: Promise<{ id: string }> }) {
+  await syncStore();
+  persistSoon();
   const { id } = await params;
   const inv = getInvoice(id);
   if (!inv) notFound();

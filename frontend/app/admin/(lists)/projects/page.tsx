@@ -11,6 +11,7 @@ import {
 import { AddProject } from "@/components/admin/project-forms";
 import { ProjectMenu } from "@/components/admin/row-actions";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 export const metadata = { title: "Projects" };
 
@@ -51,6 +52,8 @@ export default async function ProjectsPage({
 }: {
   searchParams: Promise<Query>;
 }) {
+  await syncStore();
+  persistSoon();
   const q = await searchParams;
 
   /* Every one of these is checked against the closed set it belongs to rather

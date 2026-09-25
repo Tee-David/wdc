@@ -132,14 +132,17 @@ test.describe("the books", () => {
     const aging = page.locator(".ad__panel", {
       has: page.getByRole("heading", { name: /Who owes what/i }),
     });
-    const total = (await nairaOn(aging.locator("tfoot")))[0];
+    /* The bands are the aging total, band by band (the panel is a bar and a
+       list now, not a table with a foot). */
+    const bands = await nairaOn(aging.locator(".ad__agingList"));
+    const total = bands.reduce((a, b) => a + b, 0);
     /* The one number both panels have to agree on. If a void leaked into
        either, they would differ by ₦548,250. */
     expect(total).toBeGreaterThan(0);
-    expect(total).not.toBe(548_250);
+    expect(bands).not.toContain(548_250);
 
-    const rows = await aging.locator("tbody tr").allTextContents();
-    expect(rows.join(" ")).not.toContain("INV-2026-006");
+    const who = await aging.locator(".ad__agingWho").textContent();
+    expect(who ?? "").not.toContain("INV-2026-006");
   });
 
   test("a refund is counted net, not gross", async ({ page }) => {

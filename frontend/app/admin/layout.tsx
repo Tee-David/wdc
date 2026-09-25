@@ -10,6 +10,7 @@ import { isAdminRole } from "@/lib/admin/permissions";
 import { adminNotices } from "@/lib/admin/notices";
 import AdminNotices from "@/components/admin/notices";
 import "@/components/admin/admin.css";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 /**
  * The admin's own shell.
@@ -37,6 +38,8 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  await syncStore();
+  persistSoon();
   const { session } = await getAdminRequest();
   const role = (session?.user as { role?: string } | undefined)?.role;
   /* Owner and staff. What staff may do inside is lib/admin/permissions.ts,
