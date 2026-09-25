@@ -8,6 +8,8 @@ import { useFormStatus } from "react-dom";
 import { AlertCircle, Check, Loader2 } from "lucide-react";
 import Tip from "@/components/onboarding/tip";
 import type { ActionState, Errors } from "@/lib/admin/validate";
+import { toast } from "./toast";
+import { SearchSelect } from "./search-select";
 
 /**
  * What was typed, read off the submission.
@@ -104,6 +106,7 @@ export function Form({
   useEffect(() => {
     if (!state.ok || done.current === state) return;
     done.current = state;
+    if (state.message) toast(state.message);
     if (resetOnDone) ref.current?.reset();
     onDone?.(state);
   }, [state, onDone, resetOnDone]);
@@ -252,16 +255,24 @@ export function Area({
 }
 
 export function Select({
-  name, label, hint, required, half, defaultValue, options, placeholder,
+  name, label, hint, required, half, defaultValue, options, placeholder, searchable,
 }: Common & {
   defaultValue?: string;
   placeholder?: string;
   options: { value: string; label: string }[];
+  /** Searchable by default above ten options, and for any record (a name
+      ending in "Id": a client, a project, an invoice), because those lists
+      only grow. */
+  searchable?: boolean;
 }) {
   const kept = useKept(name, defaultValue);
+  const search = searchable ?? (options.length > 10 || /Id$/.test(name));
   return (
-    <Wrap name={name} label={label} hint={hint} required={required} half={half} kind="select">
-      {(id, invalid, describedBy) => (
+    <Wrap name={name} label={label} hint={hint} required={required} half={half} kind={search ? undefined : "select"}>
+      {(id, invalid, describedBy) => search ? (
+        <SearchSelect id={id} name={name} options={options} defaultValue={String(kept ?? "")} placeholder={placeholder}
+                      invalid={invalid} describedBy={describedBy} />
+      ) : (
         <select
           id={id} name={name} defaultValue={kept ?? ""}
           aria-invalid={invalid || undefined} aria-describedby={describedBy}

@@ -37,6 +37,7 @@ import TableScroll from "./table-scroll";
 import { BottomSheet, TabBar } from "./tab-bar";
 import { SideProfile, SideTourCard } from "./side-foot";
 import { initialsOf, keepFocusInside } from "./focus";
+import { ToastHost } from "./toast";
 
 export type AdminUser = {
   name?: string | null;
@@ -582,6 +583,7 @@ function ShellFrame({ children, counts, user }: { children: ReactNode; counts: R
         </header>
         <main className="ad__main">{children}</main>
         <TableScroll />
+        <ToastHost />
       </div>
 
       <TabBar items={tabs} label="Admin sections" tour="mobile-menu" />

@@ -13,6 +13,7 @@ import TableScroll from "@/components/admin/table-scroll";
 import { TabBar } from "@/components/admin/tab-bar";
 import { SideProfile, SideTourCard } from "@/components/admin/side-foot";
 import { initialsOf } from "@/components/admin/focus";
+import { ToastHost } from "@/components/admin/toast";
 
 /**
  * THE CLIENT PORTAL'S OWN SHELL -- the admin's shell (`components/admin/
@@ -244,6 +245,7 @@ export default function ClientShell({
         </header>
         <main className="ad__main">{children}</main>
         <TableScroll />
+        <ToastHost />
       </div>
 
       <TabBar items={tabs} label="Portal sections" tour="portal-mobile-menu" />

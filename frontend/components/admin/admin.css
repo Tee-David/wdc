@@ -1719,3 +1719,72 @@ a.ad__pgBtn:hover { background: var(--ad-panel-2); border-color: var(--ad-dim); 
      the form does. */
   .ad :is(.ad__row, .ad__profileActions, .cpDeliv__acts, .adDash__attentionActions) > form { flex: 1 1 12rem; min-width: 0; }
 }
+
+/* TOASTS (components/admin/toast.tsx): solid, white type, bottom centre,
+   clear of the phone's tab bar and the safe area. */
+.adToasts {
+  position: fixed; z-index: 90; left: 50%; bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  transform: translateX(-50%); width: min(26rem, calc(100vw - 2rem));
+  display: grid; gap: .5rem; pointer-events: none;
+}
+.adToast {
+  pointer-events: auto; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .6rem;
+  min-height: 3rem; padding: .55rem .5rem .55rem .9rem; border-radius: 14px;
+  background: var(--ad-tone-good); color: var(--ad-on-good); font-size: .9rem; font-weight: 600; line-height: 1.35;
+  box-shadow: 0 16px 36px -14px rgb(0 0 30 / .5);
+  animation: ad-toast-in .22s cubic-bezier(.16, 1, .3, 1) backwards;
+}
+.adToast--bad { background: var(--ad-tone-bad); color: var(--ad-on-bad); }
+.adToast > svg { width: 1.1rem; height: 1.1rem; }
+.adToast span { overflow-wrap: anywhere; }
+.adToast__x { display: grid; place-items: center; width: 2rem; height: 2rem; border: 0; border-radius: 8px; background: transparent; color: inherit; cursor: pointer; }
+.adToast__x:hover { background: rgb(255 255 255 / .16); }
+.adToast__x svg { width: 1rem; height: 1rem; }
+@keyframes ad-toast-in { from { opacity: 0; transform: translateY(10px); } }
+@media (max-width: 900px) { .adToasts { bottom: calc(6.75rem + env(safe-area-inset-bottom)); } }
+@media (prefers-reduced-motion: reduce) { .adToast { animation: none; } }
+
+/* THE SEARCHABLE PICKER (components/admin/search-select.tsx). The trigger
+   looks like the other fields; the list opens under it (or over it near the
+   foot of the window), and on a phone it is a bottom sheet. */
+.adPick { position: relative; min-width: 0; }
+.adPick__btn {
+  width: 100%; min-height: 2.75rem; padding: .55rem .8rem; display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+  border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); color: var(--ad-ink);
+  font: inherit; text-align: left; cursor: pointer;
+}
+.adPick__btn > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adPick__btn svg { width: 1rem; height: 1rem; flex: none; color: var(--ad-dim); transition: transform .15s ease; }
+.adPick.is-open .adPick__btn svg { transform: rotate(180deg); }
+.adPick__btn:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.adPick__btn[data-invalid] { border-color: var(--ad-tone-bad); }
+.adPick__ph { color: var(--ad-dim); }
+.adPick__pop {
+  position: fixed; z-index: 95; display: flex; flex-direction: column; max-height: min(22rem, 60dvh);
+  border: 1px solid var(--ad-line); border-radius: 14px; background: var(--ad-panel);
+  box-shadow: 0 2px 6px -2px rgb(10 10 40 / .16), 0 24px 48px -20px rgb(10 10 40 / .38); overflow: hidden;
+  animation: ad-rm-in .12s ease-out backwards;
+}
+.adPick__grab { display: none; }
+.adPick__search { display: flex; align-items: center; gap: .5rem; padding: .6rem .8rem; border-bottom: 1px solid var(--ad-line); }
+.adPick__search svg { width: 1rem; height: 1rem; color: var(--ad-dim); flex: none; }
+.adPick__search input { flex: 1; min-width: 0; min-height: 2.25rem; border: 0; background: transparent; color: var(--ad-ink); font: inherit; outline: none; }
+.adPick__list { margin: 0; padding: .35rem; list-style: none; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; flex: 1 1 auto; min-height: 0; }
+.adPick__opt { min-height: 2.75rem; padding: .5rem .65rem; display: flex; align-items: center; justify-content: space-between; gap: .5rem; border-radius: 10px; cursor: pointer; }
+.adPick__opt.is-active { background: var(--ad-panel-2); }
+.adPick__opt[aria-selected="true"] { font-weight: 600; }
+.adPick__opt svg { width: 1rem; height: 1rem; color: var(--ad-accent-ink); flex: none; }
+.dark .adPick__opt svg { color: var(--ad-accent); }
+.adPick__opt--none { color: var(--ad-dim); }
+.adPick__none { padding: .75rem; color: var(--ad-dim); font-size: .88rem; }
+@media (max-width: 640px) {
+  .adPick.is-open::before { content: ""; position: fixed; inset: 0; z-index: 94; background: rgb(6 6 28 / .45); }
+  .adPick__pop, .adPick__pop.is-up {
+    top: auto !important; left: 0 !important; right: 0; bottom: 0 !important; width: auto !important; margin: 0;
+    max-height: 78dvh; border-radius: 18px 18px 0 0; padding-bottom: env(safe-area-inset-bottom);
+    animation: ad-sheet-in .24s ease-out backwards;
+  }
+  .adPick__grab { display: block; width: 2.25rem; height: 4px; margin: .55rem auto .2rem; border-radius: 99px; background: var(--ad-line); }
+  .adPick__opt { min-height: 3rem; font-size: 1rem; }
+}
+@media (prefers-reduced-motion: reduce) { .adPick__pop { animation: none; } .adPick__btn svg { transition: none; } }
