@@ -46,7 +46,7 @@ export async function adminNotices(role: AdminRole): Promise<AdminNotice[]> {
   ]);
 
   if (m.on) {
-    found.push({ key: `maintenance:${"since" in m ? m.since : "on"}`, tone: "bad", title: "The public site is in maintenance", body: "Visitors see a holding page. The admin, payments and invoices still work.", href: role === "owner" ? "/admin/settings/site" : undefined, link: "Site and SEO" });
+    found.push({ key: `maintenance:${"since" in m ? m.since : "on"}`, tone: "bad", title: "The public site is in maintenance", body: "Visitors see a holding page. The admin, payments and invoices still work.", href: role === "owner" ? "/admin/settings/maintenance" : undefined, link: "Maintenance" });
   }
 
   if (migrations?.ok && migrations.pending.length) {
