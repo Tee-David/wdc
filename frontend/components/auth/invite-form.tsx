@@ -2,7 +2,7 @@
 
 import { useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { GoogleMark, PasswordField, PrimaryButton } from "@/components/auth/fields";
+import { GoogleMark, PasswordField, PrimaryButton, StrengthMeter } from "@/components/auth/fields";
 import { useStage } from "@/components/auth/stage/stage-context";
 import { useHydrated } from "@/components/auth/use-hydrated";
 import { authClient } from "@/lib/auth-client";
@@ -21,13 +21,17 @@ import { redeem } from "@/lib/invite-redeem";
  *  - for a client, no password at all: sign-in links by email, the same ones
  *    the login page sends.
  */
-export function InviteForm({ token, email, name: invitedName, role, invitedBy, google }: {
+export function InviteForm({ token, email, name: invitedName, role, invitedBy, google, company, expires }: {
   token: string;
   email: string;
   name: string;
   role: "client" | "staff";
   invitedBy: string;
   google: boolean;
+  /** The client's company, when the invitation is tied to one. */
+  company?: string | null;
+  /** When the link stops working, already written out for Lagos ("2 Oct"). */
+  expires: string;
 }) {
   const router = useRouter();
   const stage = useStage();
@@ -43,7 +47,7 @@ export function InviteForm({ token, email, name: invitedName, role, invitedBy, g
   const [field, setField] = useState<{ password?: string; confirm?: string }>({});
   const [sent, setSent] = useState(false);
 
-  const place = role === "staff" ? "the studio admin" : "your project portal";
+  const place = role === "staff" ? "the studio admin" : company ? `${company}'s project portal` : "your project portal";
 
   async function finish(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -112,6 +116,13 @@ export function InviteForm({ token, email, name: invitedName, role, invitedBy, g
         <p className="lx__sub">
           {invitedBy} invited <b>{email}</b> to {place}. The account is for this address.
         </p>
+        {role === "client" ? (
+          <ul className="lx__perks">
+            <li>See every stage and what is due next</li>
+            <li>Approve drafts or ask for changes</li>
+            <li>Pay invoices and keep the receipts</li>
+          </ul>
+        ) : null}
         {error ? <p className="au__error" role="alert">{error}</p> : null}
         <form onSubmit={finish} className="au__form lx__form" method="post" noValidate>
           <div className="au-field" data-state={name ? "valid" : "empty"}>
@@ -123,6 +134,7 @@ export function InviteForm({ token, email, name: invitedName, role, invitedBy, g
           </div>
           <PasswordField ref={passwordRef} label="Choose a password" name="new-password" autoComplete="new-password"
             value={password} onChange={(v) => { setPassword(v); if (field.password) setField({}); }} error={field.password ?? null} />
+          <StrengthMeter value={password} />
           <PasswordField ref={confirmRef} label="Confirm password" name="confirm-password" autoComplete="new-password"
             value={confirm} onChange={(v) => { setConfirm(v); if (field.confirm) setField({}); }} error={field.confirm ?? null} />
           <PrimaryButton awake={password.length >= 10 && confirm.length > 0} hydrated={hydrated} busy={busy}>
@@ -141,6 +153,7 @@ export function InviteForm({ token, email, name: invitedName, role, invitedBy, g
             No password: email me a sign-in link instead
           </button>
         ) : null}
+        <p className="lx__fine">This link works once and expires on {expires}.</p>
       </div>
     </div>
   );

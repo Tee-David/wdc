@@ -375,6 +375,11 @@
 .lx__email { color: var(--foreground); font-weight: 600; }
 .lx__form { display: grid; gap: 16px; margin-top: 28px; }
 .lx__note { margin: 8px 0 0; color: var(--muted); font-size: 13.5px; }
+/* What an invited client gets, three lines under the greeting. */
+.lx__perks { display: grid; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; color: var(--foreground); font: 400 14.5px/1.4 var(--au-body); }
+.lx__perks li { display: flex; gap: 10px; align-items: flex-start; }
+.lx__perks li::before { content: ""; flex: none; width: 8px; height: 8px; margin-top: 6px; border-radius: 2px; background: var(--au-orange); }
+.lx__fine { margin: 20px 0 0; color: var(--muted); font: 400 13px/1.45 var(--au-body); }
 
 .lx__or {
   display: flex;
@@ -568,6 +573,20 @@
 .au-msg svg { flex: none; width: 16px; height: 16px; margin-top: 1px; }
 .au-msg--error { color: var(--au-error); }
 .au-msg--hint { color: var(--accent-ink); font-weight: 500; }
+
+/* THE STRENGTH METER under a new password: solid bars, filled from the left. */
+.au-meter { display: grid; gap: 6px; margin-top: -4px; }
+.au-meter__bars { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.au-meter__bars span { height: 4px; border-radius: 2px; background: var(--au-border); transition: background .2s var(--au-ease); }
+.au-meter[data-score="1"] span:nth-child(-n+1) { background: var(--au-error); }
+.au-meter[data-score="2"] span:nth-child(-n+2),
+.au-meter[data-score="3"] span:nth-child(-n+3),
+.au-meter[data-score="4"] span { background: var(--au-valid); }
+.au-meter[data-score="0"] span { background: var(--au-border); }
+.au-meter__text { margin: 0; color: var(--muted); font: 400 13px/1.4 var(--au-body); }
+.au-meter__text b { color: var(--foreground); font-weight: 600; }
+.au-meter[data-score="1"] .au-meter__text b { color: var(--au-error); }
+@media (prefers-reduced-motion: reduce) { .au-meter__bars span { transition: none; } }
 
 /* THE CODE: one real input over six drawn boxes.
 

@@ -4,6 +4,7 @@ import { AuthShell } from "@/components/auth/auth-shell";
 import { authViewport } from "@/components/auth/login-route";
 import { InviteForm } from "@/components/auth/invite-form";
 import { invitationForToken, invitationsConfigured, inviteState } from "@/lib/invitations";
+import { getClient } from "@/lib/admin/store";
 
 export const metadata: Metadata = { title: "Accept your invitation", robots: { index: false, follow: false } };
 export const viewport = authViewport;
@@ -60,6 +61,8 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
         role={invite.role}
         invitedBy={invite.invitedBy}
         google={invite.role === "staff" && Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)}
+        company={invite.clientId ? getClient(invite.clientId)?.company ?? null : null}
+        expires={new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "Africa/Lagos" }).format(new Date(invite.expiresAt))}
       />
     </AuthShell>
   );

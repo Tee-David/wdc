@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Download, FilePlus2, Newspaper, Trash2 } from "lucide-react";
+import { CalendarClock, Download, FilePlus2, Globe, Newspaper, PencilLine, SearchCheck, Trash2 } from "lucide-react";
 import { POST_TRASH_DAYS, postsForAdmin, trashedPostCount, trashedPosts, type AdminPost } from "@/lib/blog-db";
 import { adminRole } from "@/lib/admin/guard";
 import { SERVICES } from "@/lib/services";
@@ -7,6 +7,8 @@ import { Empty, Panel, Tile, when } from "@/components/admin/bits";
 import { AdminState } from "@/components/admin/admin-state";
 import { BlogPostMenu, TrashedPostMenu } from "@/components/admin/blog-menu";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
+import { Pager, readPer } from "@/components/admin/pager";
+import { DateRange } from "@/components/admin/date-range";
 
 export const metadata = { title: "Blog" };
 
@@ -19,6 +21,22 @@ const PILL: Record<State, { label: string; tone: string }> = {
   published: { label: "Published", tone: "ad__pill--good" },
 };
 
+type BlogQuery = { q?: string; state?: string; service?: string; from?: string; to?: string; page?: string; per?: string };
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+function queryHref(query: BlogQuery, changes: Partial<BlogQuery>) {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries({ ...query, ...changes })) if (value) params.set(key, value);
+  const suffix = params.toString();
+  return `/admin/blog${suffix ? `?${suffix}` : ""}#post-list`;
+}
+
+/* Read the clock outside the render, where the purity rule wants it. */
+function staleDrafts(posts: AdminPost[]) {
+  const monthAgo = Date.now() - 30 * 86_400_000;
+  return posts.filter((p) => stateOf(p) === "draft" && (!p.savedAt || Date.parse(p.savedAt) < monthAgo)).length;
+}
+
 /**
  * Every post, any state: what is live, what is waiting on a date, and what
  * is still being written.
@@ -29,8 +47,12 @@ const PILL: Record<State, { label: string; tone: string }> = {
  * Filters are a plain GET form, so the state is in the URL like every other
  * list in the admin.
  */
-export default async function BlogPostsPage({ searchParams }: { searchParams: Promise<{ q?: string; state?: string }> }) {
+export default async function BlogPostsPage({ searchParams }: { searchParams: Promise<BlogQuery> }) {
   const query = await searchParams;
+  const per = readPer(query.per);
+  const from = query.from && DAY_RE.test(query.from) ? query.from : undefined;
+  const to = query.to && DAY_RE.test(query.to) ? query.to : undefined;
+  const service = SERVICES.find((s) => s.slug === query.service)?.slug;
   const search = query.q?.trim().toLocaleLowerCase() ?? "";
   const wanted = (["draft", "review", "scheduled", "published"] as const).find((s) => s === query.state);
   const inTrash = query.state === "trash";
@@ -49,8 +71,17 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
   for (const p of posts ?? []) counts[stateOf(p)]++;
   const rows = (posts ?? [])
     .filter((p) => !wanted || stateOf(p) === wanted)
+    .filter((p) => !service || p.topic === service)
+    .filter((p) => (!from || (p.publishedAt ?? "").slice(0, 10) >= from) && (!to || (p.publishedAt ?? "9999").slice(0, 10) <= to))
     .filter((p) => !search || [p.title, p.slug, p.excerpt, ...p.tags].some((v) => v.toLocaleLowerCase().includes(search)));
-  const filtered = Boolean(search || wanted);
+  const filtered = Boolean(search || wanted || service || from || to);
+  const pageCount = Math.max(1, Math.ceil(rows.length / per));
+  const page = Math.min(Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1), pageCount);
+  const shown = rows.slice((page - 1) * per, page * per);
+  /* The notes under the figures, read off the same rows. */
+  const live = (posts ?? []).filter((p) => stateOf(p) === "published" && p.publishedAt).map((p) => p.publishedAt!).sort();
+  const queued = (posts ?? []).filter((p) => stateOf(p) === "scheduled" && p.publishedAt).map((p) => p.publishedAt!).sort();
+  const stale = staleDrafts(posts ?? []);
   const isOwner = (await adminRole()) === "owner";
   const trashRows = trash.filter((p) => !search || [p.title, p.slug].some((v) => v.toLocaleLowerCase().includes(search)));
 
@@ -116,15 +147,17 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
       ) : (
         <>
           <dl className="ad__tiles">
-            <Tile label="Published" value={String(counts.published)} tone="good" note="Live on /blog" />
-            <Tile label="In review" value={String(counts.review)} tone={counts.review ? "accent" : undefined} note={isOwner ? "Waiting for you to publish or send back" : "Waiting for the owner"} />
-            <Tile label="Scheduled" value={String(counts.scheduled)} note="Go live on their date" />
-            <Tile label="Drafts" value={String(counts.draft)} note="Only you can see these" />
+            <Tile label="Published" value={String(counts.published)} icon={Globe} iconTone="good" note={live.length ? `Last one ${when(live[live.length - 1])}` : "Nothing live yet"} />
+            <Tile label="In review" value={String(counts.review)} icon={SearchCheck} iconTone="live" tone={counts.review ? "accent" : undefined} note={isOwner ? "Waiting for you to publish or send back" : "Waiting for the owner"} />
+            <Tile label="Scheduled" value={String(counts.scheduled)} icon={CalendarClock} iconTone="warn" note={queued.length ? `Next goes out ${when(queued[0])}` : "Nothing waiting on a date"} />
+            <Tile label="Drafts" value={String(counts.draft)} icon={PencilLine} note={stale ? `${stale} not touched in a month` : "Only you can see these"} />
           </dl>
 
           <div style={{ marginTop: ".9rem" }}>
             <Panel title={filtered ? `${rows.length} of ${posts.length} posts` : `${posts.length} post${posts.length === 1 ? "" : "s"}`}>
-              <form className="ad__filterBar" method="get" action="/admin/blog" aria-label="Filter posts" data-tour="blog-filters">
+              <div className="ad__filterBar" data-tour="blog-filters">
+              {/* The range is its own form, beside this one: a form cannot hold another. */}
+              <form className="ad__filterForm" method="get" action="/admin/blog#post-list" aria-label="Filter posts">
                 <label className="ad__filterSearch">
                   <span className="ad__sr">Search posts</span>
                   <input name="q" type="search" defaultValue={query.q} placeholder="Search title, address, excerpt or tag" />
@@ -139,12 +172,30 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
                     <option value="draft">Drafts</option>
                   </select>
                 </label>
-                <button type="submit" className="ad__btn">Filter</button>
+                <label>
+                  <span className="ad__sr">Service</span>
+                  <select name="service" defaultValue={service ?? ""}>
+                    <option value="">Every service</option>
+                    {SERVICES.map((s) => <option key={s.slug} value={s.slug}>{s.short}</option>)}
+                  </select>
+                </label>
+                {from ? <input type="hidden" name="from" value={from} /> : null}
+                {to ? <input type="hidden" name="to" value={to} /> : null}
+                {query.per ? <input type="hidden" name="per" value={per} /> : null}
+                <button type="submit" className="ad__btn ad__btn--primary">Apply</button>
+              </form>
+                <DateRange
+                  label="Date shown"
+                  value={{ from, to }}
+                  href={(r) => queryHref(query, { from: r.from, to: r.to, page: undefined })}
+                  keep={{ q: query.q, state: query.state, service: query.service, per: query.per }}
+                  action="/admin/blog#post-list"
+                />
                 {filtered ? <Link className="ad__btn" href="/admin/blog">Clear filters</Link> : null}
                 {trashCount ? <Link className="ad__btn" href="/admin/blog?state=trash"><Trash2 aria-hidden="true" /> Trash ({trashCount})</Link> : null}
-              </form>
+              </div>
               {rows.length ? (
-                <div className="ad__scroll" data-tour="blog-table">
+                <div className="ad__scroll" data-tour="blog-table" id="post-list">
                   <table className="ad__t">
                     <thead>
                       <tr>
@@ -153,7 +204,7 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
                       </tr>
                     </thead>
                     <tbody>
-                      {rows.map((p) => {
+                      {shown.map((p) => {
                         const state = stateOf(p);
                         return (
                           <tr key={p.id}>
@@ -178,6 +229,19 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
                   Try a broader search, or clear the filters to see every post.
                 </Empty>
               )}
+              {rows.length ? (
+                <Pager
+                  label="Post pages"
+                  total={rows.length}
+                  page={page}
+                  per={per}
+                  noun={rows.length === 1 ? "post" : "posts"}
+                  href={(patch) => queryHref(query, {
+                    page: patch.page && patch.page > 1 ? String(patch.page) : undefined,
+                    per: patch.per ? String(patch.per) : query.per,
+                  })}
+                />
+              ) : null}
             </Panel>
           </div>
         </>
