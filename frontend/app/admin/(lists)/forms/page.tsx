@@ -1,11 +1,14 @@
 import Link from "next/link";
+import { can } from "@/lib/admin/permissions";
+import { adminRole } from "@/lib/admin/guard";
+import { listCustomForms, toFormDef } from "@/lib/forms/custom";
 import { ListSearch } from "@/components/admin/list-search";
-import { ClipboardList, ExternalLink, Globe, Inbox, Mail, MailWarning, MessageCircle, Newspaper, Smartphone, Star, TrendingUp, Zap, type LucideIcon } from "lucide-react";
+import { ClipboardList, ExternalLink, Globe, Inbox, Mail, MailWarning, MessageCircle, Newspaper, Plus, Smartphone, Star, TrendingUp, Zap, type LucideIcon } from "lucide-react";
 import { FORMS, type FormDef } from "@/lib/forms/registry";
 import { formSummaries, summaryOf, type FormSummary } from "@/lib/forms/entries";
 import { availability, type Availability } from "@/lib/forms/settings-db";
 import { AdminState } from "@/components/admin/admin-state";
-import { Panel, Tile, when } from "@/components/admin/bits";
+import { Empty, Panel, Tile, when } from "@/components/admin/bits";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 import "@/components/admin/forms/forms.css";
 
@@ -22,17 +25,18 @@ export const metadata = { title: "Forms" };
 
 const configured = () => Boolean(process.env.DATABASE_URL || process.env.COCKROACHDB_URL);
 
-async function load(): Promise<{ state: "off" | "error" | "ok"; all: Record<string, FormSummary>; open: Record<string, Availability> }> {
-  if (!configured()) return { state: "off", all: {}, open: {} };
+async function load(): Promise<{ state: "off" | "error" | "ok"; all: Record<string, FormSummary>; open: Record<string, Availability>; built: FormDef[] }> {
+  if (!configured()) return { state: "off", all: {}, open: {}, built: [] };
   try {
+    const built = (await listCustomForms().catch(() => [])).map(toFormDef);
     const [all, open] = await Promise.all([
       formSummaries(),
-      Promise.all(FORMS.map(async (f) => [f.key, await availability(f)] as const)).then(Object.fromEntries),
+      Promise.all([...FORMS, ...built].map(async (f) => [f.key, await availability(f)] as const)).then(Object.fromEntries),
     ]);
-    return { state: "ok", all, open };
+    return { state: "ok", all, open, built };
   } catch (error) {
     console.error("[forms] summaries could not be read", error instanceof Error ? error.message : error);
-    return { state: "error", all: {}, open: {} };
+    return { state: "error", all: {}, open: {}, built: [] };
   }
 }
 
@@ -118,7 +122,8 @@ function FormTable({ forms, all, open, tour }: { forms: FormDef[]; all: Record<s
 }
 
 export default async function FormsPage() {
-  const { state, all, open } = await load();
+  const { state, all, open, built } = await load();
+  const owner = can(await adminRole(), "settings");
   const unread = FORMS.reduce((n, f) => n + (f.inbox ? summaryOf(all, f.key).unread : 0), 0);
   /* The four figures, each a sum of what the rows below say. */
   const inbox = FORMS.filter((f) => f.inbox);
@@ -139,6 +144,7 @@ export default async function FormsPage() {
         <div className="ad__row">
           <PageTourButton />
           <Link className="ad__btn" href="/onboarding" target="_blank">Open onboarding</Link>
+          {owner ? <Link className="ad__btn ad__btn--primary" href="/admin/forms/new"><Plus aria-hidden="true" /> New form</Link> : null}
         </div>
       </div>
 
@@ -167,6 +173,14 @@ export default async function FormsPage() {
           </Panel>
           <Panel title="Website">
             <FormTable forms={FORMS.filter((f) => f.group === "website")} all={all} open={open} />
+          </Panel>
+          <Panel title="Built here" action={owner ? <Link href="/admin/forms/new">New form</Link> : null}>
+            {built.length
+              ? <FormTable forms={built} all={all} open={open} />
+              : <Empty title="No forms built yet" icon={ClipboardList}
+                  action={owner ? <Link className="ad__btn ad__btn--primary" href="/admin/forms/new"><Plus aria-hidden="true" /> New form</Link> : undefined}>
+                  An event sign-up, a feedback form, a job application: build it here with its own address.
+                </Empty>}
           </Panel>
           </div>
           <p className="ad__dim" style={{ margin: 0, fontSize: ".85rem" }}>
