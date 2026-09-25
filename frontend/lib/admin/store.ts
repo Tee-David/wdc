@@ -1410,6 +1410,11 @@ export function getSetting(key: string): string | null {
   return SETTINGS.get(key) ?? null;
 }
 
+/** A saved value loaded from the database: no audit line, nothing changed. */
+export function primeSetting(key: string, value: string) {
+  if (key && value.trim()) SETTINGS.set(key, value.trim());
+}
+
 export function setSetting(key: string, value: string, actor = "Studio"): boolean {
   const trimmed = value.trim();
   if (!key || !trimmed) return false;

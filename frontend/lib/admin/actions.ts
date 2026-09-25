@@ -10,6 +10,8 @@ import { actorName, adminRole, owner, allow } from "./guard";
 import { can } from "./permissions";
 import { queueLogged, retryLogged } from "@/lib/message-log";
 import { addEvents } from "@/lib/forms/events";
+import { settingDef } from "@/lib/settings/registry";
+import { hydrateSettings, removeSetting, writeSetting } from "@/lib/settings/store";
 import {
   FAIL, OK, type ActionState,
   approval, channel, checked, health, isoDate, kobo, looksEmail, method, num, priority,
@@ -585,26 +587,31 @@ export async function attachSubmission(_prev: ActionState, fd: FormData): Promis
 export async function saveSetting(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const refused = await owner();
   if (refused) return refused;
-  const key = str(fd, "key");
-  const value = str(fd, "value");
-  if (!key) return FAIL({}, "That setting is no longer there.");
-  if (!value) return FAIL({ value: "Write the new value first." });
-
-  if (!db.setSetting(key, value)) return FAIL({ value: "That is not something this field can hold." });
-
-  /* The public pages read these, so they are what has to be re-rendered --
-     not the screen the edit was made on. */
-  refresh("/admin/settings", "/");
-  return OK("Saved. The site shows it now.");
+  /* Only a key the registry declares, and only one the site reads: a row that
+     cannot change anything must not accept an edit and say it did. */
+  const def = settingDef(str(fd, "key"));
+  if (!def) return FAIL({}, "That is not a setting.");
+  if (!def.parse) return FAIL({}, def.readOnly ?? "That one cannot be edited here yet.");
+  const parsed = def.parse(str(fd, "value"));
+  if (!parsed.ok) return FAIL({ value: parsed.error });
+  try { await writeSetting(def.key, parsed.value, await actorName()); } catch {
+    return FAIL({}, "That could not be saved just now. Nothing was changed.");
+  }
+  refresh("/admin/settings", ...def.revalidate);
+  return OK("Saved. New invoices and estimates use it from now.");
 }
 
 export async function resetSetting(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const refused = await owner();
   if (refused) return refused;
-  const key = str(fd, "key");
-  if (!db.clearSetting(key)) return FAIL({}, "That one was already back to what shipped.");
-
-  refresh("/admin/settings", "/");
+  const def = settingDef(str(fd, "key"));
+  if (!def?.parse) return FAIL({}, "That is not a setting that can be changed.");
+  let had = false;
+  try { had = await removeSetting(def.key, await actorName()); } catch {
+    return FAIL({}, "That could not be put back just now.");
+  }
+  if (!had) return FAIL({}, "That one was already back to what shipped.");
+  refresh("/admin/settings", ...def.revalidate);
   return OK("Back to what shipped.");
 }
 
@@ -1174,6 +1181,8 @@ export async function duplicateEstimate(_prev: ActionState, fd: FormData): Promi
 export async function duplicateInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const refused = await owner();
   if (refused) return refused;
+  /* The copy's due date comes from the saved default, so load it first. */
+  await hydrateSettings();
   const copy = db.duplicateInvoice(str(fd, "id"), str(fd, "by") || "Studio");
   if (!copy) return FAIL({}, "That invoice is no longer there.");
   refresh("/admin/money", `/admin/clients/${copy.clientId}`);

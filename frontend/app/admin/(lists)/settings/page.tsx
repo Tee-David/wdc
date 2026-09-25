@@ -2,10 +2,9 @@ import Link from "next/link";
 import { Images, Mail, MessagesSquare } from "lucide-react";
 import { adminRole } from "@/lib/admin/guard";
 import { AdminState } from "@/components/admin/admin-state";
-import { CONTACT_EMAIL } from "@/lib/site";
-import { SERVICES } from "@/lib/services";
-import { CASE_STUDIES } from "@/lib/work";
-import { FINANCE_DEFAULTS, getSettings } from "@/lib/admin/store";
+import { getSettings } from "@/lib/admin/store";
+import { SETTINGS } from "@/lib/settings/registry";
+import { hydrateSettings } from "@/lib/settings/store";
 import { DemoNote, Panel } from "@/components/admin/bits";
 import { SettingMenu } from "@/components/admin/row-actions";
 import AuditLog from "@/components/admin/audit-log";
@@ -53,26 +52,10 @@ export default async function SettingsPage() {
       </>
     );
   }
+  await hydrateSettings();
   const overrides = getSettings();
 
-  const rows: { key: string; label: string; value: string; note?: string }[] = [
-    { key: "contact.email", label: "Contact email", value: CONTACT_EMAIL },
-    /* The social links are a literal inside components/layout/header.tsx
-       rather than a module of their own, which is exactly the kind of thing
-       this screen exists to move into a row. */
-    { key: "contact.socials", label: "Social links", value: "5 linked",
-      note: "Instagram, X, Facebook, email and WhatsApp." },
-    { key: "services", label: "Services", value: `${SERVICES.length} services`,
-      note: "Names, blurbs and deliverables. The slugs are not editable: the work URLs are built from them." },
-    { key: "work", label: "Case studies", value: `${CASE_STUDIES.length} published`,
-      note: "Copy and figures. Adding one still needs its images." },
-    { key: "legal", label: "Legal documents", value: "4 documents",
-      note: "Privacy, terms, cookies and the engagement policy." },
-    { key: "finance.vatRate", label: "Default VAT %", value: String(FINANCE_DEFAULTS.vatRate),
-      note: "Pre-fills a new invoice or estimate. Editing an existing one is unaffected -- its own figure always wins." },
-    { key: "finance.dueInDays", label: "Default days to pay", value: String(FINANCE_DEFAULTS.dueInDays),
-      note: "How far out a new invoice's due date starts. A non-number, zero or negative value is ignored and this default is used instead." },
-  ];
+  const rows = SETTINGS.map((d) => ({ key: d.key, label: d.label, value: d.shipped(), note: d.note, editable: Boolean(d.parse), readOnly: d.readOnly }));
 
   return (
     <>
@@ -90,11 +73,10 @@ export default async function SettingsPage() {
       </div>
 
       <DemoNote>
-        Editing is live. It writes an override row keyed by field and merges it
-        over what shipped in git, so a bad edit can only ever change one value
-        and putting it back deletes the row rather than restoring a copy. The
-        rows live in the same in-memory store as everything else here, so an
-        edit holds until the server restarts.
+        Only the finance defaults are editable, because they are the only rows
+        the site reads. An edit is saved to the database as one row keyed by
+        field and merged over what shipped in git; putting it back deletes the
+        row. The other rows say why they cannot be changed here yet.
       </DemoNote>
 
       <div className="ad__stack">
@@ -122,6 +104,9 @@ export default async function SettingsPage() {
                             cannot answer the question people actually bring to
                             it, which is "did somebody change this". */}
                         {override ?? r.value}
+                        {!r.editable ? (
+                          <small><span className="ad__pill ad__pill--flat">Not editable yet</span> {r.readOnly}</small>
+                        ) : null}
                         {override ? (
                           <small>
                             <span className="ad__pill ad__pill--warn">Edited</span>
@@ -131,10 +116,12 @@ export default async function SettingsPage() {
                       </td>
                       <td className="ad__dim ad__num">{r.key}</td>
                       <td className="ad__rmC">
-                        <SettingMenu
-                          settingKey={r.key} label={r.label}
-                          shipped={r.value} override={override}
-                        />
+                        {r.editable ? (
+                          <SettingMenu
+                            settingKey={r.key} label={r.label}
+                            shipped={r.value} override={override}
+                          />
+                        ) : null}
                       </td>
                     </tr>
                   );

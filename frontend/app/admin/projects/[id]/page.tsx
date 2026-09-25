@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { hydrateSettings } from "@/lib/settings/store";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
@@ -41,6 +42,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const { id } = await params;
   const p = getProject(id);
   if (!p) notFound();
+  await hydrateSettings();
   const finance = financeDefaults();
   /* Staff run the work and never see the money on it (lib/admin/permissions.ts). */
   const money = can(await adminRole(), "money");

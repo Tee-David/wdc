@@ -12,9 +12,11 @@ import "server-only";
  * tells them so honestly rather than dropping them on a 404 or -- far worse --
  * on somebody else's dashboard. When the area ships, flip one flag here.
  */
-/* The three the database can actually hold. `roleEnum` in lib/db/schema.ts is
-   a Postgres enum, so a fourth value is a migration, not a line of TypeScript;
-   this list stays honest about what exists rather than guessing at what might. */
+/* The three the database can actually hold. The column is a STRING, and
+   `user_role_check` (migration 0019) is what holds it to these three, so a
+   fourth value is a migration, not a line of TypeScript. (`roleEnum` in
+   lib/db/schema.ts is a typed description of the same list, not a Postgres
+   enum the database enforces.) */
 export type Role = "owner" | "staff" | "client";
 
 type Door = { home: string; ready: boolean; label: string };
