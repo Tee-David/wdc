@@ -6,6 +6,8 @@ import { unreadTotal } from "@/lib/forms/entries";
 import { failedLoggedCount } from "@/lib/message-log";
 import { getAdminRequest } from "@/lib/admin/session";
 import { isAdminRole } from "@/lib/admin/permissions";
+import { adminNotices } from "@/lib/admin/notices";
+import AdminNotices from "@/components/admin/notices";
 import "@/components/admin/admin.css";
 
 /**
@@ -49,6 +51,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const open = await unreadTotal().catch(() => 0);
   /* Emails that did not go, for the bell: the owner's to deal with. */
   const failedMail = role === "owner" ? await failedLoggedCount().catch(() => 0) : 0;
+  /* Standing conditions: the site hidden from search, test payments on the
+     live site, mail that did not go today. */
+  const notices = await adminNotices(role).catch(() => []);
 
   return (
     <div className="ad">
@@ -58,6 +63,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           user={{ name: session.user.name, email: session.user.email, image: session.user.image }}
           role={role}
         >
+          <AdminNotices notices={notices} />
           {children}
         </AdminShell>
       </AdminTourProvider>

@@ -7,6 +7,7 @@ import JsonLd, {
   websiteJsonLd,
 } from "@/components/seo/json-ld";
 import { MOTTO, SITE_NAME, SITE_URL } from "@/lib/site";
+import { DEFAULT_DESCRIPTION, siteSeo } from "@/lib/site-seo";
 import SiteChrome from "@/components/layout/site-chrome";
 import DrawGate from "@/components/ui/draw-gate";
 import Preloader from "@/components/intro/preloader";
@@ -32,7 +33,7 @@ const spaceGrotesk = localFont({
   fallback: ["system-ui", "sans-serif"],
 });
 
-export const metadata: Metadata = {
+const BASE_METADATA: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     /* Says what the company DOES. The previous default -- "Creative &
@@ -42,10 +43,8 @@ export const metadata: Metadata = {
     default: `${SITE_NAME} | Web, Branding, SEO & Software Agency`,
     template: `%s | ${SITE_NAME}`,
   },
-  /* 140 characters. The previous one ran past 230, so search results cut it
-     mid-sentence and the half that mattered was the half that got cut. */
-  description:
-    "We Dig Creativity helps businesses stand out and grow through branding, web development, SEO, mobile apps, AI software and digital marketing.",
+  /* See DEFAULT_DESCRIPTION; the owner can replace it in Settings. */
+  description: DEFAULT_DESCRIPTION,
   keywords: [
     "creative agency",
     "digital marketing agency",
@@ -94,6 +93,21 @@ export const metadata: Metadata = {
     },
   },
 };
+
+/**
+ * The base above, with what the owner set in Settings > Site and SEO: their
+ * description, and the "ask search engines not to index" switch. Every page
+ * that does not set its own `robots` inherits the switch.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await siteSeo().catch(() => null);
+  if (!seo) return BASE_METADATA;
+  return {
+    ...BASE_METADATA,
+    description: seo.description,
+    ...(seo.noindex.on ? { robots: { index: false, follow: false, googleBot: { index: false, follow: false } } } : {}),
+  };
+}
 
 export default function RootLayout({
   children,

@@ -1240,3 +1240,25 @@
 /* A client's other people: one line each, wrapping rather than widening. */
 .ad__contacts { margin: 0; padding: .4rem 1rem .9rem; list-style: none; display: grid; gap: .4rem; font-size: .88rem; }
 .ad__contacts li { min-width: 0; overflow-wrap: anywhere; }
+
+/* ------------------------------------------------------------ shell notices
+   Standing conditions (lib/admin/notices.ts), above the page. Solid tone
+   fills with the tone's own ink, never a tint; the link inherits that ink
+   and is underlined so it is not told apart by colour alone. */
+.ad__notices { display: grid; gap: .5rem; margin-bottom: .9rem; }
+.ad__banner {
+  display: flex; align-items: flex-start; gap: .6rem; min-width: 0;
+  padding: .55rem .55rem .55rem .85rem; border-radius: 10px; font-size: .88rem; line-height: 1.45;
+}
+.ad__banner > svg { flex: none; width: 1.05rem; height: 1.05rem; margin-top: .15rem; }
+.ad__banner p { flex: 1 1 auto; min-width: 0; margin: 0; padding-top: .05rem; overflow-wrap: anywhere; }
+.ad__banner a { color: inherit; text-decoration: underline; text-underline-offset: 2px; font-weight: 600; }
+.ad__banner--bad { background: var(--ad-tone-bad); color: var(--ad-on-bad); }
+.ad__banner--warn { background: var(--ad-tone-warn); color: var(--ad-on-warn); }
+.ad__bannerX {
+  flex: none; display: grid; place-items: center; width: 44px; height: 44px; margin: -.45rem -.2rem -.45rem 0;
+  border: 0; border-radius: 8px; background: transparent; color: inherit; cursor: pointer;
+}
+.ad__bannerX svg { width: 1rem; height: 1rem; }
+.ad__bannerX:hover { background: rgb(0 0 0 / .12); }
+.ad__bannerX:focus-visible { outline: 2px solid currentColor; outline-offset: -3px; }
