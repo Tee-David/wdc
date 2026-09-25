@@ -52,7 +52,7 @@ const status = (r: APIRequestContext, url: string) => r.get(url, { maxRedirects:
 
 test("switched on, visitors get a 503 holding page and the rest keeps working", async ({ page, baseURL, playwright }) => {
   await asOwner(page, baseURL);
-  await page.goto("/admin/settings/site", { waitUntil: "networkidle" });
+  await page.goto("/admin/settings/maintenance", { waitUntil: "networkidle" });
   await page.getByRole("switch", { name: "Maintenance mode" }).click();
   const panel = page.locator(".adConfirm");
   await panel.getByLabel(/^What visitors are told/).fill(MESSAGE);
@@ -97,7 +97,7 @@ test("an admin's pass and a reviewer's link see the site; a wrong link does not"
   await expect(page).toHaveURL(/\/$/);
   expect((await page.request.get("/")).status()).toBe(200);
 
-  await page.goto("/admin/settings/site", { waitUntil: "load" });
+  await page.goto("/admin/settings/maintenance", { waitUntil: "load" });
   const link = (await page.locator(".ad__panel", { hasText: "Maintenance mode" }).locator("code").textContent())!.trim();
   const url = new URL(link);
 
@@ -117,12 +117,12 @@ test("an admin's pass and a reviewer's link see the site; a wrong link does not"
 test("staff cannot switch it; switched off, the site is back for everybody", async ({ page, baseURL, playwright }) => {
   await page.setExtraHTTPHeaders({ "x-boneyard-capture": TOKEN ?? "", "x-boneyard-capture-role": "staff" });
   await page.context().addCookies([{ name: "wdc.session_token", value: "placeholder", url: baseURL ?? "http://localhost:3100" }]);
-  await page.goto("/admin/settings/site", { waitUntil: "load" });
-  await expect(page.getByText("Site and SEO are the owner's")).toBeVisible();
+  await page.goto("/admin/settings/maintenance", { waitUntil: "load" });
+  await expect(page.getByText("Maintenance is the owner's")).toBeVisible();
 
   await asOwner(page, baseURL);
   await page.setExtraHTTPHeaders({ "x-boneyard-capture": TOKEN ?? "" });
-  await page.goto("/admin/settings/site", { waitUntil: "networkidle" });
+  await page.goto("/admin/settings/maintenance", { waitUntil: "networkidle" });
   await page.getByRole("switch", { name: "Maintenance mode" }).click();
   await page.locator(".adConfirm").getByRole("button", { name: "Bring it back" }).click();
   await expect(page.getByRole("switch", { name: "Maintenance mode" })).toHaveAttribute("aria-checked", "false", { timeout: 20_000 });

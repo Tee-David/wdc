@@ -30,7 +30,7 @@ export function MaintenanceDesign({ design, waiting }: { design: Design; waiting
   const current = TEMPLATES.find((t) => t.id === sel)!;
   return (
     <SettingsForm action={saveMaintenanceDesign}>
-      <Panel title="Maintenance page">
+      <Panel title="Holding page">
         <div ref={box} className="adSetPad adMt">
           <p className="ad__dim adMt__intro">What visitors see while the site is in maintenance. Preview any of them; nothing changes until you save.</p>
           {waiting}
