@@ -11,8 +11,14 @@ import { maintenance, maintenancePage, PASS_COOKIE, passValid, retryAfter } from
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   if (path.startsWith("/admin") || path.startsWith("/portal")) {
-    if (isAdminCapture(request.headers)) return NextResponse.next();
-    if (getSessionCookie(request, { cookiePrefix: "wdc" })) return NextResponse.next();
+    /* THE PATH ASKED FOR, handed to the layouts: a cookie that is present but
+       expired passes here and is refused there, and the layout needs the
+       address to send the person back to after they sign in. */
+    const forward = new Headers(request.headers);
+    forward.set("x-wdc-path", request.nextUrl.pathname + request.nextUrl.search);
+    const through = () => NextResponse.next({ request: { headers: forward } });
+    if (isAdminCapture(request.headers)) return through();
+    if (getSessionCookie(request, { cookiePrefix: "wdc" })) return through();
     const login = new URL("/login", request.url);
     login.searchParams.set("redirect", request.nextUrl.pathname + request.nextUrl.search);
     return NextResponse.redirect(login);
