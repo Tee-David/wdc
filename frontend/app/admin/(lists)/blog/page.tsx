@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BlogTabs } from "@/components/admin/blog-tabs";
 import { BulkBar, PickAll, RowPick } from "@/components/admin/bulk";
 import { CalendarClock, Download, FilePlus2, Globe, Newspaper, PencilLine, SearchCheck, Trash2 } from "lucide-react";
 import { POST_TRASH_DAYS, postsForAdmin, trashedPostCount, trashedPosts, type AdminPost } from "@/lib/blog-db";
@@ -102,6 +103,7 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
           {posts ? <Link className="ad__btn ad__btn--primary" href="/admin/blog/new"><FilePlus2 aria-hidden="true" /> New post</Link> : null}
         </div>
       </div>
+      <BlogTabs on="posts" />
 
       {!configured ? (
         <section className="ad__panel">

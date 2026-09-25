@@ -7,6 +7,7 @@ import { WORK_CATEGORIES, countFor } from "@/lib/work";
 import { COMPANY_NAME, SITE_URL } from "@/lib/site";
 import "@/components/preview/preview.css";
 import "@/components/work/work.css";
+import { hydrateCaseStudies } from "@/lib/work-db";
 
 export const metadata: Metadata = {
   /* `absolute`, because this title ends in "| WDC" and the root template
@@ -47,7 +48,8 @@ const collectionJsonLd = {
   })),
 };
 
-export default function WorkHubPage() {
+export default async function WorkHubPage() {
+  await hydrateCaseStudies();
   return (
     <>
       <Header overHero />

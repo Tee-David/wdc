@@ -16,6 +16,7 @@ import {
 import { COMPANY_NAME, SITE_URL } from "@/lib/site";
 import "@/components/preview/preview.css";
 import "@/components/work/work.css";
+import { hydrateCaseStudies } from "@/lib/work-db";
 
 /* Every category is known at build time, so all six prerender rather than
    being generated on first request. */
@@ -26,6 +27,7 @@ export function generateStaticParams() {
 export async function generateMetadata(
   { params }: { params: Promise<{ category: string }> },
 ): Promise<Metadata> {
+  await hydrateCaseStudies();
   const { category } = await params;
   const c = categoryBySlug(category);
   if (!c) return {};
@@ -79,6 +81,7 @@ export async function generateMetadata(
 export default async function WorkCategoryPage(
   { params }: { params: Promise<{ category: string }> },
 ) {
+  await hydrateCaseStudies();
   const { category } = await params;
   const c = categoryBySlug(category);
   if (!c) notFound();

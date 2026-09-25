@@ -17,6 +17,7 @@ import { COMPANY_NAME, SITE_URL } from "@/lib/site";
 
 import "@/components/preview/preview.css";
 import "@/components/work/work.css";
+import { hydrateCaseStudies } from "@/lib/work-db";
 
 /* Six services, six pages, all known at build time. */
 export function generateStaticParams() {
@@ -56,6 +57,7 @@ export async function generateMetadata(
 export default async function ServicePage(
   { params }: { params: Promise<{ slug: string }> },
 ) {
+  await hydrateCaseStudies();
   const { slug } = await params;
   const service = SERVICE_BY_SLUG.get(slug as never);
   if (!service) notFound();
