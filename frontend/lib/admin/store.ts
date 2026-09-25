@@ -1739,10 +1739,43 @@ export function archiveProject(id: Id, archived = true, actor = "Studio"): Proje
 
 const AUDIT: AuditEntry[] = shared("AUDIT", (): AuditEntry[] => []);
 
+/* WRITTEN THROUGH TO THE DATABASE (migration 0021, lib/audit-db.ts) when
+   one is configured. `audit()` stays synchronous for its fifty-odd callers:
+   the insert runs behind it, a read awaits whatever is still in flight
+   (`auditSettled`), and an entry whose insert failed stays in UNSAVED so the
+   log still shows it on this instance. */
+const AUDIT_PENDING = shared("AUDIT_PENDING", () => new Set<Promise<unknown>>());
+const UNSAVED: AuditEntry[] = shared("AUDIT_UNSAVED", (): AuditEntry[] => []);
+
 export function audit(d: Omit<AuditEntry, "id" | "at"> & { at?: string }): AuditEntry {
   const entry: AuditEntry = { ...d, id: mint("a"), at: d.at ?? now() };
   AUDIT.push(entry);
+  if (process.env.DATABASE_URL || process.env.COCKROACHDB_URL) {
+    const p: Promise<unknown> = import("@/lib/audit-db")
+      .then((m) => m.persistAudit(entry))
+      .catch((error) => {
+        UNSAVED.push(entry);
+        console.error("[audit] database write failed; kept in memory:", error instanceof Error ? error.message : error);
+      })
+      .finally(() => AUDIT_PENDING.delete(p));
+    AUDIT_PENDING.add(p);
+  }
   return entry;
+}
+
+/** Every audit insert this instance has started, finished. */
+export async function auditSettled() {
+  await Promise.allSettled([...AUDIT_PENDING]);
+}
+
+/** Entries this instance could not write to the database. */
+export function unsavedAudit(): readonly AuditEntry[] {
+  return UNSAVED;
+}
+
+/** The in-memory log, oldest first: the fallback when there is no database. */
+export function memoryAudit(): readonly AuditEntry[] {
+  return AUDIT;
 }
 
 export function getAudit(opts: { kind?: AuditKind; subjectId?: Id; subjectIds?: Id[]; limit?: number } = {}) {
