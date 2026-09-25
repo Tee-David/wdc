@@ -4,7 +4,7 @@ import {
 } from "@/lib/admin/store";
 import { invoiceTotals } from "@/lib/admin/types";
 import { fromKobo, paystackMode, paystackSignatureValid } from "@/lib/paystack";
-import { sendPaymentReceiptEmail } from "@/lib/money-mail";
+import { sendPaymentNotice, sendPaymentReceiptEmail } from "@/lib/money-mail";
 import { saveStore, syncStore } from "@/lib/admin/persist";
 
 /**
@@ -214,6 +214,7 @@ async function receive(request: NextRequest) {
       invoice: fresh,
       outstanding: invoiceTotals(fresh).due,
     });
+    await sendPaymentNotice({ payment: applied.payment, invoice: fresh, outstanding: invoiceTotals(fresh).due });
   });
 
   return NextResponse.json({ received: true });

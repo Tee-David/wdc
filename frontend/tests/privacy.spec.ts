@@ -71,7 +71,7 @@ test("retention: the daily tidy deletes an old unfinished brief and anonymises a
   await page.getByRole("button", { name: "Save retention" }).click();
   await expect(page.locator(".ad__msg.is-ok")).toContainText("Saved", { timeout: 20_000 });
 
-  await page.goto("/admin/settings/email", { waitUntil: "load" });
+  await page.goto("/admin/settings/email/log", { waitUntil: "load" });
   await page.getByRole("button", { name: "Run the daily tidy now" }).click();
   await expect(page.locator(".ad__msg.is-ok").last()).toContainText("Done.", { timeout: 60_000 });
 

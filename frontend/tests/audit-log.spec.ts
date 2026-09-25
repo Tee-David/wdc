@@ -85,10 +85,10 @@ test("kind and person narrow it, and Clear puts it back", async ({ page, baseURL
 test("a change made in the admin is written to the table, not only to memory", async ({ page, baseURL }) => {
   await asOwner(page, baseURL);
   const before = new Date();
-  await page.goto("/admin/settings/email", { waitUntil: "load" });
+  await page.goto("/admin/settings/email", { waitUntil: "networkidle" });
   await page.getByLabel(/^Keep the message log for/).selectOption("180");
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(page.locator(".ad__msg.is-ok").first()).toContainText("keeps 180 days", { timeout: 20_000 });
+  await page.getByRole("region", { name: "Unsaved changes" }).getByRole("button", { name: "Save changes" }).click();
+  await expect(page.locator(".adToast", { hasText: "Settings saved." })).toBeVisible({ timeout: 20_000 });
   await expect.poll(async () => (await db.query(
     "SELECT 1 FROM audit_log WHERE subject = 'Message log' AND action LIKE '%180 days%' AND at >= $1", [before],
   )).rowCount, { timeout: 15_000 }).toBe(1);

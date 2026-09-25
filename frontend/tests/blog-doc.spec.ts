@@ -141,6 +141,6 @@ test("a cover is one of ours or an upload in our bucket, never another website's
   expect(parsePost({ ...base, cover: `${BUCKET}/media/2026/09/shop.webp` }, { imageHosts: [BUCKET] }).ok).toBe(true);
   const other = parsePost({ ...base, cover: "https://elsewhere.example/shop.webp" }, { imageHosts: [BUCKET] });
   expect(other.ok).toBe(false);
-  if (!other.ok) expect(other.errors.cover).toMatch(/upload one/);
+  if (!other.ok) expect(other.errors.cover).toMatch(/Upload a cover/);
   expect(parsePost({ ...base, cover: "/hero/ai-key.jpg" }).ok).toBe(true);
 });

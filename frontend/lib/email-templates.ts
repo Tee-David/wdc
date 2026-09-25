@@ -942,6 +942,30 @@ ${url}`),
   };
 }
 
+export function paymentNoticeEmail(input: { company: string; amount: string; invoice: string; left: string; method: string; url: string }): Email {
+  const { company, amount, invoice, left, method, url } = input;
+  const heading = `${company} paid ${amount}.`;
+  return {
+    subject: `Payment received: ${amount} from ${company}`,
+    text: textShell(`${heading}
+
+Invoice ${invoice}, by ${method}. ${left}
+
+In the admin:
+
+${url}`),
+    html: shell({
+      title: `Payment received from ${company}`,
+      preheader: `${amount} against ${invoice}. ${left}`,
+      heading,
+      blocks: [
+        panel([["Invoice", invoice], ["Paid by", method], ["Still owed", left]]),
+        action("Open the invoice", url),
+      ],
+    }),
+  };
+}
+
 export function deliverableReadyEmail(input: {
   clientName: string;
   projectTitle: string;

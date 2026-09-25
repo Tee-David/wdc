@@ -1,22 +1,25 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronLeft, LayoutGrid } from "lucide-react";
+import { ChevronLeft, LayoutGrid, Search } from "lucide-react";
 import { can, isAdminRole, type AdminRole } from "@/lib/admin/permissions";
-import { SETTINGS_GROUPS, SETTINGS_SECTIONS } from "@/lib/settings/sections";
+import { SETTINGS_GROUPS, SETTINGS_SECTIONS, sectionMatches } from "@/lib/settings/sections";
 import { SETTINGS_ICON as ICON } from "./settings-icons";
 
 
 /**
- * The Settings sections (the mockups' SetNav): a compact card of links beside
- * every Settings page on a wide screen. On a phone the overview page lists
- * the sections itself, with their descriptions, and each section shows a
- * "Settings" link back instead of this.
+ * The Settings sections (the Settings canvas): a compact menu beside every
+ * Settings page on a wide screen, with a search that narrows it by name or by
+ * what is inside ("vat", "paystack"). On a phone the overview page lists the
+ * sections itself, and each section shows a "Settings" link back instead.
  */
 export function SettingsNav({ role }: { role: AdminRole | null }) {
   const path = usePathname();
+  const [q, setQ] = useState("");
   const sections = SETTINGS_SECTIONS.filter((s) => (s.area ? can(role, s.area) : isAdminRole(role)));
+  const shown = sections.filter((s) => sectionMatches(s, q));
   const onIndex = path === "/admin/settings";
   return (
     <>
@@ -24,17 +27,23 @@ export function SettingsNav({ role }: { role: AdminRole | null }) {
         <Link className="adSet__back" href="/admin/settings"><ChevronLeft aria-hidden="true" /> Settings</Link>
       ) : null}
       <nav className="adSet__nav" aria-label="Settings sections">
-        <p className="adSet__groupH">Settings</p>
-        <ul>
-          <li>
-            <Link href="/admin/settings" aria-current={onIndex ? "page" : undefined}>
-              <LayoutGrid aria-hidden="true" className="adSet__glyph" />
-              <span className="adSet__text"><b>Overview</b></span>
-            </Link>
-          </li>
-        </ul>
+        <label className="adSet__search">
+          <Search aria-hidden="true" />
+          <span className="ad__sr">Search settings</span>
+          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search settings" />
+        </label>
+        {!q ? (
+          <ul>
+            <li>
+              <Link href="/admin/settings" aria-current={onIndex ? "page" : undefined}>
+                <LayoutGrid aria-hidden="true" className="adSet__glyph" />
+                <span className="adSet__text"><b>Overview</b></span>
+              </Link>
+            </li>
+          </ul>
+        ) : null}
         {SETTINGS_GROUPS.map((g) => {
-          const items = sections.filter((s) => s.group === g);
+          const items = shown.filter((s) => s.group === g);
           if (!items.length) return null;
           return (
             <div key={g} className="adSet__group">
@@ -56,6 +65,7 @@ export function SettingsNav({ role }: { role: AdminRole | null }) {
             </div>
           );
         })}
+        {!shown.length ? <p className="adSet__none" role="status">No setting matches &ldquo;{q}&rdquo;.</p> : null}
       </nav>
     </>
   );

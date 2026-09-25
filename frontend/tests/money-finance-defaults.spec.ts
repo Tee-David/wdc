@@ -18,18 +18,16 @@ test.beforeEach(async ({ page, baseURL }) => {
   ]);
 });
 
-test("a saved VAT default pre-fills a new invoice, and resetting it restores 7.5", async ({ page }) => {
+const bar = (page: import("@playwright/test").Page) => page.getByRole("region", { name: "Unsaved changes" });
+
+test("a saved VAT default pre-fills a new invoice, and setting it back restores 7.5", async ({ page }) => {
   /* `networkidle`, not `domcontentloaded`: the dev server under test compiles
      a route on its first visit, and a click dispatched before that finishes
      lands on markup that is not hydrated yet. */
   await page.goto("/admin/settings/general", { waitUntil: "networkidle" });
-
-  const row = page.locator("tr", { hasText: "Default VAT %" });
-  await row.getByRole("button", { name: "Actions for Default VAT %" }).click();
-  await page.getByRole("menuitem", { name: "Edit it" }).click();
-  await page.getByRole("textbox", { name: "Default VAT %" }).fill("12");
-  await page.getByRole("button", { name: "Save it" }).click();
-  await expect(row).toContainText("Edited");
+  await page.getByLabel(/^VAT/).fill("12");
+  await bar(page).getByRole("button", { name: "Save changes" }).click();
+  await expect(bar(page)).toBeHidden({ timeout: 20_000 });
 
   await page.goto("/admin/money", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "New invoice" }).click();
@@ -37,40 +35,32 @@ test("a saved VAT default pre-fills a new invoice, and resetting it restores 7.5
   await page.keyboard.press("Escape");
 
   await page.goto("/admin/settings/general", { waitUntil: "networkidle" });
-  await row.getByRole("button", { name: "Actions for Default VAT %" }).click();
-  await page.getByRole("menuitem", { name: "Put it back" }).click();
-  await page.getByRole("button", { name: "Put it back" }).click();
-  await expect(row).not.toContainText("Edited");
+  await page.getByLabel(/^VAT/).fill("7.5");
+  await bar(page).getByRole("button", { name: "Save changes" }).click();
+  await expect(bar(page)).toBeHidden({ timeout: 20_000 });
 
   await page.goto("/admin/money", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "New invoice" }).click();
   await expect(page.getByRole("textbox", { name: "VAT %" })).toHaveValue("7.5");
 });
 
-/**
- * THE SCREEN ONLY OFFERS WHAT THE SITE READS.
- *
- * Five rows used to take an edit and say "The site shows it now" while
- * nothing read them. They are read-only now, with the reason, and the one
- * kind of row that is editable refuses a value it cannot use.
- */
-test("rows the site does not read cannot be edited, and a bad value is refused", async ({ page }) => {
+test("with VAT switched off a new invoice starts at 0%, and a bad rate is refused", async ({ page }) => {
   await page.goto("/admin/settings/general", { waitUntil: "networkidle" });
-  for (const label of ["Contact email", "Social links", "Services", "Case studies", "Legal documents"]) {
-    const row = page.locator('[data-tour="settings-table"] tr', { hasText: label });
-    await expect(row).toContainText("Not editable yet");
-    await expect(row.getByRole("button", { name: `Actions for ${label}` })).toHaveCount(0);
-  }
-  /* "Social links: 5 linked" was never true. */
-  await expect(page.locator('[data-tour="settings-table"] tr', { hasText: "Social links" })).not.toContainText("5 linked");
-
-  const vat = page.locator('[data-tour="settings-table"] tr', { hasText: "Default VAT %" });
-  await vat.getByRole("button", { name: "Actions for Default VAT %" }).click();
-  await page.getByRole("menuitem", { name: "Edit it" }).click();
-  await page.getByRole("textbox", { name: "Default VAT %" }).fill("abc");
-  await page.getByRole("button", { name: "Save it" }).click();
-  await expect(page.locator(".ad__fe", { hasText: "A number" })).toBeVisible({ timeout: 20_000 });
-  await page.getByRole("textbox", { name: "Default VAT %" }).fill("250");
-  await page.getByRole("button", { name: "Save it" }).click();
+  await page.getByLabel(/^VAT/).fill("250");
+  await bar(page).getByRole("button", { name: "Save changes" }).click();
   await expect(page.locator(".ad__fe", { hasText: "Between 0 and 100" })).toBeVisible({ timeout: 20_000 });
+  await page.getByLabel(/^VAT/).fill("7.5");
+  await page.getByRole("switch", { name: "Add VAT to new invoices" }).click();
+  await bar(page).getByRole("button", { name: "Save changes" }).click();
+  await expect(bar(page)).toBeHidden({ timeout: 20_000 });
+
+  await page.goto("/admin/money", { waitUntil: "networkidle" });
+  await page.getByRole("button", { name: "New invoice" }).click();
+  await expect(page.getByRole("textbox", { name: "VAT %" })).toHaveValue("0");
+  await page.keyboard.press("Escape");
+
+  await page.goto("/admin/settings/general", { waitUntil: "networkidle" });
+  await page.getByRole("switch", { name: "Add VAT to new invoices" }).click();
+  await bar(page).getByRole("button", { name: "Save changes" }).click();
+  await expect(bar(page)).toBeHidden({ timeout: 20_000 });
 });

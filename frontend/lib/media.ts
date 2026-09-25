@@ -1,7 +1,7 @@
 import "server-only";
 
 import { db } from "@/lib/db/pool";
-import { r2Config } from "@/lib/r2";
+import { r2Config, r2PublicBase } from "@/lib/r2";
 
 /**
  * The media library's rows. See `db/migrations/0011_media_library.sql` for
@@ -38,7 +38,7 @@ export function mediaDatabaseConfigured() {
 /** Public URL for a key, or null when CLOUDFLARE_R2_URL is not set. */
 export function mediaUrl(key: string) {
   const r2 = r2Config();
-  const base = r2.ok ? r2.config.publicBase : process.env.CLOUDFLARE_R2_URL?.replace(/\/+$/, "");
+  const base = r2.ok ? r2.config.publicBase : r2PublicBase();
   return base ? `${base}/${key}` : null;
 }
 

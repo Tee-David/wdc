@@ -1,7 +1,8 @@
 import { after, NextResponse, type NextRequest } from "next/server";
+import { hydrateSettings } from "@/lib/settings/store";
 import { CONTACT_EMAIL, SITE_URL } from "@/lib/site";
 import { randomUUID } from "node:crypto";
-import { mailIsConfigured } from "@/lib/email";
+import { mailIsConfigured, studioInbox } from "@/lib/email";
 import { sendLogged } from "@/lib/outbox";
 import { composeEmailHtml, emailPanel, siteReportEmail } from "@/lib/email-templates";
 import { fetchPage } from "@/lib/fetch-page";
@@ -49,6 +50,8 @@ function clean(value: unknown, max: number) {
 }
 
 export async function POST(request: NextRequest) {
+  /* Studio notices go to "Replies go to" from Settings, Email. */
+  await hydrateSettings();
   const eventId = randomUUID();
   const limit = rateLimit(callerKey(request, "tools-seo-report"), LIMIT, WINDOW_MS);
   if (!limit.ok) {
@@ -101,7 +104,7 @@ export async function POST(request: NextRequest) {
       const psi = await runPsi(page.url);
 
       await sendLogged(
-      { to: email, replyTo: process.env.SMTP_REPLY_TO || CONTACT_EMAIL, ...siteReportEmail({
+      { to: email, replyTo: studioInbox(), ...siteReportEmail({
           site: page.url,
           findings: list.map((f) => ({ label: f.label, detail: f.detail })),
           scores: psi.ok ? psi.scores.map((s) => ({ label: s.label, score: s.score })) : [],
@@ -117,7 +120,7 @@ export async function POST(request: NextRequest) {
          rather than as an apology. */
       const worst = list.filter((f) => f.verdict === "missing" || f.verdict === "weak");
       await sendLogged({
-        to: process.env.SMTP_REPLY_TO || CONTACT_EMAIL,
+        to: studioInbox(),
         replyTo: email,
         subject: `Site report sent: ${page.url}${psi.ok ? "" : " (Lighthouse not run)"}`,
         text: [

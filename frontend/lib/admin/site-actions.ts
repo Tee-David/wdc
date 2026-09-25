@@ -22,7 +22,8 @@ function refreshSite() {
 export async function saveSiteDescription(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const refused = await allow("settings");
   if (refused) return refused;
-  const reset = fd.get("reset") !== null;
+  /* Not "reset": a control with that name hides the form's own reset(), which React calls after every action. */
+  const reset = fd.get("useDefault") !== null;
   const text = reset ? "" : String(fd.get("description") ?? "").replace(/\s+/g, " ").trim();
   if (!reset && (text.length < DESCRIPTION_MIN || text.length > DESCRIPTION_MAX)) {
     return FAIL({ description: `Between ${DESCRIPTION_MIN} and ${DESCRIPTION_MAX} characters, so a search result shows all of it. This is ${text.length}.` });

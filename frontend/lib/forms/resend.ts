@@ -1,5 +1,6 @@
 import "server-only";
 
+import { hydrateSettings } from "@/lib/settings/store";
 import { revalidatePath } from "next/cache";
 import { getEntry } from "./entries";
 import { addEvents } from "./events";
@@ -41,6 +42,7 @@ export async function resendFormEmail(form: FormDef, entryId: string, key: strin
   const def = NOTIFICATIONS[form.source].find((n) => n.key === key);
   if (!def) return { ok: false, reason: "no-email" };
   const data = dataFromEntry(form, entry);
+  await hydrateSettings();
   const mail = formEmail(form, key, data);
   if (!mail) return { ok: false, reason: "no-address" };
 

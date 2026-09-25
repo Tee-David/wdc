@@ -1,9 +1,10 @@
 import "server-only";
 
 import { SITE_URL } from "@/lib/site";
-import { escapeHtml, mailIsConfigured } from "@/lib/email";
-import { composeEmailHtml, emailButton, emailP, emailSmall } from "@/lib/email-templates";
-import { getClient } from "@/lib/admin/store";
+import { escapeHtml, mailIsConfigured, studioInbox } from "@/lib/email";
+import { composeEmailHtml, emailButton, emailP, emailSmall, paymentNoticeEmail } from "@/lib/email-templates";
+import { getClient, getSetting } from "@/lib/admin/store";
+import { hydrateSettings } from "@/lib/settings/store";
 import { queueLogged } from "@/lib/message-log";
 import { sendLogged } from "@/lib/outbox";
 import { invoiceTotals, naira, notifyAllows } from "@/lib/admin/types";
@@ -111,6 +112,30 @@ export async function sendPaymentReceiptEmail(input: {
       emailButton("Open your receipt", url),
       emailSmall(`Receipt ${escapeHtml(payment.receiptNo)} &middot; paid by ${escapeHtml(payment.method)} &middot; reference ${escapeHtml(payment.reference)}`),
     ]),
+  });
+}
+
+/**
+ * "A client paid": the studio's notice, after the client's receipt. Settings,
+ * Notifications can switch it off. Keyed on the payment, so a webhook retry
+ * does not send it twice.
+ */
+export async function sendPaymentNotice(input: { payment: Payment; invoice: Invoice; outstanding: number }) {
+  const { payment, invoice, outstanding } = input;
+  await hydrateSettings();
+  if (getSetting("notify.payments") === "0") return { sent: false, reason: "switched off" };
+  const client = getClient(invoice.clientId);
+  const company = client?.company || client?.name || "A client";
+  const mail = paymentNoticeEmail({
+    company, amount: naira(payment.amount), invoice: invoice.number, method: payment.method,
+    left: outstanding > 0 ? `${naira(outstanding)} still owed.` : "Settled in full.",
+    url: new URL(`/admin/money/${invoice.id}`, SITE_URL).toString(),
+  });
+  return deliver({
+    to: studioInbox(), ...mail,
+    summary: `Studio notice: ${naira(payment.amount)} from ${company}.`,
+    dedupeKey: `paid-notice:${payment.id}`, by: payment.by, clientId: invoice.clientId,
+    about: { kind: "payment", id: payment.id, label: payment.receiptNo },
   });
 }
 
