@@ -37,12 +37,18 @@
     return {stop:stop, go:go};
   }
 
+  function short(d, tz){
+    var o = {weekday:'short', hour:'2-digit', minute:'2-digit'}; if (tz) o.timeZone = tz;
+    return new Date(d).toLocaleString('en-GB', o);
+  }
+  /* The visitor's own time is only worth a mention when it differs from Lagos. */
+  var sameZone = short(backBy) === short(backBy, 'Africa/Lagos');
   function paintTime(){
     var left = fmtLeft(remaining());
     document.querySelectorAll('[data-count]').forEach(function(e){ e.textContent = left; });
-    document.querySelectorAll('[data-count-short]').forEach(function(e){ e.textContent = 'Back in '+left; });
     document.querySelectorAll('[data-back-lagos]').forEach(function(e){ e.textContent = fmt(backBy,'Africa/Lagos'); });
-    document.querySelectorAll('[data-back-local]').forEach(function(e){ e.textContent = fmt(backBy); });
+    document.querySelectorAll('[data-back-lagos-short]').forEach(function(e){ e.textContent = short(backBy,'Africa/Lagos'); });
+    document.querySelectorAll('[data-local-note]').forEach(function(e){ e.textContent = sameZone ? '' : ', '+new Date(backBy).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})+' your time'; });
   }
 
   window.WDC = {reduced:reduced, start:start, backBy:backBy, progress:progress, remaining:remaining,
@@ -51,7 +57,7 @@
   /* ---------- prototype chrome ---------- */
   var b = document.querySelector('[data-name]'), bar = document.createElement('div');
   bar.className = 'proto';
-  bar.innerHTML = '<span class="tag"><b>'+b.dataset.n+' / 11</b>'+b.dataset.name+'</span>';
+  bar.innerHTML = '<span class="tag"><b>'+b.dataset.n+' / 11</b>'+b.dataset.name+'<span style="color:#9a9ccf">Prototype · forms send nothing</span></span>';
   if (b.dataset.clock){
     var c = document.createElement('label'); c.className = 'clock';
     c.innerHTML = '<span>Preview the clock</span><input id="proto-clock" type="range" min="0" max="100" step="0.5"><output id="proto-out"></output>';
@@ -62,39 +68,38 @@
   }
   document.body.appendChild(bar);
 
-  /* ---------- dock ---------- */
-  var dock = document.getElementById('dock'), tog = document.getElementById('dk-toggle');
-  function setMin(min){
-    dock.classList.toggle('min', min);
-    tog.setAttribute('aria-expanded', String(!min));
-    tog.setAttribute('aria-label', min ? 'Show the details' : 'Hide the details');
-  }
-  setMin(innerWidth < 700 || b.dataset.dock === 'min');
-  tog.addEventListener('click', function(){ setMin(!dock.classList.contains('min')); });
-  document.getElementById('dk-open').addEventListener('click', function(){ setMin(false); document.getElementById('dk-email').focus(); });
-
-  var form = document.getElementById('dk-form'), email = document.getElementById('dk-email'), err = document.getElementById('dk-err');
+  /* ---------- the lockup ---------- */
+  var form = document.getElementById('dk-form'), email = document.getElementById('dk-email'), note = document.getElementById('dk-note');
+  var noteText = note.textContent;
+  function bad(msg){ form.classList.add('bad'); email.setAttribute('aria-invalid','true'); note.textContent = msg; note.classList.add('bad'); email.focus(); }
   form.addEventListener('submit', function(e){
     e.preventDefault();
-    if (!email.value.trim() || !email.checkValidity()){
-      email.setAttribute('aria-invalid','true');
-      err.textContent = email.value.trim() ? 'That address is missing something. Check it and try again.' : 'Add your email address first.';
-      email.focus(); return;
-    }
-    email.removeAttribute('aria-invalid'); err.textContent = '';
-    document.getElementById('dk-who').textContent = email.value.trim();
-    form.hidden = true; var d = document.getElementById('dk-done'); d.hidden = false; d.focus();
-    document.dispatchEvent(new CustomEvent('wdc:notified'));
+    var v = email.value.trim();
+    if (!v) return bad('Add your email first.');
+    if (!email.checkValidity()) return bad('That address looks incomplete.');
+    document.getElementById('dk-who').textContent = v;
+    form.hidden = true; note.hidden = true;
+    var d = document.getElementById('dk-done'); d.hidden = false; d.focus();
   });
-  email.addEventListener('input', function(){ if (email.getAttribute('aria-invalid')) { email.removeAttribute('aria-invalid'); err.textContent=''; } });
+  email.addEventListener('input', function(){
+    if (!email.getAttribute('aria-invalid')) return;
+    form.classList.remove('bad'); email.removeAttribute('aria-invalid'); note.textContent = noteText; note.classList.remove('bad');
+  });
+  /* after they sign up, one optional question; a second tap on the same answer takes it back */
+  document.querySelectorAll('[data-why]').forEach(function(btn, _, all){
+    btn.addEventListener('click', function(){
+      var on = btn.getAttribute('aria-pressed') !== 'true';
+      all.forEach(function(o){ o.setAttribute('aria-pressed', String(o === btn && on)); });
+      document.getElementById('dk-ask').textContent = on ? 'Thanks. Noted.' : 'So we are ready for you, what brings you here?';
+    });
+  });
 
-  var copy = document.getElementById('dk-copy');
+  var copy = document.getElementById('dk-copy'), need = document.getElementById('dk-need');
   copy.addEventListener('click', function(){
-    var addr = copy.dataset.email, note = document.getElementById('dk-copied');
-    function said(t){ note.textContent = t; }
-    try {
-      navigator.clipboard.writeText(addr).then(function(){ said('Copied '+addr); }, function(){ said('Copy it from here: '+addr); });
-    } catch(_) { said('Copy it from here: '+addr); }
+    var addr = copy.dataset.email;
+    function said(t){ need.textContent = t; setTimeout(function(){ need.textContent = 'Need us now?'; }, 2400); }
+    try { navigator.clipboard.writeText(addr).then(function(){ said('Copied.'); }, function(){ said('Select to copy:'); }); }
+    catch(_) { said('Select to copy:'); }
   });
 
   paintTime(); setInterval(emit, 15000);
