@@ -98,8 +98,24 @@ const WHY = [
    given, and making one up is the same lie in a smaller font. */
 const QUOTES = TESTIMONIALS.map((t) => {
   const cs = caseBySlug(t.slug);
-  return { q: t.text, n: t.client, r: cs ? `${cs.sector} · ${cs.location}` : "" };
+  return { ...beforeAfter(t.text), n: t.client, r: cs ? `${cs.sector} · ${cs.location}` : "", href: caseHref(t.slug) };
 });
+
+/* Nearly every quote is a problem the client had, then what changed, and the
+   change is always the last sentence. So the words stay exactly as given and
+   only the emphasis moves: the last sentence is the "after". A quote that is
+   one sentence long has no before, and is shown whole. */
+function beforeAfter(text: string) {
+  const cut = [...text.matchAll(/[.!?]\s+(?=\S)/g)].pop();
+  if (!cut) return { before: "", after: text };
+  const at = cut.index + cut[0].length;
+  return { before: text.slice(0, at), after: text.slice(at) };
+}
+
+/* Six on arrival, which is two full rows at every width the grid has, and
+   three on a phone, where one column of six is a long way down; the rest
+   behind one button rather than a moving marquee nobody can pause. */
+const QUOTES_SHOWN = 6;
 
 /* Two letters, from words that actually start with one. Real client names
    carry punctuation as separate tokens -- "TAB — The Ajoks Brand", "Millcon &
@@ -169,6 +185,7 @@ function Icon({ slug, delay }: { slug: string; delay: number }) {
 
 export default function PreviewBody({ faqs = FAQS }: { faqs?: Faq[] }) {
   const [active, setActive] = useState(0);
+  const [allQuotes, setAllQuotes] = useState(false);
   const track = useRef<HTMLDivElement | null>(null);
   const pinWrap = useRef<HTMLDivElement | null>(null);
   const pinTrack = useRef<HTMLDivElement | null>(null);
@@ -605,28 +622,36 @@ export default function PreviewBody({ faqs = FAQS }: { faqs?: Faq[] }) {
               Founders and teams who care about speed, clarity and results.
             </p>
           </div>
-        </div>
-        {[false, true].map((rev) => (
-          <div className={`pv-marq pv-reveal${rev ? " pv-marq--rev" : ""}`} key={String(rev)}
-               aria-hidden={rev || undefined}>
-            <div className="pv-mtrack">
-              {[0, 1].map((dup) => (
-                <div className="pv-mgroup" key={dup} aria-hidden={dup === 1 || undefined}>
-                  {QUOTES.map((t) => (
-                    <blockquote className="pv-tcard" key={`${dup}-${t.n}`}>
-                      <span className="pv-qm">&ldquo;</span>
-                      <p>{t.q}</p>
-                      <div className="pv-tcard__by">
-                        <span className="pv-tcard__av">{initials(t.n)}</span>
-                        <span><b>{t.n}</b><span>{t.r}</span></span>
-                      </div>
-                    </blockquote>
-                  ))}
-                </div>
-              ))}
+          <ul className="pv-quotes pv-reveal" id="pv-quotes">
+            {QUOTES.map((t, i) => (
+              <li key={t.n} hidden={!allQuotes && i >= QUOTES_SHOWN || undefined}
+                data-phone-more={!allQuotes && i >= 3 || undefined}>
+                <figure className="pv-tcard">
+                  <blockquote>
+                    <p>&ldquo;{t.before}<em>{t.after}</em>&rdquo;</p>
+                  </blockquote>
+                  <figcaption className="pv-tcard__by">
+                    <span className="pv-tcard__av" aria-hidden="true">{initials(t.n)}</span>
+                    <span className="pv-tcard__who"><b>{t.n}</b><span>{t.r}</span></span>
+                    {t.href ? (
+                      <a className="pv-tcard__case" href={t.href} aria-label={`${t.n} case study`}>
+                        Case study <span aria-hidden="true">&rarr;</span>
+                      </a>
+                    ) : null}
+                  </figcaption>
+                </figure>
+              </li>
+            ))}
+          </ul>
+          {QUOTES.length > QUOTES_SHOWN ? (
+            <div className="pv-quotes__more">
+              <button type="button" className="pv-btn pv-btn--line" aria-controls="pv-quotes" aria-expanded={allQuotes}
+                onClick={() => setAllQuotes((v) => !v)}>
+                {allQuotes ? "Show fewer" : `Read all ${QUOTES.length}`}
+              </button>
             </div>
-          </div>
-        ))}
+          ) : null}
+        </div>
       </section>
 
       {/* ---------------- FAQ ---------------- */}
