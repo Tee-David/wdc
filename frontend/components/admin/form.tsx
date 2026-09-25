@@ -177,7 +177,14 @@ function Result({ state }: { state: ActionState }) {
   return (
     <p className={`ad__msg${state.ok ? " is-ok" : " is-bad"}`} role="status">
       {state.ok ? <Check aria-hidden="true" /> : <AlertCircle aria-hidden="true" />}
-      <span>{state.message}</span>
+      <span>
+        {state.signIn ? state.message?.replace(/ Sign in again, then retry\.$/, "") : state.message}
+        {/* In a NEW tab: signing in here would close this dialog and lose
+            what was typed. Back in this tab, the same Save works. */}
+        {state.signIn ? (
+          <> <a href={`/login?redirect=${encodeURIComponent(typeof window === "undefined" ? "/admin" : window.location.pathname + window.location.search)}`} target="_blank" rel="noopener">Sign in in a new tab</a>, then save again here. Nothing you typed is lost.</>
+        ) : null}
+      </span>
     </p>
   );
 }

@@ -50,6 +50,12 @@ export type ActionState = {
    * `saved_at` for an editor's concurrency check (lib/blog-db.ts `savePost`).
    */
   stamp?: string;
+  /**
+   * The refusal was "signed out or not allowed" (lib/admin/guard.ts). The
+   * form offers a sign-in in a NEW tab, so a dialog left open over lunch keeps
+   * everything typed into it and can simply be saved again.
+   */
+  signIn?: boolean;
 };
 
 export const OK = (message: string): ActionState => ({ ok: true, message });

@@ -19,6 +19,12 @@ export async function proxy(request: NextRequest) {
     const through = () => NextResponse.next({ request: { headers: forward } });
     if (isAdminCapture(request.headers)) return through();
     if (getSessionCookie(request, { cookiePrefix: "wdc" })) return through();
+    /* A SAVE FROM A PAGE THAT WAS ALREADY OPEN. Redirecting a server action
+       to /login navigates the whole page and throws away what was typed in
+       the dialog. Let it reach the action instead: every admin action checks
+       the session itself and fails closed (lib/admin/guard.ts), and its
+       refusal offers a sign-in in a new tab, so the form can be saved again. */
+    if (request.method === "POST" && request.headers.has("next-action")) return through();
     const login = new URL("/login", request.url);
     login.searchParams.set("redirect", request.nextUrl.pathname + request.nextUrl.search);
     return NextResponse.redirect(login);
