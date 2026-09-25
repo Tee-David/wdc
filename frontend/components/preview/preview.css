@@ -902,32 +902,25 @@ html:not(.dark) .pv .pv-card {
 .pv-cta p, .pv .pv-cta p { color: #fff; max-width: 64ch; }
 
 /* ---------------- testimonials ---------------- */
-.pv-marq {
-  --tgap: 20px; overflow: hidden; padding-block: var(--card-lift-gutter, 10px);
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
-          mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+/* STILL, NOT A MARQUEE. Two rows used to scroll past for ever: hard to read,
+   impossible to pause on a phone, and the quotes are the kind worth reading.
+   Same card track as every other grid on the site. */
+.pv-quotes {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
 }
-.pv-mtrack { display: flex; width: max-content; gap: var(--tgap); animation: pv-marq 64s linear infinite; }
-.pv-mgroup { display: flex; gap: var(--tgap); }
-.pv-marq:hover .pv-mtrack, .pv-marq:focus-within .pv-mtrack { animation-play-state: paused; }
-/* the second row runs the other way at a different speed so they never sync */
-.pv-marq--rev { margin-top: clamp(14px, 1.6vw, 20px); }
-.pv-marq--rev .pv-mtrack { animation-duration: 76s; animation-direction: reverse; }
-@keyframes pv-marq {
-  from { transform: translateX(0); }
-  to { transform: translateX(calc(-50% - var(--tgap) / 2)); }
-}
+.pv-quotes > li { display: flex; min-width: 0; }
+@media (max-width: 600px) { .pv-quotes > li[data-phone-more] { display: none; } }
+.pv-quotes__more { display: flex; justify-content: center; margin-top: clamp(24px, 3vw, 36px); }
 .pv-tcard {
-  flex: 0 0 360px; max-width: 360px; display: flex; flex-direction: column; gap: 14px;
+  flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px;
   background: var(--paper); border: 1px solid var(--rule); border-radius: 18px;
   padding: clamp(22px, 2.2vw, 28px); margin: 0;
 }
-@media (max-width: 600px) { .pv-tcard { flex-basis: 80vw; max-width: 80vw; } }
-.pv-tcard .pv-qm {
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-size: 2.4rem; line-height: .6; color: var(--accent); height: 1.1rem;
-}
-.pv-tcard p { font-size: .98rem; line-height: 1.55; color: var(--ink); font-style: normal; }
+.pv-tcard blockquote { margin: 0; }
+.pv-tcard p { font-size: .98rem; line-height: 1.55; color: var(--muted); font-style: normal; }
+/* The "after": what changed. Orange as text on paper is --accent-ink. */
+.pv-tcard p em { font-style: normal; font-weight: 600; color: var(--accent-ink); }
 .pv-tcard__by { display: flex; align-items: center; gap: 12px; margin-top: auto; padding-top: 8px; border-top: 1px solid var(--rule); }
 /* Scoped to its parent on purpose. `.pv-tcard__by span` a line above scores
    (0,1,1) and this avatar IS a span inside it, so a single-class rule at
@@ -943,6 +936,15 @@ html:not(.dark) .pv .pv-card {
 }
 .pv-tcard__by b { font-family: var(--font-space-grotesk), system-ui, sans-serif; display: block; font-size: .98rem; }
 .pv-tcard__by span { font-size: .82rem; color: var(--muted); }
+.pv-tcard__by .pv-tcard__who { flex: 1; min-width: 0; font-size: inherit; color: inherit; }
+.pv-tcard__who span { display: block; }
+.pv-tcard__by .pv-tcard__case {
+  flex: none; display: inline-flex; align-items: center; gap: 4px; min-height: 44px;
+  font-size: .85rem; font-weight: 600; color: var(--accent-ink); text-decoration: none;
+}
+.pv-tcard__case:hover { text-decoration: underline; text-underline-offset: 3px; }
+.pv-tcard__case span { color: inherit; font-size: inherit; transition: transform .2s ease; }
+.pv-tcard__case:hover span { transform: translateX(3px); }
 /* A PANEL, NOT AN ORANGE BAR. See `.ob__reassure` in onboarding.css for why
    the whole site dropped this pattern. */
 .pv-note {
@@ -1083,8 +1085,7 @@ html:not(.dark) .pv .pv-card {
 
 @media (prefers-reduced-motion: reduce) {
   .pv-motion .pv-reveal { opacity: 1; transform: none; transition: none; }
-  .pv-mtrack { animation: none; }
-  .pv-marq { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
+  .pv-tcard__case span { transition: none; }
   .pv-btn::after, .pv-step::after, .pv-scard, .pv-icard, .pv-job,
   .pv-shot img, .pv-badge, .pv-icard__btn { transition: none; }
 }
