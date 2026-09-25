@@ -4,6 +4,8 @@ import { getAdminRequest } from "./session";
 import { can, isAdminRole, type AdminRole, type Area } from "./permissions";
 import { FAIL, type ActionState } from "./validate";
 
+const REFUSED = "Your session has ended or does not have access to this. Sign in again, then retry.";
+
 /**
  * The check every admin write makes before it reads anything.
  *
@@ -21,7 +23,7 @@ export async function owner(): Promise<ActionState | null> {
   } catch {
     /* Fall through to the refusal. */
   }
-  return FAIL({}, "Your session has ended or does not have access to this. Sign in again, then retry.");
+  return { ...FAIL({}, REFUSED), signIn: true };
 }
 
 /** The name to write against a change: the signed-in person, never a form field. */
@@ -33,8 +35,6 @@ export async function actorName(): Promise<string> {
     return "Studio";
   }
 }
-
-const REFUSED = "Your session has ended or does not have access to this. Sign in again, then retry.";
 
 /** The signed-in admin's role, or null for anybody who is not one. Fails closed. */
 export async function adminRole(): Promise<AdminRole | null> {
@@ -53,5 +53,5 @@ export async function adminRole(): Promise<AdminRole | null> {
  * so a refused request learns nothing about which rule stopped it.
  */
 export async function allow(area: Area): Promise<ActionState | null> {
-  return can(await adminRole(), area) ? null : FAIL({}, REFUSED);
+  return can(await adminRole(), area) ? null : { ...FAIL({}, REFUSED), signIn: true };
 }
