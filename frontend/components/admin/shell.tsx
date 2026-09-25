@@ -309,7 +309,7 @@ function Notifications({ openForms }: { openForms: number }) {
           {openForms > 0 ? (
             <Link href="/admin/forms" onClick={() => setOpen(false)}>
               <span className="ad__noticeIcon"><ClipboardList aria-hidden="true" /></span>
-              <span><b>{openForms} onboarding {openForms === 1 ? "form is" : "forms are"} in progress</b><small>Review incomplete submissions</small></span>
+              <span><b>{openForms} unread form {openForms === 1 ? "entry" : "entries"}</b><small>Briefs and enquiries nobody has opened yet</small></span>
             </Link>
           ) : (
             <div className="ad__popoverEmpty"><b>You’re all caught up.</b><span>New activity will show up here.</span></div>

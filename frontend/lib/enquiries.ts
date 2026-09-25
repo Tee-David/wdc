@@ -1,6 +1,7 @@
 import "server-only";
 
 import { db } from "@/lib/db/pool";
+import { assignSerial } from "@/lib/forms/serial";
 
 /**
  * Stored contact enquiries. See db/migrations/0007_contact_enquiries.sql for
@@ -32,7 +33,10 @@ export async function saveEnquiry(input: {
     VALUES ($1, $2, $3, $4, $5, $6)
     RETURNING id
   `, [input.firstName, input.lastName, input.email, input.phone || null, input.topic, input.message]);
-  return result.rows[0].id;
+  const id = result.rows[0].id;
+  /* "Enquiry #7". */
+  await assignSerial("contact_enquiries", "contact", id);
+  return id;
 }
 
 /** pending -> sent or failed. Written once, by the send behind the response. */

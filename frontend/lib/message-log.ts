@@ -172,3 +172,19 @@ export async function recordResend(id: Id, resend: Resend) {
     return false;
   }
 }
+
+/** Every message about one record, found by its id at the end of the dedupe key. */
+export async function listForRecord(id: string, limit = 30): Promise<LoggedMessage[]> {
+  const memory = memoryMessages({ limit: 10_000 }).filter((m) => m.dedupeKey.endsWith(`:${id}`)).map(fromMemory);
+  if (!configured()) return memory;
+  try {
+    const r = await db.query<Row>(
+      "SELECT * FROM message_log WHERE dedupe_key LIKE $1 ORDER BY created_at DESC LIMIT $2",
+      [`%:${id.replace(/[\\%_]/g, "")}`, limit],
+    );
+    return [...r.rows.map(toMessage), ...memory].sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit);
+  } catch (error) {
+    console.error("[message-log] record read failed:", error instanceof Error ? error.message : error);
+    return memory;
+  }
+}
