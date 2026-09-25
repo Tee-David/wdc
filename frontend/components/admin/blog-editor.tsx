@@ -8,6 +8,7 @@ import { saveBlogPost } from "@/lib/admin/blog-actions";
 import { LIMITS } from "@/lib/blog-validate";
 import { Actions, Area, Checks, Field, Fields, Fold, Form, Hidden, Radios, Select, Submit, useFieldError } from "./form";
 import Tip from "@/components/onboarding/tip";
+import { CoverField } from "./cover-field";
 
 export type EditorPost = {
   id: string | null;
@@ -269,7 +270,7 @@ export function BlogEditor({ post, topics, covers, canPublish = true }: {
         <section className="ad__panel adBlog__card">
           <Fields>
             {/* The picture first, then the words: the post is read in that order. */}
-            <Select name="cover" label="Cover photograph" required defaultValue={post.cover} options={coverOptions} />
+            <CoverField defaultValue={post.cover} covers={coverOptions} />
             <Field name="title" label="Headline" required defaultValue={post.title} hint="The page's one h1." />
             <Area name="excerpt" label="Card sentence" required rows={2} defaultValue={post.excerpt} hint="One sentence on the blog index and in link previews." />
           </Fields>

@@ -99,3 +99,34 @@ test("a client opens a ticket, the studio answers it, the client reads the answe
   await expect(page.getByRole("button", { name: "Reopen" })).toBeVisible();
   await expect.poll(async () => (await kept("TICKETS", ticketId))?.status, { timeout: 15_000 }).toBe("Closed");
 });
+
+test("a new email withdraws the old invitation, and the next one goes to the new address", async ({ page }) => {
+  /* An invitation already out to the client's current address. */
+  await page.goto("/admin/clients/c4", { waitUntil: "networkidle" });
+  const old = String((await kept("CLIENTS", "c4"))?.email);
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: /Invite to the portal|Send a new invitation/ }).first().click();
+  await expect.poll(async () => (await db.query("SELECT 1 FROM invitations WHERE client_id = 'c4' AND lower(email) = lower($1) AND revoked_at IS NULL AND redeemed_at IS NULL", [old])).rowCount, { timeout: 20_000 }).toBe(1);
+
+  /* The address changes. */
+  const fresh = `dhiol.${mark}@example.com`;
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  const dialog = page.locator("dialog[open]");
+  await dialog.getByLabel(/^Email/).fill(fresh);
+  await dialog.getByRole("button", { name: "Save" }).click();
+  await expect(dialog).toHaveCount(0, { timeout: 15_000 });
+  await expect.poll(async () => (await db.query("SELECT 1 FROM invitations WHERE client_id = 'c4' AND lower(email) = lower($1) AND revoked_at IS NULL", [old])).rowCount, { timeout: 15_000 }).toBe(0);
+
+  /* The next invitation is to the new address. */
+  await page.reload({ waitUntil: "networkidle" });
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: /Invite to the portal|Send a new invitation/ }).first().click();
+  await expect.poll(async () => (await db.query("SELECT 1 FROM invitations WHERE client_id = 'c4' AND lower(email) = lower($1) AND revoked_at IS NULL", [fresh])).rowCount, { timeout: 20_000 }).toBe(1);
+
+  /* Put the address back for the next run. */
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await page.locator("dialog[open]").getByLabel(/^Email/).fill(old);
+  await page.locator("dialog[open]").getByRole("button", { name: "Save" }).click();
+  await expect.poll(async () => (await kept("CLIENTS", "c4"))?.email, { timeout: 15_000 }).toBe(old);
+  await db.query("DELETE FROM invitations WHERE client_id = 'c4'");
+});

@@ -10,8 +10,7 @@ import {
   Bold, Heading2, Heading3, ImagePlus, Italic, Link2, List, ListOrdered, Pilcrow, Quote, Redo2, Undo2, Upload, X,
 } from "lucide-react";
 import type { RichDoc } from "@/lib/blog-doc";
-import { recordMediaUpload, signMediaUpload } from "@/lib/admin/media-actions";
-import { checkMediaFile } from "@/lib/media-validate";
+import { uploadToMedia } from "./media-upload";
 
 /**
  * The post body, written the way people write: a page with a toolbar.
@@ -111,16 +110,10 @@ function ImagePanel({ editor, close }: { editor: Editor; close: () => void }) {
   const file = useRef<HTMLInputElement>(null);
 
   const upload = async (f: File) => {
-    const local = checkMediaFile(f.name, f.size);
-    if (!local.ok) return setState({ error: local.error });
     setState({ busy: "Uploading..." });
-    const grant = await signMediaUpload({ filename: f.name, size: f.size }).catch(() => null);
-    if (!grant?.ok) return setState({ error: grant?.error ?? "The upload could not be started. Check your connection and try again." });
-    const put = await fetch(grant.url, { method: "PUT", headers: { "Content-Type": grant.contentType }, body: f }).then((r) => r.ok).catch(() => false);
-    if (!put) return setState({ error: "The file store did not accept the upload. If this keeps happening, check the bucket's CORS policy allows this site." });
-    const recorded = await recordMediaUpload({ key: grant.key, filename: f.name }).catch(() => null);
-    if (!recorded?.ok || !recorded.item.url) return setState({ error: (recorded && !recorded.ok && recorded.error) || "The file arrived but could not be listed. Try again." });
-    setSrc(recorded.item.url);
+    const done = await uploadToMedia(f);
+    if (!done.ok) return setState({ error: done.error });
+    setSrc(done.url);
     setState({});
   };
 

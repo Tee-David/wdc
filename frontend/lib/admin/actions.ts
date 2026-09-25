@@ -138,10 +138,27 @@ export async function updateClient(_prev: ActionState, fd: FormData): Promise<Ac
     );
   }
 
+  const before = db.getClient(id)?.email ?? "";
   if (!db.patchClient(id, draft)) return FAIL({}, "That client is no longer there.");
 
+  /* A NEW ADDRESS WITHDRAWS THE OLD INVITATION. It would make an account for
+     the old address, which the portal no longer matches to this client. The
+     owner sends a fresh one to the new address from the same page. */
+  let withdrawn = 0;
+  if (draft.email && before.trim().toLowerCase() !== draft.email.trim().toLowerCase()
+      && (process.env.DATABASE_URL || process.env.COCKROACHDB_URL)) {
+    try {
+      const { revokeStaleInvitations } = await import("@/lib/invitations");
+      withdrawn = await revokeStaleInvitations(id, draft.email, await actorName());
+    } catch (error) {
+      console.error("[clients] could not withdraw old invitations:", error instanceof Error ? error.message : error);
+    }
+  }
+
   refresh("/admin/clients", `/admin/clients/${id}`);
-  return OK("Saved.");
+  return OK(withdrawn
+    ? `Saved. The invitation to the old address is withdrawn; send a new one to ${draft.email}.`
+    : "Saved.");
 }
 
 export async function archiveClient(_prev: ActionState, fd: FormData): Promise<ActionState> {

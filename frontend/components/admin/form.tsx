@@ -65,12 +65,6 @@ type Kit = {
 };
 const Ctx = createContext<Kit>({ errors: {}, pendingId: "", values: {}, gen: 0 });
 
-/** The field errors of the form this sits in: for a section that has to open
-    itself when one of its fields was refused. */
-export function useFieldErrors(): Errors {
-  return useContext(Ctx).errors;
-}
-
 /**
  * A SECTION OF A FORM THAT FOLDS: closed on a phone, open on a wider screen,
  * and open wherever a field inside it was refused, so a mistake is never

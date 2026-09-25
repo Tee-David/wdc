@@ -127,6 +127,22 @@ export async function revokeInvitation(id: string, by: string) {
   return (r.rowCount ?? 0) > 0;
 }
 
+/**
+ * Withdraw every unspent invitation of a client whose address is no longer
+ * `keep`: the account an invitation makes is for the address it was sent to,
+ * and the portal finds a client by the signed-in address, so an invitation to
+ * an address the client no longer has would make an account that opens to
+ * nothing. Returns how many were withdrawn.
+ */
+export async function revokeStaleInvitations(clientId: string, keep: string, by: string) {
+  const r = await db.query(
+    `UPDATE invitations SET revoked_at = now(), revoked_by = $3
+      WHERE client_id = $1 AND lower(email) <> lower($2) AND redeemed_at IS NULL AND revoked_at IS NULL`,
+    [clientId, keep, by],
+  );
+  return r.rowCount ?? 0;
+}
+
 export type Redeemed =
   | { ok: true; email: string; userId: string; role: InviteRole }
   | { ok: false; reason: "invalid" | "redeemed" | "revoked" | "expired" | "exists" | "weak-password" };
