@@ -1,0 +1,152 @@
+<title>Event Horizon</title>
+<!--@head-->
+<style>
+.stage{background:#00002a}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+.chip{position:absolute;left:0;top:0;z-index:5;display:grid;gap:.3rem;justify-items:start;background:var(--white);color:var(--black);border:0;border-radius:16px;padding:.7rem .9rem;cursor:grab;touch-action:none;text-align:left;box-shadow:0 18px 40px -12px rgba(0,0,0,.7);will-change:transform}
+.chip:active{cursor:grabbing}
+.chip .l{font:600 .66rem/1 var(--body);letter-spacing:.16em;text-transform:uppercase;color:#6b2a00}
+.chip .t{font:700 1.9rem/1 var(--display);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.chip .r{font:500 .78rem/1 var(--body);color:#3a3a5a;font-variant-numeric:tabular-nums}
+.chip .r b{display:inline-block;min-width:3.4em;color:var(--black)}
+.chip.frozen .t{color:#c95000}
+.hint{position:absolute;right:24px;top:70px;margin:0;max-width:19rem;text-align:right;font-size:.9rem;color:var(--mist)}
+@media (max-width:999px){.hint{left:16px;right:16px;text-align:left;top:64px}}
+</style>
+<main class="stage" id="stage" data-n="11" data-name="Event horizon">
+  <canvas id="c" aria-hidden="true"></canvas>
+  <button class="chip" id="chip" type="button" aria-describedby="chip-help">
+    <span class="l">The countdown's own clock</span>
+    <span class="t" id="ct">00:00:00</span>
+    <span class="r">Ticking at <b id="rate">×1.00</b> <span id="rnote">normal time</span></span>
+  </button>
+  <p class="sr" id="chip-help">Drag the countdown, or move it with the arrow keys. Near the black hole its clock slows down. The real time is in the panel.</p>
+  <p class="hint">The site is falling into a black hole. Hold words back with your cursor. Drag the countdown near the edge and watch its clock slow down.</p>
+  <p class="sr" id="sr" aria-live="polite"></p>
+</main>
+<!--@dock-->
+<!--@js-->
+<script>
+(function(){
+  var cv = document.getElementById('c'), ctx = cv.getContext('2d'), chip = document.getElementById('chip');
+  var dpr = Math.min(2, devicePixelRatio||1), W, H, cx, cy, Rh;
+  var WORDS = ['Brands','that get','noticed,','get found,','results.','Branding','Web','SEO','Mobile apps','AI software','Marketing','Start a project','See our work','Contact','Blog','Work','Services','Brilliant','simplicity','of thought'];
+  var words = [], disk = [], stars = [];
+  function size(){
+    W = innerWidth; H = innerHeight; cv.width = W*dpr; cv.height = H*dpr;
+    var left = W >= 1000 ? 26*16 + 32 : 0;
+    cx = left + (W - left)/2; cy = H*.48; Rh = Math.max(46, Math.min(120, (W-left)*.11));
+    stars = []; for (var i = 0; i < 220; i++) stars.push([Math.random()*W, Math.random()*H, Math.random()*1.2 + .2]);
+    if (!chipPos) chipPos = {x:cx + Rh*3.2, y:cy + Rh*2.2};
+  }
+  var chipPos = null;
+  addEventListener('resize', size); size();
+  function spawn(w, far){
+    w.r = far ? Rh*(2.2 + Math.random()*3.8) : Math.max(W, H)*.55 + Math.random()*120; w.a = Math.random()*6.283;
+    w.vx = 0; w.vy = 0; w.ox = 0; w.oy = 0;
+  }
+  WORDS.forEach(function(t, i){ var w = {t:t, size:14 + Math.random()*16}; spawn(w, true); w.r = Rh*(1.8 + i*.35); words.push(w); });
+  for (var i = 0; i < 1100; i++) disk.push({k:1.35 + Math.pow(Math.random(), 1.6)*2.1, a:Math.random()*6.283, s:Math.random()*2 + .8});
+
+  var ptr = {x:-1e4, y:-1e4};
+  addEventListener('pointermove', function(e){ ptr.x = e.clientX; ptr.y = e.clientY; }, {passive:true});
+  document.addEventListener('pointerleave', function(){ ptr.x = ptr.y = -1e4; });
+
+  /* the chip's own clock: proper time runs at sqrt(1 - rs/r) near the hole */
+  var proper = 0, t0 = Date.now(), start = WDC.backBy - t0, held = false;
+  function rateAt(x, y){ var r = Math.hypot(x - cx, y - cy), rs = Rh*1.15; return r <= rs*1.04 ? 0 : Math.sqrt(1 - rs/r); }
+  function fmt(ms){ ms = Math.max(0, ms); var s = Math.floor(ms/1000); return String(Math.floor(s/3600)).padStart(2,'0')+':'+String(Math.floor(s%3600/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+  function placeChip(){ chip.style.transform = 'translate('+(chipPos.x - chip.offsetWidth/2)+'px,'+(chipPos.y - chip.offsetHeight/2)+'px)'; }
+  var lastRate = '', said = '';
+  function tickChip(dt){
+    var real = Date.now() - t0, k = rateAt(chipPos.x, chipPos.y), lag = real - proper;
+    /* far from the hole, the clock races to catch up with everyone else's */
+    var rate = k > .93 && lag > 50 ? 1 + Math.min(40, lag/400) : k;
+    proper += dt*1000*rate; if (proper > real && k > .93) proper = real;
+    document.getElementById('ct').textContent = fmt(start - proper);
+    var rs = rate.toFixed(2);
+    if (rs !== lastRate){ lastRate = rs; document.getElementById('rate').textContent = '×'+rs;
+      document.getElementById('rnote').textContent = rate === 0 ? 'frozen at the edge' : rate > 1.01 ? 'catching up' : rate < .9 ? 'slowed by gravity' : 'normal time'; }
+    chip.classList.toggle('frozen', rate === 0);
+    var s = rate === 0 ? 'The countdown has frozen at the edge of the black hole.' : rate > 1.01 ? 'The countdown is catching up.' : '';
+    if (s && s !== said){ said = s; document.getElementById('sr').textContent = s; } else if (!s) said = '';
+    /* left alone, the chip drifts in */
+    if (!held && !WDC.reduced){
+      var dx = cx - chipPos.x, dy = cy - chipPos.y, d = Math.hypot(dx, dy);
+      if (d > Rh*1.25){ var v = 6 + 900/d; chipPos.x += dx/d*v*dt; chipPos.y += dy/d*v*dt; }
+    }
+    placeChip();
+  }
+
+  function frame(dt, now){
+    ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#ffffff';
+    stars.forEach(function(s){
+      /* lensing: stars near the hole are pushed outward */
+      var dx = s[0] - cx, dy = s[1] - cy, d = Math.hypot(dx, dy) || 1, push = Rh*Rh*1.4/d;
+      ctx.globalAlpha = Math.min(1, d/(Rh*2))*.8; ctx.fillRect(s[0] + dx/d*push, s[1] + dy/d*push, s[2], s[2]);
+    });
+    ctx.globalAlpha = 1;
+    var T = now/1000;
+    function diskPass(back){
+      disk.forEach(function(p){
+        var pr = p.k*Rh, a = p.a + (WDC.reduced ? 0 : T*Math.pow(1.4/p.k, 1.5)*1.6);
+        var sy = Math.sin(a); if (back ? sy > 0 : sy <= 0) return;
+        var x = cx + Math.cos(a)*pr, y = cy + sy*pr*.26;
+        var dop = .55 + .45*Math.cos(a);
+        ctx.fillStyle = 'rgba(255,'+Math.round(80 + 120*dop)+','+Math.round(20*dop)+','+(.35 + .6*dop)+')';
+        ctx.fillRect(x, y, p.s*1.6, p.s);
+      });
+    }
+    diskPass(true);
+    /* the lensed image of the far side, bent up over the top */
+    ctx.save(); ctx.strokeStyle = 'rgba(255,120,20,.55)'; ctx.lineWidth = Rh*.22; ctx.shadowColor = '#ff6500'; ctx.shadowBlur = 24;
+    ctx.beginPath(); ctx.ellipse(cx, cy, Rh*1.55, Rh*1.25, 0, Math.PI*1.04, Math.PI*1.96); ctx.stroke(); ctx.restore();
+    /* photon ring and shadow */
+    ctx.save(); ctx.shadowColor = '#ff6500'; ctx.shadowBlur = 30; ctx.strokeStyle = '#ffb27a'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(cx, cy, Rh*1.08, 0, 6.283); ctx.stroke(); ctx.restore();
+    ctx.fillStyle = '#000000'; ctx.beginPath(); ctx.arc(cx, cy, Rh, 0, 6.283); ctx.fill();
+    diskPass(false);
+
+    /* the words of the site, spiralling in */
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    words.forEach(function(w){
+      if (!WDC.reduced){
+        w.a += dt*Math.pow(Rh*2/w.r, 1.5)*.9;
+        w.r -= dt*(10 + 2600/w.r);
+        var x = cx + Math.cos(w.a)*w.r + w.ox, y = cy + Math.sin(w.a)*w.r*.62 + w.oy;
+        var dx = ptr.x - x, dy = ptr.y - y, d = Math.hypot(dx, dy);
+        if (d < 190){ var f = (1 - d/190)*260; w.ox += dx/d*f*dt; w.oy += dy/d*f*dt; w.r += dt*(10 + 2600/w.r)*(1 - d/190)*1.4; }
+        w.ox *= 1 - 1.2*dt; w.oy *= 1 - 1.2*dt;
+        if (w.r < Rh*.95) spawn(w, false);
+      }
+      var x2 = cx + Math.cos(w.a)*w.r + w.ox, y2 = cy + Math.sin(w.a)*w.r*.62 + w.oy;
+      var near = Math.max(0, Math.min(1, (Rh*3.2 - w.r)/(Rh*2.2)));
+      var stretch = 1 + near*near*3.2, squash = 1 - near*.65;
+      var g = Math.round(255 - near*200), b = Math.round(255 - Math.min(1, near*1.6)*255);
+      var ang = Math.atan2(y2 - cy, x2 - cx) + Math.PI/2; if (Math.cos(ang) < 0) ang += Math.PI;
+      ctx.save(); ctx.translate(x2, y2); ctx.rotate(ang);
+      ctx.scale(squash, stretch);
+      ctx.globalAlpha = Math.min(1, (w.r - Rh*.95)/(Rh*.6));
+      ctx.fillStyle = 'rgb(255,'+g+','+b+')';
+      ctx.font = '700 '+w.size+'px "Space Grotesk", system-ui, sans-serif';
+      ctx.fillText(w.t, 0, 0); ctx.restore();
+    });
+    tickChip(dt);
+  }
+  if (WDC.reduced){ var still = function(){ size(); frame(0, 0); }; addEventListener('resize', still); still(); setInterval(function(){ tickChip(1); }, 1000); }
+  else WDC.loop(function(dt, now){ frame(dt, now); });
+
+  /* move the countdown */
+  var off = null;
+  chip.addEventListener('pointerdown', function(e){ held = true; chip.setPointerCapture(e.pointerId); off = {x:e.clientX - chipPos.x, y:e.clientY - chipPos.y}; });
+  chip.addEventListener('pointermove', function(e){ if (!held) return; chipPos.x = Math.max(60, Math.min(W - 60, e.clientX - off.x)); chipPos.y = Math.max(60, Math.min(H - 40, e.clientY - off.y)); placeChip(); });
+  function up(){ held = false; }
+  chip.addEventListener('pointerup', up); chip.addEventListener('pointercancel', up);
+  chip.addEventListener('keydown', function(e){
+    var m = {ArrowLeft:[-24,0], ArrowRight:[24,0], ArrowUp:[0,-24], ArrowDown:[0,24]}[e.key]; if (!m) return;
+    e.preventDefault(); chipPos.x += m[0]; chipPos.y += m[1]; placeChip(); if (WDC.reduced) tickChip(0);
+  });
+  placeChip();
+})();
+</script>
