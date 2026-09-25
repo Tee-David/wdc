@@ -67,6 +67,43 @@ function toY(y: number) {
   window.scrollTo({ top: y, left: 0, behavior: "instant" });
 }
 
+/**
+ * Bring an element into the part of the window a reader can actually see:
+ * below any sticky header, above any fixed bar at the foot, with room left
+ * for a tooltip. Used by the tours (components/admin/tour/tour-runtime.tsx)
+ * so a highlighted step is never half under the header or the phone's tab
+ * bar. Resolves once the scroll has settled. Never moves a page whose
+ * element is already in view.
+ */
+export function reveal(el: Element, opts: { top?: number; bottom?: number; room?: number; smooth?: boolean } = {}): Promise<void> {
+  const top = opts.top ?? 0, bottom = opts.bottom ?? 0, room = opts.room ?? 0;
+  /* Inside a sideways scroller (a board, a wide table) first. */
+  el.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "instant" as ScrollBehavior });
+  const r = el.getBoundingClientRect();
+  /* A 12px margin inside the band, shrunk for an element that only just fits. */
+  const m = Math.max(0, Math.min(12, (window.innerHeight - top - bottom - r.height) / 2));
+  const bandTop = top + m, bandBottom = window.innerHeight - bottom - m;
+  /* Already in the band, with room for the card above or below it (or as
+     much room as there will ever be): leave the page where the reader put it. */
+  const inBand = r.top >= bandTop && r.bottom <= bandBottom;
+  if (inBand && (bandBottom - r.bottom >= room || r.top - bandTop >= room || r.height + room > bandBottom - bandTop)) return Promise.resolve();
+  /* Its top a little under the header, so the tooltip has the room below;
+     a very tall element simply starts at the top of the band. */
+  const y = Math.max(0, window.scrollY + r.top - bandTop - Math.max(0, Math.min(48, (bandBottom - bandTop - r.height - room) / 2)));
+  if (Math.abs(y - window.scrollY) < 2) return Promise.resolve();
+  if (opts.smooth && !window.__lenis) window.scrollTo({ top: y, left: 0, behavior: "smooth" });
+  else toY(y);
+  return new Promise((done) => {
+    let last = -1, still = 0;
+    const until = Date.now() + 900;
+    const check = () => {
+      if (window.scrollY === last) still += 1; else { still = 0; last = window.scrollY; }
+      if (still >= 3 || Date.now() > until) done(); else requestAnimationFrame(check);
+    };
+    requestAnimationFrame(check);
+  });
+}
+
 const KEY = "wdc:scroll";
 
 /**

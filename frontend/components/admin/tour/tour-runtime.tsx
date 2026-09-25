@@ -1,5 +1,6 @@
 "use client";
 
+import { reveal } from "@/components/ui/scroll-reset";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useJoyride, EVENTS, STATUS, type Step } from "react-joyride";
@@ -39,6 +40,20 @@ async function ensureOnPage(href: string, target: string, navigate: (href: strin
   }
   // Resolves regardless; Joyride's own target-not-found handling takes it
   // from here rather than this hook hanging the tour indefinitely.
+}
+
+/** The target, in the band between the sticky header and any fixed bar at the foot. */
+async function revealTarget(target: string) {
+  if (target === "body") return;
+  const el = document.querySelector(target);
+  /* The header, the sidebar and the tab bar never scroll away: nothing to do. */
+  if (!el || el.closest(".ad__topbar, .ad__tabs, .ad__side")) return;
+  const header = document.querySelector(".ad__topbar")?.getBoundingClientRect().bottom ?? 0;
+  const tabs = document.querySelector(".ad__tabs");
+  const bar = tabs && getComputedStyle(tabs).display !== "none" ? tabs.querySelector(".ad__tabsBar") : null;
+  const foot = bar ? window.innerHeight - bar.getBoundingClientRect().top : 0;
+  const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  await reveal(el, { top: Math.max(0, header), bottom: Math.max(0, foot), room: 200, smooth });
 }
 
 export type TourRuntimeProps = {
@@ -84,7 +99,16 @@ export default function TourRuntime({ tour, role, isReplay, onFinish, onSkip }: 
          what was crashing floating-ui's own fallback-placement logic on
          every step but the first. */
       ...(s.placement ? { placement: s.placement } : {}),
-      ...(s.href ? { before: async () => { await ensureOnPage(s.href!, s.target, (href) => router.push(href)); } } : {}),
+      /* OUR SCROLL, NOT JOYRIDE'S. Its own scroll knew nothing of the sticky
+         header or the phone's tab bar, so a step could light up half under
+         either and the reader had to scroll to find it. Every step now waits
+         for its target, brings it into the visible band with room for the
+         card, and only then is drawn. */
+      skipScroll: true,
+      before: async () => {
+        if (s.href) await ensureOnPage(s.href, s.target, (href) => router.push(href));
+        await revealTarget(s.target);
+      },
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- recomputed only when a new tour is actually started
   }, [tour, role]);
@@ -161,7 +185,10 @@ export default function TourRuntime({ tour, role, isReplay, onFinish, onSkip }: 
   useEffect(() => on(EVENTS.TOOLTIP, (data) => {
     const meta = (data.step.data ?? null) as TourStepMeta | null;
     activeDataRef.current = meta;
-    setActiveTarget(typeof data.step.target === "string" ? data.step.target : "body");
+    const target = typeof data.step.target === "string" ? data.step.target : "body";
+    setActiveTarget(target);
+    /* Said on the page, so a test can check the step it is showing is in view. */
+    document.documentElement.dataset.tourTarget = target;
   }), [on]);
 
   useEffect(() => {
