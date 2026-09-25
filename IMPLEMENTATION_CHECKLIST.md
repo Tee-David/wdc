@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**104 open** (36 in progress)
+**102 open** (36 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -117,9 +117,9 @@ DONE 2026-09-25: the five rows nothing read are read-only with the reason; `save
 
 #### Settings foundation
 
-- [ ] (M) Settings shell: `/admin/settings/layout.tsx` with grouped sub-navigation (sticky at 1000px+), an overview/list page shared by desktop overview and phone list (icon tile, label, one-line description, state pill, chevron), section routes with a "Settings" back link, per-section `loading.tsx`, `aria-current`, 44px rows, tour targets updated.
+DONE 2026-09-25: the Realtors Practice layout (`app/admin/(lists)/settings/layout.tsx`, `lib/settings/sections.ts`): sections grouped Studio, Communication and System, a sticky sidebar from 1000px, and on a phone the Settings page is the tappable list and every section is its own page with a "Settings" link back, so Back works; sections a role cannot open are not listed and their pages refuse. The long page is split into Content and defaults, FAQ, Media, Email, Integrations, Audit log and Access (drawn from `lib/admin/permissions.ts`, so it cannot say something the guard does not do). Tours and specs moved with it.
+
 - [ ] (S) Panel save kit: dirty tracking, primary Save disabled until dirty, Discard, "Unsaved changes" pill, leave-page warning only while dirty, inline `role="status"` result, server value re-synced only when it changes, provenance line ("Edited by … · shipped as … · Reset").
-- [ ] (S) Move the Integrations table, the audit log and the FAQ/Media links into their sections; the long single page goes.
 
 #### Roles and team
 

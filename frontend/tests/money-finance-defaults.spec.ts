@@ -22,7 +22,7 @@ test("a saved VAT default pre-fills a new invoice, and resetting it restores 7.5
   /* `networkidle`, not `domcontentloaded`: the dev server under test compiles
      a route on its first visit, and a click dispatched before that finishes
      lands on markup that is not hydrated yet. */
-  await page.goto("/admin/settings", { waitUntil: "networkidle" });
+  await page.goto("/admin/settings/general", { waitUntil: "networkidle" });
 
   const row = page.locator("tr", { hasText: "Default VAT %" });
   await row.getByRole("button", { name: "Actions for Default VAT %" }).click();
@@ -36,7 +36,7 @@ test("a saved VAT default pre-fills a new invoice, and resetting it restores 7.5
   await expect(page.getByRole("textbox", { name: "VAT %" })).toHaveValue("12");
   await page.keyboard.press("Escape");
 
-  await page.goto("/admin/settings", { waitUntil: "networkidle" });
+  await page.goto("/admin/settings/general", { waitUntil: "networkidle" });
   await row.getByRole("button", { name: "Actions for Default VAT %" }).click();
   await page.getByRole("menuitem", { name: "Put it back" }).click();
   await page.getByRole("button", { name: "Put it back" }).click();
@@ -55,7 +55,7 @@ test("a saved VAT default pre-fills a new invoice, and resetting it restores 7.5
  * kind of row that is editable refuses a value it cannot use.
  */
 test("rows the site does not read cannot be edited, and a bad value is refused", async ({ page }) => {
-  await page.goto("/admin/settings", { waitUntil: "networkidle" });
+  await page.goto("/admin/settings/general", { waitUntil: "networkidle" });
   for (const label of ["Contact email", "Social links", "Services", "Case studies", "Legal documents"]) {
     const row = page.locator('[data-tour="settings-table"] tr', { hasText: label });
     await expect(row).toContainText("Not editable yet");

@@ -82,7 +82,7 @@ test("the full walkthrough, opened from the launcher, crosses every page and fin
     "/admin/projects", "/admin/projects", "/admin/projects",
     "/admin/money", "/admin/money", "/admin/money",
     "/admin/forms", "/admin/forms",
-    "/admin/settings", "/admin/settings", "/admin/settings",
+    "/admin/settings/general", "/admin/settings/general", "/admin/settings/general",
   ];
 
   /* The last entry is the closing step, whose button reads "Finish", not
