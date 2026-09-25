@@ -115,11 +115,14 @@ export async function listLogged(opts: {
 }
 
 /** Messages that did not go: the number worth a badge. */
-export async function failedLoggedCount(): Promise<number> {
-  const memory = memoryMessages({ state: "Failed", limit: 10_000 }).length;
+export async function failedLoggedCount(opts: { since?: Date } = {}): Promise<number> {
+  const since = opts.since;
+  const memory = memoryMessages({ state: "Failed", limit: 10_000 }).filter((m) => !since || new Date(m.at) >= since).length;
   if (!configured()) return memory;
   try {
-    const r = await db.query<{ n: string }>("SELECT count(*) AS n FROM message_log WHERE state = 'Failed'");
+    const r = since
+      ? await db.query<{ n: string }>("SELECT count(*) AS n FROM message_log WHERE state = 'Failed' AND created_at >= $1", [since])
+      : await db.query<{ n: string }>("SELECT count(*) AS n FROM message_log WHERE state = 'Failed'");
     return memory + Number(r.rows[0]?.n ?? 0);
   } catch (error) {
     console.error("[message-log] count failed:", error instanceof Error ? error.message : error);

@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**97 open** (36 in progress)
+**96 open** (36 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -133,9 +133,11 @@ DONE 2026-09-25: My account (`/admin/settings/account`, every admin role, the "Y
 
 #### Business, site and money settings
 
+DONE 2026-09-25: Settings > Site and SEO (`/admin/settings/site`, owner only, `lib/site-seo.ts`): "Ask search engines not to index" needs the site's address typed to turn on, and the root layout's `generateMetadata` then says `noindex, nofollow` on every public page that does not set its own robots; the default description is editable (50 to 160 characters) with Reset. Both are cached under one tag with no time-based revalidate (a 3600 there had made every public page regenerate hourly; the build confirms they are static again) and the save invalidates the tag and every page. `robots.ts` is deliberately NOT changed: a disallowed crawler never fetches the page, so it never sees the noindex. Shell notices (`lib/admin/notices.ts`): noindex on, Paystack test mode on the production deployment, emails that failed in the last day; at most two, solid tone fills, dismissible per browser by cookie with a key that returns when the condition does. Pinned by `tests/site-seo.spec.ts` (4 cases). Invalidation was proved on the dev server only; confirm on the deployed site that switching it on changes `/` without a redeploy.
+
 - [ ] (M) Business profile: trading and legal name, BN, registrar, tagline, contact email, phone/WhatsApp, address, location, social URLs (validated, fills `SOCIAL_LINKS`), timezone, date format, week start; wire every consumer (footer, legal pages, email footer, invoice/receipt header, Organization JSON-LD) in the same change.
 - [ ] (S) Studio notice address with confirmation mailed to the new address (hashed token, TTL) before it takes effect.
-- [ ] (S) Site and SEO: default description and social image; "ask search engines not to index" read by `robots.ts` and root metadata, with a shell notice while on and a typed confirmation to enable.
+- [ ] (S) Default social image for the site, picked with "Choose from library" (below) once that exists. Mind AGENTS.md: setting `openGraph.images` on the root suppresses the `opengraph-image` files.
 - [ ] (M) Invoicing and payments section: default VAT and days to pay (moved), VAT registered toggle with TIN, bank transfer details, payment terms and footer note, reminder schedule on/off per step, next invoice/receipt/estimate numbers shown read-only, Paystack mode and key status from env, webhook and callback URLs with copy.
 - [ ] (S) Content section: FAQ and Media entries, blog defaults (default topic, posts per page, RSS count), read-only rows for services/work/legal/testimonials saying why.
 
@@ -145,11 +147,10 @@ DONE 2026-09-25: the audit log is kept in the database (migration 0021, `lib/aud
 
 - [ ] (M) Retention rules per data type (drafts, enquiries, spam/Trash, invitations, email log, unsubscribed addresses, deactivated accounts), a daily batched job that anonymises or deletes, and one audit row per run with counts; money records excluded by design.
 - [ ] (M) Personal data request: look up an email across tables, export JSON/CSV, erase by anonymising personal fields, log the request.
-- [ ] (M) Maintenance mode: whole-site 503 with `Retry-After` and noindex, a reviewer share link, bypass for signed-in owner/staff, never blocking admin, portal, login, Paystack webhook, `/pay/*` and `/i/*`; shell notice; audited.
-- [ ] (M) System status: health probes (DB, applied migrations vs files, SMTP connect behind the response, bucket HEAD and CORS, recent webhook deliveries), environment info with "Copy report", background work (pending/failed outbox rows, last retention run).
+- [ ] (M) Maintenance mode: whole-site 503 with `Retry-After` and noindex, a reviewer share link, bypass for signed-in owner/staff, never blocking admin, portal, login, Paystack webhook, `/pay/*` and `/i/*`; shell notice (add it to `lib/admin/notices.ts`); audited.
+- [ ] (M) System status: health probes (DB, applied migrations vs files, SMTP connect behind the response, bucket HEAD and CORS, recent webhook deliveries), environment info with "Copy report", background work (pending/failed outbox rows, last retention run). The unapplied-migration shell notice goes in `lib/admin/notices.ts` with it.
 - [ ] (S) Tools panel: retry failed emails, purge expired invitations, re-verify media against R2, revalidate public pages; each audited and safe to run twice.
 - [ ] (S) "Check now" on each integration row where a cheap probe exists, showing the answer and its time rather than "working".
-- [ ] (S) Admin notices in the shell for persistent conditions (Paystack test mode, maintenance on, noindex on, failed emails today, unapplied migration), at most two at once, solid tone fills, dismissible per user by cookie.
 
 #### Blog as a CMS
 
