@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BulkBar, PickAll, RowPick } from "@/components/admin/bulk";
 import { CalendarClock, Download, FilePlus2, Globe, Newspaper, PencilLine, SearchCheck, Trash2 } from "lucide-react";
 import { POST_TRASH_DAYS, postsForAdmin, trashedPostCount, trashedPosts, type AdminPost } from "@/lib/blog-db";
 import { adminRole } from "@/lib/admin/guard";
@@ -195,11 +196,20 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
                 {trashCount ? <Link className="ad__btn" href="/admin/blog?state=trash"><Trash2 aria-hidden="true" /> Trash ({trashCount})</Link> : null}
               </div>
               {rows.length ? (
+                <>
+                {/* Publishing and unpublishing are the owner's; the Trash takes
+                    drafts only, and says so for any live post in the selection. */}
+                <BulkBar target="post-list" noun="posts"
+                  actions={[
+                    ...(isOwner ? [{ kind: "posts:publish", label: "Publish", icon: "publish" as const, confirm: "Publish {n} posts now? Each goes live on the blog straight away." }] : []),
+                    { kind: "posts:trash", label: "Move to Trash", icon: "trash" as const, danger: true, confirm: "Move {n} drafts to the Trash? They stay there 30 days and can be put back." },
+                  ]}
+                  more={isOwner ? [{ kind: "posts:draft", label: "Move to draft", confirm: "Take {n} posts off the blog and back to draft?" }] : []} />
                 <div className="ad__scroll" data-tour="blog-table" id="post-list">
                   <table className="ad__t">
                     <thead>
                       <tr>
-                        <th>Post</th><th>State</th><th>Service</th><th>Date shown</th><th>Last saved</th>
+                        <th><span className="ad__pickRow"><PickAll label="Select every post" />Post</span></th><th>State</th><th>Service</th><th>Date shown</th><th>Last saved</th>
                         <th className="ad__rmH"><span className="ad__sr">Actions</span></th>
                       </tr>
                     </thead>
@@ -209,8 +219,8 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
                         return (
                           <tr key={p.id}>
                             <td>
-                              <Link href={`/admin/blog/${p.id}`}><b>{p.title}</b></Link>
-                              <small>/blog/{p.slug}</small>
+                              <span className="ad__pickRow"><RowPick id={p.id} label={p.title} /><span><Link href={`/admin/blog/${p.id}`}><b>{p.title}</b></Link>
+                              <small>/blog/{p.slug}</small></span></span>
                             </td>
                             <td><span className={`ad__pill ${PILL[state].tone}`}>{PILL[state].label}</span></td>
                             <td>{SERVICES.find((s) => s.slug === p.topic)?.short ?? p.topic}</td>
@@ -223,6 +233,7 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
                     </tbody>
                   </table>
                 </div>
+                </>
               ) : (
                 <Empty title="No posts match these filters" icon={Newspaper}
                   action={<Link className="ad__btn" href="/admin/blog">Clear filters</Link>}>

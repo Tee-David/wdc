@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { BulkBar, PickAll, RowPick } from "@/components/admin/bulk";
+import { adminRole } from "@/lib/admin/guard";
 import { SERVICES } from "@/lib/services";
 import {
   getBoard, getClient, getClients, getProjects, getTasks,
@@ -55,6 +57,7 @@ export default async function ProjectsPage({
 }) {
   await syncStore();
   persistSoon();
+  const isOwner = (await adminRole()) === "owner";
   const q = await searchParams;
 
   /* Every one of these is checked against the closed set it belongs to rather
@@ -197,11 +200,18 @@ export default async function ProjectsPage({
         <div style={{ marginTop: ".9rem" }}>
           <Panel title={filtered ? "Matching projects" : "All projects"}>
             {all.length ? (
-              <div className="ad__scroll">
+              <>
+              {/* Stage moves go through moveStage row by row, so each keeps
+                  its history line and the client's email; archiving is the
+                  owner's, as it is from a project's own menu. */}
+              <BulkBar target="projects-table" noun="projects"
+                actions={isOwner ? [{ kind: "projects:archive", label: "Archive", icon: "archive", danger: true, confirm: "Archive {n} projects? Their invoices, updates and approvals stay; you can bring them back." }] : []}
+                more={STAGES.map((st) => ({ kind: `projects:stage:${st}`, label: `Move to ${st}`, confirm: `Move {n} projects to ${st}? Each client who gets updates is emailed.` }))} />
+              <div className="ad__scroll" id="projects-table">
                 <table className="ad__t">
                   <thead>
                     <tr>
-                      <th>Project</th><th>Client</th><th>Owner</th><th>Service</th>
+                      <th><span className="ad__pickRow"><PickAll label="Select every project" />Project</span></th><th>Client</th><th>Owner</th><th>Service</th>
                       <th>Stage</th><th>Health</th><th>Due</th>
                       <th className="ad__rmH"><span className="ad__sr">Actions</span></th>
                     </tr>
@@ -210,7 +220,7 @@ export default async function ProjectsPage({
                     {all.map((p) => (
                       <tr key={p.id}>
                         <td>
-                          <Link href={`/admin/projects/${p.id}`}><b>{p.title}</b></Link>
+                          <span className="ad__pickRow"><RowPick id={p.id} label={p.title} /><Link href={`/admin/projects/${p.id}`}><b>{p.title}</b></Link></span>
                           <AttentionPills items={projectAttention(p, tasks)} except={p.health} />
                         </td>
                         <td>{getClient(p.clientId)?.company ?? "Unknown"}</td>
@@ -227,6 +237,7 @@ export default async function ProjectsPage({
                   </tbody>
                 </table>
               </div>
+              </>
             ) : filtered ? (
               /* A FILTERED-EMPTY IS NOT AN EMPTY. There is data; this
                  combination just has none of it, and the way out is to widen
