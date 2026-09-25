@@ -1,7 +1,8 @@
 "use client";
 
 import { forwardRef, useEffect, useId, useImperativeHandle, useRef, useState } from "react";
-import { AtSign, Check, Eye, EyeOff, CircleAlert, ArrowUpRight } from "lucide-react";
+import { AtSign, Check, Eye, EyeOff, CircleAlert, ArrowUpRight, Sparkles } from "lucide-react";
+import { PASSWORD_RULES, suggestPassword } from "@/lib/auth/password-policy";
 import { useStage } from "@/components/auth/stage/stage-context";
 import { caretPoint } from "@/lib/auth/caret";
 import { copy } from "@/lib/auth/copy";
@@ -227,26 +228,31 @@ export const PasswordField = forwardRef<
 /* --------------------------------------------------------------- strength */
 
 /**
- * HOW GOOD A NEW PASSWORD IS, as four bars and a word. Length does most of
- * the work, so a short sentence scores well and "Pa$$w0rd" does not; the
- * only rule it enforces is the one the server enforces, ten characters.
+ * THE RULE, TICKED OFF AS YOU TYPE: five short chips under a new password,
+ * and an offer to make one up. No paragraph: each chip is two words, and it
+ * turns solid when it is met. The rule itself is `lib/auth/password-policy`,
+ * which the server enforces too.
  */
-export function passwordStrength(value: string): { score: 0 | 1 | 2 | 3 | 4; word: string } {
-  if (!value) return { score: 0, word: "" };
-  if (value.length < 10) return { score: 1, word: "Too short" };
-  const kinds = [/[a-z]/, /[A-Z]/, /\d/, /[^\w]/].filter((r) => r.test(value)).length;
-  const score = (2 + (value.length >= 14 ? 1 : 0) + (kinds >= 3 || /\s/.test(value) ? 1 : 0)) as 2 | 3 | 4;
-  return { score, word: score === 4 ? "Strong" : score === 3 ? "Good" : "Fair" };
-}
-
-export function StrengthMeter({ value }: { value: string }) {
-  const { score, word } = passwordStrength(value);
+export function PasswordRules({ value, onSuggest }: { value: string; onSuggest?: (password: string) => void }) {
+  const met = PASSWORD_RULES.filter((r) => r.test(value)).length;
   return (
-    <div className="au-meter" data-score={score}>
-      <div className="au-meter__bars" aria-hidden="true"><span /><span /><span /><span /></div>
-      <p className="au-meter__text" aria-live="polite">
-        {word ? <b>{word}.</b> : null} At least 10 characters; a short sentence works well.
-      </p>
+    <div className="au-rules">
+      <ul className="au-rules__list" aria-label={`Password rules: ${met} of ${PASSWORD_RULES.length} met`}>
+        {PASSWORD_RULES.map((r) => {
+          const ok = r.test(value);
+          return (
+            <li key={r.id} data-ok={ok || undefined}>
+              {ok ? <Check aria-hidden="true" /> : null}
+              {r.label}<span className="au-sr">{ok ? ", done" : ", not yet"}</span>
+            </li>
+          );
+        })}
+      </ul>
+      {onSuggest ? (
+        <button type="button" className="au-link au-rules__suggest" onClick={() => onSuggest(suggestPassword())}>
+          <Sparkles aria-hidden="true" /> Suggest one
+        </button>
+      ) : null}
     </div>
   );
 }

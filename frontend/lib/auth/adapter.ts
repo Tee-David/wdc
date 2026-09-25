@@ -18,7 +18,8 @@ export interface AuthAdapter {
   /** Passkeys are only offered when this is true AND the browser has WebAuthn. */
   readonly passkeys: boolean;
   readonly google: boolean;
-  signInWithPassword(email: string, password: string): Promise<SignedIn | Fail>;
+  /** `remember` keeps the session past closing the browser; unticked, it ends with it. */
+  signInWithPassword(email: string, password: string, remember: boolean): Promise<SignedIn | Fail>;
   sendMagicLink(email: string): Promise<{ ok: true; requestId: string } | Fail>;
   verifyCode(email: string, code: string, requestId: string): Promise<SignedIn | Fail>;
   /** Has the link been opened somewhere this browser can see? */
@@ -56,11 +57,11 @@ export function realAdapter({ requested, google }: { requested: string; google: 
     passkeys: false,
     google,
 
-    async signInWithPassword(email, password) {
+    async signInWithPassword(email, password, remember) {
       try {
         /* NO `callbackURL`: with one, Better Auth's client navigates by itself
            and races the success animation's own navigation. */
-        const result = await authClient.signIn.email({ email: authEmail(email), password, rememberMe: true });
+        const result = await authClient.signIn.email({ email: authEmail(email), password, rememberMe: remember });
         /* ONE answer for a wrong password and for an address with no account,
            and a 429 is never reported as a wrong password: somebody who was
            rate-limited would otherwise "fix" a password that was never broken. */

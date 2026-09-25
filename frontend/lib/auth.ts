@@ -2,6 +2,8 @@ import "server-only";
 
 import { after } from "next/server";
 import { betterAuth } from "better-auth";
+import { APIError, createAuthMiddleware } from "better-auth/api";
+import { PASSWORD_MIN, passwordProblem } from "@/lib/auth/password-policy";
 import { emailOTP, magicLink } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 import { googleAdmission } from "@/lib/auth-google";
@@ -107,7 +109,7 @@ export const auth = betterAuth({
      */
     disableSignUp: true,
     requireEmailVerification: false,
-    minPasswordLength: 10,
+    minPasswordLength: PASSWORD_MIN,
     resetPasswordTokenExpiresIn: RESET_TOKEN_TTL_SECONDS,
     /**
      * A RESET ENDS EVERY SESSION, including the one that should not exist.
@@ -211,6 +213,20 @@ export const auth = betterAuth({
     "/email-otp/request-email-change",
     "/email-otp/change-email",
   ],
+  /**
+   * THE PASSWORD RULE AT THE DOOR. Better Auth checks only the length; the
+   * rest of the rule (a capital, a small letter, a number, a symbol) is ours,
+   * so every endpoint that stores a new password asks it here. A form that
+   * checks the same thing is a courtesy; this is what makes it true.
+   */
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      if (!["/reset-password", "/change-password", "/set-password"].includes(ctx.path)) return;
+      const next = (ctx.body as { newPassword?: unknown } | undefined)?.newPassword;
+      const problem = typeof next === "string" ? passwordProblem(next) : null;
+      if (problem) throw new APIError("BAD_REQUEST", { message: problem, code: "PASSWORD_TOO_WEAK" });
+    }),
+  },
   plugins: [
     /**
      * "EMAIL ME A SIGN-IN LINK", with a code in the same message.

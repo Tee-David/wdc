@@ -46,7 +46,7 @@ test.skip(!CONNECTION, "Needs DATABASE_URL or COCKROACHDB_URL: a session is a da
    recognisable as this spec's litter rather than somebody's account. */
 const EMAIL = `wdc-e2e-${randomUUID().slice(0, 8)}@wedigcreativity.com.ng`;
 const PASSWORD = `e2e-${randomUUID()}`;
-const NEW_PASSWORD = `e2e-${randomUUID()}`;
+const NEW_PASSWORD = `E2e-${randomUUID()}`;
 
 function pool() {
   const url = new URL(CONNECTION!);

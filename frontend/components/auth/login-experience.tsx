@@ -79,6 +79,8 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
   const hint = useSyncExternalStore(subscribeHint, hintSnapshot, serverHint);
   const webauthn = useSyncExternalStore(noSubscription, hasWebAuthn, noWebAuthn);
   const [password, setPassword] = useState("");
+  /* Unticked by default: on a shared computer the session ends with the browser. */
+  const [remember, setRemember] = useState(false);
   const [code, setCode] = useState("");
   const [codePhase, setCodePhase] = useState<CodePhase>("entry");
   const [live, setLive] = useState("");
@@ -503,7 +505,7 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
     /* It turns back round to hear the answer. */
     stage.setMood("attentive");
     stage.ringBegin();
-    const result = await adapter.signInWithPassword(email, password);
+    const result = await adapter.signInWithPassword(email, password, remember);
     if (result.ok) return succeed(result, "password");
 
     if (result.reason === "invalid") {
@@ -696,6 +698,10 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
               </button>
             }
           />
+          <label className="au-check">
+            <input type="checkbox" name="remember" checked={remember} onChange={(event) => setRemember(event.target.checked)} />
+            <span>Remember me</span>
+          </label>
           <PrimaryButton awake={password.length > 0} hydrated={hydrated} busy={busy}>
             {copy.password.submit}
           </PrimaryButton>

@@ -64,10 +64,28 @@ test("the page names the invited address and has no field to change it", async (
   await expect(page.locator('input[type="email"], input[name="email"]')).toHaveCount(0);
 });
 
+test("a weak password is refused on the page, and Suggest one makes a strong one", async ({ page }) => {
+  const email = addr("rule");
+  const token = await invite(email);
+  await page.goto(`/invite/${token}`, { waitUntil: "networkidle" });
+  await page.getByLabel("Choose a password").fill("longbutweak");
+  await page.getByLabel("Confirm password").fill("longbutweak");
+  /* The button stays asleep while the rule is unmet; Enter still submits, and the form says why. */
+  await expect(page.getByRole("button", { name: "Create my account" })).toHaveAttribute("aria-disabled", "true");
+  await page.getByLabel("Confirm password").press("Enter");
+  await expect(page.getByText("Add a capital, a number and a symbol.")).toBeVisible();
+  expect((await db.query(`SELECT redeemed_at FROM invitations WHERE email = $1`, [email])).rows[0].redeemed_at).toBeNull();
+  await page.getByRole("button", { name: "Suggest one" }).click();
+  const made = await page.getByLabel("Choose a password").inputValue();
+  expect(made).toMatch(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z\d]).{16}$/);
+  expect(await page.getByLabel("Confirm password").inputValue()).toBe(made);
+  await expect(page.locator(".au-rules__list li[data-ok]")).toHaveCount(5);
+});
+
 test("accepting makes a verified account for that address, signs in, and spends the link", async ({ page }) => {
   const email = addr("accept");
   const token = await invite(email);
-  await acceptWithPassword(page, token, "a-long-enough-password");
+  await acceptWithPassword(page, token, "A-long-enough-passw0rd");
   await page.waitForURL((u) => !u.pathname.startsWith("/invite/"), { timeout: 30_000 });
   await page.waitForLoadState("networkidle");
 
@@ -93,8 +111,8 @@ test("two tabs racing the same link make one account", async ({ browser }) => {
   const [a, b] = await Promise.all([browser.newPage(), browser.newPage()]);
   await Promise.all([a.goto(`/invite/${token}`, { waitUntil: "networkidle" }), b.goto(`/invite/${token}`, { waitUntil: "networkidle" })]);
   for (const p of [a, b]) {
-    await p.getByLabel("Choose a password").fill("a-long-enough-password");
-    await p.getByLabel("Confirm password").fill("a-long-enough-password");
+    await p.getByLabel("Choose a password").fill("A-long-enough-passw0rd");
+    await p.getByLabel("Confirm password").fill("A-long-enough-passw0rd");
   }
   await Promise.all([a, b].map((p) => p.getByRole("button", { name: "Create my account" }).click()));
   await expect.poll(async () => (await db.query(`SELECT redeemed_at FROM invitations WHERE email = $1`, [email])).rows[0].redeemed_at, { timeout: 30_000 }).not.toBeNull();
@@ -115,7 +133,7 @@ test("an address that already has an account is not taken over", async ({ page }
   const email = addr("exists");
   await db.query(`INSERT INTO "user" ("id", "name", "email", "emailVerified", "role") VALUES ($1, 'Already', $2, true, 'client')`, [randomUUID(), email]);
   const token = await invite(email, { role: "staff" });
-  await acceptWithPassword(page, token, "a-long-enough-password");
+  await acceptWithPassword(page, token, "A-long-enough-passw0rd");
   await expect(page.locator(".au__error")).toContainText("already an account", { timeout: 15_000 });
   const u = await db.query(`SELECT "role" FROM "user" WHERE "email" = $1`, [email]);
   expect(u.rows[0].role, "the invitation did not promote the existing account").toBe("client");

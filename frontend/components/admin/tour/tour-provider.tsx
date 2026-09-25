@@ -47,6 +47,10 @@ type AdminTourContext = {
   restartWelcome: () => void;
   restartWalkthrough: () => void;
   restartPageTour: () => void;
+  /** "Not now" on the sidebar's offer: recorded against the account as a
+   *  skipped walkthrough, so the card stays gone on every device, and the
+   *  launcher still replays it. */
+  dismissWalkthrough: () => void;
 };
 
 const Ctx = createContext<AdminTourContext | null>(null);
@@ -129,7 +133,7 @@ export default function AdminTourProvider({
      the read worked or not, because a missing session must not hold the
      offer back forever. */
   const [synced, setSynced] = useState(false);
-  const [, setSyncCount] = useState(0);
+  const [syncCount, setSyncCount] = useState(0);
   useEffect(() => {
     if (!mounted) return;
     let live = true;
@@ -193,12 +197,18 @@ export default function AdminTourProvider({
        The genuine answer appears one tick after hydration rather than
        being guessed at during it. */
     welcomeCompleted: mounted && readCompletion(WELCOME.id, WELCOME.version) !== null,
-    walkthroughCompleted: mounted && readCompletion(WALKTHROUGH.id, WALKTHROUGH.version) !== null,
+    walkthroughCompleted: mounted && syncCount >= 0 && readCompletion(WALKTHROUGH.id, WALKTHROUGH.version) !== null,
     pageTourCompleted: mounted && pageTour ? readCompletion(pageTour.id, pageTour.version) !== null : false,
     restartWelcome: () => restart(WELCOME),
     restartWalkthrough: () => restart(WALKTHROUGH),
     restartPageTour: () => { if (pageTour) restart(pageTour); },
-  }), [runningTour, startWelcome, startWalkthrough, startPageTour, pageTour, restart, mounted, WELCOME, WALKTHROUGH]);
+    dismissWalkthrough: () => {
+      writeCompletion(WALKTHROUGH.id, WALKTHROUGH.version, "skipped");
+      setSyncCount((n) => n + 1);
+    },
+  /* `syncCount` is how the memo hears that a record changed underneath it:
+     an account sync, or the card dismissed. */
+  }), [runningTour, startWelcome, startWalkthrough, startPageTour, pageTour, restart, mounted, WELCOME, WALKTHROUGH, syncCount]);
 
   return (
     <Ctx.Provider value={value}>

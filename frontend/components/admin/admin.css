@@ -1752,3 +1752,12 @@ a.ad__pgBtn:hover { background: var(--ad-panel-2); border-color: var(--ad-dim); 
 }
 .ad .tip__p > button:hover { background: var(--ad-panel-2); color: var(--ad-ink); }
 .ad .tip__p > button svg { width: .95rem; height: .95rem; }
+
+/* The tour card's "not now": a 44px target in the corner, white on the navy card. */
+.ad__tourClose {
+  position: absolute; top: .35rem; right: .35rem; z-index: 1; width: 44px; height: 44px; display: grid; place-items: center;
+  border: 0; border-radius: 12px; background: transparent; color: #fff; opacity: .8; cursor: pointer;
+}
+.ad__tourClose:hover { opacity: 1; background: rgb(255 255 255 / .12); }
+.ad__tourClose:focus-visible { outline: 2px solid #fff; outline-offset: -2px; opacity: 1; }
+.ad__tourClose svg { width: 1.05rem; height: 1.05rem; }

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { PasswordField, PrimaryButton, StrengthMeter } from "@/components/auth/fields";
+import { PasswordField, PasswordRules, PrimaryButton } from "@/components/auth/fields";
+import { passwordProblem } from "@/lib/auth/password-policy";
 import { useStage } from "@/components/auth/stage/stage-context";
 import { useHydrated } from "@/components/auth/use-hydrated";
 import { authClient } from "@/lib/auth-client";
@@ -35,8 +36,9 @@ export function ResetPasswordForm({ token = "", invalid = false }: { token?: str
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (loading) return;
-    if (password.length < 10) {
-      setField({ password: "Use at least 10 characters." });
+    const weak = passwordProblem(password);
+    if (weak) {
+      setField({ password: weak });
       passwordRef.current?.focus();
       return;
     }
@@ -89,7 +91,6 @@ export function ResetPasswordForm({ token = "", invalid = false }: { token?: str
           </div>
         ) : (
           <>
-            <p className="lx__sub">Keep it unique to this account.</p>
             {error ? (
               <p className="au__error" role="alert">
                 {error}
@@ -108,7 +109,7 @@ export function ResetPasswordForm({ token = "", invalid = false }: { token?: str
                 }}
                 error={field.password ?? null}
               />
-              <StrengthMeter value={password} />
+              <PasswordRules value={password} onSuggest={(made) => { setPassword(made); setConfirm(made); setField({}); }} />
               <PasswordField
                 ref={confirmRef}
                 label="Confirm password"
@@ -121,7 +122,7 @@ export function ResetPasswordForm({ token = "", invalid = false }: { token?: str
                 }}
                 error={field.confirm ?? null}
               />
-              <PrimaryButton awake={password.length >= 10 && confirm.length > 0} hydrated={hydrated} busy={loading}>
+              <PrimaryButton awake={!passwordProblem(password) && confirm.length > 0} hydrated={hydrated} busy={loading}>
                 Update password
               </PrimaryButton>
             </form>
