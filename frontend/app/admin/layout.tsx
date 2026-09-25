@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import AdminShell from "@/components/admin/shell";
 import AdminTourProvider from "@/components/admin/tour/tour-provider";
 import { unreadTotal } from "@/lib/forms/entries";
+import { failedLoggedCount } from "@/lib/message-log";
 import { getAdminRequest } from "@/lib/admin/session";
 import { isAdminRole } from "@/lib/admin/permissions";
 import "@/components/admin/admin.css";
@@ -46,12 +47,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   /* Unread entries across the forms: what arrived that nobody has opened.
      A database that does not answer shows no badge rather than a wrong one. */
   const open = await unreadTotal().catch(() => 0);
+  /* Emails that did not go, for the bell: the owner's to deal with. */
+  const failedMail = role === "owner" ? await failedLoggedCount().catch(() => 0) : 0;
 
   return (
     <div className="ad">
       <AdminTourProvider role={role}>
         <AdminShell
-          counts={{ Forms: open }}
+          counts={{ Forms: open, FailedMail: failedMail }}
           user={{ name: session.user.name, email: session.user.email, image: session.user.image }}
           role={role}
         >
