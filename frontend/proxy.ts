@@ -20,7 +20,7 @@ export async function proxy(request: NextRequest) {
 
   const m = await maintenance();
   if (!m.on || passValid(m, request.cookies.get(PASS_COOKIE)?.value)) return NextResponse.next();
-  return new NextResponse(maintenancePage(m), {
+  return new NextResponse(await maintenancePage(m), {
     status: 503,
     headers: {
       "content-type": "text/html; charset=utf-8",
