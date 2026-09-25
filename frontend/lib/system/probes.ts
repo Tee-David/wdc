@@ -1,7 +1,7 @@
 import "server-only";
 
 import { db } from "@/lib/db/pool";
-import { mailIsConfigured, verifyMail } from "@/lib/email";
+import { mailIsConfigured, missingMailVariables, verifyMail } from "@/lib/email";
 import { paystackConfig } from "@/lib/paystack";
 import { headObject, probeCors, r2Config } from "@/lib/r2";
 import { SITE_URL } from "@/lib/site";
@@ -44,7 +44,7 @@ const RUN: Record<ProbeName, () => Promise<string>> = {
     return "Answered a query.";
   },
   async email() {
-    if (!mailIsConfigured()) throw new Error("SMTP_HOST, SMTP_USER or SMTP_PASSWORD is not set.");
+    if (!mailIsConfigured()) throw new Error(`Not set: ${missingMailVariables().join(", ")}.`);
     await verifyMail();
     return "Connected and signed in. Nothing was sent.";
   },

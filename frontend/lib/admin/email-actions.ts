@@ -4,11 +4,12 @@ import { revalidatePath } from "next/cache";
 import { actorName, allow } from "./guard";
 import { FAIL, OK, type ActionState } from "./validate";
 import { audit } from "./store";
-import { mailIsConfigured } from "@/lib/email";
+import { mailIsConfigured, missingMailVariables } from "@/lib/email";
 import { sendLogged } from "@/lib/outbox";
 import { composeEmailHtml, emailP } from "@/lib/email-templates";
 import { LOG_RETENTION_DAYS, LOG_RETENTION_KEY, setAppSetting } from "@/lib/app-settings";
 import { runDaily } from "@/lib/jobs/daily";
+import { FAILURE_ALERT_KEY } from "@/lib/mail-alert";
 
 const PAGE = "/admin/settings/email";
 const EMAIL = /^[^\s@<>,;"]+@[^\s@<>,;"]+\.[^\s@<>,;"]+$/;
@@ -25,7 +26,7 @@ export async function sendTestEmail(_prev: ActionState, fd: FormData): Promise<A
   if (refused) return refused;
   const to = String(fd.get("to") ?? "").trim().toLowerCase();
   if (!EMAIL.test(to) || to.length > 254) return FAIL({ to: "An email address to send it to." });
-  if (!mailIsConfigured()) return FAIL({}, "SMTP is not configured on this deployment: SMTP_HOST, SMTP_USER and SMTP_PASSWORD are needed.");
+  if (!mailIsConfigured()) return FAIL({}, `SMTP is not configured on this deployment. Not set: ${missingMailVariables().join(", ")}.`);
   const by = await actorName();
   const started = Date.now();
   try {
@@ -67,4 +68,17 @@ export async function runDailyNow(): Promise<ActionState> {
   const trashed = Object.values(r.trashed).reduce((a, b) => a + b, 0);
   if (r.errors.length) return FAIL({}, `Part of the tidy did not run: ${r.errors.join("; ")}`);
   return OK(`Done. Removed ${r.logRows} old log rows, ${trashed} entries and ${r.posts} blog drafts past their Trash period.`);
+}
+
+/** Where to say that an email failed; empty switches it off. */
+export async function saveFailureAlert(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await allow("settings");
+  if (refused) return refused;
+  const to = String(fd.get("to") ?? "").trim().toLowerCase();
+  if (to && (!EMAIL.test(to) || to.length > 254)) return FAIL({ to: "An email address, or leave it empty to switch alerts off." });
+  const by = await actorName();
+  try { await setAppSetting(FAILURE_ALERT_KEY, to ? { to } : null, by); } catch { return FAIL({}, "That could not be saved just now."); }
+  audit({ actor: by, kind: "setting", subjectId: FAILURE_ALERT_KEY, subject: "Failure alerts", action: to ? `set failure alerts to go to ${to}` : "switched failure alerts off" });
+  revalidatePath(PAGE);
+  return OK(to ? `Failed emails will be listed to ${to}, at most once an hour.` : "Failure alerts are off.");
 }

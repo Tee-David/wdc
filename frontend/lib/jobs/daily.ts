@@ -7,6 +7,7 @@ import { FORMS } from "@/lib/forms/registry";
 import { purgeTrash } from "@/lib/forms/entries";
 import { getFormSettings } from "@/lib/forms/settings-db";
 import { POST_TRASH_DAYS, purgeTrashedPosts } from "@/lib/blog-db";
+import { alertFailures } from "@/lib/mail-alert";
 
 export type DailyResult = { logRows: number; trashed: Record<string, number>; posts: number; errors: string[] };
 
@@ -40,6 +41,8 @@ export async function runDaily(by: string): Promise<DailyResult> {
   } catch (error) {
     result.errors.push(`blog: ${error instanceof Error ? error.message : "failed"}`);
   }
+  /* Failures that fell in an hour that had already had its alert. */
+  await alertFailures();
   const trashed = Object.values(result.trashed).reduce((a, b) => a + b, 0);
   audit({
     actor: by, kind: "content", subjectId: "daily", subject: "Daily tidy",

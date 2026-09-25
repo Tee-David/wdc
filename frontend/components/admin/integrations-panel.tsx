@@ -1,7 +1,7 @@
 import "server-only";
 
 import Link from "next/link";
-import { mailIsConfigured } from "@/lib/email";
+import { mailIsConfigured, missingMailVariables } from "@/lib/email";
 import { paystackConfig, paystackMode } from "@/lib/paystack";
 import { r2Config } from "@/lib/r2";
 import { psiIsConfigured } from "@/lib/psi";
@@ -53,7 +53,7 @@ function rows(): Row[] {
       state: mailIsConfigured() ? "ready" : "missing",
       detail: mailIsConfigured()
         ? <>Credentials are present. Whether a message arrived is recorded per message; failures are listed under <Link href="/admin/money/reconciliation">Reconciliation</Link>.</>
-        : "SMTP_HOST, SMTP_USER or SMTP_PASSWORD is not set. Every send is logged as failed rather than silently dropped.",
+        : `Not set: ${missingMailVariables().join(", ")}. Every send is logged as failed rather than silently dropped.`,
     },
     {
       name: `Payments (Paystack, ${paystackMode()} mode)`, probe: "payments",
