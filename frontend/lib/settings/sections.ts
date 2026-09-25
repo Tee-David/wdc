@@ -9,7 +9,7 @@ import type { Area } from "@/lib/admin/permissions";
  * than out of Settings. `area` is who may open it (lib/admin/permissions.ts);
  * a section a role cannot open is not listed for it, and its page refuses.
  */
-export type SettingsIcon = "sliders" | "messages" | "images" | "mail" | "plug" | "history" | "shield" | "users" | "user" | "globe" | "activity" | "lock" | "bell";
+export type SettingsIcon = "sliders" | "messages" | "images" | "mail" | "plug" | "history" | "shield" | "users" | "user" | "globe" | "activity" | "lock" | "bell" | "wrench";
 
 export type SettingsSection = {
   href: string;
@@ -27,7 +27,8 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   { href: "/admin/settings/account", label: "My account", line: "Name, password and devices.", group: "You", icon: "user", area: null, words: "profile password sign in google devices sessions tours" },
   { href: "/admin/settings/general", label: "Studio and invoices", line: "VAT, payment terms and reminders.", group: "Studio", icon: "sliders", area: "settings", words: "vat payment due terms reminders invoices estimates finance defaults" },
   { href: "/admin/settings/notifications", label: "Notifications", line: "What the studio is emailed about.", group: "Studio", icon: "bell", area: "settings", words: "alerts email tickets payments forms entries" },
-  { href: "/admin/settings/site", label: "Website and SEO", line: "Search results and maintenance.", group: "Studio", icon: "globe", area: "settings", words: "seo search engines google index noindex maintenance description" },
+  { href: "/admin/settings/site", label: "Website and SEO", line: "Search results and indexing.", group: "Studio", icon: "globe", area: "settings", words: "seo search engines google index noindex description" },
+  { href: "/admin/settings/maintenance", label: "Maintenance", line: "The holding page and who is waiting.", group: "Studio", icon: "wrench", area: "settings", words: "maintenance holding page offline down 503 back soon template preview notify waitlist reviewer link" },
   { href: "/admin/settings/email", label: "Email", line: "Sender, test send and the log.", group: "Studio", icon: "mail", area: "settings", words: "mail smtp sender from reply test failure alerts message log" },
   { href: "/admin/settings/faq", label: "FAQ", line: "Questions on the site.", group: "Content", icon: "messages", area: "content", words: "questions answers" },
   { href: "/admin/settings/media", label: "Media library", line: "Pictures and files.", group: "Content", icon: "images", area: "content", words: "images pictures uploads files" },
