@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { adminRole } from "@/lib/admin/guard";
 import { PasswordChange } from "@/components/account/password-change";
 import { getAdminRequest } from "@/lib/admin/session";
@@ -24,12 +25,12 @@ function device(ua: string | null) {
  */
 export default async function AccountPage() {
   if (!(await adminRole())) {
-    return <section className="ad__panel"><AdminState kind="forbidden" title="Sign in to see your account" description="This page is about the account you are signed in with." /></section>;
+    return <section className="ad__panel"><AdminState kind="forbidden" action={<Link className="ad__btn ad__btn--primary" href="/login?redirect=%2Fadmin%2Fsettings%2Faccount">Log in</Link>} title="Sign in to see your account" description="This page is about the account you are signed in with." /></section>;
   }
   const { capture, session } = await getAdminRequest();
   const head = <div className="ad__head"><div><h1>My account</h1><p>Your profile, password and devices.</p></div></div>;
   if (capture || !session?.session) {
-    return <>{head}<section className="ad__panel"><AdminState kind="forbidden" title="This is a preview session" description="There is no real account behind it, so there is nothing to change. Sign in to manage your own." /></section></>;
+    return <>{head}<section className="ad__panel"><AdminState kind="forbidden" action={<Link className="ad__btn" href="/admin/settings">Back to settings</Link>} title="This is a preview session" description="There is no real account behind it, so there is nothing to change. Sign in to manage your own." /></section></>;
   }
   const userId = session.user.id;
   const current = session.session.id;
