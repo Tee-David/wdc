@@ -531,65 +531,41 @@
 }
 .ad__t { width: 100%; border-collapse: collapse; font-size: .875rem; }
 
-/* ON A PHONE, A ROW IS A CARD.
+/* ON A PHONE, A TABLE STAYS A TABLE (the owner's rule, 2026-09-25; design:
+   claude.ai/artifact/KNeBe4abjbkqTRQaRrUVp4). It used to turn each row into
+   a card of label/value lines, six forms filling a whole screen. Now the rows
+   and columns keep their shape and the table scrolls sideways inside its own
+   box, never the page:
 
-   Below 720px a list table used to scroll sideways inside its panel: the
-   invoices table was 1110px in a 341px panel, three screens of it, and the
-   columns past the first two were simply off the edge. It never widened the
-   page, but it read as a page that did not fit, and on the money page the
-   invoice pills were cut in half at the panel's edge.
-
-   So each row becomes a card: the first cell is its title, every other cell is
-   a line of "column name, value". The column names come from the header row,
-   copied onto each cell as `data-label` by `table-labels.tsx`, because CSS
-   cannot read another element's text. The label column is a fixed track that
-   exists before those names arrive, so their arrival moves nothing.
-
-   The header row stays in the document for screen readers and is hidden
-   visually; the row's menu keeps its corner. A cell spanning columns is a
-   message ("Nothing yet"), not a value, so it takes the full width unlabelled. */
+   - the first column (what the row IS: a client, an invoice, a form) is
+     pinned on the left, and grows a shadow once the table has moved;
+   - cells keep to one line, numbers stay right-aligned, pills never wrap;
+   - while there is more to the right, the right edge fades and a line under
+     the table says so. `table-scroll.tsx` sets `data-scrolled` and
+     `data-more` from the scroll position; without it the table still
+     scrolls, it only loses the hints. */
 @media (max-width: 720px) {
-  .ad__scroll:has(> .ad__t) { overflow-x: visible; }
-  .ad__scroll > .ad__t,
-  .ad__scroll > .ad__t :is(tbody, tfoot) { display: block; width: 100%; min-width: 0; }
-  .ad__scroll > .ad__t thead {
-    position: absolute; width: 1px; height: 1px; overflow: hidden;
-    clip-path: inset(50%); white-space: nowrap;
+  .ad__scroll > .ad__t { width: max-content; min-width: 100%; }
+  .ad__scroll > .ad__t :is(th, td) { white-space: nowrap; }
+  .ad__scroll > .ad__t :is(th, td):first-child {
+    position: sticky; left: 0; z-index: 1;
+    min-width: 9.5rem; max-width: 12.5rem; white-space: normal; overflow-wrap: anywhere;
+    background: var(--ad-panel);
   }
-  .ad__scroll > .ad__t tr {
-    position: relative;
-    display: grid; grid-template-columns: minmax(0, 1fr); gap: .4rem;
-    padding: .85rem 1rem;
-    border-bottom: 1px solid var(--ad-line);
+  .ad__scroll > .ad__t thead th:first-child { background: var(--ad-panel-2); }
+  .ad__scroll > .ad__t tbody tr:hover > td:first-child { background: var(--ad-panel-2); }
+  .ad__scroll > .ad__t :is(th, td):first-child :is(b, a) { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .ad__scroll[data-scrolled] > .ad__t :is(th, td):first-child { box-shadow: 8px 0 12px -10px rgb(0 0 30 / .35); }
+  .dark .ad__scroll[data-scrolled] > .ad__t :is(th, td):first-child { box-shadow: 8px 0 12px -8px rgb(0 0 0 / .8); }
+  .ad__scroll > .ad__t td { padding-block: .8rem; }
+  .ad__scroll[data-more] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent); }
+  /* The hint rides under the table and stays put while the table moves. */
+  .ad__scroll[data-more]::after {
+    content: "Swipe for more \2192"; position: sticky; left: 0; display: block; width: max-content;
+    padding: .5rem 1.25rem .75rem; color: var(--ad-dim); font-size: .78rem; font-weight: 500;
   }
-  .ad__scroll > .ad__t :is(tbody, tfoot) tr:last-child { border-bottom: 0; }
-  .ad__scroll > .ad__t tfoot tr { border-top: 1px solid var(--ad-line); }
-  .ad__scroll > .ad__t td {
-    display: grid; grid-template-columns: minmax(5.5rem, 36%) minmax(0, 1fr);
-    gap: .75rem; align-items: baseline; justify-items: start;
-    min-width: 0; padding: 0; border: 0;
-    text-align: left; white-space: normal; overflow-wrap: break-word;
-  }
-  .ad__scroll > .ad__t td::before {
-    content: attr(data-label);
-    color: var(--ad-dim);
-    font-size: .72rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
-  }
-  /* The title line: no label, and room on the right for the row's menu. */
-  .ad__scroll > .ad__t td:first-child,
-  .ad__scroll > .ad__t td[colspan] { display: block; padding-right: 2.75rem; }
-  .ad__scroll > .ad__t td[colspan] { padding-right: 0; }
-  .ad__scroll > .ad__t td:first-child::before,
-  .ad__scroll > .ad__t td[colspan]::before { content: none; }
-  .ad__scroll > .ad__t td:empty { display: none; }
-  /* A pill naming an invoice and a company is a sentence, not a tag. */
-  .ad__scroll > .ad__t .ad__pill { max-width: 100%; white-space: normal; border-radius: .7rem; }
-  .ad__scroll > .ad__t td.ad__rmC {
-    position: absolute; top: .45rem; right: .4rem;
-    display: block; width: auto; padding: 0;
-  }
-  .ad__scroll > .ad__t td.ad__rmC::before { content: none; }
 }
+
 .ad__t th {
   text-align: left; padding: .75rem 1rem;
   font-size: .72rem; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
