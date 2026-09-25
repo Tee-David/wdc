@@ -181,7 +181,10 @@ export async function importSubscribers(csv: string): Promise<{ added: number; s
     if (!looksLikeEmail(cell)) { invalid += 1; continue; }
     found.push(normaliseEmail(cell));
   }
-  const unique = [...new Set(found)];
+  /* Somebody who asked to be erased is not put back by a list somebody kept. */
+  const { erasedHashes, hashEmail } = await import("@/lib/privacy/requests");
+  const erased = await erasedHashes([...new Set(found)]);
+  const unique = [...new Set(found)].filter((e) => !erased.has(hashEmail(e)));
   let added = 0;
   for (let i = 0; i < unique.length; i += 500) {
     const batch = unique.slice(i, i + 500);
@@ -193,5 +196,5 @@ export async function importSubscribers(csv: string): Promise<{ added: number; s
     );
     added += r.rowCount ?? 0;
   }
-  return { added, skipped: unique.length - added, invalid };
+  return { added, skipped: unique.length - added + erased.size, invalid };
 }
