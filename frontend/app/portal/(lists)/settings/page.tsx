@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { getPortalRequest } from "@/lib/portal/session";
 import { Panel } from "@/components/admin/bits";
-import { NotifyForm } from "@/components/client/notify-form";
-import { PasswordChange } from "@/components/account/password-change";
+import { NotifyForm, ProfileForm, SignInCard } from "@/components/client/settings-forms";
 import { db } from "@/lib/db/pool";
+import "@/components/admin/settings/settings.css";
+import "@/components/client/portal.css";
 
 /** Whether this person already has a password (they may have come in by link only). */
 async function hasPassword(userId: string | undefined) {
@@ -14,6 +14,10 @@ async function hasPassword(userId: string | undefined) {
 
 export const metadata = { title: "Settings" };
 
+/**
+ * THE CLIENT'S SETTINGS, as PSettings.dc.html draws them: the profile on the
+ * left, what we email them about and how they sign in on the right.
+ */
 export default async function PortalSettings() {
   const { client, session } = await getPortalRequest();
   if (!client) return null;
@@ -29,29 +33,21 @@ export default async function PortalSettings() {
         </div>
       </header>
 
-      <Panel title="Profile">
-        <dl className="ad__dl" style={{ display: "grid", gap: ".6rem", padding: "1rem" }}>
-          <div><dt style={{ color: "var(--ad-dim)", fontSize: ".8rem" }}>Contact name</dt><dd style={{ margin: 0, fontWeight: 600 }}>{client.name}</dd></div>
-          <div><dt style={{ color: "var(--ad-dim)", fontSize: ".8rem" }}>Company</dt><dd style={{ margin: 0, fontWeight: 600 }}>{client.company}</dd></div>
-          <div><dt style={{ color: "var(--ad-dim)", fontSize: ".8rem" }}>Email</dt><dd style={{ margin: 0, fontWeight: 600 }}>{client.email}</dd></div>
-          <div><dt style={{ color: "var(--ad-dim)", fontSize: ".8rem" }}>Phone</dt><dd style={{ margin: 0, fontWeight: 600 }}>{client.phone}</dd></div>
-        </dl>
-        <p style={{ padding: "0 1rem 1rem", fontSize: ".85rem", color: "var(--ad-dim)" }}>
-          To change these details, ask us in <Link href="/portal/support">Support</Link> -- contact information is confirmed with you before it changes on our side.
-        </p>
-      </Panel>
-
-      <Panel title={withPassword ? "Change password" : "Set a password"}>
-        <div style={{ padding: "1rem" }}>
-          <PasswordChange email={session?.user?.email ?? client.email} hasPassword={withPassword} />
+      <div className="pSet">
+        <Panel title="Profile">
+          <p className="pSet__sub ad__dim">Used on invoices and in every message we send.</p>
+          <ProfileForm client={client} />
+        </Panel>
+        <div className="pSet__side">
+          <Panel title="Notifications" dataTour="portal-notify">
+            <p className="pSet__sub ad__dim">Every one of these can be switched off.</p>
+            <NotifyForm client={client} />
+          </Panel>
+          <Panel title="Sign-in">
+            <SignInCard email={session?.user?.email ?? client.email} hasPassword={withPassword} />
+          </Panel>
         </div>
-      </Panel>
-
-      <Panel title="Notifications" dataTour="portal-notify">
-        <div style={{ padding: "1rem" }}>
-          <NotifyForm client={client} />
-        </div>
-      </Panel>
+      </div>
     </div>
   );
 }

@@ -130,3 +130,48 @@ test("a new email withdraws the old invitation, and the next one goes to the new
   await expect.poll(async () => (await kept("CLIENTS", "c4"))?.email, { timeout: 15_000 }).toBe(old);
   await db.query("DELETE FROM invitations WHERE client_id = 'c4'");
 });
+
+test("a client closes their own question, and writing again reopens it", async ({ page }) => {
+  const subject = `Quick question ${mark}`;
+  await page.goto("/portal/support?new=1", { waitUntil: "networkidle" });
+  await page.getByLabel(/^Subject/).fill(subject);
+  await page.getByLabel(/^Message/).fill("Is the logo file in the handover folder?");
+  await page.getByRole("button", { name: "Send" }).click();
+  await expect(page.getByText(subject).first()).toBeVisible({ timeout: 15_000 });
+  const ticketId = (await db.query<{ id: string }>("SELECT id FROM admin_records WHERE collection = 'TICKETS' AND data->>'subject' = $1", [subject])).rows[0].id;
+
+  await page.goto(`/portal/support/${ticketId}`, { waitUntil: "networkidle" });
+  await page.getByRole("button", { name: "Close conversation" }).click();
+  await expect(page.locator(".pConv__head .ad__pill")).toHaveText("Closed", { timeout: 15_000 });
+  await expect(page.getByRole("button", { name: "Close conversation" })).toHaveCount(0);
+
+  await page.getByLabel(/^Reply/).fill("Found it, thanks. One more thing though.");
+  await page.getByRole("button", { name: "Reopen and send" }).click();
+  await expect(page.locator(".pConv__head .ad__pill")).toHaveText("Open", { timeout: 15_000 });
+  await expect(page.locator(".adConv")).toContainText("One more thing though.");
+});
+
+test("a client saves their own name and phone, turns an email off, and a bad phone is refused in words", async ({ page }) => {
+  await page.goto("/portal/settings", { waitUntil: "networkidle" });
+  const phone = page.getByLabel(/^Phone/);
+  const before = await phone.inputValue();
+  await phone.fill("call me maybe");
+  await page.getByRole("button", { name: "Save details" }).click();
+  await expect(page.getByText("A phone number, like +234 803 555 0142.")).toBeVisible();
+
+  await phone.fill(before || "+234 803 555 0142");
+  await page.getByRole("button", { name: "Save details" }).click();
+  await expect(page.locator(".adToast", { hasText: "Details saved." }).first()).toBeVisible({ timeout: 15_000 });
+
+  const news = page.getByRole("switch", { name: "Occasional studio news" });
+  const was = await news.getAttribute("aria-checked");
+  await news.click();
+  await page.getByRole("button", { name: "Save preferences" }).click();
+  await expect(page.locator(".adToast", { hasText: "Preferences saved." }).first()).toBeVisible({ timeout: 15_000 });
+  await page.reload({ waitUntil: "networkidle" });
+  await expect(page.getByRole("switch", { name: "Occasional studio news" })).toHaveAttribute("aria-checked", was === "true" ? "false" : "true");
+  /* Put it back. */
+  await page.getByRole("switch", { name: "Occasional studio news" }).click();
+  await page.getByRole("button", { name: "Save preferences" }).click();
+  await expect(page.locator(".adToast", { hasText: "Preferences saved." }).first()).toBeVisible({ timeout: 15_000 });
+});

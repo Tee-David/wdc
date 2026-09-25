@@ -17,7 +17,7 @@ export function Conversation({ messages, me }: { messages: TicketMessage[]; me: 
         const mine = m.from === me;
         return (
           <li key={m.id} className={`adConv__msg${mine ? " is-mine" : ""}`}>
-            <span className={`adConv__av ad__av--${m.from === "studio" ? "brand" : "live"}`} aria-hidden="true">
+            <span className={`adConv__av ad__av${m.from === "studio" ? "" : " ad__av--live"}`} aria-hidden="true">
               {initialsOf({ name: m.author }, m.from)}
             </span>
             <div className="adConv__bubble">
