@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import ClientShell from "@/components/client/shell";
 import AdminTourProvider from "@/components/admin/tour/tour-provider";
 import { getPortalRequest } from "@/lib/portal/session";
@@ -34,7 +35,10 @@ export default async function PortalLayout({ children }: { children: React.React
   persistSoon();
   const { session, client } = await getPortalRequest();
 
-  if (!session?.user) redirect("/login?redirect=/portal");
+  if (!session?.user) {
+    const asked = (await headers()).get("x-wdc-path");
+    redirect(`/login?redirect=${encodeURIComponent(asked?.startsWith("/portal") ? asked : "/portal")}`);
+  }
   const role = (session.user as typeof session.user & { role?: string }).role;
   if (role !== "client") redirect("/signed-in");
 

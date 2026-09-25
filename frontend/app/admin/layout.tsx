@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import AdminShell from "@/components/admin/shell";
 import AdminTourProvider from "@/components/admin/tour/tour-provider";
 import { unreadTotal } from "@/lib/forms/entries";
@@ -46,7 +47,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
      enforced at every action by lib/admin/guard.ts; this only keeps everyone
      else out of the building. */
   if (!session?.user || !isAdminRole(role)) {
-    redirect("/login?redirect=/admin");
+    /* A CLIENT ON A STUDIO LINK goes to their own portal, which says why,
+       rather than round the log-in page and silently elsewhere. */
+    if (session?.user && role === "client") redirect("/portal?studio=1");
+    const asked = (await headers()).get("x-wdc-path");
+    const back = asked?.startsWith("/admin") ? asked : "/admin";
+    redirect(`/login?redirect=${encodeURIComponent(back)}`);
   }
   /* Counts that belong on the nav rather than on a screen: an admin should
      say what is waiting before you go looking for it. */
