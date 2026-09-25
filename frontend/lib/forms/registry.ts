@@ -13,8 +13,8 @@ import { stepsFor } from "@/lib/onboarding";
  * No `server-only`, so the entries table's column picker can read the labels.
  */
 
-export type FormSource = "onboarding" | "contact" | "newsletter";
-export type FormGroup = "onboarding" | "website";
+export type FormSource = "onboarding" | "contact" | "newsletter" | "custom";
+export type FormGroup = "onboarding" | "website" | "custom";
 
 export type ColumnDef = { key: string; label: string };
 
@@ -35,6 +35,8 @@ export type FormDef = {
   defaultColumns: string[];
   /** Read, starred, spam and trash. The newsletter is a list, not an inbox. */
   inbox: boolean;
+  /** A form built in the admin (lib/forms/custom.ts). */
+  custom?: { slug: string; status: "draft" | "live" | "closed"; version: number };
 };
 
 /* Columns every onboarding form offers before its own questions. */

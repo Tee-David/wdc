@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
+import { r2PublicBase } from "@/lib/r2";
+import { answerText, type Answers, type FileAnswer } from "@/lib/forms/custom-def";
+import { versionDef } from "@/lib/forms/custom";
+import { findForm } from "@/lib/forms/find";
 import Link from "next/link";
 import { after } from "next/server";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
 import { stepsFor } from "@/lib/onboarding";
-import { formByKey, type FormDef } from "@/lib/forms/registry";
+import type { FormDef } from "@/lib/forms/registry";
 import { answeredCount, clientFor, entryIds, getEntry, markRead, readFilters, type Entry } from "@/lib/forms/entries";
 import { eventsFor, type EntryEvent } from "@/lib/forms/events";
 import { listForRecord } from "@/lib/message-log";
@@ -22,7 +26,7 @@ type Props = {
 };
 
 async function load(formKey: string, id: string): Promise<{ form: FormDef; entry: Entry } | null> {
-  const form = formByKey(formKey);
+  const form = await findForm(formKey);
   if (!form) return null;
   try {
     const entry = await getEntry(form, id);
@@ -45,7 +49,39 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 const has = (v: unknown) => (Array.isArray(v) ? v.length > 0 : Boolean(v && String(v).trim()));
 const time = (iso: string) => new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" });
 
+/** A built form's answers, labelled with the questions of the version it answered. */
+async function CustomAnswers({ form, entry }: { form: FormDef; entry: Entry }) {
+  const def = await versionDef(form.key, entry.version ?? 0);
+  const bucket = r2PublicBase();
+  const answers = entry.answers as unknown as Answers;
+  const fields = (def?.fields ?? []).filter((f) => f.type !== "heading");
+  return (
+    <Panel title={def ? `Version ${entry.version} of the form` : "Answers"}>
+      <dl className="adForms__dl">
+        {fields.length ? fields.map((f) => {
+          const a = answers[f.id];
+          const files = Array.isArray(a) && a.length && typeof a[0] === "object" ? (a as FileAnswer[]) : null;
+          return (
+            <div key={f.id}>
+              <dt>{f.label}</dt>
+              <dd>
+                {a === undefined ? <span className="ad__dim">Not answered</span>
+                  : files ? (
+                    <ul className="adForms__files">{files.map((x) => (
+                      <li key={x.key}>{bucket ? <a href={`${bucket}/${x.key}`} target="_blank" rel="noopener noreferrer">{x.name}</a> : x.name} <span className="ad__dim">({Math.max(1, Math.round(x.size / 1024))} KB)</span></li>
+                    ))}</ul>
+                  ) : answerText(a)}
+              </dd>
+            </div>
+          );
+        }) : Object.entries(answers).map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{answerText(v)}</dd></div>)}
+      </dl>
+    </Panel>
+  );
+}
+
 function Answers({ form, entry, hideEmpty }: { form: FormDef; entry: Entry; hideEmpty: boolean }) {
+  if (form.source === "custom") return <CustomAnswers form={form} entry={entry} />;
   if (form.source === "contact") {
     return (
       <Panel title={entry.topic || "Enquiry"}>

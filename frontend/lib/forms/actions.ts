@@ -1,12 +1,13 @@
 "use server";
 
+import { findForm } from "@/lib/forms/find";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { actorName, allow } from "@/lib/admin/guard";
 import { FAIL, OK, type ActionState } from "@/lib/admin/validate";
 import { applyBulk, BULK_ACTIONS, getEntry, isEntryId, type BulkAction } from "./entries";
 import { addEvents } from "./events";
-import { chosenColumns, columnCookie, formByKey } from "./registry";
+import { chosenColumns, columnCookie } from "./registry";
 import { resendFormEmail } from "./resend";
 
 /**
@@ -33,7 +34,7 @@ const LINE: Record<Exclude<BulkAction, "delete">, string> = {
 };
 
 export async function bulkEntries(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const form = formByKey(String(fd.get("form") ?? ""));
+  const form = await findForm(String(fd.get("form") ?? ""));
   const action = String(fd.get("action") ?? "") as BulkAction;
   if (!form || !form.inbox) return FAIL({}, "That form has no entries to change.");
   if (!BULK_ACTIONS.includes(action)) return FAIL({}, "Pick what to do with them.");
@@ -56,7 +57,7 @@ export async function bulkEntries(_prev: ActionState, fd: FormData): Promise<Act
 export async function addEntryNote(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const refused = await allow("forms");
   if (refused) return refused;
-  const form = formByKey(String(fd.get("form") ?? ""));
+  const form = await findForm(String(fd.get("form") ?? ""));
   const id = String(fd.get("id") ?? "");
   const body = String(fd.get("note") ?? "").trim().slice(0, 2000);
   if (!form) return FAIL({}, "That form is not there.");
@@ -73,7 +74,7 @@ const YEAR = 60 * 60 * 24 * 365;
 export async function saveColumns(formKey: string, keys: string[]): Promise<ActionState> {
   const refused = await allow("forms");
   if (refused) return refused;
-  const form = formByKey(formKey);
+  const form = await findForm(formKey);
   if (!form) return FAIL({}, "That form is not there.");
   const clean = chosenColumns(form, keys.join(","));
   (await cookies()).set(columnCookie(form), clean.join(","), { path: "/admin", maxAge: YEAR, sameSite: "lax", httpOnly: true, secure: process.env.NODE_ENV === "production" });
@@ -84,7 +85,7 @@ export async function saveColumns(formKey: string, keys: string[]): Promise<Acti
 export async function resetColumns(formKey: string): Promise<ActionState> {
   const refused = await allow("forms");
   if (refused) return refused;
-  const form = formByKey(formKey);
+  const form = await findForm(formKey);
   if (!form) return FAIL({}, "That form is not there.");
   (await cookies()).delete({ name: columnCookie(form), path: "/admin" });
   revalidatePath(`/admin/forms/${form.key}`);
@@ -103,7 +104,7 @@ export async function resetColumns(formKey: string): Promise<ActionState> {
 export async function resendFormEmailAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const refused = await allow("settings");
   if (refused) return refused;
-  const form = formByKey(String(fd.get("form") ?? ""));
+  const form = await findForm(String(fd.get("form") ?? ""));
   if (!form) return FAIL({}, "That form is not there.");
   const other = fd.get("target") === "other";
   const to = String(fd.get("to") ?? "").trim().toLowerCase();
