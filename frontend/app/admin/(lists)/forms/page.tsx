@@ -179,7 +179,9 @@ export default async function FormsPage() {
               ? <FormTable forms={built} all={all} open={open} />
               : <Empty title="No forms built yet" icon={ClipboardList}
                   action={owner ? <Link className="ad__btn ad__btn--primary" href="/admin/forms/new"><Plus aria-hidden="true" /> New form</Link> : undefined}>
-                  An event sign-up, a feedback form, a job application: build it here with its own address.
+                  {owner
+                    ? "An event sign-up, a feedback form, a job application: build it here with its own address."
+                    : "The owner builds new forms here. Once one is live, its entries show in this list for you to look after."}
                 </Empty>}
           </Panel>
           </div>

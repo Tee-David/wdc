@@ -204,7 +204,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
             </div>
           ) : (
             <Empty title="Nothing received against this yet">
-              {status === "Draft" ? "It has not been sent." : "The pay link has not been used."}
+              {status === "Draft" ? "It has not been sent." : status === "Void" ? "Nothing was paid on this. It was cancelled, so its pay link no longer takes money." : "The pay link has not been used."}
             </Empty>
           )}
         </Panel>

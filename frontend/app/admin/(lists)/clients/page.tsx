@@ -303,11 +303,17 @@ export default async function ClientsPage({
             </table>
           </div>
           {!rows.length && (
+            status === "archived" && !(search || service || from || to) ? (
+              <Empty title="Nothing archived" action={<Link className="ad__btn" href="/admin/clients#client-list">Show active clients</Link>}>
+                Clients you archive land here, with their history kept. Nobody has been archived yet.
+              </Empty>
+            ) : (
             <Empty title={hasFilters ? "No clients match these filters" : "No clients yet"} action={hasFilters ? <Link className="ad__btn" href="/admin/clients#client-list">Clear filters</Link> : <AddClient />}>
               {hasFilters
                 ? "Try a broader search or clear the filters to see every active client."
                 : "Add the first person or business you work with, then connect their projects, forms, and invoices."}
             </Empty>
+            )
           )}
           {rows.length ? (
             <Pager
