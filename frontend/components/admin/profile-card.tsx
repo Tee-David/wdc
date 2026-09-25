@@ -1,0 +1,70 @@
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
+import type { ReactNode } from "react";
+
+/**
+ * THE TOP OF A RECORD'S PAGE (the mockups' Client, Project and Invoice
+ * boards): a breadcrumb, then one card holding who or what this is, its state,
+ * how to reach them, the actions, and a strip of the few figures that matter.
+ *
+ * Every value is passed in by the page from its own records; the card only
+ * lays them out. The page keeps its one h1, which is here.
+ */
+export type ProfileStat = { label: string; value: ReactNode; badge?: { label: string; tone: "good" | "bad" | "warn" | "live" | "flat" } };
+
+export function ProfileCard({
+  crumbs,
+  initials,
+  tone = "live",
+  title,
+  pills,
+  lines,
+  tags,
+  actions,
+  stats,
+}: {
+  crumbs: { href: string; label: string }[];
+  initials?: string;
+  tone?: "brand" | "live" | "good" | "warn" | "neutral";
+  title: string;
+  pills?: ReactNode;
+  lines?: ReactNode;
+  tags?: ReactNode;
+  actions?: ReactNode;
+  stats?: ProfileStat[];
+}) {
+  return (
+    <>
+      <nav className="ad__crumbs" aria-label="Breadcrumb">
+        {crumbs.map((c) => (
+          <span key={c.href}><Link href={c.href}>{c.label}</Link><ChevronRight aria-hidden="true" /></span>
+        ))}
+        <b aria-current="page">{title}</b>
+      </nav>
+      <section className="ad__profile">
+        <div className="ad__profileTop">
+          {initials ? <span className={`ad__profileAv ad__av--${tone}`} aria-hidden="true">{initials}</span> : null}
+          <div className="ad__profileMain">
+            <div className="ad__profileTitle">
+              <h1>{title}</h1>
+              {pills}
+            </div>
+            {lines ? <div className="ad__profileLines">{lines}</div> : null}
+            {tags ? <div className="ad__profileTags">{tags}</div> : null}
+          </div>
+          {actions ? <div className="ad__profileActions">{actions}</div> : null}
+        </div>
+        {stats?.length ? (
+          <dl className="ad__profileStats">
+            {stats.map((s) => (
+              <div key={s.label}>
+                <dt>{s.label}</dt>
+                <dd>{s.value}{s.badge ? <span className={`ad__pill ad__pill--${s.badge.tone}`}>{s.badge.label}</span> : null}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : null}
+      </section>
+    </>
+  );
+}
