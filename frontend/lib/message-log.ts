@@ -120,9 +120,12 @@ export async function failedLoggedCount(opts: { since?: Date } = {}): Promise<nu
   const memory = memoryMessages({ state: "Failed", limit: 10_000 }).filter((m) => !since || new Date(m.at) >= since).length;
   if (!configured()) return memory;
   try {
+    /* A failed message that has since been sent on (a resend or a retry
+       recorded on its trail) is settled, and stops counting. */
+    const settled = `AND NOT (resends @> '[{"sent": true}]'::JSONB)`;
     const r = since
-      ? await db.query<{ n: string }>("SELECT count(*) AS n FROM message_log WHERE state = 'Failed' AND created_at >= $1", [since])
-      : await db.query<{ n: string }>("SELECT count(*) AS n FROM message_log WHERE state = 'Failed'");
+      ? await db.query<{ n: string }>(`SELECT count(*) AS n FROM message_log WHERE state = 'Failed' ${settled} AND created_at >= $1`, [since])
+      : await db.query<{ n: string }>(`SELECT count(*) AS n FROM message_log WHERE state = 'Failed' ${settled}`);
     return memory + Number(r.rows[0]?.n ?? 0);
   } catch (error) {
     console.error("[message-log] count failed:", error instanceof Error ? error.message : error);
@@ -249,5 +252,34 @@ export async function findLogged(dedupeKey: string): Promise<LoggedMessage | nul
     return r.rows[0] ? toMessage(r.rows[0]) : null;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Failed ORIGINALS not yet sent on, newest first, for Tools' retry. A failed
+ * resend or retry is not listed: retrying the original is the same email,
+ * and listing both would send it twice.
+ */
+export async function outstandingFailures(days: number, limit: number): Promise<{ id: string; dedupeKey: string; to: string; subject: string }[]> {
+  if (!configured()) return [];
+  const r = await db.query<{ id: string; dedupe_key: string; to_addr: string; subject: string }>(`
+    SELECT id, dedupe_key, to_addr, subject FROM message_log
+    WHERE state = 'Failed' AND created_at >= now() - ($1::INT * INTERVAL '1 day')
+      AND dedupe_key NOT LIKE '%:superseded:%' AND dedupe_key NOT LIKE '%:resend:%' AND dedupe_key NOT LIKE '%:retry:%'
+      AND NOT (resends @> '[{"sent": true}]'::JSONB)
+    ORDER BY created_at DESC LIMIT $2
+  `, [days, limit]);
+  return r.rows.map((x) => ({ id: x.id, dedupeKey: x.dedupe_key, to: x.to_addr, subject: x.subject }));
+}
+
+/** Rows written but never settled: a send that died mid-flight. */
+export async function stuckQueuedCount(olderThanMinutes = 15): Promise<number> {
+  if (!configured()) return 0;
+  try {
+    const r = await db.query<{ n: string }>(
+      "SELECT count(*) AS n FROM message_log WHERE state = 'Queued' AND created_at < now() - ($1::INT * INTERVAL '1 minute')", [olderThanMinutes]);
+    return Number(r.rows[0]?.n ?? 0);
+  } catch {
+    return 0;
   }
 }

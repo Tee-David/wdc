@@ -55,6 +55,9 @@ test.afterAll(async () => {
 
 test("an enquiry is stored before any mail, and the failed notice is recorded", async ({ request }) => {
   const response = await request.post("/api/contact", {
+    /* Its own address: the contact form's rate limit is per sender, and a
+       rerun from one address in quick succession is refused with a 429. */
+    headers: { "x-forwarded-for": `10.9.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}` },
     data: {
       first: "Chioma", last: LAST, email: EMAIL, phone: "",
       topic: "Branding & Design",

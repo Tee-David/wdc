@@ -7,11 +7,7 @@ import { FAIL, OK, type ActionState } from "@/lib/admin/validate";
 import { applyBulk, BULK_ACTIONS, getEntry, isEntryId, type BulkAction } from "./entries";
 import { addEvents } from "./events";
 import { chosenColumns, columnCookie, formByKey } from "./registry";
-import { NOTIFICATIONS } from "./settings";
-import { getFormSettings } from "./settings-db";
-import { sendFormEmail } from "./notify";
-import { dataFromEntry, formEmail, originalKey, tokensFor } from "./emails";
-import { findLogged, recordResend } from "@/lib/message-log";
+import { resendFormEmail } from "./resend";
 
 /**
  * What the studio does to form entries.
@@ -108,47 +104,20 @@ export async function resendFormEmailAction(_prev: ActionState, fd: FormData): P
   const refused = await allow("settings");
   if (refused) return refused;
   const form = formByKey(String(fd.get("form") ?? ""));
-  const id = String(fd.get("id") ?? "");
-  const key = String(fd.get("notification") ?? "");
   if (!form) return FAIL({}, "That form is not there.");
-  const entry = await getEntry(form, id);
-  if (!entry) return FAIL({}, "That entry is no longer there.");
-  const def = NOTIFICATIONS[form.source].find((n) => n.key === key);
-  if (!def) return FAIL({}, "That email is not there.");
-  const data = dataFromEntry(form, entry);
-  const mail = formEmail(form, key, data);
-  if (!mail) return FAIL({}, "There is no address to send that one to.");
-
   const other = fd.get("target") === "other";
   const to = String(fd.get("to") ?? "").trim().toLowerCase();
   if (other && !/^[^\s@<>,;"]+@[^\s@<>,;"]+\.[^\s@<>,;"]+$/.test(to)) return FAIL({ to: "An email address to send it to." });
-
-  const settings = await getFormSettings(form);
-  /* A resend is asked for by a person, so it goes even if the email is
-     switched off for new entries; copies only to the original recipient. */
-  const n = settings.notifications[key];
-  const forced = { ...settings, notifications: { ...settings.notifications, [key]: { ...n, enabled: true, ...(other ? { to: [to], cc: [], bcc: [] } : {}) } } };
-  const by = await actorName();
-  const original = originalKey(form, key, data);
-  const started = Date.now();
-  const recipient = other ? to : (def.audience === "studio" && n.to.length ? n.to.join(", ") : mail.to);
-  try {
-    await sendFormEmail(form, forced, key, other ? { ...mail, to } : mail,
-      { summary: `Resent "${def.name}" by hand.`, dedupeKey: `${original}:resend:${crypto.randomUUID()}`, by },
-      tokensFor(form, data));
-  } catch (error) {
-    const first = await findLogged(original);
-    if (first) await recordResend(first.id, { at: new Date().toISOString(), to: recipient, by, sent: false, ms: Date.now() - started, error: error instanceof Error ? error.message.slice(0, 200) : "refused" });
-    await addEvents(form.key, [entry.id], "email", `Resending "${def.name}" to ${recipient} failed`, by);
-    revalidatePath(`/admin/forms/${form.key}/entries/${entry.id}`);
-    return FAIL({}, `The mail server refused it: ${error instanceof Error ? error.message : "no reason given"}`);
+  const r = await resendFormEmail(form, String(fd.get("id") ?? ""), String(fd.get("notification") ?? ""), {
+    by: await actorName(), ...(other ? { to } : {}),
+  });
+  if (!r.ok && r.reason === "refused") return FAIL({}, `The mail server refused it: ${r.error}`);
+  if (!r.ok) {
+    return FAIL({}, r.reason === "no-entry" ? "That entry is no longer there."
+      : r.reason === "no-email" ? "That email is not there."
+      : "There is no address to send that one to.");
   }
-  const ms = Date.now() - started;
-  const first = await findLogged(original);
-  if (first) await recordResend(first.id, { at: new Date().toISOString(), to: recipient, by, sent: true, ms });
-  await addEvents(form.key, [entry.id], "email", `Resent "${def.name}" to ${recipient}`, by);
-  revalidatePath(`/admin/forms/${form.key}/entries/${entry.id}`);
-  return OK(`Sent to ${recipient} in ${(ms / 1000).toFixed(1)} s.`);
+  return OK(`Sent to ${r.recipient} in ${(r.ms / 1000).toFixed(1)} s.`);
 }
 
 /** A CSV of newsletter addresses, added quietly. The owner's. */

@@ -148,3 +148,9 @@ export async function auditActors(): Promise<string[]> {
     return mem();
   }
 }
+
+/** The latest entry about one subject, such as the daily tidy ("daily"). */
+export async function lastAuditFor(subjectId: string): Promise<AuditEntry | null> {
+  const r = await listAudit({ subjectId, limit: 1, range: "all" });
+  return r.entries[0] ?? null;
+}

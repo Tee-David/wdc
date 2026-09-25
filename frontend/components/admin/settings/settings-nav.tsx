@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronLeft, ChevronRight, Globe, History, Images, Mail, MessagesSquare, Plug, ShieldCheck, SlidersHorizontal, UserRound, Users } from "lucide-react";
+import { Activity, ChevronLeft, ChevronRight, Globe, History, Images, Mail, MessagesSquare, Plug, ShieldCheck, SlidersHorizontal, UserRound, Users } from "lucide-react";
 import { can, isAdminRole, type AdminRole } from "@/lib/admin/permissions";
 import { SETTINGS_GROUPS, SETTINGS_SECTIONS, type SettingsIcon } from "@/lib/settings/sections";
 
 const ICON: Record<SettingsIcon, typeof Mail> = {
-  sliders: SlidersHorizontal, messages: MessagesSquare, images: Images, mail: Mail, plug: Plug, history: History, shield: ShieldCheck, users: Users, user: UserRound, globe: Globe,
+  sliders: SlidersHorizontal, messages: MessagesSquare, images: Images, mail: Mail, plug: Plug, history: History, shield: ShieldCheck, users: Users, user: UserRound, globe: Globe, activity: Activity,
 };
 
 /**
