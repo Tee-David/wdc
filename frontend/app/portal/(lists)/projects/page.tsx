@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { projectGlyph } from "@/components/client/service-glyph";
 import { ArrowRight, FolderKanban } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
 import { getProjectsFor } from "@/lib/admin/store";
@@ -32,7 +33,7 @@ export default async function PortalProjects() {
               const service = SERVICES.find((s) => s.slug === project.service);
               return (
                 <Link href={`/portal/projects/${project.id}`} key={project.id}>
-                  <span className="adDash__listIcon"><FolderKanban aria-hidden="true" /></span>
+                  <span className="adDash__listIcon">{projectGlyph(project)}</span>
                   <span><b>{project.title}</b><small>{service?.short ?? project.service}</small></span>
                   <StagePill stage={project.stage} />
                   <ArrowRight aria-hidden="true" />

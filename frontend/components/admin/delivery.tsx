@@ -1,5 +1,6 @@
 "use client";
 
+import { IconPicker } from "./icon-picker";
 import { Check, FilePlus2, ListPlus, Plus, Send, Trash2 } from "lucide-react";
 import {
   APPROVALS, CHANNELS, HEALTH, PRIORITIES, naira, taskIsWaiting,
@@ -352,6 +353,7 @@ export function ProjectDetails({ project }: { project: Project }) {
             <Area name="scope" label="What was bought" rows={2} defaultValue={project.scope ?? ""}
                   placeholder="Logo, palette, type scale and a short guideline set."
                   hint="In words the client would recognise, because this is what an argument gets settled against." />
+            <IconPicker defaultValue={project.icon} />
           </Fields>
           <Actions><Submit>Save</Submit></Actions>
         </Form>

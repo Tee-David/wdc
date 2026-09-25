@@ -129,6 +129,8 @@ export type Project = {
    * of the lists; there is deliberately no way to destroy it.
    */
   archived?: boolean;
+  /** One of lib/project-icons.ts, picked or random when it was opened; the client sees it too. */
+  icon?: string;
   /** Its place in its board column, set by dragging; unset sorts after the ranked ones. */
   rank?: number;
 };
