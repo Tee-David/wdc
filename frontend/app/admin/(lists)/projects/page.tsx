@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { CalendarDays } from "lucide-react";
 import { SERVICES } from "@/lib/services";
 import {
   getBoard, getClient, getClients, getProjects, getTasks,
@@ -36,7 +35,7 @@ export const metadata = { title: "Projects" };
  */
 
 type Query = {
-  stage?: string; service?: string; owner?: string; health?: string; view?: string;
+  stage?: string; service?: string; owner?: string; health?: string; view?: string; q?: string;
 };
 
 /** A link that keeps every filter except the one it is changing. */
@@ -81,14 +80,17 @@ export default async function ProjectsPage({
   const owners = [...new Set(projects.map((p) => p.owner).filter(Boolean))].sort();
   const owner = owners.find((o) => o === q.owner);
 
+  /* Words, matched against the title, the client and the owner. */
+  const needle = String(q.q ?? "").trim().slice(0, 80).toLocaleLowerCase();
   const match = (p: Project) =>
+    (!needle || `${p.title} ${getClient(p.clientId)?.company ?? ""} ${p.owner}`.toLocaleLowerCase().includes(needle)) &&
     (!stage || p.stage === stage) &&
     (!service || p.service === service.slug) &&
     (!health || p.health === health) &&
     (!owner || p.owner === owner);
 
   const all = projects.filter(match);
-  const filtered = !!(stage || service || health || owner);
+  const filtered = !!(needle || stage || service || health || owner);
   const live = all.filter((p) => p.stage !== "Delivered").length;
 
   return (
@@ -127,6 +129,10 @@ export default async function ProjectsPage({
               when it submits -- which would bounce a reader off the board and
               back to the list every time they narrowed something down. */}
           {board ? <input type="hidden" name="view" value="board" /> : null}
+          <label className="ad__filterSearch">
+            Search
+            <input type="search" name="q" defaultValue={needle} placeholder="A project, client or owner" />
+          </label>
           <label>
             Stage
             <select name="stage" defaultValue={stage ?? ""}>

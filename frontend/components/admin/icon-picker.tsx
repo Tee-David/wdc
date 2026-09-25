@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Shuffle } from "lucide-react";
+import { Shuffle, type LucideIcon } from "lucide-react";
 import { PROJECT_ICONS, PROJECT_ICON_NAMES, randomProjectIcon } from "@/lib/project-icons";
 
 /**
@@ -14,7 +14,7 @@ export function IconPicker({ name = "icon", defaultValue }: { name?: string; def
      random icon in the browser is a hydration mismatch. A new project with
      none chosen gets a random one when it is saved (createProject). */
   const [value, setValue] = useState(defaultValue ?? "");
-  const Chosen = PROJECT_ICONS[value]?.icon;
+  const Chosen: LucideIcon | undefined = value ? PROJECT_ICONS[value]?.icon : undefined;
   return (
     <fieldset className="ad__f adIcons">
       <legend className="ad__fl">Icon</legend>

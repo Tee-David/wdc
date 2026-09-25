@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ListSearch } from "@/components/admin/list-search";
 import { Banknote, FileText } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
 import { getCreditsFor, getInvoicesFor } from "@/lib/admin/store";
@@ -37,11 +38,13 @@ export default async function PortalBilling() {
 
       <Panel dataTour="portal-billing" title={`${invoices.length} document${invoices.length === 1 ? "" : "s"}`}>
         {invoices.length ? (
-          <div className="adDash__compactList">
+          <>
+          <ListSearch target="portal-invoices" placeholder="Search invoices" noun="invoices" />
+          <div className="adDash__compactList" id="portal-invoices">
             {invoices.map((inv) => {
               const t = invoiceTotals(inv);
               return (
-                <Link href={`/i/${inv.token}`} key={inv.id} target="_blank" rel="noopener noreferrer">
+                <Link data-row href={`/i/${inv.token}`} key={inv.id} target="_blank" rel="noopener noreferrer">
                   <span className="adDash__listIcon"><FileText aria-hidden="true" /></span>
                   <span><b>{inv.number}</b><small>Issued {when(inv.issued)} · due {when(inv.due)}</small></span>
                   <span className="ad__row">
@@ -52,6 +55,7 @@ export default async function PortalBilling() {
               );
             })}
           </div>
+          </>
         ) : (
           <Empty title="No invoices yet" icon={Banknote}>Invoices raised against your projects will appear here, with a link to the full document and its payment status.</Empty>
         )}

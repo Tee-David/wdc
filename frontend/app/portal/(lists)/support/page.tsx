@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ListSearch } from "@/components/admin/list-search";
 import { LifeBuoy } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
 import { getTicketsFor } from "@/lib/admin/store";
@@ -41,15 +42,18 @@ export default async function PortalSupport({
 
       <Panel dataTour="portal-support" title={`${tickets.length} conversation${tickets.length === 1 ? "" : "s"}`}>
         {tickets.length ? (
-          <div className="adDash__compactList">
+          <>
+          <ListSearch target="portal-tickets" placeholder="Search conversations" noun="conversations" />
+          <div className="adDash__compactList" id="portal-tickets">
             {tickets.map((t) => (
-              <Link href={`/portal/support/${t.id}`} key={t.id}>
+              <Link data-row href={`/portal/support/${t.id}`} key={t.id}>
                 <span className="adDash__listIcon"><LifeBuoy aria-hidden="true" /></span>
                 <span><b>{t.subject}</b><small>Started {when(t.createdAt)}</small></span>
                 <span className={`ad__pill ${STATUS_CLASS[t.status]}`}>{t.status}</span>
               </Link>
             ))}
           </div>
+          </>
         ) : (
           <Empty title="No conversations yet" icon={LifeBuoy}>Questions you raise with the studio appear here, with replies in the same thread.</Empty>
         )}
