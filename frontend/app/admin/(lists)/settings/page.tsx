@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Images, MessagesSquare } from "lucide-react";
+import { Images, Mail, MessagesSquare } from "lucide-react";
 import { adminRole } from "@/lib/admin/guard";
 import { AdminState } from "@/components/admin/admin-state";
 import { CONTACT_EMAIL } from "@/lib/site";
@@ -84,6 +84,7 @@ export default async function SettingsPage() {
         <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
           <Link className="ad__btn" href="/admin/settings/faq"><MessagesSquare aria-hidden="true" /> FAQ</Link>
           <Link className="ad__btn" href="/admin/settings/media"><Images aria-hidden="true" /> Media</Link>
+          <Link className="ad__btn" href="/admin/settings/email"><Mail aria-hidden="true" /> Email</Link>
           <PageTourButton />
         </div>
       </div>
