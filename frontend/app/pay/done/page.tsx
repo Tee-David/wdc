@@ -9,6 +9,7 @@ import { fromKobo, paystackMode, verifyTransaction } from "@/lib/paystack";
 import { sendPaymentReceiptEmail } from "@/lib/money-mail";
 import ReceiptPrinter from "@/components/money/receipt-printer";
 import "@/components/money/document.css";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 /**
  * Where Paystack sends the payer back to.
@@ -152,6 +153,8 @@ async function settle(reference: string): Promise<Outcome> {
 export default async function PaymentDone({
   searchParams,
 }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  await syncStore();
+  persistSoon();
   const params = await searchParams;
   /* Paystack sends `reference`; older integrations see `trxref`. Both are the
      same value, and a string is all we take from either. */

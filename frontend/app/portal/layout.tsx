@@ -10,6 +10,7 @@ import "@/components/admin/admin.css";
    admin's own dashboard-view.tsx pulls them in, rather than duplicated
    under a `portal` prefix for no visual difference. */
 import "@/components/admin/dashboard.css";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 /**
  * The client portal's own shell, mirroring `app/admin/layout.tsx` almost
@@ -28,6 +29,8 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
+  await syncStore();
+  persistSoon();
   const { session, client } = await getPortalRequest();
 
   if (!session?.user) redirect("/login?redirect=/portal");

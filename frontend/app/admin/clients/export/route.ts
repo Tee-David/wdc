@@ -4,10 +4,13 @@ import { getAdminRequest } from "@/lib/admin/session";
 import { getClients, getInvoicesFor, getProjectsFor } from "@/lib/admin/store";
 import { invoiceTotals } from "@/lib/admin/types";
 import { csvBody, CSV_HEADERS } from "@/lib/admin/csv";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
+  await syncStore();
+  persistSoon();
   const { session } = await getAdminRequest();
   if (!session?.user || (session.user as typeof session.user & { role?: string }).role !== "owner") {
     return new NextResponse("Not found", { status: 404 });

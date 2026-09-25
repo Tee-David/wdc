@@ -4,8 +4,11 @@ import { getPortalRequest } from "@/lib/portal/session";
 import { getTicket, getTicketMessages } from "@/lib/admin/store";
 import { Panel, when } from "@/components/admin/bits";
 import { TicketReplyForm } from "@/components/client/ticket-reply-form";
+import { Conversation } from "@/components/admin/conversation";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  await syncStore();
   const { id } = await params;
   const { client } = await getPortalRequest();
   const t = client ? getTicket(id) : null;
@@ -20,6 +23,8 @@ const STATUS_CLASS: Record<string, string> = {
 };
 
 export default async function PortalTicketThread({ params }: { params: Promise<{ id: string }> }) {
+  await syncStore();
+  persistSoon();
   const { id } = await params;
   const { client } = await getPortalRequest();
   const t = client ? getTicket(id) : null;
@@ -38,33 +43,12 @@ export default async function PortalTicketThread({ params }: { params: Promise<{
       </header>
 
       <Panel title="Conversation">
-        <div style={{ display: "grid", gap: ".75rem" }}>
-          {messages.map((m) => (
-            <div
-              key={m.id}
-              className="ad__panel"
-              style={{
-                padding: ".85rem 1rem",
-                marginLeft: m.from === "studio" ? "0" : "2rem",
-                marginRight: m.from === "studio" ? "2rem" : "0",
-                background: m.from === "studio" ? "var(--ad-bg)" : "var(--ad-panel)",
-              }}
-            >
-              <div className="ad__row" style={{ justifyContent: "space-between" }}>
-                <b>{m.from === "studio" ? "WDC" : m.author}</b>
-                <small style={{ color: "var(--ad-dim)" }}>{when(m.at)}</small>
-              </div>
-              <p style={{ margin: ".4rem 0 0", fontSize: ".9rem", whiteSpace: "pre-wrap" }}>{m.body}</p>
-            </div>
-          ))}
+        <Conversation messages={messages} me="client" />
+        <div className="adConv__reply">
+          {/* Always open: writing on a closed question reopens it. */}
+          <TicketReplyForm ticketId={t.id} />
         </div>
       </Panel>
-
-      {t.status !== "Closed" ? (
-        <section className="ad__panel" style={{ padding: "1rem", marginTop: ".9rem" }}>
-          <TicketReplyForm ticketId={t.id} />
-        </section>
-      ) : null}
     </div>
   );
 }

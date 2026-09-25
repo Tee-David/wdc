@@ -880,6 +880,68 @@ The WDC team`, { unsubscribe: true }),
 
 /* ===================================================== 8. deliverable ready */
 
+/** The studio answered a question the client raised in the portal. */
+export function supportReplyEmail(input: { clientName: string; subject: string; reply: string; author: string; url: string }): Email {
+  const { clientName, subject, reply, author, url } = input;
+  return {
+    subject: `Re: ${subject}`,
+    /* An answer to their own question, and still switchable with the rest of
+       the project messages. */
+    unsubscribe: true,
+    text: textShell(`Hi ${clientName},
+
+${author} replied to "${subject}":
+
+${reply}
+
+Read the conversation or answer it here:
+
+${url}
+
+The WDC team`, { unsubscribe: true }),
+    html: shell({
+      title: `Re: ${subject}`,
+      preheader: reply.slice(0, 120),
+      heading: "We replied to your question.",
+      unsubscribe: true,
+      blocks: [
+        p(`Hi ${escapeHtml(clientName)},`),
+        panel([["About", subject], ["From", author]]),
+        p(escapeHtml(reply).replace(/\n/g, "<br>")),
+        action("Read and reply", url),
+      ],
+    }),
+  };
+}
+
+/** For the studio: a client opened a question, or answered one. */
+export function supportNoticeEmail(input: { company: string; subject: string; body: string; opened: boolean; url: string }): Email {
+  const { company, subject, body, opened, url } = input;
+  const heading = opened ? `${company} asked a question.` : `${company} replied.`;
+  return {
+    subject: `${opened ? "New question" : "Reply"} from ${company}: ${subject}`,
+    text: textShell(`${heading}
+
+${subject}
+
+${body}
+
+Answer it in the admin:
+
+${url}`),
+    html: shell({
+      title: subject,
+      preheader: body.slice(0, 120),
+      heading,
+      blocks: [
+        panel([["Client", company], ["About", subject]]),
+        p(escapeHtml(body).replace(/\n/g, "<br>")),
+        action("Answer it", url),
+      ],
+    }),
+  };
+}
+
 export function deliverableReadyEmail(input: {
   clientName: string;
   projectTitle: string;

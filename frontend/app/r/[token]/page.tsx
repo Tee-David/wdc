@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getClient, getInvoice, getPaymentByToken, getProject } from "@/lib/admin/store";
 import { invoiceTotals, naira, paymentNet, refundedTotal } from "@/lib/admin/types";
 import { DocumentShell, Headline, invoiceUrl, receiptUrl } from "@/components/money/document";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 /**
  * A receipt for one payment.
@@ -31,6 +32,8 @@ export default async function PublicReceipt({
 }: {
   params: Promise<{ token: string }>;
 }) {
+  await syncStore();
+  persistSoon();
   const { token } = await params;
   const pay = getPaymentByToken(token);
   if (!pay) notFound();

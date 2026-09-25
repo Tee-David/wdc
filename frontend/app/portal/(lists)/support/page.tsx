@@ -4,6 +4,7 @@ import { getPortalRequest } from "@/lib/portal/session";
 import { getTicketsFor } from "@/lib/admin/store";
 import { Empty, Panel, when } from "@/components/admin/bits";
 import { NewTicketForm } from "@/components/client/new-ticket-form";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 export const metadata = { title: "Support" };
 
@@ -16,6 +17,8 @@ const STATUS_CLASS: Record<string, string> = {
 export default async function PortalSupport({
   searchParams,
 }: { searchParams: Promise<{ new?: string; subject?: string; project?: string }> }) {
+  await syncStore();
+  persistSoon();
   const { client } = await getPortalRequest();
   if (!client) return null;
   const sp = await searchParams;

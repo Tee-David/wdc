@@ -23,6 +23,7 @@ import { can } from "@/lib/admin/permissions";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { ProfileCard } from "@/components/admin/profile-card";
 import { Mail, Phone, Tag, User } from "lucide-react";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 /* NO generateStaticParams. The client list is written to now, and a route
    prerendered from the list as it stood at build time would 404 on the client
@@ -37,6 +38,7 @@ import { Mail, Phone, Tag, User } from "lucide-react";
    was the loading boundary above this page, which streamed a 200 first, and
    it moved into `app/admin/(lists)` for exactly that reason. */
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  await syncStore();
   const { id } = await params;
   const c = getClient(id);
   if (!c) notFound();
@@ -44,6 +46,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 export default async function ClientPage({ params }: { params: Promise<{ id: string }> }) {
+  await syncStore();
+  persistSoon();
   const { id } = await params;
   const c = getClient(id);
   if (!c) notFound();

@@ -4,10 +4,13 @@ import { getPortalRequest } from "@/lib/portal/session";
 import { getProjectsFor } from "@/lib/admin/store";
 import { SERVICES } from "@/lib/services";
 import { Empty, Panel, StagePill } from "@/components/admin/bits";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 export const metadata = { title: "Projects" };
 
 export default async function PortalProjects() {
+  await syncStore();
+  persistSoon();
   const { client } = await getPortalRequest();
   if (!client) return null;
 

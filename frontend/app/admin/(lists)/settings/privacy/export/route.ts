@@ -4,6 +4,7 @@ import { can } from "@/lib/admin/permissions";
 import { audit } from "@/lib/admin/store";
 import { csvBody } from "@/lib/admin/csv";
 import { countOf, findPersonalData, flatten, hashEmail, logRequest, looksEmail } from "@/lib/privacy/requests";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 /**
  * Everything held about one address, as a file for the person who asked.
@@ -11,6 +12,8 @@ import { countOf, findPersonalData, flatten, hashEmail, logRequest, looksEmail }
  * Every download is logged.
  */
 export async function GET(request: NextRequest) {
+  await syncStore();
+  persistSoon();
   if (!can(await adminRole(), "settings")) return new NextResponse("Not found", { status: 404 });
   const email = (request.nextUrl.searchParams.get("email") ?? "").trim().toLowerCase();
   if (!looksEmail(email)) return new NextResponse("An email address is needed.", { status: 400 });
