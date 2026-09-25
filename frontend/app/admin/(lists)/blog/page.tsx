@@ -10,10 +10,11 @@ import PageTourButton from "@/components/admin/tour/page-tour-button";
 
 export const metadata = { title: "Blog" };
 
-type State = "draft" | "scheduled" | "published";
-const stateOf = (p: AdminPost): State => (p.status === "draft" ? "draft" : p.scheduled ? "scheduled" : "published");
+type State = "draft" | "review" | "scheduled" | "published";
+const stateOf = (p: AdminPost): State => (p.status === "draft" ? "draft" : p.status === "review" ? "review" : p.scheduled ? "scheduled" : "published");
 const PILL: Record<State, { label: string; tone: string }> = {
   draft: { label: "Draft", tone: "ad__pill--flat" },
+  review: { label: "In review", tone: "ad__pill--live" },
   scheduled: { label: "Scheduled", tone: "ad__pill--warn" },
   published: { label: "Published", tone: "ad__pill--good" },
 };
@@ -31,7 +32,7 @@ const PILL: Record<State, { label: string; tone: string }> = {
 export default async function BlogPostsPage({ searchParams }: { searchParams: Promise<{ q?: string; state?: string }> }) {
   const query = await searchParams;
   const search = query.q?.trim().toLocaleLowerCase() ?? "";
-  const wanted = (["draft", "scheduled", "published"] as const).find((s) => s === query.state);
+  const wanted = (["draft", "review", "scheduled", "published"] as const).find((s) => s === query.state);
   const inTrash = query.state === "trash";
   const configured = Boolean(process.env.DATABASE_URL || process.env.COCKROACHDB_URL);
   let posts: AdminPost[] | null = null;
@@ -44,7 +45,7 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
       console.error("Blog posts could not be read", error instanceof Error ? error.message : "unknown error");
     }
   }
-  const counts = { published: 0, scheduled: 0, draft: 0 };
+  const counts = { published: 0, scheduled: 0, draft: 0, review: 0 };
   for (const p of posts ?? []) counts[stateOf(p)]++;
   const rows = (posts ?? [])
     .filter((p) => !wanted || stateOf(p) === wanted)
@@ -116,6 +117,7 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
         <>
           <dl className="ad__tiles">
             <Tile label="Published" value={String(counts.published)} tone="good" note="Live on /blog" />
+            <Tile label="In review" value={String(counts.review)} tone={counts.review ? "accent" : undefined} note={isOwner ? "Waiting for you to publish or send back" : "Waiting for the owner"} />
             <Tile label="Scheduled" value={String(counts.scheduled)} note="Go live on their date" />
             <Tile label="Drafts" value={String(counts.draft)} note="Only you can see these" />
           </dl>
@@ -133,6 +135,7 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
                     <option value="">Every state</option>
                     <option value="published">Published</option>
                     <option value="scheduled">Scheduled</option>
+                    <option value="review">In review</option>
                     <option value="draft">Drafts</option>
                   </select>
                 </label>
@@ -162,7 +165,7 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
                             <td>{SERVICES.find((s) => s.slug === p.topic)?.short ?? p.topic}</td>
                             <td className="ad__dim ad__num">{p.publishedAt ? when(p.publishedAt) : "Not set"}</td>
                             <td className="ad__dim">{p.savedAt ? `${when(p.savedAt)}${p.savedBy ? ` by ${p.savedBy}` : ""}` : "Imported"}</td>
-                            <td className="ad__rmC"><BlogPostMenu post={{ id: p.id, title: p.title, slug: p.slug, state }} /></td>
+                            <td className="ad__rmC"><BlogPostMenu post={{ id: p.id, title: p.title, slug: p.slug, state }} canPublish={isOwner} /></td>
                           </tr>
                         );
                       })}

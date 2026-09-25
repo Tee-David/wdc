@@ -13,7 +13,7 @@ export async function GET() {
   const header = ["Title", "Address", "State", "Service", "Tags", "Date shown", "Updated", "Last saved", "Saved by"];
   const rows = posts.map((p) => [
     p.title, `/blog/${p.slug}`,
-    p.status === "draft" ? "Draft" : p.scheduled ? "Scheduled" : "Published",
+    p.status === "draft" ? "Draft" : p.status === "review" ? "In review" : p.scheduled ? "Scheduled" : "Published",
     p.topic, p.tags.join("; "), p.publishedAt?.slice(0, 10) ?? "", p.updated ?? "",
     p.savedAt?.slice(0, 10) ?? "", p.savedBy ?? "",
   ]);
