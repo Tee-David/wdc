@@ -1,0 +1,133 @@
+<title>Constellation of the Work</title>
+<!--@head-->
+<style>
+.stage{background:linear-gradient(180deg,#00002e 0%,#000050 55%,var(--navy) 100%)}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+.star-btn{position:absolute;transform:translate(-50%,-50%);width:var(--d);height:var(--d);border-radius:50%;border:0;background:transparent;cursor:pointer;padding:0}
+.star-btn .lbl{position:absolute;left:50%;top:100%;transform:translate(-50%,6px);white-space:nowrap;display:grid;justify-items:center;gap:.2rem;pointer-events:none}
+.star-btn .n{font:600 .74rem/1 var(--body);letter-spacing:.16em;text-transform:uppercase;color:var(--mist);transition:color .2s}
+.star-btn .t{font:500 .82rem/1.2 var(--body);color:var(--black);background:var(--white);padding:.35rem .6rem;border-radius:999px;opacity:0;transform:translateY(-4px);transition:opacity .2s,transform .2s}
+.star-btn:hover .n,.star-btn:focus-visible .n,.star-btn.on .n{color:var(--orange)}
+.star-btn:hover .t,.star-btn:focus-visible .t,.star-btn.on .t{opacity:1;transform:none}
+.star-btn:focus-visible{outline-offset:6px}
+.horizon{position:absolute;left:0;right:0;bottom:0;height:18vh;min-height:110px;background:#00003a;border-top:2px solid var(--orange)}
+.horizon::before{content:"";position:absolute;inset:-40px 0 auto 0;height:40px;background:linear-gradient(0deg,rgba(255,101,0,.22),transparent)}
+.hz{position:absolute;right:32px;left:calc(var(--scene-left) + 32px);top:18px;margin:0;display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap}
+.hz b{font:600 clamp(1.1rem,2.6vw,1.7rem)/1.1 var(--display);letter-spacing:-.01em}
+.hz b span{color:var(--orange)}
+.hz small{font-size:.85rem;color:var(--mist)}
+.word{position:absolute;left:0;top:0;font:700 clamp(1.4rem,3vw,2.2rem)/1 var(--display);letter-spacing:-.02em;color:var(--white);pointer-events:none;opacity:0;white-space:nowrap}
+@media (max-width:999px){.hz{left:16px;right:16px}.horizon{height:26vh}}
+</style>
+<main class="stage" id="stage" data-n="05" data-name="Constellation of the work">
+  <canvas id="c" aria-hidden="true"></canvas>
+  <div id="btns"></div>
+  <span class="word" id="word" aria-hidden="true"></span>
+  <div class="horizon">
+    <p class="hz"><b>Back by <span data-back-lagos>…</span></b><small>Lagos time. The studio is still open for work.</small></p>
+  </div>
+</main>
+<!--@dock-->
+<!--@js-->
+<script>
+(function(){
+  var cv = document.getElementById('c'), ctx = cv.getContext('2d'), btns = document.getElementById('btns'), word = document.getElementById('word');
+  var dpr = Math.min(2, devicePixelRatio||1), W, H, left, top = 80, bottom;
+  var coarse = matchMedia('(pointer: coarse)').matches;
+  function circle(cx, cy, r, n, a0){ var p = []; for (var i = 0; i < n; i++){ var a = (a0||0) + i/n*Math.PI*2; p.push([cx+Math.cos(a)*r, cy+Math.sin(a)*r]); } return p; }
+  function ring(start, n){ var e = []; for (var i = 0; i < n; i++) e.push([start+i, start+(i+1)%n]); return e; }
+  var cons = [
+    {n:'Branding', t:'Coming back sharper', at:[.1,.16], p:[[0,1],[-.5,-.1],[-.35,-.85],[.35,-.85],[.5,-.1],[0,-.15]], e:[[0,1],[1,2],[2,3],[3,4],[4,0],[0,5]]},
+    {n:'Web', t:'Faster pages on every phone', at:[.48,.08], p:[[-1,-.7],[1,-.7],[1,.7],[-1,.7],[-1,-.3],[1,-.3],[-.8,-.5]], e:[[0,1],[1,2],[2,3],[3,0],[4,5]]},
+    {n:'SEO', t:'Easier to find', at:[.86,.24], p:circle(-.2,-.2,.55,7,.3).concat([[.25,.25],[.85,.85]]), e:ring(0,7).concat([[7,8]])},
+    {n:'Mobile apps', t:'Built for the thumb', at:[.22,.6], p:[[-.5,-1],[.5,-1],[.5,1],[-.5,1],[0,.78],[-.15,-.82],[.15,-.82]], e:[[0,1],[1,2],[2,3],[3,0],[5,6]]},
+    {n:'AI software', t:'Tools that do the dull parts', at:[.6,.5], p:[[0,-.85],[-.8,-.1],[.8,-.1],[-.45,.8],[.45,.8],[0,0]], e:[[0,5],[1,5],[2,5],[3,5],[4,5],[0,1],[0,2],[1,3],[2,4],[3,4]]},
+    {n:'Marketing', t:'Louder, and to the right people', at:[.9,.66], p:[[-.9,-.25],[-.35,-.25],[.75,-.85],[.75,.85],[-.35,.25],[-.9,.25],[-.6,.25],[-.45,.85]], e:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[6,7]]}
+  ];
+  /* a steady random, so the sky is the same sky on every visit */
+  var seed = 7; function rnd(){ seed = (seed*16807) % 2147483647; return seed/2147483647; }
+  var stars = []; for (var i = 0; i < 260; i++) stars.push({x:rnd(), y:rnd(), r:rnd()*1.3+.3, z:rnd()*.9+.1, ph:rnd()*6.28});
+
+  function size(){
+    W = cv.clientWidth; H = cv.clientHeight; cv.width = W*dpr; cv.height = H*dpr;
+    left = innerWidth >= 1000 ? 26*16 + 32 + 40 : 36;
+    bottom = H - (innerWidth >= 1000 ? Math.max(110, H*.18) : H*.26) - 70;
+    var S = Math.max(34, Math.min(62, (W-left)/14));
+    cons.forEach(function(c){
+      c.x = left + c.at[0]*(W - left - 70); c.y = top + c.at[1]*(bottom - top); c.S = S;
+      if (!c.btn){
+        var b = c.btn = document.createElement('button'); b.className = 'star-btn'; b.type = 'button';
+        b.innerHTML = '<span class="lbl"><span class="n"></span><span class="t"></span></span>';
+        b.querySelector('.n').textContent = c.n; b.querySelector('.t').textContent = c.t;
+        b.setAttribute('aria-label', c.n+': '+c.t);
+        b.addEventListener('click', function(){ cons.forEach(function(o){ o.btn.classList.toggle('on', o === c && !o.btn.classList.contains('on')); }); c.flare = 1; });
+        b.addEventListener('pointerenter', function(){ c.hot = 1; }); b.addEventListener('pointerleave', function(){ c.hot = 0; });
+        b.addEventListener('focus', function(){ c.hot = 1; }); b.addEventListener('blur', function(){ c.hot = 0; });
+        btns.appendChild(b);
+      }
+      c.btn.style.left = c.x+'px'; c.btn.style.top = c.y+'px'; c.btn.style.setProperty('--d', (S*2.3)+'px');
+    });
+  }
+  addEventListener('resize', size); size();
+
+  var mx = 0, my = 0, tx = 0, ty = 0;
+  if (!coarse) addEventListener('pointermove', function(e){ tx = (e.clientX/W - .5); ty = (e.clientY/H - .5); });
+
+  var t0 = performance.now(), shoot = null, nextShoot = 1.5, words = ['Brilliant','simplicity','of thought.'], wi = 0;
+  function frame(now, dt){
+    var T = (now - t0)/1000;
+    mx += (tx - mx)*.05; my += (ty - my)*.05;
+    ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+    stars.forEach(function(s){
+      var x = s.x*W - mx*40*s.z, y = s.y*H*.85 - my*30*s.z;
+      var a = WDC.reduced ? .7 : .45 + .55*Math.abs(Math.sin(T*.8 + s.ph));
+      ctx.globalAlpha = a*s.z; ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(x, y, s.r, 0, 6.283); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    cons.forEach(function(c, ci){
+      var ox = -mx*18, oy = -my*14;
+      var draw = WDC.reduced ? 1 : Math.min(1, Math.max(0, (T - ci*.6)/1.8));
+      c.flare = (c.flare||0)*.96;
+      var hot = c.hot || c.btn.classList.contains('on') ? 1 : 0;
+      c.glow = (c.glow||0) + (hot - (c.glow||0))*.12;
+      var col = 'rgba(255,'+Math.round(255 - 154*c.glow)+','+Math.round(255 - 255*c.glow)+',';
+      ctx.lineWidth = 1.2 + c.glow*1.2; ctx.strokeStyle = col + (.35 + .5*c.glow + c.flare*.4) + ')';
+      var total = c.e.length*draw;
+      c.e.forEach(function(e, i){
+        var k = Math.max(0, Math.min(1, total - i)); if (!k) return;
+        var a = c.p[e[0]], b = c.p[e[1]];
+        var ax = c.x + ox + a[0]*c.S, ay = c.y + oy + a[1]*c.S, bx = c.x + ox + b[0]*c.S, by = c.y + oy + b[1]*c.S;
+        ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax + (bx-ax)*k, ay + (by-ay)*k); ctx.stroke();
+      });
+      c.p.forEach(function(p, i){
+        var x = c.x + ox + p[0]*c.S, y = c.y + oy + p[1]*c.S, tw = WDC.reduced ? 1 : .75 + .25*Math.sin(T*2 + i + ci);
+        ctx.fillStyle = c.glow > .5 ? '#ff6500' : '#ffffff';
+        ctx.shadowColor = c.glow > .5 ? '#ff6500' : '#9fa6ff'; ctx.shadowBlur = 10 + c.flare*30;
+        ctx.beginPath(); ctx.arc(x, y, (2 + c.glow*1.2)*tw*draw, 0, 6.283); ctx.fill();
+      });
+      ctx.shadowBlur = 0;
+    });
+    /* a shooting star every few seconds, carrying one word of the motto */
+    if (!WDC.reduced){
+      nextShoot -= dt;
+      if (!shoot && nextShoot <= 0){
+        var sx = left + (W-left)*(.35 + Math.random()*.55), sy = top + Math.random()*H*.2;
+        shoot = {x:sx, y:sy, vx:-(520 + Math.random()*200), vy:260 + Math.random()*120, life:0, w:words[wi++ % words.length]};
+        word.textContent = shoot.w;
+        word.animate([{opacity:0, transform:'translate('+(sx-180)+'px,'+(sy+60)+'px)'},{opacity:1, offset:.3, transform:'translate('+(sx-210)+'px,'+(sy+74)+'px)'},{opacity:0, transform:'translate('+(sx-260)+'px,'+(sy+96)+'px)'}],{duration:2400, easing:'ease-out'});
+      }
+      if (shoot){
+        shoot.life += dt; shoot.x += shoot.vx*dt; shoot.y += shoot.vy*dt;
+        var g = ctx.createLinearGradient(shoot.x, shoot.y, shoot.x - shoot.vx*.28, shoot.y - shoot.vy*.28);
+        g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.25, 'rgba(255,101,0,.8)'); g.addColorStop(1, 'rgba(255,101,0,0)');
+        ctx.strokeStyle = g; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(shoot.x, shoot.y); ctx.lineTo(shoot.x - shoot.vx*.28, shoot.y - shoot.vy*.28); ctx.stroke();
+        if (shoot.life > 1.4){ shoot = null; nextShoot = 3.5 + Math.random()*2.5; }
+      }
+    }
+  }
+  if (WDC.reduced){ var still = function(){ size(); frame(t0 + 99999, 0); }; addEventListener('resize', still); still(); }
+  else WDC.loop(function(dt, now){ frame(now, dt); });
+})();
+</script>
