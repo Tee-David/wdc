@@ -1,8 +1,8 @@
 "use client";
 
 import { forwardRef, useEffect, useId, useImperativeHandle, useRef, useState } from "react";
-import { AtSign, Check, Eye, EyeOff, CircleAlert, ArrowUpRight, Sparkles } from "lucide-react";
-import { PASSWORD_RULES, suggestPassword } from "@/lib/auth/password-policy";
+import { AtSign, Check, Dices, Eye, EyeOff, CircleAlert, ArrowUpRight } from "lucide-react";
+import { PASSWORD_MIN, passwordStrength, suggestPassword } from "@/lib/auth/password-policy";
 import { useStage } from "@/components/auth/stage/stage-context";
 import { caretPoint } from "@/lib/auth/caret";
 import { copy } from "@/lib/auth/copy";
@@ -228,31 +228,25 @@ export const PasswordField = forwardRef<
 /* --------------------------------------------------------------- strength */
 
 /**
- * THE RULE, TICKED OFF AS YOU TYPE: five short chips under a new password,
- * and an offer to make one up. No paragraph: each chip is two words, and it
- * turns solid when it is met. The rule itself is `lib/auth/password-policy`,
- * which the server enforces too.
+ * THE METER UNDER A NEW PASSWORD: four bars that fill and colour as it gets
+ * stronger, and one short hint naming the next thing to add. The rule is
+ * `lib/auth/password-policy`, which the server enforces as well.
  */
 export function PasswordRules({ value, onSuggest }: { value: string; onSuggest?: (password: string) => void }) {
-  const met = PASSWORD_RULES.filter((r) => r.test(value)).length;
+  const { bars, word, next } = passwordStrength(value);
   return (
-    <div className="au-rules">
-      <ul className="au-rules__list" aria-label={`Password rules: ${met} of ${PASSWORD_RULES.length} met`}>
-        {PASSWORD_RULES.map((r) => {
-          const ok = r.test(value);
-          return (
-            <li key={r.id} data-ok={ok || undefined}>
-              {ok ? <Check aria-hidden="true" /> : null}
-              {r.label}<span className="au-sr">{ok ? ", done" : ", not yet"}</span>
-            </li>
-          );
-        })}
-      </ul>
-      {onSuggest ? (
-        <button type="button" className="au-link au-rules__suggest" onClick={() => onSuggest(suggestPassword())}>
-          <Sparkles aria-hidden="true" /> Suggest one
-        </button>
-      ) : null}
+    <div className="au-meter" data-bars={bars}>
+      <div className="au-meter__bars" aria-hidden="true"><span /><span /><span /><span /></div>
+      <div className="au-meter__row">
+        <p className="au-meter__hint" aria-live="polite">
+          {bars ? <><b>{word}.</b> {next ?? "Good to go."}</> : `${PASSWORD_MIN}+ characters, with a capital, a number and a symbol.`}
+        </p>
+        {onSuggest ? (
+          <button type="button" className="au-link au-meter__suggest" onClick={() => onSuggest(suggestPassword())}>
+            <Dices aria-hidden="true" /> Suggest one
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }

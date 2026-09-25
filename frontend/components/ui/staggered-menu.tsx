@@ -36,6 +36,7 @@ export default function StaggeredMenu({
   displaySocials = true,
   className = "",
   footerSlot,
+  accountSlot,
   onMenuOpen,
   onMenuClose,
 }: {
@@ -44,6 +45,8 @@ export default function StaggeredMenu({
   displaySocials?: boolean;
   className?: string;
   footerSlot?: React.ReactNode;
+  /** Who is signed in, shown above the footer row when somebody is. */
+  accountSlot?: React.ReactNode;
   onMenuOpen?: () => void;
   onMenuClose?: () => void;
 }) {
@@ -299,6 +302,7 @@ export default function StaggeredMenu({
               </ul>
             </div>
           )}
+          {accountSlot}
           {footerSlot && <div className="sm-footer">{footerSlot}</div>}
         </div>
       </aside>
