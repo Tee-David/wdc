@@ -1,5 +1,6 @@
 "use server";
 
+import { r2PublicBase } from "@/lib/r2";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { deleteTrashedPost, movePostToDraft, postForAdmin, publishPostNow, restorePost, returnPost, savePost, trashDraftPost } from "@/lib/blog-db";
@@ -26,7 +27,7 @@ export async function saveBlogPost(_prev: ActionState, fd: FormData): Promise<Ac
     if (typeof v === "string") raw[key] = v;
   }
   /* Images in a post come from this site or our own media bucket, nowhere else. */
-  const bucket = process.env.CLOUDFLARE_R2_URL?.replace(/\/+$/, "");
+  const bucket = r2PublicBase();
   const parsed = parsePost(raw, { imageHosts: bucket ? [bucket] : [] });
   if (!parsed.ok) return FAIL(parsed.errors, "Some fields need attention before this can be saved.");
 

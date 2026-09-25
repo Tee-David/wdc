@@ -1420,6 +1420,11 @@ export function primeSetting(key: string, value: string) {
   if (key && value.trim()) SETTINGS.set(key, value.trim());
 }
 
+/** A row another instance removed: gone here too, with no audit line. */
+export function forgetSetting(key: string) {
+  SETTINGS.delete(key);
+}
+
 export function setSetting(key: string, value: string, actor = "Studio"): boolean {
   const trimmed = value.trim();
   if (!key || !trimmed) return false;
@@ -1464,9 +1469,25 @@ export function financeDefaults(): typeof FINANCE_DEFAULTS {
   const rawDue = getSetting("finance.dueInDays");
   const vatRate = rawVat === null ? NaN : Number(rawVat);
   const dueInDays = rawDue === null ? NaN : Number(rawDue);
+  const rate = Number.isFinite(vatRate) && vatRate >= 0 ? vatRate : FINANCE_DEFAULTS.vatRate;
   return {
-    vatRate: Number.isFinite(vatRate) && vatRate >= 0 ? vatRate : FINANCE_DEFAULTS.vatRate,
+    /* "Add VAT to new invoices" off: a new one starts at 0%, and VAT is a
+       per-invoice decision. The rate itself is kept for when it is back on. */
+    vatRate: getSetting("finance.vatOn") === "0" ? 0 : rate,
     dueInDays: Number.isFinite(dueInDays) && dueInDays > 0 ? Math.trunc(dueInDays) : FINANCE_DEFAULTS.dueInDays,
+  };
+}
+
+/** The finance settings as the Settings screen shows them: the rate even while VAT is off. */
+export function financeSettings() {
+  const rawVat = getSetting("finance.vatRate");
+  const vat = rawVat === null ? NaN : Number(rawVat);
+  const rem = getSetting("finance.reminders");
+  return {
+    vatRate: Number.isFinite(vat) && vat >= 0 ? vat : FINANCE_DEFAULTS.vatRate,
+    vatOn: getSetting("finance.vatOn") !== "0",
+    dueInDays: financeDefaults().dueInDays,
+    reminders: !rem || rem === "off" ? [] : rem.split(","),
   };
 }
 

@@ -50,13 +50,14 @@ const status = (r: APIRequestContext, url: string) => r.get(url, { maxRedirects:
 
 test("switched on, visitors get a 503 holding page and the rest keeps working", async ({ page, baseURL, playwright }) => {
   await asOwner(page, baseURL);
-  await page.goto("/admin/settings/site", { waitUntil: "load" });
-  const panel = page.locator(".ad__panel", { hasText: "Maintenance mode" });
+  await page.goto("/admin/settings/site", { waitUntil: "networkidle" });
+  await page.getByRole("switch", { name: "Maintenance mode" }).click();
+  const panel = page.locator(".adConfirm");
   await panel.getByLabel(/^What visitors are told/).fill(MESSAGE);
   const label = await panel.locator("label", { hasText: /^Type \S+ to confirm/ }).first().textContent();
   await panel.getByLabel(/^Type .* to confirm/).fill(/Type (\S+) to confirm/.exec(label ?? "")![1]);
-  await panel.getByRole("button", { name: "Put the site in maintenance" }).click();
-  await expect(panel.locator(".ad__panelH .ad__pill")).toHaveText("On", { timeout: 20_000 });
+  await panel.getByRole("button", { name: "Turn on" }).click();
+  await expect(page.getByRole("switch", { name: "Maintenance mode" })).toHaveAttribute("aria-checked", "true", { timeout: 20_000 });
 
   const visitor = await playwright.request.newContext({ baseURL });
   await expect.poll(() => status(visitor, "/"), { timeout: 45_000, intervals: [2_000] }).toBe(503);
@@ -110,9 +111,10 @@ test("staff cannot switch it; switched off, the site is back for everybody", asy
 
   await asOwner(page, baseURL);
   await page.setExtraHTTPHeaders({ "x-boneyard-capture": TOKEN ?? "" });
-  await page.goto("/admin/settings/site", { waitUntil: "load" });
-  await page.getByRole("button", { name: "Bring the site back" }).click();
-  await expect(page.locator(".ad__panel", { hasText: "Maintenance mode" }).locator(".ad__panelH .ad__pill")).toHaveText("Off", { timeout: 20_000 });
+  await page.goto("/admin/settings/site", { waitUntil: "networkidle" });
+  await page.getByRole("switch", { name: "Maintenance mode" }).click();
+  await page.locator(".adConfirm").getByRole("button", { name: "Bring it back" }).click();
+  await expect(page.getByRole("switch", { name: "Maintenance mode" })).toHaveAttribute("aria-checked", "false", { timeout: 20_000 });
   const visitor = await playwright.request.newContext({ baseURL });
   await expect.poll(() => status(visitor, "/"), { timeout: 45_000, intervals: [2_000] }).toBe(200);
   await visitor.dispose();

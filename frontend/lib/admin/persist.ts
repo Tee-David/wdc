@@ -3,6 +3,7 @@ import "server-only";
 import { after } from "next/server";
 import { db } from "@/lib/db/pool";
 import { persistedCollections } from "@/lib/admin/store";
+import { hydrateSettings } from "@/lib/settings/store";
 
 /**
  * THE ADMIN'S RECORDS, KEPT (migration 0025).
@@ -158,6 +159,9 @@ async function write(all = false) {
  */
 export async function syncStore(): Promise<void> {
   if (!configured()) return;
+  /* The settings (VAT, reminders, sender) ride along: every reader of the
+     store is a reader of them, and they are one small query when stale. */
+  await hydrateSettings();
   if (state.inflight) return state.inflight;
   if (state.loaded && Date.now() - state.checkedAt < FRESH_MS) return;
   state.inflight = (async () => {

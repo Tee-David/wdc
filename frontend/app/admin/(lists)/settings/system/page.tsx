@@ -57,7 +57,7 @@ export default async function SystemPage() {
 
   return (
     <>
-      <div className="ad__head"><div><h1>System</h1><p>How the site is running, asked of each service rather than assumed, and the tools to put things right.</p></div></div>
+      <div className="ad__head"><div><h1>System health</h1><p>Is everything answering?</p></div></div>
       <div className="ad__stack">
         <Panel title="Services">
           <div className="ad__scroll">

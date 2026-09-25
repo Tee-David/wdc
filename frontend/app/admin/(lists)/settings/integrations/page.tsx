@@ -12,7 +12,7 @@ export default async function IntegrationsPage() {
   }
   return (
     <>
-      <div className="ad__head"><div><h1>Integrations</h1><p>Each outside service, and whether it is set up. Nothing here claims to be working without a check.</p></div></div>
+      <div className="ad__head"><div><h1>Integrations</h1><p>Keys live in the hosting environment, never here.</p></div></div>
       <IntegrationsPanel />
     </>
   );

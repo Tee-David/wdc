@@ -10,8 +10,7 @@ import { actorName, adminRole, owner, allow } from "./guard";
 import { can } from "./permissions";
 import { queueLogged, retryLogged } from "@/lib/message-log";
 import { addEvents } from "@/lib/forms/events";
-import { settingDef } from "@/lib/settings/registry";
-import { hydrateSettings, removeSetting, writeSetting } from "@/lib/settings/store";
+import { hydrateSettings } from "@/lib/settings/store";
 import {
   FAIL, OK, type ActionState,
   approval, channel, checked, health, isoDate, kobo, looksEmail, method, num, priority,
@@ -637,41 +636,6 @@ export async function attachSubmission(_prev: ActionState, fd: FormData): Promis
 }
 
 /* ---------------------------------------------------------------- settings */
-
-export async function saveSetting(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  await syncStore();
-  persistSoon();
-  const refused = await owner();
-  if (refused) return refused;
-  /* Only a key the registry declares, and only one the site reads: a row that
-     cannot change anything must not accept an edit and say it did. */
-  const def = settingDef(str(fd, "key"));
-  if (!def) return FAIL({}, "That is not a setting.");
-  if (!def.parse) return FAIL({}, def.readOnly ?? "That one cannot be edited here yet.");
-  const parsed = def.parse(str(fd, "value"));
-  if (!parsed.ok) return FAIL({ value: parsed.error });
-  try { await writeSetting(def.key, parsed.value, await actorName()); } catch {
-    return FAIL({}, "That could not be saved just now. Nothing was changed.");
-  }
-  refresh("/admin/settings", ...def.revalidate);
-  return OK("Saved. New invoices and estimates use it from now.");
-}
-
-export async function resetSetting(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  await syncStore();
-  persistSoon();
-  const refused = await owner();
-  if (refused) return refused;
-  const def = settingDef(str(fd, "key"));
-  if (!def?.parse) return FAIL({}, "That is not a setting that can be changed.");
-  let had = false;
-  try { had = await removeSetting(def.key, await actorName()); } catch {
-    return FAIL({}, "That could not be put back just now.");
-  }
-  if (!had) return FAIL({}, "That one was already back to what shipped.");
-  refresh("/admin/settings", ...def.revalidate);
-  return OK("Back to what shipped.");
-}
 
 /* ------------------------------------------------------- delivery: tasks */
 

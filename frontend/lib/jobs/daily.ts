@@ -9,8 +9,9 @@ import { getFormSettings } from "@/lib/forms/settings-db";
 import { POST_TRASH_DAYS, purgeTrashedPosts } from "@/lib/blog-db";
 import { alertFailures } from "@/lib/mail-alert";
 import { runRetention, type RetentionCounts } from "@/lib/privacy/retention";
+import { sendScheduledReminders, type ReminderCounts } from "./reminders";
 
-export type DailyResult = { logRows: number; trashed: Record<string, number>; posts: number; retention: RetentionCounts | null; errors: string[] };
+export type DailyResult = { logRows: number; trashed: Record<string, number>; posts: number; retention: RetentionCounts | null; reminders: ReminderCounts | null; errors: string[] };
 
 /**
  * The once-a-day tidy: the message log past its retention, each form's
@@ -23,7 +24,7 @@ export type DailyResult = { logRows: number; trashed: Record<string, number>; po
  * its counts whatever happened.
  */
 export async function runDaily(by: string): Promise<DailyResult> {
-  const result: DailyResult = { logRows: 0, trashed: {}, posts: 0, retention: null, errors: [] };
+  const result: DailyResult = { logRows: 0, trashed: {}, posts: 0, retention: null, reminders: null, errors: [] };
   try {
     result.logRows = await purgeLogged(await getAppSetting(LOG_RETENTION_KEY, DEFAULT_LOG_RETENTION));
   } catch (error) {
@@ -50,12 +51,19 @@ export async function runDaily(by: string): Promise<DailyResult> {
   } catch (error) {
     result.errors.push(`retention: ${error instanceof Error ? error.message : "failed"}`);
   }
+  /* Unpaid invoices on the days Settings, Studio and invoices names. */
+  try {
+    result.reminders = await sendScheduledReminders();
+  } catch (error) {
+    result.errors.push(`reminders: ${error instanceof Error ? error.message : "failed"}`);
+  }
   /* Failures that fell in an hour that had already had its alert. */
   await alertFailures();
   const trashed = Object.values(result.trashed).reduce((a, b) => a + b, 0);
   audit({
     actor: by, kind: "content", subjectId: "daily", subject: "Daily tidy",
     action: `removed ${result.logRows} old message log rows, ${trashed} entries and ${result.posts} blog drafts past their Trash period`
+      + (result.reminders && (result.reminders.sent || result.reminders.skipped || result.reminders.failed) ? `; reminders: ${result.reminders.sent} sent, ${result.reminders.skipped} skipped, ${result.reminders.failed} failed` : "")
       + (result.retention ? `; retention: ${result.retention.drafts} unfinished briefs deleted, ${result.retention.enquiries} enquiries anonymised, ${result.retention.invitations} invitations deleted, ${result.retention.deactivated} deactivated accounts anonymised, ${result.retention.housekeeping} expired sessions and tokens removed` : ""),
     note: result.errors.length ? result.errors.join("; ").slice(0, 300) : undefined,
   });

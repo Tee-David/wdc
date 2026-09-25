@@ -51,7 +51,7 @@ test("the mail server panel says what is missing and never shows a password", as
   await page.goto("/admin/settings/email", { waitUntil: "load" });
   const panel = page.locator(".ad__panel", { has: page.getByRole("heading", { name: "Mail server" }) });
   await expect(panel.locator(".ad__panelH .ad__pill")).toHaveText("Missing");
-  await expect(panel.locator("div", { has: page.locator("dt", { hasText: "Password" }) })).toContainText("Missing");
+  await expect(panel.locator("dl > div", { has: page.locator("dt", { hasText: "Password" }) })).toContainText("Missing");
   if (process.env.SMTP_PASSWORD) await expect(page.locator("body")).not.toContainText(process.env.SMTP_PASSWORD);
 
   await page.getByLabel(/^Send a test to/).fill("owner@wedigcreativity.com.ng");
@@ -67,14 +67,14 @@ test("the log searches by to: and subject:, and filters by state", async ({ page
   `, [`alpha-${MARK}@example.com`, `Receipt ${MARK}`, `test-a:${MARK}`, `Notice ${MARK}`, `test-b:${MARK}`]);
   await asOwner(page, baseURL);
 
-  await page.goto(`/admin/settings/email?q=${encodeURIComponent(`subject:${MARK}`)}`, { waitUntil: "load" });
+  await page.goto(`/admin/settings/email/log?q=${encodeURIComponent(`subject:${MARK}`)}`, { waitUntil: "load" });
   await expect(page.locator("tbody tr", { hasText: MARK })).toHaveCount(2);
 
-  await page.goto(`/admin/settings/email?q=${encodeURIComponent(`to:alpha-${MARK}`)}`, { waitUntil: "load" });
+  await page.goto(`/admin/settings/email/log?q=${encodeURIComponent(`to:alpha-${MARK}`)}`, { waitUntil: "load" });
   await expect(page.locator("tbody tr", { hasText: MARK })).toHaveCount(1);
   await expect(page.locator("tbody tr", { hasText: MARK })).toContainText("Connection refused");
 
-  await page.goto(`/admin/settings/email?state=Sent&q=${MARK}`, { waitUntil: "load" });
+  await page.goto(`/admin/settings/email/log?state=Sent&q=${MARK}`, { waitUntil: "load" });
   await expect(page.locator("tbody tr", { hasText: MARK })).toHaveCount(1);
   await expect(page.locator("tbody tr", { hasText: MARK })).toContainText(`Notice ${MARK}`);
 });
@@ -90,11 +90,13 @@ test("retention is saved, and the tidy removes what is past it, including old Tr
   `, [`Old${MARK}`]);
 
   await asOwner(page, baseURL);
-  await page.goto("/admin/settings/email", { waitUntil: "load" });
+  await page.goto("/admin/settings/email", { waitUntil: "networkidle" });
   await page.getByLabel(/^Keep the message log for/).selectOption("90");
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(page.locator(".ad__msg.is-ok").first()).toContainText("keeps 90 days", { timeout: 20_000 });
+  await page.getByRole("region", { name: "Unsaved changes" }).getByRole("button", { name: "Save changes" }).click();
+  await expect(page.locator(".adToast", { hasText: "Settings saved." })).toBeVisible({ timeout: 20_000 });
   expect((await db.query("SELECT value FROM app_settings WHERE key = 'email.logRetentionDays'")).rows[0].value).toBe(90);
+
+  await page.goto("/admin/settings/email/log", { waitUntil: "load" });
 
   await page.getByRole("button", { name: "Run the daily tidy now" }).click();
   await expect(page.locator(".ad__msg.is-ok").last()).toContainText("Done.", { timeout: 30_000 });
