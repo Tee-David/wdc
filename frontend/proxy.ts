@@ -41,12 +41,15 @@ export async function proxy(request: NextRequest) {
  * THE MATCHER IS THE ALLOW-LIST. Anything not matched never reaches the
  * maintenance check: every /api route (the Paystack webhook, sign-in, the
  * forms), /pay, /i, /r, /q, /unsubscribe, the sign-in pages, Next's own
- * files, and anything with a file extension.
+ * files, and anything with a file extension. Also /onboarding and /f/: a
+ * client half-way through the brief, or following a resume link from their
+ * email, is in the middle of something just as a payer is, and both forms'
+ * APIs were already open, so the pages in front of them must be too.
  */
 export const config = {
   matcher: [
     "/admin/:path*",
     "/portal/:path*",
-    "/((?!api/|_next/|admin|portal|login|signed-in|forgot-password|reset-password|invite/|pay/|i/|r/|q/|unsubscribe|.*\\..*).*)",
+    "/((?!api/|_next/|admin|portal|login|signed-in|forgot-password|reset-password|invite/|pay/|i/|r/|q/|f/|onboarding|unsubscribe|.*\\..*).*)",
   ],
 };
