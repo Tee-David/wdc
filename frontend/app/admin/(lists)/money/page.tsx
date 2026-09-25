@@ -244,9 +244,15 @@ export default async function MoneyPage({
               </ul>
             </div>
           ) : (
-            <Empty title="Nothing outstanding">
-              Every invoice that has been sent is paid.
-            </Empty>
+            onBooks.length ? (
+              <Empty title="Nothing outstanding">
+                Every invoice that has been sent is paid.
+              </Empty>
+            ) : (
+              <Empty title="No invoices sent yet" action={<InvoiceBuilder clients={getClients()} projects={projects} defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} />}>
+                What clients owe shows here once the first invoice goes out.
+              </Empty>
+            )
           )}
         </Panel>
       </div>
