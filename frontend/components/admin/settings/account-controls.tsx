@@ -18,7 +18,7 @@ export function MyPasswordForm() {
     <Form action={changeMyPassword} resetOnDone>
       <Fields>
         <Field name="current" label="Current password" type="password" required />
-        <Field name="next" label="New password" type="password" half required hint="At least 10 characters." />
+        <Field name="next" label="New password" type="password" half required hint="8+ characters, with a capital, a small letter, a number and a symbol." />
         <Field name="again" label="New password again" type="password" half required />
       </Fields>
       <Actions><Submit icon={KeyRound}>Change password</Submit></Actions>

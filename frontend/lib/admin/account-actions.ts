@@ -15,7 +15,7 @@ import { db } from "@/lib/db/pool";
  */
 
 const PAGE = "/admin/settings/account";
-const PASSWORD_MIN = 10;
+import { passwordProblem } from "@/lib/auth/password-policy";
 
 async function signedIn() {
   if (!(await adminRole())) return null;
@@ -49,7 +49,8 @@ export async function changeMyPassword(_prev: ActionState, fd: FormData): Promis
   const again = String(fd.get("again") ?? "");
   const errors: Record<string, string> = {};
   if (!current) errors.current = "Your current password.";
-  if (next.length < PASSWORD_MIN) errors.next = `At least ${PASSWORD_MIN} characters.`;
+  const weak = passwordProblem(next);
+  if (weak) errors.next = weak;
   else if (next !== again) errors.again = "The two new passwords are not the same.";
   if (Object.keys(errors).length) return FAIL(errors);
   try {

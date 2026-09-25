@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**99 open** (48 in progress)
+**103 open** (48 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -201,6 +201,11 @@ Started 2026-09-25. The target is `dashboard-mockups/` at the repo root: 134 boa
 - [-] (L) Forms (with 4.6A): the list in its groups, entries with columns, export and trash, one entry, and the builder (steps, field list, field settings, add-a-field, logic, preview, publish), form settings, and the form's emails with the editor. DONE 2026-09-25: the list opens on four figures (unread entries, entries, newsletter subscribers, notices that failed), each form row carries a solid icon tile, an unread badge, its state and an Entries button, and a failed notice says "not delivered"; entries have the pager and the date range. NOT yet: the entries table's columns and trash, one entry, form settings, the emails editor, and the builder for new forms.
 - [-] (L) Settings (with 4.8A): the overview and one page per section through the section menu (My account, Business profile, Team and access, Invoicing and payments, Site and SEO, Content with FAQ and Media, Email with the log, Privacy and retention, System status, Audit log); a grouped list on a phone. DONE 2026-09-25: the overview as grouped cards, each section with its icon tile and one line on what it holds, and a "kept out of the dashboard on purpose" note; the section menu as a compact sticky card with icons beside every section page on a wide screen, and on a phone the overview is the list and each section has a way back. NOT yet: each section page's own layout beyond the shared primitives.
 - [-] (M) Blog: list, editor, publish or schedule. DONE 2026-09-25: the list opens on four figures with icon tiles and notes read off the posts (when the last one went live, when the next goes out, drafts not touched in a month), filters by state and service, the date range on the date shown, and the pager. NOT yet: the editor and the publish panel to their boards.
+
+- [ ] (L) Tables stay tables on a phone: real rows and columns that scroll sideways inside their own box, the first column pinned, a "swipe for more" edge, search and filters above, the pager below; replaces the stacked label/value cards the `.ad__t` phone rules make today (the owner's screenshot of Forms/Onboarding, 2026-09-25). Design artifact first, built only once the owner approves it.
+- [ ] (M) Search on every table and list, and a searchable picker (type to filter, arrow keys, "No matches", capped height, a bottom sheet on a phone) wherever a long list is chosen from: client, project, service, staff member, form. Plain `<select>` stays only for short fixed lists. Follows the table artifact.
+- [ ] (M) Projects board: drag a card to another stage, with smooth, interruptible motion, the move saved through the same action the stage mover uses (and audited), a keyboard way to do the same, and reduced motion respected.
+- [ ] (M) Every email in the sign-in email's design (`lib/email-templates.ts`): the design artifact of all 24 is at https://claude.ai/artifact/5RQG4iK9TZBzrLSg7fm5pM; the invoice issued and reminder emails need rework, eleven need small changes. Waits on the owner's four decisions listed there (the orange email button, per-person staff email settings, the unsubscribe page beyond the newsletter, dark mode).
 
 #### Client portal
 

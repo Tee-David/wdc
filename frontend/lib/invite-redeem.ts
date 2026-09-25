@@ -14,7 +14,7 @@ const REASONS: Record<string, string> = {
   revoked: "This invitation was withdrawn. Ask whoever invited you to send a new one.",
   expired: "This invitation has expired. Ask whoever invited you to send a new one.",
   exists: "There is already an account for this address. Log in instead.",
-  "weak-password": `Use at least ${INVITE_PASSWORD_MIN} characters.`,
+  "weak-password": `Use at least ${INVITE_PASSWORD_MIN} characters, with a capital, a small letter, a number and a symbol.`,
 };
 
 /**
