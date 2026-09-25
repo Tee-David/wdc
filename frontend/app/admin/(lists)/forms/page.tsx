@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { FORMS, type FormDef } from "@/lib/forms/registry";
 import { formSummaries, summaryOf, type FormSummary } from "@/lib/forms/entries";
+import { availability, type Availability } from "@/lib/forms/settings-db";
 import { AdminState } from "@/components/admin/admin-state";
 import { Panel, when } from "@/components/admin/bits";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
@@ -19,13 +20,21 @@ export const metadata = { title: "Forms" };
 
 const configured = () => Boolean(process.env.DATABASE_URL || process.env.COCKROACHDB_URL);
 
-async function load(): Promise<{ state: "off" | "error" | "ok"; all: Record<string, FormSummary> }> {
-  if (!configured()) return { state: "off", all: {} };
-  try { return { state: "ok", all: await formSummaries() }; } catch (error) {
+async function load(): Promise<{ state: "off" | "error" | "ok"; all: Record<string, FormSummary>; open: Record<string, Availability> }> {
+  if (!configured()) return { state: "off", all: {}, open: {} };
+  try {
+    const [all, open] = await Promise.all([
+      formSummaries(),
+      Promise.all(FORMS.map(async (f) => [f.key, await availability(f)] as const)).then(Object.fromEntries),
+    ]);
+    return { state: "ok", all, open };
+  } catch (error) {
     console.error("[forms] summaries could not be read", error instanceof Error ? error.message : error);
-    return { state: "error", all: {} };
+    return { state: "error", all: {}, open: {} };
   }
 }
+
+const REASON: Record<string, string> = { closed: "Closed", "not-yet": "Not open yet", ended: "Closed, date passed", limit: "Limit reached" };
 
 function counts(form: FormDef, s: FormSummary) {
   if (form.source === "newsletter") {
@@ -39,7 +48,7 @@ function counts(form: FormDef, s: FormSummary) {
   );
 }
 
-function FormTable({ forms, all, tour }: { forms: FormDef[]; all: Record<string, FormSummary>; tour?: string }) {
+function FormTable({ forms, all, open, tour }: { forms: FormDef[]; all: Record<string, FormSummary>; open: Record<string, Availability>; tour?: string }) {
   return (
     <div className="ad__scroll" data-tour={tour}>
       <table className="ad__t">
@@ -56,7 +65,12 @@ function FormTable({ forms, all, tour }: { forms: FormDef[]; all: Record<string,
                   <small>{f.publicLabel}</small>
                 </td>
                 <td>
-                  <span className="ad__pill ad__pill--good">Open</span>
+                  {(() => {
+                    const a = open[f.key];
+                    return !a || a.open
+                      ? <span className="ad__pill ad__pill--good">Open</span>
+                      : <span className="ad__pill ad__pill--warn">{REASON[a.reason]}</span>;
+                  })()}
                   {s.noticeProblems ? (
                     <Link href={`/admin/forms/${f.key}`} className="ad__pill ad__pill--bad" style={{ marginLeft: ".35rem" }}>
                       {s.noticeProblems} notice{s.noticeProblems === 1 ? "" : "s"} not delivered
@@ -80,7 +94,7 @@ function FormTable({ forms, all, tour }: { forms: FormDef[]; all: Record<string,
 }
 
 export default async function FormsPage() {
-  const { state, all } = await load();
+  const { state, all, open } = await load();
   const unread = FORMS.reduce((n, f) => n + (f.inbox ? summaryOf(all, f.key).unread : 0), 0);
 
   return (
@@ -105,10 +119,10 @@ export default async function FormsPage() {
       ) : (
         <div className="ad__stack">
           <Panel title="Onboarding" dataTour="forms-live">
-            <FormTable forms={FORMS.filter((f) => f.group === "onboarding")} all={all} tour="forms-table" />
+            <FormTable forms={FORMS.filter((f) => f.group === "onboarding")} all={all} open={open} tour="forms-table" />
           </Panel>
           <Panel title="Website">
-            <FormTable forms={FORMS.filter((f) => f.group === "website")} all={all} />
+            <FormTable forms={FORMS.filter((f) => f.group === "website")} all={all} open={open} />
           </Panel>
           <p className="ad__dim" style={{ margin: 0, fontSize: ".85rem" }}>
             These forms are defined in the site&apos;s code. This is where their entries, and the emails they send, are looked after.

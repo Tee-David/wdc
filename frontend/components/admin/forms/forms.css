@@ -55,3 +55,10 @@
   .ad__sidebar, .ad__topbar, .adForms__noPrint, .ad__mobileMenu { display: none !important; }
   .adForms__entry { grid-template-columns: 1fr; }
 }
+
+/* Settings: cards of fields, one per concern. */
+.adForms__card { padding: 1rem; min-width: 0; }
+.adForms__h { margin: 0 0 .7rem; font: 700 1rem var(--font-space-grotesk), system-ui, sans-serif; }
+.adForms__p { margin: 0 0 .8rem; font-size: .85rem; }
+.adForms__notif { min-width: 0; margin: 0 0 1rem; padding: .9rem; border: 1px solid var(--ad-line); border-radius: var(--ad-r); }
+.adForms__notif legend { padding: 0 .35rem; font-weight: 700; }

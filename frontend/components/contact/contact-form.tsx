@@ -35,6 +35,8 @@ const PhoneField = dynamic(() => import("@/components/onboarding/phone-field"), 
 export function ContactForm() {
   const [tried, setTried] = useState(false);
   const [sent, setSent] = useState(false);
+  /* What the studio chose to say after a send, in the form's settings. */
+  const [thanks, setThanks] = useState<{ heading?: string; message?: string } | null>(null);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   /* The number in international form. `PhoneField` is controlled, and the form
@@ -65,8 +67,14 @@ export function ContactForm() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(Object.fromEntries(d.entries())),
       });
-      const result = await response.json() as { error?: string };
+      const result = await response.json() as { error?: string; confirmation?: { heading?: string; message?: string; redirect?: string } };
       if (!response.ok) throw new Error(result.error || "Unable to send your message.");
+      /* A page on this site the studio chose; the server only ever sends a path. */
+      if (result.confirmation?.redirect?.startsWith("/") && !result.confirmation.redirect.startsWith("//")) {
+        window.location.assign(result.confirmation.redirect);
+        return;
+      }
+      setThanks(result.confirmation ?? null);
       setSent(true);
       el.reset();
       /* `reset()` only reaches the native fields. The two controls that hold
@@ -170,7 +178,12 @@ export function ContactForm() {
       {/* Says what the button does BEFORE it does it. A submit that quietly
           launches a mail client is a surprise; one that says so is a choice. */}
       <p className="ct-note" aria-live="polite">
-        {sent ? (
+        {sent && thanks ? (
+          <>
+            {thanks.heading ? <b>{thanks.heading} </b> : null}
+            {thanks.message}
+          </>
+        ) : sent ? (
           <>
             Your message is safely with our team and a receipt is on its way. You can also write to{" "}
             <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "var(--accent-ink)", textDecoration: "underline", textUnderlineOffset: ".18em" }}>

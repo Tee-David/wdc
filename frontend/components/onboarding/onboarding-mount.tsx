@@ -20,6 +20,6 @@ const OnboardingForm = dynamic(() => import("./onboarding-form"), {
   loading: () => <div className="ob__wait" aria-hidden="true" />,
 });
 
-export default function OnboardingMount() {
-  return <OnboardingForm />;
+export default function OnboardingMount({ closed = {} }: { closed?: Record<string, string> }) {
+  return <OnboardingForm closed={closed} />;
 }
