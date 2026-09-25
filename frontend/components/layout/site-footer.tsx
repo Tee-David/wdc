@@ -170,6 +170,7 @@ export function SiteFooter() {
                   {toolsB.map((t) => (
                     <li key={t.slug}><Link href={t.href}>{t.short}</Link></li>
                   ))}
+                  <li><Link href="/tools">All free tools</Link></li>
                 </ul>
               </nav>
             ) : null}
