@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**99 open** (47 in progress)
+**99 open** (48 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -204,7 +204,7 @@ Started 2026-09-25. The target is `dashboard-mockups/` at the repo root: 134 boa
 
 #### Client portal
 
-- [ ] (M) Overview, projects and a project, approve a deliverable, request a revision, billing, an invoice, pay, support, a conversation, a new ticket, settings, and the not-linked state.
+- [-] (M) Overview, projects and a project, approve a deliverable, request a revision, billing, an invoice, pay, support, a conversation, a new ticket, settings, and the not-linked state. DONE 2026-09-25: the overview to `POverview` (four figures with icon tiles and notes read off the records, the attention rows with Review now, Pay now and Read, project cards with a six-step stage bar and the latest "Next", the updates feed, quick actions) and a project to `PProject` (`ProfileCard` with the service icon, the stage track with "you are here" and the next step, the deliverable waiting on the client as a card with its actions, earlier ones as rows, updates as a timeline, what we are making, and money on this project from its own invoices with a Pay button). NOT yet: the projects list, billing, an invoice, support, a conversation, a new ticket, settings and the not-linked state.
 
 #### Verification
 
