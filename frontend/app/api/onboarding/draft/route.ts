@@ -7,9 +7,21 @@ import { mailIsConfigured } from "@/lib/email";
 import { secretKey, sendLogged } from "@/lib/outbox";
 import { composeEmailHtml, emailButton, emailP, emailSmall } from "@/lib/email-templates";
 import {
-  cleanAnswers, cleanService, cleanStep, cookieToken, draftFromToken, issueToken,
+  cleanAnswers, cleanService, cleanStep, clearOnboardingCookie, cookieToken, draftFromToken, issueToken,
   normalizeEmail, requestOriginIsAllowed, RESUME_TTL_SECONDS, setOnboardingCookie, tokenHash,
 } from "@/lib/onboarding-server";
+
+/* FORGET THIS BROWSER'S DRAFT. Only the cookie goes: the draft row and its
+   answers stay where the studio can see them, so starting over never deletes
+   something a client typed. Origin-checked like every write here. */
+export async function DELETE(request: NextRequest) {
+  if (!requestOriginIsAllowed(request)) {
+    return NextResponse.json({ error: "This request could not be verified." }, { status: 403 });
+  }
+  const response = NextResponse.json({ ok: true });
+  clearOnboardingCookie(response);
+  return response;
+}
 
 export async function GET(request: NextRequest) {
   const token = cookieToken(request);

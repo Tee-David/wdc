@@ -64,6 +64,10 @@ export function CustomFormView({ def, slug, preview }: { def: CustomFormDef; slu
   }
 
   return (
+    <>
+    {/* Without JavaScript the form cannot check or send answers; say so and
+        give the other way in, rather than wiping what someone typed. */}
+    <noscript><p className="cf-msg">This form needs JavaScript. Turn it on and reload, or email {CONTACT_EMAIL}.</p></noscript>
     <form className="cf" onSubmit={submit} noValidate aria-describedby={message ? `${id}-msg` : undefined}>
       {def.intro ? <p className="cf-intro">{def.intro}</p> : null}
       {def.fields.filter((f) => visible(f, answers)).map((f) => (
@@ -81,6 +85,7 @@ export function CustomFormView({ def, slug, preview }: { def: CustomFormDef; slu
         {message ? <p id={`${id}-msg`} className="cf-msg" role="alert">{message}</p> : null}
       </div>
     </form>
+    </>
   );
 }
 

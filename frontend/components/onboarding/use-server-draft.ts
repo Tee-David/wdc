@@ -7,10 +7,30 @@ type Answers = Record<string, string | string[]>;
 type RestoredDraft = { service: ServiceSlug; currentStep: number; answers: Answers };
 type SaveResult = { resumeUrl: string; emailSent: boolean };
 
+class DraftError extends Error {
+  constructor(message: string, readonly canReissue = false) { super(message); }
+}
+
 async function responseJson(response: Response) {
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "The form could not be saved right now.");
+  if (!response.ok) throw new DraftError(data.error || "The form could not be saved right now.", data.canReissue === true);
   return data;
+}
+
+/* ONE CLAIM PER LINK. A resume link works once, so a second request for the
+   same token (React mounting the effect twice, or a remount) would spend
+   nothing and be told the link was used. Both callers share the one answer. */
+const claims = new Map<string, Promise<Response>>();
+function claim(token: string) {
+  let p = claims.get(token);
+  if (!p) {
+    p = fetch("/api/onboarding/resume", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ token }),
+    });
+    claims.set(token, p);
+  }
+  return p.then((r) => r.clone());
 }
 
 export function useServerDraft(input: {
@@ -26,6 +46,11 @@ export function useServerDraft(input: {
   const [submitting, setSubmitting] = useState(false);
   const [resumeUrl, setResumeUrl] = useState("");
   const [message, setMessage] = useState("");
+  /* TWO WAYS A RETURNING CLIENT USED TO BE LEFT AT A BLANK FORM: their link
+     led to a brief they had already sent, or it had expired or been used.
+     Each is now a state the form shows with its way forward. */
+  const [alreadySent, setAlreadySent] = useState(false);
+  const [canReissue, setCanReissue] = useState(false);
 
   useEffect(() => {
     let live = true;
@@ -34,10 +59,7 @@ export function useServerDraft(input: {
       const token = url.searchParams.get("resume");
       try {
         const response = token
-          ? await fetch("/api/onboarding/resume", {
-              method: "POST", headers: { "content-type": "application/json" },
-              body: JSON.stringify({ token }),
-            })
+          ? await claim(token)
           : await fetch("/api/onboarding/draft", { cache: "no-store" });
         const data = await responseJson(response);
         if (!live) return;
@@ -49,9 +71,13 @@ export function useServerDraft(input: {
           });
           setResumeUrl("");
           setMessage(token ? "Your saved answers are ready." : "");
+        } else if (data.draft?.status === "submitted") {
+          setAlreadySent(true);
         }
       } catch (error) {
-        if (live) setMessage(error instanceof Error ? error.message : "This saved form could not be restored.");
+        if (!live) return;
+        setMessage(error instanceof Error ? error.message : "This saved form could not be restored.");
+        if (error instanceof DraftError && error.canReissue) setCanReissue(true);
       } finally {
         if (token) {
           url.searchParams.delete("resume");
@@ -112,5 +138,26 @@ export function useServerDraft(input: {
     }
   }, [save, service, answers]);
 
-  return { ready, saving, submitting, resumeUrl, message, setMessage, save, submit };
+  /* Let go of the saved draft on the server as well as in this browser, so
+     Start over (or "start a new brief" after one was sent) really starts over
+     instead of autosaving into a brief that is already in. */
+  const forget = useCallback(async () => {
+    await fetch("/api/onboarding/draft", { method: "DELETE" }).catch(() => undefined);
+    setAlreadySent(false);
+    setCanReissue(false);
+    setResumeUrl("");
+    setMessage("");
+  }, []);
+
+  /* "Send me a new link": the reissue route answers the same whatever the
+     address, and sends only to the address on the draft. */
+  const reissue = useCallback(async (email: string) => {
+    const r = await fetch("/api/onboarding/reissue", {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email }),
+    }).then(async (x) => ({ ok: x.ok, body: await x.json().catch(() => ({})) })).catch(() => null);
+    if (!r) return { ok: false, message: "That could not be sent. Check your connection and try again." };
+    return { ok: r.ok, message: r.body.message ?? r.body.error ?? "That could not be sent just now." };
+  }, []);
+
+  return { ready, saving, submitting, resumeUrl, message, setMessage, save, submit, alreadySent, canReissue, forget, reissue };
 }
