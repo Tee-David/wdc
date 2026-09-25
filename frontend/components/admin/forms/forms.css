@@ -94,3 +94,9 @@
 .adForms__lead { display: inline-flex; align-items: center; gap: .6rem; }
 .adForms__lead input[type="checkbox"] { width: 1.1rem; height: 1.1rem; flex: none; accent-color: var(--ad-navy); }
 .dark .adForms__lead input[type="checkbox"] { accent-color: #a3a7ff; }
+
+/* Previous, where this entry sits, Next. The ends stay visible, greyed. */
+.adEntryNav { display: inline-flex; align-items: center; gap: .5rem; }
+.adEntryNav .ad__btn svg { width: 1rem; height: 1rem; }
+.adEntryNav .is-off { opacity: .45; pointer-events: none; }
+.adEntryNav__at { font-size: .84rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
