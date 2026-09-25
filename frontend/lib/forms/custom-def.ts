@@ -7,6 +7,8 @@
  * same code and cannot disagree. The server runs them again regardless.
  */
 
+import { DIAL_CODES } from "@/lib/dial-codes";
+
 export const FIELD_TYPES = [
   { type: "text", label: "Short answer" },
   { type: "textarea", label: "Long answer" },
@@ -15,6 +17,8 @@ export const FIELD_TYPES = [
   { type: "number", label: "Number" },
   { type: "date", label: "Date" },
   { type: "url", label: "Website address" },
+  { type: "country", label: "Country" },
+  { type: "address", label: "Address" },
   { type: "select", label: "Dropdown" },
   { type: "radio", label: "One choice" },
   { type: "checkboxes", label: "Several choices" },
@@ -49,6 +53,26 @@ export type CustomFormDef = {
   successMessage: string;
   fields: CustomField[];
 };
+
+/* EVERY COUNTRY, by name, from the dialling list the phone field already
+   ships and the platform's own names for the codes, so no second list can
+   drift from the first. Nigeria first, because most people filling these in
+   are here; everyone else in alphabetical order. */
+const REGION = new Intl.DisplayNames(["en"], { type: "region" });
+export const COUNTRIES: string[] = (() => {
+  const names = [...new Set(DIAL_CODES.map((d) => { try { return REGION.of(d.iso) ?? ""; } catch { return ""; } }))]
+    .filter((n) => n && n.length > 2 && n !== "Unknown Region")
+    .sort((a, b) => a.localeCompare(b));
+  return ["Nigeria", ...names.filter((n) => n !== "Nigeria")];
+})();
+
+/** An address answer's four parts, in the order they are stored. */
+export const ADDRESS_PARTS = [
+  { key: "street", label: "Street address", required: true },
+  { key: "city", label: "City or town", required: true },
+  { key: "state", label: "State or region", required: false },
+  { key: "country", label: "Country", required: true },
+] as const;
 
 export const LIMITS = { fields: 60, options: 50, label: 160, help: 300, text: 2_000, long: 10_000, title: 120, intro: 1_000, files: 5 } as const;
 
@@ -166,6 +190,17 @@ export function checkAnswers(def: CustomFormDef, raw: unknown, fileKeyPrefix?: s
         if (!picked.length) missing(); else answers[f.id] = [...new Set(picked)];
         break;
       }
+      case "address": {
+        /* Four parts, stored in order; street, city and country are needed
+           when the question is required, and a country must be a real one. */
+        const parts = ADDRESS_PARTS.map((p, i) => str(Array.isArray(v) ? v[i] : (v as Record<string, unknown> | undefined)?.[p.key], 200));
+        if (!parts.some(Boolean)) { missing(); break; }
+        const gap = ADDRESS_PARTS.find((p, i) => p.required && !parts[i]);
+        if (gap) { errors[f.id] = `Add the ${gap.label.toLowerCase()}.`; break; }
+        if (!COUNTRIES.includes(parts[3])) { errors[f.id] = "Pick the country from the list."; break; }
+        answers[f.id] = parts;
+        break;
+      }
       case "consent": {
         if (v === true || v === "yes" || v === "on") answers[f.id] = "Yes"; else missing();
         break;
@@ -195,6 +230,7 @@ export function checkAnswers(def: CustomFormDef, raw: unknown, fileKeyPrefix?: s
           if (f.max !== undefined && n > f.max) { errors[f.id] = `At most ${f.max}.`; break; }
         }
         if ((f.type === "select" || f.type === "radio") && !f.options?.includes(s)) { errors[f.id] = "Pick one of the choices."; break; }
+        if (f.type === "country" && !COUNTRIES.includes(s)) { errors[f.id] = "Pick the country from the list."; break; }
         answers[f.id] = s;
       }
     }
@@ -207,7 +243,7 @@ export function answerText(a: Answer | undefined): string {
   if (a == null) return "";
   if (typeof a === "string") return a;
   if (a.length && typeof a[0] === "object") return (a as FileAnswer[]).map((f) => f.name).join(", ");
-  return (a as string[]).join(", ");
+  return (a as string[]).filter(Boolean).join(", ");
 }
 
 /** The first answer that is an email address, and the first that reads as a name. */

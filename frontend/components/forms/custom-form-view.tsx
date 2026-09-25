@@ -4,7 +4,7 @@ import { useId, useState } from "react";
 import { FileUp, Loader2, X } from "lucide-react";
 import SelectField from "@/components/onboarding/select-field";
 import {
-  checkAnswers, FILE_MAX_BYTES, FILE_TYPES, LIMITS, visible,
+  ADDRESS_PARTS, checkAnswers, COUNTRIES, FILE_MAX_BYTES, FILE_TYPES, LIMITS, visible,
   type Answer, type Answers, type CustomField, type CustomFormDef, type FileAnswer,
 } from "@/lib/forms/custom-def";
 import "@/components/contact/contact.css";
@@ -95,6 +95,30 @@ function Field({ f, id, value, error, onChange, slug, preview }: {
     case "textarea":
       control = <textarea {...common} rows={5} maxLength={LIMITS.long} placeholder={f.placeholder} value={text} onChange={(e) => onChange(e.target.value)} />;
       break;
+    case "country":
+      control = <SelectField id={id} options={COUNTRIES} value={text} onChange={onChange} invalid={Boolean(error)} describedBy={describedBy} placeholder={f.placeholder || "Choose a country"} />;
+      break;
+    case "address": {
+      const parts = Array.isArray(value) && (value.length === 0 || typeof value[0] === "string") ? (value as string[]) : [];
+      const setPart = (i: number, v: string) => { const next = ADDRESS_PARTS.map((_, j) => parts[j] ?? ""); next[i] = v; onChange(next); };
+      return (
+        <fieldset className={`ct-f cf-address${error ? " is-bad" : ""}`} aria-describedby={describedBy}>
+          <legend>{f.label}{f.required ? <b aria-hidden="true"> *</b> : <i> (optional)</i>}</legend>
+          {f.help ? <small id={`${id}-h`} className="cf-help">{f.help}</small> : null}
+          {ADDRESS_PARTS.map((p, i) => (
+            <div key={p.key} className={`cf-address__part cf-address__part--${p.key}`}>
+              <label htmlFor={i === 0 ? id : `${id}-${p.key}`}>{p.label}{f.required && p.required ? null : <i> (optional)</i>}</label>
+              {p.key === "country"
+                ? <SelectField id={`${id}-${p.key}`} options={COUNTRIES} value={parts[i] ?? ""} onChange={(v) => setPart(i, v)} invalid={Boolean(error)} placeholder="Choose a country" />
+                : <input id={i === 0 ? id : `${id}-${p.key}`} type="text" value={parts[i] ?? ""} maxLength={200}
+                    autoComplete={p.key === "street" ? "street-address" : p.key === "city" ? "address-level2" : "address-level1"}
+                    aria-invalid={error ? true : undefined} onChange={(e) => setPart(i, e.target.value)} />}
+            </div>
+          ))}
+          {error ? <small id={`${id}-e`} className="ct-error">{error}</small> : null}
+        </fieldset>
+      );
+    }
     case "select":
       control = <SelectField id={id} options={f.options ?? []} value={text} onChange={onChange} invalid={Boolean(error)} describedBy={describedBy} placeholder={f.placeholder || "Choose one"} />;
       break;
