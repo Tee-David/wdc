@@ -9,7 +9,7 @@ import type { Area } from "@/lib/admin/permissions";
  * than out of Settings. `area` is who may open it (lib/admin/permissions.ts);
  * a section a role cannot open is not listed for it, and its page refuses.
  */
-export type SettingsIcon = "sliders" | "messages" | "images" | "mail" | "plug" | "history" | "shield" | "users" | "user";
+export type SettingsIcon = "sliders" | "messages" | "images" | "mail" | "plug" | "history" | "shield" | "users" | "user" | "globe";
 
 export type SettingsSection = {
   href: string;
@@ -24,6 +24,7 @@ export type SettingsSection = {
 export const SETTINGS_SECTIONS: SettingsSection[] = [
   { href: "/admin/settings/account", label: "My account", line: "Your name, password, sign-in methods and sessions.", group: "You", icon: "user", area: null },
   { href: "/admin/settings/general", label: "Content and defaults", line: "What the site says, and the defaults for new invoices.", group: "Studio", icon: "sliders", area: "settings" },
+  { href: "/admin/settings/site", label: "Site and SEO", line: "The search description, and whether search engines may index the site.", group: "Studio", icon: "globe", area: "settings" },
   { href: "/admin/settings/faq", label: "FAQ", line: "The questions on the homepage, contact and service pages.", group: "Studio", icon: "messages", area: "content" },
   { href: "/admin/settings/media", label: "Media", line: "Pictures and files for the site and the blog.", group: "Studio", icon: "images", area: "content" },
   { href: "/admin/settings/team", label: "Team", line: "Who can reach the admin, invitations, roles and sessions.", group: "People", icon: "users", area: "team" },
