@@ -1711,7 +1711,7 @@ a.ad__pgBtn:hover { background: var(--ad-panel-2); border-color: var(--ad-dim); 
    Left alone: buttons in a table, the pager, tabs and menus, which are
    sized by what sits beside them. */
 @media (max-width: 640px) {
-  .ad :is(form, .ad__row, .adDash__attentionActions, .cpDeliv__acts, .ad__panelFoot, .ad__profileActions) .ad__btn:not(.ad__iconButton):not(:is(td, .ad__pager, .ad__switch, .ad__tabsNav, .ad__rmList, .ad__filterBar, .ad__range) .ad__btn) {
+  .ad :is(form, .ad__row, .adDash__attentionActions, .cpDeliv__acts, .ad__panelFoot, .ad__profileActions) .ad__btn:not(.ad__iconButton):not(:is(td, .ad__pager, .ad__switch, .ad__tabsNav, .ad__rmList, .ad__filterBar, .ad__range, .adBulk, .adEntryActs) .ad__btn) {
     flex: 1 1 12rem; width: 100%; justify-content: center;
   }
   .ad :is(form, .ad__panelFoot) > .ad__btn { width: 100%; }
@@ -1788,3 +1788,52 @@ a.ad__pgBtn:hover { background: var(--ad-panel-2); border-color: var(--ad-dim); 
   .adPick__opt { min-height: 3rem; font-size: 1rem; }
 }
 @media (prefers-reduced-motion: reduce) { .adPick__pop { animation: none; } .adPick__btn svg { transition: none; } }
+
+/* THE BULK BAR (ticked rows): one navy line, pinned under the top bar on a
+   desktop and floating above the tab bar on a phone. */
+.adBulk {
+  position: sticky; top: 4.75rem; z-index: 6;
+  display: flex; align-items: center; gap: .5rem; padding: .55rem .6rem .55rem 1rem;
+  background: var(--ad-navy); color: #fff; border-radius: 14px; margin: .75rem 1rem;
+  box-shadow: 0 14px 30px -16px rgb(0 0 60 / .6);
+}
+.dark .adBulk { background: #23237a; }
+.adBulk__n { flex: 1 1 auto; min-width: 0; font-weight: 600; white-space: nowrap; }
+.adBulk__btn { min-height: 2.5rem; padding-inline: .8rem; }
+.adBulk__btn svg { width: .95rem; height: .95rem; }
+.adBulk__more { position: relative; }
+.adBulk__more > summary { list-style: none; }
+.adBulk__more > summary::-webkit-details-marker { display: none; }
+.adBulk__menu {
+  position: absolute; right: 0; top: calc(100% + .4rem); z-index: 7; min-width: 12rem; padding: .35rem;
+  display: grid; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); color: var(--ad-ink);
+  box-shadow: 0 18px 40px -18px rgb(0 0 40 / .45);
+}
+.adBulk__menu :is(button, a) {
+  min-height: 2.75rem; padding: 0 .75rem; display: flex; align-items: center; border: 0; border-radius: 8px;
+  background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer;
+}
+.adBulk__menu :is(button, a):hover { background: var(--ad-panel-2); }
+.adBulk__menu .is-danger { color: var(--ad-bad-ink); }
+.adBulk__x { color: #fff; }
+.adBulk__x:hover { background: rgb(255 255 255 / .12); }
+.ad__t tr.is-picked > td { background: var(--ad-panel-2); }
+/* On a phone the quick actions are icons (they keep their names for a screen
+   reader), so the count, the actions and Clear fit one line at 320px. */
+@media (max-width: 480px) {
+  .adBulk { gap: .35rem; padding-left: .85rem; }
+  .adBulk__btn:not(summary) .adBulk__t { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .adBulk__btn:not(summary) { width: 2.5rem; padding: 0; justify-content: center; }
+}
+@media (max-width: 900px) {
+  body:has(.adBulk) .st { bottom: calc(11rem + env(safe-area-inset-bottom)); }
+  .adBulk { position: fixed; left: 1rem; right: 1rem; top: auto; bottom: calc(6.5rem + env(safe-area-inset-bottom)); margin: 0; }
+  .adBulk__menu { top: auto; bottom: calc(100% + .4rem); }
+}
+
+/* An entry's own actions on a phone: a two-column grid of icon-and-word
+   buttons, not five full-width bars before the answers. */
+@media (max-width: 640px) {
+  .adEntryActs { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+  .adEntryActs .ad__btn { width: 100%; justify-content: center; padding-inline: .6rem; }
+}

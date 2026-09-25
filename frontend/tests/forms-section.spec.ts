@@ -111,6 +111,9 @@ test("opening it reads it; star, note, trash and put back all land on its histor
 
   /* Ticked and trashed from the table, then put back from Trash. */
   await row.getByRole("checkbox").check();
+  /* The bar shows the count and keeps Trash under More. */
+  await expect(page.locator(".adBulk")).toContainText("1 selected");
+  await page.locator(".adBulk__more > summary").click();
   await page.getByRole("button", { name: "Move to Trash" }).click();
   await expect(page.locator(".ad__msg.is-ok")).toContainText("moved to Trash", { timeout: 20_000 });
   expect((await db.query("SELECT box FROM contact_enquiries WHERE id = $1", [id])).rows[0].box).toBe("trash");

@@ -1,6 +1,6 @@
 "use client";
 
-import { Printer, Send } from "lucide-react";
+import { Ban, Inbox, Mail, MailOpen, Printer, RotateCcw, Send, Star, StarOff, Trash2 } from "lucide-react";
 import { addEntryNote, bulkEntries, resendFormEmailAction } from "@/lib/forms/actions";
 import { Actions, Area, Field, Fields, Form, Hidden, Radios, Select, Submit } from "@/components/admin/form";
 
@@ -11,19 +11,19 @@ export function EntryState({ formKey, id, read, starred, box }: {
   formKey: string; id: string; read: boolean; starred: boolean; box: "inbox" | "spam" | "trash";
 }) {
   return (
-    <Form action={bulkEntries} className="ad__row adForms__noPrint">
+    <Form action={bulkEntries} className="ad__row adForms__noPrint adEntryActs">
       <Hidden name="form" value={formKey} />
       <Hidden name="id" value={id} />
       {box === "inbox" ? (
         <>
-          <button className="ad__btn" name="action" value={starred ? "unstar" : "star"}>{starred ? "Unstar" : "Star"}</button>
-          <button className="ad__btn" name="action" value={read ? "unread" : "read"}>{read ? "Mark unread" : "Mark read"}</button>
-          <button className="ad__btn" name="action" value="spam">Spam</button>
-          <button className="ad__btn" name="action" value="trash">Move to Trash</button>
+          <button className="ad__btn" name="action" value={starred ? "unstar" : "star"}>{starred ? <StarOff aria-hidden="true" /> : <Star aria-hidden="true" />}{starred ? "Unstar" : "Star"}</button>
+          <button className="ad__btn" name="action" value={read ? "unread" : "read"}>{read ? <Mail aria-hidden="true" /> : <MailOpen aria-hidden="true" />}{read ? "Mark unread" : "Mark read"}</button>
+          <button className="ad__btn" name="action" value="spam"><Ban aria-hidden="true" />Spam</button>
+          <button className="ad__btn" name="action" value="trash"><Trash2 aria-hidden="true" />Move to Trash</button>
         </>
       ) : (
         <>
-          <button className="ad__btn" name="action" value="restore">{box === "spam" ? "Not spam" : "Put back"}</button>
+          <button className="ad__btn" name="action" value="restore">{box === "spam" ? <Inbox aria-hidden="true" /> : <RotateCcw aria-hidden="true" />}{box === "spam" ? "Not spam" : "Put back"}</button>
         </>
       )}
       <button type="button" className="ad__btn" onClick={() => window.print()}><Printer aria-hidden="true" /> Print</button>
