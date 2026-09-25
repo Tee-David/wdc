@@ -8,6 +8,7 @@ import type { ProviderOutcome } from "@/lib/admin/types";
 import { Empty, Panel, when } from "@/components/admin/bits";
 import { MatchEvent, ResendMessage, ResolveEvent } from "@/components/admin/reconcile-forms";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 export const metadata = { title: "Reconciliation" };
 
@@ -42,6 +43,8 @@ const TONE: Record<ProviderOutcome, string> = {
 };
 
 export default async function ReconciliationPage() {
+  await syncStore();
+  persistSoon();
   const attention = getProviderEvents({ attention: true, limit: 100 });
   const everything = getProviderEvents({ limit: 100 });
   const outstanding = providerAttentionCount();

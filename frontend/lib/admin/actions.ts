@@ -17,6 +17,7 @@ import {
   approval, channel, checked, health, isoDate, kobo, looksEmail, method, num, priority,
   required, services, stage, str, url,
 } from "./validate";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 /**
  * THE ADMIN'S WRITE ENDPOINTS.
@@ -89,6 +90,8 @@ function readClient(fd: FormData) {
 }
 
 export async function createClient(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await allow("clients");
   if (refused) return refused;
   const { errors, draft } = readClient(fd);
@@ -119,6 +122,8 @@ export async function createClient(_prev: ActionState, fd: FormData): Promise<Ac
 }
 
 export async function updateClient(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await allow("clients");
   if (refused) return refused;
   const id = str(fd, "id");
@@ -140,6 +145,8 @@ export async function updateClient(_prev: ActionState, fd: FormData): Promise<Ac
 }
 
 export async function archiveClient(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const id = str(fd, "id");
@@ -154,6 +161,8 @@ export async function archiveClient(_prev: ActionState, fd: FormData): Promise<A
 /* -------------------------------------------------------------- projects */
 
 export async function createProject(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await allow("projects");
   if (refused) return refused;
   const errors: Record<string, string> = {};
@@ -194,6 +203,8 @@ export async function createProject(_prev: ActionState, fd: FormData): Promise<A
  * keyboard shortcut all get it without each remembering to.
  */
 export async function moveStage(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await allow("projects");
   if (refused) return refused;
   const id = str(fd, "id");
@@ -220,6 +231,8 @@ export async function moveStage(_prev: ActionState, fd: FormData): Promise<Actio
 }
 
 export async function addNote(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await allow("projects");
   if (refused) return refused;
   const id = str(fd, "id");
@@ -234,6 +247,8 @@ export async function addNote(_prev: ActionState, fd: FormData): Promise<ActionS
 }
 
 export async function setDue(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await allow("projects");
   if (refused) return refused;
   const id = str(fd, "id");
@@ -274,6 +289,8 @@ function readLines(fd: FormData): { lines: InvoiceLine[]; bad: string | null } {
 }
 
 export async function createInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const errors: Record<string, string> = {};
@@ -304,6 +321,8 @@ export async function createInvoice(_prev: ActionState, fd: FormData): Promise<A
 }
 
 export async function updateInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const id = str(fd, "id");
@@ -327,6 +346,8 @@ export async function updateInvoice(_prev: ActionState, fd: FormData): Promise<A
 }
 
 export async function issueInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const id = str(fd, "id");
@@ -339,6 +360,8 @@ export async function issueInvoice(_prev: ActionState, fd: FormData): Promise<Ac
 }
 
 export async function deleteInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const id = str(fd, "id");
@@ -360,6 +383,8 @@ export async function deleteInvoice(_prev: ActionState, fd: FormData): Promise<A
  * accidentally get a laxer version of the rules than the form does.
  */
 export async function recordPayment(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const invoiceId = str(fd, "invoiceId");
@@ -428,6 +453,8 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
 }
 
 export async function reversePayment(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const id = str(fd, "id");
@@ -452,6 +479,8 @@ export async function reversePayment(_prev: ActionState, fd: FormData): Promise<
 /* -------------------------------------------------------------- expenses */
 
 export async function createExpense(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const errors: Record<string, string> = {};
@@ -492,6 +521,8 @@ export async function createExpense(_prev: ActionState, fd: FormData): Promise<A
 }
 
 export async function removeExpense(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   if (!db.deleteExpense(str(fd, "id"))) return FAIL({}, "That one is already gone.");
@@ -510,6 +541,8 @@ export async function removeExpense(_prev: ActionState, fd: FormData): Promise<A
  * client.
  */
 export async function clientFromLiveSubmission(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await allow("forms");
   if (refused) return refused;
   const { liveSubmission, answer } = await import("@/lib/onboarding-admin");
@@ -544,6 +577,8 @@ export async function clientFromLiveSubmission(_prev: ActionState, fd: FormData)
 
 /** Fold a duplicate into the client whose page this is. */
 export async function mergeClient(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const keepId = str(fd, "keepId");
@@ -562,6 +597,8 @@ export async function mergeClient(_prev: ActionState, fd: FormData): Promise<Act
 }
 
 export async function attachSubmission(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await allow("forms");
   if (refused) return refused;
   const id = str(fd, "id");
@@ -585,6 +622,8 @@ export async function attachSubmission(_prev: ActionState, fd: FormData): Promis
 /* ---------------------------------------------------------------- settings */
 
 export async function saveSetting(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   /* Only a key the registry declares, and only one the site reads: a row that
@@ -602,6 +641,8 @@ export async function saveSetting(_prev: ActionState, fd: FormData): Promise<Act
 }
 
 export async function resetSetting(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const def = settingDef(str(fd, "key"));
@@ -627,6 +668,8 @@ function refreshProject(id: string) {
 }
 
 export async function createTask(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await allow("projects");
   if (refused) return refused;
   const errors: Record<string, string> = {};
@@ -652,6 +695,8 @@ export async function createTask(_prev: ActionState, fd: FormData): Promise<Acti
 }
 
 export async function toggleTask(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await allow("projects");
   if (refused) return refused;
   const id = str(fd, "id");
@@ -668,6 +713,8 @@ export async function toggleTask(_prev: ActionState, fd: FormData): Promise<Acti
 }
 
 export async function removeTask(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await allow("projects");
   if (refused) return refused;
   const id = str(fd, "id");
@@ -681,6 +728,8 @@ export async function removeTask(_prev: ActionState, fd: FormData): Promise<Acti
 /* ----------------------------------------------------- delivery: updates */
 
 export async function postUpdate(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await allow("projects");
   if (refused) return refused;
   const errors: Record<string, string> = {};
@@ -705,6 +754,8 @@ export async function postUpdate(_prev: ActionState, fd: FormData): Promise<Acti
 /* ------------------------------------------------ delivery: deliverables */
 
 export async function createDeliverable(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await allow("projects");
   if (refused) return refused;
   const errors: Record<string, string> = {};
@@ -720,6 +771,8 @@ export async function createDeliverable(_prev: ActionState, fd: FormData): Promi
 }
 
 export async function addDeliverableVersion(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await allow("projects");
   if (refused) return refused;
   const errors: Record<string, string> = {};
@@ -734,6 +787,8 @@ export async function addDeliverableVersion(_prev: ActionState, fd: FormData): P
 }
 
 export async function moveApproval(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await allow("projects");
   if (refused) return refused;
   const a = approval(fd, "approval");
@@ -760,6 +815,8 @@ export async function moveApproval(_prev: ActionState, fd: FormData): Promise<Ac
 /* ------------------------------------------------- delivery: the project */
 
 export async function saveProjectDetails(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await allow("projects");
   if (refused) return refused;
   const id = str(fd, "id");
@@ -784,6 +841,8 @@ export async function saveProjectDetails(_prev: ActionState, fd: FormData): Prom
 }
 
 export async function setProjectArchived(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const id = str(fd, "id");
@@ -810,6 +869,8 @@ export async function setProjectArchived(_prev: ActionState, fd: FormData): Prom
  * the first person's account of what happened.
  */
 export async function resolveEvent(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const id = str(fd, "id");
@@ -832,6 +893,8 @@ export async function resolveEvent(_prev: ActionState, fd: FormData): Promise<Ac
  * then closes the event with a note naming who decided.
  */
 export async function matchEventToInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const id = str(fd, "id");
@@ -876,6 +939,8 @@ export async function matchEventToInvoice(_prev: ActionState, fd: FormData): Pro
 
 /** Send the invoice, with the link that pays it. */
 export async function emailInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const id = str(fd, "id");
@@ -897,6 +962,8 @@ export async function emailInvoice(_prev: ActionState, fd: FormData): Promise<Ac
 
 /** The nudge on an overdue invoice. */
 export async function emailReminder(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const id = str(fd, "id");
@@ -926,6 +993,8 @@ export async function emailReminder(_prev: ActionState, fd: FormData): Promise<A
  * when the site itself sends one.
  */
 export async function logMessage(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await allow("clients");
   if (refused) return refused;
   const clientId = str(fd, "clientId");
@@ -954,6 +1023,8 @@ export async function logMessage(_prev: ActionState, fd: FormData): Promise<Acti
 
 /** A message that failed, queued to be tried again. */
 export async function resendMessage(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const m = await retryLogged(str(fd, "id"), str(fd, "by") || "Studio");
@@ -972,6 +1043,8 @@ export async function resendMessage(_prev: ActionState, fd: FormData): Promise<A
  * will be asked.
  */
 export async function voidInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const id = str(fd, "id");
@@ -1001,6 +1074,8 @@ export async function voidInvoice(_prev: ActionState, fd: FormData): Promise<Act
  * asks, and the books record which.
  */
 export async function refundPayment(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const errors: Record<string, string> = {};
@@ -1039,6 +1114,8 @@ export async function refundPayment(_prev: ActionState, fd: FormData): Promise<A
 
 /** Move an overpayment onto the client's balance rather than sending it back. */
 export async function overpaymentToCredit(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const id = str(fd, "id");
@@ -1057,6 +1134,8 @@ export async function overpaymentToCredit(_prev: ActionState, fd: FormData): Pro
 
 /** Spend a credit on an invoice. This is the balance carrying forward. */
 export async function applyCredit(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const creditId = str(fd, "id");
@@ -1084,6 +1163,8 @@ export async function applyCredit(_prev: ActionState, fd: FormData): Promise<Act
 /* ---------------------------------------------------------- estimates -- */
 
 export async function createEstimate(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const errors: Record<string, string> = {};
@@ -1125,6 +1206,8 @@ export async function createEstimate(_prev: ActionState, fd: FormData): Promise<
 }
 
 export async function sendEstimate(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const est = db.sendEstimate(str(fd, "id"), str(fd, "by") || "Studio");
@@ -1141,6 +1224,8 @@ export async function sendEstimate(_prev: ActionState, fd: FormData): Promise<Ac
  * disagreement about scope gets settled against.
  */
 export async function answerEstimate(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const accepted = str(fd, "answer") === "accepted";
@@ -1170,6 +1255,8 @@ export async function answerEstimate(_prev: ActionState, fd: FormData): Promise<
 
 /** Quote the same thing again, as a fresh draft at today's date. */
 export async function duplicateEstimate(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   const copy = db.duplicateEstimate(str(fd, "id"), str(fd, "by") || "Studio");
@@ -1179,6 +1266,8 @@ export async function duplicateEstimate(_prev: ActionState, fd: FormData): Promi
 }
 
 export async function duplicateInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await owner();
   if (refused) return refused;
   /* The copy's due date comes from the saved default, so load it first. */
@@ -1192,22 +1281,38 @@ export async function duplicateInvoice(_prev: ActionState, fd: FormData): Promis
 /* ----------------------------------------------------------- portal: support */
 
 export async function replyToTicketAsStudio(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await allow("clients");
   if (refused) return refused;
   const body = str(fd, "body");
   if (!body) return FAIL({ body: "Type a reply first." });
-  const t = db.addTicketMessage({ ticketId: str(fd, "id"), from: "studio", author: "Studio", body });
+  /* Signed with the person's name: "Studio" told the client nothing about
+     who they were talking to. */
+  const author = await actorName();
+  const t = db.addTicketMessage({ ticketId: str(fd, "id"), from: "studio", author, body });
   if (!t) return FAIL({}, "That conversation is no longer there.");
   const ticket = db.getTicket(t.ticketId);
-  if (ticket) refresh(`/admin/clients/${ticket.clientId}`, "/portal/support", `/portal/support/${ticket.id}`, "/portal");
-  return OK("Reply sent.");
+  if (ticket) {
+    refresh(`/admin/clients/${ticket.clientId}`, "/admin/clients/support", `/admin/clients/support/${ticket.id}`, "/portal/support", `/portal/support/${ticket.id}`, "/portal");
+    /* The client's copy goes behind the response; the row is written first. */
+    after(() => import("@/lib/support-mail").then((m) => m.sendSupportReply({ ticket, reply: body, author, messageId: t.id, by: author })));
+  }
+  return OK("Reply sent. The client has been emailed.");
 }
 
-export async function closeTicket(_prev: ActionState, fd: FormData): Promise<ActionState> {
+/** Open, answered or closed, set by the studio; reopening is a status too. */
+export async function setTicketState(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
   const refused = await allow("clients");
   if (refused) return refused;
-  const t = db.setTicketStatus(str(fd, "id"), "Closed");
+  const status = str(fd, "status");
+  if (!["Open", "Answered", "Closed"].includes(status)) return FAIL({}, "That is not a status.");
+  const t = db.setTicketStatus(str(fd, "id"), status as "Open" | "Answered" | "Closed");
   if (!t) return FAIL({}, "That conversation is no longer there.");
-  refresh(`/admin/clients/${t.clientId}`, "/portal/support", `/portal/support/${t.id}`, "/portal");
-  return OK("Closed.");
+  db.audit({ actor: await actorName(), kind: "client", subjectId: t.clientId, subject: t.subject, action: `set a support question to ${status}` });
+  refresh(`/admin/clients/${t.clientId}`, "/admin/clients/support", `/admin/clients/support/${t.id}`, "/portal/support", `/portal/support/${t.id}`, "/portal");
+  return OK(status === "Closed" ? "Closed." : status === "Open" ? "Reopened." : "Marked answered.");
 }
+

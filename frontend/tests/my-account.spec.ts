@@ -35,7 +35,7 @@ const db = pool();
 const MARK = randomUUID().slice(0, 8);
 const EMAIL = `wdc-me-${MARK}@wedigcreativity.com.ng`;
 const PASSWORD = `first-pass-${MARK}`;
-const NEW_PASSWORD = `second-pass-${MARK}`;
+const NEW_PASSWORD = `Second-pass-2-${MARK}`;
 const userId = randomUUID();
 
 const sessions = async () => Number((await db.query<{ n: string }>(`SELECT count(*) AS n FROM "session" WHERE "userId" = $1`, [userId])).rows[0].n);

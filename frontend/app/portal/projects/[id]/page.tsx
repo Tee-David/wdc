@@ -14,8 +14,10 @@ import { ApprovalPill, Empty, HealthPill, Panel, StagePill, when } from "@/compo
 import { ProfileCard } from "@/components/admin/profile-card";
 import { DeliverableActions } from "@/components/client/deliverable-actions";
 import "@/components/client/portal.css";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  await syncStore();
   const { id } = await params;
   const { client } = await getPortalRequest();
   const p = client ? getProject(id) : null;
@@ -31,6 +33,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
  * the one name a project carries.
  */
 export default async function PortalProjectDetail({ params }: { params: Promise<{ id: string }> }) {
+  await syncStore();
+  persistSoon();
   const { id } = await params;
   const { client } = await getPortalRequest();
   const p = client ? getProject(id) : null;

@@ -20,6 +20,7 @@ import { AlertTriangle, Clock, CreditCard, TrendingUp, Wallet } from "lucide-rea
 import "@/components/admin/dashboard.css";
 import { Pager, readPer } from "@/components/admin/pager";
 import { DateRange } from "@/components/admin/date-range";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 export const metadata = { title: "Money" };
 
@@ -55,6 +56,8 @@ function queryHref(query: MoneyQuery, changes: Partial<MoneyQuery>) {
 export default async function MoneyPage({
   searchParams,
 }: { searchParams: Promise<MoneyQuery> }) {
+  await syncStore();
+  persistSoon();
   const query = await searchParams;
   await hydrateSettings();
   const finance = financeDefaults();

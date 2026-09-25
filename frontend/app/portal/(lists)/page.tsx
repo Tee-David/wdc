@@ -11,6 +11,7 @@ import { SERVICE_BY_SLUG } from "@/lib/services";
 import { serviceGlyph } from "@/components/client/service-glyph";
 import { DemoNote, Empty, Panel, StagePill, Tile, when } from "@/components/admin/bits";
 import "@/components/client/portal.css";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 export const metadata = { title: "Overview" };
 
@@ -34,6 +35,8 @@ function today() {
  * not hold is left out, not invented.
  */
 export default async function PortalOverview() {
+  await syncStore();
+  persistSoon();
   const { client } = await getPortalRequest();
   if (!client) return null; // the layout already renders the "not linked" state
 

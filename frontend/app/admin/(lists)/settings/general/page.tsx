@@ -6,6 +6,7 @@ import { hydrateSettings } from "@/lib/settings/store";
 import { DemoNote, Panel } from "@/components/admin/bits";
 import { SettingMenu } from "@/components/admin/row-actions";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 export const metadata = { title: "Content and defaults" };
 
@@ -25,6 +26,8 @@ export const metadata = { title: "Content and defaults" };
  * why this screen shows what is editable before anything is editable.
  */
 export default async function SettingsPage() {
+  await syncStore();
+  persistSoon();
   /* Staff reach the content tools that live under Settings (the FAQ, the
      media library) and nothing else here: site settings, finance defaults,
      integrations, the team and the audit log are the owner's. */

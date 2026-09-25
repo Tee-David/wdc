@@ -4,10 +4,13 @@ import { getPortalRequest } from "@/lib/portal/session";
 import { getCreditsFor, getInvoicesFor } from "@/lib/admin/store";
 import { invoiceStatus, invoiceTotals, naira } from "@/lib/admin/types";
 import { Empty, InvoicePill, Panel, Tile, when } from "@/components/admin/bits";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 export const metadata = { title: "Billing" };
 
 export default async function PortalBilling() {
+  await syncStore();
+  persistSoon();
   const { client } = await getPortalRequest();
   if (!client) return null;
 

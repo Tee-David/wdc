@@ -6,6 +6,7 @@ import {
   retryMessage as memoryRetry, settleMessage as memorySettle, type QueueResult,
 } from "@/lib/admin/store";
 import type { Id, Message, MessageChannel, MessageState } from "@/lib/admin/types";
+import { syncStore } from "@/lib/admin/persist";
 
 /**
  * The message log, kept in the database (migration 0013).
@@ -52,6 +53,7 @@ export type QueueInput = Parameters<typeof memoryQueue>[0];
 
 /** Write the row, or say this event already has one. */
 export async function queueLogged(d: QueueInput): Promise<QueueResult> {
+  await syncStore();
   if (!configured()) return memoryQueue(d);
   const key = d.dedupeKey.trim();
   try {
@@ -76,6 +78,7 @@ export async function queueLogged(d: QueueInput): Promise<QueueResult> {
 
 /** Queued -> Sent, Failed or Skipped, with the provider's time and words. */
 export async function settleLogged(id: Id, state: Extract<MessageState, "Sent" | "Failed" | "Skipped">, error?: string, ms?: number) {
+  await syncStore();
   if (isMemoryId(id)) return memorySettle(id, state, error);
   try {
     const r = await db.query(`
@@ -91,6 +94,7 @@ export async function settleLogged(id: Id, state: Extract<MessageState, "Sent" |
 export async function listLogged(opts: {
   clientId?: Id; aboutIds?: readonly Id[]; state?: MessageState; limit?: number;
 } = {}): Promise<LoggedMessage[]> {
+  await syncStore();
   const { clientId, aboutIds, state, limit = 100 } = opts;
   const memory = memoryMessages({ clientId, aboutIds, state, limit }).map(fromMemory);
   if (!configured()) return memory;
@@ -116,6 +120,7 @@ export async function listLogged(opts: {
 
 /** Messages that did not go: the number worth a badge. */
 export async function failedLoggedCount(opts: { since?: Date } = {}): Promise<number> {
+  await syncStore();
   const since = opts.since;
   const memory = memoryMessages({ state: "Failed", limit: 10_000 }).filter((m) => !since || new Date(m.at) >= since).length;
   if (!configured()) return memory;
@@ -139,6 +144,7 @@ export async function failedLoggedCount(opts: { since?: Date } = {}): Promise<nu
  * row of its own.
  */
 export async function retryLogged(id: Id, actor = "Studio"): Promise<LoggedMessage | null> {
+  await syncStore();
   if (isMemoryId(id)) {
     const m = memoryRetry(id, actor);
     return m ? fromMemory(m) : null;
@@ -161,6 +167,7 @@ export async function retryLogged(id: Id, actor = "Studio"): Promise<LoggedMessa
 
 /** One resend, added to the row's trail (the last 20 are kept). */
 export async function recordResend(id: Id, resend: Resend) {
+  await syncStore();
   if (isMemoryId(id) || !configured()) return false;
   try {
     await db.query(`
@@ -181,6 +188,7 @@ export async function recordResend(id: Id, resend: Resend) {
 
 /** Every message about one record, found by its id at the end of the dedupe key. */
 export async function listForRecord(id: string, limit = 30): Promise<LoggedMessage[]> {
+  await syncStore();
   const memory = memoryMessages({ limit: 10_000 }).filter((m) => m.dedupeKey.endsWith(`:${id}`)).map(fromMemory);
   if (!configured()) return memory;
   try {
@@ -207,6 +215,7 @@ export type LogQuery = { q: string; state: "" | MessageState; page: number; per:
  * anything else is matched against the address, the subject and the summary.
  */
 export async function searchLogged(query: LogQuery): Promise<{ rows: LoggedMessage[]; total: number }> {
+  await syncStore();
   const where: string[] = [];
   const args: unknown[] = [];
   const like = (v: string) => `%${v.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
@@ -237,6 +246,7 @@ export async function searchLogged(query: LogQuery): Promise<{ rows: LoggedMessa
 
 /** Rows per state, for the tabs. */
 export async function loggedStateCounts(): Promise<Record<string, number>> {
+  await syncStore();
   const r = await db.query<{ state: string; n: string }>("SELECT state, count(*) AS n FROM message_log GROUP BY state");
   const out: Record<string, number> = { Queued: 0, Sent: 0, Failed: 0, Skipped: 0 };
   for (const x of r.rows) out[x.state] = Number(x.n);
@@ -245,12 +255,14 @@ export async function loggedStateCounts(): Promise<Record<string, number>> {
 
 /** Rows older than the retention period, removed. Returns how many. */
 export async function purgeLogged(days: number): Promise<number> {
+  await syncStore();
   const r = await db.query("DELETE FROM message_log WHERE created_at < now() - ($1::INT8 * INTERVAL '1 day')", [days]);
   return r.rowCount ?? 0;
 }
 
 /** The row an event was first sent under, by its dedupe key. */
 export async function findLogged(dedupeKey: string): Promise<LoggedMessage | null> {
+  await syncStore();
   if (!configured()) return null;
   try {
     const r = await db.query<Row>("SELECT * FROM message_log WHERE dedupe_key = $1", [dedupeKey]);
@@ -266,6 +278,7 @@ export async function findLogged(dedupeKey: string): Promise<LoggedMessage | nul
  * and listing both would send it twice.
  */
 export async function outstandingFailures(days: number, limit: number): Promise<{ id: string; dedupeKey: string; to: string; subject: string }[]> {
+  await syncStore();
   if (!configured()) return [];
   const r = await db.query<{ id: string; dedupe_key: string; to_addr: string; subject: string }>(`
     SELECT id, dedupe_key, to_addr, subject FROM message_log
@@ -279,6 +292,7 @@ export async function outstandingFailures(days: number, limit: number): Promise<
 
 /** Rows written but never settled: a send that died mid-flight. */
 export async function stuckQueuedCount(olderThanMinutes = 15): Promise<number> {
+  await syncStore();
   if (!configured()) return 0;
   try {
     const r = await db.query<{ n: string }>(

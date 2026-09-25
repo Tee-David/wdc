@@ -84,7 +84,8 @@ test("the brief is in its form's inbox and reads back under its questions", asyn
 });
 
 test("making them a client twice lands on the same client", async ({ page }) => {
-  await page.goto(entry(), { waitUntil: "load" });
+  /* networkidle: a click before the form hydrates submits nothing. */
+  await page.goto(entry(), { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "Make them a client" }).click();
   await expect(page).toHaveURL(/\/admin\/clients\/c\d+$/);
   const first = page.url();

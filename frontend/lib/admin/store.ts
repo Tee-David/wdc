@@ -647,7 +647,12 @@ export function getMonthly(months = 6) {
 /* Monotonic within the process, prefixed so an id says what it is. Real rows
    get a UUID from the database default; this only has to be unique here. */
 const SEQ = shared("SEQ", () => ({ n: 1000 }));
-const mint = (p: string) => `${p}${++SEQ.n}`;
+/* UNIQUE ACROSS INSTANCES, now that the records are kept (lib/admin/persist.ts):
+   a counter alone gave two Vercel instances the same "c1001". The time in
+   milliseconds, then the counter and three random digits, still all digits,
+   so an id still says what it is and still reads as a number. */
+const mint = (p: string) =>
+  `${p}${Date.now().toString().slice(-10)}${String(++SEQ.n % 1000).padStart(3, "0")}${String(Math.floor(Math.random() * 1000)).padStart(3, "0")}`;
 const now = () => new Date().toISOString();
 
 /**
@@ -2316,4 +2321,18 @@ export function getPipeline(today = new Date()) {
     won: won.length,
     answered: answered.length,
   };
+}
+
+
+/**
+ * THE COLLECTIONS lib/admin/persist.ts KEEPS, by name. The arrays themselves,
+ * not copies: the sync folds rows into them in place, so every function above
+ * reads the kept records without knowing they came from a table. The audit
+ * trail and the settings map are kept elsewhere already (audit-db, settings).
+ */
+export function persistedCollections(): Record<string, { id: string }[]> {
+  return {
+    CLIENTS, PROJECTS, INVOICES, PAYMENTS, EXPENSES, SUBMISSIONS, TICKETS, TICKET_MESSAGES,
+    CREDITS, TASKS, UPDATES, DELIVERABLES, PROVIDER_EVENTS, MESSAGES, ESTIMATES,
+  } as unknown as Record<string, { id: string }[]>;
 }

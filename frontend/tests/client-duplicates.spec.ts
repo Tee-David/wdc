@@ -29,7 +29,7 @@ test("the same email in different case is caught as a duplicate", async ({ page 
   await openAddClient(page);
   await page.getByLabel("Company").fill("A Second Company");
   await page.getByLabel("Who you deal with").fill("Someone Else");
-  await page.getByLabel("Email").fill("TOBI@MooreDesigns.ng");
+  await page.getByRole("textbox", { name: /^Email/ }).fill("TOBI@MooreDesigns.ng");
   await page.getByLabel("Phone").fill("+234 700 000 0000");
   await page.getByRole("checkbox", { name: "SEO" }).check();
   await page.getByRole("button", { name: "Add them" }).click();
@@ -42,7 +42,7 @@ test("the same phone in a different format is caught as a duplicate", async ({ p
   await openAddClient(page);
   await page.getByLabel("Company").fill("A Third Company");
   await page.getByLabel("Who you deal with").fill("Someone Else Again");
-  await page.getByLabel("Email").fill("nottobi@example.com");
+  await page.getByRole("textbox", { name: /^Email/ }).fill("nottobi@example.com");
   await page.getByLabel("Phone").fill("0802-123-4567");
   await page.getByRole("checkbox", { name: "SEO" }).check();
   await page.getByRole("button", { name: "Add them" }).click();
@@ -54,7 +54,7 @@ test("an unrelated new client is not blocked", async ({ page }) => {
   await openAddClient(page);
   await page.getByLabel("Company").fill("Genuinely New Co");
   await page.getByLabel("Who you deal with").fill("A New Contact");
-  await page.getByLabel("Email").fill("hello@genuinelynew.example");
+  await page.getByRole("textbox", { name: /^Email/ }).fill("hello@genuinelynew.example");
   await page.getByLabel("Phone").fill("+234 701 234 5678");
   await page.getByRole("checkbox", { name: "SEO" }).check();
   await page.getByRole("button", { name: "Add them" }).click();

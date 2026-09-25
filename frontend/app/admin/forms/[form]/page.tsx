@@ -22,6 +22,7 @@ import { dataFromEntry, formEmail, tokensFor } from "@/lib/forms/emails";
 import { unsubscribeUrl } from "@/lib/newsletter";
 import { getFormSettings } from "@/lib/forms/settings-db";
 import "@/components/admin/forms/forms.css";
+import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 /* NO generateStaticParams: an entry that arrives after the build still opens. */
 
@@ -31,6 +32,7 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  await syncStore();
   const { form: key } = await params;
   const form = formByKey(key);
   if (form) return { title: form.title };
@@ -98,6 +100,8 @@ function Questions({ form }: { form: FormDef }) {
 }
 
 export default async function FormPage({ params, searchParams }: Props) {
+  await syncStore();
+  persistSoon();
   const { form: key } = await params;
   const form = formByKey(key);
 
