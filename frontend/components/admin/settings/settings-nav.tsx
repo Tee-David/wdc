@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronLeft, ChevronRight, History, Images, Mail, MessagesSquare, Plug, ShieldCheck, SlidersHorizontal, Users } from "lucide-react";
-import { can, type AdminRole } from "@/lib/admin/permissions";
+import { ChevronLeft, ChevronRight, History, Images, Mail, MessagesSquare, Plug, ShieldCheck, SlidersHorizontal, UserRound, Users } from "lucide-react";
+import { can, isAdminRole, type AdminRole } from "@/lib/admin/permissions";
 import { SETTINGS_GROUPS, SETTINGS_SECTIONS, type SettingsIcon } from "@/lib/settings/sections";
 
 const ICON: Record<SettingsIcon, typeof Mail> = {
-  sliders: SlidersHorizontal, messages: MessagesSquare, images: Images, mail: Mail, plug: Plug, history: History, shield: ShieldCheck, users: Users,
+  sliders: SlidersHorizontal, messages: MessagesSquare, images: Images, mail: Mail, plug: Plug, history: History, shield: ShieldCheck, users: Users, user: UserRound,
 };
 
 /**
@@ -16,7 +16,7 @@ const ICON: Record<SettingsIcon, typeof Mail> = {
  */
 export function SettingsNav({ role }: { role: AdminRole | null }) {
   const path = usePathname();
-  const sections = SETTINGS_SECTIONS.filter((s) => can(role, s.area));
+  const sections = SETTINGS_SECTIONS.filter((s) => (s.area ? can(role, s.area) : isAdminRole(role)));
   const onIndex = path === "/admin/settings";
   return (
     <>
