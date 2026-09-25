@@ -22,7 +22,7 @@ const KIND_LABEL: Record<(typeof AUDIT_KINDS)[number], string> = {
  */
 export default async function AuditPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   if (!can(await adminRole(), "settings")) {
-    return <section className="ad__panel"><AdminState kind="forbidden" title="The audit log is for the owner" description="Every change made in the admin, with who made it." /></section>;
+    return <section className="ad__panel"><AdminState kind="forbidden" back={{ href: "/admin/settings", label: "Back to settings" }} title="The audit log is for the owner" description="Every change made in the admin, with who made it." /></section>;
   }
   const sp = await searchParams;
   const filters = readAuditFilters(sp);

@@ -10,7 +10,7 @@ export const metadata = { title: "New form" };
 /** Start a form: a name and its address. The questions come next, in the builder. */
 export default async function NewFormPage() {
   if (!can(await adminRole(), "settings")) {
-    return <section className="ad__panel"><AdminState kind="forbidden" title="Building forms is the owner's" description="Staff answer the entries of every form." /></section>;
+    return <section className="ad__panel"><AdminState kind="forbidden" back={{ href: "/admin/forms", label: "Back to forms" }} title="Building forms is the owner's" description="Staff answer the entries of every form." /></section>;
   }
   return (
     <>
