@@ -23,7 +23,7 @@ test("the icon picked in Edit details shows on the project and in the portal", a
 
   await page.setExtraHTTPHeaders({ "x-boneyard-capture": TOKEN ?? "", "x-boneyard-capture-client": "c1" });
   await page.goto("/portal/projects", { waitUntil: "load" });
-  await expect(page.locator(".adDash__listIcon svg.lucide-rocket").first()).toBeVisible();
+  await expect(page.locator(".pProj__icon svg.lucide-rocket").first()).toBeVisible();
 });
 
 test("a new project offers Shuffle, and gets a random icon if none is picked", async ({ page, baseURL }) => {

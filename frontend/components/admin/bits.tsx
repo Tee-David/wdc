@@ -18,14 +18,16 @@ export function DemoNote({ children }: { children: React.ReactNode }) {
 }
 
 export function Panel({
-  title, action, children, dataTour,
+  title, action, children, dataTour, id,
 }: {
   title: string; action?: React.ReactNode; children: React.ReactNode;
   /** A tour step's `target`, when this panel is one -- see `lib/tours/admin.ts`. */
   dataTour?: string;
+  /** An anchor another page links straight to. */
+  id?: string;
 }) {
   return (
-    <section className="ad__panel" data-tour={dataTour}>
+    <section className="ad__panel" data-tour={dataTour} id={id}>
       <div className="ad__panelH">
         <h2>{title}</h2>
         {action}
