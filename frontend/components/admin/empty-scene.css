@@ -1,0 +1,102 @@
+/* ==========================================================================
+   THE EMPTY-STATE SCENES (components/admin/empty-scene.tsx).
+   160x112, a solid halo, one solid tone tile for the subject, at most one
+   orange spark. Transform and opacity only; still under reduced motion;
+   `content-visibility: auto` stops the loop when the scene is off screen.
+   ========================================================================== */
+.es {
+  position: relative; display: block; width: 160px; height: 112px; margin: 0 auto .9rem; flex: none;
+  content-visibility: auto; contain-intrinsic-size: 160px 112px;
+}
+.es svg { display: block; }
+.es__halo { position: absolute; left: 50%; top: 50%; width: 104px; height: 104px; margin: -52px 0 0 -52px; border-radius: 50%; background: var(--ad-nav-on); }
+
+/* first-use: a card with the section's icon drops into a tray */
+.es__tray { position: absolute; left: 38px; right: 38px; bottom: 16px; height: 26px; border: 3px solid var(--ad-dim); border-top: 0; border-radius: 0 0 14px 14px; }
+.es__card {
+  position: absolute; left: 50%; bottom: 26px; width: 58px; height: 44px; margin-left: -29px; border-radius: 12px;
+  display: grid; place-items: center; background: var(--ad-tone-brand); color: var(--ad-on-brand);
+  animation: es-drop 3.6s cubic-bezier(.3, .7, .3, 1) infinite;
+}
+.es__card > svg { width: 22px; height: 22px; }
+.es__badge {
+  position: absolute; top: -9px; right: -9px; width: 22px; height: 22px; border-radius: 50%;
+  display: grid; place-items: center; background: #ff6500; color: #000; animation: es-pulse 3.6s ease-in-out infinite;
+}
+.es__badge svg { width: 13px; height: 13px; stroke-width: 3; }
+@keyframes es-drop {
+  0% { transform: translateY(-26px); opacity: 0; }
+  18% { opacity: 1; }
+  45%, 80% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes es-pulse { 0%, 40% { transform: scale(.6); } 55% { transform: scale(1.12); } 70%, 100% { transform: scale(1); } }
+
+/* no-results: a magnifier sweeps over rows that are not there */
+.es__rows { position: absolute; left: 40px; right: 40px; top: 32px; display: grid; gap: 9px; }
+.es__rows i { display: block; height: 9px; border-radius: 5px; background: var(--ad-tone-flat); }
+.es__rows i:nth-child(2) { width: 72%; }
+.es__rows i:nth-child(3) { width: 48%; }
+.es__lens {
+  position: absolute; left: 50%; top: 22px; width: 54px; height: 54px; margin-left: -27px; border-radius: 50%;
+  display: grid; place-items: center; background: var(--ad-tone-neutral); color: var(--ad-on-neutral);
+  animation: es-sweep 3.4s ease-in-out infinite alternate;
+}
+.es__lens > svg { width: 26px; height: 26px; }
+.es__x { position: absolute; right: -6px; bottom: -4px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: #ff6500; color: #000; }
+.es__x svg { width: 12px; height: 12px; stroke-width: 3; }
+@keyframes es-sweep { 0% { transform: translateX(-22px) rotate(-8deg); } 100% { transform: translateX(22px) rotate(8deg); } }
+
+/* cleared: a check tile bobs while three sparks twinkle */
+.es__tick {
+  position: absolute; left: 50%; top: 30px; width: 54px; height: 54px; margin-left: -27px; border-radius: 16px;
+  display: grid; place-items: center; background: var(--ad-tone-good); color: var(--ad-on-good);
+  animation: es-bob 3s ease-in-out infinite;
+}
+.es__tick svg { width: 28px; height: 28px; stroke-width: 3; }
+.es__spark {
+  position: absolute; width: 14px; height: 14px; background: #ff6500;
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  animation: es-twinkle 2.4s ease-in-out infinite;
+}
+.es__spark--a { left: 44px; top: 22px; }
+.es__spark--b { right: 42px; top: 34px; width: 11px; height: 11px; animation-delay: .8s; }
+.es__spark--c { right: 54px; bottom: 16px; width: 9px; height: 9px; animation-delay: 1.6s; }
+@keyframes es-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes es-twinkle { 0%, 100% { transform: scale(.35) rotate(0); opacity: .3; } 50% { transform: scale(1) rotate(45deg); opacity: 1; } }
+
+/* error: a plug reaches for its socket and does not quite make it */
+.es__lead { position: absolute; left: 22px; top: 58px; width: 38px; height: 3px; border-radius: 2px; background: var(--ad-dim); }
+.es__plug {
+  position: absolute; left: 56px; top: 44px; width: 34px; height: 32px; border-radius: 9px; background: var(--ad-tone-bad);
+  animation: es-plug 2.8s ease-in-out infinite;
+}
+.es__plug i { position: absolute; right: -9px; width: 10px; height: 4px; border-radius: 2px; background: var(--ad-tone-bad); }
+.es__plug i:first-child { top: 8px; }
+.es__plug i:last-child { bottom: 8px; }
+.es__socket { position: absolute; right: 34px; top: 38px; width: 26px; height: 44px; border: 3px solid var(--ad-dim); border-radius: 10px; }
+.es__zap {
+  position: absolute; right: 60px; top: 30px; width: 12px; height: 16px; background: #ff6500;
+  clip-path: polygon(60% 0, 0 55%, 45% 55%, 30% 100%, 100% 40%, 55% 40%);
+  animation: es-flicker 2.8s steps(1) infinite;
+}
+@keyframes es-plug { 0%, 100% { transform: translateX(-7px); } 55% { transform: translateX(3px); } }
+@keyframes es-flicker { 0%, 50%, 70%, 100% { opacity: 0; } 55%, 65% { opacity: 1; } }
+
+/* forbidden: a padlock gives a small shake */
+.es__lock {
+  position: absolute; left: 50%; top: 48px; width: 50px; height: 40px; margin-left: -25px; border-radius: 10px;
+  background: var(--ad-tone-warn); animation: es-shake 3.2s ease-in-out infinite; transform-origin: 50% 0;
+}
+.es__lock i { position: absolute; left: 50%; top: 11px; width: 8px; height: 16px; margin-left: -4px; border-radius: 4px; background: var(--ad-on-warn); }
+.es__shackle {
+  position: absolute; left: 50%; top: 22px; width: 32px; height: 34px; margin-left: -16px;
+  border: 5px solid var(--ad-dim); border-bottom: 0; border-radius: 18px 18px 0 0;
+  animation: es-shackle 3.2s ease-in-out infinite;
+}
+@keyframes es-shake { 0%, 60%, 100% { transform: rotate(0); } 66% { transform: rotate(-5deg); } 72% { transform: rotate(5deg); } 78% { transform: rotate(-3deg); } 84% { transform: rotate(0); } }
+@keyframes es-shackle { 0%, 55%, 100% { transform: translateY(0); } 62% { transform: translateY(-6px); } 70% { transform: translateY(0); } 76% { transform: translateY(-3px); } 82% { transform: translateY(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .es *, .es { animation: none !important; }
+}
