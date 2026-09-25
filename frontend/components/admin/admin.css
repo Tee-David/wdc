@@ -1837,3 +1837,23 @@ a.ad__pgBtn:hover { background: var(--ad-panel-2); border-color: var(--ad-dim); 
   .adEntryActs { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
   .adEntryActs .ad__btn { width: 100%; justify-content: center; padding-inline: .6rem; }
 }
+
+/* A FOLDING FORM SECTION (Fold in form.tsx): the title and a one-line summary
+   as a 44px+ row with a chevron; the fields under it when open. */
+.adFold { padding: 0 !important; }
+.adFold__sum {
+  display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+  min-height: 3.5rem; padding: .8rem 1rem; cursor: pointer; list-style: none;
+}
+.adFold__sum::-webkit-details-marker { display: none; }
+.adFold__sum > span { display: grid; gap: .1rem; min-width: 0; }
+.adFold__sum b { font: 600 1rem var(--font-space-grotesk), system-ui, sans-serif; }
+.adFold__sum small { color: var(--ad-dim); font-size: .8rem; }
+.adFold__sum::after {
+  content: ""; flex: none; width: .55rem; height: .55rem; margin-right: .3rem;
+  border-right: 2px solid var(--ad-dim); border-bottom: 2px solid var(--ad-dim); transform: rotate(45deg); transition: transform .15s ease;
+}
+.adFold[open] > .adFold__sum::after { transform: rotate(-135deg); }
+.adFold__sum:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: -2px; border-radius: var(--ad-r); }
+.adFold__body { padding: 0 1rem 1rem; }
+@media (prefers-reduced-motion: reduce) { .adFold__sum::after { transition: none; } }

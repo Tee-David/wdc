@@ -100,8 +100,14 @@
   .adBlog--split { grid-template-columns: minmax(0, 1fr) minmax(19rem, 23rem); }
   .adBlog__side { position: sticky; top: 5rem; }
 }
+/* NARROWER THAN THAT, THE WRITING COMES FIRST (the owner's order): cover,
+   headline and body, then Details and Search and sharing, folded, then the
+   publish panel with its full-width Save. It used to put the side panel
+   above everything, so a phone opened on State and Date. */
 @media (max-width: 1099px) {
-  .adBlog__side { order: -1; }
+  .adBlog__details { order: 1; }
+  .adBlog__seo { order: 2; }
+  .adBlog__publish { order: 3; }
 }
 .adBlog__restore { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem; }
 

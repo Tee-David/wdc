@@ -65,6 +65,43 @@ type Kit = {
 };
 const Ctx = createContext<Kit>({ errors: {}, pendingId: "", values: {}, gen: 0 });
 
+/** The field errors of the form this sits in: for a section that has to open
+    itself when one of its fields was refused. */
+export function useFieldErrors(): Errors {
+  return useContext(Ctx).errors;
+}
+
+/**
+ * A SECTION OF A FORM THAT FOLDS: closed on a phone, open on a wider screen,
+ * and open wherever a field inside it was refused, so a mistake is never
+ * behind a closed door.
+ */
+export function Fold({ title, summary, fields, className, children }: {
+  title: string; summary?: string; fields: string[]; className?: string; children: React.ReactNode;
+}) {
+  const errors = useContext(Ctx).errors;
+  const bad = fields.some((f) => errors[f]);
+  return (
+    <details
+      className={`adFold ${className ?? ""}`}
+      open={bad || undefined}
+      /* Wide screens start open, set once on the element after it mounts, so
+         the server render (closed) and hydration agree and the reader's own
+         opening and closing is left alone after that. */
+      ref={(el) => {
+        if (!el || el.dataset.ready) return;
+        el.dataset.ready = "1";
+        if (window.matchMedia("(min-width: 1100px)").matches) el.open = true;
+      }}
+    >
+      <summary className="adFold__sum">
+        <span><b>{title}</b>{summary ? <small>{summary}</small> : null}</span>
+      </summary>
+      <div className="adFold__body">{children}</div>
+    </details>
+  );
+}
+
 export function Form({
   action,
   children,

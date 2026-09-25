@@ -6,7 +6,7 @@ import { Eye, Save } from "lucide-react";
 import { docText, isDoc, type RichDoc } from "@/lib/blog-doc";
 import { saveBlogPost } from "@/lib/admin/blog-actions";
 import { LIMITS } from "@/lib/blog-validate";
-import { Actions, Area, Checks, Field, Fields, Form, Hidden, Radios, Select, Submit, useFieldError } from "./form";
+import { Actions, Area, Checks, Field, Fields, Fold, Form, Hidden, Radios, Select, Submit, useFieldError } from "./form";
 import Tip from "@/components/onboarding/tip";
 
 export type EditorPost = {
@@ -268,6 +268,8 @@ export function BlogEditor({ post, topics, covers, canPublish = true }: {
       <div className="adBlog__main">
         <section className="ad__panel adBlog__card">
           <Fields>
+            {/* The picture first, then the words: the post is read in that order. */}
+            <Select name="cover" label="Cover photograph" required defaultValue={post.cover} options={coverOptions} />
             <Field name="title" label="Headline" required defaultValue={post.title} hint="The page's one h1." />
             <Area name="excerpt" label="Card sentence" required rows={2} defaultValue={post.excerpt} hint="One sentence on the blog index and in link previews." />
           </Fields>
@@ -276,7 +278,7 @@ export function BlogEditor({ post, topics, covers, canPublish = true }: {
       </div>
 
       <aside className="adBlog__side">
-        <section className="ad__panel adBlog__card">
+        <section className="ad__panel adBlog__card adBlog__publish">
           <h2 className="adBlog__h">Publish</h2>
           <Radios name="status" label="State" defaultValue={post.status} options={canPublish ? [
             { value: "draft", label: "Draft", note: "Nobody can see it. Choosing this for a live post unpublishes it." },
@@ -302,19 +304,16 @@ export function BlogEditor({ post, topics, covers, canPublish = true }: {
           </Actions>
         </section>
 
-        <section className="ad__panel adBlog__card">
-          <h2 className="adBlog__h">Details</h2>
+        <Fold title="Details" summary="Address, service and tags" fields={["slug", "topic", "tags"]} className="ad__panel adBlog__card adBlog__details">
           <Fields>
             <Field name="slug" label="Address" required defaultValue={post.slug}
                    hint={post.live ? "Fixed now that the post is live, so links to it keep working." : "Fills itself from the headline until you type your own."} />
             <Select name="topic" label="Service" required defaultValue={post.topic} options={topics} placeholder="Pick one" />
             <Field name="tags" label="Tags" defaultValue={post.tags.join(", ")} hint={`Comma separated, up to ${LIMITS.tags}.`} />
-            <Select name="cover" label="Cover photograph" required defaultValue={post.cover} options={coverOptions} />
           </Fields>
-        </section>
+        </Fold>
 
-        <section className="ad__panel adBlog__card">
-          <h2 className="adBlog__h">Search and sharing</h2>
+        <Fold title="Search and sharing" summary="How it shows on Google and in links" fields={["seoTitle", "description", "canonical", "socialImage"]} className="ad__panel adBlog__card adBlog__seo">
           <SearchPreview />
           <Fields>
             <Field name="seoTitle" label="Search result title" required defaultValue={post.seoTitle} />
@@ -326,7 +325,7 @@ export function BlogEditor({ post, topics, covers, canPublish = true }: {
             <Select name="socialImage" label="Social image" defaultValue={post.socialImage}
                     options={[{ value: "", label: "The drawn card with the headline (recommended)" }, ...coverOptions]} />
           </Fields>
-        </section>
+        </Fold>
       </aside>
     </Form>
   );
