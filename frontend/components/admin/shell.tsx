@@ -339,7 +339,7 @@ function AccountMenu({ user }: { user: AdminUser }) {
   );
 }
 
-function Notifications({ openForms, failedMail = 0 }: { openForms: number; failedMail?: number }) {
+function Notifications({ openForms, failedMail = 0, inReview = 0, unchecked = false }: { openForms: number; failedMail?: number; inReview?: number; unchecked?: boolean }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -368,12 +368,12 @@ function Notifications({ openForms, failedMail = 0 }: { openForms: number; faile
         ref={trigger}
         type="button"
         className="ad__topIcon"
-        aria-label={openForms + failedMail > 0 ? `Notifications, ${openForms + failedMail} waiting` : "Notifications"}
+        aria-label={openForms + failedMail + inReview > 0 ? `Notifications, ${openForms + failedMail + inReview} waiting` : "Notifications"}
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
       >
         <Bell aria-hidden="true" />
-        {openForms + failedMail > 0 ? <span className="ad__notificationDot" aria-hidden="true">{openForms + failedMail > 9 ? "9+" : openForms + failedMail}</span> : null}
+        {openForms + failedMail + inReview > 0 ? <span className="ad__notificationDot" aria-hidden="true">{openForms + failedMail + inReview > 9 ? "9+" : openForms + failedMail + inReview}</span> : null}
       </button>
       {open ? (
         <div className="ad__popover ad__notifications">
@@ -389,9 +389,19 @@ function Notifications({ openForms, failedMail = 0 }: { openForms: number; faile
               <span className="ad__noticeIcon"><ClipboardList aria-hidden="true" /></span>
               <span><b>{openForms} unread form {openForms === 1 ? "entry" : "entries"}</b><small>Briefs and enquiries nobody has opened yet</small></span>
             </Link>
-          ) : failedMail > 0 ? null : (
+          ) : null}
+          {inReview > 0 ? (
+            <Link href="/admin/blog?state=review" onClick={() => setOpen(false)}>
+              <span className="ad__noticeIcon"><Newspaper aria-hidden="true" /></span>
+              <span><b>{inReview} {inReview === 1 ? "post" : "posts"} waiting for review</b><small>Publish them or send them back</small></span>
+            </Link>
+          ) : null}
+          {/* "All caught up" only when every count was actually read. */}
+          {unchecked ? (
+            <div className="ad__popoverEmpty"><b>Couldn’t check for new activity.</b><span>The database did not answer. <a href="">Reload</a> to try again.</span></div>
+          ) : openForms + failedMail + inReview === 0 ? (
             <div className="ad__popoverEmpty"><b>You’re all caught up.</b><span>New activity will show up here.</span></div>
-          )}
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -411,6 +421,13 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
     ]);
     return pages.filter((item) => !needle || item.label.toLowerCase().includes(needle));
   }, [query, nav]);
+  const role = useAdminRole();
+  const q = encodeURIComponent(query.trim());
+  const finds = [
+    { href: `/admin/clients?q=${q}#client-list`, label: "Clients", Icon: Users, area: "clients" as const },
+    { href: `/admin/projects?q=${q}#projects-table`, label: "Projects", Icon: FolderKanban, area: "projects" as const },
+    { href: `/admin/money?q=${q}#invoice-list`, label: "Invoices", Icon: Banknote, area: "money" as const },
+  ].filter((f) => can(role, f.area));
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -439,7 +456,20 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
             <Link key={href + label} href={href} onClick={onClose}>
               <Icon aria-hidden="true" /><span>{label}</span>
             </Link>
-          )) : <p>No matching admin page or action.</p>}
+          )) : null}
+          {/* NOTHING IN THE MENU MATCHES: the words are probably a name or a
+              number, so offer to look for them in the records this person
+              can open, rather than a dead "no match". */}
+          {!results.length && query.trim() ? (
+            <>
+              <p>No page is called that. Look for it in:</p>
+              {finds.map(({ href, label, Icon }) => (
+                <Link key={href} href={href} onClick={onClose}>
+                  <Icon aria-hidden="true" /><span>{label} for “{query.trim()}”</span>
+                </Link>
+              ))}
+            </>
+          ) : null}
         </div>
       </section>
     </div>
@@ -576,7 +606,7 @@ function ShellFrame({ children, counts, user }: { children: ReactNode; counts: R
           <div className="ad__topActions">
             <TourLauncher />
             <ThemeButton />
-            <Notifications openForms={counts.Forms ?? 0} failedMail={counts.FailedMail ?? 0} />
+            <Notifications openForms={counts.Forms ?? 0} failedMail={counts.FailedMail ?? 0} inReview={counts.Blog ?? 0} unchecked={Boolean(counts.Unchecked)} />
             <span className="ad__topRule" aria-hidden="true" />
             <AccountMenu user={user} />
           </div>
