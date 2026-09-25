@@ -60,11 +60,23 @@ function toAsset(r: Row): MediaAsset {
 
 const COLUMNS = "id, key, filename, content_type, bytes, alt, uploaded_by, uploaded_at, archived_at, archived_by";
 
-export async function listMedia({ archived = false } = {}): Promise<{ items: MediaAsset[]; total: number }> {
-  const where = archived ? "archived_at IS NOT NULL" : "archived_at IS NULL";
+/**
+ * One page of the library, newest first. `q` looks in the file name and the
+ * description ON THE SERVER, so a file older than the first page can still be
+ * found by name; `page` walks back through the rest, a page at a time.
+ */
+export async function listMedia({ archived = false, q = "", page = 1 }: { archived?: boolean; q?: string; page?: number } = {}): Promise<{ items: MediaAsset[]; total: number }> {
+  const needle = q.trim().slice(0, 80);
+  const params: unknown[] = [];
+  let where = archived ? "archived_at IS NOT NULL" : "archived_at IS NULL";
+  if (needle) {
+    params.push(`%${needle.replace(/[\\%_]/g, (c) => `\\${c}`)}%`);
+    where += ` AND (filename ILIKE $1 OR alt ILIKE $1)`;
+  }
+  const offset = (Math.max(1, Math.floor(page)) - 1) * MEDIA_PAGE;
   const [rows, count] = await Promise.all([
-    db.query<Row>(`SELECT ${COLUMNS} FROM media_assets WHERE ${where} ORDER BY uploaded_at DESC, id DESC LIMIT $1`, [MEDIA_PAGE]),
-    db.query<{ n: string }>(`SELECT count(*) AS n FROM media_assets WHERE ${where}`),
+    db.query<Row>(`SELECT ${COLUMNS} FROM media_assets WHERE ${where} ORDER BY uploaded_at DESC, id DESC LIMIT ${MEDIA_PAGE} OFFSET ${offset}`, params),
+    db.query<{ n: string }>(`SELECT count(*) AS n FROM media_assets WHERE ${where}`, params),
   ]);
   return { items: rows.rows.map(toAsset), total: Number(count.rows[0]?.n ?? 0) };
 }

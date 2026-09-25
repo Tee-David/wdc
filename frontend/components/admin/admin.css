@@ -604,12 +604,12 @@ body:has(.ad__sheetLayer) .st { display: none; }
    always on screen, rather than from its own button, which may not be. */
 .ad__filterBar .ad__range { position: static; }
 .ad__filterBar .ad__rangeMenu { left: auto; right: 1.25rem; top: calc(100% - .35rem); }
-.ad__filterBar input, .ad__filterBar select {
+.ad__filterBar input, .ad__filterBar select, .adMedia__find input {
   min-height: 2.75rem; max-width: 100%; padding: .45rem .65rem;
   border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); color: var(--ad-ink);
   font: 500 .88rem var(--font-body), system-ui, sans-serif;
 }
-.ad__filterBar input:focus-visible, .ad__filterBar select:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.ad__filterBar input:focus-visible, .ad__filterBar select:focus-visible, .adMedia__find input:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
 .ad__filterSearch { flex: 1 1 15rem; }
 .ad__filterSearch input { width: 100%; }
 .ad__listMeta, .ad__pagination {

@@ -43,4 +43,6 @@
 .adMedia__tools { display: flex; flex-wrap: wrap; gap: .4rem; }
 .adMedia__tools form { display: contents; }
 .adMedia__tools .ad__btn, .adMedia__alt .ad__btn { min-height: 44px; }
-.adMedia__more { margin: 0; font-size: .85rem; }
+.adMedia__find { margin-top: .75rem; display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+.adMedia__find label { min-width: 0; }
+@media (max-width: 560px) { .adMedia__find > * { flex: 1 1 100%; } }

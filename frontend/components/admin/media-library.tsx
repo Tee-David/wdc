@@ -113,7 +113,7 @@ function CopyUrl({ url }: { url: string }) {
  * the page itself; the card reports back, the notice is set up here, and only
  * then is the list refreshed.
  */
-export function MediaGrid({ items, empty }: { items: MediaAsset[]; empty: React.ReactNode }) {
+export function MediaGrid({ items, empty, search = true }: { items: MediaAsset[]; empty: React.ReactNode; search?: boolean }) {
   const router = useRouter();
   const [notice, setNotice] = useState("");
   const moved = useCallback((message: string) => { setNotice(message); router.refresh(); }, [router]);
@@ -122,7 +122,9 @@ export function MediaGrid({ items, empty }: { items: MediaAsset[]; empty: React.
       <p className={notice ? "ad__msg is-ok adMedia__notice" : "ad__sr adMedia__notice"} role="status">{notice}</p>
       {/* The empty state is drawn here too, so archiving the last card does
           not unmount the notice along with the list. */}
-      {items.length ? <ListSearch target="media-grid" placeholder="Search by file name or description" noun="files" /> : null}
+      {/* The instant filter only when every file is on this page; past one
+          page the search is the server's (the form on the media page). */}
+      {items.length && search ? <ListSearch target="media-grid" placeholder="Search by file name or description" noun="files" /> : null}
       {items.length ? (
         <ul className="adMedia__grid" id="media-grid">
           {items.map((m) => <MediaCard key={m.id} item={m} onMoved={moved} />)}
