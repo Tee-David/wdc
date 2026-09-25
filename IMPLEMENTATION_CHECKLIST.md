@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**91 open** (36 in progress)
+**90 open** (36 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -143,11 +143,12 @@ DONE 2026-09-25: Settings > Site and SEO (`/admin/settings/site`, owner only, `l
 
 #### Privacy, visibility, system
 
+DONE 2026-09-25: maintenance mode (Site and SEO, owner, typed confirmation, `lib/maintenance.ts`). `proxy.ts` answers public pages with a self-contained 503 holding page, `Retry-After` from the "back by" time and `X-Robots-Tag: noindex`; its matcher is the allow-list, so every /api route (the webhook included), the admin, the portal, the sign-in pages, /pay, /i, /r, /q, /unsubscribe and files never reach the check. The setting is held 30 seconds per instance (one primary-key read per instance per half minute, not per request), so a switch reaches every server within that; a database that does not answer means the site stays up. Owner and staff get a pass cookie from /api/maintenance/pass, and the page gives a signed reviewer link; both are signed over the moment it was switched on, so ending maintenance retires them. A shell notice while on; audited. Pinned by `tests/maintenance.spec.ts` (3 cases), and checked on a production build (`next start`): 503 within 22 s of the row changing, back to 200 after.
+
 DONE 2026-09-25: the audit log is kept in the database (migration 0021, `lib/audit-db.ts`). `audit()` stays synchronous for its callers and writes through behind them; a read waits for this instance's writes in flight, and an entry whose insert failed stays in memory and is merged in, so it is never lost from view on that instance. Settings > Audit log filters by kind, person, Today/7/30/90 days/all time and words in the subject, action, note or the before and after; the filters live in the URL, the list is capped at 100 with the matched count, and it defaults to the last 30 days. The client and project pages read the same table. Pinned by `tests/audit-log.spec.ts` (4 cases). Also fixed a stale assertion in `tests/admin-clients.spec.ts`: phone tables are cards now, so the table must NOT scroll sideways.
 
 - [ ] (M) Retention rules per data type (drafts, enquiries, spam/Trash, invitations, email log, unsubscribed addresses, deactivated accounts), a daily batched job that anonymises or deletes, and one audit row per run with counts; money records excluded by design.
 - [ ] (M) Personal data request: look up an email across tables, export JSON/CSV, erase by anonymising personal fields, log the request.
-- [ ] (M) Maintenance mode: whole-site 503 with `Retry-After` and noindex, a reviewer share link, bypass for signed-in owner/staff, never blocking admin, portal, login, Paystack webhook, `/pay/*` and `/i/*`; shell notice (add it to `lib/admin/notices.ts`); audited.
 - [-] (M) System status: health probes (DB, applied migrations vs files, SMTP connect behind the response, bucket HEAD and CORS, recent webhook deliveries), environment info with "Copy report", background work (pending/failed outbox rows, last retention run). BUILT 2026-09-25 at `/admin/settings/system` (owner): database, mail server (behind the response), Paystack (the secret key against `/balance`) and R2 (a signed HEAD plus the CORS preflight) each answer "Check now", timed and kept in `app_settings` so the answer and its time are the same on every instance and on Integrations; migrations on disk against `wdc_schema_migrations` (the files ship with the admin via `outputFileTracingIncludes`, confirmed in the build's trace) with a shell notice when one is missing; failed emails not yet sent on, sends stuck in Queued, the last daily tidy; the environment with Copy report and no secrets. Tools: retry failed form emails rebuilt from their entries (originals only, once per row per Lagos day, so a second run sends nothing), remove unused invitations over 30 days old, refresh public pages, check the media library against the bucket (reports, never deletes); each audited with its last result shown. A failed email sent on by a resend or a retry no longer counts as failed. Pinned by `tests/system.spec.ts` (4 cases). NOT YET: webhook delivery history, which lives in memory until the money records move (4.9).
 
 #### Blog as a CMS
