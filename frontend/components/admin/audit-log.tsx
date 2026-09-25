@@ -1,4 +1,4 @@
-import { getAudit, auditCount } from "@/lib/admin/store";
+import { listAudit, type AuditFilters } from "@/lib/audit-db";
 import type { AuditKind, Id } from "@/lib/admin/types";
 import { Empty, Panel } from "./bits";
 
@@ -9,23 +9,26 @@ import { Empty, Panel } from "./bits";
  * log cannot be edited, sorted into something more flattering, or cleared, and
  * giving it buttons would suggest otherwise. Filtering happens by passing
  * `kind` or `subjectId` from whichever page is rendering it, so the project
- * page can show its own record and Settings can show everything.
+ * page can show its own record, and Settings passes the filters from its URL.
  *
  * BOUNDED, AND IT SAYS SO. An unbounded list is a page that gets slower every
  * week it is used, and the count under it is what stops a bounded list reading
  * as the whole history.
  */
-export default function AuditLog({
-  kind, subjectId, subjectIds, limit = 60, title = "Everything that changed",
+export default async function AuditLog({
+  kind, subjectId, subjectIds, limit = 60, title = "Everything that changed", filters, filtered = false,
 }: {
   kind?: AuditKind;
   subjectId?: Id;
   subjectIds?: Id[];
   limit?: number;
   title?: string;
+  /** Settings' filters, read from its URL. */
+  filters?: AuditFilters;
+  /** Whether the person narrowed the list, which changes what "empty" means. */
+  filtered?: boolean;
 }) {
-  const entries = getAudit({ kind, subjectId, subjectIds, limit });
-  const total = auditCount({ kind, subjectId, subjectIds });
+  const { entries, total, source } = await listAudit({ range: "all", ...filters, kind: filters?.kind ?? kind, subjectId, subjectIds, limit });
 
   return (
     <Panel title={title}>
@@ -69,7 +72,14 @@ export default function AuditLog({
               Append-only. Nothing here can be edited or removed.
             </p>
           )}
+          {source === "memory" ? (
+            <p className="ad__dim" style={{ padding: "0 1rem 1rem", margin: 0, fontSize: ".84rem" }}>
+              The database is not connected, so this is only what this server has seen since it started.
+            </p>
+          ) : null}
         </>
+      ) : filtered ? (
+        <Empty title="Nothing matches">No change matches these filters. Widen the dates or clear the search.</Empty>
       ) : (
         <Empty title="Nothing has changed yet">
           Every edit to a client, project, invoice, payment, expense or setting

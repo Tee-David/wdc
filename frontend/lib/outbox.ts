@@ -57,6 +57,9 @@ export async function sendLogged(mail: Mail, log: OutboxLog): Promise<"sent" | "
     return "sent";
   } catch (error) {
     await settleLogged(queued.message.id, "Failed", error instanceof Error ? error.message : "The mail server refused it.", Date.now() - started);
+    /* Somebody is told, behind the response (lib/mail-alert.ts). */
+    const { scheduleFailureAlert } = await import("@/lib/mail-alert");
+    scheduleFailureAlert(log.dedupeKey);
     throw error;
   }
 }

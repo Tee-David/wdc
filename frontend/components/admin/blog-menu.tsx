@@ -1,11 +1,11 @@
 "use client";
 
-import { ArrowRight, ExternalLink, FilePen, Globe, Trash2, Undo2 } from "lucide-react";
-import { deleteBlogDraft, moveBlogPostToDraft, publishBlogPostNow } from "@/lib/admin/blog-actions";
-import { Actions, Form, Hidden, Submit } from "./form";
+import { ArchiveRestore, ArrowRight, CornerUpLeft, ExternalLink, FilePen, Globe, Trash2, Undo2 } from "lucide-react";
+import { deleteBlogPostForever, moveBlogPostToDraft, publishBlogPostNow, restoreBlogPost, returnBlogPost, trashBlogDraft } from "@/lib/admin/blog-actions";
+import { Actions, Area, Fields, Form, Hidden, Submit } from "./form";
 import { RowMenu, type RowMenuItem } from "./row-menu";
 
-type Row = { id: string; title: string; slug: string; state: "draft" | "scheduled" | "published" };
+type Row = { id: string; title: string; slug: string; state: "draft" | "review" | "scheduled" | "published" };
 
 /** One confirm step, the same shape every row dialog in the admin uses. */
 function Confirm({ id, action, verb, tone, close, children }: {
@@ -30,7 +30,18 @@ function Confirm({ id, action, verb, tone, close, children }: {
  * offered: a live post can be moved to draft but not deleted, because it is
  * already in search results and other people's links.
  */
-export function BlogPostMenu({ post }: { post: Row }) {
+/** The owner's "send it back": the post becomes a draft again, carrying the note. */
+export function ReturnPostForm({ id, onDone }: { id: string; onDone?: () => void }) {
+  return (
+    <Form action={returnBlogPost} onDone={onDone ? () => onDone() : undefined}>
+      <Hidden name="id" value={id} />
+      <Fields><Area name="note" label="What to change" rows={3} required hint="The writer sees this at the top of the post." /></Fields>
+      <Actions><Submit tone="plain" icon={CornerUpLeft}>Send it back</Submit></Actions>
+    </Form>
+  );
+}
+
+export function BlogPostMenu({ post, canPublish = true }: { post: Row; canPublish?: boolean }) {
   const items: RowMenuItem[] = [
     { kind: "link", label: "Edit", href: `/admin/blog/${post.id}`, icon: FilePen },
   ];
@@ -39,7 +50,13 @@ export function BlogPostMenu({ post }: { post: Row }) {
   } else {
     items.push({ kind: "link", label: "Preview", href: `/api/blog/preview?slug=${encodeURIComponent(post.slug)}`, icon: ArrowRight, external: true });
   }
-  if (post.state !== "published") {
+  if (canPublish && post.state === "review") {
+    items.push({
+      kind: "dialog", label: "Send back with a note", icon: CornerUpLeft, title: `Send ${post.title} back`,
+      render: (close) => <ReturnPostForm id={post.id} onDone={close} />,
+    });
+  }
+  if (canPublish && post.state !== "published") {
     items.push({
       kind: "dialog", label: "Publish now", icon: Globe, title: `Publish ${post.title}`,
       render: (close) => (
@@ -49,7 +66,7 @@ export function BlogPostMenu({ post }: { post: Row }) {
       ),
     });
   }
-  if (post.state !== "draft") {
+  if (canPublish && (post.state === "published" || post.state === "scheduled")) {
     items.push({
       kind: "dialog", label: "Move to draft", icon: Undo2, title: `Unpublish ${post.title}`,
       render: (close) => (
@@ -59,12 +76,35 @@ export function BlogPostMenu({ post }: { post: Row }) {
       ),
     });
   }
-  if (post.state === "draft") {
+  if (post.state === "draft" || post.state === "review") {
     items.push({
-      kind: "dialog", label: "Delete the draft", icon: Trash2, tone: "danger", title: `Delete ${post.title}`,
+      kind: "dialog", label: "Move to the Trash", icon: Trash2, tone: "danger", title: `Move ${post.title} to the Trash`,
       render: (close) => (
-        <Confirm id={post.id} action={deleteBlogDraft as never} verb="Delete it" tone="danger" close={close}>
-          The draft is removed for good. Nobody has seen it, so nothing links to it.
+        <Confirm id={post.id} action={trashBlogDraft as never} verb="Move to the Trash" tone="danger" close={close}>
+          It can be restored from the Trash for 30 days, then it is removed for good. Its address stays reserved until then.
+        </Confirm>
+      ),
+    });
+  }
+  return <RowMenu items={items} label={post.title} />;
+}
+
+/** A post in the Trash: back as a draft, or (the owner only) gone for good. */
+export function TrashedPostMenu({ post, canDelete }: { post: { id: string; title: string }; canDelete: boolean }) {
+  const items: RowMenuItem[] = [{
+    kind: "dialog", label: "Restore", icon: ArchiveRestore, title: `Restore ${post.title}`,
+    render: (close) => (
+      <Confirm id={post.id} action={restoreBlogPost as never} verb="Restore it" close={close}>
+        It comes back as a draft, exactly as it went in.
+      </Confirm>
+    ),
+  }];
+  if (canDelete) {
+    items.push({
+      kind: "dialog", label: "Delete for good", icon: Trash2, tone: "danger", title: `Delete ${post.title} for good`,
+      render: (close) => (
+        <Confirm id={post.id} action={deleteBlogPostForever as never} verb="Delete it for good" tone="danger" close={close}>
+          This cannot be undone. It was never published, so nothing links to it.
         </Confirm>
       ),
     });

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { SERVICES } from "@/lib/services";
 import { getClients, getClientsByService, getInvoicesFor, getProjectsFor } from "@/lib/admin/store";
 import { invoiceTotals, naira } from "@/lib/admin/types";
+import { adminRole } from "@/lib/admin/guard";
+import { can } from "@/lib/admin/permissions";
 import { DemoNote, Empty, Panel, when } from "@/components/admin/bits";
 import { AddClient } from "@/components/admin/client-form";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
@@ -46,10 +48,14 @@ export default async function ClientsPage({
   searchParams: Promise<ClientQuery>;
 }) {
   const query = await searchParams;
+  /* Staff see who and what, not what is owed; exports are the owner's. */
+  const role = await adminRole();
+  const money = can(role, "money");
+  const exportable = can(role, "exports");
   const search = query.q?.trim().toLocaleLowerCase() ?? "";
   const service = SERVICES.find((item) => item.slug === query.service)?.slug;
   const status = query.status === "archived" || query.status === "all" ? query.status : "active";
-  const sort: ClientSort = SORTS.includes(query.sort as ClientSort) ? query.sort as ClientSort : "since";
+  const sort: ClientSort = SORTS.includes(query.sort as ClientSort) && (money || query.sort !== "owed") ? query.sort as ClientSort : "since";
   const direction = query.dir === "asc" || query.dir === "desc"
     ? query.dir
     : sort === "company" ? "asc" : "desc";
@@ -160,7 +166,7 @@ export default async function ClientsPage({
             </label>
             <button className="ad__btn ad__btn--primary" type="submit">Apply</button>
             {hasFilters ? <Link className="ad__btn" href="/admin/clients#client-list">Clear</Link> : null}
-            <a className="ad__btn" href={exportHref}>Export CSV</a>
+            {exportable ? <a className="ad__btn" href={exportHref}>Export CSV</a> : null}
           </form>
           <div className="ad__listMeta" id="client-list" aria-live="polite">
             <span>{rows.length} {rows.length === 1 ? "client" : "clients"}</span>
@@ -176,9 +182,9 @@ export default async function ClientsPage({
                   <th className="num" aria-sort={sort === "projects" ? direction === "asc" ? "ascending" : "descending" : undefined}>
                     <Link href={sortHref("projects")}>Projects</Link>
                   </th>
-                  <th className="num" aria-sort={sort === "owed" ? direction === "asc" ? "ascending" : "descending" : undefined}>
+                  {money ? <th className="num" aria-sort={sort === "owed" ? direction === "asc" ? "ascending" : "descending" : undefined}>
                     <Link href={sortHref("owed")}>Owed</Link>
-                  </th>
+                  </th> : null}
                   <th aria-sort={sort === "since" ? direction === "asc" ? "ascending" : "descending" : undefined}>
                     <Link href={sortHref("since")}>Since</Link>
                   </th>
@@ -204,7 +210,7 @@ export default async function ClientsPage({
                         </span>
                       </td>
                       <td className="num">{live}</td>
-                      <td className="num">{owed ? naira(owed) : <span className="ad__dim">Nil</span>}</td>
+                      {money ? <td className="num">{owed ? naira(owed) : <span className="ad__dim">Nil</span>}</td> : null}
                       <td className="num">{when(c.since)}</td>
                       <td className="ad__rmC"><ClientMenu client={c} /></td>
                     </tr>

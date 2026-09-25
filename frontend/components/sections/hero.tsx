@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import NextImage from "next/image";
+import { useEffect, useRef, useState } from "react";
 import TextType from "@/components/ui/text-type";
 import { LogoGlyph } from "@/components/ui/logo-glyph";
 import LogoLoop from "@/components/ui/logo-loop";
@@ -74,32 +75,120 @@ function LogoMarquee() {
   );
 }
 
-/** The hero uses one optimized, high-priority image. Keeping it stable avoids
- * decoding and compositing more full-viewport photography while the visitor
- * reads or scrolls. */
-const HERO_IMAGE = "/hero/web-design.jpg";
+/**
+ * The backdrop cycle: one photograph per discipline, so what is behind the
+ * claim changes as you watch and covers the whole offer.
+ *
+ * IT CAME BACK, LIGHTER THAN IT LEFT. The first carousel mounted five sliced
+ * copies of every frame and decoded new photographs while the visitor was
+ * trying to scroll, so it was replaced by one still image. The rotation is
+ * wanted, the cost was not, so this version keeps what the still image fixed:
+ *  - the first frame is the page's LCP: plain, `priority`, never animated in;
+ *  - rotation starts only after the page's `load`, so no later frame competes
+ *    with the first for bandwidth;
+ *  - at most two frames are mounted (the one showing and the one fading in),
+ *    and the next is fetched and decoded BEFORE it is shown, so a slow phone
+ *    holds the current picture rather than fading to a half-loaded one;
+ *  - it stops while the hero is off screen or the tab is hidden, and never
+ *    runs under reduced motion.
+ * A crossfade over the previous frame, opacity and transform only.
+ */
+const HERO_IMAGES = [
+  "/hero/web-design.jpg",
+  "/hero/design-desk.jpg",
+  "/hero/mobile-dev.jpg",
+  "/hero/ai-key.jpg",
+  "/hero/search-console.jpg",
+  "/hero/robotics.jpg",
+];
+const HOLD_MS = 5500;
+
+/** The optimiser URL next/image will ask for at this width, so warming it
+    fetches the same bytes the frame is about to request. */
+function optimisedUrl(src: string) {
+  const w = [390, 640, 828, 1080, 1280, 1600, 1920].find((x) => x >= window.innerWidth * Math.min(window.devicePixelRatio || 1, 2)) ?? 1920;
+  return `/_next/image?url=${encodeURIComponent(src)}&w=${w}&q=70`;
+}
 
 function HeroBackdrop() {
+  const root = useRef<HTMLDivElement>(null);
+  /* `shown` is on top; `under` is the frame it is fading over. */
+  const [shown, setShown] = useState(0);
+  const [under, setUnder] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let visible = true;
+    let timer = 0;
+    let current = 0;
+    let cancelled = false;
+
+    const advance = async () => {
+      const next = (current + 1) % HERO_IMAGES.length;
+      /* Fetched and decoded first; a frame that is not ready is not shown. */
+      try {
+        const img = new window.Image();
+        img.src = optimisedUrl(HERO_IMAGES[next]);
+        await img.decode();
+      } catch {
+        schedule();
+        return;
+      }
+      if (cancelled) return;
+      setUnder(current);
+      setShown(next);
+      current = next;
+      schedule();
+    };
+    const schedule = () => {
+      window.clearTimeout(timer);
+      if (!cancelled && visible && document.visibilityState === "visible") {
+        timer = window.setTimeout(advance, HOLD_MS);
+      }
+    };
+
+    const io = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; schedule(); });
+    const onVisibility = () => schedule();
+    const start = () => {
+      if (root.current) io.observe(root.current);
+      document.addEventListener("visibilitychange", onVisibility);
+      schedule();
+    };
+    if (document.readyState === "complete") start();
+    else window.addEventListener("load", start, { once: true });
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+      window.removeEventListener("load", start);
+      document.removeEventListener("visibilitychange", onVisibility);
+      io.disconnect();
+    };
+  }, []);
+
   return (
     <div
+      ref={root}
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
-      {/* One stable LCP image. The former carousel mounted five full-viewport
-          copies for every transition and kept decoding new hero images while
-          the visitor was trying to scroll. A static backdrop keeps the same
-          composition without the recurring memory and compositor pressure. */}
-      <div className="absolute inset-0">
-        <NextImage
-          src={HERO_IMAGE}
-          alt=""
-          fill
-          sizes="100vw"
-          priority
-          quality={70}
-          className="object-cover"
-        />
-      </div>
+      {/* KEYED BY PHOTOGRAPH, so the frame that was showing is the same DOM
+          node once it becomes the one underneath: it is never remounted, so
+          it cannot blink while the next fades in over it. The first frame is
+          plain -- it is the LCP element and must be visible on first paint. */}
+      {(under === null ? [shown] : [under, shown]).map((idx, n, all) => (
+        <div key={`frame-${idx}`} className={all.length === 2 && n === 1 ? "hero-backdrop absolute inset-0" : "absolute inset-0"}>
+          <NextImage
+            src={HERO_IMAGES[idx]}
+            alt=""
+            fill
+            sizes="100vw"
+            priority={idx === 0}
+            quality={70}
+            className="object-cover"
+          />
+        </div>
+      ))}
       {/* Keep the photography visible while the white hero copy remains clear.
           A light base plus a scrim shaped to the copy, NOT one flat veil --
           see .hero-scrim in globals.css for the measurements behind the

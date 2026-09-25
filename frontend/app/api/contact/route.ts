@@ -1,10 +1,12 @@
 import { after, NextRequest, NextResponse } from "next/server";
-import { CONTACT_EMAIL } from "@/lib/site";
+import { formByKey } from "@/lib/forms/registry";
+import { hasBlockedWord } from "@/lib/forms/settings";
+import { availability, getFormSettings } from "@/lib/forms/settings-db";
+import { confirmation, sendFormEmail } from "@/lib/forms/notify";
+import { formEmail, type FormEmailData } from "@/lib/forms/emails";
 import { randomUUID } from "node:crypto";
-import { escapeHtml, mailIsConfigured } from "@/lib/email";
+import { mailIsConfigured } from "@/lib/email";
 import { enquiriesAreConfigured, saveEnquiry, settleEnquiry } from "@/lib/enquiries";
-import { sendLogged } from "@/lib/outbox";
-import { composeEmailHtml, emailP, emailPanel, enquiryReceiptEmail } from "@/lib/email-templates";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 
 /* THE PLATFORM MUST NOT CUT THE SEND OFF BEFORE OUR OWN TIMEOUTS DO.
@@ -40,6 +42,17 @@ export async function POST(request: NextRequest) {
   if (!first || !last || !topic || message.length < 10 || !/^\S+@\S+\.\S+$/.test(email)) {
     return NextResponse.json({ error: "Please complete all required fields with valid details." }, { status: 422 });
   }
+  /* THE FORM'S OWN SETTINGS, checked here rather than only on the page, so a
+     closed form refuses the POST as well as the visit. A blocked word does
+     not refuse: the enquiry is kept in Spam, the visitor is thanked as usual,
+     and nobody is emailed about it. */
+  const form = formByKey("contact")!;
+  const settings = await getFormSettings(form);
+  const open = await availability(form, settings);
+  if (!open.open) return NextResponse.json({ error: open.message, closed: true }, { status: 403 });
+  const spam = hasBlockedWord(settings.blockedWords, first, last, email, topic, message);
+  const tokens = { first_name: first, topic };
+
   /* STORED FIRST, WHEN THERE IS SOMEWHERE TO STORE IT. With a row, the
      enquiry exists whatever the mail server does next, so the visitor is
      answered straight away and both emails go behind the response. Without
@@ -51,25 +64,12 @@ export async function POST(request: NextRequest) {
   }
 
   const name = `${first} ${last}`;
-  const detailText = [`Name: ${name}`, `Email: ${email}`, phone ? `Phone: ${phone}` : null, `About: ${topic}`, "", message].filter(Boolean).join("\n");
-  const studioCopy = {
-    to: process.env.SMTP_REPLY_TO || CONTACT_EMAIL, replyTo: email,
-    subject: `Website enquiry: ${topic}`, text: detailText,
-    html: composeEmailHtml({
-      title: `Website enquiry: ${topic}`,
-      preheader: `${name} wrote about ${topic}.`,
-      heading: topic,
-      blocks: [
-        emailPanel([["From", name], ["Email", email], ...(phone ? [["Phone", phone] as [string, string]] : [])]),
-        emailP(escapeHtml(message).replace(/\n/g, "<br>")),
-      ],
-    }),
-  };
 
   let enquiryId: string | null = null;
+  let serial: number | null = null;
   if (storable) {
     try {
-      enquiryId = await saveEnquiry({ firstName: first, lastName: last, email, phone, topic, message });
+      ({ id: enquiryId, serial } = await saveEnquiry({ firstName: first, lastName: last, email, phone, topic, message, box: spam ? "spam" : "inbox" }));
     } catch (error) {
       console.error("Contact enquiry could not be stored", error instanceof Error ? error.message : "unknown error");
       if (!mailIsConfigured()) {
@@ -77,7 +77,14 @@ export async function POST(request: NextRequest) {
       }
     }
   }
+  if (spam && enquiryId) {
+    await settleEnquiry(enquiryId, "skipped", "Held as spam by the form's blocked words.").catch(() => {});
+    return NextResponse.json({ ok: true, confirmation: confirmation(settings, tokens) });
+  }
   const eventId = enquiryId ?? randomUUID();
+  const studioTokens = { ...tokens, serial: serial ? String(serial) : "" };
+  const data: FormEmailData = { id: enquiryId ?? "", serial, first, last, email, phone, company: "", topic, message, source: "" };
+  const studioCopy = formEmail(form, "studio-notice", data)!;
   const log = { summary: `Enquiry from ${name} about ${topic}.`, dedupeKey: `enquiry:${eventId}` };
 
   /* THE RECEIPT IS SENT AFTER THE RESPONSE, ALWAYS.
@@ -93,9 +100,10 @@ export async function POST(request: NextRequest) {
      provider; this is the honest interim. */
   const sendReceipt = async () => {
     try {
-      await sendLogged(
-        { to: email, ...enquiryReceiptEmail({ firstName: first, topic }) },
+      await sendFormEmail(form, settings, "receipt",
+        formEmail(form, "receipt", data)!,
         { summary: `Receipt for an enquiry about ${topic}.`, dedupeKey: `enquiry-receipt:${eventId}` },
+        tokens,
       );
     } catch (receiptError) {
       console.error("Contact receipt failed", receiptError instanceof Error ? receiptError.message : "unknown error");
@@ -106,8 +114,8 @@ export async function POST(request: NextRequest) {
     const stored = enquiryId;
     after(async () => {
       try {
-        await sendLogged(studioCopy, log);
-        await settleEnquiry(stored, "sent");
+        const sent = await sendFormEmail(form, settings, "studio-notice", studioCopy, log, studioTokens);
+        await settleEnquiry(stored, sent === "skipped" ? "skipped" : "sent", sent === "skipped" ? "Switched off in the form's settings." : undefined);
       } catch (error) {
         const reason = error instanceof Error ? error.message : "unknown error";
         console.error("Contact email failed", reason);
@@ -117,13 +125,13 @@ export async function POST(request: NextRequest) {
       }
       await sendReceipt();
     });
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, confirmation: confirmation(settings, tokens) });
   }
 
   try {
-    await sendLogged(studioCopy, log);
+    await sendFormEmail(form, settings, "studio-notice", studioCopy, log, studioTokens);
     after(sendReceipt);
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, confirmation: confirmation(settings, tokens) });
   } catch (error) {
     console.error("Contact email failed", error instanceof Error ? error.message : "unknown error");
     return NextResponse.json({ error: "Your message could not be sent right now. Please try again or email us directly." }, { status: 502 });
