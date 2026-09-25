@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { adminRole } from "@/lib/admin/guard";
 import { can, type Area } from "@/lib/admin/permissions";
 import { AdminState } from "@/components/admin/admin-state";
@@ -46,7 +47,7 @@ export default async function AccessPage() {
         </div>
         <p className="ad__dim" style={{ margin: 0, padding: ".8rem 1rem", fontSize: ".85rem" }}>
           Checked at every action, not only on the page: a button a role cannot use is refused by the server even if it is pressed.
-          Inviting staff, changing a role and deactivating an account are on <a href="/admin/settings/team">Team</a>.
+          Inviting staff, changing a role and deactivating an account are on <Link href="/admin/settings/team">Team</Link>.
         </p>
       </Panel>
     </>
