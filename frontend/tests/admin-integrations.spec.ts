@@ -19,7 +19,7 @@ test("integrations report configuration, never invented health", async ({ page, 
   await page.context().addCookies([
     { name: "wdc.session_token", value: "placeholder", url: baseURL ?? "http://localhost:3100" },
   ]);
-  await page.goto("/admin/settings", { waitUntil: "domcontentloaded" });
+  await page.goto("/admin/settings/integrations", { waitUntil: "domcontentloaded" });
   const panel = page.locator('[data-tour="settings-integrations"]');
   await expect(panel).toBeVisible();
 

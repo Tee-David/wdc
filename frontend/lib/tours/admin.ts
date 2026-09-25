@@ -103,9 +103,9 @@ export const ADMIN_WALKTHROUGH: TourDef = {
     { id: "forms-table", target: '[data-tour="forms-table"]', href: "/admin/forms", icon: "clipboard", title: "Turning a lead into a client", content: "Open a submission to see exactly what was answered and what was left blank. A gap is something to ask about on the call. One press turns it into a client without losing their original answers." },
 
     { id: "nav-settings", target: '[data-tour="nav-settings"]', href: "/admin/forms", icon: "settings", interact: { hint: "Click Settings to see the overrides" }, page: "Settings", title: "On to Settings", content: "Content on the public site, and how the agency runs." },
-    { id: "settings-table", target: '[data-tour="settings-table"]', href: "/admin/settings", icon: "shieldCheck", title: "Editing what the public site says", content: "An override by field, never a raw replacement. The worst a bad edit can do is change one value, and putting it back deletes the row rather than guessing at what shipped." },
+    { id: "settings-table", target: '[data-tour="settings-table"]', href: "/admin/settings/general", icon: "shieldCheck", title: "Editing what the public site says", content: "An override by field, never a raw replacement. The worst a bad edit can do is change one value, and putting it back deletes the row rather than guessing at what shipped." },
 
-    { id: "search", target: '[data-tour="topbar-search"]', href: "/admin/settings", icon: "search", title: "Search or Ctrl+K, from anywhere", content: "Jump straight to any page without touching the sidebar." },
+    { id: "search", target: '[data-tour="topbar-search"]', href: "/admin/settings/general", icon: "search", title: "Search or Ctrl+K, from anywhere", content: "Jump straight to any page without touching the sidebar." },
     closer("done", "That's everything", "Replay this any time from the ? button beside search, or take a shorter tour for just the page you're on."),
   ],
 };
@@ -172,7 +172,7 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
       { id: "table", target: '[data-tour="forms-table"]', icon: "clipboard", title: "Submissions", content: "Open one to see exactly what was answered and what was left blank. A gap is something to ask about on the call." },
     ],
   },
-  "/admin/settings": {
+  "/admin/settings/general": {
     id: "admin-page-settings",
     version: 2,
     kind: "page",

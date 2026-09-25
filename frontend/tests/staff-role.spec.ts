@@ -58,9 +58,14 @@ test("a client record for staff has the relationship, not the invoices or the ar
 test("Settings for staff is the content tools and a no-access note", async ({ page }) => {
   await as(page, "staff");
   await page.goto("/admin/settings", { waitUntil: "load" });
-  await expect(page.getByText("Site settings are for the owner")).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByRole("link", { name: "FAQ" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Media" })).toBeVisible();
+  await expect(page.getByText("Everything else here is the owner's")).toBeVisible({ timeout: 30_000 });
+  const sections = page.getByRole("navigation", { name: "Settings sections" });
+  await expect(sections.getByRole("link", { name: /FAQ/ })).toBeVisible();
+  await expect(sections.getByRole("link", { name: /Media/ })).toBeVisible();
+  /* Only the two they can use are listed, and the owner's pages refuse them. */
+  await expect(sections.getByRole("link", { name: /Email/ })).toHaveCount(0);
+  await page.goto("/admin/settings/general", { waitUntil: "load" });
+  await expect(page.getByText("Content and defaults are for the owner")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Editable content" })).toHaveCount(0);
 });
 
