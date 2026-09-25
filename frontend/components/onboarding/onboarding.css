@@ -1036,3 +1036,10 @@
 /* A service the studio has closed to new briefs, from the form's settings.
    Still readable (it says why), no longer choosable. */
 .ob__svcCard.is-shut { opacity: .55; cursor: not-allowed; }
+
+/* A returning client's link that cannot take them back in: what happened and
+   the one way forward. */
+.ob__notice { display: grid; gap: .5rem; margin: 1rem 0 1.25rem; padding: 1rem 1.1rem; border: 1px solid var(--rule); border-left: 4px solid var(--accent); border-radius: 12px; background: var(--paper); }
+.ob__notice b { font-size: 1rem; }
+.ob__notice p { margin: 0; color: var(--muted); }
+.ob__notice .ob__btn { justify-self: start; }

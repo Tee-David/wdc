@@ -35,14 +35,18 @@ function today() {
  * records the studio works from; a board showing something the records do
  * not hold is left out, not invented.
  */
-export default async function PortalOverview() {
+export default async function PortalOverview({ searchParams }: { searchParams: Promise<{ studio?: string }> }) {
   await syncStore();
   persistSoon();
-  const { client } = await getPortalRequest();
+  const { client, session } = await getPortalRequest();
+  const fromStudioLink = (await searchParams).studio === "1";
   if (!client) return null; // the layout already renders the "not linked" state
 
   const { greeting, date } = today();
   const projects = getProjectsFor(client.id);
+  /* Archived work still belongs to the client; it is what "nothing in
+     progress" points them to, rather than "no projects yet". */
+  const finished = getProjectsFor(client.id, true).length - projects.length;
   const invoices = getInvoicesFor(client.id);
   const tickets = getTicketsFor(client.id);
   const firstName = client.name.split(" ")[0];
@@ -73,6 +77,12 @@ export default async function PortalOverview() {
 
   return (
     <div className="adDash">
+      {/* Sent here from a studio link (a CC'd email, a forwarded address). */}
+      {fromStudioLink ? (
+        <p className="ad__banner" role="status">
+          That link is for the studio team. You&rsquo;re signed in as {session?.user?.email ?? client.email}, a client, so here is your own portal instead.
+        </p>
+      ) : null}
       <header className="adDash__head">
         <div>
           <span className="adDash__eyebrow">{date}</span>
@@ -170,7 +180,12 @@ export default async function PortalOverview() {
                 })}
               </div>
             ) : (
-              <Empty title="No projects yet" icon={FolderKanban}>Once a project starts, it will show up here.</Empty>
+              finished > 0
+                ? <Empty title="Nothing in progress right now" icon={FolderKanban}
+                    action={<Link className="ad__btn" href="/portal/projects?show=delivered">See finished projects</Link>}>
+                    {finished === 1 ? "Your finished project is" : `Your ${finished} finished projects are`} still here, with everything we handed over.
+                  </Empty>
+                : <Empty title="No projects yet" icon={FolderKanban}>Once a project starts, it will show up here.</Empty>
             )}
           </Panel>
         </div>

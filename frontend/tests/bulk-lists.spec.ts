@@ -38,3 +38,29 @@ test("invoices can be reminded in bulk, and the reply counts what went and what 
   await page.getByRole("region", { name: "Selected invoices" }).getByRole("button", { name: "Send reminder" }).click();
   await expect(page.locator(".adToast").last()).toContainText(/reminded|None reminded/, { timeout: 30_000 });
 });
+
+test("projects move stage in bulk from More, each through the same stage move, and back", async ({ page, baseURL }) => {
+  await asOwner(page, baseURL);
+  await page.goto("/admin/projects?view=list", { waitUntil: "networkidle" });
+  const rows = page.locator("#projects-table tbody tr");
+  const first = rows.nth(0);
+  /* The Stage column, the fifth: the title cell carries attention pills too. */
+  const stageCell = first.locator("td").nth(4);
+  const stageBefore = (await stageCell.innerText()).replace(/^[•\s]+/, "").trim();
+  await first.locator(".adRowPick").check();
+  const bar = page.getByRole("region", { name: "Selected projects" });
+  await expect(bar).toContainText("1 selected");
+  page.once("dialog", (d) => d.accept());
+  await bar.locator("summary", { hasText: "More" }).click();
+  const target = stageBefore === "Discovery" ? "Revisions" : "Discovery";
+  await bar.getByRole("button", { name: `Move to ${target}` }).click();
+  await expect(page.locator(".adToast", { hasText: `1 moved to ${target}` })).toBeVisible({ timeout: 20_000 });
+  await expect(stageCell).toContainText(target);
+
+  /* Put it back through the same bar. */
+  await first.locator(".adRowPick").check();
+  page.once("dialog", (d) => d.accept());
+  await bar.locator("summary", { hasText: "More" }).click();
+  await bar.getByRole("button", { name: `Move to ${stageBefore}` }).click();
+  await expect(page.locator(".adToast", { hasText: `1 moved to ${stageBefore}` })).toBeVisible({ timeout: 20_000 });
+});

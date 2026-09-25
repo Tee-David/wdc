@@ -1942,3 +1942,11 @@ td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
 .ad__subPill { display: flex; width: fit-content; margin-top: .3rem; }
 .ad__barTrack { display: block; height: 6px; margin-top: .35rem; border-radius: 3px; background: var(--ad-line); overflow: hidden; }
 .ad__barTrack > span { display: block; height: 100%; border-radius: 3px; background: var(--ad-accent); }
+.ad__pickRow > span:last-child:not(:only-child) { display: grid; min-width: 0; }
+/* A searched list with nothing left: the message in the list, no bare header. */
+[data-ls-none="1"] > table, [data-ls-none="1"] > ul, [data-ls-none="1"] > .pBill__table, [data-ls-none="1"] > [data-ls-mirror] { display: none; }
+.adLS__none { display: grid; justify-items: center; gap: .45rem; padding: 2rem 1rem; text-align: center; color: var(--ad-dim); }
+.adLS__none b { color: var(--ad-ink); }
+.adLS__none p { margin: 0; font-size: .86rem; }
+.adLS__none .ad__btn { margin-top: .35rem; }
+.ad__filterBar .adLS { padding: 0; border-bottom: 0; flex: 1 1 16rem; }

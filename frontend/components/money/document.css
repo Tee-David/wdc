@@ -206,6 +206,10 @@
 .doc__btn:active { transform: translateY(1px); }
 .doc__btn:focus-visible { outline: 3px solid #0e0e2c; outline-offset: 3px; }
 .doc__actions small { color: #5a5a72; font-size: .82rem; }
+/* The second way out beside the main one: the page's ink on white. */
+.doc__btn--ghost { background: #fff; color: #0e0e2c; box-shadow: inset 0 0 0 1.5px #0e0e2c; }
+.doc__btn--ghost:hover { background: #0e0e2c; color: #fff; box-shadow: none; }
+.doc--return .doc__actions:has(> .doc__btn + .doc__btn) { display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem; }
 
 /* THE ONE THING THIS DOCUMENT EXISTS TO GET DONE.
 

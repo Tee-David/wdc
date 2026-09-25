@@ -61,6 +61,13 @@ export async function publishForm(input: { key: string; def: unknown }): Promise
   if (!form) return FAIL({}, "That form is no longer there.");
   const { def, errors } = cleanDef(input.def);
   if (errors.length) return { ok: false, message: "Fix these before publishing.", problems: errors };
+  /* A REQUIRED UPLOAD WITH NOWHERE TO PUT IT would stop every visitor at the
+     last question, so it is refused here rather than discovered by them. */
+  const { r2Config } = await import("@/lib/r2");
+  const needsFile = def.fields.filter((f) => f.type === "file" && f.required);
+  if (needsFile.length && !r2Config().ok) {
+    return { ok: false, message: "File storage is not set up yet.", problems: needsFile.map((f) => `"${f.label}" is a required upload, and uploads cannot be stored until storage (R2) is set up. Make it optional, or set storage up first.`) };
+  }
   const by = await actorName();
   let version: number | null = null;
   try {

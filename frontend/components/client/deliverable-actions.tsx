@@ -35,6 +35,9 @@ export function DeliverableActions({ deliverable }: { deliverable: Deliverable }
     <div className="ad__row">
       <Form action={approveDeliverable}>
         <Hidden name="id" value={deliverable.id} />
+        {/* The version on screen, so a newer one shared since cannot be
+            approved without being seen. */}
+        <Hidden name="version" value={String(deliverable.versions.at(-1)?.v ?? 0)} />
         <Submit tone="primary" icon={CheckCircle2}>Approve</Submit>
       </Form>
       <button type="button" className="ad__btn" onClick={() => setAskingRevision(true)}>

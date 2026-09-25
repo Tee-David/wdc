@@ -127,6 +127,11 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
                     <span className="pBill__cardMain"><b>{inv.number}</b><small>{owing ? `${naira(t.due)} left · due ${when(inv.due)}` : `Issued ${when(inv.issued)}`}</small></span>
                     <span className="pBill__cardEnd"><b className="ad__num">{naira(t.total)}</b><InvoicePill status={invoiceStatus(inv)} /></span>
                   </a>
+                  {owing && canPay ? (
+                    <form method="post" action={`/api/pay/${inv.token}`} className="pBill__cardPay">
+                      <button type="submit" className="ad__btn ad__btn--primary"><CreditCard aria-hidden="true" /> Pay {naira(t.due)}</button>
+                    </form>
+                  ) : null}
                 </li>
               );
             })}
