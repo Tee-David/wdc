@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Design system · States</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root lt" style="width: 1440px; height: 1300px; padding: 56px 64px; display: flex; flex-direction: column; gap: 28px;">
+  <div>
+    <div class="eyebrow">Design system</div>
+    <h1 style="font-size: 40px; margin-top: 8px;">Empty, loading, error and no-access states</h1>
+    <p class="dim" style="font-size: 16px; margin-top: 8px !important; max-width: 860px; line-height: 1.5;">Each state says what happened and offers one next step. Loading skeletons keep the final layout's shape and never show made-up numbers.</p>
+  </div>
+
+  <div class="grid c3">
+    <div class="card"><div class="xs dim b" style="text-transform: uppercase; letter-spacing: .08em;">First use</div>
+      <div class="empty"><div class="halo"><span class="ic i-users s28"></span></div><h3>No clients yet</h3><p>Add the first one, or turn an onboarding form into a client with one click.</p><div class="row g8"><a class="btn p" href="ClientsAdd.dc.html"><span class="ic i-plus s16"></span>Add a client</a><a class="btn s" href="Forms.dc.html">Review forms</a></div></div>
+    </div>
+    <div class="card"><div class="xs dim b" style="text-transform: uppercase; letter-spacing: .08em;">Filtered, no results</div>
+      <div class="empty"><div class="halo flat"><span class="ic i-filter s28"></span></div><h3>Nothing matches those filters</h3><p>No project is both Blocked and due this week. Try widening the date.</p><button class="btn s"><span class="ic i-x s16"></span>Clear the filters</button></div>
+    </div>
+    <div class="card"><div class="xs dim b" style="text-transform: uppercase; letter-spacing: .08em;">Caught up</div>
+      <div class="empty"><div class="halo" style="background: var(--t-good);"><span class="ic i-okc s28"></span></div><h3>You're caught up</h3><p>Overdue invoices, stuck projects and failed messages will appear here.</p><a class="btn g" href="Projects.dc.html">Open projects<span class="ic i-arrow s16"></span></a></div>
+    </div>
+    <div class="card"><div class="xs dim b" style="text-transform: uppercase; letter-spacing: .08em;">Could not load</div>
+      <div class="empty"><div class="halo bad"><span class="ic i-alert s28"></span></div><h3>Live forms could not be loaded</h3><p>The database did not answer. Nothing has been lost; reload in a minute.</p><button class="btn s"><span class="ic i-refresh s16"></span>Reload</button></div>
+    </div>
+    <div class="card"><div class="xs dim b" style="text-transform: uppercase; letter-spacing: .08em;">No permission</div>
+      <div class="empty"><div class="halo flat"><span class="ic i-lock s28"></span></div><h3>Only owners can see money</h3><p>Ask Babatope if you need an invoice or a payment for a project you run.</p><a class="btn s" href="Projects.dc.html">Back to projects</a></div>
+    </div>
+    <div class="card"><div class="xs dim b" style="text-transform: uppercase; letter-spacing: .08em;">Not configured</div>
+      <div class="empty"><div class="halo live"><span class="ic i-zap s28"></span></div><h3>The blog database is not connected</h3><p>There is nothing to edit here yet. The public blog is showing the posts written into the code.</p><a class="btn s" href="Settings.dc.html">Open integrations</a></div>
+    </div>
+  </div>
+
+  <div class="card flush" aria-busy="true" aria-label="Loading clients">
+    <div class="row sp" style="padding: 18px 20px;"><div class="sk" style="width: 180px; height: 20px;"></div><div class="row g8"><div class="sk" style="width: 110px; height: 40px; border-radius: 12px;"></div><div class="sk" style="width: 140px; height: 40px; border-radius: 12px;"></div></div></div>
+    <div class="grid c4" style="padding: 0 20px 18px; gap: 16px;">
+      <div class="sk" style="height: 96px; border-radius: 16px;"></div><div class="sk" style="height: 96px; border-radius: 16px;"></div><div class="sk" style="height: 96px; border-radius: 16px;"></div><div class="sk" style="height: 96px; border-radius: 16px;"></div>
+    </div>
+    <div class="col" style="gap: 0;">
+      <div class="row g16" style="padding: 14px 20px; border-top: 1px solid var(--line);"><div class="sk" style="width: 36px; height: 36px; border-radius: 50%;"></div><div class="col g6 grow"><div class="sk" style="width: 38%; height: 14px;"></div><div class="sk" style="width: 24%; height: 12px;"></div></div><div class="sk" style="width: 80px; height: 24px; border-radius: 999px;"></div></div>
+      <div class="row g16" style="padding: 14px 20px; border-top: 1px solid var(--line);"><div class="sk" style="width: 36px; height: 36px; border-radius: 50%;"></div><div class="col g6 grow"><div class="sk" style="width: 30%; height: 14px;"></div><div class="sk" style="width: 20%; height: 12px;"></div></div><div class="sk" style="width: 80px; height: 24px; border-radius: 999px;"></div></div>
+      <div class="row g16" style="padding: 14px 20px; border-top: 1px solid var(--line);"><div class="sk" style="width: 36px; height: 36px; border-radius: 50%;"></div><div class="col g6 grow"><div class="sk" style="width: 34%; height: 14px;"></div><div class="sk" style="width: 22%; height: 12px;"></div></div><div class="sk" style="width: 80px; height: 24px; border-radius: 999px;"></div></div>
+    </div>
+    <div class="foot"><span>Loading skeleton: same geometry as the list, shimmer off when reduced motion is on.</span></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

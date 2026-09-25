@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Money</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root lt" style="width: 1440px; height: 2300px;">
+<div class="app" style="height: 2300px;">
+  <aside class="side"><dc-import name="Sidebar" active="money" hint-size="264px,900px"></dc-import></aside>
+  <div class="main">
+    <dc-import name="Topbar" hint-size="1176px,72px"></dc-import>
+    <main class="page">
+      <div class="ph">
+        <div>
+          <h1>Money</h1>
+          <p class="lede">In, out, and what is still owed.</p>
+        </div>
+        <div class="acts">
+          <button class="btn s"><span class="ic i-cal s16"></span>This year<span class="ic i-chev s14"></span></button>
+          <button class="btn s"><span class="ic i-down s16"></span>Export CSV</button>
+          <a class="btn s" href="MoneyExpense.dc.html"><span class="ic i-card s16"></span>Add an expense</a>
+          <a class="btn s" href="MoneyPayment.dc.html"><span class="ic i-wallet s16"></span>Record a payment</a>
+          <a class="btn p" href="MoneyInvoice.dc.html"><span class="ic i-plus s16"></span>Raise an invoice</a>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <a class="on">Overview</a><a>Invoices <span class="n">6</span></a><a>Estimates <span class="n">2</span></a><a>Expenses <span class="n">5</span></a><a>Payments <span class="n">4</span></a><a href="Reconciliation.dc.html">Reconciliation <span class="n" style="background: var(--t-live); color: #fff;">2</span></a>
+      </div>
+
+      <section class="grid" style="grid-template-columns: repeat(5, minmax(0, 1fr));" aria-label="Money figures">
+        <div class="card kpi"><div class="lab">Collected<span class="tile sm good"><span class="ic i-wallet s16"></span></span></div><div class="val" style="font-size: 26px;">₦2.12M</div><div class="note">51% of ₦4.17M billed</div></div>
+        <div class="card kpi"><div class="lab">Outstanding<span class="tile sm live"><span class="ic i-clock s16"></span></span></div><div class="val" style="font-size: 26px;">₦1.98M</div><div class="note">3 invoices open</div></div>
+        <div class="card kpi"><div class="lab">Overdue<span class="tile sm bad"><span class="ic i-alert s16"></span></span></div><div class="val" style="font-size: 26px;">₦1.20M</div><div class="note">1 invoice · 12 days late</div></div>
+        <div class="card kpi"><div class="lab">Spend<span class="tile sm neu"><span class="ic i-card s16"></span></span></div><div class="val" style="font-size: 26px;">₦333,500</div><div class="note">₦24,500 rebillable</div></div>
+        <div class="card kpi"><div class="lab">Net<span class="tile sm"><span class="ic i-trend s16"></span></span></div><div class="val" style="font-size: 26px;">₦1.78M</div><div class="note">Collected less spend</div></div>
+      </section>
+
+      <section class="grid c3">
+        <div class="card" style="grid-column: span 2;">
+          <div class="ch">
+            <div><h3>Last six months</h3><p class="sub">Collected each month against what was billed.</p></div>
+            <div class="row g16"><div class="legend"><span><i class="l"></i>Collected</span><span><i class="dash"></i>Billed</span></div><div class="seg"><button>3M</button><button class="on">6M</button><button>12M</button></div></div>
+          </div>
+          <div class="row g20" style="align-items: flex-end; margin-bottom: 8px;">
+            <div><div class="fig" style="font-size: 34px; font-weight: 600;">₦2.12M</div><div class="row g8 sm dim" style="margin-top: 4px;"><span class="pill good"><span class="ic i-tri-up"></span>18.4%</span>vs the six months before</div></div>
+          </div>
+          <div style="position: relative;">
+            <svg class="chart" viewBox="0 0 700 220" height="230" role="img" aria-label="Collected and billed by month, April to September">
+              <line class="grid-l" x1="50" x2="690" y1="20" y2="20"></line>
+              <line class="grid-l" x1="50" x2="690" y1="62.5" y2="62.5"></line>
+              <line class="grid-l" x1="50" x2="690" y1="105" y2="105"></line>
+              <line class="grid-l" x1="50" x2="690" y1="147.5" y2="147.5"></line>
+              <line x1="50" x2="690" y1="190" y2="190" stroke="var(--line-2)"></line>
+              <text x="40" y="24" text-anchor="end">₦700k</text>
+              <text x="40" y="66" text-anchor="end">₦525k</text>
+              <text x="40" y="109" text-anchor="end">₦350k</text>
+              <text x="40" y="151" text-anchor="end">₦175k</text>
+              <text x="40" y="194" text-anchor="end">0</text>
+              <path d="M70 139 L190 143.9 L310 115.9 L430 50.4 L550 63.6 L670 126.9 L670 190 L70 190 Z" fill="var(--c1)" fill-opacity=".12"></path>
+              <path d="M70 117.1 L190 135.4 L310 105 L430 32.1 L550 80.7 L670 92.9" fill="none" stroke="var(--dim)" stroke-width="2" stroke-dasharray="5 5"></path>
+              <path d="M70 139 L190 143.9 L310 115.9 L430 50.4 L550 63.6 L670 126.9" fill="none" stroke="var(--c1)" stroke-width="2.5" stroke-linejoin="round"></path>
+              <line x1="430" x2="430" y1="20" y2="190" stroke="var(--ink)" stroke-opacity=".3" stroke-dasharray="3 3"></line>
+              <circle cx="430" cy="50.4" r="6" fill="var(--c1)" stroke="var(--panel)" stroke-width="2.5"></circle>
+              <circle cx="430" cy="32.1" r="5" fill="var(--panel)" stroke="var(--dim)" stroke-width="2"></circle>
+              <text x="70" y="212" text-anchor="middle">Apr</text>
+              <text x="190" y="212" text-anchor="middle">May</text>
+              <text x="310" y="212" text-anchor="middle">Jun</text>
+              <text x="430" y="212" text-anchor="middle" style="fill: var(--ink); font-weight: 600;">Jul</text>
+              <text x="550" y="212" text-anchor="middle">Aug</text>
+              <text x="670" y="212" text-anchor="middle">Sep</text>
+            </svg>
+          </div>
+          <div class="row sp sm" style="margin-top: 10px; padding: 10px 14px; border-radius: 12px; background: var(--panel-2);" aria-live="polite"><b>July 2026</b><span class="row g16"><span class="row g8"><i style="width: 14px; height: 2.5px; background: var(--c1);"></i>Collected <b class="fig">₦575k</b></span><span class="row g8"><i style="width: 14px; border-top: 2px dashed var(--dim);"></i>Billed <b class="fig">₦650k</b></span></span></div>
+        </div>
+
+        <div class="card">
+          <div class="ch"><div><h3>Who owes what</h3><p class="sub">And for how long.</p></div></div>
+          <div style="display: flex; height: 14px; gap: 3px; border-radius: 999px; overflow: hidden;">
+            <i style="flex: 780; background: var(--t-good);"></i><i style="flex: 1200; background: var(--t-bad);"></i>
+          </div>
+          <div class="col g10" style="margin-top: 16px;">
+            <div class="row sp sm"><span class="row g8"><i style="width: 10px; height: 10px; border-radius: 3px; background: var(--t-good);"></i>Not due yet</span><b class="fig">₦780,000</b></div>
+            <div class="row sp sm"><span class="row g8"><i style="width: 10px; height: 10px; border-radius: 3px; background: var(--t-bad);"></i>1–30 days late</span><b class="fig">₦1,200,000</b></div>
+            <div class="row sp sm dim"><span class="row g8"><i style="width: 10px; height: 10px; border-radius: 3px; background: var(--c-rest);"></i>31–60 days late</span><span>Nil</span></div>
+            <div class="row sp sm dim"><span class="row g8"><i style="width: 10px; height: 10px; border-radius: 3px; background: var(--c-rest);"></i>Over 60 days late</span><span>Nil</span></div>
+          </div>
+          <div class="hr" style="margin: 16px 0 6px;"></div>
+          <div class="lrow"><span class="av sm">TX</span><div class="grow"><div class="t sm">Traxstaff</div><div class="s">INV-2026-004 · 12 days late</div></div><b class="fig sm">₦1.20M</b></div>
+          <div class="lrow"><span class="av y sm">MF</span><div class="grow"><div class="t sm">Marfaa Foods</div><div class="s">INV-2026-005 · due 30 Sep</div></div><b class="fig sm">₦450k</b></div>
+          <div class="lrow"><span class="av o sm">MD</span><div class="grow"><div class="t sm">Moore Designs</div><div class="s">INV-2026-001 · due 30 Sep</div></div><b class="fig sm">₦330k</b></div>
+        </div>
+      </section>
+
+      <section class="card flush" aria-label="Invoices">
+        <div class="ch" style="margin-bottom: 0;"><div><h3>Invoices</h3><p class="sub">Total outstanding ₦1,980,000</p></div></div>
+        <div class="toolbar">
+          <label class="inp" style="width: 250px; height: 42px;"><span class="ic i-search s16 dim"></span><span style="color: #6e7090;">Search number or client</span></label>
+          <div class="seg"><button class="on">All</button><button>Draft</button><button>Sent</button><button>Part paid</button><button>Overdue</button><button>Paid</button></div>
+          <div class="grow"></div>
+          <a class="inp sel" href="MoneyFilters.dc.html" style="width: auto; height: 42px; gap: 8px; font-size: 14px;"><span class="ic i-cal s16 dim"></span><span>Issued: This year</span><span class="ic i-chev s14 dim"></span></a>
+          <a class="btn s sm" href="MoneyFilters.dc.html" style="height: 42px;"><span class="ic i-filter s16"></span>Filters<span class="pill brand" style="height: 20px; padding: 0 7px;">1</span></a>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>Number</th><th>Client</th><th>Against</th><th>Issued</th><th>Due</th><th>Status</th><th class="num">Total</th><th class="num">Owed</th><th style="width: 56px;"></th></tr></thead>
+          <tbody>
+            <tr><td><a class="b" href="Invoice.dc.html">INV-2026-004</a></td><td><div class="row g8"><span class="av sm">TX</span>Traxstaff</div></td><td class="dim">Dispatch platform</td><td class="dim">1 Sep</td><td style="color: var(--t-bad); font-weight: 600;">12 Sep</td><td><span class="pill bad">Overdue</span></td><td class="num">₦1,200,000</td><td class="num">₦1,200,000</td><td><button class="ibtn sm bare" aria-label="Invoice actions"><span class="ic i-more"></span></button></td></tr>
+            <tr><td><a class="b" href="Invoice.dc.html">INV-2026-005</a></td><td><div class="row g8"><span class="av y sm">MF</span>Marfaa Foods</div></td><td class="dim">Always-on social</td><td class="dim">1 Sep</td><td>30 Sep</td><td><span class="pill brand">Sent</span></td><td class="num">₦450,000</td><td class="num">₦450,000</td><td><button class="ibtn sm bare" aria-label="Invoice actions"><span class="ic i-more"></span></button></td></tr>
+            <tr><td><a class="b" href="Invoice.dc.html">INV-2026-001</a></td><td><div class="row g8"><span class="av o sm">MD</span>Moore Designs</div></td><td class="dim">Identity system</td><td class="dim">2 Aug</td><td>30 Sep</td><td><span class="pill warn">Part paid</span></td><td class="num">₦630,000</td><td class="num">₦330,000</td><td><button class="ibtn sm bare" aria-label="Invoice actions"><span class="ic i-more"></span></button></td></tr>
+            <tr><td><a class="b" href="Invoice.dc.html">INV-2026-003</a></td><td><div class="row g8"><span class="av g sm">MP</span>Millcon Properties</div></td><td class="dim">Listings site</td><td class="dim">1 Jul</td><td class="dim">31 Jul</td><td><span class="pill good">Paid</span></td><td class="num">₦1,741,000</td><td class="num dim">Nil</td><td><button class="ibtn sm bare" aria-label="Invoice actions"><span class="ic i-more"></span></button></td></tr>
+            <tr><td><a class="b" href="Invoice.dc.html">INV-2026-002</a></td><td><div class="row g8"><span class="av y sm">MF</span>Marfaa Foods</div></td><td class="dim">Always-on social</td><td class="dim">1 Jul</td><td class="dim">15 Jul</td><td><span class="pill good">Paid</span></td><td class="num">₦150,000</td><td class="num dim">Nil</td><td><button class="ibtn sm bare" aria-label="Invoice actions"><span class="ic i-more"></span></button></td></tr>
+            <tr><td><a class="b" href="Invoice.dc.html">INV-2026-006</a></td><td><div class="row g8"><span class="av o sm">MD</span>Moore Designs</div></td><td class="dim">Identity system</td><td class="dim">—</td><td class="dim">—</td><td><span class="pill flat">Draft</span></td><td class="num">₦210,000</td><td class="num dim">—</td><td><button class="ibtn sm bare" aria-label="Invoice actions"><span class="ic i-more"></span></button></td></tr>
+          </tbody>
+        </table>
+        <div class="pager"><div class="per"><span>Rows per page</span><button class="pp" type="button" aria-label="Rows per page, 10">10<span class="ic i-chev s14"></span></button><span class="vr" style="height: 20px;"></span><span>1–6 of 6 invoices</span></div><nav class="pg" aria-label="Pages"><a class="dis" href="#"><span class="ic i-left s14"></span>Previous</a><a class="on" aria-current="page" href="#">1</a><a class="dis" href="#">Next<span class="ic i-right s14"></span></a></nav></div>
+      </section>
+
+      <section class="grid c3">
+        <div class="card">
+          <div class="ch"><div><h3>Where the spend goes</h3><p class="sub">₦333,500 this year</p></div></div>
+          <div class="col g16">
+            <div class="col g6"><div class="row sp sm"><span>Contractors</span><b class="fig">₦180,000</b></div><div class="bar o"><i style="width: 100%;"></i></div></div>
+            <div class="col g6"><div class="row sp sm"><span>Marketing</span><b class="fig">₦60,000</b></div><div class="bar o"><i style="width: 33%;"></i></div></div>
+            <div class="col g6"><div class="row sp sm"><span>Software</span><b class="fig">₦38,000</b></div><div class="bar o"><i style="width: 21%;"></i></div></div>
+            <div class="col g6"><div class="row sp sm"><span>Hosting</span><b class="fig">₦31,000</b></div><div class="bar o"><i style="width: 17%;"></i></div></div>
+            <div class="col g6"><div class="row sp sm"><span>Assets</span><b class="fig">₦24,500</b></div><div class="bar o"><i style="width: 14%;"></i></div></div>
+          </div>
+        </div>
+        <div class="card flush" style="grid-column: span 2;">
+          <div class="ch" style="margin-bottom: 14px;"><h3>Expenses</h3><a class="btn s sm" href="MoneyExpense.dc.html"><span class="ic i-plus s14"></span>Add an expense</a></div>
+          <table class="tbl">
+            <thead><tr><th>When</th><th>Who was paid</th><th>What</th><th>Against</th><th>Method</th><th class="num">Amount</th></tr></thead>
+            <tbody>
+              <tr><td class="dim">18 Sep</td><td class="b">Kelechi Umeh</td><td><span class="tag">Contractors</span></td><td class="dim wrap">Dispatch platform</td><td class="dim">Transfer</td><td class="num">₦180,000</td></tr>
+              <tr><td class="dim">12 Sep</td><td class="b">Meta</td><td><span class="tag">Marketing</span></td><td class="dim">Overhead</td><td class="dim">Paystack</td><td class="num">₦60,000</td></tr>
+              <tr><td class="dim">3 Sep</td><td class="b">Adobe</td><td><span class="tag">Software</span></td><td class="dim">Overhead</td><td class="dim">Paystack</td><td class="num">₦38,000</td></tr>
+              <tr><td class="dim">1 Sep</td><td class="b">Vercel</td><td><span class="tag">Hosting</span></td><td class="dim">Overhead</td><td class="dim">Paystack</td><td class="num">₦31,000</td></tr>
+              <tr><td class="dim">21 Aug</td><td class="b">Envato</td><td><span class="tag">Assets</span> <span class="pill neu">Rebillable</span></td><td class="dim wrap">Identity system</td><td class="dim">Paystack</td><td class="num">₦24,500</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="grid c2">
+        <div class="card flush">
+          <div class="ch" style="margin-bottom: 14px;"><div><h3>Estimates</h3><p class="sub">₦2.4M out for quote</p></div><button class="btn s sm"><span class="ic i-plus s14"></span>New estimate</button></div>
+          <table class="tbl">
+            <thead><tr><th>Number</th><th>For</th><th>Holds until</th><th class="num">Total</th></tr></thead>
+            <tbody>
+              <tr><td><div class="b">EST-2026-004</div><span class="pill brand" style="margin-top: 4px;">Sent</span></td><td class="wrap">Ngozi Interiors, showroom site</td><td>14 Oct</td><td class="num">₦1,450,000</td></tr>
+              <tr><td><div class="b">EST-2026-003</div><span class="pill flat" style="margin-top: 4px;">Draft</span></td><td class="wrap">Moore Designs, shop rebuild</td><td>9 Oct</td><td class="num">₦950,000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card flush">
+          <div class="ch" style="margin-bottom: 14px;"><h3>Payments received</h3><a class="btn s sm" href="MoneyPayment.dc.html"><span class="ic i-plus s14"></span>Record a payment</a></div>
+          <table class="tbl">
+            <thead><tr><th>When</th><th>From</th><th>Method</th><th class="num">Amount</th></tr></thead>
+            <tbody>
+              <tr><td class="dim">14 Aug</td><td class="wrap"><div class="b">Millcon Properties</div><div class="xs dim">PSK_8841</div></td><td><span class="tag">Paystack</span></td><td class="num">₦741,000</td></tr>
+              <tr><td class="dim">6 Aug</td><td class="wrap"><div class="b">Moore Designs</div><div class="xs dim">PSK_8790</div></td><td><span class="tag">Paystack</span></td><td class="num">₦300,000</td></tr>
+              <tr><td class="dim">30 Jul</td><td class="wrap"><div class="b">Millcon Properties</div><div class="xs dim">TRF_0071</div></td><td><span class="tag">Transfer</span></td><td class="num">₦1,000,000</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2300}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

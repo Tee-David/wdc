@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Client detail</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root lt" style="width: 1440px; height: 2000px;">
+<div class="app" style="height: 2000px;">
+  <aside class="side"><dc-import name="Sidebar" active="clients" hint-size="264px,900px"></dc-import></aside>
+  <div class="main">
+    <dc-import name="Topbar" hint-size="1176px,72px"></dc-import>
+    <main class="page">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="Clients.dc.html">Clients</a><span class="ic i-right s14"></span><b>Moore Designs</b></nav>
+
+      <div class="card" style="padding: 24px;">
+        <div class="row g20" style="align-items: flex-start;">
+          <span class="av xl o">MD</span>
+          <div class="grow">
+            <div class="row g10 wrap"><h1 style="font-size: 28px;">Moore Designs</h1><span class="pill good">Active</span><span class="pill brand"><span class="ic i-key"></span>Portal account</span></div>
+            <div class="row g16 wrap sm dim" style="margin-top: 8px;">
+              <span class="row g6"><span class="ic i-user s16"></span>Tobi Adeyemi</span>
+              <span class="row g6"><span class="ic i-mail s16"></span>tobi@mooredesigns.ng</span>
+              <span class="row g6"><span class="ic i-phone s16"></span>+234 803 555 0142</span>
+              <span class="row g6"><span class="ic i-tag s16"></span>Fashion and apparel</span>
+            </div>
+            <div class="row g6" style="margin-top: 12px;"><span class="tag">Branding</span><span class="tag">Web</span><span class="tag">retainer</span><span class="tag">referral</span></div>
+          </div>
+          <div class="row g10" style="flex: none;">
+            <button class="ibtn" aria-label="More actions"><span class="ic i-more"></span></button>
+            <a class="btn s" href="ClientEdit.dc.html"><span class="ic i-pen s16"></span>Edit</a>
+            <a class="btn p" href="MoneyInvoice.dc.html"><span class="ic i-receipt s16"></span>Raise an invoice</a>
+          </div>
+        </div>
+        <div class="hr" style="margin: 22px 0 18px;"></div>
+        <div class="grid c4" style="gap: 0;">
+          <div class="kpi" style="padding-right: 20px;"><div class="note">Client since</div><div class="val" style="font-size: 24px;">Jul 2026</div></div>
+          <div class="kpi" style="padding: 0 20px; border-left: 1px solid var(--line);"><div class="note">Projects</div><div class="val" style="font-size: 24px;">2 <span class="pill flat">1 live</span></div></div>
+          <div class="kpi" style="padding: 0 20px; border-left: 1px solid var(--line);"><div class="note">Paid to date</div><div class="val" style="font-size: 24px;">₦300,000</div></div>
+          <div class="kpi" style="padding-left: 20px; border-left: 1px solid var(--line);"><div class="note">Outstanding</div><div class="val" style="font-size: 24px;">₦330,000 <span class="pill warn">Due 30 Sep</span></div></div>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <a class="on">Overview</a><a>Projects <span class="n">2</span></a><a>Money <span class="n">3</span></a><a>Files <span class="n">4</span></a><a>Messages</a><a>History</a>
+      </div>
+
+      <div class="grid c21">
+        <div class="col g20">
+          <div class="card flush">
+            <div class="ch" style="margin-bottom: 14px;"><h3>Projects</h3><a class="btn s sm" href="ProjectsNew.dc.html"><span class="ic i-plus s14"></span>Open a project</a></div>
+            <table class="tbl">
+              <thead><tr><th>Project</th><th>Stage</th><th>Health</th><th>Due</th><th class="num">Budget</th></tr></thead>
+              <tbody>
+                <tr><td><a class="who" href="Project.dc.html"><span class="tile sm"><span class="ic i-star s14"></span></span><div><div class="t">Identity system</div><div class="s">Branding · Babatope</div></div></a></td><td><span class="pill warn">Review</span></td><td><span class="dotst" style="--c: var(--t-warn);">Waiting on client</span></td><td>26 Sep</td><td class="num">₦630,000</td></tr>
+                <tr><td><a class="who" href="Project.dc.html"><span class="tile sm"><span class="ic i-globe s14"></span></span><div><div class="t">Shop rebuild</div><div class="s">Web · Babatope</div></div></a></td><td><span class="pill flat">Onboarding</span></td><td><span class="dotst" style="--c: var(--t-good);">On track</span></td><td class="dim">Not set</td><td class="num dim">No figure agreed</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card flush">
+            <div class="ch" style="margin-bottom: 14px;"><div><h3>Invoices</h3><p class="sub">₦840,000 billed · ₦300,000 received</p></div><a class="linkbtn" href="Money.dc.html">All money<span class="ic i-right s14"></span></a></div>
+            <table class="tbl">
+              <thead><tr><th>Number</th><th>For</th><th>Due</th><th>Status</th><th class="num">Total</th><th class="num">Owed</th></tr></thead>
+              <tbody>
+                <tr><td><a class="b" href="Invoice.dc.html">INV-2026-001</a></td><td class="dim wrap">Identity system, first stage</td><td>30 Sep</td><td><span class="pill warn">Part paid</span></td><td class="num">₦630,000</td><td class="num">₦330,000</td></tr>
+                <tr><td><a class="b" href="Invoice.dc.html">INV-2026-006</a></td><td class="dim wrap">Identity system, guidelines</td><td class="dim">—</td><td><span class="pill flat">Draft</span></td><td class="num">₦210,000</td><td class="num dim">Nil</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="grid c2">
+            <div class="card">
+              <div class="ch"><h3>Payment history</h3></div>
+              <div class="lrow"><span class="tile sm good"><span class="ic i-wallet s14"></span></span><div class="grow"><div class="t sm">₦300,000 · Paystack</div><div class="s">INV-2026-001 · 6 Aug</div></div><a class="linkbtn" href="Invoice.dc.html">Receipt</a></div>
+              <div class="lrow" style="color: var(--dim);"><span class="tile sm flat"><span class="ic i-clock s14"></span></span><div class="grow"><div class="t sm">₦330,000 still owed</div><div class="s">Due 30 Sep · reminder set for 28 Sep</div></div></div>
+            </div>
+            <div class="card">
+              <div class="ch"><h3>Files and deliverables</h3><button class="ibtn sm bare" aria-label="Add a file"><span class="ic i-plus"></span></button></div>
+              <div class="lrow"><span class="tile sm live"><span class="ic i-file s14"></span></span><div class="grow"><div class="t sm trunc">Identity routes</div><div class="s">v2 · PDF · sent 8 Sep</div></div><span class="pill warn">Awaiting</span></div>
+              <div class="lrow"><span class="tile sm flat"><span class="ic i-img s14"></span></span><div class="grow"><div class="t sm trunc">Moodboard</div><div class="s">v1 · Figma · 19 Aug</div></div><span class="pill good">Approved</span></div>
+            </div>
+          </div>
+
+          <div class="card flush">
+            <div class="ch" style="margin-bottom: 14px;"><h3>What we have sent them</h3><div class="seg"><button class="on">All</button><button>Email</button><button>WhatsApp</button></div></div>
+            <table class="tbl">
+              <thead><tr><th>When</th><th>Channel</th><th>What it said</th><th>State</th></tr></thead>
+              <tbody>
+                <tr><td class="dim nowrap">22 Sep, 10:14</td><td><span class="tag">Email</span></td><td class="trunc" style="max-width: 360px;">Reminder: three identity routes are waiting for your pick</td><td><span class="pill good">Delivered</span></td></tr>
+                <tr><td class="dim nowrap">8 Sep, 16:02</td><td><span class="tag">WhatsApp</span></td><td class="trunc" style="max-width: 360px;">Three routes sent, each with the reasoning</td><td><span class="pill good">Delivered</span></td></tr>
+                <tr><td class="dim nowrap">2 Aug, 09:30</td><td><span class="tag">Email</span></td><td class="trunc" style="max-width: 360px;">Invoice INV-2026-001 for ₦630,000</td><td><span class="pill good">Opened</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="col g20">
+          <div class="card">
+            <div class="ch"><h3>Contacts</h3><button class="ibtn sm bare" aria-label="Add a contact"><span class="ic i-plus"></span></button></div>
+            <div class="lrow"><span class="av o sm">TA</span><div class="grow"><div class="t sm">Tobi Adeyemi</div><div class="s">Founder · main contact</div></div><button class="ibtn sm bare" aria-label="Email Tobi"><span class="ic i-mail s16"></span></button></div>
+            <div class="lrow"><span class="av sl sm">KO</span><div class="grow"><div class="t sm">Kemi Ogun</div><div class="s">Operations · kemi@mooredesigns.ng</div></div><button class="ibtn sm bare" aria-label="Email Kemi"><span class="ic i-mail s16"></span></button></div>
+          </div>
+          <div class="card">
+            <div class="ch"><h3>Portal access</h3><span class="pill good">Has an account</span></div>
+            <p class="sm dim" style="line-height: 1.5;">Tobi signed in 2 days ago and approved the moodboard from the portal.</p>
+            <div class="row g8" style="margin-top: 14px;"><button class="btn s sm">Resend invite</button><button class="btn g sm">Revoke access</button></div>
+          </div>
+          <div class="card">
+            <div class="ch"><h3>Onboarding</h3><span class="pill brand">Submitted</span></div>
+            <div class="lrow"><span class="tile sm"><span class="ic i-clip s14"></span></span><div class="grow"><div class="t sm">Branding onboarding form</div><div class="s">14 answers · 1 Aug</div></div><a class="linkbtn" href="FormEntry.dc.html">Open</a></div>
+          </div>
+          <div class="card">
+            <div class="ch"><h3>Their balance with us</h3></div>
+            <div class="row sp"><span class="sm dim">Credit on account</span><b class="fig" style="font-size: 20px;">Nil</b></div>
+            <p class="help" style="margin-top: 8px !important;">Refunds and overpayments land here and can be applied to the next invoice.</p>
+          </div>
+          <div class="card">
+            <div class="ch"><h3>Notes</h3><button class="linkbtn" style="background: none; border: 0; font-family: var(--ff-b); cursor: pointer;"><span class="ic i-pen s14"></span>Edit</button></div>
+            <p class="sm" style="line-height: 1.6;">Prefers WhatsApp for quick questions, email for anything with a number in it. Launching the shop for the December season, so the identity has to land by mid-October.</p>
+          </div>
+          <div class="card">
+            <div class="ch"><h3>Changes across this client</h3></div>
+            <div class="tl">
+              <div class="ti"><span class="dotc o"><span class="ic i-chat s14"></span></span><div><div class="sm b">Reminder sent about the routes</div><div class="xs dim">22 Sep · Babatope</div></div></div>
+              <div class="ti"><span class="dotc b"><span class="ic i-folder s14"></span></span><div><div class="sm b">Shop rebuild opened</div><div class="xs dim">9 Sep · Babatope</div></div></div>
+              <div class="ti"><span class="dotc g"><span class="ic i-wallet s14"></span></span><div><div class="sm b">₦300,000 received</div><div class="xs dim">6 Aug · Paystack</div></div></div>
+              <div class="ti"><span class="dotc"><span class="ic i-user s14"></span></span><div><div class="sm b">Client added</div><div class="xs dim">1 Aug · from the onboarding form</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · New invoice</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root" style="width: 1440px; height: 1000px;">
+  <dc-import name="Money" hint-size="1440px,2300px"></dc-import>
+  <div class="scrim"></div>
+  <form class="drawer" aria-label="New invoice" style="width: 820px;">
+    <div class="dh">
+      <div><div class="eyebrow">Money in</div><h2 style="margin-top: 4px;">New invoice <span class="dim" style="font-weight: 500;">INV-2026-007</span></h2></div>
+      <div class="row g10">
+        <div class="seg"><button class="on">Invoice</button><button>Estimate</button></div>
+        <a class="ibtn" href="Money.dc.html" aria-label="Close"><span class="ic i-x"></span></a>
+      </div>
+    </div>
+    <div class="db" style="gap: 16px;">
+      <div class="grid c3" style="gap: 14px;">
+        <div class="fld"><label>Bill to</label><div class="inp sel"><span class="row g8"><span class="av y sm">MF</span>Marfaa Foods</span><span class="ic i-chev s14 dim"></span></div></div>
+        <div class="fld"><label>Against a project</label><div class="inp sel">Always-on social<span class="ic i-chev s14 dim"></span></div></div>
+        <div class="fld"><label>What this covers</label><div class="inp">October retainer</div></div>
+        <div class="fld"><label>Issued</label><div class="inp sel"><span class="row g8"><span class="ic i-cal s16 dim"></span>1 Oct 2026</span><span class="ic i-chev s14 dim"></span></div></div>
+        <div class="fld" style="position: relative;"><label>Due</label><div class="inp sel foc"><span class="row g8"><span class="ic i-cal s16 dim"></span>15 Oct 2026</span><span class="ic i-chevup s14 dim"></span></div>
+          <div class="pop" style="top: 80px; left: -30px; width: 312px; padding: 14px; z-index: 50;">
+            <div class="row sp"><button class="ibtn sm bare" type="button" aria-label="Previous month"><span class="ic i-left s16"></span></button><b class="sm">October 2026</b><button class="ibtn sm bare" type="button" aria-label="Next month"><span class="ic i-right s16"></span></button></div>
+            <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; margin-top: 10px; text-align: center; font-size: 13px;">
+              <span class="xs dim b">Mo</span><span class="xs dim b">Tu</span><span class="xs dim b">We</span><span class="xs dim b">Th</span><span class="xs dim b">Fr</span><span class="xs dim b">Sa</span><span class="xs dim b">Su</span>
+              <span></span><span></span><span></span>
+              <span style="height: 36px; display: grid; place-items: center; border-radius: 10px; background: var(--nav-on); font-weight: 600;">1</span><span style="height: 36px; display: grid; place-items: center;">2</span><span style="height: 36px; display: grid; place-items: center;">3</span><span style="height: 36px; display: grid; place-items: center;">4</span>
+              <span style="height: 36px; display: grid; place-items: center;">5</span><span style="height: 36px; display: grid; place-items: center;">6</span><span style="height: 36px; display: grid; place-items: center;">7</span><span style="height: 36px; display: grid; place-items: center;">8</span><span style="height: 36px; display: grid; place-items: center;">9</span><span style="height: 36px; display: grid; place-items: center;">10</span><span style="height: 36px; display: grid; place-items: center;">11</span>
+              <span style="height: 36px; display: grid; place-items: center;">12</span><span style="height: 36px; display: grid; place-items: center;">13</span><span style="height: 36px; display: grid; place-items: center;">14</span><span style="height: 36px; display: grid; place-items: center; border-radius: 10px; background: var(--fill); color: var(--on-fill); font-weight: 700;">15</span><span style="height: 36px; display: grid; place-items: center;">16</span><span style="height: 36px; display: grid; place-items: center;">17</span><span style="height: 36px; display: grid; place-items: center;">18</span>
+              <span style="height: 36px; display: grid; place-items: center;">19</span><span style="height: 36px; display: grid; place-items: center;">20</span><span style="height: 36px; display: grid; place-items: center;">21</span><span style="height: 36px; display: grid; place-items: center;">22</span><span style="height: 36px; display: grid; place-items: center;">23</span><span style="height: 36px; display: grid; place-items: center;">24</span><span style="height: 36px; display: grid; place-items: center;">25</span>
+            </div>
+            <div class="row g6 wrap" style="margin-top: 10px;"><span class="chip" style="height: 30px; font-size: 12.5px;">On receipt</span><span class="chip on" style="height: 30px; font-size: 12.5px;">14 days</span><span class="chip" style="height: 30px; font-size: 12.5px;">30 days</span></div>
+          </div>
+        </div>
+        <div class="fld"><label>Terms</label><div class="inp sel">Half now, half on delivery<span class="ic i-chev s14 dim"></span></div></div>
+      </div>
+
+      <div class="card flush" style="box-shadow: none;">
+        <table class="tbl">
+          <thead><tr><th style="width: 28px;"></th><th>Description</th><th style="width: 80px;">Qty</th><th style="width: 150px;">Unit (₦)</th><th class="num" style="width: 130px;">Line</th><th style="width: 48px;"></th></tr></thead>
+          <tbody>
+            <tr><td><span class="ic i-drag s16 dim"></span></td><td><div class="inp" style="height: 40px;">Posts, twelve a month</div></td><td><div class="inp" style="height: 40px;">1</div></td><td><div class="inp" style="height: 40px;">300,000</div></td><td class="num">₦300,000</td><td><button class="ibtn sm bare" type="button" aria-label="Remove this line"><span class="ic i-trash s16"></span></button></td></tr>
+            <tr><td><span class="ic i-drag s16 dim"></span></td><td><div class="inp" style="height: 40px;">Reels, four a month</div></td><td><div class="inp" style="height: 40px;">4</div></td><td><div class="inp" style="height: 40px;">25,000</div></td><td class="num">₦100,000</td><td><button class="ibtn sm bare" type="button" aria-label="Remove this line"><span class="ic i-trash s16"></span></button></td></tr>
+            <tr><td><span class="ic i-drag s16 dim"></span></td><td><div class="inp foc" style="height: 40px;">Community replies</div></td><td><div class="inp" style="height: 40px;">1</div></td><td><div class="inp" style="height: 40px;">50,000</div></td><td class="num">₦50,000</td><td><button class="ibtn sm bare" type="button" aria-label="Remove this line"><span class="ic i-trash s16"></span></button></td></tr>
+          </tbody>
+        </table>
+        <div class="row sp" style="padding: 12px 20px; border-top: 1px solid var(--line);">
+          <button class="btn g sm" type="button"><span class="ic i-plus s14"></span>Add a line</button>
+          <div class="row g16 sm"><span class="row g8">Discount %<span class="inp" style="width: 64px; height: 36px;">0</span></span><span class="row g8">VAT %<span class="inp" style="width: 64px; height: 36px;">7.5</span></span></div>
+        </div>
+      </div>
+
+      <div class="grid c2" style="gap: 20px; align-items: start;">
+        <div class="fld"><label>Anything worth saying <span class="opt">(optional)</span></label><div class="inp ta" style="min-height: 88px;">Paid into the Zenith account, or by card from the link on this invoice.</div></div>
+        <div class="card soft" style="padding: 16px;">
+          <div class="row sp sm"><span class="dim">Subtotal</span><span class="fig">₦450,000</span></div>
+          <div class="row sp sm" style="margin-top: 8px;"><span class="dim">VAT 7.5%</span><span class="fig">₦33,750</span></div>
+          <div class="hr" style="margin: 12px 0;"></div>
+          <div class="row sp"><b>Total</b><b class="fig" style="font-size: 24px;">₦483,750</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="df">
+      <button class="btn g" type="button"><span class="ic i-eye s16"></span>Preview the client's copy</button>
+      <div class="row g10"><button class="btn s" type="button">Save as draft</button><button class="btn p" type="submit"><span class="ic i-send s16"></span>Issue it</button></div>
+    </div>
+  </form>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

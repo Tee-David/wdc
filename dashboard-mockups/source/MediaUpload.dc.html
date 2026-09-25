@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Upload media</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root" style="width: 1440px; height: 1000px;">
+  <dc-import name="SettingsMedia" hint-size="1440px,1150px"></dc-import>
+  <div class="scrim"></div>
+  <div class="dlg" role="dialog" aria-label="Upload files" style="left: 400px; top: 90px; width: 640px;">
+    <div class="dh">
+      <div><h2>Upload files</h2><p>Pictures (WebP, JPG, PNG) up to 8 MB and PDFs up to 20 MB.</p></div>
+      <a class="ibtn" href="SettingsMedia.dc.html" aria-label="Close"><span class="ic i-x"></span></a>
+    </div>
+    <div class="db">
+      <div class="drop on" style="padding: 34px;">
+        <span class="tile lg"><span class="ic i-up s20"></span></span>
+        <div class="b">Drop files here, or <span style="color: var(--navy); text-decoration: underline;">choose from your computer</span></div>
+        <div class="xs dim">Each one needs a description before it can be used on a page.</div>
+      </div>
+      <div class="col g10">
+        <div class="attn" style="background: var(--panel);"><span class="tile sm good"><span class="ic i-check s14"></span></span><div class="grow"><div class="b sm">dhiol-world-mark.webp</div><div class="xs dim">1200 × 1200 · 64 KB · ready</div></div><span class="pill good">Done</span></div>
+        <div class="attn" style="background: var(--panel);"><span class="tile sm"><span class="ic i-img s14"></span></span><div class="grow"><div class="b sm">ngozi-showroom.jpg</div><div class="row g10" style="margin-top: 6px;"><div class="bar n grow"><i style="width: 62%;"></i></div><span class="xs dim">62%</span></div></div><button class="ibtn sm bare" aria-label="Cancel upload"><span class="ic i-x s16"></span></button></div>
+        <div class="attn" style="background: var(--panel); border-color: var(--t-bad);"><span class="tile sm bad"><span class="ic i-alert s14"></span></span><div class="grow"><div class="b sm">studio-tour.mov</div><div class="errt" style="margin-top: 2px;">Videos are not supported here. Upload a picture or a PDF.</div></div><button class="ibtn sm bare" aria-label="Remove"><span class="ic i-x s16"></span></button></div>
+      </div>
+    </div>
+    <div class="df"><a class="btn s" href="SettingsMedia.dc.html">Close</a><button class="btn p">Add descriptions<span class="ic i-arrow s16"></span></button></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

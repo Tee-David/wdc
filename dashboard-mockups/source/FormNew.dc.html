@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · New form</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root" style="width: 1440px; height: 1000px;">
+  <dc-import name="Forms" hint-size="1440px,1500px"></dc-import>
+  <div class="scrim"></div>
+  <form class="dlg" aria-label="New form" style="left: 330px; top: 70px; width: 780px;">
+    <div class="dh">
+      <div><h2>New form</h2><p>Start blank, from a template, or from a copy of one you have.</p></div>
+      <a class="ibtn" href="Forms.dc.html" aria-label="Close"><span class="ic i-x"></span></a>
+    </div>
+    <div class="db">
+      <div class="seg" style="align-self: flex-start;"><button type="button">Blank</button><button type="button" class="on">Template</button><button type="button">Copy a form</button></div>
+      <div class="grid c3" style="gap: 10px;">
+        <label class="choice on" style="flex-direction: column; align-items: flex-start; gap: 8px;"><span class="tile"><span class="ic i-cal s16"></span></span><span class="b sm">Event sign-up</span><span class="xs dim">Name, email, seats, dietary needs · 6 fields</span></label>
+        <label class="choice" style="flex-direction: column; align-items: flex-start; gap: 8px;"><span class="tile live"><span class="ic i-star s16"></span></span><span class="b sm">Feedback survey</span><span class="xs dim">Rating, what worked, what did not · 5 fields</span></label>
+        <label class="choice" style="flex-direction: column; align-items: flex-start; gap: 8px;"><span class="tile good"><span class="ic i-receipt s16"></span></span><span class="b sm">Quote request</span><span class="xs dim">Service, budget, timeline, files · 8 fields</span></label>
+        <label class="choice" style="flex-direction: column; align-items: flex-start; gap: 8px;"><span class="tile neu"><span class="ic i-user s16"></span></span><span class="b sm">Job application</span><span class="xs dim">CV upload, portfolio link, role · 7 fields</span></label>
+        <label class="choice" style="flex-direction: column; align-items: flex-start; gap: 8px;"><span class="tile"><span class="ic i-mail s16"></span></span><span class="b sm">Callback request</span><span class="xs dim">Name, phone, best time · 4 fields</span></label>
+        <label class="choice" style="flex-direction: column; align-items: flex-start; gap: 8px;"><span class="tile flat"><span class="ic i-layers s16"></span></span><span class="b sm">Multi-step brief</span><span class="xs dim">Three steps, like the onboarding briefs</span></label>
+      </div>
+      <div class="grid c2" style="gap: 14px;">
+        <div class="fld"><label>Name</label><div class="inp foc">Workshop sign-up</div></div>
+        <div class="fld"><label>Address</label><div class="inp"><span class="pre">/forms/</span>workshop</div></div>
+        <div class="fld"><label>Group</label><div class="inp sel">Made in the builder<span class="ic i-chev s14 dim"></span></div></div>
+        <div class="fld"><label>Entries are called</label><div class="inp">Sign-up</div><div class="help">So the inbox reads “Sign-up #1”.</div></div>
+      </div>
+    </div>
+    <div class="df"><a class="btn s" href="Forms.dc.html">Cancel</a><a class="btn p" href="FormBuild.dc.html">Create and open the builder<span class="ic i-arrow s16"></span></a></div>
+  </form>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Invoice detail</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root lt" style="width: 1440px; height: 1400px;">
+<div class="app" style="height: 1400px;">
+  <aside class="side"><dc-import name="Sidebar" active="money" hint-size="264px,900px"></dc-import></aside>
+  <div class="main">
+    <dc-import name="Topbar" hint-size="1176px,72px"></dc-import>
+    <main class="page">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="Money.dc.html">Money</a><span class="ic i-right s14"></span><b>INV-2026-004</b></nav>
+      <div class="ph">
+        <div>
+          <div class="row g10"><h1>INV-2026-004</h1><span class="pill bad">Overdue · 12 days</span></div>
+          <p class="lede">Traxstaff · Dispatch platform, milestone three</p>
+        </div>
+        <div class="acts">
+          <button class="ibtn" aria-label="Print"><span class="ic i-print"></span></button>
+          <button class="btn s"><span class="ic i-copy s16"></span>Copy pay link</button>
+          <button class="btn s"><span class="ic i-mail s16"></span>Send reminder</button>
+          <a class="btn p" href="MoneyPayment.dc.html"><span class="ic i-wallet s16"></span>Record a payment</a>
+          <button class="ibtn" aria-label="More invoice actions"><span class="ic i-more"></span></button>
+        </div>
+      </div>
+
+      <div class="grid c4">
+        <div class="card kpi"><div class="note">Total</div><div class="val" style="font-size: 26px;">₦1,200,000</div></div>
+        <div class="card kpi"><div class="note">Paid</div><div class="val" style="font-size: 26px;">Nil</div></div>
+        <div class="card kpi"><div class="note">Owed</div><div class="val" style="font-size: 26px;">₦1,200,000</div></div>
+        <div class="card kpi"><div class="note">Due</div><div class="val" style="font-size: 26px; color: var(--t-bad);">12 Sep</div><div class="note">Issued 1 Sep · 11 days terms</div></div>
+      </div>
+
+      <div class="grid c21">
+        <div class="card" style="padding: 0;">
+          <div class="ch" style="padding: 18px 20px 0;"><div><h3>The client's copy</h3><p class="sub">Exactly what Femi sees at the pay link.</p></div><a class="linkbtn" href="PInvoice.dc.html">Open as client<span class="ic i-ext s14"></span></a></div>
+          <div style="margin: 0 20px 20px; border-radius: 16px; border: 1px solid var(--line); background: #fff; color: #0e0e2c; padding: 36px; box-shadow: var(--sh-1);">
+            <div class="row sp" style="align-items: flex-start;">
+              <img src="brand/logo-navy.svg" alt="WDC" width="112" height="36">
+              <div style="text-align: right;"><div class="fig" style="font-size: 26px; font-weight: 600; color: #0e0e2c;">Invoice</div><div class="sm" style="color: #5c5c7a;">INV-2026-004</div></div>
+            </div>
+            <div class="grid c3" style="margin-top: 28px; gap: 16px;">
+              <div><div class="xs b" style="color: #5c5c7a; text-transform: uppercase; letter-spacing: .08em;">Bill to</div><div class="sm b" style="margin-top: 6px;">Traxstaff</div><div class="sm" style="color: #5c5c7a;">Femi Bakare<br>femi@traxstaff.com</div></div>
+              <div><div class="xs b" style="color: #5c5c7a; text-transform: uppercase; letter-spacing: .08em;">Issued</div><div class="sm" style="margin-top: 6px;">1 September 2026</div></div>
+              <div><div class="xs b" style="color: #5c5c7a; text-transform: uppercase; letter-spacing: .08em;">Due</div><div class="sm" style="margin-top: 6px;">12 September 2026</div></div>
+            </div>
+            <table class="tbl" style="margin-top: 26px; color: #0e0e2c;">
+              <thead><tr><th style="background: #f7f8fb; color: #5c5c7a; border-color: #e6e8f0;">Description</th><th class="num" style="background: #f7f8fb; color: #5c5c7a; border-color: #e6e8f0;">Qty</th><th class="num" style="background: #f7f8fb; color: #5c5c7a; border-color: #e6e8f0;">Unit</th><th class="num" style="background: #f7f8fb; color: #5c5c7a; border-color: #e6e8f0;">Amount</th></tr></thead>
+              <tbody>
+                <tr><td style="border-color: #e6e8f0;">Milestone three: routing rework</td><td class="num" style="border-color: #e6e8f0;">1</td><td class="num" style="border-color: #e6e8f0;">₦800,000</td><td class="num" style="border-color: #e6e8f0;">₦800,000</td></tr>
+                <tr><td style="border-color: #e6e8f0;">Driver app, first release</td><td class="num" style="border-color: #e6e8f0;">1</td><td class="num" style="border-color: #e6e8f0;">₦400,000</td><td class="num" style="border-color: #e6e8f0;">₦400,000</td></tr>
+              </tbody>
+            </table>
+            <div class="row" style="justify-content: flex-end; margin-top: 16px;">
+              <div style="width: 280px;">
+                <div class="row sp sm" style="color: #5c5c7a;"><span>Subtotal</span><span class="fig">₦1,200,000</span></div>
+                <div class="row sp sm" style="color: #5c5c7a; margin-top: 6px;"><span>VAT</span><span class="fig">Nil</span></div>
+                <div class="row sp" style="margin-top: 12px; padding-top: 12px; border-top: 2px solid #0e0e2c;"><b>Total due</b><b class="fig" style="font-size: 22px;">₦1,200,000</b></div>
+              </div>
+            </div>
+            <p class="sm" style="margin-top: 24px !important; color: #5c5c7a; line-height: 1.55;">Milestone three covers the routing rework and the driver app. Hypercare is two weeks from the day it goes live, not from sign-off.</p>
+          </div>
+        </div>
+
+        <div class="col g20">
+          <div class="card">
+            <div class="ch"><h3>Payments</h3></div>
+            <div class="empty" style="padding: 16px 8px;">
+              <div class="halo flat" style="width: 56px; height: 56px; border-radius: 18px;"><span class="ic i-wallet s22"></span></div>
+              <h3 style="font-size: 16px;">Nothing received against this yet</h3>
+              <p class="sm">Paystack payments land here by themselves. Record a transfer or cash when it arrives.</p>
+              <a class="btn p sm" href="MoneyPayment.dc.html">Record a payment</a>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch"><h3>Reminders</h3><span class="pill flat">Auto</span></div>
+            <div class="tl">
+              <div class="ti"><span class="dotc o"><span class="ic i-mail s14"></span></span><div><div class="sm b">Overdue reminder opened</div><div class="xs dim">20 Sep · femi@traxstaff.com</div></div></div>
+              <div class="ti"><span class="dotc"><span class="ic i-mail s14"></span></span><div><div class="sm b">Due-date reminder delivered</div><div class="xs dim">12 Sep</div></div></div>
+              <div class="ti"><span class="dotc b"><span class="ic i-send s14"></span></span><div><div class="sm b">Invoice issued and emailed</div><div class="xs dim">1 Sep · Babatope</div></div></div>
+            </div>
+            <div class="choice" style="margin-top: 16px;"><span class="sw on"></span><div class="grow"><div class="b sm">Weekly reminder while overdue</div><div class="xs dim">Next on Sun 27 Sep. Femi can switch these off.</div></div></div>
+          </div>
+          <div class="card">
+            <div class="ch"><h3>Pay link</h3><span class="pill good">Live</span></div>
+            <div class="inp" style="font-size: 13.5px;"><span class="ic i-link s16 dim"></span><span class="trunc grow">wedigcreativity.com.ng/pay/seedInv4…</span><button class="ibtn sm bare" aria-label="Copy link"><span class="ic i-copy s16"></span></button></div>
+            <p class="help" style="margin-top: 8px !important;">Opens the client's copy with a Paystack button. It stops working when the invoice is paid or voided.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1400}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

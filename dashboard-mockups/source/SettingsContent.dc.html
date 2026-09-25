@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Content settings</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root lt" style="width: 1440px; height: 1300px;">
+<div class="app" style="height: 1300px;">
+  <aside class="side"><dc-import name="Sidebar" active="faq" hint-size="264px,900px"></dc-import></aside>
+  <div class="main">
+    <dc-import name="Topbar" hint-size="1176px,72px"></dc-import>
+    <main class="page">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="Settings.dc.html">Settings</a><span class="ic i-right s14"></span><b>Content</b></nav>
+      <div class="grid" style="grid-template-columns: 250px minmax(0, 1fr); align-items: start;">
+        <dc-import name="SetNav" active="content" hint-size="250px,760px"></dc-import>
+        <div class="col g20">
+          <div class="ph"><div><h1>Content</h1><p class="lede">What on the public site can be edited here, and what still lives in the code.</p></div></div>
+          <div class="card flush">
+            <div class="ch" style="margin-bottom: 4px;"><h3>Edit here</h3></div>
+            <a class="set-row" href="SettingsFaq.dc.html"><span class="tile"><span class="ic i-help s16"></span></span><div class="grow"><div class="t">FAQ</div><div class="s">9 questions on the home, services and contact pages</div></div><span class="pill flat">Edited 3 days ago</span><span class="ic i-right s16 dim"></span></a>
+            <a class="set-row" href="SettingsMedia.dc.html"><span class="tile"><span class="ic i-img s16"></span></span><div class="grow"><div class="t">Media library</div><div class="s">12 files in use, 2 archived</div></div><span class="pill warn">2 need a description</span><span class="ic i-right s16 dim"></span></a>
+            <a class="set-row" href="Blog.dc.html"><span class="tile"><span class="ic i-news s16"></span></span><div class="grow"><div class="t">Blog posts</div><div class="s">14 published, 2 scheduled, 3 drafts</div></div><span class="ic i-right s16 dim"></span></a>
+          </div>
+          <div class="card">
+            <div class="ch"><div><h3>Blog defaults</h3></div><button class="btn p sm dis" type="button" disabled>Save</button></div>
+            <div class="grid c3" style="gap: 12px;">
+              <div class="fld"><label>Default topic</label><div class="inp sel">Branding<span class="ic i-chev s14 dim"></span></div></div>
+              <div class="fld"><label>Posts per page</label><div class="inp sel">9<span class="ic i-chev s14 dim"></span></div></div>
+              <div class="fld"><label>Posts in the RSS feed</label><div class="inp sel">20<span class="ic i-chev s14 dim"></span></div></div>
+            </div>
+            <div class="row sp" style="margin-top: 14px;"><div><div class="b sm">Staff posts need an owner's review</div><div class="xs dim">Staff can write and submit; only owners publish</div></div><span class="sw on"></span></div>
+          </div>
+          <div class="card flush">
+            <div class="ch" style="margin-bottom: 4px;"><div><h3>Not editable yet</h3><p class="sub">Said plainly rather than offered as a switch that does nothing.</p></div></div>
+            <div class="set-row"><span class="tile flat"><span class="ic i-box s16"></span></span><div class="grow"><div class="t">Services copy</div><div class="s">Names and blurbs carry page addresses and the sitemap</div></div><span class="pill flat">Not editable yet</span></div>
+            <div class="set-row"><span class="tile flat"><span class="ic i-grid s16"></span></span><div class="grow"><div class="t">Work and case studies</div><div class="s">Linked to categories and the sitemap</div></div><span class="pill flat">Not editable yet</span></div>
+            <div class="set-row"><span class="tile flat"><span class="ic i-quote s16"></span></span><div class="grow"><div class="t">Testimonials</div><div class="s">Clients' own words, kept exactly as given</div></div><span class="pill flat">By design</span></div>
+            <div class="set-row"><span class="tile flat"><span class="ic i-file s16"></span></span><div class="grow"><div class="t">Legal documents</div><div class="s">Privacy policy and terms, changed with the lawyer</div></div><span class="pill flat">Not editable yet</span></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

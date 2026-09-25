@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mobile tab bar</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<nav class="m-tabs" style="position: relative; width: 390px; height: 84px;" aria-label="Sections">
+  <div class="bar">
+  <sc-for list="{{items}}" as="it" hint-placeholder-count="5">
+    <a href="{{it.href}}" class="{{it.cls}}" aria-current="{{it.cur}}"><span class="ic {{it.icon}} s22"></span><span class="lb">{{it.label}}</span><sc-if value="{{it.hasCt}}" hint-placeholder-val="{{false}}"><span class="ct" aria-label="{{it.ctLabel}}">{{it.ct}}</span></sc-if></a>
+  </sc-for>
+  </div>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"enum","options":["dashboard","clients","projects","money","more","overview","billing","support","settings"],"default":"dashboard"},"portal":{"editor":"boolean","default":false},"$preview":{"width":390,"height":84}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const a = this.props.active ?? (this.props.portal ? 'overview' : 'dashboard');
+    const mk = (key, label, icon, href, ct) => ({ label, icon, href, cls: a === key ? 'on' : '', cur: a === key ? 'page' : 'false', hasCt: !!ct, ct: ct || '', ctLabel: ct ? ct + ' need attention' : '' });
+    const items = this.props.portal ? [
+      mk('overview', 'Overview', 'i-home', 'PMOverview.dc.html'),
+      mk('projects', 'Projects', 'i-folder', 'PMProjects.dc.html'),
+      mk('billing', 'Billing', 'i-cash', 'PMBilling.dc.html', '1'),
+      mk('support', 'Support', 'i-buoy', 'PMSupport.dc.html'),
+      mk('settings', 'Settings', 'i-cog', 'PMSettings.dc.html'),
+    ] : [
+      mk('dashboard', 'Home', 'i-home', 'MDashboard.dc.html'),
+      mk('clients', 'Clients', 'i-users', 'MClients.dc.html'),
+      mk('projects', 'Projects', 'i-folder', 'MProjects.dc.html'),
+      mk('money', 'Money', 'i-cash', 'MMoney.dc.html', '2'),
+      mk('more', 'More', 'i-grid', 'MMore.dc.html', '3'),
+    ];
+    return { items };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Form notifications</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root lt" style="width: 1440px; height: 1250px;">
+<div class="app" style="height: 1250px;">
+  <aside class="side"><dc-import name="Sidebar" active="form" hint-size="264px,900px"></dc-import></aside>
+  <div class="main">
+    <dc-import name="Topbar" hint-size="1176px,72px"></dc-import>
+    <main class="page">
+      <dc-import name="FormHead" tab="notify" hint-size="1112px,160px"></dc-import>
+
+      <div class="attn" style="background: var(--panel);"><span class="tile sm"><span class="ic i-server s14"></span></span><div class="grow sm">Sent from <b>hello@wedigcreativity.com.ng</b> through Truehost SMTP. Emails go out after the visitor sees the thank-you message, so a slow mail server never holds them up.</div><a class="btn s sm" href="SettingsEmail.dc.html">Email settings</a></div>
+
+      <div class="card flush">
+        <div class="ch" style="margin-bottom: 8px;"><div><h3>Emails this form sends</h3><p class="sub">Turning one off still writes a “Skipped” line in the email log.</p></div></div>
+        <div class="set-row">
+          <span class="tile"><span class="ic i-inbox s16"></span></span>
+          <div class="grow"><div class="row g8 wrap"><span class="t">Studio notice</span><span class="pill flat">To the studio</span></div><div class="s">To hello@wedigcreativity.com.ng · “New branding brief #{brief_number} from {business}”</div><div class="xs dim" style="margin-top: 4px;">Last sent today 12:41 · delivered</div></div>
+          <span class="sw on" role="switch" aria-checked="true" aria-label="Studio notice on"></span>
+          <a class="btn s sm" href="FormNotifyEdit.dc.html"><span class="ic i-pen s14"></span>Edit</a>
+        </div>
+        <div class="set-row">
+          <span class="tile live"><span class="ic i-send s16"></span></span>
+          <div class="grow"><div class="row g8 wrap"><span class="t">Next steps for the client</span><span class="pill flat">To whoever filled it in</span></div><div class="s">To {email} · “Thanks, {first_name}. Here is what happens next”</div><div class="xs dim" style="margin-top: 4px;">Last sent today 12:42 · delivered · they can switch these off</div></div>
+          <span class="sw on" role="switch" aria-checked="true" aria-label="Next steps on"></span>
+          <a class="btn s sm" href="FormNotifyEdit.dc.html"><span class="ic i-pen s14"></span>Edit</a>
+        </div>
+        <div class="set-row">
+          <span class="tile flat"><span class="ic i-clock s16"></span></span>
+          <div class="grow"><div class="row g8 wrap"><span class="t">Draft reminder</span><span class="pill flat">To whoever started it</span></div><div class="s">3 days after a draft is saved · “Your brief is waiting”</div><div class="xs dim" style="margin-top: 4px;">Off · 4 skipped this month</div></div>
+          <span class="sw" role="switch" aria-checked="false" aria-label="Draft reminder off"></span>
+          <a class="btn s sm" href="FormNotifyEdit.dc.html"><span class="ic i-pen s14"></span>Edit</a>
+        </div>
+      </div>
+
+      <div class="card flush">
+        <div class="ch" style="margin-bottom: 14px;"><div><h3>Recently sent from this form</h3></div><a class="linkbtn" href="SettingsEmail.dc.html">Full email log<span class="ic i-right s14"></span></a></div>
+        <table class="tbl">
+          <thead><tr><th>When</th><th>Email</th><th>To</th><th>Result</th><th style="width: 120px;"></th></tr></thead>
+          <tbody>
+            <tr><td class="dim">Today, 12:42</td><td>Next steps · Brief #14</td><td class="dim">adaeze@glowskincare.ng</td><td><span class="pill good">Delivered in 22.8 s</span></td><td><button class="btn g sm" type="button">View</button></td></tr>
+            <tr><td class="dim">Today, 12:41</td><td>Studio notice · Brief #14</td><td class="dim">hello@wedigcreativity.com.ng</td><td><span class="pill good">Delivered in 23.1 s</span></td><td><button class="btn g sm" type="button">View</button></td></tr>
+            <tr><td class="dim">21 Sep, 09:14</td><td>Next steps · Brief #12</td><td class="dim">folake@adecouture.com</td><td><span class="pill bad">Failed · mailbox full</span></td><td><button class="btn s sm" type="button"><span class="ic i-refresh s14"></span>Retry</button></td></tr>
+            <tr><td class="dim">21 Sep</td><td>Draft reminder · Chuka Obi</td><td class="dim">chuka@obisons.ng</td><td><span class="pill flat">Skipped · switched off</span></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1250}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**120 open** (32 in progress)
+**135 open** (32 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -194,6 +194,37 @@ Agreed 2026-09-24. Settings takes the Realtors Practice layout (grouped sections
 - [ ] Test with production-like record volumes so dashboard queries, filters, tables, search, exports, and timelines remain responsive.
 - [ ] Verify a database backup and rollback path before the first production migration; deploy the exact tested commit and validate authenticated admin routes on the canonical domain.
 - [ ] Push each completed Section 4 milestone to `main` as a narrow commit that excludes Claude's public-frontend work and unrelated user files; update this checklist and the bridge at each boundary.
+
+### 4.11 Dashboard redesign, from the mockups
+
+Started 2026-09-25. The target is `dashboard-mockups/` at the repo root: 134 boards (admin, forms, settings and money, client portal; desktop 1440px and mobile 390px), a gallery (`index.html`), a PNG per board, the source and the scripts that regenerate and audit them. Where a board and `AGENTS.md` disagree, `AGENTS.md` wins. This restyles and reshapes the screens; it does not change what 4.2 to 4.8A say a screen must do, and a board showing data the app does not have yet is a target, never licence to fake it. **OWNER DECISION 2026-09-25:** a form builder for NEW forms, with the eight coded forms kept exactly as they are; this supersedes the "form builder" in 4.6A's left-out list, and only that item. Build in this order; each line lands as its own commit with light and dark, 320px to 1440px, keyboard and reduced motion checked.
+
+#### Foundation
+
+- [ ] (S) Tokens to the boards: solid tone fills with a white label on every one (warn `#a16207`, live `#c95000`, good `#15803d`, bad `#c62828`), chart colours, radii and shadows, in `components/admin/admin.css` at `:root` so the portalled tour card still sees them. Re-run `tests/contrast.spec.ts` and `tests/button-colours.spec.ts`.
+- [ ] (M) Admin shell, desktop: the sidebar's menu at the top and scrolling, the tour card and profile pinned to the bottom; Forms and Settings open to their sub-pages; the top bar carries search (⌘K), theme, notifications and the account menu with name and role. Keep every `data-tour` target or move the tour step with it.
+- [ ] (M) Admin shell, phone: a top bar (logo on the dashboard, back and title inside a section) and the floating navy tab bar (Home, Clients, Projects, Money, More; the current one an orange pill with its label, the rest named for screen readers), with More as a bottom sheet. It replaces the hamburger drawer; sticky action strips extend under the bar rather than stopping above it.
+- [ ] (M) Portal shell, desktop and phone, the same parts with the portal's five sections.
+- [ ] (M) Shared primitives: page header (eyebrow, h1, lede, actions that never shrink), KPI card, panel, pill, tag, icon tile, segmented control, tabs, chips, inputs, the pager (rows per page, 25/50/100; Previous and Next with their arrows beside the words), the date range popover (presets plus a custom range, end of day included), row menu, dialog, drawer, bottom sheet, bulk bar, toast, and the empty, filtered-empty, loading, error and no-permission states. Rebuild the Boneyard snapshots once geometry moves.
+
+#### Admin pages
+
+- [ ] (M) Dashboard: greeting and date range, KPI row, cashflow chart, collected-of-billed gauge, attention queue, project pipeline, recent payments; dark theme board included.
+- [ ] (M) Clients: the list (filters sheet on a phone, bulk bar), a client (overview, projects, money, contacts, portal access, timeline), add, edit, merge.
+- [ ] (M) Projects: board and list views, new project, a project (stage track, tasks, deliverables, updates), post an update, send a deliverable for review.
+- [ ] (L) Money: overview with tabs, invoice builder and invoice, record a payment, expense, estimate, receipt, refund, void, filters, reconciliation.
+- [ ] (L) Forms (with 4.6A): the list in its groups, entries with columns, export and trash, one entry, and the builder (steps, field list, field settings, add-a-field, logic, preview, publish), form settings, and the form's emails with the editor.
+- [ ] (L) Settings (with 4.8A): the overview and one page per section through the section menu (My account, Business profile, Team and access, Invoicing and payments, Site and SEO, Content with FAQ and Media, Email with the log, Privacy and retention, System status, Audit log); a grouped list on a phone.
+- [ ] (M) Blog: list, editor, publish or schedule.
+
+#### Client portal
+
+- [ ] (M) Overview, projects and a project, approve a deliverable, request a revision, billing, an invoice, pay, support, a conversation, a new ticket, settings, and the not-linked state.
+- [ ] (S) Accepting an invitation stays on the auth shell (`AuthShell`: the royal-blue panel, orb and greeting that log-in and forgot-password use), NOT the navy split screen on the `PInvite` board. Take only its content: who invited you and to which company, the address shown and never asked for, a password strength meter, a line on what the portal is for, and when the link expires.
+
+#### Verification
+
+- [ ] (S) Side by side with the boards at 390px and 1440px using `dashboard-mockups/scripts/screens.mjs` and the same shots of the app; `tests/mobile-fit.spec.ts` at 320px; the tours walked on both shells; and the gaps that remain written down as deliberate.
 
 ### 5.0 Tour architecture and content
 

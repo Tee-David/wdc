@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin mobile · Team and access</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="m root lt" style="width: 390px; height: 1120px;">
+  <dc-import name="MTop" title="Team and access" back="MSettings.dc.html" hint-size="390px,64px"></dc-import>
+  <main class="m-page">
+
+    <div class="m-ph"><h1>Team and access</h1><p class="lede">Owners see everything. Staff see clients and projects, not money or settings.</p></div>
+    <div class="card flush">
+      <a class="mcard-row" href="MSettingsTeam.dc.html"><span class="av ">BA</span><div class="grow" style="min-width: 0;"><div class="row sp g8"><b class="sm trunc">Babatope Adeyemi (you)</b><span class="pill brand">Owner</span></div><div class="xs dim trunc" style="margin-top: 3px;">hello@wedigcreativity.com.ng</div><div class="xs dim" style="margin-top: 2px;">Now · 2 devices</div></div></a>
+      <a class="mcard-row" href="MSettingsTeam.dc.html"><span class="av o">AD</span><div class="grow" style="min-width: 0;"><div class="row sp g8"><b class="sm trunc">Ada Okafor</b><span class="pill flat">Staff</span></div><div class="xs dim trunc" style="margin-top: 3px;">ada@wedigcreativity.com.ng</div><div class="xs dim" style="margin-top: 2px;">2 hours ago · 1 device</div></div></a>
+      <a class="mcard-row" href="MSettingsTeam.dc.html"><span class="av g">FE</span><div class="grow" style="min-width: 0;"><div class="row sp g8"><b class="sm trunc">Femi Eze</b><span class="pill flat">Staff</span></div><div class="xs dim trunc" style="margin-top: 3px;">femi.e@wedigcreativity.com.ng</div><div class="xs dim" style="margin-top: 2px;">Yesterday · 3 devices</div></div></a>
+      <a class="mcard-row" href="MSettingsTeam.dc.html"><span class="av sl">MO</span><div class="grow" style="min-width: 0;"><div class="row sp g8"><b class="sm trunc">Mide Ola</b><span class="pill neu">Deactivated</span></div><div class="xs dim trunc" style="margin-top: 3px;">mide@wedigcreativity.com.ng</div><div class="xs dim" style="margin-top: 2px;">Last in 3 Aug</div></div></a>
+    </div>
+    <div class="xs dim b" style="text-transform: uppercase; letter-spacing: .08em; padding: 0 4px;">Invitations waiting</div>
+    <div class="card" style="padding: 16px;">
+      <div class="row g12"><span class="av y">KU</span><div class="grow" style="min-width: 0;"><b class="sm trunc" style="display: block;">kelechi@umeh.dev</b><div class="xs dim" style="margin-top: 3px;">Staff · expires 28 Sep</div></div></div>
+      <div class="grid c2" style="gap: 8px; margin-top: 12px;"><button class="btn s sm" type="button">Withdraw</button><button class="btn p sm" type="button">Resend</button></div>
+      <p class="xs dim" style="margin-top: 10px !important;">Links work once and expire after 7 days.</p>
+    </div>
+    <div class="xs dim b" style="text-transform: uppercase; letter-spacing: .08em; padding: 0 4px;">What each role can do</div>
+    <div class="card flush">
+      <div class="mcard-row"><div class="grow sm b">Clients and projects</div><span class="xs dim">Owner · Staff</span></div>
+      <div class="mcard-row"><div class="grow sm b">Forms and entries</div><span class="xs dim">Owner · Staff</span></div>
+      <div class="mcard-row"><div class="grow sm b">Blog</div><span class="xs dim" style="text-align: right;">Owner · Staff submits</span></div>
+      <div class="mcard-row"><div class="grow sm b">Money</div><span class="xs dim">Owner only</span></div>
+      <div class="mcard-row"><div class="grow sm b">Settings and team</div><span class="xs dim">Owner only</span></div>
+    </div>
+  </main>
+  <a class="fab" href="MSettingsTeam.dc.html"><span class="ic i-plus s20"></span>Invite</a>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 15;"><dc-import name="MTabs" active="more" hint-size="390px,84px"></dc-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1120}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

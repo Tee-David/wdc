@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Portal mobile · Projects</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="m root lt" style="width: 390px; height: 1100px;">
+  <dc-import name="MTop" client="{{yes}}" initials="TA" hint-size="390px,64px"></dc-import>
+  <main class="m-page">
+    <div class="m-ph"><h1>Your projects</h1><p class="lede">Everything we are making for Moore Designs.</p></div>
+    <div class="seg" style="width: 100%;"><button class="on" style="flex: 1; justify-content: center;">Active 2</button><button style="flex: 1; justify-content: center;">Delivered 0</button></div>
+    <a class="card" href="PMProject.dc.html" style="padding: 18px;">
+      <div class="row sp"><span class="tile"><span class="ic i-star s16"></span></span><span class="pill live">Your review</span></div>
+      <h3 style="font-size: 18px; margin-top: 12px;">Identity system</h3>
+      <div class="xs dim" style="margin-top: 2px;">Branding · due Sat 26 Sep</div>
+      <div class="steps" style="gap: 4px; margin-top: 14px;"><div class="st done"><i></i></div><div class="st done"><i></i></div><div class="st done"><i></i></div><div class="st now"><i></i></div><div class="st"><i></i></div><div class="st"><i></i></div></div>
+      <div class="row sp xs" style="margin-top: 8px;"><b>Review</b><span class="dim">4 of 6</span></div>
+      <div class="attn" style="margin-top: 14px; padding: 12px;"><span class="tile sm live"><span class="ic i-file s14"></span></span><div class="grow sm"><b>Identity routes v2</b> is waiting for you</div></div>
+    </a>
+    <a class="card" href="PMProject.dc.html" style="padding: 18px;">
+      <div class="row sp"><span class="tile"><span class="ic i-globe s16"></span></span><span class="pill flat">Onboarding</span></div>
+      <h3 style="font-size: 18px; margin-top: 12px;">Shop rebuild</h3>
+      <div class="xs dim" style="margin-top: 2px;">Website · date to be agreed</div>
+      <div class="steps" style="gap: 4px; margin-top: 14px;"><div class="st now"><i></i></div><div class="st"><i></i></div><div class="st"><i></i></div><div class="st"><i></i></div><div class="st"><i></i></div><div class="st"><i></i></div></div>
+      <div class="row sp xs" style="margin-top: 8px;"><b>Onboarding</b><span class="dim">1 of 6</span></div>
+      <p class="sm dim" style="margin-top: 12px !important;">Nothing needed from you yet.</p>
+    </a>
+  </main>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 15;"><dc-import name="MTabs" portal="{{yes}}" active="projects" hint-size="390px,84px"></dc-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() { return { yes: true }; }
+}
+</script>
+</body>
+</html>

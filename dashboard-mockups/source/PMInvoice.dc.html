@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Portal mobile · Invoice</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="m root lt" style="width: 390px; height: 1400px;">
+  <dc-import name="MTop" client="{{yes}}" initials="TA" title="INV-2026-001" back="PMBilling.dc.html" hint-size="390px,64px"></dc-import>
+  <main class="m-page" style="padding-bottom: 190px;">
+    <div class="card" style="padding: 20px;">
+      <div class="row sp"><img src="brand/logo-navy.svg" alt="WDC" width="87" height="28"><span class="pill warn">Part paid</span></div>
+      <div class="fig" style="font-size: 32px; font-weight: 600; margin-top: 18px;">₦330,000</div>
+      <div class="sm dim">left to pay · due Wed 30 Sep</div>
+      <div class="hr" style="margin: 16px 0;"></div>
+      <div class="col g10 sm">
+        <div class="row sp"><span class="dim">Billed to</span><span>Moore Designs</span></div>
+        <div class="row sp"><span class="dim">Issued</span><span>2 Aug 2026</span></div>
+        <div class="row sp"><span class="dim">Project</span><span>Identity system</span></div>
+      </div>
+    </div>
+    <div class="card" style="padding: 16px;">
+      <div class="ch" style="margin-bottom: 6px;"><h3>What it covers</h3></div>
+      <div class="lrow"><div class="grow"><div class="t sm">Discovery and three routes</div><div class="s">1 × ₦420,000</div></div><b class="fig sm">₦420,000</b></div>
+      <div class="lrow"><div class="grow"><div class="t sm">Moodboard and type</div><div class="s">1 × ₦210,000</div></div><b class="fig sm">₦210,000</b></div>
+      <div class="hr" style="margin: 12px 0;"></div>
+      <div class="row sp sm dim"><span>Total</span><span class="fig">₦630,000</span></div>
+      <div class="row sp sm dim" style="margin-top: 6px;"><span>Paid 6 Aug</span><span class="fig">−₦300,000</span></div>
+      <div class="row sp" style="margin-top: 10px;"><b>Left to pay</b><b class="fig" style="font-size: 20px;">₦330,000</b></div>
+    </div>
+    <div class="card" style="padding: 16px;">
+      <div class="ch" style="margin-bottom: 10px;"><h3>How to pay</h3></div>
+      <div class="col g8">
+        <div class="choice on" style="padding: 12px;"><span class="radio on"></span><div class="grow"><div class="b sm">Card or bank, through Paystack</div><div class="xs dim">Recorded straight away</div></div></div>
+        <div class="choice" style="padding: 12px;"><span class="radio"></span><div class="grow"><div class="b sm">Bank transfer</div><div class="xs dim">Zenith · 10•••••482</div></div></div>
+      </div>
+    </div>
+    <div class="row g10"><button class="btn s" style="flex: 1;"><span class="ic i-down s16"></span>PDF</button><button class="btn s" style="flex: 1;"><span class="ic i-receipt s16"></span>Receipts</button></div>
+  </main>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 14; padding: 12px 16px 96px; background: var(--panel); border-top: 1px solid var(--line);">
+    <button class="btn p lg full"><span class="ic i-lock s16"></span>Pay ₦330,000</button>
+  </div>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 15;"><dc-import name="MTabs" portal="{{yes}}" active="billing" hint-size="390px,84px"></dc-import></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1400}}'>
+class Component extends DCLogic {
+  renderVals() { return { yes: true }; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Invoicing and payments</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root lt" style="width: 1440px; height: 1600px;">
+<div class="app" style="height: 1600px;">
+  <aside class="side"><dc-import name="Sidebar" active="invoicing" hint-size="264px,900px"></dc-import></aside>
+  <div class="main">
+    <dc-import name="Topbar" hint-size="1176px,72px"></dc-import>
+    <main class="page">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="Settings.dc.html">Settings</a><span class="ic i-right s14"></span><b>Invoicing and payments</b></nav>
+      <div class="grid" style="grid-template-columns: 250px minmax(0, 1fr); align-items: start;">
+        <dc-import name="SetNav" active="invoicing" hint-size="250px,760px"></dc-import>
+        <div class="col g20">
+          <div class="ph"><div><h1>Invoicing and payments</h1><p class="lede">What every new invoice, receipt and estimate starts with.</p></div><div class="acts"><button class="btn s" type="button" disabled style="opacity: .45;">Discard</button><button class="btn p dis" type="button" disabled>Save</button></div></div>
+
+          <div class="grid c2" style="align-items: start;">
+            <div class="card">
+              <div class="ch"><h3>Tax and terms</h3></div>
+              <div class="col g14" style="gap: 14px;">
+                <div class="row sp"><div><div class="b sm">VAT registered</div><div class="xs dim">Shows the TIN and VAT line on invoices</div></div><span class="sw on"></span></div>
+                <div class="grid c2" style="gap: 12px;"><div class="fld"><label>TIN</label><div class="inp">22817340-0001</div></div><div class="fld"><label>Default VAT %</label><div class="inp">7.5</div></div></div>
+                <div class="fld"><label>Days to pay</label><div class="inp sel">14 days<span class="ic i-chev s14 dim"></span></div></div>
+                <div class="fld"><label>Payment terms on invoices</label><div class="inp ta" style="min-height: 72px;">Half on acceptance, half on delivery. Prices hold for 30 days.</div></div>
+                <div class="prov"><span class="ic i-clock s14"></span>Edited by Babatope, 20 Sep · shipped as 7.5% · <a class="linkbtn" href="SettingsInvoicing.dc.html" style="font-size: 12.5px;">Reset</a></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="ch"><h3>Bank transfer details</h3></div>
+              <div class="col g14" style="gap: 14px;">
+                <div class="fld"><label>Bank</label><div class="inp">Zenith Bank</div></div>
+                <div class="grid c2" style="gap: 12px;"><div class="fld"><label>Account name</label><div class="inp">We Dig Creativity Ltd</div></div><div class="fld"><label>Account number</label><div class="inp code">1017 552 482</div></div></div>
+                <div class="fld"><label>Footer note</label><div class="inp ph">Thank you for your business.</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="ch"><div><h3>Reminders</h3><p class="sub">Clients can switch these off. Receipts always go.</p></div></div>
+            <div class="grid c4" style="gap: 10px;">
+              <div class="choice on" style="flex-direction: column; align-items: flex-start; gap: 8px;"><span class="sw on"></span><b class="sm">3 days before due</b></div>
+              <div class="choice on" style="flex-direction: column; align-items: flex-start; gap: 8px;"><span class="sw on"></span><b class="sm">On the due date</b></div>
+              <div class="choice on" style="flex-direction: column; align-items: flex-start; gap: 8px;"><span class="sw on"></span><b class="sm">7 days late</b></div>
+              <div class="choice" style="flex-direction: column; align-items: flex-start; gap: 8px;"><span class="sw"></span><b class="sm">Every 7 days after</b></div>
+            </div>
+          </div>
+
+          <div class="grid c2" style="align-items: start;">
+            <div class="card">
+              <div class="ch"><div><h3>Numbering</h3><p class="sub">Set by the system. Never reused.</p></div></div>
+              <div class="lrow"><span class="tile sm live"><span class="ic i-receipt s14"></span></span><div class="grow"><div class="t sm">Next invoice</div></div><span class="code">INV-2026-007</span></div>
+              <div class="lrow"><span class="tile sm good"><span class="ic i-wallet s14"></span></span><div class="grow"><div class="t sm">Next receipt</div></div><span class="code">RCT-2026-015</span></div>
+              <div class="lrow"><span class="tile sm"><span class="ic i-file s14"></span></span><div class="grow"><div class="t sm">Next estimate</div></div><span class="code">EST-2026-005</span></div>
+            </div>
+            <div class="card">
+              <div class="ch"><div><h3>Paystack</h3><p class="sub">Keys live in the environment.</p></div><span class="pill good">Live mode</span></div>
+              <div class="col g12">
+                <div class="fld"><label>Webhook address</label><div class="inp code" style="font-size: 13px;"><span class="trunc grow">https://wedigcreativity.com.ng/api/paystack/webhook</span><button class="ibtn sm bare" type="button" aria-label="Copy webhook address"><span class="ic i-copy s16"></span></button></div></div>
+                <div class="fld"><label>Callback address</label><div class="inp code" style="font-size: 13px;"><span class="trunc grow">https://wedigcreativity.com.ng/pay/done</span><button class="ibtn sm bare" type="button" aria-label="Copy callback address"><span class="ic i-copy s16"></span></button></div></div>
+                <div class="row sp sm"><span class="dim">Last webhook</span><span class="row g6"><span class="dotst" style="--c: var(--t-good);"></span>12 minutes ago · signature valid</span></div>
+                <button class="btn s sm" type="button" style="align-self: flex-start;"><span class="ic i-refresh s14"></span>Check now</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1600}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

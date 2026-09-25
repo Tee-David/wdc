@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin · Search anything</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="wdc.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div class="root" style="width: 1440px; height: 1000px;">
+  <dc-import name="Main" hint-size="1440px,1600px"></dc-import>
+  <div class="scrim"></div>
+  <div class="dlg" role="dialog" aria-label="Search anything" style="left: 400px; top: 96px; width: 640px;">
+    <div class="row" style="padding: 16px 20px; border-bottom: 1px solid var(--line);">
+      <span class="ic i-search s20 dim"></span>
+      <input class="grow" value="moore" aria-label="Search" style="border: 0; outline: 0; background: transparent; font-family: var(--ff-b); font-size: 17px; color: var(--ink); height: 32px;">
+      <span class="kbd">Esc</span>
+    </div>
+    <div class="row g8" style="padding: 12px 20px 4px;">
+      <span class="chip on" style="height: 32px;">All</span>
+      <span class="chip" style="height: 32px;">Clients</span>
+      <span class="chip" style="height: 32px;">Projects</span>
+      <span class="chip" style="height: 32px;">Invoices</span>
+      <span class="chip" style="height: 32px;">Posts</span>
+    </div>
+    <div class="menu static" style="border: 0; box-shadow: none; padding: 6px 12px 10px;">
+      <div class="ml">Clients</div>
+      <a class="mi hov" href="Client.dc.html"><span class="av o sm">MD</span><span class="grow"><b>Moore</b> Designs <span class="dim sm">· Tobi Adeyemi</span></span><span class="hint">Open ↵</span></a>
+      <div class="ml">Projects</div>
+      <a class="mi" href="Project.dc.html"><span class="tile sm"><span class="ic i-folder s16"></span></span><span class="grow">Identity system <span class="dim sm">· <b>Moore</b> Designs</span></span><span class="pill warn">Review</span></a>
+      <a class="mi" href="Project.dc.html"><span class="tile sm"><span class="ic i-folder s16"></span></span><span class="grow">Shop rebuild <span class="dim sm">· <b>Moore</b> Designs</span></span><span class="pill flat">Onboarding</span></a>
+      <div class="ml">Invoices</div>
+      <a class="mi" href="Invoice.dc.html"><span class="tile sm live"><span class="ic i-receipt s16"></span></span><span class="grow">INV-2026-001 <span class="dim sm">· ₦630,000</span></span><span class="pill warn">Part paid</span></a>
+      <a class="mi" href="Invoice.dc.html"><span class="tile sm live"><span class="ic i-receipt s16"></span></span><span class="grow">INV-2026-006 <span class="dim sm">· ₦210,000</span></span><span class="pill flat">Draft</span></a>
+      <div class="ml">Actions</div>
+      <a class="mi" href="MoneyInvoice.dc.html"><span class="tile sm flat"><span class="ic i-plus s16"></span></span><span class="grow">Raise an invoice for <b>Moore</b> Designs</span><span class="hint">⌘ I</span></a>
+      <a class="mi" href="ProjectUpdate.dc.html"><span class="tile sm flat"><span class="ic i-send s16"></span></span><span class="grow">Post an update to Identity system</span><span class="hint">⌘ U</span></a>
+    </div>
+    <div class="row sp xs dim" style="padding: 12px 20px; border-top: 1px solid var(--line); background: var(--panel-2);">
+      <span class="row g16"><span class="row g6"><span class="kbd">↑</span><span class="kbd">↓</span>Move</span><span class="row g6"><span class="kbd">↵</span>Open</span><span class="row g6"><span class="kbd">Tab</span>Next group</span></span>
+      <span>7 results</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
