@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
+import { EditorContent, mergeAttributes, Node, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import { TextSelection } from "@tiptap/pm/state";
 import Placeholder from "@tiptap/extension-placeholder";
 import {
-  Bold, Heading2, Heading3, ImagePlus, Italic, Link2, List, ListOrdered, Pilcrow, Quote, Redo2, Undo2, Upload, X,
+  Bold, Clapperboard, Heading2, Heading3, ImagePlus, Italic, Link2, List, ListOrdered, Pilcrow, Quote, Redo2, Undo2, Upload, X,
 } from "lucide-react";
 import type { RichDoc } from "@/lib/blog-doc";
 import { uploadToMedia } from "./media-upload";
@@ -17,7 +17,7 @@ import { uploadToMedia } from "./media-upload";
  *
  * TipTap, configured down to what the public page renders (`lib/blog-doc.ts`):
  * paragraphs, section headings (h2) and sub-headings (h3), bullet and numbered
- * lists, quotes, links, bold, italic and pictures. Nothing else is switched
+ * lists, quotes, links, bold, italic, pictures and short videos. Nothing else is switched
  * on, so nothing appears here that would silently vanish on save -- no h1
  * (the headline is the page's h1), no underline, no code, no colours.
  *
@@ -39,6 +39,35 @@ const PictureWithSize = Image.extend({
     };
   },
 });
+
+/**
+ * A short clip on a line of its own (lib/blog-doc.ts `video`): an MP4 or
+ * WebM from our own media library, played with the browser's own controls.
+ */
+const Video = Node.create({
+  name: "video",
+  group: "block",
+  atom: true,
+  draggable: true,
+  addAttributes() {
+    return { src: { default: null }, title: { default: "" }, width: { default: null }, height: { default: null } };
+  },
+  parseHTML() { return [{ tag: "video[src]" }]; },
+  renderHTML({ HTMLAttributes }) {
+    return ["video", mergeAttributes(HTMLAttributes, { controls: "true", preload: "metadata", playsinline: "true" })];
+  },
+});
+
+/** The natural size of a clip, read from its metadata. */
+function measureVideo(src: string): Promise<{ width: number; height: number } | null> {
+  return new Promise((resolve) => {
+    const v = document.createElement("video");
+    v.preload = "metadata";
+    v.onloadedmetadata = () => resolve(v.videoWidth ? { width: v.videoWidth, height: v.videoHeight } : null);
+    v.onerror = () => resolve(null);
+    v.src = src;
+  });
+}
 
 /** The natural size of a picture, so the page can reserve its space. */
 function measure(src: string): Promise<{ width: number; height: number } | null> {
@@ -164,6 +193,67 @@ function ImagePanel({ editor, close }: { editor: Editor; close: () => void }) {
   );
 }
 
+function VideoPanel({ editor, close }: { editor: Editor; close: () => void }) {
+  const id = useId();
+  const [src, setSrc] = useState("");
+  const [title, setTitle] = useState("");
+  const [state, setState] = useState<{ busy?: string; error?: string }>({});
+  const file = useRef<HTMLInputElement>(null);
+
+  const upload = async (f: File) => {
+    setState({ busy: "Uploading..." });
+    const done = await uploadToMedia(f);
+    if (!done.ok) return setState({ error: done.error });
+    setSrc(done.url);
+    setState({});
+  };
+
+  const insert = async () => {
+    const value = src.trim();
+    if (!value) return setState({ error: "Upload a clip or paste its address first." });
+    if (!/\.(mp4|webm)(\?.*)?$/i.test(value)) return setState({ error: "An MP4 or WebM file, from our media library." });
+    if (!title.trim()) return setState({ error: "Say what the clip shows, for somebody who cannot watch it." });
+    setState({ busy: "Checking the clip..." });
+    const size = await measureVideo(value);
+    if (!size) return setState({ error: "That clip could not be loaded. Check the address." });
+    editor.chain().focus().insertContent({ type: "video", attrs: { src: value, title: title.trim(), ...size } }).command(({ tr, state }) => {
+      const end = tr.selection.to;
+      const next = tr.doc.nodeAt(end);
+      if (!next || next.type.name !== "paragraph") tr.insert(end, state.schema.nodes.paragraph.create());
+      tr.setSelection(TextSelection.create(tr.doc, end + 1));
+      return true;
+    }).run();
+    close();
+  };
+
+  return (
+    <div className="adRte__panel" role="group" aria-label="Video">
+      <div className="adRte__panelRow">
+        <label className="ad__btn adRte__upload">
+          <Upload aria-hidden="true" /> {state.busy === "Uploading..." ? "Uploading..." : "Upload a clip"}
+          <input ref={file} type="file" accept="video/mp4,video/webm"
+                 onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f); if (file.current) file.current.value = ""; }} />
+        </label>
+        <button type="button" className="ad__btn adRte__close" aria-label="Close" onClick={close}><X aria-hidden="true" /></button>
+      </div>
+      <small className="ad__fh">MP4 or WebM, up to 40MB. Keep it short: a minute at 1080p is plenty.</small>
+      <label htmlFor={`${id}-src`}>Or its address</label>
+      <input id={`${id}-src`} type="url" inputMode="url" placeholder="An address in our media library"
+             value={src} onChange={(e) => { setSrc(e.target.value); setState({}); }} />
+      <label htmlFor={`${id}-title`}>What it shows<b aria-hidden="true"> *</b></label>
+      <input id={`${id}-title`} value={title} maxLength={200} placeholder="Shown under the clip, and read out to screen readers"
+             onChange={(e) => { setTitle(e.target.value); setState({}); }}
+             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void insert(); } }} />
+      <div className="adRte__panelRow">
+        <button type="button" className="ad__btn ad__btn--primary" onClick={() => void insert()} disabled={Boolean(state.busy)}>
+          {state.busy && state.busy !== "Uploading..." ? state.busy : "Insert video"}
+        </button>
+      </div>
+      {state.error ? <small className="ad__fe" role="alert">{state.error}</small> : null}
+    </div>
+  );
+}
+
 /** What the toolbar shows as pressed, and the word count. */
 const read = (e: Editor) => ({
   p: e.isActive("paragraph"), h2: e.isActive("heading", { level: 2 }), h3: e.isActive("heading", { level: 3 }),
@@ -180,7 +270,7 @@ export default function RichTextEditor({ initial, onChange, labelledBy, describe
   describedBy?: string;
   invalid?: boolean;
 }) {
-  const [panel, setPanel] = useState<"link" | "image" | null>(null);
+  const [panel, setPanel] = useState<"link" | "image" | "video" | null>(null);
   const change = useRef(onChange);
   useEffect(() => { change.current = onChange; }, [onChange]);
 
@@ -194,6 +284,7 @@ export default function RichTextEditor({ initial, onChange, labelledBy, describe
         link: { openOnClick: false, autolink: true, defaultProtocol: "https", protocols: ["https", "http", "mailto"] },
       }),
       PictureWithSize.configure({ inline: false, allowBase64: false }),
+      Video,
       Placeholder.configure({ placeholder: "Start writing. Use Heading for each section." }),
     ],
     content: initial.content.length ? initial : undefined,
@@ -240,6 +331,7 @@ export default function RichTextEditor({ initial, onChange, labelledBy, describe
           <Tool label="Numbered list" on={s.ol} onClick={() => c().toggleOrderedList().run()}><ListOrdered aria-hidden="true" /></Tool>
           <Tool label="Quote" on={s.quote} onClick={() => c().toggleBlockquote().run()}><Quote aria-hidden="true" /></Tool>
           <Tool label="Picture" on={panel === "image"} onClick={() => setPanel(panel === "image" ? null : "image")}><ImagePlus aria-hidden="true" /></Tool>
+          <Tool label="Video" on={panel === "video"} onClick={() => setPanel(panel === "video" ? null : "video")}><Clapperboard aria-hidden="true" /></Tool>
         </span>
         <span className="adRte__group adRte__group--end">
           <Tool label="Undo" disabled={!s.undo} onClick={() => c().undo().run()}><Undo2 aria-hidden="true" /></Tool>
@@ -248,6 +340,7 @@ export default function RichTextEditor({ initial, onChange, labelledBy, describe
       </div>
       {panel === "link" ? <LinkPanel editor={editor} close={() => setPanel(null)} /> : null}
       {panel === "image" ? <ImagePanel editor={editor} close={() => setPanel(null)} /> : null}
+      {panel === "video" ? <VideoPanel editor={editor} close={() => setPanel(null)} /> : null}
       <EditorContent editor={editor} />
       <p className="adRte__foot" aria-live="polite">
         {s.words} {s.words === 1 ? "word" : "words"} · about {Math.max(1, Math.ceil(s.words / 200))} min read

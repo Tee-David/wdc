@@ -71,9 +71,9 @@ test.describe("the library screen", () => {
 
   test("Settings leads to it, and a file without a description says so until it has one", async ({ page }) => {
     await page.goto("/admin/settings", { waitUntil: "load" });
-    await page.getByRole("link", { name: "Media" }).click();
+    await page.getByRole("link", { name: /^Media library/ }).first().click();
     /* Generous: on a dev server the first visit compiles the route. */
-    await expect(page.getByRole("heading", { level: 1, name: "Media" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("heading", { level: 1, name: "Media library" })).toBeVisible({ timeout: 30_000 });
 
     const card = page.locator(".adMedia__card", { hasText: IMAGE });
     await expect(card).toBeVisible();

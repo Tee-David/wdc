@@ -1,4 +1,8 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
+import { r2PublicBase } from "@/lib/r2";
+
+const bucket = r2PublicBase();
 import type { DocBlock, DocInline, RichDoc } from "@/lib/blog-doc";
 import { inlineText } from "@/lib/blog-doc";
 
@@ -52,18 +56,34 @@ function Block({ block }: { block: DocBlock }) {
     }
     case "blockquote":
       return <blockquote>{block.content.map((b, i) => <Block key={i} block={b} />)}</blockquote>;
-    case "image":
+    case "image": {
+      const { src, alt, width, height } = block.attrs;
+      /* OPTIMISED WHEN WE CAN BE: a picture from this site or our own bucket,
+         with its size recorded at upload, goes through the image optimiser
+         (resized to the reader's screen, AVIF or WebP, quality 85 so text in
+         a screenshot stays crisp). Anything else stays a plain img. */
+      const ours = src.startsWith("/") || Boolean(bucket && src.startsWith(`${bucket}/`));
       return (
         <figure className="bl-figure">
-          {/* A plain img: the file is already sized at upload, and the width
-              and height recorded then reserve its space so it cannot shift
-              the text when it arrives. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={block.attrs.src} alt={block.attrs.alt}
-            width={block.attrs.width} height={block.attrs.height}
-            loading="lazy" decoding="async"
-          />
+          {ours && width && height ? (
+            <Image src={src} alt={alt} width={width} height={height} quality={85}
+              sizes="(max-width: 760px) 100vw, 720px" />
+          ) : (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={src} alt={alt} width={width} height={height} loading="lazy" decoding="async" />
+          )}
+        </figure>
+      );
+    }
+    case "video":
+      return (
+        <figure className="bl-figure">
+          {/* Plays only when asked: no autoplay, metadata only until then,
+              and inline on a phone rather than taking over the screen. */}
+          <video src={block.attrs.src} controls playsInline preload="metadata"
+            width={block.attrs.width} height={block.attrs.height} title={block.attrs.title || undefined}
+            aria-label={block.attrs.title || "Video"} />
+          {block.attrs.title ? <figcaption className="bl-figcap">{block.attrs.title}</figcaption> : null}
         </figure>
       );
     default:
