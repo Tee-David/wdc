@@ -52,6 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
        their service pages, and invisible to this file -- which is the exact
        failure the note at the top of this sitemap says it exists to prevent.
        `lib/tools.ts` is the one list now. */
+    { path: "/tools", priority: 0.8, changeFrequency: "monthly" },
     ...FREE_TOOLS.map((tool) => ({
       path: tool.href,
       priority: 0.75,
