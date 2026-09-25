@@ -12,7 +12,7 @@ export const metadata = { title: "Website and SEO" };
 /** How the site presents itself to search engines. Maintenance has its own section. */
 export default async function SitePage() {
   if (!can(await adminRole(), "settings")) {
-    return <section className="ad__panel"><AdminState kind="forbidden" title="Site and SEO are the owner's" description="The site's description and whether search engines may index it." /></section>;
+    return <section className="ad__panel"><AdminState kind="forbidden" back={{ href: "/admin/settings", label: "Back to settings" }} title="Site and SEO are the owner's" description="The site's description and whether search engines may index it." /></section>;
   }
   const [seo, m] = await Promise.all([siteSeo(), maintenance()]);
   const host = new URL(SITE_URL).host;

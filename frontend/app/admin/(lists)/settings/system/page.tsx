@@ -36,7 +36,7 @@ const TOOL_ROWS: { tool: ToolName; label: string; what: string; confirm?: string
  */
 export default async function SystemPage() {
   if (!can(await adminRole(), "settings")) {
-    return <section className="ad__panel"><AdminState kind="forbidden" title="System is for the owner" description="How the site is running, and the tools to fix it." /></section>;
+    return <section className="ad__panel"><AdminState kind="forbidden" back={{ href: "/admin/settings", label: "Back to settings" }} title="System is for the owner" description="How the site is running, and the tools to fix it." /></section>;
   }
   const [probes, migrations, tools, failed, stuck, daily] = await Promise.all([
     lastProbes(), migrationStatus({ fresh: true }), lastTools(), failedLoggedCount().catch(() => 0), stuckQueuedCount(), lastAuditFor("daily").catch(() => null),

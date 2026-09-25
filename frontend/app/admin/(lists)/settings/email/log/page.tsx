@@ -30,7 +30,7 @@ export default async function MessageLogPage({ searchParams }: Props) {
   if (!can(await adminRole(), "settings")) {
     return (
       <section className="ad__panel">
-        <AdminState kind="forbidden" title="The message log is the owner's" description="Every email the site has sent." />
+        <AdminState kind="forbidden" back={{ href: "/admin/settings", label: "Back to settings" }} title="The message log is the owner's" description="Every email the site has sent." />
       </section>
     );
   }

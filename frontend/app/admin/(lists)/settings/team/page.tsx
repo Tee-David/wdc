@@ -21,7 +21,7 @@ const time = (iso: string | null) => iso
  */
 export default async function TeamPage() {
   if (!can(await adminRole(), "team")) {
-    return <section className="ad__panel"><AdminState kind="forbidden" title="The team is the owner's" description="Who can reach the admin, and what they can do." /></section>;
+    return <section className="ad__panel"><AdminState kind="forbidden" back={{ href: "/admin/settings", label: "Back to settings" }} title="The team is the owner's" description="Who can reach the admin, and what they can do." /></section>;
   }
   if (!invitationsConfigured()) {
     return <section className="ad__panel"><AdminState kind="error" title="The accounts database is not connected" description="COCKROACHDB_URL is not set, so there are no accounts to show." /></section>;
