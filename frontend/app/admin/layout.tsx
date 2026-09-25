@@ -4,6 +4,7 @@ import AdminShell from "@/components/admin/shell";
 import AdminTourProvider from "@/components/admin/tour/tour-provider";
 import { unreadTotal } from "@/lib/forms/entries";
 import { failedLoggedCount } from "@/lib/message-log";
+import { reviewCount } from "@/lib/blog-db";
 import { getAdminRequest } from "@/lib/admin/session";
 import { isAdminRole } from "@/lib/admin/permissions";
 import { adminNotices } from "@/lib/admin/notices";
@@ -51,6 +52,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const open = await unreadTotal().catch(() => 0);
   /* Emails that did not go, for the bell: the owner's to deal with. */
   const failedMail = role === "owner" ? await failedLoggedCount().catch(() => 0) : 0;
+  /* Posts staff submitted, waiting on the owner to publish or send back. */
+  const inReview = role === "owner" && (process.env.DATABASE_URL || process.env.COCKROACHDB_URL) ? await reviewCount().catch(() => 0) : 0;
   /* Standing conditions: the site hidden from search, test payments on the
      live site, mail that did not go today. */
   const notices = await adminNotices(role).catch(() => []);
@@ -59,7 +62,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="ad">
       <AdminTourProvider role={role}>
         <AdminShell
-          counts={{ Forms: open, FailedMail: failedMail }}
+          counts={{ Forms: open, FailedMail: failedMail, Blog: inReview }}
           user={{ name: session.user.name, email: session.user.email, image: session.user.image }}
           role={role}
         >

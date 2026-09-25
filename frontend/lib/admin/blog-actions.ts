@@ -2,10 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { deleteTrashedPost, movePostToDraft, publishPostNow, restorePost, savePost, trashDraftPost } from "@/lib/blog-db";
+import { deleteTrashedPost, movePostToDraft, postForAdmin, publishPostNow, restorePost, returnPost, savePost, trashDraftPost } from "@/lib/blog-db";
 import { parsePost } from "@/lib/blog-validate";
 import { audit } from "./store";
-import { actorName, owner, allow } from "./guard";
+import { actorName, adminRole, owner, allow } from "./guard";
 import { FAIL, OK, type ActionState } from "./validate";
 
 /**
@@ -31,6 +31,18 @@ export async function saveBlogPost(_prev: ActionState, fd: FormData): Promise<Ac
   if (!parsed.ok) return FAIL(parsed.errors, "Some fields need attention before this can be saved.");
 
   const id = String(fd.get("id") ?? "").trim() || null;
+  /* STAFF WRITE, THE OWNER PUBLISHES. Staff can draft and submit for review;
+     putting a post live, scheduling it, or changing one that already is,
+     is the owner's. Checked here, not only by the options the editor shows. */
+  if ((await adminRole()) !== "owner") {
+    if (parsed.post.status === "published" || parsed.post.status === "scheduled") {
+      return FAIL({ status: "Publishing is the owner's. Choose Submit for review and they will see it." });
+    }
+    if (id) {
+      const current = await postForAdmin(id).catch(() => null);
+      if (current?.status === "published") return FAIL({}, "This post is live or scheduled, so changes to it are the owner's.");
+    }
+  }
   /* The saved_at this editor opened, "" for a post never saved in the
      editor. Absent altogether means a caller that is not the editor. */
   const openedRaw = fd.get("opened");
@@ -60,7 +72,7 @@ export async function saveBlogPost(_prev: ActionState, fd: FormData): Promise<Ac
   }
 
   const p = parsed.post;
-  const label = p.status === "draft" ? "saved as a draft" : p.status === "scheduled" ? "scheduled" : "published";
+  const label = p.status === "draft" ? "saved as a draft" : p.status === "review" ? "submitted for review" : p.status === "scheduled" ? "scheduled" : "published";
   audit({ actor: by, kind: "content", subjectId: saved.id, subject: p.title, action: id ? `edited and ${label}` : label,
           note: `/blog/${p.slug}` });
 
@@ -74,6 +86,7 @@ export async function saveBlogPost(_prev: ActionState, fd: FormData): Promise<Ac
   if (!id) redirect(`/admin/blog/${saved.id}?saved=1`);
   return {
     ...OK(p.status === "draft" ? "Saved. It is a draft, so nobody can see it yet."
+      : p.status === "review" ? "Submitted for review. The owner sees it on the dashboard and on Blog."
       : p.status === "scheduled" ? "Saved. It goes live on its date without anybody pressing anything."
       : "Saved and live."),
     stamp: saved.savedAt,
@@ -96,9 +109,10 @@ const DONE: Record<Verb, string> = {
 
 /** The list's quick actions: same checks, same audit, same refresh. */
 async function quick(fd: FormData, verb: Verb): Promise<ActionState> {
-  /* Publishing, unpublishing and the Trash are content work, because all of
-     them can be undone. Deleting for good cannot, so it stays with the owner. */
-  const refused = verb === "delete" ? await owner() : await allow("content");
+  /* The Trash is content work, because it can be undone. Publishing and
+     unpublishing are the owner's (staff submit for review), and so is
+     deleting for good, which cannot be undone. */
+  const refused = verb === "trash" || verb === "restore" ? await allow("content") : await owner();
   if (refused) return refused;
   const id = String(fd.get("id") ?? "").trim();
   const by = await actorName();
@@ -131,3 +145,20 @@ export async function moveBlogPostToDraft(_prev: ActionState, fd: FormData) { re
 export async function trashBlogDraft(_prev: ActionState, fd: FormData) { return quick(fd, "trash"); }
 export async function restoreBlogPost(_prev: ActionState, fd: FormData) { return quick(fd, "restore"); }
 export async function deleteBlogPostForever(_prev: ActionState, fd: FormData) { return quick(fd, "delete"); }
+
+/** The owner sends a post in review back to its writer, with what to change. */
+export async function returnBlogPost(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
+  const id = String(fd.get("id") ?? "").trim();
+  const note = String(fd.get("note") ?? "").trim();
+  if (note.length < 5) return FAIL({ note: "Say what to change, so the writer knows where to start." });
+  const by = await actorName();
+  let done;
+  try { done = await returnPost(id, note, by); } catch { return FAIL({}, "That could not be saved just now. Nothing changed; try again."); }
+  if (!done) return FAIL({}, "That post is not waiting for review any more.");
+  audit({ actor: by, kind: "content", subjectId: id, subject: done.title, action: "sent back to its writer", note: note.slice(0, 300) });
+  refreshBlog(done.slug);
+  revalidatePath(`/admin/blog/${id}`);
+  return OK(`${done.title} is back with ${done.to ?? "its writer"} as a draft, with your note.`);
+}

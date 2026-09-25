@@ -18,7 +18,8 @@ import { blocksToDoc, cleanDoc, docHeadings, isDoc, type RichDoc } from "@/lib/b
  * markup has given the one-h1, nested-outline guarantee away.
  */
 
-export const POST_STATUSES = ["draft", "scheduled", "published"] as const;
+/* "review" is a draft handed to the owner: nobody outside can see it either. */
+export const POST_STATUSES = ["draft", "review", "scheduled", "published"] as const;
 export type PostStatus = (typeof POST_STATUSES)[number];
 
 /** The covers are the site's own hero photographs; nothing else is offered. */
@@ -146,7 +147,7 @@ export function parsePost(raw: Raw, opts: { imageHosts?: readonly string[] } = {
     if (Number.isNaN(d.getTime())) errors.publishedAt = "That is not a date.";
     else publishedAt = d.toISOString();
   }
-  if (status !== "draft" && !publishedAt) errors.publishedAt = "Publishing or scheduling needs a date.";
+  if ((status === "published" || status === "scheduled") && !publishedAt) errors.publishedAt = "Publishing or scheduling needs a date.";
   /* A DAY, NOT A MOMENT. A date-only value is stored at 08:00 UTC (09:00 in
      Lagos), so "published, today" pressed at 7am was a post that stayed
      hidden for two hours while the editor said it was live. Published means
