@@ -16,7 +16,7 @@ export type Enquiry = {
   phone: string | null;
   topic: string;
   message: string;
-  delivery: "pending" | "sent" | "failed";
+  delivery: "pending" | "sent" | "failed" | "skipped";
   deliveryError: string | null;
   createdAt: string;
 };
@@ -27,20 +27,21 @@ export function enquiriesAreConfigured() {
 
 export async function saveEnquiry(input: {
   firstName: string; lastName: string; email: string; phone: string; topic: string; message: string;
-}): Promise<string> {
+  /** "spam" when a blocked word in the form's settings matched. */
+  box?: "inbox" | "spam";
+}): Promise<{ id: string; serial: number | null }> {
   const result = await db.query<{ id: string }>(`
-    INSERT INTO contact_enquiries (first_name, last_name, email, phone, topic, message)
-    VALUES ($1, $2, $3, $4, $5, $6)
+    INSERT INTO contact_enquiries (first_name, last_name, email, phone, topic, message, box, box_at)
+    VALUES ($1, $2, $3, $4, $5, $6, $7::TEXT, CASE WHEN $7::TEXT = 'spam' THEN now() END)
     RETURNING id
-  `, [input.firstName, input.lastName, input.email, input.phone || null, input.topic, input.message]);
+  `, [input.firstName, input.lastName, input.email, input.phone || null, input.topic, input.message, input.box ?? "inbox"]);
   const id = result.rows[0].id;
   /* "Enquiry #7". */
-  await assignSerial("contact_enquiries", "contact", id);
-  return id;
+  return { id, serial: await assignSerial("contact_enquiries", "contact", id) };
 }
 
 /** pending -> sent or failed. Written once, by the send behind the response. */
-export async function settleEnquiry(id: string, delivery: "sent" | "failed", error?: string) {
+export async function settleEnquiry(id: string, delivery: "sent" | "failed" | "skipped", error?: string) {
   await db.query(`
     UPDATE contact_enquiries
     SET delivery = $2, delivery_error = $3, delivered_at = now()

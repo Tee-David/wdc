@@ -13,6 +13,9 @@ import { Empty, Panel, when } from "@/components/admin/bits";
 import { EntriesTable, type TableRow } from "@/components/admin/forms/entries-table";
 import { ColumnPicker } from "@/components/admin/forms/column-picker";
 import DemoSubmission, { demoTitle } from "@/components/admin/forms/demo-submission";
+import { FormSettingsEditor } from "@/components/admin/forms/form-settings";
+import { NOTIFICATIONS } from "@/lib/forms/settings";
+import { getFormSettings } from "@/lib/forms/settings-db";
 import "@/components/admin/forms/forms.css";
 
 /* NO generateStaticParams: an entry that arrives after the build still opens. */
@@ -43,12 +46,13 @@ function query(f: Filters, patch: Partial<Record<keyof Filters, string | number>
 
 const day = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10);
 
-function Tabs({ form, current }: { form: FormDef; current: "entries" | "questions" }) {
+function Tabs({ form, current, settings }: { form: FormDef; current: "entries" | "questions" | "settings"; settings: boolean }) {
   return (
     <nav aria-label={`${form.title} sections`}>
       <ul className="adForms__tabs">
         <li><Link href={`/admin/forms/${form.key}`} aria-current={current === "entries" ? "page" : undefined}>Entries</Link></li>
         <li><Link href={`/admin/forms/${form.key}?view=questions`} aria-current={current === "questions" ? "page" : undefined}>Questions</Link></li>
+        {settings ? <li><Link href={`/admin/forms/${form.key}?view=settings`} aria-current={current === "settings" ? "page" : undefined}>Settings</Link></li> : null}
       </ul>
     </nav>
   );
@@ -106,7 +110,8 @@ export default async function FormPage({ params, searchParams }: Props) {
   const sp = await searchParams;
   const jar = await cookies();
   const role = await adminRole();
-  const view = sp.view === "questions" ? "questions" : "entries";
+  const mayConfigure = can(role, "settings");
+  const view = sp.view === "questions" ? "questions" : sp.view === "settings" && mayConfigure ? "settings" : "entries";
   const f = readFilters(form, sp);
   const chosen = chosenColumns(form, jar.get(columnCookie(form))?.value);
   const columns = chosen.map((k) => form.columns.find((c) => c.key === k)!).filter(Boolean);
@@ -124,7 +129,17 @@ export default async function FormPage({ params, searchParams }: Props) {
     </div>
   );
 
-  if (view === "questions") return <>{head}<Tabs form={form} current="questions" /><Questions form={form} /></>;
+  if (view === "settings") {
+    const settings = await getFormSettings(form);
+    return (
+      <>{head}<Tabs form={form} current="settings" settings />
+        {settings.savedAt ? <p className="ad__dim" style={{ margin: "0 0 .8rem" }}>Last changed by {settings.savedBy} on {when(settings.savedAt)}.</p> : null}
+        <FormSettingsEditor formKey={form.key} title={form.title} settings={settings}
+          notifications={NOTIFICATIONS[form.source]} isOnboarding={form.source === "onboarding"} />
+      </>
+    );
+  }
+  if (view === "questions") return <>{head}<Tabs form={form} current="questions" settings={mayConfigure} /><Questions form={form} /></>;
 
   let page;
   try {
@@ -132,7 +147,7 @@ export default async function FormPage({ params, searchParams }: Props) {
   } catch (error) {
     console.error("[forms] entries could not be read", error instanceof Error ? error.message : error);
     return (
-      <>{head}<Tabs form={form} current="entries" />
+      <>{head}<Tabs form={form} current="entries" settings={mayConfigure} />
         <AdminState kind="error" title="These entries could not be loaded"
           description="The database did not answer, or it is not connected. Nothing has been lost; reload in a minute." />
       </>
@@ -165,7 +180,7 @@ export default async function FormPage({ params, searchParams }: Props) {
   return (
     <>
       {head}
-      <Tabs form={form} current="entries" />
+      <Tabs form={form} current="entries" settings={mayConfigure} />
 
       <nav aria-label="Entry states">
         <ul className="adForms__tabs">

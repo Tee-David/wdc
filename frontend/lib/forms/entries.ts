@@ -38,7 +38,7 @@ export type Entry = {
   /** Contact: the enquiry itself. */
   topic?: string;
   message?: string;
-  notice?: "pending" | "sent" | "failed";
+  notice?: "pending" | "sent" | "failed" | "skipped";
   noticeError?: string | null;
   /** Newsletter. */
   source?: string;
