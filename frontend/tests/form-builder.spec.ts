@@ -44,6 +44,14 @@ test.describe("rules", () => {
     expect(checkAnswers(def, { where: ["1 A St", "B", "", "Nigeria"], from: "Atlantis" }).errors).toEqual({ from: "Pick the country from the list." });
   });
 
+  test("a required tick box accepts what the form sends", () => {
+    const { def } = cleanDef({ title: "Sign-up", fields: [{ id: "ok", type: "consent", label: "I agree", required: true }] });
+    expect(checkAnswers(def, {}).errors).toEqual({ ok: "Tick this to continue." });
+    /* The form view sends "Yes"; a plain HTML tick box posts "on". */
+    expect(checkAnswers(def, { ok: "Yes" })).toEqual({ answers: { ok: "Yes" }, errors: {} });
+    expect(checkAnswers(def, { ok: "on" }).errors).toEqual({});
+  });
+
   test("a definition is cleaned, and answers are held to their questions", () => {
     const { def, errors } = cleanDef({
       title: "Event", fields: [
