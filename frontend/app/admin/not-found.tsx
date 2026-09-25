@@ -1,6 +1,16 @@
 import Link from "next/link";
 import { SearchX } from "lucide-react";
 import { Empty } from "@/components/admin/bits";
+import { adminRole } from "@/lib/admin/guard";
+import { can, type Area } from "@/lib/admin/permissions";
+
+const PLACES: { href: string; label: string; area: Area }[] = [
+  { href: "/admin/clients", label: "Clients", area: "clients" },
+  { href: "/admin/projects", label: "Projects", area: "projects" },
+  { href: "/admin/money", label: "Money", area: "money" },
+  { href: "/admin/forms", label: "Forms", area: "forms" },
+  { href: "/admin/blog", label: "Blog", area: "content" },
+];
 
 /**
  * The admin's own not-found page.
@@ -18,17 +28,19 @@ import { Empty } from "@/components/admin/bits";
  * segment's own layout, so this one keeps the admin shell -- the nav, the
  * counts, the signed-in owner -- and only swaps the content area.
  */
-export default function AdminNotFound() {
+export default async function AdminNotFound() {
+  /* Only the places this person can open: a link that answers with "not
+     allowed" is a second dead end behind the first. */
+  const role = await adminRole();
+  const places = PLACES.filter((p) => can(role, p.area)).slice(0, 4);
   return (
     <Empty
       title="That isn't here"
       icon={SearchX}
       action={
         <div className="ad__row">
-          <Link className="ad__btn" href="/admin/clients">Clients</Link>
-          <Link className="ad__btn" href="/admin/projects">Projects</Link>
-          <Link className="ad__btn" href="/admin/money">Money</Link>
-          <Link className="ad__btn" href="/admin/forms">Forms</Link>
+          <Link className="ad__btn ad__btn--primary" href="/admin">Dashboard</Link>
+          {places.map((p) => <Link key={p.href} className="ad__btn" href={p.href}>{p.label}</Link>)}
         </div>
       }
     >
