@@ -15,6 +15,9 @@ import {
   EstimateMenu, ExpenseMenu, InvoiceMenu, PaymentMenu,
 } from "@/components/admin/row-actions";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
+import { CashflowChart } from "@/components/admin/cashflow-chart";
+import { AlertTriangle, Clock, CreditCard, TrendingUp, Wallet } from "lucide-react";
+import "@/components/admin/dashboard.css";
 import { Pager, readPer } from "@/components/admin/pager";
 import { DateRange } from "@/components/admin/date-range";
 
@@ -73,6 +76,11 @@ export default async function MoneyPage({
   const projectById = new Map(projects.map((p) => [p.id, p]));
   const months = getMonthly(6);
   const peak = Math.max(1, ...months.flatMap((m) => [m.in, m.out]));
+  const onBooks = allInvoices.filter((i) => i.status !== "Draft" && !i.voided);
+  const openCount = onBooks.filter((i) => invoiceTotals(i).due > 0).length;
+  const overdueCount = onBooks.filter((i) => invoiceStatus(i) === "Overdue").length;
+  const rebillable = expenses.filter((e) => e.rebillable).reduce((n, e) => n + e.amount, 0);
+  const today = lagosToday();
 
   const search = query.q?.trim().toLocaleLowerCase() ?? "";
   const statusFilter = query.status ?? "";
@@ -172,34 +180,31 @@ export default async function MoneyPage({
         </p>
       ) : null}
 
-      <dl className="ad__tiles" data-tour="money-tiles">
-        <Tile label="Collected" value={nairaShort(s.collected)} tone="good" />
-        <Tile label="Outstanding" value={nairaShort(s.outstanding)} tone={s.outstanding ? "bad" : undefined} />
-        <Tile label="Overdue" value={nairaShort(s.overdue)} tone={s.overdue ? "bad" : "good"} />
-        <Tile label="Spend" value={nairaShort(s.spend)} />
-        <Tile label="Net" value={nairaShort(s.profit)} tone={s.profit >= 0 ? "good" : "bad"}
+      <dl className="ad__tiles ad__tiles--5" data-tour="money-tiles">
+        {/* HOW MUCH OF WHAT WE BILLED ACTUALLY ARRIVED rides on Collected:
+            null rather than 0% when nothing has been invoiced, because a red
+            0% for a studio that has simply not billed yet is not a problem. */}
+        <Tile label="Collected" value={nairaShort(s.collected)} tone="good" icon={Wallet} iconTone="good"
+              note={rate === null ? "Nothing invoiced yet" : `${Math.round(rate * 100)}% of ${nairaShort(s.invoiced)} billed`} />
+        <Tile label="Outstanding" value={nairaShort(s.outstanding)} icon={Clock} iconTone="live"
+              note={`${openCount} invoice${openCount === 1 ? "" : "s"} open`} />
+        <Tile label="Overdue" value={nairaShort(s.overdue)} tone={s.overdue ? "bad" : "good"} icon={AlertTriangle} iconTone={s.overdue ? "bad" : "good"}
+              note={overdueCount ? `${overdueCount} invoice${overdueCount === 1 ? "" : "s"} late` : "Nothing late"} />
+        <Tile label="Spend" value={nairaShort(s.spend)} icon={CreditCard}
+              note={rebillable ? `${nairaShort(rebillable)} can be billed back` : "Nothing to bill back"} />
+        <Tile label="Net" value={nairaShort(s.profit)} tone={s.profit >= 0 ? "good" : "bad"} icon={TrendingUp} iconTone={s.profit >= 0 ? "good" : "bad"}
               note="Collected less spend" />
-        {/* WHAT IS QUOTED AND STILL LIVE, which is the only forward-looking
-            figure on this screen and is deliberately not added to anything
-            else. A quote is not money; putting it in the same sum as
-            collected income is how a studio talks itself into spending it. */}
-        <Tile label="Out for quote" value={nairaShort(pipeline.open)}
-              note={pipeline.winRate === null
-                ? "Nothing answered yet"
-                : `${Math.round(pipeline.winRate * 100)}% of answered quotes won`} />
-        {/* HOW MUCH OF WHAT WE BILLED ACTUALLY ARRIVED, which is the one
-            figure the five beside it cannot say. Null rather than 0% when
-            nothing has been invoiced: a red 0% for a studio that has simply
-            not billed yet is a different thing and not a problem. */}
-        <Tile
-          label="Collected of billed"
-          value={rate === null ? "–" : `${Math.round(rate * 100)}%`}
-          tone={rate === null ? undefined : rate >= 0.9 ? "good" : rate >= 0.7 ? undefined : "bad"}
-          note={rate === null ? "Nothing invoiced yet" : undefined}
-        />
       </dl>
 
-      <div className="ad__stack">
+      <div className="adDash__row">
+        <Panel title="Last six months" action={<span className="ad__dim ad__num">Peak {nairaShort(peak)}</span>}>
+          <p className="adDash__sub">Collected each month against what was spent.</p>
+          <CashflowChart months={months} totals={[
+            { label: "Collected", value: months.reduce((n, m) => n + m.in, 0), key: "in" },
+            { label: "Spend", value: months.reduce((n, m) => n + m.out, 0), key: "out" },
+          ]} />
+        </Panel>
+
         {/* HOW OLD THE MONEY IS, which "outstanding" cannot say.
 
             One outstanding figure treats an invoice sent last Tuesday and one
@@ -208,44 +213,39 @@ export default async function MoneyPage({
             The buckets are the conventional 30-day steps so they mean to an
             accountant what they mean here, and every row drills into the
             invoices behind it rather than asking anybody to trust a total. */}
-        <Panel title="Who owes what, and for how long">
+        <Panel title="Who owes what" action={owed ? <span className="ad__dim ad__num">{nairaShort(owed)}</span> : undefined}>
           {owed ? (
-            <div className="ad__scroll">
-              <table className="ad__t">
-                <thead>
-                  <tr><th>Age</th><th className="num">Owed</th><th>Invoices</th></tr>
-                </thead>
-                <tbody>
-                  {aging.map((b) => (
-                    <tr key={b.label}>
-                      <td><b>{b.label}</b></td>
-                      <td className="num">
-                        {b.amount ? naira(b.amount) : <span className="ad__dim">–</span>}
-                      </td>
-                      <td>
-                        {b.invoices.length ? (
-                          <span className="ad__row" style={{ flexWrap: "wrap", gap: ".35rem" }}>
-                            {b.invoices.map((i) => (
-                              <Link key={i.id} href={`/admin/money/${i.id}`} className="ad__pill">
-                                {i.number} · {getClient(i.clientId)?.company ?? "Unknown"}
-                              </Link>
-                            ))}
-                          </span>
-                        ) : <span className="ad__dim">Nothing</span>}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td><b>Total outstanding</b></td>
-                    {/* Summed from the same buckets the rows draw, so the
-                        footer cannot disagree with what is above it. */}
-                    <td className="num"><b>{naira(owed)}</b></td>
-                    <td />
-                  </tr>
-                </tfoot>
-              </table>
+            <div className="ad__aging">
+              <div className="ad__agingBar" role="img" aria-label={aging.map((b) => `${b.label} ${naira(b.amount)}`).join(", ")}>
+                {aging.map((b, n) => b.amount ? <span key={b.label} className={`ad__agingSeg ad__agingSeg--${n}`} style={{ flexGrow: b.amount }} /> : null)}
+              </div>
+              <ul className="ad__agingList">
+                {aging.map((b, n) => (
+                  <li key={b.label}>
+                    <i className={`ad__agingSeg--${n}`} aria-hidden="true" />
+                    <span>{b.label}</span>
+                    <b className="ad__num">{b.amount ? naira(b.amount) : <span className="ad__dim">Nil</span>}</b>
+                  </li>
+                ))}
+              </ul>
+              {/* WHO, not just how much: the three biggest balances, oldest
+                  bucket first, each a link to the invoice behind it. */}
+              <ul className="ad__agingWho">
+                {aging.flatMap((b) => b.invoices).map((i) => ({ i, due: invoiceTotals(i).due }))
+                  .sort((x, y) => y.due - x.due).slice(0, 3).map(({ i, due }) => {
+                    const c = getClient(i.clientId);
+                    const late = Math.floor((Date.parse(today) - Date.parse(i.due.slice(0, 10))) / 86_400_000);
+                    return (
+                      <li key={i.id}>
+                        <Link href={`/admin/money/${i.id}`} className="ad__who">
+                          <span className="ad__av" aria-hidden="true">{(c?.company ?? "?").split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase()}</span>
+                          <span><b>{c?.company ?? "Unknown"}</b><small>{i.number} · {late > 0 ? `${late} day${late === 1 ? "" : "s"} late` : `due ${when(i.due)}`}</small></span>
+                        </Link>
+                        <b className="ad__num">{nairaShort(due)}</b>
+                      </li>
+                    );
+                  })}
+              </ul>
             </div>
           ) : (
             <Empty title="Nothing outstanding">
@@ -253,35 +253,9 @@ export default async function MoneyPage({
             </Empty>
           )}
         </Panel>
-        <Panel title="Last six months">
-          <div style={{ padding: "1rem" }}>
-            <div style={{ display: "flex", alignItems: "flex-end", gap: ".8rem", height: "150px" }}>
-              {months.map((m) => (
-                <div key={m.month} style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: ".3rem" }}>
-                  <div style={{ display: "flex", alignItems: "flex-end", gap: "3px", height: "120px" }}>
-                    <span
-                      title={`In ${naira(m.in)}`}
-                      style={{ flex: 1, background: "var(--ad-good)", borderRadius: "3px 3px 0 0",
-                               height: `${Math.max(2, (m.in / peak) * 100)}%` }}
-                    />
-                    <span
-                      title={`Out ${naira(m.out)}`}
-                      style={{ flex: 1, background: "var(--ad-accent)", borderRadius: "3px 3px 0 0",
-                               height: `${Math.max(2, (m.out / peak) * 100)}%` }}
-                    />
-                  </div>
-                  <small className="ad__dim" style={{ textAlign: "center" }}>{m.label}</small>
-                </div>
-              ))}
-            </div>
-            <div className="ad__row" style={{ marginTop: ".8rem", gap: "1rem" }}>
-              <span className="ad__pill" style={{ color: "var(--ad-good)" }}>In</span>
-              <span className="ad__pill" style={{ color: "var(--ad-accent)" }}>Out</span>
-              <span className="ad__dim">Peak month {nairaShort(peak)}</span>
-            </div>
-          </div>
-        </Panel>
+      </div>
 
+      <div className="ad__stack">
         {/* QUOTES BEFORE INVOICES, because that is the order the work happens
             in and the panel above it is the one somebody opens this screen
             for. A quote is not money and is not added to any total on the
@@ -291,6 +265,13 @@ export default async function MoneyPage({
           title="Estimates"
           action={<EstimateBuilder clients={getClients()} projects={projects} trigger="New estimate" defaultVatRate={finance.vatRate} />}
         >
+          {/* WHAT IS QUOTED AND STILL LIVE, the only forward-looking figure on
+              this screen and deliberately not added to anything else. A quote
+              is not money; putting it in the same sum as collected income is
+              how a studio talks itself into spending it. */}
+          <p className="ad__dim ad__panelNote ad__panelNote--top">
+            {nairaShort(pipeline.open)} out for quote · {pipeline.winRate === null ? "nothing answered yet" : `${Math.round(pipeline.winRate * 100)}% of answered quotes won`}
+          </p>
           {estimates.length ? (
             <div className="ad__scroll">
               <table className="ad__t">
@@ -569,4 +550,9 @@ export default async function MoneyPage({
       </div>
     </>
   );
+}
+
+/** Today in Lagos (UTC+1, no daylight saving), as YYYY-MM-DD. */
+function lagosToday() {
+  return new Date(Date.now() + 3_600_000).toISOString().slice(0, 10);
 }

@@ -55,14 +55,16 @@ test.describe("admin and portal", () => {
 
   test("a table row on a phone is a card whose lines name their column", async ({ page }) => {
     await page.goto("/admin/money", { waitUntil: "load" });
-    const aging = page.locator(".ad__panel", { has: page.getByRole("heading", { name: "Who owes what, and for how long" }) });
-    const row = aging.locator("tbody tr").first();
-    await expect(row.locator("td").nth(1)).toHaveAttribute("data-label", "Owed");
-    await expect(row.locator("td").nth(2)).toHaveAttribute("data-label", "Invoices");
+    /* The invoices table (the aging table this used to read became a bar
+       and a list in the redesign, and is no longer a table). */
+    const invoices = page.locator(".ad__panel", { has: page.getByRole("heading", { name: "Invoices", exact: true }) });
+    const row = invoices.locator("tbody tr").first();
+    await expect(row.locator("td").nth(1)).toHaveAttribute("data-label", "Client");
+    await expect(row.locator("td").nth(2)).toHaveAttribute("data-label", "Status");
     /* The header row is still there for a screen reader, just not drawn. */
-    await expect(aging.locator("thead th").first()).toHaveText("Age");
-    const pill = aging.locator(".ad__pill").first();
-    const [pillBox, panelBox] = [await pill.boundingBox(), await aging.boundingBox()];
+    await expect(invoices.locator("thead th").first()).toHaveText("Number");
+    const pill = invoices.locator("tbody .ad__pill").first();
+    const [pillBox, panelBox] = [await pill.boundingBox(), await invoices.boundingBox()];
     expect(pillBox!.x + pillBox!.width).toBeLessThanOrEqual(panelBox!.x + panelBox!.width);
   });
 });
