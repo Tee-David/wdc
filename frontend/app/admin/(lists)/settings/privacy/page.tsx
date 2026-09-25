@@ -18,7 +18,7 @@ const time = (iso: string) => new Date(iso).toLocaleString("en-GB", { day: "nume
  */
 export default async function PrivacyPage({ searchParams }: { searchParams: Promise<{ email?: string; erased?: string }> }) {
   if (!can(await adminRole(), "settings")) {
-    return <section className="ad__panel"><AdminState kind="forbidden" title="Privacy is for the owner" description="How long personal data is kept, and requests to see or erase it." /></section>;
+    return <section className="ad__panel"><AdminState kind="forbidden" back={{ href: "/admin/settings", label: "Back to settings" }} title="Privacy is for the owner" description="How long personal data is kept, and requests to see or erase it." /></section>;
   }
   const sp = await searchParams;
   const email = (sp.email ?? "").trim().toLowerCase();

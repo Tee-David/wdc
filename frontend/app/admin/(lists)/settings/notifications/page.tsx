@@ -25,7 +25,7 @@ export default async function NotificationsPage() {
   await syncStore();
   persistSoon();
   if (!can(await adminRole(), "settings")) {
-    return <section className="ad__panel"><AdminState kind="forbidden" title="Notifications are the owner's" description="What the studio is emailed about." /></section>;
+    return <section className="ad__panel"><AdminState kind="forbidden" back={{ href: "/admin/settings", label: "Back to settings" }} title="Notifications are the owner's" description="What the studio is emailed about." /></section>;
   }
   const forms = await Promise.all(
     FORMS.filter((f) => NOTIFICATIONS[f.source].some((n) => n.key === "studio-notice")).map(async (f) => {

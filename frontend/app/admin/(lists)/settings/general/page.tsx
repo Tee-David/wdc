@@ -22,7 +22,7 @@ export default async function StudioSettingsPage() {
   if ((await adminRole()) !== "owner") {
     return (
       <section className="ad__panel">
-        <AdminState kind="forbidden" title="Studio settings are for the owner"
+        <AdminState kind="forbidden" back={{ href: "/admin/settings", label: "Back to settings" }} title="Studio settings are for the owner"
           description="The FAQ and the media library are yours to edit, from the list of sections." />
       </section>
     );

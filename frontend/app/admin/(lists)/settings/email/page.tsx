@@ -42,7 +42,7 @@ export default async function EmailSettingsPage() {
   if (!can(await adminRole(), "settings")) {
     return (
       <section className="ad__panel">
-        <AdminState kind="forbidden" title="Email settings are for the owner" description="The sender, the message log and retention are changed by the owner." />
+        <AdminState kind="forbidden" back={{ href: "/admin/settings", label: "Back to settings" }} title="Email settings are for the owner" description="The sender, the message log and retention are changed by the owner." />
       </section>
     );
   }
