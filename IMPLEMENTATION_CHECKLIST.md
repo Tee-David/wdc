@@ -1,6 +1,6 @@
 # WDC implementation checklist
 
-**103 open** (48 in progress)
+**118 open** (51 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -206,6 +206,22 @@ Started 2026-09-25. The target is `dashboard-mockups/` at the repo root: 134 boa
 - [ ] (M) Search on every table and list, and a searchable picker (type to filter, arrow keys, "No matches", capped height, a bottom sheet on a phone) wherever a long list is chosen from: client, project, service, staff member, form. Plain `<select>` stays only for short fixed lists. Follows the table artifact.
 - [ ] (M) Projects board: drag a card to another stage, with smooth, interruptible motion, the move saved through the same action the stage mover uses (and audited), a keyboard way to do the same, and reduced motion respected.
 - [ ] (M) Every email in the sign-in email's design (`lib/email-templates.ts`): the design artifact of all 24 is at https://claude.ai/artifact/5RQG4iK9TZBzrLSg7fm5pM; the invoice issued and reminder emails need rework, eleven need small changes. Waits on the owner's four decisions listed there (the orange email button, per-person staff email settings, the unsubscribe page beyond the newsletter, dark mode).
+
+- [-] (S) Buttons are full width on a phone: attention rows, dialog submits ("Add it"), the blog Save and Preview, card actions; icons sit on the text's line. Audit every page for the same. DONE 2026-09-25: one rule in `admin.css` for forms, dialogs, card actions, headers and the profile card (tables, pager, tabs and menus excluded). NOT yet: the same audit on the public site and the onboarding forms.
+- [-] (S) The confetti at the end of a tour and of a form hangs midway: find why (a frame loop cut short, a timer, or a layout read) and fix it once in `components/onboarding/confetti.tsx`. DONE 2026-09-25: every keyframe now states its transform (the middle two carried only opacity, which WebKit will not composite, so the pieces ran on the main thread and froze while the page behind was busy). NOT yet: confirmed on an iPhone.
+- [-] (M) Drop-down lists that do not scroll: the country picker's bottom sheet on the onboarding forms and every other list in a menu, sheet or combobox. Probably Lenis taking the wheel and touch; mark them `data-lenis-prevent` and pin with a test that scrolls one. DONE 2026-09-25: a touch swipe scrolls the country sheet in Chromium; the sheet's and the admin menus' opening animations now fill `backwards`, not `both`, since a held transform can stop iOS Safari scrolling inside it. NOT yet: confirmed on an iPhone (no WebKit in this environment), and a test that swipes every list.
+- [ ] (M) The blog editor on a phone: cover image, headline and body first, then Details (address, service, tags) and Search and sharing as collapsible sections closed by default, then the publish panel; full-width Save and Preview.
+- [ ] (M) Blog content media: an image placed in the middle of a post shows in the editor, the preview and the live post; a short video can be added and plays; media is optimised (right-sized, modern formats, lazy below the fold) without visible loss.
+- [ ] (M) Bulk selection on every list: a compact sticky bar (count, the three commonest actions, the rest under More, Clear), never a wall of buttons; rows stay a table.
+- [ ] (M) An entry opens on its own page, laid out question by question (Fluent Forms is the reference), with previous and next, status, notes, and the file uploads; every screen a form needs is accounted for.
+- [ ] (M) Form uploads and validation: file fields with type and size limits checked on the server, and every field validated on the server, not only in the browser.
+- [ ] (M) Support end to end: a client opens a ticket, staff answer and manage it (status, assignee), both sides are told, and it is tested.
+- [ ] (M) Client records end to end: editing a client's email and details saves and shows everywhere; the invitation email reaches the client and the link works. Every editable field on a record is tested to save.
+- [ ] (M) Project icons: choose an icon for a project from our own icon set, or get a random one; the client sees it in the portal.
+- [ ] (S) Success toasts after every action that changes something, one shared primitive, announced to screen readers.
+- [ ] (M) Charts are interactive: hover and tap a bar for its month and figures, keyboard reachable, on the dashboard and Money.
+- [ ] (M) The tours: a step whose target is off screen scrolls it into view before the card points at it (today the reader has to scroll to find it); design every page tour for admin and portal on desktop and phone so nobody is lost on any page.
+- [ ] (M) Skeletons that look like the page they stand for: blocks the shape of the real cards, tiles, tables and charts, not thin lines, fast and responsive, for every admin and portal page.
 
 #### Client portal
 

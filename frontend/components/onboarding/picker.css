@@ -24,6 +24,11 @@
 .pv .pk__grab { display: none; }
 
 /* ---------------------------------------------------------------- the panel */
+/* THE OPENING ANIMATIONS BELOW FILL `backwards`, NEVER `both`. Held at its
+   end, a transform animation leaves the panel composited, and iOS Safari can
+   then refuse to scroll the list inside it: the owner's country sheet would
+   not scroll on an iPhone. `backwards` applies the first frame before the
+   start and nothing after the end, so the motion is identical. */
 
 .pv .pk__pop {
   position: absolute; z-index: 1000; top: calc(100% + 8px); left: 0;
@@ -50,7 +55,7 @@
   overflow: hidden;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .pv .pk__pop { animation: pk-in .16s cubic-bezier(.16, 1, .3, 1) both; }
+  .pv .pk__pop { animation: pk-in .16s cubic-bezier(.16, 1, .3, 1) backwards; }
 }
 @keyframes pk-in { from { opacity: 0; transform: translateY(-6px) scale(.985); } }
 
@@ -60,7 +65,7 @@
    that rises into place while sliding down from above reads as a glitch. */
 .pv .pk.is-up .pk__pop { top: auto; bottom: calc(100% + 8px); }
 @media (prefers-reduced-motion: no-preference) {
-  .pv .pk.is-up .pk__pop { animation: pk-in-up .16s cubic-bezier(.16, 1, .3, 1) both; }
+  .pv .pk.is-up .pk__pop { animation: pk-in-up .16s cubic-bezier(.16, 1, .3, 1) backwards; }
 }
 @keyframes pk-in-up { from { opacity: 0; transform: translateY(6px) scale(.985); } }
 
@@ -262,7 +267,7 @@
   .pv .pk__list { flex: 1; min-height: 0; max-height: none; padding: .4rem .6rem 1rem; }
   .pv .pk__opt { min-height: 48px; padding: .55rem .65rem; font-size: 1rem; }
   @media (prefers-reduced-motion: no-preference) {
-    .pv .pk__pop { animation: pk-up .22s cubic-bezier(.16, 1, .3, 1) both; }
+    .pv .pk__pop { animation: pk-up .22s cubic-bezier(.16, 1, .3, 1) backwards; }
   }
   @keyframes pk-up { from { transform: translateY(16px); opacity: 0; } }
 }

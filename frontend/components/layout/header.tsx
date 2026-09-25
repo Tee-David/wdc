@@ -9,6 +9,7 @@ import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import ThemeSwitchButton from "@/components/ui/theme-switch-button";
 import UserWay from "@/components/ui/userway";
 import StaggeredMenu from "@/components/ui/staggered-menu";
+import { MenuAccount, initials, useSiteUser } from "@/components/layout/signed-in";
 import { SERVICES } from "@/lib/services";
 import ServiceIcon from "@/components/ui/service-icon";
 
@@ -58,6 +59,7 @@ const NAV = [
 export function Header({ overHero = false }: { overHero?: boolean } = {}) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const user = useSiteUser();
   const pathname = usePathname();
 
   /* An in-page anchor ("/#pv-contact") is never the current page, and "/" would
@@ -264,14 +266,27 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
               controls rather than two unrelated buttons, and navy-on-white
               (17.68:1) holds in both themes and over the hero photograph,
               which a theme-following colour would not. */}
-          <Link
-            href="/login"
-            aria-label="Log in"
-            title="Log in"
-            className={`hd-round hidden h-10 w-10 items-center justify-center rounded-full hover:scale-110 active:scale-95 lg:inline-flex ${roundControl}`}
-          >
-            <LogIn className="h-[1.05rem] w-[1.05rem]" aria-hidden="true" />
-          </Link>
+          {/* SIGNED IN, the same disc carries the person's initials and goes to
+              their dashboard instead of the log-in page. */}
+          {user ? (
+            <Link
+              href="/signed-in"
+              aria-label={`Your dashboard, signed in as ${user.name}`}
+              title={`Signed in as ${user.name}`}
+              className={`hd-round hidden h-10 w-10 items-center justify-center rounded-full text-[.8rem] font-bold hover:scale-110 active:scale-95 lg:inline-flex ${roundControl}`}
+            >
+              {initials(user.name)}
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              aria-label="Log in"
+              title="Log in"
+              className={`hd-round hidden h-10 w-10 items-center justify-center rounded-full hover:scale-110 active:scale-95 lg:inline-flex ${roundControl}`}
+            >
+              <LogIn className="h-[1.05rem] w-[1.05rem]" aria-hidden="true" />
+            </Link>
+          )}
           <Link
             href="/#pv-contact"
             /* THE SITE'S PRIMARY, AND THE GROUND IT SITS ON MOVES UNDER IT.
@@ -324,8 +339,11 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
                 link: n.link,
                 ariaLabel: `Go to ${n.label}`,
               })),
-              { label: "Log in", link: "/login", ariaLabel: "Log in to your account" },
+              /* Signed in, the account card below carries the dashboard and the
+                 way out, so the list does not repeat it. */
+              ...(user ? [] : [{ label: "Log in", link: "/login", ariaLabel: "Log in to your account" }]),
             ]}
+            accountSlot={user ? <MenuAccount user={user} /> : null}
             onMenuOpen={() => setMenuOpen(true)}
             onMenuClose={() => setMenuOpen(false)}
             /* TWO REAL BUTTONS, not a disc with a caption floating beside it.

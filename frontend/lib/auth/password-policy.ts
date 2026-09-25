@@ -10,12 +10,24 @@
 export const PASSWORD_MIN = 8;
 
 export const PASSWORD_RULES = [
-  { id: "length", label: `${PASSWORD_MIN}+ characters`, test: (p: string) => p.length >= PASSWORD_MIN },
-  { id: "upper", label: "A capital", test: (p: string) => /\p{Lu}/u.test(p) },
-  { id: "lower", label: "A small letter", test: (p: string) => /\p{Ll}/u.test(p) },
-  { id: "number", label: "A number", test: (p: string) => /\d/.test(p) },
-  { id: "symbol", label: "A symbol", test: (p: string) => /[^\p{L}\d\s]/u.test(p) },
+  { id: "length", label: `${PASSWORD_MIN}+ characters`, hint: `Use ${PASSWORD_MIN} or more characters`, test: (p: string) => p.length >= PASSWORD_MIN },
+  { id: "upper", label: "A capital", hint: "Add a capital letter", test: (p: string) => /\p{Lu}/u.test(p) },
+  { id: "lower", label: "A small letter", hint: "Add a lowercase letter", test: (p: string) => /\p{Ll}/u.test(p) },
+  { id: "number", label: "A number", hint: "Add a number", test: (p: string) => /\d/.test(p) },
+  { id: "symbol", label: "A symbol", hint: "Add a symbol, like ! or #", test: (p: string) => /[^\p{L}\d\s]/u.test(p) },
 ] as const;
+
+/**
+ * Four bars and a word, for the meter under a new password, and the ONE
+ * thing to do next. Every rule met is four bars; each missing rule costs one.
+ */
+export function passwordStrength(password: string): { bars: 0 | 1 | 2 | 3 | 4; word: string; next: string | null } {
+  if (!password) return { bars: 0, word: "", next: null };
+  const missing = PASSWORD_RULES.filter((r) => !r.test(password));
+  const bars = (missing.length === 0 ? 4 : Math.max(1, 4 - missing.length)) as 1 | 2 | 3 | 4;
+  const word = bars === 4 ? "Strong" : bars === 3 ? "Good" : bars === 2 ? "Fair" : "Weak";
+  return { bars, word, next: missing[0]?.hint ?? null };
+}
 
 /** What is missing, as one sentence, or null when the password passes. */
 export function passwordProblem(password: string): string | null {

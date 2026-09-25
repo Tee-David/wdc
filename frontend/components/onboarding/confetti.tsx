@@ -124,15 +124,23 @@ export default function Confetti() {
       /* Thinned out by the stylesheet on a phone: nothing to draw, nothing to run. */
       if (getComputedStyle(node).display === "none") return;
       const piece = PIECE_LIST[i];
+      /* EVERY KEYFRAME STATES THE TRANSFORM, worked out along the same
+         straight line. The middle two used to carry only opacity, leaving the
+         transform implied; WebKit will not hand an animation with an implied
+         value to the compositor, so it ran on the main thread and every piece
+         froze mid-air while the page behind was busy -- the "hangs midway"
+         the owner saw at the end of a tour and of a form. */
+      const at = (t: number) =>
+        `translate3d(${Math.round(piece.drift * width * t)}px, ${Math.round(floor * t)}px, 0) rotate3d(1, 1, .4, ${Math.round(piece.spin * t)}deg)`;
       running.push(
         node.animate(
           [
-            { opacity: 0, transform: "translate3d(0, 0, 0) rotate3d(1, 1, .4, 0deg)" },
-            { opacity: 1, offset: 0.06 },
+            { opacity: 0, transform: at(0), offset: 0 },
+            { opacity: 1, transform: at(0.06), offset: 0.06 },
             /* Fades on the way out rather than vanishing at the floor, so the
                screen empties instead of blinking clear. */
-            { opacity: 1, offset: 0.85 },
-            { opacity: 0, transform: `translate3d(${Math.round(piece.drift * width)}px, ${Math.round(floor)}px, 0) rotate3d(1, 1, .4, ${Math.round(piece.spin)}deg)` },
+            { opacity: 1, transform: at(0.85), offset: 0.85 },
+            { opacity: 0, transform: at(1), offset: 1 },
           ],
           /* Linear, because paper falling at terminal velocity does not ease. */
           { duration: piece.fall, delay: piece.delay, easing: "linear", fill: "backwards" },

@@ -575,21 +575,21 @@
 .au-check input { width: 18px; height: 18px; margin: 0; accent-color: var(--au-navy); cursor: pointer; }
 .dark .au-check input { accent-color: #a3a7ff; }
 
-/* THE RULES under a new password: five chips that turn solid when met. */
-.au-rules { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-top: -6px; }
-.au-rules__list { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.au-rules__list li {
-  display: inline-flex; align-items: center; gap: 4px; min-height: 26px; padding: 0 10px;
-  border: 1px solid var(--au-border-strong); border-radius: 999px; color: var(--muted); font: 500 12.5px/1 var(--au-body);
-  transition: background .2s var(--au-ease), color .2s var(--au-ease), border-color .2s var(--au-ease);
-}
-.au-rules__list li[data-ok] { border-color: var(--au-navy); background: var(--au-navy); color: #fff; }
-.dark .au-rules__list li[data-ok] { border-color: #a3a7ff; background: #a3a7ff; color: #000033; }
-.au-rules__list svg { width: 13px; height: 13px; }
-.au-rules__suggest { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; }
-.au-rules__suggest svg { width: 15px; height: 15px; }
-.au-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-@media (prefers-reduced-motion: reduce) { .au-rules__list li { transition: none; } }
+/* THE METER under a new password: four solid bars that fill left to right,
+   red, amber, green, then the strong green; one hint line under them. */
+.au-meter { display: grid; gap: 6px; margin-top: -6px; }
+.au-meter__bars { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.au-meter__bars span { height: 5px; border-radius: 99px; background: var(--au-border); transition: background-color .25s var(--au-ease); }
+.au-meter[data-bars="1"] span:nth-child(-n+1) { background: #c62828; }
+.au-meter[data-bars="2"] span:nth-child(-n+2) { background: #d97706; }
+.au-meter[data-bars="3"] span:nth-child(-n+3) { background: #16a34a; }
+.au-meter[data-bars="4"] span { background: #15803d; }
+.au-meter__row { display: flex; align-items: center; justify-content: space-between; gap: 4px 12px; flex-wrap: wrap; }
+.au-meter__hint { margin: 0; min-width: 0; color: var(--muted); font: 400 13px/1.4 var(--au-body); }
+.au-meter__hint b { color: var(--foreground); font-weight: 600; }
+.au-meter__suggest { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; white-space: nowrap; }
+.au-meter__suggest svg { width: 16px; height: 16px; }
+@media (prefers-reduced-motion: reduce) { .au-meter__bars span { transition: none; } }
 
 /* THE CODE: one real input over six drawn boxes.
 

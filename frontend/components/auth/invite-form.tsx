@@ -22,7 +22,7 @@ import { redeem } from "@/lib/invite-redeem";
  *  - for a client, no password at all: sign-in links by email, the same ones
  *    the login page sends.
  */
-export function InviteForm({ token, email, name: invitedName, role, invitedBy, google, company, expires }: {
+export function InviteForm({ token, email, name: invitedName, role, google, company, expires }: {
   token: string;
   email: string;
   name: string;
@@ -47,7 +47,6 @@ export function InviteForm({ token, email, name: invitedName, role, invitedBy, g
   const [error, setError] = useState("");
   const [field, setField] = useState<{ password?: string; confirm?: string }>({});
   const [sent, setSent] = useState(false);
-  const [suggested, setSuggested] = useState(false);
 
 
   async function finish(event: React.FormEvent<HTMLFormElement>) {
@@ -116,7 +115,7 @@ export function InviteForm({ token, email, name: invitedName, role, invitedBy, g
       <div className="lx__step" data-dir="1">
         <h1 className="lx__heading">{role === "staff" ? "Join the studio" : company ? `Welcome, ${company}` : "Your project portal"}</h1>
         {/* One line: who asked, and the address the account is for. */}
-        <p className="lx__sub">For <b>{email}</b> · invited by {invitedBy}</p>
+        <p className="lx__sub"><b>{email}</b> · invited by WDC Solutions</p>
         {error ? <p className="au__error" role="alert">{error}</p> : null}
         <form onSubmit={finish} className="au__form lx__form" method="post" noValidate>
           <div className="au-field" data-state={name ? "valid" : "empty"}>
@@ -127,11 +126,10 @@ export function InviteForm({ token, email, name: invitedName, role, invitedBy, g
             </div>
           </div>
           <PasswordField ref={passwordRef} label="Choose a password" name="new-password" autoComplete="new-password"
-            value={password} onChange={(v) => { setPassword(v); setSuggested(false); if (field.password) setField({}); }} error={field.password ?? null} />
+            value={password} onChange={(v) => { setPassword(v); if (field.password) setField({}); }} error={field.password ?? null} />
           <PasswordRules value={password} onSuggest={(made) => {
-            setPassword(made); setConfirm(made); setSuggested(true); setField({});
+            setPassword(made); setConfirm(made); setField({});
           }} />
-          {suggested ? <p className="lx__note" role="status">Filled in both boxes. Tap the eye to see it, and save it somewhere safe.</p> : null}
           <PasswordField ref={confirmRef} label="Confirm password" name="confirm-password" autoComplete="new-password"
             value={confirm} onChange={(v) => { setConfirm(v); if (field.confirm) setField({}); }} error={field.confirm ?? null} />
           <PrimaryButton awake={!passwordProblem(password) && confirm.length > 0} hydrated={hydrated} busy={busy}>

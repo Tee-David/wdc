@@ -79,7 +79,7 @@ test("a weak password is refused on the page, and Suggest one makes a strong one
   const made = await page.getByLabel("Choose a password").inputValue();
   expect(made).toMatch(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z\d]).{16}$/);
   expect(await page.getByLabel("Confirm password").inputValue()).toBe(made);
-  await expect(page.locator(".au-rules__list li[data-ok]")).toHaveCount(5);
+  await expect(page.locator(".au-meter")).toHaveAttribute("data-bars", "4");
 });
 
 test("accepting makes a verified account for that address, signs in, and spends the link", async ({ page }) => {
