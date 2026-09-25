@@ -22,6 +22,7 @@ import { InvoiceMenu, ProjectMenu, SubmissionMenu } from "./row-actions";
 import { DemoNote, Empty, Panel, Tile, when } from "./bits";
 import { RecentLeads, RecentLeadsSkeleton } from "./recent-leads";
 import PageTourButton from "./tour/page-tour-button";
+import { CashflowChart } from "./cashflow-chart";
 import "./dashboard.css";
 
 function greeting() {
@@ -45,7 +46,6 @@ export async function AdminDashboardView({ firstName, money = true }: { firstNam
   const summary = getSummary();
   const board = getBoard();
   const monthly = getMonthly();
-  const maxMonthly = Math.max(1, ...monthly.flatMap((month) => [month.in, month.out]));
   const collectionRate = summary.invoiced ? Math.round((summary.collected / summary.invoiced) * 100) : 0;
 
   const tasks = getTasks();
@@ -186,11 +186,6 @@ export async function AdminDashboardView({ firstName, money = true }: { firstNam
   const overdueCount = invoices.filter((invoice) => invoiceStatus(invoice) === "Overdue").length;
   const openInvoices = invoices.filter((i) => i.status !== "Draft" && !i.voided && invoiceTotals(i).due > 0).length;
 
-  /* The chart's scale: four gridlines on round numbers, so the axis reads
-     ₦150k, ₦300k rather than ₦137,512. */
-  const step = niceStep(maxMonthly / 4);
-  const top = step * 4;
-  const thisMonth = monthly.at(-1);
   const stageCounts = STAGES.map((stage) => ({ stage, n: board.get(stage)?.length ?? 0 }));
   const busiest = Math.max(1, ...stageCounts.filter((x) => x.stage !== "Delivered").map((x) => x.n));
   const peakStage = stageCounts.filter((x) => x.stage !== "Delivered").sort((a, b) => b.n - a.n)[0]?.stage;
@@ -238,27 +233,11 @@ export async function AdminDashboardView({ firstName, money = true }: { firstNam
         <div className="adDash__row">
           <Panel title="Cashflow, last six months" dataTour="dash-cashflow" action={<Link href="/admin/money">Open Money <ArrowRight aria-hidden="true" /></Link>}>
             <p className="adDash__sub">Money collected against money spent, by month.</p>
-            <div className="adDash__plot">
-              <div className="adDash__axis" aria-hidden="true">
-                {[4, 3, 2, 1, 0].map((i) => <span key={i}>{nairaShort(step * i)}</span>)}
-              </div>
-              <div className="adDash__chart" role="img" aria-label={`Collected and spent by month: ${monthly.map((m) => `${m.label} ${nairaShort(m.in)} in, ${nairaShort(m.out)} out`).join("; ")}`}>
-                {monthly.map((month) => (
-                  <div className={`adDash__chartMonth${month === thisMonth ? " is-now" : ""}`} key={month.month}>
-                    <div className="adDash__chartBars">
-                      <span className="adDash__chartBar adDash__chartBar--in" style={{ height: `${month.in ? Math.max(2, month.in / top * 100) : 0}%` }} title={`Collected ${naira(month.in)}`} />
-                      <span className="adDash__chartBar adDash__chartBar--out" style={{ height: `${month.out ? Math.max(2, month.out / top * 100) : 0}%` }} title={`Spend ${naira(month.out)}`} />
-                    </div>
-                    <small>{month.label}</small>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="adDash__foot">
-              <span className="adDash__legend"><i className="is-in" />Collected <b>{nairaShort(summary.collected)}</b></span>
-              <span className="adDash__legend"><i className="is-out" />Spend <b>{nairaShort(summary.spend)}</b></span>
-              <span className="adDash__legend">Billed <b>{nairaShort(summary.invoiced)}</b></span>
-            </div>
+            <CashflowChart months={monthly} totals={[
+              { label: "Collected", value: summary.collected, key: "in" },
+              { label: "Spend", value: summary.spend, key: "out" },
+              { label: "Billed", value: summary.invoiced },
+            ]} />
           </Panel>
 
           <Panel title="Collected of billed">
@@ -422,14 +401,6 @@ export async function AdminDashboardView({ firstName, money = true }: { firstNam
 }
 
 const STAGE_SHORT: Record<string, string> = { Onboarding: "Onbrd", Discovery: "Discov", "In progress": "Build", Review: "Review", Revisions: "Revise", Delivered: "Done" };
-
-/** A round step for a chart axis: 1, 2 or 5 times a power of ten. */
-function niceStep(raw: number) {
-  if (raw <= 0) return 100_00;
-  const pow = 10 ** Math.floor(Math.log10(raw));
-  const f = raw / pow;
-  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * pow;
-}
 
 /** Whole days from today in Lagos to a date; negative when it has passed. */
 function daysUntil(iso: string) {

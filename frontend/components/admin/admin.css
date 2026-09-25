@@ -1685,3 +1685,24 @@ a.ad__pgBtn:hover { background: var(--ad-panel-2); border-color: var(--ad-dim); 
    four-up size ran past the card. A figure may break before it overflows. */
 .ad__tile dd { min-width: 0; overflow-wrap: anywhere; }
 .ad__tiles--5 .ad__tile dd { font-size: clamp(1.15rem, .75rem + 1vw, 1.55rem); }
+.ad__panelNote--top { padding: .85rem 1.25rem; border-bottom: 1px solid var(--ad-line); font-size: .88rem; }
+
+/* WHO OWES WHAT (Money): one bar split by how late the money is, the bands
+   with their sums, then the three biggest balances. Solid fills from calm
+   to alarmed; the band is also written beside each colour. */
+.ad__aging { padding: 1rem 1.25rem 1.25rem; display: grid; gap: 1rem; }
+.ad__agingBar { height: .75rem; display: flex; gap: 3px; overflow: hidden; border-radius: 999px; background: var(--ad-line); }
+.ad__agingBar > span { min-width: 6px; }
+.ad__agingSeg--0 { background: var(--ad-tone-good); }
+.ad__agingSeg--1 { background: var(--ad-tone-warn); }
+.ad__agingSeg--2 { background: var(--ad-tone-live); }
+.ad__agingSeg--3 { background: var(--ad-tone-bad); }
+.ad__agingSeg--4 { background: #8e1b1b; }
+.ad__agingList, .ad__agingWho { list-style: none; margin: 0; padding: 0; display: grid; gap: .45rem; }
+.ad__agingList li { display: grid; grid-template-columns: .7rem minmax(0, 1fr) auto; align-items: center; gap: .6rem; font-size: .88rem; }
+.ad__agingList i { width: .7rem; height: .7rem; border-radius: 3px; }
+.ad__agingWho { padding-top: 1rem; border-top: 1px solid var(--ad-line); gap: .75rem; }
+.ad__agingWho li { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.ad__agingWho .ad__who { min-width: 0; }
+.ad__agingWho small { color: var(--ad-dim); font-size: .78rem; }
+.ad__agingWho a:hover b { text-decoration: underline; text-underline-offset: 2px; }
