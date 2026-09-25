@@ -20,7 +20,7 @@ import { CONTACT_EMAIL } from "@/lib/site";
  *
  * WHO STILL SEES THE SITE: anybody holding the pass cookie. An owner or
  * member of staff gets one from /api/maintenance/pass, and a reviewer from
- * the share link on Site and SEO. The pass is signed over the moment
+ * the share link on Settings > Maintenance. The pass is signed over the moment
  * maintenance was switched on, so switching it off and on again retires
  * every pass and link given out before.
  */
