@@ -365,7 +365,7 @@
   width: 100%; max-height: min(85dvh, 44rem); display: flex; flex-direction: column;
   border-radius: 24px 24px 0 0; background: var(--ad-panel); box-shadow: 0 -18px 48px rgb(6 6 28 / .25);
   padding-bottom: env(safe-area-inset-bottom);
-  animation: ad-sheet-in .24s ease-out both;
+  animation: ad-sheet-in .24s ease-out backwards;
 }
 .ad__sheetGrab { flex: none; width: 2.5rem; height: 5px; margin: .6rem auto .2rem; border-radius: 999px; background: var(--ad-line); }
 .ad__sheetHead { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .3rem 1.25rem .6rem; }
@@ -1217,7 +1217,7 @@
   display: grid; gap: 1px;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .ad__rmList { animation: ad-rm-in .12s ease-out both; }
+  .ad__rmList { animation: ad-rm-in .12s ease-out backwards; }
 }
 @keyframes ad-rm-in { from { opacity: 0; transform: translateY(-3px); } }
 
@@ -1761,3 +1761,16 @@ a.ad__pgBtn:hover { background: var(--ad-panel-2); border-color: var(--ad-dim); 
 .ad__tourClose:hover { opacity: 1; background: rgb(255 255 255 / .12); }
 .ad__tourClose:focus-visible { outline: 2px solid #fff; outline-offset: -2px; opacity: 1; }
 .ad__tourClose svg { width: 1.05rem; height: 1.05rem; }
+
+/* FULL-WIDTH BUTTONS ON A PHONE (the owner's rule, 2026-09-25). A labelled
+   button in a form, a dialog, a card's actions or a page header takes the
+   whole row, so it is an easy target and a row of them reads as a stack
+   rather than a ragged line. Two still share a row where there is room.
+   Left alone: buttons in a table, the pager, tabs and menus, which are
+   sized by what sits beside them. */
+@media (max-width: 640px) {
+  .ad :is(form, .ad__row, .adDash__attentionActions, .cpDeliv__acts, .ad__panelFoot, .ad__profileActions) .ad__btn:not(.ad__iconButton):not(:is(td, .ad__pager, .ad__switch, .ad__tabsNav, .ad__rmList, .ad__filterBar, .ad__range) .ad__btn) {
+    flex: 1 1 12rem; width: 100%; justify-content: center;
+  }
+  .ad :is(form, .ad__panelFoot) > .ad__btn { width: 100%; }
+}
