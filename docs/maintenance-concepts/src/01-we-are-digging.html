@@ -1,0 +1,152 @@
+<title>We Are Digging</title>
+<!--@head-->
+<style>
+.sky{position:absolute;inset:0 0 auto 0;height:32%;background:var(--navy)}
+/* a faint outline of the homepage, standing on the surface */
+.ghost{position:absolute;right:6%;bottom:0;width:min(46%,34rem);height:62%;border:1px solid var(--navy-line);border-bottom:0;border-radius:14px 14px 0 0;padding:14px;display:grid;grid-template-rows:auto 1fr;gap:10px}
+.ghost i{display:block;border-radius:6px;background:var(--navy-lift)}
+.ghost .nav{display:flex;gap:8px;align-items:center}.ghost .nav i{height:8px;width:14%}.ghost .nav i:first-child{width:9%;height:14px;background:var(--navy-line)}
+.ghost .hero{display:grid;align-content:end;gap:8px;padding-bottom:10px}.ghost .hero i{height:12px}
+.big{position:absolute;left:4vw;top:32%;transform:translateY(-62%);margin:0;font:700 clamp(4.5rem,13vw,12rem)/.8 var(--display);letter-spacing:-.05em;color:var(--white);white-space:nowrap;pointer-events:none}
+.big span{color:var(--orange)}
+.earth{position:absolute;left:0;right:0;top:32%;bottom:0;display:grid;grid-template-rows:repeat(5,1fr)}
+.layer{position:relative;border:0;padding:0;margin:0;background:var(--c);cursor:pointer;text-align:left;overflow:hidden}
+.layer:focus-visible{outline-offset:-4px}
+.layer .name{position:absolute;left:16px;top:10px;font:600 .7rem/1 var(--body);letter-spacing:.14em;text-transform:uppercase;color:#8f92d6}
+.layer::after{content:"";position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.06) 1.2px,transparent 1.6px);background-size:22px 18px;pointer-events:none}
+.surface{position:absolute;left:0;right:0;top:32%;height:3px;background:var(--orange);z-index:3}
+.shaft{position:absolute;z-index:2;top:32%;bottom:0;left:var(--x);width:46px;margin-left:-23px;pointer-events:none}
+.shaft .bore{position:absolute;inset:0;background:#000018;border-left:3px solid var(--orange);border-right:3px solid var(--orange);transform-origin:top;transform:scaleY(var(--p,0))}
+.drill{position:absolute;left:50%;top:0;width:58px;height:86px;margin-left:-29px;transform:translateY(calc(var(--depth,0px) - 40px))}
+.drill svg{display:block;animation:shake .09s linear infinite alternate}
+.drill .bit{transform-origin:29px 60px;animation:spin .5s linear infinite}
+@keyframes shake{to{transform:translate(1px,-1px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spark{position:absolute;left:50%;top:0;width:5px;height:5px;border-radius:50%;background:var(--orange);pointer-events:none}
+.fossil{position:absolute;pointer-events:none;transition:opacity .6s}
+.fossil svg{display:block;overflow:visible}
+.fossil .dim{stroke:#3a3ab6;fill:none;stroke-width:2;transition:opacity .8s}
+.fossil .lit{stroke:var(--orange);fill:none;stroke-width:2.5;opacity:0;transition:opacity .8s}
+.fossil.on .lit{opacity:1}.fossil.on .dim{opacity:0}
+.fossil .tick{position:absolute;left:100%;top:50%;margin-left:10px;transform:translateY(-50%);white-space:nowrap;font:600 .7rem/1 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--black);background:var(--orange);border-radius:999px;padding:.35rem .55rem;opacity:0;transition:opacity .6s .4s}
+.fossil.on .tick{opacity:1}
+.gauge{position:absolute;z-index:4;right:0;top:32%;bottom:0;width:62px;border-left:1px solid var(--navy-line);background:var(--navy-deep);font:500 .68rem/1 var(--body);color:var(--mist);font-variant-numeric:tabular-nums}
+.gauge span{position:absolute;right:10px;transform:translateY(-50%)}
+.gauge span::before{content:"";position:absolute;right:calc(100% + 6px);top:50%;width:10px;height:1px;background:var(--navy-line)}
+.gauge .now{right:auto;left:-1px;background:var(--orange);color:var(--black);font-weight:600;padding:.35rem .45rem;border-radius:0 999px 999px 0;transform:translateY(calc(var(--depth,0px) - 50%))}
+.gauge .now::before{display:none}
+.note{position:absolute;z-index:20;max-width:16rem;background:var(--white);color:var(--black);border-radius:14px;padding:.75rem .9rem;font-size:.88rem;line-height:1.4;box-shadow:0 18px 40px -12px rgba(0,0,0,.6);transform-origin:top left;animation:pop .25s cubic-bezier(.2,.9,.3,1.3)}
+.note b{display:block;font:700 1rem/1.2 var(--display);margin-bottom:.2rem}
+.note em{display:block;margin-top:.4rem;font-style:normal;font-size:.75rem;color:#4a4a6a}
+@keyframes pop{from{transform:scale(.8);opacity:0}}
+@media (min-width:1000px){.big{left:calc(26rem + 64px)}.ghost{display:none}}
+@media (max-width:700px){.ghost{display:none}.gauge{width:48px}}
+</style>
+<main class="stage" id="stage" style="--x:66%" data-n="01" data-name="We are digging" data-clock="1">
+  <div class="sky" aria-hidden="true">
+    <div class="ghost"><div class="nav"><i></i><i></i><i></i><i></i></div><div class="hero"><i style="width:70%"></i><i style="width:52%"></i><i style="width:24%;height:22px;border-radius:999px;background:var(--navy-line)"></i></div></div>
+  </div>
+  <p class="big" aria-hidden="true">We dig<span>.</span></p>
+  <div class="earth" id="earth">
+    <button class="layer" style="--c:#0b0b78" data-note="Navigation|Rebuilding the menu so every page is two taps away."><span class="name">Topsoil · navigation</span></button>
+    <button class="layer" style="--c:#08086b" data-note="Services|Rewriting the service pages and their prices."><span class="name">Clay · services</span></button>
+    <button class="layer" style="--c:#05055d" data-note="Work|Adding new case studies to the portfolio."><span class="name">Gravel · our work</span></button>
+    <button class="layer" style="--c:#03034d" data-note="Speed|Making every page load faster on a phone."><span class="name">Rock · speed and SEO</span></button>
+    <button class="layer" style="--c:#01013a" data-note="Foundations|Updating the servers everything else stands on."><span class="name">Bedrock · foundations</span></button>
+  </div>
+  <div class="surface" aria-hidden="true"></div>
+  <div class="shaft" id="shaft" aria-hidden="true">
+    <div class="bore"></div>
+    <div class="drill" id="drill"><svg width="58" height="86" viewBox="0 0 58 86">
+      <rect x="9" y="0" width="40" height="30" rx="8" fill="#ffffff"/><rect x="15" y="8" width="28" height="6" rx="3" fill="#000065"/>
+      <rect x="21" y="30" width="16" height="12" fill="#c7c9ec"/>
+      <g class="bit"><path d="M13 42h32L29 84z" fill="#ff6500"/><path d="M19 50h20M22 58h14M25 66h8" stroke="#000" stroke-width="2.5"/></g>
+    </svg></div>
+  </div>
+  <div id="fossils" aria-hidden="true"></div>
+  <div class="gauge" id="gauge" aria-hidden="true"></div>
+  <p class="sr" id="sr-depth" aria-live="polite"></p>
+</main>
+<!--@dock-->
+<!--@js-->
+<script>
+(function(){
+  var stage = document.getElementById('stage'), earth = document.getElementById('earth'), shaft = document.getElementById('shaft');
+  var fossilsEl = document.getElementById('fossils'), gauge = document.getElementById('gauge');
+  var DEPTH_M = 120;
+  /* The fossils: bits of the website buried in the strata. y is 0..1 of the earth. dx is px from the shaft. */
+  var shapes = [
+    {y:.1,  dx:-150, label:'Menu refitted',  svg:'<rect x="0" y="0" width="120" height="30" rx="8"/><path d="M14 15h18M44 15h18M74 15h18"/><circle cx="108" cy="15" r="6"/>', w:120,h:30},
+    {y:.3,  dx:40,   label:'Button refitted',svg:'<rect x="0" y="0" width="112" height="38" rx="19"/><path d="M22 19h54M84 13l8 6-8 6"/>', w:112,h:38},
+    {y:.47, dx:-170, label:'Card refitted',  svg:'<rect x="0" y="0" width="96" height="112" rx="10"/><rect x="10" y="10" width="76" height="46" rx="5"/><path d="M10 72h60M10 86h44"/>', w:96,h:112},
+    {y:.66, dx:36,   label:'Headline refitted', svg:'<text x="0" y="46" style="font:700 52px var(--display)">Aa</text><path d="M0 56h78"/>', w:80,h:58},
+    {y:.86, dx:-140, label:'Server refitted',svg:'<rect x="0" y="0" width="92" height="26" rx="5"/><rect x="0" y="32" width="92" height="26" rx="5"/><circle cx="14" cy="13" r="4"/><circle cx="14" cy="45" r="4"/><path d="M30 13h46M30 45h46"/>', w:92,h:58}
+  ];
+  var els = shapes.map(function(s){
+    var d = document.createElement('div'); d.className = 'fossil';
+    d.innerHTML = '<svg width="'+s.w+'" height="'+s.h+'" viewBox="0 0 '+s.w+' '+s.h+'"><g class="dim">'+s.svg+'</g><g class="lit">'+s.svg+'</g></svg><span class="tick">'+s.label+'</span>';
+    d.querySelectorAll('text').forEach(function(t){ t.setAttribute('fill','none'); t.setAttribute('stroke-width','1.5'); });
+    fossilsEl.appendChild(d); return d;
+  });
+  var ticks = [];
+  for (var m = 0; m <= DEPTH_M; m += 20){ var t = document.createElement('span'); t.textContent = m+' m'; gauge.appendChild(t); ticks.push([t,m/DEPTH_M]); }
+  var now = document.createElement('span'); now.className = 'now'; gauge.appendChild(now);
+
+  var geo = {};
+  function measure(){
+    var r = earth.getBoundingClientRect(), x = shaft.getBoundingClientRect();
+    geo = {top:r.top, h:r.height, cx:x.left + x.width/2, W:innerWidth};
+    ticks.forEach(function(p){ p[0].style.top = (p[1]*r.height)+'px'; });
+    shapes.forEach(function(s,i){
+      var left = Math.max(12, Math.min(geo.W - s.w - 150, geo.cx + s.dx));
+      els[i].style.left = left+'px'; els[i].style.top = (r.top + s.y*r.height - s.h/2)+'px';
+    });
+    paint(WDC.progress());
+  }
+  var lastSaid = -1;
+  function paint(p){
+    var depth = p*geo.h;
+    shaft.style.setProperty('--p', p);
+    shaft.style.setProperty('--depth', depth+'px');
+    gauge.style.setProperty('--depth', depth+'px');
+    now.textContent = Math.round(p*DEPTH_M)+' m';
+    shapes.forEach(function(s,i){ els[i].classList.toggle('on', p >= s.y - .02); });
+    var pct = Math.round(p*100);
+    if (Math.abs(pct-lastSaid) >= 10){ lastSaid = pct; document.getElementById('sr-depth').textContent = pct+' percent of the work is done.'; }
+  }
+  addEventListener('resize', measure);
+  WDC.onProgress(paint);
+  measure();
+  if (document.fonts) document.fonts.ready.then(measure);
+
+  /* sparks off the drill tip */
+  if (!WDC.reduced){
+    setInterval(function(){
+      if (document.hidden || WDC.progress() >= 1) return;
+      var s = document.createElement('i'); s.className = 'spark';
+      shaft.appendChild(s);
+      var y = WDC.progress()*geo.h + 40, a = (Math.random()-.5)*2.6, v = 40 + Math.random()*70;
+      s.animate([{transform:'translate(0,'+y+'px)',opacity:1},{transform:'translate('+Math.sin(a)*v+'px,'+(y-Math.cos(a)*v*.8)+'px) scale(.3)',opacity:0}],{duration:600+Math.random()*400,easing:'cubic-bezier(.1,.7,.3,1)'}).onfinish = function(){ s.remove(); };
+    }, 70);
+  } else {
+    document.querySelectorAll('.drill svg,.drill .bit').forEach(function(e){ e.style.animation = 'none'; });
+  }
+
+  /* tap a layer to hear what is being done in it */
+  var open = null;
+  earth.addEventListener('click', function(e){
+    var b = e.target.closest('.layer'); if (!b) return;
+    if (open) open.remove();
+    var parts = b.dataset.note.split('|'), n = document.createElement('div'); n.className = 'note'; n.setAttribute('role','status');
+    n.innerHTML = '<b></b><span></span><em>Example note. The admin writes these.</em>';
+    n.querySelector('b').textContent = parts[0]; n.querySelector('span').textContent = parts[1];
+    stage.appendChild(n);
+    var x = e.clientX || b.getBoundingClientRect().left + 40, y = e.clientY || b.getBoundingClientRect().top + 20;
+    n.style.left = Math.min(x, innerWidth - n.offsetWidth - 16)+'px';
+    n.style.top = Math.min(y, innerHeight - n.offsetHeight - 16)+'px';
+    open = n;
+  });
+  document.addEventListener('pointerdown', function(e){ if (open && !e.target.closest('.layer,.note')) { open.remove(); open = null; } });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && open) { open.remove(); open = null; } });
+})();
+</script>

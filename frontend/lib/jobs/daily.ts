@@ -11,7 +11,7 @@ import { alertFailures } from "@/lib/mail-alert";
 import { runRetention, type RetentionCounts } from "@/lib/privacy/retention";
 import { sendScheduledReminders, type ReminderCounts } from "./reminders";
 
-export type DailyResult = { logRows: number; trashed: Record<string, number>; posts: number; retention: RetentionCounts | null; reminders: ReminderCounts | null; errors: string[] };
+export type DailyResult = { waitlist?: { sent: number; failed: number; purged: number }; logRows: number; trashed: Record<string, number>; posts: number; retention: RetentionCounts | null; reminders: ReminderCounts | null; errors: string[] };
 
 /**
  * The once-a-day tidy: the message log past its retention, each form's
@@ -50,6 +50,15 @@ export async function runDaily(by: string): Promise<DailyResult> {
     result.errors.push(...r.errors.map((e) => `retention ${e}`));
   } catch (error) {
     result.errors.push(`retention: ${error instanceof Error ? error.message : "failed"}`);
+  }
+  /* Anybody still waiting to hear the site is back (a send that failed, or
+     did not fit the first batch), and anything on that list past 30 days. */
+  try {
+    const { purgeWaitlist, sendBackOnline } = await import("@/lib/maintenance-waitlist");
+    const r = await sendBackOnline();
+    result.waitlist = { sent: r.sent, failed: r.failed, purged: await purgeWaitlist() };
+  } catch (error) {
+    result.errors.push(`maintenance waitlist: ${error instanceof Error ? error.message : "failed"}`);
   }
   /* Unpaid invoices on the days Settings, Studio and invoices names. */
   try {

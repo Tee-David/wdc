@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath, updateTag } from "next/cache";
+import { after } from "next/server";
 import { actorName, allow } from "./guard";
 import { FAIL, OK, type ActionState } from "./validate";
 import { audit } from "./store";
@@ -90,7 +91,50 @@ export async function setMaintenance(_prev: ActionState, fd: FormData): Promise<
   forgetMaintenance();
   audit({ actor: by, kind: "setting", subjectId: MAINTENANCE_KEY, subject: "Maintenance mode", action: on ? "put the public site into maintenance" : "brought the public site back" });
   revalidatePath(PAGE);
+  if (!on) {
+    /* The people who asked to be told, behind the response: the mail server
+       is slow, and whatever does not go now the daily job sends. */
+    after(async () => {
+      try {
+        const { sendBackOnline } = await import("@/lib/maintenance-waitlist");
+        const r = await sendBackOnline();
+        if (r.sent || r.failed) audit({ actor: "Website", kind: "setting", subjectId: MAINTENANCE_KEY, subject: "Maintenance mode", action: `told ${r.sent} ${r.sent === 1 ? "person" : "people"} the site is back${r.failed ? `; ${r.failed} to retry` : ""}` });
+      } catch (error) {
+        console.error("Back-online emails failed", error instanceof Error ? error.message : "unknown error");
+      }
+    });
+  }
   return OK(on
     ? "The public site is in maintenance. Visitors get a holding page within half a minute; the admin, payments and invoices keep working."
-    : "The site is back for everybody within half a minute.");
+    : "The site is back for everybody within half a minute. Anybody who asked to be told is being emailed now.");
+}
+
+/**
+ * The maintenance page: which template visitors get, and each template's own
+ * options. Saved on its own, whether or not maintenance is on, so a template
+ * can be chosen and previewed before the site goes down. Every value is run
+ * through the registry's own limits; an unknown template is refused rather
+ * than quietly swapped.
+ */
+export async function saveMaintenanceDesign(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await allow("settings");
+  if (refused) return refused;
+  const { normaliseDesign, templateById } = await import("@/lib/maintenance-page/registry");
+  const { DESIGN_KEY, forgetMaintenanceDesign } = await import("@/lib/maintenance-page/render");
+  const wanted = String(fd.get("template") ?? "");
+  const def = templateById(wanted);
+  if (!def) return FAIL({ template: "Choose one of the templates." });
+  const options: Record<string, Record<string, string>> = {};
+  for (const [k, v] of fd) {
+    const m = /^opt:(\d{2}):([a-z]+)$/.exec(k);
+    if (!m || typeof v !== "string") continue;
+    (options[m[1]] ??= {})[m[2]] = v;
+  }
+  const design = normaliseDesign({ template: def.id, options });
+  const by = await actorName();
+  try { await setAppSetting(DESIGN_KEY, design, by); } catch { return FAIL({}, "That could not be saved just now."); }
+  forgetMaintenanceDesign();
+  audit({ actor: by, kind: "setting", subjectId: DESIGN_KEY, subject: "Maintenance page", action: `chose the “${def.name}” maintenance page` });
+  revalidatePath(PAGE);
+  return OK(`Visitors will see “${def.name}” while the site is in maintenance.`);
 }
