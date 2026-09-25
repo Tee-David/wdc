@@ -35,7 +35,18 @@ export type FreeTool = {
   /** lucide-react export name. PascalCase; lucide ships no lowercase exports. */
   icon: string;
   services: ServiceSlug[];
+  /** Where it sits on /tools: what the visitor is trying to do. */
+  group: ToolGroup;
 };
+
+/** The /tools page's sections, in order. Named for the visitor's job, not
+ *  for our services, because nobody arrives thinking "I need SEO". */
+export const TOOL_GROUPS = [
+  { id: "plan", title: "Planning a build", lede: "Before you spend: what it costs, what it runs to, and whether the name is free." },
+  { id: "found", title: "Getting found", lede: "Why a page is not showing up, not being clicked, or not being read." },
+  { id: "brand", title: "Brand and reach", lede: "Colours people can read, a logo that works everywhere, and mail nobody can fake." },
+] as const;
+export type ToolGroup = (typeof TOOL_GROUPS)[number]["id"];
 
 export const FREE_TOOLS: FreeTool[] = [
   {
@@ -48,6 +59,7 @@ export const FREE_TOOLS: FreeTool[] = [
     short: "Domain checker",
     icon: "Globe",
     services: ["web"],
+    group: "plan",
   },
   {
     slug: "business-name",
@@ -59,6 +71,7 @@ export const FREE_TOOLS: FreeTool[] = [
     short: "Business name checker",
     icon: "Building2",
     services: ["branding"],
+    group: "plan",
   },
   {
     slug: "estimate",
@@ -70,6 +83,7 @@ export const FREE_TOOLS: FreeTool[] = [
     short: "Budget estimator",
     icon: "Calculator",
     services: ["software", "apps"],
+    group: "plan",
   },
   {
     slug: "ai-cost",
@@ -81,6 +95,7 @@ export const FREE_TOOLS: FreeTool[] = [
     short: "AI cost calculator",
     icon: "Sparkles",
     services: ["software"],
+    group: "plan",
   },
   {
     slug: "seo",
@@ -92,6 +107,7 @@ export const FREE_TOOLS: FreeTool[] = [
     short: "SEO snapshot",
     icon: "Gauge",
     services: ["seo"],
+    group: "found",
   },
   {
     slug: "link-preview",
@@ -103,6 +119,7 @@ export const FREE_TOOLS: FreeTool[] = [
     short: "Link preview checker",
     icon: "Share2",
     services: ["social"],
+    group: "found",
   },
   {
     slug: "email",
@@ -114,6 +131,7 @@ export const FREE_TOOLS: FreeTool[] = [
     short: "Email checker",
     icon: "ShieldCheck",
     services: ["web"],
+    group: "brand",
   },
   {
     slug: "contrast",
@@ -125,6 +143,7 @@ export const FREE_TOOLS: FreeTool[] = [
     short: "Contrast checker",
     icon: "Contrast",
     services: ["branding"],
+    group: "brand",
   },
   {
     slug: "readability",
@@ -136,6 +155,7 @@ export const FREE_TOOLS: FreeTool[] = [
     short: "Readability checker",
     icon: "BookOpenText",
     services: ["seo"],
+    group: "found",
   },
   {
     slug: "ad-budget",
@@ -147,6 +167,7 @@ export const FREE_TOOLS: FreeTool[] = [
     short: "Ad budget calculator",
     icon: "BarChart3",
     services: ["social"],
+    group: "brand",
   },
   {
     slug: "broken-links",
@@ -158,6 +179,7 @@ export const FREE_TOOLS: FreeTool[] = [
     short: "Broken link checker",
     icon: "Link2Off",
     services: ["web"],
+    group: "found",
   },
   {
     slug: "brand-kit",
@@ -169,8 +191,13 @@ export const FREE_TOOLS: FreeTool[] = [
     short: "Brand asset pack",
     icon: "Palette",
     services: ["branding"],
+    group: "brand",
   },
 ];
+
+export function toolsIn(group: ToolGroup) {
+  return FREE_TOOLS.filter((t) => t.group === group);
+}
 
 export function toolsFor(service: ServiceSlug) {
   return FREE_TOOLS.filter((t) => t.services.includes(service));
