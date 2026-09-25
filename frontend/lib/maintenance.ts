@@ -95,11 +95,28 @@ export function retryAfter(m: Maintenance): number {
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 
 /**
- * The page a visitor gets. Plain HTML with its own inline styles: it must not
- * depend on the app's CSS, fonts or JavaScript, which is the thing being
- * worked on. Navy ground, white type, orange only as a rule.
+ * The page a visitor gets: the template chosen in Settings, Site
+ * (lib/maintenance-page), drawn with this maintenance's message and time.
+ *
+ * IF THAT FAILS, THE PLAIN PAGE BELOW. A template that throws, or a settings
+ * read that does, must never turn a holding page into an error page, so the
+ * fallback has no dependencies at all.
  */
-export function maintenancePage(m: Maintenance): string {
+export async function maintenancePage(m: Maintenance): Promise<string> {
+  try {
+    const { maintenanceDesign, renderMaintenancePage } = await import("@/lib/maintenance-page/render");
+    return await renderMaintenancePage({ m, design: await maintenanceDesign() });
+  } catch (error) {
+    console.error("Maintenance template failed; serving the plain page", error instanceof Error ? error.message : "unknown error");
+    return plainPage(m);
+  }
+}
+
+/**
+ * The plain page. Its own inline styles, no fonts, no script: it must work
+ * whatever else is broken. Navy ground, white type, orange only as a rule.
+ */
+export function plainPage(m: Maintenance): string {
   const message = m.message?.trim() || "We are making some changes to the site and will be back shortly.";
   const back = m.backBy && !Number.isNaN(Date.parse(m.backBy))
     ? `<p class="s">Expected back by ${esc(new Date(m.backBy).toLocaleString("en-GB", { weekday: "long", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" }))}, Lagos time.</p>` : "";
