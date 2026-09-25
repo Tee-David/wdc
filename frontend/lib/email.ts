@@ -62,6 +62,9 @@ export async function sendMail(input: {
   text: string;
   html?: string;
   replyTo?: string;
+  /** Copies, set per form in the admin's form settings. */
+  cc?: string[];
+  bcc?: string[];
   /**
    * Inline parts, referenced from the HTML as `cid:<id>`. Only the document QR
    * on the invoice and receipt uses this today; see `documentQr()` in

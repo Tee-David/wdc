@@ -1,6 +1,8 @@
 import { after, NextRequest, NextResponse } from "next/server";
+import { formByKey } from "@/lib/forms/registry";
+import { availability, getFormSettings } from "@/lib/forms/settings-db";
+import { confirmation, sendFormEmail } from "@/lib/forms/notify";
 import { CONTACT_EMAIL } from "@/lib/site";
-import { sendLogged } from "@/lib/outbox";
 import { composeEmailHtml, emailP, emailPanel, emailSmall } from "@/lib/email-templates";
 import { looksLikeEmail, newsletterIsConfigured, normaliseEmail, subscribe } from "@/lib/newsletter";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
@@ -78,6 +80,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  /* Closed in the form's settings refuses here, not only on the page. */
+  const form = formByKey("newsletter")!;
+  const settings = await getFormSettings(form);
+  const open = await availability(form, settings);
+  if (!open.open) return NextResponse.json({ error: open.message, closed: true }, { status: 403 });
+
   let result;
   try {
     result = await subscribe(typed, source);
@@ -100,7 +108,7 @@ export async function POST(request: NextRequest) {
   if (result.kind === "added") {
     after(async () => {
       try {
-        await sendLogged({
+        await sendFormEmail(form, settings, "welcome", {
           to: email,
           subject: "We Dig Creativity: you are on the list",
           /* A newsletter is the case the List-Unsubscribe header exists for.
@@ -124,13 +132,13 @@ export async function POST(request: NextRequest) {
              many times the button is pressed, and a returning subscriber next
              month still gets one. */
           dedupeKey: `newsletter-welcome:${email}:${new Date().toISOString().slice(0, 10)}`,
-        });
+        }, { email });
       } catch (welcomeError) {
         console.error("Newsletter welcome failed", welcomeError instanceof Error ? welcomeError.message : "unknown error");
       }
 
       try {
-        await sendLogged({
+        await sendFormEmail(form, settings, "studio-notice", {
           to: process.env.SMTP_REPLY_TO || CONTACT_EMAIL,
           subject: "New newsletter subscriber",
           text: `${email}\nFrom: ${source}`,
@@ -143,7 +151,7 @@ export async function POST(request: NextRequest) {
         }, {
           summary: `New subscriber from the ${source}.`,
           dedupeKey: `newsletter-notice:${email}:${new Date().toISOString().slice(0, 10)}`,
-        });
+        }, { email });
       } catch (noticeError) {
         console.error("Newsletter notice failed", noticeError instanceof Error ? noticeError.message : "unknown error");
       }
@@ -153,5 +161,5 @@ export async function POST(request: NextRequest) {
   /* ONE ANSWER FOR BOTH OUTCOMES. "You are already subscribed" would turn this
      box into a way of testing whether a given person is on our list, which is
      not something a stranger is owed about somebody else. */
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, confirmation: confirmation(settings, {}) });
 }
