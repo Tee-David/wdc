@@ -9,7 +9,7 @@ const AREAS: { area: Area; label: string; what: string }[] = [
   { area: "clients", label: "Clients", what: "Records, contacts, messages, tickets and portal invitations" },
   { area: "projects", label: "Projects", what: "Stages, tasks, updates, deliverables and approvals" },
   { area: "forms", label: "Forms", what: "Entries, notes, and turning a brief into a client" },
-  { area: "content", label: "Content", what: "The blog, the FAQ and the media library" },
+  { area: "content", label: "Content", what: "The blog (staff write and submit for review; the owner publishes), the FAQ and the media library" },
   { area: "money", label: "Money", what: "Invoices, payments, expenses, estimates and credit" },
   { area: "settings", label: "Settings", what: "Site settings, form settings, email and integrations" },
   { area: "team", label: "Team", what: "Who has access, staff invitations and sessions" },
@@ -46,7 +46,7 @@ export default async function AccessPage() {
         </div>
         <p className="ad__dim" style={{ margin: 0, padding: ".8rem 1rem", fontSize: ".85rem" }}>
           Checked at every action, not only on the page: a button a role cannot use is refused by the server even if it is pressed.
-          Inviting staff, changing a role and deactivating an account are not on this screen yet.
+          Inviting staff, changing a role and deactivating an account are on <a href="/admin/settings/team">Team</a>.
         </p>
       </Panel>
     </>

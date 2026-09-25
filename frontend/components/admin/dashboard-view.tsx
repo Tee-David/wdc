@@ -1,9 +1,10 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, CalendarClock, CircleDollarSign, ClipboardList, FolderClock, LifeBuoy, MailWarning, MessageSquareWarning, Send } from "lucide-react";
+import { AlertTriangle, ArrowRight, FileClock, CalendarClock, CircleDollarSign, ClipboardList, FolderClock, LifeBuoy, MailWarning, MessageSquareWarning, Send } from "lucide-react";
 import { SERVICES } from "@/lib/services";
 import { getBoard, getClient, getClients, getDeliverablesFor, getInvoices, getMonthly, getPayments, getProjects, getSubmissions, getSummary, getTasks, getTickets, providerAttentionCount } from "@/lib/admin/store";
 import { failedLoggedCount } from "@/lib/message-log";
+import { reviewCount } from "@/lib/blog-db";
 import { invoiceStatus, invoiceTotals, naira, nairaShort, projectAttention, STAGES } from "@/lib/admin/types";
 
 /* Worst first. The attention queue is read top-down in the morning, so the
@@ -35,6 +36,8 @@ function greeting() {
  */
 export async function AdminDashboardView({ firstName, money = true }: { firstName?: string; money?: boolean }) {
   const failedMail = money ? await failedLoggedCount() : 0;
+  /* The owner is the one who publishes, so the queue is theirs. */
+  const inReview = money && (process.env.DATABASE_URL || process.env.COCKROACHDB_URL) ? await reviewCount().catch(() => 0) : 0;
   const clients = getClients();
   const projects = getProjects();
   const invoices = getInvoices();
@@ -103,6 +106,15 @@ export async function AdminDashboardView({ firstName, money = true }: { firstNam
       detail: "Emails the mail server refused or that could not be sent",
       meta: "Reconciliation",
       icon: MailWarning,
+      tone: "warn",
+      menu: null,
+    }] : []),
+    ...(inReview ? [{
+      href: "/admin/blog?state=review",
+      title: `${inReview} blog post${inReview === 1 ? "" : "s"} waiting for review`,
+      detail: "Submitted by staff. Publish, or send back with a note",
+      meta: "Blog",
+      icon: FileClock,
       tone: "warn",
       menu: null,
     }] : []),
@@ -212,7 +224,7 @@ export async function AdminDashboardView({ firstName, money = true }: { firstNam
                   /* SAID, NOT HIDDEN. The panel shows the six worst; a queue
                      that silently drops the rest reads as "that is all". */
                   <p className="adDash__more" role="status">
-                    {attention.length - 6} more not shown. They are on the Money, Projects and Clients screens.
+                    {attention.length - 6} more not shown. They are on the Money, Projects, Clients and Blog screens.
                   </p>
                 ) : null}
               </div>

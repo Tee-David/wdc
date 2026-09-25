@@ -151,7 +151,7 @@ export async function relatedPostsDb(post: BlogPost, limit = 2): Promise<BlogPos
 
 export type AdminPost = BlogPost & {
   id: string;
-  status: "draft" | "published";
+  status: "draft" | "review" | "published";
   /** Derived: published with a date still in the future. */
   scheduled: boolean;
   publishedAt: string | null;
@@ -159,32 +159,42 @@ export type AdminPost = BlogPost & {
   savedAt: string | null;
   trashedAt: string | null;
   trashedBy: string | null;
+  submittedBy: string | null;
+  submittedAt: string | null;
+  /** The owner's note when they sent it back; cleared when it is submitted again. */
+  reviewNote: string | null;
+  reviewBy: string | null;
 };
 
 type AdminRow = Row & {
   id: string; status: string; saved_by: string | null; saved_at: Date | null;
   trashed_at: Date | null; trashed_by: string | null;
+  submitted_by: string | null; submitted_at: Date | null; review_note: string | null; review_by: string | null;
 };
 
 const toAdmin = (r: AdminRow): AdminPost => ({
   ...toPost(r),
   id: r.id,
-  status: r.status === "published" ? "published" : "draft",
+  status: r.status === "published" ? "published" : r.status === "review" ? "review" : "draft",
   scheduled: r.status === "published" && !!r.published_at && new Date(r.published_at) > new Date(),
   publishedAt: r.published_at ? new Date(r.published_at).toISOString() : null,
   savedBy: r.saved_by,
   savedAt: r.saved_at ? new Date(r.saved_at).toISOString() : null,
   trashedAt: r.trashed_at ? new Date(r.trashed_at).toISOString() : null,
   trashedBy: r.trashed_by,
+  submittedBy: r.submitted_by,
+  submittedAt: r.submitted_at ? new Date(r.submitted_at).toISOString() : null,
+  reviewNote: r.review_note,
+  reviewBy: r.review_by,
 });
 
-const ADMIN_COLUMNS = `id, status, saved_by, saved_at, trashed_at, trashed_by, ${COLUMNS}`;
+const ADMIN_COLUMNS = `id, status, saved_by, saved_at, trashed_at, trashed_by, submitted_by, submitted_at, review_note, review_by, ${COLUMNS}`;
 
 /** Every post not in the Trash, any state. Drafts first, then newest. Bounded. */
 export async function postsForAdmin(limit = 200): Promise<AdminPost[]> {
   const result = await db.query<AdminRow>(
     `SELECT ${ADMIN_COLUMNS} FROM blog_posts WHERE trashed_at IS NULL
-     ORDER BY (status = 'draft') DESC, published_at DESC NULLS FIRST, created_at DESC
+     ORDER BY (status = 'review') DESC, (status = 'draft') DESC, published_at DESC NULLS FIRST, created_at DESC
      LIMIT $1`,
     [limit],
   );
@@ -243,7 +253,9 @@ export async function savePost(
   by: string,
   opened?: string | null,
 ): Promise<SaveResult> {
-  const stored = p.status === "draft" ? "draft" : "published";
+  const stored = p.status === "draft" ? "draft" : p.status === "review" ? "review" : "published";
+  /* Submitting stamps who and when and clears the owner's last note. */
+  const submitting = stored === "review";
   const values = [
     p.slug, p.title, p.seoTitle, p.description, p.excerpt, p.topic, JSON.stringify(p.tags), p.cover,
     JSON.stringify(p.body), stored, p.publishedAt, p.canonical, p.socialImage, by,
@@ -252,8 +264,10 @@ export async function savePost(
     if (!id) {
       const r = await db.query<{ id: string; saved_at: Date }>(
         `INSERT INTO blog_posts (slug, title, seo_title, description, excerpt, topic, tags, cover, body,
-                                 status, published_at, canonical, social_image, saved_by, saved_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7::JSONB, $8, $9::JSONB, $10, $11, $12, $13, $14, now())
+                                 status, published_at, canonical, social_image, saved_by, saved_at,
+                                 submitted_by, submitted_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7::JSONB, $8, $9::JSONB, $10, $11, $12, $13, $14, now(),
+                 ${submitting ? "$14, now()" : "NULL, NULL"})
          RETURNING id, saved_at`,
         values,
       );
@@ -275,6 +289,7 @@ export async function savePost(
               topic = $6, tags = $7::JSONB, cover = $8, body = $9::JSONB, status = $10,
               published_at = $11, canonical = $12, social_image = $13, saved_by = $14, saved_at = now()
               ${touch ? ", updated_at = now()" : ""}
+              ${submitting ? ", submitted_by = $14, submitted_at = now(), review_note = NULL, review_by = NULL" : ""}
        WHERE id = $15 AND trashed_at IS NULL ${check}
        RETURNING saved_at`,
       opened === undefined ? [...values, id] : [...values, id, opened],
@@ -330,11 +345,28 @@ export async function movePostToDraft(id: string, by: string): Promise<{ slug: s
 
 export const POST_TRASH_DAYS = 30;
 
-/** A draft into the Trash. Its address stays reserved until it is removed. */
+/** The posts waiting on the owner, for the nav and the dashboard. */
+export async function reviewCount(): Promise<number> {
+  const r = await db.query<{ n: string }>("SELECT count(*) AS n FROM blog_posts WHERE status = 'review' AND trashed_at IS NULL");
+  return Number(r.rows[0]?.n ?? 0);
+}
+
+/** The owner sends a post back to its writer with a note; it is a draft again. */
+export async function returnPost(id: string, note: string, by: string): Promise<{ slug: string; title: string; to: string | null } | null> {
+  const r = await db.query<{ slug: string; title: string; submitted_by: string | null }>(
+    `UPDATE blog_posts SET status = 'draft', review_note = $2, review_by = $3, saved_by = $3, saved_at = now()
+     WHERE id = $1 AND status = 'review' AND trashed_at IS NULL RETURNING slug, title, submitted_by`,
+    [id, note.slice(0, 2000), by],
+  );
+  const row = r.rows[0];
+  return row ? { slug: row.slug, title: row.title, to: row.submitted_by } : null;
+}
+
+/** A draft (or a post in review) into the Trash. Its address stays reserved until it is removed. */
 export async function trashDraftPost(id: string, by: string): Promise<{ slug: string; title: string } | null> {
   const r = await db.query<{ slug: string; title: string }>(
     `UPDATE blog_posts SET trashed_at = now(), trashed_by = $2
-     WHERE id = $1 AND status = 'draft' AND trashed_at IS NULL RETURNING slug, title`,
+     WHERE id = $1 AND status IN ('draft', 'review') AND trashed_at IS NULL RETURNING slug, title`,
     [id, by.slice(0, 120)],
   );
   return r.rows[0] ?? null;
