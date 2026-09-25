@@ -12,6 +12,7 @@ import {
 } from "@/lib/admin/actions";
 import { Actions, Area, Checks, Field, Fields, Form, Hidden, Select, Submit } from "./form";
 import { DialogButton } from "./dialog";
+import { NoClientsYet } from "./no-clients";
 
 /* ------------------------------------------------------------- invoices */
 
@@ -122,6 +123,7 @@ function Builder({
      matching it comes first in the document, which silently strips the label
      off every instance after that one. */
   const uid = useId();
+  const noClients = !invoice && !clientId && clients.length === 0;
   const [rows, setRows] = useState<Row[]>(() =>
     invoice?.lines.length
       ? invoice.lines.map((l) => ({
@@ -151,6 +153,7 @@ function Builder({
   const set = (key: number, k: keyof Row, v: string) =>
     setRows((rs) => rs.map((r) => (r.key === key ? { ...r, [k]: v } : r)));
 
+  if (noClients) return <NoClientsYet what={estimate ? "estimate" : "invoice"} />;
   return (
     <Form action={estimate ? createEstimate : invoice ? updateInvoice : createInvoice} onDone={() => close()}>
       {invoice ? <Hidden name="id" value={invoice.id} /> : null}

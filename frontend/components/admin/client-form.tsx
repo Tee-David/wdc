@@ -45,9 +45,9 @@ export function ClientFields({ client }: { client?: Client }) {
   );
 }
 
-export function AddClient({ dataTour }: { dataTour?: string } = {}) {
+export function AddClient({ dataTour, startOpen }: { dataTour?: string; startOpen?: boolean } = {}) {
   return (
-    <DialogButton label="Add a client" title="A new client" icon={Plus} wide dataTour={dataTour}>
+    <DialogButton label="Add a client" title="A new client" icon={Plus} wide dataTour={dataTour} startOpen={startOpen}>
       {/* No onDone: createClient redirects to the new client, so the dialog
           goes with the page rather than being closed by hand. */}
       {() => (

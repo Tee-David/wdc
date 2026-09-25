@@ -87,6 +87,9 @@ export const FILE_TYPES: Readonly<Record<string, string>> = {
 };
 
 export type FileAnswer = { key: string; name: string; size: number };
+/** What a file question holds when the visitor is sending the file by email
+    instead, because uploads were not available to them. */
+export const FILE_BY_EMAIL = "Sending it by email";
 export type Answer = string | string[] | FileAnswer[];
 export type Answers = Record<string, Answer>;
 
@@ -206,6 +209,7 @@ export function checkAnswers(def: CustomFormDef, raw: unknown, fileKeyPrefix?: s
         break;
       }
       case "file": {
+        if (v === FILE_BY_EMAIL) { answers[f.id] = FILE_BY_EMAIL; break; }
         const files = (Array.isArray(v) ? v : []).slice(0, LIMITS.files).flatMap((x) => {
           const r = (x && typeof x === "object" ? x : {}) as Record<string, unknown>;
           const key = str(r.key, 300), name = str(r.name, 200), size = Number(r.size);

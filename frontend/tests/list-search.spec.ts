@@ -17,7 +17,7 @@ test("the forms list narrows as you type, and says when nothing matches", async 
   await box.fill("contact");
   await expect(page.locator("#forms-lists tbody tr:visible")).toHaveCount(1);
   await box.fill("zzzz-nothing");
-  await expect(page.getByText(/No forms match/)).toBeVisible();
+  await expect(page.locator(".adLS__none")).toContainText("No forms match");
   await box.press("Escape");
   await expect(page.locator("#forms-lists tbody tr:visible").first()).toBeVisible();
 });
@@ -38,5 +38,7 @@ test("the portal's lists can be searched", async ({ page, baseURL }) => {
   await page.setExtraHTTPHeaders({ "x-boneyard-capture": TOKEN ?? "", "x-boneyard-capture-client": "c1" });
   await page.goto("/portal/billing", { waitUntil: "networkidle" });
   await page.getByRole("searchbox").fill("zzzz-nothing");
-  await expect(page.getByText(/No invoices match/)).toBeVisible();
+  await expect(page.locator(".adLS__none")).toContainText("No invoices match");
+  await page.locator(".adLS__none").getByRole("button", { name: "Clear the search" }).click();
+  await expect(page.locator(".adLS__none")).toHaveCount(0);
 });

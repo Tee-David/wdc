@@ -2,9 +2,10 @@
 
 import { useId, useState } from "react";
 import { FileUp, Loader2, X } from "lucide-react";
+import { CONTACT_EMAIL } from "@/lib/site";
 import SelectField from "@/components/onboarding/select-field";
 import {
-  ADDRESS_PARTS, checkAnswers, COUNTRIES, FILE_MAX_BYTES, FILE_TYPES, LIMITS, visible,
+  ADDRESS_PARTS, checkAnswers, COUNTRIES, FILE_BY_EMAIL, FILE_MAX_BYTES, FILE_TYPES, LIMITS, visible,
   type Answer, type Answers, type CustomField, type CustomFormDef, type FileAnswer,
 } from "@/lib/forms/custom-def";
 import "@/components/contact/contact.css";
@@ -153,7 +154,7 @@ function Field({ f, id, value, error, onChange, slug, preview }: {
         </div>
       );
     case "file":
-      control = <FileField id={id} f={f} files={Array.isArray(value) && (value.length === 0 || typeof value[0] === "object") ? (value as FileAnswer[]) : []} onChange={onChange} slug={slug} preview={preview} describedBy={describedBy} />;
+      control = <FileField id={id} f={f} files={Array.isArray(value) && (value.length === 0 || typeof value[0] === "object") ? (value as FileAnswer[]) : []} byEmail={value === FILE_BY_EMAIL} onChange={onChange} slug={slug} preview={preview} describedBy={describedBy} />;
       break;
     default: {
       const type = f.type === "phone" ? "tel" : f.type === "text" ? "text" : f.type;
@@ -176,11 +177,15 @@ function Field({ f, id, value, error, onChange, slug, preview }: {
   );
 }
 
-function FileField({ id, f, files, onChange, slug, preview, describedBy }: {
-  id: string; f: CustomField; files: FileAnswer[]; onChange: (v: Answer) => void; slug?: string; preview?: boolean; describedBy?: string;
+function FileField({ id, f, files, byEmail, onChange, slug, preview, describedBy }: {
+  id: string; f: CustomField; files: FileAnswer[]; byEmail: boolean; onChange: (v: Answer) => void; slug?: string; preview?: boolean; describedBy?: string;
 }) {
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState("");
+  /* Uploads unavailable (storage down or not set up): the visitor is never
+     stuck on a required file. They can say they will email it, which answers
+     the question, and untick it to try the upload again. */
+  const [storageOff, setStorageOff] = useState(false);
   const add = async (list: FileList | null) => {
     if (!list?.length) return;
     setProblem("");
@@ -192,8 +197,8 @@ function FileField({ id, f, files, onChange, slug, preview, describedBy }: {
       if (preview) { out.push({ key: `preview/${file.name}`, name: file.name, size: file.size }); continue; }
       setBusy(true);
       const grant = await fetch(`/api/forms/${slug}/upload`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ filename: file.name, size: file.size }) })
-        .then((r) => r.json().then((b) => (r.ok ? b : { error: b.error ?? "The upload could not start." }))).catch(() => ({ error: "The upload could not start. Check your connection." }));
-      if (grant.error) { setProblem(grant.error); setBusy(false); continue; }
+        .then((r) => r.json().then((b) => (r.ok ? b : { error: b.error ?? "The upload could not start.", off: r.status === 503 }))).catch(() => ({ error: "The upload could not start. Check your connection." }));
+      if (grant.error) { setProblem(grant.error); setBusy(false); if (grant.off) { setStorageOff(true); break; } continue; }
       const put = await fetch(grant.url, { method: "PUT", headers: { "Content-Type": grant.contentType }, body: file }).then((r) => r.ok).catch(() => false);
       setBusy(false);
       if (!put) { setProblem(`${file.name} could not be uploaded. Try again, or send it by email instead.`); continue; }
@@ -221,6 +226,12 @@ function FileField({ id, f, files, onChange, slug, preview, describedBy }: {
         </ul>
       ) : null}
       {problem ? <small className="ct-error" role="alert">{problem}</small> : null}
+      {storageOff || byEmail ? (
+        <label className="cf-choice cf-byEmail">
+          <input type="checkbox" checked={byEmail} onChange={(e) => onChange(e.target.checked ? FILE_BY_EMAIL : [])} />
+          <span>I&rsquo;ll email it to <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> instead</span>
+        </label>
+      ) : null}
     </div>
   );
 }
