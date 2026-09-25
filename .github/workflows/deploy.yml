@@ -59,8 +59,55 @@ jobs:
             exit 1
           fi
 
+      # API DEPLOYMENTS ARE RATIONED. Hobby allows 100 a day through the REST
+      # API ("api-deployments-free-per-day"), counted separately from the git
+      # integration's own builds. On 2026-09-25 every run from 20:11 UTC failed
+      # with `payment_required` while the git integration kept deploying the
+      # same commits, because this job made a second deployment of every commit
+      # the integration had already built -- commits pushed as `Claude` are not
+      # gated, only ones pushed as `Tee-David` are. So spend an API deployment
+      # only when it is the one thing that will ship the commit: the commit is
+      # still the tip of main, and the integration's deployment of it BLOCKED.
+      - name: See whether the git integration already shipped it
+        id: existing
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          TEAM_ID: team_PD5oXspJXbmnw6BZuI1B6xIi
+          PROJECT_ID: prj_1MobqeBbGWI2nvSfHc85SG7iIpAt
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          tip=$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)
+          if [ "$tip" != "$SHA" ]; then
+            echo "main has moved on to ${tip}; that push deploys instead."
+            echo "skip=1" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # The integration usually registers its deployment within seconds.
+          # Three minutes of silence means it made none, so deploy ourselves.
+          for _ in $(seq 1 18); do
+            list=$(curl -sS \
+              "https://api.vercel.com/v6/deployments?teamId=${TEAM_ID}&projectId=${PROJECT_ID}&target=production&sha=${SHA}&limit=10" \
+              -H "Authorization: Bearer ${VERCEL_TOKEN}")
+            found=$(printf '%s' "$list" | jq -r '[.deployments[]? | select(.state != "BLOCKED" and .state != "CANCELED" and .state != "ERROR")][0].uid // empty')
+            blocked=$(printf '%s' "$list" | jq -r '[.deployments[]? | select(.state == "BLOCKED")] | length')
+            if [ -n "$found" ]; then
+              echo "The git integration is deploying ${SHA} as ${found}; waiting on that one."
+              echo "id=$found" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            if [ "$blocked" != "0" ]; then
+              echo "The git integration's deployment was BLOCKED; creating one through the API."
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "No deployment from the git integration after three minutes; creating one."
+
       - name: Create the production deployment
         id: create
+        if: steps.existing.outputs.skip != '1' && steps.existing.outputs.id == ''
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           TEAM_ID: team_PD5oXspJXbmnw6BZuI1B6xIi
@@ -89,10 +136,11 @@ jobs:
           echo "Created $id for ${SHA}"
 
       - name: Wait for it to finish
+        if: steps.existing.outputs.skip != '1'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           TEAM_ID: team_PD5oXspJXbmnw6BZuI1B6xIi
-          ID: ${{ steps.create.outputs.id }}
+          ID: ${{ steps.create.outputs.id || steps.existing.outputs.id }}
         run: |
           set -euo pipefail
           # Polled rather than fire-and-forget, so a red tick in the Actions tab
