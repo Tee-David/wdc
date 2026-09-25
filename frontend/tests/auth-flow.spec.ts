@@ -254,7 +254,9 @@ test("a protected route with no session goes to the login page, carrying where i
  * access log on the way. Asserted against the SERVER-RENDERED html, because
  * that is the document the gap exists in.
  */
-for (const path of ["/login", "/forgot-password", "/reset-password"]) {
+/* /reset-password is checked WITH a token: without one there is no password
+   form at all (it offers a new link instead), which is the safer answer. */
+for (const path of ["/login", "/forgot-password", "/reset-password?token=abcdefghijklmnopqrstuvwxyz0123456789"]) {
   test(`${path} cannot put a credential in a URL before it hydrates`, async ({ request }) => {
     const html = await (await request.get(path)).text();
     const forms = [...html.matchAll(/<form\b[^>]*class="au__form\b[^"]*"[^>]*>/g)].map((m) => m[0]);

@@ -38,6 +38,8 @@ export function EntriesTable({ formKey, inbox, tab, canDelete, canExport, column
     `/admin/forms/${formKey}/export?format=${format}&${exportQuery}${[...picked].map((id) => `&id=${id}`).join("")}`;
 
   return (
+    /* The tour's target: the list whether it has rows or shows its empty state. */
+    <div data-tour="forms-entries">
     <Form action={bulkEntries} onDone={() => setPicked(new Set())}>
       <Hidden name="form" value={formKey} />
       {[...picked].map((id) => <Hidden key={id} name="id" value={id} />)}
@@ -84,7 +86,7 @@ export function EntriesTable({ formKey, inbox, tab, canDelete, canExport, column
           <button type="button" className="ad__iconButton adBulk__x" aria-label="Clear the selection" onClick={() => setPicked(new Set())}><X aria-hidden="true" /></button>
         </div>
       ) : null}
-      {rows.length ? <><div className="ad__scroll" data-tour="forms-entries">
+      {rows.length ? <><div className="ad__scroll">
         <table className="ad__t">
           <thead>
             <tr>
@@ -125,5 +127,6 @@ export function EntriesTable({ formKey, inbox, tab, canDelete, canExport, column
         </table>
       </div>{footer}</> : empty}
     </Form>
+    </div>
   );
 }

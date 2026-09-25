@@ -45,12 +45,16 @@ type Outcome =
          its own. All of it comes off the payment we just banked, never off
          the query string. */
       receiptNo: string; method: string; at: string;
+      /** Paid past the total: the extra is credit, and the payer is told. */
+      overpaid?: boolean;
     }
-  | { kind: "pending"; message: string }
-  | { kind: "failed"; message: string }
+  /* The invoice's public address when it is known, so a failed or unconfirmed
+     payment always has "Try again" rather than a dead end. */
+  | { kind: "pending"; message: string; invoiceToken?: string }
+  | { kind: "failed"; message: string; invoiceToken?: string }
   /* No reference at all: this page cannot know what happened, so it must not
      say "not paid" -- that alarms somebody whose money may well have gone. */
-  | { kind: "unknown"; message: string };
+  | { kind: "unknown"; message: string; invoiceToken?: string };
 
 async function settle(reference: string): Promise<Outcome> {
   const verified = await verifyTransaction(reference);
@@ -67,6 +71,12 @@ async function settle(reference: string): Promise<Outcome> {
 
   const t = verified.data;
   const amount = fromKobo(t.amount);
+  const meta = (t.metadata ?? {}) as Record<string, unknown>;
+  const invoice = matchInvoice({
+    invoiceId: typeof meta.invoiceId === "string" ? meta.invoiceId : undefined,
+    reference,
+  });
+  const invoiceToken = invoice?.token;
 
   if (t.status !== "success") {
     recordProviderEvent({
@@ -75,10 +85,10 @@ async function settle(reference: string): Promise<Outcome> {
       note: t.gateway_response ?? `Paystack reports the transaction as ${t.status}.`,
     });
     return {
-      kind: "failed",
+      kind: "failed", invoiceToken,
       message: t.gateway_response
-        ? `The payment did not go through: ${t.gateway_response.toLowerCase()}.`
-        : "The payment did not go through. Nothing has been taken from your account.",
+        ? `The payment did not go through: ${t.gateway_response.toLowerCase()}. Nothing was taken from your account; you can try again now.`
+        : "The payment did not go through. Nothing has been taken from your account; you can try again now.",
     };
   }
 
@@ -87,14 +97,9 @@ async function settle(reference: string): Promise<Outcome> {
       event: "verify.currency", reference, amount, outcome: "Unmatched", mode: paystackMode(),
       note: `Charged in ${t.currency}, and the books are in NGN.`,
     });
-    return { kind: "pending", message: "Your payment went through and we are checking it against the invoice. We will email your receipt shortly." };
+    return { kind: "pending", invoiceToken, message: "Your payment went through and we are checking it against the invoice. We will email your receipt shortly." };
   }
 
-  const meta = (t.metadata ?? {}) as Record<string, unknown>;
-  const invoice = matchInvoice({
-    invoiceId: typeof meta.invoiceId === "string" ? meta.invoiceId : undefined,
-    reference,
-  });
   if (!invoice) {
     recordProviderEvent({
       event: "verify.unmatched", reference, amount, outcome: "Unmatched", mode: paystackMode(),
@@ -126,7 +131,7 @@ async function settle(reference: string): Promise<Outcome> {
       invoiceId: invoice.id,
       note: `Verified as paid but could not be applied to ${invoice.number}: ${applied.reason}.`,
     });
-    return { kind: "pending", message: "Your payment went through and we are recording it. We will email your receipt shortly." };
+    return { kind: "pending", invoiceToken, message: "Your payment went through and we are recording it. We will email your receipt shortly." };
   }
 
   recordProviderEvent({
@@ -149,7 +154,7 @@ async function settle(reference: string): Promise<Outcome> {
     kind: "paid", receiptUrl: `/r/${applied.payment.token}`, amount: applied.payment.amount,
     number: invoice.number, outstanding: invoiceTotals(fresh).due,
     receiptNo: applied.payment.receiptNo, method: applied.payment.method,
-    at: applied.payment.at,
+    at: applied.payment.at, overpaid: Boolean(applied.overpaid),
   };
 }
 
@@ -163,6 +168,10 @@ export default async function PaymentDone({
      same value, and a string is all we take from either. */
   const raw = params.reference ?? params.trxref;
   const reference = (Array.isArray(raw) ? raw[0] : raw)?.trim().slice(0, 100) ?? "";
+
+  /* A signed-in client came from the portal and gets a way back to it. */
+  const signedInClient = await import("@/lib/portal/session")
+    .then((m) => m.getPortalRequest()).then((r) => Boolean(r.client)).catch(() => false);
 
   const outcome: Outcome = reference
     ? await settle(reference)
@@ -199,8 +208,15 @@ export default async function PaymentDone({
               you, and the receipt below is the live one: it will still be
               right if anything about this payment changes later.
             </p>
+            {outcome.overpaid ? (
+              <p className="doc__said">
+                This invoice was already paid, so the extra is held as credit and comes off your next invoice.
+                If you would rather have it back, write to info@wedigcreativity.com.ng and we will refund it.
+              </p>
+            ) : null}
             <p className="doc__actions">
               <Link className="doc__btn" href={outcome.receiptUrl}>Open your receipt</Link>
+              {signedInClient ? <Link className="doc__btn doc__btn--ghost" href="/portal/billing">Back to billing</Link> : null}
             </p>
           </>
         ) : (
@@ -212,6 +228,12 @@ export default async function PaymentDone({
               </h1>
             </div>
             <p>{outcome.message}</p>
+            <p className="doc__actions">
+              {outcome.invoiceToken
+                ? <Link className="doc__btn" href={`/i/${outcome.invoiceToken}`}>{outcome.kind === "failed" ? "Try again" : "Back to the invoice"}</Link>
+                : null}
+              {signedInClient ? <Link className={`doc__btn${outcome.invoiceToken ? " doc__btn--ghost" : ""}`} href="/portal/billing">Back to billing</Link> : null}
+            </p>
           </>
         )}
 

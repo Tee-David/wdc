@@ -1,7 +1,20 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { CONTACT_EMAIL } from "@/lib/site";
 import "./onboarding.css";
+
+/* THE FORM'S CODE DID NOT ARRIVE: a stale tab after a deploy, or a dropped
+   connection. Without this the page stayed blank for good. */
+function LoadFailed() {
+  return (
+    <div className="ob__notice" role="alert">
+      <b>The form didn&rsquo;t load.</b>
+      <p>Your connection may have dropped, or the site was updated while this tab was open. Anything you typed before is saved.</p>
+      <button className="ob__btn ob__btn--go" type="button" onClick={() => window.location.reload()}>Reload the page</button>
+    </div>
+  );
+}
 
 /**
  * Mounts the form in the browser only.
@@ -15,11 +28,21 @@ import "./onboarding.css";
  * here: this page is behind a link, it is not indexed, and there is no
  * content on it worth delivering as HTML.
  */
-const OnboardingForm = dynamic(() => import("./onboarding-form"), {
+const OnboardingForm = dynamic(() => import("./onboarding-form").catch(() => ({ default: LoadFailed })), {
   ssr: false,
   loading: () => <div className="ob__wait" aria-hidden="true" />,
 });
 
 export default function OnboardingMount({ closed = {} }: { closed?: Record<string, string> }) {
-  return <OnboardingForm closed={closed} />;
+  return (
+    <>
+      <noscript>
+        <div className="ob__notice">
+          <b>This form needs JavaScript.</b>
+          <p>Turn it on and reload, or email {CONTACT_EMAIL} and we will take your answers on a call instead.</p>
+        </div>
+      </noscript>
+      <OnboardingForm closed={closed} />
+    </>
+  );
 }

@@ -31,6 +31,9 @@ export function ResetPasswordForm({ token = "", invalid = false }: { token?: str
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState(invalid ? "This reset link is invalid or has expired." : "");
+  /* A DEAD LINK DOES NOT ASK FOR A PASSWORD. Typing one into a form that can
+     only fail again is the trap; the one way forward is a new link. */
+  const [dead, setDead] = useState(invalid || !token);
   const [field, setField] = useState<{ password?: string; confirm?: string }>({});
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -57,11 +60,8 @@ export function ResetPasswordForm({ token = "", invalid = false }: { token?: str
       const result = await authClient.resetPassword({ newPassword: password, token });
       if (result.error) {
         await Promise.all([stage.ringEnd(false), stage.shakeHead()]);
-        setError(
-          result.error.status === 429
-            ? "Too many attempts from this connection. Wait a minute and try again."
-            : "This reset link is invalid or has expired. Request a new one.",
-        );
+        if (result.error.status === 429) setError("Too many attempts from this connection. Wait a minute and try again.");
+        else setDead(true);
         return;
       }
       await stage.ringEnd(true);
@@ -81,7 +81,15 @@ export function ResetPasswordForm({ token = "", invalid = false }: { token?: str
     <div className="lx">
       <div className="lx__step" data-dir="1">
         <h1 className="lx__heading">Choose a new password</h1>
-        {done ? (
+        {dead && !done ? (
+          <div className="au__notice" role="status">
+            <b>This reset link has expired.</b>
+            <span>Links work for one hour and only once. Ask for a new one; it takes a few seconds.</span>
+            <Link href="/forgot-password" className="au-btn au-btn--primary" data-awake="true">
+              Send me a new link
+            </Link>
+          </div>
+        ) : done ? (
           <div className="au__notice" role="status">
             <b>Password updated.</b>
             <span>Every other session on this account has been signed out. Log in with the new password.</span>

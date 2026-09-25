@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     WHERE token_hash = $1 AND used_at IS NULL AND revoked_at IS NULL AND expires_at > now()
   `, [tokenHash(token)]);
   if (!claimed.rowCount) {
-    return NextResponse.json({ error: "This resume link has already been used." }, { status: 409 });
+    return NextResponse.json({ error: "This resume link has already been used.", canReissue: true }, { status: 409 });
   }
   const draft = await draftFromToken(token);
   if (!draft) return NextResponse.json({ error: "This saved form is no longer available." }, { status: 404 });

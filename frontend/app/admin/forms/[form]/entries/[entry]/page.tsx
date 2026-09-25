@@ -4,6 +4,7 @@ import { answerText, type Answers, type FileAnswer } from "@/lib/forms/custom-de
 import { versionDef } from "@/lib/forms/custom";
 import { findForm } from "@/lib/forms/find";
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { after } from "next/server";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
@@ -159,15 +160,20 @@ export default async function EntryPage({ params, searchParams }: Props) {
 
   const f = readFilters(form, sp);
   const listQuery = new URLSearchParams(Object.entries(sp).flatMap(([k, v]) => (typeof v === "string" && k !== "hide" ? [[k, v]] : []))).toString();
-  const [ids, events, messages] = await Promise.all([
+  const [filteredIds, events, messages] = await Promise.all([
     entryIds(form, f).catch(() => [] as string[]),
     eventsFor(entry.id).catch(() => [] as EntryEvent[]),
     listForRecord(entry.id),
   ]);
+  /* AN ENTRY OUTSIDE THE CURRENT FILTER (opened from an email, a search or
+     an old link) still steps through its form: the unfiltered list, and the
+     links drop the filter so they lead where they say. */
+  const inList = filteredIds.includes(entry.id);
+  const ids = inList ? filteredIds : await entryIds(form, readFilters(form, {})).catch(() => [] as string[]);
   const at = ids.indexOf(entry.id);
   const prev = at > 0 ? ids[at - 1] : null;
   const next = at >= 0 && at < ids.length - 1 ? ids[at + 1] : null;
-  const link = (x: string) => `/admin/forms/${form.key}/entries/${x}${listQuery ? `?${listQuery}` : ""}`;
+  const link = (x: string) => `/admin/forms/${form.key}/entries/${x}${inList && listQuery ? `?${listQuery}` : ""}`;
   const client = form.source === "newsletter" ? null : clientFor(entry);
   const mayResend = can(await adminRole(), "settings");
 
@@ -186,8 +192,19 @@ export default async function EntryPage({ params, searchParams }: Props) {
           </p>
         </div>
         <div className="ad__row adForms__noPrint">
-          {prev ? <Link className="ad__btn" href={link(prev)} rel="prev">Previous</Link> : null}
-          {next ? <Link className="ad__btn" href={link(next)} rel="next">Next</Link> : null}
+          {/* BOTH, ALWAYS, with where this one sits: a button that vanishes at
+              the end of the list reads as a missing feature, not an end. */}
+          {ids.length > 1 ? (
+            <nav className="adEntryNav" aria-label={`${form.noun} ${at + 1} of ${ids.length}`}>
+              {prev
+                ? <Link className="ad__btn" href={link(prev)} rel="prev"><ChevronLeft aria-hidden="true" /> Previous</Link>
+                : <span className="ad__btn is-off" aria-disabled="true"><ChevronLeft aria-hidden="true" /> Previous</span>}
+              <span className="adEntryNav__at ad__dim">{at + 1} of {ids.length}</span>
+              {next
+                ? <Link className="ad__btn" href={link(next)} rel="next">Next <ChevronRight aria-hidden="true" /></Link>
+                : <span className="ad__btn is-off" aria-disabled="true">Next <ChevronRight aria-hidden="true" /></span>}
+            </nav>
+          ) : null}
           {form.source === "contact" ? (
             <a className="ad__btn ad__btn--primary" href={`mailto:${entry.email}?subject=${encodeURIComponent(`Re: ${entry.topic ?? "your enquiry"}`)}`}>Reply by email</a>
           ) : null}

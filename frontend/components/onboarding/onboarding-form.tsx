@@ -352,6 +352,10 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
           A few questions so we can begin. Your answers go straight into the
           work, and this is the last time we will ask you for most of it.
         </p>
+        <ReturningNotice draft={serverDraft} onNewBrief={() => {
+          try { localStorage.removeItem(KEY); } catch { /* nothing to clear */ }
+          setA({}); setI(0); setRestored(false);
+        }} />
 
         <h2 className="ob__pickH">What are we working on for you?</h2>
         <p className="ob__pickSub">Choose the one this form is for.</p>
@@ -603,6 +607,7 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
           wipeOpen={wipeOpen} onWipeClose={() => setWipeOpen(false)}
           onWipe={() => {
             try { localStorage.removeItem(KEY); } catch { /* nothing to clear */ }
+            void serverDraft.forget();
             setA({}); setI(0); setStarted(false); setRestored(false);
             setWipeOpen(false);
           }}
@@ -738,6 +743,7 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
           wipeOpen={wipeOpen} onWipeClose={() => setWipeOpen(false)}
           onWipe={() => {
             try { localStorage.removeItem(KEY); } catch { /* nothing to clear */ }
+            void serverDraft.forget();
             setA({}); setI(0); setStarted(false); setRestored(false);
             setWipeOpen(false);
           }}
@@ -1131,4 +1137,50 @@ function FieldView({
       onChange={(e) => onChange(e.target.value)}
     />,
   );
+}
+
+
+/**
+ * WHAT A RETURNING CLIENT SEES WHEN THEIR LINK CANNOT TAKE THEM BACK IN.
+ * A brief already sent is said plainly, with the way to start another; an
+ * expired or used link gets the fresh one it promises, sent to the address
+ * on the draft. Neither leaves a blank form with nothing to do.
+ */
+function ReturningNotice({ draft, onNewBrief }: {
+  draft: ReturnType<typeof useServerDraft>;
+  onNewBrief: () => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [said, setSaid] = useState("");
+  const [busy, setBusy] = useState(false);
+  if (draft.alreadySent) {
+    return (
+      <div className="ob__notice" role="status">
+        <b>This brief was already sent.</b>
+        <p>We have it, and it is with the team. If anything has changed, reply to our email, or start a new brief below.</p>
+        <button className="ob__btn ob__btn--ghost" type="button" onClick={() => { void draft.forget(); onNewBrief(); }}>Start a new brief</button>
+      </div>
+    );
+  }
+  if (draft.canReissue) {
+    return (
+      <div className="ob__notice" role="status">
+        <b>{draft.message || "That link no longer works."}</b>
+        <p>Enter the email address you used and we will send a fresh link to it. Your answers are still saved.</p>
+        <form className="rs__link" onSubmit={async (e) => {
+          e.preventDefault();
+          setBusy(true);
+          const r = await draft.reissue(email);
+          setBusy(false);
+          setSaid(r.message);
+        }}>
+          <input type="email" inputMode="email" autoComplete="email" required placeholder="you@business.com"
+            aria-label="The email address you used" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <button type="submit" disabled={busy}>{busy ? "Sending..." : "Send me a new link"}</button>
+        </form>
+        {said ? <p className="ob__saved" role="status">{said}</p> : null}
+      </div>
+    );
+  }
+  return draft.message ? <p className="ob__saved" role="status">{draft.message}</p> : null;
 }

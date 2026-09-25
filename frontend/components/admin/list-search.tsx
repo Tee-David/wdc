@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { Search, X } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Search, SearchX, X } from "lucide-react";
 
 /**
  * A SEARCH FOR A LIST THAT IS ALREADY ON THE PAGE (the owner's rule: every
@@ -33,13 +34,34 @@ export function ListSearch({ target, label = "Search", placeholder = "Search", n
       if (hit && !r.closest("[data-ls-mirror]")) n += 1;
     }
     box.dataset.searching = needle ? "1" : "";
+    /* NOTHING MATCHES: the table's header over no rows reads as a broken
+       page, so the list itself says so and offers the way back. */
+    box.dataset.lsNone = needle && n === 0 ? "1" : "";
     /* Reported in a frame, not during this effect's own pass. */
     const f = requestAnimationFrame(() => setShown(needle ? { n, of: counted.length } : null));
     return () => cancelAnimationFrame(f);
   }, [q, target]);
 
+  const [holder, setHolder] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    const box = document.getElementById(target);
+    if (!box) return;
+    const el = document.createElement("div");
+    el.className = "adLS__noneHold";
+    box.appendChild(el);
+    const f = requestAnimationFrame(() => setHolder(el));
+    return () => { cancelAnimationFrame(f); el.remove(); setHolder(null); };
+  }, [target]);
+
   return (
     <div className="adLS" role="search">
+      {holder && shown && shown.n === 0 ? createPortal(
+        <div className="adLS__none">
+          <span className="ad__emptyIcon"><SearchX aria-hidden="true" /></span>
+          <b>No {noun} match &ldquo;{q.trim()}&rdquo;</b>
+          <p>Check the spelling, or search for part of a name.</p>
+          <button type="button" className="ad__btn" onClick={() => { setQ(""); input.current?.focus(); }}>Clear the search</button>
+        </div>, holder) : null}
       <label className="adLS__box" htmlFor={id}>
         <Search aria-hidden="true" />
         <span className="ad__sr">{label}</span>

@@ -5,6 +5,7 @@ import { authViewport } from "@/components/auth/login-route";
 import { InviteForm } from "@/components/auth/invite-form";
 import { invitationForToken, invitationsConfigured, inviteState } from "@/lib/invitations";
 import { getClient } from "@/lib/admin/store";
+import { CONTACT_EMAIL } from "@/lib/site";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 
 export const metadata: Metadata = { title: "Accept your invitation", robots: { index: false, follow: false } };
@@ -12,11 +13,11 @@ export const viewport = authViewport;
 export const dynamic = "force-dynamic";
 
 const GONE: Record<string, { title: string; body: string }> = {
-  invalid: { title: "This link is not valid", body: "Ask whoever invited you to send a new invitation." },
-  redeemed: { title: "This invitation has been used", body: "The account it created is ready. Log in with it." },
-  revoked: { title: "This invitation was withdrawn", body: "Ask whoever invited you to send a new one." },
-  expired: { title: "This invitation has expired", body: "Invitations last a week. Ask whoever invited you to send a new one." },
-  unavailable: { title: "Invitations are not available", body: "The account database is not connected on this deployment." },
+  invalid: { title: "This link is not valid", body: "It may have been copied only in part. Email us and we will send you a new invitation." },
+  redeemed: { title: "Your account is ready", body: "This invitation has already made your account." },
+  revoked: { title: "This invitation was withdrawn", body: "A newer one may be in your inbox. If not, email us and we will send one." },
+  expired: { title: "This invitation has expired", body: "Invitations last a week. Email us and we will send you a new one." },
+  unavailable: { title: "Invitations are not available", body: "The account database is not connected on this deployment. Email us and we will sort it out." },
 };
 
 /**
@@ -48,16 +49,38 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
           <div className="lx__step" data-dir="1">
             <h1 className="lx__heading">{gone.title}</h1>
             <p className="lx__sub">{gone.body}</p>
-            <Link href="/login" className="au-btn au-btn--primary" data-awake="true">Go to log in</Link>
+            {/* ONE WAY FORWARD PER STATE. Someone whose invitation made their
+                account logs in, and is told which address and that an emailed
+                link needs no password; everyone else writes to us, with the
+                address in plain sight rather than behind a button. */}
+            {state === "redeemed" ? (
+              <>
+                {invite ? <p className="lx__sub">Log in as <b>{invite.email}</b>. If you chose to be emailed a link instead of a password, pick &ldquo;Email me a link&rdquo;; no password is needed.</p> : null}
+                <Link href="/login" className="au-btn au-btn--primary" data-awake="true">Go to log in</Link>
+              </>
+            ) : (
+              <>
+                <a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("A new invitation, please")}`} className="au-btn au-btn--primary" data-awake="true">Email us for a new invitation</a>
+                <p className="lx__sub">{CONTACT_EMAIL} · Already have an account? <Link href="/login">Log in</Link></p>
+              </>
+            )}
           </div>
         </div>
       </AuthShell>
     );
   }
 
+  /* Someone already signed in on this browser is told before accepting
+     replaces them, not after. */
+  const signedIn = await import("@/lib/auth")
+    .then(async ({ auth }) => auth.api.getSession({ headers: await (await import("next/headers")).headers() }))
+    .catch(() => null);
+  const signedInAs = signedIn?.user?.email && signedIn.user.email.toLowerCase() !== invite.email.toLowerCase() ? signedIn.user.email : null;
+
   return (
     <AuthShell demo={demo}>
       <InviteForm
+        signedInAs={signedInAs}
         token={token}
         email={invite.email}
         name={invite.name}

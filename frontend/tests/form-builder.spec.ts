@@ -3,7 +3,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import pg from "pg";
-import { checkAnswers, cleanDef } from "../lib/forms/custom-def";
+import { checkAnswers, cleanDef, FILE_BY_EMAIL } from "../lib/forms/custom-def";
 
 /**
  * THE FORM BUILDER, END TO END: build a form with a conditional question,
@@ -24,6 +24,26 @@ function pool() {
 }
 
 test.describe("rules", () => {
+  test("a required upload can be answered with 'I'll email it' when uploads are unavailable", () => {
+    const { def } = cleanDef({ title: "Jobs", fields: [{ id: "cv", type: "file", label: "Your CV", required: true }] });
+    expect(checkAnswers(def, {}).errors).toEqual({ cv: "This one is needed." });
+    expect(checkAnswers(def, { cv: FILE_BY_EMAIL })).toEqual({ answers: { cv: FILE_BY_EMAIL }, errors: {} });
+  });
+
+  test("an address needs its street, city and a real country; a country field takes only countries", () => {
+    const { def } = cleanDef({ title: "Ship", fields: [
+      { id: "where", type: "address", label: "Delivery address", required: true },
+      { id: "from", type: "country", label: "Where are you based?" },
+    ] });
+    expect(checkAnswers(def, {}).errors).toEqual({ where: "This one is needed." });
+    expect(checkAnswers(def, { where: ["12 Allen Avenue", "", "", "Nigeria"] }).errors).toEqual({ where: "Add the city or town." });
+    expect(checkAnswers(def, { where: ["12 Allen Avenue", "Ikeja", "Lagos", "Narnia"] }).errors).toEqual({ where: "Pick the country from the list." });
+    const ok = checkAnswers(def, { where: ["12 Allen Avenue", "Ikeja", "", "Nigeria"], from: "Ghana" });
+    expect(ok.errors).toEqual({});
+    expect(ok.answers.where).toEqual(["12 Allen Avenue", "Ikeja", "", "Nigeria"]);
+    expect(checkAnswers(def, { where: ["1 A St", "B", "", "Nigeria"], from: "Atlantis" }).errors).toEqual({ from: "Pick the country from the list." });
+  });
+
   test("a definition is cleaned, and answers are held to their questions", () => {
     const { def, errors } = cleanDef({
       title: "Event", fields: [

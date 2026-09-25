@@ -78,7 +78,7 @@ export function Empty({
   icon?: LucideIcon;
 }) {
   return (
-    <div className="ad__empty">
+    <div className="ad__empty" role="status">
       <span className="ad__emptyIcon"><Icon aria-hidden="true" /></span>
       <b>{title}</b>
       {children ? <p>{children}</p> : null}
