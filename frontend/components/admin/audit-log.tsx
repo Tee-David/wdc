@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { listAudit, type AuditFilters } from "@/lib/audit-db";
 import type { AuditKind, Id } from "@/lib/admin/types";
 import { toEvents } from "@/lib/audit-events";
@@ -15,7 +16,7 @@ import { Pager } from "./pager";
  * a pager, so all of the history can be reached, not only the newest page.
  */
 export default async function AuditLog({
-  kind, subjectId, subjectIds, limit = 60, title = "Everything that changed", filters, filtered = false, pager,
+  kind, subjectId, subjectIds, limit = 60, title = "Everything that changed", filters, filtered = false, pager, clearHref,
 }: {
   kind?: AuditKind;
   subjectId?: Id;
@@ -28,6 +29,8 @@ export default async function AuditLog({
   filtered?: boolean;
   /** Settings' pager: the address of another page or page size. */
   pager?: (patch: { page?: number; per?: number }) => string;
+  /** Where "Clear the filters" goes, so a search that finds nothing is not a dead end. */
+  clearHref?: string;
 }) {
   const per = filters?.limit ?? limit;
   const { entries, total, source } = await listAudit({ range: "all", ...filters, kind: filters?.kind ?? kind, subjectId, subjectIds, limit: per });
@@ -52,7 +55,10 @@ export default async function AuditLog({
           ) : null}
         </>
       ) : filtered ? (
-        <Empty kind="no-results" title="No changes match">Widen the dates or clear the search.</Empty>
+        <Empty kind="no-results" title="No changes match"
+          action={clearHref ? <Link className="ad__btn" href={clearHref}>Clear the filters</Link> : undefined}>
+          Widen the dates or clear the search.
+        </Empty>
       ) : (
         <Empty title="Nothing has changed yet">
           Every edit to a client, project, invoice, payment, expense or setting

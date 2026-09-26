@@ -2,14 +2,15 @@ import Link from "next/link";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
 import { DEFAULT_LOG_RETENTION, getAppSetting, LOG_RETENTION_KEY } from "@/lib/app-settings";
-import { loggedStateCounts, searchLogged, type LogQuery } from "@/lib/message-log";
+import { failureReasons, loggedStateCounts, searchLogged, type LogQuery } from "@/lib/message-log";
+import { mailIsConfigured } from "@/lib/email";
 import type { MessageState } from "@/lib/admin/types";
 import { AdminState } from "@/components/admin/admin-state";
 import { Empty, Panel } from "@/components/admin/bits";
 import { Pager } from "@/components/admin/pager";
 import { DateRange } from "@/components/admin/date-range";
 import { ResendMessage } from "@/components/admin/reconcile-forms";
-import { TidyNow } from "@/components/admin/email-settings";
+import { LogMore, RetryFailed } from "@/components/admin/email-settings";
 import "@/components/admin/forms/forms.css";
 
 export const metadata = { title: "Message log" };
@@ -23,7 +24,13 @@ type Props = { searchParams: Promise<Record<string, string | string[] | undefine
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 const STATES: ("" | MessageState)[] = ["", "Failed", "Queued", "Sent", "Skipped"];
 const PER = [25, 50, 100];
-const time = (iso: string) => new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" });
+/* "26 Sept, 00:06": the year only when it is not this one, so the column
+   stays one line wide instead of wrapping to four. */
+const time = (iso: string) => {
+  const d = new Date(iso);
+  const thisYear = d.getUTCFullYear() === new Date().getUTCFullYear();
+  return d.toLocaleString("en-GB", { day: "numeric", month: "short", ...(thisYear ? {} : { year: "numeric" }), hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" });
+};
 const TONE: Record<string, string> = { Sent: "ad__pill--good", Failed: "ad__pill--bad", Queued: "ad__pill--warn", Skipped: "ad__pill--flat" };
 
 export default async function MessageLogPage({ searchParams }: Props) {
@@ -44,7 +51,10 @@ export default async function MessageLogPage({ searchParams }: Props) {
 
   let log: Awaited<ReturnType<typeof searchLogged>> | null = null;
   let counts: Record<string, number> = {};
-  try { [log, counts] = await Promise.all([searchLogged(query), loggedStateCounts()]); } catch { log = null; }
+  let reasons: Awaited<ReturnType<typeof failureReasons>> = [];
+  try { [log, counts, reasons] = await Promise.all([searchLogged(query), loggedStateCounts(), failureReasons()]); } catch { log = null; }
+  const mail = mailIsConfigured();
+  const failed = counts.Failed ?? 0;
   const qs = (patch: Record<string, string | number>) => {
     const v = new URLSearchParams();
     const all = { q: query.q, state: query.state, per: query.per, page: query.page, from: query.from ?? "", to: query.to ?? "", ...patch };
@@ -60,10 +70,27 @@ export default async function MessageLogPage({ searchParams }: Props) {
           <h1>Message log</h1>
           <p>Every email the site sent, kept {days} days.</p>
         </div>
-        <div className="ad__row"><TidyNow /></div>
+        <div className="ad__row adLog__acts">
+          {/* Retrying can only fail again with no mail server, so it is only
+              offered once there is one; the reasons line says what to do
+              otherwise. */}
+          {failed && mail ? <RetryFailed count={failed} /> : null}
+          <LogMore />
+        </div>
       </div>
 
       <div className="ad__stack">
+        {failed && reasons.length ? (
+          <div className="adLog__why" role="note">
+            <span className="ad__pill ad__pill--bad">{failed} failed</span>
+            <p>
+              {reasons.length === 1 || reasons[0].n === failed
+                ? <>All for one reason: <b>{reasons[0].reason}</b></>
+                : <>Mostly <b>{reasons[0].reason}</b> ({reasons[0].n}){reasons.slice(1).map((r) => <span key={r.reason}>, then {r.reason} ({r.n})</span>)}</>}
+              {!mail ? <> This deployment has no mail server. <Link href="/admin/settings/integrations">Connect it</Link></> : null}
+            </p>
+          </div>
+        ) : null}
         <Panel title="Messages">
           <nav aria-label="Message states">
             <ul className="adForms__tabs" style={{ padding: ".8rem 1rem 0" }}>
@@ -99,26 +126,25 @@ export default async function MessageLogPage({ searchParams }: Props) {
             <AdminState kind="error" title="The message log could not be read" description="The database did not answer, or it is not connected." />
           ) : log.rows.length ? (
             <>
-              <div className="ad__scroll">
-                <table className="ad__t">
-                  <thead><tr><th>When</th><th>To</th><th>What</th><th>State</th><th>Took</th><th className="ad__rmH"><span className="ad__sr">Actions</span></th></tr></thead>
-                  <tbody>
-                    {log.rows.map((m) => (
-                      <tr key={m.id}>
-                        <td className="ad__num">{time(m.at)}</td>
-                        <td>{m.to}</td>
-                        <td><b>{m.subject}</b><small>{m.summary}{m.by ? ` · ${m.by}` : ""}</small></td>
-                        <td>
-                          <span className={`ad__pill ${TONE[m.state] ?? ""}`}>{m.state}</span>
-                          {m.error ? <small>{m.error}</small> : null}
-                          {m.resends.length ? <small>Resent {m.resends.length} time{m.resends.length === 1 ? "" : "s"}</small> : null}
-                        </td>
-                        <td className="num">{m.ms ? `${(m.ms / 1000).toFixed(1)} s` : ""}</td>
-                        <td className="ad__rmC">{m.state === "Failed" ? <ResendMessage id={m.id} /> : null}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              {/* ROWS, NOT A TABLE. On a phone a six-column table scrolled
+                  sideways and left the state and Try again off screen; these
+                  rows keep the grid on a wide screen and fold into cards on a
+                  narrow one (the settings review, "cards under 620px"). */}
+              <div className="adLog" role="list" aria-label="Messages">
+                <div className="adLog__head" aria-hidden="true"><span>When</span><span>Message</span><span>State</span><span className="num">Took</span><span /></div>
+                {log.rows.map((m) => (
+                  <div className="adLog__row" role="listitem" key={m.id}>
+                    <span className="adLog__when">{time(m.at)}</span>
+                    <span className="adLog__what"><b>{m.subject}</b><span className="adLog__to">To {m.to}</span><small>{m.summary}{m.by ? ` · ${m.by}` : ""}</small></span>
+                    <span className="adLog__state">
+                      <span className={`ad__pill ${TONE[m.state] ?? ""}`}>{m.state}</span>
+                      {m.error ? <small>{m.error}</small> : null}
+                      {m.resends.length ? <small>Resent {m.resends.length} time{m.resends.length === 1 ? "" : "s"}</small> : null}
+                    </span>
+                    <span className="adLog__took num">{m.ms ? `${(m.ms / 1000).toFixed(1)} s` : ""}</span>
+                    <span className="adLog__act">{m.state === "Failed" ? <ResendMessage id={m.id} /> : null}</span>
+                  </div>
+                ))}
               </div>
               <Pager
                 label="Message log pages"

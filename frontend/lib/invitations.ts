@@ -17,7 +17,7 @@ import { db } from "@/lib/db/pool";
  * from the row, never from the form.
  */
 
-export type InviteRole = "client" | "staff";
+export type InviteRole = "client" | "staff" | "owner";
 
 export const INVITE_TTL_DAYS = 7;
 import { passwordProblem } from "@/lib/auth/password-policy";

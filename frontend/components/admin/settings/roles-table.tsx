@@ -1,6 +1,5 @@
 import { Check, Minus } from "lucide-react";
 import { can, type Area } from "@/lib/admin/permissions";
-import { Panel } from "@/components/admin/bits";
 
 const AREAS: { area: Area; label: string }[] = [
   { area: "clients", label: "Clients and support" },
@@ -24,7 +23,11 @@ const no = <span className="adRoles__no"><Minus aria-hidden="true" /><span class
  */
 export function RolesTable() {
   return (
-    <Panel title="What each role can do">
+    <details className="adSet__more adTeam__roles">
+      <summary>What each role can open</summary>
+      {/* The id is on the table INSIDE the disclosure, so the old /access
+          redirect's #roles opens it (browsers expand a closed details for a
+          fragment that lands within it). */}
       <div id="roles" className="ad__scroll">
         <table className="ad__t adRoles">
           <thead><tr><th>Area</th><th>Owner</th><th>Staff</th></tr></thead>
@@ -35,6 +38,6 @@ export function RolesTable() {
           </tbody>
         </table>
       </div>
-    </Panel>
+    </details>
   );
 }

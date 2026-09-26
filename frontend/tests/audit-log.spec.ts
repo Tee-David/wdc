@@ -53,13 +53,16 @@ async function asOwner(page: Page, baseURL?: string) {
   await page.context().addCookies([{ name: "wdc.session_token", value: "placeholder", url: baseURL ?? "http://localhost:3100" }]);
 }
 
-const rows = (page: Page) => page.locator(".ad__logRow", { hasText: MARK });
+const rows = (page: Page) => page.locator(".adAudit__row", { hasText: MARK });
 
 test("the default view is the last 30 days, and search finds a before-and-after value", async ({ page, baseURL }) => {
   await asOwner(page, baseURL);
   await page.goto(`/admin/settings/audit?q=${MARK}`, { waitUntil: "load" });
   await expect(rows(page)).toHaveCount(2);
-  await expect(rows(page).filter({ hasText: `Moore ${MARK}` })).toContainText(`0802-${MARK}`);
+  /* The before and after are in the event's detail, one press away. */
+  await rows(page).filter({ hasText: `Moore ${MARK}` }).click();
+  await expect(page.getByRole("dialog")).toContainText(`0802-${MARK}`);
+  await page.keyboard.press("Escape");
 
   await page.getByLabel("When").selectOption("all");
   await page.getByRole("button", { name: "Show" }).click();
@@ -77,8 +80,8 @@ test("kind and person narrow it, and Clear puts it back", async ({ page, baseURL
   await expect(page.getByLabel("Who")).toHaveValue(`Ada ${MARK}`);
 
   await page.goto(`/admin/settings/audit?q=nothing-${MARK}-at-all`, { waitUntil: "load" });
-  await expect(page.getByText("Nothing matches")).toBeVisible();
-  await page.getByRole("link", { name: "Clear" }).click();
+  await expect(page.getByText("No changes match")).toBeVisible();
+  await page.getByRole("link", { name: "Clear the filters" }).click();
   await expect(page).toHaveURL(/\/admin\/settings\/audit$/);
 });
 
@@ -94,7 +97,10 @@ test("a change made in the admin is written to the table, not only to memory", a
   )).rowCount, { timeout: 15_000 }).toBe(1);
 
   await page.goto("/admin/settings/audit?range=today&q=180%20days", { waitUntil: "load" });
-  await expect(page.locator(".ad__logRow", { hasText: "180 days" }).first()).toBeVisible();
+  const row = page.locator(".adAudit__row", { hasText: "Message log" }).first();
+  await expect(row).toBeVisible();
+  await row.click();
+  await expect(page.getByRole("dialog")).toContainText("180 days");
 });
 
 test("staff are refused", async ({ page, baseURL }) => {

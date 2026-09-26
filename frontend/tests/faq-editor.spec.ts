@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { parseFaqs } from "../lib/faq-validate";
+import { sayYes } from "./say-yes";
 
 /**
  * The FAQ is edited in the admin and shown everywhere it appears, including
@@ -44,7 +45,7 @@ test.describe("in the admin", () => {
     expect(await (await request.get("/")).text()).toContain(edited);
 
     await page.reload({ waitUntil: "load" });
-    page.on("dialog", (d) => d.accept());
+    await sayYes(page);
     /* The reset form leaves the page once there is nothing to reset, so the
        page's own line is what says it worked. Retried for hydration. */
     await expect(async () => {
