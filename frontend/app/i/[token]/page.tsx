@@ -292,6 +292,8 @@ export default async function PublicInvoice({
                   says "Pay ₦377,250.00", and a screen reader announcing "credit
                   card, arrow right" around it adds nothing. */}
               <button className="doc__btn doc__btn--pay" type="submit">
+                <span className="doc__btn__trace" aria-hidden="true" />
+                <span className="doc__btn__shade" aria-hidden="true" />
                 <svg className="doc__btn__ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <rect x="2" y="5" width="20" height="14" rx="2.5" />
                   <path d="M2 10h20" />
