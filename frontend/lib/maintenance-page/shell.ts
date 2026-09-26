@@ -180,6 +180,22 @@ button,input{font:inherit;color:inherit}
 .wdc-pv output{min-width:3.2em;font-variant-numeric:tabular-nums;color:#b5b5c9}
 @media (max-width:640px){.wdc-pv .dim{display:none}}
 
+/* WE'RE BACK: the moment the site answers again, like the offline page's
+   "back online". A navy panel rises over the scene, says so, and a bar that
+   knows its length (1.6s) runs before the real page loads. */
+.wdc-back{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:var(--navy);color:#fff;transform:translateY(100%);transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.wdc-back.on{transform:none}
+.wdc-back>div{display:grid;justify-items:center;gap:1rem;text-align:center;padding:1.5rem}
+.wdc-back .tick{width:4.25rem;height:4.25rem;border-radius:50%;display:grid;place-items:center;background:#1f7a3a;transform:scale(.6);opacity:0;transition:transform .45s .35s cubic-bezier(.2,.9,.25,1.3),opacity .3s .35s}
+.wdc-back.on .tick{transform:none;opacity:1}
+.wdc-back .tick svg{width:2.2rem;height:2.2rem}
+.wdc-back h2{margin:0;font:700 clamp(2rem,6vw,3.4rem)/1 var(--display);letter-spacing:-.03em}
+.wdc-back h2 i{font-style:normal;color:var(--orange)}
+.wdc-back p{margin:0;font:500 1rem/1.4 var(--body);color:#c7c9ec}
+.wdc-back .bar{width:min(16rem,70vw);height:4px;border-radius:4px;background:#1f1f7a;overflow:hidden}
+.wdc-back .bar i{display:block;height:100%;background:var(--orange);transform-origin:left;transform:scaleX(0)}
+.wdc-back.on .bar i{transform:scaleX(1);transition:transform 1.6s .5s linear}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
 `;
 
@@ -263,6 +279,36 @@ const RUNTIME = String.raw`
     });
   }
   paintTime(); setInterval(function(){ if (!document.hidden) emit(); }, 15000);
+
+  /* ---- we're back ----
+     Ask the server whether the site is open again: from the moment the
+     countdown runs out (the back-by time opens it by itself), and once a
+     minute anyway, because the studio may open it early. The gap grows while
+     it is still closed, and only a real answer that is not 503 counts. */
+  var backShown = false, probeGap = 5000, probeTimer = 0;
+  function showBack(){
+    if (backShown) return; backShown = true;
+    var el = document.createElement('div');
+    el.className = 'wdc-back'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'assertive');
+    el.innerHTML = '<div><span class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5 10-11"/></svg></span>'
+      + '<h2>We’re back<i>.</i></h2><p>Opening the site for you.</p><span class="bar" aria-hidden="true"><i></i></span></div>';
+    document.body.appendChild(el);
+    void el.offsetWidth; el.classList.add('on');
+    setTimeout(function(){ location.replace(location.href); }, reduced ? 600 : 2200);
+  }
+  function probe(){
+    clearTimeout(probeTimer);
+    if (backShown) return;
+    if (document.hidden){ probeTimer = setTimeout(probe, 5000); return; }
+    fetch(location.pathname + location.search, {method:'HEAD', cache:'no-store', credentials:'same-origin'})
+      .then(function(r){ if (r.status !== 503 && r.ok) showBack(); else next(); }, next);
+  }
+  function next(){ probeGap = Math.min(probeGap * 1.6, 60000); probeTimer = setTimeout(probe, probeGap); }
+  if (!D.preview){
+    var left = remaining();
+    probeTimer = setTimeout(probe, left !== null && left > 0 ? Math.min(left + 1500, 60000) : (left === 0 ? 1500 : 60000));
+    document.addEventListener('visibilitychange', function(){ if (!document.hidden && !backShown){ probeGap = 5000; probe(); } });
+  }
 
   window.WDC = {data:D, reduced:reduced, coarse:coarse, since:D.since, backBy:D.backBy, progress:progress, remaining:remaining,
     fmtLeft:fmtLeft, onProgress:onProgress, loop:loop, area:function(){ return A || measure(); }, onResize:function(fn){ resizeFns.push(fn); }};

@@ -44,6 +44,30 @@ export async function maintenance(opts: { fresh?: boolean } = {}): Promise<Maint
       const r = await db.query<{ value: Maintenance }>("SELECT value FROM app_settings WHERE key = $1", [MAINTENANCE_KEY]);
       const v = r.rows[0]?.value;
       if (v && v.on === true && typeof v.since === "string") value = v;
+      /* THE BACK-BY TIME OPENS THE SITE BY ITSELF (the owner's ask: when the
+         time is up, maintenance opens up). Written back, not only ignored, so
+         the admin says what the site does; the WHERE on "since" makes it a
+         compare-and-set, so of many instances reading at once exactly one
+         switches it, audits it and emails the waiting list. */
+      const back = value.on && value.backBy ? Date.parse(value.backBy) : NaN;
+      if (!Number.isNaN(back) && back <= Date.now()) {
+        const since = value.since;
+        value = { on: false };
+        const done = await db.query(
+          `UPDATE app_settings SET value = $2::JSONB, saved_by = 'Back-by time', saved_at = now()
+            WHERE key = $1 AND value->>'on' = 'true' AND value->>'since' = $3`,
+          [MAINTENANCE_KEY, JSON.stringify({ on: false }), since],
+        );
+        if (done.rowCount) {
+          void import("@/lib/admin/store").then((m) => m.audit({
+            actor: "Website", kind: "setting", subjectId: MAINTENANCE_KEY, subject: "Maintenance mode",
+            action: "brought the public site back at the back-by time",
+          })).catch(() => {});
+          /* The waiting list, behind the response; the daily job retries
+             anything that does not go now. */
+          void import("@/lib/maintenance-waitlist").then((m) => m.sendBackOnline()).catch(() => {});
+        }
+      }
     } catch { /* stays off */ }
   }
   held.__wdcMaintenance = { at: Date.now(), value };
