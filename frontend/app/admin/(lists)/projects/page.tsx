@@ -15,6 +15,7 @@ import { ProjectBoard, type BoardCard } from "@/components/admin/project-board";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { ExampleNote } from "@/components/admin/example-note";
+import { FilterPick } from "@/components/admin/pick";
 
 export const metadata = { title: "Projects" };
 
@@ -136,35 +137,15 @@ export default async function ProjectsPage({
             Search
             <input type="search" name="q" defaultValue={needle} placeholder="A project, client or owner" />
           </label>
-          <label>
-            Stage
-            <select name="stage" defaultValue={stage ?? ""}>
-              <option value="">Any</option>
-              {STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </label>
-          <label>
-            Service
-            <select name="service" defaultValue={service?.slug ?? ""}>
-              <option value="">Any</option>
-              {SERVICES.map((s) => <option key={s.slug} value={s.slug}>{s.short}</option>)}
-            </select>
-          </label>
-          <label>
-            How it is going
-            <select name="health" defaultValue={health ?? ""}>
-              <option value="">Any</option>
-              {HEALTH.map((h) => <option key={h} value={h}>{h}</option>)}
-            </select>
-          </label>
+          <FilterPick label="Stage" name="stage" defaultValue={stage ?? ""} placeholder="Any"
+                      options={STAGES.map((s) => ({ value: s, label: s }))} />
+          <FilterPick label="Service" name="service" defaultValue={service?.slug ?? ""} placeholder="Any"
+                      options={SERVICES.map((s) => ({ value: s.slug, label: s.short }))} />
+          <FilterPick label="How it is going" name="health" defaultValue={health ?? ""} placeholder="Any"
+                      options={HEALTH.map((h) => ({ value: h, label: h }))} />
           {owners.length ? (
-            <label>
-              Owner
-              <select name="owner" defaultValue={owner ?? ""}>
-                <option value="">Anyone</option>
-                {owners.map((o) => <option key={o} value={o}>{o}</option>)}
-              </select>
-            </label>
+            <FilterPick label="Owner" name="owner" defaultValue={owner ?? ""} placeholder="Anyone"
+                        options={owners.map((o) => ({ value: o, label: o }))} />
           ) : null}
           <span className="ad__row">
             <button type="submit" className="ad__btn">Apply</button>

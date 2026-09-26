@@ -3,6 +3,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import pg from "pg";
+import { choose, pickDate } from "./choose";
 
 /**
  * The blog editor, end to end, against the real table.
@@ -61,7 +62,7 @@ test("a short description is refused with the count, and nothing is written", as
   await page.goto("/admin/blog/new", { waitUntil: "load" });
   await page.getByLabel(/^Headline/).fill(TITLE);
   await page.getByLabel(/^Address/).fill(SLUG);
-  await page.getByLabel(/^Service/).selectOption("branding");
+  await choose(page.getByLabel(/^Service/), "branding");
   await page.getByLabel(/^Card sentence/).fill("What we look at before we touch a logo.");
   await page.getByLabel(/^Search result title/).fill("What a brand audit covers");
   await page.getByLabel(/^Meta description/).fill("Too short.");
@@ -83,7 +84,7 @@ test("a draft is saved, invisible on /blog, and visible in preview to the owner"
   await page.goto("/admin/blog/new", { waitUntil: "load" });
   await page.getByLabel(/^Headline/).fill(TITLE);
   await page.getByLabel(/^Address/).fill(SLUG);
-  await page.getByLabel(/^Service/).selectOption("branding");
+  await choose(page.getByLabel(/^Service/), "branding");
   await page.getByLabel(/^Card sentence/).fill("What we look at before we touch a logo.");
   await page.getByLabel(/^Search result title/).fill("What a brand audit covers");
   await page.getByLabel(/^Meta description/).fill(DESCRIPTION);
@@ -152,7 +153,7 @@ test("publishing puts it on /blog and in the sitemap; unpublishing takes it out"
   await asOwner(page, baseURL);
   await page.goto(editUrl, { waitUntil: "load" });
   await page.getByRole("radio", { name: /^Published/ }).check();
-  await page.getByLabel(/^Date shown on the post/).fill(new Date().toISOString().slice(0, 10));
+  await pickDate(page.getByLabel(/^Date shown on the post/), new Date().toISOString().slice(0, 10));
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.locator(".ad__msg.is-ok")).toContainText("Saved and live");
 
@@ -226,7 +227,7 @@ test("Blog is its own admin page, the old Settings address still lands there, an
   try {
     const row = () => page.locator("tbody tr", { hasText: "List actions check" });
     const act = async (item: string, verb: string) => {
-      await page.goto("/admin/blog?q=list+actions", { waitUntil: "load" });
+      await page.goto("/admin/blog?q=list+actions", { waitUntil: "networkidle" });
       await row().locator(".ad__rm").click();
       await page.locator(".ad__rmList [data-item]", { hasText: item }).click();
       await page.locator("dialog.addlg[open]").getByRole("button", { name: verb }).click();

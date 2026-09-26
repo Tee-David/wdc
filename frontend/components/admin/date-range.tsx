@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CalendarDays, ChevronDown } from "lucide-react";
+import { DateInput } from "./pick";
 
 /**
  * THE DATE RANGE every admin list filters by (the mockups' date picker).
@@ -7,8 +8,8 @@ import { CalendarDays, ChevronDown } from "lucide-react";
  * Presets first, because they are what people actually pick, then a custom
  * pair of dates. Like the pager it is a server component on a native
  * <details>: the presets are links and "custom" is a GET form that carries
- * the rest of the list's query in hidden fields, so nothing here needs a
- * script and the chosen range lives in the URL.
+ * the rest of the list's query in hidden fields, so the chosen range lives in
+ * the URL. Only the two calendars are client components.
  *
  * Dates are Lagos calendar days (UTC+1, no daylight saving), and the list
  * reading them treats `to` as the END of that day, so "Today" means today.
@@ -101,8 +102,11 @@ export function DateRange({
             v === undefined || v === "" || k === "from" || k === "to" || k === "page" ? null : <input key={k} type="hidden" name={k} value={String(v)} />,
           )}
           <b>Custom range</b>
-          <label>From<input type="date" name="from" defaultValue={value.from} /></label>
-          <label>To<input type="date" name="to" defaultValue={value.to} /></label>
+          {/* The admin's own calendar, not the browser's (pick.tsx). Named by
+              aria-label: a server component has no id to point a <label> at
+              that is unique across the routes Next keeps mounted. */}
+          <div className="ad__rangeField"><span aria-hidden="true">From</span><DateInput name="from" defaultValue={value.from} label="From" /></div>
+          <div className="ad__rangeField"><span aria-hidden="true">To</span><DateInput name="to" defaultValue={value.to} label="To" /></div>
           <button type="submit" className="ad__btn ad__btn--primary">Apply</button>
         </form>
       </div>

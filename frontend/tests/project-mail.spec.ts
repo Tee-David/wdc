@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { choose } from "./choose";
 
 /**
  * The project messages are written to the client's log when they happen.
@@ -63,7 +64,7 @@ test("sending a deliverable for approval asks the client, and puts the seed back
     await page.getByRole("button", { name: "Record a response" }).first().click({ timeout: 2_000 });
     await expect(dialog).toBeVisible({ timeout: 2_000 });
   }).toPass({ timeout: 60_000 });
-  await dialog.getByLabel(/^What happened/).selectOption("Awaiting client");
+  await choose(dialog.getByLabel(/^What happened/), "Awaiting client");
   await dialog.getByRole("button", { name: "Record it" }).click();
   await expect.poll(async () => (await clientLog(page)).locator("tr", { hasText: "Identity routes (v1)" }).count(), { timeout: 20_000 })
     .toBeGreaterThan(1);

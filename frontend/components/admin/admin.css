@@ -719,15 +719,6 @@ body:has(.adDrawer[open]) .st { display: none; }
 .dark .ad__fl b { color: var(--ad-accent); }
 .ad__fh { font-size: .75rem; color: var(--ad-dim); line-height: 1.4; }
 .ad__fe { font-size: .75rem; font-weight: 600; color: var(--ad-bad); }
-/* The date in words, under the field. See the note on `inWords` in form.tsx:
-   a native date input renders in the BROWSER's language, so 09/14 and 14/09
-   are the same field on two different laptops, and for any day under thirteen
-   there is no telling them apart by looking. */
-.ad__fd {
-  font-size: .75rem; color: var(--ad-dim);
-  font-variant-numeric: tabular-nums;
-}
-
 /* ---- the controls -------------------------------------------------------
 
    NATIVE ELEMENTS, DRESSED. Not a component library, and that is a decision
@@ -761,22 +752,7 @@ body:has(.adDrawer[open]) .st { display: none; }
    typed into a field with proportional digits is the small thing that makes a
    tool feel amateur. */
 .ad__f input[inputmode="decimal"],
-.ad__f input[inputmode="numeric"],
-.ad__f input[type="date"] { font-variant-numeric: tabular-nums; }
-
-/* The native calendar button is drawn by the browser from `color-scheme`, so
-   it is already the right colour in both themes. What it is not is the right
-   SIZE or obviously pressable, which is what this fixes. */
-.ad__f input[type="date"]::-webkit-calendar-picker-indicator {
-  width: 1.05rem; height: 1.05rem;
-  padding: .2rem; margin-right: -.2rem;
-  border-radius: 6px; cursor: pointer;
-  opacity: .55; transition: opacity .15s ease, background-color .15s ease;
-}
-.ad__f input[type="date"]:hover::-webkit-calendar-picker-indicator,
-.ad__f input[type="date"]::-webkit-calendar-picker-indicator:hover {
-  opacity: 1; background: color-mix(in srgb, var(--ad-accent) 18%, transparent);
-}
+.ad__f input[inputmode="numeric"] { font-variant-numeric: tabular-nums; }
 
 /* A TICK BOX IS NOT A TEXT FIELD, and the rule above had been treating it as
    one: a checkbox inside `.ad__f` was picking up `width: 100%`, a 9px radius,
@@ -814,44 +790,8 @@ body:has(.adDrawer[open]) .st { display: none; }
   border-color: var(--ad-bad);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--ad-bad) 22%, transparent);
 }
+@media (prefers-reduced-motion: reduce) { .ad__f :is(input, select, textarea) { transition: none; } }
 
-/* THE CARET IS A CHEVRON, NOT A SOLID TRIANGLE.
-
-   It was two 45-degree linear-gradients meeting in a corner, which is the old
-   CSS trick for drawing an arrowhead and looks like one: a filled wedge with
-   hard edges, at odds with every other stroked glyph in the admin. This is a
-   real chevron, masked from an inline SVG so it takes `currentColor` and turns
-   accent on focus like the border does.
-
-   The native arrow is still replaced rather than restyled, because a `<select>`
-   with a custom background loses its own arrow in several browsers. What is
-   NOT replaced is the list the select opens, which is the platform's and
-   better than anything we would draw: type-to-search, arrow keys, the phone
-   wheel, and whatever screen reader the person already has set up. */
-.ad__f select {
-  appearance: none;
-  padding-right: 2.4rem;
-  cursor: pointer;
-  background-image: none;
-}
-.ad__f--sel { position: relative; }
-.ad__f--sel::after {
-  content: "";
-  position: absolute; right: .9rem; bottom: .95rem;
-  width: .7rem; height: .7rem;
-  pointer-events: none;
-  background-color: var(--ad-dim);
-  transition: background-color .15s ease, transform .15s ease;
-  -webkit-mask: var(--ad-chevron) center / contain no-repeat;
-  mask: var(--ad-chevron) center / contain no-repeat;
-}
-.ad__f--sel:hover::after { background-color: var(--ad-ink); }
-.ad__f--sel:focus-within::after { background-color: var(--ad-accent); }
-@media (prefers-reduced-motion: reduce) {
-  .ad__f :is(input, select, textarea),
-  .ad__f--sel::after,
-  .ad__f input[type="date"]::-webkit-calendar-picker-indicator { transition: none; }
-}
 
 .ad__checks { display: flex; flex-wrap: wrap; gap: .4rem; }
 /* One box per row, for boxes whose labels are sentences. */
@@ -1435,13 +1375,8 @@ a.ad__pgBtn:hover { background: var(--ad-panel-2); border-color: var(--ad-dim); 
 .ad__rangePresets { padding: .4rem; display: grid; align-content: start; border-right: 1px solid var(--ad-line); }
 .ad__rangeCustom { padding: .9rem 1rem 1rem; display: grid; align-content: start; gap: .7rem; }
 .ad__rangeCustom b { font-size: .86rem; }
-.ad__rangeCustom label { display: grid; gap: .3rem; color: var(--ad-dim); font-size: .8rem; font-weight: 600; }
-.ad__rangeCustom input {
-  min-height: 2.75rem; width: 100%; padding: 0 .75rem;
-  border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); color: var(--ad-ink);
-  font: 500 .9rem var(--font-body); font-variant-numeric: tabular-nums;
-}
-.ad__rangeCustom input:focus { outline: none; border-color: var(--ad-navy); box-shadow: 0 0 0 4px var(--ad-nav-on); }
+.ad__rangeField { display: grid; gap: .3rem; color: var(--ad-dim); font-size: .8rem; font-weight: 600; }
+.ad__rangeField .adPick__btn { font-size: .9rem; font-weight: 400; }
 
 /* On a phone the range opens as a sheet at the foot of the screen, so it can
    never hang off either edge of the screen. */
@@ -1662,11 +1597,8 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 .ad .tip__b:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
 .ad .tip__b svg { width: 100%; height: 100%; }
 
-/* NOTHING IN A DIALOG SCROLLS SIDEWAYS. iOS gives a date input an intrinsic
-   minimum width that ignores width: 100%, which pushed the payment dialog's
-   body wider than the dialog and let the whole form slide left and right. */
+/* NOTHING IN A DIALOG SCROLLS SIDEWAYS: a field never outgrows its column. */
 .ad__f :is(input, select, textarea) { min-width: 0; max-width: 100%; }
-.ad__f input[type="date"] { display: block; -webkit-appearance: none; appearance: none; }
 .addlg__b { overflow-x: hidden; }
 /* The note itself. Its onboarding styles live in form-kit.css, which the
    admin never loads, so it is styled here from the admin's own tokens (at
@@ -1745,7 +1677,7 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 }
 .adPick__btn > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .adPick__btn svg { width: 1rem; height: 1rem; flex: none; color: var(--ad-dim); transition: transform .15s ease; }
-.adPick.is-open .adPick__btn svg { transform: rotate(180deg); }
+.adPick.is-open:not(.adDate) .adPick__btn svg { transform: rotate(180deg); }
 .adPick__btn:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
 .adPick__btn[data-invalid] { border-color: var(--ad-tone-bad); }
 .adPick__ph { color: var(--ad-dim); }
@@ -1767,8 +1699,54 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 .dark .adPick__opt svg { color: var(--ad-accent); }
 .adPick__opt--none { color: var(--ad-dim); }
 .adPick__none { padding: .75rem; color: var(--ad-dim); font-size: .88rem; }
+.adPick__scrim { display: none; }
+.adPick__btn:hover { border-color: var(--ad-dim); }
+.adPick__btn:disabled { cursor: not-allowed; background: var(--ad-panel-2); color: var(--ad-dim); }
+.adPick__list:focus { outline: none; }
+.adPick__opt.is-active { box-shadow: inset 0 0 0 1px var(--ad-line); }
+.ad__f .adPick__btn:focus-visible { outline: none; border-color: var(--ad-navy); box-shadow: 0 0 0 4px var(--ad-nav-on); }
+.dark .ad__f .adPick__btn:focus-visible { border-color: var(--ad-accent); }
+.ad__f.is-bad .adPick__btn { border-color: var(--ad-bad); }
+/* In a filter row the picker is the row's height and type, not a form field's. */
+.ad__filters .adPick__btn { border-radius: 10px; font-size: .86rem; color: var(--ad-ink); }
+.ad__filters .adPick { min-width: 9rem; }
+
+/* THE CALENDAR (DateInput). A month grid of 44px days, the chosen one in the
+   admin's primary fill, today ringed, days outside min/max struck quiet. */
+.adCal { padding: .6rem .7rem .7rem; }
+/* The month is taller than a list is allowed to be; it scrolls only when the window is shorter still. */
+.adPick__pop.adCal { max-height: calc(100dvh - 16px); overflow-y: auto; overscroll-behavior: contain; }
+.adCal__head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .35rem; }
+.adCal__head b { font-family: var(--font-space-grotesk), var(--font-outfit), sans-serif; font-size: .98rem; }
+.adCal__nav {
+  width: 2.75rem; height: 2.75rem; display: grid; place-items: center; border: 0; border-radius: 10px;
+  background: transparent; color: var(--ad-ink); cursor: pointer;
+}
+.adCal__nav:hover { background: var(--ad-panel-2); }
+.adCal__nav svg { width: 1.1rem; height: 1.1rem; }
+.adCal__grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.adCal__grid th { padding: .2rem 0 .35rem; font-size: .72rem; font-weight: 600; color: var(--ad-dim); text-align: center; }
+.adCal__grid td { padding: 1px; text-align: center; }
+.adCal__day {
+  width: 100%; max-width: 2.75rem; aspect-ratio: 1; min-height: 2.5rem; display: inline-grid; place-items: center;
+  border: 0; border-radius: 10px; background: transparent; color: var(--ad-ink);
+  font: inherit; font-variant-numeric: tabular-nums; cursor: pointer;
+  transition: background-color .12s ease, color .12s ease;
+}
+.adCal__day:hover { background: var(--ad-panel-2); }
+.adCal__day.is-today { box-shadow: inset 0 0 0 1.5px var(--ad-dim); font-weight: 700; }
+.adCal__day.is-on, .adCal__day.is-on:hover { background: var(--ad-fill); color: var(--ad-on-fill); font-weight: 700; box-shadow: none; }
+.adCal__day[aria-disabled] { color: var(--ad-dim); text-decoration: line-through; cursor: not-allowed; background: transparent; }
+.adCal__day:focus-visible, .adCal__nav:focus-visible { outline: 2px solid var(--ad-accent-ink); outline-offset: 1px; }
+.dark .adCal__day:focus-visible, .dark .adCal__nav:focus-visible { outline-color: var(--ad-accent); }
+.adCal__foot { display: flex; justify-content: space-between; gap: .5rem; margin-top: .45rem; padding-top: .5rem; border-top: 1px solid var(--ad-line); }
+.adCal__foot .ad__btn { min-height: 2.5rem; }
+
+/* A date and a time side by side; the time is the narrow half. */
+.adDT { display: grid; grid-template-columns: minmax(0, 1fr) 6.25rem; gap: .5rem; }
+
 @media (max-width: 640px) {
-  .adPick.is-open::before { content: ""; position: fixed; inset: 0; z-index: 94; background: rgb(6 6 28 / .45); }
+  .adPick__scrim { display: block; position: fixed; inset: 0; z-index: 94; background: rgb(6 6 28 / .45); }
   .adPick__pop, .adPick__pop.is-up {
     top: auto !important; left: 0 !important; right: 0; bottom: 0 !important; width: auto !important; margin: 0;
     max-height: 78dvh; border-radius: 18px 18px 0 0; padding-bottom: env(safe-area-inset-bottom);
@@ -1776,8 +1754,10 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
   }
   .adPick__grab { display: block; width: 2.25rem; height: 4px; margin: .55rem auto .2rem; border-radius: 99px; background: var(--ad-line); }
   .adPick__opt { min-height: 3rem; font-size: 1rem; }
+  .adCal { padding: .2rem 1rem calc(1rem + env(safe-area-inset-bottom)); }
+  .adCal__day { max-width: none; }
 }
-@media (prefers-reduced-motion: reduce) { .adPick__pop { animation: none; } .adPick__btn svg { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .adPick__pop { animation: none; } .adPick__btn svg, .adCal__day { transition: none; } }
 
 /* THE BULK BAR (ticked rows): one navy line, pinned under the top bar on a
    desktop and floating at the foot of the screen on a phone. */
