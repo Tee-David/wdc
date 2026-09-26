@@ -69,15 +69,15 @@ test("the log searches by to: and subject:, and filters by state", async ({ page
   await asOwner(page, baseURL);
 
   await page.goto(`/admin/settings/email/log?q=${encodeURIComponent(`subject:${MARK}`)}`, { waitUntil: "load" });
-  await expect(page.locator(".adLog__row", { hasText: MARK })).toHaveCount(2);
+  await expect(page.locator(".adLog tbody tr", { hasText: MARK })).toHaveCount(2);
 
   await page.goto(`/admin/settings/email/log?q=${encodeURIComponent(`to:alpha-${MARK}`)}`, { waitUntil: "load" });
-  await expect(page.locator(".adLog__row", { hasText: MARK })).toHaveCount(1);
-  await expect(page.locator(".adLog__row", { hasText: MARK })).toContainText("Connection refused");
+  await expect(page.locator(".adLog tbody tr", { hasText: MARK })).toHaveCount(1);
+  await expect(page.locator(".adLog tbody tr", { hasText: MARK })).toContainText("Connection refused");
 
   await page.goto(`/admin/settings/email/log?state=Sent&q=${MARK}`, { waitUntil: "load" });
-  await expect(page.locator(".adLog__row", { hasText: MARK })).toHaveCount(1);
-  await expect(page.locator(".adLog__row", { hasText: MARK })).toContainText(`Notice ${MARK}`);
+  await expect(page.locator(".adLog tbody tr", { hasText: MARK })).toHaveCount(1);
+  await expect(page.locator(".adLog tbody tr", { hasText: MARK })).toContainText(`Notice ${MARK}`);
 });
 
 test("retention is saved, and the tidy removes what is past it, including old Trash", async ({ page, baseURL }) => {

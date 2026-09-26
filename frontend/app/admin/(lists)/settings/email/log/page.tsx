@@ -126,25 +126,33 @@ export default async function MessageLogPage({ searchParams }: Props) {
             <AdminState kind="error" title="The message log could not be read" description="The database did not answer, or it is not connected." />
           ) : log.rows.length ? (
             <>
-              {/* ROWS, NOT A TABLE. On a phone a six-column table scrolled
-                  sideways and left the state and Try again off screen; these
-                  rows keep the grid on a wide screen and fold into cards on a
-                  narrow one (the settings review, "cards under 620px"). */}
-              <div className="adLog" role="list" aria-label="Messages">
-                <div className="adLog__head" aria-hidden="true"><span>When</span><span>Message</span><span>State</span><span className="num">Took</span><span /></div>
-                {log.rows.map((m) => (
-                  <div className="adLog__row" role="listitem" key={m.id}>
-                    <span className="adLog__when">{time(m.at)}</span>
-                    <span className="adLog__what"><b>{m.subject}</b><span className="adLog__to">To {m.to}</span><small>{m.summary}{m.by ? ` · ${m.by}` : ""}</small></span>
-                    <span className="adLog__state">
-                      <span className={`ad__pill ${TONE[m.state] ?? ""}`}>{m.state}</span>
-                      {m.error ? <small>{m.error}</small> : null}
-                      {m.resends.length ? <small>Resent {m.resends.length} time{m.resends.length === 1 ? "" : "s"}</small> : null}
-                    </span>
-                    <span className="adLog__took num">{m.ms ? `${(m.ms / 1000).toFixed(1)} s` : ""}</span>
-                    <span className="adLog__act">{m.state === "Failed" ? <ResendMessage id={m.id} /> : null}</span>
-                  </div>
-                ))}
+              {/* A TABLE, ON EVERY SCREEN (the owner's rule: a table stays a
+                  table). The message column is given the width so a row
+                  stays one or two lines tall instead of six, and the table
+                  scrolls sideways inside its panel with When pinned, as
+                  every other admin table does. */}
+              <div className="ad__scroll">
+                <table className="ad__t adLog">
+                  <thead><tr><th>When</th><th>Message</th><th>State</th><th className="num">Took</th><th><span className="ad__sr">Actions</span></th></tr></thead>
+                  <tbody>
+                    {log.rows.map((m) => (
+                      <tr key={m.id}>
+                        <td className="adLog__when">{time(m.at)}</td>
+                        <td className="adLog__what">
+                          <b>{m.subject}</b>
+                          <small>To {m.to} · {m.summary}{m.by ? ` · ${m.by}` : ""}</small>
+                        </td>
+                        <td className="adLog__state">
+                          <span className={`ad__pill ${TONE[m.state] ?? ""}`}>{m.state}</span>
+                          {m.error ? <small>{m.error}</small> : null}
+                          {m.resends.length ? <small>Resent {m.resends.length} time{m.resends.length === 1 ? "" : "s"}</small> : null}
+                        </td>
+                        <td className="num">{m.ms ? `${(m.ms / 1000).toFixed(1)} s` : ""}</td>
+                        <td className="adLog__act">{m.state === "Failed" ? <ResendMessage id={m.id} /> : null}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
               <Pager
                 label="Message log pages"
