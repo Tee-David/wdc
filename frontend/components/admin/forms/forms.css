@@ -107,3 +107,52 @@
 @media (max-width: 560px) {
   .adForms__colsPanel { left: 1rem; width: auto; }
 }
+
+/* Settings, Email, Message log (settings/email/log/page.tsx). Rows on a grid
+   with a fixed action column, so Try again is never clipped; cards on a
+   phone, with the state and the retry first rather than off screen. */
+.adLog__why { display: flex; align-items: flex-start; gap: .75rem; padding: .9rem 1.1rem; border: 1px solid var(--ad-line); border-radius: 14px; background: var(--ad-panel); }
+.adLog__why p { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.adLog__why a { color: var(--ad-accent-ink); font-weight: 600; }
+.adLog__why .ad__pill { flex: none; }
+.adLog { display: grid; min-width: 0; container-type: inline-size; }
+.adLog__head, .adLog__row {
+  display: grid; align-items: center; gap: .9rem;
+  grid-template-columns: 6.5rem minmax(0, 1fr) minmax(6.5rem, .45fr) 3.25rem 7.5rem;
+  padding: .75rem 1.25rem; border-bottom: 1px solid var(--ad-line);
+}
+.adLog__head { color: var(--ad-dim); font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; background: var(--ad-panel-2); }
+.adLog__row:last-child { border-bottom: 0; }
+.adLog__row:hover { background: var(--ad-panel-2); }
+.adLog__row > * { min-width: 0; }
+.adLog .num { text-align: right; font-variant-numeric: tabular-nums; }
+.adLog__when { color: var(--ad-dim); font-size: .85rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.adLog__what { display: grid; gap: .1rem; }
+.adLog__what b { font-weight: 600; overflow-wrap: anywhere; }
+.adLog__to { font-size: .85rem; font-weight: 400; overflow-wrap: anywhere; }
+.adLog__what small, .adLog__state small { display: block; color: var(--ad-dim); font-size: .78rem; overflow-wrap: anywhere; }
+.adLog__state { display: grid; justify-items: start; gap: .2rem; }
+.adLog__act { display: flex; justify-content: flex-end; }
+.adLog__act .ad__btn { white-space: nowrap; }
+/* Folded on the panel's own width, not the window's: beside the Settings
+   menu a 1280px window leaves the panel about 680px. */
+@container (max-width: 620px) {
+  .adLog__head { display: none; }
+  .adLog__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "state when" "what what" "act act";
+    gap: .45rem .75rem; padding: .9rem 1rem;
+  }
+  .adLog__state { grid-area: state; }
+  .adLog__when { grid-area: when; align-self: start; }
+  .adLog__what { grid-area: what; }
+  .adLog__took { display: none; }
+  .adLog__act { grid-area: act; justify-content: flex-start; }
+  .adLog__act:empty { display: none; }
+}
+@media (max-width: 640px) {
+  .adLog__why { flex-direction: column; gap: .5rem; }
+  /* When the menu is the head's only action it sits at the end of the line,
+     not alone on the left of its own. */
+  .ad__head > .adLog__acts { justify-content: flex-end; }
+}

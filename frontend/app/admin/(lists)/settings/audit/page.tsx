@@ -73,7 +73,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
           {filtered ? <Link className="ad__btn" href="/admin/settings/audit">Clear</Link> : null}
         </form>
       </section>
-      <AuditLog filters={filters} filtered={filtered}
+      <AuditLog filters={filters} filtered={filtered} clearHref="/admin/settings/audit"
         title={filtered ? "Matching changes" : "The last 30 days"}
         pager={(p) => `/admin/settings/audit?${keep({ page: p.page, per: p.per ?? (filters.limit !== 25 ? filters.limit : undefined) })}`} />
     </>

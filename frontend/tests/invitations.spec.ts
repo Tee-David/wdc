@@ -1,6 +1,7 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import pg from "pg";
+import { sayYes } from "./say-yes";
 
 /**
  * Invitations: an account for exactly the invited address, once, for a week.
@@ -165,7 +166,7 @@ test.describe("from the admin", () => {
     expect(row.rows[0]).toMatchObject({ role: "client", client_id: "c1", invited_by: "WDC Admin" });
     expect(row.rows[0].token_hash).toMatch(/^[0-9a-f]{64}$/);
 
-    page.on("dialog", (d) => d.accept());
+    await sayYes(page);
     await panel.getByRole("button", { name: "Withdraw" }).click();
     await expect(panel.getByRole("status").filter({ hasText: "The last invitation was withdrawn." })).toBeVisible({ timeout: 15_000 });
     const revoked = await db.query(`SELECT revoked_by FROM invitations WHERE email = 'tobi@mooredesigns.ng'`);

@@ -1,30 +1,45 @@
 "use client";
 
+import { useState } from "react";
 import { UserPlus } from "lucide-react";
 import { inviteStaff, revokeInvite } from "@/lib/admin/invite-actions";
 import { deactivateMember, reactivateMember, setTeamRole, signOutMember } from "@/lib/admin/team-actions";
-import { Actions, Fields, Form, Hidden, Submit } from "@/components/admin/form";
+import { Actions, Fields, Form, Hidden, Radios, Submit } from "@/components/admin/form";
 import { Text } from "./kit";
 
-/** Invite a member of staff: a link that works once, for a week, for that address only. */
+/**
+ * Invite someone to the admin: a link that works once, for a week, for that
+ * address only. The role is chosen here rather than by a "Make owner" after
+ * they have signed in, and an owner invitation is asked about once more,
+ * because it hands over everything, money and this page included.
+ */
 export function InviteStaffForm() {
+  const [role, setRole] = useState("staff");
   return (
-    <Form action={inviteStaff} resetOnDone>
+    <Form action={inviteStaff} resetOnDone onDone={() => setRole("staff")}
+      confirm={role === "owner" ? "Invite them as an owner? An owner can do everything, including money, settings and changing who has access." : undefined}>
       <Fields>
         <Text name="name" label="Their name" half required message="Add their name." autoComplete="off" />
         <Text name="email" label="Email" type="email" half required message="Enter an email like name@example.com." autoComplete="off" />
       </Fields>
+      <div className="adTeam__role" onChange={(e) => { const t = e.target as HTMLInputElement; if (t.name === "role") setRole(t.value); }}>
+        <Radios name="role" label="Role" defaultValue="staff" options={[
+          { value: "staff", label: "Staff", note: "Clients, projects, forms and content. Not money, settings or the team." },
+          { value: "owner", label: "Owner", note: "Everything, including money, settings and the team." },
+        ]} />
+      </div>
       <Actions><Submit icon={UserPlus}>Send invitation</Submit></Actions>
     </Form>
   );
 }
 
-export function InvitationRow({ id, name, email }: { id: string; name: string; email: string }) {
+export function InvitationRow({ id, name, email, role }: { id: string; name: string; email: string; role: "owner" | "staff" }) {
   return (
     <span className="ad__row">
       <Form action={inviteStaff}>
         <Hidden name="name" value={name} />
         <Hidden name="email" value={email} />
+        <Hidden name="role" value={role} />
         <button className="ad__btn" type="submit">Send again</button>
       </Form>
       <Form action={revokeInvite} confirm={`Withdraw the invitation to ${email}? The link stops working.`}>

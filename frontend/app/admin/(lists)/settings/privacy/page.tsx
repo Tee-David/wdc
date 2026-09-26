@@ -13,6 +13,29 @@ export const metadata = { title: "Privacy" };
 const time = (iso: string) => new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" });
 
 /**
+ * The nightly audit line ("removed 0 old message log rows, 0 entries and ...;
+ * retention: 1 unfinished briefs deleted, ...") as figures. The line is the
+ * record and stays as it is; this only reads it, so an old entry and a new one
+ * show the same way. One of anything is said in the singular.
+ */
+const ONE: [RegExp, string][] = [[/\brows\b/, "row"], [/\bentries\b/, "entry"], [/\bdrafts\b/, "draft"], [/\bbriefs\b/, "brief"],
+  [/\benquiries\b/, "enquiry"], [/\binvitations\b/, "invitation"], [/\baccounts\b/, "account"], [/\bsessions and tokens\b/, "session or token"]];
+function dailyFigures(action: string): { n: number; label: string }[] {
+  const out: { n: number; label: string }[] = [];
+  for (const part of action.split(";")) {
+    const [, section = ""] = /^\s*(reminders|retention):/.exec(part) ?? [];
+    for (const m of part.matchAll(/(\d+) ([^,;\d]+?)(?=,|;| and \d|$)/g)) {
+      const n = Number(m[1]);
+      let label = m[2].replace(/ past their Trash period$/, " past Trash").trim();
+      if (section === "reminders") label = `payment reminders ${label}`;
+      if (n === 1) for (const [re, one] of ONE) if (re.test(label)) { label = label.replace(re, one); break; }
+      out.push({ n, label });
+    }
+  }
+  return out;
+}
+
+/**
  * How long personal data is kept, and a person's request to see or erase
  * what the studio holds about them. The owner's.
  */
@@ -39,17 +62,34 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
     <>
       <div className="ad__head"><div><h1>Privacy and data</h1><p>How long things are kept, and requests about a person.</p></div></div>
       <div className="ad__stack">
-        <Panel title="Keep for">
-          <div style={{ padding: "0 1rem 1rem" }}>
-            <RetentionForm rules={RULES} values={rules} />
-            <p className="ad__dim adForms__p">
-              {daily ? `Applied nightly. Last run ${time(daily.at)}: ${daily.action}.` : "Applied nightly. It has not run yet."}
-            </p>
+        <RetentionForm rules={RULES} values={rules} />
+
+        <Panel title="Last nightly run" action={daily ? <span className="ad__dim adPriv__at">{time(daily.at)}</span> : null}>
+          <div className="adSetPad">
+            {!daily ? (
+              <p className="ad__dim adForms__p">The periods above are applied every night. It has not run yet.</p>
+            ) : (() => {
+              const figs = dailyFigures(daily.action);
+              const done = figs.filter((f) => f.n > 0);
+              return (
+                <>
+                  {done.length ? (
+                    <ul className="adPriv__figs">
+                      {done.map((f) => <li key={f.label}><b>{f.n}</b><span>{f.label}</span></li>)}
+                    </ul>
+                  ) : null}
+                  <p className="ad__dim adForms__p">
+                    {done.length ? "Nothing else needed doing." : "Nothing needed doing."}
+                    {daily.note ? <> Part of it did not run: {daily.note}</> : null}
+                  </p>
+                </>
+              );
+            })()}
           </div>
         </Panel>
 
         <Panel title="A request about one person">
-          <form className="adForms__filters" method="get" role="search" style={{ borderBottom: 0 }}>
+          <form className="adForms__filters adPriv__look" method="get" role="search" style={{ borderBottom: 0 }}>
             <label className="adForms__search">Their email address
               <input type="email" name="email" defaultValue={email} placeholder="name@example.com" required />
             </label>

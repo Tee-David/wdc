@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { sayYes } from "./say-yes";
 
 /** The bulk bar on Support, Clients and Invoices: tick rows, act on them all, and the list says what happened. */
 const TOKEN = process.env.BONEYARD_CAPTURE_TOKEN;
@@ -33,7 +34,7 @@ test("ticking questions brings up the bar; Close closes them all", async ({ page
 test("invoices can be reminded in bulk, and the reply counts what went and what did not", async ({ page, baseURL }) => {
   await asOwner(page, baseURL);
   await page.goto("/admin/money", { waitUntil: "networkidle" });
-  page.once("dialog", (d) => d.accept());
+  await sayYes(page);
   await page.locator("#invoices-table tbody .adRowPick").first().check();
   await page.getByRole("region", { name: "Selected invoices" }).getByRole("button", { name: "Send reminder" }).click();
   await expect(page.locator(".adToast").last()).toContainText(/reminded|None reminded/, { timeout: 30_000 });
@@ -50,7 +51,7 @@ test("projects move stage in bulk from More, each through the same stage move, a
   await first.locator(".adRowPick").check();
   const bar = page.getByRole("region", { name: "Selected projects" });
   await expect(bar).toContainText("1 selected");
-  page.once("dialog", (d) => d.accept());
+  await sayYes(page);
   await bar.locator("summary", { hasText: "More" }).click();
   const target = stageBefore === "Discovery" ? "Revisions" : "Discovery";
   await bar.getByRole("button", { name: `Move to ${target}` }).click();
@@ -59,7 +60,7 @@ test("projects move stage in bulk from More, each through the same stage move, a
 
   /* Put it back through the same bar. */
   await first.locator(".adRowPick").check();
-  page.once("dialog", (d) => d.accept());
+  await sayYes(page);
   await bar.locator("summary", { hasText: "More" }).click();
   await bar.getByRole("button", { name: `Move to ${stageBefore}` }).click();
   await expect(page.locator(".adToast", { hasText: `1 moved to ${stageBefore}` })).toBeVisible({ timeout: 20_000 });

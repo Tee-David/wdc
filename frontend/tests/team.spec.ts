@@ -58,16 +58,24 @@ async function asOwner(page: Page, baseURL?: string) {
   await page.context().addCookies([{ name: "wdc.session_token", value: "placeholder", url: baseURL ?? "http://localhost:3100" }]);
 }
 const row = (page: Page, name: string) => page.locator("tbody tr", { hasText: name });
-const accept = (page: Page) => page.on("dialog", (d) => d.accept());
+/* A confirmed action asks in the admin's own dialog (components/admin/confirm.tsx),
+   not the browser's: answer yes, ticking "I understand" when it asks for that. */
+async function yes(page: Page) {
+  const d = page.getByRole("dialog");
+  await expect(d).toBeVisible();
+  const sure = d.getByRole("checkbox");
+  if (await sure.count()) await sure.check();
+  await d.getByRole("button").filter({ hasNotText: /^Leave it$/ }).last().click();
+}
 
 test("the team is listed with its sessions, and deactivating ends them at once", async ({ page, baseURL }) => {
   await asOwner(page, baseURL);
-  accept(page);
-  await page.goto("/admin/settings/team", { waitUntil: "load" });
+  await page.goto("/admin/settings/team", { waitUntil: "networkidle" });
   await expect(row(page, `Staff ${MARK}`)).toContainText("1 session");
   await expect(row(page, `Owner ${MARK}`)).toContainText("Owner");
 
   await row(page, `Staff ${MARK}`).getByRole("button", { name: "Deactivate" }).click();
+  await yes(page);
   /* The button is replaced by Reactivate once it has worked. */
   await expect(row(page, `Staff ${MARK}`)).toContainText("Deactivated", { timeout: 20_000 });
   const u = await db.query(`SELECT "deactivatedAt" FROM "user" WHERE "id" = $1`, [STAFF]);
@@ -81,21 +89,24 @@ test("the team is listed with its sessions, and deactivating ends them at once",
 
 test("the last owner can be neither demoted nor deactivated", async ({ page, baseURL }) => {
   await asOwner(page, baseURL);
-  accept(page);
-  await page.goto("/admin/settings/team", { waitUntil: "load" });
+  await page.goto("/admin/settings/team", { waitUntil: "networkidle" });
   await row(page, `Owner ${MARK}`).getByRole("button", { name: "Make staff" }).click();
+  await yes(page);
   await expect(page.locator(".ad__msg.is-bad").first()).toContainText("no owner", { timeout: 20_000 });
-  await page.reload({ waitUntil: "load" });
+  await page.reload({ waitUntil: "networkidle" });
   await row(page, `Owner ${MARK}`).getByRole("button", { name: "Deactivate" }).click();
+  await yes(page);
   await expect(page.locator(".ad__msg.is-bad").first()).toContainText("no owner", { timeout: 20_000 });
   expect((await db.query(`SELECT "role", "deactivatedAt" FROM "user" WHERE "id" = $1`, [OWNER])).rows[0]).toMatchObject({ role: "owner", deactivatedAt: null });
 
   /* With a second owner, the first can be made staff. */
-  await page.reload({ waitUntil: "load" });
+  await page.reload({ waitUntil: "networkidle" });
   await row(page, `Staff ${MARK}`).getByRole("button", { name: "Make owner" }).click();
+  await yes(page);
   await expect(row(page, `Staff ${MARK}`).getByRole("button", { name: "Make staff" })).toBeVisible({ timeout: 20_000 });
-  await page.reload({ waitUntil: "load" });
+  await page.reload({ waitUntil: "networkidle" });
   await row(page, `Owner ${MARK}`).getByRole("button", { name: "Make staff" }).click();
+  await yes(page);
   await expect(row(page, `Owner ${MARK}`).getByRole("button", { name: "Make owner" })).toBeVisible({ timeout: 20_000 });
   expect((await db.query(`SELECT "role" FROM "user" WHERE "id" = $1`, [OWNER])).rows[0].role).toBe("staff");
 });
@@ -103,7 +114,7 @@ test("the last owner can be neither demoted nor deactivated", async ({ page, bas
 test("staff do not get the team page", async ({ page, baseURL }) => {
   await page.setExtraHTTPHeaders({ "x-boneyard-capture": TOKEN ?? "", "x-boneyard-capture-role": "staff" });
   await page.context().addCookies([{ name: "wdc.session_token", value: "placeholder", url: baseURL ?? "http://localhost:3100" }]);
-  await page.goto("/admin/settings/team", { waitUntil: "load" });
+  await page.goto("/admin/settings/team", { waitUntil: "networkidle" });
   await expect(page.getByText("The team is the owner's")).toBeVisible();
   await expect(page.getByRole("button", { name: "Deactivate" })).toHaveCount(0);
 });

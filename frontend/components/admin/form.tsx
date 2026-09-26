@@ -474,11 +474,14 @@ export function Wrap({
         </label>
         <HintTip hint={hint} label={label} />
       </span>
-      {hint ? <Hint id={`${id}-h`} hint={hint} /> : null}
       {/* Keyed on the failure count: a changed key remounts the control, which
           is what makes a new defaultValue actually reach the DOM. Without it
           the reset stands and the typing is gone. */}
       <Fragment key={gen}>{children(id, Boolean(err), describedBy)}</Fragment>
+      {/* UNDER the control, not between it and its label. Above, a field with
+          a hint sat lower than its neighbour without one, so two fields in a
+          row (Email's "From name" and "Replies go to") did not share a line. */}
+      {hint ? <Hint id={`${id}-h`} hint={hint} /> : null}
       {err ? <small className="ad__fe" id={`${id}-e`}>{err}</small> : null}
     </div>
   );

@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import pg from "pg";
 import { checkMediaFile, isMediaKey, MEDIA_MAX_BYTES } from "../lib/media-validate";
 import { mediaKey } from "../lib/r2";
+import { sayYes } from "./say-yes";
 
 /**
  * The media library: the rules both sides of an upload share, and the
@@ -96,7 +97,7 @@ test.describe("the library screen", () => {
   });
 
   test("archiving moves a file out of the library without deleting it, and restore puts it back", async ({ page }) => {
-    page.on("dialog", (d) => d.accept());
+    await sayYes(page);
     await page.goto("/admin/settings/media", { waitUntil: "networkidle" });
     const card = page.locator(".adMedia__card", { hasText: PDF });
     /* One press, not a retry loop: a second press would find no card. */

@@ -84,9 +84,9 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
         token={token}
         email={invite.email}
         name={invite.name}
-        role={invite.role}
+        role={invite.role === "client" ? "client" : "staff"}
         invitedBy={invite.invitedBy}
-        google={invite.role === "staff" && Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)}
+        google={invite.role !== "client" && Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)}
         company={invite.clientId ? getClient(invite.clientId)?.company ?? null : null}
         expires={new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "Africa/Lagos" }).format(new Date(invite.expiresAt))}
       />

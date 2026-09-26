@@ -253,6 +253,23 @@ export async function loggedStateCounts(): Promise<Record<string, number>> {
   return out;
 }
 
+/**
+ * Why things failed, most common first. Sixty-one rows that all say "SMTP is
+ * not configured" are one problem, and the log says so once above the list
+ * instead of sixty-one times inside it.
+ */
+export async function failureReasons(limit = 3): Promise<{ reason: string; n: number }[]> {
+  await syncStore();
+  if (!configured()) return [];
+  try {
+    const r = await db.query<{ reason: string | null; n: string }>(
+      `SELECT error AS reason, count(*) AS n FROM message_log WHERE state = 'Failed' GROUP BY error ORDER BY count(*) DESC LIMIT $1`, [limit]);
+    return r.rows.map((x) => ({ reason: x.reason?.trim() || "No reason was recorded.", n: Number(x.n) }));
+  } catch {
+    return [];
+  }
+}
+
 /** Rows older than the retention period, removed. Returns how many. */
 export async function purgeLogged(days: number): Promise<number> {
   await syncStore();

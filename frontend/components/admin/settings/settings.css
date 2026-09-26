@@ -259,11 +259,39 @@
 .adMt__wait b { font-variant-numeric: tabular-nums; }
 .adMt__chip { padding: .25rem .55rem; border-radius: 999px; background: var(--ad-tone-flat); color: var(--ad-on-flat); font-size: .78rem; font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { .adMt__pick { transition: none; } }
-/* Phones: two to a row, so eleven templates are a short scroll rather than a long one. */
+/* Phones: one column of radio cards, a thumbnail beside the name (settings
+   review). Two to a row made every title wrap differently, so the Preview
+   buttons landed at different heights and none of the cards lined up. The
+   Preview becomes a text link in the card's corner, still 44px tall. */
 @media (max-width: 560px) {
-  .adMt__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
-  .adMt__pick { padding: .35rem .35rem .55rem; }
-  .adMt__meta b { font-size: .88rem; }
-  .adMt__meta small { font-size: .74rem; }
-  .adMt__tag { top: .6rem; left: .6rem; font-size: .66rem; }
+  .adMt__grid { grid-template-columns: minmax(0, 1fr); gap: .6rem; }
+  .adMt__pick { grid-template-columns: 6rem minmax(0, 1fr); align-items: center; gap: .3rem .75rem; padding: .5rem .5rem 2.9rem; }
+  .adMt__pick img { grid-row: span 2; align-self: start; }
+  .adMt__meta { padding: 0; }
+  .adMt__meta b { font-size: .95rem; }
+  .adMt__meta small { font-size: .8rem; }
+  .adMt__tag { position: static; justify-self: start; grid-column: 2; background: var(--ad-tone-live); }
+  .adMt__pv {
+    position: absolute; right: .35rem; bottom: .2rem; min-height: 44px; padding: 0 .6rem;
+    border: 0; background: none; box-shadow: none; color: var(--ad-accent-ink); text-decoration: underline; text-underline-offset: .2em;
+  }
+  .adMt__pv:hover { background: none; color: var(--ad-ink); }
 }
+
+/* Email: the sender as a client's inbox shows it (email-form.tsx). Borrows
+   the search preview's white card, with an inbox's type instead of Google's. */
+.adSetInbox { margin-top: 1rem; }
+.adSetInbox .adSerp b { color: #202124; font-weight: 600; font-size: 1rem; white-space: normal; overflow-wrap: anywhere; }
+.adSetInbox__addr { font-weight: 400; color: #5f6368; }
+/* Send test with no mail server: the reason, and where to fix it. */
+.adSetTest__why { grid-column: 1 / -1; margin: 0; color: var(--ad-dim); font-size: .875rem; }
+.adSetTest__why a { color: var(--ad-accent-ink, inherit); font-weight: 600; }
+
+/* Privacy: the nightly run as figures, zeros left out (privacy/page.tsx). */
+.adPriv__figs { list-style: none; margin: 0 0 .75rem; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 10rem), 1fr)); gap: .6rem; }
+.adPriv__figs li { display: grid; gap: .15rem; padding: .7rem .8rem; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel-2); min-width: 0; }
+.adPriv__figs b { font: 700 1.35rem/1.1 var(--font-space-grotesk), system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+.adPriv__figs span { color: var(--ad-dim); font-size: .82rem; line-height: 1.35; overflow-wrap: anywhere; }
+.adPriv__at { font-size: .85rem; font-variant-numeric: tabular-nums; }
+/* The lookup is a form, not a list filter, so its label is a field label. */
+.adForms__filters.adPriv__look label { font-size: .86rem; font-weight: 600; color: var(--ad-ink); }
