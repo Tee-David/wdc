@@ -28,7 +28,7 @@ export function PasswordChange({ email, hasPassword }: { email: string; hasPassw
         <Form action={confirmPasswordChange} onDone={done} className="adPw__form">
           <Hidden name="next" value={next} />
           <Hidden name="again" value={again} />
-          <p className="adPw__sent"><Mail aria-hidden="true" /> We sent a 6-digit code to <b>{email}</b>. It works for 10 minutes.</p>
+          <p className="adPw__sent"><Mail aria-hidden="true" /> <span>We sent a 6-digit code to <b>{email}</b>. It works for 10 minutes.</span></p>
           <CodeField />
           <span className="adPw__acts">
             <button type="button" className="ad__btn" onClick={() => setStep("new")}><ArrowLeft aria-hidden="true" /> Back</button>
@@ -86,14 +86,42 @@ function PwField({ name, label, value, onChange, show, autoComplete, mismatch }:
   );
 }
 
+/**
+ * SIX BOXES, ONE INPUT: the same idea as the sign-in pages' code field
+ * (components/auth/fields.tsx), at the admin's density. One real input sits
+ * over the boxes, so paste, the phone's one-time-code autofill and screen
+ * readers all see a single field; the boxes are a drawing of its value. The
+ * lit box is where the next digit goes, a digit lands with a small rise, a
+ * refusal shakes the row once, and the sixth digit submits.
+ */
 function CodeField() {
   const id = useId();
   const err = useFieldError("code");
+  const [value, setValue] = useState("");
+  const [focused, setFocused] = useState(false);
+  const active = Math.min(value.length, 5);
   return (
     <div className={`ad__f adPw__code${err ? " is-bad" : ""}`}>
       <span className="ad__flRow"><label className="ad__fl" htmlFor={id}>Code from the email</label></span>
-      <input id={id} name="code" inputMode="numeric" autoComplete="one-time-code" pattern="\d{6}" maxLength={7} required
-        placeholder="000000" aria-invalid={err ? true : undefined} aria-describedby={err ? `${id}-e` : undefined} />
+      <div className="adPw__boxes" data-bad={err ? "" : undefined}>
+        {/* Keyed on the error, so a second refusal shakes again. */}
+        <div className="adPw__row" key={err || "ok"} aria-hidden="true">
+          {Array.from({ length: 6 }, (_, i) => (
+            <span key={i} className={`adPw__box${focused && i === active ? " is-active" : ""}${value[i] ? " is-filled" : ""}`}>
+              {value[i] ? <span key={value[i]} className="adPw__digit">{value[i]}</span> : null}
+            </span>
+          ))}
+        </div>
+        <input id={id} name="code" className="adPw__input" inputMode="numeric" autoComplete="one-time-code" pattern="\d{6}" maxLength={6} required
+          value={value} spellCheck={false}
+          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+          onChange={(e) => {
+            const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+            setValue(v);
+            if (v.length === 6) e.target.form?.requestSubmit();
+          }}
+          aria-invalid={err ? true : undefined} aria-describedby={err ? `${id}-e` : undefined} />
+      </div>
       {err ? <small className="ad__fe" id={`${id}-e`}>{err}</small> : null}
     </div>
   );

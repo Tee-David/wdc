@@ -56,10 +56,7 @@
 /* One entry: the answers, then the details beside them on a wide screen. */
 .adForms__entry { display: grid; gap: .9rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
 @media (min-width: 1100px) { .adForms__entry { grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr); } }
-.adForms__dl { margin: 0; padding: .4rem 1rem 1rem; }
-.adForms__dl > div { display: grid; gap: .15rem; padding: .55rem 0; border-bottom: 1px solid var(--ad-line); }
-.adForms__dl dt { color: var(--ad-dim); font-size: .82rem; }
-.adForms__dl dd { margin: 0; white-space: pre-line; overflow-wrap: break-word; }
+/* .adForms__dl (a list of label and value) lives in admin.css: Settings pages use it without this file. */
 .adForms__timeline { margin: 0; padding: .4rem 1rem 1rem; list-style: none; display: grid; gap: .6rem; }
 .adForms__timeline li { display: grid; gap: .15rem; padding-bottom: .6rem; border-bottom: 1px solid var(--ad-line); }
 .adForms__timeline small { color: var(--ad-dim); }
