@@ -2,8 +2,8 @@ import "server-only";
 
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { hashPassword } from "better-auth/crypto";
-import type { PoolClient } from "pg";
 import { db } from "@/lib/db/pool";
+import { transaction } from "@/lib/db/transaction";
 
 /**
  * Invitations: the only way an account is made apart from the owner seed.
@@ -192,28 +192,6 @@ export async function redeemInvitation(token: string, input: { name: string; pas
     await c.query("UPDATE invitations SET redeemed_at = now(), redeemed_user_id = $2 WHERE id = $1", [row.id, userId]);
     return { ok: true, email: row.email, userId, role: row.role } as const;
   });
-}
-
-/**
- * A short transaction, retried when CockroachDB reports a serialization
- * conflict (40001) -- the one error that means "run it again", not "it failed".
- */
-async function transaction<T>(work: (c: PoolClient) => Promise<T>, attempts = 3): Promise<T> {
-  for (let n = 1; ; n++) {
-    const c = await db.connect();
-    try {
-      await c.query("BEGIN");
-      const out = await work(c);
-      await c.query("COMMIT");
-      return out;
-    } catch (e) {
-      await c.query("ROLLBACK").catch(() => {});
-      if ((e as { code?: string }).code === "40001" && n < attempts) continue;
-      throw e;
-    } finally {
-      c.release();
-    }
-  }
 }
 
 /** Whether an address already has an account, and as what. */

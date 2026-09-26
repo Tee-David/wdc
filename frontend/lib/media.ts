@@ -2,6 +2,7 @@ import "server-only";
 
 import { db } from "@/lib/db/pool";
 import { r2Config, r2PublicBase } from "@/lib/r2";
+import { foldersReady, subtreeIds } from "@/lib/media-folders";
 
 /**
  * The media library's rows. See `db/migrations/0011_media_library.sql` for
@@ -25,6 +26,8 @@ export type MediaAsset = {
   width: number | null;
   height: number | null;
   durationMs: number | null;
+  /** Null: Unsorted. */
+  folderId: string | null;
   /** Where the public site reads it from. Null when no public base is set. */
   url: string | null;
 };
@@ -33,6 +36,7 @@ type Row = {
   id: string; key: string; filename: string; content_type: string; bytes: string | number;
   alt: string; uploaded_by: string; uploaded_at: Date; archived_at: Date | null; archived_by: string | null;
   caption?: string | null; decorative?: boolean | null; width?: number | null; height?: number | null; duration_ms?: number | null;
+  folder_id?: string | null;
 };
 
 /** The page is bounded, and says so, rather than growing without limit. */
@@ -66,6 +70,7 @@ function toAsset(r: Row): MediaAsset {
     width: r.width ?? null,
     height: r.height ?? null,
     durationMs: r.duration_ms ?? null,
+    folderId: r.folder_id ?? null,
     url: mediaUrl(r.key),
   };
 }
@@ -83,7 +88,7 @@ export function mediaHasDetails(): Promise<boolean> {
     .then(() => true, () => { probe.__wdcMediaDetails = undefined; return false; });
   return probe.__wdcMediaDetails;
 }
-const columns = async () => BASE + ((await mediaHasDetails()) ? DETAILS : "");
+const columns = async () => BASE + ((await mediaHasDetails()) ? DETAILS : "") + ((await foldersReady()) ? ", folder_id" : "");
 
 export const MEDIA_KINDS = ["image", "video", "pdf"] as const;
 export type MediaKind = (typeof MEDIA_KINDS)[number];
@@ -92,6 +97,8 @@ export type MediaSort = keyof typeof MEDIA_SORTS;
 export type MediaQuery = {
   archived?: boolean; q?: string; page?: number; per?: number;
   kind?: MediaKind | ""; sort?: MediaSort; month?: string; by?: string; needsAlt?: boolean;
+  /** "" every folder, "unsorted" none, else a folder's id; `deep` includes the folders below it. */
+  folder?: string; deep?: boolean;
 };
 const KIND_SQL: Record<MediaKind, string> = {
   image: "content_type LIKE 'image/%'",
@@ -108,7 +115,7 @@ const KIND_SQL: Record<MediaKind, string> = {
  * still be found by name.
  */
 export async function listMedia(query: MediaQuery = {}): Promise<{ items: MediaAsset[]; total: number }> {
-  const { archived = false, q = "", page = 1, per = MEDIA_PAGE, kind = "", sort = "new", month = "", by = "", needsAlt = false } = query;
+  const { archived = false, q = "", page = 1, per = MEDIA_PAGE, kind = "", sort = "new", month = "", by = "", needsAlt = false, folder = "", deep = false } = query;
   const details = await mediaHasDetails();
   const params: unknown[] = [];
   const where = [archived ? "archived_at IS NOT NULL" : "archived_at IS NULL"];
@@ -123,6 +130,13 @@ export async function listMedia(query: MediaQuery = {}): Promise<{ items: MediaA
     /* Lagos is UTC+1 all year. */
     params.push(`${month}-01T00:00:00+01:00`);
     where.push(`uploaded_at >= $${params.length}::TIMESTAMPTZ AND uploaded_at < $${params.length}::TIMESTAMPTZ + INTERVAL '1 month'`);
+  }
+  if (folder && (await foldersReady())) {
+    if (folder === "unsorted") where.push("folder_id IS NULL");
+    else if (/^[0-9a-f-]{36}$/i.test(folder)) {
+      params.push(deep ? await subtreeIds(folder) : [folder]);
+      where.push(`folder_id = ANY($${params.length}::UUID[])`);
+    }
   }
   if (needsAlt) where.push(`content_type LIKE 'image/%' AND alt = ''${details ? " AND NOT decorative" : ""}`);
   const clause = where.join(" AND ");
@@ -192,9 +206,17 @@ export async function mediaCounts(): Promise<{ live: number; archived: number }>
  */
 export async function recordMedia(m: {
   key: string; filename: string; contentType: string; bytes: number; alt: string; by: string;
-  width?: number | null; height?: number | null; durationMs?: number | null;
+  width?: number | null; height?: number | null; durationMs?: number | null; folderId?: string | null;
 }) {
-  if (await mediaHasDetails()) {
+  if (m.folderId && (await foldersReady()) && (await mediaHasDetails())) {
+    /* Into the folder the library was showing. A folder deleted meanwhile
+       leaves the file in Unsorted rather than failing the upload. */
+    await db.query(
+      `INSERT INTO media_assets (key, filename, content_type, bytes, alt, uploaded_by, width, height, duration_ms, folder_id)
+       SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, (SELECT id FROM media_folders WHERE id = $10) ON CONFLICT (key) DO NOTHING`,
+      [m.key, m.filename, m.contentType, m.bytes, m.alt, m.by, m.width ?? null, m.height ?? null, m.durationMs ?? null, m.folderId],
+    );
+  } else if (await mediaHasDetails()) {
     await db.query(
       `INSERT INTO media_assets (key, filename, content_type, bytes, alt, uploaded_by, width, height, duration_ms)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (key) DO NOTHING`,
