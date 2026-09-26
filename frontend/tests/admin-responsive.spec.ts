@@ -90,37 +90,36 @@ test("a panel's action keeps its own line, arrow included", async ({ page }) => 
   }
 });
 
-test("on a phone the sections are a bar at the bottom, and More is a sheet", async ({ page }) => {
+test("on a phone the sidebar opens as a drawer from the menu button", async ({ page }) => {
   await page.goto("/admin");
 
-  /* The floating bar replaced the hamburger drawer. It must sit wholly on
-     screen, above the bottom edge, with every target at least 44px, and it
-     must not push the page sideways. */
-  const bar = page.locator(".ad__tabs .ad__tabsBar");
-  await expect(bar).toBeVisible();
-  const box = (await bar.boundingBox())!;
+  /* The owner's ask: the same sidebar on a phone, in place of the bottom tab
+     bar. The menu button is a 44px target in the top bar; the drawer holds
+     every section, sits wholly on screen, and closes on Escape and when a
+     link in it is followed. */
+  const menu = page.getByRole("button", { name: "Open the menu" });
+  await expect(menu).toBeVisible();
+  const mb = (await menu.boundingBox())!;
+  expect(Math.min(mb.width, mb.height)).toBeGreaterThanOrEqual(40);
+  expect(await scrollsSideways(page)).toBe(0);
+
+  await menu.click();
+  const drawer = page.locator("dialog.adDrawer[open]");
+  await expect(drawer).toBeVisible();
+  const box = (await drawer.boundingBox())!;
   const view = page.viewportSize()!;
   expect(box.x).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width).toBeLessThanOrEqual(view.width);
-  expect(box.y + box.height).toBeLessThan(view.height);
-  const sizes = await page.locator(".ad__tabs .ad__tab").evaluateAll((tabs) =>
-    tabs.map((t) => { const r = t.getBoundingClientRect(); return Math.min(r.width, r.height); }),
-  );
-  expect(sizes.length).toBe(5);
-  for (const size of sizes) expect(size).toBeGreaterThanOrEqual(44);
-  await expect(page.locator('.ad__tabs [aria-current="page"]')).toHaveText("Home");
-  expect(await scrollsSideways(page)).toBe(0);
-
-  /* More opens a sheet holding what the bar has no room for, and Escape
-     closes it again. */
-  await page.getByRole("button", { name: /^More/ }).click();
-  const sheet = page.getByRole("dialog", { name: "More" });
-  await expect(sheet).toBeVisible();
-  for (const name of ["Forms", "Blog", "Settings"]) {
-    await expect(sheet.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
+  for (const name of ["Dashboard", "Clients", "Projects", "Money", "Forms", "Blog", "Settings"]) {
+    await expect(drawer.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
   }
   await page.keyboard.press("Escape");
-  await expect(sheet).toBeHidden();
+  await expect(drawer).toHaveCount(0);
+
+  await menu.click();
+  await page.locator("dialog.adDrawer[open]").getByRole("link", { name: /^Clients/ }).click();
+  await expect(page).toHaveURL(/\/admin\/clients$/);
+  await expect(page.locator("dialog.adDrawer[open]")).toHaveCount(0);
 });
 
 test("a wide table scrolls itself instead of crushing its columns", async ({ page }) => {

@@ -55,7 +55,7 @@ export const ADMIN_WELCOME: TourDef = {
     { id: "nav-forms", target: '[data-tour="nav-forms"]', href: "/admin/money", icon: "inbox", interact: { hint: "Click Forms to move on" }, title: "Forms", content: "Every onboarding submission, sent or still in progress." },
     { id: "nav-settings", target: '[data-tour="nav-settings"]', href: "/admin/forms", icon: "settings", interact: { hint: "Click Settings to move on" }, title: "Settings", content: "Content on the public site, and how the agency runs." },
     { id: "sidebar-pin", target: '[data-tour="sidebar-pin"]', href: "/admin/settings", icon: "panelLeft", desktopOnly: true, optional: true, title: "Collapse the sidebar", content: "Icons only, more room for the page. It remembers your choice next time." },
-    { id: "mobile-menu", target: '[data-tour="mobile-menu"]', href: "/admin/settings", icon: "panelLeft", mobileOnly: true, optional: true, title: "The sections, on a phone", content: "The bar at the bottom holds Home, Clients, Projects and Money. Forms, Blog and Settings are under More." },
+    { id: "mobile-menu", target: '[data-tour="mobile-menu"]', href: "/admin/settings", icon: "panelLeft", mobileOnly: true, optional: true, title: "The sections, on a phone", content: "This button opens the sidebar: every section, the theme switch and sign out. Tap a section and it closes." },
     { id: "search", target: '[data-tour="topbar-search"]', href: "/admin/settings", icon: "search", title: "Search or Ctrl+K", content: "Jump straight to any page from anywhere, without touching the sidebar." },
     closer("done", "That's the map", "Take the full workflow walkthrough any time from the ? button beside search, or replay this one. Nothing here is required."),
   ],

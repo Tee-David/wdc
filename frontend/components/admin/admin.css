@@ -124,7 +124,7 @@
    Desktop: a sidebar whose menu scrolls under the brand while the tour card
    and the person signed in stay pinned to its foot, and a top bar that is
    search first, then the controls. Phone: no sidebar and no drawer; a
-   compact top bar and the floating tab bar at the bottom. */
+   compact top bar whose menu button opens the sidebar as a drawer. */
 
 .ad__wrap {
   min-height: 100dvh;
@@ -304,7 +304,7 @@
 .ad__popoverEmpty b { font-size: .82rem; }
 .ad__popoverEmpty span { color: var(--ad-dim); font-size: .74rem; }
 
-.ad__overlay, .ad__sheetLayer { position: fixed; inset: 0; z-index: 100; background: rgb(6 6 28 / .5); }
+.ad__overlay { position: fixed; inset: 0; z-index: 100; background: rgb(6 6 28 / .5); }
 .ad__overlay { padding: min(16vh, 8rem) 1rem 1rem; display: flex; align-items: flex-start; justify-content: center; backdrop-filter: blur(3px); }
 .ad__command { width: min(35rem, 100%); overflow: hidden; border: 1px solid var(--ad-line); border-radius: 18px; background: var(--ad-panel); box-shadow: 0 26px 70px rgb(6 6 28 / .28); }
 .ad__commandInput { min-height: 3.5rem; padding: 0 .85rem; display: flex; align-items: center; gap: .65rem; border-bottom: 1px solid var(--ad-line); }
@@ -321,85 +321,27 @@
 
 .ad__main { min-width: 0; flex: 1; padding: clamp(1rem, 2.4vw, 2rem); overflow-x: clip; }
 
-/* THE FLOATING TAB BAR (the MTabs board). Hidden until the sidebar goes.
-   Every colour on it is solid: navy bar, white-ish icons (12:1), the
-   current section an orange pill with a white label (4.6:1), and the pill
-   against the bar at 3.9:1 so its edge is plain. */
-.ad__tabs {
-  display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
-  justify-content: center; pointer-events: none;
-  padding: 0 .75rem calc(.875rem + env(safe-area-inset-bottom));
+/* THE SIDEBAR ON A PHONE (components/admin/nav-drawer.tsx): the desktop
+   sidebar itself, slid in from the left in a native <dialog>. Its menu
+   button only shows below 900px, where the fixed sidebar is hidden. */
+.ad__topMenu { display: none; }
+.adDrawer {
+  position: fixed; inset: 0 auto 0 0; margin: 0; padding: 0; border: 0;
+  width: min(19rem, 86vw); max-width: none; height: 100dvh; max-height: none;
+  background: var(--ad-panel); color: var(--ad-ink); border-right: 1px solid var(--ad-line);
+  box-shadow: 18px 0 48px rgb(6 6 28 / .3);
+  padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
 }
-.ad__tabsBar {
-  pointer-events: auto; flex: 1; min-width: 0; max-width: 32rem; height: 4rem; padding: .5rem;
-  display: flex; align-items: center; gap: .25rem;
-  border-radius: 2rem; background: var(--ad-navy);
-  box-shadow: 0 14px 30px -10px rgb(0 0 64 / .55), 0 2px 6px rgb(0 0 40 / .18);
-}
-.dark .ad__tabsBar { background: #16163f; box-shadow: inset 0 0 0 1px #3a3c6e, 0 14px 30px -10px rgb(0 0 0 / .7); }
-.ad__tabs .ad__tab {
-  position: relative; flex: 1 1 0; min-width: 2.75rem; height: 3rem; padding: 0;
-  display: flex; align-items: center; justify-content: center; gap: .5rem;
-  border: 0; border-radius: 1.5rem; background: transparent; color: #ccd0f0;
-  font: 600 .94rem var(--font-body); white-space: nowrap; cursor: pointer;
-  transition: background-color .2s ease, color .2s ease;
-}
-.ad__tabs .ad__tab svg { width: 1.35rem; height: 1.35rem; flex: none; }
-.ad__tabs .ad__tab:hover { background: #1a1a7a; color: #fff; }
-.dark .ad__tabs .ad__tab:hover { background: #22225a; }
-.ad .ad__tabs .ad__tab:focus-visible { outline: 3px solid #fff; outline-offset: 2px; border-radius: 1.5rem; }
-.ad__tabs .ad__tab.is-on { flex: 0 0 auto; padding: 0 1.1rem 0 1rem; background: var(--ad-tone-live); color: var(--ad-on-live); }
-.ad__tab:not(.is-on) .ad__tabLabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.ad__tabCt {
-  position: absolute; top: .3rem; left: calc(50% + .3rem); min-width: 1.15rem; height: 1.15rem; padding: 0 .3rem;
-  display: grid; place-items: center; border-radius: 999px;
-  background: var(--ad-tone-live); color: var(--ad-on-live); font-size: .68rem; font-weight: 700;
-  box-shadow: 0 0 0 2px var(--ad-navy);
-}
-.dark .ad__tabCt { box-shadow: 0 0 0 2px #16163f; }
+.adDrawer[open] { animation: ad-drawer-in .22s cubic-bezier(.2, .8, .2, 1) backwards; }
+.adDrawer::backdrop { background: rgb(6 6 28 / .55); backdrop-filter: blur(2px); }
+.adDrawer__in { height: 100%; display: flex; flex-direction: column; min-height: 0; }
+.adDrawer__bar { flex: none; display: flex; justify-content: flex-end; align-items: center; gap: .4rem; padding: .6rem .75rem 0; }
+.adDrawer .ad__themeBtn { display: grid; }
+.adDrawer .ad__sideInner { flex: 1; min-height: 0; height: auto; }
+body:has(.adDrawer[open]) .st { display: none; }
+@keyframes ad-drawer-in { from { transform: translateX(-100%); } to { transform: none; } }
 
-/* THE BOTTOM SHEET (MMore). */
-.ad__sheetLayer { display: flex; align-items: flex-end; }
-.ad__sheet {
-  width: 100%; max-height: min(85dvh, 44rem); display: flex; flex-direction: column;
-  border-radius: 24px 24px 0 0; background: var(--ad-panel); box-shadow: 0 -18px 48px rgb(6 6 28 / .25);
-  padding-bottom: env(safe-area-inset-bottom);
-  animation: ad-sheet-in .24s ease-out backwards;
-}
-.ad__sheetGrab { flex: none; width: 2.5rem; height: 5px; margin: .6rem auto .2rem; border-radius: 999px; background: var(--ad-line); }
-.ad__sheetHead { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .3rem 1.25rem .6rem; }
-.ad__sheetHead h2 { font-size: 1.2rem; }
-.ad__sheetBody { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: .25rem 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
-/* The body scrolls; what is in it never shrinks to fit. Without this the
-   list under the tiles (overflow: hidden, so no content floor) was squeezed
-   to its border on a short phone, and the theme switch and Sign out vanished. */
-.ad__sheetBody > * { flex-shrink: 0; }
-/* Back to top belongs to the page, not to a sheet laid over it. */
-body:has(.ad__sheetLayer) .st { display: none; }
 @media (max-width: 640px) { body:has(.ad__range[open]) .st { display: none; } }
-.ad__moreGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
-.ad__moreGrid .ad__moreTile {
-  position: relative; min-width: 0; min-height: 6.25rem; padding: .9rem;
-  display: flex; flex-direction: column; align-items: flex-start; gap: .15rem;
-  border: 1px solid var(--ad-line); border-radius: 16px; background: var(--ad-panel); color: var(--ad-ink);
-}
-.ad__moreGrid .ad__moreTile.is-on { border-color: var(--ad-navy); box-shadow: 0 0 0 3px var(--ad-nav-on); }
-.dark .ad__moreGrid .ad__moreTile.is-on { border-color: var(--ad-accent); }
-.ad__moreIcon { width: 2.25rem; height: 2.25rem; margin-bottom: .45rem; display: grid; place-items: center; border-radius: 10px; background: var(--ad-tone-brand); color: var(--ad-on-brand); }
-.ad__moreIcon svg { width: 1.05rem; height: 1.05rem; }
-.ad__moreTile b { font-size: .92rem; }
-.ad__moreTile small { color: var(--ad-dim); font-size: .76rem; line-height: 1.35; }
-.ad__moreTile :is(b, small) { max-width: 100%; overflow-wrap: anywhere; }
-.ad__moreTile .ad__count { position: absolute; top: .8rem; right: .8rem; margin: 0; }
-.ad__moreList { display: grid; overflow: hidden; border: 1px solid var(--ad-line); border-radius: 16px; }
-.ad .ad__moreList > :is(a, button) {
-  min-height: 3.25rem; padding: 0 1rem; display: flex; align-items: center; gap: .75rem;
-  border: 0; border-bottom: 1px solid var(--ad-line); background: var(--ad-panel); color: var(--ad-ink);
-  font: 600 .92rem var(--font-body); text-align: left; cursor: pointer;
-}
-.ad .ad__moreList > :last-child { border-bottom: 0; }
-.ad__moreList svg { width: 1.1rem; height: 1.1rem; color: var(--ad-dim); flex: none; }
-.ad .ad__moreList > .ad__moreOut, .ad__moreList > .ad__moreOut svg { color: var(--ad-bad-ink); }
 
 @media (max-width: 900px) {
   .ad__wrap, .ad__wrap.is-collapsed { grid-template-columns: minmax(0, 1fr); }
@@ -414,23 +356,17 @@ body:has(.ad__sheetLayer) .st { display: none; }
   .ad__topActions { margin-left: 0; gap: .35rem; }
   .ad__themeBtn, .ad__topRule, .ad__accountText, .ad__accountChev { display: none; }
   .ad__account { padding: .25rem; }
-  .ad__main { padding-bottom: calc(6.5rem + env(safe-area-inset-bottom)); }
-  .ad__tabs { display: flex; }
-  /* The site's back-to-top (components/ui/scroll-top.css) takes the bottom
-     right corner, which on a phone is the tab bar's. Lift it clear. */
-  body:has(.ad__tabs) .st { bottom: calc(6.25rem + env(safe-area-inset-bottom)); }
+  .ad__main { padding-bottom: calc(2rem + env(safe-area-inset-bottom)); }
+  .ad__topMenu { display: grid; place-items: center; flex: none; }
 }
 @media (max-width: 380px) {
   .ad__topbar { gap: .25rem; padding-inline: .5rem; }
   .ad__topActions { gap: .2rem; }
   .ad__topIcon, .ad__search, .ad__topbar .tourLauncher__btn, .ad__topMark { width: 2.5rem; height: 2.5rem; }
-  .ad__tabs { padding-inline: .5rem; }
-  .ad__tabs .ad__tab.is-on { padding: 0 .85rem 0 .75rem; }
-  .ad__tabCt { left: 50%; }
 }
 @keyframes ad-sheet-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) {
-  .ad__wrap, .ad__side, .ad__sheet, .ad__tabs .ad__tab { transition: none; animation: none; }
+  .ad__wrap, .ad__side, .adDrawer, .adDrawer::backdrop { transition: none; animation: none; }
 }
 
 /* ------------------------------------------------------------------ page */
@@ -1486,7 +1422,7 @@ a.ad__pgBtn:hover { background: var(--ad-panel-2); border-color: var(--ad-dim); 
 }
 .ad__rangeCustom input:focus { outline: none; border-color: var(--ad-navy); box-shadow: 0 0 0 4px var(--ad-nav-on); }
 
-/* On a phone the range opens as a sheet held above the tab bar, so it can
+/* On a phone the range opens as a sheet at the foot of the screen, so it can
    never hang off either edge of the screen. */
 @media (max-width: 640px) {
   /* Doubled class on purpose: the filter bars and the form entries toolbar
@@ -1494,7 +1430,7 @@ a.ad__pgBtn:hover { background: var(--ad-panel-2); border-color: var(--ad-dim); 
      sheet pinned at both top and bottom collapsed to 2px on every phone. */
   .ad__range .ad__rangeMenu.ad__rangeMenu {
     position: fixed; left: .75rem; right: .75rem; top: auto; width: auto;
-    bottom: calc(5.75rem + env(safe-area-inset-bottom));
+    bottom: calc(.75rem + env(safe-area-inset-bottom));
     max-height: calc(100dvh - 10rem); overflow-y: auto; overscroll-behavior: contain;
   }
   .ad__pgRange { width: 100%; margin: 0; }
@@ -1755,7 +1691,7 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 }
 
 /* TOASTS (components/admin/toast.tsx): solid, white type, bottom centre,
-   clear of the phone's tab bar and the safe area. */
+   clear of the safe area. */
 .adToasts {
   position: fixed; z-index: 90; left: 50%; bottom: calc(1.5rem + env(safe-area-inset-bottom));
   transform: translateX(-50%); width: min(26rem, calc(100vw - 2rem));
@@ -1775,7 +1711,6 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 .adToast__x:hover { background: rgb(255 255 255 / .16); }
 .adToast__x svg { width: 1rem; height: 1rem; }
 @keyframes ad-toast-in { from { opacity: 0; transform: translateY(10px); } }
-@media (max-width: 900px) { .adToasts { bottom: calc(6.75rem + env(safe-area-inset-bottom)); } }
 @media (prefers-reduced-motion: reduce) { .adToast { animation: none; } }
 
 /* THE SEARCHABLE PICKER (components/admin/search-select.tsx). The trigger
@@ -1824,7 +1759,7 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 @media (prefers-reduced-motion: reduce) { .adPick__pop { animation: none; } .adPick__btn svg { transition: none; } }
 
 /* THE BULK BAR (ticked rows): one navy line, pinned under the top bar on a
-   desktop and floating above the tab bar on a phone. */
+   desktop and floating at the foot of the screen on a phone. */
 .adBulk {
   position: sticky; top: 4.75rem; z-index: 6;
   display: flex; align-items: center; gap: .5rem; padding: .55rem .6rem .55rem 1rem;
@@ -1861,7 +1796,7 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 }
 @media (max-width: 900px) {
   body:has(.adBulk) .st { bottom: calc(11rem + env(safe-area-inset-bottom)); }
-  .adBulk { position: fixed; left: 1rem; right: 1rem; top: auto; bottom: calc(6.5rem + env(safe-area-inset-bottom)); margin: 0; }
+  .adBulk { position: fixed; left: 1rem; right: 1rem; top: auto; bottom: calc(1rem + env(safe-area-inset-bottom)); margin: 0; }
   .adBulk__menu { top: auto; bottom: calc(100% + .4rem); }
 }
 

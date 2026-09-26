@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { ArrowLeft, ChevronDown, Globe, House, LogOut, Moon, PanelLeft, Sun } from "lucide-react";
+import { ArrowLeft, ChevronDown, Globe, LogOut, Moon, PanelLeft, Sun } from "lucide-react";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { authClient } from "@/lib/auth-client";
 import { WdcMark } from "@/components/brand/logo";
 import { CLIENT_NAV, isClientNavActive } from "./client-nav";
 import TourLauncher from "@/components/admin/tour/tour-launcher";
 import TableScroll from "@/components/admin/table-scroll";
-import { TabBar } from "@/components/admin/tab-bar";
+import { MenuButton, NavDrawer, useNavDrawer } from "@/components/admin/nav-drawer";
 import { SideProfile, SideTourCard } from "@/components/admin/side-foot";
 import { initialsOf } from "@/components/admin/focus";
 import { ToastHost } from "@/components/admin/toast";
@@ -191,6 +191,7 @@ export default function ClientShell({
   const [hoverExpanded, setHoverExpanded] = useState(false);
   const active = CLIENT_NAV.find((item) => isClientNavActive(item.href, path));
   const visuallyCollapsed = pinnedCollapsed && !hoverExpanded;
+  const drawer = useNavDrawer();
   /* Inside a section (a project, a conversation) the phone's arrow goes back
      to the section's list; on the list itself the mark stands in its place. */
   const parent = active && active.href !== "/portal" && path !== active.href ? active.href : undefined;
@@ -210,13 +211,6 @@ export default function ClientShell({
     });
   }
 
-  const tabs = CLIENT_NAV.map((item) => ({
-    label: item.label,
-    Icon: item.href === "/portal" ? House : item.Icon,
-    href: item.href,
-    active: isClientNavActive(item.href, path),
-  }));
-
   return (
     <div className={`ad__wrap${pinnedCollapsed ? " is-collapsed" : ""}`}>
       <aside
@@ -229,6 +223,7 @@ export default function ClientShell({
 
       <div className="ad__column">
         <header className="ad__topbar">
+          <MenuButton onClick={drawer.show} expanded={drawer.open} tour="portal-mobile-menu" />
           {parent ? (
             <Link href={parent} className="ad__topIcon ad__topBack" aria-label="Back"><ArrowLeft aria-hidden="true" /></Link>
           ) : (
@@ -250,7 +245,9 @@ export default function ClientShell({
         <ConfirmHost />
       </div>
 
-      <TabBar items={tabs} label="Portal sections" tour="portal-mobile-menu" />
+      <NavDrawer open={drawer.open} onClose={drawer.hide} label="Portal menu" tools={<ThemeButton />}>
+        <Sidebar clientCompany={clientCompany} user={user} />
+      </NavDrawer>
     </div>
   );
 }
