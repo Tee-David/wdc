@@ -56,3 +56,28 @@ test("the entry page lists every upload with signed Open and Download links", as
   /* And the one with no record says why, rather than vanishing. */
   await expect(panel.locator(".adAtt__file", { hasText: "old-scan.png" })).toContainText("Ask the client to send it again");
 });
+
+test("Download PDF gives the whole entry as an A4 PDF, and nobody else can fetch it", async ({ page, request }) => {
+  await page.setExtraHTTPHeaders({ "x-boneyard-capture": TOKEN ?? "" });
+  await page.goto(`/admin/forms/onboarding-branding/entries/${id}`, { waitUntil: "networkidle" });
+  const link = page.getByRole("link", { name: "Download PDF" });
+  await expect(link).toHaveAttribute("href", `/admin/forms/onboarding-branding/entries/${id}/pdf`);
+
+  const res = await page.request.get(`/admin/forms/onboarding-branding/entries/${id}/pdf`, { headers: { "x-boneyard-capture": TOKEN ?? "" } });
+  expect(res.status()).toBe(200);
+  expect(res.headers()["content-type"]).toBe("application/pdf");
+  expect(res.headers()["content-disposition"]).toContain(".pdf");
+  const bytes = await res.body();
+  expect(bytes.subarray(0, 5).toString()).toBe("%PDF-");
+  const { PDFDocument } = await import("pdf-lib");
+  const doc = await PDFDocument.load(bytes);
+  expect(doc.getTitle()).toMatch(/brief/i);
+  const { width: w, height: h } = doc.getPage(0).getSize();
+  expect(Math.round(w)).toBe(595);
+  expect(Math.round(h)).toBe(842);
+
+  /* Signed out: the same 404 as an entry that does not exist. */
+  const anon = await request.get(`/admin/forms/onboarding-branding/entries/${id}/pdf`, { maxRedirects: 0 });
+  expect([404, 307, 302]).toContain(anon.status());
+  expect(anon.headers()["content-type"] ?? "").not.toContain("application/pdf");
+});

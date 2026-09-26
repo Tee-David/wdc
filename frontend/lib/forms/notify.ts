@@ -5,6 +5,7 @@ import { queueLogged } from "@/lib/message-log";
 import { SITE_URL } from "@/lib/site";
 import type { FormDef } from "./registry";
 import { fillTokens, NOTIFICATIONS, type FormSettings } from "./settings";
+import { entryMailParts, withEntryParts } from "./entry-mail";
 
 type Mail = Parameters<typeof sendLogged>[0];
 
@@ -19,6 +20,10 @@ type Mail = Parameters<typeof sendLogged>[0];
  *
  * Throws when the send fails, like `sendLogged`, so every caller keeps its
  * existing try/catch.
+ *
+ * Given the entry's id, a notice to the studio carries the entry as a PDF and
+ * the files the client sent (lib/forms/entry-mail.ts). If making those fails
+ * the notice still goes, without them.
  */
 export async function sendFormEmail(
   form: FormDef,
@@ -27,6 +32,7 @@ export async function sendFormEmail(
   mail: Mail,
   log: OutboxLog,
   tokens: Record<string, string> = {},
+  entryId?: string,
 ): Promise<"sent" | "duplicate" | "skipped"> {
   const def = NOTIFICATIONS[form.source].find((n) => n.key === key);
   const n = settings.notifications[key];
@@ -41,6 +47,14 @@ export async function sendFormEmail(
       dedupeKey: log.dedupeKey, by: log.by ?? "Website", clientId: log.clientId, about: log.about, state: "Skipped",
     });
     return "skipped";
+  }
+  if (def.audience === "studio" && entryId) {
+    try {
+      const parts = await entryMailParts(form, entryId);
+      if (parts) mail = withEntryParts(mail, parts);
+    } catch (error) {
+      console.error("Entry attachments failed", error instanceof Error ? error.message : "unknown error");
+    }
   }
   return sendLogged({
     ...mail,

@@ -87,11 +87,13 @@ export async function sendMail(input: {
   cc?: string[];
   bcc?: string[];
   /**
-   * Inline parts, referenced from the HTML as `cid:<id>`. Only the document QR
-   * on the invoice and receipt uses this today; see `documentQr()` in
-   * lib/email-templates.ts for why it is an attachment rather than a URL.
+   * With a `cid`, an inline part referenced from the HTML as `cid:<id>`: the
+   * document QR on the invoice and receipt (see `documentQr()` in
+   * lib/email-templates.ts for why it is an attachment rather than a URL).
+   * Without one, a file to open: the entry PDF and what the client sent, on
+   * the studio's notice (lib/forms/entry-mail.ts).
    */
-  attachments?: { filename: string; content: string; contentType: string; cid: string }[];
+  attachments?: { filename: string; content: string | Buffer; contentType: string; cid?: string }[];
   /**
    * Set on anything a person did not individually ask us to send them -- a
    * receipt, a reminder, a digest. Gmail weighs a one-click unsubscribe

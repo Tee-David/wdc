@@ -4,7 +4,7 @@ import { answerText, type Answers, type FileAnswer } from "@/lib/forms/custom-de
 import { versionDef } from "@/lib/forms/custom";
 import { findForm } from "@/lib/forms/find";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileDown } from "lucide-react";
 import { after } from "next/server";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
@@ -20,7 +20,8 @@ import { NOTIFICATIONS } from "@/lib/forms/settings";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
 import { EntryAttachments } from "@/components/admin/forms/entry-attachments";
-import { customFiles, onboardingFiles, type EntryFile } from "@/lib/onboarding-files";
+import type { EntryFile } from "@/lib/onboarding-files";
+import { entryFiles } from "@/lib/forms/entry-files";
 import "@/components/admin/forms/forms.css";
 
 type Props = {
@@ -148,23 +149,6 @@ function Answers({ form, entry, hideEmpty }: { form: FormDef; entry: Entry; hide
   );
 }
 
-/** What the client uploaded, from whichever kind of form it came in on. */
-async function entryFiles(form: FormDef, entry: Entry): Promise<EntryFile[]> {
-  if (form.source === "onboarding" && form.service) {
-    const fields = stepsFor(form.service).flatMap((st) => st.fields).filter((f) => f.kind === "upload").map((f) => ({ key: f.key, label: f.label }));
-    return onboardingFiles(entry.id, entry.answers, fields);
-  }
-  if (form.source === "custom") {
-    const def = await versionDef(form.key, entry.version ?? 0);
-    const answers = entry.answers as unknown as Answers;
-    return customFiles((def?.fields ?? []).flatMap((f) => {
-      const a = answers[f.id];
-      return Array.isArray(a) && a.length && typeof a[0] === "object" ? (a as FileAnswer[]).map((x) => ({ question: f.label, key: x.key, name: x.name, size: x.size })) : [];
-    }));
-  }
-  return [];
-}
-
 const KIND: Record<EntryEvent["kind"], string> = { note: "Note", state: "Changed", email: "Email", client: "Client" };
 
 export default async function EntryPage({ params, searchParams }: Props) {
@@ -224,6 +208,13 @@ export default async function EntryPage({ params, searchParams }: Props) {
                 ? <Link className="ad__btn" href={link(next)} rel="next">Next <ChevronRight aria-hidden="true" /></Link>
                 : <span className="ad__btn is-off" aria-disabled="true">Next <ChevronRight aria-hidden="true" /></span>}
             </nav>
+          ) : null}
+          {form.source !== "newsletter" ? (
+            /* A plain link: the route answers with the file, and the browser
+               downloads it without leaving the page. */
+            <a className="ad__btn" href={`/admin/forms/${form.key}/entries/${entry.id}/pdf`} download data-tour="entry-pdf">
+              <FileDown aria-hidden="true" /> Download PDF
+            </a>
           ) : null}
           {form.source === "contact" ? (
             <a className="ad__btn ad__btn--primary" href={`mailto:${entry.email}?subject=${encodeURIComponent(`Re: ${entry.topic ?? "your enquiry"}`)}`}>Reply by email</a>
