@@ -150,10 +150,13 @@ export default async function FormsPage() {
 
       {state === "off" ? (
         <AdminState kind="error" title="The form database is not connected"
-          description="COCKROACHDB_URL is not set, so the forms cannot save and there is nothing to show." />
+          description="Forms cannot save until the database is set up. Integrations says what is missing."
+          action={<Link className="ad__btn ad__btn--primary" href="/admin/settings/integrations">Open integrations</Link>} />
       ) : state === "error" ? (
         <AdminState kind="error" title="The forms could not be loaded"
-          description="The database did not answer. Nothing has been lost; reload in a minute." />
+          description="The database did not answer. Nothing has been lost."
+          action={<Link className="ad__btn ad__btn--primary" href="/admin/forms">Try again</Link>}
+          secondaryAction={<Link className="ad__btn" href="/admin/settings/system">Check system health</Link>} />
       ) : (
         <div className="ad__stack">
           <dl className="ad__tiles ad__tiles--4" style={{ margin: 0 }}>

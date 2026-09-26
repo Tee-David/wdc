@@ -274,9 +274,16 @@ export default async function FormPage({ params, searchParams }: Props) {
           empty={filtered ? (
             <Empty title="Nothing matches these filters" action={<Link className="ad__btn" href={`/admin/forms/${form.key}?tab=${f.tab}`}>Clear filters</Link>} />
           ) : (
-            <Empty title={f.tab === tabs[0].key ? `No entries from the ${form.title.toLowerCase()} form yet` : `Nothing in ${tabs.find((t) => t.key === f.tab)?.label}`}
-              action={f.tab === tabs[0].key ? <a className="ad__btn" href={form.publicPath} target="_blank" rel="noopener">Open form</a> : undefined}>
-              {f.tab === tabs[0].key ? "They appear here the moment somebody sends one." : undefined}
+            <Empty
+              kind={f.tab === tabs[0].key ? "first-use" : "cleared"}
+              title={f.tab === tabs[0].key ? `No entries from the ${form.title.toLowerCase()} form yet` : f.tab === "spam" ? "No spam" : f.tab === "trash" ? "Trash is empty" : `Nothing in ${tabs.find((t) => t.key === f.tab)?.label}`}
+              action={f.tab === tabs[0].key
+                ? <a className="ad__btn" href={form.publicPath} target="_blank" rel="noopener">Open form</a>
+                : <Link className="ad__btn" href={`/admin/forms/${form.key}?tab=${tabs[0].key}`}>Back to {tabs[0].label.toLowerCase()}</Link>}>
+              {f.tab === tabs[0].key ? "They appear here the moment somebody sends one."
+                : f.tab === "spam" ? "Entries caught by the blocked-words list land here instead of the inbox."
+                : f.tab === "trash" ? "Entries you delete wait here before they are removed for good."
+                : undefined}
             </Empty>
           )}
         />

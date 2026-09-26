@@ -22,6 +22,8 @@ import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { ProfileCard } from "@/components/admin/profile-card";
+import { CopyText } from "@/components/admin/copy-text";
+import { SITE_URL } from "@/lib/site";
 import { Mail, Phone, Tag, User } from "lucide-react";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 
@@ -177,7 +179,11 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
                   </tbody>
                 </table>
               </div>
-            ) : <Empty title="No projects yet" />}
+            ) : (
+              <Empty title="No projects yet" action={<AddProject clients={[c]} clientId={c.id} />}>
+                Open a project for {c.company} to track its stage, files and updates.
+              </Empty>
+            )}
           </Panel>
 
           {money ? <Panel title="Invoices" dataTour="client-invoices">
@@ -202,7 +208,13 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
                   </tbody>
                 </table>
               </div>
-            ) : <Empty title="Nothing invoiced yet" />}
+            ) : (
+              <Empty title="Nothing invoiced yet" action={
+                <InvoiceBuilder clients={[c]} projects={getProjects().filter((p) => p.clientId === c.id)} clientId={c.id}
+                  defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} />}>
+                Raise an invoice for {c.company}. It gets a pay link they can use without signing in.
+              </Empty>
+            )}
           </Panel> : null}
         </div>
 
@@ -224,7 +236,11 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
                   </div>
                 ))}
               </div>
-            ) : <Empty title="No form yet" />}
+            ) : (
+              <Empty title="No brief yet" action={<CopyText text={`${SITE_URL}/onboarding`} label="Copy the onboarding link" />}>
+                Send them the onboarding form. Their answers link here once they send it.
+              </Empty>
+            )}
           </Panel>
 
           {c.notes ? (

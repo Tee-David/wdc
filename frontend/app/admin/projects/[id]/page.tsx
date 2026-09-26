@@ -204,7 +204,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                 </li>
               ))}
             </ol>
-          ) : <Empty title="Nothing recorded yet" />}
+          ) : (
+            <Empty title="Nothing recorded yet">Stage moves, sign-offs and changes are written here as they happen.</Empty>
+          )}
           <div style={{ padding: ".2rem 1rem 1rem", borderTop: "1px solid var(--ad-line)" }}>
             <AddNote project={p} />
           </div>
@@ -227,7 +229,14 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                 </tbody>
               </table>
             </div>
-          ) : <Empty title="Nothing invoiced against this" />}
+          ) : (
+            <Empty title="Nothing invoiced on this project" action={client ? (
+              <InvoiceBuilder clients={[client]} projects={[p]} clientId={client.id}
+                defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} />
+            ) : undefined}>
+              Raise an invoice against it to track what is billed and paid.
+            </Empty>
+          )}
         </Panel> : null}
         </div>
       </div>
