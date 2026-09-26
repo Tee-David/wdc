@@ -4,8 +4,6 @@
    carries a link back. */
 .adSet { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
 .adSet__main { min-width: 0; }
-.adSet__back { display: none; align-items: center; gap: .25rem; min-height: 44px; color: var(--ad-ink); text-decoration: none; font-weight: 600; }
-.adSet__back svg { width: 18px; height: 18px; }
 
 /* The menu. */
 .adSet__nav {
@@ -58,7 +56,6 @@
 /* A phone: the overview IS the list; a section shows only itself and a way back. */
 @media (max-width: 999px) {
   .adSet__nav { display: none; }
-  .adSet__back { display: inline-flex; }
 }
 
 /* ===================================================== THE SETTINGS KIT ====
