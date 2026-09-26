@@ -32,7 +32,7 @@ export function MaintenanceSwitch({ maintenance, host, reviewer }: { maintenance
         {!maintenance ? (
           <Fields>
             <Field name="message" label="What visitors are told" placeholder="We are making a few changes to the site." />
-            <Field name="backBy" label="Back by (Lagos time)" type="datetime-local" half hint="Optional. At this time the site opens again by itself, and anyone waiting on the page sees it come back." />
+            <Field name="backBy" label="Back by (studio time, UTC+1)" type="datetime-local" half hint="Optional. At this time the site opens again by itself, and anyone waiting on the page sees it come back." />
             <Field name="confirm" label={`Type ${host} to confirm`} half required />
           </Fields>
         ) : null}

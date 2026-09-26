@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import pg from "pg";
+import { choose } from "./choose";
 
 /**
  * A PICTURE IN THE MIDDLE OF A POST reaches the table, the preview and the
@@ -40,7 +41,7 @@ test("a picture between two paragraphs is saved, previewed and shown", async ({ 
   await page.goto("/admin/blog/new", { waitUntil: "load" });
   await page.getByLabel(/^Headline/).fill("A picture in the middle");
   await page.getByLabel(/^Address/).fill(SLUG);
-  await page.getByLabel(/^Service/).selectOption("branding");
+  await choose(page.getByLabel(/^Service/), "branding");
   await page.getByLabel(/^Card sentence/).fill("A post with a picture in the middle of it.");
   await page.getByLabel(/^Search result title/).fill("A picture in the middle");
   await page.getByLabel(/^Meta description/).fill("A test post that carries a picture between two paragraphs, to prove that it survives saving, the preview and the live post page.");

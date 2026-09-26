@@ -8,6 +8,7 @@ import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { Empty, Panel, Tile, when } from "@/components/admin/bits";
 import { AdminState } from "@/components/admin/admin-state";
 import { Pager, readPer } from "@/components/admin/pager";
+import { FilterPick } from "@/components/admin/pick";
 
 export const metadata = { title: "Support" };
 
@@ -84,13 +85,8 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
                 <span className="ad__sr">Search questions</span>
                 <input name="q" type="search" defaultValue={query.q} placeholder="Search subject, company or person" />
               </label>
-              <label>
-                <span className="ad__sr">Status</span>
-                <select name="status" defaultValue={status ?? ""}>
-                  <option value="">Every status</option>
-                  {STATUS.map((s) => <option key={s} value={s}>{LABEL[s]}</option>)}
-                </select>
-              </label>
+              <FilterPick label="Status" hideLabel name="status" defaultValue={status ?? ""} placeholder="Every status"
+                          options={STATUS.map((s) => ({ value: s, label: LABEL[s] }))} />
               {query.per ? <input type="hidden" name="per" value={per} /> : null}
               <button type="submit" className="ad__btn ad__btn--primary">Apply</button>
             </form>

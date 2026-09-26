@@ -3,6 +3,7 @@ import path from "node:path";
 import { createHmac, randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import pg from "pg";
+import { choose } from "./choose";
 
 /**
  * A FORM'S EMAILS: RESEND, PREVIEW, UNSUBSCRIBE, IMPORT.
@@ -68,7 +69,7 @@ test("a resend is rebuilt from the entry, and a refusal lands on its history and
 
   await asOwner(page, baseURL);
   await page.goto(`/admin/forms/contact/entries/${id}`, { waitUntil: "load" });
-  await page.getByLabel(/^Email$/).selectOption("receipt");
+  await choose(page.getByLabel(/^Email$/), "receipt");
   await page.getByRole("button", { name: "Resend" }).click();
   await expect(page.locator(".ad__msg.is-bad")).toContainText("SMTP is not configured", { timeout: 30_000 });
 

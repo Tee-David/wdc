@@ -44,7 +44,10 @@ export function Dialog({
       onClick={(e) => {
         /* The backdrop is the dialog's own pseudo-element, so its clicks land
            on the dialog. Comparing against the box is how the two are told
-           apart. */
+           apart. Only a click ON the dialog element counts: one that bubbled
+           from inside (a calendar hanging below the box, or a button pressed
+           with Enter, which reports 0,0) is not the backdrop. */
+        if (e.target !== e.currentTarget) return;
         const r = ref.current?.getBoundingClientRect();
         if (!r) return;
         if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) onClose();

@@ -8,6 +8,7 @@ import { KIND_LABEL } from "@/lib/audit-events";
 import { AUDIT_VERBS } from "@/lib/audit-verbs";
 import { AdminState } from "@/components/admin/admin-state";
 import AuditLog from "@/components/admin/audit-log";
+import { FilterPick } from "@/components/admin/pick";
 
 export const metadata = { title: "Audit log" };
 
@@ -45,29 +46,14 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
           <label className="ad__filterSearch"><span className="ad__sr">Search</span>
             <input type="search" name="q" defaultValue={filters.q ?? ""} placeholder="A client, an invoice number, a value" />
           </label>
-          <label><span className="ad__sr">Who</span>
-            <select name="actor" defaultValue={filters.actor ?? ""}>
-              <option value="">Anybody</option>
-              {actors.map((a) => <option key={a} value={a}>{a}</option>)}
-            </select>
-          </label>
-          <label><span className="ad__sr">Action</span>
-            <select name="verb" defaultValue={filters.verb ?? ""}>
-              <option value="">Any action</option>
-              {AUDIT_VERBS.map((v) => <option key={v.key} value={v.key}>{v.label}</option>)}
-            </select>
-          </label>
-          <label><span className="ad__sr">Area</span>
-            <select name="kind" defaultValue={filters.kind ?? ""}>
-              <option value="">Every area</option>
-              {AUDIT_KINDS.map((k) => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}
-            </select>
-          </label>
-          <label><span className="ad__sr">When</span>
-            <select name="range" defaultValue={filters.range}>
-              {AUDIT_RANGES.map((r) => <option key={r.key} value={r.key}>{r.label}</option>)}
-            </select>
-          </label>
+          <FilterPick label="Who" hideLabel name="actor" defaultValue={filters.actor ?? ""} placeholder="Anybody"
+                      options={actors.map((a) => ({ value: a, label: a }))} />
+          <FilterPick label="Action" hideLabel name="verb" defaultValue={filters.verb ?? ""} placeholder="Any action"
+                      options={AUDIT_VERBS.map((v) => ({ value: v.key, label: v.label }))} />
+          <FilterPick label="Area" hideLabel name="kind" defaultValue={filters.kind ?? ""} placeholder="Every area"
+                      options={AUDIT_KINDS.map((k) => ({ value: k, label: KIND_LABEL[k] }))} />
+          <FilterPick label="When" hideLabel name="range" defaultValue={filters.range}
+                      options={AUDIT_RANGES.map((r) => ({ value: r.key, label: r.label }))} />
           {filters.limit !== 25 ? <input type="hidden" name="per" value={filters.limit} /> : null}
           <button className="ad__btn ad__btn--primary" type="submit">Show</button>
           {filtered ? <Link className="ad__btn" href="/admin/settings/audit">Clear</Link> : null}

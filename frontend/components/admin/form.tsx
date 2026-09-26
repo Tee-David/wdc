@@ -2,7 +2,7 @@
 
 import {
   createContext, Fragment, useActionState, useCallback, useContext, useEffect,
-  useId, useRef, useState,
+  useId, useRef,
 } from "react";
 import { useFormStatus } from "react-dom";
 import { AlertCircle, Check, Loader2 } from "lucide-react";
@@ -10,7 +10,7 @@ import Tip from "@/components/onboarding/tip";
 import type { ActionState, Errors } from "@/lib/admin/validate";
 import { toast } from "./toast";
 import { ask } from "./confirm";
-import { SearchSelect } from "./search-select";
+import { DateInput, DateTimeInput, Pick } from "./pick";
 
 /**
  * What was typed, read off the submission.
@@ -210,45 +210,11 @@ type Common = {
 };
 
 /**
- * 09/14/2026 OR 14/09/2026, AND THE FIELD CANNOT TELL YOU WHICH.
- *
- * A native date input renders in the BROWSER's language, not the page's, and
- * nothing on our side changes that. So the same due date reads 09/14 on one
- * laptop and 14/09 on the next, and for any day of the month under thirteen
- * there is no way to tell them apart by looking. On an invoice date that is
- * not a nicety.
- *
- * The picker stays native, because the platform's calendar is keyboard
- * complete, localised, and on a phone it is the wheel the person already
- * knows. What is added is an echo in words, fixed to en-GB so it says the same
- * thing to everybody: "Monday, 14 September 2026". No dependency, no second
- * calendar to maintain, and the ambiguity is gone.
- *
- * WRITTEN BY HAND, NOT BY `toLocaleDateString`. Naming "en-GB" pins the
- * language but not the CLDR data an engine formats it with, and Node's ICU
- * and Chrome's disagree on this exact pattern: one writes "Thursday 17
- * September 2026", the other "Thursday, 17 September 2026", comma and all.
- * Server and client rendered different text for the same input, which React
- * treats as a hydration failure and discards the subtree to rebuild it on
- * every date field -- caught by `pageerror` events on `/admin` and
- * `/admin/money` in a full render, not by anything a snapshot of markup
- * would show. A fixed table can never drift between two engines.
+ * A text-like field. A date or a date-and-time gets the admin's own calendar
+ * (components/admin/pick.tsx) rather than the browser's, which reads 09/14 on
+ * one laptop and 14/09 on the next; it shows "Mon, 14 Sep 2026" to everybody
+ * and still posts YYYY-MM-DD.
  */
-const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
-
-function inWords(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return "";
-  /* Midday UTC, so reading it back in Lagos or in London names the same day --
-     the same reason `isoDate` in validate.ts stores it that way. */
-  const d = new Date(`${value}T12:00:00.000Z`);
-  if (Number.isNaN(d.getTime())) return "";
-  return `${WEEKDAYS[d.getUTCDay()]}, ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
-}
-
 export function Field({
   name, label, hint, required, half, type = "text", defaultValue, placeholder,
   step, min, inputMode,
@@ -261,25 +227,20 @@ export function Field({
   inputMode?: "text" | "numeric" | "decimal" | "tel" | "email";
 }) {
   const kept = useKept(name, defaultValue);
-  const [day, setDay] = useState(() => (type === "date" ? String(kept ?? "") : ""));
 
   return (
     <Wrap name={name} label={label} hint={hint} required={required} half={half}>
-      {(id, invalid, describedBy) => (
-        <>
-          <input
-            id={id} name={name} type={type} defaultValue={kept}
-            placeholder={placeholder} step={step} min={min} inputMode={inputMode}
-            aria-invalid={invalid || undefined} aria-describedby={describedBy}
-            onChange={type === "date" ? (e) => setDay(e.target.value) : undefined}
-          />
-          {type === "date" && inWords(day) ? (
-            /* `aria-hidden`, because the input already announces its own date
-               to a screen reader and hearing it twice is noise. This is for
-               the eye, which is where the ambiguity lives. */
-            <small className="ad__fd" aria-hidden="true">{inWords(day)}</small>
-          ) : null}
-        </>
+      {(id, invalid, describedBy) => type === "date" ? (
+        <DateInput id={id} name={name} defaultValue={String(kept ?? "")} min={min} required={required}
+                   invalid={invalid} describedBy={describedBy} />
+      ) : type === "datetime-local" ? (
+        <DateTimeInput id={id} name={name} defaultValue={String(kept ?? "")} min={min} invalid={invalid} describedBy={describedBy} />
+      ) : (
+        <input
+          id={id} name={name} type={type} defaultValue={kept}
+          placeholder={placeholder} step={step} min={min} inputMode={inputMode}
+          aria-invalid={invalid || undefined} aria-describedby={describedBy}
+        />
       )}
     </Wrap>
   );
@@ -315,18 +276,10 @@ export function Select({
   const kept = useKept(name, defaultValue);
   const search = searchable ?? (options.length > 10 || /Id$/.test(name));
   return (
-    <Wrap name={name} label={label} hint={hint} required={required} half={half} kind={search ? undefined : "select"}>
-      {(id, invalid, describedBy) => search ? (
-        <SearchSelect id={id} name={name} options={options} defaultValue={String(kept ?? "")} placeholder={placeholder}
-                      invalid={invalid} describedBy={describedBy} />
-      ) : (
-        <select
-          id={id} name={name} defaultValue={kept ?? ""}
-          aria-invalid={invalid || undefined} aria-describedby={describedBy}
-        >
-          {placeholder ? <option value="">{placeholder}</option> : null}
-          {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
+    <Wrap name={name} label={label} hint={hint} required={required} half={half}>
+      {(id, invalid, describedBy) => (
+        <Pick id={id} name={name} options={options} defaultValue={String(kept ?? "")} placeholder={placeholder}
+              search={search} invalid={invalid} describedBy={describedBy} />
       )}
     </Wrap>
   );
@@ -449,15 +402,8 @@ function HintTip({ hint }: { hint?: string; label?: string }) {
 
 /** The label, hint and error around whatever control the caller renders. */
 export function Wrap({
-  name, label, hint, required, half, kind, children,
+  name, label, hint, required, half, children,
 }: Common & {
-  /* What is inside, so the wrapper can carry the caret a `<select>` needs.
-     Drawn on the WRAPPER rather than as a background on the control itself,
-     because a background-image on a select is what makes several browsers
-     drop their own arrow and leave nothing -- and because a pseudo-element can
-     take `currentColor`, change on focus-within and be masked from one shared
-     chevron. */
-  kind?: "select";
   children: (id: string, invalid: boolean, describedBy?: string) => React.ReactNode;
 }) {
   const { errors, gen } = useContext(Ctx);
@@ -466,7 +412,7 @@ export function Wrap({
   const describedBy = [err ? `${id}-e` : "", hint ? `${id}-h` : ""].filter(Boolean).join(" ") || undefined;
 
   return (
-    <div className={`ad__f${half ? " ad__f--half" : ""}${kind === "select" ? " ad__f--sel" : ""}${err ? " is-bad" : ""}`}>
+    <div className={`ad__f${half ? " ad__f--half" : ""}${err ? " is-bad" : ""}`}>
       <span className="ad__flRow">
         <label className="ad__fl" htmlFor={id}>
           {label}

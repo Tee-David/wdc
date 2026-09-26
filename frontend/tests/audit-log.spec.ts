@@ -3,6 +3,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import pg from "pg";
+import { choose } from "./choose";
 
 /**
  * THE AUDIT LOG, KEPT AND FILTERED.
@@ -64,7 +65,7 @@ test("the default view is the last 30 days, and search finds a before-and-after 
   await expect(page.getByRole("dialog")).toContainText(`0802-${MARK}`);
   await page.keyboard.press("Escape");
 
-  await page.getByLabel("When").selectOption("all");
+  await choose(page.getByLabel("When"), "all");
   await page.getByRole("button", { name: "Show" }).click();
   await expect(page).toHaveURL(/range=all/);
   await expect(rows(page)).toHaveCount(3);
@@ -77,7 +78,7 @@ test("kind and person narrow it, and Clear puts it back", async ({ page, baseURL
   await page.goto(`/admin/settings/audit?range=all&q=${MARK}&kind=client&actor=${encodeURIComponent(`Ada ${MARK}`)}`, { waitUntil: "load" });
   await expect(rows(page)).toHaveCount(1);
   await expect(rows(page)).toContainText(`Old ${MARK}`);
-  await expect(page.getByLabel("Who")).toHaveValue(`Ada ${MARK}`);
+  await expect(page.getByLabel("Who")).toContainText(`Ada ${MARK}`);
 
   await page.goto(`/admin/settings/audit?q=nothing-${MARK}-at-all`, { waitUntil: "load" });
   await expect(page.getByText("No changes match")).toBeVisible();
@@ -89,7 +90,7 @@ test("a change made in the admin is written to the table, not only to memory", a
   await asOwner(page, baseURL);
   const before = new Date();
   await page.goto("/admin/settings/email", { waitUntil: "networkidle" });
-  await page.getByLabel(/^Keep the message log for/).selectOption("180");
+  await choose(page.getByLabel(/^Keep the message log for/), "180");
   await page.getByRole("region", { name: "Unsaved changes" }).getByRole("button", { name: "Save changes" }).click();
   await expect(page.locator(".adToast", { hasText: "Settings saved." })).toBeVisible({ timeout: 20_000 });
   await expect.poll(async () => (await db.query(

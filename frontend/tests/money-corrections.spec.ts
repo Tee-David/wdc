@@ -169,7 +169,8 @@ test.describe("the books", () => {
   test("credit cannot be entered as a payment by hand", async ({ page }) => {
     await page.goto("/admin/money/i1", { waitUntil: "load" });
     await page.getByRole("button", { name: /Record a payment/i }).first().click();
-    const options = await page.locator('select[name="method"] option').allTextContents();
+    await page.locator("dialog[open]").getByLabel(/^How/).click();
+    const options = await page.locator(".adPick__pop [role=option]").allTextContents();
     /* Money coming off a balance is applied from the balance, not typed here;
        a hand-entered "Credit" would create money no balance ever gave up. */
     expect(options.join(" ")).not.toContain("Credit");

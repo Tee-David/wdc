@@ -9,6 +9,7 @@ import { uploadToMedia } from "./media-upload";
 import { toast } from "./toast";
 import type { CaseStudy } from "@/lib/work";
 import "./case-editor.css";
+import { Pick } from "@/components/admin/pick";
 
 type Svc = { slug: CaseStudy["category"]; label: string };
 type Draft = {
@@ -111,12 +112,10 @@ export function CaseEditor({ initial, kind, originalSlug, services, bucket, canP
               <div className="ce__two">
                 <div className="ce__f">
                   <label htmlFor="ce-cat">Service it lives under</label>
-                  <select id="ce-cat" value={d.category} onChange={(e) => {
-                    const v = e.target.value as Draft["category"];
+                  <Pick id="ce-cat" value={d.category} options={services.map((s) => ({ value: s.slug, label: s.label }))} onChange={(raw) => {
+                    const v = raw as Draft["category"];
                     setD((x) => ({ ...x, category: v, also: x.also.filter((s) => s !== v), kind: originalSlug ? x.kind : kindForService(v) }));
-                  }}>
-                    {services.map((s) => <option key={s.slug} value={s.slug}>{s.label}</option>)}
-                  </select>
+                  }} />
                   <small>Its address: {address}</small>
                 </div>
                 <fieldset className="ce__f">

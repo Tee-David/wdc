@@ -3,6 +3,7 @@ import path from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import pg from "pg";
+import { choose } from "./choose";
 
 /**
  * SETTINGS, PRIVACY: retention rules applied by the daily tidy, and one
@@ -66,8 +67,8 @@ test("retention: the daily tidy deletes an old unfinished brief and anonymises a
 
   await asRole(page, baseURL);
   await page.goto("/admin/settings/privacy", { waitUntil: "load" });
-  await page.getByLabel(/^Unfinished onboarding forms/).selectOption("30");
-  await page.getByLabel(/^Contact enquiries/).selectOption("730");
+  await choose(page.getByLabel(/^Unfinished onboarding forms/), "30");
+  await choose(page.getByLabel(/^Contact enquiries/), "730");
   /* Retention is on the shared save bar, like the rest of Settings. */
   await page.getByRole("region", { name: "Unsaved changes" }).getByRole("button", { name: "Save changes" }).click();
   await expect(page.locator(".adToast", { hasText: "Saved." })).toBeVisible({ timeout: 20_000 });

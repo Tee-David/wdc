@@ -3,6 +3,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import pg from "pg";
+import { choose } from "./choose";
 
 /**
  * SETTINGS, EMAIL: what is configured, the log, and the daily tidy.
@@ -92,7 +93,7 @@ test("retention is saved, and the tidy removes what is past it, including old Tr
 
   await asOwner(page, baseURL);
   await page.goto("/admin/settings/email", { waitUntil: "networkidle" });
-  await page.getByLabel(/^Keep the message log for/).selectOption("90");
+  await choose(page.getByLabel(/^Keep the message log for/), "90");
   await page.getByRole("region", { name: "Unsaved changes" }).getByRole("button", { name: "Save changes" }).click();
   await expect(page.locator(".adToast", { hasText: "Settings saved." })).toBeVisible({ timeout: 20_000 });
   expect((await db.query("SELECT value FROM app_settings WHERE key = 'email.logRetentionDays'")).rows[0].value).toBe(90);
