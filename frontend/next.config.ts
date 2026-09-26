@@ -61,6 +61,9 @@ const mediaHost = (() => {
   try { return raw ? new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`).hostname : ""; } catch { return ""; }
 })();
 
+/* The entry PDF's fonts and watermark, read from disk at runtime. */
+const PDF_ASSETS = ["./assets/fonts/SpaceGrotesk-*.ttf", "./assets/brand/watermark.png"];
+
 const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
@@ -82,10 +85,16 @@ const nextConfig: NextConfig = {
 
   /* The migration files, shipped with the admin so Settings > System and the
      shell's notice can compare what is on disk with what the database has
-     applied (lib/system/migrations.ts). Nothing else reads them at runtime. */
+     applied (lib/system/migrations.ts). Nothing else reads them at runtime.
+     The entry PDF (lib/forms/entry-pdf.ts) reads its fonts and watermark from
+     disk too: in the admin (Download, Resend) and in the routes that send the
+     studio its notice. */
   outputFileTracingIncludes: {
-    "/admin": ["./db/migrations/*.sql"],
-    "/admin/**/*": ["./db/migrations/*.sql"],
+    "/admin": ["./db/migrations/*.sql", ...PDF_ASSETS],
+    "/admin/**/*": ["./db/migrations/*.sql", ...PDF_ASSETS],
+    "/api/contact": PDF_ASSETS,
+    "/api/onboarding/submit": PDF_ASSETS,
+    "/api/forms/**/*": PDF_ASSETS,
   },
 
   /* Tree-shakes the icon barrel files. `lucide-react` and `simple-icons` both

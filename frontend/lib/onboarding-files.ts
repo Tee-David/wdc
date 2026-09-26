@@ -23,6 +23,8 @@ export type EntryFile = {
   /** Null when missing, or when the file store is not configured. */
   open: string | null;
   download: string | null;
+  /** Where it is in the bucket, for the server only (the email's longer links). */
+  key?: string;
 };
 
 const TYPES: Record<string, string> = {
@@ -67,11 +69,11 @@ export async function onboardingFiles(draftId: string, answers: Record<string, u
     const row = rows.find((r) => r.filename === name && !used.has(r.object_key));
     if (!row) return { question, name, bytes: 0, contentType: typeOf(name), missing: true, open: null, download: null };
     used.add(row.object_key);
-    return { question, name, bytes: Number(row.bytes), contentType: typeOf(name, row.content_type), missing: false, ...links(row.object_key, name) };
+    return { question, name, bytes: Number(row.bytes), contentType: typeOf(name, row.content_type), missing: false, key: row.object_key, ...links(row.object_key, name) };
   });
 }
 
 /** A built form's files, whose answers carry their own keys. */
 export function customFiles(items: { question: string; key: string; name: string; size: number }[]): EntryFile[] {
-  return items.map((x) => ({ question: x.question, name: x.name, bytes: x.size, contentType: typeOf(x.name), missing: false, ...links(x.key, x.name) }));
+  return items.map((x) => ({ question: x.question, name: x.name, bytes: x.size, contentType: typeOf(x.name), missing: false, key: x.key, ...links(x.key, x.name) }));
 }

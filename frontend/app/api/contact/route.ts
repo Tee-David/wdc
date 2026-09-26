@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
     const stored = enquiryId;
     after(async () => {
       try {
-        const sent = await sendFormEmail(form, settings, "studio-notice", studioCopy, log, studioTokens);
+        const sent = await sendFormEmail(form, settings, "studio-notice", studioCopy, log, studioTokens, stored);
         await settleEnquiry(stored, sent === "skipped" ? "skipped" : "sent", sent === "skipped" ? "Switched off in the form's settings." : undefined);
       } catch (error) {
         const reason = error instanceof Error ? error.message : "unknown error";

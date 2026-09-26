@@ -67,7 +67,7 @@ export async function resendFormEmail(form: FormDef, entryId: string, key: strin
   try {
     result = await sendFormEmail(form, forced, key, other ? { ...mail, to: opts.to! } : mail,
       { summary: opts.summary ?? `Resent "${def.name}" by hand.`, dedupeKey: opts.dedupeKey ?? `${original}:resend:${crypto.randomUUID()}`, by: opts.by },
-      tokensFor(form, data));
+      tokensFor(form, data), entry.id);
   } catch (error) {
     const message = error instanceof Error ? error.message : "no reason given";
     await trail(false, message);
