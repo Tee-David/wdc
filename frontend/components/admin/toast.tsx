@@ -83,3 +83,22 @@ export function ToastHost() {
     </>
   );
 }
+
+/**
+ * A toast carried across a redirect: a server action that lands on a new
+ * address (a new post's first save goes to its own page) says `?saved=1`, and
+ * this raises the toast once on arrival, then takes the flag out of the
+ * address so a reload does not say it again.
+ */
+export function ToastOnArrival({ text, param }: { text: string; param: string }) {
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has(param)) return;
+    url.searchParams.delete(param);
+    window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+    /* After the host has mounted its listener. */
+    const t = window.setTimeout(() => toast(text), 60);
+    return () => window.clearTimeout(t);
+  }, [text, param]);
+  return null;
+}

@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { Eye, Save } from "lucide-react";
+import { Eye, RefreshCw, Save } from "lucide-react";
 import { docText, isDoc, type RichDoc } from "@/lib/blog-doc";
 import { saveBlogPost } from "@/lib/admin/blog-actions";
 import { LIMITS } from "@/lib/blog-validate";
@@ -296,7 +296,8 @@ export function BlogEditor({ post, topics, covers, canPublish = true }: {
             <Checks name="revised" label="Revision" long options={[{ value: "on", label: "A meaningful revision: show readers an updated date" }]} />
           ) : null}
           <Actions>
-            <Submit icon={Save}>Save</Submit>
+            {/* A live post is updated; anything else is saved. */}
+            <Submit icon={post.live ? RefreshCw : Save}>{post.live ? "Update" : "Save"}</Submit>
             {post.id ? (
               <a className="ad__btn" href={`/api/blog/preview?slug=${encodeURIComponent(post.slug)}`} target="_blank" rel="noopener">
                 <Eye aria-hidden="true" /> Preview on the real page

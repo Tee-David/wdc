@@ -89,7 +89,7 @@ export async function saveBlogPost(_prev: ActionState, fd: FormData): Promise<Ac
     ...OK(p.status === "draft" ? "Saved. It is a draft, so nobody can see it yet."
       : p.status === "review" ? "Submitted for review. The owner sees it on the dashboard and on Blog."
       : p.status === "scheduled" ? "Saved. It goes live on its date without anybody pressing anything."
-      : "Saved and live."),
+      : id ? "Updated. The live post shows your changes." : "Saved and live."),
     stamp: saved.savedAt,
   };
 }
