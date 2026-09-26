@@ -21,6 +21,7 @@ export type InviteRole = "client" | "staff" | "owner";
 
 export const INVITE_TTL_DAYS = 7;
 import { passwordProblem } from "@/lib/auth/password-policy";
+import { BREACHED_MESSAGE, breachProblem } from "@/lib/auth/breached";
 export { PASSWORD_MIN as INVITE_PASSWORD_MIN } from "@/lib/auth/password-policy";
 
 export type Invitation = {
@@ -145,7 +146,7 @@ export async function revokeStaleInvitations(clientId: string, keep: string, by:
 
 export type Redeemed =
   | { ok: true; email: string; userId: string; role: InviteRole }
-  | { ok: false; reason: "invalid" | "redeemed" | "revoked" | "expired" | "exists" | "weak-password" };
+  | { ok: false; reason: "invalid" | "redeemed" | "revoked" | "expired" | "exists" | "weak-password" | "breached-password" | "unchecked-password" };
 
 /**
  * Spends an invitation: creates the verified account, and a password if one
@@ -163,6 +164,10 @@ export async function redeemInvitation(token: string, input: { name: string; pas
   if (!/^[A-Za-z0-9_-]{20,100}$/.test(token)) return { ok: false, reason: "invalid" };
   const password = input.password ?? null;
   if (password !== null && passwordProblem(password)) return { ok: false, reason: "weak-password" };
+  if (password !== null) {
+    const leaked = await breachProblem(password);
+    if (leaked) return { ok: false, reason: leaked === BREACHED_MESSAGE ? "breached-password" : "unchecked-password" };
+  }
   /* Hashed before the transaction: scrypt is deliberately slow and a lock
      should not be held across it. */
   const hashed = password !== null ? await hashPassword(password) : null;

@@ -8,6 +8,7 @@ import { getClient, audit } from "./store";
 import { actorName, owner, allow } from "./guard";
 import { FAIL, OK, looksEmail, str, type ActionState } from "./validate";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
+import { REFUSED_EMAIL_MESSAGE, refusedEmail } from "@/lib/email-domains";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const NOT_CONNECTED = "The account database is not connected, so an invitation has nowhere to be kept.";
@@ -36,6 +37,7 @@ export async function inviteClient(_prev: ActionState, fd: FormData): Promise<Ac
   if (!client || client.archived) return FAIL({}, "That client could not be found, or is archived.");
   const email = normaliseEmail(client.email ?? "");
   if (!looksEmail(email)) return FAIL({}, "This client has no usable email address. Add one to their record first.");
+  if (refusedEmail(email)) return FAIL({}, `${email} is a temporary or anonymous inbox, which the portal does not accept. Add their work email to the record first.`);
 
   const by = await actorName();
   let made;
@@ -66,6 +68,7 @@ export async function inviteStaff(_prev: ActionState, fd: FormData): Promise<Act
   const role = str(fd, "role") === "owner" ? "owner" : "staff";
   const errors: Record<string, string> = {};
   if (!looksEmail(email)) errors.email = "Enter the address they will sign in with.";
+  else if (refusedEmail(email)) errors.email = REFUSED_EMAIL_MESSAGE;
   if (!name) errors.name = "Their name, as it should appear on what they change.";
   if (Object.keys(errors).length) return FAIL(errors);
 

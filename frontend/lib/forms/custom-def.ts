@@ -8,6 +8,7 @@
  */
 
 import { DIAL_CODES } from "@/lib/dial-codes";
+import { REFUSED_EMAIL_MESSAGE, refusedEmail } from "@/lib/email-domains";
 
 export const FIELD_TYPES = [
   { type: "text", label: "Short answer" },
@@ -227,6 +228,7 @@ export function checkAnswers(def: CustomFormDef, raw: unknown, fileKeyPrefix?: s
         const s = str(v, f.type === "textarea" ? LIMITS.long : LIMITS.text);
         if (!s) { missing(); break; }
         if (f.type === "email" && !EMAIL.test(s)) { errors[f.id] = "Enter an email like name@example.com."; break; }
+        if (f.type === "email" && refusedEmail(s)) { errors[f.id] = REFUSED_EMAIL_MESSAGE; break; }
         if (f.type === "phone" && !/^[+()\d\s-]{7,20}$/.test(s)) { errors[f.id] = "Enter a phone number, digits only."; break; }
         if (f.type === "url" && !/^(https?:\/\/)?[^\s.]+\.[^\s]{2,}$/i.test(s)) { errors[f.id] = "Enter a website address, like example.com."; break; }
         if (f.type === "date" && !/^\d{4}-\d{2}-\d{2}$/.test(s)) { errors[f.id] = "Pick a date."; break; }

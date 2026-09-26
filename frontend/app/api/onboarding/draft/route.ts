@@ -10,6 +10,7 @@ import {
   cleanAnswers, cleanService, cleanStep, clearOnboardingCookie, cookieToken, draftFromToken, issueToken,
   normalizeEmail, requestOriginIsAllowed, RESUME_TTL_SECONDS, setOnboardingCookie, tokenHash,
 } from "@/lib/onboarding-server";
+import { REFUSED_EMAIL_MESSAGE, refusedEmail } from "@/lib/email-domains";
 
 /* FORGET THIS BROWSER'S DRAFT. Only the cookie goes: the draft row and its
    answers stay where the studio can see them, so starting over never deletes
@@ -87,6 +88,7 @@ export async function POST(request: NextRequest) {
   if (!service || !answers || (body.email && !requestedEmail)) {
     return NextResponse.json({ error: "Please check the draft details and try again." }, { status: 422 });
   }
+  if (requestedEmail && refusedEmail(requestedEmail)) return NextResponse.json({ error: REFUSED_EMAIL_MESSAGE, field: "email" }, { status: 422 });
 
   let token = existingToken;
   let draft = existingDraft;

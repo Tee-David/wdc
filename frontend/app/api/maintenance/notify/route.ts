@@ -4,6 +4,7 @@ import { joinWaitlist, REASONS, setWaitlistReason, waitlistIsConfigured, type Re
 import { looksLikeEmail, normaliseEmail } from "@/lib/newsletter";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 import { CONTACT_EMAIL } from "@/lib/site";
+import { REFUSED_EMAIL_MESSAGE, refusedEmail } from "@/lib/email-domains";
 
 /**
  * "Notify me" on the maintenance page, and its optional follow-up question.
@@ -59,6 +60,7 @@ export async function POST(request: NextRequest) {
   if (!looksLikeEmail(normaliseEmail(typed))) {
     return NextResponse.json({ error: "That does not look like an email address." }, { status: 422 });
   }
+  if (refusedEmail(typed)) return NextResponse.json({ error: REFUSED_EMAIL_MESSAGE }, { status: 422 });
 
   const m = await maintenance();
   if (!m.on || !m.since) return NextResponse.json({ error: "The site is back, so there is nothing to wait for." }, { status: 409 });

@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { rateLimit } from "@/lib/rate-limit";
 import { INVITE_PASSWORD_MIN, redeemInvitation } from "@/lib/invitations";
+import { BREACHED_MESSAGE, UNCHECKED_MESSAGE } from "@/lib/auth/breached";
 
 export type RedeemResult =
   | { ok: true; email: string; role: "client" | "staff" }
@@ -15,6 +16,8 @@ const REASONS: Record<string, string> = {
   expired: "This invitation has expired. Ask whoever invited you to send a new one.",
   exists: "There is already an account for this address. Log in instead.",
   "weak-password": `Use at least ${INVITE_PASSWORD_MIN} characters, with a capital, a small letter, a number and a symbol.`,
+  "breached-password": BREACHED_MESSAGE,
+  "unchecked-password": UNCHECKED_MESSAGE,
 };
 
 /**
