@@ -389,9 +389,9 @@ export default async function MoneyPage({
                 </div>
               ))}
               {!categories.length && (
-                <Empty title="No expenses yet" action={<AddExpense />}>
-                  Record business spending to keep the net view accurate.
-                </Empty>
+                /* The Expenses panel beside this one carries the Add button;
+                   two of them for one fact was one too many. */
+                <Empty title="No spending to break down">Categories appear once an expense is recorded.</Empty>
               )}
             </div>
           </Panel>

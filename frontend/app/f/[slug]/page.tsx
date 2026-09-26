@@ -51,7 +51,7 @@ export default async function BuiltFormPage({ params }: Props) {
           <div className="pv-wrap cf-wrap">
             {open.open
               ? <CustomFormView def={{ ...def, intro: "" }} slug={row.slug} />
-              : <div className="cf-done" role="status"><b>Not taking entries</b><p>{open.message || "This form is closed."}</p></div>}
+              : <div className="cf-done" role="status"><b>Not taking entries</b><p>{open.message || "This form is closed."} You can still reach us directly.</p><a className="pv-btn pv-btn--accent" href="/contact">Contact us</a></div>}
           </div>
         </section>
       </main>

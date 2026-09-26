@@ -1,6 +1,6 @@
-import { getTicketMessages, getTicketsFor } from "@/lib/admin/store";
+import { getClient, getTicketMessages, getTicketsFor } from "@/lib/admin/store";
 import Link from "next/link";
-import { Panel, when } from "./bits";
+import { Empty, Panel, when } from "./bits";
 
 const LABEL: Record<string, string> = { Open: "Waiting on us", Answered: "Answered", Closed: "Closed" };
 const STATUS_CLASS: Record<string, string> = {
@@ -21,7 +21,17 @@ const STATUS_CLASS: Record<string, string> = {
  */
 export default function TicketPanel({ clientId }: { clientId: string }) {
   const tickets = getTicketsFor(clientId);
-  if (!tickets.length) return null;
+  /* Said, not hidden: a panel that disappears cannot be told apart from one
+     that did not load. The portal invitation sits in the panel beside it. */
+  if (!tickets.length) {
+    return (
+      <Panel title="Support questions" action={<Link href="/admin/clients/support">All support</Link>}>
+        <Empty title={`No questions from ${getClient(clientId)?.company ?? "this client"}`}>
+          Questions they ask from their portal land here, and you are emailed.
+        </Empty>
+      </Panel>
+    );
+  }
 
   return (
     <Panel title="Support questions" action={<Link href="/admin/clients/support">All support</Link>}>

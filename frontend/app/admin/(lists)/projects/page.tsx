@@ -177,7 +177,24 @@ export default async function ProjectsPage({
         </form>
       </Panel>
 
-      {board ? (
+      {board && !all.length ? (
+        /* Six columns of "Drop a card here" said nothing about why the board
+           was empty; say it, the same way the list does. */
+        <div style={{ marginTop: ".9rem" }}>
+          <Panel title="Board">
+            {filtered ? (
+              <Empty title="Nothing matches those filters"
+                action={<Link className="ad__btn" href={withQuery({}, { view: q.view })}>Clear the filters</Link>}>
+                Try a different stage, service, owner or health.
+              </Empty>
+            ) : (
+              <Empty title="No projects yet" action={<AddProject clients={getClients()} />}>
+                Each project becomes a card you can move between stages.
+              </Empty>
+            )}
+          </Panel>
+        </div>
+      ) : board ? (
         /* THE BOARD (the mockups' Projects board): a column per stage, a card
            per project. The card is a link and the menu is a button, so they
            cannot be nested -- a button inside an anchor is invalid and

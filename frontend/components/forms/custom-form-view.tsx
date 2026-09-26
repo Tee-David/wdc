@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import Link from "next/link";
 import { FileUp, Loader2, X } from "lucide-react";
 import { CONTACT_EMAIL } from "@/lib/site";
 import SelectField from "@/components/onboarding/select-field";
@@ -81,7 +82,7 @@ export function CustomFormView({ def, slug, preview }: { def: CustomFormDef; slu
   };
 
   if (state === "done") {
-    return <div className="cf-done" role="status"><b>Sent.</b><p>{message}</p></div>;
+    return <div className="cf-done" role="status"><b>Sent.</b><p>{message}</p><Link className="pv-btn pv-btn--line" href="/">Back to the site</Link></div>;
   }
 
   return (

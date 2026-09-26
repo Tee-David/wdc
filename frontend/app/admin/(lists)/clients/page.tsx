@@ -175,7 +175,13 @@ export default async function ClientsPage({
       </nav>
 
       <div className="ad__stack">
-        {view === "service" ? (
+        {view === "service" && !active.length ? (
+        <Panel title="By service">
+          <Empty title="No clients to group yet" action={<AddClient />}>
+            Each client is listed under the services they buy. Add one to start.
+          </Empty>
+        </Panel>
+        ) : view === "service" ? (
         <Panel title="By service">
           <div style={{ padding: ".8rem 1rem" }}>
             {SERVICES.map((sv) => {

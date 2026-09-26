@@ -40,6 +40,7 @@
 .cf-done { padding: 24px; border: 1px solid var(--rule); border-radius: 16px; background: var(--paper); }
 .cf-done b { display: block; font-family: var(--font-space-grotesk), system-ui, sans-serif; font-size: 1.3rem; color: var(--ink); }
 .cf-done p { margin: 8px 0 0; color: var(--muted); }
+.cf-done .pv-btn { margin-top: 16px; }
 @media (max-width: 560px) { .cf-foot .pv-btn { width: 100%; justify-content: center; } }
 @media (prefers-reduced-motion: reduce) { .cf-spin { animation: none; } }
 .dark .cf-msg { color: #fecaca; }
