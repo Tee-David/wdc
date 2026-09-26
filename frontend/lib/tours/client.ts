@@ -44,7 +44,7 @@ export const CLIENT_WELCOME: TourDef = {
     { id: "nav-projects", target: '[data-tour="portal-nav-projects"]', href: "/portal", desktopOnly: true, icon: "folder", title: "Projects", content: "Each project's stage, the updates we share, and the work ready for your review." },
     { id: "nav-billing", target: '[data-tour="portal-nav-billing"]', href: "/portal", desktopOnly: true, icon: "wallet", title: "Billing", content: "Invoices, receipts and anything still to pay." },
     { id: "nav-support", target: '[data-tour="portal-nav-support"]', href: "/portal", desktopOnly: true, icon: "inbox", title: "Support", content: "Ask us anything. Every question and reply stays in one thread." },
-    { id: "mobile-menu", target: '[data-tour="portal-mobile-menu"]', href: "/portal", icon: "panelLeft", mobileOnly: true, optional: true, title: "The sections, on a phone", content: "On a small screen the five sections sit in the bar at the bottom." },
+    { id: "mobile-menu", target: '[data-tour="portal-mobile-menu"]', href: "/portal", icon: "panelLeft", mobileOnly: true, optional: true, title: "The sections, on a phone", content: "This button opens the menu with your five sections. Tap one and it closes." },
     closer("done", "That's the map", "Take the full walkthrough any time from the ? button at the top, or replay this one. Nothing here is required."),
   ],
 };

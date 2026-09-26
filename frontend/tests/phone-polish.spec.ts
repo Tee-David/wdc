@@ -29,14 +29,17 @@ test.describe("admin on a phone", () => {
   test.skip(!TOKEN, "Needs BONEYARD_CAPTURE_TOKEN set on the dev server under test.");
   test.use({ extraHTTPHeaders: { "x-boneyard-capture": TOKEN ?? "" } });
 
-  test("back-to-top sits above the tab bar, not on it", async ({ page }) => {
+  test("back-to-top stays wholly on screen", async ({ page }) => {
     await page.goto("/admin/money");
     await page.mouse.move(195, 400);
     for (let i = 0; i < 8; i++) await page.mouse.wheel(0, 500);
     await expect(page.locator(".st")).toHaveClass(/is-on/, { timeout: 10_000 });
-    const [st, bar] = await Promise.all([page.locator(".st").boundingBox(), page.locator(".ad__tabsBar").boundingBox()]);
-    expect(st!.y + st!.height, "back-to-top overlaps the tab bar").toBeLessThan(bar!.y);
+    const st = (await page.locator(".st").boundingBox())!;
+    const view = page.viewportSize()!;
+    expect(st.y + st.height, "back-to-top hangs off the bottom").toBeLessThanOrEqual(view.height);
+    expect(st.x + st.width, "back-to-top hangs off the side").toBeLessThanOrEqual(view.width);
   });
+
 
   test("the payment dialog fits the phone and its help opens above it", async ({ page }) => {
     await page.goto("/admin/money/i1");
