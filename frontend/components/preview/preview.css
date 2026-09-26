@@ -904,16 +904,36 @@ html:not(.dark) .pv .pv-card {
 .pv-cta p, .pv .pv-cta p { color: #fff; max-width: 64ch; }
 
 /* ---------------- testimonials ---------------- */
-/* STILL, NOT A MARQUEE. Two rows used to scroll past for ever: hard to read,
-   impossible to pause on a phone, and the quotes are the kind worth reading.
-   Same card track as every other grid on the site. */
-.pv-quotes {
-  list-style: none; margin: 0; padding: 0;
-  display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+/* THE MARQUEE (components/preview/preview-body.tsx): two rows the other way
+   from each other at speeds that never line up. Transform only; a Pause
+   button, hover and focus stop it; `content-visibility: auto` stops it off
+   screen without a script; reduced motion turns it into a still strip that
+   swipes. */
+.pv-marqs__bar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+.pv-marqs__pause {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px;
+  border: 1.5px solid var(--btn-fill); background: var(--btn-ink); color: var(--btn-fill);
+  font: 600 .9rem var(--font-outfit), system-ui, sans-serif; cursor: pointer;
 }
-.pv-quotes > li { display: flex; min-width: 0; }
-@media (max-width: 600px) { .pv-quotes > li[data-phone-more] { display: none; } }
-.pv-quotes__more { display: flex; justify-content: center; margin-top: clamp(24px, 3vw, 36px); }
+.pv-marqs__pause:hover { background: var(--btn-fill); color: var(--btn-ink); }
+.pv-marqs__pause:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 3px; }
+.pv-marqs__pause svg { width: 16px; height: 16px; }
+.pv-marq {
+  --tgap: 20px; overflow: hidden; padding-block: var(--card-lift-gutter, 10px);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+.pv-mtrack { display: flex; width: max-content; gap: var(--tgap); animation: pv-marq 70s linear infinite; }
+.pv-mgroup { display: flex; gap: var(--tgap); margin: 0; padding: 0; list-style: none; }
+.pv-mgroup > li { display: flex; flex: 0 0 360px; max-width: 360px; }
+@media (max-width: 600px) { .pv-mgroup > li { flex-basis: 82vw; max-width: 82vw; } }
+.pv-marq:hover .pv-mtrack, .pv-marq:focus-within .pv-mtrack, .pv-marqs.is-paused .pv-mtrack { animation-play-state: paused; }
+.pv-marq--rev { margin-top: clamp(14px, 1.6vw, 20px); }
+.pv-marq--rev .pv-mtrack { animation-duration: 82s; animation-direction: reverse; }
+@keyframes pv-marq {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(-50% - var(--tgap) / 2)); }
+}
 .pv-tcard {
   flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px;
   background: var(--paper); border: 1px solid var(--rule); border-radius: 18px;
@@ -1088,6 +1108,11 @@ html:not(.dark) .pv .pv-card {
 @media (prefers-reduced-motion: reduce) {
   .pv-motion .pv-reveal { opacity: 1; transform: none; transition: none; }
   .pv-tcard__case span { transition: none; }
+  .pv-mtrack { animation: none; }
+  .pv-marq { overflow-x: auto; scroll-snap-type: x mandatory; -webkit-mask-image: none; mask-image: none; }
+  .pv-mgroup > li { scroll-snap-align: start; }
+  .pv-mgroup[aria-hidden] { display: none; }
+  .pv-marqs__bar { display: none; }
   .pv-btn::after, .pv-step::after, .pv-scard, .pv-icard, .pv-job,
   .pv-shot img, .pv-badge, .pv-icard__btn { transition: none; }
 }
