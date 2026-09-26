@@ -72,7 +72,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           blocks: [emailPanel(lines.slice(0, 30)), emailButton("Open the entry", url)],
           why: "You get this because notices for this form are on.", manage: "staff",
         }),
-      }, { summary: `A new entry to ${def.title}.`, dedupeKey: `custom-notice:${saved.id}`, by: "Website" }, { form: def.title, serial: String(saved.serial ?? "") });
+      }, { summary: `A new entry to ${def.title}.`, dedupeKey: `custom-notice:${saved.id}`, by: "Website" }, { form: def.title, serial: String(saved.serial ?? "") }, saved.id);
     } catch { /* The row records the failure. */ }
   });
 

@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
       const who = [data.first, data.last].filter(Boolean).join(" ") || "A client";
       await sendFormEmail(form, settings, "studio-notice", formEmail(form, "studio-notice", data)!,
         { summary: `${who} submitted the ${serviceName} brief.`, dedupeKey: `onboarding-notice:${submissionId}` },
-        { ...tokens, company: data.company, serial: serial ? String(serial) : "" });
+        { ...tokens, company: data.company, serial: serial ? String(serial) : "" }, submissionId);
     } catch (error) {
       console.error("Onboarding notice failed", error instanceof Error ? error.message : "unknown error");
     }
