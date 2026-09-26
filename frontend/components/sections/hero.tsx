@@ -361,7 +361,7 @@ export function Hero() {
           className="hero-rise mx-auto mt-5 max-w-[34rem] text-balance text-sm font-medium leading-relaxed !text-white [text-shadow:0_1px_12px_rgba(0,0,0,0.55)] sm:text-base"
           style={{ animationDelay: "300ms" }}
         >
-          Branding, websites, apps and SEO, designed and built by one team in Lagos.
+          Branding, websites, apps and SEO, designed and built by one team.
         </p>
 
         <div
