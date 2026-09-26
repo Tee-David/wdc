@@ -35,11 +35,14 @@
 }
 .adForms__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem; padding: .8rem 1rem; border-top: 1px solid var(--ad-line); }
 
-.adForms__cols { position: relative; }
+.adForms__cols { position: static; }
 .adForms__cols > summary { list-style: none; cursor: pointer; }
 .adForms__cols > summary::-webkit-details-marker { display: none; }
 .adForms__colsPanel {
-  position: absolute; right: 0; top: calc(100% + .35rem); z-index: 40;
+  /* Hangs from the toolbar, not from the button: on a phone the button sits
+     at the left edge, and a panel anchored to its right edge opened 200px
+     off the screen. */
+  position: absolute; right: 1rem; top: calc(100% - .35rem); z-index: 40;
   width: min(22rem, calc(100vw - 2rem)); max-height: min(28rem, 70vh); overflow: auto; overscroll-behavior: contain;
   display: grid; gap: .6rem; padding: .8rem;
   border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); box-shadow: 0 12px 32px rgb(0 0 0 / .18);
@@ -100,3 +103,7 @@
 .adEntryNav .ad__btn svg { width: 1rem; height: 1rem; }
 .adEntryNav .is-off { opacity: .45; pointer-events: none; }
 .adEntryNav__at { font-size: .84rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 560px) {
+  .adForms__colsPanel { left: 1rem; width: auto; }
+}
