@@ -1,22 +1,21 @@
 import { listAudit, type AuditFilters } from "@/lib/audit-db";
 import type { AuditKind, Id } from "@/lib/admin/types";
+import { toEvents } from "@/lib/audit-events";
 import { Empty, Panel } from "./bits";
+import { AuditTable } from "./audit-table";
+import { Pager } from "./pager";
 
 /**
- * The audit log, as a list.
+ * The audit log: a table of events, each opening its detail.
  *
- * A SERVER COMPONENT WITH NO CONTROLS. This screen is read, not operated: the
- * log cannot be edited, sorted into something more flattering, or cleared, and
- * giving it buttons would suggest otherwise. Filtering happens by passing
- * `kind` or `subjectId` from whichever page is rendering it, so the project
- * page can show its own record, and Settings passes the filters from its URL.
- *
- * BOUNDED, AND IT SAYS SO. An unbounded list is a page that gets slower every
- * week it is used, and the count under it is what stops a bounded list reading
- * as the whole history.
+ * READ, NOT OPERATED. The log cannot be edited, sorted into something more
+ * flattering, or cleared; the only controls are the filters above it and
+ * the pager under it. Record pages (a client, a project) pass `kind` or
+ * `subjectId` and get the latest few; Settings passes its URL's filters and
+ * a pager, so all of the history can be reached, not only the newest page.
  */
 export default async function AuditLog({
-  kind, subjectId, subjectIds, limit = 60, title = "Everything that changed", filters, filtered = false,
+  kind, subjectId, subjectIds, limit = 60, title = "Everything that changed", filters, filtered = false, pager,
 }: {
   kind?: AuditKind;
   subjectId?: Id;
@@ -27,59 +26,33 @@ export default async function AuditLog({
   filters?: AuditFilters;
   /** Whether the person narrowed the list, which changes what "empty" means. */
   filtered?: boolean;
+  /** Settings' pager: the address of another page or page size. */
+  pager?: (patch: { page?: number; per?: number }) => string;
 }) {
-  const { entries, total, source } = await listAudit({ range: "all", ...filters, kind: filters?.kind ?? kind, subjectId, subjectIds, limit });
+  const per = filters?.limit ?? limit;
+  const { entries, total, source } = await listAudit({ range: "all", ...filters, kind: filters?.kind ?? kind, subjectId, subjectIds, limit: per });
+  const events = toEvents(entries);
 
   return (
-    <Panel title={title}>
-      {entries.length ? (
+    <Panel title={title} action={<span className="ad__dim">{total} {total === 1 ? "change" : "changes"}</span>}>
+      {events.length ? (
         <>
-          <ol className="ad__log">
-            {entries.map((e) => (
-              <li key={e.id} className="ad__logRow">
-                <span className="ad__logWhen">
-                  <time dateTime={e.at}>
-                    {new Date(e.at).toLocaleString("en-GB", {
-                      day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
-                    })}
-                  </time>
-                </span>
-                <span className="ad__logWhat">
-                  <span className="ad__kind">{e.kind}</span>
-                  <b>{e.subject}</b> {e.action}
-                  {e.note ? <> &middot; {e.note}</> : null}
-                  {/* THE BEFORE AND AFTER, which is the whole reason this
-                      exists. `del`/`ins` rather than two spans: a screen
-                      reader announces them as a removal and an insertion,
-                      which is exactly what they are. */}
-                  {e.field ? (
-                    <span className="ad__logMove">
-                      {e.field}: <del>{e.from || "nothing"}</del> &rarr; <ins>{e.to || "nothing"}</ins>
-                    </span>
-                  ) : null}
-                  <span className="ad__logWho"> by {e.actor}</span>
-                </span>
-              </li>
-            ))}
-          </ol>
-          {total > entries.length ? (
-            <p className="ad__dim" style={{ padding: ".2rem 1rem 1rem", margin: 0, fontSize: ".84rem" }}>
-              The {entries.length} most recent of {total}. Nothing here can be
-              edited or removed; the list is append-only.
+          <AuditTable events={events} compact={!pager} />
+          {pager ? (
+            <Pager label="Pages of the audit log" total={total} page={filters?.page ?? 1} per={per} noun="changes" perOptions={[10, 25, 50]} href={pager} />
+          ) : total > entries.length ? (
+            <p className="ad__dim" style={{ padding: ".8rem 1.25rem 1rem", margin: 0, fontSize: ".84rem" }}>
+              The {entries.length} most recent of {total}. Settings › Audit log has all of them.
             </p>
-          ) : (
-            <p className="ad__dim" style={{ padding: ".2rem 1rem 1rem", margin: 0, fontSize: ".84rem" }}>
-              Append-only. Nothing here can be edited or removed.
-            </p>
-          )}
+          ) : null}
           {source === "memory" ? (
-            <p className="ad__dim" style={{ padding: "0 1rem 1rem", margin: 0, fontSize: ".84rem" }}>
+            <p className="ad__dim" style={{ padding: "0 1.25rem 1rem", margin: 0, fontSize: ".84rem" }}>
               The database is not connected, so this is only what this server has seen since it started.
             </p>
           ) : null}
         </>
       ) : filtered ? (
-        <Empty title="Nothing matches">No change matches these filters. Widen the dates or clear the search.</Empty>
+        <Empty kind="no-results" title="No changes match">Widen the dates or clear the search.</Empty>
       ) : (
         <Empty title="Nothing has changed yet">
           Every edit to a client, project, invoice, payment, expense or setting

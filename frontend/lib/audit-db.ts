@@ -3,6 +3,7 @@ import "server-only";
 import { db } from "@/lib/db/pool";
 import { auditSettled, memoryAudit, unsavedAudit } from "@/lib/admin/store";
 import { AUDIT_KINDS, type AuditEntry, type AuditKind } from "@/lib/admin/types";
+import { AUDIT_VERBS, verbOf, verbSql, type AuditVerb } from "@/lib/audit-verbs";
 
 /**
  * The audit log, kept in the database (migration 0021).
@@ -56,14 +57,25 @@ export type AuditFilters = {
   subjectId?: string;
   subjectIds?: string[];
   limit?: number;
+  /** One of AUDIT_VERBS, worked out from the recorded phrase. */
+  verb?: AuditVerb;
+  /** Page of `limit` rows, from 1. */
+  page?: number;
 };
+
+export const AUDIT_PER = [10, 25, 50] as const;
 
 /** Read from a URL's query, keeping only what is valid. */
 export function readAuditFilters(sp: Record<string, string | string[] | undefined>): AuditFilters {
   const one = (k: string) => (typeof sp[k] === "string" ? (sp[k] as string).trim() : "");
   const kind = one("kind");
   const range = one("range");
+  const verb = one("verb");
+  const per = Number(one("per"));
   return {
+    verb: AUDIT_VERBS.some((v) => v.key === verb) ? (verb as AuditVerb) : undefined,
+    page: Math.max(1, Number.parseInt(one("page"), 10) || 1),
+    limit: (AUDIT_PER as readonly number[]).includes(per) ? per : 25,
     kind: (AUDIT_KINDS as readonly string[]).includes(kind) ? (kind as AuditKind) : undefined,
     actor: one("actor").slice(0, 200) || undefined,
     q: one("q").slice(0, 200) || undefined,
@@ -90,13 +102,14 @@ function matches(e: AuditEntry, f: AuditFilters, from: Date | null) {
     && (!f.subjectId || e.subjectId === f.subjectId)
     && (!related || related.has(e.subjectId))
     && (!from || new Date(e.at) >= from)
+    && (!f.verb || verbOf(e.action).key === f.verb)
     && (!words || [e.subject, e.action, e.note, e.field, e.from, e.to].some((v) => v?.toLowerCase().includes(words)));
 }
 
-function fromMemory(list: readonly AuditEntry[], f: AuditFilters, limit: number) {
+function fromMemory(list: readonly AuditEntry[], f: AuditFilters, limit: number, offset = 0) {
   const from = since(f.range);
   const hits = list.filter((e) => matches(e, f, from)).slice().reverse();
-  return { entries: hits.slice(0, limit), total: hits.length };
+  return { entries: hits.slice(offset, offset + limit), total: hits.length };
 }
 
 export type AuditPage = { entries: AuditEntry[]; total: number; source: "database" | "memory" };
@@ -104,7 +117,8 @@ export type AuditPage = { entries: AuditEntry[]; total: number; source: "databas
 /** Newest first, bounded, with the count of everything that matched. */
 export async function listAudit(f: AuditFilters = {}): Promise<AuditPage> {
   const limit = Math.min(Math.max(f.limit ?? 60, 1), 200);
-  if (!configured()) return { ...fromMemory(memoryAudit(), f, limit), source: "memory" };
+  const offset = (Math.max(1, f.page ?? 1) - 1) * limit;
+  if (!configured()) return { ...fromMemory(memoryAudit(), f, limit, offset), source: "memory" };
   await auditSettled();
   const where: string[] = [];
   const args: unknown[] = [];
@@ -120,20 +134,28 @@ export async function listAudit(f: AuditFilters = {}): Promise<AuditPage> {
     const n = `$${args.length}`;
     where.push(`(subject ILIKE ${n} OR action ILIKE ${n} OR note ILIKE ${n} OR field ILIKE ${n} OR from_value ILIKE ${n} OR to_value ILIKE ${n})`);
   }
+  if (f.verb) {
+    const v = verbSql(f.verb);
+    if (v) {
+      const base = args.length;
+      v.patterns.forEach((pat) => args.push(pat));
+      where.push(v.sql.replace(/\$\$(\d+)/g, (_, n) => `$${base + Number(n) + 1}`));
+    }
+  }
   const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
   try {
     const [rows, count] = await Promise.all([
-      db.query<Row>(`SELECT * FROM audit_log ${clause} ORDER BY at DESC, id DESC LIMIT ${limit}`, args),
+      db.query<Row>(`SELECT * FROM audit_log ${clause} ORDER BY at DESC, id DESC LIMIT ${limit} OFFSET ${offset}`, args),
       db.query<{ n: string }>(`SELECT count(*) AS n FROM audit_log ${clause}`, args),
     ]);
-    const extra = fromMemory(unsavedAudit(), f, limit);
+    const extra = offset ? { entries: [], total: fromMemory(unsavedAudit(), f, limit).total } : fromMemory(unsavedAudit(), f, limit);
     const entries = [...rows.rows.map(toEntry), ...extra.entries]
       .sort((a, b) => b.at.localeCompare(a.at))
       .slice(0, limit);
     return { entries, total: Number(count.rows[0].n) + extra.total, source: "database" };
   } catch (error) {
     console.error("[audit] database read failed; showing this instance's memory:", error instanceof Error ? error.message : error);
-    return { ...fromMemory(memoryAudit(), f, limit), source: "memory" };
+    return { ...fromMemory(memoryAudit(), f, limit, offset), source: "memory" };
   }
 }
 
