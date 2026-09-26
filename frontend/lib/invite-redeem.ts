@@ -39,7 +39,7 @@ export async function redeem(input: { token: string; name: string; password: str
   const password = typeof input?.password === "string" ? input.password : null;
   try {
     const out = await redeemInvitation(token, { name, password });
-    return out.ok ? { ok: true, email: out.email, role: out.role } : { ok: false, error: REASONS[out.reason] };
+    return out.ok ? { ok: true, email: out.email, role: out.role === "client" ? "client" : "staff" } : { ok: false, error: REASONS[out.reason] };
   } catch (e) {
     console.error("[invite] redemption failed", e instanceof Error ? e.message : e);
     return { ok: false, error: "We could not finish that just now. Nothing was created; try again in a moment." };

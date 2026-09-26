@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { hashPassword } from "better-auth/crypto";
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import pg from "pg";
+import { sayYes } from "./say-yes";
 
 /**
  * MY ACCOUNT: a real signed-in member of staff changes only their own account.
@@ -87,7 +88,7 @@ test("sign out everywhere else ends the other device and keeps this one", async 
   await other.dispose();
   expect(await sessions()).toBeGreaterThanOrEqual(2);
 
-  page.on("dialog", (d) => d.accept());
+  await sayYes(page);
   await open(page);
   await expect(page.getByText("This session")).toBeVisible();
   await page.getByRole("button", { name: "Sign out everywhere else" }).click();
@@ -148,7 +149,7 @@ test("Google unlinks only while a password remains", async ({ page, baseURL }) =
   await expect(page.getByRole("button", { name: "Unlink Google" })).toHaveCount(0);
 
   await db.query(`UPDATE "account" SET "password" = $2 WHERE "userId" = $1 AND "providerId" = 'credential'`, [userId, saved]);
-  page.on("dialog", (d) => d.accept());
+  await sayYes(page);
   await page.reload({ waitUntil: "load" });
   await page.getByRole("button", { name: "Unlink Google" }).click();
   /* The button goes with the link, and its message with it: the row says so. */

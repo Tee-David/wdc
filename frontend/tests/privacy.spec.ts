@@ -68,19 +68,24 @@ test("retention: the daily tidy deletes an old unfinished brief and anonymises a
   await page.goto("/admin/settings/privacy", { waitUntil: "load" });
   await page.getByLabel(/^Unfinished onboarding forms/).selectOption("30");
   await page.getByLabel(/^Contact enquiries/).selectOption("730");
-  await page.getByRole("button", { name: "Save retention" }).click();
-  await expect(page.locator(".ad__msg.is-ok")).toContainText("Saved", { timeout: 20_000 });
+  /* Retention is on the shared save bar, like the rest of Settings. */
+  await page.getByRole("region", { name: "Unsaved changes" }).getByRole("button", { name: "Save changes" }).click();
+  await expect(page.locator(".adToast", { hasText: "Saved." })).toBeVisible({ timeout: 20_000 });
 
   await page.goto("/admin/settings/email/log", { waitUntil: "load" });
-  await page.getByRole("button", { name: "Run the daily tidy now" }).click();
-  await expect(page.locator(".ad__msg.is-ok").last()).toContainText("Done.", { timeout: 60_000 });
+  /* The tidy is a chore, so it is in the head's ⋮ menu behind one sentence. */
+  await page.getByRole("button", { name: "More for the message log" }).click();
+  await page.getByRole("menuitem", { name: "Run the daily tidy now" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Run it now" }).click();
+  await expect(page.locator(".adToast", { hasText: "Done." })).toBeVisible({ timeout: 60_000 });
 
   expect((await db.query("SELECT 1 FROM onboarding_submissions WHERE id = $1", [ids.old])).rowCount).toBe(0);
   expect((await db.query("SELECT 1 FROM onboarding_submissions WHERE id = $1", [ids.recent])).rowCount).toBe(1);
   expect((await db.query("SELECT first_name, email, message FROM contact_enquiries WHERE id = $1", [ids.ancient])).rows[0])
     .toMatchObject({ first_name: "Removed", email: "" });
   await page.goto("/admin/settings/privacy", { waitUntil: "load" });
-  await expect(page.getByText(/Last run .*retention:/)).toBeVisible();
+  /* The last run is shown as figures, zeros left out. */
+  await expect(page.locator(".adPriv__figs")).toContainText(/unfinished briefs? deleted/);
 });
 
 test("a lookup finds the address everywhere, and exports it as JSON and CSV, logged", async ({ page, baseURL }) => {

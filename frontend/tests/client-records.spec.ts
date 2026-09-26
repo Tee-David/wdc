@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { addClient, addInvoice, addProject, getAudit, getClient, getInvoicesFor, getProjectsFor, mergeClients } from "../lib/admin/store";
+import { sayYes } from "./say-yes";
 
 /**
  * Clients can carry tags and more than one person, and a duplicate can be
@@ -80,7 +81,7 @@ test.describe("in the admin", () => {
 
     /* Archived again: other specs count the active list. */
     await page.goto(url, { waitUntil: "load" });
-    page.on("dialog", (d) => d.accept());
+    await sayYes(page);
     await expect(async () => {
       await page.getByRole("button", { name: "Archive", exact: true }).click({ timeout: 2_000 });
       await expect(page.getByRole("button", { name: "Restore" })).toBeVisible({ timeout: 3_000 });

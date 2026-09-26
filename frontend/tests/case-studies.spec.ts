@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
+import { sayYes } from "./say-yes";
 
 /**
  * CASE STUDIES FROM THE ADMIN (Blog, Case studies; artifact "WDC Case
@@ -65,7 +66,7 @@ test("a new build is written in five steps, refused until complete, then publish
 test("taking it off the site removes it from /work without deleting it", async ({ page }) => {
   await page.goto("/admin/blog/work", { waitUntil: "networkidle" });
   const row = page.locator("#case-list tbody tr", { hasText: client });
-  page.once("dialog", (d) => d.accept());
+  await sayYes(page);
   await row.getByRole("button", { name: "Take off" }).click();
   await expect(page.locator(".adToast", { hasText: "is off the site" }).first()).toBeVisible({ timeout: 30_000 });
   await page.goto(`/work/web/${slug}`);

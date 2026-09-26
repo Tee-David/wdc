@@ -50,7 +50,11 @@ export async function inviteClient(_prev: ActionState, fd: FormData): Promise<Ac
   return OK(`Invitation sent to ${email}. It works once, for a week; sending another replaces it.`);
 }
 
-/** A member of staff, to the admin. Owner only, whatever else staff can do. */
+/**
+ * Somebody to the admin, as staff or as an owner. Owner only, whatever else
+ * staff can do. The role is read strictly: anything but "owner" is staff, so
+ * a missing or tampered value can only ever give less.
+ */
 export async function inviteStaff(_prev: ActionState, fd: FormData): Promise<ActionState> {
   await syncStore();
   persistSoon();
@@ -59,6 +63,7 @@ export async function inviteStaff(_prev: ActionState, fd: FormData): Promise<Act
   if (!invitationsConfigured()) return FAIL({}, NOT_CONNECTED);
   const email = normaliseEmail(str(fd, "email"));
   const name = str(fd, "name").slice(0, 120);
+  const role = str(fd, "role") === "owner" ? "owner" : "staff";
   const errors: Record<string, string> = {};
   if (!looksEmail(email)) errors.email = "Enter the address they will sign in with.";
   if (!name) errors.name = "Their name, as it should appear on what they change.";
@@ -71,20 +76,25 @@ export async function inviteStaff(_prev: ActionState, fd: FormData): Promise<Act
   if (existing) {
     return FAIL({ email: existing.role === "client"
       ? `${email} already has a client account, and a client account cannot be made staff. Invite a different address for their studio work.`
-      : `${email} already has an account here. Change what they can do in the list above instead.` });
+      : `${email} already has an account here. Change what they can do in the list below instead.` });
   }
 
   const by = await actorName();
   let made;
   try {
-    made = await createInvitation({ email, name, role: "staff", by });
-  } catch {
+    made = await createInvitation({ email, name, role, by });
+  } catch (error) {
+    /* Owner invitations need migration 0027; until it runs the database's
+       own check refuses them, and saying so beats "try again". */
+    if (role === "owner" && String((error as Error)?.message ?? "").includes("invitations_role_check")) {
+      return FAIL({}, "Owner invitations need the latest database change (npm run db:migrate). Nothing was sent. Invite them as staff for now, or run it first.");
+    }
     return FAIL({}, "The invitation could not be saved just now. Nothing was sent; try again.");
   }
   sendLater(made.invitation, made.token);
-  audit({ actor: by, kind: "setting", subjectId: made.invitation.id, subject: name, action: "invited to the studio admin", note: email });
+  audit({ actor: by, kind: "setting", subjectId: made.invitation.id, subject: name, action: role === "owner" ? "invited to the studio admin as an owner" : "invited to the studio admin", note: email });
   revalidatePath("/admin/settings/team");
-  return OK(`Invitation sent to ${email}.`);
+  return OK(`Invitation sent to ${email}, as ${role === "owner" ? "an owner" : "staff"}.`);
 }
 
 export async function revokeInvite(_prev: ActionState, fd: FormData): Promise<ActionState> {

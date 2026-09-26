@@ -50,13 +50,14 @@ test("the mail server panel says what is missing and never shows a password", as
   await asOwner(page, baseURL);
   await page.goto("/admin/settings/email", { waitUntil: "load" });
   const panel = page.locator(".ad__panel", { has: page.getByRole("heading", { name: "Mail server" }) });
-  await expect(panel.locator(".ad__panelH .ad__pill")).toHaveText("Missing");
+  await expect(panel.locator(".ad__panelH .ad__pill")).toHaveText("Not connected");
   await expect(panel.locator("dl > div", { has: page.locator("dt", { hasText: "Password" }) })).toContainText("Missing");
   if (process.env.SMTP_PASSWORD) await expect(page.locator("body")).not.toContainText(process.env.SMTP_PASSWORD);
 
-  await page.getByLabel(/^Send a test to/).fill("owner@wedigcreativity.com.ng");
-  await page.getByRole("button", { name: "Send test email" }).click();
-  await expect(page.locator(".ad__msg.is-bad")).toContainText("SMTP is not configured", { timeout: 20_000 });
+  /* With no mail server a test can only fail, so it is off and says why. */
+  await expect(page.getByRole("button", { name: "Send test email" })).toBeDisabled();
+  await expect(panel).toContainText("Connect a mail server first.");
+  await expect(panel.getByRole("link", { name: "Connections and health" })).toHaveAttribute("href", "/admin/settings/integrations");
 });
 
 test("the log searches by to: and subject:, and filters by state", async ({ page, baseURL }) => {
@@ -68,15 +69,15 @@ test("the log searches by to: and subject:, and filters by state", async ({ page
   await asOwner(page, baseURL);
 
   await page.goto(`/admin/settings/email/log?q=${encodeURIComponent(`subject:${MARK}`)}`, { waitUntil: "load" });
-  await expect(page.locator("tbody tr", { hasText: MARK })).toHaveCount(2);
+  await expect(page.locator(".adLog__row", { hasText: MARK })).toHaveCount(2);
 
   await page.goto(`/admin/settings/email/log?q=${encodeURIComponent(`to:alpha-${MARK}`)}`, { waitUntil: "load" });
-  await expect(page.locator("tbody tr", { hasText: MARK })).toHaveCount(1);
-  await expect(page.locator("tbody tr", { hasText: MARK })).toContainText("Connection refused");
+  await expect(page.locator(".adLog__row", { hasText: MARK })).toHaveCount(1);
+  await expect(page.locator(".adLog__row", { hasText: MARK })).toContainText("Connection refused");
 
   await page.goto(`/admin/settings/email/log?state=Sent&q=${MARK}`, { waitUntil: "load" });
-  await expect(page.locator("tbody tr", { hasText: MARK })).toHaveCount(1);
-  await expect(page.locator("tbody tr", { hasText: MARK })).toContainText(`Notice ${MARK}`);
+  await expect(page.locator(".adLog__row", { hasText: MARK })).toHaveCount(1);
+  await expect(page.locator(".adLog__row", { hasText: MARK })).toContainText(`Notice ${MARK}`);
 });
 
 test("retention is saved, and the tidy removes what is past it, including old Trash", async ({ page, baseURL }) => {
@@ -98,8 +99,11 @@ test("retention is saved, and the tidy removes what is past it, including old Tr
 
   await page.goto("/admin/settings/email/log", { waitUntil: "load" });
 
-  await page.getByRole("button", { name: "Run the daily tidy now" }).click();
-  await expect(page.locator(".ad__msg.is-ok").last()).toContainText("Done.", { timeout: 30_000 });
+  /* The tidy is a chore, so it is in the head's ⋮ menu behind one sentence. */
+  await page.getByRole("button", { name: "More for the message log" }).click();
+  await page.getByRole("menuitem", { name: "Run the daily tidy now" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Run it now" }).click();
+  await expect(page.locator(".adToast", { hasText: "Done." })).toBeVisible({ timeout: 30_000 });
   expect((await db.query("SELECT 1 FROM message_log WHERE dedupe_key = $1", [`test-old:${MARK}`])).rowCount).toBe(0);
   expect((await db.query("SELECT 1 FROM contact_enquiries WHERE last_name = $1", [`Old${MARK}`])).rowCount).toBe(0);
   /* A recent row is kept. */

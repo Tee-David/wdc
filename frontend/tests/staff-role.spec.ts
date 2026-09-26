@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { sayYes } from "./say-yes";
 
 /**
  * Staff: the day's work without the books, the settings or the undo-less
@@ -77,7 +78,7 @@ test("an owner-only action refuses staff even when the form is in front of them"
   const archive = page.getByRole("button", { name: "Archive", exact: true });
   await expect(archive).toBeVisible({ timeout: 30_000 });
   await as(page, "staff");
-  page.on("dialog", (d) => d.accept());
+  await sayYes(page);
   await archive.click();
   await expect(page.getByText("does not have access to this").first()).toBeVisible({ timeout: 15_000 });
 

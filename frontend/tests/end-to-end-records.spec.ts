@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import pg from "pg";
+import { sayYes } from "./say-yes";
 
 /**
  * EDITS THAT STAY, END TO END (lib/admin/persist.ts, migration 0025).
@@ -104,7 +105,7 @@ test("a new email withdraws the old invitation, and the next one goes to the new
   /* An invitation already out to the client's current address. */
   await page.goto("/admin/clients/c4", { waitUntil: "networkidle" });
   const old = String((await kept("CLIENTS", "c4"))?.email);
-  page.once("dialog", (d) => d.accept());
+  await sayYes(page);
   await page.getByRole("button", { name: /Invite to the portal|Send a new invitation/ }).first().click();
   await expect.poll(async () => (await db.query("SELECT 1 FROM invitations WHERE client_id = 'c4' AND lower(email) = lower($1) AND revoked_at IS NULL AND redeemed_at IS NULL", [old])).rowCount, { timeout: 20_000 }).toBe(1);
 
@@ -119,7 +120,7 @@ test("a new email withdraws the old invitation, and the next one goes to the new
 
   /* The next invitation is to the new address. */
   await page.reload({ waitUntil: "networkidle" });
-  page.once("dialog", (d) => d.accept());
+  await sayYes(page);
   await page.getByRole("button", { name: /Invite to the portal|Send a new invitation/ }).first().click();
   await expect.poll(async () => (await db.query("SELECT 1 FROM invitations WHERE client_id = 'c4' AND lower(email) = lower($1) AND revoked_at IS NULL", [fresh])).rowCount, { timeout: 20_000 }).toBe(1);
 

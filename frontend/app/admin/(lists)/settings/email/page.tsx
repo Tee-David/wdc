@@ -56,9 +56,9 @@ export default async function EmailSettingsPage() {
         <Link className="ad__btn" href="/admin/settings/email/log">Message log <ArrowUpRight aria-hidden="true" /></Link>
       </Head>
       <div className="ad__stack">
-        <Panel title="Mail server" action={<span className={`ad__pill ${ok ? "ad__pill--good" : "ad__pill--bad"}`}>{ok ? "Set up" : "Missing"}</span>}>
+        <Panel title="Mail server" action={<span className={`ad__pill ${ok ? "ad__pill--good" : "ad__pill--bad"}`}>{ok ? "Connected" : "Not connected"}</span>}>
           <div className="adSetPad">
-            <TestEmail me={session?.user?.email ?? ""} />
+            <TestEmail me={session?.user?.email ?? ""} ready={ok} />
             <details className="adSet__more">
               <summary>Connection details</summary>
               <dl className="adForms__dl">
@@ -71,7 +71,8 @@ export default async function EmailSettingsPage() {
           </div>
         </Panel>
         <EmailForm fromName={getSetting("mail.fromName") || process.env.SMTP_FROM_NAME?.trim() || "WDC Solutions"}
-          replyTo={getSetting("mail.replyTo") || ""} shippedReplyTo={shippedReply} days={days} options={LOG_RETENTION_DAYS} />
+          replyTo={getSetting("mail.replyTo") || ""} shippedReplyTo={shippedReply} days={days} options={LOG_RETENTION_DAYS}
+          fromAddress={process.env.SMTP_FROM_EMAIL?.trim() || ""} />
       </div>
     </>
   );
