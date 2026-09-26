@@ -5,6 +5,7 @@ import Link from "next/link";
 import { MailOpen, MoreHorizontal, RotateCcw, Star, X } from "lucide-react";
 import { bulkEntries } from "@/lib/forms/actions";
 import { Form, Hidden } from "@/components/admin/form";
+import { confirmClick } from "@/components/admin/confirm";
 
 export type TableRow = { id: string; href: string; read: boolean; starred: boolean; cells: string[] };
 
@@ -71,7 +72,7 @@ export function EntriesTable({ formKey, inbox, tab, canDelete, canExport, column
               ) : null}
               {inbox && inTrash && canDelete ? (
                 <button name="action" value="delete" className="is-danger"
-                  onClick={(e) => { if (!window.confirm(`Delete ${picked.size} for good? This cannot be undone.`)) e.preventDefault(); }}>
+                  onClick={(e) => confirmClick(e, `Delete ${picked.size} for good? This cannot be undone.`)}>
                   Delete for good
                 </button>
               ) : null}
