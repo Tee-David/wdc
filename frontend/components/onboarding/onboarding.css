@@ -197,7 +197,7 @@
 
 .ob__rail .is-on b { color: var(--accent-ink); }
 .ob__rail .is-on .ob__n {
-  border-color: var(--accent); background: var(--accent); color: var(--on-accent);
+  border-color: var(--accent-fill); background: var(--accent-fill); color: var(--on-accent);
 }
 .ob__rail .is-done .ob__n {
   border-color: var(--accent); color: var(--accent-ink); background: transparent;
@@ -310,7 +310,7 @@
   width: 1rem; height: 1rem; border-radius: 4px;
   border: 2px solid var(--rule);
 }
-.ob__card.is-on .ob__tick { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+.ob__card.is-on .ob__tick { border-color: var(--accent-fill); background: var(--accent-fill); color: var(--on-accent); }
 .ob__tick svg { width: .7rem; height: .7rem; stroke-width: 3.5; }
 
 .ob__upload {
@@ -578,7 +578,7 @@
   flex: none;
   display: grid; place-items: center;
   width: 1.7rem; height: 1.7rem; border-radius: 50%;
-  background: var(--accent); color: var(--on-accent);
+  background: var(--accent-fill); color: var(--on-accent);
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .8rem; font-weight: 700;
 }
@@ -935,7 +935,7 @@
   border-radius: 50%;
   /* Orange fill takes BLACK, per the colour rule: white on #ff6500 is 2.95:1
      and fails even the 3:1 allowed for large shapes. Black on it is 7.11:1. */
-  background: var(--accent); color: var(--on-accent, #000);
+  background: var(--accent-fill); color: var(--on-accent);
   /* A soft ring in the accent so the disc has a halo rather than a hard edge
      against the page. */
   box-shadow: 0 0 0 .55rem color-mix(in srgb, var(--accent) 14%, transparent);

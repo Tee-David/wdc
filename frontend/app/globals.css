@@ -20,9 +20,9 @@
      conversation" pill lost its orange fill, the footer focus ring lost its
      colour, and the motto's highlight lost its. They are the same colour in
      both themes, so they belong at :root and are NOT re-declared under .dark.
-     --on-accent is the only label colour allowed on an --accent fill: black
-     measures 7.11:1 there, white 2.95:1. See the colour rule in preview.css,
-     where every measurement behind it is written down. */
+     Words never sit on the bright --accent: a labelled fill is --accent-fill
+     (#b84a00) with --on-accent (white, 5.23:1). See the colour rule in
+     preview.css. */
   /* THE BODY FACE. Today this resolves to Space Grotesk, because Space
      Grotesk is the only family in the repository -- see --font-outfit below.
      It exists as its own token so the split the design system asks for is
@@ -34,7 +34,12 @@
   --font-body: var(--font-outfit), system-ui, sans-serif;
 
   --accent: #ff6500;
-  --on-accent: #000;
+  /* ORANGE THAT CARRIES WORDS (a chip, a badge, a tag): the deep orange with
+     a WHITE label, 5.23:1, in both themes (the owner's call, 2026-09-26:
+     "our deep orange with white text, not black"). The bright #ff6500 stays
+     for orange that carries no words: dots, rules, bars, focus rings. */
+  --accent-fill: #b84a00;
+  --on-accent: #fff;
   /* ORANGE AS TEXT, at :root for the same reason --accent is here: the header,
      the footer and /login render OUTSIDE `main.pv`, so the copy declared in
      preview.css's `.pv` block is invisible to them and every call site was
@@ -90,6 +95,7 @@
      TEXT stays --accent-ink above, because #b84a00 as type on near-black is
      only about 3.8:1. */
   --accent: #b84a00;
+  --accent-fill: #b84a00;
   --on-accent: #fff;
   --btn-fill: #fff;
   --btn-ink: #000;
@@ -645,16 +651,15 @@ html { scroll-padding-top: 88px; }
   color: var(--accent-ink, #b64800);
   transition: color .16s ease;
 }
-/* THE WHOLE ROW TAKES THE COLOUR, and the glyph goes with it. In light mode
-   black on #ff6500 (7.11:1); in dark mode --accent is #b84a00 and
-   --on-accent white (5.23:1), so the pair follows the theme by itself. */
+/* THE WHOLE ROW TAKES THE COLOUR, and the glyph goes with it: white on the
+   deep orange, 5.23:1, in both themes. */
 .hd-sub__a:hover,
 .hd-sub__a[aria-current="page"] {
-  background: var(--accent, #ff6500);
-  color: var(--on-accent, #000);
+  background: var(--accent-fill);
+  color: var(--on-accent);
 }
 .hd-sub__a:hover .hd-sub__i,
-.hd-sub__a[aria-current="page"] .hd-sub__i { color: var(--on-accent, #000); }
+.hd-sub__a[aria-current="page"] .hd-sub__i { color: var(--on-accent); }
 
 /* BLACK ROW, WHITE TYPE, IN LIGHT MODE ONLY, and this is a deliberate
    exception rather than a drift away from the colour rule above.

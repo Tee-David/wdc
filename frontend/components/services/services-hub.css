@@ -3,8 +3,8 @@
 
    The rows are the answer to "what do I get"; /work is where the pictures
    are. Solid fills throughout: the icon tile is navy with a white glyph, the
-   chips are --paper-2 with --ink, and the "Fits" tag is orange with a black
-   label (--on-accent), the site's rule for a label on the accent.
+   chips are --paper-2 with --ink, and the "Fits" tag is the deep orange
+   (--accent-fill) with a white label (--on-accent), 5.23:1.
    ========================================================================== */
 
 .pv .svh-choose { margin-bottom: clamp(24px, 3vw, 36px); }
@@ -64,7 +64,7 @@
 .pv .svh-row__fit {
   display: none; font: 700 .72rem/1 var(--font-outfit), system-ui, sans-serif;
   letter-spacing: .08em; text-transform: uppercase;
-  padding: 5px 9px; border-radius: 999px; background: var(--accent); color: var(--on-accent);
+  padding: 5px 9px; border-radius: 999px; background: var(--accent-fill); color: var(--on-accent);
 }
 .pv .svh-list[data-need="look"] .svh-row[data-needs~="look"],
 .pv .svh-list[data-need="found"] .svh-row[data-needs~="found"],

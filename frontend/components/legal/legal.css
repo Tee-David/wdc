@@ -111,7 +111,7 @@
    a weak signal at this size; a filled pill is unmistakably the thing under
    the cursor. */
 .lg-toc__others a:hover {
-  background: var(--accent); border-color: var(--accent); color: var(--on-accent);
+  background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent);
 }
 .lg-toc__others a:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 2px;

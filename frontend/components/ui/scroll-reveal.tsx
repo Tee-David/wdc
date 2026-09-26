@@ -71,7 +71,7 @@ export function ScrollReveal({
                        2.95:1 and fails even the 3:1 allowed for large text;
                        black is 7.11:1. Same rule as every other accent fill on
                        the site -- see --on-accent. */
-                    ? "mx-[0.14em] text-[0.88em] rounded-lg bg-secondary px-[0.22em] py-[0.05em] text-[var(--on-accent,#000)] shadow-[0_4px_12px_-4px_rgba(255,101,0,0.5)]"
+                    ? "mx-[0.14em] text-[0.88em] rounded-lg bg-[var(--accent-fill)] px-[0.22em] py-[0.05em] text-[var(--on-accent)] shadow-[0_4px_12px_-4px_rgba(255,101,0,0.5)]"
                     : ""
                 }`}
               >
