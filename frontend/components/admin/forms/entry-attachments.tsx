@@ -16,7 +16,7 @@ export function EntryAttachments({ files }: { files: EntryFile[] }) {
   if (!files.length) return null;
   const total = files.reduce((a, f) => a + f.bytes, 0);
   return (
-    <Panel title="Attachments" action={<span className="ad__pill">{files.length} {files.length === 1 ? "file" : "files"}{total ? ` · ${size(total)}` : ""}</span>}>
+    <Panel title="Attachments" dataTour="entry-attachments" action={<span className="ad__pill">{files.length} {files.length === 1 ? "file" : "files"}{total ? ` · ${size(total)}` : ""}</span>}>
       <ul className="adAtt">
         {files.map((f, i) => (
           <li key={`${f.name}-${i}`} className="adAtt__file">

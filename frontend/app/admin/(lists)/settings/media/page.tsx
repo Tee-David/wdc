@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { redirect } from "next/navigation";
 import { LayoutGrid, List } from "lucide-react";
 import { AdminState } from "@/components/admin/admin-state";
@@ -128,7 +129,7 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
         <section className="ad__panel adMedia">
           {sum ? (
             <div className="adMedia__top">
-              <nav className="adMedia__tabs" aria-label="Which files">
+              <nav className="adMedia__tabs" aria-label="Which files" data-tour="media-tabs">
                 <Link href={href({ show: "", kind: "", page: 1 })} aria-current={!archived && !kind ? "page" : undefined}>All <span>{sum.live}</span></Link>
                 {MEDIA_KINDS.map((k) => (
                   <Link key={k} href={href({ show: "", kind: k, page: 1 })} aria-current={!archived && kind === k ? "page" : undefined}>{KIND_LABEL[k]} <span>{sum!.kinds[k]}</span></Link>
@@ -260,7 +261,7 @@ function Head({ children }: { children?: React.ReactNode }) {
         <h1>Media library</h1>
         <p>Pictures, videos and files for the site and the blog.</p>
       </div>
-      {children ? <div className="ad__row">{children}</div> : null}
+      <div className="ad__row"><PageTourButton />{children}</div>
     </div>
   );
 }

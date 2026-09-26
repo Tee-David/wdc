@@ -43,7 +43,7 @@ export default async function PortalSettings() {
             <p className="pSet__sub ad__dim">Every one of these can be switched off.</p>
             <NotifyForm client={client} />
           </Panel>
-          <Panel title="Sign-in">
+          <Panel title="Sign-in" dataTour="portal-signin">
             <SignInCard email={session?.user?.email ?? client.email} hasPassword={withPassword} />
           </Panel>
         </div>

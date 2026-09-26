@@ -81,8 +81,11 @@ test("the full walkthrough, opened from the launcher, crosses every page and fin
     "/admin/clients", "/admin/clients", "/admin/clients",
     "/admin/projects", "/admin/projects", "/admin/projects",
     "/admin/money", "/admin/money", "/admin/money",
-    "/admin/forms", "/admin/forms",
-    "/admin/settings/general", "/admin/settings/general", "/admin/settings/general",
+    "/admin/forms",
+    "/admin/forms/contact", "/admin/forms/contact",
+    "/admin/blog", "/admin/blog", "/admin/blog",
+    "/admin/settings",
+    "/admin/settings/media", "/admin/settings/media", "/admin/settings/media", "/admin/settings/media",
   ];
 
   /* The last entry is the closing step, whose button reads "Finish", not
@@ -203,6 +206,34 @@ test("the four drill-down pages each have their own tour, matched by route templ
     }
     await expect(page.locator(".tourCard")).toHaveCount(0);
     await expect(page.locator(".tourBlur")).toHaveCount(0, { timeout: 3_000 });
+  }
+});
+
+test("blog, support, a form, an entry, media and the settings overview each have a page tour", async ({ page }) => {
+  await page.goto("/admin/forms/contact", { waitUntil: "networkidle" });
+  const entry = await page.locator('a[href*="/admin/forms/contact/entries/"]').first().getAttribute("href").catch(() => null);
+  const routes: Array<[string, string]> = [
+    ["/admin/blog", "The blog"],
+    ["/admin/clients/support", "Support"],
+    ["/admin/forms/contact", "One form"],
+    ["/admin/settings/media", "The media library"],
+    ["/admin/settings", "Settings"],
+    ...(entry ? [[entry.split("?")[0], "One entry"] as [string, string]] : []),
+  ];
+  for (const [path, introTitle] of routes) {
+    await page.goto(path, { waitUntil: "networkidle" });
+    await page.getByRole("button", { name: /^(tour this page|replay this page's tour)$/i }).click();
+    await expect(page.locator(".tourCard__headText b"), path).toHaveText(introTitle);
+    for (let i = 0; i < 8; i += 1) {
+      try {
+        await page.getByRole("button", { name: /^finish$/i }).click({ timeout: 3_000 });
+        break;
+      } catch {
+        await page.getByRole("button", { name: /^next$/i }).click({ timeout: 3_000 });
+      }
+    }
+    await expect(page.locator(".tourCard"), path).toHaveCount(0);
+    expect(new URL(page.url()).pathname, "a page tour never leaves its page").toBe(path);
   }
 });
 

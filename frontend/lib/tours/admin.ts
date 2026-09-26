@@ -33,7 +33,7 @@ const closer = (id: string, title: string, content: string): TourDef["steps"][nu
 
 export const ADMIN_WELCOME: TourDef = {
   id: "admin-welcome",
-  version: 1,
+  version: 2,
   kind: "welcome",
   title: "Welcome to the admin",
   steps: [
@@ -46,14 +46,15 @@ export const ADMIN_WELCOME: TourDef = {
       showEstimate: true,
       title: "Welcome to the WDC admin",
       content:
-        "A quick lap of the navigation before anything else: where the six sections live, and the handful of controls around them. The full workflow tour is one click away whenever you want it.",
+        "A quick lap of the navigation before anything else: where the seven sections live, and the handful of controls around them. The full workflow tour is one click away whenever you want it.",
     },
     { id: "nav-dashboard", target: '[data-tour="nav-dashboard"]', href: "/admin", icon: "layout", title: "Dashboard", content: "What needs a decision this morning, at a glance. The section everything else feeds." },
     { id: "nav-clients", target: '[data-tour="nav-clients"]', href: "/admin", icon: "users", interact: { hint: "Click Clients to move on" }, title: "Clients", content: "Everyone you work for, grouped by what they buy." },
     { id: "nav-projects", target: '[data-tour="nav-projects"]', href: "/admin/clients", icon: "folder", interact: { hint: "Click Projects to move on" }, title: "Projects", content: "Every live and delivered engagement, with a stage and a health." },
     { id: "nav-money", target: '[data-tour="nav-money"]', href: "/admin/projects", icon: "wallet", interact: { hint: "Click Money to move on" }, title: "Money", content: "Invoices, payments, and expenses: what is owed, right now." },
-    { id: "nav-forms", target: '[data-tour="nav-forms"]', href: "/admin/money", icon: "inbox", interact: { hint: "Click Forms to move on" }, title: "Forms", content: "Every onboarding submission, sent or still in progress." },
-    { id: "nav-settings", target: '[data-tour="nav-settings"]', href: "/admin/forms", icon: "settings", interact: { hint: "Click Settings to move on" }, title: "Settings", content: "Content on the public site, and how the agency runs." },
+    { id: "nav-forms", target: '[data-tour="nav-forms"]', href: "/admin/money", icon: "inbox", interact: { hint: "Click Forms to move on" }, title: "Forms", content: "Everything people send through the site: briefs, enquiries, sign-ups, and the forms you build." },
+    { id: "nav-blog", target: '[data-tour="nav-blog"]', href: "/admin/forms", icon: "book", interact: { hint: "Click Blog to move on" }, title: "Blog", content: "Write, review and schedule posts. A live post you change says Update, not Save." },
+    { id: "nav-settings", target: '[data-tour="nav-settings"]', href: "/admin/blog", icon: "settings", interact: { hint: "Click Settings to move on" }, title: "Settings", content: "How the studio, the site and the admin run, with the media library and your own account." },
     { id: "sidebar-pin", target: '[data-tour="sidebar-pin"]', href: "/admin/settings", icon: "panelLeft", desktopOnly: true, optional: true, title: "Collapse the sidebar", content: "Icons only, more room for the page. It remembers your choice next time." },
     { id: "mobile-menu", target: '[data-tour="mobile-menu"]', href: "/admin/settings", icon: "panelLeft", mobileOnly: true, optional: true, title: "The sections, on a phone", content: "This button opens the sidebar: every section, the theme switch and sign out. Tap a section and it closes." },
     { id: "search", target: '[data-tour="topbar-search"]', href: "/admin/settings", icon: "search", title: "Search or Ctrl+K", content: "Jump straight to any page from anywhere, without touching the sidebar." },
@@ -63,7 +64,7 @@ export const ADMIN_WELCOME: TourDef = {
 
 export const ADMIN_WALKTHROUGH: TourDef = {
   id: "admin-walkthrough",
-  version: 2,
+  version: 3,
   kind: "walkthrough",
   title: "The full admin walkthrough",
   steps: [
@@ -77,7 +78,7 @@ export const ADMIN_WALKTHROUGH: TourDef = {
       page: "Dashboard",
       title: "The full workflow, start to finish",
       content:
-        "Every section, in the order a real morning actually uses them: what needs a decision, then clients, projects, money, forms, and settings. Skip any time. Nothing here is required.",
+        "Every section, in the order a real morning actually uses them: what needs a decision, then clients, projects, money, forms, the blog, and settings. Skip any time. Nothing here is required.",
     },
     { id: "dash-kpis", target: '[data-tour="dash-kpis"]', href: "/admin", icon: "gauge", title: "The four numbers that matter", content: "Collected, outstanding, cash position, and live projects: every one recomputed from the underlying records, never typed in and left to drift." },
     { id: "dash-attention", target: '[data-tour="dash-attention"]', href: "/admin", icon: "flag", title: "Start here every morning", content: "Overdue invoices, projects asking for something, and onboarding nobody finished, worst first. An empty queue here means there is genuinely nothing waiting on you." },
@@ -99,13 +100,20 @@ export const ADMIN_WALKTHROUGH: TourDef = {
     { id: "money-tiles", target: '[data-tour="money-tiles"]', href: "/admin/money", icon: "calculator", title: "The real-time totals", content: "Reconciliation for anything the bank and the books disagree on is one link away." },
     { id: "money-add", target: '[data-tour="money-add"]', href: "/admin/money", icon: "receipt", title: "Raising an invoice", content: "Add the lines, issue it, and the client gets a token-addressed public copy with a pay link. A draft can still be edited; an issued invoice cannot, because somebody outside the studio is holding it." },
 
-    { id: "nav-forms", target: '[data-tour="nav-forms"]', href: "/admin/money", icon: "inbox", interact: { hint: "Click Forms to see submissions" }, page: "Forms", title: "On to Forms", content: "Every onboarding submission, sent or still in progress: what clients have actually told you." },
-    { id: "forms-table", target: '[data-tour="forms-table"]', href: "/admin/forms", icon: "clipboard", title: "Turning a lead into a client", content: "Open a submission to see exactly what was answered and what was left blank. A gap is something to ask about on the call. One press turns it into a client without losing their original answers." },
+    { id: "nav-forms", target: '[data-tour="nav-forms"]', href: "/admin/money", icon: "inbox", interact: { hint: "Click Forms to see them" }, page: "Forms", title: "On to Forms", content: "Everything people send through the site: onboarding briefs, enquiries, newsletter sign-ups, and any form you build." },
+    { id: "forms-table", target: '[data-tour="forms-table"]', href: "/admin/forms", icon: "clipboard", title: "Every form, with what is new", content: "Each row is one form with its unread count. Open one for its entries, its questions and its emails." },
+    { id: "forms-entries", target: '[data-tour="forms-entries"]', href: "/admin/forms/contact", icon: "inbox", title: "One form's entries", content: "An inbox: star, mark read, move to spam or the Trash, and export. Open an entry to read it in full, see what they uploaded, and download it as a PDF." },
 
-    { id: "nav-settings", target: '[data-tour="nav-settings"]', href: "/admin/forms", icon: "settings", interact: { hint: "Click Settings to see the overrides" }, page: "Settings", title: "On to Settings", content: "Content on the public site, and how the agency runs." },
-    { id: "settings-table", target: '[data-tour="settings-table"]', href: "/admin/settings/general", icon: "shieldCheck", title: "How invoices start", content: "VAT, payment terms and automatic reminders. Change anything and a bar appears at the bottom to save or discard." },
+    { id: "nav-blog", target: '[data-tour="nav-blog"]', href: "/admin/forms/contact", icon: "book", interact: { hint: "Click Blog to see the posts" }, page: "Blog", title: "On to the Blog", content: "Posts are written weekly, so the blog has its own section rather than a corner of Settings." },
+    { id: "blog-new", target: '[data-tour="blog-new"]', href: "/admin/blog", optional: true, icon: "plus", title: "Writing a post", content: "Drafts are yours until you send them for review or publish. Saving a live post says Update, and a toast confirms it." },
+    { id: "blog-filters", target: '[data-tour="blog-filters"]', href: "/admin/blog", optional: true, icon: "filter", title: "Finding a post", content: "Search, filter by state or service, or pick dates. Drafts moved to the Trash wait there before they go." },
 
-    { id: "search", target: '[data-tour="topbar-search"]', href: "/admin/settings/general", icon: "search", title: "Search or Ctrl+K, from anywhere", content: "Jump straight to any page without touching the sidebar." },
+    { id: "nav-settings", target: '[data-tour="nav-settings"]', href: "/admin/blog", icon: "settings", interact: { hint: "Click Settings to see every section" }, page: "Settings", title: "On to Settings", content: "How the studio, the site and the admin run." },
+    { id: "settings-sections", target: '[data-tour="settings-sections"]', href: "/admin/settings", icon: "shieldCheck", title: "Every setting, in one column", content: "Each panel is a group of sections with its current state beside it. Search finds a setting by name. Changes go through the bar that appears at the bottom, and a toast says when they are saved." },
+    { id: "media-upload", target: '[data-tour="media-upload"]', href: "/admin/settings/media", page: "Media", icon: "fileStack", title: "The media library", content: "Pictures, videos and files for the site and the blog. Upload here, or drop files on the page or on a folder." },
+    { id: "media-tabs", target: '[data-tour="media-tabs"]', href: "/admin/settings/media", optional: true, icon: "filter", title: "Kinds, and the Trash", content: "Deleting is two steps: Move to Trash, which can be undone, then Delete permanently from the Trash, which asks you to confirm twice." },
+
+    { id: "search", target: '[data-tour="topbar-search"]', href: "/admin/settings/media", icon: "search", title: "Search or Ctrl+K, from anywhere", content: "Jump straight to any page without touching the sidebar." },
     closer("done", "That's everything", "Replay this any time from the ? button beside search, or take a shorter tour for just the page you're on."),
   ],
 };
@@ -164,12 +172,12 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
   },
   "/admin/forms": {
     id: "admin-page-forms",
-    version: 2,
+    version: 3,
     kind: "page",
     title: "This page: Forms",
     steps: [
-      { id: "intro", target: "body", placement: "center", icon: "inbox", showEstimate: true, title: "Forms", content: "Every onboarding submission, sent or still in progress, plus every question the live form actually asks." },
-      { id: "table", target: '[data-tour="forms-table"]', icon: "clipboard", title: "Submissions", content: "Open one to see exactly what was answered and what was left blank. A gap is something to ask about on the call." },
+      { id: "intro", target: "body", placement: "center", icon: "inbox", showEstimate: true, title: "Forms", content: "Every form on the site, with its entries: briefs, enquiries, sign-ups and the forms you build." },
+      { id: "table", target: '[data-tour="forms-table"]', icon: "clipboard", title: "The forms", content: "Each row opens that form's entries, its questions and its emails." },
     ],
   },
   "/admin/settings/general": {
@@ -183,6 +191,77 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
     ],
   },
 
+  "/admin/settings": {
+    id: "admin-page-settings-overview",
+    version: 1,
+    kind: "page",
+    title: "This page: Settings",
+    steps: [
+      { id: "intro", target: "body", placement: "center", icon: "settings", showEstimate: true, title: "Settings", content: "Every section in one column of panels, in the order of the list beside them." },
+      { id: "search", target: '[data-tour="settings-search"]', icon: "search", title: "Find a setting", content: "Type what you are after: a section, or a setting inside one." },
+      { id: "sections", target: '[data-tour="settings-sections"]', icon: "shieldCheck", title: "Each section's state", content: "What a section is set to shows beside it. Open one to change it; a bar at the bottom saves or discards, and a toast confirms." },
+    ],
+  },
+  "/admin/settings/media": {
+    id: "admin-page-media",
+    version: 1,
+    kind: "page",
+    title: "This page: the media library",
+    steps: [
+      { id: "intro", target: "body", placement: "center", icon: "fileStack", showEstimate: true, title: "The media library", content: "Pictures, videos and files for the site and the blog, in folders." },
+      { id: "upload", target: '[data-tour="media-upload"]', icon: "plus", title: "Upload", content: "Or drop files anywhere on the page, or straight onto a folder." },
+      { id: "folders", target: '[data-tour="media-folders"]', desktopOnly: true, optional: true, icon: "folder", title: "Folders", content: "Make, rename and nest folders here, and drag files onto one to move them." },
+      { id: "folders-sheet", target: '[data-tour="media-folders-sheet"]', mobileOnly: true, optional: true, icon: "folder", title: "Folders", content: "On a phone the folders open from here." },
+      { id: "tabs", target: '[data-tour="media-tabs"]', optional: true, icon: "filter", title: "Kinds, and the Trash", content: "Move to Trash can be undone. Delete permanently lives in the Trash, is the owner's, and asks twice." },
+    ],
+  },
+  "/admin/blog": {
+    id: "admin-page-blog",
+    version: 1,
+    kind: "page",
+    title: "This page: the blog",
+    steps: [
+      { id: "intro", target: "body", placement: "center", icon: "book", showEstimate: true, title: "The blog", content: "Every post, published, scheduled, in review or still a draft." },
+      { id: "new", target: '[data-tour="blog-new"]', optional: true, icon: "plus", title: "Write a post", content: "Save keeps a draft. On a live post the button reads Update, and a toast confirms the change is live." },
+      { id: "filters", target: '[data-tour="blog-filters"]', optional: true, icon: "filter", title: "Search and filter", content: "By words, state, service or dates. The Trash keeps drafts you removed for a while before they go." },
+      { id: "table", target: '[data-tour="blog-table"]', optional: true, icon: "clipboard", title: "The posts", content: "Tick several for bulk actions: publish, unpublish or move to the Trash." },
+    ],
+  },
+  "/admin/clients/support": {
+    id: "admin-page-support",
+    version: 1,
+    kind: "page",
+    title: "This page: Support",
+    steps: [
+      { id: "intro", target: "body", placement: "center", icon: "inbox", showEstimate: true, title: "Support", content: "Questions clients ask in their portal. Your answer is emailed to them and waits in their portal." },
+      { id: "tiles", target: '[data-tour="support-tiles"]', icon: "gauge", title: "Who is waiting", content: "Waiting on us is the one to empty. A closed question reopens if the client writes again." },
+      { id: "filters", target: '[data-tour="support-filters"]', icon: "filter", title: "Search and filter", content: "By words or by status." },
+    ],
+  },
+  "/admin/forms/[form]": {
+    id: "admin-page-form",
+    version: 1,
+    kind: "page",
+    title: "This page: a form",
+    steps: [
+      { id: "intro", target: "body", placement: "center", icon: "inbox", showEstimate: true, title: "One form", content: "Its entries, the questions it asks, and the emails it sends." },
+      { id: "tabs", target: '[data-tour="form-tabs"]', icon: "layout", title: "Entries, questions, settings", content: "Settings is where its emails are switched on or off, and where the studio's notice goes." },
+      { id: "entries", target: '[data-tour="forms-entries"]', icon: "clipboard", title: "The entries", content: "An inbox: tick several to star, mark read, move to spam or the Trash, or export them." },
+    ],
+  },
+  "/admin/forms/[form]/entries/[entry]": {
+    id: "admin-page-entry",
+    version: 1,
+    kind: "page",
+    title: "This page: an entry",
+    steps: [
+      { id: "intro", target: "body", placement: "center", icon: "clipboard", showEstimate: true, title: "One entry", content: "Everything they sent, in the order they saw the questions." },
+      { id: "pdf", target: '[data-tour="entry-pdf"]', icon: "fileStack", title: "Download it as a PDF", content: "The same PDF the studio's email carries, with the files they sent attached." },
+      { id: "attachments", target: '[data-tour="entry-attachments"]', optional: true, icon: "fileStack", title: "What they uploaded", content: "Pictures show as pictures. Open or download any file; the links are private and last an hour." },
+      { id: "answers", target: '[data-tour="entry-answers"]', icon: "clipboard", title: "The answers", content: "A gap shows as Not answered: something to ask about on the call." },
+      { id: "emails", target: '[data-tour="entry-emails"]', optional: true, icon: "bell", title: "Emails about it", content: "What was sent, to whom, and whether it arrived. Send one again from here." },
+    ],
+  },
   /* THE FOUR BELOW ARE DRILL-DOWN PAGES, not sidebar routes -- reached by
      opening a row on the list above them, never by a nav link. `[id]` in
      their key is literal: `adminPageTourFor` normalises a real pathname
@@ -259,7 +338,7 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
  *  pages have nothing in common. Checked first, and by itself, rather than
  *  folded into a shared exceptions list that would need a new entry every
  *  time a static route happens to sit at the same depth as a dynamic one. */
-const STATIC_ROUTES_AT_DYNAMIC_DEPTH = new Set(["/admin/money/reconciliation"]);
+const STATIC_ROUTES_AT_DYNAMIC_DEPTH = new Set(["/admin/money/reconciliation", "/admin/clients/support"]);
 
 /** Collapses a real pathname like `/admin/clients/c_10` down to the
  *  registry's own `/admin/clients/[id]` key, the same idea Litch's own
@@ -269,7 +348,13 @@ function normalizeAdminRoute(pathname: string): string {
   if (STATIC_ROUTES_AT_DYNAMIC_DEPTH.has(pathname)) return pathname;
   const segments = pathname.split("/").filter(Boolean);
   const [admin, section, id] = segments;
-  if (admin === "admin" && id && ["clients", "projects", "money", "forms"].includes(section)) {
+  /* A form is keyed by its own name, and its entries sit one level down. */
+  if (admin === "admin" && section === "forms" && id) {
+    if (segments.length === 3) return "/admin/forms/[form]";
+    if (segments.length === 5 && segments[3] === "entries") return "/admin/forms/[form]/entries/[entry]";
+    return pathname;
+  }
+  if (admin === "admin" && id && ["clients", "projects", "money"].includes(section)) {
     return `/admin/${section}/[id]`;
   }
   return pathname;
