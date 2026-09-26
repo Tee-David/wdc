@@ -1,48 +1,132 @@
-/* The media library. Built on the admin's panel, button and pill rules; only
-   the grid, the cards and the upload queue are new. */
-.adMedia { padding: 1rem; display: grid; gap: 1rem; min-width: 0; }
+/* The media library (settings/media/page.tsx, components/admin/media-library.tsx).
+   Built on the admin's panel, button, pill and table rules; only the grid,
+   the cards, the tray and the details are new. */
+.adMedia { padding: 0; display: grid; min-width: 0; }
+.adMedia__off { margin: -.25rem 0 1rem; color: var(--ad-dim); font-size: .9rem; }
+.adMedia__off a { color: var(--ad-accent-ink); font-weight: 600; }
+.dark .adMedia__off a { color: var(--ad-accent); }
 
-.adMedia__up { display: grid; gap: .5rem; min-width: 0; }
-.adMedia__pick { position: relative; justify-self: start; min-height: 44px; cursor: pointer; }
-.adMedia__pick input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
-.adMedia__pick:focus-within { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
-.adMedia__pick.is-off { opacity: .5; cursor: not-allowed; }
-.adMedia__pick.is-off input { cursor: not-allowed; }
-.adMedia__rule { margin: 0; font-size: .82rem; }
+/* Tabs by kind, and the storage meter, on one line. */
+.adMedia__top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem 1.25rem; padding: .8rem 1.25rem 0; border-bottom: 1px solid var(--ad-line); }
+.adMedia__tabs { display: flex; gap: .25rem; overflow-x: auto; scrollbar-width: none; min-width: 0; }
+.adMedia__tabs a { position: relative; display: inline-flex; align-items: center; gap: .45rem; min-height: 44px; padding: 0 .75rem; color: var(--ad-dim); text-decoration: none; font-weight: 600; font-size: .9rem; white-space: nowrap; }
+.adMedia__tabs a:hover { color: var(--ad-ink); }
+.adMedia__tabs a span { min-width: 1.4rem; padding: .1rem .4rem; border-radius: 999px; background: var(--ad-tone-flat); color: var(--ad-on-flat); font-size: .72rem; text-align: center; font-variant-numeric: tabular-nums; }
+.adMedia__tabs a[aria-current="page"] { color: var(--ad-ink); }
+.adMedia__tabs a[aria-current="page"] span { background: var(--ad-tone-brand); color: var(--ad-on-brand); }
+.adMedia__tabs a[aria-current="page"]::after { content: ""; position: absolute; left: .5rem; right: .5rem; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--ad-accent-fill); }
+.adMedia__tabs a:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: -2px; border-radius: 8px; }
+.adMedia__store { display: grid; gap: .3rem; justify-items: end; min-width: 10rem; padding-bottom: .6rem; }
+.adMedia__storeBar { display: flex; width: 10rem; height: 6px; border-radius: 6px; background: var(--ad-line); overflow: hidden; gap: 1px; }
+.adMedia__storeBar i { display: block; height: 100%; }
+.adMedia__storeBar .is-image { background: var(--ad-tone-brand); }
+.adMedia__storeBar .is-video { background: var(--ad-accent-fill); }
+.adMedia__storeBar .is-pdf { background: var(--ad-tone-good); }
+.adMedia__store small { color: var(--ad-dim); font-size: .78rem; font-variant-numeric: tabular-nums; }
+.adMedia__store small b { color: var(--ad-ink); font-weight: 600; }
 
-.adMedia__queue { margin: 0; padding: 0; list-style: none; display: grid; gap: .35rem; }
-.adMedia__queue li { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .8rem; padding: .5rem .7rem; border: 1px solid var(--ad-line); border-radius: 9px; font-size: .85rem; min-width: 0; }
-.adMedia__queue li.is-bad { border-color: var(--ad-tone-bad); }
-.adMedia__queue li.is-done span:last-child { color: var(--ad-good); display: inline-flex; align-items: center; gap: .25rem; }
-.adMedia__queue svg { width: 1rem; height: 1rem; }
-.adMedia__queue progress { flex: 1 1 8rem; accent-color: var(--ad-accent); }
-.adMedia__qName { min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.adMedia__filters { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .9rem 1.25rem .4rem; }
+.adMedia__q { flex: 1 1 16rem; min-width: 0; }
+.adMedia__q input { width: 100%; }
+.adMedia__sel select { min-height: 44px; max-width: 12rem; padding: .5rem 2rem .5rem .75rem; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); color: var(--ad-ink); font: inherit; font-size: .9rem; }
+.adMedia__bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; padding: .3rem 1.25rem .8rem; }
+.adMedia__count { margin: 0; font-size: .88rem; font-variant-numeric: tabular-nums; }
+.adMedia__chip { display: inline-flex; align-items: center; gap: .4rem; min-height: 36px; padding: .2rem .45rem .2rem .8rem; border: 1px solid var(--ad-line); border-radius: 999px; color: var(--ad-ink); text-decoration: none; font-size: .84rem; font-weight: 600; }
+.adMedia__chip span { padding: .05rem .45rem; border-radius: 999px; background: var(--ad-tone-warn); color: var(--ad-on-warn); font-size: .72rem; }
+.adMedia__chip.is-on { background: var(--ad-tone-brand); border-color: var(--ad-tone-brand); color: var(--ad-on-brand); }
+@media (pointer: coarse) { .adMedia__chip { min-height: 44px; } }
+.adMedia__views { margin-left: auto; display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel-2); }
+.adMedia__views a { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 9px; color: var(--ad-dim); }
+.adMedia__views a svg { width: 18px; height: 18px; }
+.adMedia__views a[aria-current] { background: var(--ad-panel); color: var(--ad-ink); box-shadow: var(--ad-sh-1), 0 0 0 1px var(--ad-line); }
+.adMedia__notice { margin: 0 1.25rem .6rem; }
 
-.adMedia__views { display: flex; flex-wrap: wrap; gap: .4rem; border-bottom: 1px solid var(--ad-line); padding-bottom: .6rem; }
-.adMedia__views a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 .8rem; border-radius: 999px; color: inherit; text-decoration: none; font-size: .88rem; }
-.adMedia__views a:hover { color: var(--ad-accent); }
-.adMedia__views a[aria-current="page"] { background: var(--ad-tone-brand); color: var(--ad-on-brand); }
-.adMedia__views a:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+/* The grid: the site's one card track. A card is a button that opens the file. */
+.adMedia__grid { margin: 0; padding: 0 1.25rem 1.25rem; list-style: none; display: grid; gap: .9rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)); }
+.adMedia__card { display: grid; width: 100%; padding: 0; border: 1px solid var(--ad-line); border-radius: 16px; background: var(--ad-panel); color: inherit; font: inherit; text-align: left; overflow: hidden; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+.adMedia__card:hover { border-color: var(--ad-dim); box-shadow: var(--ad-sh-1); }
+.adMedia__card:active { transform: translateY(1px); }
+.adMedia__card:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+/* The frame sets the size, not the picture. */
+.adMedia__thumb { position: relative; display: grid; place-items: center; aspect-ratio: 4 / 3; overflow: hidden; background: var(--ad-tone-flat); color: var(--ad-on-flat); }
+.adMedia__thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.adMedia__thumb svg { width: 2.2rem; height: 2.2rem; }
+.adMedia__cardBody { display: grid; gap: .3rem; padding: .7rem .8rem .8rem; min-width: 0; }
+.adMedia__cardBody .ad__pill { justify-self: start; }
+.adMedia__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.adMedia__cardBody small { color: var(--ad-dim); font-size: .78rem; font-variant-numeric: tabular-nums; }
 
-/* The site's one card track, so these line up with every other card grid. */
-.adMedia__grid { margin: 0; padding: 0; list-style: none; display: grid; gap: .9rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); }
-.adMedia__card { min-width: 0; display: grid; grid-template-rows: auto 1fr; border: 1px solid var(--ad-line); border-radius: var(--ad-r); background: var(--ad-bg); overflow: hidden; }
-/* The frame sets the size, not the picture: the img is taken out of flow so a
-   512px upload cannot stretch the card and push its controls out of sight. */
-.adMedia__thumb { position: relative; overflow: hidden; aspect-ratio: 16 / 10; display: grid; place-items: center; background: var(--ad-tone-flat); color: var(--ad-on-flat); }
-.adMedia__thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
-.adMedia__thumb svg { width: 2.4rem; height: 2.4rem; }
-.adMedia__body { min-width: 0; display: grid; align-content: start; gap: .45rem; padding: .8rem; }
-.adMedia__body .ad__pill { justify-self: start; }
-.adMedia__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.adMedia__alt { display: grid; gap: .3rem; min-width: 0; }
-.adMedia__alt label { font-size: .78rem; color: var(--ad-dim); }
-.adMedia__alt input { width: 100%; min-width: 0; min-height: 44px; font: inherit; padding: .5rem .7rem; border: 1px solid var(--ad-line); border-radius: 9px; background: var(--ad-panel); color: inherit; }
-.adMedia__alt input:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
-.adMedia__alt .ad__formActions { margin: 0; }
-.adMedia__tools { display: flex; flex-wrap: wrap; gap: .4rem; }
-.adMedia__tools form { display: contents; }
-.adMedia__tools .ad__btn, .adMedia__alt .ad__btn { min-height: 44px; }
-.adMedia__find { margin-top: .75rem; display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
-.adMedia__find label { min-width: 0; }
-@media (max-width: 560px) { .adMedia__find > * { flex: 1 1 100%; } }
+/* The list: a table, the file column wide enough for a name. */
+.adMedia .ad__scroll { border-top: 1px solid var(--ad-line); }
+.adMedia__table td:first-child { min-width: 16rem; }
+.adMedia__rowBtn { display: flex; align-items: center; gap: .7rem; width: 100%; min-height: 44px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.adMedia__rowBtn:hover .adMedia__rowName { text-decoration: underline; text-underline-offset: 3px; }
+.adMedia__mini { flex: none; width: 48px; border-radius: 8px; overflow: hidden; }
+.adMedia__mini .adMedia__thumb svg { width: 1.2rem; height: 1.2rem; }
+.adMedia__rowName { min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.adMedia__altCell { max-width: 22rem; white-space: normal !important; }
+
+/* Drop anywhere on the library. */
+.adMedia__dropArea { position: relative; }
+.adMedia__dropArea.is-over > .ad__panel { border-color: var(--ad-fill); box-shadow: 0 0 0 2px var(--ad-fill); }
+.adMedia__dropHint { position: absolute; inset: 0; z-index: 3; display: grid; place-content: center; justify-items: center; gap: .5rem; border-radius: var(--ad-r); background: var(--ad-nav-on); color: var(--ad-ink); font-weight: 700; font-size: 1.05rem; pointer-events: none; }
+.adMedia__dropHint svg { width: 2rem; height: 2rem; }
+
+/* The details. */
+.adMediaD { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1.25rem; min-width: 0; }
+@media (max-width: 720px) { .adMediaD { grid-template-columns: minmax(0, 1fr); } }
+.adMediaD__view { display: grid; place-items: center; min-height: 14rem; max-height: 60dvh; border-radius: 14px; background: var(--ad-tone-flat); overflow: hidden; }
+.adMediaD__view img, .adMediaD__view video { display: block; max-width: 100%; max-height: 60dvh; object-fit: contain; }
+.adMediaD__file { display: grid; justify-items: center; gap: .5rem; padding: 2rem; color: var(--ad-on-flat); font-weight: 600; text-align: center; overflow-wrap: anywhere; }
+.adMediaD__file svg { width: 2.4rem; height: 2.4rem; }
+.adMediaD__side { display: grid; align-content: start; gap: 1rem; min-width: 0; }
+.adMediaD__form { display: grid; gap: .8rem; }
+.adMediaD__form .ad__formActions { margin: 0; }
+.adMediaD__arch { margin: 0; }
+.adMediaD__facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem 1rem; margin: 0; padding-top: .9rem; border-top: 1px solid var(--ad-line); }
+.adMediaD__facts dt { color: var(--ad-dim); font-size: .74rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+.adMediaD__facts dd { margin: .15rem 0 0; font-weight: 500; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.adMediaD__tools { display: flex; flex-wrap: wrap; gap: .5rem; }
+.adMediaD__tools form { display: contents; }
+
+/* The upload tray: fixed at the foot of the window, above the content. */
+.adTray { position: fixed; z-index: 45; right: 1.25rem; bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)); width: min(380px, calc(100vw - 2rem)); border: 1px solid var(--ad-line); border-radius: 16px; background: var(--ad-panel); box-shadow: var(--ad-sh-3); overflow: hidden; animation: adTray-in .24s cubic-bezier(.22, 1, .36, 1) backwards; }
+@keyframes adTray-in { from { opacity: 0; transform: translateY(12px); } }
+@media (max-width: 560px) { .adTray { left: 1rem; right: 1rem; width: auto; } }
+.adTray__head { display: flex; align-items: center; gap: .25rem; padding: .35rem .4rem .35rem .25rem; background: var(--ad-panel-2); border-bottom: 1px solid var(--ad-line); }
+.adTray__title { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 44px; padding: 0 .75rem; border: 0; border-radius: 10px; background: none; color: var(--ad-ink); font: inherit; font-weight: 600; cursor: pointer; }
+.adTray__title svg { width: 18px; height: 18px; transition: transform .18s ease; }
+.adTray__title[aria-expanded="false"] svg { transform: rotate(180deg); }
+.adTray__x, .adTray__btn { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 9px; background: none; color: var(--ad-dim); cursor: pointer; }
+.adTray__x:hover, .adTray__btn:hover { background: var(--ad-nav-on); color: var(--ad-ink); }
+.adTray__x svg, .adTray__btn svg { width: 17px; height: 17px; }
+@media (pointer: coarse) { .adTray__x, .adTray__btn { width: 44px; height: 44px; } }
+.adTray__list { margin: 0; padding: .35rem; list-style: none; max-height: min(320px, 45dvh); overflow: auto; overscroll-behavior: contain; display: grid; gap: .15rem; }
+.adTray__job { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: .1rem .6rem; padding: .45rem .5rem; border-radius: 10px; }
+.adTray__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; font-size: .88rem; }
+.adTray__meta { display: inline-flex; align-items: center; gap: .25rem; color: var(--ad-dim); font-size: .78rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.adTray__meta svg { width: 14px; height: 14px; }
+.adTray__job.is-done .adTray__meta { color: var(--ad-tone-good); font-weight: 600; }
+.dark .adTray__job.is-done .adTray__meta { color: #4ade80; }
+.adTray__acts { display: inline-flex; }
+.adTray__track { grid-column: 1 / -1; height: 4px; border-radius: 4px; background: var(--ad-line); overflow: hidden; }
+.adTray__track i { display: block; height: 100%; background: var(--ad-accent-fill); transition: width .2s ease; }
+.adTray__err { grid-column: 1 / -1; color: var(--ad-bad-ink); font-size: .8rem; line-height: 1.4; }
+@media (prefers-reduced-motion: reduce) { .adTray, .adMedia__card { animation: none; transition: none; } .adTray__track i { transition: none; } }
+/* A grid child of the Settings column: without this the library's own
+   content sets its width and the panel runs off a phone. */
+.adMedia__dropArea, .adMedia { min-width: 0; max-width: 100%; }
+.adMedia__store { margin-left: auto; }
+@media (max-width: 560px) {
+  .adMedia__top { padding-inline: .9rem; }
+  .adMedia__store { margin-left: 0; justify-items: start; width: 100%; }
+  .adMedia__storeBar { width: 100%; }
+  .adMedia__filters, .adMedia__bar { padding-inline: .9rem; }
+  .adMedia__sel, .adMedia__sel select { flex: 1 1 calc(50% - .5rem); max-width: none; width: 100%; }
+  .adMedia__grid { padding-inline: .9rem; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+}
+/* One column that may shrink: an implicit auto track sized itself to the
+   tabs' full width (527px measured at 390) and pushed the panel off screen. */
+.adMedia { grid-template-columns: minmax(0, 1fr); }
+.adMedia__table td:last-child { white-space: nowrap; }
+.adMedia__cardBody .ad__pill { max-width: 100%; white-space: normal; }
