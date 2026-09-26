@@ -733,13 +733,21 @@ export function patchClient(id: Id, d: Partial<ClientDraft>, actor = "Studio"): 
      answer the question the log exists for, which is always about one field;
      and writing an entry for a field somebody opened and left alone fills the
      record with noise that hides the changes that matter. */
-  const text = (x: unknown) => Array.isArray(x)
+  /* In words for the audit log. An object (the notification switches) is
+     each setting and its value, not "[object Object]"; a list of plain
+     values is compared in sorted order, so reordering it is not an edit. */
+  const text = (x: unknown): string => Array.isArray(x)
     ? x.map((y) => (y && typeof y === "object" ? (y as { name?: string }).name ?? "" : String(y))).join(", ")
-    : String(x ?? "");
+    : x && typeof x === "object"
+      ? Object.entries(x as Record<string, unknown>).map(([k, v]) => typeof v === "boolean" ? `${k} ${v ? "on" : "off"}` : `${k}: ${text(v)}`).join(", ")
+      : String(x ?? "");
+  const same = (a: unknown, b: unknown) => Array.isArray(a) && Array.isArray(b) && [...a, ...b].every((y) => typeof y !== "object")
+    ? [...a].map(String).sort().join("\u0000") === [...b].map(String).sort().join("\u0000")
+    : text(a) === text(b);
   for (const [k, v] of Object.entries(d) as [keyof ClientDraft, unknown][]) {
     const from = text(c[k]);
     const to = text(v);
-    if (from === to) continue;
+    if (same(c[k], v)) continue;
     audit({ actor, kind: "client", subjectId: c.id, subject: c.company, action: "edited", field: k, from, to });
   }
   Object.assign(c, d);
