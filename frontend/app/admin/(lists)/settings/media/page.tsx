@@ -49,10 +49,12 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
      with no address a page can use is not a library entry, it is a leak of
      storage. Existing files still list without either. */
   const r2 = r2Config();
+  /* Said in words, not variable names: which settings are missing is on
+     Integrations, for whoever connects it. */
   const blocked = !r2.ok
-    ? `Uploads are off until ${r2.missing.join(", ")} ${r2.missing.length === 1 ? "is" : "are"} set.`
+    ? "File storage isn't connected, so uploads are off. Files already here still work. Settings › Integrations says what it needs."
     : !r2.config.publicBase
-      ? "Uploads are off until CLOUDFLARE_R2_URL, the bucket's public address, is set."
+      ? "File storage has no public address yet, so uploads are off. Settings › Integrations says what it needs."
       : undefined;
 
   let items: MediaAsset[] = [];

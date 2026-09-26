@@ -609,7 +609,9 @@ body:has(.adDrawer[open]) .st { display: none; }
 .ad__btn--primary { background: var(--ad-fill); border-color: var(--ad-fill); color: var(--ad-on-fill); box-shadow: 0 6px 14px -6px rgb(0 0 101 / .55); }
 .dark .ad__btn--primary { box-shadow: 0 6px 16px -6px rgb(255 101 0 / .5); }
 .ad__btn--primary:hover { background: var(--ad-fill-hover); border-color: var(--ad-fill-hover); color: #fff; }
-.ad__btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+/* Disabled is a SOLID flat fill with dim type, not a faded copy of the live
+   button: see-through controls read as broken, and their edge vanishes. */
+.ad__btn:disabled, .ad__btn:disabled:hover { opacity: 1; cursor: not-allowed; box-shadow: none; background: var(--ad-tone-flat); border-color: var(--ad-tone-flat); color: var(--ad-dim); }
 @media (prefers-reduced-motion: reduce) { .ad__btn:active { transform: none; } }
 
 /* ----------------------------------------------------------------- empty */
@@ -1339,6 +1341,15 @@ body:has(.adDrawer[open]) .st { display: none; }
    fills with the tone's own ink, never a tint; the link inherits that ink
    and is underlined so it is not told apart by colour alone. */
 .ad__notices { display: grid; gap: .5rem; margin-bottom: .9rem; }
+/* The folded bar: phones only, and only when there are two or more. */
+.ad__noticesSum { display: none; width: 100%; border: 0; text-align: left; font: inherit; cursor: pointer; }
+.ad__noticesChev { flex: none; width: 1.1rem; height: 1.1rem; margin-left: auto; transition: transform .18s ease; }
+.ad__notices.is-open .ad__noticesChev { transform: rotate(180deg); }
+@media (max-width: 640px) {
+  .ad__notices.is-many .ad__noticesSum { display: flex; }
+  .ad__notices.is-many:not(.is-open) > .ad__banner:not(.ad__noticesSum) { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .ad__noticesChev { transition: none; } }
 .ad__banner {
   display: flex; align-items: flex-start; gap: .6rem; min-width: 0;
   padding: .55rem .55rem .55rem .85rem; border-radius: 10px; font-size: .88rem; line-height: 1.45;
@@ -1914,5 +1925,4 @@ td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
 .adAsk__acts .ad__btn { min-height: 44px; }
 .adAsk .ad__btn--danger { background: #c62828; border-color: #c62828; color: #fff; }
 .adAsk .ad__btn--danger:hover { background: #a61f1f; border-color: #a61f1f; }
-.adAsk .ad__btn:disabled { opacity: .55; cursor: not-allowed; }
 @media (max-width: 480px) { .adAsk__acts { flex-direction: column-reverse; } .adAsk__acts > * { flex: none; width: 100%; } }

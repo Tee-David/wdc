@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronLeft, LayoutGrid, Search } from "lucide-react";
+import { LayoutGrid, Search } from "lucide-react";
 import { can, isAdminRole, type AdminRole } from "@/lib/admin/permissions";
 import { SETTINGS_GROUPS, SETTINGS_SECTIONS, sectionMatches } from "@/lib/settings/sections";
 import { SETTINGS_ICON as ICON } from "./settings-icons";
@@ -23,9 +23,6 @@ export function SettingsNav({ role }: { role: AdminRole | null }) {
   const onIndex = path === "/admin/settings";
   return (
     <>
-      {!onIndex ? (
-        <Link className="adSet__back" href="/admin/settings"><ChevronLeft aria-hidden="true" /> Settings</Link>
-      ) : null}
       <nav className="adSet__nav" aria-label="Settings sections">
         <label className="adSet__search">
           <Search aria-hidden="true" />
