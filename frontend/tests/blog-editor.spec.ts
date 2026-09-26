@@ -69,7 +69,7 @@ test("a short description is refused with the count, and nothing is written", as
   await expect(page.locator(".adBlog__count").nth(1)).toContainText("10 characters");
   await body(page);
   await page.keyboard.type("Most rebrands start in the wrong place.");
-  await page.getByRole("button", { name: "Save" }).click();
+  await page.getByRole("button", { name: /^(Save|Update)$/ }).click();
   await expect(page.locator(".ad__msg.is-bad")).toBeVisible();
   await expect(page.locator(".ad__fe", { hasText: "Between 120 and 155" })).toBeVisible();
   const rows = await db.query("SELECT 1 FROM blog_posts WHERE slug = $1", [SLUG]);
@@ -105,10 +105,10 @@ test("a draft is saved, invisible on /blog, and visible in preview to the owner"
   await page.keyboard.press("Enter");
   await page.getByRole("button", { name: "Numbered list" }).click();
   await page.keyboard.type("Talk to five customers");
-  await page.getByRole("button", { name: "Save" }).click();
+  await page.getByRole("button", { name: /^(Save|Update)$/ }).click();
 
-  await expect(page).toHaveURL(/\/admin\/blog\/[0-9a-f-]{36}\?saved=1$/);
-  editUrl = page.url().replace(/\?saved=1$/, "");
+  await expect(page).toHaveURL(/\/admin\/blog\/[0-9a-f-]{36}/);
+  editUrl = page.url().replace(/\?.*$/, "");
 
   const row = await db.query<{ status: string; body: unknown }>("SELECT status, body FROM blog_posts WHERE slug = $1", [SLUG]);
   expect(row.rows[0].status).toBe("draft");
@@ -154,8 +154,10 @@ test("publishing puts it on /blog and in the sitemap; unpublishing takes it out"
   await page.goto(editUrl, { waitUntil: "load" });
   await page.getByRole("radio", { name: /^Published/ }).check();
   await pickDate(page.getByLabel(/^Date shown on the post/), new Date().toISOString().slice(0, 10));
-  await page.getByRole("button", { name: "Save" }).click();
-  await expect(page.locator(".ad__msg.is-ok")).toContainText("Saved and live");
+  await page.getByRole("button", { name: /^(Save|Update)$/ }).click();
+  await expect(page.locator(".ad__msg.is-ok")).toContainText(/Saved and live|Updated/);
+  /* And says so where it is seen: a toast, not only the line under the form. */
+  await expect(page.locator(".adToast", { hasText: /Saved and live|Updated/ })).toBeVisible();
 
   const live = await request.get(`/blog/${SLUG}`);
   expect(live.status()).toBe(200);
@@ -166,12 +168,12 @@ test("publishing puts it on /blog and in the sitemap; unpublishing takes it out"
   /* The address is fixed once live. */
   await page.reload({ waitUntil: "load" });
   await page.getByLabel(/^Address/).fill(`${SLUG}-moved`);
-  await page.getByRole("button", { name: "Save" }).click();
+  await page.getByRole("button", { name: /^(Save|Update)$/ }).click();
   await expect(page.locator(".ad__fe", { hasText: "address is fixed" })).toBeVisible();
 
   await page.goto(editUrl, { waitUntil: "load" });
   await page.getByRole("radio", { name: /^Draft/ }).check();
-  await page.getByRole("button", { name: "Save" }).click();
+  await page.getByRole("button", { name: /^(Save|Update)$/ }).click();
   await expect(page.locator(".ad__msg.is-ok")).toContainText("draft");
 
   expect((await request.get(`/blog/${SLUG}`)).status()).toBe(404);
@@ -187,11 +189,11 @@ test("two editors on one post: the second save is refused and says who saved", a
   await other.goto(editUrl, { waitUntil: "load" });
 
   await page.getByLabel(/^Card sentence/).fill("First editor's sentence.");
-  await page.getByRole("button", { name: "Save" }).click();
+  await page.getByRole("button", { name: /^(Save|Update)$/ }).click();
   await expect(page.locator(".ad__msg.is-ok")).toContainText("Saved", { timeout: 30_000 });
 
   await other.getByLabel(/^Card sentence/).fill("Second editor's sentence.");
-  await other.getByRole("button", { name: "Save" }).click();
+  await other.getByRole("button", { name: /^(Save|Update)$/ }).click();
   await expect(other.locator(".ad__msg.is-bad")).toContainText("WDC Admin saved this post at", { timeout: 30_000 });
   expect((await db.query("SELECT excerpt FROM blog_posts WHERE slug = $1", [SLUG])).rows[0].excerpt).toBe("First editor's sentence.");
   /* What they typed is still in front of them. */
@@ -199,7 +201,7 @@ test("two editors on one post: the second save is refused and says who saved", a
 
   /* The first editor holds the new version, so saving again is not refused. */
   await page.getByLabel(/^Card sentence/).fill("First editor, second save.");
-  await page.getByRole("button", { name: "Save" }).click();
+  await page.getByRole("button", { name: /^(Save|Update)$/ }).click();
   /* The first save's "Saved" is still on screen, so wait on the row. */
   await expect.poll(async () => (await db.query("SELECT excerpt FROM blog_posts WHERE slug = $1", [SLUG])).rows[0].excerpt, { timeout: 30_000 })
     .toBe("First editor, second save.");

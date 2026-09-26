@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import Image from "next/image";
+import { BodyImage } from "./body-image";
 import { r2PublicBase } from "@/lib/r2";
 
 const bucket = r2PublicBase();
@@ -66,8 +66,7 @@ function Block({ block }: { block: DocBlock }) {
       return (
         <figure className="bl-figure">
           {ours && width && height ? (
-            <Image src={src} alt={alt} width={width} height={height} quality={85}
-              sizes="(max-width: 760px) 100vw, 720px" />
+            <BodyImage src={src} alt={alt} width={width} height={height} />
           ) : (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img src={src} alt={alt} width={width} height={height} loading="lazy" decoding="async" />

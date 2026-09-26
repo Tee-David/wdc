@@ -55,8 +55,8 @@ test("a picture between two paragraphs is saved, previewed and shown", async ({ 
   await expect(doc.locator('img[src="/hero/design-desk.jpg"]')).toBeVisible();
   await page.getByText("Or use one of our photos").click();
   await page.getByRole("group", { name: "Our photos" }).getByRole("button").first().click();
-  await page.getByRole("button", { name: "Save" }).click();
-  await expect(page).toHaveURL(/\?saved=1$/, { timeout: 30_000 });
+  await page.getByRole("button", { name: /^(Save|Update)$/ }).click();
+  await expect(page).toHaveURL(/\/admin\/blog\/[0-9a-f-]{36}/, { timeout: 30_000 });
 
   const row = await db.query<{ body: { content: { type: string; attrs?: { src: string } }[] } }>("SELECT body FROM blog_posts WHERE slug = $1", [SLUG]);
   expect(row.rows[0].body.content.map((b) => b.type)).toEqual(["paragraph", "image", "paragraph"]);

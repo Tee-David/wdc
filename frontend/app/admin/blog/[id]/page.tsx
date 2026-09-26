@@ -10,6 +10,7 @@ import { SERVICES } from "@/lib/services";
 import { BlogEditor, type EditorPost } from "@/components/admin/blog-editor";
 import { AdminState } from "@/components/admin/admin-state";
 import "@/components/admin/blog-editor.css";
+import { ToastOnArrival } from "@/components/admin/toast";
 
 export const metadata = { title: "Edit post" };
 
@@ -61,7 +62,10 @@ export default async function EditPostPage({ params, searchParams }: {
           <p>{post.id ? `/blog/${post.slug}` : "Nothing is public until you publish it."}</p>
         </div>
       </div>
-      {saved ? <p className="ad__msg is-ok" role="status"><span>Saved.</span></p> : null}
+      {saved ? <ToastOnArrival param="saved" text={post.status === "published" ? "Saved and live."
+        : post.status === "scheduled" ? "Saved. It goes live on its date without anybody pressing anything."
+        : post.status === "review" ? "Submitted for review. The owner sees it on the dashboard and on Blog."
+        : "Saved. It is a draft, so nobody can see it yet."} /> : null}
       {found?.status === "draft" && found.reviewNote ? (
         <section className="ad__panel" style={{ marginBottom: ".9rem" }}>
           <div style={{ padding: ".9rem 1rem" }}>
