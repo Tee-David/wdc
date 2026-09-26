@@ -1991,3 +1991,14 @@ td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
 .adToast__act:hover { background: transparent; color: #fff; }
 .adToast__act:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .adToasts--acting + .adToasts { bottom: calc(5.25rem + env(safe-area-inset-bottom)); }
+
+/* A LIST OF LABEL AND VALUE (sign-in methods, background work, an entry's
+   answers). Here, not in forms.css, because the Settings pages use it
+   without loading that file, which left My account's list unstyled: every
+   label and value stacked flush left like plain text. */
+.adForms__dl { margin: 0; padding: .4rem 1rem 1rem; }
+.adForms__dl > div { display: grid; grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr); gap: .25rem 1rem; align-items: baseline; padding: .7rem 0; border-bottom: 1px solid var(--ad-line); }
+.adForms__dl > div:last-child { border-bottom: 0; }
+.adForms__dl dt { color: var(--ad-dim); font-size: .82rem; }
+.adForms__dl dd { margin: 0; min-width: 0; font-weight: 600; white-space: pre-line; overflow-wrap: break-word; }
+@media (max-width: 560px) { .adForms__dl > div { grid-template-columns: minmax(0, 1fr); } }

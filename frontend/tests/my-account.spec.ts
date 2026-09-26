@@ -50,7 +50,7 @@ async function signIn(request: APIRequestContext, baseURL: string | undefined, p
 
 async function open(page: Page) {
   await page.route(/jotfor|userway/i, (route) => route.abort());
-  await page.goto("/admin/settings/account", { waitUntil: "load" });
+  await page.goto("/admin/settings/account", { waitUntil: "networkidle" });
   await expect(page.locator("h1")).toHaveText("My account");
 }
 
@@ -88,10 +88,12 @@ test("sign out everywhere else ends the other device and keeps this one", async 
   await other.dispose();
   expect(await sessions()).toBeGreaterThanOrEqual(2);
 
-  await sayYes(page);
   await open(page);
   await expect(page.getByText("This session")).toBeVisible();
   await page.getByRole("button", { name: "Sign out everywhere else" }).click();
+  /* Answered here rather than by sayYes, whose handler only runs before a
+     page action, and polling the database is not one. */
+  await page.locator(".adAsk__acts button").last().click();
   await expect.poll(sessions, { timeout: 20_000 }).toBe(1);
   await page.reload({ waitUntil: "load" });
   await expect(page.locator("h1")).toHaveText("My account");
@@ -121,12 +123,13 @@ test("a new password needs no old one: it is confirmed by an emailed code, and s
   await db.query(`UPDATE "verification" SET "value" = $1 WHERE "identifier" = $2`,
     [JSON.stringify({ h: createHash("sha256").update(`${userId}:123456`).digest("hex"), tries: 0 }), `password-change:${userId}`]);
 
+  /* The sixth digit submits by itself. */
   await page.getByLabel(/^Code from the email/).fill("000000");
-  await page.getByRole("button", { name: "Change password" }).click();
   await expect(page.getByText(/That code is not right/)).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator(".adPw__box")).toHaveCount(6);
+  await page.locator(".adPw").screenshot({ path: test.info().outputPath("code-boxes.png") });
 
   await page.getByLabel(/^Code from the email/).fill("123456");
-  await page.getByRole("button", { name: "Change password" }).click();
   await expect(page.locator(".adToast", { hasText: "Password changed" })).toBeVisible({ timeout: 20_000 });
   await expect.poll(sessions, { timeout: 20_000 }).toBe(1);
   expect((await db.query(`SELECT 1 FROM "verification" WHERE "identifier" = $1`, [`password-change:${userId}`])).rowCount).toBe(0);
