@@ -15,6 +15,7 @@ import { DateRange } from "@/components/admin/date-range";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { avTone, initials } from "@/lib/admin/client-mark";
 import { ExampleNote } from "@/components/admin/example-note";
+import { FilterPick } from "@/components/admin/pick";
 
 export const metadata = { title: "Clients" };
 
@@ -216,21 +217,10 @@ export default async function ClientsPage({
               <span className="ad__sr">Search clients</span>
               <input name="q" type="search" defaultValue={query.q} placeholder="Search name, company, email, sector or tag" />
             </label>
-            <label>
-              <span className="ad__sr">Service</span>
-              <select name="service" defaultValue={service ?? ""}>
-                <option value="">All services</option>
-                {SERVICES.map((item) => <option key={item.slug} value={item.slug}>{item.short}</option>)}
-              </select>
-            </label>
-            <label>
-              <span className="ad__sr">Status</span>
-              <select name="status" defaultValue={status}>
-                <option value="active">Active</option>
-                <option value="archived">Archived</option>
-                <option value="all">All statuses</option>
-              </select>
-            </label>
+            <FilterPick label="Service" hideLabel name="service" defaultValue={service ?? ""} placeholder="All services"
+                        options={SERVICES.map((item) => ({ value: item.slug, label: item.short }))} />
+            <FilterPick label="Status" hideLabel name="status" defaultValue={status}
+                        options={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }, { value: "all", label: "All statuses" }]} />
             {from ? <input type="hidden" name="from" value={from} /> : null}
             {to ? <input type="hidden" name="to" value={to} /> : null}
             {query.per ? <input type="hidden" name="per" value={per} /> : null}

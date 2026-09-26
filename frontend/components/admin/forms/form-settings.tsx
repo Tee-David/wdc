@@ -33,7 +33,7 @@ export function FormSettingsEditor({ formKey, title, settings, notifications, is
               options={[{ value: "on", label: `The ${title} form takes new entries` }]}
               hint={isOnboarding ? "Closing pauses NEW briefs for this service. A client already part way through can still finish and send theirs." : undefined} />
             <Area name="closedMessage" label="What a visitor sees when it is closed" rows={2} defaultValue={settings.closedMessage} />
-            <Field name="opensOn" label="Opens on" type="date" half defaultValue={settings.opensOn} hint="Optional. Lagos time." />
+            <Field name="opensOn" label="Opens on" type="date" half defaultValue={settings.opensOn} hint="Optional. Studio time, UTC+1." />
             <Field name="closesOn" label="Closes after" type="date" half defaultValue={settings.closesOn} hint="Optional. The form takes entries until the end of this day." />
             <Field name="limit" label="Entry limit" type="number" half min="1" defaultValue={settings.limit ?? ""} hint="Leave empty for no limit. Spam does not count." />
             <Select name="limitPer" label="Counted" half defaultValue={settings.limitPer}

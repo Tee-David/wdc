@@ -12,6 +12,7 @@ import { Form, Hidden, Submit } from "@/components/admin/form";
 import { toast } from "@/components/admin/toast";
 import "@/components/preview/preview.css";
 import "./form-builder.css";
+import { Pick } from "@/components/admin/pick";
 
 const CHOICE: FieldType[] = ["select", "radio", "checkboxes"];
 const typeLabel = (t: FieldType) => FIELD_TYPES.find((f) => f.type === t)?.label ?? t;
@@ -240,9 +241,8 @@ function FieldCard({ f, i, count, open, earlier, onToggle, onChange, onMove, onR
               {f.showIf ? (
                 <div className="ad__fields">
                   <div className="ad__f"><label className="ad__fl" htmlFor={`${id}-if`}>Question</label>
-                    <select id={`${id}-if`} value={f.showIf.field} onChange={(e) => onChange({ showIf: { field: e.target.value, equals: [] } })}>
-                      {choices.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
-                    </select></div>
+                    <Pick id={`${id}-if`} value={f.showIf.field} options={choices.map((c) => ({ value: c.id, label: c.label }))}
+                          onChange={(v) => onChange({ showIf: { field: v, equals: [] } })} /></div>
                   <fieldset className="ad__f adBuild__eq"><legend className="ad__fl">Any of</legend>
                     {(cond?.options ?? []).filter(Boolean).map((o) => (
                       <label key={o} className="adBuild__check"><input type="checkbox" checked={f.showIf!.equals.includes(o)}

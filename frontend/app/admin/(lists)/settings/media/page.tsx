@@ -12,6 +12,7 @@ import {
 import { readableBytes } from "@/lib/media-validate";
 import { r2Config } from "@/lib/r2";
 import "@/components/admin/media-library.css";
+import { FilterPick } from "@/components/admin/pick";
 
 export const metadata = { title: "Media" };
 export const dynamic = "force-dynamic";
@@ -180,18 +181,15 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
                 <label className="ad__filterSearch adMedia__q"><span className="ad__sr">Search files</span>
                   <input name="q" type="search" defaultValue={q} placeholder="Search names, descriptions and captions" />
                 </label>
-                <label className="adMedia__sel"><span className="ad__sr">Sort</span>
-                  <select name="sort" defaultValue={sort}>{(Object.keys(SORT_LABEL) as MediaSort[]).map((s) => <option key={s} value={s}>{SORT_LABEL[s]}</option>)}</select>
-                </label>
+                <FilterPick className="adMedia__sel" label="Sort" hideLabel name="sort" defaultValue={sort}
+                            options={(Object.keys(SORT_LABEL) as MediaSort[]).map((s) => ({ value: s, label: SORT_LABEL[s] }))} />
                 {sum!.months.length > 1 ? (
-                  <label className="adMedia__sel"><span className="ad__sr">Month</span>
-                    <select name="month" defaultValue={month}><option value="">Any month</option>{sum!.months.map((m) => <option key={m} value={m}>{monthLabel(m)}</option>)}</select>
-                  </label>
+                  <FilterPick className="adMedia__sel" label="Month" hideLabel name="month" defaultValue={month} placeholder="Any month"
+                              options={sum!.months.map((m) => ({ value: m, label: monthLabel(m) }))} />
                 ) : null}
                 {sum!.uploaders.length > 1 ? (
-                  <label className="adMedia__sel"><span className="ad__sr">Uploaded by</span>
-                    <select name="by" defaultValue={by}><option value="">Anyone</option>{sum!.uploaders.map((u) => <option key={u} value={u}>{u}</option>)}</select>
-                  </label>
+                  <FilterPick className="adMedia__sel" label="Uploaded by" hideLabel name="by" defaultValue={by} placeholder="Anyone"
+                              options={sum!.uploaders.map((u) => ({ value: u, label: u }))} />
                 ) : null}
                 <button type="submit" className="ad__btn">Show</button>
                 {filtered ? <Link className="ad__btn ad__btn--ghost" href={href({ q: "", month: "", by: "", needs: "", page: 1 })}>Clear</Link> : null}

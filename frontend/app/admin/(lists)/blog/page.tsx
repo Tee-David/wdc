@@ -11,6 +11,7 @@ import { BlogPostMenu, TrashedPostMenu } from "@/components/admin/blog-menu";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { Pager, readPer } from "@/components/admin/pager";
 import { DateRange } from "@/components/admin/date-range";
+import { FilterPick } from "@/components/admin/pick";
 
 export const metadata = { title: "Blog" };
 
@@ -165,23 +166,11 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
                   <span className="ad__sr">Search posts</span>
                   <input name="q" type="search" defaultValue={query.q} placeholder="Search title, address, excerpt or tag" />
                 </label>
-                <label>
-                  <span className="ad__sr">State</span>
-                  <select name="state" defaultValue={wanted ?? ""}>
-                    <option value="">Every state</option>
-                    <option value="published">Published</option>
-                    <option value="scheduled">Scheduled</option>
-                    <option value="review">In review</option>
-                    <option value="draft">Drafts</option>
-                  </select>
-                </label>
-                <label>
-                  <span className="ad__sr">Service</span>
-                  <select name="service" defaultValue={service ?? ""}>
-                    <option value="">Every service</option>
-                    {SERVICES.map((s) => <option key={s.slug} value={s.slug}>{s.short}</option>)}
-                  </select>
-                </label>
+                <FilterPick label="State" hideLabel name="state" defaultValue={wanted ?? ""} placeholder="Every state"
+                            options={[{ value: "published", label: "Published" }, { value: "scheduled", label: "Scheduled" },
+                                      { value: "review", label: "In review" }, { value: "draft", label: "Drafts" }]} />
+                <FilterPick label="Service" hideLabel name="service" defaultValue={service ?? ""} placeholder="Every service"
+                            options={SERVICES.map((s) => ({ value: s.slug, label: s.short }))} />
                 {from ? <input type="hidden" name="from" value={from} /> : null}
                 {to ? <input type="hidden" name="to" value={to} /> : null}
                 {query.per ? <input type="hidden" name="per" value={per} /> : null}

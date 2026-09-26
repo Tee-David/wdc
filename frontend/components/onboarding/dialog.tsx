@@ -49,6 +49,9 @@ export default function Dialog({
          drift out of step with what is on screen. */
       onClose={onClose}
       onClick={(e) => {
+        /* Only the backdrop, which is the dialog element itself: a button
+           inside pressed with Enter reports 0,0 and is not "outside". */
+        if (e.target !== e.currentTarget) return;
         const r = ref.current?.getBoundingClientRect();
         if (!r) return;
         const outside =

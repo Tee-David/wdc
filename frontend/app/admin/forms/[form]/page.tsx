@@ -24,6 +24,7 @@ import { unsubscribeUrl } from "@/lib/newsletter";
 import { getFormSettings } from "@/lib/forms/settings-db";
 import "@/components/admin/forms/forms.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
+import { FilterPick } from "@/components/admin/pick";
 
 /* NO generateStaticParams: an entry that arrives after the build still opens. */
 
@@ -229,13 +230,9 @@ export default async function FormPage({ params, searchParams }: Props) {
           {f.from ? <input type="hidden" name="from" value={f.from} /> : null}
           {f.to ? <input type="hidden" name="to" value={f.to} /> : null}
           {f.per !== 25 ? <input type="hidden" name="per" value={f.per} /> : null}
-          <label>Sort
-            <select name="sort" defaultValue={f.sort}>
-              <option value="newest">Newest first</option>
-              <option value="oldest">Oldest first</option>
-              <option value="name">{form.source === "newsletter" ? "Address" : "Name"}</option>
-            </select>
-          </label>
+          <FilterPick label="Sort" name="sort" defaultValue={f.sort}
+                      options={[{ value: "newest", label: "Newest first" }, { value: "oldest", label: "Oldest first" },
+                                { value: "name", label: form.source === "newsletter" ? "Address" : "Name" }]} />
           <button className="ad__btn ad__btn--primary" type="submit">Apply</button>
           {filtered ? <Link className="ad__btn" href={`/admin/forms/${form.key}?tab=${f.tab}`}>Clear</Link> : null}
         </form>
