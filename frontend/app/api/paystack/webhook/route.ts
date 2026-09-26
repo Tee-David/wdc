@@ -3,7 +3,7 @@ import {
   applyPayment, getInvoice, getPaymentsFor, matchInvoice, recordProviderEvent,
 } from "@/lib/admin/store";
 import { invoiceTotals } from "@/lib/admin/types";
-import { fromKobo, paystackMode, paystackSignatureValid } from "@/lib/paystack";
+import { wholeKobo, paystackMode, paystackSignatureValid } from "@/lib/paystack";
 import { sendPaymentNotice, sendPaymentReceiptEmail } from "@/lib/money-mail";
 import { saveStore, syncStore } from "@/lib/admin/persist";
 
@@ -104,7 +104,7 @@ async function receive(request: NextRequest) {
   const event = str(body.event) || "unknown";
   const data = body.data ?? {};
   const reference = str(data.reference);
-  const amount = typeof data.amount === "number" ? fromKobo(data.amount) : null;
+  const amount = typeof data.amount === "number" ? wholeKobo(data.amount) : null;
   const channel = str(data.channel) || undefined;
 
   if (REFUND_EVENTS.has(event) || DISPUTE_EVENTS.has(event)) {
@@ -145,7 +145,7 @@ async function receive(request: NextRequest) {
     return NextResponse.json({ received: true });
   }
 
-  /* NGN ONLY, AND SAID OUT LOUD. The books are in naira and `fromKobo` assumes
+  /* NGN ONLY, AND SAID OUT LOUD. The books are in kobo of NGN and `wholeKobo` assumes
      it. A charge in another currency banked as naira is a number wrong by a
      factor of hundreds, which is the kind of error that survives a review. */
   const currency = str(data.currency) || "NGN";
