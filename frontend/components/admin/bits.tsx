@@ -1,4 +1,5 @@
 import { EmptyScene, sceneFor, type SceneKind } from "./empty-scene";
+import { CountUp } from "./count-up";
 import "./empty-scene.css";
 import { Inbox, Info, type LucideIcon } from "lucide-react";
 import type { Approval, Attention, Health, InvoiceStatus, Stage } from "@/lib/admin/types";
@@ -60,7 +61,7 @@ export function Tile({
         {Icon ? <span className={`ad__tileIcon ad__tileIcon--${iconTone}`} aria-hidden="true"><Icon /></span> : null}
       </dt>
       <dd>
-        {value}
+        <CountUp value={value} />
         {badge ? <span className={`ad__pill ad__pill--${badge.tone} ad__tileBadge`}>{badge.label}</span> : null}
       </dd>
       {note ? <small>{note}</small> : null}

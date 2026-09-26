@@ -218,3 +218,16 @@ button.adDash__chartMonth:focus-visible { outline: 2px solid var(--ad-accent); o
 .adDash__table { flex-basis: 100%; }
 .adDash__table summary { display: inline-flex; align-items: center; min-height: 2.75rem; cursor: pointer; color: var(--ad-ink); font-weight: 500; font-size: .86rem; }
 .adDash__table summary:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; border-radius: 6px; }
+
+/* Arrival (see "arrival" in admin.css): the cashflow and pipeline bars grow
+   from their baseline month by month, and the gauge sweeps tick by tick up
+   to the share collected. Transform and stroke only. */
+@media (prefers-reduced-motion: no-preference) {
+  .adDash__chartBar, .adDash__pipeBar { transform-origin: bottom; animation: ad-grow-y .8s cubic-bezier(.22, 1, .36, 1) backwards; animation-delay: .3s; }
+  .adDash__chartMonth:nth-child(2) .adDash__chartBar, .adDash__pipeline > :nth-child(2) .adDash__pipeBar { animation-delay: .37s; }
+  .adDash__chartMonth:nth-child(3) .adDash__chartBar, .adDash__pipeline > :nth-child(3) .adDash__pipeBar { animation-delay: .44s; }
+  .adDash__chartMonth:nth-child(4) .adDash__chartBar, .adDash__pipeline > :nth-child(4) .adDash__pipeBar { animation-delay: .51s; }
+  .adDash__chartMonth:nth-child(5) .adDash__chartBar, .adDash__pipeline > :nth-child(5) .adDash__pipeBar { animation-delay: .58s; }
+  .adDash__chartMonth:nth-child(n + 6) .adDash__chartBar, .adDash__pipeline > :nth-child(n + 6) .adDash__pipeBar { animation-delay: .65s; }
+  .adDash__gaugeSvg line.is-on { animation: ad-tick .3s ease-out backwards; animation-delay: calc(.35s + var(--i, 0) * 24ms); }
+}

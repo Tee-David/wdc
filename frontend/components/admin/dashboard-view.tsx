@@ -23,6 +23,7 @@ import { Empty, Panel, Tile, when } from "./bits";
 import { RecentLeads, RecentLeadsSkeleton } from "./recent-leads";
 import PageTourButton from "./tour/page-tour-button";
 import { CashflowChart } from "./cashflow-chart";
+import { CountUp } from "./count-up";
 import "./dashboard.css";
 import { ExampleNote } from "@/components/admin/example-note";
 
@@ -258,7 +259,7 @@ export async function AdminDashboardView({ firstName, money = true }: { firstNam
             <div className="adDash__gauge">
               <Gauge percent={collectionRate} />
               <div className="adDash__gaugeText">
-                <b>{collectionRate}%</b>
+                <b><CountUp value={`${collectionRate}%`} /></b>
                 <small>{nairaShort(summary.collected)} of {nairaShort(summary.invoiced)} billed</small>
               </div>
             </div>
@@ -456,7 +457,7 @@ function Gauge({ percent }: { percent: number }) {
         const a = Math.PI - (i / (ticks - 1)) * Math.PI;
         const x1 = 110 + Math.cos(a) * 78, y1 = 110 - Math.sin(a) * 78;
         const x2 = 110 + Math.cos(a) * 100, y2 = 110 - Math.sin(a) * 100;
-        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} className={i < on ? "is-on" : undefined} />;
+        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} className={i < on ? "is-on" : undefined} style={{ "--i": i } as React.CSSProperties} />;
       })}
     </svg>
   );

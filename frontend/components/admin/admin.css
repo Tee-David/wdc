@@ -1936,3 +1936,48 @@ td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
 .adAsk .ad__btn--danger { background: #c62828; border-color: #c62828; color: #fff; }
 .adAsk .ad__btn--danger:hover { background: #a61f1f; border-color: #a61f1f; }
 @media (max-width: 480px) { .adAsk__acts { flex-direction: column-reverse; } .adAsk__acts > * { flex: none; width: 100%; } }
+
+/* ------------------------------------------------------------- arrival --
+   How a screen comes in (owner, 2026-09-26: "ease in, ease out, fluid").
+   Admin and portal share it, because both shells render into .ad__main.
+
+   - The head, then each block of the page, rise 10px and fade in, a beat
+     apart, so the eye reads top to bottom instead of all at once.
+   - Bars grow from their baseline, gauge ticks sweep in order, and figures
+     count up (components/admin/count-up.tsx).
+   - Transform and opacity only, 0.5s, and `backwards` fill: once it ends
+     nothing is left behind. That matters: the row menu portals into `.ad`
+     and positions itself `fixed`, which a leftover transform would break.
+   - A re-render after a save does not remount, so it does not replay;
+     arriving on a page does.
+   - Reduced motion: none of it. */
+@keyframes ad-in { from { opacity: 0; transform: translateY(10px); } }
+@keyframes ad-fade { from { opacity: 0; } }
+@keyframes ad-grow-y { from { transform: scaleY(0); } }
+@keyframes ad-grow-x { from { transform: scaleX(0); } }
+@keyframes ad-tick { from { stroke: var(--ad-line); } }
+@media (prefers-reduced-motion: no-preference) {
+  .ad__main :is(.ad__head, .adDash__head),
+  .ad__main :is(.ad__stack, .adDash, .adSet__main, .adDash__kpis, .adDash__row, .ad__tiles) > :not(.ad__head, .adDash__head) {
+    animation: ad-in .5s cubic-bezier(.22, 1, .36, 1) backwards;
+  }
+  .ad__main :is(.ad__stack, .adDash, .adSet__main, .adDash__kpis, .adDash__row, .ad__tiles) > :nth-child(2) { animation-delay: 60ms; }
+  .ad__main :is(.ad__stack, .adDash, .adSet__main, .adDash__kpis, .adDash__row, .ad__tiles) > :nth-child(3) { animation-delay: 120ms; }
+  .ad__main :is(.ad__stack, .adDash, .adSet__main, .adDash__kpis, .adDash__row, .ad__tiles) > :nth-child(4) { animation-delay: 180ms; }
+  .ad__main :is(.ad__stack, .adDash, .adSet__main, .adDash__kpis, .adDash__row, .ad__tiles) > :nth-child(5) { animation-delay: 240ms; }
+  .ad__main :is(.ad__stack, .adDash, .adSet__main, .adDash__kpis, .adDash__row, .ad__tiles) > :nth-child(n + 6) { animation-delay: 300ms; }
+
+  /* The first rows of a list follow their panel in, one after another. */
+  .ad__main .ad__t tbody tr { animation: ad-fade .4s ease-out backwards; animation-delay: 240ms; }
+  .ad__main .ad__t tbody tr:nth-child(2) { animation-delay: 270ms; }
+  .ad__main .ad__t tbody tr:nth-child(3) { animation-delay: 300ms; }
+  .ad__main .ad__t tbody tr:nth-child(4) { animation-delay: 330ms; }
+  .ad__main .ad__t tbody tr:nth-child(5) { animation-delay: 360ms; }
+  .ad__main .ad__t tbody tr:nth-child(n + 6) { animation-delay: 390ms; }
+
+  /* Money's category bars fill from the left. */
+  .ad__barTrack > span { transform-origin: left; animation: ad-grow-x .9s cubic-bezier(.22, 1, .36, 1) .3s backwards; }
+}
+@media (prefers-reduced-motion: reduce) { .ad__t tbody tr { transition: none; } }
+.ad__t tbody tr { transition: background-color .15s ease; }
+.adCount { font-variant-numeric: tabular-nums; }
