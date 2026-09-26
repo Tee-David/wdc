@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookieToken, draftFromToken, requestOriginIsAllowed } from "@/lib/onboarding-server";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 import { presignPut, probeCors, probeWrite, r2Config, uploadKey } from "@/lib/r2";
+import { recordUpload } from "@/lib/onboarding-files";
 
 /**
  * Authorises ONE upload, to a key of our choosing, for five minutes.
@@ -163,6 +164,16 @@ export async function POST(request: NextRequest) {
 
   const key = uploadKey(draft.id ?? "draft", filename);
   const signed = presignPut({ config: config.config, key, contentType });
+  /* WHERE IT WENT, kept beside the brief: the answer only records the name,
+     and without this row the admin could never open the file (see
+     db/migrations/0030_onboarding_uploads.sql). Recorded before the upload
+     starts; the entry page shows only names that also reached the answer,
+     which only happens once the upload finished. A failed write here must not
+     cost the client their upload, so it is logged and the upload goes on. */
+  if (draft.id) {
+    await recordUpload({ draftId: draft.id, key, filename, bytes: size, contentType })
+      .catch((e) => console.error("[onboarding] could not record upload", e instanceof Error ? e.message : e));
+  }
 
   return NextResponse.json({
     url: signed.url,
