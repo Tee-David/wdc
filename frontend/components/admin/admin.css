@@ -1964,3 +1964,20 @@ td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
 .adCase__who small { color: var(--ad-dim); max-width: 32rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .adCase__acts { flex-wrap: nowrap; }
 .adCase__acts form { margin: 0; }
+
+/* THE SHARED CONFIRM (components/admin/confirm.tsx): the explanation, the
+   "I understand" tick for what cannot be undone, then Leave it beside the
+   action. The destructive action is a SOLID red here (white 5.6:1), because
+   in this dialog it is the one thing being decided. */
+.adAsk { display: grid; gap: 1rem; }
+.adAsk__body { margin: 0; color: var(--ad-dim); line-height: 1.55; }
+.adAsk__sure { display: flex; align-items: flex-start; gap: .6rem; min-height: 44px; padding: .7rem .8rem; border: 1px solid var(--ad-line); border-radius: 12px; cursor: pointer; font-weight: 600; font-size: .9rem; }
+.adAsk__sure input { width: 1.1rem; height: 1.1rem; margin-top: .15rem; flex: none; accent-color: #c62828; }
+.adAsk__sure span { display: inline-flex; align-items: center; gap: .4rem; }
+.adAsk__sure svg { width: 1rem; height: 1rem; color: #c62828; flex: none; }
+.adAsk__acts { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .6rem; }
+.adAsk__acts .ad__btn { min-height: 44px; }
+.adAsk .ad__btn--danger { background: #c62828; border-color: #c62828; color: #fff; }
+.adAsk .ad__btn--danger:hover { background: #a61f1f; border-color: #a61f1f; }
+.adAsk .ad__btn:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 480px) { .adAsk__acts { flex-direction: column-reverse; } .adAsk__acts > * { flex: none; width: 100%; } }
