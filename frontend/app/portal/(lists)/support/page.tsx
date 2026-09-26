@@ -86,10 +86,12 @@ export default async function PortalSupport({ searchParams }: { searchParams: Pr
               })}
             </ul>
           ) : tab === "closed" ? (
-            <Empty title="Nothing closed yet" icon={LifeBuoy}>Conversations move here once the question is settled.</Empty>
+            <Empty title="Nothing closed yet" icon={LifeBuoy}
+              action={<Link className="ad__btn" href="/portal/support">See open conversations</Link>}>Conversations move here once the question is settled.</Empty>
           ) : (
-            <Empty title="No open conversations" icon={LifeBuoy}>
-              Questions you raise with the studio appear here, with replies in the same thread.
+            <Empty title="No open conversations" icon={LifeBuoy}
+              action={<Link className="ad__btn ad__btn--primary" href="/portal/support?new=1">Ask a question</Link>}>
+              Ask us anything about your project. We usually reply the same working day.
             </Empty>
           )}
         </section>

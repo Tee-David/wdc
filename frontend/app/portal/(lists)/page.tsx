@@ -185,7 +185,10 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
                     action={<Link className="ad__btn" href="/portal/projects?show=delivered">See finished projects</Link>}>
                     {finished === 1 ? "Your finished project is" : `Your ${finished} finished projects are`} still here, with everything we handed over.
                   </Empty>
-                : <Empty title="No projects yet" icon={FolderKanban}>Once a project starts, it will show up here.</Empty>
+                : <Empty title="No projects yet" icon={FolderKanban}
+                    action={<Link className="ad__btn" href="/portal/support?new=1">Ask us a question</Link>}>
+                    Once we start work together, each project shows here with its stage.
+                  </Empty>
             )}
           </Panel>
         </div>
