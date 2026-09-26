@@ -257,3 +257,8 @@ export async function setMediaArchived(id: string, archived: boolean, by: string
     : await db.query("UPDATE media_assets SET archived_at = NULL, archived_by = NULL WHERE id = $1 AND archived_at IS NOT NULL", [id]);
   return (r.rowCount ?? 0) > 0;
 }
+
+/** Remove a row for good. Only after its object is gone from the bucket (deleteMediaForever). */
+export async function deleteMediaRow(id: string) {
+  await db.query("DELETE FROM media_assets WHERE id = $1 AND archived_at IS NOT NULL", [id]);
+}

@@ -13,6 +13,7 @@ import { readableBytes } from "@/lib/media-validate";
 import { r2Config } from "@/lib/r2";
 import "@/components/admin/media-library.css";
 import { FilterPick } from "@/components/admin/pick";
+import { adminRole } from "@/lib/admin/guard";
 
 export const metadata = { title: "Media" };
 export const dynamic = "force-dynamic";
@@ -37,6 +38,7 @@ const monthLabel = (m: string) => new Date(`${m}-15T12:00:00Z`).toLocaleDateStri
 export default async function MediaPage({ searchParams }: { searchParams: Promise<Params> }) {
   const sp = await searchParams;
   const archived = sp.show === "archived";
+  const isOwner = (await adminRole()) === "owner";
   const q = (sp.q ?? "").trim().slice(0, 80);
   const kind = (MEDIA_KINDS as readonly string[]).includes(sp.kind ?? "") ? (sp.kind as MediaKind) : "";
   const sort = (Object.keys(MEDIA_SORTS) as MediaSort[]).includes(sp.sort as MediaSort) ? (sp.sort as MediaSort) : "new";
@@ -131,7 +133,7 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
                 {MEDIA_KINDS.map((k) => (
                   <Link key={k} href={href({ show: "", kind: k, page: 1 })} aria-current={!archived && kind === k ? "page" : undefined}>{KIND_LABEL[k]} <span>{sum!.kinds[k]}</span></Link>
                 ))}
-                <Link href={href({ show: "archived", kind: "", needs: "", page: 1 })} aria-current={archived ? "page" : undefined}>Archived <span>{sum.archived}</span></Link>
+                <Link href={href({ show: "archived", kind: "", needs: "", page: 1 })} aria-current={archived ? "page" : undefined}>Trash <span>{sum.archived}</span></Link>
               </nav>
               <div className="adMedia__store" title={`${readableBytes(used)} of ${readableBytes(budget)}`}>
                 <span className="adMedia__storeBar" role="img" aria-label={`Storage: ${readableBytes(used)} used of ${readableBytes(budget)}`}>
@@ -209,13 +211,13 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
                 </span>
               </div>
 
-              <MediaBrowser items={items} view={view} tree={tree} archived={archived} empty={filtered ? (
+              <MediaBrowser items={items} view={view} tree={tree} archived={archived} canDelete={isOwner} empty={filtered ? (
                 <AdminState kind="no-results" title={q ? `No files match “${q}”` : "No files match"}
                   description="Search looks at names, descriptions and captions."
                   action={<Link className="ad__btn" href={href({ q: "", month: "", by: "", needs: "", page: 1 })}>Clear the filters</Link>} />
               ) : archived ? (
-                <AdminState kind="cleared" title="Nothing archived"
-                  description="Files you archive land here, and can be put back from here." />
+                <AdminState kind="cleared" title="The Trash is empty"
+                  description="Files moved to the Trash land here. Restore them from here, or delete them permanently." />
               ) : here.folder ? (
                 here.folder.total > here.folder.own && !deep ? (
                   <AdminState kind="cleared" title={`Nothing directly in ${here.folder.name}`}

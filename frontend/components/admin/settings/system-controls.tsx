@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, RefreshCw } from "lucide-react";
-import { checkIntegration, runTool } from "@/lib/admin/system-actions";
+import { Copy, DatabaseZap, RefreshCw } from "lucide-react";
+import { applyMigrations, checkIntegration, runTool } from "@/lib/admin/system-actions";
 import { Form, Hidden, Submit } from "@/components/admin/form";
 
 /** "Check now" for one outside service. */
@@ -36,5 +36,15 @@ export function CopyReport({ text }: { text: string }) {
       </button>
       <span role="status" className="ad__dim">{said}</span>
     </span>
+  );
+}
+
+/** The owner brings the database up to this deploy, after saying yes to what it does. */
+export function ApplyMigrations({ count }: { count: number }) {
+  return (
+    <Form action={applyMigrations} className="adSys__check"
+      confirm={`Apply ${count} database update${count === 1 ? "" : "s"}? They change the database's structure to match this deploy and cannot be undone from here. Each is all or nothing, and they stop at the first that fails. Make sure the database has a recent backup first.`}>
+      <Submit icon={DatabaseZap}>Apply {count === 1 ? "it" : `all ${count}`}</Submit>
+    </Form>
   );
 }

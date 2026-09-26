@@ -3,10 +3,10 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Archive, Check, ChevronDown, Copy, ExternalLink, FileText, Film, FolderInput, ImageIcon, RotateCcw, RotateCw, Save, Trash2, Upload, X,
+  Check, ChevronDown, Copy, ExternalLink, FileText, Film, FolderInput, ImageIcon, RotateCcw, RotateCw, Save, Trash2, Upload, X,
 } from "lucide-react";
 import { checkMediaFile, MEDIA_ACCEPT, MEDIA_ALT_MAX, readableBytes } from "@/lib/media-validate";
-import { archiveMedia, archiveMediaMany, moveMediaFiles, recordMediaUpload, restoreMedia, saveMediaDetails, signMediaUpload } from "@/lib/admin/media-actions";
+import { archiveMedia, archiveMediaMany, deleteMediaForever, moveMediaFiles, recordMediaUpload, restoreMedia, saveMediaDetails, signMediaUpload } from "@/lib/admin/media-actions";
 import type { FolderTree } from "@/lib/media-folders";
 import { ask } from "./confirm";
 import { DRAG_FILES, FolderPane, FolderSheet, MoveToDialog } from "./media-folders";
@@ -238,8 +238,10 @@ const TYPE_LABEL: Record<string, string> = { image: "Picture", video: "Video", p
  * announce here rather than on the card, since their whole effect is that
  * the card leaves this list.
  */
-export function MediaBrowser({ items, view, empty, tree, archived = false }: {
+export function MediaBrowser({ items, view, empty, tree, archived = false, canDelete = false }: {
   items: MediaAsset[]; view: "grid" | "list"; empty: React.ReactNode; tree: FolderTree; archived?: boolean;
+  /** The owner, who alone can delete from the Trash for good. */
+  canDelete?: boolean;
 }) {
   const router = useRouter();
   const [notice, setNotice] = useState("");
@@ -284,13 +286,25 @@ export function MediaBrowser({ items, view, empty, tree, archived = false }: {
   };
   const archiveAll = async () => {
     const n = chosen.length;
-    if (!archived && !(await ask(`Archive ${n} ${n === 1 ? "file" : "files"}? They leave the library; any page already using their addresses keeps working.`, { verb: "Archive" }))) return;
+    if (!archived && !(await ask(`Move ${n} ${n === 1 ? "file" : "files"} to the Trash? They leave the library; any page already using their addresses keeps working, and they can be restored.`, { verb: "Trash" }))) return;
     setBusy(true);
     const r = await archiveMediaMany({ ids: chosen.map((m) => m.id), archived: !archived });
     setBusy(false);
     if (!r.ok) { toast(r.error, "bad"); return; }
     setPicked(new Set());
     setNotice(r.message);
+    router.refresh();
+  };
+  /* Permanent, so asked with "I understand" ticked first (confirm.tsx). */
+  const deleteAll = async () => {
+    const n = chosen.length;
+    if (!(await ask(`Delete ${n} ${n === 1 ? "file" : "files"} permanently? ${n === 1 ? "It is" : "They are"} removed from the file store and cannot be undone. Any page still using ${n === 1 ? "its address" : "their addresses"} will show a broken picture.`, { verb: "Delete" }))) return;
+    setBusy(true);
+    const r = await deleteMediaForever({ ids: chosen.map((m) => m.id) });
+    setBusy(false);
+    if (!r.ok) { toast(r.error, "bad"); return; }
+    setPicked(new Set());
+    toast(r.message);
     router.refresh();
   };
   const copy = async () => {
@@ -327,7 +341,7 @@ export function MediaBrowser({ items, view, empty, tree, archived = false }: {
                   <b className="adMedia__name">{m.filename}</b>
                   <small>{TYPE_LABEL[kindOf(m.contentType)]} · {readableBytes(m.bytes)}{m.width && m.height ? ` · ${m.width} × ${m.height}` : ""}</small>
                   {needs(m) ? <span className="ad__pill ad__pill--warn">Needs a description</span> : null}
-                  {m.archivedAt ? <span className="ad__pill">Archived</span> : null}
+                  {m.archivedAt ? <span className="ad__pill">In the Trash</span> : null}
                 </span>
               </button>
             </li>
@@ -366,8 +380,13 @@ export function MediaBrowser({ items, view, empty, tree, archived = false }: {
           {!archived ? <button type="button" className="ad__btn adBulk__btn" onClick={() => setMoving(chosen.map((m) => m.id))}><FolderInput aria-hidden="true" /> <span>Move to…</span></button> : null}
           <button type="button" className="ad__btn adBulk__btn" onClick={() => void copy()}><Copy aria-hidden="true" /> <span>Copy addresses</span></button>
           <button type="button" className="ad__btn adBulk__btn" disabled={busy} onClick={() => void archiveAll()}>
-            {archived ? <RotateCcw aria-hidden="true" /> : <Archive aria-hidden="true" />} <span>{archived ? "Restore" : "Archive"}</span>
+            {archived ? <RotateCcw aria-hidden="true" /> : <Trash2 aria-hidden="true" />} <span>{archived ? "Restore" : "Move to Trash"}</span>
           </button>
+          {archived && canDelete ? (
+            <button type="button" className="ad__btn adBulk__btn adBulk__btn--danger" disabled={busy} onClick={() => void deleteAll()}>
+              <Trash2 aria-hidden="true" /> <span>Delete permanently</span>
+            </button>
+          ) : null}
           <button type="button" className="ad__btn adBulk__btn" onClick={() => setPicked(new Set())} aria-label="Clear the selection"><X aria-hidden="true" /></button>
         </div>
       ) : null}
@@ -377,7 +396,7 @@ export function MediaBrowser({ items, view, empty, tree, archived = false }: {
         title={moving ? `Move ${moving.length === 1 ? items.find((m) => m.id === moving[0])?.filename ?? "the file" : `${moving.length} files`} to…` : ""}
         onPick={(to) => { const list = moving!; setMoving(null); if (open) setOpen(null); void moveTo(to, list); }} />
       <Dialog open={Boolean(open)} onClose={() => setOpen(null)} title={open?.filename ?? "File"} wide>
-        {open ? <Details key={open.id} item={open} onMoved={moved} folder={folderName(open.folderId)} onMove={() => setMoving([open.id])} /> : null}
+        {open ? <Details key={open.id} item={open} onMoved={moved} folder={folderName(open.folderId)} onMove={() => setMoving([open.id])} canDelete={canDelete} /> : null}
       </Dialog>
     </>
   );
@@ -399,7 +418,7 @@ function Thumb({ item }: { item: MediaAsset }) {
   );
 }
 
-function Details({ item, onMoved, folder, onMove }: { item: MediaAsset; onMoved: (message: string) => void; folder: string; onMove: () => void }) {
+function Details({ item, onMoved, folder, onMove, canDelete }: { item: MediaAsset; onMoved: (message: string) => void; folder: string; onMove: () => void; canDelete?: boolean }) {
   const kind = kindOf(item.contentType);
   const [decorative, setDecorative] = useState(item.decorative);
   const [alt, setAlt] = useState(item.alt);
@@ -411,7 +430,7 @@ function Details({ item, onMoved, folder, onMove }: { item: MediaAsset; onMoved:
     ...(item.durationMs ? [["Length", `${Math.floor(item.durationMs / 60000)}:${String(Math.round(item.durationMs / 1000) % 60).padStart(2, "0")}`] as [string, string]] : []),
     ["Folder", folder],
     ["Uploaded", `${when(item.uploadedAt)} by ${item.uploadedBy}`],
-    ...(item.archivedAt ? [["Archived", `${when(item.archivedAt)}${item.archivedBy ? ` by ${item.archivedBy}` : ""}`] as [string, string]] : []),
+    ...(item.archivedAt ? [["Moved to the Trash", `${when(item.archivedAt)}${item.archivedBy ? ` by ${item.archivedBy}` : ""}`] as [string, string]] : []),
   ];
   return (
     <div className="adMediaD">
@@ -427,7 +446,7 @@ function Details({ item, onMoved, folder, onMove }: { item: MediaAsset; onMoved:
       </div>
       <div className="adMediaD__side">
         {item.archivedAt ? (
-          <p className="ad__dim adMediaD__arch">Archived files are read-only. Restore it to change its details.</p>
+          <p className="ad__dim adMediaD__arch">Files in the Trash are read-only. Restore it to change its details.</p>
         ) : (
           <Form action={saveMediaDetails} className="adMediaD__form">
             <Hidden name="id" value={item.id} />
@@ -465,10 +484,22 @@ function Details({ item, onMoved, folder, onMove }: { item: MediaAsset; onMoved:
               <Hidden name="id" value={item.id} />
               <Submit tone="plain" icon={RotateCcw}>Restore</Submit>
             </Form>
-          ) : (
-            <Form action={archiveMedia} onDone={done} confirm={`Archive ${item.filename}? It leaves the library; any page already using its address keeps working.`}>
+          ) : null}
+          {item.archivedAt && canDelete ? (
+            <button type="button" className="ad__btn ad__btn--danger" onClick={async () => {
+              if (!(await ask(`Delete ${item.filename} permanently? It is removed from the file store and cannot be undone. Any page still using its address will show a broken picture.`, { verb: "Delete" }))) return;
+              const r = await deleteMediaForever({ ids: [item.id] });
+              if (!r.ok) { toast(r.error, "bad"); return; }
+              toast(r.message);
+              onMoved(r.message);
+            }}>
+              <Trash2 aria-hidden="true" /> Delete permanently
+            </button>
+          ) : null}
+          {item.archivedAt ? null : (
+            <Form action={archiveMedia} onDone={done} confirm={`Move ${item.filename} to the Trash? It leaves the library; any page already using its address keeps working, and it can be restored.`}>
               <Hidden name="id" value={item.id} />
-              <Submit tone="plain" icon={Archive}>Archive</Submit>
+              <Submit tone="plain" icon={Trash2}>Move to Trash</Submit>
             </Form>
           )}
         </div>

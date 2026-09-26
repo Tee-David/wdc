@@ -274,6 +274,22 @@ export async function headObject({
 }
 
 /**
+ * DELETE ONE OBJECT, for "Delete permanently" in the media library's Trash.
+ * S3 answers 204 whether or not the key existed, so running it twice is safe:
+ * a retry after a half-finished delete finishes it rather than failing.
+ */
+export async function deleteObject({ config, key, timeoutMs = 8000 }: { config: R2Config; key: string; timeoutMs?: number }): Promise<boolean> {
+  const contentType = "application/octet-stream";
+  const del = presignRequest({ config, method: "DELETE", key, contentType, expiresIn: 60 });
+  try {
+    const res = await fetch(del.url, { method: "DELETE", headers: { "content-type": contentType }, signal: AbortSignal.timeout(timeoutMs), cache: "no-store" });
+    return res.ok || res.status === 404;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * ASK THE BUCKET WHY, BECAUSE THE BROWSER WILL NOT SAY.
  *
  * A cross-origin PUT that CORS refuses is cancelled before it is sent: the
