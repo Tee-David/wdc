@@ -107,9 +107,9 @@ export function paystackPublicKey(): string | null {
 
 const API = "https://api.paystack.co";
 
-/** Paystack counts in kobo. Our books count in naira, as integers. */
-export const toKobo = (naira: number) => Math.round(naira * 100);
-export const fromKobo = (kobo: number) => Math.round(kobo) / 100;
+/* Kobo in, kobo out: see lib/money-units.ts. */
+export { wholeKobo } from "./money-units";
+import { wholeKobo } from "./money-units";
 
 export type PaystackError = { ok: false; error: string };
 
@@ -168,7 +168,7 @@ export type InitializedTransaction = {
  */
 export async function initializeTransaction(input: {
   email: string;
-  /** Naira. Converted here so no caller has to remember kobo. */
+  /** Kobo, exactly as the books keep it. */
   amount: number;
   reference: string;
   callbackUrl: string;
@@ -182,7 +182,7 @@ export async function initializeTransaction(input: {
     secretKey: cfg.config.secretKey,
     body: JSON.stringify({
       email: input.email,
-      amount: toKobo(input.amount),
+      amount: wholeKobo(input.amount),
       reference: input.reference,
       callback_url: input.callbackUrl,
       currency: "NGN",

@@ -5,7 +5,7 @@ import {
   applyPayment, getInvoice, getPaymentsFor, matchInvoice, recordProviderEvent,
 } from "@/lib/admin/store";
 import { invoiceTotals, naira } from "@/lib/admin/types";
-import { fromKobo, paystackMode, verifyTransaction } from "@/lib/paystack";
+import { wholeKobo, paystackMode, verifyTransaction } from "@/lib/paystack";
 import { sendPaymentReceiptEmail } from "@/lib/money-mail";
 import ReceiptPrinter from "@/components/money/receipt-printer";
 import "@/components/money/document.css";
@@ -70,7 +70,7 @@ async function settle(reference: string): Promise<Outcome> {
   }
 
   const t = verified.data;
-  const amount = fromKobo(t.amount);
+  const amount = wholeKobo(t.amount);
   const meta = (t.metadata ?? {}) as Record<string, unknown>;
   const invoice = matchInvoice({
     invoiceId: typeof meta.invoiceId === "string" ? meta.invoiceId : undefined,

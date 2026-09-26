@@ -192,3 +192,20 @@ test.describe("coming back from the checkout", () => {
     expect(own, `the printer pulled in ${own.join(", ")}`).toEqual([]);
   });
 });
+
+/* THE UNIT AT THE PAYSTACK BOUNDARY. The books keep kobo and so does
+   Paystack; converting either way made a ₦500 balance open a ₦50,000
+   checkout. INV-2026-003's own figures: ₦1,620,000 of work, 7.5% VAT,
+   ₦1,741,000 already paid, so ₦500 is due and 50,000 kobo is what we ask for. */
+test("the checkout asks Paystack for exactly what the invoice says is due", async () => {
+  const { invoiceTotals } = await import("../lib/admin/types");
+  const { wholeKobo } = await import("../lib/money-units");
+  const inv = {
+    id: "i3", token: "t", number: "INV-2026-003", clientId: "c3", status: "Sent", issued: "2026-07-25", due: "2026-08-24", vatRate: 7.5,
+    lines: [{ description: "Build", qty: 1, unit: 1_400_000_00 }, { description: "SEO", qty: 1, unit: 220_000_00 }],
+    paid: 1_741_000_00,
+  } as unknown as Parameters<typeof invoiceTotals>[0];
+  const { due } = invoiceTotals(inv);
+  expect(due).toBe(500_00);
+  expect(wholeKobo(due)).toBe(50_000);
+});
