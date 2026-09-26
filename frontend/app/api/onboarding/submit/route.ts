@@ -14,6 +14,7 @@ import {
   cleanAnswers, cleanService, clearOnboardingCookie, cookieToken, draftFromToken,
   normalizeEmail, requestOriginIsAllowed,
 } from "@/lib/onboarding-server";
+import { REFUSED_EMAIL_MESSAGE, refusedEmail } from "@/lib/email-domains";
 
 type Answers = Record<string, string | string[]>;
 
@@ -83,6 +84,7 @@ export async function POST(request: NextRequest) {
   }
 
   const email = normalizeEmail(answers.email) ?? draft.email;
+  if (email && refusedEmail(email)) return NextResponse.json({ error: REFUSED_EMAIL_MESSAGE, field: "email" }, { status: 422 });
   const result = await db.query<{ id: string }>(`
     UPDATE onboarding_submissions
     SET service = $2, status = 'submitted', current_step = 4,

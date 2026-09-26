@@ -8,6 +8,7 @@ import { FAIL, OK, type ActionState } from "@/lib/admin/validate";
 import { audit } from "@/lib/admin/store";
 import { db } from "@/lib/db/pool";
 import { passwordProblem } from "@/lib/auth/password-policy";
+import { breachProblem } from "@/lib/auth/breached";
 import { passwordCodeEmail } from "@/lib/email-templates";
 import { sendLogged } from "@/lib/outbox";
 import { rateLimit } from "@/lib/rate-limit";
@@ -40,20 +41,26 @@ async function me() {
 
 const NO_SESSION = "Sign in again, then retry.";
 
-function checkPair(fd: FormData) {
+async function checkPair(fd: FormData) {
   const next = String(fd.get("next") ?? "");
   const again = String(fd.get("again") ?? "");
   const errors: Record<string, string> = {};
   const weak = passwordProblem(next);
   if (weak) errors.next = weak;
   else if (next !== again) errors.again = "The two passwords are not the same.";
+  else {
+    /* Checked on both steps: the second posts the password again, and is
+       what actually stores it. */
+    const leaked = await breachProblem(next);
+    if (leaked) errors.next = leaked;
+  }
   return { next, errors };
 }
 
 export async function requestPasswordCode(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const who = await me();
   if (!who) return FAIL({}, NO_SESSION);
-  const { errors } = checkPair(fd);
+  const { errors } = await checkPair(fd);
   if (Object.keys(errors).length) return FAIL(errors);
   const user = who.session.user;
   /* Abuse control per person, in one instance's memory (lib/rate-limit.ts):
@@ -87,7 +94,7 @@ export async function requestPasswordCode(_prev: ActionState, fd: FormData): Pro
 export async function confirmPasswordChange(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const who = await me();
   if (!who) return FAIL({}, NO_SESSION);
-  const { next, errors } = checkPair(fd);
+  const { next, errors } = await checkPair(fd);
   if (Object.keys(errors).length) return FAIL(errors, "Go back and fix the new password.");
   const code = String(fd.get("code") ?? "").replace(/\s+/g, "");
   if (!/^\d{6}$/.test(code)) return FAIL({ code: "Enter the 6 digits from the email." });
