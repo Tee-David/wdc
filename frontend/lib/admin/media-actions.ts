@@ -4,13 +4,15 @@ import { revalidatePath } from "next/cache";
 import { headObject, mediaKey, presignPut, r2Config } from "@/lib/r2";
 import { rateLimit } from "@/lib/rate-limit";
 import { checkMediaFile, isMediaKey, maxBytesFor, MEDIA_ALT_MAX, MEDIA_TYPES } from "@/lib/media-validate";
-import { mediaById, mediaDatabaseConfigured, recordMedia, setMediaAlt, setMediaArchived, type MediaAsset } from "@/lib/media";
+import { mediaById, mediaDatabaseConfigured, recordMedia, setMediaAlt, setMediaArchived, setMediaDetails, type MediaAsset } from "@/lib/media";
 import { audit } from "./store";
 import { actorName, allow } from "./guard";
 import { FAIL, OK, str, type ActionState } from "./validate";
 
 const PAGE = "/admin/settings/media";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const dim = (v: unknown, max: number) => { const n = Math.round(Number(v)); return Number.isFinite(n) && n > 0 && n <= max ? n : null; };
 
 type Signed = { ok: true; url: string; key: string; contentType: string } | { ok: false; error: string };
 
@@ -59,7 +61,7 @@ export async function signMediaUpload(input: { filename: string; size: number })
  * honestly rather than left orphaned -- it is in the bucket either way, and a
  * row is how somebody finds it to archive it.
  */
-export async function recordMediaUpload(input: { key: string; filename: string }): Promise<{ ok: true; item: MediaAsset } | { ok: false; error: string }> {
+export async function recordMediaUpload(input: { key: string; filename: string; width?: number; height?: number; durationMs?: number }): Promise<{ ok: true; item: MediaAsset } | { ok: false; error: string }> {
   const refused = await allow("content");
   if (refused) return { ok: false, error: refused.message ?? "Sign in again, then retry." };
 
@@ -91,6 +93,10 @@ export async function recordMediaUpload(input: { key: string; filename: string }
       bytes: stored.bytes >= 0 ? stored.bytes : 0,
       alt: "",
       by,
+      /* Measured by the browser before the upload. Informational only (the
+         space a page reserves, "1600 × 900" in the details), so a lie costs
+         nothing; still bounded, so it can never be nonsense in a column. */
+      width: dim(input?.width, 20000), height: dim(input?.height, 20000), durationMs: dim(input?.durationMs, 6 * 60 * 60 * 1000),
     });
   } catch {
     return { ok: false, error: "The file arrived but could not be listed just now. Try recording it again." };
@@ -127,6 +133,49 @@ export async function saveMediaAlt(_prev: ActionState, fd: FormData): Promise<Ac
   }
   revalidatePath(PAGE);
   return OK(alt ? "Description saved." : "Description cleared. Leave it empty only for a picture that is purely decorative.");
+}
+
+/**
+ * A file's details, from its panel: the name people see, the description,
+ * "decorative" (an empty description on purpose) and a caption. Each field
+ * that changed is its own audit line, so the log says what moved.
+ */
+export async function saveMediaDetails(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await allow("content");
+  if (refused) return refused;
+  const id = str(fd, "id");
+  if (!UUID.test(id)) return FAIL({}, "That file could not be found.");
+  const filename = str(fd, "filename").replace(/\s+/g, " ").slice(0, 200);
+  const decorative = fd.get("decorative") === "on";
+  /* Decorative means empty on purpose: a description typed as well would be
+     read out anyway, so the flag wins and the box is cleared. */
+  const alt = decorative ? "" : str(fd, "alt").replace(/\s+/g, " ");
+  const caption = str(fd, "caption").replace(/\s+/g, " ");
+  const errors: Record<string, string> = {};
+  if (!filename) errors.filename = "Give it a name people will recognise.";
+  if (alt.length > MEDIA_ALT_MAX) errors.alt = `Keep it under ${MEDIA_ALT_MAX} characters; say what the picture shows, not everything in it.`;
+  if (caption.length > 300) errors.caption = "Keep the caption under 300 characters.";
+  if (Object.keys(errors).length) return FAIL(errors);
+
+  const by = await actorName();
+  try {
+    const before = await mediaById(id);
+    if (!before) return FAIL({}, "That file could not be found. It may have been removed from the list.");
+    if (!(await setMediaDetails(id, { filename, alt, decorative, caption }))) return FAIL({}, "That file could not be found.");
+    const changes: [string, string, string][] = [
+      ["Name", before.filename, filename],
+      ["Alt text", before.alt || "(none)", alt || "(none)"],
+      ["Decorative", before.decorative ? "yes" : "no", decorative ? "yes" : "no"],
+      ["Caption", before.caption || "(none)", caption || "(none)"],
+    ];
+    for (const [field, from, to] of changes) {
+      if (from !== to) audit({ actor: by, kind: "content", subjectId: id, subject: filename, action: `changed the ${field.toLowerCase()}`, field, from, to });
+    }
+  } catch {
+    return FAIL({}, "The details could not be saved just now. Try again.");
+  }
+  revalidatePath(PAGE);
+  return OK("Details saved.");
 }
 
 async function archive(fd: FormData, archived: boolean): Promise<ActionState> {

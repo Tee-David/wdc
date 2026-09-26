@@ -71,7 +71,7 @@ test.describe("the library screen", () => {
   });
 
   test("Settings leads to it, and a file without a description says so until it has one", async ({ page }) => {
-    await page.goto("/admin/settings", { waitUntil: "load" });
+    await page.goto("/admin/settings", { waitUntil: "networkidle" });
     await page.getByRole("link", { name: /^Media library/ }).first().click();
     /* Generous: on a dev server the first visit compiles the route. */
     await expect(page.getByRole("heading", { level: 1, name: "Media library" })).toBeVisible({ timeout: 30_000 });
@@ -79,21 +79,24 @@ test.describe("the library screen", () => {
     const card = page.locator(".adMedia__card", { hasText: IMAGE });
     await expect(card).toBeVisible();
     await expect(card.getByText("200 KB")).toBeVisible();
-    await expect(card.getByText("No description")).toBeVisible();
+    await expect(card.getByText("Needs a description")).toBeVisible();
     await expect(card.locator("img")).toHaveAttribute("src", /^https:\/\/media\.example\.test\/media\/2026\/09\//);
-    /* A PDF has no alt text to give. */
-    await expect(page.locator(".adMedia__card", { hasText: PDF }).getByLabel("Description (alt text)")).toHaveCount(0);
+    /* A PDF has no alt text to give: its details have no such field. */
+    await page.locator(".adMedia__card", { hasText: PDF }).click();
+    await expect(page.getByRole("dialog").getByLabel("Description (alt text)")).toHaveCount(0);
+    await page.keyboard.press("Escape");
 
-    await expect(async () => {
-      await card.getByLabel("Description (alt text)").fill("A navy hero band with the studio's orange mark");
-      await card.getByRole("button", { name: "Save" }).click({ timeout: 2_000 });
-      await expect(card.getByText("Description saved.")).toBeVisible({ timeout: 4_000 });
-    }).toPass({ timeout: 45_000 });
+    /* The description is set in the file's details, not on the card. */
+    await card.click();
+    const details = page.getByRole("dialog");
+    await details.getByLabel("Description (alt text)").fill("A navy hero band with the studio's orange mark");
+    await details.getByRole("button", { name: "Save details" }).click();
+    await expect(page.locator(".adToast", { hasText: "Details saved." })).toBeVisible({ timeout: 20_000 });
 
     const row = await db.query("SELECT alt FROM media_assets WHERE filename = $1", [IMAGE]);
     expect(row.rows[0].alt).toBe("A navy hero band with the studio's orange mark");
     await page.reload({ waitUntil: "networkidle" });
-    await expect(page.locator(".adMedia__card", { hasText: IMAGE }).getByText("No description")).toHaveCount(0);
+    await expect(page.locator(".adMedia__card", { hasText: IMAGE }).getByText("Needs a description")).toHaveCount(0);
   });
 
   test("archiving moves a file out of the library without deleting it, and restore puts it back", async ({ page }) => {
@@ -101,7 +104,8 @@ test.describe("the library screen", () => {
     await page.goto("/admin/settings/media", { waitUntil: "networkidle" });
     const card = page.locator(".adMedia__card", { hasText: PDF });
     /* One press, not a retry loop: a second press would find no card. */
-    await card.getByRole("button", { name: "Archive" }).click();
+    await card.click();
+    await page.getByRole("dialog").getByRole("button", { name: "Archive" }).click();
     await expect(page.locator(".adMedia__notice")).toHaveText(`Archived ${PDF}. It is out of the library, and its address still works for any page already using it.`, { timeout: 15_000 });
 
     const archived = await db.query("SELECT archived_at, archived_by FROM media_assets WHERE filename = $1", [PDF]);
@@ -113,7 +117,8 @@ test.describe("the library screen", () => {
     await page.goto("/admin/settings/media?show=archived", { waitUntil: "networkidle" });
     const parked = page.locator(".adMedia__card", { hasText: PDF });
     await expect(parked).toBeVisible();
-    await parked.getByRole("button", { name: "Restore" }).click();
+    await parked.click();
+    await page.getByRole("dialog").getByRole("button", { name: "Restore" }).click();
     await expect(page.locator(".adMedia__notice")).toHaveText(`Restored ${PDF} to the library.`, { timeout: 15_000 });
     const back = await db.query("SELECT archived_at FROM media_assets WHERE filename = $1", [PDF]);
     expect(back.rows[0].archived_at).toBeNull();
@@ -128,8 +133,8 @@ test.describe("the library screen", () => {
     const before = await db.query("SELECT count(*) AS n FROM media_assets");
 
     await expect(async () => {
-      await page.locator(".adMedia__pick input").setInputFiles({ name, mimeType: "image/png", buffer: Buffer.from("89504e47", "hex") });
-      await expect(page.locator(".adMedia__queue li", { hasText: name }).getByRole("alert")).toContainText("file store", { timeout: 20_000 });
+      await page.locator(".ad__head input[type=file]").setInputFiles({ name, mimeType: "image/png", buffer: Buffer.from("89504e47", "hex") });
+      await expect(page.locator(".adTray__job", { hasText: name }).getByRole("alert")).toContainText("file store", { timeout: 20_000 });
     }).toPass({ timeout: 60_000 });
 
     const after = await db.query("SELECT count(*) AS n FROM media_assets");
@@ -139,8 +144,8 @@ test.describe("the library screen", () => {
   test("an SVG is turned away before anything is signed", async ({ page }) => {
     await page.goto("/admin/settings/media", { waitUntil: "networkidle" });
     await expect(async () => {
-      await page.locator(".adMedia__pick input").setInputFiles({ name: "logo.svg", mimeType: "image/svg+xml", buffer: Buffer.from("<svg/>") });
-      await expect(page.locator(".adMedia__queue li", { hasText: "logo.svg" }).getByRole("alert")).toContainText("can carry a script", { timeout: 4_000 });
+      await page.locator(".ad__head input[type=file]").setInputFiles({ name: "logo.svg", mimeType: "image/svg+xml", buffer: Buffer.from("<svg/>") });
+      await expect(page.locator(".adTray__job", { hasText: "logo.svg" }).getByRole("alert")).toContainText("can carry a script", { timeout: 4_000 });
     }).toPass({ timeout: 45_000 });
   });
 

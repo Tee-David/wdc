@@ -88,5 +88,7 @@ export function readableBytes(n: number) {
   if (n < 1024) return `${n} B`;
   if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`;
   const mb = n / 1024 / 1024;
-  return `${Number.isInteger(mb) ? mb : mb.toFixed(1)} MB`;
+  if (mb < 1024) return `${Number.isInteger(mb) ? mb : mb.toFixed(1)} MB`;
+  const gb = mb / 1024;
+  return `${Number.isInteger(gb) ? gb : gb.toFixed(1)} GB`;
 }
