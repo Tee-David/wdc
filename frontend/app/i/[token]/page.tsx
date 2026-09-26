@@ -347,6 +347,17 @@ export default async function PublicInvoice({
           )}
         </section>
       ) : null}
+      {/* PAID IN FULL: the stamp where the Pay button stood, so the answer to
+          "do I still owe anything" is the first thing seen in that place. */}
+      {settled && !inv.voided && t.total > 0 ? (
+        <section className="doc__pay doc__pay--paid">
+          <p className="doc__paid" role="status">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11" /></svg>
+            Paid {naira(t.total)}
+          </p>
+          <p>Nothing is owed on this invoice. Each payment is listed above with its receipt.</p>
+        </section>
+      ) : null}
     </DocumentShell>
   );
 }

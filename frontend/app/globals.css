@@ -85,6 +85,12 @@
   --logo-ink: #ffffff;
   /* On near-black, #ff6500 is 6.9:1 and needs no darkening. */
   --accent-ink: #ff6500;
+  /* THE DARK-MODE ORANGE FILL (the owner's pick, 2026-09-26): #b84a00 carries
+     a WHITE label at 5.23:1. Fills, chips, dots and rules take it; orange
+     TEXT stays --accent-ink above, because #b84a00 as type on near-black is
+     only about 3.8:1. */
+  --accent: #b84a00;
+  --on-accent: #fff;
   --btn-fill: #fff;
   --btn-ink: #000;
 }
@@ -214,7 +220,7 @@ h4 {
 }
 
 ::selection {
-  background: #ff6500;
+  background: #b84a00; /* white on it is 5.23:1; on #ff6500 it was 2.95:1 */
   color: #ffffff;
 }
 
@@ -639,9 +645,9 @@ html { scroll-padding-top: 88px; }
   color: var(--accent-ink, #b64800);
   transition: color .16s ease;
 }
-/* THE WHOLE ROW TAKES THE COLOUR, and the glyph goes with it. Black on
-   #ff6500 is 7.11:1; white would be 2.95:1 and is never used on an accent
-   fill anywhere on this site. */
+/* THE WHOLE ROW TAKES THE COLOUR, and the glyph goes with it. In light mode
+   black on #ff6500 (7.11:1); in dark mode --accent is #b84a00 and
+   --on-accent white (5.23:1), so the pair follows the theme by itself. */
 .hd-sub__a:hover,
 .hd-sub__a[aria-current="page"] {
   background: var(--accent, #ff6500);

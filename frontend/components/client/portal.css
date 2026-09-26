@@ -22,7 +22,7 @@
 .cpStages { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .3rem; margin-top: .6rem; }
 .cpStages i { height: .3rem; border-radius: 99px; background: var(--ad-line); }
 .cpStages i.is-done { background: var(--ad-tone-brand); }
-.cpStages i.is-now { background: var(--ad-accent); }
+.cpStages i.is-now { background: var(--ad-accent-fill); }
 .dark .cpStages i.is-done { background: #7377ff; }
 
 /* The updates feed: a dot per entry on a thin line. */
@@ -31,7 +31,7 @@
 .cpFeed li:last-child { padding-bottom: 0; }
 .cpFeed li::before { content: ""; position: absolute; left: .34rem; top: 1rem; bottom: .1rem; width: 2px; background: var(--ad-line); }
 .cpFeed li:last-child::before { display: none; }
-.cpFeed__dot { position: absolute; left: 0; top: .2rem; width: .8rem; height: .8rem; border-radius: 50%; background: var(--ad-accent); box-shadow: 0 0 0 3px var(--ad-panel); }
+.cpFeed__dot { position: absolute; left: 0; top: .2rem; width: .8rem; height: .8rem; border-radius: 50%; background: var(--ad-accent-fill); box-shadow: 0 0 0 3px var(--ad-panel); }
 .cpFeed li + li .cpFeed__dot { background: var(--ad-tone-brand); }
 .dark .cpFeed li + li .cpFeed__dot { background: #7377ff; }
 .cpFeed a { min-width: 0; font-size: .9rem; overflow-wrap: anywhere; }
@@ -189,7 +189,7 @@
 .pProj__stages li.is-done, .pProj__stages li.is-now { color: var(--ad-ink); }
 .pProj__stages i { height: .3rem; border-radius: 99px; background: var(--ad-line); }
 .pProj__stages li.is-done i { background: var(--ad-tone-brand); }
-.pProj__stages li.is-now i { background: var(--ad-accent); }
+.pProj__stages li.is-now i { background: var(--ad-accent-fill); }
 .dark .pProj__stages li.is-done i { background: #7377ff; }
 .pProj__wait {
   display: flex; align-items: center; gap: .8rem; padding: .8rem 1rem; min-width: 0;
