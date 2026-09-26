@@ -228,40 +228,72 @@
    is #b84a00 (white 5.23:1) and deepens to #a33c00 (6.56:1) on hover; the
    brand orange stays in the glow under it. */
 .doc__btn--pay {
-  width: 100%;
-  min-height: 3.75rem;
-  padding: 1rem 1.5rem;
-  border-radius: 14px;
-  font-size: clamp(1.05rem, .98rem + .35vw, 1.22rem);
-  letter-spacing: -.01em;
-  background: #b84a00;
-  color: #fff;
-  box-shadow: 0 12px 26px -12px rgb(255 101 0 / .65);
+  --pay-fill: #b84a00;       /* #fff 5.23:1 */
+  --pay-deep: #a33c00;       /* hover, #fff 6.56:1 */
+  position: relative; isolation: isolate;
+  width: 100%; min-height: 3.75rem; padding: 1rem 1.5rem; border-radius: 14px;
+  background: var(--pay-fill); color: #fff;
+  font-size: clamp(1.05rem, .98rem + .35vw, 1.22rem); letter-spacing: -.01em;
+  box-shadow: 0 12px 26px -14px rgb(255 101 0 / .55);
+  transition: transform .16s cubic-bezier(.2, .7, .3, 1);
 }
-.doc__btn--pay:hover {
-  background: #a33c00;
-  box-shadow: 0 16px 32px -12px rgb(255 101 0 / .7);
-  transform: translateY(-1px);
+/* MOTION (artifact "Pay Button Motion": the border trace, with the lean on
+   hover). The return page already answers with its animated receipt, so the
+   stamp idea is not used there. The base .doc__btn:hover paints #e85c00;
+   the pay button deepens with a layer instead, so every tween here is
+   transform or opacity. */
+.doc__btn--pay:hover { background: var(--pay-fill); box-shadow: 0 12px 26px -14px rgb(255 101 0 / .55); transform: translateY(-1px); }
+.doc__btn--pay:active { transform: translateY(1px) scale(.985); transition-duration: .06s; }
+.doc__btn--pay:focus-visible { outline: 3px solid #0e0e2c; outline-offset: 4px; }
+/* One soft glow a moment after load, never again. */
+.doc__btn--pay::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit;
+  box-shadow: 0 16px 34px -12px rgb(255 101 0 / .75);
+  opacity: 0; transition: opacity .18s ease; pointer-events: none;
+  animation: pay-hello 1.6s ease-out .7s 1;
 }
-.doc__btn--pay:active { transform: translateY(1px); }
-/* TWO GLYPHS, TWO JOBS. The card says what kind of thing this is before the
-   label is read; the arrow says the press leaves the page, which on a payment
-   button is worth saying, because the payer lands on Paystack's own domain and
-   somebody who was not expecting that abandons the checkout.
-
-   The card is set slightly smaller than the arrow and pushed off the left edge
-   with a margin, so the label still reads as centred rather than shunted. */
+.doc__btn__shade {
+  position: absolute; inset: 0; z-index: -1; border-radius: inherit;
+  background: var(--pay-deep); opacity: 0; transition: opacity .16s ease; pointer-events: none;
+}
+.doc__btn--pay:is(:hover, :focus-visible) .doc__btn__shade,
+.doc__btn--pay:is(:hover, :focus-visible)::after { opacity: 1; }
+/* TWO GLYPHS, TWO JOBS: the card says what this is, the arrow says the press
+   leaves the page for Paystack's own. */
 .doc__btn--pay svg { flex: none; }
-.doc__btn__ic { width: 1.15em; height: 1.15em; margin-right: .15rem; opacity: .85; }
-/* The arrow leans out on hover, which is the whole of the motion: a payment
-   button that bounces is a payment button people distrust. */
-.doc__btn__go { width: 1.1em; height: 1.1em; transition: transform .16s ease; }
-.doc__btn--pay:hover .doc__btn__go { transform: translateX(3px); }
+.doc__btn__ic { width: 1.15em; height: 1.15em; margin-right: .15rem; }
+.doc__btn__go { width: 1.1em; height: 1.1em; transition: transform .18s cubic-bezier(.2, .7, .3, 1), opacity .16s ease; }
+.doc__btn--pay:is(:hover, :focus-visible) .doc__btn__go { transform: translateX(4px); }
+
+/* BUSY. PayForm sets data-busy on the form at the first submit. The label and
+   the amount stay; the arrow leaves and the brand orange runs round the edge.
+   No percentage: nobody knows how long Paystack will take. */
+.doc__btn__trace {
+  position: absolute; inset: -5px; padding: 3px; border-radius: 19px;
+  overflow: hidden; pointer-events: none; opacity: 0; transition: opacity .2s ease;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+.doc__btn__trace::before {
+  content: ""; position: absolute; top: 50%; left: 50%; width: 112%; aspect-ratio: 1;
+  background: conic-gradient(transparent 0 58%, rgb(255 101 0 / .25) 70%, #ff6500 90%, #ffc9a3 97%, transparent 100%);
+  transform: translate(-50%, -50%) rotate(0turn);
+}
+form[data-busy] .doc__btn--pay { cursor: progress; transform: none; }
+form[data-busy] .doc__btn__shade { opacity: 1; }
+form[data-busy] .doc__btn__go { transform: translateX(10px); opacity: 0; }
+form[data-busy] .doc__btn__trace { opacity: 1; }
+form[data-busy] .doc__btn__trace::before { animation: pay-trace 1.15s linear infinite; }
+@keyframes pay-hello { 0%, 100% { opacity: 0; } 35% { opacity: 1; } }
+@keyframes pay-trace { to { transform: translate(-50%, -50%) rotate(1turn); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .doc__btn, .doc__btn__go { transition: none; }
+  .doc__btn, .doc__btn--pay, .doc__btn--pay::after, .doc__btn__shade, .doc__btn__go, .doc__btn__trace { transition: none; animation: none; }
   .doc__btn:active, .doc__btn--pay:hover, .doc__btn--pay:active { transform: none; }
-  .doc__btn--pay:hover .doc__btn__go { transform: none; }
+  .doc__btn--pay:is(:hover, :focus-visible) .doc__btn__go { transform: none; }
+  /* The ring stops and becomes solid: still a clear busy state. */
+  form[data-busy] .doc__btn__trace::before { animation: none; background: #ff6500; }
 }
 
 /* Something went wrong on the way to the checkout, said before the button

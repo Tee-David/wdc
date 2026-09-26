@@ -12,6 +12,14 @@ import { useEffect, useState, type ReactNode } from "react";
  */
 export function PayForm({ action, className, children }: { action: string; className?: string; children: ReactNode }) {
   const [busy, setBusy] = useState(false);
+  /* After 8 seconds the line says so, and that nothing is charged yet: true,
+     and never a progress figure nobody has. */
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    if (!busy) return;
+    const t = window.setTimeout(() => setSlow(true), 8000);
+    return () => { window.clearTimeout(t); setSlow(false); };
+  }, [busy]);
   useEffect(() => {
     const reset = (e: PageTransitionEvent) => { if (e.persisted) setBusy(false); };
     window.addEventListener("pageshow", reset);
@@ -30,7 +38,7 @@ export function PayForm({ action, className, children }: { action: string; class
       }}
     >
       {children}
-      {busy ? <span className="pay-busy" role="status">Opening Paystack…</span> : null}
+      {busy ? <span className="pay-busy" role="status">{slow ? "Still opening Paystack. Nothing has been charged yet." : "Opening Paystack…"}</span> : null}
     </form>
   );
 }
