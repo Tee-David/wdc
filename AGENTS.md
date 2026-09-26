@@ -91,6 +91,21 @@
 - React Joyride tours are optional, short, keyboard-accessible, role-aware, and lazy-loaded only inside authenticated dashboards. Support a full walkthrough and page-only tours using stable `data-tour` targets; persist completion per user and tour version, and always allow skip, close, and replay.
 - Financial, project, client, and communication UI must reflect persisted truth. Never fabricate totals, activity, payment status, or delivery progress; preserve auditable histories for manual and automated changes.
 
+## The owner's standing calls
+
+Short on purpose. Each line is a decision already made; do not re-ask it.
+
+- Voice: "We Dig Creativity" means we LOVE creativity, never literal digging (no spades, earth, tunnels). No city names in copy ("Lagos" included): the studio is meant to outgrow one city. Times may still use the Africa/Lagos zone internally.
+- Copy colour: body text is one colour. Stress a phrase with weight, not with orange or a second colour.
+- Tables stay tables on every screen, never cards: the first column pins, the table scrolls sideways inside its own box, and the text column gets real width so a row is one or two lines, not a tower.
+- Native pickers (select, date, time) are being replaced by the site's own designed components. New UI uses those components, not the browser's.
+- Arrival motion (admin and portal): head, then blocks, ease in a beat apart; KPI figures count up (`components/admin/count-up.tsx`); bars grow from the baseline. Transform and opacity only, `backwards` fill, nothing under reduced motion, and the server always renders the real figure.
+- Confirmation is the in-app dialog (`components/admin/confirm.tsx`), never `window.confirm`. Anything irreversible also needs "I understand". Specs answer it with `tests/say-yes.ts`.
+- Phones use the sidebar as a drawer in both dashboards; there is no bottom tab bar.
+- Settings: changes go through the shared save bar; a disabled control is solid flat with the reason and the fix beside it; hints sit under their input; a page's one action sits in the head's right slot and chores go in its ⋮ menu.
+- Testimonials: quote plus the author's name on one line. No role line, no case-study link.
+- Proposals for anything large are an artifact first (design, then build). Ship as you go: every finished piece is committed and pushed to `main` and to the working branch.
+
 ## Commit attribution
 
 - Never add AI attribution to a commit or a pull request. No `Co-Authored-By` or
