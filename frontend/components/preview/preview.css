@@ -940,9 +940,11 @@ html:not(.dark) .pv .pv-card {
   padding: clamp(22px, 2.2vw, 28px); margin: 0;
 }
 .pv-tcard blockquote { margin: 0; }
-.pv-tcard p { font-size: .98rem; line-height: 1.55; color: var(--muted); font-style: normal; }
-/* The "after": what changed. Orange as text on paper is --accent-ink. */
-.pv-tcard p em { font-style: normal; font-weight: 600; color: var(--accent-ink); }
+/* One colour for the whole quote; the part that matters is stressed by
+   weight, not by turning it orange (owner, 2026-09-26). */
+.pv-tcard p { font-size: .98rem; line-height: 1.55; color: var(--ink); font-style: normal; }
+/* The "after": what changed, in the same colour and heavier. */
+.pv-tcard p em { font-style: normal; font-weight: 700; color: inherit; }
 .pv-tcard__by { display: flex; align-items: center; gap: 12px; margin-top: auto; padding-top: 8px; border-top: 1px solid var(--rule); }
 /* Scoped to its parent on purpose. `.pv-tcard__by span` a line above scores
    (0,1,1) and this avatar IS a span inside it, so a single-class rule at
@@ -958,15 +960,7 @@ html:not(.dark) .pv .pv-card {
 }
 .pv-tcard__by b { font-family: var(--font-space-grotesk), system-ui, sans-serif; display: block; font-size: .98rem; }
 .pv-tcard__by span { font-size: .82rem; color: var(--muted); }
-.pv-tcard__by .pv-tcard__who { flex: 1; min-width: 0; font-size: inherit; color: inherit; }
-.pv-tcard__who span { display: block; }
-.pv-tcard__by .pv-tcard__case {
-  flex: none; display: inline-flex; align-items: center; gap: 4px; min-height: 44px;
-  font-size: .85rem; font-weight: 600; color: var(--accent-ink); text-decoration: none;
-}
-.pv-tcard__case:hover { text-decoration: underline; text-underline-offset: 3px; }
-.pv-tcard__case span { color: inherit; font-size: inherit; transition: transform .2s ease; }
-.pv-tcard__case:hover span { transform: translateX(3px); }
+.pv-tcard__by .pv-tcard__who { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* A PANEL, NOT AN ORANGE BAR. See `.ob__reassure` in onboarding.css for why
    the whole site dropped this pattern. */
 .pv-note {
@@ -1107,7 +1101,6 @@ html:not(.dark) .pv .pv-card {
 
 @media (prefers-reduced-motion: reduce) {
   .pv-motion .pv-reveal { opacity: 1; transform: none; transition: none; }
-  .pv-tcard__case span { transition: none; }
   .pv-mtrack { animation: none; }
   .pv-marq { overflow-x: auto; scroll-snap-type: x mandatory; -webkit-mask-image: none; mask-image: none; }
   .pv-mgroup > li { scroll-snap-align: start; }

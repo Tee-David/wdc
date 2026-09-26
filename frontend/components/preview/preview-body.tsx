@@ -648,12 +648,10 @@ export default function PreviewBody({ faqs = FAQS }: { faqs?: Faq[] }) {
                             </blockquote>
                             <figcaption className="pv-tcard__by">
                               <span className="pv-tcard__av" aria-hidden="true">{initials(t.n)}</span>
-                              <span className="pv-tcard__who"><b>{t.n}</b><span>{t.r}</span></span>
-                              {t.href ? (
-                                <a className="pv-tcard__case" href={t.href} aria-label={`${t.n} case study`}>
-                                  Case study <span aria-hidden="true">&rarr;</span>
-                                </a>
-                              ) : null}
+                              {/* The name alone, on one line beside the initials: the
+                                  owner's call (2026-09-26). The role line and the case
+                                  study link made the foot of every card busy. */}
+                              <b className="pv-tcard__who">{t.n}</b>
                             </figcaption>
                           </figure>
                         </li>
