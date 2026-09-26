@@ -29,6 +29,9 @@
   --ad-dim: #5c5c7a;
   --ad-line: #e4e6f0;
   --ad-accent: #ff6500;
+  /* Orange as a FILL (bars, dots, tracks): the brand orange in light mode,
+     the owner's #b84a00 in dark. Orange as text keeps --ad-accent-ink. */
+  --ad-accent-fill: #ff6500;
   /* Orange as TEXT on a light panel (AGENTS.md): 4.6:1 where #ff6500 is 2.9. */
   --ad-accent-ink: #c95000;
   --ad-navy: #000065;
@@ -97,9 +100,14 @@
   --ad-sh-3: 0 8px 16px rgb(0 0 0 / .4), 0 32px 64px rgb(0 0 0 / .5);
   --ad-nav-on: #1b1b4a;
   --ad-bad-ink: #ff8a8a;
-  --ad-fill: var(--ad-accent);
-  --ad-on-fill: #000;
-  --ad-fill-hover: var(--ad-navy);
+  /* THE DARK-MODE ORANGE (the owner's pick, 2026-09-26): #b84a00 carries a
+     WHITE label at 5.23:1 and its edge holds against the dark panels, where
+     #ff6500 needed black type. Brand #ff6500 stays for text and rules. */
+  --ad-fill: #b84a00;
+  --ad-on-fill: #fff;
+  --ad-fill-hover: #a33c00;
+  --ad-tone-live: #b84a00;     --ad-on-live: #fff;      /* 5.23:1 */
+  --ad-accent-fill: #b84a00;
   --ad-tone-neutral: #3a3c6e;  --ad-on-neutral: #fff;   /* 10.4:1 */
   --ad-tone-flat: #2a2c56;     --ad-on-flat: #eef0fb;   /* 12.6:1 */
   --ad-tone-brand: #23239b;    --ad-on-brand: #fff;     /* 11.9:1 */
@@ -186,7 +194,7 @@
 .dark .ad__nav .ad__link.is-on { color: #fff; }
 .ad__nav .ad__link.is-on::before {
   content: ""; position: absolute; left: -1rem; top: .65rem; bottom: .65rem;
-  width: 4px; border-radius: 0 4px 4px 0; background: var(--ad-accent);
+  width: 4px; border-radius: 0 4px 4px 0; background: var(--ad-accent-fill);
 }
 .ad__count {
   margin-left: auto; min-width: 1.4rem; height: 1.35rem; padding: 0 .4rem;
@@ -607,7 +615,9 @@ body:has(.adDrawer[open]) .st { display: none; }
 .ad__btn:active { transform: translateY(1px); }
 .ad__btn svg { width: 1rem; height: 1rem; flex: none; }
 .ad__btn--primary { background: var(--ad-fill); border-color: var(--ad-fill); color: var(--ad-on-fill); box-shadow: 0 6px 14px -6px rgb(0 0 101 / .55); }
-.dark .ad__btn--primary { box-shadow: 0 6px 16px -6px rgb(255 101 0 / .5); }
+/* No coloured glow under the orange: the owner asked for it gone on Pay, and
+   the same halo under every dark-mode primary read the same way. */
+.dark .ad__btn--primary { box-shadow: none; }
 .ad__btn--primary:hover { background: var(--ad-fill-hover); border-color: var(--ad-fill-hover); color: #fff; }
 /* Disabled is a SOLID flat fill with dim type, not a faded copy of the live
    button: see-through controls read as broken, and their edge vanishes. */
@@ -1342,7 +1352,7 @@ body:has(.adDrawer[open]) .st { display: none; }
    and is underlined so it is not told apart by colour alone. */
 .ad__notices { display: grid; gap: .5rem; margin-bottom: .9rem; }
 /* The folded bar: phones only, and only when there are two or more. */
-.ad__noticesSum { display: none; width: 100%; border: 0; text-align: left; font: inherit; cursor: pointer; }
+.ad__notices .ad__noticesSum { display: none; width: 100%; border: 0; text-align: left; font: inherit; cursor: pointer; }
 .ad__noticesChev { flex: none; width: 1.1rem; height: 1.1rem; margin-left: auto; transition: transform .18s ease; }
 .ad__notices.is-open .ad__noticesChev { transform: rotate(180deg); }
 @media (max-width: 640px) {
@@ -1474,7 +1484,7 @@ a.ad__pgBtn:hover { background: var(--ad-panel-2); border-color: var(--ad-dim); 
 .ad .ad__tabsNav > a:hover { color: var(--ad-ink); }
 .ad .ad__tabsNav > a[aria-current="page"] { color: var(--ad-ink); }
 .ad__tabsNav > a[aria-current="page"]::after {
-  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--ad-accent);
+  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--ad-accent-fill);
 }
 .ad__tabN { min-width: 1.35rem; padding: .05rem .4rem; border-radius: 999px; background: var(--ad-tone-neutral); color: var(--ad-on-neutral); font-size: .72rem; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
 
@@ -1589,7 +1599,7 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 .ad__stageTrack li > span { height: 6px; border-radius: 999px; background: var(--ad-line); }
 .ad__stageTrack li.is-done > span { background: var(--ad-navy); }
 .dark .ad__stageTrack li.is-done > span { background: #7377ff; }
-.ad__stageTrack li.is-now > span { background: var(--ad-accent); }
+.ad__stageTrack li.is-now > span { background: var(--ad-accent-fill); }
 .ad__stageTrack small { color: var(--ad-dim); font-size: .8rem; font-weight: 500; overflow-wrap: anywhere; }
 .ad__stageTrack li.is-done small { color: var(--ad-ink); }
 .ad__stageTrack li.is-now small { color: var(--ad-ink); font-weight: 700; }
@@ -1891,7 +1901,7 @@ td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
 .ad__subLine { display: block; margin-top: .15rem; font-size: .76rem; }
 .ad__subPill { display: flex; width: fit-content; margin-top: .3rem; }
 .ad__barTrack { display: block; height: 6px; margin-top: .35rem; border-radius: 3px; background: var(--ad-line); overflow: hidden; }
-.ad__barTrack > span { display: block; height: 100%; border-radius: 3px; background: var(--ad-accent); }
+.ad__barTrack > span { display: block; height: 100%; border-radius: 3px; background: var(--ad-accent-fill); }
 .ad__pickRow > span:last-child:not(:only-child) { display: grid; min-width: 0; }
 /* A searched list with nothing left: the message in the list, no bare header. */
 [data-ls-none="1"] > table, [data-ls-none="1"] > ul, [data-ls-none="1"] > .pBill__table, [data-ls-none="1"] > [data-ls-mirror] { display: none; }

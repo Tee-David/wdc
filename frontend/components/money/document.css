@@ -197,12 +197,14 @@
   display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
   min-height: 44px; padding: .7rem 1.25rem;
   border: 0; border-radius: 12px;
-  background: #ff6500; color: #000;
+  /* White on #b84a00 (5.23:1): the owner's orange for a fill that carries
+     white type, the same pair as the Pay button. */
+  background: #b84a00; color: #fff;
   font: inherit; font-weight: 700; font-size: 1rem;
   text-decoration: none; cursor: pointer;
   transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease;
 }
-.doc__btn:hover { background: #e85c00; box-shadow: 0 6px 18px rgb(255 101 0 / .3); }
+.doc__btn:hover { background: #a33c00; }
 .doc__btn:active { transform: translateY(1px); }
 .doc__btn:focus-visible { outline: 3px solid #0e0e2c; outline-offset: 3px; }
 .doc__actions small { color: #5a5a72; font-size: .82rem; }
@@ -234,30 +236,22 @@
   width: 100%; min-height: 3.75rem; padding: 1rem 1.5rem; border-radius: 14px;
   background: var(--pay-fill); color: #fff;
   font-size: clamp(1.05rem, .98rem + .35vw, 1.22rem); letter-spacing: -.01em;
-  box-shadow: 0 12px 26px -14px rgb(255 101 0 / .55);
+  /* No glow: the owner asked for it gone. The fill carries the button. */
+  box-shadow: none;
   transition: transform .16s cubic-bezier(.2, .7, .3, 1);
 }
-/* MOTION (artifact "Pay Button Motion": the border trace, with the lean on
-   hover). The return page already answers with its animated receipt, so the
-   stamp idea is not used there. The base .doc__btn:hover paints #e85c00;
+/* MOTION (artifact "Pay Button Motion": the border trace while Paystack
+   opens, the lean on hover, and the stamp once the invoice is paid). The base .doc__btn:hover paints #e85c00;
    the pay button deepens with a layer instead, so every tween here is
    transform or opacity. */
-.doc__btn--pay:hover { background: var(--pay-fill); box-shadow: 0 12px 26px -14px rgb(255 101 0 / .55); transform: translateY(-1px); }
+.doc__btn--pay:hover { background: var(--pay-fill); box-shadow: none; transform: translateY(-1px); }
 .doc__btn--pay:active { transform: translateY(1px) scale(.985); transition-duration: .06s; }
 .doc__btn--pay:focus-visible { outline: 3px solid #0e0e2c; outline-offset: 4px; }
-/* One soft glow a moment after load, never again. */
-.doc__btn--pay::after {
-  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit;
-  box-shadow: 0 16px 34px -12px rgb(255 101 0 / .75);
-  opacity: 0; transition: opacity .18s ease; pointer-events: none;
-  animation: pay-hello 1.6s ease-out .7s 1;
-}
 .doc__btn__shade {
   position: absolute; inset: 0; z-index: -1; border-radius: inherit;
   background: var(--pay-deep); opacity: 0; transition: opacity .16s ease; pointer-events: none;
 }
-.doc__btn--pay:is(:hover, :focus-visible) .doc__btn__shade,
-.doc__btn--pay:is(:hover, :focus-visible)::after { opacity: 1; }
+.doc__btn--pay:is(:hover, :focus-visible) .doc__btn__shade { opacity: 1; }
 /* TWO GLYPHS, TWO JOBS: the card says what this is, the arrow says the press
    leaves the page for Paystack's own. */
 .doc__btn--pay svg { flex: none; }
@@ -285,15 +279,33 @@ form[data-busy] .doc__btn__shade { opacity: 1; }
 form[data-busy] .doc__btn__go { transform: translateX(10px); opacity: 0; }
 form[data-busy] .doc__btn__trace { opacity: 1; }
 form[data-busy] .doc__btn__trace::before { animation: pay-trace 1.15s linear infinite; }
-@keyframes pay-hello { 0%, 100% { opacity: 0; } 35% { opacity: 1; } }
 @keyframes pay-trace { to { transform: translate(-50%, -50%) rotate(1turn); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .doc__btn, .doc__btn--pay, .doc__btn--pay::after, .doc__btn__shade, .doc__btn__go, .doc__btn__trace { transition: none; animation: none; }
+  .doc__btn, .doc__btn--pay, .doc__btn__shade, .doc__btn__go, .doc__btn__trace { transition: none; animation: none; }
   .doc__btn:active, .doc__btn--pay:hover, .doc__btn--pay:active { transform: none; }
   .doc__btn--pay:is(:hover, :focus-visible) .doc__btn__go { transform: none; }
   /* The ring stops and becomes solid: still a clear busy state. */
   form[data-busy] .doc__btn__trace::before { animation: none; background: #ff6500; }
+  .doc__paid { animation: none; }
+}
+
+/* PAID: the stamp (idea G) where the Pay button stood, landing once and then
+   still. White on #1f7a3a is 5.38:1. */
+.doc__pay--paid { display: grid; gap: .9rem; justify-items: center; text-align: center; }
+.doc__paid {
+  display: inline-flex; align-items: center; justify-content: center; gap: .55rem;
+  min-height: 3.75rem; padding: 1rem 1.6rem; border-radius: 14px;
+  background: #1f7a3a; color: #fff; font-weight: 700; font-size: clamp(1.05rem, .98rem + .35vw, 1.22rem);
+  box-shadow: 0 0 0 3px #fff, 0 0 0 5px #1f7a3a;
+  transform: rotate(-2.5deg);
+  animation: pay-stamp .42s cubic-bezier(.2, .9, .25, 1) both;
+}
+.doc__paid svg { width: 1.2em; height: 1.2em; flex: none; }
+@keyframes pay-stamp {
+  0%   { opacity: 0; transform: rotate(-7deg) scale(1.35); }
+  55%  { opacity: 1; transform: rotate(-2.5deg) scale(.97); }
+  100% { opacity: 1; transform: rotate(-2.5deg) scale(1); }
 }
 
 /* Something went wrong on the way to the checkout, said before the button

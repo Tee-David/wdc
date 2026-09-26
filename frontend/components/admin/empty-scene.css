@@ -100,3 +100,6 @@
 @media (prefers-reduced-motion: reduce) {
   .es *, .es { animation: none !important; }
 }
+
+/* Dark mode: the owner's orange fill, with a white glyph (5.23:1). */
+.dark .es__badge, .dark .es__x { background: #b84a00; color: #fff; }
