@@ -32,7 +32,7 @@
               transform .2s cubic-bezier(.16, 1, .3, 1);
 }
 .uw svg { width: 1.2rem; height: 1.2rem; flex: none; }
-.uw:hover { background: var(--accent, #ff6500); border-color: var(--accent, #ff6500); color: var(--on-accent, #000); }
+.uw:hover { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent); }
 .uw:focus-visible { outline: 2px solid var(--accent, #ff6500); outline-offset: 3px; }
 
 /* ---- in the mobile menu, beside the theme switch ---- */

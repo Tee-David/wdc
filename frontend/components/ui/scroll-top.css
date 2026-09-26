@@ -64,7 +64,7 @@
   transition: opacity .24s ease, transform .24s cubic-bezier(.16, 1, .3, 1),
               visibility 0s;
 }
-.st:hover { color: #fff; background: var(--accent, #ff6500); }
+.st:hover { color: #fff; background: var(--accent-fill, #b84a00); }
 .st:focus-visible { outline: 2px solid var(--accent, #ff6500); outline-offset: 3px; }
 
 /* The ring. Rotated so it starts at twelve o'clock rather than at three. */

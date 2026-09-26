@@ -77,7 +77,7 @@
    the card behind it. `--band-2` is the one step lighter that keeps the edge. */
 .dark .pv .wk-cat__bar { background: var(--band-2); }
 .wk-cat:hover .wk-cat__bar,
-.wk-cat:focus-visible .wk-cat__bar { background: var(--accent); }
+.wk-cat:focus-visible .wk-cat__bar { background: var(--accent-fill); }
 
 /* (0,2,0) on both, and #fff literal on the accent bar. `.pv a { color:
    inherit }` is (0,1,1) and beats any single-class rule here. */
@@ -89,9 +89,8 @@
   color: #fff;
   transition: color .3s ease;
 }
-/* BLACK ON THE ORANGE HOVER, not white. White on #ff6500 is 2.95:1 and fails
-   even the 3:1 allowed for large text; `--on-accent` is 7.11:1 and is the only
-   label colour an accent fill takes anywhere on this site. */
+/* WHITE ON THE DEEP ORANGE HOVER (--accent-fill, 5.23:1): words never sit on
+   the bright #ff6500. */
 .pv .wk-cat:hover .wk-cat__t,
 .pv .wk-cat:focus-visible .wk-cat__t { color: var(--on-accent); }
 
@@ -264,7 +263,7 @@
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .7rem; font-weight: 700; letter-spacing: .03em;
   padding: 4px 10px; border-radius: 999px;
-  background: var(--accent); color: var(--on-accent, #000);
+  background: var(--accent-fill); color: var(--on-accent);
 }
 .pv .wk-chip--quiet { background: var(--paper-2); color: var(--muted); border: 1px solid var(--rule); }
 

@@ -57,14 +57,14 @@
 .ct-line__i {
   flex: none; width: 42px; aspect-ratio: 1; border-radius: 12px;
   display: grid; place-items: center;
-  background: var(--paper-2); border: 1px solid var(--rule);
-  /* The brand orange, not the darkened --accent-ink. That token exists for
-     body-sized TEXT, where #FF6500 on white is 2.8:1 and fails; these are
-     19px line-art glyphs beside a label that already names each one, so the
-     rule they answer to is the 3:1 for non-text — #FF6500 clears it — and
-     using the ink version instead just made them look like rust. */
-  color: var(--accent);
+  /* SOLID, like every other icon tile on the site (the service cards, the
+     tool cards): navy with a white glyph, 17.68:1. It was --paper-2 with a
+     hairline and an orange glyph, which on the paper ground read as a
+     translucent wash (the owner's screenshot, 2026-09-26). */
+  background: var(--band); border: 0;
+  color: #fff;
 }
+.dark .ct-line__i { background: var(--band-2); }
 /* The same centring fix the service icons carry: the glyph arrives inside an
    inline wrapper, so the wrapper is centred and the drawing sits low in it. */
 .ct-line__i > * {
@@ -102,11 +102,18 @@
 
 /* ---------------------------------------------------------------- the form */
 
+/* SOLID ALL THE WAY DOWN. The card, its fields and every line in it are
+   solid colours: the site's --rule is navy at 12%, which over this card read
+   as fields with no edges at all (the owner's screenshot, 2026-09-26). The
+   line is restated here, for this card and the pickers inside it only. */
 .ct-card {
+  --rule: #d4d6e6;
   background: var(--paper-2); border: 1px solid var(--rule);
   border-radius: clamp(18px, 2vw, 26px);
   padding: clamp(20px, 3vw, 36px);
+  box-shadow: 0 1px 2px rgb(0 0 60 / .05), 0 18px 40px -28px rgb(0 0 60 / .35);
 }
+.dark .ct-card { --rule: #2c2e62; box-shadow: none; }
 
 .ct-form { position: relative; display: grid; gap: 16px; }
 .ct-trap { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -168,7 +175,8 @@
 }
 /* The form's own focus ring, so the picker lights up exactly like the inputs
    either side of it. */
-.pv .ct-f .sf__btn:hover { border-color: var(--rule); }
+.pv .ct-f .sf__btn:hover { border-color: var(--muted); }
+.ct-f input:hover, .ct-f textarea:hover { border-color: var(--muted); }
 .pv .ct-f .sf__btn:focus-visible {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);

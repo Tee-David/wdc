@@ -78,7 +78,7 @@
      and at 2px over a flat navy panel it was buying a difference nobody could
      see. */
 }
-.dark .sv-bub { background: var(--accent); color: var(--on-accent); }
+.dark .sv-bub { background: var(--accent-fill); color: var(--on-accent); }
 /* `ServiceIcon` puts a `.svc-draw` span between the badge and its svg, so the
    size has to travel through it or the icon falls back to its own 24px. */
 .sv-bub .svc-draw { display: grid; place-items: center; width: 48%; height: 48%; }
@@ -441,14 +441,14 @@
 .sv-track .pv-shot { background: var(--band-2); }
 /* the band's arrows sit on navy, so they need the inverted resting state */
 .sv-work .pv-rbtn { color: #fff; border-color: var(--on-band-rule); }
-.sv-work .pv-rbtn:hover { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.sv-work .pv-rbtn:hover { background: var(--accent-fill); color: var(--on-accent); border-color: var(--accent-fill); }
 .sv-work .pv-rbtn:disabled:hover { background: transparent; color: #fff; }
 
 .sv-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .sv-tag {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .72rem; font-weight: 600; padding: 3px 9px; border-radius: 999px;
-  background: var(--accent); color: var(--on-accent);
+  background: var(--accent-fill); color: var(--on-accent);
 }
 
 .sv-empty {

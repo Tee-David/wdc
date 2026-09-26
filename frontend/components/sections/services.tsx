@@ -257,7 +257,7 @@ function ServiceCard({ service }: { service: Service }) {
         <div className="absolute inset-0 bg-gradient-to-t from-[#000065]/45 to-transparent opacity-70 transition-opacity duration-500 group-hover:opacity-40" />
         {/* Floating arrow: white pill + orange arrow at rest, inverting
             to an orange pill + white arrow on card hover. */}
-        <span className="absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center rounded-full bg-white text-secondary shadow-lg transition-all duration-300 group-hover:-translate-y-0.5 group-hover:rotate-6 group-hover:bg-secondary group-hover:text-white">
+        <span className="absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center rounded-full bg-white text-[var(--accent-ink)] shadow-lg transition-all duration-300 group-hover:-translate-y-0.5 group-hover:rotate-6 group-hover:bg-[var(--accent-fill)] group-hover:text-white">
           <ArrowIcon />
         </span>
       </div>
@@ -436,7 +436,7 @@ export function Services() {
                   <div className="absolute inset-0 bg-gradient-to-t from-[#000065]/45 to-transparent opacity-70 transition-opacity duration-500 group-hover:opacity-40" />
                   {/* Floating arrow: white pill + orange arrow at rest, inverting
                       to an orange pill + white arrow on card hover. */}
-                  <span className="absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center rounded-full bg-white text-secondary shadow-lg transition-all duration-300 group-hover:-translate-y-0.5 group-hover:rotate-6 group-hover:bg-secondary group-hover:text-white">
+                  <span className="absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center rounded-full bg-white text-[var(--accent-ink)] shadow-lg transition-all duration-300 group-hover:-translate-y-0.5 group-hover:rotate-6 group-hover:bg-[var(--accent-fill)] group-hover:text-white">
                     <ArrowIcon />
                   </span>
                 </div>
