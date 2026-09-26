@@ -223,9 +223,10 @@
    copying does the same thing for the same reason: the amount and the verb in
    one block, nothing beside it to weigh it against.
 
-   STILL BLACK ON ORANGE. Bigger type does not change the measurement: white on
-   #ff6500 is 2.95:1 and fails even the 3:1 large text is allowed, black is
-   7.11:1. Pinned by tests/button-colours.spec.ts. */
+   WHITE ON A DEEPER ORANGE, at the owner's request. White on the brand
+   #ff6500 is 2.95:1 and fails even the 3:1 large text is allowed, so the fill
+   is #b84a00 (white 5.23:1) and deepens to #a33c00 (6.56:1) on hover; the
+   brand orange stays in the glow under it. */
 .doc__btn--pay {
   width: 100%;
   min-height: 3.75rem;
@@ -233,9 +234,12 @@
   border-radius: 14px;
   font-size: clamp(1.05rem, .98rem + .35vw, 1.22rem);
   letter-spacing: -.01em;
+  background: #b84a00;
+  color: #fff;
   box-shadow: 0 12px 26px -12px rgb(255 101 0 / .65);
 }
 .doc__btn--pay:hover {
+  background: #a33c00;
   box-shadow: 0 16px 32px -12px rgb(255 101 0 / .7);
   transform: translateY(-1px);
 }
