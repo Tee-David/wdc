@@ -165,6 +165,8 @@ export async function AdminDashboardView({ firstName, money = true }: { firstNam
        render and nothing else holds a reference to it. */
     .sort((a, b) => (ROW_RANK[a.tone] ?? 9) - (ROW_RANK[b.tone] ?? 9));
 
+  /* Live projects with no agreed date, for the deadlines panel's empty state. */
+  const undated = projects.filter((project) => project.stage !== "Delivered" && !project.due).length;
   const upcoming = projects
     .filter((project) => project.stage !== "Delivered" && project.due)
     .sort((a, b) => String(a.due).localeCompare(String(b.due)))
@@ -232,14 +234,27 @@ export async function AdminDashboardView({ firstName, money = true }: { firstNam
         <div className="adDash__row">
           <Panel title="Cashflow, last six months" dataTour="dash-cashflow" action={<Link href="/admin/money">Open Money <ArrowRight aria-hidden="true" /></Link>}>
             <p className="adDash__sub">Money collected against money spent, by month.</p>
-            <CashflowChart months={monthly} totals={[
-              { label: "Collected", value: summary.collected, key: "in" },
-              { label: "Spend", value: summary.spend, key: "out" },
-              { label: "Billed", value: summary.invoiced },
-            ]} />
+            {/* Six empty columns on a ₦0 axis say nothing; say why instead. */}
+            {monthly.some((m) => m.in || m.out) ? (
+              <CashflowChart months={monthly} totals={[
+                { label: "Collected", value: summary.collected, key: "in" },
+                { label: "Spend", value: summary.spend, key: "out" },
+                { label: "Billed", value: summary.invoiced },
+              ]} />
+            ) : (
+              <Empty kind="first-use" title="No money in or out yet" icon={TrendingUp} action={<AddExpense />}>
+                The chart draws once a payment or an expense is recorded.
+              </Empty>
+            )}
           </Panel>
 
           <Panel title="Collected of billed">
+            {/* A 0% gauge on a new install reads as a collection problem. */}
+            {!summary.invoiced ? (
+              <Empty kind="first-use" title="Nothing billed yet" icon={CircleDollarSign} action={<InvoiceBuilder clients={clients} projects={projects} />}>
+                Your collection rate appears after the first invoice is sent.
+              </Empty>
+            ) : <>
             <div className="adDash__gauge">
               <Gauge percent={collectionRate} />
               <div className="adDash__gaugeText">
@@ -252,6 +267,7 @@ export async function AdminDashboardView({ firstName, money = true }: { firstNam
               <div><dt>Average days to pay</dt><dd>{avgDays === null ? "Not yet" : `${avgDays} day${avgDays === 1 ? "" : "s"}`}</dd></div>
             </dl>
             <div className="adDash__panelFoot"><Link className="ad__btn" href="/admin/money">Open Money <ArrowRight aria-hidden="true" /></Link></div>
+            </>}
           </Panel>
         </div>
       ) : null}
@@ -284,7 +300,15 @@ export async function AdminDashboardView({ firstName, money = true }: { firstNam
               ) : null}
             </div>
           ) : (
-            <Empty title="You’re caught up" icon={ClipboardList}>Overdue invoices, stuck projects, client requests, unanswered questions, unmatched payments and failed messages will appear here.</Empty>
+            /* A new install and a cleared queue are different moments: the
+               first needs a way in, the second only needs to be said. */
+            clients.length ? (
+              <Empty kind="cleared" title="You’re caught up" icon={ClipboardList}>Nothing is overdue, stuck or waiting on a reply.</Empty>
+            ) : (
+              <Empty kind="first-use" title="Start with your first client" icon={Users} action={<AddClient />}>
+                Add a client, then open a project and raise an invoice. This queue fills as work comes in.
+              </Empty>
+            )
           )}
         </Panel>
 
@@ -324,9 +348,16 @@ export async function AdminDashboardView({ firstName, money = true }: { firstNam
                 })}
               </div>
             ) : (
-              <Empty title="Nothing due yet" icon={CalendarClock}>
-                Live projects with a due date will appear here.
-              </Empty>
+              undated ? (
+                <Empty kind="cleared" title="No due dates set" icon={CalendarClock}
+                  action={<Link className="ad__btn" href="/admin/projects">Open projects</Link>}>
+                  {undated} live project{undated === 1 ? " has" : "s have"} no agreed date. Set one and it shows here.
+                </Empty>
+              ) : (
+                <Empty kind="first-use" title="No live projects" icon={FolderKanban} action={<AddProject clients={clients} />}>
+                  Open a project and give it a due date to see it here.
+                </Empty>
+              )
             )}
           </Panel>
         </div>
@@ -361,8 +392,8 @@ export async function AdminDashboardView({ firstName, money = true }: { firstNam
               </table>
             </div>
           ) : (
-            <Empty title="No payments yet" icon={CircleDollarSign}>
-              Payments recorded against an invoice will appear here.
+            <Empty title="No payments yet" icon={CircleDollarSign} action={<Link className="ad__btn" href="/admin/money">Open Money</Link>}>
+              Online payments land here by themselves. Money that arrived another way can be recorded on the invoice.
             </Empty>
           )}
         </Panel> : (
