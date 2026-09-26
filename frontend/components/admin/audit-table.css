@@ -33,22 +33,21 @@
 .adAudit__row:is(:hover, :focus-visible) .adAudit__go svg { transform: translateX(2px); }
 .adAudit__go svg { transition: transform .15s ease; }
 
-/* Phones: each event is a card; the chevron stays, the head goes. */
+/* Phones: still a table (AGENTS.md, the owner's call). The rows keep their
+   columns and the table scrolls sideways inside its own box, with "Who"
+   pinned so every row still says whose change it was. */
 @media (max-width: 760px) {
-  .adAudit__head { display: none; }
-  .adAudit__row, .adAudit__row.is-compact {
-    grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "who verb" "rec rec" "meta go";
-    gap: .45rem .75rem; padding: .9rem 1rem;
+  .adAudit { overflow-x: auto; overscroll-behavior-x: contain; }
+  .adAudit__head, .adAudit__row { grid-template-columns: 9.5rem 6.5rem minmax(14rem, 2fr) 6rem 7.5rem 1.25rem; min-width: 48rem; padding: .7rem 1rem; }
+  .adAudit__row.is-compact, .adAudit__head:has(+ .is-compact) { grid-template-columns: 9.5rem 6.5rem minmax(14rem, 2fr) 7.5rem 1.25rem; min-width: 42rem; }
+  .adAudit__head > :first-child, .adAudit__who {
+    position: sticky; left: 0; z-index: 1; align-self: stretch; display: flex; align-items: center;
+    margin: -.7rem 0 -.7rem -1rem; padding: .7rem .5rem .7rem 1rem;
+    background: var(--ad-panel); box-shadow: 1px 0 0 var(--ad-line);
   }
-  .adAudit__who { grid-area: who; }
-  .adAudit__row > :nth-child(2) { grid-area: verb; }
-  .adAudit__rec { grid-area: rec; }
-  .adAudit__area { display: none; }
-  .adAudit__when { grid-area: meta; }
-  .adAudit__go { grid-area: go; }
+  .adAudit__row:is(:hover, :focus-visible) .adAudit__who { background: var(--ad-panel-2); }
 }
 
-/* The detail view. */
 .adAuditD { display: grid; gap: 1rem; min-width: 0; }
 .adAuditD__facts { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); gap: .75rem; }
 .adAuditD__facts dt { color: var(--ad-dim); font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }

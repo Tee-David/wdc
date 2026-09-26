@@ -36,7 +36,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
   return (
     <>
       <div className="ad__head">
-        <div><h1>Audit log</h1><p>Every change, who made it, and what it was before. Times are Lagos time.</p></div>
+        <div><h1>Audit log</h1><p>Every change, who made it, and what it was before. Times are studio time (UTC+1).</p></div>
         <div className="ad__row">
           <a className="ad__btn" href={`/admin/settings/audit/export?${keep()}`}><Download aria-hidden="true" /> Export CSV</a>
         </div>

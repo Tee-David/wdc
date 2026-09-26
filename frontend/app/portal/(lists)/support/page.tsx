@@ -99,7 +99,7 @@ export default async function PortalSupport({ searchParams }: { searchParams: Pr
         <aside className="ad__panel pSup__aside">
           <span className="ad__tileIcon ad__tileIcon--brand" aria-hidden="true"><Clock /></span>
           <h2>How quickly we reply</h2>
-          <p>Usually the same working day, Monday to Friday, Lagos time. Anything urgent on a live site, say so in the subject.</p>
+          <p>Usually the same working day, Monday to Friday, studio hours (UTC+1). Anything urgent on a live site, say so in the subject.</p>
         </aside>
       </div>
     </div>
