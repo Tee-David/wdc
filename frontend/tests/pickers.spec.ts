@@ -58,11 +58,32 @@ test("the calendar picks a date from the keyboard inside a dialog, and Escape cl
   /* Next month by Page Down, then close with Escape: the dialog stays. */
   await due.click();
   await page.keyboard.press("PageDown");
-  await expect(page.locator(".adCal__head b")).not.toHaveText(/^$/);
+  await expect(page.locator(".adCal__title")).not.toHaveText(/^$/);
   await page.keyboard.press("Escape");
   await expect(grid).toHaveCount(0);
   await expect(dialog).toBeVisible();
   await expect(dialog.locator('input[name="due"]')).toHaveValue(next);
+});
+
+test("the title walks up to months and years, so a date years away is four clicks", async ({ page }) => {
+  await open(page, "/admin/money");
+  await page.getByRole("button", { name: /New invoice/ }).filter({ visible: true }).first().click();
+  const dialog = page.locator("dialog[open]");
+  await dialog.getByLabel(/^Due/).click();
+  const cal = page.locator(".adPick__pop.adCal");
+  await cal.locator(".adCal__title").click();
+  await cal.locator(".adCal__title").click();
+  await cal.getByRole("button", { name: "2024", exact: true }).click();
+  await cal.getByRole("button", { name: "March 2024" }).click();
+  await cal.getByRole("button", { name: /^\w+day, 15 March 2024$/ }).click();
+  await expect(dialog.locator('input[name="due"]')).toHaveValue("2024-03-15");
+  /* Escape from the month view goes back to the days, not out of the picker. */
+  await dialog.getByLabel(/^Due/).click();
+  await cal.locator(".adCal__title").click();
+  await page.keyboard.press("Escape");
+  await expect(cal.getByRole("grid")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeVisible();
 });
 
 test("on a phone the calendar is a sheet with no sideways scroll", async ({ page }) => {
