@@ -4,8 +4,8 @@ import { revalidatePath } from "next/cache";
 import { headObject, mediaKey, presignPut, r2Config } from "@/lib/r2";
 import { rateLimit } from "@/lib/rate-limit";
 import { checkMediaFile, isMediaKey, maxBytesFor, MEDIA_ALT_MAX, MEDIA_TYPES } from "@/lib/media-validate";
-import { mediaById, mediaDatabaseConfigured, recordMedia, setMediaAlt, setMediaArchived, setMediaDetails, type MediaAsset } from "@/lib/media";
-import { createFolder, deleteFolder, FOLDER_COLORS, moveFiles, moveFolder, renameFolder, setFolderColor, type FolderColor } from "@/lib/media-folders";
+import { listMedia, mediaById, mediaDatabaseConfigured, recordMedia, setMediaAlt, setMediaArchived, setMediaDetails, type MediaAsset, type MediaKind } from "@/lib/media";
+import { createFolder, deleteFolder, folderTree, FOLDER_COLORS, moveFiles, moveFolder, renameFolder, setFolderColor, type FolderColor, type FolderTree } from "@/lib/media-folders";
 import { audit } from "./store";
 import { actorName, allow } from "./guard";
 import { FAIL, OK, str, type ActionState } from "./validate";
@@ -318,4 +318,54 @@ export async function archiveMediaMany(input: { ids: string[]; archived: boolean
   } catch { return { ok: false, error: n ? `${n} done, then it stopped. Try the rest again.` : oops }; }
   revalidatePath(PAGE);
   return { ok: true, message: `${input.archived ? "Archived" : "Restored"} ${n} ${n === 1 ? "file" : "files"}.` };
+}
+
+/* -------------------------------------------------------------- the picker */
+
+export type Browsed = { ok: true; items: MediaAsset[]; total: number; tree?: FolderTree } | { ok: false; error: string };
+
+/**
+ * ONE PAGE OF THE LIBRARY FOR THE "CHOOSE MEDIA" DIALOG
+ * (components/admin/media-picker.tsx), which opens inside an editor and so
+ * cannot be a page of its own. The same query the library page runs, narrowed
+ * to what a picker needs; the folder tree comes back on the first call only.
+ */
+export async function browseMedia(input: { q?: string; folder?: string; kind?: string; page?: number; withTree?: boolean }): Promise<Browsed> {
+  const refused = await allow("content");
+  if (refused) return { ok: false, error: refused.message ?? "Sign in again, then retry." };
+  if (!mediaDatabaseConfigured()) return { ok: false, error: "The content database is not connected, so there is no library to choose from." };
+  const kind = (["image", "video", "pdf"] as const).find((k) => k === input?.kind) ?? "";
+  const folder = input?.folder === "unsorted" ? "unsorted" : uuid(input?.folder) ?? "";
+  try {
+    const [page, tree] = await Promise.all([
+      listMedia({ q: String(input?.q ?? "").slice(0, 80), folder, deep: Boolean(folder && folder !== "unsorted"), kind: kind as MediaKind | "", page: Math.max(1, Math.floor(Number(input?.page) || 1)), per: 48 }),
+      input?.withTree ? folderTree() : Promise.resolve(undefined),
+    ]);
+    return { ok: true, items: page.items, total: page.total, tree };
+  } catch {
+    return { ok: false, error: "The library could not be read just now. Try again." };
+  }
+}
+
+/**
+ * A description written in the picker, saved back to the file so the next
+ * place that uses it starts with one. Only the description and "decorative";
+ * each change is an audit line, as in the library's own details.
+ */
+export async function describeMedia(input: { id: string; alt: string; decorative: boolean }): Promise<Said> {
+  const g = await gate(); if ("error" in g) return { ok: false, error: g.error };
+  const id = uuid(input?.id); if (!id) return { ok: false, error: "That file could not be found." };
+  const decorative = Boolean(input?.decorative);
+  const alt = decorative ? "" : String(input?.alt ?? "").replace(/\s+/g, " ").trim();
+  if (alt.length > MEDIA_ALT_MAX) return { ok: false, error: `Keep the description under ${MEDIA_ALT_MAX} characters.` };
+  try {
+    const before = await mediaById(id);
+    if (!before) return { ok: false, error: "That file could not be found." };
+    if (before.alt === alt && before.decorative === decorative) return { ok: true, message: "No change." };
+    await setMediaDetails(id, { filename: before.filename, alt, decorative, caption: before.caption });
+    if (before.alt !== alt) audit({ actor: g.by, kind: "content", subjectId: id, subject: before.filename, action: "changed the alt text", field: "Alt text", from: before.alt || "(none)", to: alt || "(none)" });
+    if (before.decorative !== decorative) audit({ actor: g.by, kind: "content", subjectId: id, subject: before.filename, action: "changed the decorative", field: "Decorative", from: before.decorative ? "yes" : "no", to: decorative ? "yes" : "no" });
+    revalidatePath(PAGE);
+    return { ok: true, message: "Description saved." };
+  } catch { return { ok: false, error: oops }; }
 }
