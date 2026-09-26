@@ -9,7 +9,7 @@ import { paystackMode } from "@/lib/paystack";
 import { SITE_URL } from "@/lib/site";
 import { AdminState } from "@/components/admin/admin-state";
 import { Panel } from "@/components/admin/bits";
-import { CheckNow, CopyReport, ToolButton } from "@/components/admin/settings/system-controls";
+import { ApplyMigrations, CheckNow, CopyReport, ToolButton } from "@/components/admin/settings/system-controls";
 import { version as nextVersion } from "next/package.json";
 import "@/components/admin/forms/forms.css";
 
@@ -35,7 +35,8 @@ const TOOL_ROWS: { tool: ToolName; label: string; what: string; confirm?: string
  * finish, and a report to paste to whoever is helping. The owner's.
  */
 export default async function SystemPage() {
-  if (!can(await adminRole(), "settings")) {
+  const role = await adminRole();
+  if (!can(role, "settings")) {
     return <section className="ad__panel"><AdminState kind="forbidden" back={{ href: "/admin/settings", label: "Back to settings" }} title="System is for the owner" description="How the site is running, and the tools to fix it." /></section>;
   }
   const [probes, migrations, tools, failed, stuck, daily] = await Promise.all([
@@ -86,8 +87,9 @@ export default async function SystemPage() {
             {!migrations.ok ? <p className="ad__dim">The migrations table could not be read: {migrations.error}</p>
               : migrations.pending.length ? (
                 <>
-                  <p>This deploy expects changes the database does not have yet. Run <code>npm run db:migrate</code> against production:</p>
+                  <p>This deploy expects changes the database does not have yet, so the screens that use them fail (media folders, for one). Apply them here, or run <code>npm run db:migrate</code> against production:</p>
                   <ul>{migrations.pending.map((n) => <li key={n}><code>{n}</code></li>)}</ul>
+                  {role === "owner" ? <ApplyMigrations count={migrations.pending.length} /> : <p className="ad__dim">The owner can apply them.</p>}
                 </>
               ) : <p className="ad__dim">All {migrations.files} migrations in this deploy are applied.{migrations.unknown.length ? ` The database also has ${migrations.unknown.length} this deploy does not know, from a newer one.` : ""}</p>}
           </div>

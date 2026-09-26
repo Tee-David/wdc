@@ -1,13 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headObject, mediaKey, presignPut, r2Config } from "@/lib/r2";
+import { deleteObject, headObject, mediaKey, presignPut, r2Config } from "@/lib/r2";
 import { rateLimit } from "@/lib/rate-limit";
 import { checkMediaFile, isMediaKey, maxBytesFor, MEDIA_ALT_MAX, MEDIA_TYPES } from "@/lib/media-validate";
-import { listMedia, mediaById, mediaDatabaseConfigured, recordMedia, setMediaAlt, setMediaArchived, setMediaDetails, type MediaAsset, type MediaKind } from "@/lib/media";
-import { createFolder, deleteFolder, folderTree, FOLDER_COLORS, moveFiles, moveFolder, renameFolder, setFolderColor, type FolderColor, type FolderTree } from "@/lib/media-folders";
+import { deleteMediaRow, listMedia, mediaById, mediaDatabaseConfigured, recordMedia, setMediaAlt, setMediaArchived, setMediaDetails, type MediaAsset, type MediaKind } from "@/lib/media";
+import { createFolder, deleteFolder, folderTree, foldersReady, FOLDER_COLORS, moveFiles, moveFolder, renameFolder, setFolderColor, type FolderColor, type FolderTree } from "@/lib/media-folders";
 import { audit } from "./store";
-import { actorName, allow } from "./guard";
+import { actorName, adminRole, allow } from "./guard";
 import { FAIL, OK, str, type ActionState } from "./validate";
 
 const PAGE = "/admin/settings/media";
@@ -195,14 +195,14 @@ async function archive(fd: FormData, archived: boolean): Promise<ActionState> {
     if (!(await setMediaArchived(id, archived, by))) {
       return OK(archived ? `${filename} was already archived.` : `${filename} was already in the library.`);
     }
-    audit({ actor: by, kind: "content", subjectId: id, subject: filename, action: archived ? "archived from the media library" : "restored to the media library" });
+    audit({ actor: by, kind: "content", subjectId: id, subject: filename, action: archived ? "moved to the Trash in the media library" : "restored to the media library" });
   } catch {
     return FAIL({}, "That could not be saved just now. Try again.");
   }
   /* No revalidatePath: the card this came from leaves the list, so the page
      announces the result first and refreshes after (see MediaGrid). */
   return OK(archived
-    ? `Archived ${filename}. It is out of the library, and its address still works for any page already using it.`
+    ? `Moved ${filename} to the Trash. Its address still works for any page already using it.`
     : `Restored ${filename} to the library.`);
 }
 
@@ -215,9 +215,13 @@ type Said = { ok: true; message: string; id?: string } | { ok: false; error: str
 const uuid = (v: unknown) => (typeof v === "string" && UUID.test(v) ? v : null);
 const ids = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string" && UUID.test(x)).slice(0, 120) : []);
 /* Every folder action is content work, the same permission as uploading. */
-async function gate(): Promise<{ by: string } | { error: string }> {
+async function gate(folders = true): Promise<{ by: string } | { error: string }> {
   const refused = await allow("content");
   if (refused) return { error: refused.message ?? "Sign in again, then retry." };
+  /* Folders arrive with migration 0029. Without it every folder action failed
+     as "could not be saved"; this says what is actually missing, and where
+     the owner applies it. */
+  if (folders && !(await foldersReady())) return { error: "Folders need a database update that has not been applied yet. The owner can apply it in Settings, System, under Database schema." };
   return { by: await actorName() };
 }
 const oops = "That could not be saved just now. Nothing was changed; try again.";
@@ -304,7 +308,7 @@ export async function moveMediaFiles(input: { ids: string[]; folderId: string | 
 
 /** Archive or restore several files at once. Reversible, so no second question beyond the bar's own. */
 export async function archiveMediaMany(input: { ids: string[]; archived: boolean }): Promise<Said> {
-  const g = await gate(); if ("error" in g) return { ok: false, error: g.error };
+  const g = await gate(false); if ("error" in g) return { ok: false, error: g.error };
   const list = ids(input?.ids); if (!list.length) return { ok: false, error: "Choose at least one file." };
   let n = 0;
   try {
@@ -312,12 +316,12 @@ export async function archiveMediaMany(input: { ids: string[]; archived: boolean
       const item = await mediaById(id);
       if (item && (await setMediaArchived(id, Boolean(input.archived), g.by))) {
         n++;
-        audit({ actor: g.by, kind: "content", subjectId: id, subject: item.filename, action: input.archived ? "archived from the media library" : "restored to the media library" });
+        audit({ actor: g.by, kind: "content", subjectId: id, subject: item.filename, action: input.archived ? "moved to the Trash in the media library" : "restored to the media library" });
       }
     }
   } catch { return { ok: false, error: n ? `${n} done, then it stopped. Try the rest again.` : oops }; }
   revalidatePath(PAGE);
-  return { ok: true, message: `${input.archived ? "Archived" : "Restored"} ${n} ${n === 1 ? "file" : "files"}.` };
+  return { ok: true, message: input.archived ? `Moved ${n} ${n === 1 ? "file" : "files"} to the Trash.` : `Restored ${n} ${n === 1 ? "file" : "files"}.` };
 }
 
 /* -------------------------------------------------------------- the picker */
@@ -353,7 +357,7 @@ export async function browseMedia(input: { q?: string; folder?: string; kind?: s
  * each change is an audit line, as in the library's own details.
  */
 export async function describeMedia(input: { id: string; alt: string; decorative: boolean }): Promise<Said> {
-  const g = await gate(); if ("error" in g) return { ok: false, error: g.error };
+  const g = await gate(false); if ("error" in g) return { ok: false, error: g.error };
   const id = uuid(input?.id); if (!id) return { ok: false, error: "That file could not be found." };
   const decorative = Boolean(input?.decorative);
   const alt = decorative ? "" : String(input?.alt ?? "").replace(/\s+/g, " ").trim();
@@ -368,4 +372,36 @@ export async function describeMedia(input: { id: string; alt: string; decorative
     revalidatePath(PAGE);
     return { ok: true, message: "Description saved." };
   } catch { return { ok: false, error: oops }; }
+}
+
+/**
+ * DELETE PERMANENTLY, from the Trash only: a file has to have been moved to
+ * the Trash first, so nothing in the library goes in one click. The owner's
+ * alone. The object goes from the bucket first, then the row; if the bucket
+ * refuses, the row stays so the file can still be found and tried again, and
+ * a second attempt is safe (S3 deletes are idempotent).
+ */
+export async function deleteMediaForever(input: { ids: string[] }): Promise<Said> {
+  const g = await gate(false); if ("error" in g) return { ok: false, error: g.error };
+  if ((await adminRole()) !== "owner") return { ok: false, error: "Deleting files permanently is the owner's." };
+  const list = ids(input?.ids);
+  if (!list.length) return { ok: false, error: "Nothing was chosen." };
+  const config = r2Config();
+  if (!config.ok) return { ok: false, error: `The file store is not configured (${config.missing.join(", ")}), so nothing was deleted.` };
+  let gone = 0;
+  const kept: string[] = [];
+  for (const id of list) {
+    const item = await mediaById(id).catch(() => null);
+    if (!item) continue;
+    if (!item.archivedAt) { kept.push(item.filename); continue; }
+    if (!(await deleteObject({ config: config.config, key: item.key }))) { kept.push(item.filename); continue; }
+    try {
+      await deleteMediaRow(id);
+      gone++;
+      audit({ actor: g.by, kind: "content", subjectId: id, subject: item.filename, action: "deleted a file permanently from the media library", note: item.key });
+    } catch { kept.push(item.filename); }
+  }
+  revalidatePath(PAGE);
+  if (!gone) return { ok: false, error: kept.length ? `Nothing was deleted. ${kept.slice(0, 3).join(", ")}${kept.length > 3 ? " and others" : ""} could not be removed; try again.` : "Those files are no longer there." };
+  return { ok: true, message: `Deleted ${gone} ${gone === 1 ? "file" : "files"} permanently.${kept.length ? ` ${kept.length} could not be removed; try them again.` : ""}` };
 }

@@ -121,7 +121,11 @@ export function Form({
   const keep = useCallback(
     async (prev: ActionState, fd: FormData): Promise<ActionState> => {
       const res = await action(prev, fd);
-      if (res.ok) return res;
+      /* The toast is raised HERE, as the answer arrives, not from an effect
+         after the render that carries it: a form that disappears because it
+         worked (the last pending migration applied, a panel that closes)
+         never runs that effect, and its success went unsaid. */
+      if (res.ok) { if (res.message) toast(res.message); return res; }
       return { ...res, values: snapshot(fd), attempt: (prev.attempt ?? 0) + 1 };
     },
     [action],
@@ -138,7 +142,6 @@ export function Form({
   useEffect(() => {
     if (!state.ok || done.current === state) return;
     done.current = state;
-    if (state.message) toast(state.message);
     if (resetOnDone) ref.current?.reset();
     onDone?.(state);
   }, [state, onDone, resetOnDone]);
