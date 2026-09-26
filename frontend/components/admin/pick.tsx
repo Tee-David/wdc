@@ -337,6 +337,9 @@ export function DateInput({
   const value = held ?? own;
   const [open, setOpen] = useState(false);
   const [cursor, setCursor] = useState("");
+  /* Days to pick a date; months and years to get there fast. The title is the
+     way up (a month, then a decade of years); a choice is the way back down. */
+  const [mode, setMode] = useState<"days" | "months" | "years">("days");
   const trigger = useRef<HTMLButtonElement>(null);
   const hidden = useChangeEvent(value);
   const titleId = useId();
@@ -345,7 +348,12 @@ export function DateInput({
   const { pop, place } = usePopover(open, close, trigger, 300, 420);
 
   const allowed = (iso: string) => (!min || iso >= min) && (!max || iso <= max);
-  const show = () => { setCursor(value || studioToday()); setOpen(true); };
+  const show = () => { setCursor(value || studioToday()); setMode("days"); setOpen(true); };
+  /* The same day in another month or year, clamped (31 March to February is the 28th or 29th). */
+  const jumpTo = (y: number, m: number) => {
+    const last = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+    setCursor(isoOf(y, m, Math.min(at(cursor).getUTCDate(), last)));
+  };
   const pick = (iso: string) => {
     if (iso && !allowed(iso)) return;
     if (held === undefined) setOwn(iso);
@@ -354,11 +362,26 @@ export function DateInput({
     trigger.current?.focus();
   };
 
-  /* The focused day follows the cursor, including across a month change. */
+  /* The focused day (or month, or year) follows the cursor, including across a
+     month change and a change of view. */
   useEffect(() => {
     if (!place || !cursor) return;
-    pop.current?.querySelector<HTMLButtonElement>(`[data-iso="${cursor}"]`)?.focus({ preventScroll: true });
-  }, [cursor, place, pop]);
+    const d = at(cursor);
+    const sel = mode === "days" ? `[data-iso="${cursor}"]` : mode === "months" ? `[data-m="${d.getUTCMonth()}"]` : `[data-y="${d.getUTCFullYear()}"]`;
+    pop.current?.querySelector<HTMLButtonElement>(sel)?.focus({ preventScroll: true });
+  }, [cursor, place, pop, mode]);
+
+  /* Arrows in the month and year grids: four across. */
+  const onPicks = (e: React.KeyboardEvent) => {
+    const step: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -4, ArrowDown: 4 };
+    if (!(e.key in step)) return;
+    e.preventDefault();
+    const d = at(cursor);
+    if (mode === "months") {
+      const n = d.getUTCMonth() + step[e.key];
+      jumpTo(d.getUTCFullYear() + Math.floor(n / 12), ((n % 12) + 12) % 12);
+    } else jumpTo(d.getUTCFullYear() + step[e.key], d.getUTCMonth());
+  };
 
   const onGrid = (e: React.KeyboardEvent) => {
     const moves: Record<string, () => string> = {
@@ -374,7 +397,9 @@ export function DateInput({
     if (moves[e.key]) { e.preventDefault(); setCursor(moves[e.key]()); }
   };
   const onPop = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(); trigger.current?.focus(); }
+    /* Escape backs out of the month or year view first, then closes. */
+    if (e.key === "Escape" && mode !== "days") { e.preventDefault(); e.stopPropagation(); setMode(mode === "years" ? "months" : "days"); }
+    else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(); trigger.current?.focus(); }
     /* Tab stays inside while it is open, like a small dialog. */
     else if (e.key === "Tab") {
       const stops = [...(pop.current?.querySelectorAll<HTMLElement>("button:not([disabled]):not([tabindex='-1'])") ?? [])];
@@ -417,39 +442,102 @@ export function DateInput({
       <Popover place={place} pop={pop} className="adCal" label="Choose a date">
         {view ? (
           <div onKeyDown={onPop}>
-            <div className="adCal__head">
-              <button type="button" className="adCal__nav" aria-label="Previous month" onClick={() => setCursor(addMonths(cursor, -1))}>
-                <ChevronLeft aria-hidden="true" />
-              </button>
-              <b id={titleId} aria-live="polite">{MONTHS[view.getUTCMonth()]} {view.getUTCFullYear()}</b>
-              <button type="button" className="adCal__nav" aria-label="Next month" onClick={() => setCursor(addMonths(cursor, 1))}>
-                <ChevronRight aria-hidden="true" />
-              </button>
-            </div>
-            <table className="adCal__grid" role="grid" aria-labelledby={titleId} onKeyDown={onGrid}>
-              <thead>
-                <tr>{["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((d, i) => <th key={d} scope="col" abbr={DAYS[(i + 1) % 7]}>{d}</th>)}</tr>
-              </thead>
-              <tbody>
-                {weeks.map((w, r) => (
-                  <tr key={r}>
-                    {w.map((iso, c) => iso ? (
-                      <td key={iso} aria-selected={iso === value}>
-                        <button
-                          type="button" data-iso={iso} tabIndex={iso === cursor ? 0 : -1}
-                          className={`adCal__day${iso === value ? " is-on" : ""}${iso === today ? " is-today" : ""}`}
-                          aria-label={longDate(iso)} aria-current={iso === today ? "date" : undefined}
-                          aria-disabled={!allowed(iso) || undefined}
-                          onClick={() => pick(iso)} onFocus={() => iso !== cursor && setCursor(iso)}
-                        >
-                          {Number(iso.slice(8))}
+            {mode === "days" ? (
+              <>
+                <div className="adCal__head">
+                  <button type="button" className="adCal__nav" aria-label="Previous month" onClick={() => setCursor(addMonths(cursor, -1))}>
+                    <ChevronLeft aria-hidden="true" />
+                  </button>
+                  <button type="button" className="adCal__title" id={titleId} aria-live="polite"
+                          aria-label={`${MONTHS[view.getUTCMonth()]} ${view.getUTCFullYear()}. Choose a month or year`}
+                          onClick={() => setMode("months")}>
+                    {MONTHS[view.getUTCMonth()]} {view.getUTCFullYear()} <ChevronDown aria-hidden="true" />
+                  </button>
+                  <button type="button" className="adCal__nav" aria-label="Next month" onClick={() => setCursor(addMonths(cursor, 1))}>
+                    <ChevronRight aria-hidden="true" />
+                  </button>
+                </div>
+                <table className="adCal__grid" role="grid" aria-labelledby={titleId} onKeyDown={onGrid}>
+                  <thead>
+                    <tr>{["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((d, i) => <th key={d} scope="col" abbr={DAYS[(i + 1) % 7]}>{d}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {weeks.map((w, r) => (
+                      <tr key={r}>
+                        {w.map((iso, c) => iso ? (
+                          <td key={iso} aria-selected={iso === value}>
+                            <button
+                              type="button" data-iso={iso} tabIndex={iso === cursor ? 0 : -1}
+                              className={`adCal__day${iso === value ? " is-on" : ""}${iso === today ? " is-today" : ""}`}
+                              aria-label={longDate(iso)} aria-current={iso === today ? "date" : undefined}
+                              aria-disabled={!allowed(iso) || undefined}
+                              onClick={() => pick(iso)} onFocus={() => iso !== cursor && setCursor(iso)}
+                            >
+                              {Number(iso.slice(8))}
+                            </button>
+                          </td>
+                        ) : <td key={`b${c}`} />)}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            ) : mode === "months" ? (
+              <>
+                <div className="adCal__head">
+                  <button type="button" className="adCal__nav" aria-label="Previous year" onClick={() => jumpTo(view.getUTCFullYear() - 1, view.getUTCMonth())}>
+                    <ChevronLeft aria-hidden="true" />
+                  </button>
+                  <button type="button" className="adCal__title" aria-live="polite" aria-label={`${view.getUTCFullYear()}. Choose a year`} onClick={() => setMode("years")}>
+                    {view.getUTCFullYear()} <ChevronDown aria-hidden="true" />
+                  </button>
+                  <button type="button" className="adCal__nav" aria-label="Next year" onClick={() => jumpTo(view.getUTCFullYear() + 1, view.getUTCMonth())}>
+                    <ChevronRight aria-hidden="true" />
+                  </button>
+                </div>
+                <div className="adCal__picks" role="group" aria-label={`Months of ${view.getUTCFullYear()}`} onKeyDown={onPicks}>
+                  {MONTHS.map((name, m) => {
+                    const on = Boolean(value) && at(value).getUTCFullYear() === view.getUTCFullYear() && at(value).getUTCMonth() === m;
+                    return (
+                      <button key={name} type="button" data-m={m} tabIndex={m === view.getUTCMonth() ? 0 : -1}
+                              className={`adCal__pick${on ? " is-on" : ""}${m === view.getUTCMonth() ? " is-here" : ""}`}
+                              aria-label={`${name} ${view.getUTCFullYear()}`} aria-pressed={on}
+                              onClick={() => { jumpTo(view.getUTCFullYear(), m); setMode("days"); }}>
+                        {name.slice(0, 3)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (() => {
+              const start = view.getUTCFullYear() - (view.getUTCFullYear() % 12);
+              return (
+                <>
+                  <div className="adCal__head">
+                    <button type="button" className="adCal__nav" aria-label="Earlier years" onClick={() => jumpTo(view.getUTCFullYear() - 12, view.getUTCMonth())}>
+                      <ChevronLeft aria-hidden="true" />
+                    </button>
+                    <b className="adCal__range" aria-live="polite">{start} – {start + 11}</b>
+                    <button type="button" className="adCal__nav" aria-label="Later years" onClick={() => jumpTo(view.getUTCFullYear() + 12, view.getUTCMonth())}>
+                      <ChevronRight aria-hidden="true" />
+                    </button>
+                  </div>
+                  <div className="adCal__picks" role="group" aria-label="Years" onKeyDown={onPicks}>
+                    {Array.from({ length: 12 }, (_, i) => start + i).map((y) => {
+                      const on = Boolean(value) && at(value).getUTCFullYear() === y;
+                      return (
+                        <button key={y} type="button" data-y={y} tabIndex={y === view.getUTCFullYear() ? 0 : -1}
+                                className={`adCal__pick${on ? " is-on" : ""}${y === view.getUTCFullYear() ? " is-here" : ""}`}
+                                aria-pressed={on}
+                                onClick={() => { jumpTo(y, view.getUTCMonth()); setMode("months"); }}>
+                          {y}
                         </button>
-                      </td>
-                    ) : <td key={`b${c}`} />)}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      );
+                    })}
+                  </div>
+                </>
+              );
+            })()}
             <div className="adCal__foot">
               <button type="button" className="ad__btn ad__btn--plain" disabled={!allowed(studioToday())} onClick={() => pick(studioToday())}>Today</button>
               {clearable && !required && value ? (

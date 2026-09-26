@@ -1717,7 +1717,27 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 /* The month is taller than a list is allowed to be; it scrolls only when the window is shorter still. */
 .adPick__pop.adCal { max-height: calc(100dvh - 16px); overflow-y: auto; overscroll-behavior: contain; }
 .adCal__head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .35rem; }
-.adCal__head b { font-family: var(--font-space-grotesk), var(--font-outfit), sans-serif; font-size: .98rem; }
+.adCal__head b, .adCal__title { font-family: var(--font-space-grotesk), var(--font-outfit), sans-serif; font-size: .98rem; font-weight: 700; }
+/* The title is a button: month, then year, then a dozen years. */
+.adCal__title {
+  min-height: 2.75rem; padding: 0 .75rem; display: inline-flex; align-items: center; gap: .35rem;
+  border: 0; border-radius: 10px; background: transparent; color: var(--ad-ink); cursor: pointer;
+}
+.adCal__title:hover { background: var(--ad-panel-2); }
+.adCal__title svg { width: 1rem; height: 1rem; color: var(--ad-dim); }
+.adCal__title:focus-visible { outline: 2px solid var(--ad-accent-ink); outline-offset: 1px; }
+.dark .adCal__title:focus-visible { outline-color: var(--ad-accent); }
+.adCal__picks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .35rem; padding: .35rem 0 .2rem; animation: ad-fade .16s ease-out backwards; }
+.adCal__pick {
+  min-height: 3rem; border: 0; border-radius: 10px; background: transparent; color: var(--ad-ink);
+  font: 600 .9rem var(--font-outfit), sans-serif; font-variant-numeric: tabular-nums; cursor: pointer;
+  transition: background-color .12s ease;
+}
+.adCal__pick:hover { background: var(--ad-panel-2); }
+.adCal__pick.is-here { box-shadow: inset 0 0 0 1.5px var(--ad-dim); }
+.adCal__pick.is-on, .adCal__pick.is-on:hover { background: var(--ad-fill); color: var(--ad-on-fill); box-shadow: none; }
+.adCal__pick:focus-visible { outline: 2px solid var(--ad-accent-ink); outline-offset: 1px; }
+.dark .adCal__pick:focus-visible { outline-color: var(--ad-accent); }
 .adCal__nav {
   width: 2.75rem; height: 2.75rem; display: grid; place-items: center; border: 0; border-radius: 10px;
   background: transparent; color: var(--ad-ink); cursor: pointer;
@@ -1757,7 +1777,7 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
   .adCal { padding: .2rem 1rem calc(1rem + env(safe-area-inset-bottom)); }
   .adCal__day { max-width: none; }
 }
-@media (prefers-reduced-motion: reduce) { .adPick__pop { animation: none; } .adPick__btn svg, .adCal__day { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .adPick__pop, .adCal__picks { animation: none; } .adPick__btn svg, .adCal__day, .adCal__pick { transition: none; } }
 
 /* THE BULK BAR (ticked rows): one navy line, pinned under the top bar on a
    desktop and floating at the foot of the screen on a phone. */
