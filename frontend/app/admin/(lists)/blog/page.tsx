@@ -101,7 +101,7 @@ export default async function BlogPostsPage({ searchParams }: { searchParams: Pr
               would try to render the CSV as a route. */}
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           {posts ? <a className="ad__btn" href="/admin/blog/export"><Download aria-hidden="true" /> Export CSV</a> : null}
-          {posts ? <Link className="ad__btn ad__btn--primary" href="/admin/blog/new"><FilePlus2 aria-hidden="true" /> New post</Link> : null}
+          {posts ? <Link className="ad__btn ad__btn--primary" href="/admin/blog/new" data-tour="blog-new"><FilePlus2 aria-hidden="true" /> New post</Link> : null}
         </div>
       </div>
       <BlogTabs on="posts" />

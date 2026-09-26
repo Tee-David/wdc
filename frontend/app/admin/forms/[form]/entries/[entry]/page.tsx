@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { r2PublicBase } from "@/lib/r2";
 import { answerText, type Answers, type FileAnswer } from "@/lib/forms/custom-def";
 import { versionDef } from "@/lib/forms/custom";
@@ -196,6 +197,7 @@ export default async function EntryPage({ params, searchParams }: Props) {
           </p>
         </div>
         <div className="ad__row adForms__noPrint">
+          <PageTourButton />
           {/* BOTH, ALWAYS, with where this one sits: a button that vanishes at
               the end of the list reads as a missing feature, not an end. */}
           {ids.length > 1 ? (
@@ -231,10 +233,10 @@ export default async function EntryPage({ params, searchParams }: Props) {
       <div className="adForms__entry">
         <div className="ad__stack">
           <EntryAttachments files={files} />
-          <Answers form={form} entry={entry} hideEmpty={sp.hide === "1"} />
+          <div data-tour="entry-answers"><Answers form={form} entry={entry} hideEmpty={sp.hide === "1"} /></div>
 
           {form.inbox ? (
-            <Panel title="History">
+            <Panel title="History" dataTour="entry-history">
               <AddNote formKey={form.key} id={entry.id} />
               {events.length ? (
                 <ol className="adForms__timeline">
@@ -277,7 +279,7 @@ export default async function EntryPage({ params, searchParams }: Props) {
           </Panel>
 
           {form.source !== "newsletter" ? (
-            <Panel title="Emails about this entry">
+            <Panel title="Emails about this entry" dataTour="entry-emails">
               {mayResend ? <ResendEmail formKey={form.key} id={entry.id} notifications={NOTIFICATIONS[form.source].map((n) => ({ key: n.key, name: n.name }))} /> : null}
               {messages.length ? (
                 <ol className="adForms__timeline">
