@@ -58,7 +58,7 @@
    the "how far in am I" cue a reader registers before they have read a
    word of the step itself. */
 .tourCard__rail { height: 3px; width: 100%; background: var(--ad-line); }
-.tourCard__railFill { height: 100%; border-radius: 0 3px 3px 0; background: var(--ad-accent); }
+.tourCard__railFill { height: 100%; border-radius: 0 3px 3px 0; background: var(--ad-accent-fill); }
 
 .tourCard__body { position: relative; padding: 1.4rem 1.15rem 1.1rem; }
 
@@ -106,11 +106,11 @@
 .tourCard__interactDot {
   position: relative; flex: none; display: grid; place-items: center;
   width: 1.5rem; height: 1.5rem; border-radius: 50%;
-  background: var(--ad-accent); color: #000;
+  background: var(--ad-accent-fill); color: #000;
 }
 .tourCard__interactDot svg { position: relative; width: .85rem; height: .85rem; }
 .tourCard__interactPulse {
-  position: absolute; inset: 0; border-radius: 50%; background: var(--ad-accent);
+  position: absolute; inset: 0; border-radius: 50%; background: var(--ad-accent-fill);
 }
 
 .tourCard__encouragement { margin: .7rem 0 0; font-size: .74rem; font-weight: 600; color: var(--ad-dim); }
