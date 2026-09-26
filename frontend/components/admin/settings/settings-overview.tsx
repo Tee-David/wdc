@@ -13,17 +13,17 @@ export function SettingsOverview({ sections, values }: { sections: SettingsSecti
   const shown = sections.filter((s) => sectionMatches(s, q));
   return (
     <>
-      <label className="adSet__search adSet__search--page">
+      <label className="adSet__search adSet__search--page" data-tour="settings-search">
         <Search aria-hidden="true" />
         <span className="ad__sr">Search settings</span>
         <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search settings" />
       </label>
       <div className="adSet__cards">
-        {SETTINGS_GROUPS.map((g) => {
+        {SETTINGS_GROUPS.filter((g) => shown.some((s) => s.group === g)).map((g, i) => {
           const items = shown.filter((s) => s.group === g);
-          if (!items.length) return null;
           return (
-            <section key={g} className="ad__panel">
+            /* The tour points at the first panel: the column is taller than a screen. */
+            <section key={g} className="ad__panel" data-tour={i === 0 ? "settings-sections" : undefined}>
               <div className="ad__panelH"><h2>{g}</h2></div>
               {items.map((s) => {
                 const Icon = SETTINGS_ICON[s.icon];

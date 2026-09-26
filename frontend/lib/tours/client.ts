@@ -51,7 +51,7 @@ export const CLIENT_WELCOME: TourDef = {
 
 export const CLIENT_WALKTHROUGH: TourDef = {
   id: "client-walkthrough",
-  version: 1,
+  version: 2,
   kind: "walkthrough",
   title: "The full portal walkthrough",
   steps: [
@@ -76,6 +76,7 @@ export const CLIENT_WALKTHROUGH: TourDef = {
     { id: "support", target: '[data-tour="portal-support"]', href: "/portal/support", page: "Support", icon: "inbox", title: "Questions and replies", content: "Start a conversation about anything. We reply here, and you can also reach us by email or on your project's WhatsApp group if we set one up." },
     { id: "nav-settings", target: '[data-tour="portal-nav-settings"]', href: "/portal/support", desktopOnly: true, icon: "settings", interact: { hint: "Click Settings to move on" }, title: "Settings", content: "Open Settings to choose what we email you about." },
     { id: "notify", target: '[data-tour="portal-notify"]', href: "/portal/settings", page: "Settings", icon: "bell", title: "What we email you about", content: "Switch off the messages you do not want. Receipts for money you have paid always arrive, because they are your record." },
+    { id: "signin", target: '[data-tour="portal-signin"]', href: "/portal/settings", icon: "shieldCheck", title: "Your password", content: "Change it here. We email you a six-digit code first, so nobody else can change it for you, and we refuse passwords that have leaked elsewhere." },
     closer("done", "That's everything", "You can replay this any time from the ? button. If anything here is unclear, ask us in Support."),
   ],
 };

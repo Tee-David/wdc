@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { BulkBar, PickAll, RowPick } from "@/components/admin/bulk";
 import { CheckCircle2, Inbox, LifeBuoy, MessageSquare } from "lucide-react";
 import { getClient, getProject, getTicketMessages, getTickets } from "@/lib/admin/store";
@@ -69,9 +70,10 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
           <h1>Support</h1>
           <p>Questions clients ask in their portal. Answer here; they are emailed and see it in the portal.</p>
         </div>
+        <div className="ad__row"><PageTourButton /></div>
       </div>
 
-      <dl className="ad__tiles">
+      <dl className="ad__tiles" data-tour="support-tiles">
         <Tile label="Waiting on us" value={String(counts.Open)} icon={Inbox} iconTone="live" tone={counts.Open ? "accent" : undefined} note={counts.Open ? "The client is waiting for an answer" : "Nobody is waiting"} />
         <Tile label="Answered" value={String(counts.Answered)} icon={MessageSquare} iconTone="good" note="Over to the client" />
         <Tile label="Closed" value={String(counts.Closed)} icon={CheckCircle2} iconTone="neutral" note="Reopens if the client writes again" />
@@ -79,7 +81,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
 
       <div style={{ marginTop: ".9rem" }}>
         <Panel title={filtered ? `${rows.length} of ${all.length} questions` : `${all.length} question${all.length === 1 ? "" : "s"}`}>
-          <div className="ad__filterBar">
+          <div className="ad__filterBar" data-tour="support-filters">
             <form className="ad__filterForm" method="get" action="/admin/clients/support#tickets" aria-label="Filter questions">
               <label className="ad__filterSearch">
                 <span className="ad__sr">Search questions</span>

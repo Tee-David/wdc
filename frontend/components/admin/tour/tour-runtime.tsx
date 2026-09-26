@@ -53,7 +53,17 @@ async function revealTarget(target: string) {
   const bar = tabs && getComputedStyle(tabs).display !== "none" ? tabs.querySelector(".ad__tabsBar") : null;
   const foot = bar ? window.innerHeight - bar.getBoundingClientRect().top : 0;
   const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  await reveal(el, { top: Math.max(0, header), bottom: Math.max(0, foot), room: 200, smooth });
+  const band = { top: Math.max(0, header), bottom: Math.max(0, foot), room: 200 };
+  await reveal(el, { ...band, smooth });
+  /* A step that lands on a fresh page can be revealed while the router is
+     still settling its own scroll, which then nudges the target back under
+     the header. Look again once it has settled, and put it back if so. */
+  for (let i = 0; i < 3; i += 1) {
+    await new Promise((r) => setTimeout(r, 120));
+    const r = el.getBoundingClientRect();
+    if (r.top >= band.top - 1) return;
+    await reveal(el, { ...band, smooth: false });
+  }
 }
 
 export type TourRuntimeProps = {

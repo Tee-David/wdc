@@ -187,8 +187,8 @@ export function LibraryFolders({ tree, current, currentName }: { tree: FolderTre
   const onUpload = disabled ? undefined : (files: FileList, folderId: string | null) => add(files, folderId);
   return (
     <>
-      <aside className="adMedia__pane" aria-label="Folders"><FolderPane tree={tree} current={current} onUpload={onUpload} /></aside>
-      <div className="adMedia__sheetBtn"><FolderSheet tree={tree} current={current} currentName={currentName} onUpload={onUpload} /></div>
+      <aside className="adMedia__pane" aria-label="Folders" data-tour="media-folders"><FolderPane tree={tree} current={current} onUpload={onUpload} /></aside>
+      <div className="adMedia__sheetBtn" data-tour="media-folders-sheet"><FolderSheet tree={tree} current={current} currentName={currentName} onUpload={onUpload} /></div>
     </>
   );
 }
@@ -199,7 +199,7 @@ export function UploadButton() {
   const input = useRef<HTMLInputElement>(null);
   return (
     <>
-      <button type="button" className="ad__btn ad__btn--primary" disabled={Boolean(disabled)} aria-describedby={disabled ? "adMediaOff" : undefined}
+      <button type="button" className="ad__btn ad__btn--primary" data-tour="media-upload" disabled={Boolean(disabled)} aria-describedby={disabled ? "adMediaOff" : undefined}
         onClick={() => input.current?.click()}>
         <Upload aria-hidden="true" /> Upload files
       </button>

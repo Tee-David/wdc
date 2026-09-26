@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { findForm } from "@/lib/forms/find";
 import Link from "next/link";
 import { Pager } from "@/components/admin/pager";
@@ -56,7 +57,7 @@ function query(f: Filters, patch: Partial<Record<keyof Filters, string | number>
 
 function Tabs({ form, current, settings }: { form: FormDef; current: "entries" | "questions" | "settings"; settings: boolean }) {
   return (
-    <nav aria-label={`${form.title} sections`}>
+    <nav aria-label={`${form.title} sections`} data-tour="form-tabs">
       <ul className="adForms__tabs">
         <li><Link href={`/admin/forms/${form.key}`} aria-current={current === "entries" ? "page" : undefined}>Entries</Link></li>
         {form.custom
@@ -137,6 +138,7 @@ export default async function FormPage({ params, searchParams }: Props) {
       </div>
       <div className="ad__row">
         {form.source === "newsletter" && mayConfigure ? <ImportSubscribers /> : null}
+        <PageTourButton />
         <a className="ad__btn" href={form.publicPath} target="_blank" rel="noopener"><ExternalLink aria-hidden="true" /> Open form</a>
       </div>
     </div>
