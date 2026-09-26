@@ -115,40 +115,21 @@
 .adLog__why p { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .adLog__why a { color: var(--ad-accent-ink); font-weight: 600; }
 .adLog__why .ad__pill { flex: none; }
-.adLog { display: grid; min-width: 0; container-type: inline-size; }
-.adLog__head, .adLog__row {
-  display: grid; align-items: center; gap: .9rem;
-  grid-template-columns: 6.5rem minmax(0, 1fr) minmax(6.5rem, .45fr) 3.25rem 7.5rem;
-  padding: .75rem 1.25rem; border-bottom: 1px solid var(--ad-line);
-}
-.adLog__head { color: var(--ad-dim); font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; background: var(--ad-panel-2); }
-.adLog__row:last-child { border-bottom: 0; }
-.adLog__row:hover { background: var(--ad-panel-2); }
-.adLog__row > * { min-width: 0; }
-.adLog .num { text-align: right; font-variant-numeric: tabular-nums; }
-.adLog__when { color: var(--ad-dim); font-size: .85rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.adLog__what { display: grid; gap: .1rem; }
-.adLog__what b { font-weight: 600; overflow-wrap: anywhere; }
-.adLog__to { font-size: .85rem; font-weight: 400; overflow-wrap: anywhere; }
-.adLog__what small, .adLog__state small { display: block; color: var(--ad-dim); font-size: .78rem; overflow-wrap: anywhere; }
-.adLog__state { display: grid; justify-items: start; gap: .2rem; }
-.adLog__act { display: flex; justify-content: flex-end; }
-.adLog__act .ad__btn { white-space: nowrap; }
-/* Folded on the panel's own width, not the window's: beside the Settings
-   menu a 1280px window leaves the panel about 680px. */
-@container (max-width: 620px) {
-  .adLog__head { display: none; }
-  .adLog__row {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: "state when" "what what" "act act";
-    gap: .45rem .75rem; padding: .9rem 1rem;
-  }
-  .adLog__state { grid-area: state; }
-  .adLog__when { grid-area: when; align-self: start; }
-  .adLog__what { grid-area: what; }
-  .adLog__took { display: none; }
-  .adLog__act { grid-area: act; justify-content: flex-start; }
-  .adLog__act:empty { display: none; }
+/* The columns are given widths so a message is one or two lines, not a
+   tower: the message takes the room, the reason gets enough for a sentence,
+   and the table scrolls sideways inside .ad__scroll when the panel is
+   narrower than that. */
+.adLog { min-width: 56rem; }
+.adLog .adLog__when { white-space: nowrap; color: var(--ad-dim); font-variant-numeric: tabular-nums; }
+.adLog .adLog__what { min-width: 24rem; }
+.adLog .adLog__what b { display: block; }
+.adLog .adLog__state { min-width: 13rem; white-space: normal; }
+.adLog .adLog__state small { max-width: 16rem; }
+.adLog .adLog__act { text-align: right; white-space: nowrap; }
+@media (max-width: 720px) {
+  /* Pinned When stays narrow so the message is what the eye lands on. */
+  .ad__scroll > .adLog :is(th, td):first-child { min-width: 6.5rem; max-width: 7rem; white-space: nowrap; }
+  .ad__scroll > .adLog td.adLog__what, .ad__scroll > .adLog td.adLog__state { white-space: normal; }
 }
 @media (max-width: 640px) {
   .adLog__why { flex-direction: column; gap: .5rem; }
