@@ -2,7 +2,7 @@
    /tools: the free tools on the service pages.
 
    Inside `.pv`, so tokens, type and the COLOUR RULE at the top of preview.css
-   all apply: a label on an --accent fill is --on-accent, never white.
+   all apply: a labelled orange fill is --accent-fill with --on-accent (white).
    ========================================================================== */
 
 .pv .tl { display: grid; gap: 1.4rem; max-width: 46rem; }
@@ -341,7 +341,7 @@
 .pv .tl__kindIc svg { width: 18px; height: 18px; display: block; }
 /* On the chosen card the chip inverts to the accent, so the choice is carried
    by the icon as well as by the border. Black on orange, never white. */
-.pv .tl__kind.is-on .tl__kindIc { background: var(--accent); color: var(--on-accent); }
+.pv .tl__kind.is-on .tl__kindIc { background: var(--accent-fill); color: var(--on-accent); }
 
 .pv .tl__kindT {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;

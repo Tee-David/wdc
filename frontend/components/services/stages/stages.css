@@ -169,19 +169,20 @@
    carries white type at the same contrast in both themes, and the badge
    inverts so it is still separable from the row it sits on. */
 .serp__row--you {
-  background: var(--accent);
-  border: 1px solid var(--accent);
+  background: var(--accent-fill);
+  border: 1px solid var(--accent-fill);
+  color: #fff;
 }
 .serp__row--you .serp__n,
 .serp__row--you .serp__txt { color: #fff; font-weight: 600; }
 .serp__row--you .serp__line { background: rgb(255 255 255 / .75); }
-.serp__row--you .serp__badge { background: #fff; color: var(--accent); }
+.serp__row--you .serp__badge { background: #fff; color: var(--accent-fill); }
 .serp__badge {
   margin-left: auto; flex: none;
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .68rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
   padding: 3px 8px; border-radius: 999px;
-  background: var(--accent); color: var(--on-accent);
+  background: var(--accent-fill); color: var(--on-accent);
 }
 @media (max-width: 560px) { .serp__badge { display: none; } }
 
@@ -242,7 +243,7 @@
   border: 1px solid var(--rule); background: transparent; color: var(--muted);
   font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 600; font-size: .8rem;
 }
-.ts__tab.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.ts__tab.is-on { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent); }
 
 .ph {
   /* A grid, not a flex column, so the frame row can be a definite `1fr`: the
@@ -504,7 +505,7 @@
 .sv-tab:hover { color: var(--ink); border-color: var(--accent); }
 .sv-tab:active { transform: translateY(1px); }
 .sv-tab.is-on {
-  background: var(--accent); border-color: var(--accent); color: var(--on-accent);
+  background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent);
 }
 .pv-sec--band .sv-tab { border-color: var(--on-band-rule); color: var(--on-band-dim); }
 .pv-sec--band .sv-tab:hover { color: #fff; }
@@ -999,7 +1000,7 @@
 .cal__new {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 5px 11px; border-radius: 999px;
-  background: var(--accent); color: var(--on-accent);
+  background: var(--accent-fill); color: var(--on-accent);
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .68rem; font-weight: 700; white-space: nowrap;
   transition: transform .16s cubic-bezier(.34, 1.4, .5, 1), box-shadow .16s ease;

@@ -1,12 +1,12 @@
 /* ==========================================================================
    COLOUR RULE — read before adding any brand-coloured surface.
 
-   1. Text on --accent (#ff6500) is ALWAYS --on-accent (#000), 7.11:1. The
-      other two candidates were measured and rejected: white is 2.95:1, which
-      fails even the 3:1 WCAG allows large text, and navy is a COLOURED label
-      on a brand fill, which is the thing this rule exists to stop. Black is
-      the only option that is both neutral and legible.
-      Use the token, never a literal, so this stays one decision in one place.
+   1. Words never sit on the bright --accent (#ff6500): white on it is 2.95:1.
+      An orange fill that carries a label is --accent-fill (#b84a00) with
+      --on-accent (white, 5.23:1), in both themes (the owner's call,
+      2026-09-26; it replaced black on #ff6500). The bright orange is for
+      fills with no words: dots, rules, bars, rings.
+      Use the tokens, never literals, so this stays one decision in one place.
    2. Text on --band (#000065) is ALWAYS #fff, 17.68:1.
    2b. Text on a WHITE fill is ALWAYS black, 21:1.
    2c. ORANGE AS TEXT on a light ground is --accent-ink, not --accent. The
@@ -78,10 +78,10 @@
   --band: #000065;
   --band-2: #10104d;
   --accent: #ff6500;
-  /* The one label colour for any --accent fill. Literal #000, not a theme
-     token: a brand surface is the same colour in both themes, so its type
-     must be too. Deliberately NOT re-declared under `.dark .pv`. */
-  --on-accent: #000;
+  /* An orange fill that carries words is the deep orange with a white label
+     (5.23:1), the same in both themes (globals.css). */
+  --accent-fill: #b84a00;
+  --on-accent: #fff;
   /* Orange AS TEXT on a light ground. Not #ff6500, which is 2.8:1 on white,
      and no longer #b34700, which was 5.50:1 -- a whole stop darker than it
      needed to be, which is why it read as a different, muddier orange beside
@@ -141,6 +141,7 @@ main.pv {
   --band-2: #10104d;
   --accent-ink: #ff6500; /* orange on near-black is 6.9:1, no darkening needed */
   --accent: #b84a00;     /* the dark-mode fill: white on it is 5.23:1 (globals.css) */
+  --accent-fill: #b84a00;
   --on-accent: #fff;
   --ink: #f1f2ff;
   --muted: #9d9ec9;
@@ -1004,7 +1005,7 @@ html:not(.dark) .pv .pv-card {
    (a caption, a footer link, a "field: value" pair). */
 .pv-faq__aside p { color: #fff; font-size: .95rem; }
 .pv-faq__mark {
-  width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: var(--on-accent);
+  width: 56px; height: 56px; border-radius: 50%; background: var(--accent-fill); color: var(--on-accent);
   display: grid; place-items: center;
   font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 700; font-size: 1.4rem;
 }
@@ -1256,7 +1257,7 @@ html:not(.dark) .pv .pv-card {
   width: 15px; height: 15px; fill: none; stroke: currentColor;
   stroke-width: 2.2; stroke-linecap: round;
 }
-.pv-modal__x:hover { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.pv-modal__x:hover { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent); }
 /* ON A PHONE THE CLOSE COMES FIRST. At 390px the bar held the traffic lights,
    the address, two buttons and this, and the cross was the one pushed past the
    panel's edge -- the only way out of the modal, off screen and 34px. The

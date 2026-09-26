@@ -71,7 +71,7 @@
   font-size: .66rem; font-weight: 700;
   transition: background-color .16s ease, color .16s ease, border-color .16s ease;
 }
-.cb__copy:hover { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #000); }
+.cb__copy:hover { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent); }
 .cb__copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 .cb__pre:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }

@@ -365,5 +365,5 @@
   transition: border-color .2s ease, color .2s ease, background .2s ease;
 }
 .nf__cats a:hover {
-  border-color: var(--accent); color: var(--on-accent); background: var(--accent);
+  border-color: var(--accent-fill); color: var(--on-accent); background: var(--accent-fill);
 }

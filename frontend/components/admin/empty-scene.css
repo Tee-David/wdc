@@ -21,7 +21,7 @@
 .es__card > svg { width: 22px; height: 22px; }
 .es__badge {
   position: absolute; top: -9px; right: -9px; width: 22px; height: 22px; border-radius: 50%;
-  display: grid; place-items: center; background: #ff6500; color: #000; animation: es-pulse 3.6s ease-in-out infinite;
+  display: grid; place-items: center; background: var(--ad-tone-live); color: var(--ad-on-live); animation: es-pulse 3.6s ease-in-out infinite;
 }
 .es__badge svg { width: 13px; height: 13px; stroke-width: 3; }
 @keyframes es-drop {
@@ -43,7 +43,7 @@
   animation: es-sweep 3.4s ease-in-out infinite alternate;
 }
 .es__lens > svg { width: 26px; height: 26px; }
-.es__x { position: absolute; right: -6px; bottom: -4px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: #ff6500; color: #000; }
+.es__x { position: absolute; right: -6px; bottom: -4px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--ad-tone-live); color: var(--ad-on-live); }
 .es__x svg { width: 12px; height: 12px; stroke-width: 3; }
 @keyframes es-sweep { 0% { transform: translateX(-22px) rotate(-8deg); } 100% { transform: translateX(22px) rotate(8deg); } }
 

@@ -92,7 +92,7 @@
 .pv .dz__ok {
   flex: none; display: grid; place-items: center;
   width: 1.15rem; height: 1.15rem; border-radius: 50%;
-  background: var(--accent); color: var(--on-accent);
+  background: var(--accent-fill); color: var(--on-accent);
 }
 .pv .dz__ok svg { width: .7rem; height: .7rem; stroke-width: 3.2; }
 @media (prefers-reduced-motion: no-preference) {
