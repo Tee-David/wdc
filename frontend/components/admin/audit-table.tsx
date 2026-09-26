@@ -30,7 +30,7 @@ export function AuditTable({ events, compact = false }: { events: AuditEvent[]; 
           <span>Action</span>
           <span>Record</span>
           {compact ? null : <span>Area</span>}
-          <span>When (Lagos)</span>
+          <span>When</span>
           <span />
         </div>
         {events.map((e) => (
