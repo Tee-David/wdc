@@ -9,6 +9,7 @@ import { randomUUID } from "node:crypto";
 import { mailIsConfigured } from "@/lib/email";
 import { enquiriesAreConfigured, saveEnquiry, settleEnquiry } from "@/lib/enquiries";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
+import { REFUSED_EMAIL_MESSAGE, refusedEmail } from "@/lib/email-domains";
 
 /* THE PLATFORM MUST NOT CUT THE SEND OFF BEFORE OUR OWN TIMEOUTS DO.
 
@@ -45,6 +46,7 @@ export async function POST(request: NextRequest) {
   if (!first || !last || !topic || message.length < 10 || !/^\S+@\S+\.\S+$/.test(email)) {
     return NextResponse.json({ error: "Please complete all required fields with valid details." }, { status: 422 });
   }
+  if (refusedEmail(email)) return NextResponse.json({ error: REFUSED_EMAIL_MESSAGE, field: "email" }, { status: 422 });
   /* THE FORM'S OWN SETTINGS, checked here rather than only on the page, so a
      closed form refuses the POST as well as the visit. A blocked word does
      not refuse: the enquiry is kept in Spam, the visitor is thanked as usual,

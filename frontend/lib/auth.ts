@@ -4,6 +4,7 @@ import { after } from "next/server";
 import { betterAuth } from "better-auth";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { PASSWORD_MIN, passwordProblem } from "@/lib/auth/password-policy";
+import { breachProblem } from "@/lib/auth/breached";
 import { emailOTP, magicLink } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 import { googleAdmission } from "@/lib/auth-google";
@@ -225,6 +226,9 @@ export const auth = betterAuth({
       const next = (ctx.body as { newPassword?: unknown } | undefined)?.newPassword;
       const problem = typeof next === "string" ? passwordProblem(next) : null;
       if (problem) throw new APIError("BAD_REQUEST", { message: problem, code: "PASSWORD_TOO_WEAK" });
+      /* And not one already in a breach list (lib/auth/breached.ts). */
+      const leaked = typeof next === "string" ? await breachProblem(next) : null;
+      if (leaked) throw new APIError("BAD_REQUEST", { message: leaked, code: "PASSWORD_BREACHED" });
     }),
   },
   plugins: [

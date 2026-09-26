@@ -7,6 +7,7 @@ import { formEmail } from "@/lib/forms/emails";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { looksLikeEmail, newsletterIsConfigured, normaliseEmail, subscribe, unsubscribeUrl } from "@/lib/newsletter";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
+import { REFUSED_EMAIL_MESSAGE, refusedEmail } from "@/lib/email-domains";
 
 /* Same ceiling and the same reason as the contact route: this mail server's
    first connection of an instance's life takes about 23 seconds, and a
@@ -64,6 +65,7 @@ export async function POST(request: NextRequest) {
       { status: 422 },
     );
   }
+  if (refusedEmail(email)) return NextResponse.json({ error: REFUSED_EMAIL_MESSAGE }, { status: 422 });
 
   /* THE SOURCE IS CHOSEN FROM A LIST, never taken as typed. It is written to a
      row the studio reads and, further down, interpolated into a mail; a field
