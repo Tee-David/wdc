@@ -3,13 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, CircleAlert, X } from "lucide-react";
 
-type Toast = { id: number; text: string; tone: "good" | "bad" };
+type ToastAction = { label: string; run: () => void };
+type Toast = { id: number; text: string; tone: "good" | "bad"; action?: ToastAction };
 const EVENT = "wdc:toast";
 
 /** Show a toast from anywhere in the admin or the portal. */
-export function toast(text: string, tone: Toast["tone"] = "good") {
+export function toast(text: string, tone: Toast["tone"] = "good", action?: ToastAction) {
   if (typeof window === "undefined" || !text) return;
-  window.dispatchEvent(new CustomEvent<Omit<Toast, "id">>(EVENT, { detail: { text, tone } }));
+  window.dispatchEvent(new CustomEvent<Omit<Toast, "id">>(EVENT, { detail: { text, tone, action } }));
 }
 
 /**
@@ -27,10 +28,11 @@ export function ToastHost() {
 
   useEffect(() => {
     const on = (e: Event) => {
-      const { text, tone } = (e as CustomEvent<Omit<Toast, "id">>).detail;
+      const { text, tone, action } = (e as CustomEvent<Omit<Toast, "id">>).detail;
       const id = ++next.current;
-      setItems((list) => [...list.slice(-2), { id, text, tone }]);
-      timers.current.set(id, window.setTimeout(() => dismiss(id), 4000));
+      setItems((list) => [...list.slice(-2), { id, text, tone, action }]);
+      /* Longer when it offers Undo: there has to be time to reach it. */
+      timers.current.set(id, window.setTimeout(() => dismiss(id), action ? 8000 : 4000));
     };
     const all = timers.current;
     window.addEventListener(EVENT, on);
@@ -46,9 +48,30 @@ export function ToastHost() {
   const release = (id: number) => timers.current.set(id, window.setTimeout(() => dismiss(id), 2500));
 
   if (!items.length) return null;
+  const plain = items.filter((t) => !t.action);
+  const acting = items.filter((t) => t.action);
   return (
+    <>
+    {/* A toast with an action (Undo) is the only record of a way back, so it
+        is announced, and its button is reachable by keyboard. */}
+    {acting.length ? (
+      <div className="adToasts adToasts--acting" role="status">
+        {acting.map((t) => (
+          <div key={t.id} className={`adToast adToast--${t.tone}`}
+               onPointerEnter={() => hold(t.id)} onPointerLeave={() => release(t.id)}
+               onFocus={() => hold(t.id)} onBlur={() => release(t.id)}>
+            <CheckCircle2 aria-hidden="true" />
+            <span>{t.text}</span>
+            <span className="adToast__acts">
+              <button type="button" className="adToast__act" onClick={() => { t.action!.run(); dismiss(t.id); }}>{t.action!.label}</button>
+              <button type="button" className="adToast__x" aria-label="Dismiss" onClick={() => dismiss(t.id)}><X aria-hidden="true" /></button>
+            </span>
+          </div>
+        ))}
+      </div>
+    ) : null}
     <div className="adToasts" aria-hidden="true">
-      {items.map((t) => (
+      {plain.map((t) => (
         <div key={t.id} className={`adToast adToast--${t.tone}`}
              onPointerEnter={() => hold(t.id)} onPointerLeave={() => release(t.id)}>
           {t.tone === "good" ? <CheckCircle2 /> : <CircleAlert />}
@@ -57,5 +80,6 @@ export function ToastHost() {
         </div>
       ))}
     </div>
+    </>
   );
 }

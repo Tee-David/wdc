@@ -3,10 +3,14 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Archive, Check, ChevronDown, Copy, ExternalLink, FileText, Film, ImageIcon, RotateCcw, RotateCw, Save, Trash2, Upload, X,
+  Archive, Check, ChevronDown, Copy, ExternalLink, FileText, Film, FolderInput, ImageIcon, RotateCcw, RotateCw, Save, Trash2, Upload, X,
 } from "lucide-react";
 import { checkMediaFile, MEDIA_ACCEPT, MEDIA_ALT_MAX, readableBytes } from "@/lib/media-validate";
-import { archiveMedia, recordMediaUpload, restoreMedia, saveMediaDetails, signMediaUpload } from "@/lib/admin/media-actions";
+import { archiveMedia, archiveMediaMany, moveMediaFiles, recordMediaUpload, restoreMedia, saveMediaDetails, signMediaUpload } from "@/lib/admin/media-actions";
+import type { FolderTree } from "@/lib/media-folders";
+import { ask } from "./confirm";
+import { DRAG_FILES, FolderPane, FolderSheet, MoveToDialog } from "./media-folders";
+import { toast } from "./toast";
 import type { MediaAsset } from "@/lib/media";
 import { when } from "./bits";
 import { Dialog } from "./dialog";
@@ -18,12 +22,14 @@ type Job = {
   id: number; file: File; name: string; bytes: number;
   state: "waiting" | "sending" | "done" | "failed" | "cancelled";
   pct: number; error?: string; left?: number; xhr?: XMLHttpRequest; attempt: number;
+  /** The folder it goes into; null is Unsorted. */
+  folderId: string | null;
 };
 let seq = 0;
 /** Three at a time: enough to keep a connection busy, few enough that each one finishes. */
 const AT_ONCE = 3;
 
-type Uploads = { add: (files: FileList | File[]) => void; disabled?: string };
+type Uploads = { add: (files: FileList | File[], folderId?: string | null) => void; disabled?: string };
 const UploadCtx = createContext<Uploads>({ add: () => undefined });
 
 /**
@@ -34,7 +40,7 @@ const UploadCtx = createContext<Uploads>({ add: () => undefined });
  * keep working. Pictures and videos are measured first, so the library knows
  * their size without opening them again.
  */
-export function UploadProvider({ disabled, children }: { disabled?: string; children: React.ReactNode }) {
+export function UploadProvider({ disabled, folder = null, children }: { disabled?: string; folder?: string | null; children: React.ReactNode }) {
   const router = useRouter();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [open, setOpen] = useState(true);
@@ -70,7 +76,7 @@ export function UploadProvider({ disabled, children }: { disabled?: string; chil
     });
     if (put === "cancelled") return patch(job.id, { state: "cancelled", xhr: undefined });
     if (put === "failed") return patch(job.id, { state: "failed", xhr: undefined, error: "The file store did not accept it. Try again; if it keeps happening, check the bucket allows uploads from this site." });
-    const recorded = await recordMediaUpload({ key: grant.key, filename: job.file.name, ...dims }).catch(() => null);
+    const recorded = await recordMediaUpload({ key: grant.key, filename: job.file.name, ...dims, folderId: job.folderId }).catch(() => null);
     if (!recorded?.ok) return patch(job.id, { state: "failed", xhr: undefined, error: recorded?.error ?? "The file arrived but could not be listed. Try again." });
     patch(job.id, { state: "done", pct: 100, xhr: undefined, left: 0 });
     router.refresh();
@@ -86,13 +92,15 @@ export function UploadProvider({ disabled, children }: { disabled?: string; chil
     for (const j of next) { started.current.add(`${j.id}:${j.attempt}`); void run(j); }
   }, [jobs, run]);
 
-  const add = useCallback((files: FileList | File[]) => {
+  /* Into the folder being looked at, unless a drop on a folder says otherwise. */
+  const add = useCallback((files: FileList | File[], into?: string | null) => {
     if (disabled) return;
-    const list = Array.from(files).slice(0, 40).map((file) => ({ id: ++seq, file, name: file.name, bytes: file.size, state: "waiting" as const, pct: 0, attempt: 0 }));
+    const target = into === undefined ? folder : into;
+    const list = Array.from(files).slice(0, 40).map((file) => ({ id: ++seq, file, name: file.name, bytes: file.size, state: "waiting" as const, pct: 0, attempt: 0, folderId: target }));
     if (!list.length) return;
     setJobs((all) => [...all, ...list]);
     setOpen(true);
-  }, [disabled]);
+  }, [disabled, folder]);
 
   const done = jobs.filter((j) => j.state === "done").length;
   const failed = jobs.filter((j) => j.state === "failed").length;
@@ -169,6 +177,22 @@ async function measure(file: File): Promise<{ width?: number; height?: number; d
   }
 }
 
+/**
+ * The folder tree beside the files on a wide panel, and a button that opens
+ * it as a sheet on a narrow one; files from the computer dropped on a folder
+ * upload into it.
+ */
+export function LibraryFolders({ tree, current, currentName }: { tree: FolderTree; current: string; currentName: string }) {
+  const { add, disabled } = useContext(UploadCtx);
+  const onUpload = disabled ? undefined : (files: FileList, folderId: string | null) => add(files, folderId);
+  return (
+    <>
+      <aside className="adMedia__pane" aria-label="Folders"><FolderPane tree={tree} current={current} onUpload={onUpload} /></aside>
+      <div className="adMedia__sheetBtn"><FolderSheet tree={tree} current={current} currentName={currentName} onUpload={onUpload} /></div>
+    </>
+  );
+}
+
 /** The head's Upload button. Disabled is solid, with the reason beside it. */
 export function UploadButton() {
   const { add, disabled } = useContext(UploadCtx);
@@ -208,25 +232,96 @@ const kindOf = (t: string) => (t.startsWith("image/") ? "image" : t.startsWith("
 const TYPE_LABEL: Record<string, string> = { image: "Picture", video: "Video", pdf: "PDF" };
 
 /**
- * The files, as a grid of cards or a table, and the details of whichever one
- * is open. Archive and Restore announce here rather than on the card, since
- * their whole effect is that the card leaves this list.
+ * The files, as a grid of cards or a table, the details of whichever one is
+ * open, and what to do with a selection. Tick a file (Shift for a range), or
+ * drag it (and anything else ticked) onto a folder. Archive and Restore
+ * announce here rather than on the card, since their whole effect is that
+ * the card leaves this list.
  */
-export function MediaBrowser({ items, view, empty }: { items: MediaAsset[]; view: "grid" | "list"; empty: React.ReactNode }) {
+export function MediaBrowser({ items, view, empty, tree, archived = false }: {
+  items: MediaAsset[]; view: "grid" | "list"; empty: React.ReactNode; tree: FolderTree; archived?: boolean;
+}) {
   const router = useRouter();
   const [notice, setNotice] = useState("");
   const [open, setOpen] = useState<MediaAsset | null>(null);
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [moving, setMoving] = useState<string[] | null>(null);
+  const [busy, setBusy] = useState(false);
+  const last = useRef<number | null>(null);
   const moved = useCallback((message: string) => { setOpen(null); setNotice(message); router.refresh(); }, [router]);
   const needs = (m: MediaAsset) => kindOf(m.contentType) === "image" && !m.alt && !m.decorative && !m.archivedAt;
+  const folderName = (id: string | null) => (id ? tree.folders.find((f) => f.id === id)?.name ?? "A folder" : "Unsorted");
+
+
+  const tick = (i: number, on: boolean, range: boolean) => {
+    setPicked((was) => {
+      const next = new Set(was);
+      const span = range && last.current !== null ? items.slice(Math.min(last.current, i), Math.max(last.current, i) + 1) : [items[i]];
+      for (const m of span) if (on) next.add(m.id); else next.delete(m.id);
+      return next;
+    });
+    last.current = i;
+  };
+  const dragStart = (e: React.DragEvent, m: MediaAsset) => {
+    const list = picked.has(m.id) ? items.filter((x) => picked.has(x.id)) : [m];
+    e.dataTransfer.setData(DRAG_FILES, JSON.stringify({ ids: list.map((x) => x.id), from: Object.fromEntries(list.map((x) => [x.id, x.folderId])) }));
+    e.dataTransfer.effectAllowed = "move";
+  };
+  /* Only what is on this page counts: a tick left from another page is ignored. */
+  const chosen = items.filter((m) => picked.has(m.id));
+  const moveTo = async (folderId: string | null, list: string[]) => {
+    const from = Object.fromEntries(items.filter((m) => list.includes(m.id)).map((m) => [m.id, m.folderId]));
+    const r = await moveMediaFiles({ ids: list, folderId });
+    if (!r.ok) { toast(r.error, "bad"); return; }
+    setPicked(new Set());
+    toast(r.message, "good", { label: "Undo", run: async () => {
+      const groups = new Map<string | null, string[]>();
+      for (const id of list) groups.set(from[id] ?? null, [...(groups.get(from[id] ?? null) ?? []), id]);
+      for (const [k, v] of groups) await moveMediaFiles({ ids: v, folderId: k });
+      toast("Put back."); router.refresh();
+    } });
+    router.refresh();
+  };
+  const archiveAll = async () => {
+    const n = chosen.length;
+    if (!archived && !(await ask(`Archive ${n} ${n === 1 ? "file" : "files"}? They leave the library; any page already using their addresses keeps working.`, { verb: "Archive" }))) return;
+    setBusy(true);
+    const r = await archiveMediaMany({ ids: chosen.map((m) => m.id), archived: !archived });
+    setBusy(false);
+    if (!r.ok) { toast(r.error, "bad"); return; }
+    setPicked(new Set());
+    setNotice(r.message);
+    router.refresh();
+  };
+  const copy = async () => {
+    const urls = chosen.map((m) => m.url).filter(Boolean).join("\n");
+    try { await navigator.clipboard.writeText(urls); toast(`Copied ${chosen.length} ${chosen.length === 1 ? "address" : "addresses"}.`); }
+    catch { toast("Your browser would not copy them. Open each file to copy its address.", "bad"); }
+  };
+
+  const Tick = ({ m, i }: { m: MediaAsset; i: number }) => (
+    <input type="checkbox" className="adMedia__tick" checked={picked.has(m.id)} aria-label={`Select ${m.filename}`}
+      onChange={() => undefined}
+      onClick={(e) => tick(i, (e.currentTarget as HTMLInputElement).checked, e.shiftKey)} />
+  );
 
   return (
     <>
       <p className={notice ? "ad__msg is-ok adMedia__notice" : "ad__sr adMedia__notice"} role="status">{notice}</p>
+      {items.length ? (
+        <label className="adMedia__all">
+          <input type="checkbox" checked={chosen.length > 0 && chosen.length === items.length}
+            ref={(el) => { if (el) el.indeterminate = chosen.length > 0 && chosen.length < items.length; }}
+            onChange={(e) => setPicked(e.target.checked ? new Set(items.map((m) => m.id)) : new Set())} />
+          Select all {items.length} shown
+        </label>
+      ) : null}
       {!items.length ? empty : view === "grid" ? (
         <ul className="adMedia__grid">
-          {items.map((m) => (
-            <li key={m.id}>
-              <button type="button" className="adMedia__card" onClick={() => setOpen(m)} aria-label={`${m.filename}, open its details`}>
+          {items.map((m, i) => (
+            <li key={m.id} className={picked.has(m.id) ? "is-picked" : undefined} draggable={!m.archivedAt} onDragStart={(e) => dragStart(e, m)}>
+              <Tick m={m} i={i} />
+              <button type="button" className="adMedia__card" onClick={(e) => { if (e.shiftKey || e.metaKey || e.ctrlKey) { tick(i, !picked.has(m.id), e.shiftKey); return; } setOpen(m); }} aria-label={`${m.filename}, open its details`}>
                 <Thumb item={m} />
                 <span className="adMedia__cardBody">
                   <b className="adMedia__name">{m.filename}</b>
@@ -241,17 +336,20 @@ export function MediaBrowser({ items, view, empty }: { items: MediaAsset[]; view
       ) : (
         <div className="ad__scroll">
           <table className="ad__t adMedia__table">
-            <thead><tr><th>File</th><th>Type</th><th>Description</th><th className="num">Size</th><th>Uploaded</th></tr></thead>
+            <thead><tr><th>File</th><th>Folder</th><th>Description</th><th className="num">Size</th><th>Uploaded</th></tr></thead>
             <tbody>
-              {items.map((m) => (
-                <tr key={m.id}>
+              {items.map((m, i) => (
+                <tr key={m.id} className={picked.has(m.id) ? "is-picked" : undefined} draggable={!m.archivedAt} onDragStart={(e) => dragStart(e, m)}>
                   <td>
-                    <button type="button" className="adMedia__rowBtn" onClick={() => setOpen(m)}>
-                      <span className="adMedia__mini"><Thumb item={m} /></span>
-                      <span className="adMedia__rowName">{m.filename}</span>
-                    </button>
+                    <span className="adMedia__rowPick">
+                      <Tick m={m} i={i} />
+                      <button type="button" className="adMedia__rowBtn" onClick={() => setOpen(m)}>
+                        <span className="adMedia__mini"><Thumb item={m} /></span>
+                        <span className="adMedia__rowName">{m.filename}<small>{TYPE_LABEL[kindOf(m.contentType)]}</small></span>
+                      </button>
+                    </span>
                   </td>
-                  <td>{TYPE_LABEL[kindOf(m.contentType)]}</td>
+                  <td>{folderName(m.folderId)}</td>
                   <td className="adMedia__altCell">{m.alt ? m.alt : needs(m) ? <span className="ad__pill ad__pill--warn">Needs a description</span> : m.decorative ? <span className="ad__dim">Decorative</span> : <span className="ad__dim">None</span>}</td>
                   <td className="num">{readableBytes(m.bytes)}</td>
                   <td>{when(m.uploadedAt)}<small>{m.uploadedBy}</small></td>
@@ -261,8 +359,25 @@ export function MediaBrowser({ items, view, empty }: { items: MediaAsset[]; view
           </table>
         </div>
       )}
+
+      {chosen.length ? (
+        <div className="adBulk adMedia__bulk" role="region" aria-label="Selected files">
+          <span className="adBulk__n">{chosen.length} selected</span>
+          {!archived ? <button type="button" className="ad__btn adBulk__btn" onClick={() => setMoving(chosen.map((m) => m.id))}><FolderInput aria-hidden="true" /> <span>Move to…</span></button> : null}
+          <button type="button" className="ad__btn adBulk__btn" onClick={() => void copy()}><Copy aria-hidden="true" /> <span>Copy addresses</span></button>
+          <button type="button" className="ad__btn adBulk__btn" disabled={busy} onClick={() => void archiveAll()}>
+            {archived ? <RotateCcw aria-hidden="true" /> : <Archive aria-hidden="true" />} <span>{archived ? "Restore" : "Archive"}</span>
+          </button>
+          <button type="button" className="ad__btn adBulk__btn" onClick={() => setPicked(new Set())} aria-label="Clear the selection"><X aria-hidden="true" /></button>
+        </div>
+      ) : null}
+
+      <MoveToDialog open={Boolean(moving)} tree={tree} mode="files" onClose={() => setMoving(null)}
+        current={moving && moving.length === 1 ? items.find((m) => m.id === moving[0])?.folderId ?? null : undefined}
+        title={moving ? `Move ${moving.length === 1 ? items.find((m) => m.id === moving[0])?.filename ?? "the file" : `${moving.length} files`} to…` : ""}
+        onPick={(to) => { const list = moving!; setMoving(null); if (open) setOpen(null); void moveTo(to, list); }} />
       <Dialog open={Boolean(open)} onClose={() => setOpen(null)} title={open?.filename ?? "File"} wide>
-        {open ? <Details key={open.id} item={open} onMoved={moved} /> : null}
+        {open ? <Details key={open.id} item={open} onMoved={moved} folder={folderName(open.folderId)} onMove={() => setMoving([open.id])} /> : null}
       </Dialog>
     </>
   );
@@ -270,18 +385,21 @@ export function MediaBrowser({ items, view, empty }: { items: MediaAsset[]; view
 
 function Thumb({ item }: { item: MediaAsset }) {
   const kind = kindOf(item.contentType);
+  /* An address that does not answer (a bucket not yet public, a file gone)
+     shows the picture icon, not the browser's broken-image mark. */
+  const [broken, setBroken] = useState(false);
   return (
     <span className="adMedia__thumb">
-      {kind === "image" && item.url ? (
+      {kind === "image" && item.url && !broken ? (
         /* A plain img: arbitrary uploads on R2's domain, shown as they are. */
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={item.url} alt="" loading="lazy" decoding="async" />
+        <img src={item.url} alt="" loading="lazy" decoding="async" onError={() => setBroken(true)} />
       ) : kind === "video" ? <Film aria-hidden="true" /> : kind === "image" ? <ImageIcon aria-hidden="true" /> : <FileText aria-hidden="true" />}
     </span>
   );
 }
 
-function Details({ item, onMoved }: { item: MediaAsset; onMoved: (message: string) => void }) {
+function Details({ item, onMoved, folder, onMove }: { item: MediaAsset; onMoved: (message: string) => void; folder: string; onMove: () => void }) {
   const kind = kindOf(item.contentType);
   const [decorative, setDecorative] = useState(item.decorative);
   const [alt, setAlt] = useState(item.alt);
@@ -291,6 +409,7 @@ function Details({ item, onMoved }: { item: MediaAsset; onMoved: (message: strin
     ["Size", readableBytes(item.bytes)],
     ...(item.width && item.height ? [["Dimensions", `${item.width} × ${item.height}`] as [string, string]] : []),
     ...(item.durationMs ? [["Length", `${Math.floor(item.durationMs / 60000)}:${String(Math.round(item.durationMs / 1000) % 60).padStart(2, "0")}`] as [string, string]] : []),
+    ["Folder", folder],
     ["Uploaded", `${when(item.uploadedAt)} by ${item.uploadedBy}`],
     ...(item.archivedAt ? [["Archived", `${when(item.archivedAt)}${item.archivedBy ? ` by ${item.archivedBy}` : ""}`] as [string, string]] : []),
   ];
@@ -338,6 +457,7 @@ function Details({ item, onMoved }: { item: MediaAsset; onMoved: (message: strin
           {facts.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
         </dl>
         <div className="adMediaD__tools">
+          {!item.archivedAt ? <button type="button" className="ad__btn" onClick={onMove}><FolderInput aria-hidden="true" /> Move to…</button> : null}
           {item.url ? <CopyUrl url={item.url} /> : null}
           {item.url ? <a className="ad__btn" href={item.url} target="_blank" rel="noopener noreferrer"><ExternalLink aria-hidden="true" /> Open</a> : null}
           {item.archivedAt ? (

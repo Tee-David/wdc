@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { LayoutGrid, List } from "lucide-react";
 import { AdminState } from "@/components/admin/admin-state";
 import { Pager } from "@/components/admin/pager";
-import { DropArea, MediaBrowser, UploadButton, UploadProvider } from "@/components/admin/media-library";
+import { DropArea, LibraryFolders, MediaBrowser, UploadButton, UploadProvider } from "@/components/admin/media-library";
+import { folderTree, type FolderTree } from "@/lib/media-folders";
 import {
   listMedia, MEDIA_KINDS, MEDIA_SORTS, mediaBudgetBytes, mediaDatabaseConfigured, mediaSummary,
   type MediaAsset, type MediaKind, type MediaSort,
@@ -15,7 +16,7 @@ import "@/components/admin/media-library.css";
 export const metadata = { title: "Media" };
 export const dynamic = "force-dynamic";
 
-type Params = { show?: string; q?: string; page?: string; per?: string; kind?: string; sort?: string; month?: string; by?: string; needs?: string; view?: string };
+type Params = { show?: string; q?: string; page?: string; per?: string; kind?: string; sort?: string; month?: string; by?: string; needs?: string; view?: string; folder?: string; deep?: string };
 const PER = [24, 48, 96];
 const SORT_LABEL: Record<MediaSort, string> = { new: "Newest first", old: "Oldest first", name: "Name, A to Z", big: "Largest first" };
 const KIND_LABEL: Record<MediaKind, string> = { image: "Pictures", video: "Videos", pdf: "PDFs" };
@@ -44,7 +45,9 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
   const view = sp.view === "list" ? "list" : "grid";
   const per = PER.includes(Number(sp.per)) ? Number(sp.per) : 48;
   const page = Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1);
-  const state = { show: archived ? "archived" : "", q, kind, sort: sort === "new" ? "" : sort, month, by, needs: needsAlt ? "1" : "", view: view === "grid" ? "" : view, per: per === 48 ? "" : String(per), page: "" };
+  const folder = sp.folder === "unsorted" || /^[0-9a-f-]{36}$/i.test(sp.folder ?? "") ? sp.folder! : "";
+  const deep = sp.deep === "1" && folder !== "" && folder !== "unsorted";
+  const state = { show: archived ? "archived" : "", q, kind, sort: sort === "new" ? "" : sort, month, by, needs: needsAlt ? "1" : "", view: view === "grid" ? "" : view, per: per === 48 ? "" : String(per), page: "", folder, deep: deep ? "1" : "" };
   const href = (patch: Partial<Record<keyof typeof state, string | number>>) => {
     const u = new URLSearchParams();
     for (const [k, v] of Object.entries({ ...state, ...patch })) if (v !== "" && v !== undefined && !(k === "page" && String(v) === "1")) u.set(k, String(v));
@@ -78,10 +81,12 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
   let items: MediaAsset[] = [];
   let total = 0;
   let sum: Awaited<ReturnType<typeof mediaSummary>> | null = null;
+  let tree: FolderTree = { folders: [], unsorted: 0, all: 0 };
   try {
-    [{ items, total }, sum] = await Promise.all([
-      listMedia({ archived, q, page, per, kind, sort, month, by, needsAlt }),
+    [{ items, total }, sum, tree] = await Promise.all([
+      listMedia({ archived, q, page, per, kind, sort, month, by, needsAlt, folder: archived ? "" : folder, deep }),
       mediaSummary(),
+      folderTree(),
     ]);
   } catch {
     sum = null;
@@ -92,12 +97,23 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
      page that exists, rather than an empty library. */
   if (!failed && !items.length && total > 0 && page > 1) redirect(href({ page: Math.ceil(total / per) }));
 
+  /* Where you are: the folder, the folders above it, and the ones inside it. */
+  const current = tree.folders.find((f) => f.id === folder) ?? null;
+  const trail: typeof tree.folders = [];
+  for (let f = current; f; f = tree.folders.find((x) => x.id === f!.parentId) ?? null) trail.unshift(f);
+  const here = {
+    folder: current,
+    trail,
+    name: current ? current.name : folder === "unsorted" ? "Unsorted" : "All files",
+    children: current ? tree.folders.filter((f) => f.parentId === current.id).sort((a, b) => a.position - b.position) : [],
+  };
+
   const budget = mediaBudgetBytes();
   const used = sum ? sum.bytes.image + sum.bytes.video + sum.bytes.pdf + sum.bytes.other : 0;
   const share = (n: number) => `${Math.max(n > 0 ? 0.6 : 0, (n / budget) * 100)}%`;
 
   return (
-    <UploadProvider disabled={failed ? "The library could not be read just now, so uploads are paused." : blocked}>
+    <UploadProvider folder={current ? current.id : null} disabled={failed ? "The library could not be read just now, so uploads are paused." : blocked}>
       <Head>
         <UploadButton />
       </Head>
@@ -131,7 +147,34 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
             <AdminState kind="error" title="The library could not be read"
               description="The database did not answer just now. Nothing was lost; reload in a moment." />
           ) : (
-            <>
+            <div className={`adMedia__body${archived ? " is-flat" : ""}`}>
+              {!archived ? <LibraryFolders tree={tree} current={folder} currentName={here.name} /> : null}
+              <div className="adMedia__main">
+              {!archived && (folder || tree.folders.length) ? (
+                <div className="adMedia__crumbs">
+                  <nav aria-label="Where you are">
+                    <ol>
+                      <li><Link href={href({ folder: "", deep: "", page: 1 })} aria-current={!folder ? "page" : undefined}>All files</Link></li>
+                      {here.trail.map((f, n) => (
+                        <li key={f.id} className={n < here.trail.length - 2 ? "is-far" : undefined}>
+                          <Link href={href({ folder: f.id, page: 1 })} aria-current={f.id === folder ? "page" : undefined}>{f.name}</Link>
+                        </li>
+                      ))}
+                      {folder === "unsorted" ? <li><Link href={href({ folder: "unsorted", page: 1 })} aria-current="page">Unsorted</Link></li> : null}
+                    </ol>
+                  </nav>
+                  {here.folder && here.folder.total > here.folder.own ? (
+                    <Link className={`adMedia__chip${deep ? " is-on" : ""}`} href={href({ deep: deep ? "" : "1", page: 1 })} aria-pressed={deep}>
+                      Include subfolders
+                    </Link>
+                  ) : null}
+                </div>
+              ) : null}
+              {here.children.length ? (
+                <ul className="adMedia__subs" aria-label={`Folders in ${here.name}`}>
+                  {here.children.map((f) => <li key={f.id}><Link href={href({ folder: f.id, deep: "", page: 1 })}>{f.name} <span>{f.total}</span></Link></li>)}
+                </ul>
+              ) : null}
               <form className="adMedia__filters" method="get" action="/admin/settings/media" role="search" aria-label="Find files">
                 {Object.entries(state).filter(([k, v]) => v && !["q", "sort", "month", "by", "page"].includes(k)).map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)}
                 <label className="ad__filterSearch adMedia__q"><span className="ad__sr">Search files</span>
@@ -168,13 +211,26 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
                 </span>
               </div>
 
-              <MediaBrowser items={items} view={view} empty={filtered ? (
+              <MediaBrowser items={items} view={view} tree={tree} archived={archived} empty={filtered ? (
                 <AdminState kind="no-results" title={q ? `No files match “${q}”` : "No files match"}
                   description="Search looks at names, descriptions and captions."
                   action={<Link className="ad__btn" href={href({ q: "", month: "", by: "", needs: "", page: 1 })}>Clear the filters</Link>} />
               ) : archived ? (
                 <AdminState kind="cleared" title="Nothing archived"
                   description="Files you archive land here, and can be put back from here." />
+              ) : here.folder ? (
+                here.folder.total > here.folder.own && !deep ? (
+                  <AdminState kind="cleared" title={`Nothing directly in ${here.folder.name}`}
+                    description={`Its folders hold ${here.folder.total - here.folder.own} ${here.folder.total - here.folder.own === 1 ? "file" : "files"}.`}
+                    action={<Link className="ad__btn" href={href({ deep: "1", page: 1 })}>Show the {here.folder.total - here.folder.own} in subfolders</Link>} />
+                ) : (
+                  <AdminState kind="cleared" title={`${here.folder.name} is empty`}
+                    description={blocked ? "Drag files onto it from All files." : "Upload into it, or drag files onto it from All files."}
+                    action={blocked ? <Link className="ad__btn" href={href({ folder: "", page: 1 })}>Show all files</Link> : <UploadButton />} />
+                )
+              ) : folder === "unsorted" ? (
+                <AdminState kind="cleared" title="Everything is in a folder"
+                  description="New uploads land here until they are moved into one." />
               ) : kind ? (
                 <AdminState kind="cleared" title={`No ${KIND_LABEL[kind].toLowerCase()} yet`}
                   description="Upload one and it shows here."
@@ -188,7 +244,8 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
                 <Pager label="Pages of files" total={total} page={page} per={per} noun="files" perOptions={PER}
                   href={(p) => href({ page: p.page ?? 1, per: p.per ? (p.per === 48 ? "" : p.per) : state.per })} />
               ) : null}
-            </>
+              </div>
+            </div>
           )}
         </section>
       </DropArea>

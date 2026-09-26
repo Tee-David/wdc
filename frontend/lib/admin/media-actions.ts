@@ -5,6 +5,7 @@ import { headObject, mediaKey, presignPut, r2Config } from "@/lib/r2";
 import { rateLimit } from "@/lib/rate-limit";
 import { checkMediaFile, isMediaKey, maxBytesFor, MEDIA_ALT_MAX, MEDIA_TYPES } from "@/lib/media-validate";
 import { mediaById, mediaDatabaseConfigured, recordMedia, setMediaAlt, setMediaArchived, setMediaDetails, type MediaAsset } from "@/lib/media";
+import { createFolder, deleteFolder, FOLDER_COLORS, moveFiles, moveFolder, renameFolder, setFolderColor, type FolderColor } from "@/lib/media-folders";
 import { audit } from "./store";
 import { actorName, allow } from "./guard";
 import { FAIL, OK, str, type ActionState } from "./validate";
@@ -61,7 +62,7 @@ export async function signMediaUpload(input: { filename: string; size: number })
  * honestly rather than left orphaned -- it is in the bucket either way, and a
  * row is how somebody finds it to archive it.
  */
-export async function recordMediaUpload(input: { key: string; filename: string; width?: number; height?: number; durationMs?: number }): Promise<{ ok: true; item: MediaAsset } | { ok: false; error: string }> {
+export async function recordMediaUpload(input: { key: string; filename: string; width?: number; height?: number; durationMs?: number; folderId?: string | null }): Promise<{ ok: true; item: MediaAsset } | { ok: false; error: string }> {
   const refused = await allow("content");
   if (refused) return { ok: false, error: refused.message ?? "Sign in again, then retry." };
 
@@ -97,6 +98,7 @@ export async function recordMediaUpload(input: { key: string; filename: string; 
          space a page reserves, "1600 × 900" in the details), so a lie costs
          nothing; still bounded, so it can never be nonsense in a column. */
       width: dim(input?.width, 20000), height: dim(input?.height, 20000), durationMs: dim(input?.durationMs, 6 * 60 * 60 * 1000),
+      folderId: input?.folderId && UUID.test(input.folderId) ? input.folderId : null,
     });
   } catch {
     return { ok: false, error: "The file arrived but could not be listed just now. Try recording it again." };
@@ -206,3 +208,114 @@ async function archive(fd: FormData, archived: boolean): Promise<ActionState> {
 
 export async function archiveMedia(_prev: ActionState, fd: FormData) { return archive(fd, true); }
 export async function restoreMedia(_prev: ActionState, fd: FormData) { return archive(fd, false); }
+
+/* ------------------------------------------------------------- folders */
+
+type Said = { ok: true; message: string; id?: string } | { ok: false; error: string };
+const uuid = (v: unknown) => (typeof v === "string" && UUID.test(v) ? v : null);
+const ids = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string" && UUID.test(x)).slice(0, 120) : []);
+/* Every folder action is content work, the same permission as uploading. */
+async function gate(): Promise<{ by: string } | { error: string }> {
+  const refused = await allow("content");
+  if (refused) return { error: refused.message ?? "Sign in again, then retry." };
+  return { by: await actorName() };
+}
+const oops = "That could not be saved just now. Nothing was changed; try again.";
+
+export async function createMediaFolder(input: { name: string; parentId: string | null }): Promise<Said> {
+  const g = await gate(); if ("error" in g) return { ok: false, error: g.error };
+  const parent = input?.parentId ? uuid(input.parentId) : null;
+  if (input?.parentId && !parent) return { ok: false, error: "That folder could not be found." };
+  try {
+    const r = await createFolder(String(input?.name ?? ""), parent, g.by);
+    if (!r.ok) return r;
+    audit({ actor: g.by, kind: "content", subjectId: r.id, subject: String(input.name).trim(), action: "created a media folder" });
+    revalidatePath(PAGE);
+    return { ok: true, message: `Created ${String(input.name).trim()}.`, id: r.id };
+  } catch { return { ok: false, error: oops }; }
+}
+
+export async function renameMediaFolder(input: { id: string; name: string }): Promise<Said> {
+  const g = await gate(); if ("error" in g) return { ok: false, error: g.error };
+  const id = uuid(input?.id); if (!id) return { ok: false, error: "That folder could not be found." };
+  try {
+    const r = await renameFolder(id, String(input?.name ?? ""));
+    if (!r.ok) return r;
+    if (r.before !== r.after) audit({ actor: g.by, kind: "content", subjectId: id, subject: r.after, action: "renamed a media folder", field: "Name", from: r.before, to: r.after });
+    revalidatePath(PAGE);
+    return { ok: true, message: `Renamed to ${r.after}.` };
+  } catch { return { ok: false, error: oops }; }
+}
+
+export async function colorMediaFolder(input: { id: string; color: string | null }): Promise<Said> {
+  const g = await gate(); if ("error" in g) return { ok: false, error: g.error };
+  const id = uuid(input?.id); if (!id) return { ok: false, error: "That folder could not be found." };
+  const color = input?.color && (FOLDER_COLORS as readonly string[]).includes(input.color) ? (input.color as FolderColor) : null;
+  try {
+    const r = await setFolderColor(id, color);
+    if (!r.ok) return r;
+    revalidatePath(PAGE);
+    return { ok: true, message: color ? `${r.name} is tagged ${color}.` : `${r.name} has no colour tag.` };
+  } catch { return { ok: false, error: oops }; }
+}
+
+export async function moveMediaFolder(input: { id: string; parentId: string | null; beforeId?: string | null }): Promise<Said> {
+  const g = await gate(); if ("error" in g) return { ok: false, error: g.error };
+  const id = uuid(input?.id); if (!id) return { ok: false, error: "That folder could not be found." };
+  const parent = input?.parentId ? uuid(input.parentId) : null;
+  if (input?.parentId && !parent) return { ok: false, error: "The folder you chose could not be found." };
+  try {
+    const r = await moveFolder(id, parent, input?.beforeId ? uuid(input.beforeId) : null);
+    if (!r.ok) return r;
+    audit({ actor: g.by, kind: "content", subjectId: id, subject: r.name, action: "moved a media folder" });
+    revalidatePath(PAGE);
+    return { ok: true, message: `Moved ${r.name}.` };
+  } catch { return { ok: false, error: oops }; }
+}
+
+export async function deleteMediaFolder(input: { id: string }): Promise<Said> {
+  const g = await gate(); if ("error" in g) return { ok: false, error: g.error };
+  const id = uuid(input?.id); if (!id) return { ok: false, error: "That folder could not be found." };
+  try {
+    const r = await deleteFolder(id);
+    if (!r.ok) return r;
+    audit({ actor: g.by, kind: "content", subjectId: id, subject: r.name, action: "deleted a media folder",
+      note: `${r.files} ${r.files === 1 ? "file" : "files"} and ${r.folders} ${r.folders === 1 ? "folder" : "folders"} moved up` });
+    revalidatePath(PAGE);
+    const bits = [r.files ? `${r.files} ${r.files === 1 ? "file" : "files"}` : "", r.folders ? `${r.folders} ${r.folders === 1 ? "folder" : "folders"}` : ""].filter(Boolean);
+    return { ok: true, message: `Deleted ${r.name}.${bits.length ? ` Its ${bits.join(" and ")} moved up a level.` : ""}` };
+  } catch { return { ok: false, error: oops }; }
+}
+
+/** Files into a folder; null is Unsorted. The address of each file stays the same. */
+export async function moveMediaFiles(input: { ids: string[]; folderId: string | null }): Promise<Said> {
+  const g = await gate(); if ("error" in g) return { ok: false, error: g.error };
+  const list = ids(input?.ids); if (!list.length) return { ok: false, error: "Choose at least one file." };
+  const folder = input?.folderId ? uuid(input.folderId) : null;
+  if (input?.folderId && !folder) return { ok: false, error: "That folder could not be found." };
+  try {
+    const r = await moveFiles(list, folder);
+    if (!r.ok) return r;
+    if (r.moved) audit({ actor: g.by, kind: "content", subjectId: folder ?? "unsorted", subject: r.folder, action: `moved ${r.moved} ${r.moved === 1 ? "file" : "files"} into a media folder` });
+    revalidatePath(PAGE);
+    return { ok: true, message: r.moved ? `Moved ${r.moved} ${r.moved === 1 ? "file" : "files"} to ${r.folder}.` : `Already in ${r.folder}.` };
+  } catch { return { ok: false, error: oops }; }
+}
+
+/** Archive or restore several files at once. Reversible, so no second question beyond the bar's own. */
+export async function archiveMediaMany(input: { ids: string[]; archived: boolean }): Promise<Said> {
+  const g = await gate(); if ("error" in g) return { ok: false, error: g.error };
+  const list = ids(input?.ids); if (!list.length) return { ok: false, error: "Choose at least one file." };
+  let n = 0;
+  try {
+    for (const id of list) {
+      const item = await mediaById(id);
+      if (item && (await setMediaArchived(id, Boolean(input.archived), g.by))) {
+        n++;
+        audit({ actor: g.by, kind: "content", subjectId: id, subject: item.filename, action: input.archived ? "archived from the media library" : "restored to the media library" });
+      }
+    }
+  } catch { return { ok: false, error: n ? `${n} done, then it stopped. Try the rest again.` : oops }; }
+  revalidatePath(PAGE);
+  return { ok: true, message: `${input.archived ? "Archived" : "Restored"} ${n} ${n === 1 ? "file" : "files"}.` };
+}
