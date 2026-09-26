@@ -1791,6 +1791,8 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 .adBulk__n { flex: 1 1 auto; min-width: 0; font-weight: 600; white-space: nowrap; }
 .adBulk__btn { min-height: 2.5rem; padding-inline: .8rem; }
 .adBulk__btn svg { width: .95rem; height: .95rem; }
+/* The one irreversible action in a bulk bar: solid red, white label (5.6:1). */
+.ad .adBulk__btn--danger, .ad .adBulk__btn--danger:hover { background: var(--ad-tone-bad); border-color: var(--ad-tone-bad); color: var(--ad-on-bad); }
 .adBulk__more { position: relative; }
 .adBulk__more > summary { list-style: none; }
 .adBulk__more > summary::-webkit-details-marker { display: none; }

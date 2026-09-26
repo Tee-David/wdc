@@ -3,6 +3,7 @@ import "server-only";
 import fs from "node:fs";
 import path from "node:path";
 import { db } from "@/lib/db/pool";
+import { transaction } from "@/lib/db/transaction";
 
 /**
  * Which migrations are in the code and which the database has applied.
@@ -47,4 +48,35 @@ export async function migrationStatus(opts: { fresh?: boolean } = {}): Promise<M
   }
   cache.__wdcMigrations = { at: Date.now(), value };
   return value;
+}
+
+/**
+ * APPLY WHAT THIS DEPLOY EXPECTS, from Settings › System, the same way
+ * `scripts/migrate.mjs` does: in file order, each file and its record in one
+ * transaction, stopping at the first that fails. It exists because the only
+ * other way was a terminal against production, which is how the media
+ * folders shipped without their table and every folder action said "could
+ * not be saved". Owner-only and audited by the caller.
+ */
+export async function applyPendingMigrations(): Promise<{ applied: string[]; failed?: { name: string; error: string } }> {
+  await db.query("CREATE TABLE IF NOT EXISTS wdc_schema_migrations (name STRING PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL DEFAULT now())");
+  const done = new Set((await db.query<{ name: string }>("SELECT name FROM wdc_schema_migrations")).rows.map((r) => r.name));
+  const dir = path.join(process.cwd(), "db", "migrations");
+  const applied: string[] = [];
+  for (const name of files()) {
+    if (done.has(name)) continue;
+    const sql = fs.readFileSync(path.join(dir, name), "utf8");
+    try {
+      await transaction(async (c) => {
+        await c.query(sql);
+        await c.query("INSERT INTO wdc_schema_migrations (name) VALUES ($1)", [name]);
+      }, 1);
+      applied.push(name);
+    } catch (error) {
+      cache.__wdcMigrations = undefined;
+      return { applied, failed: { name, error: error instanceof Error ? error.message.slice(0, 300) : "failed" } };
+    }
+  }
+  cache.__wdcMigrations = undefined;
+  return { applied };
 }

@@ -2,7 +2,9 @@
 
 import { after } from "next/server";
 import { revalidatePath } from "next/cache";
-import { actorName, allow } from "./guard";
+import { actorName, adminRole, allow } from "./guard";
+import { audit } from "./store";
+import { applyPendingMigrations } from "@/lib/system/migrations";
 import { FAIL, OK, type ActionState } from "./validate";
 import { PROBES, SLOW, runProbe, type ProbeName } from "@/lib/system/probes";
 import { purgeInvitations, retryFailedFormEmails, revalidatePublic, reverifyMedia, TOOLS, type ToolName } from "@/lib/system/tools";
@@ -53,4 +55,28 @@ export async function runTool(_prev: ActionState, fd: FormData): Promise<ActionS
   } catch {
     return FAIL({}, "That could not be run just now. Nothing was changed.");
   }
+}
+
+/**
+ * Bring the database up to this deploy. The owner's alone, asked twice in
+ * the page (it changes the schema), and every file applied is an audit line.
+ */
+export async function applyMigrations(): Promise<ActionState> {
+  const refused = await allow("settings");
+  if (refused) return refused;
+  if ((await adminRole()) !== "owner") return FAIL({}, "Changing the database is the owner's.");
+  const by = await actorName();
+  let r;
+  try { r = await applyPendingMigrations(); } catch (error) {
+    console.error("[migrations] could not start:", error instanceof Error ? error.message : error);
+    return FAIL({}, "The database could not be reached. Nothing was changed.");
+  }
+  for (const name of r.applied) audit({ actor: by, kind: "setting", subjectId: name, subject: "Database schema", action: `applied migration ${name}` });
+  refresh();
+  revalidatePath("/admin", "layout");
+  if (r.failed) {
+    audit({ actor: by, kind: "setting", subjectId: r.failed.name, subject: "Database schema", action: `could not apply migration ${r.failed.name}`, note: r.failed.error });
+    return FAIL({}, `${r.applied.length ? `Applied ${r.applied.length}, then ` : ""}${r.failed.name} failed and was rolled back: ${r.failed.error}`);
+  }
+  return OK(r.applied.length ? `Applied ${r.applied.length} migration${r.applied.length === 1 ? "" : "s"}. The database matches this deploy.` : "Nothing to apply. The database already matches this deploy.");
 }

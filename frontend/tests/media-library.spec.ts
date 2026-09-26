@@ -105,8 +105,8 @@ test.describe("the library screen", () => {
     const card = page.locator(".adMedia__card", { hasText: PDF });
     /* One press, not a retry loop: a second press would find no card. */
     await card.click();
-    await page.getByRole("dialog").getByRole("button", { name: "Archive" }).click();
-    await expect(page.locator(".adMedia__notice")).toHaveText(`Archived ${PDF}. It is out of the library, and its address still works for any page already using it.`, { timeout: 15_000 });
+    await page.getByRole("dialog").getByRole("button", { name: "Move to Trash" }).click();
+    await expect(page.locator(".adMedia__notice")).toHaveText(`Moved ${PDF} to the Trash. Its address still works for any page already using it.`, { timeout: 15_000 });
 
     const archived = await db.query("SELECT archived_at, archived_by FROM media_assets WHERE filename = $1", [PDF]);
     expect(archived.rows[0].archived_at).not.toBeNull();
@@ -122,6 +122,20 @@ test.describe("the library screen", () => {
     await expect(page.locator(".adMedia__notice")).toHaveText(`Restored ${PDF} to the library.`, { timeout: 15_000 });
     const back = await db.query("SELECT archived_at FROM media_assets WHERE filename = $1", [PDF]);
     expect(back.rows[0].archived_at).toBeNull();
+  });
+
+  test("delete permanently asks twice, and keeps the row when the file store will not delete", async ({ page }) => {
+    await db.query("UPDATE media_assets SET archived_at = now(), archived_by = 'E2E' WHERE filename = $1", [PDF]);
+    await sayYes(page);
+    await page.goto("/admin/settings/media?show=archived", { waitUntil: "networkidle" });
+    await page.locator(".adMedia__card", { hasText: PDF }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Delete permanently" }).click();
+    /* The local bucket is a placeholder that answers nothing, so the delete
+       is refused: the row must survive, or the file would be lost to the
+       library while it still sat in the store. */
+    await expect(page.locator(".adToast", { hasText: "Nothing was deleted" })).toBeVisible({ timeout: 20_000 });
+    expect((await db.query("SELECT count(*)::INT AS n FROM media_assets WHERE filename = $1", [PDF])).rows[0].n).toBe(1);
+    await db.query("UPDATE media_assets SET archived_at = NULL, archived_by = NULL WHERE filename = $1", [PDF]);
   });
 
   test("an upload the bucket never received is not listed, whatever the browser says", async ({ page }) => {
