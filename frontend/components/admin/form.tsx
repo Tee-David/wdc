@@ -9,6 +9,7 @@ import { AlertCircle, Check, Loader2 } from "lucide-react";
 import Tip from "@/components/onboarding/tip";
 import type { ActionState, Errors } from "@/lib/admin/validate";
 import { toast } from "./toast";
+import { ask } from "./confirm";
 import { SearchSelect } from "./search-select";
 
 /**
@@ -159,7 +160,15 @@ export function Form({
         action={dispatch}
         className={className}
         noValidate
-        onSubmit={confirm ? (e) => { if (!window.confirm(confirm)) e.preventDefault(); } : undefined}
+        onSubmit={confirm ? (e) => {
+          /* Asked in the shared dialog (./confirm.tsx); a yes submits again
+             from the same button with the question already answered. */
+          const form = e.currentTarget;
+          if (form.dataset.asked === "1") { delete form.dataset.asked; return; }
+          e.preventDefault();
+          const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLElement | null;
+          void ask(confirm).then((ok) => { if (ok) { form.dataset.asked = "1"; form.requestSubmit(submitter as HTMLButtonElement | null); } });
+        } : undefined}
       >
         {children}
         {state.message ? <Result state={state} /> : null}

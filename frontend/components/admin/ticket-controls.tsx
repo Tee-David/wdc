@@ -17,7 +17,7 @@ export function StudioReply({ ticketId }: { ticketId: string }) {
 
 export function TicketStatusButtons({ ticketId, status }: { ticketId: string; status: "Open" | "Answered" | "Closed" }) {
   const move = (to: "Open" | "Answered" | "Closed", label: string, Icon: typeof Send) => (
-    <Form action={setTicketState}>
+    <Form action={setTicketState} confirm={to === "Closed" ? "Close this question? The client sees it as settled. It opens again if either of you writes." : undefined}>
       <Hidden name="id" value={ticketId} />
       <Hidden name="status" value={to} />
       <Submit tone="plain" icon={Icon}>{label}</Submit>

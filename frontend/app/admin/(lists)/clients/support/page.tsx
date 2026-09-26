@@ -100,7 +100,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
             <>
               <BulkBar target="tickets" noun="questions" actions={[
                 { kind: "tickets:Answered", label: "Mark answered", icon: "check" },
-                { kind: "tickets:Closed", label: "Close", icon: "close" },
+                { kind: "tickets:Closed", label: "Close", icon: "close", confirm: "Close {n} questions? Each client sees theirs as settled. Any of them opens again if someone writes." },
                 { kind: "tickets:Open", label: "Reopen", icon: "reopen" },
               ]} />
             <div className="ad__scroll" id="tickets">

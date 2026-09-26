@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Archive, Check, Loader2, Mail, MoreHorizontal, RotateCcw, Send, Trash2, X, type LucideIcon } from "lucide-react";
 import { runBulk } from "@/lib/admin/bulk-actions";
 import { toast } from "./toast";
+import { ask } from "./confirm";
 
 const ICONS: Record<string, LucideIcon> = { check: Check, close: X, archive: Archive, mail: Mail, reopen: RotateCcw, publish: Send, trash: Trash2 };
 
@@ -65,7 +66,7 @@ export function BulkBar({ target, noun, actions, more = [] }: {
   };
 
   const run = async (a: Omit<BulkAction, "icon">) => {
-    if (a.confirm && !window.confirm(a.confirm.replace("{n}", String(ids.length)))) return;
+    if (a.confirm && !(await ask(a.confirm.replace("{n}", String(ids.length))))) return;
     setBusy(a.kind);
     const r = await runBulk(a.kind, ids).catch(() => null);
     setBusy(null);

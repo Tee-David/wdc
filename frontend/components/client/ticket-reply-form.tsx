@@ -18,7 +18,7 @@ export function TicketReplyForm({ ticketId, closed }: { ticketId: string; closed
 /** Settle the question from the client's side. Writing again reopens it. */
 export function CloseTicketButton({ ticketId }: { ticketId: string }) {
   return (
-    <Form action={closeMyTicket} className="pConv__close">
+    <Form action={closeMyTicket} className="pConv__close" confirm="Close this conversation? We will take it that you have what you needed. Writing again opens it back up.">
       <Hidden name="ticketId" value={ticketId} />
       <Submit tone="plain" icon={CheckCircle2}>Close conversation</Submit>
     </Form>
