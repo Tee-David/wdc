@@ -225,6 +225,45 @@ export function presignRequest({
   return { url, publicUrl, key, expiresIn };
 }
 
+/**
+ * A LINK THAT READS ONE PRIVATE OBJECT, for a limited time: how the admin
+ * opens a file a client uploaded, without the bucket being public. Only the
+ * host is signed (a browser following a link cannot send a content-type), and
+ * `download` asks R2 to send it as an attachment under that name.
+ */
+export function presignGet({ config, key, expiresIn = 3600, download }: {
+  config: R2Config; key: string; expiresIn?: number; download?: string;
+}) {
+  const host = `${config.accountId}.r2.cloudflarestorage.com`;
+  const now = new Date();
+  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
+  const dateStamp = amzDate.slice(0, 8);
+  const scope = `${dateStamp}/${REGION}/${SERVICE}/aws4_request`;
+  const canonicalUri = `/${uriEncode(config.bucket, false)}/${uriEncode(key, false)}`;
+  const query: Array<[string, string]> = [
+    ["X-Amz-Algorithm", "AWS4-HMAC-SHA256"],
+    ["X-Amz-Credential", `${config.accessKeyId}/${scope}`],
+    ["X-Amz-Date", amzDate],
+    ["X-Amz-Expires", String(expiresIn)],
+    ["X-Amz-SignedHeaders", "host"],
+  ];
+  if (download) {
+    /* A quoted ASCII name plus the RFC 5987 form, so any name survives. */
+    const ascii = download.replace(/[^\x20-\x7e]/g, "_").replace(/["\\]/g, "_");
+    query.push(["response-content-disposition", `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(download)}`]);
+  }
+  const canonicalQuery = query
+    .map(([k, v]) => [uriEncode(k), uriEncode(v)] as const)
+    .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
+    .map(([k, v]) => `${k}=${v}`)
+    .join("&");
+  const canonicalRequest = ["GET", canonicalUri, canonicalQuery, `host:${host}\n`, "host", "UNSIGNED-PAYLOAD"].join("\n");
+  const stringToSign = ["AWS4-HMAC-SHA256", amzDate, scope, sha256(canonicalRequest)].join("\n");
+  const signingKey = hmac(hmac(hmac(hmac(`AWS4${config.secretAccessKey}`, dateStamp), REGION), SERVICE), "aws4_request");
+  const signature = createHmac("sha256", signingKey).update(stringToSign).digest("hex");
+  return `https://${host}${canonicalUri}?${canonicalQuery}&X-Amz-Signature=${signature}`;
+}
+
 /** The PUT case, which is every real upload. Kept as its own name because
     that is what every call site outside this file means. */
 export function presignPut(args: {

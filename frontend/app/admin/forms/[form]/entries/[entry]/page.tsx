@@ -19,6 +19,8 @@ import { AddNote, EntryState, ResendEmail } from "@/components/admin/forms/entry
 import { NOTIFICATIONS } from "@/lib/forms/settings";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
+import { EntryAttachments } from "@/components/admin/forms/entry-attachments";
+import { customFiles, onboardingFiles, type EntryFile } from "@/lib/onboarding-files";
 import "@/components/admin/forms/forms.css";
 
 type Props = {
@@ -146,6 +148,23 @@ function Answers({ form, entry, hideEmpty }: { form: FormDef; entry: Entry; hide
   );
 }
 
+/** What the client uploaded, from whichever kind of form it came in on. */
+async function entryFiles(form: FormDef, entry: Entry): Promise<EntryFile[]> {
+  if (form.source === "onboarding" && form.service) {
+    const fields = stepsFor(form.service).flatMap((st) => st.fields).filter((f) => f.kind === "upload").map((f) => ({ key: f.key, label: f.label }));
+    return onboardingFiles(entry.id, entry.answers, fields);
+  }
+  if (form.source === "custom") {
+    const def = await versionDef(form.key, entry.version ?? 0);
+    const answers = entry.answers as unknown as Answers;
+    return customFiles((def?.fields ?? []).flatMap((f) => {
+      const a = answers[f.id];
+      return Array.isArray(a) && a.length && typeof a[0] === "object" ? (a as FileAnswer[]).map((x) => ({ question: f.label, key: x.key, name: x.name, size: x.size })) : [];
+    }));
+  }
+  return [];
+}
+
 const KIND: Record<EntryEvent["kind"], string> = { note: "Note", state: "Changed", email: "Email", client: "Client" };
 
 export default async function EntryPage({ params, searchParams }: Props) {
@@ -176,6 +195,7 @@ export default async function EntryPage({ params, searchParams }: Props) {
   const link = (x: string) => `/admin/forms/${form.key}/entries/${x}${inList && listQuery ? `?${listQuery}` : ""}`;
   const client = form.source === "newsletter" ? null : clientFor(entry);
   const mayResend = can(await adminRole(), "settings");
+  const files = await entryFiles(form, entry).catch(() => [] as EntryFile[]);
 
   return (
     <>
@@ -219,6 +239,7 @@ export default async function EntryPage({ params, searchParams }: Props) {
 
       <div className="adForms__entry">
         <div className="ad__stack">
+          <EntryAttachments files={files} />
           <Answers form={form} entry={entry} hideEmpty={sp.hide === "1"} />
 
           {form.inbox ? (
