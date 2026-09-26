@@ -11,17 +11,11 @@ import {
   ClipboardList,
   FolderKanban,
   Globe,
-  House,
-  Images,
   LayoutDashboard,
-  LayoutGrid,
   LogOut,
-  MessagesSquare,
   Moon,
   Newspaper,
   PanelLeft,
-  LifeBuoy,
-  Scale,
   Search,
   Settings,
   Sun,
@@ -34,7 +28,7 @@ import { can, NAV_AREA, type AdminRole } from "@/lib/admin/permissions";
 import { WdcMark } from "@/components/brand/logo";
 import TourLauncher from "./tour/tour-launcher";
 import TableScroll from "./table-scroll";
-import { BottomSheet, TabBar } from "./tab-bar";
+import { MenuButton, NavDrawer, useNavDrawer } from "./nav-drawer";
 import { SideProfile, SideTourCard } from "./side-foot";
 import { initialsOf, keepFocusInside } from "./focus";
 import { ToastHost } from "./toast";
@@ -85,20 +79,6 @@ const NAV: NavItem[] = [
      (lib/settings/sections.ts), and a second copy of twelve links in the
      sidebar would be the same list twice. */
   { href: "/admin/settings", label: "Settings", Icon: Settings, group: "general", tour: "nav-settings" },
-];
-
-/* The phone's bar: the four places visited daily, then More. */
-const TABS = ["/admin", "/admin/clients", "/admin/projects", "/admin/money"];
-
-/* What More holds on a phone, in the order a studio reaches for it. */
-const MORE: { href: string; label: string; hint: string; Icon: typeof Users; count?: string; area: string }[] = [
-  { href: "/admin/forms", label: "Forms", hint: "Briefs and enquiries", Icon: ClipboardList, count: "Forms", area: "/admin/forms" },
-  { href: "/admin/blog", label: "Blog", hint: "Posts and drafts", Icon: Newspaper, count: "Blog", area: "/admin/blog" },
-  { href: "/admin/clients/support", label: "Support", hint: "Client questions", Icon: LifeBuoy, area: "/admin/clients" },
-  { href: "/admin/money/reconciliation", label: "Reconciliation", hint: "Payments to check", Icon: Scale, area: "/admin/money" },
-  { href: "/admin/settings", label: "Settings", hint: "Studio and site", Icon: Settings, area: "/admin/settings" },
-  { href: "/admin/settings/faq", label: "FAQ", hint: "Questions on the site", Icon: MessagesSquare, area: "/admin/blog" },
-  { href: "/admin/settings/media", label: "Media", hint: "Images and files", Icon: Images, area: "/admin/blog" },
 ];
 
 /* The pages this role may open. A courtesy, not the permission: every write
@@ -477,40 +457,6 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
   );
 }
 
-function MoreSheet({ counts, onClose }: { counts: Record<string, number>; onClose: () => void }) {
-  const path = usePathname();
-  const router = useRouter();
-  const theme = useThemeSwitch();
-  const role = useAdminRole();
-  const more = MORE.filter((m) => allowed(role, m.area));
-  return (
-    <BottomSheet title="More" onClose={onClose}>
-      <nav className="ad__moreGrid" aria-label="More sections">
-        {more.map(({ href, label, hint, Icon, count }) => {
-          const n = count ? counts[count] ?? 0 : 0;
-          const on = isActive(href, path) && !MORE.some((m) => m.href !== href && m.href.startsWith(href + "/") && isActive(m.href, path));
-          return (
-            <Link key={href} href={href} onClick={onClose} className={`ad__moreTile${on ? " is-on" : ""}`} aria-current={on ? "page" : undefined}>
-              <span className="ad__moreIcon" aria-hidden="true"><Icon /></span>
-              <b>{label}</b>
-              <small>{hint}</small>
-              {n > 0 ? <span className="ad__count" aria-label={`${n} waiting`}>{n > 99 ? "99+" : n}</span> : null}
-            </Link>
-          );
-        })}
-      </nav>
-      <div className="ad__moreList">
-        <button type="button" onClick={theme.toggle} disabled={!theme.mounted}>
-          {theme.dark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
-          {theme.dark ? "Switch to light theme" : "Switch to dark theme"}
-        </button>
-        <Link href="/" onClick={onClose}><Globe aria-hidden="true" /> Back to website</Link>
-        <button type="button" className="ad__moreOut" onClick={() => signOut(router)}><LogOut aria-hidden="true" /> Sign out</button>
-      </div>
-    </BottomSheet>
-  );
-}
-
 export default function AdminShell({ children, counts = {}, user, role = "owner" }: { children: ReactNode; counts?: Record<string, number>; user: AdminUser; role?: AdminRole }) {
   return (
     <RoleContext.Provider value={role}>
@@ -521,15 +467,13 @@ export default function AdminShell({ children, counts = {}, user, role = "owner"
 
 function ShellFrame({ children, counts, user }: { children: ReactNode; counts: Record<string, number>; user: AdminUser }) {
   const path = usePathname();
-  const nav = useNav();
   const [pinnedCollapsed, setPinnedCollapsed] = useState(false);
   const [hoverExpanded, setHoverExpanded] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
+  const drawer = useNavDrawer();
   const active = NAV.find((item) => isActive(item.href, path));
   const parent = parentOf(path);
   const visuallyCollapsed = pinnedCollapsed && !hoverExpanded;
-  const closeMore = useCallback(() => setMoreOpen(false), []);
   const closeCommand = useCallback(() => setCommandOpen(false), []);
 
   useEffect(() => {
@@ -558,27 +502,6 @@ function ShellFrame({ children, counts, user }: { children: ReactNode; counts: R
     });
   }
 
-  const inMore = !TABS.some((href) => isActive(href, path));
-  const tabs = [
-    ...nav.filter((item) => TABS.includes(item.href)).map((item) => ({
-      label: item.href === "/admin" ? "Home" : item.label,
-      Icon: item.href === "/admin" ? House : item.Icon,
-      href: item.href,
-      active: !moreOpen && !inMore && isActive(item.href, path),
-      count: counts[item.label],
-      tour: `tab-${item.label.toLowerCase()}`,
-    })),
-    {
-      label: "More",
-      Icon: LayoutGrid,
-      active: moreOpen || inMore,
-      count: (counts.Forms ?? 0) + (counts.Blog ?? 0) || undefined,
-      onSelect: () => setMoreOpen(true),
-      expanded: moreOpen,
-      tour: "tab-more",
-    },
-  ];
-
   return (
     <div className={`ad__wrap${pinnedCollapsed ? " is-collapsed" : ""}`}>
       <aside
@@ -591,8 +514,9 @@ function ShellFrame({ children, counts, user }: { children: ReactNode; counts: R
 
       <div className="ad__column">
         <header className="ad__topbar">
-          {/* On a phone: back to the page above, or the mark on a section's
-              front page. The desktop has the sidebar for both. */}
+          {/* On a phone: the menu (the sidebar, in a drawer), then back to the
+              page above or the mark on a section's front page. */}
+          <MenuButton onClick={drawer.show} expanded={drawer.open} tour="mobile-menu" />
           {parent ? (
             <Link href={parent} className="ad__topIcon ad__topBack" aria-label="Back"><ArrowLeft aria-hidden="true" /></Link>
           ) : (
@@ -618,8 +542,9 @@ function ShellFrame({ children, counts, user }: { children: ReactNode; counts: R
         <ConfirmHost />
       </div>
 
-      <TabBar items={tabs} label="Admin sections" tour="mobile-menu" />
-      {moreOpen ? <MoreSheet counts={counts} onClose={closeMore} /> : null}
+      <NavDrawer open={drawer.open} onClose={drawer.hide} label="Admin menu" tools={<ThemeButton />}>
+        <Sidebar counts={counts} user={user} />
+      </NavDrawer>
       {commandOpen ? <CommandPalette onClose={closeCommand} /> : null}
     </div>
   );

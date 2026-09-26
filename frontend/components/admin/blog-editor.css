@@ -135,7 +135,7 @@
   box-shadow: 0 18px 40px -16px rgb(0 0 40 / .45);
 }
 @media (max-width: 900px) {
-  .adBlog__restore { bottom: calc(6.75rem + env(safe-area-inset-bottom)); }
+  .adBlog__restore { bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
 }
 
 /* THE COVER: a 16:10 preview beside an upload button and the built-in list;
