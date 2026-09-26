@@ -112,10 +112,6 @@ function beforeAfter(text: string) {
   return { before: text.slice(0, at), after: text.slice(at) };
 }
 
-/* Six on arrival, which is two full rows at every width the grid has, and
-   three on a phone, where one column of six is a long way down; the rest
-   behind one button rather than a moving marquee nobody can pause. */
-const QUOTES_SHOWN = 6;
 
 /* Two letters, from words that actually start with one. Real client names
    carry punctuation as separate tokens -- "TAB — The Ajoks Brand", "Millcon &
@@ -185,7 +181,7 @@ function Icon({ slug, delay }: { slug: string; delay: number }) {
 
 export default function PreviewBody({ faqs = FAQS }: { faqs?: Faq[] }) {
   const [active, setActive] = useState(0);
-  const [allQuotes, setAllQuotes] = useState(false);
+  const [quotesPaused, setQuotesPaused] = useState(false);
   const track = useRef<HTMLDivElement | null>(null);
   const pinWrap = useRef<HTMLDivElement | null>(null);
   const pinTrack = useRef<HTMLDivElement | null>(null);
@@ -622,35 +618,52 @@ export default function PreviewBody({ faqs = FAQS }: { faqs?: Faq[] }) {
               Founders and teams who care about speed, clarity and results.
             </p>
           </div>
-          <ul className="pv-quotes pv-reveal" id="pv-quotes">
-            {QUOTES.map((t, i) => (
-              <li key={t.n} hidden={!allQuotes && i >= QUOTES_SHOWN || undefined}
-                data-phone-more={!allQuotes && i >= 3 || undefined}>
-                <figure className="pv-tcard">
-                  <blockquote>
-                    <p>&ldquo;{t.before}<em>{t.after}</em>&rdquo;</p>
-                  </blockquote>
-                  <figcaption className="pv-tcard__by">
-                    <span className="pv-tcard__av" aria-hidden="true">{initials(t.n)}</span>
-                    <span className="pv-tcard__who"><b>{t.n}</b><span>{t.r}</span></span>
-                    {t.href ? (
-                      <a className="pv-tcard__case" href={t.href} aria-label={`${t.n} case study`}>
-                        Case study <span aria-hidden="true">&rarr;</span>
-                      </a>
-                    ) : null}
-                  </figcaption>
-                </figure>
-              </li>
-            ))}
-          </ul>
-          {QUOTES.length > QUOTES_SHOWN ? (
-            <div className="pv-quotes__more">
-              <button type="button" className="pv-btn pv-btn--line" aria-controls="pv-quotes" aria-expanded={allQuotes}
-                onClick={() => setAllQuotes((v) => !v)}>
-                {allQuotes ? "Show fewer" : `Read all ${QUOTES.length}`}
+          {/* A MARQUEE AGAIN (the owner's ask), with what made the last one
+              fail fixed: a real Pause button (WCAG 2.2.2, and the only pause
+              a phone has), a pause on hover and on keyboard focus, stopped
+              off screen, and still under reduced motion, where the rows
+              become a swipeable strip. The quotes are split across the two
+              rows, so each is read once; the copy that makes the loop
+              seamless is hidden from screen readers and from Tab. */}
+          <div className={`pv-marqs pv-reveal${quotesPaused ? " is-paused" : ""}`}>
+            <div className="pv-marqs__bar">
+              <button type="button" className="pv-marqs__pause" aria-pressed={quotesPaused}
+                onClick={() => setQuotesPaused((v) => !v)}>
+                {quotesPaused
+                  ? <><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" /></svg> Play</>
+                  : <><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" /></svg> Pause</>}
+                <span className="sr-only"> the moving testimonials</span>
               </button>
             </div>
-          ) : null}
+            {[QUOTES.slice(0, Math.ceil(QUOTES.length / 2)), QUOTES.slice(Math.ceil(QUOTES.length / 2))].map((row, r) => (
+              <div className={`pv-marq${r ? " pv-marq--rev" : ""}`} key={r}>
+                <div className="pv-mtrack">
+                  {[0, 1].map((dup) => (
+                    <ul className="pv-mgroup" key={dup} aria-hidden={dup === 1 || undefined} inert={dup === 1 || undefined}>
+                      {row.map((t) => (
+                        <li key={t.n}>
+                          <figure className="pv-tcard">
+                            <blockquote>
+                              <p>&ldquo;{t.before}<em>{t.after}</em>&rdquo;</p>
+                            </blockquote>
+                            <figcaption className="pv-tcard__by">
+                              <span className="pv-tcard__av" aria-hidden="true">{initials(t.n)}</span>
+                              <span className="pv-tcard__who"><b>{t.n}</b><span>{t.r}</span></span>
+                              {t.href ? (
+                                <a className="pv-tcard__case" href={t.href} aria-label={`${t.n} case study`}>
+                                  Case study <span aria-hidden="true">&rarr;</span>
+                                </a>
+                              ) : null}
+                            </figcaption>
+                          </figure>
+                        </li>
+                      ))}
+                    </ul>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
