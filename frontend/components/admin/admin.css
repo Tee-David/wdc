@@ -376,6 +376,7 @@
 .ad__sheetBody > * { flex-shrink: 0; }
 /* Back to top belongs to the page, not to a sheet laid over it. */
 body:has(.ad__sheetLayer) .st { display: none; }
+@media (max-width: 640px) { body:has(.ad__range[open]) .st { display: none; } }
 .ad__moreGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
 .ad__moreGrid .ad__moreTile {
   position: relative; min-width: 0; min-height: 6.25rem; padding: .9rem;
@@ -1488,7 +1489,10 @@ a.ad__pgBtn:hover { background: var(--ad-panel-2); border-color: var(--ad-dim); 
 /* On a phone the range opens as a sheet held above the tab bar, so it can
    never hang off either edge of the screen. */
 @media (max-width: 640px) {
-  .ad__rangeMenu, .ad__range--end .ad__rangeMenu {
+  /* Doubled class on purpose: the filter bars and the form entries toolbar
+     place the desktop menu with `top`, from a stronger selector, and a fixed
+     sheet pinned at both top and bottom collapsed to 2px on every phone. */
+  .ad__range .ad__rangeMenu.ad__rangeMenu {
     position: fixed; left: .75rem; right: .75rem; top: auto; width: auto;
     bottom: calc(5.75rem + env(safe-area-inset-bottom));
     max-height: calc(100dvh - 10rem); overflow-y: auto; overscroll-behavior: contain;
