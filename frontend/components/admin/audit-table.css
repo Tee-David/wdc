@@ -1,0 +1,68 @@
+/* The audit table (components/admin/audit-table.tsx). A grid of rows that are
+   buttons: the whole row opens the detail, so there is no hover-only link. */
+.adAudit { display: grid; min-width: 0; }
+.adAudit__head, .adAudit__row {
+  display: grid; align-items: center; gap: .8rem;
+  grid-template-columns: minmax(7.5rem, 1fr) 6.5rem minmax(10rem, 2.2fr) minmax(5.5rem, .8fr) 7.5rem 1.25rem;
+  padding: .7rem 1.25rem;
+}
+.adAudit__row.is-compact, .adAudit__head:has(+ .is-compact) { grid-template-columns: minmax(7rem, 1fr) 6.5rem minmax(9rem, 2fr) 7.5rem 1.25rem; }
+.adAudit__head {
+  border-bottom: 1px solid var(--ad-line); color: var(--ad-dim);
+  font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+}
+.adAudit__row {
+  width: 100%; min-height: 3.5rem; border: 0; border-bottom: 1px solid var(--ad-line); background: none;
+  color: inherit; font: inherit; text-align: left; cursor: pointer;
+}
+.adAudit__row:hover, .adAudit__row:focus-visible { background: var(--ad-panel-2); }
+.adAudit__row:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: -2px; }
+.adAudit__who { display: flex; align-items: center; gap: .55rem; min-width: 0; }
+.adAudit__who b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: .9rem; }
+.adAudit__av {
+  flex: none; width: 2rem; height: 2rem; display: grid; place-items: center; border-radius: 999px;
+  background: var(--ad-tone-brand); color: var(--ad-on-brand); font: 700 .72rem var(--font-space-grotesk), system-ui, sans-serif;
+}
+.adAudit__rec { display: grid; min-width: 0; }
+.adAudit__rec b { font-weight: 600; font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adAudit__rec small { color: var(--ad-dim); font-size: .8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adAudit__area, .adAudit__when { color: var(--ad-dim); font-size: .85rem; font-variant-numeric: tabular-nums; }
+.adAudit__go { display: inline-flex; align-items: center; justify-content: flex-end; gap: .2rem; color: var(--ad-dim); font-size: .8rem; font-weight: 600; }
+.adAudit__go svg { width: 1rem; height: 1rem; flex: none; }
+.adAudit__go span { display: none; }
+.adAudit__row:is(:hover, :focus-visible) .adAudit__go svg { transform: translateX(2px); }
+.adAudit__go svg { transition: transform .15s ease; }
+
+/* Phones: each event is a card; the chevron stays, the head goes. */
+@media (max-width: 760px) {
+  .adAudit__head { display: none; }
+  .adAudit__row, .adAudit__row.is-compact {
+    grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "who verb" "rec rec" "meta go";
+    gap: .45rem .75rem; padding: .9rem 1rem;
+  }
+  .adAudit__who { grid-area: who; }
+  .adAudit__row > :nth-child(2) { grid-area: verb; }
+  .adAudit__rec { grid-area: rec; }
+  .adAudit__area { display: none; }
+  .adAudit__when { grid-area: meta; }
+  .adAudit__go { grid-area: go; }
+}
+
+/* The detail view. */
+.adAuditD { display: grid; gap: 1rem; min-width: 0; }
+.adAuditD__facts { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); gap: .75rem; }
+.adAuditD__facts dt { color: var(--ad-dim); font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.adAuditD__facts dd { margin: .25rem 0 0; font-weight: 600; overflow-wrap: anywhere; }
+.adAuditD__facts code { font-size: .78rem; padding: .05rem .35rem; border-radius: 6px; background: var(--ad-panel-2); border: 1px solid var(--ad-line); font-weight: 500; }
+.adAuditD__diff del { color: var(--ad-bad-ink, #b3261e); }
+.adAuditD__diff ins { color: var(--ad-good-ink, #15803d); text-decoration: none; font-weight: 600; }
+.adAuditD__diff :is(td, th) { white-space: normal; overflow-wrap: anywhere; vertical-align: top; }
+.adAuditD__note { margin: 0; color: var(--ad-dim); }
+.adAuditD__raw { border-radius: 12px; overflow: hidden; background: #0e0e2c; color: #ecebf5; }
+.adAuditD__rawBar { display: flex; justify-content: space-between; align-items: center; gap: .75rem; padding: .5rem .5rem .5rem 1rem; border-bottom: 1px solid #26264c; font-size: .82rem; color: #b4b4cc; }
+.adAuditD__raw pre { margin: 0; padding: 1rem; max-height: 18rem; overflow: auto; font: .78rem/1.6 ui-monospace, "SF Mono", Menlo, Consolas, monospace; white-space: pre; }
+.adAuditD__raw pre:focus-visible { outline: 2px solid #ff6500; outline-offset: -2px; }
+.adAuditD .adAuditD__copy { min-height: 2.5rem; background: #fff; color: #0e0e2c; border-color: #fff; }
+.adAuditD__acts { display: flex; justify-content: flex-end; }
+.adAuditD__acts .ad__btn { min-height: 44px; }
+@media (prefers-reduced-motion: reduce) { .adAudit__go svg { transition: none; } }

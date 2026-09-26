@@ -139,7 +139,7 @@ export async function updateClient(_prev: ActionState, fd: FormData): Promise<Ac
   }
 
   const before = db.getClient(id)?.email ?? "";
-  if (!db.patchClient(id, draft)) return FAIL({}, "That client is no longer there.");
+  if (!db.patchClient(id, draft, await actorName())) return FAIL({}, "That client is no longer there.");
 
   /* A NEW ADDRESS WITHDRAWS THE OLD INVITATION. It would make an account for
      the old address, which the portal no longer matches to this client. The
@@ -513,7 +513,7 @@ export async function reversePayment(_prev: ActionState, fd: FormData): Promise<
   if (!reason) {
     return FAIL({ reason: "Say why. A reversal with no reason cannot be explained later." });
   }
-  if (!db.reversePayment(id, reason, str(fd, "by") || "Studio")) {
+  if (!db.reversePayment(id, reason, str(fd, "by") || await actorName())) {
     return FAIL({}, "That payment is already reversed, or is no longer there.");
   }
 
@@ -887,7 +887,7 @@ export async function resolveEvent(_prev: ActionState, fd: FormData): Promise<Ac
   const id = str(fd, "id");
   const note = str(fd, "note");
   if (!note) return FAIL({ note: "Say what was done. A tick with nothing beside it explains nothing later." });
-  if (!db.resolveProviderEvent(id, note, str(fd, "by") || "Studio")) {
+  if (!db.resolveProviderEvent(id, note, str(fd, "by") || await actorName())) {
     return FAIL({}, "That one has already been dealt with, or is no longer there.");
   }
   refresh("/admin/money", "/admin/money/reconciliation");
@@ -910,7 +910,7 @@ export async function matchEventToInvoice(_prev: ActionState, fd: FormData): Pro
   if (refused) return refused;
   const id = str(fd, "id");
   const invoiceId = str(fd, "invoiceId");
-  const by = str(fd, "by") || "Studio";
+  const by = str(fd, "by") || await actorName();
 
   const event = db.getProviderEvent(id);
   if (!event) return FAIL({}, "That event is no longer there.");
@@ -961,7 +961,7 @@ export async function emailInvoice(_prev: ActionState, fd: FormData): Promise<Ac
   if (inv.voided) return FAIL({}, "This invoice has been struck, so there is nothing to send. Raise a new one.");
 
   const { sendInvoiceEmail } = await import("@/lib/money-mail");
-  const sent = await sendInvoiceEmail({ invoice: inv, by: str(fd, "by") || "Studio" });
+  const sent = await sendInvoiceEmail({ invoice: inv, by: str(fd, "by") || await actorName() });
   refresh("/admin/money", `/admin/money/${id}`);
   if (sent.sent) return OK("Sent, with the pay link on it.");
   return FAIL({}, sent.reason === "already sent"
@@ -984,7 +984,7 @@ export async function emailReminder(_prev: ActionState, fd: FormData): Promise<A
   if (invoiceTotals(inv).due <= 0) return FAIL({}, "There is nothing outstanding on it.");
 
   const { sendInvoiceReminderEmail } = await import("@/lib/money-mail");
-  const sent = await sendInvoiceReminderEmail({ invoice: inv, by: str(fd, "by") || "Studio" });
+  const sent = await sendInvoiceReminderEmail({ invoice: inv, by: str(fd, "by") || await actorName() });
   refresh("/admin/money", `/admin/money/${id}`);
   if (sent.sent) return OK("Reminder sent.");
   return FAIL({}, sent.reason === "opted out"
@@ -1038,7 +1038,7 @@ export async function resendMessage(_prev: ActionState, fd: FormData): Promise<A
   persistSoon();
   const refused = await owner();
   if (refused) return refused;
-  const m = await retryLogged(str(fd, "id"), str(fd, "by") || "Studio");
+  const m = await retryLogged(str(fd, "id"), str(fd, "by") || await actorName());
   if (!m) return FAIL({}, "That one did not fail, or is no longer there.");
   refresh("/admin/money", "/admin/clients");
   return OK("Cleared for another attempt. The failed row stays as the record that the first try did not go.");
@@ -1062,7 +1062,7 @@ export async function voidInvoice(_prev: ActionState, fd: FormData): Promise<Act
   const reason = str(fd, "reason");
   if (!reason) return FAIL({ reason: "Say why. A struck invoice with no reason cannot be explained later." });
 
-  const res = db.voidInvoice(id, reason, str(fd, "by") || "Studio");
+  const res = db.voidInvoice(id, reason, str(fd, "by") || await actorName());
   if (!res.ok) {
     return FAIL({}, {
       missing: "That invoice is no longer there.",
@@ -1101,7 +1101,7 @@ export async function refundPayment(_prev: ActionState, fd: FormData): Promise<A
   const res = db.refundPayment({
     paymentId, amount: amount!, reason, toCredit,
     reference: str(fd, "reference"),
-    actor: str(fd, "by") || "Studio",
+    actor: str(fd, "by") || await actorName(),
   });
 
   if (!res.ok) {
@@ -1130,7 +1130,7 @@ export async function overpaymentToCredit(_prev: ActionState, fd: FormData): Pro
   const refused = await owner();
   if (refused) return refused;
   const id = str(fd, "id");
-  const res = db.overpaymentToCredit(id, str(fd, "by") || "Studio");
+  const res = db.overpaymentToCredit(id, str(fd, "by") || await actorName());
   if (!res.ok) {
     return FAIL({}, {
       missing: "That invoice is no longer there.",
@@ -1153,7 +1153,7 @@ export async function applyCredit(_prev: ActionState, fd: FormData): Promise<Act
   const invoiceId = str(fd, "invoiceId");
   if (!invoiceId) return FAIL({ invoiceId: "Pick the invoice it should come off." });
 
-  const res = db.applyCredit(creditId, invoiceId, str(fd, "by") || "Studio");
+  const res = db.applyCredit(creditId, invoiceId, str(fd, "by") || await actorName());
   if (!res.ok) {
     return FAIL({}, {
       missing: "That credit is no longer there.",
@@ -1208,7 +1208,7 @@ export async function createEstimate(_prev: ActionState, fd: FormData): Promise<
     notes: str(fd, "notes") || undefined,
     terms: str(fd, "terms") || undefined,
     state: str(fd, "send") === "1" ? "Sent" : "Draft",
-  }, str(fd, "by") || "Studio");
+  }, str(fd, "by") || await actorName());
 
   refresh("/admin/money", `/admin/clients/${clientId}`);
   return OK(est.state === "Sent"
@@ -1221,7 +1221,7 @@ export async function sendEstimate(_prev: ActionState, fd: FormData): Promise<Ac
   persistSoon();
   const refused = await owner();
   if (refused) return refused;
-  const est = db.sendEstimate(str(fd, "id"), str(fd, "by") || "Studio");
+  const est = db.sendEstimate(str(fd, "id"), str(fd, "by") || await actorName());
   if (!est) return FAIL({}, "That one is no longer a draft, or is no longer there.");
   refresh("/admin/money", `/admin/clients/${est.clientId}`);
   return OK(`${est.number} is out. Send the client the link and the price holds until it expires.`);
@@ -1270,7 +1270,7 @@ export async function duplicateEstimate(_prev: ActionState, fd: FormData): Promi
   persistSoon();
   const refused = await owner();
   if (refused) return refused;
-  const copy = db.duplicateEstimate(str(fd, "id"), str(fd, "by") || "Studio");
+  const copy = db.duplicateEstimate(str(fd, "id"), str(fd, "by") || await actorName());
   if (!copy) return FAIL({}, "That estimate is no longer there.");
   refresh("/admin/money", `/admin/clients/${copy.clientId}`);
   return OK(`Copied to ${copy.number} as a draft. Change what needs changing, then send it.`);
@@ -1283,7 +1283,7 @@ export async function duplicateInvoice(_prev: ActionState, fd: FormData): Promis
   if (refused) return refused;
   /* The copy's due date comes from the saved default, so load it first. */
   await hydrateSettings();
-  const copy = db.duplicateInvoice(str(fd, "id"), str(fd, "by") || "Studio");
+  const copy = db.duplicateInvoice(str(fd, "id"), str(fd, "by") || await actorName());
   if (!copy) return FAIL({}, "That invoice is no longer there.");
   refresh("/admin/money", `/admin/clients/${copy.clientId}`);
   return OK(`Copied to ${copy.number} as a draft, due on your default terms. Change what needs changing, then issue it.`);
