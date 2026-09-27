@@ -23,6 +23,8 @@ import { getAppSetting } from "@/lib/app-settings";
 export const SITE_NOINDEX_KEY = "site.noindex";
 export const SITE_DESCRIPTION_KEY = "site.description";
 export const SITE_SEO_TAG = "site-seo";
+/** The default link-preview picture (Settings > Website and SEO); empty is the drawn mark. */
+export const SITE_SOCIAL_IMAGE_KEY = "site.socialImage";
 
 /** 140 characters. The previous one ran past 230, so search results cut it mid-sentence. */
 export const DEFAULT_DESCRIPTION =
@@ -33,18 +35,20 @@ export const DESCRIPTION_MAX = 160;
 
 export type Noindex = { on: boolean; since?: string; by?: string };
 
-export type SiteSeo = { noindex: Noindex; description: string; customDescription: boolean };
+export type SiteSeo = { noindex: Noindex; description: string; customDescription: boolean; socialImage: string };
 
 export const siteSeo = unstable_cache(async (): Promise<SiteSeo> => {
-  const [noindex, description] = await Promise.all([
+  const [noindex, description, socialImage] = await Promise.all([
     getAppSetting<Noindex>(SITE_NOINDEX_KEY, { on: false }),
     getAppSetting<string>(SITE_DESCRIPTION_KEY, ""),
+    getAppSetting<string>(SITE_SOCIAL_IMAGE_KEY, ""),
   ]);
   const custom = typeof description === "string" && description.trim().length >= DESCRIPTION_MIN;
   return {
     noindex: noindex && typeof noindex === "object" && noindex.on === true ? noindex : { on: false },
     description: custom ? description.trim() : DEFAULT_DESCRIPTION,
     customDescription: custom,
+    socialImage: typeof socialImage === "string" ? socialImage : "",
   };
 /* NO TIME-BASED REVALIDATE. Any `revalidate` here becomes every public
    page's ISR interval (a 3600 made the whole site regenerate hourly); the

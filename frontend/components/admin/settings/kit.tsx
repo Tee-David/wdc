@@ -30,6 +30,8 @@ import "./settings.css";
 
 type Ping = () => void;
 const Dirty = createContext<Ping>(() => {});
+/** For a control that is state rather than an input: call it after a change so the bar counts it. */
+export const useDirtyPing = () => useContext(Dirty);
 
 function serial(form: HTMLFormElement) {
   const m = new Map<string, string>();
