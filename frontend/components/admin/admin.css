@@ -366,7 +366,9 @@ body:has(.adDrawer[open]) .st { display: none; }
   .ad__topActions { margin-left: 0; gap: .35rem; }
   .ad__themeBtn, .ad__topRule, .ad__accountText, .ad__accountChev { display: none; }
   .ad__account { padding: .25rem; }
-  .ad__main { padding-bottom: calc(2rem + env(safe-area-inset-bottom)); }
+  /* Room under the last button for the back-to-top button that floats there
+     (components/ui/scroll-top.tsx), so it never sits over Save or Preview. */
+  .ad__main { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)); }
   .ad__topMenu { display: grid; place-items: center; flex: none; }
 }
 @media (max-width: 380px) {
@@ -806,9 +808,13 @@ body:has(.adDrawer[open]) .st { display: none; }
 }
 .ad__check:hover { border-color: var(--ad-accent); }
 .ad__check input { accent-color: var(--ad-accent); margin: 0; }
+/* CHOSEN IS SOLID, never a wash (AGENTS.md): the card lifts to the panel's
+   own second ground and takes a two-pixel edge in the primary fill. It was a
+   12% orange tint, which read as peach on a phone. */
 .ad__check:has(input:checked) {
-  border-color: var(--ad-accent);
-  background: color-mix(in srgb, var(--ad-accent) 12%, var(--ad-panel));
+  border-color: var(--ad-fill);
+  box-shadow: inset 0 0 0 1px var(--ad-fill);
+  background: var(--ad-panel-2);
   color: var(--ad-ink); font-weight: 600;
 }
 .ad__check:has(input:focus-visible) { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
@@ -1636,7 +1642,7 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
    Left alone: buttons in a table, the pager, tabs and menus, which are
    sized by what sits beside them. */
 @media (max-width: 640px) {
-  .ad :is(form, .ad__row, .adDash__attentionActions, .cpDeliv__acts, .ad__panelFoot, .ad__profileActions) .ad__btn:not(.ad__iconButton):not(:is(td, .ad__pager, .ad__switch, .ad__tabsNav, .ad__rmList, .ad__filterBar, .ad__range, .adBulk, .adEntryActs) .ad__btn) {
+  .ad :is(form, .ad__row, .adDash__attentionActions, .cpDeliv__acts, .ad__panelFoot, .ad__profileActions) .ad__btn:not(.ad__iconButton):not(:is(td, .ad__pager, .ad__switch, .ad__tabsNav, .ad__rmList, .ad__filterBar, .ad__range, .adBulk, .adEntryActs, .adCover__acts) .ad__btn) {
     flex: 1 1 12rem; width: 100%; justify-content: center;
   }
   .ad :is(form, .ad__panelFoot) > .ad__btn { width: 100%; }
@@ -1897,3 +1903,8 @@ td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
 /* Settings › System: the migrations waiting, then room before the button. */
 .adSys__pending { margin: .6rem 0 0; padding-left: 1.1rem; display: grid; gap: .3rem; overflow-wrap: anywhere; }
 .adSys__apply { margin-top: 1.1rem; }
+
+/* A panel's padded body. Shared, so it lives here: it was declared only in the
+   Settings stylesheet, and "New form" (which uses it too) had its fields
+   running into the panel's edges. */
+.adSetPad { padding: 1rem 1.25rem 1.25rem; display: grid; gap: 1rem; }

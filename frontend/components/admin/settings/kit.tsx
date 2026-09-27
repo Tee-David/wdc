@@ -5,6 +5,9 @@ import { useFormStatus } from "react-dom";
 import { Loader2 } from "lucide-react";
 import type { ActionState } from "@/lib/admin/validate";
 import { Form, Hidden, useFormErrors, useKept, Wrap } from "@/components/admin/form";
+/* The kit brings its own styles: it is used outside Settings too (New form), where
+   settings.css was not loaded and the "/f/" prefix fell onto its own line. */
+import "./settings.css";
 
 /**
  * THE SETTINGS KIT (the Settings canvas: dashboard redesign). Every section is
