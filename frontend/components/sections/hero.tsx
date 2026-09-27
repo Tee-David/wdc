@@ -231,7 +231,7 @@ export function Hero() {
           className="hero-rise mb-5 inline-flex rounded-full bg-black/30 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] text-white backdrop-blur-[2px] [text-shadow:0_1px_10px_rgba(0,0,0,0.5)]"
         >
           ...brilliant simplicity{" "}
-          <b className="ml-[0.4em] font-bold text-secondary">of thought!</b>
+          <b className="ml-[0.4em] font-bold text-[var(--accent-ink)]">of thought!</b>
         </p>
 
         {/* THE ENTRANCE IS A CSS ANIMATION, NOT A JAVASCRIPT ONE, and this is

@@ -106,6 +106,11 @@
   --on-band: #eef0ff;
   --on-band-dim: #a9abd8;
   --on-band-rule: rgba(255, 255, 255, 0.16);
+  /* ORANGE AS TEXT ON THE BAND, in both themes. The band is dark in both, so
+     it takes the bright orange: 5.99:1 on #000065, 6.37:1 on the dark band.
+     `--accent` is #b84a00 in dark mode (a fill for white words) and is only
+     3.60:1 as type there, which is how the eyebrows went grey-orange. */
+  --on-band-accent: #ff6500;
   --maxw: 1280px;
 
   /* THE ROOM A CARD NEEDS ABOVE ITSELF INSIDE A SCROLLING RAIL.
@@ -421,7 +426,7 @@ html:not(.dark) .pv .pv-card {
   font-size: .82rem; font-weight: 600; letter-spacing: .02em;
   text-transform: uppercase; color: var(--accent-ink);
 }
-.pv-sec--band .pv-eyebrow { color: var(--accent); }
+.pv-sec--band .pv-eyebrow { color: var(--on-band-accent); }
 
 /* ---------------- the band every landing page opens with ----------------- */
 
@@ -465,7 +470,7 @@ html:not(.dark) .pv .pv-card {
    sections further down the page; the band at the top was simply never given
    the same rule, so /services and /work/<category> have been rendering a dim
    eyebrow in light mode too. */
-.pv .wk-hero .pv-eyebrow { color: var(--accent); }
+.pv .wk-hero .pv-eyebrow { color: var(--on-band-accent); }
 
 /* header bar that carries its own carousel arrows */
 .pv-bar { position: relative; margin-bottom: clamp(1.8rem, 3.4vw, 2.6rem); }

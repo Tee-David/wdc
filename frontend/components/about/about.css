@@ -184,7 +184,7 @@
 .ab-tm__role {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: .78rem; font-weight: 600; letter-spacing: .04em;
-  text-transform: uppercase; color: var(--accent);
+  text-transform: uppercase; color: var(--accent-ink);
 }
 .ab-tm__note { color: var(--muted); font-size: .92rem; }
 @media (prefers-reduced-motion: no-preference) {

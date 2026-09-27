@@ -155,7 +155,7 @@
 .pv .wk-crumbs a:hover { color: var(--accent-ink); }
 .wk-crumbs i { font-style: normal; opacity: .5; }
 .pv .wk-hero .wk-crumbs, .pv .wk-hero .wk-crumbs a { color: var(--on-band-dim); }
-.pv .wk-hero .wk-crumbs a:hover { color: var(--accent); }
+.pv .wk-hero .wk-crumbs a:hover { color: var(--on-band-accent); }
 
 /* The grid of pieces. `auto-fit` with a `min()` floor so a single card never
    stretches the full width on desktop and nothing overflows at 320px. */
