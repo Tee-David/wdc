@@ -42,8 +42,8 @@ export function CopyReport({ text }: { text: string }) {
 /** The owner brings the database up to this deploy, after saying yes to what it does. */
 export function ApplyMigrations({ count }: { count: number }) {
   return (
-    <Form action={applyMigrations} className="adSys__check"
-      confirm={`Apply ${count} database update${count === 1 ? "" : "s"}? They change the database's structure to match this deploy and cannot be undone from here. Each is all or nothing, and they stop at the first that fails. Make sure the database has a recent backup first.`}>
+    <Form action={applyMigrations} className="adSys__check adSys__apply"
+      confirm={`Apply ${count} database update${count === 1 ? "" : "s"}? They change the database's structure to match this deploy and cannot be undone from here. They run in order and stop at the first that fails; one that stops part way is safe to apply again. Make sure the database has a recent backup first.`}>
       <Submit icon={DatabaseZap}>Apply {count === 1 ? "it" : `all ${count}`}</Submit>
     </Form>
   );
