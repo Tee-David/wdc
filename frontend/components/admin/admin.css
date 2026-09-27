@@ -1908,3 +1908,6 @@ td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
    Settings stylesheet, and "New form" (which uses it too) had its fields
    running into the panel's edges. */
 .adSetPad { padding: 1rem 1.25rem 1.25rem; display: grid; gap: 1rem; }
+
+/* The drawer's panel takes the opening focus (nav-drawer.tsx) and shows none. */
+.adDrawer__in:focus { outline: none; }

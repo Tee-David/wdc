@@ -64,7 +64,10 @@ export function NavDrawer({ open, onClose, label, children, tools }: {
       }}
     >
       {open ? (
-        <div className="adDrawer__in">
+        /* Opening a dialog focuses its first control, and a phone draws the
+           ring for that: the theme switch lit up on every tap of the menu.
+           The panel takes that first focus instead; Tab goes on from it. */
+        <div className="adDrawer__in" tabIndex={-1} autoFocus>
           <div className="adDrawer__bar">
             {tools}
             <button type="button" className="ad__topIcon adDrawer__x" onClick={onClose} aria-label="Close the menu"><X aria-hidden="true" /></button>
