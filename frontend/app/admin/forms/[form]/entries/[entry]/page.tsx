@@ -232,8 +232,10 @@ export default async function EntryPage({ params, searchParams }: Props) {
 
       <div className="adForms__entry">
         <div className="ad__stack">
-          <EntryAttachments files={files} />
           <div data-tour="entry-answers"><Answers form={form} entry={entry} hideEmpty={sp.hide === "1"} /></div>
+          {/* After the answers, not before: the brief is the thing to read,
+              and the files are what it refers to. */}
+          <EntryAttachments files={files} />
 
           {form.inbox ? (
             <Panel title="History" dataTour="entry-history">

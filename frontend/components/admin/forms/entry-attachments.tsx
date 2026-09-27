@@ -7,8 +7,10 @@ const isImage = (f: EntryFile) => f.contentType.startsWith("image/") && f.conten
 const label = (f: EntryFile) => (f.contentType === "application/pdf" ? "PDF" : (f.name.split(".").pop() ?? "File").toUpperCase().slice(0, 5));
 
 /**
- * EVERYTHING THE CLIENT SENT, before the answers: pictures as pictures, other
+ * EVERYTHING THE CLIENT SENT, after the answers: pictures as pictures, other
  * files as tiles, each with the question it answered and Open and Download.
+ * A sideways rail on a phone (a partial tile says there is more), a compact
+ * grid from 640px up.
  * The links are signed and last an hour (lib/onboarding-files.ts), so the page
  * is the way in and a copied link goes stale.
  */
@@ -17,7 +19,7 @@ export function EntryAttachments({ files }: { files: EntryFile[] }) {
   const total = files.reduce((a, f) => a + f.bytes, 0);
   return (
     <Panel title="Attachments" dataTour="entry-attachments" action={<span className="ad__pill">{files.length} {files.length === 1 ? "file" : "files"}{total ? ` · ${size(total)}` : ""}</span>}>
-      <ul className="adAtt">
+      <ul className="adAtt" tabIndex={0} aria-label="Files they sent">
         {files.map((f, i) => (
           <li key={`${f.name}-${i}`} className="adAtt__file">
             <span className={`adAtt__thumb${isImage(f) && f.open ? " has-img" : ""}`}>
@@ -33,8 +35,8 @@ export function EntryAttachments({ files }: { files: EntryFile[] }) {
             </span>
             {f.open ? (
               <span className="adAtt__acts">
-                <a className="ad__btn" href={f.open} target="_blank" rel="noopener noreferrer"><ExternalLink aria-hidden="true" /> Open</a>
-                <a className="ad__btn" href={f.download ?? f.open}><Download aria-hidden="true" /> Download</a>
+                <a className="ad__btn" href={f.open} target="_blank" rel="noopener noreferrer" aria-label={`Open ${f.name}`} title="Open"><ExternalLink aria-hidden="true" /> <span className="adAtt__lbl">Open</span></a>
+                <a className="ad__btn" href={f.download ?? f.open} aria-label={`Download ${f.name}`} title="Download"><Download aria-hidden="true" /> <span className="adAtt__lbl">Download</span></a>
               </span>
             ) : (
               <small className="adAtt__gone"><Paperclip aria-hidden="true" /> {f.missing
