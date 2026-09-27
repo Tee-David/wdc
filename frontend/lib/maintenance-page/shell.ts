@@ -377,7 +377,7 @@ function lagosShort(ms: number) {
 function lockup(i: ShellInput) {
   const d = i.data;
   const time = d.backBy
-    ? `<div class="wdc-time"><b data-count></b><span>until <strong>${esc(lagosShort(d.backBy))}</strong> Lagos<span class="wdc-local" data-local></span></span></div>`
+    ? `<div class="wdc-time"><b data-count></b><span>until <strong>${esc(lagosShort(d.backBy))}</strong> WAT<span class="wdc-local" data-local></span></span></div>`
     : "";
   return `<div class="wdc-scrim" aria-hidden="true"></div>
 <section class="wdc-lock" id="wdc-lock" aria-labelledby="wdc-h1">

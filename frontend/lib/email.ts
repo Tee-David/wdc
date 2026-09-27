@@ -1,7 +1,8 @@
 import "server-only";
 
 import nodemailer from "nodemailer";
-import { addressTo, escapeHtml } from "@/lib/email-templates";
+import { addressTo, escapeHtml, withSocials } from "@/lib/email-templates";
+import { socialLinks } from "@/lib/social";
 import { getSetting } from "@/lib/admin/store";
 import { hydrateSettings } from "@/lib/settings/store";
 import { CONTACT_EMAIL } from "@/lib/site";
@@ -125,8 +126,9 @@ export async function sendMail(input: {
     },
     replyTo: input.replyTo || replyTo,
     ...message,
-    /* The footer's "sent to" line names this address. */
-    html: message.html ? addressTo(message.html, message.to) : undefined,
+    /* The footer's "sent to" line names this address, and its row of marks
+       is the studio's profiles as Settings has them now. */
+    html: message.html ? withSocials(addressTo(message.html, message.to), socialLinks(getSetting)) : undefined,
     headers: unsubscribe && listUnsubscribe
       ? {
           "List-Unsubscribe": listUnsubscribe,

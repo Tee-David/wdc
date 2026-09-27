@@ -176,7 +176,7 @@ export const BLOG_POSTS: BlogPost[] = [
 
       { kind: "h3", text: "Specificity is what gets cited" },
       { kind: "p", text: "Generic pages are interchangeable, and an assistant choosing between interchangeable sources has no reason to pick yours. What gets picked is the page with something the others do not have: a real constraint, a real number you can stand behind, an actual procedure, a named place, a caveat nobody else mentions." },
-      { kind: "p", text: "\"We build fast, beautiful websites\" is present on ten thousand pages. \"On a prepaid mobile bundle in Lagos, a four megabyte homepage costs the visitor money before they have read a word\" is present on one, and it is the kind of sentence that ends up inside an answer." },
+      { kind: "p", text: "\"We build fast, beautiful websites\" is present on ten thousand pages. \"On a prepaid mobile bundle in Nigeria, a four megabyte homepage costs the visitor money before they have read a word\" is present on one, and it is the kind of sentence that ends up inside an answer." },
 
       { kind: "h3", text: "Entities matter more than keywords" },
       { kind: "p", text: "These systems reason about things (a company, a place, a service, a person) and about how confident they are that those things are real and consistent. Which means the boring consistency work pays off more than it used to: the same business name, address and phone number everywhere; structured data that truthfully describes what is visible on the page; an About page that states plainly who you are, where you are and what you do." },
