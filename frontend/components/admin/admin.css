@@ -1922,3 +1922,7 @@ td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
 .adOg__mark { display: grid; place-items: center; background: #fff; }
 .adOg__mark img { width: 35%; height: auto; } /* the card draws it 421 wide on 1200 */
 .adOg__card small { display: block; padding: .5rem .75rem; color: var(--ad-dim); font-size: .78rem; }
+
+/* Settings > Email: a new reply-to waiting on its link, with its two actions beside it. */
+.adSetPending { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
+.adSetPending > span:first-child { flex: 1 1 18rem; min-width: 0; }

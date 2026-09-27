@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { saveEmailSettings } from "@/lib/admin/settings-actions";
+import { Send, X } from "lucide-react";
+import { cancelNoticeChange, resendNoticeConfirmation, saveEmailSettings } from "@/lib/admin/settings-actions";
 import { Panel } from "@/components/admin/bits";
-import { Fields, Select } from "@/components/admin/form";
+import { Fields, Form, Select, Submit } from "@/components/admin/form";
 import { SettingsForm, Text } from "./kit";
 
 /** Settings, Email: what a client sees in their inbox, and how long the log keeps it. */
@@ -52,3 +53,23 @@ export function EmailForm({ fromName, replyTo, shippedReplyTo, days, options, fr
   );
 }
 
+
+/**
+ * A new "Replies go to" waiting on its confirmation link (lib/notice-address.ts).
+ * Said above the form, because until it is confirmed the field's saved value
+ * is still the one in use.
+ */
+export function PendingNotice({ to, expires }: { to: string; expires: string }) {
+  return (
+    <p className="ad__banner ad__banner--warn adSetPending" role="status">
+      <span>
+        <b>Waiting for {to} to confirm.</b> Replies and notices move there once the link we sent is opened;
+        it works until {expires}. Until then they go where they go now.
+      </span>
+      <span className="ad__row">
+        <Form action={resendNoticeConfirmation} className="adSys__check"><Submit tone="plain" icon={Send}>Send again</Submit></Form>
+        <Form action={cancelNoticeChange} className="adSys__check"><Submit tone="plain" icon={X}>Withdraw</Submit></Form>
+      </span>
+    </p>
+  );
+}
