@@ -62,7 +62,12 @@ export function SettingsNav({ role }: { role: AdminRole | null }) {
             </div>
           );
         })}
-        {!shown.length ? <p className="adSet__none" role="status">No setting matches &ldquo;{q}&rdquo;.</p> : null}
+        {!shown.length ? (
+          <div className="adSet__none" role="status">
+            <p><b>No setting matches &ldquo;{q}&rdquo;</b> Try a shorter word, like &ldquo;email&rdquo; or &ldquo;tax&rdquo;.</p>
+            <button type="button" className="ad__btn" onClick={() => setQ("")}>Clear the search</button>
+          </div>
+        ) : null}
       </nav>
     </>
   );
