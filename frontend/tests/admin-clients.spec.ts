@@ -51,7 +51,8 @@ test("client filters remain usable on a narrow screen", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 720 });
   await page.goto("/admin/clients", { waitUntil: "domcontentloaded" });
 
-  const controls = page.locator(".ad__filterBar input, .ad__filterBar select, .ad__filterBar button");
+  /* What a finger can reach: a picker posts through a hidden input. */
+  const controls = page.locator(".ad__filterBar :is(input:not([type=hidden]), select, button):visible");
   for (let index = 0; index < await controls.count(); index += 1) {
     expect((await controls.nth(index).boundingBox())?.height).toBeGreaterThanOrEqual(44);
   }
