@@ -51,6 +51,7 @@ export type FieldKind =
  * says nothing; this says something.
  */
 export const UNSURE = "I'm not sure; please advise me";
+export const PROJECT_UPDATE_PORTAL = "Your client portal";
 
 export type Field = {
   key: string;
@@ -518,7 +519,7 @@ export const CLOSING_STEPS: Step[] = [
       { key: "approver", label: "Who signs work off?", kind: "text", required: true, tip: "One person. Projects slow down most when feedback arrives from several directions and disagrees with itself." },
       { key: "others", label: "Anyone else who needs to see things?", kind: "textarea" },
       { key: "fixed_dates", label: "Any fixed dates we have to hit?", kind: "textarea", placeholder: "A launch, an event, a print deadline." },
-      { key: "channel", label: "Which channel works best for project updates?", kind: "cards", required: true, options: ["Client dashboard", "Email", "WhatsApp", "Phone call", "Other"] },
+      { key: "channel", label: "Which channels work best for project updates?", kind: "multi", required: true, options: [PROJECT_UPDATE_PORTAL, "Email", "WhatsApp", "Phone call", "Other"] },
       { key: "channel_other", label: "Which other channel would you prefer?", kind: "text", showIf: { key: "channel", equals: ["Other"] } },
       { key: "anything_else", label: "Anything we haven't asked that we should know?", kind: "textarea", tip: "This is the most useful box on the form. It is where the thing that would otherwise surface in week three usually comes out." },
     ],
