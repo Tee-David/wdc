@@ -400,6 +400,17 @@ export function refundedTotal(p: Payment) {
   return (p.refunds ?? []).reduce((n, r) => n + r.amount, 0);
 }
 
+/**
+ * Received, part refunded, refunded or reversed, DECIDED BY SUMMING the
+ * refund rows against the charge rather than stored, so it can never
+ * disagree with them.
+ */
+export function paymentState(p: Payment): "Received" | "Part refunded" | "Refunded" | "Reversed" {
+  if (p.reversed) return "Reversed";
+  const refunded = refundedTotal(p);
+  return refunded >= p.amount ? "Refunded" : refunded > 0 ? "Part refunded" : "Received";
+}
+
 /* ---------------------------------------------------------------- credit ---
 
    WHAT THE STUDIO OWES A CLIENT, which is the other direction from everything

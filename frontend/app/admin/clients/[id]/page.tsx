@@ -6,7 +6,7 @@ import { SERVICES } from "@/lib/services";
 import {
   financeDefaults, findDuplicateClient, getClient, getClients, getDeliverablesFor, getInvoicesFor, getPaymentsFor, getProjects, getProjectsFor, getSubmissions,
 } from "@/lib/admin/store";
-import { invoiceStatus, invoiceTotals, naira, paymentNet, refundedTotal } from "@/lib/admin/types";
+import { invoiceStatus, invoiceTotals, naira, paymentNet, paymentState } from "@/lib/admin/types";
 import { ApprovalPill, Empty, InvoicePill, Panel, StagePill, when } from "@/components/admin/bits";
 import { InvoiceMenu, ProjectMenu } from "@/components/admin/row-actions";
 import { EditClient, MergeClient } from "@/components/admin/client-form";
@@ -261,13 +261,8 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
                 </thead>
                 <tbody>
                   {payments.map(({ invoice, payment }) => {
-                    const refunded = refundedTotal(payment);
                     const kept = paymentNet(payment);
-                    const state = payment.reversed
-                      ? "Reversed"
-                      : refunded >= payment.amount
-                        ? "Refunded"
-                        : refunded > 0 ? "Part refunded" : "Received";
+                    const state = paymentState(payment);
                     return (
                       <tr key={payment.id}>
                         <td><Link href={`/r/${payment.token}`}><b>{payment.receiptNo}</b></Link></td>
