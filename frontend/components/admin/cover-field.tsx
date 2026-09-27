@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Check, ImageUp, Loader2, RefreshCw, Trash2 } from "lucide-react";
+import { Check, ImageUp, Images, Loader2, RefreshCw, Trash2 } from "lucide-react";
+import { MediaPicker } from "./media-picker";
 import { uploadToMedia } from "./media-upload";
 import { useFieldError } from "./form";
 
@@ -16,6 +17,7 @@ export function CoverField({ defaultValue, covers }: { defaultValue: string; cov
   const [value, setValue] = useState(defaultValue);
   const [state, setState] = useState<{ busy?: boolean; error?: string }>({});
   const [over, setOver] = useState(false);
+  const [library, setLibrary] = useState(false);
   const file = useRef<HTMLInputElement>(null);
   const err = useFieldError("cover");
 
@@ -54,6 +56,9 @@ export function CoverField({ defaultValue, covers }: { defaultValue: string; cov
                 <RefreshCw aria-hidden="true" /> Replace
                 {pickFile}
               </label>
+              <button type="button" className="ad__btn adCover__btn" onClick={() => setLibrary(true)}>
+                <Images aria-hidden="true" /> Library
+              </button>
               <button type="button" className="ad__btn adCover__btn" onClick={() => { setValue(""); setState({}); }}>
                 <Trash2 aria-hidden="true" /> Remove
               </button>
@@ -69,6 +74,14 @@ export function CoverField({ defaultValue, covers }: { defaultValue: string; cov
         )}
         {state.busy ? <span className="adCover__busy" role="status"><Loader2 className="ad__spin" aria-hidden="true" /> Uploading</span> : null}
       </div>
+
+      {!value ? (
+        <button type="button" className="ad__btn adCover__lib" onClick={() => setLibrary(true)}>
+          <Images aria-hidden="true" /> Choose from the media library
+        </button>
+      ) : null}
+      <MediaPicker open={library} onClose={() => setLibrary(false)} kind="image" title="Choose a cover from the library"
+        onPick={(p) => { setValue(p.url); setState({}); }} />
 
       {state.error ? <small className="ad__fe" role="alert">{state.error}</small> : null}
       {err ? <small className="ad__fe" role="alert">{err}</small> : null}
