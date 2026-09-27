@@ -247,7 +247,7 @@ Started 2026-09-25. The target is `dashboard-mockups/` at the repo root: 134 boa
 ### 5.3 UX, accessibility, state, and verification
 
 - [-] Keep Joyride above dashboard popovers but below critical system dialogs; prevent clipping, off-screen placement, background scrolling, and collisions with mobile safe areas. `zIndex: 95` sits above popovers (80) and the new blur bands (94), below the command palette and mobile drawer (100); native `<dialog>` elements sit above everything regardless of any z-index, being in the browser's own top layer. (…)
-- [-] Never show admin-only steps to clients or staff without the relevant permission; filter steps before a tour begins. The filtering mechanism is built and wired (`TourStep.roles`, applied in `tour-runtime.tsx` before steps ever reach Joyride) but nothing in the registry actually uses it: only one role (`owner`) is wired through auth today, so there is no `staff` step to filter yet. Ready rather than exercised.
+- [x] Never show admin-only steps to clients or staff without the relevant permission; filter steps before a tour begins. EXERCISED 2026-09-27: the Money steps carry `roles: ["owner"]` and are filtered in `tour-runtime.tsx` before Joyride sees them; a kept step whose page belonged to a dropped one is walked from the page before it, so staff never open Money. Clients have their own registry (`lib/tours/client.ts`). Pinned by `tests/admin-tour.spec.ts` "staff get the walkthrough without Money".
 - [-] Test full and page-only tours at all dashboard breakpoints, themes, permissions, empty/populated states, keyboard-only mode, reduced motion, and route transitions. (…)
 
 ### From screenshots, 2026-09-14
