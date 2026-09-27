@@ -215,7 +215,12 @@ button.adDash__chartMonth:focus-visible { outline: 2px solid var(--ad-accent); o
 .dark .adDash__tip i.is-in { background: #7377ff; }
 .dark .adDash__tip i.is-out { background: #e8600f; }
 .adDash__tipNet { padding-top: .25rem; border-top: 1px solid var(--ad-line); }
-.adDash__table { flex-basis: 100%; }
+/* min-width: 0, or the open table widens this flex item to its own width and
+   the scroller inside has nothing to scroll (it ran past the panel on a
+   phone). The table sits on its own solid card, so the pinned first column
+   and the rest share one ground. */
+.adDash__table { flex-basis: 100%; min-width: 0; }
+.adDash__table .ad__scroll { margin-top: .4rem; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); }
 .adDash__table summary { display: inline-flex; align-items: center; min-height: 2.75rem; cursor: pointer; color: var(--ad-ink); font-weight: 500; font-size: .86rem; }
 .adDash__table summary:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; border-radius: 6px; }
 
