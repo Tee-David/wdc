@@ -62,6 +62,14 @@ test("a real record and every list still answer 200", async ({ request }) => {
   }
 });
 
+test("a missing entry, post or question answers 404, and a new post does not", async ({ request }) => {
+  const nobody = "00000000-0000-4000-8000-000000000000";
+  for (const path of [`/admin/forms/contact/entries/${nobody}`, `/admin/blog/${nobody}`, "/admin/clients/support/not-a-real-id", `/admin/forms/${nobody}`]) {
+    expect((await request.get(path, { headers: { cookie: "wdc.session_token=placeholder" } })).status(), path).toBe(404);
+  }
+  expect((await request.get("/admin/blog/new", { headers: { cookie: "wdc.session_token=placeholder" } })).status()).toBe(200);
+});
+
 test("a missing portal record answers 404 too", async ({ request }) => {
   for (const path of ["/portal/projects/not-a-real-id", "/portal/support/not-a-real-id"]) {
     expect((await request.get(path, { headers: { cookie: "wdc.session_token=placeholder" } })).status(), path).toBe(404);
