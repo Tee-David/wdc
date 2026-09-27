@@ -73,7 +73,6 @@
 .adSR__ctl { flex: none; display: flex; align-items: center; gap: .5rem; }
 .adSR__ctl select { min-height: 2.75rem; }
 .adSR__wrap { display: block; }
-.adSetPad { padding: 1rem 1.25rem 1.25rem; display: grid; gap: 1rem; }
 
 /* The switch: a 44px target around a 44x26 track. Off is a mid grey that
    still holds 3:1 against the panel; on is the admin's fill. */
