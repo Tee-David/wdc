@@ -1,4 +1,5 @@
-import { CONTACT_EMAIL, SOCIAL_LINKS } from "@/lib/site";
+import { CONTACT_EMAIL } from "@/lib/site";
+import { NETWORKS, parseSocial, shippedSocial, socialKey } from "@/lib/social";
 import { SERVICES } from "@/lib/services";
 import { CASE_STUDIES } from "@/lib/work";
 
@@ -79,13 +80,14 @@ export const SETTINGS: SettingDef[] = [
     readOnly: "Not editable yet: it is read from the code in a dozen places, and an edit here would change none of them.",
     revalidate: [],
   },
-  {
-    key: "contact.socials", label: "Social links",
-    shipped: () => (SOCIAL_LINKS.length ? `${SOCIAL_LINKS.length} linked` : "None yet"),
-    note: "The row of marks in the footer and in every email. It draws nothing while the list is empty.",
-    readOnly: "Not editable yet: the list is `SOCIAL_LINKS` in lib/site.ts, and it is empty.",
+  /* The studio's profiles (lib/social.ts), drawn in every email's footer by
+     sendMail once settings are read; Settings > Business profile. */
+  ...NETWORKS.map((n): SettingDef => ({
+    key: socialKey(n.network), label: n.label, shipped: () => shippedSocial(n.network),
+    note: `The ${n.label} mark in every email's footer. Empty draws none.`,
+    parse: parseSocial(n.network),
     revalidate: [],
-  },
+  })),
   {
     key: "services", label: "Services", shipped: () => `${SERVICES.length} services`,
     note: "Names, blurbs and deliverables. The slugs are not editable: the work URLs are built from them.",

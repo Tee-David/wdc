@@ -6,6 +6,7 @@ import { FAIL, OK, str, type ActionState } from "./validate";
 import { audit, getSetting } from "./store";
 import { syncStore } from "./persist";
 import { settingDef } from "@/lib/settings/registry";
+import { NETWORKS, socialKey } from "@/lib/social";
 import { removeSetting, writeSetting } from "@/lib/settings/store";
 import { DEFAULT_LOG_RETENTION, getAppSetting, LOG_RETENTION_DAYS, LOG_RETENTION_KEY, setAppSetting } from "@/lib/app-settings";
 import { FAILURE_ALERT_KEY, type FailureAlert } from "@/lib/mail-alert";
@@ -139,6 +140,20 @@ export async function saveEmailSettings(_prev: ActionState, fd: FormData): Promi
       changed += 1;
     }
     return finish(changed, [...r.pages, "/admin/settings/email"]);
+  } catch {
+    return FAIL({}, "That could not be saved just now.");
+  }
+}
+
+/** Business profile: the studio's social profiles, drawn in every email's footer. */
+export async function saveBusinessSettings(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  const refused = await owner();
+  if (refused) return refused;
+  try {
+    const r = await writeKeys(Object.fromEntries(NETWORKS.map((n) => [socialKey(n.network), str(fd, socialKey(n.network))])), await actorName());
+    if (Object.keys(r.errors).length) return FAIL(r.errors, "Nothing was saved. Fix the marked fields.");
+    return finish(r.changed, [...r.pages, "/admin/settings/business"]);
   } catch {
     return FAIL({}, "That could not be saved just now.");
   }

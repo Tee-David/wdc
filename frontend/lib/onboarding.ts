@@ -260,7 +260,7 @@ export const SERVICE_STEPS: Step[] = [
     fields: [
       { key: "site_url", label: "Your website", kind: "url", placeholder: "https://", required: true },
       { key: "target_terms", assist: true, label: "What should someone be typing into Google when they find you?", kind: "textarea", required: true },
-      { key: "geo", assist: true, label: "Where are your customers?", kind: "text", placeholder: "e.g. Lagos, or nationwide", required: true },
+      { key: "geo", assist: true, label: "Where are your customers?", kind: "text", placeholder: "e.g. one city, or nationwide", required: true },
       { key: "competitors", assist: true, label: "Three competitors who currently outrank you", kind: "textarea" },
       {
         key: "tools_access", label: "Do you have these, and can you share access?", kind: "multi", required: true,
