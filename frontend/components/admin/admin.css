@@ -171,6 +171,8 @@
 .ad__iconButton { width: 2.25rem; height: 2.25rem; flex: none; display: grid; place-items: center; border-radius: 10px; }
 .ad__iconButton:hover, .ad__topIcon:hover { background: var(--ad-bg); color: var(--ad-ink); }
 .ad__iconButton svg { width: 1.1rem; height: 1.1rem; }
+/* A finger needs 44px (AGENTS.md); a mouse is fine with the tighter 36. */
+@media (pointer: coarse) { .ad__iconButton { width: 2.75rem; height: 2.75rem; } }
 
 .ad__sideScroll {
   flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;

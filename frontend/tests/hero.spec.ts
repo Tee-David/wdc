@@ -211,7 +211,9 @@ test.describe("the footer", () => {
       const m = await page.evaluate(() => {
         const cols = document.querySelector(".ft__cols")!.getBoundingClientRect();
         const base = document.querySelector(".ft__base")!.getBoundingClientRect();
-        const children = [...document.querySelectorAll<HTMLElement>(".ft__side, .ft__cols .ft__col")].map((c) => {
+        /* Hidden columns are left out: on a phone the Company pills go on
+           purpose (the header's menu carries those pages). */
+        const children = [...document.querySelectorAll<HTMLElement>(".ft__side, .ft__cols .ft__col")].filter((c) => c.getBoundingClientRect().width > 0).map((c) => {
           const r = c.getBoundingClientRect();
           return {
             name: c.querySelector("h2")?.textContent?.trim() ?? c.className.split(" ")[0],
