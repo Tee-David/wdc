@@ -91,7 +91,7 @@ test("switched on, visitors get a 503 holding page and the rest keeps working", 
 
   /* The admin, with its notice. */
   await page.goto("/admin", { waitUntil: "load" });
-  await expect(page.locator(".ad__banner", { hasText: "in maintenance" })).toBeVisible();
+  await expect(page.locator(".ad__banner:not(.ad__noticesSum)", { hasText: "in maintenance" })).toBeVisible();
 });
 
 test("an admin's pass and a reviewer's link see the site; a wrong link does not", async ({ page, baseURL, browser }) => {

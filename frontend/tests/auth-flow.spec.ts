@@ -207,7 +207,8 @@ const leftLogin = (page: Page) =>
   page.waitForURL((url) => url.pathname !== "/login", { timeout: 30_000, waitUntil: "domcontentloaded" });
 
 const sessionCookie = async (page: Page) =>
-  (await page.context().cookies()).find((c) => c.name.startsWith("wdc.session_token"));
+  /* `__Secure-` in front whenever secure cookies are on, which includes localhost. */
+  (await page.context().cookies()).find((c) => /^(__Secure-)?wdc\.session_token/.test(c.name));
 
 /**
  * The form's own error line, for errors that belong to the page rather than
@@ -489,7 +490,10 @@ test("a reset link is requested, answered immediately, emailed, and works once",
   await page.getByLabel("New password").fill(NEW_PASSWORD);
   await page.getByLabel("Confirm password").fill(NEW_PASSWORD);
   await submit(page, "Update password");
-  await expect(errorLine(page)).toContainText(/invalid or has expired/i, { timeout: 30_000 });
+  /* The server refuses it, and the page turns into "has expired" with the way
+     to a new link, rather than an error under a form that can never work. */
+  await expect(page.getByText("This reset link has expired")).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByLabel("New password")).toHaveCount(0);
 
   /* And the new password is the one that works now. */
   await page.goto("/login", { waitUntil: "domcontentloaded" });
