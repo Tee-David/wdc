@@ -48,3 +48,17 @@ export function ApplyMigrations({ count }: { count: number }) {
     </Form>
   );
 }
+
+/** An address to paste somewhere else, with a copy button beside it. */
+export function CopyText({ text }: { text: string }) {
+  const [said, setSaid] = useState("");
+  return (
+    <span className="ad__row" style={{ flexWrap: "wrap" }}>
+      <code style={{ overflowWrap: "anywhere" }}>{text}</code>
+      <button type="button" className="ad__btn" aria-label={`Copy ${text}`} onClick={async () => {
+        try { await navigator.clipboard.writeText(text); setSaid("Copied."); } catch { setSaid("Select it and copy."); }
+      }}><Copy aria-hidden="true" /> Copy</button>
+      <span role="status" className="ad__dim">{said}</span>
+    </span>
+  );
+}
