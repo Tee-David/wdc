@@ -27,8 +27,12 @@ export const BLOG_COVERS: readonly string[] = [...new Set(BLOG_POSTS.map((p) => 
 
 export const LIMITS = {
   title: 110,
-  seoTitle: { max: 60 },
-  description: { min: 120, max: 155 },
+  /* `max` and `min`/`max` are what search results show in full: advice the
+     editor's counters give as you type. `cap` is the only hard limit. A post
+     is never refused for a description of 116 characters; that is how a live
+     post once could not be updated at all. */
+  seoTitle: { max: 60, cap: 120 },
+  description: { min: 120, max: 155, cap: 320 },
   excerpt: 220,
   tags: 8,
   blocks: 200,
@@ -93,11 +97,12 @@ export function parsePost(raw: Raw, opts: { imageHosts?: readonly string[] } = {
 
   const seoTitle = text(raw.seoTitle, 200);
   if (!seoTitle) errors.seoTitle = "Write the title a search result should show.";
-  else if (seoTitle.length > LIMITS.seoTitle.max) errors.seoTitle = `${seoTitle.length} characters. Google cuts titles at about ${LIMITS.seoTitle.max}.`;
+  else if (seoTitle.length > LIMITS.seoTitle.cap) errors.seoTitle = `${seoTitle.length} characters. Keep it under ${LIMITS.seoTitle.cap}; Google shows about ${LIMITS.seoTitle.max}.`;
 
   const description = text(raw.description, 400);
-  if (description.length < LIMITS.description.min || description.length > LIMITS.description.max) {
-    errors.description = `${description.length} characters. Between ${LIMITS.description.min} and ${LIMITS.description.max} is what earns a full snippet.`;
+  if (!description) errors.description = "Write the sentence a search result should show under the title.";
+  else if (description.length > LIMITS.description.cap) {
+    errors.description = `${description.length} characters. Keep it under ${LIMITS.description.cap}; ${LIMITS.description.min} to ${LIMITS.description.max} is what shows in full.`;
   }
 
   const excerpt = text(raw.excerpt, LIMITS.excerpt);
