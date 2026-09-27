@@ -1,0 +1,137 @@
+/* THE PICKERS (components/admin/pick.tsx): Pick, FilterPick, DateInput and
+   DateTimeInput. Their own file so the public site's forms can use the same
+   calendar: it reads the admin's --ad-* tokens, and a trigger inside
+   [data-pick-skin="public"] maps those to the site's own (bottom of file). */
+
+@keyframes ad-rm-in { from { opacity: 0; transform: translateY(-3px); } }
+@keyframes ad-sheet-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes ad-fade { from { opacity: 0; } }
+
+/* THE SEARCHABLE PICKER (components/admin/search-select.tsx). The trigger
+   looks like the other fields; the list opens under it (or over it near the
+   foot of the window), and on a phone it is a bottom sheet. */
+.adPick { position: relative; min-width: 0; }
+.adPick__btn {
+  width: 100%; min-height: 2.75rem; padding: .55rem .8rem; display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+  border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); color: var(--ad-ink);
+  font: inherit; text-align: left; cursor: pointer;
+}
+.adPick__btn > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adPick__btn svg { width: 1rem; height: 1rem; flex: none; color: var(--ad-dim); transition: transform .15s ease; }
+.adPick.is-open:not(.adDate) .adPick__btn svg { transform: rotate(180deg); }
+.adPick__btn:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.adPick__btn[data-invalid] { border-color: var(--ad-tone-bad); }
+.adPick__ph { color: var(--ad-dim); }
+.adPick__pop {
+  position: fixed; z-index: 95; display: flex; flex-direction: column; max-height: min(22rem, 60dvh);
+  border: 1px solid var(--ad-line); border-radius: 14px; background: var(--ad-panel);
+  box-shadow: 0 2px 6px -2px rgb(10 10 40 / .16), 0 24px 48px -20px rgb(10 10 40 / .38); overflow: hidden;
+  animation: ad-rm-in .12s ease-out backwards;
+}
+.adPick__grab { display: none; }
+.adPick__search { display: flex; align-items: center; gap: .5rem; padding: .6rem .8rem; border-bottom: 1px solid var(--ad-line); }
+.adPick__search svg { width: 1rem; height: 1rem; color: var(--ad-dim); flex: none; }
+.adPick__search input { flex: 1; min-width: 0; min-height: 2.25rem; border: 0; background: transparent; color: var(--ad-ink); font: inherit; outline: none; }
+.adPick__list { margin: 0; padding: .35rem; list-style: none; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; flex: 1 1 auto; min-height: 0; }
+.adPick__opt { min-height: 2.75rem; padding: .5rem .65rem; display: flex; align-items: center; justify-content: space-between; gap: .5rem; border-radius: 10px; cursor: pointer; }
+.adPick__opt.is-active { background: var(--ad-panel-2); }
+.adPick__opt[aria-selected="true"] { font-weight: 600; }
+.adPick__opt svg { width: 1rem; height: 1rem; color: var(--ad-accent-ink); flex: none; }
+.dark .adPick__opt svg { color: var(--ad-accent); }
+.adPick__opt--none { color: var(--ad-dim); }
+.adPick__none { padding: .75rem; color: var(--ad-dim); font-size: .88rem; }
+.adPick__scrim { display: none; }
+.adPick__btn:hover { border-color: var(--ad-dim); }
+.adPick__btn:disabled { cursor: not-allowed; background: var(--ad-panel-2); color: var(--ad-dim); }
+.adPick__list:focus { outline: none; }
+.adPick__opt.is-active { box-shadow: inset 0 0 0 1px var(--ad-line); }
+.ad__f .adPick__btn:focus-visible { outline: none; border-color: var(--ad-navy); box-shadow: 0 0 0 4px var(--ad-nav-on); }
+.dark .ad__f .adPick__btn:focus-visible { border-color: var(--ad-accent); }
+.ad__f.is-bad .adPick__btn { border-color: var(--ad-bad); }
+/* In a filter row the picker is the row's height and type, not a form field's. */
+.ad__filters .adPick__btn { border-radius: 10px; font-size: .86rem; color: var(--ad-ink); }
+.ad__filters .adPick { min-width: 9rem; }
+
+/* THE CALENDAR (DateInput). A month grid of 44px days, the chosen one in the
+   admin's primary fill, today ringed, days outside min/max struck quiet. */
+.adCal { padding: .6rem .7rem .7rem; }
+/* The month is taller than a list is allowed to be; it scrolls only when the window is shorter still. */
+.adPick__pop.adCal { max-height: calc(100dvh - 16px); overflow-y: auto; overscroll-behavior: contain; }
+.adCal__head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .35rem; }
+.adCal__head b, .adCal__title { font-family: var(--font-space-grotesk), var(--font-outfit), sans-serif; font-size: .98rem; font-weight: 700; }
+/* The title is a button: month, then year, then a dozen years. */
+.adCal__title {
+  min-height: 2.75rem; padding: 0 .75rem; display: inline-flex; align-items: center; gap: .35rem;
+  border: 0; border-radius: 10px; background: transparent; color: var(--ad-ink); cursor: pointer;
+}
+.adCal__title:hover { background: var(--ad-panel-2); }
+.adCal__title svg { width: 1rem; height: 1rem; color: var(--ad-dim); }
+.adCal__title:focus-visible { outline: 2px solid var(--ad-accent-ink); outline-offset: 1px; }
+.dark .adCal__title:focus-visible { outline-color: var(--ad-accent); }
+.adCal__picks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .35rem; padding: .35rem 0 .2rem; animation: ad-fade .16s ease-out backwards; }
+.adCal__pick {
+  min-height: 3rem; border: 0; border-radius: 10px; background: transparent; color: var(--ad-ink);
+  font: 600 .9rem var(--font-outfit), sans-serif; font-variant-numeric: tabular-nums; cursor: pointer;
+  transition: background-color .12s ease;
+}
+.adCal__pick:hover { background: var(--ad-panel-2); }
+.adCal__pick.is-here { box-shadow: inset 0 0 0 1.5px var(--ad-dim); }
+.adCal__pick.is-on, .adCal__pick.is-on:hover { background: var(--ad-fill); color: var(--ad-on-fill); box-shadow: none; }
+.adCal__pick:focus-visible { outline: 2px solid var(--ad-accent-ink); outline-offset: 1px; }
+.dark .adCal__pick:focus-visible { outline-color: var(--ad-accent); }
+.adCal__nav {
+  width: 2.75rem; height: 2.75rem; display: grid; place-items: center; border: 0; border-radius: 10px;
+  background: transparent; color: var(--ad-ink); cursor: pointer;
+}
+.adCal__nav:hover { background: var(--ad-panel-2); }
+.adCal__nav svg { width: 1.1rem; height: 1.1rem; }
+.adCal__grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.adCal__grid th { padding: .2rem 0 .35rem; font-size: .72rem; font-weight: 600; color: var(--ad-dim); text-align: center; }
+.adCal__grid td { padding: 1px; text-align: center; }
+.adCal__day {
+  width: 100%; max-width: 2.75rem; aspect-ratio: 1; min-height: 2.5rem; display: inline-grid; place-items: center;
+  border: 0; border-radius: 10px; background: transparent; color: var(--ad-ink);
+  font: inherit; font-variant-numeric: tabular-nums; cursor: pointer;
+  transition: background-color .12s ease, color .12s ease;
+}
+.adCal__day:hover { background: var(--ad-panel-2); }
+.adCal__day.is-today { box-shadow: inset 0 0 0 1.5px var(--ad-dim); font-weight: 700; }
+.adCal__day.is-on, .adCal__day.is-on:hover { background: var(--ad-fill); color: var(--ad-on-fill); font-weight: 700; box-shadow: none; }
+.adCal__day[aria-disabled] { color: var(--ad-dim); text-decoration: line-through; cursor: not-allowed; background: transparent; }
+.adCal__day:focus-visible, .adCal__nav:focus-visible { outline: 2px solid var(--ad-accent-ink); outline-offset: 1px; }
+.dark .adCal__day:focus-visible, .dark .adCal__nav:focus-visible { outline-color: var(--ad-accent); }
+.adCal__foot { display: flex; justify-content: space-between; gap: .5rem; margin-top: .45rem; padding-top: .5rem; border-top: 1px solid var(--ad-line); }
+.adCal__foot .ad__btn { min-height: 2.5rem; }
+
+/* A date and a time side by side; the time is the narrow half. */
+.adDT { display: grid; grid-template-columns: minmax(0, 1fr) 6.25rem; gap: .5rem; }
+
+@media (max-width: 640px) {
+  .adPick__scrim { display: block; position: fixed; inset: 0; z-index: 94; background: rgb(6 6 28 / .45); }
+  .adPick__pop, .adPick__pop.is-up {
+    top: auto !important; left: 0 !important; right: 0; bottom: 0 !important; width: auto !important; margin: 0;
+    max-height: 78dvh; border-radius: 18px 18px 0 0; padding-bottom: env(safe-area-inset-bottom);
+    animation: ad-sheet-in .24s ease-out backwards;
+  }
+  .adPick__grab { display: block; width: 2.25rem; height: 4px; margin: .55rem auto .2rem; border-radius: 99px; background: var(--ad-line); }
+  .adPick__opt { min-height: 3rem; font-size: 1rem; }
+  .adCal { padding: .2rem 1rem calc(1rem + env(safe-area-inset-bottom)); }
+  .adCal__day { max-width: none; }
+}
+@media (prefers-reduced-motion: reduce) { .adPick__pop, .adCal__picks { animation: none; } .adPick__btn svg, .adCal__day, .adCal__pick { transition: none; } }
+
+/* ON THE PUBLIC SITE. The trigger sits in a form that already has the site's
+   tokens; the popover is portalled to <body> and carries .adPick--public,
+   so both get the same map. Lines are solid where they carry a form. */
+[data-pick-skin="public"], .adPick--public {
+  --ad-ink: var(--foreground); --ad-dim: var(--muted);
+  --ad-panel: var(--background); --ad-panel-2: var(--surface);
+  --ad-line: #d4d6e6; --ad-navy: #000065; --ad-nav-on: #eceefa;
+  --ad-accent: var(--accent); --ad-accent-ink: var(--accent-ink);
+  --ad-fill: var(--btn-fill); --ad-on-fill: var(--btn-ink);
+  --ad-bad: #c62828; --ad-tone-bad: #c62828;
+  font-family: var(--font-body);
+}
+.dark [data-pick-skin="public"], .dark .adPick--public { --ad-line: #2c2e62; --ad-nav-on: #1b1b4a; --ad-bad: #ef9a9a; }
+[data-pick-skin="public"] .adPick__btn { padding: 11px 14px; font-size: .95rem; border-color: var(--rule, var(--ad-line)); background: var(--paper, var(--ad-panel)); color: var(--ink, var(--ad-ink)); }
+[data-pick-skin="public"] .adPick__btn:hover { border-color: var(--muted); }
