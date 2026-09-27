@@ -37,7 +37,7 @@ const C = {
 
 /* Read once per instance; the files ride along with the route via
    outputFileTracingIncludes in next.config.ts. */
-let assets: { medium: Buffer; bold: Buffer; mark: Buffer } | null = null;
+let assets: { medium: Buffer; bold: Buffer; mark: Buffer; logo: Buffer } | null = null;
 function load() {
   if (assets) return assets;
   const at = (...p: string[]) => fs.readFileSync(path.join(process.cwd(), ...p));
@@ -45,6 +45,8 @@ function load() {
     medium: at("assets", "fonts", "SpaceGrotesk-Medium.ttf"),
     bold: at("assets", "fonts", "SpaceGrotesk-Bold.ttf"),
     mark: at("assets", "brand", "watermark.png"),
+    /* The full logo, white with its orange accent, for the navy band. */
+    logo: at("assets", "brand", "pdf-logo.png"),
   };
   return assets;
 }
@@ -94,6 +96,9 @@ const time = (iso: string) => {
   return `${day} at ${hm}`;
 };
 
+/** What a brief is called, by service: "Website Onboarding Brief for …". */
+const BRIEF_NAME: Record<string, string> = { web: "Website", apps: "App", software: "Software & AI", seo: "SEO", branding: "Branding" };
+
 /** Everything the document says, from the entry. */
 export async function entryPdfInput(form: FormDef, entry: Entry, opts: { pictures?: boolean } = {}): Promise<EntryPdfInput> {
   const files = await entryFiles(form, entry).catch(() => [] as EntryFile[]);
@@ -102,14 +107,17 @@ export async function entryPdfInput(form: FormDef, entry: Entry, opts: { picture
   const who = company || entry.name || entry.email || "Not named";
   const number = entry.serial ? `${form.noun} #${entry.serial}` : form.noun;
   const service = form.service ? SERVICES.find((s) => s.slug === form.service)?.short : undefined;
-  const title = form.source === "onboarding" && service ? `${service} brief${entry.serial ? ` #${entry.serial}` : ""}`
+  const briefName = form.service ? BRIEF_NAME[form.service] ?? service : undefined;
+  const client = company || entry.name;
+  const title = form.source === "onboarding" && briefName
+    ? `${briefName} Onboarding Brief${client ? ` for ${client}` : ""}`
     : `${form.title}${entry.serial ? ` #${entry.serial}` : ""}`;
   const facts: [string, string][] = [];
   if (entry.name) facts.push(["Name", entry.name]);
   if (entry.email) facts.push(["Email", entry.email]);
   if (entry.phone) facts.push(["Phone", entry.phone]);
   if (company) facts.push(["Company", company]);
-  if (service) facts.push(["Service", service]);
+  if (form.service) facts.push(["Service", SERVICES.find((s) => s.slug === form.service)?.name ?? service ?? form.service]);
   if (form.source === "contact" && entry.topic) facts.push(["Topic", entry.topic]);
   if (form.source === "onboarding" && form.service) {
     const { answered, total } = answeredCount(form.service, entry.answers);
@@ -130,7 +138,8 @@ export async function entryPdfInput(form: FormDef, entry: Entry, opts: { picture
   }
   return {
     title,
-    subtitle: [entry.draft ? `Draft, last saved ${time(entry.at)}` : `Received ${time(entry.at)}`, company || entry.name].filter(Boolean).join(" · "),
+    /* The title already names who it is for, when it is a brief. */
+    subtitle: [entry.draft ? `Draft, last saved ${time(entry.at)}` : `Received ${time(entry.at)}`, form.source === "onboarding" && briefName ? "" : company || entry.name].filter(Boolean).join(" · "),
     facts, sections, files, pictures,
     running: `${number} · ${who}`,
   };
@@ -180,6 +189,7 @@ export async function renderEntryPdf(input: EntryPdfInput): Promise<Uint8Array> 
   const reg = await pdf.embedFont(a.medium, { subset: true });
   const bold = await pdf.embedFont(a.bold, { subset: true });
   const mark: PDFImage = await pdf.embedPng(a.mark);
+  const logo: PDFImage = await pdf.embedPng(a.logo);
 
   let page = null as unknown as PDFPage;
   let y = 0;
@@ -196,14 +206,14 @@ export async function renderEntryPdf(input: EntryPdfInput): Promise<Uint8Array> 
 
   newPage();
 
-  /* The band. */
-  const bandH = 128;
-  page.drawRectangle({ x: 0, y: A4.h - bandH, width: A4.w, height: bandH, color: C.navy });
-  const brand = "We Dig Creativity";
-  text(brand, M, A4.h - 44, bold, 11, C.onNavy);
-  text(".", M + bold.widthOfTextAtSize(brand, 11), A4.h - 44, bold, 11, C.orange);
+  /* The band: the full logo, then the title (up to two lines) and when it came. */
   const titleLines = wrap(bold, input.title, 21, INNER).slice(0, 2);
-  let ty = A4.h - 76;
+  const logoH = 30;
+  const logoW = (logo.width / logo.height) * logoH;
+  const bandH = 40 + logoH + 22 + titleLines.length * 25 + 26;
+  page.drawRectangle({ x: 0, y: A4.h - bandH, width: A4.w, height: bandH, color: C.navy });
+  page.drawImage(logo, { x: M, y: A4.h - 36 - logoH, width: logoW, height: logoH });
+  let ty = A4.h - 36 - logoH - 34;
   for (const l of titleLines) { text(l, M, ty, bold, 21, C.onNavy); ty -= 25; }
   text(wrap(reg, input.subtitle, 10, INNER)[0] ?? "", M, ty + 4, reg, 10, C.onNavyDim);
   y = A4.h - bandH - 28;
@@ -283,10 +293,11 @@ export async function renderEntryPdf(input: EntryPdfInput): Promise<Uint8Array> 
   return pdf.save();
 }
 
-/** A download name: "brief-2-aha-studios.pdf". */
+/** A download name: "website-onboarding-brief-moore-designs.pdf", or "enquiry-4-ada-eze.pdf". */
 export function entryPdfName(form: FormDef, entry: Entry) {
   const who = (form.source === "onboarding" ? String(entry.answers.company ?? "") : "") || entry.name || "";
-  const slug = [form.noun, entry.serial ? String(entry.serial) : entry.id.slice(0, 8), who].join(" ")
+  const brief = form.source === "onboarding" && form.service ? `${BRIEF_NAME[form.service] ?? form.service} onboarding brief` : "";
+  const slug = (brief ? [brief, who || (entry.serial ? String(entry.serial) : entry.id.slice(0, 8))] : [form.noun, entry.serial ? String(entry.serial) : entry.id.slice(0, 8), who]).join(" ")
     .toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
   return `${slug || "entry"}.pdf`;
 }
