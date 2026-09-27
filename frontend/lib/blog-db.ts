@@ -1,6 +1,8 @@
 import "server-only";
 
 import { db } from "@/lib/db/pool";
+import { transaction } from "@/lib/db/transaction";
+import { keepPostVersion, revisionTables } from "@/lib/revisions";
 import { BLOG_POSTS, type BlogPost } from "@/lib/blog";
 import { isDoc, type BlogBody } from "@/lib/blog-doc";
 import type { ServiceSlug } from "@/lib/services";
@@ -284,7 +286,24 @@ export async function savePost(
     if (wasLive && was.slug !== p.slug) return { ok: false, reason: "slug-locked" };
     const touch = p.revised && wasLive && stored === "published";
     const check = opened === undefined ? "" : "AND date_trunc('milliseconds', saved_at) IS NOT DISTINCT FROM $16::TIMESTAMPTZ";
-    const updated = await db.query<{ saved_at: Date }>(
+    /* A LIVE POST KEEPS THE VERSION READERS SAW (lib/revisions.ts), in the
+       same transaction as the save, and only when the save lands: a stale
+       editor's refused save leaves no history behind. */
+    const keep = wasLive && (await revisionTables());
+    const updated = await transaction(async (c) => {
+      if (keep) {
+        const fresh = opened === undefined ? true : (await c.query(
+          "SELECT 1 FROM blog_posts WHERE id = $1 AND trashed_at IS NULL AND date_trunc('milliseconds', saved_at) IS NOT DISTINCT FROM $2::TIMESTAMPTZ",
+          [id, opened],
+        )).rowCount;
+        if (fresh) {
+          await keepPostVersion(c, id, {
+            title: p.title, seo_title: p.seoTitle, description: p.description, excerpt: p.excerpt, topic: p.topic,
+            tags: p.tags, cover: p.cover, body: p.body, canonical: p.canonical, social_image: p.socialImage,
+          });
+        }
+      }
+      return c.query<{ saved_at: Date }>(
       `UPDATE blog_posts SET slug = $1, title = $2, seo_title = $3, description = $4, excerpt = $5,
               topic = $6, tags = $7::JSONB, cover = $8, body = $9::JSONB, status = $10,
               published_at = $11, canonical = $12, social_image = $13, saved_by = $14, saved_at = now()
@@ -293,7 +312,8 @@ export async function savePost(
        WHERE id = $15 AND trashed_at IS NULL ${check}
        RETURNING saved_at`,
       opened === undefined ? [...values, id] : [...values, id, opened],
-    );
+      );
+    });
     if (!updated.rows[0]) {
       const now = await db.query<{ saved_by: string | null; saved_at: Date | null }>(
         "SELECT saved_by, saved_at FROM blog_posts WHERE id = $1 AND trashed_at IS NULL", [id],

@@ -3,6 +3,8 @@ import { SERVICES } from "@/lib/services";
 import { when } from "@/components/admin/bits";
 import { AdminState } from "@/components/admin/admin-state";
 import { FaqEditor } from "@/components/admin/faq-editor";
+import { FaqHistory } from "@/components/admin/revisions";
+import { contentHistory } from "@/lib/revisions";
 import "@/components/admin/blog-editor.css";
 
 export const metadata = { title: "FAQ" };
@@ -28,9 +30,14 @@ export default async function FaqPage() {
         </div>
       </div>
       {configured ? (
-        <section className="ad__panel" style={{ padding: "1rem" }}>
-          <FaqEditor initial={faqs} edited={Boolean(edited)} services={SERVICES.map((s) => ({ value: s.slug, label: s.short }))} />
-        </section>
+        <>
+          <section className="ad__panel" style={{ padding: "1rem" }}>
+            <FaqEditor initial={faqs} edited={Boolean(edited)} services={SERVICES.map((s) => ({ value: s.slug, label: s.short }))} />
+          </section>
+          <div style={{ marginTop: "1rem" }}>
+            <FaqHistory items={await contentHistory("faq").catch(() => [])} />
+          </div>
+        </>
       ) : (
         <section className="ad__panel">
           <AdminState kind="error" title="The content database is not connected"

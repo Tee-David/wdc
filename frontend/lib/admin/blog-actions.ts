@@ -163,3 +163,29 @@ export async function returnBlogPost(_prev: ActionState, fd: FormData): Promise<
   revalidatePath(`/admin/blog/${id}`);
   return OK(`${done.title} is back with ${done.to ?? "its writer"} as a draft, with your note.`);
 }
+
+/**
+ * Put an earlier version of a live post back: its words, not its address,
+ * status or dates. The owner's, like every change to a live post. The version
+ * it replaces is kept first, so a Restore can be undone with another.
+ */
+export async function restoreBlogRevision(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
+  const id = String(fd.get("id") ?? "");
+  const revision = String(fd.get("revision") ?? "");
+  const by = await actorName();
+  let done: { slug: string; title: string } | null;
+  try {
+    const { transaction } = await import("@/lib/db/transaction");
+    const { restorePostRevision } = await import("@/lib/revisions");
+    done = await transaction((c) => restorePostRevision(c, id, revision, by));
+  } catch {
+    return FAIL({}, "That version could not be restored just now. Nothing changed.");
+  }
+  if (!done) return FAIL({}, "That version is no longer kept. Only the last 25 are.");
+  audit({ actor: by, kind: "content", subjectId: id, subject: done.title, action: "restored an earlier version" });
+  refreshBlog(done.slug);
+  revalidatePath(`/admin/blog/${id}`);
+  return OK("Restored. The live post shows that version; the one it replaced is at the top of the list.");
+}

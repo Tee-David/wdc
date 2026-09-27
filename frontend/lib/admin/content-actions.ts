@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { parseFaqs } from "@/lib/faq-validate";
-import { resetSiteFaqs, saveSiteFaqs } from "@/lib/site-content";
+import { resetSiteFaqs, restoreSiteFaqs, saveSiteFaqs } from "@/lib/site-content";
 import { audit } from "./store";
 import { actorName, allow } from "./guard";
 import { FAIL, OK, type ActionState } from "./validate";
@@ -43,4 +43,19 @@ export async function resetFaqs(): Promise<ActionState> {
   audit({ actor: by, kind: "content", subjectId: "faq", subject: "FAQ", action: "reset to what shipped" });
   refreshFaqPages();
   return OK("Back to the questions that shipped with the site.");
+}
+
+/** Put an earlier FAQ list back. The one it replaces is kept, so this can be undone the same way. */
+export async function restoreFaqVersion(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await allow("content");
+  if (refused) return refused;
+  const by = await actorName();
+  let done: { count: number } | null;
+  try { done = await restoreSiteFaqs(String(fd.get("version") ?? ""), by); } catch {
+    return FAIL({}, "That version could not be restored just now. Nothing changed on the site.");
+  }
+  if (!done) return FAIL({}, "That version is no longer kept. Only the last ten are.");
+  audit({ actor: by, kind: "content", subjectId: "faq", subject: "FAQ", action: "restored an earlier version", note: `${done.count} questions` });
+  refreshFaqPages();
+  return OK(`Restored. ${done.count} questions are live; the list it replaced is kept below.`);
 }
