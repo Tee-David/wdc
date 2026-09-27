@@ -6,10 +6,13 @@ import { lastTools, MEDIA_CHECK_LIMIT, RETRY_DAYS, RETRY_LIMIT, type ToolName } 
 import { failedLoggedCount, stuckQueuedCount } from "@/lib/message-log";
 import { lastAuditFor } from "@/lib/audit-db";
 import { paystackMode } from "@/lib/paystack";
+import { getProviderEvents } from "@/lib/admin/store";
+import { syncStore } from "@/lib/admin/persist";
+import Link from "next/link";
 import { SITE_URL } from "@/lib/site";
 import { AdminState } from "@/components/admin/admin-state";
 import { Panel } from "@/components/admin/bits";
-import { ApplyMigrations, CheckNow, CopyReport, ToolButton } from "@/components/admin/settings/system-controls";
+import { ApplyMigrations, CheckNow, CopyReport, CopyText, ToolButton } from "@/components/admin/settings/system-controls";
 import { version as nextVersion } from "next/package.json";
 import "@/components/admin/forms/forms.css";
 
@@ -32,6 +35,17 @@ const TOOL_ROWS: { tool: ToolName; label: string; what: string; confirm?: string
   { tool: "media", label: "Check the media library", what: `Asks the bucket whether each of the newest ${MEDIA_CHECK_LIMIT} files is still there. Reports; never deletes. Runs behind the page.` },
 ];
 
+/* What Paystack itself delivered: the return page writes verify.* rows and
+   the checkout checkout.* rows, so everything else came to the webhook. */
+function deliveries() {
+  const week = Date.now() - 7 * 86_400_000;
+  const hooks = getProviderEvents({ limit: 500 }).filter((e) => !/^(verify|checkout)\./.test(e.event));
+  const recent = hooks.filter((e) => Date.parse(e.at) >= week);
+  const byOutcome = [...recent.reduce((m, e) => m.set(e.outcome, (m.get(e.outcome) ?? 0) + 1), new Map<string, number>())]
+    .map(([k, n]) => `${n} ${k.toLowerCase()}`).join(", ");
+  return { hooks, recent, byOutcome, rejected: recent.filter((e) => e.outcome === "Rejected").length };
+}
+
 /**
  * How the site is running, asked rather than assumed: each outside service's
  * last answer and when, the schema against the code, work that did not
@@ -42,6 +56,8 @@ export default async function SystemPage() {
   if (!can(role, "settings")) {
     return <section className="ad__panel"><AdminState kind="forbidden" back={{ href: "/admin/settings", label: "Back to settings" }} title="System is for the owner" description="How the site is running, and the tools to fix it." /></section>;
   }
+  await syncStore();
+  const { hooks, recent, byOutcome, rejected } = deliveries();
   const [probes, migrations, tools, failed, stuck, daily] = await Promise.all([
     lastProbes(), migrationStatus({ fresh: true }), lastTools(), failedLoggedCount().catch(() => 0), stuckQueuedCount(), lastAuditFor("daily").catch(() => null),
   ]);
@@ -103,8 +119,18 @@ export default async function SystemPage() {
             <div><dt>Emails that did not go</dt><dd>{failed ? `${failed}, not yet sent on. They are in Settings, Email, under Failed.` : "None outstanding."}</dd></div>
             <div><dt>Sends that never finished</dt><dd>{stuck ? `${stuck} still marked Queued after 15 minutes: the server stopped before it heard back.` : "None."}</dd></div>
             <div><dt>Daily tidy</dt><dd>{daily ? `${time(daily.at)} by ${daily.actor}: ${daily.action}` : "Has not run yet. It needs CRON_SECRET set in Vercel, or run it from Settings, Email."}</dd></div>
-            <div><dt>Payment notices</dt><dd>Kept in this server&apos;s memory until the money records move to the database (section 4.9), so there is no durable delivery history to show yet.</dd></div>
           </dl>
+        </Panel>
+
+        <Panel title="Payments from Paystack"
+          action={rejected ? <span className="ad__pill ad__pill--bad">{rejected} refused this week</span> : hooks.length ? <span className="ad__pill ad__pill--good">Arriving</span> : <span className="ad__pill ad__pill--flat">None yet</span>}>
+          <dl className="adForms__dl">
+            <div><dt>Last delivery</dt><dd>{hooks[0] ? `${time(hooks[0].at)}: ${hooks[0].event}, ${hooks[0].outcome.toLowerCase()}` : "Nothing has arrived at the webhook yet."}</dd></div>
+            <div><dt>Last 7 days</dt><dd>{recent.length ? byOutcome : "None."}{rejected ? " A refused one failed its signature: usually the secret key in the hosting does not match the Paystack account." : ""}</dd></div>
+            <div><dt>Webhook address</dt><dd><CopyText text={`${SITE_URL}/api/paystack/webhook`} /></dd></div>
+            <div><dt>Callback address</dt><dd><CopyText text={`${SITE_URL}/pay/done`} /></dd></div>
+          </dl>
+          <p className="ad__dim adForms__p">Both go in the Paystack dashboard under Settings, API keys and webhooks, for the {paystackMode()} account. Every delivery is listed on <Link href="/admin/money/reconciliation">Reconciliation</Link>.</p>
         </Panel>
 
         <Panel title="Tools">

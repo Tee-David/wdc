@@ -155,3 +155,14 @@ test("staff are refused", async ({ page, baseURL }) => {
   await page.goto("/admin/settings/system", { waitUntil: "load" });
   await expect(page.getByText("System is for the owner")).toBeVisible();
 });
+
+test("Paystack's deliveries are summarised, with the two addresses to give it", async ({ page, baseURL }) => {
+  await asOwner(page, baseURL);
+  await page.goto("/admin/settings/system", { waitUntil: "networkidle" });
+  const panel = page.locator(".ad__panel", { has: page.getByRole("heading", { name: "Payments from Paystack" }) });
+  await expect(panel).toContainText(/Last delivery/);
+  await expect(panel).not.toContainText("memory");
+  await expect(panel.locator("code").filter({ hasText: /\/api\/paystack\/webhook$/ })).toBeVisible();
+  await expect(panel.locator("code").filter({ hasText: /\/pay\/done$/ })).toBeVisible();
+  await expect(panel.getByRole("link", { name: "Reconciliation" })).toHaveAttribute("href", "/admin/money/reconciliation");
+});

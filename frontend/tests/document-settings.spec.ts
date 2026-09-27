@@ -43,3 +43,13 @@ test("a TIN and a note saved in Settings print on the invoice and the receipt", 
     await expect(page.locator(".doc__studioNote"), path).toHaveText("Thank you for working with us.");
   }
 });
+
+test("the next invoice, estimate and receipt numbers are shown, and are not fields", async ({ page }) => {
+  await page.setExtraHTTPHeaders({ "x-boneyard-capture": TOKEN ?? "" });
+  await page.goto("/admin/settings/general", { waitUntil: "networkidle" });
+  const panel = page.locator(".ad__panel", { has: page.getByRole("heading", { name: "Next numbers" }) });
+  await expect(panel.locator("code").nth(0)).toHaveText(/^INV-\d{4}-\d{3,}$/);
+  await expect(panel.locator("code").nth(1)).toHaveText(/^EST-\d{4}-\d{3,}$/);
+  await expect(panel.locator("code").nth(2)).toHaveText(/^RCT-\d{4}-\d{3,}$/);
+  await expect(panel.locator("input")).toHaveCount(0);
+});
