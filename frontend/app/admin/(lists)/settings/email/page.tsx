@@ -11,7 +11,9 @@ import { AdminState } from "@/components/admin/admin-state";
 import { Panel } from "@/components/admin/bits";
 import { TestEmail } from "@/components/admin/email-settings";
 import { Head } from "@/components/admin/settings/kit";
-import { EmailForm } from "@/components/admin/settings/email-form";
+import { EmailForm, PendingNotice } from "@/components/admin/settings/email-form";
+import { pendingNotice } from "@/lib/notice-address";
+import { when } from "@/components/admin/bits";
 import "@/components/admin/forms/forms.css";
 
 export const metadata = { title: "Email" };
@@ -47,7 +49,7 @@ export default async function EmailSettingsPage() {
     );
   }
   const { session } = await getAdminRequest().catch(() => ({ session: null }));
-  const days = await getAppSetting(LOG_RETENTION_KEY, DEFAULT_LOG_RETENTION);
+  const [days, pending] = await Promise.all([getAppSetting(LOG_RETENTION_KEY, DEFAULT_LOG_RETENTION), pendingNotice()]);
   const ok = mailIsConfigured();
   const shippedReply = process.env.SMTP_REPLY_TO?.trim() || "";
   return (
@@ -70,6 +72,10 @@ export default async function EmailSettingsPage() {
             </details>
           </div>
         </Panel>
+        {pending ? (
+          <PendingNotice to={pending.to}
+            expires={`${new Date(pending.expires).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" })} on ${when(pending.expires)}`} />
+        ) : null}
         <EmailForm fromName={getSetting("mail.fromName") || process.env.SMTP_FROM_NAME?.trim() || "WDC Solutions"}
           replyTo={getSetting("mail.replyTo") || ""} shippedReplyTo={shippedReply} days={days} options={LOG_RETENTION_DAYS}
           fromAddress={process.env.SMTP_FROM_EMAIL?.trim() || ""} />

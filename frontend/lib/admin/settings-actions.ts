@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { actorName, allow, owner } from "./guard";
 import { FAIL, OK, str, type ActionState } from "./validate";
 import { audit, getSetting } from "./store";
@@ -13,6 +14,10 @@ import { FAILURE_ALERT_KEY, type FailureAlert } from "@/lib/mail-alert";
 import { FORMS } from "@/lib/forms/registry";
 import { NOTIFICATIONS } from "@/lib/forms/settings";
 import { getFormSettings, saveFormSettings } from "@/lib/forms/settings-db";
+import { dropNotice, holdNotice, NOTICE_HOURS, pendingNotice } from "@/lib/notice-address";
+import { REFUSED_EMAIL_MESSAGE, refusedEmail } from "@/lib/email-domains";
+import { noticeAddressEmail } from "@/lib/email-templates";
+import { secretKey, sendLogged } from "@/lib/outbox";
 
 /**
  * THE SETTINGS SECTIONS' SAVES (components/admin/settings/kit.tsx). Each
@@ -131,18 +136,75 @@ export async function saveEmailSettings(_prev: ActionState, fd: FormData): Promi
   if (!(LOG_RETENTION_DAYS as readonly number[]).includes(days)) return FAIL({ logDays: "Pick one of the listed periods." }, "Nothing was saved.");
   const by = await actorName();
   try {
-    const r = await writeKeys({ "mail.fromName": str(fd, "mail.fromName"), "mail.replyTo": str(fd, "mail.replyTo") }, by);
+    /* A NEW reply-to is where studio notices go, so it proves itself first
+       (lib/notice-address.ts): held, and mailed a link, rather than written.
+       Back to the default is an address already trusted, and applies now. */
+    const replyDef = settingDef("mail.replyTo")!;
+    const reply = replyDef.parse!(str(fd, "mail.replyTo"));
+    if (!reply.ok) return FAIL({ "mail.replyTo": reply.error }, "Nothing was saved. Fix the marked fields.");
+    const shippedReply = replyDef.shipped();
+    const currentReply = getSetting("mail.replyTo") ?? shippedReply;
+    const held = reply.value !== currentReply && reply.value !== "" && reply.value !== shippedReply;
+    if (held && refusedEmail(reply.value)) return FAIL({ "mail.replyTo": REFUSED_EMAIL_MESSAGE }, "Nothing was saved. Fix the marked fields.");
+
+    const r = await writeKeys({ "mail.fromName": str(fd, "mail.fromName"), ...(held ? {} : { "mail.replyTo": reply.value }) }, by);
     if (Object.keys(r.errors).length) return FAIL(r.errors, "Nothing was saved. Fix the marked fields.");
     let changed = r.changed;
+    if (held) {
+      await askToConfirmNotice(reply.value, by);
+      changed += 1;
+    } else if (reply.value !== currentReply) {
+      await dropNotice(by);
+    }
     if ((await getAppSetting(LOG_RETENTION_KEY, DEFAULT_LOG_RETENTION)) !== days) {
       await setAppSetting(LOG_RETENTION_KEY, days, by);
       audit({ actor: by, kind: "setting", subjectId: LOG_RETENTION_KEY, subject: "Message log", action: `set the message log to keep ${days} days` });
       changed += 1;
     }
-    return finish(changed, [...r.pages, "/admin/settings/email"]);
+    const done = finish(changed, [...r.pages, "/admin/settings/email"]);
+    return held ? OK(`Check ${reply.value}: replies and notices move there once the link we sent is opened. Until then they go where they go now.`) : done;
   } catch {
     return FAIL({}, "That could not be saved just now.");
   }
+}
+
+/* Held, and mailed behind the response (the mail server takes about 23
+   seconds to authenticate). The row in the message log comes first, so a
+   send that fails is visible there and in the failure alert. */
+async function askToConfirmNotice(to: string, by: string) {
+  const url = await holdNotice(to, by);
+  audit({ actor: by, kind: "setting", subjectId: "mail.replyTo", subject: "Replies go to", action: `asked ${to} to confirm it for studio notices and replies` });
+  after(async () => {
+    try {
+      await sendLogged({ to, ...noticeAddressEmail({ url, by, hours: NOTICE_HOURS }) },
+        { summary: "Confirm a new address for studio notices.", dedupeKey: secretKey("notice-address", url), by });
+    } catch (error) {
+      console.error("[settings] the confirmation email did not go:", error instanceof Error ? error.message : error);
+    }
+  });
+}
+
+/** Send the confirmation again, with a new link (the old one stops working). */
+export async function resendNoticeConfirmation(_prev: ActionState, _fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
+  const p = await pendingNotice();
+  if (!p) return FAIL({}, "There is no change waiting. Enter the address again.");
+  try { await askToConfirmNotice(p.to, await actorName()); } catch { return FAIL({}, "That could not be sent just now."); }
+  revalidatePath("/admin/settings/email");
+  return OK(`Sent again to ${p.to}. The earlier link no longer works.`);
+}
+
+/** Withdraw the change: the link stops working and nothing moves. */
+export async function cancelNoticeChange(_prev: ActionState, _fd: FormData): Promise<ActionState> {
+  const refused = await owner();
+  if (refused) return refused;
+  const by = await actorName();
+  const p = await pendingNotice();
+  try { await dropNotice(by); } catch { return FAIL({}, "That could not be withdrawn just now."); }
+  if (p) audit({ actor: by, kind: "setting", subjectId: "mail.replyTo", subject: "Replies go to", action: `withdrew the change to ${p.to}` });
+  revalidatePath("/admin/settings/email");
+  return OK("Withdrawn. Replies and notices stay where they are.");
 }
 
 /** Business profile: the studio's social profiles, drawn in every email's footer. */

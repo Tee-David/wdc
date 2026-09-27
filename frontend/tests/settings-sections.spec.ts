@@ -12,7 +12,7 @@ import pg from "pg";
 
 const CONNECTION = process.env.DATABASE_URL || process.env.COCKROACHDB_URL;
 const TOKEN = process.env.BONEYARD_CAPTURE_TOKEN;
-const KEYS = ["finance.vatRate", "finance.dueInDays", "finance.vatOn", "finance.reminders", "notify.tickets", "notify.payments", "mail.fromName", "mail.replyTo"];
+const KEYS = ["finance.vatRate", "finance.dueInDays", "finance.vatOn", "finance.reminders", "notify.tickets", "notify.payments", "mail.fromName", "mail.replyTo", "mail.replyTo.pending"];
 
 test.describe.configure({ mode: "serial", timeout: 150_000 });
 test.skip(!CONNECTION, "Needs DATABASE_URL or COCKROACHDB_URL.");
@@ -111,7 +111,9 @@ test("notifications and the sender save, and a bad reply-to is refused", async (
   await page.getByLabel(/^From name/).fill("WDC Studio");
   await bar(page).getByRole("button", { name: "Save changes" }).click();
   await expect(bar(page)).toBeHidden({ timeout: 20_000 });
-  expect(await value("mail.replyTo")).toBe("studio@example.com");
+  /* A new reply-to waits for its confirmation link (tests/notice-address.spec.ts). */
+  expect(await value("mail.replyTo")).toBeNull();
+  expect((await value("mail.replyTo.pending"))?.to).toBe("studio@example.com");
   expect(await value("mail.fromName")).toBe("WDC Studio");
 });
 
