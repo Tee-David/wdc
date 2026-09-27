@@ -139,6 +139,23 @@ export function Form({
   /* Reported after the render that carried the result, never during it: a
      parent closing its dialog is a setState in another component. */
   const done = useRef<ActionState | null>(null);
+  /* A REFUSAL IS SAID AND SHOWN. The message used to sit at the foot of the
+     form, which on a phone is a screen or two below the button, so a post that
+     would not save looked like one that saved and changed nothing. Now it is
+     a toast as well, and the first field that needs attention is opened
+     (inside a closed section too), scrolled to and focused. */
+  const refused = useRef<ActionState | null>(null);
+  useEffect(() => {
+    if (state.ok || !state.message || refused.current === state) return;
+    refused.current = state;
+    toast(state.message, "bad");
+    const bad = ref.current?.querySelector<HTMLElement>('[aria-invalid="true"]');
+    if (!bad) return;
+    for (let d = bad.closest("details"); d; d = d.parentElement?.closest("details") ?? null) d.open = true;
+    bad.scrollIntoView({ block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    bad.focus({ preventScroll: true });
+  }, [state]);
+
   useEffect(() => {
     if (!state.ok || done.current === state) return;
     done.current = state;
