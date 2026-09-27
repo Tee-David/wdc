@@ -1,5 +1,7 @@
 import { postsNewestFirstDb } from "@/lib/blog-db";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { hydrateSettings } from "@/lib/settings/store";
+import { getSetting } from "@/lib/admin/store";
 
 /**
  * An RSS feed for the blog.
@@ -23,7 +25,11 @@ const escape = (value: string) =>
     .replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 
 export async function GET() {
-  const posts = await postsNewestFirstDb();
+  const [all] = await Promise.all([postsNewestFirstDb(), hydrateSettings()]);
+  /* The newest N, set in Settings > Blog and site copy; a saved value that is
+     not a sane number falls back to what shipped. */
+  const n = Number(getSetting("blog.rssCount") ?? 50);
+  const posts = all.slice(0, Number.isInteger(n) && n >= 5 && n <= 100 ? n : 50);
   /* The feed's own timestamp is the newest post's, not "now" -- a feed whose
      lastBuildDate moves on every fetch tells every reader it has changed when
      it has not. */
