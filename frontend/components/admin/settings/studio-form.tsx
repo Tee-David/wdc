@@ -9,8 +9,8 @@ import { Chips, SettingsForm, Switch, Text } from "./kit";
 const TERMS = [7, 14, 30, 45, 60, 90];
 
 /** Settings, Studio and invoices: how a new invoice starts, and when unpaid ones are chased. */
-export function StudioForm({ vatRate, vatOn, dueInDays, reminders, days }: {
-  vatRate: number; vatOn: boolean; dueInDays: number; reminders: string[];
+export function StudioForm({ vatRate, vatOn, dueInDays, reminders, days, tin, footerNote }: {
+  vatRate: number; vatOn: boolean; dueInDays: number; reminders: string[]; tin: string; footerNote: string;
   days: { value: string; label: string }[];
 }) {
   const [remOn, setRemOn] = useState(reminders.length > 0);
@@ -27,6 +27,17 @@ export function StudioForm({ vatRate, vatOn, dueInDays, reminders, days }: {
           </Fields>
         </div>
         <Switch name="finance.vatOn" label="Add VAT to new invoices" note="You can still change it on each invoice." defaultChecked={vatOn} />
+      </Panel>
+
+      <Panel title="On the documents" action={<span className="ad__dim adSet__aside">Invoices, estimates and receipts</span>}>
+        <div className="adSetPad">
+          <Fields>
+            <Text name="finance.tin" label="Tax ID (TIN)" half defaultValue={tin} placeholder="12345678-0001"
+              pattern="\d{8}-?\d{4}|\d{10,14}" message="A TIN like 12345678-0001." hint="Once the studio is VAT registered. Empty prints none." />
+            <Text name="finance.footerNote" label="Note at the foot" rows={2} count={200} defaultValue={footerNote}
+              placeholder="Thank you for working with us." hint="Terms or thanks, on every document. Empty prints none." />
+          </Fields>
+        </div>
       </Panel>
 
       <Panel title="Payment reminders">

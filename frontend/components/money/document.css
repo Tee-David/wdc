@@ -555,3 +555,6 @@ form[data-busy] .doc__btn__trace::before { animation: pay-trace 1.15s linear inf
 /* The receipt link stays readable and clickable — striking it through would
    suggest the document itself has gone, and it has not. */
 .doc__lines tr.is-void td a { text-decoration: underline; color: #7a7a8c; }
+
+/* The studio's own note (Settings > Studio and invoices), above the fine print. */
+.doc__studioNote { display: block; margin-bottom: .4rem; color: inherit; font-weight: 600; }

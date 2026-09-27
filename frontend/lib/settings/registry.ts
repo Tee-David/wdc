@@ -161,6 +161,24 @@ export const SETTINGS: SettingDef[] = [
     parse: reminders, revalidate: [],
   },
   {
+    /* Read by components/money/document.tsx on every invoice, estimate and receipt. */
+    key: "finance.tin", label: "Tax ID (TIN)", shipped: () => "",
+    note: "Printed beside the registration number once the studio is VAT registered. Empty prints none.",
+    parse: (raw) => {
+      const t = raw.trim().toUpperCase();
+      if (!t) return { ok: true, value: "" };
+      return /^\d{8}-?\d{4}$|^\d{10,14}$/.test(t) ? { ok: true, value: t } : { ok: false, error: "A TIN like 12345678-0001." };
+    },
+    revalidate: [],
+  },
+  {
+    /* Read by the same document footer. */
+    key: "finance.footerNote", label: "Note on every document", shipped: () => "",
+    note: "One or two sentences at the foot of invoices, estimates and receipts: terms, thanks. Empty prints none.",
+    parse: (raw) => (raw.trim() ? text(1, 200, "a note")(raw) : { ok: true, value: "" }),
+    revalidate: [],
+  },
+  {
     key: "notify.tickets", label: "Support tickets", shipped: () => "1",
     note: "Email the studio when a client opens or replies to a ticket.",
     parse: flag, revalidate: [],

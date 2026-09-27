@@ -1,6 +1,6 @@
 import { adminRole } from "@/lib/admin/guard";
 import { AdminState } from "@/components/admin/admin-state";
-import { financeSettings } from "@/lib/admin/store";
+import { financeSettings, getSetting } from "@/lib/admin/store";
 import { REMINDER_DAYS } from "@/lib/settings/registry";
 import { Head } from "@/components/admin/settings/kit";
 import { StudioForm } from "@/components/admin/settings/studio-form";
@@ -32,7 +32,8 @@ export default async function StudioSettingsPage() {
     <>
       <Head title="Studio and invoices" line="How new invoices start, and when unpaid ones are chased."><PageTourButton /></Head>
       <div data-tour="settings-table">
-        <StudioForm vatRate={f.vatRate} vatOn={f.vatOn} dueInDays={f.dueInDays} reminders={f.reminders} days={REMINDER_DAYS} />
+        <StudioForm vatRate={f.vatRate} vatOn={f.vatOn} dueInDays={f.dueInDays} reminders={f.reminders} days={REMINDER_DAYS}
+          tin={getSetting("finance.tin") ?? ""} footerNote={getSetting("finance.footerNote") ?? ""} />
       </div>
     </>
   );
