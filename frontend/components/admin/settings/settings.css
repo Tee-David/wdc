@@ -164,7 +164,9 @@
   background: var(--ad-panel-2); color: var(--ad-ink); font: inherit; font-size: .92rem;
 }
 .adSet__search input:focus { outline: none; border-color: var(--ad-fill); background: var(--ad-panel); }
-.adSet__none { margin: .5rem .6rem; color: var(--ad-dim); font-size: .88rem; }
+.adSet__none { margin: .5rem .6rem; display: grid; justify-items: start; gap: .5rem; color: var(--ad-dim); font-size: .88rem; }
+.adSet__none p { margin: 0; }
+.adSet__none b { color: var(--ad-ink); display: block; }
 .adSet__ext { margin-left: auto; width: .9rem; height: .9rem; }
 
 /* A Google-style preview of the search result. */
