@@ -117,6 +117,15 @@ test.describe("the books", () => {
     await page.setExtraHTTPHeaders({ "x-boneyard-capture": TOKEN ?? "" });
   });
 
+  test("a part-refunded payment says so on Money and on its invoice, from the refund rows", async ({ page }) => {
+    await page.goto("/admin/money", { waitUntil: "networkidle" });
+    const row = page.locator("tr", { hasText: "TRF_0104" });
+    await expect(row).toContainText("Part refunded, ₦75,000.00 back");
+    await expect(row).toContainText("₦150,000.00");
+    await page.goto("/admin/money/i2", { waitUntil: "networkidle" });
+    await expect(page.locator("tr", { hasText: "RCT-2026-004" })).toContainText("Part refunded, ₦75,000.00 back");
+  });
+
   test("a struck invoice owes nothing and is out of the aging", async ({ page }) => {
     await page.goto("/admin/money", { waitUntil: "load" });
     const row = page.locator("tr", { hasText: "INV-2026-006" }).first();

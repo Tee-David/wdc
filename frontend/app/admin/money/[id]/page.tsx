@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import {
   getClient, getInvoice, getPaymentsFor, getProject, getProjectsFor,
 } from "@/lib/admin/store";
-import { invoiceStatus, invoiceTotals, lineTotal, naira, nairaShort } from "@/lib/admin/types";
+import { invoiceStatus, invoiceTotals, lineTotal, naira, nairaShort, paymentState, refundedTotal } from "@/lib/admin/types";
 
 /** The exact figure under a short one, only when the short one rounded it. */
 const exact = (kobo: number) => (nairaShort(kobo) === naira(kobo).replace(/\.00$/, "") ? undefined : naira(kobo));
@@ -200,7 +200,9 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                         ) : null}
                       </td>
                       <td className="ad__dim">{p.by}</td>
-                      <td className="num">{naira(p.amount)}</td>
+                      {/* What arrived, and under it what has since gone back:
+                          the row's state is the refund rows summed. */}
+                      <td className="num">{naira(p.amount)}{paymentState(p) !== "Received" ? <small className="ad__dim">{paymentState(p)}{paymentState(p) === "Part refunded" ? `, ${naira(refundedTotal(p))} back` : ""}</small> : null}</td>
                       <td className="ad__rmC">
                         <PaymentMenu payment={p} invoiceNumber={inv.number} />
                       </td>

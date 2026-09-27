@@ -8,7 +8,7 @@ import {
 } from "@/lib/admin/store";
 import { failedLoggedCount } from "@/lib/message-log";
 import {
-  estimateState, estimateTotals, invoiceStatus, invoiceTotals, naira, nairaShort,
+  estimateState, estimateTotals, invoiceStatus, invoiceTotals, naira, nairaShort, paymentState, refundedTotal,
 } from "@/lib/admin/types";
 import { Empty, InvoicePill, Panel, Tile, when } from "@/components/admin/bits";
 import { avTone, initials } from "@/lib/admin/client-mark";
@@ -540,7 +540,7 @@ export default async function MoneyPage({
                             <small className="ad__dim ad__num ad__subLine">{p.reference}</small>
                           </td>
                           <td>{p.method}</td>
-                          <td className="num">{naira(p.amount)}</td>
+                          <td className="num">{naira(p.amount)}{paymentState(p) !== "Received" ? <small className="ad__dim">{paymentState(p)}{paymentState(p) === "Part refunded" ? `, ${naira(refundedTotal(p))} back` : ""}</small> : null}</td>
                           <td className="ad__rmC">
                             <PaymentMenu payment={p} invoiceNumber={inv?.number} />
                           </td>
