@@ -185,7 +185,7 @@ async function askToConfirmNotice(to: string, by: string) {
 }
 
 /** Send the confirmation again, with a new link (the old one stops working). */
-export async function resendNoticeConfirmation(_prev: ActionState, _fd: FormData): Promise<ActionState> {
+export async function resendNoticeConfirmation(): Promise<ActionState> {
   const refused = await owner();
   if (refused) return refused;
   const p = await pendingNotice();
@@ -196,7 +196,7 @@ export async function resendNoticeConfirmation(_prev: ActionState, _fd: FormData
 }
 
 /** Withdraw the change: the link stops working and nothing moves. */
-export async function cancelNoticeChange(_prev: ActionState, _fd: FormData): Promise<ActionState> {
+export async function cancelNoticeChange(): Promise<ActionState> {
   const refused = await owner();
   if (refused) return refused;
   const by = await actorName();
