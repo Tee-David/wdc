@@ -13,6 +13,8 @@ import { BlogEditor, type EditorPost } from "@/components/admin/blog-editor";
 import { AdminState } from "@/components/admin/admin-state";
 import "@/components/admin/blog-editor.css";
 import { ToastOnArrival } from "@/components/admin/toast";
+import { PostRevisions } from "@/components/admin/revisions";
+import { postRevisions } from "@/lib/revisions";
 
 export const metadata = { title: "Edit post" };
 
@@ -106,6 +108,12 @@ export default async function EditPostPage({ params, searchParams }: {
           canPublish={isOwner}
         />
       )}
+      {/* A live post's earlier versions, the owner's to restore. */}
+      {isOwner && found?.status === "published" ? (
+        <div style={{ marginTop: "1rem" }}>
+          <PostRevisions postId={found.id} items={await postRevisions(found.id).catch(() => [])} />
+        </div>
+      ) : null}
     </>
   );
 }
