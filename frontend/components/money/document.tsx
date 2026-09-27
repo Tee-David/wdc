@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { COMPANY_NAME, CONTACT_EMAIL, REGISTRATION_NO, SITE_URL } from "@/lib/site";
 import { naira } from "@/lib/admin/types";
+import { getSetting } from "@/lib/admin/store";
 import QrCode from "@/components/ui/qr-code";
 import Stamp, { type StampStatus } from "./stamp";
 import "./document.css";
@@ -37,6 +38,10 @@ export function DocumentShell({
    */
   stamp?: StampStatus;
 }) {
+  /* From Settings > Studio and invoices; every page that draws this has
+     synced the settings first. */
+  const tin = getSetting("finance.tin");
+  const note = getSetting("finance.footerNote");
   return (
     <main className="doc">
       <article className="doc__sheet">
@@ -47,7 +52,7 @@ export function DocumentShell({
             <Image src="/brand/icon-navy.svg" alt="" width={40} height={40} priority />
             <span>
               <b>We Dig Creativity</b>
-              <small>{REGISTRATION_NO}</small>
+              <small>{REGISTRATION_NO}{tin ? ` · TIN ${tin}` : ""}</small>
             </span>
           </div>
           <div className="doc__id">
@@ -72,6 +77,7 @@ export function DocumentShell({
 
         <footer className="doc__foot">
           <small>
+            {note ? <span className="doc__studioNote">{note}</span> : null}
             {COMPANY_NAME}. Questions about this {kind.toLowerCase()} go to{" "}
             <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. This page is
             the live version: scan the code to reopen it from a printed copy.

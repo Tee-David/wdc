@@ -74,6 +74,8 @@ export async function saveStudioSettings(_prev: ActionState, fd: FormData): Prom
       "finance.dueInDays": str(fd, "finance.dueInDays"),
       "finance.vatOn": str(fd, "finance.vatOn"),
       "finance.reminders": on ? days.join(",") : "off",
+      "finance.tin": str(fd, "finance.tin"),
+      "finance.footerNote": str(fd, "finance.footerNote"),
     }, await actorName());
     if (Object.keys(r.errors).length) return FAIL(r.errors, "Nothing was saved. Fix the marked fields.");
     return finish(r.changed, r.pages);
