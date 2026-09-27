@@ -57,7 +57,9 @@ async function asOwner(page: Page, baseURL?: string) {
   ]);
 }
 
-test("a short description is refused with the count, and nothing is written", async ({ page, baseURL }) => {
+test("a missing description is refused, the count says why, and nothing is written", async ({ page, baseURL }) => {
+  /* Length is advice now (lib/blog-validate.ts): 120 to 155 shows in full, but
+     only an empty one, or one past the hard cap, stops a save. */
   await asOwner(page, baseURL);
   await page.goto("/admin/blog/new", { waitUntil: "load" });
   await page.getByLabel(/^Headline/).fill(TITLE);
@@ -67,17 +69,19 @@ test("a short description is refused with the count, and nothing is written", as
   await page.getByLabel(/^Search result title/).fill("What a brand audit covers");
   await page.getByLabel(/^Meta description/).fill("Too short.");
   await expect(page.locator(".adBlog__count").nth(1)).toContainText("10 characters");
+  await page.getByLabel(/^Meta description/).fill("");
   await body(page);
   await page.keyboard.type("Most rebrands start in the wrong place.");
   await page.getByRole("button", { name: /^(Save|Update)$/ }).click();
   await expect(page.locator(".ad__msg.is-bad")).toBeVisible();
-  await expect(page.locator(".ad__fe", { hasText: "Between 120 and 155" })).toBeVisible();
+  await expect(page.locator(".ad__fe", { hasText: "Write the sentence a search result should show" })).toBeVisible();
   const rows = await db.query("SELECT 1 FROM blog_posts WHERE slug = $1", [SLUG]);
   expect(rows.rowCount).toBe(0);
   /* What was typed survives the failure, body included. */
   await expect(page.getByLabel(/^Headline/)).toHaveValue(TITLE);
   await expect(page.locator(".adRte__doc")).toContainText("Most rebrands start in the wrong place.");
 });
+
 
 test("a draft is saved, invisible on /blog, and visible in preview to the owner", async ({ page, baseURL, request }) => {
   await asOwner(page, baseURL);
