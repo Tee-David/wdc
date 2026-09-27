@@ -113,7 +113,7 @@ test("the default description is replaced, bounded, and reset", async ({ page, b
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByText(/Between 50 and 160 characters/)).toBeVisible({ timeout: 20_000 });
 
-  const text = "A studio in Lagos for branding, websites, SEO and software that earns its keep for the business.";
+  const text = "A studio for branding, websites, SEO and software that earns its keep for the business.";
   await fillHeld(page, /^Description/, text);
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.locator(".adToast", { hasText: "Saved." })).toBeVisible({ timeout: 20_000 });

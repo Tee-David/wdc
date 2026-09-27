@@ -144,7 +144,7 @@ export async function maintenancePage(m: Maintenance): Promise<string> {
 export function plainPage(m: Maintenance): string {
   const message = m.message?.trim() || "We are making some changes to the site and will be back shortly.";
   const back = m.backBy && !Number.isNaN(Date.parse(m.backBy))
-    ? `<p class="s">Expected back by ${esc(new Date(m.backBy).toLocaleString("en-GB", { weekday: "long", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" }))}, Lagos time.</p>` : "";
+    ? `<p class="s">Expected back by ${esc(new Date(m.backBy).toLocaleString("en-GB", { weekday: "long", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" }))}, West Africa Time.</p>` : "";
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Back shortly | We Dig Creativity</title><style>
 html,body{margin:0;height:100%}body{display:grid;place-items:center;background:#000065;color:#fff;font:400 1.05rem/1.6 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:1rem}
 main{max-width:34rem}h1{font:700 clamp(1.8rem,5vw,2.6rem)/1.15 system-ui,sans-serif;margin:0 0 .8rem}i{display:block;width:3rem;height:4px;background:#ff6500;margin-bottom:1.2rem}.s{opacity:.85;font-size:.95rem}a{color:#fff}

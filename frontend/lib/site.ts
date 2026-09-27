@@ -27,8 +27,9 @@ export const REGISTRATION_NO = "BN 8480926";
 export const REGISTRAR = "Corporate Affairs Commission (CAC), Nigeria";
 export const MOTTO = "Brilliant simplicity of thought";
 export const CONTACT_EMAIL = "info@wedigcreativity.com.ng";
-/** Where the studio is, as the email footer says it. */
-export const LOCATION = "Lagos, Nigeria";
+/** Where the studio is, as the email footer says it. The country, never a
+ *  city (AGENTS.md: the studio is meant to outgrow one). */
+export const LOCATION = "Nigeria";
 
 /**
  * The studio's own profiles, for the email footer's row of marks.

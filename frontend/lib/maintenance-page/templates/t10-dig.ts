@@ -63,7 +63,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%}
   var finds = [].slice.call(document.querySelectorAll('.find')), dpr = Math.min(2, devicePixelRatio || 1);
   document.getElementById('stone-msg').textContent = document.querySelector('.wdc-lede').textContent;
   document.getElementById('clay-when').textContent = WDC.backBy ? 'Back by ' + new Date(WDC.backBy).toLocaleString('en-GB', {weekday:'short', hour:'2-digit', minute:'2-digit', timeZone:'Africa/Lagos'}) : 'Back soon';
-  document.getElementById('clay-sub').textContent = WDC.backBy ? 'Lagos time' : 'As soon as it is ready';
+  document.getElementById('clay-sub').textContent = WDC.backBy ? 'West Africa Time' : 'As soon as it is ready';
   /* where each find is buried, as fractions of the scene: a wide dig and a tall one */
   var WIDE = {bone:[.12,.18], sketch:[.86,.2], stone:[.46,.44], old:[.14,.8], clay:[.8,.76], note:[.48,.84]};
   var TALL = {bone:[.24,.1], sketch:[.76,.12], stone:[.5,.37], old:[.26,.63], clay:[.74,.62], note:[.5,.86]};

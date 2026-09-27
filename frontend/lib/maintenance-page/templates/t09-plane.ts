@@ -72,7 +72,7 @@ const t09: TemplateModule = {
   var hint = document.getElementById('hint'), crease = document.getElementById('crease');
   document.getElementById('note-msg').textContent = document.querySelector('.wdc-lede').textContent;
   document.getElementById('note-when').textContent = WDC.backBy
-    ? 'Back by ' + new Date(WDC.backBy).toLocaleString('en-GB', {weekday:'long', hour:'2-digit', minute:'2-digit', timeZone:'Africa/Lagos'}) + ', Lagos time'
+    ? 'Back by ' + new Date(WDC.backBy).toLocaleString('en-GB', {weekday:'long', hour:'2-digit', minute:'2-digit', timeZone:'Africa/Lagos'}) + ', West Africa Time'
     : 'Back as soon as it is ready';
   var C = {}, state = 'sheet', t = 0;
   var sky = document.getElementById('sky');

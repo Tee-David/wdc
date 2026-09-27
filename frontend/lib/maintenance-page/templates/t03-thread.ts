@@ -39,7 +39,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
     var lagos = new Date(new Date(WDC.backBy).toLocaleString('en-US', {timeZone:'Africa/Lagos'}));
     var hh = lagos.getHours()%12 + lagos.getMinutes()/60, mm = lagos.getMinutes();
     var ha = hh/12*Math.PI*2 - Math.PI/2, ma = mm/60*Math.PI*2 - Math.PI/2;
-    shapes.push({w:'Back by ' + String(lagos.getHours()).padStart(2,'0') + ':' + String(mm).padStart(2,'0'), s:'Lagos time, on the clock',
+    shapes.push({w:'Back by ' + String(lagos.getHours()).padStart(2,'0') + ':' + String(mm).padStart(2,'0'), s:'West Africa Time, on the clock',
       p:[].concat(arc(0, 0, .66, -Math.PI/2, Math.PI*1.5, 160), [[0,-.66],[0,0],[Math.cos(ha)*.34, Math.sin(ha)*.34],[0,0],[Math.cos(ma)*.52, Math.sin(ma)*.52]])});
   } else {
     shapes.push({w:'Back soon', s:'We will not be long', p:arc(0, 0, .6, -Math.PI/2, Math.PI*1.5, 160)});

@@ -213,7 +213,7 @@ test("a message says what it has to and no more", async () => {
     if (/copy this address|does not work/i.test(email.html)) failures.push(`${name}: prints a fallback link`);
     if (/letter-spacing:\.14em;text-transform:uppercase/.test(email.html)) failures.push(`${name}: has an eyebrow over the heading`);
     if (!email.html.includes("/email/logo-white.png")) failures.push(`${name}: header has no logo`);
-    if (!email.html.includes("Lagos, Nigeria")) failures.push(`${name}: footer has no location`);
+    if (!email.html.includes(">Nigeria<")) failures.push(`${name}: footer has no location`);
     if (!email.html.includes("This email was sent to")) failures.push(`${name}: footer does not say who it was sent to`);
   }
   expect(failures, failures.join("\n")).toEqual([]);

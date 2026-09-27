@@ -139,7 +139,7 @@ const t04: TemplateModule = {
     c.v = v;
   }
   var backsub = document.getElementById('backsub');
-  if (WDC.backBy) backsub.textContent = new Date(WDC.backBy).toLocaleString('en-GB', {weekday:'long', hour:'2-digit', minute:'2-digit', timeZone:'Africa/Lagos'}) + ' · Lagos time';
+  if (WDC.backBy) backsub.textContent = new Date(WDC.backBy).toLocaleString('en-GB', {weekday:'long', hour:'2-digit', minute:'2-digit', timeZone:'Africa/Lagos'}) + ' · West Africa Time';
   else { document.getElementById('backey').textContent = 'Away for'; backsub.textContent = 'Back as soon as it is ready'; }
   function tick(){
     var ms = WDC.backBy ? WDC.remaining() : Date.now() - WDC.since;

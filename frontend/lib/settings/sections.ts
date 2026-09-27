@@ -9,7 +9,7 @@ import type { Area } from "@/lib/admin/permissions";
  * than out of Settings. `area` is who may open it (lib/admin/permissions.ts);
  * a section a role cannot open is not listed for it, and its page refuses.
  */
-export type SettingsIcon = "sliders" | "messages" | "images" | "mail" | "plug" | "history" | "shield" | "users" | "user" | "globe" | "activity" | "lock" | "bell" | "wrench";
+export type SettingsIcon = "sliders" | "messages" | "images" | "mail" | "plug" | "history" | "shield" | "users" | "user" | "globe" | "activity" | "lock" | "bell" | "wrench" | "building";
 
 export type SettingsSection = {
   href: string;
@@ -26,6 +26,7 @@ export type SettingsSection = {
 export const SETTINGS_SECTIONS: SettingsSection[] = [
   { href: "/admin/settings/account", label: "My account", line: "Name, password and devices.", group: "You", icon: "user", area: null, words: "profile password sign in google devices sessions tours" },
   { href: "/admin/settings/general", label: "Studio and invoices", line: "VAT, payment terms and reminders.", group: "Studio", icon: "sliders", area: "settings", words: "vat payment due terms reminders invoices estimates finance defaults" },
+  { href: "/admin/settings/business", label: "Business profile", line: "Registered details and social profiles.", group: "Studio", icon: "building", area: "settings", words: "business company legal registered bn cac name motto social linkedin instagram x twitter facebook tiktok youtube behance whatsapp profiles footer" },
   { href: "/admin/settings/notifications", label: "Notifications", line: "What the studio is emailed about.", group: "Studio", icon: "bell", area: "settings", words: "alerts email tickets payments forms entries" },
   { href: "/admin/settings/site", label: "Website and SEO", line: "Search results and indexing.", group: "Studio", icon: "globe", area: "settings", words: "seo search engines google index noindex description" },
   { href: "/admin/settings/maintenance", label: "Maintenance", line: "The holding page and who is waiting.", group: "Studio", icon: "wrench", area: "settings", words: "maintenance holding page offline down 503 back soon template preview notify waitlist reviewer link" },

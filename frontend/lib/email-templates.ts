@@ -1,7 +1,7 @@
 import { naira } from "@/lib/admin/types";
 import { qrSvg } from "@/lib/qr";
 import {
-  COMPANY_NAME, CONTACT_EMAIL, LOCATION, REGISTERED_NAME, REGISTRAR, REGISTRATION_NO, SITE_URL, SOCIAL_LINKS,
+  COMPANY_NAME, CONTACT_EMAIL, LOCATION, REGISTERED_NAME, REGISTRAR, REGISTRATION_NO, SITE_URL,
 } from "@/lib/site";
 
 /**
@@ -334,15 +334,28 @@ export function addressTo(html: string, to: string) {
   return html.replace(RECIPIENT_SLOT, `<span style="color:${INK}">${escapeHtml(to)}</span>`);
 }
 
-/** The footer's row of marks: one per profile in SOCIAL_LINKS, none while it is empty. */
+/**
+ * WHERE THE FOOTER'S ROW OF MARKS GOES. The profiles are settings (Settings >
+ * Business profile, lib/social.ts), and a template is built before anything
+ * has necessarily read them, so the frame leaves this slot and `sendMail`
+ * fills it once it has (the same move as the recipient line above). An
+ * unfilled slot is a comment, so a preview shows no row rather than a broken one.
+ */
+const SOCIAL_SLOT = "<!--wdc-social-->";
 function socialRow() {
-  if (!SOCIAL_LINKS.length) return "";
-  const cells = SOCIAL_LINKS.map(
+  return SOCIAL_SLOT;
+}
+
+/** One mark per profile, none while there are none. */
+export function withSocials(html: string, links: { network: string; label: string; url: string }[]) {
+  if (!html.includes(SOCIAL_SLOT)) return html;
+  if (!links.length) return html.replace(SOCIAL_SLOT, "");
+  const cells = links.map(
     (link, index) =>
-      `<td style="padding:0 ${index === SOCIAL_LINKS.length - 1 ? 0 : 20}px 0 0">` +
+      `<td style="padding:0 ${index === links.length - 1 ? 0 : 20}px 0 0">` +
       `<a href="${safeUrl(link.url)}" style="text-decoration:none"><img src="${ASSETS}/social-${link.network}.png" width="22" height="22" alt="${escapeHtml(link.label)}" style="display:block;width:22px;height:22px;border:0"></a></td>`,
   ).join("");
-  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px"><tr>${cells}</tr></table>`;
+  return html.replace(SOCIAL_SLOT, `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px"><tr>${cells}</tr></table>`);
 }
 
 /**
