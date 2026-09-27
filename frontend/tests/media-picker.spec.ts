@@ -78,3 +78,23 @@ test("the editor's Picture panel fills its address and description from the libr
   await expect(panel.getByLabel("Or its address")).toHaveValue(new RegExp(`${KEY.replace(/\//g, "\\/")}$`));
   await expect(panel.getByLabel(/^Description/)).toHaveValue("The studio at work, three people round a table");
 });
+
+test("a file's details say where it is used, and a post using it is linked", async ({ page }) => {
+  const post = (await db.query("SELECT id, title, social_image FROM blog_posts WHERE trashed_at IS NULL ORDER BY saved_at DESC LIMIT 1")).rows[0];
+  await page.goto(`/admin/settings/media?q=${tag}`, { waitUntil: "networkidle" });
+  await page.locator(".adMedia__card", { hasText: IMAGE }).click();
+  const facts = page.locator(".adMediaD__facts");
+  await expect(facts).toContainText("Nothing on the site uses it.");
+  const url = await page.locator(".adMediaD__tools a", { hasText: "Open" }).getAttribute("href");
+  expect(url).toContain(KEY);
+  try {
+    await db.query("UPDATE blog_posts SET social_image = $2 WHERE id = $1", [post.id, url]);
+    await page.reload({ waitUntil: "networkidle" });
+    await page.locator(".adMedia__card", { hasText: IMAGE }).click();
+    const use = facts.locator(".adMediaD__uses li", { hasText: post.title });
+    await expect(use).toContainText("social image");
+    await expect(use.getByRole("link")).toHaveAttribute("href", `/admin/blog/${post.id}`);
+  } finally {
+    await db.query("UPDATE blog_posts SET social_image = $2 WHERE id = $1", [post.id, post.social_image]);
+  }
+});

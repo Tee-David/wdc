@@ -405,3 +405,19 @@ export async function deleteMediaForever(input: { ids: string[] }): Promise<Said
   if (!gone) return { ok: false, error: kept.length ? `Nothing was deleted. ${kept.slice(0, 3).join(", ")}${kept.length > 3 ? " and others" : ""} could not be removed; try again.` : "Those files are no longer there." };
   return { ok: true, message: `Deleted ${gone} ${gone === 1 ? "file" : "files"} permanently.${kept.length ? ` ${kept.length} could not be removed; try them again.` : ""}` };
 }
+
+/** Where a file is used, for its details and before it is deleted. */
+export async function mediaUsedIn(input: { id: string }): Promise<{ ok: true; uses: import("@/lib/media-usage").Use[] } | { ok: false; error: string }> {
+  const refused = await allow("content");
+  if (refused) return { ok: false, error: refused.message ?? "Sign in again, then retry." };
+  const id = uuid(input?.id);
+  if (!id) return { ok: false, error: "That file is not in the library." };
+  try {
+    const item = await mediaById(id);
+    if (!item?.url) return { ok: true, uses: [] };
+    const { mediaUsage } = await import("@/lib/media-usage");
+    return { ok: true, uses: await mediaUsage(item.url) };
+  } catch {
+    return { ok: false, error: "Where it is used could not be read just now." };
+  }
+}
