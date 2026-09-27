@@ -69,11 +69,11 @@ export function FaqEditor({ initial, services, edited }: {
                 <div className="adFaq__body" id={`${uid}-${r.key}`}>
                   <label className="adFaq__field">
                     <span>Question <i>{r.q.length}/{FAQ_LIMITS.q}</i></span>
-                    <input value={r.q} maxLength={FAQ_LIMITS.q} placeholder="What people ask, in their words" onChange={(e) => set(i, { q: e.target.value })} />
+                    <input aria-label={`Question ${i + 1}`} value={r.q} maxLength={FAQ_LIMITS.q} placeholder="What people ask, in their words" onChange={(e) => set(i, { q: e.target.value })} />
                   </label>
                   <label className="adFaq__field">
                     <span>Answer <i>{r.a.length}/{FAQ_LIMITS.a}</i></span>
-                    <textarea rows={5} value={r.a} maxLength={FAQ_LIMITS.a} placeholder="The answer, as you would say it on a call" onChange={(e) => set(i, { a: e.target.value })} />
+                    <textarea aria-label={`Answer ${i + 1}`} rows={5} value={r.a} maxLength={FAQ_LIMITS.a} placeholder="The answer, as you would say it on a call" onChange={(e) => set(i, { a: e.target.value })} />
                   </label>
                   <fieldset className="adFaq__chips">
                     <legend>Shown first on <span className="ad__dim">(none picked means every service page)</span></legend>
@@ -93,7 +93,7 @@ export function FaqEditor({ initial, services, edited }: {
                       );
                     })}
                   </fieldset>
-                  <div className="adFaq__tools" role="group" aria-label={`Question ${i + 1}`}>
+                  <div className="adFaq__tools" role="group" aria-label={`Move or remove question ${i + 1}`}>
                     <button type="button" className="ad__btn" onClick={() => move(i, -1)} disabled={i === 0}><ArrowUp aria-hidden="true" /><span>Move up</span></button>
                     <button type="button" className="ad__btn" onClick={() => move(i, 1)} disabled={i === rows.length - 1}><ArrowDown aria-hidden="true" /><span>Move down</span></button>
                     <button type="button" className="ad__btn ad__btn--danger adFaq__rm" onClick={() => remove(i)} disabled={rows.length === 1}><Trash2 aria-hidden="true" /><span>Remove</span></button>

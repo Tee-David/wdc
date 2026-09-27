@@ -1,5 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
+import pg from "pg";
 import { choose } from "./choose";
+import { sayYes } from "./say-yes";
 
 /**
  * The project messages are written to the client's log when they happen.
@@ -10,6 +12,7 @@ import { choose } from "./choose";
  */
 
 const TOKEN = process.env.BONEYARD_CAPTURE_TOKEN;
+const CONNECTION = process.env.DATABASE_URL || process.env.COCKROACHDB_URL;
 test.skip(!TOKEN, "Needs BONEYARD_CAPTURE_TOKEN set on the dev server under test.");
 test.skip(Boolean(process.env.SMTP_HOST), "Mail is configured here, so this would send real email.");
 test.describe.configure({ mode: "serial", timeout: 150_000 });
@@ -45,8 +48,37 @@ test("a stage change tells the client, and the log shows it", async ({ page }) =
   await press(page, "Onboarding", () => expect(page.locator('.ad__stageBtn.is-on')).toHaveText("Onboarding", { timeout: 3_000 }));
 });
 
+/* Drops a message's log row, so the next send of it is not a duplicate. */
+async function forget(pattern: string) {
+  if (!CONNECTION) return;
+  const url = new URL(CONNECTION);
+  url.searchParams.delete("sslmode");
+  const db = new pg.Pool({ connectionString: url.toString(), max: 1 });
+  await db.query("DELETE FROM message_log WHERE dedupe_key LIKE $1", [pattern]);
+  await db.end();
+}
+
+/* The seed's deliverable back to waiting on the client, from the admin. */
+async function askClient(page: Page) {
+  await page.goto("/admin/projects/p1", { waitUntil: "networkidle" });
+  const dialog = page.locator("dialog.addlg[open]");
+  await expect(async () => {
+    await page.getByRole("button", { name: "Record a response" }).first().click({ timeout: 2_000 });
+    await expect(dialog).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 60_000 });
+  await choose(dialog.getByLabel(/^What happened/), "Awaiting client");
+  await dialog.getByRole("button", { name: "Record it" }).click();
+  await expect(dialog).toHaveCount(0, { timeout: 15_000 });
+}
+
 test("an approval in the portal sends the client a sign-off record", async ({ page }) => {
-  await page.goto("/portal/projects/p1", { waitUntil: "load" });
+  /* Its own starting point, whatever an earlier run left: waiting on the
+     client, and no sign-off on record yet. One record per version is the
+     rule (the dedupe key), so a second run would otherwise write nothing. */
+  await askClient(page);
+  await forget("signoff:d1:%");
+  await sayYes(page);
+  await page.goto("/portal/projects/p1", { waitUntil: "networkidle" });
   /* The Approve form leaves once it has worked, so its absence is the sign. */
   const approve = page.getByRole("button", { name: "Approve", exact: true });
   await expect(async () => {
@@ -58,6 +90,8 @@ test("an approval in the portal sends the client a sign-off record", async ({ pa
 });
 
 test("sending a deliverable for approval asks the client, and puts the seed back", async ({ page }) => {
+  /* One request per version is the rule, so an earlier run's must go first. */
+  await forget("approval-request:d1:%");
   await page.goto("/admin/projects/p1", { waitUntil: "load" });
   const dialog = page.locator("dialog.addlg[open]");
   await expect(async () => {
