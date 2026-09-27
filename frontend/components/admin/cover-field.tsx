@@ -52,15 +52,17 @@ export function CoverField({ defaultValue, covers }: { defaultValue: string; cov
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={value} alt="The cover as readers will see it" />
             <span className="adCover__acts">
-              <label className="ad__btn adCover__btn">
-                <RefreshCw aria-hidden="true" /> Replace
+              {/* Icons alone on a phone (blog-editor.css); the names stay for
+                  a screen reader and as the tooltip. */}
+              <label className="ad__btn adCover__btn" title="Replace the cover">
+                <RefreshCw aria-hidden="true" /> <span className="adCover__lbl">Replace</span>
                 {pickFile}
               </label>
-              <button type="button" className="ad__btn adCover__btn" onClick={() => setLibrary(true)}>
-                <Images aria-hidden="true" /> Library
+              <button type="button" className="ad__btn adCover__btn" onClick={() => setLibrary(true)} aria-label="Choose the cover from the library" title="Choose from the library">
+                <Images aria-hidden="true" /> <span className="adCover__lbl">Library</span>
               </button>
-              <button type="button" className="ad__btn adCover__btn" onClick={() => { setValue(""); setState({}); }}>
-                <Trash2 aria-hidden="true" /> Remove
+              <button type="button" className="ad__btn adCover__btn" onClick={() => { setValue(""); setState({}); }} aria-label="Remove the cover" title="Remove the cover">
+                <Trash2 aria-hidden="true" /> <span className="adCover__lbl">Remove</span>
               </button>
             </span>
           </>

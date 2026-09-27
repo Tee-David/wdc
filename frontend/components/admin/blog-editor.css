@@ -181,8 +181,10 @@
 .adCover__tick { position: absolute; top: .5rem; right: .5rem; width: 1.4rem; height: 1.4rem; padding: .2rem; border-radius: 50%; background: var(--ad-fill); color: var(--ad-on-fill); }
 @media (max-width: 640px) {
   .adCover__drop { aspect-ratio: 16 / 9; }
-  .adCover__acts { left: .6rem; }
-  .adCover__acts .ad__btn { flex: 1; justify-content: center; }
+  /* Three words did not fit across a phone and ran off the picture: icons
+     alone, 44px squares, the words kept for a screen reader (and as titles). */
+  .adCover__acts .ad__btn { flex: 0 0 2.75rem; width: 2.75rem; height: 2.75rem; min-height: 0; padding: 0; justify-content: center; }
+  .adCover__lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
 @media (prefers-reduced-motion: reduce) { .adCover__drop { transition: none; } }
 .adCover__ours summary { list-style: none; gap: .35rem; }
