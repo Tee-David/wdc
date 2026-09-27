@@ -574,7 +574,7 @@ export function naira(kobo: number) {
 /** Kobo to "₦1.25m" for tiles, where the decimals are noise. */
 export function nairaShort(kobo: number) {
   const n = kobo / 100;
-  if (Math.abs(n) >= 1_000_000) return `₦${(n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1)}m`;
+  if (Math.abs(n) >= 1_000_000) return `₦${(n / 1_000_000).toFixed(2).replace(/\.?0+$/, "")}m`;
   if (Math.abs(n) >= 1_000) return `₦${Math.round(n / 1_000)}k`;
   return `₦${n.toFixed(0)}`;
 }

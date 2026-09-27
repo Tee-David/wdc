@@ -6,7 +6,7 @@ import { getPortalRequest } from "@/lib/portal/session";
 import {
   getDeliverablesFor, getInvoicesFor, getProjectsFor, getTicketsFor, getUpdatesFor,
 } from "@/lib/admin/store";
-import { STAGES, invoiceStatus, invoiceTotals, naira } from "@/lib/admin/types";
+import { STAGES, invoiceStatus, invoiceTotals, naira, nairaShort } from "@/lib/admin/types";
 import { SERVICE_BY_SLUG } from "@/lib/services";
 import { projectGlyph } from "@/components/client/service-glyph";
 import { Empty, Panel, StagePill, Tile, when } from "@/components/admin/bits";
@@ -102,8 +102,8 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
           note={byStage.length ? byStage.map(([s, n]) => `${n} ${s.toLowerCase()}`).join(", ") : `${projects.length} delivered`} />
         <Tile label="Awaiting your review" value={String(awaitingApproval.length)} icon={FileCheck2} iconTone="live"
           note={awaitingApproval.length ? `${awaitingApproval[0].deliverable.name}${awaitingApproval.length > 1 ? ` and ${awaitingApproval.length - 1} more` : ""}` : "Nothing to look at yet"} />
-        <Tile label="Balance owed" value={naira(balance)} icon={Banknote} iconTone="warn"
-          note={balance ? (nextDue ? `Due ${when(nextDue)}` : "Across your invoices") : "Nothing outstanding"} />
+        <Tile label="Balance owed" value={nairaShort(balance)} icon={Banknote} iconTone="warn"
+          note={balance ? `${naira(balance)}${nextDue ? `, due ${when(nextDue)}` : " across your invoices"}` : "Nothing outstanding"} />
         <Tile label="Support" value={`${openTickets.length} open`} icon={LifeBuoy} iconTone="neutral"
           note={answeredTickets.length ? `Reply from the studio ${when(answeredTickets[0].updatedAt)}` : openTickets.length ? "Waiting on the studio" : "No open questions"} />
       </dl>
