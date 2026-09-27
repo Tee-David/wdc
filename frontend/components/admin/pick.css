@@ -32,7 +32,7 @@
 .adPick__search { display: flex; align-items: center; gap: .5rem; padding: .6rem .8rem; border-bottom: 1px solid var(--ad-line); }
 .adPick__search svg { width: 1rem; height: 1rem; color: var(--ad-dim); flex: none; }
 .adPick__search input { flex: 1; min-width: 0; min-height: 2.25rem; border: 0; background: transparent; color: var(--ad-ink); font: inherit; outline: none; }
-.adPick__list { margin: 0; padding: .35rem; list-style: none; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; flex: 1 1 auto; min-height: 0; }
+.adPick__list { margin: 0; padding: .35rem; list-style: none; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; flex: 1 1 auto; min-height: 0; }
 .adPick__opt { min-height: 2.75rem; padding: .5rem .65rem; display: flex; align-items: center; justify-content: space-between; gap: .5rem; border-radius: 10px; cursor: pointer; }
 .adPick__opt.is-active { background: var(--ad-panel-2); }
 .adPick__opt[aria-selected="true"] { font-weight: 600; }
@@ -56,7 +56,7 @@
    admin's primary fill, today ringed, days outside min/max struck quiet. */
 .adCal { padding: .6rem .7rem .7rem; }
 /* The month is taller than a list is allowed to be; it scrolls only when the window is shorter still. */
-.adPick__pop.adCal { max-height: calc(100dvh - 16px); overflow-y: auto; overscroll-behavior: contain; }
+.adPick__pop.adCal { max-height: calc(100dvh - 16px); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
 .adCal__head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .35rem; }
 .adCal__head b, .adCal__title { font-family: var(--font-space-grotesk), var(--font-outfit), sans-serif; font-size: .98rem; font-weight: 700; }
 /* The title is a button: month, then year, then a dozen years. */
