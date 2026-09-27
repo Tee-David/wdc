@@ -2,6 +2,7 @@ import { CONTACT_EMAIL } from "@/lib/site";
 import { NETWORKS, parseSocial, shippedSocial, socialKey } from "@/lib/social";
 import { SERVICES } from "@/lib/services";
 import { CASE_STUDIES } from "@/lib/work";
+import { TESTIMONIALS } from "@/lib/testimonials";
 
 /**
  * Every row on the Settings screen, declared once.
@@ -105,6 +106,37 @@ export const SETTINGS: SettingDef[] = [
     note: "Privacy, terms, cookies and the engagement policy.",
     readOnly: "Not editable yet, and deliberately: a change to a legal text should go through review, not a text box.",
     revalidate: [],
+  },
+  {
+    key: "testimonials", label: "Testimonials", shipped: () => `${TESTIMONIALS.length} quotes`,
+    note: "The quote and the author's name, on the homepage and the work pages.",
+    readOnly: "Not editable yet: the pages read lib/testimonials.ts directly, and each quote needs the client's say-so before it changes.",
+    revalidate: [],
+  },
+  {
+    key: "blog.perPage", label: "Posts per page", shipped: () => "All on one page",
+    note: "How many posts /blog lists before a next page.",
+    readOnly: "Not offered yet: the blog lists every post on one page, so there is nothing for a number to change. It arrives with paging.",
+    revalidate: [],
+  },
+  {
+    /* Read by the blog editor when it opens a new post. Empty is "pick one",
+       which is what shipped. */
+    key: "blog.defaultTopic", label: "New posts start as", shipped: () => "",
+    note: "The service a new post is filed under until you change it.",
+    parse: (raw) => {
+      const t = raw.trim();
+      if (!t || SERVICES.some((x) => x.slug === t)) return { ok: true, value: t };
+      return { ok: false, error: "Pick one of the services, or none." };
+    },
+    revalidate: ["/admin/blog"],
+  },
+  {
+    /* Read by app/blog/rss.xml. */
+    key: "blog.rssCount", label: "Posts in the RSS feed", shipped: () => "50",
+    note: "The newest this many. Feed readers only look at the top.",
+    parse: number(5, 100, true, "from 5 to 100"),
+    revalidate: ["/blog/rss.xml"],
   },
   {
     key: "finance.vatRate", label: "Default VAT %", shipped: () => "7.5",

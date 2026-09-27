@@ -7,6 +7,8 @@ import { ReturnPostForm } from "@/components/admin/blog-menu";
 import { toDoc } from "@/lib/blog-doc";
 import { BLOG_COVERS } from "@/lib/blog-validate";
 import { SERVICES } from "@/lib/services";
+import { hydrateSettings } from "@/lib/settings/store";
+import { getSetting } from "@/lib/admin/store";
 import { BlogEditor, type EditorPost } from "@/components/admin/blog-editor";
 import { AdminState } from "@/components/admin/admin-state";
 import "@/components/admin/blog-editor.css";
@@ -30,7 +32,12 @@ export default async function EditPostPage({ params, searchParams }: {
   let found: AdminPost | null = null;
   const isOwner = (await adminRole()) === "owner";
 
-  if (id !== "new") {
+  if (id === "new") {
+    /* Filed under the service set in Settings > Blog and site copy, when one is. */
+    await hydrateSettings();
+    const topic = getSetting("blog.defaultTopic") ?? "";
+    if (SERVICES.some((x) => x.slug === topic)) post = { ...EMPTY, topic };
+  } else {
     try { found = await postForAdmin(id); } catch {
       return (
         <section className="ad__panel">

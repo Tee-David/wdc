@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { actorName, owner } from "./guard";
+import { actorName, allow, owner } from "./guard";
 import { FAIL, OK, str, type ActionState } from "./validate";
 import { audit, getSetting } from "./store";
 import { syncStore } from "./persist";
@@ -154,6 +154,20 @@ export async function saveBusinessSettings(_prev: ActionState, fd: FormData): Pr
     const r = await writeKeys(Object.fromEntries(NETWORKS.map((n) => [socialKey(n.network), str(fd, socialKey(n.network))])), await actorName());
     if (Object.keys(r.errors).length) return FAIL(r.errors, "Nothing was saved. Fix the marked fields.");
     return finish(r.changed, [...r.pages, "/admin/settings/business"]);
+  } catch {
+    return FAIL({}, "That could not be saved just now.");
+  }
+}
+
+/** Blog and site copy: the service a new post starts under, and the feed's length. Staff may, since the blog is theirs too. */
+export async function saveContentSettings(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  const refused = await allow("content");
+  if (refused) return refused;
+  try {
+    const r = await writeKeys({ "blog.defaultTopic": str(fd, "blog.defaultTopic"), "blog.rssCount": str(fd, "blog.rssCount") }, await actorName());
+    if (Object.keys(r.errors).length) return FAIL(r.errors, "Nothing was saved. Fix the marked fields.");
+    return finish(r.changed, r.pages);
   } catch {
     return FAIL({}, "That could not be saved just now.");
   }

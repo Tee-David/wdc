@@ -31,6 +31,7 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   { href: "/admin/settings/site", label: "Website and SEO", line: "Search results and indexing.", group: "Studio", icon: "globe", area: "settings", words: "seo search engines google index noindex description" },
   { href: "/admin/settings/maintenance", label: "Maintenance", line: "The holding page and who is waiting.", group: "Studio", icon: "wrench", area: "settings", words: "maintenance holding page offline down 503 back soon template preview notify waitlist reviewer link" },
   { href: "/admin/settings/email", label: "Email", line: "Sender, test send and the log.", group: "Studio", icon: "mail", area: "settings", words: "mail smtp sender from reply test failure alerts message log" },
+  { href: "/admin/settings/content", label: "Blog and site copy", line: "Blog defaults, and what is set in code.", group: "Content", icon: "sliders", area: "content", words: "blog posts rss feed topic service default services work case studies legal testimonials copy" },
   { href: "/admin/settings/faq", label: "FAQ", line: "Questions on the site.", group: "Content", icon: "messages", area: "content", words: "questions answers" },
   { href: "/admin/settings/media", label: "Media library", line: "Pictures and files.", group: "Content", icon: "images", area: "content", words: "images pictures uploads files" },
   { href: "/admin/settings/team", label: "Team and roles", line: "Who can open the admin.", group: "People", icon: "users", area: "team", words: "staff owner invite members access roles permissions" },
