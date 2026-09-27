@@ -1549,3 +1549,41 @@ The WDC team`),
     }),
   };
 }
+
+/**
+ * "Is this where the studio's notices should go?" -- sent to a NEW reply-to
+ * address before it takes effect (lib/notice-address.ts). Studio notices
+ * carry what clients wrote; an address nobody at the studio reads, or a typo,
+ * would send them to a stranger, so the address proves itself first.
+ */
+export function noticeAddressEmail(input: { url: string; by: string; hours: number }): Email {
+  const { url, by, hours } = input;
+  return {
+    subject: "Confirm this address for We Dig Creativity notices",
+    text: textShell(`Hello,
+
+${by} asked for the studio's notices (new enquiries, briefs, tickets and
+payments) and clients' replies to come to this address. Nothing changes until
+it is confirmed. If this is right, open this link within ${hours} hours:
+
+${url}
+
+If you do not know what this is, ignore it: nothing changes, and the notices
+keep going where they go now.
+
+The WDC team`),
+    html: shell({
+      title: "Confirm this address",
+      preheader: `Nothing changes until this is confirmed. The link lasts ${hours} hours.`,
+      heading: "Confirm this address",
+      why: "Sent because this address was entered in the studio's email settings.",
+      blocks: [
+        p("Hello,"),
+        p(`${escapeHtml(by)} asked for the studio's notices (new enquiries, briefs, tickets and payments) and clients' replies to come to this address. Nothing changes until it is confirmed.`),
+        action("Confirm this address", url),
+        p(`The link works once and lasts ${hours} hours.`),
+        small("If you do not know what this is, ignore it: nothing changes, and the notices keep going where they go now."),
+      ],
+    }),
+  };
+}
