@@ -1486,10 +1486,13 @@ a.ad__pgBtn:hover { background: var(--ad-panel-2); border-color: var(--ad-dim); 
 
 /* ----------------------------------------------------------- the board */
 
-/* Six stage columns that share the width on a wide screen and scroll
-   sideways inside themselves on a narrow one; the page never does. */
+/* Six stage columns, each wide enough that a card reads as a card rather
+   than a column of wrapped words (the owner's call: 10.75rem felt cramped).
+   Six of them do not fit most screens at that width, so the board scrolls
+   sideways inside itself; the page never does. A phone shows one column
+   and a sliver of the next, so there is visibly more to the right. */
 .ad__board {
-  margin: 1.25rem 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(10.75rem, 1fr); gap: .75rem;
+  margin: 1.25rem 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(min(80vw, 15.5rem), 1fr); gap: .75rem;
   align-items: start; overflow-x: auto; overscroll-behavior-inline: contain; padding-bottom: .25rem;
 }
 .ad__kcol { min-width: 0; padding: .75rem; display: grid; grid-template-columns: minmax(0, 1fr); gap: .6rem; border: 1px solid var(--ad-line); border-radius: var(--ad-r); background: var(--ad-panel-2); }
