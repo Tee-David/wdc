@@ -79,7 +79,7 @@ test("an admin write is refused once the session is gone, even from a page that 
     return route.continue({ headers });
   });
   await dialog.getByRole("button", { name: "Copy it" }).click();
-  await expect(dialog.locator(".ad__msg.is-bad")).toContainText("Sign in again", { timeout: 30_000 });
+  await expect(dialog.locator(".ad__msg.is-bad")).toContainText("Your session has ended", { timeout: 30_000 });
 
   await page.unrouteAll();
   await page.goto("/admin/money", { waitUntil: "load" });

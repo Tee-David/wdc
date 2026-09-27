@@ -102,14 +102,14 @@ test.describe("starting a checkout", () => {
        sits in rather than shrink-wrapped to its label. */
     expect(box!.height).toBeGreaterThanOrEqual(56);
     expect(box!.width).toBeGreaterThan(panel!.width * 0.9);
-    /* Still black on orange. Bigger type does not change the measurement:
-       white on #ff6500 is 2.95:1 and fails even the 3:1 large text gets. */
+    /* White on the deep orange, the owner's call (2026-09-26): 5.23:1. Never
+       white on #ff6500, which is 2.95:1 and fails even large text's 3:1. */
     const paint = await btn.evaluate((el) => {
       const s = getComputedStyle(el);
       return { color: s.color, bg: s.backgroundColor, size: parseFloat(s.fontSize) };
     });
-    expect(paint.color).toBe("rgb(0, 0, 0)");
-    expect(paint.bg).toBe("rgb(255, 101, 0)");
+    expect(paint.color).toBe("rgb(255, 255, 255)");
+    expect(paint.bg).toBe("rgb(184, 74, 0)");
     expect(paint.size).toBeGreaterThan(16);
   });
 
@@ -152,7 +152,11 @@ test.describe("coming back from the checkout", () => {
        With no Paystack configured the verify fails, and the honest answer is
        "we could not confirm this" -- never "paid". */
     await page.goto("/pay/done?reference=MADE-UP-0001&status=success");
-    await expect(page.locator(".doc__owed b")).not.toContainText("₦");
+    await expect(page.locator(".doc")).toContainText("could not confirm this with Paystack");
+    /* Still checking, no amount shown as received, and no thanks for money
+       nobody has seen. */
+    await expect(page.locator(".doc__owed .doc__k")).toHaveText("Checking");
+    await expect(page.locator(".doc")).not.toContainText("₦");
     await expect(page.locator(".doc")).not.toContainText("Thank you");
   });
 
