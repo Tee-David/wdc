@@ -31,12 +31,14 @@ test.describe("in the admin", () => {
     const shipped = "What does WDC actually do?";
     const edited = `What does WDC do, in one sentence? ${Date.now()}`;
 
-    await page.goto("/admin/settings/faq", { waitUntil: "load" });
-    const first = page.getByLabel("Question 1", { exact: true });
+    await page.goto("/admin/settings/faq", { waitUntil: "networkidle" });
+    /* The questions are cards that open one at a time. */
+    await page.locator(".adFaq__head").first().click();
+    const first = page.getByRole("textbox", { name: "Question 1", exact: true });
     await expect(first).toHaveValue(shipped);
     await first.fill(edited);
     await page.getByRole("button", { name: "Save the FAQ" }).click();
-    await expect(page.locator(".ad__msg.is-ok")).toContainText("Saved.");
+    await expect(page.locator(".adToast, .ad__msg.is-ok").filter({ hasText: "Saved." }).first()).toBeVisible({ timeout: 20_000 });
 
     const contact = await (await request.get("/contact")).text();
     expect(contact).toContain(edited);

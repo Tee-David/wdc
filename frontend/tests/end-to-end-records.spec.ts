@@ -96,6 +96,7 @@ test("a client opens a ticket, the studio answers it, the client reads the answe
 
   /* Closing and reopening from the thread. */
   await page.goto(`/admin/clients/support/${ticketId}`, { waitUntil: "networkidle" });
+  await sayYes(page);
   await page.getByRole("button", { name: "Close" }).click();
   await expect(page.getByRole("button", { name: "Reopen" })).toBeVisible();
   await expect.poll(async () => (await kept("TICKETS", ticketId))?.status, { timeout: 15_000 }).toBe("Closed");
@@ -142,6 +143,7 @@ test("a client closes their own question, and writing again reopens it", async (
   const ticketId = (await db.query<{ id: string }>("SELECT id FROM admin_records WHERE collection = 'TICKETS' AND data->>'subject' = $1", [subject])).rows[0].id;
 
   await page.goto(`/portal/support/${ticketId}`, { waitUntil: "networkidle" });
+  await sayYes(page);
   await page.getByRole("button", { name: "Close conversation" }).click();
   await expect(page.locator(".pConv__head .ad__pill")).toHaveText("Closed", { timeout: 15_000 });
   await expect(page.getByRole("button", { name: "Close conversation" })).toHaveCount(0);
