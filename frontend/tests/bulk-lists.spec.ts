@@ -13,6 +13,8 @@ async function asOwner(page: Page, baseURL?: string) {
 
 test("ticking questions brings up the bar; Close closes them all", async ({ page, baseURL }) => {
   await asOwner(page, baseURL);
+  /* Close asks first (the client sees theirs as settled). */
+  await sayYes(page);
   await page.goto("/admin/clients/support", { waitUntil: "networkidle" });
   const bar = page.getByRole("region", { name: "Selected questions" });
   await expect(bar).toHaveCount(0);
