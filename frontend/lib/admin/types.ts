@@ -95,7 +95,7 @@ export type Health = (typeof HEALTH)[number];
  * per project rather than per company.
  */
 export const CHANNELS = [
-  "Client dashboard",
+  "Client portal",
   "Direct chat",
   "WhatsApp group",
   "Email",

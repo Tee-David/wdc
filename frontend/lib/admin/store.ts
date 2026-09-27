@@ -106,7 +106,7 @@ const PROJECTS: Project[] = shared("PROJECTS", (): Project[] => [
   {
     id: "p2", clientId: "c1", title: "Shop rebuild", service: "web",
     stage: "Onboarding", due: null,
-    owner: "Babatope", health: "On track", channel: "Client dashboard",
+    owner: "Babatope", health: "On track", channel: "Client portal",
     budget: null, scope: "Shopify storefront rebuild on the new identity.",
     events: [{ at: iso("2026-09-09"), text: "Project opened" }],
   },
@@ -365,14 +365,24 @@ export function getClient(id: Id) {
  * what the archive view asks for; `getProject` by id still returns an archived
  * one, because a link to it has to keep working.
  */
+function withCurrentProjectChannel(project: Project) {
+  /* Persisted JSON from before the portal wording changed remains readable.
+     The next ordinary project write stores the current label. */
+  if ((project.channel as string) === "Client dashboard") project.channel = "Client portal";
+  return project;
+}
 export function getProjects(includeArchived = false) {
-  return includeArchived ? PROJECTS.slice() : PROJECTS.filter((p) => !p.archived);
+  return (includeArchived ? PROJECTS.slice() : PROJECTS.filter((p) => !p.archived))
+    .map(withCurrentProjectChannel);
 }
 export function getProjectsFor(clientId: Id, includeArchived = false) {
-  return PROJECTS.filter((p) => p.clientId === clientId && (includeArchived || !p.archived));
+  return PROJECTS
+    .filter((p) => p.clientId === clientId && (includeArchived || !p.archived))
+    .map(withCurrentProjectChannel);
 }
 export function getProject(id: Id) {
-  return PROJECTS.find((p) => p.id === id) ?? null;
+  const project = PROJECTS.find((p) => p.id === id);
+  return project ? withCurrentProjectChannel(project) : null;
 }
 export function getInvoices() {
   return INVOICES.slice().sort(byNewest);
@@ -834,7 +844,7 @@ export function addProject(d: {
     ...d, id: mint("p"),
     owner: d.owner ?? "",
     health: d.health ?? "On track",
-    channel: d.channel ?? "Client dashboard",
+    channel: d.channel ?? "Client portal",
     budget: d.budget ?? null,
     events: [{ at: now(), text: `Project opened at ${d.stage}` }],
   };
