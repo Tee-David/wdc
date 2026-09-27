@@ -1926,3 +1926,11 @@ td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
 /* Settings > Email: a new reply-to waiting on its link, with its two actions beside it. */
 .adSetPending { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
 .adSetPending > span:first-child { flex: 1 1 18rem; min-width: 0; }
+
+/* Earlier versions of a post or the FAQ: who and when, and Restore beside it. */
+.adRevs { list-style: none; margin: 0; padding: 0; }
+.adRevs > li { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .7rem 1rem; border-top: 1px solid var(--ad-line); }
+.adRevs > li:first-child { border-top: 0; }
+.adRevs__who { display: grid; gap: .1rem; min-width: 0; }
+.adRevs__who b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adRevs__who small { font-size: .78rem; }
