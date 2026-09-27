@@ -257,8 +257,8 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
     steps: [
       { id: "intro", target: "body", placement: "center", icon: "clipboard", showEstimate: true, title: "One entry", content: "Everything they sent, in the order they saw the questions." },
       { id: "pdf", target: '[data-tour="entry-pdf"]', icon: "fileStack", title: "Download it as a PDF", content: "The same PDF the studio's email carries, with the files they sent attached." },
-      { id: "attachments", target: '[data-tour="entry-attachments"]', optional: true, icon: "fileStack", title: "What they uploaded", content: "Pictures show as pictures. Open or download any file; the links are private and last an hour." },
       { id: "answers", target: '[data-tour="entry-answers"]', icon: "clipboard", title: "The answers", content: "A gap shows as Not answered: something to ask about on the call." },
+      { id: "attachments", target: '[data-tour="entry-attachments"]', optional: true, icon: "fileStack", title: "What they uploaded", content: "Pictures show as pictures. Open or download any file; the links are private and last an hour." },
       { id: "emails", target: '[data-tour="entry-emails"]', optional: true, icon: "bell", title: "Emails about it", content: "What was sent, to whom, and whether it arrived. Send one again from here." },
     ],
   },

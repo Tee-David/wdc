@@ -45,16 +45,34 @@ test("the entry page lists every upload with signed Open and Download links", as
   await expect(panel.locator(".adAtt__file")).toHaveCount(3);
 
   const pdf = panel.locator(".adAtt__file", { hasText: "Brand Book.pdf" });
-  const open = await pdf.getByRole("link", { name: "Open" }).getAttribute("href");
+  const open = await pdf.getByRole("link", { name: /^Open / }).getAttribute("href");
   expect(open).toContain(`/onboarding/${id}/a${TAG}.pdf?`);
   expect(open).toContain("X-Amz-Signature=");
-  const dl = await pdf.getByRole("link", { name: "Download" }).getAttribute("href");
+  const dl = await pdf.getByRole("link", { name: /^Download / }).getAttribute("href");
   expect(decodeURIComponent(dl!)).toContain('attachment; filename="Brand Book.pdf"');
 
   /* The picture shows as a picture, from the same signed link. */
   await expect(panel.locator(".adAtt__file", { hasText: "photo.jpg" }).locator("img")).toHaveAttribute("src", /b.*\.jpg\?/);
   /* And the one with no record says why, rather than vanishing. */
   await expect(panel.locator(".adAtt__file", { hasText: "old-scan.png" })).toContainText("Ask the client to send it again");
+});
+
+test("on a phone the files come after the answers, as a rail that scrolls inside its panel", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  await page.setExtraHTTPHeaders({ "x-boneyard-capture": TOKEN ?? "" });
+  await page.goto(`/admin/forms/onboarding-branding/entries/${id}`, { waitUntil: "networkidle" });
+  const panel = page.locator(".ad__panel", { has: page.getByRole("heading", { name: "Attachments" }) });
+  const answers = page.locator('[data-tour="entry-answers"]');
+  const [a, b] = [await answers.boundingBox(), await panel.boundingBox()];
+  expect(b!.y).toBeGreaterThan(a!.y + a!.height - 1);
+
+  const rail = panel.locator(".adAtt");
+  const m = await rail.evaluate((el) => ({ sw: el.scrollWidth, cw: el.clientWidth }));
+  expect(m.sw).toBeGreaterThan(m.cw);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
+  for (const box of await panel.locator(".adAtt__acts .ad__btn").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height))) {
+    expect(box).toBeGreaterThanOrEqual(44);
+  }
 });
 
 test("Download PDF gives the whole entry as an A4 PDF, and nobody else can fetch it", async ({ page, request }) => {
