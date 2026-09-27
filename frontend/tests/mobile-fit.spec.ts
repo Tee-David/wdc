@@ -22,9 +22,18 @@ async function fits(page: Page) {
     const problems: string[] = [];
     if (document.documentElement.scrollWidth > vw) problems.push(`page is ${document.documentElement.scrollWidth}px in ${vw}px`);
     /* A table is the one thing allowed to be wider than the screen, inside
-       its own scroller (admin.css, "a table stays a table"). */
+       its own scroller (admin.css, "a table stays a table"): `.ad__scroll`,
+       or any box that really scrolls sideways, like the audit list and the
+       project board. The page itself never does (checked above). */
+    const inScroller = (el: Element) => {
+      for (let p = el.parentElement; p && !p.classList.contains("ad__panel"); p = p.parentElement) {
+        const o = getComputedStyle(p).overflowX;
+        if ((o === "auto" || o === "scroll") && p.scrollWidth > p.clientWidth) return true;
+      }
+      return false;
+    };
     for (const el of document.querySelectorAll<HTMLElement>(".ad__main .ad__panel *")) {
-      if (el.children.length || !el.textContent?.trim() || el.closest("thead") || el.closest(".ad__scroll")) continue;
+      if (el.children.length || !el.textContent?.trim() || el.closest("thead") || el.closest(".ad__scroll") || inScroller(el)) continue;
       const panel = el.closest(".ad__panel")!.getBoundingClientRect();
       const box = el.getBoundingClientRect();
       if (box.width && box.right > panel.right + 1) problems.push(`"${el.textContent.trim().slice(0, 30)}" runs past its panel`);
