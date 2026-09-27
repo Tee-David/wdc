@@ -1,5 +1,7 @@
 # WDC implementation checklist
 
+> **Handoff (2026-09-27):** the open requests from the owner, with screenshots and where to start, are in `handoff/QUEUE.md`; how to run, test and push is in `handoff/README.md`; every design artifact is in `handoff/ARTIFACTS.md`. Keep all three current.
+
 **111 open** (65 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
