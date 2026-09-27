@@ -30,9 +30,11 @@ One system for everything we ship: the public site, the admin and the portal. Th
 | Brand surface (bands, heroes, icon tiles) | `--band` / `--ad-navy` | `#000065` | `#0a0a3a` band |
 | Accent with no words on it (dots, rules, bars, rings) | `--accent` | `#ff6500` | `#b84a00` |
 | **Orange that carries words** (chips, tags, badges, active rows) | `--accent-fill` with `--on-accent` | `#b84a00` + white, 5.23:1 | same |
-| Orange as text | `--accent-ink` | `#c95000` | `#ff6500` |
+| Orange as text on paper | `--accent-ink` | `#c95000` | `#ff6500` |
+| Orange as text on a band, hero or footer (dark in both themes) | `--on-band-accent` | `#ff6500` (5.99:1) | `#ff6500` (6.37:1) |
 | Admin primary button | `--ad-fill` / `--ad-on-fill` | navy + white | `#b84a00` + white |
 
+- **Type is never `var(--accent)`.** It is `#ff6500` in light and `#b84a00` in dark, which fails as type in one theme or the other. Use `--accent-ink` on paper and `--on-band-accent` on the dark bands; `tests/orange-text.spec.ts` measures every orange word on the public pages in both themes.
 - **Words never sit on the bright orange.** White on `#ff6500` is 2.95:1. Any orange with a label is `--accent-fill` with a white label, in both themes.
 - **Copy is one colour.** Stress a phrase with weight, not with orange or a second colour.
 - **Status, tags, pills and icon tiles are SOLID fills,** never tints: `--ad-tone-good | warn | bad | live | neutral | brand | flat`, each with its `--ad-on-*` label. Status also carries a word, so it is never colour alone.

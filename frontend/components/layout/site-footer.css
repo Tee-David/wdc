@@ -309,7 +309,8 @@
   align-items: center; justify-content: space-between;
 }
 .ft__base p { margin: 0; color: var(--on-band-dim); font-size: .86rem; }
-.ft__motto b { color: var(--accent); }
+/* The footer is dark in both themes: the bright orange as type (6.37:1). */
+.ft__motto b { color: var(--on-band-accent, #ff6500); }
 @media (max-width: 560px) {
   .ft__base { justify-content: center; text-align: center; }
 }
