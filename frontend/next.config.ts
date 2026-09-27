@@ -62,7 +62,7 @@ const mediaHost = (() => {
 })();
 
 /* The entry PDF's fonts and watermark, read from disk at runtime. */
-const PDF_ASSETS = ["./assets/fonts/SpaceGrotesk-*.ttf", "./assets/brand/watermark.png"];
+const PDF_ASSETS = ["./assets/fonts/SpaceGrotesk-*.ttf", "./assets/brand/watermark.png", "./assets/brand/pdf-logo.png"];
 
 const nextConfig: NextConfig = {
   images: {
