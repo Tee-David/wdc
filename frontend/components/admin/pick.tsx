@@ -93,7 +93,7 @@ function Popover({ place, pop, className, children, label }: {
     <>
       <div className={`adPick__scrim${place.skin ? ` adPick--${place.skin}` : ""}`} aria-hidden="true" />
       <div ref={pop} className={`adPick__pop${place.up ? " is-up" : ""}${place.skin ? ` adPick--${place.skin}` : ""}${className ? ` ${className}` : ""}`}
-           role={label ? "dialog" : undefined} aria-label={label}
+           role={label ? "dialog" : undefined} aria-label={label} data-lenis-prevent
            style={{ top: place.top, bottom: place.bottom, left: place.left, width: place.width }}>
         <div className="adPick__grab" aria-hidden="true" />
         {children}
@@ -251,7 +251,7 @@ export function Pick({
           {shown.map((o, n) => (
             <li key={o.value || "none"} id={`${listId}-${n}`} data-n={n} data-value={o.value} role="option" aria-selected={o.value === value}
                 className={`adPick__opt${n === active ? " is-active" : ""}${o.value ? "" : " adPick__opt--none"}`}
-                onPointerEnter={() => setActive(n)}
+                onPointerEnter={(e) => { if (e.pointerType === "mouse") setActive(n); }}
                 onPointerDown={(e) => { if (e.pointerType === "mouse") e.preventDefault(); }}
                 onClick={() => pick(o.value)}>
               <span>{o.label}</span>

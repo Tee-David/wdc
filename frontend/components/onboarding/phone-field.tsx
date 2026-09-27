@@ -442,7 +442,7 @@ export default function PhoneField({
                 role="option"
                 aria-selected={c.iso === iso}
                 className={`pk__opt${n === active ? " is-active" : ""}${c.iso === iso ? " is-on" : ""}`}
-                onPointerEnter={() => setActive(n)}
+                onPointerEnter={(e) => { if (e.pointerType === "mouse") setActive(n); }}
                 /* MOUSE ONLY, AND THAT IS THE WHOLE BUG THIS FIXES.
 
                    `preventDefault` on pointerdown stops the press moving

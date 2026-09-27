@@ -117,7 +117,7 @@ export default function OptionSelect({
                 role="option"
                 aria-selected={o.key === value}
                 className={`pk__opt${n === active ? " is-active" : ""}${o.key === value ? " is-on" : ""}`}
-                onPointerEnter={() => setActive(n)}
+                onPointerEnter={(e) => { if (e.pointerType === "mouse") setActive(n); }}
                 /* Mouse only: see select-field.tsx's own note on why a touch
                    scroll must not be cancelled here. */
                 onPointerDown={(e) => { if (e.pointerType === "mouse") e.preventDefault(); }}
