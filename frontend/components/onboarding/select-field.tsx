@@ -177,7 +177,7 @@ export default function SelectField({
                 role="option"
                 aria-selected={o === value}
                 className={`pk__opt${n === active ? " is-active" : ""}${o === value ? " is-on" : ""}`}
-                onPointerEnter={() => setActive(n)}
+                onPointerEnter={(e) => { if (e.pointerType === "mouse") setActive(n); }}
                 /* MOUSE ONLY, AND THAT IS THE WHOLE BUG THIS FIXES.
 
                    `preventDefault` on pointerdown stops the press moving

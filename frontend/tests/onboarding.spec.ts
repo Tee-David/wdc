@@ -137,6 +137,55 @@ test.describe("the mobile picker sheet", () => {
     await expect(list).toHaveCSS("overflow-y", "auto");
     await expect(list).toHaveCSS("touch-action", "pan-y");
   });
+
+  test("the touch picker scrolls its options without moving the page", async ({ page }) => {
+    await page.goto("/onboarding");
+    const industry = page.locator('[data-field="industry"]').getByRole("combobox");
+    await industry.scrollIntoViewIfNeeded();
+    await industry.click();
+
+    const list = page.locator(".pk__list");
+    await expect(list).toBeVisible();
+    await page.locator(".pk__pop").evaluate(async (element) => {
+      await Promise.all(element.getAnimations().map((animation) => animation.finished));
+    });
+    const box = await list.boundingBox();
+    if (!box) throw new Error("industry option list has no box");
+
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+    const geometry = await list.evaluate((element, point) => {
+      const pop = element.closest<HTMLElement>(".pk__pop");
+      const hit = document.elementFromPoint(point.x, point.y);
+      return {
+        scrollRange: element.scrollHeight - element.clientHeight,
+        panelPosition: pop ? getComputedStyle(pop).position : "missing",
+        panelBottom: pop?.getBoundingClientRect().bottom ?? Number.POSITIVE_INFINITY,
+        viewportHeight: window.innerHeight,
+        gestureHitsList: Boolean(hit?.closest(".pk__list")),
+      };
+    }, { x, y });
+    expect(geometry.scrollRange).toBeGreaterThan(0);
+    expect(geometry.panelPosition).toBe("fixed");
+    expect(geometry.panelBottom).toBeLessThanOrEqual(geometry.viewportHeight);
+    expect(geometry.gestureHitsList).toBe(true);
+    const pageBefore = await page.evaluate(() => window.scrollY);
+    const last = list.getByRole("option").last();
+    const activeBefore = await list.locator(".is-active").getAttribute("id");
+    expect(activeBefore).toBeTruthy();
+    await last.dispatchEvent("pointerenter", { pointerType: "touch" });
+    await expect.poll(() => list.locator(".is-active").getAttribute("id")).toBe(activeBefore);
+
+    /* Playwright exposes taps but not a trusted swipe API. The touch pointer
+       assertion above pins the event path that used to call scrollIntoView
+       during a finger pan; a real browser scroll then proves the nested list
+       owns movement and the page does not. */
+    await page.mouse.move(x, y);
+    await page.mouse.wheel(0, Math.min(240, box.height / 2));
+
+    await expect.poll(() => list.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    expect(await page.evaluate(() => window.scrollY)).toBe(pageBefore);
+  });
 });
 
 /**
