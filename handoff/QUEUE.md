@@ -12,7 +12,7 @@ proves it. Phone checks are at 390px (and 320px for anything text-heavy).
 - [x] **2. "Which channel works best for project updates?" should allow more than one**, "Client dashboard" should read friendlier ("your portal", "your dashboard" or "client portal"), and it should be **selected by default**. `screenshots/02-*.jpg`. Fixed in `3368bda`.
   Start: `lib/onboarding.ts` (grep "Client dashboard"), and `lib/admin/types.ts`/`store.ts` where the same label is read back. Radios become checkboxes; the stored answer becomes a list (keep reading old single-value answers). Default checked = the portal option. Check the entry page, the PDF (`lib/forms/entry-pdf.ts`) and the emails still show it.
 
-- [ ] **3. Confetti still hangs on the onboarding "Thank you" screen.** `screenshots/03-*.jpg` shows pieces frozen at the bottom.
+- [x] **3. Confetti still hangs on the onboarding "Thank you" screen.** `screenshots/03-*.jpg` shows pieces frozen at the bottom. Fixed in `e14b44f`.
   Start: `components/onboarding/confetti.tsx` / `.css`. An earlier fix gave every keyframe its transform; pieces still stop mid-fall. Make each piece's animation end fully off screen (or fade to 0) with `forwards` fill, and remove the layer on `animationend`. Test: after 6s no confetti element is visible.
 
 - [ ] **4. Studio notice emails show "me" as sender; the From name must be "We Dig Creativity".** `screenshots/04-*.jpg` (Onboarding brief email to the admin).
