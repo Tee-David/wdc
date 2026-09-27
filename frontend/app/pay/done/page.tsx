@@ -6,6 +6,7 @@ import {
 } from "@/lib/admin/store";
 import { invoiceTotals, naira } from "@/lib/admin/types";
 import { wholeKobo, paystackMode, verifyTransaction } from "@/lib/paystack";
+import { chargeBanked, claimCharge, releaseCharge } from "@/lib/paystack-claim";
 import { sendPaymentReceiptEmail } from "@/lib/money-mail";
 import ReceiptPrinter from "@/components/money/receipt-printer";
 import "@/components/money/document.css";
@@ -109,6 +110,29 @@ async function settle(reference: string): Promise<Outcome> {
     return { kind: "pending", message: "Your payment went through. We are matching it to the right invoice and will email your receipt shortly." };
   }
 
+  const recording = { kind: "pending" as const, invoiceToken, message: "Your payment went through and we are recording it. We will email your receipt shortly." };
+
+  /* ONE OF THIS PAGE AND THE WEBHOOK BANKS IT (lib/paystack-claim.ts). */
+  const claim = await claimCharge({ reference, invoiceId: invoice.id, amount, by: "Paystack checkout" });
+  if (claim === "unavailable") return recording;
+  if (claim === "taken") {
+    /* The webhook has it. Its instance may not have written the payment yet,
+       so look once more a moment later before settling for "shortly". */
+    let existing = getPaymentsFor(invoice.id).find((p) => p.reference === reference);
+    if (!existing) {
+      await new Promise((r) => setTimeout(r, 800));
+      await syncStore();
+      existing = getPaymentsFor(invoice.id).find((p) => p.reference === reference);
+    }
+    if (!existing) return recording;
+    const fresh = getInvoice(invoice.id) ?? invoice;
+    return {
+      kind: "paid", receiptUrl: `/r/${existing.token}`, amount: existing.amount,
+      number: invoice.number, outstanding: invoiceTotals(fresh).due,
+      receiptNo: existing.receiptNo, method: existing.method, at: existing.at,
+    };
+  }
+
   const applied = applyPayment({
     invoiceId: invoice.id, amount, method: "Paystack", reference,
     by: "Paystack checkout", mode: paystackMode(),
@@ -118,6 +142,7 @@ async function settle(reference: string): Promise<Outcome> {
      first, which is the system working. The payer is shown their receipt. */
   if (!applied.ok) {
     const existing = getPaymentsFor(invoice.id).find((p) => p.reference === reference);
+    if (existing) await chargeBanked(reference, existing.id); else await releaseCharge(reference);
     if (applied.reason === "duplicate" && existing) {
       const fresh = getInvoice(invoice.id) ?? invoice;
       return {
@@ -131,9 +156,10 @@ async function settle(reference: string): Promise<Outcome> {
       invoiceId: invoice.id,
       note: `Verified as paid but could not be applied to ${invoice.number}: ${applied.reason}.`,
     });
-    return { kind: "pending", invoiceToken, message: "Your payment went through and we are recording it. We will email your receipt shortly." };
+    return recording;
   }
 
+  await chargeBanked(reference, applied.payment.id);
   recordProviderEvent({
     event: "verify.success", reference, amount, outcome: "Applied", mode: paystackMode(),
     channel: t.channel ?? undefined,
