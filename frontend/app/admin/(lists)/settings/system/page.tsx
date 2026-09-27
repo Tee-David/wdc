@@ -15,6 +15,9 @@ import "@/components/admin/forms/forms.css";
 
 export const metadata = { title: "System" };
 export const dynamic = "force-dynamic";
+/* Applying a migration can rewrite a table (lib/system/migrations.ts); the
+   action runs from this page, so it gets the longest run the plan allows. */
+export const maxDuration = 300;
 
 const time = (iso: string) => new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" });
 
@@ -88,7 +91,7 @@ export default async function SystemPage() {
               : migrations.pending.length ? (
                 <>
                   <p>This deploy expects changes the database does not have yet, so the screens that use them fail (media folders, for one). Apply them here, or run <code>npm run db:migrate</code> against production:</p>
-                  <ul>{migrations.pending.map((n) => <li key={n}><code>{n}</code></li>)}</ul>
+                  <ul className="adSys__pending">{migrations.pending.map((n) => <li key={n}><code>{n}</code></li>)}</ul>
                   {role === "owner" ? <ApplyMigrations count={migrations.pending.length} /> : <p className="ad__dim">The owner can apply them.</p>}
                 </>
               ) : <p className="ad__dim">All {migrations.files} migrations in this deploy are applied.{migrations.unknown.length ? ` The database also has ${migrations.unknown.length} this deploy does not know, from a newer one.` : ""}</p>}
