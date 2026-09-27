@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import "./pick.css";
 
 /**
  * THE ADMIN'S OWN PICKERS, replacing the browser's select, date and time
@@ -23,9 +24,9 @@ import { CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Search } f
  */
 
 export type PickOption = { value: string; label: string };
-type Place = { top?: number; bottom?: number; left: number; width: number; up: boolean; host: Element };
+type Place = { top?: number; bottom?: number; left: number; width: number; up: boolean; host: Element; skin?: string };
 
-function usePopover(open: boolean, close: () => void, trigger: React.RefObject<HTMLElement | null>, minWidth = 0, tall = 320) {
+function usePopover(open: boolean, close: () => void, trigger: React.RefObject<HTMLElement | null>, minWidth = 0, tall = 320, maxWidth = Infinity) {
   const pop = useRef<HTMLDivElement>(null);
   const [place, setPlace] = useState<Place | null>(null);
 
@@ -38,12 +39,14 @@ function usePopover(open: boolean, close: () => void, trigger: React.RefObject<H
       if (!t) return;
       const r = t.getBoundingClientRect();
       const vw = document.documentElement.clientWidth;
-      const width = Math.min(Math.max(r.width, minWidth), vw - 16);
+      const width = Math.min(Math.max(Math.min(r.width, maxWidth), minWidth), vw - 16);
       const left = Math.max(8, Math.min(r.left, vw - width - 8));
       const below = window.innerHeight - r.bottom;
       const up = below < tall && r.top > below;
       const host = t.closest("dialog") ?? t.closest(".ad") ?? document.body;
-      setPlace(up ? { bottom: window.innerHeight - r.top + 6, left, width, up, host } : { top: r.bottom + 6, left, width, up, host });
+      /* Outside the admin (a public form), the popover takes that page's skin. */
+      const skin = t.closest("[data-pick-skin]")?.getAttribute("data-pick-skin") ?? undefined;
+      setPlace(up ? { bottom: window.innerHeight - r.top + 6, left, width, up, host, skin } : { top: r.bottom + 6, left, width, up, host, skin });
     };
     measure();
     const later = () => { if (!frame) frame = requestAnimationFrame(measure); };
@@ -54,7 +57,7 @@ function usePopover(open: boolean, close: () => void, trigger: React.RefObject<H
       window.removeEventListener("resize", later);
       window.removeEventListener("scroll", later, { capture: true } as EventListenerOptions);
     };
-  }, [open, trigger, minWidth, tall]);
+  }, [open, trigger, minWidth, tall, maxWidth]);
 
   useEffect(() => {
     if (!open) return;
@@ -88,8 +91,8 @@ function Popover({ place, pop, className, children, label }: {
   if (!place) return null;
   return createPortal(
     <>
-      <div className="adPick__scrim" aria-hidden="true" />
-      <div ref={pop} className={`adPick__pop${place.up ? " is-up" : ""}${className ? ` ${className}` : ""}`}
+      <div className={`adPick__scrim${place.skin ? ` adPick--${place.skin}` : ""}`} aria-hidden="true" />
+      <div ref={pop} className={`adPick__pop${place.up ? " is-up" : ""}${place.skin ? ` adPick--${place.skin}` : ""}${className ? ` ${className}` : ""}`}
            role={label ? "dialog" : undefined} aria-label={label}
            style={{ top: place.top, bottom: place.bottom, left: place.left, width: place.width }}>
         <div className="adPick__grab" aria-hidden="true" />
@@ -345,7 +348,8 @@ export function DateInput({
   const titleId = useId();
 
   const close = useCallback(() => setOpen(false), []);
-  const { pop, place } = usePopover(open, close, trigger, 300, 420);
+  /* A month is seven columns: wider than about 22rem it only spreads out. */
+  const { pop, place } = usePopover(open, close, trigger, 300, 420, 352);
 
   const allowed = (iso: string) => (!min || iso >= min) && (!max || iso <= max);
   const show = () => { setCursor(value || studioToday()); setMode("days"); setOpen(true); };

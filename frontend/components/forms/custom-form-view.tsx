@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FileUp, Loader2, X } from "lucide-react";
 import { CONTACT_EMAIL } from "@/lib/site";
 import SelectField from "@/components/onboarding/select-field";
+import { DateInput } from "@/components/admin/pick";
 import {
   ADDRESS_PARTS, checkAnswers, COUNTRIES, FILE_BY_EMAIL, FILE_MAX_BYTES, FILE_TYPES, LIMITS, visible,
   type Answer, type Answers, type CustomField, type CustomFormDef, type FileAnswer,
@@ -157,6 +158,15 @@ function Field({ f, id, value, error, onChange, slug, preview }: {
         </fieldset>
       );
     }
+    case "date":
+      /* The site's own calendar, not the browser's (AGENTS.md). */
+      control = (
+        <div data-pick-skin="public">
+          <DateInput id={id} value={text} onChange={onChange} invalid={Boolean(error)} describedBy={describedBy} required={f.required}
+            placeholder={f.placeholder || "Pick a date"} />
+        </div>
+      );
+      break;
     case "select":
       control = <SelectField id={id} options={f.options ?? []} value={text} onChange={onChange} invalid={Boolean(error)} describedBy={describedBy} placeholder={f.placeholder || "Choose one"} />;
       break;
