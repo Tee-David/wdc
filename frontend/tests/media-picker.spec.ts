@@ -98,3 +98,32 @@ test("a file's details say where it is used, and a post using it is linked", asy
     await db.query("UPDATE blog_posts SET social_image = $2 WHERE id = $1", [post.id, post.social_image]);
   }
 });
+
+test("a post's social image comes from the library, the cover, or the drawn card", async ({ page }) => {
+  await page.goto("/admin/blog/new", { waitUntil: "networkidle" });
+  /* Open on a wide screen already; opened only if it is folded. */
+  const fold = page.locator("details", { has: page.locator("summary", { hasText: "Search and sharing" }) });
+  if ((await fold.getAttribute("open")) === null) await fold.locator("summary").click();
+  const field = page.locator(".adSocial");
+  const value = field.locator('input[name="socialImage"]');
+  await expect(value).toHaveValue("");
+  await expect(field).toContainText("The drawn card with the headline");
+
+  await field.getByRole("button", { name: "Choose from library" }).click();
+  const dlg = page.getByRole("dialog", { name: "Choose the social image" });
+  await dlg.getByRole("searchbox", { name: "Search the library" }).fill(tag);
+  await dlg.getByRole("button", { name: new RegExp(IMAGE) }).click();
+  const described = dlg.getByLabel(/^Description/);
+  if (await described.isEditable().catch(() => false) && !(await described.inputValue())) await described.fill("The studio at work");
+  await dlg.getByRole("button", { name: "Use this picture" }).click();
+  await expect(dlg).toBeHidden();
+  await expect(value).toHaveValue(new RegExp(KEY.replace(/[/.]/g, "\\$&")));
+
+  await field.getByRole("button", { name: "Use the drawn card" }).click();
+  await expect(value).toHaveValue("");
+  const cover = await page.locator('input[name="cover"]').inputValue();
+  if (cover) {
+    await field.getByRole("button", { name: "Use the cover" }).click();
+    await expect(value).toHaveValue(cover);
+  }
+});

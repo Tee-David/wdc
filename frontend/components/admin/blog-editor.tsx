@@ -9,6 +9,7 @@ import { LIMITS } from "@/lib/blog-validate";
 import { Actions, Area, Checks, Field, Fields, Fold, Form, Hidden, Radios, Select, Submit, useFieldError } from "./form";
 import Tip from "@/components/onboarding/tip";
 import { CoverField } from "./cover-field";
+import { SocialImageField } from "./social-image-field";
 
 export type EditorPost = {
   id: string | null;
@@ -324,8 +325,7 @@ export function BlogEditor({ post, topics, covers, canPublish = true }: {
             <Count name="description" min={LIMITS.description.min} max={LIMITS.description.max} />
             <Field name="canonical" label="Canonical address" defaultValue={post.canonical}
                    hint="Only if this post first appeared elsewhere. Empty means its own URL." placeholder="https://" />
-            <Select name="socialImage" label="Social image" defaultValue={post.socialImage}
-                    options={[{ value: "", label: "The drawn card with the headline (recommended)" }, ...coverOptions]} />
+            <SocialImageField defaultValue={post.socialImage} />
           </Fields>
         </Fold>
       </aside>
