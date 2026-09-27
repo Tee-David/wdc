@@ -1,0 +1,405 @@
+<title>WDC Hero Reconciled</title>
+<meta name="description" content="Three ways to put the ten hero motion pieces inside the full-bleed, immersive WDC hero, with research, measured contrast and a recommendation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f4f3ef; --panel:#ffffff; --ink:#0b0b1c; --muted:#4a4a5e; --line:#d6d4cb; --soft:#ebeae4;
+  --navy:#000065; --accent:#ff6500; --accent-ink:#c95000; --accent-fill:#b84a00; --on-accent:#ffffff;
+  --btn-fill:#0a0a0a; --btn-ink:#ffffff; --focus:#c95000;
+  /* the hero is a dark band in BOTH themes; these are its two grounds */
+  --h-g0:#16168a; --h-g1:#000065; --h-sub:#c9cbf2;
+  --next:#f4f3ef; --next-ink:#0b0b1c; --next-card:#e6e4dc;
+  --dev-bezel:#101024;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#07071a; --panel:#0f0f2a; --ink:#f2f2f7; --muted:#b4b6d6; --line:#2a2a58; --soft:#15153a;
+  --accent:#b84a00; --accent-ink:#ff6500;
+  --btn-fill:#ffffff; --btn-ink:#0a0a0a; --focus:#ff6500;
+  --h-g0:#15154e; --h-g1:#0a0a3a; --h-sub:#c9cbf2;
+  --next:#06061a; --next-ink:#f2f2f7; --next-card:#15153a; --dev-bezel:#000;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --paper:#07071a; --panel:#0f0f2a; --ink:#f2f2f7; --muted:#b4b6d6; --line:#2a2a58; --soft:#15153a;
+  --accent:#b84a00; --accent-ink:#ff6500;
+  --btn-fill:#ffffff; --btn-ink:#0a0a0a; --focus:#ff6500;
+  --h-g0:#15154e; --h-g1:#0a0a3a; --h-sub:#c9cbf2;
+  --next:#06061a; --next-ink:#f2f2f7; --next-card:#15153a; --dev-bezel:#000;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 16px/1.6 Outfit,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.fig{font-family:"Space Grotesk",system-ui,sans-serif;text-wrap:balance;letter-spacing:-.01em}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1320px;margin:0 auto;padding-inline:clamp(16px,4vw,48px)}
+.eyebrow{font:600 12px/1.2 Outfit,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);display:inline-flex;align-items:center;gap:10px}
+.eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.muted{color:var(--muted)}
+
+/* ---------- page head ---------- */
+.top{padding-block:clamp(40px,7vw,88px) 32px;display:grid;gap:28px;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);align-items:end}
+.top h1{font-size:clamp(2.2rem,5.4vw,4.4rem);line-height:1.02;margin:14px 0 0;font-weight:700}
+.top p{margin:0;max-width:62ch}
+.diag{border-top:2px solid var(--ink);padding-top:14px;display:grid;gap:10px}
+.diag h2{font-size:1rem;margin:0;font-weight:600}
+.diag ol{margin:0;padding-left:1.2em;display:grid;gap:6px}
+@media (max-width:860px){.top{grid-template-columns:minmax(0,1fr)}}
+
+/* ---------- controls ---------- */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--paper);border-block:1px solid var(--line);padding-block:10px}
+.bar .wrap{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.grp{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-width:0}
+.seg button{white-space:nowrap}
+@media (max-width:900px){.bar{position:static}}
+@media (max-width:520px){.seg button{padding:0 10px;font-size:13px}}
+.grp > span{font:600 11.5px/1 Outfit,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.seg{display:inline-flex;border:1.5px solid var(--btn-fill);border-radius:999px;padding:2px;gap:2px;background:var(--paper)}
+.seg button{min-height:40px;min-width:44px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--ink);font:600 14px Outfit,sans-serif;cursor:pointer}
+.seg button[aria-pressed="true"],.seg button[aria-selected="true"]{background:var(--btn-fill);color:var(--btn-ink)}
+.seg button:hover:not([aria-pressed="true"]):not([aria-selected="true"]){background:var(--soft)}
+.pieces{display:flex;gap:6px;overflow-x:auto;scrollbar-width:thin;padding-bottom:2px;min-width:0;flex:1 1 380px}
+.pieces button{flex:0 0 auto;min-height:44px;padding:0 12px;border-radius:12px;border:1.5px solid var(--btn-fill);background:var(--btn-ink);color:var(--btn-fill);font:500 13.5px Outfit,sans-serif;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.pieces button b{font:600 12px "Space Grotesk",sans-serif;font-variant-numeric:tabular-nums}
+.pieces button[aria-pressed="true"]{background:var(--btn-fill);color:var(--btn-ink)}
+
+/* ---------- concept viewer ---------- */
+.viewer{padding-block:28px 12px}
+.chead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:10px 30px;margin-bottom:18px}
+.chead h2{font-size:clamp(1.6rem,3.2vw,2.4rem);margin:6px 0 0;line-height:1.1}
+.chead p{margin:0;max-width:56ch}
+.frames{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:clamp(16px,3vw,40px);align-items:start}
+@media (max-width:900px){.frames{grid-template-columns:minmax(0,1fr)}.phonebox{max-width:340px;margin:0 auto;width:100%}}
+.devcap{display:flex;justify-content:space-between;font:500 13px Outfit,sans-serif;color:var(--muted);margin-bottom:8px;gap:10px}
+.devcap b{color:var(--ink);font-weight:600}
+.dev{position:relative;width:100%;background:var(--dev-bezel);overflow:hidden}
+.dev.phone{border-radius:34px;padding:9px;box-shadow:0 0 0 1px var(--line)}
+.dev.desk{border-radius:14px;padding:0;box-shadow:0 0 0 1px var(--line)}
+.dev .clip{position:relative;overflow:hidden;border-radius:26px}
+.dev.desk .clip{border-radius:14px}
+.scaler{transform-origin:0 0;position:absolute;left:0;top:0}
+.scrub{display:flex;align-items:center;gap:12px;margin-top:14px;font:500 14px Outfit,sans-serif}
+.scrub input{flex:1;accent-color:var(--accent-fill);min-height:44px}
+.scrub[hidden]{display:none}
+
+/* ======================= the mock screen ======================= */
+.screen{position:relative;container-type:inline-size;overflow:hidden;background:var(--next);font-family:Outfit,sans-serif;color:#fff}
+.scroll{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+.track{position:relative;height:calc(var(--sh) * 1px)}
+.c-B .track{height:calc(var(--sh) * 1.6px)}
+.pin{position:sticky;top:0;height:calc(var(--sh) * 1px);overflow:hidden;isolation:isolate;
+  background:radial-gradient(ellipse 80% 70% at 60% 46%,var(--h-g0),var(--h-g1));border-radius:0 0 40px 40px}
+.desk-s .pin{border-radius:0 0 88px 88px}
+.stage{position:absolute;inset:0;overflow:hidden;touch-action:pan-y;z-index:0;transform-origin:50% 50%;border-radius:40px}
+.stage-view{position:absolute;inset:0;overflow:hidden;border-radius:inherit}
+.slot{position:absolute;left:0;top:0;width:100%;height:100%;overflow:hidden;transform-origin:50% 50%}
+.slot-in{position:absolute;left:0;top:0;width:100%;height:100%}
+.slot canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.slot .layer{position:absolute;inset:0}
+.tr-ring{position:absolute;border-radius:50%;border:2px solid #ff6500;pointer-events:none;display:none;z-index:3}
+.tr-edge{position:absolute;top:0;bottom:0;left:0;width:2px;margin-left:-1px;background:#ff6500;pointer-events:none;display:none;z-index:3}
+.ov{position:absolute;pointer-events:none;z-index:1}
+.ov.topfade{left:0;right:0;top:0;height:120px;background:linear-gradient(180deg,rgba(2,2,30,.55),rgba(2,2,30,0));z-index:2}
+
+/* header, over the band (white type on no background: correct only because the band is under it) */
+.hdr{position:absolute;left:0;right:0;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:18px 20px}
+.desk-s .hdr{padding:26px 64px}
+.mark{display:flex;align-items:center;gap:9px;font:700 17px/1 "Space Grotesk",sans-serif;letter-spacing:-.01em;color:#fff;text-decoration:none}
+.mark i{width:34px;height:34px;border-radius:50%;background:#fff;display:grid;place-items:center;color:#000065;font:700 18px "Space Grotesk",sans-serif;font-style:normal}
+.mark span{display:block;line-height:1.05}
+.hnav{display:flex;align-items:center;gap:10px}
+.hnav .links{display:none;gap:28px;margin-right:18px;font:500 15px Outfit,sans-serif}
+.desk-s .hnav .links{display:flex}
+.hbtn svg{width:14px;height:14px}
+.hbtn{white-space:nowrap;min-height:44px;display:inline-flex;align-items:center;gap:8px;padding:0 18px;border-radius:999px;background:#fff;color:#000;font:600 13px Outfit,sans-serif;border:1.5px solid #fff;text-decoration:none}
+.burger{width:44px;height:44px;display:grid;place-items:center;color:#fff;border:0;background:none}
+.desk-s .burger{display:none}
+
+/* hero copy */
+.copy{position:absolute;z-index:4;display:flex;flex-direction:column;min-width:0}
+.eb{align-self:flex-start;display:inline-flex;align-items:center;min-height:30px;padding:0 14px;border-radius:999px;background:#05052e;font:600 11.5px/1 Outfit,sans-serif;letter-spacing:.24em;text-transform:uppercase;color:#fff}
+.eb b{margin-left:.4em;color:#ff6500;font-weight:700}
+.h1{margin:18px 0 0;font:700 clamp(1.5rem,7.4cqw,4.3rem)/1.08 "Space Grotesk",sans-serif;letter-spacing:-.02em;color:#fff}
+.h1 .l1{display:block;text-wrap:balance}
+.h1 .l2{display:flex;align-items:flex-start;min-width:0}
+.h1 .chev{color:#ff6500;margin-right:.3em}
+.rotbox{display:grid;min-width:0;justify-items:start}
+.c-A .rotbox{justify-items:center}
+.rotbox > *{grid-area:1/1}
+.rot-sizer{visibility:hidden;white-space:nowrap}
+.rot{white-space:nowrap}
+.caret{display:inline-block;width:.08em;height:.9em;background:#ff6500;margin-left:.08em;vertical-align:-.08em;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.lede{margin:18px 0 0;font:500 clamp(.875rem,3.8cqw,1.05rem)/1.6 Outfit,sans-serif;color:#fff;max-width:34rem;text-wrap:balance}
+.desk-s .lede{font-size:17px}
+.ctas{display:flex;flex-direction:column;gap:12px;margin-top:26px}
+.desk-s .ctas{flex-direction:row}
+.btn{min-height:50px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 28px;border-radius:999px;font:600 14px Outfit,sans-serif;text-decoration:none;border:1.5px solid #fff;transition:transform .2s ease,background-color .2s ease,color .2s ease}
+/* on the dark band the pair inverts: primary is a white fill with a black label; secondary is black with white type and the primary's fill as its edge */
+.btn.p{background:#fff;color:#000}
+.btn.s{background:#000;color:#fff}
+.btn.p:hover{background:#000;color:#fff}
+.btn.s:hover{background:#fff;color:#000}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:none}
+.btn svg{width:16px;height:16px}
+.screen :focus-visible{outline:2px solid #ff6500;outline-offset:3px}
+
+/* service chips (concept C, and B's reel): labelled controls, so they take the pair */
+.chips{display:flex;gap:8px;margin-top:22px}
+.chips button{flex:0 0 auto;min-height:44px;padding:0 16px;border-radius:999px;border:1.5px solid #fff;background:#000;color:#fff;font:500 13.5px Outfit,sans-serif;cursor:pointer}
+.chips button[aria-pressed="true"]{background:#fff;color:#000}
+.phone-s .chips{overflow-x:auto;scrollbar-width:none;margin-inline:-20px;padding-inline:20px}
+.phone-s .chips::-webkit-scrollbar{display:none}
+.desk-s .chips{flex-wrap:wrap;max-width:600px}
+
+/* now-showing line and the pause control (icon-only chrome) */
+.hud{position:absolute;z-index:4;display:flex;align-items:center;gap:10px;font:500 13px Outfit,sans-serif;color:var(--h-sub)}
+.hud b{color:#fff;font-weight:600}
+.hud .dot{width:7px;height:7px;border-radius:50%;background:#ff6500}
+.pbtn{width:44px;height:44px;border-radius:50%;border:1.5px solid #fff;background:#000;color:#fff;display:grid;place-items:center;cursor:pointer;flex:0 0 auto}
+.pbtn svg{width:14px;height:14px}
+.pbtn:hover{background:#fff;color:#000}
+
+/* the tools rail */
+.marq{position:absolute;z-index:3;left:0;right:0;bottom:0;padding:0 0 26px;overflow:hidden}
+.marq p{margin:0 0 12px;text-align:center;font:600 11px/1 Outfit,sans-serif;letter-spacing:.24em;text-transform:uppercase;color:#fff}
+.marq .row{display:flex;gap:40px;width:max-content;animation:marq 40s linear infinite;font:500 14px Outfit,sans-serif;color:#fff;white-space:nowrap}
+.marq .mask{-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+.phone-s .marq p{letter-spacing:.14em;font-size:10px}
+@keyframes marq{to{transform:translateX(-50%)}}
+
+/* the page carrying on under the hero, so the theme shows */
+.next{padding:40px 20px 60px;color:var(--next-ink);background:var(--next)}
+.desk-s .next{padding:64px 64px 90px}
+.next .ne{font:600 11.5px/1 Outfit,sans-serif;letter-spacing:.2em;text-transform:uppercase}
+.next h3{font:700 28px/1.1 "Space Grotesk",sans-serif;margin:10px 0 22px}
+.next .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,20rem),1fr));gap:16px}
+.next .card{aspect-ratio:4/3;border-radius:18px;background:var(--next-card);display:flex;align-items:flex-end;padding:16px;font:600 14px Outfit,sans-serif}
+
+/* hero-rise: CSS, never gated on script; the h1 rises but is never transparent */
+@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes riseSolid{from{transform:translateY(22px)}to{transform:none}}
+.screen.play .rise{animation:rise .6s cubic-bezier(.16,1,.3,1) both}
+.screen.play .h1{animation:riseSolid .6s cubic-bezier(.16,1,.3,1) both}
+
+/* ---------------- A: Backdrop ---------------- */
+.c-A .copy{left:24px;right:24px;top:0;bottom:120px;justify-content:center;align-items:center;text-align:center;padding-top:60px}
+.c-A .eb{align-self:center}
+.c-A .h1 .l2{justify-content:center}
+.c-A .ctas{width:100%}
+.desk-s.c-A .copy{left:80px;right:80px;bottom:150px}
+.desk-s.c-A .ctas{width:auto;justify-content:center}
+.c-A .scrim{inset:0;background:radial-gradient(ellipse 80% 44% at 50% 50%,rgba(2,2,30,.8) 0%,rgba(2,2,30,.7) 40%,rgba(2,2,30,.36) 70%,rgba(2,2,30,0) 92%)}
+.desk-s.c-A .scrim{background:radial-gradient(ellipse 52% 46% at 50% 46%,rgba(2,2,30,.82) 0%,rgba(2,2,30,.7) 42%,rgba(2,2,30,.3) 72%,rgba(2,2,30,0) 92%)}
+.c-A .hud{left:20px;bottom:104px}
+.desk-s.c-A .hud{left:64px;bottom:40px}
+.desk-s.c-A .marq{left:320px;right:320px}
+.c-A .chips,.c-A .fade,.c-A .reel{display:none}
+
+/* ---------------- B: Recede ---------------- */
+.c-B .marq{display:none}
+.c-B .copy{left:20px;right:20px;bottom:36px;will-change:transform,opacity;transform:translateY(calc(var(--p) * -140px));opacity:calc(1 - var(--p) * 1.25)}
+.c-B .stage{top:-16%;bottom:16%}
+.c-B .scrim{inset:0;background:linear-gradient(180deg,rgba(2,2,30,0) 30%,rgba(2,2,30,.72) 52%,rgba(2,2,30,.9) 72%);opacity:calc(1 - var(--p))}
+.c-B .hud{display:none}
+.c-B .chips{display:none}
+.c-B .reel{position:absolute;z-index:4;left:20px;right:20px;bottom:40px;opacity:var(--p);transform:translateY(calc((1 - var(--p)) * 40px))}
+.reel .rl{font:600 11.5px/1 Outfit,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--h-sub)}
+.reel h4{margin:8px 0 0;font:700 30px/1.1 "Space Grotesk",sans-serif;color:#fff}
+.reel .chips{display:flex}
+.desk-s.c-B .copy{left:80px;right:auto;width:600px;top:0;bottom:0;justify-content:center;transform:none;opacity:1}
+.desk-s.c-B .stage{left:26%;right:-26%;top:0;bottom:0;transform:translate(calc(var(--p) * -54px),calc(var(--p) * 36px)) scale(calc(1 - var(--p) * .52))}
+.desk-s.c-B .scrim{inset:0;background:linear-gradient(90deg,var(--h-g1) 44%,rgba(0,0,0,0) 64%);opacity:calc(1 - var(--p))}
+.desk-s.c-B .reel{display:none}
+.desk-s.c-B .hud{display:flex;right:64px;bottom:40px;opacity:var(--p)}
+.desk-s.c-B .chips{display:flex}
+.c-B .fade{display:none}
+
+/* ---------------- C: Shared ground ---------------- */
+.c-C .marq{display:none}
+.c-C .reel,.c-C .scrim{display:none}
+.c-C .stage{top:0;left:0;right:0;height:53%;border-radius:0}
+.c-C .fade{left:0;right:0;top:calc(53% - 140px);height:141px;background:linear-gradient(180deg,rgba(0,0,0,0),var(--h-g1))}
+.c-C .copy{left:20px;right:20px;top:calc(53% - 24px);bottom:24px}
+.c-C .ctas{flex-direction:row}
+.c-C .ctas .btn{flex:1 1 0;padding:0 12px}
+.c-C .h1{margin-top:14px}
+.c-C .lede{margin-top:12px}
+.c-C .ctas{margin-top:20px}
+.c-C .chips{margin-top:16px}
+.c-C .hud{right:16px;top:calc(53% - 128px)}
+.desk-s.c-C .stage{left:40%;top:0;bottom:0;height:auto;right:0}
+.desk-s.c-C .fade{top:0;bottom:0;left:40%;width:260px;height:auto;right:auto;background:linear-gradient(90deg,var(--h-g1),rgba(0,0,0,0))}
+.desk-s.c-C .copy{left:80px;width:600px;right:auto;top:0;bottom:0;justify-content:center}
+.desk-s.c-C .ctas .btn{flex:0 0 auto;padding:0 28px}
+.desk-s.c-C .h1,.desk-s.c-B .h1{font-size:3.55cqw}
+.desk-s.c-C .hud{right:64px;bottom:40px;top:auto}
+.c-C .pin{background:var(--h-g1)}
+
+/* reduced motion (real or simulated): nothing moves, the copy is simply there */
+@media (prefers-reduced-motion:reduce){
+  .screen .rise,.screen .h1{animation:none!important}
+  .caret,.marq .row{animation:none!important}
+  .btn{transition:none}
+}
+.sim-rm .screen .rise,.sim-rm .screen .h1,.sim-rm .caret,.sim-rm .marq .row{animation:none!important}
+
+/* ---------- write-up ---------- */
+.notes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;padding-block:26px 8px;border-bottom:1px solid var(--line)}
+.notes section h3{font-size:14px;margin:0 0 6px;letter-spacing:.02em}
+.notes p,.notes ul{margin:0 0 8px;font-size:15px}
+.notes ul{padding-left:1.1em}
+@media (max-width:1000px){.notes{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.notes{grid-template-columns:minmax(0,1fr)}}
+.sec{padding-block:clamp(40px,6vw,72px) 0}
+.sec > h2{font-size:clamp(1.6rem,3.2vw,2.4rem);margin:8px 0 18px;line-height:1.1}
+.refs{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,20rem),1fr));gap:20px 28px;margin:0;padding:0;list-style:none}
+.refs li{border-top:1.5px solid var(--ink);padding-top:12px;min-width:0}
+.refs h3{margin:0;font-size:17px}
+.refs a{font-size:13px;color:var(--muted);word-break:break-all}
+.refs p{margin:6px 0 0;font-size:15px}
+.refs .t{display:block;margin-top:8px;font-size:14px}
+.refs .t b{font-weight:600}
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:18px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:14px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font:600 11.5px/1.2 Outfit,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);background:var(--panel);position:sticky;top:0}
+td:first-child,th:first-child{position:sticky;left:0;background:var(--panel);min-width:230px}
+td.n{font:600 14px "Space Grotesk",sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sw{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:6px;box-shadow:0 0 0 1px var(--line)}
+.pass{display:inline-flex;min-height:24px;align-items:center;padding:0 10px;border-radius:999px;font:600 12px Outfit,sans-serif;background:#1b6b35;color:#fff}
+.fail{background:#b3261e;color:#fff}
+.rec{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:32px;align-items:start}
+.rec .call{background:var(--navy);color:#fff;border-radius:18px;padding:28px}
+.rec .call h3{font-size:clamp(1.4rem,2.6vw,2rem);margin:6px 0 10px;line-height:1.1}
+.rec .call .eyebrow{color:#fff}
+.rec .call p{margin:0 0 10px}
+.rec .tr h3{font-size:16px;margin:18px 0 6px}
+.rec .tr h3:first-child{margin-top:0}
+.rec .tr p{margin:0}
+@media (max-width:860px){.rec{grid-template-columns:minmax(0,1fr)}}
+.foot{padding-block:48px 64px;color:var(--muted);font-size:14px}
+</style>
+
+<header class="wrap top">
+  <div>
+    <span class="eyebrow">Homepage hero · proposal 2</span>
+    <h1>Keep the full screen. Put the motion inside it.</h1>
+  </div>
+  <div class="diag">
+    <h2>Why the last prototype felt off</h2>
+    <ol>
+      <li>It left the navy band. Every WDC landing page opens on a dark hero, and the prototype opened on paper, so it read as another site.</li>
+      <li>The motion sat in a framed card beside the copy. A card is a product demo; the live hero is a place you stand in.</li>
+      <li>On a phone the card pushed the stage below the buttons, so the immersive first screen the owner likes was gone.</li>
+      <li>It swapped the headline for new copy, so the voice changed along with the layout.</li>
+    </ol>
+  </div>
+</header>
+
+<div class="bar" role="region" aria-label="Prototype controls">
+  <div class="wrap">
+    <div class="grp"><span id="lblC">Concept</span>
+      <div class="seg" role="tablist" aria-labelledby="lblC" id="cTabs">
+        <button type="button" role="tab" id="tabA" aria-selected="true" data-c="A">A · Backdrop</button>
+        <button type="button" role="tab" id="tabB" aria-selected="false" data-c="B">B · Recede</button>
+        <button type="button" role="tab" id="tabC" aria-selected="false" data-c="C">C · Shared ground</button>
+      </div>
+    </div>
+    <div class="grp"><span id="lblT">Theme</span>
+      <div class="seg" role="group" aria-labelledby="lblT">
+        <button type="button" id="thL" aria-pressed="false">Light</button>
+        <button type="button" id="thD" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+    <div class="grp"><span id="lblM">Motion</span>
+      <div class="seg" role="group" aria-labelledby="lblM">
+        <button type="button" id="mOn" aria-pressed="true">Full</button>
+        <button type="button" id="mRm" aria-pressed="false">Reduced</button>
+      </div>
+    </div>
+    <div class="grp" style="flex:1 1 420px"><span id="lblP">Piece</span>
+      <div class="pieces" id="pieces" role="group" aria-labelledby="lblP"></div>
+    </div>
+  </div>
+</div>
+
+<main>
+<section class="wrap viewer" id="viewer" aria-labelledby="cTitle">
+  <div class="chead">
+    <div><span class="eyebrow" id="cEye">Concept A</span><h2 id="cTitle"></h2></div>
+    <p id="cLine"></p>
+  </div>
+  <div class="frames">
+    <div class="phonebox">
+      <div class="devcap"><b>Phone</b><span>390 × 844, full screen</span></div>
+      <div class="dev phone" id="devP"><div class="clip"><div class="scaler"></div></div></div>
+    </div>
+    <div>
+      <div class="devcap"><b>Desktop</b><span>1440 × 900</span></div>
+      <div class="dev desk" id="devD"><div class="clip"><div class="scaler"></div></div></div>
+      <label class="scrub" id="scrub" hidden><span>Scroll the page</span><input type="range" id="scrubIn" min="0" max="100" value="0" step="1"><span id="scrubV" class="fig" style="min-width:3.5ch;font-variant-numeric:tabular-nums">0%</span></label>
+    </div>
+  </div>
+  <div class="notes" id="notes"></div>
+</section>
+
+<section class="wrap sec" aria-labelledby="hBest">
+  <span class="eyebrow">Research</span>
+  <h2 id="hBest">What the best heroes do</h2>
+  <ul class="refs" id="refs"></ul>
+</section>
+
+<section class="wrap sec" aria-labelledby="hCon">
+  <span class="eyebrow">Measured</span>
+  <h2 id="hCon">Contrast, every pair</h2>
+  <p class="muted" style="max-width:70ch;margin:0 0 18px">Text needs 4.5:1 against its own ground; a control's edge and the focus ring need 3:1 against what they sit on. Flat pairs are computed here from the hex values. The rows marked "over motion" were measured from rendered pixels: 24 frames per piece (12 moments on the phone and the desktop), all ten pieces, both themes, with the headline hidden so only what sits behind it was sampled. The figure is the worst frame.</p>
+  <div class="tblwrap"><table id="ctbl"><thead><tr><th scope="col">Pair</th><th scope="col">Where</th><th scope="col">Light theme</th><th scope="col">Dark theme</th><th scope="col">Needs</th><th scope="col">Result</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section class="wrap sec" aria-labelledby="hRec">
+  <span class="eyebrow">Recommendation</span>
+  <h2 id="hRec">Build C, and let the phone stay full screen</h2>
+  <div class="rec">
+    <div class="call">
+      <span class="eyebrow">The call</span>
+      <h3>One navy ground, edge to edge. The words and the motion share it and never overlap.</h3>
+      <p>C keeps what the owner likes about the live hero: on a phone the first screen is all band, the motion runs under the header to the edges, and the headline and both buttons are on the first screen of a 390 × 844 phone. It keeps what was liked about the prototype: the ten pieces play whole, uncropped by a scrim, and the service chips turn the hero into a way into the work.</p>
+      <p>It fixes the feeling that was off, because nothing is boxed and nothing is on paper. The stage is the band itself, feathered into the copy side, so it reads as one place.</p>
+      <p>A is the runner-up: it is the closest to today, but the headline covers the middle of every piece, and the contrast behind the words depends on what the piece is doing that second. B is the most cinematic, and worth adding later as an enhancement of C on desktop only, once C is live and measured.</p>
+    </div>
+    <div class="tr">
+      <h3>LCP</h3>
+      <p>Today the LCP element is the first hero photograph. In all three concepts the photograph goes, so the LCP becomes the first headline line, which is server-rendered text that never changes. The band's first paint is a CSS radial gradient identical to the pieces' own ground, so the stage fades in from the colour already on screen with no layout shift and no image request. Load the engine after <code>load</code> and each piece on demand (about 10 to 22 KB each, uncompressed, in this prototype).</p>
+      <h3>Phone performance</h3>
+      <p>One stage, one piece rendering at a time, canvas capped at 1.5× device pixels on phones. C's stage is about half the screen, so it draws roughly half the pixels of A or B. Everything stops when the hero leaves the screen or the tab is hidden. The WebGL piece (One Object) should be desktop-only, or replaced by its still on low-memory phones. No scroll listener in A or C; B's is passive and coalesced into one frame.</p>
+      <h3>Accessibility</h3>
+      <p>Every word in C sits on flat navy, so every ratio in the table is fixed, not a hope. The pause control is a real button, 44px, on screen at all times (WCAG 2.2.2). Under reduced motion each piece shows its designed still, the headline does not type, the tools rail stops, and the chips still switch the still. Chips and buttons are 44px or taller.</p>
+      <h3>Trade-offs of C</h3>
+      <p>Less text over image than today, which is the drama some people love in the current hero. On a short phone the copy block is tight: at 390 × 667 it still fits by arithmetic, and at 320 × 568 the chips will fall below the fold, so both need a real test before build. Two pieces (Prism and Signature) both stand for branding, so the chip shows one and the reel alternates.</p>
+    </div>
+  </div>
+</section>
+<p class="wrap foot">Prototype only. Nothing here changes the site. The ten pieces are the ones from the Hero Motion artifact, unchanged, rendered on the band's navy ground in both themes.</p>
+</main>
+
+<script>
+/*U*/
+</script>
+<script>
+function makeSet(){ const CONCEPTS = [];
+/*PIECES*/
+return CONCEPTS; }
+const SET_P = makeSet(), SET_D = makeSet(); const CONCEPTS = SET_D;
+</script>
+<script>
+/*ENGINE*/
+</script>
+<script>
+/*APP*/
+</script>
