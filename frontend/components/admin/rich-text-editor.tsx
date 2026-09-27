@@ -7,10 +7,11 @@ import Image from "@tiptap/extension-image";
 import { TextSelection } from "@tiptap/pm/state";
 import Placeholder from "@tiptap/extension-placeholder";
 import {
-  Bold, Clapperboard, Heading2, Heading3, ImagePlus, Italic, Link2, List, ListOrdered, Pilcrow, Quote, Redo2, Undo2, Upload, X,
+  Bold, Clapperboard, Heading2, Heading3, ImagePlus, Images, Italic, Link2, List, ListOrdered, Pilcrow, Quote, Redo2, Undo2, Upload, X,
 } from "lucide-react";
 import type { RichDoc } from "@/lib/blog-doc";
 import { uploadToMedia } from "./media-upload";
+import { MediaPicker } from "./media-picker";
 
 /**
  * The post body, written the way people write: a page with a toolbar.
@@ -136,6 +137,7 @@ function ImagePanel({ editor, close }: { editor: Editor; close: () => void }) {
   const [src, setSrc] = useState("");
   const [alt, setAlt] = useState("");
   const [state, setState] = useState<{ busy?: string; error?: string }>({});
+  const [library, setLibrary] = useState(false);
   const file = useRef<HTMLInputElement>(null);
 
   const upload = async (f: File) => {
@@ -174,6 +176,9 @@ function ImagePanel({ editor, close }: { editor: Editor; close: () => void }) {
           <input ref={file} type="file" accept="image/png,image/jpeg,image/webp,image/avif,image/gif"
                  onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f); if (file.current) file.current.value = ""; }} />
         </label>
+        <button type="button" className="ad__btn" onClick={() => setLibrary(true)}><Images aria-hidden="true" /> From the library</button>
+        <MediaPicker open={library} onClose={() => setLibrary(false)} kind="image"
+          onPick={(p) => { setSrc(p.url); setAlt(p.alt); setState({}); }} />
         <button type="button" className="ad__btn adRte__close" aria-label="Close" onClick={close}><X aria-hidden="true" /></button>
       </div>
       <label htmlFor={`${id}-src`}>Or its address</label>
@@ -198,6 +203,7 @@ function VideoPanel({ editor, close }: { editor: Editor; close: () => void }) {
   const [src, setSrc] = useState("");
   const [title, setTitle] = useState("");
   const [state, setState] = useState<{ busy?: string; error?: string }>({});
+  const [library, setLibrary] = useState(false);
   const file = useRef<HTMLInputElement>(null);
 
   const upload = async (f: File) => {
@@ -234,6 +240,9 @@ function VideoPanel({ editor, close }: { editor: Editor; close: () => void }) {
           <input ref={file} type="file" accept="video/mp4,video/webm"
                  onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f); if (file.current) file.current.value = ""; }} />
         </label>
+        <button type="button" className="ad__btn" onClick={() => setLibrary(true)}><Images aria-hidden="true" /> From the library</button>
+        <MediaPicker open={library} onClose={() => setLibrary(false)} kind="video"
+          onPick={(p) => { setSrc(p.url); setState({}); }} />
         <button type="button" className="ad__btn adRte__close" aria-label="Close" onClick={close}><X aria-hidden="true" /></button>
       </div>
       <small className="ad__fh">MP4 or WebM, up to 40MB. Keep it short: a minute at 1080p is plenty.</small>
