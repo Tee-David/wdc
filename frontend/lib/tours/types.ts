@@ -52,10 +52,11 @@ export type TourStep = {
    *  a new page needs to set it; the rest inherit it. */
   page?: string;
   /** Steps absent from this list are shown to everyone; a step present here
-   *  is shown only to a session whose role is in the list. Today there is
-   *  exactly one role (`owner`) wired through auth, so nothing in the
-   *  registry actually uses this yet -- it exists so the day a `staff` role
-   *  is real, filtering steps is a data change, not a new mechanism. */
+   *  is shown only to a session whose role is in the list. Money is the
+   *  owner's (lib/admin/permissions.ts), so its steps say `["owner"]` and
+   *  staff never meet a spotlight on a panel they cannot see. A kept step
+   *  whose `href` was a dropped step's page is walked from the page before
+   *  it instead (see `tour-runtime.tsx`). */
   roles?: TourRole[];
   placement?: "top" | "bottom" | "left" | "right" | "auto" | "center";
   /** Dropped below the sidebar's `1024px` collapse breakpoint -- the rail's

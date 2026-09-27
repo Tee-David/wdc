@@ -91,8 +91,19 @@ export default function TourRuntime({ tour, role, isReplay, onFinish, onSkip }: 
 
   const steps = useMemo<Step[]>(() => {
     const desktop = window.matchMedia("(min-width: 1024px)").matches;
+    /* A step dropped for this role takes its page with it: "On to Forms" is
+       written as reached from Money, and staff never open Money, so it is
+       reached from the page the reader is actually on. */
+    const allowed = (s: TourDef["steps"][number]) => !s.roles || s.roles.includes(role as never);
+    const gone = new Set(tour.steps.filter((s) => !allowed(s) && s.href).map((s) => s.href));
+    let last: string | undefined;
     const visible = tour.steps
-      .filter((s) => !s.roles || s.roles.includes(role as never))
+      .filter(allowed)
+      .map((s) => {
+        const href = s.href && gone.has(s.href) ? last : s.href;
+        last = href ?? last;
+        return href === s.href ? s : { ...s, href };
+      })
       .filter((s) => !(s.desktopOnly && !desktop))
       .filter((s) => !(s.mobileOnly && desktop));
 
@@ -214,8 +225,19 @@ export default function TourRuntime({ tour, role, isReplay, onFinish, onSkip }: 
 
   useEffect(() => on(EVENTS.STEP_AFTER, (data) => {
     const desktop = window.matchMedia("(min-width: 1024px)").matches;
+    /* A step dropped for this role takes its page with it: "On to Forms" is
+       written as reached from Money, and staff never open Money, so it is
+       reached from the page the reader is actually on. */
+    const allowed = (s: TourDef["steps"][number]) => !s.roles || s.roles.includes(role as never);
+    const gone = new Set(tour.steps.filter((s) => !allowed(s) && s.href).map((s) => s.href));
+    let last: string | undefined;
     const visible = tour.steps
-      .filter((s) => !s.roles || s.roles.includes(role as never))
+      .filter(allowed)
+      .map((s) => {
+        const href = s.href && gone.has(s.href) ? last : s.href;
+        last = href ?? last;
+        return href === s.href ? s : { ...s, href };
+      })
       .filter((s) => !(s.desktopOnly && !desktop))
       .filter((s) => !(s.mobileOnly && desktop));
     const stepDef = visible[data.index];

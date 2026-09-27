@@ -108,6 +108,32 @@ test("the full walkthrough, opened from the launcher, crosses every page and fin
   await expect(page.getByRole("menuitem", { name: /^full platform walkthrough$/i })).toHaveCount(0);
 });
 
+test("staff get the walkthrough without Money: no money step, and the book is never opened", async ({ page }) => {
+  await page.setExtraHTTPHeaders({ "x-boneyard-capture": TOKEN ?? "", "x-boneyard-capture-role": "staff" });
+  const visited: string[] = [];
+  page.on("framenavigated", (f) => { if (f === page.mainFrame()) visited.push(new URL(f.url()).pathname); });
+  await page.goto("/admin", { waitUntil: "networkidle" });
+  await page.waitForTimeout(2_000);
+  const skip = page.getByRole("button", { name: /skip tour/i });
+  if (await skip.isVisible().catch(() => false)) await skip.click();
+
+  await page.locator(".tourLauncher__btn").click();
+  await page.getByRole("menuitem", { name: /full platform walkthrough/i }).click();
+  await expect(page.locator(".tourCard")).toBeVisible();
+  const titles: string[] = [];
+  for (let i = 0; i < 40; i += 1) {
+    titles.push((await page.locator(".tourCard__headText b").first().textContent()) ?? "");
+    const finish = page.getByRole("button", { name: /^finish$/i });
+    if (await finish.isVisible().catch(() => false)) { await finish.click(); break; }
+    await page.getByRole("button", { name: /^next$/i }).click();
+    await page.waitForTimeout(250);
+  }
+  await expect(page.locator(".tourCard")).toHaveCount(0);
+  expect(titles.join(" | ")).not.toMatch(/Money|payments in|Cashflow|Raising an invoice|real-time totals/i);
+  expect(titles.join(" | ")).toMatch(/On to Forms/);
+  expect(visited.filter((p) => p.startsWith("/admin/money"))).toEqual([]);
+});
+
 test("an interactive step advances on a real click, not only on Next", async ({ page }) => {
   await page.goto("/admin", { waitUntil: "networkidle" });
   await page.waitForTimeout(2_000);
