@@ -195,3 +195,11 @@
   transition: transform .18s ease;
 }
 .adCover__ours[open] summary::after { transform: rotate(180deg); }
+
+/* The post's social image: what a shared link shows, and three ways to set it. */
+.adSocial__now { border: 1px solid var(--ad-line); border-radius: 12px; overflow: hidden; background: var(--ad-panel-2); }
+.adSocial__now img { display: block; width: 100%; aspect-ratio: 1200 / 630; object-fit: cover; }
+.adSocial__card { display: flex; align-items: center; gap: .5rem; padding: .9rem 1rem; color: var(--ad-dim); font-size: .88rem; }
+.adSocial__card svg { width: 1.1rem; height: 1.1rem; flex: none; }
+.adSocial__acts { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .5rem; }
+.adSocial__acts .ad__btn { min-height: 2.75rem; }
