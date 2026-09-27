@@ -23,13 +23,14 @@ test("integrations report configuration, never invented health", async ({ page, 
   const panel = page.locator('[data-tour="settings-integrations"]');
   await expect(panel).toBeVisible();
 
-  const states = await panel.locator("tbody tr .ad__pill").allTextContents();
+  /* One card per service, its state in the pill at the top. */
+  const states = await panel.locator(".adIntg__card .adIntg__top .ad__pill").allTextContents();
   expect(states.length).toBeGreaterThanOrEqual(8);
   for (const state of states) expect(["Set up", "Missing", "Not built", "Manual"]).toContain(state.trim());
 
-  const row = (name: string) => panel.locator("tbody tr").filter({ has: page.locator("td:first-child b", { hasText: name }) });
-  await expect(row("Booking").locator(".ad__pill")).toHaveText("Not built");
-  await expect(row("WhatsApp").locator(".ad__pill")).toHaveText("Manual");
+  const row = (name: string) => panel.locator(".adIntg__card").filter({ has: page.locator(".adIntg__top b", { hasText: name }) });
+  await expect(row("Cal.com").locator(".adIntg__top .ad__pill")).toHaveText("Not built");
+  await expect(row("WhatsApp").locator(".adIntg__top .ad__pill")).toHaveText("Manual");
   await expect(page.locator("body")).not.toContainText("cal_booking_uid");
   await expect(panel).not.toContainText(/\bworking\b/i);
 });
