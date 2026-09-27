@@ -4,6 +4,7 @@ import {
 } from "@/lib/admin/store";
 import { invoiceTotals } from "@/lib/admin/types";
 import { wholeKobo, paystackMode, paystackSignatureValid } from "@/lib/paystack";
+import { chargeBanked, claimCharge, releaseCharge } from "@/lib/paystack-claim";
 import { sendPaymentNotice, sendPaymentReceiptEmail } from "@/lib/money-mail";
 import { saveStore, syncStore } from "@/lib/admin/persist";
 
@@ -171,6 +172,23 @@ async function receive(request: NextRequest) {
     return NextResponse.json({ received: true });
   }
 
+  /* CLAIMED WHERE EVERY INSTANCE CAN SEE IT before it is banked
+     (lib/paystack-claim.ts): the payer's return is racing this, usually on
+     another instance, and only one of the two may bank it. */
+  const claim = await claimCharge({ reference, invoiceId: invoice.id, amount, by: "Paystack webhook" });
+  if (claim === "unavailable") {
+    /* Nothing banked, and not a 2xx, so Paystack delivers it again. */
+    return new NextResponse("Try again", { status: 503 });
+  }
+  if (claim === "taken") {
+    recordProviderEvent({
+      event, reference, amount, channel, mode: paystackMode(), outcome: "Duplicate",
+      invoiceId: invoice.id, paymentId: getPaymentsFor(invoice.id).find((p) => p.reference === reference)?.id,
+      note: "Already banked, so nothing was added. Paystack retries, and the payer's return races this.",
+    });
+    return NextResponse.json({ received: true });
+  }
+
   const applied = applyPayment({
     invoiceId: invoice.id, amount, method: "Paystack", reference,
     by: "Paystack webhook", mode: paystackMode(),
@@ -178,6 +196,8 @@ async function receive(request: NextRequest) {
 
   if (!applied.ok) {
     const duplicate = applied.reason === "duplicate";
+    const banked = duplicate ? getPaymentsFor(invoice.id).find((p) => p.reference === reference) : undefined;
+    if (banked) await chargeBanked(reference, banked.id); else await releaseCharge(reference);
     const existing = duplicate
       ? getPaymentsFor(invoice.id).find((p) => p.reference === reference)
       : undefined;
@@ -192,6 +212,7 @@ async function receive(request: NextRequest) {
     return NextResponse.json({ received: true });
   }
 
+  await chargeBanked(reference, applied.payment.id);
   recordProviderEvent({
     event, reference, amount, channel, outcome: "Applied", mode: paystackMode(),
     invoiceId: invoice.id, paymentId: applied.payment.id,

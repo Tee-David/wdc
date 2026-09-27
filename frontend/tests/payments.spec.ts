@@ -213,3 +213,35 @@ test("the checkout asks Paystack for exactly what the invoice says is due", asyn
   expect(due).toBe(500_00);
   expect(wholeKobo(due)).toBe(50_000);
 });
+
+/* ONE CHARGE, BANKED ONCE, ACROSS INSTANCES. The webhook and the payer's
+   return race, and on Vercel they land on different instances whose memories
+   do not know about each other; `paystack_charges` is where they meet. A claim
+   left by "another instance" must stop this one banking the same reference,
+   however many times Paystack delivers it. Needs a signing key on both the
+   server and here, so it runs only where a local test key is set. */
+test("a charge another instance has claimed is not banked a second time", async ({ request }) => {
+  const secret = process.env.PAYSTACK_TEST_SECRET_KEY;
+  test.skip(!secret || !process.env.DATABASE_URL, "needs a local Paystack test key and a database");
+  const { createHmac } = await import("node:crypto");
+  const pg = (await import("pg")).default;
+  const db = new pg.Client({ connectionString: process.env.DATABASE_URL });
+  await db.connect();
+  const reference = `INV2026001-CLAIM${Date.now().toString(36).toUpperCase()}`;
+  try {
+    await db.query(`CREATE TABLE IF NOT EXISTS paystack_charges (reference STRING PRIMARY KEY, invoice_id STRING NOT NULL,
+      amount INT8 NOT NULL, claimed_by STRING NOT NULL, payment_id STRING, claimed_at TIMESTAMPTZ NOT NULL DEFAULT now())`);
+    await db.query("INSERT INTO paystack_charges (reference, invoice_id, amount, claimed_by) VALUES ($1, 'i1', 10000, 'another instance')", [reference]);
+    const body = JSON.stringify({ event: "charge.success", data: { reference, amount: 10_000, status: "success", currency: "NGN", metadata: { invoiceId: "i1" } } });
+    const signature = createHmac("sha512", secret!).update(body).digest("hex");
+    for (let i = 0; i < 2; i += 1) {
+      const res = await request.post("/api/paystack/webhook", { headers: { "content-type": "application/json", "x-paystack-signature": signature }, data: body });
+      expect(res.status()).toBe(200);
+    }
+    const banked = await db.query("SELECT count(*)::INT AS n FROM admin_records WHERE collection = 'PAYMENTS' AND data->>'reference' = $1", [reference]);
+    expect(banked.rows[0].n).toBe(0);
+  } finally {
+    await db.query("DELETE FROM paystack_charges WHERE reference = $1", [reference]).catch(() => undefined);
+    await db.end();
+  }
+});
