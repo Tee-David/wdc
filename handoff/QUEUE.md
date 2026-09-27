@@ -15,7 +15,7 @@ proves it. Phone checks are at 390px (and 320px for anything text-heavy).
 - [x] **3. Confetti still hangs on the onboarding "Thank you" screen.** `screenshots/03-*.jpg` shows pieces frozen at the bottom. Fixed in `e14b44f`.
   Start: `components/onboarding/confetti.tsx` / `.css`. An earlier fix gave every keyframe its transform; pieces still stop mid-fall. Make each piece's animation end fully off screen (or fade to 0) with `forwards` fill, and remove the layer on `animationend`. Test: after 6s no confetti element is visible.
 
-- [ ] **4. Studio notice emails show "me" as sender; the From name must be "We Dig Creativity".** `screenshots/04-*.jpg` (Onboarding brief email to the admin).
+- [x] **4. Studio notice emails show "me" as sender; the From name must be "We Dig Creativity".** `screenshots/04-*.jpg` (Onboarding brief email to the admin). Fixed in `4a65ff8`.
   Start: `lib/email.ts` (`sendMail`, From header), `lib/settings/registry.ts` `mail.fromName` (shipped value comes from `SMTP_FROM_NAME` or "WDC Solutions"). Make the shipped sender name "We Dig Creativity" and make sure notices to the studio send a From display name, not a bare address (Gmail shows "me" only when From equals the recipient with no name: give it a name).
 
 - [ ] **5. Entry attachments overflow sideways on a phone** ("Fix the overflow on mobile. It's not responsive. Drifting horizontally"). `screenshots/05-*.jpg`.
