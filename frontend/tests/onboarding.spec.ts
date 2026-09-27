@@ -89,6 +89,39 @@ test("an older single channel answer still reads back as selected", async ({ pag
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
 });
 
+for (const width of [390, 320]) {
+  test(`the sent-screen confetti leaves no frozen pieces at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 720 });
+    /* Reproduce the reported phone failure: the promise never settles even
+       though the animation's finish event still fires. */
+    await page.addInitScript(() => {
+      Object.defineProperty(Animation.prototype, "finished", {
+        configurable: true,
+        get: () => new Promise(() => undefined),
+      });
+    });
+    await page.route("**/api/onboarding/draft", async (route) => {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ resumeUrl: "", emailSent: false }) });
+    });
+    await page.route("**/api/onboarding/submit", async (route) => {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
+    });
+    await page.addInitScript((step) => {
+      localStorage.setItem("wdc-onboarding-draft", JSON.stringify({
+        started: true,
+        service: "web",
+        step,
+        answers: {},
+      }));
+    }, stepsFor("web").length);
+    await page.goto("/onboarding");
+    await page.getByRole("button", { name: /Send the brief/ }).click();
+
+    await expect(page.locator(".ob-conf")).toBeVisible();
+    await expect(page.locator(".ob-conf")).toHaveCount(0, { timeout: 6_000 });
+  });
+}
+
 test("pulses the single progress bar unless reduced motion is requested", async ({ page }) => {
   await page.goto("/onboarding");
   const fill = page.locator(".ob__progress > span");
