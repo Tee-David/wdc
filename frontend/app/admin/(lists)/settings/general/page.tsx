@@ -1,6 +1,8 @@
 import { adminRole } from "@/lib/admin/guard";
 import { AdminState } from "@/components/admin/admin-state";
-import { financeSettings, getSetting } from "@/lib/admin/store";
+import { financeSettings, getSetting, nextEstimateNumber, nextInvoiceNumber, nextReceiptNumber } from "@/lib/admin/store";
+import { Panel } from "@/components/admin/bits";
+import "@/components/admin/forms/forms.css";
 import { REMINDER_DAYS } from "@/lib/settings/registry";
 import { Head } from "@/components/admin/settings/kit";
 import { StudioForm } from "@/components/admin/settings/studio-form";
@@ -34,6 +36,17 @@ export default async function StudioSettingsPage() {
       <div data-tour="settings-table">
         <StudioForm vatRate={f.vatRate} vatOn={f.vatOn} dueInDays={f.dueInDays} reminders={f.reminders} days={REMINDER_DAYS}
           tin={getSetting("finance.tin") ?? ""} footerNote={getSetting("finance.footerNote") ?? ""} />
+      </div>
+      {/* Read only, on purpose: numbers run in order from the highest already
+          issued and are never reused, and payment matching reads INV-. */}
+      <div style={{ marginTop: "1rem" }}>
+        <Panel title="Next numbers" action={<span className="ad__dim adSet__aside">Set by what is already issued</span>}>
+          <dl className="adForms__dl" data-tour="settings-numbers">
+            <div><dt>Invoice</dt><dd><code>{nextInvoiceNumber()}</code></dd></div>
+            <div><dt>Estimate</dt><dd><code>{nextEstimateNumber()}</code></dd></div>
+            <div><dt>Receipt</dt><dd><code>{nextReceiptNumber()}</code></dd></div>
+          </dl>
+        </Panel>
       </div>
     </>
   );
