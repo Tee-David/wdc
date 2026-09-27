@@ -32,7 +32,8 @@ const open = async (page: Page, path: string, baseURL: string | undefined) => {
   await page.waitForTimeout(1500);
 };
 
-const LISTS = ["/admin", "/admin/projects", "/admin/clients", "/admin/money", "/admin/forms", "/admin/settings/general"];
+/* Not Settings: its sections are forms with a save bar now, not tables. */
+const LISTS = ["/admin", "/admin/projects", "/admin/clients", "/admin/money", "/admin/forms"];
 
 for (const path of LISTS) {
   test(`${path} offers actions on its rows`, async ({ page, baseURL }) => {
@@ -137,31 +138,23 @@ test("an invoice is only offered what its status allows", async ({ page, baseURL
 
 test("editing a setting writes an override, and putting it back clears it", async ({ page, baseURL }) => {
   await open(page, "/admin/settings/general", baseURL);
-  /* Only the finance defaults are editable (lib/settings/registry.ts). */
-  const row = page.locator("table.ad__t tbody tr", { hasText: "Default days to pay" });
+  await page.waitForLoadState("networkidle");
+  /* The section is a form with a save bar (components/admin/settings/kit.tsx). */
+  const vat = page.getByRole("textbox", { name: "VAT", exact: true });
+  const shipped = await vat.inputValue();
+  const other = shipped === "5" ? "6" : "5";
+  await vat.fill(other);
+  await expect(page.getByText(/1 unsaved change/)).toBeVisible();
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.locator(".adToast", { hasText: "Settings saved." })).toBeVisible({ timeout: 15_000 });
+  await page.reload({ waitUntil: "networkidle" });
+  await expect(page.getByRole("textbox", { name: "VAT", exact: true })).toHaveValue(other);
 
-  await row.locator(".ad__rm").click();
-  await expect(page.locator(".ad__rmList [data-item]")).toHaveCount(1);
-  await page.locator(".ad__rmList [data-item]").first().click();
-
-  const field = page.locator("dialog.addlg[open] input[name=value]");
-  const shipped = await field.inputValue();
-  await field.fill("21");
-  await page.locator("dialog.addlg[open] button[type=submit]").click();
-  await page.waitForTimeout(2000);
-
-  await expect(row).toContainText("21");
-  /* The screen says what shipped as well as what it is showing, which is the
-     question people actually bring to a settings page. */
-  await expect(row).toContainText("Edited");
-  await expect(row).toContainText(shipped);
-
-  await row.locator(".ad__rm").click();
-  await expect(page.locator(".ad__rmList [data-item]")).toHaveCount(2);
-  await page.locator(".ad__rmList [data-item]").last().click();
-  await page.locator("dialog.addlg[open] button[type=submit]").click();
-  await page.waitForTimeout(2000);
-
-  await expect(row).not.toContainText("Edited");
-  await expect(row).toContainText(shipped);
+  /* And back, which clears the override rather than storing the same value. */
+  await page.getByRole("textbox", { name: "VAT", exact: true }).fill(shipped);
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.locator(".adToast", { hasText: "Settings saved." })).toBeVisible({ timeout: 15_000 });
+  await page.reload({ waitUntil: "networkidle" });
+  await expect(page.getByRole("textbox", { name: "VAT", exact: true })).toHaveValue(shipped);
 });
+
