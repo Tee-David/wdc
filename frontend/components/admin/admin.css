@@ -1185,7 +1185,7 @@ body:has(.adDrawer[open]) .st { display: none; }
    A row of selects in a GET form. No JavaScript: submitting navigates, which
    means every filtered view has its own URL and the back button works. */
 .ad__filters { display: flex; flex-wrap: wrap; gap: .5rem; align-items: flex-end; }
-.ad__filters label { min-width: 0; display: grid; gap: .25rem; font-size: .74rem; color: var(--ad-dim); }
+.ad__filters label { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: .25rem; font-size: .74rem; color: var(--ad-dim); }
 .ad__filters .ad__filterSearch { flex: 1 1 14rem; }
 .ad__filters input[type="search"] {
   min-height: 2.75rem; width: 100%; padding: .35rem .75rem; border: 1px solid var(--ad-line); border-radius: 10px;
