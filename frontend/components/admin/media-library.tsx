@@ -6,7 +6,7 @@ import {
   Check, ChevronDown, Copy, ExternalLink, FileText, Film, FolderInput, ImageIcon, RotateCcw, RotateCw, Save, Trash2, Upload, X,
 } from "lucide-react";
 import { checkMediaFile, MEDIA_ACCEPT, MEDIA_ALT_MAX, readableBytes } from "@/lib/media-validate";
-import { archiveMedia, archiveMediaMany, deleteMediaForever, moveMediaFiles, recordMediaUpload, restoreMedia, saveMediaDetails, signMediaUpload } from "@/lib/admin/media-actions";
+import { archiveMedia, archiveMediaMany, deleteMediaForever, mediaUsedIn, moveMediaFiles, recordMediaUpload, restoreMedia, saveMediaDetails, signMediaUpload } from "@/lib/admin/media-actions";
 import type { FolderTree } from "@/lib/media-folders";
 import { ask } from "./confirm";
 import { DRAG_FILES, FolderPane, FolderSheet, MoveToDialog } from "./media-folders";
@@ -423,6 +423,14 @@ function Details({ item, onMoved, folder, onMove, canDelete }: { item: MediaAsse
   const [decorative, setDecorative] = useState(item.decorative);
   const [alt, setAlt] = useState(item.alt);
   const done = (s: { message?: string }) => onMoved(s.message ?? "");
+  /* Where it is used, asked when the details open: read from the posts and
+     settings themselves, so it cannot fall behind them. */
+  const [uses, setUses] = useState<{ label: string; href: string; where: string }[] | null>(null);
+  useEffect(() => {
+    let live = true;
+    void mediaUsedIn({ id: item.id }).then((r) => { if (live) setUses(r.ok ? r.uses : []); });
+    return () => { live = false; };
+  }, [item.id]);
   const facts: [string, string][] = [
     ["Type", `${TYPE_LABEL[kind]} (${item.contentType.split("/")[1]?.toUpperCase()})`],
     ["Size", readableBytes(item.bytes)],
@@ -474,6 +482,17 @@ function Details({ item, onMoved, folder, onMove, canDelete }: { item: MediaAsse
         )}
         <dl className="adMediaD__facts">
           {facts.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
+          <div>
+            <dt>Used in</dt>
+            <dd aria-live="polite">
+              {uses === null ? <span className="ad__dim">Looking…</span>
+                : uses.length ? (
+                  <ul className="adMediaD__uses">
+                    {uses.map((u) => <li key={u.href + u.where}><a href={u.href}>{u.label}</a> <small className="ad__dim">{u.where}</small></li>)}
+                  </ul>
+                ) : "Nothing on the site uses it."}
+            </dd>
+          </div>
         </dl>
         <div className="adMediaD__tools">
           {!item.archivedAt ? <button type="button" className="ad__btn" onClick={onMove}><FolderInput aria-hidden="true" /> Move to…</button> : null}
@@ -487,7 +506,8 @@ function Details({ item, onMoved, folder, onMove, canDelete }: { item: MediaAsse
           ) : null}
           {item.archivedAt && canDelete ? (
             <button type="button" className="ad__btn ad__btn--danger" onClick={async () => {
-              if (!(await ask(`Delete ${item.filename} permanently? It is removed from the file store and cannot be undone. Any page still using its address will show a broken picture.`, { verb: "Delete" }))) return;
+              const inUse = uses?.length ? ` It is still used in ${uses.length} ${uses.length === 1 ? "place" : "places"} (${uses.slice(0, 3).map((u) => u.label).join(", ")}), which will show a broken picture.` : " Any page still using its address will show a broken picture.";
+              if (!(await ask(`Delete ${item.filename} permanently? It is removed from the file store and cannot be undone.${inUse}`, { verb: "Delete" }))) return;
               const r = await deleteMediaForever({ ids: [item.id] });
               if (!r.ok) { toast(r.error, "bad"); return; }
               toast(r.message);
