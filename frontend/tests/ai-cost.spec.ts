@@ -68,7 +68,8 @@ test("the volume drives the bill", async ({ page }) => {
 });
 
 test("choosing a shape fills in what that shape means", async ({ page }) => {
-  await page.goto(PAGE);
+  /* Hydrated first: a click before React is listening changes nothing. */
+  await page.goto(PAGE, { waitUntil: "networkidle" });
 
   const inWords = page.locator("#ai-in");
   const outWords = page.locator("#ai-out");
