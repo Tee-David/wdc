@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { stepsFor } from "@/lib/onboarding";
 
 const browserDraft = {
   started: true,
@@ -47,6 +48,45 @@ test("uses a plain list for short selects and lets clients revise an unsure answ
   await featureField.getByRole("checkbox", { name: "Gallery" }).click();
   await expect(featureField.getByRole("checkbox", { name: "Gallery" })).toHaveAttribute("aria-checked", "true");
   await expect(featureField.getByText("Noted. We will come to this with a recommendation rather than a blank.")).toHaveCount(0);
+});
+
+test("project update channels are multiple choice with the client portal selected by default", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.addInitScript((step) => {
+    localStorage.setItem("wdc-onboarding-draft", JSON.stringify({
+      started: true,
+      service: "web",
+      step,
+      answers: {},
+    }));
+  }, stepsFor("web").length - 1);
+  await page.goto("/onboarding");
+
+  const field = page.locator('[data-field="channel"]');
+  await expect(field.locator(".ob__label")).toContainText("Which channels work best for project updates?");
+  const portal = field.getByRole("checkbox", { name: "Your client portal" });
+  const email = field.getByRole("checkbox", { name: "Email" });
+  await expect(portal).toHaveAttribute("aria-checked", "true");
+  await email.click();
+  await expect(portal).toHaveAttribute("aria-checked", "true");
+  await expect(email).toHaveAttribute("aria-checked", "true");
+});
+
+test("an older single channel answer still reads back as selected", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.addInitScript((step) => {
+    localStorage.setItem("wdc-onboarding-draft", JSON.stringify({
+      started: true,
+      service: "web",
+      step,
+      answers: { channel: "Email" },
+    }));
+  }, stepsFor("web").length - 1);
+  await page.goto("/onboarding");
+
+  const field = page.locator('[data-field="channel"]');
+  await expect(field.getByRole("checkbox", { name: "Email" })).toHaveAttribute("aria-checked", "true");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
 });
 
 test("pulses the single progress bar unless reduced motion is requested", async ({ page }) => {

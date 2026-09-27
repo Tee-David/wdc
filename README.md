@@ -72,6 +72,7 @@ All of these live in `frontend/components/admin/`. The public site has its own o
 | Need | Use | Notes |
 |---|---|---|
 | Choose one of a list | `Pick` (`pick.tsx`) | Searchable above ten options; type-ahead otherwise. A bottom sheet on phones. Lists own their native vertical scroll; touch movement never changes the keyboard-active row. Posts a hidden input. |
+| Choose several onboarding answers | `FieldView` multi cards (`components/onboarding/onboarding-form.tsx`) | Checkbox cards store a list. Older one-string drafts normalize on read. Project-update channels start with “Your client portal” checked, and the client may add or remove channels. |
 | A select in a GET filter row | `FilterPick` | Named by its label only. |
 | A date | `DateInput` | Monday-first month grid. The title opens a month grid, then a 12-year grid. Arrows, Page Up/Down, Home/End, Today, Clear. Shows "Mon, 14 Sep 2026". Posts `YYYY-MM-DD`. |
 | A date and a time | `DateTimeInput` | Quarter hours; posts `YYYY-MM-DDTHH:MM`. |

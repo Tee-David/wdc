@@ -9,7 +9,7 @@ import Link from "next/link";
 import { SERVICES, type ServiceSlug } from "@/lib/services";
 import { CONTACT_EMAIL } from "@/lib/site";
 import {
-  isFilled, minutesLeft, PICKER_LINE, problemWith, stepsFor, UNSURE,
+  isFilled, minutesLeft, PICKER_LINE, problemWith, PROJECT_UPDATE_PORTAL, stepsFor, UNSURE,
   type Field, type Step,
 } from "@/lib/onboarding";
 import PhoneField from "./phone-field";
@@ -66,6 +66,15 @@ function visible(f: Field, a: Answers) {
 
 type Draft = { answers: Answers; service: ServiceSlug | null; step: number; started: boolean };
 
+function withAnswerDefaults(answers: Answers = {}): Answers {
+  const savedChannel = answers.channel;
+  const channels = savedChannel === undefined
+    ? [PROJECT_UPDATE_PORTAL]
+    : (Array.isArray(savedChannel) ? savedChannel : [savedChannel])
+      .map((channel) => channel === "Client dashboard" ? PROJECT_UPDATE_PORTAL : channel);
+  return { ...answers, channel: channels };
+}
+
 /**
  * Draft, layer one: local, from the first keystroke, so a temporary network
  * failure cannot erase work. The server copy remains authoritative for a
@@ -110,7 +119,7 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
   );
   const [started, setStarted] = useState(() => draft.started === true);
   const [i, setI] = useState(() => (typeof draft.step === "number" ? draft.step : 0));
-  const [a, setA] = useState<Answers>(() => draft.answers ?? {});
+  const [a, setA] = useState<Answers>(() => withAnswerDefaults(draft.answers));
   const [tried, setTried] = useState(false);
   /* WHICH FIELDS HAVE BEEN LEFT, not which have been typed in. A form that
      turns red while you are still halfway through typing your email address is
@@ -141,7 +150,7 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
   }) => {
     setService(saved.service);
     setI(saved.currentStep);
-    setA(saved.answers);
+    setA(withAnswerDefaults(saved.answers));
     setStarted(true);
     setRestored(true);
   }, []);
@@ -354,7 +363,7 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
         </p>
         <ReturningNotice draft={serverDraft} onNewBrief={() => {
           try { localStorage.removeItem(KEY); } catch { /* nothing to clear */ }
-          setA({}); setI(0); setRestored(false);
+          setA(withAnswerDefaults()); setI(0); setRestored(false);
         }} />
 
         <h2 className="ob__pickH">What are we working on for you?</h2>
@@ -493,7 +502,7 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
             <li>
               <b>Then the work begins</b>
               <span>
-                Updates reach you through your client dashboard, direct chat, a
+                Updates reach you through your client portal, direct chat, a
                 WhatsApp project group where that suits, or whichever channel
                 we agree for your project.
               </span>
@@ -608,7 +617,7 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
           onWipe={() => {
             try { localStorage.removeItem(KEY); } catch { /* nothing to clear */ }
             void serverDraft.forget();
-            setA({}); setI(0); setStarted(false); setRestored(false);
+            setA(withAnswerDefaults()); setI(0); setStarted(false); setRestored(false);
             setWipeOpen(false);
           }}
         />
@@ -744,7 +753,7 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
           onWipe={() => {
             try { localStorage.removeItem(KEY); } catch { /* nothing to clear */ }
             void serverDraft.forget();
-            setA({}); setI(0); setStarted(false); setRestored(false);
+            setA(withAnswerDefaults()); setI(0); setStarted(false); setRestored(false);
             setWipeOpen(false);
           }}
         />
@@ -1047,7 +1056,10 @@ function FieldView({
   }
 
   if (f.kind === "multi") {
-    const arr = Array.isArray(v) ? v : v === UNSURE ? [UNSURE] : [];
+    /* Older drafts stored a single string for fields that later became
+       multiple-choice. Reading that value as one checked option keeps those
+       answers intact while every new change is stored as a list. */
+    const arr = Array.isArray(v) ? v : typeof v === "string" && v ? [v] : [];
     /* CARDS, AT EVERY LENGTH. A long list briefly became a multi-select
        dropdown here; that needed a second searchable control, because the one
        this form already has is single-choice by design. Two controls doing

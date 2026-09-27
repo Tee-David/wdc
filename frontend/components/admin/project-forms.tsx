@@ -58,7 +58,7 @@ export function AddProject({
                    placeholder="Babatope"
                    hint="A name, not an account. There is no user table yet." />
             <Select name="channel" label="Where updates go" half
-                    defaultValue="Client dashboard" options={CHANNEL_OPTIONS}
+                    defaultValue="Client portal" options={CHANNEL_OPTIONS}
                     hint="Change it once a route is agreed with the client." />
             {money ? (
               <Field name="budget" label="Agreed budget" half inputMode="decimal"

@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 import { expect, test } from "@playwright/test";
 import pg from "pg";
 
@@ -21,12 +23,23 @@ let id = "";
 test.beforeAll(async () => {
   const url = new URL(CONNECTION!);
   url.searchParams.delete("sslmode");
-  db = new pg.Pool({ connectionString: url.toString(), max: 2 });
+  const configured = process.env.COCKROACHDB_CERT || "";
+  const local = process.env.APPDATA ? path.join(process.env.APPDATA, "postgresql", "root.crt") : "";
+  const ca = configured.startsWith("-----BEGIN CERTIFICATE-----")
+    ? configured.replace(/\\n/g, "\n")
+    : local && fs.existsSync(local) ? fs.readFileSync(local, "utf8") : undefined;
+  db = new pg.Pool({
+    connectionString: url.toString(),
+    ssl: { rejectUnauthorized: true, ...(ca ? { ca } : {}) },
+    max: 2,
+    connectionTimeoutMillis: 40_000,
+  });
   id = (await db.query<{ id: string }>(
     `INSERT INTO onboarding_submissions (service, status, current_step, answers, email, submitted_at)
      VALUES ('branding', 'submitted', 4, $1::JSONB, $2, now()) RETURNING id`,
     [JSON.stringify({ first_name: "Ada", last_name: "Eze", email: `att-${TAG}@example.com`, company: COMPANY,
-                      has_brandbook: "Yes", brandbook_file: ["Brand Book.pdf"], assets: ["photo.jpg", "old-scan.png"] }), `att-${TAG}@example.com`],
+                      has_brandbook: "Yes", brandbook_file: ["Brand Book.pdf"], assets: ["photo.jpg", "old-scan.png"],
+                      channel: ["Your client portal", "Email"] }), `att-${TAG}@example.com`],
   )).rows[0].id;
   await db.query("INSERT INTO onboarding_uploads (draft_id, object_key, filename, bytes, content_type) VALUES ($1, $2, 'Brand Book.pdf', 1468000, 'application/pdf'), ($1, $3, 'photo.jpg', 2100000, 'image/jpeg')",
     [id, `onboarding/${id}/a${TAG}.pdf`, `onboarding/${id}/b${TAG}.jpg`]);
@@ -55,6 +68,7 @@ test("the entry page lists every upload with signed Open and Download links", as
   await expect(panel.locator(".adAtt__file", { hasText: "photo.jpg" }).locator("img")).toHaveAttribute("src", /b.*\.jpg\?/);
   /* And the one with no record says why, rather than vanishing. */
   await expect(panel.locator(".adAtt__file", { hasText: "old-scan.png" })).toContainText("Ask the client to send it again");
+  await expect(page.locator('[data-tour="entry-answers"]')).toContainText("Your client portal, Email");
 });
 
 test("on a phone the files come after the answers, as a rail that scrolls inside its panel", async ({ page }) => {
