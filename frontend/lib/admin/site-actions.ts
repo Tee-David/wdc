@@ -9,8 +9,10 @@ import { setAppSetting } from "@/lib/app-settings";
 import { forgetMaintenance, MAINTENANCE_KEY } from "@/lib/maintenance";
 import { SITE_URL } from "@/lib/site";
 import {
-  DESCRIPTION_MAX, DESCRIPTION_MIN, SITE_DESCRIPTION_KEY, SITE_NOINDEX_KEY, SITE_SEO_TAG, siteSeo,
+  DESCRIPTION_MAX, DESCRIPTION_MIN, SITE_DESCRIPTION_KEY, SITE_NOINDEX_KEY, SITE_SEO_TAG, SITE_SOCIAL_IMAGE_KEY, siteSeo,
 } from "@/lib/site-seo";
+import { safeImage } from "@/lib/blog-doc";
+import { r2PublicBase } from "@/lib/r2";
 
 const PAGE = "/admin/settings/site";
 const MAINTENANCE_PAGE = "/admin/settings/maintenance";
@@ -36,6 +38,32 @@ export async function saveSiteDescription(_prev: ActionState, fd: FormData): Pro
   audit({ actor: by, kind: "setting", subjectId: SITE_DESCRIPTION_KEY, subject: "Site description", action: reset ? "reset the site description" : "changed the site description", field: "Description", from: before, to: text || "the default" });
   refreshSite();
   return OK(reset ? "Back to the default description." : "Saved. Search engines pick it up the next time they visit.");
+}
+
+/**
+ * The picture a link to the site shows where a page has no card of its own
+ * (the homepage, About, the tools). A picture from our own media library or
+ * the site's own files, as a JPEG or PNG (the card renderer cannot read WebP:
+ * the response dies part way); empty puts the drawn mark
+ * back. Drawn by app/opengraph-image.tsx, which falls back to the mark if the
+ * picture cannot be fetched, so a deleted file never breaks a preview.
+ */
+export async function saveSiteSocialImage(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await allow("settings");
+  if (refused) return refused;
+  const raw = String(fd.get("socialImage") ?? "").trim();
+  const bucket = r2PublicBase();
+  const src = raw ? safeImage(raw, bucket ? [bucket] : []) : "";
+  if (raw && (!src || !/\.(jpe?g|png)$/i.test(new URL(src, "https://x").pathname))) {
+    return FAIL({ socialImage: "Choose a JPEG or PNG picture from the media library. Link previews cannot use WebP." }, "Nothing was saved.");
+  }
+  const before = (await siteSeo()).socialImage;
+  if ((src ?? "") === before) return OK("Nothing had changed.");
+  const by = await actorName();
+  try { await setAppSetting(SITE_SOCIAL_IMAGE_KEY, src ?? "", by); } catch { return FAIL({}, "That could not be saved just now."); }
+  audit({ actor: by, kind: "setting", subjectId: SITE_SOCIAL_IMAGE_KEY, subject: "Link preview picture", action: src ? "chose the site's link preview picture" : "put the drawn link preview back", field: "Picture", from: before || "the drawn mark", to: src || "the drawn mark" });
+  refreshSite();
+  return OK(src ? "Saved. New shares show it; apps that already cached a preview catch up on their own." : "Back to the drawn mark.");
 }
 
 /**

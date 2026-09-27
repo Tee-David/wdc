@@ -67,7 +67,8 @@ export async function generateMetadata(
          Next serves the same generated image as `twitter:image` too. */
       /* Only a post that asks for a different picture sets one, because
          setting it suppresses the drawn card. */
-      ...(post.socialImage ? { images: [{ url: `${SITE_URL}${post.socialImage}` }] } : {}),
+      /* A library picture is already a full address; one of ours is a path. */
+      ...(post.socialImage ? { images: [{ url: /^https?:/.test(post.socialImage) ? post.socialImage : `${SITE_URL}${post.socialImage}` }] } : {}),
       publishedTime: post.date,
       modifiedTime: post.updated ?? post.date,
     },

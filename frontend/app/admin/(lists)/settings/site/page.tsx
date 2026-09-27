@@ -4,7 +4,7 @@ import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { DESCRIPTION_MAX, DESCRIPTION_MIN, siteSeo } from "@/lib/site-seo";
 import { AdminState } from "@/components/admin/admin-state";
 import { Head } from "@/components/admin/settings/kit";
-import { DescriptionForm, Visibility } from "@/components/admin/settings/site-controls";
+import { DescriptionForm, SocialImageForm, Visibility } from "@/components/admin/settings/site-controls";
 import { maintenance } from "@/lib/maintenance";
 
 export const metadata = { title: "Website and SEO" };
@@ -25,6 +25,7 @@ export default async function SitePage() {
         <Visibility indexed={!seo.noindex.on} host={host} />
         <DescriptionForm host={host} title={`${SITE_NAME} | Web, Branding, SEO & Software Agency`}
           value={seo.description} custom={seo.customDescription} min={DESCRIPTION_MIN} max={DESCRIPTION_MAX} />
+        <SocialImageForm value={seo.socialImage} host={host} />
       </div>
     </>
   );
