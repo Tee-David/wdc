@@ -60,10 +60,11 @@ test("Check now asks the database and waits; the mail server is asked behind the
   await asOwner(page, baseURL);
   await page.goto("/admin/settings/system", { waitUntil: "load" });
   await rowOf(page, "Database").getByRole("button", { name: "Check now" }).click();
-  await expect(rowOf(page, "Database").locator(".ad__msg.is-ok")).toContainText("Answered a query", { timeout: 20_000 });
+  /* A result is a toast now, like every other action's. */
+  await expect(page.locator(".adToast", { hasText: "Answered a query" })).toBeVisible({ timeout: 20_000 });
 
   await rowOf(page, "Mail server").getByRole("button", { name: "Check now" }).click();
-  await expect(rowOf(page, "Mail server").locator(".ad__msg.is-ok")).toContainText("Started", { timeout: 20_000 });
+  await expect(page.locator(".adToast", { hasText: "Started" })).toBeVisible({ timeout: 20_000 });
   await expect.poll(async () => (await setting("probe.email"))?.ok, { timeout: 30_000 }).toBe(false);
   expect(String((await setting("probe.email"))?.detail)).toContain("SMTP_HOST");
 
@@ -72,7 +73,7 @@ test("Check now asks the database and waits; the mail server is asked behind the
   await expect(rowOf(page, "Mail server").locator(".ad__pill")).toHaveText("Failed");
   /* The same answer on Integrations. */
   await page.goto("/admin/settings/integrations", { waitUntil: "load" });
-  await expect(rowOf(page, "Database (CockroachDB)")).toContainText("Answered a query");
+  await expect(page.locator(".adIntg__card", { hasText: "Database" }).first().locator(".adIntg__check .ad__pill")).toHaveText("Answered");
 });
 
 test("the schema panel and the shell both say when a migration is missing", async ({ page, baseURL }) => {
@@ -86,13 +87,13 @@ test("the schema panel and the shell both say when a migration is missing", asyn
     await page.reload({ waitUntil: "load" });
     await expect(page.locator(".ad__panel", { hasText: "Database schema" })).toContainText(last);
     await page.goto("/admin", { waitUntil: "load" });
-    await expect(page.locator(".ad__banner", { hasText: "not been applied" })).toBeVisible();
+    await expect(page.locator(".ad__banner:not(.ad__noticesSum)", { hasText: "not been applied" })).toBeVisible();
   } finally {
     await db.query("INSERT INTO wdc_schema_migrations (name) VALUES ($1) ON CONFLICT DO NOTHING", [last]);
   }
   await page.goto("/admin/settings/system", { waitUntil: "load" });
   await page.goto("/admin", { waitUntil: "load" });
-  await expect(page.locator(".ad__banner", { hasText: "not been applied" })).toHaveCount(0);
+  await expect(page.locator(".ad__banner:not(.ad__noticesSum)", { hasText: "not been applied" })).toHaveCount(0);
 });
 
 test("tools: old invitations go, public pages refresh, and a failed email is retried once a day", async ({ page, baseURL }) => {

@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
+import { pickDate } from "./choose";
 import pg from "pg";
 
 /**
@@ -70,7 +71,7 @@ test("staff are offered draft or review, and the server refuses Published anyway
   /* A tampered form: the Draft radio sent as "published". */
   await page.getByRole("radio", { name: /^Draft/ }).evaluate((el) => { (el as HTMLInputElement).value = "published"; });
   await page.getByRole("radio", { name: /^Draft/ }).check();
-  await page.getByLabel(/^Date shown on the post/).fill(new Date().toISOString().slice(0, 10));
+  await pickDate(page.getByLabel(/^Date shown on the post/), new Date().toISOString().slice(0, 10));
   await page.getByRole("button", { name: /^(Save|Update)$/ }).click();
   await expect(page.getByText("Publishing is the owner's")).toBeVisible({ timeout: 30_000 });
   expect((await row()).status).toBe("draft");
@@ -78,7 +79,7 @@ test("staff are offered draft or review, and the server refuses Published anyway
   await page.goto(`/admin/blog/${id}`, { waitUntil: "load" });
   await page.getByRole("radio", { name: /^Submit for review/ }).check();
   await page.getByRole("button", { name: /^(Save|Update)$/ }).click();
-  await expect(page.locator(".ad__msg.is-ok")).toContainText("Submitted for review", { timeout: 30_000 });
+  await expect(page.locator(".adToast, .ad__msg.is-ok").filter({ hasText: "Submitted for review" }).first()).toBeVisible({ timeout: 30_000 });
   expect(await row()).toMatchObject({ status: "review", submitted_by: "WDC Staff" });
 });
 
@@ -111,7 +112,7 @@ test("resubmitting clears the note; the owner publishes; staff cannot then edit 
   await page.goto(`/admin/blog/${id}`, { waitUntil: "load" });
   await page.getByRole("radio", { name: /^Submit for review/ }).check();
   await page.getByRole("button", { name: /^(Save|Update)$/ }).click();
-  await expect(page.locator(".ad__msg.is-ok")).toContainText("Submitted for review", { timeout: 30_000 });
+  await expect(page.locator(".adToast, .ad__msg.is-ok").filter({ hasText: "Submitted for review" }).first()).toBeVisible({ timeout: 30_000 });
   expect(await row()).toMatchObject({ status: "review", review_note: null });
 
   await as(page, baseURL, "owner");

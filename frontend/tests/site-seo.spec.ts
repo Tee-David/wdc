@@ -79,7 +79,7 @@ test("noindex needs the address typed, reaches public pages, and shows a notice"
   expect(await robotsOf(page, "/")).toBe("noindex, nofollow");
   expect(await robotsOf(page, "/work")).toBe("noindex, nofollow");
 
-  const notice = page.locator(".ad__banner", { hasText: "Search engines are asked not to index" });
+  const notice = page.locator(".ad__banner:not(.ad__noticesSum)", { hasText: "Search engines are asked not to index" });
   await expect(notice).toBeVisible();
   await notice.getByRole("button", { name: /^Dismiss/ }).click();
   await expect(notice).toHaveCount(0);
@@ -90,7 +90,7 @@ test("noindex needs the address typed, reaches public pages, and shows a notice"
 test("staff see the notice, not the switch", async ({ page, baseURL }) => {
   await asRole(page, baseURL, "staff");
   await page.goto("/admin", { waitUntil: "load" });
-  await expect(page.locator(".ad__banner", { hasText: "Search engines are asked not to index" })).toBeVisible();
+  await expect(page.locator(".ad__banner:not(.ad__noticesSum)", { hasText: "Search engines are asked not to index" })).toBeVisible();
   await page.goto("/admin/settings/site", { waitUntil: "load" });
   await expect(page.getByText("Site and SEO are the owner's")).toBeVisible();
 });
@@ -102,7 +102,7 @@ test("turning it off lets search engines back in", async ({ page, baseURL }) => 
   await page.getByRole("button", { name: "Show in search", exact: true }).click();
   await expect(page.getByRole("switch", { name: "Show in search engines" })).toHaveAttribute("aria-checked", "true", { timeout: 20_000 });
   expect(await robotsOf(page, "/")).toMatch(/^index, follow/);
-  await expect(page.locator(".ad__banner", { hasText: "Search engines are asked" })).toHaveCount(0);
+  await expect(page.locator(".ad__banner:not(.ad__noticesSum)", { hasText: "Search engines are asked" })).toHaveCount(0);
 });
 
 test("the default description is replaced, bounded, and reset", async ({ page, baseURL }) => {

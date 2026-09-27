@@ -30,14 +30,17 @@ async function check(page: import("@playwright/test").Page, name: string, compan
 
 test("answers without sending the name anywhere", async ({ page }) => {
   const outbound: string[] = [];
-  /* Everything except the documents, scripts and styles the page itself is
-     made of. A name typed into this box must not appear in any of it. */
-  page.on("request", (r) => {
-    const type = r.resourceType();
-    if (type === "fetch" || type === "xhr" || type === "websocket") outbound.push(r.url());
-  });
-
+  /* Every request the page makes, of any kind, after the page has loaded (the
+     header asks whether someone is signed in; that carries nothing typed). The
+     name typed into this box must not appear in any of them: not in the
+     address, and not in the body. */
   await page.goto(URL);
+  await page.waitForLoadState("networkidle");
+  page.on("request", (r) => {
+    const sent = `${r.url()} ${r.postData() ?? ""}`;
+    if (/federal/i.test(decodeURIComponent(sent))) outbound.push(r.url());
+    else if (["fetch", "xhr", "websocket"].includes(r.resourceType())) outbound.push(r.url());
+  });
   await check(page, "Federal Holdings Ltd");
 
   expect(outbound, `unexpected outbound request: ${outbound.join(", ")}`).toHaveLength(0);
