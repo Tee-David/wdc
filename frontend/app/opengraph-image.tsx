@@ -3,6 +3,7 @@ import path from "node:path";
 import { ImageResponse } from "next/og";
 import { SITE_NAME } from "@/lib/site";
 import { OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og";
+import { siteSeo } from "@/lib/site-seo";
 
 /**
  * The homepage's own link-preview card: the brand mark, not a screenshot.
@@ -39,7 +40,41 @@ const markDataUri = () => {
 const MARK_HEIGHT = 440;
 const MARK_WIDTH = Math.round((904 / 944) * MARK_HEIGHT);
 
+/* A picture chosen in Settings > Website and SEO, as bytes the renderer can
+   take: a file of the site's own read from disk, a library one fetched. */
+async function chosen(): Promise<string | null> {
+  const src = (await siteSeo().catch(() => null))?.socialImage;
+  /* JPEG and PNG only: the renderer cannot read WebP, and fails part way
+     through the response where nothing can catch it. */
+  if (!src || !/\.(jpe?g|png)$/i.test(new URL(src, "https://x").pathname)) return null;
+  const type = /\.png$/i.test(src) ? "image/png" : "image/jpeg";
+  try {
+    const bytes = src.startsWith("/")
+      ? fs.readFileSync(path.join(process.cwd(), "public", path.normalize(src).replace(/^(\.\.[/\\])+/, "")))
+      : Buffer.from(await (await fetch(src, { signal: AbortSignal.timeout(5_000) })).arrayBuffer());
+    return bytes.length ? `data:${type};base64,${bytes.toString("base64")}` : null;
+  } catch {
+    return null;
+  }
+}
+
 export default async function Image() {
+  const picture = await chosen();
+  if (picture) {
+    try {
+      return new ImageResponse(
+        (
+          <div style={{ width: "100%", height: "100%", display: "flex", background: "#ffffff" }}>
+            <img src={picture} alt="" width={OG_SIZE.width} height={OG_SIZE.height} style={{ objectFit: "cover" }} />
+          </div>
+        ),
+        OG_SIZE,
+      );
+    } catch {
+      /* A picture the renderer cannot read falls through to the mark: a
+         broken preview is worse than the default one. */
+    }
+  }
   return new ImageResponse(
     (
       <div

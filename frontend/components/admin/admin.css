@@ -1914,3 +1914,11 @@ td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
 
 /* The drawer's panel takes the opening focus (nav-drawer.tsx) and shows none. */
 .adDrawer__in:focus { outline: none; }
+
+/* Settings > Website and SEO: the link preview, drawn at the shape a chat app shows it. */
+.adOg { display: grid; gap: .75rem; }
+.adOg__card { max-width: 30rem; border: 1px solid var(--ad-line); border-radius: 12px; overflow: hidden; background: var(--ad-panel-2); }
+.adOg__card > img, .adOg__mark { display: block; width: 100%; aspect-ratio: 1200 / 630; object-fit: cover; }
+.adOg__mark { display: grid; place-items: center; background: #fff; }
+.adOg__mark img { width: 35%; height: auto; } /* the card draws it 421 wide on 1200 */
+.adOg__card small { display: block; padding: .5rem .75rem; color: var(--ad-dim); font-size: .78rem; }

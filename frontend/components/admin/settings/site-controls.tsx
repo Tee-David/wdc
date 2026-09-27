@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { Copy } from "lucide-react";
-import { saveSiteDescription, setMaintenance, setSiteNoindex } from "@/lib/admin/site-actions";
+import { useEffect, useRef, useState } from "react";
+import { Copy, Images, Undo2 } from "lucide-react";
+import { saveSiteDescription, saveSiteSocialImage, setMaintenance, setSiteNoindex } from "@/lib/admin/site-actions";
 import { Panel } from "@/components/admin/bits";
-import { Field, Fields } from "@/components/admin/form";
-import { ConfirmSwitch, SettingsForm, Text } from "./kit";
+import { Field, Fields, useFieldError } from "@/components/admin/form";
+import { MediaPicker } from "@/components/admin/media-picker";
+import { ConfirmSwitch, SettingsForm, Text, useDirtyPing } from "./kit";
 
 /** Search engines: a switch that changes the site for everybody, so it asks first. */
 export function Visibility({ indexed, host }: { indexed: boolean; host: string }) {
@@ -78,6 +79,63 @@ export function ReviewerLink({ url }: { url: string }) {
         }}><Copy aria-hidden="true" /> Copy</button>
       </span>
       <span role="status" className="ad__dim">{said}</span>
+    </div>
+  );
+}
+
+/**
+ * The link preview for pages without a card of their own: a picture from the
+ * media library, or the drawn mark. Saved with the bar like everything else;
+ * Discard puts the one that loaded back.
+ */
+export function SocialImageForm({ value, host }: { value: string; host: string }) {
+  return (
+    <SettingsForm action={saveSiteSocialImage}>
+      <Panel title="Link preview">
+        <SocialImageField value={value} host={host} />
+      </Panel>
+    </SettingsForm>
+  );
+}
+
+function SocialImageField({ value, host }: { value: string; host: string }) {
+  const [src, setSrc] = useState(value);
+  const [open, setOpen] = useState(false);
+  const ping = useDirtyPing();
+  const box = useRef<HTMLDivElement>(null);
+  const err = useFieldError("socialImage");
+  useEffect(() => {
+    const form = box.current?.closest("form");
+    if (!form) return;
+    const back = () => setSrc(value);
+    form.addEventListener("reset", back);
+    return () => form.removeEventListener("reset", back);
+  }, [value]);
+  const set = (next: string) => { setSrc(next); ping(); };
+  return (
+    <div ref={box} className="adSetPad adOg">
+      <input type="hidden" name="socialImage" value={src} />
+      <p className="ad__dim" style={{ margin: 0 }}>
+        What a link to the homepage, About or a tool shows in a chat or a post. Pages with a card of their own (services, work, the blog) keep theirs.
+      </p>
+      <div className="adOg__card" aria-label="How a shared link looks">
+        {src ? (
+          // eslint-disable-next-line @next/next/no-img-element -- a library picture at its own address
+          <img src={src} alt="The picture a shared link shows" />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element -- the drawn mark, as the card draws it
+          <span className="adOg__mark"><img src="/brand/icon-color.svg" alt="The drawn mark a shared link shows" /></span>
+        )}
+        <small>{host}</small>
+      </div>
+      {err ? <small className="ad__fe" role="alert">{err}</small> : null}
+      <div className="ad__row">
+        <button type="button" className="ad__btn" onClick={() => setOpen(true)}><Images aria-hidden="true" /> Choose from library</button>
+        {src ? <button type="button" className="ad__btn" onClick={() => set("")}><Undo2 aria-hidden="true" /> Use the drawn mark</button> : null}
+      </div>
+      <small className="ad__dim">1200 by 630 works best; it is cropped to fill that shape. JPEG or PNG: link previews cannot use WebP.</small>
+      <MediaPicker open={open} onClose={() => setOpen(false)} kind="image" title="Choose the link preview picture"
+        onPick={(p) => { set(p.url); setOpen(false); }} />
     </div>
   );
 }
