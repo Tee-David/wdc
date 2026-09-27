@@ -21,7 +21,7 @@ import {
 import { AddExpense, InvoiceBuilder } from "@/components/admin/money-forms";
 import AuditLog from "@/components/admin/audit-log";
 import { ProfileCard } from "@/components/admin/profile-card";
-import { Building2, CalendarDays, Layers, MessageSquare, User } from "lucide-react";
+import { Building2, CalendarDays, Layers, MessageSquare, User, Wallet } from "lucide-react";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
@@ -160,11 +160,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                   </table>
                 </div>
               ) : (
-                <p className="ad__dim ad__panelNote">
-                  Nothing has been booked against this project, so &ldquo;spent on
-                  it&rdquo; is zero rather than unknown. Studio overheads are
-                  deliberately not spread across jobs.
-                </p>
+                <Empty title="Nothing spent on this yet" icon={Wallet}>
+                  Book a cost against this project with Add expense and it counts toward its margin. Studio overheads are not spread across jobs.
+                </Empty>
               )}
             </Panel>
           ) : null}
