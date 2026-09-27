@@ -4,7 +4,10 @@ import { notFound } from "next/navigation";
 import {
   getClient, getInvoice, getPaymentsFor, getProject, getProjectsFor,
 } from "@/lib/admin/store";
-import { invoiceStatus, invoiceTotals, lineTotal, naira } from "@/lib/admin/types";
+import { invoiceStatus, invoiceTotals, lineTotal, naira, nairaShort } from "@/lib/admin/types";
+
+/** The exact figure under a short one, only when the short one rounded it. */
+const exact = (kobo: number) => (nairaShort(kobo) === naira(kobo).replace(/\.00$/, "") ? undefined : naira(kobo));
 import { Empty, InvoicePill, Panel, Tile, when } from "@/components/admin/bits";
 import QrCode from "@/components/ui/qr-code";
 import { invoiceUrl } from "@/components/money/document";
@@ -110,11 +113,15 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
       ) : null}
 
       <dl className="ad__tiles">
-        <Tile label="Total" value={naira(t.total)} />
-        <Tile label="Paid" value={naira(inv.paid)} tone={inv.paid ? "good" : undefined} />
-        <Tile label="Owed" value={naira(t.due)} tone={t.due ? "bad" : "good"} />
-        <Tile label="Due" value={when(inv.due)}
-              note={status === "Overdue" ? "Past its terms" : undefined}
+        {/* Short on the tile so a phone keeps each figure on one line; the
+            exact amount is the line under it. */}
+        <Tile label="Total" value={nairaShort(t.total)} note={exact(t.total)} />
+        <Tile label="Paid" value={nairaShort(inv.paid)} note={exact(inv.paid)} tone={inv.paid ? "good" : undefined} />
+        <Tile label="Owed" value={nairaShort(t.due)} note={exact(t.due)} tone={t.due ? "bad" : "good"} />
+        {/* Day and month on the tile, the year under it: "31 Aug 2026" wrapped
+            to two lines on a phone. */}
+        <Tile label="Due" value={when(inv.due).replace(/\s\d{4}$/, "")}
+              note={[when(inv.due).match(/\d{4}$/)?.[0], status === "Overdue" ? "past its terms" : ""].filter(Boolean).join(", ") || undefined}
               tone={status === "Overdue" ? "bad" : undefined} />
       </dl>
 
