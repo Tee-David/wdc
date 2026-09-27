@@ -30,10 +30,12 @@ import "./confetti.css";
  * turns and fades in a single `transform`/`opacity` keyframe; nothing animates
  * `top`, `width` or a colour.
  *
- * IT ENDS. The layer removes itself once the last piece has actually landed
- * (every animation's `finished`), so no animation is left running behind the
- * page and seventy nodes are not sitting in the DOM for the rest of the visit.
- * The timer below is only the backstop, in case a browser never settles them.
+ * IT ENDS. The layer removes itself once the last piece's finish event fires,
+ * so no animation is left running behind the page and seventy nodes are not
+ * sitting in the DOM for the rest of the visit. We do not wait on
+ * `Animation.finished`: the reported phone failure is reproduced when that
+ * promise stays pending even though the finish event did fire. The
+ * timer below is only the backstop, in case a browser settles neither signal.
  *
  * AND IT DOES NOT RUN AT ALL FOR SOMEBODY WHO HAS ASKED FOR LESS MOTION.
  * Seventy objects falling across the whole screen is the exact thing that
@@ -118,8 +120,15 @@ export default function Confetti() {
     /* Measured once, at the start: plain numbers are what keep this on the
        compositor. A rotation mid-fall changes nothing anybody would see. */
     const width = window.innerWidth;
-    const floor = window.innerHeight * 1.18;
+    const floor = window.innerHeight * 1.22 + 24;
     const running: Animation[] = [];
+    let finished = 0;
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      setGone(true);
+    };
     root.querySelectorAll<HTMLElement>("i").forEach((node, i) => {
       /* Thinned out by the stylesheet on a phone: nothing to draw, nothing to run. */
       if (getComputedStyle(node).display === "none") return;
@@ -132,33 +141,33 @@ export default function Confetti() {
          the owner saw at the end of a tour and of a form. */
       const at = (t: number) =>
         `translate3d(${Math.round(piece.drift * width * t)}px, ${Math.round(floor * t)}px, 0) rotate3d(1, 1, .4, ${Math.round(piece.spin * t)}deg)`;
-      running.push(
-        node.animate(
-          [
-            { opacity: 0, transform: at(0), offset: 0 },
-            { opacity: 1, transform: at(0.06), offset: 0.06 },
-            /* Fades on the way out rather than vanishing at the floor, so the
-               screen empties instead of blinking clear. */
-            { opacity: 1, transform: at(0.85), offset: 0.85 },
-            { opacity: 0, transform: at(1), offset: 1 },
-          ],
-          /* Linear, because paper falling at terminal velocity does not ease. */
-          { duration: piece.fall, delay: piece.delay, easing: "linear", fill: "backwards" },
-        ),
+      const animation = node.animate(
+        [
+          { opacity: 0, transform: at(0), offset: 0 },
+          { opacity: 1, transform: at(0.06), offset: 0.06 },
+          /* Fades on the way out rather than vanishing at the floor, so the
+             screen empties instead of blinking clear. */
+          { opacity: 1, transform: at(0.85), offset: 0.85 },
+          { opacity: 0, transform: at(1), offset: 1 },
+        ],
+        /* Linear, because paper falling at terminal velocity does not ease. */
+        { duration: piece.fall, delay: piece.delay, easing: "linear", fill: "forwards" },
       );
+      animation.onfinish = () => {
+        finished += 1;
+        if (finished === running.length) finish();
+      };
+      running.push(animation);
     });
-    let done = false;
-    const finish = () => {
-      if (done) return;
-      done = true;
-      setGone(true);
-    };
-    Promise.all(running.map((a) => a.finished)).then(finish, () => undefined);
+    if (!running.length) finish();
     const backstop = window.setTimeout(finish, LIFE_MS);
     return () => {
       done = true;
       window.clearTimeout(backstop);
-      for (const a of running) a.cancel();
+      for (const a of running) {
+        a.onfinish = null;
+        a.cancel();
+      }
     };
   }, [calm]);
 

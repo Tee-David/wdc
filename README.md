@@ -92,7 +92,7 @@ All of these live in `frontend/components/admin/`. The public site has its own o
 - **Easing:** everything eases out; things travelling between two rests ease in and out.
 - **Speeds:** hover and press are quick. Menus and calendars rise 4px and fade in. Sheets slide up in 240ms.
 - **Screens arrive in order:** the head first, then blocks a beat apart. KPI figures count up (`count-up.tsx`) and bars grow from their baseline. The server always renders the real value first.
-- **What moves:** transform and opacity only. Under reduced motion nothing moves. Anything off screen or in a hidden tab pauses.
+- **What moves:** transform and opacity only. Under reduced motion nothing moves. Anything off screen or in a hidden tab pauses. One-shot celebrations keep their final invisible frame until their finish events remove the layer; cleanup must not rely only on the `Animation.finished` promise.
 - **Hero motion:** ten pieces and three ways to put them in the homepage hero, in the Hero Motion artifact (https://claude.ai/artifact/VtKhKJkgMBSgop26cphUPv). The CTAs never wait for the motion.
 
 ### States
