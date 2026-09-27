@@ -234,6 +234,8 @@ test("blog, support, a form, an entry, media and the settings overview each have
     }
     await expect(page.locator(".tourCard"), path).toHaveCount(0);
     expect(new URL(page.url()).pathname, "a page tour never leaves its page").toBe(path);
+    /* And it ends back at the top of that page, not on the dashboard. */
+    await expect.poll(() => page.evaluate(() => Math.round(window.scrollY)), { message: `${path} ends at the top` }).toBeLessThan(4);
   }
 });
 

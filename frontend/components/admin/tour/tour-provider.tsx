@@ -1,5 +1,6 @@
 "use client";
 
+import { toTop } from "@/components/ui/scroll-reset";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -222,15 +223,18 @@ export default function AdminTourProvider({
             writeCompletion(runningTour.id, runningTour.version, "completed");
             setConfettiKey((k) => k + 1);
             stop();
-            /* A finished tour ends on the dashboard, wherever its last stop
-               was: that is home, and the confetti lands somewhere familiar
-               rather than on whichever page the walkthrough happened to end.
-               A skipped tour leaves the reader where they chose to stop. */
+            /* WHERE A FINISHED TOUR LEAVES YOU. A page tour ends back at the
+               top of that same page: it was about this page, and sending the
+               reader to the dashboard lost them (the owner's call). The full
+               walkthrough and the welcome end on the dashboard, wherever their
+               last stop was: that is home. A skipped tour leaves the reader
+               where they chose to stop. */
             /* The live location, not `pathname`: the runtime keeps the
                first `onFinish` it was handed, so the closure's pathname is
-               the page the tour STARTED on -- which is home, for every
-               walkthrough, and meant a finish elsewhere never came back. */
-            if (window.location.pathname !== HOME) router.push(HOME);
+               the page the tour STARTED on. */
+            const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            if (runningTour.kind === "page" || window.location.pathname === HOME) toTop(still);
+            else router.push(HOME);
           }}
           onSkip={() => { writeCompletion(runningTour.id, runningTour.version, "skipped"); stop(); }}
         />
