@@ -1,4 +1,5 @@
 import { CONTACT_EMAIL } from "@/lib/site";
+import { DEFAULT_MAIL_FROM_NAME } from "@/lib/mail-sender";
 import { NETWORKS, parseSocial, shippedSocial, socialKey } from "@/lib/social";
 import { SERVICES } from "@/lib/services";
 import { CASE_STUDIES } from "@/lib/work";
@@ -189,7 +190,7 @@ export const SETTINGS: SettingDef[] = [
     parse: flag, revalidate: [],
   },
   {
-    key: "mail.fromName", label: "Sender name", shipped: () => process.env.SMTP_FROM_NAME?.trim() || "WDC Solutions",
+    key: "mail.fromName", label: "Sender name", shipped: () => process.env.SMTP_FROM_NAME?.trim() || DEFAULT_MAIL_FROM_NAME,
     note: "The name in the From line of every email.",
     parse: text(2, 60, "a sender name"), revalidate: [],
   },

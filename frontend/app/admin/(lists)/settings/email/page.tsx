@@ -6,6 +6,7 @@ import { getAdminRequest } from "@/lib/admin/session";
 import { getSetting } from "@/lib/admin/store";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { mailIsConfigured } from "@/lib/email";
+import { DEFAULT_MAIL_FROM_NAME } from "@/lib/mail-sender";
 import { DEFAULT_LOG_RETENTION, getAppSetting, LOG_RETENTION_DAYS, LOG_RETENTION_KEY } from "@/lib/app-settings";
 import { AdminState } from "@/components/admin/admin-state";
 import { Panel } from "@/components/admin/bits";
@@ -76,7 +77,7 @@ export default async function EmailSettingsPage() {
           <PendingNotice to={pending.to}
             expires={`${new Date(pending.expires).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" })} on ${when(pending.expires)}`} />
         ) : null}
-        <EmailForm fromName={getSetting("mail.fromName") || process.env.SMTP_FROM_NAME?.trim() || "WDC Solutions"}
+        <EmailForm fromName={getSetting("mail.fromName") || process.env.SMTP_FROM_NAME?.trim() || DEFAULT_MAIL_FROM_NAME}
           replyTo={getSetting("mail.replyTo") || ""} shippedReplyTo={shippedReply} days={days} options={LOG_RETENTION_DAYS}
           fromAddress={process.env.SMTP_FROM_EMAIL?.trim() || ""} />
       </div>

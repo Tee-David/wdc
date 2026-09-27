@@ -6,6 +6,7 @@ import { socialLinks } from "@/lib/social";
 import { getSetting } from "@/lib/admin/store";
 import { hydrateSettings } from "@/lib/settings/store";
 import { CONTACT_EMAIL } from "@/lib/site";
+import { DEFAULT_MAIL_FROM_NAME, mailFrom } from "@/lib/mail-sender";
 
 function required(name: string) {
   const value = process.env[name]?.trim();
@@ -111,7 +112,7 @@ export async function sendMail(input: {
      shipped. A settings read that fails leaves what shipped. */
   await hydrateSettings();
   const replyTo = getSetting("mail.replyTo") || process.env.SMTP_REPLY_TO || undefined;
-  const fromName = getSetting("mail.fromName") || process.env.SMTP_FROM_NAME?.trim() || "WDC Solutions";
+  const fromName = getSetting("mail.fromName") || process.env.SMTP_FROM_NAME?.trim() || DEFAULT_MAIL_FROM_NAME;
   const contact = replyTo || process.env.SMTP_FROM_EMAIL;
   /* The link first, where there is one: RFC 8058's one-click POST is what
      Gmail and Yahoo reward. The mailto stays as the fallback for clients that
@@ -120,10 +121,7 @@ export async function sendMail(input: {
     .filter(Boolean).join(", ");
 
   return transport().sendMail({
-    from: {
-      name: fromName,
-      address: required("SMTP_FROM_EMAIL"),
-    },
+    from: mailFrom(fromName, required("SMTP_FROM_EMAIL")),
     replyTo: input.replyTo || replyTo,
     ...message,
     /* The footer's "sent to" line names this address, and its row of marks
