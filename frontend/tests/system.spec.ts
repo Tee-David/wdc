@@ -76,6 +76,27 @@ test("Check now asks the database and waits; the mail server is asked behind the
   await expect(page.locator(".adIntg__card", { hasText: "Database" }).first().locator(".adIntg__check .ad__pill")).toHaveText("Answered");
 });
 
+test("Apply runs a missing migration from the page, one statement at a time", async ({ page, baseURL }) => {
+  await asOwner(page, baseURL);
+  const last = (await db.query<{ name: string }>("SELECT name FROM wdc_schema_migrations ORDER BY name DESC LIMIT 1")).rows[0].name;
+  await db.query("DELETE FROM wdc_schema_migrations WHERE name = $1", [last]);
+  try {
+    await page.goto("/admin/settings/system", { waitUntil: "networkidle" });
+    const panel = page.locator(".ad__panel", { hasText: "Database schema" });
+    await expect(panel.locator(".adSys__pending")).toContainText(last);
+    await panel.getByRole("button", { name: /^Apply/ }).click();
+    const ask = page.locator(".adAsk");
+    await ask.getByRole("checkbox").check();
+    await ask.locator(".adAsk__acts button").last().click();
+    /* Every file here is written IF NOT EXISTS, so running one again is safe. */
+    await expect.poll(async () => (await db.query("SELECT 1 FROM wdc_schema_migrations WHERE name = $1", [last])).rowCount, { timeout: 60_000 }).toBe(1);
+    await page.reload({ waitUntil: "networkidle" });
+    await expect(panel.locator(".ad__panelH .ad__pill")).toHaveText("Up to date");
+  } finally {
+    await db.query("INSERT INTO wdc_schema_migrations (name) VALUES ($1) ON CONFLICT DO NOTHING", [last]);
+  }
+});
+
 test("the schema panel and the shell both say when a migration is missing", async ({ page, baseURL }) => {
   await asOwner(page, baseURL);
   await page.goto("/admin/settings/system", { waitUntil: "load" });

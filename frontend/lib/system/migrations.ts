@@ -3,7 +3,6 @@ import "server-only";
 import fs from "node:fs";
 import path from "node:path";
 import { db } from "@/lib/db/pool";
-import { transaction } from "@/lib/db/transaction";
 
 /**
  * Which migrations are in the code and which the database has applied.
@@ -51,32 +50,52 @@ export async function migrationStatus(opts: { fresh?: boolean } = {}): Promise<M
 }
 
 /**
- * APPLY WHAT THIS DEPLOY EXPECTS, from Settings › System, the same way
- * `scripts/migrate.mjs` does: in file order, each file and its record in one
- * transaction, stopping at the first that fails. It exists because the only
- * other way was a terminal against production, which is how the media
- * folders shipped without their table and every folder action said "could
- * not be saved". Owner-only and audited by the caller.
+ * APPLY WHAT THIS DEPLOY EXPECTS, from Settings › System, in file order,
+ * stopping at the first that fails. It exists because the only other way was
+ * a terminal against production, which is how the media folders shipped
+ * without their table. Owner-only and audited by the caller.
+ *
+ * ONE STATEMENT AT A TIME, OUTSIDE A TRANSACTION, WITH NO TIMEOUT. The first
+ * version wrapped each file in a transaction on the shared pool, whose
+ * queries stop at 20 seconds; on CockroachDB `ADD COLUMN ... DEFAULT` rewrites
+ * the table, took longer, and 0028 rolled back with "Query read timeout".
+ * Cockroach runs schema changes best outside explicit transactions, and every
+ * migration here is written `IF NOT EXISTS`, so a file that stopped half way
+ * is simply run again from the top and picks up where it left off. The file
+ * is recorded only once every statement in it has gone through.
  */
 export async function applyPendingMigrations(): Promise<{ applied: string[]; failed?: { name: string; error: string } }> {
   await db.query("CREATE TABLE IF NOT EXISTS wdc_schema_migrations (name STRING PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL DEFAULT now())");
   const done = new Set((await db.query<{ name: string }>("SELECT name FROM wdc_schema_migrations")).rows.map((r) => r.name));
   const dir = path.join(process.cwd(), "db", "migrations");
   const applied: string[] = [];
-  for (const name of files()) {
-    if (done.has(name)) continue;
-    const sql = fs.readFileSync(path.join(dir, name), "utf8");
-    try {
-      await transaction(async (c) => {
-        await c.query(sql);
-        await c.query("INSERT INTO wdc_schema_migrations (name) VALUES ($1)", [name]);
-      }, 1);
-      applied.push(name);
-    } catch (error) {
-      cache.__wdcMigrations = undefined;
-      return { applied, failed: { name, error: error instanceof Error ? error.message.slice(0, 300) : "failed" } };
+  const c = await db.connect();
+  try {
+    await c.query("SET statement_timeout = 0");
+    for (const name of files()) {
+      if (done.has(name)) continue;
+      try {
+        for (const text of statements(fs.readFileSync(path.join(dir, name), "utf8"))) {
+          /* pg reads a per-query `query_timeout` (client.js), which its
+             types leave out; this one overrides the pool's 20 seconds. */
+          await c.query({ text, query_timeout: 280_000 } as { text: string });
+        }
+        await c.query("INSERT INTO wdc_schema_migrations (name) VALUES ($1) ON CONFLICT (name) DO NOTHING", [name]);
+        applied.push(name);
+      } catch (error) {
+        return { applied, failed: { name, error: error instanceof Error ? error.message.slice(0, 300) : "failed" } };
+      }
     }
+    return { applied };
+  } finally {
+    cache.__wdcMigrations = undefined;
+    await c.query("RESET statement_timeout").catch(() => undefined);
+    c.release();
   }
-  cache.__wdcMigrations = undefined;
-  return { applied };
+}
+
+/** A file's statements: whole-line comments dropped, split where a line ends in `;`. */
+export function statements(sql: string): string[] {
+  return sql.split("\n").filter((l) => !/^\s*--/.test(l)).join("\n")
+    .split(/;\s*(?:\n|$)/).map((s) => s.trim()).filter(Boolean);
 }
