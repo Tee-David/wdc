@@ -6,7 +6,7 @@ proves it. Phone checks are at 390px (and 320px for anything text-heavy).
 
 ## Bugs the owner hit (do these first)
 
-- [ ] **1. Onboarding dropdown lists do not scroll** on a phone ("I am unable to scroll dropdown options in the onboarding form. Fix this. And any other similar issue like that."). `screenshots/01-*.jpg`: the Industry sheet.
+- [x] **1. Onboarding dropdown lists do not scroll** on a phone ("I am unable to scroll dropdown options in the onboarding form. Fix this. And any other similar issue like that."). `screenshots/01-*.jpg`: the Industry sheet. Fixed in `2cfc15e`.
   Start: `components/onboarding/select-field.tsx`, `picker.tsx`/`picker.css` (bottom sheet), `components/tools/option-select.tsx`. Likely Lenis or a touch handler eating the gesture, or the list has no bounded height with `overflow-y:auto`. Mark the scroll region `data-lenis-prevent`, give it `overscroll-behavior: contain`, and check EVERY other sheet/menu/combobox (admin `components/admin/form.tsx` Select, search-select, country picker, date picker). Pin with a Playwright touch-scroll test (mobile viewport, `hasTouch`), asserting the list's `scrollTop` moves.
 
 - [ ] **2. "Which channel works best for project updates?" should allow more than one**, "Client dashboard" should read friendlier ("your portal", "your dashboard" or "client portal"), and it should be **selected by default**. `screenshots/02-*.jpg`.
