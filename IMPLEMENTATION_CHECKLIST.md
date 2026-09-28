@@ -195,6 +195,7 @@ Started 2026-09-25. The target is `dashboard-mockups/` at the repo root: 134 boa
 
 #### Admin pages
 
+- [x] Queue item 11, 2026-09-28: task ticking did not need an application-store change; the production error was Server Action deployment skew, covered by a stable write-only Vercel action-encryption secret. `tests/project-task-toggle.spec.ts` exercises tick/reopen at 390px and 320px without a project-page failure.
 - [x] Queue item 12, 2026-09-28: attention-row overflow menus stay top-right at 390px and 320px, while title/detail copy wraps in the middle track; the icon-only action is a 44px touch target. Pinned by `tests/dashboard-attention.spec.ts`.
 - [x] Queue item 10, 2026-09-28: a deliverable version now accepts up to ten validated media-library files and/or an HTTP(S) link. The client portal issues signed Open and attachment Download links for uploads; dialogs focus their panel instead of the close cross. Pinned at 390px and 320px by `tests/deliverable-files.spec.ts`. No schema migration: versions are persisted JSON records.
 
