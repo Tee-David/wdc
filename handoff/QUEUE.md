@@ -24,7 +24,7 @@ proves it. Phone checks are at 390px (and 320px for anything text-heavy).
 - [x] **6. Entry page head on a phone: "Replay this page's tour" and Previous / 2 of 7 / Next are misaligned.** `screenshots/06-*.jpg`. Fixed in `b08ccba`.
   Start: `app/admin/forms/[form]/entries/[entry]/page.tsx` (`adEntryNav`), CSS in `forms.css`. On a phone: Previous and Next each take half the row with the counter centred between (or above), same height, and the tour button full width above them.
 
-- [ ] **7. Stat cards sometimes show no figures until a refresh** (Collected/Outstanding/Live projects tiles with the numbers missing). `screenshots/07-*.jpg`.
+- [x] **7. Stat cards sometimes show no figures until a refresh** (Collected/Outstanding/Live projects tiles with the numbers missing). `screenshots/07-*.jpg`. Fixed in `206b52f`.
   Start: the KPI tiles use `components/admin/count-up.tsx`. The server renders the real figure; the count-up probably sets the text to 0/empty and waits for an IntersectionObserver or an arrival animation that never fires after a client-side navigation. Fix so the real figure is always in the DOM (count-up only animates a copy, or starts from the figure and never blanks it). Test: navigate client-side to Money and to Dashboard and assert every tile's value is non-empty.
 
 - [ ] **8. "Why isn't there a setting to set/change my name as an admin user or staff."** `screenshots/08-*.jpg` (project card says "Babatope is answerable").
