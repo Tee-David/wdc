@@ -61,7 +61,8 @@ picture; notice address confirmed by email; post revisions and FAQ history
 documents; next document numbers; Paystack delivery history on System; media
 "Used in"; a post's social image from the library.
 
-Queue items 1–10 are now pushed to both tracked branches. Item 10 adds
+Queue items 1–12 and 14–15 are now pushed to both tracked branches; item 13's
+tooltip proposal was declined, so the existing tooltip stays. Item 10 adds
 multi-file project deliverables through the media-library/R2 flow, with signed
 Open and Download links in the portal; it uses the existing persisted JSON
 record and needs no schema migration. Git-triggered Vercel deploys remain
@@ -80,10 +81,9 @@ tables permanent and indexed.
 
 ## What to do next
 
-Work `QUEUE.md` top to bottom. The first items are bugs the owner hit on
-their phone; after them come two design proposals that must be shown to the
-owner (as artifacts) before anything is built: the refined hero (Option C)
-and the Google sign-in flow for clients and admins.
+The phone bug queue is complete. Next are two design proposals that must be
+shown to the owner (as artifacts) before anything is built: the refined hero
+(Option C) and the Google sign-in flow for clients and admins.
 
 When you finish an item: tick it in `QUEUE.md`, add a line to
 `IMPLEMENTATION_CHECKLIST.md` if it closes something there, commit, push.
