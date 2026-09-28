@@ -69,6 +69,12 @@ record and needs no schema migration. Git-triggered Vercel deploys remain
 blocked by the private-repository Hobby policy, and the direct-deploy API is at
 its daily limit; do not treat these pushes as live-production verification.
 
+Owner follow-ups 16–17 are also complete in `5b6e43b`: the Details conversion
+button stays inside its panel, attachment lists become a native carousel only
+above four files, and project deliverables plus newsletter CSV import share the
+design-system `FileDrop` component. Responsive browser checks cover 600/390/320
+and the production build passes. No migration is needed.
+
 Production also has `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` set as a write-only
 Vercel secret. Keep it stable across deployments: without Skew Protection, an
 open admin or portal page can post an old action identifier to a new build and
