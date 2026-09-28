@@ -39,13 +39,14 @@ test.beforeAll(async () => {
     `INSERT INTO onboarding_submissions (service, status, current_step, answers, email, submitted_at)
      VALUES ('branding', 'submitted', 4, $1::JSONB, $2, now()) RETURNING id`,
     [JSON.stringify({ first_name: "Ada", last_name: "Eze", email: `att-${TAG}@example.com`, company: COMPANY,
-                      has_brandbook: "Yes", brandbook_file: ["Brand Book.pdf"], assets: ["photo.jpg", "old-scan.png"],
+                      has_brandbook: "Yes", brandbook_file: ["Brand Book.pdf"], assets: ["photo.jpg", "old-scan.png", "wireframe.pdf", "logo.png"],
                       channel: ["Your client portal", "Email"] }), `att-${TAG}@example.com`],
   )).rows[0].id;
   siblingId = (await db.query<{ id: string }>(
     `INSERT INTO onboarding_submissions (service, status, current_step, answers, email, submitted_at)
      VALUES ('branding', 'submitted', 4, $1::JSONB, $2, now() - INTERVAL '1 minute') RETURNING id`,
-    [JSON.stringify({ first_name: "Noah", last_name: "Okafor", email: `nav-${TAG}@example.com`, company: `Navigation ${TAG} Ltd` }), `nav-${TAG}@example.com`],
+    [JSON.stringify({ first_name: "Noah", last_name: "Okafor", email: `nav-${TAG}@example.com`, company: `Navigation ${TAG} Ltd`,
+                      has_brandbook: "Yes", brandbook_file: ["Brand guide.pdf"], assets: ["home.jpg", "about.jpg", "contact.jpg"] }), `nav-${TAG}@example.com`],
   )).rows[0].id;
   await db.query("INSERT INTO onboarding_uploads (draft_id, object_key, filename, bytes, content_type) VALUES ($1, $2, 'Brand Book.pdf', 1468000, 'application/pdf'), ($1, $3, 'photo.jpg', 2100000, 'image/jpeg')",
     [id, `onboarding/${id}/a${TAG}.pdf`, `onboarding/${id}/b${TAG}.jpg`]);
@@ -61,7 +62,8 @@ test("the entry page lists every upload with signed Open and Download links", as
   await page.goto(`/admin/forms/onboarding-branding/entries/${id}`, { waitUntil: "networkidle" });
   const panel = page.locator(".ad__panel", { has: page.getByRole("heading", { name: "Attachments" }) });
   await expect(panel).toBeVisible();
-  await expect(panel.locator(".adAtt__file")).toHaveCount(3);
+  await expect(panel.locator(".adAtt__file")).toHaveCount(5);
+  await expect(panel.locator(".adAtt")).toHaveClass(/adAtt--rail/);
 
   const pdf = panel.locator(".adAtt__file", { hasText: "Brand Book.pdf" });
   const open = await pdf.getByRole("link", { name: /^Open / }).getAttribute("href");
@@ -77,7 +79,7 @@ test("the entry page lists every upload with signed Open and Download links", as
   await expect(page.locator('[data-tour="entry-answers"]')).toContainText("Your client portal, Email");
 });
 
-test("on phone widths the files stay a rail inside their panel", async ({ page }) => {
+test("more than four files use a contained rail at phone widths", async ({ page }) => {
   await page.setExtraHTTPHeaders({ "x-boneyard-capture": TOKEN ?? "" });
   await page.setViewportSize({ width: 390, height: 780 });
   await page.goto(`/admin/forms/onboarding-branding/entries/${id}`, { waitUntil: "domcontentloaded" });
@@ -87,6 +89,7 @@ test("on phone widths the files stay a rail inside their panel", async ({ page }
     const panel = page.locator(".ad__panel", { has: page.getByRole("heading", { name: "Attachments" }) });
     const answers = page.locator('[data-tour="entry-answers"]');
     const rail = panel.locator(".adAtt");
+    await expect(rail).toHaveClass(/adAtt--rail/);
     const [a, b, r] = [await answers.boundingBox(), await panel.boundingBox(), await rail.boundingBox()];
     expect(b!.y).toBeGreaterThan(a!.y + a!.height - 1);
     expect(b!.x + b!.width).toBeLessThanOrEqual(width);
@@ -98,6 +101,25 @@ test("on phone widths the files stay a rail inside their panel", async ({ page }
     for (const box of await panel.locator(".adAtt__acts .ad__btn").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height))) {
       expect(box).toBeGreaterThanOrEqual(44);
     }
+  }
+});
+
+test("four files keep the responsive grid instead of becoming a carousel", async ({ page }) => {
+  await page.setExtraHTTPHeaders({ "x-boneyard-capture": TOKEN ?? "" });
+  await page.setViewportSize({ width: 390, height: 780 });
+  await page.goto(`/admin/forms/onboarding-branding/entries/${siblingId}`, { waitUntil: "domcontentloaded" });
+  const panel = page.locator(".ad__panel", { has: page.getByRole("heading", { name: "Attachments" }) });
+  await expect(panel).toBeVisible({ timeout: 60_000 });
+  const grid = panel.locator(".adAtt");
+  await expect(grid).not.toHaveClass(/adAtt--rail/);
+  await expect(grid).not.toHaveAttribute("tabindex", "0");
+  await expect(panel.locator(".adAtt__file")).toHaveCount(4);
+
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 780 });
+    const m = await grid.evaluate((el) => ({ sw: el.scrollWidth, cw: el.clientWidth }));
+    expect(m.sw).toBeLessThanOrEqual(m.cw);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   }
 });
 

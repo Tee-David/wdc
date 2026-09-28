@@ -39,10 +39,38 @@ test("the deliverable dialog starts on its panel and keeps file controls inside 
   await expect.poll(() => dialog.evaluate((node) => document.activeElement === node)).toBe(true);
   await expect(dialog.locator('input[type="file"]')).toHaveAttribute("multiple", "");
   await expect(dialog.getByText("Optional. Upload files, add a link, or do both.")).toBeVisible();
+  const dropzone = dialog.locator(".adFileDrop");
+  await expect(dropzone.getByText("Choose files", { exact: true })).toBeVisible();
+  await expect(dropzone).toContainText("or drag them here");
 
   for (const width of [390, 320]) {
     await page.setViewportSize({ width, height: 844 });
-    await expect(dialog.getByRole("button", { name: "Choose files" })).toHaveCSS("min-height", "44px");
+    expect((await dropzone.boundingBox())!.width).toBeLessThanOrEqual((await dialog.boundingBox())!.width);
+    expect((await dropzone.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  }
+});
+
+test("newsletter import uses the same responsive file dropzone", async ({ page, baseURL }) => {
+  await asOwner(page, baseURL);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/admin/forms/newsletter", { waitUntil: "domcontentloaded" });
+  const open = page.getByRole("button", { name: "Import CSV" });
+  await expect(open).toBeVisible({ timeout: 60_000 });
+  const dialog = page.locator("dialog.addlg[open]");
+  await expect(async () => {
+    await open.click({ timeout: 2_000 });
+    await expect(dialog).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 60_000 });
+  const dropzone = dialog.locator(".adFileDrop");
+  await expect(dropzone).toContainText("Choose files or drag them here");
+  const input = dropzone.locator('input[type="file"]');
+  await input.setInputFiles({ name: "clients.csv", mimeType: "text/csv", buffer: Buffer.from("email\nhello@example.com\n") });
+  expect(await input.evaluate((node: HTMLInputElement) => node.files?.[0]?.name)).toBe("clients.csv");
+
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 844 });
+    expect((await dropzone.boundingBox())!.width).toBeLessThanOrEqual((await dialog.boundingBox())!.width);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   }
 });

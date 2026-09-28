@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { IconPicker } from "./icon-picker";
-import { Check, FilePlus2, ListPlus, Loader2, Plus, Send, Trash2, Upload, X } from "lucide-react";
+import { Check, FilePlus2, ListPlus, Plus, Send, Trash2, X } from "lucide-react";
 import {
   APPROVALS, CHANNELS, HEALTH, PRIORITIES, naira, taskIsWaiting,
   type Deliverable, type Project, type Task, type Update,
@@ -18,6 +18,7 @@ import { DialogButton } from "./dialog";
 import { ApprovalPill, Empty, HealthPill, Panel, when } from "./bits";
 import { uploadToMedia } from "./media-upload";
 import { MEDIA_ACCEPT } from "@/lib/media-validate";
+import { FileDrop } from "./file-drop";
 
 /**
  * The delivery half of a project: what is left, what we have said, and what we
@@ -337,7 +338,6 @@ function DeliverableForm({ projectId, id, onDone, previousVersion }: { projectId
 }
 
 function DeliverableUpload({ onBusyChange }: { onBusyChange: (busy: boolean) => void }) {
-  const input = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<{ name: string; key: string }[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -356,20 +356,21 @@ function DeliverableUpload({ onBusyChange }: { onBusyChange: (busy: boolean) => 
     }
     if (added.length) setFiles((current) => [...current, ...added]);
     setBusy(false); onBusyChange(false);
-    if (input.current) input.current.value = "";
   };
 
   return (
     <div className={`ad__f adDelUpload${fieldError || error ? " is-bad" : ""}`}>
-      <span className="ad__fl">Upload file(s)</span>
       <input type="hidden" name="files" value={JSON.stringify(files)} />
-      <label className="ad__btn adDelUpload__pick">
-        {busy ? <Loader2 className="ad__spin" aria-hidden="true" /> : <Upload aria-hidden="true" />}
-        {busy ? "Uploading" : "Choose files"}
-        <input ref={input} type="file" accept={MEDIA_ACCEPT} multiple disabled={busy || files.length >= 10}
-               onChange={(event) => { void upload(event.target.files); }} />
-      </label>
-      <small className="ad__fh">PNG, JPEG, WebP, AVIF, GIF, PDF, MP4 or WebM. Up to 10 files.</small>
+      <FileDrop
+        id="deliverable-files"
+        label="Upload files (optional)"
+        hint="Up to 10 files. PNG, JPEG, WebP, AVIF, GIF, PDF, MP4 or WebM."
+        accept={MEDIA_ACCEPT}
+        multiple
+        busy={busy}
+        disabled={files.length >= 10}
+        onFiles={(picked) => { void upload(picked); }}
+      />
       {files.length ? <ul className="adDelUpload__list">
         {files.map((file) => <li key={file.key}><span>{file.name}</span><button type="button" aria-label={`Remove ${file.name}`} onClick={() => setFiles((current) => current.filter((x) => x.key !== file.key))}><X aria-hidden="true" /></button></li>)}
       </ul> : null}

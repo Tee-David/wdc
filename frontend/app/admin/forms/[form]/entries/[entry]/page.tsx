@@ -270,7 +270,7 @@ export default async function EntryPage({ params, searchParams }: Props) {
               {entry.email ? <div><dt>Email</dt><dd><a href={`mailto:${entry.email}`}>{entry.email}</a></dd></div> : null}
               {entry.phone ? <div><dt>Phone</dt><dd>{entry.phone}</dd></div> : null}
               {form.source !== "newsletter" ? (
-                <div><dt>Client</dt><dd>
+                <div className="adForms__client"><dt>Client</dt><dd>
                   {client ? <Link href={`/admin/clients/${client.id}`}>{client.company}</Link>
                     : form.source === "onboarding" && !entry.draft ? <LiveSubmissionClient submissionId={entry.id} />
                     : <span className="ad__dim">Not a client yet</span>}
