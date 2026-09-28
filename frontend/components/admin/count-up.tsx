@@ -61,7 +61,7 @@ export function CountUp({ value, className }: { value: string; className?: strin
 
   if (!m) return <span className={className}>{value}</span>;
   return (
-    <span className={`adCount${className ? ` ${className}` : ""}`}>
+    <span className={`adCountUp${className ? ` ${className}` : ""}`}>
       <span className="ad__sr">{value}</span>
       <span aria-hidden="true" ref={el}>{value}</span>
     </span>
