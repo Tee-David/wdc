@@ -1882,7 +1882,7 @@ td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
 }
 @media (prefers-reduced-motion: reduce) { .ad__t tbody tr { transition: none; } }
 .ad__t tbody tr { transition: background-color .15s ease; }
-.adCount { font-variant-numeric: tabular-nums; }
+.adCountUp { font-variant-numeric: tabular-nums; }
 
 /* A toast that offers Undo (components/admin/toast.tsx): a solid white button
    on the green, and the plain toasts stack above it rather than over it. */
