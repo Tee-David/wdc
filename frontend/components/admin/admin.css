@@ -1766,6 +1766,12 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 .adIcons__opt:hover > span { border-color: var(--ad-dim); }
 .adIcons__opt input:checked + span { background: var(--ad-fill); border-color: var(--ad-fill); color: var(--ad-on-fill); }
 .adIcons__opt input:focus-visible + span { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+@media (max-width: 560px) {
+  .adIcons__top { display: grid; grid-template-columns: 2.75rem minmax(0, 1fr); align-items: center; }
+  .adIcons__now { grid-column: 1; grid-row: 1; }
+  .adIcons__top > .ad__btn { grid-column: 2; grid-row: 1; width: 100%; justify-content: center; }
+  .adIcons__hint { grid-column: 1 / -1; grid-row: 2; width: 100%; }
+}
 
 /* THE IN-PAGE LIST SEARCH (components/admin/list-search.tsx). */
 .adLS { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem 1rem; padding: .85rem 1.25rem; border-bottom: 1px solid var(--ad-line); }
