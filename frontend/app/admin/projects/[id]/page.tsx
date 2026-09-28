@@ -26,6 +26,7 @@ import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
+import { deliverableFileLinks } from "@/lib/deliverable-files";
 
 /* NO generateStaticParams: projects are created at runtime now, and a route
    list frozen at build time would 404 on anything opened since. */
@@ -58,6 +59,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const tasks = getTasksFor(p.id);
   const updates = getUpdatesFor(p.id);
   const deliverables = getDeliverablesFor(p.id);
+  const fileLinks = Object.fromEntries(deliverables.flatMap((deliverable) => deliverable.versions.flatMap((version) =>
+    deliverableFileLinks(version.files).map((file) => [`${deliverable.id}:${version.v}:${file.key}`, { open: file.open, download: file.download }]),
+  )));
   const attention = projectAttention(p, tasks);
   const margin = projectMargin(p.id);
   const costs = getExpensesFor(p.id);
@@ -134,7 +138,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       <div className="ad__split">
         <div className="ad__stack">
           <Updates project={p} updates={updates} />
-          <Deliverables project={p} items={deliverables} />
+          <Deliverables project={p} items={deliverables} fileLinks={fileLinks} />
           <Tasks project={p} tasks={tasks} />
           {money ? (
             <Panel title="Spent on it" action={<AddExpense projects={[p]} />}>

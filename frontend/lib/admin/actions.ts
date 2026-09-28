@@ -13,11 +13,12 @@ import { addEvents } from "@/lib/forms/events";
 import { hydrateSettings } from "@/lib/settings/store";
 import {
   FAIL, OK, type ActionState,
-  approval, channel, checked, health, isoDate, kobo, looksEmail, method, num, priority,
+  approval, channel, checked, deliverableFiles, health, isoDate, kobo, looksEmail, method, num, priority,
   required, services, stage, str, url,
 } from "./validate";
 import { persistSoon, saveStore, syncStore } from "@/lib/admin/persist";
 import { isProjectIcon, randomProjectIcon } from "@/lib/project-icons";
+import { mediaByKey } from "@/lib/media";
 
 /**
  * THE ADMIN'S WRITE ENDPOINTS.
@@ -772,9 +773,21 @@ export async function createDeliverable(_prev: ActionState, fd: FormData): Promi
   const projectId = str(fd, "projectId");
   const name = required(errors, "name", str(fd, "name"), "A name");
   const note = required(errors, "note", str(fd, "note"), "A note saying what this version is");
+  const files = deliverableFiles(fd, errors);
+  const rawUrl = str(fd, "url");
+  const link = url(fd, "url");
+  if (rawUrl && !link) errors.url = "That is not a link. Paste the full address, starting with https://";
+  if (files.length && !errors.files) {
+    try {
+      for (const file of files) {
+        const asset = await mediaByKey(file.key);
+        if (!asset || asset.archivedAt) { errors.files = "One uploaded file is no longer in the media library. Remove it and add it again."; break; }
+      }
+    } catch { errors.files = "The media library could not be checked. Try again."; }
+  }
   if (Object.keys(errors).length) return FAIL(errors);
 
-  const d = db.addDeliverable({ projectId, name, note, url: str(fd, "url") || undefined });
+  const d = db.addDeliverable({ projectId, name, note, url: link ?? undefined, files: files.length ? files : undefined });
   if (!d) return FAIL({}, "That project is no longer there.");
   refreshProject(projectId);
   return OK(`${d.name} v1 is on the project.`);
@@ -787,9 +800,21 @@ export async function addDeliverableVersion(_prev: ActionState, fd: FormData): P
   if (refused) return refused;
   const errors: Record<string, string> = {};
   const note = required(errors, "note", str(fd, "note"), "A note saying what changed");
+  const files = deliverableFiles(fd, errors);
+  const rawUrl = str(fd, "url");
+  const link = url(fd, "url");
+  if (rawUrl && !link) errors.url = "That is not a link. Paste the full address, starting with https://";
+  if (files.length && !errors.files) {
+    try {
+      for (const file of files) {
+        const asset = await mediaByKey(file.key);
+        if (!asset || asset.archivedAt) { errors.files = "One uploaded file is no longer in the media library. Remove it and add it again."; break; }
+      }
+    } catch { errors.files = "The media library could not be checked. Try again."; }
+  }
   if (Object.keys(errors).length) return FAIL(errors);
 
-  const d = db.addVersion(str(fd, "id"), note, str(fd, "url") || undefined);
+  const d = db.addVersion(str(fd, "id"), note, link ?? undefined, files.length ? files : undefined);
   if (!d) return FAIL({}, "That deliverable is no longer there.");
   refreshProject(d.projectId);
   const v = d.versions[d.versions.length - 1].v;

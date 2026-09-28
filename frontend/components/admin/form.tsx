@@ -476,18 +476,20 @@ export function Fields({ children }: { children: React.ReactNode }) {
  * reference. The other is caught here.
  */
 export function Submit({
-  children, tone = "primary", icon: Icon,
+  children, tone = "primary", icon: Icon, disabled = false,
 }: {
   children: React.ReactNode;
   tone?: "primary" | "plain" | "danger";
   icon?: React.ComponentType<{ "aria-hidden"?: boolean }>;
+  /** A client-side prerequisite (such as an upload) is still running. */
+  disabled?: boolean;
 }) {
   const { pending } = useFormStatus();
   const { pendingId } = useContext(Ctx);
   const cls = tone === "primary" ? " ad__btn--primary" : tone === "danger" ? " ad__btn--danger" : "";
 
   return (
-    <button type="submit" className={`ad__btn${cls}`} disabled={pending} aria-describedby={pendingId}>
+    <button type="submit" className={`ad__btn${cls}`} disabled={pending || disabled} aria-describedby={pendingId}>
       {pending ? <Loader2 className="ad__spin" aria-hidden="true" /> : Icon ? <Icon aria-hidden={true} /> : null}
       {children}
     </button>
