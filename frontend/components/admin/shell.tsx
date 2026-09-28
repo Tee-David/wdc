@@ -19,6 +19,7 @@ import {
   Search,
   Settings,
   Sun,
+  UserRound,
   Users,
   X,
 } from "lucide-react";
@@ -312,6 +313,7 @@ function AccountMenu({ user }: { user: AdminUser }) {
             <b>{user.name || "Admin"}</b>
             {user.email ? <span>{user.email}</span> : null}
           </div>
+          <Link href="/admin/settings/account" role="menuitem" onClick={() => setOpen(false)}><UserRound aria-hidden="true" /> Your name and password</Link>
           <Link href="/" role="menuitem" onClick={() => setOpen(false)}><Globe aria-hidden="true" /> Back to website</Link>
           <button type="button" role="menuitem" onClick={() => signOut(router)}><LogOut aria-hidden="true" /> Sign out</button>
         </div>
