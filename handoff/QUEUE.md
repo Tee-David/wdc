@@ -42,7 +42,7 @@ proves it. Phone checks are at 390px (and 320px for anything text-heavy).
   The phone grid keeps icon | wrapped copy | menu in one row at 390px and 320px, and the menu has a 44px target. Pinned by `tests/dashboard-attention.spec.ts`.
 
 - [ ] **13. A better tooltip design, responsive.** `screenshots/13-*.jpg` ("Naira. Leave it empty when nothing is agreed; empty is not zero." in a wide white box). Start: `components/onboarding/tip.tsx` (used by the admin "?" hints too). Design: a compact popover anchored to the "?" with an arrow, max-width ~18rem, solid panel colour, stays inside the viewport and safe areas, closes on outside tap/Escape, both themes. Show the owner before/after screenshots.
-  Proposal ready for owner review in `prototypes/tooltip-13/`: light 390px, dark 390px, and a 320px edge capture. It keeps the existing close mechanics and proposes only the compact anchored visual/positioning refinement. Do not change the site until approved.
+  Proposal reviewed and declined 2026-09-28: retain the existing tooltip design. The prototype stays in `prototypes/tooltip-13/` as a record; do not implement it.
 
 - [x] **14. Buttons and icons light up with a focus ring when clicked, and dialogs open with the close ✕ ringed.** `screenshots/14-*.jpg` (Post an update, Add a deliverable). Fixed in `d3d7b76` (with dialog focus from `2322490`).
   Mouse/touch no longer receives the admin input ring; keyboard `:focus-visible` retains it. Dialogs start on their panel, and Tab reaches the close control with a visible keyboard ring. Pinned by `tests/admin-focus.spec.ts`.
