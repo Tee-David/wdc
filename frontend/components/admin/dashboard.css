@@ -104,6 +104,9 @@
 .adDash__attentionCopy a:hover { text-decoration: underline; text-underline-offset: 2px; }
 .adDash__attentionMeta { color: var(--ad-dim); font-size: .76rem; white-space: nowrap; }
 .adDash__attentionActions { display: flex; justify-content: flex-end; }
+/* This is the overflow/menu target in an attention row. It remains a full
+   touch target even when its glyph is visually small. */
+.adDash__attentionActions button { min-width: 2.75rem; min-height: 2.75rem; }
 .adDash__more { margin: 0; padding: .25rem .25rem 0; color: var(--ad-dim); font-size: .82rem; }
 
 /* ------------------------------------------------------------- pipeline */
@@ -176,9 +179,10 @@
   .adDash__head .ad__btn { align-self: flex-start; }
   .adDash__kpis { grid-template-columns: minmax(0, 1fr); }
   .adDash__actions { grid-template-columns: minmax(0, 1fr); }
-  /* The row's button goes under its text on a phone: beside it, it
-     squeezed the title to three words a line and itself to its label. */
-  .adDash__attentionActions { grid-column: 2 / -1; grid-row: auto; justify-content: flex-start; }
+  /* The action is a 44px overflow/menu target, not a second row. Keeping it
+     in column three makes icon | readable copy | action stable at 320px; the
+     copy itself is allowed to wrap instead of displacing the control. */
+  .adDash__attentionActions { grid-column: 3; grid-row: 1 / span 2; justify-content: flex-end; align-self: start; }
   /* A dated row puts its date under the text. Flowing by row, not column:
      with column flow the explicitly placed date pushed the text into the
      icon's track and squeezed the name to "Dhi…". */
