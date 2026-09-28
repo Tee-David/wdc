@@ -119,6 +119,7 @@ test("an import adds the new, leaves the rest, and never re-subscribes somebody 
   await page.goto("/admin/forms/newsletter", { waitUntil: "load" });
   await page.getByRole("button", { name: "Import CSV" }).click();
   const dialog = page.locator("dialog.addlg[open]");
+  await expect(dialog.locator(".adFileDrop")).toContainText("Choose files or drag them here");
   await dialog.locator('input[type="file"]').setInputFiles({
     name: "list.csv", mimeType: "text/csv",
     buffer: Buffer.from(`name,email\nOne,${NEW1}\nTwo,"${NEW2}"\nThree,${LEFT}\nFour,not-an-address@\n`),

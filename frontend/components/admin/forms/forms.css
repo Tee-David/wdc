@@ -154,13 +154,12 @@
    client sent, before the answers. Pictures show as pictures; everything else
    is a solid tile with its type. */
 .adAtt { box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0; list-style: none; margin: 0; padding: 1rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr)); gap: .65rem; }
-/* A phone gets a rail: tiles at a fixed width, scrolled sideways inside the
-   panel, sized so the next one always shows a sliver. Vertical swipes still
-   scroll the page. */
-@media (max-width: 639px) {
-  .adAtt { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 8.75rem; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-padding-inline: 1rem; padding-bottom: .9rem; }
-  .adAtt__file { scroll-snap-align: start; }
-}
+/* Five or more files become the site's native horizontal rail. A partial next
+   tile makes the extra files visible without JavaScript carousel machinery;
+   the nested region keeps vertical page gestures native. */
+.adAtt--rail { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(10.5rem, 22%); overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-padding-inline: 1rem; padding-bottom: .9rem; touch-action: pan-x pan-y; }
+.adAtt--rail .adAtt__file { scroll-snap-align: start; }
+@media (max-width: 639px) { .adAtt--rail { grid-auto-columns: minmax(8.75rem, 82%); } }
 .adAtt__file { display: grid; grid-template-rows: auto 1fr auto; min-width: 0; border: 1px solid var(--ad-line); border-radius: 14px; overflow: hidden; background: var(--ad-panel-2); }
 .adAtt__thumb { position: relative; overflow: hidden; aspect-ratio: 16 / 11; display: grid; place-items: center; background: var(--ad-tone-brand); color: #fff; }
 .adAtt__thumb.has-img { background: var(--ad-panel); }
@@ -174,7 +173,7 @@
 .adAtt__acts .ad__btn { min-height: 2.75rem; min-width: 0; padding-inline: .35rem; justify-content: center; gap: .3rem; font-size: .78rem; }
 /* Icon-only on the phone rail, where two words do not fit a small tile; the
    link keeps its name through aria-label. */
-@media (max-width: 639px) { .adAtt__lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }
+@media (max-width: 639px) { .adAtt--rail .adAtt__lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }
 .adAtt__gone { display: flex; gap: .4rem; padding: 0 .7rem .7rem; color: var(--ad-dim); font-size: .78rem; line-height: 1.4; }
 .adAtt__gone svg { width: .9rem; height: .9rem; flex: none; margin-top: .1rem; }
 @media (prefers-reduced-motion: no-preference) { .adAtt__file { transition: transform .15s ease, box-shadow .15s ease; } .adAtt__file:hover { transform: translateY(-2px); box-shadow: var(--ad-sh-1); } }

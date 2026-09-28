@@ -9,17 +9,23 @@ const label = (f: EntryFile) => (f.contentType === "application/pdf" ? "PDF" : (
 /**
  * EVERYTHING THE CLIENT SENT, after the answers: pictures as pictures, other
  * files as tiles, each with the question it answered and Open and Download.
- * A sideways rail on a phone (a partial tile says there is more), a compact
- * grid from 640px up.
+ * Up to four files stay in the responsive grid. Five or more become a native
+ * sideways rail with a partial next tile, without adding client-side code.
  * The links are signed and last an hour (lib/onboarding-files.ts), so the page
  * is the way in and a copied link goes stale.
  */
 export function EntryAttachments({ files }: { files: EntryFile[] }) {
   if (!files.length) return null;
   const total = files.reduce((a, f) => a + f.bytes, 0);
+  const isRail = files.length > 4;
   return (
     <Panel title="Attachments" dataTour="entry-attachments" action={<span className="ad__pill">{files.length} {files.length === 1 ? "file" : "files"}{total ? ` · ${size(total)}` : ""}</span>}>
-      <ul className="adAtt" tabIndex={0} aria-label="Files they sent">
+      <ul
+        className={`adAtt${isRail ? " adAtt--rail" : ""}`}
+        tabIndex={isRail ? 0 : undefined}
+        aria-label={isRail ? `${files.length} files they sent. Scroll horizontally for more.` : "Files they sent"}
+        data-lenis-prevent={isRail ? "true" : undefined}
+      >
         {files.map((f, i) => (
           <li key={`${f.name}-${i}`} className="adAtt__file">
             <span className={`adAtt__thumb${isImage(f) && f.open ? " has-img" : ""}`}>

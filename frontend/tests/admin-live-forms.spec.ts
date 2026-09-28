@@ -84,6 +84,23 @@ test("the brief is in its form's inbox and reads back under its questions", asyn
   await expect(page).toHaveURL(new RegExp(`/admin/forms/onboarding-branding/entries/${id}$`));
 });
 
+test("the client action stays inside Details at narrow widths", async ({ page }) => {
+  await page.setViewportSize({ width: 600, height: 780 });
+  await page.goto(entry(), { waitUntil: "domcontentloaded" });
+  const details = page.locator(".ad__panel", { has: page.getByRole("heading", { name: "Details" }) });
+  const action = details.getByRole("button", { name: "Make them a client" });
+  await expect(action).toBeVisible({ timeout: 60_000 });
+
+  for (const width of [600, 390, 320]) {
+    await page.setViewportSize({ width, height: 780 });
+    const [panelBox, actionBox] = [await details.boundingBox(), await action.boundingBox()];
+    expect(actionBox!.x).toBeGreaterThanOrEqual(panelBox!.x - 0.5);
+    expect(actionBox!.x + actionBox!.width).toBeLessThanOrEqual(panelBox!.x + panelBox!.width + 0.5);
+    expect(actionBox!.height).toBeGreaterThanOrEqual(44);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  }
+});
+
 test("making them a client twice lands on the same client", async ({ page }) => {
   /* networkidle: a click before the form hydrates submits nothing. */
   await page.goto(entry(), { waitUntil: "networkidle" });
