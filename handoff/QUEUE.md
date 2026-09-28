@@ -32,8 +32,8 @@ proves it. Phone checks are at 390px (and 320px for anything text-heavy).
 
 - [x] **9. Icon picker text squeezed into one-word lines on a phone** ("A random one unless you pick. The client sees it too." beside Shuffle). `screenshots/09-*.jpg`. Fixed in `381d179`.
 
-- [ ] **10. Deliverables: upload files as well as a link, and the dialog opens with the close button highlighted.** `screenshots/10-*.jpg`. "Maybe we can have an 'upload file(s)' and/or add a link."
-  Start: `components/admin/delivery.tsx` ("Add a deliverable"). Add a file drop/upload (reuse `components/admin/media-upload.ts` → R2, or the onboarding uploader pattern), one or more files and/or a link; show files on the deliverable for the client in the portal with Open/Download. Focus: see item 14.
+- [x] **10. Deliverables: upload files as well as a link, and the dialog opens with the close button highlighted.** `screenshots/10-*.jpg`. Fixed in `2322490`.
+  `delivery.tsx` now accepts up to ten media-library uploads and/or a checked HTTP(S) link. Uploaded records retain validated R2 keys; the portal makes signed Open and attachment Download links from them. The dialog panel, not the close control, receives initial focus. Pinned by `tests/deliverable-files.spec.ts` at 390px and 320px. No schema migration is needed: deliverable versions are persisted JSON records.
 
 - [ ] **11. Ticking a task crashes the page** ("This page did not load"). `screenshots/11-*.jpg`.
   Start: the project page task list (`components/admin/project-forms.tsx` "What is left", its action in `lib/admin/actions.ts` toggle task). Reproduce locally on a seeded project (tasks with a dependency, e.g. "Build the guideline set" waits for "Chase Tobi"), read the server error, fix, and pin with a test that ticks and unticks a task.

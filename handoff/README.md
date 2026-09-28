@@ -61,6 +61,13 @@ picture; notice address confirmed by email; post revisions and FAQ history
 documents; next document numbers; Paystack delivery history on System; media
 "Used in"; a post's social image from the library.
 
+Queue items 1–10 are now pushed to both tracked branches. Item 10 adds
+multi-file project deliverables through the media-library/R2 flow, with signed
+Open and Download links in the portal; it uses the existing persisted JSON
+record and needs no schema migration. Git-triggered Vercel deploys remain
+blocked by the private-repository Hobby policy, and the direct-deploy API is at
+its daily limit; do not treat these pushes as live-production verification.
+
 **Production still needs migrations 0028–0032 applied** from Settings > System
 (the owner presses Apply). Everything works without them, but they make the
 tables permanent and indexed.
