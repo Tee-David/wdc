@@ -23,7 +23,7 @@
   background: var(--ad-panel); color: var(--ad-ink); font: inherit; font-size: .92rem;
 }
 .ce__f textarea { resize: vertical; line-height: 1.5; }
-.ce__f :is(input, select, textarea):focus { outline: none; border-color: var(--ad-fill); box-shadow: 0 0 0 3px var(--ad-nav-on); }
+.ce__f :is(input, select, textarea):focus-visible { outline: none; border-color: var(--ad-fill); box-shadow: 0 0 0 3px var(--ad-nav-on); }
 .ce__f.is-bad :is(input, textarea) { border-color: var(--ad-bad-ink); }
 .ce__err { color: var(--ad-bad-ink); font-size: .82rem; }
 .ce__two, .ce__three { display: grid; gap: .9rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); }
