@@ -19,6 +19,7 @@ const TAG = randomUUID().slice(0, 6);
 const COMPANY = `Attach ${TAG} Ltd`;
 let db: pg.Pool;
 let id = "";
+let siblingId = "";
 
 test.beforeAll(async () => {
   const url = new URL(CONNECTION!);
@@ -41,12 +42,17 @@ test.beforeAll(async () => {
                       has_brandbook: "Yes", brandbook_file: ["Brand Book.pdf"], assets: ["photo.jpg", "old-scan.png"],
                       channel: ["Your client portal", "Email"] }), `att-${TAG}@example.com`],
   )).rows[0].id;
+  siblingId = (await db.query<{ id: string }>(
+    `INSERT INTO onboarding_submissions (service, status, current_step, answers, email, submitted_at)
+     VALUES ('branding', 'submitted', 4, $1::JSONB, $2, now() - INTERVAL '1 minute') RETURNING id`,
+    [JSON.stringify({ first_name: "Noah", last_name: "Okafor", email: `nav-${TAG}@example.com`, company: `Navigation ${TAG} Ltd` }), `nav-${TAG}@example.com`],
+  )).rows[0].id;
   await db.query("INSERT INTO onboarding_uploads (draft_id, object_key, filename, bytes, content_type) VALUES ($1, $2, 'Brand Book.pdf', 1468000, 'application/pdf'), ($1, $3, 'photo.jpg', 2100000, 'image/jpeg')",
     [id, `onboarding/${id}/a${TAG}.pdf`, `onboarding/${id}/b${TAG}.jpg`]);
 });
 test.afterAll(async () => {
   await db.query("DELETE FROM onboarding_uploads WHERE draft_id = $1", [id]);
-  await db.query("DELETE FROM onboarding_submissions WHERE id = $1", [id]);
+  await db.query("DELETE FROM onboarding_submissions WHERE id = ANY($1::UUID[])", [[id, siblingId]]);
   await db.end();
 });
 
@@ -92,6 +98,34 @@ test("on phone widths the files stay a rail inside their panel", async ({ page }
     for (const box of await panel.locator(".adAtt__acts .ad__btn").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height))) {
       expect(box).toBeGreaterThanOrEqual(44);
     }
+  }
+});
+
+test("on phone widths the tour and equal entry navigation controls align in the page head", async ({ page }) => {
+  await page.setExtraHTTPHeaders({ "x-boneyard-capture": TOKEN ?? "" });
+  await page.setViewportSize({ width: 390, height: 780 });
+  await page.goto(`/admin/forms/onboarding-branding/entries/${id}`, { waitUntil: "domcontentloaded" });
+  const actions = page.locator(".ad__head > .ad__row");
+  const tour = actions.getByRole("button", { name: /this page/ });
+  const nav = actions.getByRole("navigation");
+  await expect(tour).toBeVisible({ timeout: 60_000 });
+  await expect(nav).toBeVisible();
+
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 780 });
+    const [actionBox, tourBox, navBox] = [await actions.boundingBox(), await tour.boundingBox(), await nav.boundingBox()];
+    expect(tourBox!.width).toBeGreaterThanOrEqual(actionBox!.width - 1);
+    expect(navBox!.width).toBeGreaterThanOrEqual(actionBox!.width - 1);
+
+    const [previousBox, nextBox, counterBox] = [
+      await nav.getByText("Previous", { exact: true }).boundingBox(),
+      await nav.getByText("Next", { exact: true }).boundingBox(),
+      await nav.locator(".adEntryNav__at").boundingBox(),
+    ];
+    expect(Math.abs(previousBox!.width - nextBox!.width)).toBeLessThanOrEqual(1);
+    expect(Math.abs(previousBox!.height - nextBox!.height)).toBeLessThanOrEqual(1);
+    expect(Math.abs((counterBox!.x + counterBox!.width / 2) - (navBox!.x + navBox!.width / 2))).toBeLessThanOrEqual(1);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   }
 });
 

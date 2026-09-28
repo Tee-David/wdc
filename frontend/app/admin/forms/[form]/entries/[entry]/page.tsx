@@ -196,7 +196,7 @@ export default async function EntryPage({ params, searchParams }: Props) {
             {entry.draft ? `Draft, last saved ${time(entry.at)}` : `Received ${time(entry.at)}`}
           </p>
         </div>
-        <div className="ad__row adForms__noPrint">
+        <div className="ad__row adForms__noPrint adEntryHeadActions">
           <PageTourButton />
           {/* BOTH, ALWAYS, with where this one sits: a button that vanishes at
               the end of the list reads as a missing feature, not an end. */}

@@ -97,10 +97,24 @@
 .dark .adForms__lead input[type="checkbox"] { accent-color: #a3a7ff; }
 
 /* Previous, where this entry sits, Next. The ends stay visible, greyed. */
-.adEntryNav { display: inline-flex; align-items: center; gap: .5rem; }
+.adEntryHeadActions { min-width: 0; }
+.adEntryNav { display: inline-flex; align-items: center; gap: .5rem; min-width: 0; max-width: 100%; }
 .adEntryNav .ad__btn svg { width: 1rem; height: 1rem; }
 .adEntryNav .is-off { opacity: .45; pointer-events: none; }
 .adEntryNav__at { font-size: .84rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 640px) {
+  .adEntryHeadActions { align-items: stretch; }
+  .adEntryHeadActions > button.ad__btn { flex: 1 1 100%; width: 100%; }
+  .adEntryNav {
+    flex: 1 1 100%; width: 100%;
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .adEntryNav__at { grid-column: 1 / -1; grid-row: 1; justify-self: center; }
+  .adEntryNav .ad__btn { width: 100%; min-width: 0; justify-content: center; }
+  .adEntryNav .ad__btn:first-child { grid-column: 1; grid-row: 2; }
+  .adEntryNav .ad__btn:last-child { grid-column: 2; grid-row: 2; }
+}
 
 @media (max-width: 560px) {
   .adForms__colsPanel { left: 1rem; width: auto; }
