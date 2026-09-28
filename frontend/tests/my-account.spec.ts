@@ -69,11 +69,18 @@ test("staff see their own account in Settings, and rename themselves", async ({ 
   await open(page);
   await expect(page.getByRole("navigation", { name: "Settings sections" }).getByRole("link", { name: /My account/ })).toBeVisible();
   await expect(page.getByText(`Signed in as ${EMAIL}`)).toBeVisible();
+  await page.getByRole("button", { name: "Account menu" }).click();
+  await expect(page.getByRole("menuitem", { name: "Your name and password" })).toHaveAttribute("href", "/admin/settings/account");
 
   await page.getByLabel(/^Your name/).fill(`Renamed ${MARK}`);
   await page.getByRole("button", { name: "Save name" }).click();
   await expect(page.locator(".ad__msg.is-ok")).toContainText("Saved.", { timeout: 20_000 });
   expect((await db.query(`SELECT "name" FROM "user" WHERE "id" = $1`, [userId])).rows[0].name).toBe(`Renamed ${MARK}`);
+  await expect.poll(async () => (await db.query(`SELECT actor FROM audit_log WHERE subject_id = $1 AND action = 'changed their name' ORDER BY at DESC LIMIT 1`, [userId])).rows[0]?.actor).toBe(`Renamed ${MARK}`);
+  await page.reload({ waitUntil: "load" });
+  await expect(page.locator(".ad__meText b")).toHaveText(`Renamed ${MARK}`);
+  await page.getByRole("button", { name: "Account menu" }).click();
+  await expect(page.locator(".ad__accountMeta b")).toHaveText(`Renamed ${MARK}`);
 
   /* And it fits a 320px phone: nothing widens the page. */
   await page.setViewportSize({ width: 320, height: 720 });

@@ -36,6 +36,7 @@ export async function saveMyName(_prev: ActionState, fd: FormData): Promise<Acti
   }
   audit({ actor: name, kind: "setting", subjectId: me.session.user.id, subject: name, action: "changed their name", note: me.session.user.name });
   revalidatePath(PAGE);
+  revalidatePath("/admin", "layout");
   return OK("Saved. New changes carry this name; old ones keep the name they were made under.");
 }
 

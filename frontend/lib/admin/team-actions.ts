@@ -5,7 +5,7 @@ import { actorName, allow } from "./guard";
 import { getAdminRequest } from "./session";
 import { FAIL, OK, type ActionState } from "./validate";
 import { audit } from "./store";
-import { changeRole, deactivate, reactivate, signOutEverywhere, type TeamChange } from "@/lib/team";
+import { changeRole, deactivate, reactivate, renameMember, signOutEverywhere, type TeamChange } from "@/lib/team";
 
 /**
  * Changes to who can reach the admin. The owner's, and never to themselves:
@@ -61,4 +61,33 @@ export async function reactivateMember(_prev: ActionState, fd: FormData): Promis
 
 export async function signOutMember(_prev: ActionState, fd: FormData): Promise<ActionState> {
   return run(fd, (n) => `signed ${n} out everywhere`, (a, t) => signOutEverywhere(a, t));
+}
+
+export async function renameTeamMember(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await allow("team");
+  if (refused) return refused;
+  const actor = await actorId();
+  if (!actor) return FAIL({}, "Your session could not be read. Sign in again, then retry.");
+  const target = String(fd.get("id") ?? "");
+  const name = String(fd.get("name") ?? "").trim().slice(0, 120);
+  if (!name) return FAIL({ name: "Add their name." });
+  const by = await actorName();
+  let result: TeamChange;
+  try { result = await renameMember(actor, target, name); } catch {
+    return FAIL({}, "That could not be saved just now. Nothing was changed.");
+  }
+  if (!result.ok) return result.reason === "no-change" ? OK(WHY[result.reason]) : FAIL({}, WHY[result.reason]);
+  audit({
+    actor: by,
+    kind: "setting",
+    subjectId: result.member.id,
+    subject: result.member.name,
+    action: "changed a team member's name",
+    field: "Name",
+    from: result.member.previousName,
+    to: result.member.name,
+    note: result.member.email,
+  });
+  revalidatePath(PAGE);
+  return OK(`Updated. ${result.member.name} is the name used on new records.`);
 }

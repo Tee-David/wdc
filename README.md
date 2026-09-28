@@ -82,6 +82,7 @@ All of these live in `frontend/components/admin/`. The public site has its own o
 | A file from the library | `MediaPicker` (`media-picker.tsx`) | Search, folder, grid; a picture's description is asked for there and saved back to the file. Used by the blog cover and the editor's Picture and Video panels. |
 | Files attached to a form entry | `EntryAttachments` (`forms/entry-attachments.tsx`) | Grid on wider screens; a sideways rail contained by its panel at every phone width. Long names ellipsize and never widen the page. |
 | Move between form entries | `.adEntryNav` in `forms.css` | Inline on wider screens. On phones the position is centred above two equal-width Previous and Next controls, with the page-tour control on its own full-width row. |
+| Change a team member's name | `MemberControls` (`settings/team-controls.tsx`) | Owner-only dialog on Team and roles. The signed-in person changes their own name on My account, linked as “Your name and password” from the avatar menu. Both paths toast and audit the saved name. |
 | Ask before acting | `ask()` / `confirm` (`confirm.tsx`) | Never `window.confirm`. Anything that "cannot be undone" also needs "I understand". |
 | Say it worked | `toast()` (`toast.tsx`) | Every save, update, toggle and bulk action. Undo when it can be undone. |
 | Loading | `Skeleton` | Shaped like the real screen, never invented data. |

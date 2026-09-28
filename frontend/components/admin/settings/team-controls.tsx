@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { UserPlus } from "lucide-react";
+import { Pencil, Save, UserPlus } from "lucide-react";
 import { inviteStaff, revokeInvite } from "@/lib/admin/invite-actions";
-import { deactivateMember, reactivateMember, setTeamRole, signOutMember } from "@/lib/admin/team-actions";
-import { Actions, Fields, Form, Hidden, Radios, Submit } from "@/components/admin/form";
+import { deactivateMember, reactivateMember, renameTeamMember, setTeamRole, signOutMember } from "@/lib/admin/team-actions";
+import { Actions, Field, Fields, Form, Hidden, Radios, Submit } from "@/components/admin/form";
+import { DialogButton } from "@/components/admin/dialog";
 import { Text } from "./kit";
 
 /**
@@ -54,7 +55,16 @@ export function InvitationRow({ id, name, email, role }: { id: string; name: str
 /** What an owner can do to somebody else's access. Never shown on their own row. */
 export function MemberControls({ id, name, role, active }: { id: string; name: string; role: "owner" | "staff"; active: boolean }) {
   return (
-    <span className="ad__row">
+    <div className="ad__row">
+      <DialogButton label="Change name" title={`Change ${name}'s name`} tone="plain" icon={Pencil}>
+        {(close) => (
+          <Form action={renameTeamMember} onDone={close}>
+            <Hidden name="id" value={id} />
+            <Fields><Field name="name" label="Name" defaultValue={name} required /></Fields>
+            <Actions><Submit icon={Save}>Save name</Submit></Actions>
+          </Form>
+        )}
+      </DialogButton>
       {active ? (
         <>
           <Form action={setTeamRole} confirm={role === "owner" ? `Make ${name} staff? They lose money, settings and the team, and are signed out.` : `Make ${name} an owner? They can do everything, including this.`}>
@@ -77,6 +87,6 @@ export function MemberControls({ id, name, role, active }: { id: string; name: s
           <button className="ad__btn" type="submit">Reactivate</button>
         </Form>
       )}
-    </span>
+    </div>
   );
 }

@@ -47,7 +47,7 @@ export async function listTeam(): Promise<TeamMember[]> {
 }
 
 export type TeamChange =
-  | { ok: true; member: { id: string; name: string; email: string } }
+  | { ok: true; member: { id: string; name: string; email: string; previousName?: string } }
   | { ok: false; reason: "missing" | "self" | "last-owner" | "not-team" | "no-change" };
 
 /**
@@ -74,10 +74,11 @@ async function change(
     if (!target) { await tx.query("ROLLBACK"); return { ok: false, reason: "missing" }; }
     if (target.role !== "owner" && target.role !== "staff") { await tx.query("ROLLBACK"); return { ok: false, reason: "not-team" }; }
     if (reducesOwners(target) && owners.rows.length <= 1) { await tx.query("ROLLBACK"); return { ok: false, reason: "last-owner" }; }
+    const previousName = target.name;
     const refused = await apply(tx, target);
     if (refused) { await tx.query("ROLLBACK"); return refused; }
     await tx.query("COMMIT");
-    return { ok: true, member: { id: target.id, name: target.name, email: target.email } };
+    return { ok: true, member: { id: target.id, name: target.name, email: target.email, ...(target.name !== previousName ? { previousName } : {}) } };
   } catch (error) {
     await tx.query("ROLLBACK").catch(() => {});
     throw error;
@@ -119,6 +120,16 @@ export function reactivate(actorId: string, targetId: string) {
 export function signOutEverywhere(actorId: string, targetId: string) {
   return change(actorId, targetId, async (tx) => {
     await tx.query(`DELETE FROM "session" WHERE "userId" = $1`, [targetId]);
+    return null;
+  }, () => false);
+}
+
+/** An owner may correct another team member's display name, never their own. */
+export function renameMember(actorId: string, targetId: string, name: string) {
+  return change(actorId, targetId, async (tx, target) => {
+    if (target.name === name) return { ok: false, reason: "no-change" };
+    await tx.query(`UPDATE "user" SET "name" = $2, "updatedAt" = now() WHERE "id" = $1`, [targetId, name]);
+    target.name = name;
     return null;
   }, () => false);
 }

@@ -34,6 +34,7 @@ const db = pool();
 const MARK = randomUUID().slice(0, 6);
 const OWNER = `t-owner-${MARK}`;
 const STAFF = `t-staff-${MARK}`;
+const RENAME = `t-rename-${MARK}`;
 let otherOwners: string[] = [];
 
 test.beforeAll(async () => {
@@ -41,14 +42,14 @@ test.beforeAll(async () => {
      database are parked for the run and put back after. */
   otherOwners = (await db.query<{ id: string }>(`SELECT "id" FROM "user" WHERE "role" = 'owner' AND "deactivatedAt" IS NULL`)).rows.map((r) => r.id);
   if (otherOwners.length) await db.query(`UPDATE "user" SET "deactivatedAt" = now(), "deactivatedBy" = 'team.spec' WHERE "id" = ANY($1::TEXT[])`, [otherOwners]);
-  await db.query(`INSERT INTO "user" ("id", "name", "email", "emailVerified", "role") VALUES ($1, $2, $3, true, 'owner'), ($4, $5, $6, true, 'staff')`,
-    [OWNER, `Owner ${MARK}`, `owner-${MARK}@example.com`, STAFF, `Staff ${MARK}`, `staff-${MARK}@example.com`]);
+  await db.query(`INSERT INTO "user" ("id", "name", "email", "emailVerified", "role") VALUES ($1, $2, $3, true, 'owner'), ($4, $5, $6, true, 'staff'), ($7, $8, $9, true, 'staff')`,
+    [OWNER, `Owner ${MARK}`, `owner-${MARK}@example.com`, STAFF, `Staff ${MARK}`, `staff-${MARK}@example.com`, RENAME, `Rename ${MARK}`, `rename-${MARK}@example.com`]);
   await db.query(`INSERT INTO "session" ("id", "expiresAt", "token", "userId") VALUES ($1, now() + INTERVAL '1 day', $2, $3)`,
     [randomUUID(), `tok-${MARK}`, STAFF]);
 });
 
 test.afterAll(async () => {
-  await db.query(`DELETE FROM "user" WHERE "id" = ANY($1::TEXT[])`, [[OWNER, STAFF]]);
+  await db.query(`DELETE FROM "user" WHERE "id" = ANY($1::TEXT[])`, [[OWNER, STAFF, RENAME]]);
   if (otherOwners.length) await db.query(`UPDATE "user" SET "deactivatedAt" = NULL, "deactivatedBy" = NULL WHERE "id" = ANY($1::TEXT[])`, [otherOwners]);
   await db.end();
 });
@@ -85,6 +86,20 @@ test("the team is listed with its sessions, and deactivating ends them at once",
   await row(page, `Staff ${MARK}`).getByRole("button", { name: "Reactivate" }).click();
   await expect(row(page, `Staff ${MARK}`)).not.toContainText("Deactivated", { timeout: 20_000 });
   expect((await db.query(`SELECT "deactivatedAt" FROM "user" WHERE "id" = $1`, [STAFF])).rows[0].deactivatedAt).toBeNull();
+});
+
+test("an owner can rename a member from Team and the change is audited", async ({ page, baseURL }) => {
+  await asOwner(page, baseURL);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/admin/settings/team", { waitUntil: "networkidle" });
+  await row(page, `Rename ${MARK}`).getByRole("button", { name: "Change name" }).click();
+  const dialog = page.getByRole("dialog", { name: `Change Rename ${MARK}'s name` });
+  await dialog.getByLabel("Name").fill(`Studio ${MARK}`);
+  await dialog.getByRole("button", { name: "Save name" }).click();
+  await expect(page.locator(".adToast", { hasText: "Updated" })).toBeVisible({ timeout: 20_000 });
+  await expect(row(page, `Studio ${MARK}`)).toBeVisible();
+  expect((await db.query(`SELECT "name" FROM "user" WHERE "id" = $1`, [RENAME])).rows[0].name).toBe(`Studio ${MARK}`);
+  await expect.poll(async () => (await db.query(`SELECT from_value, to_value FROM audit_log WHERE subject_id = $1 AND field = 'Name' ORDER BY at DESC LIMIT 1`, [RENAME])).rows[0]).toEqual({ from_value: `Rename ${MARK}`, to_value: `Studio ${MARK}` });
 });
 
 test("the last owner can be neither demoted nor deactivated", async ({ page, baseURL }) => {
