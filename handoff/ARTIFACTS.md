@@ -21,6 +21,7 @@ reads one with the Artifact tool (`action: "read"`), not a web fetch.
 | https://claude.ai/artifact/Bqtw4xKmkbYzydFphD4EAY | Loading skeletons. | Built. |
 | https://claude.ai/artifact/BYT5c6gzNLne7Kwbby9Wwp | Case studies. | Reference. |
 | `prototypes/tooltip-13/` | Tooltip proposal: compact solid anchored panel, directional arrow, edge-safe placement and both themes. Includes 390px light/dark and 320px captures. | **Declined 2026-09-28: retain the existing tooltip design.** |
+| `prototypes/google-signin-21/` | Google sign-in flow: login, invitation match/mismatch, first sign-in, client/admin linking, safe unlinking and unconnected-account errors. Eight reproducible captures plus a 48-state responsive check. | **Waiting on the owner. Design only; production auth unchanged.** |
 
-New proposals this queue still needs (make them as artifacts, show the owner, build only on approval):
-Google sign-in flow (item 21) and the refined hero C (item 20).
+The Google sign-in flow (item 21) is ready for approval. The owner asked to
+skip refined hero C (item 20) on 2026-09-28.
