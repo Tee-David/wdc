@@ -68,6 +68,12 @@ record and needs no schema migration. Git-triggered Vercel deploys remain
 blocked by the private-repository Hobby policy, and the direct-deploy API is at
 its daily limit; do not treat these pushes as live-production verification.
 
+Production also has `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` set as a write-only
+Vercel secret. Keep it stable across deployments: without Skew Protection, an
+open admin or portal page can post an old action identifier to a new build and
+fall into the route error boundary. Rotate it only as a deliberate reload/sign-
+out event for every open dashboard page.
+
 **Production still needs migrations 0028–0032 applied** from Settings > System
 (the owner presses Apply). Everything works without them, but they make the
 tables permanent and indexed.
