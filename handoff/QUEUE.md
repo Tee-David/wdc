@@ -27,7 +27,7 @@ proves it. Phone checks are at 390px (and 320px for anything text-heavy).
 - [x] **7. Stat cards sometimes show no figures until a refresh** (Collected/Outstanding/Live projects tiles with the numbers missing). `screenshots/07-*.jpg`. Fixed in `206b52f`.
   Start: the KPI tiles use `components/admin/count-up.tsx`. The server renders the real figure; the count-up probably sets the text to 0/empty and waits for an IntersectionObserver or an arrival animation that never fires after a client-side navigation. Fix so the real figure is always in the DOM (count-up only animates a copy, or starts from the figure and never blanks it). Test: navigate client-side to Money and to Dashboard and assert every tile's value is non-empty.
 
-- [ ] **8. "Why isn't there a setting to set/change my name as an admin user or staff."** `screenshots/08-*.jpg` (project card says "Babatope is answerable").
+- [x] **8. "Why isn't there a setting to set/change my name as an admin user or staff."** `screenshots/08-*.jpg` (project card says "Babatope is answerable"). Fixed in `0e39fdf`.
   Settings > My account has a Name form (`components/admin/settings/account-controls.tsx` `MyNameForm`). Check it saves for owner AND staff, that the new name shows in the sidebar/avatar and on new records, and that the owner can rename a staff member from Team and roles. If the owner simply did not find it, make it findable (first thing on My account, and in the avatar menu as "Your name and password").
 
 - [ ] **9. Icon picker text squeezed into one-word lines on a phone** ("A random one unless you pick. The client sees it too." beside Shuffle). `screenshots/09-*.jpg`. Start: `components/admin/icon-picker.tsx`. Stack the hint under the preview and Shuffle on narrow screens.
