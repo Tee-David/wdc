@@ -38,7 +38,8 @@ proves it. Phone checks are at 390px (and 320px for anything text-heavy).
 - [ ] **11. Ticking a task crashes the page** ("This page did not load"). `screenshots/11-*.jpg`.
   Start: the project page task list (`components/admin/project-forms.tsx` "What is left", its action in `lib/admin/actions.ts` toggle task). Reproduce locally on a seeded project (tasks with a dependency, e.g. "Build the guideline set" waits for "Chase Tobi"), read the server error, fix, and pin with a test that ticks and unticks a task.
 
-- [ ] **12. Attention rows on a phone: the ⋯ menu sits at the bottom; it should be on the right.** `screenshots/12-*.jpg` (dashboard "INV-2026-001 is overdue" rows). Start: `components/admin/dashboard.css` attention list; keep icon | text | ⋯ on one row at every width, ⋯ top-aligned right, 44px target.
+- [x] **12. Attention rows on a phone: the ⋯ menu sits at the bottom; it should be on the right.** `screenshots/12-*.jpg` (dashboard "INV-2026-001 is overdue" rows). Fixed in `5fd4c20`.
+  The phone grid keeps icon | wrapped copy | menu in one row at 390px and 320px, and the menu has a 44px target. Pinned by `tests/dashboard-attention.spec.ts`.
 
 - [ ] **13. A better tooltip design, responsive.** `screenshots/13-*.jpg` ("Naira. Leave it empty when nothing is agreed; empty is not zero." in a wide white box). Start: `components/onboarding/tip.tsx` (used by the admin "?" hints too). Design: a compact popover anchored to the "?" with an arrow, max-width ~18rem, solid panel colour, stays inside the viewport and safe areas, closes on outside tap/Escape, both themes. Show the owner before/after screenshots.
 
