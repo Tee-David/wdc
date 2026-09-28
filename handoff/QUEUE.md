@@ -30,7 +30,7 @@ proves it. Phone checks are at 390px (and 320px for anything text-heavy).
 - [x] **8. "Why isn't there a setting to set/change my name as an admin user or staff."** `screenshots/08-*.jpg` (project card says "Babatope is answerable"). Fixed in `0e39fdf`.
   Settings > My account has a Name form (`components/admin/settings/account-controls.tsx` `MyNameForm`). Check it saves for owner AND staff, that the new name shows in the sidebar/avatar and on new records, and that the owner can rename a staff member from Team and roles. If the owner simply did not find it, make it findable (first thing on My account, and in the avatar menu as "Your name and password").
 
-- [ ] **9. Icon picker text squeezed into one-word lines on a phone** ("A random one unless you pick. The client sees it too." beside Shuffle). `screenshots/09-*.jpg`. Start: `components/admin/icon-picker.tsx`. Stack the hint under the preview and Shuffle on narrow screens.
+- [x] **9. Icon picker text squeezed into one-word lines on a phone** ("A random one unless you pick. The client sees it too." beside Shuffle). `screenshots/09-*.jpg`. Fixed in `381d179`.
 
 - [ ] **10. Deliverables: upload files as well as a link, and the dialog opens with the close button highlighted.** `screenshots/10-*.jpg`. "Maybe we can have an 'upload file(s)' and/or add a link."
   Start: `components/admin/delivery.tsx` ("Add a deliverable"). Add a file drop/upload (reuse `components/admin/media-upload.ts` → R2, or the onboarding uploader pattern), one or more files and/or a link; show files on the deliverable for the client in the portal with Open/Download. Focus: see item 14.
