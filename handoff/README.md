@@ -88,8 +88,9 @@ tables permanent and indexed.
 ## What to do next
 
 The phone bug queue is complete. The owner asked to skip refined hero Option C.
-The Google sign-in flow proposal is ready in `prototypes/google-signin-21/` and
-must be approved before production auth changes are built.
+Queue item 21 is marked complete for its design phase in `85b75df`. The Google
+sign-in flow proposal is in `prototypes/google-signin-21/`; it must be approved
+before production auth changes are built.
 
 When you finish an item: tick it in `QUEUE.md`, add a line to
 `IMPLEMENTATION_CHECKLIST.md` if it closes something there, commit, push.
