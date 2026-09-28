@@ -21,7 +21,7 @@ proves it. Phone checks are at 390px (and 320px for anything text-heavy).
 - [x] **5. Entry attachments overflow sideways on a phone** ("Fix the overflow on mobile. It's not responsive. Drifting horizontally"). `screenshots/05-*.jpg`. Fixed in `912cdfa`.
   Start: `components/admin/forms/forms.css` `.adAtt` (made a rail on 2026-09-27). The rail's width is escaping the panel: the panel/grid parent needs `min-width:0`, and `.adAtt` needs `max-width:100%`. Test at 320/360/390: `document.documentElement.scrollWidth <= innerWidth` on an entry with 3+ files (tests/entry-attachments.spec.ts has the fixture).
 
-- [ ] **6. Entry page head on a phone: "Replay this page's tour" and Previous / 2 of 7 / Next are misaligned.** `screenshots/06-*.jpg`.
+- [x] **6. Entry page head on a phone: "Replay this page's tour" and Previous / 2 of 7 / Next are misaligned.** `screenshots/06-*.jpg`. Fixed in `b08ccba`.
   Start: `app/admin/forms/[form]/entries/[entry]/page.tsx` (`adEntryNav`), CSS in `forms.css`. On a phone: Previous and Next each take half the row with the counter centred between (or above), same height, and the tour button full width above them.
 
 - [ ] **7. Stat cards sometimes show no figures until a refresh** (Collected/Outstanding/Live projects tiles with the numbers missing). `screenshots/07-*.jpg`.
