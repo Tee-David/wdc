@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  ArrowRight, CalendarDays, ChevronRight, Eye, FileCheck2, FileText, Layers, MessageSquare,
+  ArrowRight, CalendarDays, ChevronRight, Download, Eye, FileCheck2, FileText, Layers, MessageSquare,
   MessageSquareReply, ScrollText, User,
 } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
@@ -15,6 +15,7 @@ import { ProfileCard } from "@/components/admin/profile-card";
 import { DeliverableActions } from "@/components/client/deliverable-actions";
 import "@/components/client/portal.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
+import { deliverableFileLinks } from "@/lib/deliverable-files";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   await syncStore();
@@ -107,7 +108,8 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
                           <small>Sent {when(latest.at)}</small>
                           {latest.note ? <p>{latest.note}</p> : null}
                           <div className="cpDeliv__acts">
-                            {latest.url ? <a className="ad__btn" href={latest.url} target="_blank" rel="noopener noreferrer"><Eye aria-hidden="true" /> View file</a> : null}
+                            {latest.url ? <a className="ad__btn" href={latest.url} target="_blank" rel="noopener noreferrer"><Eye aria-hidden="true" /> Open link</a> : null}
+                            <DeliverableFiles files={latest.files} button />
                             <DeliverableActions deliverable={d} />
                           </div>
                         </div>
@@ -125,6 +127,7 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
                           <small>
                             {d.approval === "Revision requested" && d.approvalNote ? <>Your note: “{d.approvalNote}”</> : `${when(latest.at)}${latest.note ? ` · ${latest.note}` : ""}`}
                           </small>
+                          <DeliverableFiles files={latest.files} />
                           {older.length ? (
                             /* EVERY VERSION IS KEPT, so "which logo did they approve"
                                stays answerable -- see the type's own comment on why
@@ -134,7 +137,8 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
                               {older.map((v) => (
                                 <p key={v.v}>
                                   v{v.v} · {when(v.at)}{v.note ? ` · ${v.note}` : ""}
-                                  {v.url ? <> · <a href={v.url} target="_blank" rel="noopener noreferrer">View file</a></> : null}
+                                  {v.url ? <> · <a href={v.url} target="_blank" rel="noopener noreferrer">Open link</a></> : null}
+                                  <DeliverableFiles files={v.files} compact />
                                 </p>
                               ))}
                             </details>
@@ -142,7 +146,7 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
                         </div>
                         <span className="cpDeliv__end">
                           <ApprovalPill approval={d.approval} />
-                          {latest.url ? <a className="cpDeliv__link" href={latest.url} target="_blank" rel="noopener noreferrer">View file</a> : null}
+                          {latest.url ? <a className="cpDeliv__link" href={latest.url} target="_blank" rel="noopener noreferrer">Open link</a> : null}
                         </span>
                       </div>
                     );
@@ -212,5 +216,21 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
         </div>
       </div>
     </>
+  );
+}
+
+function DeliverableFiles({ files, button = false, compact = false }: { files: { name: string; key: string }[] | undefined; button?: boolean; compact?: boolean }) {
+  const links = deliverableFileLinks(files);
+  if (!links.length) return null;
+  return (
+    <span className={`cpDeliv__files${compact ? " cpDeliv__files--compact" : ""}`}>
+      {links.map((file) => (
+        <span key={file.key} className="cpDeliv__file">
+          <b>{file.name}</b>
+          {file.open ? <a className={button ? "ad__btn" : "cpDeliv__link"} href={file.open} target="_blank" rel="noopener noreferrer"><Eye aria-hidden="true" /> Open</a> : <span className="ad__dim">Unavailable</span>}
+          {file.download ? <a className={button ? "ad__btn" : "cpDeliv__link"} href={file.download}><Download aria-hidden="true" /> Download</a> : null}
+        </span>
+      ))}
+    </span>
   );
 }

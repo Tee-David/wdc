@@ -1677,11 +1677,11 @@ export function addUpdate(d: {
   return u;
 }
 
-export function addDeliverable(d: { projectId: Id; name: string; note: string; url?: string }): Deliverable | null {
+export function addDeliverable(d: { projectId: Id; name: string; note: string; url?: string; files?: Deliverable["versions"][number]["files"] }): Deliverable | null {
   if (!PROJECTS.some((p) => p.id === d.projectId)) return null;
   const item: Deliverable = {
     id: mint("d"), projectId: d.projectId, name: d.name,
-    versions: [{ v: 1, at: now(), note: d.note, url: d.url }],
+    versions: [{ v: 1, at: now(), note: d.note, url: d.url, files: d.files }],
     approval: "Not sent",
   };
   DELIVERABLES.push(item);
@@ -1691,11 +1691,11 @@ export function addDeliverable(d: { projectId: Id; name: string; note: string; u
 
 /** A new version is appended and numbered from the last one. Nothing is
     overwritten -- see the note on the type for why that matters. */
-export function addVersion(id: Id, note: string, url?: string): Deliverable | null {
+export function addVersion(id: Id, note: string, url?: string, files?: Deliverable["versions"][number]["files"]): Deliverable | null {
   const d = DELIVERABLES.find((x) => x.id === id);
   if (!d) return null;
   const v = (d.versions[d.versions.length - 1]?.v ?? 0) + 1;
-  d.versions.push({ v, at: now(), note, url });
+  d.versions.push({ v, at: now(), note, url, files });
   /* A new version supersedes whatever the last one was told: an approval given
      for v2 is not an approval of v3. */
   d.approval = "Not sent";

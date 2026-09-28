@@ -211,11 +211,16 @@ export type Approval = (typeof APPROVALS)[number];
  * keeps its own number, date and note, so the approval can point at the exact
  * version it was given for.
  */
+/** A file the studio uploaded through the media library, not an arbitrary URL.
+    The key is what lets the portal issue a real attachment download instead of
+    hoping a cross-origin `download` attribute will be honoured. */
+export type DeliverableFile = { name: string; key: string };
+
 export type Deliverable = {
   id: Id;
   projectId: Id;
   name: string;
-  versions: { v: number; at: string; note: string; url?: string }[];
+  versions: { v: number; at: string; note: string; url?: string; files?: DeliverableFile[] }[];
   approval: Approval;
   /** What the client said when they asked for changes. Their words. */
   approvalNote?: string;

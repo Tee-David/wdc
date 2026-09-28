@@ -887,6 +887,22 @@ body:has(.adDrawer[open]) .st { display: none; }
 .addlg__x svg { width: 1.1rem; height: 1.1rem; }
 .addlg__b { padding: 1.25rem 1.5rem 1.5rem; overflow-y: auto; }
 
+/* A deliverable may be a link, uploaded files, or both. Files are listed as
+   real controls rather than a faux drop zone, so keyboard and touch users get
+   the same upload/remove path. */
+.adDelUpload { min-width: 0; }
+.adDelUpload__pick { width: fit-content; min-height: 2.75rem; cursor: pointer; }
+.adDelUpload__pick input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.adDelUpload__list { display: grid; gap: .4rem; margin: .65rem 0 0; padding: 0; list-style: none; }
+.adDelUpload__list li, .adDelFile { display: flex; align-items: center; gap: .55rem; min-width: 0; }
+.adDelUpload__list li { padding: .5rem .6rem; border: 1px solid var(--ad-line); border-radius: 9px; background: var(--ad-bg); }
+.adDelUpload__list span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adDelUpload__list button { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; margin-left: auto; flex: none; border: 1px solid var(--ad-line); border-radius: 8px; background: var(--ad-panel); color: var(--ad-ink); cursor: pointer; }
+.adDelUpload__list button svg { width: 1rem; height: 1rem; }
+.adDelFile { margin-top: .35rem; flex-wrap: wrap; font-size: .85rem; }
+.adDelFile b { overflow-wrap: anywhere; }
+.adDelFile a { color: var(--ad-accent); font-weight: 600; }
+
 /* ----------------------------------------------------------- stage mover */
 
 /* The six stages as the path they are. The current one is not a button,

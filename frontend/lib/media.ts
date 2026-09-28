@@ -238,6 +238,13 @@ export async function mediaById(id: string) {
   return r.rows[0] ? toAsset(r.rows[0]) : null;
 }
 
+/** Used by deliverable actions to prove a browser-supplied media key is a
+    current library record before it is attached to a client project. */
+export async function mediaByKey(key: string) {
+  const r = await db.query<Row>(`SELECT ${await columns()} FROM media_assets WHERE key = $1`, [key]);
+  return r.rows[0] ? toAsset(r.rows[0]) : null;
+}
+
 export async function setMediaAlt(id: string, alt: string) {
   const r = await db.query("UPDATE media_assets SET alt = $2 WHERE id = $1", [id, alt]);
   return (r.rowCount ?? 0) > 0;

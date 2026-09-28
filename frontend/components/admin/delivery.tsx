@@ -1,7 +1,8 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { IconPicker } from "./icon-picker";
-import { Check, FilePlus2, ListPlus, Plus, Send, Trash2 } from "lucide-react";
+import { Check, FilePlus2, ListPlus, Loader2, Plus, Send, Trash2, Upload, X } from "lucide-react";
 import {
   APPROVALS, CHANNELS, HEALTH, PRIORITIES, naira, taskIsWaiting,
   type Deliverable, type Project, type Task, type Update,
@@ -10,11 +11,13 @@ import {
   addDeliverableVersion, createDeliverable, createTask, moveApproval,
   postUpdate, removeTask, saveProjectDetails, toggleTask,
 } from "@/lib/admin/actions";
-import { Actions, Area, Field, Fields, Form, Hidden, Select, Submit } from "./form";
+import { Actions, Area, Field, Fields, Form, Hidden, Select, Submit, useFieldError } from "./form";
 import { useAdminRole } from "./shell";
 import { can } from "@/lib/admin/permissions";
 import { DialogButton } from "./dialog";
 import { ApprovalPill, Empty, HealthPill, Panel, when } from "./bits";
+import { uploadToMedia } from "./media-upload";
+import { MEDIA_ACCEPT } from "@/lib/media-validate";
 
 /**
  * The delivery half of a project: what is left, what we have said, and what we
@@ -205,10 +208,11 @@ export function Updates({ project, updates }: { project: Project; updates: Updat
 /* ----------------------------------------------------------- deliverables */
 
 export function Deliverables({
-  project, items,
+  project, items, fileLinks = {},
 }: {
   project: Project;
   items: Deliverable[];
+  fileLinks?: Record<string, { open: string | null; download: string | null }>;
 }) {
   return (
     <Panel
@@ -216,19 +220,7 @@ export function Deliverables({
       dataTour="proj-deliverables"
       action={
         <DialogButton label="Add a deliverable" title="Add a deliverable" icon={FilePlus2} tone="plain">
-          {(close) => (
-            <Form action={createDeliverable} onDone={close} resetOnDone>
-              <Hidden name="projectId" value={project.id} />
-              <Fields>
-                <Field name="name" label="What it is" required placeholder="Identity routes" />
-                <Area name="note" label="What this first version is" required rows={2}
-                      placeholder="Three routes, each with rationale." />
-                <Field name="url" label="Where it lives" placeholder="https://…"
-                       hint="Optional. A link to the file or folder; nothing is uploaded here yet." />
-              </Fields>
-              <Actions><Submit>Add it</Submit></Actions>
-            </Form>
-          )}
+          {(close) => <DeliverableForm projectId={project.id} onDone={close} />}
         </DialogButton>
       }
     >
@@ -264,6 +256,16 @@ export function Deliverables({
                           <a href={v.url} target="_blank" rel="noopener noreferrer">Open</a>
                         </>
                       ) : null}
+                      {v.files?.map((file) => {
+                        const links = fileLinks[deliverableFileId(d.id, v.v, file.key)];
+                        return (
+                          <span className="adDelFile" key={file.key}>
+                            <b>{file.name}</b>
+                            {links?.open ? <a href={links.open} target="_blank" rel="noopener noreferrer">Open</a> : <span className="ad__dim">Unavailable</span>}
+                            {links?.download ? <a href={links.download}>Download</a> : null}
+                          </span>
+                        );
+                      })}
                     </span>
                   </li>
                 ))}
@@ -277,22 +279,7 @@ export function Deliverables({
 
               <div className="ad__row">
                 <DialogButton label="New version" title={`New version of ${d.name}`} icon={Plus} tone="plain">
-                  {(close) => (
-                    <Form action={addDeliverableVersion} onDone={close}>
-                      <Hidden name="id" value={d.id} />
-                      <Fields>
-                        <Area name="note" label="What changed" required rows={2} />
-                        <Field name="url" label="Where it lives" placeholder="https://…" />
-                      </Fields>
-                      <p className="ad__dim" style={{ fontSize: ".86rem" }}>
-                        A new version supersedes whatever the last one was told:
-                        an approval given for v{d.versions[d.versions.length - 1]?.v} is
-                        not an approval of the next one, so this resets to
-                        &ldquo;not sent&rdquo;.
-                      </p>
-                      <Actions><Submit>Add the version</Submit></Actions>
-                    </Form>
-                  )}
+                  {(close) => <DeliverableForm id={d.id} onDone={close} previousVersion={d.versions[d.versions.length - 1]?.v} />}
                 </DialogButton>
 
                 <DialogButton label="Record a response" title={`${d.name}: what happened`} tone="plain">
@@ -321,6 +308,73 @@ export function Deliverables({
         </Empty>
       )}
     </Panel>
+  );
+}
+
+const deliverableFileId = (deliverableId: string, version: number, key: string) => `${deliverableId}:${version}:${key}`;
+
+function DeliverableForm({ projectId, id, onDone, previousVersion }: { projectId?: string; id?: string; onDone: () => void; previousVersion?: number }) {
+  const [uploading, setUploading] = useState(false);
+  const fresh = Boolean(projectId);
+  return (
+    <Form action={fresh ? createDeliverable : addDeliverableVersion} onDone={onDone} resetOnDone={fresh}>
+      {projectId ? <Hidden name="projectId" value={projectId} /> : null}
+      {id ? <Hidden name="id" value={id} /> : null}
+      <Fields>
+        {fresh ? <Field name="name" label="What it is" required placeholder="Identity routes" /> : null}
+        <Area name="note" label={fresh ? "What this first version is" : "What changed"} required rows={2}
+              placeholder={fresh ? "Three routes, each with rationale." : undefined} />
+        <DeliverableUpload onBusyChange={setUploading} />
+        <Field name="url" label="Add a link" placeholder="https://…"
+               hint="Optional. Upload files, add a link, or do both." />
+      </Fields>
+      {!fresh ? <p className="ad__dim" style={{ fontSize: ".86rem" }}>
+        A new version supersedes whatever the last one was told: an approval given for v{previousVersion} is not an approval of the next one, so this resets to &ldquo;not sent&rdquo;.
+      </p> : null}
+      <Actions><Submit disabled={uploading}>{uploading ? "Uploading files…" : fresh ? "Add it" : "Add the version"}</Submit></Actions>
+    </Form>
+  );
+}
+
+function DeliverableUpload({ onBusyChange }: { onBusyChange: (busy: boolean) => void }) {
+  const input = useRef<HTMLInputElement>(null);
+  const [files, setFiles] = useState<{ name: string; key: string }[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const fieldError = useFieldError("files");
+
+  const upload = async (picked: FileList | null) => {
+    if (!picked?.length) return;
+    const incoming = Array.from(picked).slice(0, Math.max(0, 10 - files.length));
+    if (!incoming.length) { setError("A deliverable can have up to 10 uploaded files."); return; }
+    setBusy(true); onBusyChange(true); setError("");
+    const added: { name: string; key: string }[] = [];
+    for (const file of incoming) {
+      const done = await uploadToMedia(file);
+      if (!done.ok) { setError(done.error); break; }
+      added.push({ name: done.name, key: done.key });
+    }
+    if (added.length) setFiles((current) => [...current, ...added]);
+    setBusy(false); onBusyChange(false);
+    if (input.current) input.current.value = "";
+  };
+
+  return (
+    <div className={`ad__f adDelUpload${fieldError || error ? " is-bad" : ""}`}>
+      <span className="ad__fl">Upload file(s)</span>
+      <input type="hidden" name="files" value={JSON.stringify(files)} />
+      <label className="ad__btn adDelUpload__pick">
+        {busy ? <Loader2 className="ad__spin" aria-hidden="true" /> : <Upload aria-hidden="true" />}
+        {busy ? "Uploading" : "Choose files"}
+        <input ref={input} type="file" accept={MEDIA_ACCEPT} multiple disabled={busy || files.length >= 10}
+               onChange={(event) => { void upload(event.target.files); }} />
+      </label>
+      <small className="ad__fh">PNG, JPEG, WebP, AVIF, GIF, PDF, MP4 or WebM. Up to 10 files.</small>
+      {files.length ? <ul className="adDelUpload__list">
+        {files.map((file) => <li key={file.key}><span>{file.name}</span><button type="button" aria-label={`Remove ${file.name}`} onClick={() => setFiles((current) => current.filter((x) => x.key !== file.key))}><X aria-hidden="true" /></button></li>)}
+      </ul> : null}
+      {error || fieldError ? <small className="ad__fe" role="alert">{error || fieldError}</small> : null}
+    </div>
   );
 }
 
