@@ -50,6 +50,12 @@ proves it. Phone checks are at 390px (and 320px for anything text-heavy).
 - [x] **15. Blog editor: pictures and videos inserted INSIDE the article do not save or show on the live post.** Owner: "I was really talking about the editor itself … you attach an image, it doesn't actually save … doesn't show on the front end. I don't know if videos work." Verified in `fd77c58`.
   The cursor-after-media fix, image/video document schema, fail-closed origin check and visible save refusal were already present. `tests/blog-media.spec.ts` now uses the configured media-library URL shape and proves picture + video save to CockroachDB, survive a fresh editor load at 320px, and render as `<img>` / `<video>` on the ordinary public post without phone overflow. No migration.
 
+- [x] **16. Entry Details and attachments must stay responsive; use a carousel only above four attachments.** Fixed in `5b6e43b`.
+  “Make them a client” now wraps within its value cell at 600/390/320px. Up to four attachments remain in the responsive grid; five or more become the existing keyboard-focusable, native-scroll rail with a partial next card and no page overflow. Pinned by `tests/admin-live-forms.spec.ts` and `tests/entry-attachments.spec.ts`.
+
+- [x] **17. File uploads must use the established WDC dropzone, not a one-off Choose files button.** Fixed in `5b6e43b`.
+  `FileDrop` is now the shared admin form component, matching the onboarding dropzone while retaining each form's own upload rules. Project deliverables and newsletter CSV import use it at 390/320px. The audit preserved purpose-specific approved controls for covers, galleries, rich-text media and the media library. Pinned by `tests/deliverable-files.spec.ts`.
+
 ## Proposals to show the owner first (artifact, then build on approval)
 
 - [ ] **20. Hero, Option C refined.** Owner's brief, in their words:
