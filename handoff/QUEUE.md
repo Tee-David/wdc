@@ -35,8 +35,8 @@ proves it. Phone checks are at 390px (and 320px for anything text-heavy).
 - [x] **10. Deliverables: upload files as well as a link, and the dialog opens with the close button highlighted.** `screenshots/10-*.jpg`. Fixed in `2322490`.
   `delivery.tsx` now accepts up to ten media-library uploads and/or a checked HTTP(S) link. Uploaded records retain validated R2 keys; the portal makes signed Open and attachment Download links from them. The dialog panel, not the close control, receives initial focus. Pinned by `tests/deliverable-files.spec.ts` at 390px and 320px. No schema migration is needed: deliverable versions are persisted JSON records.
 
-- [ ] **11. Ticking a task crashes the page** ("This page did not load"). `screenshots/11-*.jpg`.
-  Start: the project page task list (`components/admin/project-forms.tsx` "What is left", its action in `lib/admin/actions.ts` toggle task). Reproduce locally on a seeded project (tasks with a dependency, e.g. "Build the guideline set" waits for "Chase Tobi"), read the server error, fix, and pin with a test that ticks and unticks a task.
+- [x] **11. Ticking a task crashes the page** ("This page did not load"). `screenshots/11-*.jpg`. Covered in `44b3b70`.
+  The task action/store path was sound. The captured production error was Server Action deployment skew: an open page posted an old action identifier after a deploy. Production now has a stable write-only `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`; keep it stable across deploys. `tests/project-task-toggle.spec.ts` exercises tick and reopen at 390px and 320px, including dependency-bearing seed tasks and the intact project page.
 
 - [x] **12. Attention rows on a phone: the ⋯ menu sits at the bottom; it should be on the right.** `screenshots/12-*.jpg` (dashboard "INV-2026-001 is overdue" rows). Fixed in `5fd4c20`.
   The phone grid keeps icon | wrapped copy | menu in one row at 390px and 320px, and the menu has a 44px target. Pinned by `tests/dashboard-attention.spec.ts`.
