@@ -20,6 +20,7 @@ reads one with the Artifact tool (`action: "read"`), not a web fetch.
 | https://claude.ai/artifact/GyFR3Wyfs1ppqU4c7k5enu | Empty states and dead ends audit. | Built. |
 | https://claude.ai/artifact/Bqtw4xKmkbYzydFphD4EAY | Loading skeletons. | Built. |
 | https://claude.ai/artifact/BYT5c6gzNLne7Kwbby9Wwp | Case studies. | Reference. |
+| `prototypes/tooltip-13/` | Tooltip proposal: compact solid anchored panel, directional arrow, edge-safe placement and both themes. Includes 390px light/dark and 320px captures. | **Waiting on the owner. Do not build without approval.** |
 
 New proposals this queue still needs (make them as artifacts, show the owner, build only on approval):
 Google sign-in flow (item 21) and the refined hero C (item 20).
