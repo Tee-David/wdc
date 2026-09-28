@@ -1,8 +1,9 @@
 import { SERVICES, type ServiceSlug } from "@/lib/services";
 import {
   APPROVALS, CHANNELS, HEALTH, METHODS, PRIORITIES, STAGES,
-  type Stage,
+  type DeliverableFile, type Stage,
 } from "./types";
+import { isMediaKey } from "@/lib/media-validate";
 
 /**
  * Reading a form, safely.
@@ -169,6 +170,40 @@ export function url(fd: FormData, k: string): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Files arrive from the deliverable picker as JSON because one version can
+ * carry several uploads. They are still hostile form input: only a small,
+ * uniquely-keyed list from the media-library namespace is allowed through.
+ * The action separately confirms each key has a live library row.
+ */
+export function deliverableFiles(fd: FormData, errors: Errors): DeliverableFile[] {
+  const raw = str(fd, "files");
+  if (!raw) return [];
+  let value: unknown;
+  try { value = JSON.parse(raw); } catch { errors.files = "The uploaded files could not be read. Remove them and add them again."; return []; }
+  if (!Array.isArray(value) || value.length > 10) {
+    errors.files = "Add up to 10 uploaded files at a time.";
+    return [];
+  }
+  const seen = new Set<string>();
+  const files: DeliverableFile[] = [];
+  for (const item of value) {
+    const candidate = item && typeof item === "object" ? item as { name?: unknown; key?: unknown } : null;
+    if (!candidate || typeof candidate.name !== "string" || typeof candidate.key !== "string") {
+      errors.files = "One uploaded file is incomplete. Remove it and add it again.";
+      return [];
+    }
+    const name = candidate.name.trim().replace(/\s+/g, " ");
+    if (!name || name.length > 200 || !isMediaKey(candidate.key) || seen.has(candidate.key)) {
+      errors.files = "One uploaded file is not available any more. Remove it and add it again.";
+      return [];
+    }
+    seen.add(candidate.key);
+    files.push({ name, key: candidate.key });
+  }
+  return files;
 }
 
 export function required(errors: Errors, key: string, value: string, label: string) {

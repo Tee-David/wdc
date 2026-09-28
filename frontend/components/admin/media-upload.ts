@@ -10,7 +10,7 @@ import { checkMediaFile } from "@/lib/media-validate";
  * and the blog cover use, so a post never points at a file the library does
  * not know about. Resolves to the file's public address, or an error to show.
  */
-export async function uploadToMedia(f: File): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+export async function uploadToMedia(f: File): Promise<{ ok: true; url: string; key: string; name: string } | { ok: false; error: string }> {
   const local = checkMediaFile(f.name, f.size);
   if (!local.ok) return { ok: false, error: local.error };
   const grant = await signMediaUpload({ filename: f.name, size: f.size }).catch(() => null);
@@ -19,5 +19,5 @@ export async function uploadToMedia(f: File): Promise<{ ok: true; url: string } 
   if (!put) return { ok: false, error: "The file store did not accept the upload. If this keeps happening, check the bucket's CORS policy allows this site." };
   const recorded = await recordMediaUpload({ key: grant.key, filename: f.name }).catch(() => null);
   if (!recorded?.ok || !recorded.item.url) return { ok: false, error: (recorded && !recorded.ok && recorded.error) || "The file arrived but could not be listed. Try again." };
-  return { ok: true, url: recorded.item.url };
+  return { ok: true, url: recorded.item.url, key: recorded.item.key, name: recorded.item.filename };
 }

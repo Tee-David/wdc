@@ -31,7 +31,14 @@ export function Dialog({
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
-    if (open && !d.open) d.showModal();
+    if (open && !d.open) {
+      d.showModal();
+      /* Opening a native dialog otherwise leaves focus on the first button --
+         usually the close cross -- which paints a keyboard ring after a
+         mouse/touch press. The panel is the initial focus stop; Tab then
+         reaches its first real control. */
+      d.focus({ preventScroll: true });
+    }
     if (!open && d.open) d.close();
   }, [open]);
 
@@ -39,6 +46,7 @@ export function Dialog({
     <dialog
       ref={ref}
       className={`addlg${wide ? " addlg--wide" : ""}`}
+      tabIndex={-1}
       aria-labelledby={id}
       onClose={onClose}
       onClick={(e) => {
