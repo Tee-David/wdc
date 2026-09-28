@@ -18,7 +18,7 @@ proves it. Phone checks are at 390px (and 320px for anything text-heavy).
 - [x] **4. Studio notice emails show "me" as sender; the From name must be "We Dig Creativity".** `screenshots/04-*.jpg` (Onboarding brief email to the admin). Fixed in `4a65ff8`.
   Start: `lib/email.ts` (`sendMail`, From header), `lib/settings/registry.ts` `mail.fromName` (shipped value comes from `SMTP_FROM_NAME` or "WDC Solutions"). Make the shipped sender name "We Dig Creativity" and make sure notices to the studio send a From display name, not a bare address (Gmail shows "me" only when From equals the recipient with no name: give it a name).
 
-- [ ] **5. Entry attachments overflow sideways on a phone** ("Fix the overflow on mobile. It's not responsive. Drifting horizontally"). `screenshots/05-*.jpg`.
+- [x] **5. Entry attachments overflow sideways on a phone** ("Fix the overflow on mobile. It's not responsive. Drifting horizontally"). `screenshots/05-*.jpg`. Fixed in `912cdfa`.
   Start: `components/admin/forms/forms.css` `.adAtt` (made a rail on 2026-09-27). The rail's width is escaping the panel: the panel/grid parent needs `min-width:0`, and `.adAtt` needs `max-width:100%`. Test at 320/360/390: `document.documentElement.scrollWidth <= innerWidth` on an entry with 3+ files (tests/entry-attachments.spec.ts has the fixture).
 
 - [ ] **6. Entry page head on a phone: "Replay this page's tour" and Previous / 2 of 7 / Next are misaligned.** `screenshots/06-*.jpg`.
