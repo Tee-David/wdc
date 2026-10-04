@@ -12,7 +12,8 @@
    white sheet in both themes, so nothing here reads a theme token.
 
    EVERYTHING THAT MOVES IS TRANSFORM OR OPACITY, and only while `.rp--run` is
-   on the printer. The markup renders finished; the class is what plays it, so
+   on the printer (the one exception is pulling a long slip out, which grows
+   the window under the reader's own finger -- see the end of this file). The markup renders finished; the class is what plays it, so
    Replay is "take the class off, put it back", and reduced motion is "the
    class does nothing".
    ========================================================================== */
@@ -26,6 +27,9 @@
   --rp-rule: rgb(14 14 44 / .22);
   --rp-orange: #ff6500;
   --rp-fill: #b84a00;
+  /* Ready. A printer's light goes green when it is done, and that is the
+     one colour on this page that is not the brand's: it is the signal. */
+  --rp-green: #22c55e;
   --rp-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
   --rp-feed: 2.4s;
   --rp-start: .4s;
@@ -85,11 +89,42 @@
   color: #c9cae6;
 }
 .rp__dot {
-  width: .5rem;
-  height: .5rem;
+  width: .55rem;
+  height: .55rem;
+}
+
+/* THE TWO LIGHTS (the card's dot and the printer's LED) are one lamp drawn
+   twice: an unlit ground, an ORANGE layer that blinks while the printer
+   works, and a GREEN layer that comes on when it is done -- the way a real
+   printer's light goes from busy to ready. Green is the resting state, so a
+   page that is not animating says "ready", which is true. Opacity and
+   visibility only. */
+.rp__dot,
+.rp__led {
+  position: relative;
+  flex: none;
   border-radius: 999px;
+  background: #2a2b55;
+}
+.rp__dot::before,
+.rp__dot::after,
+.rp__led::before,
+.rp__led::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+.rp__dot::before,
+.rp__led::before {
   background: var(--rp-orange);
-  box-shadow: 0 0 0 3px rgb(255 101 0 / .22);
+  box-shadow: 0 0 8px rgb(255 101 0 / .85);
+  visibility: hidden;
+}
+.rp__dot::after,
+.rp__led::after {
+  background: var(--rp-green);
+  box-shadow: 0 0 8px rgb(34 197 94 / .75);
 }
 
 /* The two labels on the light: "Printing"/"Feed" while it runs, "Ready" /
@@ -150,11 +185,8 @@
   color: #c9cae6;
 }
 .rp__led {
-  width: .4rem;
-  height: .4rem;
-  border-radius: 999px;
-  background: var(--rp-orange);
-  box-shadow: 0 0 6px rgb(255 101 0 / .7);
+  width: .45rem;
+  height: .45rem;
 }
 .rp__slot {
   display: block;
@@ -361,9 +393,16 @@
   /* The chassis shivers while it feeds: 13 shivers of .18s cover the feed. */
   .rp--run .rp__machine { animation: rp-shiver .18s ease-in-out var(--rp-start) 13; }
 
-  /* The lights pulse while it prints, then hold. */
-  .rp--run .rp__led,
-  .rp--run .rp__dot { animation: rp-pulse .8s ease-in-out var(--rp-start) 3; }
+  /* The lights: orange and blinking while it prints, green when it is done.
+     Seven blinks of .4s, alternating, span the feed. */
+  .rp--run .rp__led::before,
+  .rp--run .rp__dot::before {
+    animation:
+      rp-blink .4s ease-in-out var(--rp-start) 7 alternate,
+      rp-vis-off calc(var(--rp-start) + var(--rp-feed)) step-end both;
+  }
+  .rp--run .rp__led::after,
+  .rp--run .rp__dot::after { animation: rp-vis-on calc(var(--rp-start) + var(--rp-feed)) step-end both; }
 
   /* "Printing" until the feed ends, then "Ready". */
   .rp--run .rp__busy { animation: rp-show calc(var(--rp-start) + var(--rp-feed)) step-end both; }
@@ -381,9 +420,17 @@
   60% { transform: translate(-.4px, 0); }
   80% { transform: translate(.4px, -.2px); }
 }
-@keyframes rp-pulse {
-  0%, 100% { opacity: .45; transform: scale(.9); }
-  50% { opacity: 1; transform: scale(1.15); }
+@keyframes rp-blink {
+  from { opacity: 1; }
+  to { opacity: .15; }
+}
+@keyframes rp-vis-off {
+  from { visibility: visible; }
+  to { visibility: hidden; }
+}
+@keyframes rp-vis-on {
+  from { visibility: hidden; }
+  to { visibility: visible; }
 }
 @keyframes rp-in {
   from { opacity: 0; transform: translateY(-8px) scale(.97); }
@@ -404,8 +451,85 @@
   to { opacity: 1; }
 }
 
+/* ---- pulling a long slip out -------------------------------------------
+   A slip longer than its window carries a paper tab at the window's foot.
+   Dragging it pulls the paper further out of the printer (the window grows
+   under the finger); tapping it feeds the rest out in one go. While paper is
+   moving the printer is "feeding" again: orange blinking light, the shiver,
+   "Printing". Wholly out, the tab and the fade go and the torn foot shows.
+   The tab only appears once JavaScript has measured the slip (`rp--more` is
+   set from receipt-actions.tsx), so without it the window simply scrolls. */
+.rp__pull {
+  position: absolute;
+  left: 50%;
+  bottom: .35rem;
+  z-index: 3;
+  display: none;
+  align-items: center;
+  gap: .45rem;
+  min-height: 2.75rem;
+  padding: .55rem 1rem .5rem;
+  transform: translateX(-50%);
+  border: 1px solid var(--rp-edge);
+  border-radius: 12px;
+  background: var(--rp-paper);
+  box-shadow: 0 8px 18px -10px rgb(0 0 26 / .45);
+  color: var(--rp-ink);
+  font-family: var(--rp-mono);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: grab;
+  /* The tab is the only thing that takes the gesture, so the page around
+     it keeps scrolling normally on a phone. */
+  touch-action: none;
+  user-select: none;
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+.rp__pull:hover { box-shadow: 0 10px 22px -10px rgb(0 0 26 / .6); }
+.rp__pull:active { cursor: grabbing; }
+.rp__pull:focus-visible { outline: 2px solid var(--rp-navy); outline-offset: 3px; }
+/* The grip: three short rules, the universal "you can pull this". */
+.rp__grip { display: grid; gap: 2px; }
+.rp__grip i { display: block; width: .9rem; height: 1.5px; border-radius: 2px; background: currentColor; opacity: .55; }
+.rp__pull svg { width: .9rem; height: .9rem; }
+.rp--more .rp__pull { display: inline-flex; }
+/* Not while the first print is still running: the tab arrives with the
+   finished slip, not on top of moving paper. */
+.rp--run .rp__pull { visibility: hidden; }
+@media (prefers-reduced-motion: no-preference) {
+  /* A small nudge once the print has finished: the tab dips twice, as if the
+     paper had settled, so the eye goes to it. */
+  .rp--printed.rp--more .rp__pull {
+    animation: rp-nudge .9s cubic-bezier(.3, 0, .2, 1) .3s 2;
+  }
+}
+@keyframes rp-nudge {
+  0%, 100% { transform: translateX(-50%); }
+  40% { transform: translate(-50%, 5px); }
+}
+
+/* Paper moving under a pull: the printer works again. */
+.rp--feeding .rp__machine { animation: rp-shiver .18s ease-in-out infinite; }
+.rp--feeding .rp__led::before,
+.rp--feeding .rp__dot::before { visibility: visible; animation: rp-blink .25s ease-in-out infinite alternate; }
+.rp--feeding .rp__led::after,
+.rp--feeding .rp__dot::after { visibility: hidden; animation: none; }
+.rp--feeding .rp__busy { opacity: 1; animation: none; }
+.rp--feeding .rp__done { opacity: 0; animation: none; }
+
+/* Wholly out: no cap, no tab, no fade. */
+.rp--full .rp__out { max-height: none !important; overflow-y: visible; }
+.rp--full .rp__pull,
+.rp--full .rp__win::after { display: none; }
+
 @media (prefers-reduced-motion: reduce) {
   .rp__act--replay { display: none; }
+  .rp--feeding .rp__machine,
+  .rp--feeding .rp__led::before,
+  .rp--feeding .rp__dot::before { animation: none; }
 }
 
 /* ---- narrow phones ------------------------------------------------------
