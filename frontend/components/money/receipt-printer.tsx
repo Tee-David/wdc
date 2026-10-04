@@ -1,36 +1,43 @@
 import { naira } from "@/lib/admin/types";
+import ReceiptActions from "./receipt-actions";
 import "./receipt-printer.css";
 
 /**
- * The slip that prints itself, after money has actually arrived.
+ * The payment receipt that prints itself, after money has actually arrived.
  *
- * WHEN IT RUNS IS THE IMPORTANT PART. This renders only on the `paid` branch
- * of /pay/done, which is reached only after `verifyTransaction` has asked
- * Paystack what happened and `applyPayment` has banked it. A celebration on a
- * page that has not confirmed the money is a lie told in animation, and it is
- * the easiest kind to ship by accident -- the reference this was asked for
- * fires on arrival at a success URL, which is a query string.
+ * THE DESIGN IS EASYUI'S PAYMENT RECEIPT PRINTER (MIT, Suraj Maurya,
+ * github.com/Surajmaurya1/easyui), chosen by the owner on 2026-10-04: a status
+ * card, a printer that shivers while it feeds, and a thermal slip with the
+ * order, the lines, the totals and a barcode, under Replay and Copy. What is
+ * ours: the colours (navy chassis, orange light, cream paper, the brand's
+ * solid orange-fill chip), every figure on the slip, and the engine.
  *
- * NO JAVASCRIPT. Not "a small amount": none. The whole thing is one CSS
- * animation on a server-rendered element, so it costs no bundle, no hydration
- * and no main-thread work beyond compositing two transforms. That matters more
- * here than anywhere else on the site, because this page is reached on a phone
- * on Nigerian mobile data, immediately after somebody has parted with money.
+ * THE ENGINE IS CSS, NOT FRAMER MOTION. The original animates with motion's
+ * React components. This page is reached on a phone, on mobile data, a moment
+ * after somebody has parted with money, so the feed, the shiver and the status
+ * lights are keyframes on server-rendered markup: no animation library in the
+ * bundle and nothing waiting on hydration. The only JavaScript is the two
+ * buttons under it (receipt-actions.tsx).
  *
- * IT FEEDS IN STEPS, WHICH IS THE WHOLE TRICK. A thermal printer advances the
- * paper one line at a time, and a slip that slides out smoothly reads as a
- * card sliding rather than a receipt printing. `steps(24)` over 1.4s is about
- * 58ms a line, which is close to a real till roll and is the single thing that
- * makes this feel like the object it is imitating.
+ * WHEN IT RUNS IS THE IMPORTANT PART. This renders only on the `paid` branch of
+ * /pay/done, which is reached only after `verifyTransaction` has asked
+ * Paystack what happened and the payment has been banked. Nothing on the slip
+ * comes from the query string.
  *
- * NO LOGO ON THE SLIP. The document at /r/<token> is the receipt and carries
- * the mark; this is the moment, not the record. Branding it twice would make
- * the animation look like the thing to keep, and it is not -- the link under
- * it is.
+ * NOTHING INVENTED. The original prints an "AUTH #" line and a merchant tag;
+ * those are gone. The barcode is decoration (it is not a scannable code, and
+ * says so to assistive technology by being hidden from it); the number under
+ * it is the real receipt number.
+ *
+ * BOTTOM FIRST, and tests/receipt-feed.spec.ts holds it to that: the slip
+ * starts above the slot and slides down, so its foot clears the slot first.
  */
+export type ReceiptLine = { description: string; qty: number; amount: number };
+
 export default function ReceiptPrinter({
-  amount, receiptNo, number, method, at, outstanding,
+  amount, receiptNo, number, method, at, outstanding, lines, subtotal, vat, vatRate, total,
 }: {
+  /** Kobo, this payment. */
   amount: number;
   receiptNo: string;
   /** The invoice it went against. */
@@ -38,46 +45,116 @@ export default function ReceiptPrinter({
   method: string;
   /** ISO. */
   at: string;
+  /** Kobo still owed on the invoice after this payment. */
   outstanding: number;
+  lines: ReceiptLine[];
+  subtotal: number;
+  vat: number;
+  vatRate: number;
+  total: number;
 }) {
-  const day = new Date(at).toLocaleDateString("en-GB", {
-    day: "numeric", month: "short", year: "numeric",
-  });
+  const when = new Date(at);
+  const day = when.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" });
+  const time = when.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" });
 
   return (
-    <div className="rp">
-      {/* The machine. Two rounded slabs and a slot, drawn rather than
-          pictured: an image here would be a network request on the one page
-          where somebody is already waiting. */}
-      <div className="rp__box" aria-hidden="true">
-        <span className="rp__led" />
+    <section className="rp rp--run" aria-label="Payment receipt">
+      {/* 1. The status card. */}
+      <div className="rp__status" role="status">
+        <span className="rp__tick" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5" /></svg>
+        </span>
+        <span className="rp__said">
+          <b>Payment received</b>
+          <small>Receipt {receiptNo} issued</small>
+        </span>
+        <span className="rp__lamp" aria-hidden="true">
+          <i className="rp__dot" />
+          <span className="rp__lbl"><span className="rp__busy">Printing</span><span className="rp__done">Ready</span></span>
+        </span>
+      </div>
+
+      {/* 2. The printer. Drawn, not pictured: no image request on the one
+          page where somebody is already waiting. */}
+      <div className="rp__machine" aria-hidden="true">
+        <div className="rp__bar">
+          <span className="rp__brand">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/icon-white-accent.svg" alt="" width={16} height={16} />
+            We Dig Creativity
+          </span>
+          <span className="rp__pill">
+            <i className="rp__led" />
+            <span className="rp__lbl"><span className="rp__busy">Feed</span><span className="rp__done">Online</span></span>
+          </span>
+        </div>
         <span className="rp__slot" />
       </div>
 
-      {/* The clip. The slip is its own height, starts translated fully above
-          it, and ends at rest -- so the paper appears out of the slot without
-          anything animating a height, which would be layout on every frame. */}
+      {/* 3. The slip, clipped under the slot. */}
       <div className="rp__out">
         <div className="rp__slip">
-          <p className="rp__k">Payment received</p>
-          <p className="rp__big">{naira(amount)}</p>
+          <header className="rp__head">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/icon-navy.svg" alt="" width={28} height={28} />
+            <p className="rp__who">We Dig Creativity</p>
+            <p className="rp__what">Payment receipt</p>
+          </header>
 
-          <dl className="rp__rows">
+          <dl className="rp__rows rp__meta">
             <div><dt>Receipt</dt><dd>{receiptNo}</dd></div>
-            <div><dt>Paid</dt><dd>{day}</dd></div>
-            <div><dt>Method</dt><dd>{method}</dd></div>
-            <div><dt>Against</dt><dd>{number}</dd></div>
+            <div><dt>Date</dt><dd>{day} · {time}</dd></div>
+            <div><dt>Paid by</dt><dd>{method}</dd></div>
+            <div><dt>Invoice</dt><dd>{number}</dd></div>
           </dl>
 
-          <p className={`rp__state${outstanding > 0 ? " rp__state--part" : ""}`}>
+          <div className="rp__items">
+            <p className="rp__cols" aria-hidden="true"><span>Item</span><span>Amount</span></p>
+            <ul>
+              {lines.map((l, i) => (
+                <li key={i}>
+                  <span className="rp__item">{l.qty !== 1 ? <>{l.qty}× </> : null}{l.description}</span>
+                  <span className="rp__n">{naira(l.amount)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <dl className="rp__rows rp__sums">
+            <div><dt>Subtotal</dt><dd>{naira(subtotal)}</dd></div>
+            {vat > 0 ? <div><dt>VAT ({vatRate}%)</dt><dd>{naira(vat)}</dd></div> : null}
+            <div><dt>Invoice total</dt><dd>{naira(total)}</dd></div>
+            <div className="rp__paid"><dt>Paid now</dt><dd>{naira(amount)}</dd></div>
+          </dl>
+
+          <p className="rp__bal">
             {outstanding > 0
-              ? <>{naira(outstanding)} still outstanding</>
-              : <>{number} settled in full</>}
+              ? <>Balance due <b>{naira(outstanding)}</b></>
+              : <span className="rp__chip">{number} settled in full</span>}
           </p>
+
+          <div className="rp__code">
+            <svg aria-hidden="true" viewBox="0 0 160 40" preserveAspectRatio="none" fill="currentColor">
+              {BARS.map(([x, w]) => <rect key={x} x={x} y="0" width={w} height="40" />)}
+            </svg>
+            <p>* {receiptNo} *</p>
+          </div>
 
           <p className="rp__ta">Thank you</p>
         </div>
       </div>
-    </div>
+
+      {/* 4. Replay and Copy. */}
+      <ReceiptActions receiptNo={receiptNo} />
+    </section>
   );
 }
+
+/* The thermal barcode's bars, [x, width] in a 160-wide box. Decorative. */
+const BARS: Array<[number, number]> = [
+  [0, 3], [5, 1.5], [9, 4], [15, 2], [19, 1], [22, 3], [27, 1.5], [31, 5], [38, 2],
+  [42, 1], [45, 4], [51, 2], [55, 1.5], [58, 3], [63, 5], [70, 1.5], [73, 3], [78, 2],
+  [82, 4], [88, 1.5], [92, 3], [97, 1], [100, 4], [106, 2], [110, 3], [115, 1.5],
+  [118, 5], [125, 2], [129, 1], [132, 4], [138, 2], [142, 1.5], [145, 3], [150, 2],
+  [154, 4], [159, 1],
+];

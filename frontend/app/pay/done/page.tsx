@@ -4,11 +4,11 @@ import { after } from "next/server";
 import {
   applyPayment, getInvoice, getPaymentsFor, matchInvoice, recordProviderEvent,
 } from "@/lib/admin/store";
-import { invoiceTotals, naira } from "@/lib/admin/types";
+import { invoiceTotals, lineTotal, naira, type Invoice } from "@/lib/admin/types";
 import { wholeKobo, paystackMode, verifyTransaction } from "@/lib/paystack";
 import { chargeBanked, claimCharge, releaseCharge } from "@/lib/paystack-claim";
 import { sendPaymentReceiptEmail } from "@/lib/money-mail";
-import ReceiptPrinter from "@/components/money/receipt-printer";
+import ReceiptPrinter, { type ReceiptLine } from "@/components/money/receipt-printer";
 import "@/components/money/document.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 
@@ -48,6 +48,9 @@ type Outcome =
       receiptNo: string; method: string; at: string;
       /** Paid past the total: the extra is credit, and the payer is told. */
       overpaid?: boolean;
+      /* What the slip itemises: the invoice's own lines and totals, read
+         after the payment is banked. */
+      lines: ReceiptLine[]; subtotal: number; vat: number; vatRate: number; total: number;
     }
   /* The invoice's public address when it is known, so a failed or unconfirmed
      payment always has "Try again" rather than a dead end. */
@@ -56,6 +59,21 @@ type Outcome =
   /* No reference at all: this page cannot know what happened, so it must not
      say "not paid" -- that alarms somebody whose money may well have gone. */
   | { kind: "unknown"; message: string; invoiceToken?: string };
+
+/** The paid outcome, from the banked payment and the invoice as it now stands. */
+function paidOutcome(
+  inv: Invoice,
+  p: { token: string; amount: number; receiptNo: string; method: string; at: string },
+  overpaid = false,
+): Outcome {
+  const t = invoiceTotals(inv);
+  return {
+    kind: "paid", receiptUrl: `/r/${p.token}`, amount: p.amount, number: inv.number,
+    outstanding: t.due, receiptNo: p.receiptNo, method: p.method, at: p.at, overpaid,
+    lines: inv.lines.map((l) => ({ description: l.description, qty: l.qty, amount: lineTotal(l) })),
+    subtotal: t.subtotal, vat: t.vat, vatRate: inv.vatRate, total: t.total,
+  };
+}
 
 async function settle(reference: string): Promise<Outcome> {
   const verified = await verifyTransaction(reference);
@@ -125,12 +143,7 @@ async function settle(reference: string): Promise<Outcome> {
       existing = getPaymentsFor(invoice.id).find((p) => p.reference === reference);
     }
     if (!existing) return recording;
-    const fresh = getInvoice(invoice.id) ?? invoice;
-    return {
-      kind: "paid", receiptUrl: `/r/${existing.token}`, amount: existing.amount,
-      number: invoice.number, outstanding: invoiceTotals(fresh).due,
-      receiptNo: existing.receiptNo, method: existing.method, at: existing.at,
-    };
+    return paidOutcome(getInvoice(invoice.id) ?? invoice, existing);
   }
 
   const applied = applyPayment({
@@ -144,12 +157,7 @@ async function settle(reference: string): Promise<Outcome> {
     const existing = getPaymentsFor(invoice.id).find((p) => p.reference === reference);
     if (existing) await chargeBanked(reference, existing.id); else await releaseCharge(reference);
     if (applied.reason === "duplicate" && existing) {
-      const fresh = getInvoice(invoice.id) ?? invoice;
-      return {
-        kind: "paid", receiptUrl: `/r/${existing.token}`, amount: existing.amount,
-        number: invoice.number, outstanding: invoiceTotals(fresh).due,
-        receiptNo: existing.receiptNo, method: existing.method, at: existing.at,
-      };
+      return paidOutcome(getInvoice(invoice.id) ?? invoice, existing);
     }
     recordProviderEvent({
       event: "verify.not-applied", reference, amount, outcome: "Unmatched", mode: paystackMode(),
@@ -176,12 +184,7 @@ async function settle(reference: string): Promise<Outcome> {
     });
   });
 
-  return {
-    kind: "paid", receiptUrl: `/r/${applied.payment.token}`, amount: applied.payment.amount,
-    number: invoice.number, outstanding: invoiceTotals(fresh).due,
-    receiptNo: applied.payment.receiptNo, method: applied.payment.method,
-    at: applied.payment.at, overpaid: Boolean(applied.overpaid),
-  };
+  return paidOutcome(fresh, applied.payment, Boolean(applied.overpaid));
 }
 
 export default async function PaymentDone({
@@ -228,6 +231,11 @@ export default async function PaymentDone({
               method={outcome.method}
               at={outcome.at}
               outstanding={outcome.outstanding}
+              lines={outcome.lines}
+              subtotal={outcome.subtotal}
+              vat={outcome.vat}
+              vatRate={outcome.vatRate}
+              total={outcome.total}
             />
             <p className="doc__said">
               Thank you. A copy is on its way to the email address we have for

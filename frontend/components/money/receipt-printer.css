@@ -1,247 +1,388 @@
 /* ============================================================================
-   THE SLIP THAT PRINTS ITSELF.
+   THE PAYMENT RECEIPT PRINTER. See receipt-printer.tsx for what it is and
+   where the design came from.
 
-   Shown once, on the page somebody lands on after paying. Everything here is
-   transform and opacity on two elements, with no image, no font beyond the two
-   the site already loads, and no JavaScript at all -- see the note in
-   receipt-printer.tsx for why that matters on this page in particular.
+   OUR COLOURS, NOT THE ORIGINAL'S. Black and emerald became the brand: a navy
+   chassis and status card, the bright orange for the light (it carries no
+   words), the orange FILL (#b84a00, white tick and label) for the chips that
+   do carry words, and cream paper with the site's ink. Every chip and tile is
+   a solid fill; the original's translucent emerald washes are gone.
 
-   IT DRAWS ITS OWN COLOURS, like the documents it belongs with. A receipt is a
-   receipt on white whatever the phone was set to, and a slip that went dark
-   would stop reading as paper.
+   IT DRAWS ITS OWN COLOURS, like the documents it sits on: /pay/done is a
+   white sheet in both themes, so nothing here reads a theme token.
+
+   EVERYTHING THAT MOVES IS TRANSFORM OR OPACITY, and only while `.rp--run` is
+   on the printer. The markup renders finished; the class is what plays it, so
+   Replay is "take the class off, put it back", and reduced motion is "the
+   class does nothing".
    ========================================================================== */
 
-/* THE STAGE IS DARK, AND THAT IS THE WHOLE REASON THE THING READS.
-
-   The first build put a white slip on a white sheet. Every part of it was
-   correct -- the feed, the teeth, the shadow -- and none of it was visible,
-   because paper only looks like paper against something that is not paper.
-   The reference this was asked for solves it with a black card; ours uses the
-   brand navy, which does the same job and looks like us doing it rather than
-   like us copying.
-
-   It is also what makes the torn edge worth having: teeth cut out of white on
-   white are a shape nobody can see. */
 .rp {
+  --rp-navy: #0a0a3a;
   --rp-ink: #0e0e2c;
-  --rp-dim: #6b6b85;
-  --rp-rule: rgb(14 14 44 / .16);
-  --rp-paper: #fff;
-  /* One tooth of the torn edge. Also the padding the slip carries at the
-     bottom, so the teeth never bite into the last line. */
-  --rp-tooth: 13px;
+  --rp-dim: #55557a;
+  --rp-paper: #fdfbf7;
+  --rp-edge: #e7e0d4;
+  --rp-rule: rgb(14 14 44 / .22);
+  --rp-orange: #ff6500;
+  --rp-fill: #b84a00;
+  --rp-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  --rp-feed: 2.4s;
+  --rp-start: .4s;
 
-  display: grid;
-  justify-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   width: 100%;
-  max-width: 25rem;
+  max-width: 23rem;
   margin: 0 auto;
-  padding: clamp(.9rem, 3vw, 1.6rem) clamp(.55rem, 2.6vw, 1.4rem) clamp(1.3rem, 4vw, 2.2rem);
-  border-radius: 22px;
-  background:
-    radial-gradient(120% 80% at 50% 0%, #1b1c46 0%, #0e0e2c 55%, #08081f 100%);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / .07),
-    0 24px 50px -30px rgb(0 0 26 / .8);
-  overflow: hidden;
+  color: var(--rp-ink);
 }
 
-/* ---- the machine --------------------------------------------------------
-   A slab with a slot in it. Deliberately plain: the paper is the thing being
-   looked at, and a printer with vents, buttons and a screen would be the
-   loudest object on a page whose job is to say one number. */
-.rp__box {
+/* ---- 1. status card ---------------------------------------------------- */
+.rp__status {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  width: 100%;
+  margin-bottom: .75rem;
+  padding: .7rem .85rem;
+  border-radius: 14px;
+  background: var(--rp-navy);
+  border: 1px solid #23245a;
+  box-shadow: 0 10px 24px -14px rgb(0 0 26 / .7);
+  color: #fff;
+}
+.rp__tick {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 999px;
+  background: var(--rp-fill);
+  color: #fff;
+}
+.rp__tick svg { width: .95rem; height: .95rem; }
+.rp__said { display: grid; min-width: 0; flex: 1 1 auto; line-height: 1.25; }
+.rp__said b {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .92rem;
+  font-weight: 600;
+}
+.rp__said small {
+  font-size: .78rem;
+  color: #c9cae6;
+  overflow-wrap: anywhere;
+}
+.rp__lamp {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  flex: none;
+  font-family: var(--rp-mono);
+  font-size: .7rem;
+  color: #c9cae6;
+}
+.rp__dot {
+  width: .5rem;
+  height: .5rem;
+  border-radius: 999px;
+  background: var(--rp-orange);
+  box-shadow: 0 0 0 3px rgb(255 101 0 / .22);
+}
+
+/* The two labels on the light: "Printing"/"Feed" while it runs, "Ready" /
+   "Online" when it is done. Finished is the resting state, so a page with no
+   animation (reduced motion, or after it has played) says the true thing. */
+.rp__lbl { display: inline-grid; }
+.rp__busy,
+.rp__done { grid-area: 1 / 1; }
+.rp__busy { opacity: 0; }
+
+/* ---- 2. the printer ---------------------------------------------------- */
+.rp__machine {
   position: relative;
   z-index: 2;
   width: 100%;
-  height: 3.4rem;
-  border-radius: 16px 16px 12px 12px;
-  background: linear-gradient(180deg, #f7f7fb, #e6e7f1 58%, #ccceda);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / .95),
-    inset 0 -1px 0 rgb(14 14 44 / .18),
-    0 14px 30px -16px rgb(0 0 0 / .75);
+  padding: .8rem .9rem .9rem;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #1b1c52 0%, var(--rp-navy) 55%, #07072c 100%);
+  border: 1px solid #23245a;
+  box-shadow: 0 14px 30px -12px rgb(0 0 26 / .65), inset 0 1px 0 rgb(255 255 255 / .1);
 }
-
-/* The slot the paper comes out of, and the shadow it casts onto the paper --
-   which is what sells the idea that one is behind the other. */
-.rp__slot {
-  position: absolute;
-  left: 8%; right: 8%; bottom: 7px;
-  height: 6px;
-  border-radius: 4px;
-  background: #1b1c33;
-  box-shadow:
-    inset 0 2px 3px rgb(0 0 0 / .7),
-    0 4px 7px -2px rgb(0 0 26 / .45);
+.rp__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  padding-bottom: .6rem;
+  margin-bottom: .6rem;
+  border-bottom: 1px solid #23245a;
 }
-
-/* A status light. Amber and blinking while the paper feeds, green and steady
-   once it has stopped -- which is a small thing that makes the machine read as
-   a machine rather than a shape. */
-.rp__led {
-  position: absolute;
-  left: 14px; top: 13px;
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: #b8860b;
-  box-shadow: 0 0 7px rgb(184 134 11 / .85);
-  animation: rp-led 1.65s steps(1, end) forwards;
-}
-@keyframes rp-led {
-  0%, 12%   { background: #b8860b; box-shadow: 0 0 7px rgb(184 134 11 / .85); }
-  18%       { background: #6b5a12; box-shadow: none; }
-  24%       { background: #b8860b; box-shadow: 0 0 7px rgb(184 134 11 / .85); }
-  32%       { background: #6b5a12; box-shadow: none; }
-  40%       { background: #b8860b; box-shadow: 0 0 7px rgb(184 134 11 / .85); }
-  56%       { background: #6b5a12; box-shadow: none; }
-  /* Done. */
-  70%, 100% { background: #1d9a63; box-shadow: 0 0 8px rgb(29 154 99 / .9); }
-}
-
-/* ---- the paper ----------------------------------------------------------
-
-   IT COMES OUT BOTTOM-FIRST, which is how a till roll behaves: the paper
-   drapes down out of the slot, so the edge nearest your hand is the one that
-   left the machine first and the slip fills in upward behind it. The torn edge
-   and "Thank you" arrive first; the amount is the last thing to clear the
-   slot.
-
-   I built this the other way round first and argued for it. That was my call
-   to make once and not twice, and it was wrong to keep: the brief is the
-   brief. This is the behaviour that was asked for.
-
-   HOW: the slip is translated up out of an overflow clip and slides down to
-   rest. A transform is composited, so the feed runs off the main thread --
-   which the clip-path version did not. The `steps(24)` is what makes it read
-   as printing rather than as a card sliding out; without it a transform this
-   smooth looks like a drawer opening. */
-.rp__out {
-  /* Wider on a narrow phone, where every pixel of the slip is one the detail
-     rows need: at 320 the receipt number was wrapping across two lines, which
-     is the one thing a reference number must never do. */
-  width: min(92%, 22rem);
-  /* Tucks the head of the slip behind the machine, so it reads as coming out
-     of the slot rather than starting under it. */
-  margin-top: -8px;
-  /* THE WINDOW THE PAPER EMERGES THROUGH. The slip is taller than nothing at
-     rest, so this cannot be a fixed height -- it is the clip, and the slip
-     inside it sets the size. `overflow: hidden` is what hides the part of the
-     slip still inside the machine. */
+.rp__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-width: 0;
+  font-family: var(--rp-mono);
+  font-size: .72rem;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
   overflow: hidden;
-  /* The drop shadow has to live out here now. Inside the clip it would be
-     clipped along with the paper, which draws a hard line across the shadow at
-     the exact edge the torn teeth are supposed to soften. */
-  filter: drop-shadow(0 10px 18px rgb(0 0 0 / .55));
+  text-overflow: ellipsis;
+}
+.rp__brand img { width: 1rem; height: 1rem; flex: none; }
+.rp__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  flex: none;
+  padding: .15rem .55rem;
+  border-radius: 999px;
+  background: #04041e;
+  border: 1px solid #23245a;
+  font-family: var(--rp-mono);
+  font-size: .62rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #c9cae6;
+}
+.rp__led {
+  width: .4rem;
+  height: .4rem;
+  border-radius: 999px;
+  background: var(--rp-orange);
+  box-shadow: 0 0 6px rgb(255 101 0 / .7);
+}
+.rp__slot {
+  display: block;
+  height: .75rem;
+  border-radius: 999px;
+  background: #03031a;
+  border: 1px solid #23245a;
+  box-shadow: inset 0 2px 4px rgb(0 0 0 / .7);
 }
 
+/* ---- 3. the slip ------------------------------------------------------- */
+/* The window the paper comes out through: it clips the slip while it is
+   still "inside" the printer. Padding at the foot leaves room for the torn
+   edge and the paper's shadow. */
+.rp__out {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: -.45rem;
+  padding: .45rem 0 1.1rem;
+  overflow: hidden;
+}
 .rp__slip {
-  padding: 1.35rem clamp(.8rem, 3.5vw, 1.25rem) calc(1.15rem + var(--rp-tooth));
+  position: relative;
+  width: 92%;
+  padding: 1.15rem 1.1rem 1.2rem;
   background: var(--rp-paper);
+  border: 1px solid var(--rp-edge);
+  border-top: 0;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 16px 30px -18px rgb(0 0 26 / .45);
+  font-family: var(--rp-mono);
+  font-size: .75rem;
+  line-height: 1.45;
   color: var(--rp-ink);
+}
+/* The torn foot: teeth cut from the paper's own colour. */
+.rp__slip::after {
+  content: "";
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  bottom: -7px;
+  height: 7px;
+  background:
+    linear-gradient(-45deg, transparent 5px, var(--rp-paper) 0) 0 0 / 10px 7px repeat-x,
+    linear-gradient(45deg, transparent 5px, var(--rp-paper) 0) 0 0 / 10px 7px repeat-x;
+}
+.rp__slip p { margin: 0; }
+
+.rp__head {
+  display: grid;
+  justify-items: center;
+  gap: .15rem;
+  padding-bottom: .75rem;
+  border-bottom: 1px dashed var(--rp-rule);
   text-align: center;
-
-  /* THE TORN EDGE, as a mask rather than a picture. A conic gradient repeated
-     across the bottom cuts the teeth out of the paper itself, so the shadow
-     under it follows the same shape and there is nothing to download. */
-  --rp-teeth: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg)
-              50% / var(--rp-tooth) 100%;
-  -webkit-mask: var(--rp-teeth);
-  mask: var(--rp-teeth);
-
-  /* THE FEED. 24 steps over 1.4s is about 58ms a line, which is close to what
-     a real till roll does. */
-  transform: translateY(-100%);
-  animation: rp-feed 1.4s steps(24, end) .2s forwards;
-  will-change: transform;
 }
-@keyframes rp-feed {
-  to { transform: translateY(0); }
-}
+.rp__head img { width: 1.75rem; height: 1.75rem; margin-bottom: .25rem; }
+.rp__who { font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.rp__what { font-size: .7rem; color: var(--rp-dim); }
 
-/* ---- what is on it ------------------------------------------------------
-   Our own two faces, not a monospace. A till-roll font would be a costume;
-   Space Grotesk with tabular figures is the same voice the invoice and the
-   receipt already speak in, and it is the reason this looks like our document
-   rather than a generic one. */
-.rp__k {
-  margin: 0;
-  font-size: .68rem; font-weight: 700;
-  letter-spacing: .16em; text-transform: uppercase;
+.rp__rows { margin: 0; padding: .65rem 0; border-bottom: 1px dashed var(--rp-rule); }
+.rp__rows > div { display: flex; justify-content: space-between; gap: .75rem; }
+.rp__rows dt { min-width: 0; color: var(--rp-dim); text-transform: uppercase; font-size: .7rem; letter-spacing: .04em; }
+/* Figures never break: "₦1,812,450.0" over "0" is not a number anybody can
+   read. The label beside it gives way instead. Text values (a long method
+   name) may still wrap. */
+.rp__rows dd { margin: 0; min-width: 0; text-align: right; overflow-wrap: anywhere; font-weight: 600; }
+.rp__sums dd { white-space: nowrap; overflow-wrap: normal; }
+
+.rp__items { padding: .65rem 0; border-bottom: 1px dashed var(--rp-rule); }
+.rp__cols {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: .35rem !important;
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
   color: var(--rp-dim);
 }
-.rp__big {
-  margin: .3rem 0 0;
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-size: clamp(1.6rem, 1.3rem + 1.6vw, 2.1rem);
-  font-weight: 700; letter-spacing: -.02em;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-}
+.rp__items ul { display: grid; gap: .35rem; margin: 0; padding: 0; list-style: none; }
+.rp__items li { display: flex; justify-content: space-between; align-items: baseline; gap: .75rem; }
+/* Real descriptions are long. They wrap; the amount never does. */
+.rp__item { min-width: 0; overflow-wrap: anywhere; }
+.rp__n { flex: none; font-weight: 600; white-space: nowrap; }
 
-/* Dashed rules above and below the detail block, which is the one piece of
-   receipt grammar worth keeping: it says "these are the particulars". */
-.rp__rows {
-  margin: 1rem 0 0;
-  padding: .85rem 0;
-  border-block: 1px dashed var(--rp-rule);
-  display: grid; gap: .4rem;
-  font-size: clamp(.72rem, .67rem + .22vw, .8rem);
+.rp__sums dd { font-weight: 500; }
+.rp__paid {
+  margin-top: .35rem;
+  padding-top: .4rem;
+  border-top: 1px solid var(--rp-rule);
+  align-items: baseline;
 }
-.rp__rows > div { display: flex; justify-content: space-between; gap: .6rem; }
-.rp__rows dt { color: var(--rp-dim); }
-/* A REFERENCE THAT WRAPS IS A REFERENCE SOMEBODY MISREADS. These are short
-   and known -- RCT-YYYY-NNN, a date, a method -- so they are kept on one line
-   and the label beside them gives way instead. `overflow-wrap` stays off here
-   for that reason, which is the opposite of the rule everywhere else. */
-.rp__rows dd {
-  margin: 0; font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  text-align: right; white-space: nowrap;
-}
-.rp__rows dt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rp__paid dt { color: var(--rp-ink) !important; font-weight: 700; font-size: .75rem !important; }
+.rp__paid dd { font-size: 1rem; font-weight: 700 !important; }
 
-/* Settled or not, in words, in the colour the documents already use for it --
-   #1c7a4a and #8a5200, both measured against a light panel. Colour is never
-   the message on its own: the sentence says the whole thing. */
-.rp__state {
-  margin: .85rem 0 0;
-  font-size: .78rem; font-weight: 700;
-  letter-spacing: .04em; text-transform: uppercase;
-  color: #1c7a4a;
-}
-.rp__state--part { color: #8a5200; }
-
-.rp__ta {
-  margin: .7rem 0 0;
-  font-size: .78rem; color: var(--rp-dim);
+.rp__bal { padding: .7rem 0 .2rem; text-align: center; font-size: .75rem; }
+.rp__chip {
+  display: inline-block;
+  padding: .2rem .6rem;
+  border-radius: 999px;
+  background: var(--rp-fill);
+  color: #fff;
+  font-weight: 700;
+  font-size: .7rem;
   letter-spacing: .04em;
 }
 
-/* ---- the two cases where none of this should happen --------------------- */
+/* The barcode: quiet, and narrow enough never to crowd the slip. */
+.rp__code {
+  display: grid;
+  justify-items: center;
+  gap: .25rem;
+  padding-top: .7rem;
+  color: var(--rp-ink);
+}
+.rp__code svg { width: min(11rem, 80%); height: 1.6rem; opacity: .82; }
+.rp__code p { font-size: .62rem; letter-spacing: .18em; color: var(--rp-dim); }
 
-/* SOMEBODY WHO HAS ASKED FOR LESS MOTION IS NOT ASKING FOR A SHORTER
-   ANIMATION. The paper is simply there, the light is already green, and the
-   page says the same thing it would have said anyway. */
-@media (prefers-reduced-motion: reduce) {
-  .rp__slip { transform: none; animation: none; }
-  .rp__led { animation: none; background: #1d9a63; box-shadow: 0 0 8px rgb(29 154 99 / .9); }
+.rp__ta {
+  padding-top: .55rem;
+  text-align: center;
+  font-weight: 600;
 }
 
-/* A drawn printer is furniture, and furniture does not print. The slip stays,
-   because its contents are the only part worth having on paper. */
-@media print {
-  .rp { background: none; box-shadow: none; padding: 0; max-width: none; }
-  .rp__box { display: none; }
-  /* The clip and the shadow both live on this box now that the paper moves
-     rather than being clipped. Neither belongs on paper: a shadow prints as
-     grey mud, and a clip on a slip taller than its window would cut the
-     receipt off at the fold. */
-  .rp__out { width: 100%; margin-top: 0; overflow: visible; filter: none; }
-  .rp__slip {
-    transform: none; animation: none; filter: none;
-    -webkit-mask: none; mask: none;
-    padding-bottom: 1.15rem;
-    border: 1px solid var(--rp-rule); border-radius: 10px;
-  }
+/* ---- 4. actions -------------------------------------------------------- */
+/* A light panel: the pair's tokens are set back to the paper's here, or the
+   dark theme's inversion at :root would paint them white on the white sheet. */
+.rp__actions {
+  --btn-fill: #000;
+  --btn-ink: #fff;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .5rem;
+  width: 100%;
+  margin-top: .35rem;
+}
+.rp__act {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 1.5px solid;
+  border-radius: 999px;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color .2s ease, color .2s ease;
+}
+.rp__act svg { width: 1rem; height: 1rem; }
+.rp__act:focus-visible { outline: 2px solid var(--rp-navy); outline-offset: 3px; }
+
+/* ---- the run ------------------------------------------------------------ */
+@media (prefers-reduced-motion: no-preference) {
+  .rp--run .rp__status { animation: rp-in .5s cubic-bezier(.2, .8, .2, 1) both; }
+  .rp--run .rp__actions { animation: rp-rise .5s cubic-bezier(.2, .8, .2, 1) calc(var(--rp-start) + var(--rp-feed)) both; }
+
+  /* The slip: from wholly above the slot to at rest, so its foot clears the
+     slot first. */
+  .rp--run .rp__slip { animation: rp-feed var(--rp-feed) cubic-bezier(.16, 1, .3, 1) var(--rp-start) both; }
+
+  /* The chassis shivers while it feeds: 13 shivers of .18s cover the feed. */
+  .rp--run .rp__machine { animation: rp-shiver .18s ease-in-out var(--rp-start) 13; }
+
+  /* The lights pulse while it prints, then hold. */
+  .rp--run .rp__led,
+  .rp--run .rp__dot { animation: rp-pulse .8s ease-in-out var(--rp-start) 3; }
+
+  /* "Printing" until the feed ends, then "Ready". */
+  .rp--run .rp__busy { animation: rp-show calc(var(--rp-start) + var(--rp-feed)) step-end both; }
+  .rp--run .rp__done { animation: rp-hide calc(var(--rp-start) + var(--rp-feed)) step-end both; }
+}
+
+@keyframes rp-feed {
+  from { transform: translateY(-100%); opacity: .4; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes rp-shiver {
+  0%, 100% { transform: none; }
+  20% { transform: translate(-.6px, -.2px); }
+  40% { transform: translate(.6px, .2px); }
+  60% { transform: translate(-.4px, 0); }
+  80% { transform: translate(.4px, -.2px); }
+}
+@keyframes rp-pulse {
+  0%, 100% { opacity: .45; transform: scale(.9); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+@keyframes rp-in {
+  from { opacity: 0; transform: translateY(-8px) scale(.97); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes rp-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+/* The two labels share one cell and swap on opacity, held by `step-end`
+   until the run ends. */
+@keyframes rp-show {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes rp-hide {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rp__act--replay { display: none; }
+}
+
+/* ---- narrow phones ------------------------------------------------------
+   Under ~400px the slip is barely 250px wide. An item's description gets the
+   whole line and its amount sits under it on the right, rather than the
+   description being squeezed into a column a word wide; the status card keeps
+   its light and drops the label beside it. */
+@media (max-width: 400px) {
+  .rp__slip { padding-inline: .85rem; font-size: .72rem; }
+  .rp__items li { flex-wrap: wrap; row-gap: .1rem; }
+  .rp__item { flex: 1 1 100%; }
+  .rp__n { margin-left: auto; }
+  .rp__lamp .rp__lbl { display: none; }
+  .rp__status { padding-inline: .75rem; }
 }
