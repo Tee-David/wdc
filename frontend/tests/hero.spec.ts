@@ -46,7 +46,7 @@ for (const width of [390, 1280]) {
 
     await expect(page.locator("h1")).toHaveCount(1);
     const text = await page.locator("h1").innerText();
-    expect(text.replace(/\s+/g, " ").trim()).toBe("Six briefs. One studio.");
+    expect(text.replace(/\s+/g, " ").trim()).toBe("We do it all. Yes, really.");
   });
 }
 

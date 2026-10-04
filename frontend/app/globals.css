@@ -387,6 +387,19 @@ main:focus { outline: none; }
     rgb(5 6 39 / .2);
 }
 
+/* THE HEADLINE IS ONE LINE ON A PHONE. "We do it all. Yes, really." is
+   9.8em wide in Space Grotesk at this tracking; dividing the space between
+   the gutters (1.25rem each side) by 10.3em leaves it about 5% of air and
+   means it can never wrap, from 320px (about 27px type) up. Capped so a
+   large phone held sideways does not get a billboard. Re-measure if the
+   words change. Unlayered on purpose: it has to beat the h1's clamp(). */
+@media (max-width: 767.98px) {
+  .hero-film__title {
+    font-size: min(calc((100vw - 2.5rem) / 10.3), 3.25rem);
+    white-space: nowrap;
+  }
+}
+
 .hero-film__copy::before {
   content: "";
   position: absolute;
