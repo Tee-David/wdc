@@ -403,6 +403,11 @@ main:focus { outline: none; }
     background:
       linear-gradient(90deg, rgb(5 6 39 / .82) 0%, rgb(5 6 39 / .45) 45%, rgb(5 6 39 / 0) 72%),
       linear-gradient(180deg, rgb(5 6 39 / 0) 0, rgb(5 6 39 / .62) 11rem, rgb(5 6 39 / .82) 100%);
+    /* The sideways layer would otherwise start on a hard line 11rem above
+       the headline, which a calm stretch of film shows plainly. Fade the
+       whole shade in over that 11rem; the copy is wholly below it. */
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 11rem);
+    mask-image: linear-gradient(180deg, transparent 0, #000 11rem);
   }
 }
 
