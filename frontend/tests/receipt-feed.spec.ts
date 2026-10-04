@@ -26,7 +26,7 @@ const MARKUP = `
 <section class="rp rp--run">
   <div class="rp__status"><span class="rp__said"><b>Payment received</b><small>Receipt RCT-2026-005 issued</small></span></div>
   <div class="rp__machine" aria-hidden="true"><div class="rp__bar"><span class="rp__brand">We Dig Creativity</span></div><span class="rp__slot"></span></div>
-  <div class="rp__out"><div class="rp__slip">
+  <div class="rp__win"><div class="rp__out"><div class="rp__slip">
     <header class="rp__head"><p class="rp__who">We Dig Creativity</p><p class="rp__what">Payment receipt</p></header>
     <dl class="rp__rows rp__meta">
       <div><dt>Receipt</dt><dd>RCT-2026-005</dd></div>
@@ -44,7 +44,7 @@ const MARKUP = `
     <p class="rp__bal">Balance due <b>&#8358;377,250.00</b></p>
     <div class="rp__code"><p>* RCT-2026-005 *</p></div>
     <p class="rp__ta">Thank you</p>
-  </div></div>
+  </div></div></div>
 </section>`;
 
 /** Restart the animation from zero: a `forwards` animation that has finished

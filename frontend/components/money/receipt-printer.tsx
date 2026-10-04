@@ -91,8 +91,14 @@ export default function ReceiptPrinter({
         <span className="rp__slot" />
       </div>
 
-      {/* 3. The slip, clipped under the slot. */}
-      <div className="rp__out">
+      {/* 3. The slip, clipped under the slot. ITS OWN SCROLL WINDOW: a long
+          invoice prints a long slip, and on a phone that pushed the buttons
+          under it off the screen. The window is capped to what the screen
+          has left after the card, the printer and the buttons, so the whole
+          printer stays in view and a long slip scrolls inside it. Focusable,
+          so a keyboard can scroll it too. */}
+      <div className="rp__win">
+      <div className="rp__out" tabIndex={0} role="region" aria-label="Receipt details" data-lenis-prevent="">
         <div className="rp__slip">
           <header className="rp__head">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -142,6 +148,7 @@ export default function ReceiptPrinter({
 
           <p className="rp__ta">Thank you</p>
         </div>
+      </div>
       </div>
 
       {/* 4. Replay and Copy. */}
