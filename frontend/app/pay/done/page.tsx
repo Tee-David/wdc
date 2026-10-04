@@ -4,7 +4,7 @@ import { after } from "next/server";
 import {
   applyPayment, getInvoice, getPaymentsFor, matchInvoice, recordProviderEvent,
 } from "@/lib/admin/store";
-import { invoiceTotals, lineTotal, naira, type Invoice } from "@/lib/admin/types";
+import { invoiceTotals, lineTotal, type Invoice } from "@/lib/admin/types";
 import { wholeKobo, paystackMode, verifyTransaction } from "@/lib/paystack";
 import { chargeBanked, claimCharge, releaseCharge } from "@/lib/paystack-claim";
 import { sendPaymentReceiptEmail } from "@/lib/money-mail";

@@ -29,21 +29,21 @@ const MARKUP = `
   <div class="rp__win"><div class="rp__out"><div class="rp__slip">
     <header class="rp__head"><p class="rp__who">We Dig Creativity</p><p class="rp__what">Payment receipt</p></header>
     <dl class="rp__rows rp__meta">
-      <div><dt>Receipt</dt><dd>RCT-2026-005</dd></div>
-      <div><dt>Date</dt><dd>14 Sept 2026 · 10:42</dd></div>
-      <div><dt>Paid by</dt><dd>Paystack</dd></div>
-      <div><dt>Invoice</dt><dd>INV-2026-001</dd></div>
+      <div><dt>Receipt no:</dt><dd>RCT-2026-005</dd></div>
+      <div><dt>Date:</dt><dd>14 Sept 2026 · 10:42</dd></div>
+      <div><dt>Payment:</dt><dd>Paystack</dd></div>
+      <div><dt>Invoice:</dt><dd>INV-2026-001</dd></div>
     </dl>
     <div class="rp__items"><ul><li><span class="rp__item">Website design and build</span><span class="rp__n">&#8358;630,000.00</span></li></ul></div>
     <dl class="rp__rows rp__sums">
-      <div><dt>Subtotal</dt><dd>&#8358;630,000.00</dd></div>
-      <div><dt>VAT (7.5%)</dt><dd>&#8358;47,250.00</dd></div>
-      <div><dt>Invoice total</dt><dd>&#8358;677,250.00</dd></div>
-      <div class="rp__paid"><dt>Paid now</dt><dd>&#8358;300,000.00</dd></div>
+      <div><dt>Subtotal:</dt><dd>&#8358;630,000.00</dd></div>
+      <div><dt>VAT (7.5%):</dt><dd>&#8358;47,250.00</dd></div>
+      <div><dt>Invoice total:</dt><dd>&#8358;677,250.00</dd></div>
+      <div class="rp__paid"><dt>Paid:</dt><dd>&#8358;300,000.00</dd></div>
+      <div class="rp__bal"><dt>Balance:</dt><dd>&#8358;377,250.00 due</dd></div>
     </dl>
-    <p class="rp__bal">Balance due <b>&#8358;377,250.00</b></p>
     <div class="rp__code"><p>* RCT-2026-005 *</p></div>
-    <p class="rp__ta">Thank you</p>
+    <div class="rp__foot"><p class="rp__ta">Thank you for your payment.</p><p class="rp__fine">INV-2026-001 · We Dig Creativity</p></div>
   </div></div></div>
 </section>`;
 
@@ -96,12 +96,14 @@ test("the paper comes out bottom-first", async ({ page }) => {
   const done = await replayThen(page, 3.3);
   expect(done).toContain("Payment receipt");
   expect(done).toContain("₦300,000.00");
-  expect(done).toContain("Thank you");
+  expect(done).toContain("Thank you for your payment.");
 });
 
 test("it holds still for a reader who asked for less motion", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.setViewportSize({ width: 520, height: 720 });
+  /* Tall enough that the slip fits its window: a shorter screen scrolls the
+     slip inside it, which is the height cap, not the motion, at work. */
+  await page.setViewportSize({ width: 520, height: 1100 });
   await page.setContent(MARKUP);
   await page.waitForTimeout(250);
 
@@ -121,5 +123,5 @@ test("it holds still for a reader who asked for less motion", async ({ page }) =
   });
   expect(state.animation).toBe("none");
   expect(state.shown).toContain("Payment receipt");
-  expect(state.shown).toContain("Thank you");
+  expect(state.shown).toContain("Thank you for your payment.");
 });

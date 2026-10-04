@@ -100,18 +100,24 @@ export default function ReceiptPrinter({
       <div className="rp__win">
       <div className="rp__out" tabIndex={0} role="region" aria-label="Receipt details" data-lenis-prevent="">
         <div className="rp__slip">
+          {/* Ticket notches either side of the first rule, as on a till roll. */}
+          <i className="rp__notch rp__notch--l" aria-hidden="true" />
+          <i className="rp__notch rp__notch--r" aria-hidden="true" />
+
           <header className="rp__head">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/icon-navy.svg" alt="" width={28} height={28} />
+            <span className="rp__mark">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/icon-navy.svg" alt="" width={24} height={24} />
+            </span>
             <p className="rp__who">We Dig Creativity</p>
             <p className="rp__what">Payment receipt</p>
           </header>
 
           <dl className="rp__rows rp__meta">
-            <div><dt>Receipt</dt><dd>{receiptNo}</dd></div>
-            <div><dt>Date</dt><dd>{day} · {time}</dd></div>
-            <div><dt>Paid by</dt><dd>{method}</dd></div>
-            <div><dt>Invoice</dt><dd>{number}</dd></div>
+            <div><dt>Receipt no:</dt><dd className="rp__strong">{receiptNo}</dd></div>
+            <div><dt>Date:</dt><dd>{day} · {time}</dd></div>
+            <div><dt>Payment:</dt><dd>{method}</dd></div>
+            <div><dt>Invoice:</dt><dd>{number}</dd></div>
           </dl>
 
           <div className="rp__items">
@@ -127,17 +133,15 @@ export default function ReceiptPrinter({
           </div>
 
           <dl className="rp__rows rp__sums">
-            <div><dt>Subtotal</dt><dd>{naira(subtotal)}</dd></div>
-            {vat > 0 ? <div><dt>VAT ({vatRate}%)</dt><dd>{naira(vat)}</dd></div> : null}
-            <div><dt>Invoice total</dt><dd>{naira(total)}</dd></div>
-            <div className="rp__paid"><dt>Paid now</dt><dd>{naira(amount)}</dd></div>
+            <div><dt>Subtotal:</dt><dd>{naira(subtotal)}</dd></div>
+            {vat > 0 ? <div><dt>VAT ({vatRate}%):</dt><dd>{naira(vat)}</dd></div> : null}
+            <div><dt>Invoice total:</dt><dd>{naira(total)}</dd></div>
+            <div className="rp__paid"><dt>Paid:</dt><dd>{naira(amount)}</dd></div>
+            <div className="rp__bal">
+              <dt>Balance:</dt>
+              <dd>{outstanding > 0 ? <>{naira(outstanding)} due</> : "Settled in full"}</dd>
+            </div>
           </dl>
-
-          <p className="rp__bal">
-            {outstanding > 0
-              ? <>Balance due <b>{naira(outstanding)}</b></>
-              : <span className="rp__chip">{number} settled in full</span>}
-          </p>
 
           <div className="rp__code">
             <svg aria-hidden="true" viewBox="0 0 160 40" preserveAspectRatio="none" fill="currentColor">
@@ -146,7 +150,10 @@ export default function ReceiptPrinter({
             <p>* {receiptNo} *</p>
           </div>
 
-          <p className="rp__ta">Thank you</p>
+          <div className="rp__foot">
+            <p className="rp__ta">Thank you for your payment.</p>
+            <p className="rp__fine">{number} · We Dig Creativity</p>
+          </div>
         </div>
       </div>
       {/* The paper tab for a long slip: drag it to pull more out, or press
