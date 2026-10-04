@@ -131,26 +131,25 @@ export function Header({
     </Link>
   );
 
-  /* NO BACKDROP BLUR ON THE BAR. This was `bg-background/85 backdrop-blur-md`,
-     and a blurred backdrop on a FIXED element is the single most expensive
-     thing a scrolling page can carry: the browser has to re-blur whatever has
-     just moved underneath it on every frame, across the full width of the
-     viewport, for the whole length of the document. iOS Safari is worst
-     affected, which is where the "catch" was most obvious, but it costs on
-     desktop too. At 94% opacity the bar reads as the same frosted surface and
-     the page scrolls under it for free. */
+  /* A FLOATING GLASS BAR, the owner's call (2026-10-04). The bar is a
+     rounded pill inset from the top and the sides at every scroll position;
+     over a dark hero it is clear, and once the page scrolls (or on a page
+     with no dark hero) the glass fades in under it. Only the fill, edge and
+     shadow change, so nothing moves when it arrives.
+
+     The blur is a known cost: a blurred backdrop on a FIXED element is
+     re-rendered under every frame of scroll, and this bar once dropped
+     `backdrop-blur-md` for exactly that reason. It is back on the owner's
+     call, kept to the pill rather than the full width, at a moderate radius,
+     and replaced by a solid fill for anyone who asks for reduced
+     transparency. See `.hd-bar` in globals.css. */
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        solid
-          ? "border-b border-line bg-background/95 shadow-[0_8px_30px_rgba(0,0,101,0.06)]"
-          : "border-b border-transparent bg-transparent"
-      }`}
-    >
+    <header className="pointer-events-none fixed inset-x-0 top-0 z-50">
       {/* Single bar at every breakpoint: logo left, CTA + hamburger right.
           Nav lives entirely inside the staggered menu; the theme toggler
-          rides in the menu footer. */}
-      <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-4 md:h-[72px] md:px-6 lg:px-10">
+          rides in the menu footer. The header itself is click-through so the
+          margins around the pill never swallow a tap meant for the page. */}
+      <div className={`hd-bar pointer-events-auto mx-auto flex items-center justify-between ${solid ? "is-glass" : ""}`}>
         {logoSwap}
 
         <div className="flex items-center gap-3">

@@ -670,6 +670,57 @@ html { scroll-padding-top: 88px; }
   border: 1px solid rgb(255 255 255 / .2);
 }
 
+/* THE HEADER BAR: a rounded pill inset from the top and sides, the same
+   shape whether it is clear (over a dark hero, unscrolled) or glass (scrolled,
+   or on a page with no dark hero). Only fill, edge and shadow transition, so
+   the glass arrives without the bar moving.
+
+   THE INSETS ARE SOLVED, not picked: the pill's margin plus its padding puts
+   the logo on the same line as the page content under it at every width --
+   16px on a phone, 24px from 768, and the 1280px container's 40px gutter from
+   1024 (a pill of at most 1240px with 20px of padding lands its content
+   exactly where `max-w-[1280px] px-10` does). */
+.hd-bar {
+  width: calc(100% - 1rem);
+  height: 3.5rem;
+  margin-top: .5rem;
+  padding-inline: .5rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  transition: background-color .3s ease, border-color .3s ease, box-shadow .3s ease;
+}
+@media (min-width: 768px) {
+  .hd-bar { width: calc(100% - 1.5rem); height: 4rem; margin-top: .625rem; padding-inline: .75rem; }
+}
+@media (min-width: 1024px) {
+  .hd-bar { width: calc(100% - 2.5rem); max-width: 1240px; margin-top: .75rem; padding-inline: 1.25rem; }
+}
+.hd-bar.is-glass {
+  background: rgb(255 255 255 / .74);
+  border-color: rgb(0 0 101 / .08);
+  box-shadow: 0 12px 40px -14px rgb(0 0 40 / .28), inset 0 1px 0 rgb(255 255 255 / .6);
+  -webkit-backdrop-filter: blur(16px) saturate(170%);
+  backdrop-filter: blur(16px) saturate(170%);
+}
+.dark .hd-bar.is-glass {
+  background: rgb(10 10 42 / .66);
+  border-color: rgb(255 255 255 / .1);
+  box-shadow: 0 12px 40px -14px rgb(0 0 0 / .7), inset 0 1px 0 rgb(255 255 255 / .06);
+}
+/* Where the blur is unavailable, or the reader has asked for less
+   transparency, the same pill is solid rather than a thin wash. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .hd-bar.is-glass { background: rgb(255 255 255 / .96); }
+  .dark .hd-bar.is-glass { background: rgb(10 10 42 / .96); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .hd-bar.is-glass { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .dark .hd-bar.is-glass { background: #0a0a2a; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hd-bar { transition: none; }
+}
+
 /* NO ZOOM WHEN A FIELD IS TAPPED ON A PHONE.
    iOS Safari zooms the page into any field whose text is under 16px, and
    leaves it zoomed after the keyboard closes. Setting `maximum-scale=1` in the
