@@ -34,13 +34,14 @@ export default async function Home() {
         never see it.
       */}
       <IntroMount />
-      <Header overHero />
+      {/* Over the film a phone shows only the mark and the menu: the hero's
+          own pair is on screen, so a third "Start" in the bar is noise until
+          the visitor scrolls past them. */}
+      <Header overHero markOnlyOnPhones />
       <main id="main" tabIndex={-1} className="flex-1">
-        {/* The intro's logos land in #hero-marquee, so this hero is the payoff
-            of the intro animation. The wrapper carries the hero overrides. */}
-        <div className="pv-hero">
-          <Hero />
-        </div>
+        {/* The intro's logos land in #hero-marquee, the tool rail directly
+            under the film, so the hero is still the payoff of the intro. */}
+        <Hero />
         <PreviewBody faqs={faqs} />
       </main>
 
