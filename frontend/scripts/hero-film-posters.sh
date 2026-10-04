@@ -10,13 +10,18 @@
 #   sh scripts/hero-film-posters.sh
 #
 # Needs ffmpeg. Writes next to the films in public/hero/film/.
+#
+# A NEW CUT GETS NEW FILENAMES (the -v2 in them). public/sw.js serves images
+# cache-first and never revalidates them, so a poster re-cut under its old name
+# stays the old picture on every returning visitor's device while the new film
+# plays over it.
 set -eu
 
 DIR="$(cd "$(dirname "$0")/.." && pwd)/public/hero/film"
 AT="4.2" # keep in step with FILM_START in components/sections/hero.tsx
 
-ffmpeg -v error -y -ss "$AT" -i "$DIR/wdc-film-16x9.mp4" -frames:v 1 -vf "scale=1920:-2" -q:v 5 "$DIR/wdc-film-16x9-1920.jpg"
-ffmpeg -v error -y -ss "$AT" -i "$DIR/wdc-film-16x9.mp4" -frames:v 1 -vf "scale=1280:-2" -q:v 5 "$DIR/wdc-film-16x9-1280.jpg"
-ffmpeg -v error -y -ss "$AT" -i "$DIR/wdc-film-9x16.mp4" -frames:v 1 -vf "scale=720:-2" -q:v 5 "$DIR/wdc-film-9x16-720.jpg"
+ffmpeg -v error -y -ss "$AT" -i "$DIR/wdc-film-v2-16x9.mp4" -frames:v 1 -vf "scale=1920:-2" -q:v 5 "$DIR/wdc-film-v2-16x9-1920.jpg"
+ffmpeg -v error -y -ss "$AT" -i "$DIR/wdc-film-v2-16x9.mp4" -frames:v 1 -vf "scale=1280:-2" -q:v 5 "$DIR/wdc-film-v2-16x9-1280.jpg"
+ffmpeg -v error -y -ss "$AT" -i "$DIR/wdc-film-v2-9x16.mp4" -frames:v 1 -vf "scale=720:-2" -q:v 5 "$DIR/wdc-film-v2-9x16-720.jpg"
 
 ls -l "$DIR"

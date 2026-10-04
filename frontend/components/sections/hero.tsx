@@ -16,12 +16,13 @@ import { LOGOS } from "@/lib/logos";
  * play/pause beside them. The chapters are the six services, so on a desktop
  * the strip does the work a services paragraph would, without the paragraph.
  *
- * THE FILM HAS TYPE OF ITS OWN, which is the problem the layout is built
- * around. A cream frame with navy words sits behind white copy a third of the
- * time, so the copy is never left to the film's luck: the dark shade is
- * anchored to the COPY (`.hero-film__copy::before` in globals.css), not to a
- * percentage of the screen, so it is behind the headline at every height from
- * a 568px phone to a 1440px desktop. Re-measure there before lightening it.
+ * THE FILM IS CUT FOR THIS LAYOUT. The 16:9 cut keeps its action in the right
+ * half, the 9:16 cut in the top third, so the copy sits over dark navy in
+ * both. It still carries white cards and type of its own, so the copy is
+ * never left to the film's luck: the dark shade is anchored to the COPY
+ * (`.hero-film__copy::before` in globals.css), not to a percentage of the
+ * screen, so it is behind the headline at every height from a 568px phone to
+ * a 1440px desktop. Re-measure there before lightening it.
  *
  * NOTHING OF THE FILM IS ON THE CRITICAL PATH.
  *  - The first paint is a poster: a still of the exact frame the film starts
@@ -29,7 +30,7 @@ import { LOGOS } from "@/lib/logos";
  *    page's LCP, a plain <img> with art direction, so the phone downloads a
  *    40KB portrait still and nothing else.
  *  - The video has no `src` in the HTML. It is chosen and attached after the
- *    page's `load`, when the browser is idle, so 4MB of film never competes
+ *    page's `load`, when the browser is idle, so 3MB of film never competes
  *    with the page for bandwidth. It fades in over the poster once it is
  *    actually playing, so a slow connection keeps the still rather than
  *    showing a black box.
@@ -54,15 +55,16 @@ const CHAPTERS = [
 
 const FILM_LENGTH = 30;
 
-/** The first frame anybody sees: "Six vendors.", which the film turns into
-    "Six briefs." and "Nothing lines up." while the headline answers it. Keep
-    in step with `AT` in scripts/hero-film-posters.sh, or the poster and the
-    film will not be the same picture. */
+/** The first frame anybody sees: the cloud of separate vendors (hosting
+    company, printer, SEO freelancer...) that the film then pulls into one
+    mark, while the headline answers it. Keep in step with `AT` in
+    scripts/hero-film-posters.sh, or the poster and the film will not be the
+    same picture. */
 const FILM_START = 4.2;
 
 const FILM = {
-  wide: "/hero/film/wdc-film-16x9.mp4",
-  tall: "/hero/film/wdc-film-9x16.mp4",
+  wide: "/hero/film/wdc-film-v2-16x9.mp4",
+  tall: "/hero/film/wdc-film-v2-9x16.mp4",
 } as const;
 
 /** Portrait screens take the 9:16 cut. A portrait tablet is closer to 9:16
@@ -323,10 +325,10 @@ export function Hero() {
               of one. Both stills are already cut to size by the poster script
               (40-70KB), so the optimiser would have nothing left to do. */}
           <picture>
-            <source media={PORTRAIT} srcSet="/hero/film/wdc-film-9x16-720.jpg" width={720} height={1280} />
+            <source media={PORTRAIT} srcSet="/hero/film/wdc-film-v2-9x16-720.jpg" width={720} height={1280} />
             <img
-              src="/hero/film/wdc-film-16x9-1280.jpg"
-              srcSet="/hero/film/wdc-film-16x9-1280.jpg 1280w, /hero/film/wdc-film-16x9-1920.jpg 1920w"
+              src="/hero/film/wdc-film-v2-16x9-1280.jpg"
+              srcSet="/hero/film/wdc-film-v2-16x9-1280.jpg 1280w, /hero/film/wdc-film-v2-16x9-1920.jpg 1920w"
               sizes="100vw"
               width={1920}
               height={1080}
