@@ -15,6 +15,17 @@ const LINES = [
   { description: "Social media templates", qty: 12, amount: 3600000 },
 ];
 
+/* A long invoice: the case where the slip has to scroll inside its window. */
+const LONG = [
+  ...LINES,
+  { description: "Product photography, half-day studio session", qty: 1, amount: 18000000 },
+  { description: "Copywriting for the website (eight pages)", qty: 8, amount: 2400000 },
+  { description: "Search engine optimisation setup and first audit", qty: 1, amount: 25000000 },
+  { description: "Google Business Profile set-up", qty: 1, amount: 4500000 },
+  { description: "Paid social campaign management (first month)", qty: 1, amount: 15000000 },
+  { description: "Hosting and domain, first year", qty: 1, amount: 9000000 },
+];
+
 export default function DevReceipt() {
   if (process.env.NODE_ENV === "production") notFound();
   const subtotal = LINES.reduce((n, l) => n + l.amount, 0);
@@ -27,6 +38,15 @@ export default function DevReceipt() {
             amount={80000000} receiptNo="RCT-2026-014" number="INV-2026-031"
             method="Paystack" at="2026-10-04T13:42:00Z" outstanding={subtotal + vat - 80000000}
             lines={LINES} subtotal={subtotal} vat={vat} vatRate={7.5} total={subtotal + vat}
+          />
+        </article>
+        <article className="doc__sheet">
+          <ReceiptPrinter
+            amount={50000000} receiptNo="RCT-2026-016" number="INV-2026-033"
+            method="Paystack" at="2026-10-04T13:42:00Z"
+            outstanding={LONG.reduce((n, l) => n + l.amount, 0) - 50000000}
+            lines={LONG} subtotal={LONG.reduce((n, l) => n + l.amount, 0)} vat={0} vatRate={0}
+            total={LONG.reduce((n, l) => n + l.amount, 0)}
           />
         </article>
         <article className="doc__sheet">

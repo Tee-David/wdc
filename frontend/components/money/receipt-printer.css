@@ -169,18 +169,51 @@
 /* The window the paper comes out through: it clips the slip while it is
    still "inside" the printer. Padding at the foot leaves room for the torn
    edge and the paper's shadow. */
-.rp__out {
+/* The window the paper comes out through. It clips the slip while it is
+   still "inside" the printer, and it is also the slip's scroll box: capped to
+   the screen height left after the status card (~5rem), the printer
+   (~5rem), the buttons (~3.5rem) and the page's own margins, so on a phone the whole printer and its
+   buttons stay in view and a long slip scrolls inside it. A slip that fits
+   never scrolls. Translating the slip UP (the feed) adds no scroll area, so
+   the animation runs inside the same box. */
+.rp__win {
   position: relative;
   z-index: 1;
-  display: flex;
-  justify-content: center;
   width: 100%;
   margin-top: -.45rem;
-  padding: .45rem 0 1.1rem;
-  overflow: hidden;
 }
+.rp__out {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  max-height: max(15rem, calc(100svh - 18rem));
+  padding: .45rem 0 1.1rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(14 14 44 / .3) transparent;
+  border-radius: 0 0 6px 6px;
+}
+.rp__out:focus-visible { outline: 2px solid var(--rp-navy); outline-offset: 2px; }
+/* The fade that says "there is more below". Over the window, not inside the
+   scroll, so it stays put while the paper moves under it. White, because the
+   receipt sits on the white document sheet. */
+.rp__win::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 3rem;
+  pointer-events: none;
+  background: linear-gradient(rgb(255 255 255 / 0), #fff 85%);
+  opacity: 0;
+  transition: opacity .2s ease;
+}
+.rp--more .rp__win::after { opacity: 1; }
 .rp__slip {
   position: relative;
+  flex: none;
   width: 92%;
   padding: 1.15rem 1.1rem 1.2rem;
   background: var(--rp-paper);
@@ -311,7 +344,9 @@
   cursor: pointer;
   transition: background-color .2s ease, color .2s ease;
 }
-.rp__act svg { width: 1rem; height: 1rem; }
+.rp__act svg { width: 1rem; height: 1rem; flex: none; }
+.rp__act { white-space: nowrap; }
+.rp__act-short { display: none; }
 .rp__act:focus-visible { outline: 2px solid var(--rp-navy); outline-offset: 3px; }
 
 /* ---- the run ------------------------------------------------------------ */
@@ -384,5 +419,10 @@
   .rp__item { flex: 1 1 100%; }
   .rp__n { margin-left: auto; }
   .rp__lamp .rp__lbl { display: none; }
+  /* One row of buttons, always: two rows cost the slip window 3rem. */
+  .rp__actions { flex-wrap: nowrap; gap: .4rem; }
+  .rp__act { padding: 0 .85rem; }
+  .rp__act-long { display: none; }
+  .rp__act-short { display: inline; }
   .rp__status { padding-inline: .75rem; }
 }
