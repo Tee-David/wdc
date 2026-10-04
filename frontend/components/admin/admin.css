@@ -274,6 +274,8 @@
 .ad__topActions { margin-left: auto; display: flex; align-items: center; gap: .5rem; }
 .ad__topIcon { position: relative; width: 2.75rem; height: 2.75rem; flex: none; display: grid; place-items: center; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); color: var(--ad-ink); }
 .ad__topIcon svg { width: 1.1rem; height: 1.1rem; }
+/* The hot dog is wider than it is tall (49:36), so it sets its own width. */
+.ad__topMenu svg { width: 1.35rem; height: auto; }
 .ad__topbar .tourLauncher__btn { width: 2.75rem; height: 2.75rem; border-radius: 12px; color: var(--ad-ink); }
 .ad__topRule { width: 1px; height: 1.75rem; margin: 0 .2rem; background: var(--ad-line); }
 .ad__account {
