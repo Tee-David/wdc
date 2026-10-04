@@ -152,7 +152,7 @@ export function Header({
       <div className={`hd-bar pointer-events-auto mx-auto flex items-center justify-between ${solid ? "is-glass" : ""}`}>
         {logoSwap}
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
           <Link
             href="/contact"
             /* THE SITE'S PRIMARY, AND THE GROUND IT SITS ON MOVES UNDER IT.
