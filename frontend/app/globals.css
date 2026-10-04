@@ -484,32 +484,6 @@ main:focus { outline: none; }
 .hero-film__round:hover { background: rgb(255 255 255 / .2); }
 .hero-film__round:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
-/* Phone: the film's two sides are previous and next, with a visible hint so
-   nobody has to guess the gesture. NO `display` HERE: this file is unlayered,
-   so a display set here beats Tailwind's `lg:hidden` and the phone's arrows
-   turned up on a desktop. Layout stays in the markup's utilities. */
-.hero-film__tap {
-  color: #fff;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-.hero-film__tap-hint {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 999px;
-  background: rgb(5 6 39 / .4);
-  border: 1px solid rgb(255 255 255 / .2);
-  opacity: .8;
-  transition: opacity .2s ease, transform .2s ease;
-}
-.hero-film__tap:hover .hero-film__tap-hint { opacity: 1; }
-.hero-film__tap:active .hero-film__tap-hint { transform: scale(.92); }
-.hero-film__tap:focus-visible { outline: 2px solid #fff; outline-offset: -6px; border-radius: 1rem; }
-.hero-film__tap:focus-visible .hero-film__tap-hint { opacity: 1; }
-
 /* The arrow chip inside the primary. It reads the pair's own tokens, so it
    is always the button's opposite and swaps with it on hover. */
 .hero-film__chip {
@@ -640,8 +614,7 @@ main:focus { outline: none; }
   .hero-rise--solid { animation: none; opacity: 1; transform: none; }
   .hero-film__video,
   .hero-film__bar > span,
-  .hero-film__chip,
-  .hero-film__tap-hint { transition: none; }
+  .hero-film__chip { transition: none; }
 }
 
 
@@ -875,10 +848,14 @@ html { scroll-padding-top: 88px; }
    itself is transparent and the measurement reaches the ground that is
    really there. */
 @media (min-width: 1024px) {
+  /* Both pills share one height, so they read as a pair rather than two
+     unrelated boxes, and the links get room above and below instead of the
+     pill closing in on them. */
   .hd-glass {
     position: relative;
     isolation: isolate;
-    padding: 5px;
+    min-height: 3.5rem;
+    padding: 6px 8px;
     border-radius: 999px;
   }
   .hd-glass::before {

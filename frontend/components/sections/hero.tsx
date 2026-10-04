@@ -12,9 +12,9 @@ import { LOGOS } from "@/lib/logos";
  * The film is the studio's own 30-second showreel, cut in two shapes (16:9 and
  * 9:16) under `public/hero/film/`. It plays full-bleed behind the copy, and a
  * chapter bar names each part of it as it plays: on a desktop a glass strip
- * along the bottom, on a phone a row of story bars along the top with the two
- * sides of the film as previous/next. The chapters are the six services, so
- * the bar does the work a services paragraph would, without the paragraph.
+ * along the bottom, on a phone a row of progress bars under the buttons, with
+ * play/pause beside them. The chapters are the six services, so on a desktop
+ * the strip does the work a services paragraph would, without the paragraph.
  *
  * THE FILM HAS TYPE OF ITS OWN, which is the problem the layout is built
  * around. A cream frame with navy words sits behind white copy a third of the
@@ -149,26 +149,6 @@ function useFilm(sectionRef: React.RefObject<HTMLElement | null>) {
     }
   }, [playing, start]);
 
-  const step = useCallback(
-    (dir: 1 | -1) => {
-      /* The video's own clock only once it has one. Before that (reduced
-         motion, Save-Data, a browser that cannot play the file) it reads 0,
-         and "next" would always land on the second chapter. */
-      const v = videoRef.current;
-      const now = v && loaded.current && v.readyState >= 1 ? v.currentTime : t;
-      const i = chapterAt(now);
-      if (dir === 1) {
-        seek(CHAPTERS[(i + 1) % CHAPTERS.length].start);
-      } else {
-        /* Like a story: a tap a moment into a chapter restarts it, a second
-           tap goes back one. */
-        const into = now - CHAPTERS[i].start;
-        seek(into > 1.2 || i === 0 ? CHAPTERS[i].start : CHAPTERS[i - 1].start);
-      }
-    },
-    [seek, t],
-  );
-
   useEffect(() => {
     const v = videoRef.current;
     const section = sectionRef.current;
@@ -258,7 +238,7 @@ function useFilm(sectionRef: React.RefObject<HTMLElement | null>) {
     },
   };
 
-  return { t, playing, shown, seek, toggle, step, videoProps };
+  return { t, playing, shown, seek, toggle, videoProps };
 }
 
 function PlayToggle({ playing, onToggle }: { playing: boolean; onToggle: () => void }) {
@@ -366,45 +346,12 @@ export function Hero() {
         {/* The fixed header's height, so nothing below starts under it. */}
         <div className="h-16 shrink-0 md:h-[72px]" />
 
-        {/* PHONE AND TABLET: story bars along the top, on their own strip of
-            glass because white type straight over the film's cream frames
-            measured under 4.5:1. */}
-        <div className="relative z-10 mx-auto w-full max-w-[1280px] px-3 pt-1 md:px-6 lg:hidden">
-          <div className="hero-film__glass rounded-2xl py-2 pl-3.5 pr-1.5">
-            <div aria-hidden="true" className="flex gap-1 pr-2">
-              {CHAPTERS.map((c) => (
-                <span key={c.name} className="hero-film__bar flex-1">
-                  <span style={{ width: `${filled(film.t, c)}%` }} />
-                </span>
-              ))}
-            </div>
-            <div className="mt-1 flex items-center justify-between gap-3">
-              <p className="min-w-0 truncate text-[0.82rem] font-medium">
-                <span className="font-heading font-semibold">{CHAPTERS[now].name}</span>
-                <span className="text-white/80">{` · ${now + 1} of ${CHAPTERS.length}`}</span>
-              </p>
-              <PlayToggle playing={film.playing} onToggle={film.toggle} />
-            </div>
-          </div>
-        </div>
-
-        {/* The film's own space. On a phone its two sides are the story
-            controls: the left third goes back, the rest goes forward. */}
-        <div className="relative z-10 flex min-h-20 flex-1">
-          <button type="button" onClick={() => film.step(-1)} aria-label="Previous chapter of the film" className="hero-film__tap flex basis-[38%] items-center justify-start pl-2 lg:hidden">
-            <span className="hero-film__tap-hint" aria-hidden="true">
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 6-6 6 6 6" /></svg>
-            </span>
-          </button>
-          <button type="button" onClick={() => film.step(1)} aria-label="Next chapter of the film" className="hero-film__tap flex basis-[62%] items-center justify-end pr-2 lg:hidden">
-            <span className="hero-film__tap-hint" aria-hidden="true">
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 6 6 6-6 6" /></svg>
-            </span>
-          </button>
-        </div>
+        {/* The film's own space: nothing over it on a phone, so the top of
+            the screen is all film. */}
+        <div className="min-h-20 flex-1" />
 
         <div className="hero-film__copy relative z-10">
-          <div className="mx-auto w-full max-w-[1280px] px-5 pb-8 text-center md:px-6 md:pb-12 lg:px-10 lg:pb-[9.25rem] lg:text-left">
+          <div className="mx-auto w-full max-w-[1280px] px-5 pb-6 text-center md:px-6 md:pb-10 lg:px-10 lg:pb-[9.25rem] lg:text-left">
             {/* TWO BLOCKS, so the headline is two lines at every width and the
                 first one -- text that never changes -- is the LCP candidate
                 once the poster is. Transform-only entrance: it is visible
@@ -446,6 +393,22 @@ export function Hero() {
               >
                 See our work
               </Link>
+            </div>
+            {/* PHONE AND TABLET: the film's progress under the pair, bars only,
+                with play/pause at the end. No chapter names: on a phone the
+                bars already say "this is playing, and this far in", and a label
+                would be one more line between the buttons and the fold. The
+                bars are not buttons -- eight across a phone is too narrow to
+                tap -- so the toggle is the row's only control. */}
+            <div className="mt-5 flex items-center gap-3 md:mt-6 lg:hidden">
+              <div aria-hidden="true" className="flex min-w-0 flex-1 gap-1">
+                {CHAPTERS.map((c) => (
+                  <span key={c.name} className="hero-film__bar flex-1">
+                    <span style={{ width: `${filled(film.t, c)}%` }} />
+                  </span>
+                ))}
+              </div>
+              <PlayToggle playing={film.playing} onToggle={film.toggle} />
             </div>
           </div>
         </div>
