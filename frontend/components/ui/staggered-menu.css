@@ -22,21 +22,33 @@
   border-radius: 8px;
 }
 
-/* Animated hamburger → X */
+/* THE HOT DOG, then the X. Two buns around a longer sausage, drawn from the
+   owner's reference: the sausage is the full 26px and the buns two thirds of
+   it, a bun is as thick as the sausage, and the gaps between are about the
+   same again. The buns are flat on the side that faces the sausage and round
+   on the outside.
+
+   Open, the two buns become the arms of the X. They are full-width boxes
+   squeezed to two thirds at rest, so the X is made with transform alone:
+   the squeeze is released (arms as long as the sausage) and the 4px bar
+   is pressed to 3px. Nothing on this icon animates width, height or radius.
+   The arms' corners are set at the same moment to an elliptical radius
+   (1.5px across, 2px down) which the 3/4 squeeze turns into a true round
+   cap; otherwise they would end in points. */
 .sm-burger {
   position: relative;
   display: block;
   width: 26px;
-  height: 16px;
+  height: 19px;
 }
 
 .sm-burger-line {
   position: absolute;
   left: 0;
   width: 100%;
-  height: 2px;
+  height: 4px;
   background: currentColor;
-  border-radius: 2px;
+  border-radius: 4px;
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
     opacity 0.2s ease;
   will-change: transform, opacity;
@@ -44,6 +56,8 @@
 
 .sm-burger-line--top {
   top: 0;
+  border-radius: 4px 4px 1px 1px;
+  transform: scaleX(0.66);
 }
 
 .sm-burger-line--mid {
@@ -53,6 +67,8 @@
 
 .sm-burger-line--bot {
   bottom: 0;
+  border-radius: 1px 1px 4px 4px;
+  transform: scaleX(0.66);
 }
 
 /* Open, the toggle belongs to the PANEL, not to the header.
@@ -73,7 +89,8 @@
 
 .sm-toggle[aria-expanded="true"] .sm-burger-line--top {
   top: 50%;
-  transform: translateY(-50%) rotate(45deg);
+  transform: translateY(-50%) rotate(45deg) scale(1, 0.75);
+  border-radius: 1.5px / 2px;
 }
 
 .sm-toggle[aria-expanded="true"] .sm-burger-line--mid {
@@ -82,7 +99,8 @@
 
 .sm-toggle[aria-expanded="true"] .sm-burger-line--bot {
   bottom: 50%;
-  transform: translateY(50%) rotate(-45deg);
+  transform: translateY(50%) rotate(-45deg) scale(1, 0.75);
+  border-radius: 1.5px / 2px;
 }
 
 .sm-panel {
