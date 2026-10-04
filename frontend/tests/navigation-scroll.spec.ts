@@ -46,13 +46,15 @@ const scrollY = (page: Page) => page.evaluate(() => Math.round(window.scrollY));
 
 /* Clicked in-page rather than through a Playwright locator: the homepage runs
    several pinned GSAP sections once it is scrolled, and waiting for the
-   actionability checks on a moving element is what made this spec time out. */
+   actionability checks on a moving element is what made this spec time out.
+   The links live in the header's menu panel at every width now (the desktop
+   row of links was retired on 2026-10-04), so that is where this looks. */
 const clickNav = (page: Page, label: string) =>
   page.evaluate((text) => {
-    const link = [...document.querySelectorAll("header nav a")].find(
-      (a) => a.textContent?.trim() === text,
-    ) as HTMLAnchorElement | undefined;
-    if (!link) throw new Error(`no nav link "${text}"`);
+    const link = document.querySelector<HTMLAnchorElement>(
+      `header .sm-panel a[aria-label="Go to ${text}"]`,
+    );
+    if (!link) throw new Error(`no menu link "${text}"`);
     link.click();
   }, label);
 
