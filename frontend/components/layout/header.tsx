@@ -178,7 +178,7 @@ export function Header({
                 strategy call, it takes a brief. The link has always gone to
                 the contact form, so the label now says what the click does. */}
             <span className="min-[360px]:hidden">Start</span>
-            <span className="hidden min-[360px]:inline">Start a project</span>
+            <span className="hidden min-[360px]:inline">Start a Project</span>
             <svg
               viewBox="0 0 16 16"
               fill="none"

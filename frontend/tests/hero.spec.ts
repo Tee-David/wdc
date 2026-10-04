@@ -142,7 +142,11 @@ test.describe("on a phone", () => {
     await expect(cta).toBeHidden();
     await expect(page.locator("header").getByRole("button", { name: "Open menu" })).toBeVisible();
 
-    /* Touch emulation does not scroll on a wheel event. */
+    /* Touch emulation does not scroll on a wheel event. A key first: a
+       scripted scroll is not intent, so without one the arrival reset in
+       components/ui/scroll-reset.tsx can still put the page back at the top,
+       and the test only passed when it lost that race. */
+    await page.keyboard.press("Shift");
     await page.evaluate(() => window.scrollTo(0, 1200));
     await expect(cta).toBeVisible();
   });
