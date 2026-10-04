@@ -12,7 +12,8 @@ import { expect, test, type Page } from "@playwright/test";
  *    loaded, so 4MB of video cannot sit on the critical path;
  *  - each screen shape gets its own cut, chosen in the browser;
  *  - reduced motion never fetches it at all;
- *  - the chapters move when pressed, on a phone as well as a desktop;
+ *  - the desktop chapters move when pressed; a phone gets progress bars
+ *    and a play control under the buttons, and nothing over the film;
  *  - the hero's own pair is above the fold on the smallest phone we design
  *    for, and the hero never widens the page.
  *
@@ -88,21 +89,24 @@ test("the desktop chapters jump to the chapter pressed", async ({ page }) => {
 test.describe("on a phone", () => {
   test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
 
-  test("it gets the tall cut and story controls that step through the chapters", async ({ page }) => {
+  test("it gets the tall cut, and the progress sits under the pair with its play control", async ({ page }) => {
     await skipIntro(page);
     await page.goto("/", { waitUntil: "load" });
     await expect.poll(() => filmSrc(page), { timeout: 10_000 }).toContain("wdc-film-9x16.mp4");
 
-    const now = page.locator(".hero-film").getByText(/ of 8$/).locator("..");
-    await expect(now).toContainText("The studio");
+    const hero = page.locator(".hero-film");
+    /* The owner took the side arrows and the label row out: nothing sits over
+       the film on a phone. */
+    await expect(hero.getByRole("button", { name: /chapter of the film/ })).toHaveCount(0);
+    await expect(hero.getByText(/ of 8$/)).toHaveCount(0);
 
-    await page.getByRole("button", { name: "Next chapter of the film" }).click();
-    await expect(now).toContainText("Branding");
-    await page.getByRole("button", { name: "Next chapter of the film" }).click();
-    await expect(now).toContainText("Search");
-    /* At the very start of a chapter, back goes back one, like a story. */
-    await page.getByRole("button", { name: "Previous chapter of the film" }).click();
-    await expect(now).toContainText("Branding");
+    /* The bars and the toggle are one row directly under "See our work". */
+    const toggle = hero.locator('button[aria-label$="the film"]:visible');
+    await expect(toggle).toHaveCount(1);
+    const work = await hero.getByRole("link", { name: "See our work" }).boundingBox();
+    const play = await toggle.boundingBox();
+    expect(play!.y, "the play control is not under the buttons").toBeGreaterThan(work!.y + work!.height);
+    expect(play!.y + play!.height).toBeLessThanOrEqual(844);
 
     /* The desktop strip is not what a phone gets. */
     await expect(page.getByRole("group", { name: "Chapters of the film" })).toBeHidden();

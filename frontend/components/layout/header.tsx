@@ -195,7 +195,7 @@ export function Header({
               <Link
                 href={n.link}
                 aria-current={on ? "page" : undefined}
-                className={`group relative rounded-full px-3 py-2 text-[0.94rem] xl:px-4 font-medium transition-colors duration-200 ${
+                className={`group relative rounded-full px-2.5 py-2 text-[0.94rem] xl:px-4 font-medium transition-colors duration-200 ${
                   solid
                     ? "text-[#000065]/75 hover:text-[#000065] dark:text-foreground/75 dark:hover:text-foreground"
                     : "text-white/85 hover:text-white [text-shadow:0_1px_6px_rgba(0,0,0,0.45)]"
@@ -217,7 +217,7 @@ export function Header({
                     full strength from the 75% its siblings sit at. */}
                 <span
                   aria-hidden="true"
-                  className={`pointer-events-none absolute inset-x-3 -bottom-0.5 xl:inset-x-4 h-[2px] rounded-full bg-secondary transition-transform duration-300 ease-out ${
+                  className={`pointer-events-none absolute inset-x-2.5 -bottom-0.5 xl:inset-x-4 h-[2px] rounded-full bg-secondary transition-transform duration-300 ease-out ${
                     on ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
                   }`}
                 />
