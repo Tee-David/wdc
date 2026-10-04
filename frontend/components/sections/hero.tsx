@@ -380,11 +380,11 @@ export function Hero() {
             >
               <Link
                 href="#pv-contact"
-                className="hero-cta group btn-primary inline-flex min-h-[3.375rem] items-center justify-center gap-3.5 rounded-full border-[1.5px] py-1.5 pl-6 pr-1.5 text-base font-semibold transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-white"
+                className="hero-cta group btn-primary inline-flex min-h-[3.375rem] items-center justify-center gap-3 rounded-full border-[1.5px] py-1.5 pl-6 pr-[0.6875rem] text-base font-semibold transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-white"
               >
-                Start a project
+                Start a Project
                 <span className="hero-film__chip" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" className="h-[1.1rem] w-[1.1rem]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M5 12h14M13 6l6 6-6 6" />
                   </svg>
                 </span>
@@ -393,7 +393,7 @@ export function Hero() {
                 href="#pv-work"
                 className="hero-cta btn-secondary inline-flex min-h-[3.375rem] items-center justify-center rounded-full border-[1.5px] px-7 text-base font-semibold transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-white"
               >
-                See our work
+                See Our Work
               </Link>
             </div>
             {/* PHONE AND TABLET: the film's progress under the pair, bars only,
