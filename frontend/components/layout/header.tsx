@@ -56,7 +56,16 @@ const NAV = [
  * was there, tabbable, and invisible. Getting the flag wrong the other way
  * costs a surface nobody minded; getting it wrong this way costs the nav.
  */
-export function Header({ overHero = false }: { overHero?: boolean } = {}) {
+/**
+ * `markOnlyOnPhones` is the homepage's: over its film a phone shows the mark
+ * and the menu and nothing else, because the hero's own pair is already on
+ * screen. The "Start" CTA comes back the moment the bar goes solid, so the
+ * site's main action is never more than a scroll away.
+ */
+export function Header({
+  overHero = false,
+  markOnlyOnPhones = false,
+}: { overHero?: boolean; markOnlyOnPhones?: boolean } = {}) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const user = useSiteUser();
@@ -68,6 +77,8 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
   /* Solid whenever the bar is not floating over a dark hero, so a page with
      light paper at the top gets its surface from the first pixel. */
   const solid = scrolled || !overHero;
+  /* Phones over the homepage film: the mark, the menu, nothing else. */
+  const quiet = markOnlyOnPhones && !solid;
 
   const isCurrent = (link: string) =>
     link.includes("#") ? false
@@ -118,7 +129,13 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
         style={{ opacity: solid ? 0 : 1 }}
         aria-hidden={solid}
       >
-        <Logo tone="white" markClassName="h-9 w-auto" />
+        <span className={quiet ? "hidden md:inline-flex" : "inline-flex"}>
+          <Logo tone="white" markClassName="h-9 w-auto" />
+        </span>
+        {markOnlyOnPhones ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img src="/brand/icon-white-accent.svg" alt="" className={`h-9 w-auto drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] ${quiet ? "md:hidden" : "hidden"}`} />
+        ) : null}
       </span>
 
       <span
@@ -166,7 +183,11 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
             states have to hold: white over the hero, which is dark in both
             themes, and the theme's own foreground once the bar has a surface
             under it. */}
-        <nav className="hidden lg:flex items-center gap-1" aria-label="Primary">
+        {/* GLASS ISLANDS over a dark hero: the links in one pill and the
+            controls in another, so they read over moving film as well as
+            over a band. `.hd-glass` only applies from 1024px, and only while
+            the bar has no surface of its own. */}
+        <nav className={`hidden lg:flex items-center gap-1 ${solid ? "" : "hd-glass"}`} aria-label="Primary">
           {NAV.map((n) => {
             const on = isCurrent(n.link);
             return (
@@ -174,7 +195,7 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
               <Link
                 href={n.link}
                 aria-current={on ? "page" : undefined}
-                className={`group relative rounded-full px-4 py-2 text-[0.94rem] font-medium transition-colors duration-200 ${
+                className={`group relative rounded-full px-3 py-2 text-[0.94rem] xl:px-4 font-medium transition-colors duration-200 ${
                   solid
                     ? "text-[#000065]/75 hover:text-[#000065] dark:text-foreground/75 dark:hover:text-foreground"
                     : "text-white/85 hover:text-white [text-shadow:0_1px_6px_rgba(0,0,0,0.45)]"
@@ -196,7 +217,7 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
                     full strength from the 75% its siblings sit at. */}
                 <span
                   aria-hidden="true"
-                  className={`pointer-events-none absolute inset-x-4 -bottom-0.5 h-[2px] rounded-full bg-secondary transition-transform duration-300 ease-out ${
+                  className={`pointer-events-none absolute inset-x-3 -bottom-0.5 xl:inset-x-4 h-[2px] rounded-full bg-secondary transition-transform duration-300 ease-out ${
                     on ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
                   }`}
                 />
@@ -241,7 +262,7 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
           })}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className={`flex items-center gap-3 lg:gap-2 xl:gap-3 ${solid ? "" : "hd-glass"}`}>
           {/* Rides in the bar on desktop; on a phone it lives in the menu
               footer, where there is room for its label. */}
           {/* No over-hero override any more. The toggle carries its own navy
@@ -304,7 +325,7 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
                until they opened the menu. It is smaller there (44px tall, the
                touch minimum) and says "Start" under 360px, and it steps out of
                the way while the menu is open over it. */
-            className={`header-cta-pulse group btn-primary inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3.5 text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(0,0,26,0.35)] active:translate-y-0 md:min-h-0 md:gap-2 md:px-5 md:py-2.5 md:text-sm ${solid ? "" : "hero-cta"} ${menuOpen ? "max-lg:invisible" : ""}`}
+            className={`header-cta-pulse group btn-primary inline-flex min-h-11 shrink-0 items-center whitespace-nowrap gap-1.5 rounded-full border px-3.5 text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(0,0,26,0.35)] active:translate-y-0 md:min-h-0 md:gap-2 md:px-5 md:py-2.5 md:text-sm ${solid ? "" : "hero-cta"} ${menuOpen ? "max-lg:invisible" : ""} ${quiet ? "max-md:hidden" : ""}`}
           >
             {/* Not "Book a Strategy Call". That was carried over wholesale
                 when this header was rebuilt to match litchconsulting's, and it
@@ -332,7 +353,10 @@ export function Header({ overHero = false }: { overHero?: boolean } = {}) {
                 ? ""
                 : solid
                   ? "[&_.sm-toggle]:text-[#000065] dark:[&_.sm-toggle]:text-foreground"
-                  : "[&_.sm-burger]:drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] [&_.sm-toggle]:!text-white dark:[&_.sm-toggle]:!text-foreground"
+                  : "[&_.sm-burger]:drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] [&_.sm-toggle]:!text-white dark:[&_.sm-toggle]:!text-foreground" +
+                    /* Over the film the menu is a glass disc, like the
+                       hero's own controls. */
+                    (quiet ? " hd-glass-menu" : "")
             )}
             /* Log in joins the LIST rather than the footer row. The footer
                holds the two controls that change how the site looks; this is a

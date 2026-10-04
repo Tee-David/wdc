@@ -1116,25 +1116,6 @@ html:not(.dark) .pv .pv-card {
   .pv-shot img, .pv-badge, .pv-icard__btn { transition: none; }
 }
 
-/* ---------------- hero, scoped to this page ----------------
-   The hero component is shared with the live homepage, so these overrides hang
-   off a .pv-hero wrapper that only /preview renders. The overlay sits at z-5:
-   the backdrop is z-auto and the hero's content wrapper is z-10, so it darkens
-   the photo without dimming the copy. */
-.pv-hero { position: relative; }
-.pv-hero > section::after {
-  content: ""; position: absolute; inset: 0; z-index: 5;
-  background: rgba(0, 0, 0, .6); pointer-events: none;
-}
-.pv-hero [class*="tracking-"] { letter-spacing: .02em; }
-/* In dark mode the hero also stacks the theme's own scrims (bg-background/72,
-   a gradient and a primary/25 multiply), so the photo ended up far darker than
-   the 60% asked for. Neutralise those inside the preview hero and let the single
-   overlay above govern both themes. */
-.dark .pv-hero [class~="dark:bg-background/72"],
-.dark .pv-hero [class~="dark:bg-primary/25"] { background-color: transparent !important; }
-.dark .pv-hero [class~="dark:to-background/85"] { --tw-gradient-to: transparent !important; }
-
 /* a project listed before its screenshot exists: a branded panel carrying the
    name, rather than a broken image icon on a live marketing page */
 .pv-shot__none {

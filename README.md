@@ -63,6 +63,7 @@ One system for everything we ship: the public site, the admin and the portal. Th
 - **Tables stay tables on every screen:** the first column is pinned, and the table scrolls sideways inside its own box. The page body never scrolls sideways.
 - **Nothing widens the page at 320px:** every text-bearing flex or grid child has `min-width: 0`.
 - **Public page shape:** every landing page opens with the `wk-hero` navy band (eyebrow, h1, lede). Cards share one track: `minmax(min(100%, 20rem), 1fr)`.
+- **The homepage hero is the film** (`components/sections/hero.tsx`): the 30-second showreel full-bleed under a navy shade anchored to the copy, the headline bottom left (centred on a phone), the black/white pair, and a chapter bar naming the six services as the film reaches them (a glass strip on a desktop, story bars with tap-to-skip sides on a phone). The poster is the LCP; the video is attached after `load`, never under reduced motion or Save-Data, and pauses off screen. Posters come from `frontend/scripts/hero-film-posters.sh`. Over it the header is two glass islands on a desktop and the mark plus a glass menu on a phone (`<Header overHero markOnlyOnPhones />`). The tool rail sits directly under the hero.
 - **Settings overview:** one column of full-width panels, in the order of the side list.
 
 ### Components (admin and portal)
@@ -100,6 +101,7 @@ All of these live in `frontend/components/admin/`. The public site has its own o
 - **Screens arrive in order:** the head first, then blocks a beat apart. KPI figures count up (`count-up.tsx`, `.adCountUp`) and bars grow from their baseline. The server always renders the real value first; the KPI class is deliberately separate from Settings' `.adCount` field counter so route-persistent CSS cannot move a figure out of its tile.
 - **What moves:** transform and opacity only. Under reduced motion nothing moves. Anything off screen or in a hidden tab pauses. One-shot celebrations keep their final invisible frame until their finish events remove the layer; cleanup must not rely only on the `Animation.finished` promise.
 - **Hero motion:** ten pieces and three ways to put them in the homepage hero, in the Hero Motion artifact (https://claude.ai/artifact/VtKhKJkgMBSgop26cphUPv). The CTAs never wait for the motion.
+- **Hero film:** the concepts behind it (and the ones not taken) are in the WDC Hero Concepts canvas (https://claude.ai/artifact/6NMiGXyWnFTg94jUskN45S); concept 06, Timeline, is the one built.
 
 ### States
 

@@ -148,9 +148,9 @@
   border-color: var(--btn-fill);
 }
 
-/* THE HERO IS A DARK GROUND IN BOTH THEMES, because it is a photograph rather
-   than a theme surface: the backdrop cycles through six pictures under a scrim
-   whichever theme the reader has chosen. So its two buttons take the dark
+/* THE HERO IS A DARK GROUND IN BOTH THEMES, because it is a film rather than
+   a theme surface: the showreel plays under a navy shade whichever theme the
+   reader has chosen. So its two buttons take the dark
    ground's pair in both, and say so here rather than in six Tailwind classes
    that have to agree with each other by hand. */
 .hero-cta {
@@ -278,22 +278,6 @@ form[data-busy="1"] [type="submit"] { cursor: progress; }
   to { opacity: 0; }
 }
 
-/* THE CARET'S BOX, CUT DOWN TO THE BAR IT ACTUALLY PAINTS.
-
-   The homepage caret is ▎ (U+258E, LEFT ONE QUARTER BLOCK): the ink fills the
-   left quarter of the character cell and the rest of the advance is empty. Its
-   advance measured 0.79em, so a bar about 0.25em wide was charging the line
-   nearly nine tenths of an em -- and at 320px the headline had 2px of room to
-   spare. That empty half is why the caret would not fit beside the two longest
-   phrases, and it also made the bar look detached from the words it follows.
-
-   The width is set on the box, not on the glyph, and overflow stays visible:
-   the bar paints exactly as before and the box is the size of the bar. Nothing
-   is clipped, so the caret keeps its baseline. Scoped to the hero rather than
-   set on `.text-type__cursor`, because the other caret on the site is a plain
-   `|` in the SERP mock whose advance is already its own width. */
-.hero-caret { width: 0.34em; }
-
 /* The copy inside the reserved sizer: laid out so the line reserves room for a
    caret, never painted, so never blinking. */
 .text-type__cursor--sizer { animation: none; }
@@ -339,13 +323,7 @@ form[data-busy="1"] [type="submit"] { cursor: progress; }
 }
 .hero-rise { animation: hero-rise .6s cubic-bezier(.16, 1, .3, 1) both; }
 
-/* The same crossfade/slow zoom formerly driven by the motion runtime. Keeping
-   it in CSS makes the LCP image animate on the compositor and removes that
-   library from the critical homepage bundle. */
-/* Slower and gentler than it was, now that it fades over the previous frame
-   rather than over the page. A crossfade with something underneath it can
-   afford to take its time; one with a hole underneath had to hurry. */
-@keyframes hero-backdrop-fade { from { opacity: 0; } to { opacity: 1; } }
+/* The slow push-in the slit wipe below still uses. */
 @keyframes hero-backdrop-zoom {
   from { transform: scale(1.08); }
   to { transform: scale(1); }
@@ -384,39 +362,172 @@ form[data-busy="1"] [type="submit"] { cursor: progress; }
    it had been tabbed to. */
 main:focus { outline: none; }
 
-/* THE HERO SCRIM.
+/* ---------------------------------------------------------------------------
+   THE HOMEPAGE FILM. See components/sections/hero.tsx for how it loads.
 
-   The overlay used to be one flat 55% black veil across the whole picture,
-   which is the worst of both: it greys out the photography everywhere AND it
-   is still not enough where it matters. Measured off the actual image pixels
-   behind the headline, the photograph sits at a luminance of 0.75 there (it
-   is a bright, blown-out screen shot), and white type needs the composited
-   background at 0.183 or below to clear 4.5:1 -- which takes a 0.76 black
-   overlay. At 0.55 the headline was under even the 3:1 allowed for large
-   text, and was leaning on its text-shadow to look acceptable.
+   THE SHADE FOLLOWS THE COPY, NOT THE SCREEN. The film carries type of its
+   own and a third of its frames are cream (#f5f3ee), so white copy over it is
+   only as legible as what is directly behind it. A veil written in percentages
+   of the hero was right at 844px tall and wrong at 568, where the copy climbs
+   into the part the gradient had already let go of. So the hero itself only
+   gets a light base and a fade under the header, and the real shade hangs off
+   the copy block (`::before`), starting above the headline by a fixed
+   distance at every height.
 
-   So the veil is not reduced evenly, it is RESHAPED: a light 30% base so the
-   image reads across the whole frame, plus an elliptical scrim centred on the
-   copy. Behind the headline the two compose to 1-(0.70x0.34) = 0.762, which
-   clears AA; out at the edges the picture is left at 30% instead of 55% and
-   is visibly more of a photograph than it was.
+   Measured over a cream frame: behind the headline the composite is at most
+   rgb(55 55 81), 12:1 with white; behind the description it is darker still.
+   Change a stop here and re-measure there.
+   ------------------------------------------------------------------------ */
+.hero-film__video { opacity: 0; transition: opacity .6s ease; }
+.hero-film__video.is-shown { opacity: 1; }
 
-   Percentages here are deliberate and measured. Changing one means
-   re-measuring the composite behind the h1, not guessing. */
-.hero-scrim {
-  background: radial-gradient(
-    ellipse 78% 54% at 50% 46%,
-    rgba(0, 0, 0, .66) 0%,
-    rgba(0, 0, 0, .6) 34%,
-    rgba(0, 0, 0, .34) 62%,
-    rgba(0, 0, 0, 0) 82%
-  );
+.hero-film__veil {
+  background:
+    linear-gradient(180deg, rgb(5 6 39 / .62) 0, rgb(5 6 39 / 0) 9rem),
+    rgb(5 6 39 / .2);
 }
 
-.hero-backdrop {
-  animation:
-    hero-backdrop-fade 2s cubic-bezier(.4, 0, .2, 1) both,
-    hero-backdrop-zoom 6s linear both;
+.hero-film__copy::before {
+  content: "";
+  position: absolute;
+  inset: -8rem 0 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgb(5 6 39 / 0) 0, rgb(5 6 39 / .86) 8rem, rgb(5 6 39 / .95) 100%);
+}
+@media (min-width: 1024px) {
+  /* Copy on the left, film on the right: the shade leans left so the film
+     keeps its right half, and still reaches under the chapter strip. */
+  .hero-film__copy::before {
+    inset: -11rem 0 0;
+    background:
+      linear-gradient(90deg, rgb(5 6 39 / .82) 0%, rgb(5 6 39 / .45) 45%, rgb(5 6 39 / 0) 72%),
+      linear-gradient(180deg, rgb(5 6 39 / 0) 0, rgb(5 6 39 / .62) 11rem, rgb(5 6 39 / .82) 100%);
+  }
+}
+
+/* Dark glass for the chapter controls. Small surfaces only: a blurred
+   backdrop re-renders with every frame of film under it. */
+.hero-film__glass {
+  background: rgb(5 6 39 / .45);
+  border: 1px solid rgb(255 255 255 / .18);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+}
+
+/* A chapter's progress. THE BRIGHT ORANGE IN BOTH THEMES, deliberately: the
+   dark-mode #b84a00 exists to carry white type, and this bar carries none. It
+   sits on the film's navy, which is dark in both themes, where #ff6500 is 6:1
+   and #b84a00 would be about 3:1. */
+.hero-film__bar {
+  position: relative;
+  display: block;
+  height: 3px;
+  border-radius: 3px;
+  background: rgb(255 255 255 / .28);
+  overflow: hidden;
+}
+.hero-film__bar > span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: #ff6500;
+  transition: width .3s linear;
+}
+
+/* Desktop chapters: a name over a bar, the whole thing one button. */
+.hero-film__seg {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: .55rem;
+  flex-basis: 0;
+  /* Holds "Software & AI" whole. At 1024px that only fits because the
+     clock beside the strip steps out below 1280 (see hero.tsx). */
+  min-width: 6.25rem;
+  min-height: 3rem;
+  padding: 0 .4rem;
+  border-radius: .625rem;
+  text-align: left;
+  color: rgb(255 255 255 / .78);
+  cursor: pointer;
+  transition: background-color .2s ease, color .2s ease;
+}
+.hero-film__seg:hover,
+.hero-film__seg[aria-current] { color: #fff; }
+.hero-film__seg:hover { background: rgb(255 255 255 / .08); }
+.hero-film__seg:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.hero-film__seg-label {
+  font-size: .78rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Play/pause. Icon-only chrome, so it is glass and white rather than one of
+   the pair. */
+.hero-film__round {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  color: #fff;
+  background: rgb(255 255 255 / .1);
+  border: 1px solid rgb(255 255 255 / .2);
+  cursor: pointer;
+  transition: background-color .2s ease;
+}
+.hero-film__round:hover { background: rgb(255 255 255 / .2); }
+.hero-film__round:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* Phone: the film's two sides are previous and next, with a visible hint so
+   nobody has to guess the gesture. NO `display` HERE: this file is unlayered,
+   so a display set here beats Tailwind's `lg:hidden` and the phone's arrows
+   turned up on a desktop. Layout stays in the markup's utilities. */
+.hero-film__tap {
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.hero-film__tap-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  background: rgb(5 6 39 / .4);
+  border: 1px solid rgb(255 255 255 / .2);
+  opacity: .8;
+  transition: opacity .2s ease, transform .2s ease;
+}
+.hero-film__tap:hover .hero-film__tap-hint { opacity: 1; }
+.hero-film__tap:active .hero-film__tap-hint { transform: scale(.92); }
+.hero-film__tap:focus-visible { outline: 2px solid #fff; outline-offset: -6px; border-radius: 1rem; }
+.hero-film__tap:focus-visible .hero-film__tap-hint { opacity: 1; }
+
+/* The arrow chip inside the primary. It reads the pair's own tokens, so it
+   is always the button's opposite and swaps with it on hover. */
+.hero-film__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.625rem;
+  height: 2.625rem;
+  border-radius: 999px;
+  background: var(--btn-ink);
+  color: var(--btn-fill);
+  transition: background-color .25s ease, color .25s ease, transform .3s cubic-bezier(.2, .8, .2, 1);
+}
+.group:hover > .hero-film__chip,
+.group:focus-visible > .hero-film__chip {
+  background: var(--btn-fill);
+  color: var(--btn-ink);
+  transform: translateX(3px);
 }
 
 /* THE SLIT WIPE between hero backdrops. See components/sections/hero.tsx for
@@ -526,8 +637,11 @@ main:focus { outline: none; }
 /* No animation, and no hidden starting state to be stuck in. */
 @media (prefers-reduced-motion: reduce) {
   .hero-rise,
-  .hero-rise--solid,
-  .hero-backdrop { animation: none; opacity: 1; transform: none; }
+  .hero-rise--solid { animation: none; opacity: 1; transform: none; }
+  .hero-film__video,
+  .hero-film__bar > span,
+  .hero-film__chip,
+  .hero-film__tap-hint { transition: none; }
 }
 
 
@@ -744,6 +858,55 @@ html { scroll-padding-top: 88px; }
 
 @media (prefers-reduced-motion: reduce) {
   .hd-round { transition: background-color .2s ease, border-color .2s ease, color .2s ease; }
+}
+
+/* THE HEADER'S GLASS ISLANDS, over a dark hero on a desktop: the links in one
+   pill, the controls in another. The bar loses them the moment it goes solid,
+   which is also the moment the page starts scrolling, so the blur is only
+   ever paid for while the bar sits still at the top -- the cost the note on
+   the bar itself warns about is a blurred backdrop on a FIXED element that
+   scrolls. Below 1024px the bar has no pills: a phone gets a mark and a menu.
+
+   THE GLASS IS A PSEUDO-ELEMENT, NOT THE PILL'S OWN BACKGROUND. A button is
+   measured against the first ancestor that paints a background (see
+   tests/button-colours.spec.ts), and an 8% white wash read there as a WHITE
+   ground: the white CTA inside scored 1.00:1 on every page with a dark hero,
+   while on screen it sat on near-black. With the fill on `::before` the pill
+   itself is transparent and the measurement reaches the ground that is
+   really there. */
+@media (min-width: 1024px) {
+  .hd-glass {
+    position: relative;
+    isolation: isolate;
+    padding: 5px;
+    border-radius: 999px;
+  }
+  .hd-glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: rgb(255 255 255 / .08);
+    border: 1px solid rgb(255 255 255 / .18);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    backdrop-filter: blur(18px) saturate(150%);
+    pointer-events: none;
+  }
+  /* Inside a pill the round controls drop their own ring: the pill is the
+     edge. They keep the navy fill on hover and focus. */
+  .hd-glass .hd-round { border-color: transparent; }
+}
+
+/* The phone's menu button over the homepage film: a glass disc, matching the
+   hero's own round controls. Written here rather than as utilities because
+   `.sm-toggle` sets its own transparent background in an unlayered sheet,
+   which no Tailwind class can outrank. Off while the menu is open, when the
+   button becomes the panel's close cross. */
+.hd-glass-menu .sm-toggle:not([aria-expanded="true"]) {
+  border-radius: 999px;
+  background: rgb(255 255 255 / .1);
+  border: 1px solid rgb(255 255 255 / .2);
 }
 
 

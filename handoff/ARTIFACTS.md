@@ -5,6 +5,7 @@ reads one with the Artifact tool (`action: "read"`), not a web fetch.
 
 | Link | What | Status |
 |---|---|---|
+| https://claude.ai/artifact/6NMiGXyWnFTg94jUskN45S | **WDC Hero Concepts** (design canvas): six film-hero concepts in desktop and phone artboards, the 30s showreel playing in each. 01 Cinema, 02 Frost, 03 Studio, 04 Ambient, 05 Spotlight, 06 Timeline, plus a Final row (04 + Stories). | **06 Timeline built** 2026-10-04 (`components/sections/hero.tsx`), with the Stories phone layout. 02 and 03 declined. |
 | https://claude.ai/artifact/H3pMsULKtfdzgPfHtEMuPd | **Hero, reconciled**: concepts A (backdrop), B (recede), C (shared ground), live in phone and desktop frames. Source: `prototypes/hero-reconcile/`. | Owner chose **C**, with changes: see QUEUE item 20. Not built. |
 | https://claude.ai/artifact/VtKhKJkgMBSgop26cphUPv | **Hero motion**: the ten motion pieces (one per service), the first prototype. Source: `prototypes/hero-motion/`. | Pieces liked; its layout was not. Feeds item 20. |
 | https://claude.ai/artifact/Xa6aPYNrgVhJnyHnkbu93c | **Design System**: every admin/portal component live in both themes. Linked from `README.md` § Design system. | Reference; keep in step with components. |
