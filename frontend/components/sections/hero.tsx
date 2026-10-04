@@ -191,6 +191,21 @@ function useFilm(sectionRef: React.RefObject<HTMLElement | null>) {
     io.observe(section);
     document.addEventListener("visibilitychange", settle);
 
+    /* A BROWSER MAY REFUSE THE FIRST play() with no one touching the page (iOS
+       Low Power Mode does, whatever the markup says). The film is then a still
+       with a play button, which reads as "it does not autoplay". The visitor's
+       first tap, key press or click IS permission, so use it: if the film is
+       wanted and not running, start it. A visitor who paused it has
+       `wanted` false and is left alone; scrolling does not count as a gesture
+       to a browser, so it is not listened for. */
+    const nudge = () => {
+      if (!wanted.current || !visible.current || document.visibilityState !== "visible") return;
+      if (!loaded.current) start();
+      else if (v.paused) play();
+    };
+    const gestures = ["pointerup", "touchend", "keydown"] as const;
+    for (const g of gestures) window.addEventListener(g, nudge, { passive: true });
+
     const orientation = window.matchMedia(PORTRAIT);
     const reshape = () => {
       if (loaded.current && wanted.current) start();
@@ -208,6 +223,7 @@ function useFilm(sectionRef: React.RefObject<HTMLElement | null>) {
       window.clearTimeout(idle);
       io.disconnect();
       document.removeEventListener("visibilitychange", settle);
+      for (const g of gestures) window.removeEventListener(g, nudge);
       orientation.removeEventListener("change", reshape);
     };
   }, [play, sectionRef, start]);

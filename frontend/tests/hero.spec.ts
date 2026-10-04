@@ -152,6 +152,38 @@ test.describe("on a phone", () => {
   });
 });
 
+test.describe("when the browser refuses to autoplay", () => {
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
+
+  /* iOS Low Power Mode rejects play() with no one touching the page. The film
+     then sat as a still with a play button, which reads as "it does not
+     autoplay". The visitor's first tap is permission, so the hero asks again.
+     Chromium here cannot decode the film, so this counts the attempts rather
+     than watching it run (which also means it cannot press a real pause: that
+     the nudge leaves a paused film alone rests on `wanted`, set by toggle()). */
+  test("the first tap asks again", async ({ page }) => {
+    await skipIntro(page);
+    await page.addInitScript(() => {
+      const w = window as unknown as { __plays: number; __gesture: boolean };
+      w.__plays = 0;
+      w.__gesture = false;
+      for (const g of ["pointerup", "touchend", "keydown"]) window.addEventListener(g, () => { w.__gesture = true; }, true);
+      HTMLMediaElement.prototype.play = function () {
+        w.__plays++;
+        return w.__gesture ? Promise.resolve() : Promise.reject(new DOMException("blocked", "NotAllowedError"));
+      };
+    });
+    await page.goto("/", { waitUntil: "load" });
+    await expect.poll(() => filmSrc(page), { timeout: 10_000 }).toContain("wdc-film-v2-9x16.mp4");
+    const plays = () => page.evaluate(() => (window as unknown as { __plays: number }).__plays);
+    await expect.poll(plays).toBeGreaterThan(0); // refused, with nobody touching the page
+    const refused = await plays();
+
+    await page.touchscreen.tap(195, 300);
+    await expect.poll(plays).toBeGreaterThan(refused); // the tap asks again
+  });
+});
+
 test.describe("with reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
 
