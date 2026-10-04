@@ -1,17 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { LogIn } from "lucide-react";
-import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Logo, WdcMark } from "@/components/brand/logo";
-import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import ThemeSwitchButton from "@/components/ui/theme-switch-button";
 import UserWay from "@/components/ui/userway";
 import StaggeredMenu from "@/components/ui/staggered-menu";
-import { MenuAccount, initials, useSiteUser } from "@/components/layout/signed-in";
-import { SERVICES } from "@/lib/services";
-import ServiceIcon from "@/components/ui/service-icon";
+import { MenuAccount, useSiteUser } from "@/components/layout/signed-in";
 
 /**
  * Every entry points at something that exists.
@@ -28,14 +23,7 @@ import ServiceIcon from "@/components/ui/service-icon";
 const NAV = [
   { label: "Home", link: "/" },
   { label: "Our Works", link: "/work" },
-  /* Services carries its six pages with it. The hub is still the link -- a
-     parent that only opens a menu is a dead end for anyone who wanted the
-     overview -- and the six hang off it. */
-  {
-    label: "Services",
-    link: "/services",
-    sub: SERVICES.map((s) => ({ label: s.short, link: `/services/${s.slug}`, icon: s.icon })),
-  },
+  { label: "Services", link: "/services" },
   { label: "Blog", link: "/blog" },
   { label: "About Us", link: "/about" },
   { label: "Contact Us", link: "/contact" },
@@ -44,7 +32,12 @@ const NAV = [
 /**
  * Fixed header. Transparent over the hero; once scrolled it gains a
  * theme surface + border and the full logo swaps to the mark only.
- * Desktop: logo / nav / CTA + theme toggle. Mobile: toggle / logo / menu.
+ *
+ * ONE BAR AT EVERY WIDTH: the logo on the left, "Start a project" and the
+ * menu button on the right. The owner's call (2026-10-04): the desktop row of
+ * links, the theme toggle and the log-in disc all moved into the menu, which
+ * is the same panel a phone opens. The bar carries one action and one way to
+ * everything else, so nothing competes with the hero under it.
  */
 /**
  * `overHero` says whether the page starts with a DARK full-bleed hero behind
@@ -69,21 +62,11 @@ export function Header({
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const user = useSiteUser();
-  const pathname = usePathname();
-
-  /* An in-page anchor ("/#pv-contact") is never the current page, and "/" would
-     otherwise match every route as a prefix. Everything else matches its own
-     section, so /work/branding/moore-designs still lights "Our Works". */
   /* Solid whenever the bar is not floating over a dark hero, so a page with
      light paper at the top gets its surface from the first pixel. */
   const solid = scrolled || !overHero;
   /* Phones over the homepage film: the mark, the menu, nothing else. */
   const quiet = markOnlyOnPhones && !solid;
-
-  const isCurrent = (link: string) =>
-    link.includes("#") ? false
-      : link === "/" ? pathname === "/"
-      : pathname === link || pathname.startsWith(`${link}/`);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 32);
@@ -105,13 +88,6 @@ export function Header({
    * flow, because it is the wider of the two: with the mark in flow instead the
    * link collapsed to the mark's 34px and the full logo overflowed it.
    */
-  /* Over the hero the bar sits on a photograph, so both round controls are
-     white. Once it has its own surface they take the page's ink, which is navy
-     in light and near-white in dark. */
-  const roundControl = solid
-    ? "text-[#000065] dark:text-foreground"
-    : "text-white [text-shadow:0_1px_6px_rgba(0,0,0,0.45)]";
-
   const logoSwap = (
     <Link
       href="/"
@@ -177,137 +153,7 @@ export function Header({
       <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-4 md:h-[72px] md:px-6 lg:px-10">
         {logoSwap}
 
-        {/* Desktop nav. The hamburger is a PHONE control now — a menu that
-            hides five links behind a button on a 1440px screen makes the
-            visitor work for something there is room to just show them. Both
-            states have to hold: white over the hero, which is dark in both
-            themes, and the theme's own foreground once the bar has a surface
-            under it. */}
-        {/* GLASS ISLANDS over a dark hero: the links in one pill and the
-            controls in another, so they read over moving film as well as
-            over a band. `.hd-glass` only applies from 1024px, and only while
-            the bar has no surface of its own. */}
-        <nav className={`hidden lg:flex items-center gap-1 ${solid ? "" : "hd-glass"}`} aria-label="Primary">
-          {NAV.map((n) => {
-            const on = isCurrent(n.link);
-            return (
-              <div className="hd-navitem" key={n.link}>
-              <Link
-                href={n.link}
-                aria-current={on ? "page" : undefined}
-                className={`group relative rounded-full px-2.5 py-2 text-[0.94rem] xl:px-4 font-medium transition-colors duration-200 ${
-                  solid
-                    ? "text-[#000065]/75 hover:text-[#000065] dark:text-foreground/75 dark:hover:text-foreground"
-                    : "text-white/85 hover:text-white [text-shadow:0_1px_6px_rgba(0,0,0,0.45)]"
-                } ${
-                  on
-                    ? solid
-                      ? "!text-[#000065] dark:!text-foreground"
-                      : "!text-white"
-                    : ""
-                }`}
-              >
-                {n.label}
-                {n.sub ? <span className="hd-caret" aria-hidden="true" /> : null}
-                {/* The current-page rule is drawn, not just coloured: colour
-                    alone is not a state anyone can rely on — and the orange it
-                    used to be measured 2.95:1 on this bar, so it was failing
-                    the people who rely on it most. The state is now the drawn
-                    rule plus aria-current, and the label simply comes up to
-                    full strength from the 75% its siblings sit at. */}
-                <span
-                  aria-hidden="true"
-                  className={`pointer-events-none absolute inset-x-2.5 -bottom-0.5 xl:inset-x-4 h-[2px] rounded-full bg-secondary transition-transform duration-300 ease-out ${
-                    on ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
-                  }`}
-                />
-              </Link>
-
-              {/* THE SUBMENU OPENS ON HOVER AND ON FOCUS, not on hover alone.
-                  `:focus-within` is what makes it reachable by keyboard: a
-                  reader tabs into Services and the six pages are simply the
-                  next six stops. Nothing here is information that only a
-                  pointer can get at, which is the rule in AGENTS.md. */}
-              {n.sub ? (
-                <div className="hd-sub" role="group" aria-label={`${n.label} pages`}>
-                  {n.sub.map((child) => (
-                    <Link
-                      key={child.link}
-                      href={child.link}
-                      className="hd-sub__a"
-                      aria-current={isCurrent(child.link) ? "page" : undefined}
-                    >
-                      {/* The service's own icon, the same one its page and its
-                          card carry, so the menu is recognisably a list of
-                          those six things rather than six words. */}
-                      <span className="hd-sub__i" aria-hidden="true">
-                        <ServiceIcon name={child.icon} size={17} />
-                      </span>
-                      {child.label}
-                    </Link>
-                  ))}
-                  {/* The parent link again, below a rule. A dropdown that only
-                      offers the children strands anyone who wanted the
-                      overview, and the top-level link is easy to miss once a
-                      menu has opened under the cursor. */}
-                  <span className="hd-sub__rule" aria-hidden="true" />
-                  <Link href={n.link} className="hd-sub__a hd-sub__a--all">
-                    All services
-                    <span className="hd-sub__go" aria-hidden="true">&rarr;</span>
-                  </Link>
-                </div>
-              ) : null}
-              </div>
-            );
-          })}
-        </nav>
-
-        <div className={`flex items-center gap-3 lg:gap-2 xl:gap-3 ${solid ? "" : "hd-glass"}`}>
-          {/* Rides in the bar on desktop; on a phone it lives in the menu
-              footer, where there is room for its label. */}
-          {/* No over-hero override any more. The toggle carries its own navy
-              ground and white glyph in every theme, so it no longer needs the
-              header to force a colour onto it when it sits over the photo. */}
-          {/* ONE COLOUR RULE FOR BOTH ROUND CONTROLS, set here because only the
-              header knows whether it is sitting on a photograph or on its own
-              surface. Both take `currentColor` for their ring and their glyph,
-              so they can never end up as a white icon on a white ground. */}
-          <span className={`hidden lg:inline-flex ${roundControl}`}>
-            <AnimatedThemeToggler className="hd-round" />
-          </span>
-          {/* LOG IN. Icon only, because the bar already carries five nav items
-              and a CTA, and a seventh piece of text is the one that tips it
-              into clutter. The label is still there for anyone who cannot see
-              the icon -- `aria-label` names it and `title` shows it on hover
-              -- and the target is 40px with the header's own padding around
-              it, so it is comfortably thumb-sized.
-
-              It takes the same navy disc and white glyph as the theme toggle
-              beside it, for two reasons: the pair then reads as one set of
-              controls rather than two unrelated buttons, and navy-on-white
-              (17.68:1) holds in both themes and over the hero photograph,
-              which a theme-following colour would not. */}
-          {/* SIGNED IN, the same disc carries the person's initials and goes to
-              their dashboard instead of the log-in page. */}
-          {user ? (
-            <Link
-              href="/signed-in"
-              aria-label={`Your dashboard, signed in as ${user.name}`}
-              title={`Signed in as ${user.name}`}
-              className={`hd-round hidden h-10 w-10 items-center justify-center rounded-full text-[.8rem] font-bold hover:scale-110 active:scale-95 lg:inline-flex ${roundControl}`}
-            >
-              {initials(user.name)}
-            </Link>
-          ) : (
-            <Link
-              href="/login"
-              aria-label="Log in"
-              title="Log in"
-              className={`hd-round hidden h-10 w-10 items-center justify-center rounded-full hover:scale-110 active:scale-95 lg:inline-flex ${roundControl}`}
-            >
-              <LogIn className="h-[1.05rem] w-[1.05rem]" aria-hidden="true" />
-            </Link>
-          )}
+        <div className="flex items-center gap-3">
           <Link
             href="/contact"
             /* THE SITE'S PRIMARY, AND THE GROUND IT SITS ON MOVES UNDER IT.
@@ -325,7 +171,7 @@ export function Header({
                until they opened the menu. It is smaller there (44px tall, the
                touch minimum) and says "Start" under 360px, and it steps out of
                the way while the menu is open over it. */
-            className={`header-cta-pulse group btn-primary inline-flex min-h-11 shrink-0 items-center whitespace-nowrap gap-1.5 rounded-full border px-3.5 text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(0,0,26,0.35)] active:translate-y-0 md:min-h-0 md:gap-2 md:px-5 md:py-2.5 md:text-sm ${solid ? "" : "hero-cta"} ${menuOpen ? "max-lg:invisible" : ""} ${quiet ? "max-md:hidden" : ""}`}
+            className={`header-cta-pulse group btn-primary inline-flex min-h-11 shrink-0 items-center whitespace-nowrap gap-1.5 rounded-full border px-3.5 text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(0,0,26,0.35)] active:translate-y-0 md:min-h-0 md:gap-2 md:px-5 md:py-2.5 md:text-sm ${solid ? "" : "hero-cta"} ${menuOpen ? "invisible" : ""} ${quiet ? "max-md:hidden" : ""}`}
           >
             {/* Not "Book a Strategy Call". That was carried over wholesale
                 when this header was rebuilt to match litchconsulting's, and it
@@ -348,15 +194,14 @@ export function Header({
           </Link>
 
           <StaggeredMenu
-            className={"lg:hidden " + (
+            className={(
               menuOpen
                 ? ""
                 : solid
                   ? "[&_.sm-toggle]:text-[#000065] dark:[&_.sm-toggle]:text-foreground"
-                  : "[&_.sm-burger]:drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] [&_.sm-toggle]:!text-white dark:[&_.sm-toggle]:!text-foreground" +
-                    /* Over the film the menu is a glass disc, like the
-                       hero's own controls. */
-                    (quiet ? " hd-glass-menu" : "")
+                  /* Over a dark hero the menu is a glass disc, like the
+                     hero's own controls. */
+                  : "hd-glass-menu [&_.sm-burger]:drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] [&_.sm-toggle]:!text-white dark:[&_.sm-toggle]:!text-foreground"
             )}
             /* Log in joins the LIST rather than the footer row. The footer
                holds the two controls that change how the site looks; this is a

@@ -86,6 +86,28 @@ test("the desktop chapters jump to the chapter pressed", async ({ page }) => {
   await expect(strip.locator('[aria-current="step"]')).toHaveText("Software & AI");
 });
 
+/* ONE BAR AT EVERY WIDTH (the owner's call, 2026-10-04): on a desktop the
+   bar is the logo, "Start a project" and the menu button. The links, the
+   theme switch and log in live in the menu, as they do on a phone. */
+test("on a desktop the bar is the logo, the CTA and the menu, and the menu holds the rest", async ({ page }) => {
+  await skipIntro(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/", { waitUntil: "load" });
+  await expect.poll(() => filmSrc(page), { timeout: 10_000 }).toContain("wdc-film-16x9.mp4");
+
+  const bar = page.locator("header");
+  await expect(bar.getByRole("link", { name: "We Dig Creativity, home" })).toBeVisible();
+  await expect(bar.getByRole("link", { name: "Start a project" })).toBeVisible();
+  await expect(bar.getByRole("navigation", { name: "Primary" })).toHaveCount(0);
+  await expect(bar.getByRole("link", { name: "Log in", exact: true })).toHaveCount(0);
+
+  await bar.getByRole("button", { name: "Open menu" }).click();
+  for (const name of ["Go to Our Works", "Go to Services", "Go to Contact Us", "Log in to your account"]) {
+    await expect(page.getByRole("link", { name })).toBeVisible();
+  }
+  await expect(page.getByRole("button", { name: "Switch theme" }).last()).toBeVisible();
+});
+
 test.describe("on a phone", () => {
   test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
 
