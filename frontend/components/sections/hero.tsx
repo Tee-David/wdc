@@ -338,7 +338,7 @@ export function Hero() {
           <video
             {...film.videoProps}
             tabIndex={-1}
-            className={`hero-film__video absolute inset-0 h-full w-full object-cover${film.shown ? " is-shown" : ""}`}
+            className={`hero-film__video absolute inset-0 h-full w-full object-cover ${film.shown ? "is-shown" : ""}`}
           />
           <div className="hero-film__veil absolute inset-0" />
         </div>
