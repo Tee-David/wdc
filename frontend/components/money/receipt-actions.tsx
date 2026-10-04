@@ -16,23 +16,111 @@ export default function ReceiptActions({ receiptNo }: { receiptNo: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
 
-  /* THE "MORE BELOW" FADE. A long slip scrolls inside its window, and the
-     fade along the window's foot is what tells a reader it does. It shows
-     only while there is more to read underneath: not on a slip that fits,
-     and not once the reader has reached the end. */
+  /* THE LONG SLIP. A slip longer than its window scrolls inside it, shows a
+     fade along the foot while there is more below (`rp--more`), and carries a
+     paper tab that pulls it further out of the printer:
+
+     - DRAG the tab down and the window grows under the finger, up to the
+       whole slip;
+     - TAP it (or Enter) and the rest feeds out in one smooth go;
+     - while paper moves, the printer is "feeding" (`rp--feeding`): orange
+       blinking light, the shiver, "Printing";
+     - wholly out (`rp--full`), the cap, the tab and the fade go.
+
+     Only the tab takes the gesture (touch-action: none on it alone), so the
+     page keeps scrolling normally everywhere else. Replay tucks the paper
+     back in. */
   useEffect(() => {
     const rp = ref.current?.closest<HTMLElement>(".rp");
     const out = rp?.querySelector<HTMLElement>(".rp__out");
-    if (!rp || !out) return;
+    const tab = rp?.querySelector<HTMLButtonElement>(".rp__pull");
+    if (!rp || !out || !tab) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     let frame = 0;
     const check = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        rp.classList.toggle("rp--more", out.scrollTop + out.clientHeight < out.scrollHeight - 4);
+        const full = rp.classList.contains("rp--full");
+        rp.classList.toggle("rp--more", !full && out.scrollTop + out.clientHeight < out.scrollHeight - 4);
       });
     };
+
+    const finish = () => {
+      out.style.transition = "";
+      out.style.maxHeight = "";
+      rp.classList.remove("rp--feeding");
+      rp.classList.add("rp--full");
+      check();
+    };
+
+    /* Feed the rest out. Height is the one thing here that is not transform
+       or opacity: it is the paper actually coming out, so the page below it
+       has to move, and it only ever runs because the reader asked. */
+    const glide = () => {
+      const target = out.scrollHeight;
+      if (reduce) return finish();
+      rp.classList.add("rp--feeding");
+      out.style.maxHeight = `${out.clientHeight}px`;
+      void out.offsetHeight;
+      out.style.transition = "max-height .7s cubic-bezier(.2, .8, .2, 1)";
+      out.style.maxHeight = `${target}px`;
+      const done = () => { out.removeEventListener("transitionend", done); finish(); };
+      out.addEventListener("transitionend", done);
+      window.setTimeout(done, 900);
+    };
+
+    let startY = 0, startH = 0, moved = false, dragging = false;
+    const down = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      dragging = true;
+      moved = false;
+      startY = e.clientY;
+      startH = out.clientHeight;
+      tab.setPointerCapture(e.pointerId);
+    };
+    const move = (e: PointerEvent) => {
+      if (!dragging) return;
+      const dy = e.clientY - startY;
+      if (!moved && Math.abs(dy) < 4) return;
+      if (!moved) { moved = true; rp.classList.add("rp--feeding"); }
+      const full = out.scrollHeight;
+      const h = Math.min(full, Math.max(startH, startH + dy));
+      out.style.maxHeight = `${h}px`;
+      check();
+    };
+    const up = (e: PointerEvent) => {
+      if (!dragging) return;
+      dragging = false;
+      if (tab.hasPointerCapture(e.pointerId)) tab.releasePointerCapture(e.pointerId);
+      if (!moved) return; // a tap: the click handler feeds it out
+      rp.classList.remove("rp--feeding");
+      /* Pulled most of the way: let the rest drop out. */
+      if (out.clientHeight >= out.scrollHeight * 0.85) glide();
+      else check();
+    };
+    const click = () => { if (!moved) glide(); moved = false; };
+
+    /* ONCE PRINTED, THE RUN IS RETIRED. Its keyframes hold the finished
+       state with `fill: both`, and any later change to the same properties
+       (the "feeding" blink during a pull) would restart them from zero when it
+       ended -- the light went orange again for two seconds after every pull.
+       The finished state is also the resting state, so dropping `rp--run`
+       here changes nothing on screen; `rp--printed` cues the tab's nudge. */
+    const printed = (e: AnimationEvent) => {
+      if (e.animationName !== "rp-feed") return;
+      rp.classList.remove("rp--run");
+      rp.classList.add("rp--printed");
+    };
+    rp.addEventListener("animationend", printed);
+
     check();
     out.addEventListener("scroll", check, { passive: true });
+    tab.addEventListener("pointerdown", down);
+    tab.addEventListener("pointermove", move);
+    tab.addEventListener("pointerup", up);
+    tab.addEventListener("pointercancel", up);
+    tab.addEventListener("click", click);
     const ro = new ResizeObserver(check);
     ro.observe(out);
     const slip = out.firstElementChild;
@@ -40,6 +128,12 @@ export default function ReceiptActions({ receiptNo }: { receiptNo: string }) {
     return () => {
       cancelAnimationFrame(frame);
       out.removeEventListener("scroll", check);
+      tab.removeEventListener("pointerdown", down);
+      tab.removeEventListener("pointermove", move);
+      tab.removeEventListener("pointerup", up);
+      tab.removeEventListener("pointercancel", up);
+      tab.removeEventListener("click", click);
+      rp.removeEventListener("animationend", printed);
       ro.disconnect();
     };
   }, []);
@@ -47,11 +141,13 @@ export default function ReceiptActions({ receiptNo }: { receiptNo: string }) {
   const replay = () => {
     const rp = ref.current?.closest<HTMLElement>(".rp");
     if (!rp) return;
-    rp.classList.remove("rp--run");
+    const out = rp.querySelector<HTMLElement>(".rp__out");
+    /* Tuck the paper back in and print from the top again. */
+    rp.classList.remove("rp--run", "rp--printed", "rp--full", "rp--feeding");
+    if (out) { out.style.maxHeight = ""; out.style.transition = ""; out.scrollTo({ top: 0 }); }
     void rp.offsetWidth;
     rp.classList.add("rp--run");
-    /* Print from the top of the slip again, as it first came out. */
-    rp.querySelector(".rp__out")?.scrollTo({ top: 0 });
+    out?.dispatchEvent(new Event("scroll"));
   };
 
   const copy = async () => {
