@@ -354,16 +354,18 @@ export function Hero() {
 
         <div className="hero-film__copy relative z-10">
           <div className="mx-auto w-full max-w-[1280px] px-5 pb-6 text-center md:px-6 md:pb-10 lg:px-10 lg:pb-[9.25rem] lg:text-left">
-            {/* TWO BLOCKS, so the headline is two lines at every width and the
-                first one -- text that never changes -- is the LCP candidate
-                once the poster is. Transform-only entrance: it is visible
-                from the first frame. */}
+            {/* ONE LINE ON A PHONE, TWO FROM A TABLET UP. Two spans: blocks
+                from `md`, inline under it, where `.hero-film__title` sizes
+                the whole line to the screen's width so it never wraps (see
+                globals.css). The text never changes, so it is the LCP
+                candidate once the poster is. Transform-only entrance: it is
+                visible from the first frame. */}
             <h1
               id="hero-title"
-              className="hero-rise--solid font-heading text-[clamp(2.6rem,10.5vw,5.5rem)] font-semibold leading-[0.98] tracking-[-0.04em] text-white"
+              className="hero-film__title hero-rise--solid font-heading text-[clamp(2.6rem,10.5vw,5.5rem)] font-semibold leading-[0.98] tracking-[-0.04em] text-white"
             >
-              <span className="block">Six briefs.</span>
-              <span className="block">One studio.</span>
+              <span className="md:block">We do it all.</span>{" "}
+              <span className="md:block">Yes, really.</span>
             </h1>
             <p
               className="hero-rise mx-auto mt-4 max-w-[33rem] text-pretty text-[0.98rem] leading-relaxed text-[#e6e7f2] sm:text-lg lg:mx-0 lg:mt-6 lg:text-[1.19rem]"
