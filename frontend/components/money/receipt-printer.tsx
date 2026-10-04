@@ -149,6 +149,14 @@ export default function ReceiptPrinter({
           <p className="rp__ta">Thank you</p>
         </div>
       </div>
+      {/* The paper tab for a long slip: drag it to pull more out, or press
+          it to feed the rest out at once. Shown only once the slip has been
+          measured as longer than its window (receipt-actions.tsx). */}
+      <button type="button" className="rp__pull" aria-label="Show the full receipt">
+        <span className="rp__grip" aria-hidden="true"><i /><i /><i /></span>
+        Pull for more
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+      </button>
       </div>
 
       {/* 4. Replay and Copy. */}
