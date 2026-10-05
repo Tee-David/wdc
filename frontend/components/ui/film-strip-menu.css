@@ -11,8 +11,31 @@
    transforms; the one thing that reads layout is the zoom on choosing, and it
    reads it once. */
 
+/* TWO THEMES. Dark is the navy theatre it was designed as; light is a white
+   page with navy ink, the film base a pale grey and the sprocket holes navy.
+   Everything below reads these, so a colour is never written twice. */
 .fm {
   --ink: #050627;
+  --fm-fg: #fff;
+  --fm-soft: #c9cae6;
+  --fm-band: #0b0b12;
+  --fm-line: #2b2c5c;
+  --fm-track: #4e5099;
+  --fm-track-hi: #6b6db0;
+  --fm-fill: #8e90c0;
+  --fm-lift: #14153a;
+  --fm-shadow: rgba(0, 0, 0, 0.45);
+  --fm-glow: rgba(201, 202, 230, 0.22);
+  --fm-btn-bg: #0b0b12;
+  --fm-btn-ink: #fff;
+  --fm-btn-edge: #fff;
+  --fm-hole: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='10'%3E%3Crect x='7' y='0' width='14' height='10' rx='3' fill='%238e90c0'/%3E%3C/svg%3E");
+  --fm-tc-ink: #ff6500;
+  --fm-tool-bg: #0b0b12;
+  --fm-tool-ink: #fff;
+  --fm-tool-edge: #fff;
+  --fm-play-bg: #fff;
+  --fm-play-ink: #0b0b12;
   position: fixed;
   inset: 0;
   /* Over the floating buttons (110-112: accessibility, back-to-top, the chat
@@ -24,7 +47,7 @@
   pointer-events: none;
   opacity: 0;
   overflow: hidden;
-  color: #fff;
+  color: var(--fm-fg);
   font-family: var(--font-body, system-ui, sans-serif);
   touch-action: none; /* the strip takes every gesture; the page behind must not scroll */
   overscroll-behavior: contain;
@@ -38,7 +61,30 @@
   opacity: 1;
   transition-delay: 0s;
 }
-.fm :focus-visible { outline: 2px solid #fff; outline-offset: 3px; border-radius: 8px; }
+html:not(.dark) .fm {
+  --ink: #ffffff;
+  --fm-fg: #000065;
+  --fm-soft: #4a4a7a;
+  --fm-band: #eef0f9;
+  --fm-line: #d3d6ec;
+  --fm-track: #d3d6ec;
+  --fm-track-hi: #b6bad9;
+  --fm-fill: #9ea1cf;
+  --fm-lift: #e3e5f4;
+  --fm-shadow: rgba(0, 0, 80, 0.2);
+  --fm-glow: rgba(0, 0, 101, 0.07);
+  --fm-btn-bg: #000;
+  --fm-btn-ink: #fff;
+  --fm-btn-edge: #000;
+  --fm-tool-bg: #fff;
+  --fm-tool-ink: #000;
+  --fm-tool-edge: #000;
+  --fm-play-bg: #000065;
+  --fm-play-ink: #fff;
+  --fm-hole: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='10'%3E%3Crect x='7' y='0' width='14' height='10' rx='3' fill='%23000065' fill-opacity='.55'/%3E%3C/svg%3E");
+  --fm-tc-ink: #c95000;
+}
+.fm :focus-visible { outline: 2px solid var(--fm-fg); outline-offset: 3px; border-radius: 8px; }
 
 .fm-scrim { position: absolute; inset: 0; background: var(--ink); opacity: 1; transition: opacity 0.3s ease; }
 .fm.is-done .fm-scrim { opacity: 0; }
@@ -54,12 +100,12 @@
 }
 
 /* The film base and its sprocket holes. */
-.fm-band { position: absolute; left: 0; right: 0; top: var(--bt); height: calc(var(--fh) + var(--sp) * 2); background: #0b0b12; border-block: 1px solid #2b2c5c; overflow: hidden; }
+.fm-band { position: absolute; left: 0; right: 0; top: var(--bt); height: calc(var(--fh) + var(--sp) * 2); background: var(--fm-band); border-block: 1px solid var(--fm-line); overflow: hidden; }
 .fm-holes-slide { position: absolute; inset: 0; }
 .fm.is-open .fm-holes-slide { animation: fm-slide 1s cubic-bezier(0.2, 0.8, 0.2, 1) both; --from: 52vw; }
 .fm-holes {
   position: absolute; left: calc(var(--hpad) * -1); width: var(--hw); height: 10px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='10'%3E%3Crect x='7' y='0' width='14' height='10' rx='3' fill='%238e90c0'/%3E%3C/svg%3E") repeat-x 0 0 / 28px 10px;
+  background: var(--fm-hole) repeat-x 0 0 / 28px 10px;
   transform: translate3d(var(--hx), 0, 0);
   transition: transform 0.6s cubic-bezier(0.3, 1.25, 0.5, 1);
 }
@@ -72,7 +118,7 @@
   position: absolute; left: 50%; top: calc(var(--bt) + var(--sp) + var(--fh) / 2);
   width: calc(var(--fw) * 2.4); height: calc(var(--fh) * 1.5);
   margin: calc(var(--fh) * -0.75) 0 0 calc(var(--fw) * -1.2);
-  background: radial-gradient(closest-side, rgba(201, 202, 230, 0.22), rgba(201, 202, 230, 0));
+  background: radial-gradient(closest-side, var(--fm-glow), transparent);
   animation: fm-breathe 4.5s ease-in-out infinite; pointer-events: none;
 }
 @keyframes fm-breathe { 0%, 100% { opacity: 0.55 } 50% { opacity: 1 } }
@@ -89,24 +135,24 @@
   -webkit-user-drag: none;
 }
 .is-drag .fm-frame, .is-snap .fm-frame { transition: none; }
-.fm-frame:focus-visible .fm-pic { outline: 2px solid #fff; outline-offset: 5px; border-radius: 6px; }
+.fm-frame:focus-visible .fm-pic { outline: 2px solid var(--fm-fg); outline-offset: 5px; border-radius: 6px; }
 .fm-pic { position: absolute; inset: 0; display: block; transform: scale(var(--s)); opacity: var(--o); transition: opacity 0.25s ease, transform 0.6s cubic-bezier(0.3, 1.25, 0.5, 1); }
 .is-drag .fm-pic, .is-snap .fm-pic { transition: opacity 0.1s linear; }
-.fm-lift { position: absolute; inset: 0; display: block; border-radius: 4px; background: #14153a; box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45); transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4); }
+.fm-lift { position: absolute; inset: 0; display: block; border-radius: 4px; background: var(--fm-lift); box-shadow: 0 14px 30px var(--fm-shadow); transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4); }
 .fm-img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 4px; object-fit: cover; object-position: 50% 0; display: block; -webkit-user-drag: none; pointer-events: none; }
 .fm-frame:not(.is-centre):hover .fm-lift { transform: translateY(-12px); }
 .fm-frame:not(.is-centre):hover .fm-pic { opacity: 0.82; }
 .fm-frame:active .fm-lift { transform: scale(0.985); }
-.fm-frame.is-centre:hover .fm-lift { box-shadow: 0 0 0 2px #ff6500, 0 14px 30px rgba(0, 0, 0, 0.45); }
+.fm-frame.is-centre:hover .fm-lift { box-shadow: 0 0 0 2px #ff6500, 0 14px 30px var(--fm-shadow); }
 
 /* The timecode on the frame in the gate: orange TEXT on navy (never a fill). */
 .fm-tc {
   z-index: 2; position: absolute; left: 10px; top: -13px; display: block; padding: 3px 7px 2px; border-radius: 4px;
-  border: 1px solid #2b2c5c; background: var(--ink); color: #ff6500; font-weight: 600; font-size: 12px; letter-spacing: 0.08em;
+  border: 1px solid var(--fm-line); background: var(--ink); color: var(--fm-tc-ink); font-weight: 600; font-size: 12px; letter-spacing: 0.08em;
   font-variant-numeric: tabular-nums; opacity: var(--tc);
 }
 .fm-play {
-  position: absolute; right: 8px; bottom: 8px; width: 36px; height: 36px; border-radius: 50%; background: #fff; color: #0b0b12;
+  position: absolute; right: 8px; bottom: 8px; width: 36px; height: 36px; border-radius: 50%; background: var(--fm-play-bg); color: var(--fm-play-ink);
   display: flex; align-items: center; justify-content: center; opacity: var(--tc); transform: scale(0.9);
   transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.5);
 }
@@ -119,8 +165,8 @@
   transition: opacity 0.25s ease, transform 0.6s cubic-bezier(0.3, 1.25, 0.5, 1);
 }
 .is-drag .fm-cap, .is-snap .fm-cap { transition: opacity 0.1s linear; }
-.fm-title { display: block; font-family: var(--font-heading, var(--font-space-grotesk), sans-serif); font-weight: 600; font-size: 26px; line-height: 1.1; color: #fff; }
-.fm-desc { display: block; margin-top: 5px; font-size: 15px; line-height: 1.3; color: #c9cae6; }
+.fm-title { display: block; font-family: var(--font-heading, var(--font-space-grotesk), sans-serif); font-weight: 600; font-size: 26px; line-height: 1.1; color: var(--fm-fg); }
+.fm-desc { display: block; margin-top: 5px; font-size: 15px; line-height: 1.3; color: var(--fm-soft); }
 /* "You are here": white label on the deep orange fill, as every orange chip with words on this site. */
 .fm-here {
   display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; padding: 3px 9px 3px 8px; border-radius: 999px;
@@ -141,7 +187,7 @@
   background-repeat: no-repeat; animation: fm-ring 3.2s ease-in-out infinite;
 }
 @keyframes fm-ring { 0%, 100% { transform: scale(1) } 50% { transform: scale(1.025) } }
-.fm-scratch { position: absolute; top: -6px; bottom: -6px; left: 0; width: 1px; background: #fff; opacity: 0; animation: fm-scratch 7s steps(14, end) infinite 2s; }
+.fm-scratch { position: absolute; top: -6px; bottom: -6px; left: 0; width: 1px; background: var(--fm-fg); opacity: 0; animation: fm-scratch 7s steps(14, end) infinite 2s; }
 @keyframes fm-scratch { 0% { transform: translateX(12%); opacity: 0 } 2% { opacity: 0.35 } 12% { transform: translateX(70%); opacity: 0.3 } 14%, 100% { transform: translateX(88%); opacity: 0 } }
 
 /* The foot: where you are in the reel on the left, the account tools on the right. */
@@ -152,45 +198,61 @@
 }
 .fm-foot-l { width: min(560px, 60%); display: flex; flex-direction: column; gap: 6px; }
 .fm-meta { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; min-width: 0; }
-.fm-count { white-space: nowrap; display: inline-flex; align-items: baseline; gap: 6px; font-family: var(--font-heading, var(--font-space-grotesk), sans-serif); font-weight: 600; font-size: 15px; color: #fff; font-variant-numeric: tabular-nums; }
+.fm-count { white-space: nowrap; display: inline-flex; align-items: baseline; gap: 6px; font-family: var(--font-heading, var(--font-space-grotesk), sans-serif); font-weight: 600; font-size: 15px; color: var(--fm-fg); font-variant-numeric: tabular-nums; }
 .fm-roll { display: inline-block; height: 1.3em; overflow: hidden; line-height: 1.3em; vertical-align: top; }
 .fm-roll-in { display: flex; flex-direction: column; transform: translate3d(0, calc(var(--i) * -1.3em), 0); transition: transform 0.5s cubic-bezier(0.3, 1.3, 0.5, 1); }
 .fm-roll-in b { font-weight: 600; display: block; height: 1.3em; }
-.fm-of { color: #c9cae6; font-weight: 500; }
-.fm-hint { font-size: 13px; color: #c9cae6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; transition: opacity 0.4s ease; }
+.fm-of { color: var(--fm-soft); font-weight: 500; }
+.fm-hint { font-size: 13px; color: var(--fm-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; transition: opacity 0.4s ease; }
 .fm-hint.is-gone { opacity: 0; }
 .fm-pager { display: flex; gap: 10px; }
 .fm-bar { flex: 1; min-width: 0; min-height: 44px; display: flex; flex-direction: column; justify-content: center; align-items: stretch; gap: 6px; }
-.fm-bar-track { display: block; height: 4px; border-radius: 4px; background: #4e5099; overflow: hidden; position: relative; }
-.fm-bar-fill { position: absolute; inset: 0; border-radius: 4px; background: #8e90c0; transform: scaleX(0); transform-origin: 0 50%; transition: transform 0.5s cubic-bezier(0.3, 0.9, 0.3, 1), background-color 0.3s; }
+.fm-bar-track { display: block; height: 4px; border-radius: 4px; background: var(--fm-track); overflow: hidden; position: relative; }
+.fm-bar-fill { position: absolute; inset: 0; border-radius: 4px; background: var(--fm-fill); transform: scaleX(0); transform-origin: 0 50%; transition: transform 0.5s cubic-bezier(0.3, 0.9, 0.3, 1), background-color 0.3s; }
 .fm-bar.is-past .fm-bar-fill { transform: scaleX(1); }
-.fm-bar.is-on .fm-bar-fill { transform: scaleX(1); background: #fff; }
-.fm-bar:hover .fm-bar-track { background: #6b6db0; }
+.fm-bar.is-on .fm-bar-fill { transform: scaleX(1); background: var(--fm-fg); }
+.fm-bar:hover .fm-bar-track { background: var(--fm-track-hi); }
 .fm-bar:active .fm-bar-track { transform: scaleY(1.5); }
-.fm-bar-name { display: block; font-size: 12px; font-weight: 500; color: #c9cae6; text-align: left; white-space: nowrap; }
-.fm-bar.is-on .fm-bar-name { color: #fff; font-weight: 600; }
+.fm-bar-name { display: block; font-size: 12px; font-weight: 500; color: var(--fm-soft); text-align: left; white-space: nowrap; }
+.fm-bar.is-on .fm-bar-name { color: var(--fm-fg); font-weight: 600; }
 
-.fm-acts { display: flex; align-items: center; gap: 8px; }
 /* The site's black/white pair on a dark ground: the secondary is black with a white label and a white edge, and the two trade places on hover. */
 .fm-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 52px; padding: 0 22px; border-radius: 999px;
-  border: 1.5px solid #fff; background: #0b0b12; color: #fff; text-decoration: none; font-family: var(--font-heading, var(--font-space-grotesk), sans-serif);
+  border: 1.5px solid var(--fm-btn-edge); background: var(--fm-btn-bg); color: var(--fm-btn-ink); text-decoration: none; font-family: var(--font-heading, var(--font-space-grotesk), sans-serif);
   font-weight: 600; font-size: 16px; white-space: nowrap; transition: background-color 0.2s, color 0.2s, transform 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.4);
 }
-.fm-btn:hover { background: #fff; color: #0b0b12; }
+.fm-btn:hover { background: var(--fm-btn-ink); color: var(--fm-btn-bg); }
 .fm-btn:active { transform: scale(0.96); }
-.fm-tools { display: flex; align-items: center; gap: 8px; }
+/* THE FOOT'S RIGHT SIDE: one tidy row that wraps rather than overflows. The
+   page button, then the two look controls, then (signed in) one account chip. */
+.fm-acts { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; min-width: 0; }
+.fm-tools { display: flex; align-items: center; gap: 10px; }
 /* The theme switch and the accessibility button are written for the panel
-   (.sm-footer). Here they take the same black/white pair as Log in: black with
-   a white label and a white edge, trading places on hover. */
+   (.sm-footer). Here they take the secondary of the pair for this ground. */
 .fm-tools .tsb, .fm-tools .uw {
-  min-height: 52px; padding: 0 1.2rem 0 .85rem; border-radius: 999px; border: 1.5px solid #fff;
-  background: #0b0b12; color: #fff; font-size: 15px;
+  min-height: 52px; padding: 0 1.2rem 0 .85rem; border-radius: 999px; border: 1.5px solid var(--fm-tool-edge);
+  background: var(--fm-tool-bg); color: var(--fm-tool-ink); font-size: 15px;
 }
 .fm-tools .uw { padding-left: 1rem; }
-.fm-tools .tsb:hover, .fm-tools .uw:hover { background: #fff; border-color: #fff; color: #0b0b12; }
-.fm-tools .tsb:hover .tsb__ic { background: #0b0b12; color: #fff; }
-.fm-account { display: flex; align-items: center; }
+.fm-tools .tsb:hover, .fm-tools .uw:hover { background: var(--fm-tool-ink); border-color: var(--fm-tool-ink); color: var(--fm-tool-bg); }
+.fm-tools .tsb .tsb__ic { background: var(--fm-tool-ink); color: var(--fm-tool-bg); }
+.fm-tools .tsb:hover .tsb__ic { background: var(--fm-tool-bg); color: var(--fm-tool-ink); }
+
+/* SIGNED IN: one chip holding who you are and the way out, level with the
+   buttons beside it, instead of an avatar, a cut-off name and a red pill
+   stacked wherever they landed. */
+.fm-account { display: flex; align-items: center; min-width: 0; }
+.fm-account .sm-account {
+  margin: 0; padding: 4px 4px 4px 4px; border: 1.5px solid var(--fm-line); border-radius: 999px;
+  display: flex; align-items: center; gap: 10px; min-width: 0; height: 52px;
+}
+.fm-account .sm-account__av { width: 42px; height: 42px; flex: none; }
+.fm-account .sm-account__who { max-width: 11rem; color: var(--fm-fg); padding-right: 2px; }
+.fm-account .sm-account__who small { color: var(--fm-soft); }
+.fm-account .sm-account__out { min-height: 42px; flex: none; }
+/* Name and email only where there is room for them. */
+@media (max-width: 1279.98px) { .fm-account .sm-account__who { display: none; } .fm-account .sm-account { padding-right: 4px; } }
 
 /* Leaving: the frame in the gate zooms to fill the screen and everything else lets go. */
 .is-leaving .fm-band, .is-leaving .fm-gate, .is-leaving .fm-glow, .is-leaving .fm-foot { opacity: 0; transition: opacity 0.3s ease; }

@@ -396,10 +396,10 @@ main:focus { outline: none; }
   color: var(--hf-ink);
 }
 html:not(.dark) .hero-film {
-  --hf-bg: #f4f4f9;
+  --hf-bg: #ffffff;
   --hf-ink: #000065;
   --hf-lede: #1b1b66;
-  --hf-shade: 244 244 249;
+  --hf-shade: 255 255 255;
   --hf-track: rgb(0 0 101 / .2);
   --hf-glass: rgb(255 255 255 / .62);
   --hf-edge: rgb(0 0 101 / .16);

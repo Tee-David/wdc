@@ -64,9 +64,9 @@ const FILM_START = 4.2;
 
 const FILM = {
   "wide-dark": "/hero/film/wdc-film-v3-16x9-dark.mp4",
-  "wide-light": "/hero/film/wdc-film-v3-16x9-light.mp4",
+  "wide-light": "/hero/film/wdc-film-v4-16x9-light.mp4",
   "tall-dark": "/hero/film/wdc-film-v3-9x16-dark.mp4",
-  "tall-light": "/hero/film/wdc-film-v3-9x16-light.mp4",
+  "tall-light": "/hero/film/wdc-film-v4-9x16-light.mp4",
 } as const;
 
 /** Four cuts: two shapes of screen, two themes. The light ones are a pale
@@ -81,11 +81,11 @@ const PORTRAIT = "(orientation: portrait)";
 /** Both themes' first frames are in the HTML and CSS shows the one that matches
     (`.hero-film__poster--*` in globals.css), so there is no flash of the wrong
     theme while the page hydrates. */
-const POSTERS = ["dark", "light"].map((tone) => ({
+const POSTERS = [["dark", "v3"], ["light", "v4"]].map(([tone, v]) => ({
   tone,
-  wide1280: `/hero/film/wdc-film-v3-16x9-${tone}-1280.jpg`,
-  wide1920: `/hero/film/wdc-film-v3-16x9-${tone}-1920.jpg`,
-  tall: `/hero/film/wdc-film-v3-9x16-${tone}-720.jpg`,
+  wide1280: `/hero/film/wdc-film-${v}-16x9-${tone}-1280.jpg`,
+  wide1920: `/hero/film/wdc-film-${v}-16x9-${tone}-1920.jpg`,
+  tall: `/hero/film/wdc-film-${v}-9x16-${tone}-720.jpg`,
 }));
 
 function chapterAt(t: number) {

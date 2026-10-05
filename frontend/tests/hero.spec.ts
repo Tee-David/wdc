@@ -55,7 +55,7 @@ test("the film is not in the HTML: the first paint is the poster", async ({ requ
   expect(html, "a video file is referenced from the server HTML").not.toMatch(/\.mp4/);
   expect(html).toContain("wdc-film-v3-16x9-dark-1280.jpg");
   expect(html).toContain("wdc-film-v3-9x16-dark-720.jpg");
-  expect(html).toContain("wdc-film-v3-16x9-light-1280.jpg");
+  expect(html).toContain("wdc-film-v4-16x9-light-1280.jpg");
 });
 
 test("in the light theme the film is the light cut and the copy is navy", async ({ page }) => {
@@ -67,7 +67,7 @@ test("in the light theme the film is the light cut and the copy is navy", async 
   });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/", { waitUntil: "load" });
-  await expect.poll(() => filmSrc(page), { timeout: 10_000 }).toContain("wdc-film-v3-16x9-light.mp4");
+  await expect.poll(() => filmSrc(page), { timeout: 10_000 }).toContain("wdc-film-v4-16x9-light.mp4");
   const ink = await page.locator("#hero-title").evaluate((el) => getComputedStyle(el).color);
   expect(ink).toBe("rgb(0, 0, 101)");
   const shown = (sel: string) => page.locator(sel).evaluate((el) => getComputedStyle(el).display !== "none");
