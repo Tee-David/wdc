@@ -160,4 +160,3 @@ No schema migration is expected merely to change help or to serialise colours in
 - Save and resume a draft containing conditional answers and uploads across refresh/device; explicit Start over must follow the companion plan's safe reset rules. A colour/help edit must not alter progress incorrectly or lose another service's common answers.
 - Final submission remains server-validated and auditable. No credentials, artificial sample answers, automatic scope purchase, invented analytics, or interface-only “connected/saved/delivered” claims.
 - Run targeted validation/round-trip checks plus lint, TypeScript, build and responsive visual verification for the implemented changes. Source inspection in this proposal is evidence about today's code, not evidence that proposed behaviour has shipped.
-
