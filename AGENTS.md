@@ -1,3 +1,17 @@
+<!-- AI_CONTEXT_BRIDGE_BEGIN -->
+# Shared AI project context bridge
+
+For substantive local project work, load shared context before beginning:
+
+```powershell
+& "$env:LOCALAPPDATA\AIContextBridge\bin\aictx.ps1" session-start --agent codex --cwd "$PWD"
+```
+
+The bridge is advisory and must not block work. Git, repository files and user instructions remain authoritative. The bridge writes only beneath `%LOCALAPPDATA%\AIContextBridge`; never use it to edit application files.
+
+Before finishing meaningful work, re-read section versions and update only relevant shared sections with `aictx update --base-version`. On conflict, re-read and merge. Claim overlapping work, log short non-sensitive events and release the session when finished. Never store credentials, private keys, personal data or raw transcripts. Start a new session when changing project roots.
+<!-- AI_CONTEXT_BRIDGE_END -->
+
 # WDC engineering and design conventions
 
 ## Motion design skill
