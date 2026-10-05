@@ -6,7 +6,7 @@ import { INVITE_PASSWORD_MIN, redeemInvitation } from "@/lib/invitations";
 import { BREACHED_MESSAGE, UNCHECKED_MESSAGE } from "@/lib/auth/breached";
 
 export type RedeemResult =
-  | { ok: true; email: string; role: "client" | "staff" }
+  | { ok: true; email: string; role: "client" | "staff" | "owner" }
   | { ok: false; error: string };
 
 const REASONS: Record<string, string> = {
@@ -42,7 +42,7 @@ export async function redeem(input: { token: string; name: string; password: str
   const password = typeof input?.password === "string" ? input.password : null;
   try {
     const out = await redeemInvitation(token, { name, password });
-    return out.ok ? { ok: true, email: out.email, role: out.role === "client" ? "client" : "staff" } : { ok: false, error: REASONS[out.reason] };
+    return out.ok ? { ok: true, email: out.email, role: out.role } : { ok: false, error: REASONS[out.reason] };
   } catch (e) {
     console.error("[invite] redemption failed", e instanceof Error ? e.message : e);
     return { ok: false, error: "We could not finish that just now. Nothing was created; try again in a moment." };

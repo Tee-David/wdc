@@ -78,16 +78,26 @@ export function invitationsConfigured() {
  * somebody's inbox, one of them possibly forwarded.
  */
 export async function createInvitation(input: {
-  email: string; name: string; role: InviteRole; clientId?: string | null; by: string; ttlDays?: number;
+  email: string; name: string; role: InviteRole; actorId: string; clientId?: string | null; by: string; ttlDays?: number; sourceId?: string;
 }): Promise<{ invitation: Invitation; token: string }> {
   const email = normaliseEmail(input.email);
   const token = randomBytes(32).toString("base64url");
   const days = input.ttlDays ?? INVITE_TTL_DAYS;
   return transaction(async (c) => {
+    const actor = await c.query<{role:string}>(`SELECT "role" FROM "user" WHERE "id"=$1 AND "deactivatedAt" IS NULL FOR UPDATE`,[input.actorId]);
+    if (!actor.rows[0] || (input.role === "client" ? !["owner","staff"].includes(actor.rows[0].role) : actor.rows[0].role !== "owner")) throw new Error("Your account can no longer send this invitation.");
+    await c.query(`INSERT INTO user_invitation_targets(email) VALUES($1) ON CONFLICT(email) DO UPDATE SET email=excluded.email`, [email]);
+    await c.query(`SELECT email FROM user_invitation_targets WHERE email=$1 FOR UPDATE`, [email]);
+    const account = await c.query(`SELECT 1 FROM "user" WHERE lower("email")=$1`, [email]);
+    if (account.rowCount) throw new Error("An account already exists for this email. Manage the account instead.");
+    if (input.sourceId) {
+      const original = await c.query(`SELECT id FROM invitations WHERE id=$1 AND email=$2 AND redeemed_at IS NULL AND revoked_at IS NULL FOR UPDATE`, [input.sourceId, email]);
+      if (!original.rowCount) throw new Error("That invitation has been accepted or cancelled. Refresh the list.");
+    }
     await c.query(
-      `UPDATE invitations SET revoked_at = now(), revoked_by = $3
-        WHERE email = $1 AND role = $2 AND redeemed_at IS NULL AND revoked_at IS NULL`,
-      [email, input.role, `${input.by} (replaced)`],
+      `UPDATE invitations SET revoked_at = now(), revoked_by = $2
+        WHERE email = $1 AND redeemed_at IS NULL AND revoked_at IS NULL`,
+      [email, `${input.by} (replaced)`],
     );
     const r = await c.query<Row>(
       `INSERT INTO invitations (token_hash, email, name, role, client_id, invited_by, expires_at)
@@ -95,6 +105,8 @@ export async function createInvitation(input: {
        RETURNING ${COLUMNS}`,
       [hashToken(token), email, input.name.trim().slice(0, 120), input.role, input.clientId ?? null, input.by, String(days)],
     );
+    await c.query(`INSERT INTO user_security_events(actor_id,target_id,event) VALUES($1,$2,'invitation-created')`, [input.actorId,r.rows[0].id]);
+    await c.query(`INSERT INTO user_invitation_delivery(invitation_id,state) VALUES($1,'queued')`, [r.rows[0].id]);
     return { invitation: toInvitation(r.rows[0]), token };
   });
 }
@@ -120,12 +132,14 @@ export async function invitationsFor(filter: { clientId?: string; role?: InviteR
   return r.rows.map(toInvitation);
 }
 
-export async function revokeInvitation(id: string, by: string) {
-  const r = await db.query(
-    "UPDATE invitations SET revoked_at = now(), revoked_by = $2 WHERE id = $1 AND redeemed_at IS NULL AND revoked_at IS NULL",
-    [id, by],
-  );
-  return (r.rowCount ?? 0) > 0;
+export async function revokeInvitation(id: string, by: string, actorId: string) {
+  return transaction(async c => {
+    const actor = await c.query(`SELECT "id" FROM "user" WHERE "id"=$1 AND "role"='owner' AND "deactivatedAt" IS NULL FOR UPDATE`, [actorId]);
+    if (!actor.rowCount) throw new Error("Owner access has ended.");
+    const r = await c.query("UPDATE invitations SET revoked_at=now(),revoked_by=$2 WHERE id=$1 AND redeemed_at IS NULL AND revoked_at IS NULL RETURNING id", [id,by]);
+    if (r.rowCount) await c.query(`INSERT INTO user_security_events(actor_id,target_id,event) VALUES($1,$2,'invitation-cancelled')`, [actorId,id]);
+    return (r.rowCount ?? 0)>0;
+  });
 }
 
 /**
