@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { NEEDS, type NeedId } from "@/lib/service-needs";
 
 /**
@@ -36,7 +35,6 @@ export function ServiceChooser({ listId }: { listId: string }) {
       </div>
       <p className="svh-choose__alt">
         <span role="status">{need ? `${fits === 1 ? "One service fits" : `${fits} services fit`}, marked below.` : ""}</span>{" "}
-        Want a number first? <Link href="/tools/estimate">Get a price range in eight questions</Link>.
       </p>
     </div>
   );

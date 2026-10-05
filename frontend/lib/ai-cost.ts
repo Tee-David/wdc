@@ -4,7 +4,7 @@
  * WHY THIS IS THE TOOL FOR "SOFTWARE & AI". Every enquiry that starts with "can
  * you add AI to it" is really two questions, and only the first one gets asked:
  * what will it cost to build, and what will it cost to keep running. The
- * estimator at /tools/estimate answers the first. This answers the second, and
+ * a conversation with us answers the first. This answers the second, and
  * it is the one that surprises people -- a build is a number you agree once,
  * and a model bill arrives every month for as long as the feature is switched
  * on.
@@ -166,8 +166,8 @@ export function tokensFor(usage: Usage) {
 /**
  * Every model priced for the same month of use, cheapest first.
  *
- * ONE FX NUMBER ON THE SITE, AND IT IS PASSED IN. The rate belongs to the build
- * estimator's `RATE_CARD` -- two dollar rates on one site is how a page ends up
+ * ONE FX NUMBER ON THE SITE, AND IT IS PASSED IN. The rate belongs to `FX` in
+ * `lib/fx.ts` -- two dollar rates on one site is how a page ends up
  * disagreeing with the page next to it -- but this module does not import it.
  * It has no imports at all, which is what lets `scripts/check-ai-cost.mjs` load
  * it straight into node: the TypeScript path alias does not exist there, and a

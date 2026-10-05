@@ -34,7 +34,7 @@ import { PNG } from "pngjs";
    the rule is not enforced. */
 const publicPages = [
   "/", "/services", "/services/web", "/contact",
-  "/tools/domain", "/tools/email", "/tools/estimate", "/tools/seo",
+  "/tools/domain", "/tools/email", "/tools/seo",
   "/tools/link-preview", "/tools/business-name", "/tools/ai-cost",
   "/work", "/about", "/blog", "/onboarding", "/this-page-does-not-exist",
   /* The sign-in submit was navy in light mode and orange in dark until it was
