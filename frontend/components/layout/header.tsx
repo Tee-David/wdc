@@ -179,7 +179,7 @@ export function Header({
 
         <div className="flex items-center gap-2 md:gap-3">
           <Link
-            href="/contact"
+            href="/start"
             /* THE SITE'S PRIMARY, AND THE GROUND IT SITS ON MOVES UNDER IT.
 
                It was `bg-white text-black` in every state, which is right over

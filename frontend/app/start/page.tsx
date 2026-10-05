@@ -1,0 +1,38 @@
+import type { Metadata } from "next";
+import { Header } from "@/components/layout/header";
+import { WorkFooter } from "@/components/work/work-footer";
+import StartForm from "@/components/start/start-form";
+import { SITE_URL } from "@/lib/site";
+import "@/components/preview/preview.css";
+import "@/components/forms/custom-form.css";
+
+export const metadata: Metadata = {
+  title: "Start a project",
+  description: "Four short screens and your project is with us. We reply the same working day.",
+  alternates: { canonical: `${SITE_URL}/start` },
+};
+
+export default function StartPage() {
+  return (
+    <>
+      <Header overHero />
+      <main id="main" tabIndex={-1} className="flex-1 pv">
+        <section className="wk-hero">
+          <div className="pv-wrap wk-hero__in">
+            <span className="pv-eyebrow">Start a project</span>
+            <h1 className="pv-mix">Tell us what you <b>want to build</b></h1>
+            <p className="pv-lede">
+              Four short screens, two questions each. We read every one and reply the same working day.
+            </p>
+          </div>
+        </section>
+        <section className="pv-sec">
+          <div className="pv-wrap cf-wrap">
+            <StartForm />
+          </div>
+        </section>
+      </main>
+      <WorkFooter />
+    </>
+  );
+}
