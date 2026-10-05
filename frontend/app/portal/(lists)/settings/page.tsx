@@ -1,3 +1,4 @@
+import { SecurityEmailPreference } from "@/components/admin/settings/security-email-preference";
 import { getPortalRequest } from "@/lib/portal/session";
 import { Panel } from "@/components/admin/bits";
 import { NotifyForm, ProfileForm, SignInCard } from "@/components/client/settings-forms";
@@ -43,6 +44,7 @@ export default async function PortalSettings() {
             <p className="pSet__sub ad__dim">Every one of these can be switched off.</p>
             <NotifyForm client={client} />
           </Panel>
+          {!support && userId ? <SecurityEmailPreference userId={userId} /> : null}
           <Panel title="Sign-in" dataTour="portal-signin">
             {support ? <p>Sign-in settings are private and cannot be changed in a support view.</p> : <SignInCard email={session?.user?.email ?? client.email} hasPassword={withPassword} />}
           </Panel>

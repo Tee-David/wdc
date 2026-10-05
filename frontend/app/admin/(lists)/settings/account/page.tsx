@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SecurityEmailPreference } from "@/components/admin/settings/security-email-preference";
 import { adminRole } from "@/lib/admin/guard";
 import { PasswordChange } from "@/components/account/password-change";
 import { getAdminRequest } from "@/lib/admin/session";
@@ -54,7 +55,7 @@ export default async function AccountPage() {
       <div className="ad__stack">
         <Panel title="Name">
           <div style={{ padding: "0 1rem 1rem" }}>
-            <p className="ad__dim" style={{ marginBottom: ".6rem" }}>Signed in as {session.user.email}. Your email is changed by an owner, on Team.</p>
+            <p className="ad__dim" style={{ marginBottom: ".6rem" }}>Signed in as {session.user.email}. Your email identifies your account and linked records. Contact the studio if it needs correcting.</p>
             <MyNameForm name={session.user.name} />
           </div>
         </Panel>
@@ -96,6 +97,8 @@ export default async function AccountPage() {
           ) : null}
           {sessions.length > 1 ? <div style={{ padding: "0 1rem 1rem" }}><SignOutOthers /></div> : null}
         </Panel>
+
+        <SecurityEmailPreference userId={userId} />
 
         <Panel title="Tours">
           <p className="ad__dim" style={{ padding: "0 1rem 1rem" }}>Replay any tour from the question mark at the top of every page.</p>
