@@ -13,6 +13,8 @@ The studio's website, the studio admin and the client portal, in one Next.js app
 
 One system for everything we ship: the public site, the admin and the portal. The interactive reference, with every component live in light and dark, is the **Design System artifact**: https://claude.ai/artifact/Xa6aPYNrgVhJnyHnkbu93c. This section is the short version. When the two disagree, the code and this file win, and the artifact gets updated.
 
+The [Meetings design preview](prototypes/cal-meetings/README.md) renders the current admin shell, Panel, DemoNote, logo and Lucide icons directly from these components. It is a proposal with sample data, awaiting review; it does not implement scheduling.
+
 ### Voice
 
 - Write from the reader's side of the screen, in plain sentences. Say it the way the studio does: clients, projects, invoices, briefs, the portal.

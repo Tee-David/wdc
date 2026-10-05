@@ -32,3 +32,4 @@ skip refined hero C (item 20) on 2026-09-28.
 
 - [Plan for owner review](../plans/cal-com-meetings-plan.md): booking flow, admin Meetings, WDC styling, availability, reminders, safety/recovery, capability proof and hosted/self-hosted comparison. No implementation yet.
 - [Main reconciliation and preserved branch inventory](../plans/git-reconciliation-2026-10-05.md).
+- [Meetings design preview](../prototypes/cal-meetings/README.md): run locally on port 3147. Revised to render the real WDC admin shell, logo, panels and icons after the owner's styling feedback. Interactive sample data; waiting for design review, not a live booking integration.
