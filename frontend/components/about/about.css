@@ -11,26 +11,13 @@
 .pv .ab-story__text { display: grid; gap: 16px; }
 .pv .ab-story__text p { color: var(--muted); font-size: clamp(1rem, .95rem + .3vw, 1.15rem); line-height: 1.7; max-width: 60ch; }
 
-.pv .ab-figs { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
-.pv .ab-figs li { display: grid; gap: 4px; padding: 18px 20px; background: var(--paper); border: 1px solid var(--rule); border-radius: 18px; }
-.pv .ab-figs b { font-family: var(--font-space-grotesk), system-ui, sans-serif; font-size: clamp(2.2rem, 1.6rem + 2.4vw, 3.4rem); line-height: 1; letter-spacing: -.03em; color: var(--ink); }
-.pv .ab-figs span { color: var(--muted); font-size: 1rem; line-height: 1.4; }
-
-.pv .ab-stages { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); counter-reset: none; }
-.pv .ab-stages > li { position: relative; display: grid; gap: 8px; align-content: start; padding: 22px; background: var(--paper); border: 1px solid var(--rule); border-radius: 20px; min-width: 0; }
-.pv .ab-stages__n { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-fill); color: var(--on-accent); font: 700 1rem var(--font-space-grotesk), system-ui, sans-serif; }
-.pv .ab-stages h3, .pv .ab-values h3, .pv .ab-team h3 { margin: 0; font-family: var(--font-space-grotesk), system-ui, sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--ink); }
-.pv .ab-stages p, .pv .ab-values p, .pv .ab-team p { margin: 0; color: var(--muted); font-size: 1rem; line-height: 1.55; }
-.pv .ab-stages ul { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
-.pv .ab-stages ul li a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 999px; background: var(--paper-2); border: 1px solid var(--rule); color: var(--ink); font-size: .9rem; font-weight: 600; text-decoration: none; }
-.pv .ab-stages ul li a:hover { border-color: var(--ink); }
 
 .pv .ab-values, .pv .ab-team { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); }
 .pv .ab-values li, .pv .ab-team li { display: grid; gap: 8px; align-content: start; padding: 22px; background: var(--paper); border: 1px solid var(--rule); border-radius: 20px; min-width: 0; }
 .pv .ab-ic { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: #000065; color: #fff; }
 .pv .ab-team__role { font-size: .8rem !important; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-ink) !important; }
 
-.pv .ab-proof { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); }
+.pv .ab-proof { margin-top: 16px; }
 .pv .ab-more { margin-top: 22px; text-align: center; }
 .pv .ab-more a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; color: var(--accent-ink); text-underline-offset: 3px; }
 
@@ -47,11 +34,13 @@
 .pv .ab-line p { margin: 0; color: var(--muted); font-size: 1.05rem; line-height: 1.7; max-width: 60ch; }
 .pv .ab-line .ab-more { margin-top: 6px; }
 
-.pv .ab-quotes { list-style: none; margin: 0 0 clamp(20px, 4vw, 32px); padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); }
-.pv .ab-quotes blockquote { margin: 0; height: 100%; display: grid; gap: 12px; align-content: space-between; padding: 22px; background: var(--paper); border: 1px solid var(--rule); border-radius: 20px; }
-.pv .ab-quotes p { margin: 0; color: var(--ink); font-size: 1.05rem; line-height: 1.6; }
-.pv .ab-quotes footer { font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 700; color: var(--ink); }
+.pv .ab-quote { margin: 0; height: 100%; display: grid; gap: 12px; align-content: space-between; padding: 22px; background: var(--paper); border: 1px solid var(--rule); border-radius: 20px; }
+.pv .ab-quote p { margin: 0; color: var(--ink); font-size: 1.05rem; line-height: 1.6; }
+.pv .ab-quote footer { font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 700; color: var(--ink); }
 
 .pv .ab-offer { margin-top: clamp(24px, 4vw, 40px); display: grid; gap: 10px; justify-items: start; padding: clamp(20px, 3vw, 30px); background: var(--paper); border: 1.5px solid var(--ink); border-radius: 22px; }
 .pv .ab-offer h3 { margin: 0; font-family: var(--font-space-grotesk), system-ui, sans-serif; font-size: 1.4rem; color: var(--ink); }
 .pv .ab-offer p { margin: 0; color: var(--muted); max-width: 60ch; line-height: 1.6; }
+
+.pv .ab-values h3, .pv .ab-team h3 { margin: 0; font-family: var(--font-space-grotesk), system-ui, sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--ink); }
+.pv .ab-values p, .pv .ab-team p { margin: 0; color: var(--muted); font-size: 1rem; line-height: 1.55; }
