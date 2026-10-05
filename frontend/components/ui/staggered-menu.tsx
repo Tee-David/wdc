@@ -7,8 +7,19 @@ import React, {
   useRef,
   useState,
 } from "react";
+import dynamic from "next/dynamic";
 import { gsap } from "gsap";
+import type { FilmPage } from "./film-strip-menu";
 import "./staggered-menu.css";
+
+/* Loaded the first time it is wanted (or when the button is hovered or focused,
+   which is a head start), so the reel's code and its six pictures cost phones
+   and first paints nothing. */
+const loadFilm = () => import("./film-strip-menu");
+const FilmStripMenu = dynamic(loadFilm, { ssr: false });
+
+/** Where the desktop menu starts. Below this the panel is the menu, as it always was. */
+const FILM_QUERY = "(min-width: 768px)";
 
 export interface MenuItem {
   label: string;
@@ -39,8 +50,10 @@ export default function StaggeredMenu({
   className = "",
   footerSlot,
   accountSlot,
+  film,
   onMenuOpen,
   onMenuClose,
+  onFilmChange,
 }: {
   items?: MenuItem[];
   socialItems?: SocialItem[];
@@ -49,8 +62,12 @@ export default function StaggeredMenu({
   footerSlot?: React.ReactNode;
   /** Who is signed in, shown above the footer row when somebody is. */
   accountSlot?: React.ReactNode;
+  /** The desktop menu: a film strip of the site's pages. Phones ignore it. */
+  film?: { pages: FilmPage[]; extra: { label: string; link: string; ariaLabel: string } };
   onMenuOpen?: () => void;
   onMenuClose?: () => void;
+  /** The film strip opened or closed, so the header can dress for the dark. */
+  onFilmChange?: (open: boolean) => void;
 }) {
   const [open, setOpen] = useState(false);
   const openRef = useRef(false);
@@ -61,6 +78,28 @@ export default function StaggeredMenu({
   const openTlRef = useRef<gsap.core.Timeline | null>(null);
   const closeTweenRef = useRef<gsap.core.Tween | null>(null);
   const busyRef = useRef(false);
+
+  /* DESKTOP OR PHONE, decided in the browser. `wide` is false on the server and
+     for the first paint, so a phone never so much as loads the film strip. */
+  const [wide, setWide] = useState(false);
+  const wideRef = useRef(false);
+  const filmOn = wide && Boolean(film);
+  const [filmMounted, setFilmMounted] = useState(false);
+  /** Which menu the current opening is, so a resize cannot leave the other one stuck. */
+  const openedAsFilm = useRef(false);
+  /* The same two facts as state, because rendering reads them (a ref may not be). */
+  const [filmActive, setFilmActive] = useState(false);
+  const [openedByKeyboard, setOpenedByKeyboard] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(FILM_QUERY);
+    const update = () => {
+      wideRef.current = mq.matches;
+      setWide(mq.matches);
+    };
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
@@ -197,6 +236,17 @@ export default function StaggeredMenu({
 
   const toggleMenu = useCallback(() => {
     const target = !openRef.current;
+    /* Desktop: the film strip, which owns its own motion. The panel and its
+       GSAP timeline are not touched, so it stays parked off screen. */
+    if (target ? wideRef.current && Boolean(film) : openedAsFilm.current) {
+      openRef.current = target;
+      openedAsFilm.current = target;
+      setOpen(target);
+      setFilmActive(target);
+      if (target) setFilmMounted(true);
+      onFilmChange?.(target);
+      return;
+    }
     openRef.current = target;
     setOpen(target);
     if (target) {
@@ -206,18 +256,31 @@ export default function StaggeredMenu({
       onMenuClose?.();
       playClose();
     }
-  }, [playOpen, playClose, onMenuOpen, onMenuClose]);
+  }, [film, playOpen, playClose, onMenuOpen, onMenuClose, onFilmChange]);
 
   const closeMenu = useCallback(() => {
     if (!openRef.current) return;
     openRef.current = false;
     setOpen(false);
+    if (openedAsFilm.current) {
+      openedAsFilm.current = false;
+      setFilmActive(false);
+      onFilmChange?.(false);
+      return;
+    }
     onMenuClose?.();
     playClose();
-  }, [playClose, onMenuClose]);
+  }, [playClose, onMenuClose, onFilmChange]);
+
+  /* A window narrowed past the breakpoint while the strip is open: close it,
+     rather than leave a dialog nobody can reach on a screen that has a panel. */
+  useEffect(() => {
+    if (!wide && openedAsFilm.current) closeMenu();
+  }, [wide, closeMenu]);
 
   useEffect(() => {
-    if (!open) return;
+    /* The panel's click-away is not the film strip's: its frames are "outside". */
+    if (!open || openedAsFilm.current) return;
     const handleClickOutside = (event: MouseEvent) => {
       if (
         panelRef.current &&
@@ -233,14 +296,19 @@ export default function StaggeredMenu({
   }, [open, closeMenu]);
 
   return (
-    <div className={`sm-scope ${className}`}>
+    <div className={`sm-scope ${open && filmActive ? "sm-scope--film " : ""}${className}`}>
       <button
         ref={toggleBtnRef}
         className="sm-toggle relative z-[60]"
         aria-label={open ? "Close menu" : "Open menu"}
         aria-expanded={open}
-        aria-controls="staggered-menu-panel"
-        onClick={toggleMenu}
+        aria-controls={filmOn ? "film-menu" : "staggered-menu-panel"}
+        onClick={(e) => {
+          setOpenedByKeyboard(e.detail === 0);
+          toggleMenu();
+        }}
+        onPointerEnter={filmOn ? () => void loadFilm() : undefined}
+        onFocus={filmOn ? () => void loadFilm() : undefined}
         type="button"
       >
         <span className="sm-burger" aria-hidden="true">
@@ -249,6 +317,19 @@ export default function StaggeredMenu({
           <span className="sm-burger-line sm-burger-line--bot" />
         </span>
       </button>
+
+      {filmMounted && film ? (
+        <FilmStripMenu
+          open={open && filmActive}
+          onClose={closeMenu}
+          pages={film.pages}
+          extra={film.extra}
+          footerSlot={footerSlot}
+          accountSlot={accountSlot}
+          toggleRef={toggleBtnRef}
+          openedByKeyboard={openedByKeyboard}
+        />
+      ) : null}
 
       <div ref={preLayersRef} className="sm-prelayers" aria-hidden="true">
         <div className="sm-prelayer" style={{ background: "#FF6500" }} />
@@ -259,8 +340,8 @@ export default function StaggeredMenu({
         id="staggered-menu-panel"
         ref={panelRef}
         className="sm-panel"
-        data-open={open}
-        aria-hidden={!open}
+        data-open={open && !filmActive}
+        aria-hidden={!open || filmActive}
       >
         <div className="sm-panel-inner">
           {/* The list, not the panel, is the nested scroller now, so this is

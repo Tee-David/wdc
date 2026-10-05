@@ -87,6 +87,16 @@
   z-index: 60;
 }
 
+/* THE FILM STRIP KEEPS THE BUTTON IN THE BAR. The panel owns the X while it is
+   open (it is fixed to the panel's corner); the desktop menu is a layer under
+   the header, so the X is the same button in the same place, which is the point
+   of the hot dog turning into a cross rather than the cross appearing elsewhere. */
+.sm-scope--film .sm-toggle[aria-expanded="true"] {
+  position: relative;
+  top: auto;
+  right: auto;
+}
+
 .sm-toggle[aria-expanded="true"] .sm-burger-line--top {
   top: 50%;
   transform: translateY(-50%) rotate(45deg) scale(1, 0.75);

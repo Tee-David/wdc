@@ -712,8 +712,12 @@ html { scroll-padding-top: 88px; }
   padding-inline: .5rem .125rem;
   border-radius: 999px;
   border: 1px solid transparent;
-  transition: background-color .3s ease, border-color .3s ease, box-shadow .3s ease;
+  transition: background-color .3s ease, border-color .3s ease, box-shadow .3s ease, opacity .3s ease;
 }
+/* The desktop menu's zoom carries a picture of the page, header included
+   (components/ui/film-strip-menu.tsx), so the real bar fades out under it and
+   back in as the page arrives. */
+html[data-film-leaving="1"] .hd-bar { opacity: 0; transition-duration: .15s; }
 @media (min-width: 768px) {
   .hd-bar { width: calc(100% - 1.5rem); height: 4rem; margin-top: .625rem; padding-inline: .75rem; }
 }
