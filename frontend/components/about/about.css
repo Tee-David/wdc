@@ -33,3 +33,25 @@
 .pv .ab-proof { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); }
 .pv .ab-more { margin-top: 22px; text-align: center; }
 .pv .ab-more a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; color: var(--accent-ink); text-underline-offset: 3px; }
+
+.pv .ab-mission { display: grid; gap: 6px; padding: 18px 20px; border-radius: 18px; background: var(--paper-2); border: 1px solid var(--rule); color: var(--ink) !important; font-family: var(--font-space-grotesk), system-ui, sans-serif; font-size: clamp(1.1rem, 1rem + .5vw, 1.35rem) !important; line-height: 1.4 !important; }
+.pv .ab-mission b { font-size: .8rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-ink); font-family: var(--font-outfit), system-ui, sans-serif; }
+.pv .ab-more--left { text-align: left; margin-top: 0; }
+
+/* THE STORY: a vertical line of chapters, one column on every screen so it reads the same on a phone. */
+.pv .ab-line { list-style: none; margin: 0 auto; padding: 0; max-width: 46rem; display: grid; gap: 0; }
+.pv .ab-line > li { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; padding-bottom: clamp(24px, 4vw, 40px); }
+.pv .ab-line > li:not(:last-child)::before { content: ""; position: absolute; left: 23px; top: 52px; bottom: 4px; width: 2px; background: var(--rule); }
+.pv .ab-line__k { font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-ink); }
+.pv .ab-line h3 { margin: 2px 0 6px; font-family: var(--font-space-grotesk), system-ui, sans-serif; font-size: clamp(1.25rem, 1.1rem + .6vw, 1.6rem); font-weight: 700; letter-spacing: -.01em; color: var(--ink); }
+.pv .ab-line p { margin: 0; color: var(--muted); font-size: 1.05rem; line-height: 1.7; max-width: 60ch; }
+.pv .ab-line .ab-more { margin-top: 6px; }
+
+.pv .ab-quotes { list-style: none; margin: 0 0 clamp(20px, 4vw, 32px); padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); }
+.pv .ab-quotes blockquote { margin: 0; height: 100%; display: grid; gap: 12px; align-content: space-between; padding: 22px; background: var(--paper); border: 1px solid var(--rule); border-radius: 20px; }
+.pv .ab-quotes p { margin: 0; color: var(--ink); font-size: 1.05rem; line-height: 1.6; }
+.pv .ab-quotes footer { font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 700; color: var(--ink); }
+
+.pv .ab-offer { margin-top: clamp(24px, 4vw, 40px); display: grid; gap: 10px; justify-items: start; padding: clamp(20px, 3vw, 30px); background: var(--paper); border: 1.5px solid var(--ink); border-radius: 22px; }
+.pv .ab-offer h3 { margin: 0; font-family: var(--font-space-grotesk), system-ui, sans-serif; font-size: 1.4rem; color: var(--ink); }
+.pv .ab-offer p { margin: 0; color: var(--muted); max-width: 60ch; line-height: 1.6; }
