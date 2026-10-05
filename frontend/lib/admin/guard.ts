@@ -1,5 +1,6 @@
 import "server-only";
 
+import { supportCookiePresent } from "@/lib/users/support";
 import { getAdminRequest } from "./session";
 import { can, isAdminRole, type AdminRole, type Area } from "./permissions";
 import { FAIL, type ActionState } from "./validate";
@@ -17,6 +18,7 @@ const REFUSED = "Your session has ended or does not have access to this. Sign in
  */
 export async function owner(): Promise<ActionState | null> {
   try {
+    if (await supportCookiePresent()) return FAIL({}, "Exit the read-only support view before making changes.");
     const { session } = await getAdminRequest();
     const role = (session?.user as { role?: string } | undefined)?.role;
     if (session?.user && role === "owner") return null;
@@ -39,6 +41,7 @@ export async function actorName(): Promise<string> {
 /** The signed-in admin's role, or null for anybody who is not one. Fails closed. */
 export async function adminRole(): Promise<AdminRole | null> {
   try {
+    if (await supportCookiePresent()) return null;
     const { session } = await getAdminRequest();
     const role = (session?.user as { role?: string } | undefined)?.role;
     return session?.user && isAdminRole(role) ? role : null;

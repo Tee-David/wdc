@@ -1,5 +1,6 @@
 "use client";
 
+import { useSupportReadOnly } from "@/components/client/support-context";
 import { useEffect, useState, type ReactNode } from "react";
 
 /**
@@ -11,6 +12,7 @@ import { useEffect, useState, type ReactNode } from "react";
  * browser's back cache would otherwise return a form that refuses to submit.
  */
 export function PayForm({ action, className, children }: { action: string; className?: string; children: ReactNode }) {
+  const supportReadOnly = useSupportReadOnly();
   const [busy, setBusy] = useState(false);
   /* After 8 seconds the line says so, and that nothing is charged yet: true,
      and never a progress figure nobody has. */
@@ -33,11 +35,11 @@ export function PayForm({ action, className, children }: { action: string; class
       aria-busy={busy || undefined}
       data-busy={busy ? "1" : undefined}
       onSubmit={(e) => {
-        if (busy) { e.preventDefault(); return; }
+        if (busy || supportReadOnly) { e.preventDefault(); return; }
         setBusy(true);
       }}
     >
-      {children}
+      {supportReadOnly ? <><p>Payments are disabled in a read-only support view.</p><fieldset disabled className="pSupport__fields">{children}</fieldset></> : children}
       {busy ? <span className="pay-busy" role="status">{slow ? "Still opening Paystack. Nothing has been charged yet." : "Opening Paystack…"}</span> : null}
     </form>
   );
