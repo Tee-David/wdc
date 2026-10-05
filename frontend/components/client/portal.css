@@ -325,3 +325,11 @@
 .pAsk__foot { display: flex; justify-content: flex-end; gap: .6rem; padding-top: .9rem; border-top: 1px solid var(--ad-line); }
 .pBill__cardPay { margin: .45rem 0 0; }
 .pBill__cardPay .ad__btn { width: 100%; justify-content: center; min-height: 2.75rem; }
+
+/* Support remains visible in the portal without covering page controls. */
+.pSupport { position: sticky; top: 80px; z-index: 15; display: grid; grid-template-columns: 24px minmax(0,1fr) auto; gap: 16px; align-items: center; padding: 20px; margin-bottom: 24px; border: 1px solid var(--ad-line); border-radius: 16px; background: var(--ad-panel); color: var(--ad-ink); }
+.pSupport > svg { width: 24px; height: 24px; align-self: start; }
+.pSupport p { margin: 6px 0; }
+.pSupport form { margin: 0; }
+.pSupport__fields { padding: 0; margin: 0; border: 0; min-width: 0; }
+@media(max-width:640px) { .pSupport { grid-template-columns:24px minmax(0,1fr); padding:16px; gap:12px; top:70px; } .pSupport form { grid-column:1/-1; } .pSupport form button { width:100%; min-height:44px; } }
