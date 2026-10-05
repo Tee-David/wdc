@@ -106,3 +106,10 @@ All actions require real-session authorization, origin checks, validated IDs, bo
 Required tests: owner/staff/client/anonymous access to pages and direct actions; tampered roles and IDs; same-address concurrent invites; resend/accept/cancel races; token expiry/reuse; delivery failure and retry; account-lookup failure; Google invitation redemption; breach-check outage; password-reset session revocation; simultaneous final-owner changes; deactivation through every sign-in method; stale cached roles; impersonation start/exit/expiry/multi-tab and blocked writes; long-content table scrolling; light/dark responsive geometry and keyboard focus. Reuse `team.spec.ts`, `auth-flow.spec.ts`, `google-admission.spec.ts` and account tests where appropriate, adding coverage for the gaps.
 
 Success means the owner can find a person, invite or recover their access, understand the outcome, and safely resolve a failure without leaving this workflow. It does not require custom role builders, licensing columns, location hierarchies or multiple table/board modes.
+
+
+## Table workflow refinement
+
+Search uses a leading icon inside its field. Tables keep their person column pinned and scroll inside their own container. Select-all applies only to eligible rows on the visible page; tab, filter, query, page and page-size changes clear selection. Bulk deactivation and invitation cancellation require review, protect self/final-owner access and return individual outcomes so partial failures can be resolved. Resends and recovery emails stay deliberate individual actions.
+
+Pagination shows the current range and filtered total, previous/next controls and a designed 10/25/50/100 items-per-page picker. Export offers CSV and JSON for selected rows or the filtered list. Owner authorization, bounds and audit apply on the server. Exclude credentials, tokens, private session data and support reasons; neutralize spreadsheet formula injection in CSV.
