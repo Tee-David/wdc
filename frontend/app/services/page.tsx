@@ -9,6 +9,8 @@ import { COMPANY_NAME, SITE_URL } from "@/lib/site";
 import "@/components/preview/preview.css";
 import "@/components/work/work.css";
 import { hydrateCaseStudies } from "@/lib/work-db";
+import FaqAccordion from "@/components/ui/faq-accordion";
+import { siteFaqs } from "@/lib/site-content";
 import { ServicesBuilder, type BuilderItem } from "@/components/services/services-builder";
 
 export const metadata: Metadata = {
@@ -76,11 +78,13 @@ const breadcrumbJsonLd = {
 
 export default async function ServicesPage() {
   await hydrateCaseStudies();
+  const { faqs } = await siteFaqs();
   const items: BuilderItem[] = SERVICES.map((s) => {
     const category = WORK_CATEGORIES.find((c) => c.slug === s.slug);
     return {
       slug: s.slug, name: s.name, short: s.short, lede: s.lede, icon: s.icon,
       chips: s.deliverables.slice(0, 4),
+      body: s.body, gets: s.deliverables, steps: s.steps.map((x) => ({ t: x.t, d: x.d })),
       workHref: category ? `/work/${category.slug}` : null,
       workCount: category ? countFor(category) : 0,
     };
@@ -128,6 +132,12 @@ export default async function ServicesPage() {
             still here, inside the cards, so nothing crawlable went away. */}
         <section className="pv-sec">
           <div className="pv-wrap">
+            <p className="svb-intro">
+              Each service is explained below in plain words: what it is, what you
+              get, and how it goes. Read the ones that sound like you, add them to
+              your package, and start a project when you are ready. Not sure which?
+              Start anyway and describe the problem. We will tell you which fits.
+            </p>
             <ServicesBuilder items={items} />
           </div>
         </section>
@@ -141,6 +151,18 @@ export default async function ServicesPage() {
                 <li><b>We reply the same working day.</b><span>With the services we think fit, and why.</span></li>
                 <li><b>We agree the scope in writing.</b><span>Before anything is drawn or built.</span></li>
               </ol>
+            </div>
+          </div>
+        </section>
+
+        <section className="pv-sec" aria-labelledby="svb-faq">
+          <div className="pv-wrap">
+            <div className="pv-head">
+              <span className="pv-eyebrow">Questions</span>
+              <h2 id="svb-faq" className="pv-mix">Things people <b>ask us first</b></h2>
+            </div>
+            <div style={{ maxWidth: "68ch", marginInline: "auto" }}>
+              <FaqAccordion items={faqs} numbered={false} idPrefix="svfaq" initial={-1} />
             </div>
           </div>
         </section>
