@@ -2,7 +2,7 @@
 
 > **Handoff (2026-09-27):** the open requests from the owner, with screenshots and where to start, are in `handoff/QUEUE.md`; how to run, test and push is in `handoff/README.md`; every design artifact is in `handoff/ARTIFACTS.md`. Keep all three current.
 
-**113 open** (65 in progress)
+**109 open** (65 in progress)
 
 `[ ]` not started · `[-]` in progress. Only open work lives here: when a
 task is finished, delete its line and let the commit that closed it carry
@@ -10,6 +10,11 @@ the evidence. Detail that used to sit in this file is in git history and in
 `plans/`.
 
 ---
+
+## Cal.com meetings
+
+- [-] Plan and owner review: [Cal.com meetings proposal](plans/cal-com-meetings-plan.md), prepared 2026-10-05. Includes WDC booking steps, Meetings calendar/agenda, availability, reminders, permissions, provider proof, recovery and responsive acceptance; hosted recommendation and self-hosting comparison. Planning only; implementation waits for owner review. Main synced; genuine historical WIP/experiment branches are documented in [Git reconciliation](plans/git-reconciliation-2026-10-05.md), preserved separately.
+- [ ] Implement and verify the approved Cal.com plan end to end, including real calendar/video links, reminder behaviour, migration and canonical live checks. No booking integration has been built yet.
 
 ## 1A. Client onboarding experience
 

@@ -26,3 +26,9 @@ reads one with the Artifact tool (`action: "read"`), not a web fetch.
 
 The Google sign-in flow (item 21) is ready for approval. The owner asked to
 skip refined hero C (item 20) on 2026-09-28.
+
+
+## Cal.com meetings planning, 2026-10-05
+
+- [Plan for owner review](../plans/cal-com-meetings-plan.md): booking flow, admin Meetings, WDC styling, availability, reminders, safety/recovery, capability proof and hosted/self-hosted comparison. No implementation yet.
+- [Main reconciliation and preserved branch inventory](../plans/git-reconciliation-2026-10-05.md).
