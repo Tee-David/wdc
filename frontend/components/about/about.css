@@ -1,191 +1,35 @@
 /* ==========================================================================
-   /about
-
-   Everything here sits on the shared tokens and section classes: `pv-sec`,
-   `pv-wrap`, `pv-btn`, `sv-hero__copy`, `sv-steps`. Only the pieces this page
-   genuinely adds get an `ab-` class, so the page inherits every later change
-   to the system instead of drifting away from it.
+   /about. Everything sits on the shared tokens and section classes (`pv-sec`,
+   `pv-wrap`, `pv-head`, `pv-btn`, `wk-card`); only what this page adds has an
+   `ab-` class. Solid fills, the navy icon tile with a white glyph, and body
+   text in one colour.
    ========================================================================== */
 
-/* ---------------- statement ---------------- */
-.ab-say { max-width: 54rem; margin-inline: auto; text-align: center; }
-.ab-say h2 {
-  font-size: clamp(1.7rem, 1.1rem + 2.4vw, 3rem);
-  line-height: 1.12; margin-bottom: 18px;
-}
-.ab-say .pv-lede { margin-inline: auto; max-width: 46ch; }
+.pv .ab-story { display: grid; gap: clamp(20px, 4vw, 56px); grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 900px) { .pv .ab-story { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.pv .ab-story h2 { max-width: 22ch; }
+.pv .ab-story__text { display: grid; gap: 16px; }
+.pv .ab-story__text p { color: var(--muted); font-size: clamp(1rem, .95rem + .3vw, 1.15rem); line-height: 1.7; max-width: 60ch; }
 
-/* ---------------- the wheel ---------------- */
-/* The section is TALL and the wheel inside it is PINNED. That height is not
-   padding: it is the scroll budget the wheel spends turning through its twelve
-   images, so lengthening the section slows the turn and shortening it speeds
-   the turn up. Nothing needs to intercept the wheel event to make this work,
-   which is why the page still scrolls normally over the top of it. */
-.ab-wheelsec { position: relative; height: 300vh; }
-@media (max-width: 768px) { .ab-wheelsec { height: 220vh; } }
+.pv .ab-figs { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+.pv .ab-figs li { display: grid; gap: 4px; padding: 18px 20px; background: var(--paper); border: 1px solid var(--rule); border-radius: 18px; }
+.pv .ab-figs b { font-family: var(--font-space-grotesk), system-ui, sans-serif; font-size: clamp(2.2rem, 1.6rem + 2.4vw, 3.4rem); line-height: 1; letter-spacing: -.03em; color: var(--ink); }
+.pv .ab-figs span { color: var(--muted); font-size: 1rem; line-height: 1.4; }
 
-.ab-wheelsec__pin {
-  position: sticky; top: 0;
-  height: 100svh;
-  display: flex; flex-direction: column; justify-content: center; align-items: center;
-  gap: 14px; padding-block: clamp(1.5rem, 4vw, 3rem);
-  overflow: hidden;
-}
-/* ScrollExpand writes `--se-scale`; the zoom is the same move the three-up
-   montage had, kept because it is what makes the wheel ARRIVE rather than
-   simply be there. */
-/* Height is the ARC's, not the screen's. The band needs room for one tile plus
-   the rise from the ends to the apex and no more; giving it the whole pin left
-   the wheel floating in a screenful of empty ground. */
-.ab-wheelsec__zoom {
-  width: 100%; flex: none;
-  height: min(52svh, 470px);
-  transform: scale(var(--se-scale, 1));
-  transition: transform .1s linear;
-}
-@media (max-width: 768px) { .ab-wheelsec__zoom { height: min(46svh, 360px); } }
+.pv .ab-stages { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); counter-reset: none; }
+.pv .ab-stages > li { position: relative; display: grid; gap: 8px; align-content: start; padding: 22px; background: var(--paper); border: 1px solid var(--rule); border-radius: 20px; min-width: 0; }
+.pv .ab-stages__n { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-fill); color: var(--on-accent); font: 700 1rem var(--font-space-grotesk), system-ui, sans-serif; }
+.pv .ab-stages h3, .pv .ab-values h3, .pv .ab-team h3 { margin: 0; font-family: var(--font-space-grotesk), system-ui, sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--ink); }
+.pv .ab-stages p, .pv .ab-values p, .pv .ab-team p { margin: 0; color: var(--muted); font-size: 1rem; line-height: 1.55; }
+.pv .ab-stages ul { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.pv .ab-stages ul li a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 999px; background: var(--paper-2); border: 1px solid var(--rule); color: var(--ink); font-size: .9rem; font-weight: 600; text-decoration: none; }
+.pv .ab-stages ul li a:hover { border-color: var(--ink); }
 
-/* Phones: the pin was a full 100svh holding a 360px wheel, so two thirds of a
-   screen height was blank paper above and below the arc — measured on a 390px
-   phone it came to roughly 480px of nothing. The pin only needs to be as tall
-   as what it is pinning, plus the caption. It still sticks, the wheel still
-   turns with the scroll; there is simply no dead margin around it. */
-@media (max-width: 768px) {
-  /* The pin still fills what is left of the screen under the header — a
-     pinned block that stops halfway leaves the bottom of the viewport looking
-     like the section ran out — but the WHEEL now takes most of it instead of
-     floating in the middle of it. Between this and the card-size cap in
-     circular-gallery.tsx (three cards across a phone, not six) the arc reads
-     as artwork rather than as a row of stamps on a large empty page. */
-  .ab-wheelsec { height: 170vh; }
-  /* The pin is as tall as the wheel and no taller. A 100svh pin holding a
-     320px band was two thirds empty paper — the original complaint — and
-     making the BAND 470px instead did not help, because only the top arc of
-     the ring is ever on screen: the extra height was empty canvas under the
-     cards rather than bigger cards. The cards got bigger from the card-size
-     cap in circular-gallery.tsx; this just stops reserving room around them. */
-  .ab-wheelsec__pin {
-    top: 76px; height: auto; min-height: 0;
-    padding-block: clamp(.75rem, 3vw, 1.25rem);
-  }
-  .ab-wheelsec__zoom { height: min(40svh, 310px); }
-}
-.ab-wheelsec__stage { position: relative; width: 100%; height: 100%; }
+.pv .ab-values, .pv .ab-team { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); }
+.pv .ab-values li, .pv .ab-team li { display: grid; gap: 8px; align-content: start; padding: 22px; background: var(--paper); border: 1px solid var(--rule); border-radius: 20px; min-width: 0; }
+.pv .ab-ic { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: #000065; color: #fff; }
+.pv .ab-team__role { font-size: .8rem !important; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-ink) !important; }
 
-/* The real images. Visible only when the canvas is not: a browser with no
-   WebGL, or a visitor who asked for no motion. Both get a plain grid of the
-   same artwork rather than an empty rectangle. */
-.ab-wheelsec__flat {
-  display: none; margin: 0; padding: 0; list-style: none;
-  grid-template-columns: repeat(auto-fill, minmax(clamp(96px, 14vw, 170px), 1fr));
-  gap: clamp(8px, 1.2vw, 16px);
-  align-content: center; height: 100%; overflow: hidden;
-}
-.ab-wheelsec__flat li {
-  /* `next/image` with `fill` positions itself absolutely, so the tile has to be
-     the thing it is absolute to. */
-  position: relative;
-  aspect-ratio: 1 / 1; overflow: hidden; border-radius: 14px;
-  border: 1px solid var(--rule); background: var(--paper-2);
-}
-.ab-wheelsec__flat img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.cgal[data-failed] + .ab-wheelsec__flat { display: grid; }
-@media (prefers-reduced-motion: reduce) {
-  .cgal { display: none; }
-  .ab-wheelsec__flat { display: grid; }
-  /* No pin either: a section that is three screens tall and holds still is a
-     worse experience than the grid it is hiding. */
-  .ab-wheelsec { height: auto; }
-  .ab-wheelsec__pin { position: static; height: auto; }
-}
-
-/* PHONES: A SWIPE RAIL, NOT A PIN. The section is as tall as its content,
-   nothing sticks, the canvas is never mounted (see WHEEL_QUERY in
-   about-body.tsx), and the twelve real images are the rail. */
-@media (max-width: 768px) {
-  .ab-wheelsec { height: auto; padding-block: clamp(2.5rem, 8vw, 3.5rem); }
-  .ab-wheelsec__pin { position: static; height: auto; padding-inline: 16px; overflow: visible; }
-  .ab-wheelsec__zoom { height: auto; transform: none; transition: none; }
-  .ab-wheelsec__stage { height: auto; }
-  .ab-wheelsec__pin > .cue { display: none; }
-  .ab-wheelsec .ab-wheelsec__flat { display: flex; }
-  .ab .ab-wheelsec .srail__track > .ab-wheelsec__flat > li { flex-basis: 62%; }
-}
-
-.ab-cap {
-  margin-top: 12px; text-align: center; flex: none;
-  font-size: .82rem; color: var(--muted);
-}
-
-/* ---------------- team rail ---------------- */
-.ab-team__head {
-  display: flex; align-items: flex-end; justify-content: space-between;
-  gap: 20px; margin-bottom: clamp(18px, 2.6vw, 30px);
-}
-.ab-team__head h2 { font-size: clamp(1.4rem, 1rem + 1.7vw, 2.2rem); margin-top: 8px; }
-.ab-team__nav { display: flex; gap: 10px; flex: none; }
-.ab-arrow {
-  width: 46px; height: 46px; border-radius: 50%; cursor: pointer;
-  display: grid; place-items: center; flex: none;
-  border: 1px solid var(--rule); background: var(--paper); color: var(--ink);
-  transition: background-color .2s ease, color .2s ease, border-color .2s ease,
-              transform .18s cubic-bezier(.16, 1, .3, 1), opacity .2s ease;
-}
-.ab-arrow svg { width: 18px; height: 18px; }
-.ab-arrow:hover:not(:disabled) { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent); transform: translateY(-2px); }
-.ab-arrow:active:not(:disabled) { transform: translateY(0); }
-/* Disabled rather than hidden: the control keeps its place, so the row does
-   not shift when you reach either end of the rail. */
-.ab-arrow:disabled { opacity: .38; cursor: default; }
-
-/* A real scroll container, so a phone can flick it and a trackpad can swipe
-   it; the arrows drive the same scroll rather than a separate index. */
-.ab-team__rail {
-  display: flex; gap: 18px; overflow-x: auto; scroll-snap-type: x proximity;
-  scrollbar-width: none; padding: 6px 2px 10px; margin: -6px -2px -10px;
-  /* `min-width: 0` is load-bearing on a flex/grid child: the default
-     `min-width: auto` would size the rail to its content and push the page
-     into horizontal overflow instead of scrolling inside itself. */
-  min-width: 0;
-}
-@media (pointer: fine) { .ab-team__rail { scroll-snap-type: none; } }
-.ab-team__rail::-webkit-scrollbar { display: none; }
-.ab-tm {
-  flex: 0 0 clamp(230px, 26vw, 300px); scroll-snap-align: start;
-  display: grid; gap: 8px; align-content: start;
-  padding: clamp(18px, 2vw, 24px); border-radius: 18px;
-  background: var(--paper); border: 1px solid var(--rule);
-  transition: transform .3s cubic-bezier(.16, 1, .3, 1), border-color .3s ease;
-}
-.ab-tm:hover { transform: translateY(-4px); border-color: var(--accent); }
-/* Same centring correction as the service tiles: the icon wrapper inherits a
-   line-height and pushes the glyph to the bottom of the tile otherwise. */
-.ab-tm__icon {
-  display: flex; align-items: center; justify-content: center; line-height: 0;
-  width: 42px; height: 42px;
-  border-radius: 12px; background: var(--band); color: #fff; margin-bottom: 6px;
-}
-.ab-tm__icon > * { display: flex; align-items: center; justify-content: center; line-height: 0; }
-.ab-tm__icon svg { display: block; }
-.ab-tm h3 { font-size: 1.06rem; }
-.ab-tm__role {
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-size: .78rem; font-weight: 600; letter-spacing: .04em;
-  text-transform: uppercase; color: var(--accent-ink);
-}
-.ab-tm__note { color: var(--muted); font-size: .92rem; }
-@media (prefers-reduced-motion: no-preference) {
-  .pv-motion .ab-tm {
-    animation: ab-rise .55s cubic-bezier(.16, 1, .3, 1) both;
-    animation-delay: var(--d, 0ms);
-  }
-}
-
-/* ---------------- closing ---------------- */
-.ab-cta__in { max-width: 46rem; margin-inline: auto; text-align: center; }
-.ab-cta__in h2 {
-  color: #fff; font-size: clamp(1.7rem, 1.1rem + 2.4vw, 3rem);
-  line-height: 1.14; margin-bottom: 14px;
-}
-.ab-cta__in .pv-lede { margin-inline: auto; max-width: 44ch; color: #fff; }
-.ab-cta__in .sv-hero__cta { margin-top: 26px; }
+.pv .ab-proof { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); }
+.pv .ab-more { margin-top: 22px; text-align: center; }
+.pv .ab-more a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; color: var(--accent-ink); text-underline-offset: 3px; }

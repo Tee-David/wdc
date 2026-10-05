@@ -33,7 +33,7 @@ const OnboardingForm = dynamic(() => import("./onboarding-form").catch(() => ({ 
   loading: () => <div className="ob__wait" aria-hidden="true" />,
 });
 
-export default function OnboardingMount({ closed = {} }: { closed?: Record<string, string> }) {
+export default function OnboardingMount({ closed = {}, styles = {} }: { closed?: Record<string, string>; styles?: Record<string, string> }) {
   return (
     <>
       <noscript>
@@ -42,7 +42,7 @@ export default function OnboardingMount({ closed = {} }: { closed?: Record<strin
           <p>Turn it on and reload, or email {CONTACT_EMAIL} and we will take your answers on a call instead.</p>
         </div>
       </noscript>
-      <OnboardingForm closed={closed} />
+      <OnboardingForm closed={closed} styles={styles} />
     </>
   );
 }

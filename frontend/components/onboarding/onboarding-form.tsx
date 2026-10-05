@@ -100,7 +100,7 @@ function readDraft(): Partial<Draft> {
   }
 }
 
-export default function OnboardingForm({ closed = {} }: { closed?: Record<string, string> }) {
+export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: Record<string, string>; styles?: Record<string, string> }) {
   const [draft] = useState(readDraft);
 
   /* WHICH SERVICE THIS FORM IS FOR -- one, not a list.
@@ -144,6 +144,9 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
      "pick up where you left off" rather than "start". Cleared by "start over",
      which wipes the draft: the button must not keep offering one. */
   const [restored, setRestored] = useState(() => draft.started === true);
+  /* Which question page of the step the Conversation style is on. Clamped where
+     it is read, so a Back across steps can simply ask for "the last". */
+  const [sub, setSub] = useState(0);
 
   const restoreServerDraft = useCallback((saved: {
     service: ServiceSlug; currentStep: number; answers: Answers;
@@ -210,6 +213,26 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
     [step, a],
   );
 
+  /* HOW THIS SERVICE'S FORM IS LAID OUT, chosen in the admin (Forms, the form,
+     Settings). Only the layout changes: every question, validation, upload,
+     searchable list and draft behaves exactly as in the steps style, because
+     all three styles draw the same FieldView. */
+  const style: "steps" | "conversation" | "board" =
+    styles[chosen] === "conversation" || styles[chosen] === "board" ? (styles[chosen] as "conversation" | "board") : "steps";
+  /* Conversation: the step's visible questions, one to a page, or two when both
+     are short single-line answers (a first and last name). */
+  const talkPages = useMemo(() => {
+    const short = (f: Field) => f.kind === "text" || f.kind === "email" || f.kind === "tel" || f.kind === "url";
+    const pages: Field[][] = [];
+    for (const f of shown) {
+      const last = pages[pages.length - 1];
+      if (last && last.length === 1 && short(last[0]) && short(f)) last.push(f);
+      else pages.push([f]);
+    }
+    return pages;
+  }, [shown]);
+  const at = Math.min(sub, Math.max(0, talkPages.length - 1));
+
   /* Every problem on this step, in the order the questions are asked, so the
      summary reads down the page rather than in whatever order the checks
      happened to run. */
@@ -235,9 +258,17 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
 
   const next = () => {
     setTried(true);
-    if (problems.length) { goTo(problems[0].f.key); return; }
+    /* In the conversation only the questions on screen are judged. */
+    const here = style === "conversation" ? problems.filter((p) => talkPages[at]?.some((f) => f.key === p.f.key)) : problems;
+    if (here.length) { goTo(here[0].f.key); return; }
     setTried(false);
     setTouched({});
+    if (style === "conversation" && at < talkPages.length - 1) {
+      setSub(at + 1);
+      requestAnimationFrame(() => toTop(false));
+      return;
+    }
+    setSub(0);
     setI((n) => Math.min(n + 1, steps.length));
     /* Back to the top of the new step. Landing halfway down a fresh set of
        questions because the last one was long is disorienting. */
@@ -245,6 +276,9 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
   };
   const back = () => {
     setTried(false);
+    if (style === "conversation" && at > 0) { setSub(at - 1); requestAnimationFrame(() => toTop(false)); return; }
+    /* Across a step the conversation lands on that step's last page. */
+    setSub(99);
     setI((n) => Math.max(0, n - 1));
     requestAnimationFrame(() => toTop(false));
   };
@@ -254,7 +288,9 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
   /* One progress signal for one journey. The first screen starts visibly at
      8% so it feels begun, then each of the three parts advances the same bar.
      Review is 100%. */
-  const progress = done ? 100 : Math.max(8, Math.round((i / steps.length) * 100));
+  const progress = done
+    ? 100
+    : Math.max(8, Math.round(((i + (style === "conversation" && talkPages.length ? at / talkPages.length : 0)) / steps.length) * 100));
   const encouragement =
     i === 0
       ? "You are off to a good start."
@@ -570,7 +606,7 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
             <section key={s.id}>
               <h2>
                 {s.title}
-                <button type="button" onClick={() => setI(n)}>Edit</button>
+                <button type="button" onClick={() => { setSub(0); setI(n); }}>Edit</button>
               </h2>
               <dl>
                 {s.fields.filter((f) => visible(f, a)).map((f) => (
@@ -647,9 +683,126 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
     );
   }
 
+  /* ------------------------------------------------ the board */
+  if (style === "board") {
+    /* Whether a section is finished: its visible questions all answer cleanly
+       and at least one is filled. */
+    const sectionState = (s: Step) => {
+      const vis = s.fields.filter((f) => visible(f, a));
+      const bad = vis.filter((f) => problemWith(f, a[f.key], { phoneOk: phoneOk[f.key] }) !== null);
+      const filledN = vis.filter((f) => isFilled(a[f.key])).length;
+      return { done: bad.length === 0 && filledN > 0, started: filledN > 0, left: bad.length };
+    };
+    const states = steps.map(sectionState);
+    const unfinished = steps.filter((_, n) => !states[n].done);
+    const doneN = states.length - unfinished.length;
+    const openStep = (n: number) => { setTried(false); setTouched({}); setI(n); };
+    const boardNext = () => {
+      setTried(true);
+      if (problems.length) { goTo(problems[0].f.key); return; }
+      setTried(false); setTouched({});
+      setI(i + 1);
+    };
+    return (
+      <div className="ob ob--board">
+        <div className="ob__top">
+          <div className="ob__progress" role="progressbar" aria-label="Onboarding progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((doneN / steps.length) * 100)}>
+            <span style={{ width: `${Math.max(8, Math.round((doneN / steps.length) * 100))}%` }} />
+            <b>{Math.round((doneN / steps.length) * 100)}%</b>
+          </div>
+          <div className="ob__topMeta">
+            <p>{doneN} of {steps.length} sections done<span aria-hidden="true"> · </span><span className="ob__mins">about {mins} min left</span></p>
+          </div>
+          {savedAt > 0 && <p className="ob__saved" role="status"><Check aria-hidden="true" />Saved. Close the tab whenever you like; this same link brings you back.</p>}
+        </div>
+        <div className="obb">
+          <nav className="obb__rail" aria-label="Sections">
+            {steps.map((s, n) => (
+              <button key={s.id} type="button" aria-current={i === n ? "step" : undefined} onClick={() => openStep(n)}>
+                <span className={`obb__dot${states[n].done ? " is-done" : ""}`} aria-hidden="true">{states[n].done ? <Check /> : null}</span>
+                {s.title}
+              </button>
+            ))}
+            <button type="button" aria-current={i >= steps.length ? "step" : undefined} onClick={() => unfinished.length ? openStep(unfinished[0] ? steps.indexOf(unfinished[0]) : 0) : setI(steps.length)}>
+              <span className="obb__dot" aria-hidden="true" />Review and send
+            </button>
+          </nav>
+          <div className="obb__cards">
+            {steps.map((s, n) => {
+              const open = i === n;
+              return (
+                <section key={s.id} className={`obb__card${open ? " is-open" : ""}`}>
+                  <button type="button" className="obb__head" aria-expanded={open} onClick={() => { if (!open) openStep(n); }}>
+                    <span>
+                      <b>{s.title}</b>
+                      <em>{states[n].done ? "Done" : states[n].started ? "In progress" : "Not started"}</em>
+                    </span>
+                    <span className={`obb__dot${states[n].done ? " is-done" : ""}`} aria-hidden="true">{states[n].done ? <Check /> : null}</span>
+                  </button>
+                  {open ? (
+                    <div className="obb__body">
+                      <p className="ob__blurb">{s.blurb}</p>
+                      <div className="ob__fields">
+                        {shown.map((f) => (
+                          <FieldView
+                            key={f.key} f={f} value={a[f.key]} onChange={(v) => set(f.key, v)}
+                            onBlur={() => setTouched((t) => ({ ...t, [f.key]: true }))}
+                            onPhoneValidity={(ok) => setPhoneOk((p) => ({ ...p, [f.key]: ok }))}
+                            problem={showProblem(f.key) ? problemWith(f, a[f.key], { phoneOk: phoneOk[f.key] }) : null}
+                          />
+                        ))}
+                      </div>
+                      {tried && problems.length > 0 && (
+                        <div className="ob__err" role="alert">
+                          <p><AlertCircle aria-hidden="true" />{problems.length === 1 ? "One question needs attention." : `${problems.length} questions need attention.`}</p>
+                          <ul>{problems.map(({ f, msg }) => <li key={f.key}><button type="button" onClick={() => goTo(f.key)}>{msg}</button></li>)}</ul>
+                        </div>
+                      )}
+                      <div className="ob__acts ob__acts--step">
+                        <button className="ob__btn ob__btn--ghost ob__stepSave" type="button" onClick={saveNow}><Save aria-hidden="true" /> Save &amp; continue later</button>
+                        <button className="ob__btn ob__btn--go ob__stepNext" type="button" onClick={boardNext}>
+                          {n === steps.length - 1 ? "Done, review" : "Done, next section"} <ArrowRight aria-hidden="true" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+                </section>
+              );
+            })}
+            <section className="obb__card">
+              <div className="obb__body">
+                {unfinished.length ? (
+                  <p className="ob__hint">Still to finish: {unfinished.map((s, k) => (
+                    <span key={s.id}>{k ? ", " : ""}<button type="button" className="obb__link" onClick={() => openStep(steps.indexOf(s))}>{s.title}</button></span>
+                  ))}.</p>
+                ) : <p className="ob__hint">Everything required is answered.</p>}
+                <button className="ob__btn ob__btn--go" type="button" disabled={unfinished.length > 0} onClick={() => setI(steps.length)}>
+                  Review and send <ArrowRight aria-hidden="true" />
+                </button>
+              </div>
+            </section>
+          </div>
+        </div>
+        <Dialogs
+          saveOpen={saveOpen} onSaveClose={() => setSaveOpen(false)}
+          resumeUrl={serverDraft.resumeUrl} copied={copied} onCopy={copyLink}
+          email={resumeEmail} onEmail={setResumeEmail}
+          onEmailSend={emailResumeLink} busy={serverDraft.saving} message={serverDraft.message}
+          wipeOpen={wipeOpen} onWipeClose={() => setWipeOpen(false)}
+          onWipe={() => {
+            try { localStorage.removeItem(KEY); } catch { /* nothing to clear */ }
+            void serverDraft.forget();
+            setA(withAnswerDefaults()); setI(0); setStarted(false); setRestored(false);
+            setWipeOpen(false);
+          }}
+        />
+      </div>
+    );
+  }
+
   /* ------------------------------------------------ a step */
   return (
-    <div className="ob">
+    <div className={`ob${style === "conversation" ? " ob--talk" : ""}`}>
       {/* the step */}
       <div className="ob__main">
         {/* ------------------------------------------------ the top bar.
@@ -703,11 +856,30 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
           )}
         </div>
 
-        <h2>{step.title}</h2>
-        <p className="ob__blurb">{step.blurb}</p>
+        {style === "conversation" ? (
+          <p className="ob__k ob__talkK">{step.title}</p>
+        ) : (
+          <>
+            <h2>{step.title}</h2>
+            <p className="ob__blurb">{step.blurb}</p>
+          </>
+        )}
 
-        <div className="ob__fields">
-          {shown.map((f) => (
+        {/* ENTER CONTINUES, in the conversation, from a single-line answer. Not from
+            a long answer (Enter is a new line there), a list (Enter chooses) or a
+            button (Enter presses it). */}
+        <div
+          className="ob__fields"
+          onKeyDown={style === "conversation" ? (e) => {
+            const t = e.target as HTMLElement;
+            if (e.key !== "Enter" || e.shiftKey || e.defaultPrevented) return;
+            if (t instanceof HTMLInputElement && ["text", "email", "tel", "url", "number"].includes(t.type) && !t.getAttribute("role") && !t.getAttribute("aria-autocomplete")) {
+              e.preventDefault();
+              next();
+            }
+          } : undefined}
+        >
+          {(style === "conversation" ? (talkPages[at] ?? []) : shown).map((f) => (
             <FieldView
               key={f.key}
               f={f}
@@ -730,7 +902,7 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
             somebody deciding whether to carry on already is, rather than up
             by the progress bar. */}
         <div className="ob__acts ob__acts--step">
-          {i > 0 ? (
+          {i > 0 || (style === "conversation" && at > 0) ? (
             <button className="ob__btn ob__btn--ghost ob__stepBack" type="button" onClick={back}>
               <ArrowLeft aria-hidden="true" /> Back
             </button>
@@ -743,7 +915,7 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
             <Save aria-hidden="true" /> Save &amp; continue later
           </button>
           <button className="ob__btn ob__btn--go ob__stepNext" type="button" onClick={next}>
-            {i === steps.length - 1 ? "Review" : "Next"} <ArrowRight aria-hidden="true" />
+            {i === steps.length - 1 && (style !== "conversation" || at >= talkPages.length - 1) ? "Review" : "Next"} <ArrowRight aria-hidden="true" />
           </button>
         </div>
 

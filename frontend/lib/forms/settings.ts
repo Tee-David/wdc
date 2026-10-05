@@ -16,6 +16,17 @@ import type { FormDef, FormSource } from "./registry";
 
 export type LimitPer = "total" | "day" | "month";
 
+/** How an onboarding form is laid out. "steps" is the long-standing one, a few
+    questions per page; "conversation" asks one or two at a time; "board" is one
+    page of section cards you open in any order. Only onboarding forms have the
+    choice (built forms choose in the builder, see lib/forms/custom-def.ts). */
+export const FORM_STYLES = [
+  { key: "steps", label: "Steps", note: "A few questions per page, with a step rail. The form as it has always been." },
+  { key: "conversation", label: "Conversation", note: "One or two questions at a time, a progress bar, Enter to continue. Best on a phone." },
+  { key: "board", label: "Briefing board", note: "Every section is a card on one page. Open them in any order, with a rail showing what is done." },
+] as const;
+export type FormStyle = (typeof FORM_STYLES)[number]["key"];
+
 export type NotificationSettings = {
   enabled: boolean;
   /** Studio notices only: where they go. Empty means the studio inbox. */
@@ -45,6 +56,7 @@ export type FormSettings = {
   blockedWords: string[];
   /** Days to keep entries in Trash before they go for good. */
   trashDays: number;
+  style: FormStyle;
   notifications: Record<string, NotificationSettings>;
 };
 
@@ -98,6 +110,7 @@ export function defaultSettings(form: FormDef): FormSettings {
     redirectTo: "",
     blockedWords: [],
     trashDays: 30,
+    style: "steps",
     notifications: Object.fromEntries(NOTIFICATIONS[form.source].map((n) => [n.key, { ...DEFAULT_NOTIFICATION }])),
   };
 }
@@ -179,6 +192,7 @@ export function parseFormSettings(form: FormDef, raw: Raw): { ok: true; settings
       redirectTo,
       blockedWords: [...new Set(text(raw.blockedWords, 2000).split(/[\n,]+/).map((w) => w.trim().toLowerCase()).filter((w) => w.length >= 2))].slice(0, 100),
       trashDays: (TRASH_DAYS as readonly number[]).includes(trashDays) ? trashDays : d.trashDays,
+      style: form.source === "onboarding" ? (FORM_STYLES.find((x) => x.key === raw.style)?.key ?? d.style) : d.style,
       notifications,
     },
   };
@@ -192,6 +206,7 @@ export function mergeSettings(form: FormDef, stored: unknown): FormSettings {
   return {
     ...d, ...s,
     blockedWords: Array.isArray(s.blockedWords) ? s.blockedWords : [],
+    style: FORM_STYLES.some((x) => x.key === s.style) ? (s.style as FormStyle) : d.style,
     notifications: Object.fromEntries(Object.entries(d.notifications).map(([k, v]) => [k, { ...v, ...(s.notifications?.[k] ?? {}) }])),
   };
 }

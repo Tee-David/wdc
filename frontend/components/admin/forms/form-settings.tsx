@@ -3,7 +3,7 @@
 import { Send, Save } from "lucide-react";
 import { resetFormSettingsAction, saveFormSettingsAction, testFormEmailAction } from "@/lib/forms/settings-actions";
 import type { FormSettings, NotificationDef } from "@/lib/forms/settings";
-import { TRASH_DAYS } from "@/lib/forms/settings";
+import { FORM_STYLES, TRASH_DAYS } from "@/lib/forms/settings";
 import { Actions, Area, Checks, Field, Fields, Form, Hidden, Radios, Select, Submit } from "@/components/admin/form";
 
 /**
@@ -41,6 +41,17 @@ export function FormSettingsEditor({ formKey, title, settings, notifications, is
             <Area name="limitMessage" label="What a visitor sees when the limit is reached" rows={2} defaultValue={settings.limitMessage} />
           </Fields>
         </section>
+
+        {isOnboarding ? (
+          <section className="ad__panel adForms__card">
+            <h2 className="adForms__h">How the form looks</h2>
+            <Fields>
+              <Radios name="style" label="Form style" defaultValue={settings.style}
+                options={FORM_STYLES.map((s) => ({ value: s.key, label: s.label, note: s.note }))}
+                hint="The same questions and answers in every style. Applies to this service's form only, from the next visit." />
+            </Fields>
+          </section>
+        ) : null}
 
         <section className="ad__panel adForms__card">
           <h2 className="adForms__h">After sending</h2>
