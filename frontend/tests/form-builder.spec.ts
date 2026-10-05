@@ -44,6 +44,15 @@ test.describe("rules", () => {
     expect(checkAnswers(def, { where: ["1 A St", "B", "", "Nigeria"], from: "Atlantis" }).errors).toEqual({ from: "Pick the country from the list." });
   });
 
+  test("the conversation layout survives cleaning, and nothing else about layout does", () => {
+    const fields = [{ id: "a", type: "text", label: "A" }];
+    expect(cleanDef({ title: "T", fields, layout: "conversation", perScreen: 2 }).def).toMatchObject({ layout: "conversation", perScreen: 2 });
+    expect(cleanDef({ title: "T", fields, layout: "conversation", perScreen: 7 }).def.perScreen).toBeUndefined();
+    const plain = cleanDef({ title: "T", fields, layout: "wizard", perScreen: 2 }).def;
+    expect(plain.layout).toBeUndefined();
+    expect(plain.perScreen).toBeUndefined();
+  });
+
   test("a required tick box accepts what the form sends", () => {
     const { def } = cleanDef({ title: "Sign-up", fields: [{ id: "ok", type: "consent", label: "I agree", required: true }] });
     expect(checkAnswers(def, {}).errors).toEqual({ ok: "Tick this to continue." });
