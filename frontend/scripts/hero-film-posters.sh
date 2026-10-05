@@ -22,9 +22,10 @@ DIR="$(cd "$(dirname "$0")/.." && pwd)/public/hero/film"
 AT="4.2" # keep in step with FILM_START in components/sections/hero.tsx
 
 for T in dark light; do
-  ffmpeg -v error -y -ss "$AT" -i "$DIR/wdc-film-v3-16x9-$T.mp4" -frames:v 1 -vf "scale=1920:-2" -q:v 5 "$DIR/wdc-film-v3-16x9-$T-1920.jpg"
-  ffmpeg -v error -y -ss "$AT" -i "$DIR/wdc-film-v3-16x9-$T.mp4" -frames:v 1 -vf "scale=1280:-2" -q:v 5 "$DIR/wdc-film-v3-16x9-$T-1280.jpg"
-  ffmpeg -v error -y -ss "$AT" -i "$DIR/wdc-film-v3-9x16-$T.mp4" -frames:v 1 -vf "scale=720:-2" -q:v 5 "$DIR/wdc-film-v3-9x16-$T-720.jpg"
+  V=v3; [ "$T" = light ] && V=v4 # the light films were levelled to a pure white ground (v4)
+  ffmpeg -v error -y -ss "$AT" -i "$DIR/wdc-film-$V-16x9-$T.mp4" -frames:v 1 -vf "scale=1920:-2" -q:v 5 "$DIR/wdc-film-$V-16x9-$T-1920.jpg"
+  ffmpeg -v error -y -ss "$AT" -i "$DIR/wdc-film-$V-16x9-$T.mp4" -frames:v 1 -vf "scale=1280:-2" -q:v 5 "$DIR/wdc-film-$V-16x9-$T-1280.jpg"
+  ffmpeg -v error -y -ss "$AT" -i "$DIR/wdc-film-$V-9x16-$T.mp4" -frames:v 1 -vf "scale=720:-2" -q:v 5 "$DIR/wdc-film-$V-9x16-$T-720.jpg"
 done
 
 ls -l "$DIR"
