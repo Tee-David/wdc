@@ -4,7 +4,8 @@ import { ensureCustomForms } from "./custom";
 
 import { db } from "@/lib/db/pool";
 import { stepsFor } from "@/lib/onboarding";
-import { findDuplicateClient } from "@/lib/admin/store";
+import { findDuplicateClient, getClient } from "@/lib/admin/store";
+import { linksFor } from "./links";
 import type { ServiceSlug } from "@/lib/services";
 import { PER_PAGE, tabsFor, type FormDef } from "./registry";
 
@@ -49,7 +50,20 @@ export type Entry = {
   step?: number;
   /** A built form: the published version this entry answered. */
   version?: number;
+  /** The client the studio assigned it to (lib/forms/links.ts), by name. */
+  linkedClient?: string;
 };
+
+/** Fill in the studio's own assignments, one query for the whole page. */
+async function withLinks(entries: Entry[]): Promise<Entry[]> {
+  const links = await linksFor(entries.map((e) => e.id));
+  for (const e of entries) {
+    const l = links.get(e.id);
+    const c = l ? getClient(l.clientId) : null;
+    if (c) e.linkedClient = c.company;
+  }
+  return entries;
+}
 
 export type Filters = {
   tab: string;
@@ -202,7 +216,7 @@ export async function listEntries(form: FormDef, f: Filters): Promise<Page> {
     b.args,
   );
   const total = await db.query<{ n: string }>(`SELECT count(*) AS n FROM ${table} ${where(b)}`, b.args);
-  return { rows: rows.rows.map((r) => toEntry(form, r)), total: Number(total.rows[0]?.n ?? 0), counts: await tabCounts(form) };
+  return { rows: await withLinks(rows.rows.map((r) => toEntry(form, r))), total: Number(total.rows[0]?.n ?? 0), counts: await tabCounts(form) };
 }
 
 /** Every tab's count in one query, so the tabs never disagree with each other. */
@@ -230,7 +244,7 @@ export async function exportEntries(form: FormDef, f: Filters, ids?: string[]): 
   const r = await db.query<Row>(
     `SELECT * FROM ${TABLE[form.source]} ${where(b)} ORDER BY ${order(form, f.sort)} LIMIT 10000`, b.args,
   );
-  return r.rows.map((x) => toEntry(form, x));
+  return withLinks(r.rows.map((x) => toEntry(form, x)));
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -241,7 +255,7 @@ export async function getEntry(form: FormDef, id: string): Promise<Entry | null>
   const b = base(form);
   b.args.push(id); b.where.push(`id = $${b.args.length}`);
   const r = await db.query<Row>(`SELECT * FROM ${TABLE[form.source]} ${where(b)}`, b.args);
-  return r.rows[0] ? toEntry(form, r.rows[0]) : null;
+  return r.rows[0] ? (await withLinks([toEntry(form, r.rows[0])]))[0] : null;
 }
 
 /** Which form an onboarding brief belongs to, for old /admin/forms/<id> links. */
@@ -326,7 +340,7 @@ export function cellText(form: FormDef, e: Entry, key: string): string {
     case "status": return e.unsubscribedAt ? "Unsubscribed" : "Subscribed";
     case "unsubscribed": return e.unsubscribedAt ?? "";
     case "when": return e.at;
-    case "client": return clientFor(e)?.company ?? "";
+    case "client": return e.linkedClient ?? clientFor(e)?.company ?? "";
     case "answered": {
       if (!form.service) return "";
       if (e.draft) return `Draft, step ${Math.min((e.step ?? 0) + 1, 4)} of 4`;

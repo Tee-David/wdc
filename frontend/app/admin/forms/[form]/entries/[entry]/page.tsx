@@ -15,7 +15,6 @@ import { answeredCount, clientFor, entryIds, getEntry, markRead, readFilters, ty
 import { eventsFor, type EntryEvent } from "@/lib/forms/events";
 import { listForRecord } from "@/lib/message-log";
 import { Empty, Panel, when } from "@/components/admin/bits";
-import { LiveSubmissionClient } from "@/components/admin/submission-forms";
 import { AddNote, EntryState, ResendEmail } from "@/components/admin/forms/entry-actions";
 import { NOTIFICATIONS } from "@/lib/forms/settings";
 import { adminRole } from "@/lib/admin/guard";
@@ -23,6 +22,9 @@ import { can } from "@/lib/admin/permissions";
 import { EntryAttachments } from "@/components/admin/forms/entry-attachments";
 import type { EntryFile } from "@/lib/onboarding-files";
 import { entryFiles } from "@/lib/forms/entry-files";
+import { AssignEntry } from "@/components/admin/forms/assign-entry";
+import { linkFor } from "@/lib/forms/links";
+import { getClient, getClients, getProject, getProjects } from "@/lib/admin/store";
 import "@/components/admin/forms/forms.css";
 
 type Props = {
@@ -178,7 +180,10 @@ export default async function EntryPage({ params, searchParams }: Props) {
   const prev = at > 0 ? ids[at - 1] : null;
   const next = at >= 0 && at < ids.length - 1 ? ids[at + 1] : null;
   const link = (x: string) => `/admin/forms/${form.key}/entries/${x}${inList && listQuery ? `?${listQuery}` : ""}`;
-  const client = form.source === "newsletter" ? null : clientFor(entry);
+  const assigned = form.source === "newsletter" ? null : await linkFor(entry.id);
+  const matched = form.source === "newsletter" ? null : clientFor(entry);
+  const client = (assigned ? getClient(assigned.clientId) : null) ?? matched;
+  const project = assigned?.projectId ? getProject(assigned.projectId) : null;
   const mayResend = can(await adminRole(), "settings");
   const files = await entryFiles(form, entry).catch(() => [] as EntryFile[]);
 
@@ -272,10 +277,17 @@ export default async function EntryPage({ params, searchParams }: Props) {
               {form.source !== "newsletter" ? (
                 <div className="adForms__client"><dt>Client</dt><dd>
                   {client ? <Link href={`/admin/clients/${client.id}`}>{client.company}</Link>
-                    : form.source === "onboarding" && !entry.draft ? <LiveSubmissionClient submissionId={entry.id} />
                     : <span className="ad__dim">Not a client yet</span>}
+                  {!entry.draft ? (
+                    <> <AssignEntry
+                      label={client ? "Change" : "Assign"} formKey={form.key} entryId={entry.id}
+                      clients={getClients().map((c) => ({ id: c.id, company: c.company }))}
+                      projects={getProjects().map((x) => ({ id: x.id, title: x.title, clientName: getClient(x.clientId)?.company ?? "" }))}
+                      needsService={!form.service} current={assigned} suggestedClientId={matched?.id} /></>
+                  ) : null}
                 </dd></div>
               ) : null}
+              {project ? <div><dt>Project</dt><dd><Link href={`/admin/projects/${project.id}`}>{project.title}</Link></dd></div> : null}
               <div><dt>Entry id</dt><dd className="ad__dim" style={{ fontSize: ".78rem" }}>{entry.id}</dd></div>
             </dl>
           </Panel>
