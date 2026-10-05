@@ -11,6 +11,7 @@ import { passwordProblem } from "@/lib/auth/password-policy";
 import { breachProblem } from "@/lib/auth/breached";
 import { passwordCodeEmail } from "@/lib/email-templates";
 import { sendLogged } from "@/lib/outbox";
+import { supportCookiePresent } from "@/lib/users/support";
 import { rateLimit } from "@/lib/rate-limit";
 
 /**
@@ -33,6 +34,7 @@ const ident = (userId: string) => `password-change:${userId}`;
 const digest = (userId: string, code: string) => createHash("sha256").update(`${userId}:${code}`).digest("hex");
 
 async function me() {
+  if (await supportCookiePresent()) return null;
   const h = await headers();
   const { auth } = await import("@/lib/auth");
   const session = await auth.api.getSession({ headers: h }).catch(() => null);

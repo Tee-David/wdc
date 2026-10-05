@@ -309,6 +309,8 @@ export const auth = betterAuth({
          * shape), because resetting a password is a separate promise.
          */
         after: async (session) => {
+          // Optional metadata until migration 0034 is applied; never block an existing sign-in.
+          await db.query('UPDATE "user" SET "lastSignInAt" = now() WHERE "id" = $1', [session.userId]).catch(() => undefined);
           const found = await db.query<{ email: string }>('SELECT "email" FROM "user" WHERE "id" = $1', [session.userId]);
           const email = found.rows[0]?.email?.toLowerCase();
           if (!email) return;
