@@ -413,6 +413,11 @@ html:not(.dark) .hero-film {
    with a white label, the secondary the other way round. */
 html:not(.dark) .hero-film .hero-cta { --btn-fill: #000; --btn-ink: #fff; }
 
+/* LIGHT: the film is already pale, so it gets no veil and no shade behind the
+   copy. Navy type reads on it as it is, and the film shows at full strength. */
+html:not(.dark) .hero-film__veil { background: none; }
+html:not(.dark) .hero-film__copy::before { background: none; -webkit-mask-image: none; mask-image: none; }
+
 /* Both first frames ship in the HTML; the theme picks one before paint. */
 .hero-film__poster--light { display: none; }
 html:not(.dark) .hero-film__poster--light { display: block; }
