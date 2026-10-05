@@ -102,10 +102,15 @@ test("on a desktop the bar is the logo, the CTA and the menu, and the menu holds
   await expect(bar.getByRole("link", { name: "Log in", exact: true })).toHaveCount(0);
 
   await bar.getByRole("button", { name: "Open menu" }).click();
-  for (const name of ["Go to Our Works", "Go to Services", "Go to Contact Us", "Log in to your account"]) {
-    await expect(page.getByRole("link", { name })).toBeVisible();
+  /* From 768px up the menu is the film strip (tests/film-menu.spec.ts covers
+     it): a frame for each of the six pages, then Log in and the look controls. */
+  const reel = page.getByRole("dialog", { name: "Menu" });
+  await expect(reel).toBeVisible();
+  for (const label of ["Our Works", "Services", "Contact Us"]) {
+    await expect(reel.getByRole("link", { name: new RegExp(`^${label}\\.`) })).toHaveCount(1);
   }
-  await expect(page.getByRole("button", { name: "Switch theme" }).last()).toBeVisible();
+  await expect(reel.getByRole("link", { name: "Log in to your account" })).toBeVisible();
+  await expect(reel.getByRole("button", { name: "Switch theme" })).toBeVisible();
 });
 
 test.describe("on a phone", () => {
