@@ -18,7 +18,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 const PAGES = [
   "/", "/services", "/services/web", "/contact", "/work", "/about", "/blog",
-  "/tools", "/tools/ai-cost", "/tools/estimate", "/tools/business-name",
+  "/tools", "/tools/ai-cost", "/tools/business-name",
   "/legal/privacy", "/this-page-does-not-exist",
 ];
 

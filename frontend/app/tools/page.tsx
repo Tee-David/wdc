@@ -26,7 +26,7 @@ const COUNT = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight
 export const metadata: Metadata = {
   title: "Free tools for building, finding and branding a business online",
   description:
-    `${COUNT} free tools from ${COMPANY_NAME}: a build budget estimator, domain and CAC name checkers, an SEO snapshot, link preview, contrast and email checkers, and more. No sign-up.`,
+    `${COUNT} free tools from ${COMPANY_NAME}: domain and CAC name checkers, an SEO snapshot, link preview, contrast and email checkers, and more. No sign-up.`,
   alternates: { canonical: `${SITE_URL}/tools` },
   openGraph: {
     title: `Free tools | ${COMPANY_NAME}`,

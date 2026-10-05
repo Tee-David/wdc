@@ -141,6 +141,7 @@ const nextConfig: NextConfig = {
      bookmarks land on the same screen. */
   async redirects() {
     return [
+      { source: "/tools/estimate", destination: "/tools", permanent: true },
       { source: "/admin/settings/blog", destination: "/admin/blog", permanent: true },
       { source: "/admin/settings/blog/:id", destination: "/admin/blog/:id", permanent: true },
     ];

@@ -14,7 +14,6 @@ import {
   projectStageEmail,
   quoteEmail,
   receiptEmail,
-  scopeEstimateEmail,
   signInEmail,
   signOffEmail,
   siteReportEmail,
@@ -72,24 +71,9 @@ async function everyEmail(): Promise<{ name: string; email: Email }[]> {
     { name: "sign-off", email: signOffEmail({ clientName: "Ada", projectTitle: "Atlas rebrand", deliverable: "The first design route", signedBy: "Ada Obi", signedAt: DUE, url: URL_UNDER_TEST }) },
     { name: "password reset", email: passwordResetEmail({ name: "Ada", url: URL_UNDER_TEST, expiresInMinutes: 60 }) },
     { name: "sign in", email: signInEmail({ name: "Ada", url: URL_UNDER_TEST, code: "205720", expiresInMinutes: 15 }) },
-    /* The two the free tools send. They are the only messages here a stranger
+    /* The one the free tools send. It is the only messages here a stranger
        can cause to be sent without ever talking to us, which is exactly why
-       they are held to the same rules as the rest. */
-    { name: "scope estimate", email: scopeEstimateEmail({
-      rangeNgn: "₦4.5m to ₦6.6m",
-      rangeUsd: "$2.9k to $4.3k",
-      days: 48,
-      phases: [
-        { label: "Discovery and design", range: "₦1.1m to ₦1.6m" },
-        { label: "Build", range: "₦2.5m to ₦3.7m" },
-      ],
-      answers: [
-        { question: "What are we building?", answer: "A web app people log into" },
-        { question: "Does it take money?", answer: "Subscriptions or a wallet" },
-      ],
-      assumptions: ["Hosting, care and support are monthly and quoted separately."],
-      url: URL_UNDER_TEST,
-    }) },
+       it is held to the same rules as the rest. */
     /* WITH LIGHTHOUSE AND WITHOUT IT ARE DIFFERENT MESSAGES, and the one that
        matters is the degraded one: it is what a reader gets on the day the
        PageSpeed budget is spent, and it still has to read as a report rather

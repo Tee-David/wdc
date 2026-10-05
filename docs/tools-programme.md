@@ -34,7 +34,7 @@ have on the table, at roughly ₦19 a call. This is the class that can cut a
 neck. One at a time, hard budget, aggressive cache.
 
 Six of the seven tools now shipped are Class A: the domain checker, the email
-spoof checker, the CAC name checker, the budget estimator, the link preview
+spoof checker, the CAC name checker, the link preview
 checker and the AI running-cost calculator. They have cost nothing and will keep costing nothing. The sixth, the
 SEO snapshot, is a Class A floor with a Class B upgrade -- see rule 1.
 
@@ -117,7 +117,7 @@ the studio delivers.
 | SEO | Page readiness check: fetch their URL, report title and description lengths, H1 count, canonical, robots, structured data, image alt text | A | "Why can't anyone find me" is the question every SEO enquiry opens with. Costs one HTTP fetch. **Shipped** at `/tools/seo`. |
 | SEO | Lighthouse, as an upgrade on the above, emailed | B | **Shipped**. Capped at 300 runs a day in `lib/psi.ts`, behind the response, and the page is complete without it. |
 | SEO | What the page costs a Nigerian visitor, bolted onto the same result | A | **Shipped**. Page weight is argued about in kilobytes everywhere else; here it is naira, which is an argument the person paying can have. |
-| Software & apps | Scope and budget estimator: eight questions, a range in naira and dollars | A | **Shipped** at `/tools/estimate`. Pure arithmetic, and the figure appears before any email is asked for. |
+| Software & apps | Scope and budget estimator | A | **Removed** at the owner's request (2026-10-05). `/tools/estimate` redirects to `/tools`. |
 | Social | Link preview checker: what WhatsApp, X, LinkedIn and Facebook will show | A | **Shipped** at `/tools/link-preview`. One fetch, and WhatsApp is the channel links actually travel through here. |
 | Software & AI | Honest LLM cost estimator: volume in, monthly naira out | A | **Shipped** at `/tools/ai-cost`. Pure arithmetic, eight models across three makers, and it says plainly where ordinary code is the better answer. |
 
