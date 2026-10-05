@@ -254,6 +254,22 @@ html:not(.dark) .fm {
 /* Name and email only where there is room for them. */
 @media (max-width: 1279.98px) { .fm-account .sm-account__who { display: none; } .fm-account .sm-account { padding-right: 4px; } }
 
+/* THE ARROWS: small, quiet circles level with the frame. Icon-only chrome, so
+   they keep the outline treatment rather than the button pair. */
+.fm-arrow {
+  position: absolute; z-index: 5; top: calc(var(--bt) + var(--sp) + var(--fh) / 2 - 24px);
+  width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+  border: 1.5px solid var(--fm-line); background: transparent; color: var(--fm-fg); opacity: .75;
+  transition: opacity .25s ease, background-color .2s ease, color .2s ease, transform .2s ease, visibility 0s;
+}
+.fm-arrow svg { width: 22px; height: 22px; }
+.fm-arrow--prev { left: max(16px, calc((100vw - 1280px) / 2 + 16px)); }
+.fm-arrow--next { right: max(16px, calc((100vw - 1280px) / 2 + 16px)); }
+.fm-arrow:hover { opacity: 1; background: var(--fm-fg); color: var(--ink); border-color: var(--fm-fg); }
+.fm-arrow:active { transform: scale(.94); }
+.fm-arrow.is-off { opacity: 0; visibility: hidden; pointer-events: none; }
+.is-leaving .fm-arrow { opacity: 0; transition: opacity .3s ease; }
+
 /* Leaving: the frame in the gate zooms to fill the screen and everything else lets go. */
 .is-leaving .fm-band, .is-leaving .fm-gate, .is-leaving .fm-glow, .is-leaving .fm-foot { opacity: 0; transition: opacity 0.3s ease; }
 .is-leaving .fm-frame:not(.is-centre) { opacity: 0; transition: opacity 0.3s ease, transform 0.6s; }
