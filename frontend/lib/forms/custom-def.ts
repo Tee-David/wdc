@@ -53,6 +53,11 @@ export type CustomFormDef = {
   submitLabel: string;
   successMessage: string;
   fields: CustomField[];
+  /** How it is laid out. Left out, it is the usual page of questions with
+      sections; "conversation" asks one or two at a time. */
+  layout?: "sections" | "conversation";
+  /** Conversation only: questions on each screen. */
+  perScreen?: 1 | 2;
 };
 
 /* EVERY COUNTRY, by name, from the dialling list the phone field already
@@ -159,6 +164,10 @@ export function cleanDef(raw: unknown): { def: CustomFormDef; errors: string[] }
     successMessage: str(o.successMessage, 400) || "Thank you. We have your answers.",
     fields,
   };
+  if (o.layout === "conversation") {
+    def.layout = "conversation";
+    if (o.perScreen === 2) def.perScreen = 2;
+  }
   if (!fields.some((f) => f.type !== "heading")) errors.push("Add at least one question.");
   return { def, errors };
 }

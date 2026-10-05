@@ -50,3 +50,15 @@
   .adBuild__acts .ad__btn--primary { grid-column: 1 / -1; }
 }
 @media (prefers-reduced-motion: reduce) { .adBuild__chev { transition: none; } }
+
+/* Form style: two cards, one chosen. Solid fills, never a tint. */
+.adBuild__styles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: 10px; }
+.adBuild__style { display: grid; gap: 4px; min-height: 44px; padding: 12px 14px; text-align: left; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); color: inherit; cursor: pointer; }
+.adBuild__style b { font-size: .95rem; }
+.adBuild__style span { font-size: .84rem; opacity: .78; line-height: 1.45; }
+.adBuild__style.is-on { background: var(--ad-fill); color: var(--ad-on-fill); border-color: var(--ad-fill); }
+.adBuild__style.is-on span { opacity: .92; }
+.adBuild__style:focus-visible, .adBuild__perOpt:focus-visible { outline: 2px solid var(--ad-fill); outline-offset: 2px; }
+.adBuild__per { display: inline-flex; gap: 8px; }
+.adBuild__perOpt { min-height: 44px; min-width: 5rem; padding: 0 16px; border: 1px solid var(--ad-line); border-radius: 999px; background: var(--ad-panel); color: inherit; cursor: pointer; font: inherit; }
+.adBuild__perOpt.is-on { background: var(--ad-fill); color: var(--ad-on-fill); border-color: var(--ad-fill); }

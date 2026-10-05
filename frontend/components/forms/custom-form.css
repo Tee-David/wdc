@@ -63,3 +63,27 @@
 .cf-closed p { margin: 0; }
 .cf-closed__acts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
 @media (max-width: 560px) { .cf-closed__acts .pv-btn { width: 100%; justify-content: center; } }
+
+/* THE CONVERSATION LAYOUT: one or two questions to a screen, a bar that says
+   how far in, Back and Next. Motion is transform and opacity and goes away
+   under reduced motion. */
+.cf--talk { gap: 20px; }
+.cf-prog { display: flex; align-items: center; gap: 12px; }
+.cf-prog__bar { flex: 1; height: 4px; border-radius: 4px; background: var(--rule); overflow: hidden; }
+.cf-prog__bar span { display: block; height: 100%; border-radius: inherit; background: var(--ink); transition: width .35s cubic-bezier(.16, 1, .3, 1); }
+.cf-prog__n { flex: none; font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.cf-screen { display: grid; gap: 22px; min-width: 0; min-height: 11rem; animation: cf-in .38s cubic-bezier(.16, 1, .3, 1) backwards; }
+.cf-kicker { margin: 0; font-size: .8rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-ink); }
+.cf--talk .ct-f > label, .cf--talk .cf-choices legend { font-family: var(--font-space-grotesk), system-ui, sans-serif; font-size: clamp(1.15rem, 3.4vw, 1.5rem); font-weight: 500; line-height: 1.3; color: var(--ink); }
+.cf--talk .ct-f > label { margin-bottom: 4px; }
+.cf--talk .cf-choices legend { margin-bottom: 10px; }
+.cf-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.cf-acts[hidden] { display: none; }
+.cf-hint { color: var(--muted); font-size: .82rem; }
+.cf-hint kbd { padding: 1px 6px; border: 1px solid var(--rule); border-radius: 6px; font: inherit; font-size: .78rem; color: var(--ink); }
+@media (hover: none) { .cf-hint { display: none; } }
+@keyframes cf-in { from { opacity: 0; transform: translateY(14px); } }
+@media (prefers-reduced-motion: reduce) { .cf-screen { animation: none; } .cf-prog__bar span { transition: none; } }
+.cf-back::after, .pv .cf-back::after { content: none; display: none; }
+.cf-back svg { width: 16px; height: 16px; }
+@media (max-width: 560px) { .pv .cf-acts .pv-btn { width: auto; flex: 1 1 auto; justify-content: center; white-space: nowrap; } .pv .cf-acts .cf-back { flex: 0 0 auto; } }

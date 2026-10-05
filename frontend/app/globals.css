@@ -781,6 +781,22 @@ html[data-film-leaving="1"] .hd-bar { opacity: 0; transition-duration: .15s; }
   border-color: rgb(255 255 255 / .1);
   box-shadow: 0 12px 40px -14px rgb(0 0 0 / .7), inset 0 1px 0 rgb(255 255 255 / .06);
 }
+html:not(.dark) .hero-cta--film { --btn-fill: #000; --btn-ink: #fff; }
+/* The menu disc over the PALE homepage film (light theme). */
+html:not(.dark) .hd-glass-menu--film .sm-toggle:not([aria-expanded="true"]) {
+  background: rgb(0 0 101 / .06);
+  border-color: rgb(0 0 101 / .22);
+}
+
+/* NO BLUR ON A PHONE (owner's call, 2026-10-05). iOS Safari and Edge re-render a
+   blurred backdrop under every frame of scroll, which showed as lag on the
+   bar's pill. The same pill, near-opaque, costs nothing per frame and still
+   reads as glass over the page. Desktop keeps the blur. */
+@media (max-width: 767.98px) {
+  .hd-bar.is-glass { background: rgb(255 255 255 / .96); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .dark .hd-bar.is-glass { background: rgb(10 10 42 / .96); }
+}
+
 /* WHILE THE PHONE MENU IS OPEN THE BAR STOPS BLURRING. A backdrop-filter makes
    its element the containing block for every `position: fixed` descendant, and
    the menu's panel, its two colour layers and its close cross all live inside
@@ -789,13 +805,6 @@ html[data-film-leaving="1"] .hd-bar { opacity: 0; transition-duration: .15s; }
    narrower than the screen, offset from the top, and 100dvh tall from there, so
    it ran past the bottom. The bar sits under the panel while it is open, so
    nothing is lost by it going flat for that long. */
-html:not(.dark) .hero-cta--film { --btn-fill: #000; --btn-ink: #fff; }
-/* The menu disc over the PALE homepage film (light theme). */
-html:not(.dark) .hd-glass-menu--film .sm-toggle:not([aria-expanded="true"]) {
-  background: rgb(0 0 101 / .06);
-  border-color: rgb(0 0 101 / .22);
-}
-
 .hd-bar.is-menu-open { -webkit-backdrop-filter: none; backdrop-filter: none; }
 /* Where the blur is unavailable, or the reader has asked for less
    transparency, the same pill is solid rather than a thin wash. */

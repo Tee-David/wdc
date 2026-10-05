@@ -125,6 +125,36 @@ export function FormBuilder({ formKey, slug, status, version, initial, siteUrl }
                   <input id="b-title" value={def.title} maxLength={120} onChange={(e) => patch({ title: e.target.value })} /></div>
                 <div className="ad__f"><label className="ad__fl" htmlFor="b-intro">Introduction <span className="ad__dim">(optional)</span></label>
                   <textarea id="b-intro" rows={2} value={def.intro} maxLength={1000} onChange={(e) => patch({ intro: e.target.value })} /></div>
+                <div className="ad__f" role="radiogroup" aria-labelledby="b-style-l">
+                  <span className="ad__fl" id="b-style-l">Form style</span>
+                  <div className="adBuild__styles">
+                    {([
+                      ["sections", "Sections", "Every question on one page, in sections. Best for long or detailed forms."],
+                      ["conversation", "Conversation", "One or two questions at a time, with a progress bar. Best for short, friendly forms."],
+                    ] as const).map(([key, name, blurb]) => {
+                      const on = (def.layout ?? "sections") === key;
+                      return (
+                        <button key={key} type="button" role="radio" aria-checked={on} className={`adBuild__style${on ? " is-on" : ""}`}
+                          onClick={() => patch({ layout: key, perScreen: key === "conversation" ? def.perScreen ?? 1 : undefined })}>
+                          <b>{name}</b><span>{blurb}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {def.layout === "conversation" ? (
+                  <div className="ad__f" role="radiogroup" aria-labelledby="b-per-l">
+                    <span className="ad__fl" id="b-per-l">Questions on each screen</span>
+                    <div className="adBuild__per">
+                      {([1, 2] as const).map((n) => (
+                        <button key={n} type="button" role="radio" aria-checked={(def.perScreen ?? 1) === n}
+                          className={`adBuild__perOpt${(def.perScreen ?? 1) === n ? " is-on" : ""}`} onClick={() => patch({ perScreen: n })}>
+                          {n === 1 ? "One" : "Two"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
                 <div className="ad__f ad__f--half"><label className="ad__fl" htmlFor="b-submit">Button</label>
                   <input id="b-submit" value={def.submitLabel} maxLength={40} onChange={(e) => patch({ submitLabel: e.target.value })} /></div>
                 <div className="ad__f ad__f--half"><span className="ad__fl">Address</span>
