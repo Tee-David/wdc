@@ -60,6 +60,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     { path: "/about", priority: 0.7, changeFrequency: "yearly" },
     { path: "/contact", priority: 0.8, changeFrequency: "yearly" },
+    { path: "/start", priority: 0.7, changeFrequency: "yearly" },
     { path: "/work", priority: 0.9, changeFrequency: "monthly" },
     { path: "/blog", priority: 0.8, changeFrequency: "weekly" },
     /* Derived like the work tiers: a post published in the editor is in the

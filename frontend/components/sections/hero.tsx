@@ -468,7 +468,7 @@ export function Hero() {
               style={{ animationDelay: "220ms" }}
             >
               <Link
-                href="#pv-contact"
+                href="/start"
                 className="hero-cta group btn-primary inline-flex min-h-[3.375rem] items-center justify-center gap-3 rounded-full border-[1.5px] py-1.5 pl-6 pr-[0.6875rem] text-base font-semibold transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-[color:var(--hf-ink)]"
               >
                 Start a Project

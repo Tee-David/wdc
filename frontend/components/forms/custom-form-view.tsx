@@ -23,7 +23,14 @@ const ACCEPT = Object.keys(FILE_TYPES).map((e) => `.${e}`).join(",");
  * uses (lib/forms/custom-def.ts), and again there. Files go straight to our
  * bucket with a signed link before the form is sent.
  */
-export function CustomFormView({ def, slug, preview }: { def: CustomFormDef; slug?: string; preview?: boolean }) {
+export type Sender = (answers: Answers) => Promise<{ ok: true; message?: string } | { ok: false; error?: string; errors?: Record<string, string> }>;
+
+/**
+ * `send`, when given, replaces the post to /api/forms/<slug>: a form written in
+ * code (/start) hands its answers to its own endpoint and keeps everything else
+ * here, the checks, the screens and the done state.
+ */
+export function CustomFormView({ def, slug, preview, send }: { def: CustomFormDef; slug?: string; preview?: boolean; send?: Sender }) {
   const [answers, setAnswers] = useState<Answers>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");
@@ -97,10 +104,12 @@ export function CustomFormView({ def, slug, preview }: { def: CustomFormDef; slu
       return;
     }
     setState("sending"); setMessage("");
-    const r = await fetch(`/api/forms/${slug}`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ answers: checked.answers, website: trap }),
-    }).then(async (x) => ({ ok: x.ok, status: x.status, body: await x.json().catch(() => ({})) })).catch(() => null);
+    const r = send
+      ? await send(checked.answers).then((x) => ({ ok: x.ok, status: x.ok ? 200 : 422, body: x.ok ? { message: x.message } : { error: x.error, errors: x.errors } })).catch(() => null)
+      : await fetch(`/api/forms/${slug}`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ answers: checked.answers, website: trap }),
+      }).then(async (x) => ({ ok: x.ok, status: x.status, body: await x.json().catch(() => ({})) })).catch(() => null);
     if (r && (r.status === 404 || r.status === 409)) {
       setState("idle");
       setClosed(true);
