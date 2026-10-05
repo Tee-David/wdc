@@ -148,11 +148,9 @@
   border-color: var(--btn-fill);
 }
 
-/* THE HERO IS A DARK GROUND IN BOTH THEMES, because it is a film rather than
-   a theme surface: the showreel plays under a navy shade whichever theme the
-   reader has chosen. So its two buttons take the dark
-   ground's pair in both, and say so here rather than in six Tailwind classes
-   that have to agree with each other by hand. */
+/* A DARK GROUND: the pair for it. The homepage hero follows the theme (a navy
+   film in dark, a pale one in light), so in light it sets the paper pair back
+   (see `.hero-film` below); every other dark band is dark in both themes. */
 .hero-cta {
   --btn-fill: #fff;
   --btn-ink: #000;
@@ -378,13 +376,60 @@ main:focus { outline: none; }
    rgb(55 55 81), 12:1 with white; behind the description it is darker still.
    Change a stop here and re-measure there.
    ------------------------------------------------------------------------ */
+/* THE HERO'S TOKENS, one set per theme. Dark is the navy film with white copy.
+   Light is the pale film with NAVY copy: white type on that frame would not be
+   readable, and the shade behind the copy flips from navy to the film's own
+   pale ground so the same contrast job gets done the other way up. */
+.hero-film {
+  --hf-bg: #050627;
+  --hf-ink: #fff;
+  --hf-lede: #e6e7f2;
+  --hf-shade: 5 6 39;
+  --hf-track: rgb(255 255 255 / .28);
+  --hf-glass: rgb(5 6 39 / .45);
+  --hf-edge: rgb(255 255 255 / .18);
+  --hf-chip: rgb(255 255 255 / .1);
+  --hf-chip-edge: rgb(255 255 255 / .2);
+  --hf-seg: rgb(255 255 255 / .78);
+  --hf-bar: #ff6500;
+  background: var(--hf-bg);
+  color: var(--hf-ink);
+}
+html:not(.dark) .hero-film {
+  --hf-bg: #f4f4f9;
+  --hf-ink: #000065;
+  --hf-lede: #1b1b66;
+  --hf-shade: 244 244 249;
+  --hf-track: rgb(0 0 101 / .2);
+  --hf-glass: rgb(255 255 255 / .62);
+  --hf-edge: rgb(0 0 101 / .16);
+  --hf-chip: rgb(0 0 101 / .06);
+  --hf-chip-edge: rgb(0 0 101 / .22);
+  --hf-seg: rgb(0 0 101 / .78);
+  /* The orange that is allowed on light: 5:1 on the pale glass. */
+  --hf-bar: #b84a00;
+}
+/* The hero's pair takes the paper ground's colours in light: a black fill
+   with a white label, the secondary the other way round. */
+html:not(.dark) .hero-film .hero-cta { --btn-fill: #000; --btn-ink: #fff; }
+
+/* Both first frames ship in the HTML; the theme picks one before paint. */
+.hero-film__poster--light { display: none; }
+html:not(.dark) .hero-film__poster--light { display: block; }
+html:not(.dark) .hero-film__poster--dark { display: none; }
+
+.hero-film__title { color: var(--hf-ink); }
+.hero-film__lede { color: var(--hf-lede); }
+.hero-film__rule { background: var(--hf-edge); }
+.hero-film__clock { color: var(--hf-seg); }
+
 .hero-film__video { opacity: 0; transition: opacity .6s ease; }
 .hero-film__video.is-shown { opacity: 1; }
 
 .hero-film__veil {
   background:
-    linear-gradient(180deg, rgb(5 6 39 / .62) 0, rgb(5 6 39 / 0) 9rem),
-    rgb(5 6 39 / .2);
+    linear-gradient(180deg, rgb(var(--hf-shade) / .62) 0, rgb(var(--hf-shade) / 0) 9rem),
+    rgb(var(--hf-shade) / .2);
 }
 
 /* THE HEADLINE IS ONE LINE ON A PHONE. "We do it all. Yes, really." is
@@ -406,7 +451,7 @@ main:focus { outline: none; }
   inset: -8rem 0 0;
   z-index: -1;
   pointer-events: none;
-  background: linear-gradient(180deg, rgb(5 6 39 / 0) 0, rgb(5 6 39 / .86) 8rem, rgb(5 6 39 / .95) 100%);
+  background: linear-gradient(180deg, rgb(var(--hf-shade) / 0) 0, rgb(var(--hf-shade) / .86) 8rem, rgb(var(--hf-shade) / .95) 100%);
 }
 @media (min-width: 1024px) {
   /* Copy on the left, film on the right: the shade leans left so the film
@@ -414,8 +459,8 @@ main:focus { outline: none; }
   .hero-film__copy::before {
     inset: -11rem 0 0;
     background:
-      linear-gradient(90deg, rgb(5 6 39 / .82) 0%, rgb(5 6 39 / .45) 45%, rgb(5 6 39 / 0) 72%),
-      linear-gradient(180deg, rgb(5 6 39 / 0) 0, rgb(5 6 39 / .62) 11rem, rgb(5 6 39 / .82) 100%);
+      linear-gradient(90deg, rgb(var(--hf-shade) / .82) 0%, rgb(var(--hf-shade) / .45) 45%, rgb(var(--hf-shade) / 0) 72%),
+      linear-gradient(180deg, rgb(var(--hf-shade) / 0) 0, rgb(var(--hf-shade) / .62) 11rem, rgb(var(--hf-shade) / .82) 100%);
     /* The sideways layer would otherwise start on a hard line 11rem above
        the headline, which a calm stretch of film shows plainly. Fade the
        whole shade in over that 11rem; the copy is wholly below it. */
@@ -427,29 +472,29 @@ main:focus { outline: none; }
 /* Dark glass for the chapter controls. Small surfaces only: a blurred
    backdrop re-renders with every frame of film under it. */
 .hero-film__glass {
-  background: rgb(5 6 39 / .45);
-  border: 1px solid rgb(255 255 255 / .18);
+  background: var(--hf-glass);
+  border: 1px solid var(--hf-edge);
   -webkit-backdrop-filter: blur(18px) saturate(150%);
   backdrop-filter: blur(18px) saturate(150%);
 }
 
 /* A chapter's progress. THE BRIGHT ORANGE IN BOTH THEMES, deliberately: the
    dark-mode #b84a00 exists to carry white type, and this bar carries none. It
-   sits on the film's navy, which is dark in both themes, where #ff6500 is 6:1
-   and #b84a00 would be about 3:1. */
+   sits on the film's navy in dark, where #ff6500 is 6:1 and #b84a00 would be
+   about 3:1; on the pale film (light theme) it is #b84a00 instead (--hf-bar). */
 .hero-film__bar {
   position: relative;
   display: block;
   height: 3px;
   border-radius: 3px;
-  background: rgb(255 255 255 / .28);
+  background: var(--hf-track);
   overflow: hidden;
 }
 .hero-film__bar > span {
   position: absolute;
   inset: 0 auto 0 0;
   border-radius: inherit;
-  background: #ff6500;
+  background: var(--hf-bar);
   transition: width .3s linear;
 }
 
@@ -467,14 +512,14 @@ main:focus { outline: none; }
   padding: 0 .4rem;
   border-radius: .625rem;
   text-align: left;
-  color: rgb(255 255 255 / .78);
+  color: var(--hf-seg);
   cursor: pointer;
   transition: background-color .2s ease, color .2s ease;
 }
 .hero-film__seg:hover,
-.hero-film__seg[aria-current] { color: #fff; }
-.hero-film__seg:hover { background: rgb(255 255 255 / .08); }
-.hero-film__seg:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.hero-film__seg[aria-current] { color: var(--hf-ink); }
+.hero-film__seg:hover { background: var(--hf-chip); }
+.hero-film__seg:focus-visible { outline: 2px solid var(--hf-ink); outline-offset: 2px; }
 .hero-film__seg-label {
   font-size: .78rem;
   font-weight: 500;
@@ -493,14 +538,14 @@ main:focus { outline: none; }
   width: 2.75rem;
   height: 2.75rem;
   border-radius: 999px;
-  color: #fff;
-  background: rgb(255 255 255 / .1);
-  border: 1px solid rgb(255 255 255 / .2);
+  color: var(--hf-ink);
+  background: var(--hf-chip);
+  border: 1px solid var(--hf-chip-edge);
   cursor: pointer;
   transition: background-color .2s ease;
 }
-.hero-film__round:hover { background: rgb(255 255 255 / .2); }
-.hero-film__round:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.hero-film__round:hover { background: var(--hf-chip-edge); }
+.hero-film__round:focus-visible { outline: 2px solid var(--hf-ink); outline-offset: 2px; }
 
 /* The arrow chip inside the primary. It reads the pair's own tokens, so it
    is always the button's opposite and swaps with it on hover. */
@@ -744,6 +789,13 @@ html[data-film-leaving="1"] .hd-bar { opacity: 0; transition-duration: .15s; }
    narrower than the screen, offset from the top, and 100dvh tall from there, so
    it ran past the bottom. The bar sits under the panel while it is open, so
    nothing is lost by it going flat for that long. */
+html:not(.dark) .hero-cta--film { --btn-fill: #000; --btn-ink: #fff; }
+/* The menu disc over the PALE homepage film (light theme). */
+html:not(.dark) .hd-glass-menu--film .sm-toggle:not([aria-expanded="true"]) {
+  background: rgb(0 0 101 / .06);
+  border-color: rgb(0 0 101 / .22);
+}
+
 .hd-bar.is-menu-open { -webkit-backdrop-filter: none; backdrop-filter: none; }
 /* Where the blur is unavailable, or the reader has asked for less
    transparency, the same pill is solid rather than a thin wash. */

@@ -53,15 +53,40 @@ for (const width of [390, 1280]) {
 test("the film is not in the HTML: the first paint is the poster", async ({ request }) => {
   const html = await (await request.get("/")).text();
   expect(html, "a video file is referenced from the server HTML").not.toMatch(/\.mp4/);
-  expect(html).toContain("wdc-film-v2-16x9-1280.jpg");
-  expect(html).toContain("wdc-film-v2-9x16-720.jpg");
+  expect(html).toContain("wdc-film-v3-16x9-dark-1280.jpg");
+  expect(html).toContain("wdc-film-v3-9x16-dark-720.jpg");
+  expect(html).toContain("wdc-film-v3-16x9-light-1280.jpg");
+});
+
+test("in the light theme the film is the light cut and the copy is navy", async ({ page }) => {
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem("theme", "light");
+      localStorage.setItem("wdc-intro-seen-at", String(Date.now()));
+    } catch { /* private mode */ }
+  });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/", { waitUntil: "load" });
+  await expect.poll(() => filmSrc(page), { timeout: 10_000 }).toContain("wdc-film-v3-16x9-light.mp4");
+  const ink = await page.locator("#hero-title").evaluate((el) => getComputedStyle(el).color);
+  expect(ink).toBe("rgb(0, 0, 101)");
+  const shown = (sel: string) => page.locator(sel).evaluate((el) => getComputedStyle(el).display !== "none");
+  expect(await shown(".hero-film__poster--light")).toBe(true);
+  expect(await shown(".hero-film__poster--dark")).toBe(false);
+
+  /* Switching theme swaps the cut without a reload. */
+  await page.evaluate(() => {
+    document.documentElement.classList.add("dark");
+    document.documentElement.classList.remove("light");
+  });
+  await expect.poll(() => filmSrc(page), { timeout: 10_000 }).toContain("wdc-film-v3-16x9-dark.mp4");
 });
 
 test("a desktop gets the wide cut, once the page has loaded", async ({ page }) => {
   await skipIntro(page);
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/", { waitUntil: "load" });
-  await expect.poll(() => filmSrc(page), { timeout: 10_000 }).toContain("wdc-film-v2-16x9.mp4");
+  await expect.poll(() => filmSrc(page), { timeout: 10_000 }).toContain("wdc-film-v3-16x9-dark.mp4");
 });
 
 test("the desktop chapters jump to the chapter pressed", async ({ page }) => {
@@ -72,7 +97,7 @@ test("the desktop chapters jump to the chapter pressed", async ({ page }) => {
   /* The film's src is attached from an effect, so once it is set the hero
      has hydrated and its buttons have handlers. A click before that lands on
      server HTML and does nothing, which is a race in the test, not the page. */
-  await expect.poll(() => filmSrc(page), { timeout: 10_000 }).toContain("wdc-film-v2-16x9.mp4");
+  await expect.poll(() => filmSrc(page), { timeout: 10_000 }).toContain("wdc-film-v3-16x9-dark.mp4");
 
   const strip = page.getByRole("group", { name: "Chapters of the film" });
   await expect(strip.getByRole("button")).toHaveCount(8);
@@ -93,7 +118,7 @@ test("on a desktop the bar is the logo, the CTA and the menu, and the menu holds
   await skipIntro(page);
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/", { waitUntil: "load" });
-  await expect.poll(() => filmSrc(page), { timeout: 10_000 }).toContain("wdc-film-v2-16x9.mp4");
+  await expect.poll(() => filmSrc(page), { timeout: 10_000 }).toContain("wdc-film-v3-16x9-dark.mp4");
 
   const bar = page.locator("header");
   await expect(bar.getByRole("link", { name: "We Dig Creativity, home" })).toBeVisible();
@@ -119,7 +144,7 @@ test.describe("on a phone", () => {
   test("it gets the tall cut, and the progress sits under the pair with its play control", async ({ page }) => {
     await skipIntro(page);
     await page.goto("/", { waitUntil: "load" });
-    await expect.poll(() => filmSrc(page), { timeout: 10_000 }).toContain("wdc-film-v2-9x16.mp4");
+    await expect.poll(() => filmSrc(page), { timeout: 10_000 }).toContain("wdc-film-v3-9x16-dark.mp4");
 
     const hero = page.locator(".hero-film");
     /* The owner took the side arrows and the label row out: nothing sits over
@@ -179,7 +204,7 @@ test.describe("when the browser refuses to autoplay", () => {
       };
     });
     await page.goto("/", { waitUntil: "load" });
-    await expect.poll(() => filmSrc(page), { timeout: 10_000 }).toContain("wdc-film-v2-9x16.mp4");
+    await expect.poll(() => filmSrc(page), { timeout: 10_000 }).toContain("wdc-film-v3-9x16-dark.mp4");
     const plays = () => page.evaluate(() => (window as unknown as { __plays: number }).__plays);
     await expect.poll(plays).toBeGreaterThan(0); // refused, with nobody touching the page
     const refused = await plays();

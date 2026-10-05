@@ -37,7 +37,7 @@ export default async function Home() {
       {/* Over the film a phone shows only the mark and the menu: the hero's
           own pair is on screen, so a third "Start" in the bar is noise until
           the visitor scrolls past them. */}
-      <Header overHero markOnlyOnPhones />
+      <Header overHero filmHero markOnlyOnPhones />
       <main id="main" tabIndex={-1} className="flex-1">
         {/* The intro's logos land in #hero-marquee, the tool rail directly
             under the film, so the hero is still the payoff of the intro. */}

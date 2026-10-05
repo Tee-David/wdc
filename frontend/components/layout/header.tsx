@@ -72,8 +72,9 @@ const FILM_PAGES = [
  */
 export function Header({
   overHero = false,
+  filmHero = false,
   markOnlyOnPhones = false,
-}: { overHero?: boolean; markOnlyOnPhones?: boolean } = {}) {
+}: { overHero?: boolean; markOnlyOnPhones?: boolean; filmHero?: boolean } = {}) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   /* The desktop film strip is open: a dark layer under the bar, so the bar
@@ -124,11 +125,17 @@ export function Header({
         aria-hidden={solid}
       >
         <span className={quiet ? "hidden md:inline-flex" : "inline-flex"}>
-          <Logo tone="white" markClassName="h-9 w-auto" />
+          <Logo tone={filmHero ? "auto" : "white"} markClassName="h-9 w-auto" />
         </span>
         {markOnlyOnPhones ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img src="/brand/icon-white-accent.svg" alt="" className={`h-9 w-auto drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] ${quiet ? "md:hidden" : "hidden"}`} />
+          <span className={quiet ? "md:hidden" : "hidden"}>
+            {filmHero ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src="/brand/icon-navy.svg" alt="" className="h-9 w-auto dark:hidden" />
+            ) : null}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/icon-white-accent.svg" alt="" className={`h-9 w-auto drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] ${filmHero ? "hidden dark:block" : ""}`} />
+          </span>
         ) : null}
       </span>
 
@@ -188,7 +195,7 @@ export function Header({
                until they opened the menu. It is smaller there (44px tall, the
                touch minimum) and says "Start" under 360px, and it steps out of
                the way while the menu is open over it. */
-            className={`header-cta-pulse group btn-primary inline-flex min-h-11 shrink-0 items-center whitespace-nowrap gap-1.5 rounded-full border px-3.5 text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(0,0,26,0.35)] active:translate-y-0 md:min-h-0 md:gap-2 md:px-5 md:py-2.5 md:text-sm ${solid ? "" : "hero-cta"} ${menuOpen ? "invisible" : ""} ${quiet ? "max-md:hidden" : ""}`}
+            className={`header-cta-pulse group btn-primary inline-flex min-h-11 shrink-0 items-center whitespace-nowrap gap-1.5 rounded-full border px-3.5 text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(0,0,26,0.35)] active:translate-y-0 md:min-h-0 md:gap-2 md:px-5 md:py-2.5 md:text-sm ${solid ? "" : filmHero ? "hero-cta hero-cta--film" : "hero-cta"} ${menuOpen ? "invisible" : ""} ${quiet ? "max-md:hidden" : ""}`}
           >
             {/* Not "Book a Strategy Call". That was carried over wholesale
                 when this header was rebuilt to match litchconsulting's, and it
@@ -218,7 +225,9 @@ export function Header({
                   ? "[&_.sm-toggle]:text-[#000065] dark:[&_.sm-toggle]:text-foreground"
                   /* Over a dark hero the menu is a glass disc, like the
                      hero's own controls. */
-                  : "hd-glass-menu [&_.sm-burger]:drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] [&_.sm-toggle]:!text-white dark:[&_.sm-toggle]:!text-foreground"
+                  : filmHero
+                    ? "hd-glass-menu hd-glass-menu--film [&_.sm-toggle]:!text-[#000065] dark:[&_.sm-toggle]:!text-white"
+                    : "hd-glass-menu [&_.sm-burger]:drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] [&_.sm-toggle]:!text-white dark:[&_.sm-toggle]:!text-foreground"
             )}
             /* Log in joins the LIST rather than the footer row. The footer
                holds the two controls that change how the site looks; this is a
