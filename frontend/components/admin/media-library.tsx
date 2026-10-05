@@ -122,7 +122,7 @@ export function UploadProvider({ disabled, folder = null, children }: { disabled
             ) : null}
           </header>
           {open ? (
-            <ul className="adTray__list">
+            <ul className="adTray__list" data-lenis-prevent>
               {jobs.map((j) => (
                 <li key={j.id} className={`adTray__job is-${j.state}`}>
                   <span className="adTray__name" title={j.name}>{j.name}</span>

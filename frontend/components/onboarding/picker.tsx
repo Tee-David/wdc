@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * The pieces shared by the two searchable controls (the country picker in the
@@ -136,7 +136,13 @@ export function usePickerOpen({
 
     window.addEventListener("resize", place);
     let queued = 0;
-    const onScroll = () => {
+    const onScroll = (e: Event) => {
+      /* NOT THE PANEL'S OWN SCROLL. This listens in capture, so it hears the
+         list being scrolled too; re-measuring the panel on every frame of that
+         rewrites `--pk-room` under the reader's finger, and the list re-clamps
+         while it is moving. Only the window and the control's ancestors can
+         move the panel off its place. */
+      if (e.target instanceof Node && pop.contains(e.target)) return;
       if (queued) return;
       queued = requestAnimationFrame(() => { queued = 0; recap(); });
     };
@@ -155,8 +161,33 @@ export function usePickerOpen({
     };
   }, [open, root]);
 
+  /* THE ACTIVE ROW IS SCROLLED INTO VIEW FOR THE KEYBOARD, NOT FOR THE MOUSE.
+     A mouse hover sets the active row too, and rows pass under a stationary
+     cursor as the wheel turns, so every row that reached the edge was then
+     scrolled the rest of the way in: the list fought the wheel at its top and
+     bottom edges and the scroll stalled. The hovered row is already under the
+     pointer, so there is nothing to reveal. At opening the selected row IS
+     revealed, whatever opened it. */
+  const viaKey = useRef(false);
+  const justOpened = useRef(false);
   useEffect(() => {
     if (!open) return;
+    justOpened.current = true;
+    viaKey.current = false;
+    const key = () => { viaKey.current = true; };
+    const pointer = () => { viaKey.current = false; };
+    document.addEventListener("keydown", key, true);
+    document.addEventListener("pointermove", pointer, { passive: true, capture: true });
+    return () => {
+      document.removeEventListener("keydown", key, true);
+      document.removeEventListener("pointermove", pointer, { capture: true } as EventListenerOptions);
+    };
+  }, [open]);
+  useEffect(() => {
+    if (!open) return;
+    const first = justOpened.current;
+    justOpened.current = false;
+    if (!first && !viaKey.current) return;
     listRef.current?.children[active]?.scrollIntoView({ block: "nearest" });
   }, [active, open, listRef]);
 
