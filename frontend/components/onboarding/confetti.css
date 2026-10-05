@@ -19,9 +19,11 @@
   pointer-events: none;
   /* A piece that drifts past the edge must not widen the document. */
   overflow: hidden;
-  /* Its own layer, so seventy moving children never invalidate the page
-     behind them. */
-  contain: strict;
+  /* NO `contain: strict`. Its own layer was the intent, but strict also means
+     size containment on a layer WebKit then promotes and throttles with the page
+     behind it, which is a candidate for pieces standing still mid-air. The
+     pieces are compositor animations already; `will-change` on the layer is not
+     needed. */
 }
 
 .ob-conf i {

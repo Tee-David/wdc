@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import "./confetti.css";
 
 /**
@@ -161,9 +162,27 @@ export default function Confetti() {
     });
     if (!running.length) finish();
     const backstop = window.setTimeout(finish, LIFE_MS);
+
+    /* A WATCHDOG FOR A BROWSER THAT STOPS THE CLOCK. Everything above assumes
+       the animations advance. On WebKit under load they sometimes do not: the
+       pieces stand mid-air, `onfinish` never comes, and the layer sits there
+       until the backstop. Once a second, while the tab is visible, the sum of
+       the pieces' clocks must have moved; if it has not moved for two checks
+       in a row the layer is removed, so the worst a stalled browser can do is
+       cut the celebration short rather than freeze it on screen. */
+    let lastSum = -1;
+    let stalled = 0;
+    const watchdog = window.setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      const sum = running.reduce((n, a) => n + (Number(a.currentTime) || 0), 0);
+      stalled = sum === lastSum ? stalled + 1 : 0;
+      lastSum = sum;
+      if (stalled >= 2) finish();
+    }, 1000);
     return () => {
       done = true;
       window.clearTimeout(backstop);
+      window.clearInterval(watchdog);
       for (const a of running) {
         a.onfinish = null;
         a.cancel();
@@ -173,7 +192,13 @@ export default function Confetti() {
 
   if (calm || gone) return null;
 
-  return (
+  /* A PORTAL ON <body>. `position: fixed` is relative to the viewport only when
+     no ancestor has a transform, filter, `contain` or `will-change`; one that
+     does (an entrance animation on the thank-you card, the tour's overlay)
+     turns the layer into a box the size of THAT ancestor and clips the pieces
+     at its edge, which reads as confetti stopping in mid-air. Mounted on the
+     body, nothing above it can do that. */
+  return createPortal(
     /* `aria-hidden` and out of the pointer's way. It is decoration: it must not
        be announced, must not take a tap meant for the button underneath, and
        must not be reachable by a keyboard. */
@@ -190,6 +215,7 @@ export default function Confetti() {
           }}
         />
       ))}
-    </div>
+    </div>,
+    document.body,
   );
 }
