@@ -1,8 +1,8 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { FileUp, Loader2, X } from "lucide-react";
+import { ArrowLeft, FileUp, Loader2, X } from "lucide-react";
 import { CONTACT_EMAIL } from "@/lib/site";
 import SelectField from "@/components/onboarding/select-field";
 import { DateInput } from "@/components/admin/pick";
@@ -34,6 +34,26 @@ export function CustomFormView({ def, slug, preview }: { def: CustomFormDef; slu
   const [copied, setCopied] = useState(false);
   const id = useId();
 
+  /* THE CONVERSATION LAYOUT: the same questions, one or two to a screen. The
+     screens are worked out from the answers so far, so a question that a
+     condition hides never takes a screen of its own. */
+  const talk = def.layout === "conversation";
+  const per = def.perScreen === 2 ? 2 : 1;
+  const asks = def.fields.filter((f) => f.type !== "heading" && visible(f, answers));
+  const screens: CustomField[][] = [];
+  for (let i = 0; i < asks.length; i += per) screens.push(asks.slice(i, i + per));
+  const [step, setStep] = useState(0);
+  const at = Math.min(step, Math.max(0, screens.length - 1));
+  const here = screens[at] ?? [];
+  const last = at >= screens.length - 1;
+  const moved = useRef(false);
+  const firstId = here[0]?.id;
+  useEffect(() => {
+    if (!talk || !moved.current || !firstId) return;
+    document.getElementById(`${id}-${firstId}`)?.focus({ preventScroll: true });
+  }, [talk, at, firstId, id]);
+  const go = (to: number) => { moved.current = true; setMessage(""); setStep(Math.max(0, to)); };
+
   /* Everything typed, as plain text, so closing the form does not throw it
      away: "Question: answer" per line, files by name. */
   const asText = () => def.fields.filter((f) => f.type !== "heading" && visible(f, answers) && answers[f.id] !== undefined).map((f) => {
@@ -53,9 +73,24 @@ export function CustomFormView({ def, slug, preview }: { def: CustomFormDef; slu
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (preview) { setMessage("This is a preview. Publish the form to take entries."); return; }
     const checked = checkAnswers(def, answers);
+    if (talk && !last) {
+      /* Only this screen's answers are asked for yet. */
+      const mine = Object.fromEntries(here.filter((f) => checked.errors[f.id]).map((f) => [f.id, checked.errors[f.id]]));
+      setErrors(mine);
+      if (Object.keys(mine).length) { setMessage("Some answers need another look."); document.getElementById(`${id}-${Object.keys(mine)[0]}`)?.focus(); return; }
+      go(at + 1);
+      return;
+    }
     setErrors(checked.errors);
+    if (preview && !Object.keys(checked.errors).length) { setMessage("This is a preview. Publish the form to take entries."); return; }
+    if (talk && Object.keys(checked.errors).length) {
+      /* Back to the first screen that has a problem. */
+      const firstBad = screens.findIndex((s) => s.some((f) => checked.errors[f.id]));
+      if (firstBad >= 0) go(firstBad);
+      setMessage("Some answers need another look.");
+      return;
+    }
     if (Object.keys(checked.errors).length) {
       setMessage("Some answers need another look.");
       document.getElementById(`${id}-${Object.keys(checked.errors)[0]}`)?.focus();
@@ -91,20 +126,52 @@ export function CustomFormView({ def, slug, preview }: { def: CustomFormDef; slu
     {/* Without JavaScript the form cannot check or send answers; say so and
         give the other way in, rather than wiping what someone typed. */}
     <noscript><p className="cf-msg">This form needs JavaScript. Turn it on and reload, or email {CONTACT_EMAIL}.</p></noscript>
-    <form className="cf" onSubmit={submit} noValidate aria-describedby={message ? `${id}-msg` : undefined}>
-      {def.intro ? <p className="cf-intro">{def.intro}</p> : null}
-      {def.fields.filter((f) => visible(f, answers)).map((f) => (
-        f.type === "heading"
-          ? <h2 key={f.id} className="cf-h">{f.label}{f.help ? <small>{f.help}</small> : null}</h2>
-          : <Field key={f.id} f={f} id={`${id}-${f.id}`} value={answers[f.id]} error={errors[f.id]} onChange={(v) => set(f, v)} slug={slug} preview={preview} />
-      ))}
+    <form className={`cf${talk ? " cf--talk" : ""}`} onSubmit={submit} noValidate aria-describedby={message ? `${id}-msg` : undefined}>
+      {talk ? (
+        <>
+          <div className="cf-prog">
+            <div className="cf-prog__bar" role="progressbar" aria-label="Progress" aria-valuemin={1} aria-valuemax={screens.length} aria-valuenow={at + 1}>
+              <span style={{ width: `${((at + 1) / Math.max(1, screens.length)) * 100}%` }} />
+            </div>
+            <span className="cf-prog__n">{at + 1} of {screens.length}</span>
+          </div>
+          {at === 0 && def.intro ? <p className="cf-intro">{def.intro}</p> : null}
+          <div className="cf-screen" key={at}>
+            {(() => {
+              const before = def.fields.slice(0, def.fields.indexOf(here[0]));
+              const head = [...before].reverse().find((x) => x.type === "heading");
+              return head ? <p className="cf-kicker">{head.label}</p> : null;
+            })()}
+            {here.map((f) => (
+              <Field key={f.id} f={f} id={`${id}-${f.id}`} value={answers[f.id]} error={errors[f.id]} onChange={(v) => set(f, v)} slug={slug} preview={preview} />
+            ))}
+          </div>
+        </>
+      ) : (
+        <>
+          {def.intro ? <p className="cf-intro">{def.intro}</p> : null}
+          {def.fields.filter((f) => visible(f, answers)).map((f) => (
+            f.type === "heading"
+              ? <h2 key={f.id} className="cf-h">{f.label}{f.help ? <small>{f.help}</small> : null}</h2>
+              : <Field key={f.id} f={f} id={`${id}-${f.id}`} value={answers[f.id]} error={errors[f.id]} onChange={(v) => set(f, v)} slug={slug} preview={preview} />
+          ))}
+        </>
+      )}
       {/* A field no person sees; a bot fills it in. */}
       <label className="ct-trap" aria-hidden="true">Website<input tabIndex={-1} autoComplete="off" value={trap} onChange={(e) => setTrap(e.target.value)} name="website" /></label>
       <div className="cf-foot">
-        <button type="submit" className="pv-btn pv-btn--accent" disabled={state === "sending" || closed} hidden={closed}>
-          {state === "sending" ? <Loader2 className="cf-spin" aria-hidden="true" /> : null}
-          {state === "sending" ? "Sending" : def.submitLabel}
-        </button>
+        <div className="cf-acts" hidden={closed}>
+          {talk && at > 0 ? (
+            <button type="button" className="pv-btn pv-btn--line cf-back" onClick={() => go(at - 1)} disabled={state === "sending"}>
+              <ArrowLeft aria-hidden="true" /> Back
+            </button>
+          ) : null}
+          <button type="submit" className="pv-btn pv-btn--accent" disabled={state === "sending" || closed}>
+            {state === "sending" ? <Loader2 className="cf-spin" aria-hidden="true" /> : null}
+            {state === "sending" ? "Sending" : talk && !last ? "Next" : def.submitLabel}
+          </button>
+          {talk && !last && !here.some((f) => f.type === "textarea") ? <span className="cf-hint">or press <kbd>Enter</kbd></span> : null}
+        </div>
         {message ? <p id={`${id}-msg`} className="cf-msg" role="alert">{message}</p> : null}
         {closed ? (
           <div className="cf-closed" role="alert">
