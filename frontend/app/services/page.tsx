@@ -8,11 +8,8 @@ import { COMPANY_NAME, SITE_URL } from "@/lib/site";
 
 import "@/components/preview/preview.css";
 import "@/components/work/work.css";
-import "@/components/services/services-hub.css";
 import { hydrateCaseStudies } from "@/lib/work-db";
-import ServiceIcon from "@/components/ui/service-icon";
-import ServiceChooser from "@/components/services/service-chooser";
-import { needsFor } from "@/lib/service-needs";
+import { ServicesBuilder, type BuilderItem } from "@/components/services/services-builder";
 
 export const metadata: Metadata = {
   /* Not "Services". The template appends the brand, so the first and most
@@ -79,6 +76,15 @@ const breadcrumbJsonLd = {
 
 export default async function ServicesPage() {
   await hydrateCaseStudies();
+  const items: BuilderItem[] = SERVICES.map((s) => {
+    const category = WORK_CATEGORIES.find((c) => c.slug === s.slug);
+    return {
+      slug: s.slug, name: s.name, short: s.short, lede: s.lede, icon: s.icon,
+      chips: s.deliverables.slice(0, 4),
+      workHref: category ? `/work/${category.slug}` : null,
+      workCount: category ? countFor(category) : 0,
+    };
+  });
   return (
     <>
       <Header overHero />
@@ -115,48 +121,31 @@ export default async function ServicesPage() {
             question: what do I actually get, and which one do I need? The four
             chips are the first four deliverables from each service page, and
             the counts come from the catalogue, never typed by hand. */}
+        {/* THE PACKAGE BUILDER: tick what you need, the package builds beside
+            the cards, one button carries it to /start. Replaces the six
+            identical rows, which listed services but did not help anyone
+            choose. The six links to the service pages and to the work are all
+            still here, inside the cards, so nothing crawlable went away. */}
         <section className="pv-sec">
           <div className="pv-wrap">
-            <ServiceChooser listId="svh-list" />
-            <ul className="svh-list" id="svh-list">
-              {SERVICES.map((s) => {
-                const category = WORK_CATEGORIES.find((c) => c.slug === s.slug);
-                const n = category ? countFor(category) : 0;
-                return (
-                  <li className="svh-row" key={s.slug} data-needs={needsFor(s.slug)}>
-                    <span className="svh-row__ic" aria-hidden="true">
-                      <ServiceIcon name={s.icon} size={22} />
-                    </span>
-                    <div className="svh-row__body">
-                      <h2 className="svh-row__t">
-                        <Link href={`/services/${s.slug}`}>{s.name}</Link>
-                        <span className="svh-row__fit">Fits</span>
-                      </h2>
-                      <p className="svh-row__d">{s.lede}</p>
-                      <ul className="svh-row__chips" aria-label={`Part of ${s.name}`}>
-                        {s.deliverables.slice(0, 4).map((d) => <li key={d}>{d}</li>)}
-                      </ul>
-                    </div>
-                    <div className="svh-row__acts">
-                      <Link className="pv-btn pv-btn--accent" href={`/services/${s.slug}`} aria-label={`What's included in ${s.name}`}>
-                        What&rsquo;s included
-                      </Link>
-                      {/* A service with no work filed under it offers none,
-                          rather than a confident zero. */}
-                      {category && n > 0 ? (
-                        <Link className="svh-row__work" href={`/work/${category.slug}`}>
-                          See the work ({n})
-                        </Link>
-                      ) : null}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+            <ServicesBuilder items={items} />
           </div>
         </section>
 
-        <section className="pv-sec pv-sec--band">
+        <section className="pv-sec pv-sec--alt">
+          <div className="pv-wrap">
+            <div className="svb-how pv-reveal">
+              <h2 className="pv-mix">How it <b>goes from here</b></h2>
+              <ol>
+                <li><b>You tell us the goal.</b><span>Four short screens, in your words. No brief to write.</span></li>
+                <li><b>We reply the same working day.</b><span>With the services we think fit, and why.</span></li>
+                <li><b>We agree the scope in writing.</b><span>Before anything is drawn or built.</span></li>
+              </ol>
+            </div>
+          </div>
+        </section>
+
+        <section id="svb-end" className="pv-sec pv-sec--band">
           <div className="pv-wrap">
             <div className="pv-cta pv-reveal">
               <span className="pv-eyebrow">Not sure which</span>
@@ -165,8 +154,8 @@ export default async function ServicesPage() {
                 Most projects need two or three of the six, and knowing which is
                 our job rather than yours.
               </p>
-              <Link className="pv-btn pv-btn--accent" href="/contact">
-                Start a conversation
+              <Link className="pv-btn pv-btn--accent" href="/start">
+                Start a project
               </Link>
             </div>
           </div>
