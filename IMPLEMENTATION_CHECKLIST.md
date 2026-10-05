@@ -275,6 +275,8 @@ Started 2026-09-25. The target is `dashboard-mockups/` at the repo root: 134 boa
 
 ## Delivered 2026-10-05 (owner's batch)
 
+- [x] Cal.com design preview made viewable at localhost:3147 and corrected after styling feedback: real WDC shell, logo, Panel/DemoNote, Lucide icons and current app typography. Responsive and dark-mode evidence in `prototypes/cal-meetings/`. Design review and production integration remain pending.
+
 - [x] Cal.com account/API credential verified; `CAL_API_KEY` synced and read-back matched in WDC Doppler `dev`, `stg`, and `prd`. Evidence: `plans/cal-com-setup-status.md`. Booking implementation and deployed verification remain pending; no event types currently exist.
 
 - [x] Phone menu full screen: the glass header bar's blur made it the containing block for the fixed panel; the bar drops its blur while the menu is open (`tests/film-menu.spec.ts`).
