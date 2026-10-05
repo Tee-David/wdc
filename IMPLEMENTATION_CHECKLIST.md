@@ -275,6 +275,8 @@ Started 2026-09-25. The target is `dashboard-mockups/` at the repo root: 134 boa
 
 ## Delivered 2026-10-05 (owner's batch)
 
+- [x] Cal.com account/API credential verified; `CAL_API_KEY` synced and read-back matched in WDC Doppler `dev`, `stg`, and `prd`. Evidence: `plans/cal-com-setup-status.md`. Booking implementation and deployed verification remain pending; no event types currently exist.
+
 - [x] Phone menu full screen: the glass header bar's blur made it the containing block for the fixed panel; the bar drops its blur while the menu is open (`tests/film-menu.spec.ts`).
 - [x] Budget estimator removed (page, API, component, library, email template, tests, links). `/tools/estimate` redirects to `/tools`. The shared dollar rate moved to `lib/fx.ts`.
 - [x] Homepage hero uses the four supplied films (wide and tall, dark and light), `wdc-film-v3-*`, with posters cut by `scripts/hero-film-posters.sh`. Light theme: navy headline, copy and controls; black and white button pair; the header follows. Pinned by `tests/hero.spec.ts`.
