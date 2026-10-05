@@ -12,7 +12,9 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/start` },
 };
 
-export default function StartPage() {
+export default async function StartPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const raw = (await searchParams).services;
+  const services = (typeof raw === "string" ? raw : "").split(",").map((x) => x.trim()).filter(Boolean).slice(0, 6);
   return (
     <>
       <Header overHero />
@@ -28,7 +30,7 @@ export default function StartPage() {
         </section>
         <section className="pv-sec">
           <div className="pv-wrap cf-wrap">
-            <StartForm />
+            <StartForm services={services} />
           </div>
         </section>
       </main>

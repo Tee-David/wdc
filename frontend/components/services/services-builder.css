@@ -1,0 +1,96 @@
+/* ============================================================================
+   /services: the package builder (services-builder.tsx).
+
+   Six cards you tick and a package that builds beside them. Colours are the
+   site's own tokens: --paper / --ink / --rule for the surfaces, the navy icon
+   tile with a white glyph, --btn-fill and --btn-ink (black and white by
+   ground) for the chosen state, and --accent only as an edge and a focus ring.
+   Every fill is solid. Motion is transform and opacity and is off under
+   reduced motion. Cards use the site's one track, minmax(min(100%, 20rem), 1fr).
+   ========================================================================== */
+
+.pv .svb { display: grid; gap: clamp(20px, 3vw, 32px); align-items: start; }
+@media (min-width: 1024px) {
+  .pv .svb { grid-template-columns: minmax(0, 1fr) 21rem; }
+}
+
+.pv .svb__grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); min-width: 0; }
+
+.pv .svb-card { position: relative; display: grid; grid-template-rows: 1fr auto; min-width: 0; background: var(--paper); border: 1.5px solid var(--rule); border-radius: 20px; transition: border-color .2s ease, transform .25s cubic-bezier(.2, .8, .2, 1), box-shadow .25s ease; }
+.pv .svb-card:hover { transform: translateY(-3px); border-color: var(--ink); }
+.pv .svb-card.is-on { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink), inset 5px 0 0 var(--accent); }
+.pv .svb-card__in { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.pv .svb-card__face { display: grid; gap: 10px; padding: clamp(18px, 2.4vw, 24px) clamp(18px, 2.4vw, 24px) 12px; cursor: pointer; border-radius: 20px 20px 0 0; min-width: 0; align-content: start; }
+.pv .svb-card__in:focus-visible + .svb-card__face { outline: 2px solid var(--accent); outline-offset: 3px; }
+.pv .svb-card__top { display: flex; align-items: center; justify-content: space-between; }
+.pv .svb-card__ic { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: #000065; color: #fff; transition: transform .3s cubic-bezier(.2, .8, .2, 1); }
+.pv .svb-card.is-on .svb-card__ic { transform: rotate(-6deg) scale(1.06); }
+.pv .svb-card__tick { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; border: 1.5px solid var(--rule); background: var(--paper); color: transparent; transition: background-color .2s ease, color .2s ease, border-color .2s ease, transform .3s cubic-bezier(.2, .8, .2, 1); }
+.pv .svb-card.is-on .svb-card__tick { background: var(--btn-fill); color: var(--btn-ink); border-color: var(--btn-fill); transform: scale(1.1); }
+.pv .svb-card__t { font-family: var(--font-space-grotesk), system-ui, sans-serif; font-size: clamp(1.15rem, 1.6vw, 1.35rem); font-weight: 700; letter-spacing: -.01em; line-height: 1.2; color: var(--ink); }
+.pv .svb-card__d { color: var(--muted); font-size: 1rem; line-height: 1.5; }
+.pv .svb-card__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pv .svb-card__chips i { font-style: normal; font-size: .82rem; font-weight: 600; line-height: 1.2; padding: 5px 10px; border-radius: 999px; background: var(--paper-2); color: var(--ink); border: 1px solid var(--rule); }
+.pv .svb-card__state { font-size: .88rem; font-weight: 600; color: var(--accent-ink); }
+.pv .svb-card.is-on .svb-card__state { color: var(--ink); }
+.pv .svb-card__links { display: flex; flex-wrap: wrap; gap: 4px 18px; padding: 0 clamp(18px, 2.4vw, 24px) 10px; border-top: 1px solid var(--rule); margin-top: 6px; }
+.pv .svb-card__links a { display: inline-flex; align-items: center; min-height: 44px; font-size: .92rem; font-weight: 600; color: var(--ink); text-underline-offset: 3px; }
+.pv .svb-card__links a:hover { text-decoration: underline; }
+.pv .svb-card__links a + a { color: var(--accent-ink); }
+
+/* THE PACKAGE */
+.pv .svb-pack { display: grid; gap: 14px; padding: clamp(18px, 2.4vw, 24px); background: var(--paper); border: 1.5px solid var(--ink); border-radius: 20px; min-width: 0; }
+@media (min-width: 1024px) { .pv .svb-pack { position: sticky; top: 96px; } }
+.pv .svb-pack__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; }
+.pv .svb-pack h2 { margin: 0; font-family: var(--font-space-grotesk), system-ui, sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--ink); }
+.pv .svb-stack { display: inline-flex; padding-left: 10px; }
+.pv .svb-stack__i { width: 34px; height: 34px; margin-left: -10px; border-radius: 50%; display: grid; place-items: center; background: #000065; color: #fff; border: 2px solid var(--paper); animation: svb-pop .35s cubic-bezier(.2, .8, .2, 1) backwards; }
+.pv .svb-pack__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.pv .svb-pack__list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 6px 10px 14px; border: 1px solid var(--rule); border-radius: 12px; background: var(--paper-2); animation: svb-in .3s cubic-bezier(.16, 1, .3, 1) backwards; }
+.pv .svb-pack__list div { min-width: 0; display: grid; }
+.pv .svb-pack__list b { font-size: .98rem; color: var(--ink); }
+.pv .svb-pack__list span { font-size: .85rem; color: var(--muted); overflow-wrap: anywhere; }
+.pv .svb-x { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 10px; background: none; color: var(--muted); cursor: pointer; }
+.pv .svb-x:hover { color: var(--ink); }
+.pv .svb-x:focus-visible, .pv .svb-add:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pv .svb-pack__empty { color: var(--muted); font-size: .98rem; line-height: 1.55; }
+.pv .svb-pack__more { display: grid; gap: 8px; }
+.pv .svb-pack__more > span { font-size: .8rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.pv .svb-pack__more div { display: flex; flex-wrap: wrap; gap: 8px; }
+.pv .svb-add { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1.5px dashed var(--muted); background: none; color: var(--ink); font: 600 .92rem var(--font-outfit), system-ui, sans-serif; cursor: pointer; }
+.pv .svb-add:hover { border-style: solid; border-color: var(--ink); }
+.pv .svb-pack__cta { display: inline-flex; justify-content: center; }
+.pv .svb-pack__fine { text-align: center; font-size: .85rem; color: var(--muted); }
+.pv .svb-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* THE PHONE'S BAR: the package, always in reach. Clears the home indicator,
+   and leaves room on the right for the accessibility button. */
+.pv .svb-bar { display: none; }
+@media (max-width: 1023.98px) {
+  .pv .svb-bar {
+    display: flex; align-items: center; gap: 12px;
+    position: fixed; inset: auto 0 0 0; z-index: 40;
+    padding: 10px 76px calc(10px + env(safe-area-inset-bottom, 0px)) 16px;
+    background: var(--paper); border-top: 1px solid var(--rule);
+    transform: translateY(110%); visibility: hidden;
+    transition: transform .3s cubic-bezier(.16, 1, .3, 1), visibility 0s linear .3s;
+  }
+  .pv .svb-bar.is-on { transform: none; visibility: visible; transition-delay: 0s; }
+  .pv .svb-bar .pv-btn { width: auto; flex: 1 1 auto; justify-content: center; white-space: nowrap; }
+}
+
+@keyframes svb-pop { from { opacity: 0; transform: scale(.4); } }
+@keyframes svb-in { from { opacity: 0; transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) {
+  .pv .svb-card, .pv .svb-card__ic, .pv .svb-card__tick, .pv .svb-bar { transition: none; }
+  .pv .svb-card:hover, .pv .svb-card.is-on .svb-card__ic, .pv .svb-card.is-on .svb-card__tick { transform: none; }
+  .pv .svb-stack__i, .pv .svb-pack__list li { animation: none; }
+}
+
+/* "How it goes from here": three plain steps. */
+.pv .svb-how { display: grid; gap: 20px; }
+.pv .svb-how ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); counter-reset: step; }
+.pv .svb-how li { position: relative; display: grid; gap: 4px; padding: 18px 18px 18px 64px; background: var(--paper); border: 1px solid var(--rule); border-radius: 16px; counter-increment: step; min-width: 0; }
+.pv .svb-how li::before { content: counter(step); position: absolute; left: 16px; top: 16px; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-fill); color: var(--on-accent); font: 700 .95rem var(--font-space-grotesk), system-ui, sans-serif; }
+.pv .svb-how b { font-family: var(--font-space-grotesk), system-ui, sans-serif; color: var(--ink); }
+.pv .svb-how span { color: var(--muted); font-size: .98rem; line-height: 1.5; }
