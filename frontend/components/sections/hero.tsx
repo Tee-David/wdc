@@ -63,13 +63,30 @@ const FILM_LENGTH = 30;
 const FILM_START = 4.2;
 
 const FILM = {
-  wide: "/hero/film/wdc-film-v2-16x9.mp4",
-  tall: "/hero/film/wdc-film-v2-9x16.mp4",
+  "wide-dark": "/hero/film/wdc-film-v3-16x9-dark.mp4",
+  "wide-light": "/hero/film/wdc-film-v3-16x9-light.mp4",
+  "tall-dark": "/hero/film/wdc-film-v3-9x16-dark.mp4",
+  "tall-light": "/hero/film/wdc-film-v3-9x16-light.mp4",
 } as const;
+
+/** Four cuts: two shapes of screen, two themes. The light ones are a pale
+    ground with navy marks, so the copy over them is navy (see `.hero-film` in
+    globals.css). The theme is the `dark` class next-themes keeps on <html>. */
+const isDark = () => document.documentElement.classList.contains("dark");
 
 /** Portrait screens take the 9:16 cut. A portrait tablet is closer to 9:16
     than to 16:9, so the line is the orientation, not a pixel width. */
 const PORTRAIT = "(orientation: portrait)";
+
+/** Both themes' first frames are in the HTML and CSS shows the one that matches
+    (`.hero-film__poster--*` in globals.css), so there is no flash of the wrong
+    theme while the page hydrates. */
+const POSTERS = ["dark", "light"].map((tone) => ({
+  tone,
+  wide1280: `/hero/film/wdc-film-v3-16x9-${tone}-1280.jpg`,
+  wide1920: `/hero/film/wdc-film-v3-16x9-${tone}-1920.jpg`,
+  tall: `/hero/film/wdc-film-v3-9x16-${tone}-720.jpg`,
+}));
 
 function chapterAt(t: number) {
   const i = CHAPTERS.findIndex((c) => t >= c.start && t < c.end);
@@ -136,7 +153,7 @@ function useFilm(sectionRef: React.RefObject<HTMLElement | null>) {
   const start = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
-    const kind = window.matchMedia(PORTRAIT).matches ? "tall" : "wide";
+    const kind = `${window.matchMedia(PORTRAIT).matches ? "tall" : "wide"}-${isDark() ? "dark" : "light"}` as const;
     if (loaded.current !== kind) {
       if (loaded.current) pending.current = v.currentTime;
       loaded.current = kind;
@@ -259,6 +276,9 @@ function useFilm(sectionRef: React.RefObject<HTMLElement | null>) {
       }
     };
     orientation.addEventListener("change", reshape);
+    /* The theme switch swaps to the other cut, at the same place in the film. */
+    const themeWatch = new MutationObserver(reshape);
+    themeWatch.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 
     return () => {
       window.removeEventListener("load", go);
@@ -270,6 +290,7 @@ function useFilm(sectionRef: React.RefObject<HTMLElement | null>) {
       document.removeEventListener("visibilitychange", settle);
       for (const g of gestures) window.removeEventListener(g, nudge);
       orientation.removeEventListener("change", reshape);
+      themeWatch.disconnect();
     };
   }, [play, sectionRef, start]);
 
@@ -379,26 +400,30 @@ export function Hero() {
       <section
         ref={sectionRef}
         aria-labelledby="hero-title"
-        className="hero-film relative isolate z-10 flex min-h-svh flex-col overflow-hidden rounded-b-[2.5rem] bg-[#050627] text-white md:rounded-b-[4rem] lg:rounded-b-[5.5rem]"
+        className="hero-film relative isolate z-10 flex min-h-svh flex-col overflow-hidden rounded-b-[2.5rem] md:rounded-b-[4rem] lg:rounded-b-[5.5rem]"
       >
         <div aria-hidden="true" className="absolute inset-0 -z-10">
           {/* ART DIRECTION, so a plain <picture> rather than next/image: the
               phone and the desktop need different FRAMES, not different sizes
               of one. Both stills are already cut to size by the poster script
               (40-70KB), so the optimiser would have nothing left to do. */}
-          <picture>
-            <source media={PORTRAIT} srcSet="/hero/film/wdc-film-v2-9x16-720.jpg" width={720} height={1280} />
-            <img
-              src="/hero/film/wdc-film-v2-16x9-1280.jpg"
-              srcSet="/hero/film/wdc-film-v2-16x9-1280.jpg 1280w, /hero/film/wdc-film-v2-16x9-1920.jpg 1920w"
-              sizes="100vw"
-              width={1920}
-              height={1080}
-              alt=""
-              fetchPriority="high"
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-          </picture>
+          {POSTERS.map(({ tone, wide1280, wide1920, tall }) => (
+            <picture key={tone} className={`hero-film__poster hero-film__poster--${tone}`}>
+              <source media={PORTRAIT} srcSet={tall} width={720} height={1280} />
+              <img
+                src={wide1280}
+                srcSet={`${wide1280} 1280w, ${wide1920} 1920w`}
+                sizes="100vw"
+                width={1920}
+                height={1080}
+                alt=""
+                /* The dark poster is the default theme's, so it is the LCP
+                   candidate; the light one is fetched only when it is shown. */
+                {...(tone === "dark" ? { fetchPriority: "high" as const } : { loading: "lazy" as const })}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            </picture>
+          ))}
           <video
             {...film.videoProps}
             tabIndex={-1}
@@ -424,13 +449,13 @@ export function Hero() {
                 visible from the first frame. */}
             <h1
               id="hero-title"
-              className="hero-film__title hero-rise--solid font-heading text-[clamp(2.6rem,10.5vw,5.5rem)] font-semibold leading-[0.98] tracking-[-0.04em] text-white"
+              className="hero-film__title hero-rise--solid font-heading text-[clamp(2.6rem,10.5vw,5.5rem)] font-semibold leading-[0.98] tracking-[-0.04em]"
             >
               <span className="md:block">We do it all.</span>{" "}
               <span className="md:block">Yes, really.</span>
             </h1>
             <p
-              className="hero-rise mx-auto mt-4 max-w-[33rem] text-pretty text-[0.98rem] leading-relaxed text-[#e6e7f2] sm:text-lg lg:mx-0 lg:mt-6 lg:text-[1.19rem]"
+              className="hero-film__lede hero-rise mx-auto mt-4 max-w-[33rem] text-pretty text-[0.98rem] leading-relaxed sm:text-lg lg:mx-0 lg:mt-6 lg:text-[1.19rem]"
               style={{ animationDelay: "120ms" }}
             >
               Branding, websites, apps, software, search and ads. Designed and built by one team, so nothing gets lost between agencies.
@@ -444,7 +469,7 @@ export function Hero() {
             >
               <Link
                 href="#pv-contact"
-                className="hero-cta group btn-primary inline-flex min-h-[3.375rem] items-center justify-center gap-3 rounded-full border-[1.5px] py-1.5 pl-6 pr-[0.6875rem] text-base font-semibold transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-white"
+                className="hero-cta group btn-primary inline-flex min-h-[3.375rem] items-center justify-center gap-3 rounded-full border-[1.5px] py-1.5 pl-6 pr-[0.6875rem] text-base font-semibold transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-[color:var(--hf-ink)]"
               >
                 Start a Project
                 <span className="hero-film__chip" aria-hidden="true">
@@ -455,7 +480,7 @@ export function Hero() {
               </Link>
               <Link
                 href="#pv-work"
-                className="hero-cta btn-secondary inline-flex min-h-[3.375rem] items-center justify-center rounded-full border-[1.5px] px-7 text-base font-semibold transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-white"
+                className="hero-cta btn-secondary inline-flex min-h-[3.375rem] items-center justify-center rounded-full border-[1.5px] px-7 text-base font-semibold transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-[color:var(--hf-ink)]"
               >
                 See Our Work
               </Link>
@@ -505,8 +530,8 @@ export function Hero() {
               {/* The clock is the first thing to go when room runs out: under
                   1280px the eight chapters need its 90px more than anyone
                   needs the seconds. */}
-              <span aria-hidden="true" className="mx-1.5 hidden h-8 w-px shrink-0 bg-white/20 xl:block" />
-              <p aria-hidden="true" className="hidden w-[4.75rem] shrink-0 text-center xl:block text-[0.8rem] font-medium tabular-nums text-white/85">
+              <span aria-hidden="true" className="hero-film__rule mx-1.5 hidden h-8 w-px shrink-0 xl:block" />
+              <p aria-hidden="true" className="hero-film__clock hidden w-[4.75rem] shrink-0 text-center xl:block text-[0.8rem] font-medium tabular-nums">
                 {clock(film.t)} / {clock(FILM_LENGTH)}
               </p>
               <PlayToggle playing={film.playing} onToggle={film.toggle} />
