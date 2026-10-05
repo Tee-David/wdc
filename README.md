@@ -5,9 +5,22 @@ The studio's website, the studio admin and the client portal, in one Next.js app
 - **Run it:** `cd frontend && npm install && npm run dev` (port 3000). The repo-root `.env` is loaded by `frontend/next.config.ts`.
 - **Database:** `npm run db:migrate` applies `frontend/db/migrations/` in order. On production the owner can also apply pending migrations from **Settings › System › Database schema**.
 - **Tests:** Playwright specs in `frontend/tests/` (`npx playwright test <name>`). Most need a database and `BONEYARD_CAPTURE_TOKEN`; each spec says what it needs at the top.
-- **Rules for anyone changing the code, people and agents alike:** `AGENTS.md`. Open work: `IMPLEMENTATION_CHECKLIST.md`.
+- **Rules for anyone changing the code, people and agents alike:** `AGENTS.md`. Current work: [docs/status.md](docs/status.md).
 
 ---
+
+## Repository and infrastructure
+
+| Directory | Purpose |
+| --- | --- |
+| [frontend](frontend/README.md) | Running full-stack Next.js app: website, admin, portal and API |
+| [backend](backend/README.md) | Reserved directory; server architecture guide, no separate service |
+| [docs](docs/README.md) | Maintained product and operational documentation |
+| plans | Active Meetings and Users/roles proposals |
+| prototypes/cal-meetings | Sample-data design preview, not live scheduling |
+| .agents/skills and .claude/skills | Project skills, including the owner-provided Motion Studio workflow |
+
+Use the frontend guide for environment boundaries, persistence, provider integration, tests and deployment. Production migrations remain owner-managed through Settings › System. A successful Git push is not live deployment evidence. Retired mockups and handoff material remain in Git history where previously tracked.
 
 ## Design system
 
@@ -52,7 +65,7 @@ The [Meetings design preview](prototypes/cal-meetings/README.md) renders the cur
 
 ### Type
 
-- **Space Grotesk** is for headings, KPI figures and prominent numbers. **Outfit** is for everything else, controls included. Both are self-hosted.
+- **Design direction:** Space Grotesk for headings and prominent numbers; Outfit for body and controls. Current runtime configuration aliases body text to Space Grotesk in `frontend/app/layout.tsx` and `frontend/app/globals.css`. Match that runtime in previews; changing it requires an explicit design-system update.
 - **Admin scale:** page title 30/600, panel title 16.5/600, figure 30/700, UI 14, label 13.8/600, hint 12, table head 11.5 uppercase.
 - **Numbers:** tabular numerals wherever figures line up or count.
 - **Phones:** fields use 16px text, so iOS does not zoom into them.

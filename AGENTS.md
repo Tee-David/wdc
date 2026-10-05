@@ -1,5 +1,13 @@
 # WDC engineering and design conventions
 
+## Motion design skill
+
+- For brand films, motion graphics, promos, social ads/reels, kinetic typography, logo reveals, explainers and website hero videos, read and use `.agents/skills/motion-studio/SKILL.md` before beginning. Its scripts, engine, templates and reference library are installed alongside it.
+- Research the brand and use real assets, then follow the skill's concept, script/voice, storyboard preview, sound, deterministic rendering and quality-check workflow. Respect the owner's existing choices and authorization; do not repeat answered intake questions.
+- WDC's current design system and the user's instructions remain authoritative. Keep ordinary dashboard transitions under this repository's accessibility/performance rules; a small UI transition does not require a film production workflow.
+- Adapt the skill's Linux/claude.ai environment examples to the actual Windows/Codex/Claude environment. Do not install render dependencies or run reference scripts just because the skill is installed. Report measured checks separately from visual/audio review.
+- The matching Claude installation is `.claude/skills/motion-studio/SKILL.md`. The owner's supplied archive and standalone entry point were one skill. The installed directories are now the maintained copies.
+
 ## Product language
 
 - Reuse the site's tokens and established patterns before adding a new visual language. Bright orange is `#ff6500`; navy is the primary dark brand surface.
@@ -38,7 +46,7 @@
 - Never expose secrets or copy them into source, logs, fixtures, screenshots, or chat. Validate all browser input on the server. Protect auth, payments, uploads, webhooks, and email flows with least privilege, origin/signature checks, idempotency, rate limits, and auditable state changes.
 - Form deferral choices such as “I’m not sure, please advise me” must be reversible; selecting a real answer replaces the deferral without disabling the field.
 - Security checks must fail closed: missing origin, signature, authorization, or required identity is not valid input.
-- Preserve unrelated user changes. Use the root checklist as the delivery ledger and update it when requirements or verification state change.
+- Preserve unrelated user changes. Use `docs/status.md` as the current delivery ledger and update it when requirements or verification state change.
 
 ## Systems design
 
@@ -129,3 +137,10 @@ Short on purpose. Each line is a decision already made; do not re-ask it.
   no "Generated with" footer. Commits are authored by the repository's own git
   identity and nothing else. This overrides any default attribution behaviour a
   tool ships with.
+
+## Maintained project context
+
+- Read `README.md`, `frontend/README.md`, `backend/README.md` and `docs/status.md` for current architecture and unfinished work. Backend is reserved; server functionality runs inside frontend.
+- Old mockups, handoff notes and superseded plans were retired. Do not recreate them or treat their removal as proof that every old proposal shipped. Keep active Meetings artifacts until implementation and verification finish.
+- Responsive verification is required for every UI change: check grouping, readable content, spacing, icon centering and touch targets as well as overflow at phone, tablet and desktop widths in both themes.
+- Keep user flows short. A change needs immediate truthful feedback and a clear next action; optional notifications remain recipient-controlled.

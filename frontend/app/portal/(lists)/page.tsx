@@ -29,7 +29,7 @@ function today() {
 
 
 /**
- * THE CLIENT'S FRONT PAGE (dashboard-mockups/ POverview): what is waiting on
+ * THE CLIENT'S FRONT PAGE: what is waiting on
  * them, then their projects, with the latest news and the few things they
  * come here to do beside it. Every figure and line is read from the same
  * records the studio works from; a board showing something the records do

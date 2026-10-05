@@ -1,7 +1,7 @@
 import "./skeleton.css";
 
 /**
- * LOADING SKELETONS THAT LOOK LIKE THE PAGE (dashboard-mockups/ and the
+ * LOADING SKELETONS THAT LOOK LIKE THE PAGE (the shared components and the
  * owner's rule: desktop AND phone). Plain server-rendered blocks, no script:
  * each part has the geometry of the real one (a tile's icon square and figure,
  * a table's row of cells, a chart's bars) and the grids reflow at the same

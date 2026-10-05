@@ -10,7 +10,7 @@ import { Resolver } from "node:dns/promises";
  * quota, no dependency.
  *
  * WE KNOW THIS GROUND. The studio's own domain was diagnosed the same way and
- * written up in `plans/email-deliverability.md`: SPF aligned, DKIM published,
+ * written up in `docs/email.md`: SPF aligned, DKIM published,
  * MX correct, and mail still filed as spam because DMARC was `p=none` with no
  * reporting address and SPF ended `~all`. The tool tells a visitor what we had
  * to find out the hard way.

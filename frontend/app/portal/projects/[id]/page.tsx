@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 /**
- * ONE PROJECT, AS ITS CLIENT SEES IT (dashboard-mockups/ PProject): where it
+ * ONE PROJECT, AS ITS CLIENT SEES IT: where it
  * is and what happens next, the work waiting for them, what the studio has
  * said, and the facts and money beside it. Only what the records hold: the
  * board's "who is on it" list is the one person answerable, because that is

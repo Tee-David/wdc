@@ -39,6 +39,63 @@ button,input,textarea{font-family:var(--font-outfit),system-ui,sans-serif}
 .public-primary svg,.public-secondary svg{width:16px;height:16px}
 .day{font-family:var(--font-outfit);font-weight:500}.day.selected{background:var(--ad-fill);color:var(--ad-on-fill)}
 .announcement{font-size:14px}
+.toolbar{margin-bottom:24px;align-items:center}
+.upcoming-title{margin:28px 0 16px!important;font-size:16.5px!important;font-weight:600}
+.meeting-empty{padding:24px 0;background:none;border:0;display:flex;flex-direction:column;align-items:flex-start;gap:16px}
+.meeting-empty p{margin:0;line-height:1.6}.meeting-empty strong{font-weight:600}
+.ad__iconButton,.ad__topIcon,.choices-icon,.success-mark{align-items:center;justify-content:center;padding:0;line-height:1;flex-shrink:0}
+.ad__iconButton{min-width:44px;min-height:44px;width:44px;height:44px}
+.ad__iconButton svg,.ad__topIcon svg{display:block;flex:none;width:18px;height:18px;margin:0}
+.ad__topMenu svg{width:24px;height:18px}
+.detail .close-detail{display:inline-flex;align-items:center;justify-content:center;padding:0}
+.detail:not(.open) .close-detail{display:none}
+.agenda-row>span:last-child{display:inline-flex;align-items:center;justify-content:center;flex:0 0 24px;align-self:center}
+.month-toolbar .period-button{width:auto;min-width:0;padding:8px 12px;font-weight:600;border:0;box-shadow:none}
+.toolbar-nav .period-button{width:auto;min-width:0;padding:8px 12px;font-weight:600}
+.picker-head,.picker-year{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+.picker-head h2{font-size:18px!important;margin:0}.period-dialog{max-height:calc(100dvh - 32px);overflow:auto}
+.month-options,.year-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.month-options button,.year-options button{padding:10px 4px;white-space:normal;min-width:0}
+.month-options .selected{background:var(--ad-fill);color:var(--ad-on-fill)}
+.year-options{border-top:1px solid var(--ad-line);padding-top:16px;margin-top:16px}
+.reminder-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 0;border-bottom:1px solid var(--ad-line)}
+.reminder-row>div{min-width:0}.reminder-row p{margin:6px 0 0;font-size:13px}.reminder-row .pill{flex:none}
+.reminder-switch{width:52px;height:44px;min-width:52px;display:flex;align-items:center;padding:6px;border-radius:99px;background:var(--ad-tone-flat);border:1px solid var(--ad-line)}
+.reminder-switch span{width:28px;height:28px;border-radius:50%;background:var(--ad-ink)}
+.reminder-switch[aria-checked=true]{background:var(--ad-fill);justify-content:flex-end}.reminder-switch[aria-checked=true] span{background:var(--ad-on-fill)}
+/* Stack related content before it becomes cramped, not only after overflow. */
+.next-meeting>div,.save-bar>p,.hours-control{min-width:0}
+.hours-row .plus{width:44px;height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;padding:0}
+@media(max-width:900px){
+ .next-meeting{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:start}
+ .next-meeting>.button-row{grid-column:1/-1;gap:12px}
+ .next-meeting>.next-time{align-self:center}
+ .save-bar{position:static;display:flex;flex-direction:column;align-items:stretch;gap:16px}
+ .save-bar>p{margin:0;line-height:1.6}
+ .save-bar>.button-row{display:flex;flex-wrap:wrap;gap:12px}
+ .save-bar>.button-row>.ad__btn{flex:1;justify-content:center}
+ .hours-row{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:12px;align-items:center;padding:16px 0}
+ .hours-row>strong{grid-column:1;grid-row:1}
+ .hours-row>.hours-control{grid-column:1;grid-row:2;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+ .hours-row>.plus{grid-column:2;grid-row:1/3;align-self:center}
+}
+@media(max-width:420px){.next-meeting>.button-row{flex-direction:column;align-items:stretch}.next-meeting>.button-row>.ad__btn{justify-content:center}.hours-control .ad__btn{padding:10px 12px}.next-time{font-size:24px}}
+@media(max-width:767px){
+ .meeting-panel-body>.toolbar{gap:16px;margin-bottom:24px}
+ .toolbar-nav{width:100%;display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:12px}
+ .toolbar-nav .period-button{justify-self:center}
+ .view-buttons{width:100%;display:flex;gap:2px}
+ .toolbar .view-buttons button[data-view]{display:inline-flex;flex:1;min-width:0;padding-inline:6px;justify-content:center;font-size:12px}
+ .mobile-calendar .month-toolbar{display:none}
+ .week-grid{overflow-x:auto;overscroll-behavior-x:contain}
+ .week-row{min-width:600px}
+}
+.calendar-cell .event,.week-grid .event{background:none;border:0;border-radius:0;border-left:0;box-shadow:none;padding:8px 2px;text-align:left;white-space:normal;overflow:visible;min-width:0;display:flex;flex-direction:column;gap:4px;line-height:1.45}
+.calendar-cell .event>span:first-child{font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px}
+.calendar-cell .event>span:first-child::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--ad-tone-good);flex:none}
+.calendar-cell .event.request>span:first-child::before{background:var(--ad-tone-warn)}
+.calendar-cell .event>span:last-child{font-size:12px;white-space:normal;overflow-wrap:anywhere;overflow:visible;text-overflow:clip}
+.calendar-cell .event:hover,.week-grid .event:hover{background:var(--ad-panel-2);text-decoration:underline;text-underline-offset:3px}
 @media(max-width:1199px){.meeting-layout{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:767px){.preview-bar{padding:8px 12px}.ad__head h1{font-size:28px}.meeting-panel-body{padding:16px}.next-meeting{padding:16px}.next-time{font-size:26px}.view-buttons .ad__btn{min-height:44px}.calendar-panel{padding:0}.detail.open{padding:0}.detail.open .meeting-panel-body{padding:20px}.mobile-calendar .month{width:100%;max-width:420px}.meeting-panel-body>.toolbar{margin-bottom:16px}.save-bar{padding:16px}.drawer .ad__sideFoot{margin-top:20px}}
 @media(max-width:359px){.calendar-panel .meeting-panel-body{padding:12px 0}.calendar-panel .meeting-panel-body>.toolbar,.calendar-panel .meeting-panel-body>.agenda-list{margin-inline:12px}.mobile-calendar .month{width:100%;max-width:100%}.booking-body .month{max-width:100%;width:100%}}
