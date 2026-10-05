@@ -621,6 +621,79 @@ export async function clientFromLiveSubmission(_prev: ActionState, fd: FormData)
   redirect(`/admin/clients/${c.id}`);
 }
 
+/**
+ * Assign a form entry to a client (an existing one, or a new one made from the
+ * entry) and, if wanted, to a project (an existing one of that client, or a new
+ * one). Any form with entries can be assigned, not only the onboarding briefs.
+ * The assignment is stored (lib/forms/links.ts) and written to the entry's
+ * timeline; assigning again replaces it.
+ */
+export async function assignEntry(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
+  const refused = await allow("forms");
+  if (refused) return refused;
+  const { findForm } = await import("@/lib/forms/find");
+  const { getEntry } = await import("@/lib/forms/entries");
+  const { setLink } = await import("@/lib/forms/links");
+  const form = await findForm(str(fd, "form"));
+  const entry = form ? await getEntry(form, str(fd, "id")) : null;
+  if (!form || !entry || entry.draft) return FAIL({}, "That entry is no longer there.");
+
+  const errors: Record<string, string> = {};
+  const clientMode = str(fd, "clientMode") === "existing" ? "existing" : "new";
+  const projectMode = ["existing", "new"].includes(str(fd, "projectMode")) ? str(fd, "projectMode") : "none";
+  if (projectMode !== "none") {
+    const noProjects = await allow("projects");
+    if (noProjects) return noProjects;
+  }
+
+  let client = clientMode === "existing" ? db.getClient(str(fd, "clientId")) : null;
+  if (clientMode === "existing" && !client) errors.clientId = "Pick the client.";
+  const text = (v: unknown) => (Array.isArray(v) ? v.join(", ") : String(v ?? "")).trim();
+  const company = text(entry.answers.company);
+  if (clientMode === "new" && !(entry.name || company || entry.email)) errors.clientMode = "This entry has no name or email to make a client from. Pick an existing client.";
+
+  const existingProject = projectMode === "existing" ? db.getProject(str(fd, "projectId")) : null;
+  if (projectMode === "existing" && !existingProject) errors.projectId = "Pick the project.";
+  const [chosenService] = services(fd, "service");
+  const service = form.service ?? chosenService;
+  if (projectMode === "new" && !service) errors.service = "Pick the service this project is for.";
+  if (Object.keys(errors).length) return FAIL(errors);
+
+  let note = "";
+  if (!client) {
+    const match = entry.email || entry.phone ? db.findDuplicateClient(entry.email, entry.phone) : null;
+    if (match) { client = match; note = " (it matched a client already on the books)"; }
+    else {
+      client = db.addClient({
+        name: entry.name || company || entry.email,
+        company: company || entry.name || entry.email,
+        email: entry.email, phone: entry.phone,
+        services: service ? [service] : [],
+        sector: text(entry.answers.industry),
+        notes: `Created from ${form.noun} ${entry.serial ? `#${entry.serial} ` : ""}on the ${form.title} form.`,
+      }, await actorName());
+    }
+  }
+  if (existingProject && existingProject.clientId !== client.id) return FAIL({ projectId: `That project belongs to ${db.getClient(existingProject.clientId)?.company ?? "another client"}, not ${client.company}.` });
+
+  let project = existingProject;
+  if (projectMode === "new") {
+    project = db.addProject({
+      clientId: client.id, title: str(fd, "projectTitle") || `${client.company} ${service}`, service: service!,
+      stage: "Onboarding", due: null,
+      icon: randomProjectIcon(),
+    });
+  }
+
+  try { await setLink(form.key, entry.id, client.id, project?.id ?? null, await actorName()); }
+  catch { return FAIL({}, "The assignment could not be saved just now. Nothing was changed on the entry. Try again in a minute."); }
+  await addEvents(form.key, [entry.id], "client", `Assigned to ${client.company}${project ? ` and the project ${project.title}` : ""}${note}`, await actorName());
+  refresh("/admin/forms", `/admin/forms/${form.key}`, `/admin/forms/${form.key}/entries/${entry.id}`, `/admin/clients/${client.id}`, "/admin/clients", "/admin/projects");
+  return OK(`Assigned to ${client.company}${project ? `, project ${project.title}` : ""}.`);
+}
+
 /** Fold a duplicate into the client whose page this is. */
 export async function mergeClient(_prev: ActionState, fd: FormData): Promise<ActionState> {
   await syncStore();
