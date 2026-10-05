@@ -736,6 +736,15 @@ html[data-film-leaving="1"] .hd-bar { opacity: 0; transition-duration: .15s; }
   border-color: rgb(255 255 255 / .1);
   box-shadow: 0 12px 40px -14px rgb(0 0 0 / .7), inset 0 1px 0 rgb(255 255 255 / .06);
 }
+/* WHILE THE PHONE MENU IS OPEN THE BAR STOPS BLURRING. A backdrop-filter makes
+   its element the containing block for every `position: fixed` descendant, and
+   the menu's panel, its two colour layers and its close cross all live inside
+   this bar. With the glass on (any scrolled page, or a page with no dark hero)
+   the "full-screen" panel was measured against the pill instead: a few pixels
+   narrower than the screen, offset from the top, and 100dvh tall from there, so
+   it ran past the bottom. The bar sits under the panel while it is open, so
+   nothing is lost by it going flat for that long. */
+.hd-bar.is-menu-open { -webkit-backdrop-filter: none; backdrop-filter: none; }
 /* Where the blur is unavailable, or the reader has asked for less
    transparency, the same pill is solid rather than a thin wash. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
