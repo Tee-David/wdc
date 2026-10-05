@@ -30,8 +30,8 @@ export type Sender = (answers: Answers) => Promise<{ ok: true; message?: string 
  * code (/start) hands its answers to its own endpoint and keeps everything else
  * here, the checks, the screens and the done state.
  */
-export function CustomFormView({ def, slug, preview, send }: { def: CustomFormDef; slug?: string; preview?: boolean; send?: Sender }) {
-  const [answers, setAnswers] = useState<Answers>({});
+export function CustomFormView({ def, slug, preview, send, initial }: { def: CustomFormDef; slug?: string; preview?: boolean; send?: Sender; initial?: Answers }) {
+  const [answers, setAnswers] = useState<Answers>(initial ?? {});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");
   const [message, setMessage] = useState("");

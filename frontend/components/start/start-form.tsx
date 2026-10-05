@@ -2,7 +2,8 @@
 
 import { CustomFormView, type Sender } from "@/components/forms/custom-form-view";
 import type { CustomFormDef } from "@/lib/forms/custom-def";
-import { ENQUIRY_TOPICS } from "@/lib/contact";
+import { ENQUIRY_TOPICS, TOPIC_BY_SERVICE } from "@/lib/contact";
+import { SERVICES } from "@/lib/services";
 
 /**
  * START A PROJECT, as a conversation: four screens of two questions. It is the
@@ -47,6 +48,15 @@ const send: Sender = async (a) => {
   return { ok: true, message: body.confirmation?.message };
 };
 
-export default function StartForm() {
-  return <CustomFormView def={DEF} send={send} />;
+/** `services` comes from /services (`/start?services=web,seo`): the first sets
+    the topic, and the message starts with the whole list so nothing is lost. */
+export default function StartForm({ services = [] }: { services?: string[] }) {
+  const known = services.filter((s) => s in TOPIC_BY_SERVICE);
+  const initial = known.length
+    ? {
+        topic: TOPIC_BY_SERVICE[known[0]],
+        message: `We are interested in: ${known.map((k) => SERVICES.find((s) => s.slug === k)?.name ?? k).join(", ")}.\n\n`,
+      }
+    : undefined;
+  return <CustomFormView def={DEF} send={send} initial={initial} />;
 }
