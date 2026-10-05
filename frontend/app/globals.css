@@ -428,8 +428,8 @@ html:not(.dark) .hero-film__poster--dark { display: none; }
 
 .hero-film__veil {
   background:
-    linear-gradient(180deg, rgb(var(--hf-shade) / .62) 0, rgb(var(--hf-shade) / 0) 9rem),
-    rgb(var(--hf-shade) / .2);
+    linear-gradient(180deg, rgb(var(--hf-shade) / .4) 0, rgb(var(--hf-shade) / 0) 6rem),
+    rgb(var(--hf-shade) / .04);
 }
 
 /* THE HEADLINE IS ONE LINE ON A PHONE. "We do it all. Yes, really." is
@@ -451,7 +451,7 @@ html:not(.dark) .hero-film__poster--dark { display: none; }
   inset: -8rem 0 0;
   z-index: -1;
   pointer-events: none;
-  background: linear-gradient(180deg, rgb(var(--hf-shade) / 0) 0, rgb(var(--hf-shade) / .86) 8rem, rgb(var(--hf-shade) / .95) 100%);
+  background: linear-gradient(180deg, rgb(var(--hf-shade) / 0) 0, rgb(var(--hf-shade) / .66) 8rem, rgb(var(--hf-shade) / .8) 100%);
 }
 @media (min-width: 1024px) {
   /* Copy on the left, film on the right: the shade leans left so the film
@@ -459,8 +459,8 @@ html:not(.dark) .hero-film__poster--dark { display: none; }
   .hero-film__copy::before {
     inset: -11rem 0 0;
     background:
-      linear-gradient(90deg, rgb(var(--hf-shade) / .82) 0%, rgb(var(--hf-shade) / .45) 45%, rgb(var(--hf-shade) / 0) 72%),
-      linear-gradient(180deg, rgb(var(--hf-shade) / 0) 0, rgb(var(--hf-shade) / .62) 11rem, rgb(var(--hf-shade) / .82) 100%);
+      linear-gradient(90deg, rgb(var(--hf-shade) / .6) 0%, rgb(var(--hf-shade) / .28) 40%, rgb(var(--hf-shade) / 0) 62%),
+      linear-gradient(180deg, rgb(var(--hf-shade) / 0) 0, rgb(var(--hf-shade) / .32) 11rem, rgb(var(--hf-shade) / .5) 100%);
     /* The sideways layer would otherwise start on a hard line 11rem above
        the headline, which a calm stretch of film shows plainly. Fade the
        whole shade in over that 11rem; the copy is wholly below it. */
