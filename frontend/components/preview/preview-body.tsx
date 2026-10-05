@@ -299,9 +299,16 @@ export default function PreviewBody({ faqs = FAQS }: { faqs?: Faq[] }) {
         applyScroll(wrapTop - stick + p * span);
       }, 180);
     };
+    /* RE-MEASURING MUST NOT COLLAPSE THE SECTION FIRST. This used to begin with
+       `release()`, which drops the wrapper's pinned height; the reads that
+       follow (`getComputedStyle`, `scrollWidth`) force a layout while the page
+       is hundreds of pixels shorter, and a browser that clamps the scroll
+       position at a forced layout (Safari and everything built on it, which is
+       every iPhone browser) leaves a reader at the bottom of the page standing
+       far up it. Nothing the measurement reads depends on the wrapper's height,
+       so it is simply recomputed in place; only turning the pin OFF releases. */
     const measure = () => {
-      release();
-      if (!mq.matches || reduce) return;
+      if (!mq.matches || reduce) { release(); return; }
       wrap.classList.add("is-pinned");
       stick = parseFloat(getComputedStyle(stage).top) || 0;
       // measured on the stage, which is the scroll container now
@@ -334,7 +341,19 @@ export default function PreviewBody({ faqs = FAQS }: { faqs?: Faq[] }) {
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", measure);
+    /* WIDTH ONLY. On a phone the browser fires `resize` whenever its address
+       bar slides in or out, which is every time somebody changes direction, and
+       that only changes the HEIGHT. Re-measuring on each of those changed the
+       document's height under a scrolling reader (the "jump when you scroll up
+       from the footer" and part of the catching on iOS). A real change of width
+       (rotating the phone, resizing a window) still re-measures. */
+    let lastWidth = window.innerWidth;
+    const onResize = () => {
+      if (window.innerWidth === lastWidth) return;
+      lastWidth = window.innerWidth;
+      measure();
+    };
+    window.addEventListener("resize", onResize);
     mq.addEventListener("change", measure);
     stage.addEventListener("scroll", publish, { passive: true });
     stage.addEventListener("pointerdown", onDown, { passive: true });
@@ -350,7 +369,7 @@ export default function PreviewBody({ faqs = FAQS }: { faqs?: Faq[] }) {
       cancelAnimationFrame(frame);
       stage.removeEventListener("scroll", publish);
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", measure);
+      window.removeEventListener("resize", onResize);
       mq.removeEventListener("change", measure);
       stage.removeEventListener("pointerdown", onDown);
       stage.removeEventListener("touchstart", onDown);

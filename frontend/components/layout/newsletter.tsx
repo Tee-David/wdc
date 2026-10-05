@@ -49,6 +49,7 @@ type State =
 export function Newsletter() {
   const [email, setEmail] = useState("");
   const [state, setState] = useState<State>({ kind: "idle" });
+  const [hold, setHold] = useState(0);
   const [width, setWidth] = useState(0);
   const box = useRef<HTMLDivElement>(null);
   /* The honeypot's value. A real visitor never sees this field, so anything in
@@ -93,6 +94,14 @@ export function Newsletter() {
       setState({ kind: "error", message: "Enter your email address first." });
       return;
     }
+    /* HOLD THE BOX'S HEIGHT through the answer. The finished state is a single
+       line where the bar and its note were, so the footer got shorter by the
+       difference (47px on a phone) at the moment somebody was at the bottom of
+       the page reading it, and the document shifted under them. The height
+       measured now is kept as a minimum, so "done" and "already subscribed"
+       replace the form without moving anything below it. */
+    const held = box.current?.getBoundingClientRect().height;
+    if (held) setHold(Math.ceil(held));
     setState({ kind: "busy" });
     try {
       const response = await fetch("/api/newsletter", {
@@ -133,7 +142,7 @@ export function Newsletter() {
           "Worth your inbox." was a second headline competing with the four
           column titles beside it. The field's placeholder and the line under
           it already say what this is and how often it sends. */}
-      <div className="nl__box" ref={box}>
+      <div className="nl__box" ref={box} style={hold ? { minHeight: hold } : undefined}>
         {state.kind === "done" ? (
           /* THE ANSWER TAKES THE BAR'S PLACE rather than appearing under it.
              A message added below moves the closing rule and the copyright
