@@ -15,13 +15,19 @@ export type BuilderItem = {
   lede: string;
   icon: string;
   chips: string[];
+  /** The long paragraph that says what the service is, in plain words. */
+  body: string;
+  /** Everything a client receives. */
+  gets: string[];
+  /** The six stages of how the work goes. */
+  steps: { t: string; d: string }[];
   workHref: string | null;
   workCount: number;
 };
 
 /**
- * THE PACKAGE BUILDER. The six services are cards you tick, and the page builds
- * the package beside them: what is in it, what usually goes with it, and one
+ * THE PACKAGE BUILDER. Each service is explained in full (what it is, what you
+ * get, how it goes) and can then be added; the page builds the package beside them: what is in it, what usually goes with it, and one
  * button that carries the choice to /start. Each card is a real checkbox, so it
  * works with a keyboard and a screen reader, and keeps real links to its own
  * page and its work, so nothing here hides a crawlable URL. On a phone the
@@ -54,34 +60,53 @@ export function ServicesBuilder({ items }: { items: BuilderItem[] }) {
 
   return (
     <div className="svb">
-      <div className="svb__grid" role="group" aria-label="Services to put in your package">
-        {items.map((s) => {
-          const on = picked.includes(s.slug);
-          return (
-            <article key={s.slug} className={`svb-card${on ? " is-on" : ""}`}>
-              <input
-                id={`svb-${s.slug}`} className="svb-card__in" type="checkbox" checked={on}
-                onChange={() => toggle(s.slug)} aria-describedby={`svb-${s.slug}-d`}
-              />
-              <label htmlFor={`svb-${s.slug}`} className="svb-card__face">
-                <span className="svb-card__top">
-                  <span className="svb-card__ic" aria-hidden="true"><ServiceIcon name={s.icon} size={24} /></span>
-                  <span className="svb-card__tick" aria-hidden="true"><Check size={16} strokeWidth={3} /></span>
-                </span>
-                <span className="svb-card__t">{s.name}</span>
-                <span className="svb-card__d" id={`svb-${s.slug}-d`}>{s.lede}</span>
-                <span className="svb-card__chips" aria-hidden="true">
-                  {s.chips.map((c) => <i key={c}>{c}</i>)}
-                </span>
-                <span className="svb-card__state">{on ? "In your package" : "Add to package"}</span>
-              </label>
-              <div className="svb-card__links">
-                <Link href={`/services/${s.slug}`} aria-label={`What's included in ${s.name}`}>What&rsquo;s included</Link>
-                {s.workHref && s.workCount > 0 ? <Link href={s.workHref}>See the work ({s.workCount})</Link> : null}
-              </div>
-            </article>
-          );
-        })}
+      <div className="svb__main">
+        <nav className="svb-jump" aria-label="Jump to a service">
+          <span>Jump to</span>
+          {items.map((s) => <a key={s.slug} href={`#${s.slug}`}>{s.short}</a>)}
+        </nav>
+        <div className="svb__grid">
+          {items.map((s) => {
+            const on = picked.includes(s.slug);
+            return (
+              <article key={s.slug} id={s.slug} className={`svb-card${on ? " is-on" : ""}`} aria-labelledby={`svb-${s.slug}-h`}>
+                <header className="svb-card__head">
+                  <span className="svb-card__ic" aria-hidden="true"><ServiceIcon name={s.icon} size={26} /></span>
+                  <div>
+                    <h2 id={`svb-${s.slug}-h`}>{s.name}</h2>
+                    <p className="svb-card__lede">{s.lede}</p>
+                  </div>
+                </header>
+                <div className="svb-card__cols">
+                  <div>
+                    <h3>What it is</h3>
+                    <p>{s.body}</p>
+                  </div>
+                  <div>
+                    <h3>What you get</h3>
+                    <ul className="svb-card__gets">
+                      {s.gets.map((g) => <li key={g}><Check size={16} strokeWidth={3} aria-hidden="true" />{g}</li>)}
+                    </ul>
+                  </div>
+                </div>
+                <details className="svb-card__how">
+                  <summary>How we do it, step by step</summary>
+                  <ol>
+                    {s.steps.map((st) => <li key={st.t}><b>{st.t}</b><span>{st.d}</span></li>)}
+                  </ol>
+                </details>
+                <footer className="svb-card__foot">
+                  <button type="button" className={`svb-pick${on ? " is-on" : ""}`} aria-pressed={on} onClick={() => toggle(s.slug)}>
+                    {on ? <Check size={18} strokeWidth={3} aria-hidden="true" /> : <Plus size={18} aria-hidden="true" />}
+                    {on ? "In my package" : "Add to my package"}
+                  </button>
+                  <Link href={`/services/${s.slug}`}>Everything in {s.short}</Link>
+                  {s.workHref && s.workCount > 0 ? <Link href={s.workHref}>See the work ({s.workCount})</Link> : null}
+                </footer>
+              </article>
+            );
+          })}
+        </div>
       </div>
 
       <aside className="svb-pack" aria-label="Your package">

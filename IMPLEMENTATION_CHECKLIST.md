@@ -276,3 +276,9 @@ Started 2026-09-25. The target is `dashboard-mockups/` at the repo root: 134 boa
 - [x] Forms: assign any entry to a client (existing or new) and a project (none, existing, new). Migration 0033 (`entry_links`); apply it from Settings > System. The table is also created on first use if the migration has not run. NOT tested end to end: this environment has no database.
 - [ ] Onboarding redesign, About and Services redesigns: three and two-each proposals are in the artifact https://claude.ai/artifact/A6MK8YG4XGzRzf4jb7nTYQ, awaiting the owner's pick.
 - [ ] Sender name "me" on studio notices: parked at the owner's request.
+
+## Delivered 2026-10-06
+
+- [x] Onboarding form style per service, chosen in the admin (Forms, the form, Settings, "How the form looks"): Steps (default), Conversation, Briefing board. All three draw the same field components, so uploads, searchable lists, phone and domain fields, drafts and validation are identical. Stored in `form_settings` JSON, no migration. `?style=` previews a style outside production only. Pinned by `tests/onboarding-styles.spec.ts`. NOT tested end to end through the admin screen (no database here).
+- [x] About rebuilt in the order a visitor wants answers (story, figures, how we work, what we stand for, the people, proof, next step). Figures are derived from data.
+- [x] Services: every service is a full card (what it is, what you get, how it goes) with its own h2 and anchor, add-to-package on each, FAQ and a closing band.

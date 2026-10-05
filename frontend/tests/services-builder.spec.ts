@@ -13,7 +13,7 @@ test("ticking builds the package, suggests a pairing, and carries it to /start",
 
   /* Clicked until the page has hydrated and heard it, but never twice once it has. */
   await expect.poll(async () => {
-    if (!(await page.locator(".svb-pack__list li").count())) await page.locator('label[for="svb-web"]').click();
+    if (!(await page.locator(".svb-pack__list li").count())) await page.locator("#web .svb-pick").click();
     return page.locator(".svb-pack__list li").count();
   }).toBe(1);
   await expect(page.locator(".svb-add").first()).toBeVisible();
@@ -27,12 +27,28 @@ test("ticking builds the package, suggests a pairing, and carries it to /start",
   await expect(page.getByLabel("Full-Stack Web Development")).toBeChecked();
 });
 
+test("each service explains itself before it can be added", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/services", { waitUntil: "load" });
+  await expect(page.locator("main h1")).toHaveCount(1);
+  for (const slug of ["branding", "seo", "web", "apps", "software", "social"]) {
+    const card = page.locator(`#${slug}`);
+    await expect(card.getByRole("heading", { level: 2 })).toBeVisible();
+    await expect(card.getByRole("heading", { name: "What it is" })).toBeVisible();
+    await expect(card.getByRole("heading", { name: "What you get" })).toBeVisible();
+    expect(await card.locator(".svb-card__gets li").count()).toBeGreaterThan(3);
+    expect(await card.locator(".svb-card__how li").count()).toBe(6);
+  }
+  /* The jump links land on the cards. */
+  await expect(page.locator('.svb-jump a[href="#web"]')).toBeVisible();
+});
+
 test("every service keeps its own link, and removing works", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/services", { waitUntil: "load" });
-  expect(await page.locator('.svb-card__links a[href^="/services/"]').count()).toBe(6);
+  expect(await page.locator('.svb-card__foot a[href^="/services/"]').count()).toBe(6);
   await expect.poll(async () => {
-    await page.locator(".svb-card__face").first().click();
+    await page.locator(".svb-pick").first().click();
     return page.locator(".svb-pack__list li").count();
   }).toBeGreaterThan(0);
   await page.getByRole("button", { name: /^Remove/ }).first().click();
@@ -46,7 +62,7 @@ test.describe("on a phone", () => {
     const bar = page.locator(".svb-bar");
     await expect(bar).toBeHidden();
     await expect.poll(async () => {
-      await page.locator(".svb-card__face").first().tap();
+      await page.locator(".svb-pick").first().tap();
       return bar.evaluate((el) => el.classList.contains("is-on"));
     }).toBe(true);
     await expect(bar).toBeVisible();
