@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useReveal } from "@/components/preview/use-reveal";
 import ServiceIcon from "@/components/ui/service-icon";
 import ScrollCue from "@/components/ui/scroll-cue";
-import { SERVICES } from "@/lib/services";
 import ScrollExpand from "@/components/ui/scroll-expand";
 import dynamic from "next/dynamic";
 import { BRAND_KINDS } from "@/lib/showcase";
@@ -252,39 +251,22 @@ export default function AboutBody() {
   return (
     <div className="pv ab">
       {/* ---------------- hero ---------------- */}
-      <section className="pv-sec pv-sec--band ab-hero">
-        {/* The same four floating badges the services hero carries, so the two
-            openings read as one site rather than two designs. They replace a
-            single hairline swirl that spanned the whole panel: at 18% opacity
-            it was too faint to be a shape and too long to be a texture, and it
-            said nothing about what we do. These say the four things we do. */}
-        <div className="sv-orbit" aria-hidden="true">
-          {SERVICES.slice(0, 4).map((s, i) => (
-            <span className={`sv-bub sv-bub--${i + 1}`} key={s.slug}>
-              <ServiceIcon name={s.icon} delay={300 + i * 220} />
-            </span>
-          ))}
-        </div>
-        <div className="pv-wrap">
-          <div className="sv-hero__copy pv-reveal">
-            <p className="sv-hero__loop">
-              <span>We Dig Creativity Solutions</span>
-            </p>
-            <h1 className="pv-mix">Brilliant simplicity <b>of thought</b></h1>
-            <p className="pv-lede">
-              We are a creative and digital agency. We design the brand, build the
-              product and run the growth that follows, with the same team on all
-              three, so the work arrives as one thing rather than three handovers.
-            </p>
-            <div className="sv-hero__cta">
-              <Link className="pv-btn pv-btn--accent" href="/contact">
-                Book a strategy call
-              </Link>
-              <Link className="pv-btn pv-btn--light" href="/services">
-                See what we do
-              </Link>
-            </div>
-          </div>
+      {/* THE SAME OPENING AS EVERY OTHER PAGE (AGENTS.md, "Page shape"): the
+          navy band with the label, the h1 and the lede, left aligned, and
+          nothing else. This one used to be centred, with four floating service
+          badges and two buttons ("Book a strategy call", which is a finance
+          consultancy's product, and "See what we do"); the header already
+          carries Start a Project, and an About page does not need its own pair
+          of calls to action before anybody has read what it says. */}
+      <section className="wk-hero">
+        <div className="pv-wrap wk-hero__in">
+          <span className="pv-eyebrow">About</span>
+          <h1 className="pv-mix">Brilliant simplicity <b>of thought</b></h1>
+          <p className="pv-lede">
+            We are a creative and digital agency. We design the brand, build the
+            product and run the growth that follows, with the same team on all
+            three, so the work arrives as one thing rather than three handovers.
+          </p>
         </div>
       </section>
 
