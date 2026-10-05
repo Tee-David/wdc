@@ -15,7 +15,7 @@ export async function captureDesign(browser, tab, {themes=[false,true], widths=[
       if(await theme.count())await theme.click();
       for(const width of widths) {
         await viewport.set({width,height:1000});
-        for(const screen of ['Booking','Meetings','Availability']) {
+        for(const screen of ['Booking','Meetings','Availability','Users']) {
           await tab.playwright.getByRole('button',{name:screen,exact:true}).click();
           if(screen==='Meetings')await tab.playwright.getByRole('button',{name:'Month',exact:true}).click();
           const dimensions=await tab.playwright.evaluate(()=>({width:document.documentElement.clientWidth,content:document.documentElement.scrollWidth}));
