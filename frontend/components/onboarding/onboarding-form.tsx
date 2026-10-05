@@ -9,7 +9,7 @@ import Link from "next/link";
 import { SERVICES, type ServiceSlug } from "@/lib/services";
 import { CONTACT_EMAIL } from "@/lib/site";
 import {
-  isFilled, minutesLeft, PICKER_LINE, problemWith, PROJECT_UPDATE_PORTAL, stepsFor, UNSURE,
+  answersForService, isFilled, minutesLeft, PICKER_LINE, problemWith, PROJECT_UPDATE_PORTAL, stepsFor, UNSURE,
   type Field, type Step,
 } from "@/lib/onboarding";
 import PhoneField from "./phone-field";
@@ -179,6 +179,28 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
   }, [a, service, i, started]);
 
   const set = (k: string, v: string | string[]) => setA((p) => ({ ...p, [k]: v }));
+
+  /* BACK TO THE PICKER, WITHOUT LOSING ANYTHING. The first step had no Back, and
+     the only way out of a chosen service was "Start over" on the review page,
+     which wipes the draft: a client who picked the wrong service had to finish
+     the whole form to get to the picker. This returns to the welcome screen
+     with every answer kept; choosing another service keeps what both services
+     ask (the "About you" page) and drops what only the first one asked. */
+  const changeService = () => {
+    setStarted(false);
+    setRestored(false);
+    setTried(false);
+    setTouched({});
+    setI(0);
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ answers: a, service, step: 0, started: false }));
+    } catch { /* ignore */ }
+  };
+  const begin = () => {
+    if (!service) return;
+    setA((p) => answersForService(p, service));
+    setStarted(true);
+  };
 
   /* Memoised because `problems` below depends on it: a fresh array every
      render would make that useMemo recompute every render, which is the same
@@ -428,7 +450,7 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
         <button
           className="ob__btn ob__btn--go"
           type="button"
-          onClick={() => service && setStarted(true)}
+          onClick={begin}
           disabled={!service}
           aria-describedby={!service ? "ob-pick-first" : undefined}
         >
@@ -708,9 +730,13 @@ export default function OnboardingForm({ closed = {} }: { closed?: Record<string
             somebody deciding whether to carry on already is, rather than up
             by the progress bar. */}
         <div className="ob__acts ob__acts--step">
-          {i > 0 && (
+          {i > 0 ? (
             <button className="ob__btn ob__btn--ghost ob__stepBack" type="button" onClick={back}>
               <ArrowLeft aria-hidden="true" /> Back
+            </button>
+          ) : (
+            <button className="ob__btn ob__btn--ghost ob__stepBack" type="button" onClick={changeService}>
+              <ArrowLeft aria-hidden="true" /> Change service
             </button>
           )}
           <button className="ob__btn ob__btn--ghost ob__stepSave" type="button" onClick={saveNow}>

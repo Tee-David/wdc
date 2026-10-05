@@ -122,6 +122,32 @@ for (const width of [390, 320]) {
   });
 }
 
+/* A BROWSER THAT STOPS THE CLOCK must not leave the pieces standing mid-air.
+   Here every animation's clock is pinned at zero, which is what WebKit under
+   load does to a layer it has throttled; the watchdog in confetti.tsx sees the
+   clocks not moving and takes the layer away well before the 6.5s backstop. */
+test("the confetti is removed, not frozen, when the animations stop advancing", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.addInitScript(() => {
+    Object.defineProperty(Animation.prototype, "currentTime", { configurable: true, get: () => 0, set: () => undefined });
+  });
+  await page.route("**/api/onboarding/draft", async (route) => {
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ resumeUrl: "", emailSent: false }) });
+  });
+  await page.route("**/api/onboarding/submit", async (route) => {
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
+  });
+  await page.addInitScript((step) => {
+    localStorage.setItem("wdc-onboarding-draft", JSON.stringify({ started: true, service: "web", step, answers: {} }));
+  }, stepsFor("web").length);
+  await page.goto("/onboarding");
+  await page.getByRole("button", { name: /Send the brief/ }).click();
+  await expect(page.locator(".ob-conf")).toBeVisible();
+  /* Mounted on the body, not inside the card, so nothing above it can clip it. */
+  expect(await page.evaluate(() => document.querySelector(".ob-conf")?.parentElement === document.body)).toBe(true);
+  await expect(page.locator(".ob-conf")).toHaveCount(0, { timeout: 4_800 });
+});
+
 test("pulses the single progress bar unless reduced motion is requested", async ({ page }) => {
   await page.goto("/onboarding");
   const fill = page.locator(".ob__progress > span");
