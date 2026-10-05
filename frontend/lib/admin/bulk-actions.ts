@@ -3,6 +3,8 @@
 import { FAIL, OK, type ActionState } from "./validate";
 import { archiveClient, emailReminder, moveStage, setProjectArchived, setTicketState } from "./actions";
 import { moveBlogPostToDraft, publishBlogPostNow, trashBlogDraft } from "./blog-actions";
+import { bulkUsers } from "./user-actions";
+import { bulkCancelInvites } from "./invite-actions";
 import { STAGES } from "./types";
 
 /**
@@ -31,6 +33,13 @@ const RUN: Record<string, Job> = {
 };
 
 export async function runBulk(kind: string, ids: string[]): Promise<ActionState> {
+  if (["users:deactivate","users:reactivate","users:signout","invitations:cancel"].includes(kind)) {
+    if (!Array.isArray(ids)) return FAIL({}, "Select accounts on this page.");
+    const fd = new FormData();
+    ids.forEach(id => fd.append("ids", String(id)));
+    fd.set("change", kind.split(":")[1]);
+    return kind === "invitations:cancel" ? bulkCancelInvites({ok:false}, fd) : bulkUsers({ok:false}, fd);
+  }
   const job = Object.hasOwn(RUN, kind) ? RUN[kind] : undefined;
   if (!job) return FAIL({}, "That is not something the selection can do.");
   const list = [...new Set((Array.isArray(ids) ? ids : []).map(String))].slice(0, 200);
