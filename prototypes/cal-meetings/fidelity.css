@@ -1,0 +1,44 @@
+/* Presentation-only geometry. The shell, controls and panel style are WDC's
+   actual admin.css; don't repaint them with a second design system. */
+@font-face{font-family:Space;src:url('/body.woff2') format('woff2');font-weight:300 600;font-display:swap}
+:root{--font-space-grotesk:Space;--font-outfit:Space;--font-body:Space,system-ui,sans-serif;--logo-ink:#000065}
+.dark{--logo-ink:#fff}
+body.ad{font-size:14px;line-height:1.5}
+button,input,textarea{font-family:var(--font-outfit),system-ui,sans-serif}
+.preview-bar{padding:8px 20px;font-size:12px}
+.preview-actions button{font-size:12px;border-radius:10px}
+.preview-actions button[aria-current=true]{background:var(--ad-fill);color:var(--ad-on-fill);border-color:var(--ad-fill)}
+.ad__head{margin-bottom:1.5rem}.ad__head h1{margin:0}.ad__head p{font-size:.95rem}
+.ad__main>.ad__demo{margin-bottom:1.3rem}
+.meeting-layout{gap:24px;grid-template-columns:minmax(0,1fr) 300px}
+.calendar-panel,.settings-panel,.detail{padding:0}
+.meeting-panel-body{padding:20px;min-width:0}
+.next-meeting{border-radius:var(--ad-r);box-shadow:var(--ad-sh-1);padding:20px}
+.next-meeting h3{font-size:16.5px;font-weight:600;margin:6px 0}
+.eyebrow{font-size:11.5px;letter-spacing:.08em}
+.next-time{font-size:30px}
+.ad__pill.pill{border-radius:99px;padding:.2rem .55rem;font-size:.73rem;font-weight:600}
+.tabs{gap:4px;margin-bottom:24px;padding-bottom:0}
+.tabs .ad__btn{border:0;border-radius:0;box-shadow:none;background:none;min-height:44px;font-weight:500;padding:12px 18px}
+.tabs .ad__btn.active{font-weight:600;border-bottom:3px solid var(--ad-accent-fill)}
+.view-buttons{border:1px solid var(--ad-line);border-radius:12px;padding:3px}
+.view-buttons .ad__btn{box-shadow:none;border:0;font-size:13px;min-height:36px;border-radius:8px;font-weight:500}
+.view-buttons .ad__btn.active{background:var(--ad-fill);color:var(--ad-on-fill);font-weight:600}
+.toolbar-nav .ad__iconButton{width:44px;height:44px;border:1px solid var(--ad-line);background:var(--ad-panel);border-radius:12px}
+.calendar-table{margin-top:20px}
+.calendar-cell{padding:8px;min-height:110px}.weekday{font-size:12px}
+.event{font-size:12px;line-height:1.5;padding:8px;background:var(--ad-panel-2);box-shadow:none}
+.detail h2{font-size:16.5px;margin:0}.detail-actions .ad__btn{min-height:44px}
+.agenda-row{box-shadow:none;align-items:center}.agenda-row svg{width:16px;height:16px}
+.agenda-time{font-size:14px}.agenda-copy b{font-weight:600;font-size:14px}
+.hours-control .ad__btn{font-size:13px}
+.summary h2{font-size:20px;font-weight:600}.booking-body h2{font-size:26px;font-weight:600}
+.hero-nav .wordmark{display:flex;align-items:center;gap:12px;font-size:16px}.hero-nav .ad__brandMark{--logo-ink:#fff;width:38px;height:38px}
+.choices-icon svg{width:22px;height:22px}.choice>span:last-child svg{width:18px;height:18px}
+.public-primary,.public-secondary{font-weight:600;font-size:14px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.public-primary svg,.public-secondary svg{width:16px;height:16px}
+.day{font-family:var(--font-outfit);font-weight:500}.day.selected{background:var(--ad-fill);color:var(--ad-on-fill)}
+.announcement{font-size:14px}
+@media(max-width:1199px){.meeting-layout{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:767px){.preview-bar{padding:8px 12px}.ad__head h1{font-size:28px}.meeting-panel-body{padding:16px}.next-meeting{padding:16px}.next-time{font-size:26px}.view-buttons .ad__btn{min-height:44px}.calendar-panel{padding:0}.detail.open{padding:0}.detail.open .meeting-panel-body{padding:20px}.mobile-calendar .month{width:100%;max-width:420px}.meeting-panel-body>.toolbar{margin-bottom:16px}.save-bar{padding:16px}.drawer .ad__sideFoot{margin-top:20px}}
+@media(max-width:359px){.calendar-panel .meeting-panel-body{padding:12px 0}.calendar-panel .meeting-panel-body>.toolbar,.calendar-panel .meeting-panel-body>.agenda-list{margin-inline:12px}.mobile-calendar .month{width:100%;max-width:100%}.booking-body .month{max-width:100%;width:100%}}
