@@ -33,7 +33,7 @@ import { PNG } from "pngjs";
    carry the pair twice over. A page that is not in this list is a page where
    the rule is not enforced. */
 const publicPages = [
-  "/", "/services", "/services/web", "/contact",
+  "/", "/services", "/services/web", "/contact", "/start",
   "/tools/domain", "/tools/email", "/tools/seo",
   "/tools/link-preview", "/tools/business-name", "/tools/ai-cost",
   "/work", "/about", "/blog", "/onboarding", "/this-page-does-not-exist",
