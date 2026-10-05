@@ -185,7 +185,7 @@
 .pv .pk__label b { font-weight: 700; color: var(--ink); }
 
 /* A second line under an option, for a consumer that needs one -- the scope
-   estimator's own dropdown (option-select.tsx), which used to say this on a
+   a tool wizard dropdown, which used to say this on a
    full-width card. Left out of the country list and the industry select,
    which never carry one, so `.pk__label` still ellipsizes to a single line
    by default; only a row that actually has a `.pk__note` wraps and grows to

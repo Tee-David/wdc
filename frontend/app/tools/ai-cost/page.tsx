@@ -122,9 +122,6 @@ export default function AiCostToolPage() {
                 <Link className="pv-btn pv-btn--accent" href="/contact">
                   Start a conversation
                 </Link>
-                <Link className="pv-btn pv-btn--light" href="/tools/estimate">
-                  Price the build
-                </Link>
               </div>
             </div>
           </div>

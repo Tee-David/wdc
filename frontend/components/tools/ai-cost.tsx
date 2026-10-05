@@ -5,13 +5,13 @@ import Link from "next/link";
 import {
   JOBS, MODELS, PRICES_REVIEWED, naira, perRunLabel, priceAll, reading,
 } from "@/lib/ai-cost";
-import { RATE_CARD } from "@/lib/estimate";
+import { FX } from "@/lib/fx";
 
 /**
  * The AI running-cost calculator at /tools/ai-cost.
  *
  * THE SECOND QUESTION, ASKED OUT LOUD. "What will it cost to build" is the one
- * everybody asks and /tools/estimate answers. "What will it cost every month
+ * everybody asks and a conversation answers. "What will it cost every month
  * once it is running" is the one that decides whether the feature survives its
  * first quarter, and almost nobody asks it before the build.
  *
@@ -41,7 +41,7 @@ export default function AiCost() {
     [runs, inWords, outWords],
   );
 
-  const lines = useMemo(() => priceAll(usage, RATE_CARD.nairaPerUsd), [usage]);
+  const lines = useMemo(() => priceAll(usage, FX.nairaPerUsd), [usage]);
   const note = reading(usage, lines);
   const chosen = JOBS.find((j) => j.key === job) ?? JOBS[0];
 
@@ -138,7 +138,7 @@ export default function AiCost() {
           </p>
           <p className="es__usd">
             Depending entirely on which model answers it. Prices reviewed {PRICES_REVIEWED};
-            converted at ₦{RATE_CARD.nairaPerUsd.toLocaleString("en-NG")} to the dollar.
+            converted at ₦{FX.nairaPerUsd.toLocaleString("en-NG")} to the dollar.
           </p>
           <p className="es__caveat">{note}</p>
         </div>
@@ -172,8 +172,8 @@ export default function AiCost() {
               Batching, worth about half price where the answer can wait a few hours.
             </li>
             <li>
-              Our fee for building it. That is the other tool:{" "}
-              <Link href="/tools/estimate">what it costs to build</Link>.
+              Our fee for building it. <Link href="/contact">Ask us</Link> and we
+              will scope it with you.
             </li>
             <li>
               Anything a provider charges for images, audio or long-context tiers. The

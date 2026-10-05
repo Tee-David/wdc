@@ -74,18 +74,6 @@ export const FREE_TOOLS: FreeTool[] = [
     group: "plan",
   },
   {
-    slug: "estimate",
-    href: "/tools/estimate",
-    title: "What will it cost to build?",
-    blurb:
-      "Eight questions about the shape of the project, then an indicative range in naira and dollars with the phases broken out and the assumptions named. The arithmetic runs on your device and the figure appears before we ask for anything.",
-    action: "Work out a range",
-    short: "Budget estimator",
-    icon: "Calculator",
-    services: ["software", "apps"],
-    group: "plan",
-  },
-  {
     slug: "ai-cost",
     href: "/tools/ai-cost",
     title: "What will an AI feature cost to run?",
