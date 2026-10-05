@@ -5,6 +5,8 @@ import { after } from "next/server";
 import * as db from "@/lib/admin/store";
 import { NOTIFY_KINDS, type NotifyKind } from "@/lib/admin/types";
 import { FAIL, OK, str, type ActionState } from "@/lib/admin/validate";
+import { supportCookiePresent } from "@/lib/users/support";
+import { SUPPORT_READ_ONLY } from "@/lib/users/support-policy";
 import { getPortalRequest } from "./session";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 
@@ -29,6 +31,7 @@ import { persistSoon, syncStore } from "@/lib/admin/persist";
    happens to match a client record must not be able to act as that client. */
 async function requireClient() {
   try {
+    if (await supportCookiePresent()) return null;
     const { session, client } = await getPortalRequest();
     const role = (session?.user as { role?: string } | undefined)?.role;
     return role === "client" ? client : null;
@@ -42,6 +45,7 @@ async function requireClient() {
    and alarming; it is told the truth, and that what they typed is still on
    the page. */
 async function whyNoClient() {
+  if (await supportCookiePresent()) return SUPPORT_READ_ONLY;
   const signedIn = await getPortalRequest().then((r) => Boolean(r.session?.user)).catch(() => false);
   return signedIn
     ? "Your account isn't linked to a client record yet. Email us and we'll connect it."
