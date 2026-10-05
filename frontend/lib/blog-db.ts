@@ -21,7 +21,7 @@ import type { ServiceSlug } from "@/lib/services";
  * bodies run during the build, so the posts are baked into static HTML exactly
  * as they were when they came from a file. Publishing from the admin editor
  * will therefore need a revalidation, which is the trade recorded in
- * plans/blog-to-db.md: it keeps every post as fast as it is today, and moving
+ * the current blog persistence implementation: it keeps every post as fast as it is today, and moving
  * to on-demand revalidation later is a change to caching rather than to this
  * file.
  *
