@@ -1,5 +1,6 @@
 import "server-only";
 
+import { db } from "@/lib/db/pool";
 import { SITE_URL } from "@/lib/site";
 import { accountInvitationEmail } from "@/lib/email-templates";
 import { INVITE_TTL_DAYS, type Invitation } from "@/lib/invitations";
@@ -17,7 +18,9 @@ export const inviteUrl = (token: string) => new URL(`/invite/${token}`, SITE_URL
  */
 export async function sendInvitationEmail(invitation: Invitation, token: string) {
   const url = inviteUrl(token);
-  await sendLogged(
+  let result: "sent" | "duplicate";
+  try {
+  result = await sendLogged(
     {
       to: invitation.email,
       ...accountInvitationEmail({
@@ -36,4 +39,12 @@ export async function sendInvitationEmail(invitation: Invitation, token: string)
       clientId: invitation.clientId ?? undefined,
     },
   );
+  } catch (error) {
+    const code = (error as { code?: string }).code;
+    const failed = code === "EAUTH" || code === "EENVELOPE" || (error instanceof Error && error.message.includes("SMTP is not configured"));
+    await db.query(`UPDATE user_invitation_delivery SET state=$2,updated_at=now(),error=$3 WHERE invitation_id=$1`, [invitation.id, failed ? "failed" : "uncertain", failed ? "Mail server refused the invitation. Review email settings, then send again." : "Delivery outcome is uncertain. Check the email log before sending again."]);
+    throw new Error("Invitation email did not confirm acceptance.");
+  }
+  // A failed status write must not relabel an already accepted email as failed.
+  await db.query(`UPDATE user_invitation_delivery SET state=$2,updated_at=now(),error=NULL WHERE invitation_id=$1`, [invitation.id, result === "sent" ? "accepted" : "uncertain"]);
 }

@@ -6,6 +6,8 @@ import { Archive, Check, Loader2, Mail, MoreHorizontal, RotateCcw, Send, Trash2,
 import { runBulk } from "@/lib/admin/bulk-actions";
 import { toast } from "./toast";
 import { ask } from "./confirm";
+import { Dialog } from "./dialog";
+import type { ActionState } from "@/lib/admin/validate";
 
 const ICONS: Record<string, LucideIcon> = { check: Check, close: X, archive: Archive, mail: Mail, reopen: RotateCcw, publish: Send, trash: Trash2 };
 
@@ -35,14 +37,16 @@ export function PickAll({ label = "Select all" }: { label?: string }) {
  * the tab bar on a phone, with the words dropped to icons (the same bar as the
  * form entries).
  */
-export function BulkBar({ target, noun, actions, more = [] }: {
+export function BulkBar({ target, noun, actions, more = [], onRun }: {
   target: string; noun: string; actions: BulkAction[];
   /** The rest, under More, so the bar stays one line: never a wall of buttons. */
   more?: Omit<BulkAction, "icon">[];
+  onRun?: (kind: string, ids: string[]) => Promise<ActionState>;
 }) {
   const router = useRouter();
   const [ids, setIds] = useState<string[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const [outcomes, setOutcomes] = useState<ActionState["outcomes"]>();
 
   useEffect(() => {
     const box = document.getElementById(target);
@@ -68,14 +72,17 @@ export function BulkBar({ target, noun, actions, more = [] }: {
   const run = async (a: Omit<BulkAction, "icon">) => {
     if (a.confirm && !(await ask(a.confirm.replace("{n}", String(ids.length))))) return;
     setBusy(a.kind);
-    const r = await runBulk(a.kind, ids).catch(() => null);
+    const r = await (onRun ? onRun(a.kind, ids) : runBulk(a.kind, ids)).catch(() => null);
     setBusy(null);
     toast(r?.message ?? "That could not be done just now.", r?.ok ? "good" : "bad");
-    if (r?.ok) { clear(); router.refresh(); }
+    if (r?.outcomes?.length) { setOutcomes(r.outcomes); clear(); router.refresh(); }
+    if (r?.ok && !r.outcomes?.length) { clear(); router.refresh(); }
   };
 
-  if (!ids.length) return null;
+  if (!ids.length && !outcomes?.length) return null;
   return (
+    <>
+    {ids.length ? (
     <div className="adBulk" role="region" aria-label={`Selected ${noun}`}>
       <b className="adBulk__n">{ids.length} selected</b>
       {actions.map((a) => {
@@ -100,6 +107,14 @@ export function BulkBar({ target, noun, actions, more = [] }: {
         </details>
       ) : null}
       <button type="button" className="ad__iconButton adBulk__x" aria-label="Clear the selection" onClick={clear}><X aria-hidden="true" /></button>
-    </div>
+    </div>) : null}
+    <Dialog open={Boolean(outcomes?.length)} onClose={() => setOutcomes(undefined)} title="Selection results" wide>
+      <p>Each row was checked separately. Updated rows are saved; failed rows explain what to do next.</p>
+      <div className="ad__scroll" tabIndex={0} role="region" aria-label="Bulk action results" data-lenis-prevent>
+        <table className="ad__t"><thead><tr><th>Person</th><th>Result</th></tr></thead><tbody>{outcomes?.map(row => <tr key={row.id}><td><b>{row.label}</b></td><td><span className={`ad__pill ${row.ok ? "ad__pill--good" : "ad__pill--bad"}`}>{row.ok ? "Updated" : "Not updated"}</span><small>{row.message}</small></td></tr>)}</tbody></table>
+      </div>
+      <button type="button" className="ad__btn" onClick={() => setOutcomes(undefined)}>Close</button>
+    </Dialog>
+    </>
   );
 }
