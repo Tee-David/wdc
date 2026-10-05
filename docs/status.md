@@ -12,7 +12,7 @@ Remaining delivery: event-type configuration, calendar/conferencing connections,
 
 ## Users and roles
 
-The owner requested a clearer, complete Users workflow. The [Users and Roles proposal](../plans/users-and-roles-plan.md) audits the existing Team page and invitations. It covers responsive tables, invitation delivery/resend/cancellation, role protection, recovery, session management and scoped support impersonation. This remains a proposal awaiting review, with a design artifact before implementation.
+The owner requested a clearer, complete Users workflow. The [Users and Roles proposal](../plans/users-and-roles-plan.md) audits the existing Team page and invitations. It covers responsive tables, invitation delivery/resend/cancellation, role protection, recovery, session management and scoped support impersonation. The interactive Users artifact is available at `http://127.0.0.1:3147/?view=users`. Implementation is now authorized and running in parallel with Meetings. The artifact uses clearly labelled sample accounts; it does not change users or send mail. Search alignment, pinned tables, row selection, reviewed bulk actions, pagination, 10/25/50/100 items per page and CSV/JSON export choices are included. The search field stays within the viewport and its icon stays inside it at 320, 390, 640, 768, 1024 and 1440px in both themes. Production account management and read-only support guards remain under implementation and have not been released.
 
 ## Verification boundaries
 
