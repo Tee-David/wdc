@@ -12,11 +12,15 @@ import pg from "pg";
  * deactivated; staff do not get the page.
  */
 
-const CONNECTION = process.env.DATABASE_URL || process.env.COCKROACHDB_URL;
+// Never inherit the application/production database for a mutating suite.
+const CONNECTION = process.env.USER_TEST_DATABASE_URL;
+const ALLOW_MUTATIONS = process.env.USER_TEST_ALLOW_MUTATIONS === "1";
+const SAFE_DATABASE = (() => { try { return /_test$/.test(new URL(CONNECTION ?? "").pathname.slice(1)); } catch { return false; } })();
 const TOKEN = process.env.BONEYARD_CAPTURE_TOKEN;
 
 test.describe.configure({ mode: "serial", timeout: 150_000 });
-test.skip(!CONNECTION, "Needs DATABASE_URL or COCKROACHDB_URL.");
+test.skip(!CONNECTION || !ALLOW_MUTATIONS || !SAFE_DATABASE, "Requires USER_TEST_DATABASE_URL ending in _test and USER_TEST_ALLOW_MUTATIONS=1.");
+test.skip(true, "Legacy capture-auth Team mutation suite is retired; Users writes require real sessions. Do not enable until migrated.");
 test.skip(!TOKEN, "Needs BONEYARD_CAPTURE_TOKEN set on the dev server under test.");
 
 function pool() {
@@ -30,7 +34,7 @@ function pool() {
   return new pg.Pool({ connectionString: url.toString(), ssl: { rejectUnauthorized: true, ...(ca ? { ca } : {}) }, max: 2, connectionTimeoutMillis: 40_000 });
 }
 
-const db = pool();
+const db = CONNECTION && ALLOW_MUTATIONS && SAFE_DATABASE ? pool() : null!;
 const MARK = randomUUID().slice(0, 6);
 const OWNER = `t-owner-${MARK}`;
 const STAFF = `t-staff-${MARK}`;
@@ -41,7 +45,7 @@ test.beforeAll(async () => {
   /* The last-owner guard counts every active owner, so any others in this
      database are parked for the run and put back after. */
   otherOwners = (await db.query<{ id: string }>(`SELECT "id" FROM "user" WHERE "role" = 'owner' AND "deactivatedAt" IS NULL`)).rows.map((r) => r.id);
-  if (otherOwners.length) await db.query(`UPDATE "user" SET "deactivatedAt" = now(), "deactivatedBy" = 'team.spec' WHERE "id" = ANY($1::TEXT[])`, [otherOwners]);
+  if (otherOwners.length) throw new Error("Refusing test setup: dedicated test database has existing owners.");
   await db.query(`INSERT INTO "user" ("id", "name", "email", "emailVerified", "role") VALUES ($1, $2, $3, true, 'owner'), ($4, $5, $6, true, 'staff'), ($7, $8, $9, true, 'staff')`,
     [OWNER, `Owner ${MARK}`, `owner-${MARK}@example.com`, STAFF, `Staff ${MARK}`, `staff-${MARK}@example.com`, RENAME, `Rename ${MARK}`, `rename-${MARK}@example.com`]);
   await db.query(`INSERT INTO "session" ("id", "expiresAt", "token", "userId") VALUES ($1, now() + INTERVAL '1 day', $2, $3)`,
@@ -50,7 +54,7 @@ test.beforeAll(async () => {
 
 test.afterAll(async () => {
   await db.query(`DELETE FROM "user" WHERE "id" = ANY($1::TEXT[])`, [[OWNER, STAFF, RENAME]]);
-  if (otherOwners.length) await db.query(`UPDATE "user" SET "deactivatedAt" = NULL, "deactivatedBy" = NULL WHERE "id" = ANY($1::TEXT[])`, [otherOwners]);
+
   await db.end();
 });
 

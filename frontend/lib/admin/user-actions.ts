@@ -74,7 +74,7 @@ export async function retrySecurityNotice(_previous: ActionState, fd: FormData):
     await usersOwner("retry-security-notice");
     const id = String(fd.get("noticeId") ?? "");
     if (!/^[0-9a-f-]{36}$/i.test(id)) return FAIL({}, "That email notice could not be found.");
-    const queued = await db.query(`UPDATE user_security_notices SET state='queued',updated_at=now() WHERE id=$1 AND state IN ('queued','failed') RETURNING id`, [id]);
+    const queued = await db.query(`UPDATE user_security_notices SET state='queued',updated_at=now() WHERE id=$1 AND (state IN ('queued','failed') OR (state='sending' AND provider_started=false AND updated_at < now() - INTERVAL '10 minutes')) RETURNING id`, [id]);
     if (!queued.rowCount) return FAIL({}, "That email is accepted, sending or uncertain. Check Settings › Email before requesting another message.");
     after(() => sendSecurityNotice(id));
     revalidatePath("/admin/settings/users");
