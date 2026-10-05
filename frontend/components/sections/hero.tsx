@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { LogoGlyph } from "@/components/ui/logo-glyph";
 import LogoLoop from "@/components/ui/logo-loop";
 import { LOGOS } from "@/lib/logos";
@@ -84,6 +84,19 @@ function filled(t: number, c: (typeof CHAPTERS)[number]) {
 
 const clock = (t: number) => `0:${String(Math.min(FILM_LENGTH, Math.floor(t))).padStart(2, "0")}`;
 
+/** A visitor who asked for less motion (or less data) is not auto-played. Read
+    as an external store so the server and the first client render agree (not
+    calm), and only a real preference changes what the button shows. */
+const REDUCE = "(prefers-reduced-motion: reduce)";
+const subscribeCalm = (notify: () => void) => {
+  const mq = window.matchMedia(REDUCE);
+  mq.addEventListener("change", notify);
+  return () => mq.removeEventListener("change", notify);
+};
+const getCalm = () =>
+  window.matchMedia(REDUCE).matches ||
+  Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData);
+
 function useFilm(sectionRef: React.RefObject<HTMLElement | null>) {
   const videoRef = useRef<HTMLVideoElement>(null);
   /** Which cut is attached, or null before the film has been asked for. */
@@ -98,11 +111,24 @@ function useFilm(sectionRef: React.RefObject<HTMLElement | null>) {
   const [t, setT] = useState(FILM_START);
   const [playing, setPlaying] = useState(false);
   const [shown, setShown] = useState(false);
+  /* WHAT THE BUTTON SAYS. The film cannot start until it has been fetched, which
+     takes a moment, and the button used to show "Play" for all of it: the hero
+     looked paused on arrival. It now shows "Pause" from the first paint, because
+     the film is on its way, and says "Play" only when it has a reason to: the
+     visitor paused it, the browser refused to start it, or they asked for less
+     motion or data. */
+  const calm = useSyncExternalStore(subscribeCalm, getCalm, () => false);
+  const [refused, setRefused] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const playingUi = playing || (!calm && !refused && !paused);
 
   const play = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
-    v.play().catch(() => setPlaying(false));
+    v.play().catch(() => {
+      setPlaying(false);
+      setRefused(true);
+    });
   }, []);
 
   /** Attach the right cut if it is not attached yet, then play. Swapping cuts
@@ -142,14 +168,17 @@ function useFilm(sectionRef: React.RefObject<HTMLElement | null>) {
   const toggle = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
-    if (playing) {
+    if (playingUi) {
       wanted.current = false;
+      setPaused(true);
       v.pause();
     } else {
       wanted.current = true;
+      setPaused(false);
+      setRefused(false);
       start();
     }
-  }, [playing, start]);
+  }, [playingUi, start]);
 
   useEffect(() => {
     const v = videoRef.current;
@@ -168,6 +197,7 @@ function useFilm(sectionRef: React.RefObject<HTMLElement | null>) {
        page has finished loading and gone idle. */
     let armed = false;
     let idle = 0;
+    let fallback = 0;
     const begin = () => {
       armed = true;
       if (!wanted.current) return;
@@ -175,8 +205,22 @@ function useFilm(sectionRef: React.RefObject<HTMLElement | null>) {
       if (later) idle = later(() => visible.current && start());
       else idle = window.setTimeout(() => visible.current && start(), 300);
     };
-    if (document.readyState === "complete") begin();
-    else window.addEventListener("load", begin, { once: true });
+    /* NOT BEHIND A SLOW `load`. Waiting for the whole page meant the film began
+       only after every image on it had finished, which on a phone connection is
+       many seconds of a still hero. It starts at `load` or 2s after hydration,
+       whichever is first; either way it is after the poster (the LCP) is on
+       screen and the main thread is idle, so it is still off the critical path. */
+    let began = false;
+    const go = () => {
+      if (began) return;
+      began = true;
+      begin();
+    };
+    if (document.readyState === "complete") go();
+    else {
+      window.addEventListener("load", go, { once: true });
+      fallback = window.setTimeout(go, 2000);
+    }
 
     const settle = () => {
       if (!loaded.current) return;
@@ -217,7 +261,8 @@ function useFilm(sectionRef: React.RefObject<HTMLElement | null>) {
     orientation.addEventListener("change", reshape);
 
     return () => {
-      window.removeEventListener("load", begin);
+      window.removeEventListener("load", go);
+      window.clearTimeout(fallback);
       const cancel = (window as Window & { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback;
       if (cancel) cancel(idle);
       window.clearTimeout(idle);
@@ -245,6 +290,7 @@ function useFilm(sectionRef: React.RefObject<HTMLElement | null>) {
     },
     onPlaying: () => {
       setPlaying(true);
+      setRefused(false);
       setShown(true);
     },
     onPause: () => setPlaying(false),
@@ -256,7 +302,7 @@ function useFilm(sectionRef: React.RefObject<HTMLElement | null>) {
     },
   };
 
-  return { t, playing, shown, seek, toggle, videoProps };
+  return { t, playing: playingUi, shown, seek, toggle, videoProps };
 }
 
 function PlayToggle({ playing, onToggle }: { playing: boolean; onToggle: () => void }) {
