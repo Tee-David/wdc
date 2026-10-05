@@ -318,7 +318,27 @@ export default function PreviewBody({ faqs = FAQS }: { faqs?: Faq[] }) {
       on = true;
       update();
     };
+    /* ONLY WHILE THE SECTION IS NEAR. This ran on every scroll frame of the
+       whole page: a layout read (`getBoundingClientRect`) and a scroll write
+       (`scrollLeft`), thousands of pixels from the section, which on iOS WebKit
+       is exactly the kind of main-thread work that makes scrolling "catch".
+       An IntersectionObserver says when the section is within a screen of the
+       viewport; outside that, a scroll frame does nothing at all. */
+    let near = false;
+    const watch =
+      "IntersectionObserver" in window
+        ? new IntersectionObserver(
+            ([entry]) => {
+              const was = near;
+              near = entry.isIntersecting;
+              if (near && !was) update();
+            },
+            { rootMargin: "100% 0px 100% 0px" },
+          )
+        : null;
+    watch?.observe(wrap);
     const onScroll = () => {
+      if (watch && !near) return;
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(update);
     };
@@ -369,6 +389,7 @@ export default function PreviewBody({ faqs = FAQS }: { faqs?: Faq[] }) {
       cancelAnimationFrame(frame);
       stage.removeEventListener("scroll", publish);
       window.removeEventListener("scroll", onScroll);
+      watch?.disconnect();
       window.removeEventListener("resize", onResize);
       mq.removeEventListener("change", measure);
       stage.removeEventListener("pointerdown", onDown);
