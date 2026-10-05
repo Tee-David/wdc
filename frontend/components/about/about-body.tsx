@@ -5,6 +5,7 @@ import { SERVICES } from "@/lib/services";
 import { PROJECTS } from "@/lib/projects";
 import { LOGOS } from "@/lib/logos";
 import { caseHref } from "@/lib/work";
+import { testimonialFor } from "@/lib/testimonials";
 
 import "@/components/preview/preview.css";
 import "@/components/work/work.css";
@@ -40,11 +41,17 @@ const TEAM = [
   { name: "Social", role: "Calendars, community", i: "MessageCircle", note: "Runs the accounts day to day, not just the launch post." },
 ];
 
-/* The three stages a project moves through, and the services under each. */
-const STAGES = [
-  { t: "Brand", d: "What it says, and how it looks and sounds everywhere a customer meets it.", s: ["branding", "social"] },
-  { t: "Build", d: "The website, app or system that carries it, built to be fast and easy to keep updated.", s: ["web", "apps", "software"] },
-  { t: "Grow", d: "What happens after launch: being found, and turning attention into enquiries.", s: ["seo", "social"] },
+/* THE STORY, chapter by chapter, in the order it happened. The only date is
+   the one the owner gave (around 2016); nothing else is dated, counted or
+   named, so nothing here can go out of date or be wrong. */
+const CHAPTERS = [
+  { i: "Palette", t: "It began with a flyer", d: "Around 2016, with a laptop and a lot to learn, we started where most businesses start: a logo, a flyer, a poster. Small jobs, done with care. The people we did them for came back, and told others." },
+  { i: "Orbit", t: "A logo is not a brand", d: "We learned that fast. A brand is how a business looks, moves and sounds everywhere a customer meets it. So we added motion design and brand guides, so a brand stays itself in every hand it passes through.", cta: { l: "See the branding work", h: "/work/branding" } },
+  { i: "Layers", t: "Websites for everyone", d: "Many of our clients could not afford a custom-built website, and they should not have to go without one. So we built sites on management systems they could run themselves: affordable, easy to update, and properly made." },
+  { i: "Code", t: "Custom, when it matters", d: "Some businesses need something no template can do. For them we started building custom websites, to a professional standard, around exactly how they work.", cta: { l: "Browse the websites", h: "/work/web" } },
+  { i: "Phone", t: "Apps, then software", d: "Then clients wanted apps in people's hands, and systems to run the business behind them. We followed the problem, and learned to build software and AI that solves it instead of decorating it." },
+  { i: "Search", t: "Being seen", d: "A great brand nobody can find does not grow. So visibility became part of the job: search, content and ads that bring the right people to the work.", cta: { l: "See how we get you found", h: "/services/seo" } },
+  { i: "Users", t: "One team, all of it", d: "Today the same people who design the brand build what carries it and grow what comes after. You talk to one team, from the first sketch to the first hundred customers." },
 ] as const;
 
 const FIGURES = [
@@ -56,7 +63,8 @@ const FIGURES = [
 
 export default function AboutBody() {
   const proof = PROJECTS.filter((p) => p.cover).slice(0, 3);
-  const bySlug = (s: string) => SERVICES.find((x) => x.slug === s)!;
+  /* Their words, verbatim, from lib/testimonials.ts. Three that name no city. */
+  const quotes = ["dhiol-world", "the-ajoks-brand", "realtors-practice"].map((slug) => testimonialFor(slug)).filter((q): q is NonNullable<typeof q> => Boolean(q));
 
   return (
     <div className="pv ab">
@@ -67,39 +75,69 @@ export default function AboutBody() {
           <span className="pv-eyebrow">About</span>
           <h1 className="pv-mix">Brilliant simplicity <b>of thought</b></h1>
           <p className="pv-lede">
-            We are a creative and digital agency. We design the brand, build the
-            product and run the growth that follows, with the same team on all
-            three, so the work arrives as one thing rather than three handovers.
+            We help businesses grow their brand. We started with a logo and a
+            flyer, and we now design, build and grow everything a brand needs,
+            with one team, so the work arrives as one thing rather than many
+            handovers.
           </p>
         </div>
       </section>
 
-      {/* ---------------- the story ---------------- */}
-      <section className="pv-sec" aria-labelledby="ab-story">
+      {/* ---------------- the mission ---------------- */}
+      <section className="pv-sec" aria-labelledby="ab-mission">
         <div className="pv-wrap ab-story">
           <div>
-            <span className="pv-eyebrow">Our story</span>
-            <h2 id="ab-story" className="pv-mix">Most agencies hand you a logo and leave. We stay for the part where it has to <b>work</b>.</h2>
+            <span className="pv-eyebrow">Why we exist</span>
+            <h2 id="ab-mission" className="pv-mix">Most businesses do not know where to start growing their <b>brand.</b></h2>
           </div>
           <div className="ab-story__text">
             <p>
-              A brand that looks right but loads slowly, ranks nowhere and cannot be
-              updated by the people who own it is not finished. So we take the whole
-              path: what the brand says, how it is built, and what happens to it after
-              launch.
+              They guess. They hire one person for the logo, another for the website,
+              a third for the ads, and none of them talk to each other. The mistakes
+              add up, and the fault lines show: a brand that looks different in every
+              place, a site nobody can update, a lot of attention that goes nowhere.
             </p>
             <p>
-              That is why design, engineering and growth sit in one team. The person
-              who draws the page talks to the person who builds it, and both talk to
-              the person who will make it findable. You deal with one group of people,
-              and you see the work as it happens.
+              We know those mistakes because we made some of them ourselves, coming
+              up. And they still happen today, to businesses of every size. That is
+              why We Dig Creativity exists.
             </p>
+            <p className="ab-mission">
+              <b>Our mission</b>
+              To give every business, big or small, a brand that people understand,
+              trust, and keep coming back to.
+            </p>
+            <p className="ab-more ab-more--left"><Link href="/services">See what we do</Link></p>
           </div>
         </div>
       </section>
 
+      {/* ---------------- the story ---------------- */}
+      <section className="pv-sec pv-sec--alt" aria-labelledby="ab-story">
+        <div className="pv-wrap">
+          <div className="pv-head">
+            <span className="pv-eyebrow">Our story</span>
+            <h2 id="ab-story" className="pv-mix">From a single flyer to <b>everything a brand needs</b></h2>
+            <p className="pv-lede">We never planned the whole thing. We followed what our clients needed next, and learned each part properly before offering it.</p>
+          </div>
+          <ol className="ab-line">
+            {CHAPTERS.map((c, n) => (
+              <li key={c.t}>
+                <span className="ab-ic" aria-hidden="true"><ServiceIcon name={c.i} size={22} /></span>
+                <div>
+                  <span className="ab-line__k">Chapter {n + 1}</span>
+                  <h3>{c.t}</h3>
+                  <p>{c.d}</p>
+                  {"cta" in c && c.cta ? <p className="ab-more ab-more--left"><Link href={c.cta.h}>{c.cta.l}</Link></p> : null}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
       {/* ---------------- the figures ---------------- */}
-      <section className="pv-sec pv-sec--alt" aria-label="The studio in numbers">
+      <section className="pv-sec" aria-label="The studio in numbers">
         <div className="pv-wrap">
           <ul className="ab-figs">
             {FIGURES.map((f) => (
@@ -109,37 +147,13 @@ export default function AboutBody() {
         </div>
       </section>
 
-      {/* ---------------- how we work ---------------- */}
-      <section className="pv-sec" aria-labelledby="ab-how">
-        <div className="pv-wrap">
-          <div className="pv-head">
-            <span className="pv-eyebrow">How we work</span>
-            <h2 id="ab-how" className="pv-mix">One path, <b>three stages</b></h2>
-            <p className="pv-lede">Every project moves through the same three stages, with the same people. You can start at any one of them.</p>
-          </div>
-          <ol className="ab-stages">
-            {STAGES.map((st, n) => (
-              <li key={st.t}>
-                <span className="ab-stages__n" aria-hidden="true">{n + 1}</span>
-                <h3>{st.t}</h3>
-                <p>{st.d}</p>
-                <ul>
-                  {st.s.map((slug) => (
-                    <li key={slug}><Link href={`/services/${slug}`}>{bySlug(slug).name}</Link></li>
-                  ))}
-                </ul>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
       {/* ---------------- what we stand for ---------------- */}
       <section className="pv-sec pv-sec--alt" aria-labelledby="ab-values">
         <div className="pv-wrap">
           <div className="pv-head">
             <span className="pv-eyebrow">What we stand for</span>
-            <h2 id="ab-values" className="pv-mix">Six things we will <b>not trade away</b></h2>
+            <h2 id="ab-values" className="pv-mix">Made to be kept, <b>not abandoned</b></h2>
+            <p className="pv-lede">We care how people see your product and how well it works for them. Everything we make is meant to still be doing its job long after launch day.</p>
           </div>
           <ul className="ab-values">
             {BELIEFS.map((b) => (
@@ -175,13 +189,23 @@ export default function AboutBody() {
       </section>
 
       {/* ---------------- proof ---------------- */}
-      {proof.length ? (
-        <section className="pv-sec pv-sec--alt" aria-labelledby="ab-proof">
-          <div className="pv-wrap">
-            <div className="pv-head">
-              <span className="pv-eyebrow">The proof</span>
-              <h2 id="ab-proof" className="pv-mix">Work you can <b>open and check</b></h2>
-            </div>
+      <section className="pv-sec pv-sec--alt" aria-labelledby="ab-proof">
+        <div className="pv-wrap">
+          <div className="pv-head">
+            <span className="pv-eyebrow">The proof</span>
+            <h2 id="ab-proof" className="pv-mix">Do not take our word. <b>Open the work.</b></h2>
+            <p className="pv-lede">Reviews and feedback from clients built this studio, and the work speaks for itself. Every project below is live and can be opened.</p>
+          </div>
+          {quotes.length ? (
+            <ul className="ab-quotes">
+              {quotes.map((q) => (
+                <li key={q.client}>
+                  <blockquote><p>&ldquo;{q.text}&rdquo;</p><footer>{q.client}</footer></blockquote>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {proof.length ? (
             <ul className="ab-proof">
               {proof.map((p) => {
                 const href = caseHref(p.caseSlug) ?? "/work";
@@ -200,10 +224,15 @@ export default function AboutBody() {
                 );
               })}
             </ul>
-            <p className="ab-more"><Link href="/work">See all the work</Link></p>
+          ) : null}
+          <p className="ab-more"><Link href="/work">See all the work</Link></p>
+          <div className="ab-offer">
+            <h3>See it before you commit</h3>
+            <p>We are that sure of the work. Where it helps, we will show you a working sample, or test an idea with you first, so you judge the result and not the promise.</p>
+            <Link className="pv-btn pv-btn--accent" href="/start">Ask for a sample</Link>
           </div>
-        </section>
-      ) : null}
+        </div>
+      </section>
 
       {/* ---------------- the next step ---------------- */}
       <section className="pv-sec pv-sec--band ab-cta">

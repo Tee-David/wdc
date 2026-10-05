@@ -83,6 +83,17 @@
 - Verify that changed selectors and handlers match the rendered element and reproduce the intended interaction; source-only fixes are not evidence.
 - Report only measurements taken from the build and environment being described; re-measure contradictory results.
 
+### Ponytail (skill: github.com/dietrichgebert/ponytail)
+
+Lazy means efficient, not careless. Stop at the first rung that holds: does it need to exist (YAGNI)? already in this codebase? stdlib? native platform feature (CSS over JS, a DB constraint over app code)? an installed dependency? one line? only then the minimum code.
+
+- Read the task and the code it touches first and trace the real flow; the ladder shortens the solution, never the reading.
+- A bug fix is a root-cause fix: grep every caller before editing and fix it once, where they all route through.
+- No unrequested abstractions, scaffolding "for later", or config for a value that never changes. Deletion over addition; boring over clever.
+- Ship the simple version and say what was skipped and when to add it, in at most three lines. Mark a deliberate corner with a known ceiling `ponytail: <ceiling and upgrade path>`.
+- Never simplify away validation at trust boundaries, data-loss handling, security, accessibility, or anything explicitly requested.
+- Non-trivial logic leaves one runnable check behind, the smallest thing that fails if it breaks.
+
 ## Authenticated product UX
 
 - Keep admin and client navigation task-based and compact: no more than six primary pages, with infrequent controls under Settings. The one agreed exception is the admin's Blog page, a seventh, because posts are written weekly rather than configured once. Preserve the established Litch-style shell while adapting content to WDC workflows.
