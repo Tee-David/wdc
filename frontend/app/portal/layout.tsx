@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import SupportBanner from "@/components/client/support-banner";
+import { SupportReadOnly } from "@/components/client/support-context";
 import ClientShell from "@/components/client/shell";
 import AdminTourProvider from "@/components/admin/tour/tour-provider";
 import { getPortalRequest } from "@/lib/portal/session";
@@ -33,7 +35,8 @@ export const dynamic = "force-dynamic";
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   await syncStore();
   persistSoon();
-  const { session, client } = await getPortalRequest();
+  const { session, client, support, supportUnavailable } = await getPortalRequest();
+  if (supportUnavailable) return <div className="ad"><main className="ad__main"><SupportBanner /></main></div>;
 
   if (!session?.user) {
     const asked = (await headers()).get("x-wdc-path");
@@ -58,16 +61,15 @@ export default async function PortalLayout({ children }: { children: React.React
     );
   }
 
-  /* The same tour provider the admin mounts, over the portal's own registry.
-     Only a linked client gets it: the unlinked state above is one sentence
-     and has nothing to walk through. */
+  const shell = <ClientShell user={user} clientCompany={client.company}>
+    {support ? <SupportBanner name={support.name} expiresAt={support.expiresAt} /> : null}
+    {children}
+  </ClientShell>;
   return (
     <div className="ad">
-      <AdminTourProvider role="client" audience="client">
-        <ClientShell user={user} clientCompany={client.company}>
-          {children}
-        </ClientShell>
-      </AdminTourProvider>
+      <SupportReadOnly active={Boolean(support)}>
+        {support ? shell : <AdminTourProvider role="client" audience="client">{shell}</AdminTourProvider>}
+      </SupportReadOnly>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { SUPPORT_COOKIE, supportRequestAllowed } from "@/lib/users/support-policy";
 import { getSessionCookie } from "better-auth/cookies";
 import { isAdminCapture } from "@/lib/admin/capture";
 import { maintenance, maintenancePage, PASS_COOKIE, passValid, retryAfter } from "@/lib/maintenance";
@@ -10,6 +11,12 @@ import { maintenance, maintenancePage, PASS_COOKIE, passValid, retryAfter } from
  */
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
+  if (request.cookies.has(SUPPORT_COOKIE) && !supportRequestAllowed(path, request.method)) {
+    if ((request.method === "GET" || request.method === "HEAD") && !path.startsWith("/api/")) return NextResponse.redirect(new URL("/portal?notice=support-read-only", request.url), 303);
+    return NextResponse.json({ error: "Exit the read-only support view before making changes." }, { status: 403 });
+  }
+  // These routes remain available during maintenance; they now also pass the support guard.
+  if (/^\/(api(?:\/|$)|login(?:\/|$)|signed-in(?:\/|$)|forgot-password(?:\/|$)|reset-password(?:\/|$)|invite(?:\/|$)|pay(?:\/|$)|i(?:\/|$)|r(?:\/|$)|q(?:\/|$)|f(?:\/|$)|onboarding(?:\/|$)|unsubscribe(?:\/|$))/.test(path)) return NextResponse.next();
   if (path.startsWith("/admin") || path.startsWith("/portal")) {
     /* THE PATH ASKED FOR, handed to the layouts: a cookie that is present but
        expired passes here and is refused there, and the layout needs the
@@ -56,6 +63,7 @@ export const config = {
   matcher: [
     "/admin/:path*",
     "/portal/:path*",
-    "/((?!api/|_next/|admin|portal|login|signed-in|forgot-password|reset-password|invite/|pay/|i/|r/|q/|f/|onboarding|unsubscribe|.*\\..*).*)",
+    "/api/:path*",
+    "/((?!_next/|.*\\..*).*)",
   ],
 };

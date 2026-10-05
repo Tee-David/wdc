@@ -32,11 +32,13 @@ export function SideProfile({
   role,
   collapsed,
   onSignOut,
+  signOutLabel = "Sign out",
 }: {
   user: { name?: string | null; email?: string | null; image?: string | null };
   role: string;
   collapsed: boolean;
   onSignOut: () => void;
+  signOutLabel?: string;
 }) {
   return (
     <div className={`ad__me${collapsed ? " is-collapsed" : ""}`}>
@@ -52,7 +54,7 @@ export function SideProfile({
           <small>{role}{user.email ? ` · ${user.email}` : ""}</small>
         </span>
       ) : null}
-      <button type="button" className="ad__iconButton ad__meOut" onClick={onSignOut} aria-label="Sign out" title="Sign out">
+      <button type="button" className="ad__iconButton ad__meOut" onClick={onSignOut} aria-label={signOutLabel} title={signOutLabel}>
         <LogOut aria-hidden="true" />
       </button>
     </div>

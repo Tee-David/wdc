@@ -219,7 +219,8 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
   );
 }
 
-function DeliverableFiles({ files, button = false, compact = false }: { files: { name: string; key: string }[] | undefined; button?: boolean; compact?: boolean }) {
+async function DeliverableFiles({ files, button = false, compact = false }: { files: { name: string; key: string }[] | undefined; button?: boolean; compact?: boolean }) {
+  const { support } = await getPortalRequest();
   const links = deliverableFileLinks(files);
   if (!links.length) return null;
   return (
@@ -227,8 +228,8 @@ function DeliverableFiles({ files, button = false, compact = false }: { files: {
       {links.map((file) => (
         <span key={file.key} className="cpDeliv__file">
           <b>{file.name}</b>
-          {file.open ? <a className={button ? "ad__btn" : "cpDeliv__link"} href={file.open} target="_blank" rel="noopener noreferrer"><Eye aria-hidden="true" /> Open</a> : <span className="ad__dim">Unavailable</span>}
-          {file.download ? <a className={button ? "ad__btn" : "cpDeliv__link"} href={file.download}><Download aria-hidden="true" /> Download</a> : null}
+          {file.open && !support ? <a className={button ? "ad__btn" : "cpDeliv__link"} href={file.open} target="_blank" rel="noopener noreferrer"><Eye aria-hidden="true" /> Open</a> : <span className="ad__dim">Unavailable</span>}
+          {file.download && !support ? <a className={button ? "ad__btn" : "cpDeliv__link"} href={file.download}><Download aria-hidden="true" /> Download</a> : null}
         </span>
       ))}
     </span>

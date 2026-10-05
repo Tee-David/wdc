@@ -6,6 +6,7 @@ import {
 } from "react";
 import { useFormStatus } from "react-dom";
 import { AlertCircle, Check, Loader2 } from "lucide-react";
+import { useSupportReadOnly } from "@/components/client/support-context";
 import Tip from "@/components/onboarding/tip";
 import type { ActionState, Errors } from "@/lib/admin/validate";
 import { toast } from "./toast";
@@ -118,6 +119,7 @@ export function Form({
 }) {
   /* The action is wrapped rather than passed straight through, so the values
      come back on a failure without any action knowing about it. */
+  const supportReadOnly = useSupportReadOnly();
   const keep = useCallback(
     async (prev: ActionState, fd: FormData): Promise<ActionState> => {
       const res = await action(prev, fd);
@@ -190,7 +192,7 @@ export function Form({
           void ask(confirm).then((ok) => { if (ok) { form.dataset.asked = "1"; form.requestSubmit(submitter as HTMLButtonElement | null); } });
         } : undefined}
       >
-        {children}
+        {supportReadOnly ? <><p className="ad__dim">Read-only support view. Exit to make changes.</p><fieldset disabled className="pSupport__fields">{children}</fieldset></> : children}
         {state.message ? <Result state={state} /> : null}
         {/* Announced rather than only drawn, so a screen reader hears that
             something is happening instead of silence. */}

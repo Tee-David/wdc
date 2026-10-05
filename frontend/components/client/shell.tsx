@@ -1,5 +1,7 @@
 "use client";
 
+import { useSupportReadOnly } from "./support-context";
+import { SUPPORT_EXIT } from "@/lib/users/support-policy";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -49,6 +51,7 @@ function Sidebar({
   collapsed?: boolean; onTogglePin?: () => void; pinnedCollapsed?: boolean;
   clientCompany: string | null; user: PortalUser;
 }) {
+  const supportReadOnly = useSupportReadOnly();
   const path = usePathname();
   const router = useRouter();
 
@@ -99,8 +102,8 @@ function Sidebar({
       </div>
 
       <div className="ad__sideFoot">
-        <SideTourCard collapsed={collapsed} />
-        <SideProfile user={user} role={clientCompany ?? "Client"} collapsed={collapsed} onSignOut={() => signOut(router)} />
+        {!supportReadOnly ? <SideTourCard collapsed={collapsed} /> : null}
+        <SideProfile user={user} role={clientCompany ?? "Client"} collapsed={collapsed} signOutLabel={supportReadOnly ? "Exit support view" : "Sign out"} onSignOut={() => { if (supportReadOnly) { const form = document.createElement("form"); form.method = "post"; form.action = SUPPORT_EXIT; document.body.append(form); form.submit(); } else void signOut(router); }} />
       </div>
     </div>
   );
@@ -131,6 +134,7 @@ function ThemeButton() {
 }
 
 function AccountMenu({ user, clientCompany }: { user: PortalUser; clientCompany: string | null }) {
+  const supportReadOnly = useSupportReadOnly();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -175,8 +179,7 @@ function AccountMenu({ user, clientCompany }: { user: PortalUser; clientCompany:
             <b>{user.name || "Client"}</b>
             {user.email ? <span>{user.email}</span> : null}
           </div>
-          <Link href="/" role="menuitem" onClick={() => setOpen(false)}><Globe aria-hidden="true" /> Back to website</Link>
-          <button type="button" role="menuitem" onClick={() => signOut(router)}><LogOut aria-hidden="true" /> Sign out</button>
+          {supportReadOnly ? <form action={SUPPORT_EXIT} method="post"><button type="submit" role="menuitem"><LogOut aria-hidden="true" /> Exit support view</button></form> : <><Link href="/" role="menuitem" onClick={() => setOpen(false)}><Globe aria-hidden="true" /> Back to website</Link><button type="button" role="menuitem" onClick={() => signOut(router)}><LogOut aria-hidden="true" /> Sign out</button></>}
         </div>
       ) : null}
     </div>
@@ -186,6 +189,7 @@ function AccountMenu({ user, clientCompany }: { user: PortalUser; clientCompany:
 export default function ClientShell({
   children, user, clientCompany,
 }: { children: ReactNode; user: PortalUser; clientCompany: string | null }) {
+  const supportReadOnly = useSupportReadOnly();
   const path = usePathname();
   const [pinnedCollapsed, setPinnedCollapsed] = useState(false);
   const [hoverExpanded, setHoverExpanded] = useState(false);
@@ -233,7 +237,7 @@ export default function ClientShell({
               h1, and a second one here made two per page. */}
           <p className="ad__topTitle">{active?.label ?? "Portal"}</p>
           <div className="ad__topActions">
-            <TourLauncher />
+            {!supportReadOnly ? <TourLauncher /> : null}
             <ThemeButton />
             <span className="ad__topRule" aria-hidden="true" />
             <AccountMenu user={user} clientCompany={clientCompany} />

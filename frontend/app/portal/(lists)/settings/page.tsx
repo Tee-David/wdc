@@ -19,7 +19,7 @@ export const metadata = { title: "Settings" };
  * left, what we email them about and how they sign in on the right.
  */
 export default async function PortalSettings() {
-  const { client, session } = await getPortalRequest();
+  const { client, session, support } = await getPortalRequest();
   if (!client) return null;
   const userId = (session?.user as { id?: string } | undefined)?.id;
   const withPassword = await hasPassword(userId);
@@ -44,7 +44,7 @@ export default async function PortalSettings() {
             <NotifyForm client={client} />
           </Panel>
           <Panel title="Sign-in" dataTour="portal-signin">
-            <SignInCard email={session?.user?.email ?? client.email} hasPassword={withPassword} />
+            {support ? <p>Sign-in settings are private and cannot be changed in a support view.</p> : <SignInCard email={session?.user?.email ?? client.email} hasPassword={withPassword} />}
           </Panel>
         </div>
       </div>

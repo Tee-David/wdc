@@ -1,5 +1,6 @@
 import "server-only";
 
+import { resolveSupportView, supportCookiePresent } from "@/lib/users/support";
 import { cache } from "react";
 import { headers } from "next/headers";
 import { isAdminCapture } from "@/lib/admin/capture";
@@ -24,7 +25,8 @@ import type { Client } from "@/lib/admin/types";
 export const getPortalRequest = cache(async () => {
   const requestHeaders = await headers();
   const capture = isAdminCapture(requestHeaders);
-  if (capture) {
+  const scopedSupport = await supportCookiePresent();
+  if (capture && !scopedSupport) {
     /* Which seeded client to act as, for local testing -- `c1` (Tobi
        Adeyemi / Moore Designs) unless a specific id is asked for. Same
        env-gated, non-production-only mechanism `isAdminCapture` already
@@ -35,13 +37,23 @@ export const getPortalRequest = cache(async () => {
     const client = wantId === "none" ? null : getClient(wantId) ?? getClients()[0] ?? null;
     return {
       capture,
+      support: null,
+      supportUnavailable: false,
       session: { user: { name: client?.name ?? "Ngozi Eze", email: client?.email ?? "ngozi@example.com", image: null, role: "client" } },
       client,
     };
   }
 
   const { auth } = await import("@/lib/auth");
-  const session = await auth.api.getSession({ headers: requestHeaders });
+  const session = await auth.api.getSession({ headers: requestHeaders }).catch((error: unknown) => {
+    if (scopedSupport) return null;
+    throw error;
+  });
+  if (scopedSupport) {
+    const support = await resolveSupportView(session).catch(() => null);
+    if (!support || !session) return { capture, session: null, client: null, support: null, supportUnavailable: true };
+    return { capture, session: { ...session, user: { ...session.user, id: support.targetId, name: support.name, email: support.email, image: null, role: "client" } }, client: getClient(support.clientId)!, support, supportUnavailable: false };
+  }
   const email = session?.user?.email?.toLowerCase();
   /* A LIVE RECORD FIRST, then an archived one; and a record merged into
      another is followed to the one that was kept, because every project and
@@ -54,7 +66,7 @@ export const getPortalRequest = cache(async () => {
     if (!client.mergedInto) break;
   }
 
-  return { capture, session, client };
+  return { capture, session, client, support: null, supportUnavailable: false };
 });
 
 export type PortalClient = Client;
