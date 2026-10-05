@@ -105,4 +105,23 @@ test.describe("on a phone", () => {
       await expect(page.locator(".sm-panel").getByRole("link", { name: `Go to ${name}` })).toBeVisible();
     }
   });
+
+  test("the panel is the whole screen even when the header bar is glass", async ({ page }) => {
+    await skipIntro(page);
+    await page.goto("/contact", { waitUntil: "load" });
+    await page.evaluate(() => window.scrollTo(0, 900));
+    /* The glass bar's backdrop-filter used to become the containing block for
+       the fixed panel, leaving a gap at the top and the panel inset. */
+    await expect(page.locator(".hd-bar.is-glass")).toHaveCount(1);
+    await page.getByRole("button", { name: "Open menu" }).click();
+    await expect(page.locator(".sm-panel")).toHaveAttribute("data-open", "true");
+    await page.waitForTimeout(1200);
+    const box = await page.locator(".sm-panel").boundingBox();
+    const vp = page.viewportSize()!;
+    expect(box).not.toBeNull();
+    expect(Math.round(box!.x)).toBe(0);
+    expect(Math.round(box!.y)).toBe(0);
+    expect(Math.round(box!.width)).toBe(vp.width);
+    expect(Math.round(box!.height)).toBe(vp.height);
+  });
 });

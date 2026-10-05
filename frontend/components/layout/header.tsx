@@ -167,7 +167,7 @@ export function Header({
           Nav lives entirely inside the staggered menu; the theme toggler
           rides in the menu footer. The header itself is click-through so the
           margins around the pill never swallow a tap meant for the page. */}
-      <div className={`hd-bar pointer-events-auto mx-auto flex items-center justify-between ${solid ? "is-glass" : ""}`}>
+      <div className={`hd-bar pointer-events-auto mx-auto flex items-center justify-between ${solid ? "is-glass" : ""} ${menuOpen ? "is-menu-open" : ""}`}>
         {logoSwap}
 
         <div className="flex items-center gap-2 md:gap-3">
