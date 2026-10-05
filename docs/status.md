@@ -22,3 +22,12 @@ The owner requested a clearer, complete Users workflow. The [Users and Roles pro
 - Older payment, invitation, dashboard and email plans mixed implementation and proposals. Check current modules and targeted tests before reviving a requirement. Their retirement is not a new production acceptance claim.
 
 Update this ledger as work ships, and retire temporary artifacts only after their work is complete. Production schema changes remain owner-managed through Settings › System.
+
+
+## Support access checkpoint
+
+Scoped read-only client support code is integrated into main: persisted actor/session/target validation, 15-minute expiry, server mutation/download guards, disabled shared forms/payment controls and a persistent Exit banner. Targeted lint, TypeScript and route/scope checks passed in the isolated feature branch; the route/scope checks passed again after integration. Migration0034 remains owner-applied through Settings > System. Production database lifecycle checks, integrated Users controls and responsive authenticated visual review remain pending.
+
+## Onboarding planning
+
+The owner confirmed the scope. Two agents are mapping the existing onboarding flows and service-specific experience separately, including branding colour preferences and visual explanations, simpler service selection, client activation/profile setup, terminology and the start-over cursor issue. Their proposals will be reconciled for review before onboarding implementation.
