@@ -95,6 +95,7 @@ All of these live in `frontend/components/admin/`. The public site has its own o
 | A date and a time | `DateTimeInput` | Quarter hours; posts `YYYY-MM-DDTHH:MM`. |
 | A date range filter | `DateRange` (`date-range.tsx`) | Presets first, then a custom pair of calendars. |
 | A form | `Form`, `Field`, `Select`, `Radios`, `Checks`, `Submit` (`form.tsx`) | Hints go under the input. A failed submit keeps what was typed. The toast is raised as the action answers. |
+| A read-only client support view | `SupportBanner`, `SupportReadOnly`, `ClientSupportButton` (`components/client/`) | Owner-only, reason-required and limited to 15 minutes. The original owner session stays intact. Shared forms and payment controls explain their disabled state; server guards enforce it. The persistent banner offers Exit, including when the view expires or cannot be verified. |
 | A one-time code | Six boxes over one input (`components/account/password-change.tsx`) | Paste and autofill work. The sixth digit submits. A refusal shakes the boxes. |
 | A file from the library | `MediaPicker` (`media-picker.tsx`) | Search, folder, grid; a picture's description is asked for there and saved back to the file. Used by the blog cover and the editor's Picture and Video panels. |
 | Files uploaded in an admin form | `FileDrop` (`file-drop.tsx`) | The standard dashed WDC dropzone: one real native input across the whole panel for click, keyboard and drag-and-drop. The owning form keeps its own type, count and storage rules. |
