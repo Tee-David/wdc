@@ -41,7 +41,7 @@
   --ad-r: 18px;
   /* A second surface for table heads, footers and quiet cards. */
   --ad-panel-2: #f7f8fb;
-  /* Two depths, from dashboard-mockups/: resting cards, then anything that
+  /* Two depths, in the shared admin design: resting cards, then anything that
      floats (menus, dialogs, sheets). */
   --ad-sh-1: 0 1px 2px rgb(14 14 44 / .04), 0 2px 8px rgb(14 14 44 / .04);
   --ad-sh-3: 0 8px 16px rgb(14 14 44 / .08), 0 32px 64px rgb(14 14 44 / .16);
@@ -65,7 +65,7 @@
      every surface and fades to nothing in dark mode. Each tone is one solid
      fill with the label colour that clears WCAG AA on it: white on the dark
      fills, black on the light ones. Warn and live are the deeper amber and
-     orange from dashboard-mockups/ so every coloured tag carries white. */
+     orange in the shared admin design so every coloured tag carries white. */
   --ad-tone-neutral: #5c5c7a;  --ad-on-neutral: #fff;   /* 6.3:1 */
   --ad-tone-good: #15803d;     --ad-on-good: #fff;      /* 5.0:1 */
   --ad-tone-warn: #a16207;     --ad-on-warn: #fff;      /* 5.0:1 */
@@ -128,7 +128,7 @@
 
 /* ------------------------------------------------------------------ shell */
 
-/* THE SHELL FROM dashboard-mockups/ (Sidebar, Topbar, MTop, MTabs).
+/* THE SHARED ADMIN SHELL (sidebar and topbar).
    Desktop: a sidebar whose menu scrolls under the brand while the tour card
    and the person signed in stay pinned to its foot, and a top bar that is
    search first, then the controls. Phone: no sidebar and no drawer; a
