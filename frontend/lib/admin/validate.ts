@@ -25,6 +25,8 @@ export type Errors = Record<string, string>;
 
 export type ActionState = {
   ok: boolean;
+  /** A reviewed bulk result; shared BulkBar presents these in a bounded dialog. */
+  outcomes?: { id: string; label: string; ok: boolean; message: string }[];
   /** Said back to the person, in their words rather than the system's. */
   message?: string;
   errors?: Errors;
