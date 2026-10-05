@@ -280,7 +280,7 @@ export default function FilmStripMenu({
       if (e.key === "ArrowRight" || e.key === "ArrowLeft" || e.key === "Home" || e.key === "End") {
         if (leaving || busy.current) return;
         e.preventDefault();
-        goTo(e.key === "Home" ? 0 : e.key === "End" ? last : idx + (e.key === "ArrowRight" ? 1 : -1), true);
+        goTo(e.key === "Home" ? 0 : e.key === "End" ? last : e.key === "ArrowRight" && idx === last ? 0 : idx + (e.key === "ArrowRight" ? 1 : -1), true);
         return;
       }
       if (e.key !== "Tab") return;
@@ -490,6 +490,16 @@ export default function FilmStripMenu({
           </div>
         </div>
       </div>
+
+      {/* TWO QUIET ARROWS for anyone who does not know the reel can be dragged.
+          Previous is hidden on the first page; Next is always there and goes
+          round from the last page back to the first, because it is a film. */}
+      <button type="button" className={`fm-arrow fm-arrow--prev${idx === 0 ? " is-off" : ""}`} aria-label="Previous page" tabIndex={idx === 0 ? -1 : undefined} aria-hidden={idx === 0 || undefined} onClick={() => goTo(idx - 1)}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7" /></svg>
+      </button>
+      <button type="button" className="fm-arrow fm-arrow--next" aria-label={idx === last ? "Back to the first page" : "Next page"} onClick={() => goTo(idx === last ? 0 : idx + 1)}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
+      </button>
 
       <div className="fm-foot">
         <div className="fm-foot-l">

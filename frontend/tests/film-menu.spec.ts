@@ -60,6 +60,26 @@ test.describe("on a desktop", () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 
+  test("the arrows step the reel, Previous hides on the first page, Next goes round", async ({ page }) => {
+    await skipIntro(page);
+    await page.goto("/", { waitUntil: "load" });
+    await page.getByRole("button", { name: "Open menu" }).click();
+    const title = page.locator(".fm-frame.is-centre .fm-title");
+    const prev = page.locator(".fm-arrow--prev");
+    const next = page.locator(".fm-arrow--next");
+    await expect(title).toHaveText("Home");
+    await expect(prev).toBeHidden();
+    await next.click();
+    await expect(title).toHaveText("Our Works");
+    await expect(prev).toBeVisible();
+    await prev.click();
+    await expect(title).toHaveText("Home");
+    await page.keyboard.press("End");
+    await expect(title).toHaveText("Contact Us");
+    await next.click();
+    await expect(title).toHaveText("Home");
+  });
+
   test("the wheel steps the reel and the page behind does not scroll", async ({ page }) => {
     await skipIntro(page);
     await page.goto("/", { waitUntil: "load" });
