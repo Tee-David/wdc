@@ -30,6 +30,21 @@ const NAV = [
 ];
 
 /**
+ * The desktop menu is a film strip of these pages, each with a picture of the
+ * page itself (public/menu/, made by scripts/menu-previews.mjs) and its own
+ * headline as the line under the title. Same six destinations as NAV, in the
+ * same order; phones use NAV in the panel and never load any of this.
+ */
+const FILM_PAGES = [
+  { label: "Home", link: "/", desc: "We do it all. Yes, really.", preview: "/menu/preview-home.jpg" },
+  { label: "Our Works", link: "/work", desc: "Work, by what it took to make", preview: "/menu/preview-work.jpg" },
+  { label: "Services", link: "/services", desc: "Six services, one team", preview: "/menu/preview-services.jpg" },
+  { label: "Blog", link: "/blog", desc: "Plain-spoken advice", preview: "/menu/preview-blog.jpg" },
+  { label: "About Us", link: "/about", desc: "Brilliant simplicity of thought", preview: "/menu/preview-about.jpg" },
+  { label: "Contact Us", link: "/contact", desc: "How can we help you today?", preview: "/menu/preview-contact.jpg" },
+];
+
+/**
  * Fixed header. Transparent over the hero; once scrolled it gains a
  * theme surface + border and the full logo swaps to the mark only.
  *
@@ -61,10 +76,13 @@ export function Header({
 }: { overHero?: boolean; markOnlyOnPhones?: boolean } = {}) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  /* The desktop film strip is open: a dark layer under the bar, so the bar
+     dresses as it does over a dark hero whatever the page behind it is. */
+  const [filmOpen, setFilmOpen] = useState(false);
   const user = useSiteUser();
   /* Solid whenever the bar is not floating over a dark hero, so a page with
      light paper at the top gets its surface from the first pixel. */
-  const solid = scrolled || !overHero;
+  const solid = !filmOpen && (scrolled || !overHero);
   /* Phones over the homepage film: the mark, the menu, nothing else. */
   const quiet = markOnlyOnPhones && !solid;
 
@@ -144,7 +162,7 @@ export function Header({
      and replaced by a solid fill for anyone who asks for reduced
      transparency. See `.hd-bar` in globals.css. */
   return (
-    <header className="pointer-events-none fixed inset-x-0 top-0 z-50">
+    <header className={`pointer-events-none fixed inset-x-0 top-0 ${filmOpen ? "z-[130]" : "z-50"}`}>
       {/* Single bar at every breakpoint: logo left, CTA + hamburger right.
           Nav lives entirely inside the staggered menu; the theme toggler
           rides in the menu footer. The header itself is click-through so the
@@ -221,6 +239,13 @@ export function Header({
                 : [{ label: "Log in", link: "/login", ariaLabel: "Log in to your account" }]),
             ]}
             accountSlot={user ? <MenuAccount user={user} /> : null}
+            film={{
+              pages: FILM_PAGES,
+              extra: user
+                ? { label: "Dashboard", link: "/signed-in", ariaLabel: "Open your dashboard" }
+                : { label: "Log in", link: "/login", ariaLabel: "Log in to your account" },
+            }}
+            onFilmChange={setFilmOpen}
             onMenuOpen={() => setMenuOpen(true)}
             onMenuClose={() => setMenuOpen(false)}
             /* TWO REAL BUTTONS, not a disc with a caption floating beside it.

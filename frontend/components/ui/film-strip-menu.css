@@ -1,0 +1,228 @@
+/* THE DESKTOP MENU: A FILM STRIP (components/ui/film-strip-menu.tsx).
+
+   Ported from the approved concept ("04 Film Strip", WDC Menu Concepts canvas)
+   with its container-query units turned into viewport units, because here the
+   container is the window. Phones keep the staggered panel, so nothing below
+   is written for a narrow screen: the component is only mounted from 768px up.
+
+   EVERYTHING THAT MOVES IS transform OR opacity. The strip, the sprocket
+   holes and the frames are positioned by custom properties the component
+   writes (`--d`, `--s`, `--o`, ...) and animated with transitions on those
+   transforms; the one thing that reads layout is the zoom on choosing, and it
+   reads it once. */
+
+.fm {
+  --ink: #050627;
+  position: fixed;
+  inset: 0;
+  /* Over the floating buttons (110-112: accessibility, back-to-top, the chat
+     launcher), which would otherwise sit on the foot; under the offline bar
+     (120). The header is lifted to 130 while this is open, so the bar, its
+     CTA and the X stay on top and clickable. */
+  z-index: 115;
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
+  overflow: hidden;
+  color: #fff;
+  font-family: var(--font-body, system-ui, sans-serif);
+  touch-action: none; /* the strip takes every gesture; the page behind must not scroll */
+  overscroll-behavior: contain;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+.fm.is-open {
+  visibility: visible;
+  pointer-events: auto;
+  opacity: 1;
+  transition-delay: 0s;
+}
+.fm :focus-visible { outline: 2px solid #fff; outline-offset: 3px; border-radius: 8px; }
+
+.fm-scrim { position: absolute; inset: 0; background: var(--ink); opacity: 1; transition: opacity 0.3s ease; }
+.fm.is-done .fm-scrim { opacity: 0; }
+
+.fm-stage { position: absolute; left: 0; right: 0; top: 0; bottom: var(--bh); cursor: grab; }
+.fm-stage.is-drag { cursor: grabbing; }
+.fm-reel { position: absolute; inset: 0; }
+.fm.is-open .fm-reel { animation: fm-flick 0.9s linear both; }
+@keyframes fm-flick {
+  0% { opacity: 0 } 9% { opacity: 0 } 9.1% { opacity: 0.85 } 15% { opacity: 0.85 } 15.1% { opacity: 0.25 } 22% { opacity: 0.25 }
+  22.1% { opacity: 1 } 30% { opacity: 1 } 30.1% { opacity: 0.55 } 36% { opacity: 0.55 } 36.1% { opacity: 1 } 52% { opacity: 1 }
+  52.1% { opacity: 0.78 } 57% { opacity: 0.78 } 57.1% { opacity: 1 } 100% { opacity: 1 }
+}
+
+/* The film base and its sprocket holes. */
+.fm-band { position: absolute; left: 0; right: 0; top: var(--bt); height: calc(var(--fh) + var(--sp) * 2); background: #0b0b12; border-block: 1px solid #2b2c5c; overflow: hidden; }
+.fm-holes-slide { position: absolute; inset: 0; }
+.fm.is-open .fm-holes-slide { animation: fm-slide 1s cubic-bezier(0.2, 0.8, 0.2, 1) both; --from: 52vw; }
+.fm-holes {
+  position: absolute; left: calc(var(--hpad) * -1); width: var(--hw); height: 10px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='10'%3E%3Crect x='7' y='0' width='14' height='10' rx='3' fill='%238e90c0'/%3E%3C/svg%3E") repeat-x 0 0 / 28px 10px;
+  transform: translate3d(var(--hx), 0, 0);
+  transition: transform 0.6s cubic-bezier(0.3, 1.25, 0.5, 1);
+}
+.fm-holes--t { top: calc((var(--sp) - 10px) / 2); }
+.fm-holes--b { bottom: calc((var(--sp) - 10px) / 2); }
+.is-drag .fm-holes, .is-snap .fm-holes { transition: none; }
+@keyframes fm-slide { from { transform: translate3d(var(--from, 52vw), 0, 0); } to { transform: translate3d(0, 0, 0); } }
+
+.fm-glow {
+  position: absolute; left: 50%; top: calc(var(--bt) + var(--sp) + var(--fh) / 2);
+  width: calc(var(--fw) * 2.4); height: calc(var(--fh) * 1.5);
+  margin: calc(var(--fh) * -0.75) 0 0 calc(var(--fw) * -1.2);
+  background: radial-gradient(closest-side, rgba(201, 202, 230, 0.22), rgba(201, 202, 230, 0));
+  animation: fm-breathe 4.5s ease-in-out infinite; pointer-events: none;
+}
+@keyframes fm-breathe { 0%, 100% { opacity: 0.55 } 50% { opacity: 1 } }
+
+.fm-track { position: absolute; left: 0; right: 0; top: calc(var(--bt) + var(--sp)); }
+.fm.is-open .fm-track { animation: fm-slide 1s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+/* A frame: the page's picture and its caption. */
+.fm-frame {
+  position: absolute; left: 50%; top: 0; width: var(--fw); height: var(--fh); margin-left: calc(var(--fw) / -2);
+  display: block; color: inherit; text-decoration: none; outline: none;
+  transform: translate3d(calc(var(--d) * var(--pitch)), 0, 0);
+  transition: transform 0.6s cubic-bezier(0.3, 1.25, 0.5, 1);
+  -webkit-user-drag: none;
+}
+.is-drag .fm-frame, .is-snap .fm-frame { transition: none; }
+.fm-frame:focus-visible .fm-pic { outline: 2px solid #fff; outline-offset: 5px; border-radius: 6px; }
+.fm-pic { position: absolute; inset: 0; display: block; transform: scale(var(--s)); opacity: var(--o); transition: opacity 0.25s ease, transform 0.6s cubic-bezier(0.3, 1.25, 0.5, 1); }
+.is-drag .fm-pic, .is-snap .fm-pic { transition: opacity 0.1s linear; }
+.fm-lift { position: absolute; inset: 0; display: block; border-radius: 4px; background: #14153a; box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45); transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4); }
+.fm-img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 4px; object-fit: cover; object-position: 50% 0; display: block; -webkit-user-drag: none; pointer-events: none; }
+.fm-frame:not(.is-centre):hover .fm-lift { transform: translateY(-12px); }
+.fm-frame:not(.is-centre):hover .fm-pic { opacity: 0.82; }
+.fm-frame:active .fm-lift { transform: scale(0.985); }
+.fm-frame.is-centre:hover .fm-lift { box-shadow: 0 0 0 2px #ff6500, 0 14px 30px rgba(0, 0, 0, 0.45); }
+
+/* The timecode on the frame in the gate: orange TEXT on navy (never a fill). */
+.fm-tc {
+  z-index: 2; position: absolute; left: 10px; top: -13px; display: block; padding: 3px 7px 2px; border-radius: 4px;
+  border: 1px solid #2b2c5c; background: var(--ink); color: #ff6500; font-weight: 600; font-size: 12px; letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums; opacity: var(--tc);
+}
+.fm-play {
+  position: absolute; right: 8px; bottom: 8px; width: 36px; height: 36px; border-radius: 50%; background: #fff; color: #0b0b12;
+  display: flex; align-items: center; justify-content: center; opacity: var(--tc); transform: scale(0.9);
+  transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.5);
+}
+.fm-frame.is-centre:hover .fm-play, .fm-frame:focus-visible .fm-play { transform: scale(1.12); }
+.fm-play svg { margin-left: 2px; }
+
+.fm-cap {
+  position: absolute; left: 50%; top: calc(var(--fh) + var(--sp) + 16px); width: max(var(--fw), 176px); margin-left: calc(max(var(--fw), 176px) / -2);
+  display: block; text-align: center; transform: scale(var(--s)); transform-origin: 50% 0; opacity: var(--co);
+  transition: opacity 0.25s ease, transform 0.6s cubic-bezier(0.3, 1.25, 0.5, 1);
+}
+.is-drag .fm-cap, .is-snap .fm-cap { transition: opacity 0.1s linear; }
+.fm-title { display: block; font-family: var(--font-heading, var(--font-space-grotesk), sans-serif); font-weight: 600; font-size: 26px; line-height: 1.1; color: #fff; }
+.fm-desc { display: block; margin-top: 5px; font-size: 15px; line-height: 1.3; color: #c9cae6; }
+/* "You are here": white label on the deep orange fill, as every orange chip with words on this site. */
+.fm-here {
+  display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; padding: 3px 9px 3px 8px; border-radius: 999px;
+  background: #b84a00; color: #fff; font-size: 12px; font-weight: 600; letter-spacing: 0.02em; opacity: 0; transform: translateY(4px);
+}
+.fm-frame.is-cur.is-centre .fm-here { opacity: 1; transform: none; transition: opacity 0.3s 0.15s, transform 0.3s 0.15s; }
+.fm-here i { width: 6px; height: 6px; border-radius: 50%; background: #fff; }
+
+/* The gate: corner marks round the frame in the light, and an old-film scratch now and then. */
+.fm-gate { position: absolute; left: 50%; top: calc(var(--bt) + var(--sp)); width: var(--fw); height: var(--fh); margin-left: calc(var(--fw) / -2); pointer-events: none; }
+.fm-ring {
+  position: absolute; inset: -9px; opacity: 0.95; --c: #ff6500;
+  background:
+    linear-gradient(var(--c), var(--c)) 0 0 / 16px 2px, linear-gradient(var(--c), var(--c)) 0 0 / 2px 16px,
+    linear-gradient(var(--c), var(--c)) 100% 0 / 16px 2px, linear-gradient(var(--c), var(--c)) 100% 0 / 2px 16px,
+    linear-gradient(var(--c), var(--c)) 0 100% / 16px 2px, linear-gradient(var(--c), var(--c)) 0 100% / 2px 16px,
+    linear-gradient(var(--c), var(--c)) 100% 100% / 16px 2px, linear-gradient(var(--c), var(--c)) 100% 100% / 2px 16px;
+  background-repeat: no-repeat; animation: fm-ring 3.2s ease-in-out infinite;
+}
+@keyframes fm-ring { 0%, 100% { transform: scale(1) } 50% { transform: scale(1.025) } }
+.fm-scratch { position: absolute; top: -6px; bottom: -6px; left: 0; width: 1px; background: #fff; opacity: 0; animation: fm-scratch 7s steps(14, end) infinite 2s; }
+@keyframes fm-scratch { 0% { transform: translateX(12%); opacity: 0 } 2% { opacity: 0.35 } 12% { transform: translateX(70%); opacity: 0.3 } 14%, 100% { transform: translateX(88%); opacity: 0 } }
+
+/* The foot: where you are in the reel on the left, the account tools on the right. */
+.fm-foot {
+  position: absolute; left: 0; right: 0; bottom: 0; height: var(--bh);
+  padding: 0 max(20px, calc((100vw - 1280px) / 2 + 20px)) 28px;
+  display: flex; flex-direction: row; align-items: flex-end; justify-content: space-between; gap: 24px;
+}
+.fm-foot-l { width: min(560px, 60%); display: flex; flex-direction: column; gap: 6px; }
+.fm-meta { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; min-width: 0; }
+.fm-count { white-space: nowrap; display: inline-flex; align-items: baseline; gap: 6px; font-family: var(--font-heading, var(--font-space-grotesk), sans-serif); font-weight: 600; font-size: 15px; color: #fff; font-variant-numeric: tabular-nums; }
+.fm-roll { display: inline-block; height: 1.3em; overflow: hidden; line-height: 1.3em; vertical-align: top; }
+.fm-roll-in { display: flex; flex-direction: column; transform: translate3d(0, calc(var(--i) * -1.3em), 0); transition: transform 0.5s cubic-bezier(0.3, 1.3, 0.5, 1); }
+.fm-roll-in b { font-weight: 600; display: block; height: 1.3em; }
+.fm-of { color: #c9cae6; font-weight: 500; }
+.fm-hint { font-size: 13px; color: #c9cae6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; transition: opacity 0.4s ease; }
+.fm-hint.is-gone { opacity: 0; }
+.fm-pager { display: flex; gap: 10px; }
+.fm-bar { flex: 1; min-width: 0; min-height: 44px; display: flex; flex-direction: column; justify-content: center; align-items: stretch; gap: 6px; }
+.fm-bar-track { display: block; height: 4px; border-radius: 4px; background: #4e5099; overflow: hidden; position: relative; }
+.fm-bar-fill { position: absolute; inset: 0; border-radius: 4px; background: #8e90c0; transform: scaleX(0); transform-origin: 0 50%; transition: transform 0.5s cubic-bezier(0.3, 0.9, 0.3, 1), background-color 0.3s; }
+.fm-bar.is-past .fm-bar-fill { transform: scaleX(1); }
+.fm-bar.is-on .fm-bar-fill { transform: scaleX(1); background: #fff; }
+.fm-bar:hover .fm-bar-track { background: #6b6db0; }
+.fm-bar:active .fm-bar-track { transform: scaleY(1.5); }
+.fm-bar-name { display: block; font-size: 12px; font-weight: 500; color: #c9cae6; text-align: left; white-space: nowrap; }
+.fm-bar.is-on .fm-bar-name { color: #fff; font-weight: 600; }
+
+.fm-acts { display: flex; align-items: center; gap: 8px; }
+/* The site's black/white pair on a dark ground: the secondary is black with a white label and a white edge, and the two trade places on hover. */
+.fm-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 52px; padding: 0 22px; border-radius: 999px;
+  border: 1.5px solid #fff; background: #0b0b12; color: #fff; text-decoration: none; font-family: var(--font-heading, var(--font-space-grotesk), sans-serif);
+  font-weight: 600; font-size: 16px; white-space: nowrap; transition: background-color 0.2s, color 0.2s, transform 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+.fm-btn:hover { background: #fff; color: #0b0b12; }
+.fm-btn:active { transform: scale(0.96); }
+.fm-tools { display: flex; align-items: center; gap: 8px; }
+/* The theme switch and the accessibility button are written for the panel
+   (.sm-footer). Here they take the same black/white pair as Log in: black with
+   a white label and a white edge, trading places on hover. */
+.fm-tools .tsb, .fm-tools .uw {
+  min-height: 52px; padding: 0 1.2rem 0 .85rem; border-radius: 999px; border: 1.5px solid #fff;
+  background: #0b0b12; color: #fff; font-size: 15px;
+}
+.fm-tools .uw { padding-left: 1rem; }
+.fm-tools .tsb:hover, .fm-tools .uw:hover { background: #fff; border-color: #fff; color: #0b0b12; }
+.fm-tools .tsb:hover .tsb__ic { background: #0b0b12; color: #fff; }
+.fm-account { display: flex; align-items: center; }
+
+/* Leaving: the frame in the gate zooms to fill the screen and everything else lets go. */
+.is-leaving .fm-band, .is-leaving .fm-gate, .is-leaving .fm-glow, .is-leaving .fm-foot { opacity: 0; transition: opacity 0.3s ease; }
+.is-leaving .fm-frame:not(.is-centre) { opacity: 0; transition: opacity 0.3s ease, transform 0.6s; }
+.is-leaving .fm-frame.is-centre { z-index: 20 !important; }
+.is-leaving .fm-frame.is-centre .fm-pic { transform: translate3d(var(--zx), var(--zy), 0) scale(var(--zs)); opacity: 1; transition: transform 0.68s cubic-bezier(0.7, 0, 0.2, 1); }
+.is-leaving .fm-frame.is-centre .fm-cap, .is-leaving .fm-frame.is-centre .fm-tc, .is-leaving .fm-frame.is-centre .fm-play { opacity: 0; transition: opacity 0.2s; }
+.is-leaving .fm-frame.is-centre .fm-lift { box-shadow: none; }
+.is-leaving .fm-frame:focus-visible .fm-pic { outline: none; }
+.is-done .fm-frame.is-centre .fm-pic { opacity: 0 !important; transition: opacity 0.28s ease; }
+
+.fm-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* A narrower window (a tablet): the theme switch and the accessibility button
+   become 52px icon buttons (their labels stay for screen readers), the foot's
+   left side takes what is left, and the hint goes. */
+@media (max-width: 1100px) {
+  .fm-foot { gap: 16px; }
+  .fm-foot-l { width: auto; flex: 1 1 0; min-width: 0; }
+  .fm-hint { display: none; }
+  .fm-tools .tsb, .fm-tools .uw { width: 52px; padding: 0; justify-content: center; }
+  .fm-tools .tsb > span:not(.tsb__ic), .fm-tools .uw__t { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+
+/* A short window: the foot gives up its hint line and the captions tighten. */
+@media (max-height: 640px) {
+  .fm-meta { display: none; }
+  .fm-title { font-size: 21px; }
+  .fm-desc { font-size: 13.5px; margin-top: 3px; }
+  .fm-here { margin-bottom: 5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fm, .fm *, .fm *::before, .fm *::after { animation: none !important; transition-duration: 0.01ms !important; transition-delay: 0s !important; }
+}
