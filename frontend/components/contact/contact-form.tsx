@@ -161,7 +161,7 @@ export function ContactForm() {
       </div>
 
       <div className="ct-f">
-        <label htmlFor="ct-email">Work email <b aria-hidden="true">*</b></label>
+        <label htmlFor="ct-email">Your email <b aria-hidden="true">*</b></label>
         <input id="ct-email" name="email" type="email" autoComplete="email"
                placeholder="you@business.com" required />
       </div>
