@@ -1,11 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import ServiceIcon from "@/components/ui/service-icon";
-import { SERVICES } from "@/lib/services";
 import { PROJECTS } from "@/lib/projects";
-import { LOGOS } from "@/lib/logos";
 import { caseHref } from "@/lib/work";
-import { testimonialFor } from "@/lib/testimonials";
+import { TESTIMONIALS } from "@/lib/testimonials";
+import { CardMarquee } from "@/components/ui/card-marquee";
 
 import "@/components/preview/preview.css";
 import "@/components/work/work.css";
@@ -54,17 +53,10 @@ const CHAPTERS = [
   { i: "Users", t: "One team, all of it", d: "Today the same people who design the brand build what carries it and grow what comes after. You talk to one team, from the first sketch to the first hundred customers." },
 ] as const;
 
-const FIGURES = [
-  { n: SERVICES.length, l: "services, handled by one team" },
-  { n: TEAM.length, l: "disciplines in the room" },
-  { n: PROJECTS.length, l: "live projects you can open and check" },
-  { n: LOGOS.length, l: "tools and platforms we work with" },
-];
-
 export default function AboutBody() {
-  const proof = PROJECTS.filter((p) => p.cover).slice(0, 3);
-  /* Their words, verbatim, from lib/testimonials.ts. Three that name no city. */
-  const quotes = ["dhiol-world", "the-ajoks-brand", "realtors-practice"].map((slug) => testimonialFor(slug)).filter((q): q is NonNullable<typeof q> => Boolean(q));
+  const proof = PROJECTS.filter((p) => p.cover);
+  /* Their words, verbatim, from lib/testimonials.ts, leaving out any that name a city (our copy names none). */
+  const quotes = TESTIMONIALS.filter((q) => !/Lagos|Abuja|Ibadan/.test(q.text));
 
   return (
     <div className="pv ab">
@@ -136,17 +128,6 @@ export default function AboutBody() {
         </div>
       </section>
 
-      {/* ---------------- the figures ---------------- */}
-      <section className="pv-sec" aria-label="The studio in numbers">
-        <div className="pv-wrap">
-          <ul className="ab-figs">
-            {FIGURES.map((f) => (
-              <li key={f.l}><b>{f.n}</b><span>{f.l}</span></li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
       {/* ---------------- what we stand for ---------------- */}
       <section className="pv-sec pv-sec--alt" aria-labelledby="ab-values">
         <div className="pv-wrap">
@@ -197,33 +178,28 @@ export default function AboutBody() {
             <p className="pv-lede">Reviews and feedback from clients built this studio, and the work speaks for itself. Every project below is live and can be opened.</p>
           </div>
           {quotes.length ? (
-            <ul className="ab-quotes">
+            <CardMarquee label="What clients say" seconds={quotes.length * 12}>
               {quotes.map((q) => (
-                <li key={q.client}>
-                  <blockquote><p>&ldquo;{q.text}&rdquo;</p><footer>{q.client}</footer></blockquote>
-                </li>
+                <blockquote key={q.client} className="ab-quote"><p>&ldquo;{q.text}&rdquo;</p><footer>{q.client}</footer></blockquote>
               ))}
-            </ul>
+            </CardMarquee>
           ) : null}
           {proof.length ? (
-            <ul className="ab-proof">
-              {proof.map((p) => {
-                const href = caseHref(p.caseSlug) ?? "/work";
-                return (
-                  <li key={p.name}>
-                    <Link className="wk-card" href={href}>
-                      <span className="wk-card__shot">
-                        <Image src={p.cover!} alt={`${p.name}, a project by We Dig Creativity`} fill sizes="(max-width: 700px) 100vw, 360px" />
-                      </span>
-                      <span className="wk-card__body">
-                        <span className="wk-card__t">{p.name}</span>
-                        <span className="wk-card__d">{p.sector}</span>
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="ab-proof">
+              <CardMarquee label="Projects you can open" seconds={proof.length * 9} reverse>
+                {proof.map((p) => (
+                  <Link key={p.name} className="wk-card" href={caseHref(p.caseSlug) ?? "/work"}>
+                    <span className="wk-card__shot">
+                      <Image src={p.cover!} alt={`${p.name}, a project by We Dig Creativity`} fill sizes="340px" />
+                    </span>
+                    <span className="wk-card__body">
+                      <span className="wk-card__t">{p.name}</span>
+                      <span className="wk-card__d">{p.sector}</span>
+                    </span>
+                  </Link>
+                ))}
+              </CardMarquee>
+            </div>
           ) : null}
           <p className="ab-more"><Link href="/work">See all the work</Link></p>
           <div className="ab-offer">
