@@ -545,6 +545,26 @@ export const PICKER_LINE: Record<ServiceSlug, string> = {
 };
 
 /**
+ * Answers for the service now chosen. Somebody who changes their mind about the
+ * service keeps everything that belongs to every run (the "About you" page) and
+ * anything the new service asks too; what only another service asked is dropped,
+ * because it would otherwise travel into the brief for a service that never
+ * asked it. Keys that belong to no service's steps (uploads, the honeypot, a
+ * resumed draft's extras) are never touched.
+ */
+export function answersForService<T extends Record<string, unknown>>(answers: T, service: ServiceSlug): T {
+  const own = new Set(stepsFor(service).flatMap((step) => step.fields.map((field) => field.key)));
+  const foreign = new Set(
+    SERVICE_STEPS.filter((step) => step.service !== service).flatMap((step) => step.fields.map((field) => field.key)),
+  );
+  const kept = { ...answers };
+  for (const key of Object.keys(kept)) {
+    if (foreign.has(key) && !own.has(key)) delete kept[key];
+  }
+  return kept;
+}
+
+/**
  * The steps for ONE service.
  *
  * ONE FORM, ONE SERVICE, and that is the whole reason this signature takes a
