@@ -7,19 +7,6 @@
    to the system instead of drifting away from it.
    ========================================================================== */
 
-/* ---------------- hero ---------------- */
-/* Same full-screen treatment as the services hero, and the same `svh` for the
-   same reason: mobile browsers measure `vh` against the largest viewport, so a
-   100vh hero starts taller than the screen and pushes its CTAs under the fold. */
-.ab-hero {
-  position: relative; overflow: hidden;
-  min-height: calc(100svh - 64px);
-  display: flex; flex-direction: column; justify-content: center;
-  padding-block: clamp(2.5rem, 6vw, 5rem);
-}
-@media (min-width: 768px) { .ab-hero { min-height: calc(100svh - 72px); } }
-.ab-hero .pv-wrap { position: relative; z-index: 1; }
-
 /* ---------------- statement ---------------- */
 .ab-say { max-width: 54rem; margin-inline: auto; text-align: center; }
 .ab-say h2 {
