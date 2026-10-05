@@ -452,7 +452,7 @@ export function Hero() {
               className="hero-film__title hero-rise--solid font-heading text-[clamp(2.6rem,10.5vw,5.5rem)] font-semibold leading-[0.98] tracking-[-0.04em]"
             >
               <span className="md:block">We do it all.</span>{" "}
-              <span className="md:block">Yes, really.</span>
+              <span className="md:block">Yes, <em className="italic">really</em>.</span>
             </h1>
             <p
               className="hero-film__lede hero-rise mx-auto mt-4 max-w-[33rem] text-pretty text-[0.98rem] leading-relaxed sm:text-lg lg:mx-0 lg:mt-6 lg:text-[1.19rem]"
