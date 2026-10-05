@@ -423,7 +423,7 @@ export function MoveToDialog({ open, onClose, onPick, tree, title, mode, exclude
           <Search aria-hidden="true" />
           <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a folder" autoFocus />
         </label>
-        <ul className="adMove__list" role="listbox" aria-label="Folders">
+        <ul className="adMove__list" role="listbox" aria-label="Folders" data-lenis-prevent>
           {!needle ? (
             <li role="option" aria-selected={current === null}>
               <button type="button" onClick={() => onPick(null)} disabled={current === null}>
