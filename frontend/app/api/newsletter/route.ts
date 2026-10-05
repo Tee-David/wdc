@@ -107,10 +107,11 @@ export async function POST(request: NextRequest) {
      must never be what a visitor waits on, and because a failed courtesy must
      never tell somebody the subscription did not happen when it did.
 
-     Nothing is sent for a repeat submission. Pressing the button twice should
-     not produce two welcomes, and the studio should not be told twice about
-     one subscriber. */
-  if (result.kind === "added") {
+     Nothing is sent for somebody already on the list. Pressing the button twice
+     should not produce two welcomes, and the studio should not be told twice
+     about one subscriber. Somebody coming BACK after unsubscribing is welcomed
+     like a new subscriber. */
+  if (result.kind === "added" || result.kind === "returned") {
     const base = { id: "", serial: null, first: "", last: "", email, phone: "", company: "", topic: "", message: "", source };
     after(async () => {
       try {
@@ -138,8 +139,19 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  /* ONE ANSWER FOR BOTH OUTCOMES. "You are already subscribed" would turn this
-     box into a way of testing whether a given person is on our list, which is
-     not something a stranger is owed about somebody else. */
-  return NextResponse.json({ ok: true, confirmation: confirmation(settings, {}) });
+  /* THE ANSWER SAYS WHICH IT WAS (the owner's call, 2026-10-05): somebody who
+     types an address that is already on the list is told so, rather than
+     thanked for subscribing twice. The studio's own confirmation words, when it
+     has set some, are for a new subscriber. See SubscribeResult for the cost. */
+  const status = result.kind;
+  return NextResponse.json({
+    ok: true,
+    status,
+    confirmation:
+      status === "already"
+        ? { message: "You are already on the list, so there is nothing more to do." }
+        : status === "returned"
+          ? { message: "Welcome back. You are on the list again." }
+          : confirmation(settings, {}),
+  });
 }

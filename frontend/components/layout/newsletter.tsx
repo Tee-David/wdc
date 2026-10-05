@@ -43,7 +43,7 @@ const BEND_MAX = 34;
 type State =
   | { kind: "idle" }
   | { kind: "busy" }
-  | { kind: "done"; message?: string }
+  | { kind: "done"; message?: string; already?: boolean }
   | { kind: "error"; message: string };
 
 export function Newsletter() {
@@ -104,7 +104,7 @@ export function Newsletter() {
           company: trap.current?.value ?? "",
         }),
       });
-      const data = (await response.json().catch(() => ({}))) as { error?: string; confirmation?: { message?: string } };
+      const data = (await response.json().catch(() => ({}))) as { error?: string; status?: "added" | "returned" | "already"; confirmation?: { message?: string } };
       if (!response.ok) {
         setState({
           kind: "error",
@@ -113,7 +113,7 @@ export function Newsletter() {
         return;
       }
       /* The studio's own words, when they set some in the form's settings. */
-      setState({ kind: "done", message: data.confirmation?.message || undefined });
+      setState({ kind: "done", message: data.confirmation?.message || undefined, already: data.status === "already" });
       setEmail("");
     } catch {
       /* A network failure, not a refusal. Saying "check your connection" is
@@ -139,7 +139,7 @@ export function Newsletter() {
              A message added below moves the closing rule and the copyright
              line down at the moment somebody is reading, on the part of the
              page most likely to be near the bottom of their screen. */
-          <p className="nl__done" role="status">
+          <p className="nl__done" role="status" data-already={state.already ? "true" : undefined}>
             <span aria-hidden="true" className="nl__tick" />
             {state.message ?? "You are on the list. Check your inbox for a note confirming it."}
           </p>

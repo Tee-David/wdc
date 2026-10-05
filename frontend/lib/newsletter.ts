@@ -17,11 +17,15 @@ import { SITE_URL } from "@/lib/site";
 
 export type SubscribeResult =
   | { kind: "added" }
-  /* Not an error, and deliberately NOT distinguished to the visitor. Telling
-     somebody "that address is already subscribed" turns a public box into a
-     way of asking whether a given person is on our list. Both answers look
-     identical from outside; the difference only decides whether the studio
-     gets told. */
+  /* On the list before, and came back after unsubscribing. Treated like a new
+     subscriber for the welcome, and told "welcome back" rather than "already". */
+  | { kind: "returned" }
+  /* Already on the list and still subscribed. THE OWNER'S CALL (2026-10-05) is
+     that the footer says so: "you are already subscribed" is the honest answer
+     and the one a person expects. The cost is that the box can be used to ask
+     whether an address is on the list, which is why the route keeps its
+     3-in-10-minutes limit and the honeypot, and why this tells nobody anything
+     else about the address (no name, no date, no source). */
   | { kind: "already" };
 
 /**
@@ -80,36 +84,44 @@ export async function subscribe(
   source: string,
 ): Promise<SubscribeResult> {
   const email = normaliseEmail(emailAsTyped);
-  const result = await db.query<{ created_at: Date; updated_at: Date }>(
+  /* THE PREVIOUS STATE IS READ IN THE SAME STATEMENT. `prev` sees the table as
+     it was before the upsert, so a row that was unsubscribed is told apart from
+     one that was merely present, which the upsert's own RETURNING cannot do
+     (it hands back the NEW row, with `unsubscribed_at` already cleared). */
+  const result = await db.query<{ created_at: Date; updated_at: Date; was_unsubscribed: boolean }>(
     `
-    INSERT INTO newsletter_subscribers (email, email_as_typed, source)
-    VALUES ($1, $2, $3)
-    ON CONFLICT (email) DO UPDATE
-      SET unsubscribed_at = NULL,
-          updated_at = now(),
-          /* The address they last typed wins, so a corrected capitalisation is
-             not frozen at first signup. The SOURCE is not overwritten: where
-             somebody first found us is a fact about that moment, not this one. */
-          email_as_typed = EXCLUDED.email_as_typed
-    RETURNING created_at, updated_at
+    WITH prev AS (
+      SELECT unsubscribed_at FROM newsletter_subscribers WHERE email = $1
+    ), up AS (
+      INSERT INTO newsletter_subscribers (email, email_as_typed, source)
+      VALUES ($1, $2, $3)
+      ON CONFLICT (email) DO UPDATE
+        SET unsubscribed_at = NULL,
+            updated_at = now(),
+            /* The address they last typed wins, so a corrected capitalisation is
+               not frozen at first signup. The SOURCE is not overwritten: where
+               somebody first found us is a fact about that moment, not this one. */
+            email_as_typed = EXCLUDED.email_as_typed
+      RETURNING created_at, updated_at
+    )
+    SELECT up.created_at, up.updated_at,
+           COALESCE((SELECT unsubscribed_at IS NOT NULL FROM prev), false) AS was_unsubscribed
+    FROM up
     `,
     [email, emailAsTyped.trim().slice(0, 254), source],
   );
 
   const row = result.rows[0];
   if (!row) return { kind: "already" };
-  /* WHICH ONE HAPPENED, READ OFF THE TIMESTAMPS. The obvious way to ask
-     Postgres this is `RETURNING (xmax = 0)`, and it is wrong twice over here:
-     CockroachDB does not expose the MVCC system columns at all, and RETURNING
-     on a DO UPDATE hands back the NEW row, so anything the update just wrote
-     reads as though it was always that way.
+  /* WHICH ONE HAPPENED, READ OFF THE TIMESTAMPS AND THE PREVIOUS STATE. The
+     obvious way to ask Postgres this is `RETURNING (xmax = 0)`, and it is wrong
+     twice over here: CockroachDB does not expose the MVCC system columns at
+     all, and RETURNING on a DO UPDATE hands back the NEW row.
      Both columns default to `now()`, which inside one statement is a single
      transaction timestamp -- so a row whose `created_at` still equals its
-     `updated_at` is one this statement inserted, and any other row already
-     existed. */
-  return row.created_at.getTime() === row.updated_at.getTime()
-    ? { kind: "added" }
-    : { kind: "already" };
+     `updated_at` was inserted by this statement. */
+  if (row.created_at.getTime() === row.updated_at.getTime()) return { kind: "added" };
+  return row.was_unsubscribed ? { kind: "returned" } : { kind: "already" };
 }
 
 /* ------------------------------------------------------- unsubscribing */
