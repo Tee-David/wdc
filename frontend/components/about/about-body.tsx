@@ -1,70 +1,28 @@
-"use client";
-
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import type { CSSProperties } from "react";
 import Link from "next/link";
-import { useReveal } from "@/components/preview/use-reveal";
+import Image from "next/image";
 import ServiceIcon from "@/components/ui/service-icon";
-import ScrollCue from "@/components/ui/scroll-cue";
-import ScrollExpand from "@/components/ui/scroll-expand";
-import dynamic from "next/dynamic";
-import { BRAND_KINDS } from "@/lib/showcase";
+import { SERVICES } from "@/lib/services";
+import { PROJECTS } from "@/lib/projects";
+import { LOGOS } from "@/lib/logos";
+import { caseHref } from "@/lib/work";
 
 import "@/components/preview/preview.css";
-import "@/components/services/services.css";
-import "@/components/ui/motion-kit.css";
+import "@/components/work/work.css";
 import "./about.css";
-import StrokeNumber from "@/components/ui/stroke-number";
-import Image from "next/image";
-import SwipeRail from "@/components/ui/swipe-rail";
-
-/* 156 KB of WebGL (`ogl`), for one decorative wheel most of the way down ONE
-   page -- and it was not even /about paying for it. The homepage links to
-   /about, so Next prefetches that route's JavaScript, and the whole of `ogl`
-   came down on the homepage having never been executed there: it was the
-   largest single entry in Lighthouse's "reduce unused JavaScript".
-
-   `ssr: false` costs nothing here. The canvas is `aria-hidden` decoration and
-   the same twelve pieces are ALREADY in the DOM below it as real <img>s -- the
-   fallback a screen reader, a crawler and a browser without WebGL all get. So
-   there is nothing to server-render and nothing to wait for. */
-const CircularGallery = dynamic(() => import("@/components/ui/circular-gallery"), {
-  ssr: false,
-});
-
-/* THE WHEEL IS FOR WIDE SCREENS WITH MOTION. On a phone it pinned the page
-   for 170vh of scrolling while it turned, and the page seemed stuck; there
-   the same twelve images are a swipe rail instead, and the WebGL wheel is not
-   even downloaded. With reduced motion the grid below it has always been the
-   answer. */
-const WHEEL_QUERY = "(min-width: 769px) and (prefers-reduced-motion: no-preference)";
-const wheelSubscribe = (cb: () => void) => {
-  const mq = window.matchMedia(WHEEL_QUERY);
-  mq.addEventListener("change", cb);
-  return () => mq.removeEventListener("change", cb);
-};
-const wheelWanted = () => window.matchMedia(WHEEL_QUERY).matches;
 
 /**
- * /about — the studio behind the work.
+ * /about, in the order a visitor wants answers: who you are and why (the
+ * story), what you stand for, how you work, who is in the room, proof it works,
+ * and one clear next step. It reads top to bottom with no pinned or scroll
+ * driven sections, so it is the same on a phone, with a keyboard and for a
+ * crawler.
  *
- * Built on the same tokens, sections and controls as the rest of the site
- * (`pv-sec`, `pv-wrap`, `pv-btn`, the reveal observer, ServiceIcon), so it
- * reads as another page of one site rather than a second site.
- *
- * Two rules this page keeps, because an About page is where sites usually
- * break them:
- *
- *  1. Every FIGURE is derived from the data, never typed in. The counters read
- *     SERVICES, PROJECTS and LOGOS at render, so they cannot drift away from
- *     what the site actually shows. A hardcoded "50+ projects" is a claim; a
- *     computed 7 is a fact about this codebase.
- *  2. No invented people. The team rail carries the DISCIPLINES in the room,
- *     not stock headshots with made-up names, until real names and photos
- *     exist to put in it.
+ * EVERY FIGURE IS DERIVED from the data (services, projects, tools), never
+ * typed in, so a number cannot drift away from what the site shows. And there
+ * are no invented people: the team section names the disciplines in the room
+ * until real names and photographs exist to put there.
  */
 
-/* What the studio actually argues, in the same voice as the homepage. */
 const BELIEFS = [
   { t: "One roof", d: "Design, build and growth sit in one team, so nothing is lost in the hand-off between the people who draw a thing and the people who build it.", i: "Layers" },
   { t: "Every budget", d: "We work at a premium standard that scales down without becoming a different standard.", i: "Scale" },
@@ -74,190 +32,36 @@ const BELIEFS = [
   { t: "Candid engineering", d: "AI and software built around a real outcome, and we say plainly when a model is not the answer.", i: "Cpu" },
 ];
 
-/* The disciplines in the room. NOT people: no names, no stock headshots.
-   Real team members drop straight in against this shape once there are names
-   and photographs to use, and the rail below does not change. */
 const TEAM = [
-  { id: "brand", name: "Brand & design", role: "Identity, print, motion", i: "Palette", note: "Works out what a brand has to say before anything gets drawn." },
-  { id: "eng", name: "Engineering", role: "Web, apps, platform", i: "Code", note: "Ships the thing, then keeps it fast and maintainable after launch." },
-  { id: "growth", name: "Growth", role: "SEO, content, paid", i: "TrendingUp", note: "Makes the work findable, then keeps it earning after it goes live." },
-  { id: "product", name: "Product", role: "Scope, research, QA", i: "Compass", note: "Turns a business problem into something a team can actually build." },
-  { id: "social", name: "Social", role: "Calendars, community", i: "MessageCircle", note: "Runs the accounts day to day, not just the launch post." },
+  { name: "Brand & design", role: "Identity, print, motion", i: "Palette", note: "Works out what a brand has to say before anything gets drawn." },
+  { name: "Engineering", role: "Web, apps, platform", i: "Code", note: "Ships the thing, then keeps it fast and maintainable after launch." },
+  { name: "Growth", role: "SEO, content, paid", i: "TrendingUp", note: "Makes the work findable, then keeps it earning after it goes live." },
+  { name: "Product", role: "Scope, research, QA", i: "Compass", note: "Turns a business problem into something a team can actually build." },
+  { name: "Social", role: "Calendars, community", i: "MessageCircle", note: "Runs the accounts day to day, not just the launch post." },
 ];
 
-/* Twelve pieces of real artwork for the wheel, taken three at a time from each
-   of the four kinds rather than twelve in a row from one. A dozen flyers turning
-   past looks like one job repeated; a flyer, a logo, a mockup and a guide page
-   in rotation looks like a studio. */
-const WHEEL = BRAND_KINDS.flatMap((k) => k.items.slice(0, 3)).map((m) => ({
-  image: m.src,
-  text: m.title,
-  id: m.id,
-}));
+/* The three stages a project moves through, and the services under each. */
+const STAGES = [
+  { t: "Brand", d: "What it says, and how it looks and sounds everywhere a customer meets it.", s: ["branding", "social"] },
+  { t: "Build", d: "The website, app or system that carries it, built to be fast and easy to keep updated.", s: ["web", "apps", "software"] },
+  { t: "Grow", d: "What happens after launch: being found, and turning attention into enquiries.", s: ["seo", "social"] },
+] as const;
 
-/**
- * How far the pinned wheel section has travelled, 0 to 1.
- *
- * Kept in a REF and never in state: this updates on every scroll frame, and a
- * setState here would re-render the page sixty times a second to hand a number
- * to a canvas that is not part of React's tree anyway.
- */
-function useScrollRun<T extends HTMLElement>() {
-  const ref = useRef<T | null>(null);
-  const run = useRef(0);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    let raf = 0;
-    /* Measured once per resize rather than once per frame: a rect read in a
-       scroll callback forces the browser to flush layout before it can answer,
-       and `rect.top` is only `docTop - scrollY` anyway. */
-    let docTop = 0;
-    let height = 0;
-    const measure = () => {
-      const r = el.getBoundingClientRect();
-      docTop = r.top + window.scrollY;
-      height = r.height;
-    };
-
-    const apply = () => {
-      const top = docTop - window.scrollY;
-      /* The travel available is the section's height MINUS one screen, because
-         the last screenful is spent with the pin resting at the bottom. Using
-         the full height would leave the wheel short of its last image by
-         exactly one viewport. */
-      const travel = height - (window.innerHeight || 1);
-      run.current = travel <= 0 ? 0 : Math.min(1, Math.max(0, -top / travel));
-      /* Published for the scroll cue, which is the only thing that can tell a
-         reader this 300vh section has not ended. Same custom property the
-         pinned rows write, so the cue does not care what is driving it. */
-      el.style.setProperty("--pin-p", run.current.toFixed(4));
-    };
-    const onScroll = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(apply);
-    };
-    measure();
-    apply();
-    /* Only a resize can move the section in the document, so that is the only
-       time the cached offset needs taking again. */
-    const onResize = () => { measure(); onScroll(); };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onResize);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onResize);
-    };
-  }, []);
-  return { ref, run };
-}
-
-function TeamRail() {
-  const rail = useRef<HTMLDivElement | null>(null);
-  const [at, setAt] = useState({ start: true, end: false });
-
-  /* Arrow state comes from the rail's own scroll position rather than an
-     index, because the rail is also a native scroll container: dragging it or
-     flicking it on a phone has to keep the arrows honest. */
-  const sync = useCallback(() => {
-    const el = rail.current;
-    if (!el) return;
-    setAt({
-      start: el.scrollLeft <= 2,
-      end: el.scrollLeft >= el.scrollWidth - el.clientWidth - 2,
-    });
-  }, []);
-
-  const nudge = (dir: 1 | -1) => {
-    const el = rail.current;
-    if (!el) return;
-    const card = el.querySelector<HTMLElement>(".ab-tm");
-    const step = card ? card.offsetWidth + 18 : el.clientWidth * 0.8;
-    el.scrollBy({ left: dir * step, behavior: "smooth" });
-  };
-
-  return (
-    <>
-      <div className="ab-team__head">
-        <div>
-          <span className="pv-eyebrow">The team</span>
-          <h2 className="pv-mix"><b>The disciplines</b> in the room</h2>
-        </div>
-        <div className="ab-team__nav">
-          <button
-            type="button"
-            className="ab-arrow"
-            aria-label="Previous"
-            disabled={at.start}
-            onClick={() => nudge(-1)}
-          >
-            <Arrow dir="left" />
-          </button>
-          <button
-            type="button"
-            className="ab-arrow ab-arrow--on"
-            aria-label="Next"
-            disabled={at.end}
-            onClick={() => nudge(1)}
-          >
-            <Arrow dir="right" />
-          </button>
-        </div>
-      </div>
-      {/* Focusable and labelled for the same reason as the code pane: the rail
-          is a real scroll container, and arrow keys can only reach it if it can
-          take focus. The buttons above drive the same scroll, so this is a
-          second route to it rather than the only one. */}
-      <div
-        className="ab-team__rail"
-        ref={rail}
-        onScroll={sync}
-        tabIndex={0}
-        role="region"
-        aria-label="Disciplines at the agency"
-      >
-        {TEAM.map((m, n) => (
-          <article className="ab-tm" key={m.id} style={{ "--d": `${n * 70}ms` } as CSSProperties}>
-            <span className="ab-tm__icon">
-              <ServiceIcon name={m.i} size={20} />
-            </span>
-            <h3>{m.name}</h3>
-            <p className="ab-tm__role">{m.role}</p>
-            <p className="ab-tm__note">{m.note}</p>
-          </article>
-        ))}
-      </div>
-    </>
-  );
-}
-
-function Arrow({ dir }: { dir: "left" | "right" }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-         strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      {dir === "left"
-        ? <><path d="M19 12H5" /><path d="m12 19-7-7 7-7" /></>
-        : <><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></>}
-    </svg>
-  );
-}
+const FIGURES = [
+  { n: SERVICES.length, l: "services, handled by one team" },
+  { n: TEAM.length, l: "disciplines in the room" },
+  { n: PROJECTS.length, l: "live projects you can open and check" },
+  { n: LOGOS.length, l: "tools and platforms we work with" },
+];
 
 export default function AboutBody() {
-  useReveal();
-  const { ref: wheelRef, run: wheelRun } = useScrollRun<HTMLDivElement>();
-  const wheel = useSyncExternalStore(wheelSubscribe, wheelWanted, () => false);
+  const proof = PROJECTS.filter((p) => p.cover).slice(0, 3);
+  const bySlug = (s: string) => SERVICES.find((x) => x.slug === s)!;
 
   return (
     <div className="pv ab">
-      {/* ---------------- hero ---------------- */}
-      {/* THE SAME OPENING AS EVERY OTHER PAGE (AGENTS.md, "Page shape"): the
-          navy band with the label, the h1 and the lede, left aligned, and
-          nothing else. This one used to be centred, with four floating service
-          badges and two buttons ("Book a strategy call", which is a finance
-          consultancy's product, and "See what we do"); the header already
-          carries Start a Project, and an About page does not need its own pair
-          of calls to action before anybody has read what it says. */}
+      {/* THE SAME OPENING AS EVERY OTHER PAGE (AGENTS.md, "Page shape"): the navy
+          band with the label, the h1 and the lede, and nothing else. */}
       <section className="wk-hero">
         <div className="pv-wrap wk-hero__in">
           <span className="pv-eyebrow">About</span>
@@ -270,114 +74,145 @@ export default function AboutBody() {
         </div>
       </section>
 
-      {/* ---------------- the statement + real work ---------------- */}
-      <section className="pv-sec">
-        <div className="pv-wrap">
-          <div className="ab-say pv-reveal">
-            <h2 className="pv-mix">
-              Most agencies hand you a logo and leave. We stay for the part where
-              it has to <b>work</b>.
-            </h2>
-            <p className="pv-lede">
+      {/* ---------------- the story ---------------- */}
+      <section className="pv-sec" aria-labelledby="ab-story">
+        <div className="pv-wrap ab-story">
+          <div>
+            <span className="pv-eyebrow">Our story</span>
+            <h2 id="ab-story" className="pv-mix">Most agencies hand you a logo and leave. We stay for the part where it has to <b>work</b>.</h2>
+          </div>
+          <div className="ab-story__text">
+            <p>
               A brand that looks right but loads slowly, ranks nowhere and cannot be
               updated by the people who own it is not finished. So we take the whole
               path: what the brand says, how it is built, and what happens to it after
               launch.
             </p>
+            <p>
+              That is why design, engineering and growth sit in one team. The person
+              who draws the page talks to the person who builds it, and both talk to
+              the person who will make it findable. You deal with one group of people,
+              and you see the work as it happens.
+            </p>
           </div>
-
         </div>
       </section>
 
-      {/* ---------------- the wheel ---------------- */}
-      {/* Tall on purpose: the extra height IS the control. The pin holds the
-          wheel on screen while that height scrolls past, and the same travel
-          turns it through all twelve pieces. */}
-      <section className="ab-wheelsec" ref={wheelRef}>
-        <div className="ab-wheelsec__pin">
-          <ScrollExpand className="ab-wheelsec__zoom">
-            <div className="ab-wheelsec__stage">
-              {wheel ? <CircularGallery items={WHEEL} progress={wheelRun} perView={6} slots={24} /> : null}
-              {/* The canvas is decorative to assistive tech, so the artwork
-                  itself lives here as real images: this is what a screen
-                  reader, a crawler and a browser without WebGL all get. */}
-              <SwipeRail label="Work from the agency, swipe for more" count={WHEEL.length}>
-              <ul className="ab-wheelsec__flat">
-                {WHEEL.map((m, n) => (
-                  <li key={m.id} style={{ "--d": `${n * 40}ms` } as CSSProperties}>
-                    <Image
-                      src={m.image}
-                      alt={m.text}
-                      fill
-                      /* The tile is a square in an auto-fill grid whose track
-                         floor is clamp(96px, 14vw, 170px), so 170px is the
-                         widest it ever draws. */
-                      sizes="(max-width: 700px) 33vw, 170px"
-                      quality={70}
-                    />
-                  </li>
-                ))}
-              </ul>
-              </SwipeRail>
-            </div>
-          </ScrollExpand>
-          <p className="ab-cap">Work from the agency. <Link href="/work">See more of it</Link>.</p>
-          {/* This section is 300vh tall with the wheel pinned in the middle of
-              it, so for three screens of scrolling nothing moves vertically and
-              the page reads as having ended. It has not: the wheel is turning
-              through twelve images and there are four sections below. The cue
-              shows how far through the turn you are and fades out once you are
-              past the halfway point and can see for yourself. */}
-          <ScrollCue />
-        </div>
-      </section>
-
-      {/* ---------------- beliefs ---------------- */}
-      <section className="pv-sec">
+      {/* ---------------- the figures ---------------- */}
+      <section className="pv-sec pv-sec--alt" aria-label="The studio in numbers">
         <div className="pv-wrap">
-          <div className="pv-head pv-reveal">
-            <span className="pv-eyebrow">How we think</span>
-            <h2 className="pv-mix">Six things we will <b>not trade away</b></h2>
+          <ul className="ab-figs">
+            {FIGURES.map((f) => (
+              <li key={f.l}><b>{f.n}</b><span>{f.l}</span></li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* ---------------- how we work ---------------- */}
+      <section className="pv-sec" aria-labelledby="ab-how">
+        <div className="pv-wrap">
+          <div className="pv-head">
+            <span className="pv-eyebrow">How we work</span>
+            <h2 id="ab-how" className="pv-mix">One path, <b>three stages</b></h2>
+            <p className="pv-lede">Every project moves through the same three stages, with the same people. You can start at any one of them.</p>
           </div>
-          <ol className="sv-steps pv-reveal">
-            {BELIEFS.map((b, n) => (
-              <li className="sv-step" key={b.t}>
-                <span className="sv-step__icon" style={{ "--bob": `${n * 260}ms` } as CSSProperties}>
-                  <ServiceIcon name={b.i} delay={n * 90} />
-                </span>
-                <StrokeNumber className="sv-step__n" value={String(n + 1).padStart(2, "0")} delay={n * 160} />
-                <h3>{b.t}</h3>
-                <p>{b.d}</p>
+          <ol className="ab-stages">
+            {STAGES.map((st, n) => (
+              <li key={st.t}>
+                <span className="ab-stages__n" aria-hidden="true">{n + 1}</span>
+                <h3>{st.t}</h3>
+                <p>{st.d}</p>
+                <ul>
+                  {st.s.map((slug) => (
+                    <li key={slug}><Link href={`/services/${slug}`}>{bySlug(slug).name}</Link></li>
+                  ))}
+                </ul>
               </li>
             ))}
           </ol>
         </div>
       </section>
 
-      {/* ---------------- team ---------------- */}
-      <section className="pv-sec ab-team">
-        <div className="pv-wrap pv-reveal">
-          <TeamRail />
+      {/* ---------------- what we stand for ---------------- */}
+      <section className="pv-sec pv-sec--alt" aria-labelledby="ab-values">
+        <div className="pv-wrap">
+          <div className="pv-head">
+            <span className="pv-eyebrow">What we stand for</span>
+            <h2 id="ab-values" className="pv-mix">Six things we will <b>not trade away</b></h2>
+          </div>
+          <ul className="ab-values">
+            {BELIEFS.map((b) => (
+              <li key={b.t}>
+                <span className="ab-ic" aria-hidden="true"><ServiceIcon name={b.i} size={22} /></span>
+                <h3>{b.t}</h3>
+                <p>{b.d}</p>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
-      {/* ---------------- closing ---------------- */}
+      {/* ---------------- the people ---------------- */}
+      <section className="pv-sec" aria-labelledby="ab-team">
+        <div className="pv-wrap">
+          <div className="pv-head">
+            <span className="pv-eyebrow">The people</span>
+            <h2 id="ab-team" className="pv-mix"><b>The disciplines</b> in the room</h2>
+            <p className="pv-lede">Your project gets the people it needs from each of these, not a hand-off between separate companies.</p>
+          </div>
+          <ul className="ab-team">
+            {TEAM.map((m) => (
+              <li key={m.name}>
+                <span className="ab-ic" aria-hidden="true"><ServiceIcon name={m.i} size={22} /></span>
+                <h3>{m.name}</h3>
+                <p className="ab-team__role">{m.role}</p>
+                <p>{m.note}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* ---------------- proof ---------------- */}
+      {proof.length ? (
+        <section className="pv-sec pv-sec--alt" aria-labelledby="ab-proof">
+          <div className="pv-wrap">
+            <div className="pv-head">
+              <span className="pv-eyebrow">The proof</span>
+              <h2 id="ab-proof" className="pv-mix">Work you can <b>open and check</b></h2>
+            </div>
+            <ul className="ab-proof">
+              {proof.map((p) => {
+                const href = caseHref(p.caseSlug) ?? "/work";
+                return (
+                  <li key={p.name}>
+                    <Link className="wk-card" href={href}>
+                      <span className="wk-card__shot">
+                        <Image src={p.cover!} alt={`${p.name}, a project by We Dig Creativity`} fill sizes="(max-width: 700px) 100vw, 360px" />
+                      </span>
+                      <span className="wk-card__body">
+                        <span className="wk-card__t">{p.name}</span>
+                        <span className="wk-card__d">{p.sector}</span>
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="ab-more"><Link href="/work">See all the work</Link></p>
+          </div>
+        </section>
+      ) : null}
+
+      {/* ---------------- the next step ---------------- */}
       <section className="pv-sec pv-sec--band ab-cta">
         <div className="pv-wrap">
-          <div className="ab-cta__in pv-reveal">
+          <div className="pv-cta">
+            <span className="pv-eyebrow">Next step</span>
             <h2 className="pv-mix">Tell us <b>what you are trying to get done.</b></h2>
-            <p className="pv-lede">
-              Not a brief, not a budget. The outcome. We will tell you what it
-              actually takes, and say so if it is not us.
-            </p>
-            <div className="sv-hero__cta">
-              <Link className="pv-btn pv-btn--accent" href="/contact">
-                Book a strategy call
-              </Link>
-              <Link className="pv-btn pv-btn--light" href="/work">
-                See the work
-              </Link>
-            </div>
+            <p>Not a brief, not a budget. The outcome. We will tell you what it actually takes, and say so if it is not us.</p>
+            <Link className="pv-btn pv-btn--accent" href="/start">Start a project</Link>
           </div>
         </div>
       </section>
