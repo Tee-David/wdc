@@ -8,9 +8,8 @@ CREATE TABLE IF NOT EXISTS user_security_notices (
   event_id UUID NOT NULL UNIQUE REFERENCES user_security_events(id),
   target_id TEXT NOT NULL REFERENCES "user"("id"),
   kind TEXT NOT NULL,
-  state TEXT NOT NULL DEFAULT 'queued' CHECK(state IN ('queued','sending','accepted','failed','uncertain','skipped','requested')),
+  state TEXT NOT NULL DEFAULT 'queued' CHECK(state IN ('queued','sending','accepted','failed','uncertain','skipped')),
   attempts INT NOT NULL DEFAULT 0,
-  provider_started BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
