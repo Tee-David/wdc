@@ -51,6 +51,11 @@ export async function runDaily(by: string): Promise<DailyResult> {
   } catch (error) {
     result.errors.push(`retention: ${error instanceof Error ? error.message : "failed"}`);
   }
+  /* Retry durable photo deletions and expire abandoned one-day preparations. */
+  try {
+    const { cleanupClientAvatars }=await import('@/lib/client-avatar-cleanup');
+    await cleanupClientAvatars();
+  } catch { result.errors.push('profile photo cleanup: unavailable; retry on the next daily tidy'); }
   /* Anybody still waiting to hear the site is back (a send that failed, or
      did not fit the first batch), and anything on that list past 30 days. */
   try {
