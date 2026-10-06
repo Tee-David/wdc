@@ -1,3 +1,5 @@
+Marketing source checkpoint: targeted onboarding/cursor lint and integrated TypeScript passed. The unverified same-working-day promise is removed consistently from Start metadata, introduction and receipt copy. Rendered verification remains pending.
+
 ## Marketing audit implementation authorized, 6 October 2026
 
 The owner authorized implementation of the completed marketing audit. The active checklist is plans/marketing-implementation-checklist.md. Root is implementing plain-language service help and portal terminology; the existing marketing agent is repairing draft/reset/email lifecycle in an isolated worktree. Verification remains pending; source changes are not deployed acceptance evidence.
