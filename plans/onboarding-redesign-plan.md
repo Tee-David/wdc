@@ -39,15 +39,15 @@ Rules for every form:
 | Engagement terms | Each service has a deep client engagement section that protects the studio. See section 8. |
 | Deliverable | Plan and checklist live in `plans/` in this repo. |
 
-## 3. Open items for the owner
+## 3. Open items and how they were settled
 
-| # | Question | Default if no answer |
+| # | Question | Status |
 |---|---|---|
-| O1 | Will the team pre-fill the invite from the sales call (service, scope, notes), so the client only confirms? Not answered yet. | Design the artifacts with a "confirm what we discussed" first screen. Build it only if the invite flow supports it. |
-| O2 | Does the client also sign a separate agreement, or is the ticked section in the form the agreement? The existing Client Engagement Policy says a signed agreement wins. | Treat the form as a record of acceptance, not a replacement for a signed agreement. |
-| O3 | Which past projects may appear as card samples, and do those clients allow it? | Use only work already public on the site. |
-| O4 | Which GitHub repos should I read for stack evidence? Only `Tee-David/wdc` is attached to this session now. | Use `list_repos`, then attach only the repos you name, at artifact stage. |
-| O5 | Please check two names. Is it Flutterwave (not "Flutter")? Is the colour site `coolors.co`? | Use Flutterwave and coolors.co. Verify before shipping. |
+| O1 | Pre-fill from the sales call | **Settled 6 October.** The default stays the blank `/onboarding` link. The client picks the service. An optional pre-filled link must also exist for the owner to send. See 6.6. |
+| O2 | Signed agreement or ticked section in the form | **Open.** Default: the form records acceptance and does not replace a signed agreement. |
+| O3 | Which past work appears on the cards | **Settled 6 October.** The studio chooses from work already public on the site. Pool in 6.7. Gaps are listed there. |
+| O4 | Which GitHub repos to read | **Settled 6 October.** Read the owner's account. Findings in 6.8. |
+| O5 | Flutterwave and coolors.co | **Settled 6 October.** Both are correct. |
 
 ## 4. What the code does today (verified 6 October 2026)
 
@@ -123,6 +123,44 @@ Each form produces a short internal note for the studio, shown in the admin. It 
 
 An email sent about an hour after a client stops with an unfinished draft, with their resume link. Respect the existing rule: every message to a person can be switched off, and the setting lives with the person. This needs the outbox and a dedupe key. Check `lib/outbox.ts` first.
 
+### 6.6 Optional pre-filled link
+
+- The default is the blank `/onboarding` link. The client chooses the service and fills everything in.
+- The owner can also create a pre-filled link from the admin. It carries a chosen service and any answers the owner typed (name, business, scope notes). The client sees them filled in, confirms and edits.
+- No personal data goes in the URL. The link is a one time token that points at a server side draft. The existing resume token and draft tables already do this. Check `lib/onboarding-server.ts` and the reissue route before adding anything. A new table needs a migration. Say so if so.
+- A pre-filled answer is a normal answer. The client can change it. Fail closed on a missing or used token.
+
+### 6.7 Card sample pool (past work already public on the site)
+
+Chosen from the file names in `frontend/public/brand-work/` and the cases in `frontend/lib/work.ts`. I have not opened each image yet. Open and check each one before it ships. Only work that is already public is used.
+
+| Card | Candidate samples |
+|---|---|
+| Logo | Moore Designs logo variants, Thinkers Diary logo, Habby, Direct Link, Marvs Pastries, Vickygold, Benedict Ogbogu |
+| Full identity system | Moore Designs (system and mockups), Skinish logo system, MARFAA mockups, Thinkers Diary mockups |
+| Brand guidelines | Dhiol World guide pages, TAB The Ajoks Brand guide pages, Skinish colour, type, voice and "don'ts" pages |
+| Flyers | The flyer set (Abebi Treats, Aliyat Glamour, Bay Accessories, Kempes, Olanike and more) |
+| Social templates | BAMSSA OOU, NIPSA OOU, SPAN OOU, Dhiol World monthly posts |
+| Promotional branding | Delivery, fragrance, tailoring and hair sale promos |
+| Packaging | MARFAA packaging, shopping bag work |
+| Signage | Moore Designs signage and storefront, Mayrols signage |
+| Stationery and cards | Business cards, stationery set, Moore Designs stationery, staff ID card |
+| Pitch deck and profile | Millcon corporate profile pages. There is no pitch deck sample. Gap. |
+| Motion design | Only the studio's own hero films in `public/hero/film/`. There is no client motion work on the site. Gap. Ask the owner for clips or use the studio's own film. |
+
+### 6.8 What the studio builds (from the owner's repos, public facts only)
+
+Used to word the app and software forms. Only work the site already lists is named here. Private repo details are not copied into this public repo.
+
+- Cross-platform products: TraxStaff has a desktop app (Tauri and Rust), a mobile app (Expo, so React Native) and a web dashboard on one Fastify and CockroachDB backend.
+- Large data platforms: Realtors' Practice combines a Next.js front end, an Express and Prisma back end, a Python scraping pipeline, Meilisearch, Redis and live updates.
+- Business systems and AI pipelines: Litch Consulting has a role based admin, an invoicing engine and a Python pipeline with vector search (RAG).
+- Marketplaces and payments: Nomarc Projects supports Flutterwave, SeerBit and Paystack.
+- Offline first and AI: Voca is an installable web app that works offline, reads text aloud on the device, and has an AI assistant.
+- Tooling: SelfHost (server control panel) and NairaGate (one SDK for Nigerian bank lookups across Paystack, Flutterwave, Korapay, Squad and Monnify).
+
+So the Apps and Software forms can honestly list: offline first, real time updates, roles and permissions, payments, AI assistants, data pipelines, desktop and mobile and web from one back end. They still use plain words. Tool names only appear in the optional "I know what I want" reveal.
+
 ## 7. The six services
 
 For each service: what the form asks, what is conditional, what the studio learns, and what to warn about.
@@ -170,7 +208,7 @@ Warn: ownership and licensing of supplied fonts and images (see section 8).
 - Stage: only an idea, designs ready, a prototype exists, an app to rebuild or extend.
 - Feature checklist: searchable and multiple choice, grouped (accounts, payments, chat, maps, notifications, offline, admin panel and more). Plain words.
 - The main job of the app in one sentence. Who uses it and what each person may do. Offline needs. Existing systems to connect.
-- Optional reveal for experienced clients: tools they already use (React Native, Flutter, Dart, databases).
+- Optional reveal for experienced clients: tools they already use (React Native, Flutter, Dart, databases). The list can draw on 6.8.
 - Notice: the studio shows a first version (a prototype) before the full build. No budget question.
 
 ### 7.5 Software & AI
