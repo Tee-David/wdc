@@ -20,7 +20,7 @@ const DEF: CustomFormDef = {
   layout: "conversation",
   perScreen: 2,
   fields: [
-    { id: "topic", type: "radio", label: "What do you need help with?", required: true, options: [...ENQUIRY_TOPICS] },
+    { id: "topic", type: "select", label: "What do you need help with?", required: true, options: [...ENQUIRY_TOPICS] },
     { id: "message", type: "textarea", label: "Tell us about it", help: "A few lines is plenty. What are you trying to achieve?", required: true, placeholder: "We want to…" },
     { id: "timeline", type: "radio", label: "When would you like to start?", options: ["As soon as possible", "In the next one to three months", "Later this year", "I'm not sure, please advise me"] },
     { id: "budget", type: "select", label: "Roughly what budget do you have in mind?", placeholder: "Choose one", options: ["Under ₦1m", "₦1m to ₦3m", "₦3m to ₦10m", "Over ₦10m", "I'm not sure, please advise me"] },
