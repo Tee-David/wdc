@@ -32,6 +32,8 @@ Meetings implementation uses `Panel`, `Pick`, `DateInput`, `DateTimeInput`, `Dia
 
 Users under Settings reuses `Panel`, `ad__t`, `RowMenu`, `BulkBar`, `PickAll`, `RowPick` and `Pager`. Reviewed bulk outcomes appear in the shared dialog; the Person column stays pinned, and filters/page size remain in the URL. Recipient-owned account-change email preferences use the shared Settings save bar.
 
+Onboarding service explanations reuse the existing press-to-open Tip and field hints. Keep stored keys and option values stable; historical Client dashboard and Your client portal answers map to Client portal on draft load. Specialist explanations remain optional unless needed to answer safely.
+
 Public custom forms reuse SelectField and the lazy searchable PhoneField used by Contact. lib/phone.ts normalizes numbers to E.164 and enforces Nigerian national length; custom answer checks, Contact submission and its server endpoint share it. Choice keyboard focus belongs to the whole label, without a second input shadow. Users group tabs reuse ad__tabsNav and its shared panel spacing.
 
 `Pager` keeps native disclosure and links with a small `DismissDetails` boundary for outside-pointer and Escape dismissal. Backup/restore design reuses `FileDrop`, `Dialog`, `Panel`, `Pager`, shared row-menu/bulk-bar geometry and pinned scrollable tables; it is an interactive proposal, not a running backup service.

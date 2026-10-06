@@ -64,7 +64,7 @@ test("project update channels are multiple choice with the client portal selecte
 
   const field = page.locator('[data-field="channel"]');
   await expect(field.locator(".ob__label")).toContainText("Which channels work best for project updates?");
-  const portal = field.getByRole("checkbox", { name: "Your client portal" });
+  const portal = field.getByRole("checkbox", { name: "Client portal" });
   const email = field.getByRole("checkbox", { name: "Email" });
   await expect(portal).toHaveAttribute("aria-checked", "true");
   await email.click();
