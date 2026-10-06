@@ -161,6 +161,39 @@ export function usePickerOpen({
     };
   }, [open, root]);
 
+  /* KEEP THE PHONE SHEET ABOVE THE ON-SCREEN KEYBOARD. The sheet is fixed to
+     the layout viewport, and a keyboard shrinks only the VISUAL viewport, so
+     the sheet's bottom edge ends up behind the keys. `visualViewport` says
+     how tall the visible part is and how far its bottom sits above the layout
+     viewport's; both go onto the open panel as custom properties that
+     picker.css reads (with its own fallback when the API is missing). One
+     rAF per burst of resize/scroll events, passive listeners, removed on
+     close, and only the panel's own style is written. */
+  useEffect(() => {
+    if (!open) return;
+    const vv = window.visualViewport;
+    const pop = root.current?.querySelector<HTMLElement>(".pk__pop");
+    if (!vv || !pop) return;
+    let queued = 0;
+    const apply = () => {
+      queued = 0;
+      const bottom = Math.max(0, window.innerHeight - (vv.offsetTop + vv.height));
+      pop.style.setProperty("--pk-vv-h", `${Math.round(vv.height)}px`);
+      pop.style.setProperty("--pk-vv-bottom", `${Math.round(bottom)}px`);
+    };
+    const schedule = () => { if (!queued) queued = requestAnimationFrame(apply); };
+    apply();
+    vv.addEventListener("resize", schedule, { passive: true });
+    vv.addEventListener("scroll", schedule, { passive: true });
+    return () => {
+      if (queued) cancelAnimationFrame(queued);
+      vv.removeEventListener("resize", schedule);
+      vv.removeEventListener("scroll", schedule);
+      pop.style.removeProperty("--pk-vv-h");
+      pop.style.removeProperty("--pk-vv-bottom");
+    };
+  }, [open, root]);
+
   /* THE ACTIVE ROW IS SCROLLED INTO VIEW FOR THE KEYBOARD, NOT FOR THE MOUSE.
      A mouse hover sets the active row too, and rows pass under a stationary
      cursor as the wheel turns, so every row that reached the edge was then
@@ -204,8 +237,28 @@ export function usePickerOpen({
 
        Nothing needs that scroll. The control was just clicked, so it is in
        view by definition, and the panel is placed against it. */
+    /* NOT THE SEARCH BOX ON A TOUCH SCREEN. Focusing a text input there raises
+       the on-screen keyboard, and the sheet is `position: fixed` against the
+       layout viewport, so the keyboard could cover the lower rows of the list
+       with nothing to say they were there (reported: the industry list "would
+       not scroll", cut off mid-list). On a coarse pointer focus lands on the
+       list instead, so a screen reader and a switch user still arrive inside
+       the panel; the search box is one tap away and focuses normally. A mouse
+       or keyboard user keeps the search box, which is what they want to type
+       into. */
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
     requestAnimationFrame(() =>
-      (searchRef.current ?? listRef.current)?.focus({ preventScroll: true }));
+      (coarse ? listRef.current ?? searchRef.current : searchRef.current ?? listRef.current)
+        ?.focus({ preventScroll: true }));
+  }, [open, searchRef, listRef]);
+
+  /* A SEPARATE EFFECT FROM THE FOCUS ABOVE, ON PURPOSE. `onClose` is a new
+     function every render, so an effect that depends on it re-runs on every
+     render; with the focus inside it, a tap on the search box (which re-renders
+     nothing but can re-run the effect) was followed by focus being pulled
+     back to the list. Focus belongs to opening only. */
+  useEffect(() => {
+    if (!open) return;
     /* THE SCRIM COUNTS AS OUTSIDE, EVEN THOUGH `root` PAINTS IT.
        Below 560px the scrim is `.pk.is-open::before` -- a pseudo-element, so it
        has no DOM node of its own and a tap on it reports `root` itself as the

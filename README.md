@@ -101,7 +101,7 @@ Paystack mode in Settings › Integrations uses `SettingsForm`, the designed `Se
 
 ### Components (admin and portal)
 
-All of these live in `frontend/components/admin/`. The public site has its own onboarding picker (`components/onboarding/`).
+All of these live in `frontend/components/admin/`. The public site has its own onboarding picker (`components/onboarding/`): on a touch screen it opens as a bottom sheet that does not auto-focus the search box (focus lands on the list; a tap raises the keyboard), is sized from `visualViewport` so the keyboard does not cover it, and gives its list its own definite max-height.
 
 | Need | Use | Notes |
 |---|---|---|
