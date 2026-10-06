@@ -83,7 +83,7 @@ Contact, forms and onboarding must persist their result before deferred email. S
 
 R2 uploads use scoped signed requests and server validation. Keep static marketing assets in `public/`; reserve R2 for managed uploads. CORS and browser CSP are separate policies, and either can block a correctly signed request. Use configured origins instead of a broad wildcard.
 
-Paystack mode is centralized. Verify provider callbacks and persisted amounts before changing financial/access state. A browser return URL alone does not prove a successful payment.
+Paystack mode is centralized. Settings › Integrations stores an owner-controlled override in `app_settings`; ENV is the default only when no override exists. Database failures refuse checkout rather than changing account silently. Migration 0037 records each checkout's original mode, invoice and amount before provider initialization. Verification uses that account after a mode switch, and webhook HMAC identifies the signing account independently of the selected mode. Test and unknown-mode Paystack payments cannot settle invoices. A browser return URL alone does not prove a successful payment. Run `node scripts/check-paystack-mode.mjs` for deterministic provider-free mode checks and the focused money append-only spec for the financial boundary.
 
 `vercel.json` schedules `/api/cron/daily` at 03:40 UTC daily. It performs retention, invoice reminders and related maintenance. It cannot accurately schedule an hour-before-meeting reminder. The [Meetings preview](../prototypes/cal-meetings/README.md) uses sample data and does not implement Cal.com bookings.
 

@@ -33,6 +33,7 @@ Meetings implementation uses `Panel`, `Pick`, `DateInput`, `DateTimeInput`, `Dia
 Users under Settings reuses `Panel`, `ad__t`, `RowMenu`, `BulkBar`, `PickAll`, `RowPick` and `Pager`. Reviewed bulk outcomes appear in the shared dialog; the Person column stays pinned, and filters/page size remain in the URL. Recipient-owned account-change email preferences use the shared Settings save bar.
 
 Public custom forms reuse SelectField and the lazy searchable PhoneField used by Contact. lib/phone.ts normalizes numbers to E.164 and enforces Nigerian national length; custom answer checks, Contact submission and its server endpoint share it. Choice keyboard focus belongs to the whole label, without a second input shadow. Users group tabs reuse ad__tabsNav and its shared panel spacing.
+Paystack mode in Settings › Integrations uses `SettingsForm`, the designed `Select`, `Switch`, and the shared confirmation dialog. Live mode requires explicit acknowledgement and a fresh owner session. Configuration indicators contain no key values; existing checkout references retain their original account when mode changes.
 
 ### Voice
 

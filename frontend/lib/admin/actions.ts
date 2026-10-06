@@ -5,7 +5,7 @@ import { after } from "next/server";
 import { redirect } from "next/navigation";
 import * as db from "./store";
 import { invoiceTotals, naira, STAGES, type InvoiceLine } from "./types";
-import { paystackMode } from "@/lib/paystack";
+import { selectedPaystackMode } from "@/lib/paystack-mode";
 import { actorName, adminRole, owner, allow } from "./guard";
 import { can } from "./permissions";
 import { queueLogged, retryLogged } from "@/lib/message-log";
@@ -474,7 +474,7 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
     note,
     /* Only a Paystack row is test-or-live at all -- cash in an envelope has no
        mode. See the note on `Payment.mode`. */
-    mode: how === "Paystack" ? paystackMode() : undefined,
+    mode: how === "Paystack" ? await selectedPaystackMode() : undefined,
   });
 
   if (!res.ok) {
@@ -482,6 +482,7 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
       "no-invoice": "That invoice is no longer there.",
       duplicate: "That reference is already recorded, so nothing was added. This is the guard working.",
       "not-positive": "The amount has to be more than nothing.",
+      "test-mode": "Test or unknown-mode Paystack payments cannot settle a real invoice. Verify a live transaction before recording payment.",
       draft: "This invoice is still a draft. Issue it first.",
       void: "This invoice has been voided, so nothing is owed on it. If the money is real, record it against the invoice it was meant for.",
     };
@@ -1025,11 +1026,12 @@ export async function matchEventToInvoice(_prev: ActionState, fd: FormData): Pro
     /* The event's own mode, when it has one, rather than whatever
        `PAYSTACK_MODE` happens to be right now -- a test event matched days
        later on a since-switched-to-live deployment stays test money. Older
-       events recorded before this field existed fall back to the current
-       mode, which is the best guess available for them. */
-    mode: event.mode ?? paystackMode(),
+       events without authenticated mode evidence cannot be banked by this
+       action: guessing the current mode could turn test money into live. */
+    mode: event.mode,
   });
   if (!applied.ok) {
+    if (applied.reason === "test-mode") return FAIL({}, "This event has no verified live-payment evidence. Test payments cannot settle invoices; verify the original transaction before assigning it.");
     return FAIL({}, applied.reason === "duplicate"
       ? "That reference is already banked against an invoice. Resolve this one with a note instead."
       : `It would not apply: ${applied.reason}.`);

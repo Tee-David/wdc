@@ -3,7 +3,8 @@ import {
   applyPayment, getInvoice, getPaymentsFor, matchInvoice, recordProviderEvent,
 } from "@/lib/admin/store";
 import { invoiceTotals } from "@/lib/admin/types";
-import { wholeKobo, paystackMode, paystackSignatureValid } from "@/lib/paystack";
+import { wholeKobo, paystackSignatureMode } from "@/lib/paystack";
+import { checkoutAttempt } from "@/lib/paystack-mode";
 import { chargeBanked, claimCharge, releaseCharge } from "@/lib/paystack-claim";
 import { sendPaymentNotice, sendPaymentReceiptEmail } from "@/lib/money-mail";
 import { saveStore, syncStore } from "@/lib/admin/persist";
@@ -84,7 +85,8 @@ export async function POST(request: NextRequest) {
 async function receive(request: NextRequest) {
   const raw = await request.text();
 
-  if (!(await paystackSignatureValid(raw, request.headers.get("x-paystack-signature")))) {
+  const authenticatedMode = await paystackSignatureMode(raw, request.headers.get("x-paystack-signature"));
+  if (!authenticatedMode) {
     /* Recorded, and deliberately with as little of the body as possible: a
        request that failed its signature is exactly the one whose contents we
        should not be copying into our own storage. The reference is taken only
@@ -93,7 +95,7 @@ async function receive(request: NextRequest) {
     try { ref = str((JSON.parse(raw) as { data?: Charge })?.data?.reference); } catch { /* not ours to parse */ }
     recordProviderEvent({
       event: "signature.invalid", reference: ref || "(unreadable)", amount: null,
-      outcome: "Rejected", mode: paystackMode(),
+      outcome: "Rejected",
       note: "A webhook arrived whose signature did not verify. Nothing was written to the books.",
     });
     return new NextResponse("Invalid signature", { status: 401 });
@@ -105,6 +107,19 @@ async function receive(request: NextRequest) {
   const event = str(body.event) || "unknown";
   const data = body.data ?? {};
   const reference = str(data.reference);
+  const paystackMode = () => authenticatedMode;
+  if (authenticatedMode === "test") {
+    recordProviderEvent({event,reference:reference || "(none)",amount:typeof data.amount === "number" ? wholeKobo(data.amount) : null,outcome:"Ignored",mode:"test",note:"Test event: no invoice payment or receipt was created."});
+    return new NextResponse("Test event recorded",{status:200});
+  }
+  if (event === "charge.success") {
+    let attempt:Awaited<ReturnType<typeof checkoutAttempt>>;
+    try { attempt = await checkoutAttempt(reference); } catch { return new NextResponse("Checkout identity unavailable",{status:503}); }
+    if (attempt && (attempt.mode !== authenticatedMode || Number(attempt.amount) !== data.amount || attempt.currency !== data.currency || attempt.invoice_id !== data.metadata?.invoiceId)) {
+      recordProviderEvent({event,reference,amount:typeof data.amount === "number" ? wholeKobo(data.amount) : null,outcome:"Unmatched",mode:authenticatedMode,note:"Signed payment did not match its recorded checkout. Review this event before assigning any invoice."});
+      return new NextResponse("Checkout mismatch recorded",{status:200});
+    }
+  }
   const amount = typeof data.amount === "number" ? wholeKobo(data.amount) : null;
   const channel = str(data.channel) || undefined;
 
