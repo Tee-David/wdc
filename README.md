@@ -141,3 +141,4 @@ All of these live in `frontend/components/admin/`. The public site has its own o
 
 - **New passwords** need 8+ characters with a capital, a small letter, a number and a symbol. They are refused if they appear in a known breach (Have I Been Pwned, k-anonymity; fails closed).
 - **Addresses:** temporary inboxes and anonymous mail services are refused at every public form and on invitations (`lib/email-domains.ts`).
+Production admin collections start empty and hydrate only from persisted records. Empty databases are never seeded from demo fixtures; missing or failed database access is reported. The legacy candidate manifest and read-only audit script live in docs/audits and frontend/scripts/audit-demo-records.mjs; candidate IDs require full-record provenance review before deletion, and authentication/current owner records are outside the cleanup scope.
