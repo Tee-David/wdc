@@ -1,4 +1,6 @@
 const app = document.querySelector('#app');
+document.addEventListener('pointerdown',event=>{document.querySelectorAll('.ad__perPage[open]').forEach(details=>{if(!details.contains(event.target))details.open=false;});});
+document.addEventListener('keydown',event=>{if(event.key==='Escape')document.querySelectorAll('.ad__perPage[open]').forEach(details=>{details.open=false;details.querySelector('summary').focus();});});
 const state = { screen: new URLSearchParams(location.search).get('view')==='users'?'users':'booking', step: 0, date: 12, time: '', view: 'month', tab: 'Calendar', selected: 0, error: false, changes: 0, name: '', email: '', notes: '' };
 const meetings = [
   { title: 'Project conversation', client: 'Sample client · new enquiry', day: 12, time: '10:00', status: 'Confirmed' },

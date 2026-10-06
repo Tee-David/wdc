@@ -6,6 +6,9 @@ import { fileURLToPath } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const files = new Map([
+  ['/backup', [path.join(here, 'backup.html'), 'text/html']],
+  ['/backup.css', [path.join(here, 'backup.css'), 'text/css']],
+  ['/backup.js', [path.join(here, 'backup.js'), 'text/javascript']],
   ['/', [path.join(here, 'index.html'), 'text/html']],
   ['/preview.css', [path.join(here, 'preview.css'), 'text/css']],
   ['/preview.js', [path.join(here, 'preview.js'), 'text/javascript']],
@@ -20,4 +23,4 @@ http.createServer((req, res) => {
   if (!file || !fs.existsSync(file[0])) { res.writeHead(404); res.end('Not found'); return; }
   res.writeHead(200, { 'Content-Type': file[1], 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex', 'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'none'; frame-ancestors 'none'" });
   fs.createReadStream(file[0]).pipe(res);
-}).listen(3147, '127.0.0.1', () => console.log('Design preview: http://127.0.0.1:3147'));
+}).listen(Number(process.argv[2] || 3147), '127.0.0.1', () => console.log(`Design preview: http://127.0.0.1:${process.argv[2] || 3147}`));
