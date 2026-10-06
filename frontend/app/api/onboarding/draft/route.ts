@@ -4,7 +4,9 @@ import { availability } from "@/lib/forms/settings-db";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 import { db } from "@/lib/db/pool";
 import { mailIsConfigured } from "@/lib/email";
-import { secretKey, sendLogged } from "@/lib/outbox";
+import { secretKey, sendQueuedLogged } from "@/lib/outbox";
+import { queueLogged,settleLogged } from "@/lib/message-log";
+import { transaction } from "@/lib/db/transaction";
 import { composeEmailHtml, emailButton, emailP, emailSmall } from "@/lib/email-templates";
 import {
   cleanAnswers, cleanService, cleanStep, clearOnboardingCookie, cookieToken, draftFromToken, issueToken,
@@ -12,13 +14,21 @@ import {
 } from "@/lib/onboarding-server";
 import { REFUSED_EMAIL_MESSAGE, refusedEmail } from "@/lib/email-domains";
 
-/* FORGET THIS BROWSER'S DRAFT. Only the cookie goes: the draft row and its
-   answers stay where the studio can see them, so starting over never deletes
-   something a client typed. Origin-checked like every write here. */
+/* Archive unfinished answers and revoke every prior link; retain studio history. */
 export async function DELETE(request: NextRequest) {
   if (!requestOriginIsAllowed(request)) {
     return NextResponse.json({ error: "This request could not be verified." }, { status: 403 });
   }
+  const token = cookieToken(request);
+  try {
+    if (token) await transaction(async c => {
+      const found = await c.query<{id:string}>(`SELECT s.id FROM onboarding_submissions s JOIN onboarding_resume_tokens t ON t.submission_id=s.id WHERE t.token_hash=$1 AND t.revoked_at IS NULL AND t.expires_at>now() FOR UPDATE OF s`,[tokenHash(token)]);
+      const id = found.rows[0]?.id;
+      if (!id) return;
+      await c.query(`UPDATE onboarding_submissions SET status='archived',updated_at=now() WHERE id=$1 AND status='in_progress'`,[id]);
+      await c.query(`UPDATE onboarding_resume_tokens SET revoked_at=now() WHERE submission_id=$1 AND revoked_at IS NULL`,[id]);
+    });
+  } catch { return NextResponse.json({error:"Start over could not be completed. Your answers have been kept. Try again."},{status:503}); }
   const response = NextResponse.json({ ok: true });
   clearOnboardingCookie(response);
   return response;
@@ -59,6 +69,7 @@ export async function POST(request: NextRequest) {
      apart. An invalid or expired token counts as creating. */
   const existingToken = cookieToken(request);
   const existingDraft = existingToken ? await draftFromToken(existingToken) : null;
+  if (existingToken && !existingDraft) return NextResponse.json({error:"This saved form is no longer available. Start over to begin a new brief."},{status:409});
   const creating = !existingDraft;
 
   const limit = creating
@@ -101,9 +112,10 @@ export async function POST(request: NextRequest) {
       UPDATE onboarding_submissions
       SET service = $2, current_step = $3, answers = $4::JSONB,
           email = COALESCE($5, email), updated_at = now()
-      WHERE id = $1 AND status = 'in_progress'
+      WHERE id = $1 AND status = 'in_progress' AND EXISTS (SELECT 1 FROM onboarding_resume_tokens WHERE submission_id=$1 AND token_hash=$6 AND revoked_at IS NULL AND expires_at>now())
       RETURNING email
-    `, [draft.id, service, currentStep, JSON.stringify(answers), requestedEmail]);
+    `, [draft.id, service, currentStep, JSON.stringify(answers), requestedEmail,tokenHash(token!)]);
+    if (!result.rowCount) return NextResponse.json({error:"This saved form was restarted or submitted. Your current answers remain in this browser."},{status:409});
     draft = { ...draft, service, currentStep, answers, email: result.rows[0]?.email ?? draft.email };
   } else {
     /* A NEW brief is refused when the service's form is closed; an existing
@@ -144,6 +156,8 @@ export async function POST(request: NextRequest) {
     const client = await db.connect();
     try {
       await client.query("BEGIN");
+      const active = await client.query(`SELECT id FROM onboarding_submissions WHERE id=$1 AND status='in_progress' AND EXISTS (SELECT 1 FROM onboarding_resume_tokens WHERE submission_id=onboarding_submissions.id AND token_hash=$2 AND revoked_at IS NULL AND expires_at>now()) FOR UPDATE`,[draft.id,previousHash]);
+      if (!active.rowCount) throw new Error("The draft is no longer editable.");
       await client.query(`
         UPDATE onboarding_resume_tokens
         SET revoked_at = now()
@@ -164,44 +178,30 @@ export async function POST(request: NextRequest) {
   }
 
   const resumeUrl = `${request.nextUrl.origin}/onboarding?resume=${encodeURIComponent(token)}`;
-  /* THE LINK GOES BEHIND THE RESPONSE. This used to be awaited, which put
-     the mail server's 23-second handshake between the click and the saved
-     message. The reply now says the link is on its way rather than that it
-     arrived, which is also the more honest sentence: acceptance by our mail
-     server was never delivery to the client's inbox. The outbox row is where
-     a failure shows up. */
-  let emailSent = false;
+  let emailQueued = false;
   if (requestedEmail && body.emailLink === true && mailIsConfigured()) {
-    const to = requestedEmail;
     const linkToken = token;
-    after(async () => {
-      try {
-        await sendLogged({
-          to,
-          subject: "Continue your WDC onboarding form",
-          text: `Your onboarding answers are saved. Continue within three days: ${resumeUrl}\n\nIf you did not request this link, you can ignore this email.`,
-          html: composeEmailHtml({
-            title: "Your answers are saved",
-            preheader: "Continue your onboarding form on any device within three days.",
-            heading: "Your answers are saved",
-            blocks: [
-              emailP("Continue on any device within three days."),
-              emailButton("Continue onboarding", resumeUrl),
-              emailSmall("If you did not request this link, you can ignore this email."),
-            ],
-          }),
-        }, {
-          summary: "A link to continue a saved onboarding form.",
-          dedupeKey: secretKey("onboarding-resume", linkToken),
+    const mail = {
+      to: requestedEmail,
+      subject: "Continue your WDC onboarding form",
+      text: `Your onboarding answers are saved. Continue within three days: ${resumeUrl}\n\nIf you did not request this link, you can ignore this email.`,
+      html: composeEmailHtml({title:"Your answers are saved",preheader:"Continue your onboarding form on any device within three days.",heading:"Your answers are saved",blocks:[emailP("Continue on any device within three days."),emailButton("Continue onboarding",resumeUrl),emailSmall("If you did not request this link, you can ignore this email.")]}),
+    };
+    const log = {summary:`A link to continue saved onboarding form ${draft.id}.`,dedupeKey:secretKey("onboarding-resume",linkToken)};
+    try {
+      const queued = await queueLogged({channel:"Email",to:mail.to,subject:mail.subject,...log},true);
+      if (queued.ok) {
+        after(async () => {
+          try {
+            if (!(await draftFromToken(linkToken))) {await settleLogged(queued.message.id,"Skipped","The saved brief was restarted or the link expired.");return;}
+            await sendQueuedLogged(mail,log,queued.message.id);
+          } catch { /* The persisted log is the recovery record; no credential goes into logs. */ }
         });
-      } catch (error) {
-        console.error("Onboarding resume email failed", error instanceof Error ? error.message : "unknown error");
+        emailQueued = true;
       }
-    });
-    emailSent = true;
+    } catch { /* Saving succeeded. Copy link remains available when mail cannot be queued. */ }
   }
-
-  const response = NextResponse.json({ draft, resumeUrl, emailSent });
+  const response = NextResponse.json({ draft, resumeUrl, emailQueued });
   setOnboardingCookie(response, token);
   return response;
 }
