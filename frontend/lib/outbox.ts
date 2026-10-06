@@ -43,9 +43,14 @@ export async function sendLogged(mail: Mail, log: OutboxLog): Promise<"sent" | "
     dedupeKey: log.dedupeKey, by: log.by ?? "Website", clientId: log.clientId, about: log.about,
   });
   if (!queued.ok) return "duplicate";
+  return sendQueuedLogged(mail,log,queued.message.id);
+}
+
+/** Sends an intent persisted by the request before deferred work is scheduled. */
+export async function sendQueuedLogged(mail:Mail,log:OutboxLog,messageId:Id):Promise<"sent"> {
 
   if (!mailIsConfigured()) {
-    await settleLogged(queued.message.id, "Failed", "SMTP is not configured on this deployment.");
+    await settleLogged(messageId, "Failed", "SMTP is not configured on this deployment.");
     throw new Error("SMTP is not configured on this deployment.");
   }
   /* Timed, because this mail server spends about 23 seconds authenticating,
@@ -53,10 +58,10 @@ export async function sendLogged(mail: Mail, log: OutboxLog): Promise<"sent" | "
   const started = Date.now();
   try {
     await sendMail(mail);
-    await settleLogged(queued.message.id, "Sent", undefined, Date.now() - started);
+    await settleLogged(messageId, "Sent", undefined, Date.now() - started);
     return "sent";
   } catch (error) {
-    await settleLogged(queued.message.id, "Failed", error instanceof Error ? error.message : "The mail server refused it.", Date.now() - started);
+    await settleLogged(messageId, "Failed", error instanceof Error ? error.message : "The mail server refused it.", Date.now() - started);
     /* Somebody is told, behind the response (lib/mail-alert.ts). */
     const { scheduleFailureAlert } = await import("@/lib/mail-alert");
     scheduleFailureAlert(log.dedupeKey);
