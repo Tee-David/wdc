@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { ArrowLeft, FileUp, Loader2, X } from "lucide-react";
 import { CONTACT_EMAIL } from "@/lib/site";
 import SelectField from "@/components/onboarding/select-field";
@@ -13,6 +14,7 @@ import {
 import "@/components/contact/contact.css";
 import "./custom-form.css";
 
+const PhoneField = dynamic(() => import("@/components/onboarding/phone-field"), { ssr: false, loading: () => <div className="ct-phone-ph" aria-hidden="true" /> });
 const extOf = (name: string) => name.match(/\.([a-zA-Z0-9]{1,8})$/)?.[1]?.toLowerCase() ?? "";
 const ACCEPT = Object.keys(FILE_TYPES).map((e) => `.${e}`).join(",");
 
@@ -243,6 +245,9 @@ function Field({ f, id, value, error, onChange, slug, preview }: {
         </div>
       );
       break;
+    case "phone":
+      control = <PhoneField id={id} value={text} onChange={onChange} invalid={Boolean(error)} describedBy={describedBy} />;
+      break;
     case "select":
       control = <SelectField id={id} options={f.options ?? []} value={text} onChange={onChange} invalid={Boolean(error)} describedBy={describedBy} placeholder={f.placeholder || "Choose one"} />;
       break;
@@ -280,12 +285,12 @@ function Field({ f, id, value, error, onChange, slug, preview }: {
       control = <FileField id={id} f={f} files={Array.isArray(value) && (value.length === 0 || typeof value[0] === "object") ? (value as FileAnswer[]) : []} byEmail={value === FILE_BY_EMAIL} onChange={onChange} slug={slug} preview={preview} describedBy={describedBy} />;
       break;
     default: {
-      const type = f.type === "phone" ? "tel" : f.type === "text" ? "text" : f.type;
+      const type = f.type === "text" ? "text" : f.type;
       control = (
         <input {...common} type={type} value={text} placeholder={f.placeholder} maxLength={LIMITS.text}
           min={f.type === "number" ? f.min : undefined} max={f.type === "number" ? f.max : undefined}
-          inputMode={f.type === "number" ? "decimal" : f.type === "phone" ? "tel" : undefined}
-          autoComplete={f.type === "email" ? "email" : f.type === "phone" ? "tel" : /name/i.test(f.label) ? "name" : undefined}
+          inputMode={f.type === "number" ? "decimal" : undefined}
+          autoComplete={f.type === "email" ? "email" : /name/i.test(f.label) ? "name" : undefined}
           onChange={(e) => onChange(e.target.value)} />
       );
     }

@@ -1,4 +1,5 @@
 "use client";
+import { normalizePhone } from "@/lib/phone";
 
 import {
   useCallback, useEffect, useId, useMemo, useRef, useState,
@@ -288,6 +289,9 @@ export default function PhoneField({
           ok = m.parsePhoneNumber(digits, nextIso as never)?.isValid() ?? false;
         } catch { ok = false; }
       }
+      const normalized = normalizePhone(out, nextIso);
+      ok = ok && normalized !== null;
+      if (normalized !== null) out = normalized;
       lastPushed.current = out;
       onChange(out);
       onValidity?.(ok);
