@@ -152,7 +152,7 @@ export default function RootLayout({
           }}
         />
         <JsonLd data={[organizationJsonLd(), websiteJsonLd(), ...servicesJsonLd()]} />
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           {/* THE SITE'S FURNITURE, AND NONE OF IT ON THE ADMIN.
 
               A dashboard opened forty times a day does not want a preloader in
