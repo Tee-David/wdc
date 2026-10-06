@@ -34,13 +34,15 @@ Legend: [x] done, [ ] to do, [~] in progress, [!] blocked on the owner.
 
 ## Phase 1. Dropdown scroll fix (small, separate commit)
 
-- [x] Reproduce on a touch phone viewport with Playwright (not reproduced in headless Chromium)
-- [~] Ship keyboard hardening: no auto focus on touch, size the sheet from the visual viewport (in progress, owner to test on a real phone)
-- [ ] Find the root cause and fix it once in the shared picker
-- [ ] Add one test that fails before and passes after
-- [ ] Lint, typecheck, targeted specs
-- [ ] Commit and push to main and the working branch
-- [ ] Line in `docs/status.md`
+Owner device: Microsoft Edge on iPhone (Apple WebKit engine). Not reproduced in headless Chromium.
+
+- [x] Reproduce on a touch phone viewport with Playwright (not reproduced)
+- [x] Ship the hardening in commit 2d3a089 on main: no auto focus of the search box on touch, sheet sized from the visual viewport, list has its own definite max height (WebKit flex shrink guard), dvh with svh fallback
+- [x] Three new tests in `tests/onboarding.spec.ts`. Targeted specs: 47 passed, 10 skipped (need a capture token), 0 failed. eslint and tsc exit 0
+- [ ] Production build not run for this change
+- [ ] [!] Owner tests on the iPhone in Edge: open the industry list, scroll to the last row without touching search, tap search, repeat with the toolbar collapsed, and try the phone country list
+- [ ] If it still fails: owner sends a screenshot with keyboard state and Edge and iOS version. Next step is a page scroll lock through `components/ui/scroll-reset.tsx`
+- [ ] Confirm the deployed commit includes 2d3a089
 
 ## Phase 2. Six artifacts (three flows each)
 
