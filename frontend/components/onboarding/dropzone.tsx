@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AlertCircle, Check, FileText, ImageIcon, RotateCcw, UploadCloud, X } from "lucide-react";
+import { AlertCircle, Check, FileText, ImageIcon, RotateCcw, X } from "lucide-react";
+import { FileDrop } from '@/components/admin/file-drop';
+import './form-kit.css';
 
 /**
  * Drag files here, or press to choose them. The files really go.
@@ -22,10 +24,8 @@ import { AlertCircle, Check, FileText, ImageIcon, RotateCcw, UploadCloud, X } fr
  * rather than something that has to be joined up later. The ANSWER records the
  * filename, because that is what a person reading the brief needs to see.
  *
- * WHY NOT A LIBRARY. react-dropzone is 12KB for four DOM events and an `<input
- * type=file>`. The events are `dragenter`, `dragover`, `dragleave` and `drop`,
- * and the only non-obvious part is that `dragover` MUST be prevented or the
- * browser navigates away to open the file -- which is written down below.
+ * FileDrop owns the shared native chooser and drag interaction; this component
+ * owns onboarding authorization, transfer progress, retry and saved answers.
  */
 
 const MB = 1024 * 1024;
@@ -70,8 +70,6 @@ export default function Dropzone({
   describedBy?: string;
 }) {
   const [items, setItems] = useState<Picked[]>([]);
-  const [over, setOver] = useState(false);
-  const input = useRef<HTMLInputElement>(null);
 
   /* Only files that actually arrived count as answered. A name in the brief
      that never reached the bucket is worse than no name at all: it tells
@@ -245,40 +243,7 @@ export default function Dropzone({
 
   return (
     <div className="dz">
-      <div
-        className={`dz__zone${over ? " is-over" : ""}`}
-        /* PREVENTING `dragover` IS NOT OPTIONAL. Without it the browser's own
-           default wins the drop and navigates the tab to the file, which loses
-           everything the client has typed so far. It is the single most
-           important line in this component. */
-        onDragOver={(e) => { e.preventDefault(); setOver(true); }}
-        onDragEnter={(e) => { e.preventDefault(); setOver(true); }}
-        onDragLeave={(e) => {
-          /* Only when the pointer has actually left the zone, not when it
-             crosses onto a child element -- which fires `dragleave` too and
-             would make the highlight flicker the whole way across. */
-          if (!e.currentTarget.contains(e.relatedTarget as Node)) setOver(false);
-        }}
-        onDrop={(e) => { e.preventDefault(); setOver(false); add(e.dataTransfer.files); }}
-      >
-        <input
-          ref={input}
-          id={id}
-          type="file"
-          multiple
-          accept={ACCEPT}
-          aria-describedby={describedBy}
-          onChange={(e) => { add(e.target.files); e.target.value = ""; }}
-        />
-        <UploadCloud aria-hidden="true" />
-        <p className="dz__lead">
-          <button type="button" onClick={() => input.current?.click()}>Choose files</button>
-          <span> or drag them here</span>
-        </p>
-        <p className="dz__meta">
-          Up to {MAX_FILES} files, {pretty(MAX_BYTES)} each. Images, PDFs, and design files.
-        </p>
-      </div>
+      <FileDrop id={id} label="Attachments" hint={`Up to ${MAX_FILES} files, ${pretty(MAX_BYTES)} each. Images, PDFs, and design files.`} multiple accept={ACCEPT} aria-describedby={describedBy} onFiles={add} />
 
       {items.length > 0 && (
         <ul className="dz__list">

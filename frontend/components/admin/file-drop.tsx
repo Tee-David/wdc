@@ -2,6 +2,7 @@
 
 import { useRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
 import { Loader2, UploadCloud } from "lucide-react";
+import './file-drop.css';
 
 type FileDropProps = Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "className" | "onChange"> & {
   label: ReactNode;
