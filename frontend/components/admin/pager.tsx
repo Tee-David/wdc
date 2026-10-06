@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, ChevronDown } from "lucide-react";
+import { DismissDetails } from "./dismiss-details";
 
 /**
  * THE ONE PAGER every admin list uses (the mockups' .pager).
  *
  * Rows per page on the left, then "1–25 of 132", then Previous and Next
  * with their arrows beside the words rather than on their own. A server
- * component with no script: the per-page choice is a native <details> list
+ * component with a native <details> list for the per-page choice,
  * of links, so it works before hydration and with JavaScript off, and the
  * state lives in the URL where a reload or a shared link keeps it.
  *
@@ -42,7 +43,7 @@ export function Pager({
   return (
     <nav className="ad__pager" aria-label={label}>
       {perOptions.length ? (
-        <details className="ad__perPage">
+        <DismissDetails className="ad__perPage">
           <summary aria-label={`Rows per page, ${per}`}>
             {per} per page <ChevronDown aria-hidden="true" />
           </summary>
@@ -53,7 +54,7 @@ export function Pager({
               </Link>
             ))}
           </div>
-        </details>
+        </DismissDetails>
       ) : <span />}
       <div className="ad__pgNav">
         <span className="ad__pgRange ad__num">{first}–{last} of {total} {noun}</span>
