@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle, ArrowLeft, ArrowRight, BadgeInfo, Check, HelpCircle,
   Save, Undo2,
@@ -30,7 +30,7 @@ import { useServerDraft } from "./use-server-draft";
 /* THE ONE OWNER OF SCROLL POSITION. See the note at the top of that file:
    a bare window.scrollTo is animated straight back down by Lenis on a desktop
    pointer, because Lenis keeps its own target and nothing here told it. */
-import { toTop } from "@/components/ui/scroll-reset";
+import { reveal, toTop } from "@/components/ui/scroll-reset";
 import "./onboarding.css";
 import "./phone-field.css";
 import "./picker.css";
@@ -272,22 +272,22 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
     setTouched({});
     if (style === "conversation" && at < talkPages.length - 1) {
       setSub(at + 1);
-      requestAnimationFrame(() => toTop(false));
+
       return;
     }
     setSub(0);
     setI((n) => Math.min(n + 1, steps.length));
     /* Back to the top of the new step. Landing halfway down a fresh set of
        questions because the last one was long is disorienting. */
-    requestAnimationFrame(() => toTop(false));
+
   };
   const back = () => {
     setTried(false);
-    if (style === "conversation" && at > 0) { setSub(at - 1); requestAnimationFrame(() => toTop(false)); return; }
+    if (style === "conversation" && at > 0) { setSub(at - 1);  return; }
     /* Across a step the conversation lands on that step's last page. */
     setSub(99);
     setI((n) => Math.max(0, n - 1));
-    requestAnimationFrame(() => toTop(false));
+
   };
 
   const done = i >= steps.length;
@@ -394,11 +394,28 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
 
      INSTANT, NOT SMOOTH. The confetti starts on the same frame, and a
      two-second glide would spend it looking at the wrong part of the page. */
-  useEffect(() => {
-    if (!submitted) return;
-    const f = requestAnimationFrame(() => toTop(true));
-    return () => cancelAnimationFrame(f);
-  }, [submitted]);
+
+  /* Step navigation happens after React commits the new geometry. One instant
+     reset updates both Lenis and native scrolling; smooth scrolling from a
+     shrinking previous step can otherwise be clamped back to its old bottom. */
+  const lastScreen = useRef("");
+  useLayoutEffect(() => {
+    const screen = `${started}:${service}:${i}:${sub}:${submitted}`;
+    if (!lastScreen.current) { lastScreen.current = screen; return; }
+    if (lastScreen.current === screen) return;
+    lastScreen.current = screen;
+    const frame = requestAnimationFrame(() => {
+      const root = document.querySelector<HTMLElement>(".ob");
+      if (root) {
+        root.tabIndex = -1;
+        root.focus({ preventScroll: true });
+      }
+      const activeCard = root?.querySelector(".obb__card.is-open");
+      if (activeCard) void reveal(activeCard, { top: 88 });
+      else toTop(true);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [started, service, i, sub, submitted]);
 
   /* ------------------------------------------------ welcome */
   /* THE FIRST SCREEN ASKS WHICH SERVICE THIS IS FOR.

@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("welcome uses the shared compact service picker and an explicit next step", async ({ page }) => {
-  await page.goto("/onboarding");
+  await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
   const picker = page.locator("#ob-service");
   await expect(picker).toHaveAttribute("aria-expanded", "false");
   await picker.click();
@@ -25,7 +25,7 @@ for (const theme of ["light", "dark"]) for (const width of [320, 390, 768, 1440]
       localStorage.setItem("theme", theme);
       localStorage.setItem("wdc-onboarding-draft", JSON.stringify({ started: true, service: "branding", step: 3, answers: { has_brandbook: "Yes" } }));
     }, { theme });
-    await page.goto("/onboarding");
+    await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
     const field = page.locator('[data-field="brand_colours"]');
     await expect(field).toBeVisible(); // Preferences remain available with a guide.
     await field.locator("summary").click();
@@ -51,5 +51,21 @@ for (const theme of ["light", "dark"]) for (const width of [320, 390, 768, 1440]
     await field.getByRole("button", { name: "Add a colour", exact: true }).click();
     await field.getByPlaceholder("e.g. Deep green").fill("Green");
     await expect(field.getByRole("button", { name: "Please recommend colours" })).toHaveAttribute("aria-pressed", "false");
+  });
+}
+
+for (const width of [320, 1440]) {
+  test(`next opens the following section at the top at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 600 });
+    await page.addInitScript(() => {
+      localStorage.setItem("wdc-onboarding-draft", JSON.stringify({ started: true, service: "branding", step: 1, answers: { brand_state: "Nothing yet" } }));
+    });
+    await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
+    const next = page.locator(".ob__stepNext").first();
+    await expect(next).toBeVisible();
+    await next.scrollIntoViewIfNeeded();
+    await next.click();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(2);
+    await expect(page.locator(".ob")).toBeFocused();
   });
 }
