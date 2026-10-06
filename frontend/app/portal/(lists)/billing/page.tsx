@@ -1,4 +1,5 @@
 import { PayForm } from "@/components/money/pay-form";
+import { selectedPaystackMode } from "@/lib/paystack-mode";
 import Link from "next/link";
 import { ListSearch } from "@/components/admin/list-search";
 import { Banknote, Lock, CheckCircle2, CreditCard, Download, FileText, Receipt, Wallet } from "lucide-react";
@@ -34,6 +35,7 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
   const { client } = await getPortalRequest();
   if (!client) return null;
   const query = await searchParams;
+  const paymentMode = await selectedPaystackMode().catch(() => null);
 
   const invoices = getInvoicesFor(client.id).filter((inv) => inv.status !== "Draft");
   const credits = getCreditsFor(client.id).filter((c) => !c.applied);
@@ -69,6 +71,7 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
           <p>Every invoice for your projects, what you have paid and what is left.</p>
         </div>
       </header>
+      {paymentMode !== "live" ? <p>{paymentMode === "test" ? "Online checkout is in test mode. Simulated payments leave your invoices unpaid. Open an invoice for bank details to make a real payment." : "Online checkout is temporarily unavailable. Open an invoice for bank details or contact the studio."}</p> : null}
 
       <dl className="pBill__kpis">
         <div className="ad__tile pBill__owed">

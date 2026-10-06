@@ -100,6 +100,7 @@ async function start(request: NextRequest, ctx: { params: Promise<{ token: strin
 
   recordProviderEvent({
     event: "checkout.started", reference, amount: totals.due,
+    mode: started.mode,
     outcome: "Ignored", invoiceId: inv.id,
     note: `Checkout opened for ${invoiceStatus(inv).toLowerCase()} invoice ${inv.number}.`,
   });

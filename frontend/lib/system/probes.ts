@@ -3,6 +3,7 @@ import "server-only";
 import { db } from "@/lib/db/pool";
 import { mailIsConfigured, missingMailVariables, verifyMail } from "@/lib/email";
 import { paystackConfig } from "@/lib/paystack";
+import { selectedPaystackMode } from "@/lib/paystack-mode";
 import { headObject, probeCors, r2Config } from "@/lib/r2";
 import { SITE_URL } from "@/lib/site";
 import { setAppSetting } from "@/lib/app-settings";
@@ -49,7 +50,7 @@ const RUN: Record<ProbeName, () => Promise<string>> = {
     return "Connected and signed in. Nothing was sent.";
   },
   async payments() {
-    const p = paystackConfig();
+    const p = paystackConfig(await selectedPaystackMode());
     if (!p.ok) throw new Error(`Not set: ${p.missing.join(", ")}.`);
     const res = await fetch("https://api.paystack.co/balance", {
       headers: { authorization: `Bearer ${p.config.secretKey}` },

@@ -5,7 +5,7 @@ import {
   applyPayment, getInvoice, getPaymentsFor, matchInvoice, recordProviderEvent,
 } from "@/lib/admin/store";
 import { invoiceTotals, lineTotal, type Invoice } from "@/lib/admin/types";
-import { wholeKobo, paystackMode, verifyTransaction } from "@/lib/paystack";
+import { wholeKobo, verifyTransaction } from "@/lib/paystack";
 import { chargeBanked, claimCharge, releaseCharge } from "@/lib/paystack-claim";
 import { sendPaymentReceiptEmail } from "@/lib/money-mail";
 import ReceiptPrinter, { type ReceiptLine } from "@/components/money/receipt-printer";
@@ -55,6 +55,7 @@ type Outcome =
   /* The invoice's public address when it is known, so a failed or unconfirmed
      payment always has "Try again" rather than a dead end. */
   | { kind: "pending"; message: string; invoiceToken?: string }
+  | { kind: "test"; message: string; invoiceToken?: string }
   | { kind: "failed"; message: string; invoiceToken?: string }
   /* No reference at all: this page cannot know what happened, so it must not
      say "not paid" -- that alarms somebody whose money may well have gone. */
@@ -77,6 +78,7 @@ function paidOutcome(
 
 async function settle(reference: string): Promise<Outcome> {
   const verified = await verifyTransaction(reference);
+  const paystackMode = () => verified.mode;
   if (!verified.ok) {
     recordProviderEvent({
       event: "verify.failed", reference, amount: null, outcome: "Rejected", mode: paystackMode(),
@@ -96,6 +98,7 @@ async function settle(reference: string): Promise<Outcome> {
     reference,
   });
   const invoiceToken = invoice?.token;
+  if (verified.mode === "test") return {kind:"test",invoiceToken,message:"This was a test checkout. No real money was recorded and your invoice remains unpaid."};
 
   if (t.status !== "success") {
     recordProviderEvent({
@@ -256,9 +259,9 @@ export default async function PaymentDone({
         ) : (
           <>
             <div className="doc__owed">
-              <span className="doc__k">{outcome.kind === "failed" ? "Not paid" : outcome.kind === "unknown" ? "No reference" : "Checking"}</span>
+              <span className="doc__k">{outcome.kind === "test" ? "Test checkout" : outcome.kind === "failed" ? "Not paid" : outcome.kind === "unknown" ? "No reference" : "Checking"}</span>
               <h1 style={{ fontSize: "1.5rem", margin: 0, lineHeight: 1.2 }}>
-                {outcome.kind === "failed" ? "The payment did not go through" : outcome.kind === "unknown" ? "We cannot tell which payment this is" : "We are confirming your payment"}
+                {outcome.kind === "test" ? "No real payment was recorded" : outcome.kind === "failed" ? "The payment did not go through" : outcome.kind === "unknown" ? "We cannot tell which payment this is" : "We are confirming your payment"}
               </h1>
             </div>
             <p>{outcome.message}</p>
