@@ -17,6 +17,7 @@ import { transaction } from "@/lib/db/transaction";
  * from the row, never from the form.
  */
 
+export class ClientInvitationError extends Error {}
 export type InviteRole = "client" | "staff" | "owner";
 
 export const INVITE_TTL_DAYS = 7;
@@ -86,6 +87,11 @@ export async function createInvitation(input: {
   return transaction(async (c) => {
     const actor = await c.query<{role:string}>(`SELECT "role" FROM "user" WHERE "id"=$1 AND "deactivatedAt" IS NULL FOR UPDATE`,[input.actorId]);
     if (!actor.rows[0] || (input.role === "client" ? !["owner","staff"].includes(actor.rows[0].role) : actor.rows[0].role !== "owner")) throw new Error("Your account can no longer send this invitation.");
+    if (input.role === "client") {
+      const linked = await c.query<{data:{email?:string;archived?:boolean;mergedInto?:string}|null}>(`SELECT data FROM admin_records WHERE collection='CLIENTS' AND id=$1 FOR UPDATE`, [input.clientId ?? ""]);
+      const client = linked.rows[0]?.data;
+      if (!client || client.archived || client.mergedInto || normaliseEmail(client.email ?? "") !== email) throw new ClientInvitationError("Restore the client record and confirm its current email before inviting them.");
+    }
     await c.query(`INSERT INTO user_invitation_targets(email) VALUES($1) ON CONFLICT(email) DO UPDATE SET email=excluded.email`, [email]);
     await c.query(`SELECT email FROM user_invitation_targets WHERE email=$1 FOR UPDATE`, [email]);
     const account = await c.query(`SELECT 1 FROM "user" WHERE lower("email")=$1`, [email]);
@@ -193,6 +199,14 @@ export async function redeemInvitation(token: string, input: { name: string; pas
     const state = inviteState(toInvitation(row));
     if (state !== "pending") return { ok: false, reason: state } as const;
 
+    if (row.role === "client") {
+      const linked = await c.query<{data:{email?:string;archived?:boolean;mergedInto?:string}|null}>(`SELECT data FROM admin_records WHERE collection='CLIENTS' AND id=$1 FOR UPDATE`, [row.client_id ?? ""]);
+      const client = linked.rows[0]?.data;
+      if (!client || client.archived || client.mergedInto || normaliseEmail(client.email ?? "") !== row.email) {
+        await c.query(`UPDATE invitations SET revoked_at=now(),revoked_by='Client linkage changed' WHERE id=$1`, [row.id]);
+        return {ok:false,reason:"revoked"} as const;
+      }
+    }
     const existing = await c.query('SELECT 1 FROM "user" WHERE lower("email") = $1', [row.email]);
     if (existing.rowCount) return { ok: false, reason: "exists" } as const;
 

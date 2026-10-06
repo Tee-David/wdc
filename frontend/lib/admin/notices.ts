@@ -2,7 +2,7 @@ import "server-only";
 
 import { cookies } from "next/headers";
 import { siteSeo } from "@/lib/site-seo";
-import { paystackMode } from "@/lib/paystack";
+import { selectedPaystackMode } from "@/lib/paystack-mode";
 import { failedLoggedCount } from "@/lib/message-log";
 import type { AdminRole } from "./permissions";
 import { migrationStatus } from "@/lib/system/migrations";
@@ -53,8 +53,10 @@ export async function adminNotices(role: AdminRole): Promise<AdminNotice[]> {
     found.push({ key: `migrations:${migrations.pending.at(-1)}`, tone: "bad", title: `${migrations.pending.length} database ${migrations.pending.length === 1 ? "change has" : "changes have"} not been applied`, body: "Screens that rely on them will fail until npm run db:migrate is run.", href: "/admin/settings/system", link: "System" });
   }
 
-  if (role === "owner" && process.env.VERCEL_ENV === "production" && paystackMode() === "test") {
-    found.push({ key: "paystack-test", tone: "bad", title: "Payments are in test mode", body: "Pay links on this live site cannot take real money until PAYSTACK_MODE is live.", href: "/admin/settings/integrations", link: "Integrations" });
+  const mode = await selectedPaystackMode().catch(() => null);
+  if (!mode && role === "owner") found.push({key:"paystack-unavailable",tone:"bad",title:"Payment mode could not be loaded",body:"Check the database before accepting payments.",href:"/admin/settings/integrations",link:"Integrations"});
+  if (role === "owner" && process.env.VERCEL_ENV === "production" && mode === "test") {
+    found.push({ key: "paystack-test", tone: "bad", title: "Payments are in test mode", body: "Test checkout does not take real money or settle invoices. Change payment mode in Integrations when ready.", href: "/admin/settings/integrations", link: "Integrations" });
   }
   if (seo?.noindex.on) {
     found.push({ key: `noindex:${seo.noindex.since ?? "on"}`, tone: "warn", title: "Search engines are asked not to index the site", body: "Left on, the studio drops out of search results.", href: role === "owner" ? "/admin/settings/site" : undefined, link: "Site and SEO" });

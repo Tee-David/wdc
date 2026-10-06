@@ -1,0 +1,34 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import vm from "node:vm";
+import ts from "typescript";
+import { webcrypto, createHmac } from "node:crypto";
+
+const fixtureKeys = {PAYSTACK_MODE:"test",PAYSTACK_LIVE_SECRET_KEY:"sk_live_fixture",PAYSTACK_LIVE_PUBLIC_KEY:"pk_live_fixture",PAYSTACK_TEST_SECRET_KEY:"sk_test_fixture",PAYSTACK_TEST_PUBLIC_KEY:"pk_test_fixture"};
+let attempt = {mode:"live",invoice_id:"invoice-fixture",amount:"50000",currency:"NGN"};
+let selected = "test";
+let dbFails = false;
+const requests = [];
+const exports = {};
+const context = {exports,process:{env:fixtureKeys},TextEncoder,crypto:webcrypto,AbortSignal,require(name) {
+  if (name === "server-only") return {};
+  if (name === "./money-units") return {wholeKobo:value => Math.round(value)};
+  if (name.includes("db/pool")) return {db:{query:async () => {if (dbFails) throw new Error("offline"); return {rows:[]};}}};
+  if (name === "./paystack-mode") return {checkoutAttempt:async () => attempt,selectedPaystackMode:async () => selected};
+  throw new Error(`Unexpected dependency ${name}`);
+},fetch:async (_url,options) => {requests.push(options);return {ok:true,json:async () => ({status:true,data:{status:"success",reference:"checkout-fixture",amount:50000,currency:"NGN",metadata:{invoiceId:"invoice-fixture"}}})};}};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync("lib/paystack.ts","utf8"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,context);
+const verified = await exports.verifyTransaction("checkout-fixture");
+assert.equal(verified.ok,true);assert.equal(verified.mode,"live");
+assert.equal(requests[0].headers.Authorization,"Bearer sk_live_fixture");
+const body = JSON.stringify({event:"charge.success",data:{reference:"checkout-fixture"}});
+for (const mode of ["test","live"]) assert.equal(await exports.paystackSignatureMode(body,createHmac("sha512",fixtureKeys[`PAYSTACK_${mode.toUpperCase()}_SECRET_KEY`]).update(body).digest("hex")),mode);
+assert.equal(await exports.paystackSignatureMode(body,null),null);
+assert.equal(await exports.paystackSignatureMode(body,"bad"),null);
+attempt = {...attempt,amount:"1"};assert.equal((await exports.verifyTransaction("checkout-fixture")).ok,false);
+requests.length = 0;dbFails=true;
+assert.equal((await exports.initializeTransaction({email:"fixture@example.invalid",amount:50000,reference:"checkout-new",callbackUrl:"https://example.invalid/pay/done",metadata:{invoiceId:"invoice-fixture"}})).ok,false);
+assert.equal(requests.length,0);
+selected="live";fixtureKeys.PAYSTACK_LIVE_SECRET_KEY="sk_test_wrong";
+assert.equal(exports.paystackConfig("live").ok,false);
+console.log("Paystack mode checks passed: original-account verification, both signed modes, missing/bad signature, amount mismatch, pre-provider persistence failure and key-prefix validation.");
