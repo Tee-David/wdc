@@ -9,42 +9,8 @@ import {
   providerNeedsAttention, refundedTotal,
 } from "./types";
 
-/**
- * THE ONE PLACE THE ADMIN GETS ITS DATA, and the only file that has to change
- * when the database arrives.
- *
- * Every screen calls these functions. None of them knows whether the answer
- * came from memory or from CockroachDB, because the return types are declared
- * in ./types.ts and lib/db/schema.ts already declares columns that produce
- * exactly those shapes. Replacing the bodies below with Drizzle queries is a
- * mechanical change the compiler will check.
- *
- * WHY IT IS IN MEMORY TODAY, said plainly rather than dressed up: there is no
- * database provisioned, no connection string, and no migration run. Building
- * the screens against a store that does not exist yet would mean building them
- * blind; building them against this one means every list, total, filter and
- * empty state is real and reviewable now, and the swap is one module.
- *
- * The seed below is fiction. It is shaped like real work -- a client with two
- * projects, an invoice part paid, one overdue, a submission still open -- so
- * the screens are exercised rather than flattered.
- */
-
-/* --------------------------------------------------------------- the seed */
-
-/**
- * ONE COPY OF THE BOOKS PER PROCESS, NOT ONE PER BUNDLE.
- *
- * Next compiles route handlers and pages as separate entries, and each entry
- * can evaluate this module for itself. With the collections as plain module
- * constants, a write from `/api/contact` or the Paystack webhook landed in the
- * route's own copy and no admin page ever saw it -- measured, not guessed: an
- * enquiry whose notice failed was recorded by the route and absent from
- * Reconciliation's failed-mail list. Hanging the state off `globalThis` gives
- * every entry the same arrays. The seed runs once, on first use.
- *
- * The cost, in development: editing the seed below no longer resets the data
- * on save. Restart the dev server to reseed.
+/** Shared per-process cache of persisted admin records, populated by syncStore.
+ * Collections start empty. Demonstration fixtures never seed a production database.
  */
 const STATE = globalThis as typeof globalThis & { __wdcAdminStore?: Map<string, unknown> };
 function shared<T>(key: string, seed: () => T): T {
@@ -53,296 +19,22 @@ function shared<T>(key: string, seed: () => T): T {
   return store.get(key) as T;
 }
 
-const iso = (d: string) => new Date(d).toISOString();
-/** Naira to kobo, so the seed reads in the unit a person would say. */
-const N = (naira: number) => Math.round(naira * 100);
 
-const CLIENTS: Client[] = shared("CLIENTS", (): Client[] => [
-  {
-    id: "c1", name: "Tobi Adeyemi", company: "Moore Designs",
-    email: "tobi@mooredesigns.ng", phone: "+234 802 123 4567",
-    services: ["branding", "web"], sector: "Fashion and apparel",
-    since: iso("2026-02-11"),
-    notes: "Wants the identity settled before the site build starts.",
-  },
-  {
-    id: "c2", name: "Amaka Obi", company: "Marfaa Foods",
-    email: "amaka@marfaa.com", phone: "+234 703 998 1122",
-    services: ["social", "seo"], sector: "Food and drink",
-    since: iso("2026-04-02"),
-  },
-  {
-    id: "c3", name: "Chidi Nwosu", company: "Millcon Properties",
-    email: "chidi@millcon.ng", phone: "+234 812 445 0090",
-    services: ["web", "seo", "social"], sector: "Property and construction",
-    since: iso("2025-11-20"),
-  },
-  {
-    id: "c4", name: "Dhiol Ayen", company: "Dhiol World",
-    email: "hello@dhiolworld.com", phone: "+211 920 300 118",
-    services: ["branding"], sector: "Non-profit",
-    since: iso("2026-06-30"),
-  },
-  {
-    id: "c5", name: "Femi Bakare", company: "Traxstaff",
-    email: "femi@traxstaff.io", phone: "+234 909 771 3355",
-    services: ["software", "apps"], sector: "Technology",
-    since: iso("2025-08-14"),
-  },
-]);
+const CLIENTS: Client[] = shared("CLIENTS", (): Client[] => []);
 
-const PROJECTS: Project[] = shared("PROJECTS", (): Project[] => [
-  {
-    id: "p1", clientId: "c1", title: "Identity system", service: "branding",
-    stage: "Review", due: iso("2026-09-26"),
-    owner: "Babatope", health: "Waiting on client", channel: "WhatsApp group",
-    budget: N(630_000), scope: "Logo, palette, type scale and a short guideline set.",
-    events: [
-      { at: iso("2026-08-02"), text: "Moved to Discovery" },
-      { at: iso("2026-08-19"), text: "Moved to In progress" },
-      { at: iso("2026-09-08"), text: "Moved to Review. Three routes sent." },
-    ],
-  },
-  {
-    id: "p2", clientId: "c1", title: "Shop rebuild", service: "web",
-    stage: "Onboarding", due: null,
-    owner: "Babatope", health: "On track", channel: "Client portal",
-    budget: null, scope: "Shopify storefront rebuild on the new identity.",
-    events: [{ at: iso("2026-09-09"), text: "Project opened" }],
-  },
-  {
-    id: "p3", clientId: "c2", title: "Always-on social", service: "social",
-    stage: "In progress", due: iso("2026-12-19"),
-    owner: "Ada", health: "On track", channel: "WhatsApp group",
-    budget: N(3_000_000), scope: "Twelve posts and four reels a month, plus community replies.",
-    events: [
-      { at: iso("2026-04-08"), text: "Moved to Discovery" },
-      { at: iso("2026-04-30"), text: "Moved to In progress" },
-    ],
-  },
-  {
-    id: "p4", clientId: "c3", title: "Listings site", service: "web",
-    stage: "Delivered", due: iso("2026-07-31"),
-    owner: "Ada", health: "On track", channel: "Email",
-    budget: N(1_620_000), scope: "Listings site with search, agent profiles and enquiry routing.",
-    events: [
-      { at: iso("2026-03-01"), text: "Moved to In progress" },
-      { at: iso("2026-07-24"), text: "Moved to Delivered" },
-    ],
-  },
-  {
-    id: "p5", clientId: "c5", title: "Dispatch platform", service: "software",
-    stage: "Revisions", due: iso("2026-10-10"),
-    owner: "Femi", health: "At risk", channel: "Direct chat",
-    budget: N(4_800_000), scope: "Driver dispatch, live tracking and a back office.",
-    events: [
-      { at: iso("2026-06-02"), text: "Moved to In progress" },
-      { at: iso("2026-09-01"), text: "Moved to Revisions" },
-    ],
-  },
-  {
-    id: "p6", clientId: "c4", title: "Charity mark", service: "branding",
-    stage: "Discovery", due: iso("2026-10-31"),
-    owner: "Babatope", health: "Blocked", channel: "Email",
-    budget: N(420_000), scope: "Wordmark and a one-page usage sheet.",
-    events: [{ at: iso("2026-09-02"), text: "Moved to Discovery" }],
-  },
-]);
+const PROJECTS: Project[] = shared("PROJECTS", (): Project[] => []);
 
-/* A LONG ONE, ON PURPOSE.
+const INVOICES: Invoice[] = shared("INVOICES", (): Invoice[] => []);
 
-   Every other invoice here is two or three lines, which is the shape that
-   never finds a pagination bug. A retainer with two dozen items is the shape
-   that does: it runs past one printed page, so it is what proves the table
-   header repeats, that no row is split across the fold, and that the footer
-   and the stamp land once rather than on every sheet. Keeping it in the seed
-   means the next person to touch the print rules has something to test them
-   against without inventing it. */
-const RETAINER_LINES: Invoice["lines"] = [
-  { description: "Social management retainer, September", qty: 1, unit: N(250_000) },
-  { description: "Feed posts, designed and scheduled", qty: 12, unit: N(18_000) },
-  { description: "Reels, scripted, shot and cut", qty: 4, unit: N(45_000) },
-  { description: "Story sets", qty: 8, unit: N(9_000) },
-  { description: "Community management, weekdays", qty: 21, unit: N(6_500) },
-  { description: "Monthly content calendar and sign-off", qty: 1, unit: N(40_000) },
-  { description: "Copywriting, long captions", qty: 12, unit: N(7_500) },
-  { description: "Product photography, half day", qty: 2, unit: N(85_000) },
-  { description: "Photo retouching", qty: 24, unit: N(3_500) },
-  { description: "Motion graphics, short form", qty: 3, unit: N(38_000) },
-  { description: "Paid social setup, Meta", qty: 1, unit: N(60_000) },
-  { description: "Paid social setup, TikTok", qty: 1, unit: N(55_000) },
-  { description: "Ad creative variants", qty: 9, unit: N(12_000) },
-  { description: "Audience research and segment build", qty: 1, unit: N(75_000) },
-  { description: "Landing page for the September offer", qty: 1, unit: N(180_000) },
-  { description: "Email campaign, design and build", qty: 2, unit: N(48_000) },
-  { description: "WhatsApp broadcast templates", qty: 4, unit: N(11_000) },
-  { description: "Influencer brief and shortlist", qty: 1, unit: N(65_000) },
-  { description: "Reporting dashboard, monthly refresh", qty: 1, unit: N(35_000) },
-  { description: "Performance review call and written summary", qty: 1, unit: N(30_000) },
-  { description: "Asset library tidy and handover", qty: 1, unit: N(25_000) },
-  { description: "Caption translation, Yoruba", qty: 12, unit: N(4_000) },
-  { description: "Hashtag and keyword research", qty: 1, unit: N(22_000) },
-  { description: "Out-of-hours community cover, launch week", qty: 7, unit: N(9_500) },
-];
+const PAYMENTS: Payment[] = shared("PAYMENTS", (): Payment[] => []);
 
-const INVOICES: Invoice[] = shared("INVOICES", (): Invoice[] => [
-  {
-    id: "i1", token: "seedInv1AAAAAAAAAAAAAAA", number: "INV-2026-001", clientId: "c1", projectId: "p1",
-    status: "Sent", issued: iso("2026-08-01"), due: iso("2026-08-31"), vatRate: 7.5,
-    lines: [
-      { description: "Identity system, first stage", qty: 1, unit: N(450_000) },
-      { description: "Brand guidelines", qty: 1, unit: N(180_000) },
-    ],
-    paid: N(300_000),
-  },
-  {
-    id: "i2", token: "seedInv2AAAAAAAAAAAAAAA", number: "INV-2026-002", clientId: "c2", projectId: "p3",
-    status: "Sent", issued: iso("2026-07-05"), due: iso("2026-08-04"), vatRate: 7.5,
-    lines: [{ description: "Social management, July", qty: 1, unit: N(250_000) }],
-    /* NET OF THE REFUND: ₦150,000 arrived and ₦75,000 went back. `collected()`
-       recomputes this on every write, so the seed states what that sum
-       produces rather than a figure of its own. */
-    paid: N(75_000),
-  },
-  {
-    id: "i3", token: "seedInv3AAAAAAAAAAAAAAA", number: "INV-2026-003", clientId: "c3", projectId: "p4",
-    status: "Sent", issued: iso("2026-07-25"), due: iso("2026-08-24"), vatRate: 7.5,
-    lines: [
-      { description: "Listings site build", qty: 1, unit: N(1_400_000) },
-      { description: "Search optimisation setup", qty: 1, unit: N(220_000) },
-    ],
-    paid: N(1_741_000),
-  },
-  {
-    id: "i4", token: "seedInv4AAAAAAAAAAAAAAA", number: "INV-2026-004", clientId: "c5", projectId: "p5",
-    status: "Draft", issued: iso("2026-09-09"), due: iso("2026-10-09"), vatRate: 7.5,
-    lines: [{ description: "Dispatch platform, milestone two", qty: 1, unit: N(900_000) }],
-    paid: 0,
-  },
-  {
-    id: "i5", token: "seedInv5AAAAAAAAAAAAAAA", number: "INV-2026-005", clientId: "c2", projectId: "p3",
-    status: "Sent", issued: iso("2026-09-01"), due: iso("2026-10-01"), vatRate: 7.5,
-    lines: RETAINER_LINES,
-    paid: 0,
-  },
-  /* STRUCK, AND SEEDED BECAUSE THE STATE IS INVISIBLE UNTIL IT EXISTS. The
-     number is taken and stays taken -- INV-2026-007 follows it -- the public
-     page still opens and says nothing is owed, and every receivables figure
-     skips it. Nothing was ever received against it, which is the only
-     condition under which an invoice may be struck at all. */
-  {
-    id: "i6", token: "seedInv6AAAAAAAAAAAAAAA", number: "INV-2026-006", clientId: "c1", projectId: "p1",
-    status: "Sent", issued: iso("2026-09-03"), due: iso("2026-10-03"), vatRate: 7.5,
-    lines: [{ description: "Packaging artwork, six SKUs", qty: 6, unit: N(85_000) }],
-    paid: 0,
-    voided: {
-      at: iso("2026-09-05"), by: "Babatope",
-      reason: "Raised against the wrong project. The packaging work sits under the retainer, not the identity job.",
-    },
-  },
-]);
+const EXPENSES: Expense[] = shared("EXPENSES", (): Expense[] => []);
 
-const PAYMENTS: Payment[] = shared("PAYMENTS", (): Payment[] => [
-  { id: "y1", invoiceId: "i1", at: iso("2026-08-06"), amount: N(300_000), method: "Paystack",
-    reference: "PSK_8fj2k1", receiptNo: "RCT-2026-001", token: "seedRct1AAAAAAAAAAAAAAA", by: "Paystack webhook" },
-  { id: "y2", invoiceId: "i3", at: iso("2026-07-30"), amount: N(1_000_000), method: "Transfer",
-    reference: "TRF_0091", receiptNo: "RCT-2026-002", token: "seedRct2AAAAAAAAAAAAAAA", by: "Babatope",
-    note: "Paid into the Zenith account." },
-  { id: "y3", invoiceId: "i3", at: iso("2026-08-14"), amount: N(741_000), method: "Paystack",
-    reference: "PSK_11ba7c", receiptNo: "RCT-2026-003", token: "seedRct3AAAAAAAAAAAAAAA", by: "Paystack webhook" },
-  /* PART REFUNDED, WHICH IS THE ORDINARY CASE and the one a single "refunded"
-     flag cannot describe. The client paid a deposit, the work was cut short
-     after discovery, and half of it went back -- onto their balance rather
-     than to their bank, which is what makes the credit below exist. The
-     receipt keeps its number and still opens; it now says what was returned
-     and what is still held. */
-  { id: "y4", invoiceId: "i2", at: iso("2026-07-08"), amount: N(150_000), method: "Transfer",
-    reference: "TRF_0104", receiptNo: "RCT-2026-004", token: "seedRct4AAAAAAAAAAAAAAA", by: "Babatope",
-    note: "Deposit on the July retainer.",
-    refunds: [
-      { id: "rf1", at: iso("2026-07-21"), by: "Babatope", amount: N(75_000),
-        reason: "July stopped halfway through. Returning the unused half of the deposit.",
-        toCredit: true },
-    ] },
-]);
+const SUBMISSIONS: Submission[] = shared("SUBMISSIONS", (): Submission[] => []);
 
-const EXPENSES: Expense[] = shared("EXPENSES", (): Expense[] => [
-  /* Overhead: no project, so it is the studio's cost and nobody's margin. */
-  { id: "e1", at: iso("2026-08-01"), description: "Adobe Creative Cloud, team plan",
-    category: "Software", amount: N(38_000), vendor: "Adobe", method: "Paystack", by: "Babatope" },
-  { id: "e2", at: iso("2026-08-03"), description: "Vercel Pro",
-    category: "Hosting", amount: N(31_000), vendor: "Vercel", method: "Paystack", by: "Babatope" },
-  /* Against a project, which is what makes that project's margin readable. */
-  { id: "e3", at: iso("2026-08-12"), description: "Stock photography for the guideline set",
-    category: "Assets", amount: N(24_500), vendor: "Envato", method: "Paystack",
-    projectId: "p1", clientId: "c1", by: "Ada",
-    receiptUrl: "https://drive.google.com/file/d/seed-envato-receipt/view" },
-  { id: "e4", at: iso("2026-09-01"), description: "Contract illustrator, four spot drawings",
-    category: "Contractors", amount: N(180_000), vendor: "Kelechi Umeh", method: "Transfer",
-    projectId: "p1", clientId: "c1", rebillable: true, by: "Babatope",
-    note: "Agreed as a pass-through cost in the scope. Bill it on the next invoice." },
-  { id: "e5", at: iso("2026-09-04"), description: "Meta ads, agency test",
-    category: "Marketing", amount: N(60_000), vendor: "Meta", method: "Paystack", by: "Babatope" },
-]);
+const TICKETS: Ticket[] = shared("TICKETS", (): Ticket[] => []);
 
-const SUBMISSIONS: Submission[] = shared("SUBMISSIONS", (): Submission[] => [
-  {
-    id: "s1", clientId: "c1", service: "branding", status: "Submitted",
-    startedAt: iso("2026-07-28"), submittedAt: iso("2026-07-29"),
-    answers: {
-      first_name: "Tobi", last_name: "Adeyemi", company: "Moore Designs",
-      email: "tobi@mooredesigns.ng", phone: "+234 802 123 4567",
-      industry: "Fashion and apparel",
-      brand_state: "A logo only",
-      deliverables: ["Logo", "Full identity system", "Brand guidelines"],
-      surfaces: ["Embroidery", "Print", "Screen", "Packaging"],
-      untouchable: "The name, and the green we already use on the labels.",
-    },
-  },
-  {
-    id: "s2", clientId: "c4", service: "branding", status: "Submitted",
-    startedAt: iso("2026-09-01"), submittedAt: iso("2026-09-02"),
-    answers: {
-      first_name: "Dhiol", last_name: "Ayen", company: "Dhiol World",
-      email: "hello@dhiolworld.com", industry: "Non-profit",
-      brand_state: "Nothing yet",
-      deliverables: ["Logo", "Social templates"],
-    },
-  },
-  {
-    id: "s3", clientId: null, service: "web", status: "In progress",
-    startedAt: iso("2026-09-10"), submittedAt: null,
-    answers: { first_name: "Ngozi", company: "Ngozi Interiors", email: "ngozi@example.com" },
-  },
-]);
-
-const TICKETS: Ticket[] = shared("TICKETS", (): Ticket[] => [
-  {
-    id: "tk1", clientId: "c1", projectId: null,
-    subject: "Can we add a WhatsApp catalogue link to the new site?",
-    status: "Answered", createdAt: iso("2026-09-10"), updatedAt: iso("2026-09-11"),
-  },
-  {
-    id: "tk2", clientId: "c1", projectId: null,
-    subject: "Receipt breakdown for INV-2026-001",
-    status: "Open", createdAt: iso("2026-09-15"), updatedAt: iso("2026-09-15"),
-  },
-]);
-
-const TICKET_MESSAGES: TicketMessage[] = shared("TICKET_MESSAGES", (): TicketMessage[] => [
-  {
-    id: "tm1", ticketId: "tk1", at: iso("2026-09-10"), author: "Tobi Adeyemi", from: "client",
-    body: "Quick one -- once the identity work lands on the site, can we link straight out to our WhatsApp catalogue from the header? We already run one.",
-  },
-  {
-    id: "tm2", ticketId: "tk1", at: iso("2026-09-11"), author: "Studio", from: "studio",
-    body: "Yes -- that's a normal header action, not a new build. We'll wire it in when the site work starts and confirm the link with you before it goes live.",
-  },
-  {
-    id: "tm3", ticketId: "tk2", at: iso("2026-09-15"), author: "Tobi Adeyemi", from: "client",
-    body: "Could you send a line-by-line breakdown for INV-2026-001? Our accountant is asking what the deposit covered.",
-  },
-]);
+const TICKET_MESSAGES: TicketMessage[] = shared("TICKET_MESSAGES", (): TicketMessage[] => []);
 
 /* ------------------------------------------------------------- the reads */
 
@@ -1192,14 +884,7 @@ export function refundPayment(d: {
 
 /* ------------------------------------------------------------------ credit */
 
-const CREDITS: Credit[] = shared("CREDITS", (): Credit[] => [
-  /* The other half of rf1. Held rather than returned, so it is money the
-     studio still has and the client has a claim on. It comes off their next
-     invoice, which is what "balance carry-forward" means in practice. */
-  { id: "cr1", clientId: "c2", at: iso("2026-07-21"), amount: N(75_000), by: "Babatope",
-    reason: "Held from RCT-2026-004 rather than returned. July stopped halfway through.",
-    fromInvoiceId: "i2", fromPaymentId: "y4" },
-]);
+const CREDITS: Credit[] = shared("CREDITS", (): Credit[] => []);
 
 function addCredit(d: Omit<Credit, "id" | "at">): Credit {
   const c: Credit = { ...d, id: mint("cr"), at: now() };
@@ -1535,56 +1220,11 @@ export function financeSettings() {
    swapping the storage is this module changing and nothing above it.
    ========================================================================= */
 
-const TASKS: Task[] = shared("TASKS", (): Task[] => [
-  { id: "t1", projectId: "p1", title: "Send the three routes with rationale", assignee: "Babatope",
-    due: iso("2026-09-08"), priority: "High", done: true, doneAt: iso("2026-09-08"), blockedBy: null },
-  { id: "t2", projectId: "p1", title: "Chase Tobi for a pick", assignee: "Babatope",
-    due: iso("2026-09-15"), priority: "High", done: false, doneAt: null, blockedBy: null },
-  { id: "t3", projectId: "p1", title: "Build the guideline set on the chosen route", assignee: "Ada",
-    due: iso("2026-09-24"), priority: "Normal", done: false, doneAt: null, blockedBy: "t2" },
-  { id: "t4", projectId: "p5", title: "Rework the driver assignment screen", assignee: "Femi",
-    due: iso("2026-09-19"), priority: "High", done: false, doneAt: null, blockedBy: null },
-  { id: "t5", projectId: "p5", title: "Re-run the load test after the rework", assignee: "Femi",
-    due: iso("2026-10-02"), priority: "Normal", done: false, doneAt: null, blockedBy: "t4" },
-  { id: "t6", projectId: "p3", title: "September content calendar", assignee: "Ada",
-    due: iso("2026-09-01"), priority: "Normal", done: true, doneAt: iso("2026-08-29"), blockedBy: null },
-  { id: "t7", projectId: "p6", title: "Get the registration certificate for the mark", assignee: "Babatope",
-    due: iso("2026-09-05"), priority: "High", done: false, doneAt: null, blockedBy: null },
-]);
+const TASKS: Task[] = shared("TASKS", (): Task[] => []);
 
-const UPDATES: Update[] = shared("UPDATES", (): Update[] => [
-  { id: "u1", projectId: "p1", at: iso("2026-09-08"), author: "Babatope", health: "Waiting on client",
-    progress: "Three identity routes sent, each with the reasoning and a mock in situ.",
-    blockers: "We need a pick before the guideline work can start.",
-    next: "Tobi picks a route. We build it out the same week.", clientVisible: true },
-  { id: "u2", projectId: "p1", at: iso("2026-09-11"), author: "Babatope", health: "Waiting on client",
-    progress: "No reply on the routes yet.",
-    blockers: "Three days of silence on WhatsApp.",
-    next: "Call rather than message. If nothing by Monday, flag the date risk.", clientVisible: false },
-  { id: "u3", projectId: "p5", at: iso("2026-09-05"), author: "Femi", health: "At risk",
-    progress: "Revisions on dispatch are underway; the assignment screen is the big one.",
-    blockers: "The rework pushes the load test into October.",
-    next: "Assignment screen this week, load test straight after.", clientVisible: true },
-]);
+const UPDATES: Update[] = shared("UPDATES", (): Update[] => []);
 
-const DELIVERABLES: Deliverable[] = shared("DELIVERABLES", (): Deliverable[] => [
-  { id: "d1", projectId: "p1", name: "Identity routes",
-    versions: [
-      { v: 1, at: iso("2026-09-08"), note: "Three routes, each with rationale." },
-    ],
-    approval: "Awaiting client" },
-  { id: "d2", projectId: "p4", name: "Listings site",
-    versions: [
-      { v: 1, at: iso("2026-07-10"), note: "Staging build for review." },
-      { v: 2, at: iso("2026-07-22"), note: "Enquiry routing and agent profiles added." },
-      { v: 3, at: iso("2026-07-24"), note: "Live." },
-    ],
-    approval: "Approved" },
-  { id: "d3", projectId: "p5", name: "Dispatch platform, beta",
-    versions: [{ v: 1, at: iso("2026-08-28"), note: "Beta for internal testing." }],
-    approval: "Revision requested",
-    approvalNote: "Assignment screen is confusing when two drivers are equidistant." },
-]);
+const DELIVERABLES: Deliverable[] = shared("DELIVERABLES", (): Deliverable[] => []);
 
 /* ------------------------------------------------------------------ reads */
 
@@ -1884,30 +1524,7 @@ export function auditCount(opts: { kind?: AuditKind; subjectId?: Id; subjectIds?
    somebody an afternoon, and they are here so the reconciliation screen is
    reviewable before the first live charge rather than after it. Same rule as
    the rest of this seed: fiction, shaped like real work. */
-const PROVIDER_EVENTS: ProviderEvent[] = shared("PROVIDER_EVENTS", (): ProviderEvent[] => [
-  { id: "pe1", at: iso("2026-08-06T09:14:00"), provider: "Paystack", event: "charge.success",
-    reference: "PSK_8fj2k1", amount: N(300_000), outcome: "Applied", channel: "card",
-    invoiceId: "i1", paymentId: "y1" },
-  /* The retry. Paystack resends anything it did not get a prompt 200 for, and
-     the payer's return from checkout races it -- so one payment routinely
-     produces two events. Listed, and not a problem. */
-  { id: "pe2", at: iso("2026-08-06T09:14:07"), provider: "Paystack", event: "charge.success",
-    reference: "PSK_8fj2k1", amount: N(300_000), outcome: "Duplicate", channel: "card",
-    invoiceId: "i1", paymentId: "y1",
-    note: "Already banked, so nothing was added. Paystack retries, and the payer's return races this." },
-  { id: "pe3", at: iso("2026-08-14T11:02:00"), provider: "Paystack", event: "charge.success",
-    reference: "PSK_11ba7c", amount: N(741_000), outcome: "Applied", channel: "bank_transfer",
-    invoiceId: "i3", paymentId: "y3" },
-  /* THE ONE THAT COSTS MONEY IF NOBODY LOOKS. Real money, arrived, and nothing
-     in the books claims it: somebody paid by transfer and typed their own
-     company name into the narration instead of the invoice number. */
-  { id: "pe4", at: iso("2026-09-02T16:41:00"), provider: "Paystack", event: "charge.success",
-    reference: "MARFAA-SEPT", amount: N(250_000), outcome: "Unmatched", channel: "bank_transfer",
-    note: "Money arrived and no invoice in the books matches the reference." },
-  { id: "pe5", at: iso("2026-09-09T03:22:00"), provider: "Paystack", event: "signature.invalid",
-    reference: "(unreadable)", amount: null, outcome: "Rejected",
-    note: "A webhook arrived whose signature did not verify. Nothing was written to the books." },
-]);
+const PROVIDER_EVENTS: ProviderEvent[] = shared("PROVIDER_EVENTS", (): ProviderEvent[] => []);
 
 export function recordProviderEvent(d: Omit<ProviderEvent, "id" | "at" | "provider"> & {
   at?: string;
@@ -2027,31 +1644,7 @@ export function matchInvoice(input: { reference?: string; invoiceId?: string }):
    WhatsApp row here means somebody wrote down that they sent one.
    ========================================================================= */
 
-const MESSAGES: Message[] = shared("MESSAGES", (): Message[] => [
-  { id: "m1", at: iso("2026-08-01T10:12:00"), channel: "Email", direction: "Outbound",
-    to: "tobi@mooredesigns.ng", subject: "Invoice INV-2026-001: ₦677,250.00 due 31 August 2026",
-    summary: "Link sent with the invoice and the pay button on it.", state: "Sent",
-    by: "Babatope", clientId: "c1", dedupeKey: "invoice:i1",
-    about: { kind: "invoice", id: "i1", label: "INV-2026-001" } },
-  { id: "m2", at: iso("2026-08-06T09:14:09"), channel: "Email", direction: "Outbound",
-    to: "tobi@mooredesigns.ng", subject: "Receipt RCT-2026-001: ₦300,000.00 received",
-    summary: "₦300,000.00 against INV-2026-001. ₦377,250.00 is still outstanding.",
-    state: "Sent", by: "Paystack webhook", clientId: "c1", dedupeKey: "receipt:y1",
-    about: { kind: "payment", id: "y1", label: "RCT-2026-001" } },
-  /* THE ROW THAT MATTERS. A reminder the mail server refused, which nothing
-     else on any screen would ever show: the invoice simply stays unpaid and
-     nobody knows the chase never went. */
-  { id: "m3", at: iso("2026-09-05T08:30:00"), channel: "Email", direction: "Outbound",
-    to: "tobi@mooredesigns.ng", subject: "A reminder about invoice INV-2026-001",
-    summary: "₦377,250.00 outstanding, due 31 August 2026.", state: "Failed",
-    error: "Connection timed out after 30000ms", by: "Studio", clientId: "c1",
-    dedupeKey: "reminder:i1:2026-09-05",
-    about: { kind: "invoice", id: "i1", label: "INV-2026-001" } },
-  { id: "m4", at: iso("2026-09-08T14:05:00"), channel: "WhatsApp", direction: "Outbound",
-    to: "Moore Designs project group", subject: "Three identity routes sent",
-    summary: "Told Tobi the routes were in the email and asked for a pick by Friday.",
-    state: "Sent", by: "Babatope", clientId: "c1", dedupeKey: "manual:m4" },
-]);
+const MESSAGES: Message[] = shared("MESSAGES", (): Message[] => []);
 
 export type QueueResult =
   | { ok: true; message: Message }
@@ -2148,48 +1741,7 @@ export function retryMessage(id: Id, actor = "Studio"): Message | null {
    to point at when the scope changes and the price does too.
    ========================================================================= */
 
-const ESTIMATES: Estimate[] = shared("ESTIMATES", (): Estimate[] => [
-  /* Sent and still live: the pipeline row. */
-  {
-    id: "q1", number: "EST-2026-001", token: "seedEst1AAAAAAAAAAAAAAA",
-    clientId: "c5", projectId: "p5", state: "Sent",
-    issued: iso("2026-09-08"), expires: iso("2026-10-08"), vatRate: 7.5,
-    lines: [
-      { description: "Dispatch platform, milestone three", qty: 1, unit: N(1_200_000) },
-      { description: "Driver app, Android build", qty: 1, unit: N(750_000) },
-      { description: "Two weeks of hypercare after launch", qty: 1, unit: N(180_000) },
-    ],
-    discount: 5,
-    notes: "Milestone three covers the routing rework and the driver app. Hypercare is two weeks from the day it goes live, not from sign-off.",
-    terms: "Half on acceptance, half on delivery. The price holds for thirty days from the date above.",
-  },
-  /* Accepted, and the invoice it became. This is what proves the two documents
-     stay separate: the estimate is still readable at its own number. */
-  {
-    id: "q2", number: "EST-2026-002", token: "seedEst2AAAAAAAAAAAAAAA",
-    clientId: "c1", projectId: "p1", state: "Accepted",
-    issued: iso("2026-07-20"), expires: iso("2026-08-20"), vatRate: 7.5,
-    lines: [
-      { description: "Identity system, first stage", qty: 1, unit: N(450_000) },
-      { description: "Brand guidelines", qty: 1, unit: N(180_000) },
-    ],
-    notes: "Three routes, one taken through to a full guideline set.",
-    terms: "Half on acceptance, half on handover.",
-    answered: { at: iso("2026-07-29"), by: "Tobi Moore", note: "Happy with the second route. Go ahead." },
-    invoiceId: "i1",
-  },
-  /* Declined, kept. A quote nobody took is the most useful row in a pipeline
-     six months later, and deleting it is how a studio forgets what its prices
-     have been doing. */
-  {
-    id: "q3", number: "EST-2026-003", token: "seedEst3AAAAAAAAAAAAAAA",
-    clientId: "c3", projectId: null, state: "Declined",
-    issued: iso("2026-08-30"), expires: iso("2026-09-29"), vatRate: 7.5,
-    lines: [{ description: "Quarterly SEO retainer", qty: 3, unit: N(320_000) }],
-    terms: "Monthly in advance.",
-    answered: { at: iso("2026-09-04"), by: "Ifeanyi Nwosu", note: "Going in-house for now. Ask again in the new year." },
-  },
-]);
+const ESTIMATES: Estimate[] = shared("ESTIMATES", (): Estimate[] => []);
 
 export function getEstimates() {
   return ESTIMATES.slice().sort((a, b) => b.issued.localeCompare(a.issued));

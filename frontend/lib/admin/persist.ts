@@ -16,8 +16,7 @@ import { hydrateSettings } from "@/lib/settings/store";
  *  - `syncStore()` at the start of a request asks the table for the rows
  *    written since this instance last looked (one small query) and folds them
  *    in, so an edit made on one instance is on every other at its next
- *    request. The first call loads everything, or, on an empty table, writes
- *    the starting records so there is something to load next time.
+ *    request. The first call loads everything; an empty table stays empty.
  *  - `saveStore()` diffs every collection against what was last written and
  *    upserts only what changed, so a write path that forgets to call it is
  *    still caught by the next save anywhere. Actions call it before they
@@ -79,9 +78,8 @@ async function load() {
   const colls = persistedCollections();
   const count = await db.query<{ n: string }>("SELECT count(*)::STRING AS n FROM admin_records");
   if (Number(count.rows[0]?.n ?? 0) === 0) {
-    /* An empty table: what is in memory (the starting records) becomes the
-       first thing kept, so the next instance loads the same books. */
-    await write(true);
+    /* An empty database stays empty. Never copy runtime fixtures into production. */
+    for (const [coll, rows] of Object.entries(colls)) { rows.length = 0; snapshot(coll).clear(); }
     state.loaded = true;
     return;
   }
@@ -158,7 +156,7 @@ async function write(all = false) {
  * and the store is the in-memory demonstration it always was.
  */
 export async function syncStore(): Promise<void> {
-  if (!configured()) return;
+  if (!configured()) throw new Error("The admin database is not configured.");
   /* The settings (VAT, reminders, sender) ride along: every reader of the
      store is a reader of them, and they are one small query when stale. */
   await hydrateSettings();
@@ -175,9 +173,9 @@ export async function syncStore(): Promise<void> {
       }
       state.checkedAt = Date.now();
     } catch (error) {
-      /* A database that cannot be reached leaves the records as they are in
-         memory; the page still renders, and the next request tries again. */
+      /* Keep the last persisted cache, but propagate failure so callers cannot present a synthetic success. */
       console.error("[admin store] sync failed:", error instanceof Error ? error.message : error);
+      throw error;
     } finally {
       state.inflight = null;
     }
@@ -187,17 +185,18 @@ export async function syncStore(): Promise<void> {
 
 /** Write what changed. Actions await it before they answer. */
 export async function saveStore(): Promise<void> {
-  if (!configured()) return;
+  if (!configured()) throw new Error("The admin database is not configured.");
   if (!state.loaded) await syncStore();
   try {
     await write();
   } catch (error) {
-    console.error("[admin store] save failed; kept in memory and retried on the next request:", error instanceof Error ? error.message : error);
+    console.error("[admin store] save failed:", error instanceof Error ? error.message : error);
+    throw error;
   }
 }
 
 /** The same, behind the response, for a path that must not wait. */
 export function persistSoon() {
-  if (!configured()) return;
-  try { after(saveStore); } catch { void saveStore(); }
+  if (!configured()) throw new Error("The admin database is not configured.");
+  try { after(saveStore); } catch { void saveStore().catch(() => console.error("[admin store] deferred persistence failed.")); }
 }
