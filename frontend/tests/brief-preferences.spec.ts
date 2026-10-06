@@ -80,7 +80,54 @@ for (const width of [320, 1440]) {
     await expect(next).toBeVisible({ timeout: 30000 });
     await next.scrollIntoViewIfNeeded();
     await next.click();
-    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(2);
+    if (await page.locator(".ob--board").count()) {
+      const card = page.locator(".obb__card.is-open");
+      await expect.poll(async () => (await card.boundingBox())?.y ?? Infinity).toBeLessThan(160);
+      expect((await card.boundingBox())?.y).toBeGreaterThanOrEqual(72);
+    } else {
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(2);
+    }
     await expect(page.locator(".ob")).toBeFocused();
   });
 }
+
+for (const service of SERVICES) {
+  test(`${service.name} explains its service choices on a phone`, async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    const steps = stepsFor(service.slug);
+    const step = steps.findIndex((step) => step.fields.some((field) => FIELD_EXAMPLES[field.key] && field.key !== "has_brandbook" && !field.showIf));
+    const field = steps[step].fields.find((field) => FIELD_EXAMPLES[field.key] && field.key !== "has_brandbook" && !field.showIf)!;
+    await page.addInitScript(({ service, step }) => {
+      localStorage.setItem("wdc-onboarding-draft", JSON.stringify({ started: true, service, step, answers: {} }));
+    }, { service: service.slug, step });
+    await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
+    const question = page.locator(`[data-field="${field.key}"]`);
+    await expect(question).toBeVisible({ timeout: 30000 });
+    await question.locator(".tip__b").click();
+    await expect(page.locator(".obExample")).toContainText(FIELD_EXAMPLES[field.key].title);
+    const panel = page.locator(".tip__p");
+    const bounds = await panel.boundingBox();
+    expect(bounds?.x).toBeGreaterThanOrEqual(0);
+    expect((bounds?.x ?? 0) + (bounds?.width ?? 0)).toBeLessThanOrEqual(391);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBeTruthy();
+    await panel.getByRole("button").click();
+    await expect(panel).toHaveCount(0);
+  });
+}
+
+test.describe("native touch navigation", () => {
+  test.use({ viewport: { width: 375, height: 667 }, isMobile: true, hasTouch: true });
+  test("a tap on Next reveals the new section without desktop scroll interception", async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem("wdc-onboarding-draft", JSON.stringify({ started: true, service: "branding", step: 1, answers: { brand_state: "Nothing yet" } })));
+    await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
+    const next = page.locator(".ob__stepNext").first();
+    await expect(next).toBeVisible({ timeout: 30000 });
+    await next.scrollIntoViewIfNeeded();
+    await next.tap();
+    if (await page.locator(".ob--board").count()) {
+      await expect.poll(async () => (await page.locator(".obb__card.is-open").boundingBox())?.y ?? Infinity).toBeLessThan(160);
+      expect((await page.locator(".obb__card.is-open").boundingBox())?.y).toBeGreaterThanOrEqual(72);
+    } else await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(2);
+    expect(await page.evaluate(() => Boolean(window.__lenis))).toBeFalsy();
+  });
+});
