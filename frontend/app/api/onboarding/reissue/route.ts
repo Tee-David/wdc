@@ -2,10 +2,11 @@ import { after, NextRequest, NextResponse } from "next/server";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 import { db } from "@/lib/db/pool";
 import { mailIsConfigured } from "@/lib/email";
-import { secretKey, sendLogged } from "@/lib/outbox";
+import { secretKey, sendQueuedLogged } from "@/lib/outbox";
+import { queueLogged,settleLogged } from "@/lib/message-log";
 import { composeEmailHtml, emailButton, emailP, emailSmall } from "@/lib/email-templates";
 import {
-  issueToken, normalizeEmail, requestOriginIsAllowed, RESUME_TTL_SECONDS, tokenHash,
+  draftFromToken, issueToken, normalizeEmail, requestOriginIsAllowed, RESUME_TTL_SECONDS, tokenHash,
 } from "@/lib/onboarding-server";
 
 /**
@@ -46,7 +47,7 @@ const WINDOW_MS = 15 * 60 * 1000;
 const SAME_ANSWER = {
   ok: true,
   message:
-    "If that address has an unfinished form, we have sent a fresh link to it. It is good for three days.",
+    "If that address has an unfinished form and email is available, a fresh link will be queued. Check your inbox shortly. It is good for three days.",
 };
 
 export async function POST(request: NextRequest) {
@@ -98,6 +99,8 @@ export async function POST(request: NextRequest) {
       const client = await db.connect();
       try {
         await client.query("BEGIN");
+        const active = await client.query(`SELECT id FROM onboarding_submissions WHERE id=$1 AND status='in_progress' FOR UPDATE`,[draft.id]);
+        if (!active.rowCount) throw new Error("The brief is no longer active.");
         /* Every outstanding link for this draft stops working now. */
         await client.query(`
           UPDATE onboarding_resume_tokens
@@ -124,31 +127,17 @@ export async function POST(request: NextRequest) {
          and a floating promise has nobody keeping it alive. Nothing
          downstream depends on the send, because the answer does not reveal
          whether one happened. */
-      const to = draft.email;
-      after(async () => {
+      const mail = {
+        to:draft.email,subject:"Your onboarding link",
+        text:`Here is a fresh link to your unfinished WDC onboarding form: ${url}\n\nIt works for three days. Earlier resume links stop working. If you did not ask for this, you can ignore it.`,
+        html:composeEmailHtml({title:"Your onboarding link",preheader:"Continue your saved brief within three days.",heading:"Your onboarding link",blocks:[emailP("Continue your saved brief within three days. Earlier resume links stop working."),emailButton("Continue your brief",url),emailSmall("If you did not ask for this, you can ignore it.")]}),unsubscribe:false,
+      };
+      const log = {summary:`A fresh link to unfinished onboarding form ${draft.id}.`,dedupeKey:secretKey("onboarding-reissue",token)};
+      const queued = await queueLogged({channel:"Email",to:mail.to,subject:mail.subject,...log},true);
+      if(queued.ok) after(async () => {
         try {
-          await sendLogged({
-            to,
-            subject: "Your onboarding link",
-            text:
-              `Here is a fresh link to your unfinished WDC onboarding form.\n\n${url}\n\n` +
-              `It works for three days, and any earlier link you had has now stopped working.\n\n` +
-              `If you did not ask for this, you can ignore it. Nothing has changed on your form.`,
-            html: composeEmailHtml({
-              title: "Your onboarding link",
-              preheader: "A fresh link to your unfinished onboarding form. It works for three days.",
-              heading: "Your onboarding link",
-              blocks: [
-                emailP("Here is a fresh link to your unfinished onboarding form. It works for three days, and any earlier link has stopped working."),
-                emailButton("Pick up where you left off", url),
-                emailSmall("If you did not ask for this, you can ignore it. Nothing has changed on your form."),
-              ],
-            }),
-            unsubscribe: false,
-          }, {
-            summary: "A fresh link to an unfinished onboarding form.",
-            dedupeKey: secretKey("onboarding-reissue", token),
-          });
+          if (!(await draftFromToken(token))) {await settleLogged(queued.message.id,"Skipped","The brief was restarted or this link is no longer active.");return;}
+          await sendQueuedLogged(mail,log,queued.message.id);
         } catch {
           /* Swallowed on purpose. A failed send must not change the response,
              or the timing and the status become the oracle this route exists
