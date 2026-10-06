@@ -5,7 +5,7 @@ import { migrationStatus } from "@/lib/system/migrations";
 import { lastTools, MEDIA_CHECK_LIMIT, RETRY_DAYS, RETRY_LIMIT, type ToolName } from "@/lib/system/tools";
 import { failedLoggedCount, stuckQueuedCount } from "@/lib/message-log";
 import { lastAuditFor } from "@/lib/audit-db";
-import { paystackMode } from "@/lib/paystack";
+import { selectedPaystackMode } from "@/lib/paystack-mode";
 import { getProviderEvents } from "@/lib/admin/store";
 import { syncStore } from "@/lib/admin/persist";
 import Link from "next/link";
@@ -69,7 +69,7 @@ export default async function SystemPage() {
     ["Region", process.env.VERCEL_REGION ?? "unknown"],
     ["Next.js", nextVersion],
     ["Node.js", process.version],
-    ["Payments mode", paystackMode()],
+    ["Payments mode", await selectedPaystackMode().catch(() => "Unavailable")],
     ["Migrations", migrations.ok ? `${migrations.applied} applied of ${migrations.files}${migrations.pending.length ? `, ${migrations.pending.length} not applied` : ""}` : `could not be read: ${migrations.error}`],
     ...PROBES.map((p) => [PROBE_LABEL[p], probes[p] ? `${probes[p]!.ok ? "answered" : "failed"} ${time(probes[p]!.at)}: ${probes[p]!.detail}` : "not checked"]),
   ] as [string, string][];
@@ -130,7 +130,7 @@ export default async function SystemPage() {
             <div><dt>Webhook address</dt><dd><CopyText text={`${SITE_URL}/api/paystack/webhook`} /></dd></div>
             <div><dt>Callback address</dt><dd><CopyText text={`${SITE_URL}/pay/done`} /></dd></div>
           </dl>
-          <p className="ad__dim adForms__p">Both go in the Paystack dashboard under Settings, API keys and webhooks, for the {paystackMode()} account. Every delivery is listed on <Link href="/admin/money/reconciliation">Reconciliation</Link>.</p>
+          <p className="ad__dim adForms__p">Both go in the Paystack dashboard under Settings, API keys and webhooks, for the {await selectedPaystackMode().catch(() => "Unavailable")} account. Every delivery is listed on <Link href="/admin/money/reconciliation">Reconciliation</Link>.</p>
         </Panel>
 
         <Panel title="Tools">
