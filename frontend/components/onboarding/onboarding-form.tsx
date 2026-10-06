@@ -22,6 +22,8 @@ import SelectField from "./select-field";
 import DomainField from "./domain-field";
 import ServicePicker from "./service-picker";
 import ColourField from "./colour-field";
+import { BriefExample, ChoiceLabel } from "./brief-help";
+import { FIELD_EXAMPLES } from "@/lib/onboarding-help";
 import Dropzone from "./dropzone";
 import Tip from "./tip";
 import Dialog from "./dialog";
@@ -1014,7 +1016,7 @@ function FieldView({
           of questions rather than a page of prose. Only explanations the
           question genuinely cannot be answered without stay inline, as
           `hint`. */}
-      {f.tip ? <Tip text={f.tip} /> : null}
+      {f.tip || FIELD_EXAMPLES[f.key] ? <Tip text={f.tip || "A simple example to help you answer."} example={<BriefExample field={f.key} />} label={`Help with ${f.label}`} /> : null}
     </label>
   );
   /* Always visible, under the label. A hint the form cannot be completed
@@ -1095,6 +1097,7 @@ function FieldView({
     >
       {label}
       {hint}
+      {f.key === "has_brandbook" && v === "I'm not sure what that is" ? <p className="ob__hint">A guide is a document with your logo, colour and type rules. It is fine not to have one. Open the help beside this question to see an example.</p> : null}
       {scope}
       {/* The control stays in the DOM while deferred rather than being
           replaced, so nothing jumps when it is toggled and anything already
@@ -1181,7 +1184,7 @@ function FieldView({
             onClick={() => onChange(v === o ? "" : o)}
           >
             <span className="ob__dot" aria-hidden="true" />
-            {o}
+            <ChoiceLabel field={f.key} option={o} />
           </button>
         ))}
       </div>,
@@ -1218,7 +1221,7 @@ function FieldView({
               }}
             >
               <span className="ob__tick" aria-hidden="true">{on ? <Check /> : null}</span>
-              {o}
+              <ChoiceLabel field={f.key} option={o} />
             </button>
           );
         })}
