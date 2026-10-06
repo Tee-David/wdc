@@ -18,6 +18,14 @@ Remaining delivery: event-type configuration, calendar/conferencing connections,
 
 ## Backup, restore and demo cleanup
 
+2026-10-06 integration checkpoint: Meetings (0035), Users (0036) and Paystack mode (0037) source changes are integrated. None of these migrations was applied by this work. Booking remains disabled; timed reminders and scoped staff/client/project booking linkage remain pending. Paystack preserves original checkout mode and rejects test settlement. Integrated demo-source, phone, Users filter/CSV, Meetings policy and mocked Paystack checks passed. Integrated TypeScript passed before the small Pager dismissal change; targeted Pager lint passed. The combined webpack build compiled and passed TypeScript but static generation repeatedly timed out, so the full build is not marked passed. The authenticated browser review is also incomplete.
+
+The interactive Backup and restore artifact is served at `http://127.0.0.1:3148/backup`. It now uses the real FileDrop and Dialog markup, shared row-menu and bulk-bar styles, Daily/Weekly/Monthly choices, archive-count retention and personal notifications. It performs no backup, restore, upload or schedule execution. Earlier layout checks passed at 320/768/1440px in both themes; the final upload/dialog/menu corrections still need visual recheck because the browser stopped responding. The shared Pager now dismisses outside and on Escape; prototype outside-click/toggle checks passed.
+
+Runtime starter records and empty-database reseeding are removed. Persisted legacy demo records have not been deleted: the source inventory and read-only audit preserve provenance and current owner access. No blanket reset or financial-history rewrite ran.
+
+Dashboard and marketing audit proposals are in `docs/audits/dashboard-real-world-review.md` and `docs/audits/marketing-real-world-review.md`. These reconcile the existing onboarding plans across all six services. The owner requested a plans checklist after approval; it has not been created or treated as approved.
+
 The owner requested a clean dashboard retaining the current admin account, improved Users spacing and a comprehensive Settings recovery section. The [Backup and restore proposal](../plans/backup-and-restore-plan.md) defines scoped archives, exclusions, private downloads, validation, safety checkpoints and a restore drill. It is a proposal, not an implemented backup. Demo provenance is being audited before removing persisted records; no blanket database reset has run. The existing reset-admin-store script would recreate starting records and is not a production cleanup procedure.
 
 Paystack Test/Live Settings implementation is assigned separately. The audit found current mode-bound verification and test-settlement risks; reference-bound verification and isolation of test payments must accompany the control. No production mode has been changed.
