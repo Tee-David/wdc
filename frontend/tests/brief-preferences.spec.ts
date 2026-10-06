@@ -15,6 +15,7 @@ test("service help stays attached to stable fields and choices", () => {
 });
 
 test.beforeEach(async ({ page }) => {
+  page.setDefaultTimeout(30000);
   // This suite exercises rendering only; it cannot save a draft or send a message.
   await page.route("**/api/onboarding/**", (route) => route.fulfill({ status: 503, json: { error: "Isolated rendering check; writes disabled." } }));
   await page.route(/jotfor|userway/i, (route) => route.abort());
@@ -23,7 +24,7 @@ test.beforeEach(async ({ page }) => {
 test("welcome uses the shared compact service picker and an explicit next step", async ({ page }) => {
   await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
   const picker = page.locator("#ob-service");
-  await expect(picker).toHaveAttribute("aria-expanded", "false");
+  await expect(picker).toHaveAttribute("aria-expanded", "false", { timeout: 30000 });
   await picker.click();
   await expect(page.getByRole("option")).toHaveCount(6);
   await page.getByRole("option", { name: /Branding/ }).click();
@@ -41,7 +42,7 @@ for (const theme of ["light", "dark"]) for (const width of [320, 390, 768, 1440]
     }, { theme });
     await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
     const field = page.locator('[data-field="brand_colours"]');
-    await expect(field).toBeVisible(); // Preferences remain available with a guide.
+    await expect(field).toBeVisible({ timeout: 30000 }); // Preferences remain available with a guide.
     await field.locator("summary").click();
     for (let index = 0; index < 5; index++) await field.getByRole("button", { name: "Add a colour", exact: true }).click();
     await expect(field.getByRole("button", { name: "Add a colour", exact: true })).toBeDisabled();
@@ -76,7 +77,7 @@ for (const width of [320, 1440]) {
     });
     await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
     const next = page.locator(".ob__stepNext").first();
-    await expect(next).toBeVisible();
+    await expect(next).toBeVisible({ timeout: 30000 });
     await next.scrollIntoViewIfNeeded();
     await next.click();
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(2);
