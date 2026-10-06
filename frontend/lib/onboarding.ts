@@ -1,3 +1,4 @@
+import { colourProblem } from "@/lib/brand-colours";
 import type { ServiceSlug } from "@/lib/services";
 
 /**
@@ -502,7 +503,7 @@ export const CLOSING_STEPS: Step[] = [
         tip: "A brand book is a document setting out your colours, fonts, logo rules and tone of voice, so everything a business makes looks like it came from the same place. Plenty of businesses do not have one, and that is a normal answer.",
       },
       { key: "brandbook_file", label: "Upload it", kind: "upload", showIf: { key: "has_brandbook", equals: ["Yes"] } },
-      { key: "brand_colours", label: "Your brand colours", kind: "text", placeholder: "e.g. Navy #000065, Orange #FF6500", tip: "Hex codes if you have them, names if you do not.", showIf: { key: "has_brandbook", equals: ["No", "I'm not sure what that is"] } },
+      { key: "brand_colours", label: "Your brand colours", kind: "text", placeholder: "e.g. Navy #000065, Orange #FF6500", tip: "Names are enough. Preferences are optional even when you have a brand guide." },
       {
         key: "brandbook_wanted", label: "Would you like us to put one together?", kind: "yesno",
         notFor: ["branding"],
@@ -692,6 +693,12 @@ export function problemWith(
   value: string | string[] | undefined,
   extra?: { phoneOk?: boolean },
 ): string | null {
+  if (f.key === "brand_colours" && value !== undefined) {
+    if (typeof value !== "string") return "Enter colours as readable text.";
+    const problem = colourProblem(value);
+    if (problem) return problem;
+  }
+
   const filled = isFilled(value);
 
   if (!filled) {
