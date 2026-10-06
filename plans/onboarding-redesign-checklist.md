@@ -49,11 +49,13 @@ Owner device: Microsoft Edge on iPhone (Apple WebKit engine). Not reproduced in 
 Each artifact lists every question of a flow in one view with its conditions. It uses real tokens, type and components. Check 320, 390, 768, 1024 and 1440, light and dark.
 
 - [~] Branding & Design (with motion design, cards, colour system, style help)
-- [~] SEO
-- [~] Web
-- [~] Apps
-- [~] Software & AI
-- [~] Social Media & Paid Ads
+- [~] Web (running)
+- [ ] SEO (paused, resume next)
+- [ ] Apps (paused)
+- [ ] Software & AI (paused)
+- [ ] Social Media & Paid Ads (paused)
+
+Owner rule (6 October 2026): run at most two agents at a time. Stopped agents keep their work in the session scratchpad and can be resumed.
 - [ ] Engagement section sample for each service (inside its artifact)
 - [ ] Owner picks one flow per service
 - [ ] Owner approves the style help copy
