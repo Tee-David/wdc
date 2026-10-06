@@ -170,6 +170,11 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
     answers: a,
     onRestore: restoreServerDraft,
   });
+  const restart = async () => {
+    if (!(await serverDraft.forget())) return;
+    try { localStorage.removeItem(KEY); } catch { /* No browser storage to clear. */ }
+    setA(withAnswerDefaults());setI(0);setStarted(false);setRestored(false);setWipeOpen(false);
+  };
 
   const steps = useMemo(() => stepsFor(chosen), [chosen]);
   const step: Step | undefined = steps[i];
@@ -360,8 +365,8 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
     }
     try {
       const result = await serverDraft.save({ email, emailLink: true });
-      serverDraft.setMessage(result.emailSent
-        ? "Your secure link is on its way. It expires in three days."
+      serverDraft.setMessage(result.emailQueued
+        ? "Your answers are saved and the link email is queued. It expires in three days. You can copy the link now."
         : "Your answers are saved, but email is not available right now. Copy the link instead.");
     } catch { /* The hook exposes a useful message. */ }
   };
@@ -672,12 +677,7 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
           email={resumeEmail} onEmail={setResumeEmail}
           onEmailSend={emailResumeLink} busy={serverDraft.saving} message={serverDraft.message}
           wipeOpen={wipeOpen} onWipeClose={() => setWipeOpen(false)}
-          onWipe={() => {
-            try { localStorage.removeItem(KEY); } catch { /* nothing to clear */ }
-            void serverDraft.forget();
-            setA(withAnswerDefaults()); setI(0); setStarted(false); setRestored(false);
-            setWipeOpen(false);
-          }}
+          onWipe={() => void restart()} resetBusy={serverDraft.resetting} resetMessage={serverDraft.resetMessage}
         />
       </div>
     );
@@ -789,12 +789,7 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
           email={resumeEmail} onEmail={setResumeEmail}
           onEmailSend={emailResumeLink} busy={serverDraft.saving} message={serverDraft.message}
           wipeOpen={wipeOpen} onWipeClose={() => setWipeOpen(false)}
-          onWipe={() => {
-            try { localStorage.removeItem(KEY); } catch { /* nothing to clear */ }
-            void serverDraft.forget();
-            setA(withAnswerDefaults()); setI(0); setStarted(false); setRestored(false);
-            setWipeOpen(false);
-          }}
+          onWipe={() => void restart()} resetBusy={serverDraft.resetting} resetMessage={serverDraft.resetMessage}
         />
       </div>
     );
@@ -948,12 +943,7 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
           email={resumeEmail} onEmail={setResumeEmail}
           onEmailSend={emailResumeLink} busy={serverDraft.saving} message={serverDraft.message}
           wipeOpen={wipeOpen} onWipeClose={() => setWipeOpen(false)}
-          onWipe={() => {
-            try { localStorage.removeItem(KEY); } catch { /* nothing to clear */ }
-            void serverDraft.forget();
-            setA(withAnswerDefaults()); setI(0); setStarted(false); setRestored(false);
-            setWipeOpen(false);
-          }}
+          onWipe={() => void restart()} resetBusy={serverDraft.resetting} resetMessage={serverDraft.resetMessage}
         />
     </div>
   );
@@ -991,20 +981,20 @@ function PickIcon({ name }: { name: string }) {
 function Dialogs({
   saveOpen, onSaveClose, resumeUrl, copied, onCopy, email, onEmail,
   onEmailSend, busy, message,
-  wipeOpen, onWipeClose, onWipe,
+  wipeOpen, onWipeClose, onWipe, resetBusy, resetMessage,
 }: {
   saveOpen: boolean; onSaveClose: () => void;
   resumeUrl: string; copied: boolean; onCopy: () => void;
   email: string; onEmail: (v: string) => void;
   onEmailSend: () => void; busy: boolean; message: string;
   wipeOpen: boolean; onWipeClose: () => void; onWipe: () => void;
+  resetBusy:boolean;resetMessage:string;
 }) {
   return (
     <>
-      <Dialog open={saveOpen} onClose={onSaveClose} title="Saved. Come back whenever." labelledBy="ob-save-h">
+      <Dialog open={saveOpen} onClose={onSaveClose} title={resumeUrl ? "Your answers are saved" : "Keep your place"} labelledBy="ob-save-h">
         <p>
-          Your answers are kept in this browser, so closing the tab on this
-          device is safe. For anything else, take the link.
+          {resumeUrl ? "Your answers are saved on the server. Copy the link to continue on another device." : "Keep this tab open until saving is confirmed. A saved link will appear below; if saving fails, your answers stay here so you can retry."}
         </p>
         <div className="rs__link">
           {/* `readOnly`, not `disabled`: a disabled input cannot be selected,
@@ -1016,7 +1006,7 @@ function Dialogs({
         </div>
         <p className="rs__or">
           Changing device, or worried about clearing your browser? Email it to
-          yourself and it will be waiting.
+          yourself, or copy the link while email is being queued.
         </p>
         <div className="rs__link">
           <input
@@ -1042,12 +1032,13 @@ function Dialogs({
           This clears every answer you have given and takes you back to the
           first question. It cannot be undone.
         </p>
+        {resetMessage ? <p role="alert">{resetMessage}</p> : null}
         <div className="dlg__acts">
-          <button className="ob__btn ob__btn--ghost" type="button" onClick={onWipeClose}>
+          <button className="ob__btn ob__btn--ghost" type="button" onClick={onWipeClose} disabled={resetBusy}>
             Keep my answers
           </button>
-          <button className="ob__btn ob__btn--danger" type="button" onClick={onWipe}>
-            Yes, start over
+          <button className="ob__btn ob__btn--danger" type="button" onClick={onWipe} disabled={resetBusy}>
+            {resetBusy ? "Starting over…" : "Yes, start over"}
           </button>
         </div>
       </Dialog>
@@ -1368,7 +1359,8 @@ function ReturningNotice({ draft, onNewBrief }: {
       <div className="ob__notice" role="status">
         <b>This brief was already sent.</b>
         <p>We have it, and it is with the team. If anything has changed, reply to our email, or start a new brief below.</p>
-        <button className="ob__btn ob__btn--ghost" type="button" onClick={() => { void draft.forget(); onNewBrief(); }}>Start a new brief</button>
+        <button className="ob__btn ob__btn--ghost" type="button" disabled={draft.resetting} onClick={async () => { if(await draft.forget()) onNewBrief(); }}>Start a new brief</button>
+        {draft.resetMessage ? <p role="alert">{draft.resetMessage}</p> : null}
       </div>
     );
   }
