@@ -1,3 +1,7 @@
+## Onboarding priority integration, 6 October 2026
+
+The owner requested onboarding completion before remaining Settings/dashboard tasks. Draft reset ordering, full resume-token revocation and durable queued-email intent are integrated (081eccd). Compact service selection, maximum-five optional colour preferences and legacy prose preservation are integrated (d663b81/62c012a). All six service briefs now have compact option explanations and optional illustrated help (f182b40). Step/back/tab/review navigation resets after committed layout through the shared scroll owner; board navigation reveals the active card, while steps/conversation return to the top (138532a). Start/custom conversations also reset after navigation. Focused deterministic colour and draft checks, targeted lint and integrated TypeScript pass. Browser picker passed; responsive colour/navigation suite remains running. Optional post-invitation personalization is under implementation; no live messages/provider writes were performed.
+
 ## Public meeting introduction spacing, 6 October 2026
 
 The booking introduction now groups its heading and description, metadata, paused notice and actions with explicit responsive spacing so public copy margin resets cannot collapse them. Empty paused-notice paragraphs are removed; duration uses the configured value. Mobile actions retain their existing full-width stack. Targeted lint/diff checks run; rendered browser verification remains pending due the browser session failure.
