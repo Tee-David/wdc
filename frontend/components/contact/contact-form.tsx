@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { normalizePhone } from "@/lib/phone";
 import SelectField from "@/components/onboarding/select-field";
 import { ENQUIRY_DRAFT_KEY, ENQUIRY_TOPICS, TOPIC_BY_SERVICE, type EnquiryDraft } from "@/lib/contact";
 import { CONTACT_EMAIL } from "@/lib/site";
@@ -97,8 +98,9 @@ export function ContactForm() {
     if (!el.reportValidity()) return;
 
     const d = new FormData(el);
-    setSending(true);
     setError("");
+    if (normalizePhone(phone) === null) { setError("Enter a valid phone number. Nigerian numbers need 10 digits, or 11 starting with 0."); return; }
+    setSending(true);
     try {
       const response = await fetch("/api/contact", {
         method: "POST",

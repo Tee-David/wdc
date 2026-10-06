@@ -39,3 +39,11 @@ Scoped read-only client support code is integrated into main: persisted actor/se
 ## Onboarding planning
 
 The owner confirmed the scope. Two agents are mapping the existing onboarding flows and service-specific experience separately, including branding colour preferences and visual explanations, simpler service selection, client activation/profile setup, terminology and the start-over cursor issue. Their proposals will be reconciled for review before onboarding implementation.
+
+## Form controls and demo provenance audit, 6 October 2026
+
+Source changes: Start topic uses the existing designed SelectField; custom forms reuse the lazy searchable country PhoneField. Nigerian numbers accept ten national digits, or eleven beginning with zero, and normalize to E.164. Contact client/server and custom-answer validation share that rule. Radio/checkbox label keyboard focus remains visible; the stray input shadow is removed. Users tabs reuse the dashboard tab component and its spacing. Focused phone normalization checks pass. Responsive rendered verification and integrated release checks remain pending; source changes are not live evidence.
+
+Read-only demo provenance: `frontend/lib/admin/store.ts` contains starter arrays exposed by `persistedCollections()` (CLIENTS, PROJECTS, INVOICES, PAYMENTS, EXPENSES, SUBMISSIONS, TICKETS, TICKET_MESSAGES, CREDITS, TASKS, UPDATES, DELIVERABLES, PROVIDER_EVENTS, MESSAGES, ESTIMATES). `frontend/lib/admin/persist.ts` `load()` persists those arrays with `write(true)` when `admin_records` has zero rows. Removing database rows alone can therefore reintroduce starters. Prototype fixtures and browser test fixtures are separate from production `admin_records`; removing their samples is not database cleanup.
+
+No database deletion occurred. Before any cleanup, export/checkpoint the exact database and related records, compare candidate `(collection,id)` rows and full contents against committed starters, identify real records edited from those IDs, and review relationships. A seed-looking ID or sample-like name alone is insufficient provenance. Preserve the actual administrator and all actual client/work/payment records. First retire the empty-database auto-seed source, then remove only reviewed demo rows with a recoverable checkpoint and verify remaining references; do not truncate `admin_records` or auth tables.
