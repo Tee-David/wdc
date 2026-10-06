@@ -1,4 +1,18 @@
 import { expect, test } from "@playwright/test";
+import { FIELD_EXAMPLES, OPTION_HELP } from "@/lib/onboarding-help";
+import { stepsFor } from "@/lib/onboarding";
+import { SERVICES } from "@/lib/services";
+
+test("service help stays attached to stable fields and choices", () => {
+  const fields = SERVICES.flatMap((service) => stepsFor(service.slug).flatMap((step) => step.fields));
+  for (const [key, options] of Object.entries(OPTION_HELP)) {
+    const field = fields.find((field) => field.key === key);
+    expect(field, `help for existing field ${key}`).toBeTruthy();
+    for (const option of Object.keys(options)) expect(field?.options).toContain(option);
+  }
+  for (const key of Object.keys(FIELD_EXAMPLES)) expect(fields.some((field) => field.key === key)).toBeTruthy();
+  for (const service of SERVICES) expect(stepsFor(service.slug).some((step) => step.fields.some((field) => FIELD_EXAMPLES[field.key] && field.key !== "has_brandbook"))).toBeTruthy();
+});
 
 test.beforeEach(async ({ page }) => {
   // This suite exercises rendering only; it cannot save a draft or send a message.
