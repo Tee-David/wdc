@@ -2,14 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  AlertCircle, ArrowLeft, ArrowRight, BadgeInfo, BrainCircuit, Check, Code2, HelpCircle,
-  Megaphone, Palette, Save, Search, Smartphone, Undo2,
+  AlertCircle, ArrowLeft, ArrowRight, BadgeInfo, Check, HelpCircle,
+  Save, Undo2,
 } from "lucide-react";
 import Link from "next/link";
-import { SERVICES, type ServiceSlug } from "@/lib/services";
+import { type ServiceSlug } from "@/lib/services";
 import { CONTACT_EMAIL } from "@/lib/site";
 import {
-  answersForService, isFilled, minutesLeft, PICKER_LINE, problemWith, PROJECT_UPDATE_PORTAL, stepsFor, UNSURE,
+  answersForService, isFilled, minutesLeft, problemWith, PROJECT_UPDATE_PORTAL, stepsFor, UNSURE,
   type Field, type Step,
 } from "@/lib/onboarding";
 import PhoneField from "./phone-field";
@@ -20,6 +20,8 @@ import PhoneField from "./phone-field";
    drift apart. */
 import SelectField from "./select-field";
 import DomainField from "./domain-field";
+import ServicePicker from "./service-picker";
+import ColourField from "./colour-field";
 import Dropzone from "./dropzone";
 import Tip from "./tip";
 import Dialog from "./dialog";
@@ -416,70 +418,16 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
         <p className="ob__k">Welcome</p>
         <h2>Let&rsquo;s get started.</h2>
         <p className="ob__lede">
-          A few questions so we can begin. Your answers go straight into the
-          work, and this is the last time we will ask you for most of it.
+          A short brief for your project. You can ask us to advise on anything
+          you are unsure about.
         </p>
         <ReturningNotice draft={serverDraft} onNewBrief={() => {
           try { localStorage.removeItem(KEY); } catch { /* nothing to clear */ }
           setA(withAnswerDefaults()); setI(0); setRestored(false);
         }} />
 
-        <h2 className="ob__pickH">What are we working on for you?</h2>
-        <p className="ob__pickSub">Choose the one this form is for.</p>
-
-        {/* FILLED CARDS, and the icon is the card's own artwork rather than a
-            badge sitting on it. The colour alternates navy and black by
-            index: a navy column beside a black one at two columns, a strict
-            alternation at one. See the note in onboarding.css for why not a
-            staggered checker. */}
-        <ul className="ob__svc">
-          {SERVICES.map((sv, n) => {
-            /* Not taking new briefs, set in the admin. A draft already
-               started for it can still be finished. */
-            const shut = closed[sv.slug] && !(restored && service === sv.slug) ? closed[sv.slug] : "";
-            return (
-            <li key={sv.slug}>
-              <button
-                type="button"
-                className={`ob__svcCard ob__svcCard--${n % 2 ? "black" : "navy"}${
-                  service === sv.slug ? " is-on" : ""
-                }${shut ? " is-shut" : ""}`}
-                aria-pressed={service === sv.slug}
-                aria-disabled={shut ? true : undefined}
-                onClick={() => { if (!shut) setService(sv.slug); }}
-              >
-                {/* The watermark. Cropped by the card, drawn in the card's own
-                    ink at low alpha, and deliberately NOT `ServiceIcon`: that
-                    one stamps `pathLength` on every shape and hands it to the
-                    draw-gate, which at this size would be six large SVGs
-                    repainting their strokes. This is a static mark. */}
-                <PickIcon name={sv.icon} />
-                <span className="ob__svcT">
-                  <b>{sv.short}</b>
-                  <em>{shut || PICKER_LINE[sv.slug]}</em>
-                </span>
-                <span className="ob__svcMark" aria-hidden="true">
-                  <Check />
-                </span>
-              </button>
-            </li>
-            );
-          })}
-        </ul>
-
-        {/* A <dl>, because it holds dt/dd pairs. They were in plain divs,
-            which is invalid and leaves the pairing unannounced. */}
-        <dl className="ob__facts">
-          <div><dt>About</dt><dd>{previewMins === null ? "5-10 min" : `${previewMins} min`}</dd></div>
-          <div><dt>Saves</dt><dd>As you go</dd></div>
-          <div><dt>Leave anytime</dt><dd>Pick up where you stopped</dd></div>
-        </dl>
-
-        <p className="ob__reassure">
-          Not sure about something? Say so. &ldquo;Not sure yet&rdquo; is a real
-          answer here and it will not hold anything up. What you write stays
-          between us and the people working on your project.
-        </p>
+        <ServicePicker value={service} onChange={setService} closed={closed} restored={restored} />
+        <p className="ob__introFacts">About {previewMins === null ? "5-10" : previewMins} minutes · Your answers save as you go.</p>
 
         {/* Disabled until a card is chosen, with the reason said out loud
             rather than left to be inferred from a button that does nothing. */}
@@ -490,7 +438,7 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
           disabled={!service}
           aria-describedby={!service ? "ob-pick-first" : undefined}
         >
-          {restored ? "Pick up where you left off" : "Start"} <ArrowRight aria-hidden="true" />
+          {restored ? "Continue your brief" : "Next"} <ArrowRight aria-hidden="true" />
         </button>
         {!service && (
           <p className="ob__pickHint" id="ob-pick-first">
@@ -967,23 +915,6 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
  * six shapes. `lib/services.ts` stores the export name, and this is the one
  * place that has to agree with it.
  */
-function PickIcon({ name }: { name: string }) {
-  const Ico =
-    name === "Palette" ? Palette
-    : name === "Search" ? Search
-    : name === "Code2" ? Code2
-    : name === "Smartphone" ? Smartphone
-    : name === "BrainCircuit" ? BrainCircuit
-    : name === "Megaphone" ? Megaphone
-    : null;
-  if (!Ico) return null;
-  return (
-    <span className="ob__svcArt" aria-hidden="true">
-      <Ico strokeWidth={1.4} />
-    </span>
-  );
-}
-
 /**
  * The two dialogs, rendered from wherever they are needed rather than written
  * out twice. Both are the platform's `<dialog>` -- see dialog.tsx.
@@ -1192,6 +1123,10 @@ function FieldView({
       {escape}
     </div>
   );
+
+  if (f.key === "brand_colours") {
+    return wrap(<details className="obColours__disclosure"><summary>Add colour preferences</summary><ColourField id={id} value={shown as string} onChange={onChange} describedBy={describedBy} /></details>);
+  }
 
   if (f.kind === "textarea") {
     return wrap(
