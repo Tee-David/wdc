@@ -1,3 +1,8 @@
+## Studio reset completed, 6 October 2026
+
+The owner explicitly authorized a full studio-data reset retaining only the current owner. The verified database transaction removed the other two accounts, cleared operational submissions/resume tokens/uploads metadata, invitations, entry activity, payment charge records, message jobs and counters, and tombstoned all 73 active admin records with fresh sequence numbers so warm instances can observe the deletions. One owner remains; its account and session counts are unchanged. Published content, media library and application configuration were preserved. External payment providers were not changed or refunded. A complete encrypted recovery checkpoint was written outside Git beneath LOCALAPPDATA/WDCRecovery, using AES-256-GCM and a Windows CurrentUser DPAPI-protected key. The transaction checked every cleared table and owner access before commit. Earlier demo-preservation and clarification notes below are historical and superseded by this explicit reset authorization.
+
+Users, Meetings, Paystack source checkpoints and backup design corrections are pushed. Backup design reuses the shared Dialog and FileDrop markup and established row menu/bulk patterns. Automatic backups, downloads and restoration remain proposed functionality, not running jobs. Final authenticated responsive review and a complete production build remain pending; the last build compiled and type-checked but did not complete static generation. The practical delivery proposal reconciles the completed agents' dashboard, marketing and onboarding audits; a checklist awaits plan approval.
 # Current work
 
 Updated 5 October 2026. This replaces the historical implementation checklist and handoff queue. Removing an old plan does not mean all its proposals shipped.
@@ -23,6 +28,8 @@ Remaining delivery: event-type configuration, calendar/conferencing connections,
 The interactive Backup and restore artifact is served at `http://127.0.0.1:3148/backup`. It now uses the real FileDrop and Dialog markup, shared row-menu and bulk-bar styles, Daily/Weekly/Monthly choices, archive-count retention and personal notifications. It performs no backup, restore, upload or schedule execution. Earlier layout checks passed at 320/768/1440px in both themes; the final upload/dialog/menu corrections still need visual recheck because the browser stopped responding. The shared Pager now dismisses outside and on Escape; prototype outside-click/toggle checks passed.
 
 Runtime starter records and empty-database reseeding are removed. Persisted legacy demo records have not been deleted: the source inventory and read-only audit preserve provenance and current owner access. No blanket reset or financial-history rewrite ran.
+
+The read-only live inventory succeeded and a private admin-record checkpoint was created outside the repository. It found 45 unchanged seed records, 15 edited seed records and 13 added records, including a recorded Live-mode payment. Two non-seed client accounts exist alongside the owner. Owner clarification is pending before linked data deletion; no user/account record was removed. The reconciled review proposal is `docs/audits/practical-delivery-plan.md`.
 
 Dashboard and marketing audit proposals are in `docs/audits/dashboard-real-world-review.md` and `docs/audits/marketing-real-world-review.md`. These reconcile the existing onboarding plans across all six services. The owner requested a plans checklist after approval; it has not been created or treated as approved.
 
