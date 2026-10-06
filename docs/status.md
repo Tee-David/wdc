@@ -1,3 +1,7 @@
+## Public meeting introduction spacing, 6 October 2026
+
+The booking introduction now groups its heading and description, metadata, paused notice and actions with explicit responsive spacing so public copy margin resets cannot collapse them. Empty paused-notice paragraphs are removed; duration uses the configured value. Mobile actions retain their existing full-width stack. Targeted lint/diff checks run; rendered browser verification remains pending due the browser session failure.
+
 Marketing source checkpoint: targeted onboarding/cursor lint and integrated TypeScript passed. The unverified same-working-day promise is removed consistently from Start metadata, introduction and receipt copy. Rendered verification remains pending.
 
 ## Marketing audit implementation authorized, 6 October 2026
