@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Minus, Plus, HelpCircle } from "lucide-react";
-import { COLOUR_ROLES, colourProblem, formatColours, normalizeHex, parseColours, shadeHex, type ColourPreference } from "@/lib/brand-colours";
+import { COLOUR_ROLES, colourProblem, formatColours, hexShade, normalizeHex, parseColours, shadeHex, type ColourPreference } from "@/lib/brand-colours";
 import { UNSURE } from "@/lib/onboarding";
 import SelectField from "./select-field";
 import "./brief-preferences.css";
@@ -40,7 +40,7 @@ export default function ColourField({ id, value, onChange, describedBy }: {
           <label className="obColours__role" htmlFor={`${id}-role-${index}`}>How might we use it? (optional)</label>
           <SelectField id={`${id}-role-${index}`} options={[...COLOUR_ROLES]} value={row.role} onChange={(role) => update(index, { role })} />
           <p className="ob__hint">{roleHelp(row.role)}</p>
-          {panel === index ? <div id={`${id}-picker-${index}`} className="obColours__panel"><ShadePicker onPick={(hex) => update(index, { hex })} />
+          {panel === index ? <div id={`${id}-picker-${index}`} className="obColours__panel"><ShadePicker initialHex={row.hex} onPick={(hex) => update(index, { hex })} />
             <button className="ob__btn ob__btn--ghost" type="button" onClick={() => setPanel(null)}>Done choosing shade</button></div> : null}
           {!row.hex ? <p className="ob__hint">No exact shade chosen.</p> : null}
         </div>)}
@@ -65,14 +65,15 @@ function roleHelp(role: string) {
   }
 }
 
-function ShadePicker({ onPick }: { onPick: (hex: string) => void }) {
-  const [hue, setHue] = useState(210), [sat, setSat] = useState(50), [light, setLight] = useState(50);
+function ShadePicker({ initialHex, onPick }: { initialHex: string; onPick: (hex: string) => void }) {
+  const initial = hexShade(initialHex);
+  const [hue, setHue] = useState(initial[0]), [sat, setSat] = useState(initial[1]), [light, setLight] = useState(initial[2]);
   function choose(h: number, s: number, l: number) { setHue(h); setSat(s); setLight(l); onPick(shadeHex(h, s, l)); }
   return <>
-    <div className="obColours__palette" aria-label="Suggested shades">{PALETTE.map((hex) => <button key={hex} type="button" style={{ background: hex }} aria-label={`Choose ${hex}`} onClick={() => onPick(hex)} />)}</div>
+    <div className="obColours__palette" role="group" aria-label="Suggested shades">{PALETTE.map((hex) => <button key={hex} type="button" style={{ background: hex }} aria-label={`Choose ${hex}`} onClick={() => choose(...hexShade(hex))} />)}</div>
     <div className="obColours__shade" style={{ background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(${hue} 100% 50%))` }} aria-hidden="true"
       onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); const bounds = event.currentTarget.getBoundingClientRect(); choose(hue, Math.round(Math.max(0, Math.min(100, (event.clientX - bounds.left) / bounds.width * 100))), Math.round(Math.max(0, Math.min(100, (1 - (event.clientY - bounds.top) / bounds.height) * 100)))); }}
-      onPointerMove={(event) => { if (!event.currentTarget.hasPointerCapture(event.pointerId)) return; const bounds = event.currentTarget.getBoundingClientRect(); choose(hue, Math.round(Math.max(0, Math.min(100, (event.clientX - bounds.left) / bounds.width * 100))), Math.round(Math.max(0, Math.min(100, (1 - (event.clientY - bounds.top) / bounds.height) * 100)))); }} />
+      onPointerMove={(event) => { if (!event.currentTarget.hasPointerCapture(event.pointerId)) return; const bounds = event.currentTarget.getBoundingClientRect(); choose(hue, Math.round(Math.max(0, Math.min(100, (event.clientX - bounds.left) / bounds.width * 100))), Math.round(Math.max(0, Math.min(100, (1 - (event.clientY - bounds.top) / bounds.height) * 100)))); }}><span style={{ left: `${sat}%`, top: `${100 - light}%` }} /></div>
     <p className="ob__hint">Drag to explore, or use these sliders and the hex field.</p>
     <label>Hue<input type="range" min={0} max={359} value={hue} onChange={(event) => choose(Number(event.target.value), sat, light)} /></label>
     <label>Colour intensity<input type="range" min={0} max={100} value={sat} onChange={(event) => choose(hue, Number(event.target.value), light)} /></label>

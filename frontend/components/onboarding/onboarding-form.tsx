@@ -1116,7 +1116,7 @@ function FieldView({
   );
 
   if (f.key === "brand_colours") {
-    return wrap(<details className="obColours__disclosure"><summary>Add colour preferences</summary><ColourField id={id} value={shown as string} onChange={onChange} describedBy={describedBy} /></details>);
+    return wrap(<details className="obColours__disclosure"><summary>Add colour preferences</summary><ColourField id={id} value={v as string} onChange={onChange} describedBy={describedBy} /></details>);
   }
 
   if (f.kind === "textarea") {
