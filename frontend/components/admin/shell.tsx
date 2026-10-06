@@ -9,6 +9,7 @@ import {
   Bell,
   ChevronDown,
   ClipboardList,
+  CalendarDays,
   FolderKanban,
   Globe,
   LayoutDashboard,
@@ -64,6 +65,7 @@ const NAV: NavItem[] = [
       { href: "/admin/clients/support", label: "Support" },
     ],
   },
+  { href: "/admin/meetings", label: "Meetings", Icon: CalendarDays, group: "main", tour: "nav-meetings" },
   { href: "/admin/projects", label: "Projects", Icon: FolderKanban, group: "main", tour: "nav-projects" },
   {
     href: "/admin/money", label: "Money", Icon: Banknote, group: "main", tour: "nav-money",

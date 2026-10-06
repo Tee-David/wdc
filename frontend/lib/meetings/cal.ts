@@ -1,4 +1,6 @@
 import "server-only";
+import { SITE_URL } from "@/lib/site";
+import { timingSafeEqual } from "node:crypto";
 
 export class CalError extends Error {
   constructor(public readonly status: number, public readonly uncertain = false) {
@@ -35,6 +37,19 @@ export type Booking = {
   attendees?: { name: string; email: string; timeZone?: string }[];
   meetingUrl?: string; location?: string; metadata?: Record<string, string>;
 };
-export type MeetingType = { id: number; title: string; slug: string; lengthInMinutes: number; hidden?: boolean; locations?: { type: string }[]; scheduleId?: number };
+export type MeetingType = { id: number; title: string; slug: string; lengthInMinutes: number; hidden?: boolean; locations?: { type: string }[]; scheduleId?: number; minimumBookingNotice?:number; beforeEventBuffer?:number; afterEventBuffer?:number };
 export type Schedule = {id:number;name:string;timeZone:string;availability:{days:string[];startTime:string;endTime:string}[];overrides:{date:string;startTime:string;endTime:string}[]};
 export type Slots = Record<string, { start: string }[]>;
+
+export async function webhookReady():Promise<boolean>{
+  const secret=process.env.CAL_WEBHOOK_SECRET;
+  if(!secret)return false;
+  const target=new URL("/api/meetings/webhook",SITE_URL).href;
+  const hooks=await cal<{subscriberUrl:string;active:boolean;secret?:string;triggers:string[];payloadTemplate?:string}[]>("/webhooks");
+  const triggers=["BOOKING_CREATED","BOOKING_RESCHEDULED","BOOKING_CANCELLED","BOOKING_CONFIRMED","BOOKING_REJECTED"];
+  return hooks.some(hook=>{
+    if(!hook.active||hook.subscriberUrl!==target||hook.payloadTemplate||!triggers.every(trigger=>hook.triggers.includes(trigger))||!hook.secret)return false;
+    const expected=Buffer.from(secret),actual=Buffer.from(hook.secret);
+    return expected.length===actual.length&&timingSafeEqual(expected,actual);
+  });
+}
