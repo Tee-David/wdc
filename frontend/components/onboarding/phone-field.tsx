@@ -438,7 +438,7 @@ export default function PhoneField({
               onKeyDown={onListKey}
             />
           </div>
-          <ul data-lenis-prevent className="pk__list" id={listId} role="listbox" ref={listRef} aria-label="Countries">
+          <ul data-lenis-prevent className="pk__list" id={listId} role="listbox" ref={listRef} tabIndex={-1} aria-label="Countries">
             {results.map((c, n) => (
               <li
                 key={c.iso}

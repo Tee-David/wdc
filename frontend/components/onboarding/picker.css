@@ -236,9 +236,18 @@
      field", there is only the bottom of the screen. */
   .pv .pk__pop,
   .pv .pk.is-up .pk__pop {
-    position: fixed; inset: auto 0 0 0; top: auto; bottom: 0;
+    /* `--pk-vv-bottom` / `--pk-vv-h` are written onto the open panel by
+       `usePickerOpen` from `visualViewport`, so the sheet rides above the
+       on-screen keyboard instead of sitting behind it. Without the API they
+       are unset and these fall back to the bottom edge and 78svh. */
+    position: fixed; inset: auto 0 0 0; top: auto; bottom: var(--pk-vv-bottom, 0px);
     display: flex; flex-direction: column;
-    width: 100%; max-height: 78svh;
+    /* THE SHEET'S HEIGHT CAP, ONE TOKEN. `svh` is the SMALLEST viewport, which
+       is right when a browser's bars are showing; `dvh` follows them as they
+       collapse (Edge and Safari on iOS), so it is used where it exists and
+       `svh` is the fallback. */
+    --pk-sheet: 78svh;
+    width: 100%; max-height: min(var(--pk-sheet), var(--pk-vv-h, 100vh));
     border: 0; border-radius: 18px 18px 0 0;
     padding-bottom: env(safe-area-inset-bottom);
     box-shadow: 0 -18px 40px -18px rgb(6 6 26 / .5);
@@ -264,7 +273,19 @@
   /* The sheet sets its own height off the screen rather than off the room
      around the field -- there is no "around the field" here. */
   .pv .pk__search { padding: .85rem 1rem; }
-  .pv .pk__list { flex: 1; min-height: 0; max-height: none; padding: .4rem .6rem 1rem; }
+  @supports (height: 1dvh) {
+    .pv .pk__pop, .pv .pk.is-up .pk__pop { --pk-sheet: 78dvh; }
+  }
+  /* THE LIST GETS ITS OWN DEFINITE CAP rather than relying on flex-shrink
+     inside a parent that has only a max-height: some WebKit versions do not
+     shrink the flex child there, so the list grew to its full height, the
+     panel clipped it, and nothing scrolled (cut after row 7 of 12). The
+     6rem is the grab handle plus the search row; the safe-area inset is the
+     panel's bottom padding. */
+  .pv .pk__list {
+    flex: 1 1 auto; min-height: 0; padding: .4rem .6rem 1rem;
+    max-height: calc(min(var(--pk-sheet, 78svh), var(--pk-vv-h, 100vh)) - 6rem - env(safe-area-inset-bottom));
+  }
   .pv .pk__opt { min-height: 48px; padding: .55rem .65rem; font-size: 1rem; }
   @media (prefers-reduced-motion: no-preference) {
     .pv .pk__pop { animation: pk-up .22s cubic-bezier(.16, 1, .3, 1) backwards; }

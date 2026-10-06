@@ -285,6 +285,102 @@ test.describe("the mobile picker sheet", () => {
     await expect.poll(() => list.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
     expect(await page.evaluate(() => window.scrollY)).toBe(pageBefore);
   });
+
+  /* THE ON-SCREEN KEYBOARD. Auto-focusing the search box on a touch screen
+     raised the keyboard over a fixed sheet that only the layout viewport
+     knew about. Not reproduced headlessly (there is no keyboard here), so
+     this pins the two causes instead: nothing focuses the input on open, and
+     the sheet follows `visualViewport`. */
+  test("on a touch screen the search box is not focused on open, but a tap focuses it", async ({ page }) => {
+    await page.goto("/onboarding");
+    const industry = page.locator('[data-field="industry"]').getByRole("combobox");
+    await industry.scrollIntoViewIfNeeded();
+    await industry.click();
+
+    const search = page.locator(".pk__search input");
+    const list = page.locator(".pk__list");
+    await expect(list).toBeVisible();
+    /* Focus is moved a frame after open; wait for it to land on the list. */
+    await expect(list).toBeFocused();
+    await expect(search).not.toBeFocused();
+
+    /* Every option can be reached: the last one scrolls into view inside the
+       sheet, which sits inside the window. */
+    await list.evaluate((el) => { el.scrollTop = el.scrollHeight; });
+    await expect.poll(() => list.evaluate((el) => el.scrollTop + el.clientHeight >= el.scrollHeight - 1)).toBe(true);
+    const reach = await page.evaluate(() => {
+      const el = document.querySelector<HTMLElement>(".pk__list")!;
+      const last = el.lastElementChild!.getBoundingClientRect();
+      const box = el.getBoundingClientRect();
+      return { end: el.scrollTop + el.clientHeight >= el.scrollHeight - 1, inside: last.bottom <= box.bottom + 1 };
+    });
+    expect(reach).toEqual({ end: true, inside: true });
+
+    /* THE WEBKIT CONTRACT. Real iOS WebKit is not available here, and some
+       versions do not shrink a flex child inside a parent with only a
+       max-height. So the list carries its own definite cap, smaller than the
+       sheet, and overflows (scrolls) rather than being clipped. */
+    const caps = await page.evaluate(() => {
+      const pop = document.querySelector<HTMLElement>(".pk__pop")!;
+      const el = document.querySelector<HTMLElement>(".pk__list")!;
+      return {
+        list: getComputedStyle(el).maxHeight, pop: pop.getBoundingClientRect().height,
+        overflows: el.scrollHeight > el.clientHeight, listH: el.getBoundingClientRect().height,
+      };
+    });
+    expect(caps.list).not.toBe("none");
+    expect(caps.overflows).toBe(true);
+    expect(caps.listH).toBeLessThan(caps.pop);
+
+    await search.tap();
+    await expect(search).toBeFocused();
+  });
+
+  test("the sheet stays inside the visual viewport when the keyboard shrinks it", async ({ page }) => {
+    /* A stand-in for `window.visualViewport`, because a headless browser has
+       no keyboard. It starts equal to the real window; the test shrinks it
+       the way a keyboard does and fires `resize`. */
+    await page.addInitScript(() => {
+      const vv = Object.assign(new EventTarget(), {
+        height: window.innerHeight, offsetTop: 0, offsetLeft: 0, width: window.innerWidth, scale: 1,
+      });
+      Object.defineProperty(window, "visualViewport", { value: vv, configurable: true });
+    });
+    await page.goto("/onboarding");
+    const industry = page.locator('[data-field="industry"]').getByRole("combobox");
+    await industry.scrollIntoViewIfNeeded();
+    await industry.click();
+    const pop = page.locator(".pk__pop");
+    await expect(pop).toBeVisible();
+    await pop.evaluate(async (el) => { await Promise.all(el.getAnimations().map((a) => a.finished)); });
+
+    const bottom = () => pop.evaluate((el) => el.getBoundingClientRect().bottom);
+    const innerHeight = await page.evaluate(() => window.innerHeight);
+    expect(await bottom()).toBeLessThanOrEqual(innerHeight);
+
+    const keyboard = 320;
+    await page.evaluate((k) => {
+      const vv = window.visualViewport as unknown as { height: number } & EventTarget;
+      vv.height = window.innerHeight - k;
+      vv.dispatchEvent(new Event("resize"));
+    }, keyboard);
+    await expect.poll(bottom).toBeLessThanOrEqual(innerHeight - keyboard + 1);
+    expect(await pop.evaluate((el) => el.getBoundingClientRect().top)).toBeGreaterThanOrEqual(0);
+    /* The list inside still scrolls: it gave up height, it did not vanish. */
+    expect(await page.locator(".pk__list").evaluate((el) => el.clientHeight)).toBeGreaterThan(44);
+  });
+});
+
+test("on a fine pointer the search box is still focused when the picker opens", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.addInitScript((draft) => {
+    localStorage.setItem("wdc-onboarding-draft", JSON.stringify(draft));
+  }, { started: true, service: "web", step: 0, answers: {} });
+  await page.goto("/onboarding");
+  const industry = page.locator('[data-field="industry"]').getByRole("combobox");
+  await industry.scrollIntoViewIfNeeded();
+  await industry.click();
+  await expect(page.locator(".pk__search input")).toBeFocused();
 });
 
 /**
