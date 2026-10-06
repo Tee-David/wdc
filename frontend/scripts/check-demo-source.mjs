@@ -1,0 +1,14 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+const store=fs.readFileSync(new URL("../lib/admin/store.ts",import.meta.url),"utf8");
+const persist=fs.readFileSync(new URL("../lib/admin/persist.ts",import.meta.url),"utf8");
+const manifest=JSON.parse(fs.readFileSync(new URL("../../docs/audits/legacy-demo-records.json",import.meta.url),"utf8"));
+const collections=[...new Set(manifest.records.map(record=>record.collection))];
+assert.equal(collections.length,15);
+assert.equal(manifest.records.length,60);
+assert.equal(new Set(manifest.records.map(record=>`${record.collection}:${record.id}`)).size,60);
+for(const collection of collections) assert.match(store,new RegExp(`shared\\("${collection}", \\(\\):[^\\n]+ => \\[\\]\\)`));
+assert.doesNotMatch(persist,/await write\(true\)/);
+assert.doesNotMatch(persist,/if \(!configured\(\)\) return;/);
+assert.match(persist,/if \(!configured\(\)\) throw new Error/);
+console.log("Empty runtime collections, no reseeding and explicit database availability checks passed.");

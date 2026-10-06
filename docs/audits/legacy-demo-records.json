@@ -1,0 +1,369 @@
+{
+  "sourceCommit": "2402a4b",
+  "provenance": "Literal starter IDs from admin/store.ts; candidates only, not proof that persisted rows remain demo. Source hashes are source-text hashes, not database-content hashes.",
+  "records": [
+    {
+      "collection": "CLIENTS",
+      "id": "c1",
+      "sourceHash": "82f603d8dc0d107ee083d6feb12cc1fe7d5d3d37b86766282f16a3958a758b99"
+    },
+    {
+      "collection": "CLIENTS",
+      "id": "c2",
+      "sourceHash": "3e2405f639eccb9da99a6dcc02baf2e025a30f0e704c9772537bb6d9c8b2ec66"
+    },
+    {
+      "collection": "CLIENTS",
+      "id": "c3",
+      "sourceHash": "a9e932ffefa4c739d4734b3c10c18638181328f552eacddb4835afd8f345aa25"
+    },
+    {
+      "collection": "CLIENTS",
+      "id": "c4",
+      "sourceHash": "9657072f109f2b7e5570a7f4bc3734bbcaa57ea6431194c5a4381a63675ffe4d"
+    },
+    {
+      "collection": "CLIENTS",
+      "id": "c5",
+      "sourceHash": "ffaa43e51b345aac71144654aad8d8baf3e2a01837d159f13c6c10551c48a8bc"
+    },
+    {
+      "collection": "PROJECTS",
+      "id": "p1",
+      "clientId": "c1",
+      "sourceHash": "1dcaef1a3f00951fe72e853aaa12eaf3955a63f56df4e225c49e7be0200427a6"
+    },
+    {
+      "collection": "PROJECTS",
+      "id": "p2",
+      "clientId": "c1",
+      "sourceHash": "15a167fcb7a9b74a09fd5d6bfcf3a5be82a89d4a03da271cccc56668eb6df349"
+    },
+    {
+      "collection": "PROJECTS",
+      "id": "p3",
+      "clientId": "c2",
+      "sourceHash": "63930d342996e7a3aea0f2e73c871dd59244d0c335a862f2b5b35f91cf713f39"
+    },
+    {
+      "collection": "PROJECTS",
+      "id": "p4",
+      "clientId": "c3",
+      "sourceHash": "6d10cddfbc26f0e86c0b6c8c2f98731d23238a568ad7315d87733bbd67710119"
+    },
+    {
+      "collection": "PROJECTS",
+      "id": "p5",
+      "clientId": "c5",
+      "sourceHash": "05f8fb50508cb577b803bd0f38dec9a1c376fed28d030da1e7b043de3f2fda26"
+    },
+    {
+      "collection": "PROJECTS",
+      "id": "p6",
+      "clientId": "c4",
+      "sourceHash": "618136320ab9a60b90efe834059ae52e7afe1b4a46014f2d2c8b29351bffbde6"
+    },
+    {
+      "collection": "INVOICES",
+      "id": "i1",
+      "clientId": "c1",
+      "projectId": "p1",
+      "sourceHash": "0aa79164017adc2598b5f06e19d48fe27311bbea90415924abeb725583e244ed"
+    },
+    {
+      "collection": "INVOICES",
+      "id": "i2",
+      "clientId": "c2",
+      "projectId": "p3",
+      "sourceHash": "abf9cdef886a86b8f0fc955b60432bd866c8b7b779c155988d5e51da0f504c53"
+    },
+    {
+      "collection": "INVOICES",
+      "id": "i3",
+      "clientId": "c3",
+      "projectId": "p4",
+      "sourceHash": "ac1a682e780a08d5c0bd3912095acddb7ab927e0228ea9616520c5840dcb9904"
+    },
+    {
+      "collection": "INVOICES",
+      "id": "i4",
+      "clientId": "c5",
+      "projectId": "p5",
+      "sourceHash": "1997d90132dd5ce5956e0439184db33846576293ee0a3360709688ddd7620f76"
+    },
+    {
+      "collection": "INVOICES",
+      "id": "i5",
+      "clientId": "c2",
+      "projectId": "p3",
+      "sourceHash": "66f01c43c3c1afe7e3e57ce480b5472ed915f8fd84294cc5038ec13414ce2a42"
+    },
+    {
+      "collection": "INVOICES",
+      "id": "i6",
+      "clientId": "c1",
+      "projectId": "p1",
+      "sourceHash": "ad1499efe1a41091474de552b930575fea45550c2468625d85f8cf42487258f4"
+    },
+    {
+      "collection": "PAYMENTS",
+      "id": "y1",
+      "invoiceId": "i1",
+      "sourceHash": "e38e884c54d5a58aa5c87a0dc9e739d6473f9330f1527ec7253a058418dead66"
+    },
+    {
+      "collection": "PAYMENTS",
+      "id": "y2",
+      "invoiceId": "i3",
+      "sourceHash": "ad9da31e321c2055f0bf7eeeb30797082a9843a9ceb75fc6f0f5b048b7f5811b"
+    },
+    {
+      "collection": "PAYMENTS",
+      "id": "y3",
+      "invoiceId": "i3",
+      "sourceHash": "872af966664b4c8d56e911f1e8ae09a2cbee583dec5fbf9a8d26a23fa20c5471"
+    },
+    {
+      "collection": "PAYMENTS",
+      "id": "y4",
+      "invoiceId": "i2",
+      "sourceHash": "d90033993504c1f291706cb0321296046ea3a338dcca95519c70f57aabb5b7e9"
+    },
+    {
+      "collection": "EXPENSES",
+      "id": "e1",
+      "sourceHash": "e612a622f33e7b1f29c31b52aeb36276bd842607e1cdb13c0054cc4d030338d8"
+    },
+    {
+      "collection": "EXPENSES",
+      "id": "e2",
+      "sourceHash": "aba06ffba67c9ab9cc5cafe48a07f94e1bc290134c99de1087521e880675895f"
+    },
+    {
+      "collection": "EXPENSES",
+      "id": "e3",
+      "projectId": "p1",
+      "clientId": "c1",
+      "sourceHash": "322de4681a3a3e540940faad128b921fb6f840586e286eb8cb3afd3a5f539a07"
+    },
+    {
+      "collection": "EXPENSES",
+      "id": "e4",
+      "projectId": "p1",
+      "clientId": "c1",
+      "sourceHash": "ded51dff58b3ce187de6adcd9f0d0039e9a700b58c444a25af0828e595250492"
+    },
+    {
+      "collection": "EXPENSES",
+      "id": "e5",
+      "sourceHash": "93ec5a374eef65df8de7d032744539405de8da9d762969dc1dbc37603af1f9d8"
+    },
+    {
+      "collection": "SUBMISSIONS",
+      "id": "s1",
+      "clientId": "c1",
+      "sourceHash": "c1dd450ed7e3bbf1931eae2299002ba8579db2153471cb2d835a83681739f88f"
+    },
+    {
+      "collection": "SUBMISSIONS",
+      "id": "s2",
+      "clientId": "c4",
+      "sourceHash": "941d76110b1b3494f56a443d8240019f09995924628b30199b897de8a0455c24"
+    },
+    {
+      "collection": "SUBMISSIONS",
+      "id": "s3",
+      "sourceHash": "db8d7aacb4ab00fa99f9975274100a5d5c583cb7b6286954e377bbc00b3c943d"
+    },
+    {
+      "collection": "TICKETS",
+      "id": "tk1",
+      "clientId": "c1",
+      "sourceHash": "abc81ac5c5ddadd44e905a5b40c3cb506ff5c09c2c5442b3b8c402addef18d8e"
+    },
+    {
+      "collection": "TICKETS",
+      "id": "tk2",
+      "clientId": "c1",
+      "sourceHash": "9d5498b0673f427df3b5df2ac8004d83137d918bdc01c12de9d7bbd8b3b4d390"
+    },
+    {
+      "collection": "TICKET_MESSAGES",
+      "id": "tm1",
+      "ticketId": "tk1",
+      "sourceHash": "82517e5a897c10c11b2739bb237c8d28e088208383c1254a794014b77117214e"
+    },
+    {
+      "collection": "TICKET_MESSAGES",
+      "id": "tm2",
+      "ticketId": "tk1",
+      "sourceHash": "f09d06637298dfe6eb6b9c088080bc465f8d9b9397023742a2b15edd1ffb2da8"
+    },
+    {
+      "collection": "TICKET_MESSAGES",
+      "id": "tm3",
+      "ticketId": "tk2",
+      "sourceHash": "d162ce747183b883eed5f14cb3eb39430f554de5e94233aa1e1603d6ede8e77d"
+    },
+    {
+      "collection": "CREDITS",
+      "id": "cr1",
+      "clientId": "c2",
+      "sourceHash": "85b074b2be6dc902ba3eb6cdbfebe7cb93499c53c1e5ad3f40c1b7cf2a657418"
+    },
+    {
+      "collection": "TASKS",
+      "id": "t1",
+      "projectId": "p1",
+      "sourceHash": "a31a3330e81d1f4ae26b1c8b5a6eebfdb20cdd1f94e98fca5fb29c948b329f15"
+    },
+    {
+      "collection": "TASKS",
+      "id": "t2",
+      "projectId": "p1",
+      "sourceHash": "768262f74cbe5e9d3cf0107f0b5d04f1fd38d82a23be97ca922d291fe51a6a3d"
+    },
+    {
+      "collection": "TASKS",
+      "id": "t3",
+      "projectId": "p1",
+      "sourceHash": "1e7db88aff6a94c866c271395b75c9e7aa2c7a52833be721870b292a71ce8ead"
+    },
+    {
+      "collection": "TASKS",
+      "id": "t4",
+      "projectId": "p5",
+      "sourceHash": "29fe432907d41a1fafe5620f800e9e343ecf2ca7bc6946e2344e07fa475d8502"
+    },
+    {
+      "collection": "TASKS",
+      "id": "t5",
+      "projectId": "p5",
+      "sourceHash": "ec56957a40baa9f83a0718439221dc4760ab4fad293ac4d646e7ef1d7e107a27"
+    },
+    {
+      "collection": "TASKS",
+      "id": "t6",
+      "projectId": "p3",
+      "sourceHash": "fa75eccac0494441cb7db1ff2dcd9ad5906e582ba5f6ed381d697ea6df53671b"
+    },
+    {
+      "collection": "TASKS",
+      "id": "t7",
+      "projectId": "p6",
+      "sourceHash": "7f4f9f1c10f355e6a8c092e0cfdbc8f8bed5f4acfd0e151f4c2653b511383663"
+    },
+    {
+      "collection": "UPDATES",
+      "id": "u1",
+      "projectId": "p1",
+      "sourceHash": "5e4d7b858fdcef1b5fc85e7dec762680af711aae560e2b9208c09d3995e5ba0f"
+    },
+    {
+      "collection": "UPDATES",
+      "id": "u2",
+      "projectId": "p1",
+      "sourceHash": "0bfdcd3c7b4e9f8681d16fadae1506934182d8247fffe2f2ba1c5a82a607fd31"
+    },
+    {
+      "collection": "UPDATES",
+      "id": "u3",
+      "projectId": "p5",
+      "sourceHash": "6fd2e230847ef3f96611c408251c0be643aacc9a64668dd17bcf79b0be6e0dba"
+    },
+    {
+      "collection": "DELIVERABLES",
+      "id": "d1",
+      "projectId": "p1",
+      "sourceHash": "9399354a90e9d007bbbbd61f7909ade70e06b3cb4e4aebee5dcecab6f03028f0"
+    },
+    {
+      "collection": "DELIVERABLES",
+      "id": "d2",
+      "projectId": "p4",
+      "sourceHash": "3286891953fb994c37fe4f1eead403b52c0ad1cbe37c3f223b84e1d4d24b301c"
+    },
+    {
+      "collection": "DELIVERABLES",
+      "id": "d3",
+      "projectId": "p5",
+      "sourceHash": "d00cd25a52cd013fcc233365379a1ac5c62265da3c7cfec6be3926a9e84aa937"
+    },
+    {
+      "collection": "PROVIDER_EVENTS",
+      "id": "pe1",
+      "invoiceId": "i1",
+      "paymentId": "y1",
+      "sourceHash": "f38cb18c507aa4241ecffba9dcde6e65a1171188bbf50e87fbd55b6a790a4151"
+    },
+    {
+      "collection": "PROVIDER_EVENTS",
+      "id": "pe2",
+      "invoiceId": "i1",
+      "paymentId": "y1",
+      "sourceHash": "5062662fa3eab6a310d27eece6b477974e9a3957564acb8f2294f0fb9eafa53b"
+    },
+    {
+      "collection": "PROVIDER_EVENTS",
+      "id": "pe3",
+      "invoiceId": "i3",
+      "paymentId": "y3",
+      "sourceHash": "3ab2a013422e04c75d270414e1793a470bc1d207af116a34139725bd0e6ab891"
+    },
+    {
+      "collection": "PROVIDER_EVENTS",
+      "id": "pe4",
+      "sourceHash": "636e76128863dacdb4b35f00d8e3ec6f47e26018458bf3cc3719400cfc35505c"
+    },
+    {
+      "collection": "PROVIDER_EVENTS",
+      "id": "pe5",
+      "sourceHash": "7fd1728ba66527c327894f4378dc590fa865f6ec496aad746d3ec0051b018862"
+    },
+    {
+      "collection": "MESSAGES",
+      "id": "m1",
+      "clientId": "c1",
+      "sourceHash": "4e79006654dc1a022adb32e6303551248fe67f16d7e198ec8d59b9df40e9962b"
+    },
+    {
+      "collection": "MESSAGES",
+      "id": "m2",
+      "clientId": "c1",
+      "sourceHash": "02ef2d6feaff19ef611bcf67aa767e770bcc45d3a0edac2d8828f84df91c9d6a"
+    },
+    {
+      "collection": "MESSAGES",
+      "id": "m3",
+      "clientId": "c1",
+      "sourceHash": "1295ae32fb77b1b40cc7dde4ea4f664280767a60e72e3b2d8a0d16d6695827bf"
+    },
+    {
+      "collection": "MESSAGES",
+      "id": "m4",
+      "clientId": "c1",
+      "sourceHash": "6e21f898202aa16dcdfc8accb8c6fc409c87c38aec23056fb7d2e7514af9dba1"
+    },
+    {
+      "collection": "ESTIMATES",
+      "id": "q1",
+      "clientId": "c5",
+      "projectId": "p5",
+      "sourceHash": "658001ab3e98b66ff3394b33ec3bf146c895a804f30a1215d3451e8a159ff047"
+    },
+    {
+      "collection": "ESTIMATES",
+      "id": "q2",
+      "clientId": "c1",
+      "projectId": "p1",
+      "invoiceId": "i1",
+      "sourceHash": "af0dfbb1a54aa021c127bbc474621ad735168e3452b7057544b1957d38a84b27"
+    },
+    {
+      "collection": "ESTIMATES",
+      "id": "q3",
+      "clientId": "c3",
+      "sourceHash": "4262528cdb590e4830e58a070060c67bfb51d7a76314026b3b5914faefd8fe0f"
+    }
+  ]
+}
