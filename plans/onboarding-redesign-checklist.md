@@ -99,3 +99,25 @@ Do one at a time. Keep stored keys. Map old values on read.
 - [ ] Deployed commit and canonical domain checked
 - [ ] `docs/status.md` updated
 - [ ] Retire superseded parts of the three earlier onboarding plans
+
+## Phase 7. Services and Works pages (added 6 October 2026)
+
+Plan section 13. Small updates. Copy needs owner approval first.
+
+- [ ] Check whether Works live in files, the database, or both (`lib/work.ts`, admin editor)
+- [ ] Draft the small additions for each service page: Branding & Design, SEO, Web, Apps, Software & AI, Social & PPC
+- [ ] [!] Owner decides on the Maintenance line on the Web page
+- [ ] [!] Owner approves the "work starts at three months" line on the SEO page
+- [ ] [!] Owner approves the copy for all six service pages
+- [ ] Update `lib/services.ts` (check the JSON-LD still reads truthfully)
+- [ ] [!] Owner shares the Drive folder "We Dig Creativity - Graphic Samples" by link
+- [ ] Pick and download only the samples that earn a place, cut web sized copies
+- [ ] Works: add motion loops (studio promo, Litch Consulting film, Realtors' Practice post and story) with posters, lazy loaded
+- [ ] Works: add the Realtors' Practice pitch deck (cover and story slides only, redacted)
+- [ ] Works: add packaging, apparel and uniform pieces, and real brand guide spreads
+- [ ] Works: group Branding by the same deliverable names as the form cards
+- [ ] Works: let a case study hold a video loop (small type change)
+- [ ] Works: tighten category ledes, keep quotes and metrics honest
+- [ ] Responsive and performance check, both themes, video loops measured on a phone
+- [ ] Update the services and work tests in the same commit
+- [ ] Migration note if the Works data lives in the database
