@@ -179,6 +179,8 @@ export function SmoothCursor({
 
   return (
     <motion.div
+      data-smooth-cursor
+      aria-hidden="true"
       style={{
         position: "fixed",
         left: cursorX,
