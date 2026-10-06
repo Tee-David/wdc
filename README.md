@@ -32,6 +32,8 @@ Meetings implementation uses `Panel`, `Pick`, `DateInput`, `DateTimeInput`, `Dia
 
 Users under Settings reuses `Panel`, `ad__t`, `RowMenu`, `BulkBar`, `PickAll`, `RowPick` and `Pager`. Reviewed bulk outcomes appear in the shared dialog; the Person column stays pinned, and filters/page size remain in the URL. Recipient-owned account-change email preferences use the shared Settings save bar.
 
+Newly invited clients get one optional `/portal/welcome` profile screen after secure sign-in. It reuses `Panel`, `Form`, `Field`, `Radios`, `Submit` and portal chrome; later edits use `SettingsForm` and its save bar in portal Settings. Continue saves the display name, optional normalized private photo and System/Light/Dark preference; Skip preserves current choices. Existing clients are not enrolled. Migration 0038 is applied by the owner from Settings › System before activating new invitations. Profile controls and uploads deny capture and read-only support sessions; the public default remains dark.
+
 Onboarding service explanations reuse the existing press-to-open Tip and field hints. Keep stored keys and option values stable; historical Client dashboard and Your client portal answers map to Client portal on draft load. Specialist explanations remain optional unless needed to answer safely.
 
 Public custom forms reuse SelectField and the lazy searchable PhoneField used by Contact. lib/phone.ts normalizes numbers to E.164 and enforces Nigerian national length; custom answer checks, Contact submission and its server endpoint share it. Choice keyboard focus belongs to the whole label, without a second input shadow. Users group tabs reuse ad__tabsNav and its shared panel spacing.
