@@ -52,9 +52,9 @@ const fromMemory = (m: Message): LoggedMessage => ({ ...m, resends: [] });
 export type QueueInput = Parameters<typeof memoryQueue>[0];
 
 /** Write the row, or say this event already has one. */
-export async function queueLogged(d: QueueInput): Promise<QueueResult> {
+export async function queueLogged(d: QueueInput, durable = false): Promise<QueueResult> {
   await syncStore();
-  if (!configured()) return memoryQueue(d);
+  if (!configured()) { if (durable) throw new Error("The message could not be persisted."); return memoryQueue(d); }
   const key = d.dedupeKey.trim();
   try {
     const inserted = await db.query<Row>(`
@@ -71,6 +71,7 @@ export async function queueLogged(d: QueueInput): Promise<QueueResult> {
     const seen = await db.query<Row>("SELECT * FROM message_log WHERE dedupe_key = $1", [key]);
     return { ok: false, reason: "duplicate", message: toMessage(seen.rows[0]) };
   } catch (error) {
+    if (durable) throw new Error("The message could not be persisted.");
     console.error("[message-log] database write failed; using the in-memory log:", error instanceof Error ? error.message : error);
     return memoryQueue(d);
   }

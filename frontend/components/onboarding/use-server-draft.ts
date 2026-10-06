@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { ServiceSlug } from "@/lib/services";
+import { DraftLifecycle } from "./draft-lifecycle";
 
 type Answers = Record<string, string | string[]>;
 type RestoredDraft = { service: ServiceSlug; currentStep: number; answers: Answers };
-type SaveResult = { resumeUrl: string; emailSent: boolean };
+type SaveResult = { resumeUrl: string; emailQueued: boolean };
 
 class DraftError extends Error {
   constructor(message: string, readonly canReissue = false) { super(message); }
@@ -43,6 +44,9 @@ export function useServerDraft(input: {
   const { started, service, currentStep, answers, onRestore } = input;
   const [ready, setReady] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [resetting,setResetting] = useState(false);
+  const [resetMessage,setResetMessage] = useState("");
+  const [lifecycle] = useState(() => new DraftLifecycle());
   const [submitting, setSubmitting] = useState(false);
   const [resumeUrl, setResumeUrl] = useState("");
   const [message, setMessage] = useState("");
@@ -90,7 +94,7 @@ export function useServerDraft(input: {
     return () => { live = false; };
   }, [onRestore]);
 
-  const save = useCallback(async (options?: { email?: string; emailLink?: boolean; rotateLink?: boolean }): Promise<SaveResult> => {
+  const save = useCallback((options?: { email?: string; emailLink?: boolean; rotateLink?: boolean }): Promise<SaveResult> => lifecycle.run(async version => {
     setSaving(true);
     setMessage("");
     try {
@@ -100,24 +104,25 @@ export function useServerDraft(input: {
         body: JSON.stringify({ service, currentStep, answers, ...options }),
       });
       const data = await responseJson(response);
+      if (!lifecycle.current(version)) throw new Error("That save was cancelled by Start over.");
       setResumeUrl(data.resumeUrl || "");
-      return { resumeUrl: data.resumeUrl || "", emailSent: data.emailSent === true };
+      return { resumeUrl: data.resumeUrl || "", emailQueued: data.emailQueued === true };
     } catch (error) {
       const text = error instanceof Error ? error.message : "The form could not be saved right now.";
-      setMessage(text);
+      if (lifecycle.current(version)) setMessage(text);
       throw error;
     } finally {
-      setSaving(false);
+      if (lifecycle.current(version)) setSaving(false);
     }
-  }, [service, currentStep, answers]);
+  }), [service, currentStep, answers,lifecycle]);
 
   useEffect(() => {
-    if (!ready || !started) return;
+    if (!ready || !started || resetting || submitting) return;
     const timer = window.setTimeout(() => {
       void save().catch(() => undefined);
     }, 1200);
     return () => window.clearTimeout(timer);
-  }, [ready, started, save]);
+  }, [ready, started, save,resetting,submitting]);
 
   const submit = useCallback(async () => {
     setSubmitting(true);
@@ -142,12 +147,18 @@ export function useServerDraft(input: {
      Start over (or "start a new brief" after one was sent) really starts over
      instead of autosaving into a brief that is already in. */
   const forget = useCallback(async () => {
-    await fetch("/api/onboarding/draft", { method: "DELETE" }).catch(() => undefined);
-    setAlreadySent(false);
-    setCanReissue(false);
-    setResumeUrl("");
-    setMessage("");
-  }, []);
+    if (lifecycle.resetting || submitting || !ready) return false;
+    setResetting(true);setSaving(true);setResetMessage("");setMessage("");
+    try {
+      await lifecycle.beginReset();
+      await responseJson(await fetch("/api/onboarding/draft", { method: "DELETE" }));
+      setAlreadySent(false);setCanReissue(false);setResumeUrl("");
+      return true;
+    } catch {
+      setResetMessage("Start over could not be completed. Your answers are still here. Check your connection and try again.");
+      return false;
+    } finally { lifecycle.endReset();setResetting(false);setSaving(false); }
+  }, [lifecycle,submitting,ready]);
 
   /* "Send me a new link": the reissue route answers the same whatever the
      address, and sends only to the address on the draft. */
@@ -159,5 +170,5 @@ export function useServerDraft(input: {
     return { ok: r.ok, message: r.body.message ?? r.body.error ?? "That could not be sent just now." };
   }, []);
 
-  return { ready, saving, submitting, resumeUrl, message, setMessage, save, submit, alreadySent, canReissue, forget, reissue };
+  return { ready, saving, resetting, resetMessage, submitting, resumeUrl, message, setMessage, save, submit, alreadySent, canReissue, forget, reissue };
 }
