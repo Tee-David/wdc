@@ -25,7 +25,7 @@ import { X } from "lucide-react";
  * moves when it opens: the panel is absolutely positioned, so a question does
  * not jump down the screen while somebody is reading the one above it.
  */
-export default function Tip({ text, label = "What does this mean?" }: { text: string; label?: string }) {
+export default function Tip({ text, example, label = "What does this mean?" }: { text: string; example?: React.ReactNode; label?: string }) {
   const id = useId();
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
@@ -104,9 +104,11 @@ export default function Tip({ text, label = "What does this mean?" }: { text: st
             className="tip__p"
             id={id}
             role="note"
+            data-lenis-prevent
             style={position ? position : { left: 0, top: 0, visibility: "hidden" }}
           >
             {text}
+            {example}
             <button type="button" onClick={() => setOpen(false)} aria-label="Close">
               <X aria-hidden="true" />
             </button>
