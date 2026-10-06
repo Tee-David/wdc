@@ -38,6 +38,8 @@ export default function SelectField({
   describedBy,
   /** What the button says when nothing has been chosen yet. */
   placeholder = "Choose one",
+  unavailable = {},
+  renderOption,
 }: {
   id: string;
   options: string[];
@@ -46,6 +48,8 @@ export default function SelectField({
   invalid?: boolean;
   describedBy?: string;
   placeholder?: string;
+  unavailable?: Record<string, string>;
+  renderOption?: (value: string) => React.ReactNode;
 }) {
   const listId = useId();
   const searchable = options.length > 10;
@@ -81,6 +85,7 @@ export default function SelectField({
   };
 
   const pick = (o: string) => {
+    if (unavailable[o]) return;
     onChange(o);
     setOpen(false);
     setQ("");
@@ -176,6 +181,7 @@ export default function SelectField({
                 id={`${listId}-${slug(o)}`}
                 role="option"
                 aria-selected={o === value}
+                aria-disabled={Boolean(unavailable[o]) || undefined}
                 className={`pk__opt${n === active ? " is-active" : ""}${o === value ? " is-on" : ""}`}
                 onPointerEnter={(e) => { if (e.pointerType === "mouse") setActive(n); }}
                 /* MOUSE ONLY, AND THAT IS THE WHOLE BUG THIS FIXES.
@@ -194,7 +200,7 @@ export default function SelectField({
                 onPointerDown={(e) => { if (e.pointerType === "mouse") e.preventDefault(); }}
                 onClick={() => pick(o)}
               >
-                <span className="pk__label"><Mark name={o} q={q} /></span>
+                <span className="pk__label">{renderOption ? renderOption(o) : <Mark name={o} q={q} />}</span>
               </li>
             ))}
             {!results.length && (
