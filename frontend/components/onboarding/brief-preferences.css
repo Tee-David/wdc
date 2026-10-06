@@ -23,7 +23,8 @@
 .obColours__panel { display: grid; gap: .75rem; padding: 1rem; border: 1px solid var(--rule); border-radius: 12px; background: var(--paper-2); min-width: 0; }
 .obColours__panel label { display: grid; gap: .3rem; }
 .obColours__palette { display: grid; grid-template-columns: repeat(auto-fit, 44px); gap: .6rem; }
-.obColours__shade { height: 140px; border: 1px solid var(--ink); border-radius: 8px; touch-action: none; }
+.obColours__shade { position: relative; height: 140px; border: 1px solid var(--ink); border-radius: 8px; touch-action: none; }
+.obColours__shade > span { position: absolute; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; outline: 1px solid #000; transform: translate(-50%, -50%); pointer-events: none; }
 .obColours__panel input[type="range"] { width: 100%; min-height: 44px; padding: 0; accent-color: var(--ink); }
 .obColours__note { white-space: pre-wrap; overflow-wrap: anywhere; }
 .obColours__disclosure > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
