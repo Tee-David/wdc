@@ -26,7 +26,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
   }
   const result = accounts ?? invitations!;
   return <><div className="ad__head"><div><h1>Users</h1><p>Invite people, manage access and help them sign in.</p></div><UserInviteButton /></div>
-    <nav className="ad__row" aria-label="User groups">{(["team", "invitations", "clients"] as const).map(tab => <Link key={tab} className={`ad__btn${tab === f.tab ? " ad__btn--primary" : ""}`} aria-current={tab === f.tab ? "page" : undefined} href={`/admin/settings/users?tab=${tab}`}>{tab[0].toUpperCase() + tab.slice(1)}</Link>)}</nav>
+    <nav className="ad__tabsNav" aria-label="User groups">{(["team", "invitations", "clients"] as const).map(tab => <Link key={tab} aria-current={tab === f.tab ? "page" : undefined} href={`/admin/settings/users?tab=${tab}`}>{tab[0].toUpperCase() + tab.slice(1)}</Link>)}</nav>
     <Panel title={f.tab === "team" ? "Studio team" : f.tab === "clients" ? "Client accounts" : "Invitations"}><UsersTable key={JSON.stringify(f)} filter={f} users={accounts?.rows ?? []} invites={invitations?.rows ?? []} total={result.total} page={result.page} me={session?.user.id ?? ""} /></Panel>
     <div className="adSetPad"><RolesTable /></div>
   </>;
