@@ -188,7 +188,7 @@ export function ContactForm() {
             its first render to work out whether the platform can draw flag
             emoji, which has no meaning on a server. It also keeps the
             phone-number library off this page until the field is reached. */}
-        <PhoneField id="ct-phone" value={phone} onChange={setPhone} />
+        <PhoneField id="ct-phone" value={phone} onChange={setPhone} invalid={tried && normalizePhone(phone) === null} />
         <input type="hidden" name="phone" value={phone} />
       </div>
 
