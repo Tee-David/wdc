@@ -1,5 +1,7 @@
 # Onboarding improvements: reconciled proposal
 
+Superseded in part by [onboarding-redesign-plan.md](onboarding-redesign-plan.md) (6 October 2026). Read that plan first. Its section 9 lists what changed.
+
 Owner-approved scope; implementation proposal for review. 5 October 2026.
 
 This is the entry point for the two agents’ source audits: [shared flow and account setup](onboarding-flow-improvements-plan.md) and [service-specific experience](onboarding-service-experience-plan.md). Together they specify the change. The current Users and Meetings implementation continues separately.
