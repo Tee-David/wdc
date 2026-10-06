@@ -51,7 +51,7 @@ export type FieldKind =
  * says nothing; this says something.
  */
 export const UNSURE = "I'm not sure; please advise me";
-export const PROJECT_UPDATE_PORTAL = "Your client portal";
+export const PROJECT_UPDATE_PORTAL = "Client portal";
 
 export type Field = {
   key: string;
@@ -234,18 +234,19 @@ export const SERVICE_STEPS: Step[] = [
       },
       {
         key: "deliverables", assist: true, label: "What are we making?", kind: "multi",
+        tip: "A logo is your identifying symbol or name. A full identity system adds colours, typography and ways to use them together. Brand guidelines explain how to use that identity. Packaging covers product boxes or labels; signage covers signs; social templates are reusable post layouts; a pitch deck is a presentation.",
         options: ["Logo", "Full identity system", "Brand guidelines", "Packaging", "Signage", "Social templates", "Pitch deck", "Other"],
       },
       { key: "deliverables_other", label: "What else would you like us to create?", kind: "text", showIf: { key: "deliverables", equals: ["Other"] } },
       {
-        key: "surfaces", assist: true, label: "Where does the mark have to work?", kind: "multi",
-        tip: "This one matters more than it looks. A mark that survives 12mm of embroidery is drawn differently from one that only ever appears on a screen.",
+        key: "surfaces", assist: true, label: "Where will people see or use your logo?", kind: "multi",
+        tip: "Choose the places you expect to use it. A logo stitched onto clothing needs to stay clear at a small size; a screen or large sign has different needs.",
         options: ["Embroidery", "Signage", "Print", "Screen", "Packaging", "Vehicle", "Stamp or seal", "Other"],
       },
       { key: "surfaces_other", label: "Where else must the brand work?", kind: "text", showIf: { key: "surfaces", equals: ["Other"] } },
       {
         key: "untouchable", assist: true, label: "Anything that must not change?", kind: "textarea",
-        tip: "A name, a colour, a mark people already know you by.",
+        tip: "A name, a colour or a logo people already know you by.",
         /* Asked only when something exists to preserve. Putting this to a
            client who has just said "nothing yet" reads as a form that is not
            listening, and a form that is not listening is one people stop
@@ -262,9 +263,11 @@ export const SERVICE_STEPS: Step[] = [
       { key: "site_url", label: "Your website", kind: "url", placeholder: "https://", required: true },
       { key: "target_terms", assist: true, label: "What should someone be typing into Google when they find you?", kind: "textarea", required: true },
       { key: "geo", assist: true, label: "Where are your customers?", kind: "text", placeholder: "e.g. one city, or nationwide", required: true },
-      { key: "competitors", assist: true, label: "Three competitors who currently outrank you", kind: "textarea" },
+      { key: "competitors", assist: true, label: "Which similar businesses show up when you search?", kind: "textarea", tip: "Names or links are enough. You do not need to know their rankings." },
       {
-        key: "tools_access", label: "Do you have these, and can you share access?", kind: "multi", required: true,
+        key: "tools_access", label: "Which website tools do you already have?", kind: "multi", required: true,
+        hint: "Choose what you have. We will arrange access securely; do not share passwords here.",
+        tip: "Search Console shows how people find you in search. Analytics shows website visits and actions. Google Business Profile is your business listing in maps and search. CMS admin is where you edit website pages.",
         options: ["Search Console", "Analytics", "Google Business Profile", "CMS admin", "None of these"],
       },
       { key: "content_owner", label: "Who writes your content?", kind: "cards", required: true, options: ["Nobody yet", "My team", "An agency", "I would like WDC to"] },
@@ -335,7 +338,7 @@ export const SERVICE_STEPS: Step[] = [
     phase: "work", id: "web_tech", service: "web", title: "Domain and hosting",
     blurb: "Where the site will live. Nothing technical is expected of you here.",
     fields: [
-      { key: "has_hosting", label: "Do you already have hosting and a domain?", kind: "cards", required: true, options: ["Both", "Domain only", "Neither", UNSURE] },
+      { key: "has_hosting", tip: "A domain is your web address. Hosting is where your website runs. If you are unsure what you own, choose please advise and we will help identify it.", label: "Do you already have hosting and a domain?", kind: "cards", required: true, options: ["Both", "Domain only", "Neither", UNSURE] },
       {
         key: "hosting_details",
         label: "Who is it with, and whose name is the account in?",
@@ -389,7 +392,7 @@ export const SERVICE_STEPS: Step[] = [
     fields: [
       { key: "platforms", label: "iOS, Android, or both?", kind: "multi", required: true, options: ["iOS", "Android"] },
       { key: "one_job", assist: true, label: "In one sentence, what does the app do for the person holding the phone?", kind: "text", required: true },
-      { key: "accounts", assist: true, label: "Do users log in? Are there different roles?", kind: "textarea", required: true },
+      { key: "accounts", assist: true, label: "Who uses the app, and what should each person be allowed to do?", kind: "textarea", required: true, tip: "For example: customers place orders; staff update them. Tell us if people need to sign in." },
       { key: "offline", assist: true, label: "Must it work without a connection?", kind: "cards", options: ["Yes", "No", UNSURE] },
       { key: "payments", assist: true, label: "Will customers pay through the app?", kind: "cards", options: ["No", "One-off payments", "Subscriptions", "Other"] },
       { key: "payments_other", label: "How else should payments work?", kind: "text", showIf: { key: "payments", equals: ["Other"] } },
@@ -403,7 +406,7 @@ export const SERVICE_STEPS: Step[] = [
         showIf: { key: "store_accounts", equals: ["One of them", "Neither", UNSURE] },
         scope: "Apple and Google charge their own developer fees, paid to them and in your name. Our time to open the accounts and get the app through review is extra to the build, and quoted before we start.",
       },
-      { key: "backend", assist: true, label: "Is there a backend already, or are we building it?", kind: "cards", options: ["One exists", "Build it", UNSURE] },
+      { key: "backend", assist: true, tip: "This is the system behind the app that stores information and handles requests. You do not need to know how it is built.", label: "Does the app already have a system behind it?", kind: "cards", options: ["One exists", "Build it", UNSURE] },
     ],
   },
   {

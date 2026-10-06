@@ -73,7 +73,7 @@ function withAnswerDefaults(answers: Answers = {}): Answers {
   const channels = savedChannel === undefined
     ? [PROJECT_UPDATE_PORTAL]
     : (Array.isArray(savedChannel) ? savedChannel : [savedChannel])
-      .map((channel) => channel === "Client dashboard" ? PROJECT_UPDATE_PORTAL : channel);
+      .map((channel) => ["Client dashboard", "Your client portal"].includes(channel) ? PROJECT_UPDATE_PORTAL : channel);
   return { ...answers, channel: channels };
 }
 
