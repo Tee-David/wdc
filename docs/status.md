@@ -1,3 +1,13 @@
+## Public meeting introduction spacing, 6 October 2026
+
+The booking introduction now groups its heading and description, metadata, paused notice and actions with explicit responsive spacing so public copy margin resets cannot collapse them. Empty paused-notice paragraphs are removed; duration uses the configured value. Mobile actions retain their existing full-width stack. Targeted lint/diff checks run; rendered browser verification remains pending due the browser session failure.
+
+Marketing source checkpoint: targeted onboarding/cursor lint and integrated TypeScript passed. The unverified same-working-day promise is removed consistently from Start metadata, introduction and receipt copy. Rendered verification remains pending.
+
+## Marketing audit implementation authorized, 6 October 2026
+
+The owner authorized implementation of the completed marketing audit. The active checklist is plans/marketing-implementation-checklist.md. Root is implementing plain-language service help and portal terminology; the existing marketing agent is repairing draft/reset/email lifecycle in an isolated worktree. Verification remains pending; source changes are not deployed acceptance evidence.
+
 ## Studio reset completed, 6 October 2026
 
 The owner explicitly authorized a full studio-data reset retaining only the current owner. The verified database transaction removed the other two accounts, cleared operational submissions/resume tokens/uploads metadata, invitations, entry activity, payment charge records, message jobs and counters, and tombstoned all 73 active admin records with fresh sequence numbers so warm instances can observe the deletions. One owner remains; its account and session counts are unchanged. Published content, media library and application configuration were preserved. External payment providers were not changed or refunded. A complete encrypted recovery checkpoint was written outside Git beneath LOCALAPPDATA/WDCRecovery, using AES-256-GCM and a Windows CurrentUser DPAPI-protected key. The transaction checked every cleared table and owner access before commit. Earlier demo-preservation and clarification notes below are historical and superseded by this explicit reset authorization.
