@@ -48,14 +48,15 @@ function differences(a: Map<string, string>, b: Map<string, string>) {
   return n;
 }
 
-export function SettingsForm({ action, children }: {
+export function SettingsForm({ action, children, confirm }: {
+  confirm?: string;
   action: (prev: ActionState, fd: FormData) => Promise<ActionState>;
   children: React.ReactNode;
 }) {
   const [saved, setSaved] = useState(0);
   const onDone = useCallback(() => setSaved((n) => n + 1), []);
   return (
-    <Form action={action} onDone={onDone} className="adSF">
+    <Form action={action} onDone={onDone} className="adSF" confirm={confirm}>
       <Tracker saved={saved}>{children}</Tracker>
     </Form>
   );

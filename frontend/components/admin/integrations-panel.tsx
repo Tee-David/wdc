@@ -3,7 +3,8 @@ import "server-only";
 import Link from "next/link";
 import { CalendarDays, CreditCard, Database, Gauge, HardDrive, KeyRound, Mail, MessageCircle, type LucideIcon } from "lucide-react";
 import { mailIsConfigured, missingMailVariables } from "@/lib/email";
-import { paystackConfig, paystackMode } from "@/lib/paystack";
+import { paystackConfig, type PaystackMode } from "@/lib/paystack";
+import { selectedPaystackMode } from "@/lib/paystack-mode";
 import { r2Config } from "@/lib/r2";
 import { psiIsConfigured } from "@/lib/psi";
 import { lastProbes, type ProbeName, type ProbeResult } from "@/lib/system/probes";
@@ -34,9 +35,9 @@ const PILL: Record<State, { label: string; tone: string }> = {
 
 type Row = { name: string; state: State; detail: React.ReactNode; icon: LucideIcon; probe?: ProbeName };
 
-function rows(): Row[] {
+function rows(mode:PaystackMode): Row[] {
   const database = Boolean(process.env.DATABASE_URL || process.env.COCKROACHDB_URL);
-  const paystack = paystackConfig();
+  const paystack = paystackConfig(mode);
   const r2 = r2Config();
   const google = Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
 
@@ -54,7 +55,7 @@ function rows(): Row[] {
         : `Not set: ${missingMailVariables().join(", ")}.`,
     },
     {
-      name: `Paystack (${paystackMode()})`, probe: "payments", icon: CreditCard,
+      name: `Paystack (${mode})`, probe: "payments", icon: CreditCard,
       state: paystack.ok ? "ready" : "missing",
       detail: paystack.ok ? "Card and transfer payments on invoices." : `Not set: ${paystack.missing.join(", ")}.`,
     },
@@ -96,9 +97,10 @@ function Checked({ r }: { r?: ProbeResult }) {
 
 export async function IntegrationsPanel() {
   const probes = await lastProbes();
+  const mode = await selectedPaystackMode();
   return (
     <div className="adIntg" data-tour="settings-integrations">
-      {rows().map((row) => {
+      {rows(mode).map((row) => {
         const Icon = row.icon;
         const flat = row.state === "unbuilt" || row.state === "manual" || row.state === "missing";
         return (

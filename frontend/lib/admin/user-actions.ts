@@ -1,10 +1,10 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { transaction } from "@/lib/db/transaction";
+
 import { db } from "@/lib/db/pool";
-import { SITE_URL } from "@/lib/site";
+
 import { UsersError } from "@/lib/users/errors";
 import { sendSecurityNotice } from "@/lib/users/notices";
 import { usersOwner } from "@/lib/users/authorize";
@@ -59,13 +59,14 @@ export async function recoverUser(_previous: ActionState, fd: FormData): Promise
     if (!id || id.length > 120) return FAIL({}, "That account could not be found.");
     const user = await db.query<{ email: string; active: boolean }>(`SELECT "email",("deactivatedAt" IS NULL) AS active FROM "user" WHERE "id"=$1`, [id]);
     if (!user.rows[0]?.active) return FAIL({}, "Reactivate this account before sending recovery.");
-    await db.query(`INSERT INTO user_security_events(actor_id,target_id,event) VALUES($1,$2,'password-recovery-queued')`, [actor.user.id, id]);
-    const h = await headers(); const email = user.rows[0].email;
-    after(async () => {
-      try { await auth.api.requestPasswordReset({ headers: h, body: { email, redirectTo: new URL("/reset-password", SITE_URL).toString() } }); }
-      catch { await db.query(`INSERT INTO user_security_events(actor_id,target_id,event) VALUES($1,$2,'password-recovery-failed')`, [actor.user.id, id]); }
+    const noticeId = await transaction(async tx => {
+      const event = await tx.query<{id:string}>(`INSERT INTO user_security_events(actor_id,target_id,event) VALUES($1,$2,'password-recovery-queued') RETURNING id`, [actor.user.id,id]);
+      const notice = await tx.query<{id:string}>(`INSERT INTO user_security_notices(event_id,target_id,kind) VALUES($1,$2,'recovery') RETURNING id`, [event.rows[0].id,id]);
+      return notice.rows[0].id;
     });
-    return OK("Recovery queued. Check Settings › Email for the mail server outcome; this does not confirm delivery.");
+    after(() => sendSecurityNotice(noticeId));
+    revalidatePath(`/admin/settings/users/${encodeURIComponent(id)}`);
+    return OK("Recovery request queued. Its state is in Activity and sessions; retry there if it has not started. Requested means the authentication service accepted it; Settings › Email shows any subsequent mail attempt.");
   } catch (e) { return failure(e); }
 }
 
@@ -74,7 +75,7 @@ export async function retrySecurityNotice(_previous: ActionState, fd: FormData):
     await usersOwner("retry-security-notice");
     const id = String(fd.get("noticeId") ?? "");
     if (!/^[0-9a-f-]{36}$/i.test(id)) return FAIL({}, "That email notice could not be found.");
-    const queued = await db.query(`UPDATE user_security_notices SET state='queued',updated_at=now() WHERE id=$1 AND state IN ('queued','failed') RETURNING id`, [id]);
+    const queued = await db.query(`UPDATE user_security_notices SET state='queued',updated_at=now() WHERE id=$1 AND (state IN ('queued','failed') OR (state='sending' AND provider_started=false AND updated_at < now() - INTERVAL '10 minutes')) RETURNING id`, [id]);
     if (!queued.rowCount) return FAIL({}, "That email is accepted, sending or uncertain. Check Settings › Email before requesting another message.");
     after(() => sendSecurityNotice(id));
     revalidatePath("/admin/settings/users");

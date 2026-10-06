@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Clock, Globe, Mail, MessageSquare, Phone } from "lucide-react";
+import { Clock, Globe, Mail, Phone } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { WorkFooter } from "@/components/work/work-footer";
 import ContactForm from "@/components/contact/contact-form";
@@ -88,6 +88,10 @@ export default async function ContactPage() {
 
         <section className="pv-sec">
           <div className="pv-wrap">
+            <div className="ct-meetingChoice">
+              <div><h2>Choose how to start</h2><p>Send us the details, or choose a time for a conversation.</p></div>
+              <div className="ct-meetingChoice__actions"><Link className="pv-btn pv-btn--line" href="#contact-enquiry">Send an enquiry</Link><Link className="pv-btn pv-btn--dark" href="/meet">Schedule a conversation</Link></div>
+            </div>
             <div className="ct-cols">
               {/* the ask */}
               <div className="ct-aside">
@@ -114,7 +118,7 @@ export default async function ContactPage() {
               </div>
 
               {/* the form */}
-              <div className="ct-card">
+              <div className="ct-card" id="contact-enquiry">
                 <ContactForm />
               </div>
             </div>

@@ -8,9 +8,19 @@ Keep the [integration plan](../plans/cal-com-meetings-plan.md), [setup checkpoin
 
 The preview uses sample bookings. It does not book appointments, send reminders or connect calendars. The account API authenticated during setup; no event type existed at that checkpoint. The API credential was synchronized to Doppler without adding it to source.
 
+Implementation checkpoint `3a66604` adds native booking/manage routes, an admin calendar/table, owner settings, durable commands, signed receipt storage and migration 0035. Publication defaults off. Initial targeted lint, TypeScript and the Meetings policy check passed. Build and responsive review remain open; migration 0035 is not applied.
+
 Remaining delivery: event-type configuration, calendar/conferencing connections, authorized booking commands, durable synchronization, signed webhooks, cancellation/rescheduling, recipient preferences, reminder scheduling/retries, permissions, integration tests and live verification. The existing daily invoice-reminder job cannot accurately deliver one-hour-before-meeting reminders.
 
 ## Users and roles
+
+2026-10-06 checkpoint: owner Users management is on main. Follow-up commits add bounded selected exports, guarded database tests, recoverable password-reset intents and authoritative client invitation linkage checks. Focused checks passed; integrated build, responsive authenticated checks and dedicated real-session lifecycle tests remain pending. Migration 0036 is not applied by this work. Legacy capture-auth mutation tests are disabled rather than presented as verified.
+
+## Backup, restore and demo cleanup
+
+The owner requested a clean dashboard retaining the current admin account, improved Users spacing and a comprehensive Settings recovery section. The [Backup and restore proposal](../plans/backup-and-restore-plan.md) defines scoped archives, exclusions, private downloads, validation, safety checkpoints and a restore drill. It is a proposal, not an implemented backup. Demo provenance is being audited before removing persisted records; no blanket database reset has run. The existing reset-admin-store script would recreate starting records and is not a production cleanup procedure.
+
+Paystack Test/Live Settings implementation is assigned separately. The audit found current mode-bound verification and test-settlement risks; reference-bound verification and isolation of test payments must accompany the control. No production mode has been changed.
 
 The owner requested a clearer, complete Users workflow. The [Users and Roles proposal](../plans/users-and-roles-plan.md) audits the existing Team page and invitations. It covers responsive tables, invitation delivery/resend/cancellation, role protection, recovery, session management and scoped support impersonation. The interactive Users artifact is available at `http://127.0.0.1:3147/?view=users`. Implementation is now authorized and running in parallel with Meetings. The artifact uses clearly labelled sample accounts; it does not change users or send mail. Search alignment, pinned tables, row selection, reviewed bulk actions, pagination, 10/25/50/100 items per page and CSV/JSON export choices are included. The search field stays within the viewport and its icon stays inside it at 320, 390, 640, 768, 1024 and 1440px in both themes. Production account management and read-only support guards remain under implementation and have not been released.
 
