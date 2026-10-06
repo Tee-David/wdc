@@ -37,6 +37,8 @@ Rules for every form:
 | Software and AI | Internal tools, automations, AI chatbots and integrations. The client brings the idea and can upload as much detail as they like. Ask which tools to connect (any tool with an API). Ask what terms they have for AI and data. Demos happen on the discovery call. |
 | Social and ads | Management, content creation and paid ads are separate packages and can be combined. Links in one box. Collect past results, platform accounts and ad budget. Ask if they will give access. We can also help set up accounts. Tell them about content calendars, scheduling, trends and approvals before we post. |
 | Engagement terms | Each service has a deep client engagement section that protects the studio. See section 8. |
+| Services and Works pages | Small content updates to each service page, and an update to the Works page. See section 13. Added 6 October 2026. |
+| Design samples | The owner allows use of all samples in the Drive folder "We Dig Creativity - Graphic Samples". Use them well. Folder must be shared by link before they can be downloaded. |
 | Deliverable | Plan and checklist live in `plans/` in this repo. |
 
 ## 3. Open items and how they were settled
@@ -147,6 +149,8 @@ Chosen from the file names in `frontend/public/brand-work/` and the cases in `fr
 | Stationery and cards | Business cards, stationery set, Moore Designs stationery, staff ID card |
 | Pitch deck and profile | Realtors' Practice pitch decks (two PDFs, 26 slides, supplied by the owner 6 October). Use cover, section and closing slides only. Millcon corporate profile pages as a second option. |
 | Motion design | Only the studio's own hero films in `public/hero/film/`. There is no client motion work on the site. Gap. Ask the owner for clips or use the studio's own film. |
+
+The owner has also allowed use of every sample in the Drive folder "We Dig Creativity - Graphic Samples" (about 100 files, including full brand guide PDFs for Millcon, Moore Designs, Marfaa, TAB and Dhiol World). Files are private. The folder must be shared by link before they can be downloaded. Download only what earns a place, and cut web sized copies.
 
 ### 6.7a Motion design samples (from the owner's zip, 6 October 2026)
 
@@ -311,6 +315,7 @@ Still in force: compact service picker, Client portal wording, save and resume r
 8. Build one service at a time. Each finished piece is committed and pushed to main and the working branch.
 9. Update tests, `docs/status.md` and the README design system section with each component change.
 10. Verify the deployed commit, not only the push.
+11. Update the Services and Works pages (section 13). Copy needs owner approval first. This can run next to step 8.
 
 ## 11. How we will know it works
 
@@ -327,3 +332,45 @@ Still in force: compact service picker, Client portal wording, save and resume r
 - Animated cards can hurt phones. Measure on a mid range phone before shipping.
 - Changed keys break old drafts and admin views. Keep keys. Map old values on read.
 - Indemnity text that a lawyer has not reviewed can mislead the client and the studio. Keep it behind a flag.
+
+## 13. Services and Works pages (small updates)
+
+Added 6 October 2026. These pages and the onboarding forms must tell the same story. The owner asked for tiny additions to each service page, some content improvement, and an update to the Works page. Each change below is a proposal for the owner to approve. Nothing here is built yet.
+
+### 13.1 What the code does today
+
+- The six services live in `frontend/lib/services.ts`. Each has a name, a lede, a body paragraph, six steps and a list of deliverables. The same data feeds the Service JSON-LD, so no price, no turnaround and no result may appear there.
+- Works live in `frontend/lib/work.ts` and `showcase.ts`, with routes `app/work`, `app/work/[category]` and `app/work/[category]/[slug]`. Every category now leads with written case studies, and branding and social keep a wall of loose artwork below them.
+- Case study text says it is "written in the admin editor". Before any edit, check whether Works are stored in files, in the database, or both. If the admin owns them, the owner or a seed adds them. A database change needs a migration, and the owner applies it in Settings > System.
+- The page already mentions motion design, local SEO and AI visibility. We do not rewrite what is right.
+
+### 13.2 Proposed changes to each service page
+
+| Service | Small additions and changes |
+|---|---|
+| Branding & Design | Add the deliverables that the form now offers: pitch decks, packaging, signage, promotional branding, and motion design named plainly (logo reveals, promo videos, social reels, explainers, website loops). Add one line that small jobs (flyers, social templates) can be a single piece, a batch or a monthly service. Keep the name "Branding & Design". |
+| SEO | Say that local SEO and AI search visibility are part of the service, in one plain line each. State that work starts at three months, if the owner agrees to say it in public. Keep "no promises" wording. |
+| Web | Name the payment providers: Paystack and Flutterwave for local, Stripe, PayPal and Square for international, or the client's own provider. Add "free review of your current site". Say the studio picks the platform from what the site must do. Open question: the page shows Maintenance as a step and a deliverable, and the owner does not want maintenance shown up front. Move it to a quiet line, or keep it. Owner decides. |
+| Apps | Add a short, kind line on what we do not build: games, deceptive apps, apps that need heavy hardware. Add "a prototype before the full build". Name offline first apps and apps that serve many users at once. |
+| Software & AI | Name the four kinds of work in plain words: internal tools, automations, AI assistants, connecting systems and data pipelines. Add "we connect to any tool that has an API". Add "demos of past work on the discovery call". Keep the honest line on where AI helps and where it does not. |
+| Social & PPC | Say the three packages are separate and can be combined: management, content creation and paid ads. Add "you approve before we post", content calendars, scheduling and trend ideas. |
+
+Rules for all of them: plain words, no city names, no prices, no invented claims, no dashes or semicolons in new copy. Every claim must come from the owner's own words in this plan or from the existing page.
+
+### 13.3 Proposed changes to the Works page
+
+1. Add motion work. Use the cleared clips from the owner's zip: the studio promo, the Litch Consulting film, and the Realtors' Practice post and story. They play as muted loops, lazy loaded, each with a poster. Respect the performance rules (nothing heavy on the critical path, paused off screen, no animation under reduced motion).
+2. Add the Realtors' Practice pitch deck as a Pitch deck piece. Show cover and story slides only. No prices, no contact details.
+3. Add the best pieces from the full Drive sample folder, once it is shared. Fill the gaps the form cards showed: packaging, apparel and uniform, and real brand guide spreads (Millcon, Moore, Marfaa, TAB, Dhiol World). Cut web sized copies. Use `next/image` with set sizes.
+4. Group Branding work by the same deliverable names as the form cards (Logo, Identity system, Brand guidelines, Flyers, Social templates, Promotional, Packaging, Signage, Pitch deck, Motion). A visitor and the onboarding form then use the same words. Keep it a simple filter or a set of headings, not a new page.
+5. Add motion as a kind of work in the case study type, so a case study can hold a video loop next to its images. Keep it small. Check the type in `work.ts` first.
+6. Content improvement: tighten category ledes so each one answers "what will I get" in one sentence. Keep client quotes only where the client wrote them. Keep metrics only where the client published them.
+7. Keep the page opening the same way as every other landing page (the navy hero band, eyebrow, h1, lede). Do not invent a new layout.
+
+### 13.4 Checks before it ships
+
+- Owner approves the copy for each service and the Works additions.
+- A client confirms nothing: permission for the Litch Consulting and Realtors' Practice items is already given by the owner.
+- Page titles, descriptions, canonical tags and the Service JSON-LD still describe visible content truthfully.
+- Responsive check at 320, 390, 768, 1024 and 1440 in both themes. LCP and layout shift unchanged. Video loops measured on a phone.
+- Existing tests for services and work pages still pass. Update them in the same commit.
