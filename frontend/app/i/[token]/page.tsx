@@ -1,4 +1,5 @@
 import { PayForm } from "@/components/money/pay-form";
+import { selectedPaystackMode } from "@/lib/paystack-mode";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getClient, getInvoiceByToken, getPaymentsFor } from "@/lib/admin/store";
@@ -79,6 +80,7 @@ export default async function PublicInvoice({
   const q = await searchParams;
   const flag = Array.isArray(q.pay) ? q.pay[0] : q.pay;
   const problem = flag ? PAY_PROBLEMS[flag] : undefined;
+  const paymentMode = await selectedPaystackMode().catch(() => null);
 
   /* THE BUTTON IS ONLY OFFERED WHEN IT CAN ACTUALLY WORK. Paystack needs an
      email address for the payer, and a checkout that opens and then refuses is
@@ -262,6 +264,7 @@ export default async function PublicInvoice({
               they have been charged. Each of these is a different answer and
               none of them is "an error occurred". */}
           {problem ? <p className="doc__warn">{problem}</p> : null}
+          {!settled && paymentMode !== "live" ? <p className="doc__warn">{paymentMode === "test" ? "Online checkout is in test mode. It simulates payment and leaves this invoice unpaid. Use the bank details below for a real payment." : "Online checkout is temporarily unavailable. Use the bank details below or contact the studio."}</p> : null}
 
           {/* A REAL FORM, A REAL POST. Not a fetch and not a link: a link that
               spends money can be followed by a prefetcher or a mail scanner,
