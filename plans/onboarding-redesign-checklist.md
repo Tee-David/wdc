@@ -19,22 +19,23 @@ Legend: [x] done, [ ] to do, [~] in progress, [!] blocked on the owner.
 - [x] Research how strong teams run onboarding
 - [x] Ask the 30 questions, get answers (6 October 2026)
 - [x] Write the plan and this checklist
-- [ ] [!] Owner approves the plan
+- [x] Owner approves the plan (6 October 2026)
+- [x] Owner allows client films (Litch Consulting, Realtors' Practice) and pitch deck slides, with sensitive parts redacted
+- [x] Owner allows the dropdown hardening change to ship
 - [x] O1 pre-fill: blank link by default, optional pre-filled link (plan 6.6)
 - [ ] [!] O2 signed agreement versus ticked section
 - [x] O3 past work: studio chooses from public work (plan 6.7)
-- [ ] Open and check each sample image before it ships
+- [x] Open and check each sample image (72 chosen, election flyers left out)
 - [x] Motion design samples: owner zip received and reviewed (plan 6.7a)
-- [ ] [!] Owner confirms Litch Consulting and Realtors' Practice films may be shown
 - [ ] Script: cut muted 3 to 6 second loops and posters from the zip (ffmpeg, committed)
 - [x] Pitch deck samples: Realtors' Practice PDFs received (plan 6.7)
-- [ ] [!] Owner confirms which pitch deck slides may be shown
 - [x] O4 owner repos read (plan 6.8)
 - [x] O5 Flutterwave and coolors.co confirmed
 
 ## Phase 1. Dropdown scroll fix (small, separate commit)
 
-- [~] Reproduce on a touch phone viewport with Playwright
+- [x] Reproduce on a touch phone viewport with Playwright (not reproduced in headless Chromium)
+- [~] Ship keyboard hardening: no auto focus on touch, size the sheet from the visual viewport (in progress, owner to test on a real phone)
 - [ ] Find the root cause and fix it once in the shared picker
 - [ ] Add one test that fails before and passes after
 - [ ] Lint, typecheck, targeted specs
@@ -45,12 +46,12 @@ Legend: [x] done, [ ] to do, [~] in progress, [!] blocked on the owner.
 
 Each artifact lists every question of a flow in one view with its conditions. It uses real tokens, type and components. Check 320, 390, 768, 1024 and 1440, light and dark.
 
-- [ ] Branding & Design (with motion design, cards, colour system, style help)
-- [ ] SEO
-- [ ] Web
-- [ ] Apps
-- [ ] Software & AI
-- [ ] Social Media & Paid Ads
+- [~] Branding & Design (with motion design, cards, colour system, style help)
+- [~] SEO
+- [~] Web
+- [~] Apps
+- [~] Software & AI
+- [~] Social Media & Paid Ads
 - [ ] Engagement section sample for each service (inside its artifact)
 - [ ] Owner picks one flow per service
 - [ ] Owner approves the style help copy
