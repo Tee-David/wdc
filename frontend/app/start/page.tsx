@@ -8,7 +8,7 @@ import "@/components/forms/custom-form.css";
 
 export const metadata: Metadata = {
   title: "Start a project",
-  description: "Four short screens and your project is with us. We reply the same working day.",
+  description: "Four short screens and your project is with us. We will review your project and get back to you.",
   alternates: { canonical: `${SITE_URL}/start` },
 };
 
@@ -24,7 +24,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
             <span className="pv-eyebrow">Start a project</span>
             <h1 className="pv-mix">Tell us what you <b>want to build</b></h1>
             <p className="pv-lede">
-              Four short screens, two questions each. We read every one and reply the same working day.
+              Four short screens, two questions each. We read every enquiry and will get back to you.
             </p>
           </div>
         </section>

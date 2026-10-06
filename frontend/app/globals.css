@@ -298,6 +298,15 @@ form[data-busy="1"] [type="submit"] { cursor: progress; }
   body.smooth-cursor * {
     cursor: none;
   }
+  /* A native modal occupies the top layer, above any body cursor overlay.
+     Restore browser cursors while it is open instead of chasing z-index. */
+  body.smooth-cursor:has(dialog:modal),
+  body.smooth-cursor:has(dialog:modal) * {
+    cursor: revert;
+  }
+  body.smooth-cursor:has(dialog:modal) [data-smooth-cursor] {
+    visibility: hidden;
+  }
 }
 
 
