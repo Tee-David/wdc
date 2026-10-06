@@ -1,0 +1,14 @@
+# Practical delivery proposal
+
+Status: owner review pending. No implementation checklist is approved yet.
+
+This reconciles [dashboard workflows](dashboard-real-world-review.md), [marketing journeys](marketing-real-world-review.md), and the active six-service onboarding plans. Preserve established components and short flows; do not add new primary navigation or a generic workflow engine.
+
+1. Finish the current release boundary: exact-source build and authenticated responsive review, owner-applied migrations, verified payment mode behavior and booking setup. Keep unverified scheduling/reminders off. The owner-authorized studio reset is complete with a private encrypted checkpoint and owner login preserved; verify the deployed dashboard remains empty.
+2. Repair truthful persistence and feedback: answer Updated/Saved only after durable writes, record outbound intent before dispatch, expose failures/retry without claiming delivery, and make draft save/reset ordering atomic. Existing draft tokens must not resurrect cleared answers.
+3. Repair decision boundaries: client approvals identify the exact current version and record an auditable decision. Staff access is checked at each operation; Meetings staff assignment and client/project linkage remain explicit missing work rather than broad access.
+4. Deliver service onboarding from the existing plans: compact service picker, max-five optional brand colours, press/touch/keyboard visual help, reversible “please advise” answers, and stable stored keys. Explain distinctions within Branding, SEO, Web, Apps, Software & AI, and Social & PPC in plain language. Optional portal personalization follows secure invitation acceptance and can be skipped.
+5. Complete backup/restore only after the design review: manual scoped archives first, private downloads and integrity validation, then checkpointed restore and a disposable recovery drill. Add Daily/Weekly/Monthly scheduling and archive-count retention through a durable scheduler; show next run and job results from persisted truth. Recipient notification preferences remain personal.
+6. Verify each complete journey: mobile and desktop, both themes, long content, keyboard/touch, owner/staff/client authorization, interrupted requests, empty/error states, expired invitations, unavailable providers and duplicate delivery. Reuse FileDrop, Dialog, RowMenu, BulkBar, Pager and designed pickers. Tables retain selection, scoped bulk outcomes, a pinned first column and bounded horizontal scroll.
+
+After approval, create one Markdown checklist in `plans/` with observable acceptance checks, source/build/live evidence and the responsible work unit. Mark a task complete only when its stated check passes. Commit and push each finished unit to main and the working branch, update docs/status and the relevant bridge section, and keep unresolved production verification visible.

@@ -3,7 +3,7 @@
 import { usersOwner } from "@/lib/users/authorize";
 import { after } from "next/server";
 import { revalidatePath } from "next/cache";
-import { accountFor, createInvitation, invitationsConfigured, normaliseEmail, revokeInvitation } from "@/lib/invitations";
+import { ClientInvitationError, accountFor, createInvitation, invitationsConfigured, normaliseEmail, revokeInvitation } from "@/lib/invitations";
 import { sendInvitationEmail } from "@/lib/invitation-mail";
 import { getClient, audit } from "./store";
 import { actorName, owner, allow } from "./guard";
@@ -46,7 +46,8 @@ export async function inviteClient(_prev: ActionState, fd: FormData): Promise<Ac
   let made;
   try {
     made = await createInvitation({ email, name: client.name, role: "client", clientId: client.id, by, actorId: (await getAdminRequest()).session?.user.id ?? "" });
-  } catch {
+  } catch (error) {
+    if (error instanceof ClientInvitationError) return FAIL({}, error.message);
     return FAIL({}, "The invitation could not be saved just now. Nothing was sent; try again.");
   }
   sendLater(made.invitation, made.token);
@@ -142,7 +143,7 @@ export async function resendUserInvite(_prev: ActionState, fd: FormData): Promis
     sendLater(made.invitation, made.token);
     revalidatePath("/admin/settings/users");
     return OK("Invitation queued. The previous link no longer works; email acceptance is shown separately.");
-  } catch { return FAIL({}, "The invitation could not be replaced. Refresh the list and retry."); }
+  } catch (error) { return FAIL({}, error instanceof ClientInvitationError ? error.message : "The invitation could not be replaced. Refresh the list and retry."); }
 }
 
 export async function bulkCancelInvites(_prev: ActionState, fd: FormData): Promise<ActionState> {

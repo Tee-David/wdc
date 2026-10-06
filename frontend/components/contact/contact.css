@@ -224,3 +224,5 @@
 /* The words the homepage's short form handed over: said once, above the
    fields they went into, so the filled form is not a surprise. */
 .ct-carried { margin: 0; padding: .7rem .9rem; border-left: 3px solid var(--accent); color: var(--foreground); font-size: .88rem; line-height: 1.45; }
+
+.ct-meetingChoice{display:flex;gap:24px;align-items:center;justify-content:space-between;margin-bottom:32px}.ct-meetingChoice>div{min-width:0}.ct-meetingChoice h2{margin:0 0 8px}.ct-meetingChoice p{margin:0}.ct-meetingChoice__actions{display:flex;gap:12px;flex-wrap:wrap}.ct-card#contact-enquiry{scroll-margin-top:100px}@media(max-width:767px){.ct-meetingChoice{display:grid;gap:20px}.ct-meetingChoice__actions{display:grid;grid-template-columns:1fr}.ct-meetingChoice__actions .pv-btn{width:100%;white-space:normal;text-align:center}}

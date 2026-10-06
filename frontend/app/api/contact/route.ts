@@ -1,3 +1,4 @@
+import { normalizePhone } from "@/lib/phone";
 import { after, NextRequest, NextResponse } from "next/server";
 import { hydrateSettings } from "@/lib/settings/store";
 import { formByKey } from "@/lib/forms/registry";
@@ -42,7 +43,8 @@ export async function POST(request: NextRequest) {
 
   const first = clean(body.first, 80), last = clean(body.last, 80);
   const email = clean(body.email, 320).toLowerCase();
-  const phone = clean(body.phone, 40), topic = clean(body.topic, 120), message = clean(body.message, 5_000);
+  const phone = normalizePhone(clean(body.phone, 40)), topic = clean(body.topic, 120), message = clean(body.message, 5_000);
+  if (phone === null) return NextResponse.json({ error: "Enter a valid phone number. Nigerian numbers need 10 digits, or 11 starting with 0." }, { status: 400 });
   if (!first || !last || !topic || message.length < 10 || !/^\S+@\S+\.\S+$/.test(email)) {
     return NextResponse.json({ error: "Please complete all required fields with valid details." }, { status: 422 });
   }

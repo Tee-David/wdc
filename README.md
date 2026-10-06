@@ -28,8 +28,13 @@ One system for everything we ship: the public site, the admin and the portal. Th
 
 The [Meetings design preview](prototypes/cal-meetings/README.md) renders the current admin shell, Panel, DemoNote, logo and Lucide icons directly from these components. It is a proposal with sample data, awaiting review; it does not implement scheduling.
 
+Meetings implementation uses `Panel`, `Pick`, `DateInput`, `DateTimeInput`, `Dialog`, `ad__t`, `RowMenu`, `BulkBar` and `Pager`. Its calendar period control supplies designed month/year pickers; availability ranges remain independent per weekday. Scheduling settings use the shared save bar. Public booking uses the site's black/white button pair. Production booking stays disabled until its migration, provider setup, signed webhook and release verification are complete.
+
 Users under Settings reuses `Panel`, `ad__t`, `RowMenu`, `BulkBar`, `PickAll`, `RowPick` and `Pager`. Reviewed bulk outcomes appear in the shared dialog; the Person column stays pinned, and filters/page size remain in the URL. Recipient-owned account-change email preferences use the shared Settings save bar.
 
+Public custom forms reuse SelectField and the lazy searchable PhoneField used by Contact. lib/phone.ts normalizes numbers to E.164 and enforces Nigerian national length; custom answer checks, Contact submission and its server endpoint share it. Choice keyboard focus belongs to the whole label, without a second input shadow. Users group tabs reuse ad__tabsNav and its shared panel spacing.
+
+`Pager` keeps native disclosure and links with a small `DismissDetails` boundary for outside-pointer and Escape dismissal. Backup/restore design reuses `FileDrop`, `Dialog`, `Panel`, `Pager`, shared row-menu/bulk-bar geometry and pinned scrollable tables; it is an interactive proposal, not a running backup service.
 Paystack mode in Settings › Integrations uses `SettingsForm`, the designed `Select`, `Switch`, and the shared confirmation dialog. Live mode requires explicit acknowledgement and a fresh owner session. Configuration indicators contain no key values; existing checkout references retain their original account when mode changes.
 
 ### Voice
@@ -141,3 +146,4 @@ All of these live in `frontend/components/admin/`. The public site has its own o
 
 - **New passwords** need 8+ characters with a capital, a small letter, a number and a symbol. They are refused if they appear in a known breach (Have I Been Pwned, k-anonymity; fails closed).
 - **Addresses:** temporary inboxes and anonymous mail services are refused at every public form and on invitations (`lib/email-domains.ts`).
+Production admin collections start empty and hydrate only from persisted records. Empty databases are never seeded from demo fixtures; missing or failed database access is reported. The legacy candidate manifest and read-only audit script live in docs/audits and frontend/scripts/audit-demo-records.mjs; candidate IDs require full-record provenance review before deletion, and authentication/current owner records are outside the cleanup scope.
