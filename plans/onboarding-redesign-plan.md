@@ -23,7 +23,7 @@ Rules for every form:
 
 | Topic | Decision |
 |---|---|
-| Motion design | Part of the service called **Branding & Design**. It is a deliverable card, not a new service. |
+| Motion design | Seven clips from the owner's "Motion for Claude" zip, mapped in 6.7a. |
 | Dropdown scroll bug | Fix now as a small, separate change. |
 | Small jobs | Flyers and social templates are small jobs. They can be a single piece, a batch, or a recurring service. The form must ask which. |
 | Animated cards | Use real past WDC work as the samples. |
@@ -145,8 +145,31 @@ Chosen from the file names in `frontend/public/brand-work/` and the cases in `fr
 | Packaging | MARFAA packaging, shopping bag work |
 | Signage | Moore Designs signage and storefront, Mayrols signage |
 | Stationery and cards | Business cards, stationery set, Moore Designs stationery, staff ID card |
-| Pitch deck and profile | Millcon corporate profile pages. There is no pitch deck sample. Gap. |
+| Pitch deck and profile | Realtors' Practice pitch decks (two PDFs, 26 slides, supplied by the owner 6 October). Use cover, section and closing slides only. Millcon corporate profile pages as a second option. |
 | Motion design | Only the studio's own hero films in `public/hero/film/`. There is no client motion work on the site. Gap. Ask the owner for clips or use the studio's own film. |
+
+### 6.7a Motion design samples (from the owner's zip, 6 October 2026)
+
+Seven clips, 113 MB in total. I watched three frames of each. File names are the owner's.
+
+| Clip | Length, size | Fits the option | Notes |
+|---|---|---|---|
+| `WDC_Social_9x16_voice_light.MP4` | 42.6 s, 1080x1920 | Social reel | Studio promo. Has voice. |
+| `WDC_Social_16x9_voice_light.MP4` | 42.6 s, 1920x1080 | Promo video | Same film in landscape. Shows past brand work. |
+| `Litch_ChaosEdition_9x16.MP4` | 59.6 s, 1080x1920 | Social reel | Client film for Litch Consulting. |
+| `Litch_ChaosEdition_16x9.MP4` | 59.6 s, 1920x1080 | Explainer | Same film in landscape. |
+| `76f12f6e-...MP4` | 15 s, 1080x1350 | Social reel (4:5 post) | Realtors' Practice animated post. |
+| `ScreenRecording_09-30-2026 12-16-27 PM_1.mov` | 18.7 s, 1180x652 | Explainer | Realtors' Practice story, ends on the logo. A screen recording, so lower quality. |
+| `8032c514-...MP4` | 20 s, 832x464 | Explainer | Studio services path animation. Small frame size. |
+
+Gaps and cautions:
+
+- No clip is a stand alone logo reveal. Option: cut the first seconds of the Realtors' Practice clips, or ask the owner for one.
+- No clip is a website hero loop. The repo already has the studio hero films in `public/hero/film/`.
+- Litch Consulting and Realtors' Practice are clients. Both are on the site as work. Ask the owner to confirm that these films may be shown.
+- Two clips show place names (Lagos, Lekki, Nairobi, Dubai) inside the client's own scenes. The site rule is no city names in copy. The rule is about copy, not client footage. Ask the owner.
+- The raw files must not go in git. For the cards, cut muted loops of 3 to 6 seconds, each under about 600 KB, with a poster image. Load them only when the card is on screen. Commit the ffmpeg script that makes them, so the result can be rebuilt.
+- The pitch deck PDFs hold prices, market claims and a named person's contact details. Use only cover and closing style slides. Do not show the pricing slide.
 
 ### 6.8 What the studio builds (from the owner's repos, public facts only)
 
