@@ -24,6 +24,8 @@ export async function proxy(request: NextRequest) {
     const forward = new Headers(request.headers);
     forward.set("x-wdc-path", request.nextUrl.pathname + request.nextUrl.search);
     const through = () => NextResponse.next({ request: { headers: forward } });
+    // Even a lost original session must reach the support-unavailable screen and its Exit action.
+    if (path.startsWith("/portal") && request.cookies.has(SUPPORT_COOKIE)) return through();
     if (isAdminCapture(request.headers)) return through();
     if (getSessionCookie(request, { cookiePrefix: "wdc" })) return through();
     /* A SAVE FROM A PAGE THAT WAS ALREADY OPEN. Redirecting a server action

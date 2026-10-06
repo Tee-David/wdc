@@ -8,7 +8,10 @@ import { rateLimit } from "@/lib/rate-limit";
 
 export async function startClientSupport(_previous: ActionState, fd: FormData): Promise<ActionState> {
   const requestHeaders = await headers();
-  if (!requestHeaders.get("origin")) return FAIL({}, "This request is not allowed.");
+  const origin = requestHeaders.get("origin");
+  try {
+    if (!origin || new URL(origin).host !== requestHeaders.get("host")) return FAIL({}, "This request is not allowed.");
+  } catch { return FAIL({}, "This request is not allowed."); }
   const session = await auth.api.getSession({ headers: requestHeaders }).catch(() => null);
   if (!session || session.user.role !== "owner") return FAIL({}, "Sign in as the owner before starting a support view.");
   // Per-instance abuse control, not a distributed quota.
@@ -16,6 +19,7 @@ export async function startClientSupport(_previous: ActionState, fd: FormData): 
   const targetId = String(fd.get("targetId") ?? "");
   const clientId = String(fd.get("clientId") ?? "");
   const reason = String(fd.get("reason") ?? "").trim();
+  if (!targetId || targetId.length > 128 || !clientId || clientId.length > 128) return FAIL({}, "Choose an active linked client account.");
   if (!reason || reason.length > 500) return FAIL({ reason: "Add a support reason of up to 500 characters." });
   try { await createSupportView(session, targetId, clientId, reason); } catch (error) {
     if (error instanceof Error && error.message === "Sign in again before starting a support view.") return { ...FAIL({}, "Sign in again, then retry."), signIn: true };
