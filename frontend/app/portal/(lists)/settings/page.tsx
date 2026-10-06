@@ -1,4 +1,5 @@
 import { SecurityEmailPreference } from "@/components/admin/settings/security-email-preference";
+import { ClientProfilePreference } from "@/components/client/profile-preference";
 import { getPortalRequest } from "@/lib/portal/session";
 import { Panel } from "@/components/admin/bits";
 import { NotifyForm, ProfileForm, SignInCard } from "@/components/client/settings-forms";
@@ -40,6 +41,7 @@ export default async function PortalSettings() {
           <ProfileForm client={client} />
         </Panel>
         <div className="pSet__side">
+          {!support && userId ? <ClientProfilePreference userId={userId} name={session?.user.name??client.name} /> : null}
           <Panel title="Notifications" dataTour="portal-notify">
             <p className="pSet__sub ad__dim">Every one of these can be switched off.</p>
             <NotifyForm client={client} />

@@ -1,0 +1,13 @@
+.pProfile { padding: clamp(1rem,3vw,1.5rem); }
+.pProfile fieldset { border:0; padding:0; margin:0; min-width:0; }
+.pProfile__photo { display:flex; gap:1rem; align-items:center; margin-bottom:1.5rem; }
+.pProfile__avatar { width:72px; height:72px; flex:0 0 72px; display:grid; place-items:center; overflow:hidden; border-radius:50%; background:var(--ad-fill); color:var(--ad-on-fill); }
+.pProfile__avatar svg { width:30px;height:30px; }
+.pProfile__avatar img { width:100%;height:100%;object-fit:cover; }
+.pProfile__photoControls { display:flex; flex-wrap:wrap; gap:.75rem; align-items:center; min-width:0; }
+.pProfile__photoControls small { flex-basis:100%; }
+.pProfile__file { position:absolute; width:1px;height:1px; clip-path:inset(50%); }
+.pProfile__photoControls:focus-within label { outline:2px solid var(--ad-fill);outline-offset:3px; }
+.pProfile__actions { display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;margin-top:1.5rem; }
+.pProfile .ad__btn { min-height:44px; }
+@media(max-width:480px){.pProfile__photo{align-items:flex-start;}.pProfile__photoControls{align-items:stretch;}.pProfile__photoControls .ad__btn{white-space:normal;}.pProfile__actions>*{flex:1 1 10rem;}}
