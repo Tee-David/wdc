@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { normalizePhone } from "@/lib/phone";
 import SelectField from "@/components/onboarding/select-field";
 import { ENQUIRY_DRAFT_KEY, ENQUIRY_TOPICS, TOPIC_BY_SERVICE, type EnquiryDraft } from "@/lib/contact";
 import { CONTACT_EMAIL } from "@/lib/site";
@@ -97,8 +98,9 @@ export function ContactForm() {
     if (!el.reportValidity()) return;
 
     const d = new FormData(el);
-    setSending(true);
     setError("");
+    if (normalizePhone(phone) === null) { setError("Enter a valid phone number. Nigerian numbers need 10 digits, or 11 starting with 0."); return; }
+    setSending(true);
     try {
       const response = await fetch("/api/contact", {
         method: "POST",
@@ -186,7 +188,7 @@ export function ContactForm() {
             its first render to work out whether the platform can draw flag
             emoji, which has no meaning on a server. It also keeps the
             phone-number library off this page until the field is reached. */}
-        <PhoneField id="ct-phone" value={phone} onChange={setPhone} />
+        <PhoneField id="ct-phone" value={phone} onChange={setPhone} invalid={tried && normalizePhone(phone) === null} />
         <input type="hidden" name="phone" value={phone} />
       </div>
 
