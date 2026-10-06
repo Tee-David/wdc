@@ -24,6 +24,10 @@ Use the frontend guide for environment boundaries, persistence, provider integra
 
 ## Design system
 
+Onboarding service choice reuses `SelectField` through `ServicePicker`: a closed trigger, compact icon/name/description rows, disabled-service reasons and explicit Next. Optional `ColourField` uses the same picker for roles, bounded rows and a keyboard-accessible shade panel. `lib/brand-colours.ts` keeps `brand_colours` readable text, validates up to five new preferences and preserves legacy notes until explicitly replaced. Run `node --experimental-strip-types frontend/scripts/check-brand-colours.mjs` for its storage and shade checks.
+
+Brief option descriptions and press-to-open illustrated examples live in `lib/onboarding-help.ts` and `BriefExample`, through the existing `Tip`. They explain all six services without new questions or renamed stored values. Examples are labelled illustrations, not included outputs or connected services; costs and secure-access requirements stay visible. The shared help panel has bounded native scrolling and 44px controls.
+
 One system for everything we ship: the public site, the admin and the portal. The interactive reference, with every component live in light and dark, is the **Design System artifact**: https://claude.ai/artifact/Xa6aPYNrgVhJnyHnkbu93c. This section is the short version. When the two disagree, the code and this file win, and the artifact gets updated.
 
 The [Meetings design preview](prototypes/cal-meetings/README.md) renders the current admin shell, Panel, DemoNote, logo and Lucide icons directly from these components. It is a proposal with sample data, awaiting review; it does not implement scheduling.
@@ -151,3 +155,5 @@ All of these live in `frontend/components/admin/`. The public site has its own o
 - **New passwords** need 8+ characters with a capital, a small letter, a number and a symbol. They are refused if they appear in a known breach (Have I Been Pwned, k-anonymity; fails closed).
 - **Addresses:** temporary inboxes and anonymous mail services are refused at every public form and on invitations (`lib/email-domains.ts`).
 Production admin collections start empty and hydrate only from persisted records. Empty databases are never seeded from demo fixtures; missing or failed database access is reported. The legacy candidate manifest and read-only audit script live in docs/audits and frontend/scripts/audit-demo-records.mjs; candidate IDs require full-record provenance review before deletion, and authentication/current owner records are outside the cleanup scope.
+
+Onboarding service labels and helper copy have explicit spacing. Optional colour preferences use a bordered expandable control with explanatory copy and an open/closed chevron, rather than an unmarked text link.

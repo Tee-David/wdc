@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { ArrowLeft, FileUp, Loader2, X } from "lucide-react";
 import { CONTACT_EMAIL } from "@/lib/site";
 import SelectField from "@/components/onboarding/select-field";
+import { toTop } from "@/components/ui/scroll-reset";
 import { DateInput } from "@/components/admin/pick";
 import {
   ADDRESS_PARTS, checkAnswers, COUNTRIES, FILE_BY_EMAIL, FILE_MAX_BYTES, FILE_TYPES, LIMITS, visible,
@@ -59,8 +60,13 @@ export function CustomFormView({ def, slug, preview, send, initial }: { def: Cus
   const firstId = here[0]?.id;
   useEffect(() => {
     if (!talk || !moved.current || !firstId) return;
-    document.getElementById(`${id}-${firstId}`)?.focus({ preventScroll: true });
-  }, [talk, at, firstId, id]);
+    const frame = requestAnimationFrame(() => {
+      document.getElementById(`${id}-${firstId}`)?.focus({ preventScroll: true });
+      if (!preview) toTop(true);
+      moved.current = false;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [talk, at, firstId, id, preview]);
   const go = (to: number) => { moved.current = true; setMessage(""); setStep(Math.max(0, to)); };
 
   /* Everything typed, as plain text, so closing the form does not throw it
