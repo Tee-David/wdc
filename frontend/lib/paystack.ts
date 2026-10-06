@@ -1,4 +1,6 @@
 import "server-only";
+import { db } from "@/lib/db/pool";
+import { checkoutAttempt, selectedPaystackMode } from "./paystack-mode";
 
 /**
  * Which Paystack account the app is talking to, resolved in one place.
@@ -11,9 +13,9 @@ import "server-only";
  * yet, so this settles it before the payments work is written against
  * whichever half its author happened to have.
  *
- * ONE SWITCH: `PAYSTACK_MODE`. The keys are always both present and always
- * mode-scoped; the mode decides which pair is live. Changing environment means
- * changing one value, not remembering to change four.
+ * `PAYSTACK_MODE` is the default. Settings stores an owner override; financial
+ * requests resolve it through selectedPaystackMode without outage fallback.
+ * Keys stay mode-scoped. An existing checkout retains its originating mode.
  *
  * NO `NEXT_PUBLIC_` PUBLIC KEY. A `NEXT_PUBLIC_` variable is a second source of
  * truth for something this file already knows, and it is the one that would be
@@ -43,10 +45,9 @@ export function paystackMode(): PaystackMode {
   return process.env.PAYSTACK_MODE?.trim().toLowerCase() === "live" ? "live" : "test";
 }
 
-export function paystackConfig():
+export function paystackConfig(mode: PaystackMode = paystackMode()):
   | { ok: true; config: PaystackConfig }
   | { ok: false; missing: string[] } {
-  const mode = paystackMode();
   const prefix = mode === "live" ? "PAYSTACK_LIVE" : "PAYSTACK_TEST";
 
   const secretKey = process.env[`${prefix}_SECRET_KEY`];
@@ -58,6 +59,8 @@ export function paystackConfig():
   ]
     .filter(([, v]) => !v)
     .map(([k]) => k as string);
+  if (secretKey && !secretKey.startsWith(`sk_${mode}_`)) missing.push(`${prefix}_SECRET_KEY has the wrong mode prefix`);
+  if (publicKey && !publicKey.startsWith(`pk_${mode}_`)) missing.push(`${prefix}_PUBLIC_KEY has the wrong mode prefix`);
 
   if (missing.length) return { ok: false, missing };
 
@@ -174,10 +177,18 @@ export async function initializeTransaction(input: {
   callbackUrl: string;
   metadata?: Record<string, string>;
 }) {
-  const cfg = paystackConfig();
+  let mode: PaystackMode;
+  try { mode = await selectedPaystackMode(); } catch { return {ok:false as const,error:"Payment configuration could not be loaded. Please retry."}; }
+  const cfg = paystackConfig(mode);
   if (!cfg.ok) return { ok: false as const, error: `Paystack is not configured: ${cfg.missing.join(", ")} not set.` };
 
-  return call<InitializedTransaction>("/transaction/initialize", {
+  const invoiceId = input.metadata?.invoiceId;
+  if (!invoiceId) return {ok:false as const,error:"The invoice could not be identified."};
+  try {
+    await db.query("INSERT INTO paystack_checkout_attempts(reference,invoice_id,amount,currency,mode) VALUES($1,$2,$3,'NGN',$4)", [input.reference,invoiceId,wholeKobo(input.amount),mode]);
+  } catch { return {ok:false as const,error:"Checkout could not be recorded. Check the database and payment migration."}; }
+
+  const result = await call<InitializedTransaction>("/transaction/initialize", {
     method: "POST",
     secretKey: cfg.config.secretKey,
     body: JSON.stringify({
@@ -194,6 +205,7 @@ export async function initializeTransaction(input: {
       },
     }),
   });
+  return {...result,mode};
 }
 
 export type VerifiedTransaction = {
@@ -216,12 +228,18 @@ export type VerifiedTransaction = {
  * that could not be typed by hand. This is the server asking the source.
  */
 export async function verifyTransaction(reference: string) {
-  const cfg = paystackConfig();
-  if (!cfg.ok) return { ok: false as const, error: `Paystack is not configured: ${cfg.missing.join(", ")} not set.` };
-  return call<VerifiedTransaction>(`/transaction/verify/${encodeURIComponent(reference)}`, {
-    method: "GET",
-    secretKey: cfg.config.secretKey,
-  });
+  let attempt: Awaited<ReturnType<typeof checkoutAttempt>>;
+  try { attempt = await checkoutAttempt(reference); } catch { return {ok:false as const,error:"Checkout identity could not be loaded.",mode:"test" as PaystackMode}; }
+  const modes: PaystackMode[] = attempt ? [attempt.mode] : ["live","test"];
+  const successes = (await Promise.all(modes.map(async mode => {
+    const cfg = paystackConfig(mode); if (!cfg.ok) return null;
+    const result = await call<VerifiedTransaction>(`/transaction/verify/${encodeURIComponent(reference)}`, {method:"GET",secretKey:cfg.config.secretKey});
+    return result.ok ? {data:result.data,mode} : null;
+  }))).filter((result):result is {data:VerifiedTransaction;mode:PaystackMode} => result !== null);
+  if (successes.length !== 1) return {ok:false as const,error:"Payment identity could not be confirmed unambiguously.",mode:attempt?.mode ?? "test"};
+  const result = successes[0];
+  if (result.data.reference !== reference || (attempt && (result.data.amount !== Number(attempt.amount) || result.data.currency !== attempt.currency || result.data.metadata?.invoiceId !== attempt.invoice_id))) return {ok:false as const,error:"Payment did not match the recorded checkout.",mode:result.mode};
+  return {ok:true as const,...result};
 }
 
 /**
@@ -237,9 +255,9 @@ export async function verifyTransaction(reference: string) {
  * ONE Paystack account, so an event raised in test cannot validate against a
  * live key or the other way round. There is no separate check to forget.
  */
-export async function paystackSignatureValid(rawBody: string, header: string | null) {
+export async function paystackSignatureValid(rawBody: string, header: string | null, mode:PaystackMode = paystackMode()) {
   if (!header) return false;
-  const cfg = paystackConfig();
+  const cfg = paystackConfig(mode);
   if (!cfg.ok) return false;
 
   const enc = new TextEncoder();
@@ -255,6 +273,12 @@ export async function paystackSignatureValid(rawBody: string, header: string | n
   let diff = 0;
   for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ given.charCodeAt(i);
   return diff === 0;
+}
+
+export async function paystackSignatureMode(rawBody:string, header:string|null):Promise<PaystackMode|null> {
+  const matches:PaystackMode[] = [];
+  for (const mode of ["live","test"] as const) if (await paystackSignatureValid(rawBody,header,mode)) matches.push(mode);
+  return matches.length === 1 ? matches[0] : null;
 }
 
 /**
