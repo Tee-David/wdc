@@ -87,4 +87,4 @@
 .cf-back::after, .pv .cf-back::after { content: none; display: none; }
 .cf-back svg { width: 16px; height: 16px; }
 @media (max-width: 560px) { .pv .cf-acts .pv-btn { width: auto; flex: 1 1 auto; justify-content: center; white-space: nowrap; } .pv .cf-acts .cf-back { flex: 0 0 auto; } }
-.pv .ct-f .cf-choice input:focus { box-shadow:none; outline:none; }
+.ct-f .cf-choice input:focus { box-shadow:none; outline:none; }
