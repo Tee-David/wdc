@@ -125,6 +125,7 @@ export async function draftFromToken(token: string): Promise<OnboardingDraft | n
     WHERE t.token_hash = $1
       AND t.revoked_at IS NULL
       AND t.expires_at > now()
+      AND s.status <> 'archived'
     LIMIT 1
   `, [tokenHash(token)]);
   const row = result.rows[0];
