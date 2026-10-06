@@ -24,8 +24,11 @@ Legend: [x] done, [ ] to do, [~] in progress, [!] blocked on the owner.
 - [ ] [!] O2 signed agreement versus ticked section
 - [x] O3 past work: studio chooses from public work (plan 6.7)
 - [ ] Open and check each sample image before it ships
-- [ ] [!] Motion design samples: ask the owner for clips (none public)
-- [ ] [!] Pitch deck sample: none public
+- [x] Motion design samples: owner zip received and reviewed (plan 6.7a)
+- [ ] [!] Owner confirms Litch Consulting and Realtors' Practice films may be shown
+- [ ] Script: cut muted 3 to 6 second loops and posters from the zip (ffmpeg, committed)
+- [x] Pitch deck samples: Realtors' Practice PDFs received (plan 6.7)
+- [ ] [!] Owner confirms which pitch deck slides may be shown
 - [x] O4 owner repos read (plan 6.8)
 - [x] O5 Flutterwave and coolors.co confirmed
 
