@@ -44,6 +44,7 @@ export const NAV_AREA: Record<string, Area | null> = {
   "/admin": null,
   "/admin/clients": "clients",
   "/admin/projects": "projects",
+  "/admin/meetings": "settings", // Owner only until scoped staff delegation is configured.
   "/admin/money": "money",
   "/admin/forms": "forms",
   "/admin/blog": "content",

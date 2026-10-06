@@ -8,6 +8,8 @@ Keep the [integration plan](../plans/cal-com-meetings-plan.md), [setup checkpoin
 
 The preview uses sample bookings. It does not book appointments, send reminders or connect calendars. The account API authenticated during setup; no event type existed at that checkpoint. The API credential was synchronized to Doppler without adding it to source.
 
+Implementation checkpoint `3a66604` adds native booking/manage routes, an admin calendar/table, owner settings, durable commands, signed receipt storage and migration 0035. Publication defaults off. Initial targeted lint, TypeScript and the Meetings policy check passed. Build and responsive review remain open; migration 0035 is not applied.
+
 Remaining delivery: event-type configuration, calendar/conferencing connections, authorized booking commands, durable synchronization, signed webhooks, cancellation/rescheduling, recipient preferences, reminder scheduling/retries, permissions, integration tests and live verification. The existing daily invoice-reminder job cannot accurately deliver one-hour-before-meeting reminders.
 
 ## Users and roles
