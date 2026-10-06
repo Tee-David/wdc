@@ -36,9 +36,4 @@
 .obExample svg { width: 100%; height: auto; max-height: 76px; }
 .obExample ol { display: grid; gap: .3rem; margin: 0; padding-left: 1.1rem; }
 .pv .obExample p { margin: 0; font-size: .8rem; }
-.pv .tip__p { max-height: calc(100dvh - 32px); overflow-y: auto; }
-.pv .tip__b { width: 44px; height: 44px; flex: none; }
-.pv .tip__b svg { width: 18px; height: 18px; }
-.pv .tip__p { padding-right: 3.2rem; }
-.pv .tip__p > button { width: 44px; height: 44px; }
 @media (min-width: 620px) { .obColours__fields { grid-template-columns: 48px minmax(0, 1fr) minmax(0, .7fr) 44px; } .obColours__fields label:nth-of-type(2) { grid-column: 3; grid-row: 1; } .obColours__remove { grid-column: 4; } }

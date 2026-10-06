@@ -462,6 +462,7 @@
    --------------------------------------------------------------------------- */
 .ob__unsure {
   justify-self: start;
+  min-height: 44px;
   display: inline-flex; align-items: center; gap: .4rem;
   margin-top: .1rem; padding: .32em .7em;
   border: 1px solid transparent; border-radius: 999px;

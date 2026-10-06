@@ -56,7 +56,7 @@ for (const theme of ["light", "dark"]) for (const width of [320, 390, 768, 1440]
     await page.screenshot({ path: test.info().outputPath(`colours-${theme}-${width}.png`), fullPage: true });
     for (const button of await field.locator("button:visible").all()) {
       const box = await button.boundingBox();
-      if (box) expect(box.height).toBeGreaterThanOrEqual(43);
+      if (box) expect(box.height, `${await button.getAttribute("class")}: ${await button.textContent()}`).toBeGreaterThanOrEqual(43);
     }
     await field.getByRole("button", { name: "Done choosing shade" }).click();
     await field.getByRole("button", { name: /Remove A long/ }).click();
