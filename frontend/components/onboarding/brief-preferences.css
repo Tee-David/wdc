@@ -1,4 +1,6 @@
 .obService { margin-top: 1.5rem; min-width: 0; }
+.pv .obService > .ob__label { display: block; margin-bottom: .75rem; }
+.pv .obService > .ob__hint { margin-top: .75rem; margin-bottom: 0; }
 .obService__option { display: flex; align-items: center; gap: .75rem; min-width: 0; width: 100%; }
 .obService__option > span:last-child { min-width: 0; }
 .obService__option strong, .obService__option small { display: block; }
@@ -27,7 +29,13 @@
 .obColours__shade > span { position: absolute; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; outline: 1px solid #000; transform: translate(-50%, -50%); pointer-events: none; }
 .obColours__panel input[type="range"] { width: 100%; min-height: 44px; padding: 0; accent-color: var(--ink); }
 .obColours__note { white-space: pre-wrap; overflow-wrap: anywhere; }
-.obColours__disclosure > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.obColours__disclosure > summary { min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; border: 1px solid var(--rule); border-radius: 12px; background: var(--paper); cursor: pointer; list-style: none; }
+.obColours__disclosure > summary::-webkit-details-marker { display: none; }
+.obColours__disclosure > summary strong { display: block; font-weight: 600; }
+.obColours__disclosure > summary small { display: block; margin-top: .5rem; font-size: .9rem; line-height: 1.5; }
+.obColours__disclosure > summary svg { width: 20px; height: 20px; flex-shrink: 0; }
+.obColours__disclosure[open] > summary svg { transform: rotate(180deg); }
+.obColours__disclosure[open] > .obColours { margin-top: 1.25rem; }
 .obColours__disclosure > summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .obColours button:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .obChoiceHelp { display: grid; min-width: 0; gap: .2rem; text-align: left; }

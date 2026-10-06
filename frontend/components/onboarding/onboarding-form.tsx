@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle, ArrowLeft, ArrowRight, BadgeInfo, Check, HelpCircle,
-  Save, Undo2,
+  Save, Undo2, ChevronDown,
 } from "lucide-react";
 import Link from "next/link";
 import { type ServiceSlug } from "@/lib/services";
@@ -1136,7 +1136,7 @@ function FieldView({
   );
 
   if (f.key === "brand_colours") {
-    return wrap(<details className="obColours__disclosure"><summary>Add colour preferences</summary><ColourField id={id} value={v as string} onChange={onChange} describedBy={describedBy} /></details>);
+    return wrap(<details className="obColours__disclosure"><summary><span><strong>Add colour preferences</strong><small>Open to add colours you like — names or a colour picker.</small></span><ChevronDown aria-hidden="true" /></summary><ColourField id={id} value={v as string} onChange={onChange} describedBy={describedBy} /></details>);
   }
 
   if (f.kind === "textarea") {
