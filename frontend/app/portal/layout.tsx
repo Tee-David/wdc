@@ -15,6 +15,8 @@ import "@/components/admin/admin.css";
 import "@/components/admin/dashboard.css";
 import "@/components/client/portal.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
+import { readClientProfile,requireProfileClient } from "@/lib/client-profile";
+import { ProfileTheme } from "@/components/client/profile-setup";
 
 /**
  * The client portal's own shell, mirroring `app/admin/layout.tsx` almost
@@ -35,7 +37,7 @@ export const dynamic = "force-dynamic";
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   await syncStore();
   persistSoon();
-  const { session, client, support, supportUnavailable } = await getPortalRequest();
+  const { session, client, support, supportUnavailable, capture } = await getPortalRequest();
   if (supportUnavailable) return <div className="ad"><main className="ad__main"><SupportBanner /></main></div>;
 
   if (!session?.user) {
@@ -61,6 +63,14 @@ export default async function PortalLayout({ children }: { children: React.React
     );
   }
 
+  const userId=(session.user as {id?:string}).id;
+  // Missing migration never forces existing accounts through a new screen.
+  const profile=!support&&!capture&&userId ? await readClientProfile(userId).catch(()=>null) : null;
+  const asked=(await headers()).get('x-wdc-path')?.split('?')[0];
+  if(profile?.setup_state==='pending' && asked!=='/portal/welcome' && await requireProfileClient().then(()=>true).catch(()=>false)) redirect('/portal/welcome');
+  if(profile?.display_name)user.name=profile.display_name;
+  if(profile?.avatar_key)user.image='/api/client-profile/photo';
+
   const shell = <ClientShell user={user} clientCompany={client.company}>
     {support ? <SupportBanner name={support.name} expiresAt={support.expiresAt} /> : null}
     {children}
@@ -68,7 +78,8 @@ export default async function PortalLayout({ children }: { children: React.React
   return (
     <div className="ad">
       <SupportReadOnly active={Boolean(support)}>
-        {support ? shell : <AdminTourProvider role="client" audience="client">{shell}</AdminTourProvider>}
+        {profile?.appearance ? <ProfileTheme appearance={profile.appearance} /> : null}
+        {support || profile?.setup_state==='pending' ? shell : <AdminTourProvider role="client" audience="client">{shell}</AdminTourProvider>}
       </SupportReadOnly>
     </div>
   );
