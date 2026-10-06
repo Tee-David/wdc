@@ -20,11 +20,14 @@ Legend: [x] done, [ ] to do, [~] in progress, [!] blocked on the owner.
 - [x] Ask the 30 questions, get answers (6 October 2026)
 - [x] Write the plan and this checklist
 - [ ] [!] Owner approves the plan
-- [ ] [!] O1 pre-fill from the sales call
+- [x] O1 pre-fill: blank link by default, optional pre-filled link (plan 6.6)
 - [ ] [!] O2 signed agreement versus ticked section
-- [ ] [!] O3 which past work may appear as card samples
-- [ ] [!] O4 which GitHub repos to read
-- [ ] [!] O5 confirm Flutterwave and coolors.co
+- [x] O3 past work: studio chooses from public work (plan 6.7)
+- [ ] Open and check each sample image before it ships
+- [ ] [!] Motion design samples: ask the owner for clips (none public)
+- [ ] [!] Pitch deck sample: none public
+- [x] O4 owner repos read (plan 6.8)
+- [x] O5 Flutterwave and coolors.co confirmed
 
 ## Phase 1. Dropdown scroll fix (small, separate commit)
 
@@ -65,6 +68,7 @@ Each artifact lists every question of a flow in one view with its conditions. It
 - [ ] Studio side colour sort, shown in the admin as a suggestion
 - [ ] Internal scope signals in the admin entry view
 - [ ] Review screen ("Here is what we heard") and next steps
+- [ ] Optional pre-filled link from the admin (one time token, no personal data in the URL)
 - [ ] Abandoned draft reminder email (outbox, dedupe key, can be switched off)
 - [ ] README design system section updated for each new component
 
