@@ -17,6 +17,14 @@ import {
 const LINE = [{ description: "Retainer, October", qty: 1, unit: 100_000_00 }];
 const day = (n: number) => new Date(Date.UTC(2026, 9, n)).toISOString();
 
+test("test and unknown-mode Paystack charges cannot settle a real invoice", () => {
+  const inv = addInvoice({clientId:"c1",projectId:null,issued:day(1),due:day(30),vatRate:0,lines:LINE,status:"Sent"});
+  const before = getInvoice(inv.id)!;
+  for (const mode of ["test", undefined] as const) expect(applyPayment({invoiceId:inv.id,amount:100_000_00,method:"Paystack",reference:`TEST-${inv.id}-${mode}`,mode})).toEqual({ok:false,reason:"test-mode"});
+  expect(getPaymentsFor(inv.id)).toHaveLength(0);
+  expect(getInvoice(inv.id)).toEqual(before);
+});
+
 test("an issued invoice cannot be edited, even by a caller that forgets to check", () => {
   const inv = addInvoice({ clientId: "c1", projectId: null, issued: day(1), due: day(30), vatRate: 0, lines: LINE, status: "Sent" });
   expect(patchInvoice(inv.id, { lines: [{ description: "Changed", qty: 1, unit: 1 }] })).toBeNull();

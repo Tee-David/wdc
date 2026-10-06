@@ -988,7 +988,7 @@ export function deleteDraftInvoice(id: Id, actor = "Studio"): boolean {
 
 export type ApplyResult =
   | { ok: true; payment: Payment; invoice: Invoice; overpaid: boolean }
-  | { ok: false; reason: "no-invoice" | "duplicate" | "not-positive" | "draft" | "void" };
+  | { ok: false; reason: "no-invoice" | "duplicate" | "not-positive" | "draft" | "void" | "test-mode" };
 
 /**
  * THE ONE PLACE A PAYMENT BECOMES MONEY.
@@ -1021,11 +1021,12 @@ export function applyPayment(d: {
       so this falls back to a label rather than to an empty string. */
   by?: string;
   note?: string;
-  /** `PAYSTACK_MODE` at the caller's own moment -- see `Payment.mode`.
+  /** The authenticated originating account -- see `Payment.mode`.
       Passed in rather than read here, so this module stays free of the
       Paystack integration's own config. */
   mode?: "test" | "live";
 }): ApplyResult {
+  if (d.method === "Paystack" && d.mode !== "live") return {ok:false,reason:"test-mode"};
   const inv = getInvoice(d.invoiceId);
   if (!inv) return { ok: false, reason: "no-invoice" };
   if (inv.status === "Draft") return { ok: false, reason: "draft" };

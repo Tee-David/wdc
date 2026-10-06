@@ -30,6 +30,8 @@ The [Meetings design preview](prototypes/cal-meetings/README.md) renders the cur
 
 Users under Settings reuses `Panel`, `ad__t`, `RowMenu`, `BulkBar`, `PickAll`, `RowPick` and `Pager`. Reviewed bulk outcomes appear in the shared dialog; the Person column stays pinned, and filters/page size remain in the URL. Recipient-owned account-change email preferences use the shared Settings save bar.
 
+Paystack mode in Settings › Integrations uses `SettingsForm`, the designed `Select`, `Switch`, and the shared confirmation dialog. Live mode requires explicit acknowledgement and a fresh owner session. Configuration indicators contain no key values; existing checkout references retain their original account when mode changes.
+
 ### Voice
 
 - Write from the reader's side of the screen, in plain sentences. Say it the way the studio does: clients, projects, invoices, briefs, the portal.
