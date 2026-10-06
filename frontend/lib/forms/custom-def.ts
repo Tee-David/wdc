@@ -1,3 +1,4 @@
+import { normalizePhone } from "@/lib/phone";
 /**
  * A FORM BUILT IN THE ADMIN (Forms, New form): its definition, and the rules
  * that check both the definition and the answers to it.
@@ -234,11 +235,11 @@ export function checkAnswers(def: CustomFormDef, raw: unknown, fileKeyPrefix?: s
         break;
       }
       default: {
-        const s = str(v, f.type === "textarea" ? LIMITS.long : LIMITS.text);
+        let s = str(v, f.type === "textarea" ? LIMITS.long : LIMITS.text);
         if (!s) { missing(); break; }
         if (f.type === "email" && !EMAIL.test(s)) { errors[f.id] = "Enter an email like name@example.com."; break; }
         if (f.type === "email" && refusedEmail(s)) { errors[f.id] = REFUSED_EMAIL_MESSAGE; break; }
-        if (f.type === "phone" && !/^[+()\d\s-]{7,20}$/.test(s)) { errors[f.id] = "Enter a phone number, digits only."; break; }
+        if (f.type === "phone") { const normalized = normalizePhone(s); if (normalized === null) { errors[f.id] = "Enter a valid phone number. Nigerian numbers need 10 digits, or 11 starting with 0."; break; } s = normalized; }
         if (f.type === "url" && !/^(https?:\/\/)?[^\s.]+\.[^\s]{2,}$/i.test(s)) { errors[f.id] = "Enter a website address, like example.com."; break; }
         if (f.type === "date" && !/^\d{4}-\d{2}-\d{2}$/.test(s)) { errors[f.id] = "Pick a date."; break; }
         if (f.type === "number") {
