@@ -28,6 +28,10 @@ export async function meetingList(start: string, end: string): Promise<Booking[]
   const { rows } = await db.query("SELECT booking FROM wdc_meetings WHERE start_at >= $1 AND start_at < $2 ORDER BY start_at LIMIT 500", [start, end]);
   return rows.map(row => row.booking);
 }
+export async function nextMeeting():Promise<Booking|null>{
+  const {rows}=await db.query("SELECT booking FROM wdc_meetings WHERE start_at>now() AND lower(status) IN ('accepted','confirmed') ORDER BY start_at LIMIT 1");
+  return rows[0]?.booking||null;
+}
 export async function refresh(uid: string) {
   const booking = await cal<Booking>(`/bookings/${encodeURIComponent(uid)}`);
   await project(booking);
@@ -57,7 +61,11 @@ export async function execute(id: string) {
   let providerAccepted = false;
   try {
     let result: unknown;
-    if (command.kind === "book") {
+    if(command.kind==="sync"){
+      const bookings=await cal<Booking[]>("/bookings?take=100");
+      for(const booking of bookings)await project(booking);
+      result={message:`Calendar refreshed from ${bookings.length} provider bookings.`};
+    } else if (command.kind === "book") {
       const c = await config();
       if (!c.enabled || !c.event_type_id) throw new Error("Meeting booking is not available yet. Please use the contact form.");
       const booking = await cal<Booking>("/bookings", "POST", { eventTypeId: Number(c.event_type_id), start: p.start, attendee: p.attendee, metadata: { wdcCommand: id, projectContext: String(p.context || "") } });
@@ -78,10 +86,9 @@ export async function execute(id: string) {
       if (booking.uid !== command.booking_uid) await refresh(command.booking_uid);
       result = { uid: booking.uid, booking, notices: "The meeting was updated. Cal.com manages calendar change notices; delivery is not yet verified." };
     } else if (command.kind === "setup") {
-      const me = await cal<{ id: number }>("/me");
-      const types = await cal<MeetingType[]>("/event-types");
+      const [me,types,schedules]=await Promise.all([cal<{id:number;email:string}>("/me"),cal<MeetingType[]>("/event-types"),cal<Schedule[]>("/schedules")]);
+      if(me.email.toLowerCase()!=="wedigcreativity@gmail.com")throw new Error("The connected Cal.com account does not match the configured studio host.");
       let type = types.find(t => t.slug === "wdc-project-conversation");
-      const schedules = await cal<Schedule[]>("/schedules");
       if (!type) type = await cal<MeetingType>("/event-types", "POST", { title: "Project conversation", slug: "wdc-project-conversation", lengthInMinutes: 30, description: "A conversation about your project with We Dig Creativity.", hidden: true, scheduleId:schedules[0]?.id, locations: [{ type: "integration", integration: "google-meet" }], minimumBookingNotice: 1440, beforeEventBuffer: 15, afterEventBuffer: 15, bookingWindow: { value: 30, rolling: true, disabled: false } });
       providerAccepted = true;
       const readBack = await cal<MeetingType>(`/event-types/${type.id}`);
@@ -93,7 +100,7 @@ export async function execute(id: string) {
       await cal(`/event-types/${c.event_type_id}`, "PATCH", p.provider);
       providerAccepted = true;
       const readBack = await cal<MeetingType>(`/event-types/${c.event_type_id}`);
-      if (readBack.lengthInMinutes !== (p.provider as Record<string, unknown>).lengthInMinutes) throw new Error("Provider settings did not match. Check Cal.com before saving again.");
+      if (Object.entries(p.provider as Record<string, unknown>).some(([key,value])=>readBack[key as keyof MeetingType]!==value)) throw new Error("Provider settings did not match. Check Cal.com before saving again.");
       await db.query("UPDATE wdc_meeting_config SET enabled=$1,settings=$2,updated_at=now() WHERE id='studio'", [p.enabled === true, JSON.stringify(p.provider)]);
       result = { message: "Scheduling settings updated and checked with Cal.com." };
     } else if(command.kind === "availability") {
@@ -118,6 +125,19 @@ export async function recover() {
   await db.query("UPDATE wdc_meeting_commands SET state='uncertain',error='The worker stopped. Check Cal.com before repeating this change.' WHERE state='executing' AND updated_at < now()-INTERVAL '5 minutes'");
   const { rows } = await db.query("SELECT id FROM wdc_meeting_commands WHERE state='pending' ORDER BY created_at LIMIT 10");
   for (const row of rows) await execute(row.id);
+  const uncertain=await db.query("SELECT * FROM wdc_meeting_commands WHERE state='uncertain' AND kind='book' ORDER BY created_at DESC LIMIT 10");
+  if(uncertain.rows.length){
+    try {
+      // ponytail: inspect the latest 100 bookings; older ambiguous changes require provider review, never a repeated POST.
+      const bookings=await cal<Booking[]>("/bookings?take=100");
+      for(const command of uncertain.rows){
+        const matches=bookings.filter(booking=>booking.metadata?.wdcCommand===command.id);
+        if(matches.length!==1)continue;
+        const booking=matches[0];await project(booking,String(command.payload.tokenHash));
+        await db.query("UPDATE wdc_meeting_commands SET state='completed',result=$2,error=NULL,updated_at=now() WHERE id=$1 AND state='uncertain'",[command.id,JSON.stringify({uid:booking.uid,booking,notices:"The existing booking was recovered from Cal.com. Calendar notice delivery is not yet verified."})]);
+      }
+    }catch{/* Preserve uncertain intent; an unavailable read never authorizes another booking. */}
+  }
   const hooks = await db.query("SELECT digest,booking_uid FROM wdc_meeting_webhooks WHERE state='pending' ORDER BY received_at LIMIT 20");
   for (const row of hooks.rows) {
     try { await refresh(row.booking_uid); await db.query("UPDATE wdc_meeting_webhooks SET state='processed',processed_at=now() WHERE digest=$1", [row.digest]); } catch { /* Durable row remains available for the next recovery. */ }

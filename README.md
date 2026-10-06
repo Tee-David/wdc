@@ -28,6 +28,8 @@ One system for everything we ship: the public site, the admin and the portal. Th
 
 The [Meetings design preview](prototypes/cal-meetings/README.md) renders the current admin shell, Panel, DemoNote, logo and Lucide icons directly from these components. It is a proposal with sample data, awaiting review; it does not implement scheduling.
 
+Meetings implementation uses `Panel`, `Pick`, `DateInput`, `DateTimeInput`, `Dialog`, `ad__t`, `RowMenu`, `BulkBar` and `Pager`. Its calendar period control supplies designed month/year pickers; availability ranges remain independent per weekday. Scheduling settings use the shared save bar. Public booking uses the site's black/white button pair. Production booking stays disabled until its migration, provider setup, signed webhook and release verification are complete.
+
 Users under Settings reuses `Panel`, `ad__t`, `RowMenu`, `BulkBar`, `PickAll`, `RowPick` and `Pager`. Reviewed bulk outcomes appear in the shared dialog; the Person column stays pinned, and filters/page size remain in the URL. Recipient-owned account-change email preferences use the shared Settings save bar.
 
 Public custom forms reuse SelectField and the lazy searchable PhoneField used by Contact. lib/phone.ts normalizes numbers to E.164 and enforces Nigerian national length; custom answer checks, Contact submission and its server endpoint share it. Choice keyboard focus belongs to the whole label, without a second input shadow. Users group tabs reuse ad__tabsNav and its shared panel spacing.
