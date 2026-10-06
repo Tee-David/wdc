@@ -4,6 +4,7 @@ import { createHash, randomBytes } from "node:crypto";
 import type { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db/pool";
 import { SERVICES, type ServiceSlug } from "@/lib/services";
+import { colourProblem } from "@/lib/brand-colours";
 
 export type OnboardingAnswers = Record<string, string | string[]>;
 export type OnboardingDraft = {
@@ -56,10 +57,12 @@ export function cleanAnswers(value: unknown): OnboardingAnswers | null {
   for (const [key, answer] of entries) {
     if (!/^[a-z0-9_]{1,80}$/.test(key)) return null;
     if (typeof answer === "string") {
+      if (key === "brand_colours" && colourProblem(answer)) return null;
       const text = answer.slice(0, 10_000);
       total += text.length;
       clean[key] = text;
     } else if (Array.isArray(answer) && answer.length <= 50 && answer.every((item) => typeof item === "string")) {
+      if (key === "brand_colours") return null;
       const list = answer.map((item) => item.slice(0, 500));
       total += list.reduce((sum, item) => sum + item.length, 0);
       clean[key] = list;

@@ -462,6 +462,7 @@
    --------------------------------------------------------------------------- */
 .ob__unsure {
   justify-self: start;
+  min-height: 44px;
   display: inline-flex; align-items: center; gap: .4rem;
   margin-top: .1rem; padding: .32em .7em;
   border: 1px solid transparent; border-radius: 999px;
@@ -728,153 +729,6 @@
 }
 .pv .ob__btn--danger:hover { background: #b62a2a; border-color: #b62a2a; color: #fff; }
 
-/* ============================================================================
-   THE SERVICE PICKER — the first thing the client sees.
-
-   Six cards, one tap. The old first screen was a panel labelled "Demo only,
-   pick what a client bought", which framed the whole form as something WDC
-   fills in ABOUT a client; it is the opposite. The client opens this link on
-   their own, with nobody beside them, so the first screen asks them what they
-   are here for in their own words.
-
-   A row of an icon, a name and one line, with the arrow on the right: the same
-   shape as a list item people already know how to read, sized as a card so it
-   is obviously a choice rather than a link.
-   ========================================================================== */
-
-.pv .ob__pickH {
-  margin: clamp(1.8rem, 4vw, 2.6rem) 0 .2rem;
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-size: clamp(1.15rem, 1rem + .6vw, 1.4rem); font-weight: 700;
-  letter-spacing: -.02em; color: var(--ink);
-}
-.pv .ob__pickSub { margin: 0 0 1rem; color: var(--muted); font-size: .95rem; }
-
-/* ---------------------------------------------------------------------------
-   THE CARDS.
-
-   Each one is a filled block of colour with its own mark cropped by the
-   right edge, not a white card wearing a small badge. The mark is the card's
-   artwork: large enough to be a shape rather than an icon, in the card's own
-   ink at low alpha so it reads as texture and never competes with the name.
-
-   The colours alternate navy and black by index, which at two columns reads
-   as a navy column beside a black one and at one column as a strict
-   alternation. A true checker was the other option and it is worse on a
-   phone: staggering the rows to break up the desktop columns puts two cards
-   of the same colour next to each other in the single-column stack, where
-   they are read one after another and the repeat is obvious.
-   --------------------------------------------------------------------------- */
-
-.pv .ob__svc {
-  display: grid; gap: clamp(.6rem, 1.4vw, .85rem);
-  margin: 0 0 1.6rem; padding: 0; list-style: none;
-}
-/* Two up from 620px. Below that one column, because a filled card needs room
-   for its name at a size worth setting and its mark beside it. */
-@media (min-width: 620px) { .pv .ob__svc { grid-template-columns: 1fr 1fr; } }
-
-.pv .ob__svcCard {
-  position: relative; overflow: hidden;
-  display: flex; flex-direction: column; justify-content: center;
-  width: 100%;
-  /* A block, not a row. The minimum keeps every card the same height whether
-     its line of copy wraps or not, and `clamp` lets it grow with the page
-     rather than sitting stranded at a phone size on a desktop. */
-  min-height: clamp(7rem, 6rem + 5vw, 9rem);
-  padding: clamp(1.1rem, 2.4vw, 1.5rem);
-  border: 0; border-radius: clamp(14px, 1.6vw, 20px);
-  color: #fff; font: inherit; text-align: left; cursor: pointer;
-  transition: transform .22s cubic-bezier(.16, 1, .3, 1), box-shadow .22s ease;
-}
-.pv .ob__svcCard--navy { background: #000065; }
-.pv .ob__svcCard--black { background: #0e0e0e; color: #fff; }
-/* Lifted on the dark page for the same reason the 404's blue button was:
-   a card this close in value to the dark theme's own near-black ground is a
-   shape you can barely find. */
-.dark .pv .ob__svcCard--navy { background: #1b1b8f; }
-.dark .pv .ob__svcCard--black { background: #242424; }
-
-@media (prefers-reduced-motion: no-preference) {
-  .pv .ob__svcCard:hover { transform: translateY(-3px); }
-}
-.pv .ob__svcCard:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
-
-/* ---- the mark ---- */
-.pv .ob__svcArt {
-  position: absolute; z-index: 0;
-  /* IT KISSES THE EDGE, IT IS NOT SLICED BY IT. At -.6em only a sliver
-     survived, so a palette read as a curve and a phone read as a rectangle:
-     cropped past the point where the shape is still the shape, a mark becomes
-     texture with no meaning. A shallow overhang keeps it recognisable and
-     still says the card could not contain it. */
-  right: -.14em; top: 50%;
-  display: block;
-  font-size: clamp(4.6rem, 3.4rem + 5.5vw, 7rem);
-  line-height: 0;
-  transform: translateY(-50%);
-  color: #fff; opacity: .18;
-  pointer-events: none;
-}
-.pv .ob__svcArt svg { width: 1em; height: 1em; display: block; }
-@media (prefers-reduced-motion: no-preference) {
-  .pv .ob__svcArt { transition: transform .3s cubic-bezier(.16, 1, .3, 1), opacity .3s ease; }
-  .pv .ob__svcCard:hover .ob__svcArt { transform: translateY(-50%) scale(1.06); opacity: .22; }
-}
-
-/* ---- the name ---- */
-.pv .ob__svcT { position: relative; z-index: 1; display: block; }
-.pv .ob__svcT b {
-  display: block;
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-size: clamp(1.15rem, 1rem + .8vw, 1.5rem); font-weight: 700;
-  letter-spacing: -.02em; line-height: 1.1;
-  /* INHERIT, NEVER a hard-coded colour. It was #fff once, which beat the
-     variant rule below it and silently overrode a card that was meant to set
-     its own text colour -- an earlier correction aimed at `h3, p` and missed,
-     because the markup is b/em. Taking the card's own colour means either
-     variant can set its own without a second rule to remember, from one
-     place, whatever the markup is called. Both are white today, but the next
-     variant does not have to be. */
-  color: inherit;
-}
-/* The rule that used to sit under the name is gone. The gap does the same
-   separating on its own once it is given room, and one less mark on a filled
-   card is one less thing competing with the mark that is already there. */
-.pv .ob__svcT em {
-  display: block; font-style: normal; margin-top: .45rem;
-  /* Held off the mark so a long line never runs under it. */
-  max-width: 22ch;
-  /* Same reasoning as the name above: the card decides the colour, and the
-     step down in emphasis is alpha rather than a second hard-coded value. */
-  color: inherit; opacity: .85;
-  font-size: .88rem; line-height: 1.45;
-}
-
-/* ---- chosen ---- */
-/* Every card is already a filled colour, so selection cannot be carried by one
-   -- it needs a shape the others do not have. A white ring plus a filled tick
-   is unmistakable at a glance and costs the card nothing. */
-.pv .ob__svcCard.is-on {
-  box-shadow: 0 0 0 3px var(--paper), 0 0 0 6px var(--ink), 0 18px 36px -18px rgb(0 0 26 / .5);
-}
-.pv .ob__svcMark {
-  position: absolute; z-index: 2; top: .8rem; right: .8rem;
-  display: grid; place-items: center;
-  width: 1.6rem; height: 1.6rem; border-radius: 50%;
-  /* THE BADGE IS ALWAYS WHITE, so the tick cannot take `--ink`: that token is
-     near-white in dark mode, which drew a white tick on a white disc and the
-     selected card lost its only unambiguous mark. It takes the CARD's colour
-     instead, which is legible on white in either theme and ties the badge to
-     the thing it belongs to. */
-  background: #fff; color: #000065;
-  opacity: 0; transform: scale(.6);
-  transition: opacity .18s ease, transform .18s cubic-bezier(.16, 1, .3, 1);
-}
-.pv .ob__svcCard--black .ob__svcMark { color: #0e0e0e; }
-.pv .ob__svcCard.is-on .ob__svcMark { opacity: 1; transform: none; }
-.pv .ob__svcMark svg { width: .95rem; height: .95rem; stroke-width: 3; }
-
 /* A PANEL, NOT A BAR. An orange rule down the left edge of a paragraph is the
    house style of every generated component on the internet, and it was not
    this site's: everything else that sets copy apart here does it with a
@@ -1035,7 +889,7 @@
 
 /* A service the studio has closed to new briefs, from the form's settings.
    Still readable (it says why), no longer choosable. */
-.ob__svcCard.is-shut { opacity: .55; cursor: not-allowed; }
+
 
 /* A returning client's link that cannot take them back in: what happened and
    the one way forward. */
