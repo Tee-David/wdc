@@ -16,7 +16,7 @@ const DEF: CustomFormDef = {
   title: "Start a project",
   intro: "",
   submitLabel: "Send it to us",
-  successMessage: "Thank you. We have it, and we will reply the same working day.",
+  successMessage: "Thank you. We have it, and we will review your project and get back to you.",
   layout: "conversation",
   perScreen: 2,
   fields: [
