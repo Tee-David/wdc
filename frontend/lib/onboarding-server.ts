@@ -62,6 +62,7 @@ export function cleanAnswers(value: unknown): OnboardingAnswers | null {
       total += text.length;
       clean[key] = text;
     } else if (Array.isArray(answer) && answer.length <= 50 && answer.every((item) => typeof item === "string")) {
+      if (key === "brand_colours") return null;
       const list = answer.map((item) => item.slice(0, 500));
       total += list.reduce((sum, item) => sum + item.length, 0);
       clean[key] = list;

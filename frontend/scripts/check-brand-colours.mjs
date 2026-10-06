@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { COLOUR_ROLES, formatColours, parseColours, normalizeHex, colourProblem, shadeHex } from '../lib/brand-colours.ts';
+import { COLOUR_ROLES, formatColours, parseColours, normalizeHex, colourProblem, shadeHex, hexShade } from '../lib/brand-colours.ts';
 
 assert.equal(normalizeHex('#abc'), '#AABBCC');
 assert.equal(normalizeHex('123456'), '#123456');
@@ -24,4 +24,5 @@ assert.equal(shadeHex(120, 100, 100), '#00FF00');
 assert.equal(shadeHex(240, 100, 100), '#0000FF');
 assert.equal(shadeHex(240, 0, 100), '#FFFFFF');
 assert.equal(shadeHex(240, 100, 0), '#000000');
+for (const hex of ['#FF0000', '#00FF00', '#0000FF', '#FFFFFF', '#000000']) assert.equal(shadeHex(...hexShade(hex)), hex);
 console.log('Brand colour contract checks passed (round trips, bounds, invalid input, legacy notes, shade conversion).');

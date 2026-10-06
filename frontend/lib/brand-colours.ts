@@ -10,6 +10,14 @@ export function shadeHex(hue: number, saturation: number, brightness: number): s
   };
   return `#${channel(5)}${channel(3)}${channel(1)}`.toUpperCase();
 }
+export function hexShade(value: string): [number, number, number] {
+  const hex = normalizeHex(value);
+  if (!hex) return [210, 50, 50];
+  const [r, g, b] = [1, 3, 5].map((offset) => parseInt(hex.slice(offset, offset + 2), 16) / 255);
+  const high = Math.max(r, g, b), low = Math.min(r, g, b), gap = high - low;
+  const hue = !gap ? 0 : 60 * (high === r ? ((g - b) / gap + 6) % 6 : high === g ? (b - r) / gap + 2 : (r - g) / gap + 4);
+  return [Math.round(hue), Math.round(high ? gap / high * 100 : 0), Math.round(high * 100)];
+}
 export function normalizeHex(value: string): string | null {
   const hex = value.trim().replace(/^#/, "");
   if (/^[0-9a-f]{3}$/i.test(hex)) return `#${hex.split("").map((letter) => letter + letter).join("").toUpperCase()}`;

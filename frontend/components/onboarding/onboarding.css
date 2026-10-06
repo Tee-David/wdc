@@ -728,46 +728,6 @@
 }
 .pv .ob__btn--danger:hover { background: #b62a2a; border-color: #b62a2a; color: #fff; }
 
-/* ============================================================================
-   THE SERVICE PICKER — the first thing the client sees.
-
-   Six cards, one tap. The old first screen was a panel labelled "Demo only,
-   pick what a client bought", which framed the whole form as something WDC
-   fills in ABOUT a client; it is the opposite. The client opens this link on
-   their own, with nobody beside them, so the first screen asks them what they
-   are here for in their own words.
-
-   A row of an icon, a name and one line, with the arrow on the right: the same
-   shape as a list item people already know how to read, sized as a card so it
-   is obviously a choice rather than a link.
-   ========================================================================== */
-
-.pv .ob__pickH {
-  margin: clamp(1.8rem, 4vw, 2.6rem) 0 .2rem;
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  font-size: clamp(1.15rem, 1rem + .6vw, 1.4rem); font-weight: 700;
-  letter-spacing: -.02em; color: var(--ink);
-}
-.pv .ob__pickSub { margin: 0 0 1rem; color: var(--muted); font-size: .95rem; }
-
-/* ---------------------------------------------------------------------------
-   THE CARDS.
-
-   Each one is a filled block of colour with its own mark cropped by the
-   right edge, not a white card wearing a small badge. The mark is the card's
-   artwork: large enough to be a shape rather than an icon, in the card's own
-   ink at low alpha so it reads as texture and never competes with the name.
-
-   The colours alternate navy and black by index, which at two columns reads
-   as a navy column beside a black one and at one column as a strict
-   alternation. A true checker was the other option and it is worse on a
-   phone: staggering the rows to break up the desktop columns puts two cards
-   of the same colour next to each other in the single-column stack, where
-   they are read one after another and the repeat is obvious.
-   --------------------------------------------------------------------------- */
-
-
-
 /* A PANEL, NOT A BAR. An orange rule down the left edge of a paragraph is the
    house style of every generated component on the internet, and it was not
    this site's: everything else that sets copy apart here does it with a
