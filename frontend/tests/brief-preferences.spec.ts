@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { FIELD_EXAMPLES, OPTION_HELP } from "@/lib/onboarding-help";
-import { stepsFor } from "@/lib/onboarding";
+import { isVisible, stepsFor } from "@/lib/onboarding";
 import { SERVICES } from "@/lib/services";
 
 /* Help the help file still carries for questions the step lists have since cut
@@ -47,39 +47,35 @@ test("welcome uses the shared compact service picker and an explicit next step",
   await expect(page.getByRole("button", { name: "Next", exact: true })).toBeEnabled();
 });
 
+/* The colour question, rewritten for the research flow (decision 21). This keeps
+   the rendering check at every width; every path through it is in
+   onboarding-colours.spec.ts. The step index is the colour screen of Branding
+   for a full brand, counted the way the form counts its visible screens. */
+const colourScreen = stepsFor("branding")
+  .filter((step) => step.fields.some((field) => isVisible(field, { job_size: "A full brand" })))
+  .findIndex((step) => step.id === "branding_colours");
+
 for (const theme of ["light", "dark"]) for (const width of [320, 390, 768, 1440]) {
   test(`colour preferences stay usable at ${width}px in ${theme}`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.addInitScript(({ theme }) => {
+    await page.addInitScript(({ theme, step }) => {
       localStorage.setItem("theme", theme);
-      localStorage.setItem("wdc-onboarding-draft", JSON.stringify({ started: true, service: "branding", step: 3, answers: { has_brandbook: "Yes" } }));
-    }, { theme });
+      localStorage.setItem("wdc-onboarding-draft", JSON.stringify({ started: true, service: "branding", step, answers: { job_size: "A full brand" } }));
+    }, { theme, step: colourScreen });
     await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
     const field = page.locator('[data-field="brand_colours"]');
-    await expect(field).toBeVisible({ timeout: 30000 }); // Preferences remain available with a guide.
-    await field.locator("summary").click();
-    for (let index = 0; index < 5; index++) await field.getByRole("button", { name: "Add a colour", exact: true }).click();
-    await expect(field.getByRole("button", { name: "Add a colour", exact: true })).toBeDisabled();
-    await field.getByPlaceholder("e.g. Deep green").first().fill("A long descriptive colour name for our brand");
-    await field.getByPlaceholder("#336699").first().fill("#abc");
-    await field.getByRole("button", { name: /Choose shade for A long/ }).click();
-    await expect(field.getByRole("slider", { name: "Hue", exact: true })).toBeVisible();
-    await field.getByRole("slider", { name: "Hue", exact: true }).focus();
-    await page.keyboard.press("ArrowRight");
+    await expect(field).toBeVisible({ timeout: 30000 });
+    await expect(field.locator("label.obCol__card")).toHaveCount(6);
+    await field.locator("label.obCol__card", { hasText: "Warm and friendly" }).click();
+    await expect(field.getByRole("button", { name: "Yes, use these" })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBeTruthy();
     await page.screenshot({ path: test.info().outputPath(`colours-${theme}-${width}.png`), fullPage: true });
     for (const button of await field.locator("button:visible").all()) {
       const box = await button.boundingBox();
       if (box) expect(box.height, `${await button.getAttribute("class")}: ${await button.textContent()}`).toBeGreaterThanOrEqual(43);
     }
-    await field.getByRole("button", { name: "Done choosing shade" }).click();
-    await field.getByRole("button", { name: /Remove A long/ }).click();
-    await expect(field.locator(".obColours__row")).toHaveCount(4);
-    await field.getByRole("button", { name: "Please recommend colours" }).click();
-    await expect(field.getByRole("button", { name: "Let me choose colours" })).toHaveAttribute("aria-pressed", "true");
-    await field.getByRole("button", { name: "Add a colour", exact: true }).click();
-    await field.getByPlaceholder("e.g. Deep green").fill("Green");
-    await expect(field.getByRole("button", { name: "Please recommend colours" })).toHaveAttribute("aria-pressed", "false");
+    await field.getByRole("button", { name: "Show me another" }).click();
+    await expect(field.getByText("2 of 3")).toBeVisible();
   });
 }
 
