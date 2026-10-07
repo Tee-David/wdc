@@ -72,12 +72,12 @@ const wantsDirections: Cond = { key: "style_help", equals: ["Suggest for me", "A
 export const BRANDING_STEPS: Step[] = [
   {
     phase: "work", id: "branding", service: "branding", title: "What we are making",
-    blurb: "How big it is, and what you need.",
+    blurb: "Tell us how big it is, and what you need.",
     fields: [
       {
         key: SIZE_KEY, assist: true, required: true, kind: "cards",
-        label: "How big is the job?",
-        hint: "A rough idea is fine. We confirm it with you later.",
+        label: "How big is this job?",
+        hint: "Rough is fine. We confirm it with you later.",
         options: [SMALL, MEDIUM, FULL],
         optionInfo: {
           [SMALL]: { desc: "For example one logo, or a few flyers." },
@@ -113,8 +113,8 @@ export const BRANDING_STEPS: Step[] = [
     ],
   },
   {
-    phase: "work", id: "branding_have", service: "branding", title: "What you have, and the style",
-    blurb: "So we start from what you already own.",
+    phase: "work", id: "branding_have", service: "branding", title: "What you already have, and the look you want",
+    blurb: "So we start from what you own and head where you want to go.",
     fields: [
       {
         key: "brand_have", required: true, kind: "multi",
@@ -156,8 +156,8 @@ export const BRANDING_STEPS: Step[] = [
     ],
   },
   {
-    phase: "work", id: "branding_colours", service: "branding", title: "Your colours",
-    blurb: "About 30 seconds. You can skip this.",
+    phase: "work", id: "branding_colours", service: "branding", title: "Colours",
+    blurb: "About 30 seconds. Skip it if you like.",
     fields: [
       {
         key: "brand_colours", kind: "colours", label: "Your colours",
@@ -168,7 +168,7 @@ export const BRANDING_STEPS: Step[] = [
   },
   {
     phase: "work", id: "branding_more", service: "branding", title: "A little more detail",
-    blurb: "Only for a full brand. All optional.",
+    blurb: "Only for a full brand. Say as much as you like.",
     fields: [
       {
         key: "surfaces", assist: true, label: "Where will people see your logo?", kind: "multi",

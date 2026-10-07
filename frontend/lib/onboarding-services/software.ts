@@ -26,8 +26,8 @@ const dataRules: Cond = { key: "sw_kind", equals: [AI, AUTOMATION, PIPELINE] };
 
 export const SOFTWARE_STEPS: Step[] = [
   {
-    phase: "work", id: "software", service: "software", title: "The problem",
-    blurb: "Start with what slows you down.",
+    phase: "work", id: "software", service: "software", title: "What is slowing you down?",
+    blurb: "Start with the problem. The idea can come second.",
     fields: [
       {
         key: "n_scope", kind: "notice", label: "What we take on",
@@ -56,13 +56,14 @@ export const SOFTWARE_STEPS: Step[] = [
       {
         key: "process", assist: true, kind: "textarea",
         label: "Tell us more, if you like",
-        placeholder: "Optional. A few lines is plenty. You can also send a voice note on WhatsApp.",
+        example: "pains",
+        hint: "A few lines is plenty. You can also send a voice note on WhatsApp.",
       },
       { key: "sw_files", kind: "upload", label: "Show us what you have", hint: "Documents, screenshots or spreadsheets. Optional." },
     ],
   },
   {
-    phase: "work", id: "software_kind", service: "software", title: "What kind of help",
+    phase: "work", id: "software_kind", service: "software", title: "What kind of help do you want?",
     blurb: "And what it has to connect to.",
     fields: [
       {
@@ -93,7 +94,7 @@ export const SOFTWARE_STEPS: Step[] = [
     ],
   },
   {
-    phase: "work", id: "software_data", service: "software", title: "Data and people",
+    phase: "work", id: "software_data", service: "software", title: "People, and your data",
     blurb: "Who uses it, and the rules for your data.",
     fields: [
       {

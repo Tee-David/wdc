@@ -3,6 +3,7 @@ import { SITE_URL } from "@/lib/site";
 import { Header } from "@/components/layout/header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import OnboardingMount from "@/components/onboarding/onboarding-mount";
+import { engagementIsLive } from "@/lib/onboarding-engagement";
 import { FORMS } from "@/lib/forms/registry";
 import { availability, getFormSettings } from "@/lib/forms/settings-db";
 import type { FormStyle } from "@/lib/forms/settings";
@@ -83,7 +84,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
                 whole point of it. The step titles below are h2 so the outline
                 has exactly one h1 and no gaps. */}
             <h1 className="sr-only">Client onboarding</h1>
-            <OnboardingMount closed={closed} styles={styles} />
+            <OnboardingMount closed={closed} styles={styles} engagement={engagementIsLive()} />
           </div>
         </section>
       </main>
