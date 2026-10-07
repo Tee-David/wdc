@@ -130,7 +130,7 @@ export const WEB_STEPS: Step[] = [
     blurb: "Who writes the words and takes the pictures.",
     fields: [
       { key: "words_ready", label: "The words for the site", kind: "cards", required: true, options: ["I have them", needsHelp] },
-      { key: "pictures_ready", label: "The pictures for the site", kind: "cards", required: true, options: ["I have them", needsHelp] },
+      { key: "pictures_ready", label: "The pictures for the site", kind: "cards", options: ["I have them", needsHelp] },
       {
         key: "content_scope", kind: "notice", label: "Words and pictures from us",
         hint: "Writing and photography are extra to building the site, and quoted separately once we know how many pages there are. A site cannot launch with placeholder text, so saying this now is what keeps your launch date.",
