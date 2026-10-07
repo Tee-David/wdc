@@ -10,7 +10,8 @@ import { after } from "next/server";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
 import { isQuestion, stepsFor } from "@/lib/onboarding";
-import { earlierAnswers, shownInBrief } from "@/lib/onboarding-aliases";
+import { displayAnswers, earlierAnswers, shownInBrief } from "@/lib/onboarding-aliases";
+import { scopeNote } from "@/lib/onboarding-scope";
 import type { FormDef } from "@/lib/forms/registry";
 import ColourRolesNote from "@/components/onboarding/colour-roles-note";
 import { answeredCount, clientFor, entryIds, getEntry, markRead, readFilters, type Entry } from "@/lib/forms/entries";
@@ -85,6 +86,36 @@ async function CustomAnswers({ form, entry }: { form: FormDef; entry: Entry }) {
           );
         }) : Object.entries(answers).map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{answerText(v)}</dd></div>)}
       </dl>
+    </Panel>
+  );
+}
+
+/**
+ * The studio's note: what the client said about the size of the job, the facts
+ * that usually change how it is run, and what to watch. Read straight off the
+ * answers (lib/onboarding-scope.ts), never shown to the client, and computed
+ * when this page is opened, so there is nothing to keep in step.
+ */
+function StudioNote({ form, entry }: { form: FormDef; entry: Entry }) {
+  if (form.source !== "onboarding" || !form.service) return null;
+  const note = scopeNote(form.service, displayAnswers(form.service, entry.answers));
+  if (!note.size.said && !note.signals.length && !note.watch.length) return null;
+  return (
+    <Panel title="Studio note">
+      <div style={{ padding: "0 1rem 1rem" }}>
+        {note.size.said ? <p><strong>Size, in the client&rsquo;s words:</strong> {note.size.said}</p> : null}
+        {note.watch.length ? (
+          <>
+            <h3 style={{ fontSize: ".8rem", textTransform: "uppercase", letterSpacing: ".05em", color: "var(--ad-dim)", marginTop: ".8rem" }}>Worth a look first</h3>
+            <ul style={{ margin: ".3rem 0 0", paddingLeft: "1.1rem" }}>{note.watch.map((w) => <li key={w}>{w}</li>)}</ul>
+          </>
+        ) : null}
+        {note.signals.length ? (
+          <dl className="adForms__dl" style={{ padding: 0, marginTop: ".8rem" }}>
+            {note.signals.map((s) => <div key={s.label}><dt>{s.label}</dt><dd>{s.value}</dd></div>)}
+          </dl>
+        ) : null}
+      </div>
     </Panel>
   );
 }
@@ -243,6 +274,7 @@ export default async function EntryPage({ params, searchParams }: Props) {
 
       <div className="adForms__entry">
         <div className="ad__stack">
+          <StudioNote form={form} entry={entry} />
           <div data-tour="entry-answers"><Answers form={form} entry={entry} hideEmpty={sp.hide === "1"} /></div>
           {/* After the answers, not before: the brief is the thing to read,
               and the files are what it refers to. */}
