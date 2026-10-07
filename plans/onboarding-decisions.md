@@ -45,6 +45,8 @@ The owner asked for deep research into form and onboarding UX, a simpler colour 
 | 32 | Review screen and reminders: the review screen is the Send screen. It says what happens next and carries no number of days. Reminders: at most two per unfinished form, each switchable off. | plan 6.5 |
 | 33 | WhatsApp: the resume link is also sent by WhatsApp, a Talk to a person button saves the form and flags it, and a WhatsApp button carries the form reference. A trust line says we never ask for passwords, PINs, OTP codes, BVN or card numbers. | form chrome |
 
+| 34 | Control rule (owner, 7 October 2026, from the screenshots of the question lists): a single choice with three or more plain options is a DROPDOWN (the site's own select, a bottom sheet on phones). A two option choice and Yes or No are one compact line, not tall tiles. Listed out cards are for checkboxes and multi select, and for the few single choices that need a picture or a sentence (the size question, style route, packages, kind of software help). The big "Required" pill is gone: the existing asterisk and "(optional)" are enough. Trade off noted: a dropdown costs one extra tap over a card, accepted for a calmer screen. | `onboarding-form.tsx` FieldView |
+
 **Not adopted, or deferred.** Pre-filling name, phone, email and business from the payment record: not verified that the record holds them, so the first screen stays four short fields. Voice notes recorded inside the form: offered through WhatsApp instead. Real timing calibration: needs real clients, so the time estimates stay formula based and a task records timings after launch.
 
 ## Build order (two agents at a time, one commit per piece, pushed as it lands)
