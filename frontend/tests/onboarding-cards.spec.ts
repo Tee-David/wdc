@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { SIZE_KEYS, stepsFor } from "@/lib/onboarding";
-import type { ServiceSlug } from "@/lib/services";
+import { SERVICES, type ServiceSlug } from "@/lib/services";
 import { FEATURE_GROUPS, POPULAR_FEATURES } from "@/lib/onboarding-services/apps";
 import { DELIVERABLE_INFO } from "@/lib/onboarding-services/branding";
 import { chooseOption, isolate, seedDraft } from "./onboarding-helpers";
@@ -298,3 +298,136 @@ test("a legacy draft with plain string answers still opens and shows its answers
   await expect(field(page, "job_size").getByRole("radio", { name: "Several pieces", exact: true })).toHaveAttribute("aria-checked", "true");
 });
 
+
+/* ---------------- 5. Short choices are dropdowns, pairs or chips ---------------- */
+
+const stepOf = (service: ServiceSlug, key: string) =>
+  stepsFor(service).find((s) => s.fields.some((f) => f.key === key))!.id;
+
+test("a three-choice question is a dropdown: one tap opens the sheet, one more picks", async ({ page }) => {
+  await isolate(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seedDraft(page, { service: "apps", step: stepIndex("apps", "apps") });
+  await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
+  const question = field(page, "app_stage");
+  await expect(question).toBeVisible({ timeout: 30000 });
+  await expect(question.locator(".ob__cards")).toHaveCount(0);
+  await expect(page.getByText("Required", { exact: true })).toHaveCount(0);
+  const combo = question.getByRole("combobox");
+  await expect(combo).toContainText("Choose one");
+  await combo.click();
+  const sheet = page.locator(".pk__pop");
+  await expect(sheet).toBeVisible();
+  const box = await sheet.boundingBox();
+  /* A bottom sheet: it ends at the bottom edge, within the sheet's own shadow. */
+  expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(844 + 4);
+  expect(box?.y ?? 0).toBeGreaterThan(300);
+  await expect(page.getByRole("option")).toHaveCount(4);
+  await page.getByRole("option", { name: "Designs are ready", exact: true }).click();
+  await expect(sheet).toHaveCount(0);
+  await expect(combo).toContainText("Designs are ready");
+  await expect.poll(async () => (await stored(page)).app_stage).toBe("Designs are ready");
+  await noHorizontalScroll(page);
+});
+
+test("the dropdown list scrolls inside its sheet and the last option is reachable at 320px", async ({ page }) => {
+  await isolate(page);
+  await page.setViewportSize({ width: 320, height: 640 });
+  /* The longest plain single choice in the lists is six options. */
+  await seedDraft(page, { service: "social", step: stepIndex("social", stepOf("social", "social_goal")), answers: { social_size: "Large" } });
+  await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
+  const question = field(page, "social_goal");
+  await expect(question).toBeVisible({ timeout: 30000 });
+  await question.getByRole("combobox").click();
+  const list = page.locator(".pk__list");
+  await expect(list).toBeVisible();
+  expect(["auto", "scroll"]).toContain(await list.evaluate((el) => getComputedStyle(el).overflowY));
+  const options = optionsOf("social", stepOf("social", "social_goal"), "social_goal");
+  await expect(page.getByRole("option")).toHaveCount(options.length);
+  const last = page.getByRole("option", { name: options[options.length - 1], exact: true });
+  await last.scrollIntoViewIfNeeded();
+  await expect(last).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".pk__pop")).toHaveCount(0);
+  await noHorizontalScroll(page);
+});
+
+test("a two-choice question is one compact line at 320px", async ({ page }) => {
+  await isolate(page);
+  await page.setViewportSize({ width: 320, height: 700 });
+  const key = "site_new_or_existing";
+  const service: ServiceSlug = "web";
+  const options = optionsOf(service, stepOf(service, key), key);
+  expect(options).toHaveLength(2);
+  await seedDraft(page, { service, step: stepIndex(service, stepOf(service, key)) });
+  await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
+  const question = field(page, key);
+  await expect(question).toBeVisible({ timeout: 30000 });
+  const seg = question.locator(".ob__seg");
+  const buttons = seg.getByRole("radio");
+  await expect(buttons).toHaveCount(2);
+  await expect(question.locator(".ob__card")).toHaveCount(0);
+  const tops = await buttons.evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().top)));
+  expect(new Set(tops).size, "both halves on one line").toBe(1);
+  for (const b of await buttons.all()) expect((await b.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44);
+  const segBox = await seg.boundingBox();
+  expect((segBox?.x ?? 0) + (segBox?.width ?? 0)).toBeLessThanOrEqual(320);
+  await chooseOption(page, key, options[0]);
+  await expect(question.getByRole("radio", { name: options[0], exact: true })).toHaveAttribute("aria-checked", "true");
+  await chooseOption(page, key, options[0]);
+  await expect(question.getByRole("radio", { name: options[0], exact: true })).toHaveAttribute("aria-checked", "false");
+  await noHorizontalScroll(page);
+});
+
+test("a short multi list is compact chips, and a long one keeps its cards", async ({ page }) => {
+  await isolate(page);
+  await page.setViewportSize({ width: 390, height: 900 });
+  await seedDraft(page, { service: "branding", step: stepIndex("branding", "branding_have") });
+  await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
+  const short = field(page, "brand_have");
+  await expect(short).toBeVisible({ timeout: 30000 });
+  await expect(short.locator(".ob__card--chip")).toHaveCount(optionsOf("branding", "branding_have", "brand_have").length);
+  for (const chip of await short.locator(".ob__card--chip").all()) expect((await chip.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44);
+  await chooseOption(page, "brand_have", "A logo");
+  await expect(short.getByRole("checkbox", { name: "A logo", exact: true })).toHaveClass(/is-on/);
+
+  await isolate(page);
+  await seedDraft(page, { service: "apps", step: stepIndex("apps", "apps_setup"), answers: { app_size: "Medium" } });
+  await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
+  const long = field(page, "app_connects");
+  await expect(long).toBeVisible({ timeout: 30000 });
+  await expect(long.locator(".ob__card--chip")).toHaveCount(0);
+  await expect(long.locator(".ob__card")).toHaveCount(optionsOf("apps", "apps_setup", "app_connects").length);
+});
+
+test("no single choice of three or more plain options renders as a stack of cards, in any service", async ({ page }) => {
+  /* About seventy screens, one page load each. */
+  test.setTimeout(600000);
+  await isolate(page);
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.addInitScript(() => localStorage.setItem("wdc-intro-seen-at", String(Date.now())));
+  let dropdowns = 0;
+  for (const service of SERVICES.map((s) => s.slug)) {
+    const steps = stepsFor(service);
+    /* Every size question at its largest, so the tier 2 and tier 3 screens render too. */
+    const answers: Record<string, string> = {};
+    for (const step of steps) for (const f of step.fields) if ((SIZE_KEYS as readonly string[]).includes(f.key) && f.options?.length) answers[f.key] = f.options[f.options.length - 1];
+    for (let i = 0; i < steps.length; i++) {
+      await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
+      await page.evaluate((draft) => localStorage.setItem("wdc-onboarding-draft", JSON.stringify(draft)), { started: true, service, step: i, answers });
+      await page.reload({ waitUntil: "domcontentloaded" });
+      /* Every question screen has its blurb under the title. The review screen
+         has none, and then it has no question fields to check either. */
+      await page.locator(".ob__blurb").first().waitFor({ state: "visible", timeout: 10000 }).catch(() => {});
+      for (const f of steps[i].fields) {
+        if (f.kind !== "cards" || f.optionInfo || (f.options?.length ?? 0) < 3) continue;
+        const question = field(page, f.key);
+        if (!(await question.count())) continue;
+        dropdowns++;
+        expect(await question.locator(".ob__cards").count(), `${service} ${f.key} is a stack of cards`).toBe(0);
+        await expect(question.getByRole("combobox"), `${service} ${f.key} is a dropdown`).toHaveCount(1);
+      }
+    }
+  }
+  expect(dropdowns).toBeGreaterThanOrEqual(10);
+});
