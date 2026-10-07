@@ -175,7 +175,12 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
     setA(withAnswerDefaults());setI(0);setStarted(false);setRestored(false);setWipeOpen(false);
   };
 
-  const steps = useMemo(() => stepsFor(chosen), [chosen]);
+  const allSteps = useMemo(() => stepsFor(chosen), [chosen]);
+  /* A SCREEN WITH NOTHING TO ASK IS NOT SHOWN. The colour screen, for one, only
+     exists when the deliverables call for it. Only answers on EARLIER screens
+     can hide a later one, so the position of the screen the client is on never
+     moves under them. */
+  const steps = useMemo(() => allSteps.filter((s) => s.fields.some((f) => visible(f, a))), [allSteps, a]);
   const step: Step | undefined = steps[i];
 
   useEffect(() => {

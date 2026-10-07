@@ -1,6 +1,6 @@
 import { colourProblem } from "@/lib/brand-colours";
 import type { ServiceSlug } from "@/lib/services";
-import { PROJECT_UPDATE_PORTAL, isUnsure, type Cond, type Field, type FieldKind, type PhaseId, type Step } from "./onboarding-shared";
+import { PROJECT_UPDATE_PORTAL, SIZE_KEYS, SIZE_TIER, isUnsure, type Cond, type Field, type FieldKind, type PhaseId, type Step } from "./onboarding-shared";
 import { BRANDING_STEPS } from "./onboarding-services/branding";
 import { SEO_STEPS } from "./onboarding-services/seo";
 import { WEB_STEPS } from "./onboarding-services/web";
@@ -67,13 +67,27 @@ export const PHASES: { id: PhaseId; title: string; blurb: string }[] = [
 
 
 const AUDIENCE = ["Children", "Teenagers", "Men", "Women", "Businesses", "Other"];
-const AGES = ["Under 18", "18–24", "25–34", "35–44", "45–54", "55–64", "65 or above", "Prefer not to say"];
+const AGES = ["Under 18", "18 to 34", "35 to 54", "55 or above"];
 
+/**
+ * THE SHARED SCREENS, TRIMMED FOR A CLIENT WHO HAS ALREADY PAID AND SPOKEN TO
+ * THE TEAM (plans/onboarding-ux-research.md, E0).
+ *
+ * By this file's own time weights the old "About you" and "Finishing up" cost
+ * about six of the roughly seven minutes a small job took, before any question
+ * about the service. Now: who you are and how to reach you, then your business
+ * in three taps, and nothing that only matters on a large job is asked of a
+ * small one. Every question left either decides the quote or the first week.
+ *
+ * Questions that were cut or moved keep their stored keys in old answers, and
+ * the admin lists any answer whose question no longer exists under "Earlier
+ * questions", so nothing a client typed is lost from view.
+ */
 export const CORE_STEPS: Step[] = [
   {
     phase: "you", id: "you",
-    title: "Your details",
-    blurb: "Confirm what we already have, and add the bits billing will need.",
+    title: "About you",
+    blurb: "Quick ones. Tap to fix anything we already have.",
     fields: [
       { key: "first_name", label: "First name", kind: "text", placeholder: "e.g. Tobi", required: true },
       { key: "last_name", label: "Last name", kind: "text", placeholder: "e.g. Adeyemi", required: true },
@@ -83,25 +97,16 @@ export const CORE_STEPS: Step[] = [
         placeholder: "+234 802 123 4567",
       },
       { key: "email", label: "Email", kind: "email", placeholder: "you@business.com", required: true },
-      { key: "company", label: "Business name", kind: "text", placeholder: "e.g. Moore Designs", required: true },
-      {
-        key: "address", label: "Business address", kind: "textarea",
-        hint: "We need this for invoicing.",
-        placeholder: "Street, city, state",
-      },
     ],
   },
   {
     phase: "you", id: "business",
     title: "Your business",
-    blurb: "So the work is built around what you actually sell.",
+    blurb: "Three taps, so the work is built around what you sell.",
     fields: [
+      { key: "company", label: "Business name", kind: "text", placeholder: "e.g. Moore Designs", required: true },
       {
-        key: "about", label: "Briefly describe your company and what it exists to do", kind: "textarea",
-        required: true, placeholder: "What you do, who for, and how long you have been doing it.",
-      },
-      {
-        key: "industry", label: "Industry", kind: "select", required: true,
+        key: "industry", label: "Industry", kind: "select",
         options: [
           "Fashion and apparel", "Food and drink", "Retail and e-commerce", "Health and wellness",
           "Education", "Property and construction", "Financial services", "Technology",
@@ -113,20 +118,15 @@ export const CORE_STEPS: Step[] = [
         placeholder: "Tell us in a few words",
         showIf: { key: "industry", equals: ["Other"] },
       },
+      { key: "audience", assist: true, label: "Who do you sell to?", kind: "multi", options: AUDIENCE },
+      { key: "audience_other", label: "Tell us who else you need to reach", kind: "text", showIf: { key: "audience", equals: ["Other"] } },
+      /* Medium and large jobs only: it rarely changes a small quote. */
+      { key: "age_range", assist: true, label: "Their age", kind: "multi", options: AGES, showIf: { tier: 2 } },
       {
         key: "usp", assist: true, label: "What makes you the one they should pick?", kind: "textarea",
         tip: "The honest answer, not the polished one. It is what the work has to carry.",
+        showIf: { tier: 3 },
       },
-    ],
-  },
-  {
-    phase: "you", id: "audience",
-    title: "Your audience",
-    blurb: "Who the work has to reach.",
-    fields: [
-      { key: "audience", assist: true, label: "Who is your primary audience?", kind: "multi", options: AUDIENCE, required: true },
-      { key: "audience_other", label: "Tell us who else you need to reach", kind: "text", showIf: { key: "audience", equals: ["Other"] } },
-      { key: "age_range", assist: true, label: "Age range", kind: "multi", options: AGES },
     ],
   },
 ];
@@ -135,19 +135,37 @@ export const SERVICE_STEPS: Step[] = [
   ...BRANDING_STEPS, ...SEO_STEPS, ...WEB_STEPS, ...APPS_STEPS, ...SOFTWARE_STEPS, ...SOCIAL_STEPS,
 ];
 
+const FIXED_DATE_ANSWERS = ["Within two weeks", "A set date"];
+
 export const CLOSING_STEPS: Step[] = [
   {
-    phase: "final", id: "brand",
-    title: "Brand and assets",
-    blurb: "Anything you already have. Nothing here blocks you from finishing.",
+    phase: "final", id: "working",
+    title: "Timing and who decides",
+    blurb: "When it is needed, and who gives the go ahead.",
     fields: [
-      { key: "has_logo", label: "Do you have a logo ready?", kind: "yesno", required: true },
-      { key: "logo_files", label: "Upload your logo files", kind: "upload", showIf: { key: "has_logo", equals: ["Yes"] } },
-      /* "No" WAS A DEAD END, AND IT IS THE MOST CONSEQUENTIAL ANSWER HERE. A
-         client with no logo has no identity for the work to be built out of,
-         and everything downstream -- a site, an app, a month of posts -- has to
-         either invent one or wait for one. The form used to move straight past
-         that, which left the client stuck and left us finding out in week two. */
+      {
+        key: "deadline_kind", label: "When do you need it?", kind: "cards", required: true,
+        options: ["No fixed date", "Within a month", "Within two weeks", "A set date"],
+      },
+      {
+        key: "fixed_dates", label: "Which date?", kind: "text",
+        placeholder: "A launch, an event, a print deadline",
+        showIf: { key: "deadline_kind", equals: FIXED_DATE_ANSWERS },
+      },
+      { key: "approver", label: "Who signs work off?", kind: "text", required: true, tip: "One person. Projects slow down most when feedback arrives from several directions and disagrees with itself." },
+      { key: "channel", label: "Where should we send project updates?", kind: "multi", required: true, options: [PROJECT_UPDATE_PORTAL, "WhatsApp", "Email", "Phone call", "Other"] },
+      { key: "channel_other", label: "Which other channel would you prefer?", kind: "text", showIf: { key: "channel", equals: ["Other"] } },
+    ],
+  },
+  {
+    phase: "final", id: "brand",
+    title: "What you already have",
+    blurb: "Anything you can send now. None of it blocks you from finishing.",
+    fields: [
+      { key: "has_logo", label: "Do you have a logo?", kind: "yesno", notFor: ["branding"] },
+      { key: "logo_files", label: "Upload your logo files", kind: "upload", notFor: ["branding"], showIf: { key: "has_logo", equals: ["Yes"] } },
+      /* "No" WAS A DEAD END and is the most consequential answer here: a client
+         with no logo has no identity for the work to be built out of. */
       {
         key: "logo_wanted", label: "Would you like us to design one?", kind: "yesno",
         notFor: ["branding"],
@@ -155,34 +173,37 @@ export const CLOSING_STEPS: Step[] = [
         scope: "Extra to what you have already paid for. Say yes and we will send you a quote first. Nothing is charged from this form.",
         tip: "Saying no stops nothing. We will work with what you have and keep the design plain enough that a logo drops into it later without a rebuild.",
       },
+      /* The colour flow, offered to the five services that are not branding
+         only when there is no logo to read colours from. */
+      { key: "brand_colours", label: "Your colours", kind: "colours", notFor: ["branding"], showIf: { key: "has_logo", equals: ["No"] } },
       {
-        key: "has_brandbook", label: "Do you have a brand book or guide?", kind: "cards", required: true,
+        key: "has_brandbook", label: "Do you have a brand guide?", kind: "cards", notFor: ["branding"],
         options: ["Yes", "No", "I'm not sure what that is"],
-        tip: "A brand book is a document setting out your colours, fonts, logo rules and tone of voice, so everything a business makes looks like it came from the same place. Plenty of businesses do not have one, and that is a normal answer.",
+        tip: "A brand guide is a document setting out your colours, fonts, logo rules and tone of voice, so everything a business makes looks like it came from the same place. Plenty of businesses do not have one, and that is a normal answer.",
+        showIf: { tier: 2 },
       },
-      { key: "brandbook_file", label: "Upload it", kind: "upload", showIf: { key: "has_brandbook", equals: ["Yes"] } },
-      { key: "brand_colours", label: "Your brand colours", kind: "text", placeholder: "e.g. Navy #000065, Orange #FF6500", tip: "Names are enough. Preferences are optional even when you have a brand guide." },
+      { key: "brandbook_file", label: "Upload it", kind: "upload", notFor: ["branding"], showIf: [{ tier: 2 }, { key: "has_brandbook", equals: ["Yes"] }] },
       {
         key: "brandbook_wanted", label: "Would you like us to put one together?", kind: "yesno",
         notFor: ["branding"],
-        showIf: { key: "has_brandbook", equals: ["No", "I'm not sure what that is"] },
+        showIf: [{ tier: 2 }, { key: "has_brandbook", equals: ["No", "I'm not sure what that is"] }],
         scope: "Extra to what you have already paid for. Say yes and we will send you a quote first. Nothing is charged from this form.",
         tip: "It is what stops everything made afterwards looking like it came from somewhere else: colours, fonts, logo rules and tone of voice, written down once so the next person does not have to guess.",
       },
-      { key: "inspiration", assist: true, label: "Two or three examples you like, and what you like about them", kind: "textarea" },
+      { key: "inspiration", assist: true, label: "Two or three examples you like", kind: "textarea", notFor: ["branding", "web"], showIf: { tier: 3 }, placeholder: "Links, or names of brands, and what you like about them" },
       { key: "assets", label: "Anything else we should have", kind: "upload" },
     ],
   },
   {
-    phase: "final", id: "working",
-    title: "How we will work",
-    blurb: "Who decides, and what we must not miss.",
+    phase: "final", id: "last",
+    title: "Last things",
+    blurb: "Optional. Skip any of it and send.",
     fields: [
-      { key: "approver", label: "Who signs work off?", kind: "text", required: true, tip: "One person. Projects slow down most when feedback arrives from several directions and disagrees with itself." },
-      { key: "others", label: "Anyone else who needs to see things?", kind: "textarea" },
-      { key: "fixed_dates", label: "Any fixed dates we have to hit?", kind: "textarea", placeholder: "A launch, an event, a print deadline." },
-      { key: "channel", label: "Which channels work best for project updates?", kind: "multi", required: true, options: [PROJECT_UPDATE_PORTAL, "Email", "WhatsApp", "Phone call", "Other"] },
-      { key: "channel_other", label: "Which other channel would you prefer?", kind: "text", showIf: { key: "channel", equals: ["Other"] } },
+      {
+        key: "about", label: "Tell us about your company", kind: "textarea",
+        placeholder: "What you do, who for, and how long you have been doing it. A few lines is plenty.",
+      },
+      { key: "others", label: "Anyone else who needs to see things?", kind: "textarea", showIf: { tier: 3 } },
       { key: "anything_else", label: "Anything we haven't asked that we should know?", kind: "textarea", tip: "This is the most useful box on the form. It is where the thing that would otherwise surface in week three usually comes out." },
     ],
   },
@@ -255,31 +276,16 @@ export function stepsFor(service: ServiceSlug): Step[] {
      half, which is how every service worked before the redesign. */
   const own: Step[] = serviceParts.length > 1 ? serviceParts : halve(service, serviceParts);
 
-  return [
-    {
-      phase: "you",
-      id: "about-you",
-      title: "About you",
-      blurb: "Your details, your business, and who the work needs to reach.",
-      fields: CORE_STEPS.flatMap((step) => step.fields),
-    },
-    ...own,
-    {
-      phase: "final",
-      id: "finishing-up",
-      title: "Finishing up",
-      blurb: "Assets, approvals, communication, and anything we should not miss.",
-      /* `notFor` IS APPLIED HERE, not in the renderer, because the question
-         should not exist for this form rather than be hidden in it: a field
-         that is filtered out cannot be required, cannot be validated, and
-         cannot turn up in the review screen or the submitted record. Offering
-         a branding client a logo they have just bought is the case it exists
-         for. */
-      fields: CLOSING_STEPS
-        .flatMap((step) => step.fields)
-        .filter((f) => !f.notFor?.includes(service)),
-    },
-  ];
+  /* The shared screens are used as written. `notFor` is applied here, not in
+     the renderer, because the question should not exist for this form rather
+     than be hidden in it: a field that is filtered out cannot be required,
+     cannot be validated and cannot turn up in the review screen or the
+     submitted record. Offering a branding client a logo they have just bought
+     is the case it exists for. A screen left with no questions is dropped. */
+  const closing = CLOSING_STEPS
+    .map((step) => ({ ...step, fields: step.fields.filter((f) => !f.notFor?.includes(service)) }))
+    .filter((step) => step.fields.length > 0);
+  return [...CORE_STEPS, ...own, ...closing];
 }
 
 /** The pre-redesign shape: one block of questions cut into goals and details. */
@@ -322,7 +328,23 @@ export function isFilled(v: string | string[] | undefined) {
   return Array.isArray(v) ? v.length > 0 : Boolean(v && v.trim());
 }
 
-const condHolds = (c: Cond, answers: Record<string, string | string[] | undefined>) => {
+type Answered = Record<string, string | string[] | undefined>;
+
+/** 1 when the size question has not been answered, otherwise the tier it names. */
+export function tierOf(answers: Answered): 1 | 2 | 3 {
+  let tier: 1 | 2 | 3 = 1;
+  for (const key of SIZE_KEYS) {
+    const v = answers[key];
+    if (typeof v !== "string") continue;
+    const t = isUnsure(v) ? 2 : SIZE_TIER[v];
+    if (t && t > tier) tier = t;
+  }
+  return tier;
+}
+
+const condHolds = (c: Cond, answers: Answered): boolean => {
+  if ("any" in c) return c.any.some((x) => condHolds(x, answers));
+  if ("tier" in c) return tierOf(answers) >= c.tier;
   const v = answers[c.key];
   if (c.filled !== undefined && isFilled(v) !== c.filled) return false;
   if (!c.equals) return true;
@@ -335,7 +357,7 @@ const condHolds = (c: Cond, answers: Record<string, string | string[] | undefine
  * answered count all call it, so a question the client never saw is never
  * reported as one they skipped.
  */
-export function isVisible(f: Pick<Field, "showIf">, answers: Record<string, string | string[] | undefined>) {
+export function isVisible(f: Pick<Field, "showIf">, answers: Answered) {
   if (!f.showIf) return true;
   return (Array.isArray(f.showIf) ? f.showIf : [f.showIf]).every((c) => condHolds(c, answers));
 }
@@ -435,7 +457,7 @@ export function problemWith(
 const SECONDS: Record<FieldKind, number> = {
   yesno: 4, cards: 6, select: 7, multi: 10,
   text: 12, email: 12, tel: 14, url: 12,
-  textarea: 32, upload: 10, notice: 0,
+  textarea: 32, upload: 10, notice: 0, colours: 20,
   /* Three names to think of, not three boxes to fill: naming a business is the
      slowest question in the form, and the check afterwards is a wait the
      client chooses to take. Deliberately higher than `textarea`, which is what

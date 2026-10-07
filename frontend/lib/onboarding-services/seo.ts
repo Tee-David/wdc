@@ -1,7 +1,7 @@
 import { UNSURE, type Cond, type Step } from "../onboarding-shared";
 
 /**
- * The SEO form's steps, Size first (plan 14.3, artifact seo.js). One file per
+ * The SEO form's steps, Size first, after the UX research (plans/onboarding-ux-research.md, E3). One file per
  * service so two people can work on two services without touching the same
  * lines. Composed by `stepsFor` in ../onboarding.ts.
  *
@@ -22,15 +22,8 @@ const ONE_SITE = "One site, one place";
 const GROWING = "A growing site";
 const BIG = "A big site or many places";
 
-/** A growing site, a big site, or a client who is not sure (tier 2). */
-const TIER_2: Cond = { key: SIZE_KEY, equals: [GROWING, BIG, UNSURE] };
-/** A big site or many places only (tier 3). */
-const TIER_3: Cond = { key: SIZE_KEY, equals: [BIG] };
-
 const LOCAL = ["Near me", "A mix"];
-const BUSINESS = ["Other businesses", "A mix"];
 const localCustomers: Cond = { key: "customers", equals: LOCAL };
-const businessCustomers: Cond = { key: "customers", equals: BUSINESS };
 
 export const SEO_STEPS: Step[] = [
   {
@@ -43,27 +36,29 @@ export const SEO_STEPS: Step[] = [
         hint: "One site, one place is a small site or a single location. A growing site has more pages or a few locations. A big site or many places is a large site or many locations.",
         options: [ONE_SITE, GROWING, BIG],
       },
-      { key: "has_site", label: "Do you have a website now?", kind: "cards", required: true, options: ["Yes", "Not yet"] },
-      { key: "site_url", label: "Your website", kind: "url", required: true, placeholder: "https://", showIf: { key: "has_site", equals: ["Yes"] } },
+      /* One question, not two: the address, with a way to say there is none. */
+      {
+        key: "site_url", label: "What is your website address?", kind: "url",
+        placeholder: "https://",
+        hint: "If you do not have a website yet, tap the button below.",
+      },
+      {
+        key: "has_site", kind: "cards", label: "No website yet?",
+        options: ["I do not have one yet"],
+      },
       {
         key: "customers", assist: true, label: "Where are your customers?", kind: "cards", required: true,
         options: ["Near me", "Online, anywhere", "Other businesses", "A mix"],
         tip: "Near me: people in my area. Online, anywhere: people across the country or the world. Other businesses: my customers are companies. A mix: more than one of these.",
       },
       {
-        key: "geo", assist: true, label: "Which areas do you serve?", kind: "text", required: true,
+        key: "geo", assist: true, label: "Which areas do you serve?", kind: "text",
         placeholder: "For example the three areas around the shop, or nationwide",
         showIf: localCustomers,
       },
       {
-        key: "has_gbp", label: "Do you have a Google Business Profile?", kind: "cards",
-        options: ["Yes", "No", UNSURE],
-        hint: "It is your business listing in maps and search.",
-        showIf: localCustomers,
-      },
-      {
         key: "b2b_kind", assist: true, label: "What kind of businesses buy from you?", kind: "text",
-        showIf: businessCustomers,
+        showIf: [{ tier: 3 }, { key: "customers", equals: ["Other businesses", "A mix"] }],
       },
     ],
   },
@@ -89,34 +84,35 @@ export const SEO_STEPS: Step[] = [
         hint: "Our work starts at 3 months. We cannot promise rankings or results.",
       },
       {
-        key: "target_terms", assist: true, required: true, label: "What should someone be typing into Google when they find you?", kind: "textarea",
+        key: "target_terms", assist: true, label: "What should someone type into Google to find you?", kind: "textarea",
+        placeholder: "For example: wedding photographer near me",
+      },
+    ],
+  },
+  {
+    phase: "work", id: "seo_setup", service: "seo", title: "What you have set up",
+    blurb: "Quick taps. Access comes later, never a password here.",
+    fields: [
+      /* Three jargon questions are one tap. Access is arranged later through a
+         secure route, never asked for in this form. */
+      {
+        key: "seo_tools", kind: "multi", assist: true,
+        label: "Which of these do you have?",
+        hint: "Tap the ones you have. Access comes later, through a secure route. Never put a password in this form.",
+        tip: "Google Business Profile is your business listing in maps and search. Google Search Console shows how people find you in search. Google Analytics shows visits to your website and what people do there.",
+        options: ["Google Business Profile", "Google Search Console", "Google Analytics", "None of these"],
+        showIf: { tier: 2 },
       },
       {
-        key: "has_search_console", label: "Do you have Google Search Console?", kind: "cards", required: true,
-        options: ["Yes", "No", UNSURE],
-        hint: "It shows how people find you in search. Access comes later, through a secure route, never a password in this form.",
-        showIf: TIER_2,
-      },
-      {
-        key: "has_analytics", label: "Do you have Google Analytics?", kind: "cards", required: true,
-        options: ["Yes", "No", UNSURE],
-        hint: "It shows visits to your website and what people do there. Access comes later, through a secure route, never a password in this form.",
-        showIf: TIER_2,
-      },
-      {
-        key: "content_owner", label: "Who writes your content?", kind: "cards", required: true,
+        key: "content_owner", label: "Who writes your content?", kind: "cards",
         options: ["Nobody yet", "My team", "An agency", "I would like WDC to"],
-        showIf: TIER_2,
-      },
-      {
-        key: "content_writer_wanted", label: "Would you like us to write it?", kind: "yesno",
-        scope: "Extra to what you have already paid for. Say yes and we will send you a quote first. Nothing is charged from this form.",
-        showIf: [TIER_2, { key: "content_owner", equals: ["Nobody yet"] }],
+        scope: "If you pick WDC, writing is extra to what you have already paid for. We send you a quote first. Nothing is charged from this form.",
+        showIf: { tier: 2 },
       },
       {
         key: "competitors", assist: true, label: "Which similar businesses show up when you search?", kind: "textarea",
-        placeholder: "Names or links are enough. You do not need to know their rankings.",
-        showIf: TIER_3,
+        placeholder: "Up to three names or links. You do not need to know their rankings.",
+        showIf: { tier: 3 },
       },
     ],
   },
