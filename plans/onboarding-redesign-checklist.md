@@ -10,6 +10,8 @@ Plan: [onboarding-redesign-plan.md](onboarding-redesign-plan.md). Update this fi
 4. Writing style for owner facing text: short sentences, plain words, no dashes, no semicolons.
 5. A schema change ships as a migration. The owner applies it in Settings > System. Say so.
 
+Owner approved the plan and chose Flow 1 (Size first) for every service on 7 October 2026. Decisions: [onboarding-decisions.md](onboarding-decisions.md). Agent brief: [onboarding-build-brief.md](onboarding-build-brief.md).
+
 Legend: [x] done, [ ] to do, [~] in progress, [!] blocked on the owner.
 
 ## Phase 0. Understand and agree
@@ -135,3 +137,21 @@ Plan section 13. Small updates. Copy needs owner approval first.
 - [ ] Responsive and performance check, both themes, video loops measured on a phone
 - [ ] Update the services and work tests in the same commit
 - [ ] Migration note if the Works data lives in the database
+
+## Phase 8. Build progress (7 October 2026 onward)
+
+Two agents at a time, Haiku executes, the lead verifies, commits and pushes. Only the Size first flow is built.
+
+- [x] Owner picks Flow 1 (Size first) for all six, and approves all decisions (onboarding-decisions.md)
+- [x] Engine: one `isVisible`, combined conditions, `notice` kind, richer option info, comma "not sure" (old wording still reads). Pushed
+- [x] One steps file per service in `lib/onboarding-services/`, `stepsFor` uses a service's own steps. Pushed
+- [x] Stale picker specs fixed, spec helpers added (`tests/onboarding-helpers.ts`). Pushed
+- [x] Specs without a browser for the engine (`tests/onboarding-engine.spec.ts`, 5 passing)
+- [x] Realtors' Practice deck slides rendered into `public/work/deck` (no prices, no contact details)
+- [x] Drive checked: motion zip is 113 MB and the Drive tool caps downloads at 10 MB, so it cannot be fetched here. Owner can upload each clip under 10 MB later
+- [~] Round 1: Branding (cards with samples, motion card, colour system, style help, size gating)
+- [~] Round 1: Web and SEO (and the legacy answer map `lib/onboarding-aliases.ts`)
+- [ ] Round 2: Apps (feature checklist, grouped and searchable) and Software & AI
+- [ ] Round 3: Social & Ads, then shared pieces: review screen, studio scope note, engagement section behind a flag, reminder email, pre-filled link
+- [ ] Round 4: Services and Works pages (copy in services-and-works-copy-proposal.md), pitch deck and motion on Works
+- [ ] Final: lint, tsc, production build, every spec, full e2e of each form at 320, 390, 768, 1280 in both themes, merge to main, verify deploy
