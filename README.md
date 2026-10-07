@@ -24,7 +24,25 @@ Use the frontend guide for environment boundaries, persistence, provider integra
 
 ## Design system
 
-Onboarding service choice reuses `SelectField` through `ServicePicker`: a closed trigger, compact icon/name/description rows, disabled-service reasons and explicit Next. Optional `ColourField` uses the same picker for roles, bounded rows and a keyboard-accessible shade panel. `lib/brand-colours.ts` keeps `brand_colours` readable text, validates up to five new preferences and preserves legacy notes until explicitly replaced. Run `node --experimental-strip-types frontend/scripts/check-brand-colours.mjs` for its storage and shade checks.
+Onboarding service choice reuses `SelectField` through `ServicePicker`: a closed trigger, compact icon/name/description rows, disabled-service reasons and explicit Next.
+
+**Onboarding forms (redesign, October 2026).** Every question is data in `lib/onboarding-services/<service>.ts` (one file per service) and the shared screens in `lib/onboarding.ts` (`CORE_STEPS`, `CLOSING_STEPS`). Each service opens with a Size first question and `showIf` conditions that combine (`{ key, equals?, filled? }`, `{ any: [...] }`, `{ tier: 2 | 3 }`) so a later pick can raise the tier; `isVisible` is the only visibility rule and a screen with no visible question is skipped. Decisions are in `plans/onboarding-decisions.md`, the research behind the numbers in `plans/onboarding-ux-research.md`, the words in `plans/onboarding-voice-guide.md`. `tests/onboarding-guardrails.spec.ts` holds every form to its question, required and free text ceilings.
+
+Controls (all in `components/onboarding/`, one rule: **a single choice with three or more plain options is a dropdown (`SelectField`), a two option choice or Yes and No is one compact segmented line, and listed out cards are for checkboxes, multi select, or the few single choices that need a picture or a sentence**):
+
+| Need | Use | Notes |
+|---|---|---|
+| Pick one of three or more | `SelectField` (dropdown, bottom sheet on phones) | Placeholder "Pick the closest". |
+| Pick one of two, or Yes and No | segmented control in `FieldView` | One line, 44px, press again to unchoose. |
+| Pick one with a picture or explanation | `OptionCards` (`option-card.tsx`) when the field has `optionInfo` | One lazy thumbnail per card through next/image, swatches named in text. |
+| Pick several | chips for six or fewer, checkbox cards otherwise | Exclusive options such as None of these replace the rest. |
+| Pick from a long list | `FeatureChecklist` (`feature-checklist.tsx`) when the field has `groups` | Search, popular first, See all, removable chips. |
+| Colours | `ColourField` (`colour-field.tsx`), `kind: "colours"` | Pick a feeling, then Yes use these (two taps), or read colours from a logo on the phone, type codes, describe in words, or Choose for me. Stored as readable `Name | #HEX | Role` lines with the lead colour as `Main colour (primary)`, plus `brand_vibe`, `brand_colour_source`, `brand_colours_words`. Palettes and names are in `lib/colour-palettes.ts`. `suggestRoles` in `lib/brand-colours.ts` sorts them for the studio when read. Run `node --experimental-strip-types frontend/scripts/check-brand-colours.mjs`. |
+| Read only text between questions | `kind: "notice"` | Never validated or stored. |
+| A person is one tap away | `HelpStrip` (`help-strip.tsx`) | WhatsApp button only when `NEXT_PUBLIC_STUDIO_WHATSAPP` is set, email always, and the line saying what we never ask for. |
+| Agree the terms | `EngagementSection` (`engagement-section.tsx`) | Four grouped ticks and a typed name, only when `engagementIsLive()` (a lawyer has approved and `ONBOARDING_ENGAGEMENT=on`). The server checks it again. |
+
+Words are filled in by `lib/onboarding-voice.ts`: the client's name in titles, industry aware examples inside text boxes, a reflect back line after a screen, milestone lines, buttons that name the next screen. Old answers are read through `lib/onboarding-aliases.ts` and anything no question asks any more is listed under Earlier questions in the admin.
 
 Brief option descriptions and press-to-open illustrated examples live in `lib/onboarding-help.ts` and `BriefExample`, through the existing `Tip`. They explain all six services without new questions or renamed stored values. Examples are labelled illustrations, not included outputs or connected services; costs and secure-access requirements stay visible. The shared help panel has bounded native scrolling and 44px controls.
 
@@ -156,4 +174,4 @@ All of these live in `frontend/components/admin/`. The public site has its own o
 - **Addresses:** temporary inboxes and anonymous mail services are refused at every public form and on invitations (`lib/email-domains.ts`).
 Production admin collections start empty and hydrate only from persisted records. Empty databases are never seeded from demo fixtures; missing or failed database access is reported. The legacy candidate manifest and read-only audit script live in docs/audits and frontend/scripts/audit-demo-records.mjs; candidate IDs require full-record provenance review before deletion, and authentication/current owner records are outside the cleanup scope.
 
-Onboarding service labels and helper copy have explicit spacing. Optional colour preferences use a bordered expandable control with explanatory copy and an open/closed chevron, rather than an unmarked text link.
+Onboarding service labels and helper copy have explicit spacing. The colour question is the feeling cards flow described above, not an expandable control.
