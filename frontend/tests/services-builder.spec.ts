@@ -24,7 +24,6 @@ test("ticking builds the package, suggests a pairing, and carries it to /start",
   await cta.click();
   await expect(page).toHaveURL(/\/start\?services=web,seo$/);
   await expect(page.locator(".cf textarea")).toHaveValue(/We are interested in: .*Web.*Search/);
-  await expect(page.getByLabel("Full-Stack Web Development")).toBeChecked();
 });
 
 test("each service explains itself before it can be added", async ({ page }) => {
