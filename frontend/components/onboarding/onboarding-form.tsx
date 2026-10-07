@@ -1,5 +1,7 @@
 "use client";
 
+import EngagementSection, { engagementAccepted } from "./engagement-section";
+import { echoFor, exampleFor, fill, milestone, nextLabel } from "@/lib/onboarding-voice";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle, ArrowLeft, ArrowRight, BadgeInfo, Check, HelpCircle,
@@ -65,6 +67,22 @@ const EXCLUSIVE_MULTI_OPTIONS = new Set(["None yet", "None of these", UNSURE, UN
 /** A field is asked only when its condition is met. Hidden means not asked. */
 const visible = (f: Field, a: Answers) => isVisible(f, a);
 
+/**
+ * THE QUESTION AS THE CLIENT HEARS IT: their name and business filled into the
+ * copy, and the example inside a text box taken from their industry
+ * (plans/onboarding-voice-guide.md). Only the words change, never the key, the
+ * conditions or the stored answer.
+ */
+function voiced(f: Field, a: Answers): Field {
+  return {
+    ...f,
+    label: fill(f.label, a),
+    hint: f.hint ? fill(f.hint, a) : f.hint,
+    tip: f.tip ? fill(f.tip, a) : f.tip,
+    placeholder: f.example ? `For example: ${exampleFor(f.example, a)}` : f.placeholder,
+  };
+}
+
 type Draft = { answers: Answers; service: ServiceSlug | null; step: number; started: boolean };
 
 function withAnswerDefaults(answers: Answers = {}): Answers {
@@ -101,7 +119,7 @@ function readDraft(): Partial<Draft> {
   }
 }
 
-export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: Record<string, string>; styles?: Record<string, string> }) {
+export default function OnboardingForm({ closed = {}, styles = {}, engagement = false }: { closed?: Record<string, string>; styles?: Record<string, string>; engagement?: boolean }) {
   const [draft] = useState(readDraft);
 
   /* WHICH SERVICE THIS FORM IS FOR -- one, not a list.
@@ -302,14 +320,11 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
   const progress = done
     ? 100
     : Math.max(8, Math.round(((i + (style === "conversation" && talkPages.length ? at / talkPages.length : 0)) / steps.length) * 100));
-  const encouragement =
-    i === 0
-      ? "You are off to a good start."
-      : i === 1
-        ? "This detail helps us begin with fewer follow-up questions."
-        : i === 2
-          ? "We have the shape of the project now."
-          : "Nearly there; review comes next.";
+  /* A line at the halfway mark and near the end, nothing the rest of the time
+     (lib/onboarding-voice.ts), and one plain line reflecting back the screen
+     before this one, built only from what was picked. */
+  const encouragement = milestone(i, steps.length) ?? "";
+  const echo = i > 0 ? echoFor(steps[i - 1].id, a) : null;
 
   const mins = useMemo(
     () => minutesLeft(steps, i, a, (f) => visible(f, a)),
@@ -502,7 +517,7 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
         </span>
 
         <p className="ob__k">Sent</p>
-        <h2>{thanks?.heading || "Thank you. That is everything we need."}</h2>
+        <h2>{thanks?.heading || fill("Thank you, {first_name}. {company|Your brief} is with the studio.", a)}</h2>
         <p className="ob__lede">
           {thanks?.message || (
             <>
@@ -569,10 +584,10 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
     return (
       <div className="ob ob--intro">
         <p className="ob__k">Review</p>
-        <h2>Read it back.</h2>
+        <h2>Here is what we heard.</h2>
         <p className="ob__lede">
-          Everything you have told us. Change anything that is not right before
-          you send it.
+          Everything you have told us. Change anything that is not right, then
+          send it to the studio.
         </p>
 
         <div className="ob__review">
@@ -598,6 +613,8 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
           ))}
         </div>
 
+        {engagement && chosen ? <EngagementSection service={chosen} answers={a} set={set} /> : null}
+
         {serverDraft.message ? <p className="ob__saved" role="status">{serverDraft.message}</p> : null}
 
         {/* BACK FIRST, THEN SEND, and Start over on its own line.
@@ -614,7 +631,7 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
           <button
             className="ob__btn ob__btn--go"
             type="button"
-            disabled={serverDraft.submitting}
+            disabled={serverDraft.submitting || (engagement && !engagementAccepted(a))}
             onClick={async () => {
               try {
                 const result = await serverDraft.submit() as { confirmation?: { heading?: string; message?: string; redirect?: string } } | undefined;
@@ -627,7 +644,7 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
               } catch { /* The hook presents the server message. */ }
             }}
           >
-            {serverDraft.submitting ? "Sending..." : "Send the brief"} <ArrowRight aria-hidden="true" />
+            {serverDraft.submitting ? "Sending..." : "Send to the studio"} <ArrowRight aria-hidden="true" />
           </button>
           {/* ASKS FIRST. This throws away everything the client has typed,
               it is next to the button that submits, and it cannot be undone. */}
@@ -710,11 +727,11 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
                   </button>
                   {open ? (
                     <div className="obb__body">
-                      <p className="ob__blurb">{s.blurb}</p>
+                      <p className="ob__blurb">{fill(s.blurb, a)}</p>
                       <div className="ob__fields">
                         {shown.map((f) => (
                           <FieldView
-                            key={f.key} f={f} value={a[f.key]} onChange={(v) => set(f.key, v)} setOther={set}
+                            key={f.key} f={voiced(f, a)} value={a[f.key]} onChange={(v) => set(f.key, v)} setOther={set}
                             onBlur={() => setTouched((t) => ({ ...t, [f.key]: true }))}
                             onPhoneValidity={(ok) => setPhoneOk((p) => ({ ...p, [f.key]: ok }))}
                             problem={showProblem(f.key) ? problemWith(f, a[f.key], { phoneOk: phoneOk[f.key] }) : null}
@@ -807,7 +824,7 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
               <span className="ob__mins">about {mins} min left</span>
             </p>
           </div>
-          <p className="ob__encourage">{encouragement}</p>
+          {encouragement ? <p className="ob__encourage">{encouragement}</p> : null}
 
           {/* `role="status"` rather than an alert: this is good news, and it
               should not interrupt anyone. */}
@@ -821,11 +838,12 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
         </div>
 
         {style === "conversation" ? (
-          <p className="ob__k ob__talkK">{step.title}</p>
+          <p className="ob__k ob__talkK">{fill(step.title, a)}</p>
         ) : (
           <>
-            <h2>{step.title}</h2>
-            <p className="ob__blurb">{step.blurb}</p>
+            <h2>{fill(step.title, a)}</h2>
+            <p className="ob__blurb">{fill(step.blurb, a)}</p>
+            {echo ? <p className="ob__echo" role="status">{echo}</p> : null}
           </>
         )}
 
@@ -846,7 +864,7 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
           {(style === "conversation" ? (talkPages[at] ?? []) : shown).map((f) => (
             <FieldView
               key={f.key}
-              f={f}
+              f={voiced(f, a)}
               value={a[f.key]}
               onChange={(v) => set(f.key, v)}
               setOther={set}
@@ -880,7 +898,7 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
             <Save aria-hidden="true" /> Save &amp; continue later
           </button>
           <button className="ob__btn ob__btn--go ob__stepNext" type="button" onClick={next}>
-            {i === steps.length - 1 && (style !== "conversation" || at >= talkPages.length - 1) ? "Review" : "Next"} <ArrowRight aria-hidden="true" />
+            {i === steps.length - 1 && (style !== "conversation" || at >= talkPages.length - 1) ? "Review and send" : nextLabel(steps[i + 1] ? fill(steps[i + 1].title, a) : undefined)} <ArrowRight aria-hidden="true" />
           </button>
         </div>
 
@@ -1035,7 +1053,7 @@ function FieldView({
   const label = (
     <label className="ob__label" htmlFor={id}>
       {f.label}
-      {f.required ? <b aria-hidden="true"> *</b> : <i> (optional)</i>}
+      {f.required ? <b aria-hidden="true"> *</b> : null}
       {/* Background lives behind the question mark, so the form stays a list
           of questions rather than a page of prose. Only explanations the
           question genuinely cannot be answered without stay inline, as

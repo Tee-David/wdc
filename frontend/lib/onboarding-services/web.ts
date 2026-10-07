@@ -52,7 +52,7 @@ const needsHelp = "I need help";
 export const WEB_STEPS: Step[] = [
   {
     phase: "work", id: "web", service: "web", title: "What the site is for",
-    blurb: "The job it has to do, before we talk about how it looks.",
+    blurb: "The job first. How it looks comes after.",
     fields: [
       {
         key: SIZE_KEY, assist: true, required: true, kind: "cards",
@@ -127,7 +127,7 @@ export const WEB_STEPS: Step[] = [
   },
   {
     phase: "work", id: "web_content", service: "web", title: "Words and pictures",
-    blurb: "Who writes the words and takes the pictures.",
+    blurb: "Who writes the words, and who takes the pictures?",
     fields: [
       { key: "words_ready", label: "The words for the site", kind: "cards", required: true, options: ["I have them", needsHelp] },
       { key: "pictures_ready", label: "The pictures for the site", kind: "cards", options: ["I have them", needsHelp] },
@@ -139,7 +139,7 @@ export const WEB_STEPS: Step[] = [
     ],
   },
   {
-    phase: "work", id: "web_tech", service: "web", title: "Extras and your web address",
+    phase: "work", id: "web_tech", service: "web", title: "Extras, and your web address",
     blurb: "What else it has to do, and where it will live.",
     fields: [
       {

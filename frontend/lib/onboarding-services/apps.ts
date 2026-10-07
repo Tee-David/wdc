@@ -42,7 +42,7 @@ const onPhone: Cond = { key: "platforms", equals: [PHONE, ANDROID] };
 
 export const APPS_STEPS: Step[] = [
   {
-    phase: "work", id: "apps", service: "apps", title: "Your app",
+    phase: "work", id: "apps", service: "apps", title: "Tell us about the app",
     blurb: "Where it runs, and what it is for.",
     fields: [
       {
@@ -83,12 +83,12 @@ export const APPS_STEPS: Step[] = [
       {
         key: "one_job", assist: true, required: true, kind: "text",
         label: "In one sentence, what is the main job of the app?",
-        placeholder: "For example: lets customers book a visit and pay",
+        example: "job",
       },
     ],
   },
   {
-    phase: "work", id: "apps_features", service: "apps", title: "What it does",
+    phase: "work", id: "apps_features", service: "apps", title: "What the app does",
     blurb: "Pick the features you need. We confirm the list with you.",
     fields: [
       {
@@ -105,8 +105,8 @@ export const APPS_STEPS: Step[] = [
     ],
   },
   {
-    phase: "work", id: "apps_setup", service: "apps", title: "People and connections",
-    blurb: "Who uses it, and what it has to talk to.",
+    phase: "work", id: "apps_setup", service: "apps", title: "Who uses it, and what it connects to",
+    blurb: "People first, then the tools it has to talk to.",
     fields: [
       {
         key: "app_roles", assist: true, kind: "multi",

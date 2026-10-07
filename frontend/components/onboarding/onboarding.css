@@ -1292,3 +1292,27 @@
 @media (prefers-reduced-motion: reduce) {
   .obCol__card, .obCol__opt, .obCol__bigBtn { transition: none; }
 }
+
+/* ============================================================================
+   The voice of the form (plans/onboarding-voice-guide.md): the line that
+   reflects back the screen before. One line, body colour, weight for stress,
+   never a second colour. Quiet on purpose.
+   ========================================================================== */
+.pv .ob__echo {
+  margin: .15rem 0 .9rem; font-weight: 600; color: var(--ink);
+  font-size: .98rem; line-height: 1.45;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pv .ob__echo { animation: ob-echo .32s cubic-bezier(.16, 1, .3, 1) backwards; }
+}
+@keyframes ob-echo { from { opacity: 0; transform: translateY(-4px); } }
+
+/* ============================================================================
+   The engagement section: four grouped ticks. Solid surfaces, body colour.
+   ========================================================================== */
+.pv .obEng { display: grid; gap: 1rem; margin-top: 1.5rem; min-width: 0; }
+.pv .obEng__group { display: grid; gap: .55rem; padding: 1rem; border: 1px solid var(--rule); border-radius: 14px; background: var(--paper-2); min-width: 0; }
+.pv .obEng__group h3 { margin: 0; font-size: 1.05rem; }
+.pv .obEng__group p { margin: 0; line-height: 1.5; }
+.pv .obEng__group summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.pv .obEng__group summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
