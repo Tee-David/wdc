@@ -10,7 +10,7 @@ import { after } from "next/server";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
 import { isQuestion, stepsFor } from "@/lib/onboarding";
-import { shownInBrief } from "@/lib/onboarding-aliases";
+import { earlierAnswers, shownInBrief } from "@/lib/onboarding-aliases";
 import type { FormDef } from "@/lib/forms/registry";
 import { answeredCount, clientFor, entryIds, getEntry, markRead, readFilters, type Entry } from "@/lib/forms/entries";
 import { eventsFor, type EntryEvent } from "@/lib/forms/events";
@@ -117,6 +117,7 @@ function Answers({ form, entry, hideEmpty }: { form: FormDef; entry: Entry; hide
      about on the call. Questions they were never shown are left out. */
   const steps = stepsFor(form.service!);
   const { answered, total } = answeredCount(form.service!, entry.answers);
+  const earlier = earlierAnswers(form.service!, entry.answers);
   return (
     <Panel title={`${answered} of ${total} questions answered`}
       action={<Link className="ad__btn adForms__noPrint" href={`?${hideEmpty ? "" : "hide=1"}`}>{hideEmpty ? "Show unanswered" : "Hide unanswered"}</Link>}>
@@ -141,6 +142,16 @@ function Answers({ form, entry, hideEmpty }: { form: FormDef; entry: Entry; hide
             </section>
           );
         })}
+        {earlier.length ? (
+          <section style={{ paddingTop: ".9rem" }}>
+            <h3 style={{ fontSize: ".8rem", textTransform: "uppercase", letterSpacing: ".05em", color: "var(--ad-dim)" }}>Earlier questions</h3>
+            <dl className="adForms__dl" style={{ padding: 0 }}>
+              {earlier.map((e) => (
+                <div key={e.key}><dt>{e.label}</dt><dd>{e.value}</dd></div>
+              ))}
+            </dl>
+          </section>
+        ) : null}
       </div>
     </Panel>
   );

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { isQuestion, isUnsure, isVisible, minutesLeft, problemWith, UNSURE, UNSURE_LEGACY, type Field } from "../lib/onboarding";
+import { isQuestion, isUnsure, isVisible, minutesLeft, problemWith, tierOf, UNSURE, UNSURE_LEGACY, type Field } from "../lib/onboarding";
 
 /**
  * The visibility rule is the one thing the form, the server check and the admin
@@ -42,4 +42,26 @@ test("a notice asks nothing, is never required and costs no time", () => {
   expect(problemWith(notice, undefined)).toBeNull();
   const steps = [{ id: "s", title: "S", blurb: "", phase: "work" as const, fields: [notice] }];
   expect(minutesLeft(steps, 0, {}, () => true)).toBe(1);
+});
+
+test("the tier comes from the size answer, and not sure counts as the middle", () => {
+  expect(tierOf({})).toBe(1);
+  expect(tierOf({ site_size: "A simple site" })).toBe(1);
+  expect(tierOf({ site_size: "A bigger site" })).toBe(2);
+  expect(tierOf({ job_size: "A full brand" })).toBe(3);
+  expect(tierOf({ app_size: "Large" })).toBe(3);
+  expect(tierOf({ seo_size: UNSURE })).toBe(2);
+  expect(tierOf({ sw_size: UNSURE_LEGACY })).toBe(2);
+});
+
+test("a tier condition holds at or above it, and any-of lets a later pick raise the tier", () => {
+  const medium = f({ tier: 2 });
+  expect(isVisible(medium, { job_size: "One piece or a small set" })).toBe(false);
+  expect(isVisible(medium, { job_size: "Several pieces" })).toBe(true);
+  expect(isVisible(medium, {})).toBe(false);
+
+  const colours = f({ any: [{ tier: 2 }, { key: "deliverables", equals: ["Brand guidelines", "Full identity system"] }] });
+  expect(isVisible(colours, { job_size: "One piece or a small set" })).toBe(false);
+  expect(isVisible(colours, { job_size: "One piece or a small set", deliverables: ["Logo", "Brand guidelines"] })).toBe(true);
+  expect(isVisible(colours, { job_size: "A full brand" })).toBe(true);
 });

@@ -25,6 +25,28 @@ The owner said: use Flow 1 (Size first) for every service, and "do the best for 
 | 19 | Pitch deck sample uses Realtors' Practice slides with no prices or contact details: `public/work/deck/`. | Remove the files. |
 | 20 | Drive samples: not downloaded. The 147 images already in `public/brand-work/` cover every card. | Download later through the Drive API. |
 
+## Decisions from the UX research (7 October 2026)
+
+The owner asked for deep research into form and onboarding UX, a simpler colour flow, and adjustments to every form. Report: [onboarding-ux-research.md](onboarding-ux-research.md). The owner said to decide, so every recommendation in it is adopted unless listed under "Not adopted". Step files in `frontend/lib/onboarding-services/` were rewritten to match. The old artifact data in `onboarding-artifact-specs/` is superseded by those files.
+
+| # | Decision | Where |
+|---|---|---|
+| 21 | Colour flow replaced. Six feeling cards with ready palettes, then "Yes, use these" (two taps). Also: read colours from a logo or picture, type codes, describe in words, or "Choose for me". Optional deeper path: eleven named colour chips and a code field. Removed: colour families, shade slider, Like it to Love it slider, first choice control, role dropdown, free picker, HeroUI. Stored in the existing `Name \| #HEX \| Role` lines with the lead colour as `Main colour (primary)`, plus `brand_vibe`, `brand_colour_source`, `brand_colours_words`. Decisions 14 and 15 are superseded. | research D, `kind: "colours"` |
+| 22 | Shared screens trimmed. About you is two screens: contact in four fields, then business in three taps. Address, long company description and the brand colour text box are cut or moved. Age and "what makes you the one" open at medium and large only. Finishing up is three screens: timing and who decides, what you already have, last things. Decision 3 reversed. | `CORE_STEPS`, `CLOSING_STEPS` |
+| 23 | Deadline and any fixed date are asked once, on the shared closing screen, for every service. | `CLOSING_STEPS` |
+| 24 | A later pick can raise the tier. `showIf` takes `{ any: [...] }` and `{ tier: 2 \| 3 }`. Ticking Brand guidelines on a small job still reaches the colour screen. | `lib/onboarding-shared.ts` |
+| 25 | A screen with no visible questions is skipped. | `onboarding-form.tsx` |
+| 26 | Required questions at most ten at any size. Branding four, Web four, SEO four, Apps three, Software two, Social four, plus approver and update channel. | step files |
+| 27 | Typing became tapping wherever possible: pain chips (Software), tool chips, who uses it (Apps), booking kinds (Web), tools you have (SEO, one question), account route (Social, four answers in one). | step files |
+| 28 | Cut: Web contact methods and the search optimisation sell (now a notice), SEO business kind below large, Apps offline parts text, Software "walk us through the work" and "seen something you liked", Branding layouts and recurring kind, Social handle per platform and four end boxes (now one). | step files |
+| 29 | Apps feature list is about thirty items with eight popular shown first and the rest behind See all. Still searchable. | `FEATURE_GROUPS` |
+| 30 | Branding cards show one picture each. The Motion design card uses a real loop from the owner's clips, not a "clip pending" tile. | `DELIVERABLE_INFO` |
+| 31 | Engagement section on the last screen is four grouped ticks, not thirteen, each with a short summary and Read in full. Still behind the flag until the lawyer approves. | plan 8 changed |
+| 32 | Review screen and reminders: the review screen is the Send screen. It says what happens next and carries no number of days. Reminders: at most two per unfinished form, each switchable off. | plan 6.5 |
+| 33 | WhatsApp: the resume link is also sent by WhatsApp, a Talk to a person button saves the form and flags it, and a WhatsApp button carries the form reference. A trust line says we never ask for passwords, PINs, OTP codes, BVN or card numbers. | form chrome |
+
+**Not adopted, or deferred.** Pre-filling name, phone, email and business from the payment record: not verified that the record holds them, so the first screen stays four short fields. Voice notes recorded inside the form: offered through WhatsApp instead. Real timing calibration: needs real clients, so the time estimates stay formula based and a task records timings after launch.
+
 ## Build order (two agents at a time, one commit per piece, pushed as it lands)
 
 1. Foundation (done): one `isVisible`, conditions that combine, `notice` kind, richer option info, the comma wording, tests.

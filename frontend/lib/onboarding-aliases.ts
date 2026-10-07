@@ -1,5 +1,9 @@
-import { isFilled, isVisible } from "./onboarding";
+import { isFilled, isVisible, stepsFor } from "./onboarding";
+import { SIZE_KEY as APPS_SIZE_KEY } from "./onboarding-services/apps";
+import { SIZE_KEY as BRANDING_SIZE_KEY } from "./onboarding-services/branding";
 import { SIZE_KEY as SEO_SIZE_KEY } from "./onboarding-services/seo";
+import { SIZE_KEY as SOCIAL_SIZE_KEY } from "./onboarding-services/social";
+import { SIZE_KEY as SOFTWARE_SIZE_KEY } from "./onboarding-services/software";
 import { SIZE_KEY as WEB_SIZE_KEY } from "./onboarding-services/web";
 import { UNSURE, UNSURE_LEGACY, type Field } from "./onboarding-shared";
 import type { ServiceSlug } from "./services";
@@ -74,28 +78,106 @@ function webRead(a: Answers): Answers {
       out.features = features.filter((v) => !JOB_FOR_FEATURE.has(v));
     }
   }
+
+  /* "Do you have hosting and a domain" became "Do you have a website address".
+     Having the domain is what both old yes answers meant. */
+  const hosting = at(a, "has_hosting");
+  if (typeof hosting === "string" && !isFilled(at(a, "has_domain"))) {
+    out.has_domain = hosting === "Neither" ? "No" : hosting === "Both" || hosting === "Domain only" ? "Yes" : "Not sure";
+  }
+
+  /* One question about words and pictures became two. */
+  const ready = at(a, "content_ready");
+  if (typeof ready === "string") {
+    const needed = asList(at(a, "content_needed")) ?? [];
+    const help = ready === "I need WDC to produce them";
+    const some = ready === "I have some of them";
+    const words = help || (some && (needed.includes("Words") || needed.includes("Both")));
+    const pictures = help || (some && (needed.includes("Photography") || needed.includes("Both")));
+    if (!isFilled(at(a, "words_ready"))) out.words_ready = words ? "I need help" : "I have them";
+    if (!isFilled(at(a, "pictures_ready"))) out.pictures_ready = pictures ? "I need help" : "I have them";
+  }
   return out;
 }
 
 /* ------------------------------------------------------------ seo */
 
-/** Search Console, Analytics and Google Business Profile were ticks in one list. */
-const TOOL_KEYS: [string, string][] = [
-  ["has_search_console", "Search Console"],
-  ["has_analytics", "Analytics"],
-  ["has_gbp", "Google Business Profile"],
-];
+/** The old tick list named the tools more shortly than the new one does. */
+const SEO_TOOL_NOW = new Map<string, string>([
+  ["Search Console", "Google Search Console"],
+  ["Analytics", "Google Analytics"],
+  ["Google Business Profile", "Google Business Profile"],
+  ["None of these", "None of these"],
+]);
 
 function seoRead(a: Answers): Answers {
   const out: Answers = { ...a };
   const tools = asList(at(a, "tools_access"));
-  if (!tools) return out;
-  for (const [key, tool] of TOOL_KEYS) {
-    /* A newer answer to the new question always wins. */
-    if (isFilled(at(a, key))) continue;
-    /* A tool that was not ticked reads as "No". The old question asked what
-       the client already has, so an unticked box is the answer no. */
-    out[key] = tools.includes(tool) ? "Yes" : "No";
+  if (tools && !isFilled(at(a, "seo_tools"))) {
+    out.seo_tools = tools.filter((v) => SEO_TOOL_NOW.has(v)).map((v) => SEO_TOOL_NOW.get(v)!);
+  }
+  return out;
+}
+
+/* ------------------------------------------------------- branding */
+
+/** "What exists today" became a tick list of what the client has. */
+const BRAND_HAVE_FOR_STATE = new Map<string, string[]>([
+  ["Nothing yet", ["Nothing yet"]],
+  ["A logo only", ["A logo"]],
+  ["A full identity needing a refresh", ["A logo", "A brand guide"]],
+]);
+
+function brandingRead(a: Answers): Answers {
+  const out: Answers = { ...a };
+  const state = at(a, "brand_state");
+  if (typeof state === "string" && BRAND_HAVE_FOR_STATE.has(state) && !isFilled(at(a, "brand_have"))) {
+    out.brand_have = BRAND_HAVE_FOR_STATE.get(state)!;
+  }
+  return out;
+}
+
+/* ----------------------------------------------------------- apps */
+
+const PLATFORM_NOW = new Map<string, string>([["iOS", "iPhone"], ["Android", "Android phone"]]);
+
+function appsRead(a: Answers): Answers {
+  const out: Answers = { ...a };
+  const platforms = asList(at(a, "platforms"));
+  if (platforms) out.platforms = platforms.map((v) => PLATFORM_NOW.get(v) ?? v);
+  /* The payments question became two items in the feature list. */
+  const pay = at(a, "payments");
+  if (typeof pay === "string" && pay !== "No" && !isFilled(at(a, "app_features"))) {
+    out.app_features = [pay === "Subscriptions" ? "Subscriptions" : "Take payments"];
+  }
+  return out;
+}
+
+/* --------------------------------------------------------- social */
+
+/* The ad budget bands used an en dash. The new ones say "to". */
+const AD_SPEND_NOW = new Map<string, string>([
+  ["\u20a6100k\u2013\u20a6500k", "\u20a6100k to \u20a6500k"],
+  ["\u20a6500k\u2013\u20a62m", "\u20a6500k to \u20a62m"],
+]);
+const ACCESS_NOW = new Map<string, string>([
+  ["I can give WDC access", "I have them and can add you"],
+]);
+const HANDLE_KEYS = [
+  "handle_instagram", "handle_facebook", "handle_x", "handle_tiktok", "handle_linkedin",
+  "handle_youtube", "handle_pinterest", "handle_snapchat", "handle_whatsapp", "handle_other",
+];
+
+function socialRead(a: Answers): Answers {
+  const out: Answers = { ...a };
+  const spend = at(a, "ad_spend");
+  if (typeof spend === "string" && AD_SPEND_NOW.has(spend)) out.ad_spend = AD_SPEND_NOW.get(spend)!;
+  const access = at(a, "access_ok");
+  if (typeof access === "string" && !isFilled(at(a, "social_access"))) out.social_access = ACCESS_NOW.get(access) ?? access;
+  /* One handle each became one box of links. */
+  if (!isFilled(at(a, "social_links"))) {
+    const lines = HANDLE_KEYS.map((k) => at(a, k)).filter((v): v is string => typeof v === "string" && v.trim() !== "");
+    if (lines.length) out.social_links = lines.join("\n");
   }
   return out;
 }
@@ -103,14 +185,21 @@ function seoRead(a: Answers): Answers {
 /* ---------------------------------------------------------- the table */
 
 const VIEWS: Partial<Record<ServiceSlug, (a: Answers) => Answers>> = {
+  branding: brandingRead,
   web: webRead,
   seo: seoRead,
+  apps: appsRead,
+  social: socialRead,
 };
 
 /** The opening size question of each service that has one. */
 const SIZE_KEY_BY_SERVICE: Partial<Record<ServiceSlug, string>> = {
+  branding: BRANDING_SIZE_KEY,
   web: WEB_SIZE_KEY,
   seo: SEO_SIZE_KEY,
+  apps: APPS_SIZE_KEY,
+  software: SOFTWARE_SIZE_KEY,
+  social: SOCIAL_SIZE_KEY,
 };
 
 /**
@@ -133,4 +222,28 @@ export function shownInBrief(service: ServiceSlug, field: Pick<Field, "key" | "s
   if (isVisible(field, answers)) return true;
   const size = SIZE_KEY_BY_SERVICE[service];
   return size !== undefined && !isFilled(at(answers, size)) && isFilled(at(answers, field.key));
+}
+
+/** Answers stored by something other than a visible question, with a readable name. */
+const OTHER_LABELS: Record<string, string> = {
+  brand_vibe: "The feeling they chose for their colours",
+  brand_colour_source: "Where their colours came from",
+  brand_colours_words: "Their colours, in their own words",
+};
+
+/**
+ * Answers a brief holds that no question in the form asks any more: questions
+ * cut or reworded in the redesign, and the extras the colour screen stores.
+ * The admin lists them under "Earlier questions" so nothing a client typed
+ * drops out of view. Empty answers and internal keys are left out.
+ */
+export function earlierAnswers(service: ServiceSlug, answers: Answers): { key: string; label: string; value: string }[] {
+  const known = new Set(stepsFor(service).flatMap((s) => s.fields.map((f) => f.key)));
+  return Object.entries(answers)
+    .filter(([key, v]) => !known.has(key) && !key.startsWith("_") && !/^(website|company_url|hp_)/.test(key) && isFilled(v))
+    .map(([key, v]) => ({
+      key,
+      label: OTHER_LABELS[key] ?? key.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()),
+      value: Array.isArray(v) ? v.join(", ") : String(v),
+    }));
 }
