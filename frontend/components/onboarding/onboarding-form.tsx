@@ -1,5 +1,6 @@
 "use client";
 
+import HelpStrip from "./help-strip";
 import EngagementSection, { engagementAccepted } from "./engagement-section";
 import { echoFor, exampleFor, fill, milestone, nextLabel } from "@/lib/onboarding-voice";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -8,7 +9,7 @@ import {
   Save, Undo2,
 } from "lucide-react";
 import Link from "next/link";
-import { type ServiceSlug } from "@/lib/services";
+import { SERVICES, type ServiceSlug } from "@/lib/services";
 import { CONTACT_EMAIL } from "@/lib/site";
 import {
   answersForService, isFilled, isUnsure, isVisible, minutesLeft, problemWith, PROJECT_UPDATE_PORTAL, stepsFor, UNSURE, UNSURE_LEGACY,
@@ -901,6 +902,12 @@ export default function OnboardingForm({ closed = {}, styles = {}, engagement = 
             {i === steps.length - 1 && (style !== "conversation" || at >= talkPages.length - 1) ? "Review and send" : nextLabel(steps[i + 1] ? fill(steps[i + 1].title, a) : undefined)} <ArrowRight aria-hidden="true" />
           </button>
         </div>
+
+        <HelpStrip
+          service={SERVICES.find((s) => s.slug === chosen)?.short ?? "onboarding"}
+          company={typeof a.company === "string" ? a.company : ""}
+          name={typeof a.first_name === "string" ? a.first_name : ""}
+        />
 
         {/* THE SUMMARY LISTS THEM AND LINKS TO THEM. "3 questions still need an
             answer" tells someone they have failed without telling them where,

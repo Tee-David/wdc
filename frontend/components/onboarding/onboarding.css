@@ -1316,3 +1316,11 @@
 .pv .obEng__group p { margin: 0; line-height: 1.5; }
 .pv .obEng__group summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
 .pv .obEng__group summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+/* The help line under each screen: a person is one tap away, and what we never
+   ask for. Quiet, body colour, links underlined, 44px tap targets. */
+.pv .ob__help { margin-top: 1.4rem; display: grid; gap: .35rem; font-size: .92rem; line-height: 1.5; }
+.pv .ob__help p { margin: 0; }
+.pv .ob__help a { display: inline-flex; align-items: center; gap: .3rem; min-height: 44px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.pv .ob__help a svg { width: 1rem; height: 1rem; }
+.pv .ob__never { color: var(--muted); }
