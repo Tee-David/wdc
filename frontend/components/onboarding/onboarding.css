@@ -1080,10 +1080,215 @@
 .obFeat__none { display: grid; gap: .4rem; justify-items: start; padding: .4rem 0; color: var(--muted); }
 .obFeat__none p { margin: 0; }
 
+/* Short choices, owner rule: a segmented pair for two choices or yes and no
+   (one line, 44px), compact chips for a short multi list, and a dropdown for
+   three or more single choices (SelectField, not styled here). Solid fills. */
+.ob__seg {
+  display: inline-flex; max-width: 100%;
+  border: 2px solid var(--muted); border-radius: 999px; overflow: hidden;
+}
+.ob__segBtn {
+  min-height: 44px; padding: 0 1.2rem; border: 0;
+  background: var(--paper); color: var(--ink);
+  font: inherit; font-size: .96rem; white-space: nowrap; cursor: pointer;
+}
+.ob__segBtn + .ob__segBtn { border-left: 2px solid var(--muted); }
+.ob__segBtn.is-on { background: var(--accent-fill); color: var(--on-accent); font-weight: 600; }
+.ob__segBtn:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: -4px; }
+
+.ob__card.ob__card--chip { min-height: 44px; padding: .45rem .9rem; border-radius: 999px; gap: .45rem; font-size: .92rem; }
+.ob__card--chip .ob__tick { display: none; }
+.ob__card.ob__card--chip.is-on { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent); }
+.ob__card--chip.is-on .ob__tick { display: grid; background: transparent; border-color: var(--on-accent); color: var(--on-accent); }
+.ob__card--chip .ob__tick svg { width: .75rem; height: .75rem; }
+
 @media (prefers-reduced-motion: no-preference) {
   .obOpt__card { transition: transform .12s ease, border-color .15s ease; }
   .obOpt__card:active { transform: scale(.98); }
 }
 @media (prefers-reduced-motion: reduce) {
   .obFeat__all svg { transition: none; }
+}
+
+/* ---------------------------------------------------------------------------
+   THE COLOUR FLOW (components/onboarding/colour-field.tsx, decision 21).
+
+   Six feeling cards, three palettes each, "Yes, use these". Every colour is
+   also written as text. Chips that carry words are solid (`--accent-fill`
+   with `--on-accent`); buttons take the black and white pair; nothing is a
+   translucent tint. Radio inputs are hidden and the card is the target, so
+   the whole row is 44px or taller. `.ob__f input` and `.ob__f textarea` reach
+   every control inside, which is why the radios and the file input are reset
+   here rather than fought in each rule.
+   --------------------------------------------------------------------------- */
+.obCol { display: grid; gap: 1rem; min-width: 0; max-width: 46rem; }
+.obCol .obCol__radio,
+.obCol .obCol__file input {
+  position: absolute; width: 1px; height: 1px; margin: 0; padding: 0; border: 0;
+  opacity: 0; overflow: hidden; clip: rect(0 0 0 0);
+}
+.obCol__sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.obCol__q { font-family: var(--font-body); font-size: 1rem; font-weight: 600; color: var(--ink); padding: 0; margin: 0 0 .35rem; }
+.obCol__group { display: grid; gap: .9rem; min-width: 0; border: 0; padding: 0; margin: 0; }
+.obCol__h { margin: 0; font-family: var(--font-display, inherit); font-size: 1.1rem; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
+.obCol__count { margin: 0; font-size: .86rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.obCol__status { margin: 0; font-size: .92rem; line-height: 1.5; color: var(--ink); }
+.obCol__confirm { margin: 0; font-size: 1rem; line-height: 1.55; color: var(--ink); }
+.obCol__words { margin: 0; overflow-wrap: anywhere; color: var(--ink); }
+.obCol__wordsLabel { display: block; font-weight: 600; color: var(--ink); margin-bottom: .35rem; }
+.obCol__check { display: flex; align-items: center; gap: .6rem; min-height: 44px; font-size: .96rem; color: var(--ink); cursor: pointer; }
+.obCol__check input { width: 22px; height: 22px; margin: 0; flex: none; accent-color: var(--accent-fill); cursor: pointer; }
+
+.obCol__cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: .65rem; }
+@media (min-width: 620px) { .obCol__cards { grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); } }
+.obCol__card {
+  position: relative; display: grid; gap: .4rem; align-content: start; min-width: 0;
+  min-height: 44px; padding: .85rem .95rem; border: 2px solid var(--rule); border-radius: 14px;
+  background: var(--paper); color: var(--ink); cursor: pointer;
+  transition: border-color .2s ease;
+}
+.obCol__card:hover { border-color: var(--ink); }
+.obCol__card.is-on { border-color: var(--accent-fill); box-shadow: inset 0 0 0 1px var(--accent-fill); }
+.obCol__card:focus-within { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+.obCol__strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); height: 44px; border-radius: 9px; overflow: hidden; border: 1px solid var(--rule); }
+.obCol__strip span { display: block; min-width: 0; }
+.obCol__cardName { font-family: var(--font-display, inherit); font-size: 1.02rem; overflow-wrap: anywhere; }
+.obCol__cardLine { font-size: .92rem; line-height: 1.45; color: var(--muted); }
+.obCol__cardNames { font-size: .8rem; line-height: 1.4; color: var(--muted); overflow-wrap: anywhere; }
+.obCol__card .obCol__badge { justify-self: start; }
+
+.obCol__options { display: grid; gap: .5rem; min-width: 0; }
+.obCol__opt {
+  position: relative; display: flex; align-items: center; gap: .7rem; min-height: 44px; min-width: 0;
+  padding: .6rem .9rem .6rem 2.2rem; border: 2px solid var(--rule); border-radius: 12px;
+  background: var(--paper); color: var(--ink); font-size: .96rem; line-height: 1.35; cursor: pointer;
+}
+.obCol__opt::before {
+  content: ""; position: absolute; left: .85rem; top: 50%; width: 16px; height: 16px; margin-top: -8px;
+  border: 2px solid var(--ink); border-radius: 50%; background: var(--paper);
+}
+.obCol__opt.is-on { border-color: var(--accent-fill); }
+.obCol__opt.is-on::before { background: var(--accent-fill); border-color: var(--accent-fill); box-shadow: inset 0 0 0 3px var(--paper); }
+.obCol__opt:focus-within,
+.obCol__file:focus-within,
+.obCol__bigBtn:focus-visible,
+.obCol__chip:focus-visible,
+.obCol__sw:focus-visible,
+.obCol__remove:focus-visible,
+.obCol__quiet:focus-visible,
+.obCol__skip:focus-visible,
+.obCol__back:focus-visible,
+.obCol__check:focus-within,
+.obCol__ideas a:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+
+.obCol__panel { display: grid; gap: .9rem; min-width: 0; animation: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .obCol__panel { animation: obColIn .28s cubic-bezier(.16, 1, .3, 1) backwards; }
+}
+@keyframes obColIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.obCol__mode { display: grid; gap: .75rem; min-width: 0; }
+.obCol__back, .obCol__quiet, .obCol__skip, .obCol__ideas a {
+  justify-self: start; min-height: 44px; display: inline-flex; align-items: center; gap: .4rem;
+  padding: .4rem .2rem; border: 0; background: none; color: var(--ink);
+  font: inherit; font-size: .92rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.obCol__back svg { width: 1em; height: 1em; }
+.obCol__quiet, .obCol__skip { color: var(--ink); }
+.obCol__ideas { margin: 0; font-size: .9rem; line-height: 1.6; color: var(--muted); overflow-wrap: anywhere; }
+.obCol__ideas a { min-height: 0; padding: 0; text-decoration: underline; color: var(--ink); }
+.obCol__foot { display: grid; gap: .45rem; justify-items: start; min-width: 0; }
+.obCol__foot .ob__unsureNote { margin: 0; }
+
+.obCol__badge {
+  display: inline-flex; align-items: center; min-height: 26px; padding: .15rem .6rem; border-radius: 999px;
+  background: var(--accent-fill); color: var(--on-accent); font-size: .78rem; font-weight: 600; line-height: 1.2; white-space: nowrap;
+}
+
+.obCol__file {
+  position: relative; justify-self: start; display: inline-flex; align-items: center; gap: .5rem;
+  min-height: 44px; padding: .6rem 1.2rem; border: 1px solid var(--btn-fill); border-radius: 999px;
+  background: var(--btn-fill); color: var(--btn-ink); font-weight: 600; cursor: pointer;
+}
+.obCol__file svg { width: 1.1rem; height: 1.1rem; }
+.obCol__file:hover { background: var(--btn-ink); color: var(--btn-fill); }
+.obCol__found { margin: .2rem 0 0; font-weight: 600; color: var(--ink); }
+.obCol__actions { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; min-width: 0; }
+.obCol__actions .ob__btn { max-width: 100%; }
+
+.obCol__big { list-style: none; margin: 0; padding: 0; display: grid; gap: .55rem; min-width: 0; }
+.obCol__big--list { gap: .5rem; }
+.obCol__pickRow { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: .5rem; align-items: stretch; min-width: 0; }
+.obCol__bigBtn {
+  display: grid; grid-template-columns: 56px minmax(0, 1fr); grid-template-areas: "sw text" "sw badge";
+  align-items: center; gap: .3rem .9rem; width: 100%; min-height: 72px; padding: .6rem .8rem;
+  border: 2px solid var(--rule); border-radius: 14px; background: var(--paper); color: var(--ink);
+  text-align: left; cursor: pointer; font: inherit; min-width: 0;
+}
+.obCol__bigBtn > .obCol__bigSwatch { grid-area: sw; width: 56px; height: 56px; border-radius: 10px; border: 1px solid var(--rule); }
+.obCol__bigText { grid-area: text; display: grid; gap: .1rem; min-width: 0; }
+.obCol__bigText strong { font-weight: 600; overflow-wrap: anywhere; }
+.obCol__bigText small { font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.obCol__bigBtn > .obCol__badge { grid-area: badge; justify-self: start; }
+.obCol__bigBtn:hover { border-color: var(--ink); }
+
+.obCol__remove {
+  display: grid; place-items: center; flex: none; width: 44px; height: 44px;
+  border: 1px solid var(--rule); border-radius: 10px; background: var(--paper); color: var(--ink); cursor: pointer;
+}
+.obCol__remove svg { width: 18px; height: 18px; }
+
+.obCol__codes { list-style: none; margin: 0; padding: 0; display: grid; gap: .65rem; min-width: 0; }
+.obCol__codeRow { display: grid; grid-template-columns: minmax(0, 1fr) 44px 44px; gap: .5rem; align-items: end; min-width: 0; }
+.obCol__codeLabel { display: grid; gap: .3rem; min-width: 0; font-size: .92rem; font-weight: 600; color: var(--ink); }
+.obCol__codeLabel input { width: 100%; min-height: 44px; }
+.obCol__codeSw { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--rule); }
+.obCol__codeErr { grid-column: 1 / -1; margin: 0; }
+
+.obCol__edit { list-style: none; margin: 0; padding: 0; display: grid; gap: .55rem; min-width: 0; }
+.obCol__editRow {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; grid-template-areas: "sw text rm" "act act act";
+  gap: .45rem .7rem; align-items: center; padding: .6rem; border: 1px solid var(--rule); border-radius: 14px; background: var(--paper); min-width: 0;
+}
+.obCol__sw {
+  grid-area: sw; width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--ink); cursor: pointer; padding: 0;
+}
+.obCol__editText { grid-area: text; display: grid; gap: .1rem; min-width: 0; color: var(--ink); }
+.obCol__editText strong { font-weight: 600; overflow-wrap: anywhere; }
+.obCol__editText small { font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.obCol__editRow > .obCol__remove { grid-area: rm; }
+.obCol__editRow > .obCol__badge, .obCol__editRow > .obCol__small { grid-area: act; justify-self: start; }
+.obCol__small { min-height: 44px; font-size: .9rem; }
+
+.obCol__saved { display: grid; gap: .6rem; padding: 1rem; border: 1px solid var(--rule); border-radius: 14px; background: var(--paper-2); min-width: 0; }
+.obCol__savedHead { margin: 0; font-weight: 600; color: var(--ink); }
+.obCol__savedList { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; }
+.obCol__savedList li { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .65rem; min-width: 0; color: var(--ink); }
+.obCol__savedList small { color: var(--muted); font-variant-numeric: tabular-nums; }
+.obCol__dot { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--ink); flex: none; }
+
+.obCol__chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr)); gap: .45rem; }
+.obCol__chip {
+  display: flex; align-items: center; gap: .5rem; min-height: 44px; min-width: 0; padding: .4rem .65rem;
+  border: 1px solid var(--rule); border-radius: 10px; background: var(--paper); color: var(--ink);
+  font: inherit; font-size: .92rem; cursor: pointer; text-align: left;
+}
+.obCol__chip:hover { border-color: var(--ink); }
+.obCol__chipSw { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--ink); flex: none; }
+
+.obCol__scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, .45); }
+.obCol__sheetWrap { position: fixed; inset: 0; z-index: 1000; display: grid; align-items: end; }
+.obCol__sheet {
+  position: relative; justify-self: center; width: 100%; max-width: 40rem; max-height: 85vh; max-height: 85dvh; overflow: auto;
+  display: grid; gap: .8rem; padding: 1.1rem 1rem calc(1rem + env(safe-area-inset-bottom));
+  border-radius: 16px 16px 0 0; background: var(--paper); color: var(--ink); box-sizing: border-box;
+}
+.obCol__sheet:focus { outline: none; }
+.obCol__sheetHead { display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-width: 0; }
+.obCol__sheetHead h4 { margin: 0; font-size: 1.05rem; font-weight: 600; overflow-wrap: anywhere; }
+.obCol__code { display: grid; gap: .3rem; font-size: .95rem; font-weight: 600; color: var(--ink); min-width: 0; }
+.obCol__code input { width: 100%; min-height: 44px; padding: .6rem .8rem; border: 1px solid var(--rule); border-radius: 10px; background: var(--paper); color: var(--ink); font: inherit; box-sizing: border-box; }
+.obCol__sheet .ob__btn { justify-self: start; }
+@media (prefers-reduced-motion: reduce) {
+  .obCol__card, .obCol__opt, .obCol__bigBtn { transition: none; }
 }
