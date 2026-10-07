@@ -43,7 +43,7 @@ export function cleanService(value: unknown): ServiceSlug | null {
 
 export function cleanStep(value: unknown) {
   return typeof value === "number" && Number.isInteger(value)
-    ? Math.max(0, Math.min(4, value))
+    ? Math.max(0, Math.min(12, value))
     : 0;
 }
 
