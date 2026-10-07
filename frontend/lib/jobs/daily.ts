@@ -71,6 +71,15 @@ export async function runDaily(by: string): Promise<DailyResult> {
   } catch (error) {
     result.errors.push(`reminders: ${error instanceof Error ? error.message : "failed"}`);
   }
+  /* A gentle nudge for a brief left half done: at most two per draft, each
+     switchable off. Needs migration 0039; does nothing until it is applied. */
+  try {
+    const { sendDraftNudges } = await import("@/lib/onboarding-nudge");
+    const n = await sendDraftNudges();
+    if (n.sent || n.failed) result.errors.push(...(n.failed ? [`onboarding reminders: ${n.failed} failed`] : []));
+  } catch (error) {
+    result.errors.push(`onboarding reminders: ${error instanceof Error ? error.message : "failed"}`);
+  }
   /* Failures that fell in an hour that had already had its alert. */
   await alertFailures();
   const trashed = Object.values(result.trashed).reduce((a, b) => a + b, 0);
