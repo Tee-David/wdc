@@ -165,6 +165,22 @@ export const BRAND_KINDS: BrandKind[] = [
     ],
   },
   {
+    /* Presentation design: the same identity carried through a deck. Slides
+       taken from the client's own decks, cover and structure pages only, so
+       what is shown is what they were handed and nothing in it is commercially
+       sensitive. */
+    id: "decks",
+    label: "Pitch decks",
+    note: "Presentations built from the identity, so the story and the brand arrive together.",
+    items: [
+      asset("realtors-deck-cover", "Deck cover"),
+      asset("realtors-deck-how-it-works", "Process slide"),
+      asset("realtors-deck-evolution", "Section opener"),
+      asset("realtors-deck-organising", "Principle slide"),
+      asset("realtors-deck-built", "System overview"),
+    ],
+  },
+  {
     id: "guides",
     label: "Brand guides",
     note: "A few pages from the documents themselves: voice, palette, logo rules.",

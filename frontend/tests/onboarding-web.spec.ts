@@ -286,7 +286,8 @@ test("an old draft with the old values still opens and shows them", async ({ pag
     features: ["Online store", "Blog"],
     has_hosting: "Neither",
   });
-  await expect(box(page, "features", "Blog")).toHaveAttribute("aria-checked", "true");
+  /* Not exact: the option carries its own help in its name ("Blog Publish articles..."). */
+  await expect(page.locator('[data-field="features"]').getByRole("checkbox", { name: "Blog" })).toHaveAttribute("aria-checked", "true");
   await expect(page.locator('[data-field="has_hosting"]')).toBeVisible();
 
   /* The page count step: the old en dash range opens and the field is there. */
