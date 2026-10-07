@@ -27,6 +27,7 @@ Legend: [x] done, [ ] to do, [~] in progress, [!] blocked on the owner.
 - [x] O3 past work: studio chooses from public work (plan 6.7)
 - [x] Open and check each sample image (72 chosen, election flyers left out)
 - [x] Motion design samples: owner zip received and reviewed (plan 6.7a)
+- [!] Motion zip and pitch deck PDFs are not in the 7 October session. Owner re-uploads them
 - [ ] Script: cut muted 3 to 6 second loops and posters from the zip (ffmpeg, committed)
 - [x] Pitch deck samples: Realtors' Practice PDFs received (plan 6.7)
 - [x] O4 owner repos read (plan 6.8)
@@ -39,6 +40,9 @@ Owner device: Microsoft Edge on iPhone (Apple WebKit engine). Not reproduced in 
 - [x] Reproduce on a touch phone viewport with Playwright (not reproduced)
 - [x] Ship the hardening in commit 2d3a089 on main: no auto focus of the search box on touch, sheet sized from the visual viewport, list has its own definite max height (WebKit flex shrink guard), dvh with svh fallback
 - [x] Three new tests in `tests/onboarding.spec.ts`. Targeted specs: 47 passed, 10 skipped (need a capture token), 0 failed. eslint and tsc exit 0
+- [x] Second hardening, 7 October: `.ob__f--sub` animation fill `both` to `backwards` in `onboarding.css` (pushed to the working branch, not yet on main)
+- [ ] Production build and targeted specs not run for the second change (no node_modules in the session)
+- [ ] Add a spec that `.ob__f--sub` computes `animation-fill-mode: backwards`
 - [ ] Production build not run for this change
 - [ ] [!] Owner tests on the iPhone in Edge: open the industry list, scroll to the last row without touching search, tap search, repeat with the toolbar collapsed, and try the phone country list
 - [ ] If it still fails: owner sends a screenshot with keyboard state and Edge and iOS version. Next step is a page scroll lock through `components/ui/scroll-reset.tsx`
@@ -46,20 +50,25 @@ Owner device: Microsoft Edge on iPhone (Apple WebKit engine). Not reproduced in 
 
 ## Phase 2. Six artifacts (three flows each)
 
-Each artifact lists every question of a flow in one view with its conditions. It uses real tokens, type and components. Check 320, 390, 768, 1024 and 1440, light and dark.
+Built 7 October 2026 by two Sonnet agents (the first set was lost with the earlier session). Links and results are in plan section 14.
 
-- [~] Branding & Design (with motion design, cards, colour system, style help)
-- [~] Web (running)
-- [ ] SEO (paused, resume next)
-- [ ] Apps (paused)
-- [ ] Software & AI (paused)
-- [ ] Social Media & Paid Ads (paused)
+- [x] Branding & Design: https://claude.ai/artifact/HuH9m4pSzSyewNc8WKYAeA
+- [x] Web: https://claude.ai/artifact/MriCB9ndK6H7PBryRjWQpV
+- [x] SEO: https://claude.ai/artifact/3HCL7uWVikQm8zgpbtYdW6
+- [x] Apps: https://claude.ai/artifact/Kpt2Eq4XKkSyViw78SgGHh
+- [x] Software & AI: https://claude.ai/artifact/X7ci8wZvcma7vgWPNbduJX
+- [x] Social Media Marketing & Paid Ads: https://claude.ai/artifact/5w7yaRsx14gUzZaaA3Tg4Y
+- [x] Engagement section sample in each artifact (draft, not legal advice)
+- [x] Measured: no overflow at 320 to 1280, no console errors, 44px targets (agents). Copy scan clean (main session)
+- [ ] Not checked: real phone, Edge on iPhone, keyboard walk, screen reader, reduced motion, focus ring contrast
+- [ ] Fix 14.3: add Stationery and Apparel cards to Branding, reword the time chips, widen the question map text column on phones
+- [ ] [!] Owner reviews the artifacts and answers plan 14.4 (23 decisions)
+- [ ] [!] Owner picks one flow per service
+- [ ] [!] Owner approves the style help copy
+- [ ] [!] Owner approves the engagement wording
+- [ ] [!] Owner confirms HeroUI ColorPicker scope: free picker only (plan 6.2 item 10)
 
-Owner rule (6 October 2026): run at most two agents at a time. Stopped agents keep their work in the session scratchpad and can be resumed.
-- [ ] Engagement section sample for each service (inside its artifact)
-- [ ] Owner picks one flow per service
-- [ ] Owner approves the style help copy
-- [ ] Owner approves the engagement wording
+Agent rule: at most two agents at a time. Sonnet for artifacts and planning. Haiku for execution once the owner approves.
 
 ## Phase 3. Legal review
 
@@ -70,6 +79,7 @@ Owner rule (6 October 2026): run at most two agents at a time. Stopped agents ke
 ## Phase 4. Shared build
 
 - [ ] Cards that show past work (`next/image`, reduced motion, pause off screen)
+- [ ] HeroUI ColorPicker check: dependency added, tokens do not clash, WDC button pair, bottom sheet on phones
 - [ ] Colour system: family, shade, auto name, like slider, first choice
 - [ ] `brand-colours.ts` format with like level and first choice, old lines still read
 - [ ] Update `scripts/check-brand-colours.mjs` and the colour specs
@@ -108,13 +118,13 @@ Do one at a time. Keep stored keys. Map old values on read.
 
 Plan section 13. Small updates. Copy needs owner approval first.
 
-- [ ] Check whether Works live in files, the database, or both (`lib/work.ts`, admin editor)
-- [ ] Draft the small additions for each service page: Branding & Design, SEO, Web, Apps, Software & AI, Social & PPC
+- [x] Works data checked 7 October: case studies in `lib/work.ts` and a self creating `case_studies` table (`lib/work-db.ts`), loose artwork in `lib/showcase.ts`. No migration needed for anything in the proposal
+- [x] Draft the small additions for each service page: exact copy in [services-and-works-copy-proposal.md](services-and-works-copy-proposal.md)
 - [ ] [!] Owner decides on the Maintenance line on the Web page
 - [ ] [!] Owner approves the "work starts at three months" line on the SEO page
 - [ ] [!] Owner approves the copy for all six service pages
 - [ ] Update `lib/services.ts` (check the JSON-LD still reads truthfully)
-- [ ] [!] Owner shares the Drive folder "We Dig Creativity - Graphic Samples" by link
+- [x] Drive folder "We Dig Creativity - Graphic Samples" is readable from this account (7 October). No sharing step needed
 - [ ] Pick and download only the samples that earn a place, cut web sized copies
 - [ ] Works: add motion loops (studio promo, Litch Consulting film, Realtors' Practice post and story) with posters, lazy loaded
 - [ ] Works: add the Realtors' Practice pitch deck (cover and story slides only, redacted)
