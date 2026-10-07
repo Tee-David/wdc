@@ -587,7 +587,7 @@
    ========================================================================== */
 .wk-motion { display: grid; gap: clamp(1.4rem, 2.4vw, 2rem); }
 .wk-motion__wide { display: grid; gap: 1.1rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); }
-.wk-motion__tall { display: grid; gap: 1.1rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 12.5rem), 1fr)); }
+.wk-motion__tall { display: grid; gap: 1.1rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 12.5rem), 15rem)); }
 .wk-motion__card { margin: 0; display: grid; gap: .65rem; min-width: 0; align-content: start; }
 .wk-motion__box {
   position: relative; overflow: hidden; border-radius: 14px;
