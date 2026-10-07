@@ -35,3 +35,21 @@ export async function pickService(page: Page, name: RegExp) {
   await picker.click();
   await page.getByRole("option", { name }).click();
 }
+
+/**
+ * Picks an answer the way a client does, whichever control the question uses:
+ * a card, a chip or a checkbox is ticked; a two-choice or yes-and-no pair is
+ * pressed; a dropdown is opened and the option chosen from its sheet or list.
+ * Specs use this instead of clicking radios, so a control can change without
+ * every spec changing with it. Pressing a chosen one again unchooses it.
+ */
+export async function chooseOption(page: Page, key: string, label: string) {
+  const question = page.locator(`[data-field="${key}"]`);
+  await expect(question).toBeVisible({ timeout: 30000 });
+  const ticks = question.getByRole("checkbox", { name: label, exact: true });
+  if (await ticks.count()) return ticks.first().click();
+  const presses = question.getByRole("radio", { name: label, exact: true });
+  if (await presses.count()) return presses.first().click();
+  await question.getByRole("combobox").click();
+  await page.getByRole("option", { name: label, exact: true }).click();
+}

@@ -12,6 +12,7 @@ import { SERVICES } from "@/lib/services";
 import { isQuestion, stepsFor } from "@/lib/onboarding";
 import { earlierAnswers, shownInBrief } from "@/lib/onboarding-aliases";
 import type { FormDef } from "@/lib/forms/registry";
+import ColourRolesNote from "@/components/onboarding/colour-roles-note";
 import { answeredCount, clientFor, entryIds, getEntry, markRead, readFilters, type Entry } from "@/lib/forms/entries";
 import { eventsFor, type EntryEvent } from "@/lib/forms/events";
 import { listForRecord } from "@/lib/message-log";
@@ -134,7 +135,7 @@ function Answers({ form, entry, hideEmpty }: { form: FormDef; entry: Entry; hide
                   return (
                     <div key={f.key}>
                       <dt>{f.label}</dt>
-                      <dd>{has(v) ? (Array.isArray(v) ? v.join(", ") : String(v)) : <em className="ad__dim">Not answered</em>}</dd>
+                      <dd>{has(v) ? (Array.isArray(v) ? v.join(", ") : String(v)) : <em className="ad__dim">Not answered</em>}{f.key === "brand_colours" && typeof v === "string" ? <ColourRolesNote text={v} /> : null}</dd>
                     </div>
                   );
                 })}
