@@ -156,7 +156,7 @@ Two agents at a time, Haiku executes, the lead verifies, commits and pushes. Onl
 - [~] Simplified colour flow: 2 to 3 taps, optional deeper path (agent building)
 - [~] Round 1: Web and SEO (and the legacy answer map `lib/onboarding-aliases.ts`)
 - [x] Question lists for Apps, Software & AI and Social rewritten from the research (final)
-- [~] Picture cards and the grouped, searchable feature checklist (agent building)
+- [~] Picture cards, the grouped feature checklist and the dropdown rule (single choice with 3 or more plain options is a dropdown, 2 options or Yes/No is one compact line) (agent building)
 - [x] Studio scope note derived from answers (`lib/onboarding-scope.ts`), engagement text grouped to four ticks behind a lawyer approval flag (`lib/onboarding-engagement.ts`)
 - [x] Services page copy updated for branding, apps, software, social (web and SEO next with the Web steps)
 - [x] Works: motion loops on /work/branding and on the Litch and Realtors case studies, Pitch decks group, pause control, lazy loading
