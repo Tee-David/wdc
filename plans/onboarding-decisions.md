@@ -12,7 +12,7 @@ The owner said: use Flow 1 (Size first) for every service, and "do the best for 
 | 6 | O2: ticks sit beside a signed agreement and do not replace it. | Plan section 8 wording. |
 | 7 | Engagement sections stay behind the flag `ONBOARDING_ENGAGEMENT` until a Nigerian lawyer approves. Liability limit and dispute steps stay placeholders. | Flip the flag after legal review. |
 | 8 | "A bit of both" in style help also asks "Would you like to see a few directions". | `showIf` on that question. |
-| 9 | Motion design card uses a muted loop cut from the studio's own hero film. The owner's zip is 113 MB and the Drive tool in this environment caps downloads at 10 MB, so client clips are not used yet. | Replace the loop file. |
+| 9 | Motion: the owner's zip was downloaded once the network opened (113 MB, 7 clips). `frontend/scripts/make-motion-loops.sh` cuts seven muted 4 second loops plus posters into `public/work/motion/` (about 600 KB in total). Loops are used on the Branding motion card and the Works page. The studio's own services animation is left out because its scene names a city. Client scenes that show place names are kept (the no city names rule is about our copy). | Re-run the script with other start times. |
 | 10 | Web: Maintenance leaves the default form. On the Services page the step becomes "After launch" and "Ongoing maintenance" leaves the deliverables. | `lib/services.ts`. |
 | 11 | SEO: the public page may say work starts at three months. | `lib/services.ts`. |
 | 12 | Software: the AI data rules question shows for AI assistants, automations and data pipelines. An early notice says very heavy software is out of scope. | `showIf`. |
