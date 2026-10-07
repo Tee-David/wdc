@@ -138,6 +138,9 @@ export type Field = {
   optionInfo?: Record<string, OptionInfo>;
   /** A long list of options, grouped under headings and searchable. */
   groups?: { name: string; options: string[] }[];
+  /** Take the example inside this text box from the client's industry
+      (lib/onboarding-voice.ts). The placeholder reads "For example: ...". */
+  example?: "job" | "terms" | "goal" | "success" | "pains";
   /** For a grouped list: the few options shown first, with the rest behind
       "See all". Keeps a 30 item list from being a wall on a phone. */
   popular?: string[];

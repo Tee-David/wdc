@@ -86,14 +86,14 @@ const AGES = ["Under 18", "18 to 34", "35 to 54", "55 or above"];
 export const CORE_STEPS: Step[] = [
   {
     phase: "you", id: "you",
-    title: "About you",
-    blurb: "Quick ones. Tap to fix anything we already have.",
+    title: "Let's start with you",
+    blurb: "Four quick things, so we know who to talk to. A star means we need it.",
     fields: [
       { key: "first_name", label: "First name", kind: "text", placeholder: "e.g. Tobi", required: true },
       { key: "last_name", label: "Last name", kind: "text", placeholder: "e.g. Adeyemi", required: true },
       {
-        key: "phone", label: "Mobile number", kind: "tel", required: true,
-        tip: "WhatsApp preferred, since that is usually the fastest way to reach you.",
+        key: "phone", label: "Your number", kind: "tel", required: true,
+        hint: "WhatsApp is fine. It is the fastest way to reach you.",
         placeholder: "+234 802 123 4567",
       },
       { key: "email", label: "Email", kind: "email", placeholder: "you@business.com", required: true },
@@ -101,8 +101,8 @@ export const CORE_STEPS: Step[] = [
   },
   {
     phase: "you", id: "business",
-    title: "Your business",
-    blurb: "Three taps, so the work is built around what you sell.",
+    title: "Now, about your business",
+    blurb: "Thanks, {first_name}. A few taps, so the work fits what you do.",
     fields: [
       { key: "company", label: "Business name", kind: "text", placeholder: "e.g. Moore Designs", required: true },
       {
@@ -140,8 +140,8 @@ const FIXED_DATE_ANSWERS = ["Within two weeks", "A set date"];
 export const CLOSING_STEPS: Step[] = [
   {
     phase: "final", id: "working",
-    title: "Timing and who decides",
-    blurb: "When it is needed, and who gives the go ahead.",
+    title: "When, and who gives the final yes",
+    blurb: "So we plan around your dates and one clear decision maker.",
     fields: [
       {
         key: "deadline_kind", label: "When do you need it?", kind: "cards",
@@ -152,15 +152,15 @@ export const CLOSING_STEPS: Step[] = [
         placeholder: "A launch, an event, a print deadline",
         showIf: { key: "deadline_kind", equals: FIXED_DATE_ANSWERS },
       },
-      { key: "approver", label: "Who signs work off?", kind: "text", required: true, tip: "One person. Projects slow down most when feedback arrives from several directions and disagrees with itself." },
+      { key: "approver", label: "Who gives the final yes?", kind: "text", required: true, hint: "One person, so feedback has one door.", tip: "Projects slow down most when feedback arrives from several directions and disagrees with itself." },
       { key: "channel", label: "Where should we send project updates?", kind: "multi", required: true, options: [PROJECT_UPDATE_PORTAL, "WhatsApp", "Email", "Phone call", "Other"] },
       { key: "channel_other", label: "Which other channel would you prefer?", kind: "text", showIf: { key: "channel", equals: ["Other"] } },
     ],
   },
   {
     phase: "final", id: "brand",
-    title: "What you already have",
-    blurb: "Anything you can send now. None of it blocks you from finishing.",
+    title: "Anything you can send us now",
+    blurb: "Skip what you do not have. None of it holds you up.",
     fields: [
       { key: "has_logo", label: "Do you have a logo?", kind: "yesno", notFor: ["branding"] },
       { key: "logo_files", label: "Upload your logo files", kind: "upload", notFor: ["branding"], showIf: { key: "has_logo", equals: ["Yes"] } },
@@ -196,8 +196,8 @@ export const CLOSING_STEPS: Step[] = [
   },
   {
     phase: "final", id: "last",
-    title: "Last things",
-    blurb: "Optional. Skip any of it and send.",
+    title: "Last bits",
+    blurb: "Nothing here is needed. Say what is useful, then send.",
     fields: [
       {
         key: "about", label: "Tell us about your company", kind: "textarea",

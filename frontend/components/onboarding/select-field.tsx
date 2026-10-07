@@ -37,7 +37,7 @@ export default function SelectField({
   invalid,
   describedBy,
   /** What the button says when nothing has been chosen yet. */
-  placeholder = "Choose one",
+  placeholder = "Pick the closest",
   unavailable = {},
   renderOption,
 }: {

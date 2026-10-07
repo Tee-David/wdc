@@ -27,7 +27,7 @@ const localCustomers: Cond = { key: "customers", equals: LOCAL };
 
 export const SEO_STEPS: Step[] = [
   {
-    phase: "work", id: "seo", service: "seo", title: "Your business and customers",
+    phase: "work", id: "seo", service: "seo", title: "Who you want to find you",
     blurb: "Where you are, and who you sell to.",
     fields: [
       {
@@ -63,7 +63,7 @@ export const SEO_STEPS: Step[] = [
     ],
   },
   {
-    phase: "work", id: "seo_search", service: "seo", title: "What search should do",
+    phase: "work", id: "seo_search", service: "seo", title: "What you want from search",
     blurb: "What you want to be found for, and how long to run it.",
     fields: [
       {
@@ -85,12 +85,12 @@ export const SEO_STEPS: Step[] = [
       },
       {
         key: "target_terms", assist: true, label: "What should someone type into Google to find you?", kind: "textarea",
-        placeholder: "For example: wedding photographer near me",
+        example: "terms",
       },
     ],
   },
   {
-    phase: "work", id: "seo_setup", service: "seo", title: "What you have set up",
+    phase: "work", id: "seo_setup", service: "seo", title: "What you already have set up",
     blurb: "Quick taps. Access comes later, never a password here.",
     fields: [
       /* Three jargon questions are one tap. Access is arranged later through a

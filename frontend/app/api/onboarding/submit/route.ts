@@ -10,6 +10,7 @@ import { SERVICES } from "@/lib/services";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 import { db } from "@/lib/db/pool";
 import { isVisible, problemWith, stepsFor } from "@/lib/onboarding";
+import { ENGAGEMENT_VERSION, engagementIsLive, engagementNameProblem } from "@/lib/onboarding-engagement";
 import {
   cleanAnswers, cleanService, clearOnboardingCookie, cookieToken, draftFromToken,
   normalizeEmail, requestOriginIsAllowed,
@@ -53,6 +54,16 @@ export async function POST(request: NextRequest) {
   );
   if (problems.length) {
     return NextResponse.json({ error: "Some questions still need attention.", problems }, { status: 422 });
+  }
+
+  /* WHEN THE ENGAGEMENT SECTION IS LIVE, ACCEPTING IT IS NOT OPTIONAL, and the
+     browser's word is not taken for it: all four groups ticked, a typed full
+     name, and the version of the text that was shown. Fails closed. */
+  if (engagementIsLive()) {
+    const ticks = Array.isArray(answers.engagement_ticks) ? answers.engagement_ticks : [];
+    if (ticks.length !== 4 || engagementNameProblem(answers.engagement_name) !== null || answers.engagement_version !== ENGAGEMENT_VERSION) {
+      return NextResponse.json({ error: "Please read and accept the four points before sending." }, { status: 422 });
+    }
   }
 
   /* THE FORM'S SETTINGS. A brief already started may still be sent when the

@@ -25,7 +25,7 @@ const wantsAds: Cond = { key: "social_packages", equals: [ADS] };
 
 export const SOCIAL_STEPS: Step[] = [
   {
-    phase: "work", id: "social", service: "social", title: "What you want",
+    phase: "work", id: "social", service: "social", title: "What do you want from social?",
     blurb: "The packages, and where you are.",
     fields: [
       {
@@ -63,7 +63,7 @@ export const SOCIAL_STEPS: Step[] = [
     ],
   },
   {
-    phase: "work", id: "social_access", service: "social", title: "Accounts and ads",
+    phase: "work", id: "social_access", service: "social", title: "Your accounts, and your ads",
     blurb: "How we get to your accounts, and the ad budget.",
     fields: [
       {
@@ -106,7 +106,7 @@ export const SOCIAL_STEPS: Step[] = [
       },
       {
         key: "social_success", assist: true, kind: "text", label: "What would count as success?",
-        placeholder: "For example: 20 enquiries a month",
+        example: "success",
         showIf: MID,
       },
     ],

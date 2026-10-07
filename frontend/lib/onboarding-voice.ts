@@ -25,6 +25,7 @@ export function fill(text: string, answers: Answers): string {
   return text
     .replace(/\{([a-z_]+)(?:\|([^}]*))?\}/g, (_m, key: string, fallback?: string) => first(answers[key]) || fallback || "")
     .replace(/\s+([,.?!:])/g, "$1")
+    .replace(/,\s*([,.?!:])/g, "$1")
     .replace(/\s{2,}/g, " ")
     .trim();
 }
