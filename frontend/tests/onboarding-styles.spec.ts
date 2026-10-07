@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { pickService } from "./onboarding-helpers";
 
 /**
  * THE ONBOARDING FORM'S STYLE IS THE STUDIO'S CHOICE (Forms, the form,
@@ -9,8 +10,8 @@ import { expect, test, type Page } from "@playwright/test";
 const start = async (page: Page, style: string) => {
   await page.addInitScript(() => { try { localStorage.removeItem("wdc-onboarding-draft"); localStorage.setItem("wdc-intro-seen-at", String(Date.now())); } catch { /* private mode */ } });
   await page.goto(`/onboarding?style=${style}`, { waitUntil: "load" });
-  await page.getByRole("button", { name: /^Web/ }).first().click();
-  await page.getByRole("button", { name: /^Start$/ }).click();
+  await pickService(page, /Web/);
+  await page.getByRole("button", { name: "Next", exact: true }).click();
 };
 
 test("conversation: one or two questions at a time, Enter continues, Back keeps answers", async ({ page }) => {

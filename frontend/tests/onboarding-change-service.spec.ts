@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { pickService } from "./onboarding-helpers";
 
 /**
  * A CLIENT WHO PICKED THE WRONG SERVICE CAN GO BACK AND PICK AGAIN.
@@ -14,8 +15,8 @@ test("the first step can go back to the service picker without losing what was t
   });
   await page.goto("/onboarding", { waitUntil: "load" });
 
-  await page.getByRole("button", { name: /^Web/ }).first().click();
-  await page.getByRole("button", { name: /^Start$/ }).click();
+  await pickService(page, /Web/);
+  await page.getByRole("button", { name: "Next", exact: true }).click();
 
   const first = page.getByLabel(/first name/i).first();
   await first.fill("Ada");
@@ -24,8 +25,8 @@ test("the first step can go back to the service picker without losing what was t
   await page.getByRole("button", { name: /Change service/ }).click();
   await expect(page.getByRole("heading", { name: /Let.s get started/ })).toBeVisible();
 
-  await page.getByRole("button", { name: /^Branding/ }).first().click();
-  await page.getByRole("button", { name: /^Start$/ }).click();
+  await pickService(page, /Branding/);
+  await page.getByRole("button", { name: "Next", exact: true }).click();
 
   await expect(page.getByLabel(/first name/i).first()).toHaveValue("Ada");
   await expect(page.getByLabel(/^your email|^email/i).first()).toHaveValue("ada@example.org");
