@@ -72,17 +72,21 @@ test("a one site job is not asked the tools, the content or the competitors", as
   }
 });
 
+/* The writing offer is asked only of a client with nobody writing yet, so the
+   tier 2 check gives that answer. Without it the offer is correctly hidden. */
+const NOBODY_WRITES = { content_owner: "Nobody yet" };
+
 test("a growing job asks the tools and content, and not the competitors", async ({ page }) => {
-  await open(page, "seo", SEARCH_STEP(), { seo_size: "A growing site" });
+  await open(page, "seo", SEARCH_STEP(), { seo_size: "A growing site", ...NOBODY_WRITES });
   for (const key of TIER_2) expect(await isShown(page, key), `growing: ${key} shown`).toBe(true);
   expect(await isShown(page, "competitors"), "growing: competitors hidden").toBe(false);
 });
 
 test("a big job asks everything, and not sure asks the second tier", async ({ page }) => {
-  await open(page, "seo", SEARCH_STEP(), { seo_size: "A big site or many places" });
+  await open(page, "seo", SEARCH_STEP(), { seo_size: "A big site or many places", ...NOBODY_WRITES });
   for (const key of [...TIER_2, "competitors"]) expect(await isShown(page, key), `big: ${key} shown`).toBe(true);
 
-  await open(page, "seo", SEARCH_STEP(), { seo_size: UNSURE });
+  await open(page, "seo", SEARCH_STEP(), { seo_size: UNSURE, ...NOBODY_WRITES });
   for (const key of TIER_2) expect(await isShown(page, key), `unsure: ${key} shown`).toBe(true);
   expect(await isShown(page, "competitors"), "unsure: competitors wait for a big job").toBe(false);
 });

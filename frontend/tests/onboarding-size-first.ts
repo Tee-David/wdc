@@ -68,8 +68,9 @@ export function layoutFindings(page: Page) {
     const small = controls
       .filter((el) => !el.closest(".tip"))
       .map((el) => ({ el, box: el.getBoundingClientRect() }))
-      .filter(({ box }) => box.width > 0 && box.height > 0 && box.height < 44)
-      .map(({ el, box }) => `${el.closest("[data-field]")?.getAttribute("data-field") ?? el.className}: ${box.height.toFixed(1)}px "${(el.textContent ?? "").trim().slice(0, 40)}"`);
+      /* 0.05px of floating point slack: a 44px box can measure 43.9999px. */
+      .filter(({ box }) => box.width > 0 && box.height > 0 && box.height < 43.95)
+      .map(({ el, box }) => `${el.closest("[data-field]")?.getAttribute("data-field") ?? el.className}: ${box.height.toFixed(2)}px "${(el.textContent ?? "").trim().slice(0, 40)}"`);
     return { overflow, small, scrollWidth: document.documentElement.scrollWidth };
   });
 }

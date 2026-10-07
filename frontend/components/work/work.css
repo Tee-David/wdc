@@ -577,3 +577,32 @@
 .pv .wk-quote--said figcaption::before {
   content: "\2013 "; color: var(--muted); font-weight: 400;
 }
+
+/* ============================================================================
+   Motion work: muted loops on the branding page.
+   Cards share the site's one track. Wide films sit in one grid and vertical
+   reels in a narrower one, so no film is cropped to fit a box that is not its
+   own. The pause and play button is solid navy with a white ring so it stays
+   visible over any frame, in both themes.
+   ========================================================================== */
+.wk-motion { display: grid; gap: clamp(1.4rem, 2.4vw, 2rem); }
+.wk-motion__wide { display: grid; gap: 1.1rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); }
+.wk-motion__tall { display: grid; gap: 1.1rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 12.5rem), 1fr)); }
+.wk-motion__card { margin: 0; display: grid; gap: .65rem; min-width: 0; align-content: start; }
+.wk-motion__box {
+  position: relative; overflow: hidden; border-radius: 14px;
+  border: 1px solid var(--rule); background: var(--paper-2);
+}
+.wk-motion__box video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.wk-motion__btn {
+  position: absolute; right: .6rem; bottom: .6rem;
+  width: 44px; height: 44px; display: grid; place-items: center;
+  border-radius: 999px; border: 2px solid #fff; background: #06061a; color: #fff;
+  cursor: pointer; transition: transform .16s ease;
+}
+.wk-motion__btn svg { width: 18px; height: 18px; fill: currentColor; stroke: none; }
+.wk-motion__btn:hover { transform: scale(1.06); }
+.wk-motion__btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.wk-motion__cap { display: grid; gap: .45rem; min-width: 0; }
+.wk-motion__t { font-family: var(--font-display, inherit); font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: reduce) { .wk-motion__btn { transition: none; } }

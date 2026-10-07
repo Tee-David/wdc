@@ -6,6 +6,8 @@ import PageEnd from "@/components/ui/page-end";
 import { Header } from "@/components/layout/header";
 import { WorkFooter } from "@/components/work/work-footer";
 import GalleryWall from "@/components/work/gallery-wall";
+import MotionWall from "@/components/work/motion-wall";
+import { MOTION_PIECES } from "@/lib/motion-work";
 import {
   WORK_CATEGORIES,
   casesFor,
@@ -177,6 +179,30 @@ export default async function WorkCategoryPage(
             )}
           </div>
         </section>
+
+        {/* Motion design, on the branding page only. Muted loops, lazy loaded,
+            each with a pause button. See components/work/motion-wall.tsx. */}
+        {c.slug === "branding" ? (
+          <section className="pv-sec">
+            <div className="pv-wrap">
+              <div
+                style={{
+                  display: "flex", flexWrap: "wrap", gap: 12,
+                  alignItems: "baseline", justifyContent: "space-between",
+                  marginBottom: "clamp(1.4rem, 2.4vw, 2rem)",
+                }}
+              >
+                <h2 className="pv-mix" style={{ fontSize: "clamp(1.4rem, 1.2rem + 1vw, 2rem)" }}>
+                  Motion <b>design</b>
+                </h2>
+                <p style={{ color: "var(--muted)", fontSize: ".92rem" }}>
+                  {MOTION_PIECES.length} loops: promo films, reels and explainers
+                </p>
+              </div>
+              <MotionWall />
+            </div>
+          </section>
+        ) : null}
 
         {/* The wall. Not every piece belongs to a written story -- a one-off
             flyer for a client we did one flyer for is still work, and burying

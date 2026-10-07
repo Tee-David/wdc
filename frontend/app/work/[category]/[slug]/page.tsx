@@ -12,6 +12,8 @@ import "@/components/work/work.css";
 import { NewTab } from "@/components/ui/new-tab";
 import { publicImageSize } from "@/lib/image-size";
 import WorkToc from "@/components/work/toc";
+import MotionWall from "@/components/work/motion-wall";
+import { MOTION_PIECES } from "@/lib/motion-work";
 import PageEnd from "@/components/ui/page-end";
 import { hydrateCaseStudies } from "@/lib/work-db";
 
@@ -106,6 +108,7 @@ export default async function WorkDetailPage(
   const prev = i > 0 ? siblings[i - 1] : null;
   const next = i >= 0 && i < siblings.length - 1 ? siblings[i + 1] : null;
 
+  const motion = MOTION_PIECES.filter((m) => cs.motion?.includes(m.id));
   const shots = cs.gallery ?? [];
   const lead = shots.slice(0, 2);
   const rest = shots.slice(2);
@@ -134,6 +137,7 @@ export default async function WorkDetailPage(
   const outline = [
     { id: "about-the-client", text: "About the client" },
     { id: "the-brief", text: "The brief" },
+    ...(motion.length ? [{ id: "in-motion", text: "In motion" }] : []),
     { id: "the-approach", text: "The approach" },
     { id: "what-we-did", text: "What we did" },
     ...(cs.palette?.length ? [{ id: "the-palette", text: "The palette" }] : []),
@@ -278,6 +282,13 @@ export default async function WorkDetailPage(
                         </div>
                       ))}
                     </div>
+                  ) : null}
+
+                  {motion.length ? (
+                    <section id="in-motion">
+                      <h2>In motion</h2>
+                      <MotionWall pieces={motion} />
+                    </section>
                   ) : null}
 
                   <section id="the-approach">
