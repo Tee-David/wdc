@@ -149,7 +149,10 @@ Two agents at a time, Haiku executes, the lead verifies, commits and pushes. Onl
 - [x] Specs without a browser for the engine (`tests/onboarding-engine.spec.ts`, 5 passing)
 - [x] Realtors' Practice deck slides rendered into `public/work/deck` (no prices, no contact details)
 - [x] Drive checked: motion zip is 113 MB and the Drive tool caps downloads at 10 MB, so it cannot be fetched here. Owner can upload each clip under 10 MB later
-- [~] Round 1: Branding (cards with samples, motion card, colour system, style help, size gating)
+- [!] Round 1: Branding paused 7 October. Owner found the colour flow too complicated. Redesign the colour flow and the question flow of all six forms from the research first
+- [ ] UX research: forms, question order, Nigeria, colour picking for non-designers. Report: plans/onboarding-ux-research.md (Sonnet agent running)
+- [ ] Apply the research to all six artifacts (reorder, cut, merge, reword) and to the specs in plans/onboarding-artifact-specs/
+- [ ] Simplified colour flow: 2 to 3 taps, optional deeper path
 - [~] Round 1: Web and SEO (and the legacy answer map `lib/onboarding-aliases.ts`)
 - [ ] Round 2: Apps (feature checklist, grouped and searchable) and Software & AI
 - [ ] Round 3: Social & Ads, then shared pieces: review screen, studio scope note, engagement section behind a flag, reminder email, pre-filled link
