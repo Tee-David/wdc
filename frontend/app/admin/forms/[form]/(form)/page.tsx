@@ -18,6 +18,7 @@ import { EntriesTable, type TableRow } from "@/components/admin/forms/entries-ta
 import { ColumnPicker } from "@/components/admin/forms/column-picker";
 import DemoSubmission, { demoTitle } from "@/components/admin/forms/demo-submission";
 import { FormSettingsEditor } from "@/components/admin/forms/form-settings";
+import { PrefilledLink } from "@/components/admin/forms/prefilled-link";
 import { ImportSubscribers } from "@/components/admin/forms/import-subscribers";
 import { fillTokens, NOTIFICATIONS } from "@/lib/forms/settings";
 import { dataFromEntry, formEmail, tokensFor } from "@/lib/forms/emails";
@@ -166,6 +167,7 @@ export default async function FormPage({ params, searchParams }: Props) {
         {settings.savedAt ? <p className="ad__dim" style={{ margin: "0 0 .8rem" }}>Last changed by {settings.savedBy} on {when(settings.savedAt)}.</p> : null}
         <FormSettingsEditor formKey={form.key} title={form.title} settings={settings}
           notifications={NOTIFICATIONS[form.source]} isOnboarding={form.source === "onboarding"} previews={previews} />
+        {form.source === "onboarding" && form.service ? <PrefilledLink formKey={form.key} service={form.title.replace(/ onboarding$/, "")} /> : null}
       </>
     );
   }
