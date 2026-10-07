@@ -654,7 +654,11 @@
   border-left: 2px solid var(--rule);
 }
 @media (prefers-reduced-motion: no-preference) {
-  .pv .ob__f--sub { animation: ob-reveal .28s cubic-bezier(.16, 1, .3, 1) both; }
+  /* `backwards`, NOT `both`: a question that holds a select (industry, country)
+     can be a conditional one, and a transform animation held at its end keeps
+     this wrapper composited, which is what stops iOS WebKit (Safari, and Edge
+     on iPhone) scrolling the list inside the picker sheet. See picker.css. */
+  .pv .ob__f--sub { animation: ob-reveal .28s cubic-bezier(.16, 1, .3, 1) backwards; }
 }
 @keyframes ob-reveal {
   from { opacity: 0; transform: translateY(-6px); }
