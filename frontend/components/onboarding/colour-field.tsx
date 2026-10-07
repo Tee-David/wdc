@@ -155,7 +155,8 @@ export default function ColourField({ id, value, onChange, setOther, describedBy
   }
 
   function commit(list: Row[], source: Source | null, vibeName: string | null) {
-    const chosen = list.filter((row) => row.hex).slice(0, MAX_COLOURS);
+    /* A named row without a code is kept: the stored line says "No exact shade", as the format always has. */
+    const chosen = list.filter((row) => row.hex || row.name).slice(0, MAX_COLOURS);
     if (!chosen.length) return false;
     onChange(formatColours(chosen.map((row, index) => ({ name: row.name, hex: row.hex, role: index === 0 ? MAIN_COLOUR_ROLE : OTHER_COLOUR_ROLE }))));
     if (source !== null) other("brand_colour_source", source);
@@ -164,6 +165,7 @@ export default function ColourField({ id, value, onChange, setOther, describedBy
     setOrigin(source);
     setVibe(vibeName);
     setStatus(`Saved. Main colour: ${chosen[0].name}.`);
+    setView("feel");
     return true;
   }
 
