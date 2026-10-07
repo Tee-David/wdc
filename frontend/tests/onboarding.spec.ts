@@ -25,7 +25,7 @@ test("uses client-facing choices and reveals Other details only when needed", as
   await expect(otherDetail).toBeVisible();
   await expect(otherDetail.getByText("What other feature do you need?")).toBeVisible();
 
-  await expect(page.getByRole("button", { name: "I'm not sure; please advise me" }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "I'm not sure, please advise me" }).first()).toBeVisible();
   await expect(page.locator('[data-field="page_count"] [role="combobox"]')).toBeVisible();
 });
 
@@ -42,7 +42,7 @@ test("uses a plain list for short selects and lets clients revise an unsure answ
   await expect(pageCount.getByRole("combobox")).toContainText("6–15");
 
   const featureField = page.locator('[data-field="features"]');
-  await featureField.getByRole("button", { name: "I'm not sure; please advise me" }).click();
+  await featureField.getByRole("button", { name: "I'm not sure, please advise me" }).click();
   await expect(featureField.getByText("Noted. We will come to this with a recommendation rather than a blank.")).toBeVisible();
   await featureField.getByRole("button", { name: "Actually, let me answer this" }).click();
   await featureField.getByRole("checkbox", { name: "Gallery" }).click();

@@ -2,7 +2,7 @@ import "server-only";
 
 import { answerText, type Answers, type FileAnswer } from "@/lib/forms/custom-def";
 import { versionDef } from "@/lib/forms/custom";
-import { stepsFor } from "@/lib/onboarding";
+import { isQuestion, isVisible, stepsFor } from "@/lib/onboarding";
 import type { FormDef } from "@/lib/forms/registry";
 import type { Entry } from "@/lib/forms/entries";
 import { customFiles, onboardingFiles, type EntryFile } from "@/lib/onboarding-files";
@@ -39,11 +39,7 @@ export async function entrySections(form: FormDef, entry: Entry): Promise<EntryS
   if (form.source === "onboarding" && form.service) {
     return stepsFor(form.service).map((st) => ({
       heading: st.title,
-      rows: st.fields.filter((f) => {
-        if (!f.showIf) return true;
-        const v = entry.answers[f.showIf.key];
-        return Array.isArray(v) ? v.some((x) => f.showIf!.equals.includes(x)) : typeof v === "string" && f.showIf.equals.includes(v);
-      }).map((f) => {
+      rows: st.fields.filter((f) => isQuestion(f) && isVisible(f, entry.answers)).map((f) => {
         const v = entry.answers[f.key];
         return { q: f.label, a: has(v) ? (Array.isArray(v) ? v.join(", ") : String(v)) : null };
       }),

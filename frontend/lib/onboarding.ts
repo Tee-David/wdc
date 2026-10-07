@@ -32,6 +32,10 @@ import type { ServiceSlug } from "@/lib/services";
 export type FieldKind =
   | "text" | "email" | "tel" | "url" | "textarea"
   | "cards" | "multi" | "select" | "yesno" | "upload"
+  /* Read-only text shown between questions: an early notice (what we do not
+     build) or a note. It asks nothing, stores nothing, is never validated and
+     is not counted as a question. `label` is its title and `hint` its text. */
+  | "notice"
   /* Up to three names with an explicit availability check against the
      registry. Stored newline separated, so the answer is a plain string like
      every other field and no draft or submission needed migrating. */
@@ -51,8 +55,18 @@ export type FieldKind =
  * terms" is a finding that shapes the work and the first call. A blank field
  * says nothing; this says something.
  */
-export const UNSURE = "I'm not sure; please advise me";
+export const UNSURE = "I'm not sure, please advise me";
+/** The wording stored before 7 October 2026 (a semicolon). Old drafts and
+    submissions still hold it, so it still reads as "not sure". */
+export const UNSURE_LEGACY = "I'm not sure; please advise me";
+export const isUnsure = (v: unknown) => v === UNSURE || v === UNSURE_LEGACY;
 export const PROJECT_UPDATE_PORTAL = "Client portal";
+
+/** One test on an earlier answer. `equals`: it holds one of these. `filled`: it
+    has any answer at all. Both given means both must hold. */
+export type Cond = { key: string; equals?: string[]; filled?: boolean };
+
+export type OptionInfo = { desc?: string; images?: string[] };
 
 export type Field = {
   key: string;
@@ -91,8 +105,19 @@ export type Field = {
   placeholder?: string;
   options?: string[];
   required?: boolean;
-  /** Only shown when another field holds one of these values. */
-  showIf?: { key: string; equals: string[] };
+  /**
+   * Only shown when the condition holds. A list means ALL of them must hold
+   * (an answer AND a job size, for example). Evaluate with `isVisible`, never
+   * by hand: six places used to copy the same four lines.
+   */
+  showIf?: Cond | Cond[];
+  /**
+   * A line of explanation and a picture or two for an option, shown on its
+   * card. Pictures are paths under /public. Keyed by the option text.
+   */
+  optionInfo?: Record<string, OptionInfo>;
+  /** A long list of options, grouped under headings and searchable. */
+  groups?: { name: string; options: string[] }[];
   /**
    * Says that answering this way takes the work outside what was paid for.
    *
@@ -668,6 +693,27 @@ export function isFilled(v: string | string[] | undefined) {
   return Array.isArray(v) ? v.length > 0 : Boolean(v && v.trim());
 }
 
+const condHolds = (c: Cond, answers: Record<string, string | string[] | undefined>) => {
+  const v = answers[c.key];
+  if (c.filled !== undefined && isFilled(v) !== c.filled) return false;
+  if (!c.equals) return true;
+  return Array.isArray(v) ? v.some((x) => c.equals!.includes(x)) : typeof v === "string" && c.equals.includes(v);
+};
+
+/**
+ * Is this question asked, given the answers so far? The one place the answer
+ * is decided: the form, the server's check, the admin entry views and the
+ * answered count all call it, so a question the client never saw is never
+ * reported as one they skipped.
+ */
+export function isVisible(f: Pick<Field, "showIf">, answers: Record<string, string | string[] | undefined>) {
+  if (!f.showIf) return true;
+  return (Array.isArray(f.showIf) ? f.showIf : [f.showIf]).every((c) => condHolds(c, answers));
+}
+
+/** A notice asks nothing, so it is never counted, validated or stored. */
+export const isQuestion = (f: Pick<Field, "kind">) => f.kind !== "notice";
+
 /**
  * DELIBERATELY NOT THE RFC 5322 PATTERN. That expression is a page long,
  * accepts things no mail server will, and rejects nothing anyone actually
@@ -693,6 +739,8 @@ export function problemWith(
   value: string | string[] | undefined,
   extra?: { phoneOk?: boolean },
 ): string | null {
+  if (f.kind === "notice") return null;
+
   if (f.key === "brand_colours" && value !== undefined) {
     if (typeof value !== "string") return "Enter colours as readable text.";
     const problem = colourProblem(value);
@@ -710,7 +758,7 @@ export function problemWith(
 
   /* An answer of "I don't know" is an answer. It cannot fail a format check,
      because it is not trying to be an email address. */
-  if (value === UNSURE) return null;
+  if (isUnsure(value)) return null;
 
   const v = typeof value === "string" ? value.trim() : "";
 
@@ -758,7 +806,7 @@ export function problemWith(
 const SECONDS: Record<FieldKind, number> = {
   yesno: 4, cards: 6, select: 7, multi: 10,
   text: 12, email: 12, tel: 14, url: 12,
-  textarea: 32, upload: 10,
+  textarea: 32, upload: 10, notice: 0,
   /* Three names to think of, not three boxes to fill: naming a business is the
      slowest question in the form, and the check afterwards is a wait the
      client chooses to take. Deliberately higher than `textarea`, which is what
@@ -775,7 +823,7 @@ export function minutesLeft(
   let s = 0;
   for (let n = Math.max(0, from); n < steps.length; n++) {
     for (const f of steps[n].fields) {
-      if (!visibleNow(f)) continue;
+      if (!isQuestion(f) || !visibleNow(f)) continue;
       if (isFilled(answers[f.key])) continue;   // already done costs nothing
       s += SECONDS[f.kind] ?? 10;
     }
