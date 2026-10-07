@@ -50,7 +50,7 @@ export const SERVICES: Service[] = [
     short: "Branding",
     lede: "One consistent identity across everything a customer touches.",
     body:
-      "Everything visual a company needs, built as a system rather than a set of one-off files. We work out what the brand has to say before we draw anything, then design the identity, the motion and the assets that carry it, so the logo, the deck, the storefront banner and the app icon all read as the same company.",
+      "Everything visual a company needs, built as a system rather than a set of one-off files. We work out what the brand has to say before we draw anything, then design the identity, the motion and the assets that carry it, so the logo, the deck, the storefront banner and the app icon all read as the same company. Small jobs like flyers and social templates can be a single piece, a batch, or a monthly service.",
     steps: [
       { t: "Discovery", d: "We learn the business, the customer and the market before a single mark is drawn.", i: "Search" },
       { t: "Brand strategy", d: "Positioning and message, agreed in writing, so the design has something to serve.", i: "Compass" },
@@ -63,8 +63,14 @@ export const SERVICES: Service[] = [
       "Logo and identity system",
       "Brand guide",
       "Company profile",
-      "Motion design and micro-animations",
-      "Flyers, posters and banners",
+      "Pitch decks",
+      "Motion design: logo reveals, promo videos, social reels, explainers and website loops",
+      "Flyers, posters and banners (one piece, a batch, or monthly)",
+      "Social media templates",
+      "Promotional branding for sales and campaigns",
+      "Packaging and shopping bags",
+      "Signage and storefront branding",
+      "Business cards and stationery",
       "Printables and mementos",
       "Physical brand stands",
       "Naming and tagline work",
@@ -141,7 +147,7 @@ export const SERVICES: Service[] = [
     short: "Apps",
     lede: "One codebase, every device, native-quality on both stores.",
     body:
-      "Web apps and mobile apps for iOS and Android from a single codebase, using Flutter, React Native, Swift, Kotlin or C# depending on what the product needs. One codebase is a means, not the goal: where a platform genuinely differs, whether that is a permission prompt, a payment sheet or a share target, we write to that platform rather than flattening it into a lowest common denominator. We handle the engineering and the delivery, including the parts teams underestimate, like store review, the metadata and screenshots each store demands, and the update cadence after launch.",
+      "Web apps and mobile apps for iOS and Android from a single codebase, using Flutter, React Native, Swift, Kotlin or C# depending on what the product needs. One codebase is a means, not the goal: where a platform genuinely differs, whether that is a permission prompt, a payment sheet or a share target, we write to that platform rather than flattening it into a lowest common denominator. We handle the engineering and the delivery, including the parts teams underestimate, like store review, the metadata and screenshots each store demands, and the update cadence after launch. You see a working first version, a prototype, before the full build. There are a few things we do not build: games, anything deceptive, and apps that need heavy hardware.",
     steps: [
       { t: "Product definition", d: "What the app is for, and what it does not need to do in version one.", i: "Target" },
       { t: "UX flows", d: "The paths a user takes, mapped before any screen is designed.", i: "GitBranch" },
@@ -151,10 +157,12 @@ export const SERVICES: Service[] = [
       { t: "Continuous updates", d: "Shipping improvements after launch, not walking away at 1.0.", i: "RefreshCcw" },
     ],
     deliverables: [
+      "A prototype before the full build",
       "iOS and Android apps",
       "Web apps",
       "Single cross-platform codebase",
-      "Offline handling and sync",
+      "Apps that keep working offline, and sync when back online",
+      "Apps that serve many users at once, with live updates",
       "Push notifications",
       "In-app purchases and payments",
       "Accounts, roles and permissions",
@@ -175,7 +183,7 @@ export const SERVICES: Service[] = [
     short: "Software & AI",
     lede: "Custom software and AI built around the outcome, not around the technology.",
     body:
-      "Product builds from zero, scaling systems that have outgrown themselves, and AI or LLM features integrated into software that already exists. We are candid about where AI earns its place and where it does not. The engineering is built around a real business problem, and we say so plainly when a model is not the answer.",
+      "Product builds from zero, scaling systems that have outgrown themselves, and AI or LLM features integrated into software that already exists. The work falls into four kinds: internal tools, automations, AI assistants and chatbots, and connecting the systems you already use. We can connect to any tool that has an API. Demos of past work happen on the discovery call. We are candid about where AI earns its place and where it does not. The engineering is built around a real business problem, and we say so plainly when a model is not the answer.",
     steps: [
       { t: "Problem framing", d: "The business problem first; the technology choice comes after it.", i: "Target" },
       { t: "Architecture", d: "Backends, APIs and services designed to be scaled and maintained.", i: "Network" },
@@ -193,6 +201,10 @@ export const SERVICES: Service[] = [
       "Rust and Go services",
       "Scaling existing products",
       "Admin dashboards and internal tools",
+      "Automations that remove repeat work",
+      "AI assistants and chatbots",
+      "Connections between the tools you already use",
+      "Data pipelines",
       "Payment and billing integration",
       "Automated testing and monitoring",
     ],
@@ -205,7 +217,7 @@ export const SERVICES: Service[] = [
     short: "Social & PPC",
     lede: "Turn attention into growth, with reporting that keeps you in the loop.",
     body:
-      "Organic growth and paid campaigns run together, because they feed each other. We manage the day-to-day accounts, build the content calendar, set up the automations that catch enquiries out of hours, and report on what it did, so you are looking at outcomes rather than a screenshot of a follower count.",
+      "Organic growth and paid campaigns run together, because they feed each other. Management, content creation and paid ads are three separate packages, and you can take one or combine them. You approve content before we post it, and we plan the calendar, schedule the posts and bring trend ideas. We manage the day-to-day accounts, build the content calendar, set up the automations that catch enquiries out of hours, and report on what it did, so you are looking at outcomes rather than a screenshot of a follower count.",
     steps: [
       { t: "Channel audit", d: "Which platforms are worth your time, and which are quietly costing you.", i: "Activity" },
       { t: "Content calendar", d: "Planned properly, so posting is a schedule rather than a scramble.", i: "Calendar" },
@@ -218,7 +230,9 @@ export const SERVICES: Service[] = [
       "Organic growth campaigns",
       "Account management across six platforms",
       "Content calendars",
-      "Paid ads and PPC",
+      "Paid ads and PPC (a separate package)",
+      "Content creation as its own package",
+      "Approval before every post",
       "Automations and auto-replies",
       "Reporting",
       "Short-form video and reels",

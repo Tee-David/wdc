@@ -68,6 +68,9 @@ export type CaseStudy = {
   quote?: { text: string; from: string };
   /** Captures of the delivered work. */
   gallery?: string[];
+  /** Motion pieces to show beside the images, by id from lib/motion-work.ts.
+      Muted loops with a pause button, loaded only when on screen. */
+  motion?: string[];
   /** Descriptions for people who cannot see them: the cover's, and one per
       gallery picture in the same order. Written in the admin editor; the
       case studies in this file fall back to "client: title". */
@@ -163,6 +166,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     ],
     stack: ["Next.js", "TypeScript", "PostgreSQL", "Tailwind CSS"],
     gallery: ["/work/app/realtors-dashboard.jpg", "/work/app/realtors-mobile.jpg"],
+    motion: ["realtors-story", "realtors-post"],
   },
   {
     slug: "litch-consulting",
@@ -193,6 +197,7 @@ export const CASE_STUDIES: CaseStudy[] = [
       "/work/app/litch-tablet.jpg",
       "/work/app/litch-mobile.jpg",
     ],
+    motion: ["litch-film", "litch-reel"],
   },
   {
     slug: "nomarc-projects",
