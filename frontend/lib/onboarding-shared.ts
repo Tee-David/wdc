@@ -16,6 +16,12 @@ export type FieldKind =
      build) or a note. It asks nothing, stores nothing, is never validated and
      is not counted as a question. `label` is its title and `hint` its text. */
   | "notice"
+  /* The colour flow: a feeling, a ready made palette, "Yes, use these", with
+     deeper paths for a logo, codes or words. Stored in the existing readable
+     `Name | #HEX | Role` lines (lib/brand-colours.ts); the extra answers it
+     collects (brand_vibe, brand_colour_source, brand_colours_words) are saved
+     under their own keys. */
+  | "colours"
   /* Up to three names with an explicit availability check against the
      registry. Stored newline separated, so the answer is a plain string like
      every other field and no draft or submission needed migrating. */
@@ -44,9 +50,43 @@ export const PROJECT_UPDATE_PORTAL = "Client portal";
 
 /** One test on an earlier answer. `equals`: it holds one of these. `filled`: it
     has any answer at all. Both given means both must hold. */
-export type Cond = { key: string; equals?: string[]; filled?: boolean };
+export type Leaf = { key: string; equals?: string[]; filled?: boolean };
 
-export type OptionInfo = { desc?: string; images?: string[] };
+/**
+ * A condition. A plain test on one answer, or:
+ * - `{ any: [...] }`: at least one of the listed conditions holds. This is how
+ *   a LATER PICK RAISES THE TIER: a small job that ticks Brand guidelines still
+ *   reaches the colour question, because "size is medium or more, OR the
+ *   deliverables include guidelines".
+ * - `{ tier: 2 }`: the job size the client gave is at least this tier. See
+ *   `tierOf`. Tier 1 is always asked, so only 2 and 3 are ever written.
+ */
+export type Cond = Leaf | { any: Cond[] } | { tier: 2 | 3 };
+
+/**
+ * The opening "how big is the job" question of each service, and what each
+ * answer means. The client answers in plain words and the studio's own label
+ * is never shown to them. An answer of "not sure" counts as tier 2, so a
+ * client who cannot say is asked the middle set rather than the smallest.
+ */
+export const SIZE_TIER: Record<string, 1 | 2 | 3> = {
+  /* branding */
+  "One piece or a small set": 1, "Several pieces": 2, "A full brand": 3,
+  /* web */
+  "A simple site": 1, "A bigger site": 2, "A large site": 3,
+  /* seo */
+  "One site, one place": 1, "A growing site": 2, "A big site or many places": 3,
+  /* apps, software and social */
+  "Small": 1, "Medium": 2, "Large": 3,
+};
+export const SIZE_KEYS = ["job_size", "site_size", "seo_size", "app_size", "sw_size", "social_size"] as const;
+
+export type OptionInfo = {
+  desc?: string;
+  images?: string[];
+  /** Hex colours for a palette card, shown as a strip of swatches. */
+  swatches?: string[];
+};
 
 export type Field = {
   key: string;
@@ -98,6 +138,9 @@ export type Field = {
   optionInfo?: Record<string, OptionInfo>;
   /** A long list of options, grouped under headings and searchable. */
   groups?: { name: string; options: string[] }[];
+  /** For a grouped list: the few options shown first, with the rest behind
+      "See all". Keeps a 30 item list from being a wall on a phone. */
+  popular?: string[];
   /**
    * Says that answering this way takes the work outside what was paid for.
    *
