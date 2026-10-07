@@ -956,3 +956,134 @@
 .pv .obb__body { padding: 4px 18px 20px; display: grid; gap: 18px; animation: ob-talk-in .3s cubic-bezier(.16, 1, .3, 1) backwards; }
 .pv .obb__link { background: none; border: 0; padding: 0; color: var(--accent-ink); font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; min-height: 44px; }
 @media (prefers-reduced-motion: reduce) { .pv .ob--talk .ob__fields, .pv .obb__body { animation: none; } }
+
+/* ============================================================================
+   RICH OPTION CARDS AND THE GROUPED FEATURE CHECKLIST
+   (option-card.tsx, feature-checklist.tsx; used by fields with `optionInfo`
+   and by a `multi` field with `groups`). Fields without them keep .ob__cards.
+
+   Solid fills only. A selected card is an accent-fill border with a filled
+   tick (white on #b84a00), never a tint. Chips that carry words are
+   --accent-fill with --on-accent. Press feedback is transform only and is not
+   sent under reduced motion. The card track is one column to 559px, two from
+   560px and three from 900px, as the research asks.
+   ========================================================================== */
+
+.obOpt { display: grid; gap: .6rem; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 560px) { .obOpt { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 900px) { .obOpt { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+.obOpt__card {
+  position: relative; display: flex; align-items: center; gap: .8rem;
+  width: 100%; min-width: 0; min-height: 44px; padding: .7rem .85rem;
+  border: 2px solid var(--muted); border-radius: 12px;
+  background: var(--paper); color: var(--ink);
+  font: inherit; text-align: left; cursor: pointer;
+}
+.obOpt__card:hover { border-color: var(--ink); }
+.obOpt__card.is-on,
+.obOpt__card.is-on:hover { border-color: var(--accent-fill); }
+.obOpt__card:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+
+.obOpt__img {
+  flex: none; display: block; width: 96px; height: 96px; max-width: none;
+  border-radius: 8px; object-fit: cover; background: var(--paper-2);
+}
+.obOpt__text { display: grid; gap: .25rem; min-width: 0; flex: 1 1 auto; }
+.obOpt__name { font-weight: 600; font-size: .98rem; line-height: 1.3; overflow-wrap: anywhere; }
+.obOpt__desc { color: var(--muted); font-size: .9rem; line-height: 1.4; overflow-wrap: anywhere; }
+
+/* The tick: an empty ring until picked, then a solid accent square (or circle
+   on a radio card) carrying a white tick. */
+.obOpt__tick {
+  display: grid; place-items: center; flex: none; align-self: center;
+  width: 1.3rem; height: 1.3rem; border-radius: 5px; border: 2px solid var(--muted);
+}
+.obOpt__card[role="radio"] .obOpt__tick { border-radius: 50%; }
+.obOpt__tick svg { width: .8rem; height: .8rem; stroke-width: 3.5; }
+.obOpt__card.is-on .obOpt__tick { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent); }
+
+/* A palette card's swatches, each named in text beside its chip. */
+.obOpt__sw { display: flex; flex-wrap: wrap; gap: .3rem .75rem; color: var(--muted); font-size: .82rem; }
+.obOpt__swi { display: inline-flex; align-items: center; gap: .35rem; }
+.obOpt__chip { width: 1rem; height: 1rem; border-radius: 4px; border: 1px solid var(--muted); flex: none; }
+
+/* Grouped checklist. */
+.obFeat { display: grid; gap: .85rem; min-width: 0; }
+.obFeat__search { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+.obFeat__input {
+  flex: 1 1 auto; min-width: 0; min-height: 44px; padding: .6rem .9rem;
+  border: 1px solid var(--muted); border-radius: 10px; background: var(--paper); color: var(--ink);
+  font: inherit; font-size: 1rem;
+}
+.obFeat__input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; display: none; }
+.obFeat__input:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+.obFeat__clearBox {
+  flex: none; min-width: 44px; min-height: 44px; padding: 0 .8rem;
+  border: 2px solid var(--accent-fill); border-radius: 10px;
+  background: var(--accent-fill); color: var(--on-accent);
+  font: inherit; font-weight: 600; font-size: .92rem; cursor: pointer;
+}
+.obFeat__clearBox:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+
+.obFeat__summary { display: grid; gap: .45rem; min-width: 0; }
+.obFeat__count { margin: 0; min-height: 1.4rem; color: var(--muted); font-size: .92rem; }
+.obFeat__chips { display: flex; flex-wrap: wrap; gap: .45rem; min-height: 44px; align-items: flex-start; min-width: 0; }
+.obFeat__chip {
+  display: inline-flex; align-items: center; gap: .4rem; min-height: 44px; padding: .45rem .8rem;
+  border: 2px solid var(--accent-fill); border-radius: 999px;
+  background: var(--accent-fill); color: var(--on-accent);
+  font: inherit; font-size: .92rem; font-weight: 500; text-align: left; cursor: pointer;
+  max-width: 100%; overflow-wrap: anywhere;
+}
+.obFeat__chip svg { width: .95rem; height: .95rem; flex: none; }
+.obFeat__chip:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+
+.pv .obFeat__h {
+  margin: .4rem 0 .2rem; color: var(--ink);
+  font-weight: 600; font-size: .9rem; letter-spacing: .02em;
+}
+.obFeat__pills { display: flex; flex-wrap: wrap; gap: .45rem; }
+.obFeat__pill {
+  display: inline-flex; align-items: center; gap: .4rem; min-height: 44px; padding: .45rem .9rem;
+  border: 2px solid var(--muted); border-radius: 999px;
+  background: var(--paper); color: var(--ink);
+  font: inherit; font-size: .92rem; text-align: left; cursor: pointer;
+}
+.obFeat__pill svg { width: .95rem; height: .95rem; flex: none; color: var(--on-accent); background: var(--accent-fill); border-radius: 3px; padding: 2px; box-sizing: content-box; }
+.obFeat__pill.is-on { border-color: var(--accent-fill); }
+.obFeat__pill:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+
+.obFeat__all {
+  display: inline-flex; align-items: center; gap: .4rem; min-height: 44px; margin-top: .4rem; padding: .4rem .2rem;
+  border: 0; background: none; color: var(--ink);
+  font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.obFeat__all svg { width: 1rem; height: 1rem; transition: transform .2s ease; }
+.obFeat__all svg.is-open { transform: rotate(180deg); }
+.obFeat__all:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+
+.obFeat__groups { display: grid; gap: .25rem; min-width: 0; }
+.obFeat__group { display: grid; gap: 0; min-width: 0; }
+.obFeat__row {
+  display: flex; align-items: center; gap: .75rem; min-height: 44px; padding: .4rem .2rem;
+  border-bottom: 1px solid var(--rule); color: var(--ink); font-size: .96rem; cursor: pointer; min-width: 0;
+}
+.obFeat__row span { min-width: 0; overflow-wrap: anywhere; }
+.obFeat__row input {
+  flex: none; width: 1.3rem; height: 1.3rem; margin: 0;
+  accent-color: var(--accent-fill); cursor: pointer;
+}
+.obFeat__row:focus-within { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+.obFeat__row.is-on { font-weight: 600; }
+
+.obFeat__none { display: grid; gap: .4rem; justify-items: start; padding: .4rem 0; color: var(--muted); }
+.obFeat__none p { margin: 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .obOpt__card { transition: transform .12s ease, border-color .15s ease; }
+  .obOpt__card:active { transform: scale(.98); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .obFeat__all svg { transition: none; }
+}

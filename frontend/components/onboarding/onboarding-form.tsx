@@ -22,6 +22,8 @@ import SelectField from "./select-field";
 import DomainField from "./domain-field";
 import ServicePicker from "./service-picker";
 import ColourField from "./colour-field";
+import OptionCards from "./option-card";
+import FeatureChecklist from "./feature-checklist";
 import { BriefExample, ChoiceLabel } from "./brief-help";
 import { FIELD_EXAMPLES } from "@/lib/onboarding-help";
 import Dropzone from "./dropzone";
@@ -1175,6 +1177,21 @@ function FieldView({
 
   if (f.kind === "cards" || f.kind === "yesno") {
     const opts = f.kind === "yesno" ? ["Yes", "No"] : f.options ?? [];
+    /* A card with `optionInfo` is a rich card (name, line, thumbnail). The
+       press rule is the same as the plain card below: the chosen one again is
+       unchosen. Fields without optionInfo fall through unchanged. */
+    if (f.kind === "cards" && f.optionInfo) {
+      return wrap(
+        <OptionCards
+          label={f.label}
+          options={opts}
+          info={f.optionInfo}
+          mode="radio"
+          isOn={(o) => v === o}
+          onPick={(o) => onChange(v === o ? "" : o)}
+        />,
+      );
+    }
     return wrap(
       <div className="ob__cards" role="radiogroup" aria-labelledby={id}>
         {opts.map((o) => (
@@ -1215,6 +1232,37 @@ function FieldView({
        multiple-choice. Reading that value as one checked option keeps those
        answers intact while every new change is stored as a list. */
     const arr = Array.isArray(v) ? v : typeof v === "string" && v ? [v] : [];
+    /* One rule for a pick, shared by the plain, rich and grouped lists. */
+    const pick = (o: string) => {
+      if (arr.includes(o)) return onChange(arr.filter((x) => x !== o));
+      if (EXCLUSIVE_MULTI_OPTIONS.has(o)) return onChange([o]);
+      onChange([...arr.filter((x) => !EXCLUSIVE_MULTI_OPTIONS.has(x)), o]);
+    };
+    if (f.groups) {
+      /* A long list, grouped and searchable. The picks are shown as removable
+          chips above it; the value stored is the same array as any multi. */
+      return wrap(
+        <FeatureChecklist
+          label={f.label}
+          groups={f.groups}
+          popular={f.popular ?? []}
+          picked={arr.filter((x) => (f.options ?? []).includes(x))}
+          onPick={pick}
+        />,
+      );
+    }
+    if (f.optionInfo) {
+      return wrap(
+        <OptionCards
+          label={f.label}
+          options={f.options ?? []}
+          info={f.optionInfo}
+          mode="checkbox"
+          isOn={(o) => arr.includes(o)}
+          onPick={pick}
+        />,
+      );
+    }
     /* CARDS, AT EVERY LENGTH. A long list briefly became a multi-select
        dropdown here; that needed a second searchable control, because the one
        this form already has is single-choice by design. Two controls doing
@@ -1233,11 +1281,7 @@ function FieldView({
               role="checkbox"
               aria-checked={on}
               className={`ob__card${on ? " is-on" : ""}`}
-              onClick={() => {
-                if (on) return onChange(arr.filter((x) => x !== o));
-                if (EXCLUSIVE_MULTI_OPTIONS.has(o)) return onChange([o]);
-                onChange([...arr.filter((x) => !EXCLUSIVE_MULTI_OPTIONS.has(x)), o]);
-              }}
+              onClick={() => pick(o)}
             >
               <span className="ob__tick" aria-hidden="true">{on ? <Check /> : null}</span>
               <ChoiceLabel field={f.key} option={o} />
