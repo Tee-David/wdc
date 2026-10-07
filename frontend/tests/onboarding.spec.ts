@@ -15,7 +15,19 @@ test.beforeEach(async ({ page }) => {
   }, browserDraft);
 });
 
+/* Size first: the features question is a bigger-site question, so the spec
+   lands on its step with the size answered. The step is looked up by the key
+   it holds, so a reorder of the steps does not move the spec. */
+const webStepOf = (key: string) => stepsFor("web").findIndex((step) => step.fields.some((f) => f.key === key));
+
+async function landWeb(page: import("@playwright/test").Page, step: number, answers: Record<string, string | string[]>) {
+  await page.addInitScript(({ step, answers }) => {
+    localStorage.setItem("wdc-onboarding-draft", JSON.stringify({ started: true, service: "web", step, answers }));
+  }, { step, answers });
+}
+
 test("uses client-facing choices and reveals Other details only when needed", async ({ page }) => {
+  await landWeb(page, webStepOf("features"), { site_size: "A bigger site" });
   await page.goto("/onboarding");
 
   const featureField = page.locator('[data-field="features"]');
@@ -26,10 +38,10 @@ test("uses client-facing choices and reveals Other details only when needed", as
   await expect(otherDetail.getByText("What other feature do you need?")).toBeVisible();
 
   await expect(page.getByRole("button", { name: "I'm not sure, please advise me" }).first()).toBeVisible();
-  await expect(page.locator('[data-field="page_count"] [role="combobox"]')).toBeVisible();
 });
 
-test("uses a plain list for short selects and lets clients revise an unsure answer", async ({ page }) => {
+test("uses a plain list for short selects", async ({ page }) => {
+  await landWeb(page, webStepOf("page_count"), {});
   await page.goto("/onboarding");
 
   const pageCount = page.locator('[data-field="page_count"]');
@@ -38,8 +50,13 @@ test("uses a plain list for short selects and lets clients revise an unsure answ
   const popupZ = await pageCount.locator(".pk__pop").evaluate((element) => Number(getComputedStyle(element).zIndex));
   const fabZ = await page.locator(".st").evaluate((element) => Number(getComputedStyle(element).zIndex));
   expect(popupZ).toBeGreaterThan(fabZ);
-  await pageCount.getByRole("option", { name: "6–15" }).click();
-  await expect(pageCount.getByRole("combobox")).toContainText("6–15");
+  await pageCount.getByRole("option", { name: "6 to 15" }).click();
+  await expect(pageCount.getByRole("combobox")).toContainText("6 to 15");
+});
+
+test("lets clients revise an unsure answer", async ({ page }) => {
+  await landWeb(page, webStepOf("features"), { site_size: "A bigger site" });
+  await page.goto("/onboarding");
 
   const featureField = page.locator('[data-field="features"]');
   await featureField.getByRole("button", { name: "I'm not sure, please advise me" }).click();

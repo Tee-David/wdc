@@ -3,7 +3,8 @@ import "server-only";
 import { ensureCustomForms } from "./custom";
 
 import { db } from "@/lib/db/pool";
-import { isQuestion, isVisible, stepsFor } from "@/lib/onboarding";
+import { isQuestion, stepsFor } from "@/lib/onboarding";
+import { displayAnswers, shownInBrief } from "@/lib/onboarding-aliases";
 import { findDuplicateClient, getClient } from "@/lib/admin/store";
 import { linksFor } from "./links";
 import type { ServiceSlug } from "@/lib/services";
@@ -168,7 +169,9 @@ const text = (v: unknown): string => (typeof v === "string" ? v
 
 function toEntry(form: FormDef, r: Row): Entry {
   if (form.source === "onboarding") {
-    const answers = (r.answers && typeof r.answers === "object" ? r.answers : {}) as Record<string, string | string[]>;
+    const stored = (r.answers && typeof r.answers === "object" ? r.answers : {}) as Record<string, string | string[]>;
+    /* Old wording mapped on read for display. The stored answers are not changed. */
+    const answers = form.service ? displayAnswers(form.service, stored) : stored;
     return {
       id: String(r.id), serial: r.serial == null ? null : Number(r.serial),
       at: iso(r.submitted_at ?? r.updated_at),
@@ -314,7 +317,7 @@ const has = (v: unknown) => (Array.isArray(v) ? v.length > 0 : Boolean(v && Stri
 
 /** "41 of 52": questions answered out of the ones this client was shown. */
 export function answeredCount(service: ServiceSlug, answers: Entry["answers"]) {
-  const fields = stepsFor(service).flatMap((s) => s.fields).filter((f) => isQuestion(f) && isVisible(f, answers));
+  const fields = stepsFor(service).flatMap((s) => s.fields).filter((f) => isQuestion(f) && shownInBrief(service, f, answers));
   return { answered: fields.filter((f) => has(answers[f.key])).length, total: fields.length };
 }
 

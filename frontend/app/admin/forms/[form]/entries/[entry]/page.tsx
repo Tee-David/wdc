@@ -9,7 +9,8 @@ import { ChevronLeft, ChevronRight, FileDown } from "lucide-react";
 import { after } from "next/server";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
-import { isQuestion, isVisible, stepsFor } from "@/lib/onboarding";
+import { isQuestion, stepsFor } from "@/lib/onboarding";
+import { shownInBrief } from "@/lib/onboarding-aliases";
 import type { FormDef } from "@/lib/forms/registry";
 import { answeredCount, clientFor, entryIds, getEntry, markRead, readFilters, type Entry } from "@/lib/forms/entries";
 import { eventsFor, type EntryEvent } from "@/lib/forms/events";
@@ -121,7 +122,7 @@ function Answers({ form, entry, hideEmpty }: { form: FormDef; entry: Entry; hide
       action={<Link className="ad__btn adForms__noPrint" href={`?${hideEmpty ? "" : "hide=1"}`}>{hideEmpty ? "Show unanswered" : "Hide unanswered"}</Link>}>
       <div style={{ padding: "0 1rem 1rem" }}>
         {steps.map((st) => {
-          const fields = st.fields.filter((f) => isQuestion(f) && isVisible(f, entry.answers) && (!hideEmpty || has(entry.answers[f.key])));
+          const fields = st.fields.filter((f) => isQuestion(f) && shownInBrief(form.service!, f, entry.answers) && (!hideEmpty || has(entry.answers[f.key])));
           if (!fields.length) return null;
           return (
             <section key={st.id} style={{ paddingTop: ".9rem" }}>
