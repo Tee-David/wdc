@@ -53,3 +53,76 @@ export async function chooseOption(page: Page, key: string, label: string) {
   await question.getByRole("combobox").click();
   await page.getByRole("option", { name: label, exact: true }).click();
 }
+
+/* ------------------------------------------------------------------ walking */
+
+export type Answer = string | string[];
+
+/**
+ * Answers every question on the CURRENT screen that the map has an answer for,
+ * the way a client would: text typed, choices made through `chooseOption`.
+ * A follow up only appears once its parent is answered, so this goes round
+ * again until nothing new on the screen has an answer waiting. Questions the
+ * map does not mention are left alone, which is how a spec checks that
+ * optional ones really are optional. Uploads, domains and the colour flow are
+ * never filled here: they have their own specs.
+ */
+export async function fillScreen(page: Page, answers: Record<string, Answer>) {
+  const done = new Set<string>();
+  for (let pass = 0; pass < 6; pass++) {
+    const keys = await page.locator(".ob__fields [data-field]").evaluateAll((els) => els.map((e) => e.getAttribute("data-field") ?? ""));
+    const todo = keys.filter((k) => k in answers && !done.has(k));
+    if (!todo.length) return;
+    for (const key of todo) {
+      done.add(key);
+      const q = page.locator(`[data-field="${key}"]`);
+      const value = answers[key];
+      const area = q.locator("textarea");
+      if (await area.count()) { await area.first().fill(String(value)); continue; }
+      const text = q.locator('input[type="tel"], input[type="text"], input[type="email"], input[type="url"], input:not([type])').filter({ hasNot: page.locator('[role="combobox"]') });
+      if (typeof value === "string" && (await text.count()) && !(await q.getByRole("combobox").count()) && !(await q.getByRole("radio").count()) && !(await q.getByRole("checkbox").count())) {
+        await text.first().fill(value);
+        continue;
+      }
+      for (const label of Array.isArray(value) ? value : [value]) await chooseOption(page, key, label);
+    }
+  }
+}
+
+/**
+ * Walks a form from its first screen to the review screen, answering what the
+ * map covers and pressing the screen's own forward button. Returns the title
+ * of every screen it passed through. Fails with the form's own message when a
+ * screen refuses to go on, so a missing required answer says which one.
+ */
+export async function walkToReview(page: Page, answers: Record<string, Answer>, maxScreens = 14): Promise<string[]> {
+  const titles: string[] = [];
+  for (let n = 0; n < maxScreens; n++) {
+    if (await page.locator(".ob__review").count()) return titles;
+    titles.push((await page.locator(".ob h2").first().innerText()).trim());
+    await fillScreen(page, answers);
+    await page.locator(".ob__stepNext").click();
+    await page.waitForTimeout(250);
+    const stuck = page.locator(".ob__err");
+    if (await stuck.count()) throw new Error(`Screen "${titles[titles.length - 1]}" would not go on: ${(await stuck.first().innerText()).replace(/\s+/g, " ")}`);
+  }
+  if (await page.locator(".ob__review").count()) return titles;
+  throw new Error(`No review screen after ${maxScreens} screens: ${titles.join(" > ")}`);
+}
+
+/** Who they are, and the shared answers every service asks. */
+export const PERSON: Record<string, Answer> = {
+  first_name: "Ada", last_name: "Obi", phone: "0802 123 4567", email: "ada@example.org",
+  company: "Moore Designs", industry: "Food and drink", audience: ["Women"],
+  approver: "Ada Obi", channel: ["WhatsApp"],
+};
+
+/** The least a client can answer on the way to Send, per service. */
+export const SMALLEST: Record<string, Record<string, Answer>> = {
+  branding: { job_size: "One piece or a small set", deliverables: ["Logo"], brand_have: ["Nothing yet"] },
+  web: { site_size: "A simple site", site_new_or_existing: "Brand new", site_jobs: ["Share information"], words_ready: "I have them" },
+  seo: { seo_size: "One site, one place", customers: "Online, anywhere", seo_goals: ["More leads"], seo_timeframe: "3 months" },
+  apps: { app_size: "Small", platforms: ["Android phone"], app_stage: "Only an idea", one_job: "Lets customers order and pay" },
+  software: { sw_size: "Small", sw_pains: ["Reports done by hand"], sw_kind: "An automation" },
+  social: { social_size: "Small", social_packages: ["Management"], channels: ["Instagram"], social_access: "Please work through me" },
+};
