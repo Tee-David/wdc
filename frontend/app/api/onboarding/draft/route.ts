@@ -107,14 +107,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "This onboarding form has already been submitted." }, { status: 409 });
   }
 
+  /* THE STEP COLUMN HAD A CHECK OF 0 TO 4, and the redesigned forms have up to
+     nine screens. Migration 0039 widens it, and until it has been applied (the
+     owner does that in Settings, System) a save from a later screen would be
+     refused by the database and the client's autosave would fail. So the step
+     is saved as given, and if the database refuses it for that reason alone it
+     is saved as 4, the old ceiling: the answers are never lost, and a resumed
+     draft simply opens a little earlier. A new draft is always stored at 4 or
+     less for the same reason. Once 0039 is applied the first branch always wins. */
+  const OLD_STEP_CEILING = 4;
   if (draft) {
-    const result = await db.query<{ email: string | null }>(`
+    const update = (step: number) => db.query<{ email: string | null }>(`
       UPDATE onboarding_submissions
       SET service = $2, current_step = $3, answers = $4::JSONB,
           email = COALESCE($5, email), updated_at = now()
       WHERE id = $1 AND status = 'in_progress' AND EXISTS (SELECT 1 FROM onboarding_resume_tokens WHERE submission_id=$1 AND token_hash=$6 AND revoked_at IS NULL AND expires_at>now())
       RETURNING email
-    `, [draft.id, service, currentStep, JSON.stringify(answers), requestedEmail,tokenHash(token!)]);
+    `, [draft.id, service, step, JSON.stringify(answers), requestedEmail,tokenHash(token!)]);
+    const result = await update(currentStep).catch((error: { code?: string }) => {
+      if (currentStep > OLD_STEP_CEILING && error?.code === "23514") return update(OLD_STEP_CEILING);
+      throw error;
+    });
     if (!result.rowCount) return NextResponse.json({error:"This saved form was restarted or submitted. Your current answers remain in this browser."},{status:409});
     draft = { ...draft, service, currentStep, answers, email: result.rows[0]?.email ?? draft.email };
   } else {
@@ -130,7 +143,7 @@ export async function POST(request: NextRequest) {
         INSERT INTO onboarding_submissions (service, current_step, answers, email)
         VALUES ($1, $2, $3::JSONB, $4)
         RETURNING id
-      `, [service, currentStep, JSON.stringify(answers), requestedEmail]);
+      `, [service, Math.min(currentStep, OLD_STEP_CEILING), JSON.stringify(answers), requestedEmail]);
       const submissionId = inserted.rows[0].id;
       await client.query(`
         INSERT INTO onboarding_resume_tokens (submission_id, token_hash, email, expires_at)
