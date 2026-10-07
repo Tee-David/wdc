@@ -1,9 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
-import { stepsFor } from "@/lib/onboarding";
+import { SIZE_KEYS, stepsFor } from "@/lib/onboarding";
 import type { ServiceSlug } from "@/lib/services";
 import { FEATURE_GROUPS, POPULAR_FEATURES } from "@/lib/onboarding-services/apps";
 import { DELIVERABLE_INFO } from "@/lib/onboarding-services/branding";
-import { isolate, seedDraft } from "./onboarding-helpers";
+import { chooseOption, isolate, seedDraft } from "./onboarding-helpers";
 
 /**
  * The rich option cards (Branding size and deliverables) and the grouped
@@ -119,8 +119,8 @@ for (const theme of THEMES) for (const width of WIDTHS) {
 test("a picked card shows a solid accent border and tick, measured in both themes", async ({ page }) => {
   for (const theme of THEMES) {
     await openBranding(page, 390, theme);
+    await chooseOption(page, "deliverables", "Logo");
     const logo = field(page, "deliverables").getByRole("checkbox", { name: "Logo", exact: true });
-    await logo.click();
     await expect(logo).toHaveAttribute("aria-checked", "true");
     const tick = logo.locator(".obOpt__tick");
     const style = await logo.evaluate((el) => {
@@ -141,10 +141,10 @@ test("a picked card shows a solid accent border and tick, measured in both theme
 test("picking radio cards stores the names, and pressing the chosen one again unchooses it", async ({ page }) => {
   await openBranding(page, 390, "light");
   const small = page.getByRole("radio", { name: "One piece or a small set", exact: true });
-  await small.click();
+  await chooseOption(page, "job_size", "One piece or a small set");
   await expect(small).toHaveAttribute("aria-checked", "true");
   await expect.poll(async () => (await stored(page)).job_size).toBe("One piece or a small set");
-  await small.click();
+  await chooseOption(page, "job_size", "One piece or a small set");
   await expect(small).toHaveAttribute("aria-checked", "false");
   await expect.poll(async () => (await stored(page)).job_size ?? "").toBe("");
 });
@@ -154,14 +154,14 @@ test("picking radio cards stores the names, and pressing the chosen one again un
 test("Motion design opens motion kinds directly under the deliverables, and closing it removes them", async ({ page }) => {
   await openBranding(page, 390, "light");
   const deliverables = field(page, "deliverables");
-  await deliverables.getByRole("checkbox", { name: "Motion design", exact: true }).click();
+  await chooseOption(page, "deliverables", "Motion design");
   await expect(field(page, "motion_kinds")).toBeVisible();
   await expect.poll(() => deliverables.evaluate((el) => el.nextElementSibling?.getAttribute("data-field"))).toBe("motion_kinds");
   await expect.poll(async () => (await stored(page)).deliverables).toEqual(["Motion design"]);
 
-  await deliverables.getByRole("checkbox", { name: "Logo", exact: true }).click();
+  await chooseOption(page, "deliverables", "Logo");
   await expect.poll(async () => (await stored(page)).deliverables).toEqual(["Motion design", "Logo"]);
-  await deliverables.getByRole("checkbox", { name: "Motion design", exact: true }).click();
+  await chooseOption(page, "deliverables", "Motion design");
   await expect(field(page, "motion_kinds")).toHaveCount(0);
   await expect.poll(async () => (await stored(page)).deliverables).toEqual(["Logo"]);
 });
@@ -169,15 +169,15 @@ test("Motion design opens motion kinds directly under the deliverables, and clos
 test("Flyers opens the job rhythm question directly under the deliverables, then a batch opens its count", async ({ page }) => {
   await openBranding(page, 390, "light");
   const deliverables = field(page, "deliverables");
-  await deliverables.getByRole("checkbox", { name: "Flyers", exact: true }).click();
+  await chooseOption(page, "deliverables", "Flyers");
   await expect(field(page, "job_rhythm")).toBeVisible();
   await expect.poll(() => deliverables.evaluate((el) => el.nextElementSibling?.getAttribute("data-field"))).toBe("job_rhythm");
 
-  await field(page, "job_rhythm").getByRole("radio", { name: "A batch", exact: true }).click();
+  await chooseOption(page, "job_rhythm", "A batch");
   await expect(field(page, "batch_count")).toBeVisible();
   await expect.poll(() => field(page, "job_rhythm").evaluate((el) => el.nextElementSibling?.getAttribute("data-field"))).toBe("batch_count");
 
-  await deliverables.getByRole("checkbox", { name: "Flyers", exact: true }).click();
+  await chooseOption(page, "deliverables", "Flyers");
   await expect(field(page, "job_rhythm")).toHaveCount(0);
   await expect(field(page, "batch_count")).toHaveCount(0);
 });
@@ -186,10 +186,10 @@ test("Flyers opens the job rhythm question directly under the deliverables, then
 
 test("a small job that ticks Brand guidelines still reaches the colours step", async ({ page }) => {
   await openBranding(page, 390, "light", { job_size: "One piece or a small set" });
-  await field(page, "deliverables").getByRole("checkbox", { name: "Brand guidelines", exact: true }).click();
+  await chooseOption(page, "deliverables", "Brand guidelines");
   await next(page).click();
   await expect(page.getByRole("heading", { name: "What you have, and the style" })).toBeVisible();
-  await field(page, "brand_have").getByRole("checkbox", { name: "Nothing yet", exact: true }).click();
+  await chooseOption(page, "brand_have", "Nothing yet");
   await next(page).click();
   await expect(page.getByRole("heading", { name: "Your colours" })).toBeVisible();
   await expect(field(page, "brand_colours")).toBeVisible();
@@ -199,7 +199,7 @@ test("a small logo job does not reach the colours step", async ({ page }) => {
   await openBranding(page, 390, "light", { job_size: "One piece or a small set", deliverables: ["Logo"] });
   await next(page).click();
   await expect(page.getByRole("heading", { name: "What you have, and the style" })).toBeVisible();
-  await field(page, "brand_have").getByRole("checkbox", { name: "Nothing yet", exact: true }).click();
+  await chooseOption(page, "brand_have", "Nothing yet");
   await next(page).click();
   await expect(page.getByRole("heading", { name: "Your colours" })).toHaveCount(0);
   await expect(field(page, "brand_colours")).toHaveCount(0);
@@ -247,7 +247,7 @@ test("Apps features: popular first, See all, search, picked count, removable chi
   /* Toggling changes the count and the chips, and nothing above moves. */
   const headingY = (await list.locator(".obFeat__pop").boundingBox())?.y ?? 0;
   const pills = list.locator(".obFeat__pills");
-  await pills.getByRole("checkbox", { name: "Profiles", exact: true }).click();
+  await chooseOption(page, "app_features", "Profiles");
   await expect(list.locator(".obFeat__count")).toHaveText("1 feature picked");
   expect(Math.abs(((await list.locator(".obFeat__pop").boundingBox())?.y ?? 0) - headingY)).toBeLessThan(1);
 

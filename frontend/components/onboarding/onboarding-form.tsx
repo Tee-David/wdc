@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle, ArrowLeft, ArrowRight, BadgeInfo, Check, HelpCircle,
-  Save, Undo2, ChevronDown,
+  Save, Undo2,
 } from "lucide-react";
 import Link from "next/link";
 import { type ServiceSlug } from "@/lib/services";
@@ -714,7 +714,7 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
                       <div className="ob__fields">
                         {shown.map((f) => (
                           <FieldView
-                            key={f.key} f={f} value={a[f.key]} onChange={(v) => set(f.key, v)}
+                            key={f.key} f={f} value={a[f.key]} onChange={(v) => set(f.key, v)} setOther={set}
                             onBlur={() => setTouched((t) => ({ ...t, [f.key]: true }))}
                             onPhoneValidity={(ok) => setPhoneOk((p) => ({ ...p, [f.key]: ok }))}
                             problem={showProblem(f.key) ? problemWith(f, a[f.key], { phoneOk: phoneOk[f.key] }) : null}
@@ -849,6 +849,7 @@ export default function OnboardingForm({ closed = {}, styles = {} }: { closed?: 
               f={f}
               value={a[f.key]}
               onChange={(v) => set(f.key, v)}
+              setOther={set}
               onBlur={() => setTouched((t) => ({ ...t, [f.key]: true }))}
               onPhoneValidity={(ok) => setPhoneOk((p) => ({ ...p, [f.key]: ok }))}
               problem={
@@ -1001,11 +1002,13 @@ function Dialogs({
 /* ------------------------------------------------------------------ field */
 
 function FieldView({
-  f, value, onChange, onBlur, onPhoneValidity, problem,
+  f, value, onChange, setOther, onBlur, onPhoneValidity, problem,
 }: {
   f: Field;
   value: string | string[] | undefined;
   onChange: (v: string | string[]) => void;
+  /** Saves another key of the same form (the colour flow's vibe, source and words). */
+  setOther?: (key: string, v: string | string[]) => void;
   onBlur: () => void;
   onPhoneValidity: (ok: boolean) => void;
   /** The message to show, or null. Null also means "not judged yet". */
@@ -1148,8 +1151,17 @@ function FieldView({
     </div>
   );
 
-  if (f.key === "brand_colours") {
-    return wrap(<details className="obColours__disclosure"><summary><span><strong>Add colour preferences</strong><small>Open to add colours you like — names or a colour picker.</small></span><ChevronDown aria-hidden="true" /></summary><ColourField id={id} value={v as string} onChange={onChange} describedBy={describedBy} /></details>);
+  /* THE COLOUR FLOW (decision 21). It draws its own question, so it skips the
+     label, the help and the reversible "not sure" that `wrap` adds to every
+     other kind. It keeps the question's wrapper, so the error, the reveal and
+     `data-field` all behave as they do for the rest. */
+  if (f.kind === "colours" || f.key === "brand_colours") {
+    return (
+      <div className={["ob__f", f.showIf ? "ob__f--sub" : "", invalid ? "is-bad" : ""].filter(Boolean).join(" ")} data-field={f.key} onBlur={onBlur}>
+        <ColourField id={id} value={(v as string) ?? ""} onChange={(next) => onChange(next)} setOther={setOther} describedBy={describedBy} />
+        {problem ? <p className="ob__fErr" id={errId}><AlertCircle aria-hidden="true" />{problem}</p> : null}
+      </div>
+    );
   }
 
   if (f.kind === "textarea") {
@@ -1190,6 +1202,42 @@ function FieldView({
           isOn={(o) => v === o}
           onPick={(o) => onChange(v === o ? "" : o)}
         />,
+      );
+    }
+    /* THREE OR MORE PLAIN CHOICES ARE A DROPDOWN. Listing every option as a
+       button was noisy; the site's own SelectField opens a bottom sheet on a
+       phone and a short list on a desktop. The value stored is the option
+       text, as before. "Not sure" stays in the list when it is one of them. */
+    if (f.kind === "cards" && opts.length >= 3) {
+      return wrap(
+        <SelectField
+          id={id}
+          options={opts}
+          value={v as string}
+          invalid={invalid}
+          describedBy={describedBy}
+          onChange={onChange}
+        />,
+      );
+    }
+    /* TWO CHOICES, OR YES AND NO: one compact segmented control on one line.
+       Pressing the chosen one again unchooses it, as the cards do. */
+    if (opts.length === 2 || f.kind === "yesno") {
+      return wrap(
+        <div className="ob__seg" role="radiogroup" aria-label={f.label}>
+          {opts.map((o) => (
+            <button
+              key={o}
+              type="button"
+              role="radio"
+              aria-checked={v === o}
+              className={`ob__segBtn${v === o ? " is-on" : ""}`}
+              onClick={() => onChange(v === o ? "" : o)}
+            >
+              {o}
+            </button>
+          ))}
+        </div>,
       );
     }
     return wrap(
@@ -1270,8 +1318,11 @@ function FieldView({
        wall of cards it was avoiding is a scroll rather than a confusion:
        everything is visible, everything is one tap, and nothing is hidden
        behind a panel a reader has to know to open. */
+    /* A SHORT LIST (six or fewer, plain words) is compact chips that wrap, one
+       line each where they can. Longer lists keep the checkbox cards. */
+    const chips = (f.options?.length ?? 0) <= 6;
     return wrap(
-      <div className="ob__cards">
+      <div className={chips ? "ob__cards ob__cards--chips" : "ob__cards"}>
         {f.options?.map((o) => {
           const on = arr.includes(o);
           return (
@@ -1280,7 +1331,7 @@ function FieldView({
               type="button"
               role="checkbox"
               aria-checked={on}
-              className={`ob__card${on ? " is-on" : ""}`}
+              className={`ob__card${chips ? " ob__card--chip" : ""}${on ? " is-on" : ""}`}
               onClick={() => pick(o)}
             >
               <span className="ob__tick" aria-hidden="true">{on ? <Check /> : null}</span>

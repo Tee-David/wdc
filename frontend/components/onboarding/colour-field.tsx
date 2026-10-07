@@ -299,6 +299,7 @@ export default function ColourField({ id, value, onChange, setOther, describedBy
                   <strong className="obCol__cardName">{item.name}</strong>
                   <span className="obCol__cardLine">{item.line}</span>
                   <span className="obCol__cardNames">Colours: {item.palettes[0].map((colour) => colour.name).join(", ")}</span>
+                  {on ? <span className="obCol__badge">Chosen</span> : null}
                 </label>
               );
             })}
@@ -528,7 +529,7 @@ export default function ColourField({ id, value, onChange, setOther, describedBy
       {status ? <p className="obCol__status" role="status">{status}</p> : null}
 
       {sheetAt !== null && deep[sheetAt] && typeof document !== "undefined" ? createPortal(
-        <div className="obCol__sheetWrap">
+        <div className="pv obCol__sheetWrap">
           <div className="obCol__scrim" aria-hidden="true" onClick={closeSheet} />
           <div ref={sheetRef} className="obCol__sheet" role="dialog" aria-modal="true" aria-labelledby={`${id}-sheet`}
             onKeyDown={(event) => { if (event.key === "Escape") closeSheet(); }}>
