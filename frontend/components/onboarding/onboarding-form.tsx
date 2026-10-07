@@ -9,7 +9,7 @@ import Link from "next/link";
 import { type ServiceSlug } from "@/lib/services";
 import { CONTACT_EMAIL } from "@/lib/site";
 import {
-  answersForService, isFilled, minutesLeft, problemWith, PROJECT_UPDATE_PORTAL, stepsFor, UNSURE,
+  answersForService, isFilled, isUnsure, isVisible, minutesLeft, problemWith, PROJECT_UPDATE_PORTAL, stepsFor, UNSURE, UNSURE_LEGACY,
   type Field, type Step,
 } from "@/lib/onboarding";
 import PhoneField from "./phone-field";
@@ -58,15 +58,10 @@ import "./form-kit.css";
 type Answers = Record<string, string | string[]>;
 
 const KEY = "wdc-onboarding-draft";
-const EXCLUSIVE_MULTI_OPTIONS = new Set(["None yet", "None of these", UNSURE]);
+const EXCLUSIVE_MULTI_OPTIONS = new Set(["None yet", "None of these", UNSURE, UNSURE_LEGACY]);
 
 /** A field is asked only when its condition is met. Hidden means not asked. */
-function visible(f: Field, a: Answers) {
-  if (!f.showIf) return true;
-  const v = a[f.showIf.key];
-  if (Array.isArray(v)) return v.some((x) => f.showIf!.equals.includes(x));
-  return typeof v === "string" && f.showIf.equals.includes(v);
-}
+const visible = (f: Field, a: Answers) => isVisible(f, a);
 
 type Draft = { answers: Answers; service: ServiceSlug | null; step: number; started: boolean };
 
@@ -1010,6 +1005,17 @@ function FieldView({
   problem: string | null;
 }) {
   const id = `ob-${f.key}`;
+  if (f.kind === "notice") {
+    return (
+      <aside className="ob__notice" data-field={f.key} role="note">
+        <BadgeInfo aria-hidden="true" />
+        <div>
+          <strong>{f.label}</strong>
+          {f.hint ? <p>{f.hint}</p> : null}
+        </div>
+      </aside>
+    );
+  }
   const errId = `${id}-err`;
   const hintId = `${id}-hint`;
   const scopeId = `${id}-scope`;
@@ -1062,7 +1068,7 @@ function FieldView({
      judgement now carry this, and the answer is RECORDED rather than left
      blank -- "the client would like our recommendation on their search terms"
      is a real finding and the first thing to raise on the call. */
-  const deferred = v === UNSURE || (Array.isArray(v) && v.includes(UNSURE));
+  const deferred = isUnsure(v) || (Array.isArray(v) && v.some(isUnsure));
   /* A deferred text field shows EMPTY rather than the literal sentence
      "I am not sure; please advise me" sitting in the box as if the client had
      typed it. The deferral is recorded in the answer either way; this is only
@@ -1078,7 +1084,7 @@ function FieldView({
       aria-pressed={deferred}
     >
       {deferred ? <Undo2 aria-hidden="true" /> : <HelpCircle aria-hidden="true" />}
-      {deferred ? "Actually, let me answer this" : "I'm not sure; please advise me"}
+      {deferred ? "Actually, let me answer this" : UNSURE}
     </button>
   ) : null;
 

@@ -1,5 +1,5 @@
 import { SERVICES, type ServiceSlug } from "@/lib/services";
-import { stepsFor } from "@/lib/onboarding";
+import { isQuestion, stepsFor } from "@/lib/onboarding";
 
 /**
  * The site's forms, as the admin sees them.
@@ -58,7 +58,7 @@ function onboardingForm(service: ServiceSlug): FormDef {
   const svc = SERVICES.find((s) => s.slug === service)!;
   const questions = stepsFor(service)
     .flatMap((st) => st.fields)
-    .filter((f) => !COVERED.has(f.key))
+    .filter((f) => isQuestion(f) && !COVERED.has(f.key))
     .map((f) => ({ key: `q:${f.key}`, label: f.label }));
   return {
     key: `onboarding-${service}`,

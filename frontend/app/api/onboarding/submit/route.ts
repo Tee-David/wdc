@@ -9,22 +9,13 @@ import { assignSerial } from "@/lib/forms/serial";
 import { SERVICES } from "@/lib/services";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 import { db } from "@/lib/db/pool";
-import { problemWith, stepsFor, type Field } from "@/lib/onboarding";
+import { isVisible, problemWith, stepsFor } from "@/lib/onboarding";
 import {
   cleanAnswers, cleanService, clearOnboardingCookie, cookieToken, draftFromToken,
   normalizeEmail, requestOriginIsAllowed,
 } from "@/lib/onboarding-server";
 import { REFUSED_EMAIL_MESSAGE, refusedEmail } from "@/lib/email-domains";
 
-type Answers = Record<string, string | string[]>;
-
-function isVisible(field: Field, answers: Answers) {
-  if (!field.showIf) return true;
-  const value = answers[field.showIf.key];
-  return Array.isArray(value)
-    ? value.some((item) => field.showIf!.equals.includes(item))
-    : typeof value === "string" && field.showIf.equals.includes(value);
-}
 
 export async function POST(request: NextRequest) {
   /* Studio notices go to "Replies go to" from Settings, Email. */

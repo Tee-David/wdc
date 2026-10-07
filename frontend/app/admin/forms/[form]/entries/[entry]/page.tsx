@@ -9,7 +9,7 @@ import { ChevronLeft, ChevronRight, FileDown } from "lucide-react";
 import { after } from "next/server";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
-import { stepsFor } from "@/lib/onboarding";
+import { isQuestion, isVisible, stepsFor } from "@/lib/onboarding";
 import type { FormDef } from "@/lib/forms/registry";
 import { answeredCount, clientFor, entryIds, getEntry, markRead, readFilters, type Entry } from "@/lib/forms/entries";
 import { eventsFor, type EntryEvent } from "@/lib/forms/events";
@@ -121,14 +121,7 @@ function Answers({ form, entry, hideEmpty }: { form: FormDef; entry: Entry; hide
       action={<Link className="ad__btn adForms__noPrint" href={`?${hideEmpty ? "" : "hide=1"}`}>{hideEmpty ? "Show unanswered" : "Hide unanswered"}</Link>}>
       <div style={{ padding: "0 1rem 1rem" }}>
         {steps.map((st) => {
-          const fields = st.fields.filter((f) => {
-            if (f.showIf) {
-              const v = entry.answers[f.showIf.key];
-              const shown = Array.isArray(v) ? v.some((x) => f.showIf!.equals.includes(x)) : typeof v === "string" && f.showIf.equals.includes(v);
-              if (!shown) return false;
-            }
-            return !hideEmpty || has(entry.answers[f.key]);
-          });
+          const fields = st.fields.filter((f) => isQuestion(f) && isVisible(f, entry.answers) && (!hideEmpty || has(entry.answers[f.key])));
           if (!fields.length) return null;
           return (
             <section key={st.id} style={{ paddingTop: ".9rem" }}>

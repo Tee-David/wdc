@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
-import { stepsFor } from "@/lib/onboarding";
+import { isQuestion, isVisible, stepsFor } from "@/lib/onboarding";
 import { getClient, getClients, getSubmission } from "@/lib/admin/store";
 import { Empty, Panel, when } from "@/components/admin/bits";
 import { AttachSubmission } from "@/components/admin/submission-forms";
@@ -54,15 +54,9 @@ export default function DemoSubmission({ id }: { id: string }) {
       <Panel title={`${answered} of ${total} questions answered`}>
         <div style={{ padding: ".4rem 1rem 1rem" }}>
           {steps.map((st) => {
-            const fields = st.fields.filter((f) => {
-              /* The same condition the form used, so a question the client
-                 never saw is not reported as one they skipped. */
-              if (!f.showIf) return true;
-              const v = sub.answers[f.showIf.key];
-              return Array.isArray(v)
-                ? v.some((x) => f.showIf!.equals.includes(x))
-                : typeof v === "string" && f.showIf.equals.includes(v);
-            });
+            /* The same condition the form used, so a question the client never
+               saw is not reported as one they skipped. */
+            const fields = st.fields.filter((f) => isQuestion(f) && isVisible(f, sub.answers));
             if (!fields.length) return null;
             return (
               <section key={st.id} style={{ paddingTop: ".9rem" }}>
