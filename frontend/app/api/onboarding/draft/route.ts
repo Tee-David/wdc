@@ -117,13 +117,14 @@ export async function POST(request: NextRequest) {
      less for the same reason. Once 0039 is applied the first branch always wins. */
   const OLD_STEP_CEILING = 4;
   if (draft) {
+    const draftId = draft.id;
     const update = (step: number) => db.query<{ email: string | null }>(`
       UPDATE onboarding_submissions
       SET service = $2, current_step = $3, answers = $4::JSONB,
           email = COALESCE($5, email), updated_at = now()
       WHERE id = $1 AND status = 'in_progress' AND EXISTS (SELECT 1 FROM onboarding_resume_tokens WHERE submission_id=$1 AND token_hash=$6 AND revoked_at IS NULL AND expires_at>now())
       RETURNING email
-    `, [draft.id, service, step, JSON.stringify(answers), requestedEmail,tokenHash(token!)]);
+    `, [draftId, service, step, JSON.stringify(answers), requestedEmail,tokenHash(token!)]);
     const result = await update(currentStep).catch((error: { code?: string }) => {
       if (currentStep > OLD_STEP_CEILING && error?.code === "23514") return update(OLD_STEP_CEILING);
       throw error;
