@@ -178,3 +178,13 @@ Guide: [onboarding-voice-guide.md](onboarding-voice-guide.md). Pure helpers and 
 - [ ] A reason line under personal questions, voice note link on long text questions, "Skip if you like" for optional
 - [ ] Sent screen says their name and business and what happens next
 - [ ] Dropdown placeholder "Pick the closest"
+
+## Merged to main (7 October 2026)
+
+- [x] `main` fast forwarded to 6c3d6ed: engine, rewritten forms, colour flow, cards and checklist, dropdown rule, voice pass, help strip, studio note, engagement (off), Services and Works updates, motion loops
+- [x] Verified before the merge: `tsc` clean in source, eslint clean, production build passes (exit 0), `onboarding-colours` 19 of 19, `onboarding-guardrails` 36 of 36, `onboarding-walk` 12 of 12 (all six forms from first screen to review at 390 and 1280)
+- [ ] Repair the older specs that pin the old questions (onboarding.spec, onboarding-web, onboarding-seo, brief-preferences, aliases, domain)
+- [ ] Deeper end to end per service: size gating, follow ups, required messages, not sure reversible, legacy draft, full run at medium and large
+- [ ] Reminder email for unfinished drafts, pre-filled link (needs a migration)
+- [ ] Refreshed reference artifact from the final question lists
+- [ ] `docs/status.md`
