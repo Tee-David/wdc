@@ -163,3 +163,18 @@ Two agents at a time, Haiku executes, the lead verifies, commits and pushes. Onl
 - [ ] Round 3: Social & Ads, then shared pieces: review screen, studio scope note, engagement section behind a flag, reminder email, pre-filled link
 - [ ] Round 4: Services and Works pages (copy in services-and-works-copy-proposal.md), pitch deck and motion on Works
 - [ ] Final: lint, tsc, production build, every spec, full e2e of each form at 320, 390, 768, 1280 in both themes, merge to main, verify deploy
+
+## Phase 9. Voice and feel (owner request, 7 October 2026)
+
+Guide: [onboarding-voice-guide.md](onboarding-voice-guide.md). Pure helpers and tests are done (`lib/onboarding-voice.ts`, `tests/onboarding-voice.spec.ts`). Applying them waits for the two form agents, because it touches the same form file and the labels their tests use.
+
+- [x] Voice guide: the voice, ten ideas, a before and after table of the words
+- [x] Helpers: fill names and business into copy, industry aware examples, reflect back lines, milestones, next button names
+- [ ] Hook `fill()` into step titles, labels, hints and placeholders in the form, with neutral fallbacks
+- [ ] Industry aware examples in the five text questions (main job, search terms, goal, success, pains)
+- [ ] Reflect back line under each screen heading, and milestone lines
+- [ ] Next button names the next screen, last button "Review and send", send button "Send to the studio"
+- [ ] Rewrite step titles, blurbs and labels in the new voice across all six forms and the shared screens, and update the specs that read them
+- [ ] A reason line under personal questions, voice note link on long text questions, "Skip if you like" for optional
+- [ ] Sent screen says their name and business and what happens next
+- [ ] Dropdown placeholder "Pick the closest"
