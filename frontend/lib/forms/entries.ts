@@ -3,7 +3,7 @@ import "server-only";
 import { ensureCustomForms } from "./custom";
 
 import { db } from "@/lib/db/pool";
-import { stepsFor } from "@/lib/onboarding";
+import { isQuestion, isVisible, stepsFor } from "@/lib/onboarding";
 import { findDuplicateClient, getClient } from "@/lib/admin/store";
 import { linksFor } from "./links";
 import type { ServiceSlug } from "@/lib/services";
@@ -314,11 +314,7 @@ const has = (v: unknown) => (Array.isArray(v) ? v.length > 0 : Boolean(v && Stri
 
 /** "41 of 52": questions answered out of the ones this client was shown. */
 export function answeredCount(service: ServiceSlug, answers: Entry["answers"]) {
-  const fields = stepsFor(service).flatMap((s) => s.fields).filter((f) => {
-    if (!f.showIf) return true;
-    const v = answers[f.showIf.key];
-    return Array.isArray(v) ? v.some((x) => f.showIf!.equals.includes(x)) : typeof v === "string" && f.showIf.equals.includes(v);
-  });
+  const fields = stepsFor(service).flatMap((s) => s.fields).filter((f) => isQuestion(f) && isVisible(f, answers));
   return { answered: fields.filter((f) => has(answers[f.key])).length, total: fields.length };
 }
 
