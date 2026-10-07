@@ -1,6 +1,6 @@
 # Onboarding redesign: six service forms
 
-Status: PLAN FOR OWNER APPROVAL. Written 6 October 2026. No form code is changed by this document.
+Status: PLAN APPROVED 6 October 2026. Six artifacts built 7 October 2026 and waiting for the owner's review (section 14). The only code changed so far is the dropdown hardening. Updated 7 October 2026.
 Checklist: [onboarding-redesign-checklist.md](onboarding-redesign-checklist.md). Keep both files current. A new agent must be able to continue from them alone.
 
 Earlier plans still apply where this plan is silent: [onboarding-improvements-plan.md](onboarding-improvements-plan.md), [onboarding-flow-improvements-plan.md](onboarding-flow-improvements-plan.md) and [onboarding-service-experience-plan.md](onboarding-service-experience-plan.md). Where they disagree with this plan, this plan wins. The conflicts are listed in section 9.
@@ -40,6 +40,9 @@ Rules for every form:
 | Services and Works pages | Small content updates to each service page, and an update to the Works page. See section 13. Added 6 October 2026. |
 | Design samples | The owner allows use of all samples in the Drive folder "We Dig Creativity - Graphic Samples". Use them well. Folder must be shared by link before they can be downloaded. |
 | Deliverable | Plan and checklist live in `plans/` in this repo. |
+| Free colour picker | The owner allows HeroUI's ColorPicker (v3, `@heroui/react`, built on React Aria) for the free picker only. See 6.2 and section 14.3. Allowed 7 October 2026. |
+| Agents | At most two agents at once. Sonnet builds the artifacts and the plan. Haiku agents execute the build once the artifacts are approved. |
+| Services and Works copy | Exact proposed copy is in [services-and-works-copy-proposal.md](services-and-works-copy-proposal.md). Waiting for approval. |
 
 ## 3. Open items and how they were settled
 
@@ -106,6 +109,7 @@ Each artifact lists all questions of a flow in one view, with the condition show
 7. The studio sorts the colours into primary, secondary, accent, text and neutral. The sort is a suggestion shown in the admin. It is computed when read, not stored, so no migration. Rule of thumb: first choice becomes primary, the next most liked colour that differs enough becomes secondary, a strong saturated colour becomes accent, very dark or very light low saturation colours become text or neutral.
 8. Stored form: keep `brand_colours` as readable text. Add the like level and the first choice mark to each line. Old lines without them must still read and display. Update `brand-colours.ts` and its check script together.
 9. Keep: slider and swatches work with keyboard and touch. Targets 44px. A white swatch needs a visible edge.
+10. The free picker may use HeroUI's `ColorPicker` (owner allowed, 7 October 2026). Its shape: a trigger (swatch and label) opens a popover with preset swatches, a saturation and brightness area, a hue slider and a hex field. It outputs one colour. Only this part is HeroUI. The family and shade chooser, auto name, like slider and first choice mark stay custom. Conditions before it ships: it adds a dependency (the repo rule is no package for a small UI effect, so this is a named exception), its theme tokens must not fight the WDC tokens, buttons must use the WDC black and white pair, and on phones it must open as the site's bottom sheet and not as a clipped popover. A Haiku agent checks all four before merging.
 
 ### 6.3 Style help ("Suggest for me")
 
@@ -374,3 +378,94 @@ Rules for all of them: plain words, no city names, no prices, no invented claims
 - Page titles, descriptions, canonical tags and the Service JSON-LD still describe visible content truthfully.
 - Responsive check at 320, 390, 768, 1024 and 1440 in both themes. LCP and layout shift unchanged. Video loops measured on a phone.
 - Existing tests for services and work pages still pass. Update them in the same commit.
+
+## 14. Artifact review (7 October 2026)
+
+Six artifacts were built by two Sonnet agents from this plan. Each has three flows, a question map (wording, input type, required or optional, condition, stored key, "not sure" wording, a live showing or hidden tag), a phone preview that really branches, a "What the studio sees" panel, a review screen, a draft engagement section and a decisions list. All are private.
+
+### 14.1 Links
+
+| Service | Artifact |
+|---|---|
+| Branding & Design | https://claude.ai/artifact/HuH9m4pSzSyewNc8WKYAeA |
+| Web | https://claude.ai/artifact/MriCB9ndK6H7PBryRjWQpV |
+| SEO | https://claude.ai/artifact/3HCL7uWVikQm8zgpbtYdW6 |
+| Apps | https://claude.ai/artifact/Kpt2Eq4XKkSyViw78SgGHh |
+| Software & AI | https://claude.ai/artifact/X7ci8wZvcma7vgWPNbduJX |
+| Social Media Marketing & Paid Ads | https://claude.ai/artifact/5w7yaRsx14gUzZaaA3Tg4Y |
+
+Local copies and sources are in the session scratchpad and are lost when the session ends. The published artifacts are the record. Question counts: Apps 17, Software 16, Social 22. Branding, Web and SEO share one engine.
+
+### 14.2 Measured and judged
+
+Measured by the agents in headless Chromium: no horizontal overflow at 320, 390, 768 and 1280 in light and dark for any flow on any page. No console errors. No target under 44px. Every flow was clicked through to the review screen. Branching was scripted. Contrast was computed for text on the current phone screen only. Measured by the main session: a scan of the rendered text of all six pages found no city names, dashes or semicolons.
+
+Judged by eye: the main session looked at Branding at 390 and 1280, Software at 390 and Social at 1280 in dark. The agents looked at Apps and the Branding card thumbnails.
+
+Not checked anywhere: a real phone, Edge on iPhone, Safari, a keyboard only walk, screen readers, reduced motion, focus ring contrast, the published URLs opened as a viewer. The time estimates are formula guesses, not user tested. The question map table is wide on a 390px phone, so its rows are tall. Give the text column real width in the next pass.
+
+### 14.3 Defects found in the artifacts (fix before the build uses them)
+
+1. Branding has no Stationery card and no Apparel card. The sample pack held five stationery files (business cards, stationery set, Moore stationery, staff ID card, letterhead) and three apparel files. The agent reported none. Add both cards.
+2. Hero chips read like "Time: 3 to 4 min to 8 min" on several pages. Reword to "3 to 8 minutes, depending on the path".
+3. Branding uses Millcon profile pages for the Pitch deck card. Keep that until the Realtors' Practice deck is re-supplied.
+4. Colour auto names use a table of about 130 entries, not the 140 standard CSS names. Fine, but review name quality across the spectrum.
+5. The free picker is a plain code mock of HeroUI's shape. It is not the real component. See 6.2 item 10.
+
+### 14.4 Decisions for the owner
+
+Shared:
+
+1. **Stored "not sure" value.** Today the code stores "I'm not sure; please advise me" with a semicolon. The artifacts show a comma. Change the constant, and map the old value on read. Recommended: yes.
+2. **Quote timing.** The review screen cannot say when the quote arrives. What do we promise? Placeholder text says the owner will confirm.
+3. **Shared steps.** "Your details" and "Finishing up" are untouched. Branding takes fixed dates, inspiration and assets. Confirm.
+4. **Approver.** The closing step already asks who signs work off. Social adds a post approval question. Should one answer serve both? Recommended: one answer, shown under both headings.
+5. **O2.** Ticks beside a signed agreement, or instead of it. Still open. Default stays: the form records acceptance and does not replace a signed agreement.
+6. **Liability limit and dispute steps** are placeholders for the lawyer.
+
+Branding & Design:
+
+7. "I have references" in the Choose your depth flow opens uploads only at Deep. Quick and Standard show a notice. The plan said references open the box. Settle which.
+8. "A bit of both" in style help: show the directions question too? The plan says only after "Suggest for me".
+9. Motion design is a card with clip tiles marked "Clip pending". No clip is a logo reveal or a website hero loop.
+
+Web:
+
+10. The Services page still shows Maintenance as a step and a deliverable. Copy proposal option (b) is recommended.
+11. Old `page_count` values use en dashes ("1–5"). Map on read. `wants_blogging`, `wants_maintenance` and `maintenance_after_reading` leave the default path and their keys stay. `wants_seo` stays optional. The new "What should the site do" cards map back to the old `features` values.
+12. Site size stays internal. The opening question uses client words.
+
+SEO:
+
+13. May the public page say work starts at three months? `tools_access` becomes two Yes, No, Not sure questions. `geo` becomes "Which areas do you serve?" and shows only for local customers.
+
+Apps:
+
+14. "Who uses it" was in the plan twice. Split into where people use the app and who uses it and what each person may do. Confirm.
+15. The plan says many files. The code limit is 8 files of 25 MB (`dropzone.tsx`). Keep or raise.
+16. Retired: `payments` and `payments_other` (now in the feature checklist). Kept: `store_accounts`, `store_accounts_wanted`, `backend`, `offline`. The `platforms` key now holds iphone, android, web and desktop. Old iOS and Android values must still display.
+17. Early notice for what we do not build is shown at the start. Confirm the wording.
+
+Software & AI:
+
+18. The AI data rules question shows only for "AI assistant or chatbot". Should data pipelines get it too? Recommended: yes.
+19. "Very heavy software is out of scope" is only in the studio flags and the agreement. Add an early client notice? Recommended: yes, kind wording.
+20. Kept `data_home` and `compliance`.
+
+Social & Ads:
+
+21. Retired `content_creator_wanted` and the per platform `handle_*` questions. Replaced by the Content creation package and one links box.
+22. Ad budget wording and the four naira bands are kept from the code.
+23. The Outcome first flow moves the existing goal question to the top.
+
+### 14.5 Dropdown on Edge for iPhone
+
+The owner's device is an iPhone, so Edge runs Apple's WebKit engine. Not reproducible here (Chromium only). Two hardening commits are in: 2d3a089 (no auto focus, visual viewport sizing, definite list height) and a second one on the working branch on 7 October that changes `.ob__f--sub` from `both` to `backwards` fill. A held transform animation keeps a conditional question's wrapper composited, which `picker.css` already names as a cause of lists that will not scroll on iOS. Still unverified on the device. If it still fails, the next step is a page scroll lock through `components/ui/scroll-reset.tsx`.
+
+### 14.6 Order from here
+
+1. Owner reviews the six artifacts and answers 14.4.
+2. Sonnet fixes 14.3 and records the picks (one flow per service).
+3. Lawyer reviews engagement text. Sections stay behind a flag.
+4. Haiku agents, two at a time, build the shared pieces (phase 4) and then each service (phase 5), one commit each.
+5. Services and Works pages after the copy is approved.
