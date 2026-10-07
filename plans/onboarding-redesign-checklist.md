@@ -150,11 +150,16 @@ Two agents at a time, Haiku executes, the lead verifies, commits and pushes. Onl
 - [x] Realtors' Practice deck slides rendered into `public/work/deck` (no prices, no contact details)
 - [x] Drive checked: motion zip is 113 MB and the Drive tool caps downloads at 10 MB, so it cannot be fetched here. Owner can upload each clip under 10 MB later
 - [!] Round 1: Branding paused 7 October. Owner found the colour flow too complicated. Redesign the colour flow and the question flow of all six forms from the research first
-- [ ] UX research: forms, question order, Nigeria, colour picking for non-designers. Report: plans/onboarding-ux-research.md (Sonnet agent running)
-- [ ] Apply the research to all six artifacts (reorder, cut, merge, reword) and to the specs in plans/onboarding-artifact-specs/
-- [ ] Simplified colour flow: 2 to 3 taps, optional deeper path
+- [x] UX research: forms, question order, Nigeria, colour picking for non-designers. Report: plans/onboarding-ux-research.md
+- [x] Apply the research to all six forms: final question lists are in `frontend/lib/onboarding-services/*.ts` and `lib/onboarding.ts` (decisions 21 to 33). The six artifacts are history. A refreshed reference artifact is to be published from the final lists
+- [x] Guardrail spec measures every form against the research (`tests/onboarding-guardrails.spec.ts`): small jobs are 17 to 21 questions over 7 screens, required 10 or 11 (was about 18)
+- [~] Simplified colour flow: 2 to 3 taps, optional deeper path (agent building)
 - [~] Round 1: Web and SEO (and the legacy answer map `lib/onboarding-aliases.ts`)
-- [ ] Round 2: Apps (feature checklist, grouped and searchable) and Software & AI
+- [x] Question lists for Apps, Software & AI and Social rewritten from the research (final)
+- [~] Picture cards and the grouped, searchable feature checklist (agent building)
+- [x] Studio scope note derived from answers (`lib/onboarding-scope.ts`), engagement text grouped to four ticks behind a lawyer approval flag (`lib/onboarding-engagement.ts`)
+- [x] Services page copy updated for branding, apps, software, social (web and SEO next with the Web steps)
+- [x] Works: motion loops on /work/branding and on the Litch and Realtors case studies, Pitch decks group, pause control, lazy loading
 - [ ] Round 3: Social & Ads, then shared pieces: review screen, studio scope note, engagement section behind a flag, reminder email, pre-filled link
 - [ ] Round 4: Services and Works pages (copy in services-and-works-copy-proposal.md), pitch deck and motion on Works
 - [ ] Final: lint, tsc, production build, every spec, full e2e of each form at 320, 390, 768, 1280 in both themes, merge to main, verify deploy
