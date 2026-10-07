@@ -29,8 +29,8 @@ Legend: [x] done, [ ] to do, [~] in progress, [!] blocked on the owner.
 - [x] O3 past work: studio chooses from public work (plan 6.7)
 - [x] Open and check each sample image (72 chosen, election flyers left out)
 - [x] Motion design samples: owner zip received and reviewed (plan 6.7a)
-- [!] Motion zip and pitch deck PDFs are not in the 7 October session. Owner re-uploads them
-- [ ] Script: cut muted 3 to 6 second loops and posters from the zip (ffmpeg, committed)
+- [x] Motion zip downloaded after the network opened. Pitch deck PDFs received
+- [x] Script `frontend/scripts/make-motion-loops.sh` cuts seven muted 4 second loops and posters into `public/work/motion/` (about 600 KB). Studio services clip left out (shows a city name)
 - [x] Pitch deck samples: Realtors' Practice PDFs received (plan 6.7)
 - [x] O4 owner repos read (plan 6.8)
 - [x] O5 Flutterwave and coolors.co confirmed
