@@ -144,7 +144,7 @@ export const CLOSING_STEPS: Step[] = [
     blurb: "When it is needed, and who gives the go ahead.",
     fields: [
       {
-        key: "deadline_kind", label: "When do you need it?", kind: "cards", required: true,
+        key: "deadline_kind", label: "When do you need it?", kind: "cards",
         options: ["No fixed date", "Within a month", "Within two weeks", "A set date"],
       },
       {
