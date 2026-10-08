@@ -1006,6 +1006,37 @@ ${url}`),
   };
 }
 
+export function staffOnboardedEmail(input: { name: string; email: string; skipped: boolean; url: string }): Email {
+  const { name, email, skipped, url } = input;
+  const heading = `${name} has joined the team.`;
+  const how = skipped ? "Skipped the welcome and went straight in" : "Finished the welcome";
+  return {
+    subject: `${name} is on board`,
+    text: textShell(`${heading}
+
+${how}. Their account is ready to use.
+
+Name: ${name}
+Email: ${email}
+
+See your team in the admin:
+
+${url}`),
+    html: shell({
+      title: heading,
+      preheader: `${how}.`,
+      heading,
+      blocks: [
+        panel([["Name", name], ["Email", email], ["Welcome", skipped ? "Skipped" : "Finished"]]),
+        p("Their account is ready to use. You can change what they can see, or add them to a department, from the Users page."),
+        action("Open Users", url),
+      ],
+      why: "You get this because staff notices are on.",
+      manage: "staff",
+    }),
+  };
+}
+
 export function paymentNoticeEmail(input: { company: string; amount: string; invoice: string; left: string; method: string; url: string }): Email {
   const { company, amount, invoice, left, method, url } = input;
   const heading = `${company} paid ${amount}.`;
