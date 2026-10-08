@@ -1904,15 +1904,17 @@ td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
    in this dialog it is the one thing being decided. */
 .adAsk { display: grid; gap: 1rem; }
 .adAsk__body { margin: 0; color: var(--ad-dim); line-height: 1.55; }
-/* TICK, WARNING ICON, WORDS: three columns on one centre line. The words wrap
-   inside their own column, so a narrow phone never pushes the icon under the
-   tick or leaves it floating beside the second line. */
-.adAsk__sure { display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-items: center; column-gap: .7rem; min-height: 44px; padding: .75rem .9rem; border: 1px solid var(--ad-line); border-radius: 12px; cursor: pointer; font-weight: 600; font-size: .92rem; line-height: 1.35; }
-.adAsk__sure input { width: 1.4rem; height: 1.4rem; margin: 0; accent-color: #c62828; }
-.adAsk__sure > span { min-width: 0; overflow-wrap: anywhere; }
-.adAsk__sure svg { width: 1.25rem; height: 1.25rem; color: #c62828; flex: none; }
-.adAsk__sure:has(input:focus-visible) { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
-@media (max-width: 360px) { .adAsk__sure { column-gap: .55rem; padding: .7rem; } }
+/* TICK, WARNING ICON, WORDS. Every part is 1.5rem tall and the words take a
+   1.5rem line height, so the first line of text, the tick and the icon share one
+   centre line however many lines the words wrap to, from a 320px phone up. The
+   words wrap inside their own column and never push the icon under the tick. */
+.adAsk .adAsk__sure { display: grid; grid-template-columns: 1.5rem 1.5rem minmax(0, 1fr); align-items: start; column-gap: .65rem; min-height: 44px; padding: .8rem .9rem; border: 1px solid var(--ad-line); border-radius: 12px; cursor: pointer; font-weight: 600; font-size: .95rem; }
+.adAsk .adAsk__sure > * { align-self: start; margin: 0; }
+.adAsk .adAsk__sure input { width: 1.5rem; height: 1.5rem; min-height: 0; padding: 0; accent-color: #c62828; }
+.adAsk .adAsk__sure svg { width: 1.5rem; height: 1.5rem; padding: .08rem; color: #c62828; }
+.adAsk .adAsk__sure > span { min-width: 0; line-height: 1.5rem; overflow-wrap: anywhere; }
+.adAsk .adAsk__sure:has(input:focus-visible) { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+@media (max-width: 360px) { .adAsk .adAsk__sure { column-gap: .5rem; padding: .7rem; font-size: .9rem; } }
 .adAsk__acts { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .6rem; }
 .adAsk__acts .ad__btn { min-height: 44px; }
 .adAsk .ad__btn--danger { background: #c62828; border-color: #c62828; color: #fff; }
