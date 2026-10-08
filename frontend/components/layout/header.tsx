@@ -131,10 +131,10 @@ export function Header({
           <span className={quiet ? "md:hidden" : "hidden"}>
             {filmHero ? (
               /* eslint-disable-next-line @next/next/no-img-element */
-              <img src="/brand/icon-navy.svg" alt="" className="h-9 w-auto dark:hidden" />
+              <img src="/brand/icon-navy.svg" width="34" height="36" alt="" className="h-9 w-auto dark:hidden" />
             ) : null}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/icon-white-accent.svg" alt="" className={`h-9 w-auto drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] ${filmHero ? "hidden dark:block" : ""}`} />
+            <img src="/brand/icon-white-accent.svg" width="34" height="36" alt="" className={`h-9 w-auto drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] ${filmHero ? "hidden dark:block" : ""}`} />
           </span>
         ) : null}
       </span>
@@ -147,7 +147,7 @@ export function Header({
         {/* Navy mark once the header has a surface; auto-tone mark in dark mode */}
         <span className="dark:hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/icon-navy.svg" alt="We Dig Creativity mark" className="h-9 w-auto" />
+          <img src="/brand/icon-navy.svg" width="34" height="36" alt="We Dig Creativity mark" className="h-9 w-auto" />
         </span>
         <span className="hidden dark:inline-flex">
           <WdcMark className="h-9 w-auto" />
