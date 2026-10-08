@@ -74,9 +74,9 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
       </div>
 
       <dl className="ad__tiles" data-tour="support-tiles">
-        <Tile label="Waiting on us" value={String(counts.Open)} icon={Inbox} iconTone="live" tone={counts.Open ? "accent" : undefined} note={counts.Open ? "The client is waiting for an answer" : "Nobody is waiting"} />
-        <Tile label="Answered" value={String(counts.Answered)} icon={MessageSquare} iconTone="good" note="Over to the client" />
-        <Tile label="Closed" value={String(counts.Closed)} icon={CheckCircle2} iconTone="neutral" note="Reopens if the client writes again" />
+        <Tile label="Waiting on us" href="/admin/clients/support?status=Open" value={String(counts.Open)} icon={Inbox} iconTone="live" tone={counts.Open ? "accent" : undefined} note={counts.Open ? "The client is waiting for an answer" : "Nobody is waiting"} />
+        <Tile label="Answered" href="/admin/clients/support?status=Answered" value={String(counts.Answered)} icon={MessageSquare} iconTone="good" note="Over to the client" />
+        <Tile label="Closed" href="/admin/clients/support?status=Closed" value={String(counts.Closed)} icon={CheckCircle2} iconTone="neutral" note="Reopens if the client writes again" />
       </dl>
 
       <div style={{ marginTop: ".9rem" }}>

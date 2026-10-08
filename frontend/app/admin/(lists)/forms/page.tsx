@@ -162,9 +162,9 @@ export default async function FormsPage() {
           <dl className="ad__tiles ad__tiles--4" style={{ margin: 0 }}>
             <Tile label="Unread entries" value={String(unread)} icon={Inbox} iconTone="live"
               note={withUnread ? `Across ${withUnread} form${withUnread === 1 ? "" : "s"}` : "Nothing waiting"} />
-            <Tile label="Entries" value={String(entries)} icon={ClipboardList}
+            <Tile label="Entries" value={String(entries)} icon={ClipboardList} href="/admin/forms/all"
               note={drafts ? `${drafts} onboarding draft${drafts === 1 ? "" : "s"} in progress` : "No drafts in progress"} />
-            <Tile label="Newsletter" value={String(subs?.total ?? 0)} icon={Newspaper} iconTone="good"
+            <Tile label="Newsletter" href="/admin/forms/newsletter" value={String(subs?.total ?? 0)} icon={Newspaper} iconTone="good"
               note={subs?.recent ? `+${subs.recent} in the last 30 days` : "Subscribed"} />
             <Tile label="Notices that failed" value={String(failed)} icon={MailWarning} iconTone={failed ? "bad" : "good"}
               note={failed ? "Retry them from the email log" : "Every studio notice went"} />
