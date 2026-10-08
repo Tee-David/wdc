@@ -38,7 +38,7 @@ test("welcome uses the shared compact service picker and an explicit next step",
   const picker = page.locator("#ob-service");
   await expect(picker).toHaveAttribute("aria-expanded", "false", { timeout: 30000 });
   await picker.click();
-  await expect(page.getByRole("option")).toHaveCount(6);
+  await expect(page.getByRole("option")).toHaveCount(3);
   await page.getByRole("option", { name: /Branding/ }).click();
   await expect(picker).toContainText("Branding");
   await expect(page.locator(".ob__svcCard")).toHaveCount(0);
@@ -63,7 +63,7 @@ for (const theme of ["light", "dark"]) for (const width of [320, 390, 768, 1440]
     await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
     const field = page.locator('[data-field="brand_colours"]');
     await expect(field).toBeVisible({ timeout: 30000 });
-    await expect(field.locator("label.obCol__card")).toHaveCount(6);
+    await expect(field.locator("label.obCol__card")).toHaveCount(3);
     await field.locator("label.obCol__card", { hasText: "Warm and friendly" }).click();
     await expect(field.getByRole("button", { name: "Yes, use these" })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBeTruthy();

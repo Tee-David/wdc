@@ -153,8 +153,9 @@ export const CORE_STEPS: Step[] = [
       },
       {
         key: "online_presence", label: "Where can people find you online?", kind: "profiles",
-        hint: "Your website and social pages, if you have them. Optional.",
-        showIf: { any: [{ tier: 2 }, { key: "deliverables", equals: ["Full identity system", "Brand guidelines"] }] },
+        hint: "Your website and social pages, if you have them. We can put them on flyers and cards. Optional.",
+        notFor: ["social"],
+        showIf: { any: [{ tier: 2 }, { key: "deliverables", equals: ["Full identity system", "Brand guidelines", "Flyers", "Social templates", "Promotional branding", "Stationery and cards", "Signage", "Packaging", "Pitch deck"] }] },
       },
     ],
   },
@@ -224,7 +225,10 @@ export const CLOSING_STEPS: Step[] = [
         tip: "It is what stops everything made afterwards looking like it came from somewhere else: colours, fonts, logo rules and tone of voice, written down once so the next person does not have to guess.",
       },
       { key: "inspiration", assist: true, label: "Two or three examples you like", kind: "textarea", notFor: ["branding", "web"], showIf: { tier: 3 }, placeholder: "Links, or names of brands, and what you like about them" },
-      { key: "assets", label: "Anything else we should have", kind: "upload" },
+      {
+        key: "assets", label: "Anything else we should have", kind: "upload",
+        hint: "Pictures, logos, documents, references. Add a note under the file if it needs one.",
+      },
     ],
   },
   {
