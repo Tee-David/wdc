@@ -519,6 +519,100 @@ export function archiveClient(id: Id, archived = true, actor = "Studio"): Client
   return c;
 }
 
+/* ------------------------------------------------- permanent deletion */
+
+export type Impact = {
+  /** Why it cannot be deleted, in words for the owner; null when it can. */
+  blocked: string | null;
+  /** What goes with it, as "3 projects" lines. */
+  goes: string[];
+  /** What stays, and why it matters. */
+  stays: string[];
+};
+
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+const keptPayments = (invoiceIds: Set<Id>) => PAYMENTS.filter((p) => invoiceIds.has(p.invoiceId) && paymentNet(p) > 0);
+
+/** What deleting a project for good would take, and what refuses it. Money is never deleted: a project with money kept against its invoices is refused. */
+export function projectImpact(id: Id): Impact | null {
+  const p = PROJECTS.find((x) => x.id === id);
+  if (!p) return null;
+  const invs = INVOICES.filter((i) => i.projectId === id);
+  const kept = keptPayments(new Set(invs.map((i) => i.id)));
+  const tasks = TASKS.filter((t) => t.projectId === id).length;
+  const updates = UPDATES.filter((u) => u.projectId === id).length;
+  const files = DELIVERABLES.filter((d) => d.projectId === id).length;
+  return {
+    blocked: !p.archived ? "Archive it first. Deleting is a second step, taken from the archive."
+      : kept.length ? `${plural(kept.length, "payment")} recorded against its invoices. Money is the record: refund or reverse them first, or keep the project archived.` : null,
+    goes: [plural(tasks, "task"), plural(updates, "update"), plural(files, "deliverable with its versions", "deliverables with their versions"), "its history"],
+    stays: [
+      invs.length ? `${plural(invs.length, "invoice")} (they stay, no longer tied to a project)` : "",
+      EXPENSES.some((e) => e.projectId === id) ? "its expenses (they stay, no longer tied to a project)" : "",
+      "the audit trail",
+    ].filter(Boolean),
+  };
+}
+
+export function deleteProjectPermanently(id: Id, actor = "Studio"): boolean {
+  const impact = projectImpact(id);
+  const p = PROJECTS.find((x) => x.id === id);
+  if (!impact || impact.blocked || !p) return false;
+  for (const i of INVOICES) if (i.projectId === id) i.projectId = null;
+  for (const e of EXPENSES) if (e.projectId === id) e.projectId = undefined as never;
+  for (const e of ESTIMATES) if (e.projectId === id) e.projectId = null;
+  for (const t of TICKETS) if (t.projectId === id) t.projectId = null;
+  const drop = <T extends { projectId: Id }>(arr: T[]) => { for (let k = arr.length - 1; k >= 0; k--) if (arr[k].projectId === id) arr.splice(k, 1); };
+  drop(TASKS); drop(UPDATES); drop(DELIVERABLES);
+  PROJECTS.splice(PROJECTS.indexOf(p), 1);
+  audit({ actor, kind: "project", subjectId: p.id, subject: p.title, action: "deleted permanently", note: impact.goes.slice(0, 3).join(", ") });
+  return true;
+}
+
+/** The same for a client: everything under them goes, unless money was kept. */
+export function clientImpact(id: Id): Impact | null {
+  const c = getClient(id);
+  if (!c) return null;
+  const invs = INVOICES.filter((i) => i.clientId === id);
+  const kept = keptPayments(new Set(invs.map((i) => i.id)));
+  const credit = CREDITS.filter((x) => x.clientId === id && !(x as { spent?: unknown }).spent).length;
+  const projects = PROJECTS.filter((p) => p.clientId === id);
+  const tickets = TICKETS.filter((t) => t.clientId === id);
+  return {
+    blocked: !c.archived ? "Archive them first. Deleting is a second step, taken from the archive."
+      : kept.length ? `${plural(kept.length, "payment")} kept against their invoices. Payments are the financial record and are never deleted with a client: refund or reverse them, or keep the client archived.`
+      : credit ? "They hold credit with us. Apply or refund it first." : null,
+    goes: [
+      plural(projects.length, "project"), plural(invs.length, "invoice (none paid)", "invoices (none paid)"),
+      plural(ESTIMATES.filter((e) => e.clientId === id).length, "estimate"),
+      plural(tickets.length, "support question"), "their notes and history",
+    ],
+    stays: ["the audit trail", "their sign-in account, if they have one (remove it from Users)", "form entries they sent (unlinked from them)"],
+  };
+}
+
+export function deleteClientPermanently(id: Id, actor = "Studio"): boolean {
+  const impact = clientImpact(id);
+  const c = getClient(id);
+  if (!impact || impact.blocked || !c) return false;
+  for (const p of PROJECTS.filter((x) => x.clientId === id)) {
+    p.archived = true; /* clientImpact already refused paid ones; the project path needs it archived */
+    deleteProjectPermanently(p.id, actor);
+  }
+  const ticketIds = new Set(TICKETS.filter((t) => t.clientId === id).map((t) => t.id));
+  const cut = <T,>(arr: T[], gone: (x: T) => boolean) => { for (let k = arr.length - 1; k >= 0; k--) if (gone(arr[k])) arr.splice(k, 1); };
+  cut(TICKET_MESSAGES, (m) => ticketIds.has(m.ticketId));
+  cut(TICKETS, (t) => t.clientId === id);
+  cut(INVOICES, (i) => i.clientId === id);
+  cut(ESTIMATES, (e) => e.clientId === id);
+  cut(CREDITS, (x) => x.clientId === id);
+  cut(MESSAGES, (m) => m.clientId === id);
+  for (const s of SUBMISSIONS) if (s.clientId === id) s.clientId = null;
+  CLIENTS.splice(CLIENTS.indexOf(c), 1);
+  audit({ actor, kind: "client", subjectId: c.id, subject: c.company, action: "deleted permanently", note: impact.goes.slice(0, 3).join(", ") });
+  return true;
+}
+
 /* -------------------------------------------------------------- projects */
 
 export function addProject(d: {
