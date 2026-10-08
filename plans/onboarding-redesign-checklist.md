@@ -188,5 +188,5 @@ Guide: [onboarding-voice-guide.md](onboarding-voice-guide.md). Pure helpers and 
 - [x] Reminder email for unfinished drafts (at most two, one tap switch off, outbox, does nothing until migration 0039) and the pre-filled link from a form's Settings
 - [x] Studio note in the admin entry page, Earlier questions for answers no question asks any more
 - [ ] [!] Owner applies migration 0039 in Settings, System (widens the saved step, adds the reminder columns)
-- [ ] Refreshed reference artifact from the final question lists
+- [x] Refreshed reference artifact from the final question lists: https://claude.ai/artifact/MFvE5m4jQBK1MrKX35P6Vt (private; regenerate with `EXPORT_ONBOARDING_SPEC=<file> npx playwright test tests/onboarding-guardrails.spec.ts`)
 - [x] `docs/status.md`

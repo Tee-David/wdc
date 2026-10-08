@@ -120,7 +120,7 @@ test.afterAll(() => {
       id: st.id, title: st.title, blurb: st.blurb,
       fields: st.fields.map((f) => ({
         key: f.key, kind: f.kind, label: f.label, required: Boolean(f.required), assist: Boolean(f.assist),
-        hint: f.hint, options: f.options, showIf: f.showIf, scope: f.scope,
+        hint: f.hint, options: f.options, showIf: f.showIf, scope: f.scope, info: Boolean(f.optionInfo), groups: Boolean(f.groups),
       })),
     })),
     measured: Object.fromEntries(SIZES[s.slug].options.map((o) => [o, measure(s.slug, o)])),
