@@ -39,3 +39,17 @@ test("validDesign refuses the wrong shape and absurd sizes", () => {
   expect(validDesign({ subject: "", preheader: "", heading: "", blocks: Array.from({ length: 61 }, () => newBlock("divider")) })).toBe(false);
   expect(validDesign(design([newBlock("text")]))).toBe(true);
 });
+
+test("a block with a condition shows only to the people it fits", () => {
+  const d = design([
+    { id: "a", type: "text", text: "FOR CLIENTS", when: { key: "tag.client", is: "filled" } },
+    { id: "b", type: "text", text: "FOR EVERYONE ELSE", when: { key: "tag.client", is: "empty" } },
+  ]);
+  expect(validDesign(d)).toBe(true);
+  const client = renderDesign(d, { "tag.client": "yes" });
+  expect(client.html).toContain("FOR CLIENTS");
+  expect(client.html).not.toContain("FOR EVERYONE ELSE");
+  const other = renderDesign(d, {});
+  expect(other.html).toContain("FOR EVERYONE ELSE");
+  expect(other.html).not.toContain("FOR CLIENTS");
+});

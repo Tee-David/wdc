@@ -4,7 +4,7 @@ import { db } from "@/lib/db/pool";
 import { sendMail } from "@/lib/email";
 import { renderDesign, validDesign, type Design } from "@/lib/email-design";
 import { unsubscribeUrl } from "@/lib/newsletter";
-import { mayReceiveMarketing } from "@/lib/contacts";
+import { mayReceiveMarketing , tagVars } from "@/lib/contacts";
 import { COMPANY_NAME, CONTACT_EMAIL, SITE_URL } from "@/lib/site";
 
 /**
@@ -174,7 +174,7 @@ type Send = { id: string; campaign_id: string; contact_id: string; email: string
 async function deliver(s: Send, c: Campaign): Promise<void> {
   const contact = (await db.query<{ name: string }>(`SELECT name FROM contacts WHERE id = $1`, [s.contact_id])).rows[0];
   const first = (contact?.name ?? "").trim().split(/\s+/)[0] ?? "";
-  const mail = renderDesign(c.design, { "contact.first_name": first, "campaign.title": c.title, "studio.name": COMPANY_NAME, "studio.email": CONTACT_EMAIL }, { unsubscribe: true, why: "You are getting this because you asked to hear from us." });
+  const mail = renderDesign(c.design, { ...(await tagVars(s.contact_id)), "contact.first_name": first, "campaign.title": c.title, "studio.name": COMPANY_NAME, "studio.email": CONTACT_EMAIL }, { unsubscribe: true, why: "You are getting this because you asked to hear from us." });
   const link = unsubscribeUrl(s.email) ?? undefined;
   await sendMail({ to: s.email, subject: mail.subject, text: mail.text, html: await track(mail.html, c, s.token), unsubscribe: true, unsubscribeUrl: link });
 }
