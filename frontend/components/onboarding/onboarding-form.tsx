@@ -1146,13 +1146,14 @@ function FieldView({
 
   const label = (
     <label className="ob__label" htmlFor={id}>
-      {f.label}
-      {f.required ? <><b aria-hidden="true"> *</b><span className="obCol__sr"> required</span></> : null}
-      {/* Background lives behind the question mark, so the form stays a list
-          of questions rather than a page of prose. Only explanations the
-          question genuinely cannot be answered without stay inline, as
-          `hint`. */}
-      {f.tip || FIELD_EXAMPLES[f.key] ? <Tip text={f.tip || "A simple example to help you answer."} example={<BriefExample field={f.key} />} label={`Help with ${f.label}`} /> : null}
+      {/* The last word travels WITH the star and the help button, so a long
+          question never leaves its "?" alone on a line of its own. */}
+      {f.label.includes(" ") ? f.label.slice(0, f.label.lastIndexOf(" ") + 1) : null}
+      <span className="ob__labelEnd">
+        {f.label.includes(" ") ? f.label.slice(f.label.lastIndexOf(" ") + 1) : f.label}
+        {f.required ? <><b aria-hidden="true"> *</b><span className="obCol__sr"> required</span></> : null}
+        {f.tip || FIELD_EXAMPLES[f.key] ? <Tip text={f.tip || "A simple example to help you answer."} example={<BriefExample field={f.key} />} label={`Help with ${f.label}`} /> : null}
+      </span>
     </label>
   );
   /* Always visible, under the label. A hint the form cannot be completed
