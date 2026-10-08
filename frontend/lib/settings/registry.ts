@@ -185,6 +185,11 @@ export const SETTINGS: SettingDef[] = [
     parse: flag, revalidate: [],
   },
   {
+    key: "notify.staff", label: "New staff", shipped: () => "1",
+    note: "Email the studio when a new staff member finishes or skips their welcome.",
+    parse: flag, revalidate: [],
+  },
+  {
     key: "notify.payments", label: "Payments", shipped: () => "1",
     note: "Email the studio when a client pays online.",
     parse: flag, revalidate: [],

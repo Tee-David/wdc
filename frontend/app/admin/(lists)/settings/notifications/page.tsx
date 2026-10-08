@@ -38,7 +38,7 @@ export default async function NotificationsPage() {
     <>
       <Head title="Notifications" line="What the studio is emailed about." />
       <NotificationsForm
-        tickets={getSetting("notify.tickets") !== "0"} payments={getSetting("notify.payments") !== "0"}
+        tickets={getSetting("notify.tickets") !== "0"} payments={getSetting("notify.payments") !== "0"} staff={getSetting("notify.staff") !== "0"}
         forms={forms} alertTo={alert?.to ?? ""} inbox={studioInbox()} />
       <p className="ad__dim adSet__foot">Change where studio emails go under <Link href="/admin/settings/email">Email</Link>.</p>
     </>
