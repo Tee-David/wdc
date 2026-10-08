@@ -33,7 +33,7 @@ const closer = (id: string, title: string, content: string): TourDef["steps"][nu
 
 export const ADMIN_WELCOME: TourDef = {
   id: "admin-welcome",
-  version: 3,
+  version: 4,
   kind: "welcome",
   title: "Welcome to the admin",
   steps: [
@@ -52,7 +52,8 @@ export const ADMIN_WELCOME: TourDef = {
     { id: "nav-clients", target: '[data-tour="nav-clients"]', href: "/admin", icon: "users", interact: { hint: "Click Clients to move on" }, title: "Clients", content: "Everyone you work for, grouped by what they buy." },
     { id: "nav-projects", target: '[data-tour="nav-projects"]', href: "/admin/clients", icon: "folder", interact: { hint: "Click Projects to move on" }, title: "Projects", content: "Every live and delivered engagement, with a stage and a health." },
     { id: "nav-money", roles: ["owner"], target: '[data-tour="nav-money"]', href: "/admin/projects", icon: "wallet", interact: { hint: "Click Money to move on" }, title: "Money", content: "Invoices, payments, and expenses: what is owed, right now." },
-    { id: "nav-forms", target: '[data-tour="nav-forms"]', href: "/admin/money", icon: "inbox", interact: { hint: "Click Forms to move on" }, title: "Forms", content: "Everything people send through the site: briefs, enquiries, sign-ups, and the forms you build." },
+    { id: "nav-forms", target: '[data-tour="nav-clients"]', href: "/admin/money", icon: "inbox", title: "Leads, forms and meetings", content: "Under Clients you also find Leads and forms (everything people send through the site), Meetings, and Support." },
+    { id: "nav-email", roles: ["owner"], target: '[data-tour="nav-email"]', href: "/admin/money", icon: "inbox", title: "Email", content: "Contacts, campaigns, automations and the designs of the emails the studio sends." },
     { id: "nav-blog", target: '[data-tour="nav-blog"]', href: "/admin/forms", icon: "book", interact: { hint: "Click Blog to move on" }, title: "Blog", content: "Write, review and schedule posts. A live post you change says Update, not Save." },
     { id: "nav-users", roles: ["owner"], target: '[data-tour="nav-users"]', href: "/admin/blog", icon: "users", title: "Users", content: "The studio team, client accounts and invitations. Who can sign in, and from how many devices." },
     { id: "nav-settings", target: '[data-tour="nav-settings"]', href: "/admin/blog", icon: "settings", interact: { hint: "Click Settings to move on" }, title: "Settings", content: "How the studio, the site and the admin run, with the media library and your own account." },
@@ -65,7 +66,7 @@ export const ADMIN_WELCOME: TourDef = {
 
 export const ADMIN_WALKTHROUGH: TourDef = {
   id: "admin-walkthrough",
-  version: 4,
+  version: 5,
   kind: "walkthrough",
   title: "The full admin walkthrough",
   steps: [
@@ -102,7 +103,7 @@ export const ADMIN_WALKTHROUGH: TourDef = {
     { id: "money-add", roles: ["owner"], target: '[data-tour="money-add"]', href: "/admin/money", icon: "receipt", title: "Raising an invoice", content: "Add the lines, issue it, and the client gets a token-addressed public copy with a pay link. A draft can still be edited; an issued invoice cannot, because somebody outside the studio is holding it." },
     { id: "money-reports", roles: ["owner"], target: '[data-tour="reports-tiles"]', href: "/admin/reports", page: "Reports", icon: "barChart", title: "Reports", content: "Any stretch of days against the one before it: invoiced, collected, spent and net, with a month-by-month table and a CSV." },
 
-    { id: "nav-forms", target: '[data-tour="nav-forms"]', href: "/admin/money", icon: "inbox", interact: { hint: "Click Forms to see them" }, page: "Forms", title: "On to Forms", content: "Everything people send through the site: onboarding briefs, enquiries, newsletter sign-ups, and any form you build." },
+    { id: "nav-forms", target: '[data-tour="nav-clients"]', href: "/admin/money", icon: "inbox", page: "Forms", title: "Leads and forms", content: "Forms now live under Clients: onboarding briefs, enquiries, newsletter sign-ups, and any form you build." },
     { id: "forms-table", target: '[data-tour="forms-table"]', href: "/admin/forms", icon: "clipboard", title: "Every form, with what is new", content: "Each row is one form with its unread count. Open one for its entries, its questions and its emails." },
     { id: "forms-entries", target: '[data-tour="forms-entries"]', href: "/admin/forms/contact", icon: "inbox", title: "One form's entries", content: "An inbox: star, mark read, move to spam or the Trash, and export. Open an entry to read it in full, see what they uploaded, and download it as a PDF." },
 
