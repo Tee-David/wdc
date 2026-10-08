@@ -1,5 +1,6 @@
 "use client";
 
+import { PermanentDelete } from "./permanent-delete";
 import { useAdminRole } from "./shell";
 import { can } from "@/lib/admin/permissions";
 
@@ -173,10 +174,15 @@ export function ProjectMenu({
             ? `${project.title} goes back into the project lists exactly as it was.`
             : `${project.title} drops out of the lists and the board. Its invoices,
                payments, updates, approvals and file versions stay exactly as they
-               are, because those are the record. That is why there is no delete.`}
+               are, because those are the record. Once archived, the owner can delete it for good.`}
         </Sure>
       ),
     },
+    ...(project.archived ? [{
+      kind: "dialog" as const, area: "settings" as const, label: "Delete permanently", icon: Trash2, tone: "danger" as const,
+      title: `Delete ${project.title} permanently`, wide: true,
+      render: (close: () => void) => <PermanentDelete kind="project" id={project.id} name={project.title} close={close} />,
+    }] : []),
   ];
 
   return <RowMenu items={items} label={project.title} />;
@@ -241,10 +247,15 @@ export function ClientMenu({ client }: { client: Client }) {
         >
           {back
             ? `${client.company} goes back into the lists exactly as they were.`
-            : `${client.company} drops out of the lists. Their projects, invoices and payments stay exactly as they are, because those are the financial record. That is why there is no delete.`}
+            : `${client.company} drops out of the lists. Their projects, invoices and payments stay exactly as they are, because those are the financial record. Once archived, the owner can delete them for good.`}
         </Sure>
       ),
     },
+    ...(back ? [{
+      kind: "dialog" as const, area: "settings" as const, label: "Delete permanently", icon: Trash2, tone: "danger" as const,
+      title: `Delete ${client.company} permanently`, wide: true,
+      render: (close: () => void) => <PermanentDelete kind="client" id={client.id} name={client.company} close={close} />,
+    }] : []),
   ];
 
   return <RowMenu items={items} label={client.company} />;

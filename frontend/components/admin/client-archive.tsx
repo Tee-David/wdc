@@ -1,9 +1,11 @@
 "use client";
 
-import { Archive, ArchiveRestore } from "lucide-react";
+import { Archive, ArchiveRestore, Trash2 } from "lucide-react";
 import type { Client } from "@/lib/admin/types";
 import { archiveClient } from "@/lib/admin/actions";
 import { Form, Hidden, Submit } from "./form";
+import { DialogButton } from "./dialog";
+import { PermanentDelete } from "./permanent-delete";
 
 /**
  * Archive a client, rather than delete one.
@@ -17,6 +19,7 @@ import { Form, Hidden, Submit } from "./form";
 export function ArchiveClient({ client }: { client: Client }) {
   const back = Boolean(client.archived);
   return (
+    <>
     <Form
       action={archiveClient}
       confirm={back
@@ -29,5 +32,11 @@ export function ArchiveClient({ client }: { client: Client }) {
         {back ? "Restore" : "Archive"}
       </Submit>
     </Form>
+    {back ? (
+      <DialogButton label="Delete permanently" title={`Delete ${client.company} permanently`} icon={Trash2} wide>
+        {(close) => <PermanentDelete kind="client" id={client.id} name={client.company} close={close} />}
+      </DialogButton>
+    ) : null}
+    </>
   );
 }

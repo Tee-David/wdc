@@ -176,6 +176,39 @@ export async function archiveClient(_prev: ActionState, fd: FormData): Promise<A
   return OK(back ? `${c.company} is back on the books.` : `${c.company} is archived. Their invoices and projects are untouched.`);
 }
 
+/* ------------------------------------------------- permanent deletion */
+
+/** What a permanent delete would take, for the dialog. Owner only. */
+export async function deletionImpact(kind: "client" | "project", id: string): Promise<db.Impact | null> {
+  await syncStore();
+  if (await owner()) return null;
+  return kind === "client" ? db.clientImpact(id) : db.projectImpact(id);
+}
+
+/**
+ * DELETE FOR GOOD, the second step after the archive. Owner only; the name must
+ * be typed; refused while money is kept against it (db.*Impact says why). The
+ * audit entry stays. Everything is re-checked here, never trusted from the dialog.
+ */
+export async function deletePermanently(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
+  const refused = await owner();
+  if (refused) return refused;
+  const kind = str(fd, "kind") === "client" ? "client" : "project";
+  const id = str(fd, "id");
+  const name = kind === "client" ? db.getClient(id)?.company : db.getProject(id)?.title;
+  if (!name) return FAIL({}, "That is already gone.");
+  if (str(fd, "typed").trim().toLowerCase() !== name.trim().toLowerCase()) return FAIL({ typed: `Type ${name} exactly to confirm.` });
+  const impact = kind === "client" ? db.clientImpact(id) : db.projectImpact(id);
+  if (impact?.blocked) return FAIL({}, impact.blocked);
+  const actor = await actorName();
+  const done = kind === "client" ? db.deleteClientPermanently(id, actor) : db.deleteProjectPermanently(id, actor);
+  if (!done) return FAIL({}, "That could not be deleted.");
+  refresh("/admin/clients", "/admin/projects", "/admin/money", "/admin");
+  redirect(kind === "client" ? "/admin/clients?status=archived" : "/admin/projects");
+}
+
 /* -------------------------------------------------------------- projects */
 
 export async function createProject(_prev: ActionState, fd: FormData): Promise<ActionState> {
