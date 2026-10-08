@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { SiteFooter } from "@/components/layout/site-footer";
-import { LEGAL_DOCS, LEGAL_UPDATED } from "@/lib/legal";
+import { getLegalDocs } from "@/lib/legal-store";
 import { COMPANY_NAME, SITE_URL } from "@/lib/site";
 import "@/components/preview/preview.css";
 import "@/components/legal/legal.css";
@@ -30,7 +30,8 @@ const breadcrumbJsonLd = {
   ],
 };
 
-export default function LegalIndexPage() {
+export default async function LegalIndexPage() {
+  const LEGAL_DOCS = await getLegalDocs();
   return (
     <>
       <Header overHero />
@@ -43,7 +44,7 @@ export default function LegalIndexPage() {
               site is and what it stores, how an engagement with us runs, how
               payments and refunds work, and what we email you. Written to be read.
             </p>
-            <p className="lg-updated">All last updated {LEGAL_UPDATED}</p>
+            <p className="lg-updated">Each policy shows its own date</p>
           </div>
         </section>
 
