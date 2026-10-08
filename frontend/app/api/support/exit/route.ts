@@ -8,7 +8,7 @@ export async function POST(request: Request) {
   if (!origin || origin !== new URL(request.url).origin) return NextResponse.json({ error: "This request is not allowed." }, { status: 403 });
   const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
   try { await endSupportView(session); } catch {
-    return NextResponse.redirect(new URL(session ? "/admin/settings/users?notice=support-ended-audit-pending" : "/login", request.url), 303);
+    return NextResponse.redirect(new URL(session ? "/admin/users?notice=support-ended-audit-pending" : "/login", request.url), 303);
   }
-  return NextResponse.redirect(new URL(session ? "/admin/settings/users?notice=support-ended" : "/login", request.url), 303);
+  return NextResponse.redirect(new URL(session ? "/admin/users?notice=support-ended" : "/login", request.url), 303);
 }

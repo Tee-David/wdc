@@ -333,3 +333,9 @@
 .pSupport form { margin: 0; }
 .pSupport__fields { padding: 0; margin: 0; border: 0; min-width: 0; }
 @media(max-width:640px) { .pSupport { grid-template-columns:24px minmax(0,1fr); padding:16px; gap:12px; top:70px; } .pSupport form { grid-column:1/-1; } .pSupport form button { width:100%; min-height:44px; } }
+
+/* Signed-in devices: a name, a date and one button per row. */
+.pSet__devices { display: grid; gap: .3rem; padding: .9rem 1rem; border-top: 1px solid var(--ad-line, var(--rule)); }
+.pSet__devices ul { list-style: none; margin: .4rem 0 0; padding: 0; display: grid; gap: .5rem; }
+.pSet__devices li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem .8rem; min-width: 0; }
+.pSet__devices li > span { display: grid; min-width: 0; }

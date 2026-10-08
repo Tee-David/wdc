@@ -4,6 +4,7 @@ import { getPortalRequest } from "@/lib/portal/session";
 import { Panel } from "@/components/admin/bits";
 import { NotifyForm, ProfileForm, SignInCard } from "@/components/client/settings-forms";
 import { db } from "@/lib/db/pool";
+import { listDevices } from "@/lib/auth/devices";
 import "@/components/admin/settings/settings.css";
 import "@/components/client/portal.css";
 
@@ -25,6 +26,7 @@ export default async function PortalSettings() {
   if (!client) return null;
   const userId = (session?.user as { id?: string } | undefined)?.id;
   const withPassword = await hasPassword(userId);
+  const devices = userId && !support ? await listDevices(userId, (session as { session?: { id?: string } } | null)?.session?.id) : [];
 
   return (
     <div className="adDash">
@@ -48,7 +50,7 @@ export default async function PortalSettings() {
           </Panel>
           {!support && userId ? <SecurityEmailPreference userId={userId} /> : null}
           <Panel title="Sign-in" dataTour="portal-signin">
-            {support ? <p>Sign-in settings are private and cannot be changed in a support view.</p> : <SignInCard email={session?.user?.email ?? client.email} hasPassword={withPassword} />}
+            {support ? <p>Sign-in settings are private and cannot be changed in a support view.</p> : <SignInCard email={session?.user?.email ?? client.email} hasPassword={withPassword} devices={devices} />}
           </Panel>
         </div>
       </div>

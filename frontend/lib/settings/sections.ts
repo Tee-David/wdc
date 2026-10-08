@@ -36,7 +36,6 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   { href: "/admin/settings/policies", label: "Policies", line: "Privacy, terms, engagement and the rest.", group: "Content", icon: "sliders", area: "content", words: "legal privacy terms cookie engagement agreement payments refunds hosting policy policies tabs pdf" },
   { href: "/admin/settings/faq", label: "FAQ", line: "Questions on the site.", group: "Content", icon: "messages", area: "content", words: "questions answers" },
   { href: "/admin/settings/media", label: "Media library", line: "Pictures and files.", group: "Content", icon: "images", area: "content", words: "images pictures uploads files" },
-  { href: "/admin/settings/users", label: "Users", line: "Invitations, access and account recovery.", group: "People", icon: "users", area: "team", words: "staff owner invite members access roles permissions" },
   { href: "/admin/settings/integrations", label: "Integrations", line: "Outside services and their state.", group: "System", icon: "plug", area: "settings", words: "paystack r2 storage database google pagespeed cal whatsapp" },
   { href: "/admin/settings/privacy", label: "Privacy and data", line: "Keep-for rules and requests.", group: "System", icon: "lock", area: "settings", words: "retention erase export requests ndpr gdpr" },
   { href: "/admin/settings/audit", label: "Audit log", line: "Every change and who made it.", group: "System", icon: "history", area: "settings", words: "history changes" },
