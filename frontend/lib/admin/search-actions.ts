@@ -8,6 +8,7 @@ import { can, type Area } from "./permissions";
 import { syncStore } from "./persist";
 import * as store from "./store";
 import { invoiceStatus, invoiceTotals, naira } from "./types";
+import { noticeBlock } from "./money-rules";
 import { QUERY_MAX, SEARCH_LIMIT, cleanQuery, likeOf, rankRows, type SearchRow } from "./search-rank";
 
 /**
@@ -97,6 +98,23 @@ export async function searchOptions(kind: SearchKind, q: string, selectedIds?: s
     console.error(`[search] ${kind} failed:`, e instanceof Error ? e.message : e);
     return EMPTY("failed");
   }
+}
+
+/**
+ * WHY THE CLIENT OF THIS INVOICE CANNOT BE EMAILED A RECEIPT (no address, updates
+ * off), or undefined when they can. The "Record a payment" form picks its invoice
+ * from the search, so it no longer holds the client list the tick used to read; it
+ * asks here once the invoice is chosen. Money area only, like the invoice search.
+ */
+export async function invoiceReceiptReason(id: string): Promise<string | undefined> {
+  if (typeof id !== "string" || !id || id.length > 120) return undefined;
+  if (!can(await adminRole(), "money")) return undefined;
+  let who = "admin";
+  try { who = (await getAdminRequest()).session?.user?.id ?? who; } catch { /* the role check above already passed */ }
+  if (!rateLimit(`pick:${who}`, 240, 60_000).ok) return undefined;
+  await syncStore();
+  const inv = store.getInvoice(id);
+  return inv ? noticeBlock(store.getClient(inv.clientId)) : undefined;
 }
 
 /* ------------------------------------------------------------------ store */
