@@ -125,6 +125,16 @@ export const auth = betterAuth({
      * on their other devices, which is what they expect to happen anyway.
      */
     revokeSessionsOnPasswordReset: true,
+    /**
+     * A COMPLETED RESET IS TOLD TO THE PERSON, afterwards, behind the response.
+     * A security notice: always sent, never switchable (lib/lifecycle-mail.ts).
+     * The key is the person and the minute, so one reset mails once.
+     */
+    onPasswordReset: async ({ user }) => {
+      behindTheResponse(import("@/lib/lifecycle-mail").then((m) => m.sendPasswordChangedNotice({
+        email: user.email, name: user.name?.trim().split(/\s+/)[0], how: "reset", eventKey: `${user.id}:reset:${new Date().toISOString().slice(0, 16)}`,
+      })));
+    },
     sendResetPassword: async ({ user, url }) => {
       /* `user.name` is a full name; the email wants something to say hello
          with, and the first word of it is the honest answer. */
@@ -314,6 +324,11 @@ export const auth = betterAuth({
         after: async (session) => {
           // Optional metadata until migration 0034 is applied; never block an existing sign-in.
           await db.query('UPDATE "user" SET "lastSignInAt" = now() WHERE "id" = $1', [session.userId]).catch(() => undefined);
+          /* A device the person has not used lately is told to them, behind the
+             response and always (a security notice). The rule is lib/auth/device-label.ts. */
+          behindTheResponse(import("@/lib/lifecycle-mail").then((m) => m.sendNewDeviceNotice({
+            userId: session.userId, sessionId: session.id, userAgent: session.userAgent ?? null,
+          })));
           /* Five devices at most: keep the newest sessions, drop the rest. */
           await db.query(
             'DELETE FROM "session" WHERE "userId" = $1 AND "id" NOT IN (SELECT "id" FROM "session" WHERE "userId" = $1 ORDER BY "createdAt" DESC LIMIT $2)',

@@ -7,7 +7,7 @@ import { can } from "@/lib/admin/permissions";
 import {
   Archive, ArchiveRestore, ArrowRight, Ban, Banknote, CalendarDays, Copy,
   CheckCircle2, CornerUpLeft, FilePlus2, FolderPlus, MessageSquarePlus, Move, Pencil,
-  Send, Trash2, Undo2, UserPlus, Users, Wallet,
+  Receipt, Send, Trash2, Undo2, UserPlus, Users, Wallet,
   type LucideIcon,
 } from "lucide-react";
 import { SERVICES } from "@/lib/services";
@@ -21,10 +21,12 @@ import {
   addNote, answerEstimate, archiveClient, attachSubmission, createProject,
   deleteInvoice, duplicateEstimate, duplicateInvoice, issueInvoice, moveStage, overpaymentToCredit,
   recordPayment, refundPayment, removeExpense, reversePayment,
-  sendEstimate, setDue, setProjectArchived, updateClient,
+  sendEstimate, sendReceipt, setDue, setProjectArchived, updateClient,
   voidInvoice,
 } from "@/lib/admin/actions";
 import { Actions, Area, Field, Fields, Form, Hidden, Radios, Select, Submit } from "./form";
+import { EditInvoiceForm } from "./money-forms";
+import { NoticeTick, ReceiptTick } from "./reconcile-forms";
 import { RowMenu, type RowMenuItem } from "./row-menu";
 import { ClientFields } from "./client-form";
 import { OwnerField } from "./owner-field";
@@ -263,7 +265,20 @@ export function ClientMenu({ client }: { client: Client }) {
 
 /* --------------------------------------------------------------- invoices */
 
-export function InvoiceMenu({ invoice }: { invoice: Invoice }) {
+/**
+ * `edit` carries what the edit sheet needs (the client's name and their
+ * projects); a screen that cannot supply it still gets "Edit it", as a link to
+ * the invoice page where the same sheet opens. `noReceipt` is why the client
+ * cannot be emailed a receipt (no address, updates off), shown beside the
+ * disabled tick.
+ */
+export function InvoiceMenu({
+  invoice, edit, noReceipt,
+}: {
+  invoice: Invoice;
+  edit?: { clientName: string; projects: { id: string; title: string; clientId: string }[] };
+  noReceipt?: string;
+}) {
   const status = invoiceStatus(invoice);
   const draft = status === "Draft";
   const owed = invoiceTotals(invoice).due;
@@ -271,6 +286,17 @@ export function InvoiceMenu({ invoice }: { invoice: Invoice }) {
   const items: RowMenuItem[] = [
     { kind: "link", label: "Open the invoice", href: `/admin/money/${invoice.id}`, icon: ArrowRight },
   ];
+
+  /* EDITING IS OFFERED WHERE IT IS TRUE: a draft, and an issued invoice that is
+     still unpaid or part paid. The total can never be taken below what has been
+     received (the action says so with the figure if it is tried). */
+  if (!invoice.voided) {
+    items.push(edit ? {
+      kind: "dialog", label: "Edit it", icon: Pencil, wide: true,
+      title: `Edit ${invoice.number}`,
+      render: (close) => <EditInvoiceForm invoice={invoice} clientName={edit.clientName} projects={edit.projects} close={close} />,
+    } : { kind: "link", label: "Edit it", href: `/admin/money/${invoice.id}`, icon: Pencil });
+  }
 
   if (draft) {
     items.push({
@@ -312,6 +338,7 @@ export function InvoiceMenu({ invoice }: { invoice: Invoice }) {
             <Field name="at" label="When" type="date" half
                    defaultValue={new Date().toISOString().slice(0, 10)} />
           </Fields>
+          <ReceiptTick reason={noReceipt} />
           <Actions>
             <Submit icon={Banknote}>Record it</Submit>
           </Actions>
@@ -336,6 +363,7 @@ export function InvoiceMenu({ invoice }: { invoice: Invoice }) {
             <Field name="at" label="When" type="date" half defaultValue={new Date().toISOString().slice(0, 10)} />
             <Field name="note" label="Note" placeholder="Paid at the office" hint="Needed when the method is Other." />
           </Fields>
+          <ReceiptTick reason={noReceipt} />
           <Actions><Submit icon={CheckCircle2}>Mark as paid</Submit></Actions>
         </Form>
       ),
@@ -369,7 +397,8 @@ export function InvoiceMenu({ invoice }: { invoice: Invoice }) {
       kind: "dialog", label: "Void it", icon: Ban, tone: "danger",
       title: `Void ${invoice.number}`,
       render: (close) => (
-        <Form action={voidInvoice} onDone={() => close()}>
+        <Form action={voidInvoice} onDone={() => close()}
+              confirm={`Void ${invoice.number}? It comes out of what is owed, the aging and the collection rate, and the number is never reused. This cannot be undone.`}>
           <Fields>
             <Hidden name="id" value={invoice.id} />
             <Area name="reason" label="Why" rows={2} required
@@ -377,6 +406,8 @@ export function InvoiceMenu({ invoice }: { invoice: Invoice }) {
                   hint="Required. A client may be holding this document, and this is what answers them." />
             <Field name="by" label="Struck by" placeholder="Babatope" />
           </Fields>
+          <NoticeTick name="tellClient" label="Tell the client it is cancelled" reason={noReceipt}
+                      hint="Emails them that nothing is owed on it, with the reason above. Untick if they never had it." />
           <p className="ad__dim" style={{ fontSize: ".88rem", lineHeight: 1.6 }}>
             {invoice.number} keeps its number and its page keeps working, saying
             nothing is owed. It comes out of what is outstanding, out of the
@@ -399,13 +430,22 @@ export function InvoiceMenu({ invoice }: { invoice: Invoice }) {
       kind: "dialog", label: "Move the excess to credit", icon: Wallet,
       title: `${naira(invoice.paid - invoiceTotals(invoice).total)} over`,
       render: (close) => (
-        <Sure action={overpaymentToCredit as never} fields={{ id: invoice.id }}
-              verb="Put it on their balance" icon={Wallet} close={close}>
-          {invoice.number} has taken {naira(invoice.paid - invoiceTotals(invoice).total)}{" "}
-          more than it is for. This moves the excess onto the client&apos;s
-          balance, so this invoice lands exactly on its total and the money
-          comes off their next one. To send it back instead, refund the payment.
-        </Sure>
+        <Form action={overpaymentToCredit} onDone={() => close()}>
+          <div className="ad__sure">
+            <p>
+              {invoice.number} has taken {naira(invoice.paid - invoiceTotals(invoice).total)}{" "}
+              more than it is for. This moves the excess onto the client&apos;s
+              balance, so this invoice lands exactly on its total and the money
+              comes off their next one. To send it back instead, refund the payment.
+            </p>
+          </div>
+          <Hidden name="id" value={invoice.id} />
+          <NoticeTick name="tellClient" label="Tell the client by email" reason={noReceipt} />
+          <Actions>
+            <button type="button" className="ad__btn" onClick={close}>Leave it</button>
+            <Submit icon={Wallet}>Put it on their balance</Submit>
+          </Actions>
+        </Form>
       ),
     });
   }
@@ -430,14 +470,38 @@ export function InvoiceMenu({ invoice }: { invoice: Invoice }) {
 /* --------------------------------------------------------------- payments */
 
 export function PaymentMenu({
-  payment, invoiceNumber,
+  payment, invoiceNumber, noEmail,
 }: {
   payment: Payment;
   invoiceNumber?: string;
+  /** Why the client cannot be emailed about this (no address, updates off). */
+  noEmail?: string;
 }) {
   const items: RowMenuItem[] = [
     { kind: "link", label: "Open the invoice", href: `/admin/money/${payment.invoiceId}`, icon: ArrowRight },
   ];
+
+  /* THE RECEIPT, AGAIN OR FOR THE FIRST TIME. The only way to put a receipt in
+     a client's inbox from the app: before this, a payment entered by hand had
+     a link on the invoice page and nothing else. Works on a payment whose
+     receipt failed too (the failed row is replaced, not duplicated), and is
+     held to once a day so it cannot be pressed into a flood. A reversed payment
+     has no receipt to send. */
+  if (!payment.reversed) {
+    items.push({
+      kind: "dialog", label: "Send the receipt", icon: Receipt,
+      title: `Receipt ${payment.receiptNo}`,
+      render: (close) => (
+        <Sure action={sendReceipt as never} fields={{ id: payment.id }}
+              verb="Email the receipt" icon={Receipt} close={close}>
+          Emails the link to receipt {payment.receiptNo} ({naira(payment.amount)}) to the client{" "}
+          {noEmail ? `— but ${noEmail.charAt(0).toLowerCase()}${noEmail.slice(1)}` : "again if it has been sent before, or for the first time if it has not"}.
+          The receipt page is the live document, so it always shows refunds and reversals.
+          At most one copy a day.
+        </Sure>
+      ),
+    });
+  }
 
   /* REFUNDING AND REVERSING ARE DIFFERENT VERBS AND BOTH ARE HERE.
 
@@ -452,7 +516,8 @@ export function PaymentMenu({
       kind: "dialog", label: "Refund it", icon: CornerUpLeft,
       title: `Give back some of ${naira(payment.amount)}`,
       render: (close) => (
-        <Form action={refundPayment} onDone={() => close()}>
+        <Form action={refundPayment} onDone={() => close()}
+              confirm={`Record this refund against ${payment.receiptNo}? It is part of the books from then on: a wrong refund is corrected by a new entry, never by taking this one out. This cannot be undone.`}>
           <Fields>
             <Hidden name="id" value={payment.id} />
             <Field
@@ -478,6 +543,8 @@ export function PaymentMenu({
                 note: "The money stays with us as credit for this client, and comes off their next invoice." },
             ]}
           />
+          <NoticeTick name="tellClient" label="Tell the client by email" reason={noEmail}
+                      hint="Says how much went back (or is held for them) and what they owe now. Not the reason above." />
           <Actions>
             <Submit icon={CornerUpLeft}>Record the refund</Submit>
           </Actions>
@@ -493,7 +560,8 @@ export function PaymentMenu({
       kind: "dialog", label: "Reverse it", icon: Undo2, tone: "danger",
       title: `Reverse ${naira(payment.amount)}`,
       render: (close) => (
-        <Form action={reversePayment} onDone={() => close()}>
+        <Form action={reversePayment} onDone={() => close()}
+              confirm={`Reverse ${payment.receiptNo}? ${naira(payment.amount)} comes off ${invoiceNumber ?? "the invoice"} and it re-totals. The row stays on the books marked reversed. This cannot be undone.`}>
           <Fields>
             <Hidden name="id" value={payment.id} />
             <Hidden name="invoiceId" value={payment.invoiceId} />
@@ -513,6 +581,8 @@ export function PaymentMenu({
             working. Use this for a payment entered twice or against the wrong
             invoice, not for a refund: a refund is money going out.
           </p>
+          <NoticeTick name="tellClient" label="Tell the client by email" reason={noEmail}
+                      hint="Says the payment was taken off and what they owe now. Untick if it was entered by mistake and they never saw it." />
           <Actions>
             <Submit icon={Undo2} tone="danger">Reverse it</Submit>
           </Actions>
@@ -644,7 +714,7 @@ export function SubmissionMenu({
  * pipeline six months later, and removing it is how a studio forgets what its
  * prices have been doing.
  */
-export function EstimateMenu({ estimate }: { estimate: Estimate }) {
+export function EstimateMenu({ estimate, noEmail }: { estimate: Estimate; noEmail?: string }) {
   const state = estimateState(estimate);
   const total = estimateTotals(estimate).total;
 
@@ -661,11 +731,21 @@ export function EstimateMenu({ estimate }: { estimate: Estimate }) {
       kind: "dialog", label: "Send it", icon: Send,
       title: `Send ${estimate.number}`,
       render: (close) => (
-        <Sure action={sendEstimate as never} fields={{ id: estimate.id }}
-              verb="Send it" icon={Send} close={close}>
-          Its page goes live at a private address, and the price holds until it
-          expires. Nothing is owed by anybody until an invoice follows.
-        </Sure>
+        <Form action={sendEstimate} onDone={() => close()}>
+          <div className="ad__sure">
+            <p>
+              Its page goes live at a private address, and the price holds until it
+              expires. Nothing is owed by anybody until an invoice follows.
+            </p>
+          </div>
+          <Hidden name="id" value={estimate.id} />
+          <NoticeTick name="emailClient" label="Email it to the client" reason={noEmail}
+                      hint="The link and the price, in a short email. Untick to send the link yourself." />
+          <Actions>
+            <button type="button" className="ad__btn" onClick={close}>Leave it</button>
+            <Submit icon={Send}>Send it</Submit>
+          </Actions>
+        </Form>
       ),
     });
   }
@@ -694,6 +774,8 @@ export function EstimateMenu({ estimate }: { estimate: Estimate }) {
             <Area name="note" label="Anything they said" rows={2}
                   placeholder="Happy with the second route. Go ahead." />
           </Fields>
+          <NoticeTick name="emailClient" label="Confirm it to the client by email" reason={noEmail}
+                      hint="Thanks them and, on a yes, links the new invoice. The studio is told too, unless that is switched off in Settings, Notifications." />
           <Actions>
             <Submit icon={MessageSquarePlus}>Record it</Submit>
           </Actions>

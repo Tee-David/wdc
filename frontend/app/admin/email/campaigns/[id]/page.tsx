@@ -7,7 +7,6 @@ import { AfterButtons, AudienceForm, SendForm, StateButtons, TagClickers } from 
 import { CAMPAIGN_STATE } from "@/components/admin/email/campaigns-tab";
 import { DesignEditor } from "@/components/admin/email/design-editor";
 import { audienceCount, getCampaign, reportFor } from "@/lib/campaigns";
-import { allTags } from "@/lib/contacts";
 import { kindByKey } from "@/lib/email-registry";
 import { COMPANY_NAME } from "@/lib/site";
 import "@/components/admin/email/design-editor.css";
@@ -21,7 +20,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
   if (!c) notFound();
   const k = kindByKey("newsletter")!;
   const draft = c.status === "draft";
-  const [tags, reach, report] = await Promise.all([allTags(), audienceCount(c.audience), reportFor(c)]);
+  const [reach, report] = await Promise.all([audienceCount(c.audience), reportFor(c)]);
   const st = CAMPAIGN_STATE[c.status] ?? { label: c.status, tone: "" };
   const pct = (n: number) => (report.sent ? `${Math.round((n / report.sent) * 100)}%` : "–");
   const max = Math.max(1, ...report.links.map((l) => l.clicks));
@@ -89,7 +88,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ id: s
           <>
             <Panel title="Who gets it">
               <div className="adCp__pad">
-                <AudienceForm id={c.id} title={c.title} tags={tags} audience={c.audience} track={c.track} reach={reach} />
+                <AudienceForm id={c.id} title={c.title} audience={c.audience} track={c.track} reach={reach} />
               </div>
             </Panel>
             <div id="campaign-design">

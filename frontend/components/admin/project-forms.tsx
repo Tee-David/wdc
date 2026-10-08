@@ -2,11 +2,11 @@
 
 import { CalendarDays, MessageSquarePlus, Plus } from "lucide-react";
 import { SERVICES } from "@/lib/services";
-import { CHANNELS, STAGES, type Client, type Project } from "@/lib/admin/types";
+import { CHANNELS, STAGES, type Project } from "@/lib/admin/types";
 import { addNote, createProject, moveStage, setDue } from "@/lib/admin/actions";
 import { useState } from "react";
 import { Actions, Area, Field, Fields, Form, Hidden, Select, Submit, Wrap } from "./form";
-import { Pick } from "./pick";
+import { RemotePick } from "./remote-pick";
 import { useAdminRole } from "./shell";
 import { can } from "@/lib/admin/permissions";
 import { DialogButton } from "./dialog";
@@ -19,9 +19,10 @@ const STAGE_OPTIONS = STAGES.map((s) => ({ value: s, label: s }));
 const CHANNEL_OPTIONS = CHANNELS.map((c) => ({ value: c, label: c }));
 
 export function AddProject({
-  clients, clientId, dataTour,
+  hasClients = true, clientId, dataTour,
 }: {
-  clients: Pick<Client, "id" | "company">[];
+  /** Whether there is anyone to open a project for. The clients themselves are searched on the server as the person types. */
+  hasClients?: boolean;
   /** Fixed when opened from a client's own page, chosen otherwise. */
   clientId?: string;
   dataTour?: string;
@@ -31,7 +32,7 @@ export function AddProject({
   return (
     <DialogButton label="New project" title="Open a project" icon={Plus} wide dataTour={dataTour}>
       {/* createProject redirects to the project it opened. */}
-      {() => (!clientId && clients.length === 0 ? <NoClientsYet what="project" /> :
+      {() => (!clientId && !hasClients ? <NoClientsYet what="project" /> :
         <Form action={createProject}>
           <Fields>
             {clientId ? (
@@ -41,8 +42,8 @@ export function AddProject({
                 <Hidden name="clientId" value={who} />
                 <Wrap name="clientId" label="For" required>
                   {(id) => (
-                    <Pick id={id} search value={who} onChange={setWho} placeholder="Pick a client" label="For"
-                      options={[{ value: "__new", label: "+ Add a new client" }, ...clients.map((c) => ({ value: c.id, label: c.company }))]} />
+                    <RemotePick id={id} kind="clients" value={who} onChange={setWho} placeholder="Pick a client" label="For"
+                      lead={[{ value: "__new", label: "+ Add a new client" }]} />
                   )}
                 </Wrap>
                 {who === "__new" ? (

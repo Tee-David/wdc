@@ -25,13 +25,24 @@ test("test and unknown-mode Paystack charges cannot settle a real invoice", () =
   expect(getInvoice(inv.id)).toEqual(before);
 });
 
-test("an issued invoice cannot be edited, even by a caller that forgets to check", () => {
+test("an issued invoice can be corrected, but the draft rule and the floor are enforced where the write happens", () => {
   const inv = addInvoice({ clientId: "c1", projectId: null, issued: day(1), due: day(30), vatRate: 0, lines: LINE, status: "Sent" });
-  expect(patchInvoice(inv.id, { lines: [{ description: "Changed", qty: 1, unit: 1 }] })).toBeNull();
-  expect(getInvoice(inv.id)!.lines).toEqual(LINE);
+  /* Unpaid: a correction is allowed, and audited with the old and new total. */
+  const first = patchInvoice(inv.id, { lines: [{ description: "Changed", qty: 1, unit: 80_000_00 }] });
+  expect(first.ok).toBe(true);
+  expect(getInvoice(inv.id)!.lines[0].description).toBe("Changed");
+  expect(getAudit({ subjectId: inv.id }).some((e) => e.action === "edited after it was issued")).toBe(true);
+
+  /* Part paid: the total cannot drop below what has been kept, and nothing moves. */
+  expect(applyPayment({ invoiceId: inv.id, amount: 50_000_00, method: "Transfer", reference: `TRF-EDIT-${inv.id}` }).ok).toBe(true);
+  const below = patchInvoice(inv.id, { lines: [{ description: "Too low", qty: 1, unit: 40_000_00 }] });
+  expect(below.ok).toBe(false);
+  expect(getInvoice(inv.id)!.lines[0].description).toBe("Changed");
+  expect(patchInvoice(inv.id, { lines: [{ description: "At the floor", qty: 1, unit: 50_000_00 }] }).ok).toBe(true);
 
   const draft = addInvoice({ clientId: "c1", projectId: null, issued: day(1), due: day(30), vatRate: 0, lines: LINE, status: "Draft" });
-  expect(patchInvoice(draft.id, { vatRate: 7.5 })?.vatRate).toBe(7.5);
+  const res = patchInvoice(draft.id, { vatRate: 7.5 });
+  expect(res.ok && res.invoice.vatRate).toBe(7.5);
 });
 
 test("a reversal marks the payment and keeps it, with who and why", () => {

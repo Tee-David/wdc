@@ -887,7 +887,7 @@ export type Message = {
   error?: string;
   /** Who or what sent it. "Studio", "Paystack webhook", a person's name. */
   by: string;
-  about?: { kind: "invoice" | "payment" | "project" | "client" | "submission"; id: Id; label: string };
+  about?: { kind: "invoice" | "payment" | "estimate" | "project" | "client" | "submission"; id: Id; label: string };
   clientId?: Id;
   /** One row per key. See the note above. */
   dedupeKey: string;
@@ -906,6 +906,16 @@ export type Message = {
 export const NOTIFY_KINDS = ["updates", "reminders", "marketing"] as const;
 export type NotifyKind = (typeof NOTIFY_KINDS)[number];
 
+/* WHICH SWITCH OWNS WHICH EMAIL (the money ones; none of them needed a new kind).
+     updates   -> a project moving, a deliverable to review, AND the billing
+                  messages the studio chooses to send: the invoice itself, a
+                  receipt for a payment entered by hand, a voided invoice, a
+                  refund, a reversal, an estimate, the onboarding next steps.
+     reminders -> the nudge on an unpaid invoice, nothing else.
+     marketing -> studio news.
+   A receipt for an ONLINE payment is a record the payer is owed and is not
+   switchable (lib/money-mail.ts). Splitting "billing" out of "updates" is a
+   fourth kind the day a client asks to hear about projects but not invoices. */
 export const NOTIFY_LABELS: Record<NotifyKind, string> = {
   updates: "Project updates",
   reminders: "Invoice reminders",

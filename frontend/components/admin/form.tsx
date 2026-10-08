@@ -463,6 +463,14 @@ export function useKept(name: string, fallback?: string | number) {
   return Array.isArray(v) ? v[0] : v;
 }
 
+/** The values to put back for a field that posts several (checkboxes, chips): what was submitted, else what the caller passed. */
+export function useKeptList(name: string, fallback: string[] = []) {
+  const { values } = useContext(Ctx);
+  const v = values[name];
+  if (v === undefined) return fallback;
+  return Array.isArray(v) ? v : [v];
+}
+
 export function Fields({ children }: { children: React.ReactNode }) {
   return <div className="ad__fields">{children}</div>;
 }

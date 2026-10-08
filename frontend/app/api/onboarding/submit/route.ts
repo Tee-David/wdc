@@ -9,6 +9,10 @@ import { assignSerial } from "@/lib/forms/serial";
 import { SERVICES } from "@/lib/services";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 import { db } from "@/lib/db/pool";
+import { findDuplicateClient } from "@/lib/admin/store";
+import { syncStore } from "@/lib/admin/persist";
+import { queueLogged } from "@/lib/message-log";
+import { notifyAllows } from "@/lib/admin/types";
 import { isVisible, problemWith, stepsFor } from "@/lib/onboarding";
 import { ENGAGEMENT_VERSION, engagementIsLive, engagementNameProblem } from "@/lib/onboarding-engagement";
 import {
@@ -135,7 +139,30 @@ export async function POST(request: NextRequest) {
   const serviceName = SERVICES.find((s) => s.slug === service)?.name ?? service;
   after(async () => {
     const next = formEmail(form, "next-steps", data);
-    if (next) {
+    /* THE SETTING LIVES WITH THE PERSON. Somebody who is already a client (matched
+       by email or phone, like everywhere else) and has switched project updates
+       off in their portal does not get the next-steps email; the row says
+       Skipped and why. A first-time submitter has no settings yet, so they get
+       it. The next-steps mail is filed under their "updates" switch because no
+       kind of its own exists (NOTIFY_KINDS, lib/admin/types.ts). */
+    let held = false;
+    if (next && data.email) {
+      try {
+        await syncStore();
+        const known = findDuplicateClient(data.email, data.phone);
+        if (known && !notifyAllows(known.notify, "updates")) {
+          held = true;
+          await queueLogged({
+            channel: "Email", to: next.to, subject: next.subject, state: "Skipped",
+            summary: `Not sent: ${known.company} has project updates switched off.`,
+            dedupeKey: `onboarding-next-steps:${submissionId}`, by: "Website", clientId: known.id,
+          });
+        }
+      } catch (error) {
+        console.error("Onboarding preference check failed", error instanceof Error ? error.message : "unknown error");
+      }
+    }
+    if (next && !held) {
       try {
         await sendFormEmail(form, settings, "next-steps", next,
           { summary: `Next steps after the ${serviceName} brief.`, dedupeKey: `onboarding-next-steps:${submissionId}` },

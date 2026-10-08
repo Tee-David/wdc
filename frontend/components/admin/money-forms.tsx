@@ -2,19 +2,20 @@
 
 import { useId, useState } from "react";
 import {
-  Banknote, FileSignature, FileText, Plus, Save, Send, Trash2, Undo2,
+  Banknote, FileSignature, FileText, Plus, Save, Send, Trash2,
 } from "lucide-react";
 import type { Client, Invoice, Project } from "@/lib/admin/types";
 import { ENTERABLE_METHODS, EXPENSE_CATEGORIES, METHODS, naira } from "@/lib/admin/types";
 import {
   createEstimate, createExpense, createInvoice, deleteInvoice, issueInvoice,
-  recordPayment, reversePayment, updateInvoice,
+  recordPayment, updateInvoice,
 } from "@/lib/admin/actions";
 import { Actions, Area, Checks, Field, Fields, Form, Hidden, Select, Submit, Wrap } from "./form";
 import { Pick } from "./pick";
 import { SERVICES } from "@/lib/services";
 import { DialogButton } from "./dialog";
 import { NoClientsYet } from "./no-clients";
+import { NoticeTick, ReceiptTick, ReceiptTickFor } from "./reconcile-forms";
 
 /* ------------------------------------------------------------- invoices */
 
@@ -39,11 +40,11 @@ const emptyRow = (): Row => ({ key: ++rowKey, description: "", qty: "1", unit: "
  */
 export function InvoiceBuilder({
   clients, projects, invoice, clientId, trigger = "New invoice", dataTour,
-  defaultVatRate, defaultDueInDays,
+  defaultVatRate, defaultDueInDays, credits, noEmail,
 }: {
   clients: Pick<Client, "id" | "company">[];
   projects: Pick<Project, "id" | "title" | "clientId">[];
-  /** Present when editing a draft. */
+  /** Present when editing: a draft, or an issued invoice that is unpaid or part paid. */
   invoice?: Invoice;
   clientId?: string;
   trigger?: string;
@@ -52,6 +53,10 @@ export function InvoiceBuilder({
       present, since an existing draft's own figures always win. */
   defaultVatRate?: number;
   defaultDueInDays?: number;
+  /** Kobo of stored credit, by client id, for the clients who hold any. */
+  credits?: Record<string, number>;
+  /** Why a client cannot be emailed, by client id (no address, updates off). */
+  noEmail?: Record<string, string>;
 }) {
   return (
     <DialogButton
@@ -67,6 +72,7 @@ export function InvoiceBuilder({
           clients={clients} projects={projects} invoice={invoice}
           clientId={clientId} close={close}
           defaultVatRate={defaultVatRate} defaultDueInDays={defaultDueInDays}
+          credits={credits} noEmail={noEmail}
         />
       )}
     </DialogButton>
@@ -83,20 +89,21 @@ export function InvoiceBuilder({
  * that decide arguments later and otherwise live only in a covering email.
  */
 export function EstimateBuilder({
-  clients, projects, clientId, trigger = "New estimate", defaultVatRate,
+  clients, projects, clientId, trigger = "New estimate", defaultVatRate, noEmail,
 }: {
   clients: Pick<Client, "id" | "company">[];
   projects: Pick<Project, "id" | "title" | "clientId">[];
   clientId?: string;
   trigger?: string;
   defaultVatRate?: number;
+  noEmail?: Record<string, string>;
 }) {
   return (
     <DialogButton label={trigger} title="Quote for a piece of work" icon={FileSignature} tone="plain" wide>
       {(close) => (
         <Builder
           clients={clients} projects={projects} clientId={clientId} close={close} estimate
-          defaultVatRate={defaultVatRate}
+          defaultVatRate={defaultVatRate} noEmail={noEmail}
         />
       )}
     </DialogButton>
@@ -105,9 +112,22 @@ export function EstimateBuilder({
 
 const NEW = "__new";
 
+/**
+ * The edit sheet's contents, for a menu that is not the invoice page: the same
+ * builder, locked to the invoice's own client. A draft, or an issued invoice
+ * that is unpaid or part paid; the server refuses a total below what has been
+ * received, and says so with the figure.
+ */
+export function EditInvoiceForm({ invoice, clientName, projects, close }: {
+  invoice: Invoice; clientName: string; close: () => void;
+  projects: Pick<Project, "id" | "title" | "clientId">[];
+}) {
+  return <Builder clients={[{ id: invoice.clientId, company: clientName }]} projects={projects} invoice={invoice} close={close} />;
+}
+
 function Builder({
   clients, projects, invoice, clientId, close, estimate = false,
-  defaultVatRate, defaultDueInDays,
+  defaultVatRate, defaultDueInDays, credits, noEmail,
 }: {
   clients: Pick<Client, "id" | "company">[];
   projects: Pick<Project, "id" | "title" | "clientId">[];
@@ -118,6 +138,8 @@ function Builder({
   estimate?: boolean;
   defaultVatRate?: number;
   defaultDueInDays?: number;
+  credits?: Record<string, number>;
+  noEmail?: Record<string, string>;
 }) {
   /* SCOPES THE VAT/DISCOUNT FIELD IDS TO THIS INSTANCE. `DialogButton` mounts
      its dialog's content whether or not it is open, and Money renders four of
@@ -139,6 +161,8 @@ function Builder({
   const [vat, setVat] = useState(String(invoice?.vatRate ?? defaultVatRate ?? 7.5));
   const [who, setWho] = useState(invoice?.clientId ?? clientId ?? "");
   const [proj, setProj] = useState(invoice?.projectId ?? "");
+  /* Already paid, or paid ahead? Only when raising a new invoice. */
+  const [settle, setSettle] = useState<"" | "paid" | "credit">("");
 
   const subtotal = rows.reduce((n, r) => {
     const q = Number(r.qty) || 0;
@@ -158,10 +182,22 @@ function Builder({
   const set = (key: number, k: keyof Row, v: string) =>
     setRows((rs) => rs.map((r) => (r.key === key ? { ...r, [k]: v } : r)));
 
+  const held = who && who !== NEW ? credits?.[who] ?? 0 : 0;
+  const issued = Boolean(invoice && invoice.status !== "Draft");
+  /* A client typed in as new has no record to read yet: the server decides. */
+  const cannotEmail = who && who !== NEW ? noEmail?.[who] : undefined;
+
   if (noClients) return <NoClientsYet what={estimate ? "estimate" : "invoice"} />;
   return (
     <Form action={estimate ? createEstimate : invoice ? updateInvoice : createInvoice} onDone={() => close()}>
       {invoice ? <Hidden name="id" value={invoice.id} /> : null}
+      {issued ? (
+        <p className="ad__dim" style={{ margin: "0 0 .8rem", fontSize: ".9rem", lineHeight: 1.55 }}>
+          {invoice!.number} has been issued. What you change here shows on the client&apos;s copy
+          straight away, and is written to the history.
+          {invoice!.paid > 0 ? ` ${naira(invoice!.paid)} has already been received, so the total cannot go below that.` : ""}
+        </p>
+      ) : null}
       <Fields>
         {clientId && !invoice ? (
           <Hidden name="clientId" value={clientId} />
@@ -311,12 +347,67 @@ function Builder({
         </dl>
       </div>
 
+      {/* NOT EVERY CLIENT PAYS THROUGH THE INVOICE. Some paid ahead, or paid a
+          transfer before there was a document to put it against. Choosing
+          either raises the invoice already issued AND takes the money (or
+          their stored credit) in the same step, with a receipt, so the books
+          never show it owing when it is not. */}
+      {!estimate && !invoice ? (
+        <fieldset className="ad__f" style={{ border: 0, padding: 0, margin: "0 0 .6rem" }}>
+          <legend className="ad__fl">Has it been paid?</legend>
+          <div className="ad__checks ad__checks--long">
+            {([
+              ["", "Not yet", "Raise it as usual. Record payments against it as they arrive."],
+              ["paid", "Already paid, or paid in advance", "Raise it issued and settled, with the payment and a receipt."],
+              ...(held > 0 ? [["credit", `Use the ${naira(held)} they have on account`, "Takes their stored credit, oldest first, up to the invoice total."]] : []),
+            ] as [string, string, string][]).map(([value, label, note]) => (
+              <label key={value || "none"} className="ad__check ad__check--long">
+                <input type="radio" name="settle" value={value} checked={settle === value} onChange={() => setSettle(value as typeof settle)} />
+                <span>{label}<small>{note}</small></span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ) : null}
+      {!estimate && !invoice && settle === "paid" ? (
+        <Fields>
+          <Select
+            name="method" label="How was it paid" half required defaultValue="Transfer"
+            options={[
+              { value: "Transfer", label: "Bank transfer" }, { value: "Cash", label: "Cash" },
+              { value: "Card", label: "Card (outside the checkout)" }, { value: "POS", label: "POS terminal" },
+              { value: "Other", label: "Something else" },
+            ]}
+          />
+          <Field name="paidAt" label="When it arrived" type="date" half defaultValue={new Date().toISOString().slice(0, 10)} />
+          <Field name="paidReference" label="Reference" half placeholder="TRF_0092"
+                 hint="Needed for a bank transfer, and it stops the same transfer being entered twice. For cash, card or POS, a slip number if there is one." />
+          <Field name="paidAmount" label="Amount received (₦)" half inputMode="decimal"
+                 hint="Leave empty if it was the whole invoice. Less than the total records a part payment." />
+          <Area name="paidNote" label="Anything worth knowing" rows={2} placeholder="Paid ahead at the kick-off meeting."
+                hint="Required if you picked something else." />
+        </Fields>
+      ) : null}
+      {!estimate && !invoice && settle ? <ReceiptTick reason={cannotEmail} /> : null}
+      {estimate ? (
+        <NoticeTick name="emailClient" label="Email it to the client when it is sent" reason={cannotEmail}
+                    hint="Only when you press Save and send. A draft emails nobody." />
+      ) : null}
+
       <Actions>
-        <Submit icon={invoice ? Save : FileText}>{invoice ? "Save the draft" : "Save as a draft"}</Submit>
-        {invoice ? null : (
-          <button type="submit" name={estimate ? "send" : "issue"} value="1" className="ad__btn">
-            <Send aria-hidden="true" /> {estimate ? "Save and send" : "Save and issue"}
-          </button>
+        {!estimate && !invoice && settle ? (
+          <Submit icon={Send}>{settle === "credit" ? "Issue it and use their credit" : "Issue it and record the payment"}</Submit>
+        ) : (
+          <>
+            <Submit icon={invoice ? Save : FileText}>
+              {invoice ? (issued ? "Save the changes" : "Save the draft") : "Save as a draft"}
+            </Submit>
+            {invoice ? null : (
+              <button type="submit" name={estimate ? "send" : "issue"} value="1" className="ad__btn">
+                <Send aria-hidden="true" /> {estimate ? "Save and send" : "Save and issue"}
+              </button>
+            )}
+          </>
         )}
       </Actions>
     </Form>
@@ -377,7 +468,7 @@ const plusDays = (n: number) =>
  * here it would be money no balance ever gave up. The action refuses it too,
  * because every export in that module is a public endpoint.
  */
-export function RecordPayment({ invoice, owed }: { invoice: Invoice; owed: number }) {
+export function RecordPayment({ invoice, owed, noReceipt }: { invoice: Invoice; owed: number; noReceipt?: string }) {
   return (
     <DialogButton label="Record a payment" title={`Money in against ${invoice.number}`} icon={Banknote}>
       {(close) => (
@@ -417,6 +508,7 @@ export function RecordPayment({ invoice, owed }: { invoice: Invoice; owed: numbe
                   placeholder="Paid into the Zenith account at the office."
                   hint="Required if you picked &ldquo;something else&rdquo; above." />
           </Fields>
+          <ReceiptTick reason={noReceipt} />
           <Actions>
             <Submit icon={Banknote}>Record it</Submit>
           </Actions>
@@ -502,17 +594,16 @@ export function AddExpense({ projects = [] }: { projects?: Pick<Project, "id" | 
 /**
  * The writes that cannot be undone, each behind a question.
  *
- * A NATIVE CONFIRM RATHER THAN A SECOND DIALOG: these sit inside table rows
- * and inside an already-open modal, and a dialog inside a dialog is a focus
- * trap inside a focus trap. The prompt is spent only on the irreversible
- * ones, because a prompt on everything is a prompt people learn to click
- * through without reading.
+ * THE FORM'S `confirm` (the shared dialog in ./confirm.tsx, never the
+ * browser's), spent only on the irreversible ones, because a prompt on
+ * everything is a prompt people learn to click through without reading. A
+ * question that says it cannot be undone also asks for "I understand".
  */
 export function IssueInvoice({ invoice }: { invoice: Invoice }) {
   return (
     <Form
       action={issueInvoice}
-      confirm={`Issue ${invoice.number}? Its number and its lines are fixed from then on.`}
+      confirm={`Issue ${invoice.number}? Its number is fixed from then on, and the client can see it.`}
     >
       <Hidden name="id" value={invoice.id} />
       <Submit icon={Send}>Issue it</Submit>
@@ -532,19 +623,6 @@ export function DeleteDraft({ invoice }: { invoice: Invoice }) {
   );
 }
 
-export function ReversePayment({ id, invoiceId }: { id: string; invoiceId: string }) {
-  return (
-    <Form
-      action={reversePayment}
-      confirm="Reverse this payment? The invoice will be re-totalled without it."
-    >
-      <Hidden name="id" value={id} />
-      <Hidden name="invoiceId" value={invoiceId} />
-      <Submit tone="danger" icon={Undo2}>Reverse</Submit>
-    </Form>
-  );
-}
-
 /* `RemoveExpense` used to live here and is gone with the bare button it drew.
    Removing an expense is in the row's own menu now, behind a sentence that
    names the expense and says what it comes out of -- see ExpenseMenu in
@@ -560,7 +638,7 @@ export function ReversePayment({ id, invoiceId }: { id: string; invoiceId: strin
  * alert rather than an invoice number. Only invoices that can take money are
  * offered: issued, not struck, with something still owed.
  */
-export function RecordAnyPayment({ open }: { open: { id: string; label: string; owed: number }[] }) {
+export function RecordAnyPayment({ open }: { open: { id: string; label: string; owed: number; noReceipt?: string }[] }) {
   if (!open.length) return null;
   return (
     <DialogButton label="Record a payment" title="Money in" icon={Banknote} wide>
@@ -579,6 +657,7 @@ export function RecordAnyPayment({ open }: { open: { id: string; label: string; 
             <Field name="at" label="When" type="date" half defaultValue={new Date().toISOString().slice(0, 10)} />
             <Field name="note" label="Note" placeholder="Paid at the office" hint="Needed when the method is Other." />
           </Fields>
+          <ReceiptTickFor reasons={Object.fromEntries(open.flatMap((o) => (o.noReceipt ? [[o.id, o.noReceipt]] : [])))} />
           <Actions>
             <Submit icon={Banknote}>Record it</Submit>
           </Actions>

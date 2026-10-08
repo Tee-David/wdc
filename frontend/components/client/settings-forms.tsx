@@ -29,7 +29,7 @@ export function ProfileForm({ client }: { client: Client }) {
 }
 
 const NOTIFY: Record<NotifyKind, { label: string; note: string }> = {
-  updates: { label: "A project update or something to review", note: "Email" },
+  updates: { label: "A project update, an invoice or something to review", note: "Email. Receipts for card payments made online always arrive." },
   reminders: { label: "An invoice is due or overdue", note: "Email" },
   marketing: { label: "Occasional studio news", note: "Email, a few times a year" },
 };

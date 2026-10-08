@@ -94,12 +94,12 @@ export async function stepResults(id: string, steps: Step[]): Promise<{ reached:
   return { reached, upNext };
 }
 
-/** The newest people, for the "Test as" list. A hundred is a pick-list; the list is searchable. */
-export async function testContacts(): Promise<{ id: string; label: string }[]> {
+/** The newest contact, to start "Test as" on. Everyone else is found by search (searchOptions "contacts"); no list is shipped and none is cut off at a hundred. */
+export async function newestContact(): Promise<{ id: string; label: string } | null> {
   try {
-    const r = await db.query<{ id: string; name: string; email: string }>(`SELECT id, name, email FROM contacts ORDER BY created_at DESC LIMIT 100`);
-    return r.rows.map((c) => ({ id: c.id, label: c.name ? `${c.name} (${c.email})` : c.email }));
-  } catch { return []; }
+    const c = (await db.query<{ id: string; name: string; email: string }>(`SELECT id, name, email FROM contacts ORDER BY created_at DESC LIMIT 1`)).rows[0];
+    return c ? { id: c.id, label: c.name || c.email } : null;
+  } catch { return null; }
 }
 
 /**

@@ -2,8 +2,9 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, FileClock, CalendarClock, CircleDollarSign, ClipboardList, Clock, FolderClock, FolderKanban, LifeBuoy, MailWarning, MessageSquareWarning, Send, TrendingUp, Users, Wallet } from "lucide-react";
 import { SERVICES } from "@/lib/services";
-import { getBoard, getClient, getClients, getDeliverablesFor, getInvoices, getMonthly, getPayments, getProjects, getSubmissions, getSummary, getTasks, getTickets, providerAttentionCount } from "@/lib/admin/store";
+import { creditBalances, getBoard, getClient, getClients, getDeliverablesFor, getInvoices, getMonthly, getPayments, getProjects, getSubmissions, getSummary, getTasks, getTickets, providerAttentionCount } from "@/lib/admin/store";
 import { failedLoggedCount } from "@/lib/message-log";
+import { noticeBlock, noticeBlocks } from "@/lib/admin/money-rules";
 import { reviewCount } from "@/lib/blog-db";
 import { invoiceStatus, invoiceTotals, naira, paymentNet, nairaShort, projectAttention, STAGES } from "@/lib/admin/types";
 
@@ -51,6 +52,9 @@ export async function AdminDashboardView({ firstName, money = true, me }: { firs
   const inReview = money && (process.env.DATABASE_URL || process.env.COCKROACHDB_URL) ? await reviewCount().catch(() => 0) : 0;
   const clients = getClients();
   const projects = getProjects();
+  /* The pickers on this page need a name and an id, not the whole record: a client's email, phone and notes, or a project's history, would ride along in the page for nothing. */
+  const clientRefs = clients.map(({ id, company }) => ({ id, company }));
+  const projectRefs = projects.map(({ id, title, clientId }) => ({ id, title, clientId }));
   const invoices = getInvoices();
   const payments = getPayments().sort((a, b) => b.at.localeCompare(a.at));
   const summary = getSummary();
@@ -69,7 +73,8 @@ export async function AdminDashboardView({ firstName, money = true, me }: { firs
         meta: `Due ${when(invoice.due)}`,
         icon: AlertTriangle,
         tone: "bad",
-        menu: <InvoiceMenu invoice={invoice} />,
+        menu: <InvoiceMenu invoice={invoice} noReceipt={noticeBlock(getClient(invoice.clientId))}
+          edit={{ clientName: getClient(invoice.clientId)?.company ?? "Client", projects: getProjects().filter((p) => p.clientId === invoice.clientId).map((p) => ({ id: p.id, title: p.title, clientId: p.clientId })) }} />,
       })),
     /* PROJECTS THAT ARE ACTUALLY ASKING FOR SOMEBODY, not projects that happen
        to sit in a particular stage.
@@ -160,7 +165,7 @@ export async function AdminDashboardView({ firstName, money = true, me }: { firs
         meta: `Started ${when(submission.startedAt)}`,
         icon: ClipboardList,
         tone: "neutral",
-        menu: <SubmissionMenu submission={submission} clients={clients} />,
+        menu: <SubmissionMenu submission={submission} clients={clientRefs} />,
       })),
   ]
     /* SORTED ACROSS THE WHOLE QUEUE, not within each kind.
@@ -236,7 +241,7 @@ export async function AdminDashboardView({ firstName, money = true, me }: { firs
         <div className="ad__row">
           <PageTourButton />
           {me ? <CustomiseDashboard hidden={hidden} /> : null}
-          <AddProject clients={clients} />
+          <AddProject hasClients={clients.length > 0} />
         </div>
       </header>
 
@@ -297,7 +302,7 @@ export async function AdminDashboardView({ firstName, money = true, me }: { firs
           <Panel title="Collected of billed">
             {/* A 0% gauge on a new install reads as a collection problem. */}
             {!summary.invoiced ? (
-              <Empty kind="first-use" title="Nothing billed yet" icon={CircleDollarSign} action={<InvoiceBuilder clients={clients} projects={projects} />}>
+              <Empty kind="first-use" title="Nothing billed yet" icon={CircleDollarSign} action={<InvoiceBuilder clients={clientRefs} projects={projectRefs} credits={creditBalances()} noEmail={noticeBlocks(getClients())} />}>
                 Your collection rate appears after the first invoice is sent.
               </Empty>
             ) : <>
@@ -400,7 +405,7 @@ export async function AdminDashboardView({ firstName, money = true, me }: { firs
                   {undated} live project{undated === 1 ? " has" : "s have"} no agreed date. Set one and it shows here.
                 </Empty>
               ) : (
-                <Empty kind="first-use" title="No live projects" icon={FolderKanban} action={<AddProject clients={clients} />}>
+                <Empty kind="first-use" title="No live projects" icon={FolderKanban} action={<AddProject hasClients={clients.length > 0} />}>
                   Open a project and give it a due date to see it here.
                 </Empty>
               )
@@ -453,11 +458,11 @@ export async function AdminDashboardView({ firstName, money = true, me }: { firs
             <div className="adDash__actions">
               <AddClient />
               {money ? <>
-              <InvoiceBuilder clients={clients} projects={projects} />
+              <InvoiceBuilder clients={clientRefs} projects={projectRefs} credits={creditBalances()} noEmail={noticeBlocks(getClients())} />
               <AddExpense />
               <RecordAnyPayment open={invoices
                 .filter((i) => i.status !== "Draft" && !i.voided && invoiceTotals(i).due > 0)
-                .map((i) => ({ id: i.id, label: `${i.number} · ${getClient(i.clientId)?.company ?? "Unknown client"}`, owed: invoiceTotals(i).due }))} />
+                .map((i) => ({ id: i.id, label: `${i.number} · ${getClient(i.clientId)?.company ?? "Unknown client"}`, owed: invoiceTotals(i).due, noReceipt: noticeBlock(getClient(i.clientId)) }))} />
               </> : null}
               <Link className="ad__btn" href="/admin/forms"><ClipboardList aria-hidden="true" /> Review forms</Link>
               {/* The public form, opened in its own tab so its address can be

@@ -96,7 +96,11 @@ export async function saveNotificationSettings(_prev: ActionState, fd: FormData)
   }
   const by = await actorName();
   try {
-    const r = await writeKeys({ "notify.tickets": str(fd, "notify.tickets"), "notify.payments": str(fd, "notify.payments") }, by);
+    const r = await writeKeys({
+      "notify.tickets": str(fd, "notify.tickets"), "notify.payments": str(fd, "notify.payments"),
+      "notify.estimates": str(fd, "notify.estimates"), "notify.staff": str(fd, "notify.staff"),
+      "notify.signups": str(fd, "notify.signups"), "notify.approvals": str(fd, "notify.approvals"), "notify.meetings": str(fd, "notify.meetings"),
+    }, by);
     if (Object.keys(r.errors).length) return FAIL(r.errors, "Nothing was saved.");
     let changed = r.changed;
 

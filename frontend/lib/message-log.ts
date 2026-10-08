@@ -140,9 +140,10 @@ export async function failedLoggedCount(opts: { since?: Date } = {}): Promise<nu
 }
 
 /**
- * A failed message cleared for another attempt. The failed row keeps its
+ * A failed (or skipped) message cleared for another attempt. The row keeps its
  * words; its key is retired so the next attempt at the same event can write a
- * row of its own.
+ * row of its own. THIS ALONE SENDS NOTHING: the caller sends, under the freed
+ * key (lib/money-mail.ts does, and so does the log's "Try again").
  */
 export async function retryLogged(id: Id, actor = "Studio"): Promise<LoggedMessage | null> {
   await syncStore();
@@ -153,7 +154,7 @@ export async function retryLogged(id: Id, actor = "Studio"): Promise<LoggedMessa
   try {
     const r = await db.query<Row>(`
       UPDATE message_log SET dedupe_key = dedupe_key || ':superseded:' || id::TEXT
-      WHERE id = $1 AND state = 'Failed' AND dedupe_key NOT LIKE '%:superseded:%'
+      WHERE id = $1 AND state IN ('Failed', 'Skipped') AND dedupe_key NOT LIKE '%:superseded:%'
       RETURNING *
     `, [id]);
     const row = r.rows[0];
@@ -161,6 +162,22 @@ export async function retryLogged(id: Id, actor = "Studio"): Promise<LoggedMessa
     const m = toMessage(row);
     audit({ actor, kind: "client", subjectId: m.clientId ?? m.id, subject: m.to, action: "queued a resend", note: m.subject });
     return m;
+  } catch {
+    return null;
+  }
+}
+
+/** One row by id, from either log. */
+export async function getLoggedById(id: Id): Promise<LoggedMessage | null> {
+  await syncStore();
+  if (isMemoryId(id)) {
+    const m = memoryMessages({ limit: 10_000 }).find((x) => x.id === id);
+    return m ? fromMemory(m) : null;
+  }
+  if (!configured()) return null;
+  try {
+    const r = await db.query<Row>("SELECT * FROM message_log WHERE id = $1", [id]);
+    return r.rows[0] ? toMessage(r.rows[0]) : null;
   } catch {
     return null;
   }

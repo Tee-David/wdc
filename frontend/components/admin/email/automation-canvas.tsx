@@ -4,7 +4,7 @@ import "./automation-canvas.css";
 import Link from "next/link";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { ChevronLeft, Copy, EllipsisVertical, Maximize2, Minus, Pencil, Play, Plus, Trash2, TriangleAlert } from "lucide-react";
-import { Pick } from "../pick";
+import { RemotePick } from "../remote-pick";
 import { ask } from "../confirm";
 import { toast } from "../toast";
 import { removeAutomation, saveAutomationFlow, testAutomationAction, toggleAutomation } from "@/lib/admin/automation-actions";
@@ -12,12 +12,12 @@ import {
   blankStep, checkSteps, countSteps, duplicateStep, findStep, insertAt, layout, MAX_DEPTH, MAX_STEPS, MENU, normTag, problems, removeStep,
   slotDepth, stepProblem, stepSummary, stepTitle, TYPE_LABEL, updateStep, type Slot, type Step, type StepType, type TraceLine,
 } from "@/lib/automations-flow";
-import { StepPanel, TriggerPanel, type Meta, type Results, type TagCount, type Totals } from "./automation-panel";
+import { StepPanel, TriggerPanel, type Meta, type Results, type Totals } from "./automation-panel";
 import { Tile } from "./automation-tile";
 
 type Props = {
   id: string; name: string; kind: Meta["kind"]; triggerKind: Meta["triggerKind"]; triggerValue: string;
-  enabled: boolean; everOn: boolean; steps: Step[]; tags: TagCount[]; contacts: { id: string; label: string }[]; totals: Totals; results: Results;
+  enabled: boolean; everOn: boolean; steps: Step[]; startAs: { id: string; label: string } | null; totals: Totals; results: Results;
 };
 
 const narrowQuery = "(max-width: 980px)";
@@ -84,7 +84,7 @@ export function AutomationCanvas(p: Props) {
   const [mode, setMode] = useState<"b" | "r">("b");
   const [z, setZ] = useState(1);
   const [menu, setMenu] = useState<MenuState>(null);
-  const [asId, setAsId] = useState(p.contacts[0]?.id ?? "");
+  const [asId, setAsId] = useState(p.startAs?.id ?? "");
   const [running, setRunning] = useState(false);
   const [hits, setHits] = useState<Set<string>>(new Set());
   const [log, setLog] = useState<{ head: string; lines: TraceLine[]; done: string } | null>(null);
@@ -253,8 +253,7 @@ export function AutomationCanvas(p: Props) {
         <div className="adWf__acts">
           <div className="adWf__as">
             <span id="adWf-as">Test as</span>
-            <Pick labelledBy="adWf-as" value={asId} onChange={setAsId} search placeholder={p.contacts.length ? "Choose a contact" : "No contacts yet"}
-              options={p.contacts.map((c) => ({ value: c.id, label: c.label }))} />
+            <RemotePick kind="contacts" labelledBy="adWf-as" value={asId} onChange={setAsId} defaultLabel={p.startAs?.label} placeholder="Choose a contact" />
           </div>
           <button type="button" className="ad__btn" onClick={run} disabled={!asId || running || !steps.length}><Play aria-hidden="true" /> {running ? "Running…" : "Run test"}</button>
           {enabled ? (
@@ -379,9 +378,9 @@ export function AutomationCanvas(p: Props) {
         <button type="button" className="adWf__scrim" aria-label="Close the panel" tabIndex={-1} onClick={closePanel} />
         <aside className="adWf__panel" aria-label="Step settings" role={narrow && hasPanel ? "dialog" : undefined} aria-modal={narrow && hasPanel ? true : undefined}>
           {sel === "trig" ? (
-            <TriggerPanel key="trig" meta={meta} setMeta={setMetaPart} tags={p.tags} totals={p.totals} tab={tab} setTab={setTab} onClose={closePanel} initialFocus={focusPanel} />
+            <TriggerPanel key="trig" meta={meta} setMeta={setMetaPart} totals={p.totals} tab={tab} setTab={setTab} onClose={closePanel} initialFocus={focusPanel} />
           ) : selStep ? (
-            <StepPanel key={selStep.id} step={selStep} tab={tab} setTab={setTab} tags={p.tags} results={p.results} initialFocus={focusPanel}
+            <StepPanel key={selStep.id} step={selStep} tab={tab} setTab={setTab} results={p.results} initialFocus={focusPanel}
               onPatch={(change) => patch(selStep.id, change)} onDelete={() => void remove(selStep.id)} onClose={closePanel} />
           ) : null}
         </aside>

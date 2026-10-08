@@ -126,7 +126,7 @@ export default async function ProjectsPage({
           </span>
           {isOwner ? <a className="ad__btn" href={`/admin/projects/export${exportParams.size ? `?${exportParams}` : ""}`}>Export CSV</a> : null}
           <PageTourButton />
-          <AddProject clients={getClients()} dataTour="projects-add" />
+          <AddProject hasClients={getClients().length > 0} dataTour="projects-add" />
         </div>
       </div>
 
@@ -177,7 +177,7 @@ export default async function ProjectsPage({
                 Try a different stage, service, owner or health.
               </Empty>
             ) : (
-              <Empty title="No projects yet" action={<AddProject clients={getClients()} />}>
+              <Empty title="No projects yet" action={<AddProject hasClients={getClients().length > 0} />}>
                 Each project becomes a card you can move between stages.
               </Empty>
             )}
@@ -257,7 +257,7 @@ export default async function ProjectsPage({
                 Try a different stage, service, owner or health.
               </Empty>
             ) : (
-              <Empty title="No projects yet" action={<AddProject clients={getClients()} />}>
+              <Empty title="No projects yet" action={<AddProject hasClients={getClients().length > 0} />}>
                 Projects keep delivery, deadlines, files, and client updates together.
               </Empty>
             )}

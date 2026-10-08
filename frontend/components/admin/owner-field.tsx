@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { UserPlus, X } from "lucide-react";
-import { staffPeople } from "@/lib/admin/staff-actions";
+import { searchOptions } from "@/lib/admin/search-actions";
 import { Wrap, useKept } from "./form";
 
 /**
@@ -19,27 +19,42 @@ export function OwnerField({ name = "owner", defaultValue = "", defaultIds = [],
 }) {
   const kept = String(useKept(name, defaultValue) ?? "");
   const [picked, setPicked] = useState<string[]>(() => kept.split(",").map((s) => s.trim()).filter(Boolean));
-  const [people, setPeople] = useState<{ id: string; name: string }[]>([]);
-  const staff = useMemo(() => people.map((p) => p.name), [people]);
-  /* Names the record already carries are matched to accounts once the team has loaded. */
+  /* Names the record already carries are matched to accounts as the team is searched, and ids picked here are remembered. */
   const [ids, setIds] = useState<Record<string, string>>(() => {
     const names = kept.split(",").map((x) => x.trim()).filter(Boolean);
     return names.length === defaultIds.length ? Object.fromEntries(names.map((n, i) => [n, defaultIds[i]])) : {};
   });
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
+  /* The team is searched on the server as the person types (200ms after the last key); there is no list to cut off at a fixed number. */
+  const [found, setFound] = useState<{ q: string; people: { id: string; name: string }[] } | null>(null);
   const list = useId();
-  useEffect(() => { let on = true; staffPeople().then((n) => on && setPeople(n)).catch(() => {}); return () => { on = false; }; }, []);
-  const idOf = (n: string) => ids[n] ?? people.find((p) => p.name === n)?.id;
-  const postedIds = picked.map(idOf).filter(Boolean).join(",");
-
+  const asked = useRef(new Set<string>());
   const needle = q.trim().toLocaleLowerCase();
-  const matches = useMemo(
-    () => staff.filter((n) => !picked.includes(n) && (!needle || n.toLocaleLowerCase().includes(needle))).slice(0, 8),
-    [staff, picked, needle],
-  );
-  const canAddTyped = needle.length > 1 && !staff.some((n) => n.toLocaleLowerCase() === needle) && !picked.some((n) => n.toLocaleLowerCase() === needle);
-  const add = (n: string) => { const id = people.find((p) => p.name === n)?.id; if (id) setIds((m) => ({ ...m, [n]: id })); setPicked((p) => (p.includes(n) ? p : [...p, n])); setQ(""); };
+  useEffect(() => {
+    if (!open) return;
+    let stale = false;
+    const t = window.setTimeout(() => {
+      searchOptions("staff", q.trim()).then((r) => { if (!stale) setFound({ q: q.trim(), people: r.rows.map((x) => ({ id: x.value, name: x.label })) }); }).catch(() => {});
+    }, q.trim() ? 200 : 0);
+    return () => { stale = true; window.clearTimeout(t); };
+  }, [open, q]);
+  useEffect(() => {
+    /* A name typed before accounts were linked gets its id once, if exactly one person has it. */
+    const loose = picked.filter((n) => !ids[n] && !asked.current.has(n));
+    if (!loose.length) return;
+    loose.forEach((n) => asked.current.add(n));
+    loose.forEach((n) => searchOptions("staff", n).then((r) => {
+      const hit = r.rows.filter((x) => x.label.toLocaleLowerCase() === n.toLocaleLowerCase());
+      if (hit.length === 1) setIds((m) => (m[n] ? m : { ...m, [n]: hit[0].value }));
+    }).catch(() => {}));
+  }, [picked, ids]);
+  const postedIds = picked.map((n) => ids[n]).filter(Boolean).join(",");
+
+  const settled = found !== null && found.q === q.trim();
+  const matches = (found?.people ?? []).filter((p) => !picked.includes(p.name)).slice(0, 8);
+  const canAddTyped = settled && needle.length > 1 && !(found?.people ?? []).some((p) => p.name.toLocaleLowerCase() === needle) && !picked.some((n) => n.toLocaleLowerCase() === needle);
+  const add = (n: string, id?: string) => { if (id) setIds((m) => ({ ...m, [n]: id })); setPicked((p) => (p.includes(n) ? p : [...p, n])); setQ(""); };
 
   return (
     <Wrap name={name} label={label} half={half}
@@ -62,13 +77,13 @@ export function OwnerField({ name = "owner", defaultValue = "", defaultIds = [],
             autoComplete="off" value={q} placeholder={picked.length ? "Add another person" : "Search the team"}
             onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") { e.preventDefault(); if (matches[0]) add(matches[0]); else if (canAddTyped) add(q.trim()); }
+              if (e.key === "Enter") { e.preventDefault(); if (matches[0]) add(matches[0].name, matches[0].id); else if (canAddTyped) add(q.trim()); }
               if (e.key === "Escape") setOpen(false);
             }} />
           {open && (matches.length || canAddTyped) ? (
             <ul id={list} role="listbox" className="ad__ownerList">
-              {matches.map((n) => (
-                <li key={n} role="option" aria-selected="false"><button type="button" onClick={() => add(n)}>{n}</button></li>
+              {matches.map((p) => (
+                <li key={p.id} role="option" aria-selected="false"><button type="button" onClick={() => add(p.name, p.id)}>{p.name}</button></li>
               ))}
               {canAddTyped ? (
                 <li role="option" aria-selected="false">

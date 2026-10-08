@@ -6,6 +6,7 @@ import { Check, ExternalLink, Loader2, Mail, Phone, Plus, StickyNote, X } from "
 import { addContactAction, setTypeAction, tagAction } from "@/lib/admin/contact-actions";
 import { Field, Fields, Form, Submit } from "../form";
 import { Dialog } from "../dialog";
+import { RemotePick } from "../remote-pick";
 import { FileDrop } from "../file-drop";
 import { toast } from "../toast";
 import { NoteForm } from "./contacts-ui";
@@ -43,21 +44,17 @@ export function TypeChip({ r }: { r: Pick<ContactRow, "type" | "status"> }) {
   return <span className={`ad__pill ad__pill--${tone}`}>{TYPE_LABEL[r.type]}</span>;
 }
 
-/** Existing tags offered as buttons beside a text box: no native list, and a new tag is just typed. */
-function TagField({ tags, value, onChange, label = "Tag", autoFocus }: { tags: string[]; value: string; onChange: (v: string) => void; label?: string; autoFocus?: boolean }) {
+/** A text box for a new tag, and a searched list of the existing ones (they are looked up on the server, so none are missing past a dozen). */
+function TagField({ value, onChange, label = "Tag", autoFocus }: { value: string; onChange: (v: string) => void; label?: string; autoFocus?: boolean }) {
   return (
     <div>
       <label className="ad__fl" htmlFor="ct-tag-in">{label}</label>
       <div className="ctTagIn">
         <input id="ct-tag-in" value={value} onChange={(e) => onChange(e.target.value)} placeholder="A tag, like interested-in-web" maxLength={40} autoComplete="off" autoFocus={autoFocus} />
       </div>
-      {tags.length ? (
-        <div className="ctChips" style={{ marginTop: ".6rem" }} role="group" aria-label="Existing tags">
-          {tags.slice(0, 12).map((t) => (
-            <button key={t} type="button" className="ctChip" aria-pressed={value.trim().toLowerCase() === t} onClick={() => onChange(t)}>{t}</button>
-          ))}
-        </div>
-      ) : null}
+      <div style={{ marginTop: ".6rem" }}>
+        <RemotePick kind="tags" label="Pick an existing tag" placeholder="Or pick an existing tag" value="" onChange={(v) => { if (v) onChange(v); }} />
+      </div>
     </div>
   );
 }
@@ -72,7 +69,7 @@ async function tagCall(ids: string[], tag: string, mode: "add" | "remove") {
 
 /* --------------------------------------------------------- tag the ticked */
 
-export function TagSheet({ open, onClose, ids, tags, onDone }: { open: boolean; onClose: () => void; ids: string[]; tags: string[]; onDone: () => void }) {
+export function TagSheet({ open, onClose, ids, onDone }: { open: boolean; onClose: () => void; ids: string[]; onDone: () => void }) {
   const [tag, setTag] = useState("");
   const [busy, setBusy] = useState(false);
   const run = async (mode: "add" | "remove") => {
@@ -86,7 +83,7 @@ export function TagSheet({ open, onClose, ids, tags, onDone }: { open: boolean; 
       {open ? (
         <div className="ctSheet">
           <p className="ctNote">{pl(ids.length)} ticked. Tags do the job of lists: a campaign can go to everyone with one.</p>
-          <TagField tags={tags} value={tag} onChange={setTag} autoFocus />
+          <TagField value={tag} onChange={setTag} autoFocus />
           <div className="ctFoot">
             <button type="button" className="ad__btn" onClick={onClose}>Cancel</button>
             <button type="button" className="ad__btn" disabled={busy || !tag.trim()} onClick={() => void run("remove")}>Remove tag</button>
@@ -131,8 +128,8 @@ type Ev = { id: string; kind: string; title: string; detail: string; by: string;
 type Send = { campaignId: string; title: string; sentAt: string | null; opened: boolean; clicked: boolean };
 type SheetData = { contact: ContactRow & { consentAt: string | null; consentSource: string | null; unsubReason: string | null; clientId: string | null }; events: Ev[]; sends: Send[]; opens: number | null };
 
-export function ContactSheet({ id, seed, tags, onClose, onChanged, onMail, onStop }: {
-  id: string | null; seed: ContactRow | null; tags: string[];
+export function ContactSheet({ id, seed, onClose, onChanged, onMail, onStop }: {
+  id: string | null; seed: ContactRow | null;
   onClose: () => void; onChanged: () => void;
   onMail: (ids: string[]) => void; onStop: (ids: string[]) => Promise<boolean>;
 }) {
@@ -222,7 +219,7 @@ export function ContactSheet({ id, seed, tags, onClose, onChanged, onMail, onSto
             </div>
             {adding ? (
               <>
-                <TagField tags={tags.filter((t) => !c.tags.includes(t))} value={tag} onChange={setTag} label="New tag" autoFocus />
+                <TagField value={tag} onChange={setTag} label="New tag" autoFocus />
                 <div className="ctTagIn"><button type="button" className="ad__btn ad__btn--primary" disabled={!tag.trim()} onClick={() => void addTag()}>Add tag</button></div>
               </>
             ) : null}

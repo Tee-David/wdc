@@ -1,12 +1,11 @@
 import { after, NextRequest, NextResponse } from "next/server";
 import {
-  applyPayment, getInvoice, getPaymentsFor, matchInvoice, recordProviderEvent,
+  applyPayment, getPaymentsFor, matchInvoice, recordProviderEvent,
 } from "@/lib/admin/store";
-import { invoiceTotals } from "@/lib/admin/types";
 import { wholeKobo, paystackSignatureMode } from "@/lib/paystack";
 import { checkoutAttempt } from "@/lib/paystack-mode";
 import { chargeBanked, claimCharge, releaseCharge } from "@/lib/paystack-claim";
-import { sendPaymentNotice, sendPaymentReceiptEmail } from "@/lib/money-mail";
+import { sendOnlinePaymentEmails } from "@/lib/money-mail";
 import { saveStore, syncStore } from "@/lib/admin/persist";
 
 /**
@@ -196,11 +195,19 @@ async function receive(request: NextRequest) {
     return new NextResponse("Try again", { status: 503 });
   }
   if (claim === "taken") {
+    const banked = getPaymentsFor(invoice.id).find((p) => p.reference === reference);
     recordProviderEvent({
       event, reference, amount, channel, mode: paystackMode(), outcome: "Duplicate",
-      invoiceId: invoice.id, paymentId: getPaymentsFor(invoice.id).find((p) => p.reference === reference)?.id,
+      invoiceId: invoice.id, paymentId: banked?.id,
       note: "Already banked, so nothing was added. Paystack retries, and the payer's return races this.",
     });
+    /* THE RETURN PAGE BANKED IT FIRST, and it used to send the client's receipt
+       only: the studio's notice was lost whenever it won the race. Both emails
+       are keyed on the PAYMENT, so asking again here is safe -- whichever path
+       got there first wrote the row, and this one finds it and sends nothing.
+       If the return page never got to send (its instance went away), this is
+       the path that does. */
+    if (banked) after(() => sendOnlinePaymentEmails({ payment: banked, invoice }));
     return NextResponse.json({ received: true });
   }
 
@@ -216,6 +223,7 @@ async function receive(request: NextRequest) {
     const existing = duplicate
       ? getPaymentsFor(invoice.id).find((p) => p.reference === reference)
       : undefined;
+    if (existing) after(() => sendOnlinePaymentEmails({ payment: existing, invoice }));
     recordProviderEvent({
       event, reference, amount, channel, mode: paystackMode(),
       outcome: duplicate ? "Duplicate" : "Unmatched",
@@ -240,18 +248,7 @@ async function receive(request: NextRequest) {
      seconds just to authenticate, and Paystack treats a slow webhook as a
      failed one and retries it -- which would send the receipt twice. Answer
      first, send after. */
-  after(async () => {
-    /* Re-read rather than reusing the invoice from before the write: `paid`
-       was recomputed by applyPayment, and the figure the client reads on the
-       receipt has to be the one the books now hold. */
-    const fresh = getInvoice(invoice.id) ?? invoice;
-    await sendPaymentReceiptEmail({
-      payment: applied.payment,
-      invoice: fresh,
-      outstanding: invoiceTotals(fresh).due,
-    });
-    await sendPaymentNotice({ payment: applied.payment, invoice: fresh, outstanding: invoiceTotals(fresh).due });
-  });
+  after(() => sendOnlinePaymentEmails({ payment: applied.payment, invoice }));
 
   return NextResponse.json({ received: true });
 }

@@ -4,8 +4,8 @@ import { useState } from "react";
 import { Link2 } from "lucide-react";
 import { assignEntry } from "@/lib/admin/actions";
 import { SERVICES } from "@/lib/services";
-import { Actions, Field, Fields, Form, Hidden, Select, Submit, Wrap } from "../form";
-import { Pick } from "../pick";
+import { Actions, Checks, Field, Fields, Form, Hidden, Select, Submit, Wrap } from "../form";
+import { RemotePick } from "../remote-pick";
 import { DialogButton } from "../dialog";
 
 /**
@@ -16,12 +16,12 @@ import { DialogButton } from "../dialog";
  * again (assignEntry in lib/admin/actions.ts).
  */
 export function AssignEntry({
-  formKey, entryId, clients, projects, needsService, current, suggestedClientId, label = "Assign",
+  formKey, entryId, names = {}, needsService, current, suggestedClientId, label = "Assign",
 }: {
   formKey: string;
   entryId: string;
-  clients: { id: string; company: string }[];
-  projects: { id: string; title: string; clientName: string; clientId?: string }[];
+  /** What the server already knows the client and project in play are called (by id), so no list is shipped to read them. */
+  names?: Record<string, string>;
   /** The form does not say which service a project would be for. */
   needsService: boolean;
   current?: { clientId: string; projectId: string | null } | null;
@@ -32,7 +32,7 @@ export function AssignEntry({
   const existing = current?.clientId ?? suggestedClientId ?? "";
   return (
     <DialogButton label={label} title="Assign this entry" icon={Link2} tone="plain">
-      {() => <AssignBody {...{ formKey, entryId, clients, projects, needsService, current, existing }} />}
+      {() => <AssignBody {...{ formKey, entryId, names, needsService, current, existing }} />}
     </DialogButton>
   );
 }
@@ -40,18 +40,16 @@ export function AssignEntry({
 const NEW = "__new";
 const NONE = "__none";
 
-function AssignBody({ formKey, entryId, clients, projects, needsService, current, existing }: {
-  formKey: string; entryId: string; clients: { id: string; company: string }[];
-  projects: { id: string; title: string; clientName: string; clientId?: string }[];
+function AssignBody({ formKey, entryId, names, needsService, current, existing }: {
+  formKey: string; entryId: string; names: Record<string, string>;
   needsService: boolean; current?: { clientId: string; projectId: string | null } | null; existing: string;
 }) {
   const [client, setClient] = useState(existing || NEW);
   const [project, setProject] = useState(current?.projectId ?? NONE);
   const isNewClient = client === NEW;
-  /* Projects of the chosen client only; a new client has none yet. */
-  const mine = isNewClient ? [] : projects.filter((p) => !p.clientId || p.clientId === client);
-  const projectOk = project === NONE || project === NEW || mine.some((p) => p.id === project);
-  const shownProject = projectOk ? project : NONE;
+  /* A project belongs to one client: choosing another client puts the project back to "none", and a new client has no projects yet. */
+  const shownProject = isNewClient && project !== NEW ? NONE : project;
+  const chooseClient = (v: string) => { setClient(v); if (v !== client) setProject(NONE); };
   return (
     <Form action={assignEntry}>
       <Fields>
@@ -65,20 +63,23 @@ function AssignBody({ formKey, entryId, clients, projects, needsService, current
           ? "A new client is made from this entry's name, company, email and phone. If they match someone already on the books, that client is used instead."
           : "Search the clients already on the books, or make a new one from this entry."}>
           {(id) => (
-            <Pick id={id} search value={client} onChange={setClient} label="Client"
-              options={[{ value: NEW, label: "+ A new client from this entry" }, ...clients.map((c) => ({ value: c.id, label: c.company }))]} />
+            <RemotePick id={id} kind="clients" value={client} onChange={chooseClient} label="Client"
+              defaultLabel={names[existing]} lead={[{ value: NEW, label: "+ A new client from this entry" }]} />
           )}
         </Wrap>
         <Wrap name="projectId" label="Is there a project?" hint={isNewClient && shownProject === NONE ? "You can open one later from the client." : undefined}>
           {(id) => (
-            <Pick id={id} value={shownProject} onChange={setProject} label="Project"
-              options={[
+            <RemotePick id={id} kind="projects" scope={{ clientId: isNewClient ? "__none" : client }} value={shownProject} onChange={setProject} label="Project"
+              defaultLabel={current?.projectId ? names[current.projectId] : undefined}
+              lead={[
                 { value: NONE, label: "No project yet" },
                 { value: NEW, label: "Open a new project (starts at Onboarding)" },
-                ...mine.map((p) => ({ value: p.id, label: p.title })),
               ]} />
           )}
         </Wrap>
+        {/* OFF BY DEFAULT: the studio decides whether the client hears about it. */}
+        <Checks name="tellClient" label="Tell the client" options={[{ value: "1", label: "Email them that we have it" }]}
+          hint="They get a short note that their form is on their record. Off unless you tick it." />
         {shownProject === NEW ? (
           <>
             <Field name="projectTitle" label="Project name" placeholder="Leave empty to name it after the client" />

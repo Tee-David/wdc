@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
 import { isQuestion, isVisible, stepsFor } from "@/lib/onboarding";
-import { getClient, getClients, getSubmission } from "@/lib/admin/store";
+import { getClient, getSubmission } from "@/lib/admin/store";
 import { Empty, Panel, when } from "@/components/admin/bits";
 import { AttachSubmission } from "@/components/admin/submission-forms";
 
@@ -47,7 +47,7 @@ export default function DemoSubmission({ id }: { id: string }) {
           <span className={`ad__pill ${sub.status === "Submitted" ? "ad__pill--good" : "ad__pill--warn"}`}>
             {sub.status}
           </span>
-          {client || live ? null : <AttachSubmission submissionId={sub.id} clients={getClients()} />}
+          {client || live ? null : <AttachSubmission submissionId={sub.id} />}
         </div>
       </div>
 
