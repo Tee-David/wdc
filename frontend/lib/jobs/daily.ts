@@ -40,6 +40,22 @@ export async function runDaily(by: string): Promise<DailyResult> {
     const { listConnections, checkConnection } = await import("@/lib/mail-connections");
     for (const c of (await listConnections()) ?? []) await checkConnection(c.id);
   } catch { /* until migration 0044 there are none */ }
+  try {
+    /* THE WEEKLY MAIL DIGEST, on Mondays in Lagos, only if switched on in Settings › Email › Connections. */
+    const { hydrateSettings } = await import("@/lib/settings/store");
+    await hydrateSettings();
+    const { getSetting } = await import("@/lib/admin/store");
+    const monday = new Intl.DateTimeFormat("en-GB", { weekday: "short", timeZone: "Africa/Lagos" }).format(new Date()) === "Mon";
+    if (monday && getSetting("mail.digest") === "yes") {
+      const { db } = await import("@/lib/db/pool");
+      const t = (await db.query<{ sent: string; failed: string }>(`SELECT count(*) FILTER (WHERE state = 'Sent') AS sent, count(*) FILTER (WHERE state = 'Failed') AS failed FROM message_log WHERE channel = 'Email' AND created_at > now() - INTERVAL '7 days'`)).rows[0];
+      const top = (await db.query<{ subject: string; n: string }>(`SELECT subject, count(*) AS n FROM message_log WHERE channel = 'Email' AND state = 'Sent' AND created_at > now() - INTERVAL '7 days' GROUP BY subject ORDER BY n DESC LIMIT 10`)).rows;
+      const bad = (await db.query<{ subject: string; n: string }>(`SELECT subject, count(*) AS n FROM message_log WHERE channel = 'Email' AND state = 'Failed' AND created_at > now() - INTERVAL '7 days' GROUP BY subject ORDER BY n DESC LIMIT 10`)).rows;
+      const { sendMail, studioInbox } = await import("@/lib/email");
+      const list = (rows: { subject: string; n: string }[]) => rows.length ? rows.map((r) => `  ${r.n} x ${r.subject}`).join("\n") : "  none";
+      await sendMail({ to: studioInbox(), subject: `Mail this week: ${t.sent} sent, ${t.failed} failed`, text: `Last 7 days\n\nSent: ${t.sent}\nFailed: ${t.failed}\n\nMost sent:\n${list(top)}\n\nFailed:\n${list(bad)}\n` });
+    }
+  } catch (error) { result.errors.push(`mail digest: ${error instanceof Error ? error.message : "failed"}`); }
   for (const form of FORMS.filter((f) => f.inbox)) {
     try {
       const n = await purgeTrash(form, (await getFormSettings(form)).trashDays);
