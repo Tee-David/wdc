@@ -148,7 +148,11 @@ export default async function MessageLogPage({ searchParams }: Props) {
                           {m.resends.length ? <small>Resent {m.resends.length} time{m.resends.length === 1 ? "" : "s"}</small> : null}
                         </td>
                         <td className="num">{m.ms ? `${(m.ms / 1000).toFixed(1)} s` : ""}</td>
-                        <td className="adLog__act">{m.state === "Failed" ? <ResendMessage id={m.id} /> : null}</td>
+                        <td className="adLog__act">
+                          {m.state !== "Failed" ? null
+                            : m.resends.some((r) => r.sent) ? <span className="ad__dim">Resent</span>
+                            : <ResendMessage id={m.id} />}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

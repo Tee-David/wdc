@@ -1398,6 +1398,8 @@ export async function resendMessage(_prev: ActionState, fd: FormData): Promise<A
   const by = str(fd, "by") || await actorName();
   const row = await getLoggedById(id);
   if (!row || row.state !== "Failed") return FAIL({}, "That one did not fail, or is no longer there.");
+  /* A stale page can still offer Try again after a resend: never send twice. */
+  if (row.resends.some((r) => r.sent)) return FAIL({}, "That one was already sent on.");
 
   const { restageFromKey } = await import("@/lib/money-mail");
   const staged = await restageFromKey(row.dedupeKey, by);
