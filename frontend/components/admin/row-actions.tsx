@@ -26,6 +26,7 @@ import {
 import { Actions, Area, Field, Fields, Form, Hidden, Radios, Select, Submit } from "./form";
 import { RowMenu, type RowMenuItem } from "./row-menu";
 import { ClientFields } from "./client-form";
+import { OwnerField } from "./owner-field";
 
 /**
  * What each row can be asked to do.
@@ -554,7 +555,7 @@ export function SubmissionMenu({
                     options={STAGES.map((x) => ({ value: x, label: x }))}
                     hint="Discovery rather than Onboarding: the form is already in." />
             <Field name="due" label="Due" type="date" half />
-            <Field name="owner" label="Who is answerable" half placeholder="Babatope" />
+            <OwnerField half />
             {money ? <Field name="budget" label="Agreed budget" half inputMode="decimal"
                    hint="Naira. Empty is not zero." /> : null}
             <Area name="scope" label="What was agreed" rows={2}

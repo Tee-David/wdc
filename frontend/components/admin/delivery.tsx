@@ -19,6 +19,7 @@ import { ApprovalPill, Empty, HealthPill, Panel, when } from "./bits";
 import { uploadToMedia } from "./media-upload";
 import { MEDIA_ACCEPT } from "@/lib/media-validate";
 import { FileDrop } from "./file-drop";
+import { OwnerField } from "./owner-field";
 
 /**
  * The delivery half of a project: what is left, what we have said, and what we
@@ -390,8 +391,7 @@ export function ProjectDetails({ project }: { project: Project }) {
         <Form action={saveProjectDetails} onDone={close}>
           <Hidden name="id" value={project.id} />
           <Fields>
-            <Field name="owner" label="Who is answerable" half
-                   defaultValue={project.owner} placeholder="Babatope" />
+            <OwnerField half defaultValue={project.owner} />
             <Select name="health" label="How is it going" half required
                     defaultValue={project.health} options={HEALTH_OPTIONS} />
             <Select name="channel" label="Where updates go" half required

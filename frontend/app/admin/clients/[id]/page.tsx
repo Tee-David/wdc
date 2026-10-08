@@ -47,10 +47,12 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return { title: `${c.company} · Client` };
 }
 
-export default async function ClientPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ClientPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ act?: string }> }) {
   await syncStore();
   persistSoon();
   const { id } = await params;
+  /* Activity opens on the five newest; "Show more" asks for ten more, up to 200. */
+  const shown = Math.min(200, Math.max(5, Math.floor(Number((await searchParams).act)) || 5));
   const c = getClient(id);
   if (!c) notFound();
   await hydrateSettings();
@@ -347,11 +349,12 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
         <CommsLog clientId={c.id} title="What we have sent them" />
       </div>
 
-      <div style={{ marginTop: ".9rem" }}>
+      <div style={{ marginTop: ".9rem" }} id="activity">
         <AuditLog
           subjectIds={relatedAuditIds}
-          limit={30}
-          title="Changes across this client"
+          limit={shown}
+          title="Activity"
+          more={`/admin/clients/${c.id}?act=${shown + 10}#activity`}
         />
       </div>
     </>
