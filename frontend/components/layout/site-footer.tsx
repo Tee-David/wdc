@@ -126,7 +126,7 @@ export function SiteFooter() {
               <ul>
                 {LEGAL_DOCS.map((d) => (
                   <li key={d.slug}>
-                    <Link href={`/legal/${d.slug}`}>{d.title}</Link>
+                    <Link href={`/policies/${d.slug}`}>{d.title}</Link>
                   </li>
                 ))}
                 <li>

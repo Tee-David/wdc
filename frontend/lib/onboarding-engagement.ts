@@ -79,7 +79,7 @@ const SHARED: Record<EngagementGroup["id"], Omit<EngagementGroup, "id">> = {
     summary: "Either of us can end the work in writing. Nigerian law applies, and we talk first if we disagree.",
     body: [
       "Either of us can end the work by writing to the other. You pay for the work done up to that date and for any costs already committed to other companies.",
-      "Nigerian law applies. If we disagree, we first try to settle it by talking. The full Client Engagement Policy and our Payments and Refunds Policy are on the Legal page of our website. [The steps after that are to be set by the studio's lawyer.]",
+      "Nigerian law applies. If we disagree, we first try to settle it by talking. The full Client Engagement Policy and our Payments and Refunds Policy are on the Policies page of our website. [The steps after that are to be set by the studio's lawyer.]",
     ],
   },
 };

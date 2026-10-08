@@ -92,7 +92,7 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/admin": ["./db/migrations/*.sql", ...PDF_ASSETS],
     "/admin/**/*": ["./db/migrations/*.sql", ...PDF_ASSETS],
-    "/legal/**/*": PDF_ASSETS,
+    "/policies/**/*": PDF_ASSETS,
     "/api/contact": PDF_ASSETS,
     "/api/onboarding/submit": PDF_ASSETS,
     "/api/forms/**/*": PDF_ASSETS,
@@ -143,6 +143,9 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/tools/estimate", destination: "/tools", permanent: true },
+      /* The policies moved from /legal to /policies. Old links, shared PDFs and tab links still land. */
+      { source: "/legal", destination: "/policies", permanent: true },
+      { source: "/legal/:path*", destination: "/policies/:path*", permanent: true },
       { source: "/admin/settings/blog", destination: "/admin/blog", permanent: true },
       { source: "/admin/settings/blog/:id", destination: "/admin/blog/:id", permanent: true },
     ];
