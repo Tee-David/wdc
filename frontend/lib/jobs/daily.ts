@@ -34,6 +34,7 @@ export async function runDaily(by: string): Promise<DailyResult> {
     const { db } = await import("@/lib/db/pool");
     await db.query(`DELETE FROM error_log WHERE last_at < now() - INTERVAL '30 days'`);
   } catch { /* the table arrives with migration 0041; until then there is nothing to tidy */ }
+  try { await (await import("@/lib/newsletter-doi")).purgeExpiredPending(); } catch { /* until migration 0042 there is nothing to tidy */ }
   for (const form of FORMS.filter((f) => f.inbox)) {
     try {
       const n = await purgeTrash(form, (await getFormSettings(form)).trashDays);
