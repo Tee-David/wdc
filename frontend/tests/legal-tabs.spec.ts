@@ -41,7 +41,7 @@ test("a link to one tab or one section lands there, and a tab downloads on its o
   await expect(page.getByRole("heading", { name: "Online shops" })).toBeInViewport();
   await page.goto("/legal/client-engagement-policy#domains");
   await expect(page.getByRole("tab", { name: "Domains and hosting", selected: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "This tab as a PDF" })).toHaveAttribute("href", "/legal/client-engagement-policy/pdf?tab=domains");
+  await expect(page.getByRole("link", { name: "This tab PDF" })).toHaveAttribute("href", "/legal/client-engagement-policy/pdf?tab=domains");
   const one = await request.get("/legal/client-engagement-policy/pdf?tab=domains");
   const all = await request.get("/legal/client-engagement-policy/pdf");
   expect(one.status()).toBe(200);
