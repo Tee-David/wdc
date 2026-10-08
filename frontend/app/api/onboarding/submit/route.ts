@@ -41,20 +41,31 @@ export async function POST(request: NextRequest) {
   catch { return NextResponse.json({ error: "The submission could not be read." }, { status: 400 }); }
 
   const service = cleanService(body.service);
-  const answers = cleanAnswers(body.answers);
-  if (!service || !answers) {
+  const raw = cleanAnswers(body.answers);
+  if (!service || !raw) {
     return NextResponse.json({ error: "Please check the form details and try again." }, { status: 422 });
   }
 
   const problems = stepsFor(service).flatMap((step) =>
     step.fields
-      .filter((field) => isVisible(field, answers))
-      .map((field) => ({ key: field.key, message: problemWith(field, answers[field.key]) }))
+      .filter((field) => isVisible(field, raw))
+      .map((field) => ({ key: field.key, message: problemWith(field, raw[field.key]) }))
       .filter((problem): problem is { key: string; message: string } => problem.message !== null),
   );
   if (problems.length) {
     return NextResponse.json({ error: "Some questions still need attention.", problems }, { status: 422 });
   }
+
+  /* ANSWERS TO QUESTIONS THE CLIENT WAS NEVER SHOWN ARE DROPPED. Change an
+     earlier answer and a follow up goes away, but what was typed into it stays
+     in the browser's draft. It would be stored, shown to the studio as if it
+     were an answer, and scanned for blocked words. Only the questions that were
+     visible, plus keys no question owns (the colour flow's extras, the
+     engagement record), are kept. */
+  const hidden = new Set(
+    stepsFor(service).flatMap((s) => s.fields).filter((f) => !isVisible(f, raw)).map((f) => f.key),
+  );
+  const answers: Record<string, string | string[]> = Object.fromEntries(Object.entries(raw).filter(([key]) => !hidden.has(key)));
 
   /* WHEN THE ENGAGEMENT SECTION IS LIVE, ACCEPTING IT IS NOT OPTIONAL, and the
      browser's word is not taken for it: all four groups ticked, a typed full
@@ -64,6 +75,8 @@ export async function POST(request: NextRequest) {
     if (ticks.length !== 4 || engagementNameProblem(answers.engagement_name) !== null || answers.engagement_version !== ENGAGEMENT_VERSION) {
       return NextResponse.json({ error: "Please read and accept the four points before sending." }, { status: 422 });
     }
+    /* The time is the server's, not the browser's clock. */
+    answers.engagement_accepted_at = new Date().toISOString();
   }
 
   /* THE FORM'S SETTINGS. A brief already started may still be sent when the

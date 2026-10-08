@@ -120,13 +120,6 @@ export const CORE_STEPS: Step[] = [
       },
       { key: "audience", assist: true, label: "Who do you sell to?", kind: "multi", options: AUDIENCE },
       { key: "audience_other", label: "Tell us who else you need to reach", kind: "text", showIf: { key: "audience", equals: ["Other"] } },
-      /* Medium and large jobs only: it rarely changes a small quote. */
-      { key: "age_range", assist: true, label: "Their age", kind: "multi", options: AGES, showIf: { tier: 2 } },
-      {
-        key: "usp", assist: true, label: "What makes you the one they should pick?", kind: "textarea",
-        tip: "The honest answer, not the polished one. It is what the work has to carry.",
-        showIf: { tier: 3 },
-      },
     ],
   },
 ];
@@ -202,6 +195,13 @@ export const CLOSING_STEPS: Step[] = [
       {
         key: "about", label: "Tell us about your company", kind: "textarea",
         placeholder: "What you do, who for, and how long you have been doing it. A few lines is plenty.",
+      },
+      /* Medium and large jobs only: it rarely changes a small quote. */
+      { key: "age_range", assist: true, label: "Their age", kind: "multi", options: AGES, showIf: { tier: 2 } },
+      {
+        key: "usp", assist: true, label: "What makes you the one they should pick?", kind: "textarea",
+        tip: "The honest answer, not the polished one. It is what the work has to carry.",
+        showIf: { tier: 3 },
       },
       { key: "others", label: "Anyone else who needs to see things?", kind: "textarea", showIf: { tier: 3 } },
       { key: "anything_else", label: "Anything we haven't asked that we should know?", kind: "textarea", tip: "This is the most useful box on the form. It is where the thing that would otherwise surface in week three usually comes out." },

@@ -3,6 +3,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import { runDaily } from "@/lib/jobs/daily";
 
 export const dynamic = "force-dynamic";
+/* The daily tidy sends up to three reminder emails, and this mail server needs
+   about 23 seconds to authenticate. */
+export const maxDuration = 60;
 
 /**
  * The daily tidy, called by the scheduler (vercel.json).

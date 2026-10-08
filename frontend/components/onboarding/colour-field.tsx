@@ -244,6 +244,13 @@ export default function ColourField({ id, value, onChange, setOther, describedBy
   async function onPicture(file: File | undefined) {
     if (!file) return;
     setPictureError("");
+    /* Read on the phone, so a huge picture would freeze it. 12 MB is more than
+       any logo or phone photo needs. */
+    if (file.size > 12 * 1024 * 1024) {
+      setPicture(null);
+      setPictureError("That picture is too big. Try one under 12 MB, or a screenshot of it.");
+      return;
+    }
     try {
       const read = await readPicture(file);
       if (!read.rows.length) {
@@ -282,10 +289,24 @@ export default function ColourField({ id, value, onChange, setOther, describedBy
     other("brand_vibe", "");
   }
 
+  /* A screen change must not drop keyboard focus onto the page: put it on the
+     colour block itself, which then reads from its new heading. Not on first
+     render. */
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const firstView = useRef(true);
+  useEffect(() => {
+    if (firstView.current) { firstView.current = false; return; }
+    rootRef.current?.focus({ preventScroll: true });
+  }, [view]);
+
   return (
-    <div className="obCol" id={id}>
+    <div className="obCol" id={id} ref={rootRef} tabIndex={-1}>
       {view === "feel" ? (
         <fieldset className="obCol__group" aria-describedby={describedBy}>
+          {/* EACH CHOICE IS ITS OWN RADIO GROUP, on purpose. Choosing one changes the
+              screen, so in one shared group an arrow key (which selects as it moves)
+              would jump screens and the later choices could not be reached. Alone,
+              each is a Tab stop and Space chooses it. */}
           <legend className="obCol__q">What should your brand feel like?</legend>
           <p className="ob__hint">Tap the one that is closest. We will suggest colours to match. You can change them later.</p>
           <div className="obCol__cards">
@@ -293,7 +314,7 @@ export default function ColourField({ id, value, onChange, setOther, describedBy
               const on = matched?.id === item.id;
               return (
                 <label key={item.id} className={`obCol__card${on ? " is-on" : ""}`}>
-                  <input className="obCol__radio" type="radio" name={`${id}-feel`} value={item.id} checked={on}
+                  <input className="obCol__radio" type="radio" name={`${id}-feel-${item.id}`} value={item.id} checked={on}
                     onChange={() => pickFeeling(item)} />
                   <span className="obCol__strip" aria-hidden="true">
                     {item.palettes[0].map((colour) => <span key={colour.hex} style={{ background: colour.hex }} />)}
@@ -308,11 +329,11 @@ export default function ColourField({ id, value, onChange, setOther, describedBy
           </div>
           <div className="obCol__options">
             <label className="obCol__opt">
-              <input className="obCol__radio" type="radio" name={`${id}-feel`} checked={false} onChange={chooseHave} />
+              <input className="obCol__radio" type="radio" name={`${id}-feel-have`} checked={false} onChange={chooseHave} />
               I already have my colours
             </label>
             <label className={`obCol__opt${notSure ? " is-on" : ""}`}>
-              <input className="obCol__radio" type="radio" name={`${id}-feel`} checked={notSure} onChange={chooseStudio} />
+              <input className="obCol__radio" type="radio" name={`${id}-feel-studio`} checked={notSure} onChange={chooseStudio} />
               Choose for me
             </label>
           </div>

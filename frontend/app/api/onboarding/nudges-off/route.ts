@@ -17,7 +17,24 @@ const page = (title: string, body: string, status = 200) =>
     { status, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } },
   );
 
+/**
+ * OPENING THE LINK ONLY ASKS. A mail scanner or a link preview opens every link
+ * in a message, and a GET that switched reminders off would be triggered by
+ * them without the person ever deciding. So GET shows one button, and the
+ * button's POST is what stops the reminders. Both check the signed token.
+ */
 export async function GET(request: NextRequest) {
+  const id = request.nextUrl.searchParams.get("d") ?? "";
+  const token = request.nextUrl.searchParams.get("t") ?? "";
+  if (!nudgesOffTokenValid(id, token)) return page("That link did not work", "It may be incomplete. Your saved form is not affected.", 400);
+  const action = `/api/onboarding/nudges-off?d=${encodeURIComponent(id)}&t=${encodeURIComponent(token)}`;
+  return page(
+    "Stop reminders about this form?",
+    `We will not send any more. Your answers stay saved and your link keeps working until it expires.</p><form method="post" action="${action}"><button type="submit" style="min-height:44px;padding:0 1.2rem;border-radius:999px;border:2px solid #111;background:#111;color:#fff;font:inherit;cursor:pointer">Stop the reminders</button></form><p>`,
+  );
+}
+
+export async function POST(request: NextRequest) {
   const id = request.nextUrl.searchParams.get("d") ?? "";
   const token = request.nextUrl.searchParams.get("t") ?? "";
   if (!nudgesOffTokenValid(id, token)) return page("That link did not work", "It may be incomplete. Your saved form is not affected.", 400);

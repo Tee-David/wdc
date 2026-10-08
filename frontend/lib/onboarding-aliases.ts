@@ -5,7 +5,7 @@ import { SIZE_KEY as SEO_SIZE_KEY } from "./onboarding-services/seo";
 import { SIZE_KEY as SOCIAL_SIZE_KEY } from "./onboarding-services/social";
 import { SIZE_KEY as SOFTWARE_SIZE_KEY } from "./onboarding-services/software";
 import { SIZE_KEY as WEB_SIZE_KEY } from "./onboarding-services/web";
-import { UNSURE, UNSURE_LEGACY, type Field } from "./onboarding-shared";
+import { UNSURE, UNSURE_LEGACY, isUnsure, type Field } from "./onboarding-shared";
 import type { ServiceSlug } from "./services";
 
 /**
@@ -147,7 +147,7 @@ function appsRead(a: Answers): Answers {
   if (platforms) out.platforms = platforms.map((v) => PLATFORM_NOW.get(v) ?? v);
   /* The payments question became two items in the feature list. */
   const pay = at(a, "payments");
-  if (typeof pay === "string" && pay !== "No" && !isFilled(at(a, "app_features"))) {
+  if (typeof pay === "string" && pay !== "No" && !isUnsure(pay) && !isFilled(at(a, "app_features"))) {
     out.app_features = [pay === "Subscriptions" ? "Subscriptions" : "Take payments"];
   }
   return out;

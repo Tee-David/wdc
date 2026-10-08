@@ -2,7 +2,8 @@ import "server-only";
 
 import { answerText, type Answers, type FileAnswer } from "@/lib/forms/custom-def";
 import { versionDef } from "@/lib/forms/custom";
-import { isQuestion, isVisible, stepsFor } from "@/lib/onboarding";
+import { isQuestion, stepsFor } from "@/lib/onboarding";
+import { earlierAnswers, shownInBrief } from "@/lib/onboarding-aliases";
 import type { FormDef } from "@/lib/forms/registry";
 import type { Entry } from "@/lib/forms/entries";
 import { customFiles, onboardingFiles, type EntryFile } from "@/lib/onboarding-files";
@@ -37,13 +38,19 @@ export async function entrySections(form: FormDef, entry: Entry): Promise<EntryS
     return [{ heading: entry.topic || "Enquiry", rows: [{ q: "Message", a: entry.message || null }] }];
   }
   if (form.source === "onboarding" && form.service) {
-    return stepsFor(form.service).map((st) => ({
+    const service = form.service;
+    /* The same walk the entry page makes: a legacy brief keeps the answers it
+       has, and answers no question asks any more come last. */
+    const sections = stepsFor(service).map((st) => ({
       heading: st.title,
-      rows: st.fields.filter((f) => isQuestion(f) && isVisible(f, entry.answers)).map((f) => {
+      rows: st.fields.filter((f) => isQuestion(f) && shownInBrief(service, f, entry.answers)).map((f) => {
         const v = entry.answers[f.key];
         return { q: f.label, a: has(v) ? (Array.isArray(v) ? v.join(", ") : String(v)) : null };
       }),
     })).filter((s) => s.rows.length);
+    const earlier = earlierAnswers(service, entry.answers);
+    if (earlier.length) sections.push({ heading: "Earlier questions", rows: earlier.map((x) => ({ q: x.label, a: x.value })) });
+    return sections;
   }
   if (form.source === "custom") {
     const def = await versionDef(form.key, entry.version ?? 0);

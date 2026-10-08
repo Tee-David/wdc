@@ -3,7 +3,7 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { db } from "@/lib/db/pool";
 import { mailIsConfigured } from "@/lib/email";
-import { composeEmailHtml, emailButton, emailP, emailSmall } from "@/lib/email-templates";
+import { composeEmailHtml, emailButton, emailP, emailSmall, escapeHtml } from "@/lib/email-templates";
 import { queueLogged } from "@/lib/message-log";
 import { secretKey, sendQueuedLogged } from "@/lib/outbox";
 import { issueToken, RESUME_TTL_SECONDS, tokenHash } from "@/lib/onboarding-server";
@@ -92,10 +92,11 @@ export async function sendDraftNudges(): Promise<NudgeCounts> {
     SELECT id, service, email, answers, nudges_sent
     FROM onboarding_submissions
     WHERE status = 'in_progress' AND email IS NOT NULL AND nudges_off = false AND nudges_sent < 2
-      AND created_at > now() - make_interval(days => $1)
+      AND created_at > now() - ($1::INT * INTERVAL '1 day')
+      AND updated_at > created_at + INTERVAL '1 minute'
       AND (
-        (nudges_sent = 0 AND updated_at < now() - make_interval(hours => $2))
-        OR (nudges_sent = 1 AND last_nudged_at < now() - make_interval(days => $3))
+        (nudges_sent = 0 AND updated_at < now() - ($2::INT * INTERVAL '1 hour'))
+        OR (nudges_sent = 1 AND last_nudged_at < now() - ($3::INT * INTERVAL '1 day'))
       )
     ORDER BY updated_at ASC
     LIMIT $4
@@ -105,22 +106,13 @@ export async function sendDraftNudges(): Promise<NudgeCounts> {
     try {
       const token = issueToken();
       const number = draft.nudges_sent + 1;
-      /* A fresh resume link, and the earlier unused ones stop working. */
-      const client = await db.connect();
-      try {
-        await client.query("BEGIN");
-        await client.query(`UPDATE onboarding_resume_tokens SET revoked_at = now() WHERE submission_id = $1 AND used_at IS NULL AND revoked_at IS NULL`, [draft.id]);
-        await client.query(
-          `INSERT INTO onboarding_resume_tokens (submission_id, token_hash, email, expires_at) VALUES ($1, $2, $3, $4)`,
-          [draft.id, tokenHash(token), draft.email, new Date(Date.now() + RESUME_TTL_SECONDS * 1000)],
-        );
-        await client.query("COMMIT");
-      } catch (error) {
-        await client.query("ROLLBACK");
-        throw error;
-      } finally {
-        client.release();
-      }
+      /* A fresh resume link ALONGSIDE the others. Nothing is revoked here: the
+         client's own link (the cookie in their browser) must keep saving, and a
+         pre-filled link from the studio must keep its fourteen days. */
+      await db.query(
+        `INSERT INTO onboarding_resume_tokens (submission_id, token_hash, email, expires_at) VALUES ($1, $2, $3, $4)`,
+        [draft.id, tokenHash(token), draft.email, new Date(Date.now() + RESUME_TTL_SECONDS * 1000)],
+      );
 
       const first = typeof draft.answers.first_name === "string" ? draft.answers.first_name.trim() : "";
       const service = SERVICES.find((s) => s.slug === draft.service)?.short ?? "project";
@@ -134,7 +126,7 @@ export async function sendDraftNudges(): Promise<NudgeCounts> {
         html: composeEmailHtml({
           title: subject, preheader: "Your answers are saved. Pick up where you stopped.", heading: "Pick up where you stopped",
           blocks: [
-            emailP(`${hello} you started the ${service} brief with us and your answers are saved. It takes a few minutes to finish.`),
+            emailP(`${escapeHtml(hello)} you started the ${escapeHtml(service)} brief with us and your answers are saved. It takes a few minutes to finish.`),
             emailButton("Continue your brief", url),
             emailSmall("The link works for three days."),
             ...(off ? [emailSmall(`Not useful? <a href="${off}">Stop these reminders</a>.`)] : []),
@@ -143,7 +135,13 @@ export async function sendDraftNudges(): Promise<NudgeCounts> {
       };
       const log = { summary: `Reminder ${number} of 2 for unfinished ${draft.service} brief ${draft.id}.`, dedupeKey: secretKey(`onboarding-nudge-${number}`, draft.id) };
       const queued = await queueLogged({ channel: "Email", to: mail.to, subject: mail.subject, ...log }, true);
-      if (!queued.ok) { counts.skipped++; continue; }
+      if (!queued.ok) {
+        /* This nudge was already logged, so count it as done: otherwise the same
+           drafts come first every day and starve the rest. */
+        await db.query("UPDATE onboarding_submissions SET nudges_sent = nudges_sent + 1, last_nudged_at = now() WHERE id = $1", [draft.id]);
+        counts.skipped++;
+        continue;
+      }
       await db.query("UPDATE onboarding_submissions SET nudges_sent = nudges_sent + 1, last_nudged_at = now() WHERE id = $1", [draft.id]);
       await sendQueuedLogged(mail, log, queued.message.id);
       counts.sent++;

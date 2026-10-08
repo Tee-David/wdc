@@ -1324,3 +1324,5 @@
 .pv .ob__help a { display: inline-flex; align-items: center; gap: .3rem; min-height: 44px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .pv .ob__help a svg { width: 1rem; height: 1rem; }
 .pv .ob__never { color: var(--muted); }
+
+.obCol:focus { outline: none; }

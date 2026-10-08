@@ -13,7 +13,7 @@ import Link from "next/link";
 import { SERVICES, type ServiceSlug } from "@/lib/services";
 import { CONTACT_EMAIL } from "@/lib/site";
 import {
-  answersForService, isFilled, isUnsure, isVisible, minutesLeft, problemWith, PROJECT_UPDATE_PORTAL, stepsFor, UNSURE, UNSURE_LEGACY,
+  answersForService, isFilled, isQuestion, isUnsure, isVisible, minutesLeft, problemWith, PROJECT_UPDATE_PORTAL, stepsFor, UNSURE, UNSURE_LEGACY,
   type Field, type Step,
 } from "@/lib/onboarding";
 import PhoneField from "./phone-field";
@@ -338,7 +338,7 @@ export default function OnboardingForm({ closed = {}, styles = {}, engagement = 
      (lib/onboarding-voice.ts), and one plain line reflecting back the screen
      before this one, built only from what was picked. */
   const encouragement = milestone(i, steps.length) ?? "";
-  const echo = i > 0 ? echoFor(steps[i - 1].id, a) : null;
+  const echo = i > 0 && steps[i - 1] ? echoFor(steps[i - 1].id, a) : null;
 
   const mins = useMemo(
     () => minutesLeft(steps, i, a, (f) => visible(f, a)),
@@ -594,6 +594,12 @@ export default function OnboardingForm({ closed = {}, styles = {}, engagement = 
   }
 
   /* ------------------------------------------------ review */
+  const reviewProblems = done
+    ? steps.flatMap((s, n) => s.fields
+        .filter((f) => isQuestion(f) && visible(f, a))
+        .filter((f) => problemWith(f, a[f.key], { phoneOk: phoneOk[f.key] }) !== null)
+        .map((f) => ({ n, f })))
+    : [];
   if (done) {
     return (
       <div className="ob ob--intro">
@@ -627,6 +633,25 @@ export default function OnboardingForm({ closed = {}, styles = {}, engagement = 
           ))}
         </div>
 
+        {/* WHAT STILL NEEDS AN ANSWER, in one place, with a way to each. An old
+            draft restored from before the redesign can reach this screen with
+            required questions untouched, and the server would refuse the send
+            with a sentence that did not say which. */}
+        {reviewProblems.length > 0 && (
+          <div className="ob__err" role="alert">
+            <p><AlertCircle aria-hidden="true" />
+              {reviewProblems.length === 1 ? "One question still needs an answer before you send." : `${reviewProblems.length} questions still need an answer before you send.`}
+            </p>
+            <ul>
+              {reviewProblems.map(({ n, f }) => (
+                <li key={f.key}>
+                  <button type="button" onClick={() => { setSub(0); setI(n); setTried(true); }}>{f.label}</button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {engagement && chosen ? <EngagementSection service={chosen} answers={a} set={set} /> : null}
 
         {serverDraft.message ? <p className="ob__saved" role="status">{serverDraft.message}</p> : null}
@@ -645,7 +670,7 @@ export default function OnboardingForm({ closed = {}, styles = {}, engagement = 
           <button
             className="ob__btn ob__btn--go"
             type="button"
-            disabled={serverDraft.submitting || (engagement && !engagementAccepted(a))}
+            disabled={serverDraft.submitting || reviewProblems.length > 0 || (engagement && !engagementAccepted(a))}
             onClick={async () => {
               try {
                 const result = await serverDraft.submit() as { confirmation?: { heading?: string; message?: string; redirect?: string } } | undefined;

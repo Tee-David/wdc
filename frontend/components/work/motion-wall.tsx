@@ -21,13 +21,16 @@ function Card({ piece }: { piece: MotionPiece }) {
   /* A person who pressed pause has made a choice that scrolling must not undo. */
   const chosen = useRef<"play" | "pause" | null>(null);
   const reduced = useRef(false);
+  const inView = useRef(false);
 
   useEffect(() => {
     reduced.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const el = box.current;
     const v = video.current;
     if (!el || !v) return;
+    const mayPlay = () => chosen.current === "play" || (chosen.current !== "pause" && !reduced.current);
     const io = new IntersectionObserver(([entry]) => {
+      inView.current = entry.isIntersecting;
       if (entry.isIntersecting) {
         if (v.preload === "none") v.preload = "auto";
         if (chosen.current === "pause" || (reduced.current && chosen.current !== "play")) return;
@@ -37,7 +40,12 @@ function Card({ piece }: { piece: MotionPiece }) {
       }
     }, { rootMargin: "120px", threshold: 0.35 });
     io.observe(el);
-    const hidden = () => { if (document.hidden) v.pause(); };
+    /* Stopped when the tab is hidden, and picked up again when it is back and
+       the card is still on screen, unless the visitor chose to pause it. */
+    const hidden = () => {
+      if (document.hidden) v.pause();
+      else if (inView.current && mayPlay()) void v.play().catch(() => { /* the button remains */ });
+    };
     document.addEventListener("visibilitychange", hidden);
     return () => { io.disconnect(); document.removeEventListener("visibilitychange", hidden); };
   }, []);
