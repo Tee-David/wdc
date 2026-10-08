@@ -104,7 +104,7 @@ export async function inviteStaff(_prev: ActionState, fd: FormData): Promise<Act
   sendLater(made.invitation, made.token);
   audit({ actor: by, kind: "setting", subjectId: made.invitation.id, subject: name, action: role === "owner" ? "invited to the studio admin as an owner" : "invited to the studio admin", note: email });
   revalidatePath("/admin/settings/team");
-  revalidatePath("/admin/settings/users");
+  revalidatePath("/admin/users");
   return OK(`Invitation queued for ${email}, as ${role === "owner" ? "an owner" : "staff"}.`);
 }
 
@@ -125,7 +125,7 @@ export async function revokeInvite(_prev: ActionState, fd: FormData): Promise<Ac
   audit({ actor: by, kind: "setting", subjectId: id, subject: "Invitation", action: "withdrew an invitation" });
   const back = str(fd, "back");
   if (back.startsWith("/admin/")) revalidatePath(back);
-  revalidatePath("/admin/settings/users");
+  revalidatePath("/admin/users");
   return OK("Cancelled. The link no longer works.");
 }
 
@@ -141,7 +141,7 @@ export async function resendUserInvite(_prev: ActionState, fd: FormData): Promis
     if (refusedEmail(original.email)) return FAIL({}, REFUSED_EMAIL_MESSAGE);
     const made = await createInvitation({ email: original.email, name: original.name, role: original.role, clientId: original.client_id, by: actor.user.name, actorId: actor.user.id, sourceId: id });
     sendLater(made.invitation, made.token);
-    revalidatePath("/admin/settings/users");
+    revalidatePath("/admin/users");
     return OK("Invitation queued. The previous link no longer works; email acceptance is shown separately.");
   } catch (error) { return FAIL({}, error instanceof ClientInvitationError ? error.message : "The invitation could not be replaced. Refresh the list and retry."); }
 }
@@ -158,7 +158,7 @@ export async function bulkCancelInvites(_prev: ActionState, fd: FormData): Promi
       try { const changed = await revokeInvitation(id, actor.user.name, actor.user.id); if (changed) cancelled++; outcomes.push({id,label:names.get(id) ?? id,ok:changed,message:changed ? "Cancelled. The link no longer works." : "Already used or cancelled. Refresh the list."}); }
       catch { outcomes.push({id,label:names.get(id) ?? id,ok:false,message:"Database unavailable; retry this row."}); }
     }
-    revalidatePath("/admin/settings/users");
+    revalidatePath("/admin/users");
     return {...(cancelled === ids.length ? OK(`${cancelled} cancelled.`) : FAIL({}, `${cancelled} of ${ids.length} cancelled. Review each result.`)),outcomes};
   } catch { return FAIL({}, "Owner access could not be verified. Sign in again and retry."); }
 }

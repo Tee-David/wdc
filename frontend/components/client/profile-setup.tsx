@@ -9,7 +9,7 @@ import { Form,Radios,Submit,Field } from '@/components/admin/form';
 import { SettingsForm } from '@/components/admin/settings/kit';
 import { toast } from '@/components/admin/toast';
 import { FAIL,type ActionState } from '@/lib/admin/validate';
-import { saveClientProfile } from '@/lib/client-profile-actions';
+import { saveAppearance, saveClientProfile } from '@/lib/client-profile-actions';
 import { appearanceValue,type Appearance,AVATAR_BYTES } from '@/lib/client-profile-policy';
 import './profile-setup.css';
 
@@ -66,7 +66,9 @@ export function ProfileSetup({name,appearance,hasPhoto,welcome=false,readOnly=fa
     {photoError?<p role="alert">{photoError}</p>:null}
     {uploading?<p role="status">Preparing your photo. Your current photo stays until saving succeeds.</p>:null}
     <Field name="name" label="Display name" defaultValue={name} required hint="Your sign-in name, up to 120 characters. Company and invoice details stay in Profile settings." />
-    <Radios name="appearance" label="Appearance" defaultValue={appearance??appearanceValue(theme)??'system'} options={[{value:'system',label:'System',note:'Follow your device.'},{value:'light',label:'Light'},{value:'dark',label:'Dark'}]} />
+    <div onChange={(event)=>{const t=event.target as HTMLInputElement;if(t.name==='appearance'&&!readOnly){const chosen=appearanceValue(t.value);if(chosen){setTheme(chosen);void saveAppearance(chosen);}}}}>
+      <Radios name="appearance" label="Appearance" defaultValue={appearance??appearanceValue(theme)??'system'} options={[{value:'system',label:'System',note:'Follow your device.'},{value:'light',label:'Light'},{value:'dark',label:'Dark'}]} />
+    </div>
   </>;
   return <div className="pProfile" ref={box}>
     {welcome ? <Form action={save} resetOnDone={false}>
