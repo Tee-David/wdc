@@ -5,7 +5,7 @@ import { Header } from "@/components/layout/header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import LegalToc from "@/components/legal/legal-toc";
 import LegalTabs from "@/components/legal/legal-tabs";
-import Rich from "@/components/legal/rich";
+import Rich, { SeeAlso } from "@/components/legal/rich";
 import { LEGAL_DOCS, legalBySlug } from "@/lib/legal";
 import { COMPANY_NAME, CONTACT_EMAIL, SITE_URL } from "@/lib/site";
 import "@/components/preview/preview.css";
@@ -104,7 +104,7 @@ export default async function LegalDocPage(
         <section className="pv-sec">
           <div className="pv-wrap">
             {doc.tabs ? (
-              <LegalTabs slug={doc.slug} intro={doc.intro} tabs={doc.tabs} sections={doc.sections.map((x) => ({ heading: x.heading, body: x.body, tab: x.tab ?? "general" }))} email={CONTACT_EMAIL} />
+              <LegalTabs also={LEGAL_DOCS.map((d) => ({ slug: d.slug, title: d.title }))} slug={doc.slug} intro={doc.intro} tabs={doc.tabs} sections={doc.sections.map((x) => ({ heading: x.heading, body: x.body, tab: x.tab ?? "general" }))} email={CONTACT_EMAIL} />
             ) : (
               <div className="lg-cols">
                 <LegalToc sections={sections} others={others} />
@@ -126,6 +126,8 @@ export default async function LegalDocPage(
                   ))}
 
                   <p className="lg-pdf"><a href={`/legal/${doc.slug}/pdf`} download>Download this policy as a PDF</a></p>
+
+                <SeeAlso here={doc.slug} docs={LEGAL_DOCS.map((d) => ({ slug: d.slug, title: d.title }))} />
 
                 <p className="lg-foot">
                     This page explains how we work. It is written to be understood

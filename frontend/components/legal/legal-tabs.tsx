@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useState } from "react";
 import { Download, Link2, Search, X } from "lucide-react";
-import Rich from "./rich";
+import Rich, { SeeAlso } from "./rich";
 
 type Section = { heading: string; body: string[]; tab: string };
 
@@ -15,8 +15,8 @@ const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").repla
  * section of it (`#web:online-shops`), so a link lands exactly there, a tab can
  * be copied or downloaded as a PDF on its own, and so can the whole policy.
  */
-export default function LegalTabs({ slug, intro, tabs, sections, email }: {
-  slug: string; intro: string; tabs: { id: string; label: string }[]; sections: Section[]; email: string;
+export default function LegalTabs({ slug, intro, tabs, sections, email, also }: {
+  also: { slug: string; title: string }[]; slug: string; intro: string; tabs: { id: string; label: string }[]; sections: Section[]; email: string;
 }) {
   const id = useId();
   const [tab, setTab] = useState(tabs[0].id);
@@ -101,6 +101,7 @@ export default function LegalTabs({ slug, intro, tabs, sections, email }: {
         {!shown.length && q ? <p>Write to <a href={`mailto:${email}`}>{email}</a> and we will answer, and add it here.</p> : null}
       </div>
       <p className="lg-pdf"><a href={`/legal/${slug}/pdf`} download>Download this policy as a PDF</a></p>
+      <SeeAlso here={slug} docs={also} />
     </article>
   );
 }
