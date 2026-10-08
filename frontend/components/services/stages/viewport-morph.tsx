@@ -61,7 +61,10 @@ function Screen({ src, scroll, alt, page }: {
           src={src}
           alt={dup === 0 ? alt : ""}
           aria-hidden={dup === 1}
-          loading="lazy"
+          /* The stage's screenshot is the largest thing on a services page, so it
+             is fetched at once and at high priority, not on a lazy schedule. */
+          loading={dup === 0 ? "eager" : "lazy"}
+          fetchPriority={dup === 0 ? "high" : "auto"}
           draggable={false}
         />
       ))}
