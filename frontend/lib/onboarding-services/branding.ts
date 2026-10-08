@@ -131,10 +131,6 @@ export const BRANDING_STEPS: Step[] = [
       },
       { key: "tagline", label: "Do you have a slogan or tagline?", kind: "text", placeholder: "Leave it if you do not", showIf: { any: [has(IDENTITY, GUIDE)] } },
       {
-        key: "brand_fonts", label: "Any fonts you already use?", kind: "text", placeholder: "For example Montserrat, or the name of a font on your signs",
-        showIf: [{ any: [has(IDENTITY, GUIDE)] }, { key: "brand_have", equals: ["A logo", "A brand guide"] }],
-      },
-      {
         key: "style_help", kind: "cards",
         label: "How would you like to set the style?",
         hint: "Optional. If you skip it, we will suggest a direction and confirm it with you.",
@@ -168,6 +164,17 @@ export const BRANDING_STEPS: Step[] = [
         key: "brand_colours", kind: "colours", label: "Your colours",
         hint: "Tap the feeling that is closest and we will suggest colours to match. You can change them later.",
         showIf: { any: [MID, has(IDENTITY, GUIDE, FLYERS, TEMPLATES)] },
+      },
+    ],
+  },
+  {
+    phase: "work", id: "branding_fonts", service: "branding", title: "Fonts",
+    blurb: "About 30 seconds. Skip it if you like.",
+    fields: [
+      {
+        key: "brand_fonts", kind: "fonts", label: "Your fonts",
+        hint: "Pick two to five pairings, or tell us the fonts you already use. We choose the one that agrees best.",
+        showIf: { any: [MID, has(IDENTITY, GUIDE)] },
       },
     ],
   },

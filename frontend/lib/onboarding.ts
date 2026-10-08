@@ -491,7 +491,7 @@ export function problemWith(
 const SECONDS: Record<FieldKind, number> = {
   yesno: 4, cards: 6, select: 7, multi: 10,
   text: 12, email: 12, tel: 14, url: 12,
-  textarea: 32, upload: 10, notice: 0, colours: 20, date: 8, profiles: 15,
+  textarea: 32, upload: 10, notice: 0, colours: 20, date: 8, profiles: 15, fonts: 20,
   /* Three names to think of, not three boxes to fill: naming a business is the
      slowest question in the form, and the check afterwards is a wait the
      client chooses to take. Deliberately higher than `textarea`, which is what

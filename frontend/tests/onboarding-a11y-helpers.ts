@@ -198,7 +198,8 @@ async function keyboardText(page: Page, q: Locator, key: string, value: string, 
 
 /** Answers one question with the keyboard, whichever control it uses. */
 export async function keyboardAnswer(page: Page, key: string, value: string | string[], log: Log, screen: string) {
-  const q = page.locator(`[data-field="${key}"]`).first();
+  /* The visible copy: the desktop board can render a question more than once, and the hidden copy is not the one a client sees. */
+  const q = page.locator(`[data-field="${key}"]:visible`).first();
   const kind = await q.evaluate((el) => {
     if (el.querySelector('[role="combobox"]')) return "select";
     if (el.querySelector("textarea")) return "textarea";
