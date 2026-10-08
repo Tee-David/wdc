@@ -9,6 +9,7 @@ import type { Tag } from "@/lib/email-registry";
 import {
   previewDesign, resetDesignAction, restoreVersionAction, saveDesignAction, sendTestAction, setDesignOn,
 } from "@/lib/admin/email-design-actions";
+import { saveCampaignDesign } from "@/lib/admin/campaign-actions";
 import { toast } from "../toast";
 import { ask } from "../confirm";
 import "./design-editor.css";
@@ -18,12 +19,14 @@ type Props = {
   starters: { name: string; design: Design }[];
   saved: { design: Design; enabled: boolean } | null;
   history: { id: string; savedBy: string; savedAt: string }[];
+  /** Set when this edits a campaign's own copy: saving goes to the campaign, and there is no on/off, reset or version list. */
+  campaignId?: string;
 };
 
 const ADDABLE: Block["type"][] = ["text", "heading", "button", "facts", "figure", "image", "columns", "divider", "space", "note"];
 type Field = { id: string; name: string; el: HTMLInputElement | HTMLTextAreaElement };
 
-export function DesignEditor({ kind, name, tags, starters, saved, history }: Props) {
+export function DesignEditor({ kind, name, tags, starters, saved, history, campaignId }: Props) {
   const [design, setDesign] = useState<Design>(() => saved?.design ?? starters[0].design);
   const [base, setBase] = useState<string>(() => JSON.stringify(saved?.design ?? null));
   const [enabled, setEnabled] = useState(saved?.enabled ?? false);
@@ -103,7 +106,9 @@ export function DesignEditor({ kind, name, tags, starters, saved, history }: Pro
 
   async function run(fn: () => Promise<void>) { setBusy(true); try { await fn(); } finally { setBusy(false); } }
   const save = (on: boolean | null) => run(async () => {
-    const r = await saveDesignAction(kind, json, on);
+    const r = campaignId
+      ? await saveCampaignDesign(campaignId, json).then((x) => (x.ok ? ({ ok: true } as const) : ({ ok: false, message: x.message ?? "That could not be saved." } as const)))
+      : await saveDesignAction(kind, json, on);
     if (!r.ok) { toast(r.message, "bad"); return; }
     setBase(json); setExists(true); if (on !== null) setEnabled(on);
     toast(on ? "Saved, and your design is now used." : "Saved.", "good");
@@ -136,12 +141,12 @@ export function DesignEditor({ kind, name, tags, starters, saved, history }: Pro
         <button type="button" className="ad__btn" onClick={undo} disabled={!past.length} aria-label="Undo"><Undo2 aria-hidden="true" /></button>
         <button type="button" className="ad__btn" onClick={redo} disabled={!future.length} aria-label="Redo"><Redo2 aria-hidden="true" /></button>
         <span className="deEd__state" role="status">
-          {dirty ? "Unsaved changes" : exists ? (enabled ? "Your design is on" : "Saved, switched off") : "Built-in design is in use"}
+          {dirty ? "Unsaved changes" : campaignId ? "Saved" : exists ? (enabled ? "Your design is on" : "Saved, switched off") : "Built-in design is in use"}
         </span>
         <span className="deEd__spacer" />
         <button type="button" className="ad__btn" onClick={test} disabled={busy}><Send aria-hidden="true" /> Send me a test</button>
         <button type="button" className="ad__btn" onClick={() => save(null)} disabled={busy || !dirty}><Save aria-hidden="true" /> Save</button>
-        <button type="button" className="ad__btn ad__btn--primary" onClick={() => save(true)} disabled={busy || (!dirty && enabled)}><Power aria-hidden="true" /> Save and use it</button>
+        {campaignId ? null : <button type="button" className="ad__btn ad__btn--primary" onClick={() => save(true)} disabled={busy || (!dirty && enabled)}><Power aria-hidden="true" /> Save and use it</button>}
       </div>
 
       <div className="deEd__grid">
@@ -185,7 +190,7 @@ export function DesignEditor({ kind, name, tags, starters, saved, history }: Pro
             </div>
           </section>
 
-          <section className="ad__panel deEd__panel">
+          {campaignId ? null : <section className="ad__panel deEd__panel">
             <h2>Versions and reset</h2>
             {history.length ? (
               <ul className="deEd__hist">
@@ -201,7 +206,7 @@ export function DesignEditor({ kind, name, tags, starters, saved, history }: Pro
               {enabled ? <button type="button" className="ad__btn" onClick={switchOff} disabled={busy}><Power aria-hidden="true" /> Switch off, use built-in</button> : null}
               {exists ? <button type="button" className="ad__btn ad__btn--danger" onClick={reset} disabled={busy}><RotateCcw aria-hidden="true" /> Reset to built-in</button> : null}
             </div>
-          </section>
+          </section>}
         </div>
 
         <div className="deEd__col deEd__previewCol">

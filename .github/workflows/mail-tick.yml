@@ -1,0 +1,18 @@
+# The campaign sender's heartbeat. Calls the site every 5 minutes (GitHub's shortest schedule),
+# and each call sends for up to about 45 seconds. Secrets: SITE_URL (https://...) and CRON_SECRET (same value as the site's).
+name: Mail tick
+on:
+  schedule: [{ cron: "*/5 * * * *" }]
+  workflow_dispatch:
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Call the sender
+        env:
+          SITE_URL: ${{ secrets.SITE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          test -n "$SITE_URL" && test -n "$CRON_SECRET" || { echo "Set the SITE_URL and CRON_SECRET secrets."; exit 1; }
+          curl -fsS --max-time 100 -X POST -H "Authorization: Bearer $CRON_SECRET" "$SITE_URL/api/cron/mail-tick"

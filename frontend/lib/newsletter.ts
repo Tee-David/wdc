@@ -172,8 +172,14 @@ export async function unsubscribe(email: string): Promise<boolean> {
     [normal],
   );
   /* The same fact on the person record and the suppression list (Email page), if they exist yet. */
-  if ((r.rowCount ?? 0) > 0) { try { await (await import("@/lib/contacts")).suppress(normal, "unsubscribed", "newsletter"); } catch { /* tables arrive with migration 0045 */ } }
-  return (r.rowCount ?? 0) > 0;
+  let known = (r.rowCount ?? 0) > 0;
+  try {
+    const contacts = await import("@/lib/contacts");
+    /* A client marked as having asked to hear from us is not on the newsletter table, but can still unsubscribe. */
+    if (!known) known = Boolean((await db.query(`SELECT 1 FROM contacts WHERE email = $1 AND status = 'subscribed'`, [normal])).rowCount);
+    if (known) await contacts.suppress(normal, "unsubscribed", "unsubscribed from an email");
+  } catch { /* tables arrive with migration 0045 */ }
+  return known;
 }
 
 /**

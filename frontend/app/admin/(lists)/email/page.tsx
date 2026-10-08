@@ -10,12 +10,14 @@ import { PickAll, RowPick } from "@/components/admin/bulk";
 import { Pager, readPer } from "@/components/admin/pager";
 import { FilterPick } from "@/components/admin/pick";
 import { ImportContacts, SyncButton, TagBar } from "@/components/admin/email/contacts-ui";
+import { NewCampaign } from "@/components/admin/email/campaign-ui";
+import { listCampaigns } from "@/lib/campaigns";
 import { when } from "@/components/admin/bits";
 import "@/components/admin/email/design-editor.css";
 
 export const metadata = { title: "Email" };
 
-const TABS = [["contacts", "Contacts"], ["templates", "Templates"]] as const;
+const TABS = [["contacts", "Contacts"], ["campaigns", "Campaigns"], ["templates", "Templates"]] as const;
 
 /**
  * EMAIL: the studio's mail in one place. Contacts, campaigns, automations and
@@ -40,6 +42,7 @@ export default async function EmailPage({ searchParams }: { searchParams: Promis
         {TABS.map(([k, label]) => <Link key={k} href={`/admin/email?tab=${k}`} aria-current={k === current ? "page" : undefined}>{label}</Link>)}
       </nav>
       {current === "contacts" ? <ContactsTab sp={sp} /> : null}
+      {current === "campaigns" ? <CampaignsTab /> : null}
       {current === "templates" ? <>
       <Panel title="Emails you can design" dataTour="email-templates">
         <div className="ad__scroll" data-lenis-prevent>
@@ -121,5 +124,31 @@ async function ContactsTab({ sp }: { sp: SP }) {
         <Pager label="Contacts" total={res.total} page={f.page} per={per} noun="people" href={(p) => href({ page: p.page && p.page > 1 ? p.page : undefined, per: p.per ?? per })} />
       </Panel>
     </>
+  );
+}
+
+const CSTATE: Record<string, string> = { draft: "Draft", scheduled: "Scheduled", sending: "Sending", paused: "Paused", sent: "Sent", cancelled: "Cancelled" };
+
+async function CampaignsTab() {
+  const list = await listCampaigns();
+  if (!list) return <Empty title="Campaigns are not set up yet" icon={Download}>Apply migration 0046 in Settings › System, then reload.</Empty>;
+  return (
+    <Panel title="Campaigns" dataTour="email-campaigns" action={<NewCampaign />}>
+      {list.length ? (
+        <div className="ad__scroll" data-lenis-prevent>
+          <table className="ad__t">
+            <thead><tr><th>Campaign</th><th>State</th><th className="num">People</th><th>Started</th></tr></thead>
+            <tbody>{list.map((c) => (
+              <tr key={c.id}>
+                <td><Link href={`/admin/email/campaigns/${c.id}`}><b>{c.title}</b></Link></td>
+                <td><span className={`ad__pill ${c.status === "sent" ? "ad__pill--good" : "ad__pill--flat"}`}>{CSTATE[c.status] ?? c.status}</span></td>
+                <td className="num">{c.recipients || "–"}</td>
+                <td className="ad__dim">{c.startedAt ? when(c.startedAt) : c.scheduledAt ? `Goes out ${when(c.scheduledAt)}` : "Not sent"}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      ) : <Empty title="No campaigns yet" icon={Download} action={<NewCampaign />}>Write an issue, choose who gets it, and send it. Only people who asked to hear from you are emailed.</Empty>}
+    </Panel>
   );
 }
