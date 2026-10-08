@@ -211,3 +211,6 @@
 @media (prefers-reduced-motion: reduce) {
   .adWf__node, .adWf__plus i { transition: none; }
 }
+
+.adWf__pf .adWf__del { color: var(--ad-bad-ink); border-color: var(--ad-bad-ink); }
+.adWf__pf .adWf__del:hover { background: var(--ad-tone-bad); border-color: var(--ad-tone-bad); color: var(--ad-on-bad); }

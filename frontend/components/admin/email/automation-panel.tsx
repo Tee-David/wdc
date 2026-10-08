@@ -150,7 +150,7 @@ export function StepPanel({ step, tab, setTab, tags, results, onPatch, onDelete,
         )}
       </div>
       <footer className="adWf__pf">
-        <button type="button" className="ad__btn ad__btn--danger" onClick={onDelete}>Delete</button>
+        <button type="button" className="ad__btn adWf__del" onClick={onDelete}>Delete</button>
         <button type="button" className="ad__btn ad__btn--primary" onClick={onClose}>Done</button>
       </footer>
     </>
