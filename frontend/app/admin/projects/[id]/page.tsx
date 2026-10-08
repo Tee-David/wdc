@@ -1,3 +1,4 @@
+import { StageScroll } from "@/components/admin/stage-scroll";
 import type { Metadata } from "next";
 import { projectGlyph } from "@/components/client/service-glyph";
 import { hydrateSettings } from "@/lib/settings/store";
@@ -113,6 +114,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
               </li>
             ))}
           </ol>
+          <StageScroll />
           <StageMover project={p} />
         </div>
       </ProfileCard>
