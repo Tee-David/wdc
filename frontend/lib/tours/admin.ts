@@ -66,7 +66,7 @@ export const ADMIN_WELCOME: TourDef = {
 
 export const ADMIN_WALKTHROUGH: TourDef = {
   id: "admin-walkthrough",
-  version: 5,
+  version: 6,
   kind: "walkthrough",
   title: "The full admin walkthrough",
   steps: [
@@ -81,6 +81,11 @@ export const ADMIN_WALKTHROUGH: TourDef = {
       title: "The full workflow, start to finish",
       content:
         "Every section, in the order a real morning actually uses them: what needs a decision, then clients, projects, money, forms, the blog, and settings. Skip any time. Nothing here is required.",
+    },
+    {
+      id: "staff-scope", roles: ["staff"], target: "body", placement: "center", href: "/admin", icon: "shieldCheck",
+      title: "Your part of the studio",
+      content: "This is the same admin with the money, the team and the exports left out, because those are the owner's. Anything you cannot see is simply not on your menu.",
     },
     { id: "dash-kpis", target: '[data-tour="dash-kpis"]', href: "/admin", icon: "gauge", title: "The four numbers that matter", content: "Collected, outstanding, cash position, and live projects: every one recomputed from the underlying records, never typed in and left to drift." },
     { id: "dash-attention", target: '[data-tour="dash-attention"]', href: "/admin", icon: "flag", title: "Start here every morning", content: "Overdue invoices, projects asking for something, and onboarding nobody finished, worst first. An empty queue here means there is genuinely nothing waiting on you." },
@@ -97,6 +102,8 @@ export const ADMIN_WALKTHROUGH: TourDef = {
     { id: "nav-projects", target: '[data-tour="nav-projects"]', href: "/admin/clients", icon: "folder", interact: { hint: "Click Projects to see the board" }, page: "Projects", title: "On to Projects", content: "Every project belongs to a client and carries a stage, a due date, and a health that is derived rather than typed, and it goes stale the moment something slips." },
     { id: "projects-add", target: '[data-tour="projects-add"]', href: "/admin/projects", icon: "plus", title: "Opening a project", content: "Pick the client, the service, and a starting stage." },
     { id: "projects-switch", target: '[data-tour="projects-switch"]', href: "/admin/projects", icon: "layout", interact: { hint: "Try switching the view" }, title: "List or board", content: "The same projects, sorted or grouped by stage. Whichever you leave it on is what loads next time." },
+    { id: "projects-row-menu", target: '[data-tour="row-menu"]', href: "/admin/projects", optional: true, icon: "settings", interact: { hint: "Open a row's ⋮ menu" }, title: "The ⋮ menu on a row", content: "Every project row has one, so a stage or a due date can change from the list." },
+    { id: "projects-row-menu-items", target: '[data-tour="row-menu-list"]', href: "/admin/projects", optional: true, icon: "settings", title: "What the menu holds", content: "Move the stage, set the due date, add a note, or open the project. Anything that cannot be undone asks you to confirm." },
 
     { id: "nav-money", roles: ["owner"], target: '[data-tour="nav-money"]', href: "/admin/projects", icon: "wallet", interact: { hint: "Click Money to see the totals" }, page: "Money", title: "On to Money", content: "What is owed, right now: collected, outstanding, and overdue, all recomputed from the actual invoices and payments." },
     { id: "money-tiles", roles: ["owner"], target: '[data-tour="money-tiles"]', href: "/admin/money", icon: "calculator", title: "The real-time totals", content: "Reconciliation for anything the bank and the books disagree on is one link away." },
@@ -144,38 +151,41 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
   },
   "/admin/clients": {
     id: "admin-page-clients",
-    version: 2,
+    version: 3,
     kind: "page",
     title: "This page: Clients",
     steps: [
       { id: "intro", target: "body", placement: "center", icon: "users", showEstimate: true, title: "Clients", content: "Grouped by what they buy, with the flat list of everyone underneath." },
       { id: "add", target: '[data-tour="clients-add"]', icon: "plus", title: "Add a client", content: "One form; they can be attached to a project or invoice straight after." },
       { id: "filters", target: '[data-tour="clients-filters"]', icon: "filter", title: "Search and filter", content: "By name, service, or status. The URL keeps the filter, so it is a real link you can send." },
-      { id: "row-menu", target: '[data-tour="row-menu"]', optional: true, icon: "settings", interact: { hint: "Open a row's ⋮ menu" }, title: "The ⋮ menu on a row", content: "Everything you can do to that client without opening them: edit, add a project or invoice, invite them to the portal, archive. Dangerous ones ask you to confirm." },
+      { id: "row-menu", target: '[data-tour="row-menu"]', optional: true, icon: "settings", interact: { hint: "Open a row's ⋮ menu" }, title: "The ⋮ menu on a row", content: "Every client row has one, so you can act on someone without opening their record." },
+      { id: "row-menu-items", target: '[data-tour="row-menu-list"]', optional: true, icon: "settings", title: "What the client's menu holds", content: "Edit them, add a project or invoice, invite them to the portal, or archive them. Dangerous ones ask you to confirm." },
     ],
   },
   "/admin/projects": {
     id: "admin-page-projects",
-    version: 2,
+    version: 3,
     kind: "page",
     title: "This page: Projects",
     steps: [
       { id: "intro", target: "body", placement: "center", icon: "folder", showEstimate: true, title: "Projects", content: "Every live and delivered project, with a health that is derived rather than typed." },
       { id: "add", target: '[data-tour="projects-add"]', icon: "plus", title: "Open a project", content: "Pick the client, the service, and a starting stage." },
       { id: "switch", target: '[data-tour="projects-switch"]', icon: "layout", interact: { hint: "Try switching the view" }, title: "List or board", content: "Sorted or grouped by stage. Whichever you leave it on loads next time." },
-      { id: "row-menu", target: '[data-tour="row-menu"]', optional: true, icon: "settings", interact: { hint: "Open a row's ⋮ menu" }, title: "The ⋮ menu on a row", content: "Move its stage, set a due date, change who is answerable, post an update or archive it, from the row." },
+      { id: "row-menu", target: '[data-tour="row-menu"]', optional: true, icon: "settings", interact: { hint: "Open a row's ⋮ menu" }, title: "The ⋮ menu on a row", content: "Every project row has one, so a stage or a due date can change without opening the project." },
+      { id: "row-menu-items", target: '[data-tour="row-menu-list"]', optional: true, icon: "settings", title: "What the project's menu holds", content: "Move its stage, set a due date, change who is answerable, post an update or archive it." },
     ],
   },
   "/admin/money": {
     id: "admin-page-money",
-    version: 2,
+    version: 3,
     kind: "page",
     title: "This page: Money",
     steps: [
       { id: "intro", target: "body", placement: "center", icon: "wallet", showEstimate: true, title: "Money", content: "In, out, and what is still owed: every figure recomputed from the underlying invoices and payments." },
       { id: "tiles", target: '[data-tour="money-tiles"]', icon: "calculator", title: "The real-time totals", content: "Collected, outstanding, and overdue. Reconciliation for anything the bank and the books disagree on is one link away." },
       { id: "add", target: '[data-tour="money-add"]', icon: "receipt", title: "Raise an invoice", content: "Or an estimate first, if the work has not been agreed yet: the button beside it." },
-      { id: "row-menu", target: '[data-tour="row-menu"]', optional: true, icon: "settings", interact: { hint: "Open a row's ⋮ menu" }, title: "The ⋮ menu on a row", content: "Issue, record a payment (cash, card, POS, transfer; part or full), email a reminder, duplicate or void an invoice, depending on its status." },
+      { id: "row-menu", target: '[data-tour="row-menu"]', optional: true, icon: "settings", interact: { hint: "Open a row's ⋮ menu" }, title: "The ⋮ menu on a row", content: "Every invoice row has one. What it offers depends on the invoice's status, so a draft and a sent invoice show different items." },
+      { id: "row-menu-items", target: '[data-tour="row-menu-list"]', optional: true, icon: "settings", title: "What the invoice's menu holds", content: "Issue, record a payment (cash, card, POS, transfer; part or full), email a reminder, duplicate or void it, depending on its status." },
     ],
   },
   "/admin/forms": {
@@ -272,13 +282,14 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
   },
   "/admin/users": {
     id: "admin-page-users",
-    version: 1,
+    version: 2,
     kind: "page",
     title: "This page: Users",
     steps: [
       { id: "intro", target: "body", placement: "center", icon: "users", showEstimate: true, title: "Users", content: "The studio team, client accounts and invitations in one place." },
       { id: "table", target: '[data-tour="users-table"]', icon: "clipboard", title: "People and access", content: "Switch between team, clients and invitations. Search, then use a row's menu to rename, deactivate, sign someone out or open their sessions." },
-      { id: "row-menu", target: '[data-tour="row-menu"]', optional: true, icon: "settings", interact: { hint: "Open a row's ⋮ menu" }, title: "The ⋮ menu", content: "Make someone a studio owner or staff, send a sign-in link, deactivate or reactivate. Each asks you to confirm." },
+      { id: "row-menu", target: '[data-tour="row-menu"]', optional: true, icon: "settings", interact: { hint: "Open a row's ⋮ menu" }, title: "The ⋮ menu on a row", content: "Every person's row has one, so you can change access without opening their record." },
+      { id: "row-menu-items", target: '[data-tour="row-menu-list"]', optional: true, icon: "settings", title: "What the person's menu holds", content: "Make someone a studio owner or staff, send a sign-in link, deactivate or reactivate. Each asks you to confirm." },
     ],
   },
   "/admin/forms/[form]": {

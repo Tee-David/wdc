@@ -7,7 +7,7 @@ import {
   createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode,
 } from "react";
 import { ADMIN_PAGE_TOURS, ADMIN_WALKTHROUGH, ADMIN_WELCOME, adminPageTourFor } from "@/lib/tours/admin";
-import { CLIENT_WALKTHROUGH, CLIENT_WELCOME, clientPageTourFor } from "@/lib/tours/client";
+import { CLIENT_PAGE_TOURS, CLIENT_WALKTHROUGH, CLIENT_WELCOME, clientPageTourFor } from "@/lib/tours/client";
 import type { TourDef } from "@/lib/tours/types";
 import { clearCompletion, readCompletion, syncFromAccount, writeCompletion } from "@/lib/tours/storage";
 import Confetti from "@/components/onboarding/confetti";
@@ -98,7 +98,7 @@ const REGISTRIES = {
   },
   client: {
     welcome: CLIENT_WELCOME, walkthrough: CLIENT_WALKTHROUGH, pageTourFor: clientPageTourFor,
-    all: [CLIENT_WELCOME, CLIENT_WALKTHROUGH],
+    all: [CLIENT_WELCOME, CLIENT_WALKTHROUGH, ...Object.values(CLIENT_PAGE_TOURS)],
     home: "/portal", offeredKey: "wdc-client-tour:offered-welcome",
   },
 } as const;

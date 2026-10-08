@@ -1,3 +1,5 @@
+import { listAutomations } from "@/lib/automations";
+import { NewAutomation } from "@/components/admin/email/automation-ui";
 import Link from "next/link";
 import { Download, Palette } from "lucide-react";
 import AreaGate from "@/components/admin/owner-only";
@@ -19,7 +21,7 @@ import "@/components/admin/dashboard.css";
 
 export const metadata = { title: "Email" };
 
-const TABS = [["contacts", "Contacts"], ["campaigns", "Campaigns"], ["templates", "Templates"], ["reports", "Reports"]] as const;
+const TABS = [["contacts", "Contacts"], ["campaigns", "Campaigns"], ["automations", "Automations"], ["templates", "Templates"], ["reports", "Reports"]] as const;
 
 /**
  * EMAIL: the studio's mail in one place. Contacts, campaigns, automations and
@@ -45,6 +47,7 @@ export default async function EmailPage({ searchParams }: { searchParams: Promis
       </nav>
       {current === "contacts" ? <ContactsTab sp={sp} /> : null}
       {current === "campaigns" ? <CampaignsTab /> : null}
+      {current === "automations" ? <AutomationsTab /> : null}
       {current === "reports" ? <ReportsTab /> : null}
       {current === "templates" ? <>
       <Panel title="Emails you can design" dataTour="email-templates">
@@ -152,6 +155,30 @@ async function CampaignsTab() {
           </table>
         </div>
       ) : <Empty title="No campaigns yet" icon={Download} action={<NewCampaign />}>Write an issue, choose who gets it, and send it. Only people who asked to hear from you are emailed.</Empty>}
+    </Panel>
+  );
+}
+
+async function AutomationsTab() {
+  const list = await listAutomations();
+  if (!list) return <Empty title="Automations are not set up yet" icon={Download}>Apply migration 0047 in Settings › System, then reload.</Empty>;
+  return (
+    <Panel title="Automations" action={<NewAutomation />}>
+      {list.length ? (
+        <div className="ad__scroll" data-lenis-prevent>
+          <table className="ad__t">
+            <thead><tr><th>Automation</th><th>Starts when</th><th>State</th><th className="num">Steps</th></tr></thead>
+            <tbody>{list.map((a) => (
+              <tr key={a.id}>
+                <td><Link href={`/admin/email/automations/${a.id}`}><b>{a.name}</b></Link></td>
+                <td className="ad__dim">{a.triggerKind === "tag_added" ? `Tag “${a.triggerValue}” is added` : "Someone becomes a contact"}</td>
+                <td><span className={`ad__pill ${a.enabled ? "ad__pill--good" : "ad__pill--flat"}`}>{a.enabled ? "On" : "Off"}</span></td>
+                <td className="num">{a.steps.length}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      ) : <Empty title="No automations yet" icon={Download} action={<NewAutomation />}>A short chain that welcomes new people or follows up after a tag: wait, email, tag, stop.</Empty>}
     </Panel>
   );
 }
