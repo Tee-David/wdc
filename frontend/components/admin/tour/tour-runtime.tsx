@@ -96,14 +96,14 @@ export default function TourRuntime({ tour, role, isReplay, onFinish, onSkip }: 
        reached from the page the reader is actually on. */
     const allowed = (s: TourDef["steps"][number]) => !s.roles || s.roles.includes(role as never);
     const gone = new Set(tour.steps.filter((s) => !allowed(s) && s.href).map((s) => s.href));
-    let last: string | undefined;
     const visible = tour.steps
       .filter(allowed)
-      .map((s) => {
+      .reduce<typeof tour.steps>((out, s) => {
+        const last = out.length ? out[out.length - 1].href : undefined;
         const href = s.href && gone.has(s.href) ? last : s.href;
-        last = href ?? last;
-        return href === s.href ? s : { ...s, href };
-      })
+        out.push(href === s.href ? s : { ...s, href: href ?? last });
+        return out;
+      }, [])
       .filter((s) => !(s.desktopOnly && !desktop))
       .filter((s) => !(s.mobileOnly && desktop));
 

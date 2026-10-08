@@ -33,7 +33,7 @@ const closer = (id: string, title: string, content: string): TourDef["steps"][nu
 
 export const ADMIN_WELCOME: TourDef = {
   id: "admin-welcome",
-  version: 2,
+  version: 3,
   kind: "welcome",
   title: "Welcome to the admin",
   steps: [
@@ -54,6 +54,7 @@ export const ADMIN_WELCOME: TourDef = {
     { id: "nav-money", roles: ["owner"], target: '[data-tour="nav-money"]', href: "/admin/projects", icon: "wallet", interact: { hint: "Click Money to move on" }, title: "Money", content: "Invoices, payments, and expenses: what is owed, right now." },
     { id: "nav-forms", target: '[data-tour="nav-forms"]', href: "/admin/money", icon: "inbox", interact: { hint: "Click Forms to move on" }, title: "Forms", content: "Everything people send through the site: briefs, enquiries, sign-ups, and the forms you build." },
     { id: "nav-blog", target: '[data-tour="nav-blog"]', href: "/admin/forms", icon: "book", interact: { hint: "Click Blog to move on" }, title: "Blog", content: "Write, review and schedule posts. A live post you change says Update, not Save." },
+    { id: "nav-users", roles: ["owner"], target: '[data-tour="nav-users"]', href: "/admin/blog", icon: "users", title: "Users", content: "The studio team, client accounts and invitations. Who can sign in, and from how many devices." },
     { id: "nav-settings", target: '[data-tour="nav-settings"]', href: "/admin/blog", icon: "settings", interact: { hint: "Click Settings to move on" }, title: "Settings", content: "How the studio, the site and the admin run, with the media library and your own account." },
     { id: "sidebar-pin", target: '[data-tour="sidebar-pin"]', href: "/admin/settings", icon: "panelLeft", desktopOnly: true, optional: true, title: "Collapse the sidebar", content: "Icons only, more room for the page. It remembers your choice next time." },
     { id: "mobile-menu", target: '[data-tour="mobile-menu"]', href: "/admin/settings", icon: "panelLeft", mobileOnly: true, optional: true, title: "The sections, on a phone", content: "This button opens the sidebar: every section, the theme switch and sign out. Tap a section and it closes." },
@@ -64,7 +65,7 @@ export const ADMIN_WELCOME: TourDef = {
 
 export const ADMIN_WALKTHROUGH: TourDef = {
   id: "admin-walkthrough",
-  version: 3,
+  version: 4,
   kind: "walkthrough",
   title: "The full admin walkthrough",
   steps: [
@@ -99,6 +100,7 @@ export const ADMIN_WALKTHROUGH: TourDef = {
     { id: "nav-money", roles: ["owner"], target: '[data-tour="nav-money"]', href: "/admin/projects", icon: "wallet", interact: { hint: "Click Money to see the totals" }, page: "Money", title: "On to Money", content: "What is owed, right now: collected, outstanding, and overdue, all recomputed from the actual invoices and payments." },
     { id: "money-tiles", roles: ["owner"], target: '[data-tour="money-tiles"]', href: "/admin/money", icon: "calculator", title: "The real-time totals", content: "Reconciliation for anything the bank and the books disagree on is one link away." },
     { id: "money-add", roles: ["owner"], target: '[data-tour="money-add"]', href: "/admin/money", icon: "receipt", title: "Raising an invoice", content: "Add the lines, issue it, and the client gets a token-addressed public copy with a pay link. A draft can still be edited; an issued invoice cannot, because somebody outside the studio is holding it." },
+    { id: "money-reports", roles: ["owner"], target: '[data-tour="reports-tiles"]', href: "/admin/reports", page: "Reports", icon: "barChart", title: "Reports", content: "Any stretch of days against the one before it: invoiced, collected, spent and net, with a month-by-month table and a CSV." },
 
     { id: "nav-forms", target: '[data-tour="nav-forms"]', href: "/admin/money", icon: "inbox", interact: { hint: "Click Forms to see them" }, page: "Forms", title: "On to Forms", content: "Everything people send through the site: onboarding briefs, enquiries, newsletter sign-ups, and any form you build." },
     { id: "forms-table", target: '[data-tour="forms-table"]', href: "/admin/forms", icon: "clipboard", title: "Every form, with what is new", content: "Each row is one form with its unread count. Open one for its entries, its questions and its emails." },
@@ -107,6 +109,8 @@ export const ADMIN_WALKTHROUGH: TourDef = {
     { id: "nav-blog", target: '[data-tour="nav-blog"]', href: "/admin/forms/contact", icon: "book", interact: { hint: "Click Blog to see the posts" }, page: "Blog", title: "On to the Blog", content: "Posts are written weekly, so the blog has its own section rather than a corner of Settings." },
     { id: "blog-new", target: '[data-tour="blog-new"]', href: "/admin/blog", optional: true, icon: "plus", title: "Writing a post", content: "Drafts are yours until you send them for review or publish. Saving a live post says Update, and a toast confirms it." },
     { id: "blog-filters", target: '[data-tour="blog-filters"]', href: "/admin/blog", optional: true, icon: "filter", title: "Finding a post", content: "Search, filter by state or service, or pick dates. Drafts moved to the Trash wait there before they go." },
+
+    { id: "users-table", roles: ["owner"], target: '[data-tour="users-table"]', href: "/admin/users", page: "Users", icon: "users", title: "People and access", content: "Team, client accounts and invitations. A row's ⋮ menu renames, deactivates or signs someone out." },
 
     { id: "nav-settings", target: '[data-tour="nav-settings"]', href: "/admin/blog", icon: "settings", interact: { hint: "Click Settings to see every section" }, page: "Settings", title: "On to Settings", content: "How the studio, the site and the admin run." },
     { id: "settings-sections", target: '[data-tour="settings-sections"]', href: "/admin/settings", icon: "shieldCheck", title: "Every setting, in one column", content: "Each panel is a group of sections with its current state beside it. Search finds a setting by name. Changes go through the bar that appears at the bottom, and a toast says when they are saved." },
@@ -146,6 +150,7 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
       { id: "intro", target: "body", placement: "center", icon: "users", showEstimate: true, title: "Clients", content: "Grouped by what they buy, with the flat list of everyone underneath." },
       { id: "add", target: '[data-tour="clients-add"]', icon: "plus", title: "Add a client", content: "One form; they can be attached to a project or invoice straight after." },
       { id: "filters", target: '[data-tour="clients-filters"]', icon: "filter", title: "Search and filter", content: "By name, service, or status. The URL keeps the filter, so it is a real link you can send." },
+      { id: "row-menu", target: '[data-tour="row-menu"]', optional: true, icon: "settings", interact: { hint: "Open a row's ⋮ menu" }, title: "The ⋮ menu on a row", content: "Everything you can do to that client without opening them: edit, add a project or invoice, invite them to the portal, archive. Dangerous ones ask you to confirm." },
     ],
   },
   "/admin/projects": {
@@ -157,6 +162,7 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
       { id: "intro", target: "body", placement: "center", icon: "folder", showEstimate: true, title: "Projects", content: "Every live and delivered project, with a health that is derived rather than typed." },
       { id: "add", target: '[data-tour="projects-add"]', icon: "plus", title: "Open a project", content: "Pick the client, the service, and a starting stage." },
       { id: "switch", target: '[data-tour="projects-switch"]', icon: "layout", interact: { hint: "Try switching the view" }, title: "List or board", content: "Sorted or grouped by stage. Whichever you leave it on loads next time." },
+      { id: "row-menu", target: '[data-tour="row-menu"]', optional: true, icon: "settings", interact: { hint: "Open a row's ⋮ menu" }, title: "The ⋮ menu on a row", content: "Move its stage, set a due date, change who is answerable, post an update or archive it, from the row." },
     ],
   },
   "/admin/money": {
@@ -168,6 +174,7 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
       { id: "intro", target: "body", placement: "center", icon: "wallet", showEstimate: true, title: "Money", content: "In, out, and what is still owed: every figure recomputed from the underlying invoices and payments." },
       { id: "tiles", target: '[data-tour="money-tiles"]', icon: "calculator", title: "The real-time totals", content: "Collected, outstanding, and overdue. Reconciliation for anything the bank and the books disagree on is one link away." },
       { id: "add", target: '[data-tour="money-add"]', icon: "receipt", title: "Raise an invoice", content: "Or an estimate first, if the work has not been agreed yet: the button beside it." },
+      { id: "row-menu", target: '[data-tour="row-menu"]', optional: true, icon: "settings", interact: { hint: "Open a row's ⋮ menu" }, title: "The ⋮ menu on a row", content: "Issue, record a payment (cash, card, POS, transfer; part or full), email a reminder, duplicate or void an invoice, depending on its status." },
     ],
   },
   "/admin/forms": {
@@ -178,6 +185,7 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
     steps: [
       { id: "intro", target: "body", placement: "center", icon: "inbox", showEstimate: true, title: "Forms", content: "Every form on the site, with its entries: briefs, enquiries, sign-ups and the forms you build." },
       { id: "table", target: '[data-tour="forms-table"]', icon: "clipboard", title: "The forms", content: "Each row opens that form's entries, its questions and its emails." },
+      { id: "all", target: '[data-tour="forms-all-link"]', optional: true, icon: "inbox", title: "All entries", content: "Click the Entries card to open every entry from every form in one table, with search, columns and export." },
     ],
   },
   "/admin/settings/general": {
@@ -236,6 +244,40 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
       { id: "intro", target: "body", placement: "center", icon: "inbox", showEstimate: true, title: "Support", content: "Questions clients ask in their portal. Your answer is emailed to them and waits in their portal." },
       { id: "tiles", target: '[data-tour="support-tiles"]', icon: "gauge", title: "Who is waiting", content: "Waiting on us is the one to empty. A closed question reopens if the client writes again." },
       { id: "filters", target: '[data-tour="support-filters"]', icon: "filter", title: "Search and filter", content: "By words or by status." },
+    ],
+  },
+  "/admin/forms/all": {
+    id: "admin-page-all-entries",
+    version: 1,
+    kind: "page",
+    title: "This page: all entries",
+    steps: [
+      { id: "intro", target: "body", placement: "center", icon: "inbox", showEstimate: true, title: "Every entry, one table", content: "Entries from every form together, newest first." },
+      { id: "filters", target: '[data-tour="entries-filters"]', icon: "filter", title: "Narrow it down", content: "Search, pick one form, set the dates, and choose which columns to show. The address keeps all of it." },
+      { id: "table", target: '[data-tour="entries-table"]', icon: "clipboard", title: "The entries", content: "Open any row for the full entry. The pager sits under the table; the owner also gets CSV and Excel at the top." },
+    ],
+  },
+  "/admin/reports": {
+    id: "admin-page-reports",
+    version: 1,
+    kind: "page",
+    title: "This page: Reports",
+    steps: [
+      { id: "intro", target: "body", placement: "center", icon: "barChart", showEstimate: true, title: "Reports", content: "What came in and went out for any stretch of days, set against the stretch just before it." },
+      { id: "range", target: '[data-tour="reports-range"]', icon: "calendar", title: "Pick the days, take the file", content: "Presets or your own dates. CSV downloads exactly what is on screen." },
+      { id: "tiles", target: '[data-tour="reports-tiles"]', icon: "gauge", title: "The figures and their change", content: "Each card says how it moved against the period before." },
+      { id: "months", target: '[data-tour="reports-months"]', icon: "barChart", title: "Month by month", content: "Collected against spent, with the table under it. Who paid most, how they paid and where the money went follow below." },
+    ],
+  },
+  "/admin/users": {
+    id: "admin-page-users",
+    version: 1,
+    kind: "page",
+    title: "This page: Users",
+    steps: [
+      { id: "intro", target: "body", placement: "center", icon: "users", showEstimate: true, title: "Users", content: "The studio team, client accounts and invitations in one place." },
+      { id: "table", target: '[data-tour="users-table"]', icon: "clipboard", title: "People and access", content: "Switch between team, clients and invitations. Search, then use a row's menu to rename, deactivate, sign someone out or open their sessions." },
+      { id: "row-menu", target: '[data-tour="row-menu"]', optional: true, icon: "settings", interact: { hint: "Open a row's ⋮ menu" }, title: "The ⋮ menu", content: "Make someone a studio owner or staff, send a sign-in link, deactivate or reactivate. Each asks you to confirm." },
     ],
   },
   "/admin/forms/[form]": {
@@ -350,6 +392,7 @@ function normalizeAdminRoute(pathname: string): string {
   const [admin, section, id] = segments;
   /* A form is keyed by its own name, and its entries sit one level down. */
   if (admin === "admin" && section === "forms" && id) {
+    if (segments.length === 3 && id === "all") return "/admin/forms/all";
     if (segments.length === 3) return "/admin/forms/[form]";
     if (segments.length === 5 && segments[3] === "entries") return "/admin/forms/[form]/entries/[entry]";
     return pathname;

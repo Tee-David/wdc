@@ -226,6 +226,7 @@ export function RowMenu({
       <button
         ref={btnRef}
         type="button"
+        data-tour="row-menu"
         className={`ad__rm${open ? " is-on" : ""}`}
         aria-label={`Actions for ${label}`}
         aria-haspopup="menu"

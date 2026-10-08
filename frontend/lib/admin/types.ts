@@ -244,8 +244,10 @@ export type InvoiceLine = {
 
 export type Invoice = {
   id: Id;
-  /** INV-YYYY-NNN, issued in order and never reused. */
+  /** INV-YY-XXXXXX (random). Older ones were INV-YYYY-NNN. */
   number: string;
+  /** Numbers this invoice carried before it was renumbered, so a client's old email or bank narration still matches it. */
+  formerNumbers?: string[];
   /**
    * THE PUBLIC ADDRESS OF THIS INVOICE, and why it is not the number.
    *

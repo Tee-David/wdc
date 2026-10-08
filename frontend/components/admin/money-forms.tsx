@@ -547,9 +547,10 @@ export function RecordAnyPayment({ open }: { open: { id: string; label: string; 
                    hint="What arrived. A part payment is fine." />
             <Select name="method" label="How" half defaultValue="Transfer"
                     options={ENTERABLE_METHODS.map((m) => ({ value: m, label: m === "Transfer" ? "Bank transfer" : m }))} />
-            <Field name="reference" label="Reference" required placeholder="TRF_0092"
-                   hint="The bank reference or the Paystack transaction id. This is what stops the same payment being recorded twice." />
+            <Field name="reference" label="Reference" placeholder="TRF_0092"
+                   hint="The bank reference for a transfer (needed, and it stops the same payment being recorded twice). For cash, card or POS, a slip number if there is one." />
             <Field name="at" label="When" type="date" half defaultValue={new Date().toISOString().slice(0, 10)} />
+            <Field name="note" label="Note" placeholder="Paid at the office" hint="Needed when the method is Other." />
           </Fields>
           <Actions>
             <Submit icon={Banknote}>Record it</Submit>
