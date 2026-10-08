@@ -168,6 +168,13 @@ export type Field = {
    * their own order.
    */
   notFor?: ServiceSlug[];
+  /**
+   * The same question worded for one service. A shared closing question has
+   * to make sense under every service: "in a few days" is a fair answer for a
+   * flyer and a silly one for an app, and "when do you need it" means nothing
+   * to a search client whose work simply starts. Applied in stepsFor.
+   */
+  byService?: Partial<Record<ServiceSlug, Partial<Pick<Field, "label" | "hint" | "options">>>>;
 };
 
 

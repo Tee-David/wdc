@@ -8,7 +8,14 @@ import React, {
   useState,
 } from "react";
 import dynamic from "next/dynamic";
-import { gsap } from "gsap";
+/* GSAP IS LOADED WHEN THE MENU IS FIRST WANTED, not with the page. It is about
+   70 KB that every visitor used to download and parse on every page for a
+   panel most of them never open. The panel rests off screen in CSS, so nothing
+   needs the library until the first open; hovering or focusing the button
+   starts the download early, so the first click does not wait. */
+type Gsap = (typeof import("gsap"))["gsap"];
+let gsapLoad: Promise<Gsap> | null = null;
+const loadGsap = (): Promise<Gsap> => (gsapLoad ??= import("gsap").then((m) => m.gsap));
 import type { FilmPage } from "./film-strip-menu";
 import "./staggered-menu.css";
 
@@ -75,8 +82,9 @@ export default function StaggeredMenu({
   const preLayersRef = useRef<HTMLDivElement>(null);
   const toggleBtnRef = useRef<HTMLButtonElement>(null);
 
-  const openTlRef = useRef<gsap.core.Timeline | null>(null);
-  const closeTweenRef = useRef<gsap.core.Tween | null>(null);
+  const openTlRef = useRef<ReturnType<Gsap["timeline"]> | null>(null);
+  const closeTweenRef = useRef<ReturnType<Gsap["to"]> | null>(null);
+  const gsapRef = useRef<Gsap | null>(null);
   const busyRef = useRef(false);
 
   /* DESKTOP OR PHONE, decided in the browser. `wide` is false on the server and
@@ -101,25 +109,17 @@ export default function StaggeredMenu({
     return () => mq.removeEventListener("change", update);
   }, []);
 
-  useLayoutEffect(() => {
-    const ctx = gsap.context(() => {
-      const panel = panelRef.current;
-      const layers = preLayersRef.current
-        ? Array.from(preLayersRef.current.querySelectorAll(".sm-prelayer"))
-        : [];
-      if (!panel) return;
-      gsap.set([panel, ...layers], { xPercent: 100 });
-    });
-    return () => ctx.revert();
-  }, []);
 
-  const buildOpenTimeline = useCallback(() => {
+  const buildOpenTimeline = useCallback((gsap: Gsap) => {
     const panel = panelRef.current;
     const layers = preLayersRef.current
       ? Array.from(preLayersRef.current.querySelectorAll(".sm-prelayer"))
       : [];
     if (!panel) return null;
 
+    /* The panel rests at translateX(100%) in CSS; hand that position to GSAP
+       as a percentage so the timeline below starts from where it already is. */
+    gsap.set([panel, ...layers], { xPercent: 100, x: 0 });
     openTlRef.current?.kill();
     closeTweenRef.current?.kill();
     closeTweenRef.current = null;
@@ -203,15 +203,20 @@ export default function StaggeredMenu({
   const playOpen = useCallback(() => {
     if (busyRef.current) return;
     busyRef.current = true;
-    const tl = buildOpenTimeline();
-    if (tl) {
-      tl.eventCallback("onComplete", () => {
+    void loadGsap().then((gsap) => {
+      gsapRef.current = gsap;
+      /* Closed again before the library arrived: nothing to play. */
+      if (!openRef.current) { busyRef.current = false; return; }
+      const tl = buildOpenTimeline(gsap);
+      if (tl) {
+        tl.eventCallback("onComplete", () => {
+          busyRef.current = false;
+        });
+        tl.play(0);
+      } else {
         busyRef.current = false;
-      });
-      tl.play(0);
-    } else {
-      busyRef.current = false;
-    }
+      }
+    }).catch(() => { busyRef.current = false; });
   }, [buildOpenTimeline]);
 
   const playClose = useCallback(() => {
@@ -221,7 +226,8 @@ export default function StaggeredMenu({
     const layers = preLayersRef.current
       ? Array.from(preLayersRef.current.querySelectorAll(".sm-prelayer"))
       : [];
-    if (!panel) return;
+    const gsap = gsapRef.current;
+    if (!panel || !gsap) { busyRef.current = false; return; }
     closeTweenRef.current?.kill();
     closeTweenRef.current = gsap.to([...layers, panel], {
       xPercent: 100,
@@ -307,8 +313,9 @@ export default function StaggeredMenu({
           setOpenedByKeyboard(e.detail === 0);
           toggleMenu();
         }}
-        onPointerEnter={filmOn ? () => void loadFilm() : undefined}
-        onFocus={filmOn ? () => void loadFilm() : undefined}
+        onPointerEnter={() => { void loadGsap(); if (filmOn) void loadFilm(); }}
+        onFocus={() => { void loadGsap(); if (filmOn) void loadFilm(); }}
+        onTouchStart={() => void loadGsap()}
         type="button"
       >
         <span className="sm-burger" aria-hidden="true">

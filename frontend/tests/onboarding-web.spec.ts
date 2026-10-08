@@ -70,7 +70,7 @@ const FULL: Answers = {
   features_other: "Events calendar",
   has_domain: "No",
   hosting_wanted: "Yes",
-  deadline_kind: "Within two weeks",
+  deadline_kind: "Within a month",
   has_logo: "No",
   logo_wanted: "Yes",
   has_brandbook: "No",

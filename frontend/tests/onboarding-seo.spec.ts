@@ -39,7 +39,7 @@ const SMALL_KEYS = [
   "seo_goals", "seo_timeframe", "tf_note", "target_terms",
   "deadline_kind", "approver", "channel", "has_logo", "assets", "anything_else",
 ];
-const MEDIUM_KEYS = [...SMALL_KEYS, "about", "company_age", "age_range", "seo_tools", "content_owner", "has_brandbook"];
+const MEDIUM_KEYS = [...SMALL_KEYS, "about", "company_age", "age_range", "seo_tools", "content_owner"];
 const LARGE_KEYS = [...MEDIUM_KEYS, "usp", "competitors", "inspiration", "others"];
 
 /* ------------------------------------------------------------- answers used */
@@ -61,10 +61,9 @@ const FULL: Answers = {
   age_range: ["35 to 54"],
   usp: "We listen first.",
   has_logo: "Yes",
-  has_brandbook: "No",
   brandbook_wanted: "Yes",
   inspiration: "Two links",
-  deadline_kind: "Within two weeks",
+  deadline_kind: "Within a month",
   others: "The accountant",
   about: "We sell things.",
   anything_else: "Nothing else",
@@ -74,7 +73,7 @@ const FULL: Answers = {
 const SMALL_WALK: Answers = { ...PERSON, seo_size: ONE_SITE, customers: "Online, anywhere", seo_goals: ["More leads"], seo_timeframe: "3 months" };
 const MEDIUM_WALK: Answers = {
   ...PERSON, seo_size: GROWING, customers: "Near me", geo: "The three areas around the shop", seo_goals: ["More calls", "More visibility"],
-  seo_timeframe: "6 months", seo_tools: ["Google Business Profile"], content_owner: "My team", has_logo: "Yes", has_brandbook: "No",
+  seo_timeframe: "6 months", seo_tools: ["Google Business Profile"], content_owner: "My team", has_logo: "Yes",
 };
 const LARGE_WALK: Answers = {
   ...PERSON, seo_size: BIG, customers: "A mix", geo: "Three areas around the shop", b2b_kind: "Builders", seo_goals: ["Show up in AI answers"],
