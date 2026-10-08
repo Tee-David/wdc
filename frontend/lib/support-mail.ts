@@ -1,3 +1,4 @@
+import { designed } from "@/lib/email-designed";
 import "server-only";
 
 import { studioInbox } from "@/lib/email";
@@ -52,7 +53,10 @@ export async function sendSupportReply(input: { ticket: Ticket; reply: string; a
   }
   try {
     await sendLogged(
-      { to: email, ...supportReplyEmail({ clientName: first(client.name), subject: ticket.subject, reply, author, url: new URL(`/portal/support/${ticket.id}`, SITE_URL).toString() }) },
+      { to: email, ...(await designed("support-reply", {
+        "client.first_name": first(client.name), "ticket.subject": ticket.subject, "reply.body": reply, "reply.author": author,
+        "links.thread": new URL(`/portal/support/${ticket.id}`, SITE_URL).toString(),
+      }, () => supportReplyEmail({ clientName: first(client.name), subject: ticket.subject, reply, author, url: new URL(`/portal/support/${ticket.id}`, SITE_URL).toString() }))) },
       { summary: "The studio replied to a support question.", dedupeKey, by, clientId: client.id },
     );
   } catch { /* The row records the failure. */ }
