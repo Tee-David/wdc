@@ -250,7 +250,12 @@ export async function answerScreen(page: Page, answers: Record<string, string | 
 /** Tabs to the screen's forward button, presses it, and says where the form went. */
 export async function pressNext(page: Page, title: string) {
   const next = page.locator(".ob__stepNext:visible").first();
-  await expect(next, `the Next button on "${title}"`).toBeVisible({ timeout: 15_000 });
+  if (!(await next.isVisible().catch(() => false))) {
+    await next.waitFor({ state: "visible", timeout: 15_000 }).catch(async () => {
+      const shown = await page.evaluate(() => Array.from(document.querySelectorAll<HTMLElement>("button")).filter((b) => b.offsetParent !== null).map((b) => b.textContent?.trim()).slice(0, 25));
+      throw new Error(`no visible Next button on "${title}"; visible buttons: ${JSON.stringify(shown)}`);
+    });
+  }
   await tabTo(page, next, `Next on "${title}"`);
   await page.keyboard.press("Enter");
   const outcome = await page.waitForFunction((from: string) => {

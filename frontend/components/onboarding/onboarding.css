@@ -1371,11 +1371,14 @@
 /* Fonts: the same card rhythm as the colours, with a live sample on each card. */
 .obFont__card { text-align: left; font: inherit; }
 .obFont__sample { display: grid; gap: .25rem; min-width: 0; padding: .6rem .7rem; border-radius: 10px; background: #fff; color: #14171f; overflow: hidden; }
-.obFont__head { font-size: clamp(1.15rem, 5vw, 1.5rem); line-height: 1.15; overflow-wrap: anywhere; }
-.obFont__body { font-size: .92rem; line-height: 1.45; overflow-wrap: anywhere; }
+.obFont__head { font-size: calc(var(--ob-font, 16px) * 1.55); line-height: 1.15; overflow-wrap: anywhere; }
+.obFont__body { font-size: var(--ob-font, 16px); line-height: 1.45; overflow-wrap: anywhere; }
 .obFont__own { display: grid; gap: .8rem; min-width: 0; }
 @media (min-width: 620px) { .obFont__own { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .obFont__picks { list-style: none; margin: 0; padding: 0; display: grid; gap: .45rem; min-width: 0; }
 .obFont__pick { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: .5rem; align-items: center; min-width: 0; }
 .obFont__pickText { min-width: 0; overflow-wrap: anywhere; font-size: 1.05rem; }
 .obFont__pickText small { font-family: var(--font-body); font-size: .86rem; color: var(--muted); }
+.obFont__size { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: .6rem; align-items: center; min-width: 0; font-size: .9rem; color: var(--muted); }
+.obFont__size input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--accent-fill); }
+.obFont__size output { min-width: 3ch; font-variant-numeric: tabular-nums; color: var(--ink); }
