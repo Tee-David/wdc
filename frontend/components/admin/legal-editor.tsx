@@ -128,7 +128,7 @@ export function LegalEditor({ doc, edited }: { doc: LegalDoc; edited: boolean })
         </button>
         <Actions>
           <Submit icon={Save}>Save this policy</Submit>
-          <a className="ad__btn" href={`/legal/${doc.slug}`} target="_blank" rel="noreferrer"><ExternalLink aria-hidden="true" /><span>View on the site</span></a>
+          <a className="ad__btn" href={`/policies/${doc.slug}`} target="_blank" rel="noreferrer"><ExternalLink aria-hidden="true" /><span>View on the site</span></a>
         </Actions>
       </Form>
       {edited ? (

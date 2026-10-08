@@ -60,12 +60,12 @@ export async function generateMetadata(
   return {
     title: doc.title,
     description,
-    alternates: { canonical: `${SITE_URL}/legal/${doc.slug}` },
+    alternates: { canonical: `${SITE_URL}/policies/${doc.slug}` },
     openGraph: {
       title: `${doc.title} | ${COMPANY_NAME}`,
       description,
       type: "article",
-      url: `${SITE_URL}/legal/${doc.slug}`,
+      url: `${SITE_URL}/policies/${doc.slug}`,
     },
   };
 }
@@ -87,8 +87,8 @@ export default async function LegalDocPage(
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-      { "@type": "ListItem", position: 2, name: "Legal", item: `${SITE_URL}/legal` },
-      { "@type": "ListItem", position: 3, name: doc.title, item: `${SITE_URL}/legal/${doc.slug}` },
+      { "@type": "ListItem", position: 2, name: "Policies", item: `${SITE_URL}/policies` },
+      { "@type": "ListItem", position: 3, name: doc.title, item: `${SITE_URL}/policies/${doc.slug}` },
     ],
   };
 
@@ -128,7 +128,7 @@ export default async function LegalDocPage(
                     </section>
                   ))}
 
-                  <div className="lg-pdf"><a href={`/legal/${doc.slug}/pdf`} download><Download aria-hidden="true" /><span>Download this policy as a PDF</span></a></div>
+                  <div className="lg-pdf"><a href={`/policies/${doc.slug}/pdf`} download><Download aria-hidden="true" /><span>Download this policy as a PDF</span></a></div>
 
                 <SeeAlso here={doc.slug} docs={docs.map((d) => ({ slug: d.slug, title: d.title }))} />
 

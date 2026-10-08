@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-const publicPages = ["/", "/services", "/about", "/work", "/contact", "/legal", "/onboarding"];
+const publicPages = ["/", "/services", "/about", "/work", "/contact", "/policies", "/onboarding"];
 
 test("public internal links resolve and in-page links have real targets", async ({ page, request, baseURL }) => {
   test.setTimeout(120_000);

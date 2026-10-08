@@ -46,7 +46,7 @@ export default function LegalToc({
       <p className="lg-toc__k lg-toc__k--2">Other documents</p>
       <div className="lg-toc__others">
         {others.map((d) => (
-          <Link key={d.slug} href={`/legal/${d.slug}`}>{d.title}</Link>
+          <Link key={d.slug} href={`/policies/${d.slug}`}>{d.title}</Link>
         ))}
       </div>
     </nav>
