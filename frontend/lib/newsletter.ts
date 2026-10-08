@@ -171,6 +171,8 @@ export async function unsubscribe(email: string): Promise<boolean> {
     "UPDATE newsletter_subscribers SET unsubscribed_at = now(), updated_at = now() WHERE email = $1 AND unsubscribed_at IS NULL",
     [normal],
   );
+  /* The same fact on the person record and the suppression list (Email page), if they exist yet. */
+  if ((r.rowCount ?? 0) > 0) { try { await (await import("@/lib/contacts")).suppress(normal, "unsubscribed", "newsletter"); } catch { /* tables arrive with migration 0045 */ } }
   return (r.rowCount ?? 0) > 0;
 }
 
