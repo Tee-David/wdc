@@ -32,6 +32,7 @@ import { BriefExample, ChoiceLabel } from "./brief-help";
 import { FIELD_EXAMPLES } from "@/lib/onboarding-help";
 import Dropzone from "./dropzone";
 import ProfilesField from "./profiles-field";
+import FontsField from "./fonts-field";
 import { DateInput } from "@/components/admin/pick";
 import Tip from "./tip";
 import Dialog from "./dialog";
@@ -809,6 +810,11 @@ export default function OnboardingForm({ closed = {}, styles = {}, engagement = 
                         </div>
                       )}
                       <div className="ob__acts ob__acts--step">
+                        {n === 0 ? (
+                          <button className="ob__btn ob__btn--ghost ob__stepBack" type="button" onClick={changeService}>
+                            <ArrowLeft aria-hidden="true" /> Back to the onboarding menu
+                          </button>
+                        ) : null}
                         <button className="ob__btn ob__btn--ghost ob__stepSave" type="button" onClick={saveNow}><Save aria-hidden="true" /> Save &amp; continue later</button>
                         <button className="ob__btn ob__btn--go ob__stepNext" type="button" onClick={boardNext}>
                           {n === steps.length - 1 ? "Done, review" : "Done, next section"} <ArrowRight aria-hidden="true" />
@@ -956,7 +962,7 @@ export default function OnboardingForm({ closed = {}, styles = {}, engagement = 
             </button>
           ) : (
             <button className="ob__btn ob__btn--ghost ob__stepBack" type="button" onClick={changeService}>
-              <ArrowLeft aria-hidden="true" /> Change service
+              <ArrowLeft aria-hidden="true" /> Back to the onboarding menu
             </button>
           )}
           <button className="ob__btn ob__btn--ghost ob__stepSave" type="button" onClick={saveNow}>
@@ -1251,6 +1257,10 @@ function FieldView({
         {problem ? <p className="ob__fErr" id={errId}><AlertCircle aria-hidden="true" />{problem}</p> : null}
       </div>
     );
+  }
+
+  if (f.kind === "fonts") {
+    return wrap(<FontsField id={id} value={typeof shown === "string" ? shown : ""} onChange={onChange} describedBy={describedBy} />);
   }
 
   if (f.kind === "profiles") {
