@@ -4,7 +4,7 @@ import { reveal } from "@/components/ui/scroll-reset";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useJoyride, EVENTS, STATUS, type Step } from "react-joyride";
-import type { TourDef, TourStepMeta } from "@/lib/tours/types";
+import type { TourDef, TourRole, TourStepMeta } from "@/lib/tours/types";
 import { withStepMeta } from "@/lib/tours/meta";
 import { emit } from "@/lib/tours/events";
 import TourTooltip from "./tooltip";
@@ -29,17 +29,45 @@ import TourBlur from "./tour-blur";
 const MAX_WAIT_MS = 3_000;
 const POLL_MS = 60;
 
-async function ensureOnPage(href: string, target: string, navigate: (href: string) => void) {
-  if (window.location.pathname !== href) navigate(href);
+/** Waits for a target that mounts after the previous stop: a row's menu, for
+ *  one, opens when the reader presses it. Resolves regardless; Joyride's own
+ *  target-not-found handling takes it from here rather than this hook hanging
+ *  the tour indefinitely. */
+async function waitForTarget(target: string) {
   if (target === "body") return;
-
   const start = Date.now();
   while (Date.now() - start < MAX_WAIT_MS) {
     if (document.querySelector(target)) return;
     await new Promise((resolve) => setTimeout(resolve, POLL_MS));
   }
-  // Resolves regardless; Joyride's own target-not-found handling takes it
-  // from here rather than this hook hanging the tour indefinitely.
+}
+
+async function ensureOnPage(href: string, target: string, navigate: (href: string) => void) {
+  if (window.location.pathname !== href) navigate(href);
+  await waitForTarget(target);
+}
+
+/** The steps this reader is shown: role-filtered, then the viewport filters,
+ *  with each kept step's page resolved. A sidebar step ("On to Forms") has no
+ *  page of its own, so a dropped owner-only step's page is only taken away
+ *  when no kept step that sits on real content still lives there. Without
+ *  that, an owner's "On to Money" (href /admin/projects) would drag staff's
+ *  own project steps off their page. */
+function visibleSteps(steps: TourDef["steps"], role: string, desktop: boolean): TourDef["steps"] {
+  const allowed = (s: TourDef["steps"][number]) => !s.roles || s.roles.includes(role as TourRole);
+  const isSidebarStep = (s: TourDef["steps"][number]) => s.target.startsWith('[data-tour="nav-');
+  const keptPages = new Set(steps.filter((s) => allowed(s) && !isSidebarStep(s)).map((s) => s.href));
+  const gone = new Set(steps.filter((s) => !allowed(s) && s.href && !keptPages.has(s.href)).map((s) => s.href));
+  let last: string | undefined;
+  return steps
+    .filter(allowed)
+    .map((s) => {
+      const href = s.href && gone.has(s.href) ? last : s.href;
+      last = href ?? last;
+      return href === s.href ? s : { ...s, href };
+    })
+    .filter((s) => !(s.desktopOnly && !desktop))
+    .filter((s) => !(s.mobileOnly && desktop));
 }
 
 /** The target, in the band between the sticky header and any fixed bar at the foot. */
@@ -90,22 +118,7 @@ export default function TourRuntime({ tour, role, isReplay, onFinish, onSkip }: 
   const activeDataRef = useRef<TourStepMeta | null>(null);
 
   const steps = useMemo<Step[]>(() => {
-    const desktop = window.matchMedia("(min-width: 1024px)").matches;
-    /* A step dropped for this role takes its page with it: "On to Forms" is
-       written as reached from Money, and staff never open Money, so it is
-       reached from the page the reader is actually on. */
-    const allowed = (s: TourDef["steps"][number]) => !s.roles || s.roles.includes(role as never);
-    const gone = new Set(tour.steps.filter((s) => !allowed(s) && s.href).map((s) => s.href));
-    const visible = tour.steps
-      .filter(allowed)
-      .reduce<typeof tour.steps>((out, s) => {
-        const last = out.length ? out[out.length - 1].href : undefined;
-        const href = s.href && gone.has(s.href) ? last : s.href;
-        out.push(href === s.href ? s : { ...s, href: href ?? last });
-        return out;
-      }, [])
-      .filter((s) => !(s.desktopOnly && !desktop))
-      .filter((s) => !(s.mobileOnly && desktop));
+    const visible = visibleSteps(tour.steps, role, window.matchMedia("(min-width: 1024px)").matches);
 
     return withStepMeta(visible, tour.kind).map((s) => ({
       target: s.target,
@@ -128,6 +141,7 @@ export default function TourRuntime({ tour, role, isReplay, onFinish, onSkip }: 
       skipScroll: true,
       before: async () => {
         if (s.href) await ensureOnPage(s.href, s.target, (href) => router.push(href));
+        else await waitForTarget(s.target);
         await revealTarget(s.target);
       },
     }));
@@ -224,22 +238,7 @@ export default function TourRuntime({ tour, role, isReplay, onFinish, onSkip }: 
   }, [controls]);
 
   useEffect(() => on(EVENTS.STEP_AFTER, (data) => {
-    const desktop = window.matchMedia("(min-width: 1024px)").matches;
-    /* A step dropped for this role takes its page with it: "On to Forms" is
-       written as reached from Money, and staff never open Money, so it is
-       reached from the page the reader is actually on. */
-    const allowed = (s: TourDef["steps"][number]) => !s.roles || s.roles.includes(role as never);
-    const gone = new Set(tour.steps.filter((s) => !allowed(s) && s.href).map((s) => s.href));
-    let last: string | undefined;
-    const visible = tour.steps
-      .filter(allowed)
-      .map((s) => {
-        const href = s.href && gone.has(s.href) ? last : s.href;
-        last = href ?? last;
-        return href === s.href ? s : { ...s, href };
-      })
-      .filter((s) => !(s.desktopOnly && !desktop))
-      .filter((s) => !(s.mobileOnly && desktop));
+    const visible = visibleSteps(tour.steps, role, window.matchMedia("(min-width: 1024px)").matches);
     const stepDef = visible[data.index];
     if (!stepDef) return;
     emit({
