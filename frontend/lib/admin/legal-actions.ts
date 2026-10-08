@@ -10,9 +10,9 @@ import { FAIL, OK, type ActionState } from "./validate";
 
 /* Every page that shows a policy, so a save is live on the next request. */
 function refresh(slug: string) {
-  revalidatePath("/legal");
-  revalidatePath(`/legal/${slug}`);
-  revalidatePath(`/legal/${slug}/pdf`);
+  revalidatePath("/policies");
+  revalidatePath(`/policies/${slug}`);
+  revalidatePath(`/policies/${slug}/pdf`);
   revalidatePath("/admin/settings/policies");
   revalidatePath(`/admin/settings/policies/${slug}`);
 }

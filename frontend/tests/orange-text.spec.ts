@@ -19,7 +19,7 @@ import { expect, test, type Page } from "@playwright/test";
 const PAGES = [
   "/", "/services", "/services/web", "/contact", "/work", "/about", "/blog",
   "/tools", "/tools/ai-cost", "/tools/business-name",
-  "/legal/privacy", "/this-page-does-not-exist",
+  "/policies/privacy", "/this-page-does-not-exist",
 ];
 
 type Hit = { text: string; fg: string; bg: string; ratio: number; large: boolean; where: string };
