@@ -5,7 +5,7 @@ import { SERVICES } from "@/lib/services";
 import { getBoard, getClient, getClients, getDeliverablesFor, getInvoices, getMonthly, getPayments, getProjects, getSubmissions, getSummary, getTasks, getTickets, providerAttentionCount } from "@/lib/admin/store";
 import { failedLoggedCount } from "@/lib/message-log";
 import { reviewCount } from "@/lib/blog-db";
-import { invoiceStatus, invoiceTotals, naira, nairaShort, projectAttention, STAGES } from "@/lib/admin/types";
+import { invoiceStatus, invoiceTotals, naira, paymentNet, nairaShort, projectAttention, STAGES } from "@/lib/admin/types";
 
 /* Worst first. The attention queue is read top-down in the morning, so the
    order has to be the order somebody should act in rather than the order the
@@ -17,6 +17,11 @@ const TONE_RANK = { bad: 0, warn: 1, info: 2 } as const;
 const ROW_RANK: Record<string, number> = { bad: 0, warn: 1, neutral: 2 };
 import { AddClient } from "./client-form";
 import { MyWork } from "./my-work";
+import { FirstWeek } from "./first-week";
+import { TodayStrip } from "./today-strip";
+import { CustomiseDashboard } from "./customise-dashboard";
+import { HIDEABLE } from "@/lib/admin/dashboard-panels";
+import { getSetting } from "@/lib/admin/store";
 import { unreadTotal } from "@/lib/forms/entries";
 import { AddExpense, InvoiceBuilder, RecordAnyPayment } from "./money-forms";
 import { AddProject } from "./project-forms";
@@ -40,6 +45,7 @@ function greeting() {
  * money quick actions -- rather than shown and then refused.
  */
 export async function AdminDashboardView({ firstName, money = true, me }: { firstName?: string; money?: boolean; me?: { id: string; name: string } }) {
+  const hidden = (me ? getSetting(`dash.hide.${me.id}`) ?? "" : "").split(",").filter((id) => HIDEABLE.some(([h]) => h === id));
   const failedMail = money ? await failedLoggedCount() : 0;
   /* The owner is the one who publishes, so the queue is theirs. */
   const inReview = money && (process.env.DATABASE_URL || process.env.COCKROACHDB_URL) ? await reviewCount().catch(() => 0) : 0;
@@ -192,6 +198,27 @@ export async function AdminDashboardView({ firstName, money = true, me }: { firs
   const overdueCount = invoices.filter((invoice) => invoiceStatus(invoice) === "Overdue").length;
   const openInvoices = invoices.filter((i) => i.status !== "Draft" && !i.voided && invoiceTotals(i).due > 0).length;
 
+  /* THE NEXT 30 DAYS: what is owed and falls due (or is already late) against
+     what a typical month costs, the average of the last three full months. */
+  const horizon = lagosDay(30);
+  const dueSoon = invoices
+    .filter((i) => i.status !== "Draft" && !i.voided && invoiceTotals(i).due > 0 && i.due.slice(0, 10) <= horizon)
+    .reduce((n, i) => n + invoiceTotals(i).due, 0);
+  const spends = monthly.slice(-4, -1).map((m) => m.out);
+  const typicalSpend = spends.length ? Math.round(spends.reduce((n, x) => n + x, 0) / spends.length) : 0;
+
+  const tomorrow = lagosDay(1);
+  const dueTomorrow = projects.filter((p) => p.stage !== "Delivered" && p.due?.slice(0, 10) === tomorrow).length;
+
+  /* Collected this week against the week before: a change worth a glance, or nothing. */
+  const weekIn = (from: number, to: number) => payments
+    .filter((p) => p.at.slice(0, 10) > lagosDay(-to) && p.at.slice(0, 10) <= lagosDay(-from))
+    .reduce((n, p) => n + paymentNet(p), 0);
+  const thisWeek = weekIn(0, 7), lastWeek = weekIn(7, 14);
+  const weekBadge = lastWeek === 0 && thisWeek === 0 ? undefined
+    : lastWeek === 0 ? { label: "New this week", tone: "live" as const }
+    : { label: `${thisWeek >= lastWeek ? "+" : ""}${Math.round(((thisWeek - lastWeek) / lastWeek) * 100)}% this week`, tone: thisWeek >= lastWeek ? "good" as const : "bad" as const };
+
   const stageCounts = STAGES.map((stage) => ({ stage, n: board.get(stage)?.length ?? 0 }));
   const busiest = Math.max(1, ...stageCounts.filter((x) => x.stage !== "Delivered").map((x) => x.n));
   const peakStage = stageCounts.filter((x) => x.stage !== "Delivered").sort((a, b) => b.n - a.n)[0]?.stage;
@@ -199,25 +226,31 @@ export async function AdminDashboardView({ firstName, money = true, me }: { firs
 
   return (
     <div className="adDash">
+      {hidden.length ? <style>{hidden.map((id) => `[data-tour="${id}"]{display:none}`).join("")}</style> : null}
       <header className="adDash__head">
         <div>
           <span className="adDash__eyebrow">{new Intl.DateTimeFormat("en-NG", { weekday: "long", day: "numeric", month: "long", timeZone: "Africa/Lagos" }).format(new Date())}</span>
           <h1>{greeting()}{firstName ? `, ${firstName}` : ""}</h1>
-          <p>{money ? "Start with what needs a decision, a reply, or a payment follow-up." : "Start with what needs a decision or a reply."}</p>
+          <p>{hourNow() >= 16 ? `That is the day. ${dueTomorrow ? `${dueTomorrow} project${dueTomorrow === 1 ? " is" : "s are"} due tomorrow.` : "Nothing is due tomorrow."}` : money ? "Start with what needs a decision, a reply, or a payment follow-up." : "Start with what needs a decision or a reply."}</p>
         </div>
         <div className="ad__row">
           <PageTourButton />
+          {me ? <CustomiseDashboard hidden={hidden} /> : null}
           <AddProject clients={clients} />
         </div>
       </header>
 
       <ExampleNote />
 
+      {me && !money ? <FirstWeek userId={me.id} /> : null}
+
+      <TodayStrip owner={money} />
+
       {me ? <MyWork me={me} quietWhenEmpty={money} unread={await unreadTotal().catch(() => 0)} /> : null}
 
       <dl className="adDash__kpis" data-tour="dash-kpis">
         {money ? <>
-        <Tile label="Collected" href="/admin/money?status=Paid" value={nairaShort(summary.collected)} tone="good" icon={Wallet} iconTone="good" note={`${collectionRate}% of everything billed`} />
+        <Tile label="Collected" href="/admin/money?status=Paid" value={nairaShort(summary.collected)} tone="good" icon={Wallet} iconTone="good" badge={weekBadge} note={`${collectionRate}% of everything billed`} />
         <Tile label="Outstanding" href="/admin/money?status=Sent" value={nairaShort(summary.outstanding)} icon={Clock} iconTone="live"
           badge={overdueCount ? { label: `${overdueCount} overdue`, tone: "bad" } : undefined}
           note={`Across ${openInvoices} open invoice${openInvoices === 1 ? "" : "s"}`} />
@@ -234,6 +267,14 @@ export async function AdminDashboardView({ firstName, money = true, me }: { firs
           <Tile label="Open forms" value={String(getSubmissions().filter((x) => x.status === "In progress").length)} icon={ClipboardList} note="Onboarding not finished" />
         )}
       </dl>
+
+      {money ? (
+        <dl className="ad__tiles ad__tiles--4" data-tour="dash-forecast" style={{ marginBottom: "1rem" }}>
+          <Tile label="Due in 30 days" href="/admin/money?status=Sent" value={nairaShort(dueSoon)} icon={CalendarClock} iconTone="live" note="Owed, and falling due or already late" />
+          <Tile label="Typical month's spend" href="/admin/money" value={nairaShort(typicalSpend)} icon={CircleDollarSign} iconTone="warn" note="Average of the last three months" />
+          <Tile label="Covers spend by" value={nairaShort(dueSoon - typicalSpend)} tone={dueSoon - typicalSpend >= 0 ? "good" : "bad"} icon={TrendingUp} iconTone={dueSoon - typicalSpend >= 0 ? "good" : "bad"} note={dueSoon - typicalSpend >= 0 ? "If it is all paid on time" : "Chase what is owed"} />
+        </dl>
+      ) : null}
 
       {money ? (
         <div className="adDash__row">
@@ -292,7 +333,7 @@ export async function AdminDashboardView({ firstName, money = true, me }: { firs
                     <span className={`adDash__attentionIcon adDash__attentionIcon--${item.tone}`}><Icon aria-hidden="true" /></span>
                     <span className="adDash__attentionCopy"><Link href={item.href}><b>{item.title}</b></Link><small>{item.detail}</small></span>
                     <span className="adDash__attentionMeta">{item.meta}</span>
-                    <span className="adDash__attentionActions">{item.menu}</span>
+                    <span className="adDash__attentionActions"><Link className="ad__btn" href={item.href}>{ctaFor(item.icon)}</Link>{item.menu}</span>
                   </div>
                 );
               })}
@@ -435,7 +476,25 @@ export async function AdminDashboardView({ firstName, money = true, me }: { firs
   );
 }
 
+/** The visible action on an attention row, by what the row is about. The menu beside it holds the rest. */
+function ctaFor(icon: unknown) {
+  if (icon === LifeBuoy) return "Reply";
+  if (icon === AlertTriangle) return "Chase";
+  if (icon === ClipboardList) return "Follow up";
+  return "Open";
+}
+
 const STAGE_SHORT: Record<string, string> = { Onboarding: "Onbrd", Discovery: "Discov", "In progress": "Build", Review: "Review", Revisions: "Revise", Delivered: "Done" };
+
+/** A Lagos calendar day, today plus `offset` days. */
+function lagosDay(offset: number) {
+  return new Date(Date.now() + 3_600_000 + offset * 86_400_000).toISOString().slice(0, 10);
+}
+
+/** The hour in Lagos, so "end of day" means the studio's day, not the server's. */
+function hourNow() {
+  return Number(new Intl.DateTimeFormat("en-GB", { hour: "numeric", hourCycle: "h23", timeZone: "Africa/Lagos" }).format(new Date()));
+}
 
 /** Whole days from today in Lagos to a date; negative when it has passed. */
 function daysUntil(iso: string) {
