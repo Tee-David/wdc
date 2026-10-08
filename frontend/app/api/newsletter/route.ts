@@ -8,6 +8,10 @@ import { CONTACT_EMAIL } from "@/lib/site";
 import { looksLikeEmail, newsletterIsConfigured, normaliseEmail, subscribe, unsubscribeUrl } from "@/lib/newsletter";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
 import { REFUSED_EMAIL_MESSAGE, refusedEmail } from "@/lib/email-domains";
+import { requestConfirmation } from "@/lib/newsletter-doi";
+import { newsletterConfirmEmail } from "@/lib/email-templates";
+import { sendLogged } from "@/lib/outbox";
+import { SITE_URL } from "@/lib/site";
 
 /* Same ceiling and the same reason as the contact route: this mail server's
    first connection of an instance's life takes about 23 seconds, and a
@@ -90,6 +94,30 @@ export async function POST(request: NextRequest) {
   const settings = await getFormSettings(form);
   const open = await availability(form, settings);
   if (!open.open) return NextResponse.json({ error: open.message, closed: true }, { status: 403 });
+
+  /* DOUBLE OPT-IN FIRST: the address waits until its owner presses the link we
+     mail. If the table for it is not there yet (migration 0042), the old
+     immediate path below still works, so the form never breaks. */
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim().slice(0, 64) || null;
+  const pending = await requestConfirmation(typed, source, ip);
+  if (pending.kind === "already") {
+    return NextResponse.json({ ok: true, status: "already", confirmation: { message: "You are already on the list, so there is nothing more to do." } });
+  }
+  if (pending.kind === "wait") {
+    return NextResponse.json({ ok: true, status: "pending", confirmation: { message: "We sent you a confirmation a moment ago. Check your inbox (and spam) and press the link." } });
+  }
+  if (pending.kind === "sent") {
+    const url = new URL("/api/newsletter/confirm", SITE_URL);
+    url.searchParams.set("e", email);
+    url.searchParams.set("t", pending.token);
+    after(async () => {
+      try {
+        const mail = newsletterConfirmEmail({ url: url.toString(), hours: 48 });
+        await sendLogged({ to: email, ...mail }, { summary: "Newsletter confirmation (double opt-in).", dedupeKey: `newsletter-confirm:${email}:${pending.token.slice(0, 8)}` });
+      } catch (error) { console.error("Newsletter confirmation failed", error instanceof Error ? error.message : "unknown"); }
+    });
+    return NextResponse.json({ ok: true, status: "pending", confirmation: { message: "Almost done. We sent you an email: press the link in it to join the list." } });
+  }
 
   let result;
   try {
