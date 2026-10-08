@@ -30,8 +30,8 @@ import {
 
 const SERVICES = [
   { slug: "branding", pick: /^Branding/ },
-  { slug: "web", pick: /^Full-Stack Web/ },
-  { slug: "apps", pick: /^Cross-Platform App/ },
+  { slug: "web", pick: /^Web/ },
+  { slug: "apps", pick: /^Apps/ },
 ] as const;
 
 const CONFIGS = [
