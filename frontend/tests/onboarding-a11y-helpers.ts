@@ -306,7 +306,7 @@ export async function walkKeyboard(
  */
 export async function probeRequired(page: Page, log: Log, title: string) {
   const starred = await page.evaluate(() =>
-    Array.from(document.querySelectorAll<HTMLElement>(".ob__fields [data-field] b")).filter((b) => b.textContent?.trim() === "*" && b.closest("[data-field]")?.offsetParent !== null).length,
+    Array.from(document.querySelectorAll<HTMLElement>(".ob__fields [data-field] b")).filter((b) => b.textContent?.trim() === "*" && (b.closest("[data-field]") as HTMLElement | null)?.offsetParent !== null).length,
   );
   if (!starred) return;
   const next = page.locator(".ob__stepNext:visible").first();

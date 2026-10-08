@@ -69,6 +69,20 @@ type Answers = Record<string, string | string[]>;
 const KEY = "wdc-onboarding-draft";
 const EXCLUSIVE_MULTI_OPTIONS = new Set(["None yet", "Nothing yet", "None of these", "Not sure", UNSURE, UNSURE_LEGACY]);
 
+/** Arrow keys move through a group of radio buttons and choose as they go, as the browser does for real radios. */
+function radioArrows(event: React.KeyboardEvent<HTMLElement>) {
+  const keys: Record<string, number> = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 };
+  const step = keys[event.key];
+  if (!step) return;
+  const radios = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('[role="radio"]'));
+  const at = radios.indexOf(document.activeElement as HTMLElement);
+  if (at < 0) return;
+  event.preventDefault();
+  const next = radios[(at + step + radios.length) % radios.length];
+  next.focus();
+  next.click();
+}
+
 /** The studio's tomorrow (UTC+1), as YYYY-MM-DD. Outside the component so render stays pure. */
 const tomorrowIso = () => new Date(Date.now() + 3_600_000 + 86_400_000).toISOString().slice(0, 10);
 
@@ -626,10 +640,10 @@ export default function OnboardingForm({ closed = {}, styles = {}, engagement = 
         <div className="ob__review">
           {steps.map((s, n) => (
             <section key={s.id}>
-              <h2>
-                {s.title}
-                <button type="button" onClick={() => { setSub(0); setI(n); }}>Edit</button>
-              </h2>
+              <div className="ob__reviewHead">
+                <h2>{s.title}</h2>
+                <button type="button" aria-label={`Edit ${s.title}`} onClick={() => { setSub(0); setI(n); }}>Edit</button>
+              </div>
               <dl>
                 {s.fields.filter((f) => visible(f, a)).map((f) => (
                   <div key={f.key}>
@@ -1130,7 +1144,7 @@ function FieldView({
   const label = (
     <label className="ob__label" htmlFor={id}>
       {f.label}
-      {f.required ? <b aria-hidden="true"> *</b> : null}
+      {f.required ? <><b aria-hidden="true"> *</b><span className="obCol__sr"> required</span></> : null}
       {/* Background lives behind the question mark, so the form stays a list
           of questions rather than a page of prose. Only explanations the
           question genuinely cannot be answered without stay inline, as
@@ -1338,12 +1352,13 @@ function FieldView({
        Pressing the chosen one again unchooses it, as the cards do. */
     if (opts.length === 2 || f.kind === "yesno") {
       return wrap(
-        <div className="ob__seg" role="radiogroup" aria-label={f.label}>
-          {opts.map((o) => (
+        <div className="ob__seg" role="radiogroup" aria-label={f.label} aria-required={f.required || undefined} onKeyDown={radioArrows}>
+          {opts.map((o, at) => (
             <button
               key={o}
               type="button"
               role="radio"
+              tabIndex={v === o || (!v && at === 0) ? 0 : -1}
               aria-checked={v === o}
               className={`ob__segBtn${v === o ? " is-on" : ""}`}
               onClick={() => onChange(v === o ? "" : o)}
@@ -1355,12 +1370,13 @@ function FieldView({
       );
     }
     return wrap(
-      <div className="ob__cards" role="radiogroup" aria-labelledby={id}>
-        {opts.map((o) => (
+      <div className="ob__cards" role="radiogroup" aria-labelledby={id} aria-required={f.required || undefined} onKeyDown={radioArrows}>
+        {opts.map((o, at) => (
           <button
             key={o}
             type="button"
             role="radio"
+            tabIndex={v === o || (!v && at === 0) ? 0 : -1}
             aria-checked={v === o}
             className={`ob__card${v === o ? " is-on" : ""}`}
             /* PRESSING THE CHOSEN ONE AGAIN UNCHOOSES IT.
