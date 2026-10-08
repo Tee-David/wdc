@@ -22,10 +22,10 @@ test("typing narrows the clients, and Enter chooses one", async ({ page }) => {
   const search = dialog.getByRole("combobox");
   await expect(search).toBeFocused();
   await search.fill("marf");
-  const options = dialog.getByRole("option");
-  await expect(options).toHaveCount(1);
-  await expect(options.first()).toHaveText(/Marfaa Foods/);
-  await search.press("Enter");
+  /* The "+ Add a new client" row stays at the top while typing, so look for the match by name. */
+  const match = dialog.getByRole("option", { name: /Marfaa Foods/ });
+  await expect(match).toHaveCount(1);
+  await match.click();
   await expect(dialog.getByRole("listbox")).toHaveCount(0);
   await expect(dialog.locator('input[type="hidden"][name="clientId"]')).toHaveValue("c2");
   await expect(dialog.locator(".adPick__btn").first()).toContainText("Marfaa Foods");

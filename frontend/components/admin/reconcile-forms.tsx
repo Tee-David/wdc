@@ -1,13 +1,14 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId } from "react";
 import { BellRing, Check, Link2, Mail, Receipt, RotateCw, Wallet } from "lucide-react";
-import type { Invoice, ProviderEvent } from "@/lib/admin/types";
+import type { ProviderEvent } from "@/lib/admin/types";
 import { naira } from "@/lib/admin/types";
 import {
   emailInvoice, emailReminder, matchEventToInvoice, overpaymentToCredit, resendMessage, resolveEvent, sendReceipt,
 } from "@/lib/admin/actions";
-import { Actions, Area, Field, Form, Hidden, Select, Submit } from "./form";
+import { Actions, Area, Field, Form, Hidden, Submit } from "./form";
+import { RemoteSelect } from "./remote-pick";
 import { DialogButton } from "./dialog";
 
 /**
@@ -39,12 +40,7 @@ export function ResolveEvent({ event }: { event: ProviderEvent }) {
   );
 }
 
-export function MatchEvent({
-  event, invoices,
-}: {
-  event: ProviderEvent;
-  invoices: Pick<Invoice, "id" | "number">[];
-}) {
+export function MatchEvent({ event }: { event: ProviderEvent }) {
   return (
     <DialogButton label="Match to an invoice" title={`Bank ${event.reference}`} icon={Link2} tone="primary">
       {(close) => (
@@ -55,10 +51,7 @@ export function MatchEvent({
               ? "This event carries no amount, so there is nothing to bank."
               : `${naira(event.amount)} arrived and nothing in the books claimed it. Picking an invoice records it as a payment against that invoice, with a receipt, exactly as if it had matched on its own.`}
           </p>
-          <Select
-            name="invoiceId" label="Against which invoice" required
-            options={invoices.map((i) => ({ value: i.id, label: i.number }))}
-          />
+          <RemoteSelect name="invoiceId" label="Against which invoice" required kind="invoices" scope={{ invoices: "issued" }} />
           <Field name="by" label="Who decided" placeholder="Babatope" />
           <Actions><Submit>Bank it</Submit></Actions>
         </Form>
@@ -169,31 +162,3 @@ export function NoticeTick({ name, label, reason, off = false, hint }: {
 export const ReceiptTick = ({ reason }: { reason?: string }) => (
   <NoticeTick name="emailReceipt" label="Email the client a receipt" reason={reason} />
 );
-
-/**
- * The receipt tick for a form that picks the invoice itself: it follows the
- * chosen invoice, and goes disabled (with the reason) for a client who has no
- * address or has switched updates off.
- */
-export function ReceiptTickFor({ reasons }: { reasons: Record<string, string> }) {
-  const [reason, setReason] = useState<string | undefined>(undefined);
-  return (
-    <>
-      <input
-        type="hidden"
-        ref={(el) => {
-          const form = el?.form;
-          if (!form) return;
-          const read = () => {
-            const field = form.querySelector<HTMLInputElement | HTMLSelectElement>('[name="invoiceId"]');
-            setReason(field ? reasons[field.value] : undefined);
-          };
-          form.addEventListener("change", read);
-          read();
-          return () => form.removeEventListener("change", read);
-        }}
-      />
-      <ReceiptTick key={reason ?? "ok"} reason={reason} />
-    </>
-  );
-}

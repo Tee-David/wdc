@@ -86,12 +86,14 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
             <>
               {client ? (
                 <InvoiceBuilder
-                  clients={[client]}
-                  projects={getProjectsFor(inv.clientId)}
+                  clientName={client.company}
+                  projectTitle={getProjectsFor(inv.clientId).find((p) => p.id === inv.projectId)?.title}
                   invoice={inv}
                   trigger="Edit the draft"
                 />
               ) : null}
+              {/* Money that arrived before the invoice was issued: issue it and record the payment in one step. */}
+              {client && t.total > 0 ? <RecordPayment invoice={inv} owed={t.total} noReceipt={noEmail} issueFirst /> : null}
               <IssueInvoice invoice={inv} />
               <DeleteDraft invoice={inv} />
             </>
@@ -112,11 +114,11 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                   they owe nothing; what they are owed is a receipt. */}
               {settled ? <SendReceipt invoiceId={inv.id} /> : <EmailInvoice id={inv.id} />}
               {t.due > 0 && status === "Overdue" ? <EmailReminder id={inv.id} /> : null}
-              {t.due > 0 ? <RecordPayment invoice={inv} owed={t.due} noReceipt={noEmail} /> : null}
+              {t.due > 0 ? <RecordPayment invoice={inv} owed={t.due} noReceipt={noEmail} /> : <span className="ad__dim">Settled. Nothing left to record.</span>}
               {client ? (
                 <InvoiceBuilder
-                  clients={[client]}
-                  projects={getProjectsFor(inv.clientId)}
+                  clientName={client.company}
+                  projectTitle={getProjectsFor(inv.clientId).find((p) => p.id === inv.projectId)?.title}
                   invoice={inv}
                   trigger="Edit invoice"
                 />

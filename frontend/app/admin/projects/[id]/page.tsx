@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
 import {
   creditBalance, financeDefaults, getClient, getDeliverablesFor, getExpensesFor, getInvoicesFor, getProject,
-  getProjectsFor, getTasksFor, getUpdatesFor, projectMargin,
+  getTasksFor, getUpdatesFor, projectMargin,
 } from "@/lib/admin/store";
 import { noticeBlock } from "@/lib/admin/money-rules";
 import {
@@ -104,7 +104,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           <ProjectDetails project={p} />
           {client && money ? (
             <InvoiceBuilder
-              clients={[client]} projects={[p]} clientId={client.id}
+              clientId={client.id}
               defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays}
               credits={credits} noEmail={noEmail}
             />
@@ -152,7 +152,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           <Deliverables project={p} items={deliverables} fileLinks={fileLinks} />
           <Tasks project={p} tasks={tasks} />
           {money ? (
-            <Panel title="Spent on it" action={<AddExpense projects={[p]} />}>
+            <Panel title="Spent on it" action={<AddExpense project={p} />}>
               {costs.length ? (
                 <div className="ad__scroll">
                   <table className="ad__t">
@@ -238,7 +238,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                       <td className="num">{naira(invoiceTotals(i).due)}</td>
                       <td className="ad__rmC">
                         <InvoiceMenu invoice={i} noReceipt={why}
-                          edit={client ? { clientName: client.company, projects: getProjectsFor(client.id).map((x) => ({ id: x.id, title: x.title, clientId: x.clientId })) } : undefined} />
+                          edit={client ? { clientName: client.company, projectTitle: i.projectId === p.id ? p.title : undefined } : undefined} />
                       </td>
                     </tr>
                   ))}
@@ -247,7 +247,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             </div>
           ) : (
             <Empty title="Nothing invoiced on this project" action={client ? (
-              <InvoiceBuilder clients={[client]} projects={[p]} clientId={client.id}
+              <InvoiceBuilder clientId={client.id}
                 defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} credits={credits} noEmail={noEmail} />
             ) : undefined}>
               Raise an invoice against it to track what is billed and paid.

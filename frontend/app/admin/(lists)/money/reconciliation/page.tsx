@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ListSearch } from "@/components/admin/list-search";
 import {
-  getInvoices, getProviderEvents, providerAttentionCount,
+  getProviderEvents, providerAttentionCount,
 } from "@/lib/admin/store";
 import { listLogged } from "@/lib/message-log";
 import { naira, providerNeedsAttention } from "@/lib/admin/types";
@@ -49,10 +49,6 @@ export default async function ReconciliationPage() {
   const attention = getProviderEvents({ attention: true, limit: 100 });
   const everything = getProviderEvents({ limit: 100 });
   const outstanding = providerAttentionCount();
-  /* Only invoices somebody could actually bank money against. */
-  const invoices = getInvoices()
-    .filter((i) => i.status !== "Draft")
-    .map((i) => ({ id: i.id, number: i.number }));
   const failedMail = await listLogged({ state: "Failed", limit: 25 });
 
   return (
@@ -98,7 +94,7 @@ export default async function ReconciliationPage() {
                     <td className="ad__rmC">
                       <span className="ad__row">
                         {e.outcome === "Unmatched" && e.amount !== null && e.amount > 0
-                          ? <MatchEvent event={e} invoices={invoices} />
+                          ? <MatchEvent event={e} />
                           : null}
                         <ResolveEvent event={e} />
                       </span>

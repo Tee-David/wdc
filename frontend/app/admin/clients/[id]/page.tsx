@@ -133,8 +133,6 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
           <AddProject clientId={c.id} />
           {money ? (
             <InvoiceBuilder
-              clients={[{ id: c.id, company: c.company }]}
-              projects={getProjects().filter((p) => p.clientId === c.id).map(({ id, title, clientId }) => ({ id, title, clientId }))}
               clientId={c.id}
               defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays}
               credits={credits} noEmail={noEmail}
@@ -221,7 +219,7 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
                           <td className="num">{t.due ? naira(t.due) : <span className="ad__dim">Nil</span>}</td>
                           <td className="ad__rmC">
                             <InvoiceMenu invoice={i} noReceipt={why}
-                              edit={{ clientName: c.company, projects: clientProjects.map((p) => ({ id: p.id, title: p.title, clientId: p.clientId })) }} />
+                              edit={{ clientName: c.company, projectTitle: clientProjects.find((p) => p.id === i.projectId)?.title }} />
                           </td>
                         </tr>
                       );
@@ -231,7 +229,7 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
               </div>
             ) : (
               <Empty title="Nothing invoiced yet" action={
-                <InvoiceBuilder clients={[c]} projects={getProjects().filter((p) => p.clientId === c.id)} clientId={c.id}
+                <InvoiceBuilder clientId={c.id}
                   defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} credits={credits} noEmail={noEmail} />}>
                 Raise an invoice for {c.company}. It gets a pay link they can use without signing in.
               </Empty>
@@ -288,8 +286,7 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
 
       <div className="ad__grid2" style={{ marginTop: ".9rem" }}>
         {money ? <Panel title="Payment history" dataTour="client-payments"
-          action={<RecordAnyPayment open={invoices.filter((i) => i.status !== "Draft" && !i.voided && invoiceTotals(i).due > 0)
-            .map((i) => ({ id: i.id, label: i.number, owed: invoiceTotals(i).due, noReceipt: why }))} />}>
+          action={<RecordAnyPayment clientId={c.id} />}>
           {payments.length ? (
             <div className="ad__scroll">
               <table className="ad__t">

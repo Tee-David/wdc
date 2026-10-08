@@ -635,6 +635,14 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
     return FAIL({ method: "Apply credit from the client's balance instead. It cannot be entered as a payment." });
   }
 
+  /* A DRAFT CAN BE PAID: money that arrived before the invoice was issued.
+     The form on a draft ticks `issueFirst`, and the invoice is issued here, in
+     the same press, so it has its number before the payment and receipt
+     refer to it. Any other state is left exactly as it is. */
+  if (str(fd, "issueFirst") === "1") {
+    const draft = db.getInvoice(invoiceId);
+    if (draft && draft.status === "Draft") db.sendInvoice(invoiceId);
+  }
   const res = db.applyPayment({
     invoiceId, amount: amount!, method: how!, reference,
     at: isoDate(fd, "at") ?? undefined,

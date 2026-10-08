@@ -4,18 +4,18 @@ import { useId, useState } from "react";
 import {
   Banknote, FileSignature, FileText, Plus, Save, Send, Trash2,
 } from "lucide-react";
-import type { Client, Invoice, Project } from "@/lib/admin/types";
+import type { Invoice } from "@/lib/admin/types";
 import { ENTERABLE_METHODS, EXPENSE_CATEGORIES, METHODS, naira } from "@/lib/admin/types";
 import {
   createEstimate, createExpense, createInvoice, deleteInvoice, issueInvoice,
   recordPayment, updateInvoice,
 } from "@/lib/admin/actions";
 import { Actions, Area, Checks, Field, Fields, Form, Hidden, Select, Submit, Wrap } from "./form";
-import { Pick } from "./pick";
+import { RemotePick, RemoteSelect } from "./remote-pick";
+import { invoiceReceiptReason } from "@/lib/admin/search-actions";
 import { SERVICES } from "@/lib/services";
 import { DialogButton } from "./dialog";
-import { NoClientsYet } from "./no-clients";
-import { NoticeTick, ReceiptTick, ReceiptTickFor } from "./reconcile-forms";
+import { NoticeTick, ReceiptTick } from "./reconcile-forms";
 
 /* ------------------------------------------------------------- invoices */
 
@@ -39,13 +39,14 @@ const emptyRow = (): Row => ({ key: ++rowKey, description: "", qty: "1", unit: "
  * saved invoice cannot differ by a kobo on a fractional quantity.
  */
 export function InvoiceBuilder({
-  clients, projects, invoice, clientId, trigger = "New invoice", dataTour,
+  invoice, clientName, projectTitle, clientId, trigger = "New invoice", dataTour,
   defaultVatRate, defaultDueInDays, credits, noEmail,
 }: {
-  clients: Pick<Client, "id" | "company">[];
-  projects: Pick<Project, "id" | "title" | "clientId">[];
   /** Present when editing: a draft, or an issued invoice that is unpaid or part paid. */
   invoice?: Invoice;
+  /** What the invoice's client and project are called, so the fields read by name without asking. */
+  clientName?: string;
+  projectTitle?: string;
   clientId?: string;
   trigger?: string;
   dataTour?: string;
@@ -69,7 +70,7 @@ export function InvoiceBuilder({
     >
       {(close) => (
         <Builder
-          clients={clients} projects={projects} invoice={invoice}
+          invoice={invoice} clientName={clientName} projectTitle={projectTitle}
           clientId={clientId} close={close}
           defaultVatRate={defaultVatRate} defaultDueInDays={defaultDueInDays}
           credits={credits} noEmail={noEmail}
@@ -89,10 +90,8 @@ export function InvoiceBuilder({
  * that decide arguments later and otherwise live only in a covering email.
  */
 export function EstimateBuilder({
-  clients, projects, clientId, trigger = "New estimate", defaultVatRate, noEmail,
+  clientId, trigger = "New estimate", defaultVatRate, noEmail,
 }: {
-  clients: Pick<Client, "id" | "company">[];
-  projects: Pick<Project, "id" | "title" | "clientId">[];
   clientId?: string;
   trigger?: string;
   defaultVatRate?: number;
@@ -102,7 +101,7 @@ export function EstimateBuilder({
     <DialogButton label={trigger} title="Quote for a piece of work" icon={FileSignature} tone="plain" wide>
       {(close) => (
         <Builder
-          clients={clients} projects={projects} clientId={clientId} close={close} estimate
+          clientId={clientId} close={close} estimate
           defaultVatRate={defaultVatRate} noEmail={noEmail}
         />
       )}
@@ -118,20 +117,19 @@ const NEW = "__new";
  * that is unpaid or part paid; the server refuses a total below what has been
  * received, and says so with the figure.
  */
-export function EditInvoiceForm({ invoice, clientName, projects, close }: {
-  invoice: Invoice; clientName: string; close: () => void;
-  projects: Pick<Project, "id" | "title" | "clientId">[];
+export function EditInvoiceForm({ invoice, clientName, projectTitle, close }: {
+  invoice: Invoice; clientName: string; projectTitle?: string; close: () => void;
 }) {
-  return <Builder clients={[{ id: invoice.clientId, company: clientName }]} projects={projects} invoice={invoice} close={close} />;
+  return <Builder invoice={invoice} clientName={clientName} projectTitle={projectTitle} close={close} />;
 }
 
 function Builder({
-  clients, projects, invoice, clientId, close, estimate = false,
+  invoice, clientName, projectTitle, clientId, close, estimate = false,
   defaultVatRate, defaultDueInDays, credits, noEmail,
 }: {
-  clients: Pick<Client, "id" | "company">[];
-  projects: Pick<Project, "id" | "title" | "clientId">[];
   invoice?: Invoice;
+  clientName?: string;
+  projectTitle?: string;
   clientId?: string;
   close: () => void;
   /** Build an estimate rather than an invoice. */
@@ -149,7 +147,6 @@ function Builder({
      matching it comes first in the document, which silently strips the label
      off every instance after that one. */
   const uid = useId();
-  const noClients = !invoice && !clientId && clients.length === 0;
   const [rows, setRows] = useState<Row[]>(() =>
     invoice?.lines.length
       ? invoice.lines.map((l) => ({
@@ -178,7 +175,6 @@ function Builder({
   const net = subtotal - cut;
   const tax = Math.round((net * rate) / 100);
 
-  const forClient = projects.filter((p) => p.clientId === who);
   const set = (key: number, k: keyof Row, v: string) =>
     setRows((rs) => rs.map((r) => (r.key === key ? { ...r, [k]: v } : r)));
 
@@ -187,7 +183,6 @@ function Builder({
   /* A client typed in as new has no record to read yet: the server decides. */
   const cannotEmail = who && who !== NEW ? noEmail?.[who] : undefined;
 
-  if (noClients) return <NoClientsYet what={estimate ? "estimate" : "invoice"} />;
   return (
     <Form action={estimate ? createEstimate : invoice ? updateInvoice : createInvoice} onDone={() => close()}>
       {invoice ? <Hidden name="id" value={invoice.id} /> : null}
@@ -206,9 +201,9 @@ function Builder({
             <Hidden name="clientId" value={who} />
             <Wrap name="clientId" label="Bill to" required half>
               {(id) => (
-                <Pick id={id} search value={who} placeholder="Pick a client" label="Bill to"
-                  onChange={(v) => { setWho(v); setProj(""); }}
-                  options={[...(invoice ? [] : [{ value: NEW, label: "+ Add a new client" }]), ...clients.map((c) => ({ value: c.id, label: c.company }))]} />
+                <RemotePick id={id} kind="clients" value={who} placeholder="Pick a client" label="Bill to"
+                  onChange={(v) => { setWho(v); setProj(""); }} defaultLabel={clientName}
+                  lead={invoice ? [] : [{ value: NEW, label: "+ Add a new client" }]} />
               )}
             </Wrap>
           </>
@@ -217,8 +212,10 @@ function Builder({
         <Wrap name="projectId" label="Against" half
               hint={who ? undefined : "Pick a client first to see their projects."}>
           {(id) => (
-            <Pick id={id} value={proj} placeholder="No particular project" label="Against" onChange={setProj}
-              options={[...(who && !invoice ? [{ value: NEW, label: "+ Open a new project" }] : []), ...(who === NEW ? [] : forClient.map((p) => ({ value: p.id, label: p.title })))]} />
+            /* Disabled until a client is chosen: without one the search would offer every project. */
+            <RemotePick id={id} kind="projects" scope={{ clientId: who }} value={proj} placeholder="No particular project" label="Against"
+              onChange={setProj} defaultLabel={projectTitle} disabled={!who}
+              lead={who && !invoice ? [{ value: NEW, label: "+ Open a new project" }] : []} />
           )}
         </Wrap>
         {who === NEW ? (
@@ -468,13 +465,14 @@ const plusDays = (n: number) =>
  * here it would be money no balance ever gave up. The action refuses it too,
  * because every export in that module is a public endpoint.
  */
-export function RecordPayment({ invoice, owed, noReceipt }: { invoice: Invoice; owed: number; noReceipt?: string }) {
+export function RecordPayment({ invoice, owed, noReceipt, issueFirst }: { invoice: Invoice; owed: number; noReceipt?: string; issueFirst?: boolean }) {
   return (
-    <DialogButton label="Record a payment" title={`Money in against ${invoice.number}`} icon={Banknote}>
+    <DialogButton label={issueFirst ? "Issue and record a payment" : "Record a payment"} title={issueFirst ? `Issue ${invoice.number} and record the money` : `Money in against ${invoice.number}`} icon={Banknote}>
       {(close) => (
         <Form action={recordPayment} onDone={() => close()}>
           <Fields>
             <Hidden name="invoiceId" value={invoice.id} />
+            {issueFirst ? <Hidden name="issueFirst" value="1" /> : null}
             <Field
               name="amount" label="Amount (₦)" required half inputMode="decimal"
               defaultValue={owed ? String(owed / 100) : ""}
@@ -538,11 +536,16 @@ export function RecordPayment({ invoice, owed, noReceipt }: { invoice: Invoice; 
  * of where the receipt already lives. The helper says so rather than leaving
  * somebody to find out.
  */
-export function AddExpense({ projects = [] }: { projects?: Pick<Project, "id" | "title">[] }) {
+export function AddExpense({ project }: {
+  /** On a project's own page: the cost starts against that project (still changeable). */
+  project?: { id: string; title: string };
+}) {
+  /* "Add another" starts clean: a new key remounts the form, which also puts the searched picker back (form.reset() cannot reach its state). */
+  const [fresh, setFresh] = useState(0);
   return (
     <DialogButton label="Add an expense" title="Money out" icon={Plus} wide>
       {(close) => (
-        <Form action={createExpense} onDone={() => close()} resetOnDone>
+        <Form key={fresh} action={createExpense} onDone={() => { close(); setFresh((n) => n + 1); }}>
           <Fields>
             <Field name="description" label="What it was for" required
                    placeholder="Creative Cloud, the team plan" />
@@ -559,14 +562,12 @@ export function AddExpense({ projects = [] }: { projects?: Pick<Project, "id" | 
             <Field name="at" label="When" type="date" half
                    defaultValue={new Date().toISOString().slice(0, 10)} />
             <Field name="by" label="Who entered it" half placeholder="Babatope" />
-            {projects.length ? (
-              <Select
-                name="projectId" label="Against a project"
-                placeholder="Agency overhead, no project"
-                hint="Leave it on overhead unless the cost belongs to one job. This is what makes a project's margin readable."
-                options={projects.map((p) => ({ value: p.id, label: p.title }))}
-              />
-            ) : null}
+            <RemoteSelect
+              name="projectId" label="Against a project" kind="projects"
+              placeholder="Agency overhead, no project"
+              defaultValue={project?.id} defaultLabel={project?.title}
+              hint="Leave it on overhead unless the cost belongs to one job. This is what makes a project's margin readable."
+            />
             <Field
               name="receiptUrl" label="Link to the receipt"
               placeholder="https://drive.google.com/..."
@@ -638,16 +639,25 @@ export function DeleteDraft({ invoice }: { invoice: Invoice }) {
  * alert rather than an invoice number. Only invoices that can take money are
  * offered: issued, not struck, with something still owed.
  */
-export function RecordAnyPayment({ open }: { open: { id: string; label: string; owed: number; noReceipt?: string }[] }) {
-  if (!open.length) return null;
+export function RecordAnyPayment({ clientId }: {
+  /** On a client's page: only that client's invoices are offered. */
+  clientId?: string;
+}) {
+  /* Why the chosen invoice's client cannot be emailed a receipt, asked once an invoice is picked (the form no longer holds the client list). A late answer for an invoice that is no longer the chosen one is dropped. */
+  const [noReceipt, setNoReceipt] = useState<{ id: string; why?: string }>({ id: "" });
+  const [fresh, setFresh] = useState(0); // remounts the form after a success, so the picker starts empty again
+  const choose = (id: string) => {
+    setNoReceipt({ id });
+    if (id) invoiceReceiptReason(id).then((why) => setNoReceipt((c) => (c.id === id ? { id, why } : c))).catch(() => {});
+  };
   return (
     <DialogButton label="Record a payment" title="Money in" icon={Banknote} wide>
       {(close) => (
-        <Form action={recordPayment} onDone={() => close()} resetOnDone>
+        <Form key={fresh} action={recordPayment} onDone={() => { close(); setNoReceipt({ id: "" }); setFresh((n) => n + 1); }}>
           <Fields>
-            <Select name="invoiceId" label="Against which invoice" required
-                    placeholder="Pick the invoice"
-                    options={open.map((o) => ({ value: o.id, label: `${o.label} · ${naira(o.owed)} owed` }))} />
+            <RemoteSelect name="invoiceId" label="Against which invoice" required
+                          kind="invoices" scope={{ invoices: "open", clientId }}
+                          placeholder="Pick the invoice" onChange={(v) => choose(v)} />
             <Field name="amount" label="Amount (₦)" required half inputMode="decimal"
                    hint="What arrived. A part payment is fine." />
             <Select name="method" label="How" half defaultValue="Transfer"
@@ -657,7 +667,7 @@ export function RecordAnyPayment({ open }: { open: { id: string; label: string; 
             <Field name="at" label="When" type="date" half defaultValue={new Date().toISOString().slice(0, 10)} />
             <Field name="note" label="Note" placeholder="Paid at the office" hint="Needed when the method is Other." />
           </Fields>
-          <ReceiptTickFor reasons={Object.fromEntries(open.flatMap((o) => (o.noReceipt ? [[o.id, o.noReceipt]] : [])))} />
+          <ReceiptTick key={noReceipt.why ?? "ok"} reason={noReceipt.why} />
           <Actions>
             <Submit icon={Banknote}>Record it</Submit>
           </Actions>
