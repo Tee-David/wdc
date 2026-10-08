@@ -1,0 +1,38 @@
+# Weekly encrypted copy of the database into a SEPARATE R2 bucket.
+#
+# Secrets (Settings -> Secrets and variables -> Actions):
+#   BACKUP_DATABASE_URL   connection string of a READ-ONLY database role
+#   BACKUP_KEY            `openssl rand -hex 32`; keep a copy OFF this account (password manager)
+#   COCKROACHDB_CERT      optional CA certificate text
+#   BACKUP_R2_ENDPOINT, BACKUP_R2_BUCKET, BACKUP_R2_KEY_ID, BACKUP_R2_SECRET
+#                         a bucket and token used for nothing else; give the token write but not delete
+# Until they exist the job fails on its first step instead of looking fine.
+name: Weekly backup
+on:
+  schedule: [{ cron: "17 2 * * 0" }]
+  workflow_dispatch:
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults: { run: { working-directory: frontend } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Export and seal
+        env:
+          BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          BACKUP_KEY: ${{ secrets.BACKUP_KEY }}
+          COCKROACHDB_CERT: ${{ secrets.COCKROACHDB_CERT }}
+        run: node scripts/backup-export.mjs "wdc-$(date -u +%F).bin"
+      - name: Prove it opens
+        env: { BACKUP_KEY: "${{ secrets.BACKUP_KEY }}" }
+        run: node scripts/restore-check.mjs "wdc-$(date -u +%F).bin"
+      - name: Upload
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_R2_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_R2_SECRET }}
+          AWS_DEFAULT_REGION: auto
+        run: aws s3 cp "wdc-$(date -u +%F).bin" "s3://${{ secrets.BACKUP_R2_BUCKET }}/weekly/" --endpoint-url "${{ secrets.BACKUP_R2_ENDPOINT }}"
