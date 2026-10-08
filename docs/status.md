@@ -1,3 +1,11 @@
+## Production email migrations, 8 October 2026
+
+Applied and verified `0045_contacts.sql`, `0046_campaigns.sql` and `0047_automations.sql` against the WDC production database (`defaultdb`). No repository migrations remain pending. Migration 0045 now matches the existing legacy contacts UUID key, supplies the legacy required message default and enforces unique emails without deleting or replacing the table. The legacy contacts table had zero rows before application. Verified all ten affected tables, foreign keys and unique constraints, plus `contact_tags.added_at`. A rolled-back person insert/email upsert/tag/event check passed; no verification records remain. The contacts read plan uses the tags primary-key lookup join. Authenticated rendered page verification is not included in this database check.
+
+Local main was fast-forwarded to GitHub before application. Two pre-existing local edits (brief-preferences test and Meetings plan) are preserved in the named 8 October migration-sync Git stash, outside this change.
+
+TypeScript passes after regenerating route types and moving four stale generated files for removed routes outside the checkout. `git diff --check` passes. Full eslint remains blocked by existing `legal-tabs.tsx` set-state-in-effect and CommonJS test import errors; this checkpoint changes SQL and this ledger only. No application build or deployment verification is claimed.
+
 Onboarding browser evidence: colour editing, picker sliders, row limits/removal and reversible recommendation choices passed at 320/390/768/1440px in light and dark. Next navigation passed at 320/1440px; the active board section is visible below the fixed header. All six service illustrated-help journeys passed at 390px, and a native-touch Next check passed without Lenis. These total 19 distinct browser cases across focused runs. Optional client profile setup and final exact-source build remain pending.
 
 ## Onboarding priority integration, 6 October 2026
