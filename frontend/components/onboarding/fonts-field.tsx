@@ -5,6 +5,7 @@ import { Plus, Shuffle, X } from "lucide-react";
 import { FONT_PAIRINGS, GOOGLE_FONTS, fontsHref, type FontPairing } from "@/lib/font-pairings";
 import { UNSURE, isUnsure } from "@/lib/onboarding";
 import SelectField from "./select-field";
+import Tip from "./tip";
 
 /**
  * FONTS, THE SAME WAY AS COLOURS. Three ready pairings at a time with a
@@ -31,7 +32,9 @@ const weightOf = (name: string) => FONT_PAIRINGS.find((p) => p.heading === name)
 
 /** Loads the Google Fonts stylesheet for what is on screen, once per distinct request. */
 function useGoogleFonts(families: { name: string; weight?: number }[]) {
-  const href = fontsHref(families);
+  /* Only the letters the previews and the picks list actually show, so each
+     font file is a few kilobytes. */
+  const href = fontsHref(families, `${HEAD_TEXT}${BODY_TEXT}${families.map((f) => f.name).join("")}0123456789`);
   useEffect(() => {
     if (!href || document.head.querySelector(`link[data-wdc-fonts="${CSS.escape(href)}"]`)) return;
     const link = document.createElement("link");
@@ -42,13 +45,16 @@ function useGoogleFonts(families: { name: string; weight?: number }[]) {
   }, [href]);
 }
 
+const HEAD_TEXT = "Your brand, set properly";
+const BODY_TEXT = "Clear words, good rhythm, easy to read on any screen.";
+
 const stack = (name: string) => `"${name}", system-ui, sans-serif`;
 
 function Sample({ heading, body, hw }: { heading: string; body: string; hw?: number }) {
   return (
     <span className="obFont__sample" aria-hidden="true">
-      <span className="obFont__head" style={{ fontFamily: stack(heading), fontWeight: hw ?? 400 }}>Your brand, set properly</span>
-      <span className="obFont__body" style={{ fontFamily: stack(body) }}>Clear words, good rhythm, easy to read on any screen.</span>
+      <span className="obFont__head" style={{ fontFamily: stack(heading), fontWeight: hw ?? 400 }}>{HEAD_TEXT}</span>
+      <span className="obFont__body" style={{ fontFamily: stack(body) }}>{BODY_TEXT}</span>
     </span>
   );
 }
@@ -61,6 +67,8 @@ export default function FontsField({ id, value, onChange, describedBy }: {
   const [shown, setShown] = useState<number[]>([0, 1, 2]);
   const [deck, setDeck] = useState<number[]>([]);
   const [own, setOwn] = useState(false);
+  /* A preview size, so a client can see the pair small (a phone) and large (a poster). */
+  const [size, setSize] = useState(16);
   const [draft, setDraft] = useState<{ heading: string; body: string }>({ heading: "", body: "" });
 
   const wanted = [
@@ -100,11 +108,17 @@ export default function FontsField({ id, value, onChange, describedBy }: {
   }
 
   return (
-    <div className="obCol obFont" id={id} aria-describedby={describedBy}>
+    <div className="obCol obFont" id={id} aria-describedby={describedBy} style={{ "--ob-font": `${size}px` } as React.CSSProperties}>
       {!own ? (
         <fieldset className="obCol__group">
-          <legend className="obCol__q">Pick two to five pairings you like</legend>
+          <legend className="obCol__q">Pick two to five pairings you like <Tip text="We pair fonts the way designers do: one face for headlines and one for reading, clearly different in weight or style but sharing some logic, and never more than two families. That is why every pairing here has a headline font and a reading font. Pick the ones that feel like you, and we will choose the one that agrees best with your brand." label="How fonts are paired" /></legend>
           <p className="ob__hint">Tap to add, tap again to remove. We choose the one that agrees best with your brand, and tell you why.</p>
+          <label className="obFont__size">
+            <span>Preview size</span>
+            <input type="range" min={14} max={28} step={1} value={size} onChange={(event) => setSize(Number(event.target.value))}
+              aria-label="Preview size" aria-valuetext={`${size} pixels`} />
+            <output aria-hidden="true">{size}px</output>
+          </label>
           <div className="obCol__cards">
             {shown.map((index) => {
               const item = FONT_PAIRINGS[index];
