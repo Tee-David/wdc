@@ -117,6 +117,8 @@
   position: fixed;
   top: 0;
   right: 0;
+  /* Parked off screen by CSS, so the animation library is not needed until the menu first opens. */
+  transform: translateX(100%);
   width: clamp(280px, 42vw, 440px);
   height: 100dvh;
   background: var(--background);
