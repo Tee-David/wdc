@@ -15,6 +15,9 @@ import { SITE_URL } from "@/lib/site";
 /** One hour, in the token and in the sentence the email says out loud. */
 const RESET_TOKEN_TTL_SECONDS = 60 * 60;
 
+/** How many phones and browsers one person can be signed in on at once. A sixth sign-in signs out the one used least recently. */
+export const MAX_DEVICES = 5;
+
 /** Fifteen minutes, for the sign-in link and for the code that travels with it. */
 const SIGN_IN_TOKEN_TTL_SECONDS = 15 * 60;
 
@@ -311,6 +314,11 @@ export const auth = betterAuth({
         after: async (session) => {
           // Optional metadata until migration 0034 is applied; never block an existing sign-in.
           await db.query('UPDATE "user" SET "lastSignInAt" = now() WHERE "id" = $1', [session.userId]).catch(() => undefined);
+          /* Five devices at most: keep the newest sessions, drop the rest. */
+          await db.query(
+            'DELETE FROM "session" WHERE "userId" = $1 AND "id" NOT IN (SELECT "id" FROM "session" WHERE "userId" = $1 ORDER BY "createdAt" DESC LIMIT $2)',
+            [session.userId, MAX_DEVICES],
+          ).catch(() => undefined);
           const found = await db.query<{ email: string }>('SELECT "email" FROM "user" WHERE "id" = $1', [session.userId]);
           const email = found.rows[0]?.email?.toLowerCase();
           if (!email) return;

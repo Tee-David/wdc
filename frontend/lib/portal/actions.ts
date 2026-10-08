@@ -182,6 +182,22 @@ export async function updateMyDetails(_prev: ActionState, fd: FormData): Promise
   return OK("Details saved.");
 }
 
+/* One other device, by its session id: only ever this person's own, never the one asking. */
+export async function signOutDevice(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const client = await requireClient();
+  if (!client) return FAIL({}, await whyNoClient());
+  const { headers } = await import("next/headers");
+  const { auth } = await import("@/lib/auth");
+  const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
+  const id = String(fd.get("session") ?? "");
+  if (!session?.user || !id || id === session.session.id) return FAIL({}, "Use Sign out to leave this device.");
+  try { await (await import("@/lib/db/pool")).db.query('DELETE FROM "session" WHERE "id" = $1 AND "userId" = $2', [id, session.user.id]); } catch {
+    return FAIL({}, "That could not be done just now. Try again in a minute.");
+  }
+  revalidatePath("/portal/settings");
+  return OK("That device is signed out.");
+}
+
 /* Every other device signed in as this person is signed out; this one stays. */
 export async function signOutOtherDevices(): Promise<ActionState> {
   const client = await requireClient();

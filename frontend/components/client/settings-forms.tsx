@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { KeyRound, LogOut, Save } from "lucide-react";
-import { signOutOtherDevices, updateMyDetails, updateNotifyPrefs } from "@/lib/portal/actions";
+import { signOutDevice, signOutOtherDevices, updateMyDetails, updateNotifyPrefs } from "@/lib/portal/actions";
 import { Field, Form, Submit } from "@/components/admin/form";
 import { Switch } from "@/components/admin/settings/kit";
 import { PasswordChange } from "@/components/account/password-change";
@@ -47,7 +47,7 @@ export function NotifyForm({ client }: { client: Client }) {
 }
 
 /** Password and devices. The password form opens in place when asked for. */
-export function SignInCard({ email, hasPassword }: { email: string; hasPassword: boolean }) {
+export function SignInCard({ email, hasPassword, devices = [] }: { email: string; hasPassword: boolean; devices?: { id: string; label: string; at: string; current: boolean }[] }) {
   const [changing, setChanging] = useState(false);
   return (
     <div className="pSet__signin">
@@ -64,6 +64,25 @@ export function SignInCard({ email, hasPassword }: { email: string; hasPassword:
         </span>
       </div>
       {changing ? <div className="adSetPad"><PasswordChange email={email} hasPassword={hasPassword} /></div> : null}
+      {devices.length ? (
+        <div className="pSet__devices">
+          <b>Signed in on {devices.length} of 5 devices</b>
+          <small className="ad__dim">A sixth sign-in signs out the oldest.</small>
+          <ul>
+            {devices.map((d) => (
+              <li key={d.id}>
+                <span><b>{d.label}</b><small className="ad__dim">{d.current ? "This device" : new Date(d.at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</small></span>
+                {d.current ? null : (
+                  <Form action={signOutDevice} confirm={`Sign out ${d.label}?`}>
+                    <input type="hidden" name="session" value={d.id} />
+                    <Submit tone="plain">Sign out</Submit>
+                  </Form>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
       <Form action={signOutOtherDevices} confirm="Sign out every other phone and browser? This one stays signed in.">
         <div className="adSR">
           <span className="pSet__rowIcon ad__tileIcon ad__tileIcon--neutral" aria-hidden="true"><LogOut /></span>
