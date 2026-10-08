@@ -23,6 +23,18 @@ Users, Meetings, Paystack source checkpoints and backup design corrections are p
 
 Updated 5 October 2026. This replaces the historical implementation checklist and handoff queue. Removing an old plan does not mean all its proposals shipped.
 
+## Onboarding redesign, 7 and 8 October 2026
+
+The owner approved the plan and chose the Size first flow for all six services. All six forms were rewritten from the UX research (`plans/onboarding-ux-research.md`) and are on main. Decisions: `plans/onboarding-decisions.md`. Checklist: `plans/onboarding-redesign-checklist.md`. Words: `plans/onboarding-voice-guide.md`.
+
+Shipped: one visibility rule with combined conditions and tiers, a step file per service, shared screens trimmed to about 90 seconds, the simple colour flow (feeling, ready palette, Yes use these), picture cards, the searchable feature checklist, the dropdown rule (single choice of three or more is a dropdown), the voice pass (names, industry examples, reflect back lines, next screen buttons), a help strip, the studio note and Earlier questions in the admin entry page, a pre-filled link from a form's Settings, reminders for unfinished drafts, the Services copy and the Works motion section, pitch decks and case study loops.
+
+Measured on main: tsc clean, eslint clean, production build passes, `onboarding-colours` 19 of 19, `onboarding-guardrails` 36 of 36, `onboarding-walk` 12 of 12 (every form from first screen to review at 390 and 1280), `work-motion`. Small jobs measure 17 to 21 questions over 7 screens with 10 or 11 required, down from about 18 required.
+
+**Needs the owner:** apply migration `0039_onboarding_steps_and_nudges.sql` in Settings, System. Until then draft saves from screen 5 onward are stored at step 4 (nothing is lost, a resumed draft opens a little earlier) and unfinished draft reminders do nothing. The engagement section is built but off until a Nigerian lawyer approves it and `ONBOARDING_ENGAGEMENT=on` is set. The WhatsApp button appears when `NEXT_PUBLIC_STUDIO_WHATSAPP` is set. The sent screen already promises a reply within two working days.
+
+Not verified: a real phone (Edge on iPhone included), keyboard only and screen reader use, the admin pages in a browser (they need a login), reminder emails sent for real, the engagement section in a browser. The dropdown fix for Edge on iPhone is unconfirmed on the device.
+
 ## Meetings
 
 Keep the [integration plan](../plans/cal-com-meetings-plan.md), [setup checkpoint](../plans/cal-com-setup-status.md), [reminder specification](../plans/cal-com-reminders-spec.md) and [design preview](../prototypes/cal-meetings/README.md) until end-to-end implementation and verification are complete.

@@ -113,7 +113,7 @@ Do one at a time. Keep stored keys. Map old values on read.
 - [ ] Old drafts and old submissions still open and read in the admin
 - [ ] Visual and copy review reported separately from measured checks
 - [ ] Deployed commit and canonical domain checked
-- [ ] `docs/status.md` updated
+- [x] `docs/status.md` updated
 - [ ] Retire superseded parts of the three earlier onboarding plans
 
 ## Phase 7. Services and Works pages (added 6 October 2026)
@@ -185,6 +185,8 @@ Guide: [onboarding-voice-guide.md](onboarding-voice-guide.md). Pure helpers and 
 - [x] Verified before the merge: `tsc` clean in source, eslint clean, production build passes (exit 0), `onboarding-colours` 19 of 19, `onboarding-guardrails` 36 of 36, `onboarding-walk` 12 of 12 (all six forms from first screen to review at 390 and 1280)
 - [ ] Repair the older specs that pin the old questions (onboarding.spec, onboarding-web, onboarding-seo, brief-preferences, aliases, domain)
 - [ ] Deeper end to end per service: size gating, follow ups, required messages, not sure reversible, legacy draft, full run at medium and large
-- [ ] Reminder email for unfinished drafts, pre-filled link (needs a migration)
+- [x] Reminder email for unfinished drafts (at most two, one tap switch off, outbox, does nothing until migration 0039) and the pre-filled link from a form's Settings
+- [x] Studio note in the admin entry page, Earlier questions for answers no question asks any more
+- [ ] [!] Owner applies migration 0039 in Settings, System (widens the saved step, adds the reminder columns)
 - [ ] Refreshed reference artifact from the final question lists
-- [ ] `docs/status.md`
+- [x] `docs/status.md`
