@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import LegalToc from "@/components/legal/legal-toc";
+import LegalTabs from "@/components/legal/legal-tabs";
 import { LEGAL_DOCS, legalBySlug } from "@/lib/legal";
 import { COMPANY_NAME, CONTACT_EMAIL, SITE_URL } from "@/lib/site";
 import "@/components/preview/preview.css";
@@ -107,33 +108,37 @@ export default async function LegalDocPage(
 
         <section className="pv-sec">
           <div className="pv-wrap">
-            <div className="lg-cols">
-              <LegalToc sections={sections} others={others} />
+            {doc.tabs ? (
+              <LegalTabs intro={doc.intro} tabs={doc.tabs} sections={doc.sections.map((x) => ({ heading: x.heading, body: x.body, tab: x.tab ?? "general" }))} email={CONTACT_EMAIL} />
+            ) : (
+              <div className="lg-cols">
+                <LegalToc sections={sections} others={others} />
 
-              {/* `<article>` rather than a div: this is one self-contained
-                  document, which is what the element is for and what a reader
-                  mode will extract. */}
-              <article className="lg-body">
-                <p className="lg-intro">{doc.intro}</p>
+                {/* `<article>` rather than a div: this is one self-contained
+                    document, which is what the element is for and what a reader
+                    mode will extract. */}
+                <article className="lg-body">
+                  <p className="lg-intro">{doc.intro}</p>
 
-                {doc.sections.map((s, i) => (
-                  /* `scroll-mt` on the section, not on the heading, so a jump
-                     from the contents lands the heading below the fixed
-                     header instead of underneath it. */
-                  <section key={s.heading} id={`s${i}`} className="lg-sec">
-                    <h2>{s.heading}</h2>
-                    {s.body.map((para, n) => <p key={n}>{linkify(para)}</p>)}
-                  </section>
-                ))}
+                  {doc.sections.map((s, i) => (
+                    /* `scroll-mt` on the section, not on the heading, so a jump
+                       from the contents lands the heading below the fixed
+                       header instead of underneath it. */
+                    <section key={s.heading} id={`s${i}`} className="lg-sec">
+                      <h2>{s.heading}</h2>
+                      {s.body.map((para, n) => <p key={n}>{linkify(para)}</p>)}
+                    </section>
+                  ))}
 
-                <p className="lg-foot">
-                  This page explains how we work. It is written to be understood
-                  rather than to be impressive, and if any part of it is unclear
-                  we would rather you asked than guessed.{" "}
-                  <Link href="/contact">Ask us about it</Link>.
-                </p>
-              </article>
-            </div>
+                  <p className="lg-foot">
+                    This page explains how we work. It is written to be understood
+                    rather than to be impressive, and if any part of it is unclear
+                    we would rather you asked than guessed.{" "}
+                    <Link href="/contact">Ask us about it</Link>.
+                  </p>
+                </article>
+              </div>
+            )}
           </div>
         </section>
       </main>
