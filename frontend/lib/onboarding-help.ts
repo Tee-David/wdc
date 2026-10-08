@@ -2,8 +2,8 @@
 export const OPTION_HELP: Record<string, Record<string, string>> = {
   deliverables: {
     Logo: "The mark or wordmark people recognise.",
-    "Full identity system": "Logo, type, colours and layouts working together.",
-    "Brand guidelines": "A document explaining how to use the identity.",
+    "Full identity system": "Logo, brand guidelines, logo files in every variant, and mockups.",
+    "Brand guidelines": "Just the guide, for a logo you already have.",
     Packaging: "Design for boxes, bags, labels or wrappers.",
     Signage: "Signs for premises or events; making them is separate.",
     "Social templates": "Reusable layouts your team can fill with content.",

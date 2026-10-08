@@ -111,8 +111,8 @@ for (const theme of ["light", "dark"] as const) for (const width of [320, 390, 7
     await expect(field.getByRole("heading", { name: "Show us your colours" })).toBeVisible();
     await expectTargets(field, `${label} have upload`);
     await expectNoOverflow(page);
-    await field.getByText("I know my colour codes").click();
-    await expect(field.getByText("A code looks like #1A5C3A.")).toBeVisible();
+    await field.getByText("Type codes or pick colours").click();
+    await expect(field.getByText("Type a code like #1A5C3A, or tap the box to pick a colour.")).toBeVisible();
     await expectTargets(field, `${label} have codes`);
     await expectNoOverflow(page);
     await field.getByText("Describe them in words").click();
@@ -174,10 +174,21 @@ test("tapping another swatch makes it the main colour that is saved", async ({ p
   ].join("\n"));
 });
 
+test("the picker box sits between the code and the remove button and fills the code", async ({ page }) => {
+  const field = await openColours(page);
+  await field.getByText("I already have my colours").click();
+  await field.getByText("Type codes or pick colours").click();
+  const row = field.locator(".obCol__codeRow").first();
+  const kids = await row.locator("> *").evaluateAll((els) => els.map((e) => e.tagName + ":" + (e as HTMLInputElement).type));
+  expect(kids.slice(0, 3)).toEqual(["LABEL:undefined", "INPUT:color", "BUTTON:button"]);
+  await row.locator('input[type="color"]').fill("#1a5c3a");
+  await expect(field.getByRole("textbox", { name: "Colour 1", exact: true })).toHaveValue("#1A5C3A");
+});
+
 test("codes show the error copy, then save with plain names", async ({ page }) => {
   const field = await openColours(page);
   await field.getByText("I already have my colours").click();
-  await field.getByText("I know my colour codes").click();
+  await field.getByText("Type codes or pick colours").click();
   const first = field.getByRole("textbox", { name: "Colour 1", exact: true });
   await first.fill("zz");
   await expect(field.getByText("That code needs 6 letters or numbers, like 1A5C3A. Check it and try again.")).toBeVisible();
