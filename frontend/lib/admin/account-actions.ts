@@ -40,6 +40,22 @@ export async function saveMyName(_prev: ActionState, fd: FormData): Promise<Acti
   return OK("Saved. New changes carry this name; old ones keep the name they were made under.");
 }
 
+/** Sign out one other device by its session id. Only ever this person's own, and never the one asking. */
+export async function signOutMySession(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const me = await signedIn();
+  if (!me) return FAIL({}, NO_SESSION);
+  const id = String(fd.get("session") ?? "");
+  if (!id || id === me.session.session.id) return FAIL({}, "Use Sign out to leave this device.");
+  try {
+    await db.query('DELETE FROM "session" WHERE "id" = $1 AND "userId" = $2', [id, me.session.user.id]);
+  } catch {
+    return FAIL({}, "That could not be done just now.");
+  }
+  audit({ actor: me.session.user.name, kind: "setting", subjectId: me.session.user.id, subject: me.session.user.name, action: "signed out one of their devices" });
+  revalidatePath(PAGE);
+  return OK("That device is signed out.");
+}
+
 export async function signOutMyOtherSessions(): Promise<ActionState> {
   const me = await signedIn();
   if (!me) return FAIL({}, NO_SESSION);

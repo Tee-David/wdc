@@ -6,7 +6,7 @@ import { getAdminRequest } from "@/lib/admin/session";
 import { db } from "@/lib/db/pool";
 import { AdminState } from "@/components/admin/admin-state";
 import { Panel } from "@/components/admin/bits";
-import { MyNameForm, SignOutOthers, UnlinkGoogle } from "@/components/admin/settings/account-controls";
+import { MyNameForm, SignOutOne, SignOutOthers, UnlinkGoogle } from "@/components/admin/settings/account-controls";
 
 export const metadata = { title: "My account" };
 
@@ -78,17 +78,18 @@ export default async function AccountPage() {
           <div className="adSetPad"><PasswordChange email={session.user.email} hasPassword={hasPassword} /></div>
         </Panel>
 
-        <Panel title={`Signed in on ${sessions.length} ${sessions.length === 1 ? "device" : "devices"}`}>
+        <Panel title={`Signed in on ${sessions.length} of 5 devices`} action={<span className="ad__dim adSet__aside">A sixth sign-in signs out the oldest</span>}>
           {sessions.length ? (
             <div className="ad__scroll">
               <table className="ad__t">
-                <thead><tr><th>Device</th><th>Signed in</th><th>From</th></tr></thead>
+                <thead><tr><th>Device</th><th>Signed in</th><th>From</th><th><span className="ad__sr">Sign out</span></th></tr></thead>
                 <tbody>
                   {sessions.map((s) => (
                     <tr key={s.id}>
                       <td><b>{device(s.userAgent)}</b>{s.id === current ? <small><span className="ad__pill ad__pill--good">This session</span></small> : null}</td>
                       <td>{time(s.createdAt)}</td>
                       <td>{s.ipAddress || "Unknown"}</td>
+                      <td>{s.id === current ? <small className="ad__dim">This device</small> : <SignOutOne id={s.id} label={device(s.userAgent)} />}</td>
                     </tr>
                   ))}
                 </tbody>
