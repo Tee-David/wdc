@@ -82,3 +82,61 @@ export async function retrySecurityNotice(_previous: ActionState, fd: FormData):
     return OK("Notice queued. The mail server outcome is shown separately.");
   } catch { return FAIL({}, "The notice could not be queued. Refresh and retry."); }
 }
+
+/* ------------------------------------------------- delete an account for good */
+
+type UserImpact = { blocked: string | null; goes: string[]; stays: string[]; email: string; name: string };
+
+/** What deleting this account would take, and what refuses it. Re-run by the delete itself. */
+async function impactOf(actorId: string, id: string): Promise<UserImpact | null> {
+  const r = await db.query<{ name: string; email: string; role: string; off: Date | null }>(`SELECT "name","email","role","deactivatedAt" AS off FROM "user" WHERE "id"=$1`, [id]);
+  const u = r.rows[0];
+  if (!u) return null;
+  const { syncStore } = await import("@/lib/admin/persist");
+  const store = await import("@/lib/admin/store");
+  await syncStore().catch(() => {});
+  const name = u.name.trim().toLowerCase();
+  const projects = store.getProjects(true).filter((p) => p.owner.split(",").some((n) => n.trim().toLowerCase() === name)).length;
+  const tasks = store.getTasks().filter((t) => t.assignee.trim().toLowerCase() === name).length;
+  const sessions = (await db.query<{ n: string }>(`SELECT count(*) AS n FROM "session" WHERE "userId"=$1`, [id])).rows[0]?.n ?? "0";
+  const blocked =
+    id === actorId ? "You cannot delete your own account."
+    : u.role === "owner" ? "Owners cannot be deleted. Make them staff first, then deactivate, then delete."
+    : !u.off ? "Deactivate the account first. Deleting is a second step, taken from a deactivated account."
+    : projects || tasks ? `${projects ? `${projects} project${projects === 1 ? "" : "s"} name` : ""}${projects && tasks ? " and " : ""}${tasks ? `${tasks} task${tasks === 1 ? "" : "s"} assign` : ""} them. Reassign that work first, so nothing is left without an owner.`
+    : null;
+  return {
+    blocked, name: u.name, email: u.email,
+    goes: ["their sign-in, password and Google link", `${sessions} signed-in device${sessions === "1" ? "" : "s"}`, "their profile settings"],
+    stays: ["the audit trail and the work they did, which keep their name as text", "security-log entries about them are removed with them"],
+  };
+}
+
+export async function userDeletionImpact(id: string): Promise<UserImpact | null> {
+  try { const actor = await usersOwner("read"); return await impactOf(actor.user.id, id); } catch { return null; }
+}
+
+export async function deleteUserPermanently(_previous: ActionState, fd: FormData): Promise<ActionState> {
+  const id = String(fd.get("id") ?? "");
+  if (!id || id.length > 120) return FAIL({}, "That account could not be found.");
+  try {
+    const actor = await usersOwner("delete-account", true);
+    const impact = await impactOf(actor.user.id, id);
+    if (!impact) return FAIL({}, "That account is already gone.");
+    if (impact.blocked) return FAIL({}, impact.blocked);
+    if (String(fd.get("typed") ?? "").trim().toLowerCase() !== impact.email.toLowerCase()) return FAIL({ typed: `Type ${impact.email} exactly to confirm.` });
+    try {
+      await transaction(async (tx) => {
+        await tx.query(`DELETE FROM user_security_notices WHERE target_id=$1`, [id]);
+        await tx.query(`DELETE FROM user_security_events WHERE target_id=$1`, [id]);
+        await tx.query(`DELETE FROM "user" WHERE "id"=$1 AND "deactivatedAt" IS NOT NULL AND "role"<>'owner'`, [id]);
+      });
+    } catch {
+      return FAIL({}, "They appear in the security log as the person who made a change, so the account is kept. Leave it deactivated.");
+    }
+    const { audit } = await import("@/lib/admin/store");
+    audit({ actor: actor.user.name ?? "Owner", kind: "client", subjectId: id, subject: impact.name, action: "account deleted permanently", note: impact.email });
+    revalidatePath("/admin/users");
+    return OK(`${impact.name}'s account is deleted.`);
+  } catch (e) { return failure(e); }
+}
