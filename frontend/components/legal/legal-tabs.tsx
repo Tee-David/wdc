@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useState } from "react";
-import { Download, Link2, Search, X } from "lucide-react";
+import { Download, Link2, Search, Share2, X } from "lucide-react";
 import Rich, { SeeAlso } from "./rich";
 
 type Section = { heading: string; body: string[]; tab: string };
@@ -22,6 +22,9 @@ export default function LegalTabs({ slug, intro, tabs, sections, email, also }: 
   const [tab, setTab] = useState(tabs[0].id);
   const [query, setQuery] = useState("");
   const [note, setNote] = useState("");
+  /* A phone has a share sheet; use it. Everywhere else, copy the link. */
+  const [canShare, setCanShare] = useState(false);
+  useEffect(() => { setCanShare(typeof navigator !== "undefined" && typeof navigator.share === "function" && window.matchMedia("(pointer: coarse)").matches); }, []);
 
   useEffect(() => {
     const read = () => {
@@ -43,6 +46,14 @@ export default function LegalTabs({ slug, intro, tabs, sections, email, also }: 
     [q, tab, sections],
   );
   const label = (tabId: string) => tabs.find((t) => t.id === tabId)?.label ?? "";
+
+  async function share(hash: string, what: string) {
+    if (canShare) {
+      try { await navigator.share({ title: `${what}, Client Engagement Policy`, url: `${window.location.origin}${window.location.pathname}#${hash}` }); return; }
+      catch (error) { if ((error as Error).name === "AbortError") return; }
+    }
+    await copy(hash, what);
+  }
 
   async function copy(hash: string, what: string) {
     const url = `${window.location.origin}${window.location.pathname}#${hash}`;
@@ -73,10 +84,12 @@ export default function LegalTabs({ slug, intro, tabs, sections, email, also }: 
                 className={`lg-tab${tab === t.id ? " is-on" : ""}`} onClick={() => choose(t.id)}>{t.label}</button>
             ))}
           </div>
-          <div className="lg-share" aria-label={`Share or download ${label(tab)}`}>
-            <button type="button" onClick={() => void copy(tab, `${label(tab)}`)}><Link2 aria-hidden="true" /> Copy link to this tab</button>
-            <a href={`/legal/${slug}/pdf?tab=${tab}`} download><Download aria-hidden="true" /> This tab as a PDF</a>
-            <a href={`/legal/${slug}/pdf`} download><Download aria-hidden="true" /> The whole policy as a PDF</a>
+          <div className="lg-share" role="group" aria-label={`Share or download ${label(tab)}`}>
+            <button type="button" className="lg-share__main" onClick={() => void share(tab, label(tab))}>
+              {canShare ? <Share2 aria-hidden="true" /> : <Link2 aria-hidden="true" />} {canShare ? "Share this tab" : "Copy link to this tab"}
+            </button>
+            <a href={`/legal/${slug}/pdf?tab=${tab}`} download><Download aria-hidden="true" /> This tab PDF</a>
+            <a href={`/legal/${slug}/pdf`} download><Download aria-hidden="true" /> Full policy PDF</a>
           </div>
         </>
       ) : (
