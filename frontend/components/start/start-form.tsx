@@ -23,7 +23,7 @@ const DEF: CustomFormDef = {
     { id: "topic", type: "select", label: "What do you need help with?", required: true, options: [...ENQUIRY_TOPICS] },
     { id: "message", type: "textarea", label: "Tell us about it", help: "A few lines is plenty. What are you trying to achieve?", required: true, placeholder: "We want to…" },
     { id: "timeline", type: "radio", label: "When would you like to start?", options: ["As soon as possible", "In the next one to three months", "Later this year", "I'm not sure, please advise me"] },
-    { id: "budget", type: "select", label: "Roughly what budget do you have in mind?", placeholder: "Choose one", options: ["Under ₦1m", "₦1m to ₦3m", "₦3m to ₦10m", "Over ₦10m", "I'm not sure, please advise me"] },
+    { id: "budget", type: "select", slider: true, label: "Roughly what budget do you have in mind?", help: "Slide to the amount closest to what you have in mind. It tells us which options to show you, not what we charge.", options: ["₦10k", "₦20k", "₦30k", "₦50k", "₦75k", "₦100k", "₦150k", "₦200k", "₦300k", "₦500k", "₦750k", "₦1m", "₦1.5m", "₦2m", "₦3m", "₦5m", "₦7.5m", "₦10m", "Over ₦10m", "I'm not sure, please advise me"] },
     { id: "first", type: "text", label: "Your first name", required: true },
     { id: "last", type: "text", label: "Your last name", required: true },
     { id: "email", type: "email", label: "Your email", required: true },

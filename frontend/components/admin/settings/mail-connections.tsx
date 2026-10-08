@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Activity, Pencil, Plus, Send, Trash2 } from "lucide-react";
 import { KINDS, type Kind } from "@/lib/mail-kinds";
 import {
-  checkConnectionAction, deleteConnectionAction, saveConnectionAction, saveRoutingAction, testConnectionAction,
+  checkConnectionAction, checkDomainAction, deleteConnectionAction, newEventsKeyAction, saveConnectionAction, saveRoutingAction, setSimulateAction, testConnectionAction,
 } from "@/lib/admin/mail-connection-actions";
 import { Actions, Field, Fields, Form, Hidden, Select, Submit, Wrap } from "../form";
 import { Pick } from "../pick";
@@ -64,15 +64,38 @@ export function EnvTest() {
   return <Form action={testConnectionAction}><Hidden name="id" value="env" /><Submit tone="plain" icon={Send}>Send me a test</Submit></Form>;
 }
 
-export function RoutingForm({ options, def, fallback, webhook }: { options: { value: string; label: string }[]; def: string; fallback: string; webhook: string }) {
+export function RoutingForm({ options, def, fallback, webhook, digest }: { options: { value: string; label: string }[]; def: string; fallback: string; webhook: string; digest: boolean }) {
   return (
     <Form action={saveRoutingAction}>
       <Fields>
         <Select name="default" label="Send everything through" half defaultValue={def} options={options} hint="The studio's own server stays the default until you pick another." />
         <Select name="fallback" label="If that fails, try" half defaultValue={fallback} placeholder="Nothing" options={options} hint="One retry through a different connection, behind the response." />
         <Field name="webhook" label="Alert me on failure (Slack or Discord)" defaultValue={webhook} placeholder="https://hooks.slack.com/services/…" hint="An incoming-webhook address. At most one alert a minute." />
+        <label className="ad__check"><input type="checkbox" name="digest" value="1" defaultChecked={digest} /> <span>Email me a summary every Monday: sent, failed and the busiest subjects.</span></label>
       </Fields>
       <Actions><Submit>Save</Submit></Actions>
+    </Form>
+  );
+}
+
+export function EventsKey({ has }: { has: boolean }) {
+  return <Form action={newEventsKeyAction} confirm={has ? "Make a new address? The old one stops working, so paste the new one into the mail service." : undefined}><Submit tone="plain">{has ? "Make a new address" : "Make the address"}</Submit></Form>;
+}
+
+export function DomainCheck({ defaultDomain }: { defaultDomain: string }) {
+  return (
+    <Form action={checkDomainAction}>
+      <Fields><Field name="domain" label="Your sending domain" defaultValue={defaultDomain} placeholder="wedigcreativity.com" hint="Looks up SPF, common DKIM names and DMARC." /></Fields>
+      <Actions><Submit>Check it</Submit></Actions>
+    </Form>
+  );
+}
+
+export function SimulateSwitch({ on }: { on: boolean }) {
+  return (
+    <Form action={setSimulateAction}>
+      <Hidden name="on" value={on ? "0" : "1"} />
+      <Submit tone={on ? "primary" : "plain"}>{on ? "Turn simulate mode off" : "Turn simulate mode on"}</Submit>
     </Form>
   );
 }
