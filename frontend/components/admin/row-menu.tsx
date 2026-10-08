@@ -5,7 +5,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { MoreHorizontal, type LucideIcon } from "lucide-react";
+import { MoreVertical, type LucideIcon } from "lucide-react";
 import { Dialog } from "./dialog";
 import { can, type Area } from "@/lib/admin/permissions";
 import { useAdminRole } from "./shell";
@@ -244,7 +244,7 @@ export function RowMenu({
           }
         }}
       >
-        <MoreHorizontal aria-hidden="true" />
+        <MoreVertical aria-hidden="true" />
       </button>
 
       {/* NO `mounted` GUARD. The portal only ever renders while the menu is
