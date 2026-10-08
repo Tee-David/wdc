@@ -82,9 +82,9 @@
 }
 .pv .lg-toc__k--2 { margin-top: 2.2rem; }
 
-.lg-toc__list { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
+.lg-toc__list { list-style: none; margin: 0; padding: 0; display: grid; gap: .1rem; }
 .lg-toc__list a {
-  display: block; font-size: .9rem; line-height: 1.4;
+  display: flex; align-items: center; min-height: 44px; font-size: .9rem; line-height: 1.4;
   color: var(--muted); text-decoration: none;
   /* The marker is a left border that fills in, not a background: a highlighted
      block in a narrow column reads as a button. */

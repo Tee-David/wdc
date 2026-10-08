@@ -110,7 +110,8 @@ export default async function BlogIndex() {
                       quality={70}
                       /* Only the first row is worth fetching eagerly; the rest
                          are below the fold on every viewport. */
-                      priority={n < 3}
+                      loading={n < 3 ? "eager" : "lazy"}
+                      fetchPriority={n < 1 ? "high" : "auto"}
                     />
                   </span>
 
