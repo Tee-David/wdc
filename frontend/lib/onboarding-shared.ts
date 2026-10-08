@@ -11,7 +11,7 @@ import type { ServiceSlug } from "./services";
 
 export type FieldKind =
   | "text" | "email" | "tel" | "url" | "textarea"
-  | "cards" | "multi" | "select" | "yesno" | "upload" | "date" | "profiles"
+  | "cards" | "multi" | "select" | "yesno" | "upload" | "date" | "profiles" | "fonts"
   /* Read-only text shown between questions: an early notice (what we do not
      build) or a note. It asks nothing, stores nothing, is never validated and
      is not counted as a question. `label` is its title and `hint` its text. */
