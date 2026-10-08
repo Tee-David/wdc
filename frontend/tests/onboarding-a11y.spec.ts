@@ -140,7 +140,6 @@ test.describe("defects at 390px light", () => {
        multi-choice groups have no group role or described group to carry it. */
     test(`${svc.slug}: D1 the required state is exposed to assistive tech`, async ({ page }) => {
       test.setTimeout(600_000);
-      knownDefect("D1: required questions show the star only visually; no aria-required on the input or choice group, no described group");
       const log = new Log();
       await walk(page, svc, LIGHT_390, false, log);
       expectClean(log, "required");
@@ -150,7 +149,6 @@ test.describe("defects at 390px light", () => {
        so every heading reads "...Edit" and the seven buttons are all named Edit. */
     test(`${svc.slug}: D2 headings hold only text, and review Edit buttons sit outside them`, async ({ page }) => {
       test.setTimeout(600_000);
-      knownDefect("D2: the review screen renders its Edit button inside each section h2");
       const log = new Log();
       await walk(page, svc, LIGHT_390, false, log);
       expectClean(log, "headings");
@@ -161,7 +159,6 @@ test.describe("defects at 390px light", () => {
        option is its own Tab stop. Checked on each service's size question. */
     test(`${svc.slug}: D5 arrow keys move focus between the options of a choice card`, async ({ page }) => {
       test.setTimeout(300_000);
-      knownDefect("D5: role=radio cards have no arrow-key handling; focus stays on the first option");
       const log = new Log();
       await open(page, LIGHT_390);
       await startByKeyboard(page, svc.pick);
@@ -190,7 +187,6 @@ test.describe("defect at 320px with text at 200%", () => {
   for (const svc of SERVICES) {
     test(`${svc.slug}: D6 the first screen fits 320px with text at 200%`, async ({ page }) => {
       test.setTimeout(300_000);
-      knownDefect("D6: at 200% text the 'Back to the onboarding menu' button on the first screen extends to 331px on a 320px viewport");
       const log = new Log();
       await open(page, CONFIGS[4]);
       await startByKeyboard(page, svc.pick);
@@ -209,7 +205,6 @@ test.describe("defect under reduced motion", () => {
   for (const svc of SERVICES) {
     test(`${svc.slug}: D3 nothing animates or transitions longer than 0.01s under reduced motion`, async ({ page }) => {
       test.setTimeout(600_000);
-      knownDefect("D3: base-rule transitions (.2s borders and backgrounds, width .55s on the progress bar) are not gated by prefers-reduced-motion");
       const log = new Log();
       await walk(page, svc, { ...LIGHT_390, reduced: true, focus: false }, false, log);
       expectClean(log, "motion");

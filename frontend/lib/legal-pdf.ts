@@ -13,7 +13,12 @@ import type { LegalDoc } from "@/lib/legal";
  * tabbed policy prints General first and then each service under its own
  * heading, in the order of the page.
  */
-export async function renderLegalPdf(doc: LegalDoc): Promise<Uint8Array> {
+export async function renderLegalPdf(whole: LegalDoc, only?: string): Promise<Uint8Array> {
+  /* One tab on its own: the title says which, and only its sections print. */
+  const tabLabel = only ? whole.tabs?.find((t) => t.id === only)?.label : undefined;
+  const doc: LegalDoc = tabLabel
+    ? { ...whole, title: `${whole.title}: ${tabLabel}`, tabs: whole.tabs!.filter((t) => t.id === only) }
+    : whole;
   const a = load();
   const pdf = await PDFDocument.create();
   pdf.registerFontkit(fontkit);
@@ -72,7 +77,7 @@ export async function renderLegalPdf(doc: LegalDoc): Promise<Uint8Array> {
   paragraph(doc.intro, reg, 11);
   if (doc.tabs) {
     for (const tab of doc.tabs) {
-      const mine = doc.sections.filter((x) => (x.tab ?? doc.tabs![0].id) === tab.id);
+      const mine = doc.sections.filter((x) => (x.tab ?? whole.tabs![0].id) === tab.id);
       if (!mine.length) continue;
       heading(tab.label, true);
       for (const sec of mine) { heading(sec.heading); sec.body.forEach((p) => paragraph(p)); }

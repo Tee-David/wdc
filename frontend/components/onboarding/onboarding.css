@@ -419,11 +419,9 @@
   border: 1px solid var(--rule); border-radius: 16px;
   background: var(--paper-2);
 }
-.pv .ob__review h2 {
-  display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
-  font-size: 1.02rem; letter-spacing: normal; color: var(--ink);
-}
-.ob__review h2 button {
+.ob__reviewHead { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.pv .ob__review h2 { margin: 0; font-size: 1.02rem; letter-spacing: normal; color: var(--ink); }
+.ob__reviewHead button {
   border: 0; background: transparent; cursor: pointer;
   font-family: var(--font-body);
   font-size: .82rem; font-weight: 600; color: var(--accent-ink);
@@ -1382,3 +1380,10 @@
 .obFont__size { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: .6rem; align-items: center; min-width: 0; font-size: .9rem; color: var(--muted); }
 .obFont__size input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--accent-fill); }
 .obFont__size output { min-width: 3ch; font-variant-numeric: tabular-nums; color: var(--ink); }
+
+/* Nothing animates for someone who asked for less motion: transitions and loops alike. */
+@media (prefers-reduced-motion: reduce) {
+  .ob, .ob *, .ob *::before, .ob *::after, .obCol *, .obCol *::before, .obCol *::after { transition: none !important; animation: none !important; }
+}
+/* A long label wraps instead of widening the page, even at 200% text on a 320px phone. */
+.pv .ob__acts--step > .ob__stepBack { max-width: 100%; white-space: normal; text-align: left; line-height: 1.25; }
