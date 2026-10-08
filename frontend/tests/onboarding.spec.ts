@@ -1,6 +1,13 @@
 import { expect, test } from "@playwright/test";
 import { stepsFor } from "@/lib/onboarding";
 
+/* Screens are looked up by their id, so a reorder of the steps does not move the spec. */
+const webIndexOf = (id: string) => stepsFor("web").findIndex((step) => step.id === id);
+/* The About you business screen: industry and the other basics live here, not on the first screen. */
+const BUSINESS = webIndexOf("business");
+/* The channel question sits on the closing "working" screen, which is the step the old spec called the last. */
+const CHANNEL = stepsFor("web").findIndex((step) => step.fields.some((f) => f.key === "channel"));
+
 const browserDraft = {
   started: true,
   service: "web",
@@ -41,7 +48,8 @@ test("uses client-facing choices and reveals Other details only when needed", as
 });
 
 test("uses a plain list for short selects", async ({ page }) => {
-  await landWeb(page, webStepOf("page_count"), {});
+  /* The page count question is a large site question, so the size is answered first. */
+  await landWeb(page, webStepOf("page_count"), { site_size: "A large site" });
   await page.goto("/onboarding");
 
   const pageCount = page.locator('[data-field="page_count"]');
@@ -62,8 +70,8 @@ test("lets clients revise an unsure answer", async ({ page }) => {
   await featureField.getByRole("button", { name: "I'm not sure, please advise me" }).click();
   await expect(featureField.getByText("Noted. We will come to this with a recommendation rather than a blank.")).toBeVisible();
   await featureField.getByRole("button", { name: "Actually, let me answer this" }).click();
-  await featureField.getByRole("checkbox", { name: "Gallery" }).click();
-  await expect(featureField.getByRole("checkbox", { name: "Gallery" })).toHaveAttribute("aria-checked", "true");
+  await featureField.getByRole("checkbox", { name: "Live chat" }).click();
+  await expect(featureField.getByRole("checkbox", { name: "Live chat" })).toHaveAttribute("aria-checked", "true");
   await expect(featureField.getByText("Noted. We will come to this with a recommendation rather than a blank.")).toHaveCount(0);
 });
 
@@ -76,11 +84,11 @@ test("project update channels are multiple choice with the client portal selecte
       step,
       answers: {},
     }));
-  }, stepsFor("web").length - 1);
+  }, CHANNEL);
   await page.goto("/onboarding");
 
   const field = page.locator('[data-field="channel"]');
-  await expect(field.locator(".ob__label")).toContainText("Which channels work best for project updates?");
+  await expect(field.locator(".ob__label")).toContainText("Where should we send project updates?");
   const portal = field.getByRole("checkbox", { name: "Client portal" });
   const email = field.getByRole("checkbox", { name: "Email" });
   await expect(portal).toHaveAttribute("aria-checked", "true");
@@ -98,7 +106,7 @@ test("an older single channel answer still reads back as selected", async ({ pag
       step,
       answers: { channel: "Email" },
     }));
-  }, stepsFor("web").length - 1);
+  }, CHANNEL);
   await page.goto("/onboarding");
 
   const field = page.locator('[data-field="channel"]');
@@ -132,7 +140,7 @@ for (const width of [390, 320]) {
       }));
     }, stepsFor("web").length);
     await page.goto("/onboarding");
-    await page.getByRole("button", { name: /Send the brief/ }).click();
+    await page.getByRole("button", { name: /Send to the studio/ }).click();
 
     await expect(page.locator(".ob-conf")).toBeVisible();
     await expect(page.locator(".ob-conf")).toHaveCount(0, { timeout: 6_000 });
@@ -158,7 +166,7 @@ test("the confetti is removed, not frozen, when the animations stop advancing", 
     localStorage.setItem("wdc-onboarding-draft", JSON.stringify({ started: true, service: "web", step, answers: {} }));
   }, stepsFor("web").length);
   await page.goto("/onboarding");
-  await page.getByRole("button", { name: /Send the brief/ }).click();
+  await page.getByRole("button", { name: /Send to the studio/ }).click();
   await expect(page.locator(".ob-conf")).toBeVisible();
   /* Mounted on the body, not inside the card, so nothing above it can clip it. */
   expect(await page.evaluate(() => document.querySelector(".ob-conf")?.parentElement === document.body)).toBe(true);
@@ -192,7 +200,7 @@ test.describe("the mobile picker sheet", () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript((draft) => {
       localStorage.setItem("wdc-onboarding-draft", JSON.stringify(draft));
-    }, { started: true, service: "web", step: 0, answers: {} });
+    }, { started: true, service: "web", step: BUSINESS, answers: {} });
   });
 
   test("tapping the dimmed page behind it closes it", async ({ page }) => {
@@ -392,7 +400,7 @@ test("on a fine pointer the search box is still focused when the picker opens", 
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.addInitScript((draft) => {
     localStorage.setItem("wdc-onboarding-draft", JSON.stringify(draft));
-  }, { started: true, service: "web", step: 0, answers: {} });
+  }, { started: true, service: "web", step: BUSINESS, answers: {} });
   await page.goto("/onboarding");
   const industry = page.locator('[data-field="industry"]').getByRole("combobox");
   await industry.scrollIntoViewIfNeeded();

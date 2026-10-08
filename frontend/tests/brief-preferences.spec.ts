@@ -1,19 +1,12 @@
 import { expect, test } from "@playwright/test";
 import { FIELD_EXAMPLES, OPTION_HELP } from "@/lib/onboarding-help";
-import { isVisible, stepsFor } from "@/lib/onboarding";
+import { isVisible, SIZE_KEYS, stepsFor } from "@/lib/onboarding";
 import { SERVICES } from "@/lib/services";
+import { PERSON } from "./onboarding-helpers";
 
-/* Help the help file still carries for questions the step lists have since cut
-   or renamed (7 October redesign). They are named here so the test fails the day
-   any NEW help drifts from its field, and again when one of these is fixed; then
-   take it off this list. The cleanup itself is in lib/onboarding-help.ts. */
-const RETIRED_HELP = [
-  "tools_access",
-  "features/Online store", "features/Bookings", "features/Gallery", "features/Members area",
-  "platforms/iOS", "platforms/Android",
-];
-const RETIRED_EXAMPLES = ["tools_access", "has_hosting", "access_ok"];
-
+/* Every help entry names a question and an option the step lists still ask. The
+   7 October redesign cut or renamed some; those entries were removed from
+   lib/onboarding-help.ts, so nothing is stale now. */
 test("service help stays attached to stable fields and choices", () => {
   const fields = SERVICES.flatMap((service) => stepsFor(service.slug).flatMap((step) => step.fields));
   const stale: string[] = [];
@@ -22,11 +15,16 @@ test("service help stays attached to stable fields and choices", () => {
     if (!field) stale.push(key);
     else for (const option of Object.keys(options)) if (!field.options?.includes(option)) stale.push(`${key}/${option}`);
   }
-  expect(stale.sort()).toEqual([...RETIRED_HELP].sort());
+  expect(stale.sort()).toEqual([]);
   const staleExamples = Object.keys(FIELD_EXAMPLES).filter((key) => !fields.some((field) => field.key === key));
-  expect(staleExamples.sort()).toEqual([...RETIRED_EXAMPLES].sort());
+  expect(staleExamples).toEqual([]);
   for (const service of SERVICES) expect(stepsFor(service.slug).some((step) => step.fields.some((field) => FIELD_EXAMPLES[field.key] && field.key !== "has_brandbook"))).toBeTruthy();
 });
+
+/* The About you business screen, with the person's basics given. Next from here opens
+   the first section of the service's own work. */
+const BUSINESS = stepsFor("branding").findIndex((step) => step.id === "business");
+const onBusiness = { started: true, service: "branding", step: BUSINESS, answers: PERSON };
 
 test.beforeEach(async ({ page }) => {
   page.setDefaultTimeout(30000);
@@ -82,9 +80,9 @@ for (const theme of ["light", "dark"]) for (const width of [320, 390, 768, 1440]
 for (const width of [320, 1440]) {
   test(`next opens the following section at the top at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 600 });
-    await page.addInitScript(() => {
-      localStorage.setItem("wdc-onboarding-draft", JSON.stringify({ started: true, service: "branding", step: 1, answers: { brand_state: "Nothing yet" } }));
-    });
+    await page.addInitScript((draft) => {
+      localStorage.setItem("wdc-onboarding-draft", JSON.stringify(draft));
+    }, onBusiness);
     await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
     const next = page.locator(".ob__stepNext").first();
     await expect(next).toBeVisible({ timeout: 30000 });
@@ -104,12 +102,17 @@ for (const width of [320, 1440]) {
 for (const service of SERVICES) {
   test(`${service.name} explains its service choices on a phone`, async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 800 });
+    /* Size is answered at its largest, so the questions that only a bigger job is asked are on screen too. */
     const steps = stepsFor(service.slug);
-    const step = steps.findIndex((step) => step.fields.some((field) => FIELD_EXAMPLES[field.key] && field.key !== "has_brandbook" && !field.showIf));
-    const field = steps[step].fields.find((field) => FIELD_EXAMPLES[field.key] && field.key !== "has_brandbook" && !field.showIf)!;
-    await page.addInitScript(({ service, step }) => {
-      localStorage.setItem("wdc-onboarding-draft", JSON.stringify({ started: true, service, step, answers: {} }));
-    }, { service: service.slug, step });
+    const answers: Record<string, string> = {};
+    for (const step of steps) for (const f of step.fields) if ((SIZE_KEYS as readonly string[]).includes(f.key) && f.options?.length) answers[f.key] = f.options[f.options.length - 1];
+    const screens = steps.filter((step) => step.fields.some((f) => isVisible(f, answers)));
+    const explained = (f: (typeof steps)[number]["fields"][number]) => FIELD_EXAMPLES[f.key] && f.key !== "has_brandbook" && isVisible(f, answers);
+    const step = screens.findIndex((step) => step.fields.some(explained));
+    const field = screens[step].fields.find(explained)!;
+    await page.addInitScript(({ service, step, answers }) => {
+      localStorage.setItem("wdc-onboarding-draft", JSON.stringify({ started: true, service, step, answers }));
+    }, { service: service.slug, step, answers });
     await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
     const question = page.locator(`[data-field="${field.key}"]`);
     await expect(question).toBeVisible({ timeout: 30000 });
@@ -128,7 +131,7 @@ for (const service of SERVICES) {
 test.describe("native touch navigation", () => {
   test.use({ viewport: { width: 375, height: 667 }, isMobile: true, hasTouch: true });
   test("a tap on Next reveals the new section without desktop scroll interception", async ({ page }) => {
-    await page.addInitScript(() => localStorage.setItem("wdc-onboarding-draft", JSON.stringify({ started: true, service: "branding", step: 1, answers: { brand_state: "Nothing yet" } })));
+    await page.addInitScript((draft) => localStorage.setItem("wdc-onboarding-draft", JSON.stringify(draft)), onBusiness);
     await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
     const next = page.locator(".ob__stepNext").first();
     await expect(next).toBeVisible({ timeout: 30000 });
