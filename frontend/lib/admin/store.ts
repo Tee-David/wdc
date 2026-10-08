@@ -510,6 +510,22 @@ export function mergeClients(keepId: Id, dupeId: Id, actor = "Studio"):
   return { ok: true, kept: keep, moved };
 }
 
+/** Which departments look after a client. Replaces the list. */
+export function setClientDepartments(id: Id, ids: string[], actor = "Studio"): Client | null {
+  const c = getClient(id);
+  if (!c) return null;
+  const next = [...new Set(ids)];
+  if (next.join() === (c.departments ?? []).join()) return c;
+  c.departments = next;
+  audit({ actor, kind: "client", subjectId: c.id, subject: c.company, action: "departments changed", note: `${next.length} department${next.length === 1 ? "" : "s"}` });
+  return c;
+}
+
+/** Client ids assigned to a department, for the "reassign before removing" checks. */
+export function clientsInDepartment(departmentId: string): Client[] {
+  return CLIENTS.filter((c) => !c.archived && (c.departments ?? []).includes(departmentId));
+}
+
 export function archiveClient(id: Id, archived = true, actor = "Studio"): Client | null {
   const c = getClient(id);
   if (!c) return null;
