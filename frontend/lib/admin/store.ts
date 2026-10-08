@@ -634,7 +634,7 @@ export function deleteClientPermanently(id: Id, actor = "Studio"): boolean {
 export function addProject(d: {
   clientId: Id; title: string; service: Project["service"];
   stage: Stage; due: string | null;
-  owner?: string; health?: Health; channel?: Channel;
+  owner?: string; ownerIds?: string[]; health?: Health; channel?: Channel;
   budget?: number | null; scope?: string; icon?: string;
 }): Project {
   /* DEFAULTS THAT ARE HONEST. A new project is on track because nothing has
@@ -1524,7 +1524,7 @@ export function setTicketStatus(id: Id, status: TicketStatus): Ticket | null {
 }
 
 export function patchProject(id: Id, d: Partial<Pick<Project,
-  "owner" | "health" | "channel" | "budget" | "scope" | "title" | "icon">>): Project | null {
+  "owner" | "ownerIds" | "health" | "channel" | "budget" | "scope" | "title" | "icon">>): Project | null {
   const p = PROJECTS.find((x) => x.id === id);
   if (!p) return null;
   if (d.health && d.health !== p.health) addProjectNote(id, `Health moved to ${d.health}`);

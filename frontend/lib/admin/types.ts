@@ -115,8 +115,10 @@ export type Project = {
   due: string | null;
   /** Appended to, never rewritten: it is the project's history. */
   events: { at: string; text: string }[];
-  /** Who is answerable for it. One name, not a committee. */
+  /** Who is answerable for it, as names (older records, and people not yet on the team). */
   owner: string;
+  /** The same people as team accounts, so "my projects" is exact. Names stay as the readable copy. */
+  ownerIds?: string[];
   health: Health;
   channel: Channel;
   /** Kobo, or null when no figure has been agreed. Never a float; see above. */
