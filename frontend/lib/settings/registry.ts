@@ -103,9 +103,9 @@ export const SETTINGS: SettingDef[] = [
     revalidate: [],
   },
   {
-    key: "legal", label: "Legal documents", shipped: () => "4 documents",
+    key: "legal", label: "Legal documents", shipped: () => "6 documents",
     note: "Privacy, terms, cookies and the engagement policy.",
-    readOnly: "Not editable yet, and deliberately: a change to a legal text should go through review, not a text box.",
+    readOnly: "Edited under Settings > Policies, which keeps the last ten versions of each.",
     revalidate: [],
   },
   {
