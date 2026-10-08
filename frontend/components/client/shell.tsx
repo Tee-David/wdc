@@ -8,6 +8,7 @@ import { useTheme } from "next-themes";
 import { ArrowLeft, ChevronDown, Globe, LogOut, Moon, PanelLeft, Sun } from "lucide-react";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { authClient } from "@/lib/auth-client";
+import { saveAppearance } from "@/lib/client-profile-actions";
 import { WdcMark } from "@/components/brand/logo";
 import { CLIENT_NAV, isClientNavActive } from "./client-nav";
 import TourLauncher from "@/components/admin/tour/tour-launcher";
@@ -109,6 +110,18 @@ function Sidebar({
   );
 }
 
+/** The theme switch as a row of the account menu; the choice is saved to the account straight away. */
+function MenuTheme() {
+  const { resolvedTheme, setTheme } = useTheme();
+  const mounted = useSyncExternalStore(subscribeToClientMount, () => clientMounted, () => false);
+  const dark = mounted && resolvedTheme === "dark";
+  return (
+    <button type="button" role="menuitem" onClick={() => { const next = dark ? "light" : "dark"; setTheme(next); void saveAppearance(next); }}>
+      {dark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />} {mounted ? (dark ? "Light theme" : "Dark theme") : "Switch theme"}
+    </button>
+  );
+}
+
 function ThemeButton() {
   const { resolvedTheme, setTheme } = useTheme();
   const mounted = useSyncExternalStore(subscribeToClientMount, () => clientMounted, () => false);
@@ -179,7 +192,7 @@ function AccountMenu({ user, clientCompany }: { user: PortalUser; clientCompany:
             <b>{user.name || "Client"}</b>
             {user.email ? <span>{user.email}</span> : null}
           </div>
-          {supportReadOnly ? <form action={SUPPORT_EXIT} method="post"><button type="submit" role="menuitem"><LogOut aria-hidden="true" /> Exit support view</button></form> : <><Link href="/" role="menuitem" onClick={() => setOpen(false)}><Globe aria-hidden="true" /> Back to website</Link><button type="button" role="menuitem" onClick={() => signOut(router)}><LogOut aria-hidden="true" /> Sign out</button></>}
+          {supportReadOnly ? <form action={SUPPORT_EXIT} method="post"><button type="submit" role="menuitem"><LogOut aria-hidden="true" /> Exit support view</button></form> : <><MenuTheme /><Link href="/" role="menuitem" onClick={() => setOpen(false)}><Globe aria-hidden="true" /> Back to website</Link><button type="button" role="menuitem" onClick={() => signOut(router)}><LogOut aria-hidden="true" /> Sign out</button></>}
         </div>
       ) : null}
     </div>
