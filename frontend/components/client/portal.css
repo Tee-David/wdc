@@ -341,13 +341,25 @@
 .pSet__devices li > span { display: grid; min-width: 0; }
 
 /* ---- The one next step, and who has the ball ---- */
-.cpNext { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 1.5rem; margin: 0 0 1.1rem; padding: 1.1rem 1.3rem; border-radius: var(--ad-r); background: var(--ad-panel); border: 1px solid var(--ad-line); border-left: 6px solid var(--ad-tone-brand); }
-.cpNext--live { border-left-color: var(--ad-tone-live); }
-.cpNext--warn { border-left-color: var(--ad-tone-warn); }
-.cpNext--bad { border-left-color: var(--ad-tone-bad); }
-.cpNext > div { min-width: 0; flex: 1 1 18rem; }
-.cpNext__eyebrow { font: 600 .72rem var(--font-space-grotesk), system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--ad-dim); }
-.cpNext h2 { margin: .25rem 0 .2rem; font: 700 clamp(1.15rem, 1rem + .6vw, 1.45rem)/1.25 var(--font-space-grotesk), system-ui, sans-serif; overflow-wrap: anywhere; }
-.cpNext p { margin: 0; color: var(--ad-dim); }
+.cpStep { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 1.5rem; margin: 0 0 1.1rem; padding: 1.1rem 1.3rem; border-radius: var(--ad-r); background: var(--ad-panel); border: 1px solid var(--ad-line); border-left: 6px solid var(--ad-tone-brand); }
+.cpStep--live { border-left-color: var(--ad-tone-live); }
+.cpStep--warn { border-left-color: var(--ad-tone-warn); }
+.cpStep--bad { border-left-color: var(--ad-tone-bad); }
+.cpStep > div { min-width: 0; flex: 1 1 18rem; }
+.cpStep__eyebrow { font: 600 .72rem var(--font-space-grotesk), system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--ad-dim); }
+.cpStep h2 { margin: .25rem 0 .2rem; font: 700 clamp(1.15rem, 1rem + .6vw, 1.45rem)/1.25 var(--font-space-grotesk), system-ui, sans-serif; overflow-wrap: anywhere; }
+.cpStep p { margin: 0; color: var(--ad-dim); }
 .cpStatus { display: inline-flex; align-items: center; min-height: 1.6rem; padding: 0 .65rem; border-radius: 999px; background: var(--ad-tone-neutral, var(--ad-line)); color: var(--ad-on-neutral, var(--ad-ink)); font-size: .78rem; font-weight: 600; }
 .cpStatus.is-you { background: var(--ad-tone-live); color: var(--ad-on-live); }
+
+/* ---- Project timeline ---- */
+.cpLine { list-style: none; margin: 0; padding: .6rem 1.25rem 1rem; display: grid; gap: 0; }
+.cpLine li { position: relative; display: grid; grid-template-columns: 2rem minmax(0, 1fr); column-gap: .75rem; padding: .55rem 0 .55rem 0; }
+.cpLine li::before { content: ""; position: absolute; left: .95rem; top: 0; bottom: 0; width: 2px; background: var(--ad-line); }
+.cpLine li:first-child::before { top: 1.2rem; }
+.cpLine li:last-child::before { bottom: calc(100% - 1.2rem); }
+.cpLine li span { position: relative; z-index: 1; grid-row: 1 / 3; width: 2rem; height: 2rem; display: grid; place-items: center; border-radius: 999px; background: var(--ad-tone-brand); color: var(--ad-on-brand); }
+.cpLine li.is-ahead span { background: var(--ad-panel); color: var(--ad-ink); border: 2px solid var(--ad-line); }
+.cpLine li span svg { width: .95rem; height: .95rem; }
+.cpLine li b { overflow-wrap: anywhere; }
+.cpLine li small { color: var(--ad-dim); }
