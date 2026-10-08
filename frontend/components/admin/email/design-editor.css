@@ -40,3 +40,12 @@
 .deEd__frame iframe { width: 100%; max-width: 680px; height: 70vh; min-height: 28rem; border: 0; border-radius: 8px; background: #fff; }
 .deEd__frame.is-phone iframe { max-width: 375px; }
 .deEd__ph .ad__btn[aria-pressed="true"] { background: var(--ad-ink); color: var(--ad-bg); }
+
+/* ---- Contacts ---- */
+.emBar { padding: .6rem .8rem; background: var(--ad-panel); border: 1px solid var(--ad-line); border-radius: var(--ad-r); gap: .6rem; margin-bottom: .8rem; }
+.emBar input { min-height: 2.75rem; padding: .5rem .7rem; border: 1px solid var(--ad-line); border-radius: 10px; background: var(--ad-panel); color: var(--ad-ink); font: 500 .95rem var(--font-outfit), system-ui, sans-serif; min-width: 0; flex: 1 1 14rem; }
+.emBar input:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.emTimeline { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
+.emTimeline li { padding: .6rem .8rem; border: 1px solid var(--ad-line); border-radius: 10px; display: grid; gap: .15rem; }
+.emTimeline small { color: var(--ad-dim); }
+.emTags { display: flex; flex-wrap: wrap; gap: .35rem; }
