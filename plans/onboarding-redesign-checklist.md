@@ -122,21 +122,21 @@ Plan section 13. Small updates. Copy needs owner approval first.
 
 - [x] Works data checked 7 October: case studies in `lib/work.ts` and a self creating `case_studies` table (`lib/work-db.ts`), loose artwork in `lib/showcase.ts`. No migration needed for anything in the proposal
 - [x] Draft the small additions for each service page: exact copy in [services-and-works-copy-proposal.md](services-and-works-copy-proposal.md)
-- [ ] [!] Owner decides on the Maintenance line on the Web page
-- [ ] [!] Owner approves the "work starts at three months" line on the SEO page
-- [ ] [!] Owner approves the copy for all six service pages
-- [ ] Update `lib/services.ts` (check the JSON-LD still reads truthfully)
+- [x] Maintenance line: the step is now "After launch" and Ongoing maintenance left the deliverables (owner delegated the call, decision 10)
+- [x] SEO page says work starts at three months (decision 11)
+- [x] Copy for all six service pages applied as proposed (decision 18)
+- [x] `lib/services.ts` updated. No price, turnaround or result was added, so the JSON-LD still reads truthfully
 - [x] Drive folder "We Dig Creativity - Graphic Samples" is readable from this account (7 October). No sharing step needed
-- [ ] Pick and download only the samples that earn a place, cut web sized copies
-- [ ] Works: add motion loops (studio promo, Litch Consulting film, Realtors' Practice post and story) with posters, lazy loaded
-- [ ] Works: add the Realtors' Practice pitch deck (cover and story slides only, redacted)
-- [ ] Works: add packaging, apparel and uniform pieces, and real brand guide spreads
-- [ ] Works: group Branding by the same deliverable names as the form cards
-- [ ] Works: let a case study hold a video loop (small type change)
-- [ ] Works: tighten category ledes, keep quotes and metrics honest
-- [ ] Responsive and performance check, both themes, video loops measured on a phone
-- [ ] Update the services and work tests in the same commit
-- [ ] Migration note if the Works data lives in the database
+- [x] No Drive download needed: the 147 images already in `public/brand-work/` cover every card and gap, plus the Realtors' Practice deck slides added
+- [x] Works: seven motion loops with posters on /work/branding, lazy loaded, paused off screen, with a pause button (`components/work/motion-wall.tsx`)
+- [x] Works: Pitch decks group with five Realtors' Practice slides (no prices, no contact details)
+- [x] Works: packaging, apparel and brand guide spreads were already on the site (Mockups and merch, Brand guides); nothing more added
+- [~] Works: Branding groups are Flyers and posters, Logos and marks, Mockups and merch, Brand guides, Pitch decks. Close to the form's card names but not identical. Renaming is left until the owner wants it
+- [x] Works: `motion` on a case study; Litch Consulting and Realtors' Practice carry loops
+- [x] Works: ledes kept (they already answer what will I get), no quotes or metrics added
+- [~] Responsive checked at 320 to 1280 in both themes by spec; loops are under 600 KB each and load only near the screen. Not measured on a real phone
+- [x] Services and work tests updated (`work-motion`, `services-builder`)
+- [x] No migration needed for any Works change
 
 ## Phase 8. Build progress (7 October 2026 onward)
 
