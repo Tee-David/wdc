@@ -35,7 +35,7 @@ export default async function PortalSupport({ searchParams }: { searchParams: Pr
     <div className="adDash">
       <header className="adDash__head">
         <div>
-          <h1>Support</h1>
+          <h1>Messages</h1>
           <p>Ask us anything about your account, a project, or an invoice.</p>
         </div>
         {asking ? null : (

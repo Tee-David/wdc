@@ -16,6 +16,7 @@ import { DeliverableActions } from "@/components/client/deliverable-actions";
 import "@/components/client/portal.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { deliverableFileLinks } from "@/lib/deliverable-files";
+import { ProjectTimeline } from "@/components/client/project-timeline";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   await syncStore();
@@ -93,6 +94,8 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
 
       <div className="ad__split">
         <div className="ad__stack">
+          <ProjectTimeline project={p} email={client.email} updates={updates} deliverables={deliverables} started={started} />
+
           <Panel title="Deliverables" id="deliverables">
             {deliverables.length ? (
               <>
