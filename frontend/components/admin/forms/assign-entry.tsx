@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { Link2 } from "lucide-react";
 import { assignEntry } from "@/lib/admin/actions";
 import { SERVICES } from "@/lib/services";
-import { Actions, Field, Fields, Form, Hidden, Radios, Select, Submit } from "../form";
+import { Actions, Field, Fields, Form, Hidden, Select, Submit, Wrap } from "../form";
+import { Pick } from "../pick";
 import { DialogButton } from "../dialog";
 
 /**
@@ -19,7 +21,7 @@ export function AssignEntry({
   formKey: string;
   entryId: string;
   clients: { id: string; company: string }[];
-  projects: { id: string; title: string; clientName: string }[];
+  projects: { id: string; title: string; clientName: string; clientId?: string }[];
   /** The form does not say which service a project would be for. */
   needsService: boolean;
   current?: { clientId: string; projectId: string | null } | null;
@@ -30,41 +32,66 @@ export function AssignEntry({
   const existing = current?.clientId ?? suggestedClientId ?? "";
   return (
     <DialogButton label={label} title="Assign this entry" icon={Link2} tone="plain">
-      {() => (
-        <Form action={assignEntry}>
-          <Fields>
-            <Hidden name="form" value={formKey} />
-            <Hidden name="id" value={entryId} />
-            <Radios
-              name="clientMode" label="Client" defaultValue={existing ? "existing" : "new"}
+      {() => <AssignBody {...{ formKey, entryId, clients, projects, needsService, current, existing }} />}
+    </DialogButton>
+  );
+}
+
+const NEW = "__new";
+const NONE = "__none";
+
+function AssignBody({ formKey, entryId, clients, projects, needsService, current, existing }: {
+  formKey: string; entryId: string; clients: { id: string; company: string }[];
+  projects: { id: string; title: string; clientName: string; clientId?: string }[];
+  needsService: boolean; current?: { clientId: string; projectId: string | null } | null; existing: string;
+}) {
+  const [client, setClient] = useState(existing || NEW);
+  const [project, setProject] = useState(current?.projectId ?? NONE);
+  const isNewClient = client === NEW;
+  /* Projects of the chosen client only; a new client has none yet. */
+  const mine = isNewClient ? [] : projects.filter((p) => !p.clientId || p.clientId === client);
+  const projectOk = project === NONE || project === NEW || mine.some((p) => p.id === project);
+  const shownProject = projectOk ? project : NONE;
+  return (
+    <Form action={assignEntry}>
+      <Fields>
+        <Hidden name="form" value={formKey} />
+        <Hidden name="id" value={entryId} />
+        <Hidden name="clientMode" value={isNewClient ? "new" : "existing"} />
+        <Hidden name="clientId" value={isNewClient ? "" : client} />
+        <Hidden name="projectMode" value={shownProject === NONE ? "none" : shownProject === NEW ? "new" : "existing"} />
+        <Hidden name="projectId" value={shownProject === NONE || shownProject === NEW ? "" : shownProject} />
+        <Wrap name="clientId" label="Whose is this?" hint={isNewClient
+          ? "A new client is made from this entry's name, company, email and phone. If they match someone already on the books, that client is used instead."
+          : "Search the clients already on the books, or make a new one from this entry."}>
+          {(id) => (
+            <Pick id={id} search value={client} onChange={setClient} label="Client"
+              options={[{ value: NEW, label: "+ A new client from this entry" }, ...clients.map((c) => ({ value: c.id, label: c.company }))]} />
+          )}
+        </Wrap>
+        <Wrap name="projectId" label="Is there a project?" hint={isNewClient && shownProject === NONE ? "You can open one later from the client." : undefined}>
+          {(id) => (
+            <Pick id={id} value={shownProject} onChange={setProject} label="Project"
               options={[
-                { value: "existing", label: "A client already on the books" },
-                { value: "new", label: "A new client", note: "Made from this entry's name, company, email and phone. If they match someone already on the books, that client is used." },
-              ]}
-            />
-            <Select name="clientId" label="Which client" placeholder="Choose a client" defaultValue={existing}
-              options={clients.map((c) => ({ value: c.id, label: c.company }))} hint="Used when you pick an existing client above." />
-            <Radios
-              name="projectMode" label="Project" defaultValue={current?.projectId ? "existing" : "none"}
-              options={[
-                { value: "none", label: "No project yet" },
-                { value: "existing", label: "A project already open", note: "It must belong to the client above." },
-                { value: "new", label: "A new project", note: "Opened at Onboarding for the client above." },
-              ]}
-            />
-            <Select name="projectId" label="Which project" placeholder="Choose a project" defaultValue={current?.projectId ?? ""}
-              options={projects.map((p) => ({ value: p.id, label: `${p.title} (${p.clientName})` }))} hint="Used when you pick an existing project." />
-            <Field name="projectTitle" label="New project name" placeholder="Leave empty to name it after the client" hint="Used when you pick a new project." />
+                { value: NONE, label: "No project yet" },
+                { value: NEW, label: "Open a new project (starts at Onboarding)" },
+                ...mine.map((p) => ({ value: p.id, label: p.title })),
+              ]} />
+          )}
+        </Wrap>
+        {shownProject === NEW ? (
+          <>
+            <Field name="projectTitle" label="Project name" placeholder="Leave empty to name it after the client" />
             {needsService ? (
-              <Select name="service" label="Service for a new project" placeholder="Choose a service"
+              <Select name="service" label="Which service is it for?" placeholder="Choose a service"
                 options={SERVICES.map((s) => ({ value: s.slug, label: s.name }))} />
             ) : null}
-          </Fields>
-          <Actions>
-            <Submit icon={Link2}>Assign</Submit>
-          </Actions>
-        </Form>
-      )}
-    </DialogButton>
+          </>
+        ) : null}
+      </Fields>
+      <Actions>
+        <Submit icon={Link2}>Assign</Submit>
+      </Actions>
+    </Form>
   );
 }
