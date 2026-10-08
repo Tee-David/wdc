@@ -34,7 +34,7 @@ const weightOf = (name: string) => FONT_PAIRINGS.find((p) => p.heading === name)
 function useGoogleFonts(families: { name: string; weight?: number }[]) {
   /* Only the letters the previews and the picks list actually show, so each
      font file is a few kilobytes. */
-  const href = fontsHref(families, `${HEAD_TEXT}${BODY_TEXT}${families.map((f) => f.name).join("")}0123456789`);
+  const href = fontsHref(families, `${HEAD_TEXT}${BODY_TEXT}${BUTTON_TEXT}${families.map((f) => f.name).join("")}0123456789`);
   useEffect(() => {
     if (!href || document.head.querySelector(`link[data-wdc-fonts="${CSS.escape(href)}"]`)) return;
     const link = document.createElement("link");
@@ -46,6 +46,7 @@ function useGoogleFonts(families: { name: string; weight?: number }[]) {
 }
 
 const HEAD_TEXT = "Your brand, set properly";
+const BUTTON_TEXT = "Get started";
 const BODY_TEXT = "Clear words, good rhythm, easy to read on any screen.";
 
 const stack = (name: string) => `"${name}", system-ui, sans-serif`;
@@ -55,6 +56,7 @@ function Sample({ heading, body, hw }: { heading: string; body: string; hw?: num
     <span className="obFont__sample" aria-hidden="true">
       <span className="obFont__head" style={{ fontFamily: stack(heading), fontWeight: hw ?? 400 }}>{HEAD_TEXT}</span>
       <span className="obFont__body" style={{ fontFamily: stack(body) }}>{BODY_TEXT}</span>
+      <span className="obFont__btn" style={{ fontFamily: stack(heading), fontWeight: hw ?? 400 }}>{BUTTON_TEXT}</span>
     </span>
   );
 }

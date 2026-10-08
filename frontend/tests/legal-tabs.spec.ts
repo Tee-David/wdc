@@ -58,3 +58,20 @@ test("policies link to each other, and the index offers every PDF", async ({ pag
   await page.goto("/legal");
   await expect(page.locator(".lg-pdfs a")).toHaveCount(6);
 });
+
+test("the policy editor's checks keep text, repair tabs, and refuse half a policy", async () => {
+  const { parseLegalOverride } = await import("../lib/legal-validate");
+  const ok = parseLegalOverride({
+    blurb: " Summary ", intro: "Opening.",
+    tabs: [{ id: "a", label: "A" }, { id: "b", label: "B" }],
+    sections: [{ heading: "One", tab: "gone", body: [" Para ", ""] }, { heading: "Two", tab: "b", body: ["Text"] }],
+  });
+  expect(ok).toEqual({ ok: true, value: {
+    blurb: "Summary", intro: "Opening.", tabs: [{ id: "a", label: "A" }, { id: "b", label: "B" }],
+    sections: [{ heading: "One", body: ["Para"], tab: "a" }, { heading: "Two", body: ["Text"], tab: "b" }],
+  } });
+  expect(parseLegalOverride({ blurb: "x", intro: "y", sections: [] }).ok).toBe(false);
+  expect(parseLegalOverride({ blurb: "x", intro: "y", sections: [{ heading: "H", body: [] }] }).ok).toBe(false);
+  expect(parseLegalOverride({ blurb: "x", intro: "y", tabs: [{ id: "a", label: "Same" }, { id: "a", label: "Same" }], sections: [{ heading: "H", body: ["t"] }] }).ok).toBe(false);
+  expect(parseLegalOverride("not json").ok).toBe(false);
+});
