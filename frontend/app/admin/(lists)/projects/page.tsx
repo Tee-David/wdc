@@ -188,7 +188,7 @@ export default async function ProjectsPage({
           cards={Object.fromEntries(all.map((p) => {
             const client = getClient(p.clientId);
             return [p.id, {
-              project: p, clientName: client?.company, clientInitials: client ? initialsOf(client.company) : undefined,
+              project: isOwner ? p : { ...p, budget: null }, /* the budget is money: it must not reach a staff browser */ clientName: client?.company, clientInitials: client ? initialsOf(client.company) : undefined,
               service: SERVICES.find((x) => x.slug === p.service)?.short, attention: projectAttention(p, tasks),
               due: p.due ? when(p.due) : "No date yet", ownerInitials: p.owner ? initialsOf(p.owner) : undefined,
             } satisfies BoardCard];
