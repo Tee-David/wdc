@@ -37,9 +37,9 @@ const SMALL_KEYS = [
   "job_size", "deliverables", "brand_have", "style_help",
   "deadline_kind", "approver", "channel", "assets", "anything_else",
 ];
-const MEDIUM_TITLES = [...SMALL_TITLES.slice(0, 4), "Colours", ...SMALL_TITLES.slice(4)];
-const MEDIUM_KEYS = [...SMALL_KEYS, "about", "company_age", "age_range", "brand_colours"];
-const LARGE_TITLES = [...MEDIUM_TITLES.slice(0, 5), "A little more detail", ...MEDIUM_TITLES.slice(5)];
+const MEDIUM_TITLES = [...SMALL_TITLES.slice(0, 4), "Colours", "Fonts", ...SMALL_TITLES.slice(4)];
+const MEDIUM_KEYS = [...SMALL_KEYS, "about", "company_age", "age_range", "registered", "online_presence", "brand_colours", "brand_fonts"];
+const LARGE_TITLES = [...MEDIUM_TITLES.slice(0, 6), "A little more detail", ...MEDIUM_TITLES.slice(6)];
 const LARGE_KEYS = [...MEDIUM_KEYS, "usp", "avoid", "others"];
 
 /* ------------------------------------------------------------- answers used */
@@ -124,7 +124,7 @@ test("a small job shows exactly the tier 1 screens and questions", async ({ page
   expect(screens.flatMap((s) => s.keys).sort()).toEqual([...SMALL_KEYS].sort());
 });
 
-test("a medium job adds the colour screen and the age question, and nothing else", async ({ page }) => {
+test("a medium job adds the colour and font screens and the business details, and nothing else", async ({ page }) => {
   const screens = await readScreens(page, "branding", sizeOnly(MEDIUM));
   expect(screens.map((s) => s.title)).toEqual(MEDIUM_TITLES);
   expect(screens.flatMap((s) => s.keys).sort()).toEqual([...MEDIUM_KEYS].sort());
