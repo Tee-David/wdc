@@ -1399,3 +1399,5 @@
 .pv .ob__menuLink svg { width: 1rem; height: 1rem; flex: none; }
 .pv .ob__menuLink:hover { text-decoration-thickness: 2px; }
 .pv .ob__menuLink:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 3px; border-radius: 4px; }
+
+.ob__labelEnd { white-space: nowrap; }
