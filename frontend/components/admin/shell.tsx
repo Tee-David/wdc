@@ -407,6 +407,28 @@ function Notifications({ openForms, failedMail = 0, inReview = 0, unchecked = fa
   );
 }
 
+/* RECENT RECORDS: the last few clients, projects and invoices opened, kept in this
+   browser. Recorded from the page's own title, shown when search is empty. */
+const RECENT_KEY = "wdc-admin-recent";
+type Recent = { href: string; title: string };
+function readRecent(): Recent[] {
+  try { return (JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]") as Recent[]).filter((r) => r && typeof r.href === "string" && typeof r.title === "string").slice(0, 6); } catch { return []; }
+}
+function useRecordRecent(pathname: string) {
+  useEffect(() => {
+    if (!/^\/admin\/(clients|projects|money)\/[^/]+$/.test(pathname) || /\/(support|reconciliation|export)$/.test(pathname)) return;
+    const t = window.setTimeout(() => {
+      const title = document.title.replace(/\s*·\s*WDC Admin$/, "").trim();
+      if (!title || title === "Admin") return;
+      try {
+        const next = [{ href: pathname, title }, ...readRecent().filter((r) => r.href !== pathname)].slice(0, 6);
+        localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+      } catch { /* a private window simply has no recents */ }
+    }, 600);
+    return () => window.clearTimeout(t);
+  }, [pathname]);
+}
+
 function CommandPalette({ onClose }: { onClose: () => void }) {
   const [query, setQuery] = useState("");
   const input = useRef<HTMLInputElement>(null);
@@ -421,6 +443,7 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
     return pages.filter((item) => !needle || item.label.toLowerCase().includes(needle));
   }, [query, nav]);
   const role = useAdminRole();
+  const recent = useMemo(() => (query.trim() ? [] : readRecent()), [query]);
   const q = encodeURIComponent(query.trim());
   const finds = [
     { href: `/admin/clients?q=${q}#client-list`, label: "Clients", Icon: Users, area: "clients" as const },
@@ -451,6 +474,10 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
           <button type="button" onClick={onClose} aria-label="Close search"><X aria-hidden="true" /></button>
         </div>
         <div className="ad__commandResults">
+          {recent.length ? <p>Recently opened</p> : null}
+          {recent.map((r) => (
+            <Link key={r.href} href={r.href} onClick={onClose}><Search aria-hidden="true" /><span>{r.title}</span></Link>
+          ))}
           {results.length ? results.map(({ href, label, Icon }) => (
             <Link key={href + label} href={href} onClick={onClose}>
               <Icon aria-hidden="true" /><span>{label}</span>
@@ -485,6 +512,7 @@ export default function AdminShell({ children, counts = {}, user, role = "owner"
 
 function ShellFrame({ children, counts, user }: { children: ReactNode; counts: Record<string, number>; user: AdminUser }) {
   const path = usePathname();
+  useRecordRecent(path);
   const [pinnedCollapsed, setPinnedCollapsed] = useState(false);
   const [hoverExpanded, setHoverExpanded] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
