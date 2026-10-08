@@ -46,9 +46,14 @@ export async function pickService(page: Page, name: RegExp) {
 export async function chooseOption(page: Page, key: string, label: string) {
   const question = page.locator(`[data-field="${key}"]`);
   await expect(question).toBeVisible({ timeout: 30000 });
-  const ticks = question.getByRole("checkbox", { name: label, exact: true });
+  /* An option may carry a line of help after its name ("Android phone For
+     Android devices through Google's store."), and that is part of its
+     accessible name. So match the name at the start, then a space or the end,
+     which also keeps "Yes" from matching "Yes, I know". */
+  const starts = new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\\s|$)`);
+  const ticks = question.getByRole("checkbox", { name: starts });
   if (await ticks.count()) return ticks.first().click();
-  const presses = question.getByRole("radio", { name: label, exact: true });
+  const presses = question.getByRole("radio", { name: starts });
   if (await presses.count()) return presses.first().click();
   await question.getByRole("combobox").click();
   await page.getByRole("option", { name: label, exact: true }).click();
