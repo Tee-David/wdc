@@ -31,6 +31,9 @@ import FeatureChecklist from "./feature-checklist";
 import { BriefExample, ChoiceLabel } from "./brief-help";
 import { FIELD_EXAMPLES } from "@/lib/onboarding-help";
 import Dropzone from "./dropzone";
+import ProfilesField from "./profiles-field";
+import FontsField from "./fonts-field";
+import { DateInput } from "@/components/admin/pick";
 import Tip from "./tip";
 import Dialog from "./dialog";
 import Confetti from "./confetti";
@@ -64,7 +67,10 @@ import "./form-kit.css";
 type Answers = Record<string, string | string[]>;
 
 const KEY = "wdc-onboarding-draft";
-const EXCLUSIVE_MULTI_OPTIONS = new Set(["None yet", "None of these", UNSURE, UNSURE_LEGACY]);
+const EXCLUSIVE_MULTI_OPTIONS = new Set(["None yet", "Nothing yet", "None of these", "Not sure", UNSURE, UNSURE_LEGACY]);
+
+/** The studio's tomorrow (UTC+1), as YYYY-MM-DD. Outside the component so render stays pure. */
+const tomorrowIso = () => new Date(Date.now() + 3_600_000 + 86_400_000).toISOString().slice(0, 10);
 
 /** A field is asked only when its condition is met. Hidden means not asked. */
 const visible = (f: Field, a: Answers) => isVisible(f, a);
@@ -568,6 +574,13 @@ export default function OnboardingForm({ closed = {}, styles = {}, engagement = 
                 we agree for your project.
               </span>
             </li>
+            <li>
+              <b>If the direction shifts, you will know</b>
+              <span>
+                Some choices may change as the project takes shape. We will
+                tell you why and keep you in the decision.
+              </span>
+            </li>
           </ol>
         </div>
 
@@ -651,6 +664,18 @@ export default function OnboardingForm({ closed = {}, styles = {}, engagement = 
             </ul>
           </div>
         )}
+
+        {/* THE LAST WORD BEFORE SENDING. Their choices are a starting point, and
+            the direction can shift as the work takes shape. Said plainly, so
+            nobody feels a change later was done behind their back. */}
+        <aside className="ob__heads" aria-label="Before you send">
+          <b>Before you send</b>
+          <p>
+            Some of these choices may change as the project takes shape, because the best
+            direction is not always the first one. If anything does, we will tell you, explain
+            why, and keep you in the decision. Nothing changes without you knowing.
+          </p>
+        </aside>
 
         {engagement && chosen ? <EngagementSection service={chosen} answers={a} set={set} /> : null}
 
@@ -785,6 +810,11 @@ export default function OnboardingForm({ closed = {}, styles = {}, engagement = 
                         </div>
                       )}
                       <div className="ob__acts ob__acts--step">
+                        {n === 0 ? (
+                          <button className="ob__btn ob__btn--ghost ob__stepBack" type="button" onClick={changeService}>
+                            <ArrowLeft aria-hidden="true" /> Back to the onboarding menu
+                          </button>
+                        ) : null}
                         <button className="ob__btn ob__btn--ghost ob__stepSave" type="button" onClick={saveNow}><Save aria-hidden="true" /> Save &amp; continue later</button>
                         <button className="ob__btn ob__btn--go ob__stepNext" type="button" onClick={boardNext}>
                           {n === steps.length - 1 ? "Done, review" : "Done, next section"} <ArrowRight aria-hidden="true" />
@@ -932,7 +962,7 @@ export default function OnboardingForm({ closed = {}, styles = {}, engagement = 
             </button>
           ) : (
             <button className="ob__btn ob__btn--ghost ob__stepBack" type="button" onClick={changeService}>
-              <ArrowLeft aria-hidden="true" /> Change service
+              <ArrowLeft aria-hidden="true" /> Back to the onboarding menu
             </button>
           )}
           <button className="ob__btn ob__btn--ghost ob__stepSave" type="button" onClick={saveNow}>
@@ -1229,6 +1259,25 @@ function FieldView({
     );
   }
 
+  if (f.kind === "fonts") {
+    return wrap(<FontsField id={id} value={typeof shown === "string" ? shown : ""} onChange={onChange} describedBy={describedBy} />);
+  }
+
+  if (f.kind === "profiles") {
+    return wrap(<ProfilesField id={id} value={typeof shown === "string" ? shown : ""} onChange={onChange} describedBy={describedBy} />);
+  }
+
+  if (f.kind === "date") {
+    /* The site's own calendar, from tomorrow on: a deadline in the past is not one. */
+    const tomorrow = tomorrowIso();
+    return wrap(
+      <DateInput
+        id={id} value={typeof shown === "string" ? shown : ""} onChange={(iso) => onChange(iso)}
+        min={tomorrow} invalid={invalid} describedBy={describedBy} placeholder={f.placeholder ?? "Pick a date"}
+      />,
+    );
+  }
+
   if (f.kind === "textarea") {
     return wrap(
       <textarea
@@ -1333,7 +1382,7 @@ function FieldView({
             onClick={() => onChange(v === o ? "" : o)}
           >
             <span className="ob__dot" aria-hidden="true" />
-            <ChoiceLabel field={f.key} option={o} />
+            <ChoiceLabel field={f.key} option={o} options={f.options} />
           </button>
         ))}
       </div>,
@@ -1400,7 +1449,7 @@ function FieldView({
               onClick={() => pick(o)}
             >
               <span className="ob__tick" aria-hidden="true">{on ? <Check /> : null}</span>
-              <ChoiceLabel field={f.key} option={o} />
+              <ChoiceLabel field={f.key} option={o} options={f.options} />
             </button>
           );
         })}

@@ -41,8 +41,8 @@ const OTHER = "Other";
  */
 export const DELIVERABLE_INFO: Record<string, OptionInfo> = {
   [LOGO]: { desc: "The mark people remember you by.", images: ["/brand-work/sm/thinkers-diary-logo.jpg"] },
-  [IDENTITY]: { desc: "Logo, colours, type and how they work together.", images: ["/brand-work/sm/moore-mockups.jpg"] },
-  [GUIDE]: { desc: "The rules written down, so anyone can use the brand.", images: ["/brand-work/sm/tab-guide-4.jpg"] },
+  [IDENTITY]: { desc: "Your logo, the brand guidelines, logo files in every size and colour, and mockups.", images: ["/brand-work/sm/moore-mockups.jpg"] },
+  [GUIDE]: { desc: "Only the guide, for a logo you already have. A full identity system already includes it.", images: ["/brand-work/sm/tab-guide-4.jpg"] },
   [FLYERS]: { desc: "Posters and flyers for print and for feeds.", images: ["/brand-work/sm/bay-accessories-flyer.jpg"] },
   [TEMPLATES]: { desc: "Post layouts you can reuse every week.", images: ["/brand-work/sm/nipsa-codm.jpg"] },
   [PROMO]: { desc: "Sale and campaign artwork.", images: ["/brand-work/sm/hair-sale.jpg"] },
@@ -89,7 +89,7 @@ export const BRANDING_STEPS: Step[] = [
         key: "deliverables", assist: true, required: true, kind: "multi",
         label: "What are we making?",
         hint: "Tap as many as you need.",
-        tip: "A logo is your identifying symbol or name. A full identity system adds colours, typography and ways to use them together. Brand guidelines explain how to use that identity. Packaging covers boxes, labels and bags. Signage covers signs. Social templates are reusable post layouts. A pitch deck is a presentation.",
+        tip: "A logo is your identifying symbol or name. A full identity system is the whole package: your logo, the brand guidelines, the logo files in every size, colour and layout (PNG and SVG), plus mockups and sample artwork. Choose Brand guidelines on its own only if you already have the logo and just need the rules written down. Packaging covers boxes, labels and bags. Signage covers signs. Social templates are reusable post layouts. A pitch deck is a presentation.",
         options: [LOGO, IDENTITY, GUIDE, FLYERS, TEMPLATES, PROMO, PACKAGING, SIGNAGE, STATIONERY, DECK, APPAREL, MOTION, OTHER],
         optionInfo: DELIVERABLE_INFO,
       },
@@ -129,6 +129,7 @@ export const BRANDING_STEPS: Step[] = [
         tip: "A name, a colour or a logo people already know you by.",
         showIf: [BIG, { key: "brand_have", equals: ["A logo", "A brand guide"] }],
       },
+      { key: "tagline", label: "Do you have a slogan or tagline?", kind: "text", placeholder: "Leave it if you do not", showIf: { any: [has(IDENTITY, GUIDE)] } },
       {
         key: "style_help", kind: "cards",
         label: "How would you like to set the style?",
@@ -167,21 +168,34 @@ export const BRANDING_STEPS: Step[] = [
     ],
   },
   {
+    phase: "work", id: "branding_fonts", service: "branding", title: "Fonts",
+    blurb: "About 30 seconds. Skip it if you like.",
+    fields: [
+      {
+        key: "brand_fonts", kind: "fonts", label: "Your fonts",
+        hint: "Pick two to five pairings, or tell us the fonts you already use. We choose the one that agrees best.",
+        showIf: { any: [MID, has(IDENTITY, GUIDE)] },
+      },
+    ],
+  },
+  {
     phase: "work", id: "branding_more", service: "branding", title: "A little more detail",
     blurb: "Only for a full brand. Say as much as you like.",
     fields: [
       {
         key: "surfaces", assist: true, label: "Where will people see your logo?", kind: "multi",
-        tip: "Choose the places you expect to use it. A logo stitched onto clothing needs to stay clear at a small size.",
+        tip: "Choose the places you expect to use it. Stitching, stamps and seals need a simple mark that stays clear when small, and a vehicle needs one that reads on a large moving surface.",
         options: ["Embroidery", "Signage", "Print", "Screen", "Packaging", "Vehicle", "Stamp or seal", "Other"],
         showIf: [BIG, has(LOGO, SIGNAGE, PACKAGING, APPAREL, IDENTITY)],
       },
       { key: "surfaces_other", label: "Where else must the brand work?", kind: "text", showIf: [BIG, { key: "surfaces", equals: ["Other"] }] },
       {
-        key: "brand_voice", assist: true, label: "How should the brand sound?", kind: "cards",
-        options: ["Formal", "Friendly", "Bold", "Playful"],
+        key: "brand_voice", assist: true, label: "How should the brand sound?", kind: "multi",
+        hint: "Tap the ones that fit. Two or three is plenty.",
+        options: ["Formal", "Friendly", "Bold", "Playful", "Confident", "Witty", "Inspiring", "Other"],
         showIf: [BIG, has(IDENTITY, GUIDE)],
       },
+      { key: "brand_voice_other", label: "How else should it sound?", kind: "text", showIf: [BIG, has(IDENTITY, GUIDE), { key: "brand_voice", equals: ["Other"] }] },
       {
         key: "brand_words", assist: true, label: "Pick up to three words for the personality", kind: "multi",
         options: ["Trusted", "Modern", "Warm", "Premium", "Fun", "Bold", "Calm", "Local"],

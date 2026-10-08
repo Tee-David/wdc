@@ -68,6 +68,8 @@ export const PHASES: { id: PhaseId; title: string; blurb: string }[] = [
 
 const AUDIENCE = ["Children", "Teenagers", "Men", "Women", "Businesses", "Other"];
 const AGES = ["Under 18", "18 to 34", "35 to 54", "55 or above"];
+const REGISTRARS = ["CAC business name (BN)", "CAC company (RC)", "CAC incorporated trustees (IT)", "SMEDAN", "A professional body", "Another registrar"];
+const COMPANY_AGES = ["Under 5 years", "5 to 10 years", "10 to 15 years", "15 to 20 years", "Over 20 years"];
 
 /**
  * THE SHARED SCREENS, TRIMMED FOR A CLIENT WHO HAS ALREADY PAID AND SPOKEN TO
@@ -120,6 +122,40 @@ export const CORE_STEPS: Step[] = [
       },
       { key: "audience", assist: true, label: "Who do you sell to?", kind: "multi", options: AUDIENCE },
       { key: "audience_other", label: "Tell us who else you need to reach", kind: "text", showIf: { key: "audience", equals: ["Other"] } },
+      /* Asked here, with the rest of the business, from a bigger job up: a
+         small job rarely needs it, and a client who has just said who they sell
+         to is already in the middle of describing the company. */
+      { key: "company_age", label: "How long has the business been running?", kind: "select", options: COMPANY_AGES, showIf: { tier: 2 } },
+      {
+        key: "about", label: "Tell us about your company", kind: "textarea",
+        placeholder: "What you do, who for, and what you are proud of. A few lines is plenty.",
+        showIf: { tier: 2 },
+      },
+      { key: "age_range", assist: true, label: "How old are your customers?", kind: "multi", options: AGES, showIf: { tier: 2 } },
+      /* The details a brand guide prints on its first pages. From a bigger job
+         up, and always for an identity or a guide, whatever the size. */
+      {
+        key: "registered", label: "Is your business registered?", kind: "yesno",
+        showIf: { any: [{ tier: 2 }, { key: "deliverables", equals: ["Full identity system", "Brand guidelines"] }] },
+      },
+      {
+        key: "registration_body", label: "Registered with", kind: "select", options: REGISTRARS,
+        showIf: { key: "registered", equals: ["Yes"] },
+      },
+      {
+        key: "registration_body_other", label: "Which body?", kind: "text", placeholder: "For example, a trade or professional association",
+        showIf: [{ key: "registered", equals: ["Yes"] }, { key: "registration_body", equals: ["A professional body", "Another registrar"] }],
+      },
+      {
+        key: "registration_number", label: "Registration number", kind: "text", placeholder: "For example BN 1234567 or RC 1234567",
+        hint: "Optional. It goes on your documents and guide, and we check it before we use it.",
+        showIf: { key: "registered", equals: ["Yes"] },
+      },
+      {
+        key: "online_presence", label: "Where can people find you online?", kind: "profiles",
+        hint: "Your website and social pages, if you have them. Optional.",
+        showIf: { any: [{ tier: 2 }, { key: "deliverables", equals: ["Full identity system", "Brand guidelines"] }] },
+      },
     ],
   },
 ];
@@ -128,7 +164,7 @@ export const SERVICE_STEPS: Step[] = [
   ...BRANDING_STEPS, ...SEO_STEPS, ...WEB_STEPS, ...APPS_STEPS, ...SOFTWARE_STEPS, ...SOCIAL_STEPS,
 ];
 
-const FIXED_DATE_ANSWERS = ["Within two weeks", "A set date"];
+const FIXED_DATE_ANSWERS = ["A set date"];
 
 export const CLOSING_STEPS: Step[] = [
   {
@@ -138,15 +174,19 @@ export const CLOSING_STEPS: Step[] = [
     fields: [
       {
         key: "deadline_kind", label: "When do you need it?", kind: "cards",
-        options: ["No fixed date", "Within a month", "Within two weeks", "A set date"],
+        hint: "Small jobs can be quick: a flyer in as little as two days, a logo in three or four. We confirm a real date with you.",
+        options: ["No fixed date", "In a few days", "Within a week", "Within two weeks", "Within a month", "In one to three months", "A set date"],
       },
       {
-        key: "fixed_dates", label: "Which date?", kind: "text",
-        placeholder: "A launch, an event, a print deadline",
+        key: "fixed_dates", label: "Which date?", kind: "date",
+        placeholder: "Pick the date", hint: "A launch, an event or a print deadline.",
         showIf: { key: "deadline_kind", equals: FIXED_DATE_ANSWERS },
       },
       { key: "approver", label: "Who gives the final yes?", kind: "text", required: true, hint: "One person, so feedback has one door.", tip: "Projects slow down most when feedback arrives from several directions and disagrees with itself." },
-      { key: "channel", label: "Where should we send project updates?", kind: "multi", required: true, options: [PROJECT_UPDATE_PORTAL, "WhatsApp", "Email", "Phone call", "Other"] },
+      { key: "channel", label: "Where should we send project updates?", kind: "multi", required: true,
+        hint: "Pick as many as you like. The client portal is ticked for you.",
+        tip: "Client portal: your home for the project. Files, approvals, invoices and every update in one place. WhatsApp: we can set up a WhatsApp group with you for the project, so you hear from us day to day, and we may place calls there to talk things through. Email: written updates and summaries you can keep. Phone call: if you would rather talk, we will do our best to keep most things to the number you gave us. Google Meet: for some projects we include a video call to walk through work together. Other: tell us what suits you.",
+        options: [PROJECT_UPDATE_PORTAL, "WhatsApp", "Email", "Phone call", "Google Meet", "Other"] },
       { key: "channel_other", label: "Which other channel would you prefer?", kind: "text", showIf: { key: "channel", equals: ["Other"] } },
     ],
   },
@@ -192,12 +232,6 @@ export const CLOSING_STEPS: Step[] = [
     title: "Last bits",
     blurb: "Nothing here is needed. Say what is useful, then send.",
     fields: [
-      {
-        key: "about", label: "Tell us about your company", kind: "textarea",
-        placeholder: "What you do, who for, and how long you have been doing it. A few lines is plenty.",
-      },
-      /* Medium and large jobs only: it rarely changes a small quote. */
-      { key: "age_range", assist: true, label: "Their age", kind: "multi", options: AGES, showIf: { tier: 2 } },
       {
         key: "usp", assist: true, label: "What makes you the one they should pick?", kind: "textarea",
         tip: "The honest answer, not the polished one. It is what the work has to carry.",
@@ -457,7 +491,7 @@ export function problemWith(
 const SECONDS: Record<FieldKind, number> = {
   yesno: 4, cards: 6, select: 7, multi: 10,
   text: 12, email: 12, tel: 14, url: 12,
-  textarea: 32, upload: 10, notice: 0, colours: 20,
+  textarea: 32, upload: 10, notice: 0, colours: 20, date: 8, profiles: 15, fonts: 20,
   /* Three names to think of, not three boxes to fill: naming a business is the
      slowest question in the form, and the check afterwards is a wait the
      client chooses to take. Deliberately higher than `textarea`, which is what
