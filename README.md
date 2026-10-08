@@ -134,6 +134,7 @@ All of these live in `frontend/components/admin/`. The public site has its own o
 | A date and a time | `DateTimeInput` | Quarter hours; posts `YYYY-MM-DDTHH:MM`. |
 | A date range filter | `DateRange` (`date-range.tsx`) | Presets first, then a custom pair of calendars. |
 | A form | `Form`, `Field`, `Select`, `Radios`, `Checks`, `Submit` (`form.tsx`) | Hints go under the input. A failed submit keeps what was typed. The toast is raised as the action answers. |
+| A choice shown as a range | Select with `slider: true` in `lib/forms/custom-def.ts`; `SliderField` (`components/forms/custom-form-view.tsx`) | A display mode for a dropdown: its options run along a range in order. A last "not sure" option stays a tick box beside the range. |
 | A read-only client support view | `SupportBanner`, `SupportReadOnly`, `ClientSupportButton` (`components/client/`) | Owner-only, reason-required and limited to 15 minutes. The original owner session stays intact. Shared forms and payment controls explain their disabled state; server guards enforce it. The persistent banner offers Exit, including when the view expires or cannot be verified. |
 | A one-time code | Six boxes over one input (`components/account/password-change.tsx`) | Paste and autofill work. The sixth digit submits. A refusal shakes the boxes. |
 | A file from the library | `MediaPicker` (`media-picker.tsx`) | Search, folder, grid; a picture's description is asked for there and saved back to the file. Used by the blog cover and the editor's Picture and Video panels. |
@@ -142,13 +143,16 @@ All of these live in `frontend/components/admin/`. The public site has its own o
 | Files attached to a project deliverable | `DeliverableUpload` (`delivery.tsx`) | Upload one or more media-library files and/or add a link. The record keeps validated R2 keys, so the portal can offer signed Open and Download actions. |
 | Move between form entries | `.adEntryNav` in `forms.css` | Inline on wider screens. On phones the position is centred above two equal-width Previous and Next controls, with the page-tour control on its own full-width row. |
 | Change a team member's name | `MemberControls` (`settings/team-controls.tsx`) | Owner-only dialog on Team and roles. The signed-in person changes their own name on My account, linked as “Your name and password” from the avatar menu. Both paths toast and audit the saved name. |
-| Choose a project icon | `IconPicker` (`icon-picker.tsx`) | Keyboard radio grid with a solid preview and Shuffle control. On phones the explanatory hint takes its own full-width row below them. |
+| Choose a project icon | `IconPicker` (`icon-picker.tsx`) | About 350 icons from `lib/project-icons.ts`, each found by its name and everyday words (`kw`). Keyboard radio grid with a solid preview and Shuffle control. On phones the explanatory hint takes its own full-width row below them. |
+| Show where a project stands | `.ad__stageTrack` (`admin.css`) | Chevron steps: finished steps navy, the current step orange with a shimmer. Delivered turns the whole row green; moving back clears it. Scrolls sideways on phones. |
 | Ask before acting | `ask()` / `confirm` (`confirm.tsx`) | Never `window.confirm`. Anything that "cannot be undone" also needs "I understand". |
+| Work beside the page | `Dialog` / `DialogButton` (`dialog.tsx`) | Opens as a right-hand sheet on every screen: it slides in, fills the screen on phones and keeps safe-area padding. Native `<dialog>`. |
 | Say it worked | `toast()` (`toast.tsx`) | Every save, update, toggle and bulk action. Undo when it can be undone. |
 | Loading | `Skeleton` | Shaped like the real screen, never invented data. |
 | Nothing here | `AdminState` / `EmptyScene` | Empty, filtered-to-nothing, error and no-permission are different screens, each with one next step. |
 
 - **Deletion is two steps:** Move to Trash (reversible), then Delete permanently from the Trash (owner only, behind "I understand").
+- **The "I understand" row** in the confirm dialog is a tick, an icon and words on one centre line.
 
 ### Motion
 
