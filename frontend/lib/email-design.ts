@@ -38,8 +38,10 @@ export const BLOCK_LABEL: Record<Block["type"], string> = {
   columns: "Two columns", divider: "Divider", space: "Space", note: "Small print", system: "System block",
 };
 
+export const blockId = () => Math.random().toString(36).slice(2, 10);
+
 export function newBlock(type: Block["type"], system?: string): Block {
-  const id = Math.random().toString(36).slice(2, 10);
+  const id = blockId();
   switch (type) {
     case "heading": return { id, type, text: "A heading" };
     case "text": return { id, type, text: "<p>Write here. Use {{client.first_name | \"there\"}} for a name.</p>" };
@@ -225,7 +227,7 @@ export function sanitizeEmailHtml(input: string, vars: Vars, opts: { small?: boo
     stack.push(e);
   };
   const close = (e: Open) => {
-    const empty = !e.filled && (e.tag === "p" || e.tag === "h2" || e.tag === "li" || e.tag === "blockquote");
+    const empty = !e.filled && ["p", "h2", "li", "blockquote", "ul", "ol"].includes(e.tag);
     if (e.skip) return;
     if (empty) { html = html.slice(0, e.htmlAt); text = text.slice(0, e.textAt); return; }
     switch (e.tag) {
@@ -264,9 +266,19 @@ export function sanitizeEmailHtml(input: string, vars: Vars, opts: { small?: boo
     if (!t.trim() && !stack.some((o) => o.tag === "p" || o.tag === "h2" || o.tag === "li")) return;
     if (!t) return;
     room();
-    html += fillEscaped(t, vars);
-    text += fillTags(t, vars).replace(/ /g, " ").replace(/\s*\n\s*/g, " ");
-    if (t.trim()) mark();
+    for (const part of splitTags(t)) {
+      if (typeof part === "string") {
+        html += escapeHtml(part);
+        text += part.replace(/\u00a0/g, " ").replace(/\s*\n\s*/g, " ");
+        if (part.trim()) mark();
+      } else {
+        const v = vars[part.key];
+        const val = v && v.length ? v : part.fallback;
+        html += escapeHtml(val).replace(/\r?\n/g, "<br>");
+        text += val;
+        if (val.trim()) mark();
+      }
+    }
   };
 
   let last = 0;
