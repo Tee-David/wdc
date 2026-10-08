@@ -197,8 +197,22 @@ export async function saveStore(): Promise<void> {
   }
 }
 
+/**
+ * A save that failed behind the response. The person was already told "Saved",
+ * so the failure is kept here and the admin shows a notice until a later save
+ * succeeds (lib/admin/notices.ts). Per instance: the instance that failed is
+ * the one holding the unsaved change, which is why it is the one that warns.
+ */
+type SaveFailure = { at: string; message: string } | null;
+const g = globalThis as unknown as { __wdcSaveFailure?: SaveFailure };
+export function lastSaveFailure(): SaveFailure { return g.__wdcSaveFailure ?? null; }
+async function trackedSave() {
+  try { await saveStore(); g.__wdcSaveFailure = null; }
+  catch (error) { g.__wdcSaveFailure = { at: new Date().toISOString(), message: error instanceof Error ? error.message : "unknown" }; throw error; }
+}
+
 /** The same, behind the response, for a path that must not wait. */
 export function persistSoon() {
   if (!configured()) throw new Error("The admin database is not configured.");
-  try { after(saveStore); } catch { void saveStore().catch(() => console.error("[admin store] deferred persistence failed.")); }
+  try { after(() => trackedSave().catch(() => console.error("[admin store] deferred persistence failed."))); } catch { void trackedSave().catch(() => console.error("[admin store] deferred persistence failed.")); }
 }
