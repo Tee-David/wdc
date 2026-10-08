@@ -106,7 +106,11 @@ export async function startByKeyboard(page: Page, service: RegExp) {
   await arrowUntil(page, service, "the service option");
   await page.keyboard.press("Enter");
   await expect(picker).toHaveAttribute("aria-expanded", "false");
-  await tabTo(page, page.locator(".ob--intro .ob__btn--go").first(), "Next on the first screen");
+  /* The choice is committed a moment after the list closes; Next stays
+     disabled until it is, so wait for it rather than pressing into nothing. */
+  const next = page.locator(".ob--intro .ob__btn--go").first();
+  await expect(next, "Next on the first screen is enabled once a service is chosen").toBeEnabled({ timeout: 10_000 });
+  await tabTo(page, next, "Next on the first screen");
   await page.keyboard.press("Enter");
 }
 

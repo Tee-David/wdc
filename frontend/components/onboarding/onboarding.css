@@ -1356,3 +1356,14 @@
 
 .obCol__shuffle { justify-self: start; }
 .obCol__shuffle svg { width: 1.1rem; height: 1.1rem; }
+
+/* Website and social links: a platform, a link and a remove button per row. */
+.obProf { display: grid; gap: .65rem; min-width: 0; }
+.obProf__list { list-style: none; margin: 0; padding: 0; display: grid; gap: .65rem; min-width: 0; }
+.obProf__row { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: .5rem; align-items: center; min-width: 0; }
+.obProf__row > :first-child { grid-column: 1 / -1; }
+.obProf__row input { width: 100%; min-height: 44px; min-width: 0; }
+@media (min-width: 620px) {
+  .obProf__row { grid-template-columns: minmax(0, 11rem) minmax(0, 1fr) 44px; }
+  .obProf__row > :first-child { grid-column: auto; }
+}

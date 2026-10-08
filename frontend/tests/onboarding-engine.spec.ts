@@ -65,3 +65,12 @@ test("a tier condition holds at or above it, and any-of lets a later pick raise 
   expect(isVisible(colours, { job_size: "One piece or a small set", deliverables: ["Logo", "Brand guidelines"] })).toBe(true);
   expect(isVisible(colours, { job_size: "A full brand" })).toBe(true);
 });
+
+test("registration details open on Yes, and show for a guide at any size", () => {
+  const body = f({ key: "registered", equals: ["Yes"] });
+  expect(isVisible(body, { registered: "Yes" })).toBe(true);
+  expect(isVisible(body, { registered: "No" })).toBe(false);
+  const registered = f({ any: [{ tier: 2 }, { key: "deliverables", equals: ["Full identity system", "Brand guidelines"] }] });
+  expect(isVisible(registered, { job_size: "One piece or a small set" })).toBe(false);
+  expect(isVisible(registered, { job_size: "One piece or a small set", deliverables: ["Brand guidelines"] })).toBe(true);
+});
