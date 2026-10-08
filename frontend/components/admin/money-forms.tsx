@@ -10,7 +10,9 @@ import {
   createEstimate, createExpense, createInvoice, deleteInvoice, issueInvoice,
   recordPayment, reversePayment, updateInvoice,
 } from "@/lib/admin/actions";
-import { Actions, Area, Checks, Field, Fields, Form, Hidden, Select, Submit } from "./form";
+import { Actions, Area, Checks, Field, Fields, Form, Hidden, Select, Submit, Wrap } from "./form";
+import { Pick } from "./pick";
+import { SERVICES } from "@/lib/services";
 import { DialogButton } from "./dialog";
 import { NoClientsYet } from "./no-clients";
 
@@ -101,6 +103,8 @@ export function EstimateBuilder({
   );
 }
 
+const NEW = "__new";
+
 function Builder({
   clients, projects, invoice, clientId, close, estimate = false,
   defaultVatRate, defaultDueInDays,
@@ -134,6 +138,7 @@ function Builder({
   );
   const [vat, setVat] = useState(String(invoice?.vatRate ?? defaultVatRate ?? 7.5));
   const [who, setWho] = useState(invoice?.clientId ?? clientId ?? "");
+  const [proj, setProj] = useState(invoice?.projectId ?? "");
 
   const subtotal = rows.reduce((n, r) => {
     const q = Number(r.qty) || 0;
@@ -161,18 +166,40 @@ function Builder({
         {clientId && !invoice ? (
           <Hidden name="clientId" value={clientId} />
         ) : (
-          <Select
-            name="clientId" label="Bill to" required half placeholder="Pick a client"
-            defaultValue={who}
-            options={clients.map((c) => ({ value: c.id, label: c.company }))}
-          />
+          <>
+            <Hidden name="clientId" value={who} />
+            <Wrap name="clientId" label="Bill to" required half>
+              {(id) => (
+                <Pick id={id} search value={who} placeholder="Pick a client" label="Bill to"
+                  onChange={(v) => { setWho(v); setProj(""); }}
+                  options={[...(invoice ? [] : [{ value: NEW, label: "+ Add a new client" }]), ...clients.map((c) => ({ value: c.id, label: c.company }))]} />
+              )}
+            </Wrap>
+          </>
         )}
-        <Select
-          name="projectId" label="Against" half placeholder="No particular project"
-          defaultValue={invoice?.projectId ?? ""}
-          options={forClient.map((p) => ({ value: p.id, label: p.title }))}
-          hint={who ? undefined : "Pick a client first to see their projects."}
-        />
+        <Hidden name="projectId" value={proj} />
+        <Wrap name="projectId" label="Against" half
+              hint={who ? undefined : "Pick a client first to see their projects."}>
+          {(id) => (
+            <Pick id={id} value={proj} placeholder="No particular project" label="Against" onChange={setProj}
+              options={[...(who && !invoice ? [{ value: NEW, label: "+ Open a new project" }] : []), ...(who === NEW ? [] : forClient.map((p) => ({ value: p.id, label: p.title })))]} />
+          )}
+        </Wrap>
+        {who === NEW ? (
+          <>
+            <Field name="newClientCompany" label="New client: company or name" required half placeholder="Hesed Wisdom LLC" />
+            <Field name="newClientName" label="Contact person" half placeholder="Ada Obi" />
+            <Field name="newClientEmail" label="Email" half type="email" hint="If they are already a client by this email, that client is used." />
+            <Field name="newClientPhone" label="Phone" half />
+          </>
+        ) : null}
+        {proj === NEW ? (
+          <>
+            <Field name="newProjectTitle" label="New project name" half placeholder="Leave empty to name it after the client" />
+            <Select name="newProjectService" label="Service" half required placeholder="Pick one"
+                    options={SERVICES.map((x) => ({ value: x.slug, label: x.short }))} />
+          </>
+        ) : null}
         <Field name="issued" label="Issued" type="date" half
                defaultValue={(invoice?.issued ?? new Date().toISOString()).slice(0, 10)} />
         {estimate ? (

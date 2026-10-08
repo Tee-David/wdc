@@ -39,7 +39,9 @@ jobs:
       - name: Copy uploaded files (copy only, nothing is deleted from the backup)
         # Optional: runs when the media bucket's read-only credentials are set.
         # Secrets: MEDIA_R2_ENDPOINT, MEDIA_R2_BUCKET, MEDIA_R2_KEY_ID, MEDIA_R2_SECRET (read-only token on the live bucket).
-        if: ${{ secrets.MEDIA_R2_BUCKET != '' }}
+        if: env.MEDIA_BUCKET != ''
+        env:
+          MEDIA_BUCKET: ${{ secrets.MEDIA_R2_BUCKET }}
         run: |
           mkdir -p ../files-copy
           AWS_ACCESS_KEY_ID="${{ secrets.MEDIA_R2_KEY_ID }}" AWS_SECRET_ACCESS_KEY="${{ secrets.MEDIA_R2_SECRET }}" AWS_DEFAULT_REGION=auto \
