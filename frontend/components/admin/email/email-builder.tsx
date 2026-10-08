@@ -154,7 +154,7 @@ export default function EmailBuilder({ kind, name, tags, starters, saved, histor
 
   const put = (key: string) => {
     const f = lastFocus.current?.input;
-    if (f && f.isConnected && document.activeElement === f) { typeInto(f, tagText(key)); return; }
+    if (f && f.isConnected) { typeInto(f, tagText(key)); return; }
     if (liveEditor) { insertTag(liveEditor.editor, key); return; }
     toast("Click into the words first, then pick a tag.", "bad");
   };
@@ -187,7 +187,7 @@ export default function EmailBuilder({ kind, name, tags, starters, saved, histor
     if (j === i) return;
     commit((d) => { const blocks = d.blocks.slice(); const [b] = blocks.splice(i, 1); blocks.splice(j, 0, b); return { ...d, blocks }; });
     setSel(id);
-    announce(`Moved ${BLOCK_LABEL[cur.blocks[i].type]} to position ${j + 1} of ${cur.blocks.length}.`);
+    announce(`Moved ${BLOCK_LABEL[cur.blocks[i].type]} block to position ${j + 1} of ${cur.blocks.length}.`);
   }, [commit]);
   const addBlock = useCallback((type: Block["type"], at?: number) => {
     if (hRef.current.design.blocks.length >= MAX_BLOCKS) { toast("An email can hold 60 blocks.", "bad"); return; }
@@ -275,16 +275,14 @@ export default function EmailBuilder({ kind, name, tags, starters, saved, histor
     setBase(json); setExists(true); if (on !== null) setEnabled(on);
     toast(on ? "Saved, and your design is now used." : "Saved.", "good");
   });
+  /* Turning it on saves first when there is anything unsaved (or nothing saved yet); everything else is just the switch. */
   const toggle = (on: boolean) => {
-    if (on) { if (dirty || !exists) void save(true); else void run(async () => {
-      const r = await setDesignOn(kind, true);
-      if (!r.ok) { toast(r.message, "bad"); return; }
-      setEnabled(true); toast("Updated. Your design is now used.", "good");
-    }); return; }
+    if (on && (dirty || !exists)) { void save(true); return; }
     void run(async () => {
-      const r = await setDesignOn(kind, false);
+      const r = await setDesignOn(kind, on);
       if (!r.ok) { toast(r.message, "bad"); return; }
-      setEnabled(false); toast("Updated. The built-in design is sent again.", "good");
+      setEnabled(on);
+      toast(on ? "Updated. Your design is now used." : "Updated. The built-in design is sent again.", "good");
     });
   };
   const reset = () => run(async () => {
@@ -311,7 +309,9 @@ export default function EmailBuilder({ kind, name, tags, starters, saved, histor
     let on = true;
     const t = window.setTimeout(async () => {
       const r = await previewDesign(kind, json).catch(() => null);
-      if (on && r?.ok) setMail({ html: r.html, subject: r.subject });
+      if (!on) return;
+      if (r?.ok) setMail({ html: r.html, subject: r.subject });
+      else setMail({ html: `<p style="font-family:sans-serif;padding:1rem">${r?.message ?? "The preview could not be drawn just now."}</p>`, subject: "" });
     }, 400);
     return () => { on = false; window.clearTimeout(t); };
   }, [rendered, kind, json]);
@@ -425,7 +425,7 @@ export default function EmailBuilder({ kind, name, tags, starters, saved, histor
               {tab === "blocks" ? <BlocksPane add={(t) => { if (!skipClick.current) addBlock(t); }} tileDown={tileDown} full={design.blocks.length >= MAX_BLOCKS} /> : null}
               {tab === "tags" ? <TagsPane design={design} tags={tags} known={known} put={put} /> : null}
               {tab === "settings" ? (
-                <SettingsPane sel={selBlock} patch={patch} design={design} setMeta={setMeta} campaign={campaign} history={history}
+                <SettingsPane sel={selBlock} patch={patch} design={design} setMeta={setMeta} campaign={campaign} history={history} tags={tags} put={put}
                   enabled={enabled} exists={exists} busy={busy} restore={restore} reset={reset} />
               ) : null}
               {tab === "guide" ? <ChecklistPane design={design} sample={sample} known={known} unsubscribe={info?.unsubscribe} why={info?.why} /> : null}
@@ -610,13 +610,19 @@ function BlockItem({ b, i, n, sel, dragging, before, select, patch, grip, up, do
   select: () => void; patch: (id: string, p: Partial<Block>, key?: string) => void;
   grip: (e: React.PointerEvent) => void; up: () => void; down: () => void; dup: () => void; del: () => void;
 }) {
+  const pressing = useRef(false);
   const word = BLOCK_LABEL[b.type];
   const typed = b.type === "heading" || b.type === "text" || b.type === "note" || b.type === "columns";
   return (
     <>
       {before ? <div className="eb-drop" aria-hidden="true" /> : null}
       <div className={`eb-bw${sel ? " is-sel" : ""}${dragging ? " is-lifted" : ""}`} data-bid={b.id} role="group" aria-label={`${word} block, ${i + 1} of ${n}`}
-        tabIndex={typed ? undefined : 0} onFocusCapture={select} onPointerDownCapture={(e) => { if (!(e.target as HTMLElement).closest(".eb-bh")) select(); }}>
+        tabIndex={typed ? undefined : 0}
+        /* A press selects only once it is finished: on a phone the selected block grows a tool strip, and if that happened on
+           touch-down the finger's own tap would land on the strip's Move or Remove button. A keyboard arrival selects at once. */
+        onPointerDownCapture={(e) => { if (!(e.target as HTMLElement).closest(".eb-bh")) { pressing.current = true; window.setTimeout(() => { pressing.current = false; }, 700); } }}
+        onFocusCapture={() => { if (!pressing.current) select(); }}
+        onClickCapture={(e) => { if (!(e.target as HTMLElement).closest(".eb-bh")) requestAnimationFrame(select); }}>
         <div className="eb-bh" role="toolbar" aria-label={`${word} block tools`}>
           <button type="button" className="g" data-a="drag" aria-label={`Drag ${word} block. Or use the move buttons.`} title="Drag to move" onPointerDown={grip}><GripVertical aria-hidden="true" /></button>
           <button type="button" data-a="up" aria-label={`Move ${word} up`} title="Move up" disabled={i === 0} onClick={up}><ChevronUp aria-hidden="true" /></button>

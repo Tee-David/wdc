@@ -16,6 +16,8 @@
 .eb *, .eb *::before, .eb *::after { box-sizing: border-box; }
 .eb button { font-family: inherit; }
 .eb :is(button, input, textarea, [role="tab"], [tabindex]):focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+/* The words have no ring of their own: the selected block's ring (or the subject's / heading's frame) says where the cursor is. */
+.eb .eb-ed:focus-visible, .eb .eb-ed:focus { outline: none; }
 
 /* ------------------------------------------------------------------- top */
 .eb-top {
@@ -81,6 +83,8 @@
   border-bottom-left-radius: calc(var(--ad-r) - 1px); container-type: inline-size;
 }
 .eb-stage[data-dragging] { cursor: grabbing; user-select: none; -webkit-user-select: none; }
+/* Hidden, not removed: a finger that started on the grip must keep its element. */
+.eb-stage[data-dragging] .eb-bh { opacity: 0; }
 
 /* The email: white in both themes, because it is what an inbox shows. */
 .eb-canvas {
@@ -90,6 +94,8 @@
 .eb[data-view="m"] .eb-canvas { width: 375px; }
 .eb-hd { padding: 16px 24px; background: #000065; color: #fff; border-bottom: 3px solid #ff6500; border-radius: 10px 10px 0 0; font: 700 1.05rem/1.2 var(--font-space-grotesk), system-ui, sans-serif; letter-spacing: .01em; }
 .eb-lead { padding: 20px 24px 6px; }
+.eb-title { border-radius: 6px; }
+.eb-title:focus-within { box-shadow: 0 0 0 2px #c95000; }
 .eb-title .eb-ed { font: 700 1.625rem/1.25 var(--font-space-grotesk), system-ui, sans-serif; color: #0e0e2c; padding: 2px 0; }
 .eb-ft { padding: 14px 24px; background: #f1f2f6; color: #4b5263; border-top: 3px solid #ff6500; border-radius: 0 0 10px 10px; font-size: .78rem; line-height: 1.5; }
 .eb-empty { margin: 0; padding: 1.2rem 24px; color: #4b5263; font-size: .9rem; }
@@ -232,6 +238,7 @@
 .eb-pre { display: flex; align-items: center; gap: .3rem; color: var(--ad-dim); font-weight: 500; }
 .eb-pre input { flex: 1; min-width: 0; }
 .eb-rows { display: grid; gap: .45rem; }
+.eb-tagpick { margin-top: .7rem; }
 .eb-row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto; gap: .4rem; align-items: center; }
 .eb-ib { width: 2.75rem; height: 2.75rem; display: grid; place-items: center; padding: 0; border: 0; border-radius: 10px; background: none; color: var(--ad-dim); cursor: pointer; }
 .eb-ib:hover { background: var(--ad-line); color: var(--ad-ink); }

@@ -35,7 +35,7 @@
 .ctSwipe { display: none; margin: 0; padding: .4rem 1rem .5rem; color: var(--ad-dim); font-size: .78rem; }
 .ctScroll { border-top: 1px solid var(--ad-line); transition: opacity .15s ease; }
 .ctScroll.is-loading { opacity: .55; }
-.ctScroll > .ad__t { min-width: 46rem; width: max-content; min-width: max(100%, 46rem); }
+.ctScroll > .ad__t { width: max-content; min-width: max(100%, 46rem); }
 .ctScroll > .ad__t :is(th, td) { white-space: nowrap; }
 .ctScroll > .ad__t :is(th, td):first-child {
   position: sticky; left: 0; z-index: 1; min-width: 18rem; max-width: 22rem; white-space: normal; padding-left: .5rem;
@@ -77,7 +77,7 @@
 .ctTag { display: inline-flex; align-items: center; min-height: 1.5rem; padding: .1rem .6rem; border-radius: 999px; background: var(--ad-tone-flat); color: var(--ad-on-flat); font-size: .75rem; font-weight: 650; white-space: nowrap; }
 .ctOpens { display: flex; align-items: center; gap: .6rem; min-width: 7.5rem; font-variant-numeric: tabular-nums; }
 .ctOpens i { flex: 1; min-width: 3.5rem; height: .4rem; border-radius: 3px; background: var(--ad-tone-flat); overflow: hidden; }
-.ctOpens i b { display: block; height: 100%; border-radius: 3px; background: var(--ad-tone-brand); transform-origin: left; animation: ct-grow .5s ease-out backwards; }
+.ctOpens i b { display: block; height: 100%; border-radius: 3px; background: var(--ad-fill); transform-origin: left; animation: ct-grow .5s ease-out backwards; }
 @keyframes ct-grow { from { transform: scaleX(0); } }
 .ctOpens span { width: 3ch; text-align: right; }
 .ctIcon { display: inline-grid; place-items: center; width: 2.75rem; height: 2.75rem; border: 0; border-radius: 12px; background: transparent; color: var(--ad-dim); cursor: pointer; }
@@ -135,7 +135,7 @@ body:has(.ctBulk) .st { bottom: calc(6.5rem + env(safe-area-inset-bottom)); }
 .ctSec h3 .ctDim { color: var(--ad-dim); font: 400 .8rem var(--font-outfit), system-ui, sans-serif; }
 .ctSeg { display: flex; gap: 2px; padding: 3px; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel-2); }
 .ctSeg button { flex: 1; min-height: 2.5rem; padding: 0 .5rem; border: 0; border-radius: 9px; background: transparent; color: var(--ad-dim); font: 600 .86rem var(--font-outfit), system-ui, sans-serif; cursor: pointer; }
-.ctSeg button:hover:not(:disabled) { color: var(--ad-ink); background: var(--ad-bg); }
+.ctSeg button:hover:not(:disabled):not([aria-pressed="true"]) { color: var(--ad-ink); background: var(--ad-bg); }
 .ctSeg button[aria-pressed="true"] { background: var(--ad-fill); color: var(--ad-on-fill); }
 .ctSeg button.is-stop[aria-pressed="true"] { background: var(--ad-tone-bad); color: var(--ad-on-bad); }
 .ctSeg button:disabled { cursor: not-allowed; opacity: .55; }
@@ -145,7 +145,7 @@ body:has(.ctBulk) .st { bottom: calc(6.5rem + env(safe-area-inset-bottom)); }
 button.ctChip { cursor: pointer; }
 .ctChip svg { width: .85rem; height: .85rem; }
 .ctChip::after { content: ""; position: absolute; inset: -.35rem 0; }
-button.ctChip:hover { background: var(--ad-dim); color: var(--ad-bg); }
+button.ctChip:hover:not([aria-pressed="true"]) { background: var(--ad-dim); color: var(--ad-bg); }
 .ctChip--add { background: transparent; color: var(--ad-ink); border: 1px dashed var(--ad-dim); }
 .ctChip--add:hover { border-style: solid; background: var(--ad-panel-2); color: var(--ad-ink); }
 button.ctChip[aria-pressed="true"] { background: var(--ad-fill); color: var(--ad-on-fill); }
