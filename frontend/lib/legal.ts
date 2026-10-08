@@ -48,7 +48,7 @@ import {
 /** One date for the set, so the documents cannot disagree about their age. */
 export const LEGAL_UPDATED = "8 October 2026";
 
-export type LegalSection = { heading: string; body: string[] };
+export type LegalSection = { heading: string; body: string[]; /** Which tab of a tabbed document it belongs to. Absent means General. */ tab?: string };
 
 export type LegalDoc = {
   slug: string;
@@ -58,6 +58,8 @@ export type LegalDoc = {
   updated: string;
   intro: string;
   sections: LegalSection[];
+  /** A tabbed document (the Client Engagement Policy has one per service). */
+  tabs?: { id: string; label: string }[];
 };
 
 export const LEGAL_DOCS: LegalDoc[] = [
@@ -86,7 +88,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
           "What we are given to do the work. Delivering a project often means being handed access to something that belongs to you: a domain, a hosting account, an analytics property, an advertising account, a store, a social media profile, a brand archive. These may contain personal data belonging to you, your staff or your customers. We treat all of it as yours, not ours.",
           "Your account. If you sign in to the client portal we hold your name, email address, how you sign in (a password stored only as a salted hash, or your Google account), and a record of what you have viewed, approved and paid.",
           "Payments. When you pay through our payment provider, they collect your card or bank details directly. We receive the result: the amount, the reference, the status, the date and the last digits or channel they report. We never see or store a full card number.",
-          "Meetings. Review meetings, calls and the handover meeting are often held on Google Meet or by phone, and may be recorded. We tell you before recording starts. A recording, the chat and any notes we take are personal information, and they may show your face, your voice, your screen and anything you say or open during the call.",
+          "Meetings. Review meetings, calls and the handover meeting are held on Google Meet, Zoom or by phone, and may be recorded. We tell you before recording starts. A recording, the chat and any notes we take are personal information, and they may show your face, your voice, your screen and anything you say or open during the call.",
           "Messages. We keep a record of the emails the system sends you, with the time and whether they were delivered, so that we do not send the same message twice and can answer 'did it reach me?'.",
           "Collected automatically. Our hosting provider records ordinary server information when a page is requested: an IP address, the page, a timestamp, and the browser and device the request reports. This keeps the site running and secure.",
           "We do not ask for, and do not want, payment card numbers, government identity numbers, health information or anything else sensitive. Please do not send them to us by email or in a form.",
@@ -370,6 +372,15 @@ export const LEGAL_DOCS: LegalDoc[] = [
   {
     slug: "client-engagement-policy",
     title: "Client Engagement Policy",
+    tabs: [
+      { id: "general", label: "General" },
+      { id: "branding", label: "Brand and design" },
+      { id: "web", label: "Websites" },
+      { id: "apps", label: "Apps" },
+      { id: "software", label: "Software and AI" },
+      { id: "seo", label: "Search (SEO)" },
+      { id: "social", label: "Social media" },
+    ],
     blurb:
       "How a project starts, what each side is responsible for, what is included, who owns the work, what we cannot promise, and how an engagement ends.",
     updated: LEGAL_UPDATED,
@@ -381,7 +392,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
         body: [
           "It begins with a conversation about the outcome you want, not a feature list. We would rather understand what the work has to achieve than quote for a specification that may not get you there.",
           "Your onboarding brief, a call and any material you send are the starting point. From them we put the scope in writing: what is included, what is not, what we need from you, what it costs, the rounds of revision included, and roughly when. Work starts when you have accepted that in writing and any deposit is settled. Nothing said in a meeting, a chat message or an email thread changes the agreed scope until it is written down and both sides have accepted it.",
-          "The usual order is a discovery call, then agreement of the scope, then payment of the deposit, then our onboarding form, then we set up your client portal and the way we will keep in touch (a WhatsApp group, calls or email, as you choose), then the work, with review meetings along the way and a handover meeting at the end. A typical project runs about three to four weeks, and yours may be shorter or longer, as the agreed scope says.",
+          "The usual order is a discovery call, then agreement of the scope, then payment of the deposit, then our onboarding form, then we set up your client portal and the way we will keep in touch (a WhatsApp group, calls or email, as you choose), then the work, with review meetings along the way and a handover meeting at the end. How long a project runs depends on what it is: a flyer can take days, a website weeks, an app months. Your agreed scope says what applies to yours, and we never ask you to assume a length from another kind of job.",
           "A brief is not a contract and a quote is not a promise of a date. The agreed scope document, together with this policy, is.",
         ],
       },
@@ -408,10 +419,11 @@ export const LEGAL_DOCS: LegalDoc[] = [
       {
         heading: "Reviews and the handover meeting",
         body: [
-          "Unless your agreed scope says otherwise, a project has up to two review meetings, where we show you the work and take your consolidated feedback, and a handover meeting at the end. The number of reviews, how long they run and how they are held depend on your agreed scope, and we tell you before work starts. A further review is new work.",
-          "The handover meeting is normally a recorded Google Meet call. We walk you through what was built and what it does, from the public pages to the admin area or content system if there is one, show you how to manage it, how to reach it and where things are, and answer your questions.",
-          "After the meeting we send a handover document with what you need to reach and run your project: links, the access details and logins we are handing over, webmail where it applies, the link to the recording, and specific instructions for your project. Keep the document safe and change the passwords in it. Once handover is done, looking after your passwords and your users is your responsibility.",
-          "The handover meeting is part of delivery. Where you cannot attend, tell us and we will rebook it once. If a handover is not completed within the time agreed for reasons that are yours, the work counts as delivered for payment and the warranty period starts, and we will still give you the document and the recording.",
+          "Projects differ, so your agreed scope says how many review meetings there are, how long they run, how they are held and when the project closes. A flyer may have none and a website usually has a couple. A further review is new work unless the scope says otherwise.",
+          "Where a project has a handover meeting, we agree it with you in advance. It is held on Google Meet, Zoom or whichever method we agree, and it is recorded. We walk you through what was built and what it does, from the public pages to the admin area or content system if there is one, show you how to manage it, how to reach it and where things are, and answer your questions.",
+          "After the meeting we send a handover document with what you need to reach and run your project: links, the access details and logins we are handing over, webmail where it applies, the link to the recording, and instructions specific to your project. Keep the document safe and change the passwords in it. Once handover is done, looking after your passwords and your users is your responsibility.",
+          "The handover meeting is part of delivery. Where you cannot attend, tell us and we will rebook it once. If a handover is not completed within the time agreed for reasons that are yours, the work counts as delivered for payment and any warranty or review period starts, and we will still give you the document and the recording.",
+          "How a project closes depends on its kind. Some close at handover, such as a content-managed website, a flyer or a logo. Others have a testing and review period first, such as a web or mobile app. The tab for your service says which.",
         ],
       },
       {
@@ -419,7 +431,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
         body: [
           "Every stage includes review and revision, for the number of rounds in the agreed scope. That is part of the work, not an extra. A round is one consolidated set of changes sent together from the approver.",
           "A change of direction is different from a revision. Re-doing something already approved, or adding to the agreed scope, is new work: we will say so at the time, price it, and wait for your agreement before starting. We will not quietly absorb it and we will not quietly invoice for it.",
-          "Once a stage is approved in writing, going back to it is a change of direction.",
+          "Once a stage is approved in writing, going back to it is a change of direction. Some kinds of work have tighter limits on revisions than others. The tab for your service lists them, and your agreed scope wins if it says something different.",
         ],
       },
       {
@@ -495,17 +507,6 @@ export const LEGAL_DOCS: LegalDoc[] = [
         ],
       },
       {
-        heading: "Work that has its own terms",
-        body: [
-          "Brand and design: batch and monthly jobs run to the quantity and the dates agreed. A new batch, or one more piece, is new work. Licences for fonts and music, particularly for motion work, are yours to keep to, and we tell you which apply.",
-          "Websites: we register your domain in your name and with your details unless you ask us to do otherwise in writing. Hosting is either an account opened for you in your name, or hosting we provide ourselves under a written hosting agreement made before we host, which is what a client who wants us to build, look after and host the site usually chooses. Your agreed scope says which. Our Hosting, Domains and Accounts Policy sets out the rest. A free review of your site is advice and not a promise of results. Plugins, themes and platforms we build on belong to other companies and can change. For a website, we include up to three business email addresses at no charge. More mailboxes are charged per mailbox, and the handover document lists what you have.",
-          "Search: SEO work starts at three months and is ongoing. Changes to your content are approved by you before they go live.",
-          "Apps: we show a first version before the full build. Unless you ask otherwise, the app store developer accounts are opened in our name, and you may ask for the app to sit in your own account, or to be moved to it, as set out in the Hosting, Domains and Accounts Policy. The stores charge their own fees, make their own decisions on approval, and keep changing their rules, so we cannot promise approval or a date for it, and we prepare each submission carefully. We do not build games, anything deceptive or anything that needs unusual hardware.",
-          "Software and automation: demonstrations of past work happen on a call. You set the rules for your data. Other companies' tools and interfaces can change or stop. Very heavy systems may be outside what we take on, and we say so early.",
-          "Social media: nothing is posted until you approve it, within the time you told us. The accounts are yours, and you add us through each platform's sharing tools. Ad spend is paid to the platform and is separate from our fee.",
-        ],
-      },
-      {
         heading: "After launch",
         body: [
           "Delivery includes handover: the files, the access, and an explanation of how what we built works.",
@@ -545,6 +546,210 @@ export const LEGAL_DOCS: LegalDoc[] = [
         ],
       },
       {
+        tab: "branding",
+        heading: "How design work runs",
+        body: [
+          "Design starts with your brief and your inspiration. We take them in, agree a design direction with you, and only then design. The direction is where you steer. The designs that follow are the direction, carried out.",
+          "A logo, a flyer, a social media design or any single piece: after we send the final version you get one revision. We do not make alternative versions or variations of a piece, and we do not start again in a different direction. If you want a different direction, that is a new piece of work, quoted before it starts.",
+          "A brand guide: we do one design direction. After we send it you get one round of corrections. We do not redo a whole brand guide again in another direction.",
+          "A full identity system: we agree one direction, develop it, and give you one round of revisions per stage as set out in the scope. Going back over an approved stage is a change of direction.",
+          "Once a final version is sent and the revision you are entitled to has been made, that work is complete.",
+        ],
+      },
+      {
+        tab: "branding",
+        heading: "Say what you want before we start",
+        body: [
+          "We would rather be clear than have you upset later. Tell us your inspiration, your audience, the words that must appear, and the things to avoid, before design begins. Feedback should come from your named approver in one consolidated message.",
+          "A flyer or poster has a lot riding on small things. Check the spelling, the names, the dates, the prices, the phone numbers and the addresses before you approve. After you approve, a mistake in text you gave us or approved is not ours to fix for free.",
+        ],
+      },
+      {
+        tab: "branding",
+        heading: "Files, formats and licences",
+        body: [
+          "A logo is delivered in the formats and variants in your scope, normally including PNG and SVG in colour, black and white, and reversed, as a wordmark, a symbol and a combined lockup, where they apply. Print and screen colours look different, and a printer's output can differ from what you saw on screen.",
+          "Fonts, pictures and music may carry licences. We tell you which ones are in your work, and you keep to them. Motion work that uses music needs a licence for that music.",
+          "Batch and monthly jobs run to the quantity and dates agreed. A new batch, or one more piece, is new work.",
+          "Checking that a name or mark can be registered as a trademark is your responsibility. A design is not a legal clearance. We can point you to someone who does it.",
+        ],
+      },
+      {
+        tab: "branding",
+        heading: "Print and production",
+        body: [
+          "Unless the scope includes it, we design for print but do not manage the printer. Ask the printer for a proof and check it. We are not responsible for printing errors, colour shifts or damage that happens after we hand over the files.",
+        ],
+      },
+      {
+        tab: "web",
+        heading: "Content-managed websites close at handover",
+        body: [
+          "A website built on a content management system is complete once we have handed it over: the handover meeting is held, the handover document and the recording are sent, and you have had your agreed review rounds. After that the project is concluded.",
+          "After handover, a defect is fixed under the warranty period in your scope. A new page, a redesign, a new feature or a change you want after that is new work or part of a maintenance arrangement, quoted before it starts.",
+        ],
+      },
+      {
+        tab: "web",
+        heading: "Your domain",
+        body: [
+          "We register a domain in your name and with your details unless you ask in writing for something else. You are responsible for renewing it. See the Hosting, Domains and Accounts Policy.",
+        ],
+      },
+      {
+        tab: "web",
+        heading: "Hosting and business email",
+        body: [
+          "Hosting is either an account in your name, or hosting we provide under a written hosting agreement we make before we host. Clients who want a site built, looked after and hosted by us usually choose the second. Your agreed scope says which.",
+          "For a website we build we include up to three business email addresses at no charge. More are charged per mailbox, and your handover document lists what you have.",
+        ],
+      },
+      {
+        tab: "web",
+        heading: "Online shops",
+        body: [
+          "For an online shop we upload up to 20 products at no charge. Uploading more than 20 is charged, from our price list, which we give you when you ask. Tell us early how many products you expect, so the quote is right.",
+          "You give us the product details in the form we ask for: names, descriptions, prices, pictures and stock. We do not write or photograph products unless the scope says so.",
+          "You are responsible for the accuracy of your products and prices, for what you sell being lawful to sell, for tax, delivery, stock, refunds and customer service. Payment providers set their own approvals, fees and rules, and may refuse or hold an account. We cannot promise their approval.",
+        ],
+      },
+      {
+        tab: "web",
+        heading: "Platforms, plugins and updates",
+        body: [
+          "Websites are built on platforms, themes and plugins that belong to other companies and change over time. Updates can change how a site works. Updating and fixing after the warranty period are maintenance.",
+          "A free review of your current site is advice. It is not a promise of results, and it is not a promise to be hired for the work.",
+          "We do not promise search rankings, traffic or sales from a website. Search is its own service.",
+        ],
+      },
+      {
+        tab: "apps",
+        heading: "Apps have a month of testing and review",
+        body: [
+          "A web app or mobile app cannot simply be handed over the way a content-managed site can, because real use shows things a plan does not. After the first release we give you up to one month of testing and review. During it you use the app, report what you find, and we fix what does not match the agreed scope.",
+          "A defect is something that does not do what we agreed it would. A new idea, a new screen or a changed requirement is not a defect. It is new work, quoted before it starts. When the month ends, or earlier if you accept the app in writing, the build is complete and any warranty period in your scope begins.",
+        ],
+      },
+      {
+        tab: "apps",
+        heading: "A first version comes first",
+        body: [
+          "We show you a first version, a prototype, before the full build. Changing direction after you approve it is new work. Tell us early who will use the app and what they must be able to do.",
+        ],
+      },
+      {
+        tab: "apps",
+        heading: "Developer accounts and the stores",
+        body: [
+          "Unless you ask otherwise, the Apple and Google developer accounts are opened in our name, and you may ask for the app to sit in your own account or to be moved to it. See the Hosting, Domains and Accounts Policy.",
+          "The stores decide whether an app is approved, and they change their rules at any time. We prepare each submission carefully. We cannot promise approval, a date, or that an app stays listed, and we are not responsible if a store refuses, removes or suspends an app or an account.",
+        ],
+      },
+      {
+        tab: "apps",
+        heading: "Running costs and other companies",
+        body: [
+          "Apps often depend on services that charge for use, such as maps, messages, push notifications, payments, storage and AI. Their fees are yours, and we tell you which ones we use. Their terms can change, and a service can stop.",
+          "We agree which devices and operating system versions the app supports. Support for other devices or for newer versions is new work.",
+        ],
+      },
+      {
+        tab: "apps",
+        heading: "Your users and their data",
+        body: [
+          "If the app collects information about your users, you are responsible for the privacy notice, the terms, the consents and the lawful use of that information. The stores will ask for them. We will build in what is agreed and tell you what we notice.",
+          "We do not build games, anything deceptive, or anything that needs unusual hardware.",
+        ],
+      },
+      {
+        tab: "software",
+        heading: "How custom software and automation run",
+        body: [
+          "We agree what the system must do, build it in stages, and show you as we go. As with an app, real use shows things a plan does not, so the agreed scope sets a testing and review period after the first release. A defect is fixed within it. A new requirement is new work.",
+          "Demonstrations of past work happen on a call. Very heavy or high-risk systems may be outside what we take on, and we say so early.",
+        ],
+      },
+      {
+        tab: "software",
+        heading: "AI and your data",
+        body: [
+          "AI can be wrong. A person should check anything important it produces before anyone relies on it. You set the rules for your data, including what may be sent to an AI tool, and you are responsible for the lawful use of the system and its output.",
+          "We do not promise that an AI tool will give a certain accuracy, result or saving.",
+        ],
+      },
+      {
+        tab: "software",
+        heading: "Other companies' tools",
+        body: [
+          "Systems often connect to tools, interfaces and services that belong to other companies, and those can change, charge, limit or stop. We are not responsible for a change we do not control, and fixing around one is new work.",
+        ],
+      },
+      {
+        tab: "seo",
+        heading: "What search work is",
+        body: [
+          "Search work starts at three months and runs on. It improves the chance people find you. It does not buy a position. Nobody can promise a ranking, and we do not.",
+          "Results take time and depend on search engines, competitors, your market and what you do alongside our work. Search engines and AI answer tools change how they work without warning, and a change can lift or hurt results. We are not responsible for that.",
+        ],
+      },
+      {
+        tab: "seo",
+        heading: "What we need from you",
+        body: [
+          "Access through each tool's own sharing settings, never by sending us a password. Timely approval of changes to your content before they go live. A site we can change, or the right person to make the change.",
+          "If you or another developer change the site, the content or the settings during or after our work, that can undo or damage results. We are not responsible for changes we did not make.",
+        ],
+      },
+      {
+        tab: "seo",
+        heading: "Links, content and penalties",
+        body: [
+          "We build links and mentions in ways search engines accept, and we do not buy spam links. If the site already carries a penalty or poor past work, such as bought links, copied content or hacked pages, the recovery is slower and uncertain, and we tell you what we find.",
+          "You are responsible for the claims and facts in your content, and for having the right to use what you give us.",
+        ],
+      },
+      {
+        tab: "seo",
+        heading: "Tools, reports and listings",
+        body: [
+          "Paid tools are paid by you unless we agree otherwise. We report on the schedule in your scope. Numbers from different tools differ, and we tell you which we use.",
+          "A business listing, such as a Google Business Profile, stays yours. Platforms can suspend, merge or reject a listing. We are not responsible for a suspension, and we help you appeal where we can.",
+          "Gains can fade if the work stops, because others keep working. Ending the work ends the effort, not the history of what was done.",
+        ],
+      },
+      {
+        tab: "social",
+        heading: "Your accounts are yours",
+        body: [
+          "The accounts belong to you, and you add us through each platform's sharing tools. We never ask for a password. At the end of the work we are removed, and you remove any access you gave us.",
+          "We are not responsible if an account is banned, suspended, restricted, limited, hacked, seized, locked, deleted or shadow-banned, or if its reach or following falls, whatever the cause. Platforms act on their own rules and can change them or act without warning. We follow their rules and tell you if we see a risk, but we cannot control or reverse their decisions.",
+        ],
+      },
+      {
+        tab: "social",
+        heading: "Posting and approval",
+        body: [
+          "Nothing is posted until you approve it, within the time you told us. If approval does not arrive in time, the post is skipped or moved, and it is not posted without your approval. We plan the calendar, schedule the posts and suggest trends.",
+          "You are responsible for what you ask us to say. Offers, prices, claims, promotions and competitions must be lawful and must follow platform rules. Tell us what must not be said.",
+          "Pictures, video, music and trending sounds may carry licences. We use what you give us or what we are licensed to use. A copyright claim on something you supplied is yours to deal with.",
+        ],
+      },
+      {
+        tab: "social",
+        heading: "Adverts and results",
+        body: [
+          "Ad spend is paid to the platform and is separate from our fee. Platforms approve, reject and restrict adverts at their own discretion, and ad accounts can be disabled. We cannot promise approval or how an ad or a post will perform. Reach, clicks and followers are not promised.",
+          "Reports show what the platforms tell us. Their numbers can change or be wrong.",
+        ],
+      },
+      {
+        tab: "social",
+        heading: "Comments, messages and your reputation",
+        body: [
+          "Unless the scope says we manage replies, answering comments, messages and complaints is yours. Where we do, we follow the guidelines you give us, and anything outside them comes to you. We are not responsible for what other people post or say about you.",
+        ],
+      },
+      {
         heading: "Changes to this policy",
         body: [
           "A change to this page does not change an engagement already agreed. It applies to the next one, unless you accept it sooner.",
@@ -567,7 +772,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
         heading: "How we charge",
         body: [
           "Each project is priced in the agreed scope, in the currency stated there. Most projects are charged as a deposit to start, then stages, then a final payment on delivery. Ongoing work is charged monthly in advance.",
-          "Prices do not include third-party costs such as domains, hosting, licences, app store accounts and advertising spend. We tell you about those before they are incurred.",
+          "Prices do not include third-party costs such as domains, hosting, licences, app store accounts and advertising spend. We tell you about those before they are incurred. Some work has a stated allowance, for example up to 20 products uploaded to an online shop, and anything beyond it is charged from our price list.",
           "Taxes are added where the law requires and are shown on the invoice.",
           "Some things are charged repeatedly: hosting we provide, maintenance, any mailbox beyond the three included with a website we build, and ongoing work. Each is shown on your agreed scope or hosting agreement, with its price and renewal date, and is charged in advance. Domains, licences and store accounts renew with the company that provides them, on their terms, and you pay those costs.",
         ],
@@ -764,6 +969,7 @@ export const OPEN_ITEMS = [
   "A limit on liability and a mediation step, which are drafted in plain words and need a lawyer's wording.",
   "Whether the accessibility menu, chat assistant and any analytics added later are described correctly in the Cookie Policy.",
   "The Hosting, Domains and Accounts Policy and the indemnity: confirm the fees and notice periods, whether you want a separate signed hosting agreement template, the caps on liability and the dispute steps, and that holding app store accounts in the studio's name by default is what you want to offer.",
+  "The service tabs of the Client Engagement Policy: confirm the revision limits (one revision for a logo, flyer or social design; one direction for a brand guide), the one-month testing period for apps, the 20 free products, and the account ban and seizure wording for social and search.",
   "A practitioner's review of the whole set, especially liability, intellectual property, refunds and engagement, before it is relied on commercially.",
 ] as const;
 
