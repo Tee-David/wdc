@@ -65,6 +65,12 @@ export default function LegalIndexPage() {
               ))}
             </div>
 
+            <h2 className="lg-pdfs__h">Download a copy</h2>
+            <ul className="lg-pdfs">
+              {LEGAL_DOCS.map((d) => (
+                <li key={d.slug}><a href={`/legal/${d.slug}/pdf`} download>{d.title}, PDF</a></li>
+              ))}
+            </ul>
           </div>
         </section>
       </main>
