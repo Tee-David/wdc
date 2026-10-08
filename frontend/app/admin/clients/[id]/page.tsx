@@ -11,7 +11,7 @@ import { ApprovalPill, Empty, InvoicePill, Panel, StagePill, when } from "@/comp
 import { InvoiceMenu, ProjectMenu } from "@/components/admin/row-actions";
 import { EditClient, MergeClient } from "@/components/admin/client-form";
 import { AddProject } from "@/components/admin/project-forms";
-import { InvoiceBuilder } from "@/components/admin/money-forms";
+import { InvoiceBuilder, RecordAnyPayment } from "@/components/admin/money-forms";
 import CommsLog from "@/components/admin/comms-log";
 import CreditPanel from "@/components/admin/credit-panel";
 import TicketPanel from "@/components/admin/ticket-panel";
@@ -254,7 +254,9 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
       </div>
 
       <div className="ad__grid2" style={{ marginTop: ".9rem" }}>
-        {money ? <Panel title="Payment history" dataTour="client-payments">
+        {money ? <Panel title="Payment history" dataTour="client-payments"
+          action={<RecordAnyPayment open={invoices.filter((i) => i.status !== "Draft" && !i.voided && invoiceTotals(i).due > 0)
+            .map((i) => ({ id: i.id, label: i.number, owed: invoiceTotals(i).due }))} />}>
           {payments.length ? (
             <div className="ad__scroll">
               <table className="ad__t">
