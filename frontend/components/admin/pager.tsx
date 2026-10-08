@@ -15,7 +15,7 @@ import { DismissDetails } from "./dismiss-details";
  *
  * `href` builds the address for a change; the page owns its own query.
  */
-export const PER_PAGE_OPTIONS = [25, 50, 100] as const;
+export const PER_PAGE_OPTIONS = [10, 25, 50, 100, 250] as const;
 
 export function readPer(value: string | string[] | undefined, fallback = 25) {
   const n = Number(Array.isArray(value) ? value[0] : value);
