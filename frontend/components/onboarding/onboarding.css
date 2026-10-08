@@ -1084,13 +1084,14 @@
    (one line, 44px), compact chips for a short multi list, and a dropdown for
    three or more single choices (SelectField, not styled here). Solid fills. */
 .ob__seg {
-  display: inline-flex; max-width: 100%;
+  display: flex; width: fit-content; max-width: 100%;
   border: 2px solid var(--muted); border-radius: 999px; overflow: hidden;
 }
 .ob__segBtn {
   min-height: 44px; padding: 0 1.2rem; border: 0;
   background: var(--paper); color: var(--ink);
-  font: inherit; font-size: .96rem; white-space: nowrap; cursor: pointer;
+  font: inherit; font-size: .96rem; cursor: pointer;
+  flex: 1 1 auto; min-width: 0; line-height: 1.2; padding-block: .5rem;
 }
 .ob__segBtn + .ob__segBtn { border-left: 2px solid var(--muted); }
 .ob__segBtn.is-on { background: var(--accent-fill); color: var(--on-accent); font-weight: 600; }
