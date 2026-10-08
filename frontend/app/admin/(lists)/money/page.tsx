@@ -180,11 +180,11 @@ export default async function MoneyPage({
         {/* HOW MUCH OF WHAT WE BILLED ACTUALLY ARRIVED rides on Collected:
             null rather than 0% when nothing has been invoiced, because a red
             0% for a studio that has simply not billed yet is not a problem. */}
-        <Tile label="Collected" value={nairaShort(s.collected)} tone="good" icon={Wallet} iconTone="good"
+        <Tile label="Collected" href="/admin/money?status=Paid" value={nairaShort(s.collected)} tone="good" icon={Wallet} iconTone="good"
               note={rate === null ? "Nothing invoiced yet" : `${Math.round(rate * 100)}% of ${nairaShort(s.invoiced)} billed`} />
-        <Tile label="Outstanding" value={nairaShort(s.outstanding)} icon={Clock} iconTone="live"
+        <Tile label="Outstanding" href="/admin/money?status=Sent" value={nairaShort(s.outstanding)} icon={Clock} iconTone="live"
               note={`${openCount} invoice${openCount === 1 ? "" : "s"} open`} />
-        <Tile label="Overdue" value={nairaShort(s.overdue)} tone={s.overdue ? "bad" : "good"} icon={AlertTriangle} iconTone={s.overdue ? "bad" : "good"}
+        <Tile label="Overdue" href="/admin/money?status=Overdue" value={nairaShort(s.overdue)} tone={s.overdue ? "bad" : "good"} icon={AlertTriangle} iconTone={s.overdue ? "bad" : "good"}
               note={overdueCount ? `${overdueCount} invoice${overdueCount === 1 ? "" : "s"} late` : "Nothing late"} />
         <Tile label="Spend" value={nairaShort(s.spend)} icon={CreditCard}
               note={rebillable ? `${nairaShort(rebillable)} can be billed back` : "Nothing to bill back"} />

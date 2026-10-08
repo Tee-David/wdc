@@ -447,6 +447,12 @@ body:has(.adDrawer[open]) .st { display: none; }
   min-width: 0; padding: 1.15rem 1.25rem; border-radius: var(--ad-r);
   background: var(--ad-panel); border: 1px solid var(--ad-line); box-shadow: var(--ad-sh-1);
 }
+.ad__tile--link { position: relative; transition: border-color .15s, box-shadow .15s; }
+.ad__tile--link:hover { border-color: var(--ad-dim); box-shadow: var(--ad-sh-2, var(--ad-sh-1)); }
+.ad__tileHit { color: inherit; text-decoration: none; }
+.ad__tileHit::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.ad__tileHit:focus-visible { outline: none; }
+.ad__tileHit:focus-visible::after { outline: 2px solid var(--ad-focus, currentColor); outline-offset: 2px; }
 .ad__tile dt { color: var(--ad-ink); font-size: .9rem; font-weight: 600; }
 .ad__tile dd {
   margin: .6rem 0 0;

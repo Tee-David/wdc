@@ -161,12 +161,12 @@ export default async function ClientsPage({
       <ExampleNote />
 
       <dl className="ad__tiles ad__tiles--4">
-        <Tile label="Active clients" value={String(active.length)} icon={Users} note={newThisQuarter ? `${newThisQuarter} new this quarter` : "None new this quarter"} />
+        <Tile label="Active clients" href="/admin/clients#client-list" value={String(active.length)} icon={Users} note={newThisQuarter ? `${newThisQuarter} new this quarter` : "None new this quarter"} />
         {money ? (
           <Tile label="Owed to us" value={nairaShort(owedTotal)} icon={Wallet} iconTone="live" note={withBalance ? `${withBalance} client${withBalance === 1 ? "" : "s"} with a balance` : "Nobody owes anything"} />
         ) : null}
-        <Tile label="Buying more than one service" value={`${multi.length} of ${active.length}`} icon={Boxes} iconTone="good" note={topPair ? `${topPair[0]} bought together most` : "Each buys one service"} />
-        <Tile label="Archived" value={String(archivedCount)} icon={Archive} iconTone="warn" note="Kept for their invoices and history" />
+        <Tile label="Buying more than one service" href="/admin/clients?view=service#client-list" value={`${multi.length} of ${active.length}`} icon={Boxes} iconTone="good" note={topPair ? `${topPair[0]} bought together most` : "Each buys one service"} />
+        <Tile label="Archived" href="/admin/clients?status=archived#client-list" value={String(archivedCount)} icon={Archive} iconTone="warn" note="Kept for their invoices and history" />
       </dl>
 
       <nav className="ad__tabsNav" aria-label="Client views">

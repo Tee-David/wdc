@@ -1,4 +1,5 @@
 import { EmptyScene, sceneFor, type SceneKind } from "./empty-scene";
+import Link from "next/link";
 import { CountUp } from "./count-up";
 import "./empty-scene.css";
 import { Inbox, Info, type LucideIcon } from "lucide-react";
@@ -46,18 +47,20 @@ export function Panel({
  * the one fact about the number that changes what you do next.
  */
 export function Tile({
-  label, value, note, tone, icon: Icon, iconTone = "brand", badge,
+  label, value, note, tone, icon: Icon, iconTone = "brand", badge, href,
 }: {
   label: string; value: string; note?: string;
+  /** Makes the whole card a link to the list this figure counts. */
+  href?: string;
   tone?: "good" | "bad" | "accent";
   icon?: LucideIcon;
   iconTone?: "brand" | "good" | "bad" | "warn" | "live" | "neutral";
   badge?: { label: string; tone: "good" | "bad" | "warn" | "live" | "flat" };
 }) {
   return (
-    <div className={`ad__tile${tone ? ` ad__tile--${tone}` : ""}`}>
+    <div className={`ad__tile${tone ? ` ad__tile--${tone}` : ""}${href ? " ad__tile--link" : ""}`}>
       <dt>
-        <span>{label}</span>
+        <span>{href ? <Link className="ad__tileHit" href={href}>{label}</Link> : label}</span>
         {Icon ? <span className={`ad__tileIcon ad__tileIcon--${iconTone}`} aria-hidden="true"><Icon /></span> : null}
       </dt>
       <dd>
