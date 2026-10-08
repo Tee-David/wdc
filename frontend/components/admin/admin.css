@@ -2056,3 +2056,33 @@ td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
 .ad__ownerList button:hover, .ad__ownerList button:focus-visible { background: var(--ad-line); outline: none; }
 .ad__ownerList svg { width: 1rem; height: 1rem; }
 .ad__ownerInvite { font-size: .82rem; }
+
+/* THE SUPPORT BAR: the owner's read-only view as a staff member. A solid
+   fill (navy/white in light, #b84a00/white in dark: --ad-fill/--ad-on-fill),
+   the Exit button inverted so its edge survives the fill. It sticks WITH the
+   top bar (.ad__stickTop owns the stickiness while it is present) so it
+   never covers the header. */
+.ad__stickTop { position: sticky; top: 0; z-index: 30; }
+.ad__stickTop > .ad__topbar { position: static; }
+.adSupport {
+  display: grid; grid-template-columns: 1.25rem minmax(0, 1fr) auto; gap: .75rem; align-items: center;
+  padding: .6rem max(clamp(1rem, 2.4vw, 2rem), env(safe-area-inset-right)) .6rem max(clamp(1rem, 2.4vw, 2rem), env(safe-area-inset-left));
+  background: var(--ad-fill); color: var(--ad-on-fill);
+}
+.adSupport > svg { width: 1.25rem; height: 1.25rem; }
+.adSupport__text { min-width: 0; display: grid; gap: .1rem; overflow-wrap: anywhere; }
+.adSupport__text strong { font: 700 .92rem/1.3 var(--font-body); }
+.adSupport__text span { font: 500 .8rem/1.35 var(--font-body); }
+.adSupport form { margin: 0; }
+.adSupport__exit {
+  min-height: 44px; padding: 0 1.1rem; border: 2px solid var(--ad-on-fill); border-radius: 12px; cursor: pointer;
+  background: var(--ad-on-fill); color: var(--ad-fill); font: 700 .88rem var(--font-body);
+}
+.adSupport__exit:hover { background: transparent; color: var(--ad-on-fill); }
+.adSupport__exit:focus-visible { outline: 3px solid var(--ad-on-fill); outline-offset: 3px; }
+@media (max-width: 640px) {
+  .adSupport { grid-template-columns: 1.25rem minmax(0, 1fr); gap: .5rem .75rem; }
+  .adSupport form { grid-column: 1 / -1; }
+  .adSupport__exit { width: 100%; }
+}
+@media (prefers-reduced-motion: no-preference) { .adSupport__exit { transition: background .14s ease, color .14s ease; } }
