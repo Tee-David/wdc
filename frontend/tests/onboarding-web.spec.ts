@@ -1,303 +1,373 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { stepsFor } from "@/lib/onboarding";
 import { UNSURE, UNSURE_LEGACY } from "@/lib/onboarding-shared";
+import { chooseOption, PERSON, walkToReview, type Answer } from "./onboarding-helpers";
 import {
-  completeAnswers, directlyUnder, fieldKeys, isShown, layoutFindings, open, stepOf, tipSize, WIDTHS,
-  type Answers, type Theme,
-} from "./onboarding-size-first";
+  directlyUnder, expectScreenFits, heading, keysOnScreen, openOn, openScreen, readScreens, screensFor, summaryText,
+  THEMES, WIDTHS, type Answers,
+} from "./onboarding-screens";
 
 /**
- * The web form, Size first (artifact web.js, tiers 1 to 3).
+ * The web form, Size first (lib/onboarding-services/web.ts, after the UX
+ * research E2 and decisions 22 to 34).
  *
- * Brief rule 6 for this service: (a) layout at every width in both themes,
- * (b) the size gate, (c) conditional questions under their parent, (d)
- * required questions block Next, (e) not sure is reversible, (f) a complete
- * run to the review screen, (g) an old draft opens. Plus the web-specific
- * copy and the reveal that is not built yet.
+ * Brief rule 6 for this service: (a) every screen fits at every width in both
+ * themes with 43.5px controls; (b) the size gate, screen by screen; (c)
+ * follow-ups directly under their parent; (d) required questions block Next and
+ * are named; (e) not sure is reversible; (f) a complete run to the review at 390
+ * and 1280; (g) an old saved draft opens.
  */
 
-/* Every question that can show, given a Large site and a little of each. The
-   layout checks walk each step with this, so the widest content is measured. */
-const WEB_FULL: Answers = {
-  site_size: "A large site",
-  site_new_or_existing: "Improving an existing site",
+const SIMPLE = "A simple site";
+const BIGGER = "A bigger site";
+const LARGE = "A large site";
+const IMPROVING = "Improving an existing site";
+
+/* ---------------------------------------------------------- what each size asks
+
+   Hand-written from the step file. With only the size answered, the form shows
+   these screens and questions. The web screens hold at least one tier 1
+   question each, so the screens are the same at every size; the tiers change
+   which questions are on them. */
+
+const TITLES = [
+  "Let's start with you", "Now, about your business", "What the site is for", "Words and pictures",
+  "Extras, and your web address", "When, and who gives the final yes", "Anything you can send us now", "Last bits",
+];
+const SMALL_KEYS = [
+  "first_name", "last_name", "phone", "email", "company", "industry", "audience",
+  "site_size", "site_new_or_existing", "site_jobs", "words_ready", "pictures_ready", "has_domain",
+  "deadline_kind", "approver", "channel", "has_logo", "assets", "about", "anything_else",
+];
+const MEDIUM_KEYS = [...SMALL_KEYS, "age_range", "features", "search_note", "has_brandbook"];
+const LARGE_KEYS = [...MEDIUM_KEYS, "page_count", "site_platform", "usp", "others"];
+
+/* ------------------------------------------------------------- answers used */
+
+/** Every question that can show for a large site with a little of each. */
+const FULL: Answers = {
+  ...PERSON,
+  site_size: LARGE,
+  site_new_or_existing: IMPROVING,
   current_url: "https://example.com",
   current_problem: "Slow on phones.",
   free_review: "Yes",
-  site_jobs: ["Sell online", "Take bookings", "Show our work", "Get enquiries", "Something else", "A members only area"],
+  site_jobs: ["Sell online", "Take bookings", "Show our work", "Get enquiries", "Share information", "A members only area", "Something else"],
   site_jobs_other: "Quizzes",
   store_items: "Some, 20 to 200",
   pay_providers: ["Paystack", "I will bring my own"],
-  pay_own: "A plugin from another provider",
-  book_what: "Fittings",
+  pay_own: "Another provider",
+  book_what: ["Appointments"],
   book_pay: "Yes",
   work_count: "10 to 50",
-  enquiry_ways: ["A contact form"],
   member_what: "Articles",
   member_join: "They pay to join",
   page_count: "6 to 15",
-  content_ready: "I have some of them",
-  content_needed: ["Words"],
-  deadline_kind: "Within two weeks",
+  site_platform: "WordPress",
+  words_ready: "I need help",
+  pictures_ready: "I need help",
   features: ["Blog", "Other"],
   features_other: "Events calendar",
-  has_hosting: "Neither",
-  domain_ideas: "tobishop.com.ng",
+  has_domain: "No",
   hosting_wanted: "Yes",
-  wants_seo: "Yes",
+  deadline_kind: "Within two weeks",
+  fixed_dates: "The launch",
+  has_logo: "No",
+  logo_wanted: "Yes",
+  has_brandbook: "No",
+  brandbook_wanted: "Yes",
+  age_range: ["18 to 34"],
+  usp: "We listen first.",
+  others: "The accountant",
+  about: "We sell things.",
+  anything_else: "Nothing else",
 };
 
-const TIER_2 = ["features", "has_hosting", "domain_ideas", "hosting_wanted", "wants_seo"];
+/** The smallest answers a client can give on the way to the review. */
+const SMALL_WALK: Answers = { ...PERSON, site_size: SIMPLE, site_new_or_existing: "Brand new", site_jobs: ["Share information"], words_ready: "I have them" };
+const MEDIUM_WALK: Answers = {
+  ...PERSON, site_size: BIGGER, site_new_or_existing: "Brand new", site_jobs: ["Show our work", "Get enquiries"], work_count: "10 to 50",
+  words_ready: "I have them", pictures_ready: "I need help", features: ["Blog"], has_domain: "Yes",
+  hosting_details: "Namecheap, in Tobi's name", has_brandbook: "No", brandbook_wanted: "Yes",
+};
+const LARGE_WALK: Answers = {
+  ...PERSON, site_size: LARGE, site_new_or_existing: IMPROVING, current_url: "https://example.com", current_problem: "Slow on phones",
+  free_review: "Yes", site_jobs: ["Sell online", "Take bookings"], store_items: "Some, 20 to 200", pay_providers: ["Paystack"],
+  book_what: ["Appointments"], book_pay: "Yes", words_ready: "I need help", pictures_ready: "I have them", page_count: "16 to 40",
+  site_platform: "WordPress", features: ["Blog", "Newsletter sign up"], has_domain: "No", hosting_wanted: "Yes",
+  deadline_kind: "Within a month", has_logo: "No", logo_wanted: "No",
+};
 
-const card = (page: Page, field: string, name: string) =>
-  page.locator(`[data-field="${field}"]`).getByRole("radio", { name, exact: true });
-const box = (page: Page, field: string, name: string) =>
-  page.locator(`[data-field="${field}"]`).getByRole("checkbox", { name, exact: true });
+const sizeOnly = (size: string): Answers => ({ site_size: size });
+const NOTHING_SAYS = ["Small", "Medium", "Large", "Tier"];
+const NOTE_NOT_SURE = "Noted. We will come to this with a recommendation rather than a blank.";
 
 /* ----------------------------------------------------------- (a) layout */
 
 for (const width of WIDTHS) {
-  for (const theme of ["light", "dark"] as Theme[]) {
-    test(`every web step fits at ${width}px in ${theme} with 44px controls`, async ({ page }) => {
-      test.setTimeout(150_000);
+  for (const theme of THEMES) {
+    test(`every web screen fits at ${width}px in ${theme} with 43.5px controls`, async ({ page }) => {
+      test.setTimeout(300_000);
       await page.setViewportSize({ width, height: 820 });
-      const steps = stepsFor("web");
-      for (let n = 0; n < steps.length; n++) {
-        await open(page, "web", n, WEB_FULL, theme);
-        await expect(page.locator("main")).toContainText(steps[n].title);
-        expect(await fieldKeys(page).then((k) => k.length), `${steps[n].title} renders questions`).toBeGreaterThan(0);
-
-        const found = await layoutFindings(page);
-        expect(found.scrollWidth, `${steps[n].title}: page width`).toBeLessThanOrEqual(width);
-        expect(found.small, `${steps[n].title}: controls under 44px`).toEqual([]);
+      const screens = screensFor("web", FULL);
+      for (let n = 0; n < screens.length; n++) {
+        await openScreen(page, "web", FULL, n, theme);
+        const title = await heading(page);
+        expect(title, `screen ${n} heading`).toBe(screens[n].title);
+        const found = await expectScreenFits(page, title, width);
+        test.info().annotations.push({ type: "measured", description: `${width} ${theme} ${title}: ${found.measured} controls, tip ${JSON.stringify(found.tips)}` });
       }
     });
   }
 }
 
-test("the tip trigger's size is measured and recorded", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 820 });
-  await open(page, "web", stepOf("web", "site_jobs"), { site_size: "A simple site" });
-  const size = await tipSize(page);
-  test.info().annotations.push({ type: "tip-size", description: JSON.stringify(size) });
-  expect(size).not.toBeNull();
-});
-
 /* ------------------------------------------------------------- (b) gate */
 
-test("a simple site is not asked the second tier, and a bigger, large or unsure site is", async ({ page }) => {
-  const step = stepOf("web", "features");
-  await open(page, "web", step, { site_size: "A simple site" });
-  for (const key of TIER_2) expect(await isShown(page, key), `simple: ${key} hidden`).toBe(false);
-  expect(await isShown(page, "deadline_kind"), "tier 1 still asked").toBe(true);
-
-  for (const size of ["A bigger site", "A large site", UNSURE]) {
-    await open(page, "web", step, { site_size: size, has_hosting: "Both" });
-    expect(await isShown(page, "features"), `${size}: features shown`).toBe(true);
-    expect(await isShown(page, "has_hosting"), `${size}: has_hosting shown`).toBe(true);
-    expect(await isShown(page, "wants_seo"), `${size}: wants_seo shown`).toBe(true);
-  }
+test("a simple site shows exactly the tier 1 screens and questions", async ({ page }) => {
+  const screens = await readScreens(page, "web", sizeOnly(SIMPLE));
+  expect(screens.map((s) => s.title)).toEqual(TITLES);
+  expect(screens.flatMap((s) => s.keys).sort()).toEqual([...SMALL_KEYS].sort());
 });
 
-test("a large site is asked everything in the second tier, with the parent answers that open them", async ({ page }) => {
-  await open(page, "web", stepOf("web", "features"), { site_size: "A large site", has_hosting: "Neither", features: ["Other"] });
-  for (const key of ["features", "features_other", "has_hosting", "domain_ideas", "hosting_wanted", "wants_seo", "deadline_kind"]) {
-    expect(await isShown(page, key), `${key} shown for a large site`).toBe(true);
-  }
-  expect(await isShown(page, "hosting_details"), "details wait for Both or Domain only").toBe(false);
+test("a bigger site adds the tier 2 questions: the age, the extra features, the search note and the brand guide question", async ({ page }) => {
+  const screens = await readScreens(page, "web", sizeOnly(BIGGER));
+  expect(screens.map((s) => s.title)).toEqual(TITLES);
+  expect(screens.flatMap((s) => s.keys).sort()).toEqual([...MEDIUM_KEYS].sort());
 });
 
-test("the size answer is the client's own words and no studio label is ever shown", async ({ page }) => {
-  await open(page, "web", stepOf("web", "site_jobs"), {});
+test("a large site adds the tier 3 questions: the page count, the platform and the rest of the about you", async ({ page }) => {
+  const screens = await readScreens(page, "web", sizeOnly(LARGE));
+  expect(screens.map((s) => s.title)).toEqual(TITLES);
+  expect(screens.flatMap((s) => s.keys).sort()).toEqual([...LARGE_KEYS].sort());
+});
+
+test("a not sure size is asked the middle set, the same as a bigger site", async ({ page }) => {
+  const screens = await readScreens(page, "web", sizeOnly(UNSURE));
+  expect(screens.flatMap((s) => s.keys).sort()).toEqual([...MEDIUM_KEYS].sort());
+});
+
+test("the size is the client's own words, and no studio label is shown", async ({ page }) => {
+  await openOn(page, "web", {}, "site_size");
   const text = await page.locator("main").innerText();
-  for (const label of ["Small", "Medium", "Large", "Tier"]) {
-    expect(text.includes(label), `"${label}" must not appear on the client's page`).toBe(false);
+  for (const label of NOTHING_SAYS) expect(text.includes(label), `"${label}" must not appear`).toBe(false);
+  await expect(page.locator('[data-field="site_size"] button[role="combobox"], [data-field="site_size"] [role="combobox"]')).toBeVisible();
+});
+
+test("the search note appears for a bigger site, and says search is its own service", async ({ page }) => {
+  await openOn(page, "web", sizeOnly(SIMPLE), "site_jobs");
+  expect(await keysOnScreen(page)).not.toContain("search_note");
+  await openOn(page, "web", sizeOnly(BIGGER), "site_jobs");
+  await expect(page.locator('[data-field="search_note"]')).toContainText("Search work is its own service");
+});
+
+test("the maintenance and blogging questions are not asked on the default path", async () => {
+  const asked = stepsFor("web").flatMap((s) => s.fields).map((f) => f.key);
+  for (const retired of ["wants_maintenance", "maintenance_after_reading", "wants_blogging", "site_goal", "has_hosting", "content_ready", "wants_seo"]) {
+    expect(asked, `${retired} is not asked`).not.toContain(retired);
   }
-  await expect(card(page, "site_size", "A simple site")).toBeVisible();
-  await expect(card(page, "site_size", "A bigger site")).toBeVisible();
-  await expect(card(page, "site_size", "A large site")).toBeVisible();
 });
 
 /* --------------------------------------------- (c) conditional questions */
 
-test("the questions under 'Improving an existing site' appear beneath it and leave when it changes", async ({ page }) => {
-  await open(page, "web", stepOf("web", "site_new_or_existing"), { site_size: "A simple site" });
-  await card(page, "site_new_or_existing", "Improving an existing site").click();
-  for (const key of ["current_url", "current_problem", "free_review"]) {
-    expect(await isShown(page, key), `${key} shown`).toBe(true);
-    expect(await directlyUnder(page, "web", "site_new_or_existing", key), `${key} directly under its parent`).toBe(true);
+test("Improving an existing site opens the current address and the free review under it, and Brand new closes them", async ({ page }) => {
+  await openOn(page, "web", sizeOnly(SIMPLE), "site_new_or_existing");
+  await chooseOption(page, "site_new_or_existing", IMPROVING);
+  for (const key of ["current_url", "free_review"]) {
+    await expect(page.locator(`[data-field="${key}"]`), `${key} shown`).toBeVisible();
+    expect(await directlyUnder(page, "web", "site_new_or_existing", key), `${key} under the question`).toBe(true);
   }
   await expect(page.locator('[data-field="free_review"]')).toContainText("A free review is advice. It is not a promise of results.");
 
-  await card(page, "site_new_or_existing", "Brand new").click();
-  for (const key of ["current_url", "current_problem", "free_review"]) {
-    expect(await isShown(page, key), `${key} gone for a brand new site`).toBe(false);
-  }
+  await chooseOption(page, "site_new_or_existing", "Brand new");
+  expect(await keysOnScreen(page)).not.toContain("current_url");
+  expect(await keysOnScreen(page)).not.toContain("free_review");
 });
 
-test("choosing outcomes opens their follow ups under the question, and unticking closes them", async ({ page }) => {
-  await open(page, "web", stepOf("web", "site_jobs"), { site_size: "A simple site" });
+test("a large site that is improving a site is also asked what they like and dislike about it", async ({ page }) => {
+  await openOn(page, "web", { site_size: LARGE }, "site_new_or_existing");
+  await chooseOption(page, "site_new_or_existing", IMPROVING);
+  await expect(page.locator('[data-field="current_problem"]')).toBeVisible();
+  expect(await directlyUnder(page, "web", "current_url", "current_problem")).toBe(true);
+});
 
-  await box(page, "site_jobs", "Sell online").click();
+test("Sell online opens the store size, the payments note and the providers under the question, and unticking it closes them", async ({ page }) => {
+  await openOn(page, "web", sizeOnly(SIMPLE), "site_jobs");
+  await chooseOption(page, "site_jobs", "Sell online");
   for (const key of ["store_items", "pay_note", "pay_providers"]) {
-    expect(await directlyUnder(page, "web", "site_jobs", key), `${key} directly under site_jobs`).toBe(true);
+    await expect(page.locator(`[data-field="${key}"]`), `${key} shown`).toBeVisible();
+    expect(await directlyUnder(page, "web", "site_jobs", key), `${key} under site_jobs`).toBe(true);
   }
-  await box(page, "site_jobs", "Take bookings").click();
-  for (const key of ["book_what", "book_pay"]) {
-    expect(await directlyUnder(page, "web", "site_jobs", key), `${key} directly under site_jobs`).toBe(true);
-  }
-
-  await box(page, "site_jobs", "Sell online").click();
-  for (const key of ["store_items", "pay_note", "pay_providers", "pay_own"]) {
-    expect(await isShown(page, key), `${key} gone once Sell online is unticked`).toBe(false);
-  }
-  expect(await isShown(page, "book_what"), "bookings stay").toBe(true);
-});
-
-test("Something else reveals its own detail, and a Show our work answer opens the work count", async ({ page }) => {
-  await open(page, "web", stepOf("web", "site_jobs"), { site_size: "A simple site" });
-  await box(page, "site_jobs", "Something else").click();
-  await expect(page.locator('[data-field="site_jobs_other"]')).toBeVisible();
-  expect(await directlyUnder(page, "web", "site_jobs", "site_jobs_other")).toBe(true);
-
-  await box(page, "site_jobs", "Show our work").click();
-  await expect(page.locator('[data-field="work_count"]')).toBeVisible();
-  expect(await directlyUnder(page, "web", "site_jobs", "work_count")).toBe(true);
-});
-
-test("the payments line names both groups of providers, and bring your own opens a follow up", async ({ page }) => {
-  await open(page, "web", stepOf("web", "site_jobs"), { site_size: "A simple site", site_jobs: ["Sell online"] });
   const note = page.locator('[data-field="pay_note"]');
   await expect(note).toContainText("Paystack and Flutterwave");
   await expect(note).toContainText("Stripe, PayPal and Square");
   await expect(note).toContainText("bring your own provider");
-  await expect(note).toContainText("Some setups are limited by the type of site.");
 
-  await box(page, "pay_providers", "I will bring my own").click();
+  await chooseOption(page, "site_jobs", "Sell online");
+  for (const key of ["store_items", "pay_note", "pay_providers", "pay_own"]) {
+    expect(await keysOnScreen(page), `${key} gone`).not.toContain(key);
+  }
+});
+
+test("bring your own provider opens the provider's name directly under the providers", async ({ page }) => {
+  await openOn(page, "web", { site_size: SIMPLE, site_jobs: ["Sell online"] }, "pay_providers");
+  await chooseOption(page, "pay_providers", "I will bring my own");
   await expect(page.locator('[data-field="pay_own"]')).toBeVisible();
   expect(await directlyUnder(page, "web", "pay_providers", "pay_own")).toBe(true);
-  await box(page, "pay_providers", "I will bring my own").click();
+
+  await chooseOption(page, "pay_providers", "I will bring my own");
   await expect(page.locator('[data-field="pay_own"]')).toHaveCount(0);
 });
 
-test("a domain and hosting answer opens exactly the questions for it", async ({ page }) => {
-  await open(page, "web", stepOf("web", "has_hosting"), { site_size: "A bigger site" });
-  await card(page, "has_hosting", "Neither").click();
+test("Take bookings opens what people book and whether they pay, and Show our work opens the count from a bigger site", async ({ page }) => {
+  await openOn(page, "web", sizeOnly(SIMPLE), "site_jobs");
+  await chooseOption(page, "site_jobs", "Take bookings");
+  for (const key of ["book_what", "book_pay"]) {
+    expect(await directlyUnder(page, "web", "site_jobs", key), `${key} under site_jobs`).toBe(true);
+  }
+  await chooseOption(page, "site_jobs", "Show our work");
+  expect(await keysOnScreen(page), "work count hidden for a simple site").not.toContain("work_count");
+
+  await openOn(page, "web", sizeOnly(BIGGER), "site_jobs");
+  await chooseOption(page, "site_jobs", "Show our work");
+  await expect(page.locator('[data-field="work_count"]')).toBeVisible();
+  expect(await directlyUnder(page, "web", "site_jobs", "work_count")).toBe(true);
+});
+
+test("Something else opens its own question directly under the list", async ({ page }) => {
+  await openOn(page, "web", sizeOnly(SIMPLE), "site_jobs");
+  await chooseOption(page, "site_jobs", "Something else");
+  await expect(page.locator('[data-field="site_jobs_other"]')).toBeVisible();
+  expect(await directlyUnder(page, "web", "site_jobs", "site_jobs_other")).toBe(true);
+});
+
+test("a domain answer opens exactly the questions for it, and the hosting cost line is always shown", async ({ page }) => {
+  await openOn(page, "web", sizeOnly(BIGGER), "has_domain");
+  await chooseOption(page, "has_domain", "No");
   for (const key of ["domain_ideas", "hosting_wanted"]) {
-    expect(await directlyUnder(page, "web", "has_hosting", key), `${key} directly under has_hosting`).toBe(true);
+    await expect(page.locator(`[data-field="${key}"]`), `${key} shown for no domain`).toBeVisible();
+    expect(await directlyUnder(page, "web", "has_domain", key), `${key} under has_domain`).toBe(true);
   }
-  expect(await isShown(page, "hosting_details")).toBe(false);
+  await expect(page.locator('[data-field="hosting_wanted"]')).toContainText("not to us");
+  expect(await keysOnScreen(page)).not.toContain("hosting_details");
 
-  await card(page, "has_hosting", "Both").click();
-  expect(await isShown(page, "domain_ideas")).toBe(false);
-  expect(await isShown(page, "hosting_wanted")).toBe(false);
-  expect(await directlyUnder(page, "web", "has_hosting", "hosting_details")).toBe(true);
+  await chooseOption(page, "has_domain", "Yes");
+  expect(await keysOnScreen(page)).not.toContain("domain_ideas");
+  expect(await keysOnScreen(page)).not.toContain("hosting_wanted");
+  await expect(page.locator('[data-field="hosting_details"]')).toBeVisible();
+  expect(await directlyUnder(page, "web", "has_domain", "hosting_details")).toBe(true);
 });
 
-test("the words-and-pictures follow up appears only when the client needs help", async ({ page }) => {
-  await open(page, "web", stepOf("web", "content_ready"), { site_size: "A simple site" });
-  await expect(page.locator('[data-field="content_needed"]')).toHaveCount(0);
-  await card(page, "content_ready", "I need WDC to produce them").click();
-  expect(await directlyUnder(page, "web", "content_ready", "content_needed")).toBe(true);
-  await card(page, "content_ready", "They are ready").click();
-  await expect(page.locator('[data-field="content_needed"]')).toHaveCount(0);
+test("needing help with the words shows the note that writing is quoted separately, and goes when both are ready", async ({ page }) => {
+  await openOn(page, "web", sizeOnly(SIMPLE), "words_ready");
+  expect(await keysOnScreen(page)).not.toContain("content_scope");
+  await chooseOption(page, "words_ready", "I need help");
+  await expect(page.locator('[data-field="content_scope"]')).toContainText("quoted separately");
+  await chooseOption(page, "words_ready", "I have them");
+  expect(await keysOnScreen(page)).not.toContain("content_scope");
 });
 
-test("no maintenance question is asked on the default path", async ({ page }) => {
-  const asked = stepsFor("web").flatMap((s) => s.fields).map((f) => f.key);
-  for (const retired of ["wants_maintenance", "maintenance_after_reading", "wants_blogging", "site_goal"]) {
-    expect(asked, `${retired} is not asked`).not.toContain(retired);
-  }
-  await open(page, "web", stepOf("web", "wants_seo"), WEB_FULL);
-  expect(await fieldKeys(page)).not.toContain("wants_maintenance");
+test("a bigger site that wants a few features can name one more", async ({ page }) => {
+  await openOn(page, "web", sizeOnly(BIGGER), "features");
+  await chooseOption(page, "features", "Other");
+  await expect(page.locator('[data-field="features_other"]')).toBeVisible();
+  expect(await directlyUnder(page, "web", "features", "features_other")).toBe(true);
 });
 
 /* ------------------------------------------------- (d) required questions */
 
-test("Next is blocked until the size question is answered, and the message names it", async ({ page }) => {
-  await open(page, "web", 1, {});
+test("Next is blocked on the first web screen, and the message names each required question", async ({ page }) => {
+  await openOn(page, "web", {}, "site_size");
   await page.locator(".ob__stepNext").click();
-  const summary = page.locator(".ob__err");
-  await expect(summary).toBeVisible();
-  await expect(summary).toContainText("How big is the site?");
-  await expect(page.locator('[data-field="site_jobs"]')).toBeVisible();
+  const summary = await summaryText(page);
+  expect(summary).toContain("How big is the site? still needs an answer.");
+  expect(summary).toContain("Is this a new website, or improving one you have? still needs an answer.");
+  expect(summary).toContain("What should the site do for you? still needs an answer.");
+  await expect(page.locator(".ob h2").first()).toHaveText("What the site is for");
 });
 
-test("the one-line messages name the conditional questions that are now required", async ({ page }) => {
-  await open(page, "web", 1, { site_size: "A simple site", site_new_or_existing: "Improving an existing site" });
+test("an improving site is asked for its current address before Next goes on, and the message names it", async ({ page }) => {
+  await openOn(page, "web", { site_size: SIMPLE, site_new_or_existing: IMPROVING, site_jobs: ["Share information"] }, "current_url");
   await page.locator(".ob__stepNext").click();
-  await expect(page.locator(".ob__err")).toContainText("Your current site");
-  await expect(page.locator(".ob__err")).toContainText("What should the site do for you?");
+  expect(await summaryText(page)).toContain("Your current site still needs an answer.");
+});
+
+test("the words question names itself when Next is pressed without an answer", async ({ page }) => {
+  await openOn(page, "web", { site_size: SIMPLE }, "words_ready");
+  await page.locator(".ob__stepNext").click();
+  expect(await summaryText(page)).toContain("The words for the site still needs an answer.");
+  await expect(page.locator(".ob h2").first()).toHaveText("Words and pictures");
 });
 
 /* ----------------------------------------------------- (e) not sure */
 
-test("not sure on the size question is reversible, and the cards stay usable", async ({ page }) => {
-  await open(page, "web", 1, {});
+test("not sure on the size is reversible: a real size from the list replaces it", async ({ page }) => {
+  await openOn(page, "web", {}, "site_size");
   const field = page.locator('[data-field="site_size"]');
-  await field.getByRole("button", { name: "I'm not sure, please advise me" }).click();
-  await expect(field.getByText("Noted. We will come to this with a recommendation rather than a blank.")).toBeVisible();
-  await expect(card(page, "site_size", "A large site")).toBeEnabled();
+  await field.getByRole("button", { name: UNSURE }).click();
+  await expect(field.getByText(NOTE_NOT_SURE)).toBeVisible();
 
-  await card(page, "site_size", "A large site").click();
-  await expect(card(page, "site_size", "A large site")).toHaveAttribute("aria-checked", "true");
-  await expect(field.getByText("Noted. We will come to this with a recommendation rather than a blank.")).toHaveCount(0);
+  await chooseOption(page, "site_size", LARGE);
+  await expect(field.getByRole("combobox")).toContainText(LARGE);
+  await expect(field.getByText(NOTE_NOT_SURE)).toHaveCount(0);
+  await expect(field.getByRole("button", { name: UNSURE })).toBeVisible();
 });
 
-test("not sure on a multiple choice question is reversible from the escape", async ({ page }) => {
-  await open(page, "web", 1, { site_size: "A simple site" });
+test("not sure on the jobs list is reversible from its own button, and a real pick replaces it", async ({ page }) => {
+  await openOn(page, "web", { site_size: SIMPLE }, "site_jobs");
   const field = page.locator('[data-field="site_jobs"]');
-  await field.getByRole("button", { name: "I'm not sure, please advise me" }).click();
-  await expect(field.getByText("Noted. We will come to this with a recommendation rather than a blank.")).toBeVisible();
-  await field.getByRole("button", { name: "Actually, let me answer this" }).click();
-  await box(page, "site_jobs", "Sell online").click();
-  await expect(box(page, "site_jobs", "Sell online")).toHaveAttribute("aria-checked", "true");
-  await expect(field.getByText("Noted. We will come to this with a recommendation rather than a blank.")).toHaveCount(0);
+  await field.getByRole("button", { name: UNSURE }).click();
+  await expect(field.getByText(NOTE_NOT_SURE)).toBeVisible();
+  await chooseOption(page, "site_jobs", "Take bookings");
+  await expect(field.getByRole("checkbox", { name: "Take bookings", exact: true })).toHaveAttribute("aria-checked", "true");
+  await expect(field.getByText(NOTE_NOT_SURE)).toHaveCount(0);
 });
 
 /* ---------------------------------------------- (f) a complete run */
 
-for (const width of [390, 1280] as const) {
-  test(`a complete large site brief reaches the review screen at ${width}px`, async ({ page }) => {
-    test.setTimeout(120_000);
-    await page.setViewportSize({ width, height: 820 });
-    const errors: string[] = [];
-    page.on("pageerror", (e) => errors.push(e.message));
-    await open(page, "web", 0, completeAnswers("web", { site_size: "A large site" }));
-    const send = page.getByRole("button", { name: /Send the brief/ });
-    for (let n = 0; n < 8 && !(await send.isVisible()); n++) {
-      await page.locator(".ob__stepNext").click();
-    }
-    await expect(send).toBeVisible();
-    expect(errors).toEqual([]);
-  });
+for (const [tier, answers] of [["small", SMALL_WALK], ["medium", MEDIUM_WALK], ["large", LARGE_WALK]] as const) {
+  for (const width of [390, 1280] as const) {
+    test(`a complete ${tier} web brief reaches the review at ${width}px`, async ({ page }) => {
+      test.setTimeout(150_000);
+      await page.setViewportSize({ width, height: 820 });
+      const errors: string[] = [];
+      page.on("pageerror", (e) => errors.push(e.message));
+      await openScreen(page, "web", {}, 0);
+      const screens = await walkToReview(page, answers as Record<string, Answer>);
+      expect(screens.length).toBeGreaterThanOrEqual(6);
+
+      const review = page.locator(".ob__review");
+      await expect(review).toBeVisible();
+      await expect(review).toContainText(PERSON.company as string);
+      await expect(review).toContainText(answers.site_size as string);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBeTruthy();
+      expect(errors).toEqual([]);
+    });
+  }
 }
 
 /* ------------------------------------------------ (g) an old saved draft */
 
-test("an old draft with the old values still opens and shows them", async ({ page }) => {
+test("an old web draft with the old values opens without error and keeps the answers it has", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
 
-  /* The features step: old feature values include "Online store", which is now
-     a job, and "Blog", which still exists. The old values are not an error. */
-  await open(page, "web", stepOf("web", "features"), {
-    site_size: "A large site",
-    features: ["Online store", "Blog"],
-    has_hosting: "Neither",
-  });
-  /* Not exact: the option carries its own help in its name ("Blog Publish articles..."). */
-  await expect(page.locator('[data-field="features"]').getByRole("checkbox", { name: "Blog" })).toHaveAttribute("aria-checked", "true");
-  await expect(page.locator('[data-field="has_hosting"]')).toBeVisible();
+  /* features: "Online store" was a feature, and is now a job. "Blog" still
+     exists and stays ticked. The form reads the stored keys it asks; the admin
+     reads old values through lib/onboarding-aliases.ts. */
+  await openOn(page, "web", { site_size: BIGGER, features: ["Online store", "Blog"], has_hosting: "Neither" }, "features");
+  await expect(page.locator('[data-field="features"]').getByRole("checkbox", { name: "Blog", exact: true })).toHaveAttribute("aria-checked", "true");
 
-  /* The page count step: the old en dash range opens and the field is there. */
-  await open(page, "web", stepOf("web", "page_count"), { page_count: "1–5" });
+  /* page_count: the old en dash range opens and the question is there. */
+  await openOn(page, "web", { site_size: LARGE, page_count: "1–5" }, "page_count");
   await expect(page.locator('[data-field="page_count"]')).toBeVisible();
 
+  /* content_ready was the old one question about words and pictures. */
+  await openOn(page, "web", { site_size: SIMPLE, content_ready: "I need WDC to produce them", content_needed: ["Words"] }, "words_ready");
+  await expect(page.locator('[data-field="words_ready"]')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
 test("the old semicolon not sure still reads as not sure", async ({ page }) => {
-  await open(page, "web", stepOf("web", "has_hosting"), { site_size: "A bigger site", has_hosting: UNSURE_LEGACY });
-  await expect(page.locator('[data-field="has_hosting"]').getByText("Noted. We will come to this with a recommendation rather than a blank.")).toBeVisible();
+  await openOn(page, "web", { site_size: UNSURE_LEGACY }, "site_size");
+  await expect(page.locator('[data-field="site_size"]').getByText(NOTE_NOT_SURE)).toBeVisible();
 });
