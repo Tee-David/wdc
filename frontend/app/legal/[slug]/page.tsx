@@ -109,7 +109,7 @@ export default async function LegalDocPage(
         <section className="pv-sec">
           <div className="pv-wrap">
             {doc.tabs ? (
-              <LegalTabs intro={doc.intro} tabs={doc.tabs} sections={doc.sections.map((x) => ({ heading: x.heading, body: x.body, tab: x.tab ?? "general" }))} email={CONTACT_EMAIL} />
+              <LegalTabs slug={doc.slug} intro={doc.intro} tabs={doc.tabs} sections={doc.sections.map((x) => ({ heading: x.heading, body: x.body, tab: x.tab ?? "general" }))} email={CONTACT_EMAIL} />
             ) : (
               <div className="lg-cols">
                 <LegalToc sections={sections} others={others} />
@@ -130,7 +130,9 @@ export default async function LegalDocPage(
                     </section>
                   ))}
 
-                  <p className="lg-foot">
+                  <p className="lg-pdf"><a href={`/legal/${doc.slug}/pdf`} download>Download this policy as a PDF</a></p>
+
+                <p className="lg-foot">
                     This page explains how we work. It is written to be understood
                     rather than to be impressive, and if any part of it is unclear
                     we would rather you asked than guessed.{" "}

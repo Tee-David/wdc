@@ -13,8 +13,8 @@ type Section = { heading: string; body: string[]; tab: string };
  * the search looks across every tab and shows where each result lives. The
  * chosen tab is kept in the address (`#branding`), so a link lands on it.
  */
-export default function LegalTabs({ intro, tabs, sections, email }: {
-  intro: string; tabs: { id: string; label: string }[]; sections: Section[]; email: string;
+export default function LegalTabs({ slug, intro, tabs, sections, email }: {
+  slug: string; intro: string; tabs: { id: string; label: string }[]; sections: Section[]; email: string;
 }) {
   const id = useId();
   const [tab, setTab] = useState(tabs[0].id);
@@ -71,6 +71,7 @@ export default function LegalTabs({ intro, tabs, sections, email }: {
         ))}
         {!shown.length && q ? <p>Write to <a href={`mailto:${email}`}>{email}</a> and we will answer, and add it here.</p> : null}
       </div>
+      <p className="lg-pdf"><a href={`/legal/${slug}/pdf`} download>Download this policy as a PDF</a></p>
     </article>
   );
 }
