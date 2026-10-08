@@ -1,3 +1,4 @@
+import { StageScroll } from "@/components/admin/stage-scroll";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -86,6 +87,7 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
               </li>
             ))}
           </ol>
+          <StageScroll />
           {next ? (
             <p className="cpNext"><span className="cpNext__icon" aria-hidden="true"><ArrowRight /></span><span><b>Next:</b> {next}</span></p>
           ) : null}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Shuffle, type LucideIcon } from "lucide-react";
+import { Search, Shuffle, type LucideIcon } from "lucide-react";
 import { PROJECT_ICONS, PROJECT_ICON_NAMES, randomProjectIcon } from "@/lib/project-icons";
 
 /**
@@ -14,6 +14,8 @@ export function IconPicker({ name = "icon", defaultValue }: { name?: string; def
      random icon in the browser is a hydration mismatch. A new project with
      none chosen gets a random one when it is saved (createProject). */
   const [value, setValue] = useState(defaultValue ?? "");
+  const [q, setQ] = useState("");
+  const shown = PROJECT_ICON_NAMES.filter((k) => PROJECT_ICONS[k].label.toLowerCase().includes(q.trim().toLowerCase()));
   const Chosen: LucideIcon | undefined = value ? PROJECT_ICONS[value]?.icon : undefined;
   return (
     <fieldset className="ad__f adIcons">
@@ -27,12 +29,19 @@ export function IconPicker({ name = "icon", defaultValue }: { name?: string; def
           setValue(next);
         }}><Shuffle aria-hidden="true" /> Shuffle</button>
       </div>
-      <div className="adIcons__grid" role="radiogroup" aria-label="Project icon">
-        {PROJECT_ICON_NAMES.map((k) => {
+      {/* The value travels in this field, not in the radios, so an icon that a search hides is still saved. */}
+      <input type="hidden" name={name} value={value} />
+      <label className="adIcons__search">
+        <Search aria-hidden="true" />
+        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search icons" aria-label="Search icons" autoComplete="off" />
+      </label>
+      <div className="adIcons__grid" role="radiogroup" aria-label="Project icon" data-lenis-prevent>
+        {shown.length === 0 ? <p className="ad__dim adIcons__none">No icon matches “{q}”. Try another word.</p> : null}
+        {shown.map((k) => {
           const { icon: Icon, label } = PROJECT_ICONS[k];
           return (
             <label key={k} className="adIcons__opt" title={label}>
-              <input type="radio" name={name} value={k} checked={value === k} onChange={() => setValue(k)} />
+              <input type="radio" name={`${name}-pick`} value={k} checked={value === k} onChange={() => setValue(k)} />
               <span><Icon aria-hidden="true" /><span className="ad__sr">{label}</span></span>
             </label>
           );

@@ -182,6 +182,15 @@ export function DesignEditor({ kind, name, tags, starters, saved, history, campa
                     </span>
                   </div>
                   <BlockFields b={b} patch={(p) => patchBlock(b.id, p)} track={track} />
+                  {b.type !== "system" ? (
+                    <label className="deEd__f">Show only if
+                      <select value={b.when ? `${b.when.is}` : ""} onChange={(e) => patchBlock(b.id, { when: e.target.value ? { key: b.when?.key ?? "tag.client", is: e.target.value as "filled" | "empty" } : undefined } as Partial<Block>)}>
+                        <option value="">Always</option><option value="filled">This value is filled in</option><option value="empty">This value is empty</option>
+                      </select>
+                      {b.when ? <input value={b.when.key} maxLength={60} aria-label="Value to check" placeholder="tag.client" onChange={(e) => patchBlock(b.id, { when: { key: e.target.value.trim(), is: b.when!.is } } as Partial<Block>)} /> : null}
+                      {b.when ? <small className="deEd__hint">A person&apos;s tags are values named tag.name, so tag.client is filled for anyone tagged client.</small> : null}
+                    </label>
+                  ) : null}
                 </li>
               ))}
             </ol>

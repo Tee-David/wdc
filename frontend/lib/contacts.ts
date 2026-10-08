@@ -179,3 +179,11 @@ export async function importContacts(csv: string, opts: { tag: string; asked: bo
   }
   return { added, skipped, invalid };
 }
+
+/** A person's tags as merge values (`tag.client` = "yes"), for blocks that show only to some people. */
+export async function tagVars(contactId: string): Promise<Record<string, string>> {
+  try {
+    const r = await db.query<{ tag: string }>(`SELECT tag FROM contact_tags WHERE contact_id = $1`, [contactId]);
+    return Object.fromEntries(r.rows.map((x) => [`tag.${x.tag.toLowerCase()}`, "yes"]));
+  } catch { return {}; }
+}

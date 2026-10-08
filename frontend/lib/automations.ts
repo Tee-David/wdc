@@ -4,7 +4,7 @@ import { db } from "@/lib/db/pool";
 import { sendLogged } from "@/lib/outbox";
 import { renderDesign, validDesign, type Design } from "@/lib/email-design";
 import { unsubscribeUrl } from "@/lib/newsletter";
-import { addEvent, mayReceiveMarketing } from "@/lib/contacts";
+import { addEvent, mayReceiveMarketing , tagVars } from "@/lib/contacts";
 import { COMPANY_NAME, CONTACT_EMAIL } from "@/lib/site";
 
 /**
@@ -153,7 +153,7 @@ async function execute(a: Automation, run: Run): Promise<void> {
         return;
       }
       const first = (contact?.name ?? "").trim().split(/\s+/)[0] ?? "";
-      const mail = renderDesign(s.design, { "contact.first_name": first, "studio.name": COMPANY_NAME, "studio.email": CONTACT_EMAIL }, { unsubscribe: true, why: a.kind === "marketing" ? "You are getting this because you asked to hear from us." : "You are getting this because of your enquiry or project with us." });
+      const mail = renderDesign(s.design, { ...(await tagVars(run.contact_id)), "contact.first_name": first, "studio.name": COMPANY_NAME, "studio.email": CONTACT_EMAIL }, { unsubscribe: true, why: a.kind === "marketing" ? "You are getting this because you asked to hear from us." : "You are getting this because of your enquiry or project with us." });
       await sendLogged({ to: run.email, subject: s.subject ? renderDesign({ ...s.design, subject: s.subject }, {}, {}).subject : mail.subject, text: mail.text, html: mail.html, unsubscribe: true, unsubscribeUrl: unsubscribeUrl(run.email) ?? undefined },
         { summary: `Automation "${a.name}", step ${i + 1}.`, dedupeKey: `auto:${run.id}:${s.id}`, by: "Automation" });
       await addEvent(run.contact_id, "automation", `Email sent: ${mail.subject}`, a.name, "Automation");
