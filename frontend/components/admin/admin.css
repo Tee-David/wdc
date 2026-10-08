@@ -867,7 +867,7 @@ body:has(.adDrawer[open]) .st { display: none; }
      platform's. `margin: 0 0 0 auto` pins it right: the CSS reset zeroes the
      UA's `margin: auto`, so the position is stated, not inherited. */
   position: fixed; inset: 0 0 0 auto; margin: 0 0 0 auto;
-  width: min(480px, 100vw); height: 100dvh; max-height: 100dvh;
+  width: min(480px, 100vw); max-width: 100vw; height: 100dvh; max-height: 100dvh;
   padding: 0; border: 0; border-left: 1px solid var(--ad-line); border-radius: 0;
   background: var(--ad-panel); color: var(--ad-ink);
   font-family: var(--font-outfit), system-ui, sans-serif; font-size: 14px;
@@ -1428,12 +1428,18 @@ a.ad__pgBtn:active { transform: translateY(1px); }
   /* THE PAGER ON A PHONE: the range and the rows choice share the first line,
      and Previous / Page x of y / Next is one full-width bar under them. */
   .ad__pager { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: .75rem; padding: .75rem 1rem 1rem; }
-  .ad__pgRange { grid-column: 1; grid-row: 1; overflow: hidden; text-overflow: ellipsis; }
+  .ad__pgRange { grid-column: 1; grid-row: 1; white-space: normal; line-height: 1.25; }
   .ad__pager > .ad__perPage, .ad__pager > span:not(.ad__pgRange) { grid-column: 2; grid-row: 1; }
   .ad__pgNav { grid-column: 1 / -1; grid-row: 2; margin-left: 0; width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: .6rem; }
-  .ad__pgNav .ad__pgBtn { width: 100%; min-height: 3rem; }
-  .ad__pgPage { min-width: 0; padding: 0 .25rem; }
+  .ad__pgNav .ad__pgBtn { width: 100%; min-height: 3rem; padding-inline: .5rem; gap: .2rem; }
+  .ad__pgNav .ad__pgBtn:last-child { padding-inline: .5rem; }
+  .ad__pgPage { min-width: 0; padding: 0 .15rem; white-space: normal; line-height: 1.15; }
   .ad__pager .ad__perMenu { left: auto; right: 0; }
+}
+@media (max-width: 360px) {
+  .ad__pager { padding-inline: .75rem; }
+  .ad__pgNav { gap: .4rem; }
+  .ad__pgPage { font-size: .8rem; }
 }
 @media (max-width: 400px) {
   .ad__rangeMenu, .ad__range--end .ad__rangeMenu { grid-template-columns: minmax(0, 1fr); }

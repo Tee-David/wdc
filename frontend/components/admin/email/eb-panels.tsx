@@ -142,13 +142,14 @@ const WHEN = [
   { value: "empty", label: "Contact does not have the tag" },
 ];
 
-export function SettingsPane({ sel, patch, design, setMeta, campaign, history, enabled, exists, busy, restore, reset }: {
+export function SettingsPane({ sel, patch, design, setMeta, campaign, history, tags, put, enabled, exists, busy, restore, reset }: {
   sel: Block | null;
   patch: (id: string, p: Partial<Block>, key?: string) => void;
   design: Design;
   setMeta: (p: Partial<Design>, key: string) => void;
   campaign: boolean;
   history: { id: string; savedBy: string; savedAt: string }[];
+  tags: Tag[]; put: (key: string) => void;
   enabled: boolean; exists: boolean; busy: boolean;
   restore: (id: string) => void; reset: () => void;
 }) {
@@ -159,11 +160,17 @@ export function SettingsPane({ sel, patch, design, setMeta, campaign, history, e
         : <input value={value} maxLength={max} onChange={(e) => patch(b.id, { [name]: e.target.value } as Partial<Block>, `s:${b.id}:${name}`)} />}
     </label>
   );
+  /* The words on these blocks are typed here, so a tag is dropped into the field being edited. */
+  const tagPick = (
+    <Pick label="Put a merge tag in the field you are editing" placeholder="Insert a merge tag…" value=""
+      options={tags.map((t) => ({ value: t.key, label: `${t.label} (${t.key})` }))} search={tags.length > 10}
+      onChange={(k) => { if (k) put(k); }} />
+  );
   const edit = (b: Block) => {
     switch (b.type) {
-      case "button": return <>{field(b, "Label", "label", b.label, 80)}{field(b, "Link", "url", b.url, 500)}</>;
-      case "figure": return <>{field(b, "Label", "label", b.label, 80)}{field(b, "Value", "value", b.value, 80)}{field(b, "Note under it", "note", b.note, 160)}</>;
-      case "image": return <>{field(b, "Picture address (https)", "src", b.src)}{field(b, "Describe it", "alt", b.alt, 200)}{field(b, "Link when pressed (optional)", "url", b.url)}</>;
+      case "button": return <>{field(b, "Label", "label", b.label, 80)}{field(b, "Link", "url", b.url, 500)}<div className="eb-tagpick">{tagPick}</div></>;
+      case "figure": return <>{field(b, "Label", "label", b.label, 80)}{field(b, "Value", "value", b.value, 80)}{field(b, "Note under it", "note", b.note, 160)}<div className="eb-tagpick">{tagPick}</div></>;
+      case "image": return <>{field(b, "Picture address (https)", "src", b.src)}{field(b, "Describe it", "alt", b.alt, 200)}{field(b, "Link when pressed (optional)", "url", b.url)}<div className="eb-tagpick">{tagPick}</div></>;
       case "space": return (
         <label className="eb-f">Height ({b.size}px)
           <input type="range" min={4} max={80} value={b.size} onChange={(e) => patch(b.id, { size: Number(e.target.value) } as Partial<Block>, `s:${b.id}:size`)} />
@@ -179,6 +186,7 @@ export function SettingsPane({ sel, patch, design, setMeta, campaign, history, e
             </div>
           ))}
           {b.rows.length < 8 ? <button type="button" className="ad__btn" onClick={() => patch(b.id, { rows: [...b.rows, { label: "", value: "" }] } as Partial<Block>)}><Plus aria-hidden="true" /> Row</button> : null}
+          <div className="eb-tagpick">{tagPick}</div>
         </div>
       );
       case "system": return <p className="eb-lock"><Lock aria-hidden="true" /> Filled in by the studio when it is sent. You can move it or remove it.</p>;

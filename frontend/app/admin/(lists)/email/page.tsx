@@ -1,7 +1,7 @@
-import { listAutomations } from "@/lib/automations";
-import { NewAutomation } from "@/components/admin/email/automation-ui";
+import { AutomationsTab } from "@/components/admin/email/automations-tab";
+import { CampaignsTab } from "@/components/admin/email/campaigns-tab";
 import Link from "next/link";
-import { Ban, Download, MailCheck, Palette, Users } from "lucide-react";
+import { Ban, MailCheck, Palette, Users } from "lucide-react";
 import AreaGate from "@/components/admin/owner-only";
 import { Panel } from "@/components/admin/bits";
 import { EMAIL_KINDS } from "@/lib/email-registry";
@@ -12,10 +12,8 @@ import { AdminState } from "@/components/admin/admin-state";
 import { Pager, readPer } from "@/components/admin/pager";
 import { ContactsView } from "@/components/admin/email/contacts-view";
 import type { ContactRow } from "@/components/admin/email/contacts-sheets";
-import { NewCampaign } from "@/components/admin/email/campaign-ui";
 import { listCampaigns, reportFor } from "@/lib/campaigns";
 import { db } from "@/lib/db/pool";
-import { when } from "@/components/admin/bits";
 import "@/components/admin/email/design-editor.css";
 import "@/components/admin/dashboard.css";
 
@@ -46,7 +44,7 @@ export default async function EmailPage({ searchParams }: { searchParams: Promis
         {TABS.map(([k, label]) => <Link key={k} href={`/admin/email?tab=${k}`} aria-current={k === current ? "page" : undefined}>{label}</Link>)}
       </nav>
       {current === "contacts" ? <ContactsTab sp={sp} /> : null}
-      {current === "campaigns" ? <CampaignsTab /> : null}
+      {current === "campaigns" ? <CampaignsTab sp={sp} /> : null}
       {current === "automations" ? <AutomationsTab /> : null}
       {current === "reports" ? <ReportsTab /> : null}
       {current === "templates" ? <>
@@ -97,7 +95,7 @@ async function ContactsTab({ sp }: { sp: SP }) {
   const share = stats.total ? Math.round((stats.canEmail / stats.total) * 100) : 0;
   return (
     <ContactsView
-      rows={rows} total={res.total} stats={{ total: stats.total }} tags={tags} filtered={filtered}
+      rows={rows} total={res.total} stats={{ total: stats.total }} per={per} tags={tags} filtered={filtered}
       filters={{ q: f.q, type: f.type, status: f.status, tag: f.tag, marketing: f.marketing }}
       kpis={
         <dl className="ad__tiles ctTiles">
@@ -108,56 +106,6 @@ async function ContactsTab({ sp }: { sp: SP }) {
       }
       pager={<Pager label="Contacts" total={res.total} page={f.page} per={per} noun="people" href={(p) => href({ page: p.page && p.page > 1 ? p.page : undefined, per: p.per ?? per })} />}
     />
-  );
-}
-
-const CSTATE: Record<string, string> = { draft: "Draft", scheduled: "Scheduled", sending: "Sending", paused: "Paused", sent: "Sent", cancelled: "Cancelled" };
-
-async function CampaignsTab() {
-  const list = await listCampaigns();
-  if (!list) return <Empty title="Campaigns are not set up yet" icon={Download}>Apply migration 0046 in Settings › System, then reload.</Empty>;
-  return (
-    <Panel title="Campaigns" dataTour="email-campaigns" action={<NewCampaign />}>
-      {list.length ? (
-        <div className="ad__scroll" data-lenis-prevent>
-          <table className="ad__t">
-            <thead><tr><th>Campaign</th><th>State</th><th className="num">People</th><th>Started</th></tr></thead>
-            <tbody>{list.map((c) => (
-              <tr key={c.id}>
-                <td><Link href={`/admin/email/campaigns/${c.id}`}><b>{c.title}</b></Link></td>
-                <td><span className={`ad__pill ${c.status === "sent" ? "ad__pill--good" : "ad__pill--flat"}`}>{CSTATE[c.status] ?? c.status}</span></td>
-                <td className="num">{c.recipients || "–"}</td>
-                <td className="ad__dim">{c.startedAt ? when(c.startedAt) : c.scheduledAt ? `Goes out ${when(c.scheduledAt)}` : "Not sent"}</td>
-              </tr>
-            ))}</tbody>
-          </table>
-        </div>
-      ) : <Empty title="No campaigns yet" icon={Download} action={<NewCampaign />}>Write an issue, choose who gets it, and send it. Only people who asked to hear from you are emailed.</Empty>}
-    </Panel>
-  );
-}
-
-async function AutomationsTab() {
-  const list = await listAutomations();
-  if (!list) return <Empty title="Automations are not set up yet" icon={Download}>Apply migration 0047 in Settings › System, then reload.</Empty>;
-  return (
-    <Panel title="Automations" action={<NewAutomation />}>
-      {list.length ? (
-        <div className="ad__scroll" data-lenis-prevent>
-          <table className="ad__t">
-            <thead><tr><th>Automation</th><th>Starts when</th><th>State</th><th className="num">Steps</th></tr></thead>
-            <tbody>{list.map((a) => (
-              <tr key={a.id}>
-                <td><Link href={`/admin/email/automations/${a.id}`}><b>{a.name}</b></Link></td>
-                <td className="ad__dim">{a.triggerKind === "tag_added" ? `Tag “${a.triggerValue}” is added` : "Someone becomes a contact"}</td>
-                <td><span className={`ad__pill ${a.enabled ? "ad__pill--good" : "ad__pill--flat"}`}>{a.enabled ? "On" : "Off"}</span></td>
-                <td className="num">{a.steps.length}</td>
-              </tr>
-            ))}</tbody>
-          </table>
-        </div>
-      ) : <Empty title="No automations yet" icon={Download} action={<NewAutomation />}>A short chain that welcomes new people or follows up after a tag: wait, email, tag, stop.</Empty>}
-    </Panel>
   );
 }
 
