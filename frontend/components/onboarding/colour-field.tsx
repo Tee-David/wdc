@@ -3,11 +3,11 @@
 import { FileDrop } from "@/components/admin/file-drop";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowLeft, HelpCircle, Plus, Undo2, X } from "lucide-react";
+import { ArrowLeft, HelpCircle, Plus, Shuffle, Undo2, X } from "lucide-react";
 import {
   MAIN_COLOUR_ROLE, OTHER_COLOUR_ROLE, formatColours, normalizeHex, parseColours, rgbOf,
 } from "@/lib/brand-colours";
-import { CHIPS, FEELINGS, nameColour, type Feeling } from "@/lib/colour-palettes";
+import { CHIPS, FEELINGS, PALETTE_POOL, nameColour, type Feeling } from "@/lib/colour-palettes";
 import { dominantColors } from "@/lib/color-quantize";
 import { UNSURE, isUnsure } from "@/lib/onboarding";
 
@@ -114,7 +114,6 @@ export default function ColourField({ id, value, onChange, setOther, describedBy
   const parsed = notSure || !value ? [] : parseColours(value);
   const rows: Row[] = parsed ?? [];
   const words = !notSure && parsed === null ? value : "";
-  const matched = FEELINGS.find((feeling) => feeling.palettes.some((palette) => sameHexes(palette.map((c) => c.hex), rows.map((row) => normalizeHex(row.hex) ?? ""))));
 
   const [view, setView] = useState<View>(() => (words ? "have" : "feel"));
   const [mode, setMode] = useState<Mode>(() => (words ? "words" : "upload"));
@@ -170,10 +169,29 @@ export default function ColourField({ id, value, onChange, setOther, describedBy
     return true;
   }
 
-  function pickFeeling(next: Feeling) {
+  /* THREE PALETTES AT A TIME, AND A SHUFFLE FOR THE REST. The first three are
+     fixed so the server and the browser agree; the shuffle only runs on a tap,
+     and it deals from a shuffled deck so nothing repeats until all eighteen
+     have been seen. */
+  const [shown, setShown] = useState<number[]>([0, 3, 6]);
+  const [deck, setDeck] = useState<number[]>([]);
+  function shuffle() {
+    let next = deck;
+    if (next.length < 3) {
+      next = PALETTE_POOL.map((_, index) => index).filter((index) => !shown.includes(index));
+      for (let at = next.length - 1; at > 0; at -= 1) {
+        const swap = Math.floor(Math.random() * (at + 1));
+        [next[at], next[swap]] = [next[swap], next[at]];
+      }
+    }
+    setShown(next.slice(0, 3));
+    setDeck(next.slice(3));
+  }
+
+  function pickFeeling(next: Feeling, at = 0) {
     clearDeferral();
     setFeelingId(next.id);
-    setPaletteAt(0);
+    setPaletteAt(at);
     setMain(0);
     setStatus("");
     setView("suggest");
@@ -320,23 +338,27 @@ export default function ColourField({ id, value, onChange, setOther, describedBy
           <legend className="obCol__q">What should your brand feel like?</legend>
           <p className="ob__hint">Tap the one that is closest. We will suggest colours to match. You can change them later.</p>
           <div className="obCol__cards">
-            {FEELINGS.map((item) => {
-              const on = matched?.id === item.id;
+            {shown.map((index) => {
+              const item = PALETTE_POOL[index];
+              const on = sameHexes(item.palette.map((colour) => colour.hex), rows.map((row) => normalizeHex(row.hex) ?? ""));
               return (
-                <label key={item.id} className={`obCol__card${on ? " is-on" : ""}`}>
-                  <input className="obCol__radio" type="radio" name={`${id}-feel-${item.id}`} value={item.id} checked={on}
-                    onChange={() => pickFeeling(item)} />
+                <label key={index} className={`obCol__card${on ? " is-on" : ""}`}>
+                  <input className="obCol__radio" type="radio" name={`${id}-feel-${index}`} value={String(index)} checked={on}
+                    onChange={() => pickFeeling(item.feeling, item.at)} />
                   <span className="obCol__strip" aria-hidden="true">
-                    {item.palettes[0].map((colour) => <span key={colour.hex} style={{ background: colour.hex }} />)}
+                    {item.palette.map((colour) => <span key={colour.hex} style={{ background: colour.hex }} />)}
                   </span>
-                  <strong className="obCol__cardName">{item.name}</strong>
+                  <strong className="obCol__cardName">{item.title}</strong>
                   <span className="obCol__cardLine">{item.line}</span>
-                  <span className="obCol__cardNames">Colours: {item.palettes[0].map((colour) => colour.name).join(", ")}</span>
+                  <span className="obCol__cardNames">Colours: {item.palette.map((colour) => colour.name).join(", ")}</span>
                   {on ? <span className="obCol__badge">Chosen</span> : null}
                 </label>
               );
             })}
           </div>
+          <button type="button" className="ob__btn ob__btn--ghost obCol__shuffle" onClick={shuffle}>
+            <Shuffle aria-hidden="true" /> Shuffle for more palettes
+          </button>
           <div className="obCol__options">
             <label className="obCol__opt">
               <input className="obCol__radio" type="radio" name={`${id}-feel-have`} checked={false} onChange={chooseHave} />
