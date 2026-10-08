@@ -207,3 +207,10 @@
 .lg-pdfs a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 1rem; border: 1.5px solid var(--rule); border-radius: 999px; color: var(--ink); text-decoration: none; font-size: .92rem; }
 .lg-pdfs a:hover { border-color: var(--accent-ink); }
 .lg-pdfs a:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+
+.lg-also { margin: 1.6rem 0 0; padding-top: 1rem; border-top: 1px solid var(--rule); }
+.lg-also p { margin: 0 0 .5rem; font-weight: 700; font-size: .9rem; }
+.lg-also ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem .5rem; }
+.lg-also a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 .9rem; border: 1.5px solid var(--rule); border-radius: 999px; color: var(--ink); text-decoration: none; font-size: .9rem; }
+.lg-also a:hover { border-color: var(--accent-ink); }
+.lg-also a:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
