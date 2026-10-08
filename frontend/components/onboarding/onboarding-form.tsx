@@ -1,5 +1,6 @@
 "use client";
 
+import { displayAnswers } from "@/lib/onboarding-aliases";
 import HelpStrip from "./help-strip";
 import EngagementSection, { engagementAccepted } from "./engagement-section";
 import { echoFor, exampleFor, fill, milestone, nextLabel } from "@/lib/onboarding-voice";
@@ -86,7 +87,19 @@ function voiced(f: Field, a: Answers): Field {
 
 type Draft = { answers: Answers; service: ServiceSlug | null; step: number; started: boolean };
 
-function withAnswerDefaults(answers: Answers = {}): Answers {
+/**
+ * A restored draft may hold answers from before the redesign: a platform called
+ * "iOS", an ad budget with a dash, the semicolon "not sure". Without this the
+ * question showed nothing checked and the client had to answer it again. The
+ * same reading the admin uses (lib/onboarding-aliases.ts) maps old values onto
+ * the current options, filling a new question only when it is still empty.
+ */
+function withAnswerDefaults(answers: Answers = {}, service: ServiceSlug | null = null): Answers {
+  return service ? legacyMapped(service, answerDefaults(answers)) : answerDefaults(answers);
+}
+const legacyMapped = (service: ServiceSlug, answers: Answers): Answers => displayAnswers(service, answers);
+
+function answerDefaults(answers: Answers = {}): Answers {
   const savedChannel = answers.channel;
   const channels = savedChannel === undefined
     ? [PROJECT_UPDATE_PORTAL]
@@ -139,7 +152,7 @@ export default function OnboardingForm({ closed = {}, styles = {}, engagement = 
   );
   const [started, setStarted] = useState(() => draft.started === true);
   const [i, setI] = useState(() => (typeof draft.step === "number" ? draft.step : 0));
-  const [a, setA] = useState<Answers>(() => withAnswerDefaults(draft.answers));
+  const [a, setA] = useState<Answers>(() => withAnswerDefaults(draft.answers, typeof draft.service === "string" ? (draft.service as ServiceSlug) : null));
   const [tried, setTried] = useState(false);
   /* WHICH FIELDS HAVE BEEN LEFT, not which have been typed in. A form that
      turns red while you are still halfway through typing your email address is
@@ -173,7 +186,7 @@ export default function OnboardingForm({ closed = {}, styles = {}, engagement = 
   }) => {
     setService(saved.service);
     setI(saved.currentStep);
-    setA(withAnswerDefaults(saved.answers));
+    setA(withAnswerDefaults(saved.answers, saved.service));
     setStarted(true);
     setRestored(true);
   }, []);
