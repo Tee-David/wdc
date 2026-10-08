@@ -255,3 +255,11 @@ button.adDash__chartMonth:focus-visible { outline: 2px solid var(--ad-accent); o
 .adRep__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 1rem; margin-top: 1rem; align-items: start; }
 @media (prefers-reduced-motion: no-preference) { .adRep__pair i { animation: adRepGrow .6s cubic-bezier(.2,.7,.2,1) backwards; } }
 @keyframes adRepGrow { from { transform: scaleY(0); } }
+
+/* ---- My work ---- */
+.adDash__list { list-style: none; margin: 0; padding: .4rem 1.25rem 1rem; display: grid; gap: .1rem; }
+.adDash__list li { display: grid; gap: .1rem; padding: .6rem 0; border-bottom: 1px solid var(--ad-line); min-width: 0; }
+.adDash__list li:last-child { border-bottom: 0; }
+.adDash__list b { overflow-wrap: anywhere; }
+.adDash__list small { color: var(--ad-dim); }
+.adDash__list li .ad__pill { justify-self: start; margin-top: .2rem; }

@@ -3,7 +3,7 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { UserPlus, X } from "lucide-react";
-import { staffNames } from "@/lib/admin/staff-actions";
+import { staffPeople } from "@/lib/admin/staff-actions";
 import { Wrap, useKept } from "./form";
 
 /**
@@ -14,16 +14,24 @@ import { Wrap, useKept } from "./form";
  * yet can be typed and added, with a link to invite them properly; the person
  * answerable can be staff, management, or both.
  */
-export function OwnerField({ name = "owner", defaultValue = "", label = "Who is answerable", half }: {
-  name?: string; defaultValue?: string; label?: string; half?: boolean;
+export function OwnerField({ name = "owner", defaultValue = "", defaultIds = [], label = "Who is answerable", half }: {
+  name?: string; defaultValue?: string; defaultIds?: string[]; label?: string; half?: boolean;
 }) {
   const kept = String(useKept(name, defaultValue) ?? "");
   const [picked, setPicked] = useState<string[]>(() => kept.split(",").map((s) => s.trim()).filter(Boolean));
-  const [staff, setStaff] = useState<string[]>([]);
+  const [people, setPeople] = useState<{ id: string; name: string }[]>([]);
+  const staff = useMemo(() => people.map((p) => p.name), [people]);
+  /* Names the record already carries are matched to accounts once the team has loaded. */
+  const [ids, setIds] = useState<Record<string, string>>(() => {
+    const names = kept.split(",").map((x) => x.trim()).filter(Boolean);
+    return names.length === defaultIds.length ? Object.fromEntries(names.map((n, i) => [n, defaultIds[i]])) : {};
+  });
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const list = useId();
-  useEffect(() => { let on = true; staffNames().then((n) => on && setStaff(n)).catch(() => {}); return () => { on = false; }; }, []);
+  useEffect(() => { let on = true; staffPeople().then((n) => on && setPeople(n)).catch(() => {}); return () => { on = false; }; }, []);
+  const idOf = (n: string) => ids[n] ?? people.find((p) => p.name === n)?.id;
+  const postedIds = picked.map(idOf).filter(Boolean).join(",");
 
   const needle = q.trim().toLocaleLowerCase();
   const matches = useMemo(
@@ -31,7 +39,7 @@ export function OwnerField({ name = "owner", defaultValue = "", label = "Who is 
     [staff, picked, needle],
   );
   const canAddTyped = needle.length > 1 && !staff.some((n) => n.toLocaleLowerCase() === needle) && !picked.some((n) => n.toLocaleLowerCase() === needle);
-  const add = (n: string) => { setPicked((p) => (p.includes(n) ? p : [...p, n])); setQ(""); };
+  const add = (n: string) => { const id = people.find((p) => p.name === n)?.id; if (id) setIds((m) => ({ ...m, [n]: id })); setPicked((p) => (p.includes(n) ? p : [...p, n])); setQ(""); };
 
   return (
     <Wrap name={name} label={label} half={half}
@@ -39,6 +47,7 @@ export function OwnerField({ name = "owner", defaultValue = "", label = "Who is 
       {(id) => (
         <div className="ad__owner" onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false); }}>
           <input type="hidden" name={name} value={picked.join(", ")} />
+          <input type="hidden" name="ownerIds" value={postedIds} />
           {picked.length ? (
             <ul className="ad__ownerChips" aria-label="Answerable">
               {picked.map((n) => (
