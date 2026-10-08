@@ -1,44 +1,244 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { CalendarDays, Plus, Trash2 } from "lucide-react";
+import { CalendarDays, CircleAlert } from "lucide-react";
 import { Panel } from "@/components/admin/bits";
-import { SettingsForm, Switch, Text, Row, useDirtyPing } from "@/components/admin/settings/kit";
-import { Pick, DateInput } from "@/components/admin/pick";
 import { toast } from "@/components/admin/toast";
-import { meetingCommand } from "./client";
+import {
+  checkMeetingCommand, clearMeetingCommand, meetingCommand, MeetingPending, MeetingRequestError, pendingMeetingCommand,
+  type StoredCommand,
+} from "./client";
+import { describeMeetingError, isMeetingErrorCode, loadFailureCode, type MeetingErrorAction } from "@/lib/meetings/errors";
 import type { ActionState } from "@/lib/admin/validate";
-import type { Schedule, MeetingType } from "@/lib/meetings/cal";
+import { AvailabilityTab, BookingRulesTab, ConnectionsTab, RemindersTab, SectionTabs, TABS, type Setup, type Tab } from "./settings-tabs";
 import "./meetings.css";
 
-type Setup={config:{enabled:boolean;event_type_id:number|null;schedule_id:number|null;settings:Record<string,unknown>};types:MeetingType[];schedules:Schedule[];calendarConnected:boolean;googleMeetConnected:boolean;webhookConfigured:boolean;reminders:{available:boolean;reason:string}};
-const DAYS=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-const TIMES=Array.from({length:96},(_,i)=>{const value=`${String(Math.floor(i/4)).padStart(2,"0")}:${String(i%4*15).padStart(2,"0")}`;return {value,label:value}});
-export function MeetingSettings(){
-  const [data,setData]=useState<Setup|null>(null),[error,setError]=useState(""),[message,setMessage]=useState(""),[tab,setTab]=useState("Availability"),[busy,setBusy]=useState(false);
-  const load=useCallback(async()=>{try{const response=await fetch("/api/meetings?view=setup");const value=await response.json();if(!response.ok)throw new Error(value.error);setData(value);setError("")}catch(e){setError(e instanceof Error?e.message:"Meeting settings could not be loaded.")}},[]);
-  useEffect(()=>{void Promise.resolve().then(load)},[load]);
-  async function setup(){setBusy(true);try{const value=await meetingCommand({action:"setup"},setMessage);setMessage(value.message);toast(value.message);await load()}catch(e){setError(e instanceof Error?e.message:"Setup could not be completed.");toast("Setup needs attention","bad")}finally{setBusy(false)}}
-  async function saveSettings(_previous:ActionState,fd:FormData):Promise<ActionState>{try{const result=await meetingCommand({action:"settings",enabled:fd.get("enabled")==="1",duration:Number(fd.get("duration")),notice:Number(fd.get("notice")),buffer:Number(fd.get("buffer"))},setMessage);await load();return {ok:true,message:result.message}}catch(e){return{ok:false,message:e instanceof Error?e.message:"Settings could not be saved."}}}
-  async function saveAvailability(_previous:ActionState,fd:FormData):Promise<ActionState>{try{const schedule=JSON.parse(String(fd.get("schedule")));const result=await meetingCommand({action:"availability",schedule},setMessage);await load();return{ok:true,message:result.message}}catch(e){return{ok:false,message:e instanceof Error?e.message:"Availability could not be saved."}}}
-  const schedule=data?.schedules.find(s=>String(s.id)===String(data.config.schedule_id));
-  return <div className="meetWrap meetSettings"><div className="ad__head"><div><h1>Scheduling settings</h1><p>Your availability and how people book a conversation.</p></div><Link className="ad__btn ad__btn--plain" href="/admin/meetings">View meetings</Link></div>{error?<div className="meetEmpty" role="alert"><p>{error}</p><button className="ad__btn" onClick={()=>void load()}>Check again</button><Link href="/admin/settings/system">Check the Meetings migration in System</Link></div>:null}{message?<p role="status" className="meetHint">{message}</p>:null}{!data&&!error?<p className="meetBusy" role="status">Checking scheduling configuration…</p>:null}{data?<>
-    {!data.config.event_type_id?<Panel title="Connect your booking flow"><div className="meetBody"><CalendarDays aria-hidden="true"/><p>Your Cal.com key is connected. Create a private WDC meeting type, then review its calendar and availability before publishing.</p><div className="meetActions"><button className="ad__btn" disabled={busy} onClick={()=>void setup()}>{busy?"Checking setup…":"Create meeting type"}</button><a className="ad__btn ad__btn--plain" href="https://app.cal.com/event-types" target="_blank" rel="noopener noreferrer">Open Cal.com</a></div></div></Panel>:null}
-    <div className="meetActions" aria-label="Scheduling sections">{["Availability","Booking rules","Reminders","Connections"].map(value=><button key={value} className={`ad__btn${tab===value?"":" ad__btn--plain"}`} aria-pressed={tab===value} onClick={()=>setTab(value)}>{value}</button>)}</div>
-    {tab==="Availability"?<Panel title="Your working hours"><div className="meetBody">{schedule?<SettingsForm action={saveAvailability}><ScheduleEditor key={`${schedule.id}-${JSON.stringify(schedule.availability)}-${JSON.stringify(schedule.overrides)}`} schedule={schedule}/></SettingsForm>:<div className="meetEmpty"><p>Create the meeting type first to use your existing Cal.com working-hours schedule.</p><button className="ad__btn" disabled={busy} onClick={()=>void setup()}>Set up scheduling</button></div>}</div></Panel>:null}
-    {tab==="Booking rules"?<Panel title="How meetings are booked"><div className="meetBody"><SettingsForm action={saveSettings}><Switch name="enabled" label="Accept new meeting bookings" note="Publish only after you have reviewed the schedule, calendar connections and webhook setup." defaultChecked={data.config.enabled} disabled={!data.config.event_type_id||!data.calendarConnected||!data.googleMeetConnected||!data.webhookConfigured}/>{!data.calendarConnected||!data.googleMeetConnected||!data.webhookConfigured?<p className="meetHint">Finish the required connections below before enabling booking. <button type="button" className="ad__btn ad__btn--plain" onClick={()=>setTab("Connections")}>View setup steps</button></p>:null}<Row label="Meeting duration"><Pick name="duration" label="Meeting duration" defaultValue={String(data.config.settings.lengthInMinutes||30)} options={[15,30,45,60].map(n=>({value:String(n),label:`${n} minutes`}))}/></Row><Text name="notice" label="Minimum notice, in minutes" type="number" min={60} max={43200} defaultValue={Number(data.config.settings.minimumBookingNotice||1440)} hint="1440 minutes is one day. Times inside this window are not offered."/><Text name="buffer" label="Buffer before and after, in minutes" type="number" min={0} max={120} defaultValue={Number(data.config.settings.beforeEventBuffer??15)} hint="Time kept free around each conversation."/></SettingsForm></div></Panel>:null}
-    {tab==="Reminders"?<Panel title="Meeting notices and reminders"><div className="meetBody"><strong>One notification owner: Cal.com</strong><p className="meetHint">Calendar confirmations, rescheduling and cancellation notices are managed by Cal.com. WDC does not send duplicates.</p><Row label="Optional attendee reminders" note={data.reminders.reason}><button className="ad__btn ad__btn--plain" disabled>Off · setup required</button></Row><p className="meetHint">24-hour and 1-hour reminders will only be enabled after their workflow, individual opt-out and suppression on changes are verified. We do not claim an email was delivered without delivery evidence.</p><Row label="SMS and WhatsApp" note="Keep off until provider support, charges and explicit recipient consent are verified."><button className="ad__btn ad__btn--plain" disabled>Off</button></Row><div className="meetActions"><a className="ad__btn" href="https://app.cal.com/workflows" target="_blank" rel="noopener noreferrer">Review Cal.com workflows</a><button className="ad__btn ad__btn--plain" onClick={()=>setTab("Connections")}>Check setup</button></div></div></Panel>:null}
-    {tab==="Connections"?<Panel title="Connections and recovery"><div className="meetBody"><p>Calendar: <strong>{data.calendarConnected?"Connected with a destination calendar":"Connection required"}</strong></p><p>Google Meet: <strong>{data.googleMeetConnected?"Connected":"Connection required"}</strong></p><p>Signed production webhook: <strong>{data.webhookConfigured?"Registered and checked":"Required before publishing"}</strong></p><p className="meetHint">Calendar access is separate from signing in to WDC with Google. Google and Apple calendars are configured in your Cal.com account; WDC never stores their passwords.</p><div className="meetActions"><a className="ad__btn" href="https://app.cal.com/settings/my-account/calendars" target="_blank" rel="noopener noreferrer">Manage calendars</a><a className="ad__btn ad__btn--plain" href="https://app.cal.com/apps" target="_blank" rel="noopener noreferrer">Manage video apps</a></div><p className="meetHint">Register the signed endpoint <code>/api/meetings/webhook</code> in Cal.com using the environment’s CAL_WEBHOOK_SECRET. Recovery retains received changes and pending commands if a worker stops; uncertain provider changes need checking before retry.</p><Link href="/admin/meetings">Refresh and check meetings</Link></div></Panel>:null}
-  </>:null}</div>;
+/** What the owner is shown when something fails: words, then the next actions. */
+type Problem = { title: string; message: string; actions: MeetingErrorAction[]; retry: "load" | "setup" };
+
+const ACTION_LABEL: Record<string, string> = { setup: "Your setup request", settings: "Your booking rules change", availability: "Your availability change" };
+
+/** A refused request carries a code the mapper explains; anything else keeps its own words. */
+function problemFor(error: unknown, retry: Problem["retry"], title: string): Problem {
+  if (error instanceof MeetingRequestError && error.code) return { ...describeMeetingError(error.code), retry };
+  const message = error instanceof Error && error.message ? error.message : "Something went wrong.";
+  return { title, message, actions: [{ kind: "retry", label: "Retry" }], retry };
 }
-function ScheduleEditor({schedule}:{schedule:Schedule}){
-  const ping=useDirtyPing(),root=useRef<HTMLDivElement>(null);
-  const independent=useCallback(()=>({...schedule,availability:schedule.availability.flatMap(row=>row.days.map(day=>({...row,days:[day]})))}),[schedule]);
-  const [value,setValue]=useState(independent);
-  useEffect(()=>{const form=root.current?.closest("form");const reset=()=>setValue(independent());form?.addEventListener("reset",reset);return()=>form?.removeEventListener("reset",reset)},[schedule,independent]);
-  function update(next:Schedule){setValue(next);ping()}
-  function range(index:number,key:"startTime"|"endTime",time:string){update({...value,availability:value.availability.map((r,i)=>i===index?{...r,[key]:time}:r)})}
-  const timePick=(current:string,label:string,onChange:(value:string)=>void)=><Pick value={current} label={label} search options={TIMES.some(t=>t.value===current)?TIMES:[{value:current,label:current},...TIMES]} onChange={onChange}/>;
-  return <div ref={root}><input type="hidden" name="schedule" value={JSON.stringify({timeZone:value.timeZone,availability:value.availability,overrides:value.overrides})}/><Row label="Schedule time zone"><Pick value={value.timeZone} label="Schedule time zone" options={Array.from(new Set([value.timeZone,...Intl.supportedValuesOf("timeZone"),"UTC"])).map(z=>({value:z,label:z}))} search onChange={timeZone=>update({...value,timeZone})}/></Row><p className="meetHint">Multiple ranges per day are supported. Set your weekly hours here; date exceptions replace that day’s regular hours.</p>{DAYS.map(day=><div className="meetHours" key={day}><strong>{day}</strong><div className="meetHoursRanges">{value.availability.map((r,i)=>r.days.includes(day)?<div className="meetHoursRange" key={i}>{timePick(r.startTime,`${day} start`,time=>range(i,"startTime",time))}<span>to</span>{timePick(r.endTime,`${day} end`,time=>range(i,"endTime",time))}<button type="button" className="ad__iconButton" aria-label={`Remove ${day} time range`} onClick={()=>update({...value,availability:value.availability.flatMap((row,n)=>n!==i?[row]:row.days.length>1?[{...row,days:row.days.filter(d=>d!==day)}]:[])})}><Trash2 aria-hidden="true"/></button></div>:null)}{!value.availability.some(r=>r.days.includes(day))?<span>Unavailable</span>:null}</div><button type="button" className="ad__iconButton" aria-label={`Add ${day} time range`} onClick={()=>update({...value,availability:[...value.availability,{days:[day],startTime:"09:00",endTime:"17:00"}]})}><Plus aria-hidden="true"/></button></div>)}<h3>Date exceptions</h3>{value.overrides.map((row,i)=><div key={i} className="meetOverride"><DateInput value={row.date} onChange={date=>update({...value,overrides:value.overrides.map((r,n)=>n===i?{...r,date}:r)})}/>{timePick(row.startTime,"Exception start",startTime=>update({...value,overrides:value.overrides.map((r,n)=>n===i?{...r,startTime}:r)}))}<span>to</span>{timePick(row.endTime,"Exception end",endTime=>update({...value,overrides:value.overrides.map((r,n)=>n===i?{...r,endTime}:r)}))}<button type="button" className="ad__iconButton" aria-label={`Remove exception ${row.date}`} onClick={()=>update({...value,overrides:value.overrides.filter((_,n)=>n!==i)})}><Trash2 aria-hidden="true"/></button></div>)}<button type="button" className="ad__btn ad__btn--plain" onClick={()=>update({...value,overrides:[...value.overrides,{date:new Date().toISOString().slice(0,10),startTime:"09:00",endTime:"17:00"}]})}><Plus aria-hidden="true"/> Add a date exception</button><p className="meetHint">To block a longer time away, use Cal.com’s Out of Office controls. Existing calendar conflicts are also excluded automatically.</p><a href="https://app.cal.com/settings/my-account/out-of-office" target="_blank" rel="noopener noreferrer">Manage time away</a></div>;
+
+function ProblemAlert({ problem, busy, onRetry, onSetup }: { problem: Problem; busy: boolean; onRetry: () => void; onSetup: () => void }) {
+  return (
+    <div className="meetAlert" role="alert">
+      <p className="meetAlertH"><CircleAlert aria-hidden="true" /> {problem.title}</p>
+      <p>{problem.message}</p>
+      <div className="meetActions">
+        {problem.actions.map((action) => {
+          if (action.kind === "link") {
+            const external = action.href.startsWith("http");
+            return <Link key={action.label} className="ad__btn" href={action.href} {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}>{action.label}</Link>;
+          }
+          return (
+            <button key={action.label} type="button" className="ad__btn" disabled={busy} onClick={action.kind === "setup" ? onSetup : onRetry}>
+              {busy ? "Checking…" : action.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** A saved change that Cal.com has not confirmed. It never blocks the page: check it, or stop waiting for it. */
+function PendingBanner({ command, state, note, busy, onCheck, onStop }: {
+  command: StoredCommand; state: string; note: string; busy: boolean; onCheck: () => void; onStop: () => void;
+}) {
+  return (
+    <div className="meetAlert" role="status">
+      <p className="meetAlertH"><CircleAlert aria-hidden="true" /> {ACTION_LABEL[command.action] ?? "Your change"} is saved but not confirmed yet</p>
+      <p>{note || "Cal.com has not confirmed it. Nothing is repeated automatically."}</p>
+      <div className="meetActions">
+        <button type="button" className="ad__btn" disabled={busy} onClick={onCheck}>{busy ? "Checking…" : "Check again"}</button>
+        {state === "uncertain" || state === "blocked" ? <button type="button" className="ad__btn ad__btn--plain" disabled={busy} onClick={onStop}>Stop waiting for it</button> : null}
+      </div>
+    </div>
+  );
+}
+
+/** First-run panel: shown until the private meeting type exists. */
+function SetupPanel({ busy, onSetup }: { busy: boolean; onSetup: () => void }) {
+  return (
+    <Panel title="Connect your booking flow">
+      <div className="meetBody">
+        <CalendarDays aria-hidden="true" />
+        <p>Your Cal.com key is connected. Create a private WDC meeting type, then review its calendar and availability before publishing. If one already exists it is linked instead, and nothing new is created.</p>
+        <div className="meetActions">
+          <button type="button" className="ad__btn" disabled={busy} onClick={onSetup}>{busy ? "Checking setup…" : "Set up now"}</button>
+          <a className="ad__btn ad__btn--plain" href="https://app.cal.com/event-types" target="_blank" rel="noopener noreferrer">Open Cal.com</a>
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
+export function MeetingSettings() {
+  const [data, setData] = useState<Setup | null>(null);
+  const [problem, setProblem] = useState<Problem | null>(null);
+  const [message, setMessage] = useState("");
+  const [tab, setTab] = useState<Tab>("Availability");
+  const [busy, setBusy] = useState(false);
+  const [ack, setAck] = useState(false);
+  const [pending, setPending] = useState<StoredCommand | null>(null);
+  const [pendingState, setPendingState] = useState("");
+  const [pendingNote, setPendingNote] = useState("");
+
+  /** Reads the setup state. Resolves false (and shows why) when it could not. */
+  const load = useCallback(async (): Promise<boolean> => {
+    let response: Response;
+    try {
+      response = await fetch("/api/meetings?view=setup", { signal: AbortSignal.timeout(25_000) });
+    } catch (error) {
+      setProblem({ ...describeMeetingError(loadFailureCode(error)), retry: "load" });
+      return false;
+    }
+    const value = await response.json().catch(() => null);
+    if (!response.ok || !value) {
+      const code = isMeetingErrorCode(value?.code) ? value.code : value ? "unknown" : "bad_reply";
+      setProblem({ ...describeMeetingError(code), retry: "load" });
+      return false;
+    }
+    setData(value);
+    setProblem(null);
+    return true;
+  }, []);
+
+  useEffect(() => {
+    void Promise.resolve().then(() => {
+      setPending(pendingMeetingCommand());
+      return load();
+    });
+  }, [load]);
+
+  /** A change that is saved but not yet confirmed: remember it so the banner can offer "Check again". */
+  function held(error: unknown) {
+    if (!(error instanceof MeetingPending)) return false;
+    setPending(pendingMeetingCommand());
+    setPendingState(error.state);
+    setPendingNote(error.message);
+    return true;
+  }
+
+  async function recheck() {
+    setBusy(true);
+    try {
+      if (await load()) toast("Checked with Cal.com");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function setup() {
+    setBusy(true);
+    setProblem(null);
+    try {
+      const value = await meetingCommand({ action: "setup" }, setMessage);
+      setMessage(value.message);
+      toast(value.message);
+      await load();
+    } catch (error) {
+      if (held(error)) toast("Saved, but not confirmed yet", "bad");
+      else {
+        setProblem(problemFor(error, "setup", "Setup needs attention"));
+        toast("Setup needs attention", "bad");
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function checkPending() {
+    setBusy(true);
+    try {
+      const result = await checkMeetingCommand(setMessage);
+      setPending(null);
+      setPendingState("");
+      toast((result as { message?: string } | undefined)?.message ?? "Updated");
+      await load();
+    } catch (error) {
+      if (held(error)) return;
+      setPending(pendingMeetingCommand());
+      setProblem(problemFor(error, "load", "The earlier change was not applied"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function stopWaiting() {
+    clearMeetingCommand();
+    setPending(null);
+    setPendingState("");
+    setMessage("Stopped waiting for the earlier change. Check Cal.com to see whether it was applied, then repeat it if not.");
+  }
+
+  async function saveSettings(_previous: ActionState, fd: FormData): Promise<ActionState> {
+    try {
+      const result = await meetingCommand({
+        action: "settings",
+        enabled: fd.get("enabled") === "1",
+        webhookAck: fd.get("webhookAck") === "1",
+        duration: Number(fd.get("duration")),
+        notice: Number(fd.get("notice")),
+        buffer: Number(fd.get("buffer")),
+      }, setMessage);
+      await load();
+      return { ok: true, message: result.message };
+    } catch (error) {
+      if (held(error)) return { ok: false, message: "Saved, but Cal.com has not confirmed it yet. Use Check again at the top of the page." };
+      return { ok: false, message: error instanceof Error ? error.message : "Settings could not be saved." };
+    }
+  }
+
+  async function saveAvailability(_previous: ActionState, fd: FormData): Promise<ActionState> {
+    try {
+      const schedule = JSON.parse(String(fd.get("schedule")));
+      const result = await meetingCommand({ action: "availability", schedule }, setMessage);
+      await load();
+      return { ok: true, message: result.message };
+    } catch (error) {
+      if (held(error)) return { ok: false, message: "Saved, but Cal.com has not confirmed it yet. Use Check again at the top of the page." };
+      return { ok: false, message: error instanceof Error ? error.message : "Availability could not be saved." };
+    }
+  }
+
+  const goConnections = () => setTab("Connections");
+  const tabIndex = TABS.indexOf(tab);
+
+  return (
+    <div className="meetWrap meetSettings">
+      <div className="ad__head">
+        <div>
+          <h1>Scheduling settings</h1>
+          <p>Your availability and how people book a conversation.</p>
+        </div>
+        <Link className="ad__btn ad__btn--plain" href="/admin/meetings">View meetings</Link>
+      </div>
+      {problem ? <ProblemAlert problem={problem} busy={busy} onRetry={() => void (problem.retry === "setup" ? setup() : recheck())} onSetup={() => void setup()} /> : null}
+      {pending ? <PendingBanner command={pending} state={pendingState} note={pendingNote} busy={busy} onCheck={() => void checkPending()} onStop={stopWaiting} /> : null}
+      {message ? <p role="status" className="meetHint">{message}</p> : null}
+      {!data && !problem ? <p className="meetBusy" role="status">Checking scheduling configuration…</p> : null}
+      {data ? (
+        <>
+          {!data.config.event_type_id ? <SetupPanel busy={busy} onSetup={() => void setup()} /> : null}
+          <SectionTabs tab={tab} onChange={setTab} />
+          <div role="tabpanel" id="meet-panel" aria-labelledby={`meet-tab-${tabIndex}`}>
+            {tab === "Availability" ? <AvailabilityTab data={data} busy={busy} onSetup={() => void setup()} onSave={saveAvailability} /> : null}
+            {tab === "Booking rules" ? (
+              <BookingRulesTab data={data} busy={busy} ack={ack} onAck={setAck} onSetup={() => void setup()} onRecheck={() => void recheck()} goConnections={goConnections} onSave={saveSettings} />
+            ) : null}
+            {tab === "Reminders" ? <RemindersTab data={data} goConnections={goConnections} /> : null}
+            {tab === "Connections" ? <ConnectionsTab data={data} busy={busy} onRecheck={() => void recheck()} /> : null}
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
 }

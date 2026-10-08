@@ -16,3 +16,21 @@
 .meetPublic .meetIntroNotice{max-width:64ch}
 .meetPublic .meetIntro .meetActions{gap:16px}
 @media(max-width:640px){.meetPublic .meetIntro{gap:20px}.meetPublic .meetIntroHead{gap:12px}.meetPublic .meetSteps{row-gap:12px;column-gap:20px;margin-bottom:28px}}
+
+/* Settings: tabs, problems and the reasons a switch is off. Solid fills only. */
+.meetLink{display:inline-flex;align-items:center;min-height:44px;color:var(--ad-ink);font-weight:600;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.meetLink:focus-visible{outline:2px solid var(--ad-fill);outline-offset:2px;border-radius:4px}
+.meetSettings>[role=tabpanel]{min-width:0}
+.meetAlert{margin:0 0 16px;padding:16px 20px;border:1px solid var(--ad-line);border-left:4px solid var(--ad-bad);border-radius:var(--ad-radius,10px);background:var(--ad-panel);display:grid;gap:12px;min-width:0}
+.meetAlert p{margin:0;line-height:1.6;overflow-wrap:anywhere}
+.meetAlertH{display:flex;gap:10px;align-items:flex-start;font-weight:700;color:var(--ad-ink)}
+.meetAlertH svg{margin-top:2px;color:var(--ad-bad-ink)}
+.meetBlockers{margin:8px 0 16px;padding:16px;border:1px solid var(--ad-line);border-left:4px solid var(--ad-warn);border-radius:var(--ad-radius,10px);background:var(--ad-panel);display:grid;gap:12px;min-width:0}
+.meetBlockers p{margin:0;line-height:1.6}
+.meetBlockersH{display:flex;gap:10px;align-items:flex-start;font-weight:700}
+.meetBlockers ul{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.meetBlockers li{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;min-width:0}
+.meetBlockers li>span{flex:1 1 16rem;min-width:0;line-height:1.5;overflow-wrap:anywhere}
+.meetProblem{margin:16px 0 0;padding:12px 16px;border-left:4px solid var(--ad-bad);background:var(--ad-panel);color:var(--ad-bad-ink);font-weight:600;line-height:1.5;overflow-wrap:anywhere}
+.meetWrap .ad__tabsNav{margin-top:8px}
+@media(max-width:640px){.meetAlert,.meetBlockers{padding:12px 16px}.meetBlockers li .ad__btn{width:100%}}
