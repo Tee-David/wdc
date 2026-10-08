@@ -1594,6 +1594,19 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 .dark .ad__stageTrack li.is-done::before { color: #23239b; }
 .ad__stageTrack small { color: inherit; font-size: .85rem; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
 .ad__stageTrack li.is-now small { font-weight: 700; }
+/* The current step shimmers: a pale band sweeping across (transform only). */
+.ad__stageTrack li.is-now { position: relative; overflow: hidden; }
+.ad__stageTrack li.is-now::after, .ad__stageTrack.is-complete li:last-child::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / .3) 50%, transparent 70%);
+  transform: translateX(-100%); animation: stgShim 2.4s ease-in-out infinite;
+}
+.ad__stageTrack.is-complete li:last-child { position: relative; overflow: hidden; }
+@keyframes stgShim { to { transform: translateX(100%); } }
+/* Delivered: the whole row goes green. Moving the project back to an earlier stage takes it away. */
+.ad__stageTrack.is-complete li, .dark .ad__stageTrack.is-complete li { background: var(--ad-tone-good, #1b7a43); color: #fff; }
+.ad__stageTrack.is-complete li::before { background: rgb(255 255 255 / .9); color: #1b7a43; }
+@media (prefers-reduced-motion: reduce) { .ad__stageTrack li.is-now::after, .ad__stageTrack.is-complete li:last-child::after { animation: none; display: none; } }
 @keyframes stgIn { from { opacity: 0; transform: translateX(-.6rem); } }
 @media (prefers-reduced-motion: reduce) { .ad__stageTrack li { animation: none; } }
 
@@ -1807,10 +1820,13 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 .adIcons__now.is-empty { background: var(--ad-tone-flat); color: var(--ad-on-flat); font-weight: 700; }
 .adIcons__hint { flex: 1; min-width: 0; font-size: .84rem; }
 .adIcons__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.75rem, 1fr)); gap: .35rem; max-height: 13rem; overflow-y: auto; overscroll-behavior: contain; padding: .15rem; }
+.adIcons__search, .adIcons__search input { background-clip: padding-box; }
 .adIcons__search { display: flex; align-items: center; gap: .5rem; min-height: 2.75rem; margin-bottom: .5rem; padding: 0 .75rem; border: 1px solid var(--ad-line); border-radius: 10px; background: var(--ad-bg); }
 .adIcons__search svg { width: 1rem; height: 1rem; flex: none; color: var(--ad-dim); }
+.adIcons .adIcons__search input:focus, .adIcons .adIcons__search input:focus-visible { outline: none; box-shadow: none; border: 0; }
+.adIcons__count { margin: 0 0 .4rem; font-size: .78rem; }
 .adIcons__search input { flex: 1; min-width: 0; min-height: 2.5rem; border: 0; background: transparent; color: var(--ad-ink); font: inherit; outline: none; }
-.adIcons__search:focus-within { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.adIcons__search:focus-within { outline: 2px solid var(--ad-accent); outline-offset: 2px; border-radius: 10px; }
 .adIcons__none { grid-column: 1 / -1; margin: .5rem 0; }
 .adIcons__opt { position: relative; }
 .adIcons__opt input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }

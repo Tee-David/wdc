@@ -15,7 +15,11 @@ export function IconPicker({ name = "icon", defaultValue }: { name?: string; def
      none chosen gets a random one when it is saved (createProject). */
   const [value, setValue] = useState(defaultValue ?? "");
   const [q, setQ] = useState("");
-  const shown = PROJECT_ICON_NAMES.filter((k) => PROJECT_ICONS[k].label.toLowerCase().includes(q.trim().toLowerCase()));
+  /* Every word typed must hit the name, the key or an everyday word for it. */
+  const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const hay = (k: string) => `${k} ${PROJECT_ICONS[k].label} ${PROJECT_ICONS[k].kw ?? ""}`.toLowerCase();
+  const matches = PROJECT_ICON_NAMES.filter((k) => words.every((w) => hay(k).includes(w)));
+  const shown = matches.slice(0, 150);
   const Chosen: LucideIcon | undefined = value ? PROJECT_ICONS[value]?.icon : undefined;
   return (
     <fieldset className="ad__f adIcons">
@@ -33,8 +37,9 @@ export function IconPicker({ name = "icon", defaultValue }: { name?: string; def
       <input type="hidden" name={name} value={value} />
       <label className="adIcons__search">
         <Search aria-hidden="true" />
-        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search icons" aria-label="Search icons" autoComplete="off" />
+        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search icons, like money, phone or chart" aria-label="Search icons" autoComplete="off" />
       </label>
+      <p className="ad__dim adIcons__count" aria-live="polite">{words.length ? `${matches.length} ${matches.length === 1 ? "match" : "matches"}${matches.length > 150 ? ", showing the first 150" : ""}` : `${PROJECT_ICON_NAMES.length} icons`}</p>
       <div className="adIcons__grid" role="radiogroup" aria-label="Project icon" data-lenis-prevent>
         {shown.length === 0 ? <p className="ad__dim adIcons__none">No icon matches “{q}”. Try another word.</p> : null}
         {shown.map((k) => {
