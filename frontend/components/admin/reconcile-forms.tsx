@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { BellRing, Check, Link2, Mail, Receipt, RotateCw, Wallet } from "lucide-react";
 import type { Invoice, ProviderEvent } from "@/lib/admin/types";
 import { naira } from "@/lib/admin/types";
@@ -152,7 +152,9 @@ export function NoticeTick({ name, label, reason, off = false, hint }: {
   off?: boolean;
   hint?: string;
 }) {
-  const id = `tick-${name}`;
+  /* A row menu mounts every row's dialog at once, so a fixed id would repeat
+     down the table and every label would point at the first tick. */
+  const id = useId();
   return (
     <div className="ad__f">
       <label className="ad__check ad__check--long" htmlFor={id}>
