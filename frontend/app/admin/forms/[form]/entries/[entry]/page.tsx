@@ -322,7 +322,7 @@ export default async function EntryPage({ params, searchParams }: Props) {
                     <> <AssignEntry
                       label={client ? "Change" : "Assign"} formKey={form.key} entryId={entry.id}
                       clients={getClients().map((c) => ({ id: c.id, company: c.company }))}
-                      projects={getProjects().map((x) => ({ id: x.id, title: x.title, clientName: getClient(x.clientId)?.company ?? "" }))}
+                      projects={getProjects().map((x) => ({ id: x.id, title: x.title, clientName: getClient(x.clientId)?.company ?? "", clientId: x.clientId }))}
                       needsService={!form.service} current={assigned} suggestedClientId={matched?.id} /></>
                   ) : null}
                 </dd></div>
