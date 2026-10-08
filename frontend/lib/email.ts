@@ -7,6 +7,8 @@ import { getSetting } from "@/lib/admin/store";
 import { hydrateSettings } from "@/lib/settings/store";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { DEFAULT_MAIL_FROM_NAME, mailFrom } from "@/lib/mail-sender";
+import { sendThrough, type Outgoing } from "@/lib/mail-connections";
+import { alertMailFailure } from "@/lib/mail-webhook-alert";
 
 function required(name: string) {
   const value = process.env[name]?.trim();
@@ -120,20 +122,37 @@ export async function sendMail(input: {
   const listUnsubscribe = [unsubscribeUrl ? `<${unsubscribeUrl}>` : null, contact ? `<mailto:${contact}?subject=unsubscribe>` : null]
     .filter(Boolean).join(", ");
 
-  return transport().sendMail({
-    from: mailFrom(fromName, required("SMTP_FROM_EMAIL")),
-    replyTo: input.replyTo || replyTo,
-    ...message,
-    /* The footer's "sent to" line names this address, and its row of marks
-       is the studio's profiles as Settings has them now. */
-    html: message.html ? withSocials(addressTo(message.html, message.to), socialLinks(getSetting)) : undefined,
-    headers: unsubscribe && listUnsubscribe
-      ? {
-          "List-Unsubscribe": listUnsubscribe,
-          ...(unsubscribeUrl ? { "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } : {}),
-        }
-      : undefined,
-  });
+  const html = message.html ? withSocials(addressTo(message.html, message.to), socialLinks(getSetting)) : undefined;
+  const headers = unsubscribe && listUnsubscribe
+    ? { "List-Unsubscribe": listUnsubscribe, ...(unsubscribeUrl ? { "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } : {}) }
+    : undefined;
+  const base = { ...message, html, headers, replyTo: input.replyTo || replyTo };
+
+  /* WHERE IT GOES (Settings › Email › Connections): the default connection,
+     then, if that fails, the fallback once. "env" is the studio's own server
+     from the environment and is what is used until a default is chosen. The
+     fallback is single-hop: a second failure throws, as it always did. */
+  const chosen = getSetting("mail.default") || "env";
+  const fallback = getSetting("mail.fallback") || "";
+  const via = async (id: string) => {
+    if (id === "env") {
+      return transport().sendMail({ ...base, from: mailFrom(fromName, required("SMTP_FROM_EMAIL")) });
+    }
+    await sendThrough(id, { ...base, from: mailFrom(fromName, "") } as Outgoing);
+  };
+  try {
+    return await via(chosen);
+  } catch (first) {
+    if (fallback && fallback !== chosen) {
+      try {
+        const done = await via(fallback);
+        void alertMailFailure(`Mail: the default connection failed (${first instanceof Error ? first.message.slice(0, 120) : "error"}), so the fallback sent it.`);
+        return done;
+      } catch { /* both failed: report the first, below */ }
+    }
+    void alertMailFailure(`Mail failed to send: ${first instanceof Error ? first.message.slice(0, 160) : "unknown error"}`);
+    throw first;
+  }
 }
 
 export { escapeHtml };
