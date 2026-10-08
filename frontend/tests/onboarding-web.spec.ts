@@ -154,9 +154,9 @@ test("the size is the client's own words, and no studio label is shown", async (
 });
 
 test("the search note appears for a bigger site, and says search is its own service", async ({ page }) => {
-  await openOn(page, "web", sizeOnly(SIMPLE), "site_jobs");
+  await openOn(page, "web", sizeOnly(SIMPLE), "has_domain");
   expect(await keysOnScreen(page)).not.toContain("search_note");
-  await openOn(page, "web", sizeOnly(BIGGER), "site_jobs");
+  await openOn(page, "web", sizeOnly(BIGGER), "has_domain");
   await expect(page.locator('[data-field="search_note"]')).toContainText("Search work is its own service");
 });
 
@@ -355,7 +355,7 @@ test("an old web draft with the old values opens without error and keeps the ans
      exists and stays ticked. The form reads the stored keys it asks; the admin
      reads old values through lib/onboarding-aliases.ts. */
   await openOn(page, "web", { site_size: BIGGER, features: ["Online store", "Blog"], has_hosting: "Neither" }, "features");
-  await expect(page.locator('[data-field="features"]').getByRole("checkbox", { name: "Blog", exact: true })).toHaveAttribute("aria-checked", "true");
+  await expect(page.locator('[data-field="features"]').getByRole("checkbox", { name: /^Blog/ })).toHaveAttribute("aria-checked", "true");
 
   /* page_count: the old en dash range opens and the question is there. */
   await openOn(page, "web", { site_size: LARGE, page_count: "1–5" }, "page_count");
