@@ -78,10 +78,10 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
         </>}
         actions={<Link className="ad__btn" href={askHref}><MessageSquare aria-hidden="true" /> Ask about this project</Link>}
       >
-        <div className="ad__stageTrack">
+        <div className={`ad__stageTrack${at === STAGES.length - 1 ? " is-complete" : ""}`}>
           <ol aria-label={`Stage: ${p.stage}, ${at + 1} of ${STAGES.length}`}>
             {STAGES.map((st, n) => (
-              <li key={st} className={n < at ? "is-done" : n === at ? "is-now" : undefined} aria-current={n === at ? "step" : undefined}>
+              <li key={st} className={n < at || (n === at && at === STAGES.length - 1) ? "is-done" : n === at ? "is-now" : undefined} aria-current={n === at ? "step" : undefined}>
                 <span aria-hidden="true" />
                 <small>{st}{n === at ? " · you are here" : ""}</small>
               </li>
