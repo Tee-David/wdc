@@ -16,6 +16,7 @@ import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { avTone, initials } from "@/lib/admin/client-mark";
 import { ExampleNote } from "@/components/admin/example-note";
 import { FilterPick } from "@/components/admin/pick";
+import { listDepartments } from "@/lib/departments";
 
 export const metadata = { title: "Clients" };
 
@@ -28,6 +29,7 @@ export const metadata = { title: "Clients" };
  * with what they are worth and what is open.
  */
 type ClientQuery = { new?: string;
+  dept?: string;
   q?: string;
   service?: string;
   status?: string;
@@ -78,11 +80,14 @@ export default async function ClientsPage({
   const direction = query.dir === "asc" || query.dir === "desc"
     ? query.dir
     : sort === "company" ? "asc" : "desc";
+  const departments = (await listDepartments()) ?? [];
+  const dept = departments.find((d) => d.id === query.dept)?.id;
   const source = getClients({ includeArchived: status !== "active" });
   const grouped = getClientsByService();
   const rows = source
     .filter((client) => status !== "archived" || client.archived)
     .filter((client) => !service || client.services.includes(service))
+    .filter((client) => !dept || (client.departments ?? []).includes(dept))
     .filter((client) => (!from || client.since.slice(0, 10) >= from) && (!to || client.since.slice(0, 10) <= to))
     .filter((client) => !search || [client.company, client.name, client.email, client.sector,
       ...(client.tags ?? []), ...(client.contacts ?? []).flatMap((x) => [x.name, x.email ?? ""])]
@@ -105,7 +110,7 @@ export default async function ClientsPage({
   const pageCount = Math.max(1, Math.ceil(rows.length / per));
   const page = Math.min(requestedPage, pageCount);
   const clients = rows.slice((page - 1) * per, page * per);
-  const hasFilters = Boolean(search || service || status !== "active" || from || to);
+  const hasFilters = Boolean(search || service || dept || status !== "active" || from || to);
   const sortHref = (column: ClientSort) => queryHref(query, {
     sort: column,
     dir: sort === column ? direction === "asc" ? "desc" : "asc" : column === "company" ? "asc" : "desc",
@@ -219,6 +224,10 @@ export default async function ClientsPage({
             </label>
             <FilterPick label="Service" hideLabel name="service" defaultValue={service ?? ""} placeholder="All services"
                         options={SERVICES.map((item) => ({ value: item.slug, label: item.short }))} />
+            {departments.length ? (
+              <FilterPick label="Department" hideLabel name="dept" defaultValue={dept ?? ""} placeholder="All departments"
+                          options={departments.map((d) => ({ value: d.id, label: d.name }))} />
+            ) : null}
             <FilterPick label="Status" hideLabel name="status" defaultValue={status}
                         options={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }, { value: "all", label: "All statuses" }]} />
             {from ? <input type="hidden" name="from" value={from} /> : null}
@@ -230,7 +239,7 @@ export default async function ClientsPage({
               label="Client since"
               value={{ from, to }}
               href={(r) => queryHref(query, { from: r.from, to: r.to, page: undefined })}
-              keep={{ q: query.q, service: query.service, status: query.status, sort: query.sort, dir: query.dir, per: query.per }}
+              keep={{ q: query.q, dept: query.dept, service: query.service, status: query.status, sort: query.sort, dir: query.dir, per: query.per }}
               action="/admin/clients#client-list"
             />
             {hasFilters ? <Link className="ad__btn" href="/admin/clients#client-list">Clear</Link> : null}
