@@ -173,12 +173,12 @@ test("the confetti is removed, not frozen, when the animations stop advancing", 
   await expect(page.locator(".ob-conf")).toHaveCount(0, { timeout: 4_800 });
 });
 
-test("pulses the single progress bar unless reduced motion is requested", async ({ page }) => {
+test("shimmers the single progress bar unless reduced motion is requested", async ({ page }) => {
   await page.goto("/onboarding");
   const fill = page.locator(".ob__progress > span");
   await expect(fill).toBeVisible();
   await expect.poll(() => fill.evaluate((element) => getComputedStyle(element, "::after").animationName))
-    .toBe("ob-progress-pulse");
+    .toBe("ob-progress-shimmer");
 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect.poll(() => fill.evaluate((element) => getComputedStyle(element, "::after").animationName))

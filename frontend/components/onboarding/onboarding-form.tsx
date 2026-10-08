@@ -732,8 +732,9 @@ export default function OnboardingForm({ closed = {}, styles = {}, engagement = 
       <div className="ob ob--board">
         <div className="ob__top">
           <div className="ob__progress" role="progressbar" aria-label="Onboarding progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((doneN / steps.length) * 100)}>
-            <span style={{ width: `${Math.max(8, Math.round((doneN / steps.length) * 100))}%` }} />
-            <b>{Math.round((doneN / steps.length) * 100)}%</b>
+            <span style={{ width: `${Math.max(8, Math.round((doneN / steps.length) * 100))}%` }}>
+              <b>{Math.round((doneN / steps.length) * 100)}%</b>
+            </span>
           </div>
           <div className="ob__topMeta">
             <p>{doneN} of {steps.length} sections done<span aria-hidden="true"> · </span><span className="ob__mins">about {mins} min left</span></p>
@@ -847,8 +848,9 @@ export default function OnboardingForm({ closed = {}, styles = {}, engagement = 
             aria-valuemax={100}
             aria-valuenow={progress}
           >
-            <span style={{ width: `${progress}%` }} />
-            <b>{progress}%</b>
+            <span style={{ width: `${progress}%` }}>
+              <b>{progress}%</b>
+            </span>
           </div>
 
           <div className="ob__topMeta">
