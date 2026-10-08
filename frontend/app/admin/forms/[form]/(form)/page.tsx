@@ -26,6 +26,7 @@ import { unsubscribeUrl } from "@/lib/newsletter";
 import { getFormSettings } from "@/lib/forms/settings-db";
 import "@/components/admin/forms/forms.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
+import { getClients } from "@/lib/admin/store";
 import { FilterPick } from "@/components/admin/pick";
 
 /* NO generateStaticParams: an entry that arrives after the build still opens. */
@@ -167,7 +168,7 @@ export default async function FormPage({ params, searchParams }: Props) {
         {settings.savedAt ? <p className="ad__dim" style={{ margin: "0 0 .8rem" }}>Last changed by {settings.savedBy} on {when(settings.savedAt)}.</p> : null}
         <FormSettingsEditor formKey={form.key} title={form.title} settings={settings}
           notifications={NOTIFICATIONS[form.source]} isOnboarding={form.source === "onboarding"} previews={previews} />
-        {form.source === "onboarding" && form.service ? <PrefilledLink formKey={form.key} service={form.title.replace(/ onboarding$/, "")} /> : null}
+        {form.source === "onboarding" && form.service ? <PrefilledLink formKey={form.key} service={form.title.replace(/ onboarding$/, "")} clients={getClients().filter((c) => !c.archived && !c.mergedInto).map((c) => { const [first, ...rest] = c.name.split(" "); return { id: c.id, company: c.company, first, last: rest.join(" "), email: c.email, phone: c.phone }; })} /> : null}
       </>
     );
   }

@@ -315,7 +315,9 @@ export default async function EntryPage({ params, searchParams }: Props) {
               {form.source !== "newsletter" ? (
                 <div className="adForms__client"><dt>Client</dt><dd>
                   {client ? <Link href={`/admin/clients/${client.id}`}>{client.company}</Link>
-                    : <span className="ad__dim">Not a client yet</span>}
+                    : matched
+                      ? <span className="ad__dim">Not assigned. This email or phone matches <Link href={`/admin/clients/${matched.id}`}>{matched.company}</Link>, so assign it there and the same client portal is used.</span>
+                      : <span className="ad__dim">Not a client yet</span>}
                   {!entry.draft ? (
                     <> <AssignEntry
                       label={client ? "Change" : "Assign"} formKey={form.key} entryId={entry.id}
