@@ -37,3 +37,15 @@ export default function Rich({ text, here }: { text: string; here: string }) {
     </>
   );
 }
+
+/** "Related policies" under every policy: where to read the others. */
+export function SeeAlso({ here, docs }: { here: string; docs: { slug: string; title: string }[] }) {
+  return (
+    <nav className="lg-also" aria-label="Related policies">
+      <p>Related policies</p>
+      <ul>
+        {docs.filter((d) => d.slug !== here).map((d) => <li key={d.slug}><Link href={`/legal/${d.slug}`}>{d.title}</Link></li>)}
+      </ul>
+    </nav>
+  );
+}
