@@ -34,3 +34,26 @@ test("every policy page offers its PDF, and the PDF downloads", async ({ page, r
     expect((await res.body()).subarray(0, 4).toString()).toBe("%PDF");
   }
 });
+
+test("a link to one tab or one section lands there, and a tab downloads on its own", async ({ page, request }) => {
+  await page.goto("/legal/client-engagement-policy#web:online-shops");
+  await expect(page.getByRole("tab", { name: "Websites", selected: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Online shops" })).toBeInViewport();
+  await page.goto("/legal/client-engagement-policy#domains");
+  await expect(page.getByRole("tab", { name: "Domains and hosting", selected: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "This tab as a PDF" })).toHaveAttribute("href", "/legal/client-engagement-policy/pdf?tab=domains");
+  const one = await request.get("/legal/client-engagement-policy/pdf?tab=domains");
+  const all = await request.get("/legal/client-engagement-policy/pdf");
+  expect(one.status()).toBe(200);
+  expect((await one.body()).length).toBeLessThan((await all.body()).length);
+  expect((await request.get("/legal/client-engagement-policy/pdf?tab=nope")).status()).toBe(404);
+});
+
+test("policies link to each other, and the index offers every PDF", async ({ page }) => {
+  await page.goto("/legal/terms-of-service");
+  await expect(page.locator('.lg-body a[href="/legal/client-engagement-policy"]').first()).toBeVisible();
+  await page.goto("/legal/client-engagement-policy#web");
+  await expect(page.locator('.lg-body a[href="#domains"]').first()).toBeVisible();
+  await page.goto("/legal");
+  await expect(page.locator(".lg-pdfs a")).toHaveCount(6);
+});
