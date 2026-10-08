@@ -98,13 +98,13 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
       <PortalExampleNote clientId={client.id} />
 
       <dl className="adDash__kpis" data-tour="portal-kpis">
-        <Tile label="Active projects" value={String(live.length)} icon={FolderKanban}
+        <Tile label="Active projects" href="/portal/projects" value={String(live.length)} icon={FolderKanban}
           note={byStage.length ? byStage.map(([s, n]) => `${n} ${s.toLowerCase()}`).join(", ") : `${projects.length} delivered`} />
-        <Tile label="Awaiting your review" value={String(awaitingApproval.length)} icon={FileCheck2} iconTone="live"
+        <Tile label="Awaiting your review" href="/portal/projects" value={String(awaitingApproval.length)} icon={FileCheck2} iconTone="live"
           note={awaitingApproval.length ? `${awaitingApproval[0].deliverable.name}${awaitingApproval.length > 1 ? ` and ${awaitingApproval.length - 1} more` : ""}` : "Nothing to look at yet"} />
-        <Tile label="Balance owed" value={nairaShort(balance)} icon={Banknote} iconTone="warn"
+        <Tile label="Balance owed" href="/portal/billing" value={nairaShort(balance)} icon={Banknote} iconTone="warn"
           note={balance ? `${naira(balance)}${nextDue ? `, due ${when(nextDue)}` : " across your invoices"}` : "Nothing outstanding"} />
-        <Tile label="Support" value={`${openTickets.length} open`} icon={LifeBuoy} iconTone="neutral"
+        <Tile label="Support" href="/portal/support" value={`${openTickets.length} open`} icon={LifeBuoy} iconTone="neutral"
           note={answeredTickets.length ? `Reply from the studio ${when(answeredTickets[0].updatedAt)}` : openTickets.length ? "Waiting on the studio" : "No open questions"} />
       </dl>
 

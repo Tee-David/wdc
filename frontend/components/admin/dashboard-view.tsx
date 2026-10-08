@@ -213,19 +213,19 @@ export async function AdminDashboardView({ firstName, money = true }: { firstNam
 
       <dl className="adDash__kpis" data-tour="dash-kpis">
         {money ? <>
-        <Tile label="Collected" value={nairaShort(summary.collected)} tone="good" icon={Wallet} iconTone="good" note={`${collectionRate}% of everything billed`} />
-        <Tile label="Outstanding" value={nairaShort(summary.outstanding)} icon={Clock} iconTone="live"
+        <Tile label="Collected" href="/admin/money?status=Paid" value={nairaShort(summary.collected)} tone="good" icon={Wallet} iconTone="good" note={`${collectionRate}% of everything billed`} />
+        <Tile label="Outstanding" href="/admin/money?status=Sent" value={nairaShort(summary.outstanding)} icon={Clock} iconTone="live"
           badge={overdueCount ? { label: `${overdueCount} overdue`, tone: "bad" } : undefined}
           note={`Across ${openInvoices} open invoice${openInvoices === 1 ? "" : "s"}`} />
         </> : <>
-        <Tile label="Clients" value={String(clients.length)} icon={Users} note="Active records" />
-        <Tile label="Open tickets" value={String(getTickets().filter((t) => t.status === "Open").length)} icon={LifeBuoy} iconTone="live" note="Waiting on a reply" />
+        <Tile label="Clients" href="/admin/clients" value={String(clients.length)} icon={Users} note="Active records" />
+        <Tile label="Open tickets" href="/admin/clients/support?status=Open" value={String(getTickets().filter((t) => t.status === "Open").length)} icon={LifeBuoy} iconTone="live" note="Waiting on a reply" />
         </>}
-        <Tile label="Live projects" value={String(summary.liveProjects)} icon={FolderKanban}
+        <Tile label="Live projects" href="/admin/projects" value={String(summary.liveProjects)} icon={FolderKanban}
           badge={summary.needsUs ? { label: `${summary.needsUs} need attention`, tone: "warn" } : undefined}
           note={`${board.get("Review")?.length ?? 0} in review · ${board.get("Revisions")?.length ?? 0} in revisions`} />
         {money ? (
-          <Tile label="Cash position" value={nairaShort(summary.profit)} tone={summary.profit >= 0 ? "good" : "bad"} icon={TrendingUp} iconTone={summary.profit >= 0 ? "good" : "bad"} note={`Collected less ${nairaShort(summary.spend)} recorded spend`} />
+          <Tile label="Cash position" href="/admin/money" value={nairaShort(summary.profit)} tone={summary.profit >= 0 ? "good" : "bad"} icon={TrendingUp} iconTone={summary.profit >= 0 ? "good" : "bad"} note={`Collected less ${nairaShort(summary.spend)} recorded spend`} />
         ) : (
           <Tile label="Open forms" value={String(getSubmissions().filter((x) => x.status === "In progress").length)} icon={ClipboardList} note="Onboarding not finished" />
         )}
