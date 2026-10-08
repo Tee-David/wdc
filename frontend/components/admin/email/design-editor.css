@@ -1,45 +1,5 @@
-.deEd { display: grid; gap: 1rem; }
-.deEd__bar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 4; padding: .6rem .8rem; background: var(--ad-panel); border: 1px solid var(--ad-line); border-radius: var(--ad-r); }
-.deEd__state { color: var(--ad-dim); font-size: .88rem; }
-.deEd__spacer { flex: 1 1 auto; }
-.deEd__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
-@media (max-width: 1000px) { .deEd__grid { grid-template-columns: minmax(0, 1fr); } .deEd__previewCol { order: -1; } }
-.deEd__col { display: grid; gap: 1rem; min-width: 0; }
-.deEd__previewCol { position: sticky; top: 4.5rem; }
-@media (max-width: 1000px) { .deEd__previewCol { position: static; } }
-.deEd__panel { padding: 1rem 1.1rem; display: grid; gap: .7rem; }
-.deEd__panel h2 { margin: 0; font: 700 1rem var(--font-space-grotesk), system-ui, sans-serif; }
-.deEd__f { display: grid; gap: .3rem; font-size: .85rem; font-weight: 600; min-width: 0; }
-.deEd__f input:not([type="range"]), .deEd__f textarea, .deEd__row2 input { width: 100%; min-height: 2.75rem; padding: .55rem .7rem; border: 1px solid var(--ad-line); border-radius: 10px; background: var(--ad-panel); color: var(--ad-ink); font: 500 .95rem var(--font-outfit), system-ui, sans-serif; }
-.deEd__f input:focus-visible, .deEd__f textarea:focus-visible, .deEd__row2 input:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
-.deEd__f small, .deEd__hint { color: var(--ad-dim); font-weight: 400; font-size: .82rem; margin: 0; }
-.deEd__tags { display: flex; flex-wrap: wrap; gap: .4rem; }
-.deEd__tag { min-height: 2.75rem; padding: 0 .9rem; border-radius: 999px; border: 1px solid var(--ad-line); background: var(--ad-panel); color: var(--ad-ink); font: 600 .85rem var(--font-outfit), system-ui, sans-serif; cursor: pointer; }
-.deEd__tag:hover, .deEd__tag:focus-visible { background: var(--ad-tone-brand); color: var(--ad-on-brand); outline: none; }
-.deEd__warn { margin: 0; padding: .6rem .8rem; border-radius: 10px; background: var(--ad-tone-warn); color: var(--ad-on-warn); font-size: .88rem; }
-.deEd__blocks { list-style: none; margin: 0; padding: 0; display: grid; gap: .7rem; }
-.deEd__block { border: 1px solid var(--ad-line); border-radius: 12px; padding: .7rem .8rem; display: grid; gap: .5rem; min-width: 0; }
-.deEd__bh { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
-.deEd__acts { display: inline-flex; gap: .15rem; flex-wrap: wrap; }
-.deEd__acts button, .deEd__row2 button { width: 2.75rem; height: 2.75rem; display: grid; place-items: center; border: 0; border-radius: 10px; background: none; color: var(--ad-dim); cursor: pointer; }
-.deEd__acts button:hover:not(:disabled), .deEd__row2 button:hover { background: var(--ad-line); color: var(--ad-ink); }
-.deEd__acts button:disabled { opacity: .35; cursor: default; }
-.deEd__acts button:focus-visible, .deEd__row2 button:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 1px; }
-.deEd__acts button svg, .deEd__row2 button svg { width: 1.05rem; height: 1.05rem; }
-.deEd__acts .ad__btn { width: auto; height: auto; padding: 0 .8rem; color: var(--ad-ink); }
-.deEd__row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto; gap: .4rem; align-items: center; }
-.deEd__rows { display: grid; gap: .45rem; }
-.deEd__add { display: flex; flex-wrap: wrap; gap: .4rem; }
-.deEd__lock { margin: 0; display: flex; gap: .5rem; align-items: center; color: var(--ad-dim); font-size: .88rem; }
-.deEd__lock svg { width: 1rem; height: 1rem; flex: none; }
-.deEd__hist { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
-.deEd__hist li { display: flex; justify-content: space-between; align-items: center; gap: .6rem; font-size: .88rem; }
-.deEd__row { display: flex; flex-wrap: wrap; gap: .5rem; }
-.deEd__ph { display: flex; justify-content: space-between; align-items: center; gap: .5rem; flex-wrap: wrap; }
-.deEd__frame { background: var(--ad-bg); border: 1px solid var(--ad-line); border-radius: 12px; padding: .6rem; overflow: hidden; display: grid; justify-items: center; }
-.deEd__frame iframe { width: 100%; max-width: 680px; height: 70vh; min-height: 28rem; border: 0; border-radius: 8px; background: #fff; }
-.deEd__frame.is-phone iframe { max-width: 375px; }
-.deEd__ph .ad__btn[aria-pressed="true"] { background: var(--ad-ink); color: var(--ad-bg); }
+/* The email builder's styles live in email-builder.css and load with it. This is only the frame shown while that chunk arrives. */
+.ebLoad { min-height: 36rem; border: 1px solid var(--ad-line); border-radius: var(--ad-r); background: var(--ad-panel); box-shadow: var(--ad-sh-1); }
 
 /* ---- Contacts ---- */
 .emBar { padding: .6rem .8rem; background: var(--ad-panel); border: 1px solid var(--ad-line); border-radius: var(--ad-r); gap: .6rem; margin-bottom: .8rem; }

@@ -58,7 +58,8 @@ export async function sendCampaignAction(_p: ActionState, fd: FormData): Promise
   const refused = await ownerFresh(); if (refused) return refused;
   const id = text(fd, "id");
   const when = text(fd, "at");
-  const at = when ? new Date(when) : null;
+  /* The picker posts YYYY-MM-DDTHH:MM, which the form says is Lagos time (UTC+1, no daylight saving); the server's own zone must not decide. */
+  const at = when ? new Date(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(when) ? `${when}:00+01:00` : when) : null;
   if (at && Number.isNaN(at.getTime())) return FAIL({ at: "That date is not valid." });
   const r = await startCampaign(id, at);
   if (!r.ok) return FAIL({}, r.message);

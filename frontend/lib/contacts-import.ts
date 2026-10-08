@@ -160,6 +160,7 @@ export function checkRows(rows: ParsedRow[], look: Lookups): Result[] {
     if (r.marketing && !r.source) return refuse("Marketing yes needs a source (how they agreed)");
     if (look.existing.has(r.email)) { out.verdict = "update"; out.why = "Already a contact, will be updated"; return out; }
     const owner = r.phone ? look.phones.get(phoneKey(r.phone)) : undefined;
+    if (owner && look.stopped.has(owner)) return refuse("Same phone number as someone who asked to stop");
     if (owner) {
       /* One record per person: the same number is the same person. Their record is filled in; the file's
          address is not stored, and consent given for it is not carried to the other address. */
