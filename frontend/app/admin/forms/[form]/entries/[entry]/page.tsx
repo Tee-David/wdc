@@ -21,6 +21,7 @@ import { Empty, Panel, when } from "@/components/admin/bits";
 import { AddNote, EntryState, ResendEmail } from "@/components/admin/forms/entry-actions";
 import { NOTIFICATIONS } from "@/lib/forms/settings";
 import { adminRole } from "@/lib/admin/guard";
+import { supportCookiePresent } from "@/lib/users/support";
 import { can } from "@/lib/admin/permissions";
 import { EntryAttachments } from "@/components/admin/forms/entry-attachments";
 import type { EntryFile } from "@/lib/onboarding-files";
@@ -199,7 +200,9 @@ export default async function EntryPage({ params, searchParams }: Props) {
   const sp = await searchParams;
 
   /* Opening it is reading it; behind the response, so the page never waits. */
-  if (!entry.read) after(() => markRead(form, entry.id).catch(() => undefined));
+  /* A READ-ONLY SUPPORT VIEW READS WITHOUT LEAVING A TRACE: it must not clear
+     the real staff member's "unread". */
+  if (!entry.read && !(await supportCookiePresent())) after(() => markRead(form, entry.id).catch(() => undefined));
 
   const f = readFilters(form, sp);
   const listQuery = new URLSearchParams(Object.entries(sp).flatMap(([k, v]) => (typeof v === "string" && k !== "hide" ? [[k, v]] : []))).toString();

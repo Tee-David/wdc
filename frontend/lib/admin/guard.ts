@@ -4,6 +4,7 @@ import { supportCookiePresent } from "@/lib/users/support";
 import { getAdminRequest } from "./session";
 import { can, isAdminRole, type AdminRole, type Area } from "./permissions";
 import { FAIL, type ActionState } from "./validate";
+import { SUPPORT_READ_ONLY } from "@/lib/users/support-policy";
 
 const REFUSED = "Your session has ended or does not have access to this. Sign in again, then retry.";
 
@@ -18,7 +19,7 @@ const REFUSED = "Your session has ended or does not have access to this. Sign in
  */
 export async function owner(): Promise<ActionState | null> {
   try {
-    if (await supportCookiePresent()) return FAIL({}, "Exit the read-only support view before making changes.");
+    if (await supportCookiePresent()) return FAIL({}, SUPPORT_READ_ONLY);
     const { session } = await getAdminRequest();
     const role = (session?.user as { role?: string } | undefined)?.role;
     if (session?.user && role === "owner") return null;
@@ -60,7 +61,10 @@ export async function actorName(): Promise<string> {
 /** The signed-in admin's role, or null for anybody who is not one. Fails closed. */
 export async function adminRole(): Promise<AdminRole | null> {
   try {
-    if (await supportCookiePresent()) return null;
+    /* No support check here on purpose: this answers "what may this person SEE",
+       and in the owner's staff view that is "staff" (getAdminRequest swaps the
+       identity; a client view or an unverifiable one comes back with no
+       session, so null). WRITES are refused in allow() and owner() below. */
     const { session } = await getAdminRequest();
     const role = (session?.user as { role?: string } | undefined)?.role;
     return session?.user && isAdminRole(role) ? role : null;
@@ -75,5 +79,8 @@ export async function adminRole(): Promise<AdminRole | null> {
  * so a refused request learns nothing about which rule stopped it.
  */
 export async function allow(area: Area): Promise<ActionState | null> {
+  /* A support view reads; it never writes. The proxy already refuses the POST,
+     and this is the second lock for a path that gets past it. */
+  if (await supportCookiePresent()) return FAIL({}, SUPPORT_READ_ONLY);
   return can(await adminRole(), area) ? null : { ...FAIL({}, REFUSED), signIn: true };
 }

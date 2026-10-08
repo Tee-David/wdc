@@ -10,6 +10,7 @@ import { getAdminRequest } from "@/lib/admin/session";
 import { isAdminRole } from "@/lib/admin/permissions";
 import { adminNotices } from "@/lib/admin/notices";
 import AdminNotices from "@/components/admin/notices";
+import SupportBar from "@/components/admin/support-bar";
 import "@/components/admin/admin.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { db } from "@/lib/db/pool";
@@ -42,7 +43,12 @@ export const dynamic = "force-dynamic";
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   await syncStore();
   persistSoon();
-  const { session } = await getAdminRequest();
+  const { session, support, supportUnavailable } = await getAdminRequest();
+  /* A SUPPORT COOKIE THAT CANNOT BE VERIFIED (ended, expired, the owner signed
+     out, the person was deactivated) gets the Exit screen, never the login
+     page: a signed-in owner sent to /login is sent straight back, and that is
+     a redirect loop. Exit clears the cookie and lands on their own session. */
+  if (supportUnavailable) return <div className="ad"><main className="ad__main"><SupportBar /></main></div>;
   const role = (session?.user as { role?: string } | undefined)?.role;
   /* Owner and staff. What staff may do inside is lib/admin/permissions.ts,
      enforced at every action by lib/admin/guard.ts; this only keeps everyone
@@ -57,7 +63,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
   /* A new member of staff meets the welcome page once (set when they accept
      their invitation; people who joined earlier are never sent there). */
-  if (role === "staff") {
+  if (role === "staff" && !support) {
     const asked = (await headers()).get("x-wdc-path") ?? "";
     if (!asked.startsWith("/admin/welcome")) {
       const pending = await db.query(`SELECT 1 FROM client_profile_preferences WHERE user_id = $1 AND setup_state = 'pending'`, [session.user.id])
@@ -94,6 +100,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           counts={{ Forms: open, FailedMail: failedMail, Blog: inReview, Unchecked: unchecked }}
           user={{ name: session.user.name, email: session.user.email, image: session.user.image }}
           role={role}
+          support={support ? { name: session.user.name, expiresAt: support.expiresAt, minutes: support.minutes } : null}
         >
           <AdminNotices notices={notices} />
           {children}
