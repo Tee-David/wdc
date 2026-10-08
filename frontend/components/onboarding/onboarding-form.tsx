@@ -830,11 +830,6 @@ export default function OnboardingForm({ closed = {}, styles = {}, engagement = 
                         </div>
                       )}
                       <div className="ob__acts ob__acts--step">
-                        {n === 0 ? (
-                          <button className="ob__btn ob__btn--ghost ob__stepBack" type="button" onClick={changeService}>
-                            <ArrowLeft aria-hidden="true" /> Back to the onboarding menu
-                          </button>
-                        ) : null}
                         <button className="ob__btn ob__btn--ghost ob__stepSave" type="button" onClick={saveNow}><Save aria-hidden="true" /> Save &amp; continue later</button>
                         <button className="ob__btn ob__btn--go ob__stepNext" type="button" onClick={boardNext}>
                           {n === steps.length - 1 ? "Done, review" : "Done, next section"} <ArrowRight aria-hidden="true" />
@@ -986,11 +981,7 @@ export default function OnboardingForm({ closed = {}, styles = {}, engagement = 
             <button className="ob__btn ob__btn--ghost ob__stepBack" type="button" onClick={back}>
               <ArrowLeft aria-hidden="true" /> Back
             </button>
-          ) : (
-            <button className="ob__btn ob__btn--ghost ob__stepBack" type="button" onClick={changeService}>
-              <ArrowLeft aria-hidden="true" /> Back to the onboarding menu
-            </button>
-          )}
+          ) : null}
           <button className="ob__btn ob__btn--ghost ob__stepSave" type="button" onClick={saveNow}>
             <Save aria-hidden="true" /> Save &amp; continue later
           </button>
