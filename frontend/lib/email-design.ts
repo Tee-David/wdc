@@ -14,7 +14,9 @@ import {
  * escaped; merge tags are filled with escaped values, and a missing value uses
  * its fallback (`{{client.first_name | "there"}}`) or nothing.
  */
-export type Block =
+export type When = { key: string; is: "filled" | "empty" };
+/** Every block may carry a `when`: it is left out of the email for anyone it does not fit (tags arrive as `tag.<name>`). */
+export type Block = { when?: When } & (
   | { id: string; type: "heading"; text: string }
   | { id: string; type: "text"; text: string }
   | { id: string; type: "button"; label: string; url: string }
@@ -26,7 +28,8 @@ export type Block =
   | { id: string; type: "space"; size: number }
   | { id: string; type: "note"; text: string }
   /** A block the system fills (invoice lines, a reset link): it can be moved or removed, never edited. */
-  | { id: string; type: "system"; key: string };
+  | { id: string; type: "system"; key: string }
+);
 
 export type Design = { subject: string; preheader: string; heading: string; blocks: Block[] };
 
@@ -97,6 +100,7 @@ export function renderDesign(
   const html: string[] = [];
   const text: string[] = [];
   for (const b of design.blocks) {
+    if (b.when && Boolean((vars[b.when.key.toLowerCase()] ?? "").trim()) !== (b.when.is === "filled")) continue;
     switch (b.type) {
       case "heading": html.push(emailHeading(inline(b.text, vars))); text.push(plain(b.text, vars).toUpperCase()); break;
       case "text":
@@ -140,5 +144,6 @@ export function validDesign(value: unknown): value is Design {
   const d = value as Design;
   return typeof d.subject === "string" && typeof d.preheader === "string" && typeof d.heading === "string"
     && Array.isArray(d.blocks) && d.blocks.length <= 60
-    && d.blocks.every((b) => b && typeof b.id === "string" && typeof b.type === "string" && b.type in BLOCK_LABEL);
+    && d.blocks.every((b) => b && typeof b.id === "string" && typeof b.type === "string" && b.type in BLOCK_LABEL
+      && (b.when === undefined || (typeof b.when.key === "string" && b.when.key.length <= 60 && (b.when.is === "filled" || b.when.is === "empty"))));
 }
