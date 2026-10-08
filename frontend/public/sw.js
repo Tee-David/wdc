@@ -55,7 +55,7 @@
 
 /* Bump this to retire every cache from the previous version. `activate`
    deletes anything that is not one of the current pair. */
-const VERSION = "v2";
+const VERSION = "v3";
 const ASSETS = `wdc-assets-${VERSION}`;
 const PAGES = `wdc-pages-${VERSION}`;
 
