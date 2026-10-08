@@ -37,9 +37,9 @@ const TITLES = [
 const SMALL_KEYS = [
   "first_name", "last_name", "phone", "email", "company", "industry", "audience",
   "site_size", "site_new_or_existing", "site_jobs", "words_ready", "pictures_ready", "has_domain",
-  "deadline_kind", "approver", "channel", "has_logo", "assets", "about", "anything_else",
+  "deadline_kind", "approver", "channel", "has_logo", "assets", "anything_else",
 ];
-const MEDIUM_KEYS = [...SMALL_KEYS, "age_range", "features", "search_note", "has_brandbook"];
+const MEDIUM_KEYS = [...SMALL_KEYS, "about", "company_age", "age_range", "features", "search_note", "has_brandbook"];
 const LARGE_KEYS = [...MEDIUM_KEYS, "page_count", "site_platform", "usp", "others"];
 
 /* ------------------------------------------------------------- answers used */
@@ -71,7 +71,6 @@ const FULL: Answers = {
   has_domain: "No",
   hosting_wanted: "Yes",
   deadline_kind: "Within two weeks",
-  fixed_dates: "The launch",
   has_logo: "No",
   logo_wanted: "Yes",
   has_brandbook: "No",

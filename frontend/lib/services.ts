@@ -54,9 +54,9 @@ export const SERVICES: Service[] = [
     steps: [
       { t: "Discovery", d: "We learn the business, the customer and the market before a single mark is drawn.", i: "Search" },
       { t: "Brand strategy", d: "Positioning and message, agreed in writing, so the design has something to serve.", i: "Compass" },
-      { t: "Identity design", d: "Logo, type, colour and layout built as a system, not a single lockup.", i: "Palette" },
+      { t: "Identity design", d: "Your logo, brand guidelines, logo files in every size and colour (PNG and SVG), and mockups, built as one system.", i: "Palette" },
       { t: "Motion & micro-animation", d: "How the brand moves: transitions, micro-animations and motion design.", i: "Orbit" },
-      { t: "Brand guide", d: "The rules written down, so anyone can apply the identity without guessing.", i: "BookOpen" },
+      { t: "Brand guide", d: "Logo rules, type, colour and usage with mockups, written down so anyone can apply the identity. Part of every full identity, or on its own.", i: "BookOpen" },
       { t: "Asset rollout", d: "Profiles, flyers, posters, banners, printables and physical brand stands.", i: "Package" },
     ],
     deliverables: [
