@@ -139,7 +139,7 @@ export default async function WorkCategoryPage(
 
             {cases.length ? (
               <div className="wk-grid">
-                {cases.map((cs) => (
+                {cases.map((cs, at) => (
                   /* Always the piece's CANONICAL category, never the one being
                      browsed: TraxStaff is listed under web, apps and software,
                      and linking each listing to its own path would serve the
@@ -156,6 +156,8 @@ export default async function WorkCategoryPage(
                           src={cs.cover}
                           alt={`${cs.client}: ${cs.title}`}
                           fill
+                          loading={at < 2 ? "eager" : "lazy"}
+                          fetchPriority={at < 2 ? "high" : "auto"}
                           sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw"
                           quality={78}
                         />

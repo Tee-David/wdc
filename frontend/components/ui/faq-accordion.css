@@ -28,10 +28,10 @@
 @media (max-width: 520px) { .qa--numbered .qa__q { grid-template-columns: 1fr auto; } }
 @media (max-width: 520px) { .qa--numbered .qa__n { display: none; } }
 
-/* the counter is the brand orange itself rather than the darkened --accent-ink
-   used for body-sized text on light; #FF6500 on white is 2.8:1, so it is set
-   bold and stays a label beside the question, never the question itself */
-.qa__n { color: var(--accent); font-size: .92rem; font-weight: 700; }
+/* the counter is text, so it takes --accent-ink in both themes: #b84a00 (the
+   dark-mode fill orange) on near-black is 3.9:1, which fails at this size;
+   --accent-ink holds 4.5:1 on light and on dark */
+.qa__n { color: var(--accent-ink); font-size: .92rem; font-weight: 700; }
 .qa__t { min-width: 0; }
 
 /* A ring on the row, not an outline hugging the glyphs: the button is a full
