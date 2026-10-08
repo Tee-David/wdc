@@ -1387,3 +1387,4 @@
 }
 /* A long label wraps instead of widening the page, even at 200% text on a 320px phone. */
 .pv .ob__acts--step > .ob__stepBack { max-width: 100%; white-space: normal; text-align: left; line-height: 1.25; }
+.obFont__btn { justify-self: start; margin-top: .2rem; padding: .35rem .9rem; border-radius: 999px; background: #14171f; color: #fff; font-size: calc(var(--ob-font, 16px) * .9); line-height: 1.2; }

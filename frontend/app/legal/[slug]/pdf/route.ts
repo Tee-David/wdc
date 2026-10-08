@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { legalBySlug } from "@/lib/legal";
+import { getLegalDoc } from "@/lib/legal-store";
 import { renderLegalPdf } from "@/lib/legal-pdf";
 
 /**
@@ -8,7 +8,7 @@ import { renderLegalPdf } from "@/lib/legal-pdf";
  * render for long and a policy edit shows up within the hour.
  */
 export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
-  const doc = legalBySlug((await params).slug);
+  const doc = await getLegalDoc((await params).slug);
   if (!doc) return new NextResponse("Not found", { status: 404 });
   const tab = new URL(req.url).searchParams.get("tab") ?? undefined;
   if (tab && !doc.tabs?.some((t) => t.id === tab)) return new NextResponse("Not found", { status: 404 });

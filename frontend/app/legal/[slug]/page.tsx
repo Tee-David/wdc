@@ -6,7 +6,8 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import LegalToc from "@/components/legal/legal-toc";
 import LegalTabs from "@/components/legal/legal-tabs";
 import Rich, { SeeAlso } from "@/components/legal/rich";
-import { LEGAL_DOCS, legalBySlug } from "@/lib/legal";
+import { LEGAL_DOCS } from "@/lib/legal";
+import { getLegalDoc, getLegalDocs } from "@/lib/legal-store";
 import { COMPANY_NAME, CONTACT_EMAIL, SITE_URL } from "@/lib/site";
 import "@/components/preview/preview.css";
 import "@/components/legal/legal.css";
@@ -20,7 +21,7 @@ export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
 ): Promise<Metadata> {
   const { slug } = await params;
-  const doc = legalBySlug(slug);
+  const doc = await getLegalDoc(slug);
   if (!doc) return {};
 
   /* THE BLURB ALONE IS TOO SHORT TO SURVIVE AS A SNIPPET. The four run 75 to
@@ -72,11 +73,12 @@ export default async function LegalDocPage(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
-  const doc = legalBySlug(slug);
+  const doc = await getLegalDoc(slug);
   if (!doc) notFound();
+  const docs = await getLegalDocs();
 
   const sections = doc.sections.map((s, i) => ({ id: `s${i}`, heading: s.heading }));
-  const others = LEGAL_DOCS.filter((d) => d.slug !== doc.slug)
+  const others = docs.filter((d) => d.slug !== doc.slug)
     .map((d) => ({ slug: d.slug, title: d.title }));
 
   const breadcrumbJsonLd = {
@@ -104,7 +106,7 @@ export default async function LegalDocPage(
         <section className="pv-sec">
           <div className="pv-wrap">
             {doc.tabs ? (
-              <LegalTabs also={LEGAL_DOCS.map((d) => ({ slug: d.slug, title: d.title }))} slug={doc.slug} intro={doc.intro} tabs={doc.tabs} sections={doc.sections.map((x) => ({ heading: x.heading, body: x.body, tab: x.tab ?? "general" }))} email={CONTACT_EMAIL} />
+              <LegalTabs also={docs.map((d) => ({ slug: d.slug, title: d.title }))} slug={doc.slug} intro={doc.intro} tabs={doc.tabs} sections={doc.sections.map((x) => ({ heading: x.heading, body: x.body, tab: x.tab ?? "general" }))} email={CONTACT_EMAIL} />
             ) : (
               <div className="lg-cols">
                 <LegalToc sections={sections} others={others} />
@@ -127,7 +129,7 @@ export default async function LegalDocPage(
 
                   <p className="lg-pdf"><a href={`/legal/${doc.slug}/pdf`} download>Download this policy as a PDF</a></p>
 
-                <SeeAlso here={doc.slug} docs={LEGAL_DOCS.map((d) => ({ slug: d.slug, title: d.title }))} />
+                <SeeAlso here={doc.slug} docs={docs.map((d) => ({ slug: d.slug, title: d.title }))} />
 
                 <p className="lg-foot">
                     This page explains how we work. It is written to be understood
