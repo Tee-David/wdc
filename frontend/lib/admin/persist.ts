@@ -2,7 +2,7 @@ import "server-only";
 
 import { after } from "next/server";
 import { db } from "@/lib/db/pool";
-import { persistedCollections } from "@/lib/admin/store";
+import { persistedCollections, renumberLegacyInvoices } from "@/lib/admin/store";
 import { hydrateSettings } from "@/lib/settings/store";
 
 /**
@@ -95,6 +95,8 @@ async function load() {
   }
   state.seq = top;
   state.loaded = true;
+  /* One-time: old sequential invoice numbers become random ones. Written now so every instance agrees. */
+  if (renumberLegacyInvoices()) await write().catch((e) => console.error("[admin store] renumber save failed:", e instanceof Error ? e.message : e));
 }
 
 async function catchUp() {

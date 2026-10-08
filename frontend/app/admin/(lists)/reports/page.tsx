@@ -44,14 +44,14 @@ export default async function Reports({ searchParams }: { searchParams: Promise<
           <h1>Reports</h1>
           <p>{period.from} to {period.to}, against the {before.from} to {before.to} before it.</p>
         </div>
-        <div className="ad__row">
+        <div className="ad__row" data-tour="reports-range">
           <DateRange value={period} action="/admin/reports"
             href={(r) => `/admin/reports?${new URLSearchParams({ ...(r.from ? { from: r.from } : {}), ...(r.to ? { to: r.to } : {}) })}`} />
           <a className="ad__btn" href={`/admin/reports/export?${qs}`}><Download aria-hidden="true" /> CSV</a>
         </div>
       </div>
 
-      <dl className="ad__tiles ad__tiles--5">
+      <dl className="ad__tiles ad__tiles--5" data-tour="reports-tiles">
         <Tile label="Invoiced" value={nairaShort(now.invoiced)} icon={FileText} badge={badge(now.invoiced, prev.invoiced)} note={`${nairaShort(prev.invoiced)} before`} />
         <Tile label="Collected" value={nairaShort(now.collected)} icon={Wallet} iconTone="good" badge={badge(now.collected, prev.collected)} note={`${nairaShort(prev.collected)} before`} />
         <Tile label="Spent" value={nairaShort(now.spent)} icon={Banknote} iconTone="warn" badge={badge(now.spent, prev.spent, false)} note={`${nairaShort(prev.spent)} before`} />
@@ -59,7 +59,7 @@ export default async function Reports({ searchParams }: { searchParams: Promise<
         <Tile label="New clients" value={String(now.newClients)} icon={UserPlus} iconTone="live" badge={badge(now.newClients, prev.newClients)} note={`${now.projectsStarted} project${now.projectsStarted === 1 ? "" : "s"} started`} />
       </dl>
 
-      <Panel title="Month by month">
+      <Panel title="Month by month" dataTour="reports-months">
         {months.some((m) => m.invoiced || m.collected || m.spent) ? (
           <>
             <ul className="adRep__bars" aria-label="Collected and spent by month">

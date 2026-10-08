@@ -244,8 +244,10 @@ export type InvoiceLine = {
 
 export type Invoice = {
   id: Id;
-  /** INV-YYYY-NNN, issued in order and never reused. */
+  /** INV-YY-XXXXXX (random). Older ones were INV-YYYY-NNN. */
   number: string;
+  /** Numbers this invoice carried before it was renumbered, so a client's old email or bank narration still matches it. */
+  formerNumbers?: string[];
   /**
    * THE PUBLIC ADDRESS OF THIS INVOICE, and why it is not the number.
    *
@@ -303,7 +305,7 @@ export type Invoice = {
    application of credit the studio already holds, not a payment somebody
    types in -- it comes from `applyCredit`, which knows where the credit came
    from and marks it spent. `recordPayment` refuses it for that reason. */
-export const METHODS = ["Paystack", "Transfer", "Cash", "POS", "Credit", "Other"] as const;
+export const METHODS = ["Paystack", "Transfer", "Cash", "Card", "POS", "Credit", "Other"] as const;
 /** What a person may choose when entering a payment by hand. */
 export const ENTERABLE_METHODS = METHODS.filter((m) => m !== "Credit");
 export type Method = (typeof METHODS)[number];
