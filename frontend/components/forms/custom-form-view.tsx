@@ -387,7 +387,7 @@ function SliderField({ f, id, value, onChange, error, describedBy }: { f: Custom
       {f.help ? <small id={`${id}-h`} className="cf-help">{f.help}</small> : null}
       <output className="cf-slider__val" htmlFor={id} aria-live="polite">{deferred ? "We will advise you" : at >= 0 ? steps[at] : "Slide to choose"}</output>
       <input id={id} type="range" min={0} max={steps.length - 1} step={1} value={at >= 0 ? at : 0} aria-valuetext={at >= 0 ? steps[at] : "Not chosen yet"}
-        className={at < 0 ? "is-unset" : undefined} disabled={false}
+        className={at < 0 ? "is-unset" : undefined} style={{ "--p": `${steps.length > 1 && at >= 0 ? (at / (steps.length - 1)) * 100 : 0}%` } as React.CSSProperties}
         onChange={(e) => onChange(steps[Number(e.target.value)])} onPointerDown={() => { if (at < 0) onChange(steps[0]); }} />
       <span className="cf-slider__ends" aria-hidden="true"><span>{steps[0]}</span><span>{steps[steps.length - 1]}</span></span>
       {deferral ? (
