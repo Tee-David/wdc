@@ -37,7 +37,9 @@ ALTER TABLE contacts ADD COLUMN IF NOT EXISTS soft_bounces INT NOT NULL DEFAULT 
 ALTER TABLE contacts ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
 ALTER TABLE contacts ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
 ALTER TABLE contacts ADD COLUMN IF NOT EXISTS last_activity TIMESTAMPTZ NULL;
-CREATE INDEX IF NOT EXISTS contacts_status_type ON contacts (status, "type");
+-- One index on status only. The earlier (status, type) index was the one statement that read `type`, and a
+-- list of contacts is filtered by status far more than by type, so nothing is lost.
+CREATE INDEX IF NOT EXISTS contacts_status ON contacts (status);
 CREATE TABLE IF NOT EXISTS contact_tags (
   contact_id TEXT NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
   tag TEXT NOT NULL,
