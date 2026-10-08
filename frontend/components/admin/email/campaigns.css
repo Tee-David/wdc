@@ -1,0 +1,56 @@
+/* THE CAMPAIGNS TAB AND CAMPAIGN PAGE (the approved "Campaigns" design). Tokens only: bars and tiles are solid fills,
+   and a bar always carries its figure in words beside it. Bars grow from the left on arrival (transform only, backwards fill,
+   nothing under reduced motion); the server already rendered the real width. */
+.adCp__head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: .75rem 1rem; }
+.adCp__head > div:first-child { min-width: 0; }
+.adCp__head h2 { font-size: 1.35rem; font-weight: 600; }
+.adCp__head p { margin: .3rem 0 0; font-size: .92rem; }
+.adCp__t { min-width: 46rem; }
+.adCp__name { display: grid; min-width: 0; max-width: 28rem; }
+.adCp__name b { font-weight: 600; overflow-wrap: anywhere; }
+.adCp__name small { max-width: 32ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adCp__name:hover b { text-decoration: underline; text-underline-offset: .2rem; }
+.adCp__rate { display: flex; align-items: center; gap: .65rem; min-width: 8.5rem; font-variant-numeric: tabular-nums; }
+.adCp__rate i { flex: 1; min-width: 3.75rem; height: 6px; border-radius: 3px; background: var(--ad-line); overflow: hidden; }
+.adCp__rate i b { display: block; height: 100%; border-radius: 3px; background: var(--ad-accent-fill); transform-origin: left; }
+.adCp__rate > span { width: 3.2ch; text-align: right; font-weight: 600; }
+
+/* the campaign page */
+.adCp__mini { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr)); gap: .6rem; margin: 0; }
+.adCp__mini > div { min-width: 0; padding: .8rem 1rem; border: 1px solid var(--ad-line); border-radius: 14px; background: var(--ad-panel-2); }
+.adCp__mini dt { font-size: .82rem; color: var(--ad-dim); }
+.adCp__mini dd { margin: .15rem 0 0; font: 600 1.45rem var(--font-space-grotesk), system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+.adCp__mini small { display: block; margin-top: .1rem; color: var(--ad-dim); font-size: .75rem; line-height: 1.35; }
+.adCp__box { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem 1rem; padding: .9rem 1rem; border: 1px solid var(--ad-line); border-radius: 14px; background: var(--ad-panel-2); }
+.adCp__box > .adCp__ic { width: 2.5rem; height: 2.5rem; flex: none; display: grid; place-items: center; border-radius: 11px; background: var(--ad-tone-brand); color: var(--ad-on-brand); }
+.adCp__box > .adCp__ic svg { width: 1.2rem; height: 1.2rem; }
+.adCp__box > div { min-width: 0; flex: 1 1 12rem; }
+.adCp__box b { font: 600 1.4rem var(--font-space-grotesk), system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+.adCp__box small { display: block; color: var(--ad-dim); font-size: .82rem; }
+.adCp__box--form { align-items: flex-start; }
+.adCp__box--form form { flex: 1 1 14rem; min-width: 0; }
+.adCp__bars { display: grid; gap: .9rem; margin: 0; padding: 0; list-style: none; }
+.adCp__bar { display: grid; gap: .35rem; min-width: 0; }
+.adCp__bar > div { display: flex; justify-content: space-between; gap: .75rem; font-size: .9rem; }
+.adCp__bar > div span { min-width: 0; overflow-wrap: anywhere; }
+.adCp__bar > div b { font-variant-numeric: tabular-nums; }
+.adCp__bar > i { display: block; height: 10px; border-radius: 5px; background: var(--ad-line); overflow: hidden; }
+.adCp__bar > i b { display: block; height: 100%; border-radius: 5px; background: var(--ad-accent-fill); transform-origin: left; }
+.adCp__pad { padding: 1rem 1.25rem; display: grid; gap: 1rem; }
+.adCp__pad > h3 { margin: 0; font-size: 1rem; font-weight: 600; }
+.adCp__lbl { margin: 0 0 .4rem; font: 600 .72rem var(--font-outfit), system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--ad-dim); }
+.adCp__seg { display: inline-flex; width: 100%; padding: 3px; gap: 2px; border-radius: 12px; background: var(--ad-panel-2); border: 1px solid var(--ad-line); }
+.adCp__seg button { flex: 1; min-height: 2.75rem; padding: 0 .85rem; border: 0; border-radius: 9px; background: transparent; color: var(--ad-ink); font: inherit; font-weight: 600; font-size: .9rem; cursor: pointer; }
+.adCp__seg button:hover { background: var(--ad-line); }
+.adCp__seg button[aria-pressed="true"] { background: var(--ad-fill); color: var(--ad-on-fill); }
+.adCp__mail { display: flex; gap: .75rem; align-items: flex-start; padding: .8rem 1rem; border: 1px solid var(--ad-line); border-radius: 12px; font-size: .9rem; }
+.adCp__mail > span { width: 2rem; height: 2rem; flex: none; display: grid; place-items: center; border-radius: 9px; background: var(--ad-tone-live); color: var(--ad-on-live); }
+.adCp__mail > span svg { width: 1rem; height: 1rem; }
+.adCp__mail > div { min-width: 0; overflow-wrap: anywhere; }
+.adCp__mail small { color: var(--ad-dim); }
+.adCp__acts { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .adCp__rate i b, .adCp__bar > i b { animation: adCp-grow .7s cubic-bezier(.2, .7, .2, 1) backwards; }
+  @keyframes adCp-grow { from { transform: scaleX(0); } }
+}

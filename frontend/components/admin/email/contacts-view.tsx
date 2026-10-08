@@ -37,8 +37,8 @@ const people = (n: number) => `${n.toLocaleString("en-GB")} ${n === 1 ? "person"
  * pinned. While a new page is coming the rows hold their place and dim; no
  * invented data is drawn.
  */
-export function ContactsView({ rows, total, stats, filters, tags, filtered, kpis, pager }: {
-  rows: ContactRow[]; total: number; stats: { total: number };
+export function ContactsView({ rows, total, stats, filters, per, tags, filtered, kpis, pager }: {
+  rows: ContactRow[]; total: number; stats: { total: number }; per: number;
   filters: Filters; tags: { tag: string; n: number }[]; filtered: boolean;
   kpis: React.ReactNode; pager: React.ReactNode;
 }) {
@@ -51,13 +51,21 @@ export function ContactsView({ rows, total, stats, filters, tags, filtered, kpis
   const [openId, setOpenId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const head = useRef<HTMLInputElement>(null);
+  /* The search text this component last put in the address, so Back and Forward (which change it from outside) can be told apart. */
+  const pushedQ = useRef(filters.q);
 
   const go = useCallback((patch: Partial<Record<keyof Filters, string>>) => {
     const next = { ...filters, marketing: "", ...patch };
+    if (patch.q !== undefined) pushedQ.current = patch.q;
     const u = new URLSearchParams({ tab: "contacts" });
     for (const [k, v] of Object.entries(next)) if (v) u.set(k, v);
+    if (per !== 25) u.set("per", String(per));
     start(() => router.push(`/admin/email?${u}`, { scroll: false }));
-  }, [filters, router]);
+  }, [filters, per, router]);
+
+  useEffect(() => {
+    if (filters.q !== pushedQ.current) { pushedQ.current = filters.q; setQv(filters.q); }
+  }, [filters.q]);
 
   /* The search runs a beat after the last key, and not at all if nothing changed. */
   useEffect(() => {
@@ -151,7 +159,7 @@ export function ContactsView({ rows, total, stats, filters, tags, filtered, kpis
               <label className="ctSearch">
                 <Search aria-hidden="true" />
                 <span className="ad__sr">Search contacts</span>
-                <input type="search" value={qv} onChange={(e) => setQv(e.target.value)} placeholder="Search name, email or phone" autoComplete="off" />
+                <input type="search" value={qv} onChange={(e) => setQv(e.target.value)} placeholder="Search name or email" autoComplete="off" />
               </label>
             </div>
 
@@ -196,7 +204,7 @@ export function ContactsView({ rows, total, stats, filters, tags, filtered, kpis
               <div className="ctEmpty">
                 {total > 0 ? (
                   <AdminState kind="no-results" title="That page is empty" description="There are fewer people than that page number. Go back to the first page."
-                    action={<button type="button" className="ad__btn" onClick={() => start(() => router.push(`/admin/email?${new URLSearchParams({ tab: "contacts", ...(filters.q ? { q: filters.q } : {}) })}`, { scroll: false }))}>First page</button>} />
+                    action={<button type="button" className="ad__btn" onClick={() => go({})}>First page</button>} />
                 ) : (
                   <AdminState kind="no-results" title="No one matches" description="Nothing fits the search and filters you have on. Clear them to see everyone."
                     action={<button type="button" className="ad__btn" onClick={() => { setQv(""); go({ q: "", type: "", status: "", tag: "" }); }}><SearchX aria-hidden="true" />Clear search and filters</button>} />

@@ -244,19 +244,45 @@ export async function recordOpen(token: string): Promise<void> {
   } catch { /* a pixel never fails a page */ }
 }
 
-export type Report = { sent: number; failed: number; pending: number; cancelled: number; opened: number; clickers: number; clicks: number; unsubscribed: number; links: { url: string; clicks: number }[] };
+export type Report = { sent: number; failed: number; pending: number; cancelled: number; opened: number; clickers: number; clicks: number; unsubscribed: number; bounced: number; links: { url: string; clicks: number }[] };
 export async function reportFor(c: Campaign): Promise<Report> {
-  const blank: Report = { sent: 0, failed: 0, pending: 0, cancelled: 0, opened: 0, clickers: 0, clicks: 0, unsubscribed: 0, links: [] };
+  const blank: Report = { sent: 0, failed: 0, pending: 0, cancelled: 0, opened: 0, clickers: 0, clicks: 0, unsubscribed: 0, bounced: 0, links: [] };
   try {
-    const r = await db.query<{ sent: string; failed: string; pending: string; cancelled: string; opened: string; clickers: string; clicks: string; unsub: string }>(
+    const r = await db.query<{ sent: string; failed: string; pending: string; cancelled: string; opened: string; clickers: string; clicks: string; unsub: string; bounced: string }>(
       `SELECT count(*) FILTER (WHERE status = 'sent') AS sent, count(*) FILTER (WHERE status = 'failed') AS failed,
               count(*) FILTER (WHERE status IN ('pending','processing')) AS pending, count(*) FILTER (WHERE status = 'cancelled') AS cancelled,
               count(*) FILTER (WHERE opened_at IS NOT NULL) AS opened, count(*) FILTER (WHERE clicks > 0) AS clickers, COALESCE(sum(clicks), 0) AS clicks,
-              count(*) FILTER (WHERE email IN (SELECT email FROM suppression WHERE reason = 'unsubscribed' AND at > (SELECT COALESCE(started_at, now()) FROM campaigns WHERE id = $1))) AS unsub
+              count(*) FILTER (WHERE email IN (SELECT email FROM suppression WHERE reason = 'unsubscribed' AND at > (SELECT COALESCE(started_at, now()) FROM campaigns WHERE id = $1))) AS unsub,
+              count(*) FILTER (WHERE status = 'sent' AND email IN (SELECT email FROM suppression WHERE reason = 'bounced' AND at > (SELECT COALESCE(started_at, now()) FROM campaigns WHERE id = $1))) AS bounced
        FROM campaign_sends WHERE campaign_id = $1`, [c.id]);
     const x = r.rows[0];
     const l = await db.query<{ url: string; clicks: number }>(`SELECT url, clicks FROM campaign_links WHERE campaign_id = $1 AND clicks > 0 ORDER BY clicks DESC LIMIT 20`, [c.id]);
     const sent = Number(x.sent);
-    return { sent, failed: Number(x.failed), pending: Number(x.pending), cancelled: Number(x.cancelled), opened: Math.min(Number(x.opened) + c.anonOpens, sent || Number(x.opened)), clickers: Number(x.clickers), clicks: Number(x.clicks) + c.anonClicks, unsubscribed: Number(x.unsub), links: l.rows };
+    return { sent, failed: Number(x.failed), pending: Number(x.pending), cancelled: Number(x.cancelled), opened: Math.min(Number(x.opened) + c.anonOpens, sent || Number(x.opened)), clickers: Number(x.clickers), clicks: Number(x.clicks) + c.anonClicks, unsubscribed: Number(x.unsub), bounced: Number(x.bounced), links: l.rows };
   } catch { return blank; }
+}
+
+export type Rates = { sent: number; opened: number; clickers: number; bounced: number };
+/**
+ * Sent, opened, clicked and bounced for many campaigns in ONE query, for the list (reportFor is one campaign and two queries).
+ * Opens add the anonymous count the same way reportFor does. "Bounced" is a recipient the mail provider later reported as bounced (the suppression list), never a guess.
+ * Null when the tables are not there; a campaign with no sends is simply absent.
+ */
+export async function ratesFor(campaigns: Campaign[]): Promise<Map<string, Rates> | null> {
+  if (!campaigns.length) return new Map();
+  try {
+    const r = await db.query<{ campaign_id: string; sent: string; opened: string; clickers: string; bounced: string }>(
+      `SELECT s.campaign_id, count(*) FILTER (WHERE s.status = 'sent') AS sent, count(*) FILTER (WHERE s.opened_at IS NOT NULL) AS opened,
+              count(*) FILTER (WHERE s.clicks > 0) AS clickers,
+              count(*) FILTER (WHERE s.status = 'sent' AND EXISTS (SELECT 1 FROM suppression x WHERE x.email = s.email AND x.reason = 'bounced' AND x.at > COALESCE(c.started_at, c.created_at))) AS bounced
+       FROM campaign_sends s JOIN campaigns c ON c.id = s.campaign_id
+       WHERE s.campaign_id = ANY($1::TEXT[]) GROUP BY s.campaign_id, c.started_at, c.created_at`, [campaigns.map((c) => c.id)]);
+    const out = new Map<string, Rates>();
+    for (const x of r.rows) {
+      const c = campaigns.find((k) => k.id === x.campaign_id);
+      const sent = Number(x.sent);
+      out.set(x.campaign_id, { sent, opened: Math.min(Number(x.opened) + (c?.anonOpens ?? 0), sent || Number(x.opened)), clickers: Number(x.clickers), bounced: Number(x.bounced) });
+    }
+    return out;
+  } catch { return null; }
 }

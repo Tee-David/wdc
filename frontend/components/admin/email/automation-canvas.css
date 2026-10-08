@@ -206,6 +206,9 @@
   .adWf__as .adPick { flex: 1; min-width: 0; }
   .adWf__acts .ad__btn { flex: 1 1 auto; }
   .adWf { --wf-h: clamp(26rem, calc(100dvh - 20rem), 40rem); }
+  /* Eight 44px targets will not fit in 340px with a percentage between them: the zoom level is for the wide screen. */
+  .adWf__ctl > span { display: none; }
+  .adWf__seg button { padding: 0 .65rem; }
   .adWf__top { padding: .6rem .75rem; }
 }
 @media (prefers-reduced-motion: reduce) {
