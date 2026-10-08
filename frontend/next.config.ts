@@ -92,6 +92,7 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/admin": ["./db/migrations/*.sql", ...PDF_ASSETS],
     "/admin/**/*": ["./db/migrations/*.sql", ...PDF_ASSETS],
+    "/legal/**/*": PDF_ASSETS,
     "/api/contact": PDF_ASSETS,
     "/api/onboarding/submit": PDF_ASSETS,
     "/api/forms/**/*": PDF_ASSETS,
