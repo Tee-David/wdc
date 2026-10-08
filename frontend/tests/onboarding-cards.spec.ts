@@ -16,7 +16,7 @@ import { chooseOption, isolate, seedDraft } from "./onboarding-helpers";
  */
 
 const field = (page: Page, key: string) => page.locator(`[data-field="${key}"]`);
-const next = (page: Page) => page.getByRole("button", { name: "Next", exact: true });
+const next = (page: Page) => page.getByRole("button", { name: /^Next/ });
 const stored = (page: Page) => page.evaluate(() => {
   try { return JSON.parse(localStorage.getItem("wdc-onboarding-draft") ?? "{}").answers ?? {}; } catch { return {}; }
 });
@@ -193,6 +193,18 @@ test("a small job that ticks Brand guidelines still reaches the colours step", a
   await next(page).click();
   await expect(page.getByRole("heading", { name: "Your colours" })).toBeVisible();
   await expect(field(page, "brand_colours")).toBeVisible();
+});
+
+test("Nothing yet clears the other ticks, and ticking anything else clears Nothing yet", async ({ page }) => {
+  await openBranding(page, 390, "light", { job_size: "One piece or a small set", deliverables: ["Logo"] });
+  await next(page).click();
+  await chooseOption(page, "brand_have", "A logo");
+  await chooseOption(page, "brand_have", "Our colours");
+  await chooseOption(page, "brand_have", "Nothing yet");
+  const checked = () => page.locator('[role="checkbox"][aria-checked="true"]').allInnerTexts();
+  expect((await checked()).map((t) => t.trim())).toEqual(["Nothing yet"]);
+  await chooseOption(page, "brand_have", "A logo");
+  expect((await checked()).map((t) => t.trim())).toEqual(["A logo"]);
 });
 
 test("a small logo job does not reach the colours step", async ({ page }) => {

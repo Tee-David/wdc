@@ -1,7 +1,18 @@
 import { FIELD_EXAMPLES, OPTION_HELP } from "@/lib/onboarding-help";
 
-export function ChoiceLabel({ field, option }: { field: string; option: string }) {
-  const help = OPTION_HELP[field]?.[option];
+/** Escape hatches never carry a description, and never count against a list. */
+const EXCLUSIVE_HELPLESS = new Set(["Other", "None yet", "Nothing yet", "None of these", "Not sure"]);
+
+/**
+ * ALL OR NONE. A list where three options carry a second line and five do not
+ * reads as ragged cards of two sizes, and the plain ones look unfinished. So a
+ * description shows only when every option in the list has one; otherwise the
+ * list stays uniform and the explaining goes in the question's tip.
+ */
+export function ChoiceLabel({ field, option, options }: { field: string; option: string; options?: string[] }) {
+  const set = OPTION_HELP[field];
+  const complete = !!set && (options ?? []).filter((o) => !EXCLUSIVE_HELPLESS.has(o)).every((o) => set[o]);
+  const help = complete ? set[option] : undefined;
   return help ? <span className="obChoiceHelp"><span>{option}</span><small>{help}</small></span> : <>{option}</>;
 }
 

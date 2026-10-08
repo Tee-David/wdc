@@ -6,7 +6,7 @@ import { pickService } from "./onboarding-helpers";
  *
  * Step one had no Back, and the only way out of a chosen service was "Start
  * over" on the review page, which wipes the draft: the whole form had to be
- * finished to reach the picker. "Change service" returns to the picker with
+ * finished to reach the picker. "Back to the onboarding menu" returns to the picker with
  * every answer kept.
  */
 test("the first step can go back to the service picker without losing what was typed", async ({ page }) => {
@@ -22,7 +22,7 @@ test("the first step can go back to the service picker without losing what was t
   await first.fill("Ada");
   await page.getByLabel(/^your email|^email/i).first().fill("ada@example.org");
 
-  await page.getByRole("button", { name: /Change service/ }).click();
+  await page.getByRole("button", { name: /Back to the onboarding menu/ }).click();
   await expect(page.getByRole("heading", { name: /Let.s get started/ })).toBeVisible();
 
   await pickService(page, /Branding/);
