@@ -24,13 +24,13 @@ import { SERVICES } from "@/lib/services";
  * listed, not merged in.
  */
 
-const A4 = { w: 595.28, h: 841.89 };
-const M = 48;
-const INNER = A4.w - M * 2;
-const FOOT = 40;
+export const A4 = { w: 595.28, h: 841.89 };
+export const M = 48;
+export const INNER = A4.w - M * 2;
+export const FOOT = 40;
 
 const hex = (h: string) => rgb(parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255);
-const C = {
+export const C = {
   navy: hex("#000065"), orange: hex("#ff6500"), accentInk: hex("#b84a00"),
   ink: hex("#14142b"), dim: hex("#55597a"), rule: hex("#d4d6e6"), onNavy: hex("#ffffff"), onNavyDim: hex("#c9cbe8"),
 };
@@ -38,7 +38,7 @@ const C = {
 /* Read once per instance; the files ride along with the route via
    outputFileTracingIncludes in next.config.ts. */
 let assets: { medium: Buffer; bold: Buffer; mark: Buffer; logo: Buffer } | null = null;
-function load() {
+export function load() {
   if (assets) return assets;
   const at = (...p: string[]) => fs.readFileSync(path.join(process.cwd(), ...p));
   assets = {
@@ -148,13 +148,13 @@ export async function entryPdfInput(form: FormDef, entry: Entry, opts: { picture
 /* ---------- drawing ---------- */
 
 /** Text the font can draw: anything it has no glyph for becomes "?". */
-function drawable(font: PDFFont, s: string) {
+export function drawable(font: PDFFont, s: string) {
   const set = new Set(font.getCharacterSet());
   return Array.from(s.replace(/\r\n?/g, "\n").replace(/\t/g, "  "))
     .map((ch) => (ch === "\n" || set.has(ch.codePointAt(0)!) ? ch : ch.trim() ? "?" : " ")).join("");
 }
 
-function wrap(font: PDFFont, text: string, sz: number, width: number): string[] {
+export function wrap(font: PDFFont, text: string, sz: number, width: number): string[] {
   const out: string[] = [];
   for (const para of drawable(font, text).split("\n")) {
     const words = para.split(/ +/);

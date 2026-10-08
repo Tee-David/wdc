@@ -376,6 +376,8 @@ export const LEGAL_DOCS: LegalDoc[] = [
       { id: "general", label: "General" },
       { id: "branding", label: "Brand and design" },
       { id: "web", label: "Websites" },
+      { id: "domains", label: "Domains and hosting" },
+      { id: "payments", label: "Payments and integrations" },
       { id: "apps", label: "Apps" },
       { id: "software", label: "Software and AI" },
       { id: "seo", label: "Search (SEO)" },
@@ -392,7 +394,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
         body: [
           "It begins with a conversation about the outcome you want, not a feature list. We would rather understand what the work has to achieve than quote for a specification that may not get you there.",
           "Your onboarding brief, a call and any material you send are the starting point. From them we put the scope in writing: what is included, what is not, what we need from you, what it costs, the rounds of revision included, and roughly when. Work starts when you have accepted that in writing and any deposit is settled. Nothing said in a meeting, a chat message or an email thread changes the agreed scope until it is written down and both sides have accepted it.",
-          "The usual order is a discovery call, then agreement of the scope, then payment of the deposit, then our onboarding form, then we set up your client portal and the way we will keep in touch (a WhatsApp group, calls or email, as you choose), then the work, with review meetings along the way and a handover meeting at the end. How long a project runs depends on what it is: a flyer can take days, a website weeks, an app months. Your agreed scope says what applies to yours, and we never ask you to assume a length from another kind of job.",
+          "The usual order is a discovery call, then agreement of the scope, then payment of the deposit, then our onboarding form, then we set up your client portal and the way we will keep in touch (a WhatsApp group, calls or email, as you choose), then the work, with review meetings along the way and, where the project has one, a handover meeting at the end. How long a project runs depends on what it is: a flyer can take days, a website weeks, an app months. Your agreed scope says what applies to yours, and we never ask you to assume a length from another kind of job.",
           "A brief is not a contract and a quote is not a promise of a date. The agreed scope document, together with this policy, is.",
         ],
       },
@@ -538,7 +540,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
       {
         heading: "The legal small print",
         body: [
-          "This policy, your agreed scope and any hosting agreement make up the whole agreement for your engagement. They replace anything said before, and if they conflict, the signed scope comes first, then the hosting agreement, then this policy.",
+          "This policy and your agreed scope make up the whole agreement for your engagement. They replace anything said before, and if they conflict, the signed scope comes first, then this policy.",
           "If a part of it is found unenforceable, the rest stays in force. Not enforcing something at a moment does not waive it. Neither of us may transfer the agreement without the other's written consent, except that we may pass it to a successor to our business.",
           "Agreeing by email, by the client portal, by a signed document or by paying a deposit counts as agreeing in writing. A notice by email to the address on your account or brief reaches you when it is sent.",
           "Nothing in this policy makes either of us the other's partner, agent or employee.",
@@ -591,17 +593,9 @@ export const LEGAL_DOCS: LegalDoc[] = [
       },
       {
         tab: "web",
-        heading: "Your domain",
+        heading: "Your domain, hosting and email",
         body: [
-          "We register a domain in your name and with your details unless you ask in writing for something else. You are responsible for renewing it. See the Hosting, Domains and Accounts Policy.",
-        ],
-      },
-      {
-        tab: "web",
-        heading: "Hosting and business email",
-        body: [
-          "Hosting is either an account in your name, or hosting we provide under a written hosting agreement we make before we host. Clients who want a site built, looked after and hosted by us usually choose the second. Your agreed scope says which.",
-          "For a website we build we include up to three business email addresses at no charge. More are charged per mailbox, and your handover document lists what you have.",
+          "Your domain is registered in your name unless you ask otherwise, hosting is either your own account or hosting we provide, and a website we build includes up to three business email addresses. The Domains and hosting tab explains each of them, including what happens when a domain is not renewed.",
         ],
       },
       {
@@ -641,7 +635,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
         tab: "apps",
         heading: "Developer accounts and the stores",
         body: [
-          "Unless you ask otherwise, the Apple and Google developer accounts are opened in our name, and you may ask for the app to sit in your own account or to be moved to it. See the Hosting, Domains and Accounts Policy.",
+          "Unless you ask otherwise, the Apple and Google developer accounts are opened in our name. You may ask for the app to sit in your own account, or to be moved to it. A move depends on the store's rules and on your account meeting its requirements, may take time and fees and documents, and we only start it once your account with us is settled. Until then we keep the account secure, and you do not have the right to publish updates from it. We cannot promise that a store will approve a transfer.",
           "The stores decide whether an app is approved, and they change their rules at any time. We prepare each submission carefully. We cannot promise approval, a date, or that an app stays listed, and we are not responsible if a store refuses, removes or suspends an app or an account.",
         ],
       },
@@ -750,6 +744,173 @@ export const LEGAL_DOCS: LegalDoc[] = [
         ],
       },
       {
+        heading: "Who we deal with, and on whose authority",
+        body: [
+          "You promise that you have the authority to agree this policy and the scope, for yourself or for the business you represent. We may rely on instructions from your named approver and treat them as yours. If someone else at your business gives instructions that conflict, we follow the approver and tell you.",
+        ],
+      },
+      {
+        heading: "Advice we do not give",
+        body: [
+          "We are a creative and technical studio. We do not give legal, tax, accounting, financial, medical or regulatory advice, and what we write or build is not that advice. You are responsible for the licences, permits, registrations and approvals your business needs, and for following the laws that apply to what you sell and say, including advertising, consumer protection, data protection and tax. Where it matters, take advice from someone qualified. We can point you to one.",
+        ],
+      },
+      {
+        heading: "Access and credentials you give us",
+        body: [
+          "You are responsible for giving us access safely, through each tool's own sharing or team settings and never by sending a password in a group chat or an open email, and for removing access when the work ends. A loss caused by a password or key that was shared insecurely, kept in an open place, or used by your staff or someone you gave it to is yours.",
+        ],
+      },
+      {
+        heading: "Silent and abandoned projects",
+        body: [
+          "If we cannot get what we need from you for thirty days, we may pause the project, and the dates move. If it is silent for sixty days, we may close it. Money paid for work already done, and deposits that reserved our time, are not refunded. If you want to restart after a closure, we may need to re-quote and start from a new slot.",
+        ],
+      },
+      {
+        heading: "How long we keep your files",
+        body: [
+          "We keep project files for up to twelve months after a project closes, and may delete them after that. Keep your own copies of what we hand over, because we do not promise to store it forever.",
+        ],
+      },
+      {
+        tab: "domains",
+        heading: "Domains: whose name, and who renews",
+        body: [
+          "When we register a domain for you, we register it in your name and with your details, so you are the registrant and the owner, unless you ask in writing for something else. We use your real legal name and contact details, so keep them true and keep the email address reachable.",
+          "Registries and registrars send verification emails and can suspend a domain whose contact details are not confirmed in time. Missing those emails is a common cause of a site going offline, and it is not something we can prevent if the address is wrong or unread.",
+          "A domain is rented, not bought outright. You are responsible for renewing it. If we manage your domain for you, we aim to remind you before it renews and we renew it when you have paid, but renewal is not done until it is paid for.",
+        ],
+      },
+      {
+        tab: "domains",
+        heading: "If a domain is not renewed on time",
+        body: [
+          "When a domain's term ends without a successful renewal, it does not vanish at once, but things happen in stages that are set by the registry and the registrar, not by us. First comes the renewal date. Many registrars then try an automatic renewal, which can fail if a card has expired or been declined. After expiry there is usually a grace period in which the website and email may already stop working, and renewing is still possible at the normal price.",
+          "After that there is often a redemption period in which the domain can still be recovered, but only by paying a penalty fee that can be several times the normal price, and recovery can take days. After that the domain is deleted and released, and anyone can register it, including a competitor.",
+          "The length of each stage and the fees differ by registrar and by extension, such as .com, .ng and .com.ng, and they can change. They are outside our control. If a domain, a website or an email address is lost or interrupted because a renewal was not paid or approved, a card failed, contact details were wrong, or a verification email was not answered, the loss and any recovery fees are yours and not ours. Where we agreed to renew a domain and you paid in time, we will tell you what happened and help you recover it.",
+        ],
+      },
+      {
+        tab: "domains",
+        heading: "DNS, transfers and changes",
+        body: [
+          "Changes to where a domain points can take hours, and sometimes up to two days, to reach everyone. A newly registered or newly transferred domain can usually not be moved to another registrar for a period, commonly sixty days. A transfer needs an authorisation code from the current registrar, and some registrars charge for it. We help where we can, and we do not hold a domain registered in your name.",
+          "Email delivery depends on settings on the domain. Changing them without us can stop your email from sending or arriving.",
+        ],
+      },
+      {
+        tab: "domains",
+        heading: "Hosting: your own account, or ours",
+        body: [
+          "Hosting is one of two things, and your agreed scope says which. Either we open a hosting account for you in your own name, with you as the account holder and the payer, and hand you the access, or we host the site on our own hosting. Hosting we provide is on the terms in this tab, together with the fee and renewal date in your scope.",
+          "Where we host for you, we look after the servers with reasonable care, apply the security and platform updates that come with the service, and monitor the site. We aim for it to be available, but we do not promise it will never be down.",
+        ],
+      },
+      {
+        tab: "domains",
+        heading: "Backups for the sites we manage",
+        body: [
+          "For the sites we host and manage for you, we take regular backups, and we keep them to up to one week of recency. If something goes wrong with the site, we can restore it to a point within the last week.",
+          "A backup is there for a loss or a fault, not as an undo button for every change. A restore can take time, and anything added after the point we restore to is lost. Backups from before the last week are not promised. Backups sit with our hosting, so keep your own copy of anything you cannot afford to lose, such as your product list or customer records.",
+        ],
+      },
+      {
+        tab: "domains",
+        heading: "What comes with hosting we provide",
+        body: [
+          "While a site is with us, you have regular backups, security and platform updates for the hosting, monitoring, up to three business email addresses with a website we build, and help moving the site when you leave. Anything beyond that, such as redesigns, new features, content updates or clearing up after a hack, is maintenance or new work and is quoted.",
+        ],
+      },
+      {
+        tab: "domains",
+        heading: "When hosting can be suspended",
+        body: [
+          "We may suspend or limit hosting, and tell you when we can, if fees stay unpaid after written notice; if the site is hacked, infected or a risk to others; if it sends spam or holds unlawful content; if it uses so many resources that it harms other sites; if a court, regulator or complaint requires it; or if our own provider takes action. We lift a suspension when the cause is fixed and anything owed is paid. Where security is at risk we may act first and tell you right after.",
+          "We do not hold a domain or an account in your name hostage. Those stay yours, and we help you move your site once your account with us is settled.",
+        ],
+      },
+      {
+        tab: "domains",
+        heading: "Outages and what is outside our control",
+        body: [
+          "A site can go down for reasons we do not control, such as a fault at a data centre or network provider, an attack, a domain that expired, a payment that did not renew, a problem with a plugin or theme, or a third-party service that stopped. We are not responsible for loss caused by those. A site that is hacked because of a weak or shared password, a plugin you installed, or software you chose not to update is the same.",
+          "Platforms, themes and plugins belong to other companies, free ones come with their own licences, and paid ones renew on the owner's terms. A licence you do not renew can stop an update or a feature. We tell you which ones your site uses.",
+        ],
+      },
+      {
+        tab: "domains",
+        heading: "Business email",
+        body: [
+          "A website we build includes up to three business email addresses at no charge, for as long as the domain and the hosting stay active. More than three are charged per mailbox. Your handover document lists what you have.",
+          "A mailbox is for ordinary business mail. Storage and sending limits apply, bulk and unsolicited email is not allowed, and receiving servers may treat your mail as spam through no fault of ours, so delivery is not guaranteed. You own what is in your mailboxes. Keep your own copies of anything important, and keep passwords private. When hosting ends, mailboxes end with it, after notice.",
+        ],
+      },
+      {
+        tab: "domains",
+        heading: "Moving away and ending hosting",
+        body: [
+          "Either of us may end a hosting arrangement by giving thirty days' written notice. Fees are due for the period used, and a fee already paid is not refunded unless we ended it without cause. Before it ends we give you your files and database in a standard form once your account with us is settled, and we may charge for the time a move takes. After hosting ends we keep a copy for a short time in case you need it, and then delete it.",
+        ],
+      },
+      {
+        tab: "domains",
+        heading: "What you cover for domains and hosting",
+        body: [
+          "You are responsible for the content on what we host, for the licences it needs, for the personal information on it, and for renewing what is yours to renew. You agree to cover us for any claim, loss or cost that comes from your content, from your use of the hosting or email against this policy, or from your failure to pay for or renew something that was yours, as set out in the general terms of this policy.",
+        ],
+      },
+      {
+        tab: "payments",
+        heading: "Your payment accounts are yours",
+        body: [
+          "When your site or app takes payments, the account with a payment provider such as Paystack or Flutterwave is opened in your name, by you, and the money goes to your account. We do not hold, touch or move your money. The provider decides whether to approve you, what it asks for, its fees, how fast money is settled, and when it holds or reverses a payment. We cannot promise approval.",
+        ],
+      },
+      {
+        tab: "payments",
+        heading: "We walk you through it",
+        body: [
+          "We explain how to open and set up each channel, what you must have ready, and where things are in your account. Typically that is your business registration, a business bank account, the identity documents of the owners, and a working website with your contact details and a refund policy, because providers often ask to see them. We explain how to add us as a developer where the provider has team or developer roles, and how to find your public and secret keys, your webhook address and secret, and your callback address.",
+          "You do the steps in your own account, because it is your account and your identity checks. We guide you on a call or in a short written guide, and we answer questions as you go.",
+        ],
+      },
+      {
+        tab: "payments",
+        heading: "Keys and secrets",
+        body: [
+          "Keys and webhook secrets are like passwords for your money. Give us only what we need, through the provider's own team or developer access where it exists, or another private way, and never in a group chat or an open email. We keep them as protected settings in your project, not in the code that visitors can see. After handover, you should rotate or revoke any key you shared. A loss caused by a key that was shared insecurely, left in an open place or used by your staff is yours.",
+        ],
+      },
+      {
+        tab: "payments",
+        heading: "Testing and going live",
+        body: [
+          "We build and test in the provider's test mode first. Real money is used only when you approve going live. You check that payments reach your account and that the amounts and receipts are right, and tell us if they are not. After go-live, a problem with the way we built it is a defect. A change by the provider, or a change you make in your account, is not.",
+        ],
+      },
+      {
+        tab: "payments",
+        heading: "What the provider decides",
+        body: [
+          "Providers approve, limit, hold, review and close accounts at their own discretion. They handle disputes, chargebacks and fraud checks, set fees, change their interfaces, and can stop a feature. We build to their current documented method. We are not responsible for a decision, hold, fee, chargeback or change that is theirs.",
+        ],
+      },
+      {
+        tab: "payments",
+        heading: "Your duties as a seller",
+        body: [
+          "You are responsible for your prices, your refund and delivery terms, your privacy notice, your tax and your compliance with the rules that apply to selling and to taking payments, including identity checks the provider asks of you. We do not give legal, tax or financial advice. Customer service, refunds and disputes with your customers are yours.",
+        ],
+      },
+      {
+        tab: "payments",
+        heading: "Other services we connect",
+        body: [
+          "The same applies to delivery companies, SMS and email senders, maps, analytics and accounting tools. The account is in your name, its fees are yours, we explain how to set it up, and its terms and prices can change without our control.",
+        ],
+      },
+      {
         heading: "Changes to this policy",
         body: [
           "A change to this page does not change an engagement already agreed. It applies to the next one, unless you accept it sooner.",
@@ -774,7 +935,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
           "Each project is priced in the agreed scope, in the currency stated there. Most projects are charged as a deposit to start, then stages, then a final payment on delivery. Ongoing work is charged monthly in advance.",
           "Prices do not include third-party costs such as domains, hosting, licences, app store accounts and advertising spend. We tell you about those before they are incurred. Some work has a stated allowance, for example up to 20 products uploaded to an online shop, and anything beyond it is charged from our price list.",
           "Taxes are added where the law requires and are shown on the invoice.",
-          "Some things are charged repeatedly: hosting we provide, maintenance, any mailbox beyond the three included with a website we build, and ongoing work. Each is shown on your agreed scope or hosting agreement, with its price and renewal date, and is charged in advance. Domains, licences and store accounts renew with the company that provides them, on their terms, and you pay those costs.",
+          "Some things are charged repeatedly: hosting we provide, maintenance, any mailbox beyond the three included with a website we build, and ongoing work. Each is shown on your agreed scope, with its price and renewal date, and is charged in advance. Domains, licences and store accounts renew with the company that provides them, on their terms, and you pay those costs.",
         ],
       },
       {
@@ -795,7 +956,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
       {
         heading: "Paying late",
         body: [
-          "An invoice is due by the date on it. A reminder is sent before and after. If an invoice is significantly overdue we may pause the work and tell you first. The delivery dates move by the length of the pause. Where we host your site or mailboxes under a hosting agreement, we may suspend that hosting after written notice if the fees stay unpaid, and we will restore it once they are paid. We do not hold a domain registered in your name, or an account that is in your name, hostage: those stay yours, and we will help you move your site after your account is settled.",
+          "An invoice is due by the date on it. A reminder is sent before and after. If an invoice is significantly overdue we may pause the work and tell you first. The delivery dates move by the length of the pause. Where we host your site or mailboxes, we may suspend that hosting after written notice if the fees stay unpaid, and we will restore it once they are paid. We do not hold a domain registered in your name, or an account that is in your name, hostage: those stay yours, and we will help you move your site after your account is settled.",
           "If a bill is wrong, tell us straight away and we will fix it. The undisputed part is still due.",
         ],
       },
@@ -825,77 +986,6 @@ export const LEGAL_DOCS: LegalDoc[] = [
         heading: "Changes",
         body: [
           "A change to this page does not change an engagement already agreed.",
-        ],
-      },
-    ],
-  },
-
-  /* ------------------------------------------------------------------ */
-  {
-    slug: "hosting-domains-and-accounts",
-    title: "Hosting, Domains and Accounts Policy",
-    blurb:
-      "Whose name a domain, hosting and an app store account are in, what we host, what email is included, and what happens when it ends.",
-    updated: LEGAL_UPDATED,
-    intro:
-      "Websites and apps depend on accounts with other companies. This policy says whose name each is in, who pays, who looks after it, and how it moves to you. It sits beside the Client Engagement Policy, and your agreed scope or hosting agreement wins where it says something different. Clients differ: some want a site built, looked after and hosted by us, some run their own, and this policy covers both.",
-    sections: [
-      {
-        heading: "Domains",
-        body: [
-          "When we register a domain for you, we register it in your name and with your details, so you are the registrant and the owner, unless you ask in writing for something else. We use your real legal name and contact details, so keep them true. The registry and the registrar have their own rules, and a registration can need documents, particularly for some country domains.",
-          "You are responsible for renewing it. We can remind you and renew it for you if you ask and pay, but a domain that lapses can be lost or bought by someone else, and we are not liable for that where we told you the renewal date or the renewal was yours to make.",
-          "If you ask us to hold a domain in our name for a while, for a reason we agree, we will say so in writing and move it into your name when you ask, once your account is settled.",
-        ],
-      },
-      {
-        heading: "Hosting",
-        body: [
-          "Hosting is one of two things, and your agreed scope says which. Either we open a hosting account for you in your own name, with you as the account holder and the payer, and hand you the access, or we host the site on our own hosting under a written hosting agreement we make before we host it.",
-          "Where we host for you, the agreement sets the fee, the renewal date, what is included (for example security updates, backups and monitoring), and the limits. We look after the servers with reasonable care and aim for the site to be available, but we do not promise it will never be down, and we are not liable for outages caused by providers, attacks or events beyond our control. Backups are kept as the agreement says, and you should also keep your own copy of anything you cannot lose.",
-          "Hosting we provide is for your project only. You may not use it to send spam or unsolicited bulk email, to hold unlawful content, to attack other systems, or to carry on a business we did not know about, and we may remove something or suspend the hosting if you do, telling you when we can.",
-          "You may ask us to move your site to another host at any time. After your account is settled, we hand over the site files and database in a standard form, and we may charge for the time a move takes.",
-        ],
-      },
-      {
-        heading: "Business email",
-        body: [
-          "For a website we build, we include up to three business email addresses at no charge, for as long as the domain and the hosting stay active. More than three are charged per mailbox, and the list is in your handover document.",
-          "A mailbox is for ordinary business mail. Storage and sending limits apply, bulk and unsolicited email is not allowed, and mail on the server can be lost. You own what is in your mailboxes. Keep your own copies of anything important, and keep the passwords private.",
-        ],
-      },
-      {
-        heading: "The handover document",
-        body: [
-          "At handover we send a document with what you need: the links, the access we are passing to you, webmail, the recording of the handover meeting and instructions for your project. Change the passwords in it, and tell us if you want us to keep any access for support. Anything we keep access to, we use only for the work you asked for.",
-        ],
-      },
-      {
-        heading: "Website platforms, plugins and licences",
-        body: [
-          "Sites are often built on platforms, themes and plugins that belong to other companies. Free ones come with their own licences. Paid ones are bought either by you or by us on your behalf and then invoiced at cost, and renew on the owner's terms, so a renewal you do not pay can stop an update or a feature. We tell you which ones your site uses.",
-          "Platforms need updating. Updates can change how a site works. Updating and fixing after the warranty period are maintenance, and are done under a maintenance arrangement or quoted as extra work.",
-        ],
-      },
-      {
-        heading: "App store developer accounts",
-        body: [
-          "Unless you ask otherwise, we open and run the Apple and Google developer accounts in our name, because the stores increasingly ask for verification, business details and fees that are simpler to manage in one place, and publishing works faster that way. The seller name people see in a store may then be ours.",
-          "If you prefer, the app can sit in an account in your own name, for which you pay the store's fees and give us the access and roles we need. Where an app was published from our account, you may ask us to transfer it to yours. A transfer depends on the store's rules and on your account meeting its requirements, may take time, may need fees and documents, and we only start it once your account with us is settled. We do not promise that a store will approve a transfer.",
-          "Until a transfer, we keep the account secure and you do not have the right to publish updates from it. The stores can refuse, remove or suspend an app, and change their rules, at any time, and that is not our fault.",
-        ],
-      },
-      {
-        heading: "When it ends",
-        body: [
-          "Either of us may end a hosting arrangement by giving thirty days' written notice, unless the hosting agreement says otherwise. Fees are due for the period used, and a fee already paid for a period is not refunded unless we ended it without cause. Before it ends we give you your files and data in a standard form.",
-          "After hosting ends we keep a copy for a short time in case you need it, and then delete it. If you want it kept longer, say so before it ends.",
-        ],
-      },
-      {
-        heading: "What you agree to cover",
-        body: [
-          "You are responsible for the content on what we host, for the licences it needs, and for the personal information on it. You agree to cover us for any claim that comes from your content, your use of the hosting or email against this policy, or your failure to renew or pay for something that was yours, as set out in the Client Engagement Policy.",
         ],
       },
     ],
@@ -968,7 +1058,7 @@ export const OPEN_ITEMS = [
   "The Payments and Refunds Policy: confirm the payment methods offered, that monthly work is billed in advance, the overdue reminders, and when deposits are refundable. These are drafted as sensible defaults and not from a signed agreement.",
   "A limit on liability and a mediation step, which are drafted in plain words and need a lawyer's wording.",
   "Whether the accessibility menu, chat assistant and any analytics added later are described correctly in the Cookie Policy.",
-  "The Hosting, Domains and Accounts Policy and the indemnity: confirm the fees and notice periods, whether you want a separate signed hosting agreement template, the caps on liability and the dispute steps, and that holding app store accounts in the studio's name by default is what you want to offer.",
+  "The Domains and hosting and Payments and integrations tabs of the Client Engagement Policy: confirm the one-week backup promise, the suspension grounds, the thirty-day notice period, the twelve-month file retention, and the app account default.",
   "The service tabs of the Client Engagement Policy: confirm the revision limits (one revision for a logo, flyer or social design; one direction for a brand guide), the one-month testing period for apps, the 20 free products, and the account ban and seizure wording for social and search.",
   "A practitioner's review of the whole set, especially liability, intellectual property, refunds and engagement, before it is relied on commercially.",
 ] as const;

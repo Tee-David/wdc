@@ -22,3 +22,15 @@ test.describe("the engagement policy has a tab per service and a search", () => 
     });
   }
 });
+
+test("every policy page offers its PDF, and the PDF downloads", async ({ page, request }) => {
+  for (const slug of ["client-engagement-policy", "privacy-policy"]) {
+    await page.goto(`/legal/${slug}`);
+    const link = page.getByRole("link", { name: "Download this policy as a PDF" });
+    await expect(link).toHaveAttribute("href", `/legal/${slug}/pdf`);
+    const res = await request.get(`/legal/${slug}/pdf`);
+    expect(res.status()).toBe(200);
+    expect(res.headers()["content-type"]).toContain("application/pdf");
+    expect((await res.body()).subarray(0, 4).toString()).toBe("%PDF");
+  }
+});

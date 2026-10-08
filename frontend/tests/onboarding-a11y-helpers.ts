@@ -305,7 +305,9 @@ export async function walkKeyboard(
  * there, and the error it shows must be linked to the question it is about.
  */
 export async function probeRequired(page: Page, log: Log, title: string) {
-  const starred = await page.locator(".ob__fields [data-field]:visible b").filter({ hasText: /^\*$/ }).count();
+  const starred = await page.evaluate(() =>
+    Array.from(document.querySelectorAll<HTMLElement>(".ob__fields [data-field] b")).filter((b) => b.textContent?.trim() === "*" && b.closest("[data-field]")?.offsetParent !== null).length,
+  );
   if (!starred) return;
   const next = page.locator(".ob__stepNext:visible").first();
   await tabTo(page, next, `Next on "${title}"`);
@@ -319,6 +321,9 @@ export async function probeRequired(page: Page, log: Log, title: string) {
     throw new Error(`"${title}" let Next through with ${starred} required question(s) empty`);
   }
   log.count("requiredBlocks");
+  /* The page checks again, now that the error is showing: the error must be
+     linked to its question, and the form must still name every control. */
+  await audit(page, log, `${title} (after an empty Next)`, false);
 }
 
 /* ----------------------------------------------------------- page checks */
