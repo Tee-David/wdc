@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import LegalToc from "@/components/legal/legal-toc";
 import LegalTabs from "@/components/legal/legal-tabs";
+import Rich from "@/components/legal/rich";
 import { LEGAL_DOCS, legalBySlug } from "@/lib/legal";
 import { COMPANY_NAME, CONTACT_EMAIL, SITE_URL } from "@/lib/site";
 import "@/components/preview/preview.css";
@@ -67,12 +68,6 @@ export async function generateMetadata(
   };
 }
 
-/** The studio's email address, wherever it appears in a paragraph, as a mail link. */
-function linkify(text: string) {
-  const parts = text.split(CONTACT_EMAIL);
-  return parts.flatMap((part, i) => (i === 0 ? [part] : [<a key={i} href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>, part]));
-}
-
 export default async function LegalDocPage(
   { params }: { params: Promise<{ slug: string }> },
 ) {
@@ -118,7 +113,7 @@ export default async function LegalDocPage(
                     document, which is what the element is for and what a reader
                     mode will extract. */}
                 <article className="lg-body">
-                  <p className="lg-intro">{doc.intro}</p>
+                  <p className="lg-intro"><Rich text={doc.intro} here={doc.slug} /></p>
 
                   {doc.sections.map((s, i) => (
                     /* `scroll-mt` on the section, not on the heading, so a jump
@@ -126,7 +121,7 @@ export default async function LegalDocPage(
                        header instead of underneath it. */
                     <section key={s.heading} id={`s${i}`} className="lg-sec">
                       <h2>{s.heading}</h2>
-                      {s.body.map((para, n) => <p key={n}>{linkify(para)}</p>)}
+                      {s.body.map((para, n) => <p key={n}><Rich text={para} here={doc.slug} /></p>)}
                     </section>
                   ))}
 
