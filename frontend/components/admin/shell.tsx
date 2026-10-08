@@ -23,6 +23,7 @@ import {
   UserRound,
   Users,
   X,
+  UserCog,
 } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { authClient } from "@/lib/auth-client";
@@ -78,6 +79,8 @@ const NAV: NavItem[] = [
   /* A seventh primary page, asked for by name: posts are written weekly,
      which is not an "infrequent control" to bury under Settings. */
   { href: "/admin/blog", label: "Blog", Icon: Newspaper, group: "main", tour: "nav-blog" },
+  /* People are managed daily enough (invitations, access, recovery) that they are a page, not a setting. */
+  { href: "/admin/users", label: "Users", Icon: UserCog, group: "main", tour: "nav-users" },
   /* No sub-links here: Settings carries its own section menu on the page
      (lib/settings/sections.ts), and a second copy of twelve links in the
      sidebar would be the same list twice. */

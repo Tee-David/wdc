@@ -1,2 +1,2 @@
 import { redirect } from "next/navigation";
-export default function TeamPage() { redirect("/admin/settings/users"); }
+export default function TeamPage() { redirect("/admin/users"); }
