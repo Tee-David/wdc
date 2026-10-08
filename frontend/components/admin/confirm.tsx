@@ -89,7 +89,8 @@ export function ConfirmHost() {
         {permanent ? (
           <label className="adAsk__sure">
             <input type="checkbox" checked={understood} onChange={(e) => setUnderstood(e.target.checked)} />
-            <span><AlertTriangle aria-hidden="true" /> I understand this cannot be undone.</span>
+            <AlertTriangle aria-hidden="true" />
+            <span>I understand this cannot be undone.</span>
           </label>
         ) : null}
         <div className="adAsk__acts">
