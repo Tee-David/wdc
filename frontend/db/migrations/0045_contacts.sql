@@ -2,7 +2,7 @@
 -- `marketing` is true only for people who agreed to hear from us (newsletter sign-up, or set by hand);
 -- campaigns go to nobody else. The suppression list is separate so a deleted contact cannot be re-added.
 CREATE TABLE IF NOT EXISTS contacts (
-  id TEXT PRIMARY KEY,
+  id UUID PRIMARY KEY,
   email STRING NOT NULL UNIQUE,
   name TEXT NOT NULL DEFAULT '',
   phone TEXT NOT NULL DEFAULT '',
@@ -37,18 +37,24 @@ ALTER TABLE contacts ADD COLUMN IF NOT EXISTS soft_bounces INT NOT NULL DEFAULT 
 ALTER TABLE contacts ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
 ALTER TABLE contacts ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
 ALTER TABLE contacts ADD COLUMN IF NOT EXISTS last_activity TIMESTAMPTZ NULL;
+-- The legacy enquiries table used UUID ids, required a message, and did not
+-- enforce unique emails. Keep its rows and make new person inserts compatible.
+ALTER TABLE contacts ADD COLUMN IF NOT EXISTS message TEXT NOT NULL DEFAULT '';
+ALTER TABLE contacts ALTER COLUMN message SET DEFAULT '';
+ALTER TABLE contacts ALTER COLUMN status SET DEFAULT 'subscribed';
+CREATE UNIQUE INDEX IF NOT EXISTS contacts_email_unique ON contacts (email);
 -- One index on status only. The earlier (status, type) index was the one statement that read `type`, and a
 -- list of contacts is filtered by status far more than by type, so nothing is lost.
 CREATE INDEX IF NOT EXISTS contacts_status ON contacts (status);
 CREATE TABLE IF NOT EXISTS contact_tags (
-  contact_id TEXT NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
+  contact_id UUID NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
   tag TEXT NOT NULL,
   PRIMARY KEY (contact_id, tag)
 );
 CREATE INDEX IF NOT EXISTS contact_tags_tag ON contact_tags (tag);
 CREATE TABLE IF NOT EXISTS contact_events (
   id TEXT PRIMARY KEY,
-  contact_id TEXT NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
+  contact_id UUID NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
   kind TEXT NOT NULL,
   title TEXT NOT NULL,
   detail TEXT NOT NULL DEFAULT '',
