@@ -133,7 +133,7 @@ export const APPS_STEPS: Step[] = [
       {
         key: "store_accounts", label: "Do you have developer accounts for the stores?", kind: "cards",
         options: ["Both", "One of them", "Neither", UNSURE],
-        tip: "Apple and Google both require a paid developer account in YOUR name to publish. If you have neither, we will walk you through it. It is not a blocker.",
+        tip: "Apple and Google both require a paid developer account in YOUR name to publish. If you have neither, we will walk you through it. It is not a blocker. An organisation account usually asks for your business registration details, which is why we ask about them earlier.",
         showIf: [MID, onPhone],
       },
       {

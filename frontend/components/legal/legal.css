@@ -161,3 +161,8 @@
   .lg-toc__list { gap: 0; }
   .lg-toc__list a { display: flex; align-items: center; min-height: 44px; }
 }
+
+/* An email address in a paragraph is a link: underlined, in the one link colour, and wide enough to tap. */
+.lg-body p a { color: var(--accent-ink); text-decoration: underline; text-underline-offset: .18em; overflow-wrap: anywhere; }
+.lg-body p a:hover { text-decoration-thickness: 2px; }
+.lg-body p a:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; border-radius: 3px; }
