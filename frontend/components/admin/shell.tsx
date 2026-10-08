@@ -14,6 +14,7 @@ import {
   Globe,
   LayoutDashboard,
   LogOut,
+  Mail,
   Moon,
   Newspaper,
   PanelLeft,
@@ -44,6 +45,7 @@ export type AdminUser = {
 };
 
 type NavSub = { href: string; label: string };
+/* `also`: other sections that belong under this one, so it stays lit and open while you are in them. */
 type NavItem = {
   href: string;
   label: string;
@@ -51,6 +53,7 @@ type NavItem = {
   group: "main" | "general";
   tour: string;
   sub?: NavSub[];
+  also?: string[];
 };
 
 /* Sub-pages appear under their section only while you are in it, and only
@@ -62,11 +65,14 @@ const NAV: NavItem[] = [
     href: "/admin/clients", label: "Clients", Icon: Users, group: "main", tour: "nav-clients",
     sub: [
       { href: "/admin/clients", label: "All clients" },
+      /* Leads and forms, and meetings, are conversations with clients and people who may become one. */
+      { href: "/admin/forms", label: "Leads and forms" },
+      { href: "/admin/meetings", label: "Meetings" },
       /* Support sits with the people asking, not as an eighth page. */
       { href: "/admin/clients/support", label: "Support" },
     ],
+    also: ["/admin/forms", "/admin/meetings"],
   },
-  { href: "/admin/meetings", label: "Meetings", Icon: CalendarDays, group: "main", tour: "nav-meetings" },
   { href: "/admin/projects", label: "Projects", Icon: FolderKanban, group: "main", tour: "nav-projects" },
   {
     href: "/admin/money", label: "Money", Icon: Banknote, group: "main", tour: "nav-money",
@@ -75,7 +81,7 @@ const NAV: NavItem[] = [
       { href: "/admin/money/reconciliation", label: "Reconciliation" },
     ],
   },
-  { href: "/admin/forms", label: "Forms", Icon: ClipboardList, group: "main", tour: "nav-forms" },
+  { href: "/admin/email", label: "Email", Icon: Mail, group: "main", tour: "nav-email" },
   /* A seventh primary page, asked for by name: posts are written weekly,
      which is not an "infrequent control" to bury under Settings. */
   { href: "/admin/blog", label: "Blog", Icon: Newspaper, group: "main", tour: "nav-blog" },
@@ -115,8 +121,8 @@ function subscribeToClientMount(onChange: () => void) {
   return () => undefined;
 }
 
-function isActive(href: string, path: string) {
-  return href === "/admin" ? path === href : path === href || path.startsWith(href + "/");
+function isActive(href: string, path: string, also: string[] = []) {
+  return href === "/admin" ? path === href : [href, ...also].some((h) => path === h || path.startsWith(h + "/"));
 }
 
 /* The sub-page you are on: the longest one that matches, so "Invoices and
@@ -164,7 +170,7 @@ function Sidebar({
 
   const renderItem = (item: NavItem) => {
     const { href, label, Icon, tour, sub } = item;
-    const active = isActive(href, path);
+    const active = isActive(href, path, item.also);
     const count = counts?.[label] ?? 0;
     const current = activeSub(item, path);
     return (
@@ -182,7 +188,7 @@ function Sidebar({
         </Link>
         {sub && active && !collapsed ? (
           <div className="ad__sub">
-            {sub.map((s) => (
+            {sub.filter((s) => allowed(role, s.href)).map((s) => (
               <Link
                 key={s.href}
                 href={s.href}
@@ -517,7 +523,7 @@ function ShellFrame({ children, counts, user }: { children: ReactNode; counts: R
   const [hoverExpanded, setHoverExpanded] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const drawer = useNavDrawer();
-  const active = NAV.find((item) => isActive(item.href, path));
+  const active = NAV.find((item) => isActive(item.href, path, item.also));
   const parent = parentOf(path);
   const visuallyCollapsed = pinnedCollapsed && !hoverExpanded;
   const closeCommand = useCallback(() => setCommandOpen(false), []);

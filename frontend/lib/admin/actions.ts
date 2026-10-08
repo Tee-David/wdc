@@ -223,8 +223,9 @@ export async function createProject(_prev: ActionState, fd: FormData): Promise<A
   if (refused) return refused;
   const errors: Record<string, string> = {};
   const title = required(errors, "title", str(fd, "title"), "A project name");
-  const clientId = str(fd, "clientId");
-  if (!clientId) errors.clientId = "Say who it is for.";
+  let clientId = str(fd, "clientId");
+  if (clientId === "__new") { if (!str(fd, "newClientCompany")) errors.newClientCompany = "A company or a name."; }
+  else if (!clientId) errors.clientId = "Say who it is for.";
   else if (!db.getClient(clientId)) errors.clientId = "That client is no longer there.";
 
   const [service] = services(fd, "service");
@@ -233,6 +234,12 @@ export async function createProject(_prev: ActionState, fd: FormData): Promise<A
 
   if (Object.keys(errors).length) return FAIL(errors);
 
+  if (clientId === "__new") {
+    const email = str(fd, "newClientEmail"), phone = str(fd, "newClientPhone"), company = str(fd, "newClientCompany");
+    clientId = (email || phone ? db.findDuplicateClient(email, phone) : null)?.id ?? db.addClient({
+      name: str(fd, "newClientName") || company, company, email, phone, services: [service!], sector: "", notes: "Created while opening a project.",
+    }, await actorName()).id;
+  }
   const p = db.addProject({
     clientId, title, service: service!, stage: at, due: isoDate(fd, "due"),
     /* All four are optional on the form, so each falls back rather than
@@ -346,6 +353,42 @@ export async function setDue(_prev: ActionState, fd: FormData): Promise<ActionSt
 /* -------------------------------------------------------------- invoices */
 
 /**
+ * "Bill to" and "Against" can create what they point at: "__new" as the client
+ * makes a client (or reuses the one with the same email or phone), "__new" as
+ * the project opens one for that client. Validation runs first and creation
+ * after it, so a form with an error leaves nothing behind.
+ */
+function newPartyErrors(fd: FormData, errors: Record<string, string>) {
+  const client = str(fd, "clientId");
+  if (client === "__new") { if (!str(fd, "newClientCompany")) errors.newClientCompany = "A company or a name."; }
+  else if (!db.getClient(client)) errors.clientId = "Say who it is for.";
+  if (str(fd, "projectId") === "__new" && !services(fd, "newProjectService")[0]) errors.newProjectService = "Pick the service.";
+}
+
+async function createParties(fd: FormData): Promise<{ clientId: string; projectId: string | null }> {
+  let clientId = str(fd, "clientId");
+  const actor = await actorName();
+  if (clientId === "__new") {
+    const company = str(fd, "newClientCompany");
+    const email = str(fd, "newClientEmail"), phone = str(fd, "newClientPhone");
+    const match = email || phone ? db.findDuplicateClient(email, phone) : null;
+    clientId = (match ?? db.addClient({
+      name: str(fd, "newClientName") || company, company, email, phone, services: [], sector: "",
+      notes: "Created while raising an invoice or quote.",
+    }, actor)).id;
+  }
+  let projectId: string | null = str(fd, "projectId") || null;
+  if (projectId === "__new") {
+    const client = db.getClient(clientId)!;
+    const [service] = services(fd, "newProjectService");
+    projectId = db.addProject({
+      clientId, title: str(fd, "newProjectTitle") || `${client.company} project`, service: service!, stage: "Onboarding", due: null, icon: randomProjectIcon(),
+    }).id;
+  }
+  return { clientId, projectId };
+}
+
+/**
  * Lines come back as three parallel arrays, one per column.
  *
  * That is what a set of inputs sharing a name produces, and FormData preserves
@@ -378,8 +421,7 @@ export async function createInvoice(_prev: ActionState, fd: FormData): Promise<A
   const refused = await owner();
   if (refused) return refused;
   const errors: Record<string, string> = {};
-  const clientId = str(fd, "clientId");
-  if (!db.getClient(clientId)) errors.clientId = "Say who it is for.";
+  newPartyErrors(fd, errors);
 
   const { lines, bad } = readLines(fd);
   if (bad) errors.lines = bad;
@@ -394,7 +436,7 @@ export async function createInvoice(_prev: ActionState, fd: FormData): Promise<A
 
   if (Object.keys(errors).length) return FAIL(errors);
 
-  const projectId = str(fd, "projectId") || null;
+  const { clientId, projectId } = await createParties(fd);
   const inv = db.addInvoice({
     clientId, projectId, issued, due: due!, vatRate, lines,
     status: str(fd, "issue") === "1" ? "Sent" : "Draft",
@@ -1321,8 +1363,7 @@ export async function createEstimate(_prev: ActionState, fd: FormData): Promise<
   const refused = await owner();
   if (refused) return refused;
   const errors: Record<string, string> = {};
-  const clientId = str(fd, "clientId");
-  if (!db.getClient(clientId)) errors.clientId = "Say who it is for.";
+  newPartyErrors(fd, errors);
 
   const { lines, bad } = readLines(fd);
   if (bad) errors.lines = bad;
@@ -1343,8 +1384,9 @@ export async function createEstimate(_prev: ActionState, fd: FormData): Promise<
 
   if (Object.keys(errors).length) return FAIL(errors);
 
+  const { clientId, projectId } = await createParties(fd);
   const est = db.addEstimate({
-    clientId, projectId: str(fd, "projectId") || null,
+    clientId, projectId,
     issued, expires: expires!, vatRate, lines,
     discount: discount > 0 ? discount : undefined,
     notes: str(fd, "notes") || undefined,

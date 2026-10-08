@@ -50,5 +50,6 @@ export const NAV_AREA: Record<string, Area | null> = {
   "/admin/blog": "content",
   "/admin/users": "team",
   "/admin/reports": "money",
+  "/admin/email": "settings", // Owner only until the owner decides what staff may send.
   "/admin/settings": null,
 };
