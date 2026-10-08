@@ -10,6 +10,7 @@ import { getClient, getSetting } from "@/lib/admin/store";
 import { queueLogged } from "@/lib/message-log";
 import { notifyAllows, type Ticket } from "@/lib/admin/types";
 import { sendLogged } from "@/lib/outbox";
+import { logNotSent } from "@/lib/lifecycle-mail";
 
 /**
  * SUPPORT MESSAGES: the studio hears about a question or a reply, and the
@@ -41,9 +42,10 @@ export async function sendSupportReply(input: { ticket: Ticket; reply: string; a
   const { ticket, reply, author, messageId, by } = input;
   const client = getClient(ticket.clientId);
   const email = client?.email?.trim();
-  if (!client || !email) return;
+  if (!client) return;
   const subject = `Re: ${ticket.subject}`;
   const dedupeKey = `support-reply:${messageId}`;
+  if (!email) return logNotSent({ why: `${client.company} has no email address on file.`, subject, dedupeKey, by, clientId: client.id });
   if (!notifyAllows(client.notify, "updates")) {
     await queueLogged({
       channel: "Email", to: email, subject, summary: `Not sent: ${client.company} has project updates switched off.`,

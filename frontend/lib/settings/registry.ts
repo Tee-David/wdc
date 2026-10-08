@@ -186,12 +186,17 @@ export const SETTINGS: SettingDef[] = [
   },
   {
     key: "notify.staff", label: "New staff", shipped: () => "1",
-    note: "Email the studio when a new staff member finishes or skips their welcome.",
+    note: "Email the studio when a new staff member accepts their invitation, and again when they finish the welcome.",
     parse: flag, revalidate: [],
   },
   {
     key: "notify.payments", label: "Payments", shipped: () => "1",
     note: "Email the studio when a client pays online.",
+    parse: flag, revalidate: [],
+  },
+  {
+    key: "notify.estimates", label: "Estimates answered", shipped: () => "1",
+    note: "Email the studio when an estimate is recorded as accepted or declined.",
     parse: flag, revalidate: [],
   },
   {
@@ -203,6 +208,21 @@ export const SETTINGS: SettingDef[] = [
     key: "mail.replyTo", label: "Replies go to", shipped: () => process.env.SMTP_REPLY_TO?.trim() || "",
     note: "Where a reply to one of our emails lands, and where studio notices go.",
     parse: email, revalidate: [],
+  },
+  {
+    key: "notify.signups", label: "Client sign-ups", shipped: () => "1",
+    note: "Email the studio when a client accepts their invitation and joins the portal.",
+    parse: flag, revalidate: [],
+  },
+  {
+    key: "notify.approvals", label: "Approvals and changes", shipped: () => "1",
+    note: "Email the studio when a client approves a deliverable or asks for changes.",
+    parse: flag, revalidate: [],
+  },
+  {
+    key: "notify.meetings", label: "Meetings", shipped: () => "1",
+    note: "Email the studio when a meeting is booked, moved or cancelled.",
+    parse: flag, revalidate: [],
   },
 ];
 

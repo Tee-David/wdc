@@ -1,10 +1,11 @@
 "use client";
 
-import { BellRing, Check, Link2, Mail, RotateCw } from "lucide-react";
+import { useState } from "react";
+import { BellRing, Check, Link2, Mail, Receipt, RotateCw, Wallet } from "lucide-react";
 import type { Invoice, ProviderEvent } from "@/lib/admin/types";
 import { naira } from "@/lib/admin/types";
 import {
-  emailInvoice, emailReminder, matchEventToInvoice, resendMessage, resolveEvent,
+  emailInvoice, emailReminder, matchEventToInvoice, overpaymentToCredit, resendMessage, resolveEvent, sendReceipt,
 } from "@/lib/admin/actions";
 import { Actions, Area, Field, Form, Hidden, Select, Submit } from "./form";
 import { DialogButton } from "./dialog";
@@ -101,5 +102,96 @@ export function EmailReminder({ id }: { id: string }) {
       <Hidden name="id" value={id} />
       <Submit tone="plain" icon={BellRing}>Send a reminder</Submit>
     </Form>
+  );
+}
+
+/**
+ * A settled invoice has nothing to ask for, so "Email invoice" is not offered;
+ * what a paid client is owed is a receipt. Sends the latest payment's receipt
+ * (or, from a payment's own menu, that payment's), at most once a day.
+ */
+export function SendReceipt({ invoiceId }: { invoiceId: string }) {
+  return (
+    <Form action={sendReceipt} className="ad__inline">
+      <Hidden name="invoiceId" value={invoiceId} />
+      <Submit tone="plain" icon={Receipt}>Send a receipt</Submit>
+    </Form>
+  );
+}
+
+/**
+ * The overpayment callout's own control, on the invoice page where the
+ * callout is. Moves the excess onto the client's balance, so the invoice lands
+ * exactly on its total and the money comes off their next one. (Sending it
+ * back instead is a refund on the payment, in its own menu.)
+ */
+export function CreditExcess({ invoiceId, over, reason }: { invoiceId: string; over: number; reason?: string }) {
+  return (
+    <Form
+      action={overpaymentToCredit}
+      confirm={`Put ${naira(over)} on their balance? It leaves this invoice and is held for the client against their next invoice. To send it back to their bank instead, refund the payment.`}
+    >
+      <Hidden name="id" value={invoiceId} />
+      <NoticeTick name="tellClient" label="Tell the client by email" reason={reason} />
+      <Submit tone="plain" icon={Wallet}>Credit the difference ({naira(over)})</Submit>
+    </Form>
+  );
+}
+
+/**
+ * A tick that says whether an email goes with the action, and when it cannot,
+ * why -- beside the tick, disabled and flat, rather than a box that quietly
+ * does nothing. The server re-checks everything; this only tells the truth
+ * about what will happen before the button is pressed.
+ */
+export function NoticeTick({ name, label, reason, off = false, hint }: {
+  name: string; label: string;
+  /** Why it cannot go. Present means disabled. */
+  reason?: string;
+  /** Start unticked (the person decides each time). */
+  off?: boolean;
+  hint?: string;
+}) {
+  const id = `tick-${name}`;
+  return (
+    <div className="ad__f">
+      <label className="ad__check ad__check--long" htmlFor={id}>
+        <input id={id} type="checkbox" name={name} value="1" defaultChecked={!reason && !off} disabled={Boolean(reason)} aria-describedby={`${id}-note`} />
+        <span>{label}</span>
+      </label>
+      <small className="ad__fh" id={`${id}-note`}>{reason ?? hint ?? "Sent behind the scenes. The log shows whether it arrived."}</small>
+    </div>
+  );
+}
+
+export const ReceiptTick = ({ reason }: { reason?: string }) => (
+  <NoticeTick name="emailReceipt" label="Email the client a receipt" reason={reason} />
+);
+
+/**
+ * The receipt tick for a form that picks the invoice itself: it follows the
+ * chosen invoice, and goes disabled (with the reason) for a client who has no
+ * address or has switched updates off.
+ */
+export function ReceiptTickFor({ reasons }: { reasons: Record<string, string> }) {
+  const [reason, setReason] = useState<string | undefined>(undefined);
+  return (
+    <>
+      <input
+        type="hidden"
+        ref={(el) => {
+          const form = el?.form;
+          if (!form) return;
+          const read = () => {
+            const field = form.querySelector<HTMLInputElement | HTMLSelectElement>('[name="invoiceId"]');
+            setReason(field ? reasons[field.value] : undefined);
+          };
+          form.addEventListener("change", read);
+          read();
+          return () => form.removeEventListener("change", read);
+        }}
+      />
+      <ReceiptTick key={reason ?? "ok"} reason={reason} />
+    </>
   );
 }

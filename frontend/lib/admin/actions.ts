@@ -4,11 +4,13 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { redirect } from "next/navigation";
 import * as db from "./store";
-import { invoiceTotals, naira, STAGES, type InvoiceLine } from "./types";
+import { invoiceTotals, naira, STAGES, type InvoiceLine, type Method, type Payment } from "./types";
+import { advanceAmount, invoiceMailVerdict, paymentReference, totalOfLines } from "./money-rules";
+import type { Staged } from "@/lib/money-mail";
 import { selectedPaystackMode } from "@/lib/paystack-mode";
 import { actorName, adminRole, owner, ownerFresh, allow } from "./guard";
 import { can } from "./permissions";
-import { queueLogged, retryLogged } from "@/lib/message-log";
+import { getLoggedById, queueLogged, retryLogged } from "@/lib/message-log";
 import { addEvents } from "@/lib/forms/events";
 import { hydrateSettings } from "@/lib/settings/store";
 import {
@@ -52,6 +54,25 @@ function ids(fd: FormData, key: string): string[] {
 function refresh(...paths: string[]) {
   revalidatePath("/admin");
   for (const p of paths) revalidatePath(p);
+}
+
+/**
+ * WHAT STAGING AN EMAIL CAME TO, as the sentence the person is told, and the
+ * send put behind the response (`after`). The row was written before this
+ * runs (lib/money-mail.ts `stage`), so a failure behind the response is on the
+ * log rather than lost, and a held-back message says so in words.
+ */
+function toldAbout(s: Staged, queued: (to: string) => string): ActionState {
+  if (s.state === "queued") { after(s.run); return OK(queued(s.to)); }
+  if (s.state === "skipped") return FAIL({}, `${s.say} It is recorded as skipped rather than sent.`);
+  return FAIL({}, s.say);
+}
+
+/** The same, for a message that rides along with another action: a sentence to add, never a failure. */
+function alongside(s: Staged, queued: (to: string) => string): string {
+  if (s.state === "queued") { after(s.run); return ` ${queued(s.to)}`; }
+  if (s.state === "skipped") return ` No email was sent: ${s.say}`;
+  return ` ${s.say}`;
 }
 
 /* --------------------------------------------------------------- clients */
@@ -439,13 +460,66 @@ export async function createInvoice(_prev: ActionState, fd: FormData): Promise<A
   const vatRate = num(fd, "vatRate") ?? 7.5;
   if (vatRate < 0 || vatRate > 100) errors.vatRate = "VAT has to be between 0 and 100.";
 
+  /* NOT EVERY CLIENT PAYS THROUGH THE INVOICE. Some paid ahead, or paid a
+     transfer before there was a document to put it against. "settle" raises the
+     invoice already issued AND takes that money (or the client's stored credit)
+     in the same step, so the books never show it owing when it is not. Checked
+     with everything else, before anything is created. */
+  const settle = str(fd, "settle");
+  const total = totalOfLines(lines, vatRate);
+  let advance: { how: Method; reference: string; at?: string; amount: number; note: string } | null = null;
+  if (settle === "paid") {
+    const how = method(fd, "method");
+    if (!how || how === "Credit" || how === "Paystack") errors.method = "Say how the money arrived.";
+    const typed = str(fd, "paidAmount");
+    const asKobo = kobo(fd, "paidAmount");
+    if (typed && asKobo === null) errors.paidAmount = "A number, in naira.";
+    const note = str(fd, "paidNote");
+    if (how === "Other" && !note) errors.paidNote = "Say how it actually arrived. \u201cOther\u201d with nothing beside it cannot be reconciled later.";
+    const ref = paymentReference(how, str(fd, "paidReference"));
+    if (!ref.ok) errors.paidReference = ref.say;
+    else if (ref.reference && db.paymentReferenceTaken(ref.reference)) errors.paidReference = "That reference is already recorded against a payment, so nothing was added. This is the guard working.";
+    const amount = advanceAmount(total, typed ? asKobo : null);
+    if (!amount.ok) { if (!errors.paidAmount) errors.paidAmount = amount.say; }
+    if (!Object.keys(errors).length && how && ref.ok && amount.ok) {
+      advance = { how, reference: ref.reference, at: isoDate(fd, "paidAt") ?? undefined, amount: amount.amount, note: note || "Paid before this invoice was raised." };
+    }
+  } else if (settle === "credit") {
+    const who = str(fd, "clientId");
+    if (who === "__new" || !(db.creditBalances()[who] > 0)) errors.settle = "That client has nothing held on account.";
+  } else if (settle) {
+    errors.settle = "Pick one of the choices.";
+  }
+
   if (Object.keys(errors).length) return FAIL(errors);
 
   const { clientId, projectId } = await createParties(fd);
+  const actor = await actorName();
   const inv = db.addInvoice({
     clientId, projectId, issued, due: due!, vatRate, lines,
-    status: str(fd, "issue") === "1" ? "Sent" : "Draft",
+    status: str(fd, "issue") === "1" || settle ? "Sent" : "Draft",
   });
+
+  /* The money, then (optionally) the receipt. Both behind a pre-checked door:
+     the reference was free a moment ago, and `applyPayment` is the final word. */
+  const paid: Payment[] = [];
+  if (advance) {
+    const res = db.applyPayment({
+      invoiceId: inv.id, amount: advance.amount, method: advance.how, reference: advance.reference,
+      at: advance.at, by: actor, note: advance.note,
+    });
+    if (res.ok) paid.push(res.payment);
+  } else if (settle === "credit") {
+    paid.push(...db.applyCreditsTo(inv.id, actor).payments);
+  }
+  if (paid.length && checked(fd, "emailReceipt")) {
+    const { stageReceipt } = await import("@/lib/money-mail");
+    const fresh = db.getInvoice(inv.id) ?? inv;
+    for (const payment of paid) {
+      const staged = await stageReceipt({ payment, invoice: fresh, outstanding: invoiceTotals(fresh).due, by: actor });
+      if (staged.state === "queued") after(staged.run);
+    }
+  }
 
   refresh("/admin/money", `/admin/clients/${clientId}`);
   redirect(`/admin/money/${inv.id}`);
@@ -459,8 +533,7 @@ export async function updateInvoice(_prev: ActionState, fd: FormData): Promise<A
   const id = str(fd, "id");
   const inv = db.getInvoice(id);
   if (!inv) return FAIL({}, "That invoice is no longer there.");
-  /* Issued invoices are not editable. See sendInvoice() for why. */
-  if (inv.status !== "Draft") return FAIL({}, "This one has been issued, so its lines are fixed. Credit it and raise a new one.");
+  if (inv.voided) return FAIL({}, "This invoice has been struck, so it cannot be changed. Raise a new one.");
 
   const errors: Record<string, string> = {};
   const { lines, bad } = readLines(fd);
@@ -471,9 +544,18 @@ export async function updateInvoice(_prev: ActionState, fd: FormData): Promise<A
   if (vatRate < 0 || vatRate > 100) errors.vatRate = "VAT has to be between 0 and 100.";
   if (Object.keys(errors).length) return FAIL(errors);
 
-  db.patchInvoice(id, { lines, due: due!, vatRate, projectId: str(fd, "projectId") || null });
-  refresh("/admin/money", `/admin/money/${id}`);
-  return OK("Saved.");
+  /* AN ISSUED INVOICE CAN BE CORRECTED while it is unpaid or part paid, as long
+     as the total does not fall below what has been received (the rule and the
+     audit line live in db.patchInvoice, where every caller meets them). */
+  const was = inv.status;
+  const res = db.patchInvoice(id, { lines, due: due!, vatRate, projectId: str(fd, "projectId") || null }, await actorName());
+  if (!res.ok) return FAIL(res.reason === "below-paid" ? { lines: res.say } : {}, res.say);
+  refresh("/admin/money", `/admin/money/${id}`, `/admin/clients/${inv.clientId}`);
+  return OK(was === "Draft"
+    ? "Saved."
+    : res.before === res.after
+      ? "Updated. The total is unchanged; the client's copy shows the new wording and dates."
+      : `Updated. The total is now ${naira(res.after)}; the client's copy shows it.`);
 }
 
 export async function issueInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
@@ -487,7 +569,7 @@ export async function issueInvoice(_prev: ActionState, fd: FormData): Promise<Ac
   if (inv.status === "Draft") return FAIL({}, "It could not be issued.");
 
   refresh("/admin/money", `/admin/money/${id}`, `/admin/clients/${inv.clientId}`);
-  return OK(`${inv.number} is issued. Emailing it to the client arrives with SMTP.`);
+  return OK(`${inv.number} is issued. Email it to the client from its page when you are ready.`);
 }
 
 export async function deleteInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
@@ -520,7 +602,7 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
   if (refused) return refused;
   const invoiceId = str(fd, "invoiceId");
   const amount = kobo(fd, "amount");
-  let reference = str(fd, "reference");
+  const typedReference = str(fd, "reference");
   /* The list used to be re-typed here, so adding POS and Other to the union in
      types.ts would silently have kept rejecting them and filed both as
      "Transfer". One reader, one list. */
@@ -530,9 +612,10 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
   if (!amount) errors.amount = "How much came in?";
   /* Only a bank transfer has a reference worth insisting on. Cash, card and POS
      get a generated one (so the row is still unique) unless the person typed a
-     slip or receipt number. */
-  if (!reference && how === "Transfer") errors.reference = "The bank reference is what stops this being recorded twice.";
-  if (!reference && how && how !== "Transfer") reference = `${how.toUpperCase()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+     slip or receipt number (lib/admin/money-rules.ts). */
+  const ref = paymentReference(how, typedReference);
+  if (!ref.ok) errors.reference = ref.say;
+  const reference = ref.ok ? ref.reference : "";
   if (!how) errors.method = "Say how the money arrived.";
   /* "Other" is allowed and is exactly why it has to say what it actually was.
      Recording money against an unnamed catch-all is how a set of books stops
@@ -582,10 +665,22 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
   refresh("/admin/money", `/admin/money/${invoiceId}`, `/admin/clients/${res.invoice.clientId}`);
 
   const t = invoiceTotals(res.invoice);
-  if (res.overpaid) {
-    return OK(`Recorded. This invoice is now paid ${naira(res.invoice.paid - t.total)} over its total, so check before refunding.`);
+  /* THE RECEIPT, if the person ticked it. Staged here (the row is written
+     before the response, so a mail server that is slow or down leaves a Failed
+     row to retry, not a silence) and sent behind the response. A client who
+     switched updates off, or has no address, is written down as skipped. */
+  let receipt = "";
+  if (checked(fd, "emailReceipt")) {
+    const { stageReceipt } = await import("@/lib/money-mail");
+    receipt = alongside(
+      await stageReceipt({ payment: res.payment, invoice: res.invoice, outstanding: t.due, by: res.payment.by }),
+      (to) => `A receipt is on its way to ${to}.`,
+    );
   }
-  return OK(t.due ? `Recorded. ${naira(t.due)} still owing.` : "Recorded. This invoice is settled.");
+  if (res.overpaid) {
+    return OK(`Recorded. This invoice is now paid ${naira(res.invoice.paid - t.total)} over its total, so check before refunding.${receipt}`);
+  }
+  return OK(`${t.due ? `Recorded. ${naira(t.due)} still owing.` : "Recorded. This invoice is settled."}${receipt}`);
 }
 
 export async function reversePayment(_prev: ActionState, fd: FormData): Promise<ActionState> {
@@ -604,12 +699,24 @@ export async function reversePayment(_prev: ActionState, fd: FormData): Promise<
   if (!reason) {
     return FAIL({ reason: "Say why. A reversal with no reason cannot be explained later." });
   }
-  if (!db.reversePayment(id, reason, str(fd, "by") || await actorName())) {
+  const payment = db.getPayments().find((p) => p.id === id);
+  const by = str(fd, "by") || await actorName();
+  if (!db.reversePayment(id, reason, by)) {
     return FAIL({}, "That payment is already reversed, or is no longer there.");
   }
 
-  refresh("/admin/money", `/admin/money/${invoiceId}`);
-  return OK("Reversed. The row stays on the books marked reversed, and its receipt now says so.");
+  /* TELL THE CLIENT, when asked: the receipt they may be holding now says
+     reversed, and what they owe has changed. Keyed on the payment, so pressing
+     again can never send it twice. */
+  let told = "";
+  const inv = payment ? db.getInvoice(payment.invoiceId) : null;
+  if (payment && inv && checked(fd, "tellClient")) {
+    const { stageReversalNotice } = await import("@/lib/money-mail");
+    told = alongside(await stageReversalNotice({ payment: db.getPayments().find((p) => p.id === id) ?? payment, invoice: inv, by }), (to) => `The client is being told at ${to}.`);
+  }
+
+  refresh("/admin/money", `/admin/money/${invoiceId}`, ...(inv ? [`/admin/clients/${inv.clientId}`] : []));
+  return OK(`Reversed. The row stays on the books marked reversed, and its receipt now says so.${told}`);
 }
 
 /* -------------------------------------------------------------- expenses */
@@ -779,9 +886,17 @@ export async function assignEntry(_prev: ActionState, fd: FormData): Promise<Act
 
   try { await setLink(form.key, entry.id, client.id, project?.id ?? null, await actorName()); }
   catch { return FAIL({}, "The assignment could not be saved just now. Nothing was changed on the entry. Try again in a minute."); }
-  await addEvents(form.key, [entry.id], "client", `Assigned to ${client.company}${project ? ` and the project ${project.title}` : ""}${note}`, await actorName());
+  const by = await actorName();
+  await addEvents(form.key, [entry.id], "client", `Assigned to ${client.company}${project ? ` and the project ${project.title}` : ""}${note}`, by);
+  /* TELL THE CLIENT only when the owner ticked it (off by default). Behind the
+     response, through the outbox; the client's own updates switch still applies. */
+  const tell = str(fd, "tellClient") === "1";
+  if (tell) {
+    const told = { clientId: client.id, projectId: project?.id ?? null, formKey: form.key, formNoun: form.noun, entryId: entry.id, by };
+    after(() => import("@/lib/lifecycle-mail").then((m) => m.sendEntryAssigned(told)).catch(() => {}));
+  }
   refresh("/admin/forms", `/admin/forms/${form.key}`, `/admin/forms/${form.key}/entries/${entry.id}`, `/admin/clients/${client.id}`, "/admin/clients", "/admin/projects");
-  return OK(`Assigned to ${client.company}${project ? `, project ${project.title}` : ""}.`);
+  return OK(`Assigned to ${client.company}${project ? `, project ${project.title}` : ""}.${tell ? " The client is being told." : ""}`);
 }
 
 /** Fold a duplicate into the client whose page this is. */
@@ -1135,8 +1250,14 @@ export async function matchEventToInvoice(_prev: ActionState, fd: FormData): Pro
     `Matched by hand to ${applied.invoice.number}. Receipt ${applied.payment.receiptNo}.`,
     by,
   );
+  /* The payer paid online, so the receipt they are owed (and the studio's
+     notice) goes out exactly as it would have had the match been automatic. */
+  after(async () => {
+    const { sendOnlinePaymentEmails } = await import("@/lib/money-mail");
+    await sendOnlinePaymentEmails({ payment: applied.payment, invoice: applied.invoice });
+  });
   refresh("/admin/money", "/admin/money/reconciliation", `/admin/money/${invoiceId}`);
-  return OK(`Banked against ${applied.invoice.number} as ${applied.payment.receiptNo}.`);
+  return OK(`Banked against ${applied.invoice.number} as ${applied.payment.receiptNo}. The client's receipt is on its way.`);
 }
 
 /* ---------------------------------------------------------------- mail */
@@ -1150,18 +1271,16 @@ export async function emailInvoice(_prev: ActionState, fd: FormData): Promise<Ac
   const id = str(fd, "id");
   const inv = db.getInvoice(id);
   if (!inv) return FAIL({}, "That invoice is no longer there.");
-  if (inv.status === "Draft") return FAIL({}, "Issue it first. A draft has no public page to link to.");
-  if (inv.voided) return FAIL({}, "This invoice has been struck, so there is nothing to send. Raise a new one.");
+  /* A draft, a struck invoice and a SETTLED one are all refused here, not just
+     hidden on the page: an action is a POST to an id. A paid client does not
+     need to be asked for ₦0.00; the receipt is what they are owed. */
+  const verdict = invoiceMailVerdict(inv);
+  if (!verdict.ok) return FAIL({}, verdict.say);
 
-  const { sendInvoiceEmail } = await import("@/lib/money-mail");
-  const sent = await sendInvoiceEmail({ invoice: inv, by: str(fd, "by") || await actorName() });
+  const { stageInvoiceEmail } = await import("@/lib/money-mail");
+  const staged = await stageInvoiceEmail({ invoice: inv, by: str(fd, "by") || await actorName() });
   refresh("/admin/money", `/admin/money/${id}`);
-  if (sent.sent) return OK("Sent, with the pay link on it.");
-  return FAIL({}, sent.reason === "already sent"
-    ? "It has already been emailed. The communication log below has the record."
-    : sent.reason === "no address"
-      ? "There is no email address on file for that client."
-      : "The mail server would not take it. The communication log below says why.");
+  return toldAbout(staged, (to) => `Emailing it to ${to}, with the pay link on it. The log below shows whether it arrived.`);
 }
 
 /** The nudge on an overdue invoice. */
@@ -1176,17 +1295,38 @@ export async function emailReminder(_prev: ActionState, fd: FormData): Promise<A
   if (inv.voided) return FAIL({}, "This invoice has been struck, so nobody owes anything on it.");
   if (invoiceTotals(inv).due <= 0) return FAIL({}, "There is nothing outstanding on it.");
 
-  const { sendInvoiceReminderEmail } = await import("@/lib/money-mail");
-  const sent = await sendInvoiceReminderEmail({ invoice: inv, by: str(fd, "by") || await actorName() });
+  const { stageReminderEmail } = await import("@/lib/money-mail");
+  const staged = await stageReminderEmail({ invoice: inv, by: str(fd, "by") || await actorName() });
   refresh("/admin/money", `/admin/money/${id}`);
-  if (sent.sent) return OK("Reminder sent.");
-  return FAIL({}, sent.reason === "opted out"
-    ? "That client has invoice reminders switched off. It is recorded as skipped rather than sent."
-    : sent.reason === "already sent"
-      ? "One has already gone today. Tomorrow's is allowed."
-      : sent.reason === "no address"
-        ? "There is no email address on file for that client."
-        : "The mail server would not take it.");
+  return toldAbout(staged, (to) => `Reminder on its way to ${to}. The log below shows whether it arrived.`);
+}
+
+/**
+ * Send a receipt for a payment (by its id), or for an invoice's latest one.
+ *
+ * ALSO THE RESEND. The first time it is the receipt the payment never had;
+ * after that it is the same receipt once more, at most once a day.
+ */
+export async function sendReceipt(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await syncStore();
+  persistSoon();
+  const refused = await owner();
+  if (refused) return refused;
+  const paymentId = str(fd, "id");
+  const invoiceId = str(fd, "invoiceId");
+  const rows = paymentId
+    ? db.getPayments().filter((p) => p.id === paymentId)
+    : db.getPaymentsFor(invoiceId).filter((p) => !p.reversed).sort((a, b) => b.at.localeCompare(a.at));
+  const payment = rows[0];
+  if (!payment) return FAIL({}, paymentId ? "That payment is no longer there." : "There is no payment on this invoice to send a receipt for.");
+  const inv = db.getInvoice(payment.invoiceId);
+  if (!inv) return FAIL({}, "That invoice is no longer there.");
+  if (payment.reversed) return FAIL({}, "That payment was reversed, so it is not a receipt to send. Its link now says reversed.");
+
+  const { stageReceipt } = await import("@/lib/money-mail");
+  const staged = await stageReceipt({ payment, invoice: inv, outstanding: invoiceTotals(inv).due, by: await actorName(), again: true });
+  refresh("/admin/money", `/admin/money/${inv.id}`, `/admin/clients/${inv.clientId}`);
+  return toldAbout(staged, (to) => `Receipt ${payment.receiptNo} is on its way to ${to}. The log below shows whether it arrived.`);
 }
 
 /**
@@ -1225,16 +1365,49 @@ export async function logMessage(_prev: ActionState, fd: FormData): Promise<Acti
   return OK("Logged.");
 }
 
-/** A message that failed, queued to be tried again. */
+/**
+ * A message that failed, sent again.
+ *
+ * IT USED TO ONLY FREE THE KEY and then said "cleared for another attempt",
+ * which sent nothing and read as though it had. Now it rebuilds the message
+ * from the record its key names and sends it: a money message through
+ * lib/money-mail.ts (the failed row is kept, retired, and marked as sent on),
+ * a form email through the form's own resend. A kind this does not know how to
+ * rebuild says so, and frees the key so the screen that sent it can send it
+ * again, rather than claiming a send that did not happen.
+ */
 export async function resendMessage(_prev: ActionState, fd: FormData): Promise<ActionState> {
   await syncStore();
   persistSoon();
   const refused = await owner();
   if (refused) return refused;
-  const m = await retryLogged(str(fd, "id"), str(fd, "by") || await actorName());
-  if (!m) return FAIL({}, "That one did not fail, or is no longer there.");
+  const id = str(fd, "id");
+  const by = str(fd, "by") || await actorName();
+  const row = await getLoggedById(id);
+  if (!row || row.state !== "Failed") return FAIL({}, "That one did not fail, or is no longer there.");
+
+  const { restageFromKey } = await import("@/lib/money-mail");
+  const staged = await restageFromKey(row.dedupeKey, by);
+  if (staged) {
+    refresh("/admin/money", "/admin/clients", "/admin/settings/email/log");
+    return toldAbout(staged, (to) => `Sending it again to ${to}. The log shows whether it arrived.`);
+  }
+
+  const { formEmailOf, resendFormEmail } = await import("@/lib/forms/resend");
+  const target = await formEmailOf(row.dedupeKey);
+  if (target) {
+    const r = await resendFormEmail(target.form, target.entryId, target.key, { by, failedRowId: row.id });
+    refresh("/admin/money", "/admin/clients", "/admin/settings/email/log");
+    if (r.ok) return OK(r.duplicate ? "That one was already sent on." : `Sent again to ${r.recipient}.`);
+    if (r.reason === "refused") return FAIL({}, `The mail server refused it again: ${r.error}`);
+    return FAIL({}, "The entry or its email address is no longer there, so it could not be rebuilt.");
+  }
+
+  const m = await retryLogged(id, by);
   refresh("/admin/money", "/admin/clients");
-  return OK("Cleared for another attempt. The failed row stays as the record that the first try did not go.");
+  return FAIL({}, m
+    ? "Nothing was sent. This kind of message cannot be rebuilt from the log, so its record is cleared and the page that sent it can send it again."
+    : "Nothing was sent, and it could not be cleared for another attempt.");
 }
 
 /* ------------------------------------------- voids, refunds and credit -- */
@@ -1265,8 +1438,15 @@ export async function voidInvoice(_prev: ActionState, fd: FormData): Promise<Act
       "no-reason": "Say why.",
     }[res.reason]);
   }
+  /* The client may be holding this document: tell them, when asked, that it
+     is cancelled and nothing is owed. Keyed on the invoice, so once. */
+  let told = "";
+  if (checked(fd, "tellClient")) {
+    const { stageVoidNotice } = await import("@/lib/money-mail");
+    told = alongside(await stageVoidNotice({ invoice: res.invoice, by: res.invoice.voided?.by }), (to) => `The client is being told at ${to}.`);
+  }
   refresh("/admin/money", `/admin/money/${id}`, `/admin/clients/${res.invoice.clientId}`);
-  return OK("Struck. The number stays taken and the document still opens, saying nothing is owed.");
+  return OK(`Struck. The number stays taken and the document still opens, saying nothing is owed.${told}`);
 }
 
 /**
@@ -1309,11 +1489,17 @@ export async function refundPayment(_prev: ActionState, fd: FormData): Promise<A
   }
 
   const inv = db.getInvoice(res.payment.invoiceId);
+  /* Money moved: say so to the client, when asked. One notice per refund row. */
+  let told = "";
+  if (inv && checked(fd, "tellClient")) {
+    const { stageRefundNotice } = await import("@/lib/money-mail");
+    told = alongside(await stageRefundNotice({ payment: res.payment, refund: res.refund, invoice: inv, by: res.refund.by }), (to) => `The client is being told at ${to}.`);
+  }
   refresh("/admin/money", `/admin/money/${res.payment.invoiceId}`,
           inv ? `/admin/clients/${inv.clientId}` : "/admin/clients");
-  return OK(toCredit
+  return OK((toCredit
     ? `${naira(res.refund.amount)} moved onto the client's balance. It will come off their next invoice.`
-    : `${naira(res.refund.amount)} recorded as returned. The receipt says so and the totals no longer count it.`);
+    : `${naira(res.refund.amount)} recorded as returned. The receipt says so and the totals no longer count it.`) + told);
 }
 
 /** Move an overpayment onto the client's balance rather than sending it back. */
@@ -1332,8 +1518,17 @@ export async function overpaymentToCredit(_prev: ActionState, fd: FormData): Pro
     }[res.reason]);
   }
   const inv = db.getInvoice(id);
+  /* It was booked as a refund-to-credit against the payment that took it over,
+     so the same one notice per refund applies. */
+  let told = "";
+  const from = db.getPayments().find((p) => p.id === res.credit.fromPaymentId);
+  const refund = from?.refunds?.at(-1);
+  if (inv && from && refund && checked(fd, "tellClient")) {
+    const { stageRefundNotice } = await import("@/lib/money-mail");
+    told = alongside(await stageRefundNotice({ payment: from, refund, invoice: inv, by: refund.by }), (to) => `The client is being told at ${to}.`);
+  }
   refresh("/admin/money", `/admin/money/${id}`, inv ? `/admin/clients/${inv.clientId}` : "/admin/clients");
-  return OK(`${naira(res.credit.amount)} is on the client's balance now, and this invoice lands exactly on its total.`);
+  return OK(`${naira(res.credit.amount)} is on the client's balance now, and this invoice lands exactly on its total.${told}`);
 }
 
 /** Spend a credit on an invoice. This is the balance carrying forward. */
@@ -1403,10 +1598,15 @@ export async function createEstimate(_prev: ActionState, fd: FormData): Promise<
     state: str(fd, "send") === "1" ? "Sent" : "Draft",
   }, str(fd, "by") || await actorName());
 
+  let told = "";
+  if (est.state === "Sent" && checked(fd, "emailClient")) {
+    const { stageEstimateSent } = await import("@/lib/money-mail");
+    told = alongside(await stageEstimateSent({ estimate: est, by: await actorName() }), (to) => `It is being emailed to ${to}.`);
+  }
   refresh("/admin/money", `/admin/clients/${clientId}`);
-  return OK(est.state === "Sent"
+  return OK((est.state === "Sent"
     ? `${est.number} is out. Its page is live at /q/${est.token}.`
-    : `${est.number} saved as a draft. Nothing is public until you send it.`);
+    : `${est.number} saved as a draft. Nothing is public until you send it.`) + told);
 }
 
 export async function sendEstimate(_prev: ActionState, fd: FormData): Promise<ActionState> {
@@ -1414,10 +1614,16 @@ export async function sendEstimate(_prev: ActionState, fd: FormData): Promise<Ac
   persistSoon();
   const refused = await owner();
   if (refused) return refused;
-  const est = db.sendEstimate(str(fd, "id"), str(fd, "by") || await actorName());
+  const by = str(fd, "by") || await actorName();
+  const est = db.sendEstimate(str(fd, "id"), by);
   if (!est) return FAIL({}, "That one is no longer a draft, or is no longer there.");
+  let told = " Send the client the link and the price holds until it expires.";
+  if (checked(fd, "emailClient")) {
+    const { stageEstimateSent } = await import("@/lib/money-mail");
+    told = alongside(await stageEstimateSent({ estimate: est, by }), (to) => `It is being emailed to ${to}.`);
+  }
   refresh("/admin/money", `/admin/clients/${est.clientId}`);
-  return OK(`${est.number} is out. Send the client the link and the price holds until it expires.`);
+  return OK(`${est.number} is out.${told}`);
 }
 
 /**
@@ -1451,10 +1657,22 @@ export async function answerEstimate(_prev: ActionState, fd: FormData): Promise<
     }[res.reason]);
   }
 
+  /* The client's copy (when asked) and the studio's own notice (when
+     notify.estimates is on). Each is keyed on the estimate, so recording the
+     same answer twice cannot send either twice. */
+  const mail = await import("@/lib/money-mail");
+  const actor = await actorName();
+  let told = "";
+  if (checked(fd, "emailClient")) {
+    told += alongside(await mail.stageEstimateAnswered({ estimate: res.estimate, invoice: res.invoice, by: actor }), (to) => `The client is being told at ${to}.`);
+  }
+  const studio = await mail.stageEstimateStudioNotice({ estimate: res.estimate, invoice: res.invoice, by: actor });
+  if (studio.state === "queued") after(studio.run);
+
   refresh("/admin/money", `/admin/clients/${res.estimate.clientId}`);
-  return OK(res.invoice
+  return OK((res.invoice
     ? `Accepted, and raised as ${res.invoice.number}. The estimate keeps its own number and its own page.`
-    : "Recorded as declined. It stays on the books, because a quote nobody took is worth knowing about later.");
+    : "Recorded as declined. It stays on the books, because a quote nobody took is worth knowing about later.") + told);
 }
 
 /** Quote the same thing again, as a fresh draft at today's date. */

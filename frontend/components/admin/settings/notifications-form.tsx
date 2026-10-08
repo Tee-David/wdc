@@ -6,8 +6,8 @@ import { Panel } from "@/components/admin/bits";
 import { SettingsForm, Switch, Text } from "./kit";
 
 /** Settings, Notifications: every email the studio itself receives, switched in one place. */
-export function NotificationsForm({ tickets, payments, staff, forms, alertTo, inbox }: {
-  tickets: boolean; payments: boolean; staff: boolean; alertTo: string; inbox: string;
+export function NotificationsForm({ tickets, payments, estimates, staff, signups, approvals, meetings, forms, alertTo, inbox }: {
+  tickets: boolean; payments: boolean; estimates: boolean; staff: boolean; signups: boolean; approvals: boolean; meetings: boolean; alertTo: string; inbox: string;
   forms: { key: string; title: string; on: boolean }[];
 }) {
   const [alertOn, setAlertOn] = useState(Boolean(alertTo));
@@ -15,8 +15,12 @@ export function NotificationsForm({ tickets, payments, staff, forms, alertTo, in
     <SettingsForm action={saveNotificationSettings}>
       <Panel title="Email the studio when" action={<span className="ad__dim adSet__aside">To {inbox}</span>}>
         <Switch name="notify.tickets" label="A client opens or replies to a ticket" defaultChecked={tickets} />
-        <Switch name="notify.staff" label="A new staff member finishes their welcome" defaultChecked={staff} />
+        <Switch name="notify.staff" label="A new staff member joins, and when they finish their welcome" defaultChecked={staff} />
+        <Switch name="notify.signups" label="A client accepts their invitation and joins the portal" defaultChecked={signups} />
+        <Switch name="notify.approvals" label="A client approves a deliverable or asks for changes" defaultChecked={approvals} />
+        <Switch name="notify.meetings" label="A meeting is booked, moved or cancelled" defaultChecked={meetings} />
         <Switch name="notify.payments" label="A client pays online" defaultChecked={payments} />
+        <Switch name="notify.estimates" label="An estimate is accepted or declined" defaultChecked={estimates} />
       </Panel>
       <Panel title="A form is sent">
         {forms.map((f) => (

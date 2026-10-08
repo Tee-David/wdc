@@ -2,6 +2,7 @@ import { after, NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db/pool";
 import { hash, validSignature } from "@/lib/meetings/policy";
 import { recover } from "@/lib/meetings/store";
+import { parseMeetingNotice } from "@/lib/meetings/notice";
 
 export const maxDuration = 60;
 export async function POST(request: NextRequest) {
@@ -15,6 +16,11 @@ export async function POST(request: NextRequest) {
   try {
     await db.query("INSERT INTO wdc_meeting_webhooks (digest,booking_uid,kind) VALUES ($1,$2,$3) ON CONFLICT (digest) DO NOTHING", [hash(raw), uid, kind]);
     after(() => recover());
+    /* The studio hears of a booking or a cancellation (Settings, Notifications). The
+       client's own meeting emails come from the booking service, so none is sent
+       here. The body's digest keys the row, so a redelivery of the same event mails once. */
+    const notice = parseMeetingNotice(body);
+    if (notice) after(() => import("@/lib/lifecycle-mail").then((m) => m.sendMeetingNotice({ ...notice, digest: hash(raw) })).catch(() => {}));
     return new NextResponse(null, { status: 202 });
   } catch { return new NextResponse(null, { status: 503 }); }
 }

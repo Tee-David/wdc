@@ -3,6 +3,7 @@
 import { Pencil, Plus, Save, Trash2 } from "lucide-react";
 import { addDepartment, editDepartment, removeDepartment, saveDepartmentMembers, saveClientDepartments } from "@/lib/admin/department-actions";
 import { Actions, Checks, Field, Fields, Form, Hidden, Submit } from "./form";
+import { RemoteChecks } from "./remote-pick";
 import { DialogButton } from "./dialog";
 
 export function AddDepartment() {
@@ -19,16 +20,14 @@ export function AddDepartment() {
 }
 
 /** One department: who is in it, rename, remove. */
-export function DepartmentBody({ id, name, members, staff, clients }: {
+export function DepartmentBody({ id, name, members, clients }: {
   id: string; name: string;
   members: { id: string; name: string; active: boolean }[];
-  staff: { id: string; name: string }[];
   /** Clients this department looks after. */
   clients: { id: string; company: string }[];
 }) {
-  /* A person who left the studio stays visible, ticked, so removing them is a choice. */
-  const gone = members.filter((m) => !m.active);
-  const options = [...staff, ...gone].map((s) => ({ value: s.id, label: gone.some((g) => g.id === s.id) ? `${s.name} (deactivated)` : s.name }));
+  /* The team is searched on the server, not listed: nobody is cut off past a fixed number. A person who left the studio stays in the chips, marked, so removing them is a choice. */
+  const labels = Object.fromEntries(members.map((m) => [m.id, m.active ? m.name : `${m.name} (deactivated)`]));
   return (
     <div className="ad__stack" style={{ padding: "1rem 1.25rem" }}>
       {!members.some((m) => m.active) ? (
@@ -37,8 +36,8 @@ export function DepartmentBody({ id, name, members, staff, clients }: {
       <Form action={saveDepartmentMembers}>
         <Hidden name="id" value={id} />
         <Fields>
-          <Checks name="members" label="People in this department" long options={options}
-            defaultValue={members.map((m) => m.id)} hint="A person can be in more than one department." />
+          <RemoteChecks name="members" label="People in this department" kind="staff" placeholder="Search the team" addLabel="Add another person"
+            defaultValue={members.map((m) => m.id)} defaultLabels={labels} hint="A person can be in more than one department." />
         </Fields>
         <Actions><Submit icon={Save}>Save people</Submit></Actions>
       </Form>

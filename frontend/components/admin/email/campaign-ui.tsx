@@ -7,6 +7,7 @@ import {
 } from "@/lib/admin/campaign-actions";
 import { Actions, Checks, Field, Fields, Form, Hidden, Select, Submit } from "../form";
 import { DialogButton } from "../dialog";
+import { RemoteChecks } from "../remote-pick";
 import "./campaigns.css";
 
 export function NewCampaign() {
@@ -23,8 +24,8 @@ export function NewCampaign() {
 }
 
 /** Who gets it and how it is tracked, with a count that follows the ticks: the people who would get it if it went now. */
-export function AudienceForm({ id, title, tags, audience, track, reach }: {
-  id: string; title: string; tags: { tag: string; n: number }[];
+export function AudienceForm({ id, title, audience, track, reach }: {
+  id: string; title: string;
   audience: { tags: string[]; types: string[]; excludeTags: string[] }; track: string; reach: number;
 }) {
   const [count, setCount] = useState<number | null>(reach);
@@ -36,7 +37,8 @@ export function AudienceForm({ id, title, tags, audience, track, reach }: {
   const recount = () => {
     window.clearTimeout(timer.current);
     timer.current = window.setTimeout(async () => {
-      const read = (n: string) => [...(box.current?.querySelectorAll<HTMLInputElement>(`input[name="${n}"]:checked`) ?? [])].map((i) => i.value);
+      /* Ticked boxes (types) and the chips the tag pickers post as hidden inputs. */
+      const read = (n: string) => [...(box.current?.querySelectorAll<HTMLInputElement>(`input[name="${n}"]:checked, input[type="hidden"][name="${n}"]`) ?? [])].map((i) => i.value);
       const mine = ++run.current;
       const n = await countAudience(read("tags"), read("types"), read("exclude")).catch(() => null);
       if (mine === run.current) setCount(n);
@@ -50,8 +52,8 @@ export function AudienceForm({ id, title, tags, audience, track, reach }: {
           <Field name="title" label="Title" defaultValue={title} />
           <Checks name="types" label="Send to" defaultValue={audience.types} options={[{ value: "client", label: "Clients" }, { value: "lead", label: "Leads" }, { value: "subscriber", label: "Subscribers" }]}
             hint="Only people marked as having asked to hear from us, and never anyone who unsubscribed or bounced. Leave all unticked for everyone who asked." />
-          {tags.length ? <Checks name="tags" label="Only with these tags" defaultValue={audience.tags} options={tags.map((t) => ({ value: t.tag, label: `${t.tag} (${t.n})` }))} /> : null}
-          {tags.length ? <Checks name="exclude" label="Leave out these tags" defaultValue={audience.excludeTags} options={tags.map((t) => ({ value: t.tag, label: t.tag }))} /> : null}
+          <RemoteChecks name="tags" label="Only with these tags" kind="tags" defaultValue={audience.tags} placeholder="Search tags" addLabel="Add another tag" onChange={recount} />
+          <RemoteChecks name="exclude" label="Leave out these tags" kind="tags" defaultValue={audience.excludeTags} placeholder="Search tags" addLabel="Add another tag" onChange={recount} />
         </Fields>
         <div className="adCp__box" role="status" aria-live="polite">
           <span className="adCp__ic" aria-hidden="true"><Users /></span>
