@@ -770,6 +770,12 @@ export default function OnboardingForm({ closed = {}, styles = {}, engagement = 
     return (
       <div className="ob ob--board">
         <div className="ob__top">
+        {i === 0 ? (
+          <button className="ob__menuLink" type="button" onClick={changeService}>
+            <ArrowLeft aria-hidden="true" /> Wrong service? Back to the onboarding menu
+          </button>
+        ) : null}
+        
           <div className="ob__progress" role="progressbar" aria-label="Onboarding progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((doneN / steps.length) * 100)}>
             <span style={{ width: `${Math.max(8, Math.round((doneN / steps.length) * 100))}%` }}>
               <b>{Math.round((doneN / steps.length) * 100)}%</b>
@@ -884,6 +890,12 @@ export default function OnboardingForm({ closed = {}, styles = {}, engagement = 
             answering "no" to a branching question makes the estimate actually
             drop. A number that never moves is worse than no number. */}
         <div className="ob__top">
+        {i === 0 ? (
+          <button className="ob__menuLink" type="button" onClick={changeService}>
+            <ArrowLeft aria-hidden="true" /> Wrong service? Back to the onboarding menu
+          </button>
+        ) : null}
+        
           <div
             className="ob__progress"
             role="progressbar"
