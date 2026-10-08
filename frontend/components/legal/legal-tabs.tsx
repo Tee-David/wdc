@@ -113,7 +113,7 @@ export default function LegalTabs({ slug, intro, tabs, sections, email, also }: 
         })}
         {!shown.length && q ? <p>Write to <a href={`mailto:${email}`}>{email}</a> and we will answer, and add it here.</p> : null}
       </div>
-      <p className="lg-pdf"><a href={`/legal/${slug}/pdf`} download>Download this policy as a PDF</a></p>
+      <div className="lg-pdf"><a href={`/legal/${slug}/pdf`} download><Download aria-hidden="true" /><span>Download this policy as a PDF</span></a></div>
       <SeeAlso here={slug} docs={also} />
     </article>
   );
