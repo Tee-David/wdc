@@ -39,6 +39,7 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   { href: "/admin/settings/integrations", label: "Integrations", line: "Outside services and their state.", group: "System", icon: "plug", area: "settings", words: "paystack r2 storage database google pagespeed cal whatsapp" },
   { href: "/admin/settings/privacy", label: "Privacy and data", line: "Keep-for rules and requests.", group: "System", icon: "lock", area: "settings", words: "retention erase export requests ndpr gdpr" },
   { href: "/admin/settings/audit", label: "Audit log", line: "Every change and who made it.", group: "System", icon: "history", area: "settings", words: "history changes" },
+  { href: "/admin/settings/errors", label: "Error log", line: "Server errors and how often.", group: "System", icon: "activity", area: "settings", words: "bugs crashes 500 exceptions" },
   { href: "/admin/settings/system", label: "System health", line: "Services, schema and fix-it tools.", group: "System", icon: "activity", area: "settings", words: "services schema tools retry cache status" },
 ];
 

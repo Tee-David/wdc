@@ -28,6 +28,25 @@ export async function owner(): Promise<ActionState | null> {
   return { ...FAIL({}, REFUSED), signIn: true };
 }
 
+/**
+ * THE OWNER, WITH A RECENT SIGN-IN. For actions that move money out or undo it
+ * (refund, reverse, void) and for exports: a stolen owner cookie older than
+ * 15 minutes cannot do them. Fails closed, like `owner()`; the form shows
+ * "Sign in in a new tab, then save again" (nothing typed is lost).
+ */
+export async function ownerFresh(): Promise<ActionState | null> {
+  const refused = await owner();
+  if (refused) return refused;
+  try {
+    const { session } = await getAdminRequest();
+    const made = (session as { session?: { createdAt?: string | Date } } | null)?.session?.createdAt;
+    if (!made) return null; // capture sessions (never in production) carry no age
+    const age = Date.now() - new Date(made).getTime();
+    if (Number.isFinite(age) && age >= 0 && age <= 15 * 60 * 1000) return null;
+  } catch { /* fall through */ }
+  return { ...FAIL({}, "For a refund, reversal or void, sign in again first. Your session is older than 15 minutes. Nothing you typed is lost."), signIn: true };
+}
+
 /** The name to write against a change: the signed-in person, never a form field. */
 export async function actorName(): Promise<string> {
   try {
