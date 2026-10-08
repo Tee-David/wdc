@@ -12,7 +12,7 @@ export const CLIENT_NAV: ClientNavItem[] = [
   { href: "/portal", label: "Overview", Icon: LayoutDashboard, tour: "portal-nav-overview" },
   { href: "/portal/projects", label: "Projects", Icon: FolderKanban, tour: "portal-nav-projects" },
   { href: "/portal/billing", label: "Billing", Icon: Banknote, tour: "portal-nav-billing" },
-  { href: "/portal/support", label: "Support", Icon: LifeBuoy, tour: "portal-nav-support" },
+  { href: "/portal/support", label: "Messages", Icon: LifeBuoy, tour: "portal-nav-support" },
   { href: "/portal/settings", label: "Settings", Icon: Settings, tour: "portal-nav-settings" },
 ];
 
