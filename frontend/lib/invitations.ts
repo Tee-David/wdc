@@ -216,7 +216,7 @@ export async function redeemInvitation(token: string, input: { name: string; pas
       'INSERT INTO "user" ("id", "name", "email", "emailVerified", "role") VALUES ($1, $2, $3, true, $4)',
       [userId, name, row.email, row.role],
     );
-    if(row.role==='client') await c.query(`INSERT INTO client_profile_preferences(user_id,setup_state) VALUES($1,'pending')`,[userId]);
+    if(row.role==='client'||row.role==='staff') await c.query(`INSERT INTO client_profile_preferences(user_id,setup_state) VALUES($1,'pending')`,[userId]);
     if (hashed) {
       await c.query(
         'INSERT INTO "account" ("id", "accountId", "providerId", "userId", "password") VALUES ($1, $2, $3, $4, $5)',
