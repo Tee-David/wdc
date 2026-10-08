@@ -16,6 +16,7 @@ import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { ExampleNote } from "@/components/admin/example-note";
 import { FilterPick } from "@/components/admin/pick";
+import { Pager, readPer } from "@/components/admin/pager";
 
 export const metadata = { title: "Projects" };
 
@@ -38,7 +39,7 @@ export const metadata = { title: "Projects" };
  */
 
 type Query = {
-  stage?: string; service?: string; owner?: string; health?: string; view?: string; q?: string;
+  stage?: string; service?: string; owner?: string; health?: string; view?: string; q?: string; page?: string; per?: string;
 };
 
 /** A link that keeps every filter except the one it is changing. */
@@ -96,6 +97,12 @@ export default async function ProjectsPage({
   const all = projects.filter(match);
   const filtered = !!(needle || stage || service || health || owner);
   const live = all.filter((p) => p.stage !== "Delivered").length;
+  const per = readPer(q.per);
+  const pageCount = Math.max(1, Math.ceil(all.length / per));
+  const page = Math.min(pageCount, Math.max(1, Number.parseInt(q.page ?? "1", 10) || 1));
+  const rows = all.slice((page - 1) * per, page * per);
+  const exportParams = new URLSearchParams();
+  for (const k of ["q", "stage", "service", "health", "owner"] as const) if (q[k]) exportParams.set(k, q[k]);
 
   return (
     <>
@@ -117,6 +124,7 @@ export default async function ProjectsPage({
             <Link href={withQuery(q, { view: "" })} aria-current={!board}>List</Link>
             <Link href={withQuery(q, { view: "board" })} aria-current={board}>Board</Link>
           </span>
+          {isOwner ? <a className="ad__btn" href={`/admin/projects/export${exportParams.size ? `?${exportParams}` : ""}`}>Export CSV</a> : null}
           <PageTourButton />
           <AddProject clients={getClients()} dataTour="projects-add" />
         </div>
@@ -215,7 +223,7 @@ export default async function ProjectsPage({
                     </tr>
                   </thead>
                   <tbody>
-                    {all.map((p) => (
+                    {rows.map((p) => (
                       <tr key={p.id}>
                         <td>
                           <span className="ad__pickRow"><RowPick id={p.id} label={p.title} /><Link href={`/admin/projects/${p.id}`}><b>{p.title}</b></Link></span>
@@ -235,6 +243,8 @@ export default async function ProjectsPage({
                   </tbody>
                 </table>
               </div>
+              <Pager label="Project pages" total={all.length} page={page} per={per} noun={all.length === 1 ? "project" : "projects"}
+                href={(patch) => withQuery(q, { page: patch.page && patch.page > 1 ? String(patch.page) : "", per: patch.per ? String(patch.per) : q.per })} />
               </>
             ) : filtered ? (
               /* A FILTERED-EMPTY IS NOT AN EMPTY. There is data; this
