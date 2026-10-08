@@ -1,0 +1,282 @@
+/* ============================================================================
+   THE EMAIL BUILDER (the approved "Email builder" design).
+
+   Everything around the email reads the admin's tokens, so it follows light and
+   dark. The email itself is a white page in BOTH themes on purpose: it is what
+   lands in an inbox, so the colours inside .eb-canvas are fixed, not tokens.
+   Controls are 44px. Selection and focus use the accent; on the white page the
+   darker accent ink, because #ff6500 on white is under 3:1.
+   ========================================================================== */
+
+.eb {
+  position: relative; min-width: 0;
+  border: 1px solid var(--ad-line); border-radius: var(--ad-r); background: var(--ad-panel); box-shadow: var(--ad-sh-1);
+  color: var(--ad-ink); font-family: var(--font-outfit), system-ui, sans-serif;
+}
+.eb *, .eb *::before, .eb *::after { box-sizing: border-box; }
+.eb button { font-family: inherit; }
+.eb :is(button, input, textarea, [role="tab"], [tabindex]):focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+
+/* ------------------------------------------------------------------- top */
+.eb-top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 6;
+  display: flex; align-items: center; flex-wrap: wrap; gap: .5rem .9rem; padding: .65rem 1rem;
+  border-bottom: 1px solid var(--ad-line); background: var(--ad-panel); border-radius: calc(var(--ad-r) - 1px) calc(var(--ad-r) - 1px) 0 0;
+}
+.eb-state { min-width: 0; color: var(--ad-dim); font-size: .88rem; }
+.eb-acts { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; margin-left: auto; }
+.eb-acts .ad__btn[aria-pressed="true"] { background: var(--ad-ink); border-color: var(--ad-ink); color: var(--ad-bg); }
+
+.eb-sw { position: relative; display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; cursor: pointer; font-weight: 600; font-size: .86rem; }
+.eb-sw input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.eb-sw-t { position: relative; flex: none; width: 42px; height: 24px; border-radius: 999px; background: var(--ad-dim); transition: background .2s; }
+.eb-sw-t::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / .3); transition: transform .2s; }
+.eb-sw input:checked + .eb-sw-t { background: var(--ad-tone-good); }
+.eb-sw input:checked + .eb-sw-t::after { transform: translateX(18px); }
+.eb-sw input:focus-visible + .eb-sw-t { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.eb-sw input:disabled ~ * { opacity: .6; }
+
+.eb-seg { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel-2); }
+.eb-seg button { min-width: 44px; min-height: 38px; display: inline-grid; place-items: center; padding: 0 .7rem; border: 0; border-radius: 9px; background: transparent; color: var(--ad-dim); cursor: pointer; }
+.eb-seg button:hover { color: var(--ad-ink); background: var(--ad-line); }
+.eb-seg button[aria-pressed="true"] { background: var(--ad-ink); color: var(--ad-bg); }
+.eb-seg svg, .eb-tb svg { width: 1.1rem; height: 1.1rem; }
+
+/* --------------------------------------------------------------- subject */
+.eb-subj { display: flex; align-items: center; gap: .8rem; padding: .5rem 1rem; border-bottom: 1px solid var(--ad-line); }
+.eb-lab { flex: none; width: 4.2rem; color: var(--ad-dim); font: 600 .75rem var(--font-outfit), system-ui, sans-serif; text-transform: uppercase; letter-spacing: .08em; }
+.eb-subjed { flex: 1; min-width: 0; border-radius: 8px; }
+.eb-subjed:hover { background: var(--ad-panel-2); }
+.eb-subjed:focus-within { box-shadow: 0 0 0 2px var(--ad-accent); }
+.eb-subjed .eb-ed { min-height: 2.75rem; padding: .55rem .5rem; color: var(--ad-ink); font: 600 1rem/1.6 var(--font-space-grotesk), system-ui, sans-serif; white-space: pre-wrap; }
+.eb-subjed .eb-ed p.is-editor-empty:first-child::before { color: var(--ad-dim); }
+.eb-subjed .eb-mt:not(.eb-mt--static) { background: var(--ad-tone-neutral); color: var(--ad-on-neutral); }
+.eb-subjed .eb-mt:not(.eb-mt--static):hover, .eb-subjed .eb-mt.ProseMirror-selectednode { background: var(--ad-fill); color: var(--ad-on-fill); }
+
+/* --------------------------------------------------------------- toolbar */
+.eb-tb { display: flex; align-items: center; flex-wrap: wrap; gap: 2px; padding: .35rem .6rem; border-bottom: 1px solid var(--ad-line); background: var(--ad-panel); }
+.eb-tb > button, .eb-fmt .adPick__btn {
+  min-width: 2.75rem; min-height: 2.75rem; display: inline-flex; align-items: center; justify-content: center; gap: .4rem; padding: 0;
+  border: 0; border-radius: 8px; background: transparent; color: var(--ad-ink); cursor: pointer; font-size: .9rem; font-weight: 500;
+}
+.eb-tb > button:hover:not(:disabled), .eb-fmt .adPick__btn:hover:not(:disabled) { background: var(--ad-line); }
+.eb-tb > button[aria-pressed="true"] { background: var(--ad-ink); color: var(--ad-bg); }
+.eb-tb > button:disabled { color: var(--ad-dim); opacity: .5; cursor: default; }
+.eb-sep { flex: none; width: 1px; height: 24px; margin: 0 4px; background: var(--ad-line); }
+.eb-fmt { border: 0; margin: 0; padding: 0; min-width: 0; }
+.eb-fmt .adPick__btn { width: auto; min-width: 7.6rem; padding: 0 .55rem 0 .8rem; justify-content: space-between; }
+.eb-fmt .adPick__btn:disabled { background: transparent; color: var(--ad-dim); opacity: .5; }
+.eb-tb > .eb-tagbtn { margin-left: auto; padding: 0 .9rem; border: 1px solid var(--ad-line); }
+
+.eb-link { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; padding: .55rem .9rem; border-bottom: 1px solid var(--ad-line); background: var(--ad-panel-2); }
+.eb-link label { font-size: .8rem; font-weight: 600; }
+.eb-link input { flex: 1 1 14rem; min-width: 0; min-height: 2.75rem; padding: .5rem .7rem; border: 1px solid var(--ad-line); border-radius: 10px; background: var(--ad-panel); color: var(--ad-ink); font: 500 .95rem var(--font-outfit), system-ui, sans-serif; }
+.eb-link small { flex: 1 1 100%; color: var(--ad-dim); font-size: .8rem; }
+.eb-link small.is-err { color: var(--ad-bad-ink); font-weight: 600; }
+
+/* ------------------------------------------------------------------ body */
+.eb-body { display: grid; grid-template-columns: minmax(0, 1fr) 340px; min-height: 600px; }
+.eb-stage {
+  position: relative; min-width: 0; padding: 28px 64px 40px; background: var(--ad-bg);
+  border-bottom-left-radius: calc(var(--ad-r) - 1px); container-type: inline-size;
+}
+.eb-stage[data-dragging] { cursor: grabbing; user-select: none; -webkit-user-select: none; }
+
+/* The email: white in both themes, because it is what an inbox shows. */
+.eb-canvas {
+  position: relative; width: 600px; max-width: 100%; margin: 0 auto; background: #fff; color: #0e0e2c;
+  border-radius: 10px; box-shadow: 0 1px 3px rgb(0 0 0 / .12), 0 10px 30px rgb(0 0 0 / .12); transition: width .25s;
+}
+.eb[data-view="m"] .eb-canvas { width: 375px; }
+.eb-hd { padding: 16px 24px; background: #000065; color: #fff; border-bottom: 3px solid #ff6500; border-radius: 10px 10px 0 0; font: 700 1.05rem/1.2 var(--font-space-grotesk), system-ui, sans-serif; letter-spacing: .01em; }
+.eb-lead { padding: 20px 24px 6px; }
+.eb-title .eb-ed { font: 700 1.625rem/1.25 var(--font-space-grotesk), system-ui, sans-serif; color: #0e0e2c; padding: 2px 0; }
+.eb-ft { padding: 14px 24px; background: #f1f2f6; color: #4b5263; border-top: 3px solid #ff6500; border-radius: 0 0 10px 10px; font-size: .78rem; line-height: 1.5; }
+.eb-empty { margin: 0; padding: 1.2rem 24px; color: #4b5263; font-size: .9rem; }
+
+.eb-bw { position: relative; }
+.eb-bw:hover { box-shadow: inset 0 0 0 1px #c9cfdb; }
+.eb-bw.is-sel { box-shadow: inset 0 0 0 2px #ff6500; }
+.eb-bw:focus-visible { outline: 2px solid #c95000; outline-offset: -2px; }
+.eb-bw.is-lifted { opacity: .4; }
+.eb-bc { padding: 6px 24px; min-width: 0; }
+.eb-cond { display: inline-flex; align-items: center; min-height: 22px; margin: 8px 24px 0; padding: 0 10px; border-radius: 999px; background: #b84a00; color: #fff; font: 600 12px var(--font-outfit), system-ui, sans-serif; }
+.eb-drop { height: 4px; margin: 0 24px; border-radius: 2px; background: #ff6500; pointer-events: none; }
+
+/* Block tools: a slim rail just outside the email's right edge, so it never covers the words. */
+.eb-bh {
+  position: absolute; left: calc(100% + 8px); top: 0; z-index: 5; display: none; flex-direction: column; gap: 2px;
+  padding: 3px; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); box-shadow: var(--ad-sh-3);
+}
+.eb-bw:hover .eb-bh, .eb-bw.is-sel .eb-bh, .eb-bw:focus-within .eb-bh { display: flex; }
+.eb-bw:hover:not(.is-sel):not(:focus-within) .eb-bh button:not(.g) { display: none; }
+.eb-bh button { width: 2.75rem; height: 2.75rem; display: grid; place-items: center; padding: 0; border: 0; border-radius: 9px; background: transparent; color: var(--ad-ink); cursor: pointer; touch-action: none; }
+.eb-bh button.g { cursor: grab; color: var(--ad-dim); }
+.eb-bh button:hover:not(:disabled) { background: var(--ad-line); color: var(--ad-ink); }
+.eb-bh button:disabled { opacity: .35; cursor: default; }
+.eb-bh button.del:hover { background: var(--ad-tone-bad); color: var(--ad-on-bad); }
+.eb-bh button svg { width: 1.1rem; height: 1.1rem; }
+
+/* No room beside the email (a phone, a narrow window): the tools are a strip at the top of the selected block, inside the email. */
+@container (max-width: 740px) {
+  .eb-canvas .eb-bh { position: static; flex-direction: row; justify-content: flex-end; padding: 2px 6px; border: 0; border-bottom: 1px solid #dde1ea; border-radius: 0; background: #f1f3f7; box-shadow: none; }
+  .eb-canvas .eb-bw:not(.is-sel):not(:focus-within) .eb-bh { display: none !important; }
+  .eb-canvas .eb-bh button { color: #14181f; }
+  .eb-canvas .eb-bh button.g { margin-right: auto; color: #4b5263; }
+  .eb-canvas .eb-bh button:hover:not(:disabled) { background: #e3e7ef; color: #14181f; }
+  .eb-canvas .eb-bh button.del:hover { background: #c62828; color: #fff; }
+}
+
+/* ---- words on the page (TipTap) ---- */
+.eb-edh { min-width: 0; }
+.eb-ed { outline: none; min-height: 1.65em; color: #0e0e2c; font: 400 1rem/1.65 var(--font-outfit), system-ui, sans-serif; overflow-wrap: anywhere; caret-color: currentColor; }
+.eb-ed p { margin: 6px 0; }
+.eb-ed > :first-child { margin-top: 0; }
+.eb-ed > :last-child { margin-bottom: 0; }
+.eb-ed h2 { margin: 8px 0; font: 700 1.375rem/1.3 var(--font-space-grotesk), system-ui, sans-serif; }
+.eb-ed ul, .eb-ed ol { margin: 6px 0; padding-left: 22px; }
+.eb-ed li p { margin: 0; }
+.eb-ed blockquote { margin: 8px 0; padding: 2px 0 2px 14px; border-left: 3px solid #ff6500; font-style: italic; color: #2b3140; }
+.eb-ed a { color: #c95000; text-decoration: underline; cursor: text; }
+.eb-ed p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; height: 0; color: #6b7280; pointer-events: none; }
+.eb-ed ::selection { background: #cfd8ff; color: #0e0e2c; }
+.eb-h2 .eb-ed { font: 700 1.375rem/1.3 var(--font-space-grotesk), system-ui, sans-serif; padding: 6px 0; }
+.eb-small .eb-ed { color: #666680; font-size: .8125rem; line-height: 1.6; }
+.eb-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; }
+@container (max-width: 520px) { .eb-cols { grid-template-columns: minmax(0, 1fr); } }
+.eb[data-view="m"] .eb-cols { grid-template-columns: minmax(0, 1fr); }
+
+.eb-mt {
+  display: inline-block; max-width: 100%; padding: 0 7px; border-radius: 6px; background: #e4e8f2; color: #0d1b3e;
+  font: 500 13px/22px ui-monospace, SFMono-Regular, Menlo, monospace; vertical-align: baseline; cursor: pointer; overflow-wrap: anywhere;
+}
+.eb-mt:hover, .eb-mt.ProseMirror-selectednode { background: #0d1b3e; color: #fff; outline: none; }
+.eb-mt--static { cursor: default; }
+.eb-mt--static:hover { background: #e4e8f2; color: #0d1b3e; }
+
+/* ---- blocks that are set in Settings ---- */
+.eb-btnrow { display: grid; gap: 4px; margin: 8px 0; }
+.eb-cta { display: block; padding: 16px 24px; border-radius: 12px; background: #c95000; color: #fff; text-align: center; font: 700 1.0625rem/1.3 var(--font-outfit), system-ui, sans-serif; overflow-wrap: anywhere; }
+.eb-cta .eb-mt--static { background: #fff; }
+.eb-url { color: #4b5263; font-size: .78rem; overflow-wrap: anywhere; }
+.eb-ph { display: grid; place-items: center; align-content: center; gap: 4px; min-height: 120px; margin: 8px 0; padding: 12px; border: 2px dashed #8b93a5; border-radius: 10px; background: #f6f7fa; color: #3d4455; font-size: .85rem; text-align: center; }
+.eb-ph small { color: #4b5263; overflow-wrap: anywhere; }
+.eb-bc hr { border: 0; border-top: 1px solid #dde1ea; margin: 14px 0; }
+.eb-space { background: repeating-linear-gradient(135deg, #f1f2f6 0 6px, #fff 6px 12px); border-radius: 4px; }
+.eb-facts { width: 100%; border-collapse: collapse; font-size: .875rem; margin: 6px 0; }
+.eb-facts td { padding: 8px 0; border-bottom: 1px solid #eceef3; color: #0e0e2c; vertical-align: top; overflow-wrap: anywhere; }
+.eb-facts td:last-child { text-align: right; padding-left: 12px; }
+.eb-fig { display: grid; gap: 4px; margin: 8px 0; }
+.eb-fig small { color: #4b5263; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; }
+.eb-fig b { font: 700 2rem/1.2 var(--font-space-grotesk), system-ui, sans-serif; color: #000065; overflow-wrap: anywhere; }
+.eb-lock { display: flex; align-items: center; gap: .5rem; margin: 8px 0; color: #4b5263; font-size: .88rem; }
+.eb-lock svg { width: 1rem; height: 1rem; flex: none; }
+
+/* ---------------------------------------------------- merge tag popover */
+.eb-pop {
+  position: absolute; z-index: 50; width: min(280px, calc(100% - 16px)); left: clamp(8px, var(--pl, 8px), calc(100% - min(280px, 100% - 16px) - 8px)); display: grid; gap: .6rem; padding: 14px;
+  border: 1px solid var(--ad-line); border-radius: 14px; background: var(--ad-panel); color: var(--ad-ink); box-shadow: var(--ad-sh-3);
+}
+.eb-pop > b { font: 700 .95rem var(--font-space-grotesk), system-ui, sans-serif; }
+.eb-poplist { display: grid; max-height: 16rem; overflow: auto; overscroll-behavior: contain; margin: 0 -6px; }
+.eb-poprow { display: flex; justify-content: space-between; gap: .5rem; }
+.eb-pop .eb-hint { margin: 0; }
+
+/* ----------------------------------------------------------- real preview */
+.eb-real { display: grid; gap: .6rem; }
+.eb-real iframe { display: block; width: 100%; max-width: 680px; height: 70vh; min-height: 28rem; margin: 0 auto; border: 0; border-radius: 10px; background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / .12), 0 10px 30px rgb(0 0 0 / .12); }
+.eb-real iframe.is-phone { max-width: 375px; }
+
+/* ------------------------------------------------------------ side panel */
+.eb-side { min-width: 0; display: flex; flex-direction: column; border-left: 1px solid var(--ad-line); background: var(--ad-panel); border-bottom-right-radius: calc(var(--ad-r) - 1px); }
+.eb-tabs { display: flex; overflow-x: auto; border-bottom: 1px solid var(--ad-line); scrollbar-width: none; }
+.eb-tabs button { flex: 1 0 auto; min-height: 3rem; display: inline-flex; align-items: center; justify-content: center; padding: 0 .75rem; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--ad-dim); cursor: pointer; white-space: nowrap; font-size: .9rem; font-weight: 500; }
+.eb-tabs button:hover { color: var(--ad-ink); }
+.eb-tabs button[aria-selected="true"] { color: var(--ad-ink); border-bottom-color: var(--ad-ink); font-weight: 600; }
+.eb-tabs button:focus-visible { outline-offset: -3px; }
+.eb-badge { margin-left: .4rem; min-width: 1.25rem; height: 1.25rem; display: inline-grid; place-items: center; padding: 0 .3rem; border-radius: 999px; background: var(--ad-tone-warn); color: var(--ad-on-warn); font-size: .75rem; font-weight: 700; }
+.eb-pane { min-width: 0; max-height: 680px; overflow: auto; overscroll-behavior: contain; padding: 1rem; }
+.eb-pane h4 { margin: 1.1rem 0 .5rem; color: var(--ad-dim); font: 600 .75rem var(--font-outfit), system-ui, sans-serif; text-transform: uppercase; letter-spacing: .08em; }
+.eb-pane h4:first-child { margin-top: 0; }
+.eb-hint { margin: .6rem 0 0; color: var(--ad-dim); font-size: .82rem; line-height: 1.5; }
+.eb-warn { margin: .7rem 0 0; padding: .6rem .8rem; border-radius: 10px; background: var(--ad-tone-warn); color: var(--ad-on-warn); font-size: .86rem; }
+
+.eb-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+.eb-tile { min-width: 0; min-height: 3.5rem; display: flex; align-items: center; gap: .6rem; padding: .5rem .6rem; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); color: var(--ad-ink); font-size: .9rem; font-weight: 500; text-align: left; cursor: grab; touch-action: pan-y; }
+.eb-tile:hover:not(:disabled) { border-color: var(--ad-dim); background: var(--ad-panel-2); }
+.eb-tile:disabled { cursor: not-allowed; background: var(--ad-tone-flat); border-color: var(--ad-tone-flat); color: var(--ad-dim); }
+.eb-ti { flex: none; width: 2.25rem; height: 2.25rem; display: grid; place-items: center; border-radius: 10px; background: var(--ad-tone-brand); color: var(--ad-on-brand); }
+.eb-ti svg { width: 1.1rem; height: 1.1rem; }
+
+.eb-trow { width: 100%; min-height: 2.75rem; display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: 0 .25rem; border: 0; border-bottom: 1px solid var(--ad-line); background: transparent; color: var(--ad-ink); font-size: .88rem; text-align: left; }
+.eb-trow > span { min-width: 0; overflow-wrap: anywhere; }
+.eb-trow--btn { cursor: pointer; }
+.eb-trow--btn:hover { background: var(--ad-panel-2); }
+.eb-trow code { flex: none; max-width: 55%; padding: 3px 7px; border-radius: 6px; background: var(--ad-tone-neutral); color: var(--ad-on-neutral); font: .75rem ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; }
+
+.eb-chk { display: flex; align-items: flex-start; gap: .65rem; padding: .6rem 0; border-bottom: 1px solid var(--ad-line); font-size: .88rem; }
+.eb-chk i { flex: none; width: 1.4rem; height: 1.4rem; display: grid; place-items: center; margin-top: 1px; border-radius: 50%; }
+.eb-chk i svg { width: .8rem; height: .8rem; stroke-width: 3; }
+.eb-chk.is-ok i { background: var(--ad-tone-good); color: var(--ad-on-good); }
+.eb-chk.is-no i { background: var(--ad-tone-warn); color: var(--ad-on-warn); }
+.eb-chk span { min-width: 0; overflow-wrap: anywhere; }
+
+.eb-f { display: grid; gap: .3rem; margin-top: .7rem; font-size: .85rem; font-weight: 600; min-width: 0; }
+.eb-f:first-child { margin-top: 0; }
+.eb-f input:not([type="range"]), .eb-f textarea, .eb-row2 input, .eb-pop input {
+  width: 100%; min-height: 2.75rem; padding: .55rem .7rem; border: 1px solid var(--ad-line); border-radius: 10px; background: var(--ad-panel); color: var(--ad-ink);
+  font: 500 .95rem var(--font-outfit), system-ui, sans-serif;
+}
+.eb-f input[type="range"] { width: 100%; min-height: 2.75rem; accent-color: var(--ad-accent-fill); }
+.eb-f small { color: var(--ad-dim); font-weight: 400; font-size: .8rem; }
+.eb-pre { display: flex; align-items: center; gap: .3rem; color: var(--ad-dim); font-weight: 500; }
+.eb-pre input { flex: 1; min-width: 0; }
+.eb-rows { display: grid; gap: .45rem; }
+.eb-row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto; gap: .4rem; align-items: center; }
+.eb-ib { width: 2.75rem; height: 2.75rem; display: grid; place-items: center; padding: 0; border: 0; border-radius: 10px; background: none; color: var(--ad-dim); cursor: pointer; }
+.eb-ib:hover { background: var(--ad-line); color: var(--ad-ink); }
+.eb-ib svg { width: 1.05rem; height: 1.05rem; }
+.eb-lock { display: flex; align-items: center; gap: .5rem; color: var(--ad-dim); font-size: .88rem; }
+.eb-pane .eb-lock svg { width: 1rem; height: 1rem; flex: none; }
+.eb-hist { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+.eb-hist li { display: flex; align-items: center; justify-content: space-between; gap: .6rem; font-size: .86rem; }
+.eb-reset { margin-top: .9rem; }
+
+/* ------------------------------------------------------------- drag ghost */
+.eb-ghost { position: fixed; left: 0; top: 0; z-index: 99; padding: .5rem .9rem; border-radius: 10px; background: var(--ad-fill); color: var(--ad-on-fill); font: 600 .8rem var(--font-outfit), system-ui, sans-serif; box-shadow: var(--ad-sh-3); pointer-events: none; transform: translate(-50%, -50%); }
+
+/* -------------------------------------------------------------- narrower */
+@media (max-width: 980px) {
+  .eb-body { grid-template-columns: minmax(0, 1fr); }
+  .eb-stage { border-bottom-left-radius: 0; padding: 24px 64px 32px; }
+  .eb-side { border-left: 0; border-top: 1px solid var(--ad-line); border-bottom-left-radius: calc(var(--ad-r) - 1px); }
+  .eb-pane { max-height: none; }
+  .eb-tiles { grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); }
+}
+@media (max-width: 640px) {
+  .eb-stage { padding: 16px 8px 24px; }
+  .eb-bc, .eb-hd, .eb-ft, .eb-lead { padding-inline: 16px; }
+  .eb-cond { margin-inline: 16px; }
+  .eb-drop { margin-inline: 16px; }
+  .eb-top { padding: .6rem .75rem; }
+  .eb-acts { width: 100%; margin-left: 0; }
+  .eb-acts .eb-seg { margin-right: auto; }
+  .eb-hs { display: none; }
+  .eb-subj { flex-direction: column; align-items: stretch; gap: 0; padding: .5rem .75rem; }
+  .eb-lab { width: auto; padding: .25rem .5rem 0; }
+  /* The toolbar becomes a grid of 44px buttons, with the two wide controls on rows of their own. */
+  .eb-tb { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.75rem, 1fr)); gap: 2px; padding: .35rem .5rem; }
+  .eb-tb .eb-sep { display: none; }
+  .eb-tb > .eb-fmt { grid-column: span 3; }
+  .eb-fmt .adPick__btn { width: 100%; }
+  .eb-tb > .eb-tagbtn { grid-column: 1 / -1; margin-left: 0; }
+  .eb-row2 { grid-template-columns: minmax(0, 1fr) auto; }
+  .eb-row2 input:nth-child(2) { grid-column: 1 / -1; grid-row: 2; }
+  .eb-pane { padding: .85rem; }
+}
+@media (max-width: 420px) {
+  .eb-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .eb-canvas, .eb-sw-t, .eb-sw-t::after { transition: none; }
+}
