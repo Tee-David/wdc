@@ -15,6 +15,8 @@ import { InvoiceBuilder, RecordAnyPayment } from "@/components/admin/money-forms
 import CommsLog from "@/components/admin/comms-log";
 import CreditPanel from "@/components/admin/credit-panel";
 import TicketPanel from "@/components/admin/ticket-panel";
+import { listDepartments } from "@/lib/departments";
+import { ClientDepartments } from "@/components/admin/departments";
 import { ArchiveClient } from "@/components/admin/client-archive";
 import AuditLog from "@/components/admin/audit-log";
 import PortalAccess from "@/components/admin/portal-access";
@@ -62,6 +64,7 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
   const role = await adminRole();
   const money = can(role, "money");
   const destructive = can(role, "destructive");
+  const departments = await listDepartments();
 
   const projects = getProjectsFor(c.id);
   const invoices = getInvoicesFor(c.id);
@@ -244,6 +247,14 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
               </Empty>
             )}
           </Panel>
+
+          {departments?.length ? (
+            <Panel title="Departments">
+              <div style={{ padding: ".8rem 1rem" }}>
+                <ClientDepartments clientId={c.id} all={departments.map((d) => ({ id: d.id, name: d.name }))} current={c.departments ?? []} />
+              </div>
+            </Panel>
+          ) : null}
 
           {c.notes ? (
             <Panel title="Notes">

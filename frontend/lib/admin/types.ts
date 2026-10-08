@@ -46,6 +46,8 @@ export type Client = {
       means the default, which is yes to the two that are part of the work and
       no to the one that is not. */
   notify?: Partial<Record<NotifyKind, boolean>>;
+  /** Studio departments (lib/departments.ts) that look after this client, by id. */
+  departments?: string[];
 };
 
 /* ---------------------------------------------------------------- projects */

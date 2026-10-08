@@ -25,7 +25,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
     accounts.rows = accounts.rows.map(user => ({...user,clientId:clients.find(client => !client.archived && !client.mergedInto && client.email?.trim().toLowerCase() === user.email.trim().toLowerCase())?.id}));
   }
   const result = accounts ?? invitations!;
-  return <><div className="ad__head"><div><h1>Users</h1><p>Invite people, manage access and help them sign in.</p></div><UserInviteButton /></div>
+  return <><div className="ad__head"><div><h1>Users</h1><p>Invite people, manage access and help them sign in.</p></div><div className="ad__row"><Link className="ad__btn" href="/admin/users/departments">Departments</Link><UserInviteButton /></div></div>
     <nav className="ad__tabsNav" aria-label="User groups">{(["team", "invitations", "clients"] as const).map(tab => <Link key={tab} aria-current={tab === f.tab ? "page" : undefined} href={`/admin/users?tab=${tab}`}>{tab[0].toUpperCase() + tab.slice(1)}</Link>)}</nav>
     <Panel dataTour="users-table" title={f.tab === "team" ? "Studio team" : f.tab === "clients" ? "Client accounts" : "Invitations"}><UsersTable key={JSON.stringify(f)} filter={f} users={accounts?.rows ?? []} invites={invitations?.rows ?? []} total={result.total} page={result.page} me={session?.user.id ?? ""} /></Panel>
     <div className="adSetPad"><RolesTable /></div>
