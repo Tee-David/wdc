@@ -16,6 +16,8 @@ const TONE_RANK = { bad: 0, warn: 1, info: 2 } as const;
    than first, so a new kind of row added later cannot silently take the top. */
 const ROW_RANK: Record<string, number> = { bad: 0, warn: 1, neutral: 2 };
 import { AddClient } from "./client-form";
+import { MyWork } from "./my-work";
+import { unreadTotal } from "@/lib/forms/entries";
 import { AddExpense, InvoiceBuilder, RecordAnyPayment } from "./money-forms";
 import { AddProject } from "./project-forms";
 import { InvoiceMenu, ProjectMenu, SubmissionMenu } from "./row-actions";
@@ -37,7 +39,7 @@ function greeting() {
  * their dashboard at all -- no figures, no invoice rows in the queue, no
  * money quick actions -- rather than shown and then refused.
  */
-export async function AdminDashboardView({ firstName, money = true }: { firstName?: string; money?: boolean }) {
+export async function AdminDashboardView({ firstName, money = true, me }: { firstName?: string; money?: boolean; me?: { id: string; name: string } }) {
   const failedMail = money ? await failedLoggedCount() : 0;
   /* The owner is the one who publishes, so the queue is theirs. */
   const inReview = money && (process.env.DATABASE_URL || process.env.COCKROACHDB_URL) ? await reviewCount().catch(() => 0) : 0;
@@ -210,6 +212,8 @@ export async function AdminDashboardView({ firstName, money = true }: { firstNam
       </header>
 
       <ExampleNote />
+
+      {me ? <MyWork me={me} quietWhenEmpty={money} unread={await unreadTotal().catch(() => 0)} /> : null}
 
       <dl className="adDash__kpis" data-tour="dash-kpis">
         {money ? <>
