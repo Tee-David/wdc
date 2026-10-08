@@ -72,7 +72,7 @@ export default async function WorkHubPage() {
         <section className="pv-sec">
           <div className="pv-wrap">
             <div className="wk-cats">
-                {WORK_CATEGORIES.map((c) => {
+                {WORK_CATEGORIES.map((c, at) => {
                   const n = countFor(c);
                   return (
                     <Link className="wk-cat" href={`/work/${c.slug}`} key={c.slug}>
@@ -89,6 +89,10 @@ export default async function WorkHubPage() {
                           src={c.cover}
                           alt={`${c.name} work`}
                           fill
+                          /* The first two are above the fold and are what the page paints
+                             first, so they load now; lazy loading them delayed it. */
+                          loading={at < 2 ? "eager" : "lazy"}
+                          fetchPriority={at < 2 ? "high" : "auto"}
                           sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw"
                           quality={78}
                         />
