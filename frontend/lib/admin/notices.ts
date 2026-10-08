@@ -7,6 +7,7 @@ import { failedLoggedCount } from "@/lib/message-log";
 import type { AdminRole } from "./permissions";
 import { migrationStatus } from "@/lib/system/migrations";
 import { maintenance } from "@/lib/maintenance";
+import { lastSaveFailure } from "./persist";
 
 /**
  * Standing conditions the admin should not have to go looking for: the site
@@ -44,6 +45,11 @@ export async function adminNotices(role: AdminRole): Promise<AdminNotice[]> {
     role === "owner" && (process.env.DATABASE_URL || process.env.COCKROACHDB_URL) ? migrationStatus() : Promise.resolve(null),
     maintenance().catch(() => ({ on: false })),
   ]);
+
+  const lost = lastSaveFailure();
+  if (lost) {
+    found.push({ key: `save-failed:${lost.at}`, tone: "bad", title: "A recent change may not have been saved", body: "The database did not answer when it was saved. Check what you changed, make it again if it is missing, and tell the owner if this repeats.", href: role === "owner" ? "/admin/settings/system" : undefined, link: "System" });
+  }
 
   if (m.on) {
     found.push({ key: `maintenance:${"since" in m ? m.since : "on"}`, tone: "bad", title: "The public site is in maintenance", body: "Visitors see a holding page. The admin, payments and invoices still work.", href: role === "owner" ? "/admin/settings/maintenance" : undefined, link: "Maintenance" });
