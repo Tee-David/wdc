@@ -46,6 +46,14 @@ export async function adminNotices(role: AdminRole): Promise<AdminNotice[]> {
     maintenance().catch(() => ({ on: false })),
   ]);
 
+  if (role === "owner") {
+    try {
+      const { listConnections } = await import("@/lib/mail-connections");
+      const bad = ((await listConnections()) ?? []).filter((c) => c.health?.status === "error");
+      if (bad.length) found.push({ key: `mail-conn:${bad.map((c) => c.id + (c.health?.at ?? "")).join(",")}`.slice(0, 200), tone: "warn", title: `${bad[0].name} failed its mail check`, body: bad[0].health?.message ?? "", href: "/admin/settings/email/connections", link: "Connections" });
+    } catch { /* not set up yet */ }
+  }
+
   const lost = lastSaveFailure();
   if (lost) {
     found.push({ key: `save-failed:${lost.at}`, tone: "bad", title: "A recent change may not have been saved", body: "The database did not answer when it was saved. Check what you changed, make it again if it is missing, and tell the owner if this repeats.", href: role === "owner" ? "/admin/settings/system" : undefined, link: "System" });

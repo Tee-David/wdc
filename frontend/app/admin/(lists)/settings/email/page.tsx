@@ -56,6 +56,7 @@ export default async function EmailSettingsPage() {
   return (
     <>
       <Head title="Email" line="What clients see in their inbox.">
+        <Link className="ad__btn" href="/admin/settings/email/connections">Connections <ArrowUpRight aria-hidden="true" /></Link>
         <Link className="ad__btn" href="/admin/settings/email/log">Message log <ArrowUpRight aria-hidden="true" /></Link>
       </Head>
       <div className="ad__stack">
