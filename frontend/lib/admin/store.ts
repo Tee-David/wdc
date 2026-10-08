@@ -583,19 +583,24 @@ export function setProjectDue(id: Id, due: string | null): Project | null {
 /* --------------------------------------------------------------- invoices */
 
 /**
- * The next number in the year's run.
+ * A new invoice number: INV-YY-XXXXXX, six characters from an alphabet with no
+ * 0/O/1/I/L, so it survives being read down a phone.
  *
- * INV-YYYY-NNN, taken from the highest number already issued in that year
- * rather than from a count, because a count reuses a number the moment
- * anything is ever removed, and two invoices sharing a number is the kind of
- * thing an auditor asks about.
+ * RANDOM, NOT SEQUENTIAL. A running count told every client how many invoices
+ * the studio had raised, and the in-memory counter it came from could hand two
+ * warm instances the same number. Six characters of 30 is 729 million
+ * numbers; the loop still checks the issued set, and the column is unique in
+ * the database as the last word. Old INV-YYYY-NNN numbers stay valid, and
+ * payment matching reads either shape.
  */
 export function nextInvoiceNumber(year = new Date().getFullYear()): string {
-  const prefix = `INV-${year}-`;
-  const highest = INVOICES
-    .filter((i) => i.number.startsWith(prefix))
-    .reduce((n, i) => Math.max(n, Number(i.number.slice(prefix.length)) || 0), 0);
-  return `${prefix}${String(highest + 1).padStart(3, "0")}`;
+  const alphabet = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+  const yy = String(year).slice(-2);
+  for (;;) {
+    const bytes = crypto.getRandomValues(new Uint8Array(6));
+    const number = `INV-${yy}-${Array.from(bytes, (b) => alphabet[b % alphabet.length]).join("")}`;
+    if (!INVOICES.some((i) => i.number === number)) return number;
+  }
 }
 
 /**

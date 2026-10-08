@@ -115,3 +115,9 @@ Onboarding picker hardening (not a reproduced fix): on touch the sheet no longer
 
 Added: font pairings (about a hundred, lazy and subset), shuffle for colours, registration and online-presence questions, company age, flyer content and pictures, fonts step, a "Back to the onboarding menu" button on every first page, a timing question with a calendar, an update-channel tooltip (existing clients reuse their portal), a pre-filled link that starts from an existing client, and a full policy rewrite with a new Hosting, Domains and Accounts policy. Verified: TypeScript and ESLint clean on each push. Not yet verified: a full clean Playwright run of every onboarding spec (overlapping runs clobbered results), a production build after the latest changes, and the real iPhone and Edge dropdown fix. Owner to do: apply migration 0039; lawyer review of `lib/legal.ts` before the engagement section is turned on.
 
+
+## Backups (added 2026-10-08)
+
+- `frontend/scripts/backup-export.mjs` + `restore-check.mjs` + `.github/workflows/backup.yml`: weekly AES-256-GCM sealed export (all tables except `session`/`verification`) to a separate R2 bucket. Round-trip and wrong-key rejection verified locally with a synthetic file; NOT yet run against the real database.
+- Owner to do: create a read-only DB role, a separate R2 bucket and a no-delete token, add the secrets listed at the top of the workflow, store `BACKUP_KEY` in a password manager, run the workflow once by hand, then run a restore drill (`restore-check.mjs`) and record it here. Not counted as a backup until that drill passes. Files in R2 are not yet copied.
+- Invoice numbers are now random (`INV-YY-XXXXXX`); old sequential numbers stay valid. Project budget no longer reaches staff browsers on the board.
