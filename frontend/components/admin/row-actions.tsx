@@ -6,7 +6,7 @@ import { can } from "@/lib/admin/permissions";
 
 import {
   Archive, ArchiveRestore, ArrowRight, Ban, Banknote, CalendarDays, Copy,
-  CornerUpLeft, FilePlus2, FolderPlus, MessageSquarePlus, Move, Pencil,
+  CheckCircle2, CornerUpLeft, FilePlus2, FolderPlus, MessageSquarePlus, Move, Pencil,
   Send, Trash2, Undo2, UserPlus, Users, Wallet,
   type LucideIcon,
 } from "lucide-react";
@@ -315,6 +315,28 @@ export function InvoiceMenu({ invoice }: { invoice: Invoice }) {
           <Actions>
             <Submit icon={Banknote}>Record it</Submit>
           </Actions>
+        </Form>
+      ),
+    });
+  }
+
+  if (!draft && owed > 0 && !invoice.voided) {
+    items.splice(Math.max(0, items.length - 1), 0, {
+      kind: "dialog", label: "Mark as paid", icon: CheckCircle2,
+      title: `Mark ${invoice.number} as paid`,
+      render: (close) => (
+        <Form action={recordPayment} onDone={() => close()}>
+          <Fields>
+            <Hidden name="invoiceId" value={invoice.id} />
+            <Hidden name="amount" value={String(owed / 100)} />
+            <p style={{ margin: 0 }}>Records the full {naira(owed)} still owed as received, with a receipt. For part of it, use Record a payment.</p>
+            <Select name="method" label="How was it paid" defaultValue="Transfer"
+                    options={ENTERABLE_METHODS.map((m) => ({ value: m, label: m === "Transfer" ? "Bank transfer" : m }))} />
+            <Field name="reference" label="Reference" placeholder="TRF_0092" hint="Needed for a transfer. For cash, card or POS, a slip number if there is one." />
+            <Field name="at" label="When" type="date" half defaultValue={new Date().toISOString().slice(0, 10)} />
+            <Field name="note" label="Note" placeholder="Paid at the office" hint="Needed when the method is Other." />
+          </Fields>
+          <Actions><Submit icon={CheckCircle2}>Mark as paid</Submit></Actions>
         </Form>
       ),
     });
