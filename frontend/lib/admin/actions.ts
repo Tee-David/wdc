@@ -1298,6 +1298,11 @@ export async function emailReminder(_prev: ActionState, fd: FormData): Promise<A
   const { stageReminderEmail } = await import("@/lib/money-mail");
   const staged = await stageReminderEmail({ invoice: inv, by: str(fd, "by") || await actorName() });
   refresh("/admin/money", `/admin/money/${id}`);
+  /* A client who switched reminders off is not nudged by email, and a refusal
+     with nowhere to go is a dead end: say what is left to do. */
+  if (staged.state === "skipped" && staged.reason === "opted out") {
+    return FAIL({}, `${staged.say} Nothing was emailed (it is recorded as skipped). Call or message them, then write it down with Log a call or message on their page.`);
+  }
   return toldAbout(staged, (to) => `Reminder on its way to ${to}. The log below shows whether it arrived.`);
 }
 

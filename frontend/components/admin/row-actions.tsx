@@ -494,10 +494,10 @@ export function PaymentMenu({
       render: (close) => (
         <Sure action={sendReceipt as never} fields={{ id: payment.id }}
               verb="Email the receipt" icon={Receipt} close={close}>
-          Emails the link to receipt {payment.receiptNo} ({naira(payment.amount)}) to the client{" "}
-          {noEmail ? `— but ${noEmail.charAt(0).toLowerCase()}${noEmail.slice(1)}` : "again if it has been sent before, or for the first time if it has not"}.
+          Emails the link to receipt {payment.receiptNo} ({naira(payment.amount)}) to the client:
+          again if it has been sent before, or for the first time if it has not.
           The receipt page is the live document, so it always shows refunds and reversals.
-          At most one copy a day.
+          At most one copy a day.{noEmail ? ` Note: ${noEmail}` : ""}
         </Sure>
       ),
     });

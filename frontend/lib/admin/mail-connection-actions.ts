@@ -1,5 +1,6 @@
 "use server";
 
+import { composeEmailHtml, emailP } from "@/lib/email-templates";
 import { revalidatePath } from "next/cache";
 import { actorName, owner, ownerFresh } from "./guard";
 import { getAdminRequest } from "./session";
@@ -59,7 +60,7 @@ export async function testConnectionAction(_p: ActionState, fd: FormData): Promi
   const id = text(fd, "id") || "env";
   const started = Date.now();
   try {
-    const body = { subject: "Test from the studio admin", text: "This is a test message sent from Settings › Email. If you can read it, the connection works.", html: "<p>This is a test message sent from Settings › Email. If you can read it, the connection works.</p>" };
+    const body = { subject: "Test from the studio admin", text: "This is a test message sent from Settings › Email. If you can read it, the connection works.", html: composeEmailHtml({ title: "Connection test", preheader: "The connection works.", heading: "It works", blocks: [emailP("This is a test message sent from Settings › Email. If you can read it, the connection works.")] }) };
     if (id === "env") await sendMail({ to, ...body });
     else await sendThrough(id, { from: mailFrom(DEFAULT_MAIL_FROM_NAME, ""), to, ...body });
     const ms = Date.now() - started;
