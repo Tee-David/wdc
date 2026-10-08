@@ -12,6 +12,7 @@ import { adminNotices } from "@/lib/admin/notices";
 import AdminNotices from "@/components/admin/notices";
 import "@/components/admin/admin.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
+import { db } from "@/lib/db/pool";
 
 /**
  * The admin's own shell.
@@ -53,6 +54,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     const asked = (await headers()).get("x-wdc-path");
     const back = asked?.startsWith("/admin") ? asked : "/admin";
     redirect(`/login?redirect=${encodeURIComponent(back)}`);
+  }
+  /* A new member of staff meets the welcome page once (set when they accept
+     their invitation; people who joined earlier are never sent there). */
+  if (role === "staff") {
+    const asked = (await headers()).get("x-wdc-path") ?? "";
+    if (!asked.startsWith("/admin/welcome")) {
+      const pending = await db.query(`SELECT 1 FROM client_profile_preferences WHERE user_id = $1 AND setup_state = 'pending'`, [session.user.id])
+        .then((r) => Boolean(r.rowCount)).catch(() => false);
+      if (pending) redirect("/admin/welcome");
+    }
   }
   /* Counts that belong on the nav rather than on a screen: an admin should
      say what is waiting before you go looking for it. */
