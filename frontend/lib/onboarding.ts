@@ -128,7 +128,7 @@ export const SERVICE_STEPS: Step[] = [
   ...BRANDING_STEPS, ...SEO_STEPS, ...WEB_STEPS, ...APPS_STEPS, ...SOFTWARE_STEPS, ...SOCIAL_STEPS,
 ];
 
-const FIXED_DATE_ANSWERS = ["Within two weeks", "A set date"];
+const FIXED_DATE_ANSWERS = ["A set date"];
 
 export const CLOSING_STEPS: Step[] = [
   {
@@ -138,15 +138,19 @@ export const CLOSING_STEPS: Step[] = [
     fields: [
       {
         key: "deadline_kind", label: "When do you need it?", kind: "cards",
-        options: ["No fixed date", "Within a month", "Within two weeks", "A set date"],
+        hint: "Small jobs can be quick: a flyer in as little as two days, a logo in three or four. We confirm a real date with you.",
+        options: ["No fixed date", "In a few days", "Within a week", "Within two weeks", "Within a month", "In one to three months", "A set date"],
       },
       {
-        key: "fixed_dates", label: "Which date?", kind: "text",
-        placeholder: "A launch, an event, a print deadline",
+        key: "fixed_dates", label: "Which date?", kind: "date",
+        placeholder: "Pick the date", hint: "A launch, an event or a print deadline.",
         showIf: { key: "deadline_kind", equals: FIXED_DATE_ANSWERS },
       },
       { key: "approver", label: "Who gives the final yes?", kind: "text", required: true, hint: "One person, so feedback has one door.", tip: "Projects slow down most when feedback arrives from several directions and disagrees with itself." },
-      { key: "channel", label: "Where should we send project updates?", kind: "multi", required: true, options: [PROJECT_UPDATE_PORTAL, "WhatsApp", "Email", "Phone call", "Other"] },
+      { key: "channel", label: "Where should we send project updates?", kind: "multi", required: true,
+        hint: "Pick as many as you like. The client portal is ticked for you.",
+        tip: "Client portal: your home for the project. Files, approvals, invoices and every update in one place. WhatsApp: we can set up a WhatsApp group with you for the project, so you hear from us day to day, and we may place calls there to talk things through. Email: written updates and summaries you can keep. Phone call: if you would rather talk, we will do our best to keep most things to the number you gave us. Google Meet: for some projects we include a video call to walk through work together. Other: tell us what suits you.",
+        options: [PROJECT_UPDATE_PORTAL, "WhatsApp", "Email", "Phone call", "Google Meet", "Other"] },
       { key: "channel_other", label: "Which other channel would you prefer?", kind: "text", showIf: { key: "channel", equals: ["Other"] } },
     ],
   },
@@ -457,7 +461,7 @@ export function problemWith(
 const SECONDS: Record<FieldKind, number> = {
   yesno: 4, cards: 6, select: 7, multi: 10,
   text: 12, email: 12, tel: 14, url: 12,
-  textarea: 32, upload: 10, notice: 0, colours: 20,
+  textarea: 32, upload: 10, notice: 0, colours: 20, date: 8,
   /* Three names to think of, not three boxes to fill: naming a business is the
      slowest question in the form, and the check afterwards is a wait the
      client chooses to take. Deliberately higher than `textarea`, which is what

@@ -1250,7 +1250,17 @@
 .obCol__codeRow { display: grid; grid-template-columns: minmax(0, 1fr) 44px 44px; gap: .5rem; align-items: end; min-width: 0; }
 .obCol__codeLabel { display: grid; gap: .3rem; min-width: 0; font-size: .92rem; font-weight: 600; color: var(--ink); }
 .obCol__codeLabel input { width: 100%; min-height: 44px; }
-.obCol__codeSw { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--rule); }
+.obCol__codeSw {
+  width: 44px; height: 44px; padding: 3px; border-radius: 10px; border: 1px solid var(--rule);
+  background: var(--paper); cursor: pointer; appearance: none; -webkit-appearance: none;
+}
+.obCol__codeSw::-webkit-color-swatch-wrapper { padding: 0; }
+.obCol__codeSw::-webkit-color-swatch { border: 0; border-radius: 6px; }
+.obCol__codeSw::-moz-color-swatch { border: 0; border-radius: 6px; }
+/* No colour typed yet: a hatched box, so it reads as "tap to choose". */
+.obCol__codeSw.is-empty::-webkit-color-swatch { background: repeating-linear-gradient(-45deg, var(--paper-2) 0 .4rem, var(--rule) .4rem .55rem); }
+.obCol__codeSw.is-empty::-moz-color-swatch { background: repeating-linear-gradient(-45deg, var(--paper-2) 0 .4rem, var(--rule) .4rem .55rem); }
+.obCol__codeSw:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
 .obCol__codeErr { grid-column: 1 / -1; margin: 0; }
 
 .obCol__edit { list-style: none; margin: 0; padding: 0; display: grid; gap: .55rem; min-width: 0; }
@@ -1334,3 +1344,12 @@
 .pv .ob__never { color: var(--muted); }
 
 .obCol:focus { outline: none; }
+
+/* The note above Send: a plain panel, one colour of text, weight for the lead. */
+.pv .ob__heads {
+  display: grid; gap: .35rem; margin: 0 0 1rem; padding: .9rem 1rem;
+  border: 1px solid var(--rule); border-left: 4px solid var(--accent-fill); border-radius: 12px;
+  background: var(--paper-2); color: var(--ink); min-width: 0;
+}
+.pv .ob__heads b { font-weight: 700; }
+.pv .ob__heads p { margin: 0; font-size: .95rem; line-height: 1.55; overflow-wrap: anywhere; }

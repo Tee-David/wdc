@@ -38,6 +38,8 @@ export function scopeNote(service: ServiceSlug, a: Answers): ScopeNote {
   const add = (label: string, v: string | string[] | undefined) => { if (isFilled(v)) signals.push({ label, value: text(v) }); };
 
   /* Shared across every service. */
+  if (has(a, "deadline_kind", "In a few days")) watch.push("Needs it in a few days.");
+  if (has(a, "deadline_kind", "Within a week")) watch.push("Needs it within a week.");
   if (has(a, "deadline_kind", "Within two weeks")) watch.push("Needs it within two weeks.");
   if (has(a, "deadline_kind", "A set date")) watch.push(`Has a set date${isFilled(a.fixed_dates) ? `: ${text(a.fixed_dates)}` : ""}.`);
   add("Update channel", a.channel);

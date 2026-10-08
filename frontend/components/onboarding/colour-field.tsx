@@ -1,8 +1,9 @@
 "use client";
 
+import { FileDrop } from "@/components/admin/file-drop";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowLeft, HelpCircle, Plus, Undo2, Upload, X } from "lucide-react";
+import { ArrowLeft, HelpCircle, Plus, Undo2, X } from "lucide-react";
 import {
   MAIN_COLOUR_ROLE, OTHER_COLOUR_ROLE, formatColours, normalizeHex, parseColours, rgbOf,
 } from "@/lib/brand-colours";
@@ -40,6 +41,7 @@ type View = "feel" | "suggest" | "have" | "studio" | "deep";
 type Mode = "upload" | "codes" | "words";
 type Source = "vibe" | "logo" | "picture" | "codes" | "words" | "studio" | "skipped";
 
+const MAX_PICTURES = 4;
 const MAX_COLOURS = 5;
 const CODE_ERROR = "That code needs 6 letters or numbers, like 1A5C3A. Check it and try again.";
 const PICTURE_SIZE = 64;
@@ -136,7 +138,6 @@ export default function ColourField({ id, value, onChange, setOther, describedBy
   const [pictureError, setPictureError] = useState("");
   const [logoBox, setLogoBox] = useState(false);
   const [codes, setCodes] = useState<string[]>([""]);
-  const fileRef = useRef<HTMLInputElement | null>(null);
 
   const feeling: Feeling | undefined = FEELINGS.find((item) => item.id === feelingId);
   const palette = feeling ? feeling.palettes[paletteAt] : null;
@@ -241,35 +242,44 @@ export default function ColourField({ id, value, onChange, setOther, describedBy
     setDeep((list) => list.map((row, index) => (index === sheetAt ? { name, hex } : row)));
   }
 
-  async function onPicture(file: File | undefined) {
-    if (!file) return;
+  /* Several pictures at once, read one after another on the phone and merged
+     into one list (a logo and a flyer, say). Colours close to one already
+     found are dropped, and the list stops at five. */
+  async function onPictures(files: FileList | File[]) {
+    const list = Array.from(files).slice(0, MAX_PICTURES);
+    if (!list.length) return;
     setPictureError("");
-    /* Read on the phone, so a huge picture would freeze it. 12 MB is more than
-       any logo or phone photo needs. */
-    if (file.size > 12 * 1024 * 1024) {
+    const rows: Row[] = [];
+    let ignoredWhite = false;
+    const skipped: string[] = [];
+    for (const file of list) {
+      /* Read on the phone, so a huge picture would freeze it. 12 MB is more
+         than any logo or phone photo needs. */
+      if (!file.type.startsWith("image/")) { skipped.push(`${file.name} is not a picture`); continue; }
+      if (file.size > 12 * 1024 * 1024) { skipped.push(`${file.name} is over 12 MB`); continue; }
+      try {
+        const read = await readPicture(file);
+        ignoredWhite = ignoredWhite || read.ignoredWhite;
+        for (const row of read.rows) {
+          if (rows.length < MAX_COLOURS && !rows.some((have) => rgbGap(have.hex, row.hex) < 40)) rows.push(row);
+        }
+      } catch {
+        skipped.push(`${file.name} could not be read`);
+      }
+    }
+    if (!rows.length) {
       setPicture(null);
-      setPictureError("That picture is too big. Try one under 12 MB, or a screenshot of it.");
+      setPictureError(skipped.length ? `${skipped.join(". ")}. Try another picture.` : "We could not find colours in that picture. Try another one.");
       return;
     }
-    try {
-      const read = await readPicture(file);
-      if (!read.rows.length) {
-        setPicture(null);
-        setPictureError("We could not find colours in that picture. Try another one.");
-        return;
-      }
-      setPicture(read);
-      setStatus("");
-    } catch {
-      setPicture(null);
-      setPictureError("We could not read that file. Try a different picture.");
-    }
+    setPicture({ rows, ignoredWhite });
+    if (skipped.length) setPictureError(`${skipped.join(". ")}.`);
+    setStatus("");
   }
 
   function tryAnother() {
     setPicture(null);
     setPictureError("");
-    if (fileRef.current) fileRef.current.value = "";
   }
 
   const validCodes = codes.map((code) => normalizeHex(code)).filter((hex): hex is string => Boolean(hex));
@@ -405,7 +415,7 @@ export default function ColourField({ id, value, onChange, setOther, describedBy
             </label>
             <label className={`obCol__opt${mode === "codes" ? " is-on" : ""}`}>
               <input className="obCol__radio" type="radio" name={`${id}-have`} checked={mode === "codes"} onChange={() => setMode("codes")} />
-              I know my colour codes
+              Type codes or pick colours
             </label>
             <label className={`obCol__opt${mode === "words" ? " is-on" : ""}`}>
               <input className="obCol__radio" type="radio" name={`${id}-have`} checked={mode === "words"} onChange={() => setMode("words")} />
@@ -415,12 +425,8 @@ export default function ColourField({ id, value, onChange, setOther, describedBy
 
           {mode === "upload" ? (
             <div className="obCol__mode">
-              <p className="ob__hint">We read the colours from it. We read them on your phone, and the picture is not sent to us.</p>
-              <label className="obCol__file">
-                <Upload aria-hidden="true" />
-                <span>Choose a picture</span>
-                <input ref={fileRef} type="file" accept="image/*" onChange={(event) => { void onPicture(event.target.files?.[0]); }} />
-              </label>
+              <p className="ob__hint">Add one picture or several. We read the colours on your phone, and the pictures are not sent to us.</p>
+              <FileDrop id={`${id}-pictures`} label="Your logo or pictures" hint={`Up to ${MAX_PICTURES} pictures, 12 MB each.`} multiple accept="image/*" onFiles={(files) => { void onPictures(files); }} />
               {pictureError ? <p className="ob__fErr" role="status">{pictureError}</p> : null}
               {picture ? (
                 <>
@@ -447,7 +453,7 @@ export default function ColourField({ id, value, onChange, setOther, describedBy
                   <div className="obCol__actions">
                     <button type="button" className="ob__btn ob__btn--go" disabled={!picture.rows.length}
                       onClick={() => commit(picture.rows, logoBox ? "logo" : "picture", "")}>Use these colours</button>
-                    <button type="button" className="ob__btn ob__btn--ghost" onClick={tryAnother}>Try another picture</button>
+                    <button type="button" className="ob__btn ob__btn--ghost" onClick={tryAnother}>Try other pictures</button>
                   </div>
                 </>
               ) : null}
@@ -456,7 +462,7 @@ export default function ColourField({ id, value, onChange, setOther, describedBy
 
           {mode === "codes" ? (
             <div className="obCol__mode">
-              <p className="ob__hint">A code looks like #1A5C3A.</p>
+              <p className="ob__hint">Type a code like #1A5C3A, or tap the box to pick a colour.</p>
               <ul className="obCol__codes">
                 {codes.map((code, index) => {
                   const hex = normalizeHex(code);
@@ -469,7 +475,9 @@ export default function ColourField({ id, value, onChange, setOther, describedBy
                           aria-invalid={bad || undefined} aria-describedby={bad ? `${id}-code-err-${index}` : undefined}
                           onChange={(event) => setCodes(codes.map((item, at) => (at === index ? event.target.value : item)))} />
                       </label>
-                      <span className="obCol__codeSw" style={{ background: hex ?? "transparent" }} aria-hidden="true" />
+                      <input type="color" className={`obCol__codeSw${hex ? "" : " is-empty"}`} aria-label={`Pick colour ${index + 1}`}
+                        value={(hex ?? "#FFFFFF").toLowerCase()}
+                        onChange={(event) => setCodes(codes.map((item, at) => (at === index ? event.target.value.toUpperCase() : item)))} />
                       <button type="button" className="obCol__remove" aria-label={`Remove colour ${index + 1}`}
                         onClick={() => setCodes(codes.length > 1 ? codes.filter((_, at) => at !== index) : [""])}><X aria-hidden="true" /></button>
                       {bad ? <p className="ob__fErr obCol__codeErr" id={`${id}-code-err-${index}`}>{CODE_ERROR}</p> : null}

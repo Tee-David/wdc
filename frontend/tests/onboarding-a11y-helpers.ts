@@ -113,7 +113,7 @@ export async function startByKeyboard(page: Page, service: RegExp) {
 /* ------------------------------------------------------------- answering */
 
 async function focusedIndex(group: Locator) {
-  return group.evaluateAll((els) => els.indexOf(document.activeElement as Element));
+  return group.evaluateAll((els) => els.indexOf(document.activeElement as HTMLElement));
 }
 
 async function keyboardRadio(page: Page, q: Locator, key: string, label: string, log: Log, screen: string) {
@@ -233,6 +233,7 @@ export async function answerScreen(page: Page, answers: Record<string, string | 
 /** Tabs to the screen's forward button, presses it, and says where the form went. */
 export async function pressNext(page: Page, title: string) {
   const next = page.locator(".ob__stepNext:visible").first();
+  await expect(next, `the Next button on "${title}"`).toBeVisible({ timeout: 15_000 });
   await tabTo(page, next, `Next on "${title}"`);
   await page.keyboard.press("Enter");
   const outcome = await page.waitForFunction((from: string) => {
@@ -570,7 +571,7 @@ export async function focusSweep(page: Page, log: Log, screen: string) {
       }
     }
   } finally {
-    await killer.evaluate((n) => n.remove()).catch(() => {});
+    await killer.evaluate((n) => (n as HTMLStyleElement).remove()).catch(() => {});
     await page.evaluate(() => document.querySelectorAll("[data-a11y-idx]").forEach((e) => e.removeAttribute("data-a11y-idx")));
   }
 }
