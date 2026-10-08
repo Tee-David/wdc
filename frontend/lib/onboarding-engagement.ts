@@ -25,7 +25,7 @@ import type { ServiceSlug } from "./services";
  * schema change.
  */
 
-export const ENGAGEMENT_VERSION = "2026-10-draft-2";
+export const ENGAGEMENT_VERSION = "2026-10-draft-3";
 
 /** Flip to true only when a qualified Nigerian lawyer has approved this text. */
 export const LAWYER_APPROVED = false;
@@ -52,7 +52,7 @@ const SHARED: Record<EngagementGroup["id"], Omit<EngagementGroup, "id">> = {
       "We deliver the work described in your quote and in this form. Anything outside that is new work. We will agree it in writing, with its own price and date, before we start it.",
       "You give us what we need to do the work: files, words, pictures, access and decisions. We tell you what and when. If it arrives late, the dates move by the same amount.",
       "Changes inside the agreed work are included for the number of rounds in your quote. A change that adds something new goes through the same written step as any new work.",
-      "Dates depend on your feedback and your approvals. One person signs work off, as you said above, so that feedback does not arrive from several directions and disagree with itself. Feedback is normally due within five working days of each review.",
+      "The usual project has up to two review meetings and a recorded handover meeting, after which we send a handover document. Dates depend on your feedback and your approvals. One person signs work off, as you said above, so that feedback does not arrive from several directions and disagree with itself. Feedback is normally due within five working days of each review.",
     ],
   },
   money: {
@@ -97,12 +97,12 @@ const EXTRA: Record<ServiceSlug, Partial<Record<EngagementGroup["id"], string[]>
   },
   web: {
     work: ["A free review of your current site is advice. It is not a promise of results."],
-    money: ["Your domain and hosting are in your name. Payment providers have their own terms and fees, and some setups are limited by the type of site. We tell you which."],
+    money: ["Your domain is registered in your name unless you ask otherwise. Hosting is either an account in your name or hosting we provide under a written hosting agreement. Up to three business email addresses are included, and more are charged. Payment providers have their own terms and fees, and some setups are limited by the type of site. We tell you which."],
     limits: ["Plugins and platforms we build on belong to other companies and can change. You are responsible for the words and pictures you give us."],
   },
   apps: {
     work: ["We show you a first version, a prototype, before the full build. We do not build games, anything deceptive, or apps that need heavy hardware."],
-    money: ["The developer accounts for the app stores are in your name. The stores charge their own fees."],
+    money: ["Unless you ask otherwise, the app store developer accounts are opened in our name, and the app can be moved to your own account on request. The stores charge their own fees and make their own decisions."],
     limits: ["App store review and rules are outside our control. We prepare each submission carefully, and we cannot promise approval. You are responsible for the data and privacy duties that come with your users' information."],
   },
   software: {

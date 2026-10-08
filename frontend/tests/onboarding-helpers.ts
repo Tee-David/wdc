@@ -82,6 +82,8 @@ export async function fillScreen(page: Page, answers: Record<string, Answer>) {
       done.add(key);
       const q = page.locator(`[data-field="${key}"]`);
       const value = answers[key];
+      /* A website or social list: the first row's link box takes the first line. */
+      if (await q.locator(".obProf").count()) { await q.locator(".obProf input").first().fill(String(value).split("\n")[0]); continue; }
       const area = q.locator("textarea");
       if (await area.count()) { await area.first().fill(String(value)); continue; }
       const text = q.locator('input[type="tel"], input[type="text"], input[type="email"], input[type="url"], input:not([type])').filter({ hasNot: page.locator('[role="combobox"]') });

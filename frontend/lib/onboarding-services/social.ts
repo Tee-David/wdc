@@ -55,8 +55,7 @@ export const SOCIAL_STEPS: Step[] = [
         options: ["Instagram", "Facebook", "X", "TikTok", "LinkedIn", "YouTube", "Pinterest", "Snapchat", "WhatsApp", "Somewhere else", "None yet"],
       },
       {
-        key: "social_links", kind: "textarea", label: "Paste your links",
-        placeholder: "Your page links or handles, one per line",
+        key: "social_links", kind: "profiles", label: "Add your pages",
         hint: "Optional. We look at them before we start.",
         showIf: { key: "channels", equals: ["Instagram", "Facebook", "X", "TikTok", "LinkedIn", "YouTube", "Pinterest", "Snapchat", "WhatsApp", "Somewhere else"] },
       },
