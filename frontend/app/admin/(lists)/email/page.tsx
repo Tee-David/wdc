@@ -5,19 +5,21 @@ import { Panel } from "@/components/admin/bits";
 import { EMAIL_KINDS } from "@/lib/email-registry";
 import { getSaved } from "@/lib/email-design-store";
 import { allTags, listContacts, type Filters } from "@/lib/contacts";
-import { Empty } from "@/components/admin/bits";
+import { Empty, Tile } from "@/components/admin/bits";
 import { PickAll, RowPick } from "@/components/admin/bulk";
 import { Pager, readPer } from "@/components/admin/pager";
 import { FilterPick } from "@/components/admin/pick";
 import { ImportContacts, SyncButton, TagBar } from "@/components/admin/email/contacts-ui";
 import { NewCampaign } from "@/components/admin/email/campaign-ui";
-import { listCampaigns } from "@/lib/campaigns";
+import { listCampaigns, reportFor } from "@/lib/campaigns";
+import { db } from "@/lib/db/pool";
 import { when } from "@/components/admin/bits";
 import "@/components/admin/email/design-editor.css";
+import "@/components/admin/dashboard.css";
 
 export const metadata = { title: "Email" };
 
-const TABS = [["contacts", "Contacts"], ["campaigns", "Campaigns"], ["templates", "Templates"]] as const;
+const TABS = [["contacts", "Contacts"], ["campaigns", "Campaigns"], ["templates", "Templates"], ["reports", "Reports"]] as const;
 
 /**
  * EMAIL: the studio's mail in one place. Contacts, campaigns, automations and
@@ -43,6 +45,7 @@ export default async function EmailPage({ searchParams }: { searchParams: Promis
       </nav>
       {current === "contacts" ? <ContactsTab sp={sp} /> : null}
       {current === "campaigns" ? <CampaignsTab /> : null}
+      {current === "reports" ? <ReportsTab /> : null}
       {current === "templates" ? <>
       <Panel title="Emails you can design" dataTour="email-templates">
         <div className="ad__scroll" data-lenis-prevent>
@@ -150,5 +153,46 @@ async function CampaignsTab() {
         </div>
       ) : <Empty title="No campaigns yet" icon={Download} action={<NewCampaign />}>Write an issue, choose who gets it, and send it. Only people who asked to hear from you are emailed.</Empty>}
     </Panel>
+  );
+}
+
+async function ReportsTab() {
+  const campaigns = ((await listCampaigns()) ?? []).filter((c) => ["sent", "sending", "paused"].includes(c.status)).slice(0, 10);
+  const reports = await Promise.all(campaigns.map((c) => reportFor(c)));
+  const growth = await db.query<{ month: string; n: string }>(`SELECT to_char(created_at, 'YYYY-MM') AS month, count(*) AS n FROM contacts WHERE created_at > now() - INTERVAL '6 months' GROUP BY 1 ORDER BY 1`).then((r) => r.rows).catch(() => []);
+  const status = await db.query<{ status: string; n: string }>(`SELECT status, count(*) AS n FROM contacts GROUP BY status`).then((r) => r.rows).catch(() => []);
+  const asked = await db.query<{ n: string }>(`SELECT count(*) AS n FROM contacts WHERE marketing AND status = 'subscribed'`).then((r) => Number(r.rows[0].n)).catch(() => 0);
+  const peak = Math.max(1, ...growth.map((g) => Number(g.n)));
+  const pct = (n: number, d: number) => (d ? `${Math.round((n / d) * 100)}%` : "–");
+  return (
+    <>
+      <dl className="ad__tiles ad__tiles--4">
+        <Tile label="Can get campaigns" value={String(asked)} note="Subscribed and asked to hear from us" />
+        {["unsubscribed", "bounced", "complained"].map((st) => <Tile key={st} label={st[0].toUpperCase() + st.slice(1)} value={String(status.find((x) => x.status === st)?.n ?? 0)} note="Never emailed again" />)}
+      </dl>
+      <div className="adRep__grid">
+        <Panel title="New contacts, last six months">
+          {growth.length ? (
+            <ul className="adRep__bars" aria-label="New contacts by month">
+              {growth.map((g) => <li key={g.month}><span className="adRep__pair" role="img" aria-label={`${g.month}: ${g.n} new`}><i className="adRep__in" style={{ height: `${Math.max(4, (Number(g.n) / peak) * 100)}%` }} /></span><small>{g.month.slice(5)}</small></li>)}
+            </ul>
+          ) : <Empty title="No contacts yet">New people per month show here.</Empty>}
+        </Panel>
+      </div>
+      <div style={{ marginTop: "1rem" }}>
+        <Panel title="Campaigns">
+          {campaigns.length ? (
+            <div className="ad__scroll" data-lenis-prevent>
+              <table className="ad__t">
+                <thead><tr><th>Campaign</th><th className="num">Sent</th><th className="num">Clicked</th><th className="num">Opened (approx.)</th><th className="num">Unsubscribed</th><th className="num">Failed</th></tr></thead>
+                <tbody>{campaigns.map((c, i) => { const r = reports[i]; return (
+                  <tr key={c.id}><td><Link href={`/admin/email/campaigns/${c.id}`}><b>{c.title}</b></Link></td><td className="num">{r.sent}</td><td className="num">{pct(r.clickers, r.sent)}</td><td className="num">{pct(r.opened, r.sent)}</td><td className="num">{r.unsubscribed}</td><td className="num">{r.failed}</td></tr>
+                ); })}</tbody>
+              </table>
+            </div>
+          ) : <Empty title="No campaigns sent yet">Results appear here once one has gone out.</Empty>}
+        </Panel>
+      </div>
+    </>
   );
 }

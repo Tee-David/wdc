@@ -88,3 +88,13 @@
 .cf-back svg { width: 16px; height: 16px; }
 @media (max-width: 560px) { .pv .cf-acts .pv-btn { width: auto; flex: 1 1 auto; justify-content: center; white-space: nowrap; } .pv .cf-acts .cf-back { flex: 0 0 auto; } }
 .ct-f .cf-choice input:focus { box-shadow:none; outline:none; }
+
+.cf-slider { margin: 0; padding: 0; border: 0; min-width: 0; display: grid; gap: 6px; }
+.cf-slider legend { padding: 0; margin-bottom: 6px; font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 500; font-size: .85rem; color: var(--ink); }
+.cf-slider legend b { color: var(--accent-ink); }
+.cf-slider legend i { font-style: normal; color: var(--muted); font-weight: 400; }
+.cf-slider__val { font-family: var(--font-space-grotesk), system-ui, sans-serif; font-weight: 700; font-size: clamp(1.5rem, 5vw, 2.1rem); color: var(--ink); }
+.cf-slider input[type="range"] { width: 100%; min-height: 44px; margin: 0; accent-color: var(--ink); }
+.cf-slider input.is-unset { opacity: .55; }
+.cf-slider__ends { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: .8rem; }
+.cf-slider .cf-choice { margin-top: 6px; }

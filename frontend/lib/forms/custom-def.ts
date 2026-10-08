@@ -41,6 +41,8 @@ export type CustomField = {
   required?: boolean;
   /** Dropdown, one choice, several choices. */
   options?: string[];
+  /** Dropdown only: shown as a slider across the options in order. A last option that says "not sure" stays a tick box beside it. */
+  slider?: boolean;
   /** Number: the range allowed. */
   min?: number;
   max?: number;
@@ -138,6 +140,7 @@ export function cleanDef(raw: unknown): { def: CustomFormDef; errors: string[] }
       const opts = [...new Set((Array.isArray(r.options) ? r.options : []).map((x) => str(x, LIMITS.label)).filter(Boolean))].slice(0, LIMITS.options);
       if (opts.length < 2) errors.push(`"${field.label}" needs at least two choices.`);
       field.options = opts;
+      if (r.type === "select" && r.slider === true) field.slider = true;
     }
     if (r.type === "number") {
       const min = Number(r.min), max = Number(r.max);

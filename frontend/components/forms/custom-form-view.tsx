@@ -255,6 +255,7 @@ function Field({ f, id, value, error, onChange, slug, preview }: {
       control = <PhoneField id={id} value={text} onChange={onChange} invalid={Boolean(error)} describedBy={describedBy} />;
       break;
     case "select":
+      if (f.slider) return <SliderField f={f} id={id} value={text} onChange={onChange} error={error} describedBy={describedBy} />;
       control = <SelectField id={id} options={f.options ?? []} value={text} onChange={onChange} invalid={Boolean(error)} describedBy={describedBy} placeholder={f.placeholder || "Choose one"} />;
       break;
     case "radio":
@@ -367,5 +368,35 @@ function FileField({ id, f, files, byEmail, onChange, slug, preview, describedBy
         </label>
       ) : null}
     </div>
+  );
+}
+
+/* A dropdown shown as a slider (budget). The options are the steps, in order;
+   a last option that says "not sure" is a tick box beside it, so the deferral
+   is reversible: moving the slider clears the tick, ticking again puts the
+   slider aside and the next move brings it back. */
+function SliderField({ f, id, value, onChange, error, describedBy }: { f: CustomField; id: string; value: string; onChange: (v: string) => void; error?: string; describedBy?: string }) {
+  const all = f.options ?? [];
+  const deferral = /not sure/i.test(all[all.length - 1] ?? "") ? all[all.length - 1] : null;
+  const steps = deferral ? all.slice(0, -1) : all;
+  const at = steps.indexOf(value);
+  const deferred = deferral !== null && value === deferral;
+  return (
+    <fieldset className={`ct-f cf-slider${error ? " is-bad" : ""}`} aria-describedby={describedBy}>
+      <legend>{f.label}{f.required ? <b aria-hidden="true"> *</b> : <i> (optional)</i>}</legend>
+      {f.help ? <small id={`${id}-h`} className="cf-help">{f.help}</small> : null}
+      <output className="cf-slider__val" htmlFor={id} aria-live="polite">{deferred ? "We will advise you" : at >= 0 ? steps[at] : "Slide to choose"}</output>
+      <input id={id} type="range" min={0} max={steps.length - 1} step={1} value={at >= 0 ? at : 0} aria-valuetext={at >= 0 ? steps[at] : "Not chosen yet"}
+        className={at < 0 ? "is-unset" : undefined} disabled={false}
+        onChange={(e) => onChange(steps[Number(e.target.value)])} onPointerDown={() => { if (at < 0) onChange(steps[0]); }} />
+      <span className="cf-slider__ends" aria-hidden="true"><span>{steps[0]}</span><span>{steps[steps.length - 1]}</span></span>
+      {deferral ? (
+        <label className="cf-choice">
+          <input type="checkbox" checked={deferred} onChange={(e) => onChange(e.target.checked ? deferral : "")} />
+          <span>{deferral}</span>
+        </label>
+      ) : null}
+      {error ? <small id={`${id}-e`} className="ct-error">{error}</small> : null}
+    </fieldset>
   );
 }

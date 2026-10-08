@@ -82,7 +82,51 @@ export async function saveRoutingAction(_p: ActionState, fd: FormData): Promise<
   await writeSetting("mail.default", def, by);
   await writeSetting("mail.fallback", fb, by);
   await writeSetting(WEBHOOK_KEY, hook, by);
+  await writeSetting("mail.digest", text(fd, "digest") === "1" ? "yes" : "no", by);
   audit({ actor: by, kind: "setting", subjectId: "mail.routing", subject: "Mail routing", action: "default and fallback changed" });
   done();
   return OK("Updated.");
+}
+
+/** The address delivery events are sent to. Made once, random; making a new one stops the old. */
+export async function newEventsKeyAction(): Promise<ActionState> {
+  const refused = await ownerFresh(); if (refused) return refused;
+  const { randomBytes } = await import("node:crypto");
+  await writeSetting("mail.eventsKey", randomBytes(24).toString("base64url"), await actorName());
+  done();
+  return OK("A new address is ready. Paste it into the mail service's webhook settings.");
+}
+
+export async function setSimulateAction(_p: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner(); if (refused) return refused;
+  const on = text(fd, "on") === "1";
+  await writeSetting("mail.simulate", on ? "yes" : "no", await actorName());
+  done();
+  return OK(on ? "Simulate mode is on: nothing is sent, messages are only logged." : "Simulate mode is off. Mail is sent again.");
+}
+
+/** SPF, DMARC and common DKIM names for a domain, looked up over DNS-over-HTTPS, with plain words about each. */
+export async function checkDomainAction(_p: ActionState, fd: FormData): Promise<ActionState> {
+  const refused = await owner(); if (refused) return refused;
+  const domain = text(fd, "domain").toLowerCase();
+  if (!/^(?=.{4,253}$)([a-z0-9-]{1,63}\.)+[a-z]{2,24}$/.test(domain)) return FAIL({ domain: "A domain like wedigcreativity.com." });
+  const txt = async (name: string): Promise<string[]> => {
+    try {
+      const r = await fetch(`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(name)}&type=TXT`, { headers: { accept: "application/dns-json" }, signal: AbortSignal.timeout(6000) });
+      const j = (await r.json()) as { Answer?: { data: string }[] };
+      return (j.Answer ?? []).map((a) => a.data.replace(/^"|"$/g, "").replace(/" "/g, ""));
+    } catch { return []; }
+  };
+  const spf = (await txt(domain)).find((t) => t.startsWith("v=spf1"));
+  const dmarc = (await txt(`_dmarc.${domain}`)).find((t) => t.startsWith("v=DMARC1"));
+  const selectors = ["default", "selector1", "selector2", "google", "k1", "pm", "mail", "s1", "s2", "brevo1", "brevo2"];
+  const dkim: string[] = [];
+  for (const sel of selectors) if ((await txt(`${sel}._domainkey.${domain}`)).some((t) => /v=DKIM1|k=rsa|p=/.test(t))) dkim.push(sel);
+  const parts = [
+    spf ? "SPF found." : "SPF is missing: add a TXT record starting v=spf1 that names your mail service.",
+    dkim.length ? `DKIM found (${dkim.join(", ")}).` : "No common DKIM name found. Your mail service shows the exact name to publish; this check only tries the usual ones.",
+    dmarc ? `DMARC found (${(/p=([a-z]+)/i.exec(dmarc)?.[1] ?? "?")}).` : "DMARC is missing: add a TXT record at _dmarc with v=DMARC1; p=none to start.",
+  ];
+  const good = Boolean(spf && dmarc);
+  return good ? OK(parts.join(" ")) : FAIL({}, parts.join(" "));
 }
