@@ -166,3 +166,20 @@
 .lg-body p a { color: var(--accent-ink); text-decoration: underline; text-underline-offset: .18em; overflow-wrap: anywhere; }
 .lg-body p a:hover { text-decoration-thickness: 2px; }
 .lg-body p a:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; border-radius: 3px; }
+
+/* A policy with tabs and a search. */
+.lg-body--tabs { max-width: 72ch; margin-inline: auto; }
+.lg-find { display: grid; gap: .35rem; margin: 1.2rem 0 1rem; min-width: 0; }
+.lg-find__l { font-size: .9rem; font-weight: 600; color: var(--ink); }
+.lg-find__box { display: flex; align-items: center; gap: .5rem; min-height: 48px; padding: 0 .5rem 0 .8rem; border: 1.5px solid var(--rule); border-radius: 999px; background: var(--paper); min-width: 0; }
+.lg-find__box:focus-within { border-color: var(--accent-ink); outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+.lg-find__box svg { width: 1.1rem; height: 1.1rem; flex: none; color: var(--muted); }
+.lg-find__box input { flex: 1; min-width: 0; min-height: 44px; border: 0; background: transparent; color: var(--ink); font: inherit; outline: none; }
+.lg-find__box button { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); cursor: pointer; }
+.lg-find__box button svg { width: 1rem; height: 1rem; }
+.lg-tabs { display: flex; gap: .45rem; margin: 0 0 1.4rem; padding-bottom: .3rem; overflow-x: auto; scrollbar-width: thin; }
+.lg-tab { flex: none; min-height: 44px; padding: 0 1rem; border: 1.5px solid var(--rule); border-radius: 999px; background: var(--paper); color: var(--ink); font: inherit; font-size: .95rem; cursor: pointer; white-space: nowrap; }
+.lg-tab.is-on { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent); font-weight: 600; }
+.lg-tab:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+.lg-count { margin: 0 0 1rem; color: var(--muted); font-size: .92rem; }
+.lg-where { margin: 0 0 .25rem; font-size: .8rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--accent-ink); }

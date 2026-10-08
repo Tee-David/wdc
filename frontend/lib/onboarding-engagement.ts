@@ -25,7 +25,7 @@ import type { ServiceSlug } from "./services";
  * schema change.
  */
 
-export const ENGAGEMENT_VERSION = "2026-10-draft-3";
+export const ENGAGEMENT_VERSION = "2026-10-draft-4";
 
 /** Flip to true only when a qualified Nigerian lawyer has approved this text. */
 export const LAWYER_APPROVED = false;
@@ -52,7 +52,7 @@ const SHARED: Record<EngagementGroup["id"], Omit<EngagementGroup, "id">> = {
       "We deliver the work described in your quote and in this form. Anything outside that is new work. We will agree it in writing, with its own price and date, before we start it.",
       "You give us what we need to do the work: files, words, pictures, access and decisions. We tell you what and when. If it arrives late, the dates move by the same amount.",
       "Changes inside the agreed work are included for the number of rounds in your quote. A change that adds something new goes through the same written step as any new work.",
-      "The usual project has up to two review meetings and a recorded handover meeting, after which we send a handover document. Dates depend on your feedback and your approvals. One person signs work off, as you said above, so that feedback does not arrive from several directions and disagree with itself. Feedback is normally due within five working days of each review.",
+      "How many review meetings there are, and when the recorded handover meeting is held, depends on the kind of project and is in your agreed scope. After a handover meeting we send a handover document. Dates depend on your feedback and your approvals. One person signs work off, as you said above, so that feedback does not arrive from several directions and disagree with itself. Feedback is normally due within five working days of each review.",
     ],
   },
   money: {
@@ -87,21 +87,21 @@ const SHARED: Record<EngagementGroup["id"], Omit<EngagementGroup, "id">> = {
 /** Service specific terms, added to the group they belong to. */
 const EXTRA: Record<ServiceSlug, Partial<Record<EngagementGroup["id"], string[]>>> = {
   branding: {
-    work: ["Batch and monthly jobs run to the quantity and the dates in your quote. A new batch or an extra piece is new work."],
+    work: ["We agree a design direction first. A logo, flyer or social design gets one revision after the final version, with no variations or new directions. A brand guide has one direction and one round of corrections. Batch and monthly jobs run to the quantity and the dates in your quote. A new batch or an extra piece is new work."],
     money: ["Fonts, pictures and music we use for you may carry licences. We tell you which ones, and you keep to them. Motion work that uses music needs a licence for that music."],
     limits: ["Checking that a name or a mark can be registered as a trademark is your responsibility. We can point you to someone who does it."],
   },
   seo: {
     work: ["Our SEO work starts at three months. You approve changes to your content before they go live. Access to your tools is arranged through each tool's own sharing settings, never by sending us a password."],
-    limits: ["No one can promise a ranking, and we do not. Search engines and AI answer tools change how they work without warning, and we are not responsible for that."],
+    limits: ["No one can promise a ranking, and we do not. We are not responsible for a penalty from earlier work or for changes others make to the site. Search engines and AI answer tools change how they work without warning, and we are not responsible for that."],
   },
   web: {
-    work: ["A free review of your current site is advice. It is not a promise of results."],
+    work: ["A content-managed site is concluded at handover. An online shop includes up to 20 products uploaded free, and more are charged from our price list. A free review of your current site is advice. It is not a promise of results."],
     money: ["Your domain is registered in your name unless you ask otherwise. Hosting is either an account in your name or hosting we provide under a written hosting agreement. Up to three business email addresses are included, and more are charged. Payment providers have their own terms and fees, and some setups are limited by the type of site. We tell you which."],
     limits: ["Plugins and platforms we build on belong to other companies and can change. You are responsible for the words and pictures you give us."],
   },
   apps: {
-    work: ["We show you a first version, a prototype, before the full build. We do not build games, anything deceptive, or apps that need heavy hardware."],
+    work: ["After the first release you get up to one month of testing and review. We show you a first version, a prototype, before the full build. We do not build games, anything deceptive, or apps that need heavy hardware."],
     money: ["Unless you ask otherwise, the app store developer accounts are opened in our name, and the app can be moved to your own account on request. The stores charge their own fees and make their own decisions."],
     limits: ["App store review and rules are outside our control. We prepare each submission carefully, and we cannot promise approval. You are responsible for the data and privacy duties that come with your users' information."],
   },
@@ -112,7 +112,7 @@ const EXTRA: Record<ServiceSlug, Partial<Record<EngagementGroup["id"], string[]>
   social: {
     work: ["Nothing is posted until you approve it, within the time you told us. We plan the calendar, schedule the posts and suggest trends."],
     money: ["Ad spend is paid to the platform and is separate from our fee. The accounts are yours, and you add us through each platform's sharing tools. We never ask for a password."],
-    limits: ["Platform policies and ad approvals are outside our control, and we cannot promise how ads or posts will perform. You promise you may use the content you give us."],
+    limits: ["We are not responsible if a platform bans, restricts, suspends or seizes an account. Platform policies and ad approvals are outside our control, and we cannot promise how ads or posts will perform. You promise you may use the content you give us."],
   },
 };
 
