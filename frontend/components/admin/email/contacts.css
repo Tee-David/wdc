@@ -1,0 +1,236 @@
+/* ============================================================================
+   CONTACTS (Email › Contacts). The approved design's "Contacts" tab on the
+   admin's own tokens: --ad-* only, solid fills, 44px targets, the orange ring
+   from admin.css's :focus-visible, nothing that moves under reduced motion.
+   Pieces shared with the rest of the admin (.ad__t, .ad__scroll, .ad__pill,
+   .ad__btn, .ad__tiles, the pager, the dialog sheet) are used as they are.
+   ========================================================================== */
+
+.ctPanel { padding: 0; }
+
+/* The header: title and count on the left, Import / Export / Add on the right. */
+.ctHead { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1rem; padding: 1.1rem 1.25rem; }
+.ctHead > div:first-child { flex: 1 1 14rem; min-width: 0; }
+.ctHead h2 { margin: 0; font: 600 1.15rem/1.2 var(--font-space-grotesk), system-ui, sans-serif; }
+.ctHead small { display: block; margin-top: .15rem; color: var(--ad-dim); font-size: .86rem; }
+.ctActs { display: flex; flex-wrap: wrap; gap: .5rem; min-width: 0; }
+
+.ctTiles { margin: 0; padding: 0 1.25rem 1rem; }
+
+/* Filters: two pickers and the search. */
+.ctFilt { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: 0 1.25rem 1rem; }
+.ctPick { flex: 0 1 11.5rem; min-width: 0; }
+.ctPick .adPick__btn { min-height: 2.75rem; }
+.ctSearch {
+  display: flex; align-items: center; gap: .5rem; flex: 1 1 15rem; max-width: 22rem; min-width: 0; margin-left: auto;
+  min-height: 2.75rem; padding: 0 .75rem; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); color: var(--ad-dim);
+}
+.ctSearch:focus-within { border-color: var(--ad-navy); box-shadow: 0 0 0 4px var(--ad-nav-on); }
+.dark .ctSearch:focus-within { border-color: var(--ad-accent); }
+.ctSearch svg { width: 1.05rem; height: 1.05rem; flex: none; }
+.ctSearch input { flex: 1; min-width: 0; min-height: 2.5rem; border: 0; outline: 0; background: transparent; color: var(--ad-ink); font: 500 .94rem var(--font-outfit), system-ui, sans-serif; }
+.ctSearch input::placeholder { color: var(--ad-dim); opacity: .85; }
+
+/* The table: its own scroll box, first column pinned at every width. */
+.ctSwipe { display: none; margin: 0; padding: .4rem 1rem .5rem; color: var(--ad-dim); font-size: .78rem; }
+.ctScroll { border-top: 1px solid var(--ad-line); transition: opacity .15s ease; }
+.ctScroll.is-loading { opacity: .55; }
+.ctScroll > .ad__t { min-width: 46rem; width: max-content; min-width: max(100%, 46rem); }
+.ctScroll > .ad__t :is(th, td) { white-space: nowrap; }
+.ctScroll > .ad__t :is(th, td):first-child {
+  position: sticky; left: 0; z-index: 1; min-width: 18rem; max-width: 22rem; white-space: normal; padding-left: .5rem;
+  background: var(--ad-panel);
+}
+.ctScroll > .ad__t thead th:first-child { background: var(--ad-panel-2); z-index: 2; }
+.ctScroll > .ad__t tbody tr:hover > td:first-child { background: var(--ad-panel-2); }
+.ctScroll > .ad__t tbody tr.is-picked > td:first-child { background: var(--ad-nav-on); }
+.ctScroll[data-scrolled] > .ad__t :is(th, td):first-child { box-shadow: 8px 0 12px -10px rgb(0 0 30 / .35); }
+.dark .ctScroll[data-scrolled] > .ad__t :is(th, td):first-child { box-shadow: 8px 0 12px -8px rgb(0 0 0 / .8); }
+.ctScroll > .ad__t td { padding-block: .35rem; }
+.ctScroll[data-more]::after { display: none; }
+.ctRow { cursor: pointer; }
+.ctRow:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: -2px; }
+.ctT th.ctR, .ctT td.ctR { width: 1%; text-align: right; padding-right: .75rem; }
+.ctT th .ctTh1 { display: inline-flex; align-items: center; gap: .15rem; }
+
+.ctCell1 { display: flex; align-items: center; gap: .25rem; min-width: 0; }
+.ctCb { display: inline-grid; place-items: center; width: 2.75rem; height: 2.75rem; flex: none; cursor: pointer; }
+.ctCb input { width: 1.15rem; height: 1.15rem; margin: 0; accent-color: var(--ad-fill); cursor: pointer; }
+.ctCb input:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 3px; border-radius: 3px; }
+.ctWho { display: flex; align-items: center; gap: .75rem; min-width: 0; }
+.ctWho > span:last-child { min-width: 0; }
+.ctWho b, .ctWho small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 15rem; line-height: 1.3; }
+.ctWho small { font-size: .8rem; }
+/* Solid avatar tile with a white initial, the fill from the tone tokens. */
+.ctAv {
+  flex: none; display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 50%;
+  font: 600 .8rem var(--font-outfit), system-ui, sans-serif; letter-spacing: .02em; color: #fff;
+}
+.ctAv--0 { background: var(--ad-tone-live); color: var(--ad-on-live); }
+.ctAv--1 { background: var(--ad-tone-brand); color: var(--ad-on-brand); }
+.ctAv--2 { background: var(--ad-tone-good); color: var(--ad-on-good); }
+.ctAv--3 { background: var(--ad-tone-neutral); color: var(--ad-on-neutral); }
+.ctAv--4 { background: var(--ad-tone-warn); color: var(--ad-on-warn); }
+.ctAv--5 { background: var(--ad-tone-bad); color: var(--ad-on-bad); }
+.ctAv--lg { width: 3.5rem; height: 3.5rem; font-size: 1.1rem; }
+.ctTags { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; max-width: 16rem; }
+.ctTag { display: inline-flex; align-items: center; min-height: 1.5rem; padding: .1rem .6rem; border-radius: 999px; background: var(--ad-tone-flat); color: var(--ad-on-flat); font-size: .75rem; font-weight: 650; white-space: nowrap; }
+.ctOpens { display: flex; align-items: center; gap: .6rem; min-width: 7.5rem; font-variant-numeric: tabular-nums; }
+.ctOpens i { flex: 1; min-width: 3.5rem; height: .4rem; border-radius: 3px; background: var(--ad-tone-flat); overflow: hidden; }
+.ctOpens i b { display: block; height: 100%; border-radius: 3px; background: var(--ad-tone-brand); transform-origin: left; animation: ct-grow .5s ease-out backwards; }
+@keyframes ct-grow { from { transform: scaleX(0); } }
+.ctOpens span { width: 3ch; text-align: right; }
+.ctIcon { display: inline-grid; place-items: center; width: 2.75rem; height: 2.75rem; border: 0; border-radius: 12px; background: transparent; color: var(--ad-dim); cursor: pointer; }
+.ctIcon:hover { background: var(--ad-bg); color: var(--ad-ink); }
+.ctIcon svg { width: 1.1rem; height: 1.1rem; }
+.ctIcon--ring { border: 1px solid var(--ad-line); border-radius: 50%; color: var(--ad-ink); background: var(--ad-panel); }
+a.ctIcon { text-decoration: none; }
+
+/* Loading: the rows hold their shape and dim; nothing invented is drawn. */
+.ctEmpty { padding: .5rem 1rem 1.5rem; }
+
+/* The floating bulk bar: sticks to the foot of the viewport inside the content column. */
+.ctBulk {
+  position: sticky; bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); z-index: 20;
+  display: flex; align-items: center; gap: .15rem; width: max-content; max-width: 100%; margin: 1rem auto 0; padding: .4rem;
+  border-radius: 16px; background: var(--ad-navy); color: #fff; box-shadow: 0 14px 30px -16px rgb(0 0 60 / .6);
+}
+.dark .ctBulk { background: #23237a; }
+.ctBulk b { padding: 0 .6rem; font-size: .9rem; font-weight: 600; white-space: nowrap; }
+.ctBulk button {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 2.75rem; min-width: 2.75rem; padding: 0 .8rem;
+  border: 0; border-radius: 11px; background: transparent; color: inherit; font: 600 .88rem var(--font-outfit), system-ui, sans-serif; cursor: pointer; white-space: nowrap;
+}
+.ctBulk button:hover { background: rgb(255 255 255 / .14); }
+.ctBulk button:disabled { opacity: .6; cursor: not-allowed; }
+.ctBulk button:focus-visible { outline: 2px solid #fff; outline-offset: -3px; }
+.ctBulk button svg { width: 1.05rem; height: 1.05rem; flex: none; }
+.ctBulk i { width: 1px; align-self: stretch; margin: .4rem .25rem; background: currentColor; opacity: .35; }
+body:has(.ctBulk) .st { bottom: calc(6.5rem + env(safe-area-inset-bottom)); }
+
+/* ---- the sheets (inside the shared right-hand dialog) -------------------- */
+.ctSheet { display: grid; gap: 1.1rem; min-width: 0; }
+.ctSheet > * { min-width: 0; }
+.ctNote { margin: 0; color: var(--ad-dim); font-size: .86rem; }
+.ctFoot {
+  position: sticky; bottom: calc(-1.5rem - env(safe-area-inset-bottom, 0px)); z-index: 3;
+  display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .6rem; margin: .5rem -1.5rem calc(-1.5rem - env(safe-area-inset-bottom, 0px));
+  padding: .8rem 1.5rem calc(.8rem + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--ad-line); background: var(--ad-panel);
+}
+.ctFoot .ctFoot__l { margin-right: auto; align-self: center; color: var(--ad-dim); font-size: .84rem; min-width: 0; }
+.ctCard { border: 1px solid var(--ad-line); border-radius: 14px; background: var(--ad-panel); min-width: 0; }
+.ctTop { display: flex; flex-wrap: wrap; align-items: center; gap: .9rem; padding: 1rem; }
+.ctTop .ctNm { flex: 1 1 9rem; min-width: 0; }
+.ctTop .ctNm b { display: block; font: 600 1.1rem/1.25 var(--font-space-grotesk), system-ui, sans-serif; overflow-wrap: anywhere; }
+.ctTop .ctNm span { display: block; color: var(--ad-dim); font-size: .84rem; overflow-wrap: anywhere; }
+.ctBtns { display: flex; gap: .4rem; }
+.ctFacts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--ad-line); margin: 0; }
+.ctFacts div { padding: .65rem 1rem; min-width: 0; border-bottom: 1px solid var(--ad-line); }
+.ctFacts div:nth-child(odd) { border-right: 1px solid var(--ad-line); }
+.ctFacts div:nth-last-child(-n+2) { border-bottom: 0; }
+.ctFacts dt { color: var(--ad-dim); font-size: .75rem; }
+.ctFacts dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.ctSec h3 { display: flex; align-items: center; gap: .5rem; margin: 0 0 .6rem; font: 600 1rem var(--font-space-grotesk), system-ui, sans-serif; }
+.ctSec h3 .ctGrow { flex: 1; }
+.ctSec h3 .ctDim { color: var(--ad-dim); font: 400 .8rem var(--font-outfit), system-ui, sans-serif; }
+.ctSeg { display: flex; gap: 2px; padding: 3px; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel-2); }
+.ctSeg button { flex: 1; min-height: 2.5rem; padding: 0 .5rem; border: 0; border-radius: 9px; background: transparent; color: var(--ad-dim); font: 600 .86rem var(--font-outfit), system-ui, sans-serif; cursor: pointer; }
+.ctSeg button:hover:not(:disabled) { color: var(--ad-ink); background: var(--ad-bg); }
+.ctSeg button[aria-pressed="true"] { background: var(--ad-fill); color: var(--ad-on-fill); }
+.ctSeg button.is-stop[aria-pressed="true"] { background: var(--ad-tone-bad); color: var(--ad-on-bad); }
+.ctSeg button:disabled { cursor: not-allowed; opacity: .55; }
+.ctSeg button:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 1px; }
+.ctChips { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+.ctChip { position: relative; display: inline-flex; align-items: center; gap: .25rem; min-height: 2rem; padding: 0 .75rem; border-radius: 999px; background: var(--ad-tone-flat); color: var(--ad-on-flat); font: 600 .8rem var(--font-outfit), system-ui, sans-serif; border: 0; cursor: default; }
+button.ctChip { cursor: pointer; }
+.ctChip svg { width: .85rem; height: .85rem; }
+.ctChip::after { content: ""; position: absolute; inset: -.35rem 0; }
+button.ctChip:hover { background: var(--ad-dim); color: var(--ad-bg); }
+.ctChip--add { background: transparent; color: var(--ad-ink); border: 1px dashed var(--ad-dim); }
+.ctChip--add:hover { border-style: solid; background: var(--ad-panel-2); color: var(--ad-ink); }
+button.ctChip[aria-pressed="true"] { background: var(--ad-fill); color: var(--ad-on-fill); }
+.ctTagIn { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: .6rem; }
+.ctTagIn input { flex: 1 1 10rem; min-width: 0; min-height: 2.75rem; padding: .5rem .75rem; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); color: var(--ad-ink); font: 500 .94rem var(--font-outfit), system-ui, sans-serif; }
+.ctTagIn input:focus-visible { outline: none; border-color: var(--ad-navy); box-shadow: 0 0 0 4px var(--ad-nav-on); }
+.dark .ctTagIn input:focus-visible { border-color: var(--ad-accent); }
+.ctItem { display: flex; gap: .75rem; align-items: flex-start; padding: .7rem .75rem; border: 1px solid var(--ad-line); border-radius: 12px; margin-bottom: .5rem; font-size: .9rem; min-width: 0; }
+.ctItem:last-child { margin-bottom: 0; }
+.ctItem > div { min-width: 0; overflow-wrap: anywhere; }
+.ctItem .ctIc { flex: none; display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 9px; background: var(--ad-tone-brand); color: var(--ad-on-brand); }
+.ctItem .ctIc svg { width: 1rem; height: 1rem; }
+.ctItem small { color: var(--ad-dim); }
+
+/* Import and export */
+.ctCards { display: grid; gap: .9rem; }
+.ctStep { border: 1px solid var(--ad-line); border-radius: 14px; padding: .9rem; display: grid; gap: .7rem; background: var(--ad-panel); min-width: 0; }
+.ctStep h3 { margin: 0; display: flex; align-items: center; gap: .5rem; font: 600 1rem var(--font-space-grotesk), system-ui, sans-serif; }
+.ctStep h3 .ctNo { flex: none; display: grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--ad-tone-brand); color: var(--ad-on-brand); font: 700 .75rem var(--font-outfit), system-ui, sans-serif; }
+.ctStep h3 .ctGrow { flex: 1; }
+.ctStep p { margin: 0; font-size: .9rem; color: var(--ad-dim); }
+.ctMini { border: 1px solid var(--ad-line); border-radius: 10px; overflow: auto; max-height: 16rem; overscroll-behavior: contain; }
+.ctMini:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.ctMini table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+.ctMini th, .ctMini td { padding: .45rem .65rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--ad-line); white-space: nowrap; }
+.ctMini th { position: sticky; top: 0; background: var(--ad-panel-2); color: var(--ad-dim); font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; }
+.ctMini tr:last-child td { border-bottom: 0; }
+.ctMini td.ctWrap { white-space: normal; min-width: 11rem; }
+.ctRules { margin: 0; padding: 0; list-style: none; display: grid; gap: .5rem; font-size: .9rem; }
+.ctRules li { display: grid; grid-template-columns: 1.4rem minmax(0, 1fr); gap: .6rem; align-items: start; }
+.ctRules li i { display: grid; place-items: center; width: 1.4rem; height: 1.4rem; border-radius: 50%; font: 700 .75rem var(--font-outfit), system-ui, sans-serif; font-style: normal; background: var(--ad-tone-flat); color: var(--ad-on-flat); }
+.ctRules li.is-warn i { background: var(--ad-tone-warn); color: var(--ad-on-warn); }
+.ctRules code { padding: 1px 6px; border-radius: 6px; background: var(--ad-tone-flat); color: var(--ad-on-flat); font: 12px ui-monospace, monospace; }
+.ctDrop { margin: 0; }
+.ctRes { display: grid; gap: .6rem; }
+.ctRes .ctFile { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; }
+.ctRes .ctFile b { overflow-wrap: anywhere; min-width: 0; }
+.ctCounts { display: flex; flex-wrap: wrap; gap: .5rem; }
+.ctErr { margin: 0; padding: .6rem .75rem; border-radius: 10px; background: var(--ad-tone-bad); color: var(--ad-on-bad); font-weight: 600; font-size: .9rem; }
+.ctTick { display: grid; grid-template-columns: 1.15rem minmax(0, 1fr); gap: .75rem; align-items: start; min-height: 2.75rem; font-size: .9rem; cursor: pointer; padding: .4rem 0; }
+.ctTick input { width: 1.15rem; height: 1.15rem; margin: .15rem 0 0; accent-color: var(--ad-fill); }
+.ctTick input:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 3px; }
+.ctOpts { display: grid; gap: .5rem; }
+.ctOpt { display: grid; grid-template-columns: 1.4rem minmax(0, 1fr) auto; gap: .75rem; align-items: center; min-height: 3.25rem; padding: .5rem .75rem; border: 1px solid var(--ad-line); border-radius: 12px; background: var(--ad-panel); cursor: pointer; }
+.ctOpt input { position: absolute; opacity: 0; pointer-events: none; }
+.ctOpt .ctRd { display: grid; place-items: center; width: 1.3rem; height: 1.3rem; border-radius: 50%; border: 2px solid var(--ad-dim); }
+.ctOpt input:checked + .ctRd { border-color: var(--ad-fill); }
+.ctOpt input:checked + .ctRd::after { content: ""; width: .6rem; height: .6rem; border-radius: 50%; background: var(--ad-fill); }
+.ctOpt:has(input:checked) { border-color: var(--ad-fill); }
+.ctOpt:has(input:focus-visible) { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.ctOpt[aria-disabled="true"] { opacity: .55; cursor: not-allowed; }
+.ctOpt b { font-weight: 600; }
+.ctOpt small { display: block; color: var(--ad-dim); font-size: .78rem; }
+.ctOpt .ctN { font: 600 .9rem var(--font-space-grotesk), system-ui, sans-serif; color: var(--ad-dim); font-variant-numeric: tabular-nums; }
+.ctCols { display: flex; flex-wrap: wrap; gap: .5rem; }
+.ctCols button { display: inline-flex; align-items: center; gap: .35rem; min-height: 2.75rem; padding: 0 .9rem; border-radius: 999px; border: 1px solid var(--ad-line); background: var(--ad-panel); color: var(--ad-ink); font: 600 .86rem var(--font-outfit), system-ui, sans-serif; cursor: pointer; }
+.ctCols button[aria-pressed="true"] { background: var(--ad-fill); border-color: var(--ad-fill); color: var(--ad-on-fill); }
+.ctCols button:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.ctCols button svg { width: .9rem; height: .9rem; }
+.ctSmall { min-height: 2.5rem; padding-block: .3rem; }
+
+@media (max-width: 640px) {
+  .ctHead, .ctFilt { padding-inline: 1rem; }
+  .ctActs { width: 100%; }
+  .ctActs .ad__btn[data-icon-only] span.ctLbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .ctActs .ad__btn[data-icon-only] { width: 2.75rem; padding: 0; }
+  .ctActs .ad__btn--primary { flex: 1; }
+  .ctTiles { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; padding-inline: 1rem; }
+  .ctTiles .ad__tile { padding: .7rem .75rem; }
+  .ctTiles .ad__tile small, .ctTiles .ad__tileIcon { display: none; }
+  .ctTiles .ad__tile dt { font-size: .78rem; }
+  .ctSearch { max-width: none; flex-basis: 100%; margin-left: 0; order: -1; }
+  .ctPick { flex: 1 1 8rem; }
+  .ctSwipe { display: block; }
+  .ctScroll > .ad__t :is(th, td):first-child { min-width: 15.5rem; max-width: 16rem; }
+  .ctWho b, .ctWho small { max-width: 9.5rem; }
+  /* Labels drop to icons so the bar fits 320px. */
+  .ctBulk { gap: 0; padding: .3rem; }
+  .ctBulk b { padding: 0 .4rem; font-size: .82rem; }
+  .ctBulk button { padding: 0; }
+  .ctBulk button .ctLbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .ctFoot { margin-inline: -1.5rem; }
+  .ctFacts div { padding-inline: .75rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ctScroll { transition: none; }
+  .ctOpens i b { animation: none; }
+}
