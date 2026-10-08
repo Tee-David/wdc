@@ -88,8 +88,8 @@ export default function LegalTabs({ slug, intro, tabs, sections, email, also }: 
             <button type="button" className="lg-share__main" onClick={() => void share(tab, label(tab))}>
               {canShare ? <Share2 aria-hidden="true" /> : <Link2 aria-hidden="true" />} {canShare ? "Share this tab" : "Copy link to this tab"}
             </button>
-            <a href={`/legal/${slug}/pdf?tab=${tab}`} download><Download aria-hidden="true" /> This tab PDF</a>
-            <a href={`/legal/${slug}/pdf`} download><Download aria-hidden="true" /> Full policy PDF</a>
+            <a href={`/policies/${slug}/pdf?tab=${tab}`} download><Download aria-hidden="true" /> This tab PDF</a>
+            <a href={`/policies/${slug}/pdf`} download><Download aria-hidden="true" /> Full policy PDF</a>
           </div>
         </>
       ) : (
@@ -113,7 +113,7 @@ export default function LegalTabs({ slug, intro, tabs, sections, email, also }: 
         })}
         {!shown.length && q ? <p>Write to <a href={`mailto:${email}`}>{email}</a> and we will answer, and add it here.</p> : null}
       </div>
-      <div className="lg-pdf"><a href={`/legal/${slug}/pdf`} download><Download aria-hidden="true" /><span>Download this policy as a PDF</span></a></div>
+      <div className="lg-pdf"><a href={`/policies/${slug}/pdf`} download><Download aria-hidden="true" /><span>Download this policy as a PDF</span></a></div>
       <SeeAlso here={slug} docs={also} />
     </article>
   );

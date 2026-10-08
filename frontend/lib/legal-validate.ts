@@ -19,7 +19,7 @@ export function parseLegalOverride(input: unknown): { ok: true; value: LegalOver
   const o = raw as Record<string, unknown>;
   const blurb = clean(o.blurb, LEGAL_LIMITS.blurb);
   const intro = clean(o.intro, LEGAL_LIMITS.intro);
-  if (!blurb) return { ok: false, error: "Add the one-line summary shown on the Legal page." };
+  if (!blurb) return { ok: false, error: "Add the one-line summary shown on the Policies page." };
   if (!intro) return { ok: false, error: "Add the opening paragraph." };
 
   let tabs: { id: string; label: string }[] | undefined;
