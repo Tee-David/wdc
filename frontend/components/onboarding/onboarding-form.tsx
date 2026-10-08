@@ -31,6 +31,7 @@ import FeatureChecklist from "./feature-checklist";
 import { BriefExample, ChoiceLabel } from "./brief-help";
 import { FIELD_EXAMPLES } from "@/lib/onboarding-help";
 import Dropzone from "./dropzone";
+import ProfilesField from "./profiles-field";
 import { DateInput } from "@/components/admin/pick";
 import Tip from "./tip";
 import Dialog from "./dialog";
@@ -1250,6 +1251,10 @@ function FieldView({
         {problem ? <p className="ob__fErr" id={errId}><AlertCircle aria-hidden="true" />{problem}</p> : null}
       </div>
     );
+  }
+
+  if (f.kind === "profiles") {
+    return wrap(<ProfilesField id={id} value={typeof shown === "string" ? shown : ""} onChange={onChange} describedBy={describedBy} />);
   }
 
   if (f.kind === "date") {

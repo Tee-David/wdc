@@ -129,6 +129,11 @@ export const BRANDING_STEPS: Step[] = [
         tip: "A name, a colour or a logo people already know you by.",
         showIf: [BIG, { key: "brand_have", equals: ["A logo", "A brand guide"] }],
       },
+      { key: "tagline", label: "Do you have a slogan or tagline?", kind: "text", placeholder: "Leave it if you do not", showIf: { any: [has(IDENTITY, GUIDE)] } },
+      {
+        key: "brand_fonts", label: "Any fonts you already use?", kind: "text", placeholder: "For example Montserrat, or the name of a font on your signs",
+        showIf: [{ any: [has(IDENTITY, GUIDE)] }, { key: "brand_have", equals: ["A logo", "A brand guide"] }],
+      },
       {
         key: "style_help", kind: "cards",
         label: "How would you like to set the style?",

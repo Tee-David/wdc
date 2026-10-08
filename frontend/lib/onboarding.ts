@@ -68,6 +68,7 @@ export const PHASES: { id: PhaseId; title: string; blurb: string }[] = [
 
 const AUDIENCE = ["Children", "Teenagers", "Men", "Women", "Businesses", "Other"];
 const AGES = ["Under 18", "18 to 34", "35 to 54", "55 or above"];
+const REGISTRARS = ["CAC business name (BN)", "CAC company (RC)", "CAC incorporated trustees (IT)", "SMEDAN", "A professional body", "Another registrar"];
 const COMPANY_AGES = ["Under 5 years", "5 to 10 years", "10 to 15 years", "15 to 20 years", "Over 20 years"];
 
 /**
@@ -131,6 +132,30 @@ export const CORE_STEPS: Step[] = [
         showIf: { tier: 2 },
       },
       { key: "age_range", assist: true, label: "How old are your customers?", kind: "multi", options: AGES, showIf: { tier: 2 } },
+      /* The details a brand guide prints on its first pages. From a bigger job
+         up, and always for an identity or a guide, whatever the size. */
+      {
+        key: "registered", label: "Is your business registered?", kind: "yesno",
+        showIf: { any: [{ tier: 2 }, { key: "deliverables", equals: ["Full identity system", "Brand guidelines"] }] },
+      },
+      {
+        key: "registration_body", label: "Registered with", kind: "select", options: REGISTRARS,
+        showIf: { key: "registered", equals: ["Yes"] },
+      },
+      {
+        key: "registration_body_other", label: "Which body?", kind: "text", placeholder: "For example, a trade or professional association",
+        showIf: [{ key: "registered", equals: ["Yes"] }, { key: "registration_body", equals: ["A professional body", "Another registrar"] }],
+      },
+      {
+        key: "registration_number", label: "Registration number", kind: "text", placeholder: "For example BN 1234567 or RC 1234567",
+        hint: "Optional. It goes on your documents and guide, and we check it before we use it.",
+        showIf: { key: "registered", equals: ["Yes"] },
+      },
+      {
+        key: "online_presence", label: "Where can people find you online?", kind: "profiles",
+        hint: "Your website and social pages, if you have them. Optional.",
+        showIf: { any: [{ tier: 2 }, { key: "deliverables", equals: ["Full identity system", "Brand guidelines"] }] },
+      },
     ],
   },
 ];
@@ -466,7 +491,7 @@ export function problemWith(
 const SECONDS: Record<FieldKind, number> = {
   yesno: 4, cards: 6, select: 7, multi: 10,
   text: 12, email: 12, tel: 14, url: 12,
-  textarea: 32, upload: 10, notice: 0, colours: 20, date: 8,
+  textarea: 32, upload: 10, notice: 0, colours: 20, date: 8, profiles: 15,
   /* Three names to think of, not three boxes to fill: naming a business is the
      slowest question in the form, and the check afterwards is a wait the
      client chooses to take. Deliberately higher than `textarea`, which is what
