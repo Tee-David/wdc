@@ -105,10 +105,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         {/* THE STAGE TRACK. Six named steps, the current one lit, everything
             behind it filled. A client asking "where are we" is asking this
             question, and this is the answer in one glance. */}
-        <div className="ad__stageTrack" data-tour="proj-stage">
+        <div className={`ad__stageTrack${at === STAGES.length - 1 ? " is-complete" : ""}`} data-tour="proj-stage">
           <ol aria-label={`Stage: ${p.stage}, ${at + 1} of ${STAGES.length}`}>
             {STAGES.map((st, n) => (
-              <li key={st} className={n < at ? "is-done" : n === at ? "is-now" : undefined} aria-current={n === at ? "step" : undefined}>
+              <li key={st} className={n < at || (n === at && at === STAGES.length - 1) ? "is-done" : n === at ? "is-now" : undefined} aria-current={n === at ? "step" : undefined}>
                 <span aria-hidden="true" />
                 <small>{st}</small>
               </li>
