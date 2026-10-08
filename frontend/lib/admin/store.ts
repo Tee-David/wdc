@@ -604,6 +604,24 @@ export function nextInvoiceNumber(year = new Date().getFullYear()): string {
 }
 
 /**
+ * Moves every invoice still on the old INV-YYYY-NNN shape onto a random
+ * number, remembering the old one (`formerNumbers`) so payments quoting it
+ * still match. Returns how many changed; the caller persists.
+ */
+export function renumberLegacyInvoices(): number {
+  let n = 0;
+  for (const inv of INVOICES) {
+    if (!/^INV-\d{4}-\d{3,}$/.test(inv.number)) continue;
+    const old = inv.number;
+    inv.number = nextInvoiceNumber();
+    inv.formerNumbers = [...(inv.formerNumbers ?? []), old];
+    audit({ actor: "Studio", kind: "invoice", subjectId: inv.id, subject: inv.number, action: "renumbered", note: `Was ${old}` });
+    n++;
+  }
+  return n;
+}
+
+/**
  * The next receipt number for the year.
  *
  * Same shape and same contract as `nextInvoiceNumber`: issued in order, never
@@ -1610,8 +1628,8 @@ export function resolveProviderEvent(id: Id, note: string, actor = "Studio"): bo
  */
 export function matchInvoice(input: { reference?: string; invoiceId?: string }): Invoice | null {
   const ref = (input.reference ?? "").toUpperCase();
-  const namesInvoice = (i: Invoice) => ref.includes(i.number.replace(/[^A-Za-z0-9]/g, "").toUpperCase())
-                                     || ref.includes(i.number.toUpperCase());
+  const names = (n: string) => ref.includes(n.replace(/[^A-Za-z0-9]/g, "").toUpperCase()) || ref.includes(n.toUpperCase());
+  const namesInvoice = (i: Invoice) => names(i.number) || (i.formerNumbers ?? []).some(names);
 
   if (input.invoiceId) {
     const byId = getInvoice(input.invoiceId);

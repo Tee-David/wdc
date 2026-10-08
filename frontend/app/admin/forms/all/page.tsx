@@ -49,7 +49,7 @@ export default async function AllEntries({ searchParams }: { searchParams: Promi
         ) : null}
       </div>
 
-      <Panel title="Narrow it down">
+      <Panel title="Narrow it down" dataTour="entries-filters">
         <form method="get" action="/admin/forms/all" className="ad__filters" style={{ padding: ".9rem 1rem" }}>
           <label className="ad__filterSearch">
             Search
@@ -84,7 +84,7 @@ export default async function AllEntries({ searchParams }: { searchParams: Promi
       </Panel>
 
       <div style={{ marginTop: "1rem" }}>
-        <Panel title={`${total} ${total === 1 ? "entry" : "entries"}`}>
+        <Panel title={`${total} ${total === 1 ? "entry" : "entries"}`} dataTour="entries-table">
           {rows.length ? (
             <>
               <div className="ad__scroll" data-lenis-prevent>

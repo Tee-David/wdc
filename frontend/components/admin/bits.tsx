@@ -47,11 +47,13 @@ export function Panel({
  * the one fact about the number that changes what you do next.
  */
 export function Tile({
-  label, value, note, tone, icon: Icon, iconTone = "brand", badge, href,
+  label, value, note, tone, icon: Icon, iconTone = "brand", badge, href, tour,
 }: {
   label: string; value: string; note?: string;
   /** Makes the whole card a link to the list this figure counts. */
   href?: string;
+  /** The `data-tour` hook for a tour that points at this card. */
+  tour?: string;
   tone?: "good" | "bad" | "accent";
   icon?: LucideIcon;
   iconTone?: "brand" | "good" | "bad" | "warn" | "live" | "neutral";
@@ -60,7 +62,7 @@ export function Tile({
   return (
     <div className={`ad__tile${tone ? ` ad__tile--${tone}` : ""}${href ? " ad__tile--link" : ""}`}>
       <dt>
-        <span>{href ? <Link className="ad__tileHit" href={href}>{label}</Link> : label}</span>
+        <span>{href ? <Link className="ad__tileHit" href={href} data-tour={tour}>{label}</Link> : label}</span>
         {Icon ? <span className={`ad__tileIcon ad__tileIcon--${iconTone}`} aria-hidden="true"><Icon /></span> : null}
       </dt>
       <dd>
