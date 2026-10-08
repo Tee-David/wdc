@@ -13,6 +13,7 @@ import { Empty, Panel, Tile, when } from "@/components/admin/bits";
 import "@/components/client/portal.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { PortalExampleNote } from "@/components/admin/example-note";
+import { MeetingsPanel } from "@/components/client/meetings-panel";
 
 export const metadata = { title: "Overview" };
 
@@ -124,9 +125,9 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
       <PortalExampleNote clientId={client.id} />
 
       {nextStep ? (
-        <section className={`cpNext cpNext--${nextStep.tone}`} aria-label="Your next step" data-tour="portal-next">
+        <section className={`cpStep cpStep--${nextStep.tone}`} aria-label="Your next step" data-tour="portal-next">
           <div>
-            <span className="cpNext__eyebrow">Your next step</span>
+            <span className="cpStep__eyebrow">Your next step</span>
             <h2>{nextStep.title}</h2>
             <p>{nextStep.line}</p>
           </div>
@@ -173,7 +174,7 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
                       <span className={`adDash__attentionIcon adDash__attentionIcon--${overdue ? "bad" : "warn"}`}><ReceiptText aria-hidden="true" /></span>
                       <span className="adDash__attentionCopy">
                         <b>{naira(invoiceTotals(inv).due)} left on {inv.number}</b>
-                        <small>{overdue ? "Overdue" : "Due"} {when(inv.due)}</small>
+                        <small>{overdue ? "Overdue" : "Due"} {when(inv.due)} · pay by card or bank transfer</small>
                       </span>
                       <span className="adDash__attentionActions"><a className="ad__btn" href={`/i/${inv.token}`} target="_blank" rel="noopener noreferrer">Pay now</a></span>
                     </div>
@@ -225,7 +226,7 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
                     {finished === 1 ? "Your finished project is" : `Your ${finished} finished projects are`} still here, with everything we handed over.
                   </Empty>
                 : <Empty title="No projects yet" icon={FolderKanban}
-                    action={<Link className="ad__btn" href="/portal/support?new=1">Ask us a question</Link>}>
+                    action={<Link className="ad__btn" href="/meet">Book a call</Link>}>
                     Once we start work together, each project shows here with its stage.
                   </Empty>
             )}
@@ -249,6 +250,8 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
               <Empty title="No updates yet" icon={FileCheck2}>Progress notes the studio shares with you will show up here.</Empty>
             )}
           </Panel>
+
+          <MeetingsPanel email={client.email} />
 
           <Panel title="Quick actions">
             <div className="cpQuick">
