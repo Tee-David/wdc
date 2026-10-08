@@ -204,9 +204,16 @@
    animation runs inside the same box. */
 .rp__win {
   position: relative;
-  z-index: 1;
+  /* IN FRONT OF THE PRINTER, starting at the slot's centre line. The paper
+     used to sit BEHIND the chassis and show from its bottom edge, a
+     centimetre under the hole it was meant to leave. Now the window opens at
+     the middle of the slot and sits over the chassis, so the slip is seen
+     coming out of the hole itself and sliding down over the lip. The window
+     clips what is still "inside" (everything above its top edge). */
+  z-index: 3;
   width: 100%;
-  margin-top: -1.2rem;
+  /* the flex gap (.75rem), the machine's bottom padding (.95rem) and half the slot (.4rem) */
+  margin-top: -2.1rem;
 }
 .rp__out {
   display: flex;
@@ -214,7 +221,7 @@
   align-items: flex-start;
   width: 100%;
   max-height: max(15rem, calc(100svh - 19.5rem));
-  padding: .55rem 0 1.25rem;
+  padding: 0 0 1.25rem;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -249,7 +256,8 @@
   line-height: 1.5;
   color: var(--rp-ink);
 }
-/* Where the paper leaves the slot it is in the printer's shadow. */
+/* Where the paper leaves the slot it is in the printer's shadow (and the
+   slot's own shadow falls on it). */
 .rp__slip::before {
   content: "";
   position: absolute;
