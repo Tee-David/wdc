@@ -11,7 +11,7 @@ import {
  * The legal documents.
  *
  * WRITTEN FOR WDC, NOT COPIED. The brief pointed at another agency's policy
- * pages as a model for SHAPE, and shape is all that was taken: four documents,
+ * pages as a model for SHAPE, and shape is all that was taken: the documents,
  * a contents rail, plain headings. The words are written here for this
  * company, and they had to be, twice over. Policy text is a copyrighted work
  * like any other, so lifting it is an infringement; and more to the point a
@@ -45,8 +45,8 @@ import {
  * engagement sections.
  */
 
-/** One date for the set, so four documents cannot disagree about their age. */
-export const LEGAL_UPDATED = "11 September 2026";
+/** One date for the set, so the documents cannot disagree about their age. */
+export const LEGAL_UPDATED = "8 October 2026";
 
 export type LegalSection = { heading: string; body: string[] };
 
@@ -66,35 +66,40 @@ export const LEGAL_DOCS: LegalDoc[] = [
     slug: "privacy-policy",
     title: "Privacy Policy",
     blurb:
-      "What personal information we collect, why we hold it, how long we keep it, and the rights you have over it.",
+      "What personal information we collect, why we hold it, how long we keep it, who else sees it, and the rights you have over it.",
     updated: LEGAL_UPDATED,
-    intro: `This policy explains what personal information ${COMPANY_NAME} collects when you use this website or work with us, what we do with it, and what you can ask us to do about it. It is written to be read, not to be survived.`,
+    intro: `This policy explains what personal information ${COMPANY_NAME} collects when you use this website, fill in a form, or work with us, what we do with it, and what you can ask us to do about it. It is written to be read, not to be survived.`,
     sections: [
       {
         heading: "Who we are",
         body: [
-          `${COMPANY_NAME} is a creative and digital agency operating from Nigeria. We design brands, build websites, applications and software, and run search, social and paid campaigns for our clients.`,
+          `${COMPANY_NAME} is a creative and digital agency operating from Nigeria. We design brands, build websites, applications and software, and run search and social media work for our clients.`,
           `We are registered with the ${REGISTRAR} as ${REGISTERED_NAME}, ${REGISTRATION_NO}.`,
-          `For the information described in this policy we are the data controller, which means we decide why it is held and what happens to it. You can reach us about anything in this document at ${CONTACT_EMAIL}.`,
+          `For the information described here we are the data controller: we decide why it is held and what happens to it. Where we hold your customers' information on your behalf while building or running something for you, you are the controller and we act on your instructions. You can reach us about anything in this document at ${CONTACT_EMAIL}.`,
         ],
       },
       {
         heading: "What we collect",
         body: [
-          "Information you give us. When you send an enquiry, ask for a quote, or brief us on a project, you give us your name, your email address, sometimes a phone number and a company name, and whatever you choose to write in the message. If we go on to work together, we hold the contract, the brief, the correspondence, and the invoicing details needed to bill and be paid.",
-          "Information we are given as part of the work. Delivering a project often means being handed access to something that belongs to you: a hosting account, an analytics property, an advertising account, a content management system, a social media profile, a brand archive. These may contain personal data belonging to you, your staff or your customers. We treat all of it as yours, not ours.",
-          "Information collected automatically. Our hosting provider records ordinary server information when a page is requested, including an IP address, the page, a timestamp, and the browser and device reported by the request. This is standard for any website and is used to keep the site running and secure.",
-          "We do not ask for and do not want payment card numbers, government identity numbers, health information, or anything else sensitive. Please do not send them to us by email.",
+          "What you give us on our forms. The contact form asks for your name, email address, an optional phone number and your message. The onboarding brief asks about you, your business and the work you want: names, phone, email, company, industry, audience, goals, deadlines, who approves the work, and anything you choose to write. You may upload logos, pictures, documents and files. Some questions are optional, and we say which.",
+          "Unfinished briefs. While you fill in an onboarding brief, your answers are saved as a draft so you can leave and come back, in your browser and on our server. If you ask us to send you a link to continue later, or one of our team sends you a pre-filled link, the draft is tied to that link.",
+          "What we are given to do the work. Delivering a project often means being handed access to something that belongs to you: a domain, a hosting account, an analytics property, an advertising account, a store, a social media profile, a brand archive. These may contain personal data belonging to you, your staff or your customers. We treat all of it as yours, not ours.",
+          "Your account. If you sign in to the client portal we hold your name, email address, how you sign in (a password stored only as a salted hash, or your Google account), and a record of what you have viewed, approved and paid.",
+          "Payments. When you pay through our payment provider, they collect your card or bank details directly. We receive the result: the amount, the reference, the status, the date and the last digits or channel they report. We never see or store a full card number.",
+          "Messages. We keep a record of the emails the system sends you, with the time and whether they were delivered, so that we do not send the same message twice and can answer 'did it reach me?'.",
+          "Collected automatically. Our hosting provider records ordinary server information when a page is requested: an IP address, the page, a timestamp, and the browser and device the request reports. This keeps the site running and secure.",
+          "We do not ask for, and do not want, payment card numbers, government identity numbers, health information or anything else sensitive. Please do not send them to us by email or in a form.",
         ],
       },
       {
         heading: "Why we hold it, and on what basis",
         body: [
-          "To answer you. An enquiry cannot be replied to without a reply address. Our basis is your request, and the legitimate interest both parties have in the conversation happening.",
-          "To deliver an engagement. Once a project is agreed, we process what the work requires under the contract between us.",
-          "To meet obligations. Invoices, records of payment and tax records are kept because the law requires them, not because we want them.",
-          "To keep the site working and safe. Server logs and security measures rest on our legitimate interest in running a site that is available and not being attacked.",
-          "If we ever want to use your information for something outside these, such as putting your name on a mailing list, we will ask you first and you will be able to say no without it affecting anything else.",
+          "To answer you. An enquiry cannot be replied to without a reply address. Our basis is your request, and the legitimate interest both of us have in the conversation happening.",
+          "To prepare and deliver an engagement. A brief is used to understand the work, plan it and quote it. Once a project is agreed we process what the work requires under the contract between us.",
+          "To remind you, once or twice, to finish something you started. See Messages and Reminders: we send at most two reminders about an unfinished brief, and every one carries a link that switches reminders off.",
+          "To meet obligations. Invoices, records of payment and tax records are kept because the law requires them.",
+          "To keep the site and your account safe. Server logs, sign-in checks, rate limits and the screening of throwaway email addresses rest on our legitimate interest in running a service that is available and not being abused. We also check new passwords against lists of passwords that have appeared in known breaches, by sending only a short fragment of a one-way fingerprint of the password, never the password itself.",
+          "If we ever want to use your information for something outside these, such as putting your name on a newsletter, we will ask you first and you will be able to say no without it affecting anything else.",
         ],
       },
       {
@@ -108,38 +113,43 @@ export const LEGAL_DOCS: LegalDoc[] = [
         heading: "Who else sees it",
         body: [
           "We do not sell personal information, and we do not share it for anyone else's marketing.",
-          "Some of it necessarily passes through the suppliers who let us operate: the company that hosts this website, the provider that carries our email, the tools we use to write, design, store files and track project work, and the payment and accounting services that handle billing. Each sees only what their part of the job needs.",
-          "A client's own accounts, such as an advertising platform or an analytics property, are reached with credentials the client controls and can revoke at any time.",
-          "We will disclose information where a law, a court or a regulator with proper authority requires it. If that ever happens and we are permitted to tell you, we will.",
+          "Some of it passes through the suppliers who let us operate, and each sees only what its part of the job needs: the company that hosts this website, the database that stores forms and accounts, the storage that holds files you upload, the provider that carries our email, our payment provider, the scheduling tool used for meetings, and the tools we use to write, design and track project work. The chat assistant on the site is run by Jotform and is covered by the Cookie Policy.",
+          "Our team members see what they need for the projects they work on. Access is by individual account and is removed when someone leaves or changes role.",
+          "A client's own accounts, such as an advertising platform or an analytics property, are reached with access the client controls and can withdraw at any time. We never ask for a password to be sent to us.",
+          "We will disclose information where a law, a court or a regulator with proper authority requires it. If that happens and we are permitted to tell you, we will.",
+          "If the business were ever sold or merged, client records would pass to the new owner only on the same terms as this policy, and we would tell you first.",
         ],
       },
       {
         heading: "Leaving Nigeria",
         body: [
-          "Several of the services above operate outside Nigeria, so some information is stored or processed abroad. Where that happens we use established providers whose contractual terms commit them to protecting the data and to restricting what they may do with it.",
+          "Several of the suppliers above operate outside Nigeria, so some information is stored or processed abroad. Where that happens we use established providers whose terms commit them to protecting the data and to restricting what they may do with it, and we send only what the task needs. By using the site or sending us information you understand this; where the Nigeria Data Protection Act asks for another safeguard or a specific consent, we rely on that instead.",
         ],
       },
       {
         heading: "How long we keep it",
         body: [
-          "An enquiry that does not become a project is kept for up to twenty-four months, so that we can pick up a conversation that restarts, and then deleted.",
-          "Project records are kept for the life of the engagement and for six years afterwards, which is the period in which a contractual question could still arise.",
+          "Unfinished onboarding briefs are deleted, with their resume links, after a set period from the last save. The default is 180 days.",
+          "A contact enquiry that does not become a project is kept so a conversation can restart, and is then anonymised: the name, address, phone and message are removed and only the topic and date remain for our records. We keep enquiries until we choose to run that clean-up, and we review the period at least once a year.",
+          "A submitted brief and the project records that follow are kept for the life of the engagement and for six years after it ends, the period in which a contractual question could still arise.",
           "Financial records are kept for as long as Nigerian tax and company law requires.",
-          "Access credentials and client account access are given up at the end of an engagement. If we still hold an access we no longer need, ask and we will remove it.",
+          "Access we were given to your systems is given up when the engagement ends. If we still hold an access we no longer need, ask and we will remove it.",
+          "Invitations that were used, withdrawn or expired are deleted after 90 days. Expired sign-in sessions and security tokens are removed after a day.",
+          "Someone who unsubscribes from our messages is kept on a suppression list, because that record is what stops them being added again by mistake. If you ask us to erase your data, we keep only a one-way fingerprint of your address for that purpose.",
         ],
       },
       {
         heading: "How it is protected",
         body: [
-          "This site is served over HTTPS. Access to client accounts and project systems is limited to the people working on that engagement, and shared credentials are avoided in favour of individual access that can be withdrawn.",
-          "We will not pretend to be impregnable. No website or company is, and a policy that claims otherwise is not being straight with you. What we can say is that we take reasonable measures, we keep the number of people who can reach your data small, and if a breach ever affects your personal information we will tell you and the regulator as the Nigeria Data Protection Act requires.",
+          "This site is served over HTTPS. Passwords are never stored in readable form. Forms and sign-in are rate limited and checked on our server, not only in your browser. Links we email you for a draft, a payment or a reset are single purpose and expire. Access to client accounts and project systems is limited to the people working on that engagement.",
+          "We will not pretend to be impregnable. No website or company is, and a policy that claims otherwise is not being straight with you. What we can say is that we take reasonable measures, keep the number of people who can reach your data small, and if a breach affects your personal information we will tell you, and the regulator where the Nigeria Data Protection Act requires it, without undue delay.",
         ],
       },
       {
         heading: "Your rights",
         body: [
-          "Under the Nigeria Data Protection Act 2023 you may ask us for a copy of the personal information we hold about you, ask us to correct it if it is wrong, ask us to delete it where we have no continuing reason to keep it, ask us to restrict what we do with it while a dispute is resolved, object to processing we are carrying out on the basis of legitimate interest, and ask for your information in a portable form.",
-          `Write to ${CONTACT_EMAIL} and we will respond within thirty days. There is no charge. If we cannot do what you have asked, we will tell you why rather than simply declining.`,
+          "Under the Nigeria Data Protection Act 2023 you may ask us for a copy of the personal information we hold about you, ask us to correct it if it is wrong, ask us to delete it where we have no continuing reason to keep it, ask us to restrict what we do with it while a dispute is resolved, object to processing we carry out on the basis of legitimate interest or for direct marketing, withdraw a consent you gave, and ask for your information in a portable form.",
+          `Write to ${CONTACT_EMAIL} and we will respond within thirty days. There is no charge. We may need to confirm it is really you first. If we cannot do what you have asked, we will tell you why rather than simply declining.`,
           "If you are not satisfied with how we have handled a request, you can complain to the Nigeria Data Protection Commission. We would rather you came to us first, but that route is yours regardless.",
         ],
       },
@@ -169,23 +179,37 @@ export const LEGAL_DOCS: LegalDoc[] = [
     slug: "terms-of-service",
     title: "Terms of Service",
     blurb:
-      "The terms on which this website is offered, what the content on it does and does not amount to, and who owns what.",
+      "The terms on which this website and your account are offered, what the content on it does and does not amount to, and who owns what.",
     updated: LEGAL_UPDATED,
-    intro: `These terms govern your use of ${SITE_URL} and the material published on it. Using the site means accepting them. The terms of an actual project are separate and are set out in the Client Engagement Policy and in the agreement we sign with you.`,
+    intro: `These terms govern your use of ${SITE_URL}, the forms on it and the client portal. Using them means accepting these terms. The terms of an actual project are separate and are set out in the Client Engagement Policy and in the agreement we sign with you.`,
     sections: [
       {
         heading: "Using the site",
         body: [
-          "You are welcome to read, link to and share what is published here. You agree not to use the site unlawfully, not to attempt to gain access to any part of it you have not been given, not to introduce anything malicious, and not to take action that would interfere with it working for other people.",
-          "Automated collection of the site's content at a scale that burdens the server, or for the purpose of reproducing it elsewhere, is not permitted.",
+          "You are welcome to read, link to and share what is published here. You agree not to use the site unlawfully, not to attempt to reach any part of it you have not been given, not to introduce anything malicious, and not to act in a way that would stop it working for other people.",
+          "Automated collection of the site's content at a scale that burdens the server, or to reproduce it elsewhere, is not permitted.",
+        ],
+      },
+      {
+        heading: "Forms and what you send us",
+        body: [
+          "Give us true information, and only send what you have the right to send. Do not use our forms to send spam, advertising, anything unlawful or abusive, anything that infringes someone else's rights, or a throwaway or anonymous email address: we turn those away on purpose, because we could not reach you and we could not trust the brief.",
+          "Sending a form is a request to talk. It is not an order, and it does not bind either of us. A quote, estimate or suggested price given from a brief is a basis for discussion until it is agreed in writing.",
+        ],
+      },
+      {
+        heading: "Your account",
+        body: [
+          "Keep your sign-in details to yourself and tell us at once if you think someone else has them. You are responsible for what is done through your account. We may suspend an account that is being misused, or that we reasonably believe is compromised, and we will tell you why unless the law or a security reason stops us.",
+          "People you add to your account act on your behalf. Removing someone is your job.",
         ],
       },
       {
         heading: "What the site is not",
         body: [
-          "Everything published here, including case studies, articles and service descriptions, is general information about what we do. It is not advice for your particular situation, and it is not an offer capable of acceptance.",
-          "A description of work we delivered for one client is a record of that engagement. It is not a prediction of what the same approach would achieve for you, and nothing on this site should be read as a guarantee of any commercial result.",
-          "No client relationship, and no obligation on our part, comes into existence until we have agreed an engagement in writing.",
+          "Everything published here, including case studies, articles, tools and service descriptions, is general information about what we do. It is not professional advice for your situation, and it is not an offer capable of acceptance. Our free tools, such as the SEO checker and the name checker, give indications only and are not a guarantee, a legal clearance or a prediction of results.",
+          "A description of work we delivered for one client is a record of that engagement. It is not a prediction of what the same approach would achieve for you.",
+          "No client relationship, and no obligation on our part to deliver anything, begins until we have agreed an engagement in writing.",
         ],
       },
       {
@@ -202,34 +226,34 @@ export const LEGAL_DOCS: LegalDoc[] = [
         ],
       },
       {
-        heading: "Links out",
+        heading: "Links out and embedded services",
         body: [
-          "We link to client sites and to third-party tools. Those sites are not ours, we do not control what they publish, and a link is not an endorsement of everything on the other end of it.",
+          "We link to client sites and third-party tools, and some pages embed services such as the chat assistant or a live preview. Those are not ours, we do not control what they publish or how they work, and a link is not an endorsement. Their own terms apply while you use them.",
         ],
       },
       {
         heading: "Availability",
         body: [
-          "We try to keep this site up and correct. We do not promise that it will be available without interruption, or that everything on it is complete and current at every moment. We may change, move or withdraw any part of it.",
+          "We try to keep this site up and correct. We do not promise it will be available without interruption, or that everything on it is complete and current at every moment. We may change, move or withdraw any part of it.",
         ],
       },
       {
         heading: "Liability",
         body: [
           "To the extent the law allows, we are not liable for loss arising from your use of this website or from reliance on general information published on it, including loss of profit, business or data.",
-          "Nothing in these terms limits liability for death or personal injury caused by negligence, for fraud, or for anything else that cannot lawfully be limited. Liability arising out of an actual engagement is governed by that engagement's own agreement, not by this page.",
+          "Nothing in these terms limits liability for death or personal injury caused by negligence, for fraud, or for anything else that cannot lawfully be limited. Liability arising out of an actual engagement is governed by that engagement's own agreement and the Client Engagement Policy, not by this page.",
         ],
       },
       {
         heading: "Governing law",
         body: [
-          "These terms are governed by the laws of the Federal Republic of Nigeria, and the Nigerian courts have jurisdiction over any dispute arising from them.",
+          "These terms are governed by the laws of the Federal Republic of Nigeria, and the Nigerian courts have jurisdiction over any dispute arising from them. We would like to talk first.",
         ],
       },
       {
         heading: "Changes",
         body: [
-          "We may update these terms. The version published here, with the date at the top of the page, is the one that applies.",
+          "We may update these terms. The version published here, with the date at the top of the page, is the one that applies. If a change matters to clients we are working with, we will tell them directly.",
         ],
       },
       {
@@ -244,41 +268,46 @@ export const LEGAL_DOCS: LegalDoc[] = [
     slug: "cookie-policy",
     title: "Cookie Policy",
     blurb:
-      "What this site stores in your browser, what it is for, and how to clear it.",
+      "What this site stores in your browser, what third-party services it loads, what each is for, and how to clear it.",
     updated: LEGAL_UPDATED,
     intro:
-      "This policy describes what this website stores on your device and why. It is short, because this site stores very little.",
+      "This policy describes what this website stores on your device and which other services it loads, and why. It is short, because we keep it that way.",
     sections: [
       {
         heading: "What a cookie is",
         body: [
-          "A cookie is a small file a website asks your browser to keep, so that something can be remembered between pages or between visits. Related technologies such as local storage do the same job by a different mechanism, and everything below applies to those too.",
+          "A cookie is a small file a website asks your browser to keep, so something can be remembered between pages or visits. Local storage and similar technologies do the same job by a different mechanism, and everything below applies to those too.",
         ],
       },
       {
-        heading: "What this site stores",
+        heading: "What this site stores itself",
         body: [
-          "A theme preference. When you switch between light and dark, that choice is written to your browser's local storage so the site does not start in the wrong one next time. It stays on your device, it is not sent to us, and it identifies nothing about you.",
-          "Ordinary session and security data set by our hosting platform to serve pages and protect the site from abuse.",
-          "That is the whole list. This site does not run advertising trackers, does not fingerprint your device, and does not embed third-party marketing pixels.",
+          "Your theme choice. When you switch between light and dark, the choice is kept in your browser so the site does not start in the wrong one. It stays on your device and is not sent to us.",
+          "Your onboarding progress. While you fill in a brief, your answers and place are kept in your browser so a refresh or a dropped connection does not lose them, and are also saved to our server as a draft. Starting over, or submitting the brief, clears the browser copy.",
+          "Signing in. If you use the client portal or the admin area, we set a session cookie that keeps you signed in, and a small marker so the page knows you are. They are needed for sign-in to work, and they are removed when you sign out or they expire. Related security data, such as a short-lived check on a new password, is kept for the same reason.",
+          "Security and delivery data set by our hosting platform to serve pages and protect the site from abuse.",
+        ],
+      },
+      {
+        heading: "Things we load from others",
+        body: [
+          "The chat assistant. Some pages show a chat assistant provided by Jotform. When it loads, Jotform may set its own cookies or storage and receives your IP address and browser details, as it must to answer. What it stores and does is governed by Jotform's own policy.",
+          "Accessibility tools. The site offers an accessibility menu provided by a third party. It remembers the display options you choose, on your device, so they stay when you move between pages.",
+          "Payments and meetings. If you go to pay, or to book a call, you are taken to our payment provider or scheduling tool. They set their own cookies on their own pages.",
+          "Fonts and previews. Fonts, and on work pages a preview frame of a client's live site, are fetched from other services. Fetching a resource tells that service your IP address, because it has to in order to send the file back.",
+          "This site does not run advertising trackers, does not fingerprint your device, and does not use marketing pixels.",
         ],
       },
       {
         heading: "Analytics",
         body: [
-          "Where we measure how the site is used, we do so in aggregate to understand which pages are useful, and we do not use it to build a profile of an individual visitor or to target advertising at you.",
-        ],
-      },
-      {
-        heading: "Things we embed",
-        body: [
-          "Some pages load resources from other services, such as fonts and, on our work pages, a preview frame showing a client's live site. Loading a resource from another service tells that service your IP address, because it has to in order to send the file back. Their handling of that request is governed by their own policies.",
+          "If we measure how the site is used, we do so in aggregate to learn which pages are useful, and not to build a profile of one visitor or to target advertising at you. If we add a tool that sets analytics cookies, we will list it here before it ships.",
         ],
       },
       {
         heading: "Your control",
         body: [
-          "Every browser lets you view, block and delete cookies and site data, usually under privacy or site settings. Clearing them for this site removes the theme preference, and the site will follow your system setting again. Nothing else about the site depends on storage, so blocking it will not break anything here.",
+          "Every browser lets you see, block and delete cookies and site data, usually under privacy or site settings. Clearing them for this site removes your theme choice and any saved onboarding answers on that device, and signs you out. Blocking the sign-in cookie means the portal will not work; blocking the rest will not break the public pages. Settings in the third-party services above are managed with those services.",
         ],
       },
       {
@@ -299,75 +328,102 @@ export const LEGAL_DOCS: LegalDoc[] = [
     slug: "client-engagement-policy",
     title: "Client Engagement Policy",
     blurb:
-      "How a project starts, what each side is responsible for, who owns the work, and how an engagement ends.",
+      "How a project starts, what each side is responsible for, what is included, who owns the work, what we cannot promise, and how an engagement ends.",
     updated: LEGAL_UPDATED,
     intro:
-      "This policy sets out how we work with clients: how an engagement begins, what we each commit to, who owns what at the end, and what happens when something goes wrong. It is the standard we hold ourselves to. Where a signed agreement for your project says something different, that agreement wins.",
+      "This policy sets out how we work with clients: how an engagement begins, what we each commit to, what is and is not included, who owns what at the end, and what happens when something goes wrong. It is the standard we hold ourselves to. Where a signed agreement for your project says something different, that agreement wins. The short version of these terms that appears at the end of our onboarding briefs is drawn from this page.",
     sections: [
       {
         heading: "How an engagement begins",
         body: [
           "It begins with a conversation about the outcome you want, not a feature list. We would rather understand what the work has to achieve than quote for a specification that may not get you there.",
-          "We then put the scope in writing: what is included, what is not, what we need from you, what it costs, and roughly when. Work starts when that is agreed and any deposit is settled. Nothing said in a meeting or an email thread changes the agreed scope until it is written down and both sides have accepted it.",
+          "Your onboarding brief, a call and any material you send are the starting point. From them we put the scope in writing: what is included, what is not, what we need from you, what it costs, the rounds of revision included, and roughly when. Work starts when you have accepted that in writing and any deposit is settled. Nothing said in a meeting, a chat message or an email thread changes the agreed scope until it is written down and both sides have accepted it.",
+          "A brief is not a contract and a quote is not a promise of a date. The agreed scope document, together with this policy, is.",
         ],
       },
       {
         heading: "What we commit to",
         body: [
-          "To tell you the truth about the work, including when something we recommended has not worked, when a deadline is going to move, and when you do not need the thing you have asked for.",
-          "To deliver to the scope we agreed, at the standard the work is described at, and to keep you included as it happens rather than presenting a finished thing at the end.",
+          "To tell you the truth about the work: when something we recommended has not worked, when a date is going to move, when a cheaper or smaller thing would serve you better, and when you do not need what you asked for.",
+          "To deliver to the agreed scope, at the standard the work is described at, and to keep you included as it happens rather than presenting a finished thing at the end.",
           "To keep what we learn about your business confidential, and to treat any access you give us as yours, used only for the work and given up when it ends.",
           "To be reachable, and to answer the same working day where we can.",
+          "To explain what you are paying for, in words, and to tell you before a cost is incurred that is not ours to absorb.",
         ],
       },
       {
         heading: "What we need from you",
         body: [
-          "A single person who can make decisions and give approvals. Projects slow down most often because feedback arrives from several directions and contradicts itself.",
+          "One person who can make decisions and give approvals. Projects slow down most often because feedback arrives from several directions and contradicts itself. The person you name on the brief is the one whose approval counts, and you can change them by telling us in writing.",
           "Content, assets, access and answers when they are needed. Much of what we build cannot be finished around missing material, and waiting for it moves the delivery date rather than compressing the work.",
-          "Feedback within the window we agree at each review stage. If it does not arrive, the timeline moves by the same amount.",
-          "That you have the right to give us what you give us. Copy, images, fonts and trademarks handed to us are used on the basis that you are entitled to use them.",
+          "Feedback within the window we agree at each review stage, which is normally five working days. If it does not arrive, the timeline moves by the same amount, and if a project is silent for thirty days we may pause it and reschedule when you are back.",
+          "That you have the right to give us what you give us. Copy, images, fonts, music, data and trademarks handed to us are used on the basis that you are entitled to use them, and you deal with any claim that you were not.",
+          "Access through each tool's own sharing settings, never by sending us a password.",
         ],
       },
       {
         heading: "Revisions and changes of mind",
         body: [
-          "Every stage includes review and revision. That is part of the work, not an extra.",
+          "Every stage includes review and revision, for the number of rounds in the agreed scope. That is part of the work, not an extra. A round is one consolidated set of changes sent together from the approver.",
           "A change of direction is different from a revision. Re-doing something already approved, or adding to the agreed scope, is new work: we will say so at the time, price it, and wait for your agreement before starting. We will not quietly absorb it and we will not quietly invoice for it.",
+          "Once a stage is approved in writing, going back to it is a change of direction.",
         ],
       },
       {
         heading: "Timelines",
         body: [
-          "Dates given at the start are estimates based on the scope as agreed and on material arriving when expected. We will tell you as soon as we know a date is at risk, with the reason and the new date, rather than at the point it is missed.",
+          "Dates given at the start are estimates based on the scope as agreed and on material and feedback arriving when expected. We will tell you as soon as we know a date is at risk, with the reason and the new date, rather than at the point it is missed.",
+          "A date that you ask us to bring forward may need extra resource or a smaller scope. We will tell you which, and what it costs, before agreeing.",
         ],
       },
       {
         heading: "Fees and payment",
         body: [
-          "Fees, the schedule and the currency are set out in the proposal. Projects normally start with a deposit, with the balance tied to stages or to delivery.",
-          "Invoices are due within the period stated on them. Where payment is significantly overdue we may pause work, and we will tell you before we do rather than simply stopping.",
-          "Third-party costs such as domains, hosting, licences, stock or advertising spend are yours and are separate from our fees. We will identify them before they are incurred.",
+          "Fees, the schedule and the currency are set out in the agreed scope. Projects normally start with a deposit, with the balance tied to stages or to delivery. Payment details are in our Payments and Refunds Policy.",
+          "Invoices are due within the period stated on them. Where payment is significantly overdue we may pause work, and we will tell you before we do rather than simply stopping. Dates move by the length of the pause.",
+          "Third-party costs such as domains, hosting, licences, stock, app store accounts and advertising spend are yours and are separate from our fees. We identify them before they are incurred. Where we pay one on your behalf, we invoice it at cost.",
         ],
       },
       {
         heading: "Who owns the work",
         body: [
-          "On final payment, ownership of the final deliverables created specifically for you passes to you: the brand marks, the design files, the copy we wrote for you, and the custom code written for your project.",
-          "Some things cannot pass, because they were never ours to give. Third-party components, open-source libraries, licensed fonts and stock images remain with their owners and reach you under their own licences, which we will identify. Our own general tooling, internal libraries and working methods stay ours, and using them for you does not transfer them.",
-          "Concepts that were presented and not selected remain ours.",
+          "On final payment, ownership of the final deliverables created specifically for you passes to you: the brand marks, the design files, the copy we wrote for you, and the custom code written for your project. Until then we keep the rights, and we may withhold final files.",
+          "Some things cannot pass, because they were never ours to give. Third-party components, open-source libraries, licensed fonts, music and stock images remain with their owners and reach you under their own licences, which we identify. Our own general tooling, internal libraries and working methods stay ours, and using them for you does not transfer them. We grant you a lasting licence to use anything of ours that is built into what we deliver, for the purpose it was delivered.",
+          "Concepts that were presented and not selected remain ours, and we will not sell them as the same thing to a competitor of yours while your engagement is live.",
+          "A trademark is not made safe by good design. Registering a name or mark, and checking that it is free to use, is your responsibility. We can point you to someone who does it.",
         ],
       },
       {
         heading: "Showing the work",
         body: [
-          "Unless you ask us not to, we may show completed work in our portfolio and describe what it involved. If a project is confidential, or you would rather it were not shown, say so and it will not be.",
+          "Unless you ask us not to, we may show completed work in our portfolio and describe what it involved. If a project is confidential, or you would rather it were not shown, say so in writing and it will not be.",
         ],
       },
       {
         heading: "Confidentiality",
         body: [
-          "What you tell us about your business stays with the people working on your project. This holds after the engagement ends. We will sign your non-disclosure agreement if you have one.",
+          "What you tell us about your business stays with the people working on your project. This holds after the engagement ends. We will sign your non-disclosure agreement if you have one. Information that is already public, that you tell us we may share, or that the law requires us to disclose is not covered.",
+        ],
+      },
+      {
+        heading: "What we cannot promise",
+        body: [
+          "We do our work carefully and we do not promise a result. Rankings, traffic, enquiries, sales, followers, ad performance, and approval of an app by a store depend on people and platforms we do not control, and we never guarantee them.",
+          "Platforms, search engines, app stores and payment providers change their rules and their systems. When they do, we tell you and adjust the work, but the change is not our fault and not a defect.",
+          "Artificial intelligence can be wrong. Where a system we build or use produces text, decisions or advice, a person should check anything important before relying on it.",
+          "Where your product collects information about your own customers, you are responsible for using it lawfully and for the notices and consents your users are owed. We will build in what is agreed and tell you what we notice.",
+          "To the extent the law allows, our responsibility to you for any problem arising from an engagement is limited to the fees you paid us for the work in question, and we are not liable for loss of profit, revenue, business or data. Nothing here limits liability for fraud, for death or personal injury caused by negligence, or for anything that cannot lawfully be limited.",
+        ],
+      },
+      {
+        heading: "Work that has its own terms",
+        body: [
+          "Brand and design: batch and monthly jobs run to the quantity and the dates agreed. A new batch, or one more piece, is new work. Licences for fonts and music, particularly for motion work, are yours to keep to, and we tell you which apply.",
+          "Websites: your domain and hosting are in your name. A free review of your site is advice and not a promise of results. Plugins and platforms we build on belong to other companies and can change.",
+          "Search: SEO work starts at three months and is ongoing. Changes to your content are approved by you before they go live.",
+          "Apps: we show a first version before the full build. The developer accounts are in your name, the stores charge their own fees and make their own decisions on approval, and we prepare each submission carefully. We do not build games, anything deceptive or anything that needs unusual hardware.",
+          "Software and automation: demonstrations of past work happen on a call. You set the rules for your data. Other companies' tools and interfaces can change or stop. Very heavy systems may be outside what we take on, and we say so early.",
+          "Social media: nothing is posted until you approve it, within the time you told us. The accounts are yours, and you add us through each platform's sharing tools. Ad spend is paid to the platform and is separate from our fee.",
         ],
       },
       {
@@ -375,27 +431,157 @@ export const LEGAL_DOCS: LegalDoc[] = [
         body: [
           "Delivery includes handover: the files, the access, and an explanation of how what we built works.",
           "Software and websites need maintenance, and campaigns need running. Those are separate arrangements and we will tell you honestly which ones you actually need rather than selling a retainer by default.",
-          "Where we agreed a warranty period, defects in what we built are fixed within it at no charge. A defect means it does not do what we agreed it would. A new requirement is not a defect.",
+          "Where we agreed a warranty period, defects in what we built are fixed within it at no charge. A defect means it does not do what we agreed it would. A new requirement, a change by a platform, or a change you or someone else made after delivery is not a defect.",
         ],
       },
       {
         heading: "Ending an engagement",
         body: [
-          "Either side may end an engagement in writing. You pay for the work done and the costs committed up to that point, and we hand over what has been paid for.",
+          "Either side may end an engagement in writing. You pay for the work done and the costs committed up to that date, and we hand over what has been paid for, in the state it is in. Deposits are dealt with as set out in the Payments and Refunds Policy.",
           "If we are the reason it has ended, we will not hold finished work you have already paid for.",
+          "Confidentiality, ownership, the limits above and anything else that by its nature carries on, carries on.",
         ],
       },
       {
         heading: "When something goes wrong",
         body: [
           `Tell us. Write to ${CONTACT_EMAIL} or speak to whoever you have been dealing with, and we will respond within five working days with what we intend to do about it.`,
-          "We would far rather fix a problem than have you live with it or hear about it from somebody else. Where we have got something wrong, we will say so plainly.",
+          "We would far rather fix a problem than have you live with it or hear about it from somebody else. Where we have got something wrong, we will say so plainly. If we cannot settle it by talking, either of us may involve a mediator before going further.",
         ],
       },
       {
         heading: "Governing law",
         body: [
-          "Engagements are governed by the laws of the Federal Republic of Nigeria unless the signed agreement for your project says otherwise. We will try to resolve any dispute by discussion before either side takes it further.",
+          "Engagements are governed by the laws of the Federal Republic of Nigeria unless the signed agreement for your project says otherwise, and the Nigerian courts have jurisdiction. We will try to resolve any dispute by discussion before either side takes it further.",
+        ],
+      },
+      {
+        heading: "Changes to this policy",
+        body: [
+          "A change to this page does not change an engagement already agreed. It applies to the next one, unless you accept it sooner.",
+        ],
+      },
+    ],
+  },
+
+  /* ------------------------------------------------------------------ */
+  {
+    slug: "payments-and-refunds",
+    title: "Payments and Refunds Policy",
+    blurb:
+      "How deposits and invoices work, how you pay, what happens when you pay late, and when money is returned.",
+    updated: LEGAL_UPDATED,
+    intro:
+      "This policy explains how we charge, how you pay, and when we return money. It sits beside the Client Engagement Policy. The amounts and dates for your project are in your agreed scope, and if that says something different, it wins.",
+    sections: [
+      {
+        heading: "How we charge",
+        body: [
+          "Each project is priced in the agreed scope, in the currency stated there. Most projects are charged as a deposit to start, then stages, then a final payment on delivery. Ongoing work is charged monthly in advance.",
+          "Prices do not include third-party costs such as domains, hosting, licences, app store accounts and advertising spend. We tell you about those before they are incurred.",
+          "Taxes are added where the law requires and are shown on the invoice.",
+        ],
+      },
+      {
+        heading: "How you pay",
+        body: [
+          "Invoices and receipts are issued through the client portal and by email. You can pay by card or bank transfer through our payment provider from the link on the invoice, or by direct bank transfer to the account on it. Always use the account details on an invoice you received from our official address, and if a message tells you our bank details have changed, call us first.",
+          "We do not see or store your card details. The payment provider handles them. Their fees are not added to your invoice.",
+          "A payment is counted when we have it, and we send a receipt. A transfer that you have made but that has not reached us is not yet a payment.",
+        ],
+      },
+      {
+        heading: "Deposits",
+        body: [
+          "The deposit reserves the time of the team and starts the work. It is not a down payment on a fixed outcome, and the date work starts depends on it being paid.",
+          "Work on the next stage starts when the stage before it has been paid for. Final files are released on final payment.",
+        ],
+      },
+      {
+        heading: "Paying late",
+        body: [
+          "An invoice is due by the date on it. A reminder is sent before and after. If an invoice is significantly overdue we may pause the work and tell you first. The delivery dates move by the length of the pause. We do not hold your own accounts, content or domain hostage: access that is yours stays yours.",
+          "If a bill is wrong, tell us straight away and we will fix it. The undisputed part is still due.",
+        ],
+      },
+      {
+        heading: "Refunds",
+        body: [
+          "Money paid for work already done is not refunded: design time, build time, and costs already committed to other companies are spent when they are used.",
+          "If you end an engagement before it starts, you get back what you paid except for any costs already committed to others and for time already spent on discovery, which we show you.",
+          "If you end it part way, the deposit and stage payments cover the work done up to that date. We refund any payment received for a stage that has not started, less committed costs. We will show the working.",
+          "If we cannot deliver what we agreed, or we end the engagement for a reason that is ours, you are refunded the part of the fee for work that has not been delivered.",
+          "A refund is a separate record from the original payment. We send it back by the channel it came in, and you will see it in your portal. The time it takes to arrive depends on the bank or payment provider and is outside our control.",
+        ],
+      },
+      {
+        heading: "Monthly and ongoing work",
+        body: [
+          "Monthly work is charged in advance for the month and renews until it is ended. You can end it by telling us in writing before the next charge date. We do not refund a month that has started. Where a minimum term was agreed, it applies.",
+        ],
+      },
+      {
+        heading: "Disputes about a payment",
+        body: [
+          `If you do not recognise a charge, write to ${CONTACT_EMAIL} before taking it up with your bank, and we will explain it or correct it quickly. A bank dispute on a valid charge can pause your work.`,
+        ],
+      },
+      {
+        heading: "Changes",
+        body: [
+          "A change to this page does not change an engagement already agreed.",
+        ],
+      },
+    ],
+  },
+
+  /* ------------------------------------------------------------------ */
+  {
+    slug: "messages-and-reminders",
+    title: "Messages and Reminders Policy",
+    blurb:
+      "What we email you, when, why, and how to switch each kind off.",
+    updated: LEGAL_UPDATED,
+    intro:
+      "We would rather send you fewer emails than more. This page lists every kind of message the system sends, so none of them is a surprise, and says how to stop the ones you can stop.",
+    sections: [
+      {
+        heading: "Messages you need",
+        body: [
+          "Receipts and confirmations. When you send a form, we reply to say it arrived. When you pay, we send a receipt. When you book a call, we confirm the time.",
+          "Account and security messages. Sign-in links, password resets and warnings about unusual activity on your account. These are sent for your safety, so they cannot be switched off while you hold an account.",
+          "Project messages. Updates, approvals needed from you, invoices and delivery notes for the work we are doing together. They are part of the work. If you do not want a particular one, tell us and we will agree how else to reach you.",
+        ],
+      },
+      {
+        heading: "Reminders about an unfinished brief",
+        body: [
+          "If you start an onboarding brief, leave your email and do not finish it, we may remind you. We send at most two reminders, spaced out, and none after you submit. Each includes a link that switches reminders off in one tap, with no sign-in. The reminders stop once you use it, and are not sent again.",
+          "A pre-filled link sent to you by our team lets you continue where our team stopped. It works for a limited time and then stops.",
+        ],
+      },
+      {
+        heading: "Newsletters and marketing",
+        body: [
+          "We send news, articles or offers only to people who asked for them, and each one carries an unsubscribe link. Unsubscribing takes effect at once. We keep your address on a suppression list so we do not add you again by mistake.",
+        ],
+      },
+      {
+        heading: "What we do not do",
+        body: [
+          "We do not sell or share your address for someone else's marketing. We do not send messages to anonymous or throwaway addresses, and we turn those away on our forms. We do not ask for passwords or card numbers by email, and a message that asks for them did not come from us.",
+        ],
+      },
+      {
+        heading: "How we record messages",
+        body: [
+          "To avoid sending the same message twice and to answer whether a message reached you, we keep a record of each message sent: who it went to, what kind it was, the time, and whether it was delivered. These records are kept for a limited period and then deleted.",
+        ],
+      },
+      {
+        heading: "Changing your mind",
+        body: [
+          `Use the link in any message, change your settings in the portal where they are offered, or write to ${CONTACT_EMAIL} and we will do it for you. Switching one kind off does not switch off the messages you need to run an account or a project.`,
         ],
       },
     ],
@@ -412,8 +598,11 @@ export const OPEN_ITEMS = [
   "Registered office address, which most privacy regimes expect a controller to publish.",
   "A telephone number, if one should be given as a contact route alongside email.",
   "Whether a named Data Protection Officer or contact has been appointed under the NDPA.",
-  "Confirmation of the retention periods, which are drafted as sensible defaults rather than from an existing schedule.",
-  "A practitioner's review of the liability, intellectual property and engagement sections before they are relied on commercially.",
+  "Confirmation of the retention periods. The onboarding-draft default (180 days) and the invitation period (90 days) match what the system does today, and are editable under Settings. The enquiry period is not fixed, and the six-year project period is a drafted default.",
+  "The Payments and Refunds Policy: confirm the payment methods offered, that monthly work is billed in advance, the overdue reminders, and when deposits are refundable. These are drafted as sensible defaults and not from a signed agreement.",
+  "A limit on liability and a mediation step, which are drafted in plain words and need a lawyer's wording.",
+  "Whether the accessibility menu, chat assistant and any analytics added later are described correctly in the Cookie Policy.",
+  "A practitioner's review of the whole set, especially liability, intellectual property, refunds and engagement, before it is relied on commercially.",
 ] as const;
 
 export const legalBySlug = (slug: string): LegalDoc | undefined =>

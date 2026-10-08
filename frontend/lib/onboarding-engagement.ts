@@ -25,7 +25,7 @@ import type { ServiceSlug } from "./services";
  * schema change.
  */
 
-export const ENGAGEMENT_VERSION = "2026-10-draft-1";
+export const ENGAGEMENT_VERSION = "2026-10-draft-2";
 
 /** Flip to true only when a qualified Nigerian lawyer has approved this text. */
 export const LAWYER_APPROVED = false;
@@ -52,7 +52,7 @@ const SHARED: Record<EngagementGroup["id"], Omit<EngagementGroup, "id">> = {
       "We deliver the work described in your quote and in this form. Anything outside that is new work. We will agree it in writing, with its own price and date, before we start it.",
       "You give us what we need to do the work: files, words, pictures, access and decisions. We tell you what and when. If it arrives late, the dates move by the same amount.",
       "Changes inside the agreed work are included for the number of rounds in your quote. A change that adds something new goes through the same written step as any new work.",
-      "Dates depend on your feedback and your approvals. One person signs work off, as you said above, so that feedback does not arrive from several directions and disagree with itself.",
+      "Dates depend on your feedback and your approvals. One person signs work off, as you said above, so that feedback does not arrive from several directions and disagree with itself. Feedback is normally due within five working days of each review.",
     ],
   },
   money: {
@@ -60,7 +60,7 @@ const SHARED: Record<EngagementGroup["id"], Omit<EngagementGroup, "id">> = {
     summary: "You pay what we agreed, and the costs that go to other companies. The work is yours once it is fully paid.",
     body: [
       "You pay the fees and deposits in your quote on the dates in it. Some costs are paid to other companies and not to us, such as domains, hosting, app store accounts, ad spend and paid tools. You pay those directly and we tell you about them before they are bought.",
-      "The finished work becomes yours when your final payment is made. Until then we keep the rights to it. We may show the finished work in our portfolio, unless you ask us in writing not to.",
+      "Work is paid in stages, with a deposit to start. Money paid for work already done is not refunded, and we refund payments for stages that have not started, less costs already committed to others. The finished work becomes yours when your final payment is made. Until then we keep the rights to it. We may show the finished work in our portfolio, unless you ask us in writing not to.",
     ],
   },
   limits: {
@@ -79,7 +79,7 @@ const SHARED: Record<EngagementGroup["id"], Omit<EngagementGroup, "id">> = {
     summary: "Either of us can end the work in writing. Nigerian law applies, and we talk first if we disagree.",
     body: [
       "Either of us can end the work by writing to the other. You pay for the work done up to that date and for any costs already committed to other companies.",
-      "Nigerian law applies. If we disagree, we first try to settle it by talking. [The steps after that are to be set by the studio's lawyer.]",
+      "Nigerian law applies. If we disagree, we first try to settle it by talking. The full Client Engagement Policy and our Payments and Refunds Policy are on the Legal page of our website. [The steps after that are to be set by the studio's lawyer.]",
     ],
   },
 };
