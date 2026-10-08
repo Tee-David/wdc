@@ -22,7 +22,7 @@ test("the first step can go back to the service picker without losing what was t
   await first.fill("Ada");
   await page.getByLabel(/^your email|^email/i).first().fill("ada@example.org");
 
-  await page.getByRole("button", { name: /Back to the onboarding menu/ }).first().click();
+  await page.getByRole("button", { name: /Back to the onboarding menu/ }).click();
   await expect(page.getByRole("heading", { name: /Let.s get started/ })).toBeVisible();
 
   await pickService(page, /Branding/);
