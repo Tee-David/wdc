@@ -68,6 +68,7 @@ export const PHASES: { id: PhaseId; title: string; blurb: string }[] = [
 
 const AUDIENCE = ["Children", "Teenagers", "Men", "Women", "Businesses", "Other"];
 const AGES = ["Under 18", "18 to 34", "35 to 54", "55 or above"];
+const COMPANY_AGES = ["Under 5 years", "5 to 10 years", "10 to 15 years", "15 to 20 years", "Over 20 years"];
 
 /**
  * THE SHARED SCREENS, TRIMMED FOR A CLIENT WHO HAS ALREADY PAID AND SPOKEN TO
@@ -120,6 +121,16 @@ export const CORE_STEPS: Step[] = [
       },
       { key: "audience", assist: true, label: "Who do you sell to?", kind: "multi", options: AUDIENCE },
       { key: "audience_other", label: "Tell us who else you need to reach", kind: "text", showIf: { key: "audience", equals: ["Other"] } },
+      /* Asked here, with the rest of the business, from a bigger job up: a
+         small job rarely needs it, and a client who has just said who they sell
+         to is already in the middle of describing the company. */
+      { key: "company_age", label: "How long has the business been running?", kind: "select", options: COMPANY_AGES, showIf: { tier: 2 } },
+      {
+        key: "about", label: "Tell us about your company", kind: "textarea",
+        placeholder: "What you do, who for, and what you are proud of. A few lines is plenty.",
+        showIf: { tier: 2 },
+      },
+      { key: "age_range", assist: true, label: "How old are your customers?", kind: "multi", options: AGES, showIf: { tier: 2 } },
     ],
   },
 ];
@@ -196,12 +207,6 @@ export const CLOSING_STEPS: Step[] = [
     title: "Last bits",
     blurb: "Nothing here is needed. Say what is useful, then send.",
     fields: [
-      {
-        key: "about", label: "Tell us about your company", kind: "textarea",
-        placeholder: "What you do, who for, and how long you have been doing it. A few lines is plenty.",
-      },
-      /* Medium and large jobs only: it rarely changes a small quote. */
-      { key: "age_range", assist: true, label: "Their age", kind: "multi", options: AGES, showIf: { tier: 2 } },
       {
         key: "usp", assist: true, label: "What makes you the one they should pick?", kind: "textarea",
         tip: "The honest answer, not the polished one. It is what the work has to carry.",

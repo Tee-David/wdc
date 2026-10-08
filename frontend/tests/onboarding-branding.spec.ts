@@ -35,10 +35,10 @@ const SMALL_TITLES = [
 const SMALL_KEYS = [
   "first_name", "last_name", "phone", "email", "company", "industry", "audience",
   "job_size", "deliverables", "brand_have", "style_help",
-  "deadline_kind", "approver", "channel", "assets", "about", "anything_else",
+  "deadline_kind", "approver", "channel", "assets", "anything_else",
 ];
 const MEDIUM_TITLES = [...SMALL_TITLES.slice(0, 4), "Colours", ...SMALL_TITLES.slice(4)];
-const MEDIUM_KEYS = [...SMALL_KEYS, "age_range", "brand_colours"];
+const MEDIUM_KEYS = [...SMALL_KEYS, "about", "company_age", "age_range", "brand_colours"];
 const LARGE_TITLES = [...MEDIUM_TITLES.slice(0, 5), "A little more detail", ...MEDIUM_TITLES.slice(5)];
 const LARGE_KEYS = [...MEDIUM_KEYS, "usp", "avoid", "others"];
 
@@ -66,7 +66,6 @@ const FULL: Answers = {
   age_range: ["18 to 34"],
   usp: "We listen first.",
   deadline_kind: "Within two weeks",
-  fixed_dates: "The launch",
   others: "The accountant",
   about: "We make things.",
   anything_else: "Nothing else",
