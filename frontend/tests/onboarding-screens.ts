@@ -112,8 +112,16 @@ export function touchFindings(page: Page) {
     const small: string[] = [];
     const wide: string[] = [];
     const tips: number[] = [];
-    for (const el of controls) {
-      if (!el.getClientRects().length) continue;
+    /* A native input hidden behind a styled card (the colour feelings and
+       palette radios) is not a control a client sees. The card around it is
+       the target, so that is measured instead. */
+    const hidden = (el: HTMLElement) => {
+      const cs = getComputedStyle(el);
+      return cs.opacity === "0" || cs.clip === "rect(0px, 0px, 0px, 0px)";
+    };
+    for (const raw of controls) {
+      const el = raw instanceof HTMLInputElement && hidden(raw) ? raw.closest<HTMLElement>("label") : raw;
+      if (!el || !el.getClientRects().length) continue;
       const r = el.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) continue;
       if (el.classList.contains("tip__b") || el.closest(".tip")) { tips.push(Math.round(r.height * 10) / 10); continue; }

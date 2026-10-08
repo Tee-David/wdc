@@ -304,7 +304,9 @@ for (const [tier, answers] of [["small", SMALL_WALK], ["medium", MEDIUM_WALK], [
       await page.setViewportSize({ width, height: 820 });
       const errors: string[] = [];
       page.on("pageerror", (e) => errors.push(e.message));
-      await openScreen(page, "branding", answers, 0);
+      /* Start empty: the walk answers each screen itself. Seeding the answers
+         here would make the first pick a second press, which un-ticks it. */
+      await openScreen(page, "branding", {}, 0);
       const screens = await walkToReview(page, answers as Record<string, Answer>);
       expect(screens.length).toBeGreaterThanOrEqual(6);
 
