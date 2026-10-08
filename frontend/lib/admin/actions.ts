@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import * as db from "./store";
 import { invoiceTotals, naira, STAGES, type InvoiceLine } from "./types";
 import { selectedPaystackMode } from "@/lib/paystack-mode";
-import { actorName, adminRole, owner, allow } from "./guard";
+import { actorName, adminRole, owner, ownerFresh, allow } from "./guard";
 import { can } from "./permissions";
 import { queueLogged, retryLogged } from "@/lib/message-log";
 import { addEvents } from "@/lib/forms/events";
@@ -544,7 +544,7 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
 export async function reversePayment(_prev: ActionState, fd: FormData): Promise<ActionState> {
   await syncStore();
   persistSoon();
-  const refused = await owner();
+  const refused = await ownerFresh();
   if (refused) return refused;
   const id = str(fd, "id");
   const invoiceId = str(fd, "invoiceId");
@@ -1198,7 +1198,7 @@ export async function resendMessage(_prev: ActionState, fd: FormData): Promise<A
 export async function voidInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
   await syncStore();
   persistSoon();
-  const refused = await owner();
+  const refused = await ownerFresh();
   if (refused) return refused;
   const id = str(fd, "id");
   const reason = str(fd, "reason");
@@ -1229,7 +1229,7 @@ export async function voidInvoice(_prev: ActionState, fd: FormData): Promise<Act
 export async function refundPayment(_prev: ActionState, fd: FormData): Promise<ActionState> {
   await syncStore();
   persistSoon();
-  const refused = await owner();
+  const refused = await ownerFresh();
   if (refused) return refused;
   const errors: Record<string, string> = {};
   const paymentId = str(fd, "id");
