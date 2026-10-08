@@ -323,6 +323,8 @@ export async function probeRequired(page: Page, log: Log, title: string) {
  * (under reduced motion) running animation, measured in the page.
  */
 export async function audit(page: Page, log: Log, screen: string, reduced: boolean) {
+  /* Web fonts swap in after first paint, and a swap changes widths; measure after it. */
+  await page.evaluate(() => document.fonts?.ready.then(() => true) ?? true);
   const found = await page.evaluate((reducedMotion: boolean) => {
     const out: { cat: string; control: string; problem: string }[] = [];
     const add = (cat: string, control: string, problem: string) => out.push({ cat, control, problem });
