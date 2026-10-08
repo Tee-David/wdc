@@ -250,6 +250,16 @@ function useThemeSwitch() {
   return { mounted, dark, toggle: () => setTheme(dark ? "light" : "dark") };
 }
 
+/** The theme switch as a row of the account menu, for staff and owner. */
+function MenuTheme() {
+  const { mounted, dark, toggle } = useThemeSwitch();
+  return (
+    <button type="button" role="menuitem" onClick={toggle}>
+      {dark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />} {mounted ? (dark ? "Light theme" : "Dark theme") : "Switch theme"}
+    </button>
+  );
+}
+
 function ThemeButton() {
   const { mounted, dark, toggle } = useThemeSwitch();
   if (!mounted) {
@@ -319,6 +329,7 @@ function AccountMenu({ user }: { user: AdminUser }) {
             {user.email ? <span>{user.email}</span> : null}
           </div>
           <Link href="/admin/settings/account" role="menuitem" onClick={() => setOpen(false)}><UserRound aria-hidden="true" /> Your name and password</Link>
+          <MenuTheme />
           <Link href="/" role="menuitem" onClick={() => setOpen(false)}><Globe aria-hidden="true" /> Back to website</Link>
           <button type="button" role="menuitem" onClick={() => signOut(router)}><LogOut aria-hidden="true" /> Sign out</button>
         </div>
