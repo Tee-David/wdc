@@ -106,6 +106,17 @@ export const BRANDING_STEPS: Step[] = [
         showIf: REPEAT,
       },
       {
+        key: "piece_content", label: "What should it say?", kind: "textarea",
+        hint: "The important bits: the headline or offer, date and time, price, address, phone or WhatsApp, and anything we must not leave out.",
+        placeholder: "For example: Grand opening, Saturday 14 March, 10am. 20% off all week. Call or WhatsApp 0800 000 0000.",
+        showIf: REPEAT,
+      },
+      {
+        key: "piece_images", label: "Pictures to use", kind: "upload",
+        hint: "Product photos, people, a venue, your logo. Several is fine. If a picture needs a note, put it in the box above.",
+        showIf: REPEAT,
+      },
+      {
         key: "batch_count", label: "About how many pieces?", kind: "cards",
         options: ["1 to 3", "4 to 10", "11 to 20", "More than 20"],
         showIf: [REPEAT, { key: "job_rhythm", equals: ["A batch", "Every month"] }],

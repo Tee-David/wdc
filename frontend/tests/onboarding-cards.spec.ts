@@ -63,7 +63,7 @@ async function openApps(page: Page, width: number, theme: (typeof THEMES)[number
   await page.setViewportSize({ width, height: 900 });
   await seedDraft(page, { service: "apps", step: stepIndex("apps", "apps_features"), answers }, { theme });
   await page.goto("/onboarding", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: "What it does" })).toBeVisible({ timeout: 30000 });
+  await expect(page.getByRole("heading", { name: "What the app does" })).toBeVisible({ timeout: 30000 });
 }
 
 /* ---------------- 1. Cards at every width, both themes ---------------- */
@@ -188,7 +188,7 @@ test("a small job that ticks Brand guidelines still reaches the colours step", a
   await openBranding(page, 390, "light", { job_size: "One piece or a small set" });
   await chooseOption(page, "deliverables", "Brand guidelines");
   await next(page).click();
-  await expect(page.getByRole("heading", { name: "What you have, and the style" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "What you already have, and the look you want" })).toBeVisible();
   await chooseOption(page, "brand_have", "Nothing yet");
   await next(page).click();
   await expect(page.getByRole("heading", { name: "Your colours" })).toBeVisible();
@@ -210,7 +210,7 @@ test("Nothing yet clears the other ticks, and ticking anything else clears Nothi
 test("a small logo job does not reach the colours step", async ({ page }) => {
   await openBranding(page, 390, "light", { job_size: "One piece or a small set", deliverables: ["Logo"] });
   await next(page).click();
-  await expect(page.getByRole("heading", { name: "What you have, and the style" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "What you already have, and the look you want" })).toBeVisible();
   await chooseOption(page, "brand_have", "Nothing yet");
   await next(page).click();
   await expect(page.getByRole("heading", { name: "Your colours" })).toHaveCount(0);
