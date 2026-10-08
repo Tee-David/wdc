@@ -10,6 +10,7 @@ import { can } from "@/lib/admin/permissions";
 import { DialogButton } from "./dialog";
 import { NoClientsYet } from "./no-clients";
 import { IconPicker } from "./icon-picker";
+import { OwnerField } from "./owner-field";
 
 const SERVICE_OPTIONS = SERVICES.map((s) => ({ value: s.slug, label: s.short }));
 const STAGE_OPTIONS = STAGES.map((s) => ({ value: s, label: s }));
@@ -54,9 +55,7 @@ export function AddProject({
                 All optional: a project opened before the figure is agreed is a
                 real case, and forcing a number here would mean somebody typing
                 a guess that later reads as an agreement. */}
-            <Field name="owner" label="Who is answerable" half
-                   placeholder="Babatope"
-                   hint="A name, not an account. There is no user table yet." />
+            <OwnerField half />
             <Select name="channel" label="Where updates go" half
                     defaultValue="Client portal" options={CHANNEL_OPTIONS}
                     hint="Change it once a route is agreed with the client." />

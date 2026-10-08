@@ -1962,3 +1962,17 @@ td:has(> .adRowPick) , .ad__pickCell { white-space: nowrap; }
 .adRevs__who { display: grid; gap: .1rem; min-width: 0; }
 .adRevs__who b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .adRevs__who small { font-size: .78rem; }
+
+/* ---- Who is answerable: chips, then a search that opens a short list ---- */
+.ad__owner { position: relative; display: grid; gap: .5rem; min-width: 0; }
+.ad__ownerChips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem; }
+.ad__ownerChips li { display: inline-flex; align-items: center; gap: .15rem; min-height: 2.25rem; padding: 0 .2rem 0 .75rem; border-radius: 999px; background: var(--ad-tone-brand); color: var(--ad-on-brand); font-size: .85rem; font-weight: 600; max-width: 100%; }
+.ad__ownerChips li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ad__ownerChips button { width: 2.75rem; height: 2.75rem; margin: -.25rem 0; display: grid; place-items: center; border: 0; background: none; color: inherit; border-radius: 999px; cursor: pointer; }
+.ad__ownerChips button svg { width: 1rem; height: 1rem; }
+.ad__ownerChips button:focus-visible { outline: 2px solid currentColor; outline-offset: -4px; }
+.ad__ownerList { list-style: none; margin: 0; padding: .3rem; position: absolute; z-index: 30; top: 100%; left: 0; right: 0; max-height: 14rem; overflow: auto; background: var(--ad-panel); border: 1px solid var(--ad-line); border-radius: var(--ad-r); box-shadow: var(--ad-sh-2, var(--ad-sh-1)); }
+.ad__ownerList button { width: 100%; min-height: 2.75rem; display: flex; align-items: center; gap: .5rem; padding: 0 .7rem; border: 0; border-radius: 8px; background: none; color: var(--ad-ink); font: inherit; text-align: left; cursor: pointer; }
+.ad__ownerList button:hover, .ad__ownerList button:focus-visible { background: var(--ad-line); outline: none; }
+.ad__ownerList svg { width: 1rem; height: 1rem; }
+.ad__ownerInvite { font-size: .82rem; }
