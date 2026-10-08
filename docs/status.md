@@ -126,3 +126,7 @@ Added: font pairings (about a hundred, lazy and subset), shuffle for colours, re
 - Existing invoices on the old INV-YYYY-NNN shape are renumbered once, on the next load of the store (`renumberLegacyInvoices`); the old number is kept in `formerNumbers` so a bank narration quoting it still matches. Audit line "renumbered" on each. Not yet seen on the live database.
 - New: /admin/forms/all (All entries), /admin/reports, Users in the sidebar, stat cards link to lists, Who is answerable picks staff, assign dialog simplified, client Activity shows five + Show more, Record a payment on the client page (Card method, reference only for transfers), tours for the new pages, tour card never taller than the screen. Not yet verified in a signed-in browser (no database here).
 - Still open: permanent delete flows, staff departments and staff welcome, tour click-through of ⋮ menus beyond the opener, invoice reminders UI beyond the existing email reminder.
+
+## Permanent delete and departments (2026-10-08)
+- Permanent delete: archived clients and projects (owner; typed name; "I understand"; refused while payments are kept against their invoices; unpaid invoices of a deleted project stay, untied), deactivated staff/client accounts (typed email; never owners or yourself; refused while projects or tasks name them or they appear in the security log as the actor).
+- Departments: migration `0040_departments.sql` (owner applies in Settings › System), `/admin/users/departments`, client page "Departments". Not yet exercised against a real database.
