@@ -54,6 +54,7 @@ test("policies link to each other, and the index offers every PDF", async ({ pag
   await expect(page.locator('.lg-body a[href="/legal/client-engagement-policy"]').first()).toBeVisible();
   await page.goto("/legal/client-engagement-policy#web");
   await expect(page.locator('.lg-body a[href="#domains"]').first()).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Related policies" }).getByRole("link")).toHaveCount(5);
   await page.goto("/legal");
   await expect(page.locator(".lg-pdfs a")).toHaveCount(6);
 });
