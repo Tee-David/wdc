@@ -1503,3 +1503,32 @@ The WDC team`),
     }),
   };
 }
+
+/** The confirmation a newsletter sign-up must press before it counts (double opt-in). */
+export function newsletterConfirmEmail(input: { url: string; hours: number }): Email {
+  const { url, hours } = input;
+  return {
+    subject: "Confirm your subscription to We Dig Creativity",
+    text: textShell(`Hello,
+
+Somebody (we hope you) asked for the We Dig Creativity newsletter at this address. To be added, open this link within ${hours} hours:
+
+${url}
+
+If it was not you, ignore this and you will not be added. Nothing is sent until you confirm.
+
+The WDC team`),
+    html: shell({
+      title: "Confirm your subscription",
+      preheader: "One press and you are on the list.",
+      heading: "Confirm your subscription",
+      why: "You are getting this because this address was typed into our newsletter box.",
+      blocks: [
+        p("Somebody (we hope you) asked for the We Dig Creativity newsletter at this address. One press and you are on the list."),
+        action("Yes, subscribe me", url),
+        p(`The link works for ${hours} hours.`),
+        small("If it was not you, ignore this email. You will not be added, and nothing else is sent."),
+      ],
+    }),
+  };
+}
