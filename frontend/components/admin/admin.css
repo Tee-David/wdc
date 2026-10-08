@@ -861,26 +861,29 @@ body:has(.adDrawer[open]) .st { display: none; }
 /* ------------------------------------------------------------------ modal */
 
 .addlg {
-  /* MARGIN AUTO, RESTORED. A modal <dialog> is centred by `margin: auto` in
-     the browser's own stylesheet, and the CSS reset zeroes every margin on
-     the page, this element included. The result is a dialog pinned to the top
-     left corner, which looks like a layout bug and is really a reset winning
-     an argument with the UA sheet. */
-  margin: auto;
-  width: min(560px, calc(100vw - 2rem));
-  max-height: min(88dvh, 900px);
-  padding: 0; border: 1px solid var(--ad-line); border-radius: var(--ad-r);
+  /* A RIGHT SIDE SHEET, not a centred box (owner's call): the list stays in
+     view behind it, it fills the screen on a phone, and it slides in from the
+     edge. Still the native <dialog>, so focus, Escape and inertness are the
+     platform's. `margin: 0 0 0 auto` pins it right: the CSS reset zeroes the
+     UA's `margin: auto`, so the position is stated, not inherited. */
+  position: fixed; inset: 0 0 0 auto; margin: 0 0 0 auto;
+  width: min(480px, 100vw); height: 100dvh; max-height: 100dvh;
+  padding: 0; border: 0; border-left: 1px solid var(--ad-line); border-radius: 0;
   background: var(--ad-panel); color: var(--ad-ink);
   font-family: var(--font-outfit), system-ui, sans-serif; font-size: 14px;
-  box-shadow: 0 24px 60px rgb(0 0 0 / .22);
+  box-shadow: -16px 0 48px rgb(0 0 0 / .2);
   overflow: hidden;
+  transition: transform .28s cubic-bezier(.2, .8, .2, 1), opacity .2s;
 }
-.addlg--wide { width: min(720px, calc(100vw - 2rem)); }
-.addlg::backdrop { background: rgb(6 6 28 / .55); backdrop-filter: blur(3px); }
-.addlg__in { display: flex; flex-direction: column; max-height: inherit; }
+.addlg[open] { transform: none; opacity: 1; }
+@starting-style { .addlg[open] { transform: translateX(100%); opacity: .6; } }
+.addlg--wide { width: min(760px, 100vw); }
+.addlg::backdrop { background: rgb(6 6 28 / .55); transition: opacity .2s; }
+@media (prefers-reduced-motion: reduce) { .addlg, .addlg::backdrop { transition: none; } }
+.addlg__in { display: flex; flex-direction: column; height: 100%; max-height: inherit; }
 .addlg__h {
   display: flex; align-items: center; justify-content: space-between; gap: .6rem;
-  padding: 1.25rem 1.5rem 1rem; border-bottom: 1px solid var(--ad-line);
+  padding: 1.25rem 1.5rem 1rem; padding-top: calc(1.25rem + env(safe-area-inset-top, 0px)); border-bottom: 1px solid var(--ad-line);
 }
 .addlg__h h2 {
   margin: 0; font-family: var(--font-space-grotesk), system-ui, sans-serif;
@@ -893,7 +896,7 @@ body:has(.adDrawer[open]) .st { display: none; }
 }
 .addlg__x:hover { background: var(--ad-bg); color: var(--ad-ink); }
 .addlg__x svg { width: 1.1rem; height: 1.1rem; }
-.addlg__b { padding: 1.25rem 1.5rem 1.5rem; overflow-y: auto; }
+.addlg__b { flex: 1; min-height: 0; padding: 1.25rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom, 0px)); overflow-y: auto; }
 
 /* A deliverable may be a link, uploaded files, or both. */
 .adDelUpload { min-width: 0; }
@@ -1560,18 +1563,43 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 /* The stage track inside a project's card: every step behind the current
    one filled navy, the current one orange, the rest the line colour. */
 .ad__stageTrack { margin-top: 1.25rem; padding-top: 1.25rem; display: grid; gap: 1rem; border-top: 1px solid var(--ad-line); }
-.ad__stageTrack ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .5rem; }
-.ad__stageTrack li { min-width: 0; display: grid; gap: .5rem; }
-.ad__stageTrack li > span { height: 6px; border-radius: 999px; background: var(--ad-line); }
-.ad__stageTrack li.is-done > span { background: var(--ad-navy); }
-.dark .ad__stageTrack li.is-done > span { background: #7377ff; }
-.ad__stageTrack li.is-now > span { background: var(--ad-accent-fill); }
-.ad__stageTrack small { color: var(--ad-dim); font-size: .8rem; font-weight: 500; overflow-wrap: anywhere; }
-.ad__stageTrack li.is-done small { color: var(--ad-ink); }
-.ad__stageTrack li.is-now small { color: var(--ad-ink); font-weight: 700; }
-@media (max-width: 560px) {
-  .ad__stageTrack ol { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: .85rem; }
+/* CHEVRON STEPS. Done steps navy, the current one orange (white type on
+   --ad-accent-fill), the rest wait. The row scrolls sideways on a narrow
+   screen rather than wrapping, and each step arrives a beat after the last
+   (transform and opacity only; nothing under reduced motion). */
+.ad__stageTrack ol { list-style: none; margin: 0; padding: 0 0 .25rem; display: flex; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none; counter-reset: stg; }
+.ad__stageTrack ol::-webkit-scrollbar { display: none; }
+.ad__stageTrack li {
+  counter-increment: stg; flex: 1 0 7.5rem; min-width: 0; min-height: 3rem; margin-right: -.5rem;
+  display: flex; align-items: center; gap: .5rem; padding: 0 1.4rem 0 1.9rem; scroll-snap-align: center;
+  background: var(--ad-bg); color: var(--ad-dim);
+  clip-path: polygon(0 0, calc(100% - .9rem) 0, 100% 50%, calc(100% - .9rem) 100%, 0 100%, .9rem 50%);
+  animation: stgIn .45s cubic-bezier(.2, .8, .2, 1) backwards;
 }
+.ad__stageTrack li:nth-child(2) { animation-delay: .06s; } .ad__stageTrack li:nth-child(3) { animation-delay: .12s; }
+.ad__stageTrack li:nth-child(4) { animation-delay: .18s; } .ad__stageTrack li:nth-child(5) { animation-delay: .24s; }
+.ad__stageTrack li:nth-child(6) { animation-delay: .3s; }
+.ad__stageTrack li:first-child { padding-left: 1.1rem; clip-path: polygon(0 0, calc(100% - .9rem) 0, 100% 50%, calc(100% - .9rem) 100%, 0 100%); border-radius: 12px 0 0 12px; }
+.ad__stageTrack li:last-child { margin-right: 0; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, .9rem 50%); border-radius: 0 12px 12px 0; }
+.ad__stageTrack li > span { display: none; }
+.ad__stageTrack li::before {
+  content: counter(stg); flex: none; display: grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 50%;
+  background: var(--ad-line); color: var(--ad-ink); font-size: .72rem; font-weight: 700;
+}
+.ad__stageTrack li.is-done { background: var(--ad-navy); color: #fff; }
+.ad__stageTrack li.is-done::before { content: "✓"; background: rgb(255 255 255 / .9); color: var(--ad-navy); }
+.ad__stageTrack li.is-now { background: var(--ad-accent-fill); color: #fff; }
+.ad__stageTrack li.is-now::before { background: #fff; color: var(--ad-accent-fill); }
+.dark .ad__stageTrack li.is-done { background: #23239b; }
+.dark .ad__stageTrack li.is-done::before { color: #23239b; }
+.ad__stageTrack small { color: inherit; font-size: .85rem; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.ad__stageTrack li.is-now small { font-weight: 700; }
+@keyframes stgIn { from { opacity: 0; transform: translateX(-.6rem); } }
+@media (prefers-reduced-motion: reduce) { .ad__stageTrack li { animation: none; } }
+
+/* The move controls under it: the same stages as a row of small buttons. */
+.ad__stages { gap: .4rem; }
+.ad__stageBtn { min-height: 2.75rem; padding: 0 1rem; display: inline-flex; align-items: center; }
 
 .ad__tiles--5 { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
 @media (max-width: 1280px) { .ad__tiles--5 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
@@ -1778,7 +1806,12 @@ html.is-dragging, html.is-dragging * { cursor: grabbing !important; }
 .adIcons__now svg { width: 1.25rem; height: 1.25rem; }
 .adIcons__now.is-empty { background: var(--ad-tone-flat); color: var(--ad-on-flat); font-weight: 700; }
 .adIcons__hint { flex: 1; min-width: 0; font-size: .84rem; }
-.adIcons__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.75rem, 1fr)); gap: .35rem; max-height: 9.5rem; overflow-y: auto; overscroll-behavior: contain; padding: .15rem; }
+.adIcons__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.75rem, 1fr)); gap: .35rem; max-height: 13rem; overflow-y: auto; overscroll-behavior: contain; padding: .15rem; }
+.adIcons__search { display: flex; align-items: center; gap: .5rem; min-height: 2.75rem; margin-bottom: .5rem; padding: 0 .75rem; border: 1px solid var(--ad-line); border-radius: 10px; background: var(--ad-bg); }
+.adIcons__search svg { width: 1rem; height: 1rem; flex: none; color: var(--ad-dim); }
+.adIcons__search input { flex: 1; min-width: 0; min-height: 2.5rem; border: 0; background: transparent; color: var(--ad-ink); font: inherit; outline: none; }
+.adIcons__search:focus-within { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+.adIcons__none { grid-column: 1 / -1; margin: .5rem 0; }
 .adIcons__opt { position: relative; }
 .adIcons__opt input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
 .adIcons__opt > span { display: grid; place-items: center; height: 2.75rem; border: 1px solid var(--ad-line); border-radius: 10px; background: var(--ad-panel); color: var(--ad-ink); }
