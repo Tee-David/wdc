@@ -177,10 +177,38 @@ export const CLOSING_STEPS: Step[] = [
         key: "deadline_kind", label: "When do you need it?", kind: "cards",
         hint: "Small jobs can be quick: a flyer in as little as two days, a logo in three or four. We confirm a real date with you.",
         options: ["No fixed date", "In a few days", "Within a week", "Within two weeks", "Within a month", "In one to three months", "A set date"],
+        byService: {
+          web: {
+            label: "When would you like the site live?",
+            hint: "A website takes weeks, not days. Tell us your hope and we confirm a real date with you.",
+            options: ["No fixed date", "Within a month", "In one to three months", "In three to six months", "A set date"],
+          },
+          apps: {
+            label: "When would you like the first version?",
+            hint: "An app is built in stages, usually over months. We show a first version early, and confirm dates with you.",
+            options: ["No fixed date", "In one to three months", "In three to six months", "In six months or more", "A set date"],
+          },
+          software: {
+            label: "When would you like the first working version?",
+            hint: "Systems and automations are built in stages. We confirm dates with you after we understand the job.",
+            options: ["No fixed date", "Within a month", "In one to three months", "In three to six months", "A set date"],
+          },
+          seo: {
+            label: "When would you like us to start?",
+            hint: "Search work runs for months. This is only about when we begin.",
+            options: ["As soon as possible", "Within a month", "In one to three months", "A set date"],
+          },
+          social: {
+            label: "When would you like us to start?",
+            hint: "Social work runs month to month. This is only about when we begin.",
+            options: ["As soon as possible", "Within two weeks", "Within a month", "A set date"],
+          },
+        },
       },
       {
         key: "fixed_dates", label: "Which date?", kind: "date",
         placeholder: "Pick the date", hint: "A launch, an event or a print deadline.",
+        byService: { seo: { hint: "The day you would like us to begin." }, social: { hint: "The day you would like us to begin." } },
         showIf: { key: "deadline_kind", equals: FIXED_DATE_ANSWERS },
       },
       { key: "approver", label: "Who gives the final yes?", kind: "text", required: true, hint: "One person, so feedback has one door.", tip: "Projects slow down most when feedback arrives from several directions and disagrees with itself." },
@@ -202,24 +230,24 @@ export const CLOSING_STEPS: Step[] = [
          with no logo has no identity for the work to be built out of. */
       {
         key: "logo_wanted", label: "Would you like us to design one?", kind: "yesno",
-        notFor: ["branding"],
+        notFor: ["branding", "seo", "software"],
         showIf: { key: "has_logo", equals: ["No"] },
         scope: "Extra to what you have already paid for. Say yes and we will send you a quote first. Nothing is charged from this form.",
         tip: "Saying no stops nothing. We will work with what you have and keep the design plain enough that a logo drops into it later without a rebuild.",
       },
       /* The colour flow, offered to the five services that are not branding
          only when there is no logo to read colours from. */
-      { key: "brand_colours", label: "Your colours", kind: "colours", notFor: ["branding"], showIf: { key: "has_logo", equals: ["No"] } },
+      { key: "brand_colours", label: "Your colours", kind: "colours", notFor: ["branding", "seo", "software"], showIf: { key: "has_logo", equals: ["No"] } },
       {
-        key: "has_brandbook", label: "Do you have a brand guide?", kind: "cards", notFor: ["branding"],
+        key: "has_brandbook", label: "Do you have a brand guide?", kind: "cards", notFor: ["branding", "seo", "software"],
         options: ["Yes", "No", "I'm not sure what that is"],
         tip: "A brand guide is a document setting out your colours, fonts, logo rules and tone of voice, so everything a business makes looks like it came from the same place. Plenty of businesses do not have one, and that is a normal answer.",
         showIf: { tier: 2 },
       },
-      { key: "brandbook_file", label: "Upload it", kind: "upload", notFor: ["branding"], showIf: [{ tier: 2 }, { key: "has_brandbook", equals: ["Yes"] }] },
+      { key: "brandbook_file", label: "Upload it", kind: "upload", notFor: ["branding", "seo", "software"], showIf: [{ tier: 2 }, { key: "has_brandbook", equals: ["Yes"] }] },
       {
         key: "brandbook_wanted", label: "Would you like us to put one together?", kind: "yesno",
-        notFor: ["branding"],
+        notFor: ["branding", "seo", "software"],
         showIf: [{ tier: 2 }, { key: "has_brandbook", equals: ["No", "I'm not sure what that is"] }],
         scope: "Extra to what you have already paid for. Say yes and we will send you a quote first. Nothing is charged from this form.",
         tip: "It is what stops everything made afterwards looking like it came from somewhere else: colours, fonts, logo rules and tone of voice, written down once so the next person does not have to guess.",
@@ -321,7 +349,10 @@ export function stepsFor(service: ServiceSlug): Step[] {
      submitted record. Offering a branding client a logo they have just bought
      is the case it exists for. A screen left with no questions is dropped. */
   const closing = CLOSING_STEPS
-    .map((step) => ({ ...step, fields: step.fields.filter((f) => !f.notFor?.includes(service)) }))
+    .map((step) => ({
+      ...step,
+      fields: step.fields.filter((f) => !f.notFor?.includes(service)).map((f) => (f.byService?.[service] ? { ...f, ...f.byService[service] } : f)),
+    }))
     .filter((step) => step.fields.length > 0);
   return [...CORE_STEPS, ...own, ...closing];
 }
