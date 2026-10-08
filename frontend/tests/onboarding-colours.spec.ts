@@ -185,6 +185,21 @@ test("the picker box sits between the code and the remove button and fills the c
   await expect(field.getByRole("textbox", { name: "Colour 1", exact: true })).toHaveValue("#1A5C3A");
 });
 
+test("three palettes show at a time, and Shuffle deals three new ones with a title and a line each", async ({ page }) => {
+  const field = await openColours(page);
+  const cards = field.locator("label.obCol__card");
+  await expect(cards).toHaveCount(3);
+  const titles = async () => (await cards.locator(".obCol__cardName").allInnerTexts()).sort();
+  const first = await titles();
+  expect(first).toEqual(["Bold and energetic", "Calm and trusted", "Warm and friendly"]);
+  await expect(cards.locator(".obCol__cardLine")).toHaveCount(3);
+  await field.getByRole("button", { name: "Shuffle for more palettes" }).click();
+  await expect(cards).toHaveCount(3);
+  const second = await titles();
+  expect(second.some((t) => first.includes(t))).toBe(false);
+  await expect(cards.locator(".obCol__cardLine")).toHaveCount(3);
+});
+
 test("codes show the error copy, then save with plain names", async ({ page }) => {
   const field = await openColours(page);
   await field.getByText("I already have my colours").click();
