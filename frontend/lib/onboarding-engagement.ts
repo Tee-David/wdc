@@ -97,7 +97,7 @@ const EXTRA: Record<ServiceSlug, Partial<Record<EngagementGroup["id"], string[]>
   },
   web: {
     work: ["A content-managed site is concluded at handover. An online shop includes up to 20 products uploaded free, and more are charged from our price list. A free review of your current site is advice. It is not a promise of results."],
-    money: ["Your domain is registered in your name unless you ask otherwise. Hosting is either an account in your name or hosting we provide under a written hosting agreement. Up to three business email addresses are included, and more are charged. Payment providers have their own terms and fees, and some setups are limited by the type of site. We tell you which."],
+    money: ["Your domain is registered in your name unless you ask otherwise. Hosting is either an account in your name or hosting we provide on the terms in our Client Engagement Policy, with regular backups up to a week old. Up to three business email addresses are included, and more are charged. Payment providers have their own terms and fees, and some setups are limited by the type of site. We tell you which."],
     limits: ["Plugins and platforms we build on belong to other companies and can change. You are responsible for the words and pictures you give us."],
   },
   apps: {
