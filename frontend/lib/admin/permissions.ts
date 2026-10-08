@@ -49,5 +49,6 @@ export const NAV_AREA: Record<string, Area | null> = {
   "/admin/forms": "forms",
   "/admin/blog": "content",
   "/admin/users": "team",
+  "/admin/reports": "money",
   "/admin/settings": null,
 };

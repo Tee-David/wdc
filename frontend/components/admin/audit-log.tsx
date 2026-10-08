@@ -16,7 +16,7 @@ import { Pager } from "./pager";
  * a pager, so all of the history can be reached, not only the newest page.
  */
 export default async function AuditLog({
-  kind, subjectId, subjectIds, limit = 60, title = "Everything that changed", filters, filtered = false, pager, clearHref,
+  kind, subjectId, subjectIds, limit = 60, title = "Everything that changed", filters, filtered = false, pager, clearHref, more,
 }: {
   kind?: AuditKind;
   subjectId?: Id;
@@ -31,6 +31,8 @@ export default async function AuditLog({
   pager?: (patch: { page?: number; per?: number }) => string;
   /** Where "Clear the filters" goes, so a search that finds nothing is not a dead end. */
   clearHref?: string;
+  /** A record page shows a few and offers a link for the next few, instead of a pager. */
+  more?: string;
 }) {
   const per = filters?.limit ?? limit;
   const { entries, total, source } = await listAudit({ range: "all", ...filters, kind: filters?.kind ?? kind, subjectId, subjectIds, limit: per });
@@ -43,6 +45,11 @@ export default async function AuditLog({
           <AuditTable events={events} compact={!pager} />
           {pager ? (
             <Pager label="Pages of the audit log" total={total} page={filters?.page ?? 1} per={per} noun="changes" perOptions={[10, 25, 50]} href={pager} />
+          ) : total > entries.length && more ? (
+            <p style={{ padding: ".8rem 1.25rem 1rem", margin: 0, display: "flex", gap: ".75rem", alignItems: "center", flexWrap: "wrap" }}>
+              <Link className="ad__btn" href={more} scroll={false}>Show more</Link>
+              <span className="ad__dim" style={{ fontSize: ".84rem" }}>{entries.length} newest of {total}</span>
+            </p>
           ) : total > entries.length ? (
             <p className="ad__dim" style={{ padding: ".8rem 1.25rem 1rem", margin: 0, fontSize: ".84rem" }}>
               The {entries.length} most recent of {total}. Settings › Audit log has all of them.
