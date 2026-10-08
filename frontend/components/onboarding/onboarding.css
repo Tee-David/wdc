@@ -1388,3 +1388,14 @@
 /* A long label wraps instead of widening the page, even at 200% text on a 320px phone. */
 .pv .ob__acts--step > .ob__stepBack { max-width: 100%; white-space: normal; text-align: left; line-height: 1.25; }
 .obFont__btn { justify-self: start; margin-top: .2rem; padding: .35rem .9rem; border-radius: 999px; background: #14171f; color: #fff; font-size: calc(var(--ob-font, 16px) * .9); line-height: 1.2; }
+
+/* The way back to the service menu, at the top of the first screen where nobody has to hunt for it. */
+.pv .ob__menuLink {
+  justify-self: start; display: inline-flex; align-items: center; gap: .45rem;
+  min-height: 44px; padding: 0; border: 0; background: transparent; cursor: pointer;
+  font: inherit; font-size: .95rem; font-weight: 600; color: var(--accent-ink);
+  text-decoration: underline; text-underline-offset: 3px; text-align: left; max-width: 100%;
+}
+.pv .ob__menuLink svg { width: 1rem; height: 1rem; flex: none; }
+.pv .ob__menuLink:hover { text-decoration-thickness: 2px; }
+.pv .ob__menuLink:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 3px; border-radius: 4px; }
