@@ -2,11 +2,12 @@ import Link from "next/link";
 import { BulkBar, PickAll, RowPick } from "@/components/admin/bulk";
 import { hydrateSettings } from "@/lib/settings/store";
 import {
-  financeDefaults, getAging, getClient, getClients, getCollectionRate,
+  creditBalances, financeDefaults, getAging, getClient, getClients, getCollectionRate,
   getEstimates, getExpenses, getInvoice, getInvoices, getMonthly, getPayments,
   getPipeline, getProjects, getSummary, providerAttentionCount,
 } from "@/lib/admin/store";
 import { failedLoggedCount } from "@/lib/message-log";
+import { noticeBlock, noticeBlocks } from "@/lib/admin/money-rules";
 import {
   estimateState, estimateTotals, invoiceStatus, invoiceTotals, naira, nairaShort, paymentState, refundedTotal,
 } from "@/lib/admin/types";
@@ -78,6 +79,12 @@ export default async function MoneyPage({
   const expenses = getExpenses();
   const projects = getProjects();
   const estimates = getEstimates();
+  /* The two small facts the invoice and payment forms need about a client,
+     computed once: who holds stored credit (to offer "use their credit"), and
+     who cannot be emailed and why (the ticks disable with the reason). Only the
+     exceptions are sent, because most clients have neither. */
+  const credits = creditBalances();
+  const noEmail = noticeBlocks(getClients());
   const pipeline = getPipeline();
   const projectById = new Map(projects.map((p) => [p.id, p]));
   const months = getMonthly(6);
@@ -145,10 +152,11 @@ export default async function MoneyPage({
           <PageTourButton />
           <Link className="ad__btn" href="/admin/reports"><BarChart3 aria-hidden="true" /> Reports</Link>
           <AddExpense projects={projects} />
-          <EstimateBuilder clients={getClients()} projects={projects} defaultVatRate={finance.vatRate} />
+          <EstimateBuilder clients={getClients()} projects={projects} defaultVatRate={finance.vatRate} noEmail={noEmail} />
           <InvoiceBuilder
             clients={getClients()} projects={projects} dataTour="money-add"
             defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays}
+            credits={credits} noEmail={noEmail}
           />
         </div>
       </div>
@@ -250,7 +258,7 @@ export default async function MoneyPage({
                 Every invoice that has been sent is paid.
               </Empty>
             ) : (
-              <Empty title="No invoices sent yet" action={<InvoiceBuilder clients={getClients()} projects={projects} defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} />}>
+              <Empty title="No invoices sent yet" action={<InvoiceBuilder clients={getClients()} projects={projects} defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} credits={credits} noEmail={noEmail} />}>
                 What clients owe shows here once the first invoice goes out.
               </Empty>
             )
@@ -339,7 +347,10 @@ export default async function MoneyPage({
                       <td className={`num ad__docNo${computedStatus === "Overdue" ? " ad__lateDue" : ""}`}>{when(i.due)}</td>
                       <td className="num">{naira(t.total)}</td>
                       <td className="num">{t.due ? naira(t.due) : <span className="ad__dim">Nil</span>}</td>
-                      <td className="ad__rmC"><InvoiceMenu invoice={i} /></td>
+                      <td className="ad__rmC">
+                        <InvoiceMenu invoice={i} noReceipt={noticeBlock(client)}
+                          edit={client ? { clientName: client.company, projects: projects.filter((p) => p.clientId === client.id).map((p) => ({ id: p.id, title: p.title, clientId: p.clientId })) } : undefined} />
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -351,7 +362,7 @@ export default async function MoneyPage({
               title={hasInvoiceFilters ? "No invoices match these filters" : "No invoices yet"}
               action={hasInvoiceFilters
                 ? <Link className="ad__btn" href="/admin/money#invoice-list">Clear filters</Link>
-                : <InvoiceBuilder clients={getClients()} projects={projects} defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} />}
+                : <InvoiceBuilder clients={getClients()} projects={projects} defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} credits={credits} noEmail={noEmail} />}
             >
               {hasInvoiceFilters
                 ? "Try a broader search or clear the filters to see every invoice."
@@ -451,7 +462,7 @@ export default async function MoneyPage({
           {/* A quote is not money and is not added to any total on the page. */}
           <Panel
             title="Estimates"
-            action={<EstimateBuilder clients={getClients()} projects={projects} trigger="New estimate" defaultVatRate={finance.vatRate} />}
+            action={<EstimateBuilder clients={getClients()} projects={projects} trigger="New estimate" defaultVatRate={finance.vatRate} noEmail={noEmail} />}
           >
             {/* WHAT IS QUOTED AND STILL LIVE, the only forward-looking figure on
                 this screen and deliberately not added to anything else. A quote
@@ -507,7 +518,7 @@ export default async function MoneyPage({
                           <td>{c ? <Link href={`/admin/clients/${c.id}`}>{c.company}</Link> : "–"}</td>
                           <td className="ad__num ad__dim ad__docNo">{when(e.expires)}</td>
                           <td className="num">{naira(estimateTotals(e).total)}</td>
-                          <td className="ad__rmC"><EstimateMenu estimate={e} /></td>
+                          <td className="ad__rmC"><EstimateMenu estimate={e} noEmail={noEmail[e.clientId]} /></td>
                         </tr>
                       );
                     })}
@@ -517,7 +528,7 @@ export default async function MoneyPage({
             ) : (
               <Empty
                 title="Nothing out for quote"
-                action={<EstimateBuilder clients={getClients()} projects={projects} defaultVatRate={finance.vatRate} />}
+                action={<EstimateBuilder clients={getClients()} projects={projects} defaultVatRate={finance.vatRate} noEmail={noEmail} />}
               >
                 An estimate is its own document with its own number, not a draft
                 invoice. Accepting one raises the invoice and keeps the quote as
@@ -543,7 +554,7 @@ export default async function MoneyPage({
                           <td>{p.method}</td>
                           <td className="num">{naira(p.amount)}{paymentState(p) !== "Received" ? <small className="ad__dim">{paymentState(p)}{paymentState(p) === "Part refunded" ? `, ${naira(refundedTotal(p))} back` : ""}</small> : null}</td>
                           <td className="ad__rmC">
-                            <PaymentMenu payment={p} invoiceNumber={inv?.number} />
+                            <PaymentMenu payment={p} invoiceNumber={inv?.number} noEmail={inv ? noEmail[inv.clientId] : undefined} />
                           </td>
                         </tr>
                       );

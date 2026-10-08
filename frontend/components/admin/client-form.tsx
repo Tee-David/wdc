@@ -4,7 +4,8 @@ import { Combine, Plus, Save } from "lucide-react";
 import { SERVICES } from "@/lib/services";
 import type { Client } from "@/lib/admin/types";
 import { createClient, mergeClient, updateClient } from "@/lib/admin/actions";
-import { Actions, Area, Checks, Field, Fields, Form, Hidden, Select, Submit } from "./form";
+import { Actions, Area, Checks, Field, Fields, Form, Hidden, Submit } from "./form";
+import { RemoteSelect } from "./remote-pick";
 import { DialogButton } from "./dialog";
 
 const SERVICE_OPTIONS = SERVICES.map((s) => ({ value: s.slug, label: s.short }));
@@ -84,12 +85,13 @@ export function EditClient({ client }: { client: Client }) {
  * but any client can be chosen, because the commonest duplicate is the same
  * business entered twice under two different addresses.
  */
-export function MergeClient({ keepId, keepName, candidates }: {
+export function MergeClient({ keepId, keepName, likely, hasOthers }: {
   keepId: string; keepName: string;
-  candidates: { id: string; company: string; likely: boolean }[];
+  /** The records that share this one's email or phone, offered first. Every other client is found by search. */
+  likely: { id: string; company: string }[];
+  hasOthers: boolean;
 }) {
-  if (!candidates.length) return null;
-  const ordered = [...candidates].sort((a, b) => Number(b.likely) - Number(a.likely) || a.company.localeCompare(b.company));
+  if (!hasOthers) return null;
   return (
     <DialogButton label="Merge a duplicate" title={`Fold a duplicate into ${keepName}`} icon={Combine} tone="plain">
       {(close) => (
@@ -97,8 +99,9 @@ export function MergeClient({ keepId, keepName, candidates }: {
               confirm={`Move everything from the chosen record into ${keepName} and archive the duplicate? This cannot be undone from here.`}>
           <Hidden name="keepId" value={keepId} />
           <Fields>
-            <Select name="dupeId" label="The duplicate" required placeholder="Pick the record to fold in"
-                    options={ordered.map((x) => ({ value: x.id, label: x.likely ? `${x.company} (same email or phone)` : x.company }))} />
+            <RemoteSelect name="dupeId" label="The duplicate" required kind="clients" scope={{ exclude: keepId }}
+                          placeholder="Pick the record to fold in" hint="Search by name, email or phone."
+                          lead={likely.map((x) => ({ value: x.id, label: `${x.company} (same email or phone)` }))} />
           </Fields>
           <p className="ad__dim" style={{ fontSize: ".86rem", lineHeight: 1.6 }}>
             Its projects, invoices, estimates, credit, messages, tickets and forms move here. Its services,

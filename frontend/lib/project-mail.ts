@@ -7,6 +7,7 @@ import { getClient } from "@/lib/admin/store";
 import { queueLogged } from "@/lib/message-log";
 import { notifyAllows, type Deliverable, type Project } from "@/lib/admin/types";
 import { sendLogged } from "@/lib/outbox";
+import { logNotSent } from "@/lib/lifecycle-mail";
 
 /**
  * The project messages: it moved, it needs you, you signed it off.
@@ -34,13 +35,23 @@ async function skipped(project: Project, subject: string, dedupeKey: string, by:
   });
 }
 
+/** No address on file: a Skipped row with the reason, instead of a silent return. */
+async function noAddress(project: Project, subject: string, dedupeKey: string, by: string) {
+  const client = getClient(project.clientId);
+  await logNotSent({
+    why: `${client?.company ?? "the client"} has no email address on file.`, subject, dedupeKey, by,
+    clientId: project.clientId, about: { kind: "project", id: project.id, label: project.title },
+  });
+}
+
 export async function sendStageEmail(input: { project: Project; from: string; to: string; note?: string; by: string }) {
   const { project, from, to, note, by } = input;
   const client = getClient(project.clientId);
   const email = client?.email?.trim();
   const dedupeKey = `stage:${project.id}:${to}:${new Date().toISOString().slice(0, 10)}`;
   const subject = `${project.title}: now ${to}`;
-  if (!client || !email) return;
+  if (!client) return;
+  if (!email) return noAddress(project, subject, dedupeKey, by);
   if (!notifyAllows(client.notify, "updates")) return skipped(project, subject, dedupeKey, by);
   try {
     await sendLogged(
@@ -59,7 +70,8 @@ export async function sendApprovalRequest(input: { project: Project; deliverable
   const v = deliverable.versions.at(-1)?.v ?? 1;
   const dedupeKey = `approval-request:${deliverable.id}:v${v}`;
   const subject = `${deliverable.name} is ready for your review`;
-  if (!client || !email) return;
+  if (!client) return;
+  if (!email) return noAddress(project, subject, dedupeKey, by);
   if (!notifyAllows(client.notify, "updates")) return skipped(project, subject, dedupeKey, by);
   /* A week, stated in the email so the schedule cannot slip silently. It is
      the studio's ask, and the client can say it does not work for them. */
@@ -79,8 +91,9 @@ export async function sendSignOffConfirmation(input: { project: Project; deliver
   const { project, deliverable, signedBy } = input;
   const client = getClient(project.clientId);
   const email = client?.email?.trim();
-  if (!client || !email) return;
+  if (!client) return;
   const v = deliverable.versions.at(-1)?.v ?? 1;
+  if (!email) return noAddress(project, `Signed off: ${deliverable.name} (v${v})`, `signoff:${deliverable.id}:v${v}`, signedBy);
   try {
     await sendLogged(
       { to: email, ...signOffEmail({ clientName: first(client.name), projectTitle: project.title, deliverable: `${deliverable.name} (v${v})`, signedBy, signedAt: new Date(), url: portalUrl(project.id) }) },

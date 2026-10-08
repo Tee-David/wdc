@@ -7,7 +7,7 @@ import {
 import { invoiceTotals, lineTotal, type Invoice } from "@/lib/admin/types";
 import { wholeKobo, verifyTransaction } from "@/lib/paystack";
 import { chargeBanked, claimCharge, releaseCharge } from "@/lib/paystack-claim";
-import { sendPaymentReceiptEmail } from "@/lib/money-mail";
+import { sendOnlinePaymentEmails } from "@/lib/money-mail";
 import ReceiptPrinter, { type ReceiptLine } from "@/components/money/receipt-printer";
 import "@/components/money/document.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
@@ -146,6 +146,10 @@ async function settle(reference: string): Promise<Outcome> {
       existing = getPaymentsFor(invoice.id).find((p) => p.reference === reference);
     }
     if (!existing) return recording;
+    /* Keyed on the payment, so this finds the rows the webhook wrote and sends
+       nothing; if the webhook's instance never got to, it is sent from here. */
+    const banked = existing;
+    after(() => sendOnlinePaymentEmails({ payment: banked, invoice }));
     return paidOutcome(getInvoice(invoice.id) ?? invoice, existing);
   }
 
@@ -160,6 +164,7 @@ async function settle(reference: string): Promise<Outcome> {
     const existing = getPaymentsFor(invoice.id).find((p) => p.reference === reference);
     if (existing) await chargeBanked(reference, existing.id); else await releaseCharge(reference);
     if (applied.reason === "duplicate" && existing) {
+      after(() => sendOnlinePaymentEmails({ payment: existing, invoice }));
       return paidOutcome(getInvoice(invoice.id) ?? invoice, existing);
     }
     recordProviderEvent({
@@ -180,12 +185,12 @@ async function settle(reference: string): Promise<Outcome> {
 
   const fresh = getInvoice(invoice.id) ?? invoice;
   /* Behind the response, and deduped on the payment, so the webhook arriving
-     a second later does not send a second copy. */
-  after(async () => {
-    await sendPaymentReceiptEmail({
-      payment: applied.payment, invoice: fresh, outstanding: invoiceTotals(fresh).due,
-    });
-  });
+     a second later does not send a second copy. THE STUDIO'S NOTICE IS SENT
+     FROM HERE TOO: the webhook's branch for a charge this page already banked
+     used to return before sending it, so whenever this page won the race the
+     studio never heard. Both emails are keyed on the payment; whichever path
+     asks second finds the rows and sends nothing. */
+  after(() => sendOnlinePaymentEmails({ payment: applied.payment, invoice: fresh }));
 
   return paidOutcome(fresh, applied.payment, Boolean(applied.overpaid));
 }

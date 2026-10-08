@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, Users } from "lucide-react";
-import { listDepartments, staffChoices } from "@/lib/departments";
+import { listDepartments } from "@/lib/departments";
 import { syncStore } from "@/lib/admin/persist";
 import { clientsInDepartment } from "@/lib/admin/store";
 import { AdminState } from "@/components/admin/admin-state";
@@ -14,7 +14,7 @@ export const metadata = { title: "Departments" };
  * client is looked after by one or more. Owner only (the Users area).
  */
 export default async function Departments() {
-  const [departments, staff] = await Promise.all([listDepartments(), staffChoices().catch(() => [])]);
+  const departments = await listDepartments();
   if (!departments) {
     return <AdminState kind="error" title="Departments are not set up yet"
       description="Apply migration 0040 in Settings › System, then reload."
@@ -35,7 +35,7 @@ export default async function Departments() {
         <div className="ad__stack">
           {departments.map((d) => (
             <Panel key={d.id} title={d.name} action={<span className="ad__dim">{d.members.filter((m) => m.active).length} {d.members.filter((m) => m.active).length === 1 ? "person" : "people"}</span>}>
-              <DepartmentBody id={d.id} name={d.name} members={d.members} staff={staff}
+              <DepartmentBody id={d.id} name={d.name} members={d.members}
                 clients={clientsInDepartment(d.id).map((c) => ({ id: c.id, company: c.company }))} />
             </Panel>
           ))}

@@ -1,9 +1,9 @@
 "use client";
 
 import { UserPlus } from "lucide-react";
-import type { Client } from "@/lib/admin/types";
 import { attachSubmission, clientFromLiveSubmission } from "@/lib/admin/actions";
-import { Actions, Fields, Form, Hidden, Select, Submit } from "./form";
+import { Actions, Fields, Form, Hidden, Submit } from "./form";
+import { RemoteSelect } from "./remote-pick";
 import { DialogButton } from "./dialog";
 
 /**
@@ -17,10 +17,9 @@ import { DialogButton } from "./dialog";
  * is their second service.
  */
 export function AttachSubmission({
-  submissionId, clients,
+  submissionId,
 }: {
   submissionId: string;
-  clients: Pick<Client, "id" | "company">[];
 }) {
   return (
     <DialogButton label="Attach to a client" title="Whose form is this?" icon={UserPlus}>
@@ -29,11 +28,10 @@ export function AttachSubmission({
         <Form action={attachSubmission}>
           <Fields>
             <Hidden name="id" value={submissionId} />
-            <Select
-              name="clientId" label="Existing client"
+            <RemoteSelect
+              name="clientId" label="Existing client" kind="clients"
               placeholder="Make a new one from these answers"
-              options={clients.map((c) => ({ value: c.id, label: c.company }))}
-              hint="Leave this as it is and the answers become a new client record."
+              hint="Search by name, email or phone. Leave this as it is and the answers become a new client record."
             />
           </Fields>
           <Actions>

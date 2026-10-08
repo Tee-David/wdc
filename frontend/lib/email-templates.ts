@@ -1064,6 +1064,236 @@ ${url}`),
   };
 }
 
+/* =================================================== money: corrections */
+
+/**
+ * THE CLIENT'S COPY OF A CORRECTION: a voided invoice, a refund, a reversal.
+ *
+ * Each says what changed in the client's own terms (what they owe now), names
+ * the document that has changed, and links to it. None carries the studio's
+ * internal reason for a refund or a reversal; a void's reason is the same
+ * sentence the invoice page already prints for the client.
+ */
+export function invoiceVoidedEmail(input: { clientName: string; number: string; reason: string; url: string }): Email {
+  const { clientName, number, reason, url } = input;
+  return {
+    subject: `Invoice ${number} has been cancelled`,
+    text: textShell(`Hi ${clientName},
+
+Invoice ${number} has been cancelled, so nothing is owed on it and its pay link no longer takes money.
+
+Why: ${reason}
+
+The invoice still opens, and says it is cancelled:
+
+${url}
+
+If you have already paid it, or this is a surprise, reply to this email and we will sort it out the same day.
+
+The WDC team`),
+    html: shell({
+      title: `Invoice ${number} cancelled`,
+      preheader: `Nothing is owed on ${number}.`,
+      heading: "This invoice has been cancelled",
+      blocks: [
+        p(`Hi ${escapeHtml(clientName)},`),
+        p(`Invoice <b>${escapeHtml(number)}</b> has been cancelled, so nothing is owed on it and its pay link no longer takes money.`),
+        panel([["Invoice", number], ["Why", reason], ["Owed now", naira(0)]]),
+        action("Open the invoice", url),
+        small("If you have already paid it, or this is a surprise, reply to this email and we will sort it out the same day."),
+      ],
+      why: "You get this because an invoice we sent you was changed.",
+      manage: "client",
+    }),
+  };
+}
+
+export function paymentRefundedEmail(input: {
+  clientName: string; receiptNo: string; invoice: string; amount: number; toCredit: boolean; owedNow: number; url: string;
+}): Email {
+  const { clientName, receiptNo, invoice, amount, toCredit, owedNow, url } = input;
+  const what = toCredit
+    ? `We are holding ${naira(amount)} for you on account. It comes off your next invoice.`
+    : `We have returned ${naira(amount)}. It goes back the way it came, and your bank can take a few days to show it.`;
+  const left = owedNow > 0 ? `${naira(owedNow)} is now owed on ${invoice}.` : `Nothing is owed on ${invoice}.`;
+  return {
+    subject: toCredit ? `${naira(amount)} is being held on your account` : `${naira(amount)} refunded`,
+    text: textShell(`Hi ${clientName},
+
+${what}
+
+It was part of your payment ${receiptNo} against invoice ${invoice}. ${left}
+
+Your receipt has been updated to show it:
+
+${url}
+
+If this does not match what you expected, reply to this email and we will look at it the same day.
+
+The WDC team`),
+    html: shell({
+      title: toCredit ? "Held on your account" : "Refund",
+      preheader: what,
+      heading: toCredit ? "We are holding this for you" : "We have sent a refund",
+      blocks: [
+        p(`Hi ${escapeHtml(clientName)},`),
+        figure(naira(amount), { label: toCredit ? "Held on account" : "Refunded", note: what }),
+        panel([["Receipt", receiptNo], ["Invoice", invoice], ["Owed now", owedNow > 0 ? naira(owedNow) : "Nothing"]]),
+        action("Open your receipt", url),
+        small("The receipt now shows the refund. If this does not match what you expected, reply to this email and we will look at it the same day."),
+      ],
+      why: "You get this because a payment you made was changed.",
+      manage: "client",
+    }),
+  };
+}
+
+export function paymentReversedEmail(input: {
+  clientName: string; receiptNo: string; invoice: string; amount: number; owedNow: number; invoiceUrl: string; url: string;
+}): Email {
+  const { clientName, receiptNo, invoice, amount, owedNow, invoiceUrl, url } = input;
+  const left = owedNow > 0 ? `${naira(owedNow)} is now owed on ${invoice}.` : `Nothing is owed on ${invoice}.`;
+  return {
+    subject: `Payment ${receiptNo} has been taken off ${invoice}`,
+    text: textShell(`Hi ${clientName},
+
+The payment of ${naira(amount)} recorded against invoice ${invoice} (receipt ${receiptNo}) has been taken off, so it no longer counts. ${left}
+
+That usually means a transfer did not clear, or the payment was entered twice or against the wrong invoice. Your receipt still opens and now says reversed:
+
+${url}
+
+The invoice:
+
+${invoiceUrl}
+
+If you believe this is wrong, reply to this email and we will look at it the same day.
+
+The WDC team`),
+    html: shell({
+      title: `Payment ${receiptNo} reversed`,
+      preheader: left,
+      heading: "A payment was taken off your invoice",
+      blocks: [
+        p(`Hi ${escapeHtml(clientName)},`),
+        p(`The payment of <b>${escapeHtml(naira(amount))}</b> recorded against invoice <b>${escapeHtml(invoice)}</b> has been taken off, so it no longer counts. That usually means a transfer did not clear, or the payment was entered twice or against the wrong invoice.`),
+        panel([["Receipt", `${receiptNo} (reversed)`], ["Invoice", invoice], ["Owed now", owedNow > 0 ? naira(owedNow) : "Nothing"]]),
+        action(owedNow > 0 ? "Open the invoice" : "Open your receipt", owedNow > 0 ? invoiceUrl : url),
+        small("Your receipt still opens and now says reversed. If you believe this is wrong, reply to this email and we will look at it the same day."),
+      ],
+      why: "You get this because a payment you made was changed.",
+      manage: "client",
+    }),
+  };
+}
+
+/* ============================================================ money: estimates */
+
+export function estimateSentEmail(input: {
+  clientName: string; number: string; total: number; expires: Date; notes?: string; url: string;
+}): Email {
+  const { clientName, number, total, expires, notes, url } = input;
+  return {
+    subject: `Estimate ${number}: ${naira(total)}, holds until ${emailDate(expires)}`,
+    text: textShell(`Hi ${clientName},
+
+Here is our estimate ${number} for ${naira(total)}. The price holds until ${emailDate(expires)}.
+${notes ? `\n${notes}\n` : ""}
+Read it in full here:
+
+${url}
+
+If something in the scope is wrong, or you want a line taken out, reply and we will re-issue it rather than argue about it later.
+
+The WDC team`),
+    html: shell({
+      title: `Estimate ${number}`,
+      preheader: `${naira(total)}, holds until ${emailDate(expires)}.`,
+      heading: "Your estimate is ready",
+      blocks: [
+        p(`Hi ${escapeHtml(clientName)},`),
+        figure(naira(total), { label: "Estimate", note: `Holds until ${emailDate(expires)}` }),
+        ...(notes ? [p(escapeHtml(notes))] : []),
+        panel([["Estimate", number], ["Holds until", emailDate(expires)]]),
+        action("Read the estimate", url),
+        small("If something in the scope is wrong, or you want a line taken out, reply and we will re-issue it rather than argue about it later."),
+      ],
+      why: "You get this because the studio sent you an estimate.",
+      manage: "client",
+    }),
+  };
+}
+
+/** The client's copy once their answer is on record. */
+export function estimateAnsweredEmail(input: {
+  clientName: string; number: string; accepted: boolean; invoiceNumber?: string; invoiceUrl?: string; url: string;
+}): Email {
+  const { clientName, number, accepted, invoiceNumber, invoiceUrl, url } = input;
+  const line = accepted
+    ? invoiceNumber
+      ? `We have recorded your yes to estimate ${number}. Thank you. The invoice for it is ${invoiceNumber}.`
+      : `We have recorded your yes to estimate ${number}. Thank you.`
+    : `We have recorded that estimate ${number} was not taken up. Thank you for looking at it.`;
+  const link = accepted && invoiceUrl ? invoiceUrl : url;
+  return {
+    subject: accepted ? `Estimate ${number} accepted, thank you` : `Estimate ${number} recorded as declined`,
+    text: textShell(`Hi ${clientName},
+
+${line}
+
+${accepted && invoiceUrl ? "Your invoice:" : "The estimate:"}
+
+${link}
+
+If this is not what you meant, reply to this email and we will put it right.
+
+The WDC team`),
+    html: shell({
+      title: accepted ? `Estimate ${number} accepted` : `Estimate ${number} declined`,
+      preheader: line,
+      heading: accepted ? "Thank you, that is agreed" : "We have noted your answer",
+      blocks: [
+        p(`Hi ${escapeHtml(clientName)},`),
+        p(escapeHtml(line)),
+        action(accepted && invoiceUrl ? "Open your invoice" : "Open the estimate", link),
+        small("If this is not what you meant, reply to this email and we will put it right."),
+      ],
+      why: "You get this because your answer to an estimate was recorded.",
+      manage: "client",
+    }),
+  };
+}
+
+/** The studio's own notice that an estimate was answered. Switch: notify.estimates. */
+export function estimateAnswerNoticeEmail(input: {
+  company: string; number: string; accepted: boolean; by: string; total: number; invoiceNumber?: string; note?: string; url: string;
+}): Email {
+  const { company, number, accepted, by, total, invoiceNumber, note, url } = input;
+  const heading = `${company} ${accepted ? "accepted" : "declined"} ${number}.`;
+  return {
+    subject: `Estimate ${accepted ? "accepted" : "declined"}: ${company}, ${naira(total)}`,
+    text: textShell(`${heading}
+
+Answered by ${by}. ${accepted && invoiceNumber ? `Raised as invoice ${invoiceNumber}.` : ""}${note ? `\nNote: ${note}` : ""}
+
+In the admin:
+
+${url}`),
+    html: shell({
+      title: `Estimate ${accepted ? "accepted" : "declined"} by ${company}`,
+      preheader: `${naira(total)}. ${accepted && invoiceNumber ? `Raised as ${invoiceNumber}.` : ""}`,
+      heading,
+      blocks: [
+        figure(naira(total), { label: accepted ? "Accepted" : "Declined" }),
+        panel([["Client", company], ["Estimate", number], ["Answered by", by], ...(accepted && invoiceNumber ? [["Invoice", invoiceNumber] as [string, string]] : []), ...(note ? [["Note", note] as [string, string]] : [])]),
+        action("Open the estimate", url),
+      ],
+      why: "You get this because estimate notices are on.",
+      manage: "staff",
+    }),
+  };
+}
+
 export function deliverableReadyEmail(input: {
   clientName: string;
   projectTitle: string;
@@ -1589,6 +1819,358 @@ The WDC team`),
         action("Yes, subscribe me", url),
         p(`The link works for ${hours} hours.`),
         small("If it was not you, ignore this email. You will not be added, and nothing else is sent."),
+      ],
+    }),
+  };
+}
+
+/* ============================================================================
+   LIFECYCLE NOTICES: accounts, approvals, meetings, questions, security.
+
+   Appended as one block. Studio notices ("manage: staff") each have a switch
+   under Settings, Notifications; notices to a client ("manage: client") follow
+   that client's own project-updates switch; the two security notices at the
+   end are always sent and say so. Copy is plain and short, with no city names.
+   ============================================================================ */
+
+const firstWord = (name: string) => name.trim().split(/\s+/)[0] || name;
+
+/** The client's welcome, once, when they accept their invitation and the portal account exists. */
+export function clientWelcomeEmail(input: { name: string; company?: string; url: string }): Email {
+  const name = firstWord(input.name);
+  const { company, url } = input;
+  return {
+    subject: "Welcome to your client portal",
+    /* A notice to a client is theirs to switch off (project updates), so it carries the unsubscribe line. */
+    unsubscribe: true,
+    text: textShell(`Hi ${name},
+
+Your portal account${company ? ` for ${company}` : ""} is ready. From it you can:
+
+  - follow each project and the stage it is at
+  - look at work, comment on it, and approve it or ask for changes
+  - see your invoices, pay them, and keep your receipts
+  - ask us a question and read our answer
+
+Open your portal here:
+
+${url}
+
+The WDC team`, { unsubscribe: true }),
+    html: shell({
+      title: "Welcome to your client portal",
+      preheader: "Your account is ready. Here is what you can do with it.",
+      heading: "Your portal is ready.",
+      why: "You get this because you accepted our invitation.",
+      manage: "client",
+      unsubscribe: true,
+      blocks: [
+        p(`Hi ${escapeHtml(name)},`),
+        p(`Your portal account${company ? ` for <b>${escapeHtml(company)}</b>` : ""} is ready. From it you can:`),
+        panel([
+          ["Follow", "each project and the stage it is at"],
+          ["Review", "work, comment on it, approve it or ask for changes"],
+          ["Pay", "invoices, and keep your receipts"],
+          ["Ask", "us a question and read our answer"],
+        ]),
+        action("Open your portal", url),
+      ],
+    }),
+  };
+}
+
+/** For the studio: a client accepted their invitation and now has a portal account. */
+export function clientJoinedNoticeEmail(input: { name: string; email: string; company: string; url: string }): Email {
+  const { name, email, company, url } = input;
+  const heading = `${name} joined the client portal.`;
+  return {
+    subject: `${company}: ${name} joined the portal`,
+    text: textShell(`${heading}
+
+Client: ${company}
+Email: ${email}
+
+Their welcome email has gone out. Open the client in the admin:
+
+${url}`),
+    html: shell({
+      title: heading,
+      preheader: `${company} now has a portal account.`,
+      heading,
+      blocks: [
+        panel([["Name", name], ["Email", email], ["Client", company]]),
+        p("They accepted their invitation and can now see their projects and invoices. Their welcome email has gone out."),
+        action("Open the client", url),
+      ],
+      why: "You get this because portal sign-up notices are on.",
+      manage: "staff",
+    }),
+  };
+}
+
+/** For the studio: a staff member accepted their invitation. A second note follows only if they finish the welcome. */
+export function staffJoinedEmail(input: { name: string; email: string; url: string }): Email {
+  const { name, email, url } = input;
+  const heading = `${name} accepted their invitation.`;
+  return {
+    subject: `${name} has joined the team`,
+    text: textShell(`${heading}
+
+Name: ${name}
+Email: ${email}
+
+Their account is ready. You will get one more note if they finish the welcome.
+
+See your team in the admin:
+
+${url}`),
+    html: shell({
+      title: heading,
+      preheader: "Their account is ready.",
+      heading,
+      blocks: [
+        panel([["Name", name], ["Email", email], ["Welcome", "Not finished yet"]]),
+        p("Their account is ready. You can change what they can see, or add them to a department, from the Users page. You will get one more note if they finish the welcome."),
+        action("Open Users", url),
+      ],
+      why: "You get this because staff notices are on.",
+      manage: "staff",
+    }),
+  };
+}
+
+/** For the studio: a client asked for changes to a deliverable, with their note. */
+export function revisionRequestedNoticeEmail(input: { company: string; project: string; deliverable: string; note: string; by: string; url: string }): Email {
+  const { company, project, deliverable, note, by, url } = input;
+  const heading = `${company} asked for changes.`;
+  return {
+    subject: `Changes asked for: ${deliverable} (${company})`,
+    text: textShell(`${heading}
+
+Project: ${project}
+Deliverable: ${deliverable}
+Asked by: ${by}
+
+Their note:
+
+${note}
+
+Open the project in the admin:
+
+${url}`),
+    html: shell({
+      title: heading,
+      preheader: note.slice(0, 120),
+      heading,
+      blocks: [
+        panel([["Client", company], ["Project", project], ["Deliverable", deliverable], ["Asked by", by]]),
+        p(escapeHtml(note).replace(/\n/g, "<br>")),
+        action("Open the project", url),
+      ],
+      why: "You get this because approval notices are on.",
+      manage: "staff",
+    }),
+  };
+}
+
+/** For the studio: a client approved a deliverable. (The client has their own sign-off confirmation.) */
+export function deliverableApprovedNoticeEmail(input: { company: string; project: string; deliverable: string; signedBy: string; url: string }): Email {
+  const { company, project, deliverable, signedBy, url } = input;
+  const heading = `${company} approved ${deliverable}.`;
+  return {
+    subject: `Approved: ${deliverable} (${company})`,
+    text: textShell(`${heading}
+
+Project: ${project}
+Approved by: ${signedBy}
+
+Open the project in the admin:
+
+${url}`),
+    html: shell({
+      title: heading,
+      preheader: `${signedBy} signed it off.`,
+      heading,
+      blocks: [
+        panel([["Client", company], ["Project", project], ["Deliverable", deliverable], ["Approved by", signedBy]]),
+        action("Open the project", url),
+      ],
+      why: "You get this because approval notices are on.",
+      manage: "staff",
+    }),
+  };
+}
+
+/** To a client: the studio picked up their form and attached it to their record. Sent only when the studio ticks "Tell the client". */
+export function entryAssignedEmail(input: { clientName: string; form: string; project?: string; url: string }): Email {
+  const name = firstWord(input.clientName);
+  const { form, project, url } = input;
+  return {
+    subject: `We have your ${form}`,
+    /* A notice to a client is theirs to switch off (project updates), so it carries the unsubscribe line. */
+    unsubscribe: true,
+    text: textShell(`Hi ${name},
+
+We have picked up your ${form} and added it to your record${project ? `, under the project ${project}` : ""}. There is nothing you need to do.
+
+You can follow what happens next in your portal:
+
+${url}
+
+The WDC team`, { unsubscribe: true }),
+    html: shell({
+      title: `We have your ${form}`,
+      preheader: "It is on your record. Nothing is needed from you.",
+      heading: "We have it.",
+      why: "You get this because we added something to your record.",
+      manage: "client",
+      unsubscribe: true,
+      blocks: [
+        p(`Hi ${escapeHtml(name)},`),
+        p(`We have picked up your <b>${escapeHtml(form)}</b> and added it to your record${project ? `, under the project <b>${escapeHtml(project)}</b>` : ""}. There is nothing you need to do.`),
+        action("Open your portal", url),
+      ],
+    }),
+  };
+}
+
+export type MeetingNoticeKind = "booked" | "cancelled" | "rescheduled";
+
+/** For the studio: a meeting was booked, cancelled or moved. The client's own meeting emails come from the booking service. */
+export function meetingNoticeEmail(input: { kind: MeetingNoticeKind; title: string; who: string; email: string; when: string; url: string }): Email {
+  const { kind, title, who, email, when, url } = input;
+  const heading = `A meeting was ${kind}.`;
+  return {
+    subject: `Meeting ${kind}: ${who}`,
+    text: textShell(`${heading}
+
+Meeting: ${title}
+With: ${who}${email ? ` (${email})` : ""}
+When: ${when}
+
+See your meetings in the admin:
+
+${url}`),
+    html: shell({
+      title: heading,
+      preheader: `${who}, ${when}.`,
+      heading,
+      blocks: [
+        panel([["Meeting", title], ["With", email ? `${who} (${email})` : who], ["When", when]]),
+        action("Open meetings", url),
+      ],
+      why: "You get this because meeting notices are on.",
+      manage: "staff",
+    }),
+  };
+}
+
+/** To a client: their question reached us, and when to expect an answer. */
+export function ticketReceivedEmail(input: { clientName: string; subject: string; url: string }): Email {
+  const name = firstWord(input.clientName);
+  const { subject, url } = input;
+  return {
+    subject: `We have your question: ${subject}`,
+    /* A notice to a client is theirs to switch off (project updates), so it carries the unsubscribe line. */
+    unsubscribe: true,
+    text: textShell(`Hi ${name},
+
+We have your question, "${subject}". We usually reply the same working day. The answer will be in your portal and in your inbox.
+
+You can add to it, or see it, here:
+
+${url}
+
+The WDC team`, { unsubscribe: true }),
+    html: shell({
+      title: `We have your question`,
+      preheader: "We usually reply the same working day.",
+      heading: "We have your question.",
+      why: "You get this because you asked us a question in your portal.",
+      manage: "client",
+      unsubscribe: true,
+      blocks: [
+        p(`Hi ${escapeHtml(name)},`),
+        p(`We have your question. We usually reply the same working day, and the answer will be in your portal and in your inbox.`),
+        panel([["About", subject]]),
+        action("See your question", url),
+      ],
+    }),
+  };
+}
+
+/* The two security notices below are never switched off: they are how a person
+   finds out about a sign-in or a change they did not make. */
+
+/** To the person: a device we have not seen signed in. */
+export function newDeviceEmail(input: { name?: string; device: string; when: Date; resetUrl: string }): Email {
+  const { device, when, resetUrl } = input;
+  const hello = input.name ? `Hi ${firstWord(input.name)},` : "Hello,";
+  const at = `${emailDateTime(when)} (WAT)`;
+  return {
+    subject: "New sign-in to your WDC account",
+    text: textShell(`${hello}
+
+Your account was just signed in to from a device we have not seen before.
+
+Device: ${device}
+When: ${at}
+
+If that was you, there is nothing to do. If it was not, reset your password now. That also signs out every other device:
+
+${resetUrl}
+
+This notice is always sent, because it is how you find out about a sign-in you did not make.
+
+The WDC team`),
+    html: shell({
+      title: "New sign-in to your account",
+      preheader: `${device}, ${at}.`,
+      heading: "New sign-in to your account",
+      why: "This is a security notice, so it is always sent.",
+      blocks: [
+        p(escapeHtml(hello)),
+        p("Your account was just signed in to from a device we have not seen before."),
+        panel([["Device", device], ["When", at]]),
+        p("If that was you, there is nothing to do. If it was not, reset your password now. That also signs out every other device."),
+        action("Reset my password", resetUrl),
+      ],
+    }),
+  };
+}
+
+/** To the person: their password was changed, in the account or by a reset link. */
+export function passwordChangedEmail(input: { name?: string; when: Date; how: "changed" | "reset"; resetUrl: string }): Email {
+  const { when, how, resetUrl } = input;
+  const hello = input.name ? `Hi ${firstWord(input.name)},` : "Hello,";
+  const at = `${emailDateTime(when)} (WAT)`;
+  const what = how === "reset" ? "Your password was reset with an emailed link." : "Your password was changed from your account settings.";
+  return {
+    subject: "Your WDC password was changed",
+    text: textShell(`${hello}
+
+${what} Your other devices were signed out.
+
+When: ${at}
+
+If that was you, there is nothing to do. If it was not, reset your password again now:
+
+${resetUrl}
+
+This notice is always sent, because it is how you find out about a change you did not make.
+
+The WDC team`),
+    html: shell({
+      title: "Your password was changed",
+      preheader: `${what} Your other devices were signed out.`,
+      heading: "Your password was changed",
+      why: "This is a security notice, so it is always sent.",
+      blocks: [
+        p(escapeHtml(hello)),
+        p(`${escapeHtml(what)} Your other devices were signed out.`),
+        panel([["When", at]]),
+        p("If that was you, there is nothing to do. If it was not, reset your password again now."),
+        action("Reset my password", resetUrl),
       ],
     }),
   };

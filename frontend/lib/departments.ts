@@ -20,12 +20,6 @@ export async function listDepartments(): Promise<Department[] | null> {
   } catch { return null; }
 }
 
-/** The people who can be put in a department: active owners and staff. */
-export async function staffChoices(): Promise<{ id: string; name: string }[]> {
-  const r = await db.query<{ id: string; name: string }>(`SELECT "id","name" FROM "user" WHERE "role" IN ('owner','staff') AND "deactivatedAt" IS NULL ORDER BY lower("name") LIMIT 200`);
-  return r.rows;
-}
-
 export async function createDepartment(name: string): Promise<"ok" | "taken"> {
   try { await db.query(`INSERT INTO departments (id, name) VALUES ($1, $2)`, [randomUUID(), name]); return "ok"; }
   catch { return "taken"; }

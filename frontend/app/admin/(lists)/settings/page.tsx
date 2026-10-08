@@ -31,7 +31,7 @@ export default async function SettingsPage() {
     values["/admin/settings/site"] = seo.noindex.on ? "Hidden" : "Indexed";
     values["/admin/settings/maintenance"] = m.on ? "On" : "Off";
     values["/admin/settings/email"] = mailIsConfigured() ? "Set up" : "Missing";
-    values["/admin/settings/notifications"] = [getSetting("notify.tickets"), getSetting("notify.payments")].includes("0") ? "Some off" : "On";
+    values["/admin/settings/notifications"] = [getSetting("notify.tickets"), getSetting("notify.payments"), getSetting("notify.estimates")].includes("0") ? "Some off" : "On";
   }
   return (
     <>

@@ -1,14 +1,9 @@
 import "server-only";
 
 import { db } from "@/lib/db/pool";
+import { deviceLabel } from "./device-label";
 
-/** "Chrome on Windows" from a user agent: enough to recognise a device, no more. */
-export function deviceLabel(ua: string | null) {
-  if (!ua) return "Unknown device";
-  const browser = /Edg\//.test(ua) ? "Edge" : /Firefox\//.test(ua) ? "Firefox" : /Chrome\//.test(ua) ? "Chrome" : /Safari\//.test(ua) ? "Safari" : "A browser";
-  const os = /iPhone|iPad/.test(ua) ? "iOS" : /Android/.test(ua) ? "Android" : /Windows/.test(ua) ? "Windows" : /Mac OS X/.test(ua) ? "macOS" : /Linux/.test(ua) ? "Linux" : "";
-  return os ? `${browser} on ${os}` : browser;
-}
+export { deviceLabel } from "./device-label";
 
 export type Device = { id: string; label: string; at: string; current: boolean };
 

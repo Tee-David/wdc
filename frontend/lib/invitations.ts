@@ -165,7 +165,7 @@ export async function revokeStaleInvitations(clientId: string, keep: string, by:
 }
 
 export type Redeemed =
-  | { ok: true; email: string; userId: string; role: InviteRole }
+  | { ok: true; email: string; userId: string; role: InviteRole; name: string; clientId: string | null }
   | { ok: false; reason: "invalid" | "redeemed" | "revoked" | "expired" | "exists" | "weak-password" | "breached-password" | "unchecked-password" };
 
 /**
@@ -224,7 +224,7 @@ export async function redeemInvitation(token: string, input: { name: string; pas
       );
     }
     await c.query("UPDATE invitations SET redeemed_at = now(), redeemed_user_id = $2 WHERE id = $1", [row.id, userId]);
-    return { ok: true, email: row.email, userId, role: row.role } as const;
+    return { ok: true, email: row.email, userId, role: row.role, name, clientId: row.client_id } as const;
   });
 }
 

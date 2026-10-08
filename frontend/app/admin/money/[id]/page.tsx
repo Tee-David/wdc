@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import {
   getClient, getInvoice, getPaymentsFor, getProject, getProjectsFor,
 } from "@/lib/admin/store";
+import { invoiceMailVerdict, noticeBlock, reconcileInvoice } from "@/lib/admin/money-rules";
 import { invoiceStatus, invoiceTotals, lineTotal, naira, nairaShort, paymentState, refundedTotal } from "@/lib/admin/types";
 
 /** The exact figure under a short one, only when the short one rounded it. */
@@ -14,7 +15,8 @@ import { invoiceUrl } from "@/components/money/document";
 import { PaymentMenu } from "@/components/admin/row-actions";
 import {
   DeleteDraft, InvoiceBuilder, IssueInvoice, RecordPayment, } from "@/components/admin/money-forms";
-import { EmailInvoice, EmailReminder } from "@/components/admin/reconcile-forms";
+import { CreditExcess, EmailInvoice, EmailReminder, SendReceipt } from "@/components/admin/reconcile-forms";
+import { InvoiceReconciliation } from "@/components/admin/reconciliation";
 import CommsLog from "@/components/admin/comms-log";
 import InvoiceReminders from "@/components/admin/invoice-reminders";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
@@ -51,6 +53,12 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
   const payments = getPaymentsFor(inv.id);
   const t = invoiceTotals(inv);
   const status = invoiceStatus(inv);
+  /* WHAT THIS CLIENT CAN BE EMAILED, said once: the ticks beside the receipt,
+     void, refund and credit controls all disable with this reason. */
+  const noEmail = noticeBlock(client);
+  const mailable = invoiceMailVerdict(inv).ok;
+  const settled = !inv.voided && inv.status !== "Draft" && !mailable;
+  const recon = reconcileInvoice(inv, payments);
 
   return (
     <>
@@ -68,10 +76,12 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
           <PageTourButton />
           <InvoicePill status={status} />
           {/* A DRAFT AND AN ISSUED INVOICE OFFER DIFFERENT THINGS, because
-              they are different objects: a draft is still being written, and
-              an issued one is a document somebody outside the studio is
-              holding. Editing or deleting it after that is how the two copies
-              stop matching, so neither is offered. */}
+              they are different objects: a draft is still being written and
+              can be issued or deleted; an issued one is a document somebody
+              outside the studio is holding, so it is never deleted, but it
+              CAN be corrected while it is unpaid or part paid (the copy they
+              hold updates to match, and every edit is in the history). A
+              total cannot go below what has been received. */}
           {inv.status === "Draft" ? (
             <>
               {client ? (
@@ -95,10 +105,22 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
               {/* SENDING IT IS AN ACTION ON THE INVOICE, not a step buried in
                   a menu. Both are safe to press twice -- the message log's
                   dedupe key means the second press sends nothing and says so
-                  -- so neither asks for a confirmation. */}
-              <EmailInvoice id={inv.id} />
+                  -- so neither asks for a confirmation.
+
+                  A SETTLED INVOICE IS NOT ASKED FOR AGAIN. "Email invoice"
+                  sends "Amount due", and a paid client does not need telling
+                  they owe nothing; what they are owed is a receipt. */}
+              {settled ? <SendReceipt invoiceId={inv.id} /> : <EmailInvoice id={inv.id} />}
               {t.due > 0 && status === "Overdue" ? <EmailReminder id={inv.id} /> : null}
-              <RecordPayment invoice={inv} owed={t.due} />
+              {t.due > 0 ? <RecordPayment invoice={inv} owed={t.due} noReceipt={noEmail} /> : null}
+              {client ? (
+                <InvoiceBuilder
+                  clients={[client]}
+                  projects={getProjectsFor(inv.clientId)}
+                  invoice={inv}
+                  trigger="Edit invoice"
+                />
+              ) : null}
             </>
           )}
         </div>
@@ -205,7 +227,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                           the row's state is the refund rows summed. */}
                       <td className="num">{naira(p.amount)}{paymentState(p) !== "Received" ? <small className="ad__dim">{paymentState(p)}{paymentState(p) === "Part refunded" ? `, ${naira(refundedTotal(p))} back` : ""}</small> : null}</td>
                       <td className="ad__rmC">
-                        <PaymentMenu payment={p} invoiceNumber={inv.number} />
+                        <PaymentMenu payment={p} invoiceNumber={inv.number} noEmail={noEmail} />
                       </td>
                     </tr>
                   ))}
@@ -258,14 +280,18 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
             overpaid invoice is a thing somebody has to decide about, and it is
             invisible from the totals alone. */}
         {inv.paid > t.total ? (
-          <p className="ad__msg is-bad" role="status">
+          <div className="ad__msg is-bad" role="status">
             <span>
               This invoice has taken {naira(inv.paid - t.total)} more than it is
               for. Nothing was rejected, because the money did arrive. Reverse
-              the payment that is wrong, or credit the difference.
+              the payment that is wrong, refund it from the payment&apos;s menu,
+              or credit the difference here.
             </span>
-          </p>
+            <CreditExcess invoiceId={inv.id} over={inv.paid - t.total} reason={noEmail} />
+          </div>
         ) : null}
+
+        {inv.status !== "Draft" ? <InvoiceReconciliation row={recon} /> : null}
 
         {inv.status !== "Draft" ? <InvoiceReminders invoice={inv} /> : null}
 

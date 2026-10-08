@@ -4,8 +4,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
 import {
-  financeDefaults, findDuplicateClient, getClient, getClients, getDeliverablesFor, getInvoicesFor, getPaymentsFor, getProjects, getProjectsFor, getSubmissions,
+  creditBalance, financeDefaults, findDuplicateClient, getClient, getClients, getCreditsFor, getDeliverablesFor, getInvoicesFor, getPaymentsFor, getProjects, getProjectsFor, getSubmissions,
 } from "@/lib/admin/store";
+import { noticeBlock, reconcileClient } from "@/lib/admin/money-rules";
+import ClientReconciliation from "@/components/admin/reconciliation";
 import { invoiceStatus, invoiceTotals, naira, paymentNet, paymentState } from "@/lib/admin/types";
 import { ApprovalPill, Empty, InvoicePill, Panel, StagePill, when } from "@/components/admin/bits";
 import { InvoiceMenu, ProjectMenu } from "@/components/admin/row-actions";
@@ -87,6 +89,15 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
   const owed = billed.reduce((n, i) => n + invoiceTotals(i).due, 0);
   const paid = billed.reduce((n, i) => n + i.paid, 0);
   const overdue = billed.some((i) => invoiceStatus(i) === "Overdue");
+  /* Two small facts the money forms need about this one client: what they hold
+     on account (to offer "use their credit"), and why they cannot be emailed,
+     if they cannot. And the reconciliation, summed from the same rows. */
+  const held = creditBalance(c.id);
+  const credits = held > 0 ? { [c.id]: held } : undefined;
+  const why = noticeBlock(c);
+  const noEmail = why ? { [c.id]: why } : undefined;
+  const recon = money ? reconcileClient(invoices, payments.map((x) => x.payment), getCreditsFor(c.id)) : null;
+  const clientProjects = getProjects().filter((p) => p.clientId === c.id);
 
   return (
     <>
@@ -113,18 +124,20 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
           {destructive ? <ArchiveClient client={c} /> : null}
           {c.mergedInto || !destructive ? null : (
             <MergeClient keepId={c.id} keepName={c.company}
-              candidates={getClients({ includeArchived: false })
-                .filter((x) => x.id !== c.id)
-                .map((x) => ({ id: x.id, company: x.company, likely: Boolean(findDuplicateClient(x.email, x.phone, x.id)?.id === c.id) }))} />
+              hasOthers={getClients().some((x) => x.id !== c.id)}
+              likely={getClients()
+                .filter((x) => x.id !== c.id && findDuplicateClient(x.email, x.phone, x.id)?.id === c.id)
+                .map((x) => ({ id: x.id, company: x.company }))} />
           )}
           <EditClient client={c} />
-          <AddProject clients={[c]} clientId={c.id} />
+          <AddProject clientId={c.id} />
           {money ? (
             <InvoiceBuilder
-              clients={[c]}
-              projects={getProjects().filter((p) => p.clientId === c.id)}
+              clients={[{ id: c.id, company: c.company }]}
+              projects={getProjects().filter((p) => p.clientId === c.id).map(({ id, title, clientId }) => ({ id, title, clientId }))}
               clientId={c.id}
               defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays}
+              credits={credits} noEmail={noEmail}
             />
           ) : null}
         </>}
@@ -185,7 +198,7 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
                 </table>
               </div>
             ) : (
-              <Empty title="No projects yet" action={<AddProject clients={[c]} clientId={c.id} />}>
+              <Empty title="No projects yet" action={<AddProject clientId={c.id} />}>
                 Open a project for {c.company} to track its stage, files and updates.
               </Empty>
             )}
@@ -206,7 +219,10 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
                           <td className="num">{when(i.due)}</td>
                           <td className="num">{naira(t.total)}</td>
                           <td className="num">{t.due ? naira(t.due) : <span className="ad__dim">Nil</span>}</td>
-                          <td className="ad__rmC"><InvoiceMenu invoice={i} /></td>
+                          <td className="ad__rmC">
+                            <InvoiceMenu invoice={i} noReceipt={why}
+                              edit={{ clientName: c.company, projects: clientProjects.map((p) => ({ id: p.id, title: p.title, clientId: p.clientId })) }} />
+                          </td>
                         </tr>
                       );
                     })}
@@ -216,7 +232,7 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
             ) : (
               <Empty title="Nothing invoiced yet" action={
                 <InvoiceBuilder clients={[c]} projects={getProjects().filter((p) => p.clientId === c.id)} clientId={c.id}
-                  defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} />}>
+                  defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} credits={credits} noEmail={noEmail} />}>
                 Raise an invoice for {c.company}. It gets a pay link they can use without signing in.
               </Empty>
             )}
@@ -264,10 +280,16 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
         </div>
       </div>
 
+      {recon ? (
+        <div style={{ marginTop: ".9rem" }}>
+          <ClientReconciliation recon={recon} />
+        </div>
+      ) : null}
+
       <div className="ad__grid2" style={{ marginTop: ".9rem" }}>
         {money ? <Panel title="Payment history" dataTour="client-payments"
           action={<RecordAnyPayment open={invoices.filter((i) => i.status !== "Draft" && !i.voided && invoiceTotals(i).due > 0)
-            .map((i) => ({ id: i.id, label: i.number, owed: invoiceTotals(i).due }))} />}>
+            .map((i) => ({ id: i.id, label: i.number, owed: invoiceTotals(i).due, noReceipt: why }))} />}>
           {payments.length ? (
             <div className="ad__scroll">
               <table className="ad__t">

@@ -27,7 +27,7 @@ import type { EntryFile } from "@/lib/onboarding-files";
 import { entryFiles } from "@/lib/forms/entry-files";
 import { AssignEntry } from "@/components/admin/forms/assign-entry";
 import { linkFor } from "@/lib/forms/links";
-import { getClient, getClients, getProject, getProjects } from "@/lib/admin/store";
+import { getClient, getProject } from "@/lib/admin/store";
 import "@/components/admin/forms/forms.css";
 
 type Props = {
@@ -321,8 +321,7 @@ export default async function EntryPage({ params, searchParams }: Props) {
                   {!entry.draft ? (
                     <> <AssignEntry
                       label={client ? "Change" : "Assign"} formKey={form.key} entryId={entry.id}
-                      clients={getClients().map((c) => ({ id: c.id, company: c.company }))}
-                      projects={getProjects().map((x) => ({ id: x.id, title: x.title, clientName: getClient(x.clientId)?.company ?? "", clientId: x.clientId }))}
+                      names={{ ...(client ? { [client.id]: client.company } : {}), ...(matched ? { [matched.id]: matched.company } : {}), ...(project ? { [project.id]: project.title } : {}) }}
                       needsService={!form.service} current={assigned} suggestedClientId={matched?.id} /></>
                   ) : null}
                 </dd></div>

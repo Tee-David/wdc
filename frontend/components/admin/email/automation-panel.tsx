@@ -1,29 +1,25 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useId, useState } from "react";
 import { GitBranch, Info, TriangleAlert, X } from "lucide-react";
 import { Pick } from "../pick";
+import { RemotePick } from "../remote-pick";
 import { emailText, stepProblem, TYPE_LABEL, withEmailText, withSubject, type Step } from "@/lib/automations-flow";
 import { Tile } from "./automation-tile";
 
 export type Meta = { name: string; kind: "marketing" | "service"; triggerKind: "tag_added" | "new_contact"; triggerValue: string };
-export type TagCount = { tag: string; n: number };
 export type Results = { reached: Record<string, number> | null; upNext: Record<string, number> };
 export type Totals = { active: number; completed: number; stopped: number };
 
-/** Existing tags to pick from (searchable), or a new one typed below. A tag step is the one place a tag may not exist yet. */
-function TagField({ label, value, tags, onChange }: { label: string; value: string; tags: TagCount[]; onChange: (v: string) => void }) {
+/** Existing tags to pick from (searched on the server), or a new one typed below. A tag step is the one place a tag may not exist yet. */
+function TagField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   const id = useId();
   const [typed, setTyped] = useState("");
-  const options = useMemo(() => {
-    const list = tags.map((t) => ({ value: t.tag, label: `${t.tag} (${t.n})` }));
-    return value && !tags.some((t) => t.tag === value) ? [{ value, label: value }, ...list] : list;
-  }, [tags, value]);
   return (
     <div className="adWf__tagrow">
       <div className="ad__f">
         <span className="ad__fl" id={`${id}-l`}>{label}</span>
-        <Pick options={options} value={value} placeholder="Choose a tag" search labelledBy={`${id}-l`} onChange={(v) => { setTyped(""); onChange(v); }} />
+        <RemotePick kind="tags" value={value} placeholder="Choose a tag" labelledBy={`${id}-l`} onChange={(v) => { setTyped(""); onChange(v); }} />
       </div>
       <label className="ad__f">
         <span className="ad__fl">Or a new tag</span>
@@ -77,8 +73,8 @@ function PanelTabs({ tab, setTab }: { tab: "setup" | "res"; setTab: (t: "setup" 
 const Kpi = ({ label, value }: { label: string; value: string }) => <div className="adWf__kpi"><span>{label}</span><b>{value}</b></div>;
 const NoCounts = () => <div className="adWf__note"><Info aria-hidden="true" /><span>Counts begin once migration 0048 is applied (Settings › System). Nothing is shown until then rather than a guess.</span></div>;
 
-export function StepPanel({ step, tab, setTab, tags, results, onPatch, onDelete, onClose, initialFocus }: {
-  step: Step; tab: "setup" | "res"; setTab: (t: "setup" | "res") => void; tags: TagCount[]; results: Results;
+export function StepPanel({ step, tab, setTab, results, onPatch, onDelete, onClose, initialFocus }: {
+  step: Step; tab: "setup" | "res"; setTab: (t: "setup" | "res") => void; results: Results;
   onPatch: (patch: Partial<Step>) => void; onDelete: () => void; onClose: () => void; initialFocus: "name" | "close" | null;
 }) {
   const problem = stepProblem(step);
@@ -122,20 +118,20 @@ export function StepPanel({ step, tab, setTab, tags, results, onPatch, onDelete,
             ) : null}
             {step.type === "tag" ? (
               <>
-                <TagField label="Tag" value={step.tag} tags={tags} onChange={(tag) => onPatch({ tag })} />
+                <TagField label="Tag" value={step.tag} onChange={(tag) => onPatch({ tag })} />
                 <Seg label="What to do with the tag" value={step.remove ? "remove" : "add"} options={[["add", "Add the tag"], ["remove", "Remove it"]]} onChange={(v) => onPatch({ remove: v === "remove" })} />
               </>
             ) : null}
             {step.type === "if" ? (
               <>
                 <div className="adWf__note"><GitBranch aria-hidden="true" /><span>People who have this tag go down <b>Yes</b>. Everyone else goes down <b>No</b>. Paths do not join again: when a path ends, so does the run.</span></div>
-                <TagField label="Has the tag" value={step.tag} tags={tags} onChange={(tag) => onPatch({ tag })} />
+                <TagField label="Has the tag" value={step.tag} onChange={(tag) => onPatch({ tag })} />
               </>
             ) : null}
             {step.type === "stop_if_tag" ? (
               <>
                 <div className="adWf__note"><Info aria-hidden="true" /><span>An older kind of step: the run ends here for anyone with this tag. A new Yes/No check does the same and more.</span></div>
-                <TagField label="Stop if they have" value={step.tag} tags={tags} onChange={(tag) => onPatch({ tag })} />
+                <TagField label="Stop if they have" value={step.tag} onChange={(tag) => onPatch({ tag })} />
               </>
             ) : null}
             {step.type === "note" ? <label className="ad__f"><span className="ad__fl">Note on their record</span><textarea value={step.text} maxLength={300} onChange={(e) => onPatch({ text: e.target.value })} /></label> : null}
@@ -157,8 +153,8 @@ export function StepPanel({ step, tab, setTab, tags, results, onPatch, onDelete,
   );
 }
 
-export function TriggerPanel({ meta, setMeta, tags, totals, tab, setTab, onClose, initialFocus }: {
-  meta: Meta; setMeta: (m: Partial<Meta>) => void; tags: TagCount[]; totals: Totals; tab: "setup" | "res"; setTab: (t: "setup" | "res") => void; onClose: () => void; initialFocus: "name" | "close" | null;
+export function TriggerPanel({ meta, setMeta, totals, tab, setTab, onClose, initialFocus }: {
+  meta: Meta; setMeta: (m: Partial<Meta>) => void; totals: Totals; tab: "setup" | "res"; setTab: (t: "setup" | "res") => void; onClose: () => void; initialFocus: "name" | "close" | null;
 }) {
   const entered = totals.active + totals.completed + totals.stopped;
   return (
@@ -185,7 +181,7 @@ export function TriggerPanel({ meta, setMeta, tags, totals, tab, setTab, onClose
               <Pick labelledBy="adWf-start" value={meta.triggerKind} onChange={(v) => setMeta({ triggerKind: v === "tag_added" ? "tag_added" : "new_contact" })}
                 options={[{ value: "new_contact", label: "Someone becomes a contact" }, { value: "tag_added", label: "A tag is added" }]} />
             </div>
-            {meta.triggerKind === "tag_added" ? <TagField label="Tag" value={meta.triggerValue} tags={tags} onChange={(triggerValue) => setMeta({ triggerValue })} /> : null}
+            {meta.triggerKind === "tag_added" ? <TagField label="Tag" value={meta.triggerValue} onChange={(triggerValue) => setMeta({ triggerValue })} /> : null}
             <div>
               <h3>This automation is</h3>
               <Seg label="Kind of automation" value={meta.kind} options={[["marketing", "Marketing"], ["service", "Service"]]} onChange={(kind) => setMeta({ kind })} />

@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link2 } from "lucide-react";
-import { createPrefilledLinkAction } from "@/lib/forms/prefill-actions";
+import { clientForPrefill, createPrefilledLinkAction } from "@/lib/forms/prefill-actions";
 import { Actions, Field, Fields, Form, Hidden, Submit } from "@/components/admin/form";
-import { Pick } from "@/components/admin/pick";
+import { RemotePick } from "@/components/admin/remote-pick";
 
-type KnownClient = { id: string; company: string; first: string; last: string; email: string; phone: string };
+type Known = { first: string; last: string; email: string; phone: string; company: string };
 
 /**
  * "Send a pre-filled link": after a call, the studio types what it already
@@ -15,11 +15,27 @@ type KnownClient = { id: string; company: string; first: string; last: string; e
  *
  * AN EXISTING CLIENT FIRST. Somebody who already works with us should not turn
  * into a second record. Choosing them (the list is searchable) fills their name,
- * email, phone and business in; leaving it empty is a new person.
+ * email, phone and business in; leaving it empty is a new person. The clients
+ * are searched on the server and only the chosen one's details are fetched, so
+ * the page never carries the client base's email and phone.
  */
-export function PrefilledLink({ formKey, service, clients = [] }: { formKey: string; service: string; clients?: KnownClient[] }) {
+export function PrefilledLink({ formKey, service }: { formKey: string; service: string }) {
   const [clientId, setClientId] = useState("");
-  const known = clients.find((c) => c.id === clientId);
+  const [known, setKnown] = useState<Known | null>(null);
+  const [pending, setPending] = useState(false);
+  const asked = useRef(0);
+  const choose = (id: string) => {
+    const mine = ++asked.current;
+    setClientId(id);
+    setKnown(null);
+    setPending(Boolean(id));
+    if (!id) return;
+    /* Only the newest choice's answer is used; an earlier, slower one is dropped. */
+    clientForPrefill(id)
+      .then((k) => { if (mine === asked.current) setKnown(k); })
+      .catch(() => {})
+      .finally(() => { if (mine === asked.current) setPending(false); });
+  };
   return (
     <section className="ad__panel adForms__card">
       <h2 className="adForms__h">A pre-filled link for one client</h2>
@@ -27,15 +43,12 @@ export function PrefilledLink({ formKey, service, clients = [] }: { formKey: str
         The ordinary onboarding link stays blank, and the client picks the service. Use this after a call: type what you already know about the
         {" "}{service} job and send them the link yourself. It works for 14 days.
       </p>
-      {clients.length ? (
-        <div className="ad__f">
-          <span className="ad__fl" id="prefill-client-l">Is this an existing client?</span>
-          <Pick id="prefill-client" options={[{ value: "", label: "No, a new person" }, ...clients.map((c) => ({ value: c.id, label: c.company }))]}
-            value={clientId} onChange={setClientId} search labelledBy="prefill-client-l" placeholder="Search your clients" />
-          <small className="ad__dim">Existing clients keep one record and the same client portal.</small>
-        </div>
-      ) : null}
-      <Form action={createPrefilledLinkAction} key={clientId}>
+      <div className="ad__f">
+        <span className="ad__fl" id="prefill-client-l">Is this an existing client?</span>
+        <RemotePick id="prefill-client" kind="clients" value={clientId} onChange={choose} labelledBy="prefill-client-l" placeholder="No, a new person" />
+        <small className="ad__dim" role="status">{pending ? "Getting their details…" : "Existing clients keep one record and the same client portal. Search by name, email or phone."}</small>
+      </div>
+      <Form action={createPrefilledLinkAction} key={`${clientId}:${known ? 1 : 0}`}>
         <Hidden name="form" value={formKey} />
         <Fields>
           <Field name="first_name" label="First name" required half defaultValue={known?.first} />

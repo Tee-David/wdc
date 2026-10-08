@@ -26,7 +26,7 @@ import "./pick.css";
 export type PickOption = { value: string; label: string };
 type Place = { top?: number; bottom?: number; left: number; width: number; up: boolean; host: Element; skin?: string };
 
-function usePopover(open: boolean, close: () => void, trigger: React.RefObject<HTMLElement | null>, minWidth = 0, tall = 320, maxWidth = Infinity) {
+export function usePopover(open: boolean, close: () => void, trigger: React.RefObject<HTMLElement | null>, minWidth = 0, tall = 320, maxWidth = Infinity) {
   const pop = useRef<HTMLDivElement>(null);
   const [place, setPlace] = useState<Place | null>(null);
 
@@ -75,7 +75,7 @@ function usePopover(open: boolean, close: () => void, trigger: React.RefObject<H
 /* Tell the form, as a native control would, so a watcher on "change" (the
    invoice builder's project list follows the client) hears the choice. The
    first render is not a change. */
-function useChangeEvent(value: string) {
+export function useChangeEvent(value: string) {
   const hidden = useRef<HTMLInputElement>(null);
   const first = useRef(true);
   useEffect(() => {
@@ -85,7 +85,7 @@ function useChangeEvent(value: string) {
   return hidden;
 }
 
-function Popover({ place, pop, className, children, label }: {
+export function Popover({ place, pop, className, children, label }: {
   place: Place | null; pop: React.RefObject<HTMLDivElement | null>; className?: string; children: React.ReactNode; label?: string;
 }) {
   if (!place) return null;

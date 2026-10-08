@@ -76,6 +76,9 @@ export async function approveDeliverable(_prev: ActionState, fd: FormData): Prom
   after(async () => {
     const { sendSignOffConfirmation } = await import("@/lib/project-mail");
     await sendSignOffConfirmation({ project, deliverable: d, signedBy });
+    /* And the studio hears it was approved (Settings, Notifications). */
+    const { sendDeliverableApproved } = await import("@/lib/lifecycle-mail");
+    await sendDeliverableApproved({ project, deliverable: d, signedBy });
   });
   revalidatePath(`/portal/projects/${project.id}`);
   revalidatePath("/portal");
@@ -94,6 +97,10 @@ export async function requestRevision(_prev: ActionState, fd: FormData): Promise
   const project = d ? db.getProject(d.projectId) : null;
   if (!d || !project || project.clientId !== client.id) return FAIL({}, "That deliverable is no longer there.");
   db.setApproval(id, "Revision requested", note);
+  /* The studio gets their note by email, behind the response (Settings, Notifications). */
+  const { session } = await getPortalRequest();
+  const by = session?.user?.name?.trim() || client.name;
+  after(() => import("@/lib/lifecycle-mail").then((m) => m.sendRevisionRequested({ project, deliverable: d, note, by })));
   revalidatePath(`/portal/projects/${project.id}`);
   revalidatePath("/portal");
   return OK("Revision request sent.");
@@ -119,6 +126,8 @@ export async function submitTicket(_prev: ActionState, fd: FormData): Promise<Ac
   if (!t) return FAIL({}, "Could not open that. Try again.");
   /* The studio hears about it by email, behind the response. */
   after(() => import("@/lib/support-mail").then((m) => m.sendSupportNotice({ ticket: t, body, opened: true, messageId: `${t.id}-open` })));
+  /* And the client is told it arrived, and when to expect an answer. */
+  after(() => import("@/lib/lifecycle-mail").then((m) => m.sendTicketReceived({ ticket: t })));
   revalidatePath("/admin/clients/support");
   revalidatePath("/portal/support");
   revalidatePath("/portal");

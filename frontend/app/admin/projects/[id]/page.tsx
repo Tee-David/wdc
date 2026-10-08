@@ -6,9 +6,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/lib/services";
 import {
-  financeDefaults, getClient, getDeliverablesFor, getExpensesFor, getInvoicesFor, getProject,
-  getTasksFor, getUpdatesFor, projectMargin,
+  creditBalance, financeDefaults, getClient, getDeliverablesFor, getExpensesFor, getInvoicesFor, getProject,
+  getProjectsFor, getTasksFor, getUpdatesFor, projectMargin,
 } from "@/lib/admin/store";
+import { noticeBlock } from "@/lib/admin/money-rules";
 import {
   invoiceStatus, invoiceTotals, naira, projectAttention, STAGES, nairaShort } from "@/lib/admin/types";
 import {
@@ -56,6 +57,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const money = can(await adminRole(), "money");
   const client = getClient(p.clientId);
   const invoices = client ? getInvoicesFor(client.id).filter((i) => i.projectId === p.id) : [];
+  /* What the invoice forms need to know about this client: stored credit, and
+     whether (and why not) they can be emailed. */
+  const held = client ? creditBalance(client.id) : 0;
+  const credits = client && held > 0 ? { [client.id]: held } : undefined;
+  const why = client ? noticeBlock(client) : undefined;
+  const noEmail = client && why ? { [client.id]: why } : undefined;
   const at = STAGES.indexOf(p.stage);
   const tasks = getTasksFor(p.id);
   const updates = getUpdatesFor(p.id);
@@ -99,6 +106,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             <InvoiceBuilder
               clients={[client]} projects={[p]} clientId={client.id}
               defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays}
+              credits={credits} noEmail={noEmail}
             />
           ) : null}
         </>}
@@ -228,7 +236,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                       <td><Link href={`/admin/money/${i.id}`}><b>{i.number}</b></Link></td>
                       <td><InvoicePill status={invoiceStatus(i)} /></td>
                       <td className="num">{naira(invoiceTotals(i).due)}</td>
-                      <td className="ad__rmC"><InvoiceMenu invoice={i} /></td>
+                      <td className="ad__rmC">
+                        <InvoiceMenu invoice={i} noReceipt={why}
+                          edit={client ? { clientName: client.company, projects: getProjectsFor(client.id).map((x) => ({ id: x.id, title: x.title, clientId: x.clientId })) } : undefined} />
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -237,7 +248,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           ) : (
             <Empty title="Nothing invoiced on this project" action={client ? (
               <InvoiceBuilder clients={[client]} projects={[p]} clientId={client.id}
-                defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} />
+                defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} credits={credits} noEmail={noEmail} />
             ) : undefined}>
               Raise an invoice against it to track what is billed and paid.
             </Empty>

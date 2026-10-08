@@ -1,7 +1,8 @@
 "use server";
 
 import { actorName, allow } from "@/lib/admin/guard";
-import { audit } from "@/lib/admin/store";
+import { audit, getClient } from "@/lib/admin/store";
+import { syncStore } from "@/lib/admin/persist";
 import { FAIL, OK, type ActionState } from "@/lib/admin/validate";
 import { findForm } from "@/lib/forms/find";
 import { refusedEmail, REFUSED_EMAIL_MESSAGE } from "@/lib/email-domains";
@@ -42,4 +43,21 @@ export async function createPrefilledLinkAction(_prev: ActionState, fd: FormData
   } catch {
     return FAIL({}, "The link could not be made just now. Nothing was created; try again in a minute.");
   }
+}
+
+/**
+ * One chosen client's details, for filling the pre-filled link's fields.
+ *
+ * ASKED FOR ONE AT A TIME, when the studio picks them. The page used to carry
+ * every active client's name, email and phone in its own payload so the choice
+ * could be filled in the browser: personal data for the whole client base on an
+ * admin page, to fill in one person. Now nothing but the chosen person leaves.
+ */
+export async function clientForPrefill(id: string): Promise<{ first: string; last: string; email: string; phone: string; company: string } | null> {
+  if (await allow("forms")) return null;
+  await syncStore();
+  const c = typeof id === "string" ? getClient(id.slice(0, 120)) : null;
+  if (!c || c.archived || c.mergedInto) return null;
+  const [first = "", ...rest] = c.name.split(" ");
+  return { first, last: rest.join(" "), email: c.email, phone: c.phone, company: c.company };
 }

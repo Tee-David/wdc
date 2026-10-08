@@ -8,6 +8,7 @@ import {
   estimateState, estimateTotals, invoiceStatus, invoiceTotals, naira, paidFrom, paymentNet,
   providerNeedsAttention, refundedTotal,
 } from "./types";
+import { checkInvoiceEdit } from "./money-rules";
 
 /** Shared per-process cache of persisted admin records, populated by syncStore.
  * Collections start empty. Demonstration fixtures never seed a production database.
@@ -775,18 +776,48 @@ export function addInvoice(d: {
   return inv;
 }
 
+export type PatchResult =
+  | { ok: true; invoice: Invoice; before: number; after: number }
+  | { ok: false; reason: "missing" | "void" | "below-paid"; say: string };
+
+/**
+ * Change an invoice's lines, VAT, due date or project.
+ *
+ * A DRAFT, OR AN ISSUED INVOICE THAT IS UNPAID OR PART PAID, and the rule is in
+ * lib/admin/money-rules.ts (`checkInvoiceEdit`): a struck invoice is closed,
+ * and the total can never fall below what has already been kept, because that
+ * would turn money somebody really paid into an overpayment they did not make.
+ * ENFORCED HERE, where the write happens, so a second caller cannot forget it.
+ * The number, the token, the issue date and the client never change: the copy
+ * the client is holding keeps working, and now shows the corrected figures.
+ *
+ * EVERY EDIT IS AUDITED with the old and new total and what moved, because "the
+ * invoice used to say something else" is the question a changed invoice is
+ * asked.
+ */
 export function patchInvoice(
   id: Id,
-  d: Partial<Pick<Invoice, "clientId" | "projectId" | "issued" | "due" | "vatRate" | "lines">>,
-): Invoice | null {
+  d: Partial<Pick<Invoice, "projectId" | "due" | "vatRate" | "lines">>,
+  actor = "Studio",
+): PatchResult {
   const inv = getInvoice(id);
-  /* DRAFTS ONLY, HERE AND NOT JUST IN THE ACTION. An issued invoice is a
-     document somebody outside the studio is holding; its correction is a
-     void or a credit, never an edit. Enforced where the write happens so a
-     second caller cannot forget the rule. */
-  if (!inv || inv.status !== "Draft") return null;
+  if (!inv) return { ok: false, reason: "missing", say: "That invoice is no longer there." };
+  const check = checkInvoiceEdit(inv, collected(inv.id), { lines: d.lines ?? inv.lines, vatRate: d.vatRate ?? inv.vatRate });
+  if (!check.ok) return { ok: false, reason: inv.voided ? "void" : "below-paid", say: check.say };
+
+  const moved: string[] = [];
+  if (d.lines && JSON.stringify(d.lines) !== JSON.stringify(inv.lines)) moved.push(`lines (${inv.lines.length} to ${d.lines.length})`);
+  if (d.vatRate !== undefined && d.vatRate !== inv.vatRate) moved.push(`VAT ${inv.vatRate}% to ${d.vatRate}%`);
+  if (d.due && d.due.slice(0, 10) !== inv.due.slice(0, 10)) moved.push(`due ${inv.due.slice(0, 10)} to ${d.due.slice(0, 10)}`);
+  if (d.projectId !== undefined && d.projectId !== inv.projectId) moved.push("project");
+  const wasDraft = inv.status === "Draft";
   Object.assign(inv, d);
-  return inv;
+  if (moved.length) {
+    audit({ actor, kind: "invoice", subjectId: inv.id, subject: inv.number,
+            action: wasDraft ? "edited the draft" : "edited after it was issued",
+            field: "total", from: naira(check.before), to: naira(check.after), note: moved.join(" · ") });
+  }
+  return { ok: true, invoice: inv, before: check.before, after: check.after };
 }
 
 /**
@@ -1065,6 +1096,42 @@ export function creditBalance(clientId: Id) {
 
 export function getCredit(id: Id) {
   return CREDITS.find((c) => c.id === id) ?? null;
+}
+
+/** Every client who holds unspent credit, by id: small, so a form can offer "use their credit". */
+export function creditBalances(): Record<Id, number> {
+  const out: Record<Id, number> = {};
+  for (const c of CREDITS) if (!c.applied) out[c.clientId] = (out[c.clientId] ?? 0) + c.amount;
+  return out;
+}
+
+/** Is this reference already on a payment? Checked before an invoice is created around it. */
+export function paymentReferenceTaken(reference: string) {
+  const ref = reference.trim();
+  return Boolean(ref) && PAYMENTS.some((p) => p.reference === ref);
+}
+
+/**
+ * Spend a client's stored credit on one invoice, oldest credit first, until the
+ * invoice is covered or the credit runs out. Each spend is an ordinary Credit
+ * payment through `applyCredit`, so every one has a receipt number and an audit
+ * line. Returns what was applied (0 when there was nothing to apply).
+ */
+export function applyCreditsTo(invoiceId: Id, actor = "Studio"): { applied: number; payments: Payment[] } {
+  const inv = getInvoice(invoiceId);
+  if (!inv) return { applied: 0, payments: [] };
+  const payments: Payment[] = [];
+  let applied = 0;
+  const open = CREDITS.filter((c) => c.clientId === inv.clientId && !c.applied).sort((a, b) => a.at.localeCompare(b.at));
+  for (const credit of open) {
+    if (invoiceTotals(inv).due <= 0) break;
+    const before = invoiceTotals(inv).due;
+    const res = applyCredit(credit.id, invoiceId, actor);
+    if (!res.ok) continue;
+    payments.push(res.payment);
+    applied += before - invoiceTotals(inv).due;
+  }
+  return { applied, payments };
 }
 
 /**
@@ -1877,7 +1944,9 @@ export function failedMessageCount() {
     that the first try failed. */
 export function retryMessage(id: Id, actor = "Studio"): Message | null {
   const m = MESSAGES.find((x) => x.id === id);
-  if (!m || m.state !== "Failed") return null;
+  /* A SKIPPED ROW CAN BE RETRIED TOO: it holds the same key, and "no address on
+     file" stops being true the minute somebody adds one. */
+  if (!m || (m.state !== "Failed" && m.state !== "Skipped") || m.dedupeKey.includes(":superseded:")) return null;
   m.dedupeKey = `${m.dedupeKey}:superseded:${m.id}`;
   audit({ actor, kind: "client", subjectId: m.clientId ?? m.id, subject: m.to,
           action: "queued a resend", note: m.subject });

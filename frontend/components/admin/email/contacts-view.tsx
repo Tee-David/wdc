@@ -6,6 +6,7 @@ import { Ban, ChevronRight, Download, Mail, Plus, Search, SearchX, Tag, Upload, 
 import { mailPickedAction, mailPlanAction, suppressAction } from "@/lib/admin/contact-actions";
 import { AdminState } from "../admin-state";
 import { Pick } from "../pick";
+import { RemotePick } from "../remote-pick";
 import { ask } from "../confirm";
 import { toast } from "../toast";
 import { SyncButton } from "./contacts-ui";
@@ -37,9 +38,9 @@ const people = (n: number) => `${n.toLocaleString("en-GB")} ${n === 1 ? "person"
  * pinned. While a new page is coming the rows hold their place and dim; no
  * invented data is drawn.
  */
-export function ContactsView({ rows, total, stats, filters, per, tags, filtered, kpis, pager }: {
+export function ContactsView({ rows, total, stats, filters, per, filtered, kpis, pager }: {
   rows: ContactRow[]; total: number; stats: { total: number }; per: number;
-  filters: Filters; tags: { tag: string; n: number }[]; filtered: boolean;
+  filters: Filters; filtered: boolean;
   kpis: React.ReactNode; pager: React.ReactNode;
 }) {
   const router = useRouter();
@@ -155,7 +156,7 @@ export function ContactsView({ rows, total, stats, filters, per, tags, filtered,
             <div className="ctFilt">
               <div className="ctPick"><Pick label="Type" value={filters.type} placeholder="Any type" options={TYPE_OPTIONS} onChange={(v) => go({ type: v })} /></div>
               <div className="ctPick"><Pick label="Status" value={filters.status} placeholder="Any status" options={STATUS_OPTIONS} onChange={(v) => go({ status: v })} /></div>
-              <div className="ctPick"><Pick label="Tag" value={filters.tag} placeholder="Any tag" search options={tags.map((t) => ({ value: t.tag, label: `${t.tag} (${t.n})` }))} onChange={(v) => go({ tag: v })} /></div>
+              <div className="ctPick"><RemotePick kind="tags" label="Tag" value={filters.tag} placeholder="Any tag" onChange={(v) => go({ tag: v })} /></div>
               <label className="ctSearch">
                 <Search aria-hidden="true" />
                 <span className="ad__sr">Search contacts</span>
@@ -227,11 +228,11 @@ export function ContactsView({ rows, total, stats, filters, per, tags, filtered,
         </div>
       ) : null}
 
-      <ContactSheet id={openId} seed={seed} tags={tags.map((t) => t.tag)} onClose={() => setOpenId(null)} onChanged={refresh} onMail={(w) => void mail(w)} onStop={stop} />
+      <ContactSheet id={openId} seed={seed} onClose={() => setOpenId(null)} onChanged={refresh} onMail={(w) => void mail(w)} onStop={stop} />
       <AddSheet open={sheet === "add"} onClose={() => setSheet(null)} onSaved={(id) => { refresh(); setOpenId(id); }} />
       <ImportSheet open={sheet === "import"} onClose={() => setSheet(null)} onDone={refresh} />
       <ExportSheet open={sheet === "export"} onClose={() => setSheet(null)} startScope={exportScope} selected={exportSel} filters={{ q: filters.q, tag: filters.tag, type: filters.type, status: filters.status, marketing: filters.marketing }} totalAll={stats.total} />
-      <TagSheet open={sheet === "tag"} onClose={() => setSheet(null)} ids={ids} tags={tags.map((t) => t.tag)} onDone={refresh} />
+      <TagSheet open={sheet === "tag"} onClose={() => setSheet(null)} ids={ids} onDone={refresh} />
     </>
   );
 }

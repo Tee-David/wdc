@@ -6,7 +6,7 @@ import AreaGate from "@/components/admin/owner-only";
 import { Panel } from "@/components/admin/bits";
 import { EMAIL_KINDS } from "@/lib/email-registry";
 import { getSaved } from "@/lib/email-design-store";
-import { allTags, contactStats, listContacts, openRate, opensFor, type Filters } from "@/lib/contacts";
+import { contactStats, listContacts, openRate, opensFor, type Filters } from "@/lib/contacts";
 import { Empty, Tile } from "@/components/admin/bits";
 import { AdminState } from "@/components/admin/admin-state";
 import { Pager, readPer } from "@/components/admin/pager";
@@ -77,7 +77,7 @@ export default async function EmailPage({ searchParams }: { searchParams: Promis
 async function ContactsTab({ sp }: { sp: SP }) {
   const per = readPer(sp.per);
   const f: Filters = { q: (sp.q ?? "").trim().slice(0, 120), tag: sp.tag ?? "", type: sp.type ?? "", status: sp.status ?? "", marketing: sp.marketing ?? "", page: Math.max(1, Number(sp.page) || 1), per };
-  const [res, tags, stats] = await Promise.all([listContacts(f), allTags(), contactStats()]);
+  const [res, stats] = await Promise.all([listContacts(f), contactStats()]);
   if (!res) {
     return <AdminState kind="error" title="Contacts are not set up yet" description="Apply migration 0045 in Settings › System, then reload." />;
   }
@@ -95,7 +95,7 @@ async function ContactsTab({ sp }: { sp: SP }) {
   const share = stats.total ? Math.round((stats.canEmail / stats.total) * 100) : 0;
   return (
     <ContactsView
-      rows={rows} total={res.total} stats={{ total: stats.total }} per={per} tags={tags} filtered={filtered}
+      rows={rows} total={res.total} stats={{ total: stats.total }} per={per} filtered={filtered}
       filters={{ q: f.q, type: f.type, status: f.status, tag: f.tag, marketing: f.marketing }}
       kpis={
         <dl className="ad__tiles ctTiles">

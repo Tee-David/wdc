@@ -142,6 +142,10 @@ export async function confirmPasswordChange(_prev: ActionState, fd: FormData): P
     return FAIL({}, "The password could not be changed just now. Nothing was changed.");
   }
   audit({ actor: user.name || user.email, kind: "setting", subjectId: user.id, subject: user.name || user.email, action: "changed their password (confirmed by an emailed code) and signed out their other sessions" });
+  /* Told to the person afterwards, behind the response, and always: a security
+     notice. The code's row id keys it, so one change mails once. */
+  const changed = { email: user.email, name: user.name?.trim().split(/\s+/)[0], how: "changed" as const, eventKey: row.id };
+  after(() => import("@/lib/lifecycle-mail").then((m) => m.sendPasswordChangedNotice(changed)).catch(() => {}));
   revalidatePath("/admin/settings/account");
   revalidatePath("/portal/settings");
   return OK("Password changed. Every other device has been signed out.");

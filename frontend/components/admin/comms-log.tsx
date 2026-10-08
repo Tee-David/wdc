@@ -89,7 +89,12 @@ export default async function CommsLog({
                     ) : null}
                   </td>
                   <td className="ad__rmC">
-                    {m.state === "Failed" ? <ResendMessage id={m.id} /> : null}
+                    {/* A failed row that has since been sent on (Try again, or a
+                        retry) keeps its Failed state as the record, and says so
+                        instead of offering the same retry again. */}
+                    {m.state === "Failed" && m.resends.some((r) => r.sent)
+                      ? <span className="ad__dim" style={{ fontSize: ".78rem" }}>Sent again</span>
+                      : m.state === "Failed" ? <ResendMessage id={m.id} /> : null}
                   </td>
                 </tr>
               ))}

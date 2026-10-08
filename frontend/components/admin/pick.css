@@ -120,6 +120,22 @@
 }
 @media (prefers-reduced-motion: reduce) { .adPick__pop, .adCal__picks { animation: none; } .adPick__btn svg, .adCal__day, .adCal__pick { transition: none; } }
 
+/* THE SEARCHED PICKER (components/admin/remote-pick.tsx): the same popover,
+   about six rows tall with the rest scrolling inside it, a second line of
+   small type under a name (an email, a company) to tell two apart, and a
+   footer line for "searching" and "type more to narrow it". */
+.adPick__list--remote { max-height: calc(6 * 3rem + .7rem); }
+.adPick__list--remote.is-loading { opacity: .6; transition: opacity .12s ease; }
+.adPick__optText { display: grid; gap: .05rem; min-width: 0; }
+.adPick__optText > span, .adPick__optText > small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adPick__optText > small { color: var(--ad-dim); font-size: .78rem; }
+.adPick__more { margin: 0; padding: .45rem .85rem; border-top: 1px solid var(--ad-line); color: var(--ad-dim); font-size: .8rem; }
+.adPick__more:empty { display: none; }
+.adPick__retry { min-height: 2.75rem; padding: 0 .4rem; border: 0; background: none; color: var(--ad-accent-ink); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
+.dark .adPick__retry { color: var(--ad-accent); }
+.adPick__retry:focus-visible { outline: 2px solid var(--ad-accent-ink); outline-offset: 2px; }
+.adRemote--many { display: grid; gap: .5rem; min-width: 0; }
+
 /* ON THE PUBLIC SITE. The trigger sits in a form that already has the site's
    tokens; the popover is portalled to <body> and carries .adPick--public,
    so both get the same map. Lines are solid where they carry a form. */

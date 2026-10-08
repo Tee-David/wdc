@@ -1,6 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { INVITE_PASSWORD_MIN, redeemInvitation } from "@/lib/invitations";
 import { BREACHED_MESSAGE, UNCHECKED_MESSAGE } from "@/lib/auth/breached";
@@ -42,7 +43,13 @@ export async function redeem(input: { token: string; name: string; password: str
   const password = typeof input?.password === "string" ? input.password : null;
   try {
     const out = await redeemInvitation(token, { name, password });
-    return out.ok ? { ok: true, email: out.email, role: out.role } : { ok: false, error: REASONS[out.reason] };
+    if (!out.ok) return { ok: false, error: REASONS[out.reason] };
+    /* The welcome and the studio's notice go out behind the response (the mail
+       server needs about 23 seconds to authenticate). The account exists
+       already; a failed send is on the log and costs the person nothing. */
+    const who = { userId: out.userId, name: out.name, email: out.email, clientId: out.clientId };
+    after(() => import("@/lib/lifecycle-mail").then((m) => (out.role === "client" ? m.sendClientJoined(who) : m.sendStaffJoined(who))).catch(() => {}));
+    return { ok: true, email: out.email, role: out.role };
   } catch (e) {
     console.error("[invite] redemption failed", e instanceof Error ? e.message : e);
     return { ok: false, error: "We could not finish that just now. Nothing was created; try again in a moment." };
