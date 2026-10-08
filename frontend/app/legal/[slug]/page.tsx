@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Download } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import LegalToc from "@/components/legal/legal-toc";
@@ -127,7 +128,7 @@ export default async function LegalDocPage(
                     </section>
                   ))}
 
-                  <p className="lg-pdf"><a href={`/legal/${doc.slug}/pdf`} download>Download this policy as a PDF</a></p>
+                  <div className="lg-pdf"><a href={`/legal/${doc.slug}/pdf`} download><Download aria-hidden="true" /><span>Download this policy as a PDF</span></a></div>
 
                 <SeeAlso here={doc.slug} docs={docs.map((d) => ({ slug: d.slug, title: d.title }))} />
 
