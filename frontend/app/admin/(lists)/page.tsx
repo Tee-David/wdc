@@ -14,6 +14,6 @@ export default async function AdminHome() {
   const money = can(await adminRole(), "money");
 
   return (
-    <AdminDashboardView firstName={firstName} money={money} />
+    <AdminDashboardView firstName={firstName} money={money} me={session?.user ? { id: session.user.id, name: session.user.name ?? "" } : undefined} />
   );
 }
