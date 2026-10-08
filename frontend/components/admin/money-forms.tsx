@@ -368,15 +368,16 @@ export function RecordPayment({ invoice, owed }: { invoice: Invoice; owed: numbe
                 { value: "Transfer", label: "Bank transfer" },
                 { value: "Paystack", label: "Paystack" },
                 { value: "Cash", label: "Cash" },
+                { value: "Card", label: "Card (outside the checkout)" },
                 { value: "POS", label: "POS terminal" },
                 { value: "Other", label: "Something else" },
               ]}
               hint="For money that arrived outside the checkout, or a charge that went wrong. Pick &ldquo;something else&rdquo; rather than forcing a real payment into the nearest wrong box."
             />
             <Field
-              name="reference" label="Reference" required
+              name="reference" label="Reference"
               placeholder="TRF_0092"
-              hint="The bank reference or the Paystack transaction id. This is what stops the same payment being recorded twice."
+              hint="The bank reference for a transfer (needed, and it stops the same payment being recorded twice). For cash, card or POS, a slip number if there is one."
             />
             <Field name="at" label="When" type="date" half
                    defaultValue={new Date().toISOString().slice(0, 10)} />
