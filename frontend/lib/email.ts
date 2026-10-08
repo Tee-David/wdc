@@ -122,6 +122,8 @@ export async function sendMail(input: {
   const listUnsubscribe = [unsubscribeUrl ? `<${unsubscribeUrl}>` : null, contact ? `<mailto:${contact}?subject=unsubscribe>` : null]
     .filter(Boolean).join(", ");
 
+  /* SIMULATE MODE (Settings › Email › Connections): the message is built and logged, and nothing leaves. For previews and staging. */
+  if (getSetting("mail.simulate") === "yes") return;
   const html = message.html ? withSocials(addressTo(message.html, message.to), socialLinks(getSetting)) : undefined;
   const headers = unsubscribe && listUnsubscribe
     ? { "List-Unsubscribe": listUnsubscribe, ...(unsubscribeUrl ? { "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } : {}) }
