@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SUPPORT_COOKIE, supportRequestAllowed } from "@/lib/users/support-policy";
+import { SUPPORT_COOKIE, SUPPORT_STAFF_COOKIE, supportHome, supportKind, supportRequestAllowed } from "@/lib/users/support-policy";
 import { getSessionCookie } from "better-auth/cookies";
 import { isAdminCapture } from "@/lib/admin/capture";
 import { maintenance, maintenancePage, PASS_COOKIE, passValid, retryAfter } from "@/lib/maintenance";
@@ -11,8 +11,14 @@ import { maintenance, maintenancePage, PASS_COOKIE, passValid, retryAfter } from
  */
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  if (request.cookies.has(SUPPORT_COOKIE) && !supportRequestAllowed(path, request.method)) {
-    if ((request.method === "GET" || request.method === "HEAD") && !path.startsWith("/api/")) return NextResponse.redirect(new URL("/portal?notice=support-read-only", request.url), 303);
+  /* A SUPPORT VIEW (client or staff) READS ALLOW-LISTED PAGES AND NOTHING ELSE.
+     Decided from the cookie NAMES alone: the proxy never opens the database.
+     Whether the cookie is still good is the layouts' question, answered from
+     persisted truth on every request (lib/users/support.ts). */
+  const kind = supportKind(request.cookies.has(SUPPORT_COOKIE), request.cookies.has(SUPPORT_STAFF_COOKIE));
+  if (kind && !supportRequestAllowed(path, request.method, kind)) {
+    const home = supportHome(kind);
+    if (home && (request.method === "GET" || request.method === "HEAD") && !path.startsWith("/api/")) return NextResponse.redirect(new URL(`${home}?notice=support-read-only`, request.url), 303);
     return NextResponse.json({ error: "Exit the read-only support view before making changes." }, { status: 403 });
   }
   // These routes remain available during maintenance; they now also pass the support guard.
@@ -26,6 +32,8 @@ export async function proxy(request: NextRequest) {
     const through = () => NextResponse.next({ request: { headers: forward } });
     // Even a lost original session must reach the support-unavailable screen and its Exit action.
     if (path.startsWith("/portal") && request.cookies.has(SUPPORT_COOKIE)) return through();
+    // The same for the staff view on /admin: an ended view still shows its Exit screen.
+    if (path.startsWith("/admin") && request.cookies.has(SUPPORT_STAFF_COOKIE)) return through();
     if (isAdminCapture(request.headers)) return through();
     if (getSessionCookie(request, { cookiePrefix: "wdc" })) return through();
     /* A SAVE FROM A PAGE THAT WAS ALREADY OPEN. Redirecting a server action

@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { adminRole } from "./guard";
+import { supportCookiePresent } from "@/lib/users/support";
 import { FAIL, OK, type ActionState } from "./validate";
 import { audit } from "./store";
 import { db } from "@/lib/db/pool";
@@ -17,6 +18,8 @@ import { db } from "@/lib/db/pool";
 const PAGE = "/admin/settings/account";
 
 async function signedIn() {
+  /* This acts on the REAL session, which in a support view is the owner's, not the person being viewed. */
+  if (await supportCookiePresent()) return null;
   if (!(await adminRole())) return null;
   const h = await headers();
   const { auth } = await import("@/lib/auth");

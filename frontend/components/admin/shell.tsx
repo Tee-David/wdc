@@ -37,6 +37,7 @@ import { SideProfile, SideTourCard } from "./side-foot";
 import { initialsOf, keepFocusInside } from "./focus";
 import { ToastHost } from "./toast";
 import { ConfirmHost } from "./confirm";
+import SupportBar, { exitSupportView } from "./support-bar";
 
 export type AdminUser = {
   name?: string | null;
@@ -96,6 +97,8 @@ const NAV: NavItem[] = [
 /* The pages this role may open. A courtesy, not the permission: every write
    is checked again on the server (lib/admin/guard.ts). */
 const RoleContext = createContext<AdminRole>("owner");
+/** True while the owner is looking at the admin as somebody else: "Sign out" becomes "Exit support view". */
+const SupportContext = createContext(false);
 /** The signed-in admin's role, for client components inside the shell. */
 export function useAdminRole() {
   return useContext(RoleContext);
@@ -142,7 +145,9 @@ function parentOf(path: string) {
     .sort((a, b) => b.length - a.length)[0];
 }
 
-async function signOut(router: ReturnType<typeof useRouter>) {
+async function signOut(router: ReturnType<typeof useRouter>, support = false) {
+  /* In a support view this is Exit: signing out would end the OWNER's session, not the view. */
+  if (support) { exitSupportView(); return; }
   await authClient.signOut();
   router.replace("/login");
   router.refresh();
@@ -163,6 +168,7 @@ function Sidebar({
 }) {
   const path = usePathname();
   const router = useRouter();
+  const support = useContext(SupportContext);
   const nav = useNav();
   const role = useAdminRole();
   const main = nav.filter((item) => item.group === "main");
@@ -239,7 +245,7 @@ function Sidebar({
 
       <div className="ad__sideFoot">
         <SideTourCard collapsed={collapsed} />
-        <SideProfile user={user} role={ROLE_LABEL[role] ?? "Admin"} collapsed={collapsed} onSignOut={() => signOut(router)} />
+        <SideProfile user={user} role={ROLE_LABEL[role] ?? "Admin"} collapsed={collapsed} signOutLabel={support ? "Exit support view" : "Sign out"} onSignOut={() => signOut(router, support)} />
       </div>
     </div>
   );
@@ -294,6 +300,7 @@ function AccountMenu({ user }: { user: AdminUser }) {
   const ref = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const router = useRouter();
+  const support = useContext(SupportContext);
 
   useEffect(() => {
     function close(event: PointerEvent) {
@@ -337,7 +344,7 @@ function AccountMenu({ user }: { user: AdminUser }) {
           <Link href="/admin/settings/account" role="menuitem" onClick={() => setOpen(false)}><UserRound aria-hidden="true" /> Your name and password</Link>
           <MenuTheme />
           <Link href="/" role="menuitem" onClick={() => setOpen(false)}><Globe aria-hidden="true" /> Back to website</Link>
-          <button type="button" role="menuitem" onClick={() => signOut(router)}><LogOut aria-hidden="true" /> Sign out</button>
+          <button type="button" role="menuitem" onClick={() => signOut(router, support)}><LogOut aria-hidden="true" /> {support ? "Exit support view" : "Sign out"}</button>
         </div>
       ) : null}
     </div>
@@ -508,15 +515,19 @@ function CommandPalette({ onClose }: { onClose: () => void }) {
   );
 }
 
-export default function AdminShell({ children, counts = {}, user, role = "owner" }: { children: ReactNode; counts?: Record<string, number>; user: AdminUser; role?: AdminRole }) {
+export type ShellSupport = { name: string; expiresAt: string; minutes: number };
+
+export default function AdminShell({ children, counts = {}, user, role = "owner", support }: { children: ReactNode; counts?: Record<string, number>; user: AdminUser; role?: AdminRole; support?: ShellSupport | null }) {
   return (
     <RoleContext.Provider value={role}>
-      <ShellFrame counts={counts} user={user}>{children}</ShellFrame>
+      <SupportContext.Provider value={Boolean(support)}>
+        <ShellFrame counts={counts} user={user} support={support ?? null}>{children}</ShellFrame>
+      </SupportContext.Provider>
     </RoleContext.Provider>
   );
 }
 
-function ShellFrame({ children, counts, user }: { children: ReactNode; counts: Record<string, number>; user: AdminUser }) {
+function ShellFrame({ children, counts, user, support }: { children: ReactNode; counts: Record<string, number>; user: AdminUser; support: ShellSupport | null }) {
   const path = usePathname();
   useRecordRecent(path);
   const [pinnedCollapsed, setPinnedCollapsed] = useState(false);
@@ -554,6 +565,32 @@ function ShellFrame({ children, counts, user }: { children: ReactNode; counts: R
     });
   }
 
+  const topbar = (
+    <header className="ad__topbar">
+      {/* On a phone: the menu (the sidebar, in a drawer), then back to the
+          page above or the mark on a section's front page. */}
+      <MenuButton onClick={drawer.show} expanded={drawer.open} tour="mobile-menu" />
+      {parent ? (
+        <Link href={parent} className="ad__topIcon ad__topBack" aria-label="Back"><ArrowLeft aria-hidden="true" /></Link>
+      ) : (
+        <Link href="/admin" className="ad__topMark" aria-label="WDC admin dashboard"><WdcMark /></Link>
+      )}
+      {/* The section name, not the page's heading: every page renders its own
+          h1, and a second one here made two per page. */}
+      <p className="ad__topTitle">{active?.label ?? "Admin"}</p>
+      <button type="button" className="ad__search" data-tour="topbar-search" onClick={() => setCommandOpen(true)} aria-label="Search, Ctrl K">
+        <Search aria-hidden="true" /><span>Search clients, projects, invoices</span><kbd>Ctrl K</kbd>
+      </button>
+      <div className="ad__topActions">
+        <TourLauncher />
+        <ThemeButton />
+        <Notifications openForms={counts.Forms ?? 0} failedMail={counts.FailedMail ?? 0} inReview={counts.Blog ?? 0} unchecked={Boolean(counts.Unchecked)} />
+        <span className="ad__topRule" aria-hidden="true" />
+        <AccountMenu user={user} />
+      </div>
+    </header>
+  );
+
   return (
     <div className={`ad__wrap${pinnedCollapsed ? " is-collapsed" : ""}`}>
       <aside
@@ -565,29 +602,7 @@ function ShellFrame({ children, counts, user }: { children: ReactNode; counts: R
       </aside>
 
       <div className="ad__column">
-        <header className="ad__topbar">
-          {/* On a phone: the menu (the sidebar, in a drawer), then back to the
-              page above or the mark on a section's front page. */}
-          <MenuButton onClick={drawer.show} expanded={drawer.open} tour="mobile-menu" />
-          {parent ? (
-            <Link href={parent} className="ad__topIcon ad__topBack" aria-label="Back"><ArrowLeft aria-hidden="true" /></Link>
-          ) : (
-            <Link href="/admin" className="ad__topMark" aria-label="WDC admin dashboard"><WdcMark /></Link>
-          )}
-          {/* The section name, not the page's heading: every page renders its own
-              h1, and a second one here made two per page. */}
-          <p className="ad__topTitle">{active?.label ?? "Admin"}</p>
-          <button type="button" className="ad__search" data-tour="topbar-search" onClick={() => setCommandOpen(true)} aria-label="Search, Ctrl K">
-            <Search aria-hidden="true" /><span>Search clients, projects, invoices</span><kbd>Ctrl K</kbd>
-          </button>
-          <div className="ad__topActions">
-            <TourLauncher />
-            <ThemeButton />
-            <Notifications openForms={counts.Forms ?? 0} failedMail={counts.FailedMail ?? 0} inReview={counts.Blog ?? 0} unchecked={Boolean(counts.Unchecked)} />
-            <span className="ad__topRule" aria-hidden="true" />
-            <AccountMenu user={user} />
-          </div>
-        </header>
+        {support ? <div className="ad__stickTop"><SupportBar name={support.name} expiresAt={support.expiresAt} minutes={support.minutes} />{topbar}</div> : topbar}
         <main className="ad__main">{children}</main>
         <TableScroll />
         <ToastHost />
