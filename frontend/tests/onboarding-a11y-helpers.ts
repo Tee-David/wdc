@@ -116,6 +116,16 @@ export async function startByKeyboard(page: Page, service: RegExp) {
 
 /* ------------------------------------------------------------- answering */
 
+/** After a choice the focus must stay on the question, or the next Tab starts again from the top of the page. */
+async function keepsFocus(page: Page, log: Log, screen: string, key: string, what: string) {
+  const lost = await page.evaluate(() => {
+    const a = document.activeElement;
+    return !a || a === document.body;
+  });
+  if (lost) log.add("keyboard", screen, key, `focus fell to the page body after ${what}`);
+  else log.count("focusKept");
+}
+
 async function focusedIndex(group: Locator) {
   return group.evaluateAll((els) => els.indexOf(document.activeElement as HTMLElement));
 }
@@ -158,6 +168,7 @@ async function keyboardRadio(page: Page, q: Locator, key: string, label: string,
   const chosen = await target.evaluate((e) => e.getAttribute("aria-checked") === "true" || (e as HTMLInputElement).checked);
   if (!chosen) log.add("keyboard", screen, key, `Space did not choose "${label}"`);
   else log.count("choicesByKeyboard");
+  await keepsFocus(page, log, screen, key, `choosing "${label}"`);
 }
 
 async function keyboardCheckbox(page: Page, q: Locator, key: string, label: string, log: Log, screen: string) {
@@ -173,6 +184,7 @@ async function keyboardCheckbox(page: Page, q: Locator, key: string, label: stri
   if ((await target.getAttribute("aria-checked")) !== "true") await page.keyboard.press("Space");
   if ((await target.getAttribute("aria-checked")) !== "true") log.add("keyboard", screen, key, `Space did not tick "${label}"`);
   else log.count("choicesByKeyboard");
+  await keepsFocus(page, log, screen, key, `ticking "${label}"`);
 }
 
 async function keyboardSelect(page: Page, q: Locator, key: string, label: string, log: Log, screen: string) {
@@ -188,6 +200,7 @@ async function keyboardSelect(page: Page, q: Locator, key: string, label: string
   await page.keyboard.press("Enter");
   await expect(box).toHaveAttribute("aria-expanded", "false");
   log.count("choicesByKeyboard");
+  await keepsFocus(page, log, screen, key, `choosing "${label}" in the list`);
 }
 
 async function keyboardText(page: Page, q: Locator, key: string, value: string, kind: string) {
@@ -198,8 +211,7 @@ async function keyboardText(page: Page, q: Locator, key: string, value: string, 
 
 /** Answers one question with the keyboard, whichever control it uses. */
 export async function keyboardAnswer(page: Page, key: string, value: string | string[], log: Log, screen: string) {
-  /* The visible copy: the desktop board can render a question more than once, and the hidden copy is not the one a client sees. */
-  const q = page.locator(`[data-field="${key}"]:visible`).first();
+  const q = page.locator(`[data-field="${key}"]`).first();
   const kind = await q.evaluate((el) => {
     if (el.querySelector('[role="combobox"]')) return "select";
     if (el.querySelector("textarea")) return "textarea";
