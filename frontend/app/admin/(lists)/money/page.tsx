@@ -151,10 +151,10 @@ export default async function MoneyPage({
         <div className="ad__row">
           <PageTourButton />
           <Link className="ad__btn" href="/admin/reports"><BarChart3 aria-hidden="true" /> Reports</Link>
-          <AddExpense projects={projects} />
-          <EstimateBuilder clients={getClients()} projects={projects} defaultVatRate={finance.vatRate} noEmail={noEmail} />
+          <AddExpense />
+          <EstimateBuilder defaultVatRate={finance.vatRate} noEmail={noEmail} />
           <InvoiceBuilder
-            clients={getClients()} projects={projects} dataTour="money-add"
+            dataTour="money-add"
             defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays}
             credits={credits} noEmail={noEmail}
           />
@@ -258,7 +258,7 @@ export default async function MoneyPage({
                 Every invoice that has been sent is paid.
               </Empty>
             ) : (
-              <Empty title="No invoices sent yet" action={<InvoiceBuilder clients={getClients()} projects={projects} defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} credits={credits} noEmail={noEmail} />}>
+              <Empty title="No invoices sent yet" action={<InvoiceBuilder defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} credits={credits} noEmail={noEmail} />}>
                 What clients owe shows here once the first invoice goes out.
               </Empty>
             )
@@ -349,7 +349,7 @@ export default async function MoneyPage({
                       <td className="num">{t.due ? naira(t.due) : <span className="ad__dim">Nil</span>}</td>
                       <td className="ad__rmC">
                         <InvoiceMenu invoice={i} noReceipt={noticeBlock(client)}
-                          edit={client ? { clientName: client.company, projects: projects.filter((p) => p.clientId === client.id).map((p) => ({ id: p.id, title: p.title, clientId: p.clientId })) } : undefined} />
+                          edit={client ? { clientName: client.company, projectTitle: i.projectId ? projectById.get(i.projectId)?.title : undefined } : undefined} />
                       </td>
                     </tr>
                   ))}
@@ -362,7 +362,7 @@ export default async function MoneyPage({
               title={hasInvoiceFilters ? "No invoices match these filters" : "No invoices yet"}
               action={hasInvoiceFilters
                 ? <Link className="ad__btn" href="/admin/money#invoice-list">Clear filters</Link>
-                : <InvoiceBuilder clients={getClients()} projects={projects} defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} credits={credits} noEmail={noEmail} />}
+                : <InvoiceBuilder defaultVatRate={finance.vatRate} defaultDueInDays={finance.dueInDays} credits={credits} noEmail={noEmail} />}
             >
               {hasInvoiceFilters
                 ? "Try a broader search or clear the filters to see every invoice."
@@ -450,7 +450,7 @@ export default async function MoneyPage({
                 </table>
               </div>
             ) : (
-              <Empty title="No expenses recorded" action={<AddExpense projects={projects} />}>
+              <Empty title="No expenses recorded" action={<AddExpense />}>
                 Add the first one with who was paid, what it was for, and the
                 project it belongs against if it belongs to one.
               </Empty>
@@ -462,7 +462,7 @@ export default async function MoneyPage({
           {/* A quote is not money and is not added to any total on the page. */}
           <Panel
             title="Estimates"
-            action={<EstimateBuilder clients={getClients()} projects={projects} trigger="New estimate" defaultVatRate={finance.vatRate} noEmail={noEmail} />}
+            action={<EstimateBuilder trigger="New estimate" defaultVatRate={finance.vatRate} noEmail={noEmail} />}
           >
             {/* WHAT IS QUOTED AND STILL LIVE, the only forward-looking figure on
                 this screen and deliberately not added to anything else. A quote
@@ -528,7 +528,7 @@ export default async function MoneyPage({
             ) : (
               <Empty
                 title="Nothing out for quote"
-                action={<EstimateBuilder clients={getClients()} projects={projects} defaultVatRate={finance.vatRate} noEmail={noEmail} />}
+                action={<EstimateBuilder defaultVatRate={finance.vatRate} noEmail={noEmail} />}
               >
                 An estimate is its own document with its own number, not a draft
                 invoice. Accepting one raises the invoice and keeps the quote as

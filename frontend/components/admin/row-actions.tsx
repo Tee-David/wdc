@@ -26,6 +26,7 @@ import {
 } from "@/lib/admin/actions";
 import { Actions, Area, Field, Fields, Form, Hidden, Radios, Select, Submit } from "./form";
 import { EditInvoiceForm } from "./money-forms";
+import { RemoteSelect } from "./remote-pick";
 import { NoticeTick, ReceiptTick } from "./reconcile-forms";
 import { RowMenu, type RowMenuItem } from "./row-menu";
 import { ClientFields } from "./client-form";
@@ -266,8 +267,8 @@ export function ClientMenu({ client }: { client: Client }) {
 /* --------------------------------------------------------------- invoices */
 
 /**
- * `edit` carries what the edit sheet needs (the client's name and their
- * projects); a screen that cannot supply it still gets "Edit it", as a link to
+ * `edit` carries what the edit sheet needs (the names of the client and the
+ * project, so the pickers read without asking); a screen that cannot supply it still gets "Edit it", as a link to
  * the invoice page where the same sheet opens. `noReceipt` is why the client
  * cannot be emailed a receipt (no address, updates off), shown beside the
  * disabled tick.
@@ -276,7 +277,7 @@ export function InvoiceMenu({
   invoice, edit, noReceipt,
 }: {
   invoice: Invoice;
-  edit?: { clientName: string; projects: { id: string; title: string; clientId: string }[] };
+  edit?: { clientName: string; projectTitle?: string };
   noReceipt?: string;
 }) {
   const status = invoiceStatus(invoice);
@@ -294,7 +295,7 @@ export function InvoiceMenu({
     items.push(edit ? {
       kind: "dialog", label: "Edit it", icon: Pencil, wide: true,
       title: `Edit ${invoice.number}`,
-      render: (close) => <EditInvoiceForm invoice={invoice} clientName={edit.clientName} projects={edit.projects} close={close} />,
+      render: (close) => <EditInvoiceForm invoice={invoice} clientName={edit.clientName} projectTitle={edit.projectTitle} close={close} />,
     } : { kind: "link", label: "Edit it", href: `/admin/money/${invoice.id}`, icon: Pencil });
   }
 
@@ -617,10 +618,9 @@ export function ExpenseMenu({ expense }: { expense: Expense }) {
 /* ------------------------------------------------------------ submissions */
 
 export function SubmissionMenu({
-  submission, clients,
+  submission,
 }: {
   submission: Pick<Submission, "id" | "clientId" | "answers" | "service">;
-  clients: Pick<Client, "id" | "company">[];
 }) {
   const who = String(submission.answers.company ?? submission.answers.first_name ?? "this form");
   const money = can(useAdminRole(), "money");
@@ -681,10 +681,9 @@ export function SubmissionMenu({
         <Form action={attachSubmission}>
           <Fields>
             <Hidden name="id" value={submission.id} />
-            <Select
-              name="clientId" label="Existing client"
+            <RemoteSelect
+              name="clientId" label="Existing client" kind="clients"
               placeholder="Make a new one from these answers"
-              options={clients.map((c) => ({ value: c.id, label: c.company }))}
               hint="Leave this as it is and the answers become a new client record."
             />
           </Fields>
