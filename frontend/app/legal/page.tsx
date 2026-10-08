@@ -11,7 +11,7 @@ import "@/components/legal/legal.css";
 export const metadata: Metadata = {
   title: "Legal",
   description:
-    "Our privacy, terms, cookie, client engagement, payments and refunds, and messages policies, written plainly.",
+    "Our privacy, terms, cookie, client engagement, payments and refunds, hosting and accounts, and messages policies, written plainly.",
   alternates: { canonical: `${SITE_URL}/legal` },
   openGraph: {
     title: `Legal | ${COMPANY_NAME}`,

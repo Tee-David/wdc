@@ -86,6 +86,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
           "What we are given to do the work. Delivering a project often means being handed access to something that belongs to you: a domain, a hosting account, an analytics property, an advertising account, a store, a social media profile, a brand archive. These may contain personal data belonging to you, your staff or your customers. We treat all of it as yours, not ours.",
           "Your account. If you sign in to the client portal we hold your name, email address, how you sign in (a password stored only as a salted hash, or your Google account), and a record of what you have viewed, approved and paid.",
           "Payments. When you pay through our payment provider, they collect your card or bank details directly. We receive the result: the amount, the reference, the status, the date and the last digits or channel they report. We never see or store a full card number.",
+          "Meetings. Review meetings, calls and the handover meeting are often held on Google Meet or by phone, and may be recorded. We tell you before recording starts. A recording, the chat and any notes we take are personal information, and they may show your face, your voice, your screen and anything you say or open during the call.",
           "Messages. We keep a record of the emails the system sends you, with the time and whether they were delivered, so that we do not send the same message twice and can answer 'did it reach me?'.",
           "Collected automatically. Our hosting provider records ordinary server information when a page is requested: an IP address, the page, a timestamp, and the browser and device the request reports. This keeps the site running and secure.",
           "We do not ask for, and do not want, payment card numbers, government identity numbers, health information or anything else sensitive. Please do not send them to us by email or in a form.",
@@ -103,6 +104,22 @@ export const LEGAL_DOCS: LegalDoc[] = [
         ],
       },
       {
+        heading: "Meetings and recordings",
+        body: [
+          "We may record review meetings and always offer a recorded handover meeting, so you can watch it again, share it with your own team and learn at your own pace. We tell you before we record and you may say no. If you do, we will give you a written walkthrough instead.",
+          "A recording is shared with you by a private link and is kept for the life of the engagement. After that we keep it for as long as we need it to deal with a question about the work, and delete it on your request unless the law requires us to keep it. Do not show or say anything on a recorded call that you do not want recorded, such as passwords or customer personal data.",
+          "Anyone you invite to a meeting is your responsibility. Tell them it may be recorded.",
+        ],
+      },
+      {
+        heading: "When we handle your customers' information for you",
+        body: [
+          "If we build, host or run something for you that collects or stores information about your customers, staff or visitors, such as a shop, a booking form, a mailbox or an app, you decide why that information is collected and how it is used. We act only on your instructions, as your processor, and treat it as confidential.",
+          "You are responsible for telling your own users what you collect, for having a lawful basis, for the consents and notices they are owed, and for answering their requests. We help where we reasonably can.",
+          "We use reasonable measures to keep it safe, we give it only to the suppliers needed to provide the service, and we tell you without undue delay if we learn of a breach that affects it. When the engagement or hosting ends we return it to you or delete it on your instruction, except what the law requires us to keep.",
+        ],
+      },
+      {
         heading: "Showing work we have done",
         body: [
           "We are an agency, so our own marketing includes the work we have delivered. Published case studies, portfolio images and testimonials appear with the client's agreement.",
@@ -114,6 +131,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
         body: [
           "We do not sell personal information, and we do not share it for anyone else's marketing.",
           "Some of it passes through the suppliers who let us operate, and each sees only what its part of the job needs: the company that hosts this website, the database that stores forms and accounts, the storage that holds files you upload, the provider that carries our email, our payment provider, the scheduling tool used for meetings, and the tools we use to write, design and track project work. The chat assistant on the site is run by Jotform and is covered by the Cookie Policy.",
+          "Messaging apps. If you ask us to run a WhatsApp group or similar for your project, the app is operated by another company, and everyone in the group can see each other's names and numbers. Only add people who should see them.",
           "Our team members see what they need for the projects they work on. Access is by individual account and is removed when someone leaves or changes role.",
           "A client's own accounts, such as an advertising platform or an analytics property, are reached with access the client controls and can withdraw at any time. We never ask for a password to be sent to us.",
           "We will disclose information where a law, a court or a regulator with proper authority requires it. If that happens and we are permitted to tell you, we will.",
@@ -238,6 +256,25 @@ export const LEGAL_DOCS: LegalDoc[] = [
         ],
       },
       {
+        heading: "Things you must not do, and what you agree to cover",
+        body: [
+          "You agree to use the site, the forms and your account lawfully, and not to submit anything that infringes another person's rights, is false, abusive or malicious, or that you have no right to send.",
+          "You agree to cover us for any loss, claim, penalty or reasonable cost, including reasonable legal fees, that comes from your breach of these terms, from what you submit through the site or your account, or from your unlawful use of either. We will tell you promptly about a claim and let you help with the defence, as far as that does not prejudice us.",
+        ],
+      },
+      {
+        heading: "No warranty",
+        body: [
+          "The site, its tools and its content are provided as they are and as available. To the extent the law allows, we give no warranty, express or implied, that they are error-free, uninterrupted, fit for a particular purpose or will give a particular result.",
+        ],
+      },
+      {
+        heading: "Events outside our control",
+        body: [
+          "We are not responsible for a failure or delay caused by something beyond our reasonable control, such as power or network failure, a fault at a hosting, email, payment or platform provider, a government act, strike, fire, flood, epidemic, or an attack on our systems despite reasonable security.",
+        ],
+      },
+      {
         heading: "Liability",
         body: [
           "To the extent the law allows, we are not liable for loss arising from your use of this website or from reliance on general information published on it, including loss of profit, business or data.",
@@ -248,6 +285,12 @@ export const LEGAL_DOCS: LegalDoc[] = [
         heading: "Governing law",
         body: [
           "These terms are governed by the laws of the Federal Republic of Nigeria, and the Nigerian courts have jurisdiction over any dispute arising from them. We would like to talk first.",
+        ],
+      },
+      {
+        heading: "The rest of the agreement",
+        body: [
+          "If a part of these terms is found unenforceable, the rest stays in force. Our not enforcing a term at some moment does not waive it. You may not transfer your account or rights under these terms without our written consent. We may send notices to the email address on your account or form.",
         ],
       },
       {
@@ -338,6 +381,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
         body: [
           "It begins with a conversation about the outcome you want, not a feature list. We would rather understand what the work has to achieve than quote for a specification that may not get you there.",
           "Your onboarding brief, a call and any material you send are the starting point. From them we put the scope in writing: what is included, what is not, what we need from you, what it costs, the rounds of revision included, and roughly when. Work starts when you have accepted that in writing and any deposit is settled. Nothing said in a meeting, a chat message or an email thread changes the agreed scope until it is written down and both sides have accepted it.",
+          "The usual order is a discovery call, then agreement of the scope, then payment of the deposit, then our onboarding form, then we set up your client portal and the way we will keep in touch (a WhatsApp group, calls or email, as you choose), then the work, with review meetings along the way and a handover meeting at the end. A typical project runs about three to four weeks, and yours may be shorter or longer, as the agreed scope says.",
           "A brief is not a contract and a quote is not a promise of a date. The agreed scope document, together with this policy, is.",
         ],
       },
@@ -359,6 +403,15 @@ export const LEGAL_DOCS: LegalDoc[] = [
           "Feedback within the window we agree at each review stage, which is normally five working days. If it does not arrive, the timeline moves by the same amount, and if a project is silent for thirty days we may pause it and reschedule when you are back.",
           "That you have the right to give us what you give us. Copy, images, fonts, music, data and trademarks handed to us are used on the basis that you are entitled to use them, and you deal with any claim that you were not.",
           "Access through each tool's own sharing settings, never by sending us a password.",
+        ],
+      },
+      {
+        heading: "Reviews and the handover meeting",
+        body: [
+          "Unless your agreed scope says otherwise, a project has up to two review meetings, where we show you the work and take your consolidated feedback, and a handover meeting at the end. The number of reviews, how long they run and how they are held depend on your agreed scope, and we tell you before work starts. A further review is new work.",
+          "The handover meeting is normally a recorded Google Meet call. We walk you through what was built and what it does, from the public pages to the admin area or content system if there is one, show you how to manage it, how to reach it and where things are, and answer your questions.",
+          "After the meeting we send a handover document with what you need to reach and run your project: links, the access details and logins we are handing over, webmail where it applies, the link to the recording, and specific instructions for your project. Keep the document safe and change the passwords in it. Once handover is done, looking after your passwords and your users is your responsibility.",
+          "The handover meeting is part of delivery. Where you cannot attend, tell us and we will rebook it once. If a handover is not completed within the time agreed for reasons that are yours, the work counts as delivered for payment and the warranty period starts, and we will still give you the document and the recording.",
         ],
       },
       {
@@ -394,6 +447,12 @@ export const LEGAL_DOCS: LegalDoc[] = [
         ],
       },
       {
+        heading: "Acceptance and signing off",
+        body: [
+          "Work is accepted when your named approver says so in writing, when you use it for real, or fourteen days after we deliver it, whichever is first, unless within those days you tell us in writing what does not match the agreed scope. After that, a change is a change request, and a defect is dealt with under the warranty period.",
+        ],
+      },
+      {
         heading: "Showing the work",
         body: [
           "Unless you ask us not to, we may show completed work in our portfolio and describe what it involved. If a project is confidential, or you would rather it were not shown, say so in writing and it will not be.",
@@ -416,12 +475,32 @@ export const LEGAL_DOCS: LegalDoc[] = [
         ],
       },
       {
+        heading: "What you agree to cover us for",
+        body: [
+          "You agree to indemnify us, our team and our subcontractors, and to keep us indemnified, against any claim, demand, loss, damage, penalty, fine and reasonable cost, including reasonable legal fees, that arises from: (a) anything you give us or tell us to use, such as logos, names, pictures, fonts, music, text, data, code or access, including a claim that it infringes someone's rights or was not yours to give; (b) an instruction you give us or a decision you or your approver make against our advice; (c) how you or your customers use what we deliver, and your content, products, services, prices, claims or advertising; (d) your breach of a law, of a platform's rules or of a licence, including data protection, consumer protection, advertising, tax and trademark law; (e) personal information you collect, store or process through what we build or host for you; (f) your failure to pay a third party, renew a domain, a licence or a service, or to keep an account secure; (g) a change made to our work by you or anyone not acting for us; and (h) your breach of this policy.",
+          "We will tell you promptly about a claim and let you control its defence and settlement, as long as you do it reasonably and keep us informed, and we may take part with our own lawyers at our own cost. We will not admit liability or settle in a way that binds you without asking. You do not have to cover a loss that a court decides was caused by our own fraud or wilful default.",
+          "This promise carries on after the engagement ends.",
+        ],
+      },
+      {
+        heading: "People we work with",
+        body: [
+          "We may use freelancers, contractors and other companies to deliver your work. We are responsible to you for their work as if it were ours, and we keep them to the confidentiality in this policy. Tools and services we use, including AI tools, are used with care, and we do not feed your confidential material into a tool that would keep or learn from it without telling you.",
+        ],
+      },
+      {
+        heading: "Events outside our control",
+        body: [
+          "Neither of us is responsible for a delay or failure caused by something beyond reasonable control, such as power or network failure, a fault at a platform, hosting, email or payment provider, a change in law, government action, strike, fire, flood, epidemic or a cyber attack despite reasonable security. The affected dates move by the length of the event. If it lasts more than sixty days, either of us may end the engagement as set out below.",
+        ],
+      },
+      {
         heading: "Work that has its own terms",
         body: [
           "Brand and design: batch and monthly jobs run to the quantity and the dates agreed. A new batch, or one more piece, is new work. Licences for fonts and music, particularly for motion work, are yours to keep to, and we tell you which apply.",
-          "Websites: your domain and hosting are in your name. A free review of your site is advice and not a promise of results. Plugins and platforms we build on belong to other companies and can change.",
+          "Websites: we register your domain in your name and with your details unless you ask us to do otherwise in writing. Hosting is either an account opened for you in your name, or hosting we provide ourselves under a written hosting agreement made before we host, which is what a client who wants us to build, look after and host the site usually chooses. Your agreed scope says which. Our Hosting, Domains and Accounts Policy sets out the rest. A free review of your site is advice and not a promise of results. Plugins, themes and platforms we build on belong to other companies and can change. For a website, we include up to three business email addresses at no charge. More mailboxes are charged per mailbox, and the handover document lists what you have.",
           "Search: SEO work starts at three months and is ongoing. Changes to your content are approved by you before they go live.",
-          "Apps: we show a first version before the full build. The developer accounts are in your name, the stores charge their own fees and make their own decisions on approval, and we prepare each submission carefully. We do not build games, anything deceptive or anything that needs unusual hardware.",
+          "Apps: we show a first version before the full build. Unless you ask otherwise, the app store developer accounts are opened in our name, and you may ask for the app to sit in your own account, or to be moved to it, as set out in the Hosting, Domains and Accounts Policy. The stores charge their own fees, make their own decisions on approval, and keep changing their rules, so we cannot promise approval or a date for it, and we prepare each submission carefully. We do not build games, anything deceptive or anything that needs unusual hardware.",
           "Software and automation: demonstrations of past work happen on a call. You set the rules for your data. Other companies' tools and interfaces can change or stop. Very heavy systems may be outside what we take on, and we say so early.",
           "Social media: nothing is posted until you approve it, within the time you told us. The accounts are yours, and you add us through each platform's sharing tools. Ad spend is paid to the platform and is separate from our fee.",
         ],
@@ -456,6 +535,16 @@ export const LEGAL_DOCS: LegalDoc[] = [
         ],
       },
       {
+        heading: "The legal small print",
+        body: [
+          "This policy, your agreed scope and any hosting agreement make up the whole agreement for your engagement. They replace anything said before, and if they conflict, the signed scope comes first, then the hosting agreement, then this policy.",
+          "If a part of it is found unenforceable, the rest stays in force. Not enforcing something at a moment does not waive it. Neither of us may transfer the agreement without the other's written consent, except that we may pass it to a successor to our business.",
+          "Agreeing by email, by the client portal, by a signed document or by paying a deposit counts as agreeing in writing. A notice by email to the address on your account or brief reaches you when it is sent.",
+          "Nothing in this policy makes either of us the other's partner, agent or employee.",
+          "Anything that by its nature should carry on after the engagement, such as ownership, payment, confidentiality, the limits on what we promise and what you cover us for, does.",
+        ],
+      },
+      {
         heading: "Changes to this policy",
         body: [
           "A change to this page does not change an engagement already agreed. It applies to the next one, unless you accept it sooner.",
@@ -480,6 +569,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
           "Each project is priced in the agreed scope, in the currency stated there. Most projects are charged as a deposit to start, then stages, then a final payment on delivery. Ongoing work is charged monthly in advance.",
           "Prices do not include third-party costs such as domains, hosting, licences, app store accounts and advertising spend. We tell you about those before they are incurred.",
           "Taxes are added where the law requires and are shown on the invoice.",
+          "Some things are charged repeatedly: hosting we provide, maintenance, any mailbox beyond the three included with a website we build, and ongoing work. Each is shown on your agreed scope or hosting agreement, with its price and renewal date, and is charged in advance. Domains, licences and store accounts renew with the company that provides them, on their terms, and you pay those costs.",
         ],
       },
       {
@@ -500,7 +590,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
       {
         heading: "Paying late",
         body: [
-          "An invoice is due by the date on it. A reminder is sent before and after. If an invoice is significantly overdue we may pause the work and tell you first. The delivery dates move by the length of the pause. We do not hold your own accounts, content or domain hostage: access that is yours stays yours.",
+          "An invoice is due by the date on it. A reminder is sent before and after. If an invoice is significantly overdue we may pause the work and tell you first. The delivery dates move by the length of the pause. Where we host your site or mailboxes under a hosting agreement, we may suspend that hosting after written notice if the fees stay unpaid, and we will restore it once they are paid. We do not hold a domain registered in your name, or an account that is in your name, hostage: those stay yours, and we will help you move your site after your account is settled.",
           "If a bill is wrong, tell us straight away and we will fix it. The undisputed part is still due.",
         ],
       },
@@ -530,6 +620,77 @@ export const LEGAL_DOCS: LegalDoc[] = [
         heading: "Changes",
         body: [
           "A change to this page does not change an engagement already agreed.",
+        ],
+      },
+    ],
+  },
+
+  /* ------------------------------------------------------------------ */
+  {
+    slug: "hosting-domains-and-accounts",
+    title: "Hosting, Domains and Accounts Policy",
+    blurb:
+      "Whose name a domain, hosting and an app store account are in, what we host, what email is included, and what happens when it ends.",
+    updated: LEGAL_UPDATED,
+    intro:
+      "Websites and apps depend on accounts with other companies. This policy says whose name each is in, who pays, who looks after it, and how it moves to you. It sits beside the Client Engagement Policy, and your agreed scope or hosting agreement wins where it says something different. Clients differ: some want a site built, looked after and hosted by us, some run their own, and this policy covers both.",
+    sections: [
+      {
+        heading: "Domains",
+        body: [
+          "When we register a domain for you, we register it in your name and with your details, so you are the registrant and the owner, unless you ask in writing for something else. We use your real legal name and contact details, so keep them true. The registry and the registrar have their own rules, and a registration can need documents, particularly for some country domains.",
+          "You are responsible for renewing it. We can remind you and renew it for you if you ask and pay, but a domain that lapses can be lost or bought by someone else, and we are not liable for that where we told you the renewal date or the renewal was yours to make.",
+          "If you ask us to hold a domain in our name for a while, for a reason we agree, we will say so in writing and move it into your name when you ask, once your account is settled.",
+        ],
+      },
+      {
+        heading: "Hosting",
+        body: [
+          "Hosting is one of two things, and your agreed scope says which. Either we open a hosting account for you in your own name, with you as the account holder and the payer, and hand you the access, or we host the site on our own hosting under a written hosting agreement we make before we host it.",
+          "Where we host for you, the agreement sets the fee, the renewal date, what is included (for example security updates, backups and monitoring), and the limits. We look after the servers with reasonable care and aim for the site to be available, but we do not promise it will never be down, and we are not liable for outages caused by providers, attacks or events beyond our control. Backups are kept as the agreement says, and you should also keep your own copy of anything you cannot lose.",
+          "Hosting we provide is for your project only. You may not use it to send spam or unsolicited bulk email, to hold unlawful content, to attack other systems, or to carry on a business we did not know about, and we may remove something or suspend the hosting if you do, telling you when we can.",
+          "You may ask us to move your site to another host at any time. After your account is settled, we hand over the site files and database in a standard form, and we may charge for the time a move takes.",
+        ],
+      },
+      {
+        heading: "Business email",
+        body: [
+          "For a website we build, we include up to three business email addresses at no charge, for as long as the domain and the hosting stay active. More than three are charged per mailbox, and the list is in your handover document.",
+          "A mailbox is for ordinary business mail. Storage and sending limits apply, bulk and unsolicited email is not allowed, and mail on the server can be lost. You own what is in your mailboxes. Keep your own copies of anything important, and keep the passwords private.",
+        ],
+      },
+      {
+        heading: "The handover document",
+        body: [
+          "At handover we send a document with what you need: the links, the access we are passing to you, webmail, the recording of the handover meeting and instructions for your project. Change the passwords in it, and tell us if you want us to keep any access for support. Anything we keep access to, we use only for the work you asked for.",
+        ],
+      },
+      {
+        heading: "Website platforms, plugins and licences",
+        body: [
+          "Sites are often built on platforms, themes and plugins that belong to other companies. Free ones come with their own licences. Paid ones are bought either by you or by us on your behalf and then invoiced at cost, and renew on the owner's terms, so a renewal you do not pay can stop an update or a feature. We tell you which ones your site uses.",
+          "Platforms need updating. Updates can change how a site works. Updating and fixing after the warranty period are maintenance, and are done under a maintenance arrangement or quoted as extra work.",
+        ],
+      },
+      {
+        heading: "App store developer accounts",
+        body: [
+          "Unless you ask otherwise, we open and run the Apple and Google developer accounts in our name, because the stores increasingly ask for verification, business details and fees that are simpler to manage in one place, and publishing works faster that way. The seller name people see in a store may then be ours.",
+          "If you prefer, the app can sit in an account in your own name, for which you pay the store's fees and give us the access and roles we need. Where an app was published from our account, you may ask us to transfer it to yours. A transfer depends on the store's rules and on your account meeting its requirements, may take time, may need fees and documents, and we only start it once your account with us is settled. We do not promise that a store will approve a transfer.",
+          "Until a transfer, we keep the account secure and you do not have the right to publish updates from it. The stores can refuse, remove or suspend an app, and change their rules, at any time, and that is not our fault.",
+        ],
+      },
+      {
+        heading: "When it ends",
+        body: [
+          "Either of us may end a hosting arrangement by giving thirty days' written notice, unless the hosting agreement says otherwise. Fees are due for the period used, and a fee already paid for a period is not refunded unless we ended it without cause. Before it ends we give you your files and data in a standard form.",
+          "After hosting ends we keep a copy for a short time in case you need it, and then delete it. If you want it kept longer, say so before it ends.",
+        ],
+      },
+      {
+        heading: "What you agree to cover",
+        body: [
+          "You are responsible for the content on what we host, for the licences it needs, and for the personal information on it. You agree to cover us for any claim that comes from your content, your use of the hosting or email against this policy, or your failure to renew or pay for something that was yours, as set out in the Client Engagement Policy.",
         ],
       },
     ],
@@ -602,6 +763,7 @@ export const OPEN_ITEMS = [
   "The Payments and Refunds Policy: confirm the payment methods offered, that monthly work is billed in advance, the overdue reminders, and when deposits are refundable. These are drafted as sensible defaults and not from a signed agreement.",
   "A limit on liability and a mediation step, which are drafted in plain words and need a lawyer's wording.",
   "Whether the accessibility menu, chat assistant and any analytics added later are described correctly in the Cookie Policy.",
+  "The Hosting, Domains and Accounts Policy and the indemnity: confirm the fees and notice periods, whether you want a separate signed hosting agreement template, the caps on liability and the dispute steps, and that holding app store accounts in the studio's name by default is what you want to offer.",
   "A practitioner's review of the whole set, especially liability, intellectual property, refunds and engagement, before it is relied on commercially.",
 ] as const;
 
