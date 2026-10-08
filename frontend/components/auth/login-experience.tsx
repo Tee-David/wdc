@@ -376,9 +376,10 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
     setReturnError("");
     personalise(email);
     dispatch({ type: "IDENTIFY_SUBMIT" });
-    /* The way in that worked last time opens first. Password is a step of
-       its own, so its tab is opened by going there. */
-    if (lastMethod === "password") dispatch({ type: "CHOOSE_METHOD", method: "password" });
+    /* PASSWORD IS THE FIRST WAY IN (owner's call), Link the second. A person
+       whose last sign-in was a link or a passkey still opens on that one.
+       Password is a step of its own, so its tab is opened by going there. */
+    if (lastMethod !== "magic" && lastMethod !== "passkey") dispatch({ type: "CHOOSE_METHOD", method: "password" });
   };
 
   /* ------------------------------------------------------------ magic */
@@ -597,8 +598,8 @@ export default function LoginExperience({ demo, googleEnabled, requested, refuse
      thumb; last use chooses which one opens instead. */
   const methods = useMemo(() => {
     const list: Array<{ id: Tab; icon: React.ReactNode; tab: string }> = [
-      { id: "magic", icon: <Mail aria-hidden="true" />, tab: copy.method.magic.tab },
       { id: "password", icon: <KeyRound aria-hidden="true" />, tab: copy.method.password.tab },
+      { id: "magic", icon: <Mail aria-hidden="true" />, tab: copy.method.magic.tab },
     ];
     if (passkeyOffered) list.push({ id: "passkey", icon: <Fingerprint aria-hidden="true" />, tab: copy.method.passkey.tab });
     return list;
