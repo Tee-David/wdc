@@ -55,6 +55,7 @@ For authored motion designs, read the installed [Motion Studio skill](../.agents
 | Database | `DATABASE_URL` or `COCKROACHDB_URL`; certificates handled in `lib/db/pool.ts` |
 | Authentication | `lib/auth.ts`; Google uses `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` |
 | Email | Mail-module SMTP/sender resolvers; use their names rather than adding aliases |
+| Saved mail connections | Server-only `MAIL_SECRETS_KEY` (plural): 64 hexadecimal characters for AES-256-GCM. Preserve this key wherever the same database's encrypted credentials are read; replacing it makes existing credentials unreadable. |
 | R2 | `lib/r2.ts` resolves account, bucket and credentials; `CLOUDFLARE_R2_URL` supplies the public asset base |
 | Payments | `PAYSTACK_MODE` with the corresponding `PAYSTACK_TEST_*` or `PAYSTACK_LIVE_*` pair, resolved by `lib/paystack.ts` |
 | Daily jobs | Authentication in `app/api/cron/daily/route.ts` |
@@ -86,6 +87,8 @@ R2 uploads use scoped signed requests and server validation. Keep static marketi
 Paystack mode is centralized. Settings › Integrations stores an owner-controlled override in `app_settings`; ENV is the default only when no override exists. Database failures refuse checkout rather than changing account silently. Migration 0037 records each checkout's original mode, invoice and amount before provider initialization. Verification uses that account after a mode switch, and webhook HMAC identifies the signing account independently of the selected mode. Test and unknown-mode Paystack payments cannot settle invoices. A browser return URL alone does not prove a successful payment. Run `node scripts/check-paystack-mode.mjs` for deterministic provider-free mode checks and the focused money append-only spec for the financial boundary.
 
 `vercel.json` schedules `/api/cron/daily` at 03:40 UTC daily. It performs retention, invoice reminders and related maintenance. It cannot accurately schedule an hour-before-meeting reminder. The [Meetings preview](../prototypes/cal-meetings/README.md) uses sample data and does not implement Cal.com bookings.
+
+GitHub's Mail tick workflow reads repository secrets `SITE_URL` (the canonical HTTPS origin) and `CRON_SECRET` (the same value as Vercel production). Environment changes require a new deployment before runtime uses them; a replacement cron secret in GitHub will fail authentication until that deployment is ready.
 
 ## Media, caching and offline behaviour
 
