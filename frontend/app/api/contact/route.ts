@@ -1,3 +1,4 @@
+import { designed } from "@/lib/email-designed";
 import { normalizePhone } from "@/lib/phone";
 import { after, NextRequest, NextResponse } from "next/server";
 import { hydrateSettings } from "@/lib/settings/store";
@@ -107,8 +108,9 @@ export async function POST(request: NextRequest) {
      provider; this is the honest interim. */
   const sendReceipt = async () => {
     try {
+      const coded = formEmail(form, "receipt", data)!;
       await sendFormEmail(form, settings, "receipt",
-        formEmail(form, "receipt", data)!,
+        { ...coded, ...(await designed("enquiry-receipt", { "contact.first_name": data.first, "contact.topic": data.topic }, () => coded)) },
         { summary: `Receipt for an enquiry about ${topic}.`, dedupeKey: `enquiry-receipt:${eventId}` },
         tokens,
       );
