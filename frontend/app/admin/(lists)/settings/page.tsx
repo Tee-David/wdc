@@ -5,11 +5,28 @@ import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { mailIsConfigured } from "@/lib/email";
 import { siteSeo } from "@/lib/site-seo";
 import { maintenance } from "@/lib/maintenance";
+import { config as meetingConfig } from "@/lib/meetings/store";
+import { meetingsStatusLabel } from "@/lib/meetings/errors";
 import { SETTINGS_SECTIONS } from "@/lib/settings/sections";
 import { SettingsOverview } from "@/components/admin/settings/settings-overview";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 
 export const metadata = { title: "Settings" };
+
+/**
+ * The Meetings card's one word, from the stored row only: no call to Cal.com
+ * on the index. A missing migration, a missing database or a slow answer all
+ * read as "Not set up"; the Meetings page itself says which it is.
+ */
+async function meetingsStatus() {
+  const hasKey = !!process.env.CAL_API_KEY?.trim();
+  if (!hasKey) return meetingsStatusLabel({ hasKey, config: null });
+  const stored = await Promise.race([
+    meetingConfig().catch(() => null),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000)),
+  ]);
+  return meetingsStatusLabel({ hasKey, config: stored });
+}
 
 /**
  * THE SETTINGS OVERVIEW (the Settings canvas): every section this role may
@@ -31,6 +48,7 @@ export default async function SettingsPage() {
     values["/admin/settings/site"] = seo.noindex.on ? "Hidden" : "Indexed";
     values["/admin/settings/maintenance"] = m.on ? "On" : "Off";
     values["/admin/settings/email"] = mailIsConfigured() ? "Set up" : "Missing";
+    values["/admin/settings/meetings"] = await meetingsStatus();
     values["/admin/settings/notifications"] = [getSetting("notify.tickets"), getSetting("notify.payments"), getSetting("notify.estimates")].includes("0") ? "Some off" : "On";
   }
   return (
