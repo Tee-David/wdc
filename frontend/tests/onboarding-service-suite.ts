@@ -244,7 +244,8 @@ export function sharedChecks(cfg: SuiteConfig) {
 
       const review = page.locator(".ob__review");
       for (const s of screensFor(service, all)) for (const f of s.fields) {
-        if (!isQuestion(f) || !isFilled(all[f.key])) continue;
+        /* A phone number is stored in international form, so it is not shown as typed. */
+        if (!isQuestion(f) || f.kind === "tel" || !isFilled(all[f.key])) continue;
         const values = Array.isArray(all[f.key]) ? (all[f.key] as string[]) : [all[f.key] as string];
         for (const v of values) await expect(review, `${f.key} on the review`).toContainText(v);
       }
