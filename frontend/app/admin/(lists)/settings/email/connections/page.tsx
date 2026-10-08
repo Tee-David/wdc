@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { AdminState } from "@/components/admin/admin-state";
 import { Panel, when } from "@/components/admin/bits";
 import { Head } from "@/components/admin/settings/kit";
-import { AddConnection, ConnectionActions, EnvTest, RoutingForm, type ConnView } from "@/components/admin/settings/mail-connections";
+import { AddConnection, ConnectionActions, DomainCheck, EnvTest, EventsKey, RoutingForm, SimulateSwitch, type ConnView } from "@/components/admin/settings/mail-connections";
 import { adminRole } from "@/lib/admin/guard";
 import { can } from "@/lib/admin/permissions";
 import { getSetting } from "@/lib/admin/store";
@@ -13,6 +13,7 @@ import { KINDS } from "@/lib/mail-kinds";
 import { listConnections } from "@/lib/mail-connections";
 import { secretsReady } from "@/lib/mail-secrets";
 import { WEBHOOK_KEY } from "@/lib/mail-webhook-alert";
+import { SITE_URL } from "@/lib/site";
 
 export const metadata = { title: "Mail connections" };
 
@@ -65,7 +66,27 @@ export default async function Connections() {
         <Panel title="Which one sends, and what if it fails">
           <div className="adSetPad">
             <p className="ad__dim">Now: everything goes through <b>{label(def)}</b>{fb ? <>, and if that fails, <b>{label(fb)}</b></> : ", with no fallback"}.</p>
-            <RoutingForm options={options} def={def} fallback={fb} webhook={getSetting(WEBHOOK_KEY) ?? ""} />
+            <RoutingForm options={options} def={def} fallback={fb} webhook={getSetting(WEBHOOK_KEY) ?? ""} digest={getSetting("mail.digest") === "yes"} />
+          </div>
+        </Panel>
+        <Panel title="Bounces and complaints">
+          <div className="adSetPad">
+            <p className="ad__dim">Tell your mail service to post delivery events to these addresses. A bounce or complaint then puts the address on the suppression list at once, so it is never mailed again.</p>
+            {getSetting("mail.eventsKey") ? (
+              <ul className="adForms__dl" style={{ display: "grid", gap: ".5rem", listStyle: "none", padding: 0 }}>
+                {["postmark", "brevo"].map((p) => <li key={p}><b style={{ textTransform: "capitalize" }}>{p}</b><code style={{ display: "block", overflowWrap: "anywhere" }}>{`${SITE_URL}/api/mail/events/${p}/${getSetting("mail.eventsKey")}`}</code></li>)}
+              </ul>
+            ) : <p className="ad__dim">No address yet.</p>}
+            <EventsKey has={Boolean(getSetting("mail.eventsKey"))} />
+          </div>
+        </Panel>
+        <Panel title="Sender domain check">
+          <div className="adSetPad"><DomainCheck defaultDomain={(process.env.SMTP_FROM_EMAIL ?? "").split("@")[1] ?? ""} /></div>
+        </Panel>
+        <Panel title="Simulate mode">
+          <div className="adSetPad">
+            <p className="ad__dim">{getSetting("mail.simulate") === "yes" ? "On: nothing is being sent. Messages are built and logged only." : "Off: mail is sent for real. Turn it on to try things without emailing anyone."}</p>
+            <SimulateSwitch on={getSetting("mail.simulate") === "yes"} />
           </div>
         </Panel>
       </div>
