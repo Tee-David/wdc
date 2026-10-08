@@ -10,9 +10,9 @@ import type { TourDef } from "./types";
  * does not have them yet and a tour of a page that does not exist is a lie
  * with steps.
  *
- * NO PAGE TOURS YET. Five short screens, each with one job, and the
- * walkthrough already stops on every one of them. A page tour earns its
- * place when a screen has more controls than its heading explains.
+ * PAGE TOURS ARE FOR THE TWO SCREENS WITH A DECISION ON THEM: Projects
+ * (approve or send back a deliverable) and Billing (pay an invoice). The
+ * other screens have one job each, and the walkthrough already stops on them.
  *
  * Targets are `data-tour` attributes on the rendered control, the same rule
  * `lib/tours/admin.ts` follows: `components/client/shell.tsx` for the nav
@@ -51,7 +51,7 @@ export const CLIENT_WELCOME: TourDef = {
 
 export const CLIENT_WALKTHROUGH: TourDef = {
   id: "client-walkthrough",
-  version: 2,
+  version: 3,
   kind: "walkthrough",
   title: "The full portal walkthrough",
   steps: [
@@ -68,6 +68,7 @@ export const CLIENT_WALKTHROUGH: TourDef = {
     },
     { id: "attention", target: '[data-tour="portal-attention"]', href: "/portal", page: "Overview", icon: "flag", title: "What needs you", content: "Work ready for your review, invoices with a balance, and our replies to your questions. Each row opens the place to deal with it." },
     { id: "kpis", target: '[data-tour="portal-kpis"]', href: "/portal", icon: "gauge", title: "The numbers at a glance", content: "Live projects, what you owe, and what is waiting for your review. They come from the same records the studio works from." },
+    { id: "next-step", target: '[data-tour="portal-next"]', href: "/portal", optional: true, icon: "flag", title: "Your next step", content: "The one thing we need from you next, with its button. It changes as work moves, and it is not here when nothing is waiting." },
     { id: "nav-projects", target: '[data-tour="portal-nav-projects"]', href: "/portal", desktopOnly: true, icon: "folder", interact: { hint: "Click Projects to move on" }, title: "Your projects", content: "Open Projects to see every piece of work with us." },
     { id: "projects", target: '[data-tour="portal-projects"]', href: "/portal/projects", page: "Projects", icon: "fileStack", title: "Review and approve", content: "Open a project to see its stage and updates. Deliverables ready for you can be approved or sent back with a note on what to change." },
     { id: "nav-billing", target: '[data-tour="portal-nav-billing"]', href: "/portal/projects", desktopOnly: true, icon: "wallet", interact: { hint: "Click Billing to move on" }, title: "Billing", content: "Open Billing to see what you have been invoiced." },
@@ -81,7 +82,31 @@ export const CLIENT_WALKTHROUGH: TourDef = {
   ],
 };
 
+/** One short tour per portal screen that has a decision on it, keyed by
+ *  pathname. Each reuses the targets the walkthrough already uses. */
+export const CLIENT_PAGE_TOURS: Record<string, TourDef> = {
+  "/portal/projects": {
+    id: "client-page-projects",
+    version: 1,
+    kind: "page",
+    title: "This page: your projects",
+    steps: [
+      { id: "intro", target: "body", placement: "center", icon: "folder", showEstimate: true, title: "Your projects", content: "Each piece of work with us, its stage, and the updates we have shared." },
+      { id: "review", target: '[data-tour="portal-projects"]', icon: "fileStack", title: "Review and approve", content: "Open a project to see what is ready for you. Approve a deliverable, or send it back with a note on what to change." },
+    ],
+  },
+  "/portal/billing": {
+    id: "client-page-billing",
+    version: 1,
+    kind: "page",
+    title: "This page: billing",
+    steps: [
+      { id: "intro", target: "body", placement: "center", icon: "wallet", showEstimate: true, title: "Billing", content: "What you have been invoiced, what is still to pay, and the receipts for what you have paid." },
+      { id: "invoices", target: '[data-tour="portal-billing"]', icon: "creditCard", title: "Invoices to pay", content: "Pay an invoice from its row, or open it to save or print. Anything already paid is listed below, with its receipt." },
+    ],
+  },
+};
+
 export function clientPageTourFor(pathname: string): TourDef | null {
-  void pathname;
-  return null;
+  return CLIENT_PAGE_TOURS[pathname] ?? null;
 }

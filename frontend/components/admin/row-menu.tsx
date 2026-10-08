@@ -256,6 +256,10 @@ export function RowMenu({
             <div
               ref={listRef}
               id={id}
+              /* A tour step's target for the open list. It only exists while
+                 the menu is open, so the tour steps that use it follow a step
+                 that asks the reader to open the menu (see lib/tours/admin.ts). */
+              data-tour="row-menu-list"
               role="menu"
               aria-label={`Actions for ${label}`}
               className="ad__rmList"

@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { runBatch } from "@/lib/campaigns";
+import { runAutomations } from "@/lib/automations";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -17,7 +18,10 @@ async function handle(request: NextRequest) {
   const given = Buffer.from(request.headers.get("authorization") ?? "");
   const wanted = Buffer.from(`Bearer ${secret}`);
   if (given.length !== wanted.length || !timingSafeEqual(given, wanted)) return NextResponse.json({ error: "Not allowed." }, { status: 401 });
-  return NextResponse.json(await runBatch());
+  const campaigns = await runBatch();
+  /* Automations ride the same heartbeat; a failure there must not hide the campaign result. */
+  const automations = await runAutomations().catch(() => null);
+  return NextResponse.json({ ...campaigns, automations });
 }
 export const GET = handle;
 export const POST = handle;
