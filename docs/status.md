@@ -130,3 +130,10 @@ Added: font pairings (about a hundred, lazy and subset), shuffle for colours, re
 ## Permanent delete and departments (2026-10-08)
 - Permanent delete: archived clients and projects (owner; typed name; "I understand"; refused while payments are kept against their invoices; unpaid invoices of a deleted project stay, untied), deactivated staff/client accounts (typed email; never owners or yourself; refused while projects or tasks name them or they appear in the security log as the actor).
 - Departments: migration `0040_departments.sql` (owner applies in Settings › System), `/admin/users/departments`, client page "Departments". Not yet exercised against a real database.
+
+## Email, CRM and designs, 8 October 2026
+
+- Shipped in source: Contacts, Campaigns, the automations engine, conditional blocks and mail connections (migrations 0043 to 0047).
+- Being rebuilt from the approved design artifact https://claude.ai/artifact/KBka1yJMrizpMDESrEhH8n: the TipTap email builder, Contacts import, export and side sheet, the automations canvas with Yes/No branching, and the campaigns tab. Branching adds migration 0048 only if it needs a schema change.
+- Owner to do: apply migrations 0039 to 0048 from Settings › System (0048 only if it was added); set `MAIL_SECRETS_KEY`; add `SITE_URL` and `CRON_SECRET` as GitHub secrets.
+- Not verified: nothing has been exercised signed in against a real database; no real-device checks; no `next build`; no PageSpeed run.
