@@ -28,7 +28,7 @@ import { X } from "lucide-react";
 export default function Tip({ text, example, label = "What does this mean?" }: { text: string; example?: React.ReactNode; label?: string }) {
   const id = useId();
   const [open, setOpen] = useState(false);
-  const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
+  const [position, setPosition] = useState<{ left: number; top: number; maxWidth: number } | null>(null);
   /* Where the note is portalled, found when it is opened. */
   const [host, setHost] = useState<Element | null>(null);
   const root = useRef<HTMLSpanElement>(null);
@@ -57,15 +57,21 @@ export default function Tip({ text, example, label = "What does this mean?" }: {
       if (!anchor || !popover) return;
       const gutter = 16;
       const gap = 10;
-      const left = Math.min(
-        window.innerWidth - popover.width - gutter,
-        Math.max(gutter, anchor.left + anchor.width / 2 - popover.width / 2),
-      );
+      /* KEPT INSIDE THE FORM. The note is portalled out to the body, so it
+         used to centre on its button and run past the form's own edge on a
+         narrow screen. Its room is now the form column (inside the page
+         gutters), and it is narrowed to fit that room. */
+      const form = root.current?.closest(".ob")?.getBoundingClientRect();
+      const lo = Math.max(gutter, form ? form.left + 8 : gutter);
+      const hi = Math.min(window.innerWidth - gutter, form ? form.right - 8 : window.innerWidth - gutter);
+      const room = Math.max(160, hi - lo);
+      const width = Math.min(popover.width, room);
+      const left = Math.min(hi - width, Math.max(lo, anchor.left + anchor.width / 2 - width / 2));
       const below = anchor.bottom + gap;
       const top = below + popover.height <= window.innerHeight - gutter
         ? below
         : Math.max(gutter, anchor.top - popover.height - gap);
-      setPosition({ left, top });
+      setPosition({ left, top, maxWidth: room });
     };
     place();
     window.addEventListener("resize", place);
