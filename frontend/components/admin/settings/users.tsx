@@ -1,7 +1,8 @@
 "use client";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, UserPlus, Download, Pencil, LogOut, KeyRound, UserRound, Eye, Ban } from "lucide-react";
+import { Search, UserPlus, Download, Pencil, LogOut, KeyRound, UserRound, Eye, Ban, Trash2 } from "lucide-react";
 import { Pick } from "../pick";
 import { BulkBar, PickAll, RowPick } from "../bulk";
 import { Pager } from "../pager";
@@ -10,7 +11,7 @@ import { DialogButton } from "../dialog";
 import { Actions, Fields, Field, Area, Form, Hidden, Submit } from "../form";
 import { InviteStaffForm } from "./team-controls";
 import { startClientSupport } from "@/lib/users/support-actions";
-import { manageUser, recoverUser } from "@/lib/admin/user-actions";
+import { manageUser, recoverUser, userDeletionImpact, deleteUserPermanently } from "@/lib/admin/user-actions";
 import { revokeInvite, resendUserInvite } from "@/lib/admin/invite-actions";
 import type { UserFilter, UserRow, InviteRow } from "@/lib/users/manage";
 import "./users.css";
@@ -21,6 +22,24 @@ export function UserInviteButton() {
 function time(date: string | null) { return date ? new Date(date).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" }) : "Not recorded"; }
 function url(f: UserFilter, extra: Record<string, string>) {
   return `/admin/users?${new URLSearchParams({ tab: f.tab, q: f.search, role: f.role, status: f.status, size: String(f.size), page: String(f.page), ...extra })}`;
+}
+type Impact = Awaited<ReturnType<typeof userDeletionImpact>>;
+function DeleteAccount({ id, name, close }: { id: string; name: string; close: () => void }) {
+  const [impact, setImpact] = useState<Impact | undefined>(undefined);
+  useEffect(() => { let on = true; userDeletionImpact(id).then((i) => on && setImpact(i)); return () => { on = false; }; }, [id]);
+  if (impact === undefined) return <p className="ad__dim">Checking what depends on {name}…</p>;
+  if (!impact) return <p>That could not be checked just now. Nothing has been changed.</p>;
+  return (
+    <Form action={deleteUserPermanently} onDone={close} confirm={`Delete ${name}'s account permanently? Their sign-in is removed for good. It cannot be undone.`}>
+      <Hidden name="id" value={id} />
+      <Fields>
+        <div className="ad__note" role="note"><b>Goes with it</b><ul>{impact.goes.map((g) => <li key={g}>{g}</li>)}</ul><b>Stays</b><ul>{impact.stays.map((g) => <li key={g}>{g}</li>)}</ul></div>
+        {impact.blocked ? <p role="alert"><b>It cannot be deleted yet.</b> {impact.blocked}</p>
+          : <Field name="typed" label={`Type ${impact.email} to confirm`} required hint="Deactivating keeps everything and can be undone. This cannot." />}
+      </Fields>
+      <Actions><Submit tone="danger" icon={Trash2} disabled={Boolean(impact.blocked)}>Delete permanently</Submit></Actions>
+    </Form>
+  );
 }
 function accountItems(u: UserRow): RowMenuItem[] {
   const action = (change: string, label: string, explanation: string, danger = false): RowMenuItem => ({ kind: "dialog", label, title: `${label}: ${u.name}`, icon: danger ? Ban : LogOut, tone: danger ? "danger" : undefined, area: "team", render: close => <Form action={manageUser} onDone={close} confirm={explanation}><Hidden name="id" value={u.id} /><Hidden name="change" value={change} /><p>{explanation}</p><Actions><Submit>{label}</Submit></Actions></Form> });
@@ -34,7 +53,10 @@ function accountItems(u: UserRow): RowMenuItem[] {
       action("signout", "Sign out everywhere", "All active sessions end. They can sign back in."),
       ...(u.role !== "client" ? [action(u.role === "owner" ? "staff" : "owner", u.role === "owner" ? "Make staff" : "Make owner", "This changes their access and ends their sessions. Owner access includes finance, settings and users.")] : []),
       action("deactivate", "Deactivate", "Access ends now. Their historical work remains. Reactivate to restore sign-in.", true),
-    ] : [action("reactivate", "Reactivate", "Restore this account's ability to sign in.")]),
+    ] : [
+      action("reactivate", "Reactivate", "Restore this account's ability to sign in."),
+      ...(u.role !== "owner" ? [{ kind: "dialog" as const, label: "Delete permanently", title: `Delete ${u.name} permanently`, icon: Trash2, tone: "danger" as const, area: "team" as const, render: (close: () => void) => <DeleteAccount id={u.id} name={u.name} close={close} /> }] : []),
+    ]),
   ];
 }
 
