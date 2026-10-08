@@ -44,6 +44,10 @@
 
 .tourCard {
   width: min(27rem, calc(100vw - 2rem));
+  /* Never taller than the screen: the text scrolls inside, and Back, Skip
+     and Next stay pinned at the bottom where they can always be pressed. */
+  max-height: calc(100dvh - 1.5rem);
+  display: flex; flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--ad-line);
   border-radius: var(--ad-r);
@@ -60,7 +64,8 @@
 .tourCard__rail { height: 3px; width: 100%; background: var(--ad-line); }
 .tourCard__railFill { height: 100%; border-radius: 0 3px 3px 0; background: var(--ad-accent-fill); }
 
-.tourCard__body { position: relative; padding: 1.4rem 1.15rem 1.1rem; }
+.tourCard__body { position: relative; padding: 1.4rem 1.15rem 0; overflow-y: auto; overscroll-behavior: contain; min-height: 0; }
+.tourCard__foot { position: sticky; bottom: 0; background: var(--ad-panel); padding-bottom: 1.1rem; }
 
 .tourCard__headText { display: grid; gap: .2rem; text-align: center; }
 .tourCard__headText b {

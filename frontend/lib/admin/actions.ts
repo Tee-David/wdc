@@ -435,7 +435,7 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
   if (refused) return refused;
   const invoiceId = str(fd, "invoiceId");
   const amount = kobo(fd, "amount");
-  const reference = str(fd, "reference");
+  let reference = str(fd, "reference");
   /* The list used to be re-typed here, so adding POS and Other to the union in
      types.ts would silently have kept rejecting them and filed both as
      "Transfer". One reader, one list. */
@@ -443,7 +443,11 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
 
   const errors: Record<string, string> = {};
   if (!amount) errors.amount = "How much came in?";
-  if (!reference) errors.reference = "A reference is what stops this being recorded twice.";
+  /* Only a bank transfer has a reference worth insisting on. Cash, card and POS
+     get a generated one (so the row is still unique) unless the person typed a
+     slip or receipt number. */
+  if (!reference && how === "Transfer") errors.reference = "The bank reference is what stops this being recorded twice.";
+  if (!reference && how && how !== "Transfer") reference = `${how.toUpperCase()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
   if (!how) errors.method = "Say how the money arrived.";
   /* "Other" is allowed and is exactly why it has to say what it actually was.
      Recording money against an unnamed catch-all is how a set of books stops
