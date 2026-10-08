@@ -30,7 +30,7 @@ export default function Rich({ text, here }: { text: string; here: string }) {
         if (part === CONTACT_EMAIL) return <a key={i} href={`mailto:${CONTACT_EMAIL}`}>{part}</a>;
         const target = TARGETS.find((t) => t.phrase === part);
         if (!target) return part;
-        const href = target.slug === here ? (target.tab ? `#${target.tab}` : null) : `/legal/${target.slug}${target.tab ? `#${target.tab}` : ""}`;
+        const href = target.slug === here ? (target.tab ? `#${target.tab}` : null) : `/policies/${target.slug}${target.tab ? `#${target.tab}` : ""}`;
         if (!href) return part;
         return href.startsWith("#") ? <a key={i} href={href}>{part}</a> : <Link key={i} href={href}>{part}</Link>;
       })}
@@ -44,7 +44,7 @@ export function SeeAlso({ here, docs }: { here: string; docs: { slug: string; ti
     <nav className="lg-also" aria-label="Related policies">
       <p>Related policies</p>
       <ul>
-        {docs.filter((d) => d.slug !== here).map((d) => <li key={d.slug}><Link href={`/legal/${d.slug}`}>{d.title}</Link></li>)}
+        {docs.filter((d) => d.slug !== here).map((d) => <li key={d.slug}><Link href={`/policies/${d.slug}`}>{d.title}</Link></li>)}
       </ul>
     </nav>
   );
