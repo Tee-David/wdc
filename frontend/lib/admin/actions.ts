@@ -44,6 +44,11 @@ import { mediaByKey } from "@/lib/media";
 /* Every write touches the dashboard's figures, so it is always revalidated
    alongside whatever else changed. Cheaper than reasoning, every time, about
    which tile a given write moved. */
+/** A comma-separated list of account ids from a hidden field, bounded. */
+function ids(fd: FormData, key: string): string[] {
+  return [...new Set(str(fd, key).split(",").map((x) => x.trim()).filter((x) => x && x.length <= 80))].slice(0, 10);
+}
+
 function refresh(...paths: string[]) {
   revalidatePath("/admin");
   for (const p of paths) revalidatePath(p);
@@ -234,7 +239,7 @@ export async function createProject(_prev: ActionState, fd: FormData): Promise<A
        failing. `channel(...) ?? undefined` hands the decision to addProject,
        which documents why the default is the dashboard; repeating the default
        here would be two places to change it. */
-    owner: str(fd, "owner"),
+    owner: str(fd, "owner"), ownerIds: ids(fd, "ownerIds"),
     channel: channel(fd, "channel") ?? undefined,
     /* Staff cannot set a figure: the budget is money (lib/admin/permissions.ts). */
     budget: can(await adminRole(), "money") ? kobo(fd, "budget") : null,
@@ -974,7 +979,7 @@ export async function saveProjectDetails(_prev: ActionState, fd: FormData): Prom
   if (Object.keys(errors).length) return FAIL(errors);
 
   const p = db.patchProject(id, {
-    owner: str(fd, "owner"), health: h!, channel: ch!,
+    owner: str(fd, "owner"), ownerIds: ids(fd, "ownerIds"), health: h!, channel: ch!,
     /* kobo() returns null for an empty box, which is the honest answer when no
        figure has been agreed -- not zero, which would read as "free". */
     /* A staff save leaves the agreed figure exactly as it was. */

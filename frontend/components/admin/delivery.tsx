@@ -391,7 +391,7 @@ export function ProjectDetails({ project }: { project: Project }) {
         <Form action={saveProjectDetails} onDone={close}>
           <Hidden name="id" value={project.id} />
           <Fields>
-            <OwnerField half defaultValue={project.owner} />
+            <OwnerField half defaultValue={project.owner} defaultIds={project.ownerIds} />
             <Select name="health" label="How is it going" half required
                     defaultValue={project.health} options={HEALTH_OPTIONS} />
             <Select name="channel" label="Where updates go" half required
