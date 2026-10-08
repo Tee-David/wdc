@@ -99,7 +99,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
         body: [
           "To answer you. An enquiry cannot be replied to without a reply address. Our basis is your request, and the legitimate interest both of us have in the conversation happening.",
           "To prepare and deliver an engagement. A brief is used to understand the work, plan it and quote it. Once a project is agreed we process what the work requires under the contract between us.",
-          "To remind you, once or twice, to finish something you started. See Messages and Reminders: we send at most two reminders about an unfinished brief, and every one carries a link that switches reminders off.",
+          "To remind you, once or twice, to finish something you started. See the Messages and Reminders Policy: we send at most two reminders about an unfinished brief, and every one carries a link that switches reminders off.",
           "To meet obligations. Invoices, records of payment and tax records are kept because the law requires them.",
           "To keep the site and your account safe. Server logs, sign-in checks, rate limits and the screening of throwaway email addresses rest on our legitimate interest in running a service that is available and not being abused. We also check new passwords against lists of passwords that have appeared in known breaches, by sending only a short fragment of a one-way fingerprint of the password, never the password itself.",
           "If we ever want to use your information for something outside these, such as putting your name on a newsletter, we will ask you first and you will be able to say no without it affecting anything else.",
