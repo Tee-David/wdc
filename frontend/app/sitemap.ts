@@ -89,9 +89,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
        sitemap the same day, and cannot ship as a page search engines have
        never been told about. Low priority and yearly because that is what
        these are -- findable, not promoted. */
-    { path: "/legal", priority: 0.4, changeFrequency: "yearly" as const },
+    { path: "/policies", priority: 0.4, changeFrequency: "yearly" as const },
     ...LEGAL_DOCS.map((d) => ({
-      path: `/legal/${d.slug}`,
+      path: `/policies/${d.slug}`,
       priority: 0.3,
       changeFrequency: "yearly" as const,
     })),

@@ -86,7 +86,7 @@ export async function renderLegalPdf(whole: LegalDoc, only?: string): Promise<Ui
     for (const sec of doc.sections) { heading(sec.heading); sec.body.forEach((p) => paragraph(p)); }
   }
   heading("Questions");
-  paragraph(`Write to ${CONTACT_EMAIL}. The current version of this policy is always at ${SITE_URL}/legal.`);
+  paragraph(`Write to ${CONTACT_EMAIL}. The current version of this policy is always at ${SITE_URL}/policies.`);
 
   const pages = pdf.getPages();
   pages.forEach((p, i) => {

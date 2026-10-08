@@ -9,15 +9,15 @@ import "@/components/preview/preview.css";
 import "@/components/legal/legal.css";
 
 export const metadata: Metadata = {
-  title: "Legal",
+  title: "Policies",
   description:
     "Our privacy, terms, cookie, client engagement, payments and refunds, and messages policies, written plainly.",
-  alternates: { canonical: `${SITE_URL}/legal` },
+  alternates: { canonical: `${SITE_URL}/policies` },
   openGraph: {
-    title: `Legal | ${COMPANY_NAME}`,
+    title: `Policies | ${COMPANY_NAME}`,
     description: "How we handle data, what the site is, and how we work with clients.",
     type: "website",
-    url: `${SITE_URL}/legal`,
+    url: `${SITE_URL}/policies`,
   },
 };
 
@@ -26,7 +26,7 @@ const breadcrumbJsonLd = {
   "@type": "BreadcrumbList",
   itemListElement: [
     { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-    { "@type": "ListItem", position: 2, name: "Legal", item: `${SITE_URL}/legal` },
+    { "@type": "ListItem", position: 2, name: "Policies", item: `${SITE_URL}/policies` },
   ],
 };
 
@@ -38,7 +38,7 @@ export default async function LegalIndexPage() {
       <main id="main" tabIndex={-1} className="flex-1 pv">
         <section className="wk-hero">
           <div className="pv-wrap wk-hero__in">
-            <h1>Legal</h1>
+            <h1>Policies</h1>
             <p className="pv-lede">
               The documents covering what we do with your information, what this
               site is and what it stores, how an engagement with us runs, how
@@ -52,7 +52,7 @@ export default async function LegalIndexPage() {
           <div className="pv-wrap">
             <div className="lg-grid">
               {LEGAL_DOCS.map((d, i) => (
-                <Link className="lg-card" key={d.slug} href={`/legal/${d.slug}`}>
+                <Link className="lg-card" key={d.slug} href={`/policies/${d.slug}`}>
                   <span className="lg-card__n" aria-hidden="true">
                     {String(i + 1).padStart(2, "0")}
                   </span>
@@ -69,7 +69,7 @@ export default async function LegalIndexPage() {
             <h2 className="lg-pdfs__h">Download a copy</h2>
             <ul className="lg-pdfs">
               {LEGAL_DOCS.map((d) => (
-                <li key={d.slug}><a href={`/legal/${d.slug}/pdf`} download>{d.title}, PDF</a></li>
+                <li key={d.slug}><a href={`/policies/${d.slug}/pdf`} download>{d.title}, PDF</a></li>
               ))}
             </ul>
           </div>

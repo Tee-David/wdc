@@ -67,8 +67,8 @@ export function AuthShell({ children, demo = false }: { children: React.ReactNod
             </p>
           </div>
           <p className="au__legal">
-            You agree to our <Link href="/legal/terms-of-service">Terms</Link> and{" "}
-            <Link href="/legal/privacy-policy">Privacy Policy</Link>.
+            You agree to our <Link href="/policies/terms-of-service">Terms</Link> and{" "}
+            <Link href="/policies/privacy-policy">Privacy Policy</Link>.
           </p>
         </footer>
       </section>

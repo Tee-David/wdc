@@ -19,7 +19,7 @@ import { expect, test, type Page } from "@playwright/test";
  * header, and everything written on it is legible against it.
  */
 
-const OPENERS = ["/work", "/services", "/blog", "/contact", "/legal"];
+const OPENERS = ["/work", "/services", "/blog", "/contact", "/policies"];
 
 /* WCAG 2.1 contrast, from the computed colours rather than from pixels: these
    are flat brand surfaces, so the composite is exact and there is no need to

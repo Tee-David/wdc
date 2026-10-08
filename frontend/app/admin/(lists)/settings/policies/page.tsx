@@ -29,7 +29,7 @@ export default async function PoliciesPage() {
                     <td>{edited ? `Edited ${when(edited.at)} by ${edited.by}` : "As shipped"}</td>
                     <td>{doc.updated}</td>
                     <td style={{ whiteSpace: "nowrap" }}>
-                      <Link href={`/admin/settings/policies/${doc.slug}`}>Edit</Link> · <Link href={`/legal/${doc.slug}`} target="_blank">View</Link> · <a href={`/legal/${doc.slug}/pdf`}>PDF</a>
+                      <Link href={`/admin/settings/policies/${doc.slug}`}>Edit</Link> · <Link href={`/policies/${doc.slug}`} target="_blank">View</Link> · <a href={`/policies/${doc.slug}/pdf`}>PDF</a>
                     </td>
                   </tr>
                 ))}
