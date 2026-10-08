@@ -71,6 +71,25 @@ export const FEELINGS: Feeling[] = [
 ];
 
 /** The eleven chips on the deeper path. One good standard shade each. */
+/**
+ * EVERY PALETTE ON ITS OWN, with a title and a line, for the shuffle on the
+ * first colour screen: three are shown, "Shuffle" brings three more, until the
+ * client sees one that fits. The index is `feeling * 3 + palette`, so the
+ * first palette of each feeling keeps the title and line of its feeling.
+ */
+const POOL_TEXT: [string, string][] = [
+  ["Warm and friendly", "Welcoming, like a good neighbour."], ["Sunlit market", "Lively, golden, full of conversation."], ["Soft clay", "Gentle, handmade, easy to like."],
+  ["Calm and trusted", "Steady, clear, reliable."], ["Open water", "Fresh, clear, easy to breathe."], ["Quiet forest", "Grounded, patient, dependable."],
+  ["Bold and energetic", "Loud, quick, hard to miss."], ["Game day", "Confident blue with a flash of sun."], ["Neon night", "Hot, loud, impossible to ignore."],
+  ["Fresh and natural", "Clean, healthy, growing."], ["Morning mint", "Light, clean, a good start."], ["Green house", "Healthy, growing, close to nature."],
+  ["Rich and premium", "Smart, polished, high end."], ["Quiet luxury", "Dark, calm, quietly expensive."], ["Midnight silver", "Cool, modern, polished."],
+  ["Bright and playful", "Fun, young, full of life."], ["Sunny day", "Cheerful, sweet, always on."], ["Candy pop", "Fun, young, a little cheeky."],
+];
+export type PoolPalette = { feeling: Feeling; at: 0 | 1 | 2; title: string; line: string; palette: Palette };
+export const PALETTE_POOL: PoolPalette[] = FEELINGS.flatMap((feeling, f) =>
+  feeling.palettes.map((palette, p) => ({ feeling, at: p as 0 | 1 | 2, title: POOL_TEXT[f * 3 + p][0], line: POOL_TEXT[f * 3 + p][1], palette })),
+);
+
 export const CHIPS: PaletteColour[] = [
   c("Red", "#D62828"), c("Orange", "#F57C00"), c("Yellow", "#FFD93B"), c("Green", "#2E8B57"),
   c("Blue", "#1F5FBF"), c("Purple", "#6F42C1"), c("Pink", "#E83E8C"), c("Brown", "#7B4A2D"),
