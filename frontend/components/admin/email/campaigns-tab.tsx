@@ -38,7 +38,11 @@ const clicksOf = (c: Campaign, r?: Rates) => (r && c.track === "full" ? r.sent :
 export async function CampaignsTab({ sp }: { sp: SP }) {
   const list = await listCampaigns();
   if (!list) return <Empty title="Campaigns are not set up yet" icon={Mail}>Apply migration 0046 in Settings › System, then reload.</Empty>;
-  const rates = await ratesFor(list);
+  return <CampaignsView list={list} rates={await ratesFor(list)} sp={sp} />;
+}
+
+/** The tab itself, from data already read: nothing here touches the database. */
+export function CampaignsView({ list, rates, sp }: { list: Campaign[]; rates: Map<string, Rates> | null; sp: SP }) {
 
   const per = readPer(sp.per);
   const q = (sp.q ?? "").trim().toLowerCase().slice(0, 120);
