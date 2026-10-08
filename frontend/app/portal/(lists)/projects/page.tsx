@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ListSearch } from "@/components/admin/list-search";
-import { projectGlyph } from "@/components/client/service-glyph";
+import { projectGlyph, projectTileStyle } from "@/components/client/service-glyph";
 import { Clock, FileCheck2, FolderKanban } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
 import { getDeliverablesFor, getProjectsFor, getUpdatesFor } from "@/lib/admin/store";
@@ -63,7 +63,7 @@ export default async function PortalProjects({ searchParams }: { searchParams: P
             return (
               <article className="pProj__card" key={project.id} data-row>
                 <header className="pProj__head">
-                  <span className="pProj__icon" aria-hidden="true">{projectGlyph(project)}</span>
+                  <span className="pProj__icon" style={projectTileStyle(project)} aria-hidden="true">{projectGlyph(project)}</span>
                   <span className="pProj__name">
                     <Link href={`/portal/projects/${project.id}`} className="pProj__link"><b>{project.title}</b></Link>
                     <small>{service?.short ?? project.service} · {project.due ? `due ${when(project.due)}` : "date to be agreed"}</small>

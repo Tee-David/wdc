@@ -10,7 +10,7 @@ import { getPortalRequest } from "@/lib/portal/session";
 import { getDeliverablesFor, getInvoicesFor, getProject, getUpdatesFor } from "@/lib/admin/store";
 import { STAGES, invoiceTotals, naira } from "@/lib/admin/types";
 import { SERVICE_BY_SLUG } from "@/lib/services";
-import { projectGlyph } from "@/components/client/service-glyph";
+import { projectGlyph, projectTileStyle } from "@/components/client/service-glyph";
 import { ApprovalPill, Empty, HealthPill, Panel, StagePill, when } from "@/components/admin/bits";
 import { ProfileCard } from "@/components/admin/profile-card";
 import { DeliverableActions } from "@/components/client/deliverable-actions";
@@ -68,6 +68,7 @@ export default async function PortalProjectDetail({ params }: { params: Promise<
       <ProfileCard
         crumbs={[{ href: "/portal/projects", label: "Your projects" }]}
         icon={projectGlyph(p)}
+        iconStyle={projectTileStyle(p)}
         tone="brand"
         title={p.title}
         pills={<StagePill stage={p.stage} />}

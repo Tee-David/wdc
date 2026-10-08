@@ -5,7 +5,7 @@ import type {
   Refund, Stage, Submission, Task, Ticket, TicketMessage, TicketStatus, Update,
 } from "./types";
 import {
-  estimateState, estimateTotals, invoiceStatus, invoiceTotals, naira, paymentNet,
+  estimateState, estimateTotals, invoiceStatus, invoiceTotals, naira, paidFrom, paymentNet,
   providerNeedsAttention, refundedTotal,
 } from "./types";
 
@@ -120,9 +120,23 @@ export function getPaymentByToken(t: string) {
    holding says that number, and a books entry that rewrites itself cannot be
    reconciled against a document somebody printed. */
 function collected(invoiceId: Id) {
-  return PAYMENTS
-    .filter((p) => p.invoiceId === invoiceId)
-    .reduce((n, p) => n + paymentNet(p), 0);
+  return paidFrom(PAYMENTS, invoiceId);
+}
+
+/**
+ * Re-derive every invoice's `paid` from the payment rows. Rows are saved one
+ * record at a time, last write wins, so two instances recording at once can
+ * leave an invoice row carrying a sum that missed the other's payment. The
+ * sync calls this after folding rows in, so the cache is the rows' sum again
+ * before anything reads it.
+ */
+export function reconcilePaid(): number {
+  let fixed = 0;
+  for (const inv of INVOICES) {
+    const sum = collected(inv.id);
+    if (inv.paid !== sum) { inv.paid = sum; fixed++; }
+  }
+  return fixed;
 }
 
 /* ONE PREDICATE FOR "COUNTS TOWARDS THE BOOKS", so a void added here cannot be
@@ -635,7 +649,7 @@ export function addProject(d: {
   clientId: Id; title: string; service: Project["service"];
   stage: Stage; due: string | null;
   owner?: string; ownerIds?: string[]; health?: Health; channel?: Channel;
-  budget?: number | null; scope?: string; icon?: string;
+  budget?: number | null; scope?: string; icon?: string; iconColor?: string;
 }): Project {
   /* DEFAULTS THAT ARE HONEST. A new project is on track because nothing has
      gone wrong yet, and its channel is the dashboard because that is the one
@@ -907,13 +921,19 @@ export function applyPayment(d: {
 export function reversePayment(id: Id, reason = "", actor = "Studio"): boolean {
   const p = PAYMENTS.find((x) => x.id === id);
   if (!p || p.reversed) return false;
-  p.reversed = { at: now(), by: actor, reason: reason.trim() };
   const inv = getInvoice(p.invoiceId);
-  if (inv) inv.paid = collected(inv.id);
+  const text = reason.trim();
+  /* THE HISTORY LINE FIRST. It names the receipt, the amount that comes off,
+     who is doing it and why, and it is written before the payment is touched:
+     if anything after this line failed, the log would still say it was tried. */
+  const net = paymentNet(p);
   audit({ actor, kind: "payment", subjectId: p.id, subject: p.receiptNo,
-          action: "reversed", from: naira(p.amount), to: naira(0),
-          note: [`${p.method} · ${p.reference}`, inv ? `against ${inv.number}` : null, reason.trim() || null]
+          action: "reversed", from: naira(net), to: naira(0),
+          note: [`${naira(net)} of ${naira(p.amount)} comes off`, `${p.method} · ${p.reference}`,
+                 inv ? `against ${inv.number}` : null, `by ${actor}`, text ? `reason: ${text}` : null]
             .filter(Boolean).join(" · ") });
+  p.reversed = { at: now(), by: actor, reason: text };
+  if (inv) inv.paid = collected(inv.id);
   return true;
 }
 
@@ -987,13 +1007,22 @@ export function refundPayment(d: {
   if (!text) return { ok: false, reason: "no-reason" };
 
   const actor = d.actor?.trim() || "Studio";
+  const inv = getInvoice(p.invoiceId);
+  /* THE HISTORY LINE FIRST, then the change. It names the receipt, the amount
+     going back, who and why; `from`/`to` are what the payment is worth before
+     and after. */
+  const before = paymentNet(p);
+  audit({ actor, kind: "payment", subjectId: p.id, subject: p.receiptNo,
+          action: d.toCredit ? "refunded to credit" : "refunded",
+          from: naira(before), to: naira(before - amount),
+          note: [naira(amount), `of ${naira(p.amount)} received`, inv ? `against ${inv.number}` : null, `by ${actor}`, `reason: ${text}`]
+            .filter(Boolean).join(" · ") });
+
   const refund: Refund = {
     id: mint("rf"), at: now(), by: actor, amount, reason: text,
     reference: d.reference?.trim() || undefined, toCredit: d.toCredit,
   };
   p.refunds = [...(p.refunds ?? []), refund];
-
-  const inv = getInvoice(p.invoiceId);
   if (inv) inv.paid = collected(inv.id);
 
   /* HELD RATHER THAN RETURNED MAKES A CREDIT, and it is minted here rather
@@ -1006,12 +1035,6 @@ export function refundPayment(d: {
       fromInvoiceId: inv.id, fromPaymentId: p.id,
     });
   }
-
-  audit({ actor, kind: "payment", subjectId: p.id, subject: p.receiptNo,
-          action: d.toCredit ? "refunded to credit" : "refunded",
-          from: naira(p.amount), to: naira(paymentNet(p)),
-          note: [naira(amount), inv ? `against ${inv.number}` : null, text]
-            .filter(Boolean).join(" · ") });
 
   return { ok: true, refund, payment: p, credit };
 }
@@ -1524,7 +1547,7 @@ export function setTicketStatus(id: Id, status: TicketStatus): Ticket | null {
 }
 
 export function patchProject(id: Id, d: Partial<Pick<Project,
-  "owner" | "ownerIds" | "health" | "channel" | "budget" | "scope" | "title" | "icon">>): Project | null {
+  "owner" | "ownerIds" | "health" | "channel" | "budget" | "scope" | "title" | "icon" | "iconColor">>): Project | null {
   const p = PROJECTS.find((x) => x.id === id);
   if (!p) return null;
   if (d.health && d.health !== p.health) addProjectNote(id, `Health moved to ${d.health}`);

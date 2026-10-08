@@ -135,6 +135,8 @@ export type Project = {
   archived?: boolean;
   /** One of lib/project-icons.ts, picked or random when it was opened; the client sees it too. */
   icon?: string;
+  /** The colour of its icon tile: a key from ICON_COLORS in lib/project-icons.ts. Unset keeps the default look. */
+  iconColor?: string;
   /** Its place in its board column, set by dragging; unset sorts after the ranked ones. */
   rank?: number;
 };
@@ -412,6 +414,18 @@ export function refundedTotal(p: Payment) {
 }
 
 /**
+ * WHAT AN INVOICE HAS KEPT, summed from the payment rows and nothing else:
+ * every payment's net (a reversed one is worth nothing, a refunded one is worth
+ * what is left). The single definition `paid` is made from; nothing adds to or
+ * subtracts from a running figure by hand.
+ */
+export function paidFrom(payments: Payment[], invoiceId?: Id) {
+  return payments
+    .filter((p) => invoiceId === undefined || p.invoiceId === invoiceId)
+    .reduce((n, p) => n + paymentNet(p), 0);
+}
+
+/**
  * Received, part refunded, refunded or reversed, DECIDED BY SUMMING the
  * refund rows against the charge rather than stored, so it can never
  * disagree with them.
@@ -570,7 +584,11 @@ export function lineTotal(l: InvoiceLine) {
  * form invites somebody to send their own. Recomputed wherever it is needed,
  * which is cheap and cannot drift.
  */
-export function invoiceTotals(inv: Invoice) {
+export function invoiceTotals(inv: Invoice, payments?: Payment[]) {
+  /* `inv.paid` is a cache of the payment rows (the store re-sums it after every
+     change and after every sync). Callers that hold the rows can pass them and
+     get the figure straight from the source, which cannot have drifted. */
+  const paid = payments ? paidFrom(payments, inv.id) : inv.paid;
   const subtotal = inv.lines.reduce((n, l) => n + lineTotal(l), 0);
   const vat = Math.round((subtotal * inv.vatRate) / 100);
   const total = subtotal + vat;
@@ -581,7 +599,7 @@ export function invoiceTotals(inv: Invoice) {
      nothing. Putting it here is what stops one table remembering and another
      forgetting. */
   if (inv.voided) return { subtotal, vat, total, due: 0 };
-  return { subtotal, vat, total, due: Math.max(0, total - inv.paid) };
+  return { subtotal, vat, total, due: Math.max(0, total - paid) };
 }
 
 /** Kobo to "₦1,250,000.00". */
