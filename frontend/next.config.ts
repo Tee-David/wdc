@@ -144,6 +144,8 @@ const nextConfig: NextConfig = {
     return [
       { source: "/tools/estimate", destination: "/tools", permanent: true },
       /* The policies moved from /legal to /policies. Old links, shared PDFs and tab links still land. */
+      { source: "/admin/settings/users", destination: "/admin/users", permanent: true },
+      { source: "/admin/settings/users/:path*", destination: "/admin/users/:path*", permanent: true },
       { source: "/legal", destination: "/policies", permanent: true },
       { source: "/legal/:path*", destination: "/policies/:path*", permanent: true },
       { source: "/admin/settings/blog", destination: "/admin/blog", permanent: true },

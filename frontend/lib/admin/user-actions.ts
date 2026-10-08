@@ -27,7 +27,7 @@ export async function manageUser(_previous: ActionState, fd: FormData): Promise<
     const actor = await usersOwner(change, ["owner", "staff", "deactivate"].includes(change));
     const noticeId = await changeUser(actor.user.id, id, change, name);
     if (noticeId) after(() => sendSecurityNotice(noticeId));
-    revalidatePath("/admin/settings/users"); revalidatePath("/admin/settings/team");
+    revalidatePath("/admin/users"); revalidatePath("/admin/settings/team");
     return OK("Updated.");
   } catch (e) { return failure(e); }
 }
@@ -46,7 +46,7 @@ export async function bulkUsers(_previous: ActionState, fd: FormData): Promise<A
       try { const noticeId = await changeUser(actor.user.id, id, change); if (noticeId) after(() => sendSecurityNotice(noticeId)); successes++; outcomes.push({id,label:names.get(id) ?? id,ok:true,message:"Updated."}); }
       catch (e) { outcomes.push({id,label:names.get(id) ?? id,ok:false,message:failure(e).message ?? "Retry this row."}); }
     }
-    revalidatePath("/admin/settings/users");
+    revalidatePath("/admin/users");
     const message = `${successes} of ${ids.length} updated. Review the results for each person.`;
     return {...(successes === ids.length ? OK(message) : FAIL({}, message)),outcomes};
   } catch (e) { return failure(e); }
@@ -65,7 +65,7 @@ export async function recoverUser(_previous: ActionState, fd: FormData): Promise
       return notice.rows[0].id;
     });
     after(() => sendSecurityNotice(noticeId));
-    revalidatePath(`/admin/settings/users/${encodeURIComponent(id)}`);
+    revalidatePath(`/admin/users/${encodeURIComponent(id)}`);
     return OK("Recovery request queued. Its state is in Activity and sessions; retry there if it has not started. Requested means the authentication service accepted it; Settings › Email shows any subsequent mail attempt.");
   } catch (e) { return failure(e); }
 }
@@ -78,7 +78,7 @@ export async function retrySecurityNotice(_previous: ActionState, fd: FormData):
     const queued = await db.query(`UPDATE user_security_notices SET state='queued',updated_at=now() WHERE id=$1 AND (state IN ('queued','failed') OR (state='sending' AND provider_started=false AND updated_at < now() - INTERVAL '10 minutes')) RETURNING id`, [id]);
     if (!queued.rowCount) return FAIL({}, "That email is accepted, sending or uncertain. Check Settings › Email before requesting another message.");
     after(() => sendSecurityNotice(id));
-    revalidatePath("/admin/settings/users");
+    revalidatePath("/admin/users");
     return OK("Notice queued. The mail server outcome is shown separately.");
   } catch { return FAIL({}, "The notice could not be queued. Refresh and retry."); }
 }

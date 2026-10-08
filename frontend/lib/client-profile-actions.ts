@@ -37,3 +37,23 @@ export async function saveClientProfile(_prev:ActionState,fd:FormData):Promise<A
     return {...OK(skip?'Skipped. You can set up your profile later in Settings.':'Saved. Your profile is ready.'),profileSaved:!skip};
   } catch(error) {return FAIL({},error instanceof Error && !('code' in error)?error.message:'Your profile could not be saved. Your current details are unchanged; try again or contact the studio.');}
 }
+
+/**
+ * The theme, saved the moment it is picked. Choosing Light or Dark used to wait
+ * for a Save at the bottom of the form, which nobody expects of a theme switch.
+ * It writes only the appearance row; the rest of the profile still saves on its own.
+ */
+export async function saveAppearance(value: string): Promise<ActionState> {
+  try {
+    const { session } = await requireProfileClient(true);
+    const appearance = appearanceValue(value);
+    if (!appearance) return FAIL({}, 'Choose System, Light or Dark.');
+    await transaction(async (c) => {
+      await c.query(`INSERT INTO client_profile_preferences(user_id) VALUES($1) ON CONFLICT(user_id) DO NOTHING`, [session.user.id]);
+      await c.query(`UPDATE client_profile_preferences SET appearance=$2 WHERE user_id=$1`, [session.user.id, appearance]);
+    });
+    return OK('Theme saved.');
+  } catch {
+    return FAIL({}, 'Your theme could not be saved just now. It is still applied on this device.');
+  }
+}
