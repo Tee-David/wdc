@@ -74,8 +74,10 @@ export async function applyPendingMigrations(): Promise<{ applied: string[]; fai
     await c.query("SET statement_timeout = 0");
     for (const name of files()) {
       if (done.has(name)) continue;
+      let at = "";
       try {
         for (const text of statements(fs.readFileSync(path.join(dir, name), "utf8"))) {
+          at = text.replace(/\s+/g, " ").slice(0, 90);
           /* pg reads a per-query `query_timeout` (client.js), which its
              types leave out; this one overrides the pool's 20 seconds. */
           await c.query({ text, query_timeout: 280_000 } as { text: string });
@@ -83,7 +85,7 @@ export async function applyPendingMigrations(): Promise<{ applied: string[]; fai
         await c.query("INSERT INTO wdc_schema_migrations (name) VALUES ($1) ON CONFLICT (name) DO NOTHING", [name]);
         applied.push(name);
       } catch (error) {
-        return { applied, failed: { name, error: error instanceof Error ? error.message.slice(0, 300) : "failed" } };
+        return { applied, failed: { name, error: `${error instanceof Error ? error.message.slice(0, 220) : "failed"}${at ? ` (at: ${at})` : ""}` } };
       }
     }
     return { applied };
