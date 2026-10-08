@@ -8,7 +8,7 @@ import {
 } from "@/lib/admin/store";
 import { STAGES, invoiceStatus, invoiceTotals, naira, nairaShort } from "@/lib/admin/types";
 import { SERVICE_BY_SLUG } from "@/lib/services";
-import { projectGlyph } from "@/components/client/service-glyph";
+import { projectGlyph, projectTileStyle } from "@/components/client/service-glyph";
 import { Empty, Panel, Tile, when } from "@/components/admin/bits";
 import "@/components/client/portal.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
@@ -206,7 +206,7 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
                   return (
                     <Link className="cpProject" href={`/portal/projects/${project.id}`} key={project.id}>
                       <span className="cpProject__top">
-                        <span className="cpProject__icon">{projectGlyph(project)}</span>
+                        <span className="cpProject__icon" style={projectTileStyle(project)}>{projectGlyph(project)}</span>
                         {(() => { const st = plainStatus(project.stage, waitingProjects.has(project.id)); return <span className={`cpStatus${st.you ? " is-you" : ""}`}>{st.text}</span>; })()}
                       </span>
                       <b className="cpProject__title">{project.title}</b>

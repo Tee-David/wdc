@@ -2,7 +2,7 @@ import "server-only";
 
 import { after } from "next/server";
 import { db } from "@/lib/db/pool";
-import { persistedCollections, renumberLegacyInvoices } from "@/lib/admin/store";
+import { persistedCollections, reconcilePaid, renumberLegacyInvoices } from "@/lib/admin/store";
 import { hydrateSettings } from "@/lib/settings/store";
 
 /**
@@ -95,6 +95,8 @@ async function load() {
   }
   state.seq = top;
   state.loaded = true;
+  /* `paid` is the sum of the payment rows, whatever the invoice row says. */
+  reconcilePaid();
   /* One-time: old sequential invoice numbers become random ones. Written now so every instance agrees. */
   if (renumberLegacyInvoices()) await write().catch((e) => console.error("[admin store] renumber save failed:", e instanceof Error ? e.message : e));
 }
@@ -110,6 +112,7 @@ async function catchUp() {
     const rows = colls[r.collection];
     if (rows) apply(r.collection, rows, r.id, r.data);
   }
+  reconcilePaid();
 }
 
 /** What changed in memory since the last write, as rows to upsert. */

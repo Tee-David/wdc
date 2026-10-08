@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 /**
  * THE TOP OF A RECORD'S PAGE (the mockups' Client, Project and Invoice
@@ -16,6 +16,7 @@ export function ProfileCard({
   crumbs,
   initials,
   icon,
+  iconStyle,
   tone = "live",
   title,
   pills,
@@ -29,6 +30,8 @@ export function ProfileCard({
   initials?: string;
   /** A glyph in place of initials, for a thing rather than a person. */
   icon?: ReactNode;
+  /** Colours the icon tile (a project's chosen colour); unset keeps the tone. */
+  iconStyle?: CSSProperties;
   tone?: "brand" | "live" | "good" | "warn" | "neutral";
   title: string;
   pills?: ReactNode;
@@ -49,7 +52,7 @@ export function ProfileCard({
       </nav>
       <section className="ad__profile">
         <div className="ad__profileTop">
-          {initials || icon ? <span className={`ad__profileAv ad__av--${tone}`} aria-hidden="true">{icon ?? initials}</span> : null}
+          {initials || icon ? <span className={`ad__profileAv ad__av--${tone}`} style={icon ? iconStyle : undefined} aria-hidden="true">{icon ?? initials}</span> : null}
           <div className="ad__profileMain">
             <div className="ad__profileTitle">
               <h1>{title}</h1>

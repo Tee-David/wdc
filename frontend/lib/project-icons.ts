@@ -384,3 +384,34 @@ export function randomProjectIcon(): string {
 export function projectIconOf(name: string | undefined): LucideIcon {
   return (name && PROJECT_ICONS[name]?.icon) || FolderKanban;
 }
+
+/**
+ * THE COLOURS A PROJECT'S ICON TILE MAY HAVE, a closed set. The KEY is what is
+ * stored on the project (`Project.iconColor`) and what the server accepts;
+ * the fill is looked up here at draw time, so a palette change never needs a
+ * data change and nothing arbitrary can reach a `style` attribute. Every fill
+ * carries a white glyph: navy is the admin's brand tone, the rest are fixed
+ * hex values with white-on-fill contrast of 5.0:1 or better (orange 5.23,
+ * green 5.02, purple 7.18, red 5.62, teal 5.04, slate 7.58).
+ */
+export const ICON_COLORS = [
+  { key: "navy", label: "Navy", fill: "var(--ad-tone-brand)" },
+  { key: "orange", label: "Orange", fill: "#b84a00" },
+  { key: "green", label: "Green", fill: "#15803d" },
+  { key: "purple", label: "Purple", fill: "#7a2fb8" },
+  { key: "red", label: "Red", fill: "#c62828" },
+  { key: "teal", label: "Teal", fill: "#0b7a8a" },
+  { key: "slate", label: "Slate", fill: "#475569" },
+] as const;
+
+export type IconColor = (typeof ICON_COLORS)[number]["key"];
+
+export function isIconColor(v: unknown): v is IconColor {
+  return typeof v === "string" && ICON_COLORS.some((c) => c.key === v);
+}
+
+/** The inline style that colours an icon tile, or undefined for the default look. */
+export function iconTileStyle(key: string | undefined): { background: string; color: string } | undefined {
+  const c = ICON_COLORS.find((x) => x.key === key);
+  return c ? { background: c.fill, color: "#fff" } : undefined;
+}

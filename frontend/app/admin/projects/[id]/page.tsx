@@ -1,6 +1,6 @@
 import { StageScroll } from "@/components/admin/stage-scroll";
 import type { Metadata } from "next";
-import { projectGlyph } from "@/components/client/service-glyph";
+import { projectGlyph, projectTileStyle } from "@/components/client/service-glyph";
 import { hydrateSettings } from "@/lib/settings/store";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -76,6 +76,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         ]}
         title={p.title}
         icon={projectGlyph(p)}
+        iconStyle={projectTileStyle(p)}
         pills={<>
           <StagePill stage={p.stage} />
           <HealthPill health={p.health} />

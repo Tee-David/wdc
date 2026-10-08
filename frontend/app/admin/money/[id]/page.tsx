@@ -16,6 +16,7 @@ import {
   DeleteDraft, InvoiceBuilder, IssueInvoice, RecordPayment, } from "@/components/admin/money-forms";
 import { EmailInvoice, EmailReminder } from "@/components/admin/reconcile-forms";
 import CommsLog from "@/components/admin/comms-log";
+import InvoiceReminders from "@/components/admin/invoice-reminders";
 import PageTourButton from "@/components/admin/tour/page-tour-button";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 
@@ -265,6 +266,8 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
             </span>
           </p>
         ) : null}
+
+        {inv.status !== "Draft" ? <InvoiceReminders invoice={inv} /> : null}
 
         {inv.status !== "Draft" ? (
           <CommsLog

@@ -17,7 +17,7 @@ import {
   required, services, stage, str, url,
 } from "./validate";
 import { persistSoon, saveStore, syncStore } from "@/lib/admin/persist";
-import { isProjectIcon, randomProjectIcon } from "@/lib/project-icons";
+import { isIconColor, isProjectIcon, randomProjectIcon } from "@/lib/project-icons";
 import { mediaByKey } from "@/lib/media";
 
 /**
@@ -231,8 +231,12 @@ export async function createProject(_prev: ActionState, fd: FormData): Promise<A
   const [service] = services(fd, "service");
   if (!service) errors.service = "Pick the service.";
   const at = stage(fd) ?? "Onboarding";
+  /* A COLOUR IS A KEY FROM A CLOSED SET. Empty means "the default look"; anything
+     else that is not on the list is refused rather than stored. */
+  const iconColor = str(fd, "iconColor");
+  if (iconColor && !isIconColor(iconColor)) errors.iconColor = "Pick one of the icon colours offered.";
 
-  if (Object.keys(errors).length) return FAIL(errors);
+  if (Object.keys(errors).length) return FAIL(errors, errors.iconColor);
 
   if (clientId === "__new") {
     const email = str(fd, "newClientEmail"), phone = str(fd, "newClientPhone"), company = str(fd, "newClientCompany");
@@ -252,6 +256,7 @@ export async function createProject(_prev: ActionState, fd: FormData): Promise<A
     budget: can(await adminRole(), "money") ? kobo(fd, "budget") : null,
     scope: str(fd, "scope") || undefined,
     icon: isProjectIcon(str(fd, "icon")) ? str(fd, "icon") : randomProjectIcon(),
+    iconColor: iconColor || undefined,
   });
   refresh("/admin/projects", `/admin/clients/${clientId}`);
   redirect(`/admin/projects/${p.id}`);
@@ -1018,7 +1023,10 @@ export async function saveProjectDetails(_prev: ActionState, fd: FormData): Prom
   const errors: Record<string, string> = {};
   if (!h) errors.health = "Pick how it is going.";
   if (!ch) errors.channel = "Pick where updates go.";
-  if (Object.keys(errors).length) return FAIL(errors);
+  /* Absent leaves the colour as it was; "none" puts it back to the default look; a key must be on the list. */
+  const colour = str(fd, "iconColor");
+  if (colour && colour !== "none" && !isIconColor(colour)) errors.iconColor = "Pick one of the icon colours offered.";
+  if (Object.keys(errors).length) return FAIL(errors, errors.iconColor);
 
   const p = db.patchProject(id, {
     owner: str(fd, "owner"), ownerIds: ids(fd, "ownerIds"), health: h!, channel: ch!,
@@ -1028,6 +1036,7 @@ export async function saveProjectDetails(_prev: ActionState, fd: FormData): Prom
     ...(can(await adminRole(), "money") ? { budget: kobo(fd, "budget") } : {}),
     scope: str(fd, "scope"),
     ...(isProjectIcon(str(fd, "icon")) ? { icon: str(fd, "icon") } : {}),
+    ...(colour ? { iconColor: colour === "none" ? undefined : colour } : {}),
   });
   if (!p) return FAIL({}, "That project is no longer there.");
   refreshProject(id);

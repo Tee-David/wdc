@@ -408,7 +408,7 @@ export function ProjectDetails({ project }: { project: Project }) {
             <Area name="scope" label="What was bought" rows={2} defaultValue={project.scope ?? ""}
                   placeholder="Logo, palette, type scale and a short guideline set."
                   hint="In words the client would recognise, because this is what an argument gets settled against." />
-            <IconPicker defaultValue={project.icon} />
+            <IconPicker defaultValue={project.icon} defaultColor={project.iconColor} />
           </Fields>
           <Actions><Submit>Save</Submit></Actions>
         </Form>
