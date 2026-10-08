@@ -15,3 +15,9 @@ test("a missing, empty or forged link is refused with a plain page", async ({ re
     expect(res.headers()["cache-control"]).toContain("no-store");
   }
 });
+
+test("a forged link cannot switch anything off by POST either", async ({ request }) => {
+  const res = await request.post("/api/onboarding/nudges-off?d=00000000-0000-0000-0000-000000000000&t=forged");
+  expect(res.status()).toBe(400);
+  expect(await res.text()).toContain("That link did not work");
+});

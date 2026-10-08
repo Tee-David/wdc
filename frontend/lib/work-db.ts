@@ -78,7 +78,9 @@ export function hydrateCaseStudies(force = false): Promise<void> {
       const kept = BASE.flatMap((c) => {
         const row = byslug.get(c.slug);
         if (row?.hidden) return [];
-        return [row?.live ?? c];
+        /* A version saved in the admin before a field existed does not carry it,
+           so `motion` (the loops on a case study) falls back to the code's. */
+        return [row?.live ? { ...row.live, motion: row.live.motion ?? c.motion } : c];
       });
       CASE_STUDIES.splice(0, CASE_STUDIES.length, ...fresh, ...kept);
     } catch (error) {
