@@ -11,7 +11,7 @@ import "@/components/legal/legal.css";
 export const metadata: Metadata = {
   title: "Legal",
   description:
-    "Our privacy policy, terms of service, cookie policy and client engagement policy, written plainly.",
+    "Our privacy, terms, cookie, client engagement, payments and refunds, and messages policies, written plainly.",
   alternates: { canonical: `${SITE_URL}/legal` },
   openGraph: {
     title: `Legal | ${COMPANY_NAME}`,
@@ -39,11 +39,11 @@ export default function LegalIndexPage() {
           <div className="pv-wrap wk-hero__in">
             <h1>Legal</h1>
             <p className="pv-lede">
-              Four documents covering what we do with your information, what this
-              site is, what it stores, and how an engagement with us actually
-              runs. Written to be read.
+              The documents covering what we do with your information, what this
+              site is and what it stores, how an engagement with us runs, how
+              payments and refunds work, and what we email you. Written to be read.
             </p>
-            <p className="lg-updated">All four last updated {LEGAL_UPDATED}</p>
+            <p className="lg-updated">All last updated {LEGAL_UPDATED}</p>
           </div>
         </section>
 
