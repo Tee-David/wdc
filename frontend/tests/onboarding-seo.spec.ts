@@ -37,9 +37,9 @@ const SMALL_KEYS = [
   "first_name", "last_name", "phone", "email", "company", "industry", "audience",
   "seo_size", "site_url", "has_site", "customers",
   "seo_goals", "seo_timeframe", "tf_note", "target_terms",
-  "deadline_kind", "approver", "channel", "has_logo", "assets", "about", "anything_else",
+  "deadline_kind", "approver", "channel", "has_logo", "assets", "anything_else",
 ];
-const MEDIUM_KEYS = [...SMALL_KEYS, "age_range", "seo_tools", "content_owner", "has_brandbook"];
+const MEDIUM_KEYS = [...SMALL_KEYS, "about", "company_age", "age_range", "seo_tools", "content_owner", "has_brandbook"];
 const LARGE_KEYS = [...MEDIUM_KEYS, "usp", "competitors", "inspiration", "others"];
 
 /* ------------------------------------------------------------- answers used */
@@ -65,7 +65,6 @@ const FULL: Answers = {
   brandbook_wanted: "Yes",
   inspiration: "Two links",
   deadline_kind: "Within two weeks",
-  fixed_dates: "The launch",
   others: "The accountant",
   about: "We sell things.",
   anything_else: "Nothing else",
