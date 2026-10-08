@@ -37,12 +37,12 @@ export default async function StudioSettingsPage() {
         <StudioForm vatRate={f.vatRate} vatOn={f.vatOn} dueInDays={f.dueInDays} reminders={f.reminders} days={REMINDER_DAYS}
           tin={getSetting("finance.tin") ?? ""} footerNote={getSetting("finance.footerNote") ?? ""} />
       </div>
-      {/* Read only, on purpose: numbers run in order from the highest already
+      {/* Read only, on purpose: estimate and receipt numbers run in order from the highest already
           issued and are never reused, and payment matching reads INV-. */}
       <div style={{ marginTop: "1rem" }}>
         <Panel title="Next numbers" action={<span className="ad__dim adSet__aside">Set by what is already issued</span>}>
           <dl className="adForms__dl" data-tour="settings-numbers">
-            <div><dt>Invoice</dt><dd><code>{nextInvoiceNumber()}</code></dd></div>
+            <div><dt>Invoice (random, e.g.)</dt><dd><code>{nextInvoiceNumber()}</code></dd></div>
             <div><dt>Estimate</dt><dd><code>{nextEstimateNumber()}</code></dd></div>
             <div><dt>Receipt</dt><dd><code>{nextReceiptNumber()}</code></dd></div>
           </dl>
