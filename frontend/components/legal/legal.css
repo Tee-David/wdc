@@ -183,3 +183,8 @@
 .lg-tab:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
 .lg-count { margin: 0 0 1rem; color: var(--muted); font-size: .92rem; }
 .lg-where { margin: 0 0 .25rem; font-size: .8rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--accent-ink); }
+
+.lg-pdf { margin: 2rem 0 1rem; }
+.lg-pdf a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 1.2rem; border-radius: 999px; font-weight: 600; text-decoration: none; background: var(--btn-fill); color: var(--btn-ink); border: 1.5px solid var(--btn-fill); }
+.lg-pdf a:hover { background: var(--btn-ink); color: var(--btn-fill); }
+.lg-pdf a:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
