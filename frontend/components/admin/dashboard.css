@@ -240,3 +240,18 @@ button.adDash__chartMonth:focus-visible { outline: 2px solid var(--ad-accent); o
   .adDash__chartMonth:nth-child(n + 6) .adDash__chartBar, .adDash__pipeline > :nth-child(n + 6) .adDash__pipeBar { animation-delay: .65s; }
   .adDash__gaugeSvg line.is-on { animation: ad-tick .3s ease-out backwards; animation-delay: calc(.35s + var(--i, 0) * 24ms); }
 }
+
+/* ---- Reports ---- */
+.adRep__bars { list-style: none; margin: 0; padding: 1rem 1.25rem .25rem; display: flex; align-items: flex-end; gap: clamp(.4rem, 1.5vw, 1rem); height: 11rem; }
+.adRep__bars li { flex: 1 1 0; min-width: 0; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: .35rem; }
+.adRep__pair { width: 100%; max-width: 3.5rem; flex: 1 1 auto; display: flex; align-items: flex-end; gap: 3px; }
+.adRep__pair i, .adRep__key i { display: block; flex: 1 1 0; border-radius: 4px 4px 0 0; transform-origin: bottom; }
+.adRep__in { background: var(--ad-tone-good); }
+.adRep__out { background: var(--ad-tone-warn); }
+.adRep__bars small { color: var(--ad-dim); font-size: .75rem; white-space: nowrap; }
+.adRep__key { display: flex; gap: 1.25rem; margin: 0; padding: .5rem 1.25rem 1rem; font-size: .82rem; color: var(--ad-dim); }
+.adRep__key span { display: inline-flex; align-items: center; gap: .4rem; }
+.adRep__key i { width: .75rem; height: .75rem; flex: none; border-radius: 3px; }
+.adRep__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 1rem; margin-top: 1rem; align-items: start; }
+@media (prefers-reduced-motion: no-preference) { .adRep__pair i { animation: adRepGrow .6s cubic-bezier(.2,.7,.2,1) backwards; } }
+@keyframes adRepGrow { from { transform: scaleY(0); } }
