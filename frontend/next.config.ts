@@ -242,6 +242,14 @@ const nextConfig: NextConfig = {
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
       {
+        /* The rest of public/: pictures and marks whose file names do not change
+           with their content, so not immutable. A day in the browser, and a
+           week of serving the old one while a new one is fetched, so repeat
+           visits stop revalidating files that almost never change. */
+        source: "/:folder(brand|hero|work|brand-work|frames|menu)/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
+      },
+      {
         /* NOT immutable, and this one matters. The worker is how every client
            finds out a new version exists; cached for a year it would pin
            people to whatever build they first met, offline page included. */
