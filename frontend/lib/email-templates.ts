@@ -418,6 +418,7 @@ function shell(input: {
   @media only screen and (max-width:620px){
     .wdc-wrap{width:100% !important}
     .wdc-pad{padding-left:22px !important;padding-right:22px !important}
+    .wdc-col{display:block !important;width:100% !important;padding:0 0 12px 0 !important}
   }
   /* DARK MODE, for the clients that ask (Apple Mail, iOS Mail): the email
      design's own dark steps, not an automatic inversion. The navy header
@@ -1428,7 +1429,36 @@ The WDC team`),
  * is how a receipt came to look like a different company from the sign-in
  * link. Build the body from these blocks and pass it to `composeEmailHtml`.
  */
-export { shell as composeEmailHtml, p as emailP, small as emailSmall, action as emailButton, panel as emailPanel, figure as emailFigure };
+/* ---- blocks the builder adds (lib/email-design.ts) ---- */
+
+function heading(html: string) {
+  return `<h2 class="wdc-ink" style="margin:0 0 12px;font-family:${DISPLAY};font-size:22px;line-height:1.3;font-weight:700;color:${INK}">${html}</h2>`;
+}
+function divider() {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 20px"><tr><td class="wdc-hair" style="border-top:1px solid ${HAIRLINE};font-size:0;line-height:0">&nbsp;</td></tr></table>`;
+}
+function space(px: number) {
+  const h = Math.max(4, Math.min(80, Math.round(px)));
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td height="${h}" style="height:${h}px;font-size:0;line-height:0">&nbsp;</td></tr></table>`;
+}
+function image(src: string, alt: string, href?: string) {
+  const img = `<img src="${safeUrl(src)}" alt="${escapeHtml(alt)}" width="${WIDTH - 88}" style="display:block;width:100%;max-width:${WIDTH - 88}px;height:auto;border:0;border-radius:10px">`;
+  return `<div style="margin:0 0 20px">${href ? `<a href="${safeUrl(href)}">${img}</a>` : img}</div>`;
+}
+/** Two text columns that stack on a phone. Both arguments are already-escaped markup. */
+function columns(left: string, right: string) {
+  return (
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 8px"><tr>` +
+    `<td class="wdc-col" width="50%" valign="top" style="width:50%;padding:0 10px 0 0;font-family:${BODY}">${left}</td>` +
+    `<td class="wdc-col" width="50%" valign="top" style="width:50%;padding:0 0 0 10px;font-family:${BODY}">${right}</td>` +
+    `</tr></table>`
+  );
+}
+
+export {
+  shell as composeEmailHtml, p as emailP, small as emailSmall, action as emailButton, panel as emailPanel, figure as emailFigure,
+  heading as emailHeading, divider as emailDivider, space as emailSpace, image as emailImage, columns as emailColumns, safeUrl as emailSafeUrl,
+};
 
 /* ====================================================== maintenance: back */
 

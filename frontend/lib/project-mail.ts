@@ -1,3 +1,4 @@
+import { designed } from "@/lib/email-designed";
 import "server-only";
 
 import { SITE_URL } from "@/lib/site";
@@ -43,7 +44,9 @@ export async function sendStageEmail(input: { project: Project; from: string; to
   if (!notifyAllows(client.notify, "updates")) return skipped(project, subject, dedupeKey, by);
   try {
     await sendLogged(
-      { to: email, ...projectStageEmail({ clientName: first(client.name), projectTitle: project.title, fromStage: from, toStage: to, note, url: portalUrl(project.id) }) },
+      { to: email, ...(await designed("project-stage", {
+        "client.first_name": first(client.name), "project.title": project.title, "project.from": from, "project.to": to, "project.note": note ?? "", "links.project": portalUrl(project.id),
+      }, () => projectStageEmail({ clientName: first(client.name), projectTitle: project.title, fromStage: from, toStage: to, note, url: portalUrl(project.id) }))) },
       { summary: `Moved from ${from} to ${to}.`, dedupeKey, by, clientId: client.id, about: { kind: "project", id: project.id, label: project.title } },
     );
   } catch { /* The row records the failure. */ }
@@ -63,7 +66,10 @@ export async function sendApprovalRequest(input: { project: Project; deliverable
   const respondBy = new Date(Date.now() + 7 * 86_400_000);
   try {
     await sendLogged(
-      { to: email, ...deliverableReadyEmail({ clientName: first(client.name), projectTitle: project.title, deliverable: `${deliverable.name} (v${v})`, url: portalUrl(project.id), respondBy }) },
+      { to: email, ...(await designed("deliverable-ready", {
+        "client.first_name": first(client.name), "project.title": project.title, "deliverable.name": `${deliverable.name} (v${v})`,
+        "deliverable.respond_by": new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Lagos" }).format(respondBy), "links.review": portalUrl(project.id),
+      }, () => deliverableReadyEmail({ clientName: first(client.name), projectTitle: project.title, deliverable: `${deliverable.name} (v${v})`, url: portalUrl(project.id), respondBy }))) },
       { summary: `${deliverable.name} v${v} sent for approval.`, dedupeKey, by, clientId: client.id, about: { kind: "project", id: project.id, label: project.title } },
     );
   } catch { /* The row records the failure. */ }
