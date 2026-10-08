@@ -9,7 +9,7 @@ import {
 import { STAGES, invoiceStatus, invoiceTotals, naira, nairaShort } from "@/lib/admin/types";
 import { SERVICE_BY_SLUG } from "@/lib/services";
 import { projectGlyph } from "@/components/client/service-glyph";
-import { Empty, Panel, StagePill, Tile, when } from "@/components/admin/bits";
+import { Empty, Panel, Tile, when } from "@/components/admin/bits";
 import "@/components/client/portal.css";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 import { PortalExampleNote } from "@/components/admin/example-note";
@@ -27,6 +27,20 @@ function today() {
   };
 }
 
+
+/** Who has the ball, in words a client uses. The studio's stage names stay on the studio's side. */
+function plainStatus(stage: string, waitingOnClient: boolean) {
+  if (waitingOnClient) return { text: "We're waiting on you", you: true };
+  switch (stage) {
+    case "Onboarding": return { text: "We're getting set up", you: false };
+    case "Discovery": return { text: "We're planning the work", you: false };
+    case "In progress": return { text: "We're working on it", you: false };
+    case "Review": return { text: "Ready for your look", you: true };
+    case "Revisions": return { text: "We're making your changes", you: false };
+    case "Delivered": return { text: "Delivered", you: false };
+    default: return { text: stage, you: false };
+  }
+}
 
 /**
  * THE CLIENT'S FRONT PAGE: what is waiting on
@@ -65,6 +79,18 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
   const openTickets = tickets.filter((t) => t.status !== "Closed");
   const attentionCount = awaitingApproval.length + outstandingInvoices.length + answeredTickets.length;
 
+  /* ONE NEXT STEP, the most useful thing to do right now: something to review,
+     else something to pay (overdue first), else a reply to read. */
+  const overdueFirst = [...outstandingInvoices].sort((a, b) => Number(invoiceStatus(b) === "Overdue") - Number(invoiceStatus(a) === "Overdue"))[0];
+  const nextStep = awaitingApproval[0]
+    ? { tone: "live", title: `${awaitingApproval[0].deliverable.name} is ready for your review`, line: `${awaitingApproval[0].project.title}. Your approval keeps the project moving.`, href: `/portal/projects/${awaitingApproval[0].project.id}`, label: "Review now", external: false }
+    : overdueFirst
+      ? { tone: invoiceStatus(overdueFirst) === "Overdue" ? "bad" : "warn", title: `${naira(invoiceTotals(overdueFirst).due)} to pay on ${overdueFirst.number}`, line: `${invoiceStatus(overdueFirst) === "Overdue" ? "This was due" : "Due"} ${when(overdueFirst.due)}. Pay by card or transfer on the invoice page.`, href: `/i/${overdueFirst.token}`, label: "Pay now", external: true }
+      : answeredTickets[0]
+        ? { tone: "neutral", title: `We replied to "${answeredTickets[0].subject}"`, line: `Replied ${when(answeredTickets[0].updatedAt)}.`, href: `/portal/support/${answeredTickets[0].id}`, label: "Read the reply", external: false }
+        : null;
+  const waitingProjects = new Set(awaitingApproval.map((x) => x.project.id));
+
   const balance = outstandingInvoices.reduce((n, inv) => n + invoiceTotals(inv).due, 0);
   const live = projects.filter((p) => p.stage !== "Delivered");
   const byStage = STAGES.map((s) => [s, live.filter((p) => p.stage === s).length] as const).filter(([, n]) => n);
@@ -96,6 +122,19 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
       </header>
 
       <PortalExampleNote clientId={client.id} />
+
+      {nextStep ? (
+        <section className={`cpNext cpNext--${nextStep.tone}`} aria-label="Your next step" data-tour="portal-next">
+          <div>
+            <span className="cpNext__eyebrow">Your next step</span>
+            <h2>{nextStep.title}</h2>
+            <p>{nextStep.line}</p>
+          </div>
+          {nextStep.external
+            ? <a className="ad__btn ad__btn--primary" href={nextStep.href} target="_blank" rel="noopener noreferrer">{nextStep.label}</a>
+            : <Link className="ad__btn ad__btn--primary" href={nextStep.href}>{nextStep.label}</Link>}
+        </section>
+      ) : null}
 
       <dl className="adDash__kpis" data-tour="portal-kpis">
         <Tile label="Active projects" href="/portal/projects" value={String(live.length)} icon={FolderKanban}
@@ -167,7 +206,7 @@ export default async function PortalOverview({ searchParams }: { searchParams: P
                     <Link className="cpProject" href={`/portal/projects/${project.id}`} key={project.id}>
                       <span className="cpProject__top">
                         <span className="cpProject__icon">{projectGlyph(project)}</span>
-                        <StagePill stage={project.stage} />
+                        {(() => { const st = plainStatus(project.stage, waitingProjects.has(project.id)); return <span className={`cpStatus${st.you ? " is-you" : ""}`}>{st.text}</span>; })()}
                       </span>
                       <b className="cpProject__title">{project.title}</b>
                       <small className="cpProject__meta">{service?.short ?? project.service} · {project.due ? `due ${when(project.due)}` : "date to be agreed"}</small>

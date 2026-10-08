@@ -339,3 +339,15 @@
 .pSet__devices ul { list-style: none; margin: .4rem 0 0; padding: 0; display: grid; gap: .5rem; }
 .pSet__devices li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem .8rem; min-width: 0; }
 .pSet__devices li > span { display: grid; min-width: 0; }
+
+/* ---- The one next step, and who has the ball ---- */
+.cpNext { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 1.5rem; margin: 0 0 1.1rem; padding: 1.1rem 1.3rem; border-radius: var(--ad-r); background: var(--ad-panel); border: 1px solid var(--ad-line); border-left: 6px solid var(--ad-tone-brand); }
+.cpNext--live { border-left-color: var(--ad-tone-live); }
+.cpNext--warn { border-left-color: var(--ad-tone-warn); }
+.cpNext--bad { border-left-color: var(--ad-tone-bad); }
+.cpNext > div { min-width: 0; flex: 1 1 18rem; }
+.cpNext__eyebrow { font: 600 .72rem var(--font-space-grotesk), system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--ad-dim); }
+.cpNext h2 { margin: .25rem 0 .2rem; font: 700 clamp(1.15rem, 1rem + .6vw, 1.45rem)/1.25 var(--font-space-grotesk), system-ui, sans-serif; overflow-wrap: anywhere; }
+.cpNext p { margin: 0; color: var(--ad-dim); }
+.cpStatus { display: inline-flex; align-items: center; min-height: 1.6rem; padding: 0 .65rem; border-radius: 999px; background: var(--ad-tone-neutral, var(--ad-line)); color: var(--ad-on-neutral, var(--ad-ink)); font-size: .78rem; font-weight: 600; }
+.cpStatus.is-you { background: var(--ad-tone-live); color: var(--ad-on-live); }
