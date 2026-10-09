@@ -138,7 +138,7 @@ async function runSetup(p: Record<string, unknown>) {
       description: "A conversation about your project with We Dig Creativity.", hidden: true,
       scheduleId: schedules[0]?.id, locations: [{ type: "integration", integration: "google-meet" }],
       minimumBookingNotice: 1440, beforeEventBuffer: 15, afterEventBuffer: 15,
-      bookingWindow: { value: 30, rolling: true, disabled: false },
+      bookingWindow: { type: "calendarDays", value: 30, rolling: true, disabled: false },
     });
   }
   const readBack = await cal<MeetingType>(`/event-types/${type.id}`);
