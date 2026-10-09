@@ -9,6 +9,7 @@ The repository [README](../README.md) defines the design system. [AGENTS.md](../
 | [Current work](status.md) | Unfinished delivery and verification boundaries |
 | [Product](PRD.md) | Current product scope |
 | [Email](email.md) | Delivery, retries and operational checks |
+| [Client communications and service portals](audits/client-communications-and-service-portals.md) | Source audit and researched proposal for missing notices and service-specific client workflows |
 | [Offline](offline.md) | Public-page caching and verification |
 | [Logos](logos.md) | Maintained asset sources |
 | [Tools](tools-programme.md) | Tool implementation and cost controls |
