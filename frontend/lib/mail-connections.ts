@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import nodemailer from "nodemailer";
 import { db } from "@/lib/db/pool";
 import { open, seal, secretsReady } from "./mail-secrets";
+import { smtpHostname } from "./mail-sender";
 
 /**
  * MAIL CONNECTIONS: where a message can leave from. The studio's own server
@@ -103,6 +104,7 @@ export async function sendThrough(id: string, m: Outgoing): Promise<void> {
   if (c.row.kind === "smtp") {
     const port = Number(c.row.settings.port || 465);
     const t = nodemailer.createTransport({
+      name: smtpHostname(c.row.from_email),
       host: c.row.settings.host, port, secure: c.row.settings.secure ? c.row.settings.secure === "ssl" : port === 465,
       auth: { user: c.row.settings.user, pass: c.secrets.password }, connectionTimeout: 30_000, greetingTimeout: 30_000, socketTimeout: 45_000,
     });
@@ -145,7 +147,7 @@ export async function checkConnection(id: string): Promise<{ ok: boolean; messag
     else if (c.row.kind === "brevo") await httpJson("https://api.brevo.com/v3/account", { headers: { "api-key": c.secrets.apiKey, accept: "application/json" } }, 15_000);
     else {
       const port = Number(c.row.settings.port || 465);
-      const t = nodemailer.createTransport({ host: c.row.settings.host, port, secure: c.row.settings.secure ? c.row.settings.secure === "ssl" : port === 465, auth: { user: c.row.settings.user, pass: c.secrets.password }, connectionTimeout: 30_000, greetingTimeout: 30_000, socketTimeout: 30_000 });
+      const t = nodemailer.createTransport({ name: smtpHostname(c.row.from_email), host: c.row.settings.host, port, secure: c.row.settings.secure ? c.row.settings.secure === "ssl" : port === 465, auth: { user: c.row.settings.user, pass: c.secrets.password }, connectionTimeout: 30_000, greetingTimeout: 30_000, socketTimeout: 30_000 });
       try { await t.verify(); } finally { t.close(); }
     }
     result = { ok: true, message: "Credentials accepted." };

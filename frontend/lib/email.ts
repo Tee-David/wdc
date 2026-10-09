@@ -6,9 +6,10 @@ import { socialLinks } from "@/lib/social";
 import { getSetting } from "@/lib/admin/store";
 import { hydrateSettings } from "@/lib/settings/store";
 import { CONTACT_EMAIL } from "@/lib/site";
-import { DEFAULT_MAIL_FROM_NAME, mailFrom } from "@/lib/mail-sender";
+import { DEFAULT_MAIL_FROM_NAME, mailFrom, smtpHostname } from "@/lib/mail-sender";
 import { sendThrough, type Outgoing } from "@/lib/mail-connections";
 import { alertMailFailure } from "@/lib/mail-webhook-alert";
+import { deliverMail } from "@/lib/mail-delivery";
 
 function required(name: string) {
   const value = process.env[name]?.trim();
@@ -38,6 +39,7 @@ function transport() {
   if (globalMail.__wdcTransport) return globalMail.__wdcTransport;
   const port = Number(process.env.SMTP_PORT || 465);
   const client = nodemailer.createTransport({
+    name: smtpHostname(required("SMTP_FROM_EMAIL")),
     host: required("SMTP_HOST"),
     port,
     secure: process.env.SMTP_SECURE === "true" || port === 465,
@@ -137,10 +139,12 @@ export async function sendMail(input: {
   const chosen = getSetting("mail.default") || "env";
   const fallback = getSetting("mail.fallback") || "";
   const via = async (id: string) => {
-    if (id === "env") {
-      return transport().sendMail({ ...base, from: mailFrom(fromName, required("SMTP_FROM_EMAIL")) });
-    }
-    await sendThrough(id, { ...base, from: mailFrom(fromName, "") } as Outgoing);
+    return deliverMail(base, async (message) => {
+      if (id === "env") {
+        return transport().sendMail({ ...message, from: mailFrom(fromName, required("SMTP_FROM_EMAIL")) });
+      }
+      await sendThrough(id, { ...message, from: mailFrom(fromName, "") } as Outgoing);
+    });
   };
   try {
     return await via(chosen);

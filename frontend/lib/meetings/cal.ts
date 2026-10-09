@@ -68,7 +68,7 @@ export async function webhookState(): Promise<WebhookState> {
   if (!secret) return "no_secret";
   const target = new URL("/api/meetings/webhook", SITE_URL).href;
   const hooks = await cal<{ subscriberUrl: string; active: boolean; secret?: string; triggers: string[]; payloadTemplate?: string }[]>("/webhooks");
-  const triggers = ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED", "BOOKING_CONFIRMED", "BOOKING_REJECTED"];
+  const triggers = ["BOOKING_CREATED", "BOOKING_REQUESTED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED", "BOOKING_REJECTED"];
   const candidates = hooks.filter(hook => hook.active && hook.subscriberUrl === target && !hook.payloadTemplate && triggers.every(trigger => hook.triggers?.includes(trigger)));
   if (!candidates.length) return "not_registered";
   const expected = Buffer.from(secret);
