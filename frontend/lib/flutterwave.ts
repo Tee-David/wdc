@@ -28,7 +28,7 @@ export async function initializeFlutterwave(invoice:Invoice,email:string){
  const reference='FLW-'+randomUUID();
  await db.query('INSERT INTO flutterwave_checkout_attempts(reference,invoice_id,amount,currency,mode) VALUES($1,$2,$3,$4,$5)',[reference,invoice.id,amount,currency,config.mode]);
  const data=await call('/payments',config.mode,{tx_ref:reference,amount:amount/100,currency,redirect_url:new URL('/pay/flutterwave/return',SITE_URL).toString(),customer:{email},customizations:{title:'We Dig Creativity',description:'Invoice '+invoice.number},meta:{invoice_id:invoice.id}});
- const url=new URL(data.link);if(url.protocol!=='https:'||!(url.hostname==='checkout.flutterwave.com'||url.hostname.endsWith('.flutterwave.com')))throw Error('Flutterwave returned an invalid checkout address.');
+ const url=new URL(data.link);if(url.protocol!=='https:'||!(url.hostname==='checkout.flutterwave.com'||url.hostname.endsWith('.flutterwave.com')||(config.mode==='test'&&url.hostname==='checkout-v2.dev-flutterwave.com')))throw Error('Flutterwave returned an invalid checkout address.');
  return {url:url.toString(),mode:config.mode};
 }
 function equals(left:string,right:string){const a=Buffer.from(left),b=Buffer.from(right);return a.length===b.length&&timingSafeEqual(a,b);}
