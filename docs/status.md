@@ -186,5 +186,9 @@ Added: font pairings (about a hundred, lazy and subset), shuffle for colours, re
 
 ## Client communication and service portal research, 9 October 2026
 
+## Client workspace implementation, 10 October 2026
+
+The owner subsequently authorized live implementation and incremental pushes to main. Work is isolated in `codex/client-workspace-live` to preserve unrelated project-payment edits. Two agents implement service workspaces and communications; the communications agent also updates owner, staff and client tours. Integration reuses the existing record pages, components and themes. The existing project page was inspected in a rendered browser. New source includes durable notification intentions, personal preferences, structured service records, staff handovers and exact-version reviews; migration and production activation are not yet verified. [Current delivery checklist](client-workspace-implementation.md).
+
 - Read-only source audit and delegated primary-source research completed: [full inventory and service requirements](audits/client-communications-and-service-portals.md). Existing stage/review/support/billing messages distinguished from missing assignment, progress, review follow-up, internal handover and recurring-service communications.
 - Proposal includes all six published services, with organic social and paid advertising treated separately, and common recipient/visibility/reliability gaps. No application workflow, database, provider settings or client messages changed for this research. Implementation and live acceptance checks remain future work.

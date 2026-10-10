@@ -13,6 +13,7 @@ import { DialogButton } from "./dialog";
 import { NoClientsYet } from "./no-clients";
 import { IconPicker } from "./icon-picker";
 import { OwnerField } from "./owner-field";
+import { confirmClick } from "./confirm";
 
 const SERVICE_OPTIONS = SERVICES.map((s) => ({ value: s.slug, label: s.short }));
 const STAGE_OPTIONS = STAGES.map((s) => ({ value: s, label: s }));
@@ -126,7 +127,7 @@ export function StageMover({ project }: { project: Project }) {
           <Form key={s} action={moveStage} className="ad__stageF">
             <Hidden name="id" value={project.id} />
             <Hidden name="stage" value={s} />
-            <StageButton label={s} done={done} />
+            <StageButton label={s} done={done} project={project} />
           </Form>
         );
       })}
@@ -137,9 +138,9 @@ export function StageMover({ project }: { project: Project }) {
 /* Its own component so useFormStatus reads the form it sits in rather than
    the page. That is the whole rule of that hook and the usual way it is got
    wrong. */
-function StageButton({ label, done }: { label: string; done: boolean }) {
+function StageButton({ label, done, project }: { label: string; done: boolean; project: Project }) {
   return (
-    <button type="submit" className={`ad__stageBtn${done ? " is-done" : ""}`}>
+    <button type="submit" className={`ad__stageBtn${done ? " is-done" : ""}`} onClick={event=>confirmClick(event,`Move project ${project.title} from ${project.stage} to ${label}? The stage will be saved and the people on this project may receive an update.`)}>
       {label}
     </button>
   );
