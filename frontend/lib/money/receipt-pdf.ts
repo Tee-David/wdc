@@ -13,9 +13,9 @@ import {receiptState,receiptDocumentUrl,type ReceiptDocument} from './receipt-mo
 const W=595.28,H=841.89,M=38,INNER=W-M*2;
 const color=(hex:string)=>rgb(parseInt(hex.slice(1,3),16)/255,parseInt(hex.slice(3,5),16)/255,parseInt(hex.slice(5,7),16)/255);
 const ink=color('#0e0e2c'),dim=color('#5a5a72'),rule=color('#dedee8'),paper=color('#f6f6f4');
-const at=(...parts:string[])=>fs.readFileSync(path.join(process.cwd(),...parts));
+const font=(file:string)=>fs.readFileSync(path.join(process.cwd(),"assets","fonts",file));
 let assets:Promise<{body:Buffer;bold:Buffer;fallback:Buffer;logo:Buffer;mark:Buffer}>|undefined;
-function loadAssets(){return assets??=Promise.all([Promise.resolve(at('assets','fonts','Outfit-Regular.ttf')),Promise.resolve(at('assets','fonts','SpaceGrotesk-Bold.ttf')),Promise.resolve(at('assets','fonts','SpaceGrotesk-Medium.ttf')),sharp(at('public','brand','icon-navy.svg')).resize(120,120).png().toBuffer(),Promise.resolve(at('assets','brand','watermark.png'))]).then(([body,bold,fallback,logo,mark])=>({body,bold,fallback,logo,mark}));}
+function loadAssets(){return assets??=Promise.all([Promise.resolve(font('Outfit-Regular.ttf')),Promise.resolve(font('SpaceGrotesk-Bold.ttf')),Promise.resolve(font('SpaceGrotesk-Medium.ttf')),sharp(fs.readFileSync(path.join(process.cwd(),"public","brand","icon-navy.svg"))).resize(120,120).png().toBuffer(),Promise.resolve(fs.readFileSync(path.join(process.cwd(),"assets","brand","watermark.png")))]).then(([body,bold,fallback,logo,mark])=>({body,bold,fallback,logo,mark}));}
 const date=(value:string)=>new Date(value).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
 type Glyph={advanceWidth:number;path:{toSVG:()=>string}};
 type GlyphFont={unitsPerEm:number;layout:(value:string)=>{glyphs:Glyph[]}};
@@ -72,7 +72,7 @@ export async function renderReceiptPdf(input:ReceiptDocument,document?:Financial
  table(['Invoice','Total','Paid to date','Outstanding'],[[input.invoice.number,money(state.totals.total),money(input.invoice.paid),money(state.totals.due)]],[130,125,125,INNER-380]);
  }
  const footer=[input.footerNote,COMPANY_NAME+'. Questions about this '+kind.toLowerCase()+' go to '+CONTACT_EMAIL+'. This is a copy of the live '+kind.toLowerCase()+': scan the code to reopen it.'].filter(Boolean).join('\n'),footerLines=wrap(footer,body,8.5,INNER-230);room(Math.max(110,footerLines.length*12+25));line(y);y+=14;footerLines.forEach((value,i)=>text(value,M,y+i*12,8.5,body,dim));
- const receiptUrl=document?.url??receiptDocumentUrl(input.payment.token),mark='data:image/svg+xml;base64,'+at('public','brand','icon-navy.svg').toString('base64'),qr=await qrCode(receiptUrl,{dark:'#000065',light:'#ffffff',logo:mark,margin:4,level:'H'}),qrImage=await pdf.embedPng(await sharp(Buffer.from(qr.svg)).resize(400,400).png().toBuffer()),stamp=await pdf.embedPng(await sharp(Buffer.from(stampSvg(document?.stamp??state.stamp,assets.bold))).resize(480,480).png().toBuffer());
+ const receiptUrl=document?.url??receiptDocumentUrl(input.payment.token),mark='data:image/svg+xml;base64,'+fs.readFileSync(path.join(process.cwd(),"public","brand","icon-navy.svg")).toString('base64'),qr=await qrCode(receiptUrl,{dark:'#000065',light:'#ffffff',logo:mark,margin:4,level:'H'}),qrImage=await pdf.embedPng(await sharp(Buffer.from(qr.svg)).resize(400,400).png().toBuffer()),stamp=await pdf.embedPng(await sharp(Buffer.from(stampSvg(document?.stamp??state.stamp,assets.bold))).resize(480,480).png().toBuffer());
  y+=footerLines.length*12+16;room(110);page.drawImage(qrImage,{x:M,y:H-y-100,width:100,height:100});if(!document||document.stamp)page.drawImage(stamp,{x:W-M-110,y:H-y-110,width:110,height:110});
  for(const [index,leaf]of pdf.getPages().entries())leaf.drawText(input.payment.receiptNo+' · '+(index+1)+' / '+pdf.getPageCount(),{x:M,y:19,font:body,size:8,color:dim});
  return pdf.save();
