@@ -24,6 +24,10 @@ Use the frontend guide for environment boundaries, persistence, provider integra
 
 ## Design system
 
+`CurrencyBalances` shows separate persisted currency totals using the shared table and panel. `PaymentAccounts` uses the Settings save bar and existing form controls; controlled `Field`, `Area` and `Select` values support repeatable rows. `DocumentControls` provides print and server PDF download. Financial PDFs repeat the onboarding watermark and branded table headers. NGN/USD amounts are integer minor units and are never implicitly converted.
+
+Client workspaces live inside the existing project record pages. `components/workspace/project-workspace.tsx` composes the shared Panel, Tile, Dialog, FileDrop and form controls; service records use the same admin tokens and typography. Review opens the actual shared version with its notes and decision history. Work tables keep a pinned first column and scroll inside their own box on phones. Personal inbox and preferences use existing dashboard chrome and the shared settings save bar.
+
 Stage controls and board moves ask for confirmation through `components/admin/confirm.tsx` before saving a new stage; cancel preserves the current stage. The dialog identifies the project and the old and new stages.
 
 Onboarding service choice reuses `SelectField` through `ServicePicker`: a closed trigger, compact icon/name/description rows, disabled-service reasons and explicit Next.

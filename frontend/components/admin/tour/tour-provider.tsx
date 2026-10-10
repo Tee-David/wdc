@@ -9,7 +9,7 @@ import {
 import { ADMIN_PAGE_TOURS, ADMIN_WALKTHROUGH, ADMIN_WELCOME, adminPageTourFor } from "@/lib/tours/admin";
 import { CLIENT_PAGE_TOURS, CLIENT_WALKTHROUGH, CLIENT_WELCOME, clientPageTourFor } from "@/lib/tours/client";
 import type { TourDef } from "@/lib/tours/types";
-import { clearCompletion, readCompletion, syncFromAccount, writeCompletion } from "@/lib/tours/storage";
+import { clearCompletion, readCompletion, syncFromAccount, writeCompletion,tourPersonKey } from "@/lib/tours/storage";
 import Confetti from "@/components/onboarding/confetti";
 import "./tour.css";
 
@@ -173,13 +173,13 @@ export default function AdminTourProvider({
   useEffect(() => {
     if (!mounted || !synced || pathname !== HOME) return;
     let already = false;
-    try { already = localStorage.getItem(FIRST_SIGN_IN_KEY) === "1"; } catch { /* offer it */ }
+    try { already = localStorage.getItem(tourPersonKey(FIRST_SIGN_IN_KEY)) === "1"; } catch { /* offer it */ }
     if (already) return;
     const completed = readCompletion(WELCOME.id, WELCOME.version);
     if (completed) return;
 
     const id = window.setTimeout(() => {
-      try { localStorage.setItem(FIRST_SIGN_IN_KEY, "1"); } catch { /* best effort */ }
+      try { localStorage.setItem(tourPersonKey(FIRST_SIGN_IN_KEY), "1"); } catch { /* best effort */ }
       setRunningTour(WELCOME);
     }, 1_500);
     return () => window.clearTimeout(id);

@@ -1,10 +1,13 @@
 "use server";
+import {documentPaymentChoice} from "@/lib/money/payment-options";
+import {currencyOf,money} from "@/lib/money/currency";
 
+import {stageSupportReply} from "@/lib/support-mail";
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { redirect } from "next/navigation";
 import * as db from "./store";
-import { invoiceTotals, naira, STAGES, type InvoiceLine, type Method, type Payment } from "./types";
+import { invoiceTotals, STAGES, type InvoiceLine, type Method, type Payment } from "./types";
 import { advanceAmount, invoiceMailVerdict, paymentReference, totalOfLines } from "./money-rules";
 import type { Staged } from "@/lib/money-mail";
 import { selectedPaystackMode } from "@/lib/paystack-mode";
@@ -18,7 +21,10 @@ import {
   approval, channel, checked, deliverableFiles, health, isoDate, kobo, looksEmail, method, num, priority,
   required, services, stage, str, url,
 } from "./validate";
-import { persistSoon, saveStore, syncStore } from "@/lib/admin/persist";
+import { addLegacyDeliverableVersion, moveLegacyDeliverableApproval } from "@/lib/workspace/service-deliverable-decisions";
+import { dispatchWorkspaceEvents } from "@/lib/workspace/events";
+import { changeProjectRecord, changeLegacyTask, createProjectRecord } from "@/lib/workspace/project-changes";
+import { persistSoon, syncStore, saveStore } from "@/lib/admin/persist";
 import { isIconColor, isProjectIcon, randomProjectIcon } from "@/lib/project-icons";
 import { mediaByKey } from "@/lib/media";
 
@@ -238,49 +244,14 @@ export async function deletePermanently(_prev: ActionState, fd: FormData): Promi
 /* -------------------------------------------------------------- projects */
 
 export async function createProject(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  await syncStore();
-  persistSoon();
-  const refused = await allow("projects");
-  if (refused) return refused;
-  const errors: Record<string, string> = {};
-  const title = required(errors, "title", str(fd, "title"), "A project name");
-  let clientId = str(fd, "clientId");
-  if (clientId === "__new") { if (!str(fd, "newClientCompany")) errors.newClientCompany = "A company or a name."; }
-  else if (!clientId) errors.clientId = "Say who it is for.";
-  else if (!db.getClient(clientId)) errors.clientId = "That client is no longer there.";
-
-  const [service] = services(fd, "service");
-  if (!service) errors.service = "Pick the service.";
-  const at = stage(fd) ?? "Onboarding";
-  /* A COLOUR IS A KEY FROM A CLOSED SET. Empty means "the default look"; anything
-     else that is not on the list is refused rather than stored. */
-  const iconColor = str(fd, "iconColor");
-  if (iconColor && !isIconColor(iconColor)) errors.iconColor = "Pick one of the icon colours offered.";
-
-  if (Object.keys(errors).length) return FAIL(errors, errors.iconColor);
-
-  if (clientId === "__new") {
-    const email = str(fd, "newClientEmail"), phone = str(fd, "newClientPhone"), company = str(fd, "newClientCompany");
-    clientId = (email || phone ? db.findDuplicateClient(email, phone) : null)?.id ?? db.addClient({
-      name: str(fd, "newClientName") || company, company, email, phone, services: [service!], sector: "", notes: "Created while opening a project.",
-    }, await actorName()).id;
-  }
-  const p = db.addProject({
-    clientId, title, service: service!, stage: at, due: isoDate(fd, "due"),
-    /* All four are optional on the form, so each falls back rather than
-       failing. `channel(...) ?? undefined` hands the decision to addProject,
-       which documents why the default is the dashboard; repeating the default
-       here would be two places to change it. */
-    owner: str(fd, "owner"), ownerIds: ids(fd, "ownerIds"),
-    channel: channel(fd, "channel") ?? undefined,
-    /* Staff cannot set a figure: the budget is money (lib/admin/permissions.ts). */
-    budget: can(await adminRole(), "money") ? kobo(fd, "budget") : null,
-    scope: str(fd, "scope") || undefined,
-    icon: isProjectIcon(str(fd, "icon")) ? str(fd, "icon") : randomProjectIcon(),
-    iconColor: iconColor || undefined,
-  });
-  refresh("/admin/projects", `/admin/clients/${clientId}`);
-  redirect(`/admin/projects/${p.id}`);
+  await syncStore();const refused=await allow("projects");if(refused)return refused;
+  const errors:Record<string,string>={},title=required(errors,"title",str(fd,"title"),"A project name"),clientId=str(fd,"clientId"),[service]=services(fd,"service"),at=stage(fd)??"Onboarding",iconColor=str(fd,"iconColor");
+  if(clientId==="__new"){if(!str(fd,"newClientCompany"))errors.newClientCompany="A company or a name.";}else if(!db.getClient(clientId))errors.clientId="Choose an existing client.";
+  if(!service)errors.service="Pick the service.";if(iconColor&&!isIconColor(iconColor))errors.iconColor="Pick one of the icon colours offered.";
+  if(Object.keys(errors).length)return FAIL(errors);
+  let result;
+  try{result=await createProjectRecord({project:{clientId,title,service:service!,stage:at,due:isoDate(fd,"due"),owner:str(fd,"owner"),ownerIds:ids(fd,"ownerIds"),channel:channel(fd,"channel")??undefined,budget:can(await adminRole(),"money")?kobo(fd,"budget"):null,scope:str(fd,"scope")||undefined,icon:isProjectIcon(str(fd,"icon"))?str(fd,"icon"):randomProjectIcon(),iconColor:iconColor||undefined},newClient:clientId==="__new"?{name:str(fd,"newClientName")||str(fd,"newClientCompany"),company:str(fd,"newClientCompany"),email:str(fd,"newClientEmail"),phone:str(fd,"newClientPhone"),services:[service!],sector:"",notes:"Created while opening a project."}:undefined});}catch(error){return FAIL({},error instanceof Error?error.message:"Project could not be opened.");}
+  if(result.eventIds.length)after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds}));refresh("/admin/projects",`/admin/clients/${result.project.clientId}`);redirect(`/admin/projects/${result.project.id}`);
 }
 
 /**
@@ -293,87 +264,27 @@ export async function createProject(_prev: ActionState, fd: FormData): Promise<A
  * keyboard shortcut all get it without each remembering to.
  */
 export async function moveStage(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  await syncStore();
-  persistSoon();
-  const refused = await allow("projects");
-  if (refused) return refused;
-  const id = str(fd, "id");
-  const to = stage(fd);
-  if (!to) return FAIL({ stage: "Pick a stage." });
-
-  const was = db.getProject(id)?.stage;
-  const note = str(fd, "note") || undefined;
-  const p = db.setStage(id, to, note);
-  if (!p) return FAIL({}, "That project is no longer there.");
-
-  /* The client hears about it behind the response, if they want updates. */
-  if (was && was !== p.stage) {
-    const by = await actorName();
-    const moved = p;
-    after(async () => {
-      const { sendStageEmail } = await import("@/lib/project-mail");
-      await sendStageEmail({ project: moved, from: was, to: moved.stage, note, by });
-    });
-  }
-
-  refresh("/admin/projects", `/admin/projects/${id}`, `/admin/clients/${p.clientId}`);
-  return OK(`Now at ${p.stage}.`);
+ const refused=await allow("projects");if(refused)return refused;const id=str(fd,"id"),to=stage(fd);if(!to)return FAIL({stage:"Pick a stage."});
+ try{const result=await changeProjectRecord(id,{kind:'stage',stage:to,expectedStage:str(fd,"expectedStage"),note:str(fd,"note")});if(result.eventIds.length)after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds}));refresh("/admin/projects",`/admin/projects/${id}`,`/admin/clients/${result.project.clientId}`);return OK(`Now at ${result.project.stage}.`);}catch(error){return FAIL({},error instanceof Error?error.message:"Project could not be moved.");}
 }
 
 /**
  * A card dropped on the board: its stage (the same event, history and client
  * email as `moveStage`) and the order of the column it landed in.
  */
-export async function moveOnBoard(input: { id: string; stage: string; order: string[] }): Promise<ActionState> {
-  await syncStore();
-  const refused = await allow("projects");
-  if (refused) return refused;
-  const to = STAGES.find((s) => s === input?.stage);
-  const p = db.getProject(String(input?.id ?? ""));
-  if (!to || !p) return FAIL({}, "That card could not be moved. Reload and try again.");
-  const order = Array.isArray(input.order) ? input.order.map(String).slice(0, 500) : [];
-  const was = p.stage;
-  if (was !== to) {
-    const by = await actorName();
-    db.setStage(p.id, to, undefined, by);
-    after(async () => {
-      const { sendStageEmail } = await import("@/lib/project-mail");
-      await sendStageEmail({ project: p, from: was, to, by });
-    });
-  }
-  db.rankColumn(to, order);
-  await saveStore();
-  refresh("/admin/projects", `/admin/projects/${p.id}`, `/admin/clients/${p.clientId}`);
-  return OK(was !== to ? `Moved to ${to}.` : "Order saved.");
+export async function moveOnBoard(input:{id:string;stage:string;expectedStage:string;order:string[]}):Promise<ActionState>{
+ const refused=await allow("projects");if(refused)return refused;const to=STAGES.find(value=>value===input?.stage);if(!to||!Array.isArray(input.order)||input.order.length>500)return FAIL({},"Refresh the board and try again.");
+ try{const result=await changeProjectRecord(String(input.id||''),{kind:'stage',stage:to,expectedStage:input.expectedStage,order:input.order.map(String)});if(result.eventIds.length)after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds}));refresh("/admin/projects",`/admin/projects/${result.project.id}`);return OK("Updated.");}catch(error){return FAIL({},error instanceof Error?error.message:"Board could not be updated.");}
 }
 
-export async function addNote(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  await syncStore();
-  persistSoon();
-  const refused = await allow("projects");
-  if (refused) return refused;
-  const id = str(fd, "id");
-  const text = str(fd, "note");
-  if (!text) return FAIL({ note: "Write the note first." });
-
-  const p = db.addProjectNote(id, text);
-  if (!p) return FAIL({}, "That project is no longer there.");
-
-  refresh(`/admin/projects/${id}`);
-  return OK("Noted.");
+export async function addNote(_prev:ActionState,fd:FormData):Promise<ActionState>{
+ const refused=await allow("projects");if(refused)return refused;const id=str(fd,"id"),text=str(fd,"note");if(!text)return FAIL({note:"Write the note first."});
+ try{const result=await changeProjectRecord(id,{kind:'note',text});if(result.eventIds.length)after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds}));refreshProject(id);return OK("Saved.");}catch(error){return FAIL({},error instanceof Error?error.message:"Note could not be saved.");}
 }
 
-export async function setDue(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  await syncStore();
-  persistSoon();
-  const refused = await allow("projects");
-  if (refused) return refused;
-  const id = str(fd, "id");
-  const p = db.setProjectDue(id, isoDate(fd, "due"));
-  if (!p) return FAIL({}, "That project is no longer there.");
-
-  refresh("/admin/projects", `/admin/projects/${id}`);
-  return OK(p.due ? "Due date set." : "Due date cleared.");
+export async function setDue(_prev:ActionState,fd:FormData):Promise<ActionState>{
+ const refused=await allow("projects");if(refused)return refused;const id=str(fd,"id"),due=isoDate(fd,"due");
+ try{const result=await changeProjectRecord(id,{kind:'due',due});if(result.eventIds.length)after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds}));refreshProject(id);return OK(due?"Updated.":"Due date cleared.");}catch(error){return FAIL({},error instanceof Error?error.message:"Deadline could not be saved.");}
 }
 
 /* -------------------------------------------------------------- invoices */
@@ -446,7 +357,10 @@ export async function createInvoice(_prev: ActionState, fd: FormData): Promise<A
   persistSoon();
   const refused = await owner();
   if (refused) return refused;
+  try{const user=await (await import("@/lib/workspace/access")).requireWorkspaceUser(true);if(user.role!=="owner")return FAIL({},"Owner only.");}catch{return FAIL({},"Reload and sign in again before saving.");}
   const errors: Record<string, string> = {};
+  let choice:Awaited<ReturnType<typeof documentPaymentChoice>>;
+  try{choice=await documentPaymentChoice(str(fd,"currency")||"NGN",str(fd,"paymentAccountId"));}catch(error){return FAIL({currency:error instanceof Error?error.message:"Check the currency and account."});}
   newPartyErrors(fd, errors);
 
   const { lines, bad } = readLines(fd);
@@ -479,14 +393,14 @@ export async function createInvoice(_prev: ActionState, fd: FormData): Promise<A
     const ref = paymentReference(how, str(fd, "paidReference"));
     if (!ref.ok) errors.paidReference = ref.say;
     else if (ref.reference && db.paymentReferenceTaken(ref.reference)) errors.paidReference = "That reference is already recorded against a payment, so nothing was added. This is the guard working.";
-    const amount = advanceAmount(total, typed ? asKobo : null);
+    const amount = advanceAmount(total, typed ? asKobo : null,choice.currency);
     if (!amount.ok) { if (!errors.paidAmount) errors.paidAmount = amount.say; }
     if (!Object.keys(errors).length && how && ref.ok && amount.ok) {
       advance = { how, reference: ref.reference, at: isoDate(fd, "paidAt") ?? undefined, amount: amount.amount, note: note || "Paid before this invoice was raised." };
     }
   } else if (settle === "credit") {
     const who = str(fd, "clientId");
-    if (who === "__new" || !(db.creditBalances()[who] > 0)) errors.settle = "That client has nothing held on account.";
+    if (who === "__new" || !(db.creditBalances(choice.currency)[who] > 0)) errors.settle = "That client has nothing held on account.";
   } else if (settle) {
     errors.settle = "Pick one of the choices.";
   }
@@ -496,7 +410,7 @@ export async function createInvoice(_prev: ActionState, fd: FormData): Promise<A
   const { clientId, projectId } = await createParties(fd);
   const actor = await actorName();
   const inv = db.addInvoice({
-    clientId, projectId, issued, due: due!, vatRate, lines,
+    ...choice, clientId, projectId, issued, due: due!, vatRate, lines,
     status: str(fd, "issue") === "1" || settle ? "Sent" : "Draft",
   });
 
@@ -512,6 +426,7 @@ export async function createInvoice(_prev: ActionState, fd: FormData): Promise<A
   } else if (settle === "credit") {
     paid.push(...db.applyCreditsTo(inv.id, actor).payments);
   }
+  await saveStore();
   if (paid.length && checked(fd, "emailReceipt")) {
     const { stageReceipt } = await import("@/lib/money-mail");
     const fresh = db.getInvoice(inv.id) ?? inv;
@@ -530,12 +445,15 @@ export async function updateInvoice(_prev: ActionState, fd: FormData): Promise<A
   persistSoon();
   const refused = await owner();
   if (refused) return refused;
+  try{const user=await (await import("@/lib/workspace/access")).requireWorkspaceUser(true);if(user.role!=="owner")return FAIL({},"Owner only.");}catch{return FAIL({},"Reload and sign in again before saving.");}
   const id = str(fd, "id");
   const inv = db.getInvoice(id);
   if (!inv) return FAIL({}, "That invoice is no longer there.");
   if (inv.voided) return FAIL({}, "This invoice has been struck, so it cannot be changed. Raise a new one.");
 
   const errors: Record<string, string> = {};
+  let choice:Awaited<ReturnType<typeof documentPaymentChoice>>;
+  try{choice=await documentPaymentChoice(str(fd,"currency")||currencyOf(inv),str(fd,"paymentAccountId"),inv.paymentAccount,currencyOf(inv));}catch(error){return FAIL({currency:error instanceof Error?error.message:"Check the currency and account."});}
   const { lines, bad } = readLines(fd);
   if (bad) errors.lines = bad;
   const due = isoDate(fd, "due");
@@ -548,14 +466,15 @@ export async function updateInvoice(_prev: ActionState, fd: FormData): Promise<A
      as the total does not fall below what has been received (the rule and the
      audit line live in db.patchInvoice, where every caller meets them). */
   const was = inv.status;
-  const res = db.patchInvoice(id, { lines, due: due!, vatRate, projectId: str(fd, "projectId") || null }, await actorName());
-  if (!res.ok) return FAIL(res.reason === "below-paid" ? { lines: res.say } : {}, res.say);
+  const res = db.patchInvoice(id, { ...choice, lines, due: due!, vatRate, projectId: str(fd, "projectId") || null }, await actorName());
+  if (!res.ok) return FAIL(res.reason === "below-paid" ? { lines: res.say } : {currency:res.say}, res.say);
+  await saveStore();
   refresh("/admin/money", `/admin/money/${id}`, `/admin/clients/${inv.clientId}`);
   return OK(was === "Draft"
     ? "Saved."
     : res.before === res.after
       ? "Updated. The total is unchanged; the client's copy shows the new wording and dates."
-      : `Updated. The total is now ${naira(res.after)}; the client's copy shows it.`);
+      : `Updated. The total is now ${money(res.after,currencyOf(res.invoice))}; the client's copy shows it.`);
 }
 
 export async function issueInvoice(_prev: ActionState, fd: FormData): Promise<ActionState> {
@@ -600,6 +519,8 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
   persistSoon();
   const refused = await owner();
   if (refused) return refused;
+  const targetInvoice=db.getInvoice(str(fd,"invoiceId"));
+  if(targetInvoice && str(fd,"method")==="Paystack" && currencyOf(targetInvoice)!=="NGN")return FAIL({method:"This currency uses a manual payment method."});
   const invoiceId = str(fd, "invoiceId");
   const amount = kobo(fd, "amount");
   const typedReference = str(fd, "reference");
@@ -686,9 +607,9 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
     );
   }
   if (res.overpaid) {
-    return OK(`Recorded. This invoice is now paid ${naira(res.invoice.paid - t.total)} over its total, so check before refunding.${receipt}`);
+    return OK(`Recorded. This invoice is now paid ${money(res.invoice.paid - t.total,currencyOf(res.invoice))} over its total, so check before refunding.${receipt}`);
   }
-  return OK(`${t.due ? `Recorded. ${naira(t.due)} still owing.` : "Recorded. This invoice is settled."}${receipt}`);
+  return OK(`${t.due ? `Recorded. ${money(t.due,currencyOf(res.invoice))} still owing.` : "Recorded. This invoice is settled."}${receipt}`);
 }
 
 export async function reversePayment(_prev: ActionState, fd: FormData): Promise<ActionState> {
@@ -964,88 +885,26 @@ function refreshProject(id: string) {
   refresh("/admin/projects", `/admin/projects/${id}`);
 }
 
-export async function createTask(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  await syncStore();
-  persistSoon();
-  const refused = await allow("projects");
-  if (refused) return refused;
-  const errors: Record<string, string> = {};
-  const projectId = str(fd, "projectId");
-  const title = required(errors, "title", str(fd, "title"), "A task name");
-  const p = projectId ? db.getProject(projectId) : null;
-  if (!p) errors.projectId = "Pick a project.";
-
-  const pri = priority(fd, "priority");
-  if (!pri) errors.priority = "Pick a priority.";
-
-  if (Object.keys(errors).length) return FAIL(errors);
-
-  const t = db.addTask({
-    projectId, title, assignee: str(fd, "assignee"),
-    due: isoDate(fd, "due"), priority: pri!,
-    /* An empty select posts "", which is not a dependency. */
-    blockedBy: str(fd, "blockedBy") || null,
-  });
-  if (!t) return FAIL({}, "That project is no longer there.");
-  refreshProject(projectId);
-  return OK(`Added "${t.title}".`);
+export async function createTask(_prev:ActionState,fd:FormData):Promise<ActionState>{
+ const refused=await allow("projects");if(refused)return refused;const errors:Record<string,string>={},title=required(errors,"title",str(fd,"title"),"A task name"),pri=priority(fd,"priority");if(!pri)errors.priority="Pick a priority.";if(Object.keys(errors).length)return FAIL(errors);
+ try{const result=await changeLegacyTask({kind:'create',projectId:str(fd,"projectId"),task:{title,assignee:str(fd,"assignee"),due:isoDate(fd,"due"),priority:pri!,blockedBy:str(fd,"blockedBy")||null}});after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds}));refreshProject(result.task.projectId);return OK(`Added "${result.task.title}".`);}catch(error){return FAIL({},error instanceof Error?error.message:"Task could not be saved.");}
 }
 
-export async function toggleTask(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  await syncStore();
-  persistSoon();
-  const refused = await allow("projects");
-  if (refused) return refused;
-  const id = str(fd, "id");
-  /* The CURRENT state is read from the store rather than taken from the form.
-     A hidden field saying "this is currently open" is a field the browser can
-     change, and two people ticking the same task a second apart would
-     otherwise fight each other. */
-  const before = db.getTasks().find((t) => t.id === id);
-  if (!before) return FAIL({}, "That task is no longer there.");
-  const t = db.setTaskDone(id, !before.done);
-  if (!t) return FAIL({}, "That task is no longer there.");
-  refreshProject(t.projectId);
-  return OK(t.done ? `Ticked off "${t.title}".` : `"${t.title}" is open again.`);
+export async function toggleTask(_prev:ActionState,fd:FormData):Promise<ActionState>{
+ const refused=await allow("projects");if(refused)return refused;
+ try{const expected=str(fd,"expectedDone");if(expected&&!['true','false'].includes(expected))return FAIL({},"Refresh the task before updating it.");const result=await changeLegacyTask({kind:'toggle',id:str(fd,"id"),expectedDone:expected?expected==='true':undefined});after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds}));refreshProject(result.task.projectId);return OK(result.task.done?`Ticked off "${result.task.title}".`:`"${result.task.title}" is open again.`);}catch(error){return FAIL({},error instanceof Error?error.message:"Task could not be updated.");}
 }
 
-export async function removeTask(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  await syncStore();
-  persistSoon();
-  const refused = await allow("projects");
-  if (refused) return refused;
-  const id = str(fd, "id");
-  const t = db.getTasks().find((x) => x.id === id);
-  if (!t) return FAIL({}, "That task is no longer there.");
-  db.deleteTask(id);
-  refreshProject(t.projectId);
-  return OK(`Removed "${t.title}".`);
+export async function removeTask(_prev:ActionState,fd:FormData):Promise<ActionState>{
+ const refused=await allow("projects");if(refused)return refused;
+ try{const result=await changeLegacyTask({kind:'remove',id:str(fd,"id")});after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds}));refreshProject(result.task.projectId);return OK(`Removed "${result.task.title}".`);}catch(error){return FAIL({},error instanceof Error?error.message:"Task could not be removed.");}
 }
 
 /* ----------------------------------------------------- delivery: updates */
 
-export async function postUpdate(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  await syncStore();
-  persistSoon();
-  const refused = await allow("projects");
-  if (refused) return refused;
-  const errors: Record<string, string> = {};
-  const projectId = str(fd, "projectId");
-  const progress = required(errors, "progress", str(fd, "progress"), "What moved");
-  const h = health(fd, "health");
-  if (!h) errors.health = "Say how it is going.";
-  if (Object.keys(errors).length) return FAIL(errors);
-
-  const u = db.addUpdate({
-    projectId, author: str(fd, "author") || "Studio", health: h!,
-    progress, blockers: str(fd, "blockers"), next: str(fd, "next"),
-    clientVisible: checked(fd, "clientVisible"),
-  });
-  if (!u) return FAIL({}, "That project is no longer there.");
-  refreshProject(projectId);
-  return OK(u.clientVisible
-    ? "Posted. The client will see this one."
-    : "Saved as an internal note. The client will not see it.");
+export async function postUpdate(_prev:ActionState,fd:FormData):Promise<ActionState>{
+ const refused=await allow("projects");if(refused)return refused;const errors:Record<string,string>={},progress=required(errors,"progress",str(fd,"progress"),"What moved"),h=health(fd,"health");if(!h)errors.health="Say how it is going.";if(Object.keys(errors).length)return FAIL(errors);
+ try{const result=await changeProjectRecord(str(fd,"projectId"),{kind:'update',update:{health:h!,progress,blockers:str(fd,"blockers"),next:str(fd,"next"),clientVisible:checked(fd,"clientVisible")}});after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds}));refreshProject(result.project.id);return OK(checked(fd,"clientVisible")?"Posted. The client will see this one.":"Saved as an internal note.");}catch(error){return FAIL({},error instanceof Error?error.message:"Update could not be saved.");}
 }
 
 /* ------------------------------------------------ delivery: deliverables */
@@ -1100,8 +959,12 @@ export async function addDeliverableVersion(_prev: ActionState, fd: FormData): P
   }
   if (Object.keys(errors).length) return FAIL(errors);
 
-  const d = db.addVersion(str(fd, "id"), note, link ?? undefined, files.length ? files : undefined);
-  if (!d) return FAIL({}, "That deliverable is no longer there.");
+  const current=db.getDeliverable(str(fd,"id"));
+  if(!current)return FAIL({},"That deliverable is no longer there.");
+  let result;
+  try {result=await addLegacyDeliverableVersion({projectId:current.projectId,id:current.id,version:str(fd,"version"),note,url:link??undefined,files:files.length?files:undefined});}catch(error){return FAIL({},error instanceof Error?error.message:"The version could not be saved.");}
+  const d=result.deliverable;
+  if(result.eventIds.length)after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds,limit:1}));
   refreshProject(d.projectId);
   const v = d.versions[d.versions.length - 1].v;
   return OK(`${d.name} v${v} added. It needs sending again before it can be approved.`);
@@ -1118,52 +981,21 @@ export async function moveApproval(_prev: ActionState, fd: FormData): Promise<Ac
   if (a === "Revision requested" && !note) {
     return FAIL({ note: "Say what they asked for. A revision with no reason is not actionable." });
   }
-  const d = db.setApproval(str(fd, "id"), a, note);
-  if (!d) return FAIL({}, "That deliverable is no longer there.");
-  /* Sending it for approval is the moment the client needs telling. */
-  const project = db.getProject(d.projectId);
-  if (a === "Awaiting client" && project) {
-    const by = await actorName();
-    after(async () => {
-      const { sendApprovalRequest } = await import("@/lib/project-mail");
-      await sendApprovalRequest({ project, deliverable: d, by });
-    });
-  }
+  const current=db.getDeliverable(str(fd,"id"));
+  if(!current)return FAIL({},"That deliverable is no longer there.");
+  let result;
+  try{result=await moveLegacyDeliverableApproval({projectId:current.projectId,id:current.id,version:str(fd,"version"),approval:a,note});}catch(error){return FAIL({},error instanceof Error?error.message:"The response could not be saved.");}
+  const d=result.deliverable;
+  if(result.eventIds.length)after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds,limit:1}));
   refreshProject(d.projectId);
   return OK(`${d.name} is now "${a.toLowerCase()}".`);
 }
 
 /* ------------------------------------------------- delivery: the project */
 
-export async function saveProjectDetails(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  await syncStore();
-  persistSoon();
-  const refused = await allow("projects");
-  if (refused) return refused;
-  const id = str(fd, "id");
-  const h = health(fd, "health");
-  const ch = channel(fd, "channel");
-  const errors: Record<string, string> = {};
-  if (!h) errors.health = "Pick how it is going.";
-  if (!ch) errors.channel = "Pick where updates go.";
-  /* Absent leaves the colour as it was; "none" puts it back to the default look; a key must be on the list. */
-  const colour = str(fd, "iconColor");
-  if (colour && colour !== "none" && !isIconColor(colour)) errors.iconColor = "Pick one of the icon colours offered.";
-  if (Object.keys(errors).length) return FAIL(errors, errors.iconColor);
-
-  const p = db.patchProject(id, {
-    owner: str(fd, "owner"), ownerIds: ids(fd, "ownerIds"), health: h!, channel: ch!,
-    /* kobo() returns null for an empty box, which is the honest answer when no
-       figure has been agreed -- not zero, which would read as "free". */
-    /* A staff save leaves the agreed figure exactly as it was. */
-    ...(can(await adminRole(), "money") ? { budget: kobo(fd, "budget") } : {}),
-    scope: str(fd, "scope"),
-    ...(isProjectIcon(str(fd, "icon")) ? { icon: str(fd, "icon") } : {}),
-    ...(colour ? { iconColor: colour === "none" ? undefined : colour } : {}),
-  });
-  if (!p) return FAIL({}, "That project is no longer there.");
-  refreshProject(id);
-  return OK("Saved.");
+export async function saveProjectDetails(_prev:ActionState,fd:FormData):Promise<ActionState>{
+ const refused=await allow("projects");if(refused)return refused;const id=str(fd,"id"),h=health(fd,"health"),ch=channel(fd,"channel"),colour=str(fd,"iconColor"),errors:Record<string,string>={};if(!h)errors.health="Pick how it is going.";if(!ch)errors.channel="Pick where updates go.";if(colour&&colour!=="none"&&!isIconColor(colour))errors.iconColor="Pick one of the icon colours offered.";if(Object.keys(errors).length)return FAIL(errors);
+ try{const result=await changeProjectRecord(id,{kind:'details',patch:{owner:str(fd,"owner"),ownerIds:ids(fd,"ownerIds"),health:h!,channel:ch!,...(can(await adminRole(),"money")?{budget:kobo(fd,"budget")} : {}),scope:str(fd,"scope"),...(isProjectIcon(str(fd,"icon"))?{icon:str(fd,"icon")} : {}),...(colour?{iconColor:colour==='none'?undefined:colour}: {})}});if(result.eventIds.length)after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds}));refreshProject(id);return OK("Updated.");}catch(error){return FAIL({},error instanceof Error?error.message:"Project details could not be saved.");}
 }
 
 export async function setProjectArchived(_prev: ActionState, fd: FormData): Promise<ActionState> {
@@ -1322,9 +1154,19 @@ export async function emailReminder(_prev: ActionState, fd: FormData): Promise<A
  */
 export async function sendReceipt(_prev: ActionState, fd: FormData): Promise<ActionState> {
   await syncStore();
-  persistSoon();
   const refused = await owner();
   if (refused) return refused;
+  try {
+    const {requireWorkspaceUser}=await import("@/lib/workspace/access");
+    const actor=await requireWorkspaceUser(true);
+    const {rateLimit}=await import("@/lib/rate-limit");
+    // Per-instance abuse control; durable daily recipient keys enforce resend dedupe.
+    if(!rateLimit(`receipt-copy:${actor.id}`,10,60_000).ok)return FAIL({},"Wait a minute before sending another receipt.");
+  }catch{return FAIL({},"Reload this page and sign in, then try again.");}
+  const toOverride=str(fd,"receiptEmail").toLowerCase();
+  const {refusedEmail,REFUSED_EMAIL_MESSAGE}=await import("@/lib/email-domains");
+  if(toOverride && (!looksEmail(toOverride)||toOverride.length>254))return FAIL({receiptEmail:"Enter a valid email address."});
+  if(toOverride && refusedEmail(toOverride))return FAIL({receiptEmail:REFUSED_EMAIL_MESSAGE});
   const paymentId = str(fd, "id");
   const invoiceId = str(fd, "invoiceId");
   const rows = paymentId
@@ -1337,7 +1179,7 @@ export async function sendReceipt(_prev: ActionState, fd: FormData): Promise<Act
   if (payment.reversed) return FAIL({}, "That payment was reversed, so it is not a receipt to send. Its link now says reversed.");
 
   const { stageReceipt } = await import("@/lib/money-mail");
-  const staged = await stageReceipt({ payment, invoice: inv, outstanding: invoiceTotals(inv).due, by: await actorName(), again: true });
+  const staged = await stageReceipt({ payment, invoice: inv, outstanding: invoiceTotals(inv).due, by: await actorName(), again: true, toOverride:toOverride||undefined });
   refresh("/admin/money", `/admin/money/${inv.id}`, `/admin/clients/${inv.clientId}`);
   return toldAbout(staged, (to) => `Receipt ${payment.receiptNo} is on its way to ${to}. The log below shows whether it arrived.`);
 }
@@ -1513,8 +1355,8 @@ export async function refundPayment(_prev: ActionState, fd: FormData): Promise<A
   refresh("/admin/money", `/admin/money/${res.payment.invoiceId}`,
           inv ? `/admin/clients/${inv.clientId}` : "/admin/clients");
   return OK((toCredit
-    ? `${naira(res.refund.amount)} moved onto the client's balance. It will come off their next invoice.`
-    : `${naira(res.refund.amount)} recorded as returned. The receipt says so and the totals no longer count it.`) + told);
+    ? `${money(res.refund.amount,currencyOf(res.payment))} moved onto the client's balance. It will come off their next invoice.`
+    : `${money(res.refund.amount,currencyOf(res.payment))} recorded as returned. The receipt says so and the totals no longer count it.`) + told);
 }
 
 /** Move an overpayment onto the client's balance rather than sending it back. */
@@ -1543,7 +1385,7 @@ export async function overpaymentToCredit(_prev: ActionState, fd: FormData): Pro
     told = alongside(await stageRefundNotice({ payment: from, refund, invoice: inv, by: refund.by }), (to) => `The client is being told at ${to}.`);
   }
   refresh("/admin/money", `/admin/money/${id}`, inv ? `/admin/clients/${inv.clientId}` : "/admin/clients");
-  return OK(`${naira(res.credit.amount)} is on the client's balance now, and this invoice lands exactly on its total.${told}`);
+  return OK(`${money(res.credit.amount,currencyOf(res.credit))} is on the client's balance now, and this invoice lands exactly on its total.${told}`);
 }
 
 /** Spend a credit on an invoice. This is the balance carrying forward. */
@@ -1570,7 +1412,7 @@ export async function applyCredit(_prev: ActionState, fd: FormData): Promise<Act
 
   refresh("/admin/money", `/admin/money/${invoiceId}`, `/admin/clients/${res.invoice.clientId}`);
   return OK(res.leftOver > 0
-    ? `Applied to ${res.invoice.number}. ${naira(res.leftOver)} stays on their balance.`
+    ? `Applied to ${res.invoice.number}. ${money(res.leftOver,currencyOf(res.invoice))} stays on their balance.`
     : `Applied to ${res.invoice.number}, and their balance is clear.`);
 }
 
@@ -1581,7 +1423,10 @@ export async function createEstimate(_prev: ActionState, fd: FormData): Promise<
   persistSoon();
   const refused = await owner();
   if (refused) return refused;
+  try{const user=await (await import("@/lib/workspace/access")).requireWorkspaceUser(true);if(user.role!=="owner")return FAIL({},"Owner only.");}catch{return FAIL({},"Reload and sign in again before saving.");}
   const errors: Record<string, string> = {};
+  let choice:Awaited<ReturnType<typeof documentPaymentChoice>>;
+  try{choice=await documentPaymentChoice(str(fd,"currency")||"NGN",str(fd,"paymentAccountId"));}catch(error){return FAIL({currency:error instanceof Error?error.message:"Check the currency and account."});}
   newPartyErrors(fd, errors);
 
   const { lines, bad } = readLines(fd);
@@ -1605,7 +1450,7 @@ export async function createEstimate(_prev: ActionState, fd: FormData): Promise<
 
   const { clientId, projectId } = await createParties(fd);
   const est = db.addEstimate({
-    clientId, projectId,
+    ...choice, clientId, projectId,
     issued, expires: expires!, vatRate, lines,
     discount: discount > 0 ? discount : undefined,
     notes: str(fd, "notes") || undefined,
@@ -1613,6 +1458,7 @@ export async function createEstimate(_prev: ActionState, fd: FormData): Promise<
     state: str(fd, "send") === "1" ? "Sent" : "Draft",
   }, str(fd, "by") || await actorName());
 
+  await saveStore();
   let told = "";
   if (est.state === "Sent" && checked(fd, "emailClient")) {
     const { stageEstimateSent } = await import("@/lib/money-mail");
@@ -1733,9 +1579,10 @@ export async function replyToTicketAsStudio(_prev: ActionState, fd: FormData): P
   if (ticket) {
     refresh(`/admin/clients/${ticket.clientId}`, "/admin/clients/support", `/admin/clients/support/${ticket.id}`, "/portal/support", `/portal/support/${ticket.id}`, "/portal");
     /* The client's copy goes behind the response; the row is written first. */
-    after(() => import("@/lib/support-mail").then((m) => m.sendSupportReply({ ticket, reply: body, author, messageId: t.id, by: author })));
+    const run=await stageSupportReply({ticket,reply:body,author,messageId:t.id,by:author});
+    if(typeof run==='function')after(run);
   }
-  return OK("Reply sent. The client has been emailed.");
+  return OK("Reply saved. Any enabled email is queued; the message log shows its outcome.");
 }
 
 /** Open, answered or closed, set by the studio; reopening is a status too. */

@@ -12,8 +12,8 @@ import { getPortalRequest } from "@/lib/portal/session";
 export default async function RecordLayout({ children, params }: { children: React.ReactNode; params: Promise<{ id: string }> }) {
   await syncStore();
   const { id } = await params;
-  const { client } = await getPortalRequest();
+  const { client,allowedProjectIds } = await getPortalRequest();
   const p = client ? getProject(id) : null;
-  if (!p || !client || p.clientId !== client.id) notFound();
+  if (!p || !client || !allowedProjectIds.includes(p.id)) notFound();
   return children;
 }

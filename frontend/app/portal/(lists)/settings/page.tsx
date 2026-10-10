@@ -1,4 +1,5 @@
 import { SecurityEmailPreference } from "@/components/admin/settings/security-email-preference";
+import { PersonalNotificationPreferences } from "@/components/workspace/personal-preferences";
 import { ClientProfilePreference } from "@/components/client/profile-preference";
 import { getPortalRequest } from "@/lib/portal/session";
 import { Panel } from "@/components/admin/bits";
@@ -22,7 +23,7 @@ export const metadata = { title: "Settings" };
  * left, what we email them about and how they sign in on the right.
  */
 export default async function PortalSettings() {
-  const { client, session, support } = await getPortalRequest();
+  const { client, session, support, isPrimaryContact } = await getPortalRequest();
   if (!client) return null;
   const userId = (session?.user as { id?: string } | undefined)?.id;
   const withPassword = await hasPassword(userId);
@@ -38,16 +39,17 @@ export default async function PortalSettings() {
       </header>
 
       <div className="pSet">
-        <Panel title="Profile">
+        {isPrimaryContact ? <Panel title="Profile">
           <p className="pSet__sub ad__dim">Used on invoices and in every message we send.</p>
           <ProfileForm client={client} />
-        </Panel>
+        </Panel> : <Panel title="Project access"><p>You can see the projects you have been invited to. The studio manages project access; company settings belong to the primary contact.</p></Panel>}
         <div className="pSet__side">
-          {!support && userId ? <ClientProfilePreference userId={userId} name={session?.user.name??client.name} /> : null}
-          <Panel title="Notifications" dataTour="portal-notify">
+          {isPrimaryContact && !support && userId ? <ClientProfilePreference userId={userId} name={session?.user.name??client.name} /> : null}
+          <PersonalNotificationPreferences />
+          {isPrimaryContact ? <Panel title="Notifications" dataTour="portal-notify">
             <p className="pSet__sub ad__dim">Every one of these can be switched off.</p>
             <NotifyForm client={client} />
-          </Panel>
+          </Panel> : null}
           {!support && userId ? <SecurityEmailPreference userId={userId} /> : null}
           <Panel title="Sign-in" dataTour="portal-signin">
             {support ? <p>Sign-in settings are private and cannot be changed in a support view.</p> : <SignInCard email={session?.user?.email ?? client.email} hasPassword={withPassword} devices={devices} />}

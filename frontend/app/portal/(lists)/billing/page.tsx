@@ -1,11 +1,14 @@
+import CurrencyBalances from "@/components/money/currency-balances";
+import {moneySummary} from "@/lib/money/summary";
+import {currencyOf,money} from "@/lib/money/currency";
 import { PayForm } from "@/components/money/pay-form";
 import { selectedPaystackMode } from "@/lib/paystack-mode";
 import Link from "next/link";
 import { ListSearch } from "@/components/admin/list-search";
 import { Banknote, Lock, CheckCircle2, CreditCard, Download, FileText, Receipt, Wallet } from "lucide-react";
 import { getPortalRequest } from "@/lib/portal/session";
-import { getCreditsFor, getInvoicesFor, getPaymentsFor, getProject } from "@/lib/admin/store";
-import { invoiceStatus, invoiceTotals, naira } from "@/lib/admin/types";
+import { getCreditsFor, getInvoices, getPaymentsFor, getProject } from "@/lib/admin/store";
+import { invoiceStatus, invoiceTotals, refundedTotal } from "@/lib/admin/types";
 import { Empty, InvoicePill, Panel, when } from "@/components/admin/bits";
 import { Pager, readPer } from "@/components/admin/pager";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
@@ -32,13 +35,14 @@ function href(q: Query, patch: Query) {
 export default async function PortalBilling({ searchParams }: { searchParams: Promise<Query> }) {
   await syncStore();
   persistSoon();
-  const { client } = await getPortalRequest();
+  const { client, isPrimaryContact, billingProjectIds } = await getPortalRequest();
   if (!client) return null;
+  if (!isPrimaryContact && !billingProjectIds.length) return <div className="adDash"><header className="adDash__head"><h1>Billing</h1></header><Empty title="Billing access is not included" icon={Lock}>Your project invitation does not include invoices or payment details. Ask the studio if you need billing access.</Empty></div>;
   const query = await searchParams;
   const paymentMode = await selectedPaystackMode().catch(() => null);
 
-  const invoices = getInvoicesFor(client.id).filter((inv) => inv.status !== "Draft");
-  const credits = getCreditsFor(client.id).filter((c) => !c.applied);
+  const invoices = getInvoices().filter(inv => inv.status !== "Draft" && ((isPrimaryContact && inv.clientId === client.id) || (Boolean(inv.projectId) && billingProjectIds.includes(inv.projectId!))));
+  const credits = isPrimaryContact ? getCreditsFor(client.id).filter((c) => !c.applied) : [];
   const live = invoices.filter((inv) => !inv.voided);
   const balance = live.reduce((n, inv) => n + invoiceTotals(inv).due, 0);
   const creditBalance = credits.reduce((n, c) => n + c.amount, 0);
@@ -73,38 +77,39 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
       </header>
       {paymentMode !== "live" ? <p>{paymentMode === "test" ? "Online checkout is in test mode. Simulated payments leave your invoices unpaid. Open an invoice for bank details to make a real payment." : "Online checkout is temporarily unavailable. Open an invoice for bank details or contact the studio."}</p> : null}
 
+      <CurrencyBalances invoices={invoices}/>
       <dl className="pBill__kpis">
         <div className="ad__tile pBill__owed">
           <dt><span>Balance owed</span><span className="ad__tileIcon ad__tileIcon--live" aria-hidden="true"><Wallet /></span></dt>
-          <dd>{balance > 0 ? naira(balance) : "Nil"}</dd>
+          <dd>{balance > 0 ? moneySummary(live,inv=>invoiceTotals(inv).due) : "Nil"}</dd>
           <small>
             {next ? <>On {next.number} · due {when(next.due)}</> : "Nothing to pay. Thank you."}
           </small>
-          {next && canPay ? (
+          {next && canPay && currencyOf(next)==="NGN" ? (
             /* A real POST, as on the invoice itself: a link that spends money
                can be followed by a prefetcher. The amount comes off the
                token, never from this page. */
             <PayForm action={`/api/pay/${next.token}`}>
               <button type="submit" className="pBill__pay">
-                <CreditCard aria-hidden="true" /> Pay {naira(invoiceTotals(next).due)}
+                <CreditCard aria-hidden="true" /> Pay {money(invoiceTotals(next).due,currencyOf(next))}
               </button>
             </PayForm>
           ) : null}
         </div>
         <div className="ad__tile">
           <dt><span>Paid to date</span><span className="ad__tileIcon ad__tileIcon--good" aria-hidden="true"><CheckCircle2 /></span></dt>
-          <dd>{paidTotal ? naira(paidTotal) : "Nil"}</dd>
+          <dd>{paidTotal ? moneySummary(payments.map(({p,inv})=>({...p,currency:currencyOf(inv)})),p=>p.reversed?0:p.amount-refundedTotal(p)) : "Nil"}</dd>
           <small>
             {payments.length
               ? `${payments.length} ${payments.length === 1 ? "payment" : "payments"}${methods.length ? `, by ${methods.join(" and ")}` : ""}`
               : "No payments yet"}
           </small>
         </div>
-        <div className="ad__tile">
+        {isPrimaryContact ? <div className="ad__tile">
           <dt><span>Credit on account</span><span className="ad__tileIcon ad__tileIcon--neutral" aria-hidden="true"><Banknote /></span></dt>
-          <dd>{creditBalance ? naira(creditBalance) : "Nil"}</dd>
+          <dd>{creditBalance ? moneySummary(credits,c=>c.amount) : "Nil"}</dd>
           <small>{creditBalance ? "Taken off your next invoice" : "Overpayments or refunds would show here"}</small>
-        </div>
+        </div> : null}
       </dl>
 
       <Panel dataTour="portal-billing" title="Invoices">
@@ -128,12 +133,12 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
                 <li key={inv.id} data-row>
                   <a href={`/i/${inv.token}`} target="_blank" rel="noopener noreferrer">
                     <span className="ad__tileIcon ad__tileIcon--warn" aria-hidden="true"><FileText /></span>
-                    <span className="pBill__cardMain"><b>{inv.number}</b><small>{owing ? `${naira(t.due)} left · due ${when(inv.due)}` : `Issued ${when(inv.issued)}`}</small></span>
-                    <span className="pBill__cardEnd"><b className="ad__num">{naira(t.total)}</b><InvoicePill status={invoiceStatus(inv)} /></span>
+                    <span className="pBill__cardMain"><b>{inv.number}</b><small>{owing ? `${money(t.due,currencyOf(inv))} left · due ${when(inv.due)}` : `Issued ${when(inv.issued)}`}</small></span>
+                    <span className="pBill__cardEnd"><b className="ad__num">{money(t.total,currencyOf(inv))}</b><InvoicePill status={invoiceStatus(inv)} /></span>
                   </a>
-                  {owing && canPay ? (
+                  {owing && canPay && currencyOf(inv)==="NGN" ? (
                     <PayForm action={`/api/pay/${inv.token}`} className="pBill__cardPay">
-                      <button type="submit" className="ad__btn ad__btn--primary"><CreditCard aria-hidden="true" /> Pay {naira(t.due)}</button>
+                      <button type="submit" className="ad__btn ad__btn--primary"><CreditCard aria-hidden="true" /> Pay {money(t.due,currencyOf(inv))}</button>
                     </PayForm>
                   ) : null}
                 </li>
@@ -161,11 +166,11 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
                       <td className="ad__dim ad__docNo">{when(inv.issued)}</td>
                       <td className="ad__docNo">{when(inv.due)}</td>
                       <td><InvoicePill status={invoiceStatus(inv)} /></td>
-                      <td className="num">{naira(t.total)}</td>
-                      <td className="num">{owing ? naira(t.due) : <span className="ad__dim">Nil</span>}</td>
+                      <td className="num">{money(t.total,currencyOf(inv))}</td>
+                      <td className="num">{owing ? money(t.due,currencyOf(inv)) : <span className="ad__dim">Nil</span>}</td>
                       <td>
                         <span className="pBill__acts">
-                          {owing && canPay ? (
+                          {owing && canPay && currencyOf(inv)==="NGN" ? (
                             <PayForm action={`/api/pay/${inv.token}`}>
                               <button type="submit" className="ad__btn ad__btn--primary">Pay now</button>
                             </PayForm>
@@ -195,7 +200,7 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
         ) : null}
       </Panel>
 
-      {canPay && next ? <p className="pBill__safe ad__dim"><Lock aria-hidden="true" /> Card payments are handled by Paystack.</p> : null}
+      {canPay && next && currencyOf(next)==="NGN" ? <p className="pBill__safe ad__dim"><Lock aria-hidden="true" /> Card payments are handled by Paystack.</p> : null}
 
       {payments.length ? (
         <Panel title="Payments you have made">
@@ -205,7 +210,7 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
                 <a href={`/r/${p.token}`} target="_blank" rel="noopener noreferrer">
                   <span className="ad__tileIcon ad__tileIcon--good" aria-hidden="true"><Receipt /></span>
                   <span className="pBill__cardMain"><b>{inv.number}</b><small>{when(p.at)} · {p.method} · receipt</small></span>
-                  <span className="pBill__cardEnd"><b className="ad__num">{naira(p.amount)}</b></span>
+                  <span className="pBill__cardEnd"><b className="ad__num">{money(p.amount,currencyOf(inv))}</b></span>
                 </a>
               </li>
             ))}
@@ -220,7 +225,7 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
                     <td className="ad__docNo">{inv.number}</td>
                     <td><span className="ad__pill ad__pill--flat">{p.method}</span></td>
                     <td className="ad__dim ad__num">{p.reference}</td>
-                    <td className="num">{naira(p.amount)}</td>
+                    <td className="num">{money(p.amount,currencyOf(inv))}</td>
                     <td>
                       <a className="ad__btn" href={`/r/${p.token}`} target="_blank" rel="noopener noreferrer" aria-label={`Receipt ${p.receiptNo}`}>
                         <Receipt aria-hidden="true" /> Receipt

@@ -16,12 +16,13 @@ import type { Deliverable } from "@/lib/admin/types";
 export function DeliverableActions({ deliverable }: { deliverable: Deliverable }) {
   const [askingRevision, setAskingRevision] = useState(false);
 
-  if (deliverable.approval !== "Awaiting client") return null;
+  if (deliverable.approval !== "Awaiting client" || deliverable.clientReviewable===false) return null;
 
   if (askingRevision) {
     return (
       <Form action={requestRevision} onDone={() => setAskingRevision(false)}>
         <Hidden name="id" value={deliverable.id} />
+        <Hidden name="version" value={String(deliverable.versions.at(-1)?.v ?? 0)} />
         <Area name="note" label="What needs to change" required rows={2} placeholder="Be as specific as you can -- this goes straight to the team." />
         <div className="ad__row">
           <Submit tone="primary" icon={MessageSquareWarning}>Send revision request</Submit>

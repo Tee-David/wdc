@@ -239,9 +239,12 @@ type Common = {
  */
 export function Field({
   name, label, hint, required, half, type = "text", defaultValue, placeholder,
-  step, min, inputMode,
+  step, min, inputMode, value, onChange, maxLength,
 }: Common & {
   type?: string;
+  value?:string;
+  onChange?:import("react").ChangeEventHandler<HTMLInputElement>;
+  maxLength?:number;
   defaultValue?: string | number;
   placeholder?: string;
   step?: string;
@@ -259,7 +262,7 @@ export function Field({
         <DateTimeInput id={id} name={name} defaultValue={String(kept ?? "")} min={min} invalid={invalid} describedBy={describedBy} />
       ) : (
         <input
-          id={id} name={name} type={type} defaultValue={kept}
+          id={id} name={name} type={type} value={value} onChange={onChange} maxLength={maxLength} defaultValue={value===undefined?kept:undefined}
           placeholder={placeholder} step={step} min={min} inputMode={inputMode}
           aria-invalid={invalid || undefined} aria-describedby={describedBy}
         />
@@ -269,14 +272,14 @@ export function Field({
 }
 
 export function Area({
-  name, label, hint, required, half, defaultValue, rows = 3, placeholder,
-}: Common & { defaultValue?: string; rows?: number; placeholder?: string }) {
+  name, label, hint, required, half, defaultValue, value, onChange, rows = 3, placeholder,
+}: Common & { defaultValue?: string; value?:string; onChange?:import("react").ChangeEventHandler<HTMLTextAreaElement>; rows?: number; placeholder?: string }) {
   const kept = useKept(name, defaultValue);
   return (
     <Wrap name={name} label={label} hint={hint} required={required} half={half}>
       {(id, invalid, describedBy) => (
         <textarea
-          id={id} name={name} rows={rows} defaultValue={kept} placeholder={placeholder}
+          id={id} name={name} rows={rows} value={value} onChange={onChange} defaultValue={value===undefined?kept:undefined} placeholder={placeholder}
           aria-invalid={invalid || undefined} aria-describedby={describedBy}
         />
       )}
@@ -285,9 +288,11 @@ export function Area({
 }
 
 export function Select({
-  name, label, hint, required, half, defaultValue, options, placeholder, searchable,
+  name, label, hint, required, half, defaultValue, value, onChange, options, placeholder, searchable,
 }: Common & {
   defaultValue?: string;
+  value?: string;
+  onChange?: (value:string)=>void;
   placeholder?: string;
   options: { value: string; label: string }[];
   /** Searchable by default above ten options, and for any record (a name
@@ -300,7 +305,7 @@ export function Select({
   return (
     <Wrap name={name} label={label} hint={hint} required={required} half={half}>
       {(id, invalid, describedBy) => (
-        <Pick id={id} name={name} options={options} defaultValue={String(kept ?? "")} placeholder={placeholder}
+        <Pick id={id} name={name} options={options} value={value} onChange={onChange} defaultValue={String(kept ?? "")} placeholder={placeholder}
               search={search} invalid={invalid} describedBy={describedBy} />
       )}
     </Wrap>

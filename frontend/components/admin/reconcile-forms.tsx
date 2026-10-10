@@ -1,4 +1,5 @@
 "use client";
+import {money} from "@/lib/money/currency";
 
 import { useId } from "react";
 import { BellRing, Check, Link2, Mail, Receipt, RotateCw, Wallet } from "lucide-react";
@@ -118,15 +119,15 @@ export function SendReceipt({ invoiceId }: { invoiceId: string }) {
  * exactly on its total and the money comes off their next one. (Sending it
  * back instead is a refund on the payment, in its own menu.)
  */
-export function CreditExcess({ invoiceId, over, reason }: { invoiceId: string; over: number; reason?: string }) {
+export function CreditExcess({ invoiceId, over, reason,currency="NGN" }: { invoiceId: string; over: number; reason?: string;currency?:string }) {
   return (
     <Form
       action={overpaymentToCredit}
-      confirm={`Put ${naira(over)} on their balance? It leaves this invoice and is held for the client against their next invoice. To send it back to their bank instead, refund the payment.`}
+      confirm={`Put ${money(over,currency)} on their balance? It leaves this invoice and is held for the client against their next invoice. To send it back to their bank instead, refund the payment.`}
     >
       <Hidden name="id" value={invoiceId} />
       <NoticeTick name="tellClient" label="Tell the client by email" reason={reason} />
-      <Submit tone="plain" icon={Wallet}>Credit the difference ({naira(over)})</Submit>
+      <Submit tone="plain" icon={Wallet}>Credit the difference ({money(over,currency)})</Submit>
     </Form>
   );
 }

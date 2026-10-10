@@ -5,6 +5,8 @@ import { archiveClient, emailReminder, moveStage, setProjectArchived, setTicketS
 import { moveBlogPostToDraft, publishBlogPostNow, trashBlogDraft } from "./blog-actions";
 import { bulkUsers } from "./user-actions";
 import { bulkCancelInvites } from "./invite-actions";
+import { getProject } from "./store";
+import { syncStore } from "./persist";
 import { STAGES } from "./types";
 
 /**
@@ -26,7 +28,7 @@ const RUN: Record<string, Job> = {
   "projects:archive": { run: setProjectArchived, fields: (id) => ({ id }), done: "archived" },
   /* One per stage, so a stage move is the same moveStage a person presses:
      its history line and the client's email included. */
-  ...Object.fromEntries(STAGES.map((st) => [`projects:stage:${st}`, { run: moveStage, fields: (id: string) => ({ id, stage: st }), done: `moved to ${st}` } satisfies Job])),
+  ...Object.fromEntries(STAGES.map((st) => [`projects:stage:${st}`, { run: moveStage, fields: (id: string) => ({ id, stage: st, expectedStage: getProject(id)?.stage ?? "" }), done: `moved to ${st}` } satisfies Job])),
   "posts:publish": { run: publishBlogPostNow, fields: (id) => ({ id }), done: "published" },
   "posts:draft": { run: moveBlogPostToDraft, fields: (id) => ({ id }), done: "moved to draft" },
   "posts:trash": { run: trashBlogDraft, fields: (id) => ({ id }), done: "moved to the Trash" },
@@ -44,6 +46,7 @@ export async function runBulk(kind: string, ids: string[]): Promise<ActionState>
   if (!job) return FAIL({}, "That is not something the selection can do.");
   const list = [...new Set((Array.isArray(ids) ? ids : []).map(String))].slice(0, 200);
   if (!list.length) return FAIL({}, "Nothing is selected.");
+  await syncStore();
   let ok = 0;
   const why = new Map<string, number>();
   for (const id of list) {

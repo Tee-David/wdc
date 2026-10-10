@@ -1,9 +1,10 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   Banknote, FileSignature, FileText, Plus, Save, Send, Trash2,
 } from "lucide-react";
+import {currencyOf,money,type PaymentAccountSnapshot} from "@/lib/money/currency";
 import type { Invoice } from "@/lib/admin/types";
 import { ENTERABLE_METHODS, EXPENSE_CATEGORIES, METHODS, naira } from "@/lib/admin/types";
 import {
@@ -147,6 +148,14 @@ function Builder({
      matching it comes first in the document, which silently strips the label
      off every instance after that one. */
   const uid = useId();
+  const [currency,setCurrency]=useState(currencyOf(invoice));
+  const [accountId,setAccountId]=useState(invoice?.paymentAccount?.id||"");
+  const [options,setOptions]=useState<{currencies:string[];accounts:PaymentAccountSnapshot[]}|null>(null);
+  const [optionsError,setOptionsError]=useState("");
+  useEffect(()=>{const controller=new AbortController();fetch("/api/admin/finance-options",{signal:controller.signal}).then(async response=>{if(!response.ok)throw Error("Payment choices could not load. Close and reopen this form to retry.");setOptions(await response.json());}).catch(error=>{if(!controller.signal.aborted)setOptionsError(error.message);});return()=>controller.abort();},[]);
+  const accountChoices=[...(options?.accounts||[])];
+  if(invoice?.paymentAccount && !accountChoices.some(item=>item.id===invoice.paymentAccount!.id))accountChoices.push(invoice.paymentAccount);
+  const format=(amount:number)=>money(amount,currency);
   const [rows, setRows] = useState<Row[]>(() =>
     invoice?.lines.length
       ? invoice.lines.map((l) => ({
@@ -178,7 +187,7 @@ function Builder({
   const set = (key: number, k: keyof Row, v: string) =>
     setRows((rs) => rs.map((r) => (r.key === key ? { ...r, [k]: v } : r)));
 
-  const held = who && who !== NEW ? credits?.[who] ?? 0 : 0;
+  const held = currency==="NGN" && who && who !== NEW ? credits?.[who] ?? 0 : 0;
   const issued = Boolean(invoice && invoice.status !== "Draft");
   /* A client typed in as new has no record to read yet: the server decides. */
   const cannotEmail = who && who !== NEW ? noEmail?.[who] : undefined;
@@ -190,10 +199,14 @@ function Builder({
         <p className="ad__dim" style={{ margin: "0 0 .8rem", fontSize: ".9rem", lineHeight: 1.55 }}>
           {invoice!.number} has been issued. What you change here shows on the client&apos;s copy
           straight away, and is written to the history.
-          {invoice!.paid > 0 ? ` ${naira(invoice!.paid)} has already been received, so the total cannot go below that.` : ""}
+          {invoice!.paid > 0 ? ` ${format(invoice!.paid)} has already been received, so the total cannot go below that.` : ""}
         </p>
       ) : null}
+      {optionsError?<p role="alert" className="ad__fe">{optionsError}</p>:null}
       <Fields>
+        {invoice && invoice.status!=="Draft"?<><Hidden name="currency" value={currency}/><p>Currency: {currency}. An issued document keeps its currency; raise a new one to change it.</p></>:<Select name="currency" label="Currency" value={currency} onChange={value=>{setCurrency(value);setAccountId("");setSettle("");}} options={[...new Set([...(options?.currencies||[currency]),currency])].map(value=>({value,label:value}))} hint={options?"Amounts are entered in this currency. No automatic conversion.":"Loading the currencies enabled in Settings..."}/>}
+        <Select name="paymentAccountId" label="Manual payment account (optional)" value={accountId} onChange={setAccountId} placeholder="No account details" options={accountChoices.filter(item=>item.currency===currency).map(item=>({value:item.id,label:`${item.label} - ${item.bankName}`}))} hint={options?"The selected details appear on the invoice or quote, and its PDF.":"Loading payment accounts..."}/>
+
         {clientId && !invoice ? (
           <Hidden name="clientId" value={clientId} />
         ) : (
@@ -272,7 +285,7 @@ function Builder({
             phone the row stacks and a bare number input with no label beside
             it is a guess. */}
         <div className="ad__lineH" aria-hidden="true">
-          <span>Description</span><span>Qty</span><span>Unit (₦)</span><span>Line</span><span />
+          <span>Description</span><span>Qty</span><span>Unit ({currency})</span><span>Line</span><span />
         </div>
         {rows.map((r) => {
           const q = Number(r.qty) || 0;
@@ -295,7 +308,7 @@ function Builder({
                 />
               </label>
               <label className="ad__lnF ad__lnF--n">
-                <span>Unit (₦)</span>
+                <span>Unit ({currency})</span>
                 <input
                   name="ln_unit" value={r.unit} inputMode="decimal" placeholder="450000"
                   onChange={(e) => set(r.key, "unit", e.target.value)}
@@ -303,7 +316,7 @@ function Builder({
               </label>
               <p className="ad__lineT">
                 <span>Line</span>
-                <b>{naira(Math.round(q * u))}</b>
+                <b>{format(Math.round(q * u))}</b>
               </p>
               <button
                 type="button" className="ad__lineX" aria-label="Remove this line"
@@ -337,10 +350,10 @@ function Builder({
           />
         </div>
         <dl>
-          <div><dt>Subtotal</dt><dd>{naira(subtotal)}</dd></div>
-          {cut > 0 ? <div><dt>Discount at {Number(off)}%</dt><dd>−{naira(cut)}</dd></div> : null}
-          <div><dt>VAT at {rate}%</dt><dd>{naira(tax)}</dd></div>
-          <div className="is-total"><dt>Total</dt><dd>{naira(net + tax)}</dd></div>
+          <div><dt>Subtotal</dt><dd>{format(subtotal)}</dd></div>
+          {cut > 0 ? <div><dt>Discount at {Number(off)}%</dt><dd>−{format(cut)}</dd></div> : null}
+          <div><dt>VAT at {rate}%</dt><dd>{format(tax)}</dd></div>
+          <div className="is-total"><dt>Total</dt><dd>{format(net + tax)}</dd></div>
         </dl>
       </div>
 
@@ -356,7 +369,7 @@ function Builder({
             {([
               ["", "Not yet", "Raise it as usual. Record payments against it as they arrive."],
               ["paid", "Already paid, or paid in advance", "Raise it issued and settled, with the payment and a receipt."],
-              ...(held > 0 ? [["credit", `Use the ${naira(held)} they have on account`, "Takes their stored credit, oldest first, up to the invoice total."]] : []),
+              ...(held > 0 ? [["credit", `Use the ${format(held)} they have on account`, "Takes their stored credit, oldest first, up to the invoice total."]] : []),
             ] as [string, string, string][]).map(([value, label, note]) => (
               <label key={value || "none"} className="ad__check ad__check--long">
                 <input type="radio" name="settle" value={value} checked={settle === value} onChange={() => setSettle(value as typeof settle)} />
@@ -474,7 +487,7 @@ export function RecordPayment({ invoice, owed, noReceipt, issueFirst }: { invoic
             <Hidden name="invoiceId" value={invoice.id} />
             {issueFirst ? <Hidden name="issueFirst" value="1" /> : null}
             <Field
-              name="amount" label="Amount (₦)" required half inputMode="decimal"
+              name="amount" label={`Amount (${currencyOf(invoice)})`} required half inputMode="decimal"
               defaultValue={owed ? String(owed / 100) : ""}
               hint="Starts at what is owed. Change it for a part payment."
             />
@@ -482,7 +495,7 @@ export function RecordPayment({ invoice, owed, noReceipt, issueFirst }: { invoic
               name="method" label="How" half required defaultValue="Transfer"
               options={[
                 { value: "Transfer", label: "Bank transfer" },
-                { value: "Paystack", label: "Paystack" },
+                ...(currencyOf(invoice)==="NGN"?[{ value: "Paystack", label: "Paystack" }]:[]),
                 { value: "Cash", label: "Cash" },
                 { value: "Card", label: "Card (outside the checkout)" },
                 { value: "POS", label: "POS terminal" },
@@ -550,7 +563,7 @@ export function AddExpense({ project }: {
             <Field name="description" label="What it was for" required
                    placeholder="Creative Cloud, the team plan" />
             <Field name="vendor" label="Who was paid" half placeholder="Adobe" />
-            <Field name="amount" label="Amount (₦)" required half inputMode="decimal" />
+            <Field name="amount" label="Amount (NGN)" required half inputMode="decimal" />
             <Select
               name="category" label="Category" half defaultValue="Software"
               options={EXPENSE_CATEGORIES.map((v) => ({ value: v, label: v }))}
@@ -645,9 +658,13 @@ export function RecordAnyPayment({ clientId }: {
 }) {
   /* Why the chosen invoice's client cannot be emailed a receipt, asked once an invoice is picked (the form no longer holds the client list). A late answer for an invoice that is no longer the chosen one is dropped. */
   const [noReceipt, setNoReceipt] = useState<{ id: string; why?: string }>({ id: "" });
+  const chosenInvoice=useRef("");
+  const [selectedCurrency,setSelectedCurrency]=useState("");
+  const [currencyError,setCurrencyError]=useState("");
   const [fresh, setFresh] = useState(0); // remounts the form after a success, so the picker starts empty again
   const choose = (id: string) => {
-    setNoReceipt({ id });
+    chosenInvoice.current=id;setNoReceipt({ id });setSelectedCurrency("");setCurrencyError("");
+    if(id)fetch(`/api/admin/finance-options?invoiceId=${encodeURIComponent(id)}`).then(async response=>{if(!response.ok)throw Error("Invoice currency could not load. Pick the invoice again.");const data=await response.json();if(chosenInvoice.current===id)setSelectedCurrency(data.currency);}).catch(error=>{if(chosenInvoice.current===id)setCurrencyError(error.message);});
     if (id) invoiceReceiptReason(id).then((why) => setNoReceipt((c) => (c.id === id ? { id, why } : c))).catch(() => {});
   };
   return (
@@ -658,7 +675,7 @@ export function RecordAnyPayment({ clientId }: {
             <RemoteSelect name="invoiceId" label="Against which invoice" required
                           kind="invoices" scope={{ invoices: "open", clientId }}
                           placeholder="Pick the invoice" onChange={(v) => choose(v)} />
-            <Field name="amount" label="Amount (₦)" required half inputMode="decimal"
+            <Field name="amount" label={selectedCurrency?`Amount (${selectedCurrency})`:"Amount in the invoice currency"} required half inputMode="decimal"
                    hint="What arrived. A part payment is fine." />
             <Select name="method" label="How" half defaultValue="Transfer"
                     options={ENTERABLE_METHODS.map((m) => ({ value: m, label: m === "Transfer" ? "Bank transfer" : m }))} />
@@ -669,7 +686,8 @@ export function RecordAnyPayment({ clientId }: {
           </Fields>
           <ReceiptTick key={noReceipt.why ?? "ok"} reason={noReceipt.why} />
           <Actions>
-            <Submit icon={Banknote}>Record it</Submit>
+            {currencyError?<p role="alert">{currencyError}</p>:null}
+            <Submit icon={Banknote} disabled={!selectedCurrency}>Record it</Submit>
           </Actions>
         </Form>
       )}

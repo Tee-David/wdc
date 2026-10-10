@@ -1,3 +1,4 @@
+import {currencyOf,money,type PaymentAccountSnapshot} from "@/lib/money/currency";
 import type {
   Approval, AuditEntry, AuditKind, Channel, Client, Deliverable, Expense,
   Credit, Estimate, Health, Id, Invoice, InvoiceLine, Message, MessageChannel,
@@ -186,11 +187,17 @@ export function getTicketMessages(ticketId: Id) {
  * summed from the same rows the money screens show, so a tile and a table can
  * never tell different stories.
  */
+/** Separate totals: currencies are never added or converted implicitly. */
+export function currencyTotals(invoices:Invoice[]){
+ const rows=new Map<string,{currency:string;invoiced:number;collected:number;outstanding:number}>();
+ for(const invoice of invoices){if(!onTheBooks(invoice))continue;const currency=currencyOf(invoice),row=rows.get(currency)||{currency,invoiced:0,collected:0,outstanding:0};const totals=invoiceTotals(invoice);row.invoiced+=totals.total;row.collected+=invoice.paid;row.outstanding+=totals.due;rows.set(currency,row);}
+ return [...rows.values()].sort((a,b)=>a.currency.localeCompare(b.currency));
+}
 export function getSummary(today = new Date()) {
   const invoices = getInvoices();
   let invoiced = 0, collected = 0, outstanding = 0, overdue = 0;
   for (const inv of invoices) {
-    if (!onTheBooks(inv)) continue;
+    if (!onTheBooks(inv) || currencyOf(inv)!=="NGN") continue;
     const t = invoiceTotals(inv);
     invoiced += t.total;
     collected += inv.paid;
@@ -269,7 +276,7 @@ export function getAging(today = new Date()) {
   ];
 
   for (const inv of INVOICES) {
-    if (!onTheBooks(inv)) continue;
+    if (!onTheBooks(inv) || currencyOf(inv)!=="NGN") continue;
     const { due } = invoiceTotals(inv);
     if (due <= 0) continue;
     const days = Math.floor((today.getTime() - new Date(inv.due).getTime()) / 86_400_000);
@@ -298,7 +305,7 @@ export function getAging(today = new Date()) {
 export function getCollectionRate(): number | null {
   let invoiced = 0, collected = 0;
   for (const inv of INVOICES) {
-    if (!onTheBooks(inv)) continue;
+    if (!onTheBooks(inv) || currencyOf(inv)!=="NGN") continue;
     invoiced += invoiceTotals(inv).total;
     collected += inv.paid;
   }
@@ -344,7 +351,7 @@ export function getMonthly(months = 6) {
        it was returned. That is the honest reading for a chart of what each
        month earned; a chart of what moved through the bank would say the
        opposite, and this is the first. Said here so the choice is visible. */
-    in: getPayments().filter((p) => key(p.at) === k).reduce((n, p) => n + paymentNet(p), 0),
+    in: getPayments().filter((p) => key(p.at) === k && currencyOf(p)==="NGN").reduce((n, p) => n + paymentNet(p), 0),
     out: getExpenses().filter((e) => key(e.at) === k).reduce((n, e) => n + e.amount, 0),
   }));
 }
@@ -764,7 +771,7 @@ export function nextReceiptNumber(year = new Date().getFullYear()): string {
 
 export function addInvoice(d: {
   clientId: Id; projectId: Id | null; issued: string; due: string;
-  vatRate: number; lines: Invoice["lines"]; status: "Draft" | "Sent";
+  vatRate: number; lines: Invoice["lines"]; status: "Draft" | "Sent"; currency?:string; paymentAccount?:PaymentAccountSnapshot|null;
 }): Invoice {
   const inv: Invoice = {
     ...d, id: mint("i"), number: nextInvoiceNumber(), token: token(), paid: 0,
@@ -772,13 +779,13 @@ export function addInvoice(d: {
   INVOICES.push(inv);
   audit({ actor: "Studio", kind: "invoice", subjectId: inv.id, subject: inv.number,
           action: d.status === "Draft" ? "drafted" : "raised",
-          note: naira(invoiceTotals(inv).total) });
+          note: money(invoiceTotals(inv).total,currencyOf(inv)) });
   return inv;
 }
 
 export type PatchResult =
   | { ok: true; invoice: Invoice; before: number; after: number }
-  | { ok: false; reason: "missing" | "void" | "below-paid"; say: string };
+  | { ok: false; reason: "missing" | "void" | "below-paid" | "currency"; say: string };
 
 /**
  * Change an invoice's lines, VAT, due date or project.
@@ -797,11 +804,12 @@ export type PatchResult =
  */
 export function patchInvoice(
   id: Id,
-  d: Partial<Pick<Invoice, "projectId" | "due" | "vatRate" | "lines">>,
+  d: Partial<Pick<Invoice, "projectId" | "due" | "vatRate" | "lines" | "currency" | "paymentAccount">>,
   actor = "Studio",
 ): PatchResult {
   const inv = getInvoice(id);
   if (!inv) return { ok: false, reason: "missing", say: "That invoice is no longer there." };
+  if(d.currency && d.currency!==currencyOf(inv) && (inv.status!=="Draft" || PAYMENTS.some(p=>p.invoiceId===inv.id))) return {ok:false,reason:"currency",say:"Only an unpaid draft can change currency. Raise a new document to keep issued copies and payment history accurate."};
   const check = checkInvoiceEdit(inv, collected(inv.id), { lines: d.lines ?? inv.lines, vatRate: d.vatRate ?? inv.vatRate });
   if (!check.ok) return { ok: false, reason: inv.voided ? "void" : "below-paid", say: check.say };
 
@@ -810,6 +818,8 @@ export function patchInvoice(
   if (d.vatRate !== undefined && d.vatRate !== inv.vatRate) moved.push(`VAT ${inv.vatRate}% to ${d.vatRate}%`);
   if (d.due && d.due.slice(0, 10) !== inv.due.slice(0, 10)) moved.push(`due ${inv.due.slice(0, 10)} to ${d.due.slice(0, 10)}`);
   if (d.projectId !== undefined && d.projectId !== inv.projectId) moved.push("project");
+  if(d.currency && d.currency!==currencyOf(inv)) moved.push(`currency ${currencyOf(inv)} to ${d.currency}`);
+  if(d.paymentAccount!==undefined && JSON.stringify(d.paymentAccount)!==JSON.stringify(inv.paymentAccount)) moved.push("payment account");
   const wasDraft = inv.status === "Draft";
   Object.assign(inv, d);
   if (moved.length) {
@@ -834,7 +844,7 @@ export function sendInvoice(id: Id, actor = "Studio"): Invoice | null {
   inv.issued = now();
   audit({ actor, kind: "invoice", subjectId: inv.id, subject: inv.number,
           action: "issued", field: "status", from: "Draft", to: "Sent",
-          note: naira(invoiceTotals(inv).total) });
+          note: money(invoiceTotals(inv).total,currencyOf(inv)) });
   return inv;
 }
 
@@ -899,6 +909,7 @@ export function applyPayment(d: {
   if (d.method === "Paystack" && d.mode !== "live") return {ok:false,reason:"test-mode"};
   const inv = getInvoice(d.invoiceId);
   if (!inv) return { ok: false, reason: "no-invoice" };
+  if(d.method==="Paystack" && currencyOf(inv)!=="NGN") return {ok:false,reason:"no-invoice"};
   if (inv.status === "Draft") return { ok: false, reason: "draft" };
   /* A struck invoice is not owed, so there is nothing here to pay. Money that
      arrives against one anyway is a real event and belongs on the
@@ -918,7 +929,7 @@ export function applyPayment(d: {
      saying so. Numbering it here rather than on demand means the number is
      assigned once, in order, and cannot change if the receipt is reprinted. */
   const payment: Payment = {
-    id: mint("y"), invoiceId: inv.id, at: d.at ?? now(),
+    id: mint("y"), invoiceId: inv.id, currency:currencyOf(inv), at: d.at ?? now(),
     amount: Math.round(d.amount), method: d.method, reference: ref,
     receiptNo: nextReceiptNumber(), token: token(),
     by: d.by?.trim() || "Studio",
@@ -927,7 +938,7 @@ export function applyPayment(d: {
   };
   PAYMENTS.push(payment);
   audit({ actor: payment.by, kind: "payment", subjectId: payment.id, subject: payment.receiptNo,
-          action: "recorded", to: naira(payment.amount),
+          action: "recorded", to: money(payment.amount,currencyOf(payment)),
           note: `${payment.method} · ${payment.reference} · against ${inv.number}` });
 
   inv.paid = collected(inv.id);
@@ -952,6 +963,7 @@ export function applyPayment(d: {
 export function reversePayment(id: Id, reason = "", actor = "Studio"): boolean {
   const p = PAYMENTS.find((x) => x.id === id);
   if (!p || p.reversed) return false;
+  const format=(amount:number)=>money(amount,currencyOf(p));
   const inv = getInvoice(p.invoiceId);
   const text = reason.trim();
   /* THE HISTORY LINE FIRST. It names the receipt, the amount that comes off,
@@ -959,8 +971,8 @@ export function reversePayment(id: Id, reason = "", actor = "Studio"): boolean {
      if anything after this line failed, the log would still say it was tried. */
   const net = paymentNet(p);
   audit({ actor, kind: "payment", subjectId: p.id, subject: p.receiptNo,
-          action: "reversed", from: naira(net), to: naira(0),
-          note: [`${naira(net)} of ${naira(p.amount)} comes off`, `${p.method} · ${p.reference}`,
+          action: "reversed", from: format(net), to: format(0),
+          note: [`${format(net)} of ${format(p.amount)} comes off`, `${p.method} · ${p.reference}`,
                  inv ? `against ${inv.number}` : null, `by ${actor}`, text ? `reason: ${text}` : null]
             .filter(Boolean).join(" · ") });
   p.reversed = { at: now(), by: actor, reason: text };
@@ -1038,6 +1050,7 @@ export function refundPayment(d: {
   if (!text) return { ok: false, reason: "no-reason" };
 
   const actor = d.actor?.trim() || "Studio";
+  const format=(amount:number)=>money(amount,currencyOf(p));
   const inv = getInvoice(p.invoiceId);
   /* THE HISTORY LINE FIRST, then the change. It names the receipt, the amount
      going back, who and why; `from`/`to` are what the payment is worth before
@@ -1045,8 +1058,8 @@ export function refundPayment(d: {
   const before = paymentNet(p);
   audit({ actor, kind: "payment", subjectId: p.id, subject: p.receiptNo,
           action: d.toCredit ? "refunded to credit" : "refunded",
-          from: naira(before), to: naira(before - amount),
-          note: [naira(amount), `of ${naira(p.amount)} received`, inv ? `against ${inv.number}` : null, `by ${actor}`, `reason: ${text}`]
+          from: format(before), to: format(before - amount),
+          note: [format(amount), `of ${format(p.amount)} received`, inv ? `against ${inv.number}` : null, `by ${actor}`, `reason: ${text}`]
             .filter(Boolean).join(" · ") });
 
   const refund: Refund = {
@@ -1061,7 +1074,7 @@ export function refundPayment(d: {
   let credit: Credit | null = null;
   if (d.toCredit && inv) {
     credit = addCredit({
-      clientId: inv.clientId, amount, by: actor,
+      clientId: inv.clientId, currency:currencyOf(inv), amount, by: actor,
       reason: `Held from ${p.receiptNo} rather than returned. ${text}`,
       fromInvoiceId: inv.id, fromPaymentId: p.id,
     });
@@ -1078,7 +1091,7 @@ function addCredit(d: Omit<Credit, "id" | "at">): Credit {
   const c: Credit = { ...d, id: mint("cr"), at: now() };
   CREDITS.push(c);
   audit({ actor: c.by, kind: "invoice", subjectId: c.id, subject: "Credit",
-          action: "put on account", to: naira(c.amount), note: c.reason });
+          action: "put on account", to: money(c.amount,currencyOf(c)), note: c.reason });
   return c;
 }
 
@@ -1088,9 +1101,9 @@ export function getCreditsFor(clientId: Id) {
 }
 
 /** What the studio owes this client. Derived from the rows, never stored. */
-export function creditBalance(clientId: Id) {
+export function creditBalance(clientId: Id,currency="NGN") {
   return CREDITS
-    .filter((c) => c.clientId === clientId && !c.applied)
+    .filter((c) => c.clientId === clientId && !c.applied && currencyOf(c)===currency)
     .reduce((n, c) => n + c.amount, 0);
 }
 
@@ -1099,9 +1112,9 @@ export function getCredit(id: Id) {
 }
 
 /** Every client who holds unspent credit, by id: small, so a form can offer "use their credit". */
-export function creditBalances(): Record<Id, number> {
+export function creditBalances(currency="NGN"): Record<Id, number> {
   const out: Record<Id, number> = {};
-  for (const c of CREDITS) if (!c.applied) out[c.clientId] = (out[c.clientId] ?? 0) + c.amount;
+  for (const c of CREDITS) if (!c.applied && currencyOf(c)===currency) out[c.clientId] = (out[c.clientId] ?? 0) + c.amount;
   return out;
 }
 
@@ -1122,7 +1135,7 @@ export function applyCreditsTo(invoiceId: Id, actor = "Studio"): { applied: numb
   if (!inv) return { applied: 0, payments: [] };
   const payments: Payment[] = [];
   let applied = 0;
-  const open = CREDITS.filter((c) => c.clientId === inv.clientId && !c.applied).sort((a, b) => a.at.localeCompare(b.at));
+  const open = CREDITS.filter((c) => c.clientId === inv.clientId && !c.applied && currencyOf(c)===currencyOf(inv)).sort((a, b) => a.at.localeCompare(b.at));
   for (const credit of open) {
     if (invoiceTotals(inv).due <= 0) break;
     const before = invoiceTotals(inv).due;
@@ -1151,6 +1164,7 @@ export function overpaymentToCredit(invoiceId: Id, actor = "Studio"):
   | { ok: false; reason: "missing" | "not-overpaid" | "no-payment" } {
   const inv = getInvoice(invoiceId);
   if (!inv) return { ok: false, reason: "missing" };
+  const format=(amount:number)=>money(amount,currencyOf(inv));
   const over = inv.paid - invoiceTotals(inv).total;
   if (over <= 0) return { ok: false, reason: "not-overpaid" };
 
@@ -1162,7 +1176,7 @@ export function overpaymentToCredit(invoiceId: Id, actor = "Studio"):
 
   const done = refundPayment({
     paymentId: last.id, amount: Math.min(over, paymentNet(last)),
-    reason: `${inv.number} took ${naira(over)} more than it was for.`,
+    reason: `${inv.number} took ${format(over)} more than it was for.`,
     toCredit: true, actor,
   });
   if (!done.ok || !done.credit) return { ok: false, reason: "no-payment" };
@@ -1194,9 +1208,10 @@ export function applyCredit(creditId: Id, invoiceId: Id, actor = "Studio"):
   const inv = getInvoice(invoiceId);
   if (!inv) return { ok: false, reason: "no-invoice" };
   if (inv.status === "Draft") return { ok: false, reason: "draft" };
+  const format=(amount:number)=>money(amount,currencyOf(inv));
   /* A client's credit is theirs. Applying it to somebody else's invoice would
      be moving money between two people's accounts. */
-  if (inv.clientId !== credit.clientId) return { ok: false, reason: "wrong-client" };
+  if (inv.clientId !== credit.clientId || currencyOf(inv)!==currencyOf(credit)) return { ok: false, reason: "wrong-client" };
 
   const owed = invoiceTotals(inv).due;
   if (owed <= 0) return { ok: false, reason: "nothing-due" };
@@ -1218,15 +1233,15 @@ export function applyCredit(creditId: Id, invoiceId: Id, actor = "Studio"):
      line is a balance nobody trusts. */
   if (leftOver > 0) {
     addCredit({
-      clientId: credit.clientId, amount: leftOver, by: actor,
-      reason: `What was left after ${naira(use)} went to ${inv.number}.`,
+      clientId: credit.clientId, currency:currencyOf(credit), amount: leftOver, by: actor,
+      reason: `What was left after ${format(use)} went to ${inv.number}.`,
       fromInvoiceId: credit.fromInvoiceId, fromPaymentId: credit.fromPaymentId,
     });
   }
 
   audit({ actor, kind: "invoice", subjectId: inv.id, subject: inv.number,
-          action: "took credit", to: naira(use),
-          note: leftOver > 0 ? `${naira(leftOver)} stays on the client's balance.` : undefined });
+          action: "took credit", to: format(use),
+          note: leftOver > 0 ? `${format(leftOver)} stays on the client's balance.` : undefined });
 
   return { ok: true, payment: applied.payment, invoice: inv, leftOver };
 }
@@ -1270,7 +1285,7 @@ export function getExpensesFor(projectId: Id) {
  */
 export function projectMargin(projectId: Id) {
   const p = getProject(projectId);
-  const invoices = p ? INVOICES.filter((i) => i.projectId === p.id && i.status !== "Draft") : [];
+  const invoices = p ? INVOICES.filter((i) => i.projectId === p.id && i.status !== "Draft" && currencyOf(i)==="NGN") : [];
   const invoiced = invoices.reduce((n, i) => n + invoiceTotals(i).total, 0);
   const collected = invoices.reduce((n, i) => n + i.paid, 0);
   const spend = getExpensesFor(projectId).reduce((n, e) => n + e.amount, 0);
@@ -1558,6 +1573,8 @@ export function addDeliverable(d: { projectId: Id; name: string; note: string; u
 export function addVersion(id: Id, note: string, url?: string, files?: Deliverable["versions"][number]["files"]): Deliverable | null {
   const d = DELIVERABLES.find((x) => x.id === id);
   if (!d) return null;
+  const previous=d.versions.at(-1);
+  if(previous&&d.approval!=="Not sent"){previous.shared=true;previous.approval=d.approval;previous.approvalNote=d.approvalNote;}
   const v = (d.versions[d.versions.length - 1]?.v ?? 0) + 1;
   d.versions.push({ v, at: now(), note, url, files });
   /* A new version supersedes whatever the last one was told: an approval given
@@ -1568,11 +1585,13 @@ export function addVersion(id: Id, note: string, url?: string, files?: Deliverab
   return d;
 }
 
-export function setApproval(id: Id, approval: Approval, note?: string): Deliverable | null {
+export function setApproval(id: Id, approval: Approval, note?: string, actor?: {name:string;id?:string}): Deliverable | null {
   const d = DELIVERABLES.find((x) => x.id === id);
   if (!d) return null;
   d.approval = approval;
   d.approvalNote = approval === "Revision requested" ? (note || undefined) : undefined;
+  const latest=d.versions.at(-1),at=now();
+  if(latest){latest.approval=approval;latest.approvalNote=d.approvalNote;if(approval!=="Not sent")latest.shared=true;if(approval==="Awaiting client"&&!latest.sharedAt){latest.sharedAt=at;latest.reviewDueAt=new Date(Date.parse(at)+7*86400000).toISOString();}(d.decisions??=[]).push({version:latest.v,decision:approval,at,actor:actor?.name,actorId:actor?.id,note});}
   addProjectNote(d.projectId, `${d.name}: ${approval.toLowerCase()}`);
   return d;
 }
@@ -2000,7 +2019,7 @@ export function nextEstimateNumber(year = new Date().getFullYear()): string {
 export function addEstimate(d: {
   clientId: Id; projectId: Id | null; issued: string; expires: string;
   vatRate: number; lines: InvoiceLine[]; state: "Draft" | "Sent";
-  discount?: number; notes?: string; terms?: string;
+  discount?: number; notes?: string; terms?: string; currency?:string; paymentAccount?:PaymentAccountSnapshot|null;
 }, actor = "Studio"): Estimate {
   const e: Estimate = {
     ...d, id: mint("q"), number: nextEstimateNumber(), token: token(),
@@ -2008,7 +2027,7 @@ export function addEstimate(d: {
   ESTIMATES.push(e);
   audit({ actor, kind: "invoice", subjectId: e.id, subject: e.number,
           action: d.state === "Draft" ? "drafted" : "quoted",
-          note: naira(estimateTotals(e).total) });
+          note: money(estimateTotals(e).total,currencyOf(e)) });
   return e;
 }
 
@@ -2070,7 +2089,7 @@ export function answerEstimate(d: {
     }
     const days = Number.isFinite(d.dueInDays) ? Math.max(0, Math.trunc(d.dueInDays!)) : 30;
     invoice = addInvoice({
-      clientId: e.clientId, projectId: e.projectId,
+      clientId: e.clientId, projectId: e.projectId, currency:currencyOf(e), paymentAccount:e.paymentAccount?{...e.paymentAccount}:null,
       issued: now(),
       due: new Date(Date.now() + days * 86_400_000).toISOString(),
       vatRate: e.vatRate, lines, status: "Sent",
@@ -2099,7 +2118,7 @@ export function duplicateEstimate(id: Id, actor = "Studio"): Estimate | null {
   const e = getEstimate(id);
   if (!e) return null;
   const copy = addEstimate({
-    clientId: e.clientId, projectId: e.projectId,
+    clientId: e.clientId, projectId: e.projectId, currency:currencyOf(e), paymentAccount:e.paymentAccount?{...e.paymentAccount}:null,
     issued: now(),
     expires: new Date(Date.now() + 30 * 86_400_000).toISOString(),
     vatRate: e.vatRate, lines: e.lines.map((l) => ({ ...l })),
@@ -2124,7 +2143,7 @@ export function duplicateInvoice(id: Id, actor = "Studio"): Invoice | null {
   if (!inv) return null;
   const issued = new Date();
   const copy = addInvoice({
-    clientId: inv.clientId, projectId: inv.projectId,
+    clientId: inv.clientId, projectId: inv.projectId, currency:currencyOf(inv), paymentAccount:inv.paymentAccount?{...inv.paymentAccount}:null,
     issued: issued.toISOString(),
     due: new Date(issued.getTime() + financeDefaults().dueInDays * 86_400_000).toISOString(),
     vatRate: inv.vatRate, lines: inv.lines.map((l) => ({ ...l })),
@@ -2142,7 +2161,7 @@ export function getPipeline(today = new Date()) {
   const answered = ESTIMATES.filter((e) => e.state === "Accepted" || e.state === "Declined");
   return {
     live,
-    open: live.reduce((n, e) => n + estimateTotals(e).total, 0),
+    open: live.filter(e=>currencyOf(e)==="NGN").reduce((n, e) => n + estimateTotals(e).total, 0),
     /* Of the ones somebody actually answered. Quotes still sitting unanswered
        are not losses and counting them as such makes the number useless. */
     winRate: answered.length ? won.length / answered.length : null,

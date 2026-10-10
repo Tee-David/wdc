@@ -75,12 +75,13 @@ export async function sendApprovalRequest(input: { project: Project; deliverable
   if (!notifyAllows(client.notify, "updates")) return skipped(project, subject, dedupeKey, by);
   /* A week, stated in the email so the schedule cannot slip silently. It is
      the studio's ask, and the client can say it does not work for them. */
-  const respondBy = new Date(Date.now() + 7 * 86_400_000);
+  const savedDue = deliverable.versions.at(-1)?.reviewDueAt;
+  const respondBy = savedDue ? new Date(savedDue) : undefined;
   try {
     await sendLogged(
       { to: email, ...(await designed("deliverable-ready", {
         "client.first_name": first(client.name), "project.title": project.title, "deliverable.name": `${deliverable.name} (v${v})`,
-        "deliverable.respond_by": new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Lagos" }).format(respondBy), "links.review": portalUrl(project.id),
+        "deliverable.respond_by": respondBy ? new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Lagos" }).format(respondBy) : "No review date recorded", "links.review": portalUrl(project.id),
       }, () => deliverableReadyEmail({ clientName: first(client.name), projectTitle: project.title, deliverable: `${deliverable.name} (v${v})`, url: portalUrl(project.id), respondBy }))) },
       { summary: `${deliverable.name} v${v} sent for approval.`, dedupeKey, by, clientId: client.id, about: { kind: "project", id: project.id, label: project.title } },
     );

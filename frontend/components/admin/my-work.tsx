@@ -50,7 +50,7 @@ export function MyWork({ me, unread, quietWhenEmpty = false }: { me: { id: strin
             {tasks.map((t) => (
               <li key={t.id} style={{ display: "flex", gap: ".6rem", alignItems: "center" }}>
                 <Form action={toggleTask}>
-                  <Hidden name="id" value={t.id} />
+                  <Hidden name="id" value={t.id} /><Hidden name="expectedDone" value={String(t.done)} />
                   <button type="submit" className="ad__tick" aria-label={`Tick off ${t.title}`}><Check aria-hidden="true" /></button>
                 </Form>
                 <span style={{ minWidth: 0 }}>

@@ -1,3 +1,4 @@
+import {currencyOf,money} from "@/lib/money/currency";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -5,10 +6,10 @@ import {
   getClient, getInvoice, getPaymentsFor, getProject, getProjectsFor,
 } from "@/lib/admin/store";
 import { invoiceMailVerdict, noticeBlock, reconcileInvoice } from "@/lib/admin/money-rules";
-import { invoiceStatus, invoiceTotals, lineTotal, naira, nairaShort, paymentState, refundedTotal } from "@/lib/admin/types";
+import { invoiceStatus, invoiceTotals, lineTotal, paymentState, refundedTotal } from "@/lib/admin/types";
 
 /** The exact figure under a short one, only when the short one rounded it. */
-const exact = (kobo: number) => (nairaShort(kobo) === naira(kobo).replace(/\.00$/, "") ? undefined : naira(kobo));
+
 import { Empty, InvoicePill, Panel, Tile, when } from "@/components/admin/bits";
 import QrCode from "@/components/ui/qr-code";
 import { invoiceUrl } from "@/components/money/document";
@@ -48,6 +49,8 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
   const { id } = await params;
   const inv = getInvoice(id);
   if (!inv) notFound();
+  const naira=(amount:number)=>money(amount,currencyOf(inv));
+  const nairaShort=naira;const exact=()=>undefined;
   const client = getClient(inv.clientId);
   const project = inv.projectId ? getProject(inv.projectId) : null;
   const payments = getPaymentsFor(inv.id);
@@ -140,9 +143,9 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
       <dl className="ad__tiles">
         {/* Short on the tile so a phone keeps each figure on one line; the
             exact amount is the line under it. */}
-        <Tile label="Total" value={nairaShort(t.total)} note={exact(t.total)} />
-        <Tile label="Paid" value={nairaShort(inv.paid)} note={exact(inv.paid)} tone={inv.paid ? "good" : undefined} />
-        <Tile label="Owed" value={nairaShort(t.due)} note={exact(t.due)} tone={t.due ? "bad" : "good"} />
+        <Tile label="Total" value={nairaShort(t.total)} note={exact()} />
+        <Tile label="Paid" value={nairaShort(inv.paid)} note={exact()} tone={inv.paid ? "good" : undefined} />
+        <Tile label="Owed" value={nairaShort(t.due)} note={exact()} tone={t.due ? "bad" : "good"} />
         {/* Day and month on the tile, the year under it: "31 Aug 2026" wrapped
             to two lines on a phone. */}
         <Tile label="Due" value={when(inv.due).replace(/\s\d{4}$/, "")}
@@ -289,7 +292,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
               the payment that is wrong, refund it from the payment&apos;s menu,
               or credit the difference here.
             </span>
-            <CreditExcess invoiceId={inv.id} over={inv.paid - t.total} reason={noEmail} />
+            <CreditExcess currency={currencyOf(inv)} invoiceId={inv.id} over={inv.paid - t.total} reason={noEmail} />
           </div>
         ) : null}
 

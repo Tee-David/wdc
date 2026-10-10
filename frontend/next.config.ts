@@ -62,7 +62,7 @@ const mediaHost = (() => {
 })();
 
 /* The entry PDF's fonts and watermark, read from disk at runtime. */
-const PDF_ASSETS = ["./assets/fonts/SpaceGrotesk-*.ttf", "./assets/brand/watermark.png", "./assets/brand/pdf-logo.png"];
+const PDF_ASSETS = ["./assets/fonts/SpaceGrotesk-*.ttf", "./assets/fonts/Outfit-Regular.ttf", "./public/brand/icon-navy.svg", "./assets/brand/watermark.png", "./assets/brand/pdf-logo.png"];
 
 const nextConfig: NextConfig = {
   images: {
@@ -93,6 +93,11 @@ const nextConfig: NextConfig = {
     "/admin": ["./db/migrations/*.sql", ...PDF_ASSETS],
     "/admin/**/*": ["./db/migrations/*.sql", ...PDF_ASSETS],
     "/policies/**/*": PDF_ASSETS,
+    "/r/**/*": PDF_ASSETS,
+    "/i/**/*": PDF_ASSETS,
+    "/q/**/*": PDF_ASSETS,
+    "/api/paystack/**/*": PDF_ASSETS,
+    "/api/cron/**/*": PDF_ASSETS,
     "/api/contact": PDF_ASSETS,
     "/api/onboarding/submit": PDF_ASSETS,
     "/api/forms/**/*": PDF_ASSETS,

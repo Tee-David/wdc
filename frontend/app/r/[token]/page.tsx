@@ -1,7 +1,9 @@
+import {currencyOf,money} from "@/lib/money/currency";
+import ReceiptControls from "@/components/money/receipt-controls";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getClient, getInvoice, getPaymentByToken, getProject } from "@/lib/admin/store";
-import { invoiceTotals, naira, paymentNet, refundedTotal } from "@/lib/admin/types";
+import { invoiceTotals,  paymentNet, refundedTotal } from "@/lib/admin/types";
 import { DocumentShell, Headline, invoiceUrl, receiptUrl } from "@/components/money/document";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 
@@ -44,6 +46,7 @@ export default async function PublicReceipt({
      removes the payment, not the invoice -- so it is a 404 rather than a
      half-rendered document. */
   if (!inv) notFound();
+  const naira=(amount:number)=>money(amount,currencyOf(inv));
 
   const client = getClient(inv.clientId);
   const project = inv.projectId ? getProject(inv.projectId) : null;
@@ -78,7 +81,8 @@ export default async function PublicReceipt({
             : remaining > 0 ? "part" : "paid"
       }
     >
-      {gone ? (
+
+      <ReceiptControls token={pay.token} />      {gone ? (
         <p className="doc__void" role="status">
           <b>This receipt has been reversed.</b> The payment it records did not
           stay with us{gone.reason ? `: ${gone.reason}` : "."} It no longer
@@ -112,6 +116,7 @@ export default async function PublicReceipt({
       ) : null}
 
       <Headline
+        currency={currencyOf(inv)}
         label={
           gone ? "Reversed, originally received"
             : fullyRefunded ? "Refunded, originally received"

@@ -1,7 +1,9 @@
+import {currencyOf,money} from "@/lib/money/currency";
+import ReceiptControls from "@/components/money/receipt-controls";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getClient, getEstimateByToken, getInvoice, getProject } from "@/lib/admin/store";
-import { estimateState, estimateTotals, lineTotal, naira } from "@/lib/admin/types";
+import { estimateState, estimateTotals, lineTotal } from "@/lib/admin/types";
 import { DocumentShell, Headline, estimateUrl, invoiceUrl } from "@/components/money/document";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
@@ -37,6 +39,7 @@ export default async function PublicEstimate({
   const { token } = await params;
   const est = getEstimateByToken(token);
   if (!est || est.state === "Draft") notFound();
+  const naira=(amount:number)=>money(amount,currencyOf(est));
 
   const client = getClient(est.clientId);
   const project = est.projectId ? getProject(est.projectId) : null;
@@ -63,7 +66,8 @@ export default async function PublicEstimate({
               : undefined
       }
     >
-      {state === "Expired" ? (
+
+      <ReceiptControls token={est.token} kind="Estimate" />      {state === "Expired" ? (
         <p className="doc__void" role="status">
           <b>This estimate has expired.</b> The price above stood until{" "}
           {day(est.expires)} and is no longer held. We would be glad to quote
@@ -86,6 +90,7 @@ export default async function PublicEstimate({
       ) : null}
 
       <Headline
+        currency={currencyOf(est)}
         label={state === "Accepted" ? "Agreed" : "Estimate"}
         amount={t.total}
         clear={state === "Accepted"}
@@ -121,6 +126,7 @@ export default async function PublicEstimate({
         ) : null}
       </dl>
 
+      {est.paymentAccount?<dl className="doc__meta"><div><dt>Payment account</dt><dd>{est.paymentAccount.bankName} ? {est.paymentAccount.accountName} ? {est.paymentAccount.accountNumber} ? {est.paymentAccount.currency}</dd></div>{est.paymentAccount.instructions?<div><dt>Instructions</dt><dd>{est.paymentAccount.instructions}</dd></div>:null}</dl>:null}
       <div className="doc__scroll">
         <table className="doc__lines">
           <thead>

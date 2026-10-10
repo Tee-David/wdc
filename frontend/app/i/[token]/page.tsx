@@ -1,9 +1,11 @@
+import {currencyOf,money} from "@/lib/money/currency";
+import ReceiptControls from "@/components/money/receipt-controls";
 import { PayForm } from "@/components/money/pay-form";
 import { selectedPaystackMode } from "@/lib/paystack-mode";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getClient, getInvoiceByToken, getPaymentsFor } from "@/lib/admin/store";
-import { invoiceStatus, invoiceTotals, lineTotal, naira } from "@/lib/admin/types";
+import { invoiceStatus, invoiceTotals, lineTotal } from "@/lib/admin/types";
 import { DocumentShell, Headline, invoiceUrl } from "@/components/money/document";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
@@ -70,6 +72,7 @@ export default async function PublicInvoice({
   /* A draft has not been sent to anybody, so there is nothing here to show
      even with the right token: 404 is the truthful answer. */
   if (!inv || inv.status === "Draft") notFound();
+  const naira=(amount:number)=>money(amount,currencyOf(inv));
 
   const client = getClient(inv.clientId);
   const t = invoiceTotals(inv);
@@ -88,7 +91,7 @@ export default async function PublicInvoice({
      panel below says to write to us instead, and we send a link -- which is a
      real answer rather than a dead end, and keeps the money on the one route
      the books can follow. */
-  const canCheckout = !settled && !inv.voided && Boolean(client?.email?.trim());
+  const canCheckout = currencyOf(inv)==="NGN" && !settled && !inv.voided && Boolean(client?.email?.trim());
 
   return (
     <DocumentShell
@@ -108,7 +111,8 @@ export default async function PublicInvoice({
                 : undefined
       }
     >
-      {/* A STRUCK INVOICE STILL OPENS, AND SAYS SO ON ITS FACE.
+
+      <ReceiptControls token={inv.token} kind="Invoice" />      {/* A STRUCK INVOICE STILL OPENS, AND SAYS SO ON ITS FACE.
 
           The alternative was a 404, and a 404 on a document somebody is
           holding reads as the studio having made it disappear. The number
@@ -126,6 +130,7 @@ export default async function PublicInvoice({
       ) : null}
 
       <Headline
+        currency={currencyOf(inv)}
         label={inv.voided ? "Cancelled, nothing owed" : settled ? "Paid in full" : "Amount due"}
         amount={inv.voided ? 0 : settled ? t.total : t.due}
         clear={settled && !inv.voided}
@@ -258,13 +263,15 @@ export default async function PublicInvoice({
       {!settled && !inv.voided ? (
         <section className="doc__pay">
           <h2>How to pay</h2>
+          {inv.paymentAccount?<dl className="doc__meta"><div><dt>Bank</dt><dd>{inv.paymentAccount.bankName}</dd></div><div><dt>Account name</dt><dd>{inv.paymentAccount.accountName}</dd></div><div><dt>Account number</dt><dd>{inv.paymentAccount.accountNumber}</dd></div><div><dt>Currency</dt><dd>{inv.paymentAccount.currency}</dd></div><div><dt>Reference</dt><dd>{inv.number}</dd></div>{inv.paymentAccount.instructions?<div><dt>Instructions</dt><dd>{inv.paymentAccount.instructions}</dd></div>:null}</dl>:null}
+          {currencyOf(inv)!=="NGN"?<p>Pay in {currencyOf(inv)} using the payment account shown. The studio checks your transfer before recording payment. Contact us if no payment account is shown.</p>:null}
 
           {/* SAID BEFORE THE BUTTON, NOT AFTER IT. Something went wrong on the
               last attempt and the payer is standing here wondering whether
               they have been charged. Each of these is a different answer and
               none of them is "an error occurred". */}
           {problem ? <p className="doc__warn">{problem}</p> : null}
-          {!settled && paymentMode !== "live" ? <p className="doc__warn">{paymentMode === "test" ? "Online checkout is in test mode. It simulates payment and leaves this invoice unpaid. Use the bank details below for a real payment." : "Online checkout is temporarily unavailable. Use the bank details below or contact the studio."}</p> : null}
+          {currencyOf(inv)==="NGN" && !settled && paymentMode !== "live" ? <p className="doc__warn">{paymentMode === "test" ? "Online checkout is in test mode. It simulates payment and leaves this invoice unpaid. Use the bank details below for a real payment." : "Online checkout is temporarily unavailable. Use the bank details below or contact the studio."}</p> : null}
 
           {/* A REAL FORM, A REAL POST. Not a fetch and not a link: a link that
               spends money can be followed by a prefetcher or a mail scanner,
@@ -344,8 +351,7 @@ export default async function PublicInvoice({
             <p>
               Write to{" "}
               <a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(inv.number)}`}>{CONTACT_EMAIL}</a>{" "}
-              quoting <b>{inv.number}</b> and we will send you a payment link
-              for this invoice.
+              quoting <b>{inv.number}</b>{currencyOf(inv)==="NGN"?" and we will send you a payment link for this invoice.":` to confirm payment details in ${currencyOf(inv)}.`}
             </p>
           )}
         </section>

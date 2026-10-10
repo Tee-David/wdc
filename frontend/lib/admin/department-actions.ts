@@ -1,9 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { owner, allow, actorName } from "./guard";
+import { owner, allow } from "./guard";
 import { FAIL, OK, type ActionState } from "./validate";
-import { syncStore, persistSoon } from "./persist";
+import { syncStore } from "./persist";
+import { commitClientDepartments } from "@/lib/workspace/department-events";
+import { dispatchWorkspaceEvents } from "@/lib/workspace/events";
+import { after } from "next/server";
 import * as store from "./store";
 import {
   createDepartment, deleteDepartment, listDepartments, renameDepartment, setMembers,
@@ -68,12 +71,16 @@ export async function removeDepartment(_p: ActionState, fd: FormData): Promise<A
 
 /** Which departments look after a client. Anyone who works on clients may set it. */
 export async function saveClientDepartments(_p: ActionState, fd: FormData): Promise<ActionState> {
-  await syncStore(); persistSoon();
+  await syncStore();
   const refused = await allow("clients"); if (refused) return refused;
   const id = text(fd, "id");
-  const known = new Set((await listDepartments())?.map((d) => d.id) ?? []);
+  const departments=await listDepartments();
+  const known = new Set(departments?.map((d) => d.id) ?? []);
   const ids = fd.getAll("departments").map(String).filter((x) => known.has(x));
-  if (!store.setClientDepartments(id, ids, await actorName())) return FAIL({}, "That client is no longer there.");
+  try {
+    const result=await commitClientDepartments({clientId:id,departmentIds:ids});
+    if(result.eventIds.length)after(()=>dispatchWorkspaceEvents({eventIds:result.eventIds,limit:1}));
+  }catch(error){return FAIL({},error instanceof Error?error.message:"Departments could not be updated.");}
   revalidatePath(`/admin/clients/${id}`); done();
   return OK("Updated.");
 }

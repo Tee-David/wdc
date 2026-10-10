@@ -4,7 +4,10 @@ import { resolveSupportView, supportCookiePresent } from "@/lib/users/support";
 import { cache } from "react";
 import { headers } from "next/headers";
 import { isAdminCapture } from "@/lib/admin/capture";
-import { getClient, getClients } from "@/lib/admin/store";
+import { getClient, getClients,getProjects,getProject } from "@/lib/admin/store";
+import { syncStore } from '@/lib/admin/persist';
+import { db } from '@/lib/db/pool';
+import { portalScope } from './scope';
 import type { Client } from "@/lib/admin/types";
 
 /**
@@ -22,7 +25,7 @@ import type { Client } from "@/lib/admin/types";
  * honest first-run state, so `client` on the return value is nullable
  * rather than this function throwing or 404ing.
  */
-export const getPortalRequest = cache(async () => {
+const getPrimaryPortalRequest = cache(async () => {
   const requestHeaders = await headers();
   const capture = isAdminCapture(requestHeaders);
   const scopedSupport = await supportCookiePresent();
@@ -70,3 +73,19 @@ export const getPortalRequest = cache(async () => {
 });
 
 export type PortalClient = Client;
+
+export const getPortalRequest=cache(async()=>{
+ await syncStore();
+ const request=await getPrimaryPortalRequest();
+ if(request.capture||request.support)return {...request,...portalScope(getProjects(true),request.client?.id??null,[])};
+ const user=request.session?.user as {id?:string;role?:string}|undefined;
+ if(!user?.id||user.role!=='client')return {...request,...portalScope([],null,[])};
+ const active=await db.query('SELECT id FROM "user" WHERE id=$1 AND role=\'client\' AND "deactivatedAt" IS NULL',[user.id]);
+ if(!active.rowCount)return {...request,session:null,client:null,...portalScope([],null,[])};
+ // Missing role migration preserves primary access, but cannot grant secondary access.
+ const memberships=await db.query<{project_id:string;can_billing:boolean;can_review:boolean}>('SELECT project_id,can_billing,can_review FROM workspace_project_members WHERE user_id=$1 AND revoked_at IS NULL',[user.id]).catch(()=>({rows:[]}));
+ const scope=portalScope(getProjects(true),request.client?.id??null,memberships.rows);
+ const firstProject=scope.allowedProjectIds.map(id=>getProject(id)).find(Boolean);
+ const displayClient=request.client??(firstProject?getClient(firstProject.clientId):null);
+ return {...request,client:displayClient,...scope};
+});

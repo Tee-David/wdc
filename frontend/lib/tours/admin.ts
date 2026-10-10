@@ -33,7 +33,7 @@ const closer = (id: string, title: string, content: string): TourDef["steps"][nu
 
 export const ADMIN_WELCOME: TourDef = {
   id: "admin-welcome",
-  version: 4,
+  version: 5,
   kind: "welcome",
   title: "Welcome to the admin",
   steps: [
@@ -52,7 +52,8 @@ export const ADMIN_WELCOME: TourDef = {
     { id: "nav-clients", target: '[data-tour="nav-clients"]', href: "/admin", icon: "users", interact: { hint: "Click Clients to move on" }, title: "Clients", content: "Everyone you work for, grouped by what they buy." },
     { id: "nav-projects", target: '[data-tour="nav-projects"]', href: "/admin/clients", icon: "folder", interact: { hint: "Click Projects to move on" }, title: "Projects", content: "Every live and delivered engagement, with a stage and a health." },
     { id: "nav-money", roles: ["owner"], target: '[data-tour="nav-money"]', href: "/admin/projects", icon: "wallet", interact: { hint: "Click Money to move on" }, title: "Money", content: "Invoices, payments, and expenses: what is owed, right now." },
-    { id: "nav-forms", target: '[data-tour="nav-clients"]', href: "/admin/money", icon: "inbox", title: "Leads, forms and meetings", content: "Under Clients you also find Leads and forms (everything people send through the site), Meetings, and Support." },
+    { id: "nav-forms", roles:["owner"], target: '[data-tour="nav-clients"]', href: "/admin/money", icon: "inbox", title: "Leads, forms and meetings", content: "Under Clients you also find Leads and forms (everything people send through the site), Meetings, and Support." },
+    { id: "staff-nav-forms", roles:["staff"], target: '[data-tour="nav-clients"]', href: "/admin/projects", icon: "inbox", title: "Leads, forms and meetings", content: "Under Clients you also find Leads and forms (everything people send through the site), Meetings, and Support." },
     { id: "nav-email", roles: ["owner"], target: '[data-tour="nav-email"]', href: "/admin/money", icon: "inbox", title: "Email", content: "Contacts, campaigns, automations and the designs of the emails the studio sends." },
     { id: "nav-blog", target: '[data-tour="nav-blog"]', href: "/admin/forms", icon: "book", interact: { hint: "Click Blog to move on" }, title: "Blog", content: "Write, review and schedule posts. A live post you change says Update, not Save." },
     { id: "nav-users", roles: ["owner"], target: '[data-tour="nav-users"]', href: "/admin/blog", icon: "users", title: "Users", content: "The studio team, client accounts and invitations. Who can sign in, and from how many devices." },
@@ -60,13 +61,14 @@ export const ADMIN_WELCOME: TourDef = {
     { id: "sidebar-pin", target: '[data-tour="sidebar-pin"]', href: "/admin/settings", icon: "panelLeft", desktopOnly: true, optional: true, title: "Collapse the sidebar", content: "Icons only, more room for the page. It remembers your choice next time." },
     { id: "mobile-menu", target: '[data-tour="mobile-menu"]', href: "/admin/settings", icon: "panelLeft", mobileOnly: true, optional: true, title: "The sections, on a phone", content: "This button opens the sidebar: every section, the theme switch and sign out. Tap a section and it closes." },
     { id: "search", target: '[data-tour="topbar-search"]', href: "/admin/settings", icon: "search", title: "Search or Ctrl+K", content: "Jump straight to any page from anywhere, without touching the sidebar." },
+    { id: "workspace-inbox-link", target: '[data-tour="workspace-inbox-link"]', href: "/admin/settings", icon: "bell", optional: true, title: "Your notifications", content: "Open your personal inbox for assignments, important replies and decisions. It belongs to you, not to the whole studio." },
     closer("done", "That's the map", "Take the full workflow walkthrough any time from the ? button beside search, or replay this one. Nothing here is required."),
   ],
 };
 
 export const ADMIN_WALKTHROUGH: TourDef = {
   id: "admin-walkthrough",
-  version: 6,
+  version: 8,
   kind: "walkthrough",
   title: "The full admin walkthrough",
   steps: [
@@ -107,10 +109,12 @@ export const ADMIN_WALKTHROUGH: TourDef = {
 
     { id: "nav-money", roles: ["owner"], target: '[data-tour="nav-money"]', href: "/admin/projects", icon: "wallet", interact: { hint: "Click Money to see the totals" }, page: "Money", title: "On to Money", content: "What is owed, right now: collected, outstanding, and overdue, all recomputed from the actual invoices and payments." },
     { id: "money-tiles", roles: ["owner"], target: '[data-tour="money-tiles"]', href: "/admin/money", icon: "calculator", title: "The real-time totals", content: "Reconciliation for anything the bank and the books disagree on is one link away." },
+    {id:"money-currencies",roles:["owner"],target:'[data-tour="money-currencies"]',optional:true,href:"/admin/money",icon:"wallet",title:"Separate balances by currency",content:"The tiles track NGN. This table keeps NGN, USD and any other enabled currency separate, with no invented exchange rate."},
     { id: "money-add", roles: ["owner"], target: '[data-tour="money-add"]', href: "/admin/money", icon: "receipt", title: "Raising an invoice", content: "Add the lines, issue it, and the client gets a token-addressed public copy with a pay link. A draft can still be edited; an issued invoice cannot, because somebody outside the studio is holding it." },
     { id: "money-reports", roles: ["owner"], target: '[data-tour="reports-tiles"]', href: "/admin/reports", page: "Reports", icon: "barChart", title: "Reports", content: "Any stretch of days against the one before it: invoiced, collected, spent and net, with a month-by-month table and a CSV." },
 
-    { id: "nav-forms", target: '[data-tour="nav-clients"]', href: "/admin/money", icon: "inbox", page: "Forms", title: "Leads and forms", content: "Forms now live under Clients: onboarding briefs, enquiries, newsletter sign-ups, and any form you build." },
+    { id: "nav-forms", roles:["owner"], target: '[data-tour="nav-clients"]', href: "/admin/money", icon: "inbox", page: "Forms", title: "Leads and forms", content: "Forms now live under Clients: onboarding briefs, enquiries, newsletter sign-ups, and any form you build." },
+    { id: "staff-nav-forms", roles:["staff"], target: '[data-tour="nav-clients"]', href: "/admin/projects", icon: "inbox", page: "Forms", title: "Leads and forms", content: "Forms now live under Clients: onboarding briefs, enquiries, newsletter sign-ups, and any form you build." },
     { id: "forms-table", target: '[data-tour="forms-table"]', href: "/admin/forms", icon: "clipboard", title: "Every form, with what is new", content: "Each row is one form with its unread count. Open one for its entries, its questions and its emails." },
     { id: "forms-entries", target: '[data-tour="forms-entries"]', href: "/admin/forms/contact", icon: "inbox", title: "One form's entries", content: "An inbox: star, mark read, move to spam or the Trash, and export. Open an entry to read it in full, see what they uploaded, and download it as a PDF." },
 
@@ -126,6 +130,9 @@ export const ADMIN_WALKTHROUGH: TourDef = {
     { id: "media-tabs", target: '[data-tour="media-tabs"]', href: "/admin/settings/media", optional: true, icon: "filter", title: "Kinds, and the Trash", content: "Deleting is two steps: Move to Trash, which can be undone, then Delete permanently from the Trash, which asks you to confirm twice." },
 
     { id: "search", target: '[data-tour="topbar-search"]', href: "/admin/settings/media", icon: "search", title: "Search or Ctrl+K, from anywhere", content: "Jump straight to any page without touching the sidebar." },
+    { id: "workspace-inbox", target: '[data-tour="workspace-notifications"]', href: "/admin/notifications", page: "Your inbox", icon: "bell", title: "What needs you", content: "Your assignments, replies and decisions. Each notification opens the actual record; reading it does not complete the work." },
+    { id: "workspace-inbox-filters", target: '[data-tour="workspace-inbox-filters"]', href: "/admin/notifications", icon: "filter", title: "Actions and history", content: "Needs me keeps outstanding actions together. All activity preserves the history, and Summaries shows grouped routine updates." },
+    { id: "workspace-inbox-preferences", target: '[data-tour="workspace-email-preferences"]', href: "/admin/notifications", optional: true, icon: "settings", title: "Your own email choices", content: "Choose immediate email, a daily or weekly summary, or in-app only for each category. Changes apply to your account after Save changes, never to colleagues." },
     closer("done", "That's everything", "Replay this any time from the ? button beside search, or take a shorter tour for just the page you're on."),
   ],
 };
@@ -134,6 +141,17 @@ export const ADMIN_WALKTHROUGH: TourDef = {
  *  the exact targets the walkthrough does -- see the note at the top of
  *  this file -- so there is one place that can go stale, not two. */
 export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
+  "/admin/notifications": {
+    id: "admin-page-workspace-inbox", version: 1, kind: "page", title: "This page: your inbox",
+    steps: [
+      { id: "intro", target: "body", placement: "center", showEstimate: true, icon: "bell", title: "Your personal inbox", content: "A short list of changes that need your attention, with their project records and lasting history." },
+      { id: "filters", target: '[data-tour="workspace-inbox-filters"]', icon: "filter", title: "Find the next action", content: "Needs me shows outstanding decisions and assignments. Reading a message does not approve or finish anything." },
+      { id: "record", target: '[data-tour="workspace-inbox-action"]', optional: true, icon: "folder", title: "Deal with it where it belongs", content: "Open the record to reply, review or complete the actual action. Mark read only acknowledges the notification." },
+      { id: "preferences", target: '[data-tour="workspace-email-preferences"]', optional: true, icon: "settings", title: "Choose your emails", content: "Immediate email, a grouped summary or in-app only: your choices belong to you. Save changes commits them." },
+      closer("done", "You choose the next step", "Provider accepted means SMTP acceptance, not confirmed inbox arrival. An unconfirmed attempt only retries when you deliberately request it."),
+    ],
+  },
+
   "/admin": {
     id: "admin-page-dashboard",
     version: 2,
@@ -177,11 +195,12 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
   },
   "/admin/money": {
     id: "admin-page-money",
-    version: 3,
+    version: 4,
     kind: "page",
     title: "This page: Money",
     steps: [
       { id: "intro", target: "body", placement: "center", icon: "wallet", showEstimate: true, title: "Money", content: "In, out, and what is still owed: every figure recomputed from the underlying invoices and payments." },
+      {id:"currencies",target:'[data-tour="money-currencies"]',optional:true,roles:["owner"],icon:"wallet",title:"Each currency has its own balance",content:"NGN and USD are shown separately. The summary tiles and cashflow panels cover NGN; the currency table shows every issued currency without an exchange rate."},
       { id: "tiles", target: '[data-tour="money-tiles"]', icon: "calculator", title: "The real-time totals", content: "Collected, outstanding, and overdue. Reconciliation for anything the bank and the books disagree on is one link away." },
       { id: "add", target: '[data-tour="money-add"]', icon: "receipt", title: "Raise an invoice", content: "Or an estimate first, if the work has not been agreed yet: the button beside it." },
       { id: "row-menu", target: '[data-tour="row-menu"]', optional: true, icon: "settings", interact: { hint: "Open a row's ⋮ menu" }, title: "The ⋮ menu on a row", content: "Every invoice row has one. What it offers depends on the invoice's status, so a draft and a sent invoice show different items." },
@@ -345,7 +364,7 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
   },
   "/admin/projects/[id]": {
     id: "admin-page-project",
-    version: 1,
+    version: 2,
     kind: "page",
     title: "This page: a project",
     steps: [
@@ -354,17 +373,24 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
       { id: "tasks", target: '[data-tour="proj-tasks"]', icon: "check", title: "What is left", content: "Add, tick, or remove. A task can wait on one other task, shown as soon as it is entered." },
       { id: "updates", target: '[data-tour="proj-updates"]', icon: "bell", title: "Posting an update", content: "Worth knowing before you post one: a box in that form decides whether the client can read it. Leave it unticked for a note that stays internal." },
       { id: "deliverables", target: '[data-tour="proj-deliverables"]', icon: "fileStack", title: "Deliverables and approval", content: "Adding a new version resets its approval to not sent. That is deliberate: an old approval should never cover new work." },
+      { id: "service-work", target: '[data-tour="workspace-service"]', optional: true, roles: ["owner","staff"], icon: "fileStack", title: "The right workflow for this service", content: "Posts, design rounds, website checks, app builds and other service records have their own decisions. Shared versions and approvals stay with the exact work." },
+      { id: "work-list", target: '[data-tour="workspace-work-list"]', optional: true, roles: ["owner","staff"], icon: "clipboard", title: "What the work actually needs", content: "Open a record for its deadline, responsible person, files, comments and version history. Internal drafts are separate from deliberately shared work." },
+      { id: "review", target: '[data-tour="workspace-view-review"]', optional: true, roles: ["owner","staff"], icon: "check", title: "Decisions belong to a version", content: "Approval does not cover later changes. Review notes and resolved corrections remain attached to the version the person actually saw." },
+      { id: "handover", target: '[data-tour="workspace-handovers"]', optional: true, roles: ["owner","staff"], icon: "users", title: "Pass the context with the work", content: "Files, decisions, risks and next action go to a named receiving lead. Only that person accepts; tasks wait for acceptance where required." },
+      { id: "team-tasks", target: '[data-tour="workspace-team-tasks"]', optional: true, roles: ["owner","staff"], icon: "check", title: "An actual person owns each task", content: "The responsible staff account receives the assignment. Prerequisites must finish before the task can be completed; changes and unblocks have their own history." },
+      { id: "team-discussion", target: '[data-tour="workspace-team-discussion"]', optional: true, roles: ["owner","staff"], icon: "inbox", title: "Private discussion or deliberate sharing", content: "Internal notes stay with the project team. A project lead explicitly publishes client updates. A reply keeps its original sharing boundary." },
       { id: "margin", target: '[data-tour="proj-margin"]', icon: "calculator", title: "What it has made", content: "Collected against spent, not invoiced against spent: a bill nobody has paid is not income yet." },
     ],
   },
   "/admin/money/[id]": {
     id: "admin-page-invoice",
-    version: 1,
+    version: 3,
     kind: "page",
     title: "This page: an invoice",
     steps: [
       { id: "intro", target: "body", placement: "center", icon: "receipt", showEstimate: true, title: "One invoice", content: "What it offers changes with its own status: a draft, an issued invoice, and a struck one are three different documents." },
       { id: "actions", target: '[data-tour="inv-actions"]', icon: "gauge", title: "The actions here follow the status", content: "A draft can still be edited or deleted. Once issued, neither is offered again: somebody outside the studio is holding a copy." },
+      {id:"receipt",target:'[data-tour="inv-actions"]',icon:"gauge",title:"Print or send a receipt",content:"After payment, open the invoice menu to print the latest receipt or email its PDF. To use another address, enter it in Send receipt. The client's saved address stays the same. Each payment also has its own receipt in the payment row menu."},
       /* NOT LAST: a draft has no client-facing copy at all, and ending a
          tour on a step that might not exist leaves the background blur
          catching up a beat after the card has already gone. See the same

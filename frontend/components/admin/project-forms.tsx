@@ -127,6 +127,7 @@ export function StageMover({ project }: { project: Project }) {
           <Form key={s} action={moveStage} className="ad__stageF">
             <Hidden name="id" value={project.id} />
             <Hidden name="stage" value={s} />
+            <Hidden name="expectedStage" value={project.stage} />
             <StageButton label={s} done={done} project={project} />
           </Form>
         );

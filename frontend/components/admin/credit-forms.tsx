@@ -1,8 +1,8 @@
 "use client";
+import {currencyOf,money} from "@/lib/money/currency";
 
 import { Wallet } from "lucide-react";
 import type { Credit } from "@/lib/admin/types";
-import { naira } from "@/lib/admin/types";
 import { applyCredit } from "@/lib/admin/actions";
 import { Actions, Field, Fields, Form, Hidden, Select, Submit } from "./form";
 import { DialogButton } from "./dialog";
@@ -25,7 +25,7 @@ export function ApplyCredit({
   invoices: { id: string; number: string; due: number }[];
 }) {
   return (
-    <DialogButton label="Use it" title={`Put ${naira(credit.amount)} against an invoice`} icon={Wallet}>
+    <DialogButton label="Use it" title={`Put ${money(credit.amount,currencyOf(credit))} against an invoice`} icon={Wallet}>
       {(close) => (
         <Form action={applyCredit} onDone={() => close()}>
           <Fields>
@@ -34,7 +34,7 @@ export function ApplyCredit({
               name="invoiceId" label="Which invoice" required
               placeholder="Pick one"
               options={invoices.map((i) => ({
-                value: i.id, label: `${i.number}, ${naira(i.due)} owing`,
+                value: i.id, label: `${i.number}, ${money(i.due,currencyOf(credit))} owing`,
               }))}
             />
             <Field name="by" label="Applied by" placeholder="Babatope" />

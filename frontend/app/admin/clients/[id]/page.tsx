@@ -1,3 +1,6 @@
+import CurrencyBalances from "@/components/money/currency-balances";
+import {moneySummary} from "@/lib/money/summary";
+import {currencyOf,money as formatMoney} from "@/lib/money/currency";
 import type { Metadata } from "next";
 import { hydrateSettings } from "@/lib/settings/store";
 import Link from "next/link";
@@ -8,7 +11,7 @@ import {
 } from "@/lib/admin/store";
 import { noticeBlock, reconcileClient } from "@/lib/admin/money-rules";
 import ClientReconciliation from "@/components/admin/reconciliation";
-import { invoiceStatus, invoiceTotals, naira, paymentNet, paymentState } from "@/lib/admin/types";
+import { invoiceStatus, invoiceTotals, paymentNet, paymentState } from "@/lib/admin/types";
 import { ApprovalPill, Empty, InvoicePill, Panel, StagePill, when } from "@/components/admin/bits";
 import { InvoiceMenu, ProjectMenu } from "@/components/admin/row-actions";
 import { EditClient, MergeClient } from "@/components/admin/client-form";
@@ -87,7 +90,6 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
   ];
   const billed = invoices.filter((i) => i.status !== "Draft");
   const owed = billed.reduce((n, i) => n + invoiceTotals(i).due, 0);
-  const paid = billed.reduce((n, i) => n + i.paid, 0);
   const overdue = billed.some((i) => invoiceStatus(i) === "Overdue");
   /* Two small facts the money forms need about this one client: what they hold
      on account (to offer "use their credit"), and why they cannot be emailed,
@@ -143,8 +145,8 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
           { label: "Client since", value: when(c.since) },
           { label: "Projects", value: String(projects.length), badge: { label: `${projects.filter((p) => p.stage !== "Delivered").length} live`, tone: "flat" } },
           ...(money ? [
-            { label: "Paid to date", value: naira(paid) },
-            { label: "Outstanding", value: owed ? naira(owed) : "Nil", badge: overdue ? { label: "Overdue", tone: "bad" as const } : undefined },
+            { label: "Paid to date", value: moneySummary(billed,i=>i.paid) },
+            { label: "Outstanding", value: owed ? moneySummary(billed,i=>invoiceTotals(i).due) : "Nil", badge: overdue ? { label: "Overdue", tone: "bad" as const } : undefined },
           ] : []),
         ]}
       />
@@ -202,6 +204,7 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
             )}
           </Panel>
 
+          {money ? <CurrencyBalances invoices={invoices}/> : null}
           {money ? <Panel title="Invoices" dataTour="client-invoices">
             {invoices.length ? (
               <div className="ad__scroll">
@@ -215,8 +218,8 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
                           <td><Link href={`/admin/money/${i.id}`}><b>{i.number}</b></Link></td>
                           <td><InvoicePill status={invoiceStatus(i)} /></td>
                           <td className="num">{when(i.due)}</td>
-                          <td className="num">{naira(t.total)}</td>
-                          <td className="num">{t.due ? naira(t.due) : <span className="ad__dim">Nil</span>}</td>
+                          <td className="num">{formatMoney(t.total,currencyOf(i))}</td>
+                          <td className="num">{t.due ? formatMoney(t.due,currencyOf(i)) : <span className="ad__dim">Nil</span>}</td>
                           <td className="ad__rmC">
                             <InvoiceMenu invoice={i} noReceipt={why}
                               edit={{ clientName: c.company, projectTitle: clientProjects.find((p) => p.id === i.projectId)?.title }} />
@@ -304,8 +307,8 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
                         <td>{payment.method}</td>
                         <td><span className={`ad__pill ${state === "Received" ? "ad__pill--good" : "ad__pill--flat"}`}>{state}</span></td>
                         <td className="num">{when(payment.at)}</td>
-                        <td className="num">{naira(payment.amount)}</td>
-                        <td className="num">{naira(kept)}</td>
+                        <td className="num">{formatMoney(payment.amount,currencyOf(invoice))}</td>
+                        <td className="num">{formatMoney(kept,currencyOf(invoice))}</td>
                       </tr>
                     );
                   })}

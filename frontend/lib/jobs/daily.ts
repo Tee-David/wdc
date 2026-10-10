@@ -11,7 +11,7 @@ import { alertFailures } from "@/lib/mail-alert";
 import { runRetention, type RetentionCounts } from "@/lib/privacy/retention";
 import { sendScheduledReminders, type ReminderCounts } from "./reminders";
 
-export type DailyResult = { waitlist?: { sent: number; failed: number; purged: number }; logRows: number; trashed: Record<string, number>; posts: number; retention: RetentionCounts | null; reminders: ReminderCounts | null; errors: string[] };
+export type DailyResult = { waitlist?: { sent: number; failed: number; purged: number }; workspaceReminders?: {checked:number}; invitationReminders?: {checked:number;queued:number}; logRows: number; trashed: Record<string, number>; posts: number; retention: RetentionCounts | null; reminders: ReminderCounts | null; errors: string[] };
 
 /**
  * The once-a-day tidy: the message log past its retention, each form's
@@ -25,6 +25,11 @@ export type DailyResult = { waitlist?: { sent: number; failed: number; purged: n
  */
 export async function runDaily(by: string): Promise<DailyResult> {
   const result: DailyResult = { logRows: 0, trashed: {}, posts: 0, retention: null, reminders: null, errors: [] };
+  try {
+    const {queueWorkspaceReminders}=await import('@/lib/workspace/events');
+    result.workspaceReminders=await queueWorkspaceReminders();
+  } catch {result.errors.push('workspace reminders: not queued; check the migration and persisted deadlines');}
+  try { const {queueInvitationReminders}=await import('@/lib/workspace/invitation-reminders');result.invitationReminders=await queueInvitationReminders(); } catch {result.errors.push('invitation reminders: not queued; review the invitation records and notifications');}
   try {
     result.logRows = await purgeLogged(await getAppSetting(LOG_RETENTION_KEY, DEFAULT_LOG_RETENTION));
   } catch (error) {
