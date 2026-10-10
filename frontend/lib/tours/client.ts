@@ -123,7 +123,7 @@ export const CLIENT_PAGE_TOURS: Record<string, TourDef> = {
   },
   "/portal/billing": {
     id: "client-page-billing",
-    version: 2,
+    version: 3,
     kind: "page",
     title: "This page: billing",
     steps: [
