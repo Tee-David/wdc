@@ -8,5 +8,5 @@ export async function GET(request:Request,{params}:{params:Promise<{id:string}>}
  await syncStore();const {id}=await params;
  const payment=getPaymentsFor(id).filter(p=>!p.reversed).sort((a,b)=>b.at.localeCompare(a.at))[0];
  if(!payment)return new NextResponse("There is no payment receipt for this invoice.",{status:404});
- return NextResponse.redirect(new URL(`/r/${encodeURIComponent(payment.token)}`,request.url));
+ return NextResponse.redirect(new URL(`/r/${encodeURIComponent(payment.token)}${new URL(request.url).searchParams.get("print")==="1"?"/pdf?print=1":""}`,request.url));
 }

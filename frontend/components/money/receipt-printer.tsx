@@ -1,4 +1,4 @@
-import { naira } from "@/lib/admin/types";
+import {money} from "@/lib/money/currency";
 import ReceiptActions from "./receipt-actions";
 import "./receipt-printer.css";
 
@@ -35,9 +35,12 @@ import "./receipt-printer.css";
 export type ReceiptLine = { description: string; qty: number; amount: number };
 
 export default function ReceiptPrinter({
-  amount, receiptNo, number, method, at, outstanding, lines, subtotal, vat, vatRate, total,
+  amount, receiptNo, number, method, at, outstanding, lines, subtotal, vat, vatRate, total, currency="NGN", refunded=0, reversed=false,
 }: {
   /** Kobo, this payment. */
+  currency?: string;
+  refunded?: number;
+  reversed?: boolean;
   amount: number;
   receiptNo: string;
   /** The invoice it went against. */
@@ -53,6 +56,8 @@ export default function ReceiptPrinter({
   vatRate: number;
   total: number;
 }) {
+  const naira=(value:number)=>money(value,currency);
+  const status=reversed?"Payment reversed":refunded>=amount?"Payment refunded":refunded>0?"Payment partially refunded":"Payment received";
   const when = new Date(at);
   const day = when.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" });
   const time = when.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" });
@@ -61,11 +66,11 @@ export default function ReceiptPrinter({
     <section className="rp rp--run" aria-label="Payment receipt">
       {/* 1. The status card. */}
       <div className="rp__status" role="status">
-        <span className="rp__tick" aria-hidden="true">
+        {!reversed && !refunded ? <span className="rp__tick" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5" /></svg>
-        </span>
+        </span> : null}
         <span className="rp__said">
-          <b>Payment received</b>
+          <b>{status}</b>
           <small>Receipt {receiptNo} issued</small>
         </span>
         <span className="rp__lamp" aria-hidden="true">
@@ -136,7 +141,9 @@ export default function ReceiptPrinter({
             <div><dt>Subtotal:</dt><dd>{naira(subtotal)}</dd></div>
             {vat > 0 ? <div><dt>VAT ({vatRate}%):</dt><dd>{naira(vat)}</dd></div> : null}
             <div><dt>Invoice total:</dt><dd>{naira(total)}</dd></div>
-            <div className="rp__paid"><dt>Paid:</dt><dd>{naira(amount)}</dd></div>
+            <div className="rp__paid"><dt>Amount received:</dt><dd>{naira(amount)}</dd></div>
+            {refunded>0 ? <div><dt>Refunded:</dt><dd>{naira(refunded)}</dd></div> : null}
+            {refunded>0 || reversed ? <div><dt>Net payment:</dt><dd>{naira(reversed?0:Math.max(0,amount-refunded))}</dd></div> : null}
             <div className="rp__bal">
               <dt>Balance:</dt>
               <dd>{outstanding > 0 ? <>{naira(outstanding)} due</> : "Settled in full"}</dd>
@@ -151,7 +158,7 @@ export default function ReceiptPrinter({
           </div>
 
           <div className="rp__foot">
-            <p className="rp__ta">Thank you for your payment.</p>
+            <p className="rp__ta">{reversed || refunded>0 ? status : "Thank you for your payment."}</p>
             <p className="rp__fine">{number} · We Dig Creativity</p>
           </div>
         </div>
