@@ -564,3 +564,6 @@ form[data-busy] .doc__btn__trace::before { animation: pay-trace 1.15s linear inf
 
 .doc__sheet{position:relative;isolation:isolate}.doc__watermark{position:absolute;top:50%;left:50%;width:300px;height:300px;max-width:70%;object-fit:contain;transform:translate(-50%,-50%);opacity:.06;pointer-events:none;z-index:-1}
 @media print{.doc__watermark{position:fixed;top:50%;left:50%;z-index:-1}}
+
+/* Third-party site furniture never belongs on a printed financial document. */
+@media print { body:has(.doc) iframe, body:has(.doc) [id*="jotform"], body:has(.doc) [class*="jotform"], body:has(.doc) [id*="Jotform"] { display: none !important; } }
