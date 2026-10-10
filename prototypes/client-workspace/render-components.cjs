@@ -26,4 +26,3 @@ role='client';const Client=require(path.join(root,'components/client/shell.tsx')
 result.client=render(React.createElement(Client,{user:{name:'Mira Cole'},clientCompany:'Paper & Pine'},'__PAGE__'));
 fs.writeFileSync(path.join(__dirname,'components.js'),'window.WDC_COMPONENTS='+JSON.stringify(result)+';\n');
 console.log('Rendered actual AdminShell, ClientShell, Panel, DemoNote and Lucide icons.');
-
