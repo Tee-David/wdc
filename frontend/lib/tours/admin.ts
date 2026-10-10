@@ -68,7 +68,7 @@ export const ADMIN_WELCOME: TourDef = {
 
 export const ADMIN_WALKTHROUGH: TourDef = {
   id: "admin-walkthrough",
-  version: 8,
+  version: 9,
   kind: "walkthrough",
   title: "The full admin walkthrough",
   steps: [
@@ -407,7 +407,7 @@ export const ADMIN_PAGE_TOURS: Record<string, TourDef> = {
     steps: [
       { id: "intro", target: "body", placement: "center", icon: "shieldCheck", showEstimate: true, title: "Where the books and the bank are asked to agree", content: "Not a sidebar page: reached from a banner on Money, and only when there is genuinely something in it." },
       { id: "attention", target: '[data-tour="recon-attention"]', icon: "flag", title: "Match it, or write it off", content: "Matching banks real money onto an invoice. Writing off records a decision and moves nothing. Kept as two separate buttons so neither happens by accident." },
-      { id: "log", target: '[data-tour="recon-log"]', icon: "clipboard", title: "Seeing two rows for one payment is normal", content: "Paystack's own retry and a payer's return from checkout often race each other. Both get logged; only one gets banked." },
+      { id: "log", target: '[data-tour="recon-log"]', icon: "clipboard", title: "Seeing two rows for one payment is normal", content: "A payment provider?s retry and a payer?s return from checkout often race each other. Both get logged; only one gets banked." },
     ],
   },
 };

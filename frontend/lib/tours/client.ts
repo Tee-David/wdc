@@ -51,7 +51,7 @@ export const CLIENT_WELCOME: TourDef = {
 
 export const CLIENT_WALKTHROUGH: TourDef = {
   id: "client-walkthrough",
-  version: 5,
+  version: 6,
   kind: "walkthrough",
   title: "The full portal walkthrough",
   steps: [
@@ -73,7 +73,7 @@ export const CLIENT_WALKTHROUGH: TourDef = {
     { id: "projects", target: '[data-tour="portal-projects"]', href: "/portal/projects", page: "Projects", icon: "fileStack", title: "Review and approve", content: "Open a project to see its stage and updates. Deliverables ready for you can be approved or sent back with a note on what to change." },
     { id: "nav-billing", target: '[data-tour="portal-nav-billing"]', href: "/portal/projects", desktopOnly: true, icon: "wallet", interact: { hint: "Click Billing to move on" }, title: "Billing", content: "Open Billing to see what you have been invoiced." },
     {id:"billing-currencies",target:'[data-tour="money-currencies"]',optional:true,href:"/portal/billing",icon:"wallet",title:"Your amounts stay in their currency",content:"NGN and USD are separate balances. Open the invoice for its payment account and printable PDF."},
-    { id: "billing", target: '[data-tour="portal-billing"]', href: "/portal/billing", page: "Billing", icon: "creditCard", title: "Invoices and payments", content: "Each invoice opens its own page, where you can see its payment options and print or download the document. NGN uses online checkout; foreign currency uses the selected bank account." },
+    { id: "billing", target: '[data-tour="portal-billing"]', href: "/portal/billing", page: "Billing", icon: "creditCard", title: "Invoices and payments", content: "Each invoice opens its own page, where you can see its payment options and print or download the document. Choose Paystack or Flutterwave for NGN, or Flutterwave for USD. You can also use the selected bank account. Receipt links show the POS slip; View full receipt opens the detailed document." },
     { id: "nav-support", target: '[data-tour="portal-nav-support"]', href: "/portal/billing", desktopOnly: true, icon: "inbox", interact: { hint: "Click Support to move on" }, title: "Support", content: "Open Support to ask us something." },
     { id: "support", target: '[data-tour="portal-support"]', href: "/portal/support", page: "Support", icon: "inbox", title: "Questions and replies", content: "Start a conversation about anything. We reply here, and you can also reach us by email or on your project's WhatsApp group if we set one up." },
     { id: "nav-settings", target: '[data-tour="portal-nav-settings"]', href: "/portal/support", desktopOnly: true, icon: "settings", interact: { hint: "Click Settings to move on" }, title: "Settings", content: "Open Settings to choose what we email you about." },
@@ -128,7 +128,7 @@ export const CLIENT_PAGE_TOURS: Record<string, TourDef> = {
     title: "This page: billing",
     steps: [
       { id: "intro", target: "body", placement: "center", icon: "wallet", showEstimate: true, title: "Billing", content: "What you have been invoiced, what is still to pay, and the receipts for what you have paid." },
-      {id:"currencies",target:'[data-tour="money-currencies"]',optional:true,icon:"wallet",title:"Balances stay in their currency",content:"NGN and USD are separate amounts. Open an invoice to see its payment account, print it or download its PDF. Foreign currency payments use the account shown; the studio records the transfer after checking it."},
+      {id:"currencies",target:'[data-tour="money-currencies"]',optional:true,icon:"wallet",title:"Balances stay in their currency",content:"NGN and USD are separate amounts. Open an invoice to see its payment account, print it or download its PDF. Choose an available payment provider, or transfer using the account shown. The studio checks manual transfers before recording them."},
       { id: "invoices", target: '[data-tour="portal-billing"]', icon: "creditCard", title: "Invoices to pay", content: "Pay an invoice from its row, or open it to save or print. Anything already paid is listed below, with its receipt." },
     ],
   },

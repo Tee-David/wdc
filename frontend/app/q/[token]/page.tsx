@@ -1,3 +1,4 @@
+import PaymentAccount from "@/components/money/payment-account";
 import {currencyOf,money} from "@/lib/money/currency";
 import ReceiptControls from "@/components/money/receipt-controls";
 import type { Metadata } from "next";
@@ -126,7 +127,7 @@ export default async function PublicEstimate({
         ) : null}
       </dl>
 
-      {est.paymentAccount?<dl className="doc__meta"><div><dt>Payment account</dt><dd>{est.paymentAccount.bankName} ? {est.paymentAccount.accountName} ? {est.paymentAccount.accountNumber} ? {est.paymentAccount.currency}</dd></div>{est.paymentAccount.instructions?<div><dt>Instructions</dt><dd>{est.paymentAccount.instructions}</dd></div>:null}</dl>:null}
+      {est.paymentAccount?<PaymentAccount account={est.paymentAccount} reference={est.number}/>:null}
       <div className="doc__scroll">
         <table className="doc__lines">
           <thead>

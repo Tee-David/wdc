@@ -1,4 +1,6 @@
 "use client";
+import Image from "next/image";
+import "./payment-providers.css";
 
 import { useSupportReadOnly } from "@/components/client/support-context";
 import { useEffect, useState, type ReactNode } from "react";
@@ -11,7 +13,7 @@ import { useEffect, useState, type ReactNode } from "react";
  * rather than two. Coming BACK to the page from Paystack restores it: the
  * browser's back cache would otherwise return a form that refuses to submit.
  */
-export function PayForm({ action, className, children }: { action: string; className?: string; children: ReactNode }) {
+export function PayForm({ action, className, children, currency="NGN" }: { action: string; className?: string; children: ReactNode; currency?:string }) {
   const supportReadOnly = useSupportReadOnly();
   const [busy, setBusy] = useState(false);
   /* After 8 seconds the line says so, and that nothing is charged yet: true,
@@ -39,8 +41,9 @@ export function PayForm({ action, className, children }: { action: string; class
         setBusy(true);
       }}
     >
+      <fieldset className="paymentProviders" disabled={busy||supportReadOnly}><legend>Payment provider</legend><div className="paymentProviders__options">{(currency==='NGN'?['paystack','flutterwave']:['flutterwave']).map((provider,index)=><label key={provider}><input type="radio" name="provider" value={provider} defaultChecked={index===0}/><span><Image src={`/payments/${provider}.svg`} width={28} height={28} alt=""/><b>{provider==='paystack'?'Paystack':'Flutterwave'}</b></span></label>)}</div></fieldset>
       {supportReadOnly ? <><p>Payments are disabled in a read-only support view.</p><fieldset disabled className="pSupport__fields">{children}</fieldset></> : children}
-      {busy ? <span className="pay-busy" role="status">{slow ? "Still opening Paystack. Nothing has been charged yet." : "Opening Paystack…"}</span> : null}
+      {busy ? <span className="pay-busy" role="status">{slow ? "Still opening secure checkout. Nothing has been charged yet." : "Opening secure checkout…"}</span> : null}
     </form>
   );
 }

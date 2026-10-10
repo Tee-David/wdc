@@ -190,7 +190,7 @@ type ReceiptInput = { payment: Payment; invoice: Invoice; outstanding: number; b
  */
 function planReceipt(input: ReceiptInput, key = mailKey.receipt(input.payment.id)): Outgoing {
   const { payment, invoice, outstanding } = input;
-  const reached = reach(invoice.clientId, { record: payment.method === "Paystack" });
+  const reached = reach(invoice.clientId, { record: (payment.method === "Paystack" || payment.method === "Flutterwave") });
   const to=input.toOverride??reached.to,hold=input.toOverride?undefined:reached.hold;
   const about = { kind: "payment" as const, id: payment.id, label: payment.receiptNo };
   const by = input.by ?? payment.by;
@@ -221,7 +221,7 @@ function planReceipt(input: ReceiptInput, key = mailKey.receipt(input.payment.id
       emailPanel([["Receipt", payment.receiptNo], ["Invoice", invoice.number], ["Received", received], ["Paid by", payment.method], ["Reference", payment.reference]]),
       emailButton("Open your receipt", url),
       emailSmall(`The invoice, with everything billed and paid against it: <a href="${emailSafeUrl(invoiceUrl)}">${escapeHtml(invoice.number)}</a>.`),
-    ], false, payment.method === "Paystack"
+    ], false, (payment.method === "Paystack" || payment.method === "Flutterwave")
       ? { why: "You get a receipt for every payment you make online. Receipts always arrive." }
       : { why: "You get this because the studio sent you a receipt for a payment.", manage: "client" }),
   };

@@ -30,7 +30,9 @@ function loadRepoRootEnv() {
     if (at < 1) continue;
     const key = text.slice(0, at).trim();
     if (process.env[key] !== undefined) continue;
-    process.env[key] = text.slice(at + 1).trim().replace(/^(['"])(.*)\1$/, "$2");
+    const value = text.slice(at + 1).trim();
+    try { process.env[key] = value.startsWith('"') ? JSON.parse(value) : value.replace(/^(['"])(.*)\1$/, "$2"); }
+    catch { process.env[key] = value.replace(/^(['"])(.*)\1$/, "$2"); }
   }
 }
 loadRepoRootEnv();

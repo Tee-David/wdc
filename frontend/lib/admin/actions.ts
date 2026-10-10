@@ -1,4 +1,5 @@
 "use server";
+import {flutterwaveConfig} from "@/lib/flutterwave";
 import {documentPaymentChoice} from "@/lib/money/payment-options";
 import {currencyOf,money} from "@/lib/money/currency";
 
@@ -575,7 +576,7 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
     note,
     /* Only a Paystack row is test-or-live at all -- cash in an envelope has no
        mode. See the note on `Payment.mode`. */
-    mode: how === "Paystack" ? await selectedPaystackMode() : undefined,
+    mode: how === "Paystack" ? await selectedPaystackMode() : how === "Flutterwave" ? flutterwaveConfig()?.mode : undefined,
   });
 
   if (!res.ok) {
