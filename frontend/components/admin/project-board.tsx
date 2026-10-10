@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { CalendarDays, GripVertical } from "lucide-react";
 import type { Attention, Health, Project, Stage } from "@/lib/admin/types";
 import { moveOnBoard } from "@/lib/admin/actions";
+import { ask } from "./confirm";
 import { AttentionPills, HealthPill } from "./bits";
 import { ProjectMenu } from "./row-actions";
 import { toast } from "./toast";
@@ -109,6 +110,11 @@ export function ProjectBoard({ columns, cards }: { columns: BoardColumn[]; cards
     if (!stage) return;
     const unchanged = from === stage && before.current[stage].join() === orderRef.current[stage].join();
     if (unchanged) return;
+    if(from!==stage && !(await ask(`Move ${titleOf(id)} from ${from} to ${stage}? The stage will be saved and the people on this project may receive an update.`,{verb:"Move project"}))){
+      reorder(before.current);
+      setSaid(`${titleOf(id)} remains in ${from}.`);
+      return;
+    }
     setSaid(`${titleOf(id)} is now in ${stage}.`);
     const r = await moveOnBoard({ id, stage, order: orderRef.current[stage] }).catch(() => null);
     if (!r?.ok) {
