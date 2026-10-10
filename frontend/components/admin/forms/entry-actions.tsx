@@ -26,7 +26,7 @@ export function EntryState({ formKey, id, read, starred, box }: {
           <button className="ad__btn" name="action" value="restore">{box === "spam" ? <Inbox aria-hidden="true" /> : <RotateCcw aria-hidden="true" />}{box === "spam" ? "Not spam" : "Put back"}</button>
         </>
       )}
-      <button type="button" className="ad__btn" onClick={() => window.print()}><Printer aria-hidden="true" /> Print</button>
+      <a className="ad__btn" href={`/admin/forms/${encodeURIComponent(formKey)}/entries/${encodeURIComponent(id)}/pdf?print=1`}><Printer aria-hidden="true" /> Print</a>
     </Form>
   );
 }

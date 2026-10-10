@@ -1,3 +1,4 @@
+import {paymentAccountDetails} from "./currency";
 import 'server-only';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -59,7 +60,7 @@ export async function renderReceiptPdf(input:ReceiptDocument,document?:Financial
   paragraph("Subtotal: "+money(total.subtotal));if(document.kind==="Estimate"&&(record as Estimate).discount)paragraph("Discount: "+money(estimateTotals(record as Estimate).discount));if(total.vat)paragraph("VAT: "+money(total.vat));paragraph("Total: "+money(total.total));
   if(document.kind==="Invoice"){paragraph("Paid to date: "+money(input.invoice.paid));paragraph("Outstanding: "+money(state.totals.due));if(document.payments?.length)table(["Received","Reference","Method","Amount"],document.payments.map(p=>[date(p.at),p.reference+(p.reversed?" (reversed)":""),p.method,money(p.reversed?0:Math.max(0,p.amount-(p.refunds??[]).reduce((sum,r)=>sum+r.amount,0)))]),[85,INNER-265,85,95]);}
   const bank=record.paymentAccount;
-  if(bank){room(82);paragraph("Payment account: "+bank.label);paragraph(bank.bankName+" ? "+bank.accountName+" ? "+bank.accountNumber+" ? "+bank.currency);if(bank.instructions)paragraph(bank.instructions);}
+  if(bank){room(40);paragraph("Payment account: "+bank.label);for(const [label,value]of paymentAccountDetails(bank))paragraph(label+": "+value);}
   if("notes" in record && record.notes)paragraph(record.notes);
  }else{
  if(state.gone)paragraph('Payment reversed.'+(state.gone.reason?' '+state.gone.reason:''),color('#b3261e'));

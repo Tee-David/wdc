@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
  * download it; anyone else gets the same 404 as a missing entry, so the route
  * does not confirm what exists. Newsletter sign-ups have nothing to print.
  */
-export async function GET(_req: Request, { params }: { params: Promise<{ form: string; entry: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ form: string; entry: string }> }) {
   if (await allow("forms")) return new NextResponse("Not found", { status: 404 });
   const { form: key, entry: id } = await params;
   const form = await findForm(key);
@@ -26,7 +26,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ form: s
   return new NextResponse(Buffer.from(bytes), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${entryPdfName(form, entry)}"`,
+      "Content-Disposition": `${new URL(req.url).searchParams.get("print")==="1"?"inline":"attachment"}; filename="${entryPdfName(form, entry)}"`,
       "Cache-Control": "private, no-store",
       "X-Robots-Tag": "noindex",
     },

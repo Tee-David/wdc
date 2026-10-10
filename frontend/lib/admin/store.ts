@@ -906,7 +906,7 @@ export function applyPayment(d: {
       Paystack integration's own config. */
   mode?: "test" | "live";
 }): ApplyResult {
-  if (d.method === "Paystack" && d.mode !== "live") return {ok:false,reason:"test-mode"};
+  if ((d.method === "Paystack" || d.method === "Flutterwave") && d.mode !== "live") return {ok:false,reason:"test-mode"};
   const inv = getInvoice(d.invoiceId);
   if (!inv) return { ok: false, reason: "no-invoice" };
   if(d.method==="Paystack" && currencyOf(inv)!=="NGN") return {ok:false,reason:"no-invoice"};
@@ -1770,13 +1770,13 @@ export function auditCount(opts: { kind?: AuditKind; subjectId?: Id; subjectIds?
 const PROVIDER_EVENTS: ProviderEvent[] = shared("PROVIDER_EVENTS", (): ProviderEvent[] => []);
 
 export function recordProviderEvent(d: Omit<ProviderEvent, "id" | "at" | "provider"> & {
-  at?: string;
+  at?: string; provider?:ProviderEvent["provider"];
 }): ProviderEvent {
   const e: ProviderEvent = {
     ...d,
     id: mint("pe"),
     at: d.at ?? now(),
-    provider: "Paystack",
+    provider: d.provider ?? "Paystack",
     /* Trimmed here rather than at each of the four call sites. A note is read
        by a person in a narrow table cell. */
     note: d.note?.trim() || undefined,
