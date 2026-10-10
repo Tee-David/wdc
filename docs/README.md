@@ -10,6 +10,7 @@ The repository [README](../README.md) defines the design system. [AGENTS.md](../
 | [Product](PRD.md) | Current product scope |
 | [Email](email.md) | Delivery, retries and operational checks |
 | [Client communications and service portals](audits/client-communications-and-service-portals.md) | Source audit and researched proposal for missing notices and service-specific client workflows |
+| [Client workspace dashboard preview](../prototypes/client-workspace/README.md) | Interactive proposal using the real WDC shells, with a detailed plain-English walkthrough and 146 communication flows |
 | [Offline](offline.md) | Public-page caching and verification |
 | [Logos](logos.md) | Maintained asset sources |
 | [Tools](tools-programme.md) | Tool implementation and cost controls |
