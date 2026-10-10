@@ -290,7 +290,7 @@ export function InvoiceMenu({
     { kind: "link", label: "Open the invoice", href: `/admin/money/${invoice.id}`, icon: ArrowRight },
   ];
 
-  if(!draft && invoice.paid>0)items.push({kind:"link",label:"Print latest receipt",href:`/admin/money/${invoice.id}/receipt`,external:true,icon:Printer});
+  if(!draft && invoice.paid>0)items.push({kind:"link",label:"Print latest receipt",href:`/admin/money/${invoice.id}/receipt?print=1`,external:true,icon:Printer});
   if(!draft && invoice.paid>0)items.push({kind:"dialog",label:"Send latest receipt",title:`Receipt for ${invoice.number}`,icon:Receipt,render:close=><ReceiptSendForm latest fields={{invoiceId:invoice.id}} close={close} noEmail={noReceipt}/>});
 
   if(!draft)items.push({kind:"link",label:"Print invoice",href:`/i/${invoice.token}`,external:true,icon:Printer});
@@ -490,7 +490,7 @@ export function PaymentMenu({
 }) {
   const naira=(amount:number)=>money(amount,currencyOf(payment));
   const items: RowMenuItem[] = [
-    {kind:"link",label:"Print receipt",href:`/r/${payment.token}`,external:true,icon:Printer},
+    {kind:"link",label:"Print receipt",href:`/r/${payment.token}/pdf?print=1`,external:true,icon:Printer},
     { kind: "link", label: "Open the invoice", href: `/admin/money/${payment.invoiceId}`, icon: ArrowRight },
   ];
 

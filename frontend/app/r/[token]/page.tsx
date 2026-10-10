@@ -1,9 +1,11 @@
+import Link from "next/link";
+import ReceiptPrinter from "@/components/money/receipt-printer";
 import {currencyOf,money} from "@/lib/money/currency";
 import ReceiptControls from "@/components/money/receipt-controls";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getClient, getInvoice, getPaymentByToken, getProject } from "@/lib/admin/store";
-import { invoiceTotals,  paymentNet, refundedTotal } from "@/lib/admin/types";
+import { invoiceTotals, lineTotal, paymentNet, refundedTotal } from "@/lib/admin/types";
 import { DocumentShell, Headline, invoiceUrl, receiptUrl } from "@/components/money/document";
 import { persistSoon, syncStore } from "@/lib/admin/persist";
 
@@ -30,9 +32,10 @@ export const metadata: Metadata = {
 };
 
 export default async function PublicReceipt({
-  params,
+  params, searchParams,
 }: {
   params: Promise<{ token: string }>;
+  searchParams: Promise<{view?:string}>;
 }) {
   await syncStore();
   persistSoon();
@@ -60,6 +63,12 @@ export default async function PublicReceipt({
      one: "we gave it all back" and "we gave some of it back" are answers to
      different questions, and a client holding this is asking one of them. */
   const fullyRefunded = !gone && refunded > 0 && net <= 0;
+
+  if((await searchParams).view!=="full")return <main className="doc doc--return"><article className="doc__sheet">
+    <ReceiptPrinter amount={pay.amount} receiptNo={pay.receiptNo} number={inv.number} method={pay.method} at={pay.at} outstanding={remaining} lines={inv.lines.map(l=>({description:l.description,qty:l.qty,amount:lineTotal(l)}))} subtotal={t.subtotal} vat={t.vat} vatRate={inv.vatRate} total={t.total} currency={currencyOf(inv)} refunded={refunded} reversed={Boolean(gone)}/>
+    <div className="doc__actions"><Link className="btn-primary" href={`/r/${encodeURIComponent(pay.token)}?view=full`}>View full receipt</Link></div>
+    <ReceiptControls token={pay.token}/>
+  </article></main>;
 
   return (
     <DocumentShell

@@ -1,10 +1,11 @@
+import {currencyOf} from "@/lib/money/currency";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { after } from "next/server";
 import {
   applyPayment, getInvoice, getPaymentsFor, matchInvoice, recordProviderEvent,
 } from "@/lib/admin/store";
-import { invoiceTotals, lineTotal, type Invoice } from "@/lib/admin/types";
+import { invoiceTotals, lineTotal, refundedTotal, type Payment, type Invoice } from "@/lib/admin/types";
 import { wholeKobo, verifyTransaction } from "@/lib/paystack";
 import { chargeBanked, claimCharge, releaseCharge } from "@/lib/paystack-claim";
 import { sendOnlinePaymentEmails } from "@/lib/money-mail";
@@ -41,7 +42,7 @@ export const dynamic = "force-dynamic";
 type Outcome =
   | {
       kind: "paid"; receiptUrl: string; amount: number; number: string;
-      outstanding: number;
+      outstanding: number; currency:string; refunded:number; reversed:boolean;
       /* Carried so the slip can print the particulars rather than a figure on
          its own. All of it comes off the payment we just banked, never off
          the query string. */
@@ -64,13 +65,13 @@ type Outcome =
 /** The paid outcome, from the banked payment and the invoice as it now stands. */
 function paidOutcome(
   inv: Invoice,
-  p: { token: string; amount: number; receiptNo: string; method: string; at: string },
+  p: Payment,
   overpaid = false,
 ): Outcome {
   const t = invoiceTotals(inv);
   return {
     kind: "paid", receiptUrl: `/r/${p.token}`, amount: p.amount, number: inv.number,
-    outstanding: t.due, receiptNo: p.receiptNo, method: p.method, at: p.at, overpaid,
+    currency:currencyOf(inv), refunded:refundedTotal(p), reversed:Boolean(p.reversed), outstanding: t.due, receiptNo: p.receiptNo, method: p.method, at: p.at, overpaid,
     lines: inv.lines.map((l) => ({ description: l.description, qty: l.qty, amount: lineTotal(l) })),
     subtotal: t.subtotal, vat: t.vat, vatRate: inv.vatRate, total: t.total,
   };
@@ -244,12 +245,8 @@ export default async function PaymentDone({
               vat={outcome.vat}
               vatRate={outcome.vatRate}
               total={outcome.total}
+              currency={outcome.currency} refunded={outcome.refunded} reversed={outcome.reversed}
             />
-            <p className="doc__said">
-              Thank you. A copy is on its way to the email address we have for
-              you, and the receipt below is the live one: it will still be
-              right if anything about this payment changes later.
-            </p>
             {outcome.overpaid ? (
               <p className="doc__said">
                 This invoice was already paid, so the extra is held as credit and comes off your next invoice.
@@ -257,7 +254,7 @@ export default async function PaymentDone({
               </p>
             ) : null}
             <p className="doc__actions">
-              <Link className="doc__btn" href={outcome.receiptUrl}>View full receipt</Link>
+              <Link className="doc__btn" href={`${outcome.receiptUrl}?view=full`}>View full receipt</Link>
               {signedInClient ? <Link className="doc__btn doc__btn--ghost" href="/portal/billing">Back to billing</Link> : null}
             </p>
           </>
