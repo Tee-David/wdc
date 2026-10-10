@@ -1,3 +1,4 @@
+import {currencyOf} from "@/lib/money/currency";
 import { NextResponse } from "next/server";
 import { SERVICES } from "@/lib/services";
 import { getAdminRequest } from "@/lib/admin/session";
@@ -32,16 +33,16 @@ export async function GET(request: Request) {
     .filter((client) => !search || [client.company, client.name, client.email, client.sector]
       .some((value) => value.toLocaleLowerCase().includes(search)));
 
-  const header = ["Company", "Contact", "Email", "Phone", "Sector", "Services", "Status", "Live projects", "Outstanding NGN", "Client since"];
+  const currencies=[...new Set(["NGN","USD",...clients.flatMap(client=>getInvoicesFor(client.id).map(currencyOf))])];
+  const header = ["Company", "Contact", "Email", "Phone", "Sector", "Services", "Status", "Live projects", ...currencies.map(currency=>`Outstanding ${currency}`), "Client since"];
   const rows = clients.map((client) => {
-    const owed = getInvoicesFor(client.id)
-      .filter((invoice) => invoice.status !== "Draft")
-      .reduce((sum, invoice) => sum + invoiceTotals(invoice).due, 0);
+    const invoices=getInvoicesFor(client.id).filter(invoice=>invoice.status!=="Draft" && !invoice.voided);
+    const owed=currencies.map(currency=>(invoices.filter(invoice=>currencyOf(invoice)===currency).reduce((sum,invoice)=>sum+invoiceTotals(invoice).due,0)/100).toFixed(2));
     const live = getProjectsFor(client.id).filter((project) => project.stage !== "Delivered").length;
     return [
       client.company, client.name, client.email, client.phone, client.sector,
       client.services.map((slug) => SERVICES.find((item) => item.slug === slug)?.short ?? slug).join("; "),
-      client.archived ? "Archived" : "Active", live, (owed / 100).toFixed(2), client.since,
+      client.archived ? "Archived" : "Active", live, ...owed, client.since,
     ];
   });
   return new NextResponse(csvBody([header, ...rows]), {
