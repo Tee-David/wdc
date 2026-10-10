@@ -12,7 +12,7 @@ The owner approved implementation on 10 October 2026. This ledger separates sour
 - [x] Complete project access management and additional client reviewer access.
 - [x] Integrate legacy project, department and client-level communications.
 - [x] Update owner, staff and client tours; verify account-specific completion in focused checks. Rendered tour checks remain below.
-- [ ] Run TypeScript, lint, build and focused domain and security checks.
+- [x] Run TypeScript, lint, build and focused domain and security checks (136-page production build; Flutterwave, currency, PDF and communications checks).
 - [ ] Verify phone, tablet and desktop interactions in both themes.
 - [x] Push verified source milestones to main and the working branch (6711897); final release acceptance remains below.
 - [x] Apply migrations using the established owner migration engine and verify production schema (administrative invocation; Settings UI not separately tested).
@@ -25,6 +25,6 @@ Real provider publishing is not configured by the service records. Publication a
 
 ## Currency and printable documents (10 October)
 
-NGN and USD start enabled. Settings > Studio and invoices controls enabled supported currencies and up to ten manual-payment accounts. Each invoice/quote selects its currency and an optional matching account, copied into the document; issued currencies and recorded payments stay fixed. Accepted quotes and duplicates keep the original currency. Credits cannot cross currencies. Paystack remains NGN only; foreign documents show manual-payment details. Financial summaries show each currency separately; expense/margin charts remain NGN.
+NGN and USD start enabled. Settings > Studio and invoices controls enabled supported currencies and up to ten manual-payment accounts. Each invoice/quote selects its currency and an optional matching account, copied into the document; issued currencies and recorded payments stay fixed. Accepted quotes and duplicates keep the original currency. Credits cannot cross currencies. Paystack remains NGN only; Flutterwave supports NGN and USD, alongside selected manual-payment details. Financial summaries show each currency separately; expense/margin charts remain NGN.
 
-Receipt, invoice and estimate PDF/print layouts repeat the onboarding watermark on every page and use WDC fonts, tables, QR and document status. Receipt sending supports an explicitly entered alternative email without replacing the client address. Native PDF and currency boundary tests passed; final browser/build/deployment checks remain pending.
+Receipt, invoice and estimate PDF/print layouts repeat the onboarding watermark on every page and use WDC fonts, tables, QR and document status. Receipt sending supports an explicitly entered alternative email without replacing the client address. Native PDF and currency boundary tests passed. Finance release ac5ec06 is READY in production and aliased to the canonical domain. Full authenticated browser acceptance remains pending: the local sweep reached a database connection timeout during dashboard sync. Six rendered payment-selector component cases passed; those do not replace full-page or role-tour acceptance.

@@ -9,7 +9,7 @@ export async function onRequestError(
   request: { path: string; method: string },
   context: { routeType: string },
 ) {
-  if (process.env.NEXT_RUNTIME !== "nodejs") return;
+  if (process.env.NEXT_RUNTIME === "nodejs") {
   if (!(process.env.DATABASE_URL || process.env.COCKROACHDB_URL)) return;
   try {
     const e = error as { message?: string; stack?: string; digest?: string };
@@ -25,4 +25,5 @@ export async function onRequestError(
       [randomUUID(), digest, message, stack, String(request.path).slice(0, 300), request.method, context.routeType],
     );
   } catch { /* the log is best effort */ }
+  }
 }
