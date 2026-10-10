@@ -1,3 +1,4 @@
+import PaymentAccount from "@/components/money/payment-account";
 import {currencyOf,money} from "@/lib/money/currency";
 import ReceiptControls from "@/components/money/receipt-controls";
 import { PayForm } from "@/components/money/pay-form";
@@ -91,7 +92,7 @@ export default async function PublicInvoice({
      panel below says to write to us instead, and we send a link -- which is a
      real answer rather than a dead end, and keeps the money on the one route
      the books can follow. */
-  const canCheckout = currencyOf(inv)==="NGN" && !settled && !inv.voided && Boolean(client?.email?.trim());
+  const canCheckout = ["NGN","USD"].includes(currencyOf(inv)) && !settled && !inv.voided && Boolean(client?.email?.trim());
 
   return (
     <DocumentShell
@@ -263,7 +264,7 @@ export default async function PublicInvoice({
       {!settled && !inv.voided ? (
         <section className="doc__pay">
           <h2>How to pay</h2>
-          {inv.paymentAccount?<dl className="doc__meta"><div><dt>Bank</dt><dd>{inv.paymentAccount.bankName}</dd></div><div><dt>Account name</dt><dd>{inv.paymentAccount.accountName}</dd></div><div><dt>Account number</dt><dd>{inv.paymentAccount.accountNumber}</dd></div><div><dt>Currency</dt><dd>{inv.paymentAccount.currency}</dd></div><div><dt>Reference</dt><dd>{inv.number}</dd></div>{inv.paymentAccount.instructions?<div><dt>Instructions</dt><dd>{inv.paymentAccount.instructions}</dd></div>:null}</dl>:null}
+          {inv.paymentAccount?<PaymentAccount account={inv.paymentAccount} reference={inv.number}/>:null}
           {currencyOf(inv)!=="NGN"?<p>Pay in {currencyOf(inv)} using the payment account shown. The studio checks your transfer before recording payment. Contact us if no payment account is shown.</p>:null}
 
           {/* SAID BEFORE THE BUTTON, NOT AFTER IT. Something went wrong on the
@@ -271,7 +272,7 @@ export default async function PublicInvoice({
               they have been charged. Each of these is a different answer and
               none of them is "an error occurred". */}
           {problem ? <p className="doc__warn">{problem}</p> : null}
-          {currencyOf(inv)==="NGN" && !settled && paymentMode !== "live" ? <p className="doc__warn">{paymentMode === "test" ? "Online checkout is in test mode. It simulates payment and leaves this invoice unpaid. Use the bank details below for a real payment." : "Online checkout is temporarily unavailable. Use the bank details below or contact the studio."}</p> : null}
+          {currencyOf(inv)==="NGN" && !settled && paymentMode !== "live" ? <p className="doc__warn">{paymentMode === "test" ? "Paystack is in test mode. A test payment leaves this invoice unpaid. Choose Flutterwave or use the bank details for a real payment." : "Paystack is temporarily unavailable. Choose Flutterwave or use the bank details below."}</p> : null}
 
           {/* A REAL FORM, A REAL POST. Not a fetch and not a link: a link that
               spends money can be followed by a prefetcher or a mail scanner,
@@ -280,7 +281,7 @@ export default async function PublicInvoice({
               come off the token in the URL, because a form field is a number
               the payer can edit. */}
           {canCheckout ? (
-            <PayForm action={`/api/pay/${inv.token}`} className="doc__actions">
+            <PayForm currency={currencyOf(inv)} action={`/api/pay/${inv.token}`} className="doc__actions">
               {/* THE AMOUNT AND THE VERB, AND NOTHING ELSE IN THE LABEL. It
                   used to carry "by card or transfer" as well, which is a
                   sentence about method inside a control whose job is the
@@ -315,7 +316,7 @@ export default async function PublicInvoice({
                 </svg>
               </button>
               <small>
-                Card or bank transfer, on Paystack&rsquo;s own secure page.
+                Continue to your selected provider?s secure checkout.
               </small>
             </PayForm>
           ) : null}

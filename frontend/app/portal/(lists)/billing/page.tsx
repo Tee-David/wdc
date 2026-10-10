@@ -85,11 +85,11 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
           <small>
             {next ? <>On {next.number} · due {when(next.due)}</> : "Nothing to pay. Thank you."}
           </small>
-          {next && canPay && currencyOf(next)==="NGN" ? (
+          {next && canPay && ["NGN","USD"].includes(currencyOf(next)) ? (
             /* A real POST, as on the invoice itself: a link that spends money
                can be followed by a prefetcher. The amount comes off the
                token, never from this page. */
-            <PayForm action={`/api/pay/${next.token}`}>
+            <PayForm currency={currencyOf(next)} action={`/api/pay/${next.token}`}>
               <button type="submit" className="pBill__pay">
                 <CreditCard aria-hidden="true" /> Pay {money(invoiceTotals(next).due,currencyOf(next))}
               </button>
@@ -136,8 +136,8 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
                     <span className="pBill__cardMain"><b>{inv.number}</b><small>{owing ? `${money(t.due,currencyOf(inv))} left · due ${when(inv.due)}` : `Issued ${when(inv.issued)}`}</small></span>
                     <span className="pBill__cardEnd"><b className="ad__num">{money(t.total,currencyOf(inv))}</b><InvoicePill status={invoiceStatus(inv)} /></span>
                   </a>
-                  {owing && canPay && currencyOf(inv)==="NGN" ? (
-                    <PayForm action={`/api/pay/${inv.token}`} className="pBill__cardPay">
+                  {owing && canPay && ["NGN","USD"].includes(currencyOf(inv)) ? (
+                    <PayForm currency={currencyOf(inv)} action={`/api/pay/${inv.token}`} className="pBill__cardPay">
                       <button type="submit" className="ad__btn ad__btn--primary"><CreditCard aria-hidden="true" /> Pay {money(t.due,currencyOf(inv))}</button>
                     </PayForm>
                   ) : null}
@@ -170,8 +170,8 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
                       <td className="num">{owing ? money(t.due,currencyOf(inv)) : <span className="ad__dim">Nil</span>}</td>
                       <td>
                         <span className="pBill__acts">
-                          {owing && canPay && currencyOf(inv)==="NGN" ? (
-                            <PayForm action={`/api/pay/${inv.token}`}>
+                          {owing && canPay && ["NGN","USD"].includes(currencyOf(inv)) ? (
+                            <PayForm currency={currencyOf(inv)} action={`/api/pay/${inv.token}`}>
                               <button type="submit" className="ad__btn ad__btn--primary">Pay now</button>
                             </PayForm>
                           ) : null}
@@ -200,7 +200,7 @@ export default async function PortalBilling({ searchParams }: { searchParams: Pr
         ) : null}
       </Panel>
 
-      {canPay && next && currencyOf(next)==="NGN" ? <p className="pBill__safe ad__dim"><Lock aria-hidden="true" /> Card payments are handled by Paystack.</p> : null}
+      {canPay && next && ["NGN","USD"].includes(currencyOf(next)) ? <p className="pBill__safe ad__dim"><Lock aria-hidden="true" /> Card payments are handled by Paystack.</p> : null}
 
       {payments.length ? (
         <Panel title="Payments you have made">

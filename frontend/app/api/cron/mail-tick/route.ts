@@ -23,6 +23,7 @@ async function handle(request: NextRequest) {
   const automations = await runAutomations().catch(() => null);
   // Intent already exists in the database. One workspace SMTP attempt runs after this response.
   after(async()=>{
+    try { const {dispatchFlutterwaveReceipts,reconcileFlutterwaveCheckout}=await import('@/lib/flutterwave');await reconcileFlutterwaveCheckout();await dispatchFlutterwaveReceipts(); } catch { console.error('[flutterwave] Pending receipt delivery will retry.'); }
     try { const {dispatchWorkspaceEvents}=await import('@/lib/workspace/events');await dispatchWorkspaceEvents({limit:1}); }
     catch { console.error('[workspace-mail] Dispatch interrupted. Pending or unconfirmed attempts remain in the durable notification log.'); }
   });

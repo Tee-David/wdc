@@ -194,3 +194,7 @@ Production admin collections start empty and hydrate only from persisted records
 Onboarding service labels and helper copy have explicit spacing. The colour question is the feeling cards flow described above, not an expandable control.
 
 Receipt navigation uses the established POS overview first; **View full receipt** opens `/r/[token]?view=full`. The overview uses the persisted currency, refund and reversal state. Print actions open the generated PDF inline (`?print=1`), and Download PDF remains a download. Reuse this flow rather than printing the webpage or introducing another receipt design.
+
+USD payment accounts add optional routing number, SWIFT/BIC, IBAN, bank address and account type through the existing Settings form controls. `components/money/payment-account.tsx` renders the saved document snapshot; PDFs use the same labelled details. Entry Print opens the existing submitted-form PDF inline, rather than printing dashboard chrome. Currency-panel helper text uses the shared panel-body inset.
+
+Payment checkout reuses `PayForm` with a compact, keyboard-accessible provider choice and locally served provider marks. NGN offers Paystack or Flutterwave; USD offers Flutterwave. The server reads the invoice amount and currency, retains the original provider mode, verifies transactions, and never banks test payments. Flutterwave writes payment, invoice, audit and provider-event records atomically; pending receipt intent and a bounded verification check use the existing mail heartbeat.

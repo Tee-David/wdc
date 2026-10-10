@@ -44,6 +44,10 @@ function back(token: string, error?: string) {
 
 /* The checkout's record is saved before the client is sent to pay. */
 export async function POST(request: NextRequest, ctx: { params: Promise<{ token: string }> }) {
+  const origin=request.headers.get('origin');if(!origin||origin!==new URL(SITE_URL).origin)return new NextResponse('Not allowed',{status:403});
+  let provider;try{provider=(await request.clone().formData()).get('provider');}catch{return new NextResponse('Invalid checkout request',{status:400});}
+  if(provider==='flutterwave'){const {POST}=await import('@/app/api/flutterwave/pay/[token]/route');return POST(request,ctx);}
+  if(provider!==null&&provider!=='paystack')return new NextResponse('Unknown payment provider',{status:400});
   await syncStore();
   const res = await start(request, ctx);
   await saveStore();
