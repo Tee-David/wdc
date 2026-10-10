@@ -52,6 +52,3 @@ document.addEventListener('change',ev=>{if(ev.target.type==='checkbox'&&ev.targe
 document.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.matches('a[role="button"]'))action(ev.target);});
 render();
 })();
-
-
-
