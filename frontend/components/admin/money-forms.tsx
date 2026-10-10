@@ -154,7 +154,7 @@ function Builder({
   const [optionsError,setOptionsError]=useState("");
   useEffect(()=>{const controller=new AbortController();fetch("/api/admin/finance-options",{signal:controller.signal}).then(async response=>{if(!response.ok)throw Error("Payment choices could not load. Close and reopen this form to retry.");setOptions(await response.json());}).catch(error=>{if(!controller.signal.aborted)setOptionsError(error.message);});return()=>controller.abort();},[]);
   const accountChoices=[...(options?.accounts||[])];
-  if(invoice?.paymentAccount && !accountChoices.some(item=>item.id===invoice.paymentAccount!.id))accountChoices.push(invoice.paymentAccount);
+  if(invoice?.status!=="Draft" && invoice?.paymentAccount && !accountChoices.some(item=>item.id===invoice.paymentAccount!.id))accountChoices.push(invoice.paymentAccount);
   const format=(amount:number)=>money(amount,currency);
   const [rows, setRows] = useState<Row[]>(() =>
     invoice?.lines.length
