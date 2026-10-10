@@ -1,5 +1,6 @@
 "use client";
-
+import {PaymentAccounts} from "./payment-accounts";
+import {SUPPORTED_CURRENCIES,type PaymentAccountSnapshot} from "@/lib/money/currency";
 import { useState } from "react";
 import { saveStudioSettings } from "@/lib/admin/settings-actions";
 import { Panel } from "@/components/admin/bits";
@@ -9,14 +10,15 @@ import { Chips, SettingsForm, Switch, Text } from "./kit";
 const TERMS = [7, 14, 30, 45, 60, 90];
 
 /** Settings, Studio and invoices: how a new invoice starts, and when unpaid ones are chased. */
-export function StudioForm({ vatRate, vatOn, dueInDays, reminders, days, tin, footerNote }: {
-  vatRate: number; vatOn: boolean; dueInDays: number; reminders: string[]; tin: string; footerNote: string;
+export function StudioForm({ currencies,accounts,vatRate, vatOn, dueInDays, reminders, days, tin, footerNote }: {
+  currencies:string[]; accounts:PaymentAccountSnapshot[]; vatRate: number; vatOn: boolean; dueInDays: number; reminders: string[]; tin: string; footerNote: string;
   days: { value: string; label: string }[];
 }) {
   const [remOn, setRemOn] = useState(reminders.length > 0);
   const terms = TERMS.includes(dueInDays) ? TERMS : [...TERMS, dueInDays].sort((a, b) => a - b);
   return (
     <SettingsForm action={saveStudioSettings}>
+      <Panel title="Currencies and manual payment"><div className="adSetPad"><Chips name="finance.currencies" legend="Currencies available on new invoices and quotes" options={SUPPORTED_CURRENCIES.map(item=>({...item}))} defaultValues={currencies}/><p>NGN always stays available. Enable another currency before using it. The studio never converts entered amounts or recorded payments automatically.</p></div><PaymentAccounts key={JSON.stringify(accounts)} initial={accounts}/></Panel>
       <Panel title="Invoice defaults" action={<span className="ad__dim adSet__aside">For new invoices and estimates</span>}>
         <div className="adSetPad">
           <Fields>

@@ -1,3 +1,4 @@
+import {parseCurrencies,parsePaymentAccounts} from "@/lib/money/currency";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { DEFAULT_MAIL_FROM_NAME } from "@/lib/mail-sender";
 import { NETWORKS, parseSocial, shippedSocial, socialKey } from "@/lib/social";
@@ -76,6 +77,8 @@ const email = (raw: string) => {
 };
 
 export const SETTINGS: SettingDef[] = [
+  {key:"finance.currencies",label:"Document currencies",note:"NGN and USD start enabled; amounts are never converted automatically.",shipped:()=>'["NGN","USD"]',parse:raw=>{try{return {ok:true,value:JSON.stringify(parseCurrencies(raw))}}catch(error){return {ok:false,error:error instanceof Error?error.message:"Choose supported currencies."}}},revalidate:["/admin/settings/general","/admin/money"]},
+  {key:"finance.accounts",label:"Payment accounts",note:"A selected account is copied onto the document.",shipped:()=>"[]",parse:raw=>{try{return {ok:true,value:JSON.stringify(parsePaymentAccounts(raw))}}catch(error){return {ok:false,error:error instanceof Error?error.message:"Check the payment accounts."}}},revalidate:["/admin/settings/general","/admin/money"]},
   {
     key: "contact.email", label: "Contact email", shipped: () => CONTACT_EMAIL,
     note: "The address on the contact page, the footer and every email.",

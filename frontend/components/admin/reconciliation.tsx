@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { naira, nairaShort } from "@/lib/admin/types";
+import {money,currencyOf} from "@/lib/money/currency";
 import type { ClientRecon, InvoiceRecon } from "@/lib/admin/money-rules";
 import { Panel, Tile } from "./bits";
 
@@ -20,9 +20,10 @@ import { Panel, Tile } from "./bits";
  */
 
 /** The exact figure under a short one, only when the short one rounded it. */
-const exact = (kobo: number) => (nairaShort(kobo) === naira(kobo).replace(/\.00$/, "") ? undefined : naira(kobo));
+
 
 function Cells({ r }: { r: InvoiceRecon }) {
+  const naira=(amount:number)=>money(amount,currencyOf(r));
   return (
     <>
       <td className="num">{naira(r.total)}</td>
@@ -49,6 +50,7 @@ const HEAD = (
 
 /** One invoice, for the invoice's own page. */
 export function InvoiceReconciliation({ row }: { row: InvoiceRecon }) {
+  const naira=(amount:number)=>money(amount,currencyOf(row));
   return (
     <Panel title="Reconciliation" dataTour="inv-reconcile">
       <div className="ad__scroll">
@@ -72,16 +74,19 @@ export function InvoiceReconciliation({ row }: { row: InvoiceRecon }) {
 
 /** A client: the four figures, then every invoice. */
 export default function ClientReconciliation({ recon }: { recon: ClientRecon }) {
+  if(recon.groups?.length)return <>{recon.groups.map(group=><ClientReconciliation key={group.currency} recon={group}/>)}</>;
   if (!recon.invoices.length) return null;
+  const naira=(amount:number)=>money(amount,currencyOf(recon));
+  const nairaShort=naira;const exact=()=>undefined;
   const live = recon.invoices.filter((r) => !r.voided);
   const sum = (pick: (r: InvoiceRecon) => number) => live.reduce((n, r) => n + pick(r), 0);
   return (
-    <Panel title="Reconciliation" dataTour="client-reconcile">
+    <Panel title={`Reconciliation (${currencyOf(recon)})`} dataTour="client-reconcile">
       <dl className="ad__tiles" style={{ margin: ".9rem 1rem" }}>
-        <Tile label="Invoiced" value={nairaShort(recon.invoiced)} note={exact(recon.invoiced)} />
-        <Tile label="Received" value={nairaShort(recon.received)} note={exact(recon.received)} tone={recon.received ? "good" : undefined} />
-        <Tile label="Outstanding" value={nairaShort(recon.outstanding)} note={exact(recon.outstanding)} tone={recon.outstanding ? "bad" : "good"} />
-        <Tile label="Held as credit" value={nairaShort(recon.held)} note={exact(recon.held)} />
+        <Tile label="Invoiced" value={nairaShort(recon.invoiced)} note={exact()} />
+        <Tile label="Received" value={nairaShort(recon.received)} note={exact()} tone={recon.received ? "good" : undefined} />
+        <Tile label="Outstanding" value={nairaShort(recon.outstanding)} note={exact()} tone={recon.outstanding ? "bad" : "good"} />
+        <Tile label="Held as credit" value={nairaShort(recon.held)} note={exact()} />
       </dl>
       <div className="ad__scroll">
         <table className="ad__t">

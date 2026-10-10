@@ -1,4 +1,5 @@
 import { StageScroll } from "@/components/admin/stage-scroll";
+import { ProjectWorkspace } from "@/components/workspace/project-workspace";
 import type { Metadata } from "next";
 import { projectGlyph, projectTileStyle } from "@/components/client/service-glyph";
 import { hydrateSettings } from "@/lib/settings/store";
@@ -257,6 +258,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
+      <ProjectWorkspace projectId={p.id} />
       <div style={{ marginTop: "1.25rem" }}>
         {/* THE SYSTEMS RECORD, which the History panel deliberately is not.
             History is a narrative for whoever opens this next week -- "moved

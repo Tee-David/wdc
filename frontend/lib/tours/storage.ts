@@ -13,9 +13,12 @@ import type { TourCompletion } from "./types";
  */
 
 const PREFIX = "wdc-admin-tour:";
+let accountScope='guest';
+let syncGeneration=0;
+export function tourPersonKey(suffix:string){return `${PREFIX}person:${encodeURIComponent(accountScope)}:${suffix}`;}
 
 function key(tourId: string, version: number) {
-  return `${PREFIX}${tourId}@${version}`;
+  return tourPersonKey(`${tourId}@${version}`);
 }
 
 export function readCompletion(tourId: string, version: number): TourCompletion | null {
@@ -66,15 +69,24 @@ export function writeCompletion(tourId: string, version: number, status: TourCom
  */
 export async function syncFromAccount(tours: readonly { id: string; version: number }[]): Promise<boolean> {
   let records: Record<string, TourCompletion>;
+  const previousScope=accountScope;
+  const generation=++syncGeneration;
+  accountKnown=false;
   try {
     const res = await fetch("/api/tours", { cache: "no-store" });
-    if (res.status !== 200) return false;
-    records = (await res.json()).records ?? {};
+    if(generation!==syncGeneration)return false;
+    if (res.status !== 200) {accountScope='guest';return previousScope!==accountScope;}
+    const response=await res.json();
+    if(generation!==syncGeneration)return false;
+    if(typeof response.userId!=='string'||!response.userId){accountScope='guest';return previousScope!==accountScope;}
+    accountScope=response.userId;
+    records = response.records ?? {};
     accountKnown = true;
   } catch {
-    return false;
+    if(generation!==syncGeneration)return false;
+    accountScope='guest';return previousScope!==accountScope;
   }
-  let changed = false;
+  let changed = previousScope!==accountScope;
   for (const t of tours) {
     const tour = `${t.id}@${t.version}`;
     const remote = records[tour];

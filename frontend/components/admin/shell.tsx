@@ -390,6 +390,10 @@ function Notifications({ openForms, failedMail = 0, inReview = 0, unchecked = fa
       {open ? (
         <div className="ad__popover ad__notifications">
           <div className="ad__popoverHead"><b>Notifications</b></div>
+          <Link href="/admin/notifications" onClick={() => setOpen(false)} data-tour="workspace-inbox-link">
+            <span className="ad__noticeIcon"><Bell aria-hidden="true" /></span>
+            <span><b>Your project inbox</b><small>Decisions, team handovers and personal email preferences</small></span>
+          </Link>
           {failedMail > 0 ? (
             <Link href="/admin/settings/email/log?state=Failed" onClick={() => setOpen(false)}>
               <span className="ad__noticeIcon"><Bell aria-hidden="true" /></span>

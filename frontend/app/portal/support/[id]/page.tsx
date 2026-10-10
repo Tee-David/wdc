@@ -13,9 +13,9 @@ import "@/components/client/portal.css";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   await syncStore();
   const { id } = await params;
-  const { client } = await getPortalRequest();
+  const { client, isPrimaryContact } = await getPortalRequest();
   const t = client ? getTicket(id) : null;
-  if (!t || !client || t.clientId !== client.id) notFound();
+  if (!t || !client || !isPrimaryContact || t.clientId !== client.id) notFound();
   return { title: t.subject };
 }
 
@@ -35,9 +35,9 @@ export default async function PortalTicketThread({ params }: { params: Promise<{
   await syncStore();
   persistSoon();
   const { id } = await params;
-  const { client } = await getPortalRequest();
+  const { client, isPrimaryContact } = await getPortalRequest();
   const t = client ? getTicket(id) : null;
-  if (!t || !client || t.clientId !== client.id) notFound();
+  if (!t || !client || !isPrimaryContact || t.clientId !== client.id) notFound();
 
   const messages = getTicketMessages(t.id);
   const project = t.projectId ? getProject(t.projectId) : null;

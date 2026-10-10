@@ -24,7 +24,7 @@ export async function ProjectTimeline({ project, email, updates, deliverables, s
     .filter((m) => ["accepted", "confirmed"].includes(String(m.status).toLowerCase()) && (m.attendees ?? []).some((a) => a.email?.trim().toLowerCase() === mail));
   const items: Item[] = [
     ...(started ? [{ at: started, label: "Project started", icon: PlayCircle }] : []),
-    ...deliverables.flatMap((d) => d.versions.map((v) => ({ at: v.at, label: `${d.name} version ${v.v} sent to you`, icon: FileText }))),
+    ...deliverables.flatMap((d) => d.versions.map((v) => ({ at: v.sharedAt ?? v.at, label: `${d.name} version ${v.v} ${v.sharedAt ? "shared with you" : "available (creation date)"}`, icon: FileText }))),
     ...updates.map((u) => ({ at: u.at, label: `Update from ${u.author}`, icon: MessageSquare })),
     ...meetings.map((m) => ({ at: m.start, label: m.title, icon: CalendarDays, future: m.start > now })),
     ...(project.due ? [{ at: project.due, label: "Due date", icon: Flag, future: project.due > now }] : []),

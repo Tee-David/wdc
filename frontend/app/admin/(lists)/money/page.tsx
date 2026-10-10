@@ -1,3 +1,5 @@
+import CurrencyBalances from "@/components/money/currency-balances";
+import {currencyOf,money} from "@/lib/money/currency";
 import Link from "next/link";
 import { BulkBar, PickAll, RowPick } from "@/components/admin/bulk";
 import { hydrateSettings } from "@/lib/settings/store";
@@ -185,24 +187,25 @@ export default async function MoneyPage({
         </p>
       ) : null}
 
+      <CurrencyBalances invoices={getInvoices()}/>
       <dl className="ad__tiles ad__tiles--5" data-tour="money-tiles">
         {/* HOW MUCH OF WHAT WE BILLED ACTUALLY ARRIVED rides on Collected:
             null rather than 0% when nothing has been invoiced, because a red
             0% for a studio that has simply not billed yet is not a problem. */}
-        <Tile label="Collected" href="/admin/money?status=Paid" value={nairaShort(s.collected)} tone="good" icon={Wallet} iconTone="good"
+        <Tile label="Collected (NGN)" href="/admin/money?status=Paid" value={nairaShort(s.collected)} tone="good" icon={Wallet} iconTone="good"
               note={rate === null ? "Nothing invoiced yet" : `${Math.round(rate * 100)}% of ${nairaShort(s.invoiced)} billed`} />
-        <Tile label="Outstanding" href="/admin/money?status=Sent" value={nairaShort(s.outstanding)} icon={Clock} iconTone="live"
+        <Tile label="Outstanding (NGN)" href="/admin/money?status=Sent" value={nairaShort(s.outstanding)} icon={Clock} iconTone="live"
               note={`${openCount} invoice${openCount === 1 ? "" : "s"} open`} />
-        <Tile label="Overdue" href="/admin/money?status=Overdue" value={nairaShort(s.overdue)} tone={s.overdue ? "bad" : "good"} icon={AlertTriangle} iconTone={s.overdue ? "bad" : "good"}
+        <Tile label="Overdue (NGN)" href="/admin/money?status=Overdue" value={nairaShort(s.overdue)} tone={s.overdue ? "bad" : "good"} icon={AlertTriangle} iconTone={s.overdue ? "bad" : "good"}
               note={overdueCount ? `${overdueCount} invoice${overdueCount === 1 ? "" : "s"} late` : "Nothing late"} />
-        <Tile label="Spend" value={nairaShort(s.spend)} icon={CreditCard}
+        <Tile label="Spend (NGN)" value={nairaShort(s.spend)} icon={CreditCard}
               note={rebillable ? `${nairaShort(rebillable)} can be billed back` : "Nothing to bill back"} />
-        <Tile label="Net" value={nairaShort(s.profit)} tone={s.profit >= 0 ? "good" : "bad"} icon={TrendingUp} iconTone={s.profit >= 0 ? "good" : "bad"}
+        <Tile label="Net (NGN)" value={nairaShort(s.profit)} tone={s.profit >= 0 ? "good" : "bad"} icon={TrendingUp} iconTone={s.profit >= 0 ? "good" : "bad"}
               note="Collected less spend" />
       </dl>
 
       <div className="adDash__row">
-        <Panel title="Last six months" action={<span className="ad__dim ad__num">Peak {nairaShort(peak)}</span>}>
+        <Panel title="Last six months (NGN)" action={<span className="ad__dim ad__num">Peak {nairaShort(peak)}</span>}>
           <p className="adDash__sub">Collected each month against what was spent.</p>
           <CashflowChart months={months} totals={[
             { label: "Collected", value: months.reduce((n, m) => n + m.in, 0), key: "in" },
@@ -218,7 +221,7 @@ export default async function MoneyPage({
             The buckets are the conventional 30-day steps so they mean to an
             accountant what they mean here, and every row drills into the
             invoices behind it rather than asking anybody to trust a total. */}
-        <Panel title="Who owes what" action={owed ? <span className="ad__dim ad__num">{nairaShort(owed)}</span> : undefined}>
+        <Panel title="Who owes what (NGN)" action={owed ? <span className="ad__dim ad__num">{nairaShort(owed)}</span> : undefined}>
           {owed ? (
             <div className="ad__aging">
               <div className="ad__agingBar" role="img" aria-label={aging.map((b) => `${b.label} ${naira(b.amount)}`).join(", ")}>
@@ -345,8 +348,8 @@ export default async function MoneyPage({
                       <td className="ad__dim ad__num ad__docNo">{i.status === "Draft" ? "–" : when(i.issued)}</td>
                       <td><InvoicePill status={computedStatus} /></td>
                       <td className={`num ad__docNo${computedStatus === "Overdue" ? " ad__lateDue" : ""}`}>{when(i.due)}</td>
-                      <td className="num">{naira(t.total)}</td>
-                      <td className="num">{t.due ? naira(t.due) : <span className="ad__dim">Nil</span>}</td>
+                      <td className="num">{money(t.total,currencyOf(i))}</td>
+                      <td className="num">{t.due ? money(t.due,currencyOf(i)) : <span className="ad__dim">Nil</span>}</td>
                       <td className="ad__rmC">
                         <InvoiceMenu invoice={i} noReceipt={noticeBlock(client)}
                           edit={client ? { clientName: client.company, projectTitle: i.projectId ? projectById.get(i.projectId)?.title : undefined } : undefined} />
@@ -387,7 +390,7 @@ export default async function MoneyPage({
         {/* The order of the mockup: what is owed, then where money went,
             then what is quoted beside what came in. */}
         <div className="ad__grid2 ad__grid2--side">
-          <Panel title="Where the spend goes">
+          <Panel title="Where the spend goes (NGN)">
             <div style={{ padding: ".8rem 1rem" }}>
               {categories.map(([cat, amount]) => (
                 <div key={cat} style={{ padding: ".4rem 0" }}>
@@ -517,7 +520,7 @@ export default async function MoneyPage({
                           </td>
                           <td>{c ? <Link href={`/admin/clients/${c.id}`}>{c.company}</Link> : "–"}</td>
                           <td className="ad__num ad__dim ad__docNo">{when(e.expires)}</td>
-                          <td className="num">{naira(estimateTotals(e).total)}</td>
+                          <td className="num">{money(estimateTotals(e).total,currencyOf(e))}</td>
                           <td className="ad__rmC"><EstimateMenu estimate={e} noEmail={noEmail[e.clientId]} /></td>
                         </tr>
                       );
@@ -552,7 +555,7 @@ export default async function MoneyPage({
                             <small className="ad__dim ad__num ad__subLine">{p.reference}</small>
                           </td>
                           <td>{p.method}</td>
-                          <td className="num">{naira(p.amount)}{paymentState(p) !== "Received" ? <small className="ad__dim">{paymentState(p)}{paymentState(p) === "Part refunded" ? `, ${naira(refundedTotal(p))} back` : ""}</small> : null}</td>
+                          <td className="num">{money(p.amount,currencyOf(p))}{paymentState(p) !== "Received" ? <small className="ad__dim">{paymentState(p)}{paymentState(p) === "Part refunded" ? `, ${money(refundedTotal(p),currencyOf(p))} back` : ""}</small> : null}</td>
                           <td className="ad__rmC">
                             <PaymentMenu payment={p} invoiceNumber={inv?.number} noEmail={inv ? noEmail[inv.clientId] : undefined} />
                           </td>

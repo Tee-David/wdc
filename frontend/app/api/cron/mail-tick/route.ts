@@ -1,5 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
-import { NextResponse, type NextRequest } from "next/server";
+import { after,NextResponse, type NextRequest } from "next/server";
 import { runBatch } from "@/lib/campaigns";
 import { runAutomations } from "@/lib/automations";
 
@@ -21,7 +21,12 @@ async function handle(request: NextRequest) {
   const campaigns = await runBatch();
   /* Automations ride the same heartbeat; a failure there must not hide the campaign result. */
   const automations = await runAutomations().catch(() => null);
-  return NextResponse.json({ ...campaigns, automations });
+  // Intent already exists in the database. One workspace SMTP attempt runs after this response.
+  after(async()=>{
+    try { const {dispatchWorkspaceEvents}=await import('@/lib/workspace/events');await dispatchWorkspaceEvents({limit:1}); }
+    catch { console.error('[workspace-mail] Dispatch interrupted. Pending or unconfirmed attempts remain in the durable notification log.'); }
+  });
+  return NextResponse.json({ ...campaigns, automations,workspace:{scheduled:true,acceptance:'Check the message log after the provider answers.'} });
 }
 export const GET = handle;
 export const POST = handle;

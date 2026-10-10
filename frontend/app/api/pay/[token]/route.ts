@@ -1,3 +1,4 @@
+import {currencyOf} from "@/lib/money/currency";
 import { NextRequest, NextResponse } from "next/server";
 import { SITE_URL } from "@/lib/site";
 import { callerKey, rateLimit } from "@/lib/rate-limit";
@@ -63,6 +64,7 @@ async function start(request: NextRequest, ctx: { params: Promise<{ token: strin
   /* A struck invoice is not owed. Refusing here rather than letting the
      checkout open means nobody pays money that would immediately have to be
      sent back. */
+  if(currencyOf(inv)!=="NGN")return new NextResponse("This currency uses manual payment. Use the account details on the invoice.",{status:422});
   if (inv.voided) return back(token, "voided");
 
   const totals = invoiceTotals(inv);

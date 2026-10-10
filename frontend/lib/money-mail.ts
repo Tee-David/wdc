@@ -1,4 +1,6 @@
+import {currencyOf,money} from "@/lib/money/currency";
 import "server-only";
+import {stageLegacyMoneyNotification} from "@/lib/workspace/legacy-notifications";
 
 import { SITE_URL } from "@/lib/site";
 import { escapeHtml, mailIsConfigured, studioInbox } from "@/lib/email";
@@ -7,11 +9,11 @@ import {
   estimateAnswerNoticeEmail, estimateAnsweredEmail, estimateSentEmail, invoiceVoidedEmail,
   paymentNoticeEmail, paymentRefundedEmail, paymentReversedEmail,
 } from "@/lib/email-templates";
-import { getClient, getEstimate, getInvoice, getPayments, getSetting } from "@/lib/admin/store";
+import { getClient, getEstimate, getInvoice, getPayments, getProject, getSetting } from "@/lib/admin/store";
 import { hydrateSettings } from "@/lib/settings/store";
-import { queueLogged, recordResend, retryLogged, type LoggedMessage } from "@/lib/message-log";
+import { queueLogged, recordResend, retryLogged, settleLogged, type LoggedMessage } from "@/lib/message-log";
 import { sendQueuedLogged, type OutboxLog } from "@/lib/outbox";
-import { estimateTotals, invoiceTotals, naira, notifyAllows } from "@/lib/admin/types";
+import { estimateTotals, invoiceTotals, notifyAllows } from "@/lib/admin/types";
 import type { Estimate, Invoice, Message, Payment, Refund } from "@/lib/admin/types";
 import { mailKey, noticeVerdict } from "@/lib/admin/money-rules";
 
@@ -71,6 +73,8 @@ type Base = {
   unsubscribe?: boolean;
   /** A person asked for this: a Failed or Skipped row may be replaced. */
   retry?: boolean;
+  receiptPayment?: Payment;
+  receiptInvoice?: Invoice;
 };
 type Hold = { reason: "no address" | "opted out" | "switched off"; say: string };
 type Outgoing = Base & ({ hold: Hold; text?: undefined; html?: undefined } | { hold?: undefined; text: string; html: string });
@@ -90,9 +94,11 @@ async function stage(out: Outgoing): Promise<Staged> {
     by: out.by, clientId: out.clientId, about: out.about,
   };
   const held = out.hold;
+  const notify=()=>out.dedupeKey.startsWith("receipt-copy:")?Promise.resolve():stageLegacyMoneyNotification({key:out.dedupeKey,clientId:out.clientId,about:out.about,title:out.subject,summary:out.summary||"Open the financial record for its current details.",by:out.by,existingAddress:out.to});
   const entry = held ? { ...row, summary: `Not sent: ${held.say}`, state: "Skipped" as const } : { ...row, summary: out.summary };
 
-  let queued = await queueLogged(entry);
+  let queued = await queueLogged(entry,true);
+  if(queued.ok)await notify();
   let retired: LoggedMessage | null = null;
   if (!queued.ok) {
     const was = queued.message;
@@ -109,7 +115,7 @@ async function stage(out: Outgoing): Promise<Staged> {
       };
     }
     retired = await retryLogged(was.id, out.by);
-    if (retired) queued = await queueLogged(entry);
+    if (retired){queued = await queueLogged(entry,true);if(queued.ok)await notify();}
     if (!queued.ok) return { state: "already", say: "That is already on its way." };
   } else if (held) {
     return { state: "skipped", ...held };
@@ -123,10 +129,19 @@ async function stage(out: Outgoing): Promise<Staged> {
     run: async () => {
       const started = Date.now();
       try {
-        await sendQueuedLogged(mail, log, id);
+        if(out.receiptPayment && out.receiptInvoice){
+          const {syncStore}=await import("@/lib/admin/persist");await syncStore();await hydrateSettings();
+          const {renderReceiptPdf}=await import("@/lib/money/receipt-pdf");
+          const {receiptPdfName}=await import("@/lib/money/receipt-model");
+          const payment=getPayments().find(p=>p.id===out.receiptPayment!.id)??out.receiptPayment;
+          const invoice=getInvoice(payment.invoiceId)??out.receiptInvoice;
+          const bytes=await renderReceiptPdf({payment,invoice,client:getClient(invoice.clientId),projectTitle:invoice.projectId?getProject(invoice.projectId)?.title??null:null,tin:getSetting("finance.tin")??"",footerNote:getSetting("finance.footerNote")??"",currency:currencyOf(invoice)});
+          await sendQueuedLogged({...mail,attachments:[{filename:receiptPdfName(payment.receiptNo),content:Buffer.from(bytes),contentType:"application/pdf"}]},log,id);
+        }else await sendQueuedLogged(mail, log, id);
         if (retired) await recordResend(retired.id, { at: new Date().toISOString(), to: out.to, by: out.by, sent: true, ms: Date.now() - started });
         return { sent: true };
       } catch (error) {
+        await settleLogged(id,"Failed",error instanceof Error?error.message.slice(0,200):"Receipt delivery failed.");
         if (retired) await recordResend(retired.id, { at: new Date().toISOString(), to: out.to, by: out.by, sent: false, error: error instanceof Error ? error.message.slice(0, 200) : undefined });
         return { sent: false, reason: configured ? "send failed" : "mail not configured" };
       }
@@ -160,13 +175,13 @@ function reach(invoiceClientId: string, opts: { record?: boolean } = {}) {
 
 /* ------------------------------------------------------------- receipts */
 
-type ReceiptInput = { payment: Payment; invoice: Invoice; outstanding: number; by?: string; retry?: boolean };
+type ReceiptInput = { payment: Payment; invoice: Invoice; outstanding: number; by?: string; retry?: boolean; toOverride?: string };
 
 /**
  * "We have your money." The receipt for one payment, whatever the method.
  *
- * IT CARRIES THE RECEIPT'S OWN URL rather than an attachment. The public
- * receipt is the live document: it knows about a later reversal, and an
+ * IT CARRIES A PDF COPY AND THE RECEIPT'S OWN URL. The public
+ * receipt is the live document: it knows about a later reversal; an
  * attached copy does not. The invoice's own link sits under it, so a client
  * can see everything billed and everything paid against it.
  *
@@ -175,24 +190,25 @@ type ReceiptInput = { payment: Payment; invoice: Invoice; outstanding: number; b
  */
 function planReceipt(input: ReceiptInput, key = mailKey.receipt(input.payment.id)): Outgoing {
   const { payment, invoice, outstanding } = input;
-  const { to, hold } = reach(invoice.clientId, { record: payment.method === "Paystack" });
+  const reached = reach(invoice.clientId, { record: payment.method === "Paystack" });
+  const to=input.toOverride??reached.to,hold=input.toOverride?undefined:reached.hold;
   const about = { kind: "payment" as const, id: payment.id, label: payment.receiptNo };
   const by = input.by ?? payment.by;
-  const base = { to, clientId: invoice.clientId, about, dedupeKey: key, by, retry: input.retry, subject: `Receipt ${payment.receiptNo}: ${naira(payment.amount)} received` };
+  const base = { to, clientId: invoice.clientId, about, dedupeKey: key, by, retry: input.retry, receiptPayment:payment,receiptInvoice:invoice, subject: `Receipt ${payment.receiptNo}: ${money(payment.amount,currencyOf(invoice))} received` };
   if (hold) return { ...base, summary: "", hold };
 
   const url = receiptLink(payment);
   const invoiceUrl = invoiceLink(invoice);
   const received = emailDate(new Date(payment.at));
   const line = outstanding > 0
-    ? `${naira(outstanding)} is still outstanding on ${invoice.number}.`
+    ? `${money(outstanding,currencyOf(invoice))} is still outstanding on ${invoice.number}.`
     : `${invoice.number} is settled in full. Thank you.`;
 
   return {
     ...base,
-    summary: `${naira(payment.amount)} against ${invoice.number}. ${line}`,
+    summary: `${money(payment.amount,currencyOf(invoice))} against ${invoice.number}. ${line}`,
     text: [
-      `We have received ${naira(payment.amount)} against ${invoice.number}.`,
+      `We have received ${money(payment.amount,currencyOf(invoice))} against ${invoice.number}.`,
       line,
       "",
       `Your receipt: ${url}`,
@@ -200,8 +216,8 @@ function planReceipt(input: ReceiptInput, key = mailKey.receipt(input.payment.id
       "",
       `Receipt number ${payment.receiptNo}. Received ${received}, by ${payment.method}, reference ${payment.reference}.`,
     ].join("\n"),
-    html: shell("Thank you, payment received", `${naira(payment.amount)} received against ${invoice.number}.`, [
-      emailFigure(naira(payment.amount), { label: "Received", note: line }),
+    html: shell("Thank you, payment received", `${money(payment.amount,currencyOf(invoice))} received against ${invoice.number}.`, [
+      emailFigure(money(payment.amount,currencyOf(invoice)), { label: "Received", note: line }),
       emailPanel([["Receipt", payment.receiptNo], ["Invoice", invoice.number], ["Received", received], ["Paid by", payment.method], ["Reference", payment.reference]]),
       emailButton("Open your receipt", url),
       emailSmall(`The invoice, with everything billed and paid against it: <a href="${emailSafeUrl(invoiceUrl)}">${escapeHtml(invoice.number)}</a>.`),
@@ -225,6 +241,12 @@ export async function sendPaymentReceiptEmail(input: ReceiptInput) {
  * day, and a client cannot be sent the same receipt more than once a day.
  */
 export async function stageReceipt(input: ReceiptInput & { again?: boolean }): Promise<Staged> {
+  if(input.toOverride){
+    const {createHash}=await import("node:crypto");
+    const day=new Date(Date.now()+60*60*1000).toISOString().slice(0,10);
+    const recipient=createHash("sha256").update(input.toOverride.toLowerCase()).digest("hex").slice(0,24);
+    return stage(planReceipt({...input,retry:true},`receipt-copy:${input.payment.id}:${recipient}:${day}`));
+  }
   const firstTry = await stage(planReceipt({ ...input, retry: true }));
   if (firstTry.state !== "already" || !input.again) return firstTry;
   const day = new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -244,13 +266,13 @@ export async function sendPaymentNotice(input: { payment: Payment; invoice: Invo
   const client = getClient(invoice.clientId);
   const company = client?.company || client?.name || "A client";
   const mail = paymentNoticeEmail({
-    company, amount: naira(payment.amount), invoice: invoice.number, method: payment.method,
-    left: outstanding > 0 ? `${naira(outstanding)} still owed.` : "Settled in full.",
+    company, amount: money(payment.amount,currencyOf(invoice)), invoice: invoice.number, method: payment.method,
+    left: outstanding > 0 ? `${money(outstanding,currencyOf(invoice))} still owed.` : "Settled in full.",
     url: new URL(`/admin/money/${invoice.id}`, SITE_URL).toString(),
   });
   return deliver({
     to: studioInbox(), ...mail,
-    summary: `Studio notice: ${naira(payment.amount)} from ${company}.`,
+    summary: `Studio notice: ${money(payment.amount,currencyOf(invoice))} from ${company}.`,
     dedupeKey: mailKey.paidNotice(payment.id), by: payment.by, clientId: invoice.clientId,
     about: { kind: "payment", id: payment.id, label: payment.receiptNo },
   });
@@ -306,24 +328,24 @@ function planInvoice(input: { invoice: Invoice; by?: string; retry?: boolean }):
   const due = new Date(invoice.due).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
   const part = invoice.paid > 0 && totals.due > 0;
   const subject = part
-    ? `Invoice ${invoice.number}: ${naira(totals.due)} balance due ${due}`
-    : `Invoice ${invoice.number}: ${naira(totals.due)} due ${due}`;
+    ? `Invoice ${invoice.number}: ${money(totals.due,currencyOf(invoice))} balance due ${due}`
+    : `Invoice ${invoice.number}: ${money(totals.due,currencyOf(invoice))} due ${due}`;
   if (hold) return { ...base, subject, summary: "", hold };
 
   return {
     ...base, subject,
-    summary: `${naira(totals.due)} ${part ? "balance " : ""}due ${due}. Link sent to ${to}.`,
+    summary: `${money(totals.due,currencyOf(invoice))} ${part ? "balance " : ""}due ${due}. Link sent to ${to}.`,
     text: [
       part
-        ? `Invoice ${invoice.number}: ${naira(invoice.paid)} is already in, and the balance of ${naira(totals.due)} is due on ${due}.`
-        : `Invoice ${invoice.number} for ${naira(totals.due)} is due on ${due}.`,
+        ? `Invoice ${invoice.number}: ${money(invoice.paid,currencyOf(invoice))} is already in, and the balance of ${money(totals.due,currencyOf(invoice))} is due on ${due}.`
+        : `Invoice ${invoice.number} for ${money(totals.due,currencyOf(invoice))} is due on ${due}.`,
       "",
       `Open it, and pay by card or transfer, here: ${url}`,
       "",
       "Card or bank transfer, both on the same page. Anything that goes wrong, reply to this email and we will sort it out.",
     ].join("\n"),
-    html: shell(`Invoice ${invoice.number}`, `${naira(totals.due)} due ${due}.`, [
-      emailFigure(naira(totals.due), { label: part ? "Balance due" : "Amount due", note: part ? `${naira(invoice.paid)} already received. Due ${due}` : `Due ${due}` }),
+    html: shell(`Invoice ${invoice.number}`, `${money(totals.due,currencyOf(invoice))} due ${due}.`, [
+      emailFigure(money(totals.due,currencyOf(invoice)), { label: part ? "Balance due" : "Amount due", note: part ? `${money(invoice.paid,currencyOf(invoice))} already received. Due ${due}` : `Due ${due}` }),
       emailP("The invoice shows everything billed and anything already paid against it. Pay by card or transfer on the same page."),
       emailButton("Open and pay the invoice", url),
       emailSmall(`Anything that goes wrong, reply to this email quoting ${escapeHtml(invoice.number)} and we will sort it out.`),
@@ -369,16 +391,16 @@ function planReminder(input: { invoice: Invoice; today?: Date; by?: string; retr
 
   return {
     ...base, unsubscribe: true,
-    summary: `${naira(totals.due)} outstanding, due ${due}.`,
+    summary: `${money(totals.due,currencyOf(invoice))} outstanding, due ${due}.`,
     text: [
-      `This is a friendly reminder that ${naira(totals.due)} is outstanding on invoice ${invoice.number}, which was due on ${due}.`,
+      `This is a friendly reminder that ${money(totals.due,currencyOf(invoice))} is outstanding on invoice ${invoice.number}, which was due on ${due}.`,
       "",
       `Open and pay it here: ${url}`,
       "",
       "If it has already been paid, or if something about it needs sorting out, just reply and we will take a look.",
     ].join("\n"),
-    html: shell("A reminder about your invoice", `${naira(totals.due)} outstanding on ${invoice.number}.`, [
-      emailFigure(naira(totals.due), { label: "Still to pay", note: `${invoice.number} · due ${due}` }),
+    html: shell("A reminder about your invoice", `${money(totals.due,currencyOf(invoice))} outstanding on ${invoice.number}.`, [
+      emailFigure(money(totals.due,currencyOf(invoice)), { label: "Still to pay", note: `${invoice.number} · due ${due}` }),
       emailButton("Open and pay the invoice", url),
       emailSmall("Already paid, or something needs sorting out? Reply to this email and we will take a look."),
     ], true, { why: "You get reminders while an invoice is unpaid.", manage: "client" }),
@@ -404,7 +426,7 @@ function planVoid(input: { invoice: Invoice; by?: string; retry?: boolean }): Ou
     subject: `Invoice ${invoice.number} has been cancelled`,
   };
   if (hold) return { ...base, summary: "", hold };
-  const mail = invoiceVoidedEmail({ clientName: first(client?.name ?? ""), number: invoice.number, reason: invoice.voided?.reason ?? "It was raised in error.", url: invoiceLink(invoice) });
+  const mail = invoiceVoidedEmail({currency:currencyOf(invoice), clientName: first(client?.name ?? ""), number: invoice.number, reason: invoice.voided?.reason ?? "It was raised in error.", url: invoiceLink(invoice) });
   return { ...base, ...mail, summary: `Told the client ${invoice.number} is cancelled and nothing is owed.` };
 }
 export const stageVoidNotice = (input: { invoice: Invoice; by?: string }) => stage(planVoid({ ...input, retry: true }));
@@ -417,14 +439,14 @@ function planRefund(input: { payment: Payment; refund: Refund; invoice: Invoice;
     to, clientId: invoice.clientId, retry: input.retry,
     about: { kind: "payment" as const, id: payment.id, label: payment.receiptNo },
     dedupeKey: mailKey.refunded(refund.id), by: input.by ?? refund.by,
-    subject: refund.toCredit ? `${naira(refund.amount)} is being held on your account` : `${naira(refund.amount)} refunded`,
+    subject: refund.toCredit ? `${money(refund.amount,currencyOf(invoice))} is being held on your account` : `${money(refund.amount,currencyOf(invoice))} refunded`,
   };
   if (hold) return { ...base, summary: "", hold };
   const mail = paymentRefundedEmail({
     clientName: first(client?.name ?? ""), receiptNo: payment.receiptNo, invoice: invoice.number,
-    amount: refund.amount, toCredit: refund.toCredit, owedNow: invoiceTotals(invoice).due, url: receiptLink(payment),
+    currency:currencyOf(invoice),amount: refund.amount, toCredit: refund.toCredit, owedNow: invoiceTotals(invoice).due, url: receiptLink(payment),
   });
-  return { ...base, ...mail, summary: `Told the client ${naira(refund.amount)} of ${payment.receiptNo} was ${refund.toCredit ? "held on their account" : "refunded"}.` };
+  return { ...base, ...mail, summary: `Told the client ${money(refund.amount,currencyOf(invoice))} of ${payment.receiptNo} was ${refund.toCredit ? "held on their account" : "refunded"}.` };
 }
 export const stageRefundNotice = (input: { payment: Payment; refund: Refund; invoice: Invoice; by?: string }) => stage(planRefund({ ...input, retry: true }));
 
@@ -441,9 +463,9 @@ function planReversal(input: { payment: Payment; invoice: Invoice; by?: string; 
   if (hold) return { ...base, summary: "", hold };
   const mail = paymentReversedEmail({
     clientName: first(client?.name ?? ""), receiptNo: payment.receiptNo, invoice: invoice.number,
-    amount: payment.amount, owedNow: invoiceTotals(invoice).due, invoiceUrl: invoiceLink(invoice), url: receiptLink(payment),
+    currency:currencyOf(invoice),amount: payment.amount, owedNow: invoiceTotals(invoice).due, invoiceUrl: invoiceLink(invoice), url: receiptLink(payment),
   });
-  return { ...base, ...mail, summary: `Told the client ${payment.receiptNo} was reversed. ${naira(invoiceTotals(invoice).due)} owed now.` };
+  return { ...base, ...mail, summary: `Told the client ${payment.receiptNo} was reversed. ${money(invoiceTotals(invoice).due,currencyOf(invoice))} owed now.` };
 }
 export const stageReversalNotice = (input: { payment: Payment; invoice: Invoice; by?: string }) => stage(planReversal({ ...input, retry: true }));
 
@@ -461,10 +483,10 @@ function planEstimateSent(input: { estimate: Estimate; by?: string; retry?: bool
   if (hold) return { ...base, summary: "", hold };
   const total = estimateTotalOf(estimate);
   const mail = estimateSentEmail({
-    clientName: first(client?.name ?? ""), number: estimate.number, total, expires: new Date(estimate.expires),
+    clientName: first(client?.name ?? ""), number: estimate.number, currency:currencyOf(estimate),total, expires: new Date(estimate.expires),
     notes: estimate.notes, url: estimateLink(estimate),
   });
-  return { ...base, ...mail, summary: `${naira(total)}, holds until ${emailDate(new Date(estimate.expires))}. Link sent to ${to}.` };
+  return { ...base, ...mail, summary: `${money(total,currencyOf(estimate))}, holds until ${emailDate(new Date(estimate.expires))}. Link sent to ${to}.` };
 }
 export const stageEstimateSent = (input: { estimate: Estimate; by?: string }) => stage(planEstimateSent({ ...input, retry: true }));
 
@@ -500,7 +522,7 @@ export async function stageEstimateStudioNotice(input: { estimate: Estimate; inv
   const company = client?.company || client?.name || "A client";
   const accepted = estimate.state === "Accepted";
   const mail = estimateAnswerNoticeEmail({
-    company, number: estimate.number, accepted, by: estimate.answered?.by ?? by, total: estimateTotalOf(estimate),
+    company, number: estimate.number, currency:currencyOf(estimate),accepted, by: estimate.answered?.by ?? by, total: estimateTotalOf(estimate),
     invoiceNumber: invoice?.number, note: estimate.answered?.note,
     url: new URL(`/admin/money`, SITE_URL).toString(),
   });
@@ -528,6 +550,7 @@ const estimateTotalOf = (e: Estimate) => estimateTotals(e).total;
  */
 export async function restageFromKey(dedupeKey: string, by: string): Promise<Staged | null> {
   const base = dedupeKey.split(":superseded:")[0];
+  if(base.startsWith("receipt-copy:"))return {state:"already",say:"Open the payment and use Send the receipt with the same alternate address to retry this copy. The client address will not be used."};
   const m = /^(invoice|receipt|reminder|paid-notice|void|refund|reversal|estimate-sent|estimate-answer|estimate-notice):([^:]+)/.exec(base);
   if (!m) return null;
   const [, kind, id] = m;
@@ -553,13 +576,13 @@ export async function restageFromKey(dedupeKey: string, by: string): Promise<Sta
     const company = client?.company || client?.name || "A client";
     const outstanding = invoiceTotals(invoice).due;
     const mail = paymentNoticeEmail({
-      company, amount: naira(payment.amount), invoice: invoice.number, method: payment.method,
-      left: outstanding > 0 ? `${naira(outstanding)} still owed.` : "Settled in full.",
+      company, amount: money(payment.amount,currencyOf(invoice)), invoice: invoice.number, method: payment.method,
+      left: outstanding > 0 ? `${money(outstanding,currencyOf(invoice))} still owed.` : "Settled in full.",
       url: new URL(`/admin/money/${invoice.id}`, SITE_URL).toString(),
     });
     return stage({
       to: studioInbox(), ...mail, retry: true,
-      summary: `Studio notice: ${naira(payment.amount)} from ${company}.`,
+      summary: `Studio notice: ${money(payment.amount,currencyOf(invoice))} from ${company}.`,
       dedupeKey: mailKey.paidNotice(payment.id), by, clientId: invoice.clientId,
       about: { kind: "payment", id: payment.id, label: payment.receiptNo },
     });

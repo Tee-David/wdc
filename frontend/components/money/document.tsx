@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { COMPANY_NAME, CONTACT_EMAIL, REGISTRATION_NO, SITE_URL } from "@/lib/site";
-import { naira } from "@/lib/admin/types";
+import { money } from "@/lib/money/currency";
 import { getSetting } from "@/lib/admin/store";
 import QrCode from "@/components/ui/qr-code";
 import Stamp, { type StampStatus } from "./stamp";
@@ -45,6 +45,7 @@ export function DocumentShell({
   return (
     <main className="doc">
       <article className="doc__sheet">
+        <Image className="doc__watermark" src="/brand/document-watermark.png" alt="" width={300} height={300} aria-hidden="true"/>
         <header className="doc__top">
           <div className="doc__who">
             {/* A fixed width and height, so the sheet does not reflow when the
@@ -97,17 +98,18 @@ export function DocumentShell({
 
 /** A figure with its own label, sized to be the thing you see first. */
 export function Headline({
-  label, amount, clear, pill,
+  label, amount, clear, pill, currency="NGN",
 }: {
   label: string;
   amount: number;
   clear?: boolean;
+  currency?:string;
   pill?: { text: string; tone: "good" | "bad" | "warn" | "due" };
 }) {
   return (
     <div className={`doc__owed${clear ? " is-clear" : ""}`}>
       <span className="doc__k">{label}</span>
-      <b>{naira(amount)}</b>
+      <b>{money(amount,currency)}</b>
       {pill ? <span className={`doc__pill doc__pill--${pill.tone}`}>{pill.text}</span> : null}
     </div>
   );

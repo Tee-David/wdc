@@ -188,6 +188,15 @@ export async function syncStore(): Promise<void> {
   return state.inflight;
 }
 
+/** Adopt a committed transaction without a later deferred save replaying stale JSON. */
+export function adoptPersistedRecord(collection: string, id: string, data: {id:string} | null): void {
+  const rows=persistedCollections()[collection];
+  if(!rows) throw new Error("Unknown persisted collection.");
+  apply(collection,rows,id,data);
+  // Leave the sequence cursor untouched: catch-up must still read other committed records.
+  state.checkedAt=0;
+}
+
 /** Write what changed. Actions await it before they answer. */
 export async function saveStore(): Promise<void> {
   if (!configured()) throw new Error("The admin database is not configured.");
